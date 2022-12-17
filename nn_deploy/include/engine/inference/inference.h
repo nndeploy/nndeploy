@@ -8,18 +8,18 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNKIT_INFERENCE_INFERENCE_
-#define _NNKIT_INFERENCE_INFERENCE_
+#ifndef _NN_DEPLOY_INFERENCE_INFERENCE_
+#define _NN_DEPLOY_INFERENCE_INFERENCE_
 
-#include "nnkit/base/config.h"
-#include "nnkit/base/status.h"
-#include "nnkit/inference/abstract_session.h"
+#include "nn_deploy/base/config.h"
+#include "nn_deploy/base/status.h"
+#include "nn_deploy/inference/abstract_session.h"
 
 
-using namespace nnkit::base;
-using namespace nnkit::device;
+using namespace nn_deploy::base;
+using namespace nn_deploy::device;
 
-namespace nnkit {
+namespace nn_deploy {
 namespace inference {
 
 class InferenceNode : Node {
@@ -41,6 +41,6 @@ class InferenceNode : Node {
 };
 
 }  // namespace inference
-}  // namespace nnkit
+}  // namespace nn_deploy
 
 #endif

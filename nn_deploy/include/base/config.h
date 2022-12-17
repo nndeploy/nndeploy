@@ -8,13 +8,13 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNKIT_BASE_CONFIG_
-#define _NNKIT_BASE_CONFIG_
+#ifndef _NN_DEPLOY_BASE_CONFIG_
+#define _NN_DEPLOY_BASE_CONFIG_
 
-#include "nnkit/base/include_c_cpp.h"
-#include "nnkit/base/macro.h"
+#include "nn_deploy/base/include_c_cpp.h"
+#include "nn_deploy/base/macro.h"
 
-namespace nnkit {
+namespace nn_deploy {
 namespace base {
 
 enum DataTypeCode : uint8_t {
@@ -235,6 +235,6 @@ using SizeVector = std::vector<size_t>;
 using ShapeMap = std::map<std::string, std::vector<int32_t>>;
 
 }  // namespace base
-}  // namespace nnkit
+}  // namespace nn_deploy
 
 #endif

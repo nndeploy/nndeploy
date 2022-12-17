@@ -9,15 +9,15 @@
  *
  */
 
-#ifndef _NNKIT_DEVICE_BUFFER_
-#define _NNKIT_DEVICE_BUFFER_
+#ifndef _NN_DEPLOY_DEVICE_BUFFER_
+#define _NN_DEPLOY_DEVICE_BUFFER_
 
-#include "nnkit/base/config.h"
-#include "nnkit/base/status.h"
+#include "nn_deploy/base/config.h"
+#include "nn_deploy/base/status.h"
 
-using namespace nnkit::base;
+using namespace nn_deploy::base;
 
-namespace nnkit {
+namespace nn_deploy {
 namespace device {
 
 struct BufferDesc {
@@ -71,6 +71,6 @@ class Buffer {
 };
 
 }  // namespace device
-}  // namespace nnkit
+}  // namespace nn_deploy
 
 #endif

@@ -9,12 +9,12 @@
  * 
  */
 
-#ifndef _NNKIT_BASE_HALF_
-#define _NNKIT_BASE_HALF_
+#ifndef _NN_DEPLOY_BASE_HALF_
+#define _NN_DEPLOY_BASE_HALF_
 
-#include "nnkit/base/include_c_cpp.h"
+#include "nn_deploy/base/include_c_cpp.h"
 
-namespace nnkit {
+namespace nn_deploy {
 namespace base {
 
 bool ConvertFromFloatToBfp16(float *fp32, void *bfp16, int count);

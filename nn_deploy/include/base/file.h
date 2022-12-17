@@ -10,12 +10,12 @@
  * # 像python一样操作
  *
  */
-#ifndef _NNKIT_BASE_FILE_
-#define _NNKIT_BASE_FILE_
+#ifndef _NN_DEPLOY_BASE_FILE_
+#define _NN_DEPLOY_BASE_FILE_
 
-#include "nnkit/base/include_c_cpp.h"
+#include "nn_deploy/base/include_c_cpp.h"
 
-namespace nnkit {
+namespace nn_deploy {
 namespace base {
 
 std::string OpenFile(const std::string &file_path);
@@ -35,6 +35,6 @@ bool ExistFile(const std::string &file_path);
 std::string GenDefaultStrTag();
 
 }  // namespace base
-}  // namespace nnkit
+}  // namespace nn_deploy
 
 #endif

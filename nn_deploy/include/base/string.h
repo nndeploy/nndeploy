@@ -9,12 +9,12 @@
  * @todo
  * # 像python一样操作
  */
-#ifndef _NNKIT_BASE_STRING_
-#define _NNKIT_BASE_STRING_
+#ifndef _NN_DEPLOY_BASE_STRING_
+#define _NN_DEPLOY_BASE_STRING_
 
-#include "nnkit/base/include_c_cpp.h"
+#include "nn_deploy/base/include_c_cpp.h"
 
-namespace nnkit {
+namespace nn_deploy {
 namespace base {
 
 std::string UcharToString(const unsigned char *buffer, int length);
@@ -74,6 +74,6 @@ class StringSplit {
 };
 
 }  // namespace base
-}  // namespace nnkit
+}  // namespace nn_deploy
 
 #endif
