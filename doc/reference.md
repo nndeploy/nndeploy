@@ -1,0 +1,25 @@
+# reference
++ inference
+  + tnn 
+  + mnn
+  + ncnn
+  + - 
+  + spne
+  + tensor_rt
+  + openvino
+  + coreml
+  + tflite
+  + onnxruntime
+  + tvm
+  + - 
+  + pytorch
+  + tensorflow
+  + minspore
+  + paddle
+  + oneflow
++ application
+  + mediapipe
++ op
+  + opencv
+  + ppl.cv
++ movit
