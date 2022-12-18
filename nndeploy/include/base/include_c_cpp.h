@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NN_DEPLOY_BASE_INCLUDE_C_CPP_
-#define _NN_DEPLOY_BASE_INCLUDE_C_CPP_
+#ifndef _NNDEPLOY_INCLUDE_BASE_INCLUDE_C_CPP_
+#define _NNDEPLOY_INCLUDE_BASE_INCLUDE_C_CPP_
 
 /**
  * @brief

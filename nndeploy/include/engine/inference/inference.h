@@ -8,18 +8,18 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NN_DEPLOY_INFERENCE_INFERENCE_
-#define _NN_DEPLOY_INFERENCE_INFERENCE_
+#ifndef _NNDEPLOY_INCLUDE_INFERENCE_INFERENCE_
+#define _NNDEPLOY_INCLUDE_INFERENCE_INFERENCE_
 
-#include "nn_deploy/base/config.h"
-#include "nn_deploy/base/status.h"
-#include "nn_deploy/inference/abstract_session.h"
+#include "nndeploy/include/base/config.h"
+#include "nndeploy/include/base/status.h"
+#include "nndeploy/include/inference/abstract_session.h"
 
 
-using namespace nn_deploy::base;
-using namespace nn_deploy::device;
+using namespace nndeploy::base;
+using namespace nndeploy::device;
 
-namespace nn_deploy {
+namespace nndeploy {
 namespace inference {
 
 class InferenceNode : Node {
@@ -41,6 +41,6 @@ class InferenceNode : Node {
 };
 
 }  // namespace inference
-}  // namespace nn_deploy
+}  // namespace nndeploy
 
 #endif

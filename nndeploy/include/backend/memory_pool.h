@@ -8,15 +8,15 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NN_DEPLOY_DEVICE_MEMORY_POOL_
-#define _NN_DEPLOY_DEVICE_MEMORY_POOL_
+#ifndef _NNDEPLOY_INCLUDE_DEVICE_MEMORY_POOL_
+#define _NNDEPLOY_INCLUDE_DEVICE_MEMORY_POOL_
 
-#include "nn_deploy/base/config.h"
-#include "nn_deploy/base/status.h"
+#include "nndeploy/include/base/config.h"
+#include "nndeploy/include/base/status.h"
 
-using namespace nn_deploy::base;
+using namespace nndeploy::base;
 
-namespace nn_deploy {
+namespace nndeploy {
 namespace device {
 
 enum MemoryPoolType : int32_t {
@@ -47,6 +47,6 @@ class MemoryPool {
 };
 
 }  // namespace device
-}  // namespace nn_deploy
+}  // namespace nndeploy
 
 #endif

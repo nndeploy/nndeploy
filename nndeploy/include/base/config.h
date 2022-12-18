@@ -8,13 +8,13 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NN_DEPLOY_BASE_CONFIG_
-#define _NN_DEPLOY_BASE_CONFIG_
+#ifndef _NNDEPLOY_INCLUDE_BASE_CONFIG_
+#define _NNDEPLOY_INCLUDE_BASE_CONFIG_
 
-#include "nn_deploy/base/include_c_cpp.h"
-#include "nn_deploy/base/macro.h"
+#include "nndeploy/include/base/include_c_cpp.h"
+#include "nndeploy/include/base/macro.h"
 
-namespace nn_deploy {
+namespace nndeploy {
 namespace base {
 
 enum DataTypeCode : uint8_t {
@@ -235,6 +235,6 @@ using SizeVector = std::vector<size_t>;
 using ShapeMap = std::map<std::string, std::vector<int32_t>>;
 
 }  // namespace base
-}  // namespace nn_deploy
+}  // namespace nndeploy
 
 #endif

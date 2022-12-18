@@ -9,12 +9,12 @@
  * 
  */
 
-#ifndef _NN_DEPLOY_BASE_HALF_
-#define _NN_DEPLOY_BASE_HALF_
+#ifndef _NNDEPLOY_INCLUDE_BASE_HALF_
+#define _NNDEPLOY_INCLUDE_BASE_HALF_
 
-#include "nn_deploy/base/include_c_cpp.h"
+#include "nndeploy/include/base/include_c_cpp.h"
 
-namespace nn_deploy {
+namespace nndeploy {
 namespace base {
 
 bool ConvertFromFloatToBfp16(float *fp32, void *bfp16, int count);

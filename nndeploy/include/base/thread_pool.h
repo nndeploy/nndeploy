@@ -8,12 +8,12 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NN_DEPLOY_THREAD_POOL_
-#define _NN_DEPLOY_THREAD_POOL_
+#ifndef _NNDEPLOY_INCLUDE_THREAD_POOL_
+#define _NNDEPLOY_INCLUDE_THREAD_POOL_
 
-#include "nn_deploy/base/include_c_cpp.h"
+#include "nndeploy/include/base/include_c_cpp.h"
 
-namespace nn_deploy {
+namespace nndeploy {
 namespace base {
 
 class ThreadPool {
@@ -90,6 +90,6 @@ inline ThreadPool::~ThreadPool() {
 }
 
 }  // namespace base
-}  // namespace nn_deploy
+}  // namespace nndeploy
 
 #endif

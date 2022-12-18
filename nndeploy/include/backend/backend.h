@@ -8,16 +8,16 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NN_DEPLOY_BACKEND_BACKEND_
-#define _NN_DEPLOY_BACKEND_BACKEND_
+#ifndef _NNDEPLOY_INCLUDE_BACKEND_BACKEND_
+#define _NNDEPLOY_INCLUDE_BACKEND_BACKEND_
 
-#include "nn_deploy/backend/device.h"
-#include "nn_deploy/base/config.h"
-#include "nn_deploy/base/status.h"
+#include "nndeploy/include/backend/device.h"
+#include "nndeploy/include/base/config.h"
+#include "nndeploy/include/base/status.h"
 
-using namespace nn_deploy::base;
+using namespace nndeploy::base;
 
-namespace nn_deploy {
+namespace nndeploy {
 namespace backend {
 
 struct DeviceInfo {
@@ -46,6 +46,6 @@ class Backend {
 };
 
 }  // namespace backend
-}  // namespace nn_deploy
+}  // namespace nndeploy
 
 #endif

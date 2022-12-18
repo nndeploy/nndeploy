@@ -8,16 +8,16 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NN_DEPLOY_INFERENCE_ABSTRACT_MODEL_
-#define _NN_DEPLOY_INFERENCE_ABSTRACT_MODEL_
+#ifndef _NNDEPLOY_INCLUDE_INFERENCE_ABSTRACT_MODEL_
+#define _NNDEPLOY_INCLUDE_INFERENCE_ABSTRACT_MODEL_
 
-#include "nn_deploy/base/config.h"
-#include "nn_deploy/base/status.h"
+#include "nndeploy/include/base/config.h"
+#include "nndeploy/include/base/status.h"
 
-using namespace nn_deploy::base;
-using namespace nn_deploy::device;
+using namespace nndeploy::base;
+using namespace nndeploy::device;
 
-namespace nn_deploy {
+namespace nndeploy {
 namespace inference {
 
 class Forward {
@@ -95,6 +95,6 @@ class Forward {
 };
 
 }  // namespace inference
-}  // namespace nn_deploy
+}  // namespace nndeploy
 
 #endif

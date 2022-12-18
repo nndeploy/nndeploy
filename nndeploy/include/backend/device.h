@@ -9,15 +9,15 @@
  *
  */
 
-#ifndef _NN_DEPLOY_BACKEND_DEVICE_
-#define _NN_DEPLOY_BACKEND_DEVICE_
+#ifndef _NNDEPLOY_INCLUDE_BACKEND_DEVICE_
+#define _NNDEPLOY_INCLUDE_BACKEND_DEVICE_
 
-#include "nn_deploy/base/config.h"
-#include "nn_deploy/base/status.h"
+#include "nndeploy/include/base/config.h"
+#include "nndeploy/include/base/status.h"
 
-using namespace nn_deploy::base;
+using namespace nndeploy::base;
 
-namespace nn_deploy {
+namespace nndeploy {
 namespace backend {
 
 struct BufferDesc;
@@ -60,6 +60,6 @@ class Device {
 };
 
 }  // namespace backend
-}  // namespace nn_deploy
+}  // namespace nndeploy
 
 #endif

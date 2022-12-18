@@ -10,12 +10,12 @@
  * # 像python一样操作
  *
  */
-#ifndef _NN_DEPLOY_BASE_FILE_
-#define _NN_DEPLOY_BASE_FILE_
+#ifndef _NNDEPLOY_INCLUDE_BASE_FILE_
+#define _NNDEPLOY_INCLUDE_BASE_FILE_
 
-#include "nn_deploy/base/include_c_cpp.h"
+#include "nndeploy/include/base/include_c_cpp.h"
 
-namespace nn_deploy {
+namespace nndeploy {
 namespace base {
 
 std::string OpenFile(const std::string &file_path);
@@ -35,6 +35,6 @@ bool ExistFile(const std::string &file_path);
 std::string GenDefaultStrTag();
 
 }  // namespace base
-}  // namespace nn_deploy
+}  // namespace nndeploy
 
 #endif
