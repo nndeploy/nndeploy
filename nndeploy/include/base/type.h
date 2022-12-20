@@ -1,15 +1,6 @@
-/**
- * @file config.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-11-20
- *
- * @copyright Copyright (c) 2022
- *
- */
-#ifndef _NNDEPLOY_INCLUDE_BASE_CONFIG_
-#define _NNDEPLOY_INCLUDE_BASE_CONFIG_
+
+#ifndef _NNDEPLOY_INCLUDE_BASE_CONFIG_H_
+#define _NNDEPLOY_INCLUDE_BASE_CONFIG_H_
 
 #include "nndeploy/include/base/include_c_cpp.h"
 #include "nndeploy/include/base/macro.h"
@@ -24,8 +15,6 @@ enum DataTypeCode : uint8_t {
   DATA_TYPE_CODE_BFP,
   DATA_TYPE_CODE_OPAQUEHANDLE,
 
-  // auto
-  DATA_TYPE_CODE_NOT_AUTO,
   // not sopport
   DATA_TYPE_CODE_NOT_SOPPORT,
 };
@@ -45,8 +34,6 @@ enum DeviceTypeCode : int32_t {
   DEVICE_TYPE_CODE_OPENGL,
   DEVICE_TYPE_CODE_METAL,
 
-  // auto
-  DEVICE_TYPE_CODE_AUTO,
   // not sopport
   DEVICE_TYPE_CODE_NOT_SOPPORT,
 };
@@ -82,8 +69,6 @@ enum DataFormat : int32_t {
   DATA_FORMAT_NCDHW,
   DATA_FORMAT_NDHWC,
 
-  // auto
-  DATA_FORMAT_AUTO,
   // not sopport
   DATA_FORMAT_NOT_SOPPORT,
 };
@@ -94,8 +79,6 @@ enum PrecisionType : int32_t {
   PRECISION_TYPE_FP32,
   PRECISION_TYPE_FP64,
 
-  // auto
-  PRECISION_TYPE_AUTO,
   // not sopport
   PRECISION_TYPE_NOT_SOPPORT,
 };
@@ -104,44 +87,37 @@ enum ShareMemoryType : int32_t {
   SHARE_MEMORY_TYPE_NO_SHARE = 0x0000,
   SHARE_MEMORY_TYPE_SHARE_FROM_EXTERNAL,
 
-  // auto
-  SHARE_MEMORY_TYPE_AUTO,
   // not sopport
   SHARE_MEMORY_TYPE_NOT_SOPPORT,
 };
 
 enum MemoryBufferType : int32_t {
-  MEMORY_TYPE_BUFFER_1D = 0x0000,
-  MEMORY_TYPE_BUFFER_2D,
+  MEMORY_BUFFER_TYPE_1D = 0x0000,
+  MEMORY_BUFFER_TYPE_2D,
 
-  // auto
-  MEMORY_TYPE_AUTO,
   // not support
   MEMORY_TYPE_NOT_SUPPORT,
 };
 
 enum MemoryBufferStatus {
-  MEMORY_BUFFER_TYPE_FREE = 0x0000,
-  MEMORY_BUFFER_TYPE_USED,
+  MEMORY_BUFFER_STATUS_FREE = 0x0000,
+  MEMORY_BUFFER_STATUS_USED,
 };
 
 enum MemoryPoolType : int32_t {
-  MEMORY_POOL_TYPE_EMBED = 0x0000,  // 管理快头部与内存统一
-  MEMORY_POOL_TYPE_UNITY,           // 切块
-  MEMORY_POOL_TYPE_CHUNK_INDEPEND,  // 每块独立
+  MEMORY_POOL_TYPE_EMBED = 0x0000, 
+  MEMORY_POOL_TYPE_UNITY,          
+  MEMORY_POOL_TYPE_CHUNK_INDEPEND, 
 
-  // auto
-  MEMORY_POOL_TYPE_AUTO,
   // not support
   MEMORY_POOL_TYPE_NOT_SUPPORT,
 };
 
 enum PowerType : int32_t {
   POWER_TYPE_HIGH = 0x0000,
+  POWER_TYPE_NORMAL,
   POWER_TYPE_LOW,
 
-  // auto
-  POWER_TYPE_AUTO,
   // not sopport
   POWER_TYPE_NOT_SOPPORT,
 };
@@ -169,7 +145,8 @@ enum InferenceType : int32_t {
 
 enum InferenceOptType : int32_t {
   INFERENCE_OPT_TYPE_NO = 0x0000,
-  
+  INFERENCE_OPT_TYPE_CONST_FLOD,
+
   // auto
   INFERENCE_OPT_TYPE_AUTO,
 };
@@ -181,54 +158,23 @@ enum PixelTypeCode : int32_t {
   PIXEL_TYPE_CODE_RGBA,
   PIXEL_TYPE_CODE_BGRA,
 
-  // auto
-  PIXEL_TYPE_CODE_AUTO,
   // not sopport
   PIXEL_TYPE_CODE_NOT_SOPPORT,
 };
 
 enum AudioTypeCode : int32_t {
-  // auto
-  AUDIO_TYPE_CODE_AUTO = 0x0000,
   // not sopport
   AUDIO_TYPE_CODE_NOT_SOPPORT,
 };
 
 enum NodeStatus : int32_t {
-  NODE_STATUS_ALWAYS,
+  NODE_STATUS_ALWAYS = 0x0000,
   // auto
-  NODE_STATUS_FREE = 0x0000,
+  NODE_STATUS_FREE,
   // not sopport
   AUDIO_STATUS_USED,
 };
 
-union BasicDataType {
-  uint8_t value_u8;
-  int8_t value_i8;
-  uint16_t value_u16;
-  int16_t value_i16;
-  uint32_t value_u32;
-  int32_t value_i32;
-  uint64_t value_u64;
-  int64_t value_i64;
-  size_t value_size;
-  float value_f32;
-  double value_f64;
-
-  uint8_t* ptr_u8;
-  int8_t* ptr_i8;
-  uint16_t* ptr_u16;
-  int16_t* ptr_i16;
-  uint32_t* ptr_u32;
-  int32_t* ptr_i32;
-  uint64_t* ptr_u64;
-  int64_t* ptr_i64;
-  size_t* ptr_size;
-  float* ptr_f32;
-  double* ptr_f64;
-
-  void* ptr_void;
-};
 
 using IntVector = std::vector<int32_t>;
 using SizeVector = std::vector<size_t>;

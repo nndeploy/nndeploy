@@ -20,18 +20,18 @@ using namespace nndeploy::device;
 namespace nndeploy {
 namespace inference {
 
-class Forward {
+class ForwardImpl {
  public:
-  explicit AbstractForward(InferenceConfig inference_config);
+  explicit ForwardImpl(Param param);
 
-  virtual ~AbstractForward();
+  virtual ~ForwardImpl();
 
-  Status SetConfig(const std::string &key, const Config &value);
-  Status GetConfig(const std::string &key, Config &value);
-  Status SetConfig(const InferenceConfig &value);
-  InferenceConfig GetConfig();
+  Status SetConfig(const std::string &key, nndeploy::base::Value value);
+  Param GetParam();
 
-  virtual Status Init( ShapeMap min_shape = ShapeMap(), ShapeMap opt_shape = ShapeMap(),
+  bool isConstract();
+
+  virtual Status Init(ShapeMap min_shape = ShapeMap(), ShapeMap opt_shape = ShapeMap(),
       ShapeMap max_shape = ShapeMap()) = 0;
   virtual Status Deinit() = 0;
 
@@ -43,8 +43,11 @@ class Forward {
 
   virtual Status ReShape(ShapeMap &shape_map);
 
-  virtual Stauts SetDevicePacket(const std::string &key, DevicePacket *device);
-  virtual DevicePacket *GetDevice(const std::string &key);
+  virtual Stauts SetDevice(DevicePacket *device);
+  virtual Device *GetDevice();
+
+  virtual Stauts SetWorkspace(Buffer *buffer);
+  virtual int64_t GetWorkspaceSize();
 
   virtual Stauts SetMemory(Buffer *buffer);
   virtual int64_t GetMemorySize();
@@ -77,7 +80,6 @@ class Forward {
   ShapeMap static_shape_map_;
   bool is_construct_flag_= false;
 
-  bool is_dynamic_shape = false;
   ShapeMap current_shape_ = ShapeMap();
   ShapeMap min_shape_ = ShapeMap();
   ShapeMap opt_shape_ = ShapeMap();
@@ -91,7 +93,7 @@ class Forward {
    * # 内存资源
    * # 设备运行时资源
    */
-  std::map<std::string, DevicePacket *> device_packet_map_ = nullptr;  // 通常cpu runtime 不用导入
+  Device* device_ = nullptr;  // 通常cpu runtime 不用导入
 };
 
 }  // namespace inference

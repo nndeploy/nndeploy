@@ -25,30 +25,36 @@ struct Buffer;
 struct MemoryPool;
 
 class Device {
+  friend class Backend;
+
  public:
   virtual Buffer* Malloc(size_t size);
   virtual Buffer* Malloc(BufferDesc& desc);
   virtual void Free(Buffer* buffer);
+
+  virtual Buffer* MallocFromPool(size_t size);
+  virtual Buffer* MallocFromPool(BufferDesc& desc);
+  virtual void FreeToPool(Buffer* buffer);
 
   virtual Status Copy(Buffer* src, Buffer* dst);
   virtual Status Map(Buffer* src, Buffer* dst);
   virtual Status Unmap(Buffer* src, Buffer* dst);
   virtual Status Share(Buffer* src, Buffer* dst);
 
-  virtual MemoryPool* CreateMemoryPool(MemoryPoolType memory_pool_type);
-  virtual MemoryPool* CreateMemoryPool(MemoryPoolType memory_pool_type,
+  virtual MemoryPool* InitMemoryPool(MemoryPoolType memory_pool_type);
+  virtual MemoryPool* InitMemoryPool(MemoryPoolType memory_pool_type,
                                        void* ptr, size_t size);
-  virtual MemoryPool* CreateMemoryPool(MemoryPoolType memory_pool_type,
-                                       Buffer* buffer);
-  virtual Status DestoryMemoryPool(MemoryPool* memory_pool);
 
   virtual void* GetCommandQueue() = 0;
-  virtual Status SetCommandQueue(void* command_queue);
 
   virtual Status Synchronize() = 0;
 
+  // 脚本的编译
+  // 脚本的运行
+  // 脚本的杂项函数都需要依赖device
+
  private:
-  explicit Device(DeviceType device_type, std::string library_path);
+  explicit Device(DeviceType device_type, void* command_queue = NULL, std::string library_path = "");
   virtual ~Device();
 
   virtual Status Init() = 0;
@@ -57,6 +63,8 @@ class Device {
  private:
   DeviceType device_type_;
   std::string library_path = "";
+
+  std::shared_ptr<MemoryPool> memory_pool_ = nullptr;
 };
 
 }  // namespace backend

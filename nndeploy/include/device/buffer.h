@@ -57,8 +57,7 @@ class Buffer {
   Buffer(DeviceType device_type, BufferDesc buffer_desc);
   Buffer(DeviceType device_type, BufferDesc buffer_desc, void *ptr = NULL);
   Buffer(DeviceType device_type, BufferDesc buffer_desc, int32_t id = -1);
-  Buffer();;..........................ooooooo
-  '''''';p['      e3rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr'hggggggggggggY<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,,,,,,,,XZS CO9II(>>>>>>>>>>>>)]
+  Buffer();
   virtual ~Buffer();
 
   DeviceType device_type_;
@@ -67,7 +66,6 @@ class Buffer {
   int32_t data_id = -1;
 
   Device *device_ = nullptr;
-  MemoryPool memory_pool_ = nullptr;
 };
 
 }  // namespace device

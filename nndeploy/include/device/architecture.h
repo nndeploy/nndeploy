@@ -31,10 +31,11 @@ class Backend {
   virtual ~Backend();
 
   virtual Status CheckDevice(int32_t device_id = 0,
+                              void* command_queue = NULL,
                              std::string library_path = "") = 0;
 
-  virtual Device *CreateDevice(int32_t device_id = 0,
-                               std::string library_path = "") = 0;
+  virtual Device* CreateDevice(int32_t device_id = 0,
+  void* command_queue = NULL, std::string library_path = "") = 0;
 
   virtual Status DestoryDevice(Device *device) = 0;
 

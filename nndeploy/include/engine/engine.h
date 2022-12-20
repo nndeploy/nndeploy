@@ -26,12 +26,15 @@ class Engine {
   explicit Engine();
   virtual ~Engine();
 
-  virtual Status AddNode(Node *node);
-  virtual Status GetNode(Node *node);
+  virtual Status AddDevice(const std::string &key, std::shared_ptr<Device> node);
+  virtual std::shared_ptr<Device> GetDevice(const std::string &key);
+
+  virtual Status AddNode(const std::string &key, std::shared_ptr<Node> node);
+  virtual Status GetNode(const std::string &key, std::shared_ptr<Node> node);
 
  private:
-  std::vector<NodePool> node_pool;  // -- 有资源分配问题 和 可重入的
-  std::vector<Runtime> runtimes;    // 设备以及内存资源
+  std::map<std::string, std::shared_ptr<Node>> node_pool;  // -- 有资源分配问题 和 可重入的
+  std::map<std::string, std::shared_ptr<Device>> device_map_;    // 设备以及内存资源
 };
 
 }  // namespace task
