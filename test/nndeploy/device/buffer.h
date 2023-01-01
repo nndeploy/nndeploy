@@ -8,14 +8,14 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
-#define _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
+#ifndef _NNDEPLOY_INCLUDE_ARCHITECTURE_BUFFER_H_
+#define _NNDEPLOY_INCLUDE_ARCHITECTURE_BUFFER_H_
 
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
 
 namespace nndeploy {
-namespace device {
+namespace architecture {
 
 class Device;
 
@@ -73,7 +73,7 @@ class Buffer {
   bool is_external = false;
 };
 
-}  // namespace device
+}  // namespace architecture
 }  // namespace nndeploy
 
 #endif

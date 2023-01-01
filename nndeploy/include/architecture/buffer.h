@@ -8,16 +8,17 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
-#define _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
+#ifndef _NNDEPLOY_INCLUDE_ARCHITECTURE_BUFFER_H_
+#define _NNDEPLOY_INCLUDE_ARCHITECTURE_BUFFER_H_
 
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
 
 namespace nndeploy {
-namespace device {
+namespace architecture {
 
 class Device;
+class MemoryPool;
 
 struct BufferDesc {
   base::MemoryBufferType memory_type_ = base::MEMORY_BUFFER_TYPE_1D;
@@ -37,43 +38,40 @@ struct BufferDesc {
 
 class Buffer {
  public:
-  Buffer();
   virtual ~Buffer();
 
-  Buffer(Device *device, BufferDesc buffer_desc);
-  Buffer(Device *device, BufferDesc buffer_desc, void *ptr);
-  Buffer(Device *device, BufferDesc buffer_desc, int32_t id);
+  Buffer(size_t size, void *ptr);
+  Buffer(size_t size, int32_t id);
+  Buffer(BufferDesc desc, void *ptr);
+  Buffer(BufferDesc desc, int32_t id);
 
-  // desc
+  Buffer(Device *device, size_t size);
+  Buffer(Device *device, BufferDesc desc);
+  Buffer(MemoryPool *pool, size_t size);
+  Buffer(MemoryPool *pool, BufferDesc desc);
+
+  // get
   bool empty();
-
   base::DeviceType getDeviceType();
   Device *getDevice();
-
+  MemoryPool *getMemoryPool();
   BufferDesc getDesc();
   base::MemoryBufferType getMemoryBufferType();
   size_t getSize();
   base::SizeVector getSizeVector();
   base::IntVector getConfig();
-
   void *getPtr();
   int32_t getId();
 
-  bool isMemoryPool();
-
  private:
   Device *device_ = nullptr;
-
+  MemoryPool *memory_pool_ = nullptr;
   BufferDesc desc_;
-
   void *data_ptr_ = nullptr;
   int32_t data_id_ = -1;
-
-  bool is_memory_pool_ = false;
-  bool is_external = false;
 };
 
-}  // namespace device
+}  // namespace architecture
 }  // namespace nndeploy
 
 #endif

@@ -8,15 +8,15 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_DEVICE_MAT_H_
-#define _NNDEPLOY_INCLUDE_DEVICE_MAT_H_
+#ifndef _NNDEPLOY_INCLUDE_ARCHITECTURE_MAT_H_
+#define _NNDEPLOY_INCLUDE_ARCHITECTURE_MAT_H_
 
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
-#include "nndeploy/include/device/buffer.h"
+#include "nndeploy/include/architecture/buffer.h"
 
 namespace nndeploy {
-namespace device {
+namespace architecture {
 
 class Device;
 
@@ -36,18 +36,18 @@ class Mat {
   // get
   bool empty();
   base::DeviceType getDeviceType();
-  int32_t getPtr();
-  void *getId();
+  int32_t getId();
+  void *getPtr();
 
  private:
-  MatDesc desc;
+  MatDesc desc_;
 
-  Buffer *buffer;
+  Buffer *buffer_;
 
   // 引用计数 + 满足多线程
 };
 
-}  // namespace device
+}  // namespace architecture
 }  // namespace nndeploy
 
 #endif

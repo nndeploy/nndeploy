@@ -8,43 +8,29 @@
  * @copyright Copyright (c) 2022
  * @note ref opencv
  */
-#ifndef _NNDEPLOY_INCLUDE_ENGINE_IO_ARRAY_H_
-#define _NNDEPLOY_INCLUDE_ENGINE_IO_ARRAY_H_
+#ifndef _NNDEPLOY_INCLUDE_GRAPH_PACKET_H_
+#define _NNDEPLOY_INCLUDE_GRAPH_PACKET_H_
 
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
-#include "nndeploy/include/device/buffer.h"
-#include "nndeploy/include/device/device.h"
+#include "nndeploy/include/architecture/buffer.h"
+#include "nndeploy/include/architecture/device.h"
+#include "nndeploy/include/architecture/mat.h"
 #include "nndeploy/include/inference/tensor.h"
 
 namespace nndeploy {
-namespace engine {
+namespace graph {
 
-class InputArray {
+class Packet {
  public:
  private:
   std::string name_;
 };
 
-class OutputArray {
- public:
- private:
-  std::string name_;
-};
-
-class InputOutputArray {
- public:
- private:
-  // device::Buffer buffer;
-  // // device::Mat mat;
-  // inference::Tensor tensor;
-  std::string name_;
-};
-
-}  // namespace engine
+}  // namespace graph
 }  // namespace nndeploy
 
 #endif

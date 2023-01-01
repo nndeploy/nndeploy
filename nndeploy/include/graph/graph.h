@@ -8,22 +8,21 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_ENGINE_GRAPH_
-#define _NNDEPLOY_INCLUDE_ENGINE_GRAPH_
+#ifndef _NNDEPLOY_INCLUDE_GRAPH_GRAPH_
+#define _NNDEPLOY_INCLUDE_GRAPH_GRAPH_
 
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
-#include "nndeploy/include/device/device.h"
+#include "nndeploy/include/architecture/device.h"
 #include "nndeploy/include/engine/config.h"
-#include "nndeploy/include/engine/initializer.h"
-#include "nndeploy/include/engine/io_array.h"
+#include "nndeploy/include/engine/packet.h"
 #include "nndeploy/include/engine/node.h"
 
 namespace nndeploy {
-namespace engine {
+namespace graph {
 
 class Graph {
  public:
@@ -45,8 +44,8 @@ class Graph {
   virtual base::Status preRun();
   virtual base::Status postRun();
 
-  virtual base::Status setInput(std::string name, const InputArray &input);
-  virtual base::Status getOutput(std::string name, OutputArray &output);
+  virtual base::Status setInput(std::string name, const Packet &input);
+  virtual base::Status getOutput(std::string name, Packet &output);
 
   virtual base::Status run();
   virtual base::Status asyncRun();
@@ -56,13 +55,13 @@ class Graph {
 
   std::vector<std::string> input_name_;
   std::vector<std::string> output_name_;
-  std::vector<std::string, std::shared_ptr<InputArray>> input_;
-  std::vector<std::string, std::shared_ptr<OutputArray>> output_;
+  std::vector<std::string, std::shared_ptr<Packet>> input_;
+  std::vector<std::string, std::shared_ptr<Packet>> output_;
   std::vector<Node *> nodes_;
   std::vector<Graph *>graphs_;
 };
 
-}  // namespace engine
+}  // namespace graph
 }  // namespace nndeploy
 
 #endif

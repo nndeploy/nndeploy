@@ -17,7 +17,7 @@ file(GLOB lib_src "*.cc" "*.h")
 add_library(${lib_target} ${lib_src})
 
 # exe
-# if (NNKIT_TASK_ENABLE_DEMO)
+# if (NNKIT_ENABLE_NNDEMO)
 #   file(GLOB exe_src "*.cpp")
 #   add_executable(${exe_target} ${exe_src})
 # endif()

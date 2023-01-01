@@ -8,19 +8,19 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_DEVICE_DEVICE_H_
-#define _NNDEPLOY_INCLUDE_DEVICE_DEVICE_H_
+#ifndef _NNDEPLOY_INCLUDE_ARCHITECTURE_DEVICE_H_
+#define _NNDEPLOY_INCLUDE_ARCHITECTURE_DEVICE_H_
 
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
-#include "nndeploy/include/device/buffer.h"
-#include "nndeploy/include/device/memory_pool.h"
+#include "nndeploy/include/architecture/buffer.h"
+#include "nndeploy/include/architecture/memory_pool.h"
 
 namespace nndeploy {
-namespace device {
+namespace architecture {
 
 /**
  * @brief
@@ -59,7 +59,7 @@ class Device {
   base::DeviceType device_type_;
 };
 
-}  // namespace device
+}  // namespace architecture
 }  // namespace nndeploy
 
 #endif

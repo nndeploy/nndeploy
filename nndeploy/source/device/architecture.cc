@@ -1,8 +1,8 @@
 
-#include "nndeploy/include/device/architecture.h"
+#include "nndeploy/include/architecture/architecture.h"
 
 namespace nndeploy {
-namespace device {
+namespace architecture {
 
 Architecture::Architecture(base::DeviceTypeCode device_type_code)
     : device_type_code_(device_type_code) {}
@@ -26,5 +26,5 @@ Architecture* getArchitecture(base::DeviceTypeCode type) {
   return getArchitectureMap()[type].get();
 }
 
-}  // namespace device
+}  // namespace architecture
 }  // namespace nndeploy

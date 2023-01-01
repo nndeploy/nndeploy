@@ -1,5 +1,5 @@
 # demo
-option(NNKIT_TASK_ENABLE_DEMO "" ON)
+option(NNKIT_ENABLE_NNDEMO "" ON)
 
 # leetcode
 option(NNKIT_TASK_ENABLE_LEETCODE "" OFF)

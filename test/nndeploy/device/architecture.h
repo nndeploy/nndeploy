@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_DEVICE_ARCHITECTURE_H_
-#define _NNDEPLOY_INCLUDE_DEVICE_ARCHITECTURE_H_
+#ifndef _NNDEPLOY_INCLUDE_ARCHITECTURE_ARCHITECTURE_H_
+#define _NNDEPLOY_INCLUDE_ARCHITECTURE_ARCHITECTURE_H_
 
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
@@ -18,7 +18,7 @@
 #include "nndeploy/include/base/type.h"
 
 namespace nndeploy {
-namespace device {
+namespace architecture {
 
 class Device;
 
@@ -66,7 +66,7 @@ class TypeArchitectureRegister {
   }
 };
 
-}  // namespace device
+}  // namespace architecture
 }  // namespace nndeploy
 
 #endif

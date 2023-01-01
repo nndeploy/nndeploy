@@ -17,7 +17,7 @@
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
 #include "nndeploy/include/base/value.h"
-#include "nndeploy/include/device/device.h"
+#include "nndeploy/include/architecture/device.h"
 
 namespace nndeploy {
 namespace inference {
@@ -36,7 +36,7 @@ class TensorImpl {
 
  private:
   TensorDesc desc;
-  device::Buffer *buffer_;
+  architecture::Buffer *buffer_;
 };
 
 }  // namespace inference

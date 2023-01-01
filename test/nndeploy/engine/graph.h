@@ -8,22 +8,22 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_ENGINE_GRAPH_
-#define _NNDEPLOY_INCLUDE_ENGINE_GRAPH_
+#ifndef _NNDEPLOY_INCLUDE_GRAPH_GRAPH_
+#define _NNDEPLOY_INCLUDE_GRAPH_GRAPH_
 
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
-#include "nndeploy/include/device/device.h"
+#include "nndeploy/include/architecture/device.h"
 #include "nndeploy/include/engine/config.h"
 #include "nndeploy/include/engine/initializer.h"
 #include "nndeploy/include/engine/io_array.h"
 #include "nndeploy/include/engine/node.h"
 
 namespace nndeploy {
-namespace engine {
+namespace graph {
 
 class Graph {
  public:
@@ -62,7 +62,7 @@ class Graph {
   std::vector<Graph *>graphs_;
 };
 
-}  // namespace engine
+}  // namespace graph
 }  // namespace nndeploy
 
 #endif
