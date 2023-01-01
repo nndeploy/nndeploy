@@ -16,7 +16,7 @@ option(NNKIT_ENABLE_SYMBOL_HIDE "" ON)
 option(NNKIT_ENABLE_COVERAGE "" ON)
 option(NNKIT_ENABLE_CXX11_ABI "" ON)
 option(NNKIT_ENABLE_CXX14_ABI "" OFF)
-option(NNKIT_ENABLE_OPENMP "" ON)
+option(NNKIT_ENABLE_OPENMP "" OFF)
 option(NNKIT_ENABLE_DEBUG "" OFF)
 # device
 option(NNKIT_ENABLE_DEVICE_CPU "" ON)
@@ -135,7 +135,7 @@ if(NNKIT_ENABLE_COVERAGE)
 endif()
 
 # nndeploy
-add_subdirectory(nndeploy)
+# add_subdirectory(nndeploy)
 
 # nntask
 if(NNKIT_ENABLE_NNTASK)

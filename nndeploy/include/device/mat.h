@@ -42,7 +42,7 @@ class Mat {
  private:
   MatDesc desc;
 
-  Buffer *buffer;
+  Buffer *buffer = nullptr;
 
   // 引用计数 + 满足多线程
 };

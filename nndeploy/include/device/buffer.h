@@ -13,6 +13,7 @@
 
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
+#include "nndeploy/include/base/object.h"
 
 namespace nndeploy {
 namespace architecture {
@@ -36,25 +37,17 @@ struct BufferDesc {
   base::IntVector config_;
 };
 
-class Buffer {
+class Buffer : public base::NonCopyable {
+  friend class Device;
+  friend class MemoryPool;
  public:
-  virtual ~Buffer();
-
-  Buffer(size_t size, void *ptr);
-  Buffer(size_t size, int32_t id);
-  Buffer(BufferDesc desc, void *ptr);
-  Buffer(BufferDesc desc, int32_t id);
-
-  Buffer(Device *device, size_t size);
-  Buffer(Device *device, BufferDesc desc);
-  Buffer(MemoryPool *pool, size_t size);
-  Buffer(MemoryPool *pool, BufferDesc desc);
-
   // get
   bool empty();
   base::DeviceType getDeviceType();
   Device *getDevice();
   MemoryPool *getMemoryPool();
+  bool isMemoryPool();
+  bool isExternal();
   BufferDesc getDesc();
   base::MemoryBufferType getMemoryBufferType();
   size_t getSize();
@@ -64,8 +57,22 @@ class Buffer {
   int32_t getId();
 
  private:
+  virtual ~Buffer();
+
+  Buffer(Device *device, size_t size, void *ptr, bool is_external);
+  Buffer(Device *device, size_t size, int32_t id, bool is_external);
+  Buffer(Device *device, BufferDesc desc, void *ptr, bool is_external);
+  Buffer(Device *device, BufferDesc desc, int32_t id, bool is_external);
+
+  Buffer(Device *device, size_t size, void *ptr);
+  Buffer(Device *device, size_t size, int32_t id);
+  Buffer(Device *device, BufferDesc desc, void *ptr);
+  Buffer(Device *device, BufferDesc desc, int32_t id);
+
+ private:
   Device *device_ = nullptr;
   MemoryPool *memory_pool_ = nullptr;
+  bool is_external_ = false;
   BufferDesc desc_;
   void *data_ptr_ = nullptr;
   int32_t data_id_ = -1;

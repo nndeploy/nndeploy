@@ -17,7 +17,7 @@
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
 #include "nndeploy/include/base/value.h"
-#include "nndeploy/include/architecture/device.h"
+#include "nndeploy/include/device/device.h"
 
 namespace nndeploy {
 namespace inference {

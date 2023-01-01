@@ -72,9 +72,9 @@ class Solution {
     return std::distance(nums.begin(), std::unique(nums.begin(), nums.end()));
   }
 
-  static int RemoveDuplicateFromSortedArrayV3(std::vector<int> &nums) {
-    return std::distance(nums.begin(), Solution::RemoveDuplicate(nums.begin(), nums.end(), nums.begin()));
-  }
+  // static int RemoveDuplicateFromSortedArrayV3(std::vector<int> &nums) {
+  //   return std::distance(nums.begin(), Solution::RemoveDuplicate(nums.begin(), nums.end(), nums.begin()));
+  // }
 
   template<typename T>
   static int RemoveDuplicate(T first, T last, T output) {
