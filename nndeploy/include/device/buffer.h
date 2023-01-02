@@ -8,15 +8,15 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_ARCHITECTURE_BUFFER_H_
-#define _NNDEPLOY_INCLUDE_ARCHITECTURE_BUFFER_H_
+#ifndef _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
+#define _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
 
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
 #include "nndeploy/include/base/object.h"
 
 namespace nndeploy {
-namespace architecture {
+namespace device {
 
 class Device;
 class MemoryPool;
@@ -64,10 +64,10 @@ class Buffer : public base::NonCopyable {
   Buffer(Device *device, BufferDesc desc, void *ptr, bool is_external);
   Buffer(Device *device, BufferDesc desc, int32_t id, bool is_external);
 
-  Buffer(Device *device, size_t size, void *ptr);
-  Buffer(Device *device, size_t size, int32_t id);
-  Buffer(Device *device, BufferDesc desc, void *ptr);
-  Buffer(Device *device, BufferDesc desc, int32_t id);
+  Buffer(MemoryPool *memory_pool, size_t size, void *ptr);
+  Buffer(MemoryPool *memory_pool, size_t size, int32_t id);
+  Buffer(MemoryPool *memory_pool, BufferDesc desc, void *ptr);
+  Buffer(MemoryPool *memory_pool, BufferDesc desc, int32_t id);
 
  private:
   Device *device_ = nullptr;
@@ -78,7 +78,7 @@ class Buffer : public base::NonCopyable {
   int32_t data_id_ = -1;
 };
 
-}  // namespace architecture
+}  // namespace device
 }  // namespace nndeploy
 
 #endif

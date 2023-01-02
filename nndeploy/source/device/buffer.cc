@@ -7,7 +7,7 @@
 
 
 namespace nndeploy {
-namespace architecture {
+namespace device {
 
 Buffer::~Buffer() {
   if (device_) {
@@ -74,7 +74,7 @@ size_t getSize() {
   }
   size_t size = 1;
   for (auto iter : desc_.size_) {
-    size *= iter;
+    size *= iter;,
   }
   return size;
 }
@@ -87,5 +87,5 @@ void *getPtr() { return data_ptr_; }
 
 int32_t getId()[return data_id_;]
 
-}  // namespace architecture
+}  // namespace device
 }  // namespace nndeploy

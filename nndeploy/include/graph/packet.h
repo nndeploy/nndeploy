@@ -16,9 +16,9 @@
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
-#include "nndeploy/include/architecture/buffer.h"
-#include "nndeploy/include/architecture/device.h"
-#include "nndeploy/include/architecture/mat.h"
+#include "nndeploy/include/device/buffer.h"
+#include "nndeploy/include/device/device.h"
+#include "nndeploy/include/device/mat.h"
 #include "nndeploy/include/inference/tensor.h"
 
 namespace nndeploy {

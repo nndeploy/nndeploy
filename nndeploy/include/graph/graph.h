@@ -16,7 +16,7 @@
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
-#include "nndeploy/include/architecture/device.h"
+#include "nndeploy/include/device/device.h"
 #include "nndeploy/include/engine/config.h"
 #include "nndeploy/include/engine/packet.h"
 #include "nndeploy/include/engine/node.h"

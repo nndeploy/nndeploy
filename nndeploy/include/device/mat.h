@@ -8,15 +8,15 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_ARCHITECTURE_MAT_H_
-#define _NNDEPLOY_INCLUDE_ARCHITECTURE_MAT_H_
+#ifndef _NNDEPLOY_INCLUDE_DEVICE_MAT_H_
+#define _NNDEPLOY_INCLUDE_DEVICE_MAT_H_
 
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
-#include "nndeploy/include/architecture/buffer.h"
+#include "nndeploy/include/device/buffer.h"
 
 namespace nndeploy {
-namespace architecture {
+namespace device {
 
 class Device;
 
@@ -47,7 +47,7 @@ class Mat {
   // 引用计数 + 满足多线程
 };
 
-}  // namespace architecture
+}  // namespace device
 }  // namespace nndeploy
 
 #endif

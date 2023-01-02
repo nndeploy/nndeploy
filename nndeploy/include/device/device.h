@@ -20,7 +20,7 @@
 #include "nndeploy/include/device/memory_pool.h"
 
 namespace nndeploy {
-namespace architecture {
+namespace device {
 
 /**
  * @brief
@@ -46,9 +46,11 @@ class Device {
   virtual MemoryPool* createMemoryPool(base::MemoryPoolType memory_pool_type, size_t limit_size) = 0;
   virtual MemoryPool* createMemoryPool(base::MemoryPoolType memory_pool_type, Buffer* buffer) = 0;
 
-  virtual void* getCommandQueue() = 0;
+  virtual base::Status synchronize();
 
-  virtual base::Status synchronize() = 0;
+  virtual void* getCommandQueue();
+
+  base::DeviceType getDeviceType();
 
  protected:
   Device(base::DeviceType device_type, void* command_queue = NULL,
@@ -62,7 +64,7 @@ class Device {
   base::DeviceType device_type_;
 };
 
-}  // namespace architecture
+}  // namespace device
 }  // namespace nndeploy
 
 #endif

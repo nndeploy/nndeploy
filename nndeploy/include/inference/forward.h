@@ -16,7 +16,7 @@
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
-#include "nndeploy/include/architecture/device.h"
+#include "nndeploy/include/device/device.h"
 #include "nndeploy/include/inference/config.h"
 #include "nndeploy/include/inference/forward_impl.h"
 #include "nndeploy/include/inference/tensor.h"
@@ -48,17 +48,17 @@ class Forward {
 
   base::Status reShape(base::ShapeMap &shape_map);
 
-  base::Status setDevice(architecture::Device *device);
-  architecture::Device *getDevice();
+  base::Status setDevice(device::Device *device);
+  device::Device *getDevice();
 
-  base::Status setMemoryPool(architecture::MemoryPool *memory_pool);
-  architecture::MemoryPool *getMemoryPool();
+  base::Status setMemoryPool(device::MemoryPool *memory_pool);
+  device::MemoryPool *getMemoryPool();
 
   int64_t GetWorkspaceSize();
-  base::Status setWorkspace(architecture::Buffer *buffer);
+  base::Status setWorkspace(device::Buffer *buffer);
 
   int64_t getMemorySize();
-  base::Status setMemory(architecture::Buffer *buffer);
+  base::Status setMemory(device::Buffer *buffer);
 
   TensorMap getAllInputTensor();
   TensorMap getAllOutputTensor();

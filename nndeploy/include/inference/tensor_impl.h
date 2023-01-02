@@ -36,7 +36,7 @@ class TensorImpl {
 
  private:
   TensorDesc desc;
-  architecture::Buffer *buffer_;
+  device::Buffer *buffer_;
 };
 
 }  // namespace inference

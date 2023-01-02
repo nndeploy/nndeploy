@@ -18,7 +18,7 @@
 #include "nndeploy/include/base/type.h"
 
 namespace nndeploy {
-namespace architecture {
+namespace device {
 
 class Device;
 
@@ -66,7 +66,7 @@ class TypeArchitectureRegister {
   }
 };
 
-}  // namespace architecture
+}  // namespace device
 }  // namespace nndeploy
 
 #endif

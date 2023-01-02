@@ -17,7 +17,7 @@
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/type.h"
 #include "nndeploy/include/base/value.h"
-#include "nndeploy/include/architecture/device.h"
+#include "nndeploy/include/device/device.h"
 #include "nndeploy/include/inference/config.h"
 #include "nndeploy/include/inference/tensor.h"
 
@@ -48,17 +48,17 @@ class ForwardImpl {
 
   virtual base::Status reShape(base::ShapeMap &shape_map);
 
-  virtual base::Status setDevice(architecture::Device *device);
-  virtual architecture::Device *getDevice();
+  virtual base::Status setDevice(device::Device *device);
+  virtual device::Device *getDevice();
 
-  virtual base::Status setMemoryPool(architecture::MemoryPool *memory_pool);
-  virtual architecture::MemoryPool *getMemoryPool();
+  virtual base::Status setMemoryPool(device::MemoryPool *memory_pool);
+  virtual device::MemoryPool *getMemoryPool();
 
   virtual int64_t GetWorkspaceSize();
-  virtual base::Status setWorkspace(architecture::Buffer *buffer);
+  virtual base::Status setWorkspace(device::Buffer *buffer);
 
   virtual int64_t getMemorySize();
-  virtual base::Status setMemory(architecture::Buffer *buffer);
+  virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual TensorMap getAllInputTensor();
   virtual TensorMap getAllOutputTensor();
@@ -97,8 +97,8 @@ class ForwardImpl {
   TensorMap max_input_tensors;
   TensorMap max_output_tensors;
 
-  architecture::Device *device_ = nullptr;
-  architecture::MemoryPool *memory_pool = nullptr;
+  device::Device *device_ = nullptr;
+  device::MemoryPool *memory_pool = nullptr;
 };
 
 }  // namespace inference

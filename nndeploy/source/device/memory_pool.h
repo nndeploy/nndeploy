@@ -8,17 +8,17 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_ARCHITECTURE_MEMORY_POOL_H_
-#define _NNDEPLOY_INCLUDE_ARCHITECTURE_MEMORY_POOL_H_
+#ifndef _NNDEPLOY_INCLUDE_DEVICE_MEMORY_POOL_H_
+#define _NNDEPLOY_INCLUDE_DEVICE_MEMORY_POOL_H_
 
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/architecture/buffer.h"
+#include "nndeploy/include/device/buffer.h"
 
 namespace nndeploy {
-namespace architecture {
+namespace device {
 
 class Device;
 
@@ -44,7 +44,7 @@ class MemoryPool {
   virtual base::Status deinit();
 };
 
-}  // namespace architecture
+}  // namespace device
 }  // namespace nndeploy
 
 #endif

@@ -1,13 +1,13 @@
 
-#include "nndeploy/include/architecture/architecture.h"
+#include "nndeploy/include/device/architecture.h"
 
 namespace nndeploy {
-namespace architecture {
+namespace device {
 
-Architecture::Architecture(base::DeviceTypeCode device_type_code)
+device::Architecture(base::DeviceTypeCode device_type_code)
     : device_type_code_(device_type_code) {}
 
-Architecture::~Architecture() {}
+device::~Architecture() {}
 
 std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>&
 getArchitectureMap() {
@@ -26,5 +26,5 @@ Architecture* getArchitecture(base::DeviceTypeCode type) {
   return getArchitectureMap()[type].get();
 }
 
-}  // namespace architecture
+}  // namespace device
 }  // namespace nndeploy

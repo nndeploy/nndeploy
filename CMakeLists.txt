@@ -24,6 +24,7 @@ option(NNKIT_ENABLE_DEVICE_ARM "" OFF)
 option(NNKIT_ENABLE_DEVICE_X86 "" OFF)
 option(NNKIT_ENABLE_DEVICE_CUDA "" OFF)
 option(NNKIT_ENABLE_DEVICE_OPENCL "" OFF)
+option(NNKIT_ENABLE_DEVICE_OPENGL "" OFF)
 option(NNKIT_ENABLE_DEVICE_METAL "" OFF)
 option(NNKIT_ENABLE_DEVICE_APPLE_NPU "" OFF)
 # inference
@@ -35,10 +36,16 @@ option(NNKIT_ENABLE_INFERENCE_TVM  "" OFF)
 option(NNKIT_ENABLE_INFERENCE_TNN "" OFF)
 # audio
 option(NNKIT_ENABLE_AUDIO "" ON)
+option(NNKIT_ENABLE_AUDIO_CORE "" ON)
 # vision
 option(NNKIT_ENABLE_VISION "" ON)
+option(NNKIT_ENABLE_VISION_CORE "" ON)
+# nndeploy
+option(NNKIT_ENABLE_NNDEPLOY "" ON)
 # nntask
 option(NNKIT_ENABLE_NNTASK "" ON)
+# nndemo
+option(NNKIT_ENABLE_NNDEMO "" ON)
 # test
 option(NNKIT_ENABLE_UNITTEST "" OFF)
 
@@ -135,11 +142,18 @@ if(NNKIT_ENABLE_COVERAGE)
 endif()
 
 # nndeploy
-# add_subdirectory(nndeploy)
+if(NNKIT_ENABLE_NNDEPLOY)
+  add_subdirectory(nndeploy)
+endif()
 
 # nntask
 if(NNKIT_ENABLE_NNTASK)
   add_subdirectory(nntask)
+endif()
+
+# nndemo
+if(NNKIT_ENABLE_NNDEMO)
+  add_subdirectory(nndemo)
 endif()
 
 # test
