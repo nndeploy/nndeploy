@@ -35,6 +35,7 @@ class TensorImpl {
   virtual ~TensorImpl();
 
  private:
+  std::string name_;
   TensorDesc desc;
   device::Buffer *buffer_;
 };

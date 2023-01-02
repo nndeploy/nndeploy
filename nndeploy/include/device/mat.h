@@ -33,11 +33,40 @@ class Mat {
   Mat();
   virtual ~Mat();
 
+  Mat(Device *device, int32_t height, int32_t width, int32_t channel,
+      base::DataType data_type);
+  Mat(Device *device, int32_t *shape, int32_t shape_len,
+      base::DataType data_type);
+  Mat(Device *device, base::IntVector shape_,
+      base::DataType data_type);
+
+  void create();
+
   // get
   bool empty();
+
+  MatDesc getDesc();
+  base::DataType getDataType();
+  base::IntVector getShape();
+  int32_t getShapeIndex(int index);
+  int32_t getHeight();
+  int32_t getWidth();
+  int32_t getChannel();
+  base::SizeVector getStride();
+  size_t getStrideIndex(int index);
+
+  Buffer *getBuffer();
   base::DeviceType getDeviceType();
-  int32_t getPtr();
-  void *getId();
+  Device *getDevice();
+  MemoryPool *getMemoryPool();
+  bool isMemoryPool();
+  bool isExternal();
+  base::MemoryBufferType getMemoryBufferType();
+  size_t getSize();
+  base::SizeVector getSizeVector();
+  base::IntVector getConfig();
+  void *getPtr();
+  int32_t getId();
 
  private:
   MatDesc desc;
