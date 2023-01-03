@@ -9,7 +9,7 @@ set(NNKIT_DEPEND_LIBRARY)
 set(NNKIT_SYSTEM_LIBRARY)
 set(NNKIT_THIRD_PARTY_LIBRARY)
 
-include_directories(ROOT_PATH)
+include_directories(${ROOT_PATH})
 
 # NNKIT_SOURCE
 file(GLOB_RECURSE NNKIT_SOURCE "*.cc")
