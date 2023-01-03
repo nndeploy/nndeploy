@@ -12,7 +12,8 @@ set(NNKIT_THIRD_PARTY_LIBRARY)
 include_directories(${ROOT_PATH})
 
 # NNKIT_SOURCE
-file(GLOB_RECURSE NNKIT_SOURCE "*.cc")
+file(GLOB_RECURSE NNKIT_SOURCE "*.cc"
+                               "${ROOT_PATH}/nndeploy/include/base/*.h")
 
 # NNKIT_OBJECT
 
