@@ -1,34 +1,13 @@
-# set
-set(target nndeploy)
-set(src)
-set(obj)
-set(lib)
-set(exe)
-set(dep)
-set(link)
+cmake_minimum_required(VERSION 3.10)
 
-# include
-include_directories(ROOT_PATH)
+add_subdirectory(source/base)
 
-# lib
+# add_subdirectory(source/device)
 
-add_library(${lib_target} ${obj})
+# add_subdirectory(source/inference)
 
-# path
+# add_subdirectory(source/audio)
 
-# depend
+# add_subdirectory(source/vision)
 
-# link
-
-# install
-
-# pack
-
-# unset
-unset(lib_target)
-unset(lib_src)
-unset(obj)
-unset(lib)
-unset(dep)
-unset(link)
-
+# add_subdirectory(source/graph)

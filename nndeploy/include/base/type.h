@@ -172,17 +172,6 @@ using IntVector = std::vector<int32_t>;
 using SizeVector = std::vector<size_t>;
 using ShapeMap = std::map<std::string, std::vector<int32_t>>;
 
-enum PixelTypeCode : int32_t {
-  PIXEL_TYPE_CODE_GRAY = 0x0000,
-  PIXEL_TYPE_CODE_RGB,
-  PIXEL_TYPE_CODE_BGR,
-  PIXEL_TYPE_CODE_RGBA,
-  PIXEL_TYPE_CODE_BGRA,
-
-  // not sopport
-  PIXEL_TYPE_CODE_NOT_SOPPORT,
-};
-
 }  // namespace base
 }  // namespace nndeploy
 
