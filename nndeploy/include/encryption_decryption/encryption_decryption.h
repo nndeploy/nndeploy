@@ -8,15 +8,15 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_BASE_DECRYPT_H_
-#define _NNDEPLOY_INCLUDE_BASE_DECRYPT_H_
+#ifndef _NNDEPLOY_INCLUDE_ENCRYPTION_DECRYPTION_ENCRYPTION_DECRYPTION_H_
+#define _NNDEPLOY_INCLUDE_ENCRYPTION_DECRYPTION_ENCRYPTION_DECRYPTION_H_
 
 #include "nndeploy/include/base/include_c_cpp.h"
 
 namespace nndeploy {
-namespace base {
+namespace encryption_decryption {
 
-class Decrypt {
+class EncryptionDecryption {
  public:
   std::string decryptFromPath(const std::string &src,
                               const std::string &license);
