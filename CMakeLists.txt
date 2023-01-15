@@ -162,7 +162,7 @@ if(NNDEPLOY_ENABLE_COVERAGE)
 endif()
 
 # nncore
-if(NNDEPLOY_ENABLE_nncore)
+if(NNDEPLOY_ENABLE_NNCORE)
   add_subdirectory(nncore)
 endif()
 
