@@ -10,3 +10,4 @@
   + opencv
   + ppl.cv
   + movit
+  + gitignore
