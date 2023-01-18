@@ -52,8 +52,8 @@ option(NNDEPLOY_ENABLE_AUDIO_CORE "" ON)
 # vision
 option(NNDEPLOY_ENABLE_VISION "" ON)
 option(NNDEPLOY_ENABLE_VISION_CORE "" ON)
-# nncore
-option(NNDEPLOY_ENABLE_nncore "" ON)
+# nndeploy
+option(NNDEPLOY_ENABLE_nndeploy "" ON)
 # nntask
 option(NNDEPLOY_ENABLE_NNTASK "" ON)
 # nndemo
@@ -161,9 +161,9 @@ if(NNDEPLOY_ENABLE_COVERAGE)
   endif()
 endif()
 
-# nncore
-if(NNDEPLOY_ENABLE_NNCORE)
-  add_subdirectory(nncore)
+# nndeploy
+if(NNDEPLOY_ENABLE_NNDEPLOY)
+  add_subdirectory(nndeploy)
 endif()
 
 # nntask

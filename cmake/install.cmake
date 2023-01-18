@@ -49,8 +49,8 @@ set(NNDEPLOY_ENABLE_AUDIO_CORE ON)
 # vision
 set(NNDEPLOY_ENABLE_VISION ON)
 set(NNDEPLOY_ENABLE_VISION_CORE ON)
-# nncore
-set(NNDEPLOY_ENABLE_nncore ON)
+# nndeploy
+set(NNDEPLOY_ENABLE_nndeploy ON)
 # nntask
 set(NNDEPLOY_ENABLE_NNTASK ON)
 # nndemo
