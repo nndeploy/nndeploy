@@ -219,3 +219,6 @@ build/build_android
 build/ios
 build/install
 build/target
+
+# personal
+personal
