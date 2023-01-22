@@ -18,29 +18,29 @@
  *
  */
 #if defined _WIN32 || defined __CYGWIN__
-#ifdef nndeploy_BUILDING_DLL
+#ifdef NNDEPLOY_BUILDING_DLL
 #ifdef __GNUC__
-#define nndeploy_CPP_API __attribute__((dllexport))
+#define NNDEPLOY_CPP_API __attribute__((dllexport))
 #else  // __GNUC__
-#define nndeploy_CPP_API __declspec(dllexport)
+#define NNDEPLOY_CPP_API __declspec(dllexport)
 #endif  // __GNUC__
-#else   // nndeploy_BUILDING_DLL
+#else   // NNDEPLOY_BUILDING_DLL
 #ifdef __GNUC__
-#define nndeploy_CPP_API __attribute__((dllimport))
+#define NNDEPLOY_CPP_API __attribute__((dllimport))
 #else
-#define nndeploy_CPP_API __declspec(dllimport)
+#define NNDEPLOY_CPP_API __declspec(dllimport)
 #endif  // __GNUC__
-#endif  // nndeploy_BUILDING_DLL
+#endif  // NNDEPLOY_BUILDING_DLL
 #else   // _WIN32 || __CYGWIN__
 #if __GNUC__ >= 4
-#define nndeploy_CPP_API __attribute__((visibility("default")))
+#define NNDEPLOY_CPP_API __attribute__((visibility("default")))
 #else
-#define nndeploy_CPP_API
+#define NNDEPLOY_CPP_API
 #endif
 #endif
 
 #ifdef __cplusplus
-#define nndeploy_C_API extern "C" nndeploy_CPP_API
+#define NNDEPLOY_C_API extern "C" NNDEPLOY_CPP_API
 #endif
 
 /**
@@ -48,9 +48,9 @@
  *
  */
 #ifdef _MSC_VER
-#define nndeploy_PRAGMA(X) __pragma(X)
+#define NNDEPLOY_PRAGMA(X) __pragma(X)
 #else
-#define nndeploy_PRAGMA(X) _Pragma(#X)
+#define NNDEPLOY_PRAGMA(X) _Pragma(#X)
 #endif
 
 /**
@@ -58,22 +58,22 @@
  *
  */
 #if defined(__GNUC__) || defined(__clang__)
-#define nndeploy_DEPRECATED(msg) __attribute__((deprecated(msg)))
+#define NNDEPLOY_DEPRECATED(msg) __attribute__((deprecated(msg)))
 #elif defined(_MSC_VER)
-#define nndeploy_DEPRECATED(msg) __declspec(deprecated(msg))
+#define NNDEPLOY_DEPRECATED(msg) __declspec(deprecated(msg))
 #else
 #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
-#define nndeploy_DEPRECATED
+#define NNDEPLOY_DEPRECATED
 #endif
 
 /**
  * @brief string
  *
  */
-#define nndeploy_DEFAULT_STR "nndeploy_DEFAULT_STR"
-#define nndeploy_TO_STR(x) #x
-#define nndeploy_NAMESPACE_PLUS_TO_STR(x) nndeploy_NAMESPACE##x
-#define nndeploy_ENUM_TO_STR(x) \
+#define NNDEPLOY_DEFAULT_STR "NNDEPLOY_DEFAULT_STR"
+#define NNDEPLOY_TO_STR(x) #x
+#define NNDEPLOY_NAMESPACE_PLUS_TO_STR(x) NNDEPLOY_NAMESPACE##x
+#define NNDEPLOY_ENUM_TO_STR(x) \
   case x:                       \
     out << #x;                  \
     break;
@@ -82,38 +82,38 @@
  * @brief math
  *
  */
-#ifndef nndeploy_UP_DIV
-#define nndeploy_UP_DIV(x, y) (((int)(x) + (int)(y) - (1)) / (int)(y))
+#ifndef NNDEPLOY_UP_DIV
+#define NNDEPLOY_UP_DIV(x, y) (((int)(x) + (int)(y) - (1)) / (int)(y))
 #endif
 
-#ifndef nndeploy_ROUND_UP
-#define nndeploy_ROUND_UP(x, y) \
+#ifndef NNDEPLOY_ROUND_UP
+#define NNDEPLOY_ROUND_UP(x, y) \
   (((int)(x) + (int)(y) - (1)) / (int)(y) * (int)(y))
 #endif
 
-#ifndef nndeploy_ALIGN_UP4
-#define nndeploy_ALIGN_UP4(x) nndeploy_ROUND_UP((x), 4)
+#ifndef NNDEPLOY_ALIGN_UP4
+#define NNDEPLOY_ALIGN_UP4(x) NNDEPLOY_ROUND_UP((x), 4)
 #endif
 
-#ifndef nndeploy_ALIGN_UP8
-#define nndeploy_ALIGN_UP8(x) nndeploy_ROUND_UP((x), 8)
+#ifndef NNDEPLOY_ALIGN_UP8
+#define NNDEPLOY_ALIGN_UP8(x) NNDEPLOY_ROUND_UP((x), 8)
 #endif
 
-#ifndef nndeploy_ALIGN_PTR
-#define nndeploy_ALIGN_PTR(x, y) \
-  (void*)((size_t)(x) & (~((size_t)(nndeploy_ABS(y) - 1))))
+#ifndef NNDEPLOY_ALIGN_PTR
+#define NNDEPLOY_ALIGN_PTR(x, y) \
+  (void*)((size_t)(x) & (~((size_t)(NNDEPLOY_ABS(y) - 1))))
 #endif
 
-#ifndef nndeploy_MIN
-#define nndeploy_MIN(x, y) ((x) < (y) ? (x) : (y))
+#ifndef NNDEPLOY_MIN
+#define NNDEPLOY_MIN(x, y) ((x) < (y) ? (x) : (y))
 #endif
 
-#ifndef nndeploy_MAX
-#define nndeploy_MAX(x, y) ((x) > (y) ? (x) : (y))
+#ifndef NNDEPLOY_MAX
+#define NNDEPLOY_MAX(x, y) ((x) > (y) ? (x) : (y))
 #endif
 
-#ifndef nndeploy_ABS
-#define nndeploy_ABS(x) ((x) > (0) ? (x) : (-(x)))
+#ifndef NNDEPLOY_ABS
+#define NNDEPLOY_ABS(x) ((x) > (0) ? (x) : (-(x)))
 #endif
 
 #endif  // _NNDEPLOY_BASE_MACRO_
