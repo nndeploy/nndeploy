@@ -15,7 +15,7 @@
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/type.h"
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/device/device.h"
 #include "nndeploy/include/inference/config.h"
 #include "nndeploy/include/inference/forward_impl.h"
@@ -30,15 +30,16 @@ class Forward {
 
   ~Forward();
 
-  base::Status setConfig(const std::string &key, const base::Value value);
+  base::Status setConfig(const std::string &key, const base::Value &value);
   base::Status setConfig(const std::string &key, base::Value &value);
 
-  bool isConstract();
+  virtual base::Status init() = 0;
+  virtual base::Status deinit() = 0;
 
-  base::Status init(base::ShapeMap min_shape = base::ShapeMap(),
-                    base::ShapeMap opt_shape = base::ShapeMap(),
-                    base::ShapeMap max_shape = base::ShapeMap());
-  base::Status deinit();
+  virtual base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
+                            base::ShapeMap opt_shape = base::ShapeMap(),
+                            base::ShapeMap max_shape = base::ShapeMap()) = 0;
+  virtual base::Status postRun() = 0;
 
   base::Status getStaticShape(base::ShapeMap shape_map);
   base::Status getMinShape(base::ShapeMap &shape_map);

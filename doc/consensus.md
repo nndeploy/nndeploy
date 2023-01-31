@@ -61,6 +61,7 @@
 + 芯片公司
   + 帮助其对接算法公司
   + 统一的接口
++ 真正统一的nn部署框架 -- python -> so(tvm and ai template)
 
 ## 训练框架
 + pytorch

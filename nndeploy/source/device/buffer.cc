@@ -1,7 +1,7 @@
 #include "nndeploy/include/device/buffer.h"
 
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/type.h"
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/device/device.h"
 #include "nndeploy/include/device/memory_pool.h"
 

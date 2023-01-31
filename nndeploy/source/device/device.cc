@@ -5,7 +5,7 @@
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/type.h"
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/device/buffer.h"
 #include "nndeploy/include/device/memory_pool.h"
 

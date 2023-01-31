@@ -16,7 +16,7 @@
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/type.h"
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/value.h"
 #include "nndeploy/include/device/device.h"
 #include "nndeploy/include/inference/tensor_impl.h"

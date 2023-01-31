@@ -12,7 +12,7 @@
 #define _NNDEPLOY_INCLUDE_DEVICE_MAT_H_
 
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/type.h"
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/device/buffer.h"
 
 namespace nndeploy {
@@ -39,11 +39,24 @@ class Mat {
       base::DataType data_type);
   Mat(Device *device, base::IntVector shape_,
       base::DataType data_type);
+  Mat(Device *device, MatDesc desc, IntVector config);
+  Mat(MatDesc desc, Buffer *buffer);
 
-  void create();
+  //
+  Mat(const Mat& mat);
+  Mat(const Mat&& mat);
+
+  // 
+  void operator=(const Mat& mat);
+  void operator==(const Mat&& mat);
+
+  // create
+  void create(Device *device, MatDesc desc, IntVector config);
+  void create(MatDesc desc, Buffer *buffer);
 
   // get
   bool empty();
+  bool isContinue();
 
   MatDesc getDesc();
   base::DataType getDataType();

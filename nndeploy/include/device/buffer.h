@@ -13,7 +13,7 @@
 
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/type.h"
+#include "nndeploy/include/base/basic.h"
 
 namespace nndeploy {
 namespace device {
