@@ -11,9 +11,10 @@
 #ifndef _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
 #define _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
 
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/basic.h"
+
 
 namespace nndeploy {
 namespace device {

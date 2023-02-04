@@ -43,7 +43,7 @@ class Value {
 
   operator=(const Value& value);
   operator=(const Value&& value);
-  
+
   operator=(uint8_t value);
   operator=(int8_t value);
   operator=(uint16_t value);

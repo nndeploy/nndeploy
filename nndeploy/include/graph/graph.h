@@ -11,15 +11,15 @@
 #ifndef _NNDEPLOY_INCLUDE_GRAPH_GRAPH_
 #define _NNDEPLOY_INCLUDE_GRAPH_GRAPH_
 
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/device/device.h"
-#include "nndeploy/include/engine/config.h"
-#include "nndeploy/include/engine/packet.h"
-#include "nndeploy/include/engine/node.h"
+#include "nndeploy/include/graph/config.h"
+#include "nndeploy/include/graph/node.h"
+#include "nndeploy/include/graph/packet.h"
 
 namespace nndeploy {
 namespace graph {
@@ -30,9 +30,9 @@ class Graph {
   virtual ~Graph();
 
   virtual base::Status setNodeConfig(const std::string &node_name,
-                               const std::string &key, base::Value value);
+                                     const std::string &key, base::Value value);
   virtual base::Status setNodeConfig(const std::string &node_name,
-                               const Config &config);
+                                     const Config &config);
   virtual base::Status addInput(std::vector<std::string> input_name);
   virtual base::Status addOutput(std::vector<std::string> input_name);
   virtual base::Status addNode(Node *node);
@@ -58,7 +58,7 @@ class Graph {
   std::vector<std::string, std::shared_ptr<Packet>> input_;
   std::vector<std::string, std::shared_ptr<Packet>> output_;
   std::vector<Node *> nodes_;
-  std::vector<Graph *>graphs_;
+  std::vector<Graph *> graphs_;
 };
 
 }  // namespace graph

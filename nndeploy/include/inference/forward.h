@@ -11,15 +11,16 @@
 #ifndef _NNDEPLOY_INCLUDE_INFERENCE_FORWARD_H_
 #define _NNDEPLOY_INCLUDE_INFERENCE_FORWARD_H_
 
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/device/device.h"
 #include "nndeploy/include/inference/config.h"
 #include "nndeploy/include/inference/forward_impl.h"
 #include "nndeploy/include/inference/tensor.h"
+
 
 namespace nndeploy {
 namespace inference {
@@ -37,8 +38,8 @@ class Forward {
   virtual base::Status deinit() = 0;
 
   virtual base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
-                            base::ShapeMap opt_shape = base::ShapeMap(),
-                            base::ShapeMap max_shape = base::ShapeMap()) = 0;
+                              base::ShapeMap opt_shape = base::ShapeMap(),
+                              base::ShapeMap max_shape = base::ShapeMap()) = 0;
   virtual base::Status postRun() = 0;
 
   base::Status getStaticShape(base::ShapeMap shape_map);

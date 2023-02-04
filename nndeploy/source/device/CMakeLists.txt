@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 # set
 set(SOURCE)
 set(OBJECT)
-set(TARGET nndeploy_base)
+set(TARGET NNDEPLOY_base)
 set(DIRECTORY nndeploy)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)

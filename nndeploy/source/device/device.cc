@@ -1,14 +1,13 @@
 
 #include "nndeploy/include/device/device.h"
 
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/device/buffer.h"
 #include "nndeploy/include/device/memory_pool.h"
-
 
 namespace nndeploy {
 namespace device {
@@ -34,33 +33,33 @@ Buffer* Device::create(BufferDesc& desc, int32_t id) {
 }
 
 MemoryPool* Device::createMemoryPool(base::MemoryPoolType memory_pool_type) {
-  nndeploy_LOGI("this device[%d, %d] can't createMemoryPool!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] can't createMemoryPool!\n",
                 device_type_.code_, device_type_.device_id_);
   return nullptr;
 }
 
 MemoryPool* Device::createMemoryPool(base::MemoryPoolType memory_pool_type,
                                      size_t limit_size) {
-  nndeploy_LOGI("this device[%d, %d] can't createMemoryPool!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] can't createMemoryPool!\n",
                 device_type_.code_, device_type_.device_id_);
   return nullptr;
 }
 
 MemoryPool* Device::createMemoryPool(base::MemoryPoolType memory_pool_type,
                                      Buffer* buffer) {
-  nndeploy_LOGI("this device[%d, %d] can't createMemoryPool!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] can't createMemoryPool!\n",
                 device_type_.code_, device_type_.device_id_);
   return nullptr;
 }
 
 base::Status Device::synchronize() {
-  nndeploy_LOGI("this device[%d, %d] can't synchronize!\n", device_type_.code_,
+  NNDEPLOY_LOGI("this device[%d, %d] can't synchronize!\n", device_type_.code_,
                 device_type_.device_id_);
-  return base::nndeploy_OK;
+  return base::NNDEPLOY_OK;
 }
 
 void* Device::getCommandQueue() {
-  nndeploy_LOGI("this device[%d, %d] can't getCommandQueue!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] can't getCommandQueue!\n",
                 device_type_.code_, device_type_.device_id_);
   return nullptr;
 }

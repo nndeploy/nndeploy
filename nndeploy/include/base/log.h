@@ -20,23 +20,23 @@ namespace base {
 // NNDEPLOY_LOG
 #ifdef __ANDROID__
 #include <android/log.h>
-#define NNDEPLOY_LOGDT(fmt, tag, ...)                                  \
-  __android_log_print(                                        \
-      ANDROID_NNDEPLOY_LOG_DEBUG, tag, ("%s [File %s][Line %d] " fmt), \
-      __PRETTY_FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__);         \
-  fprintf(stdout, ("D/%s: %s [File %s][Line %d] " fmt), tag,           \
+#define NNDEPLOY_LOGDT(fmt, tag, ...)                                      \
+  __android_log_print(ANDROID_NNDEPLOY_LOG_DEBUG, tag,                     \
+                      ("%s [File %s][Line %d] " fmt), __PRETTY_FUNCTION__, \
+                      __FILE__, __LINE__, ##__VA_ARGS__);                  \
+  fprintf(stdout, ("D/%s: %s [File %s][Line %d] " fmt), tag,               \
           __PRETTY_FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
-#define NNDEPLOY_LOGIT(fmt, tag, ...)                                 \
-  __android_log_print(                                       \
-      ANDROID_NNDEPLOY_LOG_INFO, tag, ("%s [File %s][Line %d] " fmt), \
-      __PRETTY_FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__);        \
-  fprintf(stdout, ("I/%s: %s [File %s][Line %d] " fmt), tag,          \
+#define NNDEPLOY_LOGIT(fmt, tag, ...)                                      \
+  __android_log_print(ANDROID_NNDEPLOY_LOG_INFO, tag,                      \
+                      ("%s [File %s][Line %d] " fmt), __PRETTY_FUNCTION__, \
+                      __FILE__, __LINE__, ##__VA_ARGS__);                  \
+  fprintf(stdout, ("I/%s: %s [File %s][Line %d] " fmt), tag,               \
           __PRETTY_FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
-#define NNDEPLOY_LOGET(fmt, tag, ...)                                  \
-  __android_log_print(                                        \
-      ANDROID_NNDEPLOY_LOG_ERROR, tag, ("%s [File %s][Line %d] " fmt), \
-      __PRETTY_FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__);         \
-  fprintf(stderr, ("E/%s: %s [File %s][Line %d] " fmt), tag,           \
+#define NNDEPLOY_LOGET(fmt, tag, ...)                                      \
+  __android_log_print(ANDROID_NNDEPLOY_LOG_ERROR, tag,                     \
+                      ("%s [File %s][Line %d] " fmt), __PRETTY_FUNCTION__, \
+                      __FILE__, __LINE__, ##__VA_ARGS__);                  \
+  fprintf(stderr, ("E/%s: %s [File %s][Line %d] " fmt), tag,               \
           __PRETTY_FUNCTION__, __FILE__, __LINE__, ##__VA_ARGS__)
 #else
 #define NNDEPLOY_LOGDT(fmt, tag, ...)                                      \

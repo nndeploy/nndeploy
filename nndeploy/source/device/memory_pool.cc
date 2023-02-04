@@ -8,7 +8,6 @@
 #include "nndeploy/include/device/buffer.h"
 #include "nndeploy/include/device/device.h"
 
-
 namespace nndeploy {
 namespace device {
 
@@ -20,23 +19,26 @@ base::MemoryPoolType MemoryPool::getMemoryPoolType() {
 
 base::Status MemoryPool::init() {
   base::DeviceType device_type = device_->getDeviceType();
-  nndeploy_LOGE("this device[%d, %d] can't init this MemoryPoolType[%d] memorypool!\n",
-                device_type.code_, device_type.device_id_, memory_pool_type_);
-  return base::nndeploy_ERROR_NOT_SUPPORT;
+  NNDEPLOY_LOGE(
+      "this device[%d, %d] can't init this MemoryPoolType[%d] memorypool!\n",
+      device_type.code_, device_type.device_id_, memory_pool_type_);
+  return base::NNDEPLOY_ERROR_NOT_SUPPORT;
 }
 
 base::Status MemoryPool::init(size_t limit_size) {
   base::DeviceType device_type = device_->getDeviceType();
-  nndeploy_LOGE("this device[%d, %d] can't init this MemoryPoolType[%d] memorypool!\n",
-                device_type.code_, device_type.device_id_, memory_pool_type_);
-  return base::nndeploy_ERROR_NOT_SUPPORT;
+  NNDEPLOY_LOGE(
+      "this device[%d, %d] can't init this MemoryPoolType[%d] memorypool!\n",
+      device_type.code_, device_type.device_id_, memory_pool_type_);
+  return base::NNDEPLOY_ERROR_NOT_SUPPORT;
 }
 
 base::Status MemoryPool::init(Buffer* buffer) {
   base::DeviceType device_type = device_->getDeviceType();
-  nndeploy_LOGE("this device[%d, %d] can't init this MemoryPoolType[%d] memorypool!\n",
-                device_type.code_, device_type.device_id_, memory_pool_type_);
-  return base::nndeploy_ERROR_NOT_SUPPORT;
+  NNDEPLOY_LOGE(
+      "this device[%d, %d] can't init this MemoryPoolType[%d] memorypool!\n",
+      device_type.code_, device_type.device_id_, memory_pool_type_);
+  return base::NNDEPLOY_ERROR_NOT_SUPPORT;
 }
 
 }  // namespace device

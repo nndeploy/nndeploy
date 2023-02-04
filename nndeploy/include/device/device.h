@@ -11,13 +11,14 @@
 #ifndef _NNDEPLOY_INCLUDE_DEVICE_DEVICE_H_
 #define _NNDEPLOY_INCLUDE_DEVICE_DEVICE_H_
 
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/device/buffer.h"
 #include "nndeploy/include/device/memory_pool.h"
+
 
 namespace nndeploy {
 namespace device {
@@ -26,7 +27,7 @@ namespace device {
  * @brief
  *
  */
-class Device : public base::NonCopyable{
+class Device : public base::NonCopyable {
   friend class Architecture;
 
  public:
@@ -41,15 +42,14 @@ class Device : public base::NonCopyable{
   virtual base::Status copy(Buffer* src, Buffer* dst) = 0;
   virtual base::Status download(Buffer* src, Buffer* dst) = 0;
   virtual base::Status upload(Buffer* src, Buffer* dst) = 0;
-  // 接口？ 
+  // 接口？
   virtual base::Status map(Buffer* src, Buffer* dst) = 0;
   virtual base::Status unmap(Buffer* src, Buffer* dst) = 0;
   // share? opencl / vpu / hvx?
   virtual base::Status share(Buffer* src, Buffer* dst) = 0;
   virtual base::Status unshare(Buffer* src, Buffer* dst) = 0;
 
-  virtual MemoryPool* createMemoryPool(
-      base::MemoryPoolType memory_pool_type);
+  virtual MemoryPool* createMemoryPool(base::MemoryPoolType memory_pool_type);
   virtual MemoryPool* createMemoryPool(base::MemoryPoolType memory_pool_type,
                                        size_t limit_size);
   virtual MemoryPool* createMemoryPool(base::MemoryPoolType memory_pool_type,

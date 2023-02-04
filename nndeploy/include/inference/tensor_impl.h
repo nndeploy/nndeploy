@@ -11,13 +11,14 @@
 #ifndef _NNDEPLOY_INCLUDE_INFERENCE_TENSOR_IMPL_H_
 #define _NNDEPLOY_INCLUDE_INFERENCE_TENSOR_IMPL_H_
 
+#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/value.h"
 #include "nndeploy/include/device/device.h"
+
 
 namespace nndeploy {
 namespace inference {
@@ -34,16 +35,17 @@ class TensorImpl {
   TensorImpl();
   virtual ~TensorImpl();
 
-  TensorImpl(Device *device, TensorDesc desc, IntVector config, const std::strinng &name = "");
+  TensorImpl(Device *device, TensorDesc desc, IntVector config,
+             const std::strinng &name = "");
   TensorImpl(TensorDesc desc, Buffer *buffer, const std::strinng &name = "");
 
   //
-  TensorImpl(const TensorImpl& tensor);
-  TensorImpl(const TensorImpl&& tensor);
+  TensorImpl(const TensorImpl &tensor);
+  TensorImpl(const TensorImpl &&tensor);
 
-  // 
-  TensorImpl& operator=(const TensorImpl& tensor);
-  vTensorImpl& operator==(const TensorImpl&& mat);
+  //
+  TensorImpl &operator=(const TensorImpl &tensor);
+  vTensorImpl &operator==(const TensorImpl &&mat);
 
   // create
   void create(Device *device, TensorDesc desc, IntVector config);

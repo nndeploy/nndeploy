@@ -25,7 +25,7 @@ class Cryption {
                                 const std::string &license);
 };
 
-}  // namespace base
+}  // namespace cryption
 }  // namespace nndeploy
 
 #endif
