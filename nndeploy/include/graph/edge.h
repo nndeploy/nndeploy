@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2022
  * @note ref opencv
  */
-#ifndef _NNDEPLOY_INCLUDE_GRAPH_PACKET_H_
-#define _NNDEPLOY_INCLUDE_GRAPH_PACKET_H_
+#ifndef _NNDEPLOY_INCLUDE_GRAPH_EDGE_H_
+#define _NNDEPLOY_INCLUDE_GRAPH_EDGE_H_
 
 #include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
@@ -25,7 +25,7 @@
 namespace nndeploy {
 namespace graph {
 
-class Packet {
+class Edge {
  public:
  private:
   std::string name_;
