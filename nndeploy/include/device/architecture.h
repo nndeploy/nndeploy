@@ -25,7 +25,7 @@ class Device;
 
 struct DeviceInfo {
   base::DeviceType device_type_;
-  bool is_support_fp16 = false;
+  bool is_support_fp16_ = false;
 };
 
 class Architecture {

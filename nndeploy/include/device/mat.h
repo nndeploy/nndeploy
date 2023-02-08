@@ -39,7 +39,7 @@ class Mat {
   Mat(Device *device, int32_t *shape, int32_t shape_len,
       base::DataType data_type);
   Mat(Device *device, base::IntVector shape_, base::DataType data_type);
-  Mat(Device *device, MatDesc desc, IntVector config);
+  Mat(Device *device, MatDesc desc, base::IntVector config);
   Mat(MatDesc desc, Buffer *buffer);
 
   //
@@ -51,7 +51,7 @@ class Mat {
   void operator==(const Mat &&mat);
 
   // create
-  void create(Device *device, MatDesc desc, IntVector config);
+  void create(Device *device, MatDesc desc, base::IntVector config);
   void create(MatDesc desc, Buffer *buffer);
 
   // get

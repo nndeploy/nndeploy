@@ -27,20 +27,18 @@ namespace inference {
 
 class ForwardImpl {
  public:
-  ForwardImpl(Config config);
-
+  ForwardImpl();
   virtual ~ForwardImpl();
 
-  base::Status setConfig(const std::string &key, const base::Value &value);
-  base::Status setConfig(const std::string &key, base::Value &value);
-
-  virtual base::Status init() = 0;
+  virtual base::Status init(Config config) = 0;
   virtual base::Status deinit() = 0;
 
   virtual base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
                               base::ShapeMap opt_shape = base::ShapeMap(),
                               base::ShapeMap max_shape = base::ShapeMap()) = 0;
   virtual base::Status postRun() = 0;
+
+  virtual Config getConfig();
 
   virtual base::Status getStaticShape(base::ShapeMap shape_map);
   virtual base::Status getMinShape(base::ShapeMap &shape_map);

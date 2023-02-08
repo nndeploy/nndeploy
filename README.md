@@ -11,15 +11,12 @@
   + 文档，需要调研文档工具以及写注释的方式
 + docker
   + docker脚本
-+ golang
-  + golang语言支持
++ ffi
+  + 多语言支持
 + nnconvert
   + 统一的模型转换器，完成 X模型文件 -> Y模型文件 功能
   + 配合使用的推理框架版本共同使用
   + 在docker里面统一管理
-+ nndemo
-  + 可执行文件程序
-  + web程序 -> 云端
 + nndeploy -> 核心 的 c++部署框架
   + base 基础模块以及帮助函数，只依赖标准库
   + device 设备管理模块，非常核心且重要的模块，依赖base以及对应设备第三方库
@@ -58,12 +55,6 @@
   + 基于onnx和pythorch模型量化工具
 + nntask
   + 各类落地的ai算法
-+ python
-  + python语言支持
-+ test
-  + 测试目录，应该好好设计一下
 + third_party
   + git - 第三方库源码
   + release - 第三方库
-+ util
-  + 各类杂项目录，例如汈哥的vscode调试的json脚本
