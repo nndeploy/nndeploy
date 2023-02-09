@@ -222,3 +222,6 @@ build/target
 
 # personal
 personal
+
+# vscode
+.vscode/

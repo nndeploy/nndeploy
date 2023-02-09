@@ -170,13 +170,3 @@ endif()
 if(NNDEPLOY_ENABLE_NNTASK)
   add_subdirectory(nntask)
 endif()
-
-# nndemo
-if(NNDEPLOY_ENABLE_NNDEMO)
-  add_subdirectory(nndemo)
-endif()
-
-# test
-if(NNDEPLOY_ENABLE_TEST)
-  add_subdirectory(test)
-endif()
