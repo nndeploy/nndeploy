@@ -20,7 +20,7 @@ namespace nndeploy {
 namespace device {
 
 class Device;
-class MemoryPool;
+class BufferPool;
 
 struct BufferDesc {
   BufferDesc() : memory_buffer_type_(base::MEMORY_BUFFER_TYPE_1D){};
@@ -64,15 +64,15 @@ struct BufferDesc {
 
 class Buffer : public base::NonCopyable {
   friend class Device;
-  friend class MemoryPool;
+  friend class BufferPool;
 
  public:
   // get
   bool empty();
   base::DeviceType getDeviceType();
   Device *getDevice();
-  MemoryPool *getMemoryPool();
-  bool isMemoryPool();
+  BufferPool *getBufferPool();
+  bool isBufferPool();
   bool isExternal();
   BufferDesc getDesc();
   base::MemoryBufferType getMemoryBufferType();
@@ -87,57 +87,57 @@ class Buffer : public base::NonCopyable {
 
   Buffer(Device *device, size_t size, void *ptr, bool is_external)
       : device_(device),
-        memory_pool_(nullptr),
+        buffer_pool_(nullptr),
         desc_(size),
         data_ptr_(ptr),
         data_id_(-1),
         is_external_(is_external){};
   Buffer(Device *device, size_t size, int32_t id, bool is_external)
       : device_(device),
-        memory_pool_(nullptr),
+        buffer_pool_(nullptr),
         desc_(size),
         data_ptr_(nullptr),
         data_id_(id),
         is_external_(is_external){};
   Buffer(Device *device, BufferDesc desc, void *ptr, bool is_external)
       : device_(device),
-        memory_pool_(nullptr),
+        buffer_pool_(nullptr),
         desc_(desc),
         data_ptr_(ptr),
         data_id_(-1),
         is_external_(is_external){};
   Buffer(Device *device, BufferDesc desc, int32_t id, bool is_external)
       : device_(device),
-        memory_pool_(nullptr),
+        buffer_pool_(nullptr),
         desc_(desc),
         data_ptr_(nullptr),
         data_id_(id),
         is_external_(is_external){};
 
-  Buffer(MemoryPool *memory_pool, size_t size, void *ptr)
+  Buffer(BufferPool *buffer_pool, size_t size, void *ptr)
       : device_(nullptr),
-        memory_pool_(memory_pool),
+        buffer_pool_(buffer_pool),
         desc_(size),
         data_ptr_(ptr),
         data_id_(-1),
         is_external_(false){};
-  Buffer(MemoryPool *memory_pool, size_t size, int32_t id)
+  Buffer(BufferPool *buffer_pool, size_t size, int32_t id)
       : device_(nullptr),
-        memory_pool_(memory_pool),
+        buffer_pool_(buffer_pool),
         desc_(size),
         data_ptr_(nullptr),
         data_id_(id),
         is_external_(false){};
-  Buffer(MemoryPool *memory_pool, BufferDesc desc, void *ptr)
+  Buffer(BufferPool *buffer_pool, BufferDesc desc, void *ptr)
       : device_(nullptr),
-        memory_pool_(memory_pool),
+        buffer_pool_(buffer_pool),
         desc_(desc),
         data_ptr_(ptr),
         data_id_(-1),
         is_external_(false){};
-  Buffer(MemoryPool *memory_pool, BufferDesc desc, int32_t id)
+  Buffer(BufferPool *buffer_pool, BufferDesc desc, int32_t id)
       : device_(nullptr),
-        memory_pool_(memory_pool),
+        buffer_pool_(buffer_pool),
         desc_(desc),
         data_ptr_(nullptr),
         data_id_(id),
@@ -145,7 +145,7 @@ class Buffer : public base::NonCopyable {
 
  private:
   Device *device_ = nullptr;
-  MemoryPool *memory_pool_ = nullptr;
+  BufferPool *buffer_pool_ = nullptr;
   BufferDesc desc_;
   void *data_ptr_ = nullptr;
   int32_t data_id_ = -1;

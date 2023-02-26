@@ -1,0 +1,90 @@
+# 再做一个自己的推理框架 想法来源 
++ 算法工程化
+  + 内存管理
+    + 传统内存池
+    + 基于图的tensor复用的内存池
+      + 切割方式
+      + 分块方式
+      + 独立方式 例如 cl::image2d 的必须等额复用
+      + 最小内存
+        + 运行时分配 （算法工程化）
+        + 基于图算法优化 - （TODO）
+      + 最快速度
+        + 提前分配
+        + 最符合缓存
+    + 满足多个模型组成的pipeline算法的内存复用需求 （算法工程化）
+      + 基于图的tensor复用的内存池是非嵌入式的
+      + 切割方式
+      + 模型的output单独分配内存
+  + 设备管理
+    + 共享应用层上下文，从而实现gpu的数据零拷贝给模型推理
+    + 设备信息查询
+    + 设备检查
+  + 异构执行
+    + 单batch下CPU(X86和ARM)-GPU自动异构执行
+    + 多batch下多forward推理 
+  + 动态尺寸
+    + 多种形状 min_shape opt_shape max_shape current_shape，提高工程易用性
+    + reshape
+    + 检查动态形状是否能完成推理
+  + 硬件公司接入推理框架
+    + device and op（高性能算子）
+  + 模型量化
+    + tnn量化后性能差，人像分割模型量化后性能负优化
+      + 量化算子有限，quantize节点多
+    + openvino量化后性能极佳，视频去水印模型量化加速2.5倍，量化算子众多
+      + 很多子图模块全是量化算子
+        + quantize节点少
+        + simd: int8以及int16 比 fp16和fp32更快
+        + 量化算子扎扎实实少了4倍，对访存极其友好
+    + PPQ 深度且受控的量化工具
+  + 模型转换 - 建议算法工程师拿到预训练模型后首先做一下模型转换，模型转换时提出一些性能更好的模型修改建议 
+    + 设计更规整的模型性，降低模型转换过程中算子缺失的概率 
+    + 设计更易图优化的模型结构
+  + 模型解释
+    + 模型加解密
+    + 静态尺寸 static_shape
+  + 数据对齐，与python推理代码对齐    
++ 开源框架
+  + tnn
+    + 整体框架
+  + openvino
+    + qnnpack
+    + cpu-gpu异构执行
+    + 量化
+  + tf-lte
+    + xnnpack
+  + mnn
+    + 子图的拆分
+    + flatbuffer
+  + onnxruntime
+    + python接口
+    + 不采用基于图的内存分配，内存性能最好
+  + tvm
+    + 场景分割（NDHWC五维模型）
+      + openvino 270ms
+      + onnxruntime 350ms
+      + tvm 970ms
+    + 推理框架目前性能远远好于机器学习编译框架
+  + trt
+    + 最好写的自定义算子插件
+  + tengine
+    + 对推理框架完整的认识
+  + aitemplate
+    + 假如有可能的化，像借鉴它的整体实现思路
+  + onnx
+    + ir的设计，基于onnx ir, 但是增加更多优化的空间
+  + onnx-optimizer
+    + 基于onnx ir做图优化
+  + onnx-sim
+    + 基于onnxruntime做常量传播、常量折叠
+  + 
+  + ppl.cv
+    + 高性能算子
+  + opencv
+    + 接口的设计
+    + cv::Mat、cv::GpuMat、cv::InputArray、cv::OutputArray的设计
+    + cv::Parallel_for多线程的设计方法
+  + 
+  + ptmalloc
+    + 传统内存池

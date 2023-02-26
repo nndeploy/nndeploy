@@ -16,7 +16,7 @@
 + tensor
 + node
 + device
-+ memory_pool
++ buffer_pool
 
 ## 易用性
 + 接口易懂

@@ -41,12 +41,12 @@ class Mat {
   Mat(Device *device, base::IntVector shape_, base::DataType data_type);
   Mat(Device *device, MatDesc desc, base::IntVector config);
 
-  Mat(MemoryPool *memory_pool, int32_t height, int32_t width, int32_t channel,
+  Mat(BufferPool *buffer_pool, int32_t height, int32_t width, int32_t channel,
       base::DataType data_type);
-  Mat(MemoryPool *memory_pool, int32_t *shape, int32_t shape_len,
+  Mat(BufferPool *buffer_pool, int32_t *shape, int32_t shape_len,
       base::DataType data_type);
-  Mat(MemoryPool *memory_pool, base::IntVector shape_, base::DataType data_type);
-  Mat(MemoryPool *memory_pool, MatDesc desc, base::IntVector config);
+  Mat(BufferPool *buffer_pool, base::IntVector shape_, base::DataType data_type);
+  Mat(BufferPool *buffer_pool, MatDesc desc, base::IntVector config);
 
   Mat(MatDesc desc, Buffer *buffer);
 
@@ -79,8 +79,8 @@ class Mat {
   Buffer *getBuffer();
   base::DeviceType getDeviceType();
   Device *getDevice();
-  MemoryPool *getMemoryPool();
-  bool isMemoryPool();
+  BufferPool *getBufferPool();
+  bool isBufferPool();
   bool isExternal();
   base::MemoryBufferType getMemoryBufferType();
   size_t getSize();

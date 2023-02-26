@@ -7,7 +7,7 @@
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/device/buffer.h"
-#include "nndeploy/include/device/memory_pool.h"
+#include "nndeploy/include/device/buffer_pool.h"
 
 namespace nndeploy {
 namespace device {
@@ -32,22 +32,22 @@ Buffer* Device::create(BufferDesc& desc, int32_t id) {
   return buffer;
 }
 
-MemoryPool* Device::createMemoryPool(base::MemoryPoolType memory_pool_type) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't createMemoryPool!\n",
+BufferPool* Device::createBufferPool(base::BufferPoolType buffer_pool_type) {
+  NNDEPLOY_LOGI("this device[%d, %d] can't createBufferPool!\n",
                 device_type_.code_, device_type_.device_id_);
   return nullptr;
 }
 
-MemoryPool* Device::createMemoryPool(base::MemoryPoolType memory_pool_type,
+BufferPool* Device::createBufferPool(base::BufferPoolType buffer_pool_type,
                                      size_t limit_size) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't createMemoryPool!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] can't createBufferPool!\n",
                 device_type_.code_, device_type_.device_id_);
   return nullptr;
 }
 
-MemoryPool* Device::createMemoryPool(base::MemoryPoolType memory_pool_type,
+BufferPool* Device::createBufferPool(base::BufferPoolType buffer_pool_type,
                                      Buffer* buffer) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't createMemoryPool!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] can't createBufferPool!\n",
                 device_type_.code_, device_type_.device_id_);
   return nullptr;
 }

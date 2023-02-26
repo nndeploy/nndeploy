@@ -17,7 +17,7 @@
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/device/buffer.h"
-#include "nndeploy/include/device/memory_pool.h"
+#include "nndeploy/include/device/buffer_pool.h"
 
 
 namespace nndeploy {
@@ -49,10 +49,10 @@ class Device : public base::NonCopyable {
   virtual base::Status share(Buffer* src, Buffer* dst) = 0;
   virtual base::Status unshare(Buffer* src, Buffer* dst) = 0;
 
-  virtual MemoryPool* createMemoryPool(base::MemoryPoolType memory_pool_type);
-  virtual MemoryPool* createMemoryPool(base::MemoryPoolType memory_pool_type,
+  virtual BufferPool* createBufferPool(base::BufferPoolType buffer_pool_type);
+  virtual BufferPool* createBufferPool(base::BufferPoolType buffer_pool_type,
                                        size_t limit_size);
-  virtual MemoryPool* createMemoryPool(base::MemoryPoolType memory_pool_type,
+  virtual BufferPool* createBufferPool(base::BufferPoolType buffer_pool_type,
                                        Buffer* buffer);
 
   virtual base::Status synchronize();

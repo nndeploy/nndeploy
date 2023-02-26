@@ -14,9 +14,6 @@
   + tensor_rt
   + openvino
   + coreml
-+ aicompiler
-  + tvm
-  + aitemplate
 + graph
   + 思路，设计
 + vision

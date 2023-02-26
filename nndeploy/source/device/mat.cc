@@ -5,7 +5,7 @@
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/device/buffer.h"
 #include "nndeploy/include/device/device.h"
-#include "nndeploy/include/device/memory_pool.h"
+#include "nndeploy/include/device/buffer_pool.h"
 
 
 namespace nndeploy {

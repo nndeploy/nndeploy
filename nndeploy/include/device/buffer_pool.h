@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_DEVICE_MEMORY_POOL_H_
-#define _NNDEPLOY_INCLUDE_DEVICE_MEMORY_POOL_H_
+#ifndef _NNDEPLOY_INCLUDE_DEVICE_BUFFER_POOL_H_
+#define _NNDEPLOY_INCLUDE_DEVICE_BUFFER_POOL_H_
 
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
@@ -22,7 +22,7 @@ namespace device {
 
 class Device;
 
-class MemoryPool {
+class BufferPool {
   friend class Device;
 
  public:
@@ -31,16 +31,16 @@ class MemoryPool {
   virtual void free(Buffer* buffer) = 0;
 
   Device* getDevice();
-  base::MemoryPoolType getMemoryPoolType();
+  base::BufferPoolType getBufferPoolType();
 
  private:
   Device* device_;
-  base::MemoryPoolType memory_pool_type_;
+  base::BufferPoolType buffer_pool_type_;
 
  protected:
-  MemoryPool(Device* device, base::MemoryPoolType memory_pool_type)
-      : device_(device), memory_pool_type_(memory_pool_type){};
-  virtual ~MemoryPool();
+  BufferPool(Device* device, base::BufferPoolType buffer_pool_type)
+      : device_(device), buffer_pool_type_(buffer_pool_type){};
+  virtual ~BufferPool();
 
   virtual base::Status init();
   virtual base::Status init(size_t limit_size);

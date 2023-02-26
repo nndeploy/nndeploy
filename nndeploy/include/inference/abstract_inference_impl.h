@@ -19,27 +19,26 @@
 #include "nndeploy/include/base/value.h"
 #include "nndeploy/include/device/device.h"
 #include "nndeploy/include/inference/config.h"
-#include "nndeploy/include/inference/tensor.h"
+#include "nndeploy/include/device/tensor.h"
 
 
 namespace nndeploy {
 namespace inference {
 
-class ForwardImpl {
+class AbstractInferenceImpl {
  public:
-  ForwardImpl(Config config);
+  AbstractInferenceImpl();
+  virtual ~AbstractInferenceImpl();
 
-  virtual ~ForwardImpl();
-
-  base::Status setConfig(const std::string &key, const base::Value &value);
-  base::Status setConfig(const std::string &key, base::Value &value);
-
-  bool isConstract();
-
-  virtual base::Status init(base::ShapeMap min_shape = base::ShapeMap(),
-                            base::ShapeMap opt_shape = base::ShapeMap(),
-                            base::ShapeMap max_shape = base::ShapeMap()) = 0;
+  virtual base::Status init(Config config) = 0;
   virtual base::Status deinit() = 0;
+
+  virtual base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
+                              base::ShapeMap opt_shape = base::ShapeMap(),
+                              base::ShapeMap max_shape = base::ShapeMap()) = 0;
+  virtual base::Status postRun() = 0;
+
+  virtual Config getConfig();
 
   virtual base::Status getStaticShape(base::ShapeMap shape_map);
   virtual base::Status getMinShape(base::ShapeMap &shape_map);
@@ -52,8 +51,8 @@ class ForwardImpl {
   virtual base::Status setDevice(device::Device *device);
   virtual device::Device *getDevice();
 
-  virtual base::Status setMemoryPool(device::MemoryPool *memory_pool);
-  virtual device::MemoryPool *getMemoryPool();
+  virtual base::Status setBufferPool(device::BufferPool *buffer_pool);
+  virtual device::BufferPool *getBufferPool();
 
   virtual int64_t GetWorkspaceSize();
   virtual base::Status setWorkspace(device::Buffer *buffer);
@@ -99,7 +98,7 @@ class ForwardImpl {
   TensorMap max_output_tensors;
 
   device::Device *device_ = nullptr;
-  device::MemoryPool *memory_pool = nullptr;
+  device::BufferPool *buffer_pool = nullptr;
 };
 
 }  // namespace inference

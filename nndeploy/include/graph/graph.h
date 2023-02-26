@@ -35,6 +35,8 @@ class Graph {
                                      const Config &config);
   virtual base::Status addInput(std::vector<std::string> input_name);
   virtual base::Status addOutput(std::vector<std::string> input_name);
+  virtual base::Status addInputNode(Node *node);
+  virtual base::Status addOutputNode(Node *node);
   virtual base::Status addNode(Node *node);
   virtual base::Status addSubgraph(Graph *node);
 

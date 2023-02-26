@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_INFERENCE_FORWARD_H_
-#define _NNDEPLOY_INCLUDE_INFERENCE_FORWARD_H_
+#ifndef _NNDEPLOY_INCLUDE_INFERENCE_Inference_H_
+#define _NNDEPLOY_INCLUDE_INFERENCE_Inference_H_
 
 #include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
@@ -18,17 +18,17 @@
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/device/device.h"
 #include "nndeploy/include/inference/config.h"
-#include "nndeploy/include/inference/forward_impl.h"
-#include "nndeploy/include/inference/tensor.h"
+#include "nndeploy/include/inference/abstract_inference_impl.h"
+#include "nndeploy/include/device/tensor.h"
 
 
 namespace nndeploy {
 namespace inference {
 
-class Forward {
+class Inference {
  public:
-  Forward();
-  ~Forward();
+  Inference();
+  ~Inference();
 
   base::Status init(Config config);
   base::Status deinit();
@@ -51,8 +51,8 @@ class Forward {
   base::Status setDevice(device::Device *device);
   device::Device *getDevice();
 
-  base::Status setMemoryPool(device::MemoryPool *memory_pool);
-  device::MemoryPool *getMemoryPool();
+  base::Status setBufferPool(device::BufferPool *buffer_pool);
+  device::BufferPool *getBufferPool();
 
   int64_t GetWorkspaceSize();
   base::Status setWorkspace(device::Buffer *buffer);
@@ -60,8 +60,8 @@ class Forward {
   int64_t getMemorySize();
   base::Status setMemory(device::Buffer *buffer);
 
-  TensorMap getAllInputTensor();
-  TensorMap getAllOutputTensor();
+  Device::TensorMap getAllInputTensor();
+  Device::TensorMap getAllOutputTensor();
 
   int getNumOfInputTensor();
   int getNumOfOutputTensor();
@@ -69,22 +69,22 @@ class Forward {
   std::vector<std::string> getInputTensorNames();
   std::vector<std::string> getOutputTensorNames();
 
-  std::shared_ptr<Tensor> getInputTensor(const std::string &key);
+  std::shared_ptr<Device::Tensor> getInputTensor(const std::string &key);
   std::shared_ptr<Tensor> getOutputTensor(const std::string &key);
 
   base::Status setInputTensor(const std::string &key,
-                              const std::shared_ptr<Tensor> input_tensor);
+                              const std::shared_ptr<Device::Tensor> input_tensor);
   //
-  std::shared_ptr<Tensor> getOutputTensor(const std::string &key,
+  std::shared_ptr<Device::Tensor> getOutputTensor(const std::string &key,
                                           std::vector<int32_t> config);
 
   base::Status run();
   base::Status asyncRun();
 
-  std::shared_ptr<ForwardImpl> getForwardImpl();
+  std::shared_ptr<AbstractInferenceImpl> getInferenceImpl();
 
  private:
-  std::shared_ptr<ForwardImpl> forward_impl_;
+  std::shared_ptr<AbstractInferenceImpl> inference_impl_;
 };
 
 }  // namespace inference

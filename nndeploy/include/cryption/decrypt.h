@@ -16,7 +16,7 @@
 namespace nndeploy {
 namespace cryption {
 
-class Cryption {
+class Decrypt {
  public:
   std::string decryptFromPath(const std::string &src,
                               const std::string &license);

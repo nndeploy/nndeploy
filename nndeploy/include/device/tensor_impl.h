@@ -1,15 +1,6 @@
-/**
- * @file config_impl.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-12-20
- *
- * @copyright Copyright (c) 2022
- *
- */
-#ifndef _NNDEPLOY_INCLUDE_INFERENCE_TENSOR_IMPL_H_
-#define _NNDEPLOY_INCLUDE_INFERENCE_TENSOR_IMPL_H_
+
+#ifndef _NNDEPLOY_INCLUDE_DEVICE_TENSOR_IMPL_H_
+#define _NNDEPLOY_INCLUDE_DEVICE_TENSOR_IMPL_H_
 
 #include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
@@ -21,7 +12,7 @@
 
 
 namespace nndeploy {
-namespace inference {
+namespace device {
 
 struct TensorDesc {
   base::DataType data_type_;
@@ -56,7 +47,7 @@ class TensorImpl {
   bool isContinue();
 
   std::string getName();
-  base::InferenceType getInferenceType();
+  base::DEVICEType getDEVICEType();
 
   TensorDesc getDesc();
   base::DataType getDataType();
@@ -81,12 +72,11 @@ class TensorImpl {
 
  private:
   std::string name_;
-  base::InferenceType inference_type_;
   TensorDesc desc_;
   device::Buffer *buffer_;
 };
 
-}  // namespace inference
+}  // namespace device
 }  // namespace nndeploy
 
 #endif

@@ -3,7 +3,7 @@
 #include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/device/device.h"
-#include "nndeploy/include/device/memory_pool.h"
+#include "nndeploy/include/device/buffer_pool.h"
 
 namespace nndeploy {
 namespace device {
@@ -16,17 +16,17 @@ base::DeviceType Buffer::getDeviceType() {
     return device_->getDeviceType();
   }
 
-  if (memory_pool_) {
-    return memory_pool_->getDevice()->getDeviceType();
+  if (buffer_pool_) {
+    return buffer_pool_->getDevice()->getDeviceType();
   }
 }
 
 Device *Buffer::getDevice() { return device_; }
 
-MemoryPool *Buffer::getMemoryPool() { return memory_pool_; }
+BufferPool *Buffer::getBufferPool() { return buffer_pool_; }
 
-bool Buffer::isMemoryPool() {
-  if (memory_pool_ == nullptr) {
+bool Buffer::isBufferPool() {
+  if (buffer_pool_ == nullptr) {
     return false;
   } else {
     return true;

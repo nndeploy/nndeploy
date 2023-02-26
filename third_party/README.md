@@ -1,21 +1,9 @@
-
-```
 third_party
-├── git
-├── include
-│   ├── linux
-│   ├── mac_intel
-│   ├── mac_m1
-│   └── windows
-│       └── opencv
-│           └── include
-└── lib
-    ├── linux
-    ├── mac_intel
-    ├── mac_m1
-    └── windows
-        └── opencv
-            ├── bin
-            └── lib
-```
++ gitsubmodules(在gitmodules下直接线上拉去，例如OpenCL)
++ user
+  + opencv
+    + linux
+      + include
+      + release
 This way I think it's better cause the include directory and bin directory are the same level
+
