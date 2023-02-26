@@ -2,7 +2,8 @@
 + ai算法工程化框架 + 推理框架
 + 多种工具集
 
-## 想要做到的
+
+## 希望可以做到
 + AI算法工程化工程师
   + 开发效率 
   + 性能
@@ -10,71 +11,21 @@
     + 空间性能
 + 算法工程师
   + 基于python接口框架开发
-    + 一键切换推理框架，代替onnxruntime
-    + 对齐
+    + 一键切换推理框架
+    + 与训练框架结果对齐
 + 算法落地的公司
+  + 一批直接可供使用的算法
   + 算法落地
     + 开发效率
     + 性能
 + 芯片公司
-  + 帮助其对接算法公司
-  + 统一的接口
+  + 帮助其在生产环境落地
+    + 推理框架对接
+    + 算子对接
 + 针对大模型的分布式推理(TODO)
 + 统一的机器学习部署框架
   + python -> so(tvm and aitemplate)
 
-## 想法来源
-+ 工程化框架
-  + 开发效率(最核心的理由)
-  + 性能
-    + 时间
-    + 空间
-+ 由ai工程化的需求想做一个更符合ai工程化的推理框架
-  + 内存管理
-    + 传统内存池
-    + 基于图的tensor复用的内存池
-      + 切割方式
-      + 分块方式
-      + 独立方式 例如 cl::image2d 的必须等额复用
-      + 最小内存
-        + 运行时分配 （算法工程化）
-        + 基于图算法优化 - （TODO）
-      + 最快速度
-        + 提前分配
-        + 最符合缓存
-    + 满足多个模型组成的pipeline算法的内存复用需求 （算法工程化）
-      + 基于图的tensor复用的内存池是非嵌入式的
-      + 切割方式
-      + 模型的output单独分配内存
-  + 设备管理
-    + 共享应用层上下文，从而实现gpu的数据零拷贝给模型推理
-    + 设备信息查询
-    + 设备检查
-  + 异构执行
-    + 单batch下CPU(X86和ARM)-GPU自动异构执行
-    + 多batch下多forward推理 
-  + 动态尺寸
-    + 多种形状 min_shape opt_shape max_shape current_shape，提高工程易用性
-    + reshape
-    + 检查动态形状是否能完成推理
-  + 硬件公司接入推理框架
-    + device and op（高性能算子）
-  + 模型量化
-    + tnn量化后性能差，人像分割模型量化后性能负优化
-      + 量化算子有限，quantize节点多
-    + openvino量化后性能极佳，视频去水印模型量化加速2.5倍，量化算子众多
-      + 很多子图模块全是量化算子
-        + quantize节点少
-        + simd: int8以及int16 比 fp16和fp32更快
-        + 量化算子扎扎实实少了4倍，对访存极其友好
-    + PPQ 深度且受控的量化工具
-  + 模型转换 - 建议算法工程师拿到预训练模型后首先做一下模型转换，模型转换时提出一些性能更好的模型修改建议 
-    + 设计更规整的模型性，降低模型转换过程中算子缺失的概率 
-    + 设计更易图优化的模型结构
-  + 模型解释
-    + 模型加解密
-    + 静态尺寸 static_shape
-  + 数据对齐，与python推理代码对齐
 
 ## 目录
 + build
@@ -82,7 +33,9 @@
 + cmake
   + 通用的cmake，例如cpack, install
   + config.cmake，编译模板config
-  + 第三方库的cmake，目录的形式 + 链接进工程
+  + 第三方库的cmake
+    + gitmodules(头文件)
+    + 指定目录链接
 + doc
   + 文档，需要调研文档工具以及写注释的方式
 + docker
@@ -96,19 +49,21 @@
 + nndeploy
   + 核心 的 c++ 部署框架
 + nnedit
-  + 基于自定义模型文件或者onnx或者pytorch的模型编辑器
+  + 基于（自定义/onnx模型文件）的模型编辑器
 + nnlightweight
   + 模型轻量化工具
 + nnoptimize
-  + 基于自定义模型文件或者onnx或者pytorch模型图优化工具
+  + 基于（自定义/onnx模型文件）模型图优化工具
 + nnquantize
   + 基于推理框架简历的抽象的模型量化工具，在docker里面统一管理
-  + 基于自定义模型文件或者onnx和pythorch模型量化工具
+  + 基于（自定义/onnx模型文件）和框架（内部推理框架/训练框架pytorch）模型量化工具
 + nntask
   + 各类落地的ai算法
 + third_party
-  + git - 第三方库源码
-  + release - 第三方库
+  + gitmodules
+    + 头文件形式的第三方库
+  + user
+    + 需要自己的编译的头文件
 
 
 ## nndeploy/nndeploy 目录详解 
@@ -159,7 +114,7 @@
         + outputs
         + initalizer
         + ValueInfo
-  + ***自定义模型文件格式抉择 -> 采用text+bin的格式***
+  + ***自定义模型文件格式抉择***
     + text+bin > json+bin
       + 得自己写反序列化以及序列化
       + 不需要依赖其他库，对移动端友好
@@ -212,15 +167,15 @@
   + 支持interpret模块的多个优化pass，嵌入在interpret中 or 在interpret后加一个步骤
   + 支持forward模块的多个优化pass，嵌入在forward中 or 在forward初始化后加一个步骤
 + inference 依赖 [forward] [op] [interpret] [ir] [device] [cryption] [base]
-  + 通过组合的方式封装如下api
-    + Forward 的 api
-    + Interpret 的 api
-  + ***方便导出python的推理接口***
-  + ***数据并行：应用层实现多batch下CPU(X86\ARM)-GPU下多Forward推理***
   + ***关联其他推理框架***
+    + 关联缺省的推理框架，通过组合的方式封装如下api
+      + Forward 的 api
+      + Interpret 的 api
+  + ***方便导出python的推理接口，接口要做到像onnxruntime一样易用***
+  + ***数据并行：应用层实现多batch下CPU(X86\ARM)-GPU下多Forward推理***
 + aicompile 
   + ai编译器的抽象，暂无想法
-+ graph 依赖 [aicompiler暂无想法] [inference] [cv] [audio暂无想法] [device] [cryption] [base]
++ graph 依赖 [aicompiler] [inference] [cv] [audio] [device] [cryption] [base]
   + 图管理模块，非常核心且重要的模块，具体算法基于该模块建立，
     + 通过编译宏依赖如下平行四个模块 
       + audio
@@ -229,8 +184,72 @@
       + inference
     + 具体子子模块
       + config, 用于传参
-      + packet, 数据传输，边
-      + packet_manager, 数据管理模块
+      + edge, 数据传输，边
+      + edge_manager, 数据管理模块
       + node, 执行节点
       + node_manager, 节点管理模块
       + graph, 执行图
+
+
+## 想法来源
++ 一套算法实现跑多个推理框架（trt、openvion、coreml、tflite、mnn、tnn、onnxruntime、tvm、aitemplate）
++ 通过搭积木的方式完成ai算法的落地
+  + 有向无环图的方式
+  + 开发效率(最核心的理由)
+  + 性能
+    + 时间
+    + 空间
++ 内存管理
+  + 传统内存池
+  + 基于图的tensor复用的内存池
+    + 切割方式
+    + 分块方式
+    + 独立方式 例如 cl::image2d 的必须等额复用
+    + 最小内存
+      + 运行时分配 （算法工程化）
+      + 基于图算法优化 - （TODO）
+    + 最快速度
+      + 提前分配
+      + 最符合缓存
+  + ***满足多个模型组成的pipeline算法的内存复用需求***
+    + 基于图的tensor复用的内存池是非嵌入式的
+    + 切割方式
+    + 模型的output单独分配内存
++ 设备管理
+  + 共享应用层上下文，从而实现gpu的数据零拷贝给模型推理
+  + 设备信息查询
+  + 设备检查, opencl可能会crash
+  + 多设备管理 - 支持多线程，多进程
++ 异构执行
+  + 单batch下CPU(X86和ARM)-GPU自动异构执行
+  + ***单batch下模型并行***
+  + ***多batch下多推理，数据并行的分布式推理***
++ 动态尺寸
+  + 多种形状 min_shape opt_shape max_shape current_shape，提高工程易用性
+  + reshape
+  + 检查动态形状是否能完成推理
++ 硬件公司接入推理框架
+  + device and op（高性能算子）
+  + device and 推理框架 （hvx 和 snpe）
++ 模型量化
+  + tnn量化后性能差，人像分割模型量化后性能负优化
+    + 量化算子有限，quantize节点多
+  + openvino量化后性能极佳，视频去水印模型量化加速2.5倍，量化算子众多
+    + 很多子图模块全是量化算子
+      + quantize节点少
+      + simd: int8以及int16 比 fp16和fp32更快
+      + 量化算子扎扎实实少了4倍，对访存极其友好
+  + PPQ 深度且受控的量化工具
++ 模型转换 - 建议算法工程师拿到预训练模型后首先做一下模型转换，模型转换时提出一些性能更好的模型修改建议 
+  + 设计更规整的模型性，降低模型转换过程中算子缺失的概率 
+  + 设计更易图优化的模型结构
++ 模型优化
+  + 离线的模型优化器
++ 模型编辑
+  + 将细碎的算子 -> 自定义大的算子 -> 推理框架对应算子插件
++ 模型轻量化
+  + 针对移动端机器学习算法，一个基础较大的模型，衍生出一批小模型，模型分级落地
++ 模型解释
+  + 模型加解密
+  + 静态尺寸 static_shape
++ 数据对齐，与python代码对齐

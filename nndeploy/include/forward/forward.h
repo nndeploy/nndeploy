@@ -13,6 +13,15 @@
 namespace nndeploy {
 namespace forward {
 
+class ForwardConfig {
+ public:
+  base::PrecisionType precision_ = base::PRECISION_TYPE_FP32;
+  base::PowerType power_type_ = base::POWER_TYPE_NORMAL;
+
+  bool is_dynamic_shape_ = false;
+  bool is_quant_ = false; 
+};
+
 class Forward {
  public:
   Forward();
@@ -66,13 +75,13 @@ class Forward {
    * @param max_shape
    * @return base::Status
    */
-  base::Status init(interpret::Interpret *interpret, base::ForwardConfig config,
+  base::Status init(interpret::Interpret *interpret, ForwardConfig config,
                     base::ShapeMap min_shape = base::ShapeMap(),
                     base::ShapeMap opt_shape = base::ShapeMap(),
                     base::ShapeMap max_shape = base::ShapeMap());
   base::Status deinit();
 
-  base::ForwardConfig getConfig();
+  ForwardConfig getConfig();
 
   base::Status getCurentShape(base::ShapeMap &shape_map);
   base::Status getMinShape(base::ShapeMap &shape_map);

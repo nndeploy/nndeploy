@@ -70,13 +70,13 @@ class ForwardImpl {
    * @param max_shape
    * @return base::Status
    */
-  base::Status init(interpret::Interpret *interpret, base::ForwardConfig config,
+  base::Status init(interpret::Interpret *interpret, ForwardConfig config,
                     base::ShapeMap min_shape = base::ShapeMap(),
                     base::ShapeMap opt_shape = base::ShapeMap(),
                     base::ShapeMap max_shape = base::ShapeMap());
   base::Status deinit();
 
-  base::ForwardConfig getConfig();
+  ForwardConfig getConfig();
 
   base::Status getCurentShape(base::ShapeMap &shape_map);
   base::Status getMinShape(base::ShapeMap &shape_map);
@@ -117,7 +117,7 @@ class ForwardImpl {
   base::ShareMemoryType share_memory_mode_ = base::SHARE_MEMORY_TYPE_NO_SHARE;
 
   interpret::Interpret *interpret_;
-  base::ForwardConfig config_;
+  ForwardConfig config_;
   base::ShapeMap current_shape_ = base::ShapeMap();
   base::ShapeMap min_shape_ = base::ShapeMap();
   base::ShapeMap opt_shape_ = base::ShapeMap();

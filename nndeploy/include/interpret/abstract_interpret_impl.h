@@ -21,10 +21,10 @@ class AbstractInterpretImpl {
   AbstractInterpretImpl();
   ~AbstractInterpretImpl();
 
-  virtual base::Status init(base::InterpretConfig config, base::ShapeMap static_shape = base::ShapeMap()) = 0;
+  virtual base::Status init(InterpretConfig config, base::ShapeMap static_shape = base::ShapeMap()) = 0;
   virtual base::Status deinit() = 0;
 
-  base::InterpretConfig getConfig();
+  InterpretConfig getConfig();
 
   base::Status getStaticShape(base::ShapeMap shape_map);
 
@@ -46,10 +46,10 @@ class AbstractInterpretImpl {
   std::shared_ptr<ir::Model> getModel();  
 
  protected:
-  base::InterpretConfig config_;
+  InterpretConfig config_;
   base::ShapeMap static_shape_ = base::ShapeMap();
   
-  std::shared_ptr<Decrypt> decrypt_;
+  std::shared_ptr<cryption::Decrypt> decrypt_;
 
   /**
    * @brief 
