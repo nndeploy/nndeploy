@@ -193,12 +193,29 @@
 
 ## 想法来源
 + 一套算法实现跑多个推理框架（trt、openvion、coreml、tflite、mnn、tnn、onnxruntime、tvm、aitemplate）
-+ 通过搭积木的方式完成ai算法的落地
-  + 有向无环图的方式
-  + 开发效率(最核心的理由)
-  + 性能
-    + 时间
-    + 空间
++ 通过搭积木的方式完成ai算法的落地，组成有向无环图
+  + 单模型算法
+    + 前处理node -> 推理node -> 后处理node
+  + 多模型的的算法
+    + 前处理node -> 推理node -> 后处理node -> 前处理node -> 推理node -> 后处理node -> ... -> ... 前处理node -> 推理node -> 后处理node
+  + 图像处理的node
+    + 组合cv算子
+    + 组合audio算子
+    + 组合op算子
+  + 推理node
+    + 静态shape
+    + 动态shape
+    + 单输入
+    + 单输出
+    + 多输入
+    + 多输出
+    + 单batch
+    + 多batch
+    + 模型内异构并行
+    + 多推理实例
+    + 模型并行
+    + 流水线
++ 具体算法模块插件化实现
 + 内存管理
   + 传统内存池
   + 基于图的tensor复用的内存池
@@ -253,3 +270,5 @@
   + 模型加解密
   + 静态尺寸 static_shape
 + 数据对齐，与python代码对齐
+  
++ 基于nndeploy的python部署代码 可以直接生成 so，在各类端侧运行
