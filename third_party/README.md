@@ -5,5 +5,4 @@ third_party
     + linux
       + include
       + release
-This way I think it's better cause the include directory and bin directory are the same level
 

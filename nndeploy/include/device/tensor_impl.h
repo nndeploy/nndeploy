@@ -36,7 +36,7 @@ class TensorImpl {
 
   //
   TensorImpl &operator=(const TensorImpl &tensor);
-  vTensorImpl &operator==(const TensorImpl &&mat);
+  rTensorImpl &operator==(const TensorImpl &&mat);
 
   // create
   void create(Device *device, TensorDesc desc, IntVector config);

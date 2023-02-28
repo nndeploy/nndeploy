@@ -93,8 +93,6 @@ class Mat {
   MatDesc desc;
 
   Buffer *buffer = nullptr;
-
-  // 引用计数 + 满足多线程
 };
 
 }  // namespace device
