@@ -5,4 +5,8 @@ third_party
     + linux
       + include
       + release
+    + windows
+      + include
+      + release
+    + ...
 

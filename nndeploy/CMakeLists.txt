@@ -1,13 +1,41 @@
 cmake_minimum_required(VERSION 3.10)
 
-add_subdirectory(source/base)
+if(NNDEPLOY_ENABLE_BASE)
+  add_subdirectory(source/base)
+endif()
 
-# add_subdirectory(source/device)
+if(NNDEPLOY_ENABLE_CRYPTION)
+  add_subdirectory(source/cryption)
+endif()
 
-# add_subdirectory(source/inference)
+if(NNDEPLOY_ENABLE_DEVICE)
+  add_subdirectory(source/device)
+endif()
 
-# add_subdirectory(source/audio)
+if(NNDEPLOY_ENABLE_AUDIO)
+  add_subdirectory(source/audio)
+endif()
 
-# add_subdirectory(source/vision)
+if(NNDEPLOY_ENABLE_CV)
+  add_subdirectory(source/cv)
+endif()
 
-# add_subdirectory(source/graph)
+if(NNDEPLOY_ENABLE_INFERENCE_DEFAULT)
+  add_subdirectory(source/ir)
+  add_subdirectory(source/interpret)
+  add_subdirectory(source/op)
+  add_subdirectory(source/forward)
+  add_subdirectory(source/optimize)
+endif()
+
+if(NNDEPLOY_ENABLE_INFERENCE)
+  add_subdirectory(source/inference)
+endif()
+
+if(NNDEPLOY_ENABLE_AICOMPILER)
+  add_subdirectory(source/aicompiler)
+endif()
+
+if(NNDEPLOY_ENABLE_GRAPH)
+  add_subdirectory(source/graph)
+endif()

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 # set
 set(NNDEPLOY_SOURCE)
 set(NNDEPLOY_OBJECT)
-set(NNDEPLOY_TARGET NNDEPLOY_base)
+set(NNDEPLOY_TARGET nndeploy_base)
 set(NNDEPLOY_DIRECTORY nndeploy)
 set(NNDEPLOY_DEPEND_LIBRARY)
 set(NNDEPLOY_SYSTEM_LIBRARY)
@@ -12,8 +12,9 @@ set(NNDEPLOY_THIRD_PARTY_LIBRARY)
 include_directories(${ROOT_PATH})
 
 # NNDEPLOY_SOURCE
-file(GLOB_RECURSE NNDEPLOY_SOURCE "*.cc"
-                               "${ROOT_PATH}/nndeploy/include/base/*.h")
+file(GLOB_RECURSE NNDEPLOY_SOURCE
+    "${ROOT_PATH}/nndeploy/include/base/*.h"
+    "${ROOT_PATH}/nndeploy/source/base/*.h")
 
 # NNDEPLOY_OBJECT
 
