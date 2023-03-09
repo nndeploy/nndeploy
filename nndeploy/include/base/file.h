@@ -14,8 +14,8 @@
 #include "nndeploy/include/base/include_c_cpp.h"
 
 namespace nndeploy {
-namespace base {    
-    
+namespace base {
+
 std::string openFile(const std::string &file_path);
 
 std::vector<std::string> getFileName(const std::string &dir_path,

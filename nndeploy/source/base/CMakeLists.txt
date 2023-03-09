@@ -25,8 +25,6 @@ file(GLOB_RECURSE NNDEPLOY_SOURCE
     # "${ROOT_PATH}/nndeploy/source/base/file.cc"
     # "${ROOT_PATH}/nndeploy/include/base/half.h"
     # "${ROOT_PATH}/nndeploy/source/base/half.cc"
-    # "${ROOT_PATH}/nndeploy/include/base/half.h"
-    # "${ROOT_PATH}/nndeploy/source/base/half.cc"
     "${ROOT_PATH}/nndeploy/include/base/time_measurement.h"
     "${ROOT_PATH}/nndeploy/source/base/time_measurement.cc"
     # "${ROOT_PATH}/nndeploy/include/base/shape.h"
