@@ -8,7 +8,7 @@ namespace nndeploy {
 namespace base {
 
 enum DataTypeCode : uint8_t {
-  DATA_TYPE_CODE_UINT = Ox00,
+  DATA_TYPE_CODE_UINT = 0x00,
   DATA_TYPE_CODE_INT,
   DATA_TYPE_CODE_FP,
   DATA_TYPE_CODE_BFP,
