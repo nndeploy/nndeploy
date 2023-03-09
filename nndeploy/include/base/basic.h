@@ -123,7 +123,7 @@ enum PowerType : int32_t {
 
 enum ForwardOpType : int32_t {
   FORWARD_OP_TYPE_DEFAULT = 0x0000,
-  
+
   FORWARD_OP_TYPE_ONEDNN,
   FORWARD_OP_TYPE_XNNPACK,
   FORWARD_OP_TYPE_QNNPACK,
