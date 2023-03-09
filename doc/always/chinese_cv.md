@@ -19,7 +19,7 @@
 + 职责：核心开发
   + 从0到1的架构设计
   + 接口设计 - 算法接口、推理数据Blob、图像数据Mat
-  + 多端推理模块 - 适配TNN/TensorRT/MNN/ONNXRuntime/TVM/OpenVino(TF-lite/Core-ML)
+  + 多端推理模块 - 适配TNN/TensorRT/MNN/ONNXRuntime/NNDEPLOY/OpenVino(TF-lite/Core-ML)
   + 异构设备模块 - 支持CPU/ARM/X86/CUDA/OpenCL/OpenGL
   + 高性能算子 - NEON CV算子
   + 算法落地 - 数十个单点算法、组合算法的落地与优化，从工程角度提出算法优化方向
@@ -56,7 +56,7 @@
   + 了解 机器学习中间表示 ONNX
   + 了解 图优化框架 onnx/optimizer，熟悉onnx-simplifier
   + 熟悉 推理框架 TNN，Tengine，了解OpenVino，TensorRT，MNN，ONNXRuntime
-  + 了解 AI编译器 TVM、训练框架pytorch
+  + 了解 AI编译器 NNDEPLOY、训练框架pytorch
   + 熟悉 ppl.cv，了解 OpenCV
   + 了解 FastDeploy
 + 内存管理：

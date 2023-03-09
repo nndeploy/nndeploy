@@ -7,7 +7,7 @@
  *
  * @copyright Copyright (c) 2022
  * @note
- * # ref tvm and mnn
+ * # ref nndeploy and mnn
  */
 #ifndef _NNDEPLOY_INCLUDE_BASE_OBJECT_H_
 #define _NNDEPLOY_INCLUDE_BASE_OBJECT_H_

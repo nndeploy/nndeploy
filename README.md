@@ -168,7 +168,7 @@
 
 
 ## 想法来源
-+ 一套算法实现跑多个推理框架（trt、openvion、coreml、tflite、mnn、tnn、onnxruntime、tvm、aitemplate）
++ 一套算法实现跑多个推理框架（trt、openvion、coreml、tflite、mnn、tnn、onnxruntime、nndeploy、aitemplate）
 + 通过搭积木的方式完成ai算法的落地，组成有向无环图
   + 单模型算法
     + 前处理node -> 推理node -> 后处理node
@@ -271,4 +271,4 @@
     + 算子对接
 + 针对大模型的分布式推理(TODO)
 + 统一的机器学习部署框架
-  + python -> so(tvm and aitemplate)
+  + python -> so(nndeploy and aitemplate)

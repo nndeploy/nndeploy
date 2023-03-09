@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_BASE_PROFILER_H_
-#define _NNDEPLOY_INCLUDE_BASE_PROFILER_H_
+#ifndef _NNDEPLOY_INCLUDE_BASE_TIME_MEASUREMENT_H_
+#define _NNDEPLOY_INCLUDE_BASE_TIME_MEASUREMENT_H_
 
 #include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/include_c_cpp.h"
@@ -19,15 +19,20 @@
 namespace nndeploy {
 namespace base {
 
-class Profiler : public NonCopyable {
+class TimeMeasurement : public NonCopyable {
  public:
-  Profiler();
-  virtual ~Profiler();
+  TimeMeasurement();
+  virtual ~TimeMeasurement();
 
   void start(const std::string &name);
   void end(const std::string &name);
 
   void download(const std::string &path);
+ private:
+  std::map<std::string, std::chrono::high_resolution_clock::time_point>
+      name_to_start_time_;
+  std::map<std::string, std::chrono::high_resolution_clock::time_point>
+      name_to_end_time_;
 };
 
 }  // namespace base

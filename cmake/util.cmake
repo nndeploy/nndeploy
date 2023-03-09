@@ -1,37 +1,20 @@
-# Licensed to the Apache Software Foundation (ASF) under one
-# or more contributor license agreements.  See the NOTICE file
-# distributed with this work for additional information
-# regarding copyright ownership.  The ASF licenses this file
-# to you under the Apache License, Version 2.0 (the
-# "License"); you may not use this file except in compliance
-# with the License.  You may obtain a copy of the License at
-#
-#   http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing,
-# software distributed under the License is distributed on an
-# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-# KIND, either express or implied.  See the License for the
-# specific language governing permissions and limitations
-# under the License.
-
-macro(__tvm_option variable description value)
+macro(__nndeploy_option variable description value)
   if(NOT DEFINED ${variable})
     set(${variable} ${value} CACHE STRING ${description})
   endif()
 endmacro()
 
-set(TVM_ALL_OPTIONS)
+set(NNDEPLOY_ALL_OPTIONS)
 
 #######################################################
 # An option that the user can select. Can accept condition to control when option is available for user.
 # Usage:
-#   tvm_option(<option_variable> "doc string" <initial value or boolean expression> [IF <condition>])
-macro(tvm_option variable description value)
+#   nndeploy_option(<option_variable> "doc string" <initial value or boolean expression> [IF <condition>])
+macro(nndeploy_option variable description value)
   set(__value ${value})
   set(__condition "")
   set(__varname "__value")
-  list(APPEND TVM_ALL_OPTIONS ${variable})
+  list(APPEND NNDEPLOY_ALL_OPTIONS ${variable})
   foreach(arg ${ARGN})
     if(arg STREQUAL "IF" OR arg STREQUAL "if")
       set(__varname "__condition")
@@ -47,18 +30,18 @@ macro(tvm_option variable description value)
   if(${__condition})
     if("${__value}" MATCHES ";")
       if(${__value})
-        __tvm_option(${variable} "${description}" ON)
+        __nndeploy_option(${variable} "${description}" ON)
       else()
-        __tvm_option(${variable} "${description}" OFF)
+        __nndeploy_option(${variable} "${description}" OFF)
       endif()
     elseif(DEFINED ${__value})
       if(${__value})
-        __tvm_option(${variable} "${description}" ON)
+        __nndeploy_option(${variable} "${description}" ON)
       else()
-        __tvm_option(${variable} "${description}" OFF)
+        __nndeploy_option(${variable} "${description}" OFF)
       endif()
     else()
-      __tvm_option(${variable} "${description}" "${__value}")
+      __nndeploy_option(${variable} "${description}" "${__value}")
     endif()
   else()
     unset(${variable} CACHE)
@@ -78,7 +61,7 @@ function(assign_source_group group)
     endforeach()
 endfunction(assign_source_group)
 
-function(tvm_micro_add_copy_file var src dest)
+function(nndeploy_micro_add_copy_file var src dest)
     get_filename_component(basename "${src}" NAME)
     get_filename_component(dest_parent_dir "${dest}" DIRECTORY)
     add_custom_command(
@@ -87,9 +70,9 @@ function(tvm_micro_add_copy_file var src dest)
         DEPENDS "${src}")
     list(APPEND "${var}" "${dest}")
     set("${var}" "${${var}}" PARENT_SCOPE)
-endfunction(tvm_micro_add_copy_file)
+endfunction(nndeploy_micro_add_copy_file)
 
-set(MICROTVM_TEMPLATE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR}/microtvm_template_projects")
+set(MICRONNDEPLOY_TEMPLATE_PROJECTS "${CMAKE_CURRENT_BINARY_DIR}/micronndeploy_template_projects")
 
 # From cmake documentation:
 # True if the constant is 1, ON, YES, TRUE, Y, or a non-zero number.
@@ -106,15 +89,15 @@ set(IS_TRUE_PATTERN "^[Oo][Nn]$|^[1-9][0-9]*$|^[Tt][Rr][Uu][Ee]$|^[Yy][Ee][Ss]$|
 # check if any files have been added/removed. This has a small build overhead,
 # but ensures that you don't manually have to rerun cmake if files were added.
 # The macro should be used like so:
-# tvm_file_glob(GLOB VARIABLE_NAME dir/*.cc dir/*c)
+# nndeploy_file_glob(GLOB VARIABLE_NAME dir/*.cc dir/*c)
 # or
-# tvm_file_glob(GLOB_RECURSE VARIABLE_NAME dir/*/*.cc)
+# nndeploy_file_glob(GLOB_RECURSE VARIABLE_NAME dir/*/*.cc)
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0")
-  macro(tvm_file_glob glob variable)
+  macro(nndeploy_file_glob glob variable)
     file(${glob} ${variable} CONFIGURE_DEPENDS ${ARGN})
   endmacro()
 else()
-  macro(tvm_file_glob)
+  macro(nndeploy_file_glob)
     file(${glob} ${variable} ${ARGN})
   endmacro()
 endif()
