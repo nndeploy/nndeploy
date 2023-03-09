@@ -212,11 +212,7 @@ CTestTestfile.cmake
 _deps
 
 # build
-build/build_win
-build/build_linux
-build/build_mac
-build/build_android
-build/ios
+build/
 build/install
 build/target
 
