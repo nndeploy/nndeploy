@@ -114,7 +114,7 @@ class ForwardImpl {
  protected:
   std::vector<device::Device *> devices_;
   std::vector<device::BufferPool *> buffer_pools_;
-  base::ShareMemoryType share_memory_mode_ = base::SHARE_MEMORY_TYPE_NO_SHARE;
+  base::ShareMemoryType share_memory_mode_ = base::kShareMemoryTypeNoShare;
 
   interpret::Interpret *interpret_;
   ForwardConfig config_;

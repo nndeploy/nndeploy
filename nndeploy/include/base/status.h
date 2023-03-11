@@ -1,68 +1,42 @@
-/**
- * @file status.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-11-19
- *
- * @copyright Copyright (c) 2022
- *
- */
+
 #ifndef _NNDEPLOY_INCLUDE_BASE_STATUS_H_
 #define _NNDEPLOY_INCLUDE_BASE_STATUS_H_
 
 #include "nndeploy/include/base/include_c_cpp.h"
+#include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 
 namespace nndeploy {
 namespace base {
 
 enum StatusCode : int32_t {
-  NNDEPLOY_OK = 0x0000,
+  kStatusCodeOk = 0x0000,
 
-  NNDEPLOY_ERROR_UNKNOWN,
+  kStatusCodeErrorUnknown,
 
-  NNDEPLOY_ERROR_OUT_OF_MEMORY,
-  NNDEPLOY_ERROR_NOT_SUPPORT,
-  NNDEPLOY_ERROR_NOT_IMPLEMENTED,
-  NNDEPLOY_ERROR_INVALID_VALUE,
-  NNDEPLOY_ERROR_INVALID_PARAM,
+  kStatusCodeErrorOutOfMemory,
+  kStatusCodeErrorNotSupport,
+  kStatusCodeErrorNotImplement,
+  kStatusCodeErrorInvalidValue,
+  kStatusCodeErrorInvalidParam,
 
   // device
-  NNDEPLOY_ERROR_DEVICE_CPU,
-  NNDEPLOY_ERROR_DEVICE_ARM,
-  NNDEPLOY_ERROR_DEVICE_X86,
-  NNDEPLOY_ERROR_DEVICE_CUDA,
-  NNDEPLOY_ERROR_DEVICE_OPENCL,
-  NNDEPLOY_ERROR_DEVICE_OPENGL,
-  NNDEPLOY_ERROR_DEVICE_VULKAN,
-  NNDEPLOY_ERROR_DEVICE_METAL,
+  kStatusCodeErrorDeviceCpu,
+  kStatusCodeErrorDeviceArm,
+  kStatusCodeErrorDeviceX86,
+  kStatusCodeErrorDeviceCuda,
+  kStatusCodeErrorDeviceOpenCL,
+  kStatusCodeErrorDeviceOpenGL,
+  kStatusCodeErrorDeviceMetal,
 
   // inference
-  NNDEPLOY_ERROR_INFERENCE_ONNXRUNTIME,
-  NNDEPLOY_ERROR_INFERENCE_TNN,
-  NNDEPLOY_ERROR_INFERENCE_MNN,
-  NNDEPLOY_ERROR_INFERENCE_NCNN,
-  NNDEPLOY_ERROR_INFERENCE_MACE,
-  NNDEPLOY_ERROR_INFERENCE_TENGINE,
-  NNDEPLOY_ERROR_INFERENCE_AITEMPLATE,
-
-  NNDEPLOY_ERROR_INFERENCE_PADDLE_LITE,
-  NNDEPLOY_ERROR_INFERENCE_TFLITE,
-  NNDEPLOY_ERROR_INFERENCE_ONEFLOW_LITE,
-  NNDEPLOY_ERROR_INFERENCE_MINDSPORE_LITE,
-
-  NNDEPLOY_ERROR_INFERENCE_NNDEPLOY,
-
-  NNDEPLOY_ERROR_INFERENCE_TENSOR_RT,
-  NNDEPLOY_ERROR_INFERENCE_COREML,
-  NNDEPLOY_ERROR_INFERENCE_OPENVINO,
-  NNDEPLOY_ERROR_INFERENCE_SNPE,
+  kStatusCodeErrorInferenceTnn,
+  kStatusCodeErrorInferenceMnn,
 };
 
 inline std::ostream& operator<<(std::ostream& out, const StatusCode& v) {
   switch (v) {
-    NNDEPLOY_ENUM_TO_STR(NNDEPLOY_OK);
+    NNDEPLOY_ENUM_TO_STR(kStatusCodeOk);
     default:
       out << static_cast<int>(v);
       break;
@@ -73,7 +47,7 @@ inline std::ostream& operator<<(std::ostream& out, const StatusCode& v) {
 class Status {
  public:
   ~Status();
-  Status(int32_t code = NNDEPLOY_OK);
+  Status(int32_t code = kStatusCodeOk);
 
   Status& operator=(int32_t code);
   bool operator==(int32_t code_);
@@ -84,8 +58,26 @@ class Status {
   std::string desc();
 
  private:
-  int32_t code_ = NNDEPLOY_OK;
+  int32_t code_ = kStatusCodeOk;
 };
+
+#define ASSERT(x)                     \
+  {                                   \
+    int res = (x);                    \
+    if (!res) {                       \
+      LOGE("Error: assert failed\n"); \
+      assert(res);                    \
+    }                                 \
+  }
+
+#ifndef _DEBUG
+#undef NNDEPLOY_LOGDT
+#undef NNDEPLOY_LOGD
+#define NNDEPLOY_LOGDT(fmt, tag, ...)
+#define NNDEPLOY_LOGD(fmt, ...)
+#undef NNDEPLOY_ASSERT
+#define NNDEPLOY_ASSERT(x)
+#endif  // _DEBUG
 
 #define NNDEPLOY_RETURN_VALUE_ON_NEQ(status, expected, value) \
   do {                                                        \
@@ -115,12 +107,11 @@ class Status {
     }                                           \
   } while (0)
 
-#define NNDEPLOY_CHECK_PARAM_NULL(param)                            \
-  do {                                                              \
-    if (!param) {                                                   \
-      return Status(NNDEPLOY_ERROR_INVALID_PARAM,                   \
-                    "NNDEPLOY_ERROR_INVALID_PARAM: param is null"); \
-    }                                                               \
+#define NNDEPLOY_CHECK_PARAM_NULL(param)           \
+  do {                                             \
+    if (!param) {                                  \
+      return Status(kStatusCodeErrorInvalidParam); \
+    }                                              \
   } while (0)
 
 }  // namespace base

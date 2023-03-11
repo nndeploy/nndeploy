@@ -8,165 +8,160 @@ namespace nndeploy {
 namespace base {
 
 enum DataTypeCode : uint8_t {
-  DATA_TYPE_CODE_UINT = 0x00,
-  DATA_TYPE_CODE_INT,
-  DATA_TYPE_CODE_FP,
-  DATA_TYPE_CODE_BFP,
-  DATA_TYPE_CODE_OPAQUEHANDLE,
-
-  // not sopport
-  DATA_TYPE_CODE_NOT_SOPPORT,
+  kDataTypeCodeUint = 0x00,
+  kDataTypeCodeInt,
+  kDataTypeCodeFp,
+  kDataTypeCodeBFp,
+  kDataTypeCodeOpaqueHandle,
 };
 
 struct DataType {
-  uint8_t code_ = DATA_TYPE_CODE_FP;
+  uint8_t code_ = kDataTypeCodeFp;
   uint8_t bits_ = 4;
   uint16_t lanes_ = 1;
 };
 
 enum DeviceTypeCode : int32_t {
-  DEVICE_TYPE_CODE_CPU = 0x0000,
-  DEVICE_TYPE_CODE_ARM,
-  DEVICE_TYPE_CODE_X86,
-  DEVICE_TYPE_CODE_CUDA,
-  DEVICE_TYPE_CODE_OPENCL,
-  DEVICE_TYPE_CODE_OPENGL,
-  DEVICE_TYPE_CODE_METAL,
+  kDeviceTypeCodeCpu = 0x0000,
+  kDeviceTypeCodeArm,
+  kDeviceTypeCodeX86,
+  kDeviceTypeCodeCuda,
+  kDeviceTypeCodeOpenCL,
+  kDeviceTypeCodeOpenGL,
+  kDeviceTypeCodeMetal,
 
   // not sopport
-  DEVICE_TYPE_CODE_NOT_SOPPORT,
+  kDeviceTypeCodeNotSupport,
 };
 
 struct DeviceType {
-  int32_t code_ = DEVICE_TYPE_CODE_CPU;
+  int32_t code_ = kDeviceTypeCodeCpu;
   int32_t device_id_ = 0;
 };
 
 enum DataFormat : int32_t {
   // scalar
-  DATA_FORMAT_SCALAR = 0x0000,
+  kDataFormatScalar = 0x0000,
 
   // 1d
-  DATA_FORMAT_C,
+  kDataFormatC,
 
   // 2d
-  DATA_FORMAT_HW,
-  DATA_FORMAT_NC,
-  DATA_FORMAT_CN,
+  kDataFormatHW,
+  kDataFormatNC,
+  kDataFormatCN,
 
   // 3d
-  DATA_FORMAT_CHW,
-  DATA_FORMAT_HWC,
+  kDataFormatCHW,
+  kDataFormatHWC,
 
   // 4D
-  DATA_FORMAT_NCHW,
-  DATA_FORMAT_NHWC,
-  // # 4D varietas
-  DATA_FORMAT_OIHW,
+  kDataFormatNCHW,
+  kDataFormatNHWC,
+  // # 4D 延伸
+  kDataFormatOIHW,
+  // # 4D 变种
+  kDataFormatNC4HW,
 
   // 5D
-  DATA_FORMAT_NCDHW,
-  DATA_FORMAT_NDHWC,
+  kDataFormatNCDHW,
+  kDataFormatNDHWC,
 
   // not sopport
-  DATA_FORMAT_NOT_SOPPORT,
+  kDataFormatNotSupport,
 };
 
 enum PrecisionType : int32_t {
-  PRECISION_TYPE_BFP16 = 0x0000,
-  PRECISION_TYPE_FP16,
-  PRECISION_TYPE_FP32,
-  PRECISION_TYPE_FP64,
-
-  // not sopport
-  PRECISION_TYPE_NOT_SOPPORT,
+  kPrecisionTypeFpBFp16 = 0x0000,
+  kPrecisionTypeFp16,
+  kPrecisionTypeFp32,
+  kPrecisionTypeFp64,
 };
 
 enum ShareMemoryType : int32_t {
-  SHARE_MEMORY_TYPE_NO_SHARE = 0x0000,
-  SHARE_MEMORY_TYPE_SHARE_FROM_EXTERNAL,
+  kShareMemoryTypeNoShare = 0x0000,
+  kShareMemoryTypeShareFromExternal,
 
   // not sopport
-  SHARE_MEMORY_TYPE_NOT_SOPPORT,
+  kShareMemoryTypeNotSupport,
 };
 
 enum MemoryBufferType : int32_t {
-  MEMORY_BUFFER_TYPE_1D = 0x0000,
-  MEMORY_BUFFER_TYPE_2D,
+  kMemoryBufferType1D = 0x0000,
+  kMemoryBufferType2D,
 
   // not support
-  MEMORY_TYPE_NOT_SUPPORT,
+  kMemoryBufferTypeNotSupport,
 };
 
-enum MemoryBufferStatus {
-  MEMORY_BUFFER_STATUS_FREE = 0x0000,
-  MEMORY_BUFFER_STATUS_USED,
+enum MemoryBufferStatus : int32_t {
+  kMemoryBufferStatusFree = 0x0000,
+  kMemoryBufferStatusUsed,
 };
 
 enum BufferPoolType : int32_t {
-  BUFFER_POOL_TYPE_EMBED = 0x0000,
-  BUFFER_POOL_TYPE_UNITY,
-  BUFFER_POOL_TYPE_CHUNK_INDEPEND,
+  kBufferPoolTypeEmbed = 0x0000,
+  kBufferPoolTypeUnity,
+  kBufferPoolTypeChunkIndepend,
 
   // not support
-  BUFFER_POOL_TYPE_NOT_SUPPORT,
+  kBufferPoolTypeNotSupport,
 };
 
 enum PowerType : int32_t {
-  POWER_TYPE_HIGH = 0x0000,
-  POWER_TYPE_NORMAL,
-  POWER_TYPE_LOW,
+  kPowerTypeHigh = 0x0000,
+  kPowerTypeNormal,
+  kPowerTypeLow,
 
   // not sopport
-  POWER_TYPE_NOT_SOPPORT,
+  kPowerTypeNotSupport,
 };
 
 enum ForwardOpType : int32_t {
-  FORWARD_OP_TYPE_DEFAULT = 0x0000,
+  kForwardOpTypeDefault = 0x0000,
 
-  FORWARD_OP_TYPE_ONEDNN,
-  FORWARD_OP_TYPE_XNNPACK,
-  FORWARD_OP_TYPE_QNNPACK,
-
-  // not sopport
-  FORWARD_OP_TYPE_NOT_SOPPORT,
-};
-
-enum InferenceType : int32_t {
-  INFERENCE_TYPE_DEFAULT = 0x0000,
-
-  INFERENCE_TYPE_OPENVINO,
-  INFERENCE_TYPE_TENSORRT,
-  INFERENCE_TYPE_COREML,
-  INFERENCE_TYPE_TF_LITE,
-
-  INFERENCE_TYPE_NCNN,
-  INFERENCE_TYPE_TNN,
-  INFERENCE_TYPE_MNN,
+  kForwardOpTypeOneDnn,
+  kForwardOpTypeXnnPack,
+  kForwardOpTypeQnnPack,
 
   // not sopport
-  INFERENCE_TYPE_NOT_SOPPORT,
+  kForwardOpTypeNotSupport,
 };
 
 enum InferenceOptLevel : int32_t {
-  INFERENCE_OPT_LEVEL_0 = 0x0000,
-  INFERENCE_OPT_LEVEL_1,
+  kInferenceOptLevel0 = 0x0000,
+  kInferenceOptLevel1,
 
   // auto
-  INFERENCE_OPT_LEVEL_AUTO,
+  kInferenceOptLevelAuto,
+};
+
+enum InferenceType : int32_t {
+  kInferenceTypeDefault = 0x0000,
+
+  kInferenceTypeOpenVino,
+  kInferenceTypeTensorRt,
+  kInferenceTypeCoreML,
+  kInferenceTypeTfLite,
+
+  kInferenceTypeNCNN,
+  kInferenceTypeTNN,
+  kInferenceTypeMNN,
+
+  // not sopport
+  kInferenceTypeNotSupport,
 };
 
 enum NodeStatus : int32_t {
-  NODE_STATUS_ALWAYS = 0x0000,
+  kNodeStatusAlways = 0x0000,
   // auto
-  NODE_STATUS_FREE,
-  // not sopport
-  AUDIO_STATUS_USED,
+  kNodeStatusFree,
+  kNodeStatusUsed,
 };
 
 enum EncryptType : int32_t {
-  ENCRYPT_TYPE_NONE = 0x0000,
-  ENCRYPT_TYPE_BASE64,
+  kEncryptTypeNone = 0x0000,
+  kEncryptTypeBase64,
 };
 
 using IntVector = std::vector<int32_t>;

@@ -55,7 +55,7 @@ BufferPool* Device::createBufferPool(base::BufferPoolType buffer_pool_type,
 base::Status Device::synchronize() {
   NNDEPLOY_LOGI("this device[%d, %d] can't synchronize!\n", device_type_.code_,
                 device_type_.device_id_);
-  return base::NNDEPLOY_OK;
+  return base::kStatusCodeOk;
 }
 
 void* Device::getCommandQueue() {

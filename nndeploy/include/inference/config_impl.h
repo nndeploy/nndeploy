@@ -18,7 +18,6 @@
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/base/value.h"
 
-
 namespace nndeploy {
 namespace inference {
 
@@ -36,15 +35,15 @@ class ConfigImpl {
   std::vector<std::string> model_value_;
 
   base::DeviceType device_types_;
-  base::ShareMemoryType share_memory_mode_ = base::SHARE_MEMORY_TYPE_NO_SHARE;
-  base::PrecisionType precision_ = base::PRECISION_TYPE_FP32;
-  base::PowerType power_type = base::POWER_TYPE_NORMAL;
+  base::ShareMemoryType share_memory_mode_ = base::kShareMemoryTypeNoShare;
+  base::PrecisionType precision_ = base::PrecisionTypeFp32;
+  base::PowerType power_type = base::kPowerTypeNormal;
 
   bool is_dynamic_shape_ = false;
   base::ShapeMap input_shape_ = base::ShapeMap();
   bool is_quant = false;
 
-  base::InferenceOptLevel opt_level_ = base::INFERENCE_OPT_LEVEL_AUTO;
+  base::InferenceOptLevel opt_level_ = base::kInferenceOptLevelAuto;
 
   std::string cache_path_ = "";
   bool is_tune_kernel_ = false;

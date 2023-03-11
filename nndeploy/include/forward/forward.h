@@ -15,11 +15,11 @@ namespace forward {
 
 class ForwardConfig {
  public:
-  base::PrecisionType precision_ = base::PRECISION_TYPE_FP32;
-  base::PowerType power_type_ = base::POWER_TYPE_NORMAL;
+  base::PrecisionType precision_ = base::PrecisionTypeFp32;
+  base::PowerType power_type_ = base::kPowerTypeNormal;
 
   bool is_dynamic_shape_ = false;
-  bool is_quant_ = false; 
+  bool is_quant_ = false;
 };
 
 class Forward {

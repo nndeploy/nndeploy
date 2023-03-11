@@ -1,13 +1,4 @@
-/**
- * @file log.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-12-21
- *
- * @copyright Copyright (c) 2022
- *
- */
+
 #ifndef _NNDEPLOY_INCLUDE_BASE_LOG_H_
 #define _NNDEPLOY_INCLUDE_BASE_LOG_H_
 

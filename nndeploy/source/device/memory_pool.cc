@@ -1,11 +1,10 @@
 
-#include "nndeploy/include/device/buffer_pool.h"
-
 #include "nndeploy/include/base/log.h"
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/device/buffer.h"
+#include "nndeploy/include/device/buffer_pool.h"
 #include "nndeploy/include/device/device.h"
 
 namespace nndeploy {
@@ -22,7 +21,7 @@ base::Status BufferPool::init() {
   NNDEPLOY_LOGE(
       "this device[%d, %d] can't init this BufferPoolType[%d] bufferpool!\n",
       device_type.code_, device_type.device_id_, buffer_pool_type_);
-  return base::NNDEPLOY_ERROR_NOT_SUPPORT;
+  return base::kStatusCodeErrorNotSupport;
 }
 
 base::Status BufferPool::init(size_t limit_size) {
@@ -30,7 +29,7 @@ base::Status BufferPool::init(size_t limit_size) {
   NNDEPLOY_LOGE(
       "this device[%d, %d] can't init this BufferPoolType[%d] bufferpool!\n",
       device_type.code_, device_type.device_id_, buffer_pool_type_);
-  return base::NNDEPLOY_ERROR_NOT_SUPPORT;
+  return base::kStatusCodeErrorNotSupport;
 }
 
 base::Status BufferPool::init(Buffer* buffer) {
@@ -38,7 +37,7 @@ base::Status BufferPool::init(Buffer* buffer) {
   NNDEPLOY_LOGE(
       "this device[%d, %d] can't init this BufferPoolType[%d] bufferpool!\n",
       device_type.code_, device_type.device_id_, buffer_pool_type_);
-  return base::NNDEPLOY_ERROR_NOT_SUPPORT;
+  return base::kStatusCodeErrorNotSupport;
 }
 
 }  // namespace device

@@ -18,13 +18,12 @@ class InterpretConfig {
   base::ModelType model_type_;
   bool is_path_ = true;
   std::vector<std::string> model_value_;
-  EncryptType is_encrypt_ = ENCRYPT_TYPE_NONE;
+  EncryptType is_encrypt_ = kEncryptTypeNone;
   std::string license_;
 }
 
-
 /**
- * @brief 
+ * @brief
  * # convert edit quantize forward 都要依赖这个模块
  */
 class Interpret {
@@ -32,7 +31,8 @@ class Interpret {
   Interpret();
   ~Interpret();
 
-  base::Status init(InterpretConfig config, base::ShapeMap static_shape = base::ShapeMap());
+  base::Status init(InterpretConfig config,
+                    base::ShapeMap static_shape = base::ShapeMap());
   base::Status deinit();
 
   base::InterpretConfig getConfig();

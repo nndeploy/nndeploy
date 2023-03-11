@@ -1,13 +1,4 @@
-/**
- * @file profiler.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-12-21
- *
- * @copyright Copyright (c) 2022
- *
- */
+
 #ifndef _NNDEPLOY_INCLUDE_BASE_TIME_MEASUREMENT_H_
 #define _NNDEPLOY_INCLUDE_BASE_TIME_MEASUREMENT_H_
 
@@ -28,6 +19,7 @@ class TimeMeasurement : public NonCopyable {
   void end(const std::string &name);
 
   void download(const std::string &path);
+
  private:
   std::map<std::string, std::chrono::high_resolution_clock::time_point>
       name_to_start_time_;

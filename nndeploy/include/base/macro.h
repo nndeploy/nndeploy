@@ -1,13 +1,4 @@
-/**
- * @file macro.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-12-21
- *
- * @copyright Copyright (c) 2022
- *
- */
+
 #ifndef _NNDEPLOY_INCLUDE_BASE_MACRO_H_
 #define _NNDEPLOY_INCLUDE_BASE_MACRO_H_
 
@@ -70,9 +61,9 @@
  * @brief string
  *
  */
-#define NNDEPLOY_DEFAULT_STR "NNDEPLOY_DEFAULT_STR"
+#define NNDEPLOY_DEFAULT_STR "nndeploy_default_str"
 #define NNDEPLOY_TO_STR(x) #x
-#define NNDEPLOY_NAMESPACE_PLUS_TO_STR(x) NNDEPLOY_NAMESPACE##x
+#define NNDEPLOY_NAMESPACE_PLUS_TO_STR(x) nndeploy_namespace##x
 #define NNDEPLOY_ENUM_TO_STR(x) \
   case x:                       \
     out << #x;                  \

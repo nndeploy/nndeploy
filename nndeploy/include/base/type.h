@@ -1,13 +1,4 @@
-/**
- * @file type.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-12-20
- *
- * @copyright Copyright (c) 2022
- *
- */
+
 #ifndef _NNDEPLOY_INCLUDE_BASE_TYPE_H_
 #define _NNDEPLOY_INCLUDE_BASE_TYPE_H_
 
@@ -18,14 +9,14 @@ namespace nndeploy {
 namespace base {
 
 enum PixelTypeCode : int32_t {
-  PIXEL_TYPE_CODE_GRAY = 0x0000,
-  PIXEL_TYPE_CODE_RGB,
-  PIXEL_TYPE_CODE_BGR,
-  PIXEL_TYPE_CODE_RGBA,
-  PIXEL_TYPE_CODE_BGRA,
+  kPixelTypeCodeGray = 0x0000,
+  kPixelTypeCodeRGB,
+  kPixelTypeCodeBGR,
+  kPixelTypeCodeRGBA,
+  kPixelTypeCodeBGRA,
 
   // not sopport
-  PIXEL_TYPE_CODE_NOT_SOPPORT,
+  kPixelTypeCodeNotSupport,
 };
 
 }  // namespace base

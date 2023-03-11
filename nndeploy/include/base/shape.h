@@ -1,14 +1,4 @@
-/**
- * @file shape.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-12-20
- *
- * @copyright Copyright (c) 2022
- * @note 参考tnn oneflow
- *
- */
+
 #ifndef _NNDEPLOY_INCLUDE_BASE_SHAPE_H_
 #define _NNDEPLOY_INCLUDE_BASE_SHAPE_H_
 
@@ -19,7 +9,8 @@
 namespace nndeploy {
 namespace base {
 
-int shapeCount(const IntVector &dims, int start_index = 0, int end_index = -1);
+size_t shapeCount(const IntVector &dims, int start_index = 0,
+                  int end_index = -1);
 
 IntVector shapeMax(const IntVector &dims0, const IntVector &dims1,
                    int start_index = 0, int end_index = -1);

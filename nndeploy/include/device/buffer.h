@@ -15,7 +15,6 @@
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 
-
 namespace nndeploy {
 namespace device {
 
@@ -23,8 +22,8 @@ class Device;
 class BufferPool;
 
 struct BufferDesc {
-  BufferDesc() : memory_buffer_type_(base::MEMORY_BUFFER_TYPE_1D){};
-  BufferDesc(size_t size) : memory_buffer_type_(base::MEMORY_BUFFER_TYPE_1D) {
+  BufferDesc() : memory_buffer_type_(base::kMemoryBufferType1D){};
+  BufferDesc(size_t size) : memory_buffer_type_(base::kMemoryBufferType1D) {
     size_.push_back(size);
   };
   BufferDesc(base::MemoryBufferType memory_buffer_type, base::SizeVector size)
