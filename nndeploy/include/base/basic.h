@@ -74,6 +74,9 @@ enum DataFormat : int32_t {
   kDataFormatNCDHW,
   kDataFormatNDHWC,
 
+  // auto
+  kDataFormatAuto,
+
   // not sopport
   kDataFormatNotSupport,
 };
