@@ -34,16 +34,6 @@ enum StatusCode : int32_t {
   kStatusCodeErrorInferenceMnn,
 };
 
-inline std::ostream& operator<<(std::ostream& out, const StatusCode& v) {
-  switch (v) {
-    NNDEPLOY_ENUM_TO_STR(kStatusCodeOk);
-    default:
-      out << static_cast<int>(v);
-      break;
-  }
-  return out;
-};
-
 class Status {
  public:
   ~Status();

@@ -18,9 +18,14 @@ Status::operator int32_t() { return code_; }
 Status::operator bool() { return code_ == kStatusCodeOk; }
 
 std::string Status::desc() {
-  std::ostream out;
-  out << code_;
-  return out.str();
+  std::string str;
+  switch (code_) {
+    NNDEPLOY_ENUM_TO_STR(kStatusCodeOk);
+    default:
+      str = std::to_string(static_cast<int>(code_));
+      break;
+  }
+  return str;
 };
 
 }  // namespace base

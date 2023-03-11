@@ -66,7 +66,7 @@
 #define NNDEPLOY_NAMESPACE_PLUS_TO_STR(x) nndeploy_namespace##x
 #define NNDEPLOY_ENUM_TO_STR(x) \
   case x:                       \
-    out << #x;                  \
+    str = #x;                   \
     break;
 
 /**

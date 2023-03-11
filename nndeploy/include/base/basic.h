@@ -1,3 +1,4 @@
+
 #ifndef _NNDEPLOY_INCLUDE_BASE_BASIC_H_
 #define _NNDEPLOY_INCLUDE_BASE_BASIC_H_
 
@@ -16,6 +17,9 @@ enum DataTypeCode : uint8_t {
 };
 
 struct DataType {
+  DataType() = default;
+  DataType(uint8_t code, uint8_t bits, uint16_t lanes = (uint16_t)1)
+      : code_(code), bits_(bits), lanes_(lanes){};
   uint8_t code_ = kDataTypeCodeFp;
   uint8_t bits_ = 4;
   uint16_t lanes_ = 1;
@@ -35,6 +39,9 @@ enum DeviceTypeCode : int32_t {
 };
 
 struct DeviceType {
+  DeviceType() = default;
+  DeviceType(int32_t code, int32_t device_id = 0)
+      : code_(code), device_id_(device_id){};
   int32_t code_ = kDeviceTypeCodeCpu;
   int32_t device_id_ = 0;
 };
@@ -144,9 +151,9 @@ enum InferenceType : int32_t {
   kInferenceTypeCoreML,
   kInferenceTypeTfLite,
 
-  kInferenceTypeNCNN,
-  kInferenceTypeTNN,
-  kInferenceTypeMNN,
+  kInferenceTypeNcnn,
+  kInferenceTypeTnn,
+  kInferenceTypeMnn,
 
   // not sopport
   kInferenceTypeNotSupport,

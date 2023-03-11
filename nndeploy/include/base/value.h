@@ -10,19 +10,14 @@
 namespace nndeploy {
 namespace base {
 
-/**
- * @brief
- * 不持有资源，所有资源都是外部管理的
- * 多种数据类型的构造函数
- * 能不能用模板
- * 返回函数可以是模板吗
- * 如何应对c++本身的强制类型转换函数呢
- * 运算符重载怎么搞呢
- */
 class Value {
-  Value();
-  Value(const Value& value);
-  Value(const Value&& value);
+  Value() = default;
+  Value(const Value& value) = default;
+  Value(const Value&& value) {
+    data_type_ = value.data_type_;
+    len_ = value.len_;
+    internal_value_ = value.internal_value_;
+  };
 
   Value(uint8_t value);
   Value(int8_t value);
@@ -30,8 +25,6 @@ class Value {
   Value(int16_t value);
   Value(uint32_t value);
   Value(int32_t value);
-  Value(uint64_t value);
-  Value(int64_t value);
   Value(uint64_t value);
   Value(int64_t value);
   Value(float value);
@@ -45,27 +38,29 @@ class Value {
   Value(int32_t* value, int64_t len);
   Value(uint64_t* value, int64_t len);
   Value(int64_t* value, int64_t len);
-  Value(uint64_t* value, int64_t len);
-  Value(int64_t* value, int64_t len);
   Value(float* value, int64_t len);
   Value(double* value, int64_t len);
 
-  ~Value();
+  ~Value(){};
 
-  bool operator=(const Value& value);
-  bool operator=(const Value&& value);
-  bool operator=(uint8_t value);
-  bool operator=(int8_t value);
-  bool operator=(uint16_t value);
-  bool operator=(int16_t value);
-  bool operator=(uint32_t value);
-  bool operator=(int32_t value);
-  bool operator=(uint64_t value);
-  bool operator=(int64_t value);
-  bool operator=(uint64_t value);
-  bool operator=(int64_t value);
-  bool operator=(float value);
-  bool operator=(double value);
+  Value& operator=(const Value& value) = default;
+  Value& operator=(const Value&& value) {
+    data_type_ = value.data_type_;
+    len_ = value.len_;
+    internal_value_ = value.internal_value_;
+    return *this;
+  }
+
+  Value& operator=(uint8_t value);
+  Value& operator=(int8_t value);
+  Value& operator=(uint16_t value);
+  Value& operator=(int16_t value);
+  Value& operator=(uint32_t value);
+  Value& operator=(int32_t value);
+  Value& operator=(uint64_t value);
+  Value& operator=(int64_t value);
+  Value& operator=(float value);
+  Value& operator=(double value);
 
   void set(uint8_t value);
   void set(int8_t value);
@@ -73,8 +68,6 @@ class Value {
   void set(int16_t value);
   void set(uint32_t value);
   void set(int32_t value);
-  void set(uint64_t value);
-  void set(int64_t value);
   void set(uint64_t value);
   void set(int64_t value);
   void set(float value);
@@ -88,8 +81,6 @@ class Value {
   void set(int32_t* value, int64_t len);
   void set(uint64_t* value, int64_t len);
   void set(int64_t* value, int64_t len);
-  void set(uint64_t* value, int64_t len);
-  void set(int64_t* value, int64_t len);
   void set(float* value, int64_t len);
   void set(double* value, int64_t len);
 
@@ -99,8 +90,6 @@ class Value {
   bool get(int16_t& value);
   bool get(uint32_t& value);
   bool get(int32_t& value);
-  bool get(uint64_t& value);
-  bool get(int64_t& value);
   bool get(uint64_t& value);
   bool get(int64_t& value);
   bool get(float& value);
@@ -114,72 +103,12 @@ class Value {
   bool get(int32_t** value);
   bool get(uint64_t** value);
   bool get(int64_t** value);
-  bool get(uint64_t** value);
-  bool get(int64_t** value);
   bool get(float** value);
   bool get(double** value);
-  template <typename T>
-  T get();
-  template <typename T>
-  T* get();
 
-  bool operator==(const Value& value);
-  bool operator==(uint8_t value);
-  bool operator==(int8_t value);
-  bool operator==(uint16_t value);
-  bool operator==(int16_t value);
-  bool operator==(uint32_t value);
-  bool operator==(int32_t value);
-  bool operator==(uint64_t value);
-  bool operator==(int64_t value);
-  bool operator==(uint64_t value);
-  bool operator==(int64_t value);
-  bool operator==(float value);
-  bool operator==(double value);
-
-  bool operator!=(const Value& value);
-  bool operator!=(uint8_t value);
-  bool operator!=(int8_t value);
-  bool operator!=(uint16_t value);
-  bool operator!=(int16_t value);
-  bool operator!=(uint32_t value);
-  bool operator!=(int32_t value);
-  bool operator!=(uint64_t value);
-  bool operator!=(int64_t value);
-  bool operator!=(uint64_t value);
-  bool operator!=(int64_t value);
-  bool operator!=(float value);
-  bool operator!=(double value);
-
-  bool operator==(uint8_t* value);
-  bool operator==(int8_t* value);
-  bool operator==(uint16_t* value);
-  bool operator==(int16_t* value);
-  bool operator==(uint32_t* value);
-  bool operator==(int32_t* value);
-  bool operator==(uint64_t* value);
-  bool operator==(int64_t* value);
-  bool operator==(uint64_t* value);
-  bool operator==(int64_t* value);
-  bool operator==(float* value);
-  bool operator==(double* value);
-
-  bool operator!=(uint8_t* value);
-  bool operator!=(int8_t* value);
-  bool operator!=(uint16_t* value);
-  bool operator!=(int16_t* value);
-  bool operator!=(uint32_t* value);
-  bool operator!=(int32_t* value);
-  bool operator!=(uint64_t* value);
-  bool operator!=(int64_t* value);
-  bool operator!=(uint64_t* value);
-  bool operator!=(int64_t* value);
-  bool operator!=(float* value);
-  bool operator!=(double* value);
-
-  DataType getDataType();
-  int64_t getLen();
-  bool isValid();
+  DataType getDataType() const;
+  int64_t getLen() const;
+  bool isValid() const;
 
  private:
   union InternalValue {
@@ -206,9 +135,24 @@ class Value {
     size_t* ptr_size;
     float* ptr_f32;
     double* ptr_f64;
+    /**
+     * @brief ptr_void is used to store the pointer of any type
+     * data_type_.code_ = kDataTypeCodeOpaqueHandle
+     * data_type_.bits_ = 1
+     * data_type_.lanes_ = 1
+     * len_ = len * sizeof(any type)
+     * is weird but useful
+     */
+    void* ptr_void;
   };
 
   DataType data_type_;
+  /**
+   * @brief len_ is the length of the data
+   * if the data is a pointer, len_ >= 1
+   * if the data is a scalar, len_ == 0
+   * if the data is invalid, len_ == -1
+   */
   int64_t len_ = -1;
   InternalValue internal_value_;
 };

@@ -6,8 +6,7 @@
 namespace nndeploy {
 namespace base {
 
-size_t shapeCount(const IntVector &dims, int start_index = 0,
-                  int end_index = -1) {
+size_t shapeCount(const IntVector &dims, int start_index, int end_index) {
   if (-1 == end_index || end_index > dims.size()) {
     end_index = static_cast<int>(dims.size());
   }
@@ -20,7 +19,7 @@ size_t shapeCount(const IntVector &dims, int start_index = 0,
 }
 
 IntVector shapeMax(const IntVector &dims0, const IntVector &dims1,
-                   int start_index = 0, int end_index = -1) {
+                   int start_index, int end_index) {
   IntVector max_dims;
   IntVector small_dims;
   if (dims0.size() >= dims1.size()) {
@@ -47,7 +46,7 @@ IntVector shapeMax(const IntVector &dims0, const IntVector &dims1,
 }
 
 IntVector shapeMin(const IntVector &dims0, const IntVector &dims1,
-                   int start_index = 0, int end_index = -1) {
+                   int start_index, int end_index) {
   IntVector min_dims;
   IntVector small_dims;
   if (dims0.size() >= dims1.size()) {
@@ -73,8 +72,8 @@ IntVector shapeMin(const IntVector &dims0, const IntVector &dims1,
   return min_dims;
 }
 
-bool shapeEqual(const IntVector &dims0, const IntVector &dims1,
-                int start_index = 0, int end_index = -1) {
+bool shapeEqual(const IntVector &dims0, const IntVector &dims1, int start_index,
+                int end_index) {
   if (dims0.size() == 0 && dims1.size() == 0) {
     return true;
   }
