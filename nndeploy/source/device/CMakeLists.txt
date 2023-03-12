@@ -1,40 +1,53 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set
-set(SOURCE)
-set(OBJECT)
-set(TARGET NNDEPLOY_base)
-set(DIRECTORY nndeploy)
-set(DEPEND_LIBRARY)
-set(SYSTEM_LIBRARY)
-set(THIRD_PARTY_LIBRARY)
+set(NNDEPLOY_SOURCE)
+set(NNDEPLOY_OBJECT)
+set(NNDEPLOY_TARGET nndeploy_device)
+set(NNDEPLOY_DIRECTORY nndeploy)
+set(NNDEPLOY_DEPEND_LIBRARY)
+set(NNDEPLOY_SYSTEM_LIBRARY)
+set(NNDEPLOY_THIRD_PARTY_LIBRARY)
 
-include_directories(ROOT_PATH)
+include_directories(${ROOT_PATH})
 
-# SOURCE
-file()
+# NNDEPLOY_SOURCE
+file(GLOB_RECURSE NNDEPLOY_SOURCE
+    "${ROOT_PATH}/nndeploy/include/device/architecture.h"
+    "${ROOT_PATH}/nndeploy/source/device/architecture.cc"
+    "${ROOT_PATH}/nndeploy/include/device/device.h"
+    "${ROOT_PATH}/nndeploy/source/device/device.cc"
+    "${ROOT_PATH}/nndeploy/include/device/buffer_pool.h"
+    "${ROOT_PATH}/nndeploy/include/device/buffer_pool.cc"
+    "${ROOT_PATH}/nndeploy/include/device/buffer.h"
+    "${ROOT_PATH}/nndeploy/source/device/buffer.cc"
+    )
+# message(STATUS "NNDEPLOY_SOURCE:${NNDEPLOY_SOURCE}")
 
-# OBJECT
+# NNDEPLOY_OBJECT
 
-# TARGET
-add_library(${TARGET} ${NNDEPLOY_BUILD_TYPE} ${SOURCE} ${OBJECT})
+# NNDEPLOY_TARGET
+add_library(${NNDEPLOY_TARGET} ${NNDEPLOY_BUILD_TYPE} ${NNDEPLOY_SOURCE} ${NNDEPLOY_OBJECT})
 
-# DIRECTORY
+# NNDEPLOY_DIRECTORY
+set_property(TARGET ${NNDEPLOY_TARGET} PROPERTY FOLDER ${NNDEPLOY_DIRECTORY})
 
-# DEPEND_LIBRARY
+# NNDEPLOY_DEPEND_LIBRARY
+target_link_libraries(${NNDEPLOY_TARGET} ${NNTASK_TARGET} nndeploy_base) 
 
-# SYSTEM_LIBRARY
+# NNDEPLOY_SYSTEM_LIBRARY
 
-# THIRD_PARTY_LIBRARY
+# NNDEPLOY_THIRD_PARTY_LIBRARY
 
 # install
+## include(${ROOT_PATH}/cmake/install.cmake)
 
 # unset
-unset(SOURCE)
-unset(OBJECT)
-unset(TARGET)
-unset(DIRECTORY)
-unset(DEPEND_LIBRARY)
-unset(SYSTEM_LIBRARY)
-unset(THIRD_PARTY_LIBRARY)
+unset(NNDEPLOY_SOURCE)
+unset(NNDEPLOY_OBJECT)
+unset(NNDEPLOY_TARGET)
+unset(NNDEPLOY_DIRECTORY)
+unset(NNDEPLOY_DEPEND_LIBRARY)
+unset(NNDEPLOY_SYSTEM_LIBRARY)
+unset(NNDEPLOY_THIRD_PARTY_LIBRARY)
 

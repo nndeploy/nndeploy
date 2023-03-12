@@ -34,6 +34,9 @@ enum DeviceTypeCode : int32_t {
   kDeviceTypeCodeOpenGL,
   kDeviceTypeCodeMetal,
 
+  // none
+  kDeviceTypeCodeNone,
+
   // not sopport
   kDeviceTypeCodeNotSupport,
 };

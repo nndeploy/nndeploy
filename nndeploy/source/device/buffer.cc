@@ -1,9 +1,10 @@
+
 #include "nndeploy/include/device/buffer.h"
 
 #include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/status.h"
-#include "nndeploy/include/device/device.h"
 #include "nndeploy/include/device/buffer_pool.h"
+#include "nndeploy/include/device/device.h"
 
 namespace nndeploy {
 namespace device {
@@ -19,6 +20,10 @@ base::DeviceType Buffer::getDeviceType() {
   if (buffer_pool_) {
     return buffer_pool_->getDevice()->getDeviceType();
   }
+
+  base::DeviceType device_type(base::kDeviceTypeCodeNone, -1);
+
+  return device_type;
 }
 
 Device *Buffer::getDevice() { return device_; }

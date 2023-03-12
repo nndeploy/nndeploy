@@ -1,13 +1,4 @@
-/**
- * @file runtime.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-11-24
- *
- * @copyright Copyright (c) 2022
- *
- */
+
 #ifndef _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
 #define _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
 
@@ -149,6 +140,12 @@ class Buffer : public base::NonCopyable {
   void *data_ptr_ = nullptr;
   int32_t data_id_ = -1;
   bool is_external_ = false;
+
+  /**
+   * @brief 引用计数
+   *
+   */
+  int32_t ref_count_ = 0;
 };
 
 }  // namespace device

@@ -1,13 +1,4 @@
-/**
- * @file device.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-11-24
- *
- * @copyright Copyright (c) 2022
- *
- */
+
 #ifndef _NNDEPLOY_INCLUDE_DEVICE_DEVICE_H_
 #define _NNDEPLOY_INCLUDE_DEVICE_DEVICE_H_
 
@@ -18,7 +9,6 @@
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/device/buffer.h"
 #include "nndeploy/include/device/buffer_pool.h"
-
 
 namespace nndeploy {
 namespace device {
@@ -43,11 +33,11 @@ class Device : public base::NonCopyable {
   virtual base::Status download(Buffer* src, Buffer* dst) = 0;
   virtual base::Status upload(Buffer* src, Buffer* dst) = 0;
   // 接口？
-  virtual base::Status map(Buffer* src, Buffer* dst) = 0;
-  virtual base::Status unmap(Buffer* src, Buffer* dst) = 0;
-  // share? opencl / vpu / hvx?
-  virtual base::Status share(Buffer* src, Buffer* dst) = 0;
-  virtual base::Status unshare(Buffer* src, Buffer* dst) = 0;
+  // virtual base::Status map(Buffer* src, Buffer* dst) = 0;
+  // virtual base::Status unmap(Buffer* src, Buffer* dst) = 0;
+  // // share? opencl / vpu / hvx?
+  // virtual base::Status share(Buffer* src, Buffer* dst) = 0;
+  // virtual base::Status unshare(Buffer* src, Buffer* dst) = 0;
 
   virtual BufferPool* createBufferPool(base::BufferPoolType buffer_pool_type);
   virtual BufferPool* createBufferPool(base::BufferPoolType buffer_pool_type,

@@ -4,10 +4,10 @@
 namespace nndeploy {
 namespace device {
 
-device::Architecture(base::DeviceTypeCode device_type_code)
-    : device_type_code_(device_type_code) {}
+Architecture::Architecture(base::DeviceTypeCode device_type_code)
+    : device_type_code_(device_type_code){};
 
-device::~Architecture() {}
+Architecture::~Architecture(){};
 
 std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>&
 getArchitectureMap() {

@@ -1,13 +1,4 @@
-/**
- * @file runtime.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-11-24
- *
- * @copyright Copyright (c) 2022
- *
- */
+
 #ifndef _NNDEPLOY_INCLUDE_DEVICE_BUFFER_POOL_H_
 #define _NNDEPLOY_INCLUDE_DEVICE_BUFFER_POOL_H_
 
@@ -38,8 +29,7 @@ class BufferPool {
   base::BufferPoolType buffer_pool_type_;
 
  protected:
-  BufferPool(Device* device, base::BufferPoolType buffer_pool_type)
-      : device_(device), buffer_pool_type_(buffer_pool_type){};
+  BufferPool(Device* device, base::BufferPoolType buffer_pool_type);
   virtual ~BufferPool();
 
   virtual base::Status init();
