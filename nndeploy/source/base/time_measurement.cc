@@ -6,10 +6,23 @@
 #include "nndeploy/include/base/macro.h"
 #include "nndeploy/include/base/object.h"
 
+
 namespace nndeploy {
 namespace base {
 
-TimeMeasurement::TimeMeasurement() {}
+enum TimePointFlag {
+  kTimePointFlagStart = 0x00,
+  kTimePointFlagEnd,
+}
+
+struct TimePoint {
+  TimePointFlag flag_;
+  std::string key_;
+  std::chrono::high_resolution_clock::time_point std_tp_;
+}
+
+TimeMeasurement::TimeMeasurement() {
+}
 
 TimeMeasurement::~TimeMeasurement() {}
 
