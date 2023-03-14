@@ -21,10 +21,11 @@ class TimeMeasurement : public NonCopyable {
   void download(const std::string &path);
 
  private:
-  std::map<std::string, std::chrono::high_resolution_clock::time_point>
-      name_to_start_time_;
-  std::map<std::string, std::chrono::high_resolution_clock::time_point>
-      name_to_end_time_;
+  double duration;
+
+  vector<double> time_record;
+
+  void record(double &time_record, double duration);
 };
 
 }  // namespace base
