@@ -5,7 +5,7 @@ set(ALL_TEST_SRCS "")
 
 if(NNDEPLOY_ENABLE_TEST)
   list(APPEND ALL_TEST_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/test/*_test.cc)
-  add_executable(NNDEPLOY_TEST ${ALL_TEST_SRCS})
+  add_executable(NNTASK_TEST ${ALL_TEST_SRCS})
 endif()
 
 nndeploy_option(NNTASK_ENABLE_SEGMENT "NNTASK_ENABLE_SEGMENT" OFF)
