@@ -51,11 +51,11 @@ class Status {
   int32_t code_ = kStatusCodeOk;
 };
 
-#define ASSERT(x)                     \
+#define NNDEPLOY_ASSERT(x)                     \
   {                                   \
     int res = (x);                    \
     if (!res) {                       \
-      LOGE("Error: assert failed\n"); \
+      NNDEPLOY_LOGE("Error: assert failed\n"); \
       assert(res);                    \
     }                                 \
   }
