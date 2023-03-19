@@ -12,7 +12,7 @@ std::string openFile(const std::string &file_path);
 std::vector<std::string> getFileName(const std::string &dir_path,
                                      const std::string &suffix);
 
-std::string getExePath();
+std::string getExePath(const std::string &file_absolute_path);
 
 bool isDirectory(const std::string &dir_path);
 

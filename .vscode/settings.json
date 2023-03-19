@@ -89,7 +89,19 @@
         "*.tcc": "cpp",
         "numbers": "cpp",
         "semaphore": "cpp",
-        "stop_token": "cpp"
+        "stop_token": "cpp",
+        "fstream": "cpp",
+        "coroutine": "cpp",
+        "iostream": "cpp",
+        "filesystem": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "forward_list": "cpp",
+        "iomanip": "cpp",
+        "xlocbuf": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xloctime": "cpp"
     },
     "cmake.configureOnOpen": false
 }
