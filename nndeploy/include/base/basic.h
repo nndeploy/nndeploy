@@ -99,17 +99,30 @@ enum ShareMemoryType : int32_t {
   kShareMemoryTypeNotSupport,
 };
 
-enum MemoryBufferType : int32_t {
-  kMemoryBufferType1D = 0x0000,
-  kMemoryBufferType2D,
-
-  // not support
-  kMemoryBufferTypeNotSupport,
+/**
+ * @brief buffer的读取权限标志
+ *
+ */
+enum BufferAccessFlag : int32_t {
+  kBufferAccessFlagNone = 0x0000,
+  kBufferAccessFlagRead = 0x0001 << 0,
+  kBufferAccessFlagWrite = 0x0001 << 1,
+  kBufferAccessFlagReadWrite = kBufferAccessFlagRead | kBufferAccessFlagWrite,
 };
 
-enum MemoryBufferStatus : int32_t {
-  kMemoryBufferStatusFree = 0x0000,
-  kMemoryBufferStatusUsed,
+/**
+ * @brief buffer的内存来源类型
+ */
+enum BufferSourceType : int32_t {
+  kBufferSourceTypeNone = 0x0000,
+  kBufferSourceTypeMalloc,
+  kBufferSourceTypeExternal,
+  kBufferSourceTypeMapped,
+};
+
+enum BufferStatus : int32_t {
+  kBufferStatusFree = 0x0000,
+  kBufferStatusUsed,
 };
 
 enum BufferPoolType : int32_t {
@@ -128,6 +141,10 @@ enum PowerType : int32_t {
 
   // not sopport
   kPowerTypeNotSupport,
+};
+
+enum TensorType : int32_t {
+  kTensorTypeDefault = 0x0000,
 };
 
 enum ForwardOpType : int32_t {

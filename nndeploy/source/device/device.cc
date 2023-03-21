@@ -12,23 +12,37 @@
 namespace nndeploy {
 namespace device {
 
+BufferDesc Device::toBufferDesc(const MatDesc& desc_,
+                                const base::IntVector& config) {
+  NNDEPLOY_LOGI("this device[%d, %d] can't toBufferDesc!\n", device_type_.code_,
+                device_type_.device_id_);
+  return BufferDesc();
+}
+
+BufferDesc Device::toBufferDesc(const TensorDesc& desc_,
+                                const base::IntVector& config) {
+  NNDEPLOY_LOGI("this device[%d, %d] can't toBufferDesc!\n", device_type_.code_,
+                device_type_.device_id_);
+  return BufferDesc();
+}
+
 Buffer* Device::create(size_t size, void* ptr) {
-  Buffer* buffer = new Buffer(this, size, ptr, true);
+  Buffer* buffer = new Buffer(this, size, ptr, base::kBufferSourceTypeExternal);
   return buffer;
 }
 
-Buffer* Device::create(BufferDesc& desc, void* ptr) {
-  Buffer* buffer = new Buffer(this, desc, ptr, true);
+Buffer* Device::create(const BufferDesc& desc, void* ptr) {
+  Buffer* buffer = new Buffer(this, desc, ptr, base::kBufferSourceTypeExternal);
   return buffer;
 }
 
 Buffer* Device::create(size_t size, int32_t id) {
-  Buffer* buffer = new Buffer(this, size, id, true);
+  Buffer* buffer = new Buffer(this, size, id, base::kBufferSourceTypeExternal);
   return buffer;
 }
 
-Buffer* Device::create(BufferDesc& desc, int32_t id) {
-  Buffer* buffer = new Buffer(this, desc, id, true);
+Buffer* Device::create(const BufferDesc& desc, int32_t id) {
+  Buffer* buffer = new Buffer(this, desc, id, base::kBufferSourceTypeExternal);
   return buffer;
 }
 

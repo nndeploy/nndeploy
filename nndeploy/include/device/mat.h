@@ -15,7 +15,6 @@
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/device/buffer.h"
 
-
 namespace nndeploy {
 namespace device {
 
@@ -34,6 +33,7 @@ class Mat {
   Mat();
   virtual ~Mat();
 
+  // 暂时添加stride相关构造函数
   Mat(Device *device, int32_t height, int32_t width, int32_t channel,
       base::DataType data_type);
   Mat(Device *device, int32_t *shape, int32_t shape_len,
@@ -45,22 +45,23 @@ class Mat {
       base::DataType data_type);
   Mat(BufferPool *buffer_pool, int32_t *shape, int32_t shape_len,
       base::DataType data_type);
-  Mat(BufferPool *buffer_pool, base::IntVector shape_, base::DataType data_type);
+  Mat(BufferPool *buffer_pool, base::IntVector shape_,
+      base::DataType data_type);
   Mat(BufferPool *buffer_pool, MatDesc desc, base::IntVector config);
 
-  Mat(MatDesc desc, Buffer *buffer);
+  Mat(const MatDesc &desc, Buffer *buffer);
 
   //
   Mat(const Mat &mat);
-  Mat(const Mat &&mat);
+  Mat(Mat &&mat);
 
   //
-  void operator=(const Mat &mat);
-  void operator==(const Mat &&mat);
+  Mat &operator=(const Mat &mat);
+  Mat &operator==(Mat &&mat);
 
   // create
   void create(Device *device, MatDesc desc, base::IntVector config);
-  void create(MatDesc desc, Buffer *buffer);
+  void create(BufferPool *buffer_pool, MatDesc desc_, base::IntVector config);
 
   // get
   bool empty();
@@ -81,18 +82,18 @@ class Mat {
   Device *getDevice();
   BufferPool *getBufferPool();
   bool isBufferPool();
-  bool isExternal();
-  base::MemoryBufferType getMemoryBufferType();
+  BufferDesc getBufferDesc();
   size_t getSize();
   base::SizeVector getSizeVector();
   base::IntVector getConfig();
   void *getPtr();
   int32_t getId();
+  base::BufferSourceType getBufferSourceType();
 
  private:
-  MatDesc desc;
+  MatDesc desc_;
 
-  Buffer *buffer = nullptr;
+  Buffer *buffer_ = nullptr;
 };
 
 }  // namespace device

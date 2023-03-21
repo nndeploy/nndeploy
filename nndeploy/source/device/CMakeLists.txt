@@ -13,14 +13,8 @@ include_directories(${ROOT_PATH})
 
 # NNDEPLOY_SOURCE
 file(GLOB_RECURSE NNDEPLOY_SOURCE
-    "${ROOT_PATH}/nndeploy/include/device/architecture.h"
-    "${ROOT_PATH}/nndeploy/source/device/architecture.cc"
-    "${ROOT_PATH}/nndeploy/include/device/device.h"
-    "${ROOT_PATH}/nndeploy/source/device/device.cc"
-    "${ROOT_PATH}/nndeploy/include/device/buffer_pool.h"
-    "${ROOT_PATH}/nndeploy/include/device/buffer_pool.cc"
-    "${ROOT_PATH}/nndeploy/include/device/buffer.h"
-    "${ROOT_PATH}/nndeploy/source/device/buffer.cc"
+    "${ROOT_PATH}/nndeploy/include/device/*.h"
+    "${ROOT_PATH}/nndeploy/source/device/*.cc"
     )
 # message(STATUS "NNDEPLOY_SOURCE:${NNDEPLOY_SOURCE}")
 

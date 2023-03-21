@@ -2,6 +2,8 @@
 #ifndef _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
 #define _NNDEPLOY_INCLUDE_DEVICE_BUFFER_H_
 
+#include <atomic>
+
 #include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
@@ -13,31 +15,25 @@ class Device;
 class BufferPool;
 
 struct BufferDesc {
-  BufferDesc() : memory_buffer_type_(base::kMemoryBufferType1D){};
-  BufferDesc(size_t size) : memory_buffer_type_(base::kMemoryBufferType1D) {
-    size_.push_back(size);
-  };
-  BufferDesc(base::MemoryBufferType memory_buffer_type, base::SizeVector size)
-      : memory_buffer_type_(memory_buffer_type), size_(size){};
-  BufferDesc(base::MemoryBufferType memory_buffer_type, size_t *size,
-             size_t len)
-      : memory_buffer_type_(memory_buffer_type) {
+  BufferDesc(){};
+  BufferDesc(size_t size) { size_.push_back(size); };
+  BufferDesc(size_t *size, size_t len) {
     for (int i = 0; i < len; ++i) {
       size_.push_back(size[i]);
     }
   };
-  BufferDesc(base::MemoryBufferType memory_buffer_type, base::SizeVector size,
-             base::IntVector config)
-      : memory_buffer_type_(memory_buffer_type), size_(size), config_(config){};
-  BufferDesc(base::MemoryBufferType memory_buffer_type, size_t *size,
-             size_t len, base::IntVector config)
-      : memory_buffer_type_(memory_buffer_type), config_(config) {
+  BufferDesc(base::SizeVector size, base::IntVector config)
+      : size_(size), config_(config){};
+  BufferDesc(size_t *size, size_t len, base::IntVector config)
+      : config_(config) {
     for (int i = 0; i < len; ++i) {
       size_.push_back(size[i]);
     }
   };
 
-  base::MemoryBufferType memory_buffer_type_;
+  BufferDesc(const BufferDesc &desc) = default;
+  BufferDesc &operator=(const BufferDesc &desc) = default;
+
   /**
    * @brief
    * 1d size
@@ -63,75 +59,29 @@ class Buffer : public base::NonCopyable {
   Device *getDevice();
   BufferPool *getBufferPool();
   bool isBufferPool();
-  bool isExternal();
   BufferDesc getDesc();
-  base::MemoryBufferType getMemoryBufferType();
   size_t getSize();
   base::SizeVector getSizeVector();
   base::IntVector getConfig();
   void *getPtr();
   int32_t getId();
+  base::BufferSourceType getBufferSourceType();
+
+  int32_t getRef();
+  void addRef();
+  void subRef();
 
  private:
-  virtual ~Buffer(){};
+  Buffer(Device *device, const BufferDesc &desc, void *ptr,
+         base::BufferSourceType buffer_source_type);
+  Buffer(Device *device, const BufferDesc &desc, int32_t id,
+         base::BufferSourceType buffer_source_type);
+  Buffer(BufferPool *buffer_pool, const BufferDesc &desc, void *ptr,
+         base::BufferSourceType buffer_source_type);
+  Buffer(BufferPool *buffer_pool, const BufferDesc &desc, int32_t id,
+         base::BufferSourceType buffer_source_type);
 
-  Buffer(Device *device, size_t size, void *ptr, bool is_external)
-      : device_(device),
-        buffer_pool_(nullptr),
-        desc_(size),
-        data_ptr_(ptr),
-        data_id_(-1),
-        is_external_(is_external){};
-  Buffer(Device *device, size_t size, int32_t id, bool is_external)
-      : device_(device),
-        buffer_pool_(nullptr),
-        desc_(size),
-        data_ptr_(nullptr),
-        data_id_(id),
-        is_external_(is_external){};
-  Buffer(Device *device, BufferDesc desc, void *ptr, bool is_external)
-      : device_(device),
-        buffer_pool_(nullptr),
-        desc_(desc),
-        data_ptr_(ptr),
-        data_id_(-1),
-        is_external_(is_external){};
-  Buffer(Device *device, BufferDesc desc, int32_t id, bool is_external)
-      : device_(device),
-        buffer_pool_(nullptr),
-        desc_(desc),
-        data_ptr_(nullptr),
-        data_id_(id),
-        is_external_(is_external){};
-
-  Buffer(BufferPool *buffer_pool, size_t size, void *ptr)
-      : device_(nullptr),
-        buffer_pool_(buffer_pool),
-        desc_(size),
-        data_ptr_(ptr),
-        data_id_(-1),
-        is_external_(false){};
-  Buffer(BufferPool *buffer_pool, size_t size, int32_t id)
-      : device_(nullptr),
-        buffer_pool_(buffer_pool),
-        desc_(size),
-        data_ptr_(nullptr),
-        data_id_(id),
-        is_external_(false){};
-  Buffer(BufferPool *buffer_pool, BufferDesc desc, void *ptr)
-      : device_(nullptr),
-        buffer_pool_(buffer_pool),
-        desc_(desc),
-        data_ptr_(ptr),
-        data_id_(-1),
-        is_external_(false){};
-  Buffer(BufferPool *buffer_pool, BufferDesc desc, int32_t id)
-      : device_(nullptr),
-        buffer_pool_(buffer_pool),
-        desc_(desc),
-        data_ptr_(nullptr),
-        data_id_(id),
-        is_external_(false){};
+  virtual ~Buffer();
 
  private:
   Device *device_ = nullptr;
@@ -139,13 +89,12 @@ class Buffer : public base::NonCopyable {
   BufferDesc desc_;
   void *data_ptr_ = nullptr;
   int32_t data_id_ = -1;
-  bool is_external_ = false;
-
+  base::BufferSourceType buffer_source_type_ = base::kBufferSourceTypeNone;
   /**
-   * @brief 引用计数
+   * @brief buffer引用计数
    *
    */
-  int32_t ref_count_ = 0;
+  std::atomic<int32_t> ref_count_;
 };
 
 }  // namespace device
