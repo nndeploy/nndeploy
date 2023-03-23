@@ -33,7 +33,7 @@ class Mat {
   Mat();
   virtual ~Mat();
 
-  // 暂时添加stride相关构造函数
+  // 暂时未添加stride相关构造函数
   Mat(Device *device, int32_t height, int32_t width, int32_t channel,
       base::DataType data_type);
   Mat(Device *device, int32_t *shape, int32_t shape_len,
@@ -88,7 +88,7 @@ class Mat {
   base::IntVector getConfig();
   void *getPtr();
   int32_t getId();
-  base::BufferSourceType getBufferSourceType();
+  BufferSourceType getBufferSourceType();
 
  private:
   MatDesc desc_;

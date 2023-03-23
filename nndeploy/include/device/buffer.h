@@ -14,6 +14,16 @@ namespace device {
 class Device;
 class BufferPool;
 
+/**
+ * @brief buffer的内存来源类型
+ */
+enum BufferSourceType : int32_t {
+  kBufferSourceTypeNone = 0x0000,
+  kBufferSourceTypeMalloc,
+  kBufferSourceTypeExternal,
+  kBufferSourceTypeMapped,
+};
+
 struct BufferDesc {
   BufferDesc(){};
   BufferDesc(size_t size) { size_.push_back(size); };
@@ -65,7 +75,7 @@ class Buffer : public base::NonCopyable {
   base::IntVector getConfig();
   void *getPtr();
   int32_t getId();
-  base::BufferSourceType getBufferSourceType();
+  BufferSourceType getBufferSourceType();
 
   int32_t getRef();
   void addRef();
@@ -73,13 +83,13 @@ class Buffer : public base::NonCopyable {
 
  private:
   Buffer(Device *device, const BufferDesc &desc, void *ptr,
-         base::BufferSourceType buffer_source_type);
+         BufferSourceType buffer_source_type);
   Buffer(Device *device, const BufferDesc &desc, int32_t id,
-         base::BufferSourceType buffer_source_type);
+         BufferSourceType buffer_source_type);
   Buffer(BufferPool *buffer_pool, const BufferDesc &desc, void *ptr,
-         base::BufferSourceType buffer_source_type);
+         BufferSourceType buffer_source_type);
   Buffer(BufferPool *buffer_pool, const BufferDesc &desc, int32_t id,
-         base::BufferSourceType buffer_source_type);
+         BufferSourceType buffer_source_type);
 
   virtual ~Buffer();
 
@@ -89,7 +99,7 @@ class Buffer : public base::NonCopyable {
   BufferDesc desc_;
   void *data_ptr_ = nullptr;
   int32_t data_id_ = -1;
-  base::BufferSourceType buffer_source_type_ = base::kBufferSourceTypeNone;
+  BufferSourceType buffer_source_type_ = kBufferSourceTypeNone;
   /**
    * @brief buffer引用计数
    *

@@ -38,6 +38,8 @@ class Architecture {
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") = 0;
 
+  base::DeviceTypeCode DeviceTypeCode();
+
  private:
   base::DeviceTypeCode device_type_code_;
 };

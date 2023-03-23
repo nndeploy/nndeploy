@@ -165,7 +165,7 @@ base::SizeVector Mat::getSizeVector() { return buffer_->getSizeVector(); }
 base::IntVector Mat::getConfig() { return buffer_->getConfig(); }
 void *Mat::getPtr() { return buffer_->getPtr(); }
 int32_t Mat::getId() { return buffer_->getId(); }
-base::BufferSourceType Mat::getBufferSourceType() {
+BufferSourceType Mat::getBufferSourceType() {
   return buffer_->getBufferSourceType();
 }
 

@@ -1,23 +1,23 @@
-#--------------------------------------------------------------------
-#  Template custom cmake cofffiguratioff for compiling
+# --------------------------------------------------------------------
+# Template custom cmake cofffiguratioff for compiling
 #
-#  This file is used to override the build sets in build.
-#  If you want to change the cofffiguratioff, please use the following
-#  steps. Assume you are off the root directory. First copy the this
-#  file so that any local changes will be ignored by git
+# This file is used to override the build sets in build.
+# If you want to change the cofffiguratioff, please use the following
+# steps. Assume you are off the root directory. First copy the this
+# file so that any local changes will be ignored by git
 #
-#  $ mkdir build
-#  $ cp cmake/cofffig.cmake build
+# $ mkdir build
+# $ cp cmake/cofffig.cmake build
 #
-#  Next modify the according entries, and then compile by
+# Next modify the according entries, and then compile by
 #
-#  $ cd build
-#  $ cmake ..
+# $ cd build
+# $ cmake ..
 #
-#  Then build in parallel with 8 threads
+# Then build in parallel with 8 threads
 #
-#  $ make -j8
-#--------------------------------------------------------------------
+# $ make -j8
+# --------------------------------------------------------------------
 
 # common
 set(NNDEPLOY_ENABLE_BUILD_SHARED OFF)
@@ -28,15 +28,13 @@ set(NNDEPLOY_ENABLE_CXX14_ABI OFF)
 set(NNDEPLOY_ENABLE_OPENMP OFF)
 set(NNDEPLOY_ENABLE_VALGRIND OFF)
 set(NNDEPLOY_ENABLE_DOCS OFF)
-set(NNDEPLOY_ENABLE_TEST OFF)
-set(NNDEPLOY_ENABLE_DEMO ON)
 # nndeploy
-set(NNDEPLOY_ENABLE_NNDEPLOY ON)
-## base
+set(NNDEPLOY_ENABLE ON)
+# # base
 set(NNDEPLOY_ENABLE_BASE ON)
-## cryptioff
+# # cryptioff
 set(NNDEPLOY_ENABLE_CRYPTIOFF OFF)
-## device
+# # device
 set(NNDEPLOY_ENABLE_DEVICE ON)
 set(NNDEPLOY_ENABLE_DEVICE_CPU OFF)
 set(NNDEPLOY_ENABLE_DEVICE_ARM OFF)
@@ -46,25 +44,30 @@ set(NNDEPLOY_ENABLE_DEVICE_OPENCL OFF)
 set(NNDEPLOY_ENABLE_DEVICE_OPENGL OFF)
 set(NNDEPLOY_ENABLE_DEVICE_METAL OFF)
 set(NNDEPLOY_ENABLE_DEVICE_APPLE_NPU OFF)
-## audio
+# # audio
 set(NNDEPLOY_ENABLE_AUDIO OFF)
 set(NNDEPLOY_ENABLE_AUDIO_CORE OFF)
-## cv
+# # cv
 set(NNDEPLOY_ENABLE_CV OFF)
 set(NNDEPLOY_ENABLE_CV_CORE OFF)
-## inference
+# # inference
 set(NNDEPLOY_ENABLE_INFERENCE OFF)
 set(NNDEPLOY_ENABLE_INFERENCE_DEFAULT OFF)
 set(NNDEPLOY_ENABLE_INFERENCE_TENSORRT OFF)
 set(NNDEPLOY_ENABLE_INFERENCE_OPENVINO OFF)
 set(NNDEPLOY_ENABLE_INFERENCE_COREML OFF)
-set(NNDEPLOY_ENABLE_INFERENCE_TFLITE  OFF)
+set(NNDEPLOY_ENABLE_INFERENCE_TFLITE OFF)
 set(NNDEPLOY_ENABLE_INFERENCE_TNN OFF)
-## aicompiler
+# # aicompiler
 set(NNDEPLOY_ENABLE_AICOMPILER OFF)
-set(NNDEPLOY_ENABLE_AICOMPILER_NNDEPLOY  OFF)
-## graph
-set(NNDEPLOY_ENABLE_GRAPH OFF)
+set(NNDEPLOY_ENABLE_AICOMPILER_DEFAULT OFF)
+# # graph
+set(NNDEPLOY_ENABLE_TASK OFF)
+set(NNDEPLOY_ENABLE_TEST OFF)
 # nntask
-set(NNDEPLOY_ENABLE_NNTASK ON)
+set(NNTASK_ENABLE ON)
+# #
+set(NNTASK_ENABLE_TEST OFF)
+set(NNTASK_ENABLE_DEMO ON)
+
 set(NNTASK_ENABLE_ALWAYS ON)

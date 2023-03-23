@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2022
  * @note ref opencv
  */
-#ifndef _NNDEPLOY_INCLUDE_GRAPH_CONFIG_H_
-#define _NNDEPLOY_INCLUDE_GRAPH_CONFIG_H_
+#ifndef _NNDEPLOY_INCLUDE_TASK_CONFIG_H_
+#define _NNDEPLOY_INCLUDE_TASK_CONFIG_H_
 
 #include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
@@ -19,7 +19,7 @@
 
 
 namespace nndeploy {
-namespace graph {
+namespace task {
 
 class Config {
  public:
@@ -27,7 +27,7 @@ class Config {
   std::string name_;
 };
 
-}  // namespace graph
+}  // namespace task
 }  // namespace nndeploy
 
 #endif

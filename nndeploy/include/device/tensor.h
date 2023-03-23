@@ -21,45 +21,37 @@ struct TensorDesc {
   base::SizeVector stride_;
 };
 
-class TensorImpl {
+class TensorImpl : public base::NonCopyable{
  public:
   TensorImpl();
   virtual ~TensorImpl();
 
   TensorImpl(Device *device, const TensorDesc &desc,
              const std::string &name = "",
-             base::TensorType type = base::kTensorTypeDefault,
+             base::TensorImplType type = base::kTensorImplTypeDefault,
              const base::IntVector &config = base::IntVector());
   TensorImpl(BufferPool *buffer_pool, const TensorDesc &desc,
              const std::string &name = "",
-             base::TensorType type = base::kTensorTypeDefault,
+             base::TensorImplType type = base::kTensorImplTypeDefault,
              const base::IntVector &config = base::IntVector());
   TensorImpl(TensorDesc desc, Buffer *buffer, const std::string &name = "",
-             base::TensorType type = base::kTensorTypeDefault);
-
-  // //
-  // TensorImpl(const TensorImpl &tensor);
-  // TensorImpl(TensorImpl &&tensor);
-
-  // //
-  // TensorImpl &operator=(const TensorImpl &tensor);
-  // TensorImpl &operator==(TensorImpl &&tensor);
+             base::TensorImplType type = base::kTensorImplTypeDefault);
 
   // create
   void create(Device *device, const TensorDesc &desc,
               const std::string &name = "",
-              base::TensorType type = base::kTensorTypeDefault,
+              base::TensorImplType type = base::kTensorImplTypeDefault,
               const base::IntVector &config = base::IntVector());
   void create(BufferPool *buffer_pool, const TensorDesc &desc,
               const std::string &name = "",
-              base::TensorType type = base::kTensorTypeDefault,
+              base::TensorImplType type = base::kTensorImplTypeDefault,
               const base::IntVector &config = base::IntVector());
 
   // get
   bool empty();
 
   std::string getName();
-  base::TensorType getTensorType();
+  base::TensorImplType getTensorImplType();
 
   TensorDesc getDesc();
   base::DataType getDataType();
@@ -80,10 +72,10 @@ class TensorImpl {
   base::IntVector getConfig();
   void *getPtr();
   int32_t getId();
-  base::BufferSourceType getBufferSourceType();
+  BufferSourceType getBufferSourceType();
 
  private:
-  base::TensorType type_;
+  base::TensorImplType type_;
   std::string name_;
   TensorDesc desc_;
   device::Buffer *buffer_;
@@ -99,30 +91,30 @@ class Tensor : public base::NonCopyable {
   virtual ~Tensor();
 
   Tensor(Device *device, const TensorDesc &desc, const std::string &name = "",
-         base::TensorType type = base::kTensorTypeDefault,
+         base::TensorImplType type = base::kTensorImplTypeDefault,
          const base::IntVector &config = base::IntVector());
   Tensor(BufferPool *buffer_pool, const TensorDesc &desc,
          const std::string &name = "",
-         base::TensorType type = base::kTensorTypeDefault,
+         base::TensorImplType type = base::kTensorImplTypeDefault,
          const base::IntVector &config = base::IntVector());
   Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name = "",
-         base::TensorType type = base::kTensorTypeDefault);
+         base::TensorImplType type = base::kTensorImplTypeDefault);
 
   // create
   void create(Device *device, const TensorDesc &desc,
               const std::string &name = "",
-              base::TensorType type = base::kTensorTypeDefault,
+              base::TensorImplType type = base::kTensorImplTypeDefault,
               const base::IntVector &config = base::IntVector());
   void create(BufferPool *buffer_pool, const TensorDesc &desc,
               const std::string &name = "",
-              base::TensorType type = base::kTensorTypeDefault,
+              base::TensorImplType type = base::kTensorImplTypeDefault,
               const base::IntVector &config = base::IntVector());
 
   // get
   bool empty();
 
   std::string getName();
-  base::TensorType getTensorType();
+  base::TensorImplType getTensorImplType();
 
   TensorDesc getDesc();
   base::DataType getDataType();
@@ -143,7 +135,7 @@ class Tensor : public base::NonCopyable {
   base::IntVector getConfig();
   void *getPtr();
   int32_t getId();
-  base::BufferSourceType getBufferSourceType();
+  BufferSourceType getBufferSourceType();
 
  private:
   TensorImpl *tensor_impl_ = nullptr;

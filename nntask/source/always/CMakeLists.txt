@@ -1,82 +1,90 @@
-cmake_minimum_required(VERSION 3.10)
-
 # set
-set(NNTASK_SOURCE)
-set(NNTASK_OBJECT)
-set(NNTASK_TARGET nntask_always)
-set(NNTASK_DEMO_SOURCE)
-set(NNTASK_DEMO_OBJECT)
-set(NNTASK_DEMO_TARGET nntask_demo_always)
-set(NNTASK_TEST_SOURCE)
-set(NNTASK_DIRECTORY nntask)
-set(NNTASK_DEPEND_LIBRARY)
-set(NNTASK_SYSTEM_LIBRARY)
-set(NNTASK_THIRD_PARTY_LIBRARY)
+set(SOURCE)
+set(OBJECT)
+set(BINARY nntask_always)
+set(DIRECTORY nntask)
+set(DEPEND_LIBRARY)
+set(SYSTEM_LIBRARY)
+set(THIRD_PARTY_LIBRARY)
+
+set(TEST_SOURCE)
+set(TEST_OBJECT)
+
+set(DEMO_SOURCE)
+set(DEMO_OBJECT)
+set(DEMO_BINARY nntask_always_demo)
 
 include_directories(${ROOT_PATH})
 
-# NNTASK_SOURCE
-file(GLOB_RECURSE NNTASK_SOURCE
-    "${ROOT_PATH}/nntask/include/always/task.h"
-    "${ROOT_PATH}/nntask/source/always/task.cc"
+# SOURCE
+file(GLOB_RECURSE SOURCE
+    "${ROOT_PATH}/nntask/include/always/*.h"
+    "${ROOT_PATH}/nntask/source/always/*.cc"
     )
+file(GLOB_RECURSE TEST_SOURCE
+    "${ROOT_PATH}/nntask/include/always/*test.h"
+    "${ROOT_PATH}/nntask/source/always/*test.cc"
+)
+file(GLOB_RECURSE DEMO_SOURCE
+    "${ROOT_PATH}/nntask/include/always/*demo.h"
+    "${ROOT_PATH}/nntask/source/always/*demo.cc"
+)
+list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
+list(REMOVE_ITEM SOURCE ${DEMO_SOURCE})
+message(STATUS "SOURCE: ${SOURCE}")
+message(STATUS "DEMO_SOURCE: ${DEMO_SOURCE}")
 
-# NNTASK_OBJECT
+# OBJECT
 
-# NNTASK_TARGET
-add_library(${NNTASK_TARGET} ${NNTASK_BUILD_TYPE} ${NNTASK_SOURCE} ${NNTASK_OBJECT})
+# BINARY
+add_library(${BINARY} ${BUILD_TYPE} ${SOURCE} ${OBJECT})
 
-# NNTASK_DIRECTORY
-set_property(TARGET ${NNTASK_TARGET} PROPERTY FOLDER ${NNTASK_DIRECTORY})
+# DIRECTORY
+set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
-# NNTASK_DEPEND_LIBRARY
+# DEPEND_LIBRARY
+list(APPEND DEPEND_LIBRARY nndeploy_base)
+target_link_libraries(${BINARY} ${DEPEND_LIBRARY}) 
 
-# NNTASK_SYSTEM_LIBRARY
+# SYSTEM_LIBRARY
+target_link_libraries(${BINARY} ${SYSTEM_LIBRARY}) 
 
-# NNTASK_THIRD_PARTY_LIBRARY
+# THIRD_PARTY_LIBRARY
+target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
 
 # install
 
-if(NNDEPLOY_ENABLE_DEMO)
-  # NNTASK_DEMO_SOURCE
-  file(GLOB_RECURSE NNTASK_DEMO_SOURCE
-      "${ROOT_PATH}/nntask/source/always/demo.cc"
-      )
-  # message(STATUS "NNTASK_DEMO_SOURCE:${NNTASK_DEMO_SOURCE}")
-
-  # NNTASK_DEMO_OBJECT
-
-  # NNTASK_DEMO_TARGET
-  add_executable(${NNTASK_DEMO_TARGET} ${NNTASK_DEMO_SOURCE} ${NNTASK_DEMO_OBJECT})
-
-  # NNTASK_DIRECTORY
-  set_property(TARGET ${NNTASK_DEMO_TARGET} PROPERTY FOLDER ${NNTASK_DIRECTORY})
-
-  # NNTASK_DEPEND_LIBRARY
-  target_link_libraries(${NNTASK_DEMO_TARGET} ${NNTASK_TARGET} nndeploy_base) 
-  
-  # NNTASK_SYSTEM_LIBRARY
-
-  # NNTASK_THIRD_PARTY_LIBRARY
-
-  # install
+# test
+if(NNTASK_ENABLE_TEST)
+  list(APPEND ALL_TEST_SOURCE ${TEST_SOURCE})
+  list(APPEND ALL_TEST_OBJECT ${TEST_OBJECT})
+  LIST(APPEND ALL_TEST_DEPEND_LIBRARY ${BINARY})
+  list(APPEND ALL_TEST_DEPEND_LIBRARY ${DEPEND_LIBRARY})
+  list(APPEND ALL_TEST_SYSTEM_LIBRARY ${SYSTEM_LIBRARY})
+  list(APPEND ALL_TEST_THIRD_PARTY_LIBRARY ${THIRD_PARTY_LIBRARY})
 endif()
 
-if(NNDEPLOY_ENABLE_TEST)
-  file(GLOB_RECURSE NNTASK_TEST_SOURCE
-      "${ROOT_PATH}/nntask/source/always/test.cc"
-      )
+# demo
+if(NNTASK_ENABLE_DEMO)
+  add_executable(${DEMO_BINARY} ${DEMO_SOURCE} ${DEMO_OBJECT})
+  set_property(TARGET ${DEMO_BINARY} PROPERTY FOLDER ${DIRECTORY})
+  target_link_libraries(${DEMO_BINARY} ${BINARY}) 
+  target_link_libraries(${DEMO_BINARY} ${DEPEND_LIBRARY}) 
+  target_link_libraries(${DEMO_BINARY} ${SYSTEM_LIBRARY}) 
+  target_link_libraries(${DEMO_BINARY} ${THIRD_PARTY_LIBRARY}) 
 endif()
 
 # unset
-unset(NNTASK_SOURCE)
-unset(NNTASK_OBJECT)
-unset(NNTASK_TARGET)
-unset(NNTASK_DEMO_SOURCE)
-unset(NNTASK_DEMO_OBJECT)
-unset(NNTASK_DEMO_TARGET)
-unset(NNTASK_TEST_SOURCE)
-unset(NNTASK_DIRECTORY)
-unset(NNTASK_DEPEND_LIBRARY)
-unset(NNTASK_SYSTEM_LIBRARY)
-unset(NNTASK_THIRD_PARTY_LIBRARY)
+unset(SOURCE)
+unset(OBJECT)
+unset(BINARY)
+unset(DIRECTORY)
+unset(DEPEND_LIBRARY)
+unset(SYSTEM_LIBRARY)
+unset(THIRD_PARTY_LIBRARY)
+
+unset(TEST_SOURCE)
+unset(TEST_OBJECT)
+
+unset(DEMO_SOURCE)
+unset(DEMO_OBJECT)

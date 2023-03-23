@@ -18,3 +18,13 @@
   + 思路，设计
 + vision
   + cv算子
+
+
+# 23
++ DataType 的 type_trait
++ basic以及Desc的构造函数
+  + 强转问题
++ buffer的多线程资源管理问题
++ tensor
+  + 要不要增加不存在buffer，但是其他都有的接口
++ 移除include_c_cc.h

@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2022
  * @note ref opencv
  */
-#ifndef _NNDEPLOY_INCLUDE_GRAPH_EDGE_H_
-#define _NNDEPLOY_INCLUDE_GRAPH_EDGE_H_
+#ifndef _NNDEPLOY_INCLUDE_TASK_EDGE_H_
+#define _NNDEPLOY_INCLUDE_TASK_EDGE_H_
 
 #include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
@@ -23,7 +23,7 @@
 
 
 namespace nndeploy {
-namespace graph {
+namespace task {
 
 class Edge {
  public:
@@ -31,7 +31,7 @@ class Edge {
   std::string name_;
 };
 
-}  // namespace graph
+}  // namespace task
 }  // namespace nndeploy
 
 #endif

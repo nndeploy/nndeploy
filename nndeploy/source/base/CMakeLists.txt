@@ -1,78 +1,68 @@
-cmake_minimum_required(VERSION 3.10)
-
 # set
-set(NNDEPLOY_SOURCE)
-set(NNDEPLOY_OBJECT)
-set(NNDEPLOY_TARGET nndeploy_base)
-set(NNDEPLOY_DIRECTORY nndeploy)
-set(NNDEPLOY_DEPEND_LIBRARY)
-set(NNDEPLOY_SYSTEM_LIBRARY)
-set(NNDEPLOY_THIRD_PARTY_LIBRARY)
+set(SOURCE)
+set(OBJECT)
+set(TARGET nndeploy_base)
+set(DIRECTORY nndeploy)
+set(DEPEND_LIBRARY)
+set(SYSTEM_LIBRARY)
+set(THIRD_PARTY_LIBRARY)
+
+set(TEST_SOURCE)
+set(TEST_OBJECT)
 
 include_directories(${ROOT_PATH})
 
-# NNDEPLOY_SOURCE
-file(GLOB_RECURSE NNDEPLOY_SOURCE
+# SOURCE
+file(GLOB_RECURSE SOURCE
     "${ROOT_PATH}/nndeploy/include/base/*.h"
     "${ROOT_PATH}/nndeploy/source/base/*.cc"
 )
+file(GLOB_RECURSE TEST_SOURCE
+    "${ROOT_PATH}/nndeploy/include/base/*_test.h"
+    "${ROOT_PATH}/nndeploy/source/base/*_test.cc"
+)
+list(REMOVE_ITEM SOURCE "${ROOT_PATH}/nndeploy/include/base/file.h")
+list(REMOVE_ITEM SOURCE "${ROOT_PATH}/nndeploy/source/base/file.cc")
+list(REMOVE_ITEM SOURCE "${ROOT_PATH}/nndeploy/include/base/string.h")
+list(REMOVE_ITEM SOURCE "${ROOT_PATH}/nndeploy/source/base/string.cc")
+list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
-list(REMOVE_ITEM NNDEPLOY_SOURCE "${ROOT_PATH}/nndeploy/include/base/file.h")
-list(REMOVE_ITEM NNDEPLOY_SOURCE "${ROOT_PATH}/nndeploy/source/base/file.cc")
-list(REMOVE_ITEM NNDEPLOY_SOURCE "${ROOT_PATH}/nndeploy/include/base/string.h")
-list(REMOVE_ITEM NNDEPLOY_SOURCE "${ROOT_PATH}/nndeploy/source/base/string.cc")
+# OBJECT
 
-# file(GLOB_RECURSE NNDEPLOY_SOURCE
-# "${ROOT_PATH}/nndeploy/include/base/include_c_cpp.h"
-# "${ROOT_PATH}/nndeploy/include/base/macro.h"
-# "${ROOT_PATH}/nndeploy/include/base/basic.h"
-# "${ROOT_PATH}/nndeploy/include/base/type.h"
-# "${ROOT_PATH}/nndeploy/include/base/log.h"
-# "${ROOT_PATH}/nndeploy/include/base/object.h"
-# "${ROOT_PATH}/nndeploy/include/base/openmp.h"
-# "${ROOT_PATH}/nndeploy/include/base/thread_pool.h"
+# TARGET
+add_library(${TARGET} ${BUILD_TYPE} ${SOURCE} ${OBJECT})
 
-# # "${ROOT_PATH}/nndeploy/include/base/file.h"
-# # "${ROOT_PATH}/nndeploy/source/base/file.cc"
-# "${ROOT_PATH}/nndeploy/include/base/half.h"
-# "${ROOT_PATH}/nndeploy/source/base/half.cc"
-# "${ROOT_PATH}/nndeploy/include/base/time_measurement.h"
-# "${ROOT_PATH}/nndeploy/source/base/time_measurement.cc"
-# "${ROOT_PATH}/nndeploy/include/base/shape.h"
-# "${ROOT_PATH}/nndeploy/source/base/shape.cc"
-# "${ROOT_PATH}/nndeploy/include/base/status.h"
-# "${ROOT_PATH}/nndeploy/source/base/status.cc"
+# DIRECTORY
+set_property(TARGET ${TARGET} PROPERTY FOLDER ${DIRECTORY})
 
-# # "${ROOT_PATH}/nndeploy/include/base/string.h"
-# # "${ROOT_PATH}/nndeploy/source/base/string.cc"
-# "${ROOT_PATH}/nndeploy/include/base/value.h"
-# "${ROOT_PATH}/nndeploy/source/base/value.cc"
-# )
+# DEPEND_LIBRARY
 
-# message(STATUS "NNDEPLOY_SOURCE:${NNDEPLOY_SOURCE}")
+# SYSTEM_LIBRARY
 
-# NNDEPLOY_OBJECT
-
-# NNDEPLOY_TARGET
-add_library(${NNDEPLOY_TARGET} ${NNDEPLOY_BUILD_TYPE} ${NNDEPLOY_SOURCE} ${NNDEPLOY_OBJECT})
-
-# NNDEPLOY_DIRECTORY
-set_property(TARGET ${NNDEPLOY_TARGET} PROPERTY FOLDER ${NNDEPLOY_DIRECTORY})
-
-# NNDEPLOY_DEPEND_LIBRARY
-
-# NNDEPLOY_SYSTEM_LIBRARY
-
-# NNDEPLOY_THIRD_PARTY_LIBRARY
+# THIRD_PARTY_LIBRARY
 
 # install
 # # include(${ROOT_PATH}/cmake/install.cmake)
 
+# test
+## repeat?
+if(NNDEPLOY_ENABLE_TEST)
+  list(APPEND ALL_TEST_SOURCE ${TEST_SOURCE})
+  list(APPEND ALL_TEST_OBJECT ${TEST_OBJECT})
+  LIST(APPEND ALL_TEST_DEPEND_LIBRARY ${TARGET})
+  list(APPEND ALL_TEST_DEPEND_LIBRARY ${DEPEND_LIBRARY})
+  list(APPEND ALL_TEST_SYSTEM_LIBRARY ${SYSTEM_LIBRARY})
+  list(APPEND ALL_TEST_THIRD_PARTY_LIBRARY ${THIRD_PARTY_LIBRARY})
+endif()
+
 # unset
-unset(NNDEPLOY_SOURCE)
-unset(NNDEPLOY_OBJECT)
-unset(NNDEPLOY_TARGET)
-unset(NNDEPLOY_DIRECTORY)
-unset(NNDEPLOY_DEPEND_LIBRARY)
-unset(NNDEPLOY_SYSTEM_LIBRARY)
-unset(NNDEPLOY_THIRD_PARTY_LIBRARY)
+unset(SOURCE)
+unset(OBJECT)
+unset(TARGET)
+unset(DIRECTORY)
+unset(DEPEND_LIBRARY)
+unset(SYSTEM_LIBRARY)
+unset(THIRD_PARTY_LIBRARY)
+
+unset(TEST_SOURCE)
+unset(TEST_OBJECT)

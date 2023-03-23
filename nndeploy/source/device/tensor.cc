@@ -22,19 +22,19 @@ TensorImpl::~TensorImpl() {
   }
 }
 TensorImpl::TensorImpl(Device *device, const TensorDesc &desc,
-                       const std::string &name, base::TensorType type,
+                       const std::string &name, base::TensorImplType type,
                        const base::IntVector &config) {
   create(device, desc, name, type, config);
 }
 TensorImpl::TensorImpl::TensorImpl(BufferPool *buffer_pool,
                                    const TensorDesc &desc,
                                    const std::string &name,
-                                   base::TensorType type,
+                                   base::TensorImplType type,
                                    const base::IntVector &config) {
   create(buffer_pool, desc, name, type, config);
 }
 TensorImpl::TensorImpl(TensorDesc desc, Buffer *buffer, const std::string &name,
-                       base::TensorType type)
+                       base::TensorImplType type)
     : desc_(desc), buffer_(buffer), name_(name), type_(type) {}
 
 //
@@ -79,7 +79,7 @@ TensorImpl::TensorImpl(TensorDesc desc, Buffer *buffer, const std::string &name,
 
 // create
 void TensorImpl::create(Device *device, const TensorDesc &desc,
-                        const std::string &name, base::TensorType type,
+                        const std::string &name, base::TensorImplType type,
                         const base::IntVector &config) {
   desc_ = desc;
   name_ = name;
@@ -88,7 +88,7 @@ void TensorImpl::create(Device *device, const TensorDesc &desc,
   buffer_ = device->malloc(buffer_desc);
 }
 void TensorImpl::create(BufferPool *buffer_pool, const TensorDesc &desc,
-                        const std::string &name, base::TensorType type,
+                        const std::string &name, base::TensorImplType type,
                         const base::IntVector &config) {
   desc_ = desc;
   name_ = name;
@@ -102,7 +102,7 @@ void TensorImpl::create(BufferPool *buffer_pool, const TensorDesc &desc,
 bool TensorImpl::empty() { return buffer_->empty(); }
 
 std::string TensorImpl::getName() { return name_; }
-base::TensorType TensorImpl::getTensorType() { return type_; }
+base::TensorImplType TensorImpl::getTensorImplType() { return type_; }
 
 TensorDesc TensorImpl::getDesc() { return desc_; }
 base::DataType TensorImpl::getDataType() { return desc_.data_type_; }
@@ -126,7 +126,7 @@ base::SizeVector TensorImpl::getSizeVector() {
 base::IntVector TensorImpl::getConfig() { return buffer_->getConfig(); }
 void *TensorImpl::getPtr() { return buffer_->getPtr(); }
 int32_t TensorImpl::getId() { return buffer_->getId(); }
-base::BufferSourceType TensorImpl::getBufferSourceType() {
+BufferSourceType TensorImpl::getBufferSourceType() {
   return buffer_->getBufferSourceType();
 }
 
@@ -137,16 +137,16 @@ Tensor::~Tensor() {
   }
 }
 Tensor::Tensor(Device *device, const TensorDesc &desc, const std::string &name,
-               base::TensorType type, const base::IntVector &config) {
+               base::TensorImplType type, const base::IntVector &config) {
   tensor_impl_ = new TensorImpl(device, desc, name, type, config);
 }
 Tensor::Tensor::Tensor(BufferPool *buffer_pool, const TensorDesc &desc,
-                       const std::string &name, base::TensorType type,
+                       const std::string &name, base::TensorImplType type,
                        const base::IntVector &config) {
   tensor_impl_ = new TensorImpl(buffer_pool, desc, name, type, config);
 }
 Tensor::Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name,
-               base::TensorType type) {
+               base::TensorImplType type) {
   tensor_impl_ = new TensorImpl(desc, buffer, name, type);
 }
 
@@ -192,7 +192,7 @@ Tensor::Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name,
 
 // create
 void Tensor::create(Device *device, const TensorDesc &desc,
-                    const std::string &name, base::TensorType type,
+                    const std::string &name, base::TensorImplType type,
                     const base::IntVector &config) {
   if (tensor_impl_ != nullptr) {
     tensor_impl_ = new TensorImpl(device, desc, name, type, config);
@@ -201,7 +201,7 @@ void Tensor::create(Device *device, const TensorDesc &desc,
   }
 }
 void Tensor::create(BufferPool *buffer_pool, const TensorDesc &desc,
-                    const std::string &name, base::TensorType type,
+                    const std::string &name, base::TensorImplType type,
                     const base::IntVector &config) {
   if (tensor_impl_ != nullptr) {
     tensor_impl_ = new TensorImpl(buffer_pool, desc, name, type, config);
@@ -214,8 +214,8 @@ void Tensor::create(BufferPool *buffer_pool, const TensorDesc &desc,
 bool Tensor::empty() { return tensor_impl_->empty(); }
 
 std::string Tensor::getName() { return tensor_impl_->getName(); }
-base::TensorType Tensor::getTensorType() {
-  return tensor_impl_->getTensorType();
+base::TensorImplType Tensor::getTensorImplType() {
+  return tensor_impl_->getTensorImplType();
 }
 
 TensorDesc Tensor::getDesc() { return tensor_impl_->getDesc(); }
@@ -244,7 +244,7 @@ base::SizeVector Tensor::getSizeVector() {
 base::IntVector Tensor::getConfig() { return tensor_impl_->getConfig(); }
 void *Tensor::getPtr() { return tensor_impl_->getPtr(); }
 int32_t Tensor::getId() { return tensor_impl_->getId(); }
-base::BufferSourceType Tensor::getBufferSourceType() {
+BufferSourceType Tensor::getBufferSourceType() {
   return tensor_impl_->getBufferSourceType();
 }
 

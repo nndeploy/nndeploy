@@ -47,7 +47,7 @@ void *Buffer::getPtr() { return data_ptr_; }
 
 int32_t Buffer::getId() { return data_id_; }
 
-base::BufferSourceType Buffer::getBufferSourceType() {
+BufferSourceType Buffer::getBufferSourceType() {
   return buffer_source_type_;
 }
 
@@ -58,7 +58,7 @@ void Buffer::addRef() { ref_count_++; }
 void Buffer::subRef() { ref_count_--; }
 
 Buffer::Buffer(Device *device, const BufferDesc &desc, void *ptr,
-               base::BufferSourceType buffer_source_type)
+               BufferSourceType buffer_source_type)
     : device_(device),
       buffer_pool_(nullptr),
       desc_(desc),
@@ -67,7 +67,7 @@ Buffer::Buffer(Device *device, const BufferDesc &desc, void *ptr,
       buffer_source_type_(buffer_source_type),
       ref_count_(1) {}
 Buffer::Buffer(Device *device, const BufferDesc &desc, int32_t id,
-               base::BufferSourceType buffer_source_type)
+               BufferSourceType buffer_source_type)
     : device_(device),
       buffer_pool_(nullptr),
       desc_(desc),
@@ -76,7 +76,7 @@ Buffer::Buffer(Device *device, const BufferDesc &desc, int32_t id,
       buffer_source_type_(buffer_source_type),
       ref_count_(1) {}
 Buffer::Buffer(BufferPool *buffer_pool, const BufferDesc &desc, void *ptr,
-               base::BufferSourceType buffer_source_type)
+               BufferSourceType buffer_source_type)
     : device_(buffer_pool->getDevice()),
       buffer_pool_(buffer_pool),
       desc_(desc),
@@ -85,7 +85,7 @@ Buffer::Buffer(BufferPool *buffer_pool, const BufferDesc &desc, void *ptr,
       buffer_source_type_(buffer_source_type),
       ref_count_(1) {}
 Buffer::Buffer(BufferPool *buffer_pool, const BufferDesc &desc, int32_t id,
-               base::BufferSourceType buffer_source_type)
+               BufferSourceType buffer_source_type)
     : device_(buffer_pool->getDevice()),
       buffer_pool_(buffer_pool),
       desc_(desc),

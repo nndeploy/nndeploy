@@ -8,8 +8,8 @@
  * @copyright Copyright (c) 2022
  *
  */
-#ifndef _NNDEPLOY_INCLUDE_GRAPH_NODE_H_
-#define _NNDEPLOY_INCLUDE_GRAPH_NODE_H_
+#ifndef _NNDEPLOY_INCLUDE_TASK_NODE_H_
+#define _NNDEPLOY_INCLUDE_TASK_NODE_H_
 
 #include "nndeploy/include/base/basic.h"
 #include "nndeploy/include/base/log.h"
@@ -22,7 +22,7 @@
 
 
 namespace nndeploy {
-namespace graph {
+namespace task {
 
 class Node {
  public:
@@ -62,7 +62,7 @@ class Node {
   std::vector<std::string, std::shared_ptr<Packet>> output_;
 };
 
-}  // namespace graph
+}  // namespace task
 }  // namespace nndeploy
 
 #endif
