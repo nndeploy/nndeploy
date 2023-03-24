@@ -21,10 +21,6 @@ file(GLOB_RECURSE TEST_SOURCE
     "${ROOT_PATH}/nndeploy/include/base/*_test.h"
     "${ROOT_PATH}/nndeploy/source/base/*_test.cc"
 )
-list(REMOVE_ITEM SOURCE "${ROOT_PATH}/nndeploy/include/base/file.h")
-list(REMOVE_ITEM SOURCE "${ROOT_PATH}/nndeploy/source/base/file.cc")
-list(REMOVE_ITEM SOURCE "${ROOT_PATH}/nndeploy/include/base/string.h")
-list(REMOVE_ITEM SOURCE "${ROOT_PATH}/nndeploy/source/base/string.cc")
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
 # OBJECT

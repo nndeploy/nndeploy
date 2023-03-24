@@ -19,7 +19,7 @@ struct DeviceInfo {
   bool is_support_fp16_ = false;
 };
 
-class Architecture {
+class Architecture : public base::NonCopyable {
  public:
   explicit Architecture(base::DeviceTypeCode device_type_code);
 
@@ -38,7 +38,7 @@ class Architecture {
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") = 0;
 
-  base::DeviceTypeCode DeviceTypeCode();
+  base::DeviceTypeCode getDeviceTypeCode();
 
  private:
   base::DeviceTypeCode device_type_code_;

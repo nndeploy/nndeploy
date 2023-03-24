@@ -26,15 +26,15 @@ enum BufferSourceType : int32_t {
 
 struct BufferDesc {
   BufferDesc(){};
-  BufferDesc(size_t size) { size_.push_back(size); };
-  BufferDesc(size_t *size, size_t len) {
+  explicit BufferDesc(size_t *size, size_t len) {
     for (int i = 0; i < len; ++i) {
       size_.push_back(size[i]);
     }
   };
-  BufferDesc(base::SizeVector size, base::IntVector config)
+  explicit BufferDesc(const base::SizeVector &size,
+                      const base::IntVector &config)
       : size_(size), config_(config){};
-  BufferDesc(size_t *size, size_t len, base::IntVector config)
+  explicit BufferDesc(size_t *size, size_t len, const base::IntVector &config)
       : config_(config) {
     for (int i = 0; i < len; ++i) {
       size_.push_back(size[i]);
@@ -43,6 +43,8 @@ struct BufferDesc {
 
   BufferDesc(const BufferDesc &desc) = default;
   BufferDesc &operator=(const BufferDesc &desc) = default;
+
+  virtual ~BufferDesc(){};
 
   /**
    * @brief
@@ -104,7 +106,7 @@ class Buffer : public base::NonCopyable {
    * @brief buffer引用计数
    *
    */
-  std::atomic<int32_t> ref_count_;
+  int32_t ref_count_ = 0;
 };
 
 }  // namespace device

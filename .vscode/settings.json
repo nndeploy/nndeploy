@@ -90,7 +90,11 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "stop_token": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "coroutine": "cpp",
+        "fstream": "cpp",
+        "ranges": "cpp",
+        "span": "cpp"
     },
     "cmake.configureOnOpen": false
 }

@@ -21,6 +21,16 @@ namespace device {
 class Device;
 
 struct MatDesc {
+  MatDesc(){};
+  explicit MatDesc(base::DataType data_type, const base::IntVector &shape,
+                   const base::SizeVector &stride)
+      : data_type_(data_type), shape_(shape), stride_(stride){};
+
+  MatDesc(const MatDesc &desc) = default;
+  MatDesc &operator=(const MatDesc &desc) = default;
+
+  virtual ~MatDesc(){};
+
   base::DataType data_type_;
 
   base::IntVector shape_;
@@ -38,16 +48,17 @@ class Mat {
       base::DataType data_type);
   Mat(Device *device, int32_t *shape, int32_t shape_len,
       base::DataType data_type);
-  Mat(Device *device, base::IntVector shape_, base::DataType data_type);
-  Mat(Device *device, MatDesc desc, base::IntVector config);
+  Mat(Device *device, const base::IntVector &shape_, base::DataType data_type);
+  Mat(Device *device, const MatDesc &desc, const base::IntVector &config);
 
   Mat(BufferPool *buffer_pool, int32_t height, int32_t width, int32_t channel,
       base::DataType data_type);
   Mat(BufferPool *buffer_pool, int32_t *shape, int32_t shape_len,
       base::DataType data_type);
-  Mat(BufferPool *buffer_pool, base::IntVector shape_,
+  Mat(BufferPool *buffer_pool, const base::IntVector &shape_,
       base::DataType data_type);
-  Mat(BufferPool *buffer_pool, MatDesc desc, base::IntVector config);
+  Mat(BufferPool *buffer_pool, const MatDesc &desc,
+      const base::IntVector &config);
 
   Mat(const MatDesc &desc, Buffer *buffer);
 
@@ -60,8 +71,13 @@ class Mat {
   Mat &operator==(Mat &&mat);
 
   // create
-  void create(Device *device, MatDesc desc, base::IntVector config);
-  void create(BufferPool *buffer_pool, MatDesc desc_, base::IntVector config);
+  void create(const MatDesc &desc, Buffer *buffer);
+  void create(Device *device, const MatDesc &desc,
+              const base::IntVector &config);
+  void create(BufferPool *buffer_pool, const MatDesc &desc,
+              const base::IntVector &config);
+
+  void destory();
 
   // get
   bool empty();
@@ -91,9 +107,36 @@ class Mat {
   BufferSourceType getBufferSourceType();
 
  private:
+  // 必须确保Mat为空
+  void create(Device *device, BufferPool *buffer_pool, const MatDesc &desc,
+              Buffer *buffer, const base::IntVector &config);
+
+ private:
   MatDesc desc_;
 
   Buffer *buffer_ = nullptr;
+};
+
+class MatPtrArray {
+ public:
+  MatPtrArray();
+  MatPtrArray(const std::vector<Mat *> &mats);
+  MatPtrArray(Mat *mat);
+  MatPtrArray(Mat &mat);
+
+  virtual ~MatPtrArray();
+
+  void add(Mat *mat);
+  void add(const std::vector<Mat *> &mats);
+  void add(Mat &mat);
+
+  bool empty();
+  int getSize();
+  Mat *get();
+  Mat *get(int index);
+
+ private:
+  std::vector<Mat *> mats_;
 };
 
 }  // namespace device

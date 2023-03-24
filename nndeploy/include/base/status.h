@@ -39,6 +39,9 @@ class Status {
   ~Status();
   Status(int32_t code = kStatusCodeOk);
 
+  Status(const Status& other) = default;
+  Status& operator=(const Status& other) = default;
+
   Status& operator=(int32_t code);
   bool operator==(int32_t code_);
   bool operator!=(int32_t code_);
@@ -51,11 +54,11 @@ class Status {
   int32_t code_ = kStatusCodeOk;
 };
 
-#define ASSERT(x)                     \
+#define NNDEPLOY_ASSERT(x)            \
   {                                   \
     int res = (x);                    \
     if (!res) {                       \
-      LOGE("Error: assert failed\n"); \
+      NNDEPLOY_LOGE("Error: assert failed\n"); \
       assert(res);                    \
     }                                 \
   }

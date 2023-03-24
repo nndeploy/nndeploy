@@ -47,11 +47,9 @@ void *Buffer::getPtr() { return data_ptr_; }
 
 int32_t Buffer::getId() { return data_id_; }
 
-BufferSourceType Buffer::getBufferSourceType() {
-  return buffer_source_type_;
-}
+BufferSourceType Buffer::getBufferSourceType() { return buffer_source_type_; }
 
-int32_t Buffer::getRef() { return 1; }
+int32_t Buffer::getRef() { return ref_count_; }
 
 void Buffer::addRef() { ref_count_++; }
 

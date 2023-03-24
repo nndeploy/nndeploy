@@ -9,6 +9,10 @@ Architecture::Architecture(base::DeviceTypeCode device_type_code)
 
 Architecture::~Architecture(){};
 
+base::DeviceTypeCode Architecture::getDeviceTypeCode() {
+  return device_type_code_;
+}
+
 std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>&
 getArchitectureMap() {
   static std::once_flag once;

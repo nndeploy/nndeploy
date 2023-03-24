@@ -20,10 +20,76 @@ struct DataType {
   DataType() = default;
   DataType(uint8_t code, uint8_t bits, uint16_t lanes = (uint16_t)1)
       : code_(code), bits_(bits), lanes_(lanes){};
+  DataType(const DataType& other) = default;
+  DataType& operator=(const DataType& other) = default;
   uint8_t code_ = kDataTypeCodeFp;
-  uint8_t bits_ = 4;
+  uint8_t bits_ = 32;
   uint16_t lanes_ = 1;
 };
+
+template <typename T>
+struct CheckIsPointer;
+template <typename T>
+struct CheckIsPointer<T*> {};
+
+template <typename T>
+DataType DataTypeOf() {
+  // Create a compile-time error if T is not a pointer (without
+  // using any includes - this code goes into the runtime).
+  CheckIsPointer<T> check;
+  (void)check;
+  return DataType(kDataTypeCodeOpaqueHandle, 64);
+}
+
+template <>
+DataType DataTypeOf<float>() {
+  return DataType(kDataTypeCodeFp, 32);
+}
+
+template <>
+DataType DataTypeOf<double>() {
+  return DataType(kDataTypeCodeFp, 64);
+}
+
+template <>
+DataType DataTypeOf<uint8_t>() {
+  return DataType(kDataTypeCodeUint, 8);
+}
+
+template <>
+DataType DataTypeOf<uint16_t>() {
+  return DataType(kDataTypeCodeUint, 16);
+}
+
+template <>
+DataType DataTypeOf<uint32_t>() {
+  return DataType(kDataTypeCodeUint, 32);
+}
+
+template <>
+DataType DataTypeOf<uint64_t>() {
+  return DataType(kDataTypeCodeUint, 64);
+}
+
+template <>
+DataType DataTypeOf<int8_t>() {
+  return DataType(kDataTypeCodeInt, 8);
+}
+
+template <>
+DataType DataTypeOf<int16_t>() {
+  return DataType(kDataTypeCodeInt, 16);
+}
+
+template <>
+DataType DataTypeOf<int32_t>() {
+  return DataType(kDataTypeCodeInt, 32);
+}
+
+template <>
+DataType DataTypeOf<int64_t>() {
+  return DataType(kDataTypeCodeInt, 64);
+}
 
 enum DeviceTypeCode : int32_t {
   kDeviceTypeCodeCpu = 0x0000,
@@ -45,6 +111,8 @@ struct DeviceType {
   DeviceType() = default;
   DeviceType(int32_t code, int32_t device_id = 0)
       : code_(code), device_id_(device_id){};
+  DeviceType(const DeviceType& other) = default;
+  DeviceType& operator=(const DeviceType& other) = default;
   int32_t code_ = kDeviceTypeCodeCpu;
   int32_t device_id_ = 0;
 };

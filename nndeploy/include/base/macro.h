@@ -68,6 +68,21 @@
   case x:                       \
     str = #x;                   \
     break;
+#define NNDEPLOY_STR_TO_ENUM(x) \
+  if (str == #x) {              \
+    return x;                   \
+  }
+#define NNDEPLOY_STR_TO_ENUM_WITH_DEFAULT(x, default) \
+  if (str == #x) {                                    \
+    return x;                                         \
+  } else {                                            \
+    return default;                                   \
+  }
+#define NNDEPLOY_GENERATE_DEFAULT_STR()        \
+  std::string file = __FILE__;                 \
+  std::string function = __FUNCTION__;         \
+  std::string line = std::to_string(__LINE__); \
+  return NNDEPLOY_DEFAULT_STR + "_" file + "_" + function + "_" + line;
 
 /**
  * @brief math

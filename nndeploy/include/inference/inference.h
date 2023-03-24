@@ -17,10 +17,9 @@
 #include "nndeploy/include/base/object.h"
 #include "nndeploy/include/base/status.h"
 #include "nndeploy/include/device/device.h"
-#include "nndeploy/include/inference/config.h"
-#include "nndeploy/include/inference/abstract_inference_impl.h"
 #include "nndeploy/include/device/tensor.h"
-
+#include "nndeploy/include/inference/abstract_inference_impl.h"
+#include "nndeploy/include/inference/config.h"
 
 namespace nndeploy {
 namespace inference {
@@ -30,7 +29,7 @@ class Inference {
   Inference();
   ~Inference();
 
-  base::Status init(Config config);
+  base::Status init(const Config &config);
   base::Status deinit();
 
   base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
@@ -72,11 +71,12 @@ class Inference {
   std::shared_ptr<Device::Tensor> getInputTensor(const std::string &key);
   std::shared_ptr<Tensor> getOutputTensor(const std::string &key);
 
-  base::Status setInputTensor(const std::string &key,
-                              const std::shared_ptr<Device::Tensor> input_tensor);
+  base::Status setInputTensor(
+      const std::string &key,
+      const std::shared_ptr<Device::Tensor> input_tensor);
   //
   std::shared_ptr<Device::Tensor> getOutputTensor(const std::string &key,
-                                          std::vector<int32_t> config);
+                                                  std::vector<int32_t> config);
 
   base::Status run();
   base::Status asyncRun();

@@ -13,7 +13,7 @@ namespace base {
 class Value {
   Value() = default;
   Value(const Value& value) = default;
-  Value(const Value&& value) {
+  Value(Value&& value) {
     data_type_ = value.data_type_;
     len_ = value.len_;
     internal_value_ = value.internal_value_;
@@ -44,7 +44,7 @@ class Value {
   ~Value(){};
 
   Value& operator=(const Value& value) = default;
-  Value& operator=(const Value&& value) {
+  Value& operator=(Value&& value) {
     data_type_ = value.data_type_;
     len_ = value.len_;
     internal_value_ = value.internal_value_;

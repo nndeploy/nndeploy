@@ -1,14 +1,6 @@
 
 #include "nndeploy/include/device/device.h"
 
-#include "nndeploy/include/base/basic.h"
-#include "nndeploy/include/base/log.h"
-#include "nndeploy/include/base/macro.h"
-#include "nndeploy/include/base/object.h"
-#include "nndeploy/include/base/status.h"
-#include "nndeploy/include/device/buffer.h"
-#include "nndeploy/include/device/buffer_pool.h"
-
 namespace nndeploy {
 namespace device {
 
@@ -27,22 +19,26 @@ BufferDesc Device::toBufferDesc(const TensorDesc& desc_,
 }
 
 Buffer* Device::create(size_t size, void* ptr) {
-  Buffer* buffer = new Buffer(this, size, ptr, base::kBufferSourceTypeExternal);
+  BufferDesc desc;
+  desc.size_.push_back(size);
+  Buffer* buffer = new Buffer(this, desc, ptr, kBufferSourceTypeExternal);
   return buffer;
 }
 
 Buffer* Device::create(const BufferDesc& desc, void* ptr) {
-  Buffer* buffer = new Buffer(this, desc, ptr, base::kBufferSourceTypeExternal);
+  Buffer* buffer = new Buffer(this, desc, ptr, kBufferSourceTypeExternal);
   return buffer;
 }
 
 Buffer* Device::create(size_t size, int32_t id) {
-  Buffer* buffer = new Buffer(this, size, id, base::kBufferSourceTypeExternal);
+  BufferDesc desc;
+  desc.size_.push_back(size);
+  Buffer* buffer = new Buffer(this, desc, id, kBufferSourceTypeExternal);
   return buffer;
 }
 
 Buffer* Device::create(const BufferDesc& desc, int32_t id) {
-  Buffer* buffer = new Buffer(this, desc, id, base::kBufferSourceTypeExternal);
+  Buffer* buffer = new Buffer(this, desc, id, kBufferSourceTypeExternal);
   return buffer;
 }
 

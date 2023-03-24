@@ -11,15 +11,7 @@ namespace nndeploy {
 namespace device {
 
 Mat::Mat() {}
-Mat::~Mat() {
-  if (buffer_ != nullptr) {
-    buffer_->subRef();
-    if (buffer_->getRef() == 0) {
-      Device *device = buffer_->getDevice();
-      device->free(buffer_);
-    }
-  }
-}
+Mat::~Mat() { destory(); }
 Mat::Mat::Mat(Device *device, int32_t height, int32_t width, int32_t channel,
               base::DataType data_type) {
   desc_.data_type_ = data_type;
@@ -36,12 +28,13 @@ Mat::Mat(Device *device, int32_t *shape, int32_t shape_len,
   }
   create(device, desc_, base::IntVector());
 }
-Mat::Mat(Device *device, base::IntVector shape_, base::DataType data_type) {
+Mat::Mat(Device *device, const base::IntVector &shape_,
+         base::DataType data_type) {
   desc_.data_type_ = data_type;
   desc_.shape_ = shape_;
   create(device, desc_, base::IntVector());
 }
-Mat::Mat(Device *device, MatDesc desc_, base::IntVector config) {
+Mat::Mat(Device *device, const MatDesc &desc, const base::IntVector &config) {
   create(device, desc_, config);
 }
 Mat::Mat::Mat(BufferPool *buffer_pool, int32_t height, int32_t width,
@@ -60,17 +53,18 @@ Mat::Mat(BufferPool *buffer_pool, int32_t *shape, int32_t shape_len,
   }
   create(buffer_pool, desc_, base::IntVector());
 }
-Mat::Mat(BufferPool *buffer_pool, base::IntVector shape_,
+Mat::Mat(BufferPool *buffer_pool, const base::IntVector &shape_,
          base::DataType data_type) {
   desc_.data_type_ = data_type;
   desc_.shape_ = shape_;
   create(buffer_pool, desc_, base::IntVector());
 }
-Mat::Mat(BufferPool *buffer_pool, MatDesc desc_, base::IntVector config) {
-  create(buffer_pool, desc_, config);
+Mat::Mat(BufferPool *buffer_pool, const MatDesc &desc,
+         const base::IntVector &config) {
+  create(buffer_pool, desc, config);
 }
 
-Mat::Mat(const MatDesc &desc, Buffer *buffer) : desc_(desc), buffer_(buffer) {}
+Mat::Mat(const MatDesc &desc, Buffer *buffer) { create(desc, buffer); }
 
 //
 Mat::Mat(const Mat &mat) {
@@ -113,17 +107,54 @@ Mat &Mat::operator==(Mat &&mat) {
 }
 
 // create
-void Mat::create(Device *device, MatDesc desc, base::IntVector config) {
-  desc_ = desc;
-  BufferDesc buffer_desc = device->toBufferDesc(desc, config);
-  buffer_ = device->malloc(buffer_desc);
+void Mat::create(const MatDesc &desc, Buffer *buffer) {
+  create(nullptr, nullptr, desc, buffer, base::IntVector());
 }
-void Mat::create(BufferPool *buffer_pool, MatDesc desc,
-                 base::IntVector config) {
+void Mat::create(Device *device, const MatDesc &desc,
+                 const base::IntVector &config) {
+  create(device, nullptr, desc, nullptr, config);
+}
+void Mat::create(BufferPool *buffer_pool, const MatDesc &desc,
+                 const base::IntVector &config) {
+  create(nullptr, buffer_pool, desc, nullptr, config);
+}
+
+void Mat::create(Device *device, BufferPool *buffer_pool, const MatDesc &desc,
+                 Buffer *buffer, const base::IntVector &config) {
   desc_ = desc;
-  BufferDesc buffer_desc =
-      buffer_pool->getDevice()->toBufferDesc(desc_, config);
-  buffer_ = buffer_pool->malloc(buffer_desc);
+  if (buffer != nullptr) {
+    buffer->addRef();
+    buffer_ = buffer;
+    return;
+  }
+  if (buffer_pool != nullptr) {
+    BufferDesc buffer_desc =
+        buffer_pool->getDevice()->toBufferDesc(desc_, config);
+    buffer_ = buffer_pool->malloc(buffer_desc);
+    return;
+  }
+  if (device != nullptr) {
+    BufferDesc buffer_desc = device->toBufferDesc(desc, config);
+    buffer_ = device->malloc(buffer_desc);
+    return;
+  }
+  return;
+}
+
+void Mat::destory() {
+  if (buffer_ != nullptr) {
+    buffer_->subRef();
+    if (buffer_->getRef() == 1) {
+      if (buffer_->isBufferPool()) {
+        BufferPool *pool = buffer_->getBufferPool();
+        pool->free(buffer_);
+      } else {
+        Device *device = buffer_->getDevice();
+        device->free(buffer_);
+      }
+    }
+    buffer_ = nullptr;
+  }
 }
 
 // get
@@ -168,6 +199,26 @@ int32_t Mat::getId() { return buffer_->getId(); }
 BufferSourceType Mat::getBufferSourceType() {
   return buffer_->getBufferSourceType();
 }
+
+MatPtrArray::MatPtrArray() {}
+MatPtrArray::MatPtrArray(const std::vector<Mat *> &mats) : mats_(mats) {}
+MatPtrArray::MatPtrArray(Mat *mat) { mats_.push_back(mat); }
+MatPtrArray::MatPtrArray(Mat &mat) { mats_.push_back(&mat); }
+
+MatPtrArray::~MatPtrArray() {}
+
+void MatPtrArray::add(Mat *mat) { mats_.push_back(mat); }
+void MatPtrArray::add(const std::vector<Mat *> &mats) {
+  for (auto mat : mats) {
+    mats_.push_back(mat);
+  }
+}
+void MatPtrArray::add(Mat &mat) { mats_.push_back(&mat); }
+
+bool MatPtrArray::empty() { return mats_.size() == 0; }
+int MatPtrArray::getSize() { return mats_.size(); }
+Mat *MatPtrArray::get() { return mats_[0]; }
+Mat *MatPtrArray::get(int index) { return mats_[index]; }
 
 }  // namespace device
 }  // namespace nndeploy
