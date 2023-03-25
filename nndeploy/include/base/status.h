@@ -19,6 +19,7 @@ enum StatusCode : int32_t {
   kStatusCodeErrorNotImplement,
   kStatusCodeErrorInvalidValue,
   kStatusCodeErrorInvalidParam,
+  kStatusCodeErrorNullParam,
 
   // device
   kStatusCodeErrorDeviceCpu,
@@ -54,13 +55,13 @@ class Status {
   int32_t code_ = kStatusCodeOk;
 };
 
-#define NNDEPLOY_ASSERT(x)            \
-  {                                   \
-    int res = (x);                    \
-    if (!res) {                       \
+#define NNDEPLOY_ASSERT(x)                     \
+  {                                            \
+    int res = (x);                             \
+    if (!res) {                                \
       NNDEPLOY_LOGE("Error: assert failed\n"); \
-      assert(res);                    \
-    }                                 \
+      assert(res);                             \
+    }                                          \
   }
 
 #ifndef _DEBUG

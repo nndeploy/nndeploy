@@ -113,7 +113,7 @@ class Mat {
 
  private:
   MatDesc desc_;
-
+  bool is_external_buffer_ = false;
   Buffer *buffer_ = nullptr;
 };
 

@@ -74,7 +74,9 @@ Mat::Mat(const Mat &mat) {
 
   desc_ = mat.desc_;
   buffer_ = mat.buffer_;
-  buffer_->addRef();
+  if (buffer_ != nullptr && is_external_buffer_ == false) {
+    buffer_->addRef();
+  }
 }
 Mat::Mat(Mat &&mat) {
   if (this == &mat) {
@@ -82,6 +84,7 @@ Mat::Mat(Mat &&mat) {
   }
   desc_ = mat.desc_;
   buffer_ = mat.buffer_;
+  is_external_buffer_ = mat.is_external_buffer_;
   mat.buffer_ = nullptr;
 }
 
@@ -93,7 +96,9 @@ Mat &Mat::operator=(const Mat &mat) {
 
   desc_ = mat.desc_;
   buffer_ = mat.buffer_;
-  buffer_->addRef();
+  if (buffer_ != nullptr && is_external_buffer_ == false) {
+    buffer_->addRef();
+  }
   return *this;
 }
 Mat &Mat::operator==(Mat &&mat) {
@@ -102,6 +107,7 @@ Mat &Mat::operator==(Mat &&mat) {
   }
   desc_ = mat.desc_;
   buffer_ = mat.buffer_;
+  is_external_buffer_ = mat.is_external_buffer_;
   mat.buffer_ = nullptr;
   return *this;
 }
@@ -123,34 +129,34 @@ void Mat::create(Device *device, BufferPool *buffer_pool, const MatDesc &desc,
                  Buffer *buffer, const base::IntVector &config) {
   desc_ = desc;
   if (buffer != nullptr) {
-    buffer->addRef();
+    is_external_buffer_ = true;
     buffer_ = buffer;
     return;
-  }
-  if (buffer_pool != nullptr) {
+  } else if (buffer_pool != nullptr) {
+    is_external_buffer_ = false;
     BufferDesc buffer_desc =
         buffer_pool->getDevice()->toBufferDesc(desc_, config);
-    buffer_ = buffer_pool->malloc(buffer_desc);
+    buffer_ = buffer_pool->allocate(buffer_desc);
     return;
-  }
-  if (device != nullptr) {
+  } else if (device != nullptr) {
+    is_external_buffer_ = false;
     BufferDesc buffer_desc = device->toBufferDesc(desc, config);
-    buffer_ = device->malloc(buffer_desc);
+    buffer_ = device->allocate(buffer_desc);
     return;
   }
   return;
 }
 
 void Mat::destory() {
-  if (buffer_ != nullptr) {
+  if (buffer_ != nullptr && is_external_buffer_ == false) {
     buffer_->subRef();
     if (buffer_->getRef() == 1) {
       if (buffer_->isBufferPool()) {
         BufferPool *pool = buffer_->getBufferPool();
-        pool->free(buffer_);
+        pool->deallocate(buffer_);
       } else {
         Device *device = buffer_->getDevice();
-        device->free(buffer_);
+        device->deallocate(buffer_);
       }
     }
     buffer_ = nullptr;

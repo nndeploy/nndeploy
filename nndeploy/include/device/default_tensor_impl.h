@@ -78,7 +78,7 @@ class DefaultTensorImpl : public base::NonCopyable {
                    const base::IntVector &config = base::IntVector());
   void allocBuffer(BufferPool *buffer_pool,
                    const base::IntVector &config = base::IntVector());
-  void freeBuffer();
+  void deallocateBuffer();
 
   bool justModify(const TensorDesc &desc);
 
@@ -113,6 +113,7 @@ class DefaultTensorImpl : public base::NonCopyable {
  private:
   std::string name_;
   TensorDesc desc_;
+  bool is_external_buffer_ = false;
   Buffer *buffer_;
 };
 
@@ -127,8 +128,8 @@ class TypeTensorCreator : public TensorCreator {
   virtual DefaultTensorImpl *CreateTensor() { return new T(); }
 };
 
-std::map<base::TensorImplType, std::shared_ptr<TensorCreator>> &
-getGlobalTensorCreatorMap();
+std::map<base::TensorImplType, std::shared_ptr<TensorCreator>>
+    &getGlobalTensorCreatorMap();
 
 template <typename T>
 class TypeTensorRegister {

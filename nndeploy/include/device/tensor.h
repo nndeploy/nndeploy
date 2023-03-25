@@ -56,7 +56,7 @@ class Tensor : public base::NonCopyable {
                    const base::IntVector &config = base::IntVector());
   void allocBuffer(BufferPool *buffer_pool,
                    const base::IntVector &config = base::IntVector());
-  void freeBuffer();
+  void deallocateBuffer();
 
   bool justModify(const TensorDesc &desc);
 

@@ -22,23 +22,23 @@ std::string openFile(const std::string &file_path) {
 std::vector<std::string> getFileName(const std::string &dir_path,
                                      const std::string &suffix) {
   std::vector<std::string> fileNames;
-  _finddata_t data;
-  auto handle = _findfirst((dir_path + "/*." + suffix).c_str(), &data);
-  if (handle == -1) {
-    return fileNames;
-  }
-  do {
-    std::string s1 = data.name;
-    if (data.attrib & _A_SUBDIR) {
-      continue;
-    } else {
-      std::string s2 = "." + suffix;
-      if (s1.rfind(s1) == s1.size() - s1.size()) {
-        fileNames.push_back(s1);
-      }
-    }
-  } while (_findnext(handle, &data) == 0);
-  _findclose(handle);
+  // _finddata_t data;
+  // auto handle = _findfirst((dir_path + "/*." + suffix).c_str(), &data);
+  // if (handle == -1) {
+  //   return fileNames;
+  // }
+  // do {
+  //   std::string s1 = data.name;
+  //   if (data.attrib & _A_SUBDIR) {
+  //     continue;
+  //   } else {
+  //     std::string s2 = "." + suffix;
+  //     if (s1.rfind(s1) == s1.size() - s1.size()) {
+  //       fileNames.push_back(s1);
+  //     }
+  //   }
+  // } while (_findnext(handle, &data) == 0);
+  // _findclose(handle);
   return fileNames;
 }
 

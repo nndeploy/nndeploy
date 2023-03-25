@@ -23,19 +23,28 @@ class Device : public base::NonCopyable {
   friend class Architecture;
 
  public:
-  virtual BufferDesc toBufferDesc(const MatDesc& desc_,
-                                  const base::IntVector& config);
+  virtual BufferDesc toBufferDesc(const MatDesc& desc,
+                                  const base::IntVector& config) = 0;
 
-  virtual BufferDesc toBufferDesc(const TensorDesc& desc_,
-                                  const base::IntVector& config);
+  virtual BufferDesc toBufferDesc(const TensorDesc& desc,
+                                  const base::IntVector& config) = 0;
 
-  virtual Buffer* malloc(size_t size) = 0;
-  virtual Buffer* malloc(const BufferDesc& desc) = 0;
-  virtual Buffer* create(size_t size, void* ptr);
-  virtual Buffer* create(const BufferDesc& desc, void* ptr);
-  virtual Buffer* create(size_t size, int32_t id);
-  virtual Buffer* create(const BufferDesc& desc, int32_t id);
-  virtual void free(Buffer* buffer) = 0;
+  virtual Buffer* allocate(size_t size) = 0;
+  virtual Buffer* allocate(const BufferDesc& desc) = 0;
+  virtual void deallocate(Buffer* buffer) = 0;
+
+  Buffer* create(
+      size_t size, void* ptr,
+      BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
+  Buffer* create(
+      const BufferDesc& desc, void* ptr,
+      BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
+  Buffer* create(
+      size_t size, int32_t id,
+      BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
+  Buffer* create(
+      const BufferDesc& desc, int32_t id,
+      BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
 
   virtual base::Status copy(Buffer* src, Buffer* dst) = 0;
   virtual base::Status download(Buffer* src, Buffer* dst) = 0;
@@ -68,6 +77,8 @@ class Device : public base::NonCopyable {
 
   virtual base::Status init() = 0;
   virtual base::Status deinit() = 0;
+
+  void destory(Buffer* buffer);
 
  private:
   base::DeviceType device_type_;

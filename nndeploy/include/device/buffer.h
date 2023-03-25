@@ -19,13 +19,14 @@ class BufferPool;
  */
 enum BufferSourceType : int32_t {
   kBufferSourceTypeNone = 0x0000,
-  kBufferSourceTypeMalloc,
+  kBufferSourceTypeAllocate,
   kBufferSourceTypeExternal,
   kBufferSourceTypeMapped,
 };
 
 struct BufferDesc {
   BufferDesc(){};
+  explicit BufferDesc(size_t size) { size_.push_back(size); };
   explicit BufferDesc(size_t *size, size_t len) {
     for (int i = 0; i < len; ++i) {
       size_.push_back(size[i]);
@@ -60,9 +61,35 @@ struct BufferDesc {
   base::IntVector config_;
 };
 
+enum BufferDescCompareStatus : int32_t {
+  kBufferDescCompareStatusConfigNotEqualSizeNotEqual = 0x0000,
+  kBufferDescCompareStatusConfigNotEqualSizeLess,
+  kBufferDescCompareStatusConfigNotEqualSizeEqual,
+  kBufferDescCompareStatusConfigNotEqualSizeGreater,
+  kBufferDescCompareStatusConfigEqualSizeNotEqual,
+  kBufferDescCompareStatusConfigEqualSizeLess,
+  kBufferDescCompareStatusConfigEqualSizeEqual,
+  kBufferDescCompareStatusConfigEqualSizeGreater,
+};
+
+BufferDescCompareStatus compareBufferDesc(const BufferDesc &desc1,
+                                          const BufferDesc &desc2);
+
 class Buffer : public base::NonCopyable {
   friend class Device;
   friend class BufferPool;
+
+ private:
+  Buffer(Device *device, const BufferDesc &desc, void *ptr,
+         BufferSourceType buffer_source_type);
+  Buffer(Device *device, const BufferDesc &desc, int32_t id,
+         BufferSourceType buffer_source_type);
+  Buffer(BufferPool *buffer_pool, const BufferDesc &desc, void *ptr,
+         BufferSourceType buffer_source_type);
+  Buffer(BufferPool *buffer_pool, const BufferDesc &desc, int32_t id,
+         BufferSourceType buffer_source_type);
+
+  virtual ~Buffer();
 
  public:
   // get
@@ -82,18 +109,6 @@ class Buffer : public base::NonCopyable {
   int32_t getRef();
   void addRef();
   void subRef();
-
- private:
-  Buffer(Device *device, const BufferDesc &desc, void *ptr,
-         BufferSourceType buffer_source_type);
-  Buffer(Device *device, const BufferDesc &desc, int32_t id,
-         BufferSourceType buffer_source_type);
-  Buffer(BufferPool *buffer_pool, const BufferDesc &desc, void *ptr,
-         BufferSourceType buffer_source_type);
-  Buffer(BufferPool *buffer_pool, const BufferDesc &desc, int32_t id,
-         BufferSourceType buffer_source_type);
-
-  virtual ~Buffer();
 
  private:
   Device *device_ = nullptr;

@@ -13,7 +13,7 @@ namespace nndeploy {
 namespace device {
 
 static TypeTensorRegister<TypeTensorCreator<DefaultTensorImpl>>
-    g_type_defalut_tensor_register(base::kTensorImplTypeDefault);
+    g_defalut_tensor_register(base::kTensorImplTypeDefault);
 
 DefaultTensorImpl::DefaultTensorImpl() {}
 DefaultTensorImpl::~DefaultTensorImpl() { destory(); }
@@ -66,19 +66,19 @@ void DefaultTensorImpl::create(Device *device, BufferPool *buffer_pool,
   desc_ = desc;
   name_ = name;
   if (buffer != nullptr) {
-    buffer->addRef();
+    is_external_buffer_ = true;
     buffer_ = buffer;
     return;
-  }
-  if (buffer_pool != nullptr) {
+  } else if (buffer_pool != nullptr) {
+    is_external_buffer_ = false;
     BufferDesc buffer_desc =
         buffer_pool->getDevice()->toBufferDesc(desc_, config);
-    buffer_ = buffer_pool->malloc(buffer_desc);
+    buffer_ = buffer_pool->allocate(buffer_desc);
     return;
-  }
-  if (device != nullptr) {
+  } else if (device != nullptr) {
+    is_external_buffer_ = false;
     BufferDesc buffer_desc = device->toBufferDesc(desc, config);
-    buffer_ = device->malloc(buffer_desc);
+    buffer_ = device->allocate(buffer_desc);
     return;
   }
   return;
@@ -92,7 +92,7 @@ void DefaultTensorImpl::destory() {
   desc_.shape_.clear();
   desc_.stride_.clear();
 
-  freeBuffer();
+  deallocateBuffer();
 }
 
 void DefaultTensorImpl::allocBuffer(Device *device,
@@ -101,34 +101,33 @@ void DefaultTensorImpl::allocBuffer(Device *device,
     return;
   }
 
-  freeBuffer();
+  deallocateBuffer();
 
   BufferDesc buffer_desc = device->toBufferDesc(desc_, config);
-  buffer_ = device->malloc(buffer_desc);
+  buffer_ = device->allocate(buffer_desc);
 }
-void DefaultTensorImpl::allocBuffer(
-    BufferPool *buffer_pool,
-    const base::IntVector &config) {
+void DefaultTensorImpl::allocBuffer(BufferPool *buffer_pool,
+                                    const base::IntVector &config) {
   if (empty()) {
     return;
   }
 
-  freeBuffer();
+  deallocateBuffer();
 
   Device *device = buffer_pool->getDevice();
   BufferDesc buffer_desc = device->toBufferDesc(desc_, config);
-  buffer_ = buffer_pool->malloc(buffer_desc);
+  buffer_ = buffer_pool->allocate(buffer_desc);
 }
-void DefaultTensorImpl::freeBuffer() {
-  if (buffer_ != nullptr) {
+void DefaultTensorImpl::deallocateBuffer() {
+  if (buffer_ != nullptr && is_external_buffer_ == false) {
     buffer_->subRef();
     if (buffer_->getRef() == 1) {
       if (buffer_->isBufferPool()) {
         BufferPool *pool = buffer_->getBufferPool();
-        pool->free(buffer_);
+        pool->deallocate(buffer_);
       } else {
         Device *device = buffer_->getDevice();
-        device->free(buffer_);
+        device->deallocate(buffer_);
       }
     }
   }
@@ -194,8 +193,8 @@ BufferSourceType DefaultTensorImpl::getBufferSourceType() {
   return buffer_->getBufferSourceType();
 }
 
-std::map<base::TensorImplType, std::shared_ptr<TensorCreator>> &
-getGlobalTensorCreatorMap() {
+std::map<base::TensorImplType, std::shared_ptr<TensorCreator>>
+    &getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorImplType, std::shared_ptr<TensorCreator>>>

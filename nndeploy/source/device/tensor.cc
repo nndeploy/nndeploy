@@ -50,8 +50,7 @@ Tensor::Tensor(BufferPool *buffer_pool, const TensorDesc &desc,
 }
 
 // create
-void Tensor::create(const TensorDesc &desc, const std::string &name
-                    ) {
+void Tensor::create(const TensorDesc &desc, const std::string &name) {
   tensor_impl_->create(nullptr, nullptr, desc, nullptr, name,
                        base::IntVector());
 }
@@ -60,27 +59,24 @@ void Tensor::create(const TensorDesc &desc, Buffer *buffer,
   tensor_impl_->create(nullptr, nullptr, desc, buffer, name, base::IntVector());
 }
 void Tensor::create(Device *device, const TensorDesc &desc,
-                    const std::string &name,
-                    const base::IntVector &config) {
+                    const std::string &name, const base::IntVector &config) {
   tensor_impl_->create(device, nullptr, desc, nullptr, name, config);
 }
 void Tensor::create(BufferPool *buffer_pool, const TensorDesc &desc,
-                    const std::string &name,
-                    const base::IntVector &config) {
+                    const std::string &name, const base::IntVector &config) {
   tensor_impl_->create(nullptr, buffer_pool, desc, nullptr, name, config);
 }
 
 void Tensor::destory() { tensor_impl_->destory(); }
 
-void Tensor::allocBuffer(Device *device,
-                         const base::IntVector &config ) {
+void Tensor::allocBuffer(Device *device, const base::IntVector &config) {
   tensor_impl_->allocBuffer(device, config);
 }
 void Tensor::allocBuffer(BufferPool *buffer_pool,
                          const base::IntVector &config) {
   tensor_impl_->allocBuffer(buffer_pool, config);
 }
-void Tensor::freeBuffer() { tensor_impl_->freeBuffer(); }
+void Tensor::deallocateBuffer() { tensor_impl_->deallocateBuffer(); }
 
 bool Tensor::justModify(const TensorDesc &desc) {
   return tensor_impl_->justModify(desc);

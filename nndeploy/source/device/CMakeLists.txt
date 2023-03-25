@@ -17,7 +17,7 @@ file(GLOB_RECURSE SOURCE
     "${ROOT_PATH}/nndeploy/include/device/*.h"
     "${ROOT_PATH}/nndeploy/source/device/*.cc"
 )
-file(GLOB_RECURSE TEST_SOURCE
+file(GLOB TEST_SOURCE
     "${ROOT_PATH}/nndeploy/include/device/*_test.h"
     "${ROOT_PATH}/nndeploy/source/device/*_test.cc"
 )

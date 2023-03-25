@@ -25,6 +25,7 @@ struct DataType {
   uint8_t code_ = kDataTypeCodeFp;
   uint8_t bits_ = 32;
   uint16_t lanes_ = 1;
+  size_t size() const { return (bits_ * lanes_) >> 3; }
 };
 
 template <typename T>
@@ -168,7 +169,7 @@ enum ShareMemoryType : int32_t {
 };
 
 enum BufferStatus : int32_t {
-  kBufferStatusFree = 0x0000,
+  kBufferStatusdeallocate = 0x0000,
   kBufferStatusUsed,
 };
 
@@ -232,7 +233,7 @@ enum InferenceType : int32_t {
 enum NodeStatus : int32_t {
   kNodeStatusAlways = 0x0000,
   // auto
-  kNodeStatusFree,
+  kNodeStatusdeallocate,
   kNodeStatusUsed,
 };
 
