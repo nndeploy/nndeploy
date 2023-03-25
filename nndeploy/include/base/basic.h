@@ -35,7 +35,7 @@ struct CheckIsPointer<T*> {};
 
 template <typename T>
 DataType DataTypeOf() {
-  // Create a compile-time error if T is not a pointer (without
+  // create a compile-time error if T is not a pointer (without
   // using any includes - this code goes into the runtime).
   CheckIsPointer<T> check;
   (void)check;

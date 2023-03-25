@@ -210,7 +210,7 @@ DefaultTensorImpl *createTensor(base::TensorImplType type) {
   DefaultTensorImpl *temp = nullptr;
   auto &creater_map = getGlobalTensorCreatorMap();
   if (creater_map.count(type) > 0) {
-    temp = creater_map[type]->CreateTensor();
+    temp = creater_map[type]->createTensor();
   }
   return temp;
 }

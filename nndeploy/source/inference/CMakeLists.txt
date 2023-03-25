@@ -1,7 +1,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nndeploy_base)
+set(BINARY nndeploy_inference)
 set(DIRECTORY nndeploy)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
@@ -13,19 +13,37 @@ set(TEST_OBJECT)
 include_directories(${ROOT_PATH})
 
 # SOURCE
-file(GLOB_RECURSE SOURCE
-    "${ROOT_PATH}/nndeploy/include/base/*.h"
-    "${ROOT_PATH}/nndeploy/source/base/*.cc"
+file(GLOB SOURCE
+    "${ROOT_PATH}/nndeploy/include/inference/*.h"
+    "${ROOT_PATH}/nndeploy/source/inference/*.cc"
 )
-file(GLOB_RECURSE TEST_SOURCE
-    "${ROOT_PATH}/nndeploy/include/base/*_test.h"
-    "${ROOT_PATH}/nndeploy/source/base/*_test.cc"
+file(GLOB TEST_SOURCE
+    "${ROOT_PATH}/nndeploy/include/inference/*_test.h"
+    "${ROOT_PATH}/nndeploy/source/inference/*_test.cc"
 )
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
+if (NNDEPLOY_ENABLE_INFERENCE_MNN)
+  set(TMP_SOURCE)
+  set(TMP_TEST_SOURCE)
+  file(GLOB_RECURSE TMP_SOURCE
+    "${ROOT_PATH}/nndeploy/include/inference/mnn/*.h"
+    "${ROOT_PATH}/nndeploy/source/inference/mnn/*.cc"
+  )
+  file(GLOB_RECURSE TMP_TEST_SOURCE
+    "${ROOT_PATH}/nndeploy/include/inference/mnn/*_test.h"
+    "${ROOT_PATH}/nndeploy/source/inference/mnn/*_test.cc"
+  )
+  list(REMOVE_ITEM TMP_SOURCE ${TMP_TEST_SOURCE})
+  list(APPEND SOURCE ${TMP_SOURCE})
+  list(APPEND TEST_SOURCE ${TMP_TEST_SOURCE})
+  unset(TMP_SOURCE)
+  unset(TMP_TEST_SOURCE)
+endif()
+
 # OBJECT
 
-# BINARY
+# TARGET
 add_library(${BINARY} ${BUILD_TYPE} ${SOURCE} ${OBJECT})
 
 # DIRECTORY

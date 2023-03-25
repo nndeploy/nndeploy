@@ -120,12 +120,12 @@ class DefaultTensorImpl : public base::NonCopyable {
 class TensorCreator {
  public:
   virtual ~TensorCreator(){};
-  virtual DefaultTensorImpl *CreateTensor() = 0;
+  virtual DefaultTensorImpl *createTensor() = 0;
 };
 
 template <typename T>
 class TypeTensorCreator : public TensorCreator {
-  virtual DefaultTensorImpl *CreateTensor() { return new T(); }
+  virtual DefaultTensorImpl *createTensor() { return new T(); }
 };
 
 std::map<base::TensorImplType, std::shared_ptr<TensorCreator>>

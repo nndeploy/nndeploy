@@ -1,7 +1,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(TARGET nndeploy_device)
+set(BINARY nndeploy_device)
 set(DIRECTORY nndeploy)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
@@ -13,7 +13,7 @@ set(TEST_OBJECT)
 include_directories(${ROOT_PATH})
 
 # SOURCE
-file(GLOB_RECURSE SOURCE
+file(GLOB SOURCE
     "${ROOT_PATH}/nndeploy/include/device/*.h"
     "${ROOT_PATH}/nndeploy/source/device/*.cc"
 )
@@ -23,13 +23,31 @@ file(GLOB TEST_SOURCE
 )
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
+if (NNDEPLOY_ENABLE_DEVICE_X86)
+  set(TMP_SOURCE)
+  set(TMP_TEST_SOURCE)
+  file(GLOB_RECURSE TMP_SOURCE
+    "${ROOT_PATH}/nndeploy/include/device/x86/*.h"
+    "${ROOT_PATH}/nndeploy/source/device/x86/*.cc"
+  )
+  file(GLOB_RECURSE TMP_TEST_SOURCE
+    "${ROOT_PATH}/nndeploy/include/device/x86/*_test.h"
+    "${ROOT_PATH}/nndeploy/source/device/x86/*_test.cc"
+  )
+  list(REMOVE_ITEM TMP_SOURCE ${TMP_TEST_SOURCE})
+  list(APPEND SOURCE ${TMP_SOURCE})
+  list(APPEND TEST_SOURCE ${TMP_TEST_SOURCE})
+  unset(TMP_SOURCE)
+  unset(TMP_TEST_SOURCE)
+endif()
+
 # OBJECT
 
 # TARGET
-add_library(${TARGET} ${BUILD_TYPE} ${SOURCE} ${OBJECT})
+add_library(${BINARY} ${BUILD_TYPE} ${SOURCE} ${OBJECT})
 
 # DIRECTORY
-set_property(TARGET ${TARGET} PROPERTY FOLDER ${DIRECTORY})
+set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
 # DEPEND_LIBRARY
 
@@ -54,7 +72,7 @@ endif()
 # unset
 unset(SOURCE)
 unset(OBJECT)
-unset(TARGET)
+unset(BINARY)
 unset(DIRECTORY)
 unset(DEPEND_LIBRARY)
 unset(SYSTEM_LIBRARY)

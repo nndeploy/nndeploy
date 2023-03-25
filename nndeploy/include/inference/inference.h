@@ -1,13 +1,4 @@
-/**
- * @file abstract_model.h
- * @author your name (you@domain.com)
- * @brief
- * @version 0.1
- * @date 2022-11-26
- *
- * @copyright Copyright (c) 2022
- *
- */
+
 #ifndef _NNDEPLOY_INCLUDE_INFERENCE_Inference_H_
 #define _NNDEPLOY_INCLUDE_INFERENCE_Inference_H_
 
@@ -26,7 +17,7 @@ namespace inference {
 
 class Inference {
  public:
-  Inference();
+  explicit Inference(base::InferenceType type);
   ~Inference();
 
   base::Status init(const Config &config);
@@ -39,7 +30,7 @@ class Inference {
 
   Config getConfig();
 
-  base::Status getStaticShape(base::ShapeMap shape_map);
+  base::Status getStaticShape(base::ShapeMap &shape_map);
   base::Status getMinShape(base::ShapeMap &shape_map);
   base::Status getOptShape(base::ShapeMap &shape_map);
   base::Status getCurentShape(base::ShapeMap &shape_map);
@@ -49,18 +40,22 @@ class Inference {
 
   base::Status setDevice(device::Device *device);
   device::Device *getDevice();
+  device::Device *getDevice(int index);
 
   base::Status setBufferPool(device::BufferPool *buffer_pool);
   device::BufferPool *getBufferPool();
+  device::BufferPool *getBufferPool(int index);
 
-  int64_t GetWorkspaceSize();
+  int64_t getWorkspaceSize();
+  int64_t getWorkspaceSize(int index);
   base::Status setWorkspace(device::Buffer *buffer);
 
   int64_t getMemorySize();
+  int64_t getMemorySize(int index);
   base::Status setMemory(device::Buffer *buffer);
 
-  Device::TensorMap getAllInputTensor();
-  Device::TensorMap getAllOutputTensor();
+  device::TensorMap getAllInputTensor();
+  device::TensorMap getAllOutputTensor();
 
   int getNumOfInputTensor();
   int getNumOfOutputTensor();
@@ -68,23 +63,25 @@ class Inference {
   std::vector<std::string> getInputTensorNames();
   std::vector<std::string> getOutputTensorNames();
 
-  std::shared_ptr<Device::Tensor> getInputTensor(const std::string &key);
-  std::shared_ptr<Tensor> getOutputTensor(const std::string &key);
+  std::shared_ptr<device::Tensor> getInputTensor(const std::string &name);
+  std::shared_ptr<device::Tensor> getOutputTensor(const std::string &name);
 
   base::Status setInputTensor(
-      const std::string &key,
-      const std::shared_ptr<Device::Tensor> input_tensor);
+      const std::string &name,
+      const std::shared_ptr<device::Tensor> input_tensor);
   //
-  std::shared_ptr<Device::Tensor> getOutputTensor(const std::string &key,
+  std::shared_ptr<device::Tensor> getOutputTensor(const std::string &name,
                                                   std::vector<int32_t> config);
 
   base::Status run();
   base::Status asyncRun();
 
-  std::shared_ptr<AbstractInferenceImpl> getInferenceImpl();
+  base::InferenceType getInferenceType();
+  AbstractInferenceImpl *getInferenceImpl();
 
  private:
-  std::shared_ptr<AbstractInferenceImpl> inference_impl_;
+  base::InferenceType type_;
+  AbstractInferenceImpl *inference_impl_;
 };
 
 }  // namespace inference
