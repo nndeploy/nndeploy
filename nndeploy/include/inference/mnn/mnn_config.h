@@ -3,6 +3,7 @@
 #define _NNDEPLOY_INCLUDE_INFERENCE_MNN_MNN_CONFIG_IMPL_H_
 
 #include "nndeploy/include/inference/config.h"
+#include "nndeploy/include/inference/mnn/mnn_include.h"
 
 namespace nndeploy {
 namespace inference {
@@ -17,6 +18,13 @@ class MnnConfigImpl : public DefaultConfigImpl {
   virtual base::Status set(const std::string &key, const base::Value &value);
 
   virtual base::Status get(const std::string &key, base::Value &value);
+
+  std::vector<std::string> save_tensors_;
+  int gpu_mode = 4;
+  MNN::ScheduleConfig::Path path;
+  base::DeviceType backup_device_type_;
+  MNN::BackendConfig::MemoryMode memory_mode_ =
+      MNN::BackendConfig::MemoryMode::Memory_Normal;
 
   std::string library_path_ = "";
 };

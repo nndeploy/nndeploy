@@ -29,7 +29,7 @@ class DefaultConfigImpl {
   std::string license_;
 
   // forward
-  base::DeviceType device_types_;
+  base::DeviceType device_type_;
   base::ShareMemoryType share_memory_mode_ = base::kShareMemoryTypeNoShare;
   base::PrecisionType precision_ = base::kPrecisionTypeFp32;
   base::PowerType power_type = base::kPowerTypeNormal;

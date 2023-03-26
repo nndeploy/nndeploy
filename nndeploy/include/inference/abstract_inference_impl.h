@@ -30,7 +30,6 @@ class AbstractInferenceImpl {
 
   virtual Config getConfig();
 
-  virtual base::Status getStaticShape(base::ShapeMap &shape_map);
   virtual base::Status getMinShape(base::ShapeMap &shape_map);
   virtual base::Status getOptShape(base::ShapeMap &shape_map);
   virtual base::Status getCurentShape(base::ShapeMap &shape_map);
@@ -81,7 +80,6 @@ class AbstractInferenceImpl {
  protected:
   Config config_;
 
-  base::ShapeMap static_shape_;
   base::ShapeMap current_shape_ = base::ShapeMap();
   base::ShapeMap min_shape_ = base::ShapeMap();
   base::ShapeMap opt_shape_ = base::ShapeMap();

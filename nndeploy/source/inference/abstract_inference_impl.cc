@@ -8,10 +8,6 @@ AbstractInferenceImpl::~AbstractInferenceImpl() {}
 
 Config AbstractInferenceImpl::getConfig() { return config_; }
 
-base::Status AbstractInferenceImpl::getStaticShape(base::ShapeMap &shape_map) {
-  shape_map = static_shape_;
-  return base::kStatusCodeOk;
-}
 base::Status AbstractInferenceImpl::getMinShape(base::ShapeMap &shape_map) {
   shape_map = min_shape_;
   return base::kStatusCodeOk;
