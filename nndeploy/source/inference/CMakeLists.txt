@@ -23,25 +23,12 @@ file(GLOB TEST_SOURCE
 )
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
-if (NNDEPLOY_ENABLE_INFERENCE_MNN)
-  set(TMP_SOURCE)
-  set(TMP_TEST_SOURCE)
-  file(GLOB_RECURSE TMP_SOURCE
-    "${ROOT_PATH}/nndeploy/include/inference/mnn/*.h"
-    "${ROOT_PATH}/nndeploy/source/inference/mnn/*.cc"
-  )
-  file(GLOB_RECURSE TMP_TEST_SOURCE
-    "${ROOT_PATH}/nndeploy/include/inference/mnn/*_test.h"
-    "${ROOT_PATH}/nndeploy/source/inference/mnn/*_test.cc"
-  )
-  list(REMOVE_ITEM TMP_SOURCE ${TMP_TEST_SOURCE})
-  list(APPEND SOURCE ${TMP_SOURCE})
-  list(APPEND TEST_SOURCE ${TMP_TEST_SOURCE})
-  unset(TMP_SOURCE)
-  unset(TMP_TEST_SOURCE)
-endif()
-
 # OBJECT
+
+# subdirectory
+if (NNDEPLOY_ENABLE_INFERENCE_MNN)
+  add_subdirectory(mnn)
+endif()
 
 # TARGET
 add_library(${BINARY} ${BUILD_TYPE} ${SOURCE} ${OBJECT})
@@ -50,13 +37,17 @@ add_library(${BINARY} ${BUILD_TYPE} ${SOURCE} ${OBJECT})
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
 # DEPEND_LIBRARY
+list(APPEND DEPEND_LIBRARY nndeploy_base)
+list(APPEND DEPEND_LIBRARY nndeploy_device)
+target_link_libraries(${BINARY} ${DEPEND_LIBRARY}) 
 
 # SYSTEM_LIBRARY
+target_link_libraries(${BINARY} ${SYSTEM_LIBRARY}) 
 
 # THIRD_PARTY_LIBRARY
+target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
 
 # install
-# # include(${ROOT_PATH}/cmake/install.cmake)
 
 # test
 ## repeat?

@@ -1,84 +1,35 @@
 
-#include "nndeploy/include/inference/config.h"
+#include "nndeploy/include/inference/mnn/mnn_config.h"
 
 namespace nndeploy {
 namespace inference {
 
-DefaultConfigImpl::DefaultConfigImpl() {}
-DefaultConfigImpl::~DefaultConfigImpl() {}
+static TypeConfigRegister<TypeConfigCreator<MnnConfigImpl>>
+    g_mnn_config_register(base::kInferenceTypeMnn);
 
-base::Status DefaultConfigImpl::jsonToDefaultConfig(const std::string &json,
-                                                    bool is_path) {
-  return base::kStatusCodeOk;
-}
-
-base::Status DefaultConfigImpl::set(const std::string &key,
-                                    const base::Value &value) {
-  return base::kStatusCodeOk;
-}
-
-base::Status DefaultConfigImpl::get(const std::string &key,
-                                    base::Value &value) {
-  return base::kStatusCodeOk;
-}
-
-std::map<base::InferenceType, std::shared_ptr<ConfigCreator>>
-    &getGlobalConfigCreatorMap() {
-  static std::once_flag once;
-  static std::shared_ptr<
-      std::map<base::InferenceType, std::shared_ptr<ConfigCreator>>>
-      creators;
-  std::call_once(once, []() {
-    creators.reset(
-        new std::map<base::InferenceType, std::shared_ptr<ConfigCreator>>);
-  });
-  return *creators;
-}
-
-DefaultConfigImpl *createConfig(base::InferenceType type) {
-  DefaultConfigImpl *temp = nullptr;
-  auto &creater_map = getGlobalConfigCreatorMap();
-  if (creater_map.count(type) > 0) {
-    temp = creater_map[type]->createConfig();
-  }
-  return temp;
-}
-
-Config::Config(base::InferenceType type) : type_(type) {
-  config_impl_ = createConfig(type);
-}
-Config::~Config() {
-  if (config_impl_ != nullptr) {
-    delete config_impl_;
-  }
-}
-
-base::Status Config::jsonToDefaultConfig(const std::string &json,
+base::Status MnnConfigImpl::jsonToConfig(const std::string &json,
                                          bool is_path) {
-  if (config_impl_ != nullptr) {
-    return config_impl_->jsonToDefaultConfig(json, is_path);
-  } else {
+  base::Status status = DefaultConfigImpl::jsonToConfig(json, is_path);
+  if (status != base::kStatusCodeOk) {
     // TODO: log
-    return base::kStatusCodeErrorInvalidValue;
+    return status;
   }
+
+  return base::kStatusCodeOk;
 }
 
-base::Status Config::set(const std::string &key, const base::Value &value) {
-  if (config_impl_ != nullptr) {
-    return config_impl_->set(key, value);
-  } else {
-    // TODO: log
-    return base::kStatusCodeErrorInvalidValue;
+base::Status MnnConfigImpl::set(const std::string &key,
+                                const base::Value &value) {
+  base::Status status = base::kStatusCodeOk;
+  if (key == "library_path") {
+    uint8_t *tmp = nullptr;
+    if (value.get(&tmp)) {
+      library_path_ = std::string(reinterpret_cast<char *>(tmp));
+    } else {
+      status = base::kStatusCodeErrorInvalidParam;
+    }
   }
-}
-
-base::Status Config::get(const std::string &key, base::Value &value) {
-  if (config_impl_ != nullptr) {
-    return config_impl_->get(key, value);
-  } else {
-    // TODO: log
-    return base::kStatusCodeErrorInvalidValue;
-  }
+  return base::kStatusCodeOk;
 }
 
 }  // namespace inference

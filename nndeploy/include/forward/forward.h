@@ -15,7 +15,7 @@ namespace forward {
 
 class ForwardConfig {
  public:
-  base::PrecisionType precision_ = base::PrecisionTypeFp32;
+  base::PrecisionType precision_ = base::kPrecisionTypeFp32;
   base::PowerType power_type_ = base::kPowerTypeNormal;
 
   bool is_dynamic_shape_ = false;

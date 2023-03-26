@@ -230,13 +230,6 @@ enum InferenceType : int32_t {
   kInferenceTypeNotSupport,
 };
 
-enum NodeStatus : int32_t {
-  kNodeStatusAlways = 0x0000,
-  // auto
-  kNodeStatusdeallocate,
-  kNodeStatusUsed,
-};
-
 enum EncryptType : int32_t {
   kEncryptTypeNone = 0x0000,
   kEncryptTypeBase64,

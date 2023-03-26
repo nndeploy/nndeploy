@@ -7,8 +7,8 @@ namespace inference {
 DefaultConfigImpl::DefaultConfigImpl() {}
 DefaultConfigImpl::~DefaultConfigImpl() {}
 
-base::Status DefaultConfigImpl::jsonToDefaultConfig(const std::string &json,
-                                                    bool is_path) {
+base::Status DefaultConfigImpl::jsonToConfig(const std::string &json,
+                                             bool is_path) {
   return base::kStatusCodeOk;
 }
 
@@ -53,10 +53,9 @@ Config::~Config() {
   }
 }
 
-base::Status Config::jsonToDefaultConfig(const std::string &json,
-                                         bool is_path) {
+base::Status Config::jsonToConfig(const std::string &json, bool is_path) {
   if (config_impl_ != nullptr) {
-    return config_impl_->jsonToDefaultConfig(json, is_path);
+    return config_impl_->jsonToConfig(json, is_path);
   } else {
     // TODO: log
     return base::kStatusCodeErrorInvalidValue;

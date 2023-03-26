@@ -10,6 +10,7 @@
 namespace nndeploy {
 namespace base {
 
+// 增加type_trait
 class Value {
   Value() = default;
   Value(const Value& value) = default;

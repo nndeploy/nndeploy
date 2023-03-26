@@ -14,18 +14,31 @@ class DefaultConfigImpl {
   DefaultConfigImpl();
   virtual ~DefaultConfigImpl();
 
-  base::Status jsonToDefaultConfig(const std::string &json,
-                                   bool is_path = true);
+  virtual base::Status jsonToConfig(const std::string &json,
+                                    bool is_path = true);
 
   virtual base::Status set(const std::string &key, const base::Value &value);
 
   virtual base::Status get(const std::string &key, base::Value &value);
 
+  // interprt
   base::InferenceType model_type_;
   bool is_path_ = true;
   std::vector<std::string> model_value_;
-  EncryptType is_encrypt_ = kEncryptTypeNone;
+  base::EncryptType encrypt_type_ = base::kEncryptTypeNone;
   std::string license_;
+
+  // forward
+  base::DeviceType device_types_;
+  base::ShareMemoryType share_memory_mode_ = base::kShareMemoryTypeNoShare;
+  base::PrecisionType precision_ = base::kPrecisionTypeFp32;
+  base::PowerType power_type = base::kPowerTypeNormal;
+  bool is_dynamic_shape_ = false;
+  base::ShapeMap input_shape_ = base::ShapeMap();
+  bool is_quant = false;
+  base::InferenceOptLevel opt_level_ = base::kInferenceOptLevelAuto;
+  std::string cache_path_ = "";
+  bool is_tune_kernel_ = false;
 };
 
 class ConfigCreator {
@@ -57,8 +70,7 @@ class Config {
   explicit Config(base::InferenceType type);
   virtual ~Config();
 
-  base::Status jsonToDefaultConfig(const std::string &json,
-                                   bool is_path = true);
+  base::Status jsonToConfig(const std::string &json, bool is_path = true);
 
   base::Status set(const std::string &key, const base::Value &value);
 
