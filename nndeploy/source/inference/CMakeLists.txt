@@ -14,13 +14,13 @@ include_directories(${ROOT_PATH})
 
 # SOURCE
 file(GLOB SOURCE
-    "${ROOT_PATH}/nndeploy/include/inference/*.h"
-    "${ROOT_PATH}/nndeploy/source/inference/*.cc"
-)
+  "${ROOT_PATH}/nndeploy/source/inference/*.h"
+  "${ROOT_PATH}/nndeploy/source/inference/*.cc"
+  )
 file(GLOB TEST_SOURCE
-    "${ROOT_PATH}/nndeploy/include/inference/*_test.h"
-    "${ROOT_PATH}/nndeploy/source/inference/*_test.cc"
-)
+  "${ROOT_PATH}/nndeploy/source/inference/*_test.h"
+  "${ROOT_PATH}/nndeploy/source/inference/*_test.cc"
+  )
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
 # OBJECT
@@ -31,7 +31,7 @@ if (NNDEPLOY_ENABLE_INFERENCE_MNN)
 endif()
 
 # TARGET
-add_library(${BINARY} ${BUILD_TYPE} ${SOURCE} ${OBJECT})
+add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})
 
 # DIRECTORY
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
@@ -50,14 +50,13 @@ target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY})
 # install
 
 # test
-## repeat?
 if(NNDEPLOY_ENABLE_TEST)
-  list(APPEND ALL_TEST_SOURCE ${TEST_SOURCE})
-  list(APPEND ALL_TEST_OBJECT ${TEST_OBJECT})
-  LIST(APPEND ALL_TEST_DEPEND_LIBRARY ${TARGET})
-  list(APPEND ALL_TEST_DEPEND_LIBRARY ${DEPEND_LIBRARY})
-  list(APPEND ALL_TEST_SYSTEM_LIBRARY ${SYSTEM_LIBRARY})
-  list(APPEND ALL_TEST_THIRD_PARTY_LIBRARY ${THIRD_PARTY_LIBRARY})
+  set(ALL_TEST_SOURCE ${ALL_TEST_SOURCE} ${TEST_SOURCE} PARENT_SCOPE)
+  set(ALL_TEST_OBJECT ${ALL_TEST_OBJECT} ${TEST_OBJECT} PARENT_SCOPE)
+  set(ALL_TEST_DEPEND_LIBRARY ${ALL_TEST_DEPEND_LIBRARY} ${TARGET} PARENT_SCOPE)
+  set(ALL_TEST_DEPEND_LIBRARY ${ALL_TEST_DEPEND_LIBRARY} ${DEPEND_LIBRARY} PARENT_SCOPE)
+  set(ALL_TEST_SYSTEM_LIBRARY ${ALL_TEST_SYSTEM_LIBRARY} ${SYSTEM_LIBRARY} PARENT_SCOPE)
+  set(ALL_TEST_THIRD_PARTY_LIBRARY ${ALL_TEST_THIRD_PARTY_LIBRARY} ${THIRD_PARTY_LIBRARY} PARENT_SCOPE)
 endif()
 
 # unset

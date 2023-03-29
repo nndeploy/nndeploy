@@ -1,5 +1,5 @@
 
-#include "nndeploy/include/device/device.h"
+#include "nndeploy/source/device/device.h"
 
 namespace nndeploy {
 namespace device {
@@ -33,26 +33,6 @@ Buffer* Device::create(const BufferDesc& desc, int32_t id,
 }
 
 void Device::destory(Buffer* buffer) { delete buffer; }
-
-BufferPool* Device::createBufferPool(base::BufferPoolType buffer_pool_type) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't createBufferPool!\n",
-                device_type_.code_, device_type_.device_id_);
-  return nullptr;
-}
-
-BufferPool* Device::createBufferPool(base::BufferPoolType buffer_pool_type,
-                                     size_t limit_size) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't createBufferPool!\n",
-                device_type_.code_, device_type_.device_id_);
-  return nullptr;
-}
-
-BufferPool* Device::createBufferPool(base::BufferPoolType buffer_pool_type,
-                                     Buffer* buffer) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't createBufferPool!\n",
-                device_type_.code_, device_type_.device_id_);
-  return nullptr;
-}
 
 base::Status Device::synchronize() {
   NNDEPLOY_LOGI("this device[%d, %d] can't synchronize!\n", device_type_.code_,

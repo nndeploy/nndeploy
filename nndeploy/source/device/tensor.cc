@@ -1,13 +1,13 @@
 
 
-#include "nndeploy/include/device/tensor.h"
+#include "nndeploy/source/device/tensor.h"
 
-#include "nndeploy/include/base/basic.h"
-#include "nndeploy/include/base/status.h"
-#include "nndeploy/include/device/buffer.h"
-#include "nndeploy/include/device/buffer_pool.h"
-#include "nndeploy/include/device/default_tensor_impl.h"
-#include "nndeploy/include/device/device.h"
+#include "nndeploy/source/base/basic.h"
+#include "nndeploy/source/base/status.h"
+#include "nndeploy/source/device/buffer.h"
+#include "nndeploy/source/device/buffer_pool.h"
+#include "nndeploy/source/device/default_tensor_impl.h"
+#include "nndeploy/source/device/device.h"
 
 namespace nndeploy {
 namespace device {

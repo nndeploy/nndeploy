@@ -14,34 +14,35 @@ include_directories(${ROOT_PATH})
 
 # SOURCE
 file(GLOB_RECURSE SOURCE
-    "${ROOT_PATH}/nndeploy/include/base/*.h"
-    "${ROOT_PATH}/nndeploy/source/base/*.cc"
-)
+  "${ROOT_PATH}/nndeploy/source/base/*.h"
+  "${ROOT_PATH}/nndeploy/source/base/*.cc"
+  )
 file(GLOB_RECURSE TEST_SOURCE
-    "${ROOT_PATH}/nndeploy/include/base/*_test.h"
-    "${ROOT_PATH}/nndeploy/source/base/*_test.cc"
-)
+  "${ROOT_PATH}/nndeploy/source/base/*_test.h"
+  "${ROOT_PATH}/nndeploy/source/base/*_test.cc"
+  )
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
 # OBJECT
 
 # BINARY
-add_library(${BINARY} ${BUILD_TYPE} ${SOURCE} ${OBJECT})
+add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})
 
 # DIRECTORY
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
 # DEPEND_LIBRARY
+target_link_libraries(${BINARY} ${DEPEND_LIBRARY})
 
 # SYSTEM_LIBRARY
+target_link_libraries(${BINARY} ${SYSTEM_LIBRARY})
 
 # THIRD_PARTY_LIBRARY
+target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
 
 # install
-# # include(${ROOT_PATH}/cmake/install.cmake)
 
 # test
-## repeat?
 if(NNDEPLOY_ENABLE_TEST)
   list(APPEND ALL_TEST_SOURCE ${TEST_SOURCE})
   list(APPEND ALL_TEST_OBJECT ${TEST_OBJECT})

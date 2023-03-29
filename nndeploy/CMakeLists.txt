@@ -23,6 +23,10 @@ if(NNDEPLOY_ENABLE_DEVICE)
   add_subdirectory(source/device)
 endif()
 
+if(NNDEPLOY_ENABLE_TASKFLOW)
+  add_subdirectory(source/taskflow)
+endif()
+
 if(NNDEPLOY_ENABLE_AUDIO)
   add_subdirectory(source/audio)
 endif()
@@ -32,7 +36,7 @@ if(NNDEPLOY_ENABLE_CV)
 endif()
 
 if(NNDEPLOY_ENABLE_INFERENCE_DEFAULT)
-  add_subdirectory(source/ir)
+  #add_subdirectory(source/ir)
   add_subdirectory(source/interpret)
   add_subdirectory(source/op)
   add_subdirectory(source/forward)
@@ -45,10 +49,6 @@ endif()
 
 if(NNDEPLOY_ENABLE_AICOMPILER)
   add_subdirectory(source/aicompiler)
-endif()
-
-if(NNDEPLOY_ENABLE_GRAPH)
-  add_subdirectory(source/graph)
 endif()
 
 # last line

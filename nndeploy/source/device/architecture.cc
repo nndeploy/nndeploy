@@ -1,5 +1,5 @@
 
-#include "nndeploy/include/device/architecture.h"
+#include "nndeploy/source/device/architecture.h"
 
 namespace nndeploy {
 namespace device {

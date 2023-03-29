@@ -1,8 +1,11 @@
 
-#include "nndeploy/include/base/status.h"
+#include "nndeploy/source/base/status.h"
 
 namespace nndeploy {
 namespace base {
+
+Status::Status(int32_t code) : code_(code) {}
+Status::~Status() {}
 
 Status& Status::operator=(int32_t code) {
   code_ = code;

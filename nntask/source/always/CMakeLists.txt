@@ -18,26 +18,24 @@ include_directories(${ROOT_PATH})
 
 # SOURCE
 file(GLOB_RECURSE SOURCE
-    "${ROOT_PATH}/nntask/include/always/*.h"
-    "${ROOT_PATH}/nntask/source/always/*.cc"
-    )
+  "${ROOT_PATH}/nntask/source/always/*.h"
+  "${ROOT_PATH}/nntask/source/always/*.cc"
+  )
 file(GLOB_RECURSE TEST_SOURCE
-    "${ROOT_PATH}/nntask/include/always/*test.h"
-    "${ROOT_PATH}/nntask/source/always/*test.cc"
-)
+  "${ROOT_PATH}/nntask/source/always/*test.h"
+  "${ROOT_PATH}/nntask/source/always/*test.cc"
+  )
 file(GLOB_RECURSE DEMO_SOURCE
-    "${ROOT_PATH}/nntask/include/always/*demo.h"
-    "${ROOT_PATH}/nntask/source/always/*demo.cc"
-)
+  "${ROOT_PATH}/nntask/source/always/*demo.h"
+  "${ROOT_PATH}/nntask/source/always/*demo.cc"
+  )
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 list(REMOVE_ITEM SOURCE ${DEMO_SOURCE})
-message(STATUS "SOURCE: ${SOURCE}")
-message(STATUS "DEMO_SOURCE: ${DEMO_SOURCE}")
 
 # OBJECT
 
 # BINARY
-add_library(${BINARY} ${BUILD_TYPE} ${SOURCE} ${OBJECT})
+add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})
 
 # DIRECTORY
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
@@ -56,12 +54,12 @@ target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY})
 
 # test
 if(NNTASK_ENABLE_TEST)
-  list(APPEND ALL_TEST_SOURCE ${TEST_SOURCE})
-  list(APPEND ALL_TEST_OBJECT ${TEST_OBJECT})
-  LIST(APPEND ALL_TEST_DEPEND_LIBRARY ${BINARY})
-  list(APPEND ALL_TEST_DEPEND_LIBRARY ${DEPEND_LIBRARY})
-  list(APPEND ALL_TEST_SYSTEM_LIBRARY ${SYSTEM_LIBRARY})
-  list(APPEND ALL_TEST_THIRD_PARTY_LIBRARY ${THIRD_PARTY_LIBRARY})
+  set(ALL_TEST_SOURCE ${ALL_TEST_SOURCE} ${TEST_SOURCE} PARENT_SCOPE)
+  set(ALL_TEST_OBJECT ${ALL_TEST_OBJECT} ${TEST_OBJECT} PARENT_SCOPE)
+  set(ALL_TEST_DEPEND_LIBRARY ${ALL_TEST_DEPEND_LIBRARY} ${TARGET} PARENT_SCOPE)
+  set(ALL_TEST_DEPEND_LIBRARY ${ALL_TEST_DEPEND_LIBRARY} ${DEPEND_LIBRARY} PARENT_SCOPE)
+  set(ALL_TEST_SYSTEM_LIBRARY ${ALL_TEST_SYSTEM_LIBRARY} ${SYSTEM_LIBRARY} PARENT_SCOPE)
+  set(ALL_TEST_THIRD_PARTY_LIBRARY ${ALL_TEST_THIRD_PARTY_LIBRARY} ${THIRD_PARTY_LIBRARY} PARENT_SCOPE)
 endif()
 
 # demo

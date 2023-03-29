@@ -1,7 +1,7 @@
 
-#include "nndeploy/include/base/shape.h"
+#include "nndeploy/source/base/shape.h"
 
-#include "nndeploy/include/base/status.h"
+#include "nndeploy/source/base/status.h"
 
 namespace nndeploy {
 namespace base {
@@ -98,7 +98,7 @@ bool shapeEqual(const IntVector &dims0, const IntVector &dims1, int start_index,
   return true;
 }
 
-IntVector shapeNCHW2NHWC(const IntVector &dims) {
+IntVector shapeNchw2Nhwc(const IntVector &dims) {
   NNDEPLOY_ASSERT(dims.size() == 4);
   const int n = dims[0];
   const int c = dims[1];
@@ -108,7 +108,7 @@ IntVector shapeNCHW2NHWC(const IntVector &dims) {
   return nhwc;
 }
 
-IntVector shapeNHWC2NCHW(const IntVector &dims) {
+IntVector shapeNhwc2Nchw(const IntVector &dims) {
   NNDEPLOY_ASSERT(dims.size() == 4);
   const int n = dims[0];
   const int h = dims[1];

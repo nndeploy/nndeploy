@@ -1,7 +1,7 @@
 
-#include "nndeploy/include/inference/mnn/mnn_inference_impl.h"
+#include "nndeploy/source/inference/mnn/mnn_inference_impl.h"
 
-#include "nndeploy/include/base/shape.h"
+#include "nndeploy/source/base/shape.h"
 namespace nndeploy {
 namespace inference {
 

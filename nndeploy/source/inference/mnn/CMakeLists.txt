@@ -14,46 +14,42 @@ include_directories(${ROOT_PATH})
 
 # TMP_SOURCE
 file(GLOB_RECURSE TMP_SOURCE
-  "${ROOT_PATH}/nndeploy/include/inference/mnn/*.h"
+  "${ROOT_PATH}/nndeploy/source/inference/mnn/*.h"
   "${ROOT_PATH}/nndeploy/source/inference/mnn/*.cc"
-)
+  )
 file(GLOB_RECURSE TMP_TEST_SOURCE
-  "${ROOT_PATH}/nndeploy/include/inference/mnn/*_test.h"
+  "${ROOT_PATH}/nndeploy/source/inference/mnn/*_test.h"
   "${ROOT_PATH}/nndeploy/source/inference/mnn/*_test.cc"
-)
+  )
 list(REMOVE_ITEM TMP_SOURCE ${TMP_TEST_SOURCE})
-list(APPEND TMP_SOURCE ${TMP_SOURCE})
+set(SOURCE ${SOURCE} ${TMP_SOURCE} PARENT_SCOPE)
 
 # TMP_OBJECT
 
 # macro or function
 include(${ROOT_PATH}/cmake/mnn.cmake)
-set(NEED_LIBRARY "ALL")
-mnn_macro(NNDEPLOY_ENABLE_INFERENCE_MNN NEED_LIBRARY TMP_SYSTEM_LIBRARY TMP_THIRD_PARTY_LIBRARY)
-unset(NEED_LIBRARY)
 
 # TARGET
-# add_library(${TMP_BINARY} ${BUILD_TYPE} ${TMP_SOURCE} ${TMP_OBJECT})
+# add_library(${TMP_BINARY} ${NNDEPLOY_LIB_TYPE} ${TMP_SOURCE} ${TMP_OBJECT})
 
 # TMP_DIRECTORY
 # set_property(TARGET ${TMP_BINARY} PROPERTY FOLDER ${TMP_DIRECTORY})
 
 # TMP_DEPEND_LIBRARY
-# target_link_libraries(${TMP_BINARY} ${TMP_DEPEND_LIBRARY}) 
+set(DEPEND_LIBRARY ${DEPEND_LIBRARY} ${TMP_DEPEND_LIBRARY} PARENT_SCOPE) 
 
-# TMP_DEPEND_LIBRARY
-# target_link_libraries(${TMP_BINARY} ${TMP_DEPEND_LIBRARY}) 
+# TMP_SYSTEM_LIBRARY
+set(SYSTEM_LIBRARY ${SYSTEM_LIBRARY} ${TMP_SYSTEM_LIBRARY} PARENT_SCOPE) 
 
 # TMP_THIRD_PARTY_LIBRARY
-# target_link_libraries(${TMP_BINARY} ${TMP_THIRD_PARTY_LIBRARY}) 
+set(THIRD_PARTY_LIBRARY ${THIRD_PARTY_LIBRARY} ${TMP_THIRD_PARTY_LIBRARY} PARENT_SCOPE) 
 
 # install
 
 # test
-## repeat?
 if(NNDEPLOY_ENABLE_TEST)
-  list(APPEND TEST_SOURCE ${TMP_TEST_SOURCE})
-  # list(APPEND TEST_OBJECT ${TMP_TEST_OBJECT})
+  set(TEST_SOURCE ${TEST_SOURCE} ${TMP_TEST_SOURCE} PARENT_SCOPE)
+  set(TEST_OBJECT ${TEST_OBJECT} ${TMP_TEST_OBJECT} PARENT_SCOPE)
 endif()
 
 # unset

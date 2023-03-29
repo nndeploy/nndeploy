@@ -1,5 +1,5 @@
 
-#include "nndeploy/include/inference/abstract_inference_impl.h"
+#include "nndeploy/source/inference/abstract_inference_impl.h"
 
 namespace nndeploy {
 namespace inference {
@@ -136,8 +136,8 @@ std::shared_ptr<device::Tensor> AbstractInferenceImpl::getOutputTensor(
   }
 }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>>

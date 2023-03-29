@@ -1,5 +1,5 @@
 
-#include "nndeploy/include/inference/config.h"
+#include "nndeploy/source/inference/config.h"
 
 namespace nndeploy {
 namespace inference {
@@ -22,8 +22,8 @@ base::Status DefaultConfigImpl::get(const std::string &key,
   return base::kStatusCodeOk;
 }
 
-std::map<base::InferenceType, std::shared_ptr<ConfigCreator>>
-    &getGlobalConfigCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<ConfigCreator>> &
+getGlobalConfigCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<ConfigCreator>>>

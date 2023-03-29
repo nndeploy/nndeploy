@@ -1,5 +1,5 @@
 
-#include "nndeploy/include/inference/inference.h"
+#include "nndeploy/source/inference/inference.h"
 
 namespace nndeploy {
 namespace inference {
@@ -27,9 +27,6 @@ base::Status Inference::postRun() { return inference_impl_->postRun(); }
 
 Config Inference::getConfig() { return inference_impl_->getConfig(); }
 
-base::Status Inference::getStaticShape(base::ShapeMap &shape_map) {
-  return inference_impl_->getStaticShape(shape_map);
-}
 base::Status Inference::getMinShape(base::ShapeMap &shape_map) {
   return inference_impl_->getMinShape(shape_map);
 }

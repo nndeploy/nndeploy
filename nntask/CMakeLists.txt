@@ -12,13 +12,11 @@ if(NNTASK_ENABLE_TEST)
 endif()
 
 nndeploy_option(NNTASK_ENABLE_ALWAYS "NNTASK_ENABLE_ALWAYS" OFF)
-
 if(NNTASK_ENABLE_ALWAYS)
   add_subdirectory(source/always)
 endif()
 
 nndeploy_option(NNTASK_ENABLE_ZIP "NNTASK_ENABLE_ZIP" OFF)
-
 if(NNTASK_ENABLE_ZIP)
   add_subdirectory(source/zip)
 endif()

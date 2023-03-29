@@ -1,9 +1,9 @@
 
-#include "nndeploy/include/device/x86/x86_device.h"
+#include "nndeploy/source/device/x86/x86_device.h"
 
 #include <cstring>
 
-#include "nndeploy/include/device/device.h"
+#include "nndeploy/source/device/device.h"
 
 namespace nndeploy {
 namespace device {

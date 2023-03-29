@@ -1,5 +1,5 @@
 
-#include "nndeploy/include/inference/mnn/mnn_config.h"
+#include "nndeploy/source/inference/mnn/mnn_config.h"
 
 namespace nndeploy {
 namespace inference {

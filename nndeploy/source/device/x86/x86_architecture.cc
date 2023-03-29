@@ -1,7 +1,7 @@
 
-#include "nndeploy/include/device/x86/x86_architecture.h"
+#include "nndeploy/source/device/x86/x86_architecture.h"
 
-#include "nndeploy/include/device/x86/x86_device.h"
+#include "nndeploy/source/device/x86/x86_device.h"
 
 namespace nndeploy {
 namespace device {
