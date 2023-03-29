@@ -17,7 +17,7 @@ class DefaultConfigImpl {
   virtual base::Status jsonToConfig(const std::string &json,
                                     bool is_path = true);
 
-  virtual base::Status set(const std::string &key, const base::Value &value);
+  virtual base::Status set(const std::string &key, base::Value &value);
 
   virtual base::Status get(const std::string &key, base::Value &value);
 
@@ -52,8 +52,8 @@ class TypeConfigCreator : public ConfigCreator {
   virtual DefaultConfigImpl *createConfig() { return new T(); }
 };
 
-std::map<base::InferenceType, std::shared_ptr<ConfigCreator>> &
-getGlobalConfigCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<ConfigCreator>>
+    &getGlobalConfigCreatorMap();
 
 template <typename T>
 class TypeConfigRegister {

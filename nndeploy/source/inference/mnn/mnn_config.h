@@ -15,7 +15,7 @@ class MnnConfigImpl : public DefaultConfigImpl {
 
   base::Status jsonToConfig(const std::string &json, bool is_path = true);
 
-  virtual base::Status set(const std::string &key, const base::Value &value);
+  virtual base::Status set(const std::string &key, base::Value &value);
 
   virtual base::Status get(const std::string &key, base::Value &value);
 

@@ -18,8 +18,7 @@ base::Status MnnConfigImpl::jsonToConfig(const std::string &json,
   return base::kStatusCodeOk;
 }
 
-base::Status MnnConfigImpl::set(const std::string &key,
-                                const base::Value &value) {
+base::Status MnnConfigImpl::set(const std::string &key, base::Value &value) {
   base::Status status = base::kStatusCodeOk;
   if (key == "library_path") {
     uint8_t *tmp = nullptr;

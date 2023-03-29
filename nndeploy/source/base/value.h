@@ -12,6 +12,7 @@ namespace base {
 
 // 增加type_trait
 class NNDEPLOY_CC_API Value {
+ public:
   Value() = default;
   Value(const Value& value) = default;
   Value(Value&& value) noexcept {

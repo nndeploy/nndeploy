@@ -39,25 +39,25 @@ DataType DataTypeOf() {
   return DataType(kDataTypeCodeOpaqueHandle, 64);
 }
 template <>
-extern NNDEPLOY_CC_API DataType DataTypeOf<float>();
+NNDEPLOY_CC_API DataType DataTypeOf<float>();
 template <>
-extern NNDEPLOY_CC_API DataType DataTypeOf<double>();
+NNDEPLOY_CC_API DataType DataTypeOf<double>();
 template <>
-extern NNDEPLOY_CC_API DataType DataTypeOf<uint8_t>();
+NNDEPLOY_CC_API DataType DataTypeOf<uint8_t>();
 template <>
-extern NNDEPLOY_CC_API DataType DataTypeOf<uint16_t>();
+NNDEPLOY_CC_API DataType DataTypeOf<uint16_t>();
 template <>
-extern NNDEPLOY_CC_API DataType DataTypeOf<uint32_t>();
+NNDEPLOY_CC_API DataType DataTypeOf<uint32_t>();
 template <>
-extern NNDEPLOY_CC_API DataType DataTypeOf<uint64_t>();
+NNDEPLOY_CC_API DataType DataTypeOf<uint64_t>();
 template <>
-extern NNDEPLOY_CC_API DataType DataTypeOf<int8_t>();
+NNDEPLOY_CC_API DataType DataTypeOf<int8_t>();
 template <>
-extern NNDEPLOY_CC_API DataType DataTypeOf<int16_t>();
+NNDEPLOY_CC_API DataType DataTypeOf<int16_t>();
 template <>
-extern NNDEPLOY_CC_API DataType DataTypeOf<int32_t>();
+NNDEPLOY_CC_API DataType DataTypeOf<int32_t>();
 template <>
-extern NNDEPLOY_CC_API DataType DataTypeOf<int64_t>();
+NNDEPLOY_CC_API DataType DataTypeOf<int64_t>();
 
 enum DeviceTypeCode : int32_t {
   kDeviceTypeCodeCpu = 0x0000,

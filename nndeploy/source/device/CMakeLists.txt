@@ -24,7 +24,7 @@ file(GLOB TEST_SOURCE
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
 if (NNDEPLOY_ENABLE_DEVICE_X86)
-  add_subdirectory(x86)
+  include(x86/config.cmake)
 endif()
 
 # OBJECT

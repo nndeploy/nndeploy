@@ -25,9 +25,9 @@ list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
 # OBJECT
 
-# subdirectory
+# include
 if (NNDEPLOY_ENABLE_INFERENCE_MNN)
-  add_subdirectory(mnn)
+  include(mnn/config.cmake)
 endif()
 
 # TARGET

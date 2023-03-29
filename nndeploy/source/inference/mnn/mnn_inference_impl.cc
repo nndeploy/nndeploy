@@ -44,10 +44,9 @@ base::Status MnnInferenceImpl::deinit() {
   return base::kStatusCodeOk;
 }
 
-base::Status MnnInferenceImpl::preRun(
-    base::ShapeMap min_shape = base::ShapeMap(),
-    base::ShapeMap opt_shape = base::ShapeMap(),
-    base::ShapeMap max_shape = base::ShapeMap()) {
+base::Status MnnInferenceImpl::preRun(base::ShapeMap min_shape,
+                                      base::ShapeMap opt_shape,
+                                      base::ShapeMap max_shape) {
   base::Status status = base::kStatusCodeOk;
 
   min_shape_ = min_shape;
@@ -167,12 +166,12 @@ base::Status MnnInferenceImpl::createInputsOutputsInternal() {
     std::shared_ptr<device::Tensor> max_input_tensor;
     max_input_tensor.reset(new device::Tensor());
     // TODO
-    max_input_tensor.create();
+    // max_input_tensor.create();
     max_input_tensors_.insert({name, max_input_tensor});
     std::shared_ptr<device::Tensor> current_input_tensor;
     current_input_tensor.reset(new device::Tensor());
     // TODO
-    current_input_tensor.create();
+    // current_input_tensor.create();
     current_input_tensors_.insert({name, max_input_tensor});
   }
   const std::map<std::string, MNN::Tensor *> &mnn_output_tensors =
@@ -183,12 +182,12 @@ base::Status MnnInferenceImpl::createInputsOutputsInternal() {
     std::shared_ptr<device::Tensor> max_output_tensor;
     max_output_tensor.reset(new device::Tensor());
     // TODO
-    max_output_tensor.create();
+    // max_output_tensor.create();
     max_output_tensors_.insert({name, max_output_tensor});
     std::shared_ptr<device::Tensor> current_output_tensor;
     current_output_tensor.reset(new device::Tensor());
     // TODO
-    current_output_tensor.create();
+    // current_output_tensor.create();
     current_output_tensors_.insert({name, max_output_tensor});
   }
 
