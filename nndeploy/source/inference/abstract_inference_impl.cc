@@ -4,26 +4,14 @@
 namespace nndeploy {
 namespace inference {
 
+AbstractInferenceImpl::AbstractInferenceImpl() {
+  current_shape_ = base::ShapeMap();
+  min_shape_ = base::ShapeMap();
+  opt_shape_ = base::ShapeMap();
+  max_shape_ = base::ShapeMap();
+}
+
 AbstractInferenceImpl::~AbstractInferenceImpl() {}
-
-Config AbstractInferenceImpl::getConfig() { return config_; }
-
-base::Status AbstractInferenceImpl::getMinShape(base::ShapeMap &shape_map) {
-  shape_map = min_shape_;
-  return base::kStatusCodeOk;
-}
-base::Status AbstractInferenceImpl::getOptShape(base::ShapeMap &shape_map) {
-  shape_map = opt_shape_;
-  return base::kStatusCodeOk;
-}
-base::Status AbstractInferenceImpl::getCurentShape(base::ShapeMap &shape_map) {
-  shape_map = current_shape_;
-  return base::kStatusCodeOk;
-}
-base::Status AbstractInferenceImpl::getMaxShape(base::ShapeMap &shape_map) {
-  shape_map = max_shape_;
-  return base::kStatusCodeOk;
-}
 
 base::Status AbstractInferenceImpl::setDevice(device::Device *device) {
   device_.push_back(device);
@@ -44,24 +32,23 @@ device::Device *AbstractInferenceImpl::getDevice(int index) {
   }
 }
 
-base::Status AbstractInferenceImpl::setBufferPool(
-    device::BufferPool *buffer_pool) {
-  buffer_pool_.push_back(buffer_pool);
+std::shared_ptr<Config> AbstractInferenceImpl::getConfig() { return config_; }
+
+base::Status AbstractInferenceImpl::getMinShape(base::ShapeMap &shape_map) {
+  shape_map = min_shape_;
   return base::kStatusCodeOk;
 }
-device::BufferPool *AbstractInferenceImpl::getBufferPool() {
-  if (buffer_pool_.empty()) {
-    return nullptr;
-  } else {
-    return buffer_pool_[0];
-  }
+base::Status AbstractInferenceImpl::getOptShape(base::ShapeMap &shape_map) {
+  shape_map = opt_shape_;
+  return base::kStatusCodeOk;
 }
-device::BufferPool *AbstractInferenceImpl::getBufferPool(int index) {
-  if (index < 0 || index >= buffer_pool_.size()) {
-    return nullptr;
-  } else {
-    return buffer_pool_[index];
-  }
+base::Status AbstractInferenceImpl::getCurentShape(base::ShapeMap &shape_map) {
+  shape_map = current_shape_;
+  return base::kStatusCodeOk;
+}
+base::Status AbstractInferenceImpl::getMaxShape(base::ShapeMap &shape_map) {
+  shape_map = max_shape_;
+  return base::kStatusCodeOk;
 }
 
 int64_t AbstractInferenceImpl::getWorkspaceSize() {

@@ -20,13 +20,20 @@ class MnnConfigImpl : public DefaultConfigImpl {
   virtual base::Status get(const std::string &key, base::Value &value);
 
   std::vector<std::string> save_tensors_;
-  int gpu_mode = 4;
-  MNN::ScheduleConfig::Path path;
-  base::DeviceType backup_device_type_;
+  MNN::ScheduleConfig::Path path_;
+  base::DeviceType backup_device_type_ = base::DeviceType::CPU;
   MNN::BackendConfig::MemoryMode memory_mode_ =
       MNN::BackendConfig::MemoryMode::Memory_Normal;
 
   std::string library_path_ = "";
+
+  static MNNForwardType convertFromDeviceType(base::DeviceType src);
+  static MNN::BackendConfig::PowerMode convertFromPowerType(
+      base::PowerType src);
+  static MNN::BackendConfig::PrecisionMode convertFromPowerType(
+      base::PrecisionType src);
+  static base::Status convertFromConfig(MnnConfigImpl *config,
+                                        MNN::ScheduleConfig *internal_config);
 };
 
 }  // namespace inference

@@ -30,12 +30,14 @@ class DefaultConfigImpl {
 
   // forward
   base::DeviceType device_type_;
+  int gpu_tune_mode_ = 4;
+  int num_thread_ = 1;
   base::ShareMemoryType share_memory_mode_ = base::kShareMemoryTypeNoShare;
   base::PrecisionType precision_ = base::kPrecisionTypeFp32;
-  base::PowerType power_type = base::kPowerTypeNormal;
+  base::PowerType power_type_ = base::kPowerTypeNormal;
   bool is_dynamic_shape_ = false;
   base::ShapeMap input_shape_ = base::ShapeMap();
-  bool is_quant = false;
+  bool is_quant_ = false;
   base::InferenceOptLevel opt_level_ = base::kInferenceOptLevelAuto;
   std::string cache_path_ = "";
   bool is_tune_kernel_ = false;
@@ -52,8 +54,8 @@ class TypeConfigCreator : public ConfigCreator {
   virtual DefaultConfigImpl *createConfig() { return new T(); }
 };
 
-std::map<base::InferenceType, std::shared_ptr<ConfigCreator>>
-    &getGlobalConfigCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<ConfigCreator>> &
+getGlobalConfigCreatorMap();
 
 template <typename T>
 class TypeConfigRegister {
@@ -72,7 +74,7 @@ class Config {
 
   base::Status jsonToConfig(const std::string &json, bool is_path = true);
 
-  base::Status set(const std::string &key, const base::Value &value);
+  base::Status set(const std::string &key, base::Value &value);
 
   base::Status get(const std::string &key, base::Value &value);
 

@@ -17,10 +17,14 @@ namespace inference {
 
 class AbstractInferenceImpl {
  public:
-  AbstractInferenceImpl() = default;
+  AbstractInferenceImpl();
   virtual ~AbstractInferenceImpl();
 
-  virtual base::Status init(const Config &config) = 0;
+  virtual base::Status setDevice(device::Device *device);
+  virtual device::Device *getDevice();
+  virtual device::Device *getDevice(int index);
+
+  virtual base::Status init(std::shared_ptr<Config> config) = 0;
   virtual base::Status deinit() = 0;
 
   virtual base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
@@ -28,7 +32,7 @@ class AbstractInferenceImpl {
                               base::ShapeMap max_shape = base::ShapeMap()) = 0;
   virtual base::Status postRun() = 0;
 
-  virtual Config getConfig();
+  virtual std::shared_ptr<Config> getConfig();
 
   virtual base::Status getMinShape(base::ShapeMap &shape_map);
   virtual base::Status getOptShape(base::ShapeMap &shape_map);
@@ -36,14 +40,6 @@ class AbstractInferenceImpl {
   virtual base::Status getMaxShape(base::ShapeMap &shape_map);
 
   virtual base::Status reShape(base::ShapeMap &shape_map) = 0;
-
-  virtual base::Status setDevice(device::Device *device);
-  virtual device::Device *getDevice();
-  virtual device::Device *getDevice(int index);
-
-  virtual base::Status setBufferPool(device::BufferPool *buffer_pool);
-  virtual device::BufferPool *getBufferPool();
-  virtual device::BufferPool *getBufferPool(int index);
 
   virtual int64_t getWorkspaceSize();
   virtual int64_t getWorkspaceSize(int index);
@@ -78,7 +74,7 @@ class AbstractInferenceImpl {
   virtual base::Status asyncRun() = 0;
 
  protected:
-  Config config_;
+  std::shared_ptr<Config> config_;
 
   base::ShapeMap current_shape_ = base::ShapeMap();
   base::ShapeMap min_shape_ = base::ShapeMap();

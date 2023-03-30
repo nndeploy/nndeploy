@@ -84,6 +84,7 @@ class NNDEPLOY_CC_API Buffer : public base::NonCopyable {
          BufferSourceType buffer_source_type);
   Buffer(Device *device, const BufferDesc &desc, int32_t id,
          BufferSourceType buffer_source_type);
+
   Buffer(BufferPool *buffer_pool, const BufferDesc &desc, void *ptr,
          BufferSourceType buffer_source_type);
   Buffer(BufferPool *buffer_pool, const BufferDesc &desc, int32_t id,

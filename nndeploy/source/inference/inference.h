@@ -20,7 +20,11 @@ class Inference {
   explicit Inference(base::InferenceType type);
   ~Inference();
 
-  base::Status init(const Config &config);
+  base::Status setDevice(device::Device *device);
+  device::Device *getDevice();
+  device::Device *getDevice(int index);
+
+  base::Status init(std::shared_ptr<Config> config);
   base::Status deinit();
 
   base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
@@ -28,23 +32,14 @@ class Inference {
                       base::ShapeMap max_shape = base::ShapeMap());
   base::Status postRun();
 
-  Config getConfig();
+  std::shared_ptr<Config> getConfig();
 
-  base::Status getStaticShape(base::ShapeMap &shape_map);
   base::Status getMinShape(base::ShapeMap &shape_map);
   base::Status getOptShape(base::ShapeMap &shape_map);
   base::Status getCurentShape(base::ShapeMap &shape_map);
   base::Status getMaxShape(base::ShapeMap &shape_map);
 
   base::Status reShape(base::ShapeMap &shape_map);
-
-  base::Status setDevice(device::Device *device);
-  device::Device *getDevice();
-  device::Device *getDevice(int index);
-
-  base::Status setBufferPool(device::BufferPool *buffer_pool);
-  device::BufferPool *getBufferPool();
-  device::BufferPool *getBufferPool(int index);
 
   int64_t getWorkspaceSize();
   int64_t getWorkspaceSize(int index);

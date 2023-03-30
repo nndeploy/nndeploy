@@ -94,7 +94,15 @@
         "coroutine": "cpp",
         "fstream": "cpp",
         "ranges": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "forward_list": "cpp",
+        "iomanip": "cpp",
+        "xlocbuf": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xloctime": "cpp"
     },
     "cmake.configureOnOpen": false
 }

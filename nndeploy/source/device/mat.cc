@@ -12,56 +12,18 @@ namespace device {
 
 Mat::Mat() {}
 Mat::~Mat() { destory(); }
-Mat::Mat::Mat(Device *device, int32_t height, int32_t width, int32_t channel,
-              base::DataType data_type) {
-  desc_.data_type_ = data_type;
-  desc_.shape_.push_back(height);
-  desc_.shape_.push_back(width);
-  desc_.shape_.push_back(channel);
-  create(device, desc_, base::IntVector());
-}
-Mat::Mat(Device *device, int32_t *shape, int32_t shape_len,
-         base::DataType data_type) {
-  desc_.data_type_ = data_type;
-  for (int i = 0; i < shape_len; ++i) {
-    desc_.shape_.push_back(shape[i]);
-  }
-  create(device, desc_, base::IntVector());
-}
-Mat::Mat(Device *device, const base::IntVector &shape_,
-         base::DataType data_type) {
-  desc_.data_type_ = data_type;
-  desc_.shape_ = shape_;
-  create(device, desc_, base::IntVector());
-}
+
 Mat::Mat(Device *device, const MatDesc &desc, const base::IntVector &config) {
-  create(device, desc_, config);
+  create(device, desc, config);
 }
-Mat::Mat::Mat(BufferPool *buffer_pool, int32_t height, int32_t width,
-              int32_t channel, base::DataType data_type) {
-  desc_.data_type_ = data_type;
-  desc_.shape_.push_back(height);
-  desc_.shape_.push_back(width);
-  desc_.shape_.push_back(channel);
-  create(buffer_pool, desc_, base::IntVector());
+
+Mat::Mat(Device *device, const MatDesc &desc, void *data_ptr,
+         const base::IntVector &config ) {
+  create(device, desc, data_ptr, config);
 }
-Mat::Mat(BufferPool *buffer_pool, int32_t *shape, int32_t shape_len,
-         base::DataType data_type) {
-  desc_.data_type_ = data_type;
-  for (int i = 0; i < shape_len; ++i) {
-    desc_.shape_.push_back(shape[i]);
-  }
-  create(buffer_pool, desc_, base::IntVector());
-}
-Mat::Mat(BufferPool *buffer_pool, const base::IntVector &shape_,
-         base::DataType data_type) {
-  desc_.data_type_ = data_type;
-  desc_.shape_ = shape_;
-  create(buffer_pool, desc_, base::IntVector());
-}
-Mat::Mat(BufferPool *buffer_pool, const MatDesc &desc,
-         const base::IntVector &config) {
-  create(buffer_pool, desc, config);
+Mat::Mat(Device *device, const MatDesc &desc, int32_t data_id,
+         const base::IntVector &config ) {
+  create(device, desc, data_id, config);
 }
 
 Mat::Mat(const MatDesc &desc, Buffer *buffer) { create(desc, buffer); }
@@ -113,54 +75,69 @@ Mat &Mat::operator==(Mat &&mat) {
 }
 
 // create
-void Mat::create(const MatDesc &desc, Buffer *buffer) {
-  create(nullptr, nullptr, desc, buffer, base::IntVector());
-}
+// 必须确保为空
 void Mat::create(Device *device, const MatDesc &desc,
                  const base::IntVector &config) {
-  create(device, nullptr, desc, nullptr, config);
-}
-void Mat::create(BufferPool *buffer_pool, const MatDesc &desc,
-                 const base::IntVector &config) {
-  create(nullptr, buffer_pool, desc, nullptr, config);
+  create(device, desc, nullptr, nullptr, -1, config);
 }
 
-void Mat::create(Device *device, BufferPool *buffer_pool, const MatDesc &desc,
-                 Buffer *buffer, const base::IntVector &config) {
+void Mat::create(Device *device, const MatDesc &desc, void *data_ptr,
+                 const base::IntVector &config) {
+  create(device, desc, nullptr, data_ptr, -1, config);
+}
+void Mat::create(Device *device, const MatDesc &desc, int32_t data_id,
+                 const base::IntVector &config) {
+  create(device, desc, nullptr, nullptr, data_id, config);
+}
+
+void Mat::create(const MatDesc &desc, Buffer *buffer) {
+  create(nullptr, desc, buffer, nullptr, -1, base::IntVector());
+}
+
+void Mat::create(Device *device, const MatDesc &desc, Buffer *buffer,
+                 void *data_ptr, int32_t data_id,
+                 const base::IntVector &config) {
   desc_ = desc;
   if (buffer != nullptr) {
     is_external_buffer_ = true;
     buffer_ = buffer;
     return;
-  } else if (buffer_pool != nullptr) {
+  }
+  if (device != nullptr) {
     is_external_buffer_ = false;
-    BufferDesc buffer_desc =
-        buffer_pool->getDevice()->toBufferDesc(desc_, config);
-    buffer_ = buffer_pool->allocate(buffer_desc);
-    return;
-  } else if (device != nullptr) {
-    is_external_buffer_ = false;
-    BufferDesc buffer_desc = device->toBufferDesc(desc, config);
-    buffer_ = device->allocate(buffer_desc);
-    return;
+    if (data_ptr != nullptr) {
+      BufferDesc buffer_desc = device->toBufferDesc(desc, config);
+      buffer_ =
+          device->create(buffer_desc, data_ptr, kBufferSourceTypeExternal);
+      return;
+    } else if (data_id != -1) {
+      BufferDesc buffer_desc = device->toBufferDesc(desc, config);
+      buffer_ = device->create(buffer_desc, data_id, kBufferSourceTypeExternal);
+      return;
+    } else {
+      BufferDesc buffer_desc = device->toBufferDesc(desc, config);
+      buffer_ = device->allocate(buffer_desc);
+      return;
+    }
   }
   return;
 }
 
 void Mat::destory() {
+  desc_.data_type_ = base::DataTypeOf<float>();
+  desc_.shape_.clear();
+  desc_.stride_.clear();
+
+  is_external_buffer_ = false;
+
   if (buffer_ != nullptr && is_external_buffer_ == false) {
     buffer_->subRef();
-    if (buffer_->getRef() == 1) {
-      if (buffer_->isBufferPool()) {
-        BufferPool *pool = buffer_->getBufferPool();
-        pool->deallocate(buffer_);
-      } else {
-        Device *device = buffer_->getDevice();
-        device->deallocate(buffer_);
-      }
+    if (buffer_->getRef() == 0) {
+      Device *device = buffer_->getDevice();
+      device->deallocate(buffer_);
     }
-    buffer_ = nullptr;
   }
+  buffer_ = nullptr;
 }
 
 // get

@@ -34,7 +34,7 @@ BufferDesc X86Device::toBufferDesc(const MatDesc& desc,
  * 通过stride_替代了data_format_，stride_的第一个元素表示的是整个tensor的大小
  * 意味着在TensorDesc的构造函数要花很多心思来计算stride_
  */
-BufferDesc X86Device::toBufferDesc(const TensorDesc& desc,
+BufferDesc X86Device::toBufferDesc(const TensorImplDesc& desc,
                                    const base::IntVector& config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
@@ -60,12 +60,27 @@ Buffer* X86Device::allocate(const BufferDesc& desc) {
   return buffer;
 }
 void X86Device::deallocate(Buffer* buffer) {
-  if (buffer->getBufferSourceType() == kBufferSourceTypeAllocate &&
-      buffer->getRef() == 1 && buffer->getPtr() != nullptr) {
-    void* data = buffer->getPtr();
-    free(data);
+  if (buffer == nullptr) {
+    return;
   }
-  Device::destory(buffer);
+  if (buffer->getRef() > 1) {
+    return;
+  }
+  BufferSourceType buffer_source_type = buffer->getBufferSourceType();
+  if (buffer_source_type == kBufferSourceTypeNone ||
+      buffer_source_type == kBufferSourceTypeExternal) {
+    Device::destory(buffer);
+  } else if (buffer_source_type == kBufferSourceTypeAllocate) {
+    if (buffer->getPtr() != nullptr) {
+      void* data = buffer->getPtr();
+      free(data);
+    }
+    Device::destory(buffer);
+  } else if (buffer_source_type == kBufferSourceTypeMapped) {
+    return;
+  } else {
+    return;
+  }
 }
 
 base::Status X86Device::copy(Buffer* src, Buffer* dst) {

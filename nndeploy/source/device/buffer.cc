@@ -9,45 +9,6 @@
 namespace nndeploy {
 namespace device {
 
-Buffer::Buffer(Device *device, const BufferDesc &desc, void *ptr,
-               BufferSourceType buffer_source_type)
-    : device_(device),
-      buffer_pool_(nullptr),
-      desc_(desc),
-      data_ptr_(ptr),
-      data_id_(-1),
-      buffer_source_type_(buffer_source_type),
-      ref_count_(1) {}
-Buffer::Buffer(Device *device, const BufferDesc &desc, int32_t id,
-               BufferSourceType buffer_source_type)
-    : device_(device),
-      buffer_pool_(nullptr),
-      desc_(desc),
-      data_ptr_(nullptr),
-      data_id_(id),
-      buffer_source_type_(buffer_source_type),
-      ref_count_(1) {}
-Buffer::Buffer(BufferPool *buffer_pool, const BufferDesc &desc, void *ptr,
-               BufferSourceType buffer_source_type)
-    : device_(buffer_pool->getDevice()),
-      buffer_pool_(buffer_pool),
-      desc_(desc),
-      data_ptr_(ptr),
-      data_id_(-1),
-      buffer_source_type_(buffer_source_type),
-      ref_count_(1) {}
-Buffer::Buffer(BufferPool *buffer_pool, const BufferDesc &desc, int32_t id,
-               BufferSourceType buffer_source_type)
-    : device_(buffer_pool->getDevice()),
-      buffer_pool_(buffer_pool),
-      desc_(desc),
-      data_ptr_(nullptr),
-      data_id_(id),
-      buffer_source_type_(buffer_source_type),
-      ref_count_(1) {}
-
-Buffer::~Buffer(){};
-
 BufferDescCompareStatus compareBufferDesc(const BufferDesc &desc1,
                                           const BufferDesc &desc2) {
   bool config_equal = true;
@@ -101,6 +62,45 @@ BufferDescCompareStatus compareBufferDesc(const BufferDesc &desc1,
   }
 }
 
+Buffer::Buffer(Device *device, const BufferDesc &desc, void *ptr,
+               BufferSourceType buffer_source_type)
+    : device_(device),
+      buffer_pool_(nullptr),
+      desc_(desc),
+      data_ptr_(ptr),
+      data_id_(-1),
+      buffer_source_type_(buffer_source_type),
+      ref_count_(1) {}
+Buffer::Buffer(Device *device, const BufferDesc &desc, int32_t id,
+               BufferSourceType buffer_source_type)
+    : device_(device),
+      buffer_pool_(nullptr),
+      desc_(desc),
+      data_ptr_(nullptr),
+      data_id_(id),
+      buffer_source_type_(buffer_source_type),
+      ref_count_(1) {}
+Buffer::Buffer(BufferPool *buffer_pool, const BufferDesc &desc, void *ptr,
+               BufferSourceType buffer_source_type)
+    : device_(buffer_pool->getDevice()),
+      buffer_pool_(buffer_pool),
+      desc_(desc),
+      data_ptr_(ptr),
+      data_id_(-1),
+      buffer_source_type_(buffer_source_type),
+      ref_count_(1) {}
+Buffer::Buffer(BufferPool *buffer_pool, const BufferDesc &desc, int32_t id,
+               BufferSourceType buffer_source_type)
+    : device_(buffer_pool->getDevice()),
+      buffer_pool_(buffer_pool),
+      desc_(desc),
+      data_ptr_(nullptr),
+      data_id_(id),
+      buffer_source_type_(buffer_source_type),
+      ref_count_(1) {}
+
+Buffer::~Buffer(){};
+
 // get
 bool Buffer::empty() { return desc_.size_.empty(); }
 
@@ -143,9 +143,9 @@ BufferSourceType Buffer::getBufferSourceType() { return buffer_source_type_; }
 
 int32_t Buffer::getRef() { return ref_count_; }
 
-void Buffer::addRef() { ref_count_++; }
+void Buffer::addRef() { NNDEPLOY_XADD(&ref_count_, 1); }
 
-void Buffer::subRef() { ref_count_--; }
+void Buffer::subRef() { NNDEPLOY_XADD(&ref_count_, -1); }
 
 }  // namespace device
 }  // namespace nndeploy

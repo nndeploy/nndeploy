@@ -13,7 +13,15 @@ Inference::~Inference() {
   }
 }
 
-base::Status Inference::init(const Config &config) {
+base::Status Inference::setDevice(device::Device *device) {
+  return inference_impl_->setDevice(device);
+}
+device::Device *Inference::getDevice() { return inference_impl_->getDevice(); }
+device::Device *Inference::getDevice(int index) {
+  return inference_impl_->getDevice(index);
+}
+
+base::Status Inference::init(std::shared_ptr<Config> config) {
   return inference_impl_->init(config);
 }
 base::Status Inference::deinit() { return inference_impl_->deinit(); }
@@ -25,7 +33,9 @@ base::Status Inference::preRun(base::ShapeMap min_shape,
 }
 base::Status Inference::postRun() { return inference_impl_->postRun(); }
 
-Config Inference::getConfig() { return inference_impl_->getConfig(); }
+std::shared_ptr<Config> Inference::getConfig() {
+  return inference_impl_->getConfig();
+}
 
 base::Status Inference::getMinShape(base::ShapeMap &shape_map) {
   return inference_impl_->getMinShape(shape_map);
@@ -42,24 +52,6 @@ base::Status Inference::getMaxShape(base::ShapeMap &shape_map) {
 
 base::Status Inference::reShape(base::ShapeMap &shape_map) {
   return inference_impl_->reShape(shape_map);
-}
-
-base::Status Inference::setDevice(device::Device *device) {
-  return inference_impl_->setDevice(device);
-}
-device::Device *Inference::getDevice() { return inference_impl_->getDevice(); }
-device::Device *Inference::getDevice(int index) {
-  return inference_impl_->getDevice(index);
-}
-
-base::Status Inference::setBufferPool(device::BufferPool *buffer_pool) {
-  return inference_impl_->setBufferPool(buffer_pool);
-}
-device::BufferPool *Inference::getBufferPool() {
-  return inference_impl_->getBufferPool();
-}
-device::BufferPool *Inference::getBufferPool(int index) {
-  return inference_impl_->getBufferPool(index);
 }
 
 int64_t Inference::getWorkspaceSize() {

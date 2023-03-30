@@ -43,22 +43,13 @@ class NNDEPLOY_CC_API Mat {
   Mat();
   virtual ~Mat();
 
-  // 暂时未添加stride相关构造函数
-  Mat(Device *device, int32_t height, int32_t width, int32_t channel,
-      base::DataType data_type);
-  Mat(Device *device, int32_t *shape, int32_t shape_len,
-      base::DataType data_type);
-  Mat(Device *device, const base::IntVector &shape_, base::DataType data_type);
-  Mat(Device *device, const MatDesc &desc, const base::IntVector &config);
+  Mat(Device *device, const MatDesc &desc,
+      const base::IntVector &config = base::IntVector());
 
-  Mat(BufferPool *buffer_pool, int32_t height, int32_t width, int32_t channel,
-      base::DataType data_type);
-  Mat(BufferPool *buffer_pool, int32_t *shape, int32_t shape_len,
-      base::DataType data_type);
-  Mat(BufferPool *buffer_pool, const base::IntVector &shape_,
-      base::DataType data_type);
-  Mat(BufferPool *buffer_pool, const MatDesc &desc,
-      const base::IntVector &config);
+  Mat(Device *device, const MatDesc &desc, void *data_ptr,
+      const base::IntVector &config = base::IntVector());
+  Mat(Device *device, const MatDesc &desc, int32_t data_id,
+      const base::IntVector &config = base::IntVector());
 
   Mat(const MatDesc &desc, Buffer *buffer);
 
@@ -71,12 +62,18 @@ class NNDEPLOY_CC_API Mat {
   Mat &operator==(Mat &&mat);
 
   // create
-  void create(const MatDesc &desc, Buffer *buffer);
+  // 必须确保为空
   void create(Device *device, const MatDesc &desc,
-              const base::IntVector &config);
-  void create(BufferPool *buffer_pool, const MatDesc &desc,
-              const base::IntVector &config);
+              const base::IntVector &config = base::IntVector());
 
+  void create(Device *device, const MatDesc &desc, void *data_ptr,
+              const base::IntVector &config = base::IntVector());
+  void create(Device *device, const MatDesc &desc, int32_t data_id,
+              const base::IntVector &config = base::IntVector());
+
+  void create(const MatDesc &desc, Buffer *buffer);
+
+  // destroy
   void destory();
 
   // get
@@ -107,9 +104,8 @@ class NNDEPLOY_CC_API Mat {
   BufferSourceType getBufferSourceType();
 
  private:
-  // 必须确保Mat为空
-  void create(Device *device, BufferPool *buffer_pool, const MatDesc &desc,
-              Buffer *buffer, const base::IntVector &config);
+  void create(Device *device, const MatDesc &desc, Buffer *buffer,
+              void *data_ptr, int32_t data_id, const base::IntVector &config);
 
  private:
   MatDesc desc_;

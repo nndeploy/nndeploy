@@ -13,7 +13,7 @@ base::Status DefaultConfigImpl::jsonToConfig(const std::string &json,
 }
 
 base::Status DefaultConfigImpl::set(const std::string &key,
-                                    const base::Value &value) {
+                                    base::Value &value) {
   return base::kStatusCodeOk;
 }
 
@@ -62,7 +62,7 @@ base::Status Config::jsonToConfig(const std::string &json, bool is_path) {
   }
 }
 
-base::Status Config::set(const std::string &key, const base::Value &value) {
+base::Status Config::set(const std::string &key, base::Value &value) {
   if (config_impl_ != nullptr) {
     return config_impl_->set(key, value);
   } else {

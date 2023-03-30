@@ -28,7 +28,7 @@ class NNDEPLOY_CC_API X86Device : public Device {
   virtual BufferDesc toBufferDesc(const MatDesc& desc,
                                   const base::IntVector& config);
 
-  virtual BufferDesc toBufferDesc(const TensorDesc& desc,
+  virtual BufferDesc toBufferDesc(const TensorImplDesc& desc,
                                   const base::IntVector& config);
 
   virtual Buffer* allocate(size_t size);

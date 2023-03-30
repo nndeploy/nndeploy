@@ -19,10 +19,10 @@ namespace inference {
 
 class MnnInferenceImpl : public AbstractInferenceImpl {
  public:
-  MnnInferenceImpl() = default;
+  MnnInferenceImpl();
   virtual ~MnnInferenceImpl();
 
-  virtual base::Status init(const Config &config);
+  virtual base::Status init(std::shared_ptr<Config> config);
   virtual base::Status deinit();
 
   virtual base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
@@ -33,8 +33,6 @@ class MnnInferenceImpl : public AbstractInferenceImpl {
   virtual base::Status reShape(base::ShapeMap &shape_map);
 
   virtual int64_t getMemorySize();
-  virtual int64_t getMemorySize(int index);
-  virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual base::Status setInputTensor(
       const std::string &name,
@@ -46,19 +44,19 @@ class MnnInferenceImpl : public AbstractInferenceImpl {
   virtual base::Status run();
   virtual base::Status asyncRun();
 
-  MNN::ScheduleConfig getMnnConfig();
-  MNN::Interpreter *getMnnInterpreter();
-  MNN::Session *getMnnSession();
+  MNN::ScheduleConfig *getInternalConfig();
+  MNN::Interpreter *getInternalInterpreter();
+  MNN::Session *getInternalSession();
 
  private:
-  base::Status convertConfigInternal();
-  base::ShapeMap getInputShapeMapInternal();
-  base::Status createInputsOutputsInternal();
+  base::Status convertInternalConfig();
+  base::ShapeMap getInternalInputShapeMap();
+  base::Status createInternalInputsOutputs();
 
  private:
-  MNN::ScheduleConfig mnn_config_;
-  MNN::Interpreter *mnn_interpreter_ = nullptr;
-  MNN::Session *mnn_session_ = nullptr;
+  MNN::ScheduleConfig *internal_config_;
+  MNN::Interpreter *internal_interpreter_ = nullptr;
+  MNN::Session *internal_session_ = nullptr;
 };
 
 }  // namespace inference

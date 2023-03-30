@@ -65,7 +65,7 @@
     + 信息查询
   + 支持异构设备的 Buffer [内部不在使用裸指针，全部用buffer代替，在这里要增加应用计数的实现]
   + 支持异构设备的 Mat [MatDesc + buffer]
-  + 支持异构设备的 Tensor [TensorDesc + buffer]
+  + 支持异构设备的 Tensor [TensorImplDesc + buffer]
   + 支持异构设备的 传统内存池
     + 可切分的一维连续内存 例如x86以及cuda一维连续内存
     + 不可切分的高维内存 例如OpenCL的cl::Image2d
