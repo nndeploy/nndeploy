@@ -2,6 +2,7 @@
 #include "nndeploy/source/inference/mnn/mnn_inference_impl.h"
 
 #include "nndeploy/source/base/shape.h"
+#include "nndeploy/source/inference/mnn/mnn_config.h"
 
 namespace nndeploy {
 namespace inference {
@@ -168,7 +169,8 @@ MNN::Session *MnnInferenceImpl::getInternalSession() {
   return internal_session_;
 }
 
-base::Status MnnInferenceImpl::convertInternalConfig() {
+base::Status MnnInferenceImpl::convertInternalConfig(
+    MnnConfigImpl *config, MNN::ScheduleConfig *internal_config) {
   if (internal_config_ == nullptr) {
     internal_config_ = new MNN::ScheduleConfig;
   }
@@ -202,8 +204,9 @@ base::Status MnnInferenceImpl::createInternalInputsOutputs() {
     std::shared_ptr<device::Tensor> max_input_tensor;
     max_input_tensor.reset(new device::Tensor());
     // TODO
-    device::Device *device = DeviceManager::getInstance().getDevice("CPU");
-    max_input_tensor.create();
+    base::DeviceType device_type;
+    device::Device *device = getDevice(device_type);
+    // max_input_tensor.create();
     max_input_tensors_.insert({name, max_input_tensor});
     std::shared_ptr<device::Tensor> current_input_tensor;
     current_input_tensor.reset(new device::Tensor());

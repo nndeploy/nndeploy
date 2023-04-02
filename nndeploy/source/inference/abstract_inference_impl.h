@@ -23,6 +23,7 @@ class AbstractInferenceImpl {
   virtual base::Status setDevice(device::Device *device);
   virtual device::Device *getDevice();
   virtual device::Device *getDevice(int index);
+  virtual device::Device *getDevice(base::DeviceType device_type);
 
   virtual base::Status init(std::shared_ptr<Config> config) = 0;
   virtual base::Status deinit() = 0;
@@ -102,8 +103,8 @@ class TypeInferenceCreator : public InferenceCreator {
   virtual AbstractInferenceImpl *createInference() { return new T(); }
 };
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
-getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
+    &getGlobalInferenceCreatorMap();
 
 template <typename T>
 class TypeInferenceRegister {

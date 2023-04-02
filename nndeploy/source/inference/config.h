@@ -33,7 +33,7 @@ class DefaultConfigImpl {
   int gpu_tune_mode_ = 4;
   int num_thread_ = 1;
   base::ShareMemoryType share_memory_mode_ = base::kShareMemoryTypeNoShare;
-  base::PrecisionType precision_ = base::kPrecisionTypeFp32;
+  base::PrecisionType precision_type_ = base::kPrecisionTypeFp32;
   base::PowerType power_type_ = base::kPowerTypeNormal;
   bool is_dynamic_shape_ = false;
   base::ShapeMap input_shape_ = base::ShapeMap();
@@ -54,8 +54,8 @@ class TypeConfigCreator : public ConfigCreator {
   virtual DefaultConfigImpl *createConfig() { return new T(); }
 };
 
-std::map<base::InferenceType, std::shared_ptr<ConfigCreator>> &
-getGlobalConfigCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<ConfigCreator>>
+    &getGlobalConfigCreatorMap();
 
 template <typename T>
 class TypeConfigRegister {

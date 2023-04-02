@@ -81,6 +81,14 @@ struct NNDEPLOY_CC_API DeviceType {
       : code_(code), device_id_(device_id){};
   DeviceType(const DeviceType& other) = default;
   DeviceType& operator=(const DeviceType& other) = default;
+  DeviceType& operator=(const DeviceTypeCode other) {
+    code_ = other;
+    device_id_ = 0;
+    return *this;
+  };
+  bool operator==(const DeviceType& other) const {
+    return code_ == other.code_ && device_id_ == other.device_id_;
+  };
   int32_t code_ = kDeviceTypeCodeCpu;
   int32_t device_id_ = 0;
 };

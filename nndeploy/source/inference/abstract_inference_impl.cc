@@ -31,6 +31,14 @@ device::Device *AbstractInferenceImpl::getDevice(int index) {
     return device_[index];
   }
 }
+device::Device *AbstractInferenceImpl::getDevice(base::DeviceType device_type) {
+  for (int i = 0; i < device_.size(); ++i) {
+    if (device_[i]->getDeviceType() == device_type) {
+      return device_[i];
+    }
+  }
+  return nullptr;
+}
 
 std::shared_ptr<Config> AbstractInferenceImpl::getConfig() { return config_; }
 
@@ -123,8 +131,8 @@ std::shared_ptr<device::Tensor> AbstractInferenceImpl::getOutputTensor(
   }
 }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
-getGlobalInferenceCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
+    &getGlobalInferenceCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>>

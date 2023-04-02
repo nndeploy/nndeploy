@@ -21,7 +21,7 @@ class MnnConfigImpl : public DefaultConfigImpl {
 
   std::vector<std::string> save_tensors_;
   MNN::ScheduleConfig::Path path_;
-  base::DeviceType backup_device_type_ = base::DeviceType::CPU;
+  base::DeviceType backup_device_type_ = {base::kDeviceTypeCodeCpu, 0};
   MNN::BackendConfig::MemoryMode memory_mode_ =
       MNN::BackendConfig::MemoryMode::Memory_Normal;
 

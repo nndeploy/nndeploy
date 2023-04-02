@@ -104,18 +104,18 @@ base::Status MnnConfigImpl::convertFromConfig(
              internal_config->type == MNN_FORWARD_OPENGL ||
              internal_config->type == MNN_FORWARD_METAL ||
              internal_config->type == MNN_FORWARD_CUDA) {
-    internal_config->mode = config->gpu_tune_mode;
+    internal_config->mode = config->gpu_tune_mode_;
   }
   internal_config->path = config->path_;
   internal_config->backupType =
       convertFromDeviceType(config->backup_device_type_);
 
-  internal_config->backendConfig = new ScheduleConfig::BackendConfig();
+  internal_config->backendConfig = new MNN::BackendConfig();
   internal_config->backendConfig->power =
       convertFromPowerType(config->power_type_);
   internal_config->backendConfig->precision =
       convertFromPowerType(config->precision_type_);
-  internal_config->backendConfig->memory = config->memory_;
+  internal_config->backendConfig->memory = config->memory_mode_;
 
   return base::kStatusCodeOk;
 }

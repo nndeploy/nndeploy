@@ -12,6 +12,7 @@
 #include "nndeploy/source/device/tensor.h"
 #include "nndeploy/source/inference/abstract_inference_impl.h"
 #include "nndeploy/source/inference/config.h"
+#include "nndeploy/source/inference/mnn/mnn_config.h"
 #include "nndeploy/source/inference/mnn/mnn_include.h"
 
 namespace nndeploy {
@@ -49,12 +50,13 @@ class MnnInferenceImpl : public AbstractInferenceImpl {
   MNN::Session *getInternalSession();
 
  private:
-  base::Status convertInternalConfig();
+  base::Status convertInternalConfig(MnnConfigImpl *config,
+                                     MNN::ScheduleConfig *internal_config);
   base::ShapeMap getInternalInputShapeMap();
   base::Status createInternalInputsOutputs();
 
  private:
-  MNN::ScheduleConfig *internal_config_;
+  MNN::ScheduleConfig *internal_config_ = nullptr;
   MNN::Interpreter *internal_interpreter_ = nullptr;
   MNN::Session *internal_session_ = nullptr;
 };
