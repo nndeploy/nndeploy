@@ -89,7 +89,6 @@ class AbstractInferenceImpl {
   device::TensorMap max_output_tensors_;
 
   std::vector<device::Device *> device_;
-  std::vector<device::BufferPool *> buffer_pool_;
 };
 
 class InferenceCreator {
@@ -103,8 +102,8 @@ class TypeInferenceCreator : public InferenceCreator {
   virtual AbstractInferenceImpl *createInference() { return new T(); }
 };
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap();
 
 template <typename T>
 class TypeInferenceRegister {

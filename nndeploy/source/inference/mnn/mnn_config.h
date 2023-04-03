@@ -24,16 +24,9 @@ class MnnConfigImpl : public DefaultConfigImpl {
   base::DeviceType backup_device_type_ = {base::kDeviceTypeCodeCpu, 0};
   MNN::BackendConfig::MemoryMode memory_mode_ =
       MNN::BackendConfig::MemoryMode::Memory_Normal;
-
   std::string library_path_ = "";
 
-  static MNNForwardType convertFromDeviceType(base::DeviceType src);
-  static MNN::BackendConfig::PowerMode convertFromPowerType(
-      base::PowerType src);
-  static MNN::BackendConfig::PrecisionMode convertFromPowerType(
-      base::PrecisionType src);
-  static base::Status convertFromConfig(MnnConfigImpl *config,
-                                        MNN::ScheduleConfig *internal_config);
+  base::DataFormat output_data_format_ = base::kDataFormatNCHW;
 };
 
 }  // namespace inference

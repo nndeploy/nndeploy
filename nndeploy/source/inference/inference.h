@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_SOURCE_INFERENCE_Inference_H_
-#define _NNDEPLOY_SOURCE_INFERENCE_Inference_H_
+#ifndef _NNDEPLOY_SOURCE_INFERENCE_INFERENCE_H_
+#define _NNDEPLOY_SOURCE_INFERENCE_INFERENCE_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/log.h"
@@ -23,6 +23,7 @@ class Inference {
   base::Status setDevice(device::Device *device);
   device::Device *getDevice();
   device::Device *getDevice(int index);
+  device::Device *getDevice(base::DeviceType device_type);
 
   base::Status init(std::shared_ptr<Config> config);
   base::Status deinit();

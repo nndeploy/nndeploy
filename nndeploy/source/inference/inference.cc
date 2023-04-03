@@ -20,6 +20,9 @@ device::Device *Inference::getDevice() { return inference_impl_->getDevice(); }
 device::Device *Inference::getDevice(int index) {
   return inference_impl_->getDevice(index);
 }
+device::Device *Inference::getDevice(base::DeviceType device_type) {
+  return inference_impl_->getDevice(device_type);
+}
 
 base::Status Inference::init(std::shared_ptr<Config> config) {
   return inference_impl_->init(config);
