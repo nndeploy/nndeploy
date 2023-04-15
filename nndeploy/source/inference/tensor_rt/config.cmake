@@ -1,7 +1,7 @@
 # set
 set(TMP_SOURCE)
 set(TMP_OBJECT)
-set(TMP_BINARY nndeploy_inference_mnn)
+set(TMP_BINARY nndeploy_inference_tensor_rt)
 set(TMP_DIRECTORY nndeploy)
 set(TMP_DEPEND_LIBRARY)
 set(TMP_SYSTEM_LIBRARY)
@@ -14,12 +14,12 @@ include_directories(${ROOT_PATH})
 
 # TMP_SOURCE
 file(GLOB_RECURSE TMP_SOURCE
-  "${ROOT_PATH}/nndeploy/source/inference/mnn/*.h"
-  "${ROOT_PATH}/nndeploy/source/inference/mnn/*.cc"
+  "${ROOT_PATH}/nndeploy/source/inference/tensor_rt/*.h"
+  "${ROOT_PATH}/nndeploy/source/inference/tensor_rt/*.cc"
   )
 file(GLOB_RECURSE TMP_TEST_SOURCE
-  "${ROOT_PATH}/nndeploy/source/inference/mnn/*_test.h"
-  "${ROOT_PATH}/nndeploy/source/inference/mnn/*_test.cc"
+  "${ROOT_PATH}/nndeploy/source/inference/tensor_rt/*_test.h"
+  "${ROOT_PATH}/nndeploy/source/inference/tensor_rt/*_test.cc"
   )
 list(REMOVE_ITEM TMP_SOURCE ${TMP_TEST_SOURCE})
 list(APPEND SOURCE ${TMP_SOURCE})
@@ -27,7 +27,7 @@ list(APPEND SOURCE ${TMP_SOURCE})
 # TMP_OBJECT
 
 # include
-include(${ROOT_PATH}/cmake/mnn.cmake)
+include(${ROOT_PATH}/cmake/tensor_rt.cmake)
 
 # TARGET
 # add_library(${TMP_BINARY} ${NNDEPLOY_LIB_TYPE} ${TMP_SOURCE} ${TMP_OBJECT})

@@ -1,12 +1,6 @@
 
 #include "nndeploy/source/inference/mnn/mnn_inference_impl.h"
 
-#include <iterator>
-
-#include "nndeploy/source/base/shape.h"
-#include "nndeploy/source/inference/mnn/mnn_config.h"
-#include "nndeploy/source/inference/mnn/mnn_convert.h"
-
 namespace nndeploy {
 namespace inference {
 
@@ -81,7 +75,7 @@ base::Status MnnInferenceImpl::preRun(base::ShapeMap min_shape,
     current_shape_.insert({name, dims});
   }
 
-  status = reshape(max_shape_);
+  status = reShape(max_shape_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
 
   const std::map<std::string, MNN::Tensor *> &internal_input_tensors =
@@ -208,6 +202,8 @@ int64_t MnnInferenceImpl::getMemorySize() {
   int64_t size = (int64_t)(fsize * 1024 * 1024);
   return size;
 }
+
+float MnnInferenceImpl::getGFLOPs() { return 0.0f; }
 
 base::Status MnnInferenceImpl::setInputTensor(
     const std::string &name,

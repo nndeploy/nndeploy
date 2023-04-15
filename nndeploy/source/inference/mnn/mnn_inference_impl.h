@@ -6,6 +6,7 @@
 #include "nndeploy/source/base/log.h"
 #include "nndeploy/source/base/macro.h"
 #include "nndeploy/source/base/object.h"
+#include "nndeploy/source/base/shape.h"
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/base/value.h"
 #include "nndeploy/source/device/device.h"
@@ -13,6 +14,7 @@
 #include "nndeploy/source/inference/abstract_inference_impl.h"
 #include "nndeploy/source/inference/config.h"
 #include "nndeploy/source/inference/mnn/mnn_config.h"
+#include "nndeploy/source/inference/mnn/mnn_convert.h"
 #include "nndeploy/source/inference/mnn/mnn_include.h"
 
 namespace nndeploy {
@@ -60,6 +62,8 @@ class MnnInferenceImpl : public AbstractInferenceImpl {
   virtual base::Status reShape(base::ShapeMap &shape_map);
 
   virtual int64_t getMemorySize();
+
+  virtual float getGFLOPs();
 
   virtual base::Status setInputTensor(
       const std::string &name,

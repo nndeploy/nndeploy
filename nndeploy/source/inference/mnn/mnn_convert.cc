@@ -1,7 +1,5 @@
 
 #include "nndeploy/source/inference/mnn/mnn_convert.h"
-#include "nndeploy/source/device/device_util.h"
-#include "nndeploy/source/inference/mnn/mnn_inference_impl.h"
 
 namespace nndeploy {
 namespace inference {
@@ -195,8 +193,8 @@ device::Tensor *MnnConvert::convertToTensor(MNN::Tensor *src, std::string name,
   auto src_buffer = src->buffer();
   void *data_ptr = (void *)src_buffer.host;
   base::IntVector memory_config = base::IntVector();
-  device::Tensor *dst = new device::Tensor(device, desc, data_ptr, name,
-                                           memory_config, type);
+  device::Tensor *dst =
+      new device::Tensor(device, desc, data_ptr, name, memory_config, type);
   return dst;
 }
 
@@ -205,7 +203,8 @@ MNN::Tensor *MnnConvert::convertFromTensor(device::Tensor *src) {
   std::vector<int> shape = desc.shape_;
   halide_type_t type = MnnConvert::convertFromDataType(desc.data_type_);
   void *data = src->getPtr();
-  MNN::Tensor::DimensionType dimType = MnnConvert::convertFromDataFormat(desc.format_);
+  MNN::Tensor::DimensionType dimType =
+      MnnConvert::convertFromDataFormat(desc.format_);
   MNN::Tensor *dst = MNN::Tensor::create(shape, type, data, dimType);
   return dst;
 }

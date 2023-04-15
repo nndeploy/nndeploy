@@ -3,7 +3,13 @@
 #define _NNDEPLOY_SOURCE_INFERENCE_CONFIG_H_
 
 #include "nndeploy/source/base/basic.h"
+#include "nndeploy/source/base/file.h"
+#include "nndeploy/source/base/glic_stl_include.h"
+#include "nndeploy/source/base/log.h"
+#include "nndeploy/source/base/macro.h"
+#include "nndeploy/source/base/object.h"
 #include "nndeploy/source/base/status.h"
+#include "nndeploy/source/base/string.h"
 #include "nndeploy/source/base/value.h"
 
 namespace nndeploy {

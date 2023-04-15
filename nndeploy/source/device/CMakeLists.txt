@@ -35,6 +35,12 @@ endif()
 if (NNDEPLOY_ENABLE_DEVICE_CUDA)
   include(cuda/config.cmake)
 endif()
+if (NNDEPLOY_ENABLE_DEVICE_OPENCL)
+  include(opencl/config.cmake)
+endif()
+if (NNDEPLOY_ENABLE_DEVICE_METAL)
+  include(metal/config.cmake)
+endif()
 
 # OBJECT
 
