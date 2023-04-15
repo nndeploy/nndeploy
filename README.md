@@ -3,27 +3,32 @@
 
 # 开源计划 
 ## nndeploy
-+ base模块的雏形 （70%）
-+ device模块的雏形
-  + 架构设计 （90%）
-  + cpu
-  + x86 （90%）
-  + arm
-  + cuda （70%）
-  + opencl
-+ inference 
-  + 架构设计（80%）
-  + mnn （70%）
-  + tensor_rt （30%）
-  + openvino
-  + tf-lite
-  + onnxruntime
++ base模块的雏形 - 基本完成，达到可用状态
++ device模块的雏形 - 基本完成，达到可用状态
+  + 架构设计 - 基本完成
+  + cpu  - 基本完成
+  + x86 - 基本完成
+  + arm - 基本完成
+  + cuda - 70%
+  + opencl - always
+  + metal - TODO 自告奋勇
++ inference - 基本完成，达到可用状态
+  + 架构设计 - 基本完成，达到可用状态，还差rapidjson相关
+  + mnn - 基本完成
+  + tensor_rt - 50%, always
+  + openvino - TODO 自告奋勇
+  + tf-lite - zwz
+  + onnxruntime - zw
+  + coreml - TODO 自告奋勇，建议和metal一起搞了
+  + ncnn - TODO 自告奋勇
+  + tnn - TODO 自告奋勇
 + graph （有初步的想法思路）
 + thread模块 （需要学习才会有思路）
 ## nntask （还未开始调研，需要选择一组模型库）
 + 封装opencv
 + 基于graph和inference的扩展
 + 一组算法
+  + detr，基于nndeploy完成部署 - always
 
 ## review整个代码并且完善
 
