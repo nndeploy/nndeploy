@@ -52,6 +52,7 @@
  * @brief thread
  *
  */
+#include <atomic>
 #include <condition_variable>
 #include <future>
 #include <mutex>

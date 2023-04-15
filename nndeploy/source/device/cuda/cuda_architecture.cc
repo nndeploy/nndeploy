@@ -21,6 +21,8 @@ base::Status CudaArchitecture::checkDevice(int32_t device_id,
   if (device_id > 0 && device_id < device_count) {
     return base::kStatusCodeOk;
   } else {
+    NNDEPLOY_LOGE("device id is invalid, device id: %d, device count: %d",
+                  device_id, device_count);
     return base::kStatusCodeErrorDeviceCuda;
   }
 }
@@ -29,7 +31,7 @@ Device* CudaArchitecture::createDevice(int32_t device_id, void* command_queue,
                                        std::string library_path) {
   CudaDevice* device = new CudaDevice(device_id, command_queue, library_path);
   if (device == NULL) {
-    // TODO: log
+    NNDEPLOY_LOGE("device is NULL");
     return NULL;
   }
 
@@ -43,7 +45,7 @@ Device* CudaArchitecture::createDevice(int32_t device_id, void* command_queue,
 
 base::Status CudaArchitecture::destoryDevice(Device* device) {
   if (device == NULL) {
-    // TODO: log
+    NNDEPLOY_LOGE("device is NULL");
     return base::kStatusCodeErrorNullParam;
   }
 
@@ -51,7 +53,7 @@ base::Status CudaArchitecture::destoryDevice(Device* device) {
 
   base::Status status = base::kStatusCodeOk;
   if (tmp_device->deinit() != base::kStatusCodeOk) {
-    // TODO: log
+    NNDEPLOY_LOGE("device deinit failed");
     status = base::kStatusCodeErrorDeviceCuda;
   }
   delete tmp_device;

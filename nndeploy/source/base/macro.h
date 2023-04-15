@@ -249,4 +249,19 @@ static inline int NNDEPLOY_XADD(int* addr, int delta) {
 #define NNDEPLOY_OS_UNIX 1
 #endif
 
+// ARCHITECTURE
+#define NNDEPLOY_ARCHITECTURE_X86 0
+#define NNDEPLOY_ARCHITECTURE_ARM 0
+#define NNDEPLOY_ARCHITECTURE_CPU 1
+
+#if (defined _X86_)
+#undef NNDEPLOY_ARCHITECTURE_X86
+#define NNDEPLOY_ARCHITECTURE_X86 1
+#endif
+
+#if (defined _ARM_)
+#undef NNDEPLOY_ARCHITECTURE_ARM
+#define NNDEPLOY_ARCHITECTURE_ARM 1
+#endif
+
 #endif  // _NNDEPLOY_SOURCE_BASE_MACRO_H_

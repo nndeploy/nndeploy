@@ -3,17 +3,17 @@
 #define _NNDEPLOY_SOURCE_DEVICE_TENSOR_H_
 
 #include "nndeploy/source/base/basic.h"
+#include "nndeploy/source/base/glic_stl_include.h"
 #include "nndeploy/source/base/log.h"
 #include "nndeploy/source/base/macro.h"
 #include "nndeploy/source/base/object.h"
 #include "nndeploy/source/base/status.h"
-#include "nndeploy/source/base/value.h"
 #include "nndeploy/source/device/buffer.h"
+#include "nndeploy/source/device/buffer_pool.h"
+#include "nndeploy/source/device/device.h"
 
 namespace nndeploy {
 namespace device {
-
-class Device;
 
 struct NNDEPLOY_CC_API TensorImplDesc {
   TensorImplDesc(){};
@@ -137,8 +137,8 @@ class TypeTensorCreator : public TensorCreator {
   virtual DefaultTensorImpl *createTensor() { return new T(); }
 };
 
-std::map<base::TensorImplType, std::shared_ptr<TensorCreator>> &
-getGlobalTensorCreatorMap();
+std::map<base::TensorImplType, std::shared_ptr<TensorCreator>>
+    &getGlobalTensorCreatorMap();
 
 template <typename T>
 class TypeTensorRegister {

@@ -1,7 +1,7 @@
 # set
 set(TMP_SOURCE)
 set(TMP_OBJECT)
-set(TMP_BINARY nndeploy_device_cuda)
+set(TMP_BINARY nndeploy_device_arm)
 set(TMP_DIRECTORY nndeploy)
 set(TMP_DEPEND_LIBRARY)
 set(TMP_SYSTEM_LIBRARY)
@@ -14,12 +14,12 @@ include_directories(${ROOT_PATH})
 
 # TMP_SOURCE
 file(GLOB_RECURSE TMP_SOURCE
-  "${ROOT_PATH}/nndeploy/source/device/cuda/*.h"
-  "${ROOT_PATH}/nndeploy/source/device/cuda/*.cc"
+  "${ROOT_PATH}/nndeploy/source/device/arm/*.h"
+  "${ROOT_PATH}/nndeploy/source/device/arm/*.cc"
   )
 file(GLOB_RECURSE TMP_TEST_SOURCE
-  "${ROOT_PATH}/nndeploy/source/device/cuda/*_test.h"
-  "${ROOT_PATH}/nndeploy/source/device/cuda/*_test.cc"
+  "${ROOT_PATH}/nndeploy/source/device/arm/*_test.h"
+  "${ROOT_PATH}/nndeploy/source/device/arm/*_test.cc"
   )
 list(REMOVE_ITEM TMP_SOURCE ${TMP_TEST_SOURCE})
 list(APPEND SOURCE ${TMP_SOURCE})

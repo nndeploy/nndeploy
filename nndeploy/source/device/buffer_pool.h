@@ -7,11 +7,13 @@
 #include "nndeploy/source/base/object.h"
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/device/buffer.h"
+#include "nndeploy/source/device/device.h"
 
 namespace nndeploy {
 namespace device {
 
-class Device;
+struct BufferDesc;
+class Buffer;
 
 class NNDEPLOY_CC_API BufferPool {
  public:

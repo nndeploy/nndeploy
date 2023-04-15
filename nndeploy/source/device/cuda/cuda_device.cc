@@ -1,9 +1,7 @@
 
 #include "nndeploy/source/device/cuda/cuda_device.h"
 
-#include <cstring>
-
-#include "nndeploy/source/device/device.h"
+#include "nndeploy/source/device/cuda/cuda_util.h"
 
 namespace nndeploy {
 namespace device {

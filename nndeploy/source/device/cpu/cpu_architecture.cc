@@ -1,28 +1,28 @@
 
-#include "nndeploy/source/device/x86/x86_architecture.h"
+#include "nndeploy/source/device/cpu/cpu_architecture.h"
 
-#include "nndeploy/source/device/x86/x86_device.h"
+#include "nndeploy/source/device/cpu/cpu_device.h"
 
 namespace nndeploy {
 namespace device {
 
-TypeArchitectureRegister<X86Architecture> x86_architecture_register(
-    base::kDeviceTypeCodeX86);
+TypeArchitectureRegister<CpuArchitecture> cpu_architecture_register(
+    base::kDeviceTypeCodeCpu);
 
-X86Architecture::X86Architecture(base::DeviceTypeCode device_type_code)
+CpuArchitecture::CpuArchitecture(base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code){};
 
-X86Architecture::~X86Architecture(){};
+CpuArchitecture::~CpuArchitecture(){};
 
-base::Status X86Architecture::checkDevice(int32_t device_id,
+base::Status CpuArchitecture::checkDevice(int32_t device_id,
                                           void* command_queue,
                                           std::string library_path) {
   return base::kStatusCodeOk;
 }
 
-Device* X86Architecture::createDevice(int32_t device_id, void* command_queue,
+Device* CpuArchitecture::createDevice(int32_t device_id, void* command_queue,
                                       std::string library_path) {
-  X86Device* device = new X86Device(device_id, command_queue, library_path);
+  CpuDevice* device = new CpuDevice(device_id, command_queue, library_path);
   if (device == NULL) {
     NNDEPLOY_LOGE("device is NULL");
     return NULL;
@@ -36,25 +36,25 @@ Device* X86Architecture::createDevice(int32_t device_id, void* command_queue,
   }
 }
 
-base::Status X86Architecture::destoryDevice(Device* device) {
+base::Status CpuArchitecture::destoryDevice(Device* device) {
   if (device == NULL) {
     NNDEPLOY_LOGE("device is NULL");
     return base::kStatusCodeErrorNullParam;
   }
 
-  X86Device* tmp_device = dynamic_cast<X86Device*>(device);
+  CpuDevice* tmp_device = dynamic_cast<CpuDevice*>(device);
 
   base::Status status = base::kStatusCodeOk;
   if (tmp_device->deinit() != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("device deinit failed");
-    status = base::kStatusCodeErrorDeviceX86;
+    status = base::kStatusCodeErrorDeviceCpu;
   }
   delete tmp_device;
 
   return status;
 }
 
-std::vector<DeviceInfo> X86Architecture::getDeviceInfo(
+std::vector<DeviceInfo> CpuArchitecture::getDeviceInfo(
     std::string library_path) {
   std::vector<DeviceInfo> device_info_list;
   return device_info_list;

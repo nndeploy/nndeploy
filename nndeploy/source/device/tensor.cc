@@ -2,12 +2,6 @@
 
 #include "nndeploy/source/device/tensor.h"
 
-#include "nndeploy/source/base/basic.h"
-#include "nndeploy/source/base/status.h"
-#include "nndeploy/source/device/buffer.h"
-#include "nndeploy/source/device/buffer_pool.h"
-#include "nndeploy/source/device/device.h"
-
 namespace nndeploy {
 namespace device {
 
@@ -198,8 +192,8 @@ BufferSourceType DefaultTensorImpl::getBufferSourceType() {
   return buffer_->getBufferSourceType();
 }
 
-std::map<base::TensorImplType, std::shared_ptr<TensorCreator>> &
-getGlobalTensorCreatorMap() {
+std::map<base::TensorImplType, std::shared_ptr<TensorCreator>>
+    &getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorImplType, std::shared_ptr<TensorCreator>>>

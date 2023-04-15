@@ -1,6 +1,10 @@
 
 #include "nndeploy/source/device/device.h"
 
+#include "nndeploy/source/device/buffer.h"
+#include "nndeploy/source/device/mat.h"
+#include "nndeploy/source/device/tensor.h"
+
 namespace nndeploy {
 namespace device {
 

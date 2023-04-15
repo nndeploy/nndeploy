@@ -23,8 +23,17 @@ file(GLOB TEST_SOURCE
   )
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
+if (NNDEPLOY_ENABLE_DEVICE_CPU)
+  include(cpu/config.cmake)
+endif()
 if (NNDEPLOY_ENABLE_DEVICE_X86)
   include(x86/config.cmake)
+endif()
+if (NNDEPLOY_ENABLE_DEVICE_ARM)
+  include(arm/config.cmake)
+endif()
+if (NNDEPLOY_ENABLE_DEVICE_CUDA)
+  include(cuda/config.cmake)
 endif()
 
 # OBJECT
@@ -46,6 +55,7 @@ target_link_libraries(${BINARY} ${SYSTEM_LIBRARY})
 target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
 
 # install
+install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
 
 # test
 if(NNDEPLOY_ENABLE_TEST)

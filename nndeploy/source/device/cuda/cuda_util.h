@@ -2,7 +2,12 @@
 #ifndef _NNDEPLOY_SOURCE_DEVICE_CUDA_CUDA_UTIL_H_
 #define _NNDEPLOY_SOURCE_DEVICE_CUDA_CUDA_UTIL_H_
 
+#include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
+#include "nndeploy/source/base/log.h"
+#include "nndeploy/source/base/macro.h"
+#include "nndeploy/source/base/object.h"
+#include "nndeploy/source/base/status.h"
 #include "nndeploy/source/device/cuda/cuda_include.h"
 
 namespace nndeploy {

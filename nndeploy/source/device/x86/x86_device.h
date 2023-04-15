@@ -17,6 +17,8 @@
 namespace nndeploy {
 namespace device {
 
+class X86Architecture;
+
 /**
  * @brief
  *

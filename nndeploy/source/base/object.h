@@ -23,7 +23,7 @@ struct NNDEPLOY_CC_API Deleter {
   template <typename T>
   void operator()(T* obj) const {
     if (obj) {
-      delete obj
+      delete obj;
     }
   }
 };

@@ -1,10 +1,10 @@
 
-#include "nndeploy/source/device/x86/x86_device.h"
+#include "nndeploy/source/device/arm/arm_device.h"
 
 namespace nndeploy {
 namespace device {
 
-BufferDesc X86Device::toBufferDesc(const MatDesc& desc,
+BufferDesc ArmDevice::toBufferDesc(const MatDesc& desc,
                                    const base::IntVector& config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
@@ -30,7 +30,7 @@ BufferDesc X86Device::toBufferDesc(const MatDesc& desc,
  * 通过stride_替代了data_format_，stride_的第一个元素表示的是整个tensor的大小
  * 意味着在TensorDesc的构造函数要花很多心思来计算stride_
  */
-BufferDesc X86Device::toBufferDesc(const TensorImplDesc& desc,
+BufferDesc ArmDevice::toBufferDesc(const TensorImplDesc& desc,
                                    const base::IntVector& config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
@@ -46,16 +46,16 @@ BufferDesc X86Device::toBufferDesc(const TensorImplDesc& desc,
   return buffer_desc;
 }
 
-Buffer* X86Device::allocate(size_t size) {
+Buffer* ArmDevice::allocate(size_t size) {
   BufferDesc desc(size);
   return this->allocate(desc);
 }
-Buffer* X86Device::allocate(const BufferDesc& desc) {
+Buffer* ArmDevice::allocate(const BufferDesc& desc) {
   void* data = malloc(desc.size_[0]);
   Buffer* buffer = Device::create(desc, data, kBufferSourceTypeAllocate);
   return buffer;
 }
-void X86Device::deallocate(Buffer* buffer) {
+void ArmDevice::deallocate(Buffer* buffer) {
   if (buffer == nullptr) {
     return;
   }
@@ -79,7 +79,7 @@ void X86Device::deallocate(Buffer* buffer) {
   }
 }
 
-base::Status X86Device::copy(Buffer* src, Buffer* dst) {
+base::Status ArmDevice::copy(Buffer* src, Buffer* dst) {
   BufferDescCompareStatus status =
       compareBufferDesc(dst->getDesc(), src->getDesc());
   if (status >= kBufferDescCompareStatusConfigEqualSizeEqual) {
@@ -90,7 +90,7 @@ base::Status X86Device::copy(Buffer* src, Buffer* dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::download(Buffer* src, Buffer* dst) {
+base::Status ArmDevice::download(Buffer* src, Buffer* dst) {
   BufferDescCompareStatus status =
       compareBufferDesc(dst->getDesc(), src->getDesc());
   if (status >= kBufferDescCompareStatusConfigEqualSizeEqual) {
@@ -101,7 +101,7 @@ base::Status X86Device::download(Buffer* src, Buffer* dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::upload(Buffer* src, Buffer* dst) {
+base::Status ArmDevice::upload(Buffer* src, Buffer* dst) {
   BufferDescCompareStatus status =
       compareBufferDesc(dst->getDesc(), src->getDesc());
   if (status >= kBufferDescCompareStatusConfigEqualSizeEqual) {
@@ -113,8 +113,8 @@ base::Status X86Device::upload(Buffer* src, Buffer* dst) {
   }
 }
 
-base::Status X86Device::init() { return base::kStatusCodeOk; }
-base::Status X86Device::deinit() { return base::kStatusCodeOk; }
+base::Status ArmDevice::init() { return base::kStatusCodeOk; }
+base::Status ArmDevice::deinit() { return base::kStatusCodeOk; }
 
 }  // namespace device
 }  // namespace nndeploy
