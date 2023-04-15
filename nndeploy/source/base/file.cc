@@ -1,24 +1,34 @@
 
+/**
+ * @TODO:
+ * 1. <sys/stat.h>
+ * # 这个头文件是否是跨平台的？
+ * # 不是跨平台的，需要改成跨平台的
+ * 2. 检查函数并修复
+ *
+ */
 #include "nndeploy/source/base/file.h"
+
+#include <sys/stat.h>
 
 namespace nndeploy {
 namespace base {
 
 std::string openFile(const std::string &file_path) {
-  std::ifstream infile;
-  infile.open("qqzl.txt", std::ios::in);
-  if (!infile.is_open()) {
+  std::string result = "";
+  std::ifstream fin(file_path, std::ios::in | std::ios::binary);
+  if (!fin.is_open()) {
     return "";
   }
-  std::string result;
-  std::string buf;
-  while (getline(infile, buf)) {
-    result += buf;
-  }
-  infile.close();
+  fin.seekg(0, std::ios::end);
+  result.resize(fin.tellg());
+  fin.seekg(0, std::ios::beg);
+  fin.read(&(result.at(0)), result.size());
+  fin.close();
   return result;
 }
 
+// TODO: fix this function
 std::vector<std::string> getFileName(const std::string &dir_path,
                                      const std::string &suffix) {
   std::vector<std::string> fileNames;
@@ -71,6 +81,31 @@ bool existFile(const std::string &file_path) {
   } else {
     return false;
   }
+}
+
+std::string pathJoin(const std::vector<std::string> &paths,
+                     const std::string &sep) {
+  if (paths.size() == 1) {
+    return paths[0];
+  }
+  std::string filepath = "";
+  for (const auto &path : paths) {
+    if (filepath == "") {
+      filepath += path;
+      continue;
+    }
+    if (path[0] == sep[0] || filepath.back() == sep[0]) {
+      filepath += path;
+    } else {
+      filepath += sep + path;
+    }
+  }
+  return filepath;
+}
+
+std::string pathJoin(const std::string &folder, const std::string &filename,
+                     const std::string &sep) {
+  return pathJoin(std::vector<std::string>{folder, filename}, sep);
 }
 
 }  // namespace base

@@ -42,13 +42,11 @@ class AbstractInferenceImpl {
 
   virtual base::Status reShape(base::ShapeMap &shape_map) = 0;
 
-  virtual int64_t getWorkspaceSize();
-  virtual int64_t getWorkspaceSize(int index);
-  virtual base::Status setWorkspace(device::Buffer *buffer);
-
   virtual int64_t getMemorySize();
   virtual int64_t getMemorySize(int index);
   virtual base::Status setMemory(device::Buffer *buffer);
+
+  virtual float getGFLOPs();
 
   virtual device::TensorMap getAllInputTensor();
   virtual device::TensorMap getAllOutputTensor();

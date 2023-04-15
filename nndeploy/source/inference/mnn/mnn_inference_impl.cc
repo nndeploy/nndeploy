@@ -81,7 +81,8 @@ base::Status MnnInferenceImpl::preRun(base::ShapeMap min_shape,
     current_shape_.insert({name, dims});
   }
 
-  reShape(max_shape_);
+  status = reshape(max_shape_);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
 
   const std::map<std::string, MNN::Tensor *> &internal_input_tensors =
       internal_interpreter_->getSessionInputAll(internal_session_);

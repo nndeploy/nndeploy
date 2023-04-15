@@ -57,16 +57,6 @@ base::Status Inference::reShape(base::ShapeMap &shape_map) {
   return inference_impl_->reShape(shape_map);
 }
 
-int64_t Inference::getWorkspaceSize() {
-  return inference_impl_->getWorkspaceSize();
-}
-int64_t Inference::getWorkspaceSize(int index) {
-  return inference_impl_->getWorkspaceSize(index);
-}
-base::Status Inference::setWorkspace(device::Buffer *buffer) {
-  return inference_impl_->setWorkspace(buffer);
-}
-
 int64_t Inference::getMemorySize() { return inference_impl_->getMemorySize(); }
 int64_t Inference::getMemorySize(int index) {
   return inference_impl_->getMemorySize(index);
@@ -74,6 +64,8 @@ int64_t Inference::getMemorySize(int index) {
 base::Status Inference::setMemory(device::Buffer *buffer) {
   return inference_impl_->setMemory(buffer);
 }
+
+float Inference::getGFLOPs() { return inference_impl_->getGFLOPs(); }
 
 device::TensorMap Inference::getAllInputTensor() {
   return inference_impl_->getAllInputTensor();

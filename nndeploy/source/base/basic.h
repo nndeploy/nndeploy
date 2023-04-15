@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_SOURCE_BASE_BASIC_H_
 #define _NNDEPLOY_SOURCE_BASE_BASIC_H_
 
-#include "nndeploy/source/base/include_c_cpp.h"
+#include "nndeploy/source/base/glic_stl_include.h"
 #include "nndeploy/source/base/macro.h"
 
 namespace nndeploy {
@@ -33,31 +33,31 @@ struct CheckIsPointer;
 template <typename T>
 struct CheckIsPointer<T*> {};
 template <typename T>
-DataType DataTypeOf() {
+DataType dataTypeOf() {
   CheckIsPointer<T> check;
   (void)check;
   return DataType(kDataTypeCodeOpaqueHandle, 64);
 }
 template <>
-NNDEPLOY_CC_API DataType DataTypeOf<float>();
+NNDEPLOY_CC_API DataType dataTypeOf<float>();
 template <>
-NNDEPLOY_CC_API DataType DataTypeOf<double>();
+NNDEPLOY_CC_API DataType dataTypeOf<double>();
 template <>
-NNDEPLOY_CC_API DataType DataTypeOf<uint8_t>();
+NNDEPLOY_CC_API DataType dataTypeOf<uint8_t>();
 template <>
-NNDEPLOY_CC_API DataType DataTypeOf<uint16_t>();
+NNDEPLOY_CC_API DataType dataTypeOf<uint16_t>();
 template <>
-NNDEPLOY_CC_API DataType DataTypeOf<uint32_t>();
+NNDEPLOY_CC_API DataType dataTypeOf<uint32_t>();
 template <>
-NNDEPLOY_CC_API DataType DataTypeOf<uint64_t>();
+NNDEPLOY_CC_API DataType dataTypeOf<uint64_t>();
 template <>
-NNDEPLOY_CC_API DataType DataTypeOf<int8_t>();
+NNDEPLOY_CC_API DataType dataTypeOf<int8_t>();
 template <>
-NNDEPLOY_CC_API DataType DataTypeOf<int16_t>();
+NNDEPLOY_CC_API DataType dataTypeOf<int16_t>();
 template <>
-NNDEPLOY_CC_API DataType DataTypeOf<int32_t>();
+NNDEPLOY_CC_API DataType dataTypeOf<int32_t>();
 template <>
-NNDEPLOY_CC_API DataType DataTypeOf<int64_t>();
+NNDEPLOY_CC_API DataType dataTypeOf<int64_t>();
 
 enum DeviceTypeCode : int32_t {
   kDeviceTypeCodeCpu = 0x0000,
@@ -67,9 +67,6 @@ enum DeviceTypeCode : int32_t {
   kDeviceTypeCodeOpenCL,
   kDeviceTypeCodeOpenGL,
   kDeviceTypeCodeMetal,
-
-  // none
-  kDeviceTypeCodeNone,
 
   // not sopport
   kDeviceTypeCodeNotSupport,
@@ -81,7 +78,7 @@ struct NNDEPLOY_CC_API DeviceType {
       : code_(code), device_id_(device_id){};
   DeviceType(const DeviceType& other) = default;
   DeviceType& operator=(const DeviceType& other) = default;
-  DeviceType& operator=(const DeviceTypeCode other) {
+  DeviceType& operator=(const DeviceTypeCode& other) {
     code_ = other;
     device_id_ = 0;
     return *this;
@@ -89,6 +86,7 @@ struct NNDEPLOY_CC_API DeviceType {
   bool operator==(const DeviceType& other) const {
     return code_ == other.code_ && device_id_ == other.device_id_;
   };
+  bool operator==(const DeviceTypeCode& other) const { return code_ == other; };
   int32_t code_ = kDeviceTypeCodeCpu;
   int32_t device_id_ = 0;
 };
@@ -133,6 +131,18 @@ enum PrecisionType : int32_t {
   kPrecisionTypeFp16,
   kPrecisionTypeFp32,
   kPrecisionTypeFp64,
+
+  // not sopport
+  kPrecisionTypeNotSupport,
+};
+
+enum PowerType : int32_t {
+  kPowerTypeHigh = 0x0000,
+  kPowerTypeNormal,
+  kPowerTypeLow,
+
+  // not sopport
+  kPowerTypeNotSupport,
 };
 
 enum ShareMemoryType : int32_t {
@@ -144,7 +154,7 @@ enum ShareMemoryType : int32_t {
 };
 
 enum BufferStatus : int32_t {
-  kBufferStatusdeallocate = 0x0000,
+  kBufferStatusFree = 0x0000,
   kBufferStatusUsed,
 };
 
@@ -152,18 +162,6 @@ enum BufferPoolType : int32_t {
   kBufferPoolTypeEmbed = 0x0000,
   kBufferPoolTypeUnity,
   kBufferPoolTypeChunkIndepend,
-
-  // not support
-  kBufferPoolTypeNotSupport,
-};
-
-enum PowerType : int32_t {
-  kPowerTypeHigh = 0x0000,
-  kPowerTypeNormal,
-  kPowerTypeLow,
-
-  // not sopport
-  kPowerTypeNotSupport,
 };
 
 enum TensorImplType : int32_t {
@@ -196,6 +194,7 @@ enum InferenceType : int32_t {
   kInferenceTypeTensorRt,
   kInferenceTypeCoreML,
   kInferenceTypeTfLite,
+  kInferenceTypeOnnxRuntime,
 
   kInferenceTypeNcnn,
   kInferenceTypeTnn,

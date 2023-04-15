@@ -1,6 +1,33 @@
 # 机器学习部署框架
 + ai算法工程化 + 推理 的 机器学习部署框架
 
+# 开源计划 
+## nndeploy
++ base模块的雏形 （70%）
++ device模块的雏形
+  + 架构设计 （90%）
+  + cpu
+  + x86 （90%）
+  + arm
+  + cuda （70%）
+  + opencl
++ inference 
+  + 架构设计（80%）
+  + mnn （70%）
+  + tensor_rt （30%）
+  + openvino
+  + tf-lite
+  + onnxruntime
++ graph （有初步的想法思路）
++ thread模块 （需要学习才会有思路）
+## nntask （还未开始调研，需要选择一组模型库）
++ 封装opencv
++ 基于graph和inference的扩展
++ 一组算法
+
+## review整个代码并且完善
+
+## windows and linux
 
 ## 目录
 + build

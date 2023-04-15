@@ -42,13 +42,11 @@ class Inference {
 
   base::Status reShape(base::ShapeMap &shape_map);
 
-  int64_t getWorkspaceSize();
-  int64_t getWorkspaceSize(int index);
-  base::Status setWorkspace(device::Buffer *buffer);
-
   int64_t getMemorySize();
   int64_t getMemorySize(int index);
   base::Status setMemory(device::Buffer *buffer);
+
+  float getGFLOPs();
 
   device::TensorMap getAllInputTensor();
   device::TensorMap getAllOutputTensor();

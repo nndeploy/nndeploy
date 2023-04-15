@@ -3,7 +3,7 @@
 #define _NNDEPLOY_SOURCE_BASE_OBJECT_H_
 
 #include "nndeploy/source/base/basic.h"
-#include "nndeploy/source/base/include_c_cpp.h"
+#include "nndeploy/source/base/glic_stl_include.h"
 #include "nndeploy/source/base/macro.h"
 #include "nndeploy/source/base/status.h"
 
@@ -17,6 +17,38 @@ class NNDEPLOY_CC_API NonCopyable {
   NonCopyable(NonCopyable&&) = delete;
   NonCopyable& operator=(const NonCopyable&) = delete;
   NonCopyable& operator=(NonCopyable&&) = delete;
+};
+
+struct NNDEPLOY_CC_API Deleter {
+  template <typename T>
+  void operator()(T* obj) const {
+    if (obj) {
+      delete obj
+    }
+  }
+};
+
+template <typename T>
+using UniquePtr = std::unique_ptr<T, Deleter>;
+
+template <typename T>
+class Singleton {
+ public:
+  /**
+  @brief get a reference to the singleton object
+  */
+  inline static T& getInstance() {
+    static T instance;
+    return instance;
+  }
+
+ private:
+  Singleton() = default;
+  ~Singleton() = default;
+  Singleton(const Singleton&) = delete;
+  Singleton& operator=(const Singleton&) = delete;
+  Singleton(Singleton&&) = delete;
+  Singleton& operator=(Singleton&&) = delete;
 };
 
 }  // namespace base

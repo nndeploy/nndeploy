@@ -59,19 +59,6 @@ base::Status AbstractInferenceImpl::getMaxShape(base::ShapeMap &shape_map) {
   return base::kStatusCodeOk;
 }
 
-int64_t AbstractInferenceImpl::getWorkspaceSize() {
-  NNDEPLOY_LOGI("this api is not implemented");
-  return -1;
-}
-int64_t AbstractInferenceImpl::getWorkspaceSize(int index) {
-  NNDEPLOY_LOGI("this api is not implemented");
-  return -1;
-}
-base::Status AbstractInferenceImpl::setWorkspace(device::Buffer *buffer) {
-  NNDEPLOY_LOGI("this api is not implemented");
-  return base::kStatusCodeOk;
-}
-
 int64_t AbstractInferenceImpl::getMemorySize() {
   NNDEPLOY_LOGI("this api is not implemented");
   return -1;
@@ -83,6 +70,11 @@ int64_t AbstractInferenceImpl::getMemorySize(int index) {
 base::Status AbstractInferenceImpl::setMemory(device::Buffer *buffer) {
   NNDEPLOY_LOGI("this api is not implemented");
   return base::kStatusCodeOk;
+}
+
+float AbstractInferenceImpl::getGFLOPs() {
+  NNDEPLOY_LOGI("this api is not implemented");
+  return 0.0f;
 }
 
 device::TensorMap AbstractInferenceImpl::getAllInputTensor() {
@@ -131,8 +123,8 @@ std::shared_ptr<device::Tensor> AbstractInferenceImpl::getOutputTensor(
   }
 }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>>

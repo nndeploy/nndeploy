@@ -1,8 +1,7 @@
-#ifndef B6EAB1A2_9A5A_4675_A971_D316587D319B
-#define B6EAB1A2_9A5A_4675_A971_D316587D319B
 
-#ifndef _NNDEPLOY_SOURCE_DEVICE_X86_DEVICE_H_
-#define _NNDEPLOY_SOURCE_DEVICE_X86_DEVICE_H_
+
+#ifndef _NNDEPLOY_SOURCE_DEVICE_CUDA_DEVICE_H_
+#define _NNDEPLOY_SOURCE_DEVICE_CUDA_DEVICE_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/log.h"
@@ -23,8 +22,8 @@ namespace device {
  * @brief
  *
  */
-class NNDEPLOY_CC_API X86Device : public Device {
-  friend class X86Architecture;
+class NNDEPLOY_CC_API CudaDevice : public Device {
+  friend class CudaArchitecture;
 
  public:
   virtual BufferDesc toBufferDesc(const MatDesc& desc,
@@ -41,19 +40,26 @@ class NNDEPLOY_CC_API X86Device : public Device {
   virtual base::Status download(Buffer* src, Buffer* dst);
   virtual base::Status upload(Buffer* src, Buffer* dst);
 
+  virtual base::Status synchronize();
+
+  virtual void* getCommandQueue();
+
  protected:
-  X86Device(base::DeviceType device_type, void* command_queue = NULL,
-            std::string library_path = "")
-      : Device(device_type){};
-  virtual ~X86Device(){};
+  CudaDevice(base::DeviceType device_type, void* command_queue = NULL,
+             std::string library_path = "")
+      : Device(device_type), external_command_queue_(command_queue){};
+  virtual ~CudaDevice(){};
 
   virtual base::Status init();
   virtual base::Status deinit();
+
+ private:
+  void* external_command_queue_ = NULL;
+  cudaStream_t stream_;
+  int device_id_ = 0;
 };
 
 }  // namespace device
 }  // namespace nndeploy
 
 #endif
-
-#endif /* B6EAB1A2_9A5A_4675_A971_D316587D319B */

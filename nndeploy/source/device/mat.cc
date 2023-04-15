@@ -18,11 +18,11 @@ Mat::Mat(Device *device, const MatDesc &desc, const base::IntVector &config) {
 }
 
 Mat::Mat(Device *device, const MatDesc &desc, void *data_ptr,
-         const base::IntVector &config ) {
+         const base::IntVector &config) {
   create(device, desc, data_ptr, config);
 }
 Mat::Mat(Device *device, const MatDesc &desc, int32_t data_id,
-         const base::IntVector &config ) {
+         const base::IntVector &config) {
   create(device, desc, data_id, config);
 }
 
@@ -124,7 +124,7 @@ void Mat::create(Device *device, const MatDesc &desc, Buffer *buffer,
 }
 
 void Mat::destory() {
-  desc_.data_type_ = base::DataTypeOf<float>();
+  desc_.data_type_ = base::dataTypeOf<float>();
   desc_.shape_.clear();
   desc_.stride_.clear();
 

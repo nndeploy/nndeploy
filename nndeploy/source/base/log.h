@@ -1,8 +1,12 @@
 
+/**
+ * @TODO：要不要去使用一个第三方的日志库，比如sdplog
+ *
+ */
 #ifndef _NNDEPLOY_SOURCE_BASE_LOG_H_
 #define _NNDEPLOY_SOURCE_BASE_LOG_H_
 
-#include "nndeploy/source/base/include_c_cpp.h"
+#include "nndeploy/source/base/glic_stl_include.h"
 #include "nndeploy/source/base/macro.h"
 
 namespace nndeploy {

@@ -14,7 +14,7 @@ namespace device {
 static TypeTensorRegister<TypeTensorCreator<DefaultTensorImpl>>
     g_defalut_tensor_register(base::kTensorImplTypeDefault);
 
-DefaultTensorImpl::DefaultTensorImpl():buffer_(nullptr) {}
+DefaultTensorImpl::DefaultTensorImpl() : buffer_(nullptr) {}
 DefaultTensorImpl::~DefaultTensorImpl() { destory(); }
 
 DefaultTensorImpl::DefaultTensorImpl(const TensorImplDesc &desc,
@@ -106,7 +106,7 @@ void DefaultTensorImpl::create(Device *device, const TensorImplDesc &desc,
 void DefaultTensorImpl::destory() {
   name_.clear();
 
-  desc_.data_type_ = base::DataTypeOf<float>();
+  desc_.data_type_ = base::dataTypeOf<float>();
   desc_.format_ = base::kDataFormatNotSupport;
   desc_.shape_.clear();
   desc_.stride_.clear();
@@ -262,7 +262,7 @@ Tensor::Tensor(const TensorImplDesc &desc, Buffer *buffer,
 
 // create
 void Tensor::create(const TensorImplDesc &desc, const std::string &name) {
-  tensor_impl_->create(desc, name );
+  tensor_impl_->create(desc, name);
 }
 void Tensor::create(Device *device, const TensorImplDesc &desc,
                     const std::string &name, const base::IntVector &config) {

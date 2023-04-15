@@ -30,7 +30,7 @@ struct NNDEPLOY_CC_API TensorImplDesc {
 
   virtual ~TensorImplDesc(){};
 
-  base::DataType data_type_ = base::DataTypeOf<float>();
+  base::DataType data_type_ = base::dataTypeOf<float>();
   base::DataFormat format_ = base::kDataFormatNotSupport;
   base::IntVector shape_;
   base::SizeVector stride_;
@@ -161,25 +161,25 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   virtual ~Tensor();
 
   Tensor(const TensorImplDesc &desc, const std::string &name = "",
-                    base::TensorImplType type = base::kTensorImplTypeDefault);
+         base::TensorImplType type = base::kTensorImplTypeDefault);
 
   Tensor(Device *device, const TensorImplDesc &desc,
-                    const std::string &name = "",
-                    const base::IntVector &config = base::IntVector(),
-                    base::TensorImplType type = base::kTensorImplTypeDefault);
+         const std::string &name = "",
+         const base::IntVector &config = base::IntVector(),
+         base::TensorImplType type = base::kTensorImplTypeDefault);
 
   Tensor(Device *device, const TensorImplDesc &desc, void *data_ptr,
-                    const std::string &name = "",
-                    const base::IntVector &config = base::IntVector(),
-                    base::TensorImplType type = base::kTensorImplTypeDefault);
+         const std::string &name = "",
+         const base::IntVector &config = base::IntVector(),
+         base::TensorImplType type = base::kTensorImplTypeDefault);
   Tensor(Device *device, const TensorImplDesc &desc, int32_t data_id,
-                    const std::string &name = "",
-                    const base::IntVector &config = base::IntVector(),
-                    base::TensorImplType type = base::kTensorImplTypeDefault);
+         const std::string &name = "",
+         const base::IntVector &config = base::IntVector(),
+         base::TensorImplType type = base::kTensorImplTypeDefault);
 
   Tensor(const TensorImplDesc &desc, Buffer *buffer,
-                    const std::string &name = "",
-                    base::TensorImplType type = base::kTensorImplTypeDefault);
+         const std::string &name = "",
+         base::TensorImplType type = base::kTensorImplTypeDefault);
 
   // create
   // 必须确保为空

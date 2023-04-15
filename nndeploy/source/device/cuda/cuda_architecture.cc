@@ -1,28 +1,33 @@
 
-#include "nndeploy/source/device/x86/x86_architecture.h"
+#include "nndeploy/source/device/cuda/cuda_architecture.h"
 
-#include "nndeploy/source/device/x86/x86_device.h"
+#include "nndeploy/source/device/cuda/cuda_device.h"
 
 namespace nndeploy {
 namespace device {
 
-TypeArchitectureRegister<X86Architecture> x86_architecture_register(
-    base::kDeviceTypeCodeX86);
+TypeArchitectureRegister<CudaArchitecture> cuda_architecture_register(
+    base::kDeviceTypeCodeCuda);
 
-X86Architecture::X86Architecture(base::DeviceTypeCode device_type_code)
+CudaArchitecture::CudaArchitecture(base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code){};
 
-X86Architecture::~X86Architecture(){};
+CudaArchitecture::~CudaArchitecture(){};
 
-base::Status X86Architecture::checkDevice(int32_t device_id,
-                                          void* command_queue,
-                                          std::string library_path) {
-  return base::kStatusCodeOk;
+base::Status CudaArchitecture::checkDevice(int32_t device_id,
+                                           void* command_queue,
+                                           std::string library_path) {
+  int32_t device_count = cudaGetNumDevices();
+  if (device_id > 0 && device_id < device_count) {
+    return base::kStatusCodeOk;
+  } else {
+    return base::kStatusCodeErrorDeviceCuda;
+  }
 }
 
-Device* X86Architecture::createDevice(int32_t device_id, void* command_queue,
-                                      std::string library_path) {
-  X86Device* device = new X86Device(device_id, command_queue, library_path);
+Device* CudaArchitecture::createDevice(int32_t device_id, void* command_queue,
+                                       std::string library_path) {
+  CudaDevice* device = new CudaDevice(device_id, command_queue, library_path);
   if (device == NULL) {
     // TODO: log
     return NULL;
@@ -36,27 +41,33 @@ Device* X86Architecture::createDevice(int32_t device_id, void* command_queue,
   }
 }
 
-base::Status X86Architecture::destoryDevice(Device* device) {
+base::Status CudaArchitecture::destoryDevice(Device* device) {
   if (device == NULL) {
     // TODO: log
     return base::kStatusCodeErrorNullParam;
   }
 
-  X86Device* tmp_device = dynamic_cast<X86Device*>(device);
+  CudaDevice* tmp_device = dynamic_cast<CudaDevice*>(device);
 
   base::Status status = base::kStatusCodeOk;
   if (tmp_device->deinit() != base::kStatusCodeOk) {
     // TODO: log
-    status = base::kStatusCodeErrorDeviceX86;
+    status = base::kStatusCodeErrorDeviceCuda;
   }
   delete tmp_device;
 
   return status;
 }
 
-std::vector<DeviceInfo> X86Architecture::getDeviceInfo(
+std::vector<DeviceInfo> CudaArchitecture::getDeviceInfo(
     std::string library_path) {
   std::vector<DeviceInfo> device_info_list;
+  int32_t device_count = cudaGetNumDevices();
+  for (int i = 0; i < device_count; ++i) {
+    cudaDeviceProp p = cudaGetDeviceProperties(i);
+    DeviceInfo device_info;
+    device_info_list.push_back(device_info);
+  }
   return device_info_list;
 }
 

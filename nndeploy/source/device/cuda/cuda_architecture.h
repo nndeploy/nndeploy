@@ -1,24 +1,26 @@
 
-#ifndef _NNDEPLOY_SOURCE_DEVICE_X86_ARCHITECTURE_H_
-#define _NNDEPLOY_SOURCE_DEVICE_X86_ARCHITECTURE_H_
+#ifndef _NNDEPLOY_SOURCE_DEVICE_CUDA_ARCHITECTURE_H_
+#define _NNDEPLOY_SOURCE_DEVICE_CUDA_ARCHITECTURE_H_
 
 #include "nndeploy/source/base/basic.h"
-#include "nndeploy/source/base/include_c_cpp.h"
+#include "nndeploy/source/base/glic_stl_include.h"
 #include "nndeploy/source/base/log.h"
 #include "nndeploy/source/base/macro.h"
 #include "nndeploy/source/base/object.h"
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/device/architecture.h"
+#include "nndeploy/source/device/cuda/cuda_include.h"
+#include "nndeploy/source/device/cuda/cuda_util.h"
 #include "nndeploy/source/device/device.h"
 
 namespace nndeploy {
 namespace device {
 
-class X86Architecture : public Architecture {
+class CudaArchitecture : public Architecture {
  public:
-  explicit X86Architecture(base::DeviceTypeCode device_type_code);
+  explicit CudaArchitecture(base::DeviceTypeCode device_type_code);
 
-  virtual ~X86Architecture();
+  virtual ~CudaArchitecture();
 
   virtual base::Status checkDevice(int32_t device_id = 0,
                                    void* command_queue = NULL,
