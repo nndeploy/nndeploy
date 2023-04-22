@@ -57,7 +57,7 @@ namespace device {
  */
 inline int cudaGetNumDevices() {
   int n = 0;
-  NNDEPLOY_CHECK_CUDA(cudaGetDeviceCount(&n));
+  NNDEPLOY_CUDA_CHECK(cudaGetDeviceCount(&n));
   return n;
 }
 
@@ -66,20 +66,20 @@ inline int cudaGetNumDevices() {
  */
 inline int cudaGetDeviceId() {
   int id;
-  NNDEPLOY_CHECK_CUDA(cudaGetDevice(&id));
+  NNDEPLOY_CUDA_CHECK(cudaGetDevice(&id));
   return id;
 }
 
 /**
  * @brief switches to a given device context
  */
-inline void cudaSetDeviceId(int id) { NNDEPLOY_CHECK_CUDA(cudaSetDevice(id)); }
+inline void cudaSetDeviceId(int id) { NNDEPLOY_CUDA_CHECK(cudaSetDevice(id)); }
 
 /**
  * @brief obtains the device property
  */
 inline void cudaGetDeviceProperty(int i, cudaDeviceProp& p) {
-  NNDEPLOY_CHECK_CUDA(cudaGetDeviceProperties(&p, i));
+  NNDEPLOY_CUDA_CHECK(cudaGetDeviceProperties(&p, i));
 }
 
 /**
@@ -87,7 +87,7 @@ inline void cudaGetDeviceProperty(int i, cudaDeviceProp& p) {
  */
 inline cudaDeviceProp cudaGetDeviceProperty(int i) {
   cudaDeviceProp p;
-  NNDEPLOY_CHECK_CUDA(cudaGetDeviceProperties(&p, i));
+  NNDEPLOY_CUDA_CHECK(cudaGetDeviceProperties(&p, i));
   return p;
 }
 
@@ -138,7 +138,7 @@ inline void cudaDumpDeviceProperty(std::ostream& os, const cudaDeviceProp& p) {
  */
 inline int cudaGetDeviceMaxThreadsPerBlock(int d) {
   int threads = 0;
-  NNDEPLOY_CHECK_CUDA(
+  NNDEPLOY_CUDA_CHECK(
       cudaDeviceGetAttribute(&threads, cudaDevAttrMaxThreadsPerBlock, d));
   return threads;
 }
@@ -148,7 +148,7 @@ inline int cudaGetDeviceMaxThreadsPerBlock(int d) {
  */
 inline int cudaGetDeviceMaxXDimPerBlock(int d) {
   int dim = 0;
-  NNDEPLOY_CHECK_CUDA(cudaDeviceGetAttribute(&dim, cudaDevAttrMaxBlockDimX, d));
+  NNDEPLOY_CUDA_CHECK(cudaDeviceGetAttribute(&dim, cudaDevAttrMaxBlockDimX, d));
   return dim;
 }
 
@@ -157,7 +157,7 @@ inline int cudaGetDeviceMaxXDimPerBlock(int d) {
  */
 inline int cudaGetDeviceMaxYDimPerBlock(int d) {
   int dim = 0;
-  NNDEPLOY_CHECK_CUDA(cudaDeviceGetAttribute(&dim, cudaDevAttrMaxBlockDimY, d));
+  NNDEPLOY_CUDA_CHECK(cudaDeviceGetAttribute(&dim, cudaDevAttrMaxBlockDimY, d));
   return dim;
 }
 
@@ -166,7 +166,7 @@ inline int cudaGetDeviceMaxYDimPerBlock(int d) {
  */
 inline size_t cudaGetDeviceMaxZDimPerBlock(int d) {
   int dim = 0;
-  NNDEPLOY_CHECK_CUDA(cudaDeviceGetAttribute(&dim, cudaDevAttrMaxBlockDimZ, d));
+  NNDEPLOY_CUDA_CHECK(cudaDeviceGetAttribute(&dim, cudaDevAttrMaxBlockDimZ, d));
   return dim;
 }
 
@@ -175,9 +175,8 @@ inline size_t cudaGetDeviceMaxZDimPerBlock(int d) {
  */
 inline size_t cudaGetDeviceMaxXDimPerGrid(int d) {
   int dim = 0;
-  NNDEPLOY_CHECK_CUDA(
-      cudaDeviceGetAttribute(&dim, cudaDevAttrMaxGridDimX, d),
-      "failed to query the maximum x-dimension per grid on device ", d);
+  NNDEPLOY_CUDA_CHECK(
+      cudaDeviceGetAttribute(&dim, cudaDevAttrMaxGridDimX, d));
   return dim;
 }
 
@@ -186,7 +185,7 @@ inline size_t cudaGetDeviceMaxXDimPerGrid(int d) {
  */
 inline size_t cudaGetDeviceMaxYDimPerGrid(int d) {
   int dim = 0;
-  NNDEPLOY_CHECK_CUDA(cudaDeviceGetAttribute(&dim, cudaDevAttrMaxGridDimY, d));
+  NNDEPLOY_CUDA_CHECK(cudaDeviceGetAttribute(&dim, cudaDevAttrMaxGridDimY, d));
   return dim;
 }
 
@@ -195,7 +194,7 @@ inline size_t cudaGetDeviceMaxYDimPerGrid(int d) {
  */
 inline size_t cudaGetDeviceMaxZDimPerGrid(int d) {
   int dim = 0;
-  NNDEPLOY_CHECK_CUDA(cudaDeviceGetAttribute(&dim, cudaDevAttrMaxGridDimZ, d));
+  NNDEPLOY_CUDA_CHECK(cudaDeviceGetAttribute(&dim, cudaDevAttrMaxGridDimZ, d));
   return dim;
 }
 
@@ -205,7 +204,7 @@ inline size_t cudaGetDeviceMaxZDimPerGrid(int d) {
  */
 inline size_t cudaGetDeviceMaxSharedMemoryPerBlock(int d) {
   int num = 0;
-  NNDEPLOY_CHECK_CUDA(
+  NNDEPLOY_CUDA_CHECK(
       cudaDeviceGetAttribute(&num, cudaDevAttrMaxSharedMemoryPerBlock, d));
   return num;
 }
@@ -215,7 +214,7 @@ inline size_t cudaGetDeviceMaxSharedMemoryPerBlock(int d) {
  */
 inline size_t cudaGetDeviceWarpSize(int d) {
   int num = 0;
-  NNDEPLOY_CHECK_CUDA(cudaDeviceGetAttribute(&num, cudaDevAttrWarpSize, d));
+  NNDEPLOY_CUDA_CHECK(cudaDeviceGetAttribute(&num, cudaDevAttrWarpSize, d));
   return num;
 }
 
@@ -224,7 +223,7 @@ inline size_t cudaGetDeviceWarpSize(int d) {
 */
 inline int cudaGetDeviceComputeCapabilityMajor(int d) {
   int num = 0;
-  NNDEPLOY_CHECK_CUDA(
+  NNDEPLOY_CUDA_CHECK(
       cudaDeviceGetAttribute(&num, cudaDevAttrComputeCapabilityMajor, d));
   return num;
 }
@@ -234,7 +233,7 @@ inline int cudaGetDeviceComputeCapabilityMajor(int d) {
  */
 inline int cudaGetDeviceComputeCapabilityMinor(int d) {
   int num = 0;
-  NNDEPLOY_CHECK_CUDA(
+  NNDEPLOY_CUDA_CHECK(
       cudaDeviceGetAttribute(&num, cudaDevAttrComputeCapabilityMinor, d));
   return num;
 }
@@ -244,7 +243,7 @@ inline int cudaGetDeviceComputeCapabilityMinor(int d) {
  */
 inline bool cudaGetDeviceUnifiedAddressing(int d) {
   int num = 0;
-  NNDEPLOY_CHECK_CUDA(
+  NNDEPLOY_CUDA_CHECK(
       cudaDeviceGetAttribute(&num, cudaDevAttrUnifiedAddressing, d));
   return num;
 }
@@ -255,7 +254,7 @@ inline bool cudaGetDeviceUnifiedAddressing(int d) {
  */
 inline int cudaGetDriverVersion() {
   int num = 0;
-  NNDEPLOY_CHECK_CUDA(cudaDriverGetVersion(&num));
+  NNDEPLOY_CUDA_CHECK(cudaDriverGetVersion(&num));
   return num;
 }
 
@@ -264,7 +263,7 @@ inline int cudaGetDriverVersion() {
  */
 inline int cudaGetRuntimeVersion() {
   int num = 0;
-  NNDEPLOY_CHECK_CUDA(cudaRuntimeGetVersion(&num));
+  NNDEPLOY_CUDA_CHECK(cudaRuntimeGetVersion(&num));
   return num;
 }
 

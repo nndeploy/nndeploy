@@ -72,6 +72,7 @@ target_link_libraries(${BINARY} ${SYSTEM_LIBRARY})
 target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
 
 # install
+install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
 
 # test
 if(NNDEPLOY_ENABLE_TEST)

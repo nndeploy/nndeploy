@@ -11,17 +11,17 @@
   + arm - 基本完成
   + cuda - 70%
   + opencl - always
-  + metal - TODO 自告奋勇
+  + metal - TODO
 + inference - 基本完成，达到可用状态
   + 架构设计 - 基本完成，达到可用状态，还差rapidjson相关
   + mnn - 基本完成
   + tensor_rt - 50%, always
-  + openvino - TODO 自告奋勇
+  + openvino - JoDio
   + tf-lite - zwz
   + onnxruntime - zw
-  + coreml - TODO 自告奋勇，建议和metal一起搞了
-  + ncnn - TODO 自告奋勇
-  + tnn - TODO 自告奋勇
+  + coreml - TODO
+  + ncnn - tyx
+  + tnn - gyh
 + graph （有初步的想法思路）
 + thread模块 （需要学习才会有思路）
 ## nntask （还未开始调研，需要选择一组模型库）

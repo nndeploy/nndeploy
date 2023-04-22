@@ -187,6 +187,23 @@ enum InferenceOptLevel : int32_t {
   kInferenceOptLevelAuto,
 };
 
+enum ModelType : int32_t {
+  kModelTypeDefault = 0x0000,
+
+  kModelTypeOpenVino,
+  kModelTypeTensorRt,
+  kModelTypeCoreML,
+  kModelTypeTfLite,
+  kModelTypeOnnx,
+
+  kModelTypeNcnn,
+  kModelTypeTnn,
+  kModelTypeMnn,
+
+  // not sopport
+  kModelTypeNotSupport,
+};
+
 enum InferenceType : int32_t {
   kInferenceTypeDefault = 0x0000,
 

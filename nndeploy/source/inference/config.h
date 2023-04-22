@@ -27,8 +27,8 @@ class DefaultConfigImpl {
 
   virtual base::Status get(const std::string &key, base::Value &value);
 
-  // interprt
-  base::InferenceType model_type_;
+  // model
+  base::ModelType model_type_;
   bool is_path_ = true;
   std::vector<std::string> model_value_;
   base::EncryptType encrypt_type_ = base::kEncryptTypeNone;

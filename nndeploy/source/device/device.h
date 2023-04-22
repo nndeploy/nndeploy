@@ -75,7 +75,7 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
 
   void destory(Buffer* buffer);
 
- private:
+ protected:
   base::DeviceType device_type_;
 };
 

@@ -64,11 +64,11 @@ Buffer* CudaDevice::allocate(const BufferDesc& desc) {
   void* data = nullptr;
   cudaError_t status = cudaMalloc(&data, desc.size_[0]);
   if (cudaSuccess != status) {
-    NNDEPLOY_LOGE("cuda alloc failed with size %lu for %p, status:%d\n", size,
+    NNDEPLOY_LOGE("cuda alloc failed with size %lu for %p, status:%d\n", desc.size_[0],
                   data, status);
     return nullptr;
   }
-  if (ptr == nullptr) {
+  if (data == nullptr) {
     NNDEPLOY_LOGE("cuda alloc got nullptr\n");
     return nullptr;
   }
@@ -89,7 +89,7 @@ void CudaDevice::deallocate(Buffer* buffer) {
   } else if (buffer_source_type == kBufferSourceTypeAllocate) {
     if (buffer->getPtr() != nullptr) {
       void* data = buffer->getPtr();
-      NNDEPLOY_CUDA_CHECK(cudaFree(handle));
+      NNDEPLOY_CUDA_CHECK(cudaFree(data));
     }
     Device::destory(buffer);
   } else if (buffer_source_type == kBufferSourceTypeMapped) {
@@ -157,7 +157,7 @@ void* CudaDevice::getCommandQueue() { return (void*)(stream_); }
 
 base::Status CudaDevice::init() {
   if (external_command_queue_ == nullptr) {
-    NNDEPLOY_CUDA_CHECK(cudaSetDevice(device_id));
+    NNDEPLOY_CUDA_CHECK(cudaSetDevice(device_type_.device_id_));
     NNDEPLOY_CUDA_CHECK(cudaStreamCreate(&stream_));
   } else {
     stream_ = (cudaStream_t)(external_command_queue_);

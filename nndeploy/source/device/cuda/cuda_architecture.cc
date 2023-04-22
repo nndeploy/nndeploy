@@ -66,7 +66,7 @@ std::vector<DeviceInfo> CudaArchitecture::getDeviceInfo(
   std::vector<DeviceInfo> device_info_list;
   int32_t device_count = cudaGetNumDevices();
   for (int i = 0; i < device_count; ++i) {
-    cudaDeviceProp p = cudaGetDeviceProperties(i);
+    cudaDeviceProp p = cudaGetDeviceProperty(i);
     DeviceInfo device_info;
     device_info_list.push_back(device_info);
   }

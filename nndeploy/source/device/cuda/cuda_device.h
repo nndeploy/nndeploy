@@ -15,6 +15,8 @@
 #include "nndeploy/source/device/mat.h"
 #include "nndeploy/source/device/tensor.h"
 
+#include "nndeploy/source/device/cuda/cuda_include.h"
+
 namespace nndeploy {
 namespace device {
 
@@ -58,7 +60,6 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
  private:
   void* external_command_queue_ = NULL;
   cudaStream_t stream_;
-  int device_id_ = 0;
 };
 
 }  // namespace device
