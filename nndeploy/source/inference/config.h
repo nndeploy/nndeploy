@@ -36,7 +36,6 @@ class DefaultConfigImpl {
 
   // forward
   base::DeviceType device_type_;
-  int gpu_tune_mode_ = 4;
   int num_thread_ = 1;
   base::ShareMemoryType share_memory_mode_ = base::kShareMemoryTypeNoShare;
   base::PrecisionType precision_type_ = base::kPrecisionTypeFp32;

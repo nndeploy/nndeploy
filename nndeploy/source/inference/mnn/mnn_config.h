@@ -19,6 +19,7 @@ class MnnConfigImpl : public DefaultConfigImpl {
 
   virtual base::Status get(const std::string &key, base::Value &value);
 
+  int gpu_tune_mode_ = 4;
   std::vector<std::string> save_tensors_;
   MNN::ScheduleConfig::Path path_;
   base::DeviceType backup_device_type_ = {base::kDeviceTypeCodeCpu, 0};

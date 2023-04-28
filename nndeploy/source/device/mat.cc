@@ -177,25 +177,5 @@ BufferSourceType Mat::getBufferSourceType() {
   return buffer_->getBufferSourceType();
 }
 
-MatPtrArray::MatPtrArray() {}
-MatPtrArray::MatPtrArray(const std::vector<Mat *> &mats) : mats_(mats) {}
-MatPtrArray::MatPtrArray(Mat *mat) { mats_.push_back(mat); }
-MatPtrArray::MatPtrArray(Mat &mat) { mats_.push_back(&mat); }
-
-MatPtrArray::~MatPtrArray() {}
-
-void MatPtrArray::add(Mat *mat) { mats_.push_back(mat); }
-void MatPtrArray::add(const std::vector<Mat *> &mats) {
-  for (auto mat : mats) {
-    mats_.push_back(mat);
-  }
-}
-void MatPtrArray::add(Mat &mat) { mats_.push_back(&mat); }
-
-bool MatPtrArray::empty() { return mats_.size() == 0; }
-int MatPtrArray::getSize() { return mats_.size(); }
-Mat *MatPtrArray::get() { return mats_[0]; }
-Mat *MatPtrArray::get(int index) { return mats_[index]; }
-
 }  // namespace device
 }  // namespace nndeploy

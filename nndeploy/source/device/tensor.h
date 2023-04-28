@@ -241,28 +241,6 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   DefaultTensorImpl *tensor_impl_ = nullptr;
 };
 
-class TensorPtrArray {
- public:
-  TensorPtrArray();
-  TensorPtrArray(const std::vector<Tensor *> &tensors);
-  TensorPtrArray(Tensor *tensor);
-  TensorPtrArray(Tensor &tensor);
-
-  virtual ~TensorPtrArray();
-
-  void add(Tensor *tensor);
-  void add(const std::vector<Tensor *> &tensors);
-  void add(Tensor &tensor);
-
-  bool empty();
-  int getSize();
-  Tensor *get();
-  Tensor *get(int index);
-
- private:
-  std::vector<Tensor *> tensors_;
-};
-
 using TensorMap = std::map<std::string, std::shared_ptr<Tensor>>;
 
 }  // namespace device

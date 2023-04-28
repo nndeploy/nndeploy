@@ -108,28 +108,6 @@ class NNDEPLOY_CC_API Mat {
   Buffer *buffer_ = nullptr;
 };
 
-class NNDEPLOY_CC_API MatPtrArray {
- public:
-  MatPtrArray();
-  MatPtrArray(const std::vector<Mat *> &mats);
-  MatPtrArray(Mat *mat);
-  MatPtrArray(Mat &mat);
-
-  virtual ~MatPtrArray();
-
-  void add(Mat *mat);
-  void add(const std::vector<Mat *> &mats);
-  void add(Mat &mat);
-
-  bool empty();
-  int getSize();
-  Mat *get();
-  Mat *get(int index);
-
- private:
-  std::vector<Mat *> mats_;
-};
-
 }  // namespace device
 }  // namespace nndeploy
 

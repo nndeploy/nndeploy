@@ -4,9 +4,9 @@
 #include <iterator>
 
 #include "nndeploy/source/base/shape.h"
-#include "nndeploy/source/inference/mnn/mnn_config.h"
-#include "nndeploy/source/inference/mnn/mnn_convert.h"
-#include "nndeploy/source/inference/mnn/mnn_inference_impl.h"
+#include "nndeploy/source/inference/tensor_rt/tensor_rt_config.h"
+#include "nndeploy/source/inference/tensor_rt/tensor_rt_convert.h"
+#include "nndeploy/source/inference/tensor_rt/tensor_rt_inference_impl.h"
 
 namespace nndeploy {
 namespace inference {

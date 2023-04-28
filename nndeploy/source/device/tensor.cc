@@ -331,26 +331,5 @@ BufferSourceType Tensor::getBufferSourceType() {
   return tensor_impl_->getBufferSourceType();
 }
 
-TensorPtrArray::TensorPtrArray() {}
-TensorPtrArray::TensorPtrArray(const std::vector<Tensor *> &tensors)
-    : tensors_(tensors) {}
-TensorPtrArray::TensorPtrArray(Tensor *tensor) { tensors_.push_back(tensor); }
-TensorPtrArray::TensorPtrArray(Tensor &tensor) { tensors_.push_back(&tensor); }
-
-TensorPtrArray::~TensorPtrArray() {}
-
-void TensorPtrArray::add(Tensor *tensor) { tensors_.push_back(tensor); }
-void TensorPtrArray::add(const std::vector<Tensor *> &tensors) {
-  for (auto tensor : tensors) {
-    tensors_.push_back(tensor);
-  }
-}
-void TensorPtrArray::add(Tensor &tensor) { tensors_.push_back(&tensor); }
-
-bool TensorPtrArray::empty() { return tensors_.size() == 0; }
-int TensorPtrArray::getSize() { return tensors_.size(); }
-Tensor *TensorPtrArray::get() { return tensors_[0]; }
-Tensor *TensorPtrArray::get(int index) { return tensors_[index]; }
-
 }  // namespace device
 }  // namespace nndeploy

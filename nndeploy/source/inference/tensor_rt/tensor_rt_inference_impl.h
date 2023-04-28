@@ -1,8 +1,6 @@
-#ifndef F5864D0E_2D33_4FA9_B279_2CAC7777F20A
-#define F5864D0E_2D33_4FA9_B279_2CAC7777F20A
 
-#ifndef _NNDEPLOY_SOURCE_INFERENCE_MNN_MNN_INFERENCE_IMPL_H_
-#define _NNDEPLOY_SOURCE_INFERENCE_MNN_MNN_INFERENCE_IMPL_H_
+#ifndef _NNDEPLOY_SOURCE_INFERENCE_TENSOR_RT_TENSOR_RT_INFERENCE_IMPL_H_
+#define _NNDEPLOY_SOURCE_INFERENCE_TENSOR_RT_TENSOR_RT_INFERENCE_IMPL_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/log.h"
@@ -37,8 +35,8 @@ class TensorRtInferenceImpl : public AbstractInferenceImpl {
    * @param max_shape
    * @return base::Status
    * @note
-   * # nndeploy的config转为 MNN的config
-   * # 通过init函数创建的interpreter和转化后的MNN::ScheduleConfig创建session
+   * # nndeploy的config转为 TENSOR_RT的config
+   * # 通过init函数创建的interpreter和转化后的TENSOR_RT::ScheduleConfig创建session
    * # 更新所有shape和tensor
    */
   virtual base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
@@ -106,4 +104,3 @@ class TensorRtInferenceImpl : public AbstractInferenceImpl {
 
 #endif
 
-#endif /* F5864D0E_2D33_4FA9_B279_2CAC7777F20A */

@@ -1,12 +1,12 @@
 
-#include "nndeploy/source/inference/mnn/mnn_convert.h"
+#include "nndeploy/source/inference/tensor_rt/tensor_rt_convert.h"
 #include "nndeploy/source/device/device_util.h"
-#include "nndeploy/source/inference/mnn/mnn_inference_impl.h"
+#include "nndeploy/source/inference/tensor_rt/tensor_rt_inference_impl.h"
 
 namespace nndeploy {
 namespace inference {
 
-base::DataType MnnConvert::convertToDataType(const halide_type_t &src) {
+base::DataType TensorRtConvert::convertToDataType(const halide_type_t &src) {
   base::DataType dst;
   switch (src.code) {
     case halide_type_int:
@@ -30,7 +30,7 @@ base::DataType MnnConvert::convertToDataType(const halide_type_t &src) {
   return dst;
 }
 
-halide_type_t MnnConvert::convertFromDataType(base::DataType &src) {
+halide_type_t TensorRtConvert::convertFromDataType(base::DataType &src) {
   halide_type_t dst;
   switch (src.code_) {
     case base::kDataTypeCodeInt:
@@ -51,7 +51,7 @@ halide_type_t MnnConvert::convertFromDataType(base::DataType &src) {
   return dst;
 }
 
-base::DataFormat MnnConvert::convertToDataFormat(
+base::DataFormat TensorRtConvert::convertToDataFormat(
     const MNN::Tensor::DimensionType &src) {
   base::DataFormat dst;
   switch (src) {
@@ -71,7 +71,7 @@ base::DataFormat MnnConvert::convertToDataFormat(
   return dst;
 }
 
-MNN::Tensor::DimensionType MnnConvert::convertFromDataFormat(
+MNN::Tensor::DimensionType TensorRtConvert::convertFromDataFormat(
     const base::DataFormat &src) {
   MNN::Tensor::DimensionType dst = MNN::Tensor::CAFFE;
   switch (src) {
@@ -91,7 +91,7 @@ MNN::Tensor::DimensionType MnnConvert::convertFromDataFormat(
   return dst;
 }
 
-MNNForwardType MnnConvert::convertFromDeviceType(const base::DeviceType &src) {
+MNNForwardType TensorRtConvert::convertFromDeviceType(const base::DeviceType &src) {
   MNNForwardType type = MNN_FORWARD_CPU;
   switch (src.code_) {
     case base::kDeviceTypeCodeCpu:
@@ -122,7 +122,7 @@ MNNForwardType MnnConvert::convertFromDeviceType(const base::DeviceType &src) {
   return type;
 }
 
-MNN::BackendConfig::PowerMode MnnConvert::convertFromPowerType(
+MNN::BackendConfig::PowerMode TensorRtConvert::convertFromPowerType(
     const base::PowerType &src) {
   switch (src) {
     case base::kPowerTypeLow:
@@ -136,7 +136,7 @@ MNN::BackendConfig::PowerMode MnnConvert::convertFromPowerType(
   }
 }
 
-MNN::BackendConfig::PrecisionMode MnnConvert::convertFromPowerType(
+MNN::BackendConfig::PrecisionMode TensorRtConvert::convertFromPowerType(
     const base::PrecisionType &src) {
   switch (src) {
     case base::kPrecisionTypeFp16:
@@ -152,8 +152,8 @@ MNN::BackendConfig::PrecisionMode MnnConvert::convertFromPowerType(
   }
 }
 
-base::Status MnnConvert::convertFromConfig(
-    MnnConfigImpl *config, MNN::ScheduleConfig *internal_config) {
+base::Status TensorRtConvert::convertFromConfig(
+    TensorRtConfigImpl *config, MNN::ScheduleConfig *internal_config) {
   if (config == nullptr || internal_config == nullptr) {
     return base::kStatusCodeErrorInvalidParam;
   }
@@ -182,12 +182,12 @@ base::Status MnnConvert::convertFromConfig(
   return base::kStatusCodeOk;
 }
 
-device::Tensor *MnnConvert::convertToTensor(MNN::Tensor *src, std::string name,
+device::Tensor *TensorRtConvert::convertToTensor(MNN::Tensor *src, std::string name,
                                             device::Device *device) {
   halide_type_t src_data_type = src->getType();
-  base::DataType data_type = MnnConvert::convertToDataType(src_data_type);
+  base::DataType data_type = TensorRtConvert::convertToDataType(src_data_type);
   MNN::Tensor::DimensionType src_data_format = src->getDimensionType();
-  base::DataFormat format = MnnConvert::convertToDataFormat(src_data_format);
+  base::DataFormat format = TensorRtConvert::convertToDataFormat(src_data_format);
   base::IntVector shape = src->shape();
   base::SizeVector stride = base::SizeVector();
   device::TensorImplDesc desc(data_type, format, shape, stride);
@@ -200,12 +200,12 @@ device::Tensor *MnnConvert::convertToTensor(MNN::Tensor *src, std::string name,
   return dst;
 }
 
-MNN::Tensor *MnnConvert::convertFromTensor(device::Tensor *src) {
+MNN::Tensor *TensorRtConvert::convertFromTensor(device::Tensor *src) {
   device::TensorImplDesc desc = src->getDesc();
   std::vector<int> shape = desc.shape_;
-  halide_type_t type = MnnConvert::convertFromDataType(desc.data_type_);
+  halide_type_t type = TensorRtConvert::convertFromDataType(desc.data_type_);
   void *data = src->getPtr();
-  MNN::Tensor::DimensionType dimType = MnnConvert::convertFromDataFormat(desc.format_);
+  MNN::Tensor::DimensionType dimType = TensorRtConvert::convertFromDataFormat(desc.format_);
   MNN::Tensor *dst = MNN::Tensor::create(shape, type, data, dimType);
   return dst;
 }

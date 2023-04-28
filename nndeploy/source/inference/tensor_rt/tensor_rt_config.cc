@@ -1,11 +1,11 @@
 
-#include "nndeploy/source/inference/mnn/mnn_config.h"
+#include "nndeploy/source/inference/tensor_rt/tensor_rt_config.h"
 
 namespace nndeploy {
 namespace inference {
 
 static TypeConfigRegister<TypeConfigCreator<MnnConfigImpl>>
-    g_mnn_config_register(base::kInferenceTypeMnn);
+    g_tensor_rt_config_register(base::kInferenceTypeMnn);
 
 base::Status MnnConfigImpl::jsonToConfig(const std::string &json,
                                          bool is_path) {
