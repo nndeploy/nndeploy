@@ -12,9 +12,9 @@
 #include "nndeploy/source/device/device.h"
 #include "nndeploy/source/device/device_util.h"
 #include "nndeploy/source/device/tensor.h"
-#include "nndeploy/source/inference/config.h"
-#include "nndeploy/source/inference/mnn/mnn_config.h"
+#include "nndeploy/source/inference/inference_param.h"
 #include "nndeploy/source/inference/mnn/mnn_include.h"
+#include "nndeploy/source/inference/mnn/mnn_inference_param.h"
 
 namespace nndeploy {
 namespace inference {
@@ -37,8 +37,8 @@ class MnnConvert {
   static MNN::BackendConfig::PrecisionMode convertFromPowerType(
       const base::PrecisionType &src);
 
-  static base::Status convertFromConfig(MnnConfigImpl *src,
-                                        MNN::ScheduleConfig *dst);
+  static base::Status convertFromInferenceParam(MnnInferenceParam *src,
+                                                MNN::ScheduleConfig *dst);
 
   static device::Tensor *convertToTensor(MNN::Tensor *src, std::string name,
                                          device::Device *device);

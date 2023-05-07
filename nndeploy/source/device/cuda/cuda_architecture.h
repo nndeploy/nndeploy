@@ -26,11 +26,11 @@ class CudaArchitecture : public Architecture {
                                    void* command_queue = NULL,
                                    std::string library_path = "") override;
 
-  virtual Device* createDevice(int32_t device_id = 0,
-                               void* command_queue = NULL,
-                               std::string library_path = "") override;
+  virtual base::Status enableDevice(int32_t device_id = 0,
+                                    void* command_queue = NULL,
+                                    std::string library_path = "") override;
 
-  virtual base::Status destoryDevice(Device* device) override;
+  virtual Device* getDevice(int32_t device_id) override;
 
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") override;

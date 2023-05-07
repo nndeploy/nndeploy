@@ -30,5 +30,30 @@ Architecture* getArchitecture(base::DeviceTypeCode type) {
   return getArchitectureMap()[type].get();
 }
 
+base::Status checkDevice(base::DeviceType device_type, void* command_queue,
+                         std::string library_path) {
+  Architecture* architecture = getArchitecture(device_type.code_);
+  return architecture->checkDevice(device_type.device_id_, command_queue,
+                                   library_path);
+}
+
+base::Status enableDevice(base::DeviceType device_type, void* command_queue,
+                          std::string library_path) {
+  Architecture* architecture = getArchitecture(device_type.code_);
+  return architecture->enableDevice(device_type.device_id_, command_queue,
+                                    library_path);
+}
+
+Device* getDevice(base::DeviceType device_type) {
+  Architecture* architecture = getArchitecture(device_type.code_);
+  return architecture->getDevice(device_type.device_id_);
+}
+
+std::vector<DeviceInfo> getDeviceInfo(base::DeviceTypeCode type,
+                                      std::string library_path) {
+  Architecture* architecture = getArchitecture(type);
+  return architecture->getDeviceInfo(library_path);
+}
+
 }  // namespace device
 }  // namespace nndeploy

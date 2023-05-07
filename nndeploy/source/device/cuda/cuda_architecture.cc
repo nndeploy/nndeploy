@@ -12,7 +12,15 @@ TypeArchitectureRegister<CudaArchitecture> cuda_architecture_register(
 CudaArchitecture::CudaArchitecture(base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code){};
 
-CudaArchitecture::~CudaArchitecture(){};
+CudaArchitecture::~CudaArchitecture() {
+  for (auto iter : devices_) {
+    CudaDevice* tmp_device = dynamic_cast<CudaDevice*>(iter.second);
+    if (tmp_device->deinit() != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("device deinit failed");
+    }
+    delete tmp_device;
+  }
+};
 
 base::Status CudaArchitecture::checkDevice(int32_t device_id,
                                            void* command_queue,
@@ -27,38 +35,41 @@ base::Status CudaArchitecture::checkDevice(int32_t device_id,
   }
 }
 
-Device* CudaArchitecture::createDevice(int32_t device_id, void* command_queue,
-                                       std::string library_path) {
-  CudaDevice* device = new CudaDevice(device_id, command_queue, library_path);
+base::Status CudaArchitecture::enableDevice(int32_t device_id,
+                                            void* command_queue,
+                                            std::string library_path) {
+  base::DeviceType device_type(base::kDeviceTypeCodeCuda, device_id);
+  CudaDevice* device = new CudaDevice(device_type, command_queue, library_path);
   if (device == NULL) {
     NNDEPLOY_LOGE("device is NULL");
-    return NULL;
+    return base::kStatusCodeErrorOutOfMemory;
   }
 
   if (device->init() != base::kStatusCodeOk) {
     delete device;
-    return NULL;
+    NNDEPLOY_LOGE("device init failed");
+    return base::kStatusCodeErrorDeviceCuda;
   } else {
-    return dynamic_cast<Device*>(device);
+    devices_.insert({device_id, device});
+    return base::kStatusCodeOk;
   }
+
+  return base::kStatusCodeOk;
 }
 
-base::Status CudaArchitecture::destoryDevice(Device* device) {
-  if (device == NULL) {
-    NNDEPLOY_LOGE("device is NULL");
-    return base::kStatusCodeErrorNullParam;
+Device* CudaArchitecture::getDevice(int32_t device_id) {
+  Device* device = nullptr;
+  if (devices_.find(device_id) != devices_.end()) {
+    return devices_[device_id];
+  } else {
+    base::Status status = this->enableDevice(device_id, nullptr, "");
+    if (status == base::kStatusCodeOk) {
+      device = devices_[device_id];
+    } else {
+      NNDEPLOY_LOGE("enable device failed");
+    }
   }
-
-  CudaDevice* tmp_device = dynamic_cast<CudaDevice*>(device);
-
-  base::Status status = base::kStatusCodeOk;
-  if (tmp_device->deinit() != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("device deinit failed");
-    status = base::kStatusCodeErrorDeviceCuda;
-  }
-  delete tmp_device;
-
-  return status;
+  return device;
 }
 
 std::vector<DeviceInfo> CudaArchitecture::getDeviceInfo(

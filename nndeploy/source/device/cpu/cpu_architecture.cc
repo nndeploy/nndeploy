@@ -12,7 +12,15 @@ TypeArchitectureRegister<CpuArchitecture> cpu_architecture_register(
 CpuArchitecture::CpuArchitecture(base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code){};
 
-CpuArchitecture::~CpuArchitecture(){};
+CpuArchitecture::~CpuArchitecture() {
+  for (auto iter : devices_) {
+    CpuDevice* tmp_device = dynamic_cast<CpuDevice*>(iter.second);
+    if (tmp_device->deinit() != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("device deinit failed");
+    }
+    delete tmp_device;
+  }
+};
 
 base::Status CpuArchitecture::checkDevice(int32_t device_id,
                                           void* command_queue,
@@ -20,38 +28,42 @@ base::Status CpuArchitecture::checkDevice(int32_t device_id,
   return base::kStatusCodeOk;
 }
 
-Device* CpuArchitecture::createDevice(int32_t device_id, void* command_queue,
-                                      std::string library_path) {
-  CpuDevice* device = new CpuDevice(device_id, command_queue, library_path);
+base::Status CpuArchitecture::enableDevice(int32_t device_id,
+                                           void* command_queue,
+                                           std::string library_path) {
+  device_id = 0;
+  base::DeviceType device_type(base::kDeviceTypeCodeCpu, device_id);
+  CpuDevice* device = new CpuDevice(device_type, command_queue, library_path);
   if (device == NULL) {
     NNDEPLOY_LOGE("device is NULL");
-    return NULL;
+    return base::kStatusCodeErrorOutOfMemory;
   }
-
   if (device->init() != base::kStatusCodeOk) {
     delete device;
-    return NULL;
+    NNDEPLOY_LOGE("device init failed");
+    return base::kStatusCodeErrorDeviceCpu;
   } else {
-    return dynamic_cast<Device*>(device);
+    devices_.insert({device_id, device});
+    return base::kStatusCodeOk;
   }
+
+  return base::kStatusCodeOk;
 }
 
-base::Status CpuArchitecture::destoryDevice(Device* device) {
-  if (device == NULL) {
-    NNDEPLOY_LOGE("device is NULL");
-    return base::kStatusCodeErrorNullParam;
+Device* CpuArchitecture::getDevice(int32_t device_id) {
+  device_id = 0;
+  Device* device = nullptr;
+  if (devices_.find(device_id) != devices_.end()) {
+    return devices_[device_id];
+  } else {
+    base::Status status = this->enableDevice(device_id, nullptr, "");
+    if (status == base::kStatusCodeOk) {
+      device = devices_[device_id];
+    } else {
+      NNDEPLOY_LOGE("enable device failed");
+    }
   }
-
-  CpuDevice* tmp_device = dynamic_cast<CpuDevice*>(device);
-
-  base::Status status = base::kStatusCodeOk;
-  if (tmp_device->deinit() != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("device deinit failed");
-    status = base::kStatusCodeErrorDeviceCpu;
-  }
-  delete tmp_device;
-
-  return status;
+  return device;
 }
 
 std::vector<DeviceInfo> CpuArchitecture::getDeviceInfo(

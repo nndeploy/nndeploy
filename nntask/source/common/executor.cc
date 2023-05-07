@@ -1,48 +1,30 @@
-#include "nndeploy/source/inference/pre_post_process.h"
+#include "nntask/source/common/executor.h"
 
-namespace nndeploy {
-namespace inference {
+namespace nntask {
+namespace common {
 
-PrePostProcess::PrePostProcess() {}
+Executor::Executor(std::string name) : name_(name) {}
 
-PrePostProcess::~PrePostProcess() {}
+Executor::~Executor() {}
 
-base::Status PrePostProcess::setDevice(device::Device *device) {
-  device_.push_back(device);
-  return base::kStatusCodeOk;
+nndeploy::base::Param *Executor::getParam() { return param_; }
+
+nndeploy::base::Status Executor::init() {
+  return nndeploy::base::kStatusCodeOk;
 }
-device::Device *PrePostProcess::getDevice() {
-  if (device_.empty()) {
-    return nullptr;
-  } else {
-    return device_[0];
-  }
-}
-device::Device *PrePostProcess::getDevice(int index) {
-  if (index < 0 || index >= device_.size()) {
-    return nullptr;
-  } else {
-    return device_[index];
-  }
-}
-device::Device *PrePostProcess::getDevice(base::DeviceType device_type) {
-  for (int i = 0; i < device_.size(); ++i) {
-    if (device_[i]->getDeviceType() == device_type) {
-      return device_[i];
-    }
-  }
-  return nullptr;
+nndeploy::base::Status Executor::deinit() {
+  return nndeploy::base::kStatusCodeOk;
 }
 
-base::Status PrePostProcess::setInput(device::Packet &input) {
-  input_ = input;
-  return base::kStatusCodeOk;
+nndeploy::base::Status Executor::setInput(Packet &input) {
+  input_ = &input;
+  return nndeploy::base::kStatusCodeOk;
 }
 
-base::Status PrePostProcess::setOutput(device::Packet &output){
-  output_ = output;
-  return base::kStatusCodeOk;
+nndeploy::base::Status Executor::setOutput(Packet &output) {
+  output_ = &output;
+  return nndeploy::base::kStatusCodeOk;
 }
 
-}
-}
+}  // namespace common
+}  // namespace nntask

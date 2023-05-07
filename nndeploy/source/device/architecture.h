@@ -29,16 +29,19 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
                                    void* command_queue = NULL,
                                    std::string library_path = "") = 0;
 
-  virtual Device* createDevice(int32_t device_id = 0,
-                               void* command_queue = NULL,
-                               std::string library_path = "") = 0;
+  virtual base::Status enableDevice(int32_t device_id = 0,
+                                    void* command_queue = NULL,
+                                    std::string library_path = "") = 0;
 
-  virtual base::Status destoryDevice(Device* device) = 0;
+  virtual Device* getDevice(int32_t device_id) = 0;
 
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") = 0;
 
   base::DeviceTypeCode getDeviceTypeCode();
+
+ protected:
+  std::map<int32_t, Device*> devices_;
 
  private:
   base::DeviceTypeCode device_type_code_;
@@ -46,8 +49,6 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
 
 std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>&
 getArchitectureMap();
-
-extern NNDEPLOY_CC_API Architecture* getArchitecture(base::DeviceTypeCode type);
 
 template <typename T>
 class TypeArchitectureRegister {
@@ -59,6 +60,21 @@ class TypeArchitectureRegister {
     }
   }
 };
+
+extern NNDEPLOY_CC_API Architecture* getArchitecture(base::DeviceTypeCode type);
+
+extern NNDEPLOY_CC_API base::Status checkDevice(base::DeviceType device_type,
+                                                void* command_queue,
+                                                std::string library_path);
+
+extern NNDEPLOY_CC_API base::Status enableDevice(base::DeviceType device_type,
+                                                 void* command_queue,
+                                                 std::string library_path);
+
+extern NNDEPLOY_CC_API Device* getDevice(base::DeviceType device_type);
+
+extern NNDEPLOY_CC_API std::vector<DeviceInfo> getDeviceInfo(
+    base::DeviceTypeCode type, std::string library_path);
 
 }  // namespace device
 }  // namespace nndeploy

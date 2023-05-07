@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_SOURCE_INFERENCE_ABSTRACT_INFERENCE_IMPL_H_
-#define _NNDEPLOY_SOURCE_INFERENCE_ABSTRACT_INFERENCE_IMPL_H_
+#ifndef _NNDEPLOY_SOURCE_INFERENCE_INFERENCE_H_
+#define _NNDEPLOY_SOURCE_INFERENCE_INFERENCE_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -10,34 +10,27 @@
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/base/string.h"
 #include "nndeploy/source/base/value.h"
+#include "nndeploy/source/device/architecture.h"
 #include "nndeploy/source/device/buffer.h"
 #include "nndeploy/source/device/buffer_pool.h"
 #include "nndeploy/source/device/device.h"
 #include "nndeploy/source/device/tensor.h"
-#include "nndeploy/source/inference/config.h"
+#include "nndeploy/source/inference/inference_param.h"
 
 namespace nndeploy {
 namespace inference {
 
-class AbstractInferenceImpl {
+class Inference {
  public:
-  AbstractInferenceImpl();
-  virtual ~AbstractInferenceImpl();
+  Inference(base::InferenceType type);
+  virtual ~Inference();
 
-  virtual base::Status setDevice(device::Device *device);
-  virtual device::Device *getDevice();
-  virtual device::Device *getDevice(int index);
-  virtual device::Device *getDevice(base::DeviceType device_type);
+  base::InferenceType getInferenceType();
 
-  virtual base::Status init(std::shared_ptr<Config> config) = 0;
+  InferenceParam *getInferenceParam();
+
+  virtual base::Status init() = 0;
   virtual base::Status deinit() = 0;
-
-  virtual base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
-                              base::ShapeMap opt_shape = base::ShapeMap(),
-                              base::ShapeMap max_shape = base::ShapeMap()) = 0;
-  virtual base::Status postRun() = 0;
-
-  virtual std::shared_ptr<Config> getConfig();
 
   virtual base::Status getMinShape(base::ShapeMap &shape_map);
   virtual base::Status getOptShape(base::ShapeMap &shape_map);
@@ -74,10 +67,10 @@ class AbstractInferenceImpl {
       const std::string &name, std::vector<int32_t> config) = 0;
 
   virtual base::Status run() = 0;
-  virtual base::Status asyncRun() = 0;
 
  protected:
-  std::shared_ptr<Config> config_;
+  base::InferenceType type_;
+  InferenceParam *inference_param_;
 
   base::ShapeMap current_shape_ = base::ShapeMap();
   base::ShapeMap min_shape_ = base::ShapeMap();
@@ -89,19 +82,19 @@ class AbstractInferenceImpl {
 
   device::TensorMap max_input_tensors_;
   device::TensorMap max_output_tensors_;
-
-  std::vector<device::Device *> device_;
 };
 
 class InferenceCreator {
  public:
   virtual ~InferenceCreator(){};
-  virtual AbstractInferenceImpl *createInference() = 0;
+  virtual Inference *createInference(base::InferenceType type) = 0;
 };
 
 template <typename T>
 class TypeInferenceCreator : public InferenceCreator {
-  virtual AbstractInferenceImpl *createInference() { return new T(); }
+  virtual Inference *createInference(base::InferenceType type) {
+    return new T(type);
+  }
 };
 
 std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
@@ -115,7 +108,7 @@ class TypeInferenceRegister {
   }
 };
 
-AbstractInferenceImpl *createInference(base::InferenceType type);
+Inference *createInference(base::InferenceType type);
 
 }  // namespace inference
 }  // namespace nndeploy

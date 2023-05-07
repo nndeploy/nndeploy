@@ -1,68 +1,52 @@
 
+#include "nndeploy/source/inference/tensor_rt/tensor_rt_inference.h"
+
 #include <errno.h>
 
 #include <iterator>
 
 #include "nndeploy/source/base/shape.h"
-#include "nndeploy/source/inference/tensor_rt/tensor_rt_config.h"
 #include "nndeploy/source/inference/tensor_rt/tensor_rt_convert.h"
-#include "nndeploy/source/inference/tensor_rt/tensor_rt_inference_impl.h"
+#include "nndeploy/source/inference/tensor_rt/tensor_rt_inference_param.h"
 
 namespace nndeploy {
 namespace inference {
 
-TypeInferenceRegister<TypeInferenceCreator<TensorRtInferenceImpl>>
+TypeInferenceRegister<TypeInferenceCreator<TensorRtInference>>
     g_internal_inference_register(base::kInferenceTypeTensorRt);
 
-TensorRtLogger TensorRtInferenceImpl::logger_;
+TensorRtLogger TensorRtInference::logger_;
 
-TensorRtInferenceImpl::TensorRtInferenceImpl() {
+TensorRtInference::TensorRtInference() {
   engine_ = nullptr;
   context_ = nullptr;
 }
 
-TensorRtInferenceImpl::~TensorRtInferenceImpl() {}
+TensorRtInference::~TensorRtInference() {}
 
-base::Status TensorRtInferenceImpl::init(std::shared_ptr<Config> config) {
-  /**
-   * @brief
-   * @note
-   * # Config -> MNN::ScheduleConfig
-   * # 模型解析
-   * # 能不能写入静态形状？
-   */
+base::Status TensorRtInference::init() {
   base::Status status = base::kStatusCodeOk;
 
-  config_ = config;
-
-  return status;
-}
-
-base::Status TensorRtInferenceImpl::deinit() { return base::kStatusCodeOk; }
-
-base::Status TensorRtInferenceImpl::preRun(base::ShapeMap min_shape,
-                                           base::ShapeMap opt_shape,
-                                           base::ShapeMap max_shape) {
-  base::Status status = base::kStatusCodeOk;
-
-  min_shape_ = min_shape;
-  opt_shape_ = opt_shape;
-  max_shape_ = max_shape;
+  min_shape_ = inference_param->min_shape_;
+  opt_shape_ = inference_param->opt_shape_;
+  max_shape_ = inference_param->max_shape_;
 
   std::string model_buffer;
-  TensorRtConfigImpl *config =
-      dynamic_cast<TensorRtConfigImpl *>(config_->config_impl_);
-  if (config->is_path_) {
-    model_buffer = base::openFile(config->model_value_[0]);
+  TensorRtInferenceParam *tensor_rt_inference_param =
+      dynamic_cast<TensorRtInferenceParam *>(inference_param_);
+  if (tensor_rt_inference_param->is_path_) {
+    model_buffer = base::openFile(tensor_rt_inference_param->model_value_[0]);
   } else {
-    model_buffer = config->model_value_[0];
+    model_buffer = tensor_rt_inference_param->model_value_[0];
   }
 
-  if (config->model_type_ == base::kInferenceTypeOnnxRuntime) {
-    status = preRunWithOnnxModel(model_buffer, config);
+  if (tensor_rt_inference_param->model_type_ ==
+      base::kInferenceTypeOnnxRuntime) {
+    status = preRunWithOnnxModel(model_buffer, tensor_rt_inference_param);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
-  } else if (config->model_type_ == base::kInferenceTypeTensorRt) {
-    status = preRunWithTensorRtModel(model_buffer, config);
+  } else if (tensor_rt_inference_param->model_type_ ==
+             base::kInferenceTypeTensorRt) {
+    status = preRunWithTensorRtModel(model_buffer, tensor_rt_inference_param);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
   } else {
     return base::kStatusCodeErrorInferenceTensorRt;
@@ -78,7 +62,7 @@ base::Status TensorRtInferenceImpl::preRun(base::ShapeMap min_shape,
     }
   }
 
-  status = reshape(max_shape_);
+  status = reShape(max_shape_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
 
   auto num_binds = engine_->getNbBindings();
@@ -90,11 +74,12 @@ base::Status TensorRtInferenceImpl::preRun(base::ShapeMap min_shape,
     base::DataType data_type =
         TensorRtConvert::convertToDataType(engine_->getBindingDataType(i));
     base::DataType data_format =
-        TensorRtConvert::convertToDataFormat(engine_->getBindingDataFormat(i));
+        TensorRtConvert::convertToDataFormat(engine_->getBindingFormat(i));
 
     if (engine_->bindingIsInput(i)) {
       std::shared_ptr<device::Tensor> max_input_tensor;
-      device::Device *device = getDevice();
+      device::Device *device =
+          device::getDevice(inference_param_->device_type_);
       device::TensorImplDesc desc;
       desc.data_type_ = data_type;
       desc.format_ = data_format;
@@ -109,7 +94,8 @@ base::Status TensorRtInferenceImpl::preRun(base::ShapeMap min_shape,
       bindings_[i] = max_input_buffer->getPtr();
     } else {
       std::shared_ptr<device::Tensor> max_output_tensor;
-      device::Device *device = getDevice();
+      device::Device *device =
+          device::getDevice(inference_param_->device_type_);
       device::TensorImplDesc desc;
       desc.data_type_ = data_type;
       desc.format_ = data_format;
@@ -129,14 +115,16 @@ base::Status TensorRtInferenceImpl::preRun(base::ShapeMap min_shape,
   return status;
 }
 
-base::Status TensorRtInferenceImpl::postRun() {
+base::Status TensorRtInference::deinit() {
   base::Status status = base::kStatusCodeOk;
-  device::Device *device = getDevice();
-  device->deallocate(inner_forward_buffer_);
+  device::Device *device = device::getDevice(inference_param_->device_type_);
+  if (inner_forward_buffer_ != nullptr) {
+    device->deallocate(inner_forward_buffer_);
+  }
   return status;
 }
 
-base::Status TensorRtInferenceImpl::reShape(base::ShapeMap &shape_map) {
+base::Status TensorRtInference::reShape(base::ShapeMap &shape_map) {
   bool flag = false;
   for (auto iter : shape_map) {
     auto tmp = current_shape_.find(iter.first);
@@ -151,47 +139,21 @@ base::Status TensorRtInferenceImpl::reShape(base::ShapeMap &shape_map) {
             current_input_tensors_[iter.first]->getDesc();
         desc.shape_ = iter.second;
         current_input_tensors_[iter.first]->justModify(desc);
-        MNN::Tensor *tensor = internal_interpreter_->getSessionInput(
-            internal_session_, iter.first.c_str());
-        internal_interpreter_->resizeTensor(tensor, shape);
-        flag = true;
+        int idx = io_name_index_[iter.first];
+        nvinfer1::Dims dims = TensorRtConvert::convertFromShape(iter.second);
+        context_->setBindingDimensions(idx, dims);
       }
     } else {
       return base::kStatusCodeErrorInferenceTensorRt;
     }
   }
 
-  if (flag) {
-    internal_interpreter_->resizeSession(internal_session_);
-    const std::map<std::string, MNN::Tensor *> &internal_output_tensors =
-        internal_interpreter_->getSessionOutputAll(internal_session_);
-    for (auto iter : internal_output_tensors) {
-      std::string name = iter.first;
-      MNN::Tensor *internal_output_tensor = iter.second;
-      base::IntVector shape = internal_output_tensor->shape();
-      device::TensorImplDesc desc = current_output_tensors_[name]->getDesc();
-      desc.shape_ = shape;
-      current_input_tensors_[iter.first]->justModify(desc);
-
-      MNN::Tensor *internal_current_output_tensor =
-          new MNN::Tensor(internal_output_tensor, internal_current_output_type);
-      if (internal_current_output_tensors_.find(name) !=
-          internal_current_output_tensors_.end()) {
-        delete internal_current_output_tensors_[name];
-        internal_current_output_tensors_[name] = internal_current_output_tensor;
-      } else {
-        internal_current_output_tensors_.insert(
-            {name, internal_current_output_tensor});
-      }
-    }
-  }
-
   return base::kStatusCodeOk;
 }
 
-int64_t TensorRtInferenceImpl::getMemorySize() { return forward_memory_size_; }
+int64_t TensorRtInference::getMemorySize() { return forward_memory_size_; }
 
-base::Status TensorRtInferenceImpl::setMemory(device::Buffer *buffer) {
+base::Status TensorRtInference::setMemory(device::Buffer *buffer) {
   if (buffer && buffer->getSize() >= forward_memory_size_) {
     void *forward_memory_ = buffer->getPtr();
     context->setDeviceMemory(forward_memory_);
@@ -201,7 +163,7 @@ base::Status TensorRtInferenceImpl::setMemory(device::Buffer *buffer) {
   }
 }
 
-base::Status TensorRtInferenceImpl::setInputTensor(
+base::Status TensorRtInference::setInputTensor(
     const std::string &name,
     const std::shared_ptr<device::Tensor> input_tensor) {
   base::Status status = base::kStatusCodeOk;
@@ -216,7 +178,7 @@ base::Status TensorRtInferenceImpl::setInputTensor(
         const_cast<char *>(current_input_tensors_.begin()->first.c_str());
   }
 
-  device::Device *device = getDevice();
+  device::Device *device = device::getDevice(inference_param_->device_type_);
   device::Buffer extern_input_buffer = input_tensor->getBuffer();
   base::DeviceType = extern_input_buffer->getDeviceType();
   device::Buffer internal_input_buffer =
@@ -239,7 +201,7 @@ base::Status TensorRtInferenceImpl::setInputTensor(
  * [0] - device type
  * @return std::shared_ptr<device::Tensor>
  */
-std::shared_ptr<device::Tensor> TensorRtInferenceImpl::getOutputTensor(
+std::shared_ptr<device::Tensor> TensorRtInference::getOutputTensor(
     const std::string &name, std::vector<int32_t> config) {
   std::shared_ptr<device::Tensor> tensor;
   char *char_name = nullptr;
@@ -252,15 +214,20 @@ std::shared_ptr<device::Tensor> TensorRtInferenceImpl::getOutputTensor(
   if (config.size() == 0) {
     tensors = current_output_tensors_[char_name];
   } else {
-    device::Device *device = getDevice();
+    device::Device *device = device::getDevice(inference_param_->device_type_);
     device::Buffer internal_output_buffer =
         current_output_tensors_[char_name]->getBuffer();
-    tensor.create(host_device, current_output_tensors_[char_name]->getDesc(),
-                  current_output_tensors_[char_name]->getName());
-    device::Buffer external_output_buffer = tensors->getBuffer();
     if (config[0] == base::kDeviceTypeCodeCuda) {
+      tensor.create(device, current_output_tensors_[char_name]->getDesc(),
+                    current_output_tensors_[char_name]->getName());
+      device::Buffer external_output_buffer = tensors->getBuffer();
       device->copy(internal_output_buffer, external_output_buffer);
     } else if (device::isHostDeviceType(config[1])) {
+      base::DeviceType device_type = device::getDefaultHostDeviceType();
+      device::Device *host_device = device::getDevice(device_type);
+      tensor.create(host_device, current_output_tensors_[char_name]->getDesc(),
+                    current_output_tensors_[char_name]->getName());
+      device::Buffer external_output_buffer = tensors->getBuffer();
       device->download(internal_output_buffer, external_output_buffer);
     } else {
       return tensors;
@@ -269,9 +236,9 @@ std::shared_ptr<device::Tensor> TensorRtInferenceImpl::getOutputTensor(
   return tensors;
 }
 
-base::Status TensorRtInferenceImpl::run() {
+base::Status TensorRtInference::run() {
   base::Status status = base::kStatusCodeOk;
-  device::Device *device = getDevice();
+  device::Device *device = device::getDevice(inference_param_->device_type_);
   cudaStream_t stream_ = (cudaStream_t)device->getStream();
   if (!context_->enqueueV2(bindings_.data(), stream_, nullptr)) {
     return base::kStatusCodeErrorInferenceTensorRt;
@@ -280,18 +247,10 @@ base::Status TensorRtInferenceImpl::run() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
   return status;
 }
-base::Status TensorRtInferenceImpl::asyncRun() {
-  base::Status status = base::kStatusCodeOk;
-  device::Device *device = getDevice();
-  cudaStream_t stream_ = (cudaStream_t)device->getStream();
-  if (!context_->enqueueV2(bindings_.data(), stream_, nullptr)) {
-    return base::kStatusCodeErrorInferenceTensorRt;
-  }
-  return status;
-}
 
-base::Status TensorRtInferenceImpl::preRunWithOnnxModel(
-    std::string model_buffer, TensorRtConfigImpl *config) {
+base::Status TensorRtInference::preRunWithOnnxModel(
+    std::string model_buffer,
+    TensorRtInferenceParam *tensor_rt_inference_param) {
   const auto explicit_batch =
       1U << static_cast<uint32_t>(
           nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
@@ -321,14 +280,14 @@ base::Status TensorRtInferenceImpl::preRunWithOnnxModel(
     return base::kStatusCodeErrorInferenceTensorRt;
   }
 
-  auto build_config = base::UniquePtr<nvinfer1::IBuilderConfig>(
-      builder_->createBuilderConfig());
+  auto build_config = base::UniquePtr<nvinfer1::IBuilderInferenceParam>(
+      builder_->createBuilderInferenceParam());
   if (!build_config) {
     // TODO: log
     return base::kStatusCodeErrorInferenceTensorRt;
   }
 
-  if (config->precision_type_ == base::kPrecisionTypeFp16) {
+  if (tensor_rt_inference_param->precision_type_ == base::kPrecisionTypeFp16) {
     if (builder_->platformHasFastFp16()) {
       build_config->setFlag(nvinfer1::BuilderFlag::kFP16);
     }
@@ -339,10 +298,10 @@ base::Status TensorRtInferenceImpl::preRunWithOnnxModel(
     engine_.reset();
   }
 
-  builder_->setMaxBatchSize(config->max_batch_size_);
+  builder_->setMaxBatchSize(tensor_rt_inference_param->max_batch_size_);
   build_config->setMaxWorkspaceSize(option_.workspace_size_);
 
-  if (config->is_dynamic_shape_ && checkDynamicShape()) {
+  if (tensor_rt_inference_param->is_dynamic_shape_ && checkDynamicShape()) {
     auto profile = builder_->createOptimizationProfile();
     /**
      * @brief 出错机制
@@ -377,10 +336,12 @@ base::Status TensorRtInferenceImpl::preRunWithOnnxModel(
     build_config->addOptimizationProfile(profile);
   }
 
-  if (config->is_quant_ && !config->int8_calibration_table_path_.empty()) {
+  if (tensor_rt_inference_param->is_quant_ &&
+      !tensor_rt_inference_param->int8_calibration_table_path_.empty()) {
     if (builder_->platformHasFastInt8()) {
       build_config->setFlag(nvinfer1::BuilderFlag::kINT8);
-      build_config->setInt8Calibrator(config->int8_calibration_table_path_);
+      build_config->setInt8Calibrator(
+          tensor_rt_inference_param->int8_calibration_table_path_);
     }
   }
 
@@ -390,9 +351,10 @@ base::Status TensorRtInferenceImpl::preRunWithOnnxModel(
     // TODO: log
     return base::kStatusCodeErrorInferenceTensorRt;
   }
-  if (!config->model_sv_path_.empty()) {
-    std::ofstream model_file(config->model_save_path_.c_str(),
-                             std::ios::binary | std::ios::out);
+  if (!tensor_rt_inference_param->model_save_path_.empty()) {
+    std::ofstream model_file(
+        tensor_rt_inference_param->model_save_path_.c_str(),
+        std::ios::binary | std::ios::out);
     if (!model_file) {
       return base::kStatusCodeErrorInferenceTensorRt;
     }
@@ -421,8 +383,9 @@ base::Status TensorRtInferenceImpl::preRunWithOnnxModel(
   return base::kStatusCodeOk;
 }
 
-base::Status TensorRtInferenceImpl::preRunWithTensorRtModel(
-    std::string model_buffer, TensorRtConfigImpl *config) {
+base::Status TensorRtInference::preRunWithTensorRtModel(
+    std::string model_buffer,
+    TensorRtInferenceParam *tensor_rt_inference_param) {
   UniquePtr<nvinfer1::IRuntime> runtime{nvinfer1::createInferRuntime(logger_)};
   if (!runtime) {
     return base::kStatusCodeErrorInferenceTensorRt;
@@ -440,19 +403,20 @@ base::Status TensorRtInferenceImpl::preRunWithTensorRtModel(
   return base::kStatusCodeOk;
 }
 
-bool TensorRtInferenceImpl::checkDynamicShape() { return true; }
+bool TensorRtInference::checkDynamicShape() { return true; }
 
-base::Status TensorRtInferenceImpl::CreateExecuteContext() {
+base::Status TensorRtInference::CreateExecuteContext() {
   context_ = engine_->createExecutionContextWithoutDeviceMemory();
   if (!context_) {
     return base::kStatusCodeErrorInferenceTensorRt;
   }
   forward_memory_size_ =
       (std::max)(engine_->getDeviceMemorySize(), size_t(1024));
-  if (config->share_memory_mode_ == base::kShareMemoryTypeShareFromExternal) {
+  if (tensor_rt_inference_param->share_memory_mode_ ==
+      base::kShareMemoryTypeShareFromExternal) {
     ;
   } else {
-    device::Device *device = getDevice();
+    device::Device *device = device::getDevice(inference_param_->device_type_);
     inner_forward_buffer_ = device->allocate(forward_memory_size_);
     context_->setDeviceMemory(buffer_->getPtr());
   }

@@ -1,19 +1,22 @@
-#ifndef DD691038_E599_4A91_BD89_F48C1CBC83C1
-#define DD691038_E599_4A91_BD89_F48C1CBC83C1
 
-#ifndef _NNTASK_SOURCE_ALWAYS_TASK_H_
-#define _NNTASK_SOURCE_ALWAYS_TASK_H_
+#ifndef _NNTASK_SOURCE_DETR_TASK_H_
+#define _NNTASK_SOURCE_DETR_TASK_H_
 
 #include "nndeploy/source/base/glic_stl_include.h"
+#include "nntask/source/common/task.h"
 
 namespace nntask {
 namespace detr {
 
-class Task {}
+class Task : public common::Task {
+ public:
+  Task(nndeploy::base::InferenceType type, std::string name);
+
+  virtual nndeploy::base::Status setInput(common::Packet &input);
+  virtual nndeploy::base::Status setOutput(common::Packet &output);
+};
 
 }  // namespace detr
 }  // namespace nntask
 
 #endif
-
-#endif /* DD691038_E599_4A91_BD89_F48C1CBC83C1 */

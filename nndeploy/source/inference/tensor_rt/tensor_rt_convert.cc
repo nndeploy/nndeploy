@@ -1,212 +1,104 @@
 
 #include "nndeploy/source/inference/tensor_rt/tensor_rt_convert.h"
+
 #include "nndeploy/source/device/device_util.h"
-#include "nndeploy/source/inference/tensor_rt/tensor_rt_inference_impl.h"
+#include "nndeploy/source/inference/tensor_rt/tensor_rt_inference.h"
 
 namespace nndeploy {
 namespace inference {
 
-base::DataType TensorRtConvert::convertToDataType(const halide_type_t &src) {
+base::DataType TensorRtConvert::convertToDataType(
+    const nvinfer1::DataType &src) {
   base::DataType dst;
-  switch (src.code) {
-    case halide_type_int:
-      dst.code_ = base::kDataTypeCodeInt;
-      break;
-    case halide_type_uint:
-      dst.code_ = base::kDataTypeCodeUint;
-      break;
-    case halide_type_float:
+  switch (src) {
+    case nvinfer1::DataType::kFLOAT:
       dst.code_ = base::kDataTypeCodeFp;
-      break;
-    case halide_type_handle:
-      dst.code_ = base::kDataTypeCodeOpaqueHandle;
-      break;
+      dst.bits_ = 32;
+      dst.lanes_ = 1;
+    case nvinfer1::DataType::kHALF:
+      dst.code_ = base::kDataTypeCodeBFp;
+      dst.bits_ = 16;
+      dst.lanes_ = 1;
+    case nvinfer1::DataType::kINT32:
+      dst.code_ = base::kDataTypeCodeInt;
+      dst.bits_ = 32;
+      dst.lanes_ = 1;
+    case nvinfer1::DataType::kINT8:
+      dst.code_ = base::kDataTypeCodeInt;
+      dst.bits_ = 8;
+      dst.lanes_ = 1;
+    case nvinfer1::DataType::kUINT8:
+      dst.code_ = base::kDataTypeCodeUint;
+      dst.bits_ = 8;
+      dst.lanes_ = 1;
+    case nvinfer1::DataType::kBOOL:
+      dst.code_ = base::kDataTypeCodeUint;
+      dst.bits_ = 8;
+      dst.lanes_ = 1;
     default:
-      dst.code_ = base::kDataTypeCodeOpaqueHandle;
-      break;
+      dst.code_ = base::kDataTypeCodeFp;
+      dst.bits_ = 32;
+      dst.lanes_ = 1;
   }
-  dst.bits_ = src.bits;
-  dst.lanes_ = src.lanes;
   return dst;
 }
 
-halide_type_t TensorRtConvert::convertFromDataType(base::DataType &src) {
-  halide_type_t dst;
-  switch (src.code_) {
-    case base::kDataTypeCodeInt:
-      dst.code = halide_type_int;
-      break;
-    case base::kDataTypeCodeUint:
-      dst.code = halide_type_uint;
-      break;
-    case base::kDataTypeCodeFp:
-      dst.code = halide_type_float;
-      break;
-    default:
-      dst.code = halide_type_handle;
-      break;
+nvinfer1::DataType TensorRtConvert::convertFromDataType(base::DataType &src) {
+  nvinfer1::DataType dst;
+  if (src.code_ == base::kDataTypeCodeFp && src.bits_ == 32 &&
+      dst.lanes_ == 1) {
+    dst = nvinfer1::DataType::kFLOAT
+  } else if (src.code_ == base::kDataTypeCodeBFp && src.bits_ == 16 &&
+             dst.lanes_ == 1) {
+    dst = nvinfer1::DataType::kHALF
+  } else if (src.code_ == base::kDataTypeCodeInt && src.bits_ == 32 &&
+             dst.lanes_ == 1) {
+    dst = nvinfer1::DataType::kINT32
+  } else if (src.code_ == base::kDataTypeCodeInt && src.bits_ == 8 &&
+             dst.lanes_ == 1) {
+    dst = nvinfer1::DataType::kINT8
+  } else if (src.code_ == base::kDataTypeCodeUint && src.bits_ == 8 &&
+             dst.lanes_ == 1) {
+    dst = nvinfer1::DataType::kUINT8
+  } else {
+    dst = nvinfer1::DataType::kFLOAT
   }
-  dst.bits = src.bits_;
-  dst.lanes = src.lanes_;
   return dst;
 }
 
 base::DataFormat TensorRtConvert::convertToDataFormat(
-    const MNN::Tensor::DimensionType &src) {
+    const nvinfer1::TensorFormat &src) {
   base::DataFormat dst;
   switch (src) {
-    case MNN::Tensor::TENSORFLOW:
-      dst = base::kDataFormatNHWC;
-      break;
-    case MNN::Tensor::CAFFE:
+    case nvinfer1::TensorFormat::kLINEAR:
       dst = base::kDataFormatNCHW;
       break;
-    case MNN::Tensor::CAFFE_C4:
+    case nvinfer1::TensorFormat::kCHW4:
       dst = base::kDataFormatNC4HW;
       break;
     default:
-      dst = base::kDataFormatNotSupport;
+      dst = base::kDataFormatNCHW;
       break;
   }
   return dst;
 }
 
-MNN::Tensor::DimensionType TensorRtConvert::convertFromDataFormat(
-    const base::DataFormat &src) {
-  MNN::Tensor::DimensionType dst = MNN::Tensor::CAFFE;
-  switch (src) {
-    case base::kDataFormatNCHW:
-      dst = MNN::Tensor::CAFFE;
-      break;
-    case base::kDataFormatNHWC:
-      dst = MNN::Tensor::TENSORFLOW;
-      break;
-    case base::kDataFormatNC4HW:
-      dst = MNN::Tensor::CAFFE_C4;
-      break;
-    default:
-      dst = MNN::Tensor::CAFFE;
-      break;
+base::IntVector TensorRtConvert::convertToShape(const nvinfer1::Dims &src) {
+  base::IntVector dst;
+  int src_size = src.nbDims;
+  for (int i = 0; i < src_size; ++i) {
+    dst.push_back(src.d[i]);
   }
   return dst;
 }
 
-MNNForwardType TensorRtConvert::convertFromDeviceType(const base::DeviceType &src) {
-  MNNForwardType type = MNN_FORWARD_CPU;
-  switch (src.code_) {
-    case base::kDeviceTypeCodeCpu:
-      type = MNN_FORWARD_CPU;
-      break;
-    case base::kDeviceTypeCodeX86:
-      type = MNN_FORWARD_CPU;
-      break;
-    case base::kDeviceTypeCodeArm:
-      type = MNN_FORWARD_CPU;
-      break;
-    case base::kDeviceTypeCodeOpenCL:
-      type = MNN_FORWARD_OPENCL;
-      break;
-    case base::kDeviceTypeCodeOpenGL:
-      type = MNN_FORWARD_OPENGL;
-      break;
-    case base::kDeviceTypeCodeMetal:
-      type = MNN_FORWARD_METAL;
-      break;
-    case base::kDeviceTypeCodeCuda:
-      type = MNN_FORWARD_CUDA;
-      break;
-    default:
-      type = MNN_FORWARD_CPU;
-      break;
+nvinfer1::Dims TensorRtConvert::convertFromShape(const base::IntVector &src) {
+  int src_size = src.size();
+  nvinfer1::Dims dst;
+  dst.nbDims = src_size;
+  for (int i = 0; i < src_size; ++i) {
+    dst.d[i] = src[i];
   }
-  return type;
-}
-
-MNN::BackendConfig::PowerMode TensorRtConvert::convertFromPowerType(
-    const base::PowerType &src) {
-  switch (src) {
-    case base::kPowerTypeLow:
-      return MNN::BackendConfig::PowerMode::Power_Low;
-    case base::kPowerTypeNormal:
-      return MNN::BackendConfig::PowerMode::Power_Normal;
-    case base::kPowerTypeHigh:
-      return MNN::BackendConfig::PowerMode::Power_High;
-    default:
-      return MNN::BackendConfig::PowerMode::Power_Normal;
-  }
-}
-
-MNN::BackendConfig::PrecisionMode TensorRtConvert::convertFromPowerType(
-    const base::PrecisionType &src) {
-  switch (src) {
-    case base::kPrecisionTypeFp16:
-      return MNN::BackendConfig::PrecisionMode::Precision_Low;
-    case base::kPrecisionTypeFpBFp16:
-      return MNN::BackendConfig::PrecisionMode::Precision_Low;
-    case base::kPrecisionTypeFp32:
-      return MNN::BackendConfig::PrecisionMode::Precision_Normal;
-    case base::kPrecisionTypeFp64:
-      return MNN::BackendConfig::PrecisionMode::Precision_High;
-    default:
-      return MNN::BackendConfig::PrecisionMode::Precision_Normal;
-  }
-}
-
-base::Status TensorRtConvert::convertFromConfig(
-    TensorRtConfigImpl *config, MNN::ScheduleConfig *internal_config) {
-  if (config == nullptr || internal_config == nullptr) {
-    return base::kStatusCodeErrorInvalidParam;
-  }
-
-  internal_config->saveTensors = config->save_tensors_;
-  internal_config->type = convertFromDeviceType(config->device_type_);
-  if (internal_config->type == MNN_FORWARD_CPU) {
-    internal_config->numThread = config->num_thread_;
-  } else if (internal_config->type == MNN_FORWARD_OPENCL ||
-             internal_config->type == MNN_FORWARD_OPENGL ||
-             internal_config->type == MNN_FORWARD_METAL ||
-             internal_config->type == MNN_FORWARD_CUDA) {
-    internal_config->mode = config->gpu_tune_mode_;
-  }
-  internal_config->path = config->path_;
-  internal_config->backupType =
-      convertFromDeviceType(config->backup_device_type_);
-
-  internal_config->backendConfig = new MNN::BackendConfig();
-  internal_config->backendConfig->power =
-      convertFromPowerType(config->power_type_);
-  internal_config->backendConfig->precision =
-      convertFromPowerType(config->precision_type_);
-  internal_config->backendConfig->memory = config->memory_mode_;
-
-  return base::kStatusCodeOk;
-}
-
-device::Tensor *TensorRtConvert::convertToTensor(MNN::Tensor *src, std::string name,
-                                            device::Device *device) {
-  halide_type_t src_data_type = src->getType();
-  base::DataType data_type = TensorRtConvert::convertToDataType(src_data_type);
-  MNN::Tensor::DimensionType src_data_format = src->getDimensionType();
-  base::DataFormat format = TensorRtConvert::convertToDataFormat(src_data_format);
-  base::IntVector shape = src->shape();
-  base::SizeVector stride = base::SizeVector();
-  device::TensorImplDesc desc(data_type, format, shape, stride);
-  base::TensorImplType type = base::kTensorImplTypeDefault;
-  auto src_buffer = src->buffer();
-  void *data_ptr = (void *)src_buffer.host;
-  base::IntVector memory_config = base::IntVector();
-  device::Tensor *dst = new device::Tensor(device, desc, data_ptr, name,
-                                           memory_config, type);
-  return dst;
-}
-
-MNN::Tensor *TensorRtConvert::convertFromTensor(device::Tensor *src) {
-  device::TensorImplDesc desc = src->getDesc();
-  std::vector<int> shape = desc.shape_;
-  halide_type_t type = TensorRtConvert::convertFromDataType(desc.data_type_);
-  void *data = src->getPtr();
-  MNN::Tensor::DimensionType dimType = TensorRtConvert::convertFromDataFormat(desc.format_);
-  MNN::Tensor *dst = MNN::Tensor::create(shape, type, data, dimType);
   return dst;
 }
 

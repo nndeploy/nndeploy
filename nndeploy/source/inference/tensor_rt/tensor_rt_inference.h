@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_SOURCE_INFERENCE_TENSOR_RT_TENSOR_RT_INFERENCE_IMPL_H_
-#define _NNDEPLOY_SOURCE_INFERENCE_TENSOR_RT_TENSOR_RT_INFERENCE_IMPL_H_
+#ifndef _NNDEPLOY_SOURCE_INFERENCE_TENSOR_RT_TENSOR_RT_INFERENCE_H_
+#define _NNDEPLOY_SOURCE_INFERENCE_TENSOR_RT_TENSOR_RT_INFERENCE_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/log.h"
@@ -10,39 +10,22 @@
 #include "nndeploy/source/base/value.h"
 #include "nndeploy/source/device/device.h"
 #include "nndeploy/source/device/tensor.h"
-#include "nndeploy/source/inference/abstract_inference_impl.h"
-#include "nndeploy/source/inference/config.h"
-#include "nndeploy/source/inference/tensor_rt/tensor_rt_config.h"
+#include "nndeploy/source/inference/inference.h"
+#include "nndeploy/source/inference/inference_param.h"
 #include "nndeploy/source/inference/tensor_rt/tensor_rt_include.h"
+#include "nndeploy/source/inference/tensor_rt/tensor_rt_inference_param.h"
 #include "nndeploy/source/inference/tensor_rt/tensor_rt_util.h"
 
 namespace nndeploy {
 namespace inference {
 
-class TensorRtInferenceImpl : public AbstractInferenceImpl {
+class TensorRtInference : public Inference {
  public:
-  TensorRtInferenceImpl();
-  virtual ~TensorRtInferenceImpl();
+  TensorRtInference();
+  virtual ~TensorRtInference();
 
-  virtual base::Status init(std::shared_ptr<Config> config);
+  virtual base::Status init();
   virtual base::Status deinit();
-
-  /**
-   * @brief preRun
-   *
-   * @param min_shape
-   * @param opt_shape
-   * @param max_shape
-   * @return base::Status
-   * @note
-   * # nndeploy的config转为 TENSOR_RT的config
-   * # 通过init函数创建的interpreter和转化后的TENSOR_RT::ScheduleConfig创建session
-   * # 更新所有shape和tensor
-   */
-  virtual base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
-                              base::ShapeMap opt_shape = base::ShapeMap(),
-                              base::ShapeMap max_shape = base::ShapeMap());
-  virtual base::Status postRun();
 
   /**
    * @brief reShape
@@ -71,16 +54,17 @@ class TensorRtInferenceImpl : public AbstractInferenceImpl {
       const std::string &name, std::vector<int32_t> config);
 
   virtual base::Status run();
-  virtual base::Status asyncRun();
 
  public:
   base::Status preRunWithOnnxModel(std::string model_buffer,
-                                   TensorRtConfigImpl *config);
+                                   TensorRtInferenceParam *config);
 
   base::Status preRunWithTensorRtModel(std::string model_buffer,
-                                       TensorRtConfigImpl *config);
+                                       TensorRtInferenceParam *config);
 
   bool checkDynamicShape();
+
+  base::Status CreateExecuteContext();
 
  private:
   base::UniquePtr<nvinfer1::IBuilder> builder_;
@@ -103,4 +87,3 @@ class TensorRtInferenceImpl : public AbstractInferenceImpl {
 }  // namespace nndeploy
 
 #endif
-

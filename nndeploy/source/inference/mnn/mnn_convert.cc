@@ -150,32 +150,28 @@ MNN::BackendConfig::PrecisionMode MnnConvert::convertFromPowerType(
   }
 }
 
-base::Status MnnConvert::convertFromConfig(
-    MnnConfigImpl *config, MNN::ScheduleConfig *internal_config) {
-  if (config == nullptr || internal_config == nullptr) {
+base::Status MnnConvert::convertFromInferenceParam(MnnInferenceParam *src,
+                                                   MNN::ScheduleConfig *dst) {
+  if (src == nullptr || dst == nullptr) {
     return base::kStatusCodeErrorInvalidParam;
   }
 
-  internal_config->saveTensors = config->save_tensors_;
-  internal_config->type = convertFromDeviceType(config->device_type_);
-  if (internal_config->type == MNN_FORWARD_CPU) {
-    internal_config->numThread = config->num_thread_;
-  } else if (internal_config->type == MNN_FORWARD_OPENCL ||
-             internal_config->type == MNN_FORWARD_OPENGL ||
-             internal_config->type == MNN_FORWARD_METAL ||
-             internal_config->type == MNN_FORWARD_CUDA) {
-    internal_config->mode = config->gpu_tune_mode_;
+  dst->saveTensors = src->save_tensors_;
+  dst->type = convertFromDeviceType(src->device_type_);
+  if (dst->type == MNN_FORWARD_CPU) {
+    dst->numThread = src->num_thread_;
+  } else if (dst->type == MNN_FORWARD_OPENCL ||
+             dst->type == MNN_FORWARD_OPENGL ||
+             dst->type == MNN_FORWARD_METAL || dst->type == MNN_FORWARD_CUDA) {
+    dst->mode = src->gpu_tune_kernel_;
   }
-  internal_config->path = config->path_;
-  internal_config->backupType =
-      convertFromDeviceType(config->backup_device_type_);
+  dst->path = src->path_;
+  dst->backupType = convertFromDeviceType(src->backup_device_type_);
 
-  internal_config->backendConfig = new MNN::BackendConfig();
-  internal_config->backendConfig->power =
-      convertFromPowerType(config->power_type_);
-  internal_config->backendConfig->precision =
-      convertFromPowerType(config->precision_type_);
-  internal_config->backendConfig->memory = config->memory_mode_;
+  dst->backendConfig = new MNN::BackendConfig();
+  dst->backendConfig->power = convertFromPowerType(src->power_type_);
+  dst->backendConfig->precision = convertFromPowerType(src->precision_type_);
+  dst->backendConfig->memory = src->memory_mode_;
 
   return base::kStatusCodeOk;
 }

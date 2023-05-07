@@ -1,5 +1,6 @@
 
 #include "nndeploy/source/device/arm/arm_architecture.h"
+
 #include "nndeploy/source/device/arm/arm_device.h"
 
 namespace nndeploy {
@@ -11,7 +12,15 @@ TypeArchitectureRegister<ArmArchitecture> arm_architecture_register(
 ArmArchitecture::ArmArchitecture(base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code){};
 
-ArmArchitecture::~ArmArchitecture(){};
+ArmArchitecture::~ArmArchitecture() {
+  for (auto iter : devices_) {
+    ArmDevice* tmp_device = dynamic_cast<ArmDevice*>(iter.second);
+    if (tmp_device->deinit() != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("device deinit failed");
+    }
+    delete tmp_device;
+  }
+};
 
 base::Status ArmArchitecture::checkDevice(int32_t device_id,
                                           void* command_queue,
@@ -19,38 +28,42 @@ base::Status ArmArchitecture::checkDevice(int32_t device_id,
   return base::kStatusCodeOk;
 }
 
-Device* ArmArchitecture::createDevice(int32_t device_id, void* command_queue,
-                                      std::string library_path) {
-  ArmDevice* device = new ArmDevice(device_id, command_queue, library_path);
+base::Status ArmArchitecture::enableDevice(int32_t device_id,
+                                           void* command_queue,
+                                           std::string library_path) {
+  device_id = 0;
+  base::DeviceType device_type(base::kDeviceTypeCodeArm, device_id);
+  ArmDevice* device = new ArmDevice(device_type, command_queue, library_path);
   if (device == NULL) {
     NNDEPLOY_LOGE("device is NULL");
-    return NULL;
+    return base::kStatusCodeErrorOutOfMemory;
   }
-
   if (device->init() != base::kStatusCodeOk) {
     delete device;
-    return NULL;
+    NNDEPLOY_LOGE("device init failed");
+    return base::kStatusCodeErrorDeviceArm;
   } else {
-    return dynamic_cast<Device*>(device);
+    devices_.insert({device_id, device});
+    return base::kStatusCodeOk;
   }
+
+  return base::kStatusCodeOk;
 }
 
-base::Status ArmArchitecture::destoryDevice(Device* device) {
-  if (device == NULL) {
-    NNDEPLOY_LOGE("device is NULL");
-    return base::kStatusCodeErrorNullParam;
+Device* ArmArchitecture::getDevice(int32_t device_id) {
+  device_id = 0;
+  Device* device = nullptr;
+  if (devices_.find(device_id) != devices_.end()) {
+    return devices_[device_id];
+  } else {
+    base::Status status = this->enableDevice(device_id, nullptr, "");
+    if (status == base::kStatusCodeOk) {
+      device = devices_[device_id];
+    } else {
+      NNDEPLOY_LOGE("enable device failed");
+    }
   }
-
-  ArmDevice* tmp_device = dynamic_cast<ArmDevice*>(device);
-
-  base::Status status = base::kStatusCodeOk;
-  if (tmp_device->deinit() != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("device deinit failed");
-    status = base::kStatusCodeErrorDeviceArm;
-  }
-  delete tmp_device;
-
-  return status;
+  return device;
 }
 
 std::vector<DeviceInfo> ArmArchitecture::getDeviceInfo(

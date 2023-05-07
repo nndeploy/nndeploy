@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_SOURCE_INFERENCE_MNN_MNN_INFERENCE_IMPL_H_
-#define _NNDEPLOY_SOURCE_INFERENCE_MNN_MNN_INFERENCE_IMPL_H_
+#ifndef _NNDEPLOY_SOURCE_INFERENCE_MNN_MNN_INFERENCE_H_
+#define _NNDEPLOY_SOURCE_INFERENCE_MNN_MNN_INFERENCE_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/log.h"
@@ -11,39 +11,22 @@
 #include "nndeploy/source/base/value.h"
 #include "nndeploy/source/device/device.h"
 #include "nndeploy/source/device/tensor.h"
-#include "nndeploy/source/inference/abstract_inference_impl.h"
-#include "nndeploy/source/inference/config.h"
-#include "nndeploy/source/inference/mnn/mnn_config.h"
+#include "nndeploy/source/inference/inference.h"
+#include "nndeploy/source/inference/inference_param.h"
 #include "nndeploy/source/inference/mnn/mnn_convert.h"
 #include "nndeploy/source/inference/mnn/mnn_include.h"
+#include "nndeploy/source/inference/mnn/mnn_inference_param.h"
 
 namespace nndeploy {
 namespace inference {
 
-class MnnInferenceImpl : public AbstractInferenceImpl {
+class MnnInference : public Inference {
  public:
-  MnnInferenceImpl();
-  virtual ~MnnInferenceImpl();
+  MnnInference(base::InferenceType type);
+  virtual ~MnnInference();
 
-  virtual base::Status init(std::shared_ptr<Config> config);
+  virtual base::Status init();
   virtual base::Status deinit();
-
-  /**
-   * @brief preRun
-   *
-   * @param min_shape
-   * @param opt_shape
-   * @param max_shape
-   * @return base::Status
-   * @note
-   * # nndeploy的config转为 MNN的config
-   * # 通过init函数创建的interpreter和转化后的MNN::ScheduleConfig创建session
-   * # 更新所有shape和tensor
-   */
-  virtual base::Status preRun(base::ShapeMap min_shape = base::ShapeMap(),
-                              base::ShapeMap opt_shape = base::ShapeMap(),
-                              base::ShapeMap max_shape = base::ShapeMap());
-  virtual base::Status postRun();
 
   /**
    * @brief reShape
@@ -73,14 +56,13 @@ class MnnInferenceImpl : public AbstractInferenceImpl {
       const std::string &name, std::vector<int32_t> config);
 
   virtual base::Status run();
-  virtual base::Status asyncRun();
 
-  MNN::ScheduleConfig *getInternalConfig();
+  MNN::ScheduleConfig *getInternalInferenceParam();
   MNN::Interpreter *getInternalInterpreter();
   MNN::Session *getInternalSession();
 
  private:
-  MNN::ScheduleConfig *internal_config_ = nullptr;
+  MNN::ScheduleConfig *internal_inference_param_;
   MNN::Interpreter *internal_interpreter_ = nullptr;
   MNN::Session *internal_session_ = nullptr;
 

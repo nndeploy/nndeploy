@@ -74,7 +74,7 @@ enum DeviceTypeCode : int32_t {
 
 struct NNDEPLOY_CC_API DeviceType {
   DeviceType() = default;
-  DeviceType(int32_t code, int32_t device_id = 0)
+  DeviceType(DeviceTypeCode code, int32_t device_id = 0)
       : code_(code), device_id_(device_id){};
   DeviceType(const DeviceType& other) = default;
   DeviceType& operator=(const DeviceType& other) = default;
@@ -87,7 +87,7 @@ struct NNDEPLOY_CC_API DeviceType {
     return code_ == other.code_ && device_id_ == other.device_id_;
   };
   bool operator==(const DeviceTypeCode& other) const { return code_ == other; };
-  int32_t code_ = kDeviceTypeCodeCpu;
+  DeviceTypeCode code_ = kDeviceTypeCodeCpu;
   int32_t device_id_ = 0;
 };
 

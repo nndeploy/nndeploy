@@ -11,6 +11,8 @@ if(NNTASK_ENABLE_TEST)
   set(ALL_TEST_THIRD_PARTY_LIBRARY)
 endif()
 
+add_subdirectory(source/common)
+
 nndeploy_option(NNTASK_ENABLE_ALWAYS "NNTASK_ENABLE_ALWAYS" OFF)
 if(NNTASK_ENABLE_ALWAYS)
   add_subdirectory(source/always)

@@ -1,15 +1,13 @@
-#include "nndeploy/source/taskflow/task.h"
+#include "nntask/source/common/task.h"
 
-namespace nndeploy {
-namespace taskflow {
+namespace nntask {
+namespace common {
 
-Task::Task() {};
-
-Task::Task(base::InferenceType type) {
-  inference_ = new inference::Inference(type);
+Task::Task(nndeploy::base::InferenceType type, std::string name)
+    : Executor(name) {
+  inference_ = nndeploy::inference::createInference(type);
   if (inference_ == nullptr) {
     NNDEPLOY_LOGE("inference_ is nullptr!\n");
-    is_constract_ = false;
   }
 }
 
@@ -28,55 +26,78 @@ Task::~Task() {
   }
 }
 
-base::Status Task::setDevice(device::Device *device) {
-  device_.push_back(device);
-  
+nndeploy::base::Param *Task::getPreProcessParam() {
+  return pre_processs_->getParam();
+}
+nndeploy::inference::InferenceParam *Task::getInferenceParam() {
+  return inference_->getInferenceParam();
+}
+nndeploy::base::Param *Task::getPostProcessParam() {
+  return post_processs_->getParam();
+}
+
+nndeploy::base::Status Task::init() {
+  nndeploy::base::Status status = nndeploy::base::kStatusCodeErrorUnknown;
   if (pre_processs_ != nullptr) {
-    pre_processs_->setDevice(device);
+    status = pre_processs_->init();
+    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
-  
   if (inference_ != nullptr) {
-    inference_->setDevice(device);
+    status = inference_->init();
+    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
-  
   if (post_processs_ != nullptr) {
-    post_processs_->setDevice(device);
+    status = inference_->init();
+    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
-
-  return base::kStatusCodeOk;
-}
-device::Device *Task::getDevice() {
-  if (device_.empty()) {
-    return nullptr;
-  } else {
-    return device_[0];
-  }
-}
-device::Device *Task::getDevice(int index) {
-  if (index < 0 || index >= device_.size()) {
-    return nullptr;
-  } else {
-    return device_[index];
-  }
-}
-device::Device *Task::getDevice(base::DeviceType device_type) {
-  for (int i = 0; i < device_.size(); ++i) {
-    if (device_[i]->getDeviceType() == device_type) {
-      return device_[i];
-    }
-  }
-  return nullptr;
+  return status;
 }
 
-base::Status Task::setInput(device::Packet &input) {
-  input_ = input;
-  return base::kStatusCodeOk;
+nndeploy::base::Status Task::deinit() {
+  nndeploy::base::Status status = nndeploy::base::kStatusCodeErrorUnknown;
+  if (pre_processs_ != nullptr) {
+    status = pre_processs_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
+  }
+  if (inference_ != nullptr) {
+    status = inference_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
+  }
+  if (post_processs_ != nullptr) {
+    status = inference_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
+  }
+  return status;
 }
 
-base::Status Task::setOutput(device::Packet &output){
-  output_ = output;
-  return base::kStatusCodeOk;
+nndeploy::base::Status Task::setInput(Packet &input) {
+  Executor::setInput(input);
+  pre_processs_->setInput(input);
+  return nndeploy::base::kStatusCodeOk;
 }
 
+nndeploy::base::Status Task::setOutput(Packet &output) {
+  post_processs_->setOutput(output);
+  Executor::setOutput(output);
+  return nndeploy::base::kStatusCodeOk;
 }
+
+nndeploy::base::Status Task::run() {
+  nndeploy::base::Status status = nndeploy::base::kStatusCodeErrorUnknown;
+  if (pre_processs_ != nullptr) {
+    status = pre_processs_->run();
+    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
+  }
+  if (inference_ != nullptr) {
+    status = inference_->run();
+    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
+  }
+  if (post_processs_ != nullptr) {
+    status = inference_->run();
+    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
+  }
+  return status;
 }
+
+}  // namespace common
+}  // namespace nntask
