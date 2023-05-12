@@ -1,55 +1,16 @@
-#include "nntask/source/common/task.h"
+#include "nntask/source/common/template_task/static_shape_inference_task.h"
 
 namespace nntask {
 namespace common {
 
-Task::Task(nndeploy::base::InferenceType type, std::string name)
-    : Executor(name) {
-  inference_ = nndeploy::inference::createInference(type);
-  if (inference_ == nullptr) {
-    NNDEPLOY_LOGE("inference_ is nullptr!\n");
-  }
-}
+StaticShapeInferenceTask::StaticShapeInferenceTask(
+    nndeploy::base::InferenceType type, std::string name)
+    : Task(type, name) {}
 
-Task::~Task() {
-  if (post_processs_ != nullptr) {
-    delete post_processs_;
-    post_processs_ = nullptr;
-  }
-  if (inference_ != nullptr) {
-    delete inference_;
-    inference_ = nullptr;
-  }
-  if (pre_processs_ != nullptr) {
-    delete pre_processs_;
-    pre_processs_ = nullptr;
-  }
-}
-
-nndeploy::base::Param *Task::getPreProcessParam() {
-  return pre_processs_->getParam();
-}
-nndeploy::base::Param *Task::getInferenceParam() {
-  return inference_->getParam();
-}
-nndeploy::base::Param *Task::getPostProcessParam() {
-  return post_processs_->getParam();
-}
-
-nndeploy::base::Status Task::init() {
+nndeploy::base::Status StaticShapeInferenceTask::init() {
   nndeploy::base::Status status = nndeploy::base::kStatusCodeErrorUnknown;
-  if (inference_ != nullptr) {
-    status = inference_->init();
-    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
-  }
-  if (pre_processs_ != nullptr) {
-    status = pre_processs_->init();
-    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
-  }
-  if (post_processs_ != nullptr) {
-    status = post_processs_->init();
-    NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
-  }
+  status = Task::init();
+
   return status;
 }
 

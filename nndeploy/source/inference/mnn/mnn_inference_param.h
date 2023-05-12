@@ -11,6 +11,7 @@ namespace inference {
 class MnnInferenceParam : public InferenceParam {
  public:
   MnnInferenceParam();
+  MnnInferenceParam(std::string name);
   virtual ~MnnInferenceParam();
 
   base::Status parse(const std::string &json, bool is_path = true);

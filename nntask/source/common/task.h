@@ -29,8 +29,9 @@ class Task : public Executor {
   ~Task();
 
   nndeploy::base::Param *getPreProcessParam();
-  nndeploy::inference::InferenceParam *getInferenceParam();
+  nndeploy::base::Param *getInferenceParam();
   nndeploy::base::Param *getPostProcessParam();
+  nndeploy::base::Param *getParam();
 
   virtual nndeploy::base::Status init();
   virtual nndeploy::base::Status deinit();

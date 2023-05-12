@@ -4,7 +4,9 @@
 namespace nndeploy {
 namespace inference {
 
-InferenceParam::InferenceParam() {}
+InferenceParam::InferenceParam() : base::Param() {}
+InferenceParam::InferenceParam(std::string name) : base::Param(name) {}
+
 InferenceParam::~InferenceParam() {}
 
 base::Status InferenceParam::parse(const std::string &json, bool is_path) {
@@ -19,8 +21,8 @@ base::Status InferenceParam::get(const std::string &key, base::Value &value) {
   return base::kStatusCodeOk;
 }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
-    &getGlobalInferenceParamCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
+getGlobalInferenceParamCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>>

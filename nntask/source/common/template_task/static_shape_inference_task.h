@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_SOURCE_INFERENCE_PRE_POST_PROCESS_H_
-#define _NNDEPLOY_SOURCE_INFERENCE_PRE_POST_PROCESS_H_
+#ifndef _NNTASK_SOURCE_COMMON_STATIC_SHAPE_INFERENCE_TASK_H_
+#define _NNTASK_SOURCE_COMMON_STATIC_SHAPE_INFERENCE_TASK_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -16,30 +16,31 @@
 #include "nndeploy/source/device/tensor.h"
 #include "nndeploy/source/inference/inference.h"
 #include "nndeploy/source/inference/inference_param.h"
+#include "nntask/source/common/executor.h"
 #include "nntask/source/common/packet.h"
+#include "nntask/source/common/task.h"
 
 namespace nntask {
 namespace common {
 
-class Executor {
+class StaticShapeInferenceTask : public Task {
  public:
-  Executor(std::string name = "");
-  ~Executor();
+  StaticShapeInferenceTask(nndeploy::base::InferenceType type,
+                           std::string name);
 
-  virtual nndeploy::base::Param* getParam();
+  ~StaticShapeInferenceTask();
 
   virtual nndeploy::base::Status init();
   virtual nndeploy::base::Status deinit();
 
-  virtual nndeploy::base::Status setInput(Packet& input);
-  virtual nndeploy::base::Status setOutput(Packet& output);
+  virtual nndeploy::base::Status setInput(Packet &input);
+  virtual nndeploy::base::Status setOutput(Packet &output);
 
-  virtual nndeploy::base::Status run() = 0;
+  virtual nndeploy::base::Status run();
 
  protected:
-  std::string name_ = "";
-  Packet* input_ = nullptr;
-  Packet* output_ = nullptr;
+  std::vector<nndeploy::nndevice::Tensor *> input_tensors_ = nullptr;
+  std::vector<nndeploy::nndevice::Tensor *> output_tensors_ = nullptr;
 };
 
 }  // namespace common

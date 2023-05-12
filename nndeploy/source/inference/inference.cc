@@ -7,17 +7,15 @@ namespace inference {
 Inference::Inference(base::InferenceType type) {
   type_ = type;
   inference_param_ = createInferenceParam(type);
-  current_shape_ = base::ShapeMap();
-  min_shape_ = base::ShapeMap();
-  opt_shape_ = base::ShapeMap();
-  max_shape_ = base::ShapeMap();
 }
 
 Inference::~Inference() { delete inference_param_; }
 
 base::InferenceType Inference::getInferenceType() { return type_; }
 
-InferenceParam *Inference::getInferenceParam() { return inference_param_; }
+base::Param *Inference::getParam() {
+  return dynamic_cast<base::Param *>(inference_param_);
+}
 
 base::Status Inference::getMinShape(base::ShapeMap &shape_map) {
   shape_map = min_shape_;
@@ -82,7 +80,7 @@ std::vector<std::string> Inference::getOutputTensorNames() {
 std::shared_ptr<device::Tensor> Inference::getInputTensor(
     const std::string &name) {
   if (current_input_tensors_.count(name) > 0) {
-    return current_input_tensors_[name];
+    return current_input_tensors_[name].get();
   } else {
     return nullptr;
   }
@@ -90,14 +88,14 @@ std::shared_ptr<device::Tensor> Inference::getInputTensor(
 std::shared_ptr<device::Tensor> Inference::getOutputTensor(
     const std::string &name) {
   if (current_output_tensors_.count(name) > 0) {
-    return current_output_tensors_[name];
+    return current_output_tensors_[name].get();
   } else {
     return nullptr;
   }
 }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>>

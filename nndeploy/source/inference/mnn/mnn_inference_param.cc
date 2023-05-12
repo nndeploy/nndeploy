@@ -7,6 +7,10 @@ namespace inference {
 static TypeInferenceParamRegister<TypeInferenceParamCreator<MnnInferenceParam>>
     g_mnn_inference_param_register(base::kInferenceTypeMnn);
 
+MnnInferenceParam::MnnInferenceParam() : InferenceParam() {}
+MnnInferenceParam::MnnInferenceParam(std::string name) : InferenceParam(name) {}
+MnnInferenceParam::~InferenceParam() {}
+
 base::Status MnnInferenceParam::parse(const std::string &json, bool is_path) {
   std::string json_content = "";
   base::Status status = InferenceParam::parse(json_content, false);

@@ -15,9 +15,11 @@
 namespace nndeploy {
 namespace inference {
 
-class InferenceParam {
+class InferenceParam : public base::Param {
  public:
   InferenceParam();
+  InferenceParam(std::string name);
+
   virtual ~InferenceParam();
 
   virtual base::Status parse(const std::string &json, bool is_path = true);
@@ -58,8 +60,8 @@ class TypeInferenceParamCreator : public InferenceParamCreator {
   virtual InferenceParam *createInferenceParam() { return new T(); }
 };
 
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
-    &getGlobalInferenceParamCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
+getGlobalInferenceParamCreatorMap();
 
 template <typename T>
 class TypeInferenceParamRegister {

@@ -7,7 +7,7 @@ Executor::Executor(std::string name) : name_(name) {}
 
 Executor::~Executor() {}
 
-nndeploy::base::Param *Executor::getParam() { return param_; }
+nndeploy::base::Param *Executor::getParam() { return nullptr; }
 
 nndeploy::base::Status Executor::init() {
   return nndeploy::base::kStatusCodeOk;

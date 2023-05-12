@@ -27,7 +27,7 @@ class Inference {
 
   base::InferenceType getInferenceType();
 
-  InferenceParam *getInferenceParam();
+  base::Param *getParam();
 
   virtual base::Status init() = 0;
   virtual base::Status deinit() = 0;
@@ -44,9 +44,13 @@ class Inference {
   virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual float getGFLOPs();
+  virtual bool isCommanQueue();
 
   virtual device::TensorMap getAllInputTensor();
   virtual device::TensorMap getAllOutputTensor();
+
+  virtual std::vector<device::Tensor *> getAllInputTensor();
+  virtual std::vector<device::Tensor *> getAllOutputTensor();
 
   virtual int getNumOfInputTensor();
   virtual int getNumOfOutputTensor();
@@ -54,17 +58,14 @@ class Inference {
   virtual std::vector<std::string> getInputTensorNames();
   virtual std::vector<std::string> getOutputTensorNames();
 
-  virtual std::shared_ptr<device::Tensor> getInputTensor(
-      const std::string &name);
-  virtual std::shared_ptr<device::Tensor> getOutputTensor(
-      const std::string &name);
+  virtual device::Tensor *getInputTensor(const std::string &name);
+  virtual device::Tensor *getOutputTensor(const std::string &name);
 
-  virtual base::Status setInputTensor(
-      const std::string &name,
-      const std::shared_ptr<device::Tensor> input_tensor) = 0;
+  virtual base::Status setInputTensor(const std::string &name,
+                                      const device::Tensor *input_tensor) = 0;
   //
-  virtual std::shared_ptr<device::Tensor> getOutputTensor(
-      const std::string &name, std::vector<int32_t> config) = 0;
+  virtual base::Status setOutputTensor(const std::string &name,
+                                       device::Tensor *output_tensor) = 0;
 
   virtual base::Status run() = 0;
 
@@ -97,8 +98,8 @@ class TypeInferenceCreator : public InferenceCreator {
   }
 };
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap();
 
 template <typename T>
 class TypeInferenceRegister {
