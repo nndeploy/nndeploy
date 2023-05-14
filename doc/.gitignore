@@ -1,3 +1,6 @@
 # You can change the sub gitignore file to ignore your own help doc
 jodio/
 always/
+*.o
+*.h
+*.cpp

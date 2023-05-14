@@ -7,7 +7,10 @@ namespace yolo {
 
 Task::Task(bool allcoate_tensor_flag, nndeploy::base::InferenceType type,
            nndeploy::base::DeviceType device_type, const std::string &name)
-    : StaticShape(allcoate_tensor_flag, type, device_type, name) {}
+    : StaticShape(allcoate_tensor_flag, type, device_type, name) {
+  pre_process = new common::ResizeBn();
+  post_process = new common::Yolo();
+}
 
 }  // namespace yolo
 }  // namespace nntask

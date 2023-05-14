@@ -35,6 +35,16 @@ class NNDEPLOY_CC_API Packet {
   Packet(nndeploy::device::Tensor *tensor);
   Packet(nndeploy::device::Tensor &tensor);
 
+  packet(const std::vector<nndeploy::base::Param *> &param);
+  packet(nndeploy::base::Param *param);
+  packet(nndeploy::base::Param &param);
+
+#ifdef NNTASK_ENABLE_OPENCV
+  Packet(const std::vector<cv::mat *> &cv_mats);
+  Packet(cv::mat *cv_mat);
+  Packet(cv::mat &cv_mat);
+#endif
+
   virtual ~Packet();
 
   nndeploy::base::Status setName(std::string name);
@@ -55,6 +65,12 @@ class NNDEPLOY_CC_API Packet {
   void add(const std::vector<nndeploy::base::Param *> &param);
   void add(nndeploy::base::Param *param);
   void add(nndeploy::base::Param &param);
+
+#ifdef NNTASK_ENABLE_OPENCV
+  Void add(const std::vector<cv::mat *> &cv_mats);
+  Void add(cv::mat *cv_mat);
+  Void add(cv::mat &cv_mat);
+#endif
 
   void add(void *anything);
 
@@ -80,6 +96,13 @@ class NNDEPLOY_CC_API Packet {
   nndeploy::base::Param *getParam();
   nndeploy::base::Param *getParam(int index);
 
+#ifdef NNTASK_ENABLE_OPENCV
+  bool emptyCvMat();
+  int getCvMatSize();
+  cv::mat *getCvMat();
+  cv::mat *getCvMat(int index);
+#endif
+
   void *getAnything();
 
  private:
@@ -90,6 +113,10 @@ class NNDEPLOY_CC_API Packet {
   std::vector<nndeploy::device::Tensor *> tensors_;
 
   std::vector<nndeploy::base::Param *> params_;
+
+#ifdef NNTASK_ENABLE_OPENCV
+  std::vector<cv::mat *> cv_mats_;
+#endif
 
   void *anything_ = nullptr;
 };

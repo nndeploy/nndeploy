@@ -13,19 +13,22 @@ endif()
 
 add_subdirectory(source/common)
 
+nndeploy_option(NNTASK_ENABLE_USER_DEMO "NNTASK_ENABLE_USER_DEMO" ON)
+if(NNTASK_ENABLE_USER_DEMO)
 nndeploy_option(NNTASK_ENABLE_ALWAYS "NNTASK_ENABLE_ALWAYS" OFF)
 if(NNTASK_ENABLE_ALWAYS)
-  add_subdirectory(source/always)
+  add_subdirectory(source/user_demo/always)
 endif()
-
 nndeploy_option(NNTASK_ENABLE_ZIP "NNTASK_ENABLE_ZIP" OFF)
 if(NNTASK_ENABLE_ZIP)
-  add_subdirectory(source/zip)
+  add_subdirectory(source/user_demo/zip)
+endif()
 endif()
 
+# detect
 nndeploy_option(NNTASK_ENABLE_YOLO "NNTASK_ENABLE_YOLO" OFF)
 if(NNTASK_ENABLE_YOLO)
-  add_subdirectory(source/yolo)
+  add_subdirectory(source/detect/yolo)
 endif()
 
 # last line

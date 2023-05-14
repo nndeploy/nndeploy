@@ -18,16 +18,16 @@ include_directories(${ROOT_PATH})
 
 # SOURCE
 file(GLOB_RECURSE SOURCE
-  "${ROOT_PATH}/nntask/source/always/*.h"
-  "${ROOT_PATH}/nntask/source/always/*.cc"
+  "${ROOT_PATH}/nntask/source/user_demo/always/*.h"
+  "${ROOT_PATH}/nntask/source/user_demo/always/*.cc"
   )
 file(GLOB_RECURSE TEST_SOURCE
-  "${ROOT_PATH}/nntask/source/always/*test.h"
-  "${ROOT_PATH}/nntask/source/always/*test.cc"
+  "${ROOT_PATH}/nntask/source/user_demo/always/*test.h"
+  "${ROOT_PATH}/nntask/source/user_demo/always/*test.cc"
   )
 file(GLOB_RECURSE DEMO_SOURCE
-  "${ROOT_PATH}/nntask/source/always/*demo.h"
-  "${ROOT_PATH}/nntask/source/always/*demo.cc"
+  "${ROOT_PATH}/nntask/source/user_demo/always/*demo.h"
+  "${ROOT_PATH}/nntask/source/user_demo/always/*demo.cc"
   )
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 list(REMOVE_ITEM SOURCE ${DEMO_SOURCE})
@@ -42,6 +42,9 @@ set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
 # DEPEND_LIBRARY
 list(APPEND DEPEND_LIBRARY nndeploy_base)
+list(APPEND DEPEND_LIBRARY nndeploy_device)
+list(APPEND DEPEND_LIBRARY nndeploy_inference)
+list(APPEND DEPEND_LIBRARY nntask_common)
 target_link_libraries(${BINARY} ${DEPEND_LIBRARY}) 
 
 # SYSTEM_LIBRARY

@@ -26,6 +26,17 @@ Packet::Packet(nndeploy::device::Tensor &tensor) {
   tensors_.push_back(&tensor);
 }
 
+Packet::Packet(const std::vector<nndeploy::base::Param *> &params)
+    : params_(params) {}
+Packet::Packet(nndeploy::base::Param *param) { params_.push_back(param); }
+Packet::Packet(nndeploy::base::Param &param) { params_.push_back(&param); }
+
+#ifdef NNTASK_ENABLE_OPENCV
+Packet::Packet(const std::vector<cv::mat *> &cv_mats) : cv_mats_(cv_mats) {}
+Packet::Packet(cv::mat *cv_mat) { cv_mats_.push_back(cv_mat); }
+Packet::Packet(cv::mat &cv_mat) { cv_mats_.push_back(&cv_mat); }
+#endif
+
 Packet::~Packet() {}
 
 nndeploy::base::Status Packet::setName(std::string name) {
@@ -74,6 +85,16 @@ void Packet::add(const std::vector<nndeploy::base::Param *> &params) {
 }
 void Packet::add(nndeploy::base::Param &param) { params_.push_back(&param); }
 
+#ifdef NNTASK_ENABLE_OPENCV
+void Packet::add(cv::mat *cv_mat) { cv_mats_.push_back(cv_mat); }
+void Packet::add(const std::vector<cv::mat *> &cv_mats) {
+  for (auto cv_mat : cv_mats) {
+    cv_mats_.push_back(cv_mat);
+  }
+}
+void Packet::add(cv::mat &cv_mat) { cv_mats_.push_back(&cv_mat); }
+#endif
+
 void Packet::add(void *anything) { anything_ = anything; }
 
 // bool Packet::empty() { return emptyBuffer() && emptyMat() && emptyTensor(); }
@@ -101,6 +122,13 @@ bool Packet::emptyParam() { return params_.size() == 0; }
 int Packet::getParamSize() { return params_.size(); }
 nndeploy::base::Param *Packet::getParam() { return params_[0]; }
 nndeploy::base::Param *Packet::getParam(int index) { return params_[index]; }
+
+#ifdef NNTASK_ENABLE_OPENCV
+bool Packet::emptyCvMat() { return cv_mats_.size() == 0; }
+int Packet::getCvMatSize() { return cv_mats_.size(); }
+cv::mat *Packet::getCvMat() { return cv_mats_[0]; }
+cv::mat *Packet::getCvMat(int index) { return cv_mats_[index]; }
+#endif
 
 void *Packet::getAnything() { return anything_; }
 
