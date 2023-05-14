@@ -3,64 +3,69 @@
 namespace nntask {
 namespace common {
 
-Task::Task(nndeploy::base::InferenceType type, std::string name)
-    : Executor(name) {
-  inference_ = nndeploy::inference::createInference(type);
-  if (inference_ == nullptr) {
-    NNDEPLOY_LOGE("inference_ is nullptr!\n");
-  }
-}
+Task::Task(nndeploy::base::InferenceType type,
+           nndeploy::base::DeviceType device_type, const std::string &name)
+    : Execution(device_type, name), type_(type) {}
 
 Task::~Task() {
-  if (post_processs_ != nullptr) {
-    delete post_processs_;
-    post_processs_ = nullptr;
+  if (post_process_ != nullptr) {
+    delete post_process_;
+    post_process_ = nullptr;
+  }
+  if (pre_process_ != nullptr) {
+    delete pre_process_;
+    pre_process_ = nullptr;
   }
   if (inference_ != nullptr) {
     delete inference_;
     inference_ = nullptr;
   }
-  if (pre_processs_ != nullptr) {
-    delete pre_processs_;
-    pre_processs_ = nullptr;
-  }
 }
 
 nndeploy::base::Param *Task::getPreProcessParam() {
-  return pre_processs_->getParam();
+  if (pre_process_ != nullptr) {
+    return pre_process_->getParam();
+  }
+  return nullptr;
 }
 nndeploy::base::Param *Task::getInferenceParam() {
-  return inference_->getParam();
+  if (inference_ != nullptr) {
+    return inference_->getParam();
+  }
+  return nullptr;
 }
 nndeploy::base::Param *Task::getPostProcessParam() {
-  return post_processs_->getParam();
+  if (post_process_ != nullptr) {
+    return post_process_->getParam();
+  }
+  return nullptr;
 }
 
 nndeploy::base::Status Task::init() {
-  nndeploy::base::Status status = nndeploy::base::kStatusCodeErrorUnknown;
+  nndeploy::base::Status status = nndeploy::base::kStatusCodeOk;
   if (inference_ != nullptr) {
     status = inference_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
-  if (pre_processs_ != nullptr) {
-    status = pre_processs_->init();
+  if (pre_process_ != nullptr) {
+    status = pre_process_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
-  if (post_processs_ != nullptr) {
-    status = post_processs_->init();
+  if (post_process_ != nullptr) {
+    status = post_process_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
   return status;
 }
 
 nndeploy::base::Status Task::deinit() {
-  nndeploy::base::Status status = nndeploy::base::kStatusCodeErrorUnknown;
-  if (post_processs_ != nullptr) {
-    status = post_processs_->deinit();
+  nndeploy::base::Status status = nndeploy::base::kStatusCodeOk;
+  if (post_process_ != nullptr) {
+    status = post_process_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
-  if (pre_processs_ != nullptr) {
-    status = pre_processs_->deinit();
+  if (pre_process_ != nullptr) {
+    status = pre_process_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
   if (inference_ != nullptr) {
@@ -71,28 +76,28 @@ nndeploy::base::Status Task::deinit() {
 }
 
 nndeploy::base::Status Task::setInput(Packet &input) {
-  Executor::setInput(input);
-  pre_processs_->setInput(input);
+  Execution::setInput(input);
+  pre_process_->setInput(input);
   return nndeploy::base::kStatusCodeOk;
 }
 
 nndeploy::base::Status Task::setOutput(Packet &output) {
-  Executor::setOutput(output);
-  post_processs_->setOutput(output);
+  Execution::setOutput(output);
+  post_process_->setOutput(output);
   return nndeploy::base::kStatusCodeOk;
 }
 
 nndeploy::base::Status Task::run() {
-  nndeploy::base::Status status = nndeploy::base::kStatusCodeErrorUnknown;
-  if (pre_processs_ != nullptr) {
-    status = pre_processs_->run();
+  nndeploy::base::Status status = nndeploy::base::kStatusCodeOk;
+  if (pre_process_ != nullptr) {
+    status = pre_process_->run();
     NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
   if (inference_ != nullptr) {
     status = inference_->run();
     NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
-  if (post_processs_ != nullptr) {
+  if (post_process_ != nullptr) {
     status = inference_->run();
     NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }

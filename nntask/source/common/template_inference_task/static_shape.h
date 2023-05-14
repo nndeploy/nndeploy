@@ -1,6 +1,6 @@
 
-#ifndef _NNTASK_SOURCE_COMMON_STATIC_SHAPE_INFERENCE_TASK_H_
-#define _NNTASK_SOURCE_COMMON_STATIC_SHAPE_INFERENCE_TASK_H_
+#ifndef _NNTASK_SOURCE_COMMON_TEMPLATE_INFERENCE_TASK_STATIC_SHAPE_H_
+#define _NNTASK_SOURCE_COMMON_TEMPLATE_INFERENCE_TASK_STATIC_SHAPE_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -16,19 +16,20 @@
 #include "nndeploy/source/device/tensor.h"
 #include "nndeploy/source/inference/inference.h"
 #include "nndeploy/source/inference/inference_param.h"
-#include "nntask/source/common/executor.h"
+#include "nntask/source/common/execution.h"
 #include "nntask/source/common/packet.h"
 #include "nntask/source/common/task.h"
 
 namespace nntask {
 namespace common {
 
-class StaticShapeInferenceTask : public Task {
+class StaticShape : public Task {
  public:
-  StaticShapeInferenceTask(nndeploy::base::InferenceType type,
-                           std::string name);
+  StaticShape(bool allcoate_tensor_flag, nndeploy::base::InferenceType type,
+              nndeploy::base::DeviceType device_type,
+              const std::string &name = "");
 
-  ~StaticShapeInferenceTask();
+  virtual ~StaticShape();
 
   virtual nndeploy::base::Status init();
   virtual nndeploy::base::Status deinit();
@@ -38,9 +39,14 @@ class StaticShapeInferenceTask : public Task {
 
   virtual nndeploy::base::Status run();
 
+ private:
+  nndeploy::base::Status allocateInputOutputTensor();
+  nndeploy::base::Status deallocateInputOutputTensor();
+
  protected:
-  std::vector<nndeploy::nndevice::Tensor *> input_tensors_ = nullptr;
-  std::vector<nndeploy::nndevice::Tensor *> output_tensors_ = nullptr;
+  bool allcoate_tensor_flag_ = false;
+  std::vector<nndeploy::device::Tensor *> input_tensors_;
+  std::vector<nndeploy::device::Tensor *> output_tensors_;
 };
 
 }  // namespace common

@@ -26,8 +26,6 @@ class MnnInferenceParam : public InferenceParam {
   MNN::BackendConfig::MemoryMode memory_mode_ =
       MNN::BackendConfig::MemoryMode::Memory_Normal;
   std::string opencl_library_path_ = "";
-
-  base::DataFormat output_data_format_ = base::kDataFormatNCHW;
 };
 
 }  // namespace inference

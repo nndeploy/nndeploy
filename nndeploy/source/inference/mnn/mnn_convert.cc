@@ -134,7 +134,7 @@ MNN::BackendConfig::PowerMode MnnConvert::convertFromPowerType(
   }
 }
 
-MNN::BackendConfig::PrecisionMode MnnConvert::convertFromPowerType(
+MNN::BackendConfig::PrecisionMode MnnConvert::convertFromPrecisionType(
     const base::PrecisionType &src) {
   switch (src) {
     case base::kPrecisionTypeFp16:
@@ -170,7 +170,8 @@ base::Status MnnConvert::convertFromInferenceParam(MnnInferenceParam *src,
 
   dst->backendConfig = new MNN::BackendConfig();
   dst->backendConfig->power = convertFromPowerType(src->power_type_);
-  dst->backendConfig->precision = convertFromPowerType(src->precision_type_);
+  dst->backendConfig->precision =
+      convertFromPrecisionType(src->precision_type_);
   dst->backendConfig->memory = src->memory_mode_;
 
   return base::kStatusCodeOk;
@@ -184,18 +185,24 @@ device::Tensor *MnnConvert::convertToTensor(MNN::Tensor *src, std::string name,
   base::DataFormat format = MnnConvert::convertToDataFormat(src_data_format);
   base::IntVector shape = src->shape();
   base::SizeVector stride = base::SizeVector();
-  device::TensorImplDesc desc(data_type, format, shape, stride);
-  base::TensorImplType type = base::kTensorImplTypeDefault;
-  auto src_buffer = src->buffer();
-  void *data_ptr = (void *)src_buffer.host;
-  base::IntVector memory_config = base::IntVector();
-  device::Tensor *dst =
-      new device::Tensor(device, desc, data_ptr, name, memory_config, type);
+  device::TensorDesc desc(data_type, format, shape, stride);
+  device::Tensor *dst = nullptr;
+  if (device == nullptr) {
+    dst = new device::Tensor(desc, name);
+  } else {
+    auto src_buffer = src->buffer();
+    void *data_ptr = (void *)src_buffer.host;
+    base::IntVector memory_config = base::IntVector();
+    dst = new device::Tensor(device, desc, data_ptr, name, memory_config);
+  }
   return dst;
 }
 
 MNN::Tensor *MnnConvert::convertFromTensor(device::Tensor *src) {
-  device::TensorImplDesc desc = src->getDesc();
+  if (!device::isHostDeviceType(src->getDeviceType())) {
+    return nullptr;
+  }
+  device::TensorDesc desc = src->getDesc();
   std::vector<int> shape = desc.shape_;
   halide_type_t type = MnnConvert::convertFromDataType(desc.data_type_);
   void *data = src->getPtr();

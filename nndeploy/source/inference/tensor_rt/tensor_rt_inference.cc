@@ -62,7 +62,7 @@ base::Status TensorRtInference::init() {
     }
   }
 
-  status = reShape(max_shape_);
+  status = reshape(max_shape_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
 
   auto num_binds = engine_->getNbBindings();
@@ -80,7 +80,7 @@ base::Status TensorRtInference::init() {
       std::shared_ptr<device::Tensor> max_input_tensor;
       device::Device *device =
           device::getDevice(inference_param_->device_type_);
-      device::TensorImplDesc desc;
+      device::TensorDesc desc;
       desc.data_type_ = data_type;
       desc.format_ = data_format;
       desc.shape_ = shape;
@@ -96,7 +96,7 @@ base::Status TensorRtInference::init() {
       std::shared_ptr<device::Tensor> max_output_tensor;
       device::Device *device =
           device::getDevice(inference_param_->device_type_);
-      device::TensorImplDesc desc;
+      device::TensorDesc desc;
       desc.data_type_ = data_type;
       desc.format_ = data_format;
       desc.shape_ = shape;
@@ -124,7 +124,7 @@ base::Status TensorRtInference::deinit() {
   return status;
 }
 
-base::Status TensorRtInference::reShape(base::ShapeMap &shape_map) {
+base::Status TensorRtInference::reshape(base::ShapeMap &shape_map) {
   bool flag = false;
   for (auto iter : shape_map) {
     auto tmp = current_shape_.find(iter.first);
@@ -135,8 +135,7 @@ base::Status TensorRtInference::reShape(base::ShapeMap &shape_map) {
       } else {
         // current_shape_的修改
         current_shape_[iter.first] = iter.second;
-        device::TensorImplDesc desc =
-            current_input_tensors_[iter.first]->getDesc();
+        device::TensorDesc desc = current_input_tensors_[iter.first]->getDesc();
         desc.shape_ = iter.second;
         current_input_tensors_[iter.first]->justModify(desc);
         int idx = io_name_index_[iter.first];

@@ -40,7 +40,7 @@ BufferDesc CudaDevice::toBufferDesc(const MatDesc& desc,
  * 通过stride_替代了data_format_，stride_的第一个元素表示的是整个tensor的大小
  * 意味着在TensorDesc的构造函数要花很多心思来计算stride_
  */
-BufferDesc CudaDevice::toBufferDesc(const TensorImplDesc& desc,
+BufferDesc CudaDevice::toBufferDesc(const TensorDesc& desc,
                                     const base::IntVector& config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
@@ -64,8 +64,8 @@ Buffer* CudaDevice::allocate(const BufferDesc& desc) {
   void* data = nullptr;
   cudaError_t status = cudaMalloc(&data, desc.size_[0]);
   if (cudaSuccess != status) {
-    NNDEPLOY_LOGE("cuda alloc failed with size %lu for %p, status:%d\n", desc.size_[0],
-                  data, status);
+    NNDEPLOY_LOGE("cuda alloc failed with size %lu for %p, status:%d\n",
+                  desc.size_[0], data, status);
     return nullptr;
   }
   if (data == nullptr) {

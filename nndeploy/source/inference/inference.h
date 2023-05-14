@@ -32,38 +32,43 @@ class Inference {
   virtual base::Status init() = 0;
   virtual base::Status deinit() = 0;
 
-  virtual base::Status getMinShape(base::ShapeMap &shape_map);
-  virtual base::Status getOptShape(base::ShapeMap &shape_map);
-  virtual base::Status getCurentShape(base::ShapeMap &shape_map);
-  virtual base::Status getMaxShape(base::ShapeMap &shape_map);
-
-  virtual base::Status reShape(base::ShapeMap &shape_map) = 0;
+  virtual base::Status reshape(base::ShapeMap &shape_map) = 0;
 
   virtual int64_t getMemorySize();
   virtual int64_t getMemorySize(int index);
   virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual float getGFLOPs();
-  virtual bool isCommanQueue();
-
-  virtual device::TensorMap getAllInputTensor();
-  virtual device::TensorMap getAllOutputTensor();
-
-  virtual std::vector<device::Tensor *> getAllInputTensor();
-  virtual std::vector<device::Tensor *> getAllOutputTensor();
+  virtual bool isShareCommanQueue();
 
   virtual int getNumOfInputTensor();
   virtual int getNumOfOutputTensor();
 
-  virtual std::vector<std::string> getInputTensorNames();
-  virtual std::vector<std::string> getOutputTensorNames();
+  virtual std::string getInputName(int i);
+  virtual std::string getOutputName(int i);
+  virtual std::vector<std::string> getAllInputTensorName();
+  virtual std::vector<std::string> getAllOutputTensorName();
+
+  virtual base::IntVector getInputShape(const std::string &name);
+  virtual base::ShapeMap getAllInputShape();
+
+  virtual device::TensorDesc getInputTensorDesc(const std::string &name);
+  virtual device::TensorDesc getOutputTensorDesc(const std::string &name);
+
+  virtual device::TensorDesc getInputTensorAlignDesc(const std::string &name);
+  virtual device::TensorDesc getOutputTensorAlignDesc(const std::string &name);
+
+  virtual std::map<std::string, device::Tensor *> getAllInputTensorMap();
+  virtual std::map<std::string, device::Tensor *> getAllOutputTensorMap();
+
+  virtual std::vector<device::Tensor *> getAllInputTensorVector();
+  virtual std::vector<device::Tensor *> getAllOutputTensorVector();
 
   virtual device::Tensor *getInputTensor(const std::string &name);
   virtual device::Tensor *getOutputTensor(const std::string &name);
 
   virtual base::Status setInputTensor(const std::string &name,
-                                      const device::Tensor *input_tensor) = 0;
-  //
+                                      device::Tensor *input_tensor) = 0;
   virtual base::Status setOutputTensor(const std::string &name,
                                        device::Tensor *output_tensor) = 0;
 
@@ -72,17 +77,10 @@ class Inference {
  protected:
   base::InferenceType type_;
   InferenceParam *inference_param_;
+  bool is_share_command_queue_ = false;
 
-  base::ShapeMap current_shape_ = base::ShapeMap();
-  base::ShapeMap min_shape_ = base::ShapeMap();
-  base::ShapeMap opt_shape_ = base::ShapeMap();
-  base::ShapeMap max_shape_ = base::ShapeMap();
-
-  device::TensorMap current_input_tensors_;
-  device::TensorMap current_output_tensors_;
-
-  device::TensorMap max_input_tensors_;
-  device::TensorMap max_output_tensors_;
+  std::map<std::string, device::Tensor *> input_tensors_;
+  std::map<std::string, device::Tensor *> output_tensors_;
 };
 
 class InferenceCreator {
@@ -98,8 +96,8 @@ class TypeInferenceCreator : public InferenceCreator {
   }
 };
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
-getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
+    &getGlobalInferenceCreatorMap();
 
 template <typename T>
 class TypeInferenceRegister {

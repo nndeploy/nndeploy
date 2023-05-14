@@ -15,20 +15,20 @@
 namespace nndeploy {
 namespace device {
 
-struct NNDEPLOY_CC_API TensorImplDesc {
-  TensorImplDesc(){};
-  explicit TensorImplDesc(base::DataType data_type, base::DataFormat format,
-                          const base::IntVector &shape,
-                          const base::SizeVector &stride)
+struct NNDEPLOY_CC_API TensorDesc {
+  TensorDesc(){};
+  explicit TensorDesc(base::DataType data_type, base::DataFormat format,
+                      const base::IntVector &shape,
+                      const base::SizeVector &stride)
       : data_type_(data_type),
         format_(format),
         shape_(shape),
         stride_(stride){};
 
-  TensorImplDesc(const TensorImplDesc &desc) = default;
-  TensorImplDesc &operator=(const TensorImplDesc &desc) = default;
+  TensorDesc(const TensorDesc &desc) = default;
+  TensorDesc &operator=(const TensorDesc &desc) = default;
 
-  virtual ~TensorImplDesc(){};
+  virtual ~TensorDesc(){};
 
   base::DataType data_type_ = base::dataTypeOf<float>();
   base::DataFormat format_ = base::kDataFormatNotSupport;
@@ -36,43 +36,41 @@ struct NNDEPLOY_CC_API TensorImplDesc {
   base::SizeVector stride_;
 };
 
-class NNDEPLOY_CC_API DefaultTensorImpl : public base::NonCopyable {
+class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
  public:
-  DefaultTensorImpl();
-  virtual ~DefaultTensorImpl();
+  Tensor();
+  virtual ~Tensor();
 
-  DefaultTensorImpl(const TensorImplDesc &desc, const std::string &name = "");
+  Tensor(const TensorDesc &desc, const std::string &name = "");
 
-  DefaultTensorImpl(Device *device, const TensorImplDesc &desc,
-                    const std::string &name = "",
-                    const base::IntVector &config = base::IntVector());
+  Tensor(Device *device, const TensorDesc &desc, const std::string &name = "",
+         const base::IntVector &config = base::IntVector());
 
-  DefaultTensorImpl(Device *device, const TensorImplDesc &desc, void *data_ptr,
-                    const std::string &name = "",
-                    const base::IntVector &config = base::IntVector());
-  DefaultTensorImpl(Device *device, const TensorImplDesc &desc, int32_t data_id,
-                    const std::string &name = "",
-                    const base::IntVector &config = base::IntVector());
+  Tensor(Device *device, const TensorDesc &desc, void *data_ptr,
+         const std::string &name = "",
+         const base::IntVector &config = base::IntVector());
+  Tensor(Device *device, const TensorDesc &desc, int32_t data_id,
+         const std::string &name = "",
+         const base::IntVector &config = base::IntVector());
 
-  DefaultTensorImpl(const TensorImplDesc &desc, Buffer *buffer,
-                    const std::string &name = "");
+  Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name = "");
 
   // create
   // 必须确保为空
-  void create(const TensorImplDesc &desc, const std::string &name = "");
+  void create(const TensorDesc &desc, const std::string &name = "");
 
-  void create(Device *device, const TensorImplDesc &desc,
+  void create(Device *device, const TensorDesc &desc,
               const std::string &name = "",
               const base::IntVector &config = base::IntVector());
 
-  void create(Device *device, const TensorImplDesc &desc, void *data_ptr,
+  void create(Device *device, const TensorDesc &desc, void *data_ptr,
               const std::string &name = "",
               const base::IntVector &config = base::IntVector());
-  void create(Device *device, const TensorImplDesc &desc, int32_t data_id,
+  void create(Device *device, const TensorDesc &desc, int32_t data_id,
               const std::string &name = "",
               const base::IntVector &config = base::IntVector());
 
-  void create(const TensorImplDesc &desc, Buffer *buffer,
+  void create(const TensorDesc &desc, Buffer *buffer,
               const std::string &name = "");
 
   // destroy
@@ -84,7 +82,7 @@ class NNDEPLOY_CC_API DefaultTensorImpl : public base::NonCopyable {
   void deallocateBuffer();
 
   // modify
-  bool justModify(const TensorImplDesc &desc);
+  bool justModify(const TensorDesc &desc);
   bool justModify(Buffer *buffer);
 
   // get
@@ -92,7 +90,7 @@ class NNDEPLOY_CC_API DefaultTensorImpl : public base::NonCopyable {
 
   std::string getName();
 
-  TensorImplDesc getDesc();
+  TensorDesc getDesc();
   base::DataType getDataType();
   base::DataFormat getDataFormat();
   base::IntVector getShape();
@@ -115,13 +113,13 @@ class NNDEPLOY_CC_API DefaultTensorImpl : public base::NonCopyable {
 
  private:
   //! internal function
-  void create(Device *device, const TensorImplDesc &desc, Buffer *buffer,
+  void create(Device *device, const TensorDesc &desc, Buffer *buffer,
               void *data_ptr, int32_t data_id, const std::string &name,
               const base::IntVector &config);
 
  private:
   std::string name_;
-  TensorImplDesc desc_;
+  TensorDesc desc_;
   bool is_external_buffer_ = false;
   Buffer *buffer_;
 };
@@ -129,119 +127,26 @@ class NNDEPLOY_CC_API DefaultTensorImpl : public base::NonCopyable {
 class TensorCreator {
  public:
   virtual ~TensorCreator(){};
-  virtual DefaultTensorImpl *createTensor() = 0;
+  virtual Tensor *createTensor() = 0;
 };
 
 template <typename T>
 class TypeTensorCreator : public TensorCreator {
-  virtual DefaultTensorImpl *createTensor() { return new T(); }
+  virtual Tensor *createTensor() { return new T(); }
 };
 
-std::map<base::TensorImplType, std::shared_ptr<TensorCreator>>
+std::map<base::TensorType, std::shared_ptr<TensorCreator>>
     &getGlobalTensorCreatorMap();
 
 template <typename T>
 class TypeTensorRegister {
  public:
-  explicit TypeTensorRegister(base::TensorImplType type) {
+  explicit TypeTensorRegister(base::TensorType type) {
     getGlobalTensorCreatorMap()[type] = std::shared_ptr<T>(new T());
   }
 };
 
-extern NNDEPLOY_CC_API DefaultTensorImpl *createTensor(
-    base::TensorImplType type);
-
-/**
- * @brief
- *
- */
-class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
- public:
-  Tensor(base::TensorImplType type = base::kTensorImplTypeDefault);
-  virtual ~Tensor();
-
-  Tensor(const TensorImplDesc &desc, const std::string &name = "",
-         base::TensorImplType type = base::kTensorImplTypeDefault);
-
-  Tensor(Device *device, const TensorImplDesc &desc,
-         const std::string &name = "",
-         const base::IntVector &config = base::IntVector(),
-         base::TensorImplType type = base::kTensorImplTypeDefault);
-
-  Tensor(Device *device, const TensorImplDesc &desc, void *data_ptr,
-         const std::string &name = "",
-         const base::IntVector &config = base::IntVector(),
-         base::TensorImplType type = base::kTensorImplTypeDefault);
-  Tensor(Device *device, const TensorImplDesc &desc, int32_t data_id,
-         const std::string &name = "",
-         const base::IntVector &config = base::IntVector(),
-         base::TensorImplType type = base::kTensorImplTypeDefault);
-
-  Tensor(const TensorImplDesc &desc, Buffer *buffer,
-         const std::string &name = "",
-         base::TensorImplType type = base::kTensorImplTypeDefault);
-
-  // create
-  // 必须确保为空
-  void create(const TensorImplDesc &desc, const std::string &name = "");
-
-  void create(Device *device, const TensorImplDesc &desc,
-              const std::string &name = "",
-              const base::IntVector &config = base::IntVector());
-
-  void create(Device *device, const TensorImplDesc &desc, void *data_ptr,
-              const std::string &name = "",
-              const base::IntVector &config = base::IntVector());
-  void create(Device *device, const TensorImplDesc &desc, int32_t data_id,
-              const std::string &name = "",
-              const base::IntVector &config = base::IntVector());
-
-  void create(const TensorImplDesc &desc, Buffer *buffer,
-              const std::string &name = "");
-
-  void destory();
-
-  void allocBuffer(Device *device,
-                   const base::IntVector &config = base::IntVector());
-  void deallocateBuffer();
-
-  bool justModify(const TensorImplDesc &desc);
-
-  bool justModify(Buffer *buffer);
-
-  // get
-  bool empty();
-
-  std::string getName();
-  base::TensorImplType getTensorImplType();
-
-  TensorImplDesc getDesc();
-  base::DataType getDataType();
-  base::DataFormat getDataFormat();
-  base::IntVector getShape();
-  int32_t getShapeIndex(int index);
-  base::SizeVector getStride();
-  size_t getStrideIndex(int index);
-
-  Buffer *getBuffer();
-  base::DeviceType getDeviceType();
-  Device *getDevice();
-  BufferPool *getBufferPool();
-  bool isBufferPool();
-  BufferDesc getBufferDesc();
-  size_t getSize();
-  base::SizeVector getSizeVector();
-  base::IntVector getConfig();
-  void *getPtr();
-  int32_t getId();
-  BufferSourceType getBufferSourceType();
-
- private:
-  base::TensorImplType type_;
-  DefaultTensorImpl *tensor_impl_ = nullptr;
-};
-
-using TensorMap = std::map<std::string, std::shared_ptr<Tensor>>;
+extern NNDEPLOY_CC_API Tensor *createTensor(base::TensorType type);
 
 }  // namespace device
 }  // namespace nndeploy

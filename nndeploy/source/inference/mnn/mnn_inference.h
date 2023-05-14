@@ -28,32 +28,19 @@ class MnnInference : public Inference {
   virtual base::Status init();
   virtual base::Status deinit();
 
-  /**
-   * @brief reShape
-   *
-   * @param shape_map
-   * @return base::Status
-   * @note
-   * # 检查shape_map是否合法
-   * ## 是否是input
-   * ## 大于最小shape，小于最大shape
-   * # 检擦是否等于当前shape
-   * ## 等于，continue
-   * ## 不等于，reshape
-   * ### 更新current shape和current input tensor
-   */
-  virtual base::Status reShape(base::ShapeMap &shape_map);
+  virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual int64_t getMemorySize();
 
   virtual float getGFLOPs();
 
-  virtual base::Status setInputTensor(
-      const std::string &name,
-      const std::shared_ptr<device::Tensor> input_tensor);
-  //
-  virtual std::shared_ptr<device::Tensor> getOutputTensor(
-      const std::string &name, std::vector<int32_t> config);
+  virtual device::TensorDesc getInputTensorAlignDesc(const std::string &name);
+  virtual device::TensorDesc getOutputTensorAlignDesc(const std::string &name);
+
+  virtual base::Status setInputTensor(const std::string &name,
+                                      device::Tensor *input_tensor);
+  virtual base::Status setOutputTensor(const std::string &name,
+                                       device::Tensor *output_tensor);
 
   virtual base::Status run();
 
@@ -62,12 +49,13 @@ class MnnInference : public Inference {
   MNN::Session *getInternalSession();
 
  private:
-  MNN::ScheduleConfig *internal_inference_param_;
+  base::Status allocateInputOutputTensor();
+  base::Status deallocateInputOutputTensor();
+
+ private:
+  MNN::ScheduleConfig *internal_inference_param_ = nullptr;
   MNN::Interpreter *internal_interpreter_ = nullptr;
   MNN::Session *internal_session_ = nullptr;
-
-  MNN::Tensor::DimensionType internal_current_output_type = MNN::Tensor::CAFFE;
-  std::map<std::string, MNN::Tensor *> internal_current_output_tensors_;
 };
 
 }  // namespace inference

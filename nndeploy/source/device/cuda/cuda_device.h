@@ -11,11 +11,10 @@
 #include "nndeploy/source/device/architecture.h"
 #include "nndeploy/source/device/buffer.h"
 #include "nndeploy/source/device/buffer_pool.h"
+#include "nndeploy/source/device/cuda/cuda_include.h"
 #include "nndeploy/source/device/device.h"
 #include "nndeploy/source/device/mat.h"
 #include "nndeploy/source/device/tensor.h"
-
-#include "nndeploy/source/device/cuda/cuda_include.h"
 
 namespace nndeploy {
 namespace device {
@@ -33,7 +32,7 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   virtual BufferDesc toBufferDesc(const MatDesc& desc,
                                   const base::IntVector& config);
 
-  virtual BufferDesc toBufferDesc(const TensorImplDesc& desc,
+  virtual BufferDesc toBufferDesc(const TensorDesc& desc,
                                   const base::IntVector& config);
 
   virtual Buffer* allocate(size_t size);

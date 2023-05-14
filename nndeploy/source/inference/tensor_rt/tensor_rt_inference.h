@@ -28,7 +28,7 @@ class TensorRtInference : public Inference {
   virtual base::Status deinit();
 
   /**
-   * @brief reShape
+   * @brief reshape
    *
    * @param shape_map
    * @return base::Status
@@ -41,7 +41,7 @@ class TensorRtInference : public Inference {
    * ## 不等于，reshape
    * ### 更新current shape和current input tensor
    */
-  virtual base::Status reShape(base::ShapeMap &shape_map);
+  virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual int64_t getMemorySize();
   virtual base::Status setMemory(device::Buffer *buffer);

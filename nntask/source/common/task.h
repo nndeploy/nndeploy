@@ -16,22 +16,22 @@
 #include "nndeploy/source/device/tensor.h"
 #include "nndeploy/source/inference/inference.h"
 #include "nndeploy/source/inference/inference_param.h"
-#include "nntask/source/common/executor.h"
+#include "nntask/source/common/execution.h"
 #include "nntask/source/common/packet.h"
 
 namespace nntask {
 namespace common {
 
-class Task : public Executor {
+class Task : public Execution {
  public:
-  Task(nndeploy::base::InferenceType type, std::string name);
+  Task(nndeploy::base::InferenceType type,
+       nndeploy::base::DeviceType device_type, const std::string &name = "");
 
-  ~Task();
+  virtual ~Task();
 
   nndeploy::base::Param *getPreProcessParam();
   nndeploy::base::Param *getInferenceParam();
   nndeploy::base::Param *getPostProcessParam();
-  nndeploy::base::Param *getParam();
 
   virtual nndeploy::base::Status init();
   virtual nndeploy::base::Status deinit();
@@ -42,9 +42,10 @@ class Task : public Executor {
   virtual nndeploy::base::Status run();
 
  protected:
-  Executor *pre_processs_ = nullptr;
+  nndeploy::base::InferenceType type_;
+  Execution *pre_process_ = nullptr;
   nndeploy::inference::Inference *inference_ = nullptr;
-  Executor *post_processs_ = nullptr;
+  Execution *post_process_ = nullptr;
 };
 
 }  // namespace common

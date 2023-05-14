@@ -23,6 +23,11 @@ if(NNTASK_ENABLE_ZIP)
   add_subdirectory(source/zip)
 endif()
 
+nndeploy_option(NNTASK_ENABLE_YOLO "NNTASK_ENABLE_YOLO" OFF)
+if(NNTASK_ENABLE_YOLO)
+  add_subdirectory(source/yolo)
+endif()
+
 # last line
 if(NNTASK_ENABLE_TEST)
   add_subdirectory(source/test)

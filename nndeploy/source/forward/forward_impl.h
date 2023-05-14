@@ -84,7 +84,7 @@ class ForwardImpl {
   base::Status getMaxShape(base::ShapeMap &shape_map);
 
   base::Status checkDynamicShape(base::ShapeMap &shape_map);
-  base::Status reShape(base::ShapeMap &shape_map);
+  base::Status reshape(base::ShapeMap &shape_map);
 
   int64_t getShareMemorySize();
   int64_t getShareMemorySize(base::DeviceType device_type);
@@ -96,8 +96,8 @@ class ForwardImpl {
   int getNumOfInputTensor();
   int getNumOfOutputTensor();
 
-  std::vector<std::string> getInputTensorNames();
-  std::vector<std::string> getOutputTensorNames();
+  std::vector<std::string> getAllInputTensorName();
+  std::vector<std::string> getAllOutputTensorName();
 
   std::shared_ptr<Tensor> getInputTensor(const std::string &key);
   std::shared_ptr<Tensor> getOutputTensor(const std::string &key);
@@ -126,11 +126,11 @@ class ForwardImpl {
   std::vector<device::Buffer *> buffers_;
 
   // exec
-  device::TensorMap current_input_tensors;
-  device::TensorMap current_output_tensors;
+  std::map<std::string, Tensor *> current_input_tensors;
+  std::map<std::string, Tensor *> current_output_tensors;
 
-  device::TensorMap max_input_tensors;
-  device::TensorMap max_output_tensors;
+  std::map<std::string, Tensor *> max_input_tensors;
+  std::map<std::string, Tensor *> max_output_tensors;
 
   /**
    * @brief 如何做异构并行呢？

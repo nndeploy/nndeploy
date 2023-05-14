@@ -1,7 +1,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nntask_always)
+set(BINARY nntask_yolo)
 set(DIRECTORY nntask)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
@@ -12,22 +12,22 @@ set(TEST_OBJECT)
 
 set(DEMO_SOURCE)
 set(DEMO_OBJECT)
-set(DEMO_BINARY nntask_always_demo)
+set(DEMO_BINARY nntask_yolo_demo)
 
 include_directories(${ROOT_PATH})
 
 # SOURCE
 file(GLOB_RECURSE SOURCE
-  "${ROOT_PATH}/nntask/source/always/*.h"
-  "${ROOT_PATH}/nntask/source/always/*.cc"
+  "${ROOT_PATH}/nntask/source/yolo/*.h"
+  "${ROOT_PATH}/nntask/source/yolo/*.cc"
   )
 file(GLOB_RECURSE TEST_SOURCE
-  "${ROOT_PATH}/nntask/source/always/*test.h"
-  "${ROOT_PATH}/nntask/source/always/*test.cc"
+  "${ROOT_PATH}/nntask/source/yolo/*test.h"
+  "${ROOT_PATH}/nntask/source/yolo/*test.cc"
   )
 file(GLOB_RECURSE DEMO_SOURCE
-  "${ROOT_PATH}/nntask/source/always/*demo.h"
-  "${ROOT_PATH}/nntask/source/always/*demo.cc"
+  "${ROOT_PATH}/nntask/source/yolo/*demo.h"
+  "${ROOT_PATH}/nntask/source/yolo/*demo.cc"
   )
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 list(REMOVE_ITEM SOURCE ${DEMO_SOURCE})

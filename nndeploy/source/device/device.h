@@ -15,7 +15,7 @@ namespace device {
 
 struct MatDesc;
 
-class TensorImplDesc;
+class TensorDesc;
 
 /**
  * @brief
@@ -28,7 +28,7 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   virtual BufferDesc toBufferDesc(const MatDesc& desc,
                                   const base::IntVector& config) = 0;
 
-  virtual BufferDesc toBufferDesc(const TensorImplDesc& desc,
+  virtual BufferDesc toBufferDesc(const TensorDesc& desc,
                                   const base::IntVector& config) = 0;
 
   virtual Buffer* allocate(size_t size) = 0;

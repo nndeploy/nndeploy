@@ -9,7 +9,7 @@ static TypeInferenceParamRegister<TypeInferenceParamCreator<MnnInferenceParam>>
 
 MnnInferenceParam::MnnInferenceParam() : InferenceParam() {}
 MnnInferenceParam::MnnInferenceParam(std::string name) : InferenceParam(name) {}
-MnnInferenceParam::~InferenceParam() {}
+MnnInferenceParam::~MnnInferenceParam() {}
 
 base::Status MnnInferenceParam::parse(const std::string &json, bool is_path) {
   std::string json_content = "";

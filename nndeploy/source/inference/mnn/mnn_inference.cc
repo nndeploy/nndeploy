@@ -8,6 +8,7 @@ TypeInferenceRegister<TypeInferenceCreator<MnnInference>>
     g_internal_inference_register(base::kInferenceTypeMnn);
 
 MnnInference::MnnInference(base::InferenceType type) : Inference(type) {
+  internal_inference_param_ = nullptr;
   internal_interpreter_ = nullptr;
   internal_session_ = nullptr;
 }
@@ -15,15 +16,22 @@ MnnInference::MnnInference(base::InferenceType type) : Inference(type) {
 MnnInference::~MnnInference() {}
 
 base::Status MnnInference::init() {
-  /**
-   * @brief
-   * @note
-   * # InferenceParam -> MNN::ScheduleConfig
-   * # 模型解析
-   * # 能不能写入静态形状？
-   */
   base::Status status = base::kStatusCodeOk;
 
+  /**
+   * @brief
+   *
+   */
+  if (device::isHostDeviceType(inference_param_->device_type_)) {
+    is_share_command_queue_ = true;
+  } else {
+    is_share_command_queue_ = false;
+  }
+
+  /**
+   * @brief
+   *
+   */
   if (inference_param_->is_path_) {
     internal_interpreter_ = MNN::Interpreter::createFromFile(
         inference_param_->model_value_[0].c_str());
@@ -32,86 +40,69 @@ base::Status MnnInference::init() {
         inference_param_->model_value_[0].c_str(),
         inference_param_->model_value_[0].length());
   }
-
   if (internal_interpreter_ == nullptr) {
     return base::kStatusCodeErrorInferenceMnn;
   }
 
-  min_shape_ = inference_param_->min_shape_;
-  opt_shape_ = inference_param_->opt_shape_;
-  max_shape_ = inference_param_->max_shape_;
-
+  /**
+   * @brief
+   *
+   */
   MnnInferenceParam *mnn_inference_param =
       dynamic_cast<MnnInferenceParam *>(inference_param_);
   internal_inference_param_ = new MNN::ScheduleConfig();
   status = MnnConvert::convertFromInferenceParam(mnn_inference_param,
                                                  internal_inference_param_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
-  internal_current_output_type = MnnConvert::convertFromDataFormat(
-      mnn_inference_param->output_data_format_);
 
+  /**
+   * @brief
+   *
+   */
   internal_session_ =
       internal_interpreter_->createSession(*internal_inference_param_);
 
+  /**
+   * @brief
+   *
+   */
+  bool reshape_flag = false;
   const std::map<std::string, MNN::Tensor *> &tmp_internal_input_tensors =
       internal_interpreter_->getSessionInputAll(internal_session_);
   for (auto iter : tmp_internal_input_tensors) {
     std::string name = iter.first;
     base::IntVector dims = iter.second->shape();
-    current_shape_.insert({name, dims});
+    auto max_shape = inference_param_->max_shape_.find(name);
+    if (max_shape != inference_param_->max_shape_.end()) {
+      if (base::shapeEqual(max_shape->second, dims)) {
+        continue;
+      } else {
+        // shape_的修改
+        MNN::Tensor *tensor = internal_interpreter_->getSessionInput(
+            internal_session_, iter.first.c_str());
+        internal_interpreter_->resizeTensor(tensor, max_shape->second);
+        reshape_flag = true;
+      }
+    }
+  }
+  if (reshape_flag) {
+    internal_interpreter_->resizeSession(internal_session_);
+    const std::map<std::string, MNN::Tensor *> &internal_output_tensors =
+        internal_interpreter_->getSessionOutputAll(internal_session_);
   }
 
-  status = reShape(max_shape_);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
-
-  const std::map<std::string, MNN::Tensor *> &internal_input_tensors =
-      internal_interpreter_->getSessionInputAll(internal_session_);
-  for (auto iter : internal_input_tensors) {
-    std::string name = iter.first;
-    MNN::Tensor *internal_input_tensor = iter.second;
-    std::shared_ptr<device::Tensor> max_input_tensor;
-
-    device::Device *device = device::getDevice(inference_param_->device_type_);
-    max_input_tensor.reset(
-        MnnConvert::convertToTensor(internal_input_tensor, name, device));
-    max_input_tensors_.insert({name, max_input_tensor});
-
-    device::TensorImplDesc desc = max_input_tensor->getDesc();
-    device::Buffer *max_input_buffer = max_input_tensor->getBuffer();
-    std::shared_ptr<device::Tensor> current_input_tensor;
-    current_input_tensor.reset(
-        new device::Tensor(desc, max_input_buffer, name));
-    current_input_tensors_.insert({name, current_input_tensor});
-  }
-  const std::map<std::string, MNN::Tensor *> &internal_output_tensors =
-      internal_interpreter_->getSessionOutputAll(internal_session_);
-  for (auto iter : internal_output_tensors) {
-    std::string name = iter.first;
-    MNN::Tensor *internal_output_tensor = iter.second;
-    std::shared_ptr<device::Tensor> max_output_tensor;
-
-    device::Device *device = device::getDevice(inference_param_->device_type_);
-    max_output_tensor.reset(
-        MnnConvert::convertToTensor(internal_output_tensor, name, device));
-    max_output_tensors_.insert({name, max_output_tensor});
-
-    device::TensorImplDesc desc = max_output_tensor->getDesc();
-    device::Buffer *max_input_buffer = max_output_tensor->getBuffer();
-    std::shared_ptr<device::Tensor> current_output_tensor;
-    current_output_tensor.reset(
-        new device::Tensor(desc, max_input_buffer, name));
-    current_output_tensors_.insert({name, current_output_tensor});
-
-    MNN::Tensor *internal_current_output_tensor =
-        new MNN::Tensor(internal_output_tensor, internal_current_output_type);
-    internal_current_output_tensors_.insert(
-        {name, internal_current_output_tensor});
-  }
+  /**
+   * @brief
+   *
+   */
+  allocateInputOutputTensor();
 
   return status;
 }
 
 base::Status MnnInference::deinit() {
+  deallocateInputOutputTensor();
+
   if (internal_inference_param_ != nullptr) {
     delete internal_inference_param_;
   }
@@ -129,24 +120,17 @@ base::Status MnnInference::deinit() {
   return base::kStatusCodeOk;
 }
 
-base::Status MnnInference::reShape(base::ShapeMap &shape_map) {
+base::Status MnnInference::reshape(base::ShapeMap &shape_map) {
   bool flag = false;
   for (auto iter : shape_map) {
-    auto tmp = current_shape_.find(iter.first);
-    if (tmp != current_shape_.end()) {
-      auto &shape = current_shape_[iter.first];
-      if (base::shapeEqual(iter.second, shape)) {
+    auto tmp = getInputShape(iter.first);
+    if (!tmp.empty()) {
+      if (base::shapeEqual(iter.second, tmp)) {
         continue;
       } else {
-        // current_shape_的修改
-        current_shape_[iter.first] = iter.second;
-        device::TensorImplDesc desc =
-            current_input_tensors_[iter.first]->getDesc();
-        desc.shape_ = iter.second;
-        current_input_tensors_[iter.first]->justModify(desc);
         MNN::Tensor *tensor = internal_interpreter_->getSessionInput(
             internal_session_, iter.first.c_str());
-        internal_interpreter_->resizeTensor(tensor, shape);
+        internal_interpreter_->resizeTensor(tensor, tmp);
         flag = true;
       }
     } else {
@@ -156,27 +140,8 @@ base::Status MnnInference::reShape(base::ShapeMap &shape_map) {
 
   if (flag) {
     internal_interpreter_->resizeSession(internal_session_);
-    const std::map<std::string, MNN::Tensor *> &internal_output_tensors =
-        internal_interpreter_->getSessionOutputAll(internal_session_);
-    for (auto iter : internal_output_tensors) {
-      std::string name = iter.first;
-      MNN::Tensor *internal_output_tensor = iter.second;
-      base::IntVector shape = internal_output_tensor->shape();
-      device::TensorImplDesc desc = current_output_tensors_[name]->getDesc();
-      desc.shape_ = shape;
-      current_input_tensors_[iter.first]->justModify(desc);
-
-      MNN::Tensor *internal_current_output_tensor =
-          new MNN::Tensor(internal_output_tensor, internal_current_output_type);
-      if (internal_current_output_tensors_.find(name) !=
-          internal_current_output_tensors_.end()) {
-        delete internal_current_output_tensors_[name];
-        internal_current_output_tensors_[name] = internal_current_output_tensor;
-      } else {
-        internal_current_output_tensors_.insert(
-            {name, internal_current_output_tensor});
-      }
-    }
+    deallocateInputOutputTensor();
+    allocateInputOutputTensor();
   }
 
   return base::kStatusCodeOk;
@@ -194,51 +159,91 @@ int64_t MnnInference::getMemorySize() {
 
 float MnnInference::getGFLOPs() { return 0.0f; }
 
-base::Status MnnInference::setInputTensor(
-    const std::string &name,
-    const std::shared_ptr<device::Tensor> input_tensor) {
-  base::Status status = base::kStatusCodeOk;
-  MNN::Tensor *external_input_tensor =
-      MnnConvert::convertFromTensor(input_tensor.get());
-  if (external_input_tensor == nullptr) {
-    return base::kStatusCodeErrorInferenceMnn;
+device::TensorDesc MnnInference::getInputTensorAlignDesc(
+    const std::string &name) {
+  if (input_tensors_.count(name) > 0) {
+    device::TensorDesc desc = input_tensors_[name]->getDesc();
+    if (desc.shape_.size() == 4) {
+      if (desc.format_ != nndeploy::base::kDataFormatNCHW) {
+        desc.format_ = nndeploy::base::kDataFormatNCHW;
+      }
+    }
+    return desc;
+  } else {
+    return device::TensorDesc();
   }
+}
+device::TensorDesc MnnInference::getOutputTensorAlignDesc(
+    const std::string &name) {
+  if (output_tensors_.count(name) > 0) {
+    device::TensorDesc desc = input_tensors_[name]->getDesc();
+    if (desc.shape_.size() == 4) {
+      if (desc.format_ != nndeploy::base::kDataFormatNCHW) {
+        desc.format_ = nndeploy::base::kDataFormatNCHW;
+      }
+    }
+    return desc;
+  } else {
+    return device::TensorDesc();
+  }
+}
+
+base::Status MnnInference::setInputTensor(const std::string &name,
+                                          device::Tensor *input_tensor) {
+  base::Status status = base::kStatusCodeOk;
 
   char *char_name = nullptr;
   if (!name.empty()) {
     char_name = const_cast<char *>(name.c_str());
   } else if (!input_tensor->getName().empty()) {
     char_name = const_cast<char *>(input_tensor->getName().c_str());
+  } else {
+    char_name = const_cast<char *>(getInputName(0).c_str());
   }
-  MNN::Tensor *internal_input_tensor =
-      internal_interpreter_->getSessionInput(internal_session_, char_name);
-  if (internal_input_tensor == nullptr) {
-    return base::kStatusCodeErrorInferenceMnn;
+
+  if (getInputTensor(char_name) != input_tensor) {
+    MNN::Tensor *external_input_tensor =
+        MnnConvert::convertFromTensor((input_tensor));
+    if (external_input_tensor == nullptr) {
+      return base::kStatusCodeErrorInferenceMnn;
+    }
+    MNN::Tensor *internal_input_tensor =
+        internal_interpreter_->getSessionInput(internal_session_, char_name);
+    if (internal_input_tensor == nullptr) {
+      return base::kStatusCodeErrorInferenceMnn;
+    }
+    internal_input_tensor->copyFromHostTensor(external_input_tensor);
   }
-  internal_input_tensor->copyFromHostTensor(external_input_tensor);
 
   return status;
 }
 //
-std::shared_ptr<device::Tensor> MnnInference::getOutputTensor(
-    const std::string &name, std::vector<int32_t> mnn_inference_param) {
+base::Status MnnInference::setOutputTensor(const std::string &name,
+                                           device::Tensor *output_tensor) {
+  base::Status status = base::kStatusCodeOk;
   std::shared_ptr<device::Tensor> tensors;
   char *char_name = nullptr;
   if (!name.empty()) {
     char_name = const_cast<char *>(name.c_str());
+  } else if (!output_tensor->getName().empty()) {
+    char_name = const_cast<char *>(output_tensor->getName().c_str());
+  } else {
+    char_name = const_cast<char *>(getOutputName(0).c_str());
   }
-  MNN::Tensor *internal_output_tensor =
-      internal_interpreter_->getSessionOutput(internal_session_, char_name);
-  if (internal_output_tensor == nullptr) {
-    return tensors;
-  }
-  MNN::Tensor *external_output_tensor = internal_current_output_tensors_[name];
-  internal_output_tensor->copyToHostTensor(external_output_tensor);
 
-  device::Device *device = device::getDevice(inference_param_->device_type_);
-  tensors.reset(
-      MnnConvert::convertToTensor(external_output_tensor, char_name, device));
-  return tensors;
+  if (getOutputTensor(char_name) != output_tensor) {
+    MNN::Tensor *internal_output_tensor =
+        internal_interpreter_->getSessionOutput(internal_session_, char_name);
+    if (internal_output_tensor == nullptr) {
+      return base::kStatusCodeErrorInferenceMnn;
+    }
+    MNN::Tensor *external_output_tensor =
+        MnnConvert::convertFromTensor(output_tensor);
+    internal_output_tensor->copyToHostTensor(external_output_tensor);
+    delete external_output_tensor;
+    return base::kStatusCodeOk;
+  }
+  return status;
 }
 
 base::Status MnnInference::run() {
@@ -260,6 +265,46 @@ MNN::Interpreter *MnnInference::getInternalInterpreter() {
 }
 
 MNN::Session *MnnInference::getInternalSession() { return internal_session_; }
+
+base::Status MnnInference::allocateInputOutputTensor() {
+  device::Device *device = nullptr;
+  if (device::isHostDeviceType(inference_param_->device_type_)) {
+    device = device::getDevice(inference_param_->device_type_);
+  }
+  const std::map<std::string, MNN::Tensor *> &internal_input_tensors =
+      internal_interpreter_->getSessionInputAll(internal_session_);
+  for (auto iter : internal_input_tensors) {
+    std::string name = iter.first;
+    MNN::Tensor *internal_input_tensor = iter.second;
+
+    device::Tensor *input_tensor =
+        MnnConvert::convertToTensor(internal_input_tensor, name, device);
+    input_tensors_.insert({name, input_tensor});
+  }
+  const std::map<std::string, MNN::Tensor *> &internal_output_tensors =
+      internal_interpreter_->getSessionOutputAll(internal_session_);
+  for (auto iter : internal_output_tensors) {
+    std::string name = iter.first;
+    MNN::Tensor *internal_output_tensor = iter.second;
+
+    device::Tensor *output_tensor =
+        MnnConvert::convertToTensor(internal_output_tensor, name, device);
+    output_tensors_.insert({name, output_tensor});
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status MnnInference::deallocateInputOutputTensor() {
+  for (auto iter : input_tensors_) {
+    delete iter.second;
+  }
+  input_tensors_.clear();
+  for (auto iter : output_tensors_) {
+    delete iter.second;
+  }
+  output_tensors_.clear();
+  return base::kStatusCodeOk;
+}
 
 }  // namespace inference
 }  // namespace nndeploy

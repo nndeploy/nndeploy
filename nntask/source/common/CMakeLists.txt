@@ -25,8 +25,16 @@ list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
 # OBJECT
 
+# include
+if(NNTASK_ENABLE_OPENCV)
+  include(${ROOT_PATH}/cmake/opencv.cmake)
+endif()
+include(template_inference_task/config.cmake)
+# include(pre_process/config.cmake)
+# include(post_process/config.cmake)
+
 # TARGET
-add_library(${BINARY} ${NNTASK_LIB_TYPE} ${SOURCE} ${OBJECT})
+add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})
 
 # DIRECTORY
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
@@ -34,7 +42,7 @@ set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 # DEPEND_LIBRARY
 list(APPEND DEPEND_LIBRARY nndeploy_base)
 list(APPEND DEPEND_LIBRARY nndeploy_device)
-list(APPEND DEPEND_LIBRARY nndeploy_device)
+list(APPEND DEPEND_LIBRARY nndeploy_inference)
 target_link_libraries(${BINARY} ${DEPEND_LIBRARY}) 
 
 # SYSTEM_LIBRARY
@@ -44,7 +52,7 @@ target_link_libraries(${BINARY} ${SYSTEM_LIBRARY})
 target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
 
 # install
-install(TARGETS ${BINARY} ${NNTASK_INSTALL_TYPE} DESTINATION ${NNTASK_INSTALL_PATH})
+install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
 
 # test
 if(NNTASK_ENABLE_TEST)

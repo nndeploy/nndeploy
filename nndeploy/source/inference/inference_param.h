@@ -8,6 +8,7 @@
 #include "nndeploy/source/base/log.h"
 #include "nndeploy/source/base/macro.h"
 #include "nndeploy/source/base/object.h"
+#include "nndeploy/source/base/param.h"
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/base/string.h"
 #include "nndeploy/source/base/value.h"
@@ -60,8 +61,8 @@ class TypeInferenceParamCreator : public InferenceParamCreator {
   virtual InferenceParam *createInferenceParam() { return new T(); }
 };
 
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
-getGlobalInferenceParamCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
+    &getGlobalInferenceParamCreatorMap();
 
 template <typename T>
 class TypeInferenceParamRegister {

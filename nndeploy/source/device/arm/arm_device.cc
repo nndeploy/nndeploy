@@ -30,7 +30,7 @@ BufferDesc ArmDevice::toBufferDesc(const MatDesc& desc,
  * 通过stride_替代了data_format_，stride_的第一个元素表示的是整个tensor的大小
  * 意味着在TensorDesc的构造函数要花很多心思来计算stride_
  */
-BufferDesc ArmDevice::toBufferDesc(const TensorImplDesc& desc,
+BufferDesc ArmDevice::toBufferDesc(const TensorDesc& desc,
                                    const base::IntVector& config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;

@@ -34,7 +34,7 @@ class MnnConvert {
   static MNN::BackendConfig::PowerMode convertFromPowerType(
       const base::PowerType &src);
 
-  static MNN::BackendConfig::PrecisionMode convertFromPowerType(
+  static MNN::BackendConfig::PrecisionMode convertFromPrecisionType(
       const base::PrecisionType &src);
 
   static base::Status convertFromInferenceParam(MnnInferenceParam *src,

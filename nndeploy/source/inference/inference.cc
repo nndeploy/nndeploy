@@ -17,23 +17,6 @@ base::Param *Inference::getParam() {
   return dynamic_cast<base::Param *>(inference_param_);
 }
 
-base::Status Inference::getMinShape(base::ShapeMap &shape_map) {
-  shape_map = min_shape_;
-  return base::kStatusCodeOk;
-}
-base::Status Inference::getOptShape(base::ShapeMap &shape_map) {
-  shape_map = opt_shape_;
-  return base::kStatusCodeOk;
-}
-base::Status Inference::getCurentShape(base::ShapeMap &shape_map) {
-  shape_map = current_shape_;
-  return base::kStatusCodeOk;
-}
-base::Status Inference::getMaxShape(base::ShapeMap &shape_map) {
-  shape_map = max_shape_;
-  return base::kStatusCodeOk;
-}
-
 int64_t Inference::getMemorySize() {
   NNDEPLOY_LOGI("this api is not implemented");
   return -1;
@@ -52,50 +35,128 @@ float Inference::getGFLOPs() {
   return 0.0f;
 }
 
-device::TensorMap Inference::getAllInputTensor() {
-  return current_input_tensors_;
+bool Inference::isShareCommanQueue() { return is_share_command_queue_; }
+
+int Inference::getNumOfInputTensor() { return input_tensors_.size(); }
+int Inference::getNumOfOutputTensor() { return output_tensors_.size(); }
+
+base::IntVector Inference::getInputShape(const std::string &name) {
+  if (input_tensors_.count(name) > 0) {
+    return input_tensors_[name]->getDesc().shape_;
+  } else {
+    return base::IntVector();
+  }
 }
-device::TensorMap Inference::getAllOutputTensor() {
-  return current_output_tensors_;
+base::ShapeMap Inference::getAllInputShape() {
+  base::ShapeMap input_shap;
+  for (auto &tensor : input_tensors_) {
+    input_shap.insert({tensor.first, tensor.second->getDesc().shape_});
+  }
+  return input_shap;
 }
 
-int Inference::getNumOfInputTensor() { return current_input_tensors_.size(); }
-int Inference::getNumOfOutputTensor() { return current_output_tensors_.size(); }
+std::string Inference::getInputName(int i) {
+  std::vector<std::string> names = getAllInputTensorName();
+  if (i < names.size()) {
+    return names[i];
+  } else {
+    return "";
+  }
+}
+std::string Inference::getOutputName(int i) {
+  std::vector<std::string> names = getAllOutputTensorName();
+  if (i < names.size()) {
+    return names[i];
+  } else {
+    return "";
+  }
+}
 
-std::vector<std::string> Inference::getInputTensorNames() {
+std::vector<std::string> Inference::getAllInputTensorName() {
   std::vector<std::string> input_tensor_names;
-  for (auto &tensor : current_input_tensors_) {
+  for (auto &tensor : input_tensors_) {
     input_tensor_names.push_back(tensor.first);
   }
   return input_tensor_names;
 }
-std::vector<std::string> Inference::getOutputTensorNames() {
+std::vector<std::string> Inference::getAllOutputTensorName() {
   std::vector<std::string> output_tensor_names;
-  for (auto &tensor : current_output_tensors_) {
+  for (auto &tensor : output_tensors_) {
     output_tensor_names.push_back(tensor.first);
   }
   return output_tensor_names;
 }
 
-std::shared_ptr<device::Tensor> Inference::getInputTensor(
+device::TensorDesc Inference::getInputTensorDesc(const std::string &name) {
+  if (input_tensors_.count(name) > 0) {
+    return input_tensors_[name]->getDesc();
+  } else {
+    return device::TensorDesc();
+  }
+}
+device::TensorDesc Inference::getOutputTensorDesc(const std::string &name) {
+  if (output_tensors_.count(name) > 0) {
+    return output_tensors_[name]->getDesc();
+  } else {
+    return device::TensorDesc();
+  }
+}
+
+device::TensorDesc Inference::getInputTensorAlignDesc(const std::string &name) {
+  if (input_tensors_.count(name) > 0) {
+    return input_tensors_[name]->getDesc();
+  } else {
+    return device::TensorDesc();
+  }
+}
+device::TensorDesc Inference::getOutputTensorAlignDesc(
     const std::string &name) {
-  if (current_input_tensors_.count(name) > 0) {
-    return current_input_tensors_[name].get();
+  if (output_tensors_.count(name) > 0) {
+    return output_tensors_[name]->getDesc();
+  } else {
+    return device::TensorDesc();
+  }
+}
+
+std::map<std::string, device::Tensor *> Inference::getAllInputTensorMap() {
+  return input_tensors_;
+}
+std::map<std::string, device::Tensor *> Inference::getAllOutputTensorMap() {
+  return output_tensors_;
+}
+
+std::vector<device::Tensor *> Inference::getAllInputTensorVector() {
+  std::vector<device::Tensor *> input_tensor;
+  for (auto &tensor : input_tensors_) {
+    input_tensor.push_back(tensor.second);
+  }
+  return input_tensor;
+}
+std::vector<device::Tensor *> Inference::getAllOutputTensorVector() {
+  std::vector<device::Tensor *> output_tensor;
+  for (auto &tensor : output_tensors_) {
+    output_tensor.push_back(tensor.second);
+  }
+  return output_tensor;
+}
+
+device::Tensor *Inference::getInputTensor(const std::string &name) {
+  if (input_tensors_.count(name) > 0) {
+    return input_tensors_[name];
   } else {
     return nullptr;
   }
 }
-std::shared_ptr<device::Tensor> Inference::getOutputTensor(
-    const std::string &name) {
-  if (current_output_tensors_.count(name) > 0) {
-    return current_output_tensors_[name].get();
+device::Tensor *Inference::getOutputTensor(const std::string &name) {
+  if (output_tensors_.count(name) > 0) {
+    return output_tensors_[name];
   } else {
     return nullptr;
   }
 }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
-getGlobalInferenceCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
+    &getGlobalInferenceCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>>

@@ -164,8 +164,8 @@ enum BufferPoolType : int32_t {
   kBufferPoolTypeChunkIndepend,
 };
 
-enum TensorImplType : int32_t {
-  kTensorImplTypeDefault = 0x0000,
+enum TensorType : int32_t {
+  kTensorTypeDefault = 0x0000,
 };
 
 enum ForwardOpType : int32_t {
