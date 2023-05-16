@@ -1,5 +1,5 @@
-#ifndef _NNTASK_SOURCE_COMMON_PRE_PROCESS_GENERAL_H_
-#define _NNTASK_SOURCE_COMMON_PRE_PROCESS_GENERAL_H_
+#ifndef _NNTASK_SOURCE_COMMON_PROCESS_GENERAL_H_
+#define _NNTASK_SOURCE_COMMON_PROCESS_GENERAL_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -21,11 +21,37 @@
 namespace nntask {
 namespace common {
 
-class ResizeBn : public Execution {
+/**
+ * @brief
+ * cvtcolor
+ * resize
+ * padding
+ * warp_affine
+ * crop
+ */
+
+/**
+ * @brief cast + normalize + premute
+ *
+ * @return true
+ * @return false
+ */
+bool matToTensor(const cv::Mat& src, nndeploy::device::Tensor* dst,
+                 std::vector<float> scale, std::vector<float> bias);
+
+class CvtclorResizeParam : public nndeploy::base::Param {
  public:
-  ResizeBn(nndeploy::base::DeviceType device_type,
-           const std::string& name = "");
-  virtual ~ResizeBn();
+  nndeploy::base::PixelType src_pix_type_code_;
+  nndeploy::base::PixelType dst_pix_type_code_;
+};
+
+class OpenCVCvtclorResizeNorm : public Execution {
+ public:
+  ResizeBn(nndeploy::base::DeviceType device_type, const std::string& name = "")
+      : Execution(device_type, name) {
+    param_ = new OpenCVResizeBnParam();
+  };
+  virtual ~ResizeBn(){};
 
   virtual nndeploy::base::Status run() {
     cv::mat* src = input_->getCvMat();
@@ -54,4 +80,4 @@ class ResizeBn : public Execution {
 }  // namespace common
 }  // namespace nntask
 
-#endif /* _NNTASK_SOURCE_COMMON_PRE_PROCESS_GENERAL_H_ */
+#endif /* _NNTASK_SOURCE_COMMON_PROCESS_GENERAL_H_ */

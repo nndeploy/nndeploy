@@ -30,8 +30,7 @@ if(NNTASK_ENABLE_OPENCV)
   include(${ROOT_PATH}/cmake/opencv.cmake)
 endif()
 include(template_inference_task/config.cmake)
-# include(pre_process/config.cmake)
-# include(post_process/config.cmake)
+include(process/config.cmake)
 
 # TARGET
 add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})
