@@ -1,16 +1,16 @@
-#include "nntask/source/yolo/task.h"
+#include "nntask/source/detect/task.h"
 
 #include "nndeploy/source/base/glic_stl_include.h"
 
 namespace nntask {
-namespace yolo {
+namespace detect {
 
 Task::Task(bool allcoate_tensor_flag, nndeploy::base::InferenceType type,
            nndeploy::base::DeviceType device_type, const std::string &name)
     : StaticShape(allcoate_tensor_flag, type, device_type, name) {
-  pre_process = new common::ResizeBn();
-  post_process = new common::Yolo();
+  process = new common::ResizeBn();
+  post_process = new common::detect();
 }
 
-}  // namespace yolo
+}  // namespace detect
 }  // namespace nntask

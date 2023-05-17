@@ -1,6 +1,8 @@
 
 #include "nntask/source/common/packet.h"
 
+#include "nntask/source/common/opencv_include.h"
+
 namespace nntask {
 namespace common {
 
@@ -32,9 +34,9 @@ Packet::Packet(nndeploy::base::Param *param) { params_.push_back(param); }
 Packet::Packet(nndeploy::base::Param &param) { params_.push_back(&param); }
 
 #ifdef NNTASK_ENABLE_OPENCV
-Packet::Packet(const std::vector<cv::mat *> &cv_mats) : cv_mats_(cv_mats) {}
-Packet::Packet(cv::mat *cv_mat) { cv_mats_.push_back(cv_mat); }
-Packet::Packet(cv::mat &cv_mat) { cv_mats_.push_back(&cv_mat); }
+Packet::Packet(const std::vector<cv::Mat *> &cv_mats) : cv_mats_(cv_mats) {}
+Packet::Packet(cv::Mat *cv_mat) { cv_mats_.push_back(cv_mat); }
+Packet::Packet(cv::Mat &cv_mat) { cv_mats_.push_back(&cv_mat); }
 #endif
 
 Packet::~Packet() {}
@@ -86,13 +88,13 @@ void Packet::add(const std::vector<nndeploy::base::Param *> &params) {
 void Packet::add(nndeploy::base::Param &param) { params_.push_back(&param); }
 
 #ifdef NNTASK_ENABLE_OPENCV
-void Packet::add(cv::mat *cv_mat) { cv_mats_.push_back(cv_mat); }
-void Packet::add(const std::vector<cv::mat *> &cv_mats) {
+void Packet::add(cv::Mat *cv_mat) { cv_mats_.push_back(cv_mat); }
+void Packet::add(const std::vector<cv::Mat *> &cv_mats) {
   for (auto cv_mat : cv_mats) {
     cv_mats_.push_back(cv_mat);
   }
 }
-void Packet::add(cv::mat &cv_mat) { cv_mats_.push_back(&cv_mat); }
+void Packet::add(cv::Mat &cv_mat) { cv_mats_.push_back(&cv_mat); }
 #endif
 
 void Packet::add(void *anything) { anything_ = anything; }
@@ -126,8 +128,8 @@ nndeploy::base::Param *Packet::getParam(int index) { return params_[index]; }
 #ifdef NNTASK_ENABLE_OPENCV
 bool Packet::emptyCvMat() { return cv_mats_.size() == 0; }
 int Packet::getCvMatSize() { return cv_mats_.size(); }
-cv::mat *Packet::getCvMat() { return cv_mats_[0]; }
-cv::mat *Packet::getCvMat(int index) { return cv_mats_[index]; }
+cv::Mat *Packet::getCvMat() { return cv_mats_[0]; }
+cv::Mat *Packet::getCvMat(int index) { return cv_mats_[index]; }
 #endif
 
 void *Packet::getAnything() { return anything_; }

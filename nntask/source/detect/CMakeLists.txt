@@ -1,7 +1,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nntask_yolo)
+set(BINARY nntask_detect)
 set(DIRECTORY nntask)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
@@ -12,27 +12,31 @@ set(TEST_OBJECT)
 
 set(DEMO_SOURCE)
 set(DEMO_OBJECT)
-set(DEMO_BINARY nntask_yolo_demo)
+set(DEMO_BINARY nntask_detect_demo)
 
 include_directories(${ROOT_PATH})
 
 # SOURCE
 file(GLOB_RECURSE SOURCE
-  "${ROOT_PATH}/nntask/source/detect/yolo/*.h"
-  "${ROOT_PATH}/nntask/source/detect/yolo/*.cc"
+  "${ROOT_PATH}/nntask/source/detect/*.h"
+  "${ROOT_PATH}/nntask/source/detect/*.cc"
   )
 file(GLOB_RECURSE TEST_SOURCE
-  "${ROOT_PATH}/nntask/source/detect/yolo/*test.h"
-  "${ROOT_PATH}/nntask/source/detect/yolo/*test.cc"
+  "${ROOT_PATH}/nntask/source/detect/*test.h"
+  "${ROOT_PATH}/nntask/source/detect/*test.cc"
   )
 file(GLOB_RECURSE DEMO_SOURCE
-  "${ROOT_PATH}/nntask/source/detect/yolo/*demo.h"
-  "${ROOT_PATH}/nntask/source/detect/yolo/*demo.cc"
+  "${ROOT_PATH}/nntask/source/detect/*demo.h"
+  "${ROOT_PATH}/nntask/source/detect/*demo.cc"
   )
 list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 list(REMOVE_ITEM SOURCE ${DEMO_SOURCE})
 
 # OBJECT
+
+if(NNTASK_ENABLE_OPENCV)
+  include(${ROOT_PATH}/cmake/opencv.cmake)
+endif()
 
 # BINARY
 add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})

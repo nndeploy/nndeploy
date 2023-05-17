@@ -1,11 +1,11 @@
 #include "nndeploy/source/base/glic_stl_include.h"
 #include "nndeploy/source/base/time_measurement.h"
-#include "nntask/source/yolo/task.h"
+#include "nntask/source/detect/task.h"
 
 int main(int argc, char *argv[]) {
   nndeploy::base::TimeMeasurement *tm = new nndeploy::base::TimeMeasurement();
 
-  nntask::yolo::Task *task = nntask::yolo::Task();
+  nntask::detect::Task *task = nntask::detect::Task();
 
   nndeploy::inernece::InferenceParam *param =
       dynamic_cast<nndeploy::inernece::InferenceParam *>(

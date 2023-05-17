@@ -7,9 +7,12 @@
  *
  */
 #include <cassert>
+#include <cfloat>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 
 /**
  * @brief string and file

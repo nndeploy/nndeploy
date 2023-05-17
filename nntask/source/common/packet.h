@@ -1,5 +1,5 @@
-#ifndef __NNTASK_SOURCE_COMMON_PACKET_H_
-#define __NNTASK_SOURCE_COMMON_PACKET_H_
+#ifndef _NNTASK_SOURCE_COMMON_PACKET_H_
+#define _NNTASK_SOURCE_COMMON_PACKET_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -13,6 +13,7 @@
 #include "nndeploy/source/device/device.h"
 #include "nndeploy/source/device/mat.h"
 #include "nndeploy/source/device/tensor.h"
+#include "nntask/source/common/opencv_include.h"
 #include "nntask/source/common/params.h"
 
 namespace nntask {
@@ -35,14 +36,14 @@ class NNDEPLOY_CC_API Packet {
   Packet(nndeploy::device::Tensor *tensor);
   Packet(nndeploy::device::Tensor &tensor);
 
-  packet(const std::vector<nndeploy::base::Param *> &param);
-  packet(nndeploy::base::Param *param);
-  packet(nndeploy::base::Param &param);
+  Packet(const std::vector<nndeploy::base::Param *> &param);
+  Packet(nndeploy::base::Param *param);
+  Packet(nndeploy::base::Param &param);
 
 #ifdef NNTASK_ENABLE_OPENCV
-  Packet(const std::vector<cv::mat *> &cv_mats);
-  Packet(cv::mat *cv_mat);
-  Packet(cv::mat &cv_mat);
+  Packet(const std::vector<cv::Mat *> &cv_mats);
+  Packet(cv::Mat *cv_mat);
+  Packet(cv::Mat &cv_mat);
 #endif
 
   virtual ~Packet();
@@ -67,9 +68,9 @@ class NNDEPLOY_CC_API Packet {
   void add(nndeploy::base::Param &param);
 
 #ifdef NNTASK_ENABLE_OPENCV
-  Void add(const std::vector<cv::mat *> &cv_mats);
-  Void add(cv::mat *cv_mat);
-  Void add(cv::mat &cv_mat);
+  void add(const std::vector<cv::Mat *> &cv_mats);
+  void add(cv::Mat *cv_mat);
+  void add(cv::Mat &cv_mat);
 #endif
 
   void add(void *anything);
@@ -99,8 +100,8 @@ class NNDEPLOY_CC_API Packet {
 #ifdef NNTASK_ENABLE_OPENCV
   bool emptyCvMat();
   int getCvMatSize();
-  cv::mat *getCvMat();
-  cv::mat *getCvMat(int index);
+  cv::Mat *getCvMat();
+  cv::Mat *getCvMat(int index);
 #endif
 
   void *getAnything();
@@ -115,7 +116,7 @@ class NNDEPLOY_CC_API Packet {
   std::vector<nndeploy::base::Param *> params_;
 
 #ifdef NNTASK_ENABLE_OPENCV
-  std::vector<cv::mat *> cv_mats_;
+  std::vector<cv::Mat *> cv_mats_;
 #endif
 
   void *anything_ = nullptr;
@@ -124,4 +125,4 @@ class NNDEPLOY_CC_API Packet {
 }  // namespace common
 }  // namespace nntask
 
-#endif /* __NNTASK_SOURCE_COMMON_PACKET_H_ */
+#endif /* _NNTASK_SOURCE_COMMON_PACKET_H_ */

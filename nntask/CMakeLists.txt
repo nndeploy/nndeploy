@@ -26,9 +26,9 @@ endif()
 endif()
 
 # detect
-nndeploy_option(NNTASK_ENABLE_YOLO "NNTASK_ENABLE_YOLO" OFF)
-if(NNTASK_ENABLE_YOLO)
-  add_subdirectory(source/detect/yolo)
+nndeploy_option(NNTASK_ENABLE_DETECT "NNTASK_ENABLE_DETECT" OFF)
+if(NNTASK_ENABLE_DETECT)
+  add_subdirectory(source/detect)
 endif()
 
 # last line

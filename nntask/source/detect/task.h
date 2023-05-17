@@ -1,12 +1,12 @@
-#ifndef DBC94EFC_B1B0_42DF_88BE_9CC021FE3A5E
-#define DBC94EFC_B1B0_42DF_88BE_9CC021FE3A5E
+#ifndef _NNTASK_SOURCE_DETECT_TASK_H_
+#define _NNTASK_SOURCE_DETECT_TASK_H_
 
-#include "nntask/source/common/post_process/yolo.h"
-#include "nntask/source/common/pre_process/resize_bn.h"
+#include "nntask/source/common/process//opencv/pre_process.h"
+#include "nntask/source/common/process/opencv/detect.h"
 #include "nntask/source/common/template_inference_task/static_shape.h"
 
 namespace nntask {
-namespace yolo {
+namespace detect {
 
 class Task : public common::StaticShape {
  public:
@@ -15,7 +15,7 @@ class Task : public common::StaticShape {
   virtual ~Task(){};
 };
 
-}  // namespace yolo
+}  // namespace detect
 }  // namespace nntask
 
-#endif /* DBC94EFC_B1B0_42DF_88BE_9CC021FE3A5E */
+#endif /* _NNTASK_SOURCE_DETECT_TASK_H_ */

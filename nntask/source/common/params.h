@@ -9,6 +9,7 @@
 #include "nndeploy/source/base/param.h"
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/base/string.h"
+#include "nndeploy/source/base/type.h"
 #include "nndeploy/source/base/value.h"
 #include "nndeploy/source/device/buffer.h"
 #include "nndeploy/source/device/buffer_pool.h"
@@ -21,13 +22,31 @@ namespace nntask {
 namespace common {
 
 /**
+ * @brief
+ * cvtcolor
+ * resize
+ * padding
+ * warp_affine
+ * crop
+ */
+class CvtclorResizeParam : public nndeploy::base::Param {
+ public:
+  nndeploy::base::PixelType src_pix_type_;
+  nndeploy::base::PixelType dst_pix_type_;
+  nndeploy::base::InterpType interp_type_;
+  nndeploy::base::Size2f size_;
+  std::vector<float> scale_;
+  std::vector<float> bias_;
+};
+
+/**
  * @brief Classify result structure for all the image classify models
  *
  */
 class NNDEPLOY_CC_API ClassifyParam : public nndeploy::base::Param {
  public:
   ClassifyParam() : Param(){};
-  ClassifyParam(std::string name) : : Param(name){};
+  ClassifyParam(std::string name) : Param(name){};
 
   ~ClassifyParam();
 
@@ -50,7 +69,7 @@ class NNDEPLOY_CC_API ClassifyParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API MaskParam : nndeploy::base::Param {
  public:
   MaskParam() : Param(){};
-  MaskParam(std::string name) : : Param(name){};
+  MaskParam(std::string name) : Param(name){};
 
   ~MaskParam();
   /**
@@ -73,7 +92,7 @@ class NNDEPLOY_CC_API MaskParam : nndeploy::base::Param {
 class NNDEPLOY_CC_API DetectParam : public nndeploy::base::Param {
  public:
   DetectParam() : Param(){};
-  DetectParam(std::string name) : : Param(name){};
+  DetectParam(std::string name) : Param(name){};
 
   ~DetectParam();
 
@@ -119,7 +138,7 @@ class NNDEPLOY_CC_API DetectParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API PerceptionParam : public nndeploy::base::Param {
  public:
   PerceptionParam() : Param(){};
-  PerceptionParam(std::string name) : : Param(name){};
+  PerceptionParam(std::string name) : Param(name){};
 
   ~PerceptionParam();
 
@@ -154,7 +173,7 @@ class NNDEPLOY_CC_API PerceptionParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API KeyPointDetectionParam : public nndeploy::base::Param {
  public:
   KeyPointDetectionParam() : Param(){};
-  KeyPointDetectionParam(std::string name) : : Param(name){};
+  KeyPointDetectionParam(std::string name) : Param(name){};
 
   ~KeyPointDetectionParam();
   /**
@@ -162,7 +181,7 @@ class NNDEPLOY_CC_API KeyPointDetectionParam : public nndeploy::base::Param {
    * size of `keypoints` is num_detected_objects * num_joints, and the element
    * of `keypoint` is a array of 2 float values, means [x, y]
    */
-  std::vector<std::array<float, 2>> keypoints_;
+  std::vector<nndeploy::base::Point2f> keypoints_;
   /**
    * @brief The confidence for all the detected points
    *
@@ -178,7 +197,7 @@ class NNDEPLOY_CC_API KeyPointDetectionParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API OCRParam : public nndeploy::base::Param {
  public:
   OCRParam() : Param(){};
-  OCRParam(std::string name) : : Param(name){};
+  OCRParam(std::string name) : Param(name){};
 
   ~OCRParam();
   std::vector<std::array<int, 8>> boxes_;
@@ -200,7 +219,7 @@ class NNDEPLOY_CC_API OCRParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API MOTParam : public nndeploy::base::Param {
  public:
   MOTParam() : Param(){};
-  MOTParam(std::string name) : : Param(name){};
+  MOTParam(std::string name) : Param(name){};
 
   ~MOTParam();
   /**
@@ -229,7 +248,7 @@ class NNDEPLOY_CC_API MOTParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API FaceDetectionParam : public nndeploy::base::Param {
  public:
   FaceDetectionParam() : Param(){};
-  FaceDetectionParam(std::string name) : : Param(name){};
+  FaceDetectionParam(std::string name) : Param(name){};
 
   ~FaceDetectionParam();
   /**
@@ -244,7 +263,7 @@ class NNDEPLOY_CC_API FaceDetectionParam : public nndeploy::base::Param {
    * correspoing to a landmark, which is a array of 2 float values, means
    * location [x,y]
    */
-  std::vector<std::array<float, 2>> landmarks_;
+  std::vector<nndeploy::base::Point2f> landmarks_;
   /**
    * @brief
    * Indicates the confidence of all targets detected from a single image, and
@@ -267,7 +286,7 @@ class NNDEPLOY_CC_API FaceDetectionParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API FaceAlignmentParam : public nndeploy::base::Param {
  public:
   FaceAlignmentParam() : Param(){};
-  FaceAlignmentParam(std::string name) : : Param(name){};
+  FaceAlignmentParam(std::string name) : Param(name){};
 
   ~FaceAlignmentParam();
   /**
@@ -275,7 +294,7 @@ class NNDEPLOY_CC_API FaceAlignmentParam : public nndeploy::base::Param {
    * All the coordinates of detected landmarks for an input image, and
    * the element of `landmarks` is a array of 2 float values, means [x, y]
    */
-  std::vector<std::array<float, 2>> landmarks_;
+  std::vector<nndeploy::base::Point2f> landmarks_;
 };
 
 /**
@@ -285,7 +304,7 @@ class NNDEPLOY_CC_API FaceAlignmentParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API SegmentationParam : public nndeploy::base::Param {
  public:
   SegmentationParam() : Param(){};
-  SegmentationParam(std::string name) : : Param(name){};
+  SegmentationParam(std::string name) : Param(name){};
 
   ~SegmentationParam();
   /**
@@ -318,7 +337,7 @@ class NNDEPLOY_CC_API SegmentationParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API FaceRecognitionParam : public nndeploy::base::Param {
  public:
   FaceRecognitionParam() : Param(){};
-  FaceRecognitionParam(std::string name) : : Param(name){};
+  FaceRecognitionParam(std::string name) : Param(name){};
 
   ~FaceRecognitionParam();
   /**
@@ -336,7 +355,7 @@ class NNDEPLOY_CC_API FaceRecognitionParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API MattingParam : public nndeploy::base::Param {
  public:
   MattingParam() : Param(){};
-  MattingParam(std::string name) : : Param(name){};
+  MattingParam(std::string name) : Param(name){};
 
   ~MattingParam();
   /**
@@ -373,7 +392,7 @@ class NNDEPLOY_CC_API MattingParam : public nndeploy::base::Param {
 class NNDEPLOY_CC_API HeadPoseParam : public nndeploy::base::Param {
  public:
   HeadPoseParam() : Param(){};
-  HeadPoseParam(std::string name) : : Param(name){};
+  HeadPoseParam(std::string name) : Param(name){};
 
   ~HeadPoseParam();
   /**
