@@ -19,6 +19,11 @@ struct NNDEPLOY_CC_API DeviceInfo {
   bool is_support_fp16_ = false;
 };
 
+/**
+ * @brief The Architecture class
+ * @note 不可以new，只能通过getArchitecture获取
+ *
+ */
 class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
  public:
   explicit Architecture(base::DeviceTypeCode device_type_code);

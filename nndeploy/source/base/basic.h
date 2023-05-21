@@ -17,26 +17,20 @@ enum DataTypeCode : uint8_t {
 };
 
 struct NNDEPLOY_CC_API DataType {
-  DataType() = default;
+  DataType() : code_(kDataTypeCodeFp), bits_(32), lanes_(1){};
   DataType(uint8_t code, uint8_t bits, uint16_t lanes = (uint16_t)1)
       : code_(code), bits_(bits), lanes_(lanes){};
   DataType(const DataType& other) = default;
   DataType& operator=(const DataType& other) = default;
-  uint8_t code_ = kDataTypeCodeFp;
-  uint8_t bits_ = 32;
-  uint16_t lanes_ = 1;
+  uint8_t code_;
+  uint8_t bits_;
+  uint16_t lanes_;
   size_t size() const { return (bits_ * lanes_) >> 3; }
 };
 
 template <typename T>
-struct CheckIsPointer;
-template <typename T>
-struct CheckIsPointer<T*> {};
-template <typename T>
 DataType dataTypeOf() {
-  CheckIsPointer<T> check;
-  (void)check;
-  return DataType(kDataTypeCodeOpaqueHandle, 64);
+  return DataType(kDataTypeCodeOpaqueHandle, sizeof(size_t));
 }
 template <>
 NNDEPLOY_CC_API DataType dataTypeOf<float>();
@@ -73,7 +67,7 @@ enum DeviceTypeCode : int32_t {
 };
 
 struct NNDEPLOY_CC_API DeviceType {
-  DeviceType() = default;
+  DeviceType() : code_(kDeviceTypeCodeCpu), device_id_(0){};
   DeviceType(DeviceTypeCode code, int32_t device_id = 0)
       : code_(code), device_id_(device_id){};
   DeviceType(const DeviceType& other) = default;
@@ -87,8 +81,8 @@ struct NNDEPLOY_CC_API DeviceType {
     return code_ == other.code_ && device_id_ == other.device_id_;
   };
   bool operator==(const DeviceTypeCode& other) const { return code_ == other; };
-  DeviceTypeCode code_ = kDeviceTypeCodeCpu;
-  int32_t device_id_ = 0;
+  DeviceTypeCode code_;
+  int32_t device_id_;
 };
 
 enum DataFormat : int32_t {
@@ -127,7 +121,7 @@ enum DataFormat : int32_t {
 };
 
 enum PrecisionType : int32_t {
-  kPrecisionTypeFpBFp16 = 0x0000,
+  kPrecisionTypeBFp16 = 0x0000,
   kPrecisionTypeFp16,
   kPrecisionTypeFp32,
   kPrecisionTypeFp64,

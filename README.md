@@ -22,7 +22,6 @@
   + coreml - TODO
   + ncnn - tyx
   + tnn - gyh
-+ graph （有初步的想法思路）
 + thread模块 （需要学习才会有思路）
 ## nntask （还未开始调研，需要选择一组模型库）
 + 封装opencv

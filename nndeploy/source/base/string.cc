@@ -6,16 +6,8 @@
 namespace nndeploy {
 namespace base {
 
-/**
- * @brief
- *
- * @param buffer
- * @param length
- * @return std::string
- * @TODO: 检查并优化性能
- */
 std::string ucharToString(const unsigned char *buffer, int length) {
-  std::string str("");
+  std::string str;
   for (int i = 0; i < length; ++i) {
     str += buffer[i];
   }

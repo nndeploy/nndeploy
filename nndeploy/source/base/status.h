@@ -31,6 +31,7 @@ enum StatusCode : int32_t {
   kStatusCodeErrorDeviceMetal,
 
   // inference
+  kStatusCodeErrorInferenceTensorRt,
   kStatusCodeErrorInferenceTnn,
   kStatusCodeErrorInferenceMnn,
 };

@@ -7,27 +7,27 @@ namespace nndeploy {
 namespace base {
 
 /** @brief Template function for accurate conversion from one primitive type to
- another.
-
- The function saturate_cast resembles the standard C++ cast operations, such as
- static_cast\<T\>() and others. It perform an efficient and accurate conversion
- from one primitive type to another (see the introduction chapter). saturate in
- the name means that when the input value v is out of the range of the target
- type, the result is not formed just by taking low bits of the input, but
- instead the value is clipped. For example:
- @code
- uchar a = saturate_cast<uchar>(-100); // a = 0 (UCHAR_MIN)
- short b = saturate_cast<short>(33333.33333); // b = 32767 (SHRT_MAX)
- @endcode
- Such clipping is done when the target type is unsigned char , signed char ,
- unsigned short or signed short . For 32-bit integers, no clipping is done.
-
- When the parameter is a floating-point value and the target type is an integer
- (8-, 16- or 32-bit), the floating-point value is first rounded to the nearest
- integer and then clipped if needed (when the target type is 8- or 16-bit).
-
- @param v Function parameter.
- @sa add, subtract, multiply, divide
+ *another.
+ *
+ *The function saturate_cast resembles the standard C++ cast operations, such as
+ *static_cast\<T\>() and others. It perform an efficient and accurate conversion
+ *from one primitive type to another (see the introduction chapter). saturate in
+ *the name means that when the input value v is out of the range of the target
+ *type, the result is not formed just by taking low bits of the input, but
+ *instead the value is clipped. For example:
+ *@code
+ *uchar a = saturate_cast<uchar>(-100); // a = 0 (UCHAR_MIN)
+ *short b = saturate_cast<short>(33333.33333); // b = 32767 (SHRT_MAX)
+ *@endcode
+ *Such clipping is done when the target type is unsigned char , signed char ,
+ *unsigned short or signed short . For 32-bit integers, no clipping is done.
+ *
+ *When the parameter is a floating-point value and the target type is an integer
+ *(8-, 16- or 32-bit), the floating-point value is first rounded to the nearest
+ *integer and then clipped if needed (when the target type is 8- or 16-bit).
+ *
+ *@param v Function parameter.
+ *@sa add, subtract, multiply, divide
  */
 template <typename _Tp>
 static inline _Tp saturate_cast(uchar v) {

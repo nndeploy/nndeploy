@@ -13,12 +13,6 @@
   + onnxruntime
     + python接口
     + 不采用基于图的内存分配，内存性能最好
-  + nndeploy
-    + 场景分割（NDHWC五维模型）
-      + openvino 270ms
-      + onnxruntime 350ms
-      + nndeploy 970ms
-    + 推理框架目前性能远远好于机器学习编译框架
   + trt
     + 最好写的自定义算子插件
   + tengine
@@ -37,8 +31,16 @@
     + 接口的设计
     + cv::Mat、cv::GpuMat、cv::InputArray、cv::OutputArray的设计
     + cv::parallel_for多线程的设计方法
+  + flycv
+    + 多线程
   + ptmalloc
     + 传统内存池
+  + tvm
+    + cmake
+  + fastdeploy
+    + 算法结果
+    + 前后处理
+  + mmdeploy
 
 + clang-format
 + clang-tidy
@@ -55,3 +57,5 @@
   + 不确定的地方建议阅读 https://zh-google-styleguide.readthedocs.io/en/latest/
   + 不想阅读文档可以参看 nndeploy 的实现方式
   + 其他任何语言代码风格 一律参考 nndeploy
++ git
+  + https://developer.aliyun.com/article/929807

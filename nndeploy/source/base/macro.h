@@ -163,18 +163,37 @@ static inline int NNDEPLOY_XADD(int* addr, int delta) {
 #endif
 #endif
 
-// TODO: add Android and IOS
 #define NNDEPLOY_OS_LINUX 0
-#define NNDEPLOY_OS_DRAGONFLY 0
-#define NNDEPLOY_OS_FREEBSD 0
-#define NNDEPLOY_OS_NETBSD 0
-#define NNDEPLOY_OS_OPENBSD 0
+#define NNDEPLOY_OS_ANDROID 0
 #define NNDEPLOY_OS_DARWIN 0
+#define NNDEPLOY_OS_IOS 0
 #define NNDEPLOY_OS_WINDOWS 0
-#define NNDEPLOY_OS_CNK 0
-#define NNDEPLOY_OS_HURD 0
-#define NNDEPLOY_OS_SOLARIS 0
 #define NNDEPLOY_OS_UNIX 0
+#define NNDEPLOY_OS_UNKNOWN 0
+
+#if (defined __linux)
+#undef NNDEPLOY_OS_LINUX
+#define NNDEPLOY_OS_LINUX 1
+#elif (defined __linux__)
+#undef NNDEPLOY_OS_LINUX
+#define NNDEPLOY_OS_LINUX 1
+#else
+#endif
+
+#if (defined __android__)
+#undef NNDEPLOY_OS_ANDROID
+#define NNDEPLOY_OS_ANDROID 1
+#endif
+
+#if (defined __APPLE__ && defined TARGET_OS_MAC)
+#undef NNDEPLOY_OS_DARWIN
+#define NNDEPLOY_OS_DARWIN 1
+#endif
+
+#if (defined __APPLE__ && defined TARGET_OS_IPHONE)
+#undef NNDEPLOY_OS_IOS
+#define NNDEPLOY_OS_IOS 1
+#endif
 
 #ifdef _WIN32
 #undef NNDEPLOY_OS_WINDOWS
@@ -186,65 +205,13 @@ static inline int NNDEPLOY_XADD(int* addr, int delta) {
 #define NNDEPLOY_OS_WINDOWS 1
 #endif
 
-#if (defined __APPLE__ && defined __MACH__)
-#undef NNDEPLOY_OS_DARWIN
-#define NNDEPLOY_OS_DARWIN 1
-#endif
-
-// in some ppc64 linux installations, only the second condition is met
-#if (defined __linux)
-#undef NNDEPLOY_OS_LINUX
-#define NNDEPLOY_OS_LINUX 1
-#elif (defined __linux__)
-#undef NNDEPLOY_OS_LINUX
-#define NNDEPLOY_OS_LINUX 1
-#else
-#endif
-
-#if (defined __DragonFly__)
-#undef NNDEPLOY_OS_DRAGONFLY
-#define NNDEPLOY_OS_DRAGONFLY 1
-#endif
-
-#if (defined __FreeBSD__)
-#undef NNDEPLOY_OS_FREEBSD
-#define NNDEPLOY_OS_FREEBSD 1
-#endif
-
-#if (defined __NetBSD__)
-#undef NNDEPLOY_OS_NETBSD
-#define NNDEPLOY_OS_NETBSD 1
-#endif
-
-#if (defined __OpenBSD__)
-#undef NNDEPLOY_OS_OPENBSD
-#define NNDEPLOY_OS_OPENBSD 1
-#endif
-
-#if (defined __bgq__)
-#undef NNDEPLOY_OS_CNK
-#define NNDEPLOY_OS_CNK 1
-#endif
-
-#if (defined __GNU__)
-#undef NNDEPLOY_OS_HURD
-#define NNDEPLOY_OS_HURD 1
-#endif
-
-#if (defined __sun)
-#undef NNDEPLOY_OS_SOLARIS
-#define NNDEPLOY_OS_SOLARIS 1
-#endif
-
-#if (1 != NNDEPLOY_OS_LINUX + NNDEPLOY_OS_DRAGONFLY + NNDEPLOY_OS_FREEBSD +   \
-              NNDEPLOY_OS_NETBSD + NNDEPLOY_OS_OPENBSD + NNDEPLOY_OS_DARWIN + \
-              NNDEPLOY_OS_WINDOWS + NNDEPLOY_OS_HURD + NNDEPLOY_OS_SOLARIS)
+#if (1 != NNDEPLOY_OS_LINUX + NNDEPLOY_OS_ANDROID + NNDEPLOY_OS_DARWIN + \
+              NNDEPLOY_OS_IOS + NNDEPLOY_OS_WINDOWS)
 #define NNDEPLOY_OS_UNKNOWN 1
 #endif
 
-#if NNDEPLOY_OS_LINUX || NNDEPLOY_OS_DRAGONFLY || NNDEPLOY_OS_FREEBSD || \
-    NNDEPLOY_OS_NETBSD || NNDEPLOY_OS_OPENBSD || NNDEPLOY_OS_DARWIN ||   \
-    NNDEPLOY_OS_HURD || NNDEPLOY_OS_SOLARIS
+#if NNDEPLOY_OS_LINUX || NNDEPLOY_OS_ANDROID || NNDEPLOY_OS_DARWIN || \
+    NNDEPLOY_OS_IOS
 #undef NNDEPLOY_OS_UNIX
 #define NNDEPLOY_OS_UNIX 1
 #endif

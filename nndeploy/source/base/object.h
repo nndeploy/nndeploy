@@ -19,6 +19,13 @@ class NNDEPLOY_CC_API NonCopyable {
   NonCopyable& operator=(NonCopyable&&) = delete;
 };
 
+class NNDEPLOY_CC_API Movable {
+ public:
+  Movable() = default;
+  Movable(const Movable&) = delete;
+  Movable& operator=(const Movable&) = delete;
+};
+
 struct NNDEPLOY_CC_API Deleter {
   template <typename T>
   void operator()(T* obj) const {
@@ -32,7 +39,7 @@ template <typename T>
 using UniquePtr = std::unique_ptr<T, Deleter>;
 
 template <typename T>
-class Singleton {
+class NNDEPLOY_CC_API Singleton {
  public:
   /**
   @brief get a reference to the singleton object

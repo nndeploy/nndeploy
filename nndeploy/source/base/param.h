@@ -5,7 +5,6 @@
 #include "nndeploy/source/base/glic_stl_include.h"
 #include "nndeploy/source/base/log.h"
 #include "nndeploy/source/base/macro.h"
-#include "nndeploy/source/base/object.h"
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/base/string.h"
 #include "nndeploy/source/base/value.h"

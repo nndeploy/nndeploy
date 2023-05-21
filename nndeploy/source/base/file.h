@@ -32,9 +32,9 @@ extern NNDEPLOY_CC_API std::string pathJoin(
     const std::vector<std::string> &paths,
     const std::string &sep = NNDEPLOY_PATH_SEP);
 
-extern NNDEPLOY_CC_API std::string pathJoin(const std::string &folder,
-                                            const std::string &filename,
-                                            const std::string &sep = NNDEPLOY_PATH_SEP);
+extern NNDEPLOY_CC_API std::string pathJoin(
+    const std::string &folder, const std::string &filename,
+    const std::string &sep = NNDEPLOY_PATH_SEP);
 
 }  // namespace base
 }  // namespace nndeploy

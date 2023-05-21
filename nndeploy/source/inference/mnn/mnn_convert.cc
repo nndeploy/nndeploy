@@ -139,7 +139,7 @@ MNN::BackendConfig::PrecisionMode MnnConvert::convertFromPrecisionType(
   switch (src) {
     case base::kPrecisionTypeFp16:
       return MNN::BackendConfig::PrecisionMode::Precision_Low;
-    case base::kPrecisionTypeFpBFp16:
+    case base::kPrecisionTypeBFp16:
       return MNN::BackendConfig::PrecisionMode::Precision_Low;
     case base::kPrecisionTypeFp32:
       return MNN::BackendConfig::PrecisionMode::Precision_Normal;
