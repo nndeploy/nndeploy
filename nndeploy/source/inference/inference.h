@@ -68,9 +68,9 @@ class Inference {
   virtual device::Tensor *getOutputTensor(const std::string &name);
 
   virtual base::Status setInputTensor(const std::string &name,
-                                      device::Tensor *input_tensor) = 0;
+                                      device::Tensor *input_tensor);
   virtual base::Status setOutputTensor(const std::string &name,
-                                       device::Tensor *output_tensor) = 0;
+                                       device::Tensor *output_tensor);
 
   virtual base::Status run() = 0;
 
@@ -81,6 +81,9 @@ class Inference {
 
   std::map<std::string, device::Tensor *> input_tensors_;
   std::map<std::string, device::Tensor *> output_tensors_;
+
+  std::map<std::string, device::Tensor *> external_input_tensors_;
+  std::map<std::string, device::Tensor *> external_output_tensors_;
 };
 
 class InferenceCreator {

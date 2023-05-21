@@ -55,7 +55,10 @@ target_link_libraries(${BINARY} ${DEPEND_LIBRARY})
 target_link_libraries(${BINARY} ${SYSTEM_LIBRARY}) 
 
 # THIRD_PARTY_LIBRARY
+message(STATUS "opencv libs: ${OpenCV_LIBS}")
+message(STATUS "THIRD_PARTY_LIBRARY: ${THIRD_PARTY_LIBRARY}")
 target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
+target_link_libraries(${BINARY} ${OpenCV_LIBS}) 
 
 # install
 install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
@@ -78,6 +81,7 @@ if(NNTASK_ENABLE_DEMO)
   target_link_libraries(${DEMO_BINARY} ${DEPEND_LIBRARY}) 
   target_link_libraries(${DEMO_BINARY} ${SYSTEM_LIBRARY}) 
   target_link_libraries(${DEMO_BINARY} ${THIRD_PARTY_LIBRARY}) 
+  target_link_libraries(${DEMO_BINARY} ${OpenCV_LIBS}) 
   install(TARGETS ${DEMO_BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PATH})
 endif()
 

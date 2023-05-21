@@ -155,6 +155,54 @@ device::Tensor *Inference::getOutputTensor(const std::string &name) {
   }
 }
 
+base::Status Inference::setInputTensor(const std::string &name,
+                                       device::Tensor *input_tensor) {
+  base::Status status = base::kStatusCodeOk;
+
+  std::string new_name = "";
+  if (!name.empty()) {
+    new_name = name;
+  } else if (!input_tensor->getName().empty()) {
+    new_name = input_tensor->getName();
+  } else {
+    new_name = getInputName(0);
+  }
+
+  if (input_tensors_.count(new_name) > 0) {
+    if (input_tensor != input_tensors_[new_name]) {
+      external_input_tensors_[new_name] = input_tensor;
+    }
+  } else {
+    NNDEPLOY_LOGI("input_tensor nama: %s not exist!\n", new_name.c_str());
+  }
+
+  return status;
+}
+//
+base::Status Inference::setOutputTensor(const std::string &name,
+                                        device::Tensor *output_tensor) {
+  base::Status status = base::kStatusCodeOk;
+
+  std::string new_name = "";
+  if (!name.empty()) {
+    new_name = name;
+  } else if (!output_tensor->getName().empty()) {
+    new_name = output_tensor->getName();
+  } else {
+    new_name = getOutputName(0);
+  }
+
+  if (output_tensors_.count(new_name) > 0) {
+    if (output_tensor != output_tensors_[new_name]) {
+      external_output_tensors_[new_name] = output_tensor;
+    }
+  } else {
+    NNDEPLOY_LOGI("input_tensor nama: %s not exist!\n", new_name.c_str());
+  }
+
+  return status;
+}
+
 std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
     &getGlobalInferenceCreatorMap() {
   static std::once_flag once;

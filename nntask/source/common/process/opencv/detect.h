@@ -21,153 +21,90 @@
 namespace nntask {
 namespace common {
 
-typedef struct {
-  int width;
-  int height;
-} YoloSize;
+void nms(DetectParam& result, float NMS_THRESH);
 
-typedef struct {
-  std::string name;
-  int stride;
-  std::vector<yolocv::YoloSize> anchors;
-} YoloLayerData;
-
-class BoxInfo {
+class DetectPostProcess : public Execution {
  public:
-  int x1, y1, x2, y2, label, id;
-  float score;
-};
-
-class Yolo : public Execution {
- public:
-  Yolo(nndeploy::base::DeviceType device_type, const std::string& name = "");
-  virtual ~Yolo();
+  DetectPostProcess(nndeploy::base::DeviceType device_type,
+                    const std::string& name = "")
+      : Execution(device_type, name) {}
+  virtual ~DetectPostProcess() {}
 
   virtual nndeploy::base::Status run() {
-    cv::Mat* src = input_->getCvMat();
-    nndeploy::device::Tensor* dst = output_->getTensor();
+    nndeploy::device::Tensor* tensor_scores = nullptr;
+    nndeploy::device::Tensor* tensor_boxes = nullptr;
+    nndeploy::device::Tensor* tensor_anchors = nullptr;
 
-    int c = dst->getShapeIndex[1];
-    int h = dst->getShapeIndex[2];
-    int w = dst->getShapeIndex[3];
-
-    cv::Mat tmp;
-    cv::resize(*src, tmp, cv::Size(w, h));
-
-    tmp.convertTo(tmp, CV_32FC3);
-    tmp = tmp / 255.0f;
-
-    std::vector<cv::Mat> tmp_vec;
-    for (int i = 0; i < c; ++i) {
-      float* data = (float*)dst->getPtr() + w * h * i;
-      cv::Mat tmp(cv::Size(w, h), CV_32FC1, data);
+    for (int i = 0; i < input_->getTensorSize(); ++i) {
+      nndeploy::device::Tensor* tensor = input_->getTensor(i);
+      if (tensor->getName() == "output") {
+        tensor_scores = tensor;
+      } else if (tensor->getName() == "417") {
+        tensor_boxes = tensor;
+      } else if (tensor->getName() == "437") {
+        tensor_anchors = tensor;
+      }
     }
 
-    cv::split(tmp, tmp_vec);
+    DetectParam* result = (DetectParam*)output_->getParam();
+
+    decodeOutputTensor(tensor_scores, stride_scores_, size_scores_, *result);
+    decodeOutputTensor(tensor_boxes, stride_boxes_, size_boxes_, *result);
+    decodeOutputTensor(tensor_anchors, stride_anchors_, size_anchors_, *result);
+
+    nms(*result, nms_threshold_);
+
+    return nndeploy::base::kStatusCodeOk;
   }
+
+  void decodeOutputTensor(nndeploy::device::Tensor* data, int stride,
+                          std::vector<cv::Size>& anchors, DetectParam& result);
 
  private:
-  std::vector<BoxInfo> decode_infer(
-      MNN::Tensor& data, int stride, const yolocv::YoloSize& frame_size,
-      int net_size, int num_classes,
-      const std::vector<yolocv::YoloSize>& anchors, float threshold) {
-    std::vector<BoxInfo> result;
-    int batchs, channels, height, width, pred_item;
-    batchs = data.shape()[0];
-    channels = data.shape()[1];
-    height = data.shape()[2];
-    width = data.shape()[3];
-    pred_item = data.shape()[4];
+  std::string output_tensor_name0_ = "output";
+  std::string output_tensor_name1_ = "417";
+  std::string output_tensor_name2_ = "437";
+  float threshold_ = 0.3;
+  float nms_threshold_ = 0.7;
+  int num_classes_ = 80;
+  std::vector<std::string> labels_{
+      "person",        "bicycle",      "car",
+      "motorcycle",    "airplane",     "bus",
+      "train",         "truck",        "boat",
+      "traffic light", "fire hydrant", "stop sign",
+      "parking meter", "bench",        "bird",
+      "cat",           "dog",          "horse",
+      "sheep",         "cow",          "elephant",
+      "bear",          "zebra",        "giraffe",
+      "backpack",      "umbrella",     "handbag",
+      "tie",           "suitcase",     "frisbee",
+      "skis",          "snowboard",    "sports ball",
+      "kite",          "baseball bat", "baseball glove",
+      "skateboard",    "surfboard",    "tennis racket",
+      "bottle",        "wine glass",   "cup",
+      "fork",          "knife",        "spoon",
+      "bowl",          "banana",       "apple",
+      "sandwich",      "orange",       "broccoli",
+      "carrot",        "hot dog",      "pizza",
+      "donut",         "cake",         "chair",
+      "couch",         "potted plant", "bed",
+      "dining table",  "toilet",       "tv",
+      "laptop",        "mouse",        "remote",
+      "keyboard",      "cell phone",   "microwave",
+      "oven",          "toaster",      "sink",
+      "refrigerator",  "book",         "clock",
+      "vase",          "scissors",     "teddy bear",
+      "hair drier",    "toothbrush"};
+  int stride_scores_ = 8;
+  int stride_boxes_ = 16;
+  int stride_anchors_ = 32;
 
-    auto data_ptr = data.host<float>();
-    for (int bi = 0; bi < batchs; bi++) {
-      auto batch_ptr = data_ptr + bi * (channels * height * width * pred_item);
-      for (int ci = 0; ci < channels; ci++) {
-        auto channel_ptr = batch_ptr + ci * (height * width * pred_item);
-        for (int hi = 0; hi < height; hi++) {
-          auto height_ptr = channel_ptr + hi * (width * pred_item);
-          for (int wi = 0; wi < width; wi++) {
-            auto width_ptr = height_ptr + wi * pred_item;
-            auto cls_ptr = width_ptr + 5;
+  std::vector<cv::Size> size_scores_ = {{10, 13}, {16, 30}, {33, 23}};
+  std::vector<cv::Size> size_boxes_ = {{30, 61}, {62, 45}, {59, 119}};
+  std::vector<cv::Size> size_anchors_ = {{116, 90}, {156, 198}, {373, 326}};
 
-            auto confidence = sigmoid(width_ptr[4]);
-
-            for (int cls_id = 0; cls_id < num_classes; cls_id++) {
-              float score = sigmoid(cls_ptr[cls_id]) * confidence;
-              if (score > threshold) {
-                float cx =
-                    (sigmoid(width_ptr[0]) * 2.f - 0.5f + wi) * (float)stride;
-                float cy =
-                    (sigmoid(width_ptr[1]) * 2.f - 0.5f + hi) * (float)stride;
-                float w =
-                    pow(sigmoid(width_ptr[2]) * 2.f, 2) * anchors[ci].width;
-                float h =
-                    pow(sigmoid(width_ptr[3]) * 2.f, 2) * anchors[ci].height;
-
-                BoxInfo box;
-
-                box.x1 = std::max(
-                    0, std::min(frame_size.width, int((cx - w / 2.f))));
-                box.y1 = std::max(
-                    0, std::min(frame_size.height, int((cy - h / 2.f))));
-                box.x2 = std::max(
-                    0, std::min(frame_size.width, int((cx + w / 2.f))));
-                box.y2 = std::max(
-                    0, std::min(frame_size.height, int((cy + h / 2.f))));
-                box.score = score;
-                box.label = cls_id;
-                result.push_back(box);
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return result;
-  }
-
-  void nms(std::vector<BoxInfo>& input_boxes, float NMS_THRESH) {
-    std::sort(input_boxes.begin(), input_boxes.end(),
-              [](BoxInfo a, BoxInfo b) { return a.score > b.score; });
-    std::vector<float> vArea(input_boxes.size());
-    for (int i = 0; i < int(input_boxes.size()); ++i) {
-      vArea[i] = (input_boxes.at(i).x2 - input_boxes.at(i).x1 + 1) *
-                 (input_boxes.at(i).y2 - input_boxes.at(i).y1 + 1);
-    }
-    for (int i = 0; i < int(input_boxes.size()); ++i) {
-      for (int j = i + 1; j < int(input_boxes.size());) {
-        float xx1 = std::max(input_boxes[i].x1, input_boxes[j].x1);
-        float yy1 = std::max(input_boxes[i].y1, input_boxes[j].y1);
-        float xx2 = std::min(input_boxes[i].x2, input_boxes[j].x2);
-        float yy2 = std::min(input_boxes[i].y2, input_boxes[j].y2);
-        float w = std::max(float(0), xx2 - xx1 + 1);
-        float h = std::max(float(0), yy2 - yy1 + 1);
-        float inter = w * h;
-        float ovr = inter / (vArea[i] + vArea[j] - inter);
-        if (ovr >= NMS_THRESH) {
-          input_boxes.erase(input_boxes.begin() + j);
-          vArea.erase(vArea.begin() + j);
-        } else {
-          j++;
-        }
-      }
-    }
-  }
-
-  void scale_coords(std::vector<BoxInfo>& boxes, int w_from, int h_from,
-                    int w_to, int h_to) {
-    float w_ratio = float(w_to) / float(w_from);
-    float h_ratio = float(h_to) / float(h_from);
-
-    for (auto& box : boxes) {
-      box.x1 *= w_ratio;
-      box.x2 *= w_ratio;
-      box.y1 *= h_ratio;
-      box.y2 *= h_ratio;
-    }
-    return;
-  }
+  int max_width_ = 640;
+  int max_height_ = 640;
 };
 
 }  // namespace common

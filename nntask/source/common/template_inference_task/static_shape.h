@@ -46,7 +46,9 @@ class StaticShape : public Task {
  protected:
   bool allcoate_tensor_flag_ = false;
   std::vector<nndeploy::device::Tensor *> input_tensors_;
+  Packet *inference_input_packet_;
   std::vector<nndeploy::device::Tensor *> output_tensors_;
+  Packet *inference_output_packet_;
 };
 
 }  // namespace common

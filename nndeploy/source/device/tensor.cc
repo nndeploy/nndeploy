@@ -152,6 +152,7 @@ std::string Tensor::getName() { return name_; }
 
 TensorDesc Tensor::getDesc() { return desc_; }
 base::DataType Tensor::getDataType() { return desc_.data_type_; }
+base::DataFormat Tensor::getDataFormat() { return desc_.format_; }
 base::IntVector Tensor::getShape() { return desc_.shape_; }
 int32_t Tensor::getShapeIndex(int index) { return desc_.shape_[index]; }
 base::SizeVector Tensor::getStride() { return desc_.stride_; }

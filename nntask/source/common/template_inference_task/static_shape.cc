@@ -32,15 +32,13 @@ nndeploy::base::Status StaticShape::setInput(Packet &input) {
   for (auto tensor : input_tensors_) {
     inference_->setInputTensor(tensor->getName(), tensor);
   }
-  Packet tmp(output_tensors_);
-  post_process_->setInput(tmp);
+  post_process_->setInput(*inference_output_packet_);
   return nndeploy::base::kStatusCodeOk;
 }
 
 nndeploy::base::Status StaticShape::setOutput(Packet &output) {
   Task::setOutput(output);
-  Packet tmp(input_tensors_);
-  pre_process_->setOutput(tmp);
+  pre_process_->setOutput(*inference_input_packet_);
   for (auto tensor : output_tensors_) {
     inference_->setOutputTensor(tensor->getName(), tensor);
   }
@@ -87,6 +85,9 @@ nndeploy::base::Status StaticShape::allocateInputOutputTensor() {
       output_tensors_.emplace_back(tensor);
     }
   }
+
+  inference_input_packet_ = new Packet(input_tensors_);
+  inference_output_packet_ = new Packet(output_tensors_);
   return nndeploy::base::kStatusCodeOk;
 }
 
@@ -106,6 +107,9 @@ nndeploy::base::Status StaticShape::deallocateInputOutputTensor() {
     output_tensors_.clear();
     status = nndeploy::base::kStatusCodeOk;
   }
+
+  delete inference_input_packet_;
+  delete inference_output_packet_;
   return status;
 }
 

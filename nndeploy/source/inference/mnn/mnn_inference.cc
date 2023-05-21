@@ -176,7 +176,7 @@ device::TensorDesc MnnInference::getInputTensorAlignDesc(
 device::TensorDesc MnnInference::getOutputTensorAlignDesc(
     const std::string &name) {
   if (output_tensors_.count(name) > 0) {
-    device::TensorDesc desc = input_tensors_[name]->getDesc();
+    device::TensorDesc desc = output_tensors_[name]->getDesc();
     if (desc.shape_.size() == 4) {
       if (desc.format_ != nndeploy::base::kDataFormatNCHW) {
         desc.format_ = nndeploy::base::kDataFormatNCHW;
@@ -188,72 +188,43 @@ device::TensorDesc MnnInference::getOutputTensorAlignDesc(
   }
 }
 
-base::Status MnnInference::setInputTensor(const std::string &name,
-                                          device::Tensor *input_tensor) {
-  base::Status status = base::kStatusCodeOk;
-
-  char *char_name = nullptr;
-  if (!name.empty()) {
-    char_name = const_cast<char *>(name.c_str());
-  } else if (!input_tensor->getName().empty()) {
-    char_name = const_cast<char *>(input_tensor->getName().c_str());
-  } else {
-    char_name = const_cast<char *>(getInputName(0).c_str());
-  }
-
-  if (getInputTensor(char_name) != input_tensor) {
-    MNN::Tensor *external_input_tensor =
-        MnnConvert::convertFromTensor((input_tensor));
-    if (external_input_tensor == nullptr) {
-      return base::kStatusCodeErrorInferenceMnn;
-    }
-    MNN::Tensor *internal_input_tensor =
-        internal_interpreter_->getSessionInput(internal_session_, char_name);
-    if (internal_input_tensor == nullptr) {
-      return base::kStatusCodeErrorInferenceMnn;
-    }
-    internal_input_tensor->copyFromHostTensor(external_input_tensor);
-  }
-
-  return status;
-}
-//
-base::Status MnnInference::setOutputTensor(const std::string &name,
-                                           device::Tensor *output_tensor) {
-  base::Status status = base::kStatusCodeOk;
-  std::shared_ptr<device::Tensor> tensors;
-  char *char_name = nullptr;
-  if (!name.empty()) {
-    char_name = const_cast<char *>(name.c_str());
-  } else if (!output_tensor->getName().empty()) {
-    char_name = const_cast<char *>(output_tensor->getName().c_str());
-  } else {
-    char_name = const_cast<char *>(getOutputName(0).c_str());
-  }
-
-  if (getOutputTensor(char_name) != output_tensor) {
-    MNN::Tensor *internal_output_tensor =
-        internal_interpreter_->getSessionOutput(internal_session_, char_name);
-    if (internal_output_tensor == nullptr) {
-      return base::kStatusCodeErrorInferenceMnn;
-    }
-    MNN::Tensor *external_output_tensor =
-        MnnConvert::convertFromTensor(output_tensor);
-    internal_output_tensor->copyToHostTensor(external_output_tensor);
-    delete external_output_tensor;
-    return base::kStatusCodeOk;
-  }
-  return status;
-}
-
 base::Status MnnInference::run() {
+  // inputs
+  for (auto iter : external_input_tensors_) {
+    MNN::Tensor *external_tensor = MnnConvert::convertFromTensor((iter.second));
+    if (external_tensor == nullptr) {
+      NNDEPLOY_LOGE("convertFromTensor failed.\n");
+      return base::kStatusCodeErrorInferenceMnn;
+    }
+    MNN::Tensor *internal_tensor = internal_interpreter_->getSessionInput(
+        internal_session_, iter.first.c_str());
+    if (internal_tensor == nullptr) {
+      NNDEPLOY_LOGE("internal_interpreter_->getSessionInput failed.\n");
+      return base::kStatusCodeErrorInferenceMnn;
+    }
+    internal_tensor->copyFromHostTensor(external_tensor);
+    delete external_tensor;
+  }
+  // forward
   MNN::ErrorCode third_status =
       internal_interpreter_->runSession(internal_session_);
   if (third_status != MNN::NO_ERROR) {
+    NNDEPLOY_LOGE("internal_interpreter_->runSessio failed.\n");
     return base::kStatusCodeErrorInferenceMnn;
-  } else {
-    return base::kStatusCodeOk;
   }
+  // outputs
+  for (auto iter : external_output_tensors_) {
+    MNN::Tensor *internal_tensor = internal_interpreter_->getSessionOutput(
+        internal_session_, iter.first.c_str());
+    if (internal_tensor == nullptr) {
+      NNDEPLOY_LOGE("iinternal_interpreter_->getSessionOutput failed.\n");
+      return base::kStatusCodeErrorInferenceMnn;
+    }
+    MNN::Tensor *external_tensor = MnnConvert::convertFromTensor(iter.second);
+    internal_tensor->copyToHostTensor(external_tensor);
+    delete external_tensor;
+  }
+  return base::kStatusCodeOk;
 }
 
 MNN::ScheduleConfig *MnnInference::getInternalInferenceParam() {

@@ -37,11 +37,6 @@ class MnnInference : public Inference {
   virtual device::TensorDesc getInputTensorAlignDesc(const std::string &name);
   virtual device::TensorDesc getOutputTensorAlignDesc(const std::string &name);
 
-  virtual base::Status setInputTensor(const std::string &name,
-                                      device::Tensor *input_tensor);
-  virtual base::Status setOutputTensor(const std::string &name,
-                                       device::Tensor *output_tensor);
-
   virtual base::Status run();
 
   MNN::ScheduleConfig *getInternalInferenceParam();

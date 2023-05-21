@@ -29,37 +29,38 @@ namespace common {
  * @return false
  */
 bool matToTensor(const cv::Mat& src, nndeploy::device::Tensor* dst,
-                 std::vector<float> scale, std::vector<float> bias);
+                 cv::Scalar& scale, cv::Scalar& bias);
 
-class OpenCVCvtclorResizeNorm : public Execution {
+class OpenCVResizeNorm : public Execution {
  public:
-  ResizeBn(nndeploy::base::DeviceType device_type, const std::string& name = "")
-      : Execution(device_type, name) {
-    param_ = new OpenCVResizeBnParam();
-  };
-  virtual ~ResizeBn(){};
+  OpenCVResizeNorm(nndeploy::base::DeviceType device_type,
+                   const std::string& name = "")
+      : Execution(device_type, name) {}
+  virtual ~OpenCVResizeNorm() {}
 
   virtual nndeploy::base::Status run() {
     cv::Mat* src = input_->getCvMat();
     nndeploy::device::Tensor* dst = output_->getTensor();
 
-    int c = dst->getShapeIndex[1];
-    int h = dst->getShapeIndex[2];
-    int w = dst->getShapeIndex[3];
+    int c = dst->getShapeIndex(1);
+    int h = dst->getShapeIndex(2);
+    int w = dst->getShapeIndex(3);
 
     cv::Mat tmp;
     cv::resize(*src, tmp, cv::Size(w, h));
+    cv::Scalar scale;
+    scale[0] = 1.0f / 255;
+    scale[1] = 1.0f / 255;
+    scale[2] = 1.0f / 255;
+    scale[3] = 1.0f / 255;
+    cv::Scalar bias;
+    bias[0] = 0.0f;
+    bias[1] = 0.0f;
+    bias[2] = 0.0f;
+    bias[3] = 0.0f;
+    matToTensor(tmp, dst, scale, bias);
 
-    tmp.convertTo(tmp, CV_32FC3);
-    tmp = tmp / 255.0f;
-
-    std::vector<cv::Mat> tmp_vec;
-    for (int i = 0; i < c; ++i) {
-      float* data = (float*)dst->getPtr() + w * h * i;
-      cv::Mat tmp(cv::Size(w, h), CV_32FC1, data);
-    }
-
-    cv::split(tmp, tmp_vec);
+    return nndeploy::base::kStatusCodeOk;
   }
 };
 

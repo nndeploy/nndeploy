@@ -48,7 +48,7 @@ class NNDEPLOY_CC_API ClassifyParam : public nndeploy::base::Param {
   ClassifyParam() : Param(){};
   ClassifyParam(std::string name) : Param(name){};
 
-  ~ClassifyParam();
+  ~ClassifyParam(){};
 
   /**
    * @brief Classify param for an image
@@ -71,7 +71,7 @@ class NNDEPLOY_CC_API MaskParam : nndeploy::base::Param {
   MaskParam() : Param(){};
   MaskParam(std::string name) : Param(name){};
 
-  ~MaskParam();
+  ~MaskParam(){};
   /**
    * @brief Mask data buffer
    *
@@ -94,7 +94,7 @@ class NNDEPLOY_CC_API DetectParam : public nndeploy::base::Param {
   DetectParam() : Param(){};
   DetectParam(std::string name) : Param(name){};
 
-  ~DetectParam();
+  ~DetectParam(){};
 
   /**
    * @brief All the detected object boxes for an input image, the size of
@@ -140,7 +140,7 @@ class NNDEPLOY_CC_API PerceptionParam : public nndeploy::base::Param {
   PerceptionParam() : Param(){};
   PerceptionParam(std::string name) : Param(name){};
 
-  ~PerceptionParam();
+  ~PerceptionParam(){};
 
   std::vector<float> scores_;
 
@@ -175,7 +175,7 @@ class NNDEPLOY_CC_API KeyPointDetectionParam : public nndeploy::base::Param {
   KeyPointDetectionParam() : Param(){};
   KeyPointDetectionParam(std::string name) : Param(name){};
 
-  ~KeyPointDetectionParam();
+  ~KeyPointDetectionParam(){};
   /**
    * @brief All the coordinates of detected keypoints for an input image, the
    * size of `keypoints` is num_detected_objects * num_joints, and the element
@@ -199,7 +199,7 @@ class NNDEPLOY_CC_API OCRParam : public nndeploy::base::Param {
   OCRParam() : Param(){};
   OCRParam(std::string name) : Param(name){};
 
-  ~OCRParam();
+  ~OCRParam(){};
   std::vector<std::array<int, 8>> boxes_;
 
   std::vector<std::string> text_;
@@ -221,7 +221,7 @@ class NNDEPLOY_CC_API MOTParam : public nndeploy::base::Param {
   MOTParam() : Param(){};
   MOTParam(std::string name) : Param(name){};
 
-  ~MOTParam();
+  ~MOTParam(){};
   /**
    * @brief All the tracking object boxes for an input image, the size of
    * `boxes` is the number of tracking objects, and the element of `boxes` is a
@@ -250,7 +250,7 @@ class NNDEPLOY_CC_API FaceDetectionParam : public nndeploy::base::Param {
   FaceDetectionParam() : Param(){};
   FaceDetectionParam(std::string name) : Param(name){};
 
-  ~FaceDetectionParam();
+  ~FaceDetectionParam(){};
   /**
    * @brief All the detected object boxes for an input image, the size of
    * `boxes` is the number of detected objects, and the element of `boxes` is a
@@ -288,7 +288,7 @@ class NNDEPLOY_CC_API FaceAlignmentParam : public nndeploy::base::Param {
   FaceAlignmentParam() : Param(){};
   FaceAlignmentParam(std::string name) : Param(name){};
 
-  ~FaceAlignmentParam();
+  ~FaceAlignmentParam(){};
   /**
    * @brief
    * All the coordinates of detected landmarks for an input image, and
@@ -306,7 +306,7 @@ class NNDEPLOY_CC_API SegmentationParam : public nndeploy::base::Param {
   SegmentationParam() : Param(){};
   SegmentationParam(std::string name) : Param(name){};
 
-  ~SegmentationParam();
+  ~SegmentationParam(){};
   /**
    * @brief
    * `label_map` stores the pixel-level category labels for input image. the
@@ -339,7 +339,7 @@ class NNDEPLOY_CC_API FaceRecognitionParam : public nndeploy::base::Param {
   FaceRecognitionParam() : Param(){};
   FaceRecognitionParam(std::string name) : Param(name){};
 
-  ~FaceRecognitionParam();
+  ~FaceRecognitionParam(){};
   /**
    * @brief
    * The feature embedding that represents the final extraction of the
@@ -357,7 +357,7 @@ class NNDEPLOY_CC_API MattingParam : public nndeploy::base::Param {
   MattingParam() : Param(){};
   MattingParam(std::string name) : Param(name){};
 
-  ~MattingParam();
+  ~MattingParam(){};
   /**
    * @brief
    * `alpha` is a one-dimensional vector, which is the predicted alpha
@@ -394,7 +394,7 @@ class NNDEPLOY_CC_API HeadPoseParam : public nndeploy::base::Param {
   HeadPoseParam() : Param(){};
   HeadPoseParam(std::string name) : Param(name){};
 
-  ~HeadPoseParam();
+  ~HeadPoseParam(){};
   /**
    * @brief EulerAngles for an input image, and the element of `euler_angles`
    * is a vector, contains {yaw, pitch, roll}

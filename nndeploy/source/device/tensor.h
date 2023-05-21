@@ -25,7 +25,12 @@ struct NNDEPLOY_CC_API TensorDesc {
         shape_(shape),
         stride_(stride){};
 
-  TensorDesc(const TensorDesc &desc) = default;
+  TensorDesc(const TensorDesc &desc) {
+    this->data_type_ = desc.data_type_;
+    this->format_ = desc.format_;
+    this->shape_ = desc.shape_;
+    this->stride_ = desc.stride_;
+  };
   TensorDesc &operator=(const TensorDesc &desc) = default;
 
   virtual ~TensorDesc(){};

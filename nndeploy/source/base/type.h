@@ -50,6 +50,17 @@ enum BorderType : int32_t {
 template <typename T>
 class Point3;
 
+template <typename T>
+class Size;
+
+template <typename T>
+class Rect;
+
+class Range;
+
+template <typename T>
+class Scalar;
+
 /**
  * @brief
  * Template class for 2D points specified by its coordinates `x` an `y`.
@@ -376,7 +387,7 @@ class Scalar {
   Scalar(const Scalar& s) = default;
   Scalar(Scalar&& s);
 
-  Scalar& operator=(const Scalar& s) = default;
+  Scalar& operator=(const Scalar& s);
   Scalar& operator=(Scalar&& s);
 
   //! returns a scalar with all elements set to v0
@@ -398,7 +409,7 @@ class Scalar {
   T val[4];
 };
 
-typedef Scalar<double> Scalar;
+typedef Scalar<double> Scalar2d;
 
 template <typename T>
 inline Point<T>::Point() : x(0), y(0) {}
@@ -406,13 +417,14 @@ inline Point<T>::Point() : x(0), y(0) {}
 template <typename T>
 inline Point<T>::Point(T _x, T _y) : x(_x), y(_y) {}
 
+template <typename T>
 inline Point<T>::Point(const Point& pt) : x(pt.x), y(pt.y) {}
 
 template <typename T>
 inline Point<T>::Point(const Size<T>& sz) : x(sz.width), y(sz.height) {}
 
 template <typename T>
-inline Point<T>& Point<T>::operator=(const Point& pt) {
+inline Point<T>& Point<T>::operator=(const Point<T>& pt) {
   x = pt.x;
   y = pt.y;
   return *this;
@@ -990,7 +1002,7 @@ static inline Rect<T>& operator-=(Rect<T>& a, const Size<T>& b) {
 template <typename T>
 static inline Rect<T>& operator&=(Rect<T>& a, const Rect<T>& b) {
   if (a.empty() || b.empty()) {
-    a = Rect();
+    a = Rect<T>();
     return a;
   }
   const Rect<T>& Rx_min = (a.x < b.x) ? a : b;
@@ -1004,7 +1016,7 @@ static inline Rect<T>& operator&=(Rect<T>& a, const Rect<T>& b) {
   // if Rx_min.x < 0. Let us first deal with the following case.
   if ((Rx_min.x < 0 && Rx_min.x + Rx_min.width < Rx_max.x) ||
       (Ry_min.y < 0 && Ry_min.y + Ry_min.height < Ry_max.y)) {
-    a = Rect();
+    a = Rect<T>();
     return a;
   }
   // We now know that either Rx_min.x >= 0, or
@@ -1015,7 +1027,7 @@ static inline Rect<T>& operator&=(Rect<T>& a, const Rect<T>& b) {
   a.height = std::min(Ry_min.height - (Ry_max.y - Ry_min.y), Ry_max.height);
   a.x = Rx_max.x;
   a.y = Ry_max.y;
-  if (a.empty()) a = Rect();
+  if (a.empty()) a = Rect<T>();
   return a;
 }
 

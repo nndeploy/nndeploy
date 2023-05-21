@@ -5,7 +5,9 @@ namespace common {
 
 Task::Task(nndeploy::base::InferenceType type,
            nndeploy::base::DeviceType device_type, const std::string &name)
-    : Execution(device_type, name), type_(type) {}
+    : Execution(device_type, name), type_(type) {
+  inference_ = nndeploy::inference::createInference(type);
+}
 
 Task::~Task() {
   if (post_process_ != nullptr) {
@@ -98,7 +100,7 @@ nndeploy::base::Status Task::run() {
     NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
   if (post_process_ != nullptr) {
-    status = inference_->run();
+    status = post_process_->run();
     NNDEPLOY_RETURN_ON_NEQ(status, nndeploy::base::kStatusCodeOk);
   }
   return status;
