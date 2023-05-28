@@ -37,6 +37,7 @@ list(REMOVE_ITEM SOURCE ${DEMO_SOURCE})
 if(NNTASK_ENABLE_OPENCV)
   include(${ROOT_PATH}/cmake/opencv.cmake)
 endif()
+include(post_process/config.cmake)
 
 # BINARY
 add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})

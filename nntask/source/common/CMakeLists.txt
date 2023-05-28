@@ -31,7 +31,6 @@ if(NNTASK_ENABLE_OPENCV)
 endif()
 include(template_inference_task/config.cmake)
 include(pre_process/config.cmake)
-include(post_process/config.cmake)
 
 # TARGET
 add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})

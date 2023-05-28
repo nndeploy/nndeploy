@@ -23,7 +23,7 @@ YoloTask::YoloTask(bool allcoate_tensor_flag,
   pre_param->std_[2] = 255.0f;
   pre_param->std_[3] = 255.0f;
 
-  post_process_ = new common::DetectPostProcess(device_type);
+  post_process_ = new DetectPostProcess(device_type);
 }
 
 // DetrTask::DetrTask(bool allcoate_tensor_flag,

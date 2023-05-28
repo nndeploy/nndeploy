@@ -1,5 +1,5 @@
-#ifndef _NNTASK_SOURCE_COMMON_PROCESS_0PENCV_DETECT_H_
-#define _NNTASK_SOURCE_COMMON_PROCESS_0PENCV_DETECT_H_
+#ifndef _NNTASK_SOURCE_DETECT_POST_PROCESS_0PENCV_POST_PROCESS_H_
+#define _NNTASK_SOURCE_DETECT_POST_PROCESS_0PENCV_POST_PROCESS_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -20,11 +20,11 @@
 #include "nntask/source/common/task.h"
 
 namespace nntask {
-namespace common {
+namespace detect {
 
-void nms(DetectResult& result, float NMS_THRESH);
+void nms(common::DetectResult& result, float NMS_THRESH);
 
-class DetectPostProcess : public Execution {
+class DetectPostProcess : public common::Execution {
  public:
   DetectPostProcess(nndeploy::base::DeviceType device_type,
                     const std::string& name = "")
@@ -47,7 +47,7 @@ class DetectPostProcess : public Execution {
       }
     }
 
-    DetectResult* result = (DetectResult*)output_->getParam();
+    common::DetectResult* result = (common::DetectResult*)output_->getParam();
 
     decodeOutputTensor(tensor_scores, stride_scores_, size_scores_, *result);
     decodeOutputTensor(tensor_boxes, stride_boxes_, size_boxes_, *result);
@@ -59,7 +59,8 @@ class DetectPostProcess : public Execution {
   }
 
   void decodeOutputTensor(nndeploy::device::Tensor* data, int stride,
-                          std::vector<cv::Size>& anchors, DetectResult& result);
+                          std::vector<cv::Size>& anchors,
+                          common::DetectResult& result);
 
  private:
   std::string output_tensor_name0_ = "output";
@@ -108,7 +109,7 @@ class DetectPostProcess : public Execution {
   int max_height_ = 640;
 };
 
-}  // namespace common
+}  // namespace detect
 }  // namespace nntask
 
-#endif /* _NNTASK_SOURCE_COMMON_PROCESS_0PENCV_DETECT_H_ */
+#endif /* _NNTASK_SOURCE_DETECT_POST_PROCESS_0PENCV_POST_PROCESS_H_ */

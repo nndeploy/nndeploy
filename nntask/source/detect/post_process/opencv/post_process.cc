@@ -1,4 +1,4 @@
-#include "nntask/source/common/post_process/opencv/detect.h"
+#include "nntask/source/detect/post_process/opencv/post_process.h"
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -18,7 +18,7 @@
 #include "nntask/source/common/task.h"
 
 namespace nntask {
-namespace common {
+namespace detect {
 
 static inline float sigmoid(float x) {
   return static_cast<float>(1.f / (1.f + std::exp(-x)));
@@ -27,7 +27,7 @@ static inline float sigmoid(float x) {
 void DetectPostProcess::decodeOutputTensor(nndeploy::device::Tensor* data,
                                            int stride,
                                            std::vector<cv::Size>& anchors,
-                                           DetectResult& result) {
+                                           common::DetectResult& result) {
   int batchs = data->getShapeIndex(0);
   int channels = data->getShapeIndex(1);
   int height = data->getShapeIndex(2);
@@ -79,7 +79,7 @@ void DetectPostProcess::decodeOutputTensor(nndeploy::device::Tensor* data,
   return;
 }
 
-void nms(DetectResult& result, float NMS_THRESH) {
+void nms(common::DetectResult& result, float NMS_THRESH) {
   std::vector<float> vArea(result.boxes_.size());
   for (int i = 0; i < int(result.boxes_.size()); ++i) {
     vArea[i] = (result.boxes_[i][2] - result.boxes_[i][0] + 1) *
@@ -107,5 +107,5 @@ void nms(DetectResult& result, float NMS_THRESH) {
   }
 }
 
-}  // namespace common
+}  // namespace detect
 }  // namespace nntask
