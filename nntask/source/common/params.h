@@ -31,8 +31,8 @@ namespace common {
  */
 class CvtclorResizeParam : public nndeploy::base::Param {
  public:
-  nndeploy::base::PixelType src_pix_type_;
-  nndeploy::base::PixelType dst_pix_type_;
+  nndeploy::base::PixelType src_pixel_type_;
+  nndeploy::base::PixelType dst_pixel_type_;
   nndeploy::base::InterpType interp_type_;
   float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float std_[4] = {255.0f, 255.0f, 255.0f, 255.0f};

@@ -9,6 +9,7 @@
 #include <cassert>
 #include <cfloat>
 #include <climits>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>

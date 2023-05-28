@@ -1,9 +1,9 @@
 #include "nndeploy/source/base/glic_stl_include.h"
 #include "nndeploy/source/base/time_measurement.h"
 #include "nndeploy/source/inference/inference_param.h"
-#include "nntask/source/detect/yolo_task.h"
+#include "nntask/source/detect/task.h"
 
-cv::Mat draw_box(cv::Mat &cv_mat, nntask::common::DetectParam &result) {
+cv::Mat draw_box(cv::Mat &cv_mat, nntask::common::DetectResult &result) {
   float w_ratio = float(cv_mat.cols) / float(640);
   float h_ratio = float(cv_mat.rows) / float(640);
   int CNUM = 80;
@@ -31,11 +31,11 @@ cv::Mat draw_box(cv::Mat &cv_mat, nntask::common::DetectParam &result) {
   return cv_mat;
 }
 
-int main(int argc, char *argv[]) {
+int yolo_main(int argc, char *argv[]) {
   nndeploy::base::TimeMeasurement *tm = new nndeploy::base::TimeMeasurement();
 
   nndeploy::base::DeviceType device_type(nndeploy::base::kDeviceTypeCodeX86, 0);
-  nntask::detect::Task *task = new nntask::detect::YoloTask(
+  nntask::detect::YoloTask *task = new nntask::detect::YoloTask(
       true, nndeploy::base::kInferenceTypeMnn, device_type, "yolov5");
   nndeploy::inference::InferenceParam *inference_param =
       (nndeploy::inference::InferenceParam *)(task->getInferenceParam());
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
   task->init();
   cv::Mat input_mat = cv::imread("/home/always/Downloads/yolo_input.jpeg");
   nntask::common::Packet input(input_mat);
-  nntask::common::DetectParam result;
+  nntask::common::DetectResult result;
   nntask::common::Packet output(result);
   task->setInput(input);
   task->setOutput(output);
@@ -56,3 +56,7 @@ int main(int argc, char *argv[]) {
   printf("hello world!\n");
   return 0;
 }
+
+int detr_main(int argc, char *argv[]) { return -1; }
+
+int main(int argc, char *argv[]) { yolo_main(argc, argv); }

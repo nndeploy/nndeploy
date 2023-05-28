@@ -1,5 +1,5 @@
-#ifndef _NNTASK_SOURCE_COMMON_PARAMS_H_
-#define _NNTASK_SOURCE_COMMON_PARAMS_H_
+#ifndef _NNTASK_SOURCE_COMMON_RESULTS_H_
+#define _NNTASK_SOURCE_COMMON_RESULTS_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -387,4 +387,4 @@ class NNDEPLOY_CC_API HeadPoseResult : public nndeploy::base::Param {
 }  // namespace common
 }  // namespace nntask
 
-#endif /* _NNTASK_SOURCE_COMMON_PARAMS_H_ */
+#endif /* _NNTASK_SOURCE_COMMON_RESULTS_H_ */

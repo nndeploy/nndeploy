@@ -17,20 +17,20 @@
 #include "nntask/source/common/opencv_include.h"
 #include "nntask/source/common/packet.h"
 #include "nntask/source/common/params.h"
+#include "nntask/source/common/pre_process/opencv/common.h"
 #include "nntask/source/common/task.h"
 
 namespace nntask {
 namespace common {
-namespace opencv {
 
-class CvtColrResize : public Execution {
+class OpencvCvtColrResize : public Execution {
  public:
-  OpenCVResizeNorm(nndeploy::base::DeviceType device_type,
-                   const std::string& name = "")
+  OpencvCvtColrResize(nndeploy::base::DeviceType device_type,
+                      const std::string& name = "")
       : Execution(device_type, name) {
     param_ = std::make_shared<CvtclorResizeParam>();
   }
-  virtual ~OpenCVResizeNorm() {}
+  virtual ~OpencvCvtColrResize() {}
 
   virtual nndeploy::base::Status run() {
     CvtclorResizeParam* tmp_param =
@@ -44,28 +44,29 @@ class CvtColrResize : public Execution {
 
     cv::Mat tmp = *src;
 
-    int cv_cvt_type = cv::CV;
-    if () {
-      cv::cvtcolor(tmp, tmp, cv_cvt_type);
+    if (tmp_param->src_pixel_type_ != tmp_param->dst_pixel_type_) {
+      nndeploy::base::CvtColorType cvt_type = nndeploy::base::calCvtColorType(
+          tmp_param->src_pixel_type_, tmp_param->dst_pixel_type_);
+      if (cvt_type == nndeploy::base::kCvtColorTypeNotSupport) {
+        NNDEPLOY_LOGE("cvtColor type not support");
+        return nndeploy::base::kStatusCodeErrorNotSupport;
+      }
+      int cv_cvt_type = OpencvConvert::convertFromCvtColorType(cvt_type);
+      cv::cvtColor(tmp, tmp, cv_cvt_type);
     }
 
-    if () {
-      cv::resize(*src, tmp, cv::Size(w, h));
+    if (tmp_param->interp_type_ != nndeploy::base::kInterpTypeNotSupport) {
+      int interp_type =
+          OpencvConvert::convertFromInterpType(tmp_param->interp_type_);
+      cv::resize(*src, tmp, cv::Size(w, h), 0.0, 0.0, interp_type);
     }
 
-    cv::Scalar mean;
-    cv::Scalar std;
-    for (int i = 0; i < 4; ++i) {
-      mean[i] = tmp_param->mean_[i];
-      std = tmp_param->std_[i];
-    }
-    OpencvConvert::convertToTensor(tmp, dst, mean, std);
+    OpencvConvert::convertToTensor(tmp, dst, tmp_param->mean_, tmp_param->std_);
 
     return nndeploy::base::kStatusCodeOk;
   }
 };
 
-}  // namespace opencv
 }  // namespace common
 }  // namespace nntask
 

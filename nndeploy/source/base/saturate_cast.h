@@ -6,6 +6,9 @@
 namespace nndeploy {
 namespace base {
 
+typedef signed char schar;
+typedef unsigned char uchar;
+
 /** @brief Template function for accurate conversion from one primitive type to
  *another.
  *
@@ -70,12 +73,12 @@ static inline _Tp saturate_cast(double v) {
 }
 /** @overload */
 template <typename _Tp>
-static inline _Tp saturate_cast(int64 v) {
+static inline _Tp saturate_cast(int64_t v) {
   return _Tp(v);
 }
 /** @overload */
 template <typename _Tp>
-static inline _Tp saturate_cast(uint64 v) {
+static inline _Tp saturate_cast(uint64_t v) {
   return _Tp(v);
 }
 
@@ -101,21 +104,23 @@ inline uchar saturate_cast<uchar>(unsigned v) {
 }
 template <>
 inline uchar saturate_cast<uchar>(float v) {
-  int iv = cvRound(v);
+  int iv = std::round(v);
   return saturate_cast<uchar>(iv);
 }
 template <>
 inline uchar saturate_cast<uchar>(double v) {
-  int iv = cvRound(v);
+  int iv = std::round(v);
   return saturate_cast<uchar>(iv);
 }
 template <>
-inline uchar saturate_cast<uchar>(int64 v) {
-  return (uchar)((uint64)v <= (uint64)UCHAR_MAX ? v : v > 0 ? UCHAR_MAX : 0);
+inline uchar saturate_cast<uchar>(int64_t v) {
+  return (uchar)((uint64_t)v <= (uint64_t)UCHAR_MAX ? v
+                 : v > 0                            ? UCHAR_MAX
+                                                    : 0);
 }
 template <>
-inline uchar saturate_cast<uchar>(uint64 v) {
-  return (uchar)std::min(v, (uint64)UCHAR_MAX);
+inline uchar saturate_cast<uchar>(uint64_t v) {
+  return (uchar)std::min(v, (uint64_t)UCHAR_MAX);
 }
 
 template <>
@@ -142,23 +147,23 @@ inline schar saturate_cast<schar>(unsigned v) {
 }
 template <>
 inline schar saturate_cast<schar>(float v) {
-  int iv = cvRound(v);
+  int iv = std::round(v);
   return saturate_cast<schar>(iv);
 }
 template <>
 inline schar saturate_cast<schar>(double v) {
-  int iv = cvRound(v);
+  int iv = std::round(v);
   return saturate_cast<schar>(iv);
 }
 template <>
-inline schar saturate_cast<schar>(int64 v) {
-  return (schar)((uint64)((int64)v - SCHAR_MIN) <= (uint64)UCHAR_MAX ? v
-                 : v > 0                                             ? SCHAR_MAX
+inline schar saturate_cast<schar>(int64_t v) {
+  return (schar)((uint64_t)((int64_t)v - SCHAR_MIN) <= (uint64_t)UCHAR_MAX ? v
+                 : v > 0 ? SCHAR_MAX
                          : SCHAR_MIN);
 }
 template <>
-inline schar saturate_cast<schar>(uint64 v) {
-  return (schar)std::min(v, (uint64)SCHAR_MAX);
+inline schar saturate_cast<schar>(uint64_t v) {
+  return (schar)std::min(v, (uint64_t)SCHAR_MAX);
 }
 
 template <>
@@ -181,21 +186,23 @@ inline ushort saturate_cast<ushort>(unsigned v) {
 }
 template <>
 inline ushort saturate_cast<ushort>(float v) {
-  int iv = cvRound(v);
+  int iv = std::round(v);
   return saturate_cast<ushort>(iv);
 }
 template <>
 inline ushort saturate_cast<ushort>(double v) {
-  int iv = cvRound(v);
+  int iv = std::round(v);
   return saturate_cast<ushort>(iv);
 }
 template <>
-inline ushort saturate_cast<ushort>(int64 v) {
-  return (ushort)((uint64)v <= (uint64)USHRT_MAX ? v : v > 0 ? USHRT_MAX : 0);
+inline ushort saturate_cast<ushort>(int64_t v) {
+  return (ushort)((uint64_t)v <= (uint64_t)USHRT_MAX ? v
+                  : v > 0                            ? USHRT_MAX
+                                                     : 0);
 }
 template <>
-inline ushort saturate_cast<ushort>(uint64 v) {
-  return (ushort)std::min(v, (uint64)USHRT_MAX);
+inline ushort saturate_cast<ushort>(uint64_t v) {
+  return (ushort)std::min(v, (uint64_t)USHRT_MAX);
 }
 
 template <>
@@ -214,23 +221,23 @@ inline short saturate_cast<short>(unsigned v) {
 }
 template <>
 inline short saturate_cast<short>(float v) {
-  int iv = cvRound(v);
+  int iv = std::round(v);
   return saturate_cast<short>(iv);
 }
 template <>
 inline short saturate_cast<short>(double v) {
-  int iv = cvRound(v);
+  int iv = std::round(v);
   return saturate_cast<short>(iv);
 }
 template <>
-inline short saturate_cast<short>(int64 v) {
-  return (short)((uint64)((int64)v - SHRT_MIN) <= (uint64)USHRT_MAX ? v
-                 : v > 0                                            ? SHRT_MAX
-                                                                    : SHRT_MIN);
+inline short saturate_cast<short>(int64_t v) {
+  return (short)((uint64_t)((int64_t)v - SHRT_MIN) <= (uint64_t)USHRT_MAX ? v
+                 : v > 0 ? SHRT_MAX
+                         : SHRT_MIN);
 }
 template <>
-inline short saturate_cast<short>(uint64 v) {
-  return (short)std::min(v, (uint64)SHRT_MAX);
+inline short saturate_cast<short>(uint64_t v) {
+  return (short)std::min(v, (uint64_t)SHRT_MAX);
 }
 
 template <>
@@ -238,22 +245,22 @@ inline int saturate_cast<int>(unsigned v) {
   return (int)std::min(v, (unsigned)INT_MAX);
 }
 template <>
-inline int saturate_cast<int>(int64 v) {
-  return (int)((uint64)(v - INT_MIN) <= (uint64)UINT_MAX ? v
-               : v > 0                                   ? INT_MAX
-                                                         : INT_MIN);
+inline int saturate_cast<int>(int64_t v) {
+  return (int)((uint64_t)(v - INT_MIN) <= (uint64_t)UINT_MAX ? v
+               : v > 0                                       ? INT_MAX
+                                                             : INT_MIN);
 }
 template <>
-inline int saturate_cast<int>(uint64 v) {
-  return (int)std::min(v, (uint64)INT_MAX);
+inline int saturate_cast<int>(uint64_t v) {
+  return (int)std::min(v, (uint64_t)INT_MAX);
 }
 template <>
 inline int saturate_cast<int>(float v) {
-  return cvRound(v);
+  return std::round(v);
 }
 template <>
 inline int saturate_cast<int>(double v) {
-  return cvRound(v);
+  return std::round(v);
 }
 
 template <>
@@ -269,44 +276,46 @@ inline unsigned saturate_cast<unsigned>(int v) {
   return (unsigned)std::max(v, (int)0);
 }
 template <>
-inline unsigned saturate_cast<unsigned>(int64 v) {
-  return (unsigned)((uint64)v <= (uint64)UINT_MAX ? v : v > 0 ? UINT_MAX : 0);
+inline unsigned saturate_cast<unsigned>(int64_t v) {
+  return (unsigned)((uint64_t)v <= (uint64_t)UINT_MAX ? v
+                    : v > 0                           ? UINT_MAX
+                                                      : 0);
 }
 template <>
-inline unsigned saturate_cast<unsigned>(uint64 v) {
-  return (unsigned)std::min(v, (uint64)UINT_MAX);
+inline unsigned saturate_cast<unsigned>(uint64_t v) {
+  return (unsigned)std::min(v, (uint64_t)UINT_MAX);
 }
 // we intentionally do not clip negative numbers, to make -1 become 0xffffffff
 // etc.
 template <>
 inline unsigned saturate_cast<unsigned>(float v) {
-  return static_cast<unsigned>(cvRound(v));
+  return static_cast<unsigned>(std::round(v));
 }
 template <>
 inline unsigned saturate_cast<unsigned>(double v) {
-  return static_cast<unsigned>(cvRound(v));
+  return static_cast<unsigned>(std::round(v));
 }
 
 template <>
-inline uint64 saturate_cast<uint64>(schar v) {
-  return (uint64)std::max(v, (schar)0);
+inline uint64_t saturate_cast<uint64_t>(schar v) {
+  return (uint64_t)std::max(v, (schar)0);
 }
 template <>
-inline uint64 saturate_cast<uint64>(short v) {
-  return (uint64)std::max(v, (short)0);
+inline uint64_t saturate_cast<uint64_t>(short v) {
+  return (uint64_t)std::max(v, (short)0);
 }
 template <>
-inline uint64 saturate_cast<uint64>(int v) {
-  return (uint64)std::max(v, (int)0);
+inline uint64_t saturate_cast<uint64_t>(int v) {
+  return (uint64_t)std::max(v, (int)0);
 }
 template <>
-inline uint64 saturate_cast<uint64>(int64 v) {
-  return (uint64)std::max(v, (int64)0);
+inline uint64_t saturate_cast<uint64_t>(int64_t v) {
+  return (uint64_t)std::max(v, (int64_t)0);
 }
 
 template <>
-inline int64 saturate_cast<int64>(uint64 v) {
-  return (int64)std::min(v, (uint64)LLONG_MAX);
+inline int64_t saturate_cast<int64_t>(uint64_t v) {
+  return (int64_t)std::min(v, (uint64_t)LLONG_MAX);
 }
 
 }  // namespace base

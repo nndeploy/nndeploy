@@ -24,7 +24,7 @@ namespace common {
 
 class OpencvConvert {
  public:
-  static int convertFromPixType(nndeploy::base::PixelType src);
+  static int convertFromCvtColorType(nndeploy::base::CvtColorType src);
 
   static int convertFromInterpType(nndeploy::base::InterpType src);
 
@@ -35,7 +35,8 @@ class OpencvConvert {
    * @return false
    */
   static bool convertToTensor(const cv::Mat& src, nndeploy::device::Tensor* dst,
-                              cv::Scalar& mean, cv::Scalar& std);
+                              float* mean, float* std);
+};
 
 }  // namespace common
 }  // namespace nntask

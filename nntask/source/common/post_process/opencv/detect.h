@@ -16,12 +16,13 @@
 #include "nntask/source/common/execution.h"
 #include "nntask/source/common/opencv_include.h"
 #include "nntask/source/common/packet.h"
+#include "nntask/source/common/results.h"
 #include "nntask/source/common/task.h"
 
 namespace nntask {
 namespace common {
 
-void nms(DetectParam& result, float NMS_THRESH);
+void nms(DetectResult& result, float NMS_THRESH);
 
 class DetectPostProcess : public Execution {
  public:
@@ -46,7 +47,7 @@ class DetectPostProcess : public Execution {
       }
     }
 
-    DetectParam* result = (DetectParam*)output_->getParam();
+    DetectResult* result = (DetectResult*)output_->getParam();
 
     decodeOutputTensor(tensor_scores, stride_scores_, size_scores_, *result);
     decodeOutputTensor(tensor_boxes, stride_boxes_, size_boxes_, *result);
@@ -58,7 +59,7 @@ class DetectPostProcess : public Execution {
   }
 
   void decodeOutputTensor(nndeploy::device::Tensor* data, int stride,
-                          std::vector<cv::Size>& anchors, DetectParam& result);
+                          std::vector<cv::Size>& anchors, DetectResult& result);
 
  private:
   std::string output_tensor_name0_ = "output";

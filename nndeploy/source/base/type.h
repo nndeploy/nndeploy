@@ -26,18 +26,22 @@ enum CvtColorType : int32_t {
   kCvtColorTypeRGBA2GRAY,
   kCvtColorTypeBGRA2GRAY,
 
+  kCvtColorTypeGRAY2RGB,
   kCvtColorTypeBGR2RGB,
   kCvtColorTypeRGBA2RGB,
   kCvtColorTypeBGRA2RGB,
 
+  kCvtColorTypeGRAY2BGR,
   kCvtColorTypeRGB2BGR,
   kCvtColorTypeRGBA2BGR,
   kCvtColorTypeBGRA2BGR,
 
+  kCvtColorTypeGRAY2RGBA,
   kCvtColorTypeRGB2RGBA,
   kCvtColorTypeBGR2RGBA,
   kCvtColorTypeBGRA2RGBA,
 
+  kCvtColorTypeGRAY2BGRA,
   kCvtColorTypeRGB2BGRA,
   kCvtColorTypeBGR2BGRA,
   kCvtColorTypeRGBA2BGRA,
@@ -50,9 +54,18 @@ extern NNDEPLOY_CC_API CvtColorType calCvtColorType(PixelType src,
                                                     PixelType dst);
 
 enum InterpType : int32_t {
+  /** nearest neighbor interpolation */
   kInterpTypeNearst = 0x00,
-  kInterpTypeLinear = 0x01,
-
+  /** bilinear interpolation */
+  kInterpTypeLinear,
+  /** bicubic interpolation */
+  kInterpTypeCubic,
+  /**
+   * resampling using pixel area relation. It may be a preferred method for
+   * image decimation, as it gives moire'-free results. But when the image is
+   * zoomed, it is similar to the INTER_NEAREST method.
+   **/
+  kInterpTypeArer,
   // not sopport
   kInterpTypeNotSupport,
 };
@@ -153,7 +166,7 @@ class Point {
 };
 
 typedef Point<int> Point2i;
-typedef Point<int64> Point2l;
+typedef Point<int64_t> Point2l;
 typedef Point<float> Point2f;
 typedef Point<double> Point2d;
 
@@ -255,7 +268,7 @@ class Size {
 };
 
 typedef Size<int> Size2i;
-typedef Size<int64> Size2l;
+typedef Size<int64_t> Size2l;
 typedef Size<float> Size2f;
 typedef Size<double> Size2d;
 
@@ -615,7 +628,7 @@ static inline Point<T> operator/(const Point<T>& a, double b) {
 template <typename _AccTp>
 static inline _AccTp normL2Sqr(const Point<int>& pt);
 template <typename _AccTp>
-static inline _AccTp normL2Sqr(const Point<int64>& pt);
+static inline _AccTp normL2Sqr(const Point<int64_t>& pt);
 template <typename _AccTp>
 static inline _AccTp normL2Sqr(const Point<float>& pt);
 template <typename _AccTp>
@@ -626,7 +639,7 @@ inline int normL2Sqr<int>(const Point<int>& pt) {
   return pt.dot(pt);
 }
 template <>
-inline int64 normL2Sqr<int64>(const Point<int64>& pt) {
+inline int64_t normL2Sqr<int64_t>(const Point<int64_t>& pt) {
   return pt.dot(pt);
 }
 template <>

@@ -1,4 +1,4 @@
-#include "nntask/source/common/process/opencv/detect.h"
+#include "nntask/source/common/post_process/opencv/detect.h"
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -27,7 +27,7 @@ static inline float sigmoid(float x) {
 void DetectPostProcess::decodeOutputTensor(nndeploy::device::Tensor* data,
                                            int stride,
                                            std::vector<cv::Size>& anchors,
-                                           DetectParam& result) {
+                                           DetectResult& result) {
   int batchs = data->getShapeIndex(0);
   int channels = data->getShapeIndex(1);
   int height = data->getShapeIndex(2);
@@ -79,7 +79,7 @@ void DetectPostProcess::decodeOutputTensor(nndeploy::device::Tensor* data,
   return;
 }
 
-void nms(DetectParam& result, float NMS_THRESH) {
+void nms(DetectResult& result, float NMS_THRESH) {
   std::vector<float> vArea(result.boxes_.size());
   for (int i = 0; i < int(result.boxes_.size()); ++i) {
     vArea[i] = (result.boxes_[i][2] - result.boxes_[i][0] + 1) *

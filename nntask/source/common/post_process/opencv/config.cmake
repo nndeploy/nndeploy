@@ -1,7 +1,7 @@
 # set
 set(TMP_SOURCE)
 set(TMP_OBJECT)
-set(TMP_BINARY nntask_common_process_opencv)
+set(TMP_BINARY nntask_common_post_process_opencv)
 set(TMP_DIRECTORY nntask)
 set(TMP_DEPEND_LIBRARY)
 set(TMP_SYSTEM_LIBRARY)
@@ -14,12 +14,12 @@ include_directories(${ROOT_PATH})
 
 # TMP_SOURCE
 file(GLOB_RECURSE TMP_SOURCE
-  "${ROOT_PATH}/nntask/source/common/process/opencv/*.h"
-  "${ROOT_PATH}/nntask/source/common/process/opencv/*.cc"
+  "${ROOT_PATH}/nntask/source/common/post_process/opencv/*.h"
+  "${ROOT_PATH}/nntask/source/common/post_process/opencv/*.cc"
   )
 file(GLOB_RECURSE TMP_TEST_SOURCE
-  "${ROOT_PATH}/nntask/source/common/process/opencv/*_test.h"
-  "${ROOT_PATH}/nntask/source/common/process/opencv/*_test.cc"
+  "${ROOT_PATH}/nntask/source/common/post_process/opencv/*_test.h"
+  "${ROOT_PATH}/nntask/source/common/post_process/opencv/*_test.cc"
   )
 list(REMOVE_ITEM TMP_SOURCE ${TMP_TEST_SOURCE})
 list(APPEND SOURCE ${TMP_SOURCE})
