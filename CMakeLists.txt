@@ -145,8 +145,8 @@ endif()
 
 if(NNDEPLOY_ENABLE_OPENMP)
   FIND_PACKAGE(OpenMP REQUIRED)
-
   if(OPENMP_FOUND)
+    add_definitions(-DNNDEPLOY_ENABLE_OPENMP)
     if(MSVC)
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /openmp")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp")

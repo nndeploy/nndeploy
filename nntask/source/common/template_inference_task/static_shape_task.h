@@ -1,6 +1,6 @@
 
-#ifndef _NNTASK_SOURCE_COMMON_TEMPLATE_INFERENCE_TASK_STATIC_SHAPE_H_
-#define _NNTASK_SOURCE_COMMON_TEMPLATE_INFERENCE_TASK_STATIC_SHAPE_H_
+#ifndef _NNTASK_SOURCE_COMMON_TEMPLATE_INFERENCE_TASK_STATIC_SHAPE_TASK_H_
+#define _NNTASK_SOURCE_COMMON_TEMPLATE_INFERENCE_TASK_STATIC_SHAPE_TASK_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -23,13 +23,13 @@
 namespace nntask {
 namespace common {
 
-class StaticShape : public Task {
+class StaticShapeTask : public Task {
  public:
-  StaticShape(bool allcoate_tensor_flag, nndeploy::base::InferenceType type,
-              nndeploy::base::DeviceType device_type,
-              const std::string &name = "");
+  StaticShapeTask(bool allcoate_tensor_flag, nndeploy::base::InferenceType type,
+                  nndeploy::base::DeviceType device_type,
+                  const std::string &name = "");
 
-  virtual ~StaticShape();
+  virtual ~StaticShapeTask();
 
   virtual nndeploy::base::Status init();
   virtual nndeploy::base::Status deinit();

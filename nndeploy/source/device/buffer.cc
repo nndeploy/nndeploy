@@ -22,22 +22,18 @@ BufferDescCompareStatus compareBufferDesc(const BufferDesc &desc1,
     }
   }
   if (config_equal) {
-    if (desc1.size_.size() != desc2.size_.size()) {
-      return kBufferDescCompareStatusConfigEqualSizeNotEqual;
+    size_t size_1 = 1;
+    size_t size_2 = 1;
+    for (size_t i = 0; i < desc1.size_.size(); i++) {
+      size_1 *= desc1.size_[i];
+      size_2 *= desc2.size_[i];
+    }
+    if (size_1 < size_2) {
+      return kBufferDescCompareStatusConfigEqualSizeLess;
+    } else if (size_1 == size_2) {
+      return kBufferDescCompareStatusConfigEqualSizeEqual;
     } else {
-      size_t size_1 = 1;
-      size_t size_2 = 1;
-      for (size_t i = 0; i < desc1.size_.size(); i++) {
-        size_1 *= desc1.size_[i];
-        size_2 *= desc2.size_[i];
-      }
-      if (size_1 < size_2) {
-        return kBufferDescCompareStatusConfigEqualSizeLess;
-      } else if (size_1 == size_2) {
-        return kBufferDescCompareStatusConfigEqualSizeEqual;
-      } else {
-        return kBufferDescCompareStatusConfigEqualSizeGreater;
-      }
+      return kBufferDescCompareStatusConfigEqualSizeGreater;
     }
   } else {
     if (desc1.size_.size() != desc2.size_.size()) {
@@ -138,12 +134,6 @@ void *Buffer::getPtr() { return data_ptr_; }
 int32_t Buffer::getId() { return data_id_; }
 
 BufferSourceType Buffer::getBufferSourceType() { return buffer_source_type_; }
-
-int32_t Buffer::getRef() { return ref_count_; }
-
-void Buffer::addRef() { NNDEPLOY_XADD(&ref_count_, 1); }
-
-void Buffer::subRef() { NNDEPLOY_XADD(&ref_count_, -1); }
 
 }  // namespace device
 }  // namespace nndeploy

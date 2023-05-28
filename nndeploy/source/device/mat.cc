@@ -122,15 +122,14 @@ void Mat::destory() {
   desc_.shape_.clear();
   desc_.stride_.clear();
 
-  is_external_buffer_ = false;
-
   if (buffer_ != nullptr && is_external_buffer_ == false) {
-    buffer_->subRef();
-    if (buffer_->getRef() == 0) {
+    if (buffer_->subRef() == 1) {
       Device *device = buffer_->getDevice();
       device->deallocate(buffer_);
     }
   }
+
+  is_external_buffer_ = false;
   buffer_ = nullptr;
 }
 

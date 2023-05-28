@@ -59,7 +59,7 @@ void CpuDevice::deallocate(Buffer* buffer) {
   if (buffer == nullptr) {
     return;
   }
-  if (buffer->getRef() > 1) {
+  if (buffer->subRef() > 1) {
     return;
   }
   BufferSourceType buffer_source_type = buffer->getBufferSourceType();

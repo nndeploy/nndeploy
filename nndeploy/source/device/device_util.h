@@ -7,11 +7,15 @@
 #include "nndeploy/source/base/macro.h"
 #include "nndeploy/source/base/object.h"
 #include "nndeploy/source/base/status.h"
+#include "nndeploy/source/device/architecture.h"
+#include "nndeploy/source/device/device.h"
 
 namespace nndeploy {
 namespace device {
 
 extern NNDEPLOY_CC_API base::DeviceType getDefaultHostDeviceType();
+
+extern NNDEPLOY_CC_API Device* getDefaultHostDevice();
 
 extern NNDEPLOY_CC_API bool isHostDeviceType(base::DeviceType device_type);
 

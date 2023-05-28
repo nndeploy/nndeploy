@@ -34,7 +34,7 @@ std::string openFile(const std::string &file_path) {
 std::vector<std::string> getFileName(const std::string &dir_path,
                                      const std::string &suffix) {
   std::vector<std::string> fileNames;
-#if defined NNDEPLOY_OS_UNIX
+#if 0
   _finddata_t data;
   auto handle = _findfirst((dir_path + "/*." + suffix).c_str(), &data);
   if (handle == -1) {

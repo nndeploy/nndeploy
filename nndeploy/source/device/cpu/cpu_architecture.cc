@@ -32,19 +32,22 @@ base::Status CpuArchitecture::enableDevice(int32_t device_id,
                                            void* command_queue,
                                            std::string library_path) {
   device_id = 0;
-  base::DeviceType device_type(base::kDeviceTypeCodeCpu, device_id);
-  CpuDevice* device = new CpuDevice(device_type, command_queue, library_path);
-  if (device == NULL) {
-    NNDEPLOY_LOGE("device is NULL");
-    return base::kStatusCodeErrorOutOfMemory;
-  }
-  if (device->init() != base::kStatusCodeOk) {
-    delete device;
-    NNDEPLOY_LOGE("device init failed");
-    return base::kStatusCodeErrorDeviceCpu;
-  } else {
-    devices_.insert({device_id, device});
-    return base::kStatusCodeOk;
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (devices_.find(device_id) == devices_.end()) {
+    base::DeviceType device_type(base::kDeviceTypeCodeCpu, device_id);
+    CpuDevice* device = new CpuDevice(device_type, command_queue, library_path);
+    if (device == NULL) {
+      NNDEPLOY_LOGE("device is NULL");
+      return base::kStatusCodeErrorOutOfMemory;
+    }
+    if (device->init() != base::kStatusCodeOk) {
+      delete device;
+      NNDEPLOY_LOGE("device init failed");
+      return base::kStatusCodeErrorDeviceCpu;
+    } else {
+      devices_.insert({device_id, device});
+      return base::kStatusCodeOk;
+    }
   }
 
   return base::kStatusCodeOk;

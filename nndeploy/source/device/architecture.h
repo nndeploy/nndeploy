@@ -46,6 +46,7 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
   base::DeviceTypeCode getDeviceTypeCode();
 
  protected:
+  std::mutex mutex_;
   std::map<int32_t, Device*> devices_;
 
  private:

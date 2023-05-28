@@ -108,9 +108,8 @@ class NNDEPLOY_CC_API Buffer : public base::NonCopyable {
   int32_t getId();
   BufferSourceType getBufferSourceType();
 
-  int32_t getRef();
-  void addRef();
-  void subRef();
+  inline int32_t addRef() { return NNDEPLOY_XADD(&ref_count_, 1); }
+  inline int32_t subRef() { return NNDEPLOY_XADD(&ref_count_, -1); }
 
  private:
   Device *device_ = nullptr;

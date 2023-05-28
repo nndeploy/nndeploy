@@ -10,7 +10,9 @@ TypeArchitectureRegister<X86Architecture> x86_architecture_register(
     base::kDeviceTypeCodeX86);
 
 X86Architecture::X86Architecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code) {
+    : Architecture(device_type_code){};
+
+X86Architecture::~X86Architecture() {
   for (auto iter : devices_) {
     X86Device* tmp_device = dynamic_cast<X86Device*>(iter.second);
     if (tmp_device->deinit() != base::kStatusCodeOk) {
@@ -19,8 +21,6 @@ X86Architecture::X86Architecture(base::DeviceTypeCode device_type_code)
     delete tmp_device;
   }
 };
-
-X86Architecture::~X86Architecture(){};
 
 base::Status X86Architecture::checkDevice(int32_t device_id,
                                           void* command_queue,
@@ -32,19 +32,22 @@ base::Status X86Architecture::enableDevice(int32_t device_id,
                                            void* command_queue,
                                            std::string library_path) {
   device_id = 0;
-  base::DeviceType device_type(base::kDeviceTypeCodeX86, device_id);
-  X86Device* device = new X86Device(device_type, command_queue, library_path);
-  if (device == NULL) {
-    NNDEPLOY_LOGE("device is NULL");
-    return base::kStatusCodeErrorOutOfMemory;
-  }
-  if (device->init() != base::kStatusCodeOk) {
-    delete device;
-    NNDEPLOY_LOGE("device init failed");
-    return base::kStatusCodeErrorDeviceX86;
-  } else {
-    devices_.insert({device_id, device});
-    return base::kStatusCodeOk;
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (devices_.find(device_id) == devices_.end()) {
+    base::DeviceType device_type(base::kDeviceTypeCodeX86, device_id);
+    X86Device* device = new X86Device(device_type, command_queue, library_path);
+    if (device == NULL) {
+      NNDEPLOY_LOGE("device is NULL");
+      return base::kStatusCodeErrorOutOfMemory;
+    }
+    if (device->init() != base::kStatusCodeOk) {
+      delete device;
+      NNDEPLOY_LOGE("device init failed");
+      return base::kStatusCodeErrorDeviceX86;
+    } else {
+      devices_.insert({device_id, device});
+      return base::kStatusCodeOk;
+    }
   }
 
   return base::kStatusCodeOk;

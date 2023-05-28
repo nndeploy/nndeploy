@@ -21,14 +21,33 @@ enum PixelType : int32_t {
 };
 
 enum CvtColorType : int32_t {
-  kCvtColorTypeBGR2GRAY = 0x0000,
-  kCvtColorTypeBGRA2GRAY,
-  kCvtColorTypeRGB2GRAY,
+  kCvtColorTypeRGB2GRAY = 0x0000,
+  kCvtColorTypeBGR2GRAY,
   kCvtColorTypeRGBA2GRAY,
+  kCvtColorTypeBGRA2GRAY,
+
+  kCvtColorTypeBGR2RGB,
+  kCvtColorTypeRGBA2RGB,
+  kCvtColorTypeBGRA2RGB,
+
+  kCvtColorTypeRGB2BGR,
+  kCvtColorTypeRGBA2BGR,
+  kCvtColorTypeBGRA2BGR,
+
+  kCvtColorTypeRGB2RGBA,
+  kCvtColorTypeBGR2RGBA,
+  kCvtColorTypeBGRA2RGBA,
+
+  kCvtColorTypeRGB2BGRA,
+  kCvtColorTypeBGR2BGRA,
+  kCvtColorTypeRGBA2BGRA,
 
   // not sopport
   kCvtColorTypeNotSupport,
 };
+
+extern NNDEPLOY_CC_API CvtColorType calCvtColorType(PixelType src,
+                                                    PixelType dst);
 
 enum InterpType : int32_t {
   kInterpTypeNearst = 0x00,

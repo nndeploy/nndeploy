@@ -112,8 +112,7 @@ void Tensor::allocBuffer(Device *device, const base::IntVector &config) {
 }
 void Tensor::deallocateBuffer() {
   if (buffer_ != nullptr && is_external_buffer_ == false) {
-    buffer_->subRef();
-    if (buffer_->getRef() == 0) {
+    if (buffer_->subRef() == 1) {
       Device *device = buffer_->getDevice();
       device->deallocate(buffer_);
     }

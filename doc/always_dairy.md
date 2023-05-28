@@ -41,3 +41,7 @@
 + export PATH=/snap/bin/:$PATH
 + export LD_LIBRARY_PATH=/home/always/github/nndeploy/build/install/:$LD_LIBRARY_PATH
 + export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH
+
+# 2023.05.27
++ device模块的多线程问题
++ inference模块review

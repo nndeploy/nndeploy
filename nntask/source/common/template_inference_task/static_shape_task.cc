@@ -1,33 +1,33 @@
-#include "nntask/source/common/template_inference_task/static_shape.h"
+#include "nntask/source/common/template_inference_task/static_shape_task.h"
 
 namespace nntask {
 namespace common {
 
-StaticShape::StaticShape(bool allcoate_tensor_flag,
-                         nndeploy::base::InferenceType type,
-                         nndeploy::base::DeviceType device_type,
-                         const std::string &name)
+StaticShapeTask::StaticShapeTask(bool allcoate_tensor_flag,
+                                 nndeploy::base::InferenceType type,
+                                 nndeploy::base::DeviceType device_type,
+                                 const std::string &name)
     : Task(type, device_type, name) {
   allcoate_tensor_flag_ = allcoate_tensor_flag;
 }
 
-StaticShape::~StaticShape() {}
+StaticShapeTask::~StaticShapeTask() {}
 
-nndeploy::base::Status StaticShape::init() {
+nndeploy::base::Status StaticShapeTask::init() {
   nndeploy::base::Status status = nndeploy::base::kStatusCodeOk;
   status = Task::init();
   allocateInputOutputTensor();
   return status;
 }
 
-nndeploy::base::Status StaticShape::deinit() {
+nndeploy::base::Status StaticShapeTask::deinit() {
   nndeploy::base::Status status = nndeploy::base::kStatusCodeOk;
   status = Task::deinit();
   deallocateInputOutputTensor();
   return status;
 }
 
-nndeploy::base::Status StaticShape::setInput(Packet &input) {
+nndeploy::base::Status StaticShapeTask::setInput(Packet &input) {
   Task::setInput(input);
   for (auto tensor : input_tensors_) {
     inference_->setInputTensor(tensor->getName(), tensor);
@@ -36,7 +36,7 @@ nndeploy::base::Status StaticShape::setInput(Packet &input) {
   return nndeploy::base::kStatusCodeOk;
 }
 
-nndeploy::base::Status StaticShape::setOutput(Packet &output) {
+nndeploy::base::Status StaticShapeTask::setOutput(Packet &output) {
   Task::setOutput(output);
   pre_process_->setOutput(*inference_input_packet_);
   for (auto tensor : output_tensors_) {
@@ -45,13 +45,13 @@ nndeploy::base::Status StaticShape::setOutput(Packet &output) {
   return nndeploy::base::kStatusCodeOk;
 }
 
-nndeploy::base::Status StaticShape::run() {
+nndeploy::base::Status StaticShapeTask::run() {
   nndeploy::base::Status status = nndeploy::base::kStatusCodeOk;
   status = Task::run();
   return status;
 }
 
-nndeploy::base::Status StaticShape::allocateInputOutputTensor() {
+nndeploy::base::Status StaticShapeTask::allocateInputOutputTensor() {
   nndeploy::inference::InferenceParam *inference_param =
       dynamic_cast<nndeploy::inference::InferenceParam *>(
           inference_->getParam());
@@ -91,7 +91,7 @@ nndeploy::base::Status StaticShape::allocateInputOutputTensor() {
   return nndeploy::base::kStatusCodeOk;
 }
 
-nndeploy::base::Status StaticShape::deallocateInputOutputTensor() {
+nndeploy::base::Status StaticShapeTask::deallocateInputOutputTensor() {
   nndeploy::base::Status status = nndeploy::base::kStatusCodeErrorUnknown;
   bool is_share_command_queue = inference_->isShareCommanQueue();
   if (is_share_command_queue && allcoate_tensor_flag_ == false) {
@@ -110,6 +110,7 @@ nndeploy::base::Status StaticShape::deallocateInputOutputTensor() {
 
   delete inference_input_packet_;
   delete inference_output_packet_;
+
   return status;
 }
 

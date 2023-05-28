@@ -19,6 +19,11 @@ base::DeviceType getDefaultHostDeviceType() {
   return dst;
 }
 
+Device* getDefaultHostDevice() {
+  base::DeviceType device_type = getDefaultHostDeviceType();
+  return getDevice(device_type);
+}
+
 bool isHostDeviceType(base::DeviceType device_type) {
   return device_type.code_ == base::kDeviceTypeCodeCpu ||
          device_type.code_ == base::kDeviceTypeCodeX86 ||
