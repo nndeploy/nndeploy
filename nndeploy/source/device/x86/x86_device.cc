@@ -77,8 +77,8 @@ std::vector<DeviceInfo> X86Architecture::getDeviceInfo(
   return device_info_list;
 }
 
-BufferDesc& X86Device::toBufferDesc(const MatDesc& desc,
-                                    const base::IntVector& config) {
+BufferDesc X86Device::toBufferDesc(const MatDesc& desc,
+                                   const base::IntVector& config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
   size_t size = desc.data_type_.size();
@@ -103,8 +103,8 @@ BufferDesc& X86Device::toBufferDesc(const MatDesc& desc,
  * 通过stride_替代了data_format_，stride_的第一个元素表示的是整个tensor的大小
  * 意味着在TensorDesc的构造函数要花很多心思来计算stride_
  */
-BufferDesc& X86Device::toBufferDesc(const TensorDesc& desc,
-                                    const base::IntVector& config) {
+BufferDesc X86Device::toBufferDesc(const TensorDesc& desc,
+                                   const base::IntVector& config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
   size_t size = desc.data_type_.size();

@@ -35,11 +35,11 @@ class NNDEPLOY_CC_API ArmDevice : public Device {
   friend class ArmArchitecture;
 
  public:
-  virtual BufferDesc& toBufferDesc(const MatDesc& desc,
-                                   const base::IntVector& config);
+  virtual BufferDesc toBufferDesc(const MatDesc& desc,
+                                  const base::IntVector& config);
 
-  virtual BufferDesc& toBufferDesc(const TensorDesc& desc,
-                                   const base::IntVector& config);
+  virtual BufferDesc toBufferDesc(const TensorDesc& desc,
+                                  const base::IntVector& config);
 
   virtual Buffer* allocate(size_t size);
   virtual Buffer* allocate(const BufferDesc& desc);

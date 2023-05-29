@@ -124,7 +124,6 @@ static bool isDir(const std::string& path, DIR* dir) {
 
   return status && ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0);
 #else
-  CV_UNUSED(dir);
   struct stat stat_buf;
   if (0 != stat(path.c_str(), &stat_buf)) return false;
   int is_dir = S_ISDIR(stat_buf.st_mode);
@@ -293,7 +292,6 @@ std::string getcwd() {
     char* p = ::getcwd(buf.data(), buf.size());
     if (p == NULL) {
       if (errno == ERANGE) {
-        buf.allocate(buf.size() * 2);
         continue;
       }
       return std::string();

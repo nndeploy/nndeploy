@@ -14,43 +14,6 @@
 namespace nndeploy {
 namespace device {
 
-struct NNDEPLOY_CC_API BufferDesc {
-  BufferDesc(){};
-  explicit BufferDesc(size_t size) { size_.push_back(size); };
-  explicit BufferDesc(size_t *size, size_t len) {
-    for (int i = 0; i < len; ++i) {
-      size_.push_back(size[i]);
-    }
-  };
-  explicit BufferDesc(const base::SizeVector &size,
-                      const base::IntVector &config)
-      : size_(size), config_(config){};
-  explicit BufferDesc(size_t *size, size_t len, const base::IntVector &config)
-      : config_(config) {
-    for (int i = 0; i < len; ++i) {
-      size_.push_back(size[i]);
-    }
-  };
-
-  BufferDesc(const BufferDesc &desc) = default;
-  BufferDesc &operator=(const BufferDesc &desc) = default;
-
-  virtual ~BufferDesc(){};
-
-  /**
-   * @brief
-   * 1d size
-   * 2d h w c
-   * 3d unknown
-   */
-  base::SizeVector size_;
-  /**
-   * @brief
-   * 根据不同的设备以及内存形态有不同的config_
-   */
-  base::IntVector config_;
-};
-
 enum BufferDescCompareStatus : int32_t {
   kBufferDescCompareStatusConfigNotEqualSizeNotEqual = 0x0000,
   kBufferDescCompareStatusConfigNotEqualSizeLess,

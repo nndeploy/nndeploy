@@ -12,8 +12,6 @@
 namespace nndeploy {
 namespace device {
 
-struct BufferDesc;
-
 struct MatDesc;
 
 struct TensorDesc;
@@ -30,6 +28,46 @@ enum BufferSourceType : int32_t {
   kBufferSourceTypeAllocate,
   kBufferSourceTypeExternal,
   kBufferSourceTypeMapped,
+};
+
+struct NNDEPLOY_CC_API BufferDesc {
+  BufferDesc(){};
+  explicit BufferDesc(size_t size) { size_.push_back(size); };
+  explicit BufferDesc(size_t* size, size_t len) {
+    for (int i = 0; i < len; ++i) {
+      size_.push_back(size[i]);
+    }
+  };
+  explicit BufferDesc(const base::SizeVector& size,
+                      const base::IntVector& config)
+      : size_(size), config_(config){};
+  explicit BufferDesc(size_t* size, size_t len, const base::IntVector& config)
+      : config_(config) {
+    for (int i = 0; i < len; ++i) {
+      size_.push_back(size[i]);
+    }
+  };
+
+  BufferDesc(const BufferDesc& desc) = default;
+  BufferDesc& operator=(const BufferDesc& desc) = default;
+
+  BufferDesc(BufferDesc&& desc) = default;
+  BufferDesc& operator=(BufferDesc&& desc) = default;
+
+  virtual ~BufferDesc(){};
+
+  /**
+   * @brief
+   * 1d size
+   * 2d h w c
+   * 3d unknown
+   */
+  base::SizeVector size_;
+  /**
+   * @brief
+   * 根据不同的设备以及内存形态有不同的config_
+   */
+  base::IntVector config_;
 };
 
 struct NNDEPLOY_CC_API DeviceInfo {
@@ -93,11 +131,11 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   friend class Architecture;
 
  public:
-  virtual BufferDesc& toBufferDesc(const MatDesc& desc,
-                                   const base::IntVector& config) = 0;
+  virtual BufferDesc toBufferDesc(const MatDesc& desc,
+                                  const base::IntVector& config) = 0;
 
-  virtual BufferDesc& toBufferDesc(const TensorDesc& desc,
-                                   const base::IntVector& config) = 0;
+  virtual BufferDesc toBufferDesc(const TensorDesc& desc,
+                                  const base::IntVector& config) = 0;
 
   virtual Buffer* allocate(size_t size) = 0;
   virtual Buffer* allocate(const BufferDesc& desc) = 0;
