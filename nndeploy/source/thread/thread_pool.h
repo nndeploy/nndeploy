@@ -8,7 +8,6 @@
 #include "nndeploy/source/base/object.h"
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/base/type.h"
-#include "nndeploy/source/device/buffer.h"
 
 namespace nndeploy {
 namespace thread {}  // namespace thread

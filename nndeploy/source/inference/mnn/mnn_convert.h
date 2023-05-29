@@ -10,7 +10,6 @@
 #include "nndeploy/source/base/object.h"
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/device/device.h"
-#include "nndeploy/source/device/device_util.h"
 #include "nndeploy/source/device/tensor.h"
 #include "nndeploy/source/inference/inference_param.h"
 #include "nndeploy/source/inference/mnn/mnn_include.h"

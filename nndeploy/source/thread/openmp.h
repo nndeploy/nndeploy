@@ -2,6 +2,8 @@
 #ifndef _NNDEPLOY_SOURCE_THREAD_OPENMP_H_
 #define _NNDEPLOY_SOURCE_THREAD_OPENMP_H_
 
+#include "nndeploy/source/base/macro.h"
+
 #ifdef NNDEPLOY_ENABLE_OPENMP
 
 #include <NNDEPLOY_OPENMP.h>

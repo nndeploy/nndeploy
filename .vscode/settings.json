@@ -106,7 +106,8 @@
         "memory_resource": "cpp",
         "numeric": "cpp",
         "random": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "codecvt": "cpp"
     },
     "cmake.configureOnOpen": false
 }

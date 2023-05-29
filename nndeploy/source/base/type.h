@@ -72,8 +72,8 @@ enum InterpType : int32_t {
 
 enum BorderType : int32_t {
   kBorderTypeConstant = 0x00,
-  kBorderTypeReflect = 0x01,
-  kBorderTypeEdge = 0x02,
+  kBorderTypeReflect,
+  kBorderTypeEdge,
 
   // not sopport
   kBorderTypeNotSupport,
@@ -95,7 +95,7 @@ class Scalar;
 
 /**
  * @brief
- * Template class for 2D points specified by its coordinates `x` an `y`.
+ * Template class for 2D points specified by its coordinates `x_` an `y_`.
  * An instance of the class is interchangeable with C structures, CvPoint
  * and CvPoint2D32f . There is also a cast operator to convert point
  * coordinates to the specified type. The conversion from floating-point
@@ -128,7 +128,7 @@ class Scalar;
  * @code
  *     Point2f a(0.3f, 0.f), b(0.f, 0.4f);
  *     Point pt = (a + b)*10.f;
- *     cout << pt.x << ", " << pt.y << endl;
+ *     cout << pt.x_ << ", " << pt.y_ << endl;
  * @endcode
  */
 template <typename T>
@@ -138,7 +138,7 @@ class Point {
 
   //! default constructor
   Point();
-  Point(T _x, T _y);
+  Point(T x, T y);
   Point(const Point& pt);
   Point(Point&& pt) = default;
 
@@ -161,18 +161,17 @@ class Point {
   //! checks whether the point is inside the specified rectangle
   bool inside(const Rect<T>& r) const;
 
-  T x;  //!< x coordinate of the point
-  T y;  //!< y coordinate of the point
+  T x_;  //!< x_ coordinate of the point
+  T y_;  //!< y_ coordinate of the point
 };
 
 typedef Point<int> Point2i;
-typedef Point<int64_t> Point2l;
 typedef Point<float> Point2f;
 typedef Point<double> Point2d;
 
 /**
- * @brief Template class for 3D points specified by its coordinates `x`, `y`
- * and `z`.
+ * @brief Template class for 3D points specified by its coordinates `x_`, `y_`
+ * and `z_`.
  *
  * An instance of the class is interchangeable with the C structure CvPoint2D32f
  * . Similarly to Point , the coordinates of 3D points can be converted to
@@ -194,7 +193,7 @@ class Point3 {
 
   //! default constructor
   Point3();
-  Point3(T _x, T _y, T _z);
+  Point3(T x, T y, T z);
 
   Point3(const Point3& pt) = default;
   Point3(Point3&& pt) = default;
@@ -214,9 +213,9 @@ class Point3 {
   double ddot(const Point3& pt) const;
   //! cross product of the 2 3D points
   Point3 cross(const Point3& pt) const;
-  T x;  //!< x coordinate of the 3D point
-  T y;  //!< y coordinate of the 3D point
-  T z;  //!< z coordinate of the 3D point
+  T x_;  //!< x_ coordinate of the 3D point
+  T y_;  //!< y_ coordinate of the 3D point
+  T z_;  //!< z_ coordinate of the 3D point
 };
 
 typedef Point3<int> Point3i;
@@ -225,9 +224,10 @@ typedef Point3<double> Point3d;
 
 /**
  * @brief Template class for specifying the size of an image or rectangle.
- * The class includes two members called width and height. The structure can be
- * converted to and from the old OpenCV structures CvSize and CvSize2D32f . The
- * same set of arithmetic and comparison operations as for Point is available.
+ * The class includes two members called width_ and height_. The structure can
+ * be converted to and from the old OpenCV structures CvSize and CvSize2D32f .
+ * The same set of arithmetic and comparison operations as for Point is
+ * available.
  *
  * OpenCV defines the following Size\<\> aliases:
  * @code
@@ -243,7 +243,7 @@ class Size {
 
   //! default constructor
   Size();
-  Size(T _width, T _height);
+  Size(T width, T height);
   Size(const Size& sz) = default;
   Size(Size&& sz) = default;
 
@@ -252,9 +252,9 @@ class Size {
   Size& operator=(const Size& sz) = default;
   Size& operator=(Size&& sz) = default;
 
-  //! the area (width*height)
+  //! the area (width_*height_)
   T area() const;
-  //! aspect ratio (width/height)
+  //! aspect ratio (width_/height_)
   double aspectRatio() const;
   //! true if empty
   bool empty() const;
@@ -263,12 +263,11 @@ class Size {
   template <typename Tp2>
   operator Size<Tp2>() const;
 
-  T width;   //!< the width
-  T height;  //!< the height
+  T width_;   //!< the width_
+  T height_;  //!< the height_
 };
 
 typedef Size<int> Size2i;
-typedef Size<int64_t> Size2l;
 typedef Size<float> Size2f;
 typedef Size<double> Size2d;
 
@@ -277,22 +276,22 @@ typedef Size<double> Size2d;
  * @brief Template class for 2D rectangles
  * described by the following parameters:
  * -   Coordinates of the top-left corner. This is a default interpretation of
- * Rect::x and Rect::y in OpenCV. Though, in your algorithms you may count x
- * and y from the bottom-left corner.
- * -   Rectangle width and height.
+ * Rect::x_ and Rect::y_ in OpenCV. Though, in your algorithms you may count x_
+ * and y_ from the bottom-left corner.
+ * -   Rectangle width_ and height_.
  *
  * OpenCV typically assumes that the top and left boundary of the rectangle are
  * inclusive, while the right and bottom boundaries are not. For example, the
  * method Rect::contains returns true if
  *
- * \f[x  \leq pt.x < x+width,
- *       y  \leq pt.y < y+height\f]
+ * \f[x_  \leq pt.x_ < x_+width_,
+ *       y_  \leq pt.y_ < y_+height_\f]
  *
  * Virtually every loop over an image ROI in OpenCV (where ROI is specified by
  * Rect\<int\> ) is implemented as:
  * @code
- *     for(int y = roi.y; y < roi.y + roi.height; y++)
- *         for(int x = roi.x; x < roi.x + roi.width; x++)
+ *     for(int y_ = roi.y_; y_ < roi.y_ + roi.height_; y_++)
+ *         for(int x_ = roi.x_; x_ < roi.x_ + roi.width_; x_++)
  *         {
  *             // ...
  *         }
@@ -329,7 +328,7 @@ class Rect {
 
   //! default constructor
   Rect();
-  Rect(T _x, T _y, T _width, T _height);
+  Rect(T x, T y, T width, T height);
   Rect(const Rect& r) = default;
   Rect(Rect&& r) = default;
   Rect(const Point<T>& org, const Size<T>& sz);
@@ -342,9 +341,9 @@ class Rect {
   //! the bottom-right corner
   Point<T> br() const;
 
-  //! size (width, height) of the rectangle
+  //! size (width_, height_) of the rectangle
   Size<T> size() const;
-  //! area (width*height) of the rectangle
+  //! area (width_*height_) of the rectangle
   T area() const;
   //! true if empty
   bool empty() const;
@@ -356,10 +355,10 @@ class Rect {
   //! checks whether the rectangle contains the point
   bool contains(const Point<T>& pt) const;
 
-  T x;       //!< x coordinate of the top-left corner
-  T y;       //!< y coordinate of the top-left corner
-  T width;   //!< width of the rectangle
-  T height;  //!< height of the rectangle
+  T x_;       //!< x_ coordinate of the top-left corner
+  T y_;       //!< y_ coordinate of the top-left corner
+  T width_;   //!< width_ of the rectangle
+  T height_;  //!< height_ of the rectangle
 };
 
 typedef Rect<int> Rect2i;
@@ -371,14 +370,14 @@ typedef Rect<double> Rect2d;
  * sequence.
  * The class is used to specify a row or a column span in a matrix ( Mat ) and
  * for many other purposes. Range(a,b) is basically the same as a:b in Matlab or
- * a..b in Python. As in Python, start is an inclusive left boundary of the
- * range and end is an exclusive right boundary of the range. Such a half-opened
- * interval is usually denoted as \f$[start,end)\f$ . The static method
- * Range::all() returns a special variable that means "the whole sequence" or
- * "the whole range", just like " : " in Matlab or " ... " in Python. All the
- * methods and functions in OpenCV that take Range support this special
- * Range::all() value. But, of course, in case of your own custom processing,
- * you will probably have to check and handle it explicitly:
+ * a..b in Python. As in Python, start_ is an inclusive left boundary of the
+ * range and end_ is an exclusive right boundary of the range. Such a
+ * half-opened interval is usually denoted as \f$[start_,end_)\f$ . The static
+ * method Range::all() returns a special variable that means "the whole
+ * sequence" or "the whole range", just like " : " in Matlab or " ... " in
+ * Python. All the methods and functions in OpenCV that take Range support this
+ * special Range::all() value. But, of course, in case of your own custom
+ * processing, you will probably have to check and handle it explicitly:
  * @code
  *     void my_function(..., const Range& r, ....)
  *     {
@@ -386,7 +385,7 @@ typedef Rect<double> Rect2d;
  *             // process all the data
  *         }
  *         else {
- *             // process [r.start, r.end)
+ *             // process [r.start_, r.end_)
  *         }
  *     }
  * @endcode
@@ -399,7 +398,7 @@ class Range {
   bool empty() const;
   static Range all();
 
-  int start, end;
+  int start_, end_;
 };
 
 /** @brief
@@ -438,49 +437,51 @@ class Scalar {
   //! returns true iff v1 == v2 == v3 == 0
   bool isReal() const;
 
-  T val[4];
+  T val_[4];
 };
 
+typedef Scalar<int> Scalar2i;
+typedef Scalar<float> Scalar2f;
 typedef Scalar<double> Scalar2d;
 
 template <typename T>
-inline Point<T>::Point() : x(0), y(0) {}
+inline Point<T>::Point() : x_(0), y_(0) {}
 
 template <typename T>
-inline Point<T>::Point(T _x, T _y) : x(_x), y(_y) {}
+inline Point<T>::Point(T x, T y) : x_(x), y_(y) {}
 
 template <typename T>
-inline Point<T>::Point(const Point& pt) : x(pt.x), y(pt.y) {}
+inline Point<T>::Point(const Point& pt) : x_(pt.x_), y_(pt.y_) {}
 
 template <typename T>
-inline Point<T>::Point(const Size<T>& sz) : x(sz.width), y(sz.height) {}
+inline Point<T>::Point(const Size<T>& sz) : x_(sz.width_), y_(sz.height_) {}
 
 template <typename T>
 inline Point<T>& Point<T>::operator=(const Point<T>& pt) {
-  x = pt.x;
-  y = pt.y;
+  x_ = pt.x_;
+  y_ = pt.y_;
   return *this;
 }
 
 template <typename T>
 template <typename Tp2>
 inline Point<T>::operator Point<Tp2>() const {
-  return Point<Tp2>(saturate_cast<Tp2>(x), saturate_cast<Tp2>(y));
+  return Point<Tp2>(saturate_cast<Tp2>(x_), saturate_cast<Tp2>(y_));
 }
 
 template <typename T>
 inline T Point<T>::dot(const Point& pt) const {
-  return saturate_cast<T>(x * pt.x + y * pt.y);
+  return saturate_cast<T>(x_ * pt.x_ + y_ * pt.y_);
 }
 
 template <typename T>
 inline double Point<T>::ddot(const Point& pt) const {
-  return (double)x * (double)(pt.x) + (double)y * (double)(pt.y);
+  return (double)x_ * (double)(pt.x_) + (double)y_ * (double)(pt.y_);
 }
 
 template <typename T>
 inline double Point<T>::cross(const Point& pt) const {
-  return (double)x * pt.y - (double)y * pt.x;
+  return (double)x_ * pt.y_ - (double)y_ * pt.x_;
 }
 
 template <typename T>
@@ -490,118 +491,118 @@ inline bool Point<T>::inside(const Rect<T>& r) const {
 
 template <typename T>
 static inline Point<T>& operator+=(Point<T>& a, const Point<T>& b) {
-  a.x += b.x;
-  a.y += b.y;
+  a.x_ += b.x_;
+  a.y_ += b.y_;
   return a;
 }
 
 template <typename T>
 static inline Point<T>& operator-=(Point<T>& a, const Point<T>& b) {
-  a.x -= b.x;
-  a.y -= b.y;
+  a.x_ -= b.x_;
+  a.y_ -= b.y_;
   return a;
 }
 
 template <typename T>
 static inline Point<T>& operator*=(Point<T>& a, int b) {
-  a.x = saturate_cast<T>(a.x * b);
-  a.y = saturate_cast<T>(a.y * b);
+  a.x_ = saturate_cast<T>(a.x_ * b);
+  a.y_ = saturate_cast<T>(a.y_ * b);
   return a;
 }
 
 template <typename T>
 static inline Point<T>& operator*=(Point<T>& a, float b) {
-  a.x = saturate_cast<T>(a.x * b);
-  a.y = saturate_cast<T>(a.y * b);
+  a.x_ = saturate_cast<T>(a.x_ * b);
+  a.y_ = saturate_cast<T>(a.y_ * b);
   return a;
 }
 
 template <typename T>
 static inline Point<T>& operator*=(Point<T>& a, double b) {
-  a.x = saturate_cast<T>(a.x * b);
-  a.y = saturate_cast<T>(a.y * b);
+  a.x_ = saturate_cast<T>(a.x_ * b);
+  a.y_ = saturate_cast<T>(a.y_ * b);
   return a;
 }
 
 template <typename T>
 static inline Point<T>& operator/=(Point<T>& a, int b) {
-  a.x = saturate_cast<T>(a.x / b);
-  a.y = saturate_cast<T>(a.y / b);
+  a.x_ = saturate_cast<T>(a.x_ / b);
+  a.y_ = saturate_cast<T>(a.y_ / b);
   return a;
 }
 
 template <typename T>
 static inline Point<T>& operator/=(Point<T>& a, float b) {
-  a.x = saturate_cast<T>(a.x / b);
-  a.y = saturate_cast<T>(a.y / b);
+  a.x_ = saturate_cast<T>(a.x_ / b);
+  a.y_ = saturate_cast<T>(a.y_ / b);
   return a;
 }
 
 template <typename T>
 static inline Point<T>& operator/=(Point<T>& a, double b) {
-  a.x = saturate_cast<T>(a.x / b);
-  a.y = saturate_cast<T>(a.y / b);
+  a.x_ = saturate_cast<T>(a.x_ / b);
+  a.y_ = saturate_cast<T>(a.y_ / b);
   return a;
 }
 
 template <typename T>
 static inline double norm(const Point<T>& pt) {
-  return std::sqrt((double)pt.x * pt.x + (double)pt.y * pt.y);
+  return std::sqrt((double)pt.x_ * pt.x_ + (double)pt.y_ * pt.y_);
 }
 
 template <typename T>
 static inline bool operator==(const Point<T>& a, const Point<T>& b) {
-  return a.x == b.x && a.y == b.y;
+  return a.x_ == b.x_ && a.y_ == b.y_;
 }
 
 template <typename T>
 static inline bool operator!=(const Point<T>& a, const Point<T>& b) {
-  return a.x != b.x || a.y != b.y;
+  return a.x_ != b.x_ || a.y_ != b.y_;
 }
 
 template <typename T>
 static inline Point<T> operator+(const Point<T>& a, const Point<T>& b) {
-  return Point<T>(saturate_cast<T>(a.x + b.x), saturate_cast<T>(a.y + b.y));
+  return Point<T>(saturate_cast<T>(a.x_ + b.x_), saturate_cast<T>(a.y_ + b.y_));
 }
 
 template <typename T>
 static inline Point<T> operator-(const Point<T>& a, const Point<T>& b) {
-  return Point<T>(saturate_cast<T>(a.x - b.x), saturate_cast<T>(a.y - b.y));
+  return Point<T>(saturate_cast<T>(a.x_ - b.x_), saturate_cast<T>(a.y_ - b.y_));
 }
 
 template <typename T>
 static inline Point<T> operator-(const Point<T>& a) {
-  return Point<T>(saturate_cast<T>(-a.x), saturate_cast<T>(-a.y));
+  return Point<T>(saturate_cast<T>(-a.x_), saturate_cast<T>(-a.y_));
 }
 
 template <typename T>
 static inline Point<T> operator*(const Point<T>& a, int b) {
-  return Point<T>(saturate_cast<T>(a.x * b), saturate_cast<T>(a.y * b));
+  return Point<T>(saturate_cast<T>(a.x_ * b), saturate_cast<T>(a.y_ * b));
 }
 
 template <typename T>
 static inline Point<T> operator*(int a, const Point<T>& b) {
-  return Point<T>(saturate_cast<T>(b.x * a), saturate_cast<T>(b.y * a));
+  return Point<T>(saturate_cast<T>(b.x_ * a), saturate_cast<T>(b.y_ * a));
 }
 
 template <typename T>
 static inline Point<T> operator*(const Point<T>& a, float b) {
-  return Point<T>(saturate_cast<T>(a.x * b), saturate_cast<T>(a.y * b));
+  return Point<T>(saturate_cast<T>(a.x_ * b), saturate_cast<T>(a.y_ * b));
 }
 
 template <typename T>
 static inline Point<T> operator*(float a, const Point<T>& b) {
-  return Point<T>(saturate_cast<T>(b.x * a), saturate_cast<T>(b.y * a));
+  return Point<T>(saturate_cast<T>(b.x_ * a), saturate_cast<T>(b.y_ * a));
 }
 
 template <typename T>
 static inline Point<T> operator*(const Point<T>& a, double b) {
-  return Point<T>(saturate_cast<T>(a.x * b), saturate_cast<T>(a.y * b));
+  return Point<T>(saturate_cast<T>(a.x_ * b), saturate_cast<T>(a.y_ * b));
 }
 
 template <typename T>
 static inline Point<T> operator*(double a, const Point<T>& b) {
-  return Point<T>(saturate_cast<T>(b.x * a), saturate_cast<T>(b.y * a));
+  return Point<T>(saturate_cast<T>(b.x_ * a), saturate_cast<T>(b.y_ * a));
 }
 
 template <typename T>
@@ -625,21 +626,15 @@ static inline Point<T> operator/(const Point<T>& a, double b) {
   return tmp;
 }
 
-template <typename _AccTp>
-static inline _AccTp normL2Sqr(const Point<int>& pt);
-template <typename _AccTp>
-static inline _AccTp normL2Sqr(const Point<int64_t>& pt);
-template <typename _AccTp>
-static inline _AccTp normL2Sqr(const Point<float>& pt);
-template <typename _AccTp>
-static inline _AccTp normL2Sqr(const Point<double>& pt);
+template <typename AccTp>
+static inline AccTp normL2Sqr(const Point<int>& pt);
+template <typename AccTp>
+static inline AccTp normL2Sqr(const Point<float>& pt);
+template <typename AccTp>
+static inline AccTp normL2Sqr(const Point<double>& pt);
 
 template <>
 inline int normL2Sqr<int>(const Point<int>& pt) {
-  return pt.dot(pt);
-}
-template <>
-inline int64_t normL2Sqr<int64_t>(const Point<int64_t>& pt) {
   return pt.dot(pt);
 }
 template <>
@@ -661,169 +656,169 @@ inline double normL2Sqr<double>(const Point<double>& pt) {
 }
 
 template <typename T>
-inline Point3<T>::Point3() : x(0), y(0), z(0) {}
+inline Point3<T>::Point3() : x_(0), y_(0), z_(0) {}
 
 template <typename T>
-inline Point3<T>::Point3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}
+inline Point3<T>::Point3(T x, T y, T z) : x_(x), y_(y), z_(z) {}
 
 template <typename T>
-inline Point3<T>::Point3(const Point<T>& pt) : x(pt.x), y(pt.y), z(T()) {}
+inline Point3<T>::Point3(const Point<T>& pt) : x_(pt.x_), y_(pt.y_), z_(T()) {}
 
 template <typename T>
 template <typename Tp2>
 inline Point3<T>::operator Point3<Tp2>() const {
-  return Point3<Tp2>(saturate_cast<Tp2>(x), saturate_cast<Tp2>(y),
-                     saturate_cast<Tp2>(z));
+  return Point3<Tp2>(saturate_cast<Tp2>(x_), saturate_cast<Tp2>(y_),
+                     saturate_cast<Tp2>(z_));
 }
 
 template <typename T>
 inline T Point3<T>::dot(const Point3& pt) const {
-  return saturate_cast<T>(x * pt.x + y * pt.y + z * pt.z);
+  return saturate_cast<T>(x_ * pt.x_ + y_ * pt.y_ + z_ * pt.z_);
 }
 
 template <typename T>
 inline double Point3<T>::ddot(const Point3& pt) const {
-  return (double)x * pt.x + (double)y * pt.y + (double)z * pt.z;
+  return (double)x_ * pt.x_ + (double)y_ * pt.y_ + (double)z_ * pt.z_;
 }
 
 template <typename T>
 inline Point3<T> Point3<T>::cross(const Point3<T>& pt) const {
-  return Point3<T>(y * pt.z - z * pt.y, z * pt.x - x * pt.z,
-                   x * pt.y - y * pt.x);
+  return Point3<T>(y_ * pt.z_ - z_ * pt.y_, z_ * pt.x_ - x_ * pt.z_,
+                   x_ * pt.y_ - y_ * pt.x_);
 }
 
 template <typename T>
 static inline Point3<T>& operator+=(Point3<T>& a, const Point3<T>& b) {
-  a.x += b.x;
-  a.y += b.y;
-  a.z += b.z;
+  a.x_ += b.x_;
+  a.y_ += b.y_;
+  a.z_ += b.z_;
   return a;
 }
 
 template <typename T>
 static inline Point3<T>& operator-=(Point3<T>& a, const Point3<T>& b) {
-  a.x -= b.x;
-  a.y -= b.y;
-  a.z -= b.z;
+  a.x_ -= b.x_;
+  a.y_ -= b.y_;
+  a.z_ -= b.z_;
   return a;
 }
 
 template <typename T>
 static inline Point3<T>& operator*=(Point3<T>& a, int b) {
-  a.x = saturate_cast<T>(a.x * b);
-  a.y = saturate_cast<T>(a.y * b);
-  a.z = saturate_cast<T>(a.z * b);
+  a.x_ = saturate_cast<T>(a.x_ * b);
+  a.y_ = saturate_cast<T>(a.y_ * b);
+  a.z_ = saturate_cast<T>(a.z_ * b);
   return a;
 }
 
 template <typename T>
 static inline Point3<T>& operator*=(Point3<T>& a, float b) {
-  a.x = saturate_cast<T>(a.x * b);
-  a.y = saturate_cast<T>(a.y * b);
-  a.z = saturate_cast<T>(a.z * b);
+  a.x_ = saturate_cast<T>(a.x_ * b);
+  a.y_ = saturate_cast<T>(a.y_ * b);
+  a.z_ = saturate_cast<T>(a.z_ * b);
   return a;
 }
 
 template <typename T>
 static inline Point3<T>& operator*=(Point3<T>& a, double b) {
-  a.x = saturate_cast<T>(a.x * b);
-  a.y = saturate_cast<T>(a.y * b);
-  a.z = saturate_cast<T>(a.z * b);
+  a.x_ = saturate_cast<T>(a.x_ * b);
+  a.y_ = saturate_cast<T>(a.y_ * b);
+  a.z_ = saturate_cast<T>(a.z_ * b);
   return a;
 }
 
 template <typename T>
 static inline Point3<T>& operator/=(Point3<T>& a, int b) {
-  a.x = saturate_cast<T>(a.x / b);
-  a.y = saturate_cast<T>(a.y / b);
-  a.z = saturate_cast<T>(a.z / b);
+  a.x_ = saturate_cast<T>(a.x_ / b);
+  a.y_ = saturate_cast<T>(a.y_ / b);
+  a.z_ = saturate_cast<T>(a.z_ / b);
   return a;
 }
 
 template <typename T>
 static inline Point3<T>& operator/=(Point3<T>& a, float b) {
-  a.x = saturate_cast<T>(a.x / b);
-  a.y = saturate_cast<T>(a.y / b);
-  a.z = saturate_cast<T>(a.z / b);
+  a.x_ = saturate_cast<T>(a.x_ / b);
+  a.y_ = saturate_cast<T>(a.y_ / b);
+  a.z_ = saturate_cast<T>(a.z_ / b);
   return a;
 }
 
 template <typename T>
 static inline Point3<T>& operator/=(Point3<T>& a, double b) {
-  a.x = saturate_cast<T>(a.x / b);
-  a.y = saturate_cast<T>(a.y / b);
-  a.z = saturate_cast<T>(a.z / b);
+  a.x_ = saturate_cast<T>(a.x_ / b);
+  a.y_ = saturate_cast<T>(a.y_ / b);
+  a.z_ = saturate_cast<T>(a.z_ / b);
   return a;
 }
 
 template <typename T>
 static inline double norm(const Point3<T>& pt) {
-  return std::sqrt((double)pt.x * pt.x + (double)pt.y * pt.y +
-                   (double)pt.z * pt.z);
+  return std::sqrt((double)pt.x_ * pt.x_ + (double)pt.y_ * pt.y_ +
+                   (double)pt.z_ * pt.z_);
 }
 
 template <typename T>
 static inline bool operator==(const Point3<T>& a, const Point3<T>& b) {
-  return a.x == b.x && a.y == b.y && a.z == b.z;
+  return a.x_ == b.x_ && a.y_ == b.y_ && a.z_ == b.z_;
 }
 
 template <typename T>
 static inline bool operator!=(const Point3<T>& a, const Point3<T>& b) {
-  return a.x != b.x || a.y != b.y || a.z != b.z;
+  return a.x_ != b.x_ || a.y_ != b.y_ || a.z_ != b.z_;
 }
 
 template <typename T>
 static inline Point3<T> operator+(const Point3<T>& a, const Point3<T>& b) {
-  return Point3<T>(saturate_cast<T>(a.x + b.x), saturate_cast<T>(a.y + b.y),
-                   saturate_cast<T>(a.z + b.z));
+  return Point3<T>(saturate_cast<T>(a.x_ + b.x_), saturate_cast<T>(a.y_ + b.y_),
+                   saturate_cast<T>(a.z_ + b.z_));
 }
 
 template <typename T>
 static inline Point3<T> operator-(const Point3<T>& a, const Point3<T>& b) {
-  return Point3<T>(saturate_cast<T>(a.x - b.x), saturate_cast<T>(a.y - b.y),
-                   saturate_cast<T>(a.z - b.z));
+  return Point3<T>(saturate_cast<T>(a.x_ - b.x_), saturate_cast<T>(a.y_ - b.y_),
+                   saturate_cast<T>(a.z_ - b.z_));
 }
 
 template <typename T>
 static inline Point3<T> operator-(const Point3<T>& a) {
-  return Point3<T>(saturate_cast<T>(-a.x), saturate_cast<T>(-a.y),
-                   saturate_cast<T>(-a.z));
+  return Point3<T>(saturate_cast<T>(-a.x_), saturate_cast<T>(-a.y_),
+                   saturate_cast<T>(-a.z_));
 }
 
 template <typename T>
 static inline Point3<T> operator*(const Point3<T>& a, int b) {
-  return Point3<T>(saturate_cast<T>(a.x * b), saturate_cast<T>(a.y * b),
-                   saturate_cast<T>(a.z * b));
+  return Point3<T>(saturate_cast<T>(a.x_ * b), saturate_cast<T>(a.y_ * b),
+                   saturate_cast<T>(a.z_ * b));
 }
 
 template <typename T>
 static inline Point3<T> operator*(int a, const Point3<T>& b) {
-  return Point3<T>(saturate_cast<T>(b.x * a), saturate_cast<T>(b.y * a),
-                   saturate_cast<T>(b.z * a));
+  return Point3<T>(saturate_cast<T>(b.x_ * a), saturate_cast<T>(b.y_ * a),
+                   saturate_cast<T>(b.z_ * a));
 }
 
 template <typename T>
 static inline Point3<T> operator*(const Point3<T>& a, float b) {
-  return Point3<T>(saturate_cast<T>(a.x * b), saturate_cast<T>(a.y * b),
-                   saturate_cast<T>(a.z * b));
+  return Point3<T>(saturate_cast<T>(a.x_ * b), saturate_cast<T>(a.y_ * b),
+                   saturate_cast<T>(a.z_ * b));
 }
 
 template <typename T>
 static inline Point3<T> operator*(float a, const Point3<T>& b) {
-  return Point3<T>(saturate_cast<T>(b.x * a), saturate_cast<T>(b.y * a),
-                   saturate_cast<T>(b.z * a));
+  return Point3<T>(saturate_cast<T>(b.x_ * a), saturate_cast<T>(b.y_ * a),
+                   saturate_cast<T>(b.z_ * a));
 }
 
 template <typename T>
 static inline Point3<T> operator*(const Point3<T>& a, double b) {
-  return Point3<T>(saturate_cast<T>(a.x * b), saturate_cast<T>(a.y * b),
-                   saturate_cast<T>(a.z * b));
+  return Point3<T>(saturate_cast<T>(a.x_ * b), saturate_cast<T>(a.y_ * b),
+                   saturate_cast<T>(a.z_ * b));
 }
 
 template <typename T>
 static inline Point3<T> operator*(double a, const Point3<T>& b) {
-  return Point3<T>(saturate_cast<T>(b.x * a), saturate_cast<T>(b.y * a),
-                   saturate_cast<T>(b.z * a));
+  return Point3<T>(saturate_cast<T>(b.x_ * a), saturate_cast<T>(b.y_ * a),
+                   saturate_cast<T>(b.z_ * a));
 }
 
 template <typename T>
@@ -848,40 +843,40 @@ static inline Point3<T> operator/(const Point3<T>& a, double b) {
 }
 
 template <typename T>
-inline Size<T>::Size() : width(0), height(0) {}
+inline Size<T>::Size() : width_(0), height_(0) {}
 
 template <typename T>
-inline Size<T>::Size(T _width, T _height) : width(_width), height(_height) {}
+inline Size<T>::Size(T width, T height) : width_(width), height_(height) {}
 
 template <typename T>
-inline Size<T>::Size(const Point<T>& pt) : width(pt.x), height(pt.y) {}
+inline Size<T>::Size(const Point<T>& pt) : width_(pt.x_), height_(pt.y_) {}
 
 template <typename T>
 template <typename Tp2>
 inline Size<T>::operator Size<Tp2>() const {
-  return Size<Tp2>(saturate_cast<Tp2>(width), saturate_cast<Tp2>(height));
+  return Size<Tp2>(saturate_cast<Tp2>(width_), saturate_cast<Tp2>(height_));
 }
 
 template <typename T>
 inline T Size<T>::area() const {
-  const T result = width * height;
+  const T result = width_ * height_;
   return result;
 }
 
 template <typename T>
 inline double Size<T>::aspectRatio() const {
-  return width / static_cast<double>(height);
+  return width_ / static_cast<double>(height_);
 }
 
 template <typename T>
 inline bool Size<T>::empty() const {
-  return width <= 0 || height <= 0;
+  return width_ <= 0 || height_ <= 0;
 }
 
 template <typename T>
 static inline Size<T>& operator*=(Size<T>& a, T b) {
-  a.width *= b;
-  a.height *= b;
+  a.width_ *= b;
+  a.height_ *= b;
   return a;
 }
 
@@ -894,8 +889,8 @@ static inline Size<T> operator*(const Size<T>& a, T b) {
 
 template <typename T>
 static inline Size<T>& operator/=(Size<T>& a, T b) {
-  a.width /= b;
-  a.height /= b;
+  a.width_ /= b;
+  a.height_ /= b;
   return a;
 }
 
@@ -908,8 +903,8 @@ static inline Size<T> operator/(const Size<T>& a, T b) {
 
 template <typename T>
 static inline Size<T>& operator+=(Size<T>& a, const Size<T>& b) {
-  a.width += b.width;
-  a.height += b.height;
+  a.width_ += b.width_;
+  a.height_ += b.height_;
   return a;
 }
 
@@ -922,8 +917,8 @@ static inline Size<T> operator+(const Size<T>& a, const Size<T>& b) {
 
 template <typename T>
 static inline Size<T>& operator-=(Size<T>& a, const Size<T>& b) {
-  a.width -= b.width;
-  a.height -= b.height;
+  a.width_ -= b.width_;
+  a.height_ -= b.height_;
   return a;
 }
 
@@ -936,7 +931,7 @@ static inline Size<T> operator-(const Size<T>& a, const Size<T>& b) {
 
 template <typename T>
 static inline bool operator==(const Size<T>& a, const Size<T>& b) {
-  return a.width == b.width && a.height == b.height;
+  return a.width_ == b.width_ && a.height_ == b.height_;
 }
 
 template <typename T>
@@ -945,89 +940,90 @@ static inline bool operator!=(const Size<T>& a, const Size<T>& b) {
 }
 
 template <typename T>
-inline Rect<T>::Rect() : x(0), y(0), width(0), height(0) {}
+inline Rect<T>::Rect() : x_(0), y_(0), width_(0), height_(0) {}
 
 template <typename T>
-inline Rect<T>::Rect(T _x, T _y, T _width, T _height)
-    : x(_x), y(_y), width(_width), height(_height) {}
+inline Rect<T>::Rect(T x, T y, T width, T height)
+    : x_(x), y_(y), width_(width), height_(height) {}
 
 template <typename T>
 inline Rect<T>::Rect(const Point<T>& org, const Size<T>& sz)
-    : x(org.x), y(org.y), width(sz.width), height(sz.height) {}
+    : x_(org.x_), y_(org.y_), width_(sz.width_), height_(sz.height_) {}
 
 template <typename T>
 inline Rect<T>::Rect(const Point<T>& pt1, const Point<T>& pt2) {
-  x = std::min(pt1.x, pt2.x);
-  y = std::min(pt1.y, pt2.y);
-  width = std::max(pt1.x, pt2.x) - x;
-  height = std::max(pt1.y, pt2.y) - y;
+  x_ = std::min(pt1.x_, pt2.x_);
+  y_ = std::min(pt1.y_, pt2.y_);
+  width_ = std::max(pt1.x_, pt2.x_) - x_;
+  height_ = std::max(pt1.y_, pt2.y_) - y_;
 }
 
 template <typename T>
 inline Point<T> Rect<T>::tl() const {
-  return Point<T>(x, y);
+  return Point<T>(x_, y_);
 }
 
 template <typename T>
 inline Point<T> Rect<T>::br() const {
-  return Point<T>(x + width, y + height);
+  return Point<T>(x_ + width_, y_ + height_);
 }
 
 template <typename T>
 inline Size<T> Rect<T>::size() const {
-  return Size<T>(width, height);
+  return Size<T>(width_, height_);
 }
 
 template <typename T>
 inline T Rect<T>::area() const {
-  const T result = width * height;
+  const T result = width_ * height_;
   return result;
 }
 
 template <typename T>
 inline bool Rect<T>::empty() const {
-  return width <= 0 || height <= 0;
+  return width_ <= 0 || height_ <= 0;
 }
 
 template <typename T>
 template <typename Tp2>
 inline Rect<T>::operator Rect<Tp2>() const {
-  return Rect<Tp2>(saturate_cast<Tp2>(x), saturate_cast<Tp2>(y),
-                   saturate_cast<Tp2>(width), saturate_cast<Tp2>(height));
+  return Rect<Tp2>(saturate_cast<Tp2>(x_), saturate_cast<Tp2>(y_),
+                   saturate_cast<Tp2>(width_), saturate_cast<Tp2>(height_));
 }
 
 template <typename T>
 inline bool Rect<T>::contains(const Point<T>& pt) const {
-  return x <= pt.x && pt.x < x + width && y <= pt.y && pt.y < y + height;
+  return x_ <= pt.x_ && pt.x_ < x_ + width_ && y_ <= pt.y_ &&
+         pt.y_ < y_ + height_;
 }
 
 template <typename T>
 static inline Rect<T>& operator+=(Rect<T>& a, const Point<T>& b) {
-  a.x += b.x;
-  a.y += b.y;
+  a.x_ += b.x_;
+  a.y_ += b.y_;
   return a;
 }
 
 template <typename T>
 static inline Rect<T>& operator-=(Rect<T>& a, const Point<T>& b) {
-  a.x -= b.x;
-  a.y -= b.y;
+  a.x_ -= b.x_;
+  a.y_ -= b.y_;
   return a;
 }
 
 template <typename T>
 static inline Rect<T>& operator+=(Rect<T>& a, const Size<T>& b) {
-  a.width += b.width;
-  a.height += b.height;
+  a.width_ += b.width_;
+  a.height_ += b.height_;
   return a;
 }
 
 template <typename T>
 static inline Rect<T>& operator-=(Rect<T>& a, const Size<T>& b) {
-  const T width = a.width - b.width;
-  const T height = a.height - b.height;
-  a.width = width;
-  a.height = height;
+  const T width_ = a.width_ - b.width_;
+  const T height_ = a.height_ - b.height_;
+  a.width_ = width_;
+  a.height_ = height_;
   return a;
 }
 
@@ -1037,28 +1033,30 @@ static inline Rect<T>& operator&=(Rect<T>& a, const Rect<T>& b) {
     a = Rect<T>();
     return a;
   }
-  const Rect<T>& Rx_min = (a.x < b.x) ? a : b;
-  const Rect<T>& Rx_max = (a.x < b.x) ? b : a;
-  const Rect<T>& Ry_min = (a.y < b.y) ? a : b;
-  const Rect<T>& Ry_max = (a.y < b.y) ? b : a;
-  // Looking at the formula below, we will compute Rx_min.width - (Rx_max.x -
-  // Rx_min.x) but we want to avoid overflows. Rx_min.width >= 0 and (Rx_max.x -
-  // Rx_min.x) >= 0 by definition so the difference does not overflow. The only
-  // thing that can overflow is (Rx_max.x - Rx_min.x). And it can only overflow
-  // if Rx_min.x < 0. Let us first deal with the following case.
-  if ((Rx_min.x < 0 && Rx_min.x + Rx_min.width < Rx_max.x) ||
-      (Ry_min.y < 0 && Ry_min.y + Ry_min.height < Ry_max.y)) {
+  const Rect<T>& Rx_min = (a.x_ < b.x_) ? a : b;
+  const Rect<T>& Rx_max = (a.x_ < b.x_) ? b : a;
+  const Rect<T>& Ry_min = (a.y_ < b.y_) ? a : b;
+  const Rect<T>& Ry_max = (a.y_ < b.y_) ? b : a;
+  // Looking at the formula below, we will compute Rx_min.width_ - (Rx_max.x_ -
+  // Rx_min.x_) but we want to avoid overflows. Rx_min.width_ >= 0 and
+  // (Rx_max.x_
+  // - Rx_min.x_) >= 0 by definition so the difference does not overflow. The
+  // only thing that can overflow is (Rx_max.x_ - Rx_min.x_). And it can only
+  // overflow if Rx_min.x_ < 0. Let us first deal with the following case.
+  if ((Rx_min.x_ < 0 && Rx_min.x_ + Rx_min.width_ < Rx_max.x_) ||
+      (Ry_min.y_ < 0 && Ry_min.y_ + Ry_min.height_ < Ry_max.y_)) {
     a = Rect<T>();
     return a;
   }
-  // We now know that either Rx_min.x >= 0, or
-  // Rx_min.x < 0 && Rx_min.x + Rx_min.width >= Rx_max.x and therefore
-  // Rx_min.width >= (Rx_max.x - Rx_min.x) which means (Rx_max.x - Rx_min.x)
-  // is inferior to a valid int and therefore does not overflow.
-  a.width = std::min(Rx_min.width - (Rx_max.x - Rx_min.x), Rx_max.width);
-  a.height = std::min(Ry_min.height - (Ry_max.y - Ry_min.y), Ry_max.height);
-  a.x = Rx_max.x;
-  a.y = Ry_max.y;
+  // We now know that either Rx_min.x_ >= 0, or
+  // Rx_min.x_ < 0 && Rx_min.x_ + Rx_min.width_ >= Rx_max.x_ and therefore
+  // Rx_min.width_ >= (Rx_max.x_ - Rx_min.x_) which means (Rx_max.x_ -
+  // Rx_min.x_) is inferior to a valid int and therefore does not overflow.
+  a.width_ = std::min(Rx_min.width_ - (Rx_max.x_ - Rx_min.x_), Rx_max.width_);
+  a.height_ =
+      std::min(Ry_min.height_ - (Ry_max.y_ - Ry_min.y_), Ry_max.height_);
+  a.x_ = Rx_max.x_;
+  a.y_ = Ry_max.y_;
   if (a.empty()) a = Rect<T>();
   return a;
 }
@@ -1068,46 +1066,48 @@ static inline Rect<T>& operator|=(Rect<T>& a, const Rect<T>& b) {
   if (a.empty()) {
     a = b;
   } else if (!b.empty()) {
-    T x1 = std::min(a.x, b.x);
-    T y1 = std::min(a.y, b.y);
-    a.width = std::max(a.x + a.width, b.x + b.width) - x1;
-    a.height = std::max(a.y + a.height, b.y + b.height) - y1;
-    a.x = x1;
-    a.y = y1;
+    T x1 = std::min(a.x_, b.x_);
+    T y1 = std::min(a.y_, b.y_);
+    a.width_ = std::max(a.x_ + a.width_, b.x_ + b.width_) - x1;
+    a.height_ = std::max(a.y_ + a.height_, b.y_ + b.height_) - y1;
+    a.x_ = x1;
+    a.y_ = y1;
   }
   return a;
 }
 
 template <typename T>
 static inline bool operator==(const Rect<T>& a, const Rect<T>& b) {
-  return a.x == b.x && a.y == b.y && a.width == b.width && a.height == b.height;
+  return a.x_ == b.x_ && a.y_ == b.y_ && a.width_ == b.width_ &&
+         a.height_ == b.height_;
 }
 
 template <typename T>
 static inline bool operator!=(const Rect<T>& a, const Rect<T>& b) {
-  return a.x != b.x || a.y != b.y || a.width != b.width || a.height != b.height;
+  return a.x_ != b.x_ || a.y_ != b.y_ || a.width_ != b.width_ ||
+         a.height_ != b.height_;
 }
 
 template <typename T>
 static inline Rect<T> operator+(const Rect<T>& a, const Point<T>& b) {
-  return Rect<T>(a.x + b.x, a.y + b.y, a.width, a.height);
+  return Rect<T>(a.x_ + b.x_, a.y_ + b.y_, a.width_, a.height_);
 }
 
 template <typename T>
 static inline Rect<T> operator-(const Rect<T>& a, const Point<T>& b) {
-  return Rect<T>(a.x - b.x, a.y - b.y, a.width, a.height);
+  return Rect<T>(a.x_ - b.x_, a.y_ - b.y_, a.width_, a.height_);
 }
 
 template <typename T>
 static inline Rect<T> operator+(const Rect<T>& a, const Size<T>& b) {
-  return Rect<T>(a.x, a.y, a.width + b.width, a.height + b.height);
+  return Rect<T>(a.x_, a.y_, a.width_ + b.width_, a.height_ + b.height_);
 }
 
 template <typename T>
 static inline Rect<T> operator-(const Rect<T>& a, const Size<T>& b) {
-  const T width = a.width - b.width;
-  const T height = a.height - b.height;
-  return Rect<T>(a.x, a.y, width, height);
+  const T width_ = a.width_ - b.width_;
+  const T height_ = a.height_ - b.height_;
+  return Rect<T>(a.x_, a.y_, width_, height_);
 }
 
 template <typename T>
@@ -1155,29 +1155,29 @@ inline double rectangleIntersectionArea(const Rect2d& a, const Rect2d& b) {
   return (a & b).area();
 }
 
-inline Range::Range() : start(0), end(0) {}
+inline Range::Range() : start_(0), end_(0) {}
 
-inline Range::Range(int _start, int _end) : start(_start), end(_end) {}
+inline Range::Range(int _start, int _end) : start_(_start), end_(_end) {}
 
-inline int Range::size() const { return end - start; }
+inline int Range::size() const { return end_ - start_; }
 
-inline bool Range::empty() const { return start == end; }
+inline bool Range::empty() const { return start_ == end_; }
 
 inline Range Range::all() { return Range(INT_MIN, INT_MAX); }
 
 static inline bool operator==(const Range& r1, const Range& r2) {
-  return r1.start == r2.start && r1.end == r2.end;
+  return r1.start_ == r2.start_ && r1.end_ == r2.end_;
 }
 
 static inline bool operator!=(const Range& r1, const Range& r2) {
   return !(r1 == r2);
 }
 
-static inline bool operator!(const Range& r) { return r.start == r.end; }
+static inline bool operator!(const Range& r) { return r.start_ == r.end_; }
 
 static inline Range operator&(const Range& r1, const Range& r2) {
-  Range r(std::max(r1.start, r2.start), std::min(r1.end, r2.end));
-  r.end = std::max(r.end, r.start);
+  Range r(std::max(r1.start_, r2.start_), std::min(r1.end_, r2.end_));
+  r.end_ = std::max(r.end_, r.start_);
   return r;
 }
 
@@ -1187,11 +1187,11 @@ static inline Range& operator&=(Range& r1, const Range& r2) {
 }
 
 static inline Range operator+(const Range& r1, int delta) {
-  return Range(r1.start + delta, r1.end + delta);
+  return Range(r1.start_ + delta, r1.end_ + delta);
 }
 
 static inline Range operator+(int delta, const Range& r1) {
-  return Range(r1.start + delta, r1.end + delta);
+  return Range(r1.start_ + delta, r1.end_ + delta);
 }
 
 static inline Range operator-(const Range& r1, int delta) {
@@ -1200,47 +1200,47 @@ static inline Range operator-(const Range& r1, int delta) {
 
 template <typename T>
 inline Scalar<T>::Scalar() {
-  this->val[0] = this->val[1] = this->val[2] = this->val[3] = 0;
+  this->val_[0] = this->val_[1] = this->val_[2] = this->val_[3] = 0;
 }
 
 template <typename T>
 inline Scalar<T>::Scalar(T v0, T v1, T v2, T v3) {
-  this->val[0] = v0;
-  this->val[1] = v1;
-  this->val[2] = v2;
-  this->val[3] = v3;
+  this->val_[0] = v0;
+  this->val_[1] = v1;
+  this->val_[2] = v2;
+  this->val_[3] = v3;
 }
 
 template <typename T>
 inline Scalar<T>::Scalar(Scalar<T>&& s) {
-  this->val[0] = std::move(s.val[0]);
-  this->val[1] = std::move(s.val[1]);
-  this->val[2] = std::move(s.val[2]);
-  this->val[3] = std::move(s.val[3]);
+  this->val_[0] = std::move(s.val_[0]);
+  this->val_[1] = std::move(s.val_[1]);
+  this->val_[2] = std::move(s.val_[2]);
+  this->val_[3] = std::move(s.val_[3]);
 }
 
 template <typename T>
 inline Scalar<T>& Scalar<T>::operator=(const Scalar<T>& s) {
-  this->val[0] = s.val[0];
-  this->val[1] = s.val[1];
-  this->val[2] = s.val[2];
-  this->val[3] = s.val[3];
+  this->val_[0] = s.val_[0];
+  this->val_[1] = s.val_[1];
+  this->val_[2] = s.val_[2];
+  this->val_[3] = s.val_[3];
   return *this;
 }
 
 template <typename T>
 inline Scalar<T>& Scalar<T>::operator=(Scalar<T>&& s) {
-  this->val[0] = std::move(s.val[0]);
-  this->val[1] = std::move(s.val[1]);
-  this->val[2] = std::move(s.val[2]);
-  this->val[3] = std::move(s.val[3]);
+  this->val_[0] = std::move(s.val_[0]);
+  this->val_[1] = std::move(s.val_[1]);
+  this->val_[2] = std::move(s.val_[2]);
+  this->val_[3] = std::move(s.val_[3]);
   return *this;
 }
 
 template <typename T>
 inline Scalar<T>::Scalar(T v0) {
-  this->val[0] = v0;
-  this->val[1] = this->val[2] = this->val[3] = 0;
+  this->val_[0] = v0;
+  this->val_[1] = this->val_[2] = this->val_[3] = 0;
 }
 
 template <typename T>
@@ -1250,89 +1250,89 @@ inline Scalar<T> Scalar<T>::all(T v0) {
 
 template <typename T>
 inline Scalar<T> Scalar<T>::mul(const Scalar<T>& a, double scale) const {
-  return Scalar<T>(saturate_cast<T>(this->val[0] * a.val[0] * scale),
-                   saturate_cast<T>(this->val[1] * a.val[1] * scale),
-                   saturate_cast<T>(this->val[2] * a.val[2] * scale),
-                   saturate_cast<T>(this->val[3] * a.val[3] * scale));
+  return Scalar<T>(saturate_cast<T>(this->val_[0] * a.val_[0] * scale),
+                   saturate_cast<T>(this->val_[1] * a.val_[1] * scale),
+                   saturate_cast<T>(this->val_[2] * a.val_[2] * scale),
+                   saturate_cast<T>(this->val_[3] * a.val_[3] * scale));
 }
 
 template <typename T>
 inline Scalar<T> Scalar<T>::conj() const {
   return Scalar<T>(
-      saturate_cast<T>(this->val[0]), saturate_cast<T>(-this->val[1]),
-      saturate_cast<T>(-this->val[2]), saturate_cast<T>(-this->val[3]));
+      saturate_cast<T>(this->val_[0]), saturate_cast<T>(-this->val_[1]),
+      saturate_cast<T>(-this->val_[2]), saturate_cast<T>(-this->val_[3]));
 }
 
 template <typename T>
 inline bool Scalar<T>::isReal() const {
-  return this->val[1] == 0 && this->val[2] == 0 && this->val[3] == 0;
+  return this->val_[1] == 0 && this->val_[2] == 0 && this->val_[3] == 0;
 }
 
 template <typename T>
 template <typename T2>
 inline Scalar<T>::operator Scalar<T2>() const {
   return Scalar<T2>(
-      saturate_cast<T2>(this->val[0]), saturate_cast<T2>(this->val[1]),
-      saturate_cast<T2>(this->val[2]), saturate_cast<T2>(this->val[3]));
+      saturate_cast<T2>(this->val_[0]), saturate_cast<T2>(this->val_[1]),
+      saturate_cast<T2>(this->val_[2]), saturate_cast<T2>(this->val_[3]));
 }
 
 template <typename T>
 static inline Scalar<T>& operator+=(Scalar<T>& a, const Scalar<T>& b) {
-  a.val[0] += b.val[0];
-  a.val[1] += b.val[1];
-  a.val[2] += b.val[2];
-  a.val[3] += b.val[3];
+  a.val_[0] += b.val_[0];
+  a.val_[1] += b.val_[1];
+  a.val_[2] += b.val_[2];
+  a.val_[3] += b.val_[3];
   return a;
 }
 
 template <typename T>
 static inline Scalar<T>& operator-=(Scalar<T>& a, const Scalar<T>& b) {
-  a.val[0] -= b.val[0];
-  a.val[1] -= b.val[1];
-  a.val[2] -= b.val[2];
-  a.val[3] -= b.val[3];
+  a.val_[0] -= b.val_[0];
+  a.val_[1] -= b.val_[1];
+  a.val_[2] -= b.val_[2];
+  a.val_[3] -= b.val_[3];
   return a;
 }
 
 template <typename T>
 static inline Scalar<T>& operator*=(Scalar<T>& a, T v) {
-  a.val[0] *= v;
-  a.val[1] *= v;
-  a.val[2] *= v;
-  a.val[3] *= v;
+  a.val_[0] *= v;
+  a.val_[1] *= v;
+  a.val_[2] *= v;
+  a.val_[3] *= v;
   return a;
 }
 
 template <typename T>
 static inline bool operator==(const Scalar<T>& a, const Scalar<T>& b) {
-  return a.val[0] == b.val[0] && a.val[1] == b.val[1] && a.val[2] == b.val[2] &&
-         a.val[3] == b.val[3];
+  return a.val_[0] == b.val_[0] && a.val_[1] == b.val_[1] &&
+         a.val_[2] == b.val_[2] && a.val_[3] == b.val_[3];
 }
 
 template <typename T>
 static inline bool operator!=(const Scalar<T>& a, const Scalar<T>& b) {
-  return a.val[0] != b.val[0] || a.val[1] != b.val[1] || a.val[2] != b.val[2] ||
-         a.val[3] != b.val[3];
+  return a.val_[0] != b.val_[0] || a.val_[1] != b.val_[1] ||
+         a.val_[2] != b.val_[2] || a.val_[3] != b.val_[3];
 }
 
 template <typename T>
 static inline Scalar<T> operator+(const Scalar<T>& a, const Scalar<T>& b) {
-  return Scalar<T>(a.val[0] + b.val[0], a.val[1] + b.val[1],
-                   a.val[2] + b.val[2], a.val[3] + b.val[3]);
+  return Scalar<T>(a.val_[0] + b.val_[0], a.val_[1] + b.val_[1],
+                   a.val_[2] + b.val_[2], a.val_[3] + b.val_[3]);
 }
 
 template <typename T>
 static inline Scalar<T> operator-(const Scalar<T>& a, const Scalar<T>& b) {
-  return Scalar<T>(saturate_cast<T>(a.val[0] - b.val[0]),
-                   saturate_cast<T>(a.val[1] - b.val[1]),
-                   saturate_cast<T>(a.val[2] - b.val[2]),
-                   saturate_cast<T>(a.val[3] - b.val[3]));
+  return Scalar<T>(saturate_cast<T>(a.val_[0] - b.val_[0]),
+                   saturate_cast<T>(a.val_[1] - b.val_[1]),
+                   saturate_cast<T>(a.val_[2] - b.val_[2]),
+                   saturate_cast<T>(a.val_[3] - b.val_[3]));
 }
 
 template <typename T>
 static inline Scalar<T> operator*(const Scalar<T>& a, T alpha) {
-  return Scalar<T>(a.val[0] * alpha, a.val[1] * alpha, a.val[2] * alpha,
-                   a.val[3] * alpha);
+  return Scalar<T>(a.val_[0] * alpha, a.val_[1] * alpha, a.val_[2] * alpha,
+                   a.val_[3] * alpha);
 }
 
 template <typename T>
@@ -1342,8 +1342,8 @@ static inline Scalar<T> operator*(T alpha, const Scalar<T>& a) {
 
 template <typename T>
 static inline Scalar<T> operator-(const Scalar<T>& a) {
-  return Scalar<T>(saturate_cast<T>(-a.val[0]), saturate_cast<T>(-a.val[1]),
-                   saturate_cast<T>(-a.val[2]), saturate_cast<T>(-a.val[3]));
+  return Scalar<T>(saturate_cast<T>(-a.val_[0]), saturate_cast<T>(-a.val_[1]),
+                   saturate_cast<T>(-a.val_[2]), saturate_cast<T>(-a.val_[3]));
 }
 
 template <typename T>
@@ -1363,20 +1363,22 @@ static inline Scalar<T>& operator*=(Scalar<T>& a, const Scalar<T>& b) {
 
 template <typename T>
 static inline Scalar<T> operator/(const Scalar<T>& a, T alpha) {
-  return Scalar<T>(a.val[0] / alpha, a.val[1] / alpha, a.val[2] / alpha,
-                   a.val[3] / alpha);
+  return Scalar<T>(a.val_[0] / alpha, a.val_[1] / alpha, a.val_[2] / alpha,
+                   a.val_[3] / alpha);
 }
 
 template <typename T>
 static inline Scalar<float> operator/(const Scalar<float>& a, float alpha) {
   float s = 1 / alpha;
-  return Scalar<float>(a.val[0] * s, a.val[1] * s, a.val[2] * s, a.val[3] * s);
+  return Scalar<float>(a.val_[0] * s, a.val_[1] * s, a.val_[2] * s,
+                       a.val_[3] * s);
 }
 
 template <typename T>
 static inline Scalar<double> operator/(const Scalar<double>& a, double alpha) {
   double s = 1 / alpha;
-  return Scalar<double>(a.val[0] * s, a.val[1] * s, a.val[2] * s, a.val[3] * s);
+  return Scalar<double>(a.val_[0] * s, a.val_[1] * s, a.val_[2] * s,
+                        a.val_[3] * s);
 }
 
 template <typename T>

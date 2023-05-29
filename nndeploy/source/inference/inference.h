@@ -10,12 +10,12 @@
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/base/string.h"
 #include "nndeploy/source/base/value.h"
-#include "nndeploy/source/device/architecture.h"
 #include "nndeploy/source/device/buffer.h"
 #include "nndeploy/source/device/buffer_pool.h"
 #include "nndeploy/source/device/device.h"
 #include "nndeploy/source/device/tensor.h"
 #include "nndeploy/source/inference/inference_param.h"
+
 
 namespace nndeploy {
 namespace inference {
@@ -99,8 +99,8 @@ class TypeInferenceCreator : public InferenceCreator {
   }
 };
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap();
 
 template <typename T>
 class TypeInferenceRegister {

@@ -8,22 +8,11 @@
 #include "nndeploy/source/base/macro.h"
 #include "nndeploy/source/base/object.h"
 #include "nndeploy/source/base/status.h"
+#include "nndeploy/source/device/buffer_pool.h"
+#include "nndeploy/source/device/device.h"
 
 namespace nndeploy {
 namespace device {
-
-class Device;
-class BufferPool;
-
-/**
- * @brief buffer的内存来源类型
- */
-enum BufferSourceType : int32_t {
-  kBufferSourceTypeNone = 0x0000,
-  kBufferSourceTypeAllocate,
-  kBufferSourceTypeExternal,
-  kBufferSourceTypeMapped,
-};
 
 struct NNDEPLOY_CC_API BufferDesc {
   BufferDesc(){};
