@@ -30,6 +30,7 @@ class DetectPostProcess : public common::Execution {
                     const std::string& name = "")
       : Execution(device_type, name) {}
   virtual ~DetectPostProcess() {}
+  
 
   virtual nndeploy::base::Status run() {
     nndeploy::device::Tensor* tensor_scores = nullptr;
@@ -109,7 +110,90 @@ class DetectPostProcess : public common::Execution {
   int max_height_ = 640;
 };
 
-}  // namespace detect
+class DETRPostProcess : public Execution {
+ public:
+  DETRPostProcess(nndeploy::base::DeviceType device_type,
+                    const std::string& name = "")
+      : Execution(device_type, name) {}
+  virtual ~DETRPostProcess() {}
+
+  struct Bbox {
+	float xmin;
+	float ymin;
+	float xmax;
+	float ymax;
+	float score;
+	int cid;
+};
+
+
+
+  virtual nndeploy::base::Status run() {
+    vector<Bbox> bboxes;
+	  Bbox bbox;
+    int PROB_THRESH 0.7
+    
+
+	  nndeploy::device::Tensor* tensor_Logits = input_->getTensor(0);
+    float* Logits = (float*)tensor_Logits->getPtr();
+	  nndeploy::device::Tensor* tensor_Boxes = input_->getTensor(1);
+    float* Boxes = (float*)tensor_Boxes->getPtr();
+
+    for (int i = 0; i < NUM_QURREY; i++) {
+      std::vector<float> Probs;
+      std::vector<float> Boxes_wh;
+      for (int j = 0; j < 22; j++) {
+        Probs.push_back(Logits[i * 22 + j]);
+      }
+
+      int length = Probs.size();
+      std::vector<float> dst(length);
+
+      softmax(Probs.data(), dst.data(), length);
+
+      auto maxPosition = std::max_element(dst.begin(), dst.end() - 1);
+      //std::cout << maxPosition - dst.begin() << "  |  " << *maxPosition  << std::endl;
+
+
+      if (*maxPosition < PROB_THRESH) {
+        Probs.clear();
+        Boxes_wh.clear();
+        continue;
+      }
+      else {
+        bbox.score = *maxPosition;
+        bbox.cid = maxPosition - dst.begin();
+
+        float cx = Boxes[i * 4];
+        float cy = Boxes[i * 4 + 1];
+        float cw = Boxes[i * 4 + 2];
+        float ch = Boxes[i * 4 + 3];
+
+        float x1 = (cx - 0.5 * cw) * iw;
+        float y1 = (cy - 0.5 * ch) * ih;
+        float x2 = (cx + 0.5 * cw) * iw;
+        float y2 = (cy + 0.5 * ch) * ih;
+
+        bbox.xmin = x1;
+        bbox.ymin = y1;
+        bbox.xmax = x2;
+        bbox.ymax = y2;
+
+        bboxes.push_back(bbox);
+
+        Probs.clear();
+        Boxes_wh.clear();
+      }
+      
+    }
+    return bboxes;
+    DetectParam* result = (DetectParam*)output_->getParam();
+
+    return nndeploy::base::kStatusCodeOk;
+  }
+
+
+}  // namespace common
 }  // namespace nntask
 
 #endif /* _NNTASK_SOURCE_DETECT_POST_PROCESS_0PENCV_POST_PROCESS_H_ */

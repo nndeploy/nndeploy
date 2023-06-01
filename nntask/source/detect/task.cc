@@ -26,16 +26,21 @@ YoloTask::YoloTask(bool allcoate_tensor_flag,
   post_process_ = new DetectPostProcess(device_type);
 }
 
-// DetrTask::DetrTask(bool allcoate_tensor_flag,
-//                    nndeploy::base::InferenceType type,
-//                    nndeploy::base::DeviceType device_type,
-//                    const std::string& name)
-//     : common::StaticShapeTask(allcoate_tensor_flag, type, device_type, name)
-//     {
-//   pre_process_ = new DetrPreProcess(device_type);
 
-//   post_process_ = new DetrPostProcess(device_type);
-// }
+DETRTask::DETRTask(bool allcoate_tensor_flag,
+                   nndeploy::base::InferenceType type,
+                   nndeploy::base::DeviceType device_type,
+                   const std::string& name)
+    : common::StaticShapeTask(allcoate_tensor_flag, type, device_type, name) {
+
+  pre_process_ = new CvtColrResize(device_type);
+  pre_param->src_pix_type_ = nndeploy::base::kPixelTypeBGR;
+  pre_param->dst_pix_type_ = nndeploy::base::kPixelTypeRGB;
+  pre_param->interp_type_ = nndeploy::base::kInterpTypeLinear;
+
+  post_process_ = new common::opencv::DetectPostProcess(device_type);
+}
+
 
 }  // namespace detect
 }  // namespace nntask

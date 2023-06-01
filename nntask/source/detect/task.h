@@ -15,12 +15,13 @@ class YoloTask : public common::StaticShapeTask {
   virtual ~YoloTask(){};
 };
 
-// class DetrTask : public common::StaticShapeTask {
-//  public:
-//   DetrTask(bool allcoate_tensor_flag, nndeploy::base::InferenceType type,
-//            nndeploy::base::DeviceType device_type, const std::string &name);
-//   virtual ~DetrTask(){};
-// };
+class DETRTask : public common::StaticShapeTask {
+ public:
+  DETRTask(bool allcoate_tensor_flag, nndeploy::base::InferenceType type,
+           nndeploy::base::DeviceType device_type, const std::string &name);
+  virtual ~DETRTask(){};
+};
+
 
 }  // namespace detect
 }  // namespace nntask
