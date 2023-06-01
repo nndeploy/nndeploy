@@ -4,9 +4,11 @@ function(pad_string output str padchar length)
 
     if(_strlen GREATER 0)
         unset(_pad)
+
         foreach(_i RANGE 1 ${_strlen}) # inclusive
             string(APPEND _pad ${padchar})
         endforeach()
+
         string(APPEND str ${_pad})
     endif()
 
@@ -36,12 +38,15 @@ macro(print_summary)
 
     # Compute padding necessary for options
     set(MAX_LENGTH 0)
+
     foreach(OPTION ${NNDEPLOY_ALL_OPTIONS})
         string(LENGTH ${OPTION} OPTIONLENGTH)
+
         if(${OPTIONLENGTH} GREATER ${MAX_LENGTH})
             set(MAX_LENGTH ${OPTIONLENGTH})
         endif()
     endforeach()
+
     math(EXPR PADDING_LENGTH "${MAX_LENGTH} + 3")
 
     # Print each of the options (padded out so they're all aligned)
@@ -54,6 +59,7 @@ endmacro()
 
 function(dump_options_to_file nndeploy_options)
     file(REMOVE ${CMAKE_BINARY_DIR}/nndeploy_options.txt)
+
     foreach(option ${nndeploy_options})
         file(APPEND ${CMAKE_BINARY_DIR}/nndeploy_options.txt "${option} ${${option}} \n")
     endforeach()

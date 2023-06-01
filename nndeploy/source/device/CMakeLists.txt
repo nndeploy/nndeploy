@@ -1,53 +1,86 @@
-cmake_minimum_required(VERSION 3.10)
-
 # set
-set(NNDEPLOY_SOURCE)
-set(NNDEPLOY_OBJECT)
-set(NNDEPLOY_TARGET nndeploy_device)
-set(NNDEPLOY_DIRECTORY nndeploy)
-set(NNDEPLOY_DEPEND_LIBRARY)
-set(NNDEPLOY_SYSTEM_LIBRARY)
-set(NNDEPLOY_THIRD_PARTY_LIBRARY)
+set(SOURCE)
+set(OBJECT)
+set(BINARY nndeploy_device)
+set(DIRECTORY nndeploy)
+set(DEPEND_LIBRARY)
+set(SYSTEM_LIBRARY)
+set(THIRD_PARTY_LIBRARY)
+
+set(TEST_SOURCE)
+set(TEST_OBJECT)
 
 include_directories(${ROOT_PATH})
 
-# NNDEPLOY_SOURCE
-file(GLOB_RECURSE NNDEPLOY_SOURCE
-    "${ROOT_PATH}/nndeploy/include/device/architecture.h"
-    "${ROOT_PATH}/nndeploy/source/device/architecture.cc"
-    "${ROOT_PATH}/nndeploy/include/device/device.h"
-    "${ROOT_PATH}/nndeploy/source/device/device.cc"
-    "${ROOT_PATH}/nndeploy/include/device/buffer_pool.h"
-    "${ROOT_PATH}/nndeploy/include/device/buffer_pool.cc"
-    "${ROOT_PATH}/nndeploy/include/device/buffer.h"
-    "${ROOT_PATH}/nndeploy/source/device/buffer.cc"
-    )
-# message(STATUS "NNDEPLOY_SOURCE:${NNDEPLOY_SOURCE}")
+# SOURCE
+file(GLOB SOURCE
+  "${ROOT_PATH}/nndeploy/source/device/*.h"
+  "${ROOT_PATH}/nndeploy/source/device/*.cc"
+  )
+file(GLOB TEST_SOURCE
+  "${ROOT_PATH}/nndeploy/source/device/*_test.h"
+  "${ROOT_PATH}/nndeploy/source/device/*_test.cc"
+  )
+list(REMOVE_ITEM SOURCE ${TEST_SOURCE})
 
-# NNDEPLOY_OBJECT
+if (NNDEPLOY_ENABLE_DEVICE_CPU)
+  include(cpu/config.cmake)
+endif()
+if (NNDEPLOY_ENABLE_DEVICE_X86)
+  include(x86/config.cmake)
+endif()
+if (NNDEPLOY_ENABLE_DEVICE_ARM)
+  include(arm/config.cmake)
+endif()
+if (NNDEPLOY_ENABLE_DEVICE_CUDA)
+  include(cuda/config.cmake)
+endif()
+if (NNDEPLOY_ENABLE_DEVICE_OPENCL)
+  include(opencl/config.cmake)
+endif()
+if (NNDEPLOY_ENABLE_DEVICE_METAL)
+  include(metal/config.cmake)
+endif()
 
-# NNDEPLOY_TARGET
-add_library(${NNDEPLOY_TARGET} ${NNDEPLOY_BUILD_TYPE} ${NNDEPLOY_SOURCE} ${NNDEPLOY_OBJECT})
+# OBJECT
 
-# NNDEPLOY_DIRECTORY
-set_property(TARGET ${NNDEPLOY_TARGET} PROPERTY FOLDER ${NNDEPLOY_DIRECTORY})
+# TARGET
+add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})
 
-# NNDEPLOY_DEPEND_LIBRARY
-target_link_libraries(${NNDEPLOY_TARGET} ${NNTASK_TARGET} nndeploy_base) 
+# DIRECTORY
+set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
-# NNDEPLOY_SYSTEM_LIBRARY
+# DEPEND_LIBRARY
+list(APPEND DEPEND_LIBRARY nndeploy_base)
+target_link_libraries(${BINARY} ${DEPEND_LIBRARY})
 
-# NNDEPLOY_THIRD_PARTY_LIBRARY
+# SYSTEM_LIBRARY
+target_link_libraries(${BINARY} ${SYSTEM_LIBRARY})
+
+# THIRD_PARTY_LIBRARY
+target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
 
 # install
-## include(${ROOT_PATH}/cmake/install.cmake)
+install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+
+# test
+if(NNDEPLOY_ENABLE_TEST)
+  set(ALL_TEST_SOURCE ${ALL_TEST_SOURCE} ${TEST_SOURCE} PARENT_SCOPE)
+  set(ALL_TEST_OBJECT ${ALL_TEST_OBJECT} ${TEST_OBJECT} PARENT_SCOPE)
+  set(ALL_TEST_DEPEND_LIBRARY ${ALL_TEST_DEPEND_LIBRARY} ${TARGET} PARENT_SCOPE)
+  set(ALL_TEST_DEPEND_LIBRARY ${ALL_TEST_DEPEND_LIBRARY} ${DEPEND_LIBRARY} PARENT_SCOPE)
+  set(ALL_TEST_SYSTEM_LIBRARY ${ALL_TEST_SYSTEM_LIBRARY} ${SYSTEM_LIBRARY} PARENT_SCOPE)
+  set(ALL_TEST_THIRD_PARTY_LIBRARY ${ALL_TEST_THIRD_PARTY_LIBRARY} ${THIRD_PARTY_LIBRARY} PARENT_SCOPE)
+endif()
 
 # unset
-unset(NNDEPLOY_SOURCE)
-unset(NNDEPLOY_OBJECT)
-unset(NNDEPLOY_TARGET)
-unset(NNDEPLOY_DIRECTORY)
-unset(NNDEPLOY_DEPEND_LIBRARY)
-unset(NNDEPLOY_SYSTEM_LIBRARY)
-unset(NNDEPLOY_THIRD_PARTY_LIBRARY)
+unset(SOURCE)
+unset(OBJECT)
+unset(BINARY)
+unset(DIRECTORY)
+unset(DEPEND_LIBRARY)
+unset(SYSTEM_LIBRARY)
+unset(THIRD_PARTY_LIBRARY)
 
+unset(TEST_SOURCE)
+unset(TEST_OBJECT)

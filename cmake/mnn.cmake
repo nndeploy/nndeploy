@@ -1,0 +1,18 @@
+
+include(ExternalProject)
+
+if (NNDEPLOY_ENABLE_INFERENCE_MNN STREQUAL "ON")
+  message(STATUS "NNDEPLOY_ENABLE_INFERENCE_MNN: ${NNDEPLOY_ENABLE_INFERENCE_MNN}")
+else()
+  include_directories(${NNDEPLOY_ENABLE_INFERENCE_MNN}/include)
+  message(STATUS "include_directories(${NNDEPLOY_ENABLE_INFERENCE_MNN})")
+  set(MNN "MNN")
+  set(tmp_name ${NNDEPLOY_LIB_PREFIX}${MNN}${NNDEPLOY_LIB_SUFFIX})
+  if (SYSTEM.Windows)
+    set(tmp_name ${MNN}${NNDEPLOY_LIB_SUFFIX})
+  endif()
+  set(tmp_path ${NNDEPLOY_ENABLE_INFERENCE_MNN}/lib/x86/Release)
+  set(full_name ${tmp_path}/${tmp_name})
+  set(TMP_THIRD_PARTY_LIBRARY ${TMP_THIRD_PARTY_LIBRARY} ${full_name})
+  install(FILES ${full_name} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+endif()

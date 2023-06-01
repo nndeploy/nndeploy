@@ -213,11 +213,7 @@ _deps
 
 # build
 build/
-build/install
-build/target
-
-# personal
-personal
 
 # vscode
 .vscode/
+.vs/
