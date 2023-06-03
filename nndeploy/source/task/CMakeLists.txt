@@ -26,7 +26,6 @@ set(THIRD_PARTY_LIBRARY ${THIRD_PARTY_LIBRARY} ${OpenCV_LIBS})
 # include(codec/config.cmake)
 include(pre_process/config.cmake)
 # include(post_process/config.cmake)
-# include(detect/config.cmake)
 
 # TARGET
 add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})

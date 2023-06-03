@@ -212,5 +212,5 @@ endif()
 
 # demo
 if(NNDEPLOY_ENABLE_DEMO)
-  add_subdirectory(demo)
+  add_subdirectory(demo/cc)
 endif()
