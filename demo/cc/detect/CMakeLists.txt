@@ -32,7 +32,6 @@ list(APPEND DEPEND_LIBRARY nndeploy_base)
 list(APPEND DEPEND_LIBRARY nndeploy_device)
 list(APPEND DEPEND_LIBRARY nndeploy_inference)
 list(APPEND DEPEND_LIBRARY nndeploy_task)
-list(APPEND DEPEND_LIBRARY nndeploy_task_detect)
 target_link_libraries(${BINARY} ${DEPEND_LIBRARY}) 
 
 # SYSTEM_LIBRARY

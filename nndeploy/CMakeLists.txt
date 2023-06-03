@@ -34,7 +34,4 @@ endif()
 
 if(NNDEPLOY_ENABLE_TASK)
   add_subdirectory(source/task)
-  if(NNDEPLOY_ENABLE_TASK_DETECT)
-    add_subdirectory(source/task/detect)
-  endif()
 endif()

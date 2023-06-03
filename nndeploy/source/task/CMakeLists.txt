@@ -23,9 +23,11 @@ if(NNDEPLOY_ENABLE_OPENCV)
 endif()
 include_directories(${OpenCV_INCLUDE_DIRS})
 set(THIRD_PARTY_LIBRARY ${THIRD_PARTY_LIBRARY} ${OpenCV_LIBS})
-# include(codec/config.cmake)
 include(pre_process/config.cmake)
 # include(post_process/config.cmake)
+if(NNDEPLOY_ENABLE_TASK_DETECT)
+  include(detect/config.cmake)
+endif()
 
 # TARGET
 add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})

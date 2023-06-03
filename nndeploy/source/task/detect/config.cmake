@@ -10,10 +10,17 @@ set(TMP_THIRD_PARTY_LIBRARY)
 include_directories(${ROOT_PATH})
 
 # TMP_SOURCE
-file(GLOB_RECURSE TMP_SOURCE
-  "${ROOT_PATH}/nndeploy/source/detect/opencv/*.h"
-  "${ROOT_PATH}/nndeploy/source/detect/opencv/*.cc"
+file(GLOB TMP_SOURCE
+  "${ROOT_PATH}/nndeploy/source/task/detect/*.h"
+  "${ROOT_PATH}/nndeploy/source/task/detect/*.cc"
   )
+if(NNDEPLOY_ENABLE_OPENCV)
+  file(GLOB TMP_OPENCV_SOURCE
+    "${ROOT_PATH}/nndeploy/source/task/detect/opencv/*.h"
+    "${ROOT_PATH}/nndeploy/source/task/detect/opencv/*.cc"
+  )
+  list(APPEND TMP_SOURCE ${TMP_OPENCV_SOURCE})
+endif()
 list(APPEND SOURCE ${TMP_SOURCE})
 
 # TMP_OBJECT
