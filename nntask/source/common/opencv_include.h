@@ -1,8 +1,0 @@
-#ifndef _NNTASK_SOURCE_COMMON_OPENCV_INCLUDE_H_
-#define _NNTASK_SOURCE_COMMON_OPENCV_INCLUDE_H_
-
-#ifdef NNTASK_ENABLE_OPENCV
-#include <opencv2/opencv.hpp>
-#endif
-
-#endif /* _NNTASK_SOURCE_COMMON_OPENCV_INCLUDE_H_ */

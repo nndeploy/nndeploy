@@ -1,7 +1,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nndeploy_inference)
+set(BINARY nndeploy_task_detect)
 set(DIRECTORY nndeploy)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
@@ -10,43 +10,19 @@ set(THIRD_PARTY_LIBRARY)
 include_directories(${ROOT_PATH})
 
 # SOURCE
-file(GLOB SOURCE
-  "${ROOT_PATH}/nndeploy/source/inference/*.h"
-  "${ROOT_PATH}/nndeploy/source/inference/*.cc"
+file(GLOB_RECURSE SOURCE
+  "${ROOT_PATH}/nndeploy/source/task/detect/*.h"
+  "${ROOT_PATH}/nndeploy/source/task/detect/*.cc"
   )
 
 # OBJECT
 
-# include
-if (NNDEPLOY_ENABLE_INFERENCE_DEFAULT)
-  include(default/config.cmake)
+if(NNTASK_ENABLE_OPENCV)
+  include(${ROOT_PATH}/cmake/opencv.cmake)
 endif()
-if (NNDEPLOY_ENABLE_INFERENCE_TENSORRT)
-  include(tensor_rt/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_OPENVINO)
-  include(openvino/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_COREML)
-  include(coreml/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_TFLITE)
-  include(tflite/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_ONNXRUNTIME)
-  include(onnxruntime/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_NCNN)
-  include(mnn/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_TNN)
-  include(mnn/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_MNN)
-  include(mnn/config.cmake)
-endif()
+include(opencv/config.cmake)
 
-# TARGET
+# BINARY
 add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})
 
 # DIRECTORY
@@ -54,14 +30,20 @@ set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
 # DEPEND_LIBRARY
 list(APPEND DEPEND_LIBRARY nndeploy_base)
+list(APPEND DEPEND_LIBRARY nndeploy_thread)
 list(APPEND DEPEND_LIBRARY nndeploy_device)
+list(APPEND DEPEND_LIBRARY nndeploy_inference)
+list(APPEND DEPEND_LIBRARY nndeploy_task)
 target_link_libraries(${BINARY} ${DEPEND_LIBRARY}) 
 
 # SYSTEM_LIBRARY
 target_link_libraries(${BINARY} ${SYSTEM_LIBRARY}) 
 
 # THIRD_PARTY_LIBRARY
+message(STATUS "opencv libs: ${OpenCV_LIBS}")
+message(STATUS "THIRD_PARTY_LIBRARY: ${THIRD_PARTY_LIBRARY}")
 target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
+target_link_libraries(${BINARY} ${OpenCV_LIBS}) 
 
 # install
 install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})

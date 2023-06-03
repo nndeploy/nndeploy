@@ -1,7 +1,7 @@
 
 include(ExternalProject)
 
-if (NNTASK_ENABLE_OPENCV STREQUAL "ON")
+if (NNDEPLOY_ENABLE_OPENCV STREQUAL "ON")
   message(STATUS "NNTASK_ENABLE_OPENCV: ${NNTASK_ENABLE_OPENCV}")
   find_package(OpenCV REQUIRED)
   # If the package has been found, several variables will

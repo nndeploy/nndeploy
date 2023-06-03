@@ -1,21 +1,18 @@
 # set
 set(TMP_SOURCE)
 set(TMP_OBJECT)
-set(TMP_BINARY nndeploy_device_cpu)
-set(TMP_DIRECTORY nndeploy)
+set(TMP_BINARY)
+set(TMP_DIRECTORY nntask)
 set(TMP_DEPEND_LIBRARY)
 set(TMP_SYSTEM_LIBRARY)
 set(TMP_THIRD_PARTY_LIBRARY)
-
-set(TMP_TEST_SOURCE)
-set(TMP_TEST_OBJECT)
 
 include_directories(${ROOT_PATH})
 
 # TMP_SOURCE
 file(GLOB_RECURSE TMP_SOURCE
-  "${ROOT_PATH}/nndeploy/source/device/cpu/*.h"
-  "${ROOT_PATH}/nndeploy/source/device/cpu/*.cc"
+  "${ROOT_PATH}/nndeploy/source/task/pre_process/opencv/*.h"
+  "${ROOT_PATH}/nndeploy/source/task/pre_process/opencv/*.cc"
   )
 list(APPEND SOURCE ${TMP_SOURCE})
 

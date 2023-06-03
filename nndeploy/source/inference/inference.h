@@ -16,7 +16,6 @@
 #include "nndeploy/source/device/tensor.h"
 #include "nndeploy/source/inference/inference_param.h"
 
-
 namespace nndeploy {
 namespace inference {
 
@@ -32,6 +31,10 @@ class Inference {
   virtual base::Status init() = 0;
   virtual base::Status deinit() = 0;
 
+  virtual bool isDynamicShape();
+  base::ShapeMap getMinShape();
+  base::ShapeMap getOptShape();
+  base::ShapeMap getMaxShape();
   virtual base::Status reshape(base::ShapeMap &shape_map) = 0;
 
   virtual int64_t getMemorySize();
@@ -40,6 +43,9 @@ class Inference {
 
   virtual float getGFLOPs();
   virtual bool isShareCommanQueue();
+
+  virtual bool canOpInputTensor();
+  virtual bool canOpOutputTensor();
 
   virtual int getNumOfInputTensor();
   virtual int getNumOfOutputTensor();
@@ -77,7 +83,11 @@ class Inference {
  protected:
   base::InferenceType type_;
   InferenceParam *inference_param_;
+
   bool is_share_command_queue_ = false;
+
+  bool can_op_input_tensor_ = false;
+  bool can_op_output_tensor_ = false;
 
   std::map<std::string, device::Tensor *> input_tensors_;
   std::map<std::string, device::Tensor *> output_tensors_;
@@ -99,8 +109,8 @@ class TypeInferenceCreator : public InferenceCreator {
   }
 };
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
-getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
+    &getGlobalInferenceCreatorMap();
 
 template <typename T>
 class TypeInferenceRegister {

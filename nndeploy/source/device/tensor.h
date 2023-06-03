@@ -46,6 +46,8 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   Tensor();
   virtual ~Tensor();
 
+  Tensor(const std::string &name) : name_(name){};
+
   Tensor(const TensorDesc &desc, const std::string &name = "");
 
   Tensor(Device *device, const TensorDesc &desc, const std::string &name = "",

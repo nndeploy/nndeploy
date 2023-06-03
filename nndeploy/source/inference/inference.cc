@@ -17,6 +17,11 @@ base::Param *Inference::getParam() {
   return dynamic_cast<base::Param *>(inference_param_);
 }
 
+bool Inference::isDynamicShape() { return inference_param_->is_dynamic_shape_; }
+base::ShapeMap Inference::getMinShape() { return inference_param_->min_shape_; }
+base::ShapeMap Inference::getOptShape() { return inference_param_->opt_shape_; }
+base::ShapeMap Inference::getMaxShape() { return inference_param_->max_shape_; }
+
 int64_t Inference::getMemorySize() {
   NNDEPLOY_LOGI("this api is not implemented");
   return -1;
@@ -36,6 +41,9 @@ float Inference::getGFLOPs() {
 }
 
 bool Inference::isShareCommanQueue() { return is_share_command_queue_; }
+
+bool Inference::canOpInputTensor() { return can_op_input_tensor_; }
+bool Inference::canOpOutputTensor() { return can_op_output_tensor_; }
 
 int Inference::getNumOfInputTensor() { return input_tensors_.size(); }
 int Inference::getNumOfOutputTensor() { return output_tensors_.size(); }

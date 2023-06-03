@@ -1,7 +1,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nndeploy_inference)
+set(BINARY nndeploy_task)
 set(DIRECTORY nndeploy)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
@@ -11,40 +11,22 @@ include_directories(${ROOT_PATH})
 
 # SOURCE
 file(GLOB SOURCE
-  "${ROOT_PATH}/nndeploy/source/inference/*.h"
-  "${ROOT_PATH}/nndeploy/source/inference/*.cc"
+  "${ROOT_PATH}/nndeploy/source/task/*.h"
+  "${ROOT_PATH}/nndeploy/source/task/*.cc"
   )
 
 # OBJECT
 
 # include
-if (NNDEPLOY_ENABLE_INFERENCE_DEFAULT)
-  include(default/config.cmake)
+if(NNDEPLOY_ENABLE_OPENCV)
+  include(${ROOT_PATH}/cmake/opencv.cmake)
 endif()
-if (NNDEPLOY_ENABLE_INFERENCE_TENSORRT)
-  include(tensor_rt/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_OPENVINO)
-  include(openvino/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_COREML)
-  include(coreml/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_TFLITE)
-  include(tflite/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_ONNXRUNTIME)
-  include(onnxruntime/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_NCNN)
-  include(mnn/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_TNN)
-  include(mnn/config.cmake)
-endif()
-if (NNDEPLOY_ENABLE_INFERENCE_MNN)
-  include(mnn/config.cmake)
-endif()
+include_directories(${OpenCV_INCLUDE_DIRS})
+set(THIRD_PARTY_LIBRARY ${THIRD_PARTY_LIBRARY} ${OpenCV_LIBS})
+# include(codec/config.cmake)
+include(pre_process/config.cmake)
+# include(post_process/config.cmake)
+# include(detect/config.cmake)
 
 # TARGET
 add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})
@@ -54,7 +36,9 @@ set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
 # DEPEND_LIBRARY
 list(APPEND DEPEND_LIBRARY nndeploy_base)
+list(APPEND DEPEND_LIBRARY nndeploy_thread)
 list(APPEND DEPEND_LIBRARY nndeploy_device)
+list(APPEND DEPEND_LIBRARY nndeploy_inference)
 target_link_libraries(${BINARY} ${DEPEND_LIBRARY}) 
 
 # SYSTEM_LIBRARY
@@ -74,3 +58,4 @@ unset(DIRECTORY)
 unset(DEPEND_LIBRARY)
 unset(SYSTEM_LIBRARY)
 unset(THIRD_PARTY_LIBRARY)
+
