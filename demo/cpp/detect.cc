@@ -43,6 +43,20 @@ int yolo_main(int argc, char *argv[]) {
       new task::Task(base::kInferenceTypeMnn, device_type, "yolov5");
   task->createPreprocess<task::OpencvCvtColrResize>();
   task->createPostprocess<task::DetectPostProcess>();
+
+  CvtclorResizeParam *pre_param =
+      dynamic_cast<CvtclorResizeParam *>(task->getPreProcessParam());
+  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+  pre_param->dst_pixel_type_ = base::kPixelTypeBGR;
+  pre_param->interp_type_ = base::kInterpTypeLinear;
+  pre_param->mean_[0] = 0.0f;
+  pre_param->mean_[1] = 0.0f;
+  pre_param->mean_[2] = 0.0f;
+  pre_param->mean_[3] = 0.0f;
+  pre_param->std_[0] = 255.0f;
+  pre_param->std_[1] = 255.0f;
+  pre_param->std_[2] = 255.0f;
+  pre_param->std_[3] = 255.0f;
   inference::InferenceParam *inference_param =
       (inference::InferenceParam *)(task->getInferenceParam());
   inference_param->is_path_ = true;
@@ -66,6 +80,49 @@ int yolo_main(int argc, char *argv[]) {
   return 0;
 }
 
-int detr_main(int argc, char *argv[]) { return -1; }
+int detr_main(int argc, char *argv[]) {
+  base::TimeMeasurement *tm = new base::TimeMeasurement();
+
+  base::DeviceType device_type(base::kDeviceTypeCodeX86, 0);
+  task::Task *task =
+      new task::Task(base::kInferenceTypeMnn, device_type, "detr");
+  task->createPreprocess<task::OpencvCvtColrResize>();
+  task->createPostprocess<task::DETRPostProcess>();
+
+  CvtclorResizeParam *pre_param =
+      dynamic_cast<CvtclorResizeParam *>(task->getPreProcessParam());
+  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+  pre_param->dst_pixel_type_ = base::kPixelTypeBGR;
+  pre_param->interp_type_ = base::kInterpTypeLinear;
+  pre_param->mean_[0] = 0.0f;
+  pre_param->mean_[1] = 0.0f;
+  pre_param->mean_[2] = 0.0f;
+  pre_param->mean_[3] = 0.0f;
+  pre_param->std_[0] = 255.0f;
+  pre_param->std_[1] = 255.0f;
+  pre_param->std_[2] = 255.0f;
+  pre_param->std_[3] = 255.0f;
+  inference::InferenceParam *inference_param =
+      (inference::InferenceParam *)(task->getInferenceParam());
+  inference_param->is_path_ = true;
+  inference_param->model_value_.push_back("/home/always/Downloads/detr.mnn");
+
+  task->init();
+
+  cv::Mat input_mat = cv::imread("/home/always/Downloads/yolo_input.jpeg");
+  task::Packet input(input_mat);
+  task::DetectResult result;
+  task::Packet output(result);
+  task->setInput(input);
+  task->setOutput(output);
+  task->run();
+
+  draw_box(input_mat, result);
+  cv::imwrite("/home/always/Downloads/yolo_result.jpg", input_mat);
+  task->deinit();
+
+  printf("hello world!\n");
+  return 0;
+}
 
 int main(int argc, char *argv[]) { yolo_main(argc, argv); }
