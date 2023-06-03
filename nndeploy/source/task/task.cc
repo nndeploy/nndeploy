@@ -194,5 +194,25 @@ base::Status Task::deallocateInferenceInputOutput() {
   return base::kStatusCodeOk;
 }
 
+std::map<std::string, creteTaskFunc> &getGlobalTaskCreatorMap() {
+  static std::once_flag once;
+  static std::shared_ptr<std::map<std::string, creteTaskFunc>> creators;
+  std::call_once(
+      once, []() { creators.reset(new std::map<std::string, creteTaskFunc>); });
+  return *creators;
+}
+
+Task *creteTask(base::InferenceType type, base::DeviceType device_type,
+                const std::string &name, bool model_is_path,
+                std::vector<std::string> model_value) {
+  Task *temp = nullptr;
+  auto &creater_map = getGlobalTaskCreatorMap();
+  if (creater_map.count(name) > 0) {
+    temp =
+        creater_map[name](type, device_type, name, model_is_path, model_value);
+  }
+  return temp;
+}
+
 }  // namespace task
 }  // namespace nndeploy

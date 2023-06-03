@@ -74,6 +74,24 @@ class Task : public Execution {
   Execution *post_process_ = nullptr;
 };
 
+using creteTaskFunc = Task *(*)(base::InferenceType type,
+                                base::DeviceType device_type,
+                                const std::string &name, bool model_is_path,
+                                std::vector<std::string> model_value);
+
+std::map<std::string, creteTaskFunc> &getGlobalTaskCreatorMap();
+
+class TypeTaskRegister {
+ public:
+  explicit TypeTaskRegister(const std::string &name, creteTaskFunc func) {
+    getGlobalTaskCreatorMap()[name] = func;
+  }
+};
+
+Task *creteTask(base::InferenceType type, base::DeviceType device_type,
+                const std::string &name, bool model_is_path,
+                std::vector<std::string> model_value);
+
 }  // namespace task
 }  // namespace nndeploy
 

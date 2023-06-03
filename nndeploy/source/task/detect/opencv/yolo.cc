@@ -1,4 +1,4 @@
-#include "nndeploy/source/task/detect/opencv/post_process.h"
+#include "nndeploy/source/task/detect/opencv/yolo.h"
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -12,21 +12,53 @@
 #include "nndeploy/source/device/buffer_pool.h"
 #include "nndeploy/source/device/device.h"
 #include "nndeploy/source/device/tensor.h"
+#include "nndeploy/source/inference/inference_param.h"
 #include "nndeploy/source/task/execution.h"
 #include "nndeploy/source/task/opencv_include.h"
 #include "nndeploy/source/task/packet.h"
+#include "nndeploy/source/task/pre_process/opencv/cvtcolor_resize.h"
 #include "nndeploy/source/task/task.h"
 
 namespace nndeploy {
 namespace task {
 
+static TypeTaskRegister g_internal_task_register("opencv_yolov5",
+                                                 creatYoloTask);
+
 static inline float sigmoid(float x) {
   return static_cast<float>(1.f / (1.f + std::exp(-x)));
 }
 
-void DetectPostProcess::decodeOutputTensor(device::Tensor* data, int stride,
-                                           std::vector<cv::Size>& anchors,
-                                           DetectResult& result) {
+base::Status YoloPostProcess::run() {
+  device::Tensor* tensor_scores = nullptr;
+  device::Tensor* tensor_boxes = nullptr;
+  device::Tensor* tensor_anchors = nullptr;
+
+  for (int i = 0; i < input_->getTensorSize(); ++i) {
+    device::Tensor* tensor = input_->getTensor(i);
+    if (tensor->getName() == "output") {
+      tensor_scores = tensor;
+    } else if (tensor->getName() == "417") {
+      tensor_boxes = tensor;
+    } else if (tensor->getName() == "437") {
+      tensor_anchors = tensor;
+    }
+  }
+
+  DetectResult* result = (DetectResult*)output_->getParam();
+
+  decodeOutputTensor(tensor_scores, stride_scores_, size_scores_, *result);
+  decodeOutputTensor(tensor_boxes, stride_boxes_, size_boxes_, *result);
+  decodeOutputTensor(tensor_anchors, stride_anchors_, size_anchors_, *result);
+
+  nms(*result, nms_threshold_);
+
+  return base::kStatusCodeOk;
+}
+
+void YoloPostProcess::decodeOutputTensor(device::Tensor* data, int stride,
+                                         std::vector<cv::Size>& anchors,
+                                         DetectResult& result) {
   int batchs = data->getShapeIndex(0);
   int channels = data->getShapeIndex(1);
   int height = data->getShapeIndex(2);
@@ -104,6 +136,35 @@ void nms(DetectResult& result, float NMS_THRESH) {
       }
     }
   }
+}
+
+task::Task* creatYoloTask(base::InferenceType type,
+                          base::DeviceType device_type, const std::string& name,
+                          bool model_is_path,
+                          std::vector<std::string> model_value) {
+  task::Task* task = new task::Task(base::kInferenceTypeMnn, device_type, name);
+  task->createPreprocess<task::OpencvCvtColrResize>();
+  task->createPostprocess<task::YoloPostProcess>();
+
+  CvtclorResizeParam* pre_param =
+      dynamic_cast<CvtclorResizeParam*>(task->getPreProcessParam());
+  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+  pre_param->dst_pixel_type_ = base::kPixelTypeBGR;
+  pre_param->interp_type_ = base::kInterpTypeLinear;
+  pre_param->mean_[0] = 0.0f;
+  pre_param->mean_[1] = 0.0f;
+  pre_param->mean_[2] = 0.0f;
+  pre_param->mean_[3] = 0.0f;
+  pre_param->std_[0] = 255.0f;
+  pre_param->std_[1] = 255.0f;
+  pre_param->std_[2] = 255.0f;
+  pre_param->std_[3] = 255.0f;
+  inference::InferenceParam* inference_param =
+      (inference::InferenceParam*)(task->getInferenceParam());
+  inference_param->is_path_ = model_is_path;
+  inference_param->model_value_ = model_value;
+
+  return task;
 }
 
 }  // namespace task
