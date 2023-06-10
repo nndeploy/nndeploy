@@ -159,12 +159,18 @@ int64_t MnnInference::getMemorySize() {
 
 float MnnInference::getGFLOPs() { return 0.0f; }
 
+bool MnnInference::canOpInputTensor() { return can_op_input_tensor_; }
+bool MnnInference::canOpOutputTensor() { return can_op_output_tensor_; }
+
 device::TensorDesc MnnInference::getInputTensorAlignDesc(
     const std::string &name) {
+  MnnInferenceParam *mnn_inference_param =
+      dynamic_cast<MnnInferenceParam *>(inference_param_);
   if (input_tensors_.count(name) > 0) {
     device::TensorDesc desc = input_tensors_[name]->getDesc();
     if (desc.shape_.size() == 4) {
-      if (desc.format_ != nndeploy::base::kDataFormatNCHW) {
+      if (mnn_inference_param->inputs_data_format_ ==
+          nndeploy::base::kDataFormatAuto) {
         desc.format_ = nndeploy::base::kDataFormatNCHW;
       }
     }
@@ -175,10 +181,13 @@ device::TensorDesc MnnInference::getInputTensorAlignDesc(
 }
 device::TensorDesc MnnInference::getOutputTensorAlignDesc(
     const std::string &name) {
+  MnnInferenceParam *mnn_inference_param =
+      dynamic_cast<MnnInferenceParam *>(inference_param_);
   if (output_tensors_.count(name) > 0) {
     device::TensorDesc desc = output_tensors_[name]->getDesc();
     if (desc.shape_.size() == 4) {
-      if (desc.format_ != nndeploy::base::kDataFormatNCHW) {
+      if (mnn_inference_param->outputs_data_format_ ==
+          nndeploy::base::kDataFormatNCHW) {
         desc.format_ = nndeploy::base::kDataFormatNCHW;
       }
     }

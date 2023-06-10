@@ -34,6 +34,9 @@ class MnnInference : public Inference {
 
   virtual float getGFLOPs();
 
+  virtual bool canOpInputTensor();
+  virtual bool canOpOutputTensor();
+
   virtual device::TensorDesc getInputTensorAlignDesc(const std::string &name);
   virtual device::TensorDesc getOutputTensorAlignDesc(const std::string &name);
 

@@ -25,7 +25,6 @@ class MnnInferenceParam : public InferenceParam {
   base::DeviceType backup_device_type_ = {base::kDeviceTypeCodeCpu, 0};
   MNN::BackendConfig::MemoryMode memory_mode_ =
       MNN::BackendConfig::MemoryMode::Memory_Normal;
-  std::string opencl_library_path_ = "";
 };
 
 }  // namespace inference

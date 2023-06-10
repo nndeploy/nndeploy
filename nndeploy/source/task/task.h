@@ -24,8 +24,8 @@ namespace task {
 
 class Task : public Execution {
  public:
-  Task(base::InferenceType type, base::DeviceType device_type,
-       const std::string &name = "");
+  Task(const std::string &name, base::DeviceType device_type,
+       base::InferenceType type);
   virtual ~Task();
 
   template <typename T>
@@ -64,6 +64,8 @@ class Task : public Execution {
   base::Status deallocateInferenceInputOutput();
 
  protected:
+  std::string name_;
+  base::DeviceType device_type_;
   base::InferenceType type_;
   Execution *pre_process_ = nullptr;
   std::vector<device::Tensor *> input_tensors_;

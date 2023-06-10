@@ -21,7 +21,7 @@ namespace task {
 
 class Execution {
  public:
-  Execution(base::DeviceType device_type, const std::string& name = "");
+  Execution();
   virtual ~Execution();
 
   virtual base::Param* getParam();
@@ -32,14 +32,11 @@ class Execution {
   virtual base::Status setInput(Packet& input);
   virtual base::Status setOutput(Packet& output);
 
-  base::ShapeMap inferShape(base::ShapeMap min_shape, base::ShapeMap opt_shape,
-                            base::ShapeMap max_shape);
+  virtual base::ShapeMap getOutPutShape();
 
   virtual base::Status run() = 0;
 
  protected:
-  std::string name_ = "";
-  base::DeviceType device_type_;
   std::shared_ptr<base::Param> param_;
   Packet* input_ = nullptr;
   Packet* output_ = nullptr;

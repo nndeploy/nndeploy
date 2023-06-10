@@ -50,6 +50,7 @@ class InferenceParam : public base::Param {
   base::ShapeMap opt_shape_ = base::ShapeMap();
   base::ShapeMap max_shape_ = base::ShapeMap();
   std::string cache_path_ = "";
+  void *command_queue_ = nullptr;
 };
 
 class InferenceParamCreator {

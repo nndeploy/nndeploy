@@ -4,8 +4,7 @@ namespace nndeploy {
 namespace task {
 
 Task::Task(base::InferenceType type, base::DeviceType device_type,
-           const std::string &name)
-    : Execution(device_type, name) {
+           const std::string &name) {
   type_ = type;
   inference_ = inference::createInference(type);
 }
@@ -111,8 +110,7 @@ base::Status Task::run() {
     base::ShapeMap min_shape = inference_->getMinShape();
     base::ShapeMap opt_shape = inference_->getOptShape();
     base::ShapeMap max_shape = inference_->getMaxShape();
-    base::ShapeMap pre_process_output_shape =
-        pre_process_->inferShape(min_shape, opt_shape, max_shape);
+    base::ShapeMap pre_process_output_shape = pre_process_->getOutputShape();
     status = inference_->reshape(pre_process_output_shape);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
 

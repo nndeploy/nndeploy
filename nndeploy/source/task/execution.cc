@@ -3,8 +3,7 @@
 namespace nndeploy {
 namespace task {
 
-Execution::Execution(base::DeviceType device_type, const std::string &name)
-    : device_type_(device_type), name_(name) {}
+Execution::Execution() {}
 
 Execution::~Execution() {}
 
@@ -23,11 +22,7 @@ base::Status Execution::setOutput(Packet &output) {
   return base::kStatusCodeOk;
 }
 
-base::ShapeMap Execution::inferShape(base::ShapeMap min_shape,
-                                     base::ShapeMap opt_shape,
-                                     base::ShapeMap max_shape) {
-  return base::ShapeMap();
-}
+base::ShapeMap Execution::getOutPutShape() { return base::ShapeMap(); }
 
 }  // namespace task
 }  // namespace nndeploy

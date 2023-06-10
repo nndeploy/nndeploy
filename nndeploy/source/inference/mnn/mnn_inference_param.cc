@@ -25,14 +25,6 @@ base::Status MnnInferenceParam::parse(const std::string &json, bool is_path) {
 base::Status MnnInferenceParam::set(const std::string &key,
                                     base::Value &value) {
   base::Status status = base::kStatusCodeOk;
-  if (key == "opencl_library_path_") {
-    uint8_t *tmp = nullptr;
-    if (value.get(&tmp)) {
-      opencl_library_path_ = std::string(reinterpret_cast<char *>(tmp));
-    } else {
-      status = base::kStatusCodeErrorInvalidParam;
-    }
-  }
   return base::kStatusCodeOk;
 }
 
