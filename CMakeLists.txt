@@ -16,9 +16,6 @@ include(cmake/summary.cmake)
 if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config_nndeploy.cmake)
   include(${CMAKE_CURRENT_BINARY_DIR}/config_nndeploy.cmake)
 endif()
-if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config_nntask.cmake)
-  include(${CMAKE_CURRENT_BINARY_DIR}/config_nntask.cmake)
-endif()
 
 # common
 nndeploy_option(NNDEPLOY_ENABLE_BUILD_SHARED "NNDEPLOY_ENABLE_BUILD_SHARED" OFF)
@@ -30,8 +27,6 @@ nndeploy_option(NNDEPLOY_ENABLE_CXX17_ABI "NNDEPLOY_ENABLE_CXX17_ABI" OFF)
 nndeploy_option(NNDEPLOY_ENABLE_OPENMP "NNDEPLOY_ENABLE_OPENMP" OFF)
 nndeploy_option(NNDEPLOY_ENABLE_VALGRIND "NNDEPLOY_ENABLE_VALGRIND" OFF)
 nndeploy_option(NNDEPLOY_ENABLE_DOCS "NNDEPLOY_ENABLE_DOCS" OFF)
-# nndeploy
-nndeploy_option(NNDEPLOY_ENABLE "NNDEPLOY_ENABLE" OFF)
 ## base
 nndeploy_option(NNDEPLOY_ENABLE_BASE "NNDEPLOY_ENABLE_BASE" OFF)
 ## thread
@@ -56,6 +51,7 @@ nndeploy_option(NNDEPLOY_ENABLE_AUDIO_CORE "NNDEPLOY_ENABLE_AUDIO" OFF)
 ## cv
 nndeploy_option(NNDEPLOY_ENABLE_CV "NNDEPLOY_ENABLE_CV" OFF)
 nndeploy_option(NNDEPLOY_ENABLE_CV_CORE "NNDEPLOY_ENABLE_CV_CORE" OFF)
+nndeploy_option(NNDEPLOY_ENABLE_OPENCV "NNDEPLOY_ENABLE_OPENCV" OFF)
 ## inference
 nndeploy_option(NNDEPLOY_ENABLE_INFERENCE "NNDEPLOY_ENABLE_INFERENCE" OFF)
 nndeploy_option(NNDEPLOY_ENABLE_INFERENCE_DEFAULT "NNDEPLOY_ENABLE_INFERENCE_DEFAULT" OFF)
@@ -68,16 +64,13 @@ nndeploy_option(NNDEPLOY_ENABLE_INFERENCE_NCNN "NNDEPLOY_ENABLE_INFERENCE_NCNN" 
 nndeploy_option(NNDEPLOY_ENABLE_INFERENCE_TNN "NNDEPLOY_ENABLE_INFERENCE_TNN" OFF)
 nndeploy_option(NNDEPLOY_ENABLE_INFERENCE_MNN "NNDEPLOY_ENABLE_INFERENCE_MNN" OFF)
 nndeploy_option(NNDEPLOY_ENABLE_AICOMPILER_TVM "NNDEPLOY_ENABLE_INFERENCE_TVM" OFF)
+## task
+nndeploy_option(NNDEPLOY_ENABLE_TASK "NNDEPLOY_ENABLE_TASK" OFF)
+nndeploy_option(NNDEPLOY_ENABLE_TASK_DETECT "NNDEPLOY_ENABLE_TASK_DETECT" OFF)
 ## test
 nndeploy_option(NNDEPLOY_ENABLE_TEST "NNDEPLOY_ENABLE_TEST" OFF)
-# nntask
-nndeploy_option(NNTASK_ENABLE "NNTASK_ENABLE" OFF)
-# opencv
-nndeploy_option(NNTASK_ENABLE_OPENCV "NNTASK_ENABLE_OPENCV" OFF)
-## test
-nndeploy_option(NNTASK_ENABLE_TEST "NNTASK_ENABLE_TEST" OFF)
 ## demo
-nndeploy_option(NNTASK_ENABLE_DEMO "NNTASK_ENABLE_DEMO" OFF)
+nndeploy_option(NNDEPLOY_ENABLE_DEMO "NNDEPLOY_ENABLE_DEMO" OFF)
 
 # print option
 print_summary()
@@ -89,7 +82,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # install path
 set(NNDEPLOY_INSTALL_PATH ${ROOT_PATH}/build/install)
-message(STATUS "NNDEPLOY_INSTALL_PATH: ${NNDEPLOY_INSTALL_PATH}")
 if(NNDEPLOY_ENABLE_BUILD_SHARED)
   set(NNDEPLOY_INSTALL_TYPE LIBRARY)
 else()
@@ -107,9 +99,9 @@ endif()
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
   add_definitions(-DNNDEPLOY_DEBUG)
 endif()
-if(${NNTASK_ENABLE_OPENCV} MATCHES "OFF")
+if(${NNDEPLOY_ENABLE_OPENCV} MATCHES "OFF")
 else()
-  add_definitions(-DNNTASK_ENABLE_OPENCV)
+  add_definitions(-DNNDEPLOY_ENABLE_OPENCV)
 endif()
 
 # general
@@ -211,11 +203,14 @@ if(NNDEPLOY_ENABLE_COVERAGE)
 endif()
 
 # nndeploy
-if(NNDEPLOY_ENABLE)
-  add_subdirectory(nndeploy)
+add_subdirectory(nndeploy)
+
+# test
+if(NNDEPLOY_ENABLE_TEST)
+  add_subdirectory(test)
 endif()
 
-# nntask
-if(NNTASK_ENABLE)
-  add_subdirectory(nntask)
+# demo
+if(NNDEPLOY_ENABLE_DEMO)
+  add_subdirectory(demo/cc)
 endif()

@@ -17,11 +17,6 @@ file(GLOB_RECURSE TMP_SOURCE
   "${ROOT_PATH}/nndeploy/source/inference/mnn/*.h"
   "${ROOT_PATH}/nndeploy/source/inference/mnn/*.cc"
   )
-file(GLOB_RECURSE TMP_TEST_SOURCE
-  "${ROOT_PATH}/nndeploy/source/inference/mnn/*_test.h"
-  "${ROOT_PATH}/nndeploy/source/inference/mnn/*_test.cc"
-  )
-list(REMOVE_ITEM TMP_SOURCE ${TMP_TEST_SOURCE})
 list(APPEND SOURCE ${TMP_SOURCE})
 
 # TMP_OBJECT
@@ -46,12 +41,6 @@ list(APPEND THIRD_PARTY_LIBRARY ${TMP_THIRD_PARTY_LIBRARY})
 
 # install
 
-# testcl
-if(NNDEPLOY_ENABLE_TEST)
-  list(APPEND TEST_SOURCE ${TMP_TEST_SOURCE})
-  list(APPEND TEST_OBJECT ${TMP_TEST_OBJECT})
-endif()
-
 # unset
 unset(TMP_SOURCE)
 unset(TMP_OBJECT)
@@ -60,6 +49,3 @@ unset(TMP_DIRECTORY)
 unset(TMP_DEPEND_LIBRARY)
 unset(TMP_SYSTEM_LIBRARY)
 unset(TMP_THIRD_PARTY_LIBRARY)
-
-unset(TMP_TEST_SOURCE)
-unset(TMP_TEST_OBJECT)

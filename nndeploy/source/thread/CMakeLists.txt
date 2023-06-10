@@ -1,7 +1,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nndeploy_base)
+set(BINARY nndeploy_thread)
 set(DIRECTORY nndeploy)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
@@ -11,9 +11,9 @@ include_directories(${ROOT_PATH})
 
 # SOURCE
 file(GLOB_RECURSE SOURCE
-  "${ROOT_PATH}/nndeploy/source/base/*.h"
-  "${ROOT_PATH}/nndeploy/source/base/*.hpp"
-  "${ROOT_PATH}/nndeploy/source/base/*.cc"
+  "${ROOT_PATH}/nndeploy/source/thread/*.h"
+  "${ROOT_PATH}/nndeploy/source/thread/*.hpp"
+  "${ROOT_PATH}/nndeploy/source/thread/*.cc"
   )
 
 # OBJECT

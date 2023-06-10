@@ -40,10 +40,12 @@ class InferenceParam : public base::Param {
   base::DeviceType device_type_;
   int num_thread_ = 1;
   int gpu_tune_kernel_ = 1;
+  base::DataFormat inputs_data_format_ = base::kDataFormatAuto;
+  base::DataFormat outputs_data_format_ = base::kDataFormatAuto;
   base::ShareMemoryType share_memory_mode_ = base::kShareMemoryTypeNoShare;
   base::PrecisionType precision_type_ = base::kPrecisionTypeFp32;
-  bool is_dynamic_shape_ = false;
   base::PowerType power_type_ = base::kPowerTypeNormal;
+  bool is_dynamic_shape_ = false;
   base::ShapeMap min_shape_ = base::ShapeMap();
   base::ShapeMap opt_shape_ = base::ShapeMap();
   base::ShapeMap max_shape_ = base::ShapeMap();
