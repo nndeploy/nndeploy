@@ -3,8 +3,7 @@
 namespace nndeploy {
 namespace task {
 
-Task::Task(base::InferenceType type, base::DeviceType device_type,
-           const std::string &name) {
+Task::Task(const std::string &name, base::InferenceType type) {
   type_ = type;
   inference_ = inference::createInference(type);
 }
@@ -98,6 +97,8 @@ base::Status Task::setOutput(Packet &output) {
   return base::kStatusCodeOk;
 }
 
+Packet Task::getOutPut() { return post_process_->getOutPut(); }
+
 /**
  * @brief 假定情况：
  * # inference_的输入是静态的，输出是静态的
@@ -110,7 +111,8 @@ base::Status Task::run() {
     base::ShapeMap min_shape = inference_->getMinShape();
     base::ShapeMap opt_shape = inference_->getOptShape();
     base::ShapeMap max_shape = inference_->getMaxShape();
-    base::ShapeMap pre_process_output_shape = pre_process_->getOutputShape();
+    base::ShapeMap pre_process_output_shape =
+        pre_process_->getOutPutShape(min_shape, opt_shape, max_shape);
     status = inference_->reshape(pre_process_output_shape);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
 
@@ -200,14 +202,11 @@ std::map<std::string, creteTaskFunc> &getGlobalTaskCreatorMap() {
   return *creators;
 }
 
-Task *creteTask(base::InferenceType type, base::DeviceType device_type,
-                const std::string &name, bool model_is_path,
-                std::vector<std::string> model_value) {
+Task *creteTask(const std::string &name, base::InferenceType type) {
   Task *temp = nullptr;
   auto &creater_map = getGlobalTaskCreatorMap();
   if (creater_map.count(name) > 0) {
-    temp =
-        creater_map[name](type, device_type, name, model_is_path, model_value);
+    temp = creater_map[name](name, type);
   }
   return temp;
 }

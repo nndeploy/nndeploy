@@ -25,9 +25,7 @@ namespace task {
 
 class OpencvCvtColrResize : public Execution {
  public:
-  OpencvCvtColrResize(base::DeviceType device_type,
-                      const std::string& name = "")
-      : Execution(device_type, name) {
+  OpencvCvtColrResize(const std::string& name = "") : Execution(name) {
     param_ = std::make_shared<CvtclorResizeParam>();
   }
   virtual ~OpencvCvtColrResize() {}

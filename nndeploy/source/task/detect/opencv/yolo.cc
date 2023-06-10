@@ -138,13 +138,10 @@ void nms(DetectResult& result, float NMS_THRESH) {
   }
 }
 
-task::Task* creatYoloTask(base::InferenceType type,
-                          base::DeviceType device_type, const std::string& name,
-                          bool model_is_path,
-                          std::vector<std::string> model_value) {
-  task::Task* task = new task::Task(base::kInferenceTypeMnn, device_type, name);
-  task->createPreprocess<task::OpencvCvtColrResize>();
-  task->createPostprocess<task::YoloPostProcess>();
+task::Task* creatYoloTask(const std::string& name, base::InferenceType type) {
+  task::Task* task = new task::Task(name, type);
+  task->createPreprocess<OpencvCvtColrResize>();
+  task->createPostprocess<YoloPostProcess>();
 
   CvtclorResizeParam* pre_param =
       dynamic_cast<CvtclorResizeParam*>(task->getPreProcessParam());
@@ -159,10 +156,6 @@ task::Task* creatYoloTask(base::InferenceType type,
   pre_param->std_[1] = 255.0f;
   pre_param->std_[2] = 255.0f;
   pre_param->std_[3] = 255.0f;
-  inference::InferenceParam* inference_param =
-      (inference::InferenceParam*)(task->getInferenceParam());
-  inference_param->is_path_ = model_is_path;
-  inference_param->model_value_ = model_value;
 
   return task;
 }

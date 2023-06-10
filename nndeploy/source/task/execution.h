@@ -21,7 +21,7 @@ namespace task {
 
 class Execution {
  public:
-  Execution();
+  Execution(const std::string& name = "");
   virtual ~Execution();
 
   virtual base::Param* getParam();
@@ -32,11 +32,17 @@ class Execution {
   virtual base::Status setInput(Packet& input);
   virtual base::Status setOutput(Packet& output);
 
-  virtual base::ShapeMap getOutPutShape();
+  virtual base::ShapeMap getOutPutShape(
+      base::ShapeMap min_shape = base::ShapeMap(),
+      base::ShapeMap opt_shape = base::ShapeMap(),
+      base::ShapeMap max_shape = base::ShapeMap());
+
+  virtual Packet getOutPut();
 
   virtual base::Status run() = 0;
 
  protected:
+  std::string name_;
   std::shared_ptr<base::Param> param_;
   Packet* input_ = nullptr;
   Packet* output_ = nullptr;

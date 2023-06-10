@@ -26,8 +26,7 @@ void nms(DetectResult& result, float NMS_THRESH);
 
 class YoloPostProcess : public Execution {
  public:
-  YoloPostProcess(base::DeviceType device_type, const std::string& name = "")
-      : Execution(device_type, name) {}
+  YoloPostProcess(const std::string& name = "") : Execution(name) {}
   virtual ~YoloPostProcess() {}
 
   virtual base::Status run();
@@ -82,10 +81,7 @@ class YoloPostProcess : public Execution {
   int max_height_ = 640;
 };
 
-task::Task* creatYoloTask(base::InferenceType type,
-                          base::DeviceType device_type, const std::string& name,
-                          bool model_is_path,
-                          std::vector<std::string> model_value);
+task::Task* creatYoloTask(const std::string& name, base::InferenceType type);
 
 }  // namespace task
 }  // namespace nndeploy

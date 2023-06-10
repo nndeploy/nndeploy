@@ -24,13 +24,12 @@ namespace task {
 
 class Task : public Execution {
  public:
-  Task(const std::string &name, base::DeviceType device_type,
-       base::InferenceType type);
+  Task(const std::string &name, base::InferenceType type);
   virtual ~Task();
 
   template <typename T>
   base::Status createPreprocess() {
-    pre_process_ = dynamic_cast<Execution *>(new T(device_type_, name_));
+    pre_process_ = dynamic_cast<Execution *>(new T(name_));
     if (pre_process_ == nullptr) {
       return base::kStatusCodeErrorOutOfMemory;
     } else {
@@ -39,7 +38,7 @@ class Task : public Execution {
   }
   template <typename T>
   base::Status createPostprocess() {
-    post_process_ = dynamic_cast<Execution *>(new T(device_type_, name_));
+    post_process_ = dynamic_cast<Execution *>(new T(name_));
     if (post_process_ == nullptr) {
       return base::kStatusCodeErrorOutOfMemory;
     } else {
@@ -57,6 +56,8 @@ class Task : public Execution {
   virtual base::Status setInput(Packet &input);
   virtual base::Status setOutput(Packet &output);
 
+  virtual Packet getOutPut();
+
   virtual base::Status run();
 
  private:
@@ -64,8 +65,6 @@ class Task : public Execution {
   base::Status deallocateInferenceInputOutput();
 
  protected:
-  std::string name_;
-  base::DeviceType device_type_;
   base::InferenceType type_;
   Execution *pre_process_ = nullptr;
   std::vector<device::Tensor *> input_tensors_;
@@ -76,10 +75,8 @@ class Task : public Execution {
   Execution *post_process_ = nullptr;
 };
 
-using creteTaskFunc = Task *(*)(base::InferenceType type,
-                                base::DeviceType device_type,
-                                const std::string &name, bool model_is_path,
-                                std::vector<std::string> model_value);
+using creteTaskFunc = Task *(*)(const std::string &name,
+                                base::InferenceType type);
 
 std::map<std::string, creteTaskFunc> &getGlobalTaskCreatorMap();
 
@@ -90,9 +87,7 @@ class TypeTaskRegister {
   }
 };
 
-Task *creteTask(base::InferenceType type, base::DeviceType device_type,
-                const std::string &name, bool model_is_path,
-                std::vector<std::string> model_value);
+Task *creteTask(const std::string &name, base::InferenceType type);
 
 }  // namespace task
 }  // namespace nndeploy

@@ -37,15 +37,15 @@ cv::Mat draw_box(cv::Mat &cv_mat, task::DetectResult &result) {
 int main(int argc, char *argv[]) {
   base::TimeMeasurement *tm = new base::TimeMeasurement();
 
-  base::InferenceType type = base::kInferenceTypeMnn;
-  base::DeviceType device_type(base::kDeviceTypeCodeX86, 0);
   std::string name = "opencv_yolov5";
-  bool model_is_path = true;
-  std::vector<std::string> model_value;
-  model_value.push_back("/home/always/Downloads/yolov5s.mnn");
+  base::InferenceType type = base::kInferenceTypeMnn;
 
-  task::Task *task =
-      task::creteTask(type, device_type, name, model_is_path, model_value);
+  task::Task *task = task::creteTask(name, type);
+  inference::InferenceParam *inference_param =
+      (inference::InferenceParam *)(task->getInferenceParam());
+  inference_param->is_path_ = true;
+  inference_param->model_value_.push_back("/home/always/Downloads/yolov5s.mnn");
+  inference_param->device_type_ = device::getDefaultHostDeviceType();
 
   task->init();
 

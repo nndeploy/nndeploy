@@ -24,8 +24,7 @@ namespace task {
 
 class DetrPostProcess : public Execution {
  public:
-  DetrPostProcess(base::DeviceType device_type, const std::string& name = "")
-      : Execution(device_type, name) {}
+  DetrPostProcess(const std::string& name = "") : Execution(name) {}
   virtual ~DetrPostProcess() {}
 
   struct Bbox {
@@ -40,10 +39,7 @@ class DetrPostProcess : public Execution {
   virtual base::Status run();
 };
 
-task::Task* creatDetrTask(base::InferenceType type,
-                          base::DeviceType device_type, const std::string& name,
-                          bool model_is_path,
-                          std::vector<std::string> model_value);
+task::Task* creatDetrTask(const std::string& name, base::InferenceType type);
 
 }  // namespace task
 }  // namespace nndeploy

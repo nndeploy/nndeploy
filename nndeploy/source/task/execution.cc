@@ -3,7 +3,7 @@
 namespace nndeploy {
 namespace task {
 
-Execution::Execution() {}
+Execution::Execution(const std::string &name) : name_(name) {}
 
 Execution::~Execution() {}
 
@@ -22,7 +22,13 @@ base::Status Execution::setOutput(Packet &output) {
   return base::kStatusCodeOk;
 }
 
-base::ShapeMap Execution::getOutPutShape() { return base::ShapeMap(); }
+base::ShapeMap Execution::getOutPutShape(base::ShapeMap min_shape,
+                                         base::ShapeMap opt_shape,
+                                         base::ShapeMap max_shape) {
+  return base::ShapeMap();
+}
+
+Packet Execution::getOutPut() { return Packet(); }
 
 }  // namespace task
 }  // namespace nndeploy
