@@ -1,5 +1,5 @@
 /**
- * @model source: git@github.com:DataXujing/TensorRT-DETR.git
+ * @source: git@github.com:DataXujing/TensorRT-DETR.git
  */
 #ifndef _NNDEPLOY_SOURCE_DETECT_0PENCV_DETR_H_
 #define _NNDEPLOY_SOURCE_DETECT_0PENCV_DETR_H_
@@ -27,9 +27,9 @@ namespace nndeploy {
 namespace task {
 
 class DetrPostParam : public base::Param {
-  int32_t NUM_CLASS = 22;
-  int32_t NUM_QURREY = 100;  // detr默认是100
-  float PROB_THRESH = 0.7f;
+  int32_t num_class_ = 22;
+  int32_t num_qurrey_ = 100;  // detr默认是100
+  float score_threshold_ = 0.7f;
 };
 
 class DetrPostProcess : public Execution {
@@ -37,66 +37,10 @@ class DetrPostProcess : public Execution {
   DetrPostProcess(const std::string& name = "") : Execution(name) {}
   virtual ~DetrPostProcess() {}
 
-  virtual base::Status run() {
-    // TODO
-    int NUM_QURREY = -1;
-    int iw = -1;
-    int ih = -1;
+  virtual base::Status run();
 
-    device::Tensor* tensor_logits = input_->getTensor(0);
-    float* logits = (float*)tensor_logits->getPtr();
-    device::Tensor* tensor_boxes = input_->getTensor(1);
-    float* boxes = (float*)tensor_boxes->getPtr();
-
-    for (int i = 0; i < NUM_QURREY; i++) {
-      std::vector<float> Probs;
-      std::vector<float> boxes_wh;
-      for (int j = 0; j < 22; j++) {
-        Probs.push_back(logits[i * 22 + j]);
-      }
-
-      int length = Probs.size();
-      std::vector<float> dst(length);
-
-      // softmax(Probs.data(), dst.data(), length);
-
-      auto maxPosition = std::max_element(dst.begin(), dst.end() - 1);
-      // std::cout << maxPosition - dst.begin() << "  |  " << *maxPosition  <<
-      // std::endl;
-
-      if (*maxPosition < PROB_THRESH) {
-        Probs.clear();
-        boxes_wh.clear();
-        continue;
-      } else {
-        bbox.score = *maxPosition;
-        bbox.cid = maxPosition - dst.begin();
-
-        float cx = boxes[i * 4];
-        float cy = boxes[i * 4 + 1];
-        float cw = boxes[i * 4 + 2];
-        float ch = boxes[i * 4 + 3];
-
-        float x1 = (cx - 0.5 * cw) * iw;
-        float y1 = (cy - 0.5 * ch) * ih;
-        float x2 = (cx + 0.5 * cw) * iw;
-        float y2 = (cy + 0.5 * ch) * ih;
-
-        bbox.xmin = x1;
-        bbox.ymin = y1;
-        bbox.xmax = x2;
-        bbox.ymax = y2;
-
-        bboxes.push_back(bbox);
-
-        Probs.clear();
-        boxes_wh.clear();
-      }
-    }
-    DetectResult* result = (DetectResult*)output_->getParam();
-
-    return base::kStatusCodeOk;
-  }
+ private:
+  DetectResults results_;
 };
 
 task::Task* creatDetrTask(const std::string& name, base::InferenceType type);

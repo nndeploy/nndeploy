@@ -21,67 +21,55 @@
 namespace nndeploy {
 namespace task {
 
+template <typename T>
+int softmax(const T* src, T* dst, int length) {
+  T denominator{0};
+  for (int i = 0; i < length; ++i) {
+    dst[i] = std::exp(src[i]);
+    denominator += dst[i];
+  }
+  for (int i = 0; i < length; ++i) {
+    dst[i] /= denominator;
+  }
+  return 0;
+}
+
 base::Status DetrPostProcess::run() {
-  std::vector<Bbox> bboxes;
-  Bbox bbox;
-  int PROB_THRESH = 0.7;
+  results_.result_.clear();
 
-  // TODO
-  int NUM_QURREY = -1;
-  int iw = -1;
-  int ih = -1;
+  DetrPostParam* temp_param = (DetrPostParam*)param_.get();
+  device::Tensor* tensor_logits = input_->getTensor(0);
+  float* logits = (float*)tensor_logits->getPtr();
+  device::Tensor* tensor_boxes = input_->getTensor(1);
+  float* boxes = (float*)tensor_boxes->getPtr();
 
-  device::Tensor* tensor_Logits = input_->getTensor(0);
-  float* Logits = (float*)tensor_Logits->getPtr();
-  device::Tensor* tensor_Boxes = input_->getTensor(1);
-  float* Boxes = (float*)tensor_Boxes->getPtr();
+  for (int i = 0; i < temp_param->num_qurrey_; i++) {
+    std::vector<float> scores(temp_param->num_class_);
+    softmax(logits + i * temp_param->num_class_, scores.data(),
+            temp_param->num_class_);
 
-  for (int i = 0; i < NUM_QURREY; i++) {
-    std::vector<float> Probs;
-    std::vector<float> Boxes_wh;
-    for (int j = 0; j < 22; j++) {
-      Probs.push_back(Logits[i * 22 + j]);
-    }
-
-    int length = Probs.size();
-    std::vector<float> dst(length);
-
-    // softmax(Probs.data(), dst.data(), length);
-
-    auto maxPosition = std::max_element(dst.begin(), dst.end() - 1);
-    // std::cout << maxPosition - dst.begin() << "  |  " << *maxPosition  <<
-    // std::endl;
-
-    if (*maxPosition < PROB_THRESH) {
-      Probs.clear();
-      Boxes_wh.clear();
+    auto maxPosition = std::max_element(scores.begin(), scores.end() - 1);
+    if (*maxPosition < score_threshold_) {
       continue;
     } else {
-      bbox.score = *maxPosition;
-      bbox.cid = maxPosition - dst.begin();
+      DetectResult result;
+      result.score_ = *maxPosition;
+      result.label_id_ = maxPosition - dst.begin();
 
-      float cx = Boxes[i * 4];
-      float cy = Boxes[i * 4 + 1];
-      float cw = Boxes[i * 4 + 2];
-      float ch = Boxes[i * 4 + 3];
+      float cx = boxes[i * 4];
+      float cy = boxes[i * 4 + 1];
+      float cw = boxes[i * 4 + 2];
+      float ch = boxes[i * 4 + 3];
 
-      float x1 = (cx - 0.5 * cw) * iw;
-      float y1 = (cy - 0.5 * ch) * ih;
-      float x2 = (cx + 0.5 * cw) * iw;
-      float y2 = (cy + 0.5 * ch) * ih;
+      result.bbox_[0] = (cx - 0.5 * cw);
+      result.bbox_[1] = (cy - 0.5 * ch);
+      result.bbox_[2] = (cx + 0.5 * cw);
+      result.bbox_[3] = (cy + 0.5 * ch);
 
-      bbox.xmin = x1;
-      bbox.ymin = y1;
-      bbox.xmax = x2;
-      bbox.ymax = y2;
-
-      bboxes.push_back(bbox);
-
-      Probs.clear();
-      Boxes_wh.clear();
+      results_.emplace_back(result);
     }
   }
-  DetectResult* result = (DetectResult*)output_->getParam();
+  output_->setParam(results_);
 
   return base::kStatusCodeOk;
 }
