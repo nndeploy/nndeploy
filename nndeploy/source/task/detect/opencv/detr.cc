@@ -96,14 +96,14 @@ task::Task* creatDetrTask(const std::string& name, base::InferenceType type) {
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeBGR;
   pre_param->interp_type_ = base::kInterpTypeLinear;
-  pre_param->mean_[0] = 0.0f;
-  pre_param->mean_[1] = 0.0f;
-  pre_param->mean_[2] = 0.0f;
-  pre_param->mean_[3] = 0.0f;
-  pre_param->std_[0] = 255.0f;
-  pre_param->std_[1] = 255.0f;
-  pre_param->std_[2] = 255.0f;
-  pre_param->std_[3] = 255.0f;
+
+  pre_param->mean_[0] = 0.485f;
+  pre_param->mean_[1] = 0.456f;
+  pre_param->mean_[2] = 0.406f;
+
+  pre_param->std_[0] = 0.229f;
+  pre_param->std_[1] = 0.224f;
+  pre_param->std_[2] = 0.225f;
 
   return task;
 }

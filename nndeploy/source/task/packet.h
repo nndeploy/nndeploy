@@ -14,7 +14,7 @@
 #include "nndeploy/source/device/mat.h"
 #include "nndeploy/source/device/tensor.h"
 #include "nndeploy/source/task/opencv_include.h"
-#include "nndeploy/source/task/params.h"
+#include "nndeploy/source/task/pre_process/params.h"
 
 namespace nndeploy {
 namespace task {

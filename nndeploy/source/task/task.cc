@@ -97,7 +97,8 @@ base::Status Task::setOutput(Packet &output) {
   return base::kStatusCodeOk;
 }
 
-Packet Task::getOutPut() { return post_process_->getOutPut(); }
+Packet *Task::getInput() { return post_process_->getInput(); }
+Packet *Task::getOutput() { return post_process_->getOutput(); }
 
 /**
  * @brief 假定情况：
@@ -112,7 +113,7 @@ base::Status Task::run() {
     base::ShapeMap opt_shape = inference_->getOptShape();
     base::ShapeMap max_shape = inference_->getMaxShape();
     base::ShapeMap pre_process_output_shape =
-        pre_process_->getOutPutShape(min_shape, opt_shape, max_shape);
+        pre_process_->inferShape(min_shape, opt_shape, max_shape);
     status = inference_->reshape(pre_process_output_shape);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
 
@@ -145,7 +146,6 @@ base::Status Task::allocateInferenceInputOutput() {
   inference_input_packet_ = new Packet();
   if (inference_->canOpInputTensor()) {
     input_tensors_ = inference_->getAllInputTensorVector();
-
   } else {
     device::Device *device = device::getDefaultHostDevice();
     std::vector<std::string> input_names = inference_->getAllInputTensorName();

@@ -4,7 +4,6 @@ namespace nndeploy {
 namespace base {
 
 Param::Param() {}
-Param::Param(std::string name) : name_(name) {}
 
 Param::~Param() {}
 

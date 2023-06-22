@@ -56,7 +56,8 @@ class Task : public Execution {
   virtual base::Status setInput(Packet &input);
   virtual base::Status setOutput(Packet &output);
 
-  virtual Packet getOutPut();
+  virtual Packet *getInput();
+  virtual Packet *getOutput();
 
   virtual base::Status run();
 

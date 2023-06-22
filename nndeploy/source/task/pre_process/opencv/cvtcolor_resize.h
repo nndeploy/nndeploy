@@ -16,8 +16,8 @@
 #include "nndeploy/source/task/execution.h"
 #include "nndeploy/source/task/opencv_include.h"
 #include "nndeploy/source/task/packet.h"
-#include "nndeploy/source/task/params.h"
-#include "nndeploy/source/task/pre_process/opencv/common.h"
+#include "nndeploy/source/task/pre_process/opencv/opencv_convert.h"
+#include "nndeploy/source/task/pre_process/params.h"
 #include "nndeploy/source/task/task.h"
 
 namespace nndeploy {
@@ -59,7 +59,8 @@ class OpencvCvtColrResize : public Execution {
       cv::resize(*src, tmp, cv::Size(w, h), 0.0, 0.0, interp_type);
     }
 
-    OpencvConvert::convertToTensor(tmp, dst, tmp_param->mean_, tmp_param->std_);
+    OpencvConvert::convertToTensor(tmp, dst, tmp_param->scale_,
+                                   tmp_param->mean_, tmp_param->std_);
 
     return base::kStatusCodeOk;
   }

@@ -48,7 +48,7 @@ class Interpret {
   std::vector<std::string> getOutputNames();
 
   base::ShapeMap getInputShapeMap();
-  base::ShapeMap getOutputShapeMap();
+  base::ShapeMap inferShapeMap();
 
   std::shared_ptr<AbstractInterpretImpl> getAbstractInterpretImpl();
   std::shared_ptr<ir::Model> getModel();

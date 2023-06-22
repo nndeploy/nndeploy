@@ -8,7 +8,6 @@ static TypeInferenceParamRegister<TypeInferenceParamCreator<MnnInferenceParam>>
     g_mnn_inference_param_register(base::kInferenceTypeMnn);
 
 MnnInferenceParam::MnnInferenceParam() : InferenceParam() {}
-MnnInferenceParam::MnnInferenceParam(std::string name) : InferenceParam(name) {}
 MnnInferenceParam::~MnnInferenceParam() {}
 
 base::Status MnnInferenceParam::parse(const std::string &json, bool is_path) {

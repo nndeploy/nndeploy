@@ -1,4 +1,4 @@
-#include "nndeploy/source/task/pre_process/opencv/common.h"
+#include "nndeploy/source/task/pre_process/opencv/opencv_convert.h"
 
 namespace nndeploy {
 namespace task {
@@ -107,7 +107,7 @@ int OpencvConvert::convertFromInterpType(base::InterpType src) {
  * @return false
  */
 bool OpencvConvert::convertToTensor(const cv::Mat& src, device::Tensor* dst,
-                                    float* mean, float* std) {
+                                    float* scale, float* mean, float* std) {
   bool ret = false;
 
   int c = dst->getShapeIndex(1);
@@ -125,10 +125,10 @@ bool OpencvConvert::convertToTensor(const cv::Mat& src, device::Tensor* dst,
     }
     cv::split(tmp, tmp_vec);
     for (int i = 0; i < c; ++i) {
-      float scale = 1.0f / std[i];
-      float bias = -mean[i] / std[i];
-      tmp_vec[i] = tmp_vec[i] * scale;
-      tmp_vec[i] = tmp_vec[i] + bias;
+      float mul_scale = scale[i] / std[i];
+      float add_bias = -mean[i] / std[i];
+      tmp_vec[i] = tmp_vec[i] * mul_scale;
+      tmp_vec[i] = tmp_vec[i] + add_bias;
     }
     ret = true;
   } else {

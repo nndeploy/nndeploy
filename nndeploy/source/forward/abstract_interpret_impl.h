@@ -42,7 +42,7 @@ class AbstractInterpretImpl {
 
   // 委托给ir::Model
   base::ShapeMap getInputShapeMap();
-  base::ShapeMap getOutputShapeMap();
+  base::ShapeMap inferShapeMap();
 
   std::shared_ptr<ir::Model> getModel();
 

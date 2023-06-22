@@ -1,10 +1,4 @@
 
-#include "nndeploy/source/base/basic.h"
-#include "nndeploy/source/base/status.h"
-#include "nndeploy/source/cv/common.h"
-#include "nndeploy/source/device/buffer.h"
-#include "nndeploy/source/device/mat.h"
-
 CV_ARM_INCLUDE(#include "nndeploy/source/cv/arm/arm_resize.h")
 CV_X86_INCLUDE(#include "nndeploy/source/cv/x86/x86_resize.h")
 CV_OPENCL_INCLUDE(#include "nndeploy/source/cv/opencl/opencl_resize.h");

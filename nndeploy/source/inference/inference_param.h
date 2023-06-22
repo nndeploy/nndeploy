@@ -19,7 +19,6 @@ namespace inference {
 class InferenceParam : public base::Param {
  public:
   InferenceParam();
-  InferenceParam(std::string name);
 
   virtual ~InferenceParam();
 

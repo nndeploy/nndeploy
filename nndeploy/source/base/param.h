@@ -15,8 +15,6 @@ namespace base {
 class Param {
  public:
   Param();
-  Param(std::string name);
-
   ~Param();
 
   virtual base::Status parse(const std::string &json, bool is_path = true);
@@ -25,7 +23,7 @@ class Param {
 
   virtual base::Status get(const std::string &key, base::Value &value);
 
- private:
+ public:
   std::string name_;
 };
 

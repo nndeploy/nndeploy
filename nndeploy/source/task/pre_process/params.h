@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_SOURCE_TASK_PARAMS_H_
-#define _NNDEPLOY_SOURCE_TASK_PARAMS_H_
+#ifndef _NNDEPLOY_SOURCE_TASK_PRE_PARAMS_H_
+#define _NNDEPLOY_SOURCE_TASK_PRE_PARAMS_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -34,8 +34,21 @@ class CvtclorResizeParam : public base::Param {
   base::PixelType src_pixel_type_;
   base::PixelType dst_pixel_type_;
   base::InterpType interp_type_;
+  float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
+                     1.0f / 255.0f};
   float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  float std_[4] = {255.0f, 255.0f, 255.0f, 255.0f};
+  float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+};
+
+class DynamicShapeParam : public base::Param {
+ public:
+  bool is_power_of_n_ = false;
+  int n_ = 2;
+  int w_align_ = 1;
+  int h_align_ = 1;
+  base::IntVector min_shape_;
+  base::IntVector opt_shape_;
+  base::IntVector max_shape_;
 };
 
 }  // namespace task

@@ -4,6 +4,10 @@
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/macro.h"
+#include "nndeploy/source/base/status.h"
+#include "nndeploy/source/cv/common.h"
+#include "nndeploy/source/device/buffer.h"
+#include "nndeploy/source/device/mat.h"
 
 #ifdef NNDEPLOY_ENABLE_DEVICE_ARM
 #define CV_ARM_INCLUDE(x) x
@@ -56,5 +60,8 @@
 #define CV_CUDA_INCLUDE(x)
 #define CV_CUDA_RUN(x)
 #endif
+
+using CvFuncV0 = std::function<nndeploy::base::Status(const device::Mat &src,
+                                                      device::Mat &dst, ...)>;
 
 #endif

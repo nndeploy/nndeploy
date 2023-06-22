@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_SOURCE_TASK_PRE_PROCESS_0PENCV_COMMON_H_
-#define _NNDEPLOY_SOURCE_TASK_PRE_PROCESS_0PENCV_COMMON_H_
+#ifndef _NNDEPLOY_SOURCE_TASK_PRE_PROCESS_0PENCV_OPENCV_CONVERT_H_
+#define _NNDEPLOY_SOURCE_TASK_PRE_PROCESS_0PENCV_OPENCV_CONVERT_H_
 
 #include "nndeploy/source/base/basic.h"
 #include "nndeploy/source/base/glic_stl_include.h"
@@ -16,7 +16,7 @@
 #include "nndeploy/source/task/execution.h"
 #include "nndeploy/source/task/opencv_include.h"
 #include "nndeploy/source/task/packet.h"
-#include "nndeploy/source/task/params.h"
+#include "nndeploy/source/task/pre_process/params.h"
 #include "nndeploy/source/task/task.h"
 
 namespace nndeploy {
@@ -35,7 +35,7 @@ class OpencvConvert {
    * @return false
    */
   static bool convertToTensor(const cv::Mat& src, device::Tensor* dst,
-                              float* mean, float* std);
+                              float* scale, float* mean, float* std);
 };
 
 }  // namespace task

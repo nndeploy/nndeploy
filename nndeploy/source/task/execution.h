@@ -29,15 +29,16 @@ class Execution {
   virtual base::Status init();
   virtual base::Status deinit();
 
+  virtual Packet* getInput();
+  virtual Packet* getOutput();
+
   virtual base::Status setInput(Packet& input);
   virtual base::Status setOutput(Packet& output);
 
-  virtual base::ShapeMap getOutPutShape(
+  virtual base::ShapeMap inferShape(
       base::ShapeMap min_shape = base::ShapeMap(),
       base::ShapeMap opt_shape = base::ShapeMap(),
       base::ShapeMap max_shape = base::ShapeMap());
-
-  virtual Packet getOutPut();
 
   virtual base::Status run() = 0;
 
@@ -47,6 +48,9 @@ class Execution {
   Packet* input_ = nullptr;
   Packet* output_ = nullptr;
 };
+
+using ExecutionFunc = std::function<base::Status(
+    const Packet& input, Packet& output, std::shared_ptr<base::Param> param)>;
 
 }  // namespace task
 }  // namespace nndeploy
