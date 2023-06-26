@@ -21,6 +21,9 @@
 namespace nndeploy {
 namespace task {
 
+static TypeTaskRegister g_internal_opencv_detr_task_register("opencv_detr",
+                                                             creatDetrTask);
+
 template <typename T>
 int softmax(const T* src, T* dst, int length) {
   T denominator{0};
@@ -38,23 +41,35 @@ base::Status DetrPostProcess::run() {
   results_.result_.clear();
 
   DetrPostParam* temp_param = (DetrPostParam*)param_.get();
-  device::Tensor* tensor_logits = input_->getTensor(0);
+  float score_threshold = temp_param->score_threshold_;
+
+  device::Tensor* tensor_logits = nullptr;
+  device::Tensor* tensor_boxes = nullptr;
+  for (int i = 0; i < input_->getTensorSize(); ++i) {
+    device::Tensor* tensor = input_->getTensor(i);
+    if (tensor->getName() == "pred_logits") {
+      tensor_logits = tensor;
+    } else if (tensor->getName() == "pred_boxes") {
+      tensor_boxes = tensor;
+    }
+  }
   float* logits = (float*)tensor_logits->getPtr();
-  device::Tensor* tensor_boxes = input_->getTensor(1);
   float* boxes = (float*)tensor_boxes->getPtr();
 
-  for (int i = 0; i < temp_param->num_qurrey_; i++) {
-    std::vector<float> scores(temp_param->num_class_);
-    softmax(logits + i * temp_param->num_class_, scores.data(),
-            temp_param->num_class_);
+  int32_t num_qurrey = tensor_logits->getShape()[1];
+  int32_t num_class = tensor_logits->getShape()[2];
+
+  for (int i = 0; i < num_qurrey; i++) {
+    std::vector<float> scores(num_class);
+    softmax(logits + i * num_class, scores.data(), num_class);
 
     auto maxPosition = std::max_element(scores.begin(), scores.end() - 1);
-    if (*maxPosition < score_threshold_) {
+    if (*maxPosition < score_threshold) {
       continue;
     } else {
       DetectResult result;
       result.score_ = *maxPosition;
-      result.label_id_ = maxPosition - dst.begin();
+      result.label_id_ = maxPosition - scores.begin();
 
       float cx = boxes[i * 4];
       float cy = boxes[i * 4 + 1];
@@ -66,10 +81,10 @@ base::Status DetrPostProcess::run() {
       result.bbox_[2] = (cx + 0.5 * cw);
       result.bbox_[3] = (cy + 0.5 * ch);
 
-      results_.emplace_back(result);
+      results_.result_.emplace_back(result);
     }
   }
-  output_->setParam(results_);
+  output_->add(results_);
 
   return base::kStatusCodeOk;
 }

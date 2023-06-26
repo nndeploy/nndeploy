@@ -1,6 +1,8 @@
 #ifndef _NNDEPLOY_SOURCE_TASK_DETECT_RESULT_H_
 #define _NNDEPLOY_SOURCE_TASK_DETECT_RESULT_H_
 
+#include "nndeploy/source/device/mat.h"
+
 namespace nndeploy {
 namespace task {
 

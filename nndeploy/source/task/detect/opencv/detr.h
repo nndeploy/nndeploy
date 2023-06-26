@@ -1,5 +1,6 @@
 /**
- * @source: git@github.com:DataXujing/TensorRT-DETR.git
+ * @github: https://github.com/facebookresearch/detr
+ * @huggingface: https://github.com/facebookresearch/detr
  */
 #ifndef _NNDEPLOY_SOURCE_DETECT_0PENCV_DETR_H_
 #define _NNDEPLOY_SOURCE_DETECT_0PENCV_DETR_H_
@@ -27,14 +28,15 @@ namespace nndeploy {
 namespace task {
 
 class DetrPostParam : public base::Param {
-  int32_t num_class_ = 22;
-  int32_t num_qurrey_ = 100;  // detr默认是100
+ public:
   float score_threshold_ = 0.7f;
 };
 
 class DetrPostProcess : public Execution {
  public:
-  DetrPostProcess(const std::string& name = "") : Execution(name) {}
+  DetrPostProcess(const std::string& name = "") : Execution(name) {
+    param_ = std::make_shared<DetrPostParam>();
+  }
   virtual ~DetrPostProcess() {}
 
   virtual base::Status run();
