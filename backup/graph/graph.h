@@ -5,36 +5,22 @@
 namespace nndeploy {
 namespace graph {
 
-// enum NodeType : int32_t {
-//   kNodeTypeStart = 0x0000,
-//   kNodeTypeNormal,
-//   kNodeTypeEnd,
-// };
+class EdgeWrapper;
 
-// class GraphParam : public base::Param {};
-
-class NodeWrapper {
-  Node* node;
-  std::vector<Node*> depend_nodes;
-  bool is_owned;
-}
+class NodeWrapper;
 
 class Graph : public Node {
  public:
   Graph(const std::string& name = "");
   virtual ~Graph();
 
-  // template <typename T>
-  // Edge* createInputEdge(const std::string& name = "");
   template <typename T>
   Edge* createEdge(const std::string& name = "");
-  // template <typename T>
-  // Edge* createOutputEdge(const std::string& name = "");
+  void addEdge(Edge* edge);
 
   template <typename T>
   Node* createNode(const std::string& name = "", base::Param* param = nullptr,
                    Packet* input = nullptr, Packet* output = nullptr);
-
   virtual base::Status addNode(Node* node);
 
   virtual base::Status setName(const std::string& name);
@@ -59,11 +45,8 @@ class Graph : public Node {
   virtual base::Status dump(std::ostream& oss = std::cout);
 
  protected:
-  std::vector<Edge*> edge_repository_;
-
+  std::vector<EdgeWrapper*> edge_repository_;
   std::vector<NodeWrapper*> node_repository_;
-
-  std::vector<Node*> pipeline_;
 };
 
 }  // namespace graph

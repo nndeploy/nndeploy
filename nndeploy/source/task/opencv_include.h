@@ -1,8 +1,0 @@
-#ifndef _NNDEPLOY_SOURCE_TASK_OPENCV_INCLUDE_H_
-#define _NNDEPLOY_SOURCE_TASK_OPENCV_INCLUDE_H_
-
-#ifdef NNDEPLOY_ENABLE_OPENCV
-#include <opencv2/opencv.hpp>
-#endif
-
-#endif /* _NNDEPLOY_SOURCE_TASK_OPENCV_INCLUDE_H_ */

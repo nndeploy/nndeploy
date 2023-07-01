@@ -6,6 +6,7 @@
 #include "nndeploy/source/base/log.h"
 #include "nndeploy/source/base/macro.h"
 #include "nndeploy/source/base/object.h"
+#include "nndeploy/source/base/opencv_include.h"
 #include "nndeploy/source/base/status.h"
 #include "nndeploy/source/base/string.h"
 #include "nndeploy/source/base/value.h"
@@ -13,19 +14,18 @@
 #include "nndeploy/source/device/buffer_pool.h"
 #include "nndeploy/source/device/device.h"
 #include "nndeploy/source/device/tensor.h"
-#include "nndeploy/source/task/execution.h"
-#include "nndeploy/source/task/opencv_include.h"
 #include "nndeploy/source/task/packet.h"
 #include "nndeploy/source/task/pre_process/opencv/opencv_convert.h"
 #include "nndeploy/source/task/pre_process/params.h"
 #include "nndeploy/source/task/task.h"
 
+
 namespace nndeploy {
 namespace task {
 
-class OpencvCvtColrResize : public Execution {
+class OpencvCvtColrResize : public Task {
  public:
-  OpencvCvtColrResize(const std::string& name = "") : Execution(name) {
+  OpencvCvtColrResize(const std::string& name = "") : Task(name) {
     param_ = std::make_shared<CvtclorResizeParam>();
   }
   virtual ~OpencvCvtColrResize() {}

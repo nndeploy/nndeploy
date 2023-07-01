@@ -1,74 +1,213 @@
+#ifndef _NNDEPLOY_SOURCE_TASK_PIPELINE_H_
+#define _NNDEPLOY_SOURCE_TASK_PIPELINE_H_
 
-// #include "nndeploy/source/task/pipeline.h"
+#include "nndeploy/source/base/basic.h"
+#include "nndeploy/source/base/glic_stl_include.h"
+#include "nndeploy/source/base/log.h"
+#include "nndeploy/source/base/macro.h"
+#include "nndeploy/source/base/object.h"
+#include "nndeploy/source/base/status.h"
+#include "nndeploy/source/base/string.h"
+#include "nndeploy/source/base/value.h"
+#include "nndeploy/source/device/buffer.h"
+#include "nndeploy/source/device/buffer_pool.h"
+#include "nndeploy/source/device/device.h"
+#include "nndeploy/source/device/tensor.h"
+#include "nndeploy/source/inference/inference.h"
+#include "nndeploy/source/inference/inference_param.h"
+#include "nndeploy/source/task/detr_cpu_pipeline.h"
+#include "nndeploy/source/task/packet.h"
+#include "nndeploy/source/task/task.h"
 
-// namespace nndeploy {
-// namespace task {
+namespace nndeploy {
+namespace task {
 
-// Pipeline::Pipeline(const std::string& name) : Execution(name) {
-//   param_ = (std::make_shared<PipelineParam>());
-// };
-// Pipeline::~Pipeline(){};
+class PacketWrapper {
+ public:
+  bool is_external_;
+  Packet* packet_;
+  std::vector<Task*> producers_;
+  std::vector<Task*> consumers_;
+}
 
-// /**
-//  * @brief DAG
-//  * # 判断是否有环
-//  * # 如何遍历
-//  * ## 深度优先遍历
-//  * ## 广度优先遍历
-//  * # 如何开启多个线程执行
-//  * @return base::Status
-//  */
-// base::Status Pipeline::init() {
-//   for (auto& execution : pipeline_) {
-//     NNDEPLOY_RETURN_ON_NEQ(execution->init(), base::kStatusCodeOk);
-//   }
-// }
-// base::Status Pipeline::deinit() {
-//   for (auto& execution : pipeline_) {
-//     NNDEPLOY_RETURN_ON_NEQ(execution->deinit(), base::kStatusCodeOk);
-//   }
-//   return base::kStatusCodeOk;
-// }
+class TaskWrapper {
+ public:
+  bool is_external_;
+  Task* task_;
+  std::string name_;
+  Packet* input_ = nullptr;
+  Packet* output_ = nullptr;
+  std::vector<Task*> predecessors_;
+  std::vector<Task*> successors_;
+}
 
-// base::Status Pipeline::setInput(Packet& input) {
-//   for (auto& execution : start_execution_repository_) {
-//     NNDEPLOY_RETURN_ON_NEQ(execution->setInput(input), base::kStatusCodeOk);
-//   }
-//   return base::kStatusCodeOk;
-// }
-// base::Status Pipeline::setOutput(Packet& output) {
-//   for (auto& execution : end_execution_repository_) {
-//     NNDEPLOY_RETURN_ON_NEQ(execution->setOutput(output),
-//     base::kStatusCodeOk);
-//   }
-//   return base::kStatusCodeOk;
-// }
+Pipeline::Pipeline(const std::string& name, Packet* input, Packet* output)
+    : Task(name, input, output) {
+  param_ = std::make_shared<PipelineParam>();
+  addPacket(input);
+  addPacket(output);
+}
+~Pipeline::Pipeline() {}
 
-// base::Status Pipeline::run() {
-//   for (auto& execution : pipeline_) {
-//     NNDEPLOY_RETURN_ON_NEQ(execution->run(), base::kStatusCodeOk);
-//   }
-//   return base::kStatusCodeOk;
-// }
+Packet* Pipeline::createPacket(const std::string& name) {
+  Packet* packet = new Packet(name);
+  PacketWrapper* packet_wrapper = new PacketWrapper();
+  packet_wrapper->is_external_ = false;
+  packet_wrapper->packet_ = packet;
+  packet_repository_.emplace_back(packet_wrapper);
+  return packet;
+}
+void Pipeline::addPacket(Packet* packet) {
+  PacketWrapper* packet_wrapper = new PacketWrapper();
+  packet_wrapper->is_external_ = true;
+  packet_wrapper->packet_ = packet;
+  packet_repository_.emplace_back(packet_wrapper);
+}
 
-// base::Status Pipeline::dump(std::ostream& oss = std::cout) {
-//   return base::kStatusCodeOk;
-// }
+template <typename T>
+Task* Pipeline::createTask(const std::string& name, Packet* input,
+                           Packet* output) {
+  Task* task = new T(name, param, input, output);
+  TaskWrapper* task_wrapper = new TaskWrapper();
+  task_wrapper->is_external_ = false;
+  task_wrapper->task_ = task;
+  task_wrapper->name_ = name;
+  task_wrapper->input_ = input;
+  if (findPacketWrapper(input) == nullptr) {
+    this->addPacket(input);
+  }
+  findPacketWrapper(input)->consumers_.emplace_back(task);
+  task_wrapper->output_ = output;
+  if (findPacketWrapper(output) == nullptr) {
+    this->addPacket(output);
+  }
+  findPacketWrapper(output)->producers_.emplace_back(task);
+  task_repository_.emplace_back(task_wrapper);
+  return dynamic_cast<Task*> task;
+}
+void Pipeline::addTask(Task* task) {
+  TaskWrapper* task_wrapper = new TaskWrapper();
+  task_wrapper->is_external_ = true;
+  task_wrapper->task_ = task;
+  task_wrapper->name_ = task->getName();
+  Packet* input = task->getInput();
+  task_wrapper->input_ = input;
+  if (findPacketWrapper(input) == nullptr) {
+    this->addPacket(input);
+  }
+  findPacketWrapper(input)->consumers_.emplace_back(task);
+  Packet* output = task->getOutput();
+  if (findPacketWrapper(output) == nullptr) {
+    this->addPacket(output);
+  }
+  findPacketWrapper(output)->producers_.emplace_back(task);
+  task_wrapper->output_ = output;
+  task_repository_.emplace_back(task_wrapper);
+}
 
-// base::Status Pipeline::addStart(Execution* execution) {
-//   start_execution_repository_.push_back(execution);
-//   return base::kStatusCodeOk;
-// }
-// base::Status Pipeline::addExecution(
-//     Execution* execution, const std::vector<Execution*>& depend_executions =
-//                               std::initializer_list<Execution*>()) {
-//   execution_repository_.insert(std::make_pair(execution, depend_executions));
-//   return base::kStatusCodeOk;
-// }
-// base::Status Pipeline::addEnd(Execution* execution) {
-//   end_execution_repository_.push_back(execution);
-//   return base::kStatusCodeOk;
-// }
+base::Status Pipeline::init() {
+  VX_PRINT("###########################\n");
+  VX_PRINT("Parameter Validation Phase! (%d)\n");
+  VX_PRINT("###########################\n");
+  for (auto task_wrapper : task_repository_) {
+    NNDEPLOY_CHECK_PARAM_NULL(task_wrapper->task_)
+  }
+  for (auto packet_wrapper : packet_repository_) {
+    NNDEPLOY_CHECK_PARAM_NULL(packet_wrapper->packet_)
+  }
 
-// }  // namespace task
-// }  // namespace nndeploy
+  // mark predecessors and successors
+  for (auto task_wrapper : task_repository_) {
+    PacketWrapper* input = findPacketWrapper(task_wrapper->input_);
+    task_wrapper->predecessors_.assign(input->producers_.begin(),
+                                       input->producers_.end());
+    PacketWrapper* output = findPacketWrapper(task_wrapper->output_);
+    task_wrapper->successors_.assign(output->consumers_.begin(),
+                                     output->consumers_.end());
+  }
+
+  // VX_PRINT(VX_ZONE_GRAPH, "####################\n");
+  // VX_PRINT(VX_ZONE_GRAPH, "Single Writer Phase! (%d)\n", status);
+  // VX_PRINT(VX_ZONE_GRAPH, "####################\n");
+
+  VX_PRINT(VX_ZONE_GRAPH, "###############################\n");
+  VX_PRINT(VX_ZONE_GRAPH, "Head Nodes Determination Phase! (%d)\n", status);
+  VX_PRINT(VX_ZONE_GRAPH, "###############################\n");
+  // find start
+  task std::vector<task_wrapper*> start_tasks = findStartTasks();
+  if (start_tasks.empty()) {
+    NNDEPLOY_LOG_ERROR("No start task found in pipeline");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  VX_PRINT(VX_ZONE_GRAPH, "##############\n");
+  VX_PRINT(VX_ZONE_GRAPH, "Cycle Checking (%d)\n", status);
+  VX_PRINT(VX_ZONE_GRAPH, "##############\n");
+
+  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
+  VX_PRINT(VX_ZONE_GRAPH, "Checking for Unvisited Nodes (%d)\n", status);
+  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
+
+  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
+  VX_PRINT(VX_ZONE_GRAPH, "Optimizer Graph (%d)\n", status);
+  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
+
+  VX_PRINT(VX_ZONE_GRAPH, "#########################\n");
+  VX_PRINT(VX_ZONE_GRAPH, "Device Verification Phase (%d)\n", status);
+  VX_PRINT(VX_ZONE_GRAPH, "#########################\n");
+
+  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
+  VX_PRINT(VX_ZONE_GRAPH, "Optimizer Graph (%d)\n", status);
+  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
+
+  VX_PRINT(VX_ZONE_GRAPH, "#######################\n");
+  VX_PRINT(VX_ZONE_GRAPH, "Task Initialize Phase (%d)\n", status);
+  VX_PRINT(VX_ZONE_GRAPH, "#######################\n");
+
+  VX_PRINT(VX_ZONE_GRAPH, "########################\n");
+  VX_PRINT(VX_ZONE_GRAPH, "Memory Allocation Phase! (%d)\n", status);
+  VX_PRINT(VX_ZONE_GRAPH, "########################\n");
+
+  // VX_PRINT(VX_ZONE_GRAPH, "#######################\n");
+  // VX_PRINT(VX_ZONE_GRAPH, "COST CALCULATIONS (%d)\n", status);
+  // VX_PRINT(VX_ZONE_GRAPH, "#######################\n");
+
+  /**
+   * @brief 深度优先遍历
+   * # mark predecessors and successors
+   * # check cycle
+   * # buid task queue
+   */
+
+  // check cycle
+  std::vector<TaskWrapper*> visited;
+
+  // buid task queue
+  for (auto task_wrapper : start_tasks) {
+    if (find(task_wrapper->task_) != nullptr) {
+      continue;
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Pipeline::deinit() {
+  for (auto task_wrapper : task_repository_) {
+    if (task_wrapper->is_external_) {
+      continue;
+    }
+    task_wrapper->task_->deinit();
+  }
+  return base::kStatusCodeOk;
+}
+
+base::ShapeMap Pipeline::inferOuputShape();
+
+base::Status Pipeline::run();
+
+// base::Status Pipeline::dump(std::ostream& oss = std::cout);
+
+}  // namespace task
+}  // namespace nndeploy
+
+#endif  // _NNDEPLOY_SOURCE_GRAPH_GRAPH_H_

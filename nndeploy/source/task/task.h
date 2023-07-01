@@ -14,81 +14,47 @@
 #include "nndeploy/source/device/buffer_pool.h"
 #include "nndeploy/source/device/device.h"
 #include "nndeploy/source/device/tensor.h"
-#include "nndeploy/source/inference/inference.h"
-#include "nndeploy/source/inference/inference_param.h"
-#include "nndeploy/source/task/execution.h"
 #include "nndeploy/source/task/packet.h"
 
 namespace nndeploy {
 namespace task {
 
-class Task : public Execution {
+class Task {
  public:
-  Task(const std::string &name, base::InferenceType type);
+  Task(const std::string& name, Packet* input, Packet* output);
   virtual ~Task();
 
-  template <typename T>
-  base::Status createPreprocess() {
-    pre_process_ = dynamic_cast<Execution *>(new T(name_));
-    if (pre_process_ == nullptr) {
-      return base::kStatusCodeErrorOutOfMemory;
-    } else {
-      return base::kStatusCodeOk;
-    }
-  }
-  template <typename T>
-  base::Status createPostprocess() {
-    post_process_ = dynamic_cast<Execution *>(new T(name_));
-    if (post_process_ == nullptr) {
-      return base::kStatusCodeErrorOutOfMemory;
-    } else {
-      return base::kStatusCodeOk;
-    }
-  }
+  virtual base::Status setName(const std::string& name);
+  virtual std::string getName();
 
-  base::Param *getPreProcessParam();
-  base::Param *getInferenceParam();
-  base::Param *getPostProcessParam();
+  virtual base::Status setParam(base::Param* param);
+  virtual base::Param* getParam();
+
+  virtual Packet* getInput();
+  virtual Packet* getOutput();
+
+  //   virtual base::Status setInput(Packet* input);
+  //   virtual base::Status setOutput(Packet* output);
 
   virtual base::Status init();
   virtual base::Status deinit();
 
-  virtual base::Status setInput(Packet &input);
-  virtual base::Status setOutput(Packet &output);
+  virtual base::ShapeMap inferOuputShape();
 
-  virtual Packet *getInput();
-  virtual Packet *getOutput();
-
-  virtual base::Status run();
-
- private:
-  base::Status allocateInferenceInputOutput();
-  base::Status deallocateInferenceInputOutput();
+  virtual base::Status run() = 0;
 
  protected:
-  base::InferenceType type_;
-  Execution *pre_process_ = nullptr;
-  std::vector<device::Tensor *> input_tensors_;
-  Packet *inference_input_packet_;
-  inference::Inference *inference_ = nullptr;
-  std::vector<device::Tensor *> output_tensors_;
-  Packet *inference_output_packet_;
-  Execution *post_process_ = nullptr;
+  isValid();
+
+ protected:
+  std::string name_;
+  std::shared_ptr<base::Param> param_;
+  Packet* input_ = nullptr;
+  Packet* output_ = nullptr;
 };
 
-using creteTaskFunc = Task *(*)(const std::string &name,
-                                base::InferenceType type);
-
-std::map<std::string, creteTaskFunc> &getGlobalTaskCreatorMap();
-
-class TypeTaskRegister {
- public:
-  explicit TypeTaskRegister(const std::string &name, creteTaskFunc func) {
-    getGlobalTaskCreatorMap()[name] = func;
-  }
-};
-
-Task *creteTask(const std::string &name, base::InferenceType type);
+using TaskFunc = std::function<base::Status(Packet* input, Packet* output,
+                                            base::Param* param)>;
 
 }  // namespace task
 }  // namespace nndeploy

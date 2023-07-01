@@ -12,7 +12,6 @@ include_directories(${ROOT_PATH})
 # SOURCE
 file(GLOB_RECURSE SOURCE
   "${ROOT_PATH}/nndeploy/source/thread/*.h"
-  "${ROOT_PATH}/nndeploy/source/thread/*.hpp"
   "${ROOT_PATH}/nndeploy/source/thread/*.cc"
   )
 
