@@ -46,18 +46,6 @@ class Pipeline : public Task {
    */
   virtual base::Status addTask(Task* task);
 
-  // virtual base::Status setName(const std::string& name);
-  // virtual std::string getName();
-
-  // virtual base::Status setParam(base::Param* param);
-  // virtual base::Param* getParam();
-
-  // virtual Packet* getInput();
-  // virtual Packet* getOutput();
-
-  // virtual base::Status setInput(Packet* input);
-  // virtual base::Status setOutput(Packet* output);
-
   virtual base::Status init();
   virtual base::Status deinit();
 
@@ -66,6 +54,18 @@ class Pipeline : public Task {
   virtual base::Status run();
 
   // virtual base::Status dump(std::ostream& oss = std::cout);
+
+ protected:
+  PacketWrapper* findPacketWrapper(Packet* packet);
+  task_wrapper* findTaskWrapper(Task* task);
+
+  std::vector<task_wrapper*> findStartTasks();
+
+  void clearVisited();
+
+  base::Status isCyclicDFS();
+
+  base::Status traverse(task_wrapper* start);
 
  protected:
   std::vector<PacketWrapper*> packet_repository_;

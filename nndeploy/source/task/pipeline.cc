@@ -106,9 +106,11 @@ void Pipeline::addTask(Task* task) {
 }
 
 base::Status Pipeline::init() {
-  VX_PRINT("###########################\n");
-  VX_PRINT("Parameter Validation Phase! (%d)\n");
-  VX_PRINT("###########################\n");
+  base::Status status = base::kStatusCodeOK;
+
+  NNDEPLOY_LOGI("###########################\n");
+  NNDEPLOY_LOGI("Parameter Validation Phase!\n");
+  NNDEPLOY_LOGI("###########################\n");
   for (auto task_wrapper : task_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL(task_wrapper->task_)
   }
@@ -116,7 +118,9 @@ base::Status Pipeline::init() {
     NNDEPLOY_CHECK_PARAM_NULL(packet_wrapper->packet_)
   }
 
-  // mark predecessors and successors
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "####################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "Mark Predecessors And Successors Phase!\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "####################\n");
   for (auto task_wrapper : task_repository_) {
     PacketWrapper* input = findPacketWrapper(task_wrapper->input_);
     task_wrapper->predecessors_.assign(input->producers_.begin(),
@@ -126,86 +130,89 @@ base::Status Pipeline::init() {
                                      output->consumers_.end());
   }
 
-  // VX_PRINT(VX_ZONE_GRAPH, "####################\n");
-  // VX_PRINT(VX_ZONE_GRAPH, "Single Writer Phase! (%d)\n", status);
-  // VX_PRINT(VX_ZONE_GRAPH, "####################\n");
-
-  VX_PRINT(VX_ZONE_GRAPH, "###############################\n");
-  VX_PRINT(VX_ZONE_GRAPH, "Head Nodes Determination Phase! (%d)\n", status);
-  VX_PRINT(VX_ZONE_GRAPH, "###############################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "###############################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "Find Start Task Phase!\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "###############################\n");
   // find start
-  task std::vector<task_wrapper*> start_tasks = findStartTasks();
+  std::vector<task_wrapper*> start_tasks = findStartTasks();
   if (start_tasks.empty()) {
     NNDEPLOY_LOG_ERROR("No start task found in pipeline");
     return base::kStatusCodeErrorInvalidValue;
   }
 
-  VX_PRINT(VX_ZONE_GRAPH, "##############\n");
-  VX_PRINT(VX_ZONE_GRAPH, "Cycle Checking (%d)\n", status);
-  VX_PRINT(VX_ZONE_GRAPH, "##############\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "##############\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "Cycle Checking!\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "##############\n");
 
-  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
-  VX_PRINT(VX_ZONE_GRAPH, "Checking for Unvisited Nodes (%d)\n", status);
-  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "############################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "Checking for Unvisited Task and Packet!\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "############################\n");
 
-  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
-  VX_PRINT(VX_ZONE_GRAPH, "Optimizer Graph (%d)\n", status);
-  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "############################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "Optimizer Graph!\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "############################\n");
 
-  VX_PRINT(VX_ZONE_GRAPH, "#########################\n");
-  VX_PRINT(VX_ZONE_GRAPH, "Device Verification Phase (%d)\n", status);
-  VX_PRINT(VX_ZONE_GRAPH, "#########################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "#########################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "Device Verification Phase!\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "#########################\n");
 
-  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
-  VX_PRINT(VX_ZONE_GRAPH, "Optimizer Graph (%d)\n", status);
-  VX_PRINT(VX_ZONE_GRAPH, "############################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "############################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "Optimizer Graph!\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "############################\n");
 
-  VX_PRINT(VX_ZONE_GRAPH, "#######################\n");
-  VX_PRINT(VX_ZONE_GRAPH, "Task Initialize Phase (%d)\n", status);
-  VX_PRINT(VX_ZONE_GRAPH, "#######################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "#######################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "Task Initialize Phase!\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "#######################\n");
 
-  VX_PRINT(VX_ZONE_GRAPH, "########################\n");
-  VX_PRINT(VX_ZONE_GRAPH, "Memory Allocation Phase! (%d)\n", status);
-  VX_PRINT(VX_ZONE_GRAPH, "########################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "########################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "Memory Allocation Phase!\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "########################\n");
 
-  // VX_PRINT(VX_ZONE_GRAPH, "#######################\n");
-  // VX_PRINT(VX_ZONE_GRAPH, "COST CALCULATIONS (%d)\n", status);
-  // VX_PRINT(VX_ZONE_GRAPH, "#######################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "#######################\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "Cost Calculations!\n");
+  NNDEPLOY_LOGI(VX_ZONE_GRAPH, "#######################\n");
 
-  /**
-   * @brief 深度优先遍历
-   * # mark predecessors and successors
-   * # check cycle
-   * # buid task queue
-   */
-
-  // check cycle
-  std::vector<TaskWrapper*> visited;
-
-  // buid task queue
-  for (auto task_wrapper : start_tasks) {
-    if (find(task_wrapper->task_) != nullptr) {
-      continue;
-    }
-  }
-  return base::kStatusCodeOk;
+  return status;
 }
 
-base::Status Pipeline::deinit() {
-  for (auto task_wrapper : task_repository_) {
-    if (task_wrapper->is_external_) {
-      continue;
-    }
-    task_wrapper->task_->deinit();
-  }
-  return base::kStatusCodeOk;
-}
+base::Status Pipeline::deinit() {}
 
 base::ShapeMap Pipeline::inferOuputShape();
 
 base::Status Pipeline::run();
 
 // base::Status Pipeline::dump(std::ostream& oss = std::cout);
+
+std::vector<task_wrapper*> Pipeline::findStartTasks() {
+  std::vector<task_wrapper*> start_tasks;
+  for (auto task_wrapper : task_repository_) {
+    if (task_wrapper->predecessors_.empty()) {
+      start_tasks.emplace_back(task_wrapper);
+    }
+  }
+  return start_tasks;
+}
+
+base::Status Pipeline::isCyclicDFS() {
+  std::vector<task_wrapper*> start_tasks = findStartTasks();
+  for (auto start_task : start_tasks) {
+    start_task->setVisited();
+    if (isCyclicDFS(start_task, visited, visiting)) {
+      return base::kStatusCodeErrorInvalidValue;
+    }
+  }
+  return base::kStatusCodeOK;
+}
+
+base::Status Pipeline::traverse(task_wrapper* start) {
+  std::vector<task_wrapper*> start_tasks;
+  for (auto task_wrapper : task_repository_) {
+    if (task_wrapper->predecessors_.empty()) {
+      start_tasks.emplace_back(task_wrapper);
+    }
+  }
+  return start_tasks;
+}
 
 }  // namespace task
 }  // namespace nndeploy

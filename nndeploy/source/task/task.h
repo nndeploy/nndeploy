@@ -22,6 +22,8 @@ namespace task {
 class Task {
  public:
   Task(const std::string& name, Packet* input, Packet* output);
+  Task(const std::string& name, std::vector<Packet*> input,
+       std::vector<Packet*> output);
   virtual ~Task();
 
   virtual base::Status setName(const std::string& name);
@@ -30,11 +32,11 @@ class Task {
   virtual base::Status setParam(base::Param* param);
   virtual base::Param* getParam();
 
-  virtual Packet* getInput();
-  virtual Packet* getOutput();
+  virtual Packet* getInput(int32_t index = 0);
+  virtual Packet* getOutput(int32_t index = 0);
 
-  //   virtual base::Status setInput(Packet* input);
-  //   virtual base::Status setOutput(Packet* output);
+  virtual std::vector<Packet*> getAllInput();
+  virtual std::vector<Packet*> getAllOutput();
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -43,18 +45,34 @@ class Task {
 
   virtual base::Status run() = 0;
 
- protected:
-  isValid();
+  bool getConstructed();
+  bool getInitialized();
+
+  virtual bool getVisited();
+  virtual void setVisited();
+  virtual void clearVisited();
+
+  virtual bool getExecuted();
+  virtual void setExecuted();
+  virtual void clearExecuted();
 
  protected:
   std::string name_;
   std::shared_ptr<base::Param> param_;
-  Packet* input_ = nullptr;
-  Packet* output_ = nullptr;
+  std::vector<Packet*> inputs_;
+  std::vector<Packet*> outputs_;
+
+  bool constructed_ = false;
+  bool initialized_ = false;
+  /*! \brief Used to keep track of visitation during execution and verification.
+   */
+  bool visited_ = false;
+  /*! \brief This is used to determine if the task has executed. */
+  bool executed_ = false;
 };
 
-using TaskFunc = std::function<base::Status(Packet* input, Packet* output,
-                                            base::Param* param)>;
+// using TaskFunc = std::function<base::Status(Packet* input, Packet* output,
+//                                             base::Param* param)>;
 
 }  // namespace task
 }  // namespace nndeploy
