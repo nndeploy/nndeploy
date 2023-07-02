@@ -1,13 +1,13 @@
 
-#ifndef _NNDEPLOY_SOURCE_CV_COMMON_H_
-#define _NNDEPLOY_SOURCE_CV_COMMON_H_
+#ifndef _NNDEPLOY_INCLUDE_CV_COMMON_H_
+#define _NNDEPLOY_INCLUDE_CV_COMMON_H_
 
-#include "nndeploy/source/base/basic.h"
-#include "nndeploy/source/base/macro.h"
-#include "nndeploy/source/base/status.h"
-#include "nndeploy/source/cv/common.h"
-#include "nndeploy/source/device/buffer.h"
-#include "nndeploy/source/device/mat.h"
+#include "nndeploy/include/base/basic.h"
+#include "nndeploy/include/base/macro.h"
+#include "nndeploy/include/base/status.h"
+#include "nndeploy/include/cv/common.h"
+#include "nndeploy/include/device/buffer.h"
+#include "nndeploy/include/device/mat.h"
 
 #ifdef NNDEPLOY_ENABLE_DEVICE_ARM
 #define CV_ARM_INCLUDE(x) x

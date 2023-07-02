@@ -1,7 +1,7 @@
 
-#include "nndeploy/source/task/packet.h"
+#include "nndeploy/include/task/packet.h"
 
-#include "nndeploy/source/base/opencv_include.h"
+#include "nndeploy/include/base/opencv_include.h"
 
 namespace nndeploy {
 namespace task {

@@ -1,8 +1,8 @@
 
-CV_ARM_INCLUDE(#include "nndeploy/source/cv/arm/arm_resize.h")
-CV_X86_INCLUDE(#include "nndeploy/source/cv/x86/x86_resize.h")
-CV_OPENCL_INCLUDE(#include "nndeploy/source/cv/opencl/opencl_resize.h");
-CV_CUDA_INCLUDE(#include "nndeploy/source/cv/cuda/cuda_resize.h");
+CV_ARM_INCLUDE(#include "nndeploy/include/cv/arm/arm_resize.h")
+CV_X86_INCLUDE(#include "nndeploy/include/cv/x86/x86_resize.h")
+CV_OPENCL_INCLUDE(#include "nndeploy/include/cv/opencl/opencl_resize.h");
+CV_CUDA_INCLUDE(#include "nndeploy/include/cv/cuda/cuda_resize.h");
 
 namespace nndeploy {
 namespace cv {

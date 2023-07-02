@@ -1,7 +1,7 @@
-#include "nndeploy/source/base/glic_stl_include.h"
-#include "nndeploy/source/base/time_measurement.h"
-#include "nndeploy/source/task/detect/opencv/detr.h"
-#include "nndeploy/source/task/task.h"
+#include "nndeploy/base/glic_stl_include.h"
+#include "nndeploy/base/time_measurement.h"
+#include "nndeploy/task/detect/opencv/detr.h"
+#include "nndeploy/task/task.h"
 
 using namespace nndeploy;
 

@@ -1,4 +1,4 @@
 
-if(NNDEPLOY_ENABLE_TASK_DETECT)
+if(ENABLE_NNDEPLOY_TASK_DETECT)
   add_subdirectory(detect)
 endif()

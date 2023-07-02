@@ -1,13 +1,13 @@
 
-#ifndef _NNDEPLOY_SOURCE_INTERPRET_ABSTRACT_INTERPRET_IMPL_H_
-#define _NNDEPLOY_SOURCE_INTERPRET_ABSTRACT_INTERPRET_IMPL_H_
+#ifndef _NNDEPLOY_INCLUDE_INTERPRET_ABSTRACT_INTERPRET_IMPL_H_
+#define _NNDEPLOY_INCLUDE_INTERPRET_ABSTRACT_INTERPRET_IMPL_H_
 
-#include "nndeploy/source/base/basic.h"
-#include "nndeploy/source/base/log.h"
-#include "nndeploy/source/base/macro.h"
-#include "nndeploy/source/base/object.h"
-#include "nndeploy/source/base/status.h"
-#include "nndeploy/source/cryption/decrypt.h"
+#include "nndeploy/include/base/basic.h"
+#include "nndeploy/include/base/log.h"
+#include "nndeploy/include/base/macro.h"
+#include "nndeploy/include/base/object.h"
+#include "nndeploy/include/base/status.h"
+#include "nndeploy/include/cryption/decrypt.h"
 
 namespace nndeploy {
 namespace interpret {

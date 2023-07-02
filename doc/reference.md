@@ -59,3 +59,6 @@
   + 其他任何语言代码风格 一律参考 nndeploy
 + git
   + https://developer.aliyun.com/article/929807
+
+
+find . -name "*.txt" | xargs rm -rf
