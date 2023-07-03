@@ -15,7 +15,7 @@
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/inference/inference.h"
+#include "nndeploy/inference/abstract_inference.h"
 #include "nndeploy/inference/inference_param.h"
 
 namespace nndeploy {

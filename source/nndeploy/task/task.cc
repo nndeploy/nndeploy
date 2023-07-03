@@ -5,7 +5,7 @@ namespace task {
 
 Task::Task(const std::string &name, Packet *input, Packet *output)
     : name_(name) {
-  if (input == nullptr || output = nullptr) {
+  if (input == nullptr || output == nullptr) {
     constructed_ = false;
   } else {
     inputs_.push_back(input);
@@ -34,7 +34,8 @@ std::string Task::getName() { return name_; }
 
 base::Status Task::setParam(base::Param *param) {
   if (param_ != nullptr) {
-    return param->copyTo(*param_);
+    ;
+    // return param->copyTo(*param_);
   }
   return base::kStatusCodeErrorNullParam;
 }
@@ -72,7 +73,7 @@ base::Status Task::deinit() {
   return base::kStatusCodeOk;
 }
 
-base::ShapeMap Task::inferOuputShape() { return base::ShapeMap(); }
+base::Status Task::reShape() { return base::kStatusCodeOk; }
 
 }  // namespace task
 }  // namespace nndeploy

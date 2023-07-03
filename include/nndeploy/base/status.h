@@ -105,7 +105,7 @@ class NNDEPLOY_CC_API Status {
 #define NNDEPLOY_CHECK_PARAM_NULL(param)           \
   do {                                             \
     if (!param) {                                  \
-      return Status(kStatusCodeErrorInvalidParam); \
+      return nndeploy::base::Status(nndeploy::base::kStatusCodeErrorInvalidParam); \
     }                                              \
   } while (0)
 

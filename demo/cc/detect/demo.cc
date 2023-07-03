@@ -1,5 +1,5 @@
 #include "nndeploy/base/glic_stl_include.h"
-#include "nndeploy/base/time_measurement.h"
+#include "nndeploy/base/time_profiler.h"
 #include "nndeploy/task/detect/opencv/detr.h"
 #include "nndeploy/task/task.h"
 

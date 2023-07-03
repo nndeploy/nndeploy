@@ -48,7 +48,7 @@ class Task {
   virtual base::Status init();
   virtual base::Status deinit();
 
-  virtual base::ShapeMap inferOuputShape();
+  virtual base::Status reShape();
 
   virtual base::Status run() = 0;
 

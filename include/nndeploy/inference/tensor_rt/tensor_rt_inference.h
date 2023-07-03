@@ -10,7 +10,7 @@
 #include "nndeploy/base/value.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/inference/inference.h"
+#include "nndeploy/inference/abstract_inference.h"
 #include "nndeploy/inference/inference_param.h"
 #include "nndeploy/inference/tensor_rt/tensor_rt_include.h"
 #include "nndeploy/inference/tensor_rt/tensor_rt_inference_param.h"
@@ -19,7 +19,7 @@
 namespace nndeploy {
 namespace inference {
 
-class TensorRtInference : public Inference {
+class TensorRtInference : public AbstractInference {
  public:
   TensorRtInference();
   virtual ~TensorRtInference();

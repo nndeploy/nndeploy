@@ -10,10 +10,10 @@
 namespace nndeploy {
 namespace base {
 
-class NNDEPLOY_CC_API TimeMeasurement : public NonCopyable {
+class NNDEPLOY_CC_API TimeProfiler : public NonCopyable {
  public:
-  TimeMeasurement();
-  virtual ~TimeMeasurement();
+  TimeProfiler();
+  virtual ~TimeProfiler();
 
   void start(const std::string &name);
   void end(const std::string &name);

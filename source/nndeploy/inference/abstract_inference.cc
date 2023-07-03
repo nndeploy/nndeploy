@@ -1,61 +1,71 @@
 
-#include "nndeploy/inference/inference.h"
+#include "nndeploy/inference/abstract_inference.h"
 
 namespace nndeploy {
 namespace inference {
 
-Inference::Inference(base::InferenceType type) {
+AbstractInference::AbstractInference(base::InferenceType type) {
   type_ = type;
   inference_param_ = createInferenceParam(type);
 }
 
-Inference::~Inference() { delete inference_param_; }
+AbstractInference::~AbstractInference() { delete inference_param_; }
 
-base::InferenceType Inference::getInferenceType() { return type_; }
+base::InferenceType AbstractInference::getInferenceType() { return type_; }
 
-base::Param *Inference::getParam() {
+base::Param *AbstractInference::getParam() {
   return dynamic_cast<base::Param *>(inference_param_);
 }
 
-bool Inference::isDynamicShape() { return inference_param_->is_dynamic_shape_; }
-base::ShapeMap Inference::getMinShape() { return inference_param_->min_shape_; }
-base::ShapeMap Inference::getOptShape() { return inference_param_->opt_shape_; }
-base::ShapeMap Inference::getMaxShape() { return inference_param_->max_shape_; }
+bool AbstractInference::isDynamicShape() {
+  return inference_param_->is_dynamic_shape_;
+}
+base::ShapeMap AbstractInference::getMinShape() {
+  return inference_param_->min_shape_;
+}
+base::ShapeMap AbstractInference::getOptShape() {
+  return inference_param_->opt_shape_;
+}
+base::ShapeMap AbstractInference::getMaxShape() {
+  return inference_param_->max_shape_;
+}
 
-int64_t Inference::getMemorySize() {
+int64_t AbstractInference::getMemorySize() {
   NNDEPLOY_LOGI("this api is not implemented");
   return -1;
 }
-int64_t Inference::getMemorySize(int index) {
+int64_t AbstractInference::getMemorySize(int index) {
   NNDEPLOY_LOGI("this api is not implemented");
   return -1;
 }
-base::Status Inference::setMemory(device::Buffer *buffer) {
+base::Status AbstractInference::setMemory(device::Buffer *buffer) {
   NNDEPLOY_LOGI("this api is not implemented");
   return base::kStatusCodeOk;
 }
 
-float Inference::getGFLOPs() {
+float AbstractInference::getGFLOPs() {
   NNDEPLOY_LOGI("this api is not implemented");
   return 0.0f;
 }
 
-bool Inference::isShareCommanQueue() { return is_share_command_queue_; }
+bool AbstractInference::isShareCommanQueue() { return is_share_command_queue_; }
+bool AbstractInference::isBatch() { return is_batch_; }
+bool AbstractInference::isInputDynamic() { return is_input_dynamic_; }
+bool AbstractInference::isOutputDynamic() { return is_output_dynamic_; }
+bool AbstractInference::canOpInput() { return can_op_input_; }
+bool AbstractInference::canOpOutput() { return can_op_output_; }
 
-bool Inference::canOpInputTensor() { return can_op_input_tensor_; }
-bool Inference::canOpOutputTensor() { return can_op_output_tensor_; }
+int AbstractInference::getNumOfInputTensor() { return input_tensors_.size(); }
+int AbstractInference::getNumOfOutputTensor() { return output_tensors_.size(); }
 
-int Inference::getNumOfInputTensor() { return input_tensors_.size(); }
-int Inference::getNumOfOutputTensor() { return output_tensors_.size(); }
-
-base::IntVector Inference::getInputShape(const std::string &name) {
+base::IntVector AbstractInference::getInputShape(const std::string &name) {
   if (input_tensors_.count(name) > 0) {
     return input_tensors_[name]->getDesc().shape_;
   } else {
     return base::IntVector();
   }
 }
-base::ShapeMap Inference::getAllInputShape() {
+base::ShapeMap AbstractInference::getAllInputShape() {
   base::ShapeMap input_shap;
   for (auto &tensor : input_tensors_) {
     input_shap.insert({tensor.first, tensor.second->getDesc().shape_});
@@ -63,7 +73,7 @@ base::ShapeMap Inference::getAllInputShape() {
   return input_shap;
 }
 
-std::string Inference::getInputName(int i) {
+std::string AbstractInference::getInputName(int i) {
   std::vector<std::string> names = getAllInputTensorName();
   if (i < names.size()) {
     return names[i];
@@ -71,7 +81,7 @@ std::string Inference::getInputName(int i) {
     return "";
   }
 }
-std::string Inference::getOutputName(int i) {
+std::string AbstractInference::getOutputName(int i) {
   std::vector<std::string> names = getAllOutputTensorName();
   if (i < names.size()) {
     return names[i];
@@ -80,14 +90,14 @@ std::string Inference::getOutputName(int i) {
   }
 }
 
-std::vector<std::string> Inference::getAllInputTensorName() {
+std::vector<std::string> AbstractInference::getAllInputTensorName() {
   std::vector<std::string> input_tensor_names;
   for (auto &tensor : input_tensors_) {
     input_tensor_names.push_back(tensor.first);
   }
   return input_tensor_names;
 }
-std::vector<std::string> Inference::getAllOutputTensorName() {
+std::vector<std::string> AbstractInference::getAllOutputTensorName() {
   std::vector<std::string> output_tensor_names;
   for (auto &tensor : output_tensors_) {
     output_tensor_names.push_back(tensor.first);
@@ -95,29 +105,15 @@ std::vector<std::string> Inference::getAllOutputTensorName() {
   return output_tensor_names;
 }
 
-device::TensorDesc Inference::getInputTensorDesc(const std::string &name) {
+device::TensorDesc AbstractInference::getInputTensorDesc(
+    const std::string &name) {
   if (input_tensors_.count(name) > 0) {
     return input_tensors_[name]->getDesc();
   } else {
     return device::TensorDesc();
   }
 }
-device::TensorDesc Inference::getOutputTensorDesc(const std::string &name) {
-  if (output_tensors_.count(name) > 0) {
-    return output_tensors_[name]->getDesc();
-  } else {
-    return device::TensorDesc();
-  }
-}
-
-device::TensorDesc Inference::getInputTensorAlignDesc(const std::string &name) {
-  if (input_tensors_.count(name) > 0) {
-    return input_tensors_[name]->getDesc();
-  } else {
-    return device::TensorDesc();
-  }
-}
-device::TensorDesc Inference::getOutputTensorAlignDesc(
+device::TensorDesc AbstractInference::getOutputTensorDesc(
     const std::string &name) {
   if (output_tensors_.count(name) > 0) {
     return output_tensors_[name]->getDesc();
@@ -126,21 +122,40 @@ device::TensorDesc Inference::getOutputTensorAlignDesc(
   }
 }
 
-std::map<std::string, device::Tensor *> Inference::getAllInputTensorMap() {
+device::TensorDesc AbstractInference::getInputTensorAlignDesc(
+    const std::string &name) {
+  if (input_tensors_.count(name) > 0) {
+    return input_tensors_[name]->getDesc();
+  } else {
+    return device::TensorDesc();
+  }
+}
+device::TensorDesc AbstractInference::getOutputTensorAlignDesc(
+    const std::string &name) {
+  if (output_tensors_.count(name) > 0) {
+    return output_tensors_[name]->getDesc();
+  } else {
+    return device::TensorDesc();
+  }
+}
+
+std::map<std::string, device::Tensor *>
+AbstractInference::getAllInputTensorMap() {
   return input_tensors_;
 }
-std::map<std::string, device::Tensor *> Inference::getAllOutputTensorMap() {
+std::map<std::string, device::Tensor *>
+AbstractInference::getAllOutputTensorMap() {
   return output_tensors_;
 }
 
-std::vector<device::Tensor *> Inference::getAllInputTensorVector() {
+std::vector<device::Tensor *> AbstractInference::getAllInputTensorVector() {
   std::vector<device::Tensor *> input_tensor;
   for (auto &tensor : input_tensors_) {
     input_tensor.push_back(tensor.second);
   }
   return input_tensor;
 }
-std::vector<device::Tensor *> Inference::getAllOutputTensorVector() {
+std::vector<device::Tensor *> AbstractInference::getAllOutputTensorVector() {
   std::vector<device::Tensor *> output_tensor;
   for (auto &tensor : output_tensors_) {
     output_tensor.push_back(tensor.second);
@@ -148,14 +163,14 @@ std::vector<device::Tensor *> Inference::getAllOutputTensorVector() {
   return output_tensor;
 }
 
-device::Tensor *Inference::getInputTensor(const std::string &name) {
+device::Tensor *AbstractInference::getInputTensor(const std::string &name) {
   if (input_tensors_.count(name) > 0) {
     return input_tensors_[name];
   } else {
     return nullptr;
   }
 }
-device::Tensor *Inference::getOutputTensor(const std::string &name) {
+device::Tensor *AbstractInference::getOutputTensor(const std::string &name) {
   if (output_tensors_.count(name) > 0) {
     return output_tensors_[name];
   } else {
@@ -163,8 +178,8 @@ device::Tensor *Inference::getOutputTensor(const std::string &name) {
   }
 }
 
-base::Status Inference::setInputTensor(const std::string &name,
-                                       device::Tensor *input_tensor) {
+base::Status AbstractInference::setInputTensor(const std::string &name,
+                                               device::Tensor *input_tensor) {
   base::Status status = base::kStatusCodeOk;
 
   std::string new_name = "";
@@ -187,8 +202,8 @@ base::Status Inference::setInputTensor(const std::string &name,
   return status;
 }
 //
-base::Status Inference::setOutputTensor(const std::string &name,
-                                        device::Tensor *output_tensor) {
+base::Status AbstractInference::setOutputTensor(const std::string &name,
+                                                device::Tensor *output_tensor) {
   base::Status status = base::kStatusCodeOk;
 
   std::string new_name = "";
@@ -224,8 +239,8 @@ getGlobalInferenceCreatorMap() {
   return *creators;
 }
 
-Inference *createInference(base::InferenceType type) {
-  Inference *temp = nullptr;
+AbstractInference *createInference(base::InferenceType type) {
+  AbstractInference *temp = nullptr;
   auto &creater_map = getGlobalInferenceCreatorMap();
   if (creater_map.count(type) > 0) {
     temp = creater_map[type]->createInference(type);

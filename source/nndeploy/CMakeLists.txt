@@ -123,11 +123,11 @@ if(ENABLE_NNDEPLOY_TASK)
   endif()
   set(TASK_SOURCE ${TASK_SOURCE} ${TASK_PRE_PROCESS_SOURCE})
 
-  file(GLOB_RECURSE TASK_TEMPLATE_INFERENCE_SOURCE
-    "${ROOT_PATH}/include/nndeploy/task/template_inference/*.h"
-    "${ROOT_PATH}/source/nndeploy/task/template_inference/*.cc"
+  file(GLOB_RECURSE TASK_INFERENCE_SOURCE
+    "${ROOT_PATH}/include/nndeploy/task/inference/*.h"
+    "${ROOT_PATH}/source/nndeploy/task/inference/*.cc"
   )
-  set(TASK_SOURCE ${TASK_SOURCE} ${TASK_TEMPLATE_INFERENCE_SOURCE})
+  set(TASK_SOURCE ${TASK_SOURCE} ${TASK_INFERENCE_SOURCE})
 
   file(GLOB TASK_POST_PROCESS_SOURCE
     "${ROOT_PATH}/include/nndeploy/task/post_process/*.h"

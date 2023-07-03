@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_INFERENCE_INFERENCE_H_
-#define _NNDEPLOY_INFERENCE_INFERENCE_H_
+#ifndef _NNDEPLOY_INFERENCE_ABSTRACT_INFERENCE_H_
+#define _NNDEPLOY_INFERENCE_ABSTRACT_INFERENCE_H_
 
 #include "nndeploy/base/basic.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -19,10 +19,10 @@
 namespace nndeploy {
 namespace inference {
 
-class Inference {
+class AbstractInference {
  public:
-  Inference(base::InferenceType type);
-  virtual ~Inference();
+  AbstractInference(base::InferenceType type);
+  virtual ~AbstractInference();
 
   base::InferenceType getInferenceType();
 
@@ -42,10 +42,12 @@ class Inference {
   virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual float getGFLOPs();
+  virtual bool isBatch();
   virtual bool isShareCommanQueue();
-
-  virtual bool canOpInputTensor();
-  virtual bool canOpOutputTensor();
+  virtual bool isInputDynamic();
+  virtual bool isOutputDynamic();
+  virtual bool canOpInput();
+  virtual bool canOpOutput();
 
   virtual int getNumOfInputTensor();
   virtual int getNumOfOutputTensor();
@@ -85,9 +87,11 @@ class Inference {
   InferenceParam *inference_param_;
 
   bool is_share_command_queue_ = false;
-
-  bool can_op_input_tensor_ = false;
-  bool can_op_output_tensor_ = false;
+  bool is_batch_ = false;
+  bool is_input_dynamic_ = false;
+  bool is_output_dynamic_ = false;
+  bool can_op_input_ = false;
+  bool can_op_output_ = false;
 
   std::map<std::string, device::Tensor *> input_tensors_;
   std::map<std::string, device::Tensor *> output_tensors_;
@@ -99,12 +103,12 @@ class Inference {
 class InferenceCreator {
  public:
   virtual ~InferenceCreator(){};
-  virtual Inference *createInference(base::InferenceType type) = 0;
+  virtual AbstractInference *createInference(base::InferenceType type) = 0;
 };
 
 template <typename T>
 class TypeInferenceCreator : public InferenceCreator {
-  virtual Inference *createInference(base::InferenceType type) {
+  virtual AbstractInference *createInference(base::InferenceType type) {
     return new T(type);
   }
 };
@@ -120,7 +124,7 @@ class TypeInferenceRegister {
   }
 };
 
-Inference *createInference(base::InferenceType type);
+AbstractInference *createInference(base::InferenceType type);
 
 }  // namespace inference
 }  // namespace nndeploy

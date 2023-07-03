@@ -96,45 +96,45 @@ class NNDEPLOY_CC_API Packet {
 #endif
 
   template <typename T>
-  T *get(int index = 0)();
-  template <Device::Buffer>
-  T *get(int index = 0)() {
+  T *get(int index = 0);
+  template <>
+  device::Buffer *get<device::Buffer>(int index) {
     if (index >= buffers_.size()) {
       return nullptr;
     }
     return buffers_[index];
   }
-  template <Device::Mat>
-  T *get(int index = 0)() {
+  template <>
+  device::Mat *get<device::Mat>(int index) {
     if (index >= mats_.size()) {
       return nullptr;
     }
     return mats_[index];
   }
-  template <Device::Tensor>
-  T *get(int index = 0)() {
+  template <>
+  device::Tensor *get<device::Tensor>(int index) {
     if (index >= tensors_.size()) {
       return nullptr;
     }
     return tensors_[index];
   }
-  template <base::Param>
-  T *get(int index = 0)() {
+  template <>
+  base::Param *get<base::Param>(int index) {
     if (index >= params_.size()) {
       return nullptr;
     }
     return params_[index];
   }
-  template <void>
-  T *get(int index = 0)() {
+  template <>
+  void *get<void>(int index) {
     if (index >= anythings_.size()) {
       return nullptr;
     }
     return anythings_[index];
   }
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  template <cv::Mat>
-  T *get(int index = 0)() {
+  template <>
+  cv::Mat *get<cv::Mat>(int index) {
     if (index >= cv_mats_.size()) {
       return nullptr;
     }
@@ -144,29 +144,29 @@ class NNDEPLOY_CC_API Packet {
 
   template <typename T>
   std::vector<T *> getAll() {}
-  template <Device::Buffer>
-  std::vector<T *> getAll()() {
+  template <>
+  std::vector<device::Buffer *> getAll<device::Buffer>() {
     return buffers_;
   }
-  template <Device::Mat>
-  std::vector<T *> getAll()() {
+  template <>
+  std::vector<device::Mat *> getAll<device::Mat>() {
     return mats_;
   }
-  template <Device::Tensor>
-  std::vector<T *> getAll()() {
+  template <>
+  std::vector<device::Tensor *> getAll<device::Tensor>() {
     return tensors_;
   }
-  template <base::Param>
-  std::vector<T *> getAll()() {
+  template <>
+  std::vector<base::Param *> getAll<base::Param>() {
     return params_;
   }
-  template <void>
-  std::vector<T *> getAll()() {
+  template <>
+  std::vector<void *> getAll<void>() {
     return anythings_;
   }
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  template <cv::Mat>
-  std::vector<T *> getAll()() {
+  template <>
+  std::vector<cv::Mat *> getAll<cv::Mat>() {
     return cv_mats_;
   }
 #endif
@@ -256,108 +256,106 @@ class NNDEPLOY_CC_API Packet {
 
   template <typename T>
   void clear();
-  template <Task::Packet>
-  void clear() {
-    clear<Device::Buffer>();
-    clear<Device::Mat>();
-    clear<Device::Tensor>();
+
+  template<>
+  void clear<Packet>() {
+    clear<device::Buffer>();
+    clear<device::Mat>();
+    clear<device::Tensor>();
     clear<base::Param>();
     clear<void>();
 #ifdef ENABLE_NNDEPLOY_OPENCV
     clear<cv::Mat>();
 #endif
   }
-  template <Device::Buffer>
-  void clear() {
+  template <>
+  void clear<device::Buffer>() {
     buffers_.clear();
   }
-  template <Device::Mat>
-  void clear() {
+  template <>
+  void clear<device::Mat>() {
     mats_.clear();
   }
-  template <Device::Tensor>
-  void clear() {
+  template <>
+  void clear<device::Tensor>() {
     tensors_.clear();
   }
-  template <base::Param>
-  void clear() {
+  template <>
+  void clear<base::Param>() {
     params_.clear();
   }
-  template <void>
-  void clear() {
+  template <>
+  void clear<void>() {
     anythings_.clear();
   }
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  template <cv::Mat>
-  void clear() {
-    cv_mats_.clear();
-  }
+  template void clear<cv::Mat>() { cv_mats_.clear(); }
 #endif
 
   template <typename T>
   bool empty();
-  template <Task::Packet>
-  bool empty() {
-    bool flag = empty<Device::Buffer>() && empty<Device::Mat>() &&
-                empty<Device::Tensor>() && empty<base::Param>() &&
+  template <>
+  bool empty<Packet>() {
+    bool flag = empty<device::Buffer>() && empty<device::Mat>() &&
+                empty<device::Tensor>() && empty<base::Param>() &&
                 empty<void>();
 #ifdef ENABLE_NNDEPLOY_OPENCV
     flag = flag && empty<cv::Mat>();
 #endif
     return flag;
   }
-  template <Device::Buffer>
-  bool empty() {
+  template <>
+  bool empty<device::Buffer>() {
     return buffers_.empty();
   }
-  template <Device::Mat>
-  bool empty() {
+  template <>
+  bool empty<device::Mat>() {
     return mats_.empty();
   }
-  template <Device::Tensor>
-  bool empty() {
+  template <>
+  bool empty<device::Tensor>() {
     return tensors_.empty();
   }
-  template <base::Param>
-  bool empty() {
+  template <>
+  bool empty<base::Param>() {
     return params_.empty();
   }
-  template <void>
-  bool empty() {
+  template <>
+  bool empty<void>() {
     return anythings_.empty();
   }
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  template <cv::Mat>
-  bool empty() {
+  template <>
+  bool empty<cv::Mat>() {
     return cv_mats_.empty();
   }
 #endif
 
   template <typename T>
-  size_t size()();
-  template <Device::Buffer>
-  size_t size()() {
+  size_t size();
+  template <>
+  size_t size<device::Buffer>() {
     return buffers_.size();
   }
-  template <Device::Mat>
-  size_t size()() {
+  template <>
+  size_t size<device::Mat>() {
     return mats_.size();
   }
-  template <Device::Tensor>
-  size_t size()() {
+  template <>
+  size_t size<device::Tensor>() {
     return tensors_.size();
   }
-  template <base::Param>
-  size_t size()() {
+  template <>
+  size_t size<base::Param>() {
     return params_.size();
   }
-  template <void>
-  size_t size()() {
+  template <>
+  size_t size<void>() {
     return anythings_.size();
   }
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  template <cv::Mat>
-  size_t size()() {
+  template <>
+  size_t size<cv::Mat>() {
     return cv_mats_.size();
   }
 #endif

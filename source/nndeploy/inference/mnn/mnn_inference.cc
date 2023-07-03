@@ -7,7 +7,7 @@ namespace inference {
 TypeInferenceRegister<TypeInferenceCreator<MnnInference>>
     g_internal_inference_register(base::kInferenceTypeMnn);
 
-MnnInference::MnnInference(base::InferenceType type) : Inference(type) {
+MnnInference::MnnInference(base::InferenceType type) : AbstractInference(type) {
   internal_inference_param_ = nullptr;
   internal_interpreter_ = nullptr;
   internal_session_ = nullptr;

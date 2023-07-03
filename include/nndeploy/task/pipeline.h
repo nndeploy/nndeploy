@@ -13,17 +13,18 @@
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/inference/inference.h"
+#include "nndeploy/inference/abstract_inference.h"
 #include "nndeploy/inference/inference_param.h"
+#include "nndeploy/task/inference/inference.h"
 #include "nndeploy/task/packet.h"
 #include "nndeploy/task/task.h"
 
 namespace nndeploy {
 namespace task {
 
-class PacketWrapper;
-
 class TaskWrapper;
+
+class PacketWrapper;
 
 enum TopoSortType : int32_t { kTopoSortTypeBFS = 0x0000, kTopoSortTypeDFS };
 
@@ -37,37 +38,40 @@ class Pipeline : public Task {
   Pipeline(const std::string& name, Packet* input, Packet* output);
   Pipeline(const std::string& name, std::vector<Packet*> inputs,
            std::vector<Packet*> outputs);
-  virtual ~Pipeline();
+  ~Pipeline();
 
-  virtual Packet* createPacket(const std::string& name = "");
-  virtual base::Status addPacket(Packet* packet);
+  Packet* createPacket(const std::string& name = "");
+  base::Status addPacket(Packet* packet);
 
   template <typename T>
-  virtual Task* createTask(const std::string& name, Packet* input,
-                           Packet* output);
-  virtual Task* createTask(const std::string& name, std::vector<Packet*> inputs,
-                           std::vector<Packet*> outputs);
-  virtual base::Status addTask(Task* task);
+  Task* createTask(const std::string& name, Packet* input, Packet* output);
+  template <typename T>
+  Task* createTask(const std::string& name, std::vector<Packet*> inputs,
+                   std::vector<Packet*> outputs);
+  template <typename T>
+  Task* createInference(const std::string& name, base::InferenceType type,
+                        Packet* input, Packet* output);
+  base::Status addTask(Task* task);
 
-  virtual base::Status init();
-  virtual base::Status deinit();
+  base::Status init();
+  base::Status deinit();
 
-  virtual base::ShapeMap inferOuputShape();
+  base::Status reShape();
 
-  virtual base::Status run();
+  base::Status run();
 
-  // virtual base::Status dump(std::ostream& oss = std::cout);
+  //  base::Status dump(std::ostream& oss = std::cout);
 
  protected:
   PacketWrapper* findPacketWrapper(Packet* packet);
-  task_wrapper* findTaskWrapper(Task* task);
+  TaskWrapper* findTaskWrapper(Task* task);
 
-  std::vector<task_wrapper*> findStartTasks();
-  std::vector<task_wrapper*> findEndTasks();
+  std::vector<TaskWrapper*> findStartTasks();
+  std::vector<TaskWrapper*> findEndTasks();
 
-  base::Status TopoSortBFS(task_wrapper* task_wrapper);
-  base::Status TopoSortDFS(task_wrapper* task_wrapper,
-                           std::stack<task_wrapper*> dst);
+  base::Status TopoSortBFS(TaskWrapper* task_wrapper);
+  base::Status TopoSortDFS(TaskWrapper* task_wrapper,
+                           std::stack<TaskWrapper*>& dst);
   base::Status topologicalSort();
 
  protected:
@@ -76,6 +80,23 @@ class Pipeline : public Task {
 
   std::vector<std::vector<Task*>> topo_sort_task_;
 };
+
+// using cretePipelineFunc = Pipeline* (*)(const std::string& name,
+//                                         base::InferenceType type, Packet*
+//                                         input, Packet* output);
+//
+// std::map<std::string, cretePipelineFunc>& getGlobalPipelineCreatorMap();
+//
+// class TypePipelineRegister {
+//  public:
+//   explicit TypePipelineRegister(const std::string& name, cretePipelineFuncs
+//   func) {
+//     getGlobalPipelineCreatorMap()[name] = func;
+//   }
+// };
+//
+// Pipeline* cretePipeline(const std::string& name, base::InferenceType type,
+//                         Packet* input, Packet* output);
 
 }  // namespace task
 }  // namespace nndeploy

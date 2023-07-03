@@ -1,5 +1,5 @@
 
-#include "nndeploy/base/time_measurement.h"
+#include "nndeploy/base/time_profiler.h"
 
 namespace nndeploy {
 namespace base {
@@ -15,11 +15,11 @@ struct TimePoint {
   std::chrono::high_resolution_clock::time_point std_tp_;
 };
 
-TimeMeasurement::TimeMeasurement() {}
+TimeProfiler::TimeProfiler() {}
 
-TimeMeasurement::~TimeMeasurement() {}
+TimeProfiler::~TimeProfiler() {}
 
-void TimeMeasurement::start(const std::string &name) {
+void TimeProfiler::start(const std::string &name) {
   if (name.empty()) {
     return;
   }
@@ -29,7 +29,7 @@ void TimeMeasurement::start(const std::string &name) {
   name_to_start_time_[name] = std::chrono::high_resolution_clock::now();
 }
 
-void TimeMeasurement::end(const std::string &name) {
+void TimeProfiler::end(const std::string &name) {
   if (name.empty()) {
     return;
   }
@@ -39,7 +39,7 @@ void TimeMeasurement::end(const std::string &name) {
   name_to_end_time_[name] = std::chrono::high_resolution_clock::now();
 }
 
-void TimeMeasurement::download(const std::string &path) {
+void TimeProfiler::download(const std::string &path) {
   // if (path.empty()) {
   //   return;
   // }
