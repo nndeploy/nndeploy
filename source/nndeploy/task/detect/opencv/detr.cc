@@ -90,7 +90,8 @@ base::Status DetrPostProcess::run() {
 }
 
 Pipeline* creatDetrPipeline(const std::string& name, base::InferenceType type,
-                            Packet* input, Packet* output) {
+                            Packet* input, Packet* output, bool is_path,
+                            std::vector<std::string>& model_value) {
   Pipeline* pipeline = new Pipeline(name, type, input, output);
   Packet* infer_input = pipeline->createPacket();
   Packet* infer_output = pipeline->createPacket();
@@ -105,17 +106,23 @@ Pipeline* creatDetrPipeline(const std::string& name, base::InferenceType type,
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeBGR;
   pre_param->interp_type_ = base::kInterpTypeLinear;
-
   pre_param->mean_[0] = 0.485f;
   pre_param->mean_[1] = 0.456f;
   pre_param->mean_[2] = 0.406f;
-
   pre_param->std_[0] = 0.229f;
   pre_param->std_[1] = 0.224f;
   pre_param->std_[2] = 0.225f;
 
-  return task;
+  inference::InferenceParam* inference_param =
+      (inference::InferenceParam*)(infer->getInferenceParam());
+  inference_param->is_path_ = is_path;
+  inference_param->model_value_ = model_value;
+  inference_param->device_type_ = device::getDefaultHostDeviceType();
+
+  return pipeline;
 }
+
+int test() { return 1; }
 
 }  // namespace opencv
 }  // namespace task

@@ -28,14 +28,14 @@ namespace nndeploy {
 namespace task {
 namespace opencv {
 
-class DetrPostParam : public base::Param {
+class NNDEPLOY_CC_API DetrPostParam : public base::Param {
  public:
   float score_threshold_ = 0.7f;
 };
 
-class DetrPostProcess : public Task {
+class NNDEPLOY_CC_API DetrPostProcess : public Task {
  public:
-  DetrPostProcess(const std::string& name = "", Packet* input, Packet* output)
+  DetrPostProcess(const std::string& name, Packet* input, Packet* output)
       : Task(name, input, output) {
     param_ = std::make_shared<DetrPostParam>();
   }
@@ -47,8 +47,11 @@ class DetrPostProcess : public Task {
   DetectResults results_;
 };
 
-Pipeline* creatDetrPipeline(const std::string& name, base::InferenceType type,
-                            Packet* input, Packet* output);
+extern NNDEPLOY_CC_API Pipeline* creatDetrPipeline(
+    const std::string& name, base::InferenceType type, Packet* input,
+    Packet* output, bool is_path, std::vector<std::string>& model_value);
+
+extern NNDEPLOY_CC_API int test();
 
 }  // namespace opencv
 }  // namespace task

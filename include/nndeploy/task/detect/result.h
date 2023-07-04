@@ -10,7 +10,7 @@ namespace task {
  * @brief Detect Result
  *
  */
-class DetectResult : public base::Param {
+class NNDEPLOY_CC_API DetectResult : public base::Param {
  public:
   int index_;
   int label_id_;
@@ -19,7 +19,7 @@ class DetectResult : public base::Param {
   device::Mat mask_;
 };
 
-class DetectResults : public base::Param {
+class NNDEPLOY_CC_API DetectResults : public base::Param {
  public:
   std::vector<DetectResult> result_;
 };

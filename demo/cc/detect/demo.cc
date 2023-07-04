@@ -34,42 +34,44 @@ using namespace nndeploy;
 // }
 
 int main(int argc, char *argv[]) {
-  base::TimeMeasurement *tm = new base::TimeMeasurement();
+  base::TimeProfiler *tp = new base::TimeProfiler();
 
   std::string name = "opencv_detr";
   base::InferenceType type = base::kInferenceTypeMnn;
-
-  task::Task *task = task::creteTask(name, type);
-  if (task == nullptr) {
-    NNDEPLOY_LOGE("task is nullptr");
-    return -1;
-  }
-  inference::InferenceParam *inference_param =
-      (inference::InferenceParam *)(task->getInferenceParam());
-  inference_param->is_path_ = true;
-  inference_param->model_value_.push_back(
+  bool is_path = true;
+  std::vector<std::string> model_value;
+  model_value.push_back(
       "/home/always/Downloads/TRT2021-MedcareAILab/detr_sim_onnx.mnn");
-  inference_param->device_type_ = device::getDefaultHostDeviceType();
 
-  NNDEPLOY_LOGE("task->init()");
+  // task::Packet input;
+  // task::Packet output;
+  // task::Pipeline *pipeline = task::opencv::creatDetrPipeline(
+  //     name, type, &input, &output, true, model_value);
+  // if (pipeline == nullptr) {
+  //   NNDEPLOY_LOGE("pipeline is nullptr");
+  //   return -1;
+  // }
 
-  task->init();
+  // NNDEPLOY_LOGE("task->init()");
 
-  cv::Mat input_mat =
-      cv::imread("/home/always/github/TensorRT-DETR/cpp/res.jpg");
-  task::Packet input(input_mat);
-  task::Packet output;
+  // pipeline->init();
+  // cv::Mat input_mat =
+  //     cv::imread("/home/always/github/TensorRT-DETR/cpp/res.jpg");
+  // input.set(input_mat);
 
-  NNDEPLOY_LOGE("task->run()");
+  // NNDEPLOY_LOGE("task->run()");
+  // pipeline->run();
 
-  task->setInput(input);
-  task->setOutput(output);
-  task->run();
+  // // draw_box(input_mat, results);
+  // cv::imwrite("/home/always/github/TensorRT-DETR/cpp/res_again.jpg",
+  // input_mat);
 
-  // draw_box(input_mat, results);
-  NNDEPLOY_LOGE("task->deinit()");
-  cv::imwrite("/home/always/github/TensorRT-DETR/cpp/res_again.jpg", input_mat);
-  task->deinit();
+  // NNDEPLOY_LOGE("task->deinit()");
+  // pipeline->deinit();
+
+  // delete pipeline;
+
+  task::opencv::test();
 
   printf("hello world!\n");
   return 0;
