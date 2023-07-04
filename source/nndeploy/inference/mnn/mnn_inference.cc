@@ -119,7 +119,7 @@ base::Status MnnInference::deinit() {
 
   bool third_status = internal_interpreter_->releaseSession(internal_session_);
   if (!third_status) {
-    NNDEPLOY_LOG_ERROR("%s\n", "releaseSession failed")
+    NNDEPLOY_LOGE("%s\n", "releaseSession failed");
     return base::kStatusCodeErrorInferenceMnn;
   }
 

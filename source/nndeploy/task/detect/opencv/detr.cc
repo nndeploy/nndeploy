@@ -45,8 +45,8 @@ base::Status DetrPostProcess::run() {
 
   device::Tensor* tensor_logits = nullptr;
   device::Tensor* tensor_boxes = nullptr;
-  for (int i = 0; i < input_->getTensorSize(); ++i) {
-    device::Tensor* tensor = input_->getTensor(i);
+  for (int i = 0; i < inputs_[0]->getTensorSize(); ++i) {
+    device::Tensor* tensor = inputs_[0]->getTensor(i);
     if (tensor->getName() == "pred_logits") {
       tensor_logits = tensor;
     } else if (tensor->getName() == "pred_boxes") {
@@ -84,7 +84,7 @@ base::Status DetrPostProcess::run() {
       results_.result_.emplace_back(result);
     }
   }
-  output_->add(results_);
+  outputs_[0]->add(results_);
 
   return base::kStatusCodeOk;
 }

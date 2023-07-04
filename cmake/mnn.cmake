@@ -1,7 +1,8 @@
 
 include(ExternalProject)
 
-if (ENABLE_NNDEPLOY_INFERENCE_MNN STREQUAL "ON")
+if (ENABLE_NNDEPLOY_INFERENCE_MNN STREQUAL "OFF")
+elseif (ENABLE_NNDEPLOY_INFERENCE_MNN STREQUAL "ON")
   message(STATUS "ENABLE_NNDEPLOY_INFERENCE_MNN: ${ENABLE_NNDEPLOY_INFERENCE_MNN}")
 else()
   include_directories(${ENABLE_NNDEPLOY_INFERENCE_MNN}/include)
@@ -13,6 +14,6 @@ else()
   endif()
   set(tmp_path ${ENABLE_NNDEPLOY_INFERENCE_MNN}/lib/x86/Release)
   set(full_name ${tmp_path}/${tmp_name})
-  set(TMP_THIRD_PARTY_LIBRARY ${TMP_THIRD_PARTY_LIBRARY} ${full_name})
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${full_name})
   install(FILES ${full_name} DESTINATION ${NNDEPLOY_INSTALL_PATH})
 endif()

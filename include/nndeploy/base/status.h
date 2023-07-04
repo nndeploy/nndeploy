@@ -110,8 +110,7 @@ class NNDEPLOY_CC_API Status {
   do {                                                   \
     if (!param) {                                        \
       NNDEPLOY_LOGE("%s\n", str);                        \
-      return nndeploy::base::Status(                     \
-          nndeploy::base::kStatusCodeErrorNullParam);    \
+      return nndeploy::base::kStatusCodeErrorNullParam;  \
     }                                                    \
   } while (0)
 
@@ -119,7 +118,7 @@ class NNDEPLOY_CC_API Status {
   do {                                                 \
     if (!param) {                                      \
       NNDEPLOY_LOGE("%s\n", str);                      \
-      return param;                                    \
+      return nullptr;                                  \
     }                                                  \
   } while (0)
 

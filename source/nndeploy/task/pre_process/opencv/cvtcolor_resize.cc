@@ -5,11 +5,11 @@ namespace nndeploy {
 namespace task {
 namespace opencv {
 
-virtual base::Status CvtColrResize::run() {
+base::Status CvtColrResize::run() {
   CvtclorResizeParam* tmp_param =
       dynamic_cast<CvtclorResizeParam*>(param_.get());
-  cv::Mat* src = input_->getCvMat();
-  device::Tensor* dst = output_->getTensor();
+  cv::Mat* src = inputs_[0]->getCvMat();
+  device::Tensor* dst = outputs_[0]->getTensor();
 
   int c = dst->getShapeIndex(1);
   int h = dst->getShapeIndex(2);
@@ -24,18 +24,17 @@ virtual base::Status CvtColrResize::run() {
       NNDEPLOY_LOGE("cvtColor type not support");
       return base::kStatusCodeErrorNotSupport;
     }
-    int cv_cvt_type = OpencvConvert::convertFromCvtColorType(cvt_type);
+    int cv_cvt_type = Convert::convertFromCvtColorType(cvt_type);
     cv::cvtColor(tmp, tmp, cv_cvt_type);
   }
 
   if (tmp_param->interp_type_ != base::kInterpTypeNotSupport) {
-    int interp_type =
-        OpencvConvert::convertFromInterpType(tmp_param->interp_type_);
+    int interp_type = Convert::convertFromInterpType(tmp_param->interp_type_);
     cv::resize(*src, tmp, cv::Size(w, h), 0.0, 0.0, interp_type);
   }
 
-  OpencvConvert::convertToTensor(tmp, dst, tmp_param->scale_, tmp_param->mean_,
-                                 tmp_param->std_);
+  Convert::convertToTensor(tmp, dst, tmp_param->scale_, tmp_param->mean_,
+                           tmp_param->std_);
 
   return base::kStatusCodeOk;
 }

@@ -2,6 +2,7 @@
 #################### common ####################
 set(GLOBAL_COMMON_THIRD_PARTY_LIBRARY)
 ## OpenCV
+include("${ROOT_PATH}/cmake/opencv.cmake")
 #################### common ####################
 
 
@@ -31,6 +32,7 @@ set(GLOBAL_FORWARD_THIRD_PARTY_LIBRARY)
 
 #################### inference ####################
 set(GLOBAL_INFERENCE_THIRD_PARTY_LIBRARY)
+include("${ROOT_PATH}/cmake/mnn.cmake")
 #################### inference ####################
 
 #################### task ####################

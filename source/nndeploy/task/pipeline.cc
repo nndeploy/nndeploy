@@ -121,8 +121,8 @@ base::Status Pipeline::addPacket(Packet* packet) {
 template <typename T>
 Task* Pipeline::createTask(const std::string& name, Packet* input,
                            Packet* output) {
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input, "input is null!");
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output, "output is null!");
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
   Task* task = dynamic_cast<Task*>(new T(name, input, output));
   TaskWrapper* task_wrapper = new TaskWrapper();
   task_wrapper->is_external_ = false;
@@ -143,7 +143,7 @@ template <typename T>
 Task* Pipeline::createTask(const std::string& name, std::vector<Packet*> inputs,
                            std::vector<Packet*> outputs) {
   if (inputs.empty() || outputs.empty()) {
-    NNDEPLOY_LOGE("inputs or outputs is empty!\n")
+    NNDEPLOY_LOGE("inputs or outputs is empty!\n");
     return nullptr;
   }
   Task* task = dynamic_cast<Task*>(new T(name, inputs, outputs));
@@ -170,8 +170,8 @@ template <typename T>
 Task* Pipeline::createInference(const std::string& name,
                                 base::InferenceType type, Packet* input,
                                 Packet* output) {
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input, "input is null!");
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output, "output is null!");
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
   Task* task = dynamic_cast<Task*>(new T(name, type, input, output));
   TaskWrapper* task_wrapper = new TaskWrapper();
   task_wrapper->is_external_ = false;
