@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_INFERENCE_MNN_MNN_INFERENCE_H_
 #define _NNDEPLOY_INFERENCE_MNN_MNN_INFERENCE_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"

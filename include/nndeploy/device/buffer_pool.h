@@ -28,10 +28,6 @@ class NNDEPLOY_CC_API BufferPool {
   virtual Buffer* allocate(BufferDesc& desc) = 0;
   virtual void deallocate(Buffer* buffer) = 0;
 
-  Device* getDevice();
-  base::BufferPoolType getBufferPoolType();
-
- protected:
   Buffer* create(
       size_t size, void* ptr,
       BufferSourceType buffer_source_type = kBufferSourceTypeAllocate);
@@ -39,12 +35,15 @@ class NNDEPLOY_CC_API BufferPool {
       const BufferDesc& desc, void* ptr,
       BufferSourceType buffer_source_type = kBufferSourceTypeAllocate);
   Buffer* create(
-      size_t size, int32_t id,
+      size_t size, int id,
       BufferSourceType buffer_source_type = kBufferSourceTypeAllocate);
   Buffer* create(
-      const BufferDesc& desc, int32_t id,
+      const BufferDesc& desc, int id,
       BufferSourceType buffer_source_type = kBufferSourceTypeAllocate);
   void destory(Buffer* buffer);
+
+  Device* getDevice();
+  base::BufferPoolType getBufferPoolType();
 
  private:
   Device* device_;

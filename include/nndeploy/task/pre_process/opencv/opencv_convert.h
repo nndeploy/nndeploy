@@ -1,7 +1,7 @@
 #ifndef _NNDEPLOY_TASK_PRE_PROCESS_0PENCV_OPENCV_CONVERT_H_
 #define _NNDEPLOY_TASK_PRE_PROCESS_0PENCV_OPENCV_CONVERT_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -20,8 +20,9 @@
 
 namespace nndeploy {
 namespace task {
+namespace opencv {
 
-class OpencvConvert {
+class Convert {
  public:
   static int convertFromCvtColorType(base::CvtColorType src);
 
@@ -37,6 +38,7 @@ class OpencvConvert {
                               float* scale, float* mean, float* std);
 };
 
+}  // namespace opencv
 }  // namespace task
 }  // namespace nndeploy
 

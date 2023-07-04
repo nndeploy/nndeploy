@@ -13,13 +13,14 @@ AbstractInference::~AbstractInference() { delete inference_param_; }
 
 base::InferenceType AbstractInference::getInferenceType() { return type_; }
 
+base::Status AbstractInference::setParam(base::Param *param) {
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is nullptr");
+  return param->copyTo(inference_param_);
+}
 base::Param *AbstractInference::getParam() {
   return dynamic_cast<base::Param *>(inference_param_);
 }
 
-bool AbstractInference::isDynamicShape() {
-  return inference_param_->is_dynamic_shape_;
-}
 base::ShapeMap AbstractInference::getMinShape() {
   return inference_param_->min_shape_;
 }

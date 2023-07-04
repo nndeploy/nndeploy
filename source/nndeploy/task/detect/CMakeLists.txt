@@ -1,9 +1,8 @@
-
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nndeploy_detect_demo)
-set(DIRECTORY demo)
+set(BINARY nndeploy_detect)
+set(DIRECTORY nndeploy_detect)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
 set(THIRD_PARTY_LIBRARY)
@@ -11,31 +10,34 @@ set(THIRD_PARTY_LIBRARY)
 include_directories(${ROOT_PATH})
 
 # SOURCE
-file(GLOB_RECURSE SOURCE
-  "${ROOT_PATH}/demo/cc/detect/*.h"
-  "${ROOT_PATH}/demo/cc/detect/*.cc"
+file(GLOB SOURCE
+  "${ROOT_PATH}/source/nndeploy/task/detect/*.h"
+  "${ROOT_PATH}/source/nndeploy/task/detect/*.cc"
   )
+
 # OBJECT
 
-# BINARY
-add_executable(${BINARY} ${SOURCE} ${SOURCE})
+# TARGET
+add_library(${BINARY} ${NNDEPLOY_LIB_TYPE} ${SOURCE} ${OBJECT})
 
 # DIRECTORY
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
 # DEPEND_LIBRARY
 list(APPEND DEPEND_LIBRARY ${NNDEPLOY_BINARY})
-list(APPEND DEPEND_LIBRARY ${NNDEPLOY_BINARY_TASKS})
 target_link_libraries(${BINARY} ${DEPEND_LIBRARY}) 
 
 # SYSTEM_LIBRARY
 target_link_libraries(${BINARY} ${SYSTEM_LIBRARY}) 
 
 # THIRD_PARTY_LIBRARY
-target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY})  
+target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
 
 # install
-install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PATH})
+install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+
+# NNDEPLOY_BINARY_TASKS
+set(NNDEPLOY_BINARY_TASKS ${NNDEPLOY_BINARY_TASKS} ${BINARY} PARENT_SCOPE)
 
 # unset
 unset(SOURCE)
@@ -45,3 +47,4 @@ unset(DIRECTORY)
 unset(DEPEND_LIBRARY)
 unset(SYSTEM_LIBRARY)
 unset(THIRD_PARTY_LIBRARY)
+

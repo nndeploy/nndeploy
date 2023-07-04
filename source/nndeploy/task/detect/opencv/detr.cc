@@ -1,6 +1,6 @@
 #include "nndeploy/task/detect/opencv/detr.h"
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -19,9 +19,10 @@
 
 namespace nndeploy {
 namespace task {
+namespace opencv {
 
-static TypeTaskRegister g_internal_opencv_detr_task_register("opencv_detr",
-                                                             creatDetrTask);
+// static TypeTaskRegister g_internal_opencv_detr_task_register("opencv_detr",
+//                                                              creatDetrTask);
 
 template <typename T>
 int softmax(const T* src, T* dst, int length) {
@@ -55,8 +56,8 @@ base::Status DetrPostProcess::run() {
   float* logits = (float*)tensor_logits->getPtr();
   float* boxes = (float*)tensor_boxes->getPtr();
 
-  int32_t num_qurrey = tensor_logits->getShape()[1];
-  int32_t num_class = tensor_logits->getShape()[2];
+  int num_qurrey = tensor_logits->getShape()[1];
+  int num_class = tensor_logits->getShape()[2];
 
   for (int i = 0; i < num_qurrey; i++) {
     std::vector<float> scores(num_class);
@@ -88,13 +89,19 @@ base::Status DetrPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-task::Task* creatDetrTask(const std::string& name, base::InferenceType type) {
-  task::Task* task = new task::Task(name, type);
-  task->createPreprocess<OpencvCvtColrResize>();
-  task->createPostprocess<DetrPostProcess>();
+Pipeline* creatDetrPipeline(const std::string& name, base::InferenceType type,
+                            Packet* input, Packet* output) {
+  Pipeline* pipeline = new Pipeline(name, type, input, output);
+  Packet* infer_input = pipeline->createPacket();
+  Packet* infer_output = pipeline->createPacket();
+
+  Task* pre = pipeline->createTask<OpencvCvtColrResize>("", input, infer_input);
+  Inference* infer =
+      pipeline->createInference<Inference>("", infer_input, infer_output);
+  Task* post = pipeline->createTask<DetrPostProcess>("", infer_output, output);
 
   CvtclorResizeParam* pre_param =
-      dynamic_cast<CvtclorResizeParam*>(task->getPreProcessParam());
+      dynamic_cast<CvtclorResizeParam*>(pre->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeBGR;
   pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -110,5 +117,6 @@ task::Task* creatDetrTask(const std::string& name, base::InferenceType type) {
   return task;
 }
 
+}  // namespace opencv
 }  // namespace task
 }  // namespace nndeploy

@@ -25,10 +25,9 @@ CudaArchitecture::~CudaArchitecture() {
   }
 };
 
-base::Status CudaArchitecture::checkDevice(int32_t device_id,
-                                           void* command_queue,
+base::Status CudaArchitecture::checkDevice(int device_id, void* command_queue,
                                            std::string library_path) {
-  int32_t device_count = cudaGetNumDevices();
+  int device_count = cudaGetNumDevices();
   if (device_id > 0 && device_id < device_count) {
     return base::kStatusCodeOk;
   } else {
@@ -38,8 +37,7 @@ base::Status CudaArchitecture::checkDevice(int32_t device_id,
   }
 }
 
-base::Status CudaArchitecture::enableDevice(int32_t device_id,
-                                            void* command_queue,
+base::Status CudaArchitecture::enableDevice(int device_id, void* command_queue,
                                             std::string library_path) {
   base::DeviceType device_type(base::kDeviceTypeCodeCuda, device_id);
   std::lock_guard<std::mutex> lock(mutex_);
@@ -64,7 +62,7 @@ base::Status CudaArchitecture::enableDevice(int32_t device_id,
   return base::kStatusCodeOk;
 }
 
-Device* CudaArchitecture::getDevice(int32_t device_id) {
+Device* CudaArchitecture::getDevice(int device_id) {
   Device* device = nullptr;
   if (devices_.find(device_id) != devices_.end()) {
     return devices_[device_id];
@@ -82,7 +80,7 @@ Device* CudaArchitecture::getDevice(int32_t device_id) {
 std::vector<DeviceInfo> CudaArchitecture::getDeviceInfo(
     std::string library_path) {
   std::vector<DeviceInfo> device_info_list;
-  int32_t device_count = cudaGetNumDevices();
+  int device_count = cudaGetNumDevices();
   for (int i = 0; i < device_count; ++i) {
     cudaDeviceProp p = cudaGetDeviceProperty(i);
     DeviceInfo device_info;
@@ -185,9 +183,7 @@ void CudaDevice::deallocate(Buffer* buffer) {
 }
 
 base::Status CudaDevice::copy(Buffer* src, Buffer* dst) {
-  BufferDescCompareStatus status =
-      compareBufferDesc(dst->getDesc(), src->getDesc());
-  if (status >= kBufferDescCompareStatusConfigEqualSizeEqual) {
+  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     cudaError_t status =
         cudaMemcpyAsync(dst->getPtr(), src->getPtr(), src->getDesc().size_[0],
                         cudaMemcpyDeviceToDevice, stream_);
@@ -200,9 +196,7 @@ base::Status CudaDevice::copy(Buffer* src, Buffer* dst) {
   }
 }
 base::Status CudaDevice::download(Buffer* src, Buffer* dst) {
-  BufferDescCompareStatus status =
-      compareBufferDesc(dst->getDesc(), src->getDesc());
-  if (status >= kBufferDescCompareStatusConfigEqualSizeEqual) {
+  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     cudaError_t status =
         cudaMemcpyAsync(dst->getPtr(), src->getPtr(), src->getDesc().size_[0],
                         cudaMemcpyDeviceToHost, stream_);
@@ -215,9 +209,7 @@ base::Status CudaDevice::download(Buffer* src, Buffer* dst) {
   }
 }
 base::Status CudaDevice::upload(Buffer* src, Buffer* dst) {
-  BufferDescCompareStatus status =
-      compareBufferDesc(dst->getDesc(), src->getDesc());
-  if (status >= kBufferDescCompareStatusConfigEqualSizeEqual) {
+  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     cudaError_t status =
         cudaMemcpyAsync(dst->getPtr(), src->getPtr(), src->getDesc().size_[0],
                         cudaMemcpyHostToDevice, stream_);

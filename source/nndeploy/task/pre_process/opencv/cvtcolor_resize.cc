@@ -5,7 +5,7 @@ namespace nndeploy {
 namespace task {
 namespace opencv {
 
-virtual base::Status run() {
+virtual base::Status CvtColrResize::run() {
   CvtclorResizeParam* tmp_param =
       dynamic_cast<CvtclorResizeParam*>(param_.get());
   cv::Mat* src = input_->getCvMat();

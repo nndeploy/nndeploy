@@ -42,7 +42,7 @@ Buffer* BufferPool::create(const BufferDesc& desc, void* ptr,
   return buffer;
 }
 
-Buffer* BufferPool::create(size_t size, int32_t id,
+Buffer* BufferPool::create(size_t size, int id,
                            BufferSourceType buffer_source_type) {
   BufferDesc desc;
   desc.size_.push_back(size);
@@ -50,7 +50,7 @@ Buffer* BufferPool::create(size_t size, int32_t id,
   return buffer;
 }
 
-Buffer* BufferPool::create(const BufferDesc& desc, int32_t id,
+Buffer* BufferPool::create(const BufferDesc& desc, int id,
                            BufferSourceType buffer_source_type) {
   Buffer* buffer = new Buffer(this, desc, id, buffer_source_type);
   return buffer;

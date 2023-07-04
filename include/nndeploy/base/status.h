@@ -9,7 +9,7 @@
 namespace nndeploy {
 namespace base {
 
-enum StatusCode : int32_t {
+enum StatusCode : int {
   kStatusCodeOk = 0x0000,
 
   kStatusCodeErrorUnknown,
@@ -38,22 +38,22 @@ enum StatusCode : int32_t {
 
 class NNDEPLOY_CC_API Status {
  public:
-  Status(int32_t code = kStatusCodeOk);
+  Status(int code = kStatusCodeOk);
   ~Status();
 
   Status(const Status& other) = default;
   Status& operator=(const Status& other) = default;
 
-  Status& operator=(int32_t code);
-  bool operator==(int32_t code_);
-  bool operator!=(int32_t code_);
-  operator int32_t();
+  Status& operator=(int code);
+  bool operator==(int code_);
+  bool operator!=(int code_);
+  operator int();
   operator bool();
 
   std::string desc();
 
  private:
-  int32_t code_ = kStatusCodeOk;
+  int code_ = kStatusCodeOk;
 };
 
 #define NNDEPLOY_ASSERT(x)                     \
@@ -74,39 +74,53 @@ class NNDEPLOY_CC_API Status {
 #define NNDEPLOY_ASSERT(x)
 #endif  // _DEBUG
 
-#define NNDEPLOY_RETURN_VALUE_ON_NEQ(status, expected, value) \
-  do {                                                        \
-    if (status != (expected)) {                               \
-      return (value);                                         \
-    }                                                         \
+#define NNDEPLOY_RETURN_VALUE_ON_NEQ(status, expected, value, str) \
+  do {                                                             \
+    if (status != (expected)) {                                    \
+      NNDEPLOY_LOGE("%s\n", str);                                  \
+      return (value);                                              \
+    }                                                              \
   } while (0)
 
-#define NNDEPLOY_RETURN_VALUE_ON_EQ(status, expected, value) \
-  do {                                                       \
-    if (status == (expected)) {                              \
-      return (value);                                        \
-    }                                                        \
+#define NNDEPLOY_RETURN_VALUE_ON_EQ(status, expected, value, str) \
+  do {                                                            \
+    if (status == (expected)) {                                   \
+      NNDEPLOY_LOGE("%s\n", str);                                 \
+      return (value);                                             \
+    }                                                             \
   } while (0)
 
-#define NNDEPLOY_RETURN_ON_NEQ(status, expected) \
-  do {                                           \
-    if (status != (expected)) {                  \
-      return status;                             \
-    }                                            \
+#define NNDEPLOY_RETURN_ON_NEQ(status, expected, str) \
+  do {                                                \
+    if (status != (expected)) {                       \
+      NNDEPLOY_LOGE("%s\n", str);                     \
+      return status;                                  \
+    }                                                 \
   } while (0)
 
-#define NNDEPLOY_RETURN_ON_EQ(status, expected) \
-  do {                                          \
-    if (status == (expected)) {                 \
-      return status;                            \
-    }                                           \
+#define NNDEPLOY_RETURN_ON_EQ(status, expected, str) \
+  do {                                               \
+    if (status == (expected)) {                      \
+      NNDEPLOY_LOGE("%s\n", str);                    \
+      return status;                                 \
+    }                                                \
   } while (0)
 
-#define NNDEPLOY_CHECK_PARAM_NULL(param)           \
-  do {                                             \
-    if (!param) {                                  \
-      return nndeploy::base::Status(nndeploy::base::kStatusCodeErrorInvalidParam); \
-    }                                              \
+#define NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, str) \
+  do {                                                   \
+    if (!param) {                                        \
+      NNDEPLOY_LOGE("%s\n", str);                        \
+      return nndeploy::base::Status(                     \
+          nndeploy::base::kStatusCodeErrorNullParam);    \
+    }                                                    \
+  } while (0)
+
+#define NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(param, str) \
+  do {                                                 \
+    if (!param) {                                      \
+      NNDEPLOY_LOGE("%s\n", str);                      \
+      return param;                                    \
+    }                                                  \
   } while (0)
 
 }  // namespace base

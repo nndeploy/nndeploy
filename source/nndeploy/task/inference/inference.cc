@@ -21,7 +21,7 @@ Inference::~Inference() { delete abstract_inference_; }
 
 base::Status Inference::setParam(base::Param *param) {
   base::Status status = base::kStatusCodeOk;
-  // status = abstract_inference_->setParam(param);
+  status = abstract_inference_->setParam(param);
   return status;
 }
 base::Param *Inference::getParam() { return abstract_inference_->getParam(); }
@@ -106,7 +106,8 @@ base::Status Inference::deinitTemplate<false, false, false, false>() {
 base::Status Inference::init() {
   base::Status status = base::kStatusCodeOk;
   status = abstract_inference_->init();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "abstract_inference init failed");
   is_input_dynamic_ = abstract_inference_->isInputDynamic();
   is_output_dynamic_ = abstract_inference_->isOutputDynamic();
   can_op_input_ = abstract_inference_->canOpInput();
@@ -187,7 +188,7 @@ base::Status Inference::init() {
       }
     }
   }
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "initTemplate failed");
   return status;
 }
 base::Status Inference::deinit() {
@@ -268,9 +269,9 @@ base::Status Inference::deinit() {
       }
     }
   }
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinitTemplate failed");
   status = abstract_inference_->deinit();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
   return status;
 }
 base::Status Inference::reShape() {
@@ -351,12 +352,13 @@ base::Status Inference::reShape() {
       }
     }
   }
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "reShape failed");
   return status;
 }
 base::Status Inference::run() {
   base::Status status = base::kStatusCodeOk;
   status = runDefault();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runDefault failed");
   return status;
 }
 

@@ -43,11 +43,13 @@ base::Status TensorRtInference::init() {
   if (tensor_rt_inference_param->model_type_ ==
       base::kInferenceTypeOnnxRuntime) {
     status = preRunWithOnnxModel(model_buffer, tensor_rt_inference_param);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "preRunWithOnnxModel failed");
   } else if (tensor_rt_inference_param->model_type_ ==
              base::kInferenceTypeTensorRt) {
     status = preRunWithTensorRtModel(model_buffer, tensor_rt_inference_param);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "preRunWithTensorRtModel failed");
   } else {
     return base::kStatusCodeErrorInferenceTensorRt;
   }
@@ -63,7 +65,7 @@ base::Status TensorRtInference::init() {
   }
 
   status = reshape(max_shape_);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "reshape failed");
 
   auto num_binds = engine_->getNbBindings();
   bindings_.resize(num_binds);
@@ -201,7 +203,7 @@ base::Status TensorRtInference::setInputTensor(
  * @return std::shared_ptr<device::Tensor>
  */
 std::shared_ptr<device::Tensor> TensorRtInference::getOutputTensor(
-    const std::string &name, std::vector<int32_t> config) {
+    const std::string &name, std::vector<int> config) {
   std::shared_ptr<device::Tensor> tensor;
   char *char_name = nullptr;
   if (!name.empty()) {
@@ -243,7 +245,7 @@ base::Status TensorRtInference::run() {
     return base::kStatusCodeErrorInferenceTensorRt;
   }
   status = device->synchronize();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "synchronize failed");
   return status;
 }
 
@@ -377,7 +379,8 @@ base::Status TensorRtInference::preRunWithOnnxModel(
   }
 
   base::Status status = CreateExecuteContext();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "CreateExecuteContext failed");
 
   return base::kStatusCodeOk;
 }
@@ -397,7 +400,8 @@ base::Status TensorRtInference::preRunWithTensorRtModel(
   }
 
   base::Status status = CreateExecuteContext();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "CreateExecuteContext failed");
 
   return base::kStatusCodeOk;
 }

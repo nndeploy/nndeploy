@@ -9,7 +9,7 @@
 namespace nndeploy {
 namespace base {
 
-enum PixelType : int32_t {
+enum PixelType : int {
   kPixelTypeGRAY = 0x0000,
   kPixelTypeRGB,
   kPixelTypeBGR,
@@ -20,7 +20,7 @@ enum PixelType : int32_t {
   kPixelTypeNotSupport,
 };
 
-enum CvtColorType : int32_t {
+enum CvtColorType : int {
   kCvtColorTypeRGB2GRAY = 0x0000,
   kCvtColorTypeBGR2GRAY,
   kCvtColorTypeRGBA2GRAY,
@@ -53,7 +53,7 @@ enum CvtColorType : int32_t {
 extern NNDEPLOY_CC_API CvtColorType calCvtColorType(PixelType src,
                                                     PixelType dst);
 
-enum InterpType : int32_t {
+enum InterpType : int {
   /** nearest neighbor interpolation */
   kInterpTypeNearst = 0x00,
   /** bilinear interpolation */
@@ -70,7 +70,7 @@ enum InterpType : int32_t {
   kInterpTypeNotSupport,
 };
 
-enum BorderType : int32_t {
+enum BorderType : int {
   kBorderTypeConstant = 0x00,
   kBorderTypeReflect,
   kBorderTypeEdge,

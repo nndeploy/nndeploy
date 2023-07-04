@@ -4,19 +4,19 @@
 namespace nndeploy {
 namespace base {
 
-Status::Status(int32_t code) : code_(code) {}
+Status::Status(int code) : code_(code) {}
 Status::~Status() {}
 
-Status& Status::operator=(int32_t code) {
+Status& Status::operator=(int code) {
   code_ = code;
   return *this;
 };
 
-bool Status::operator==(int32_t code_) { return code_ == code_; };
+bool Status::operator==(int code_) { return code_ == code_; };
 
-bool Status::operator!=(int32_t code_) { return code_ != code_; };
+bool Status::operator!=(int code_) { return code_ != code_; };
 
-Status::operator int32_t() { return code_; }
+Status::operator int() { return code_; }
 
 Status::operator bool() { return code_ == kStatusCodeOk; }
 

@@ -30,6 +30,23 @@ getArchitectureMap() {
   return *architecture_map;
 }
 
+int Device::compareBufferDesc(const BufferDesc& desc1,
+                              const BufferDesc& desc2) {
+  size_t size_1 = 1;
+  size_t size_2 = 1;
+  for (size_t i = 0; i < desc1.size_.size(); i++) {
+    size_1 *= desc1.size_[i];
+    size_2 *= desc2.size_[i];
+  }
+  if (size_1 < size_2) {
+    return -1;
+  } else if (size_1 == size_2) {
+    return 0;
+  } else {
+    return 1;
+  }
+}
+
 Buffer* Device::create(size_t size, void* ptr,
                        BufferSourceType buffer_source_type) {
   BufferDesc desc;
@@ -44,7 +61,7 @@ Buffer* Device::create(const BufferDesc& desc, void* ptr,
   return buffer;
 }
 
-Buffer* Device::create(size_t size, int32_t id,
+Buffer* Device::create(size_t size, int id,
                        BufferSourceType buffer_source_type) {
   BufferDesc desc;
   desc.size_.push_back(size);
@@ -52,7 +69,7 @@ Buffer* Device::create(size_t size, int32_t id,
   return buffer;
 }
 
-Buffer* Device::create(const BufferDesc& desc, int32_t id,
+Buffer* Device::create(const BufferDesc& desc, int id,
                        BufferSourceType buffer_source_type) {
   Buffer* buffer = new Buffer(this, desc, id, buffer_source_type);
   return buffer;

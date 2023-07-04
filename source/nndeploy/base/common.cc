@@ -1,5 +1,5 @@
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 
 namespace nndeploy {
 namespace base {
@@ -45,7 +45,7 @@ DataType dataTypeOf<int16_t>() {
 }
 
 template <>
-DataType dataTypeOf<int32_t>() {
+DataType dataTypeOf<int>() {
   return DataType(kDataTypeCodeInt, 32);
 }
 

@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_DEVICE_DEVICE_H_
 #define _NNDEPLOY_DEVICE_DEVICE_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -23,7 +23,7 @@ class Device;
 /**
  * @brief buffer的内存来源类型
  */
-enum BufferSourceType : int32_t {
+enum BufferSourceType : int {
   kBufferSourceTypeNone = 0x0000,
   kBufferSourceTypeAllocate,
   kBufferSourceTypeExternal,
@@ -32,27 +32,43 @@ enum BufferSourceType : int32_t {
 
 struct NNDEPLOY_CC_API BufferDesc {
   BufferDesc(){};
-  explicit BufferDesc(size_t size) { size_.push_back(size); };
+  explicit BufferDesc(size_t size) { size_.push_back(size); }
   explicit BufferDesc(size_t* size, size_t len) {
     for (int i = 0; i < len; ++i) {
       size_.push_back(size[i]);
     }
-  };
+  }
   explicit BufferDesc(const base::SizeVector& size,
                       const base::IntVector& config)
-      : size_(size), config_(config){};
+      : size_(size), config_(config) {}
   explicit BufferDesc(size_t* size, size_t len, const base::IntVector& config)
       : config_(config) {
     for (int i = 0; i < len; ++i) {
       size_.push_back(size[i]);
     }
-  };
+  }
 
-  BufferDesc(const BufferDesc& desc) = default;
-  BufferDesc& operator=(const BufferDesc& desc) = default;
+  BufferDesc(const BufferDesc& desc) {
+    size_ = desc.size_;
+    config_ = desc.config_;
+  }
+  BufferDesc& operator=(const BufferDesc& desc) {
+    size_ = std::move(desc.size_);
+    config_ = std::move(desc.config_);
+    size_ = desc.size_;
+    config_ = desc.config_;
+    return *this;
+  }
 
-  BufferDesc(BufferDesc&& desc) = default;
-  BufferDesc& operator=(BufferDesc&& desc) = default;
+  BufferDesc(BufferDesc&& desc) {
+    size_ = std::move(desc.size_);
+    config_ = std::move(desc.config_);
+  }
+  BufferDesc& operator=(BufferDesc&& desc) {
+    size_ = std::move(desc.size_);
+    config_ = std::move(desc.config_);
+    return *this;
+  }
 
   virtual ~BufferDesc(){};
 
@@ -86,15 +102,15 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
 
   virtual ~Architecture();
 
-  virtual base::Status checkDevice(int32_t device_id = 0,
+  virtual base::Status checkDevice(int device_id = 0,
                                    void* command_queue = NULL,
                                    std::string library_path = "") = 0;
 
-  virtual base::Status enableDevice(int32_t device_id = 0,
+  virtual base::Status enableDevice(int device_id = 0,
                                     void* command_queue = NULL,
                                     std::string library_path = "") = 0;
 
-  virtual Device* getDevice(int32_t device_id) = 0;
+  virtual Device* getDevice(int device_id) = 0;
 
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") = 0;
@@ -103,7 +119,7 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
 
  protected:
   std::mutex mutex_;
-  std::map<int32_t, Device*> devices_;
+  std::map<int, Device*> devices_;
 
  private:
   base::DeviceTypeCode device_type_code_;
@@ -136,6 +152,18 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
 
   virtual BufferDesc toBufferDesc(const TensorDesc& desc,
                                   const base::IntVector& config) = 0;
+  /**
+   * @brief
+   *
+   * @param desc1
+   * @param desc2
+   * @return int
+   * -1 desc1 < desc2
+   * 0 desc1 == desc2
+   * 1 desc1 > desc2
+   */
+  virtual int compareBufferDesc(const BufferDesc& desc1,
+                                const BufferDesc& desc2);
 
   virtual Buffer* allocate(size_t size) = 0;
   virtual Buffer* allocate(const BufferDesc& desc) = 0;
@@ -148,10 +176,10 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
       const BufferDesc& desc, void* ptr,
       BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
   Buffer* create(
-      size_t size, int32_t id,
+      size_t size, int id,
       BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
   Buffer* create(
-      const BufferDesc& desc, int32_t id,
+      const BufferDesc& desc, int id,
       BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
 
   virtual base::Status copy(Buffer* src, Buffer* dst) = 0;

@@ -5,7 +5,7 @@
 #ifndef _NNDEPLOY_DETECT_0PENCV_DETR_H_
 #define _NNDEPLOY_DETECT_0PENCV_DETR_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -21,10 +21,12 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/task/detect/result.h"
 #include "nndeploy/task/packet.h"
+#include "nndeploy/task/pipeline.h"
 #include "nndeploy/task/task.h"
 
 namespace nndeploy {
 namespace task {
+namespace opencv {
 
 class DetrPostParam : public base::Param {
  public:
@@ -33,7 +35,8 @@ class DetrPostParam : public base::Param {
 
 class DetrPostProcess : public Task {
  public:
-  DetrPostProcess(const std::string& name = "") : Task(name) {
+  DetrPostProcess(const std::string& name = "", Packet* input, Packet* output)
+      : Task(name, input, output) {
     param_ = std::make_shared<DetrPostParam>();
   }
   virtual ~DetrPostProcess() {}
@@ -44,8 +47,10 @@ class DetrPostProcess : public Task {
   DetectResults results_;
 };
 
-task::Task* creatDetrTask(const std::string& name, base::InferenceType type);
+Pipeline* creatDetrPipeline(const std::string& name, base::InferenceType type,
+                            Packet* input, Packet* output);
 
+}  // namespace opencv
 }  // namespace task
 }  // namespace nndeploy
 

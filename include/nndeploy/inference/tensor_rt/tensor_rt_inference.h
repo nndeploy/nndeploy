@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_INFERENCE_TENSOR_RT_TENSOR_RT_INFERENCE_H_
 #define _NNDEPLOY_INFERENCE_TENSOR_RT_TENSOR_RT_INFERENCE_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
@@ -51,7 +51,7 @@ class TensorRtInference : public AbstractInference {
       const std::shared_ptr<device::Tensor> input_tensor);
   //
   virtual std::shared_ptr<device::Tensor> getOutputTensor(
-      const std::string &name, std::vector<int32_t> config);
+      const std::string &name, std::vector<int> config);
 
   virtual base::Status run();
 

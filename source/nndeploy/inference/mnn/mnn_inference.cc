@@ -53,7 +53,7 @@ base::Status MnnInference::init() {
   internal_inference_param_ = new MNN::ScheduleConfig();
   status = MnnConvert::convertFromInferenceParam(mnn_inference_param,
                                                  internal_inference_param_);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
 
   /**
    * @brief
@@ -97,6 +97,16 @@ base::Status MnnInference::init() {
    */
   allocateInputOutputTensor();
 
+  /**
+   * @brief
+   *
+   */
+  is_input_dynamic_ = inference_param_->is_dynamic_shape_;
+  // TODO: 有可能输入非动态，但是输出是动态的
+  is_output_dynamic_ = is_input_dynamic_;
+  can_op_input_ = false;
+  can_op_output_ = false;
+
   return status;
 }
 
@@ -108,9 +118,8 @@ base::Status MnnInference::deinit() {
   }
 
   bool third_status = internal_interpreter_->releaseSession(internal_session_);
-  if (third_status) {
-    return base::kStatusCodeOk;
-  } else {
+  if (!third_status) {
+    NNDEPLOY_LOG_ERROR("%s\n", "releaseSession failed")
     return base::kStatusCodeErrorInferenceMnn;
   }
 
@@ -158,9 +167,6 @@ int64_t MnnInference::getMemorySize() {
 }
 
 float MnnInference::getGFLOPs() { return 0.0f; }
-
-bool MnnInference::canOpInputTensor() { return can_op_input_tensor_; }
-bool MnnInference::canOpOutputTensor() { return can_op_output_tensor_; }
 
 device::TensorDesc MnnInference::getInputTensorAlignDesc(
     const std::string &name) {

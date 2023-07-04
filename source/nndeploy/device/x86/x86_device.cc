@@ -24,14 +24,12 @@ X86Architecture::~X86Architecture() {
   }
 };
 
-base::Status X86Architecture::checkDevice(int32_t device_id,
-                                          void* command_queue,
+base::Status X86Architecture::checkDevice(int device_id, void* command_queue,
                                           std::string library_path) {
   return base::kStatusCodeOk;
 }
 
-base::Status X86Architecture::enableDevice(int32_t device_id,
-                                           void* command_queue,
+base::Status X86Architecture::enableDevice(int device_id, void* command_queue,
                                            std::string library_path) {
   device_id = 0;
   std::lock_guard<std::mutex> lock(mutex_);
@@ -55,7 +53,7 @@ base::Status X86Architecture::enableDevice(int32_t device_id,
   return base::kStatusCodeOk;
 }
 
-Device* X86Architecture::getDevice(int32_t device_id) {
+Device* X86Architecture::getDevice(int device_id) {
   device_id = 0;
   Device* device = nullptr;
   if (devices_.find(device_id) != devices_.end()) {
@@ -153,9 +151,7 @@ void X86Device::deallocate(Buffer* buffer) {
 }
 
 base::Status X86Device::copy(Buffer* src, Buffer* dst) {
-  BufferDescCompareStatus status =
-      compareBufferDesc(dst->getDesc(), src->getDesc());
-  if (status >= kBufferDescCompareStatusConfigEqualSizeEqual) {
+  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     memcpy(dst->getPtr(), src->getPtr(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
   } else {
@@ -164,9 +160,7 @@ base::Status X86Device::copy(Buffer* src, Buffer* dst) {
   }
 }
 base::Status X86Device::download(Buffer* src, Buffer* dst) {
-  BufferDescCompareStatus status =
-      compareBufferDesc(dst->getDesc(), src->getDesc());
-  if (status >= kBufferDescCompareStatusConfigEqualSizeEqual) {
+  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     memcpy(dst->getPtr(), src->getPtr(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
   } else {
@@ -175,9 +169,7 @@ base::Status X86Device::download(Buffer* src, Buffer* dst) {
   }
 }
 base::Status X86Device::upload(Buffer* src, Buffer* dst) {
-  BufferDescCompareStatus status =
-      compareBufferDesc(dst->getDesc(), src->getDesc());
-  if (status >= kBufferDescCompareStatusConfigEqualSizeEqual) {
+  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     memcpy(dst->getPtr(), src->getPtr(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
   } else {

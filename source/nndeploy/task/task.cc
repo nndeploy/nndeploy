@@ -27,27 +27,26 @@ Task::Task(const std::string &name, std::vector<Packet *> inputs,
 Task::~Task() {
   constructed_ = false;
   initialized_ = false;
-  executed_ = false;
+  is_running_ = false;
 }
 
 std::string Task::getName() { return name_; }
 
 base::Status Task::setParam(base::Param *param) {
   if (param_ != nullptr) {
-    ;
-    // return param->copyTo(*param_);
+    return param->copyTo(param_.get());
   }
   return base::kStatusCodeErrorNullParam;
 }
 base::Param *Task::getParam() { return param_.get(); }
 
-Packet *Task::getInput(int32_t index) {
+Packet *Task::getInput(int index) {
   if (inputs_.size() > index) {
     return inputs_[index];
   }
   return nullptr;
 }
-Packet *Task::getOutput(int32_t index) {
+Packet *Task::getOutput(int index) {
   if (outputs_.size() > index) {
     return outputs_[index];
   }
@@ -60,9 +59,7 @@ std::vector<Packet *> Task::getAllOutput() { return outputs_; }
 bool Task::getConstructed() { return constructed_; }
 bool Task::getInitialized() { return initialized_; }
 
-bool Task::getExecuted() { return executed_; }
-void Task::setExecuted() { executed_ = true; }
-void Task::clearExecuted() { executed_ = false; }
+bool Task::isRunning() { return is_running_; }
 
 base::Status Task::init() {
   initialized_ = true;

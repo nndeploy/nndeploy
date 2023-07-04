@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_INFERENCE_ABSTRACT_INFERENCE_H_
 #define _NNDEPLOY_INFERENCE_ABSTRACT_INFERENCE_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -26,12 +26,12 @@ class AbstractInference {
 
   base::InferenceType getInferenceType();
 
+  base::Status setParam(base::Param *param);
   base::Param *getParam();
 
   virtual base::Status init() = 0;
   virtual base::Status deinit() = 0;
 
-  virtual bool isDynamicShape();
   base::ShapeMap getMinShape();
   base::ShapeMap getOptShape();
   base::ShapeMap getMaxShape();
@@ -42,6 +42,7 @@ class AbstractInference {
   virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual float getGFLOPs();
+
   virtual bool isBatch();
   virtual bool isShareCommanQueue();
   virtual bool isInputDynamic();

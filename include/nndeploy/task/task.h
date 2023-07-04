@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_TASK_TASK_H_
 #define _NNDEPLOY_TASK_TASK_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -27,23 +27,21 @@ class Task {
 
   virtual ~Task();
 
-  virtual std::string getName();
+  std::string getName();
 
-  virtual base::Status setParam(base::Param* param);
-  virtual base::Param* getParam();
+  base::Status setParam(base::Param* param);
+  base::Param* getParam();
 
-  virtual Packet* getInput(int32_t index = 0);
-  virtual Packet* getOutput(int32_t index = 0);
+  Packet* getInput(int index = 0);
+  Packet* getOutput(int index = 0);
 
-  virtual std::vector<Packet*> getAllInput();
-  virtual std::vector<Packet*> getAllOutput();
+  std::vector<Packet*> getAllInput();
+  std::vector<Packet*> getAllOutput();
 
-  virtual bool getConstructed();
-  virtual bool getInitialized();
+  bool getConstructed();
+  bool getInitialized();
 
-  virtual bool getExecuted();
-  virtual void setExecuted();
-  virtual void clearExecuted();
+  bool isRunning();
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -60,7 +58,7 @@ class Task {
 
   bool constructed_ = false;
   bool initialized_ = false;
-  bool executed_ = false;
+  bool is_running_ = false;
 };
 
 using SingleIOTaskFunc = std::function<base::Status(

@@ -6,6 +6,9 @@ namespace inference {
 
 InferenceParam::InferenceParam() : base::Param() {}
 
+// InferenceParam::InferenceParam(const InferenceParam &param) {}
+// InferenceParam::InferenceParam &operator=(const InferenceParam &param) {}
+
 InferenceParam::~InferenceParam() {}
 
 base::Status InferenceParam::parse(const std::string &json, bool is_path) {

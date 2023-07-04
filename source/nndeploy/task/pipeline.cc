@@ -1,7 +1,7 @@
 
 #include "nndeploy/task/pipeline.h"
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -21,7 +21,7 @@
 namespace nndeploy {
 namespace task {
 
-enum TaskColorType : int32_t {
+enum TaskColorType : int {
   kTaskColorWhite = 0x0000,
   kTaskColorGray,
   kTaskColorBlack
@@ -110,7 +110,7 @@ Packet* Pipeline::createPacket(const std::string& name) {
 }
 base::Status Pipeline::addPacket(Packet* packet) {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_CHECK_PARAM_NULL(packet);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(packet, "packet is null!");
   PacketWrapper* packet_wrapper = new PacketWrapper();
   packet_wrapper->is_external_ = true;
   packet_wrapper->packet_ = packet;
@@ -121,8 +121,8 @@ base::Status Pipeline::addPacket(Packet* packet) {
 template <typename T>
 Task* Pipeline::createTask(const std::string& name, Packet* input,
                            Packet* output) {
-  NNDEPLOY_CHECK_PARAM_NULL(input);
-  NNDEPLOY_CHECK_PARAM_NULL(output);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input, "input is null!");
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output, "output is null!");
   Task* task = dynamic_cast<Task*>(new T(name, input, output));
   TaskWrapper* task_wrapper = new TaskWrapper();
   task_wrapper->is_external_ = false;
@@ -170,8 +170,8 @@ template <typename T>
 Task* Pipeline::createInference(const std::string& name,
                                 base::InferenceType type, Packet* input,
                                 Packet* output) {
-  NNDEPLOY_CHECK_PARAM_NULL(input);
-  NNDEPLOY_CHECK_PARAM_NULL(output);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input, "input is null!");
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output, "output is null!");
   Task* task = dynamic_cast<Task*>(new T(name, type, input, output));
   TaskWrapper* task_wrapper = new TaskWrapper();
   task_wrapper->is_external_ = false;
@@ -190,7 +190,7 @@ Task* Pipeline::createInference(const std::string& name,
 }
 base::Status Pipeline::addTask(Task* task) {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_CHECK_PARAM_NULL(task);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(task, "task is null!");
   TaskWrapper* task_wrapper = new TaskWrapper();
   task_wrapper->is_external_ = true;
   task_wrapper->task_ = task;
@@ -218,10 +218,12 @@ base::Status Pipeline::init() {
   NNDEPLOY_LOGI("Parameter Validation Phase!\n");
   NNDEPLOY_LOGI("###########################\n");
   for (auto task_wrapper : task_repository_) {
-    NNDEPLOY_CHECK_PARAM_NULL(task_wrapper->task_);
+    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(task_wrapper->task_,
+                                         "packet_repository_ task is null!");
   }
   for (auto packet_wrapper : packet_repository_) {
-    NNDEPLOY_CHECK_PARAM_NULL(packet_wrapper->packet_);
+    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(packet_wrapper->packet_,
+                                         "packet_repository_ packet is null!");
   }
 
   NNDEPLOY_LOGI("####################\n");
@@ -232,14 +234,16 @@ base::Status Pipeline::init() {
     std::vector<Packet*> inputs = task->getAllInput();
     for (auto input : inputs) {
       PacketWrapper* input_wrapper = findPacketWrapper(input);
-      NNDEPLOY_CHECK_PARAM_NULL(input_wrapper);
+      NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
+                                           "input_wrapper is null!");
       task_wrapper->predecessors_.assign(input_wrapper->producers_.begin(),
                                          input_wrapper->producers_.end());
     }
     std::vector<Packet*> outputs = task->getAllOutput();
     for (auto output : outputs) {
       PacketWrapper* output_wrapper = findPacketWrapper(output);
-      NNDEPLOY_CHECK_PARAM_NULL(output_wrapper);
+      NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
+                                           "output_wrapper is null!");
       task_wrapper->successors_.assign(output_wrapper->consumers_.begin(),
                                        output_wrapper->consumers_.end());
     }
@@ -330,6 +334,7 @@ base::Status Pipeline::reShape() {
 
 base::Status Pipeline::run() {
   base::Status status = base::kStatusCodeOk;
+  is_running_ = true;
   NNDEPLOY_LOGI("#######################\n");
   NNDEPLOY_LOGI("Task DeInitialize Phase!\n");
   NNDEPLOY_LOGI("#######################\n");

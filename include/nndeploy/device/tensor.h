@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_DEVICE_TENSOR_H_
 #define _NNDEPLOY_DEVICE_TENSOR_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -46,7 +46,7 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   Tensor();
   virtual ~Tensor();
 
-  Tensor(const std::string &name) : name_(name){};
+  Tensor(const std::string &name);
 
   Tensor(const TensorDesc &desc, const std::string &name = "");
 
@@ -56,7 +56,7 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   Tensor(Device *device, const TensorDesc &desc, void *data_ptr,
          const std::string &name = "",
          const base::IntVector &config = base::IntVector());
-  Tensor(Device *device, const TensorDesc &desc, int32_t data_id,
+  Tensor(Device *device, const TensorDesc &desc, int data_id,
          const std::string &name = "",
          const base::IntVector &config = base::IntVector());
 
@@ -73,7 +73,7 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   void create(Device *device, const TensorDesc &desc, void *data_ptr,
               const std::string &name = "",
               const base::IntVector &config = base::IntVector());
-  void create(Device *device, const TensorDesc &desc, int32_t data_id,
+  void create(Device *device, const TensorDesc &desc, int data_id,
               const std::string &name = "",
               const base::IntVector &config = base::IntVector());
 
@@ -94,6 +94,7 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
 
   // get
   bool empty();
+  bool isExternalBuffer();
 
   std::string getName();
 
@@ -101,7 +102,7 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   base::DataType getDataType();
   base::DataFormat getDataFormat();
   base::IntVector getShape();
-  int32_t getShapeIndex(int index);
+  int getShapeIndex(int index);
   base::SizeVector getStride();
   size_t getStrideIndex(int index);
 
@@ -115,13 +116,13 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   base::SizeVector getSizeVector();
   base::IntVector getConfig();
   void *getPtr();
-  int32_t getId();
+  int getId();
   BufferSourceType getBufferSourceType();
 
  private:
   //! internal function
   void create(Device *device, const TensorDesc &desc, Buffer *buffer,
-              void *data_ptr, int32_t data_id, const std::string &name,
+              void *data_ptr, int data_id, const std::string &name,
               const base::IntVector &config);
 
  private:

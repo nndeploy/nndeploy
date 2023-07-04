@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_INFERENCE_MNN_MNN_CONVERT_H_
 #define _NNDEPLOY_INFERENCE_MNN_MNN_CONVERT_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/file.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"

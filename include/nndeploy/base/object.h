@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_BASE_OBJECT_H_
 #define _NNDEPLOY_BASE_OBJECT_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/status.h"

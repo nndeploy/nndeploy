@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_INFERENCE_INFERENCE_PARAM_H_
 #define _NNDEPLOY_INFERENCE_INFERENCE_PARAM_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/file.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -21,6 +21,12 @@ class InferenceParam : public base::Param {
   InferenceParam();
 
   virtual ~InferenceParam();
+
+  InferenceParam(const InferenceParam &param) = default;
+  InferenceParam &operator=(const InferenceParam &param) = default;
+
+  PARAM_COPY(InferenceParam)
+  PARAM_COPY_TO(InferenceParam)
 
   virtual base::Status parse(const std::string &json, bool is_path = true);
 

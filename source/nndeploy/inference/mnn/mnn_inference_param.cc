@@ -13,10 +13,7 @@ MnnInferenceParam::~MnnInferenceParam() {}
 base::Status MnnInferenceParam::parse(const std::string &json, bool is_path) {
   std::string json_content = "";
   base::Status status = InferenceParam::parse(json_content, false);
-  if (status != base::kStatusCodeOk) {
-    // TODO: log
-    return status;
-  }
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "parse json failed!")
 
   return base::kStatusCodeOk;
 }

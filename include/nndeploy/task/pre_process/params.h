@@ -1,7 +1,7 @@
 #ifndef _NNDEPLOY_TASK_PRE_PARAMS_H_
 #define _NNDEPLOY_TASK_PRE_PARAMS_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"

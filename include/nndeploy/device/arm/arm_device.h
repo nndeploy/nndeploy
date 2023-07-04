@@ -13,15 +13,15 @@ class ArmArchitecture : public Architecture {
 
   virtual ~ArmArchitecture();
 
-  virtual base::Status checkDevice(int32_t device_id = 0,
+  virtual base::Status checkDevice(int device_id = 0,
                                    void* command_queue = NULL,
                                    std::string library_path = "") override;
 
-  virtual base::Status enableDevice(int32_t device_id = 0,
+  virtual base::Status enableDevice(int device_id = 0,
                                     void* command_queue = NULL,
                                     std::string library_path = "") override;
 
-  virtual Device* getDevice(int32_t device_id) override;
+  virtual Device* getDevice(int device_id) override;
 
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") override;

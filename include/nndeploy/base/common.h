@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_BASE_BASIC_H_
-#define _NNDEPLOY_BASE_BASIC_H_
+#ifndef _NNDEPLOY_BASE_COMMON_H_
+#define _NNDEPLOY_BASE_COMMON_H_
 
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/macro.h"
@@ -19,9 +19,13 @@ enum DataTypeCode : uint8_t {
 struct NNDEPLOY_CC_API DataType {
   DataType() : code_(kDataTypeCodeFp), bits_(32), lanes_(1){};
   DataType(uint8_t code, uint8_t bits, uint16_t lanes = (uint16_t)1)
-      : code_(code), bits_(bits), lanes_(lanes){};
+      : code_(code), bits_(bits), lanes_(lanes) {}
   DataType(const DataType& other) = default;
   DataType& operator=(const DataType& other) = default;
+  bool operator==(const DataType& other) const {
+    return code_ == other.code_ && bits_ == other.bits_ &&
+           lanes_ == other.lanes_;
+  }
   uint8_t code_;
   uint8_t bits_;
   uint16_t lanes_;
@@ -30,7 +34,7 @@ struct NNDEPLOY_CC_API DataType {
 
 template <typename T>
 DataType dataTypeOf() {
-  return DataType(kDataTypeCodeOpaqueHandle, sizeof(size_t));
+  return DataType(kDataTypeCodeOpaqueHandle, sizeof(T));
 }
 template <>
 NNDEPLOY_CC_API DataType dataTypeOf<float>();
@@ -49,11 +53,11 @@ NNDEPLOY_CC_API DataType dataTypeOf<int8_t>();
 template <>
 NNDEPLOY_CC_API DataType dataTypeOf<int16_t>();
 template <>
-NNDEPLOY_CC_API DataType dataTypeOf<int32_t>();
+NNDEPLOY_CC_API DataType dataTypeOf<int>();
 template <>
 NNDEPLOY_CC_API DataType dataTypeOf<int64_t>();
 
-enum DeviceTypeCode : int32_t {
+enum DeviceTypeCode : int {
   kDeviceTypeCodeCpu = 0x0000,
   kDeviceTypeCodeArm,
   kDeviceTypeCodeX86,
@@ -67,25 +71,25 @@ enum DeviceTypeCode : int32_t {
 };
 
 struct NNDEPLOY_CC_API DeviceType {
-  DeviceType() : code_(kDeviceTypeCodeCpu), device_id_(0){};
-  DeviceType(DeviceTypeCode code, int32_t device_id = 0)
-      : code_(code), device_id_(device_id){};
+  DeviceType() : code_(kDeviceTypeCodeCpu), device_id_(0) {}
+  DeviceType(DeviceTypeCode code, int device_id = 0)
+      : code_(code), device_id_(device_id) {}
   DeviceType(const DeviceType& other) = default;
   DeviceType& operator=(const DeviceType& other) = default;
   DeviceType& operator=(const DeviceTypeCode& other) {
     code_ = other;
     device_id_ = 0;
     return *this;
-  };
+  }
   bool operator==(const DeviceType& other) const {
     return code_ == other.code_ && device_id_ == other.device_id_;
-  };
-  bool operator==(const DeviceTypeCode& other) const { return code_ == other; };
+  }
+  bool operator==(const DeviceTypeCode& other) const { return code_ == other; }
   DeviceTypeCode code_;
-  int32_t device_id_;
+  int device_id_;
 };
 
-enum DataFormat : int32_t {
+enum DataFormat : int {
   // scalar
   kDataFormatScalar = 0x0000,
 
@@ -120,7 +124,7 @@ enum DataFormat : int32_t {
   kDataFormatNotSupport,
 };
 
-enum PrecisionType : int32_t {
+enum PrecisionType : int {
   kPrecisionTypeBFp16 = 0x0000,
   kPrecisionTypeFp16,
   kPrecisionTypeFp32,
@@ -130,7 +134,7 @@ enum PrecisionType : int32_t {
   kPrecisionTypeNotSupport,
 };
 
-enum PowerType : int32_t {
+enum PowerType : int {
   kPowerTypeHigh = 0x0000,
   kPowerTypeNormal,
   kPowerTypeLow,
@@ -139,7 +143,7 @@ enum PowerType : int32_t {
   kPowerTypeNotSupport,
 };
 
-enum ShareMemoryType : int32_t {
+enum ShareMemoryType : int {
   kShareMemoryTypeNoShare = 0x0000,
   kShareMemoryTypeShareFromExternal,
 
@@ -147,22 +151,22 @@ enum ShareMemoryType : int32_t {
   kShareMemoryTypeNotSupport,
 };
 
-enum BufferStatus : int32_t {
+enum BufferStatus : int {
   kBufferStatusFree = 0x0000,
   kBufferStatusUsed,
 };
 
-enum BufferPoolType : int32_t {
+enum BufferPoolType : int {
   kBufferPoolTypeEmbed = 0x0000,
   kBufferPoolTypeUnity,
   kBufferPoolTypeChunkIndepend,
 };
 
-enum TensorType : int32_t {
+enum TensorType : int {
   kTensorTypeDefault = 0x0000,
 };
 
-enum ForwardOpType : int32_t {
+enum ForwardOpType : int {
   kForwardOpTypeDefault = 0x0000,
 
   kForwardOpTypeOneDnn,
@@ -173,7 +177,7 @@ enum ForwardOpType : int32_t {
   kForwardOpTypeNotSupport,
 };
 
-enum InferenceOptLevel : int32_t {
+enum InferenceOptLevel : int {
   kInferenceOptLevel0 = 0x0000,
   kInferenceOptLevel1,
 
@@ -181,7 +185,7 @@ enum InferenceOptLevel : int32_t {
   kInferenceOptLevelAuto,
 };
 
-enum ModelType : int32_t {
+enum ModelType : int {
   kModelTypeDefault = 0x0000,
 
   kModelTypeOpenVino,
@@ -198,7 +202,7 @@ enum ModelType : int32_t {
   kModelTypeNotSupport,
 };
 
-enum InferenceType : int32_t {
+enum InferenceType : int {
   kInferenceTypeDefault = 0x0000,
 
   kInferenceTypeOpenVino,
@@ -215,14 +219,14 @@ enum InferenceType : int32_t {
   kInferenceTypeNotSupport,
 };
 
-enum EncryptType : int32_t {
+enum EncryptType : int {
   kEncryptTypeNone = 0x0000,
   kEncryptTypeBase64,
 };
 
-using IntVector = std::vector<int32_t>;
+using IntVector = std::vector<int>;
 using SizeVector = std::vector<size_t>;
-using ShapeMap = std::map<std::string, std::vector<int32_t>>;
+using ShapeMap = std::map<std::string, std::vector<int>>;
 
 }  // namespace base
 }  // namespace nndeploy

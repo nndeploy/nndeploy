@@ -19,7 +19,7 @@ class TensorRtInferenceParam : public InferenceParam {
 
   virtual base::Status get(const std::string &key, base::Value &value);
 
-  int32_t max_batch_size_ = 1;
+  int max_batch_size_ = 1;
   size_t workspace_size_ = 1 << 30;
   bool is_quant_ = false;
   std::string int8_calibration_table_path_ = "";

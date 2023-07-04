@@ -2,8 +2,9 @@
 
 namespace nndeploy {
 namespace task {
+namespace opencv {
 
-int OpencvConvert::convertFromCvtColorType(base::CvtColorType src) {
+int Convert::convertFromCvtColorType(base::CvtColorType src) {
   int ret = -1;
   switch (src) {
     case base::kCvtColorTypeRGB2GRAY:
@@ -74,7 +75,7 @@ int OpencvConvert::convertFromCvtColorType(base::CvtColorType src) {
   return ret;
 }
 
-int OpencvConvert::convertFromInterpType(base::InterpType src) {
+int Convert::convertFromInterpType(base::InterpType src) {
   int ret = -1;
   switch (src) {
     case base::kInterpTypeNearst:
@@ -106,8 +107,8 @@ int OpencvConvert::convertFromInterpType(base::InterpType src) {
  * @return true
  * @return false
  */
-bool OpencvConvert::convertToTensor(const cv::Mat& src, device::Tensor* dst,
-                                    float* scale, float* mean, float* std) {
+bool Convert::convertToTensor(const cv::Mat& src, device::Tensor* dst,
+                              float* scale, float* mean, float* std) {
   bool ret = false;
 
   int c = dst->getShapeIndex(1);
@@ -138,5 +139,6 @@ bool OpencvConvert::convertToTensor(const cv::Mat& src, device::Tensor* dst,
   return ret;
 }
 
+}  // namespace opencv
 }  // namespace task
 }  // namespace nndeploy

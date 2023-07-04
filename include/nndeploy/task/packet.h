@@ -1,7 +1,7 @@
 #ifndef _NNDEPLOY_TASK_PACKET_H_
 #define _NNDEPLOY_TASK_PACKET_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -14,7 +14,6 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/task/pre_process/params.h"
 
 namespace nndeploy {
 namespace task {
@@ -257,7 +256,7 @@ class NNDEPLOY_CC_API Packet {
   template <typename T>
   void clear();
 
-  template<>
+  template <>
   void clear<Packet>() {
     clear<device::Buffer>();
     clear<device::Mat>();

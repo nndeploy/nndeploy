@@ -2,7 +2,7 @@
 #ifndef _NNDEPLOY_INFERENCE_TENSOR_RT_TENSOR_RT_CONVERT_H_
 #define _NNDEPLOY_INFERENCE_TENSOR_RT_TENSOR_RT_CONVERT_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/status.h"

@@ -2,6 +2,7 @@
 if(ENABLE_NNDEPLOY_BASE)
   file(GLOB_RECURSE BASE_SOURCE
     "${ROOT_PATH}/include/nndeploy/base/*.h"
+    "${ROOT_PATH}/include/nndeploy/base/*.hpp"
     "${ROOT_PATH}/source/nndeploy/base/*.cc"
   )
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${BASE_SOURCE})
@@ -167,5 +168,5 @@ nndeploy_option(ENABLE_NNDEPLOY_TASK_DEDECT "ENABLE_NNDEPLOY_TASK_DEDECT" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_TASK_DEDECT_YOLOV5 "ENABLE_NNDEPLOY_TASK_DEDECT_YOLOV5" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_TASK_DEDECT_DETR "ENABLE_NNDEPLOY_TASK_DEDECT_DETR" OFF)
 if(ENABLE_NNDEPLOY_TASK_DEDECT)
-  add_subdirectory(${ROOT_PATH}/source/nndeploy/task/dedect)
+  add_subdirectory(${ROOT_PATH}/source/nndeploy/task/detect)
 endif()

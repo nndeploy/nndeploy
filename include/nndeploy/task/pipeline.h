@@ -1,7 +1,7 @@
 #ifndef _NNDEPLOY_TASK_PIPELINE_H_
 #define _NNDEPLOY_TASK_PIPELINE_H_
 
-#include "nndeploy/base/basic.h"
+#include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -13,8 +13,6 @@
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/inference/abstract_inference.h"
-#include "nndeploy/inference/inference_param.h"
 #include "nndeploy/task/inference/inference.h"
 #include "nndeploy/task/packet.h"
 #include "nndeploy/task/task.h"
@@ -26,7 +24,7 @@ class TaskWrapper;
 
 class PacketWrapper;
 
-enum TopoSortType : int32_t { kTopoSortTypeBFS = 0x0000, kTopoSortTypeDFS };
+enum TopoSortType : int { kTopoSortTypeBFS = 0x0000, kTopoSortTypeDFS };
 
 class PipelineParam : public base::Param {
  public:

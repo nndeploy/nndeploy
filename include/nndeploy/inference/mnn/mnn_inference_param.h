@@ -13,6 +13,12 @@ class MnnInferenceParam : public InferenceParam {
   MnnInferenceParam();
   virtual ~MnnInferenceParam();
 
+  MnnInferenceParam(const MnnInferenceParam &param) = default;
+  MnnInferenceParam &operator=(const MnnInferenceParam &param) = default;
+
+  PARAM_COPY(MnnInferenceParam)
+  PARAM_COPY_TO(MnnInferenceParam)
+
   base::Status parse(const std::string &json, bool is_path = true);
 
   virtual base::Status set(const std::string &key, base::Value &value);
