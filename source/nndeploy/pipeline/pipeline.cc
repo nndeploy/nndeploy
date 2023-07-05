@@ -21,30 +21,6 @@
 namespace nndeploy {
 namespace pipeline {
 
-enum TaskColorType : int {
-  kTaskColorWhite = 0x0000,
-  kTaskColorGray,
-  kTaskColorBlack
-};
-
-class TaskWrapper {
- public:
-  bool is_external_;
-  Task* task_;
-  std::string name_;
-  std::vector<TaskWrapper*> predecessors_;
-  std::vector<TaskWrapper*> successors_;
-  TaskColorType color_ = kTaskColorWhite;
-};
-
-class PacketWrapper {
- public:
-  bool is_external_;
-  Packet* packet_;
-  std::vector<TaskWrapper*> producers_;
-  std::vector<TaskWrapper*> consumers_;
-};
-
 Pipeline::Pipeline(const std::string& name, Packet* input, Packet* output)
     : Task(name, input, output) {
   param_ = std::make_shared<PipelineParam>();
@@ -118,75 +94,77 @@ base::Status Pipeline::addPacket(Packet* packet) {
   return status;
 }
 
-template <typename T>
-Task* Pipeline::createTask(const std::string& name, Packet* input,
-                           Packet* output) {
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-  Task* task = dynamic_cast<Task*>(new T(name, input, output));
-  TaskWrapper* task_wrapper = new TaskWrapper();
-  task_wrapper->is_external_ = false;
-  task_wrapper->task_ = task;
-  task_wrapper->name_ = name;
-  if (findPacketWrapper(input) == nullptr) {
-    this->addPacket(input);
-  }
-  findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
-  if (findPacketWrapper(output) == nullptr) {
-    this->addPacket(output);
-  }
-  findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
-  task_repository_.emplace_back(task_wrapper);
-  return task;
-}
-template <typename T>
-Task* Pipeline::createTask(const std::string& name, std::vector<Packet*> inputs,
-                           std::vector<Packet*> outputs) {
-  if (inputs.empty() || outputs.empty()) {
-    NNDEPLOY_LOGE("inputs or outputs is empty!\n");
-    return nullptr;
-  }
-  Task* task = dynamic_cast<Task*>(new T(name, inputs, outputs));
-  TaskWrapper* task_wrapper = new TaskWrapper();
-  task_wrapper->is_external_ = false;
-  task_wrapper->task_ = task;
-  task_wrapper->name_ = name;
-  for (auto input : inputs) {
-    if (findPacketWrapper(input) == nullptr) {
-      this->addPacket(input);
-    }
-    findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
-  }
-  for (auto output : outputs) {
-    if (findPacketWrapper(output) == nullptr) {
-      this->addPacket(output);
-    }
-    findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
-  }
-  task_repository_.emplace_back(task_wrapper);
-  return task;
-}
-template <typename T>
-Task* Pipeline::createInfer(const std::string& name, base::InferenceType type,
-                            Packet* input, Packet* output) {
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-  Task* task = dynamic_cast<Task*>(new T(name, type, input, output));
-  TaskWrapper* task_wrapper = new TaskWrapper();
-  task_wrapper->is_external_ = false;
-  task_wrapper->task_ = task;
-  task_wrapper->name_ = name;
-  if (findPacketWrapper(input) == nullptr) {
-    this->addPacket(input);
-  }
-  findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
-  if (findPacketWrapper(output) == nullptr) {
-    this->addPacket(output);
-  }
-  findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
-  task_repository_.emplace_back(task_wrapper);
-  return task;
-}
+// template <typename T>
+// Task* Pipeline::createTask(const std::string& name, Packet* input,
+//                            Packet* output) {
+//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
+//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
+//   Task* task = dynamic_cast<Task*>(new T(name, input, output));
+//   TaskWrapper* task_wrapper = new TaskWrapper();
+//   task_wrapper->is_external_ = false;
+//   task_wrapper->task_ = task;
+//   task_wrapper->name_ = name;
+//   if (findPacketWrapper(input) == nullptr) {
+//     this->addPacket(input);
+//   }
+//   findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
+//   if (findPacketWrapper(output) == nullptr) {
+//     this->addPacket(output);
+//   }
+//   findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
+//   task_repository_.emplace_back(task_wrapper);
+//   return task;
+// }
+// template <typename T>
+// Task* Pipeline::createTask(const std::string& name, std::vector<Packet*>
+// inputs,
+//                            std::vector<Packet*> outputs) {
+//   if (inputs.empty() || outputs.empty()) {
+//     NNDEPLOY_LOGE("inputs or outputs is empty!\n");
+//     return nullptr;
+//   }
+//   Task* task = dynamic_cast<Task*>(new T(name, inputs, outputs));
+//   TaskWrapper* task_wrapper = new TaskWrapper();
+//   task_wrapper->is_external_ = false;
+//   task_wrapper->task_ = task;
+//   task_wrapper->name_ = name;
+//   for (auto input : inputs) {
+//     if (findPacketWrapper(input) == nullptr) {
+//       this->addPacket(input);
+//     }
+//     findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
+//   }
+//   for (auto output : outputs) {
+//     if (findPacketWrapper(output) == nullptr) {
+//       this->addPacket(output);
+//     }
+//     findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
+//   }
+//   task_repository_.emplace_back(task_wrapper);
+//   return task;
+// }
+// template <typename T>
+// Task* Pipeline::createInfer(const std::string& name, base::InferenceType
+// type,
+//                             Packet* input, Packet* output) {
+//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
+//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
+//   Task* task = dynamic_cast<Task*>(new T(name, type, input, output));
+//   TaskWrapper* task_wrapper = new TaskWrapper();
+//   task_wrapper->is_external_ = false;
+//   task_wrapper->task_ = task;
+//   task_wrapper->name_ = name;
+//   if (findPacketWrapper(input) == nullptr) {
+//     this->addPacket(input);
+//   }
+//   findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
+//   if (findPacketWrapper(output) == nullptr) {
+//     this->addPacket(output);
+//   }
+//   findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
+//   task_repository_.emplace_back(task_wrapper);
+//   return task;
+// }
 base::Status Pipeline::addTask(Task* task) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(task, "task is null!");
@@ -335,10 +313,11 @@ base::Status Pipeline::run() {
   base::Status status = base::kStatusCodeOk;
   is_running_ = true;
   NNDEPLOY_LOGI("#######################\n");
-  NNDEPLOY_LOGI("Task DeInitialize Phase!\n");
+  NNDEPLOY_LOGI("Task run Phase!\n");
   NNDEPLOY_LOGI("#######################\n");
   for (auto task_vec : topo_sort_task_) {
     for (auto task : task_vec) {
+      NNDEPLOY_LOGE("Task name[%s]!\n", task->getName().c_str());
       status = task->run();
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("Task run failed!\n");

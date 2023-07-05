@@ -77,7 +77,7 @@ base::Status Infer::initTemplate<false, false, false, false>() {
         new device::Tensor(device, desc, name, base::IntVector());
     output_tensors_.emplace_back(tensor);
   }
-  Packet *output_packet = getInput(0);
+  Packet *output_packet = getOutput(0);
   for (int i = 0; i < output_tensors_.size(); i++) {
     output_packet->set(output_tensors_[i], i);
   }

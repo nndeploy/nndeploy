@@ -9,7 +9,7 @@
 namespace nndeploy {
 namespace pipeline {
 
-class Infer : public Task {
+class NNDEPLOY_CC_API Infer : public Task {
  public:
   Infer(const std::string &name, base::InferenceType type, Packet *input,
         Packet *output);

@@ -4,7 +4,7 @@ message(STATUS "opencv")
 
 if (ENABLE_NNDEPLOY_OPENCV STREQUAL "OFF")
 elseif (ENABLE_NNDEPLOY_OPENCV STREQUAL "ON")
-  message(STATUS "NNTASK_ENABLE_OPENCV: ${NNTASK_ENABLE_OPENCV}")
+  message(STATUS "ENABLE_NNDEPLOY_OPENCV: ${ENABLE_NNDEPLOY_OPENCV}")
   find_package(OpenCV REQUIRED)
   # If the package has been found, several variables will
   # be set, you can find the full list with descriptions

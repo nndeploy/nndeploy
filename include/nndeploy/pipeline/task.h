@@ -19,7 +19,7 @@
 namespace nndeploy {
 namespace pipeline {
 
-class Task {
+class NNDEPLOY_CC_API Task {
  public:
   Task(const std::string& name, Packet* input, Packet* output);
   Task(const std::string& name, std::vector<Packet*> inputs,
@@ -29,8 +29,8 @@ class Task {
 
   std::string getName();
 
-  base::Status setParam(base::Param* param);
-  base::Param* getParam();
+  virtual base::Status setParam(base::Param* param);
+  virtual base::Param* getParam();
 
   Packet* getInput(int index = 0);
   Packet* getOutput(int index = 0);

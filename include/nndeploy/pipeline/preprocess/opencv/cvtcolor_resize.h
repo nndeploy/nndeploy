@@ -23,7 +23,7 @@ namespace nndeploy {
 namespace pipeline {
 namespace opencv {
 
-class CvtColrResize : public Task {
+class NNDEPLOY_CC_API CvtColrResize : public Task {
  public:
   CvtColrResize(const std::string& name, Packet* input, Packet* output)
       : Task(name, input, output) {

@@ -27,7 +27,7 @@ namespace pipeline {
  * warp_affine
  * crop
  */
-class CvtclorResizeParam : public base::Param {
+class NNDEPLOY_CC_API CvtclorResizeParam : public base::Param {
  public:
   base::PixelType src_pixel_type_;
   base::PixelType dst_pixel_type_;
@@ -38,7 +38,7 @@ class CvtclorResizeParam : public base::Param {
   float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 };
 
-class DynamicShapeParam : public base::Param {
+class NNDEPLOY_CC_API DynamicShapeParam : public base::Param {
  public:
   bool is_power_of_n_ = false;
   int n_ = 2;
