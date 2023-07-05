@@ -11,7 +11,7 @@
 #include "nndeploy/base/value.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/inference/abstract_inference.h"
+#include "nndeploy/inference/inference.h"
 #include "nndeploy/inference/inference_param.h"
 #include "nndeploy/inference/mnn/mnn_convert.h"
 #include "nndeploy/inference/mnn/mnn_include.h"
@@ -20,7 +20,7 @@
 namespace nndeploy {
 namespace inference {
 
-class MnnInference : public AbstractInference {
+class MnnInference : public Inference {
  public:
   MnnInference(base::InferenceType type);
   virtual ~MnnInference();

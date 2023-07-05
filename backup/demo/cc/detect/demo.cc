@@ -1,11 +1,11 @@
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/model/detect/opencv/detr/detr.h"
-#include "nndeploy/pipeline/task.h"
+#include "nndeploy/task/detect/opencv/detr.h"
+#include "nndeploy/task/task.h"
 
 using namespace nndeploy;
 
-// cv::Mat draw_box(cv::Mat &cv_mat, pipeline::DetectResult &result) {
+// cv::Mat draw_box(cv::Mat &cv_mat, task::DetectResult &result) {
 //   float w_ratio = float(cv_mat.cols) / float(640);
 //   float h_ratio = float(cv_mat.rows) / float(640);
 //   int CNUM = 80;
@@ -43,31 +43,33 @@ int main(int argc, char *argv[]) {
   model_value.push_back(
       "/home/always/Downloads/TRT2021-MedcareAILab/detr_sim_onnx.mnn");
 
-  pipeline::Packet input;
-  pipeline::Packet output;
-  pipeline::Pipeline *pipeline = model::opencv::creatDetrPipeline(
-      name, type, &input, &output, true, model_value);
-  if (pipeline == nullptr) {
-    NNDEPLOY_LOGE("pipeline is nullptr");
-    return -1;
-  }
+   task::Packet input;
+   task::Packet output;
+   task::Pipeline *pipeline = task::opencv::creatDetrPipeline(
+       name, type, &input, &output, true, model_value);
+   if (pipeline == nullptr) {
+     NNDEPLOY_LOGE("pipeline is nullptr");
+     return -1;
+   }
 
-  NNDEPLOY_LOGE("task->init()");
-  pipeline->init();
-  cv::Mat input_mat =
-      cv::imread("/home/always/github/TensorRT-DETR/cpp/res.jpg");
-  input.set(input_mat);
+   NNDEPLOY_LOGE("task->init()");
 
-  NNDEPLOY_LOGE("task->run()");
-  pipeline->run();
+   pipeline->init();
+   cv::Mat input_mat =
+       cv::imread("/home/always/github/TensorRT-DETR/cpp/res.jpg");
+   input.set(input_mat);
 
-  // draw_box(input_mat, results);
-  cv::imwrite("/home/always/github/TensorRT-DETR/cpp/res_again.jpg", input_mat);
+   NNDEPLOY_LOGE("task->run()");
+   pipeline->run();
 
-  NNDEPLOY_LOGE("task->deinit()");
-  pipeline->deinit();
+   // draw_box(input_mat, results);
+   cv::imwrite("/home/always/github/TensorRT-DETR/cpp/res_again.jpg",
+   input_mat);
 
-  delete pipeline;
+   NNDEPLOY_LOGE("task->deinit()");
+   pipeline->deinit();
+
+   delete pipeline;
 
   printf("hello world!\n");
   return 0;

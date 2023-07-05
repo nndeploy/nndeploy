@@ -29,14 +29,14 @@ nndeploy_option(ENABLE_NNDEPLOY_VALGRIND "ENABLE_NNDEPLOY_VALGRIND" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DOCS "ENABLE_NNDEPLOY_DOCS" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_OPENCV "ENABLE_NNDEPLOY_OPENCV" OFF)
 ## base
-nndeploy_option(ENABLE_NNDEPLOY_BASE "ENABLE_NNDEPLOY_BASE" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_BASE "ENABLE_NNDEPLOY_BASE" ON)
 ## thread
-nndeploy_option(ENABLE_NNDEPLOY_THREAD "ENABLE_NNDEPLOY_THREAD" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_THREAD_POOL "ENABLE_NNDEPLOY_THREAD_POOL" ON)
 ## cryption
 nndeploy_option(ENABLE_NNDEPLOY_CRYPTION "ENABLE_NNDEPLOY_CRYPTION" OFF)
 ## device
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE "ENABLE_NNDEPLOY_DEVICE" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CPU "ENABLE_NNDEPLOY_DEVICE_CPU" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE "ENABLE_NNDEPLOY_DEVICE" ON)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CPU "ENABLE_NNDEPLOY_DEVICE_CPU" ON)
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM "ENABLE_NNDEPLOY_DEVICE_ARM" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86 "ENABLE_NNDEPLOY_DEVICE_X86" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDA "ENABLE_NNDEPLOY_DEVICE_CUDA" OFF)
@@ -47,14 +47,14 @@ nndeploy_option(ENABLE_NNDEPLOY_DEVICE_APPLE_NPU "ENABLE_NNDEPLOY_DEVICE_APPLE_N
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_HVX "ENABLE_NNDEPLOY_DEVICE_HVX" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_MTK_VPU "ENABLE_NNDEPLOY_DEVICE_MTK_VPU" OFF)
 ## op
-nndeploy_option(ENABLE_NNDEPLOY_OP "ENABLE_NNDEPLOY_OP" ON)
-nndeploy_option(ENABLE_NNDEPLOY_OP_NN "ENABLE_NNDEPLOY_OP_NN" ON)
-nndeploy_option(ENABLE_NNDEPLOY_OP_CV "ENABLE_NNDEPLOY_OP_CV" ON)
-nndeploy_option(ENABLE_NNDEPLOY_OP_AUDIO "ENABLE_NNDEPLOY_OP_AUDIO" ON)
+nndeploy_option(ENABLE_NNDEPLOY_OP "ENABLE_NNDEPLOY_OP" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_OP_NN "ENABLE_NNDEPLOY_OP_NN" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_OP_CV "ENABLE_NNDEPLOY_OP_CV" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_OP_AUDIO "ENABLE_NNDEPLOY_OP_AUDIO" OFF)
 ## forward
-nndeploy_option(ENABLE_NNDEPLOY_FORWARD "ENABLE_NNDEPLOY_FORWARD" ON)
+nndeploy_option(ENABLE_NNDEPLOY_FORWARD "ENABLE_NNDEPLOY_FORWARD" OFF)
 ## inference
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE "ENABLE_NNDEPLOY_INFERENCE" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE "ENABLE_NNDEPLOY_INFERENCE" ON)
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TENSORRT "ENABLE_NNDEPLOY_INFERENCE_TENSORRT" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "ENABLE_NNDEPLOY_INFERENCE_OPENVINO" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_COREML "ENABLE_NNDEPLOY_INFERENCE_COREML" OFF)
@@ -64,8 +64,13 @@ nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_NCNN "ENABLE_NNDEPLOY_INFERENCE_NCNN" 
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TNN "ENABLE_NNDEPLOY_INFERENCE_TNN" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_MNN "ENABLE_NNDEPLOY_INFERENCE_MNN" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_AICOMPILER_TVM "ENABLE_NNDEPLOY_INFERENCE_TVM" OFF)
-## task
-nndeploy_option(ENABLE_NNDEPLOY_TASK "ENABLE_NNDEPLOY_TASK" OFF)
+## pipeline
+nndeploy_option(ENABLE_NNDEPLOY_PIPELINE "ENABLE_NNDEPLOY_PIPELINE" ON)
+## model
+nndeploy_option(ENABLE_NNDEPLOY_MODEL "ENABLE_NNDEPLOY_MODEL" ON)
+nndeploy_option(ENABLE_NNDEPLOY_MODEL_DEDECT "ENABLE_NNDEPLOY_MODEL_DEDECT" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_MODEL_DEDECT_YOLOV5 "ENABLE_NNDEPLOY_MODEL_DEDECT_YOLOV5" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_MODEL_DEDECT_DETR "ENABLE_NNDEPLOY_MODEL_DEDECT_DETR" OFF)
 ## test
 nndeploy_option(ENABLE_NNDEPLOY_TEST "ENABLE_NNDEPLOY_TEST" OFF)
 ## demo
@@ -77,6 +82,7 @@ print_summary()
 # set
 set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
+# folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # install path
@@ -87,6 +93,7 @@ else()
   set(NNDEPLOY_INSTALL_TYPE ARCHIVE)
 endif()
 
+# build type
 if(ENABLE_NNDEPLOY_BUILD_SHARED)
   set(NNDEPLOY_LIB_TYPE SHARED)
   set(NNDEPLOY_LIB_TYPE SHARED)
@@ -201,12 +208,11 @@ if(ENABLE_NNDEPLOY_COVERAGE)
   endif()
 endif()
 
-
 # include
 include_directories(include)
 include_directories(source)
 
-# nndeploy
+# make
 set(NNDEPLOY_SOURCE)
 set(NNDEPLOY_OBJECT)
 set(NNDEPLOY_BINARY nndeploy)
@@ -214,16 +220,166 @@ set(NNDEPLOY_DIRECTORY nndeploy)
 set(NNDEPLOY_DEPEND_LIBRARY)
 set(NNDEPLOY_SYSTEM_LIBRARY)
 set(NNDEPLOY_THIRD_PARTY_LIBRARY)
-set(NNDEPLOY_BINARY_TASKS)
-add_subdirectory(source/nndeploy)
-message(STATUS "NNDEPLOY_BINARY_TASKS: ${NNDEPLOY_BINARY_TASKS}")
+# nndeploy third party lib
+include(${ROOT_PATH}/cmake/nndeploy.cmake)
+# nndeploy source
+## attention GLOB or GLOB_RECURSE
+if(ENABLE_NNDEPLOY_BASE)
+  file(GLOB_RECURSE BASE_SOURCE
+    "${ROOT_PATH}/include/nndeploy/base/*.h"
+    "${ROOT_PATH}/include/nndeploy/base/*.hpp"
+    "${ROOT_PATH}/source/nndeploy/base/*.cc"
+  )
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${BASE_SOURCE})
+endif()
+if(ENABLE_NNDEPLOY_THREAD_POOL)
+  file(GLOB_RECURSE THREAD_POOL_SOURCE
+    "${ROOT_PATH}/include/nndeploy/thread_pool/*.h"
+    "${ROOT_PATH}/source/nndeploy/thread_pool/*.cc"
+  )
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${THREAD_POOL_SOURCE})
+endif()
+if(ENABLE_NNDEPLOY_CRYPTION)
+  file(GLOB CRYPTION_SOURCE
+    "${ROOT_PATH}/include/nndeploy/cryption/*.h"
+    "${ROOT_PATH}/source/nndeploy/cryption/*.cc"
+  )
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${CRYPTION_SOURCE})
+endif()
+if(ENABLE_NNDEPLOY_DEVICE)
+  file(GLOB DEVICE_SOURCE
+    "${ROOT_PATH}/include/nndeploy/device/*.h"
+    "${ROOT_PATH}/source/nndeploy/device/*.cc"
+  )
+  if (ENABLE_NNDEPLOY_DEVICE_CPU)
+    file(GLOB_RECURSE DEVICE_CPU_SOURCE
+      "${ROOT_PATH}/include/nndeploy/device/cpu/*.h"
+      "${ROOT_PATH}/source/nndeploy/device/cpu/*.cc"
+    )
+    set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_CPU_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_X86)
+    file(GLOB_RECURSE DEVICE_X86_SOURCE
+      "${ROOT_PATH}/include/nndeploy/device/x86/*.h"
+      "${ROOT_PATH}/source/nndeploy/device/x86/*.cc"
+    )
+    set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_X86_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_ARM)
+    file(GLOB_RECURSE DEVICE_ARM_SOURCE
+      "${ROOT_PATH}/include/nndeploy/device/arm/*.h"
+      "${ROOT_PATH}/source/nndeploy/device/arm/*.cc"
+    )
+    set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_ARM_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_CUDA)
+    file(GLOB_RECURSE DEVICE_CUDA_SOURCE
+      "${ROOT_PATH}/include/nndeploy/device/cuda/*.h"
+      "${ROOT_PATH}/source/nndeploy/device/cuda/*.cc"
+    )
+    set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_CUDA_SOURCE})
+  endif()
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${DEVICE_SOURCE})
+endif()
+if(ENABLE_NNDEPLOY_OP)
+  file(GLOB OP_SOURCE
+    "${ROOT_PATH}/include/nndeploy/op/*.h"
+    "${ROOT_PATH}/source/nndeploy/op/*.cc"
+  )
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${OP_SOURCE})
+endif()
+if(ENABLE_NNDEPLOY_FORWARD)
+  file(GLOB FORWARD_SOURCE
+    "${ROOT_PATH}/include/nndeploy/forward/*.h"
+    "${ROOT_PATH}/source/nndeploy/forward/*.cc"
+  )
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${FORWARD_SOURCE})
+endif()
+if(ENABLE_NNDEPLOY_INFERENCE)
+  file(GLOB INFERENCE_SOURCE
+    "${ROOT_PATH}/include/nndeploy/inference/*.h"
+    "${ROOT_PATH}/source/nndeploy/inference/*.cc"
+  )
+  if (ENABLE_NNDEPLOY_INFERENCE_TENSORRT)
+    file(GLOB_RECURSE INFERENCE_TENSORRT_SOURCE
+      "${ROOT_PATH}/include/nndeploy/inference/tensorrt/*.h"
+      "${ROOT_PATH}/source/nndeploy/inference/tensorrt/*.cc"
+    )
+    set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_TENSORRT_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_INFERENCE_TNN)
+    file(GLOB_RECURSE INFERENCE_TNN_SOURCE
+      "${ROOT_PATH}/include/nndeploy/inference/tnn/*.h"
+      "${ROOT_PATH}/source/nndeploy/inference/tnn/*.cc"
+    )
+    set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_TNN_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_INFERENCE_MNN)
+    file(GLOB_RECURSE INFERENCE_MNN_SOURCE
+      "${ROOT_PATH}/include/nndeploy/inference/mnn/*.h"
+      "${ROOT_PATH}/source/nndeploy/inference/mnn/*.cc"
+    )
+    set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_MNN_SOURCE})
+  endif()
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${INFERENCE_SOURCE})
+endif()
+if(ENABLE_NNDEPLOY_PIPELINE)
+  file(GLOB PIPELINE_SOURCE
+    "${ROOT_PATH}/include/nndeploy/pipeline/*.h"
+    "${ROOT_PATH}/source/nndeploy/pipeline/*.cc"
+  )
+  file(GLOB PIPELINE_PREPROCESS_SOURCE
+    "${ROOT_PATH}/include/nndeploy/pipeline/preprocess/*.h"
+    "${ROOT_PATH}/source/nndeploy/pipeline/preprocess/*.cc"
+  )
+  if(ENABLE_NNDEPLOY_OPENCV)
+    file(GLOB_RECURSE PIPELINE_PREPROCESS_OPENCV_SOURCE
+      "${ROOT_PATH}/include/nndeploy/pipeline/preprocess/opencv/*.h"
+      "${ROOT_PATH}/source/nndeploy/pipeline/preprocess/opencv/*.cc"
+    )
+    set(PIPELINE_PREPROCESS_SOURCE ${PIPELINE_PREPROCESS_SOURCE} ${PIPELINE_PREPROCESS_OPENCV_SOURCE})
+  endif()
+  set(PIPELINE_SOURCE ${PIPELINE_SOURCE} ${PIPELINE_PREPROCESS_SOURCE})
+  file(GLOB PIPELINE_POSTPROCESS_SOURCE
+    "${ROOT_PATH}/include/nndeploy/pipeline/post_process/*.h"
+    "${ROOT_PATH}/source/nndeploy/pipeline/post_process/*.cc"
+  )
+  if(ENABLE_NNDEPLOY_OPENCV)
+    file(GLOB_RECURSE TASKPOSTPROCESS_OPENCV_SOURCE
+      "${ROOT_PATH}/include/nndeploy/pipeline/post_process/opencv/*.h"
+      "${ROOT_PATH}/source/nndeploy/pipeline/post_process/opencv/*.cc"
+    )
+    set(PIPELINE_POSTPROCESS_SOURCE ${PIPELINE_POSTPROCESS_SOURCE} ${PIPELINE_POSTPROCESS_OPENCV_SOURCE})
+  endif()
+  set(PIPELINE_SOURCE ${PIPELINE_SOURCE} ${PIPELINE_POSTPROCESS_SOURCE})
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${PIPELINE_SOURCE})
+endif()
+if(ENABLE_NNDEPLOY_MODEL)
+  set(MODEL_SOURCE)
+  include(${ROOT_PATH}/source/nndeploy/model/config.cmake)
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${MODEL_SOURCE})
+endif()
+# nndeploy
+## TARGET
+add_library(${NNDEPLOY_BINARY} ${NNDEPLOY_LIB_TYPE} ${NNDEPLOY_SOURCE} ${NNDEPLOY_OBJECT})
+## DIRECTORY
+set_property(TARGET ${NNDEPLOY_BINARY} PROPERTY FOLDER ${NNDEPLOY_DIRECTORY})
+## DEPEND_LIBRARY
+target_link_libraries(${NNDEPLOY_BINARY} ${NNDEPLOY_DEPEND_LIBRARY}) 
+## SYSTEM_LIBRARY
+target_link_libraries(${NNDEPLOY_BINARY} ${NNDEPLOY_SYSTEM_LIBRARY}) 
+## THIRD_PARTY_LIBRARY
+target_link_libraries(${NNDEPLOY_BINARY} ${NNDEPLOY_THIRD_PARTY_LIBRARY}) 
+## install
+install(TARGETS ${NNDEPLOY_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
 
-# test
+# nndeploy_test
 if(ENABLE_NNDEPLOY_TEST)
-  add_subdirectory(test)
+  add_subdirectory(${ROOT_PATH}/test)
 endif()
 
-# demo
-if(ENABLE_NNDEPLOY_DEMO)
-  add_subdirectory(demo/cc)
+# nndeploy_demo
+if (ENABLE_NNDEPLOY_DEMO)
+  add_subdirectory(${ROOT_PATH}/demo/cc)
 endif()
+
