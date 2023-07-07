@@ -15,16 +15,40 @@ class NNDEPLOY_CC_API TimeProfiler : public NonCopyable {
   TimeProfiler();
   virtual ~TimeProfiler();
 
-  void start(const std::string &name);
-  void end(const std::string &name);
+  void reset();
 
-  void download(const std::string &path);
+  void start(const std::string &key);
+  void end(const std::string &key);
+
+  void print(const std::string &title);
 
  private:
-  std::map<std::string, std::chrono::high_resolution_clock::time_point>
-      name_to_start_time_;
-  std::map<std::string, std::chrono::high_resolution_clock::time_point>
-      name_to_end_time_;
+  enum Type {
+    kStart,
+    kEnd,
+  };
+  struct Record {
+    Record(const std::string &key, int64_t order, uint64_t start,
+           float flops = 0.0f)
+        : key_(key),
+          type_(kStart),
+          order_(order),
+          call_times_(1),
+          cost_time_((uint64_t)0),
+          flops_(flops),
+          start_(start) {}
+    std::string key_;
+    Type type_;
+    int order_;
+    int call_times_;
+    uint64_t cost_time_;
+    float flops_;
+    uint64_t start_;
+  };
+
+ private:
+  int64_t order_ = 0;
+  std::map<std::string, Record *> records_;
 };
 
 }  // namespace base

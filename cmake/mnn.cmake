@@ -1,6 +1,6 @@
 
 include(ExternalProject)
-message(STATUS "mnn")
+message(STATUS "link mnn")
 
 if (ENABLE_NNDEPLOY_INFERENCE_MNN STREQUAL "OFF")
 elseif (ENABLE_NNDEPLOY_INFERENCE_MNN STREQUAL "ON")

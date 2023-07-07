@@ -10,7 +10,7 @@ cv::Mat draw_box(cv::Mat &cv_mat, model::DetectResults &results) {
   // float h_ratio = float(cv_mat.rows) / float(640);
   float w_ratio = float(cv_mat.cols);
   float h_ratio = float(cv_mat.rows);
-  int CNUM = 80;
+  const int CNUM = 80;
   cv::RNG rng(0xFFFFFFFF);
   cv::Scalar_<int> randColor[CNUM];
   for (int i = 0; i < CNUM; i++)

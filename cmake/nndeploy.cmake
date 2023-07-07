@@ -5,7 +5,6 @@ set(GLOBAL_COMMON_THIRD_PARTY_LIBRARY)
 include("${ROOT_PATH}/cmake/opencv.cmake")
 #################### common ####################
 
-
 #################### base ####################
 set(GLOBAL_BASE_THIRD_PARTY_LIBRARY)
 #################### base ####################

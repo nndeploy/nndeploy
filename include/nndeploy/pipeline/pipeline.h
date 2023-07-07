@@ -138,12 +138,13 @@ class NNDEPLOY_CC_API Pipeline : public Task {
 
   base::Status run();
 
-  //  base::Status dump(std::ostream& oss = std::cout);
+  base::Status dump(std::ostream& oss = std::cout);
 
  protected:
   PacketWrapper* findPacketWrapper(Packet* packet);
   TaskWrapper* findTaskWrapper(Task* task);
 
+  TaskWrapper* findTaskWrapper(Task* task);
   std::vector<TaskWrapper*> findStartTasks();
   std::vector<TaskWrapper*> findEndTasks();
 

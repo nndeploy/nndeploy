@@ -1,6 +1,6 @@
 
 include(ExternalProject)
-message(STATUS "opencv")
+message(STATUS "link opencv")
 
 if (ENABLE_NNDEPLOY_OPENCV STREQUAL "OFF")
 elseif (ENABLE_NNDEPLOY_OPENCV STREQUAL "ON")

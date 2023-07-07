@@ -108,7 +108,10 @@
         "random": "cpp",
         "shared_mutex": "cpp",
         "codecvt": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "cfenv": "cpp",
+        "regex": "cpp",
+        "typeindex": "cpp"
     },
     "cmake.configureOnOpen": false
 }

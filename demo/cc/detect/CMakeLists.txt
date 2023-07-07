@@ -2,8 +2,8 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nndeploy_demo_detect)
-set(DIRECTORY nndeploy_demo)
+set(BINARY demo_detect)
+set(DIRECTORY demo)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
 set(THIRD_PARTY_LIBRARY)
@@ -12,7 +12,7 @@ set(THIRD_PARTY_LIBRARY)
 file(GLOB_RECURSE SOURCE
   "${ROOT_PATH}/demo/cc/detect/*.h"
   "${ROOT_PATH}/demo/cc/detect/*.cc"
-  )
+)
 # OBJECT
 # BINARY
 add_executable(${BINARY} ${SOURCE} ${SOURCE})
