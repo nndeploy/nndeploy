@@ -91,8 +91,8 @@ void TimeProfiler::print(const std::string &title) {
   printf(
       "------------------------------------------------------------------------"
       "-------------------\n");
-  printf("%-20s%-20s%-20s%-20s%-20s\n", "name", "call_times", "cost_time",
-         "cost_time/call", "flops");
+  printf("%-20s%-20s%-20s%-20s%-20s\n", "name", "call_times", "cost_time(ms)",
+         "cost_time/call(ms)", "gflops");
   printf(
       "------------------------------------------------------------------------"
       "-------------------\n");
