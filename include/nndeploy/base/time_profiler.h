@@ -51,6 +51,12 @@ class NNDEPLOY_CC_API TimeProfiler : public NonCopyable {
   std::map<std::string, Record *> records_;
 };
 
+extern NNDEPLOY_CC_API void timePointStart(const std::string &key);
+
+extern NNDEPLOY_CC_API void timePointEnd(const std::string &key);
+
+extern NNDEPLOY_CC_API void timeProfilerPrint(const std::string &title = "");
+
 }  // namespace base
 }  // namespace nndeploy
 

@@ -94,20 +94,19 @@ pipeline::Pipeline* creatDetrPipeline(const std::string& name,
                                       pipeline::Packet* input,
                                       pipeline::Packet* output, bool is_path,
                                       std::vector<std::string>& model_value) {
-  NNDEPLOY_LOGE("bk!\n");
   pipeline::Pipeline* pipeline = new pipeline::Pipeline(name, input, output);
-  pipeline::Packet* infer_input = pipeline->createPacket();
-  pipeline::Packet* infer_output = pipeline->createPacket();
-  NNDEPLOY_LOGE("bk!\n");
+  pipeline::Packet* infer_input = pipeline->createPacket("infer_input");
+  pipeline::Packet* infer_output = pipeline->createPacket("infer_output");
+  
   pipeline::Task* pre = pipeline->createTask<pipeline::opencv::CvtColrResize>(
       "pre", input, infer_input);
-  NNDEPLOY_LOGE("bk!\n");
+  
   pipeline::Task* infer = pipeline->createInfer<pipeline::Infer>(
       "infer", type, infer_input, infer_output);
-  NNDEPLOY_LOGE("bk!\n");
+  
   pipeline::Task* post =
       pipeline->createTask<DetrPostProcess>("post", infer_output, output);
-  NNDEPLOY_LOGE("bk!\n");
+  
   pipeline::CvtclorResizeParam* pre_param =
       dynamic_cast<pipeline::CvtclorResizeParam*>(pre->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
@@ -119,13 +118,13 @@ pipeline::Pipeline* creatDetrPipeline(const std::string& name,
   pre_param->std_[0] = 0.229f;
   pre_param->std_[1] = 0.224f;
   pre_param->std_[2] = 0.225f;
-  NNDEPLOY_LOGE("bk!\n");
+  
   inference::InferenceParam* inference_param =
       (inference::InferenceParam*)(infer->getParam());
   inference_param->is_path_ = is_path;
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device::getDefaultHostDeviceType();
-  NNDEPLOY_LOGE("bk!\n");
+  
   return pipeline;
 }
 

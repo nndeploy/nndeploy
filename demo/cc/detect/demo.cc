@@ -42,18 +42,14 @@ cv::Mat draw_box(cv::Mat &cv_mat, model::DetectResults &results) {
 }
 
 int main(int argc, char *argv[]) {
-  base::TimeProfiler *tp = new base::TimeProfiler();
-
-  NNDEPLOY_LOGE("bk!\n");
   std::string name = "opencv_detr";
   base::InferenceType type = base::kInferenceTypeMnn;
   bool is_path = true;
   std::vector<std::string> model_value;
   model_value.push_back(
       "/home/always/Downloads/TRT2021-MedcareAILab/detr_sim_onnx.mnn");
-  NNDEPLOY_LOGE("bk!\n");
-  pipeline::Packet input;
-  pipeline::Packet output;
+  pipeline::Packet input("detr_in");
+  pipeline::Packet output("detr_out");
   pipeline::Pipeline *pipeline = model::opencv::creatDetrPipeline(
       name, type, &input, &output, true, model_value);
   if (pipeline == nullptr) {
@@ -61,28 +57,35 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  NNDEPLOY_LOGE("task->init()");
+  base::timePointStart("pipeline->init()");
   pipeline->init();
+  base::timePointEnd("pipeline->init()");
+
   cv::Mat input_mat =
       cv::imread("/home/always/github/TensorRT-DETR/cpp/res.jpg");
   input.set(input_mat);
 
-  tp->start("pipeline->run()");
-  NNDEPLOY_LOGE("task->run()");
-  pipeline->run();
-  tp->end("pipeline->run()");
+  base::timePointStart("pipeline->run()");
+  for (int i=0; i<10; ++i) {
+    pipeline->run();
+  }
+  base::timePointEnd("pipeline->run()");
 
   model::DetectResults *results = (model::DetectResults *)output.getParam();
-  NNDEPLOY_LOGE("results->size() = %d", results->result_.size());
+  NNDEPLOY_LOGE("results->size() = %d\n", results->result_.size());
   draw_box(input_mat, *results);
   cv::imwrite("/home/always/github/TensorRT-DETR/cpp/res_again.jpg", input_mat);
 
-  NNDEPLOY_LOGE("task->deinit()");
+  std::ofstream oss;
+  oss.open("detr.dot", std::ios::out);
+  pipeline->dump(oss);
+
   pipeline->deinit();
 
   delete pipeline;
 
-  tp->print();
+  base::timeProfilerPrint();
+
   printf("hello world!\n");
   return 0;
 }

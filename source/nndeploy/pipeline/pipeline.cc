@@ -9,6 +9,7 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/base/time_profiler.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -24,14 +25,11 @@ namespace pipeline {
 Pipeline::Pipeline(const std::string& name, Packet* input, Packet* output)
     : Task(name, input, output) {
   param_ = std::make_shared<PipelineParam>();
-  base::Status status = base::kStatusCodeOk;
-  status = addPacket(input);
-  if (status != base::kStatusCodeOk) {
+  if (nullptr == addPacket(input)) {
     constructed_ = false;
     return;
   }
-  status = addPacket(output);
-  if (status != base::kStatusCodeOk) {
+  if (nullptr == addPacket(output)) {
     constructed_ = false;
     return;
   }
@@ -41,17 +39,14 @@ Pipeline::Pipeline(const std::string& name, std::vector<Packet*> inputs,
                    std::vector<Packet*> outputs)
     : Task(name, inputs, outputs) {
   param_ = std::make_shared<PipelineParam>();
-  base::Status status = base::kStatusCodeOk;
   for (auto input : inputs) {
-    status = addPacket(input);
-    if (status != base::kStatusCodeOk) {
+    if (nullptr == addPacket(input)) {
       constructed_ = false;
       return;
     }
   }
   for (auto output : outputs) {
-    status = addPacket(output);
-    if (status != base::kStatusCodeOk) {
+    if (nullptr == addPacket(output)) {
       constructed_ = false;
       return;
     }
@@ -210,9 +205,9 @@ base::Param* Pipeline::getTaskParam(const std::string& task_name) {
 base::Status Pipeline::init() {
   base::Status status = base::kStatusCodeOk;
 
-  NNDEPLOY_LOGI("###########################\n");
-  NNDEPLOY_LOGI("Parameter Validation Phase!\n");
-  NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
+  // NNDEPLOY_LOGI("###########################\n");
   for (auto task_wrapper : task_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(task_wrapper->task_,
                                          "packet_repository_ task is null!");
@@ -222,9 +217,9 @@ base::Status Pipeline::init() {
                                          "packet_repository_ packet is null!");
   }
 
-  NNDEPLOY_LOGI("####################\n");
-  NNDEPLOY_LOGI("Mark Predecessors And Successors Phase!\n");
-  NNDEPLOY_LOGI("####################\n");
+  // NNDEPLOY_LOGI("####################\n");
+  // NNDEPLOY_LOGI("Mark Predecessors And Successors Phase!\n");
+  // NNDEPLOY_LOGI("####################\n");
   for (auto task_wrapper : task_repository_) {
     Task* task = task_wrapper->task_;
     std::vector<Packet*> inputs = task->getAllInput();
@@ -245,34 +240,34 @@ base::Status Pipeline::init() {
     }
   }
 
-  NNDEPLOY_LOGI("##############\n");
-  NNDEPLOY_LOGI("TopologicalSort and Check Cycle!\n");
-  NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("TopologicalSort and Check Cycle!\n");
+  // NNDEPLOY_LOGI("##############\n");
   status = topologicalSort();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("Toposort failed");
     return status;
   }
 
-  // NNDEPLOY_LOGI("############################\n");
-  // NNDEPLOY_LOGI("Checking for Unvisited Packet!\n");
-  // NNDEPLOY_LOGI("############################\n");
+  // // NNDEPLOY_LOGI("############################\n");
+  // // NNDEPLOY_LOGI("Checking for Unvisited Packet!\n");
+  // // NNDEPLOY_LOGI("############################\n");
 
-  // NNDEPLOY_LOGI("############################\n");
-  // NNDEPLOY_LOGI("Optimizer Graph V1!\n");
-  // NNDEPLOY_LOGI("############################\n");
+  // // NNDEPLOY_LOGI("############################\n");
+  // // NNDEPLOY_LOGI("Optimizer Graph V1!\n");
+  // // NNDEPLOY_LOGI("############################\n");
 
-  // NNDEPLOY_LOGI("#########################\n");
-  // NNDEPLOY_LOGI("Device Verification Phase!\n");
-  // NNDEPLOY_LOGI("#########################\n");
+  // // NNDEPLOY_LOGI("#########################\n");
+  // // NNDEPLOY_LOGI("Device Verification Phase!\n");
+  // // NNDEPLOY_LOGI("#########################\n");
 
-  // NNDEPLOY_LOGI("############################\n");
-  // NNDEPLOY_LOGI("Optimizer Graph V2!\n");
-  // NNDEPLOY_LOGI("############################\n");
+  // // NNDEPLOY_LOGI("############################\n");
+  // // NNDEPLOY_LOGI("Optimizer Graph V2!\n");
+  // // NNDEPLOY_LOGI("############################\n");
 
-  NNDEPLOY_LOGI("#######################\n");
-  NNDEPLOY_LOGI("Task Initialize Phase!\n");
-  NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Task Initialize Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
   for (auto task_vec : topo_sort_task_) {
     for (auto task : task_vec) {
       status = task->init();
@@ -283,22 +278,22 @@ base::Status Pipeline::init() {
     }
   }
 
-  // NNDEPLOY_LOGI("########################\n");
-  // NNDEPLOY_LOGI("Memory Allocation Phase!\n");
-  // NNDEPLOY_LOGI("########################\n");
+  // // NNDEPLOY_LOGI("########################\n");
+  // // NNDEPLOY_LOGI("Memory Allocation Phase!\n");
+  // // NNDEPLOY_LOGI("########################\n");
 
-  // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Cost Calculations!\n");
-  // NNDEPLOY_LOGI("#######################\n");
+  // // NNDEPLOY_LOGI("#######################\n");
+  // // NNDEPLOY_LOGI("Cost Calculations!\n");
+  // // NNDEPLOY_LOGI("#######################\n");
 
   return status;
 }
 
 base::Status Pipeline::deinit() {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_LOGI("#######################\n");
-  NNDEPLOY_LOGI("Task DeInitialize Phase!\n");
-  NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Task DeInitialize Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
   for (auto task_vec : topo_sort_task_) {
     for (auto task : task_vec) {
       status = task->deinit();
@@ -313,9 +308,9 @@ base::Status Pipeline::deinit() {
 
 base::Status Pipeline::reShape() {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_LOGI("#######################\n");
-  NNDEPLOY_LOGI("Task reShape Phase!\n");
-  NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Task reShape Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
   for (auto task_vec : topo_sort_task_) {
     for (auto task : task_vec) {
       status = task->reShape();
@@ -331,13 +326,15 @@ base::Status Pipeline::reShape() {
 base::Status Pipeline::run() {
   base::Status status = base::kStatusCodeOk;
   is_running_ = true;
-  NNDEPLOY_LOGI("#######################\n");
-  NNDEPLOY_LOGI("Task run Phase!\n");
-  NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Task run Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
   for (auto task_vec : topo_sort_task_) {
     for (auto task : task_vec) {
-      NNDEPLOY_LOGE("Task name[%s]!\n", task->getName().c_str());
+      // NNDEPLOY_LOGI("Task name[%s]!\n", task->getName().c_str());
+      base::timePointStart(task->getName());
       status = task->run();
+      base::timePointEnd(task->getName());
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("Task run failed!\n");
         return status;
@@ -347,13 +344,16 @@ base::Status Pipeline::run() {
   return status;
 }
 
-base::Status Pipeline::dump(std::ostream& oss = std::cout) {
+base::Status Pipeline::dump(std::ostream& oss) {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_LOGI("#######################\n");
-  NNDEPLOY_LOGI("Task dump Phase!\n");
-  NNDEPLOY_LOGI("#######################\n");
-  oss << "digraph pipeline {\n";
-  oss << "lable = " << name_ << "\n";
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Task dump Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  if (name_.empty()) {
+    oss << "digraph pipeline {\n";
+  }else {
+    oss << "digraph " << name_ << " {\n";
+  }
   for (auto task_vec : topo_sort_task_) {
     for (auto task : task_vec) {
       TaskWrapper* task_wrapper = findTaskWrapper(task);
@@ -391,10 +391,22 @@ base::Status Pipeline::dump(std::ostream& oss = std::cout) {
         for (auto successor : task_wrapper->successors_) {
           oss << "p" << (void*)task << "->"
               << "p" << (void*)(successor->task_);
-          if (successor->task_->getName().empty()) {
-            oss << "\n";
-          } else {
-            oss << "[label=" << successor->task_->getName() << "]\n";
+          auto outputs = task->getAllOutput();
+          auto inputs = successor->task_->getAllInput();
+          Packet *out_in = nullptr; 
+          for (auto output : outputs) {
+            for (auto input : inputs) {
+              if (output == input) {
+                out_in = output;
+              }
+            }
+          }
+          if (out_in != nullptr){
+            if (out_in->getName().empty()) {
+              oss << "\n";
+            } else {
+              oss << "[label=" << out_in->getName() << "]\n";
+            }
           }
         }
       }
@@ -420,7 +432,6 @@ TaskWrapper* Pipeline::findTaskWrapper(const std::string& task_name) {
   }
   return nullptr;
 }
-
 TaskWrapper* Pipeline::findTaskWrapper(Task* task) {
   for (auto task_wrapper : task_repository_) {
     if (task_wrapper->task_ == task) {

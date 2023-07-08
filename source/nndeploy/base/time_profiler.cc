@@ -42,7 +42,7 @@ void TimeProfiler::reset() {
 
 void TimeProfiler::start(const std::string &key) {
   if (key.empty()) {
-    NNDEPLOY_LOGE("name is empty");
+    NNDEPLOY_LOGE("name is empty!\n");
     return;
   }
   uint64_t start = getTime();
@@ -56,25 +56,25 @@ void TimeProfiler::start(const std::string &key) {
       records_[key]->call_times_++;
       records_[key]->start_ = start;
     } else {
-      NNDEPLOY_LOGE("name %s has started", key.c_str());
+      NNDEPLOY_LOGE("name %s has started\n", key.c_str());
     }
   }
 }
 
 void TimeProfiler::end(const std::string &key) {
   if (key.empty()) {
-    NNDEPLOY_LOGE("name is empty");
+    NNDEPLOY_LOGE("name is empty\n");
     return;
   }
   uint64_t end = getTime();
   if (records_.find(key) == records_.end()) {
-    NNDEPLOY_LOGE("name %s has not started", key.c_str());
+    NNDEPLOY_LOGE("name %s has not started\n", key.c_str());
   } else {
     if (records_[key]->type_ == kStart) {
       records_[key]->type_ = kEnd;
-      records_[key]->cost_time_ = end - records_[key]->start_;
+      records_[key]->cost_time_ += end - records_[key]->start_;
     } else {
-      NNDEPLOY_LOGE("name %s has ended", key.c_str());
+      NNDEPLOY_LOGE("name %s has ended\n", key.c_str());
     }
   }
 }
@@ -86,11 +86,7 @@ void TimeProfiler::print(const std::string &title) {
   }
   std::sort(records.begin(), records.end(),
             [](const Record *a, const Record *b) {
-              if (a->order_ < b->order_) {
-                return true;
-              } else {
-                return false;
-              }
+              return a->order_ < b->order_;
             });
   printf("TimeProfiler: %s\n", title.c_str());
   printf(
@@ -111,6 +107,20 @@ void TimeProfiler::print(const std::string &title) {
   printf(
       "------------------------------------------------------------------------"
       "-------------------\n");
+}
+
+TimeProfiler g_time_profiler;
+
+void timePointStart(const std::string &key) {
+  g_time_profiler.start(key);
+}
+
+void timePointEnd(const std::string &key) {
+  g_time_profiler.end(key);
+}
+
+void timeProfilerPrint(const std::string &title) {
+  g_time_profiler.print(title);
 }
 
 }  // namespace base

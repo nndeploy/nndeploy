@@ -157,10 +157,9 @@ class NNDEPLOY_CC_API Pipeline : public Task {
 
  protected:
   PacketWrapper* findPacketWrapper(Packet* packet);
-  TaskWrapper* findTaskWrapper(Task* task);
-
   TaskWrapper* findTaskWrapper(const std::string& task_name);
   TaskWrapper* findTaskWrapper(Task* task);
+
   std::vector<TaskWrapper*> findStartTasks();
   std::vector<TaskWrapper*> findEndTasks();
 
