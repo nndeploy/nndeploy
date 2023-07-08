@@ -84,14 +84,14 @@ Packet* Pipeline::createPacket(const std::string& name) {
   packet_repository_.emplace_back(packet_wrapper);
   return packet;
 }
-base::Status Pipeline::addPacket(Packet* packet) {
+PacketWrapper* Pipeline::addPacket(Packet* packet) {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(packet, "packet is null!");
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(packet, "packet is null!");
   PacketWrapper* packet_wrapper = new PacketWrapper();
   packet_wrapper->is_external_ = true;
   packet_wrapper->packet_ = packet;
   packet_repository_.emplace_back(packet_wrapper);
-  return status;
+  return packet_wrapper;
 }
 
 // template <typename T>
@@ -173,19 +173,38 @@ base::Status Pipeline::addTask(Task* task) {
   task_wrapper->task_ = task;
   task_wrapper->name_ = task->getName();
   for (auto input : task->getAllInput()) {
+    PacketWrapper* input_wrapper = findPacketWrapper(input);
     if (findPacketWrapper(input) == nullptr) {
-      this->addPacket(input);
+      input_wrapper = this->addPacket(input);
     }
-    findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
+    input_wrapper->consumers_.emplace_back(task_wrapper);
   }
   for (auto output : task->getAllOutput()) {
-    if (findPacketWrapper(output) == nullptr) {
-      this->addPacket(output);
+    PacketWrapper* output_wrapper = findPacketWrapper(output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addPacket(output);
     }
-    findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
+    output_wrapper->producers_.emplace_back(task_wrapper);
   }
+
   task_repository_.emplace_back(task_wrapper);
   return status;
+}
+
+base::Status Pipeline::setTaskParam(const std::string& task_name,
+                                    base::Param* param) {
+  base::Status status = base::kStatusCodeOk;
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is null!");
+  TaskWrapper* task_wrapper = findTaskWrapper(task_name);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(task_wrapper, "task_wrapper is null!");
+  status = task_wrapper->task_->setParam(param);
+  return status;
+}
+
+base::Param* Pipeline::getTaskParam(const std::string& task_name) {
+  TaskWrapper* task_wrapper = findTaskWrapper(task_name);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(task_wrapper, "task_wrapper is null!");
+  return task_wrapper->task_->getParam();
 }
 
 base::Status Pipeline::init() {
@@ -328,33 +347,62 @@ base::Status Pipeline::run() {
   return status;
 }
 
-// base::Status Pipeline::dump(std::ostream& oss = std::cout) {
-//   base::Status status = base::kStatusCodeOk;
-//   NNDEPLOY_LOGI("#######################\n");
-//   NNDEPLOY_LOGI("Task dump Phase!\n");
-//   NNDEPLOY_LOGI("#######################\n");
-//   // oss << "digraph CGraph {\n";
-//   // oss << "compound=true;\n";
-//   // for (auto task_vec : topo_sort_task_) {
-//   //   for (auto task : task_vec) {
-//   //     TaskWrapper* task_wrapper = findTaskWrapper(task);
-//   //     if (task_wrapper == nullptr) {
-//   //       NNDEPLOY_LOGE("task_wrapper is nil!\n");
-//   //       return base::kStatusCodeErrorNullParam;
-//   //     }
-//   //     oss << "p" << (void*)task << " [label=\"" << task->getName() <<
-//   //     "\"];\n";
-
-//   //     oss << "subgraph cluster_" << task->getName() << " {\n";
-//   //     oss << "label=\"" << task->getName() << "\";\n";
-//   //     oss << "color=blue;\n";
-//   //     oss << "style=filled;\n";
-//   //     oss << "node [style=filled,color=white];\n";
-//   //     oss << "label = \"" << task->getName() << "\";\n";
-//   //   }
-//   // }
-//   return status;
-// }
+base::Status Pipeline::dump(std::ostream& oss = std::cout) {
+  base::Status status = base::kStatusCodeOk;
+  NNDEPLOY_LOGI("#######################\n");
+  NNDEPLOY_LOGI("Task dump Phase!\n");
+  NNDEPLOY_LOGI("#######################\n");
+  oss << "digraph pipeline {\n";
+  oss << "lable = " << name_ << "\n";
+  for (auto task_vec : topo_sort_task_) {
+    for (auto task : task_vec) {
+      TaskWrapper* task_wrapper = findTaskWrapper(task);
+      if (task_wrapper->predecessors_.empty()) {
+        auto inputs = task->getAllInput();
+        for (auto input : inputs) {
+          oss << "p" << (void*)input << "[label=input]\n";
+          oss << "p" << (void*)input << "->"
+              << "p" << (void*)task;
+          if (input->getName().empty()) {
+            oss << "\n";
+          } else {
+            oss << "[label=" << input->getName() << "]\n";
+          }
+        }
+      }
+      if (task->getName().empty()) {
+        oss << "p" << (void*)task << "\n";
+      } else {
+        oss << "p" << (void*)task << "[label=" << task->getName() << "]\n";
+      }
+      if (task_wrapper->successors_.empty()) {
+        auto outputs = task->getAllOutput();
+        for (auto output : outputs) {
+          oss << "p" << (void*)output << "[label=output]\n";
+          oss << "p" << (void*)task << "->"
+              << "p" << (void*)output;
+          if (output->getName().empty()) {
+            oss << "\n";
+          } else {
+            oss << "[label=" << output->getName() << "]\n";
+          }
+        }
+      } else {
+        for (auto successor : task_wrapper->successors_) {
+          oss << "p" << (void*)task << "->"
+              << "p" << (void*)(successor->task_);
+          if (successor->task_->getName().empty()) {
+            oss << "\n";
+          } else {
+            oss << "[label=" << successor->task_->getName() << "]\n";
+          }
+        }
+      }
+    }
+  }
+  oss << "}\n";
+  return status;
+}
 
 PacketWrapper* Pipeline::findPacketWrapper(Packet* packet) {
   for (auto packet_wrapper : packet_repository_) {
@@ -364,6 +412,15 @@ PacketWrapper* Pipeline::findPacketWrapper(Packet* packet) {
   }
   return nullptr;
 }
+TaskWrapper* Pipeline::findTaskWrapper(const std::string& task_name) {
+  for (auto task_wrapper : task_repository_) {
+    if (task_wrapper->name_ == task_name) {
+      return task_wrapper;
+    }
+  }
+  return nullptr;
+}
+
 TaskWrapper* Pipeline::findTaskWrapper(Task* task) {
   for (auto task_wrapper : task_repository_) {
     if (task_wrapper->task_ == task) {

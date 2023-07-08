@@ -59,7 +59,7 @@ class NNDEPLOY_CC_API Pipeline : public Task {
   ~Pipeline();
 
   Packet* createPacket(const std::string& name = "");
-  base::Status addPacket(Packet* packet);
+  PacketWrapper* addPacket(Packet* packet);
 
   template <typename T,
             typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
@@ -71,14 +71,17 @@ class NNDEPLOY_CC_API Pipeline : public Task {
     task_wrapper->is_external_ = false;
     task_wrapper->task_ = task;
     task_wrapper->name_ = name;
+    PacketWrapper* input_wrapper = findPacketWrapper(input);
     if (findPacketWrapper(input) == nullptr) {
-      this->addPacket(input);
+      input_wrapper = this->addPacket(input);
     }
-    findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
-    if (findPacketWrapper(output) == nullptr) {
-      this->addPacket(output);
+    input_wrapper->consumers_.emplace_back(task_wrapper);
+    PacketWrapper* output_wrapper = findPacketWrapper(output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addPacket(output);
     }
-    findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
+    output_wrapper->producers_.emplace_back(task_wrapper);
+
     task_repository_.emplace_back(task_wrapper);
     return task;
   }
@@ -96,17 +99,20 @@ class NNDEPLOY_CC_API Pipeline : public Task {
     task_wrapper->task_ = task;
     task_wrapper->name_ = name;
     for (auto input : inputs) {
+      PacketWrapper* input_wrapper = findPacketWrapper(input);
       if (findPacketWrapper(input) == nullptr) {
-        this->addPacket(input);
+        input_wrapper = this->addPacket(input);
       }
-      findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
+      input_wrapper->consumers_.emplace_back(task_wrapper);
     }
     for (auto output : outputs) {
-      if (findPacketWrapper(output) == nullptr) {
-        this->addPacket(output);
+      PacketWrapper* output_wrapper = findPacketWrapper(output);
+      if (output_wrapper == nullptr) {
+        output_wrapper = this->addPacket(output);
       }
-      findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
+      output_wrapper->producers_.emplace_back(task_wrapper);
     }
+
     task_repository_.emplace_back(task_wrapper);
     return task;
   }
@@ -121,18 +127,24 @@ class NNDEPLOY_CC_API Pipeline : public Task {
     task_wrapper->is_external_ = false;
     task_wrapper->task_ = task;
     task_wrapper->name_ = name;
+    PacketWrapper* input_wrapper = findPacketWrapper(input);
     if (findPacketWrapper(input) == nullptr) {
-      this->addPacket(input);
+      input_wrapper = this->addPacket(input);
     }
-    findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
-    if (findPacketWrapper(output) == nullptr) {
-      this->addPacket(output);
+    input_wrapper->consumers_.emplace_back(task_wrapper);
+    PacketWrapper* output_wrapper = findPacketWrapper(output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addPacket(output);
     }
-    findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
+    output_wrapper->producers_.emplace_back(task_wrapper);
+
     task_repository_.emplace_back(task_wrapper);
     return task;
   }
   base::Status addTask(Task* task);
+
+  base::Status setTaskParam(const std::string& task_name, base::Param* param);
+  base::Param* getTaskParam(const std::string& task_name);
 
   base::Status init();
   base::Status deinit();
@@ -147,6 +159,7 @@ class NNDEPLOY_CC_API Pipeline : public Task {
   PacketWrapper* findPacketWrapper(Packet* packet);
   TaskWrapper* findTaskWrapper(Task* task);
 
+  TaskWrapper* findTaskWrapper(const std::string& task_name);
   TaskWrapper* findTaskWrapper(Task* task);
   std::vector<TaskWrapper*> findStartTasks();
   std::vector<TaskWrapper*> findEndTasks();
