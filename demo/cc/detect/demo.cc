@@ -57,19 +57,19 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  base::timePointStart("pipeline->init()");
+  NNDEPLOY_TIME_POINT_START("pipeline->init()");
   pipeline->init();
-  base::timePointEnd("pipeline->init()");
+  NNDEPLOY_TIME_POINT_END("pipeline->init()");
 
   cv::Mat input_mat =
       cv::imread("/home/always/github/TensorRT-DETR/cpp/res.jpg");
   input.set(input_mat);
 
-  base::timePointStart("pipeline->run()");
-  for (int i=0; i<10; ++i) {
+  NNDEPLOY_TIME_POINT_START("pipeline->run()");
+  for (int i = 0; i < 10; ++i) {
     pipeline->run();
   }
-  base::timePointEnd("pipeline->run()");
+  NNDEPLOY_TIME_POINT_END("pipeline->run()");
 
   model::DetectResults *results = (model::DetectResults *)output.getParam();
   NNDEPLOY_LOGE("results->size() = %d\n", results->result_.size());
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
 
   delete pipeline;
 
-  base::timeProfilerPrint();
+  NNDEPLOY_TIME_PROFILER_PRINT();
 
   printf("hello world!\n");
   return 0;

@@ -8,8 +8,8 @@
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/value.h"
 #include "nndeploy/base/time_profiler.h"
+#include "nndeploy/base/value.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -332,9 +332,9 @@ base::Status Pipeline::run() {
   for (auto task_vec : topo_sort_task_) {
     for (auto task : task_vec) {
       // NNDEPLOY_LOGI("Task name[%s]!\n", task->getName().c_str());
-      base::timePointStart(task->getName());
+      NNDEPLOY_TIME_POINT_START(task->getName());
       status = task->run();
-      base::timePointEnd(task->getName());
+      NNDEPLOY_TIME_POINT_END(task->getName());
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("Task run failed!\n");
         return status;
@@ -351,7 +351,7 @@ base::Status Pipeline::dump(std::ostream& oss) {
   // NNDEPLOY_LOGI("#######################\n");
   if (name_.empty()) {
     oss << "digraph pipeline {\n";
-  }else {
+  } else {
     oss << "digraph " << name_ << " {\n";
   }
   for (auto task_vec : topo_sort_task_) {
@@ -393,7 +393,7 @@ base::Status Pipeline::dump(std::ostream& oss) {
               << "p" << (void*)(successor->task_);
           auto outputs = task->getAllOutput();
           auto inputs = successor->task_->getAllInput();
-          Packet *out_in = nullptr; 
+          Packet* out_in = nullptr;
           for (auto output : outputs) {
             for (auto input : inputs) {
               if (output == input) {
@@ -401,7 +401,7 @@ base::Status Pipeline::dump(std::ostream& oss) {
               }
             }
           }
-          if (out_in != nullptr){
+          if (out_in != nullptr) {
             if (out_in->getName().empty()) {
               oss << "\n";
             } else {

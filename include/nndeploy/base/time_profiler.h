@@ -51,6 +51,8 @@ class NNDEPLOY_CC_API TimeProfiler : public NonCopyable {
   std::map<std::string, Record *> records_;
 };
 
+extern NNDEPLOY_CC_API void timeProfilerReset();
+
 extern NNDEPLOY_CC_API void timePointStart(const std::string &key);
 
 extern NNDEPLOY_CC_API void timePointEnd(const std::string &key);
@@ -59,5 +61,18 @@ extern NNDEPLOY_CC_API void timeProfilerPrint(const std::string &title = "");
 
 }  // namespace base
 }  // namespace nndeploy
+
+#ifdef ENABLE_NNDEPLOY_TIME_PROFILER
+#define NNDEPLOY_TIME_PROFILER_RESET() nndeploy::base::timeProfilerReset()
+#define NNDEPLOY_TIME_POINT_START(key) nndeploy::base::timePointStart(key)
+#define NNDEPLOY_TIME_POINT_END(key) nndeploy::base::timePointEnd(key)
+#define NNDEPLOY_TIME_PROFILER_PRINT(title) \
+  nndeploy::base::timeProfilerPrint(title)
+#else
+#define NNDEPLOY_TIME_PROFILER_RESET()
+#define NNDEPLOY_TIME_POINT_START(key)
+#define NNDEPLOY_TIME_POINT_END(key)
+#define NNDEPLOY_TIME_PROFILER_PRINT(title)
+#endif
 
 #endif

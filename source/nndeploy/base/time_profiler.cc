@@ -84,10 +84,9 @@ void TimeProfiler::print(const std::string &title) {
   for (auto &it : records_) {
     records.push_back(it.second);
   }
-  std::sort(records.begin(), records.end(),
-            [](const Record *a, const Record *b) {
-              return a->order_ < b->order_;
-            });
+  std::sort(
+      records.begin(), records.end(),
+      [](const Record *a, const Record *b) { return a->order_ < b->order_; });
   printf("TimeProfiler: %s\n", title.c_str());
   printf(
       "------------------------------------------------------------------------"
@@ -111,13 +110,11 @@ void TimeProfiler::print(const std::string &title) {
 
 TimeProfiler g_time_profiler;
 
-void timePointStart(const std::string &key) {
-  g_time_profiler.start(key);
-}
+void timeProfilerReset() { g_time_profiler.reset(); }
 
-void timePointEnd(const std::string &key) {
-  g_time_profiler.end(key);
-}
+void timePointStart(const std::string &key) { g_time_profiler.start(key); }
+
+void timePointEnd(const std::string &key) { g_time_profiler.end(key); }
 
 void timeProfilerPrint(const std::string &title) {
   g_time_profiler.print(title);
