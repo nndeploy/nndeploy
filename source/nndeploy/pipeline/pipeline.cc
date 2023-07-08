@@ -328,33 +328,33 @@ base::Status Pipeline::run() {
   return status;
 }
 
-base::Status Pipeline::dump(std::ostream& oss = std::cout) {
-  base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_LOGI("#######################\n");
-  NNDEPLOY_LOGI("Task dump Phase!\n");
-  NNDEPLOY_LOGI("#######################\n");
-  // oss << "digraph CGraph {\n";
-  // oss << "compound=true;\n";
-  // for (auto task_vec : topo_sort_task_) {
-  //   for (auto task : task_vec) {
-  //     TaskWrapper* task_wrapper = findTaskWrapper(task);
-  //     if (task_wrapper == nullptr) {
-  //       NNDEPLOY_LOGE("task_wrapper is nil!\n");
-  //       return base::kStatusCodeErrorNullParam;
-  //     }
-  //     oss << "p" << (void*)task << " [label=\"" << task->getName() <<
-  //     "\"];\n";
+// base::Status Pipeline::dump(std::ostream& oss = std::cout) {
+//   base::Status status = base::kStatusCodeOk;
+//   NNDEPLOY_LOGI("#######################\n");
+//   NNDEPLOY_LOGI("Task dump Phase!\n");
+//   NNDEPLOY_LOGI("#######################\n");
+//   // oss << "digraph CGraph {\n";
+//   // oss << "compound=true;\n";
+//   // for (auto task_vec : topo_sort_task_) {
+//   //   for (auto task : task_vec) {
+//   //     TaskWrapper* task_wrapper = findTaskWrapper(task);
+//   //     if (task_wrapper == nullptr) {
+//   //       NNDEPLOY_LOGE("task_wrapper is nil!\n");
+//   //       return base::kStatusCodeErrorNullParam;
+//   //     }
+//   //     oss << "p" << (void*)task << " [label=\"" << task->getName() <<
+//   //     "\"];\n";
 
-  //     oss << "subgraph cluster_" << task->getName() << " {\n";
-  //     oss << "label=\"" << task->getName() << "\";\n";
-  //     oss << "color=blue;\n";
-  //     oss << "style=filled;\n";
-  //     oss << "node [style=filled,color=white];\n";
-  //     oss << "label = \"" << task->getName() << "\";\n";
-  //   }
-  // }
-  return status;
-}
+//   //     oss << "subgraph cluster_" << task->getName() << " {\n";
+//   //     oss << "label=\"" << task->getName() << "\";\n";
+//   //     oss << "color=blue;\n";
+//   //     oss << "style=filled;\n";
+//   //     oss << "node [style=filled,color=white];\n";
+//   //     oss << "label = \"" << task->getName() << "\";\n";
+//   //   }
+//   // }
+//   return status;
+// }
 
 PacketWrapper* Pipeline::findPacketWrapper(Packet* packet) {
   for (auto packet_wrapper : packet_repository_) {

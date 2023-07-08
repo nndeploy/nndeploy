@@ -1,5 +1,12 @@
 
 #include "nndeploy/base/time_profiler.h"
+#if defined(_MSC_VER)
+#include <Windows.h>
+#undef min
+#undef max
+#else
+#include <sys/time.h>
+#endif
 
 namespace nndeploy {
 namespace base {
@@ -72,7 +79,7 @@ void TimeProfiler::end(const std::string &key) {
   }
 }
 
-void print(const std::string &title) {
+void TimeProfiler::print(const std::string &title) {
   std::vector<Record *> records;
   for (auto &it : records_) {
     records.push_back(it.second);
@@ -85,19 +92,25 @@ void print(const std::string &title) {
                 return false;
               }
             });
-  NNDEPLOY_LOGI("TimeProfiler: %s\n", title.c_str());
-  NNDEPLOY_LOGI("------------------------------------------------------------");
-  NNDEPLOY_LOGI("%-20s%-20s%-20s%-20s%-20s\n", "name", "call_times",
-                "cost_time", "cost_time/call", "flops");
-  NNDEPLOY_LOGI("------------------------------------------------------------");
+  printf("TimeProfiler: %s\n", title.c_str());
+  printf(
+      "------------------------------------------------------------------------"
+      "-------------------\n");
+  printf("%-20s%-20s%-20s%-20s%-20s\n", "name", "call_times", "cost_time",
+         "cost_time/call", "flops");
+  printf(
+      "------------------------------------------------------------------------"
+      "-------------------\n");
   for (auto &it : records) {
     if (it->type_ == kEnd) {
-      NNDEPLOY_LOGI("%-20s%-20d%-20.3f%-20.3f%-20.3f\n", it->key_.c_str(),
-                    it->call_times_, (float)(it->cost_time_ / 1000.0f),
-                    it->cost_time_ / 1000.0f / it->call_times_, it->flops_);
+      printf("%-20s%-20d%-20.3f%-20.3f%-20.3f\n", it->key_.c_str(),
+             it->call_times_, (float)(it->cost_time_ / 1000.0f),
+             it->cost_time_ / 1000.0f / it->call_times_, it->flops_);
     }
   }
-  NNDEPLOY_LOGI("------------------------------------------------------------");
+  printf(
+      "------------------------------------------------------------------------"
+      "-------------------\n");
 }
 
 }  // namespace base

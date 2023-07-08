@@ -20,7 +20,7 @@ class NNDEPLOY_CC_API TimeProfiler : public NonCopyable {
   void start(const std::string &key);
   void end(const std::string &key);
 
-  void print(const std::string &title);
+  void print(const std::string &title = "");
 
  private:
   enum Type {

@@ -61,7 +61,8 @@ class NNDEPLOY_CC_API Pipeline : public Task {
   Packet* createPacket(const std::string& name = "");
   base::Status addPacket(Packet* packet);
 
-  template <typename T>
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
   Task* createTask(const std::string& name, Packet* input, Packet* output) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
@@ -81,7 +82,8 @@ class NNDEPLOY_CC_API Pipeline : public Task {
     task_repository_.emplace_back(task_wrapper);
     return task;
   }
-  template <typename T>
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
   Task* createTask(const std::string& name, std::vector<Packet*> inputs,
                    std::vector<Packet*> outputs) {
     if (inputs.empty() || outputs.empty()) {
@@ -108,7 +110,8 @@ class NNDEPLOY_CC_API Pipeline : public Task {
     task_repository_.emplace_back(task_wrapper);
     return task;
   }
-  template <typename T>
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Infer, T>{}, int>::type = 0>
   Task* createInfer(const std::string& name, base::InferenceType type,
                     Packet* input, Packet* output) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
@@ -159,23 +162,6 @@ class NNDEPLOY_CC_API Pipeline : public Task {
 
   std::vector<std::vector<Task*>> topo_sort_task_;
 };
-
-// using cretePipelineFunc = Pipeline* (*)(const std::string& name,
-//                                         base::InferenceType type, Packet*
-//                                         input, Packet* output);
-//
-// std::map<std::string, cretePipelineFunc>& getGlobalPipelineCreatorMap();
-//
-// class TypePipelineRegister {
-//  public:
-//   explicit TypePipelineRegister(const std::string& name, cretePipelineFuncs
-//   func) {
-//     getGlobalPipelineCreatorMap()[name] = func;
-//   }
-// };
-//
-// Pipeline* cretePipeline(const std::string& name, base::InferenceType type,
-//                         Packet* input, Packet* output);
 
 }  // namespace pipeline
 }  // namespace nndeploy

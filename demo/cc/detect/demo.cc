@@ -42,7 +42,7 @@ cv::Mat draw_box(cv::Mat &cv_mat, model::DetectResults &results) {
 }
 
 int main(int argc, char *argv[]) {
-  // base::TimeProfiler *tp = new base::TimeProfiler();
+  base::TimeProfiler *tp = new base::TimeProfiler();
 
   NNDEPLOY_LOGE("bk!\n");
   std::string name = "opencv_detr";
@@ -67,8 +67,10 @@ int main(int argc, char *argv[]) {
       cv::imread("/home/always/github/TensorRT-DETR/cpp/res.jpg");
   input.set(input_mat);
 
+  tp->start("pipeline->run()");
   NNDEPLOY_LOGE("task->run()");
   pipeline->run();
+  tp->end("pipeline->run()");
 
   model::DetectResults *results = (model::DetectResults *)output.getParam();
   NNDEPLOY_LOGE("results->size() = %d", results->result_.size());
@@ -80,6 +82,7 @@ int main(int argc, char *argv[]) {
 
   delete pipeline;
 
+  tp->print();
   printf("hello world!\n");
   return 0;
 }
