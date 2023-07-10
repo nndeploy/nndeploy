@@ -9,23 +9,19 @@ Mat::~Mat() { destory(); }
 
 Mat::Mat(const std::string &name) : name_(name){};
 
-Mat::Mat(const MatDesc &desc, const std::string &name) {
-  create(desc, name);
-}
+Mat::Mat(const MatDesc &desc, const std::string &name) { create(desc, name); }
 
-Mat::Mat(Device *device, const MatDesc &desc,
-         const std::string &name, const base::IntVector &config) {
+Mat::Mat(Device *device, const MatDesc &desc, const std::string &name,
+         const base::IntVector &config) {
   create(device, desc, name, config);
 }
 
 Mat::Mat(Device *device, const MatDesc &desc, void *data_ptr,
-         const std::string &name,
-         const base::IntVector &config) {
+         const std::string &name, const base::IntVector &config) {
   create(device, desc, data_ptr, name, config);
 }
 Mat::Mat(Device *device, const MatDesc &desc, int data_id,
-         const std::string &name,
-         const base::IntVector &config) {
+         const std::string &name, const base::IntVector &config) {
   create(device, desc, data_id, name, config);
 }
 
@@ -206,12 +202,24 @@ bool Mat::isExternalBuffer() { return is_external_buffer_; }
 MatDesc Mat::getDesc() { return desc_; }
 base::DataType Mat::getDataType() { return desc_.data_type_; }
 base::IntVector Mat::getShape() { return desc_.shape_; }
-int Mat::getShapeIndex(int index) { return desc_.shape_[index]; }
+int Mat::getShapeIndex(int index) {
+  if (index < desc_.shape_.size()) {
+    return desc_.shape_[index];
+  } else {
+    return -1;
+  }
+}
 int Mat::getHeight() { return desc_.shape_[0]; }
 int Mat::getWidth() { return desc_.shape_[1]; }
 int Mat::getChannel() { return desc_.shape_[2]; }
 base::SizeVector Mat::getStride() { return desc_.stride_; }
-size_t Mat::getStrideIndex(int index) { return desc_.stride_[index]; }
+size_t Mat::getStrideIndex(int index) {
+  if (index < desc_.stride_.size()) {
+    return desc_.stride_[index];
+  } else {
+    return 0;
+  }
+}
 
 Buffer *Mat::getBuffer() { return buffer_; }
 base::DeviceType Mat::getDeviceType() { return buffer_->getDeviceType(); }

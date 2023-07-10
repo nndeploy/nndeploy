@@ -11,9 +11,9 @@ base::Status CvtColrResize::run() {
   cv::Mat* src = inputs_[0]->getCvMat();
   device::Tensor* dst = outputs_[0]->getTensor();
 
-  int c = dst->getShapeIndex(1);
-  int h = dst->getShapeIndex(2);
-  int w = dst->getShapeIndex(3);
+  int c = dst->getChannel();
+  int h = dst->getHeight();
+  int w = dst->getWidth();
 
   cv::Mat tmp = *src;
 

@@ -93,17 +93,16 @@ enum DataFormat : int {
   // scalar
   kDataFormatScalar = 0x0000,
 
-  // 1d
-  kDataFormatC,
+  // 1D
+  kDataFormatN,
 
-  // 2d
-  kDataFormatHW,
+  // 2D
   kDataFormatNC,
-  kDataFormatCN,
 
-  // 3d
-  kDataFormatCHW,
-  kDataFormatHWC,
+  // 3D
+  kDataFormatNHW,
+  kDataFormatNWC,
+  kDataFormatNCW,
 
   // 4D
   kDataFormatNCHW,
@@ -112,6 +111,7 @@ enum DataFormat : int {
   kDataFormatOIHW,
   // # 4D 变种
   kDataFormatNC4HW,
+  kDataFormatNC8HW,
 
   // 5D
   kDataFormatNCDHW,

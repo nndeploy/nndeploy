@@ -153,10 +153,171 @@ TensorDesc Tensor::getDesc() { return desc_; }
 base::DataType Tensor::getDataType() { return desc_.data_type_; }
 base::DataFormat Tensor::getDataFormat() { return desc_.format_; }
 base::IntVector Tensor::getShape() { return desc_.shape_; }
-int Tensor::getShapeIndex(int index) { return desc_.shape_[index]; }
+int Tensor::getShapeIndex(int index) {
+  if (index < desc_.shape_.size()) {
+    return desc_.shape_[index];
+  } else {
+    return -1;
+  }
+}
+int Tensor::getBatch() {
+  if (!desc_.shape_.empty()) {
+    return desc_.shape_[0];
+  } else {
+    return -1;
+  }
+}
+int Tensor::getChannel() {
+  int ret = -1;
+  switch (desc_.format_) {
+    case base::kDataFormatScalar:
+      break;
+    case base::kDataFormatN:
+      break;
+    case base::kDataFormatNC:
+      ret = desc_.shape_[1];
+      break;
+    case base::kDataFormatNHW:
+      break;
+    case base::kDataFormatNWC:
+      ret = desc_.shape_[2];
+      break;
+    case base::kDataFormatNCW:
+      ret = desc_.shape_[1];
+      break;
+    case base::kDataFormatNCHW:
+      ret = desc_.shape_[1];
+      break;
+    case base::kDataFormatNHWC:
+      ret = desc_.shape_[3];
+      break;
+    case base::kDataFormatOIHW:
+      break;
+    case base::kDataFormatNC4HW:
+      ret = desc_.shape_[1];
+      break;
+    case base::kDataFormatNC8HW:
+      ret = desc_.shape_[1];
+      break;
+    case base::kDataFormatNCDHW:
+      ret = desc_.shape_[1];
+      break;
+    case base::kDataFormatNDHWC:
+      ret = desc_.shape_[4];
+      break;
+    default:
+      break;
+  }
+  return ret;
+}
+int Tensor::getDepth() {
+  int ret = -1;
+  switch (desc_.format_) {
+    case base::kDataFormatNCDHW:
+      ret = desc_.shape_[2];
+      break;
+    case base::kDataFormatNDHWC:
+      ret = desc_.shape_[1];
+      break;
+    default:
+      break;
+  }
+  return ret;
+}
+int Tensor::getHeight() {
+  int ret = -1;
+  switch (desc_.format_) {
+    case base::kDataFormatScalar:
+      break;
+    case base::kDataFormatN:
+      break;
+    case base::kDataFormatNC:
+      break;
+    case base::kDataFormatNHW:
+      ret = desc_.shape_[1];
+      break;
+    case base::kDataFormatNWC:
+      break;
+    case base::kDataFormatNCW:
+      break;
+    case base::kDataFormatNCHW:
+      ret = desc_.shape_[2];
+      break;
+    case base::kDataFormatNHWC:
+      ret = desc_.shape_[1];
+      break;
+    case base::kDataFormatOIHW:
+      ret = desc_.shape_[2];
+      break;
+    case base::kDataFormatNC4HW:
+      ret = desc_.shape_[2];
+      break;
+    case base::kDataFormatNC8HW:
+      ret = desc_.shape_[2];
+      break;
+    case base::kDataFormatNCDHW:
+      ret = desc_.shape_[3];
+      break;
+    case base::kDataFormatNDHWC:
+      ret = desc_.shape_[2];
+      break;
+    default:
+      break;
+  }
+  return ret;
+}
+int Tensor::getWidth() {
+  int ret = -1;
+  switch (desc_.format_) {
+    case base::kDataFormatScalar:
+      break;
+    case base::kDataFormatN:
+      break;
+    case base::kDataFormatNC:
+      break;
+    case base::kDataFormatNHW:
+      ret = desc_.shape_[2];
+      break;
+    case base::kDataFormatNWC:
+      ret = desc_.shape_[1];
+      break;
+    case base::kDataFormatNCW:
+      ret = desc_.shape_[1];
+      break;
+    case base::kDataFormatNCHW:
+      ret = desc_.shape_[3];
+      break;
+    case base::kDataFormatNHWC:
+      ret = desc_.shape_[2];
+      break;
+    case base::kDataFormatOIHW:
+      ret = desc_.shape_[3];
+      break;
+    case base::kDataFormatNC4HW:
+      ret = desc_.shape_[3];
+      break;
+    case base::kDataFormatNC8HW:
+      ret = desc_.shape_[3];
+      break;
+    case base::kDataFormatNCDHW:
+      ret = desc_.shape_[4];
+      break;
+    case base::kDataFormatNDHWC:
+      ret = desc_.shape_[3];
+      break;
+    default:
+      break;
+  }
+  return ret;
+}
 base::SizeVector Tensor::getStride() { return desc_.stride_; }
-size_t Tensor::getStrideIndex(int index) { return desc_.stride_[index]; }
-
+size_t Tensor::getStrideIndex(int index) {
+  if (index < desc_.stride_.size()) {
+    return desc_.stride_[index];
+  } else {
+    return 0;
+  }
+}
 Buffer *Tensor::getBuffer() { return buffer_; }
 base::DeviceType Tensor::getDeviceType() { return buffer_->getDeviceType(); }
 Device *Tensor::getDevice() { return buffer_->getDevice(); }

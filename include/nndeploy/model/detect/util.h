@@ -36,10 +36,9 @@ namespace model {
  * @param ori_height
  * @return std::array<float, 4>
  */
-std::array<float, 4> getOriginBox(float xmin, float ymin, float xmax,
-                                  float ymax, const float *scale_factor,
-                                  float x_offset, float y_offset, int ori_width,
-                                  int ori_height);
+extern NNDEPLOY_CC_API std::array<float, 4> getOriginBox(
+    float xmin, float ymin, float xmax, float ymax, const float *scale_factor,
+    float x_offset, float y_offset, int ori_width, int ori_height);
 
 /**
  * @brief Get the Origin Box object
@@ -52,10 +51,9 @@ std::array<float, 4> getOriginBox(float xmin, float ymin, float xmax,
  * @param ori_height
  * @return * std::array<float, 4>
  */
-std::array<float, 4> getOriginBox(const std::array<float, 4> &box,
-                                  const float *scale_factor, float x_offset,
-                                  float y_offset, int ori_width,
-                                  int ori_height);
+extern NNDEPLOY_CC_API std::array<float, 4> getOriginBox(
+    const std::array<float, 4> &box, const float *scale_factor, float x_offset,
+    float y_offset, int ori_width, int ori_height);
 
 /**
  * @brief

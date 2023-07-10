@@ -103,6 +103,11 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   base::DataFormat getDataFormat();
   base::IntVector getShape();
   int getShapeIndex(int index);
+  int getBatch();
+  int getChannel();
+  int getDepth();
+  int getHeight();
+  int getWidth();
   base::SizeVector getStride();
   size_t getStrideIndex(int index);
 
