@@ -56,6 +56,7 @@ class InferenceParam : public base::Param {
   base::ShapeMap max_shape_ = base::ShapeMap();
   std::string cache_path_ = "";
   void *command_queue_ = nullptr;
+  std::vector<std::string> library_path = {};
 };
 
 class InferenceParamCreator {
@@ -69,8 +70,8 @@ class TypeInferenceParamCreator : public InferenceParamCreator {
   virtual InferenceParam *createInferenceParam() { return new T(); }
 };
 
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
-getGlobalInferenceParamCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
+    &getGlobalInferenceParamCreatorMap();
 
 template <typename T>
 class TypeInferenceParamRegister {
