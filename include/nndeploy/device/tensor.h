@@ -15,6 +15,10 @@
 namespace nndeploy {
 namespace device {
 
+/**
+ * @brief 描述tensor的信息
+ *
+ */
 struct NNDEPLOY_CC_API TensorDesc {
   TensorDesc(){};
   explicit TensorDesc(base::DataType data_type, base::DataFormat format,
@@ -35,12 +39,16 @@ struct NNDEPLOY_CC_API TensorDesc {
 
   virtual ~TensorDesc(){};
 
-  base::DataType data_type_ = base::dataTypeOf<float>();
-  base::DataFormat format_ = base::kDataFormatNotSupport;
-  base::IntVector shape_;
-  base::SizeVector stride_;
+  base::DataType data_type_ = base::dataTypeOf<float>();   // 数据类型
+  base::DataFormat format_ = base::kDataFormatNotSupport;  // 数据格式
+  base::IntVector shape_;                                  // 数据形状
+  base::SizeVector stride_;                                // 数据步长
 };
 
+/**
+ * @brief Tensor类
+ *
+ */
 class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
  public:
   Tensor();
@@ -131,10 +139,10 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
               const base::IntVector &config);
 
  private:
-  std::string name_;
-  TensorDesc desc_;
-  bool is_external_buffer_ = false;
-  Buffer *buffer_;
+  std::string name_;                 // tensor name
+  TensorDesc desc_;                  // tensor desc
+  bool is_external_buffer_ = false;  // 是否是外部buffer
+  Buffer *buffer_;                   // buffer
 };
 
 class TensorCreator {
@@ -148,8 +156,8 @@ class TypeTensorCreator : public TensorCreator {
   virtual Tensor *createTensor() { return new T(); }
 };
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
-getGlobalTensorCreatorMap();
+std::map<base::TensorType, std::shared_ptr<TensorCreator>>
+    &getGlobalTensorCreatorMap();
 
 template <typename T>
 class TypeTensorRegister {
