@@ -74,6 +74,9 @@ class TensorRtInference : public Inference {
 
   size_t forward_memory_size_;
   device::Buffer *inner_forward_buffer_;
+
+  std::map<std::string, device::Tensor *> max_input_tensors_;
+  std::map<std::string, device::Tensor *> max_output_tensors_;
 };
 
 }  // namespace inference
