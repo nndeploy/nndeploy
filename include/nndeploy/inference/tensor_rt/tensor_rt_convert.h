@@ -10,7 +10,6 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/inference/inference_param.h"
 #include "nndeploy/inference/tensor_rt/tensor_rt_include.h"
-#include "nndeploy/inference/tensor_rt/tensor_rt_inference.h"
 #include "nndeploy/inference/tensor_rt/tensor_rt_inference_param.h"
 
 namespace nndeploy {
@@ -21,9 +20,10 @@ class TensorRtConvert {
   static base::DataType convertToDataType(const nvinfer1::DataType &src);
   static nvinfer1::DataType convertFromDataType(base::DataType &src);
 
-  static base::DataFormat convertToDataFormat(const nvinfer1::TensorFormat &src)
+  static base::DataFormat convertToDataFormat(
+      const nvinfer1::TensorFormat &src);
 
-      static base::IntVector convertToShape(const nvinfer1::Dims &src);
+  static base::IntVector convertToShape(const nvinfer1::Dims &src);
   static nvinfer1::Dims convertFromShape(const base::IntVector &src);
 };
 

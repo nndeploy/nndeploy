@@ -3,6 +3,7 @@
 #ifndef _NNDEPLOY_DEVICE_CUDA_DEVICE_H_
 #define _NNDEPLOY_DEVICE_CUDA_DEVICE_H_
 
+#include "nndeploy/device/cuda/cuda_include.h"
 #include "nndeploy/device/device.h"
 
 namespace nndeploy {

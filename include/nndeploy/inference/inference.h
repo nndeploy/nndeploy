@@ -131,19 +131,19 @@ class NNDEPLOY_CC_API Inference {
    *
    * @return bool
    */
-  virtual bool isBatch();
+  bool isBatch();
   /**
    * @brief 该推理是否与nndeploy共享一个command queue
    *
    * @return bool
    */
-  virtual bool isShareCommanQueue();
+  bool isShareCommanQueue();
   /**
    * @brief 是否为动态输入
    *
    * @return bool
    */
-  virtual bool isInputDynamic();
+  bool isInputDynamic();
   /**
    * @brief 是否为动态输出
    *
@@ -151,7 +151,7 @@ class NNDEPLOY_CC_API Inference {
    * @details
    * 有些模型的输出是动态的，其形状是需要中间节点的输出来决定的（一般而言都是输入尺寸确定，输出即确定）
    */
-  virtual bool isOutputDynamic();
+  bool isOutputDynamic();
   /**
    * @brief 是否可以操作推理框架内部分配的输入tensor
    *
@@ -160,7 +160,7 @@ class NNDEPLOY_CC_API Inference {
    * 部分推理框架会为输入tensor分配内存，以TNN为例，其会为输入tensor分配内存，当为CPU推理时，可以操作这些内存
    * 但是当为OpenCL推理时，这些内存是在OpenCL上分配的，TNN无法与外部共享GPU上下文，故无法操作这些内存
    */
-  virtual bool canOpInput();
+  bool canOpInput();
   /**
    * @brief 是否可以操作推理框架内部分配的输出tensor
    *
@@ -169,7 +169,7 @@ class NNDEPLOY_CC_API Inference {
    * 部分推理框架会为输出tensor分配内存，以TNN为例，其会为输出tensor分配内存，当为CPU推理时，可以操作这些内存
    * 但是当为OpenCL推理时，这些内存是在OpenCL上分配的，TNN无法与外部共享GPU上下文，故无法操作这些内存
    */
-  virtual bool canOpOutput();
+  bool canOpOutput();
 
   /**
    * @brief Get the Num Of Input Tensor object
@@ -303,7 +303,7 @@ class NNDEPLOY_CC_API Inference {
    * @param input_tensor
    * @return base::Status
    * @details
-   * 传入外部的tensor，推理框架会使用这些tensor进行推理
+   * 传入外部的tensor
    */
   virtual base::Status setInputTensor(const std::string &name,
                                       device::Tensor *input_tensor);
@@ -314,7 +314,7 @@ class NNDEPLOY_CC_API Inference {
    * @param output_tensor
    * @return base::Status
    * @details
-   * 传入外部的tensor，推理框架会使用这些tensor进行推理
+   * 传入外部的tensor
    */
   virtual base::Status setOutputTensor(const std::string &name,
                                        device::Tensor *output_tensor);

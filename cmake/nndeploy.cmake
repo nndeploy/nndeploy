@@ -14,6 +14,8 @@ include("${ROOT_PATH}/cmake/opencv.cmake")
 #################### cryption ####################
 
 #################### device ####################
+## CUDA & CUDNN
+include("${ROOT_PATH}/cmake/cuda.cmake")
 #################### device ####################
 
 #################### op ####################
@@ -25,6 +27,8 @@ include("${ROOT_PATH}/cmake/opencv.cmake")
 #################### inference ####################
 ## MNN
 include("${ROOT_PATH}/cmake/mnn.cmake")
+## tensor_rt
+include("${ROOT_PATH}/cmake/tensor_rt.cmake")
 #################### inference ####################
 
 #################### pipeline ####################
@@ -33,8 +37,4 @@ include("${ROOT_PATH}/cmake/mnn.cmake")
 #################### model ####################
 #################### model ####################
 
-#################### test ####################
-#################### test ####################
-
-#################### demo ####################
-#################### demo ####################
+message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY: ${NNDEPLOY_THIRD_PARTY_LIBRARY}")

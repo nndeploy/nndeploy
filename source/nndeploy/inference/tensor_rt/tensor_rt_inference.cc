@@ -18,8 +18,8 @@ TypeInferenceRegister<TypeInferenceCreator<TensorRtInference>>
 TensorRtLogger TensorRtInference::logger_;
 
 TensorRtInference::TensorRtInference() {
-  engine_ = nullptr;
-  context_ = nullptr;
+  // engine_ = nullptr;
+  // context_ = nullptr;
 }
 
 TensorRtInference::~TensorRtInference() {}

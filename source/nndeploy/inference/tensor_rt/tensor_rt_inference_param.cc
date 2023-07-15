@@ -4,10 +4,15 @@
 namespace nndeploy {
 namespace inference {
 
-static TypeInferenceParamRegister<TypeInferenceParamCreator<MnnInferenceParam>>
-    g_tensor_rt_inference_param_register(base::kInferenceTypeMnn);
+static TypeInferenceParamRegister<
+    TypeInferenceParamCreator<TensorRtInferenceParam>>
+    g_tensor_rt_inference_param_register(base::kInferenceTypeTensorRt);
 
-base::Status MnnInferenceParam::parse(const std::string &json, bool is_path) {
+TensorRtInferenceParam::TensorRtInferenceParam() : InferenceParam() {}
+TensorRtInferenceParam::~TensorRtInferenceParam() {}
+
+base::Status TensorRtInferenceParam::parse(const std::string &json,
+                                           bool is_path) {
   base::Status status = InferenceParam::parse(json, is_path);
   if (status != base::kStatusCodeOk) {
     // TODO: log
@@ -17,22 +22,13 @@ base::Status MnnInferenceParam::parse(const std::string &json, bool is_path) {
   return base::kStatusCodeOk;
 }
 
-base::Status MnnInferenceParam::set(const std::string &key,
-                                    base::Value &value) {
-  base::Status status = base::kStatusCodeOk;
-  if (key == "library_path") {
-    uint8_t *tmp = nullptr;
-    if (value.get(&tmp)) {
-      library_path_ = std::string(reinterpret_cast<char *>(tmp));
-    } else {
-      status = base::kStatusCodeErrorInvalidParam;
-    }
-  }
+base::Status TensorRtInferenceParam::set(const std::string &key,
+                                         base::Value &value) {
   return base::kStatusCodeOk;
 }
 
-base::Status MnnInferenceParam::get(const std::string &key,
-                                    base::Value &value) {
+base::Status TensorRtInferenceParam::get(const std::string &key,
+                                         base::Value &value) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

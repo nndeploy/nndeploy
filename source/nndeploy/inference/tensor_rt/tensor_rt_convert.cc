@@ -45,22 +45,22 @@ base::DataType TensorRtConvert::convertToDataType(
 nvinfer1::DataType TensorRtConvert::convertFromDataType(base::DataType &src) {
   nvinfer1::DataType dst;
   if (src.code_ == base::kDataTypeCodeFp && src.bits_ == 32 &&
-      dst.lanes_ == 1) {
-    dst = nvinfer1::DataType::kFLOAT
+      src.lanes_ == 1) {
+    dst = nvinfer1::DataType::kFLOAT;
   } else if (src.code_ == base::kDataTypeCodeBFp && src.bits_ == 16 &&
-             dst.lanes_ == 1) {
-    dst = nvinfer1::DataType::kHALF
+             src.lanes_ == 1) {
+    dst = nvinfer1::DataType::kHALF;
   } else if (src.code_ == base::kDataTypeCodeInt && src.bits_ == 32 &&
-             dst.lanes_ == 1) {
-    dst = nvinfer1::DataType::kINT32
+             src.lanes_ == 1) {
+    dst = nvinfer1::DataType::kINT32;
   } else if (src.code_ == base::kDataTypeCodeInt && src.bits_ == 8 &&
-             dst.lanes_ == 1) {
-    dst = nvinfer1::DataType::kINT8
+             src.lanes_ == 1) {
+    dst = nvinfer1::DataType::kINT8;
   } else if (src.code_ == base::kDataTypeCodeUint && src.bits_ == 8 &&
-             dst.lanes_ == 1) {
-    dst = nvinfer1::DataType::kUINT8
+             src.lanes_ == 1) {
+    dst = nvinfer1::DataType::kUINT8;
   } else {
-    dst = nvinfer1::DataType::kFLOAT
+    dst = nvinfer1::DataType::kFLOAT;
   }
   return dst;
 }

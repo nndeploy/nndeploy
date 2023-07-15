@@ -51,44 +51,135 @@ struct NNDEPLOY_CC_API TensorDesc {
  */
 class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
  public:
+  /**
+   * @brief Construct a new Tensor object
+   *
+   */
   Tensor();
+  /**
+   * @brief Deconstruct the Tensor object
+   *
+   */
   virtual ~Tensor();
 
+  /**
+   * @brief Construct a new Tensor object
+   *
+   * @param name
+   */
   Tensor(const std::string &name);
 
+  /**
+   * @brief Construct a new Tensor object
+   *
+   * @param desc
+   * @param name
+   */
   Tensor(const TensorDesc &desc, const std::string &name = "");
-
+  /**
+   * @brief Construct a new Tensor object with device
+   *
+   * @param device
+   * @param desc
+   * @param name
+   * @param config
+   */
   Tensor(Device *device, const TensorDesc &desc, const std::string &name = "",
          const base::IntVector &config = base::IntVector());
-
+  /**
+   * @brief Construct a new Tensor object with device and data_ptr
+   *
+   * @param device
+   * @param desc
+   * @param data_ptr
+   * @param name
+   * @param config
+   */
   Tensor(Device *device, const TensorDesc &desc, void *data_ptr,
          const std::string &name = "",
          const base::IntVector &config = base::IntVector());
+  /**
+   * @brief Construct a new Tensor object with device and data_id
+   *
+   * @param device
+   * @param desc
+   * @param data_id
+   * @param name
+   * @param config
+   */
   Tensor(Device *device, const TensorDesc &desc, int data_id,
          const std::string &name = "",
          const base::IntVector &config = base::IntVector());
-
+  /**
+   * @brief Construct a new Tensor object with buffer
+   *
+   * @param desc
+   * @param buffer
+   * @param name
+   */
   Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name = "");
 
-  // create
-  // 必须确保为空
+  /**
+   * @brief 创建一个tensor
+   *
+   * @param desc
+   * @param name
+   * @details Tensor必须为空
+   */
   void create(const TensorDesc &desc, const std::string &name = "");
-
+  /**
+   * @brief 创建一个tensor
+   *
+   * @param device
+   * @param desc
+   * @param name
+   * @param config
+   * @details Tensor必须为空
+   */
   void create(Device *device, const TensorDesc &desc,
               const std::string &name = "",
               const base::IntVector &config = base::IntVector());
-
+  /**
+   * @brief 创建一个tensor
+   *
+   * @param device
+   * @param desc
+   * @param data_ptr
+   * @param name
+   * @param config
+   * @details Tensor必须为空
+   */
   void create(Device *device, const TensorDesc &desc, void *data_ptr,
               const std::string &name = "",
               const base::IntVector &config = base::IntVector());
+  /**
+   * @brief 创建一个tensor
+   *
+   * @param device
+   * @param desc
+   * @param data_id
+   * @param name
+   * @param config
+   * @details Tensor必须为空
+   */
   void create(Device *device, const TensorDesc &desc, int data_id,
               const std::string &name = "",
               const base::IntVector &config = base::IntVector());
-
+  /**
+   * @brief 创建一个tensor
+   *
+   * @param desc
+   * @param buffer
+   * @param name
+   * @details Tensor必须为空
+   */
   void create(const TensorDesc &desc, Buffer *buffer,
               const std::string &name = "");
 
-  // destroy
+  /**
+   * @brief 让tensor变为空
+   *
+   */
   void destory();
 
   // alloc

@@ -1,10 +1,10 @@
+
 include(ExternalProject)
+# message(STATUS "ENABLE_NNDEPLOY_INFERENCE_TENSORRT: ${ENABLE_NNDEPLOY_INFERENCE_TENSORRT}")
 
 if (ENABLE_NNDEPLOY_INFERENCE_TENSORRT STREQUAL "ON")
-  message(STATUS "ENABLE_NNDEPLOY_INFERENCE_TENSORRT: ${ENABLE_NNDEPLOY_INFERENCE_TENSORRT}")
 else()
-  include_directories(${ENABLE_NNDEPLOY_INFERENCE_TENSORRT}/include)
-  include_directories("/home/always/github/nndeploy/third_party/user/linux/tensor_rt/TensorRT-7.2.3.4/include")
+  # include_directories(${ENABLE_NNDEPLOY_INFERENCE_TENSORRT}/include)
   # set(TENSORRT "TENSORRT")
   # set(tmp_name ${NNDEPLOY_LIB_PREFIX}${TENSORRT}${NNDEPLOY_LIB_SUFFIX})
   # if (SYSTEM.Windows)

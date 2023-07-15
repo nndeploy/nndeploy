@@ -1,6 +1,8 @@
 #ifndef _NNDEPLOY_INFERENCE_TENSOR_RT_TENSOR_RT_UTIL_H_
 #define _NNDEPLOY_INFERENCE_TENSOR_RT_TENSOR_RT_UTIL_H_
 
+#include "nndeploy/inference/tensor_rt/tensor_rt_include.h"
+
 namespace nndepoy {
 namespace inference {
 

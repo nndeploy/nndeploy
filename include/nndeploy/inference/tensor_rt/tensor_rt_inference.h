@@ -46,13 +46,6 @@ class TensorRtInference : public Inference {
   virtual int64_t getMemorySize();
   virtual base::Status setMemory(device::Buffer *buffer);
 
-  virtual base::Status setInputTensor(
-      const std::string &name,
-      const std::shared_ptr<device::Tensor> input_tensor);
-  //
-  virtual std::shared_ptr<device::Tensor> getOutputTensor(
-      const std::string &name, std::vector<int> config);
-
   virtual base::Status run();
 
  public:

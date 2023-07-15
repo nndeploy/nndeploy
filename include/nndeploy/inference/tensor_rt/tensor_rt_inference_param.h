@@ -13,6 +13,13 @@ class TensorRtInferenceParam : public InferenceParam {
   TensorRtInferenceParam();
   virtual ~TensorRtInferenceParam();
 
+  TensorRtInferenceParam(const TensorRtInferenceParam &param) = default;
+  TensorRtInferenceParam &operator=(const TensorRtInferenceParam &param) =
+      default;
+
+  PARAM_COPY(TensorRtInferenceParam)
+  PARAM_COPY_TO(TensorRtInferenceParam)
+
   base::Status parse(const std::string &json, bool is_path = true);
 
   virtual base::Status set(const std::string &key, base::Value &value);

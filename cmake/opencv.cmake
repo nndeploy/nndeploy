@@ -1,10 +1,9 @@
 
 include(ExternalProject)
-message(STATUS "link opencv")
+# message(STATUS "ENABLE_NNDEPLOY_OPENCV: ${ENABLE_NNDEPLOY_OPENCV}")
 
 if (ENABLE_NNDEPLOY_OPENCV STREQUAL "OFF")
 elseif (ENABLE_NNDEPLOY_OPENCV STREQUAL "ON")
-  message(STATUS "ENABLE_NNDEPLOY_OPENCV: ${ENABLE_NNDEPLOY_OPENCV}")
   find_package(OpenCV REQUIRED)
   # If the package has been found, several variables will
   # be set, you can find the full list with descriptions
