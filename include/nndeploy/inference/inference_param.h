@@ -106,7 +106,6 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
   base::ShapeMap opt_shape_ = base::ShapeMap();  // 当为动态输入时最优shape
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
   std::string cache_path_ = "";                  // 缓存路径
-  void *command_queue_ = nullptr;  // 给第三方推理框架共享的命令队列
   std::vector<std::string> library_path = {};  // 第三方推理框架的动态库路径
 };
 
