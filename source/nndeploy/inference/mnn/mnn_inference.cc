@@ -5,7 +5,7 @@ namespace nndeploy {
 namespace inference {
 
 TypeInferenceRegister<TypeInferenceCreator<MnnInference>>
-    g_internal_inference_register(base::kInferenceTypeMnn);
+    g_mnn_inference_register(base::kInferenceTypeMnn);
 
 MnnInference::MnnInference(base::InferenceType type) : Inference(type) {
   internal_inference_param_ = nullptr;

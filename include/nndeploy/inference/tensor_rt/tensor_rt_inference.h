@@ -14,14 +14,13 @@
 #include "nndeploy/inference/inference_param.h"
 #include "nndeploy/inference/tensor_rt/tensor_rt_include.h"
 #include "nndeploy/inference/tensor_rt/tensor_rt_inference_param.h"
-#include "nndeploy/inference/tensor_rt/tensor_rt_util.h"
 
 namespace nndeploy {
 namespace inference {
 
 class TensorRtInference : public Inference {
  public:
-  TensorRtInference();
+  TensorRtInference(base::InferenceType type);
   virtual ~TensorRtInference();
 
   virtual base::Status init();
@@ -69,8 +68,6 @@ class TensorRtInference : public Inference {
 
   std::vector<void *> bindings_;
   std::map<std::string, int> io_name_index_;
-
-  static TensorRtLogger logger_;
 
   size_t forward_memory_size_;
   device::Buffer *inner_forward_buffer_;
