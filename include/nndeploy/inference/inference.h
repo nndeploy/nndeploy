@@ -120,6 +120,13 @@ class NNDEPLOY_CC_API Inference {
    */
   virtual base::Status setMemory(device::Buffer *buffer);
   /**
+   * @brief 设置推理所需的内存（推理内存由外部分配）
+   *
+   * @param buffer
+   * @return base::Status
+   */
+  virtual base::Status setMemory(device::Buffer *buffer, int index);
+  /**
    * @brief 获得推理时计算量
    *
    * @return float

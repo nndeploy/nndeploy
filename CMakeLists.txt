@@ -341,6 +341,11 @@ if(ENABLE_NNDEPLOY_PIPELINE)
     "${ROOT_PATH}/include/nndeploy/pipeline/*.h"
     "${ROOT_PATH}/source/nndeploy/pipeline/*.cc"
   )
+  file(GLOB PIPELINE_INFER_SOURCE
+    "${ROOT_PATH}/include/nndeploy/pipeline/infer/*.h"
+    "${ROOT_PATH}/source/nndeploy/pipeline/infer/*.cc"
+  )
+  set(PIPELINE_SOURCE ${PIPELINE_SOURCE} ${PIPELINE_INFER_SOURCE})
   file(GLOB PIPELINE_PREPROCESS_SOURCE
     "${ROOT_PATH}/include/nndeploy/pipeline/preprocess/*.h"
     "${ROOT_PATH}/source/nndeploy/pipeline/preprocess/*.cc"

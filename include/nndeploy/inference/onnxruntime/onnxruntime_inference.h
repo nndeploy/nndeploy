@@ -35,6 +35,9 @@ class OnnxRuntimeInference : public Inference {
   Ort::Session session_{nullptr};
   Ort::SessionOptions session_options_;
   std::shared_ptr<Ort::IoBinding> binding_;
+
+  std::map<std::string, device::Tensor *> max_input_tensors_;
+  std::map<std::string, device::Tensor *> max_output_tensors_;
 };
 
 }  // namespace inference

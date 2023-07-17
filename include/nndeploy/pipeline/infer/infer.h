@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_PIPELINE_INFER_H_
-#define _NNDEPLOY_PIPELINE_INFER_H_
+#ifndef _NNDEPLOY_PIPELINE_INFER_INFER_H_
+#define _NNDEPLOY_PIPELINE_INFER_INFER_H_
 
 #include "nndeploy/inference/inference.h"
 #include "nndeploy/inference/inference_param.h"
@@ -20,7 +20,7 @@ class NNDEPLOY_CC_API Infer : public Task {
 
   virtual base::Status init();
   virtual base::Status deinit();
-  virtual base::Status reShape();
+  virtual base::Status reshape();
   virtual base::Status run();
 
  private:
@@ -32,11 +32,11 @@ class NNDEPLOY_CC_API Infer : public Task {
   base::Status deinitTemplate();
   template <bool is_input_dynamic, bool is_output_dynamic, bool can_op_input,
             bool can_op_output>
-  base::Status reShapeTemplate();
+  base::Status reshapeTemplate();
 
   base::Status initDefault();
   base::Status deinitDefault();
-  base::Status reShapeDefault();
+  base::Status reshapeDefault();
   base::Status runDefault();
 
  private:
@@ -55,4 +55,4 @@ class NNDEPLOY_CC_API Infer : public Task {
 }  // namespace pipeline
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_PIPELINE_INFER_H_ */
+#endif /* _NNDEPLOY_PIPELINE_INFER_INFER_H_ */

@@ -26,20 +26,6 @@ class TensorRtInference : public Inference {
   virtual base::Status init();
   virtual base::Status deinit();
 
-  /**
-   * @brief reshape
-   *
-   * @param shape_map
-   * @return base::Status
-   * @note
-   * # 检查shape_map是否合法
-   * ## 是否是input
-   * ## 大于最小shape，小于最大shape
-   * # 检擦是否等于当前shape
-   * ## 等于，continue
-   * ## 不等于，reshape
-   * ### 更新current shape和current input tensor
-   */
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual int64_t getMemorySize();

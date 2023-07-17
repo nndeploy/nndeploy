@@ -1,5 +1,5 @@
 
-#include "nndeploy/pipeline/infer.h"
+#include "nndeploy/pipeline/infer/infer.h"
 
 namespace nndeploy {
 namespace pipeline {
@@ -35,7 +35,7 @@ base::Status Infer::deinitDefault() {
   base::Status status = base::kStatusCodeOk;
   return status;
 }
-base::Status Infer::reShapeDefault() {
+base::Status Infer::reshapeDefault() {
   base::Status status = base::kStatusCodeOk;
   return status;
 }
@@ -270,43 +270,43 @@ base::Status Infer::deinit() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
   return status;
 }
-base::Status Infer::reShape() {
+base::Status Infer::reshape() {
   base::Status status = base::kStatusCodeOk;
   if (is_input_dynamic_) {
     if (is_output_dynamic_) {
       if (can_op_input_) {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<true, true, true, true>();
+          // status = reshape<true, true, true, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<true, true, true, false>();
+          // status = reshape<true, true, true, false>();
         }
       } else {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<true, true, false, true>();
+          // status = reshape<true, true, false, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<true, true, false, false>();
+          // status = reshape<true, true, false, false>();
         }
       }
     } else {
       if (can_op_input_) {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<true, false, true, true>();
+          // status = reshape<true, false, true, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<true, false, true, false>();
+          // status = reshape<true, false, true, false>();
         }
       } else {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<true, false, false, true>();
+          // status = reshape<true, false, false, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<true, false, false, false>();
+          // status = reshape<true, false, false, false>();
         }
       }
     }
@@ -315,40 +315,40 @@ base::Status Infer::reShape() {
       if (can_op_input_) {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<false, true, true, true>();
+          // status = reshape<false, true, true, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<false, true, true, false>();
+          // status = reshape<false, true, true, false>();
         }
       } else {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<false, true, false, true>();
+          // status = reshape<false, true, false, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<false, true, false, false>();
+          // status = reshape<false, true, false, false>();
         }
       }
     } else {
       if (can_op_input_) {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<false, false, true, true>();
+          // status = reshape<false, false, true, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<false, false, true, false>();
+          // status = reshape<false, false, true, false>();
         }
       } else {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reShape<false, false, false, true>();
+          // status = reshape<false, false, false, true>();
         } else {
-          status = reShapeDefault();
+          status = reshapeDefault();
         }
       }
     }
   }
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "reShape failed");
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "reshape failed");
   return status;
 }
 base::Status Infer::run() {

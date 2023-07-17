@@ -13,7 +13,7 @@
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/pipeline/infer.h"
+#include "nndeploy/pipeline/infer/infer.h"
 #include "nndeploy/pipeline/packet.h"
 #include "nndeploy/pipeline/task.h"
 
@@ -117,7 +117,7 @@ class NNDEPLOY_CC_API Pipeline : public Task {
     return task;
   }
   template <typename T,
-            typename std::enable_if<std::is_base_of<Infer, T>{}, int>::type = 0>
+            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
   Task* createInfer(const std::string& name, base::InferenceType type,
                     Packet* input, Packet* output) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
@@ -149,7 +149,7 @@ class NNDEPLOY_CC_API Pipeline : public Task {
   base::Status init();
   base::Status deinit();
 
-  base::Status reShape();
+  base::Status reshape();
 
   base::Status run();
 

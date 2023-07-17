@@ -46,7 +46,7 @@ class NNDEPLOY_CC_API Task {
   virtual base::Status init();
   virtual base::Status deinit();
 
-  virtual base::Status reShape();
+  virtual base::Status reshape();
 
   virtual base::Status run() = 0;
 

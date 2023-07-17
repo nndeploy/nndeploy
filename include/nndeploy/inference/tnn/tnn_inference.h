@@ -31,26 +31,18 @@ class TnnInference : public Inference {
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual int64_t getMemorySize();
-
-  virtual float getGFLOPs();
+  virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual device::TensorDesc getInputTensorAlignDesc(const std::string &name);
   virtual device::TensorDesc getOutputTensorAlignDesc(const std::string &name);
 
   virtual base::Status run();
 
-  TNN::ScheduleConfig *getInternalInferenceParam();
-  TNN::Interpreter *getInternalInterpreter();
-  TNN::Session *getInternalSession();
-
  private:
-  base::Status allocateInputOutputTensor();
-  base::Status deallocateInputOutputTensor();
-
- private:
-  TNN::ScheduleConfig *internal_inference_param_ = nullptr;
-  TNN::Interpreter *internal_interpreter_ = nullptr;
-  TNN::Session *internal_session_ = nullptr;
+  TNN_NS::ModelConfig model_config_;
+  TNN_NS::NetworkConfig network_config_;
+  TNN_NS::TNN *tnn_ = nullptr;
+  TNN_NS::Instance instance_ = nullptr;
 };
 
 }  // namespace inference

@@ -70,7 +70,7 @@ base::Status Task::deinit() {
   return base::kStatusCodeOk;
 }
 
-base::Status Task::reShape() { return base::kStatusCodeOk; }
+base::Status Task::reshape() { return base::kStatusCodeOk; }
 
 }  // namespace pipeline
 }  // namespace nndeploy

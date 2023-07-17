@@ -37,7 +37,6 @@ base::Status OnnxRuntimeInference::init() {
   auto memory_info =
       Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
   Ort::Allocator allocator(session_, memory_info);
-
   auto n_inputs = session_.GetInputCount();
   for (int i = 0; i < n_inputs; ++i) {
 #if ORT_API_VERSION >= 13
@@ -55,7 +54,6 @@ base::Status OnnxRuntimeInference::init() {
         TensorDesc{device_, data_type, shape, input_name});
     allocator.Free(input_name);
   }
-
   auto n_outputs = session_.GetOutputCount();
   for (int i = 0; i < n_outputs; ++i) {
 #if ORT_API_VERSION >= 13
@@ -75,6 +73,7 @@ base::Status OnnxRuntimeInference::init() {
     allocator.Free(output_name);
   }
 
+  // flag
   is_share_command_queue_ = true;
   is_batch_ = (onnxruntime_inference_param->max_batch_size_ > 1);
   is_input_dynamic_ = inference_param_->is_dynamic_shape_;

@@ -37,14 +37,18 @@ base::Status Inference::setMemory(device::Buffer *buffer) {
   NNDEPLOY_LOGI("this api is not implemented");
   return base::kStatusCodeOk;
 }
+base::Status Inference::setMemory(device::Buffer *buffer, int index) {
+  NNDEPLOY_LOGI("this api is not implemented");
+  return base::kStatusCodeOk;
+}
 
 float Inference::getGFLOPs() {
   NNDEPLOY_LOGI("this api is not implemented");
   return 0.0f;
 }
 
-bool Inference::isShareCommanQueue() { return is_share_command_queue_; }
 bool Inference::isBatch() { return is_batch_; }
+bool Inference::isShareCommanQueue() { return is_share_command_queue_; }
 bool Inference::isInputDynamic() { return is_input_dynamic_; }
 bool Inference::isOutputDynamic() { return is_output_dynamic_; }
 bool Inference::canOpInput() { return can_op_input_; }
@@ -216,8 +220,8 @@ base::Status Inference::setOutputTensor(const std::string &name,
   return status;
 }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
-getGlobalInferenceCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
+    &getGlobalInferenceCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>>

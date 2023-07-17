@@ -98,9 +98,9 @@ void Tensor::destory() {
   desc_.shape_.clear();
   desc_.stride_.clear();
 
-  is_external_buffer_ = false;
-
   deallocateBuffer();
+
+  is_external_buffer_ = false;
 }
 
 void Tensor::allocBuffer(Device *device, const base::IntVector &config) {
@@ -333,8 +333,8 @@ BufferSourceType Tensor::getBufferSourceType() {
   return buffer_->getBufferSourceType();
 }
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
-getGlobalTensorCreatorMap() {
+std::map<base::TensorType, std::shared_ptr<TensorCreator>>
+    &getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorType, std::shared_ptr<TensorCreator>>>

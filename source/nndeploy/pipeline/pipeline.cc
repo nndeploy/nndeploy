@@ -306,14 +306,14 @@ base::Status Pipeline::deinit() {
   return status;
 }
 
-base::Status Pipeline::reShape() {
+base::Status Pipeline::reshape() {
   base::Status status = base::kStatusCodeOk;
   // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Task reShape Phase!\n");
+  // NNDEPLOY_LOGI("Task reshape Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
   for (auto task_vec : topo_sort_task_) {
     for (auto task : task_vec) {
-      status = task->reShape();
+      status = task->reshape();
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("Task run failed!\n");
         return status;
