@@ -21,10 +21,6 @@
 # - CUDA_CUDNN_LIBRARY
 # - CUDA_CUBLAS_LIBRARY
 #
-# sudo vim ~/.bashrc
-# $ export PATH=/usr/local/cuda-12.1/bin:/usr/local/cuda-12.1/NsightCompute-2019.1${PATH:+:${PATH}}
-# $ export LD_LIBRARY_PATH=/usr/local/cuda-12.1/lib64\
-#                          ${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 macro(find_cuda use_cuda use_cudnn)
   set(__use_cuda ${use_cuda})
   if(${__use_cuda} MATCHES ${IS_TRUE_PATTERN})
@@ -131,3 +127,27 @@ macro(find_cuda use_cuda use_cudnn)
     message(STATUS "Found CUDA_CUBLASLT_LIBRARY=" ${CUDA_CUBLASLT_LIBRARY})
   endif(CUDA_FOUND)
 endmacro(find_cuda)
+
+include(ExternalProject)
+
+find_cuda(${ENABLE_NNDEPLOY_DEVICE_CUDA} ${ENABLE_NNDEPLOY_DEVICE_CUDNN})
+
+if (ENABLE_NNDEPLOY_DEVICE_CUDA STREQUAL "OFF")
+else()
+  enable_language(CUDA)
+  set(CMAKE_CUDA_FLAGS "${CUDA_NVCC_FLAGS} ${CUDA_OPT_FLAG} -Xcompiler -fPIC --compiler-options -fno-strict-aliasing \
+        -lineinfo -Xptxas -dlcm=cg -use_fast_math -D_GLIBCXX_USE_CXX11_ABI=1 ${TARGET_ARCH}")
+  include_directories(${CUDA_TOOLKIT_ROOT_DIR}/include)
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${CUDA_CUDA_LIBRARY})
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${CUDA_CUDART_LIBRARY})
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${CUDA_NVRTC_LIBRARY})
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${CUDA_CUBLAS_LIBRARY})
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${CUDA_CURAND_LIBRARY})
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${CUDA_CUBLASLT_LIBRARY})
+endif()
+
+if (ENABLE_NNDEPLOY_DEVICE_CUDNN STREQUAL "OFF")
+else()
+  include_directories(${CUDA_CUDNN_INCLUDE_DIRS})
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${CUDA_CUDNN_LIBRARY})
+endif()

@@ -1,4 +1,16 @@
+message(STATUS "Building nndeploy demo")
 
-if(NNDEPLOY_ENABLE_TASK_DETECT)
-  add_subdirectory(detect)
+set(NNDEPLOY_DEPEND_LIBRARY_DEMO)
+set(NNDEPLOY_SYSTEM_LIBRARY_DEMO)
+set(NNDEPLOY_THIRD_PARTY_LIBRARY_DEMO)
+include(${ROOT_PATH}/cmake/nndeploy_demo.cmake)
+
+if (ENABLE_NNDEPLOY_MODEL_DETECT)
+    if (ENABLE_NNDEPLOY_MODEL_DETECT_DETR)
+        add_definitions(-DENABLE_NNDEPLOY_MODEL_DETECT_DETR)
+    endif()
+    if (ENABLE_NNDEPLOY_MODEL_DEDECT_YOLOV5)
+        add_definitions(-DENABLE_NNDEPLOY_MODEL_DETECT_DETR)
+    endif()
+    add_subdirectory(detect)
 endif()
