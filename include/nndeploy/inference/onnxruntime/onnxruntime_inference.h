@@ -18,6 +18,12 @@
 namespace nndeploy {
 namespace inference {
 
+struct OrtValueInfo {
+  std::string name;
+  std::vector<int64_t> shape;
+  ONNXTensorElementDataType dtype;
+};
+
 class OnnxRuntimeInference : public Inference {
  public:
   OnnxRuntimeInference(base::InferenceType type);
@@ -35,6 +41,9 @@ class OnnxRuntimeInference : public Inference {
   Ort::Session session_{nullptr};
   Ort::SessionOptions session_options_;
   std::shared_ptr<Ort::IoBinding> binding_;
+
+  std::vector<OrtValueInfo> inputs_desc_;
+  std::vector<OrtValueInfo> outputs_desc_;
 
   std::map<std::string, device::Tensor *> max_input_tensors_;
   std::map<std::string, device::Tensor *> max_output_tensors_;

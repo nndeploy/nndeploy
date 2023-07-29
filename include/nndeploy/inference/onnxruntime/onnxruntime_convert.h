@@ -23,7 +23,9 @@ class OnnxRuntimeConvert {
   static base::DataFormat convertToDataFormat(
       const nvinfer1::TensorFormat &src);
 
-  static base::IntVector convertToShape(const nvinfer1::Dims &src);
+  static base::IntVector convertToShape(TensorTypeAndShapeInfo &src,
+                                        bool is_dynamic_shape = false,
+                                        IntVector &max_shape = IntVector());
   static nvinfer1::Dims convertFromShape(const base::IntVector &src);
 
   // 会衍生出其他需要进行转换的类型

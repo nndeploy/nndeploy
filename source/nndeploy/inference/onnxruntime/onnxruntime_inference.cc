@@ -34,53 +34,81 @@ base::Status OnnxRuntimeInference::init() {
                                                 &session_options_);
   session_ = {env_, onnx.data(), onnx.size(), session_options_};
 
+  binding_ = std::make_shared<Ort::IoBinding>(session_);
   auto memory_info =
       Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
   Ort::Allocator allocator(session_, memory_info);
+  device::Device *device = device::getDefaultHostDevice();
+
   auto n_inputs = session_.GetInputCount();
   for (int i = 0; i < n_inputs; ++i) {
-#if ORT_API_VERSION >= 13
-    auto input_name = session_.GetInputNameAllocated(i, allocator).release();
-#else
-    auto input_name = session_.GetInputName(i, allocator);
-#endif
+    auto input_name = session_.GetInputNameAllocated(i, allocator);
+
     auto type_info = session_.GetInputTypeInfo(i);
-    auto shape = OnnxRuntimeConvert::convertToShape(
+    std::vector<int64_t> shape =
+        type_info.GetTensorTypeAndShapeInfo().GetShape();
+    ONNXTensorElementDataType data_type =
+        type_info.GetTensorTypeAndShapeInfo().GetElementType();
+    inputs_desc_.emplace_back(
+        OrtValueInfo{input_name_ptr.get(), shape, data_type});
+
+    device::TensorDesc desc;
+    desc.shape_ = OnnxRuntimeConvert::convertToShape(
         type_info, onnxruntime_inference_param->is_dynamic_shape_,
-        onnxruntime_inference_param->max_shape_);
-    auto data_type = OnnxRuntimeConvert::convertToDataType(
-        type_info.GetTensorTypeAndShapeInfo().GetElementType());
-    input_tensors_.emplace_back(
-        TensorDesc{device_, data_type, shape, input_name});
-    allocator.Free(input_name);
+        onnxruntime_inference_param->max_shape_[input_name]);
+    desc.data_type_ = OnnxRuntimeConvert::convertToDataType(data_type);
+    desc.format_ = OnnxRuntimeConvert::getDataFormatByShape(desc.shape_);
+    device::Tensor *max_input_tensor =
+        new device::Tensor(device, desc, input_name);
+    max_input_tensors_.insert({input_name, max_input_tensor});
+
+    device::Buffer *max_input_buffer = max_input_tensor->getBuffer();
+    device::Tensor *current_input_tensor =
+        new device::Tensor(desc, max_input_buffer, input_name);
+    input_tensors_.insert({input_name, current_input_tensor});
   }
+
   auto n_outputs = session_.GetOutputCount();
   for (int i = 0; i < n_outputs; ++i) {
-#if ORT_API_VERSION >= 13
-    auto output_name = session_.GetOutputNameAllocated(i, allocator).release();
-#else
-    auto output_name = session_.GetOutputName(i, allocator);
-#endif
+    auto output_name = session_.GetOutputNameAllocated(i, allocator);
+
     auto type_info = session_.GetOutputTypeInfo(i);
-    auto shape = to_shape(type_info);
-    NNDEPLOY_LOGI("output {}, shape = {}", i, shape);
-    filter_shape(shape);
-    OUTCOME_TRY(auto data_type,
-                ConvertElementType(
-                    type_info.GetTensorTypeAndShapeInfo().GetElementType()));
-    output_tensors_.emplace_back(
-        TensorDesc{device_, data_type, shape, output_name});
-    allocator.Free(output_name);
+    std::vector<int64_t> shape =
+        type_info.GetTensorTypeAndShapeInfo().GetShape();
+    ONNXTensorElementDataType data_type =
+        type_info.GetTensorTypeAndShapeInfo().GetElementType();
+    outputs_desc_.emplace_back(
+        OrtValueInfo{output_name_ptr.get(), shape, data_type});
+
+    device::TensorDesc desc;
+    desc.shape_ = OnnxRuntimeConvert::convertToShape(type_info);
+    if (!isDynamic(desc.shape_)) {
+      desc.data_type_ = OnnxRuntimeConvert::convertToDataType(data_type);
+      desc.format_ = OnnxRuntimeConvert::getDataFormatByShape(desc.shape_);
+      device::Tensor *max_output_tensor =
+          new device::Tensor(device, desc, output_name);
+      max_output_tensors_.insert({output_name, max_output_tensor});
+
+      device::Buffer *max_output_buffer = max_output_tensor->getBuffer();
+      device::Tensor *current_output_tensor =
+          new device::Tensor(desc, max_output_buffer, output_name);
+      output_tensors_.insert({output_name, current_output_tensor});
+    }
   }
 
   // flag
   is_share_command_queue_ = true;
-  is_batch_ = (onnxruntime_inference_param->max_batch_size_ > 1);
+  for (auto iter : input_tensors_) {
+    if (iter.second->getBatch() > 1) {
+      is_batch_ = true;
+      break;
+    }
+  }
   is_input_dynamic_ = inference_param_->is_dynamic_shape_;
   // TODO: 有可能输入非动态，但是输出是动态的
   is_output_dynamic_ = is_input_dynamic_;
-  can_op_input_ = true;
-  can_op_output_ = true;
+  can_op_input_ = false;
+  can_op_output_ = false;
 
   return status;
 }
@@ -91,28 +119,34 @@ base::Status OnnxRuntimeInference::deinit() {
     delete iter.second;
   }
   input_tensors_.clear();
+  for (auto iter : max_input_tensors_) {
+    delete iter.second;
+  }
+  max_input_tensors_.clear();
   for (auto iter : output_tensors_) {
     delete iter.second;
   }
   output_tensors_.clear();
+  for (auto iter : max_output_tensors_) {
+    delete iter.second;
+  }
+  max_output_tensors_.clear();
   return status;
 }
 
 base::Status OnnxRuntimeInference::reshape(base::ShapeMap &shape_map) {
+  auto memory_info =
+      Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+  Ort::Allocator allocator(session_, memory_info);
+  device::Device *device = device::getDefaultHostDevice();
+
   base::ShapeMap current_shape;
   auto n_inputs = session_.GetInputCount();
   for (int i = 0; i < n_inputs; ++i) {
-    // input_name会被释放,是否需要拷贝一份呢?
-#if ORT_API_VERSION >= 13
-    auto input_name = session_.GetInputNameAllocated(i, allocator).release();
-#else
-    auto input_name = session_.GetInputName(i, allocator);
-#endif
+    auto input_name = session_.GetInputNameAllocated(i, allocator);
     auto type_info = session_.GetInputTypeInfo(i);
     auto shape = OnnxRuntimeConvert::convertToShape(type_info);
-    OnnxRuntimeConvert::filterShape(shape);
     current_shape.insert({input_name, shape});
-    allocator.Free(input_name);
   }
   bool flag = false;
   for (auto iter : shape_map) {
@@ -138,40 +172,46 @@ base::Status OnnxRuntimeInference::reshape(base::ShapeMap &shape_map) {
 
 base::Status OnnxRuntimeInference::run() {
   base::Status status = base::kStatusCodeOk;
-  device::Device *device = device::getDevice(inference_param_->device_type_);
+  device::Device *device = device::getDefaultHostDevice();
   try {
-    OUTCOME_TRY(stream_.Wait());
-    Ort::IoBinding binding(session_);
-    std::vector<Ort::Value> inputs;
-    std::vector<Ort::Value> outputs;
-    Ort::RunOptions options;
-
-    inputs.reserve(input_tensors_.size());
-    for (auto &t : input_tensors_) {
-      inputs.push_back(AsOrtValue(t));
-      binding.BindInput(t.name(), inputs.back());
+    auto n_inputs = session_.GetInputCount();
+    for (int i = 0; i < n_inputs; ++i) {
+      auto input_name = session_.GetInputNameAllocated(i, allocator);
+      device::Tensor *input_tensor = nullptr;
+      if (external_input_tensors_.find(input_name) !=
+          external_input_tensors_.end()) {
+        input_tensor = external_input_tensors_[input_name];
+      } else {
+        input_tensor = input_tensors_[input_name];
+      }
+      auto ort_value = OnnxRuntimeConvert::convertFromTensor(inputs[i], device);
+      binding_->BindInput(input_name, ort_value);
     }
 
-    // TODO: We are in the same situation as PPL.nn, the backend can't infer
-    // shapes
-    //  without executing forward
-    for (auto &t : output_tensors_) {
-      binding.BindOutput(t.name(), MemoryInfo(t.desc()));
+    for (size_t i = 0; i < outputs_desc_.size(); ++i) {
+      Ort::MemoryInfo memory_info("Cpu", OrtDeviceAllocator, 0,
+                                  OrtMemTypeDefault);
+      binding_->BindOutput(outputs_desc_[i].name.c_str(), memory_info);
     }
 
     session_.Run({}, binding);
 
-    outputs = binding.GetOutputValues();
-    for (size_t i = 0; i < output_tensors_.size(); ++i) {
-      OUTCOME_TRY(auto tmp, AsTensor(outputs[i], output_tensors_[i].device()));
-      output_tensors_[i].Reshape(tmp.shape());
-      OUTCOME_TRY(tmp.CopyTo(output_tensors_[i], stream_));
+    std::vector<Ort::Value> ort_outputs = binding.GetOutputValues();
+    for (size_t i = 0; i < ort_outputs.size(); ++i) {
+      auto output_name = outputs_desc_[i].name;
+      device::Tensor *output_tensor = nullptr;
+      if (external_output_tensors_.find(output_name) !=
+          external_output_tensors_.end()) {
+        output_tensor = external_output_tensors_[output_name];
+      } else {
+        output_tensor = output_tensors_[input_name];
+      }
+      OnnxRuntimeConvert::convertToTensor(ort_outputs[i], device, output_tensor,
+                                          true);
     }
-
-    OUTCOME_TRY(stream_.Wait());
   } catch (const std::exception &e) {
-    MMDEPLOY_ERROR(e.what());
-    return Status(eFail);
+    NNDEPLOY_LOGE(e.what().c_str());
+    return base::kStatusCodeErrorInferenceOnnxRuntime;
   }
   return status;
 }
