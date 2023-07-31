@@ -334,6 +334,20 @@ if(ENABLE_NNDEPLOY_INFERENCE)
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_OPENVINO_SOURCE})
   endif()
+  if (ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME)
+    file(GLOB_RECURSE INFERENCE_ONNXRUNTIME_SOURCE
+      "${ROOT_PATH}/include/nndeploy/inference/onnxruntime/*.h"
+      "${ROOT_PATH}/source/nndeploy/inference/onnxruntime/*.cc"
+    )
+    set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_ONNXRUNTIME_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_INFERENCE_TFLITE)
+    file(GLOB_RECURSE INFERENCE_TFLITE_SOURCE
+      "${ROOT_PATH}/include/nndeploy/inference/tflite/*.h"
+      "${ROOT_PATH}/source/nndeploy/inference/tflite/*.cc"
+    )
+    set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_TFLITE_SOURCE})
+  endif()
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${INFERENCE_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_PIPELINE)

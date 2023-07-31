@@ -37,6 +37,9 @@ class OnnxRuntimeInference : public Inference {
   virtual base::Status run();
 
  private:
+  bool isDynamic(std::vector<int64_t> shape);
+
+ private:
   Ort::Env env_;
   Ort::Session session_{nullptr};
   Ort::SessionOptions session_options_;

@@ -17,23 +17,22 @@ namespace inference {
 
 class OnnxRuntimeConvert {
  public:
-  static base::DataType convertToDataType(const nvinfer1::DataType &src);
-  static nvinfer1::DataType convertFromDataType(base::DataType &src);
+  static base::DataType convertToDataType(const ONNXTensorElementDataType &src);
+  static ONNXTensorElementDataType convertFromDataType(base::DataType &src);
 
-  static base::DataFormat convertToDataFormat(
-      const nvinfer1::TensorFormat &src);
+  static base::DataFormat getDataFormatByShape(const base::IntVector &src);
 
-  static base::IntVector convertToShape(TensorTypeAndShapeInfo &src,
-                                        bool is_dynamic_shape = false,
-                                        IntVector &max_shape = IntVector());
-  static nvinfer1::Dims convertFromShape(const base::IntVector &src);
+  static base::IntVector convertToShape(
+      std::vector<int64_t> &src, base::IntVector max_shape = base::IntVector());
+  static std::vector<int64_t> convertFromShape(const base::IntVector &src);
 
   // 会衍生出其他需要进行转换的类型
   static base::Status convertFromInferenceParam(OnnxRuntimeInferenceParam *src,
                                                 Ort::SessionOptions *dst);
 
-  static device::Tensor *convertToTensor(Ort::Value &src, std::string name,
-                                         device::Device *device);
+  static base::Status convertToTensor(Ort::Value &src, std::string name,
+                                      device::Device *device,
+                                      device::Tensor *dst, bool flag = false);
   static Ort::Value convertFromTensor(device::Tensor *src);
 };
 

@@ -48,3 +48,14 @@
 
 git config --global user.name "02200059Z"
 git config --global user.email 2018222066@email.szu.edu.cn
+
+# 2023.07.30
++ 完成六个推理框架的接入
+  + tensor_rt
+  + openvino
+  + tf-lite
+  + onnxruntime
+  + mnn
+  + tnn
++ 接入一组检测算法
++ 开源
