@@ -29,8 +29,9 @@ class OnnxRuntimeInferenceParam : public InferenceParam {
    * @brief Level of graph optimization
    * @details
    * -1: mean default(Enable all the optimization strategy)
-   * 0: disable all the optimization strategy/1: enable basic strategy
-   * 2:enable extend strategy/99: enable all
+   * 0: disable all the optimization strategy
+   * 1: enable basic strategy
+   * 2: enable extend strategy/99: enable all
    */
   int graph_optimization_level_ = 1;
   /**

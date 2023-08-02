@@ -25,7 +25,7 @@ namespace task {
 
 class NNDEPLOY_CC_API Packet {
  public:
-  Packet(const std::string &name = "") : name_(name) {}
+          Packet(const std::string &name = "") : name_(name) {}
   virtual ~Packet() {}
 
   std::string getName() { return name_; }

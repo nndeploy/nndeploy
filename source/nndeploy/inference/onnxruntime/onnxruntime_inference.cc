@@ -30,8 +30,8 @@ base::Status OnnxRuntimeInference::init() {
     model_buffer = onnxruntime_inference_param->model_value_[0];
   }
 
-  OnnxRuntimeConvert::convertFromInferenceParam(onnxruntime_inference_param,
-                                                &session_options_);
+  OnnxRuntimeConvert::convertFromInferenceParam(*onnxruntime_inference_param,
+                                                session_options_);
   session_ = {env_, model_buffer.data(), model_buffer.size(), session_options_};
 
   binding_ = std::make_shared<Ort::IoBinding>(session_);
@@ -66,6 +66,14 @@ base::Status OnnxRuntimeInference::init() {
     input_tensors_.insert({input_name, current_input_tensor});
   }
 
+  for (auto iter : input_tensors_) {
+    batch_size_ = iter.second->getBatch();
+    if (iter.second->getBatch() > 1) {
+      is_batch_ = true;
+      break;
+    }
+  }
+
   auto n_outputs = session_.GetOutputCount();
   for (int i = 0; i < n_outputs; ++i) {
     auto output_name = session_.GetOutputNameAllocated(i, allocator).get();
@@ -77,9 +85,10 @@ base::Status OnnxRuntimeInference::init() {
         type_info.GetTensorTypeAndShapeInfo().GetElementType();
     outputs_desc_.emplace_back(OrtValueInfo{output_name, shape, data_type});
 
-    device::TensorDesc desc;
-    desc.shape_ = OnnxRuntimeConvert::convertToShape(shape);
     if (!isDynamic(shape)) {
+      device::TensorDesc desc;
+      desc.shape_ = OnnxRuntimeConvert::convertToShape(shape);
+      desc.shape_[0] = batch_size_;
       desc.data_type_ = OnnxRuntimeConvert::convertToDataType(data_type);
       desc.format_ = OnnxRuntimeConvert::getDataFormatByShape(desc.shape_);
       device::Tensor *max_output_tensor =
@@ -92,17 +101,17 @@ base::Status OnnxRuntimeInference::init() {
       output_tensors_.insert({output_name, current_output_tensor});
 
       is_output_dynamic_ = true;
+    } else {
+      device::Tensor *max_output_tensor = new device::Tensor(output_name);
+      max_output_tensors_.insert({output_name, max_output_tensor});
+
+      device::Tensor *current_output_tensor = new device::Tensor(output_name);
+      output_tensors_.insert({output_name, current_output_tensor});
     }
   }
 
   // flag
   is_share_command_queue_ = true;
-  for (auto iter : input_tensors_) {
-    if (iter.second->getBatch() > 1) {
-      is_batch_ = true;
-      break;
-    }
-  }
   is_input_dynamic_ = inference_param_->is_dynamic_shape_;
   // TODO: 有可能输入非动态，但是输出是动态的
   if (is_input_dynamic_) {
@@ -212,7 +221,7 @@ base::Status OnnxRuntimeInference::run() {
         output_tensor = output_tensors_[output_name];
       }
       OnnxRuntimeConvert::convertToTensor(ort_outputs[i], output_name, device,
-                                          output_tensor, true);
+                                          output_tensor);
     }
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());
@@ -221,9 +230,10 @@ base::Status OnnxRuntimeInference::run() {
   return status;
 }
 
-bool OnnxRuntimeInference::isDynamic(std::vector<int64_t> shape) {
-  for (auto iter : shape) {
-    if (iter < 0) {
+bool OnnxRuntimeInference::isDynamic(std::vector<int64_t> &shape) {
+  int size = shape.size();
+  for (int i = 1; i < size; ++i) {
+    if (shape[i] < 0) {
       return true;
     }
   }

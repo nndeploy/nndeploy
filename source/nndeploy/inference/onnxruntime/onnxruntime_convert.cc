@@ -141,10 +141,9 @@ base::IntVector OnnxRuntimeConvert::convertToShape(std::vector<int64_t> &src,
   if (max_shape.empty()) {
     dst = max_shape;
   } else {
-    std::vector<int64_t> src_shape = src;
-    int src_size = src_shape.size();
+    int src_size = src.size();
     for (int i = 0; i < src_size; ++i) {
-      dst[i] = (int)src_shape[i];
+      dst[i] = (int)src[i];
       if (dst[i] == -1) {
         dst[i] = 1;
       }
@@ -164,17 +163,74 @@ std::vector<int64_t> OnnxRuntimeConvert::convertFromShape(
 }
 
 base::Status OnnxRuntimeConvert::convertFromInferenceParam(
-    OnnxRuntimeInferenceParam *src, Ort::SessionOptions *dst) {
+    const OnnxRuntimeInferenceParam &src, Ort::SessionOptions &dst) {
   base::Status status = base::kStatusCodeOk;
+  if (src.graph_optimization_level_ >= 0) {
+    dst.SetGraphOptimizationLevel(
+        GraphOptimizationLevel(src.graph_optimization_level_));
+  }
+  if (src.inter_op_num_threads_ > 0) {
+    dst.SetInterOpNumThreads(src.inter_op_num_threads_);
+  }
+  if (src.execution_mode_ >= 0) {
+    dst.SetExecutionMode(ExecutionMode(src.execution_mode_));
+  }
+
+  if (src.device_type_ == base::kDeviceTypeCodeCuda) {
+    auto all_providers = Ort::GetAvailableProviders();
+    bool support_cuda = false;
+    std::string providers_msg = "";
+    for (size_t i = 0; i < all_providers.size(); ++i) {
+      providers_msg = providers_msg + all_providers[i] + ", ";
+      if (all_providers[i] == "CUDAExecutionProvider") {
+        support_cuda = true;
+      }
+    }
+    if (!support_cuda) {
+      NNDEPLOY_LOGE(
+          "Compiled fastdeploy with onnxruntime doesn't "
+          "support GPU, the available providers are %s, "
+          "will fallback to CPUExecutionProvider.\n",
+          providers_msg);
+      src.device_type_ = device::getHostDeviceType();
+    } else {
+      OrtCUDAProviderOptions cuda_srcs;
+      cuda_srcs.device_id = src.device_type_.device_id_;
+      device::Device *device = device::getDevice(src.device_type_);
+      if (device) {
+        cuda_srcs.has_user_compute_stream = 1;
+        cuda_srcs.user_compute_stream = src.external_stream_;
+      }
+      session_srcs_.AppendExecutionProvider_CUDA(cuda_srcs);
+    }
+  }
+
+  if (device::isHostDeviceType(src.device_type_)) {
+    if (src.num_thread_ > 0) {
+      dst.SetIntraOpNumThreads(src.num_thread_);
+    }
+  }
+
   return status;
 }
 
 base::Status OnnxRuntimeConvert::convertToTensor(Ort::Value &src,
                                                  std::string name,
                                                  device::Device *device,
-                                                 device::Tensor *dst,
-                                                 bool flag) {
+                                                 device::Tensor *dst)
+
+{
   base::Status status = base::kStatusCodeOk;
+
+  const auto info = src.GetTensorTypeAndShapeInfo();
+  const auto data_type = info.GetElementType();
+  size_t numel = info.GetElementCount();
+  auto shape = info.GetShape();
+  const void *value_ptr = value.GetTensorData<void *>();
+  if (dst->empty()) {
+  } else {
+  }
+
   return status;
 }
 

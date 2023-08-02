@@ -43,33 +43,32 @@ int main(int argc, char *argv[]) {
   model_value.push_back(
       "/home/always/Downloads/TRT2021-MedcareAILab/detr_sim_onnx.mnn");
 
-   task::Packet input;
-   task::Packet output;
-   task::Pipeline *pipeline = task::opencv::creatDetrPipeline(
-       name, type, &input, &output, true, model_value);
-   if (pipeline == nullptr) {
-     NNDEPLOY_LOGE("pipeline is nullptr");
-     return -1;
-   }
+  task::Packet input;
+  task::Packet output;
+  task::Pipeline *pipeline = task::opencv::creatDetrPipeline(
+      name, type, &input, &output, true, model_value);
+  if (pipeline == nullptr) {
+    NNDEPLOY_LOGE("pipeline is nullptr");
+    return -1;
+  }
 
-   NNDEPLOY_LOGE("task->init()");
+  NNDEPLOY_LOGE("task->init()");
 
-   pipeline->init();
-   cv::Mat input_mat =
-       cv::imread("/home/always/github/TensorRT-DETR/cpp/res.jpg");
-   input.set(input_mat);
+  pipeline->init();
+  cv::Mat input_mat =
+      cv::imread("/home/always/github/TensorRT-DETR/cpp/res.jpg");
+  input.set(input_mat);
 
-   NNDEPLOY_LOGE("task->run()");
-   pipeline->run();
+  NNDEPLOY_LOGE("task->run()");
+  pipeline->run();
 
-   // draw_box(input_mat, results);
-   cv::imwrite("/home/always/github/TensorRT-DETR/cpp/res_again.jpg",
-   input_mat);
+  // draw_box(input_mat, results);
+  cv::imwrite("/home/always/github/TensorRT-DETR/cpp/res_again.jpg", input_mat);
 
-   NNDEPLOY_LOGE("task->deinit()");
-   pipeline->deinit();
+  NNDEPLOY_LOGE("task->deinit()");
+  pipeline->deinit();
 
-   delete pipeline;
+  delete pipeline;
 
   printf("hello world!\n");
   return 0;

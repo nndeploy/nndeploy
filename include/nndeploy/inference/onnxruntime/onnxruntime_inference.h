@@ -40,6 +40,8 @@ class OnnxRuntimeInference : public Inference {
   bool isDynamic(std::vector<int64_t> shape);
 
  private:
+  int batch_size_ = 1;
+
   Ort::Env env_;
   Ort::Session session_{nullptr};
   Ort::SessionOptions session_options_;
