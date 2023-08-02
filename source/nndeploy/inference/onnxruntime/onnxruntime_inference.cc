@@ -217,11 +217,13 @@ base::Status OnnxRuntimeInference::run() {
       if (external_output_tensors_.find(output_name) !=
           external_output_tensors_.end()) {
         output_tensor = external_output_tensors_[output_name];
+        OnnxRuntimeConvert::convertToTensor(ort_outputs[i], output_name, device,
+                                            output_tensor, true);
       } else {
         output_tensor = output_tensors_[output_name];
+        OnnxRuntimeConvert::convertToTensor(ort_outputs[i], output_name, device,
+                                            output_tensor, false);
       }
-      OnnxRuntimeConvert::convertToTensor(ort_outputs[i], output_name, device,
-                                          output_tensor);
     }
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());

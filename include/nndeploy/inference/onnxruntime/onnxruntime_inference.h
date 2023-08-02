@@ -37,7 +37,7 @@ class OnnxRuntimeInference : public Inference {
   virtual base::Status run();
 
  private:
-  bool isDynamic(std::vector<int64_t> shape);
+  bool isDynamic(std::vector<int64_t> &shape);
 
  private:
   int batch_size_ = 1;

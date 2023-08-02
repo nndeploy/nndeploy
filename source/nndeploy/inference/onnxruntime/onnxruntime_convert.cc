@@ -163,7 +163,7 @@ std::vector<int64_t> OnnxRuntimeConvert::convertFromShape(
 }
 
 base::Status OnnxRuntimeConvert::convertFromInferenceParam(
-    const OnnxRuntimeInferenceParam &src, Ort::SessionOptions &dst) {
+    OnnxRuntimeInferenceParam &src, Ort::SessionOptions &dst) {
   base::Status status = base::kStatusCodeOk;
   if (src.graph_optimization_level_ >= 0) {
     dst.SetGraphOptimizationLevel(
@@ -191,17 +191,17 @@ base::Status OnnxRuntimeConvert::convertFromInferenceParam(
           "Compiled fastdeploy with onnxruntime doesn't "
           "support GPU, the available providers are %s, "
           "will fallback to CPUExecutionProvider.\n",
-          providers_msg);
-      src.device_type_ = device::getHostDeviceType();
+          providers_msg.c_str());
+      src.device_type_ = device::getDefaultHostDeviceType();
     } else {
       OrtCUDAProviderOptions cuda_srcs;
       cuda_srcs.device_id = src.device_type_.device_id_;
       device::Device *device = device::getDevice(src.device_type_);
       if (device) {
         cuda_srcs.has_user_compute_stream = 1;
-        cuda_srcs.user_compute_stream = src.external_stream_;
+        cuda_srcs.user_compute_stream = device->getCommandQueue();
       }
-      session_srcs_.AppendExecutionProvider_CUDA(cuda_srcs);
+      dst.AppendExecutionProvider_CUDA(cuda_srcs);
     }
   }
 
@@ -215,28 +215,64 @@ base::Status OnnxRuntimeConvert::convertFromInferenceParam(
 }
 
 base::Status OnnxRuntimeConvert::convertToTensor(Ort::Value &src,
-                                                 std::string name,
+                                                 const std::string &name,
                                                  device::Device *device,
-                                                 device::Tensor *dst)
-
-{
+                                                 device::Tensor *dst,
+                                                 bool copy_flag) {
   base::Status status = base::kStatusCodeOk;
 
-  const auto info = src.GetTensorTypeAndShapeInfo();
-  const auto data_type = info.GetElementType();
-  size_t numel = info.GetElementCount();
-  auto shape = info.GetShape();
-  const void *value_ptr = value.GetTensorData<void *>();
-  if (dst->empty()) {
+  const auto src_info = src.GetTensorTypeAndShapeInfo();
+  const auto src_data_type = src_info.GetElementType();
+  size_t src_numel = src_info.GetElementCount();
+  auto src_shape = src_info.GetShape();
+
+  const auto dst_data_type =
+      OnnxRuntimeConvert::convertToDataType(src_data_type);
+  const auto elesize = dst_data_type.size();
+
+  size_t src_size = src_numel * elesize;
+  const void *value_ptr = src.GetTensorData<void *>();
+  if (copy_flag) {
+    device::Buffer *src_buffer = device->create(src_size, (void *)value_ptr);
+    device::Buffer *dst_buffer = dst->getBuffer();
+    device->copy(src_buffer, dst_buffer);
+    device->deallocate(src_buffer);
   } else {
+    dst->destory();
+    device::TensorDesc desc;
+    desc.shape_ = OnnxRuntimeConvert::convertToShape(src_shape);
+    desc.data_type_ = dst_data_type;
+    desc.format_ = OnnxRuntimeConvert::getDataFormatByShape(desc.shape_);
+    dst->create(device, desc, (void *)value_ptr, name);
   }
 
   return status;
 }
 
 Ort::Value OnnxRuntimeConvert::convertFromTensor(device::Tensor *src) {
-  Ort::Value value(nullptr);
-  return value;
+  base::DeviceType device_type = src->getDeviceType();
+  auto src_data_type = src->getDataType();
+  ONNXTensorElementDataType dst_data_type =
+      OnnxRuntimeConvert::convertFromDataType(src_data_type);
+  if (device_type == base::kDeviceTypeCodeCuda) {
+    Ort::MemoryInfo memory_info("Cuda", OrtDeviceAllocator, 0,
+                                OrtMemTypeDefault);
+    auto dst_shape = convertFromShape(src->getShape());
+    auto ort_value = Ort::Value::CreateTensor(
+        memory_info, src->getPtr(), src->getSize(), dst_shape.data(),
+        src->getShape().size(), dst_data_type);
+    return ort_value;
+  } else if (device::isHostDeviceType(device_type)) {
+    Ort::MemoryInfo memory_info("Cpu", OrtDeviceAllocator, 0,
+                                OrtMemTypeDefault);
+    auto dst_shape = convertFromShape(src->getShape());
+    auto ort_value = Ort::Value::CreateTensor(
+        memory_info, src->getPtr(), src->getSize(), dst_shape.data(),
+        src->getShape().size(), dst_data_type);
+    return ort_value;
+  } else {
+    return Ort::Value(nullptr);
+  }
 }
 
 }  // namespace inference
