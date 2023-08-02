@@ -17,6 +17,8 @@
 #include "nndeploy/inference/tnn/tnn_include.h"
 #include "nndeploy/inference/tnn/tnn_inference_param.h"
 
+// Question:为什么private里面没有tnn_inference_param
+
 namespace nndeploy {
 namespace inference {
 
@@ -42,7 +44,7 @@ class TnnInference : public Inference {
   TNN_NS::ModelConfig model_config_;
   TNN_NS::NetworkConfig network_config_;
   TNN_NS::TNN *tnn_ = nullptr;
-  TNN_NS::Instance instance_ = nullptr;
+  std::shared_ptr<TNN_NS::Instance> instance_;
 };
 
 }  // namespace inference
