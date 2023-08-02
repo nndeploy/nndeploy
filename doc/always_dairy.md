@@ -59,3 +59,5 @@ git config --global user.email 2018222066@email.szu.edu.cn
   + tnn
 + 接入一组检测算法
 + 开源
+
+OMP_NUM_THREADS=1 mpiexec -n 4 valgrind -s --tool=memcheck --leak-check=full --error-exitcode=1 --errors-for-leak-kinds=definite --show-leak-kinds=definite --undef-value-errors=no exe
