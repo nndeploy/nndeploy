@@ -31,6 +31,8 @@ include("${ROOT_PATH}/cmake/mnn.cmake")
 include("${ROOT_PATH}/cmake/tensor_rt.cmake")
 ## onnxruntime
 include("${ROOT_PATH}/cmake/onnxruntime.cmake")
+## tnn
+include("${ROOT_PATH}/cmake/tnn.cmake")
 #################### inference ####################
 
 #################### pipeline ####################
