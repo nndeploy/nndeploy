@@ -37,7 +37,7 @@
 + "[\s\S]*" 
 
 + export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/always/github/nndeploy/build/install   
-+ export LD_LIBRARY_PATH=/home/always/github/nndeploy/third_party/user/linux/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gnu.cuda-11.1.cudnn8.1/TensorRT-7.2.3.4/lib:$LD_LIBRARY_PATH
++ export LD_LIBRARY_PATH=/home/for_all_users/third_party/user/linux/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gnu.cuda-11.1.cudnn8.1/TensorRT-7.2.3.4/lib:$LD_LIBRARY_PATH
 + export PATH=/snap/bin/:$PATH
 + export LD_LIBRARY_PATH=/home/always/github/nndeploy/build/install/:$LD_LIBRARY_PATH
 + export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH
