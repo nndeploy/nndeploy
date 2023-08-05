@@ -89,7 +89,7 @@ float computeIOU(const float* boxes, int i, int j) {
 }
 
 base::Status computeNMS(const DetectResults& src, std::vector<int>& keep_idxs,
-                 const float iou_threshold) {
+                        const float iou_threshold) {
   for (auto i = 0; i < src.result_.size(); ++i) {
     keep_idxs[i] = i;
   }
@@ -113,5 +113,5 @@ base::Status computeNMS(const DetectResults& src, std::vector<int>& keep_idxs,
   return base::kStatusCodeOk;
 }
 
-}  // namespace pipeline
+}  // namespace model
 }  // namespace nndeploy

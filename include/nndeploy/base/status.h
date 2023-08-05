@@ -34,6 +34,9 @@ enum StatusCode : int {
   kStatusCodeErrorInferenceTensorRt,
   kStatusCodeErrorInferenceTnn,
   kStatusCodeErrorInferenceMnn,
+  kStatusCodeErrorInferenceOnnxRuntime,
+  kStatusCodeErrorInferenceOpenVino,
+  kStatusCodeErrorInferenceTfLite,
 };
 
 class NNDEPLOY_CC_API Status {

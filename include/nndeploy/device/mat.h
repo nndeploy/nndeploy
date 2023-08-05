@@ -63,8 +63,7 @@ class NNDEPLOY_CC_API Mat {
 
   Mat(const MatDesc &desc, const std::string &name = "");
 
-  Mat(Device *device, const MatDesc &desc,
-      const std::string &name = "",
+  Mat(Device *device, const MatDesc &desc, const std::string &name = "",
       const base::IntVector &config = base::IntVector());
 
   Mat(Device *device, const MatDesc &desc, void *data_ptr,

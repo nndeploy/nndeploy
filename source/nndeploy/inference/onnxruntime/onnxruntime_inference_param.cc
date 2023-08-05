@@ -1,6 +1,8 @@
 
 #include "nndeploy/inference/onnxruntime/onnxruntime_inference_param.h"
 
+#include "nndeploy/device/device.h"
+
 namespace nndeploy {
 namespace inference {
 

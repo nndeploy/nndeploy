@@ -3,7 +3,6 @@
 
 #include "nndeploy/include/base/log.h"
 
-
 #if NNDEPLOY_OS_WINDOWS
 #undef NOMINMAX
 #define NOMINMAX

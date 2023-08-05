@@ -2799,7 +2799,7 @@ inline expr fma(expr x, expr y, expr z) { return functions::fma(x, y, z); }
 /// \param y second operand
 /// \return maximum of operands
 //		template<typename T,typename U> typename result<T,U>::type
-//fmax(T x, U y) { return binary_specialized<T,U>::fmax(x, y); }
+// fmax(T x, U y) { return binary_specialized<T,U>::fmax(x, y); }
 inline half fmax(half x, half y) {
   return binary_specialized<half, half>::fmax(x, y);
 }
@@ -2818,7 +2818,7 @@ inline expr fmax(expr x, expr y) {
 /// \param y second operand
 /// \return minimum of operands
 //		template<typename T,typename U> typename result<T,U>::type
-//fmin(T x, U y) { return binary_specialized<T,U>::fmin(x, y); }
+// fmin(T x, U y) { return binary_specialized<T,U>::fmin(x, y); }
 inline half fmin(half x, half y) {
   return binary_specialized<half, half>::fmin(x, y);
 }
@@ -3335,7 +3335,7 @@ inline int fpclassify(expr arg) { return functions::fpclassify(arg); }
 /// \retval true if neither infinity nor NaN
 /// \retval false else
 //		template<typename T> typename enable<bool,T>::type isfinite(T
-//arg)
+// arg)
 //{
 // return functions::isfinite(arg); }
 inline bool isfinite(half arg) { return functions::isfinite(arg); }
@@ -3366,7 +3366,7 @@ inline bool isnan(expr arg) { return functions::isnan(arg); }
 /// \retval true if normal number
 /// \retval false if either subnormal, zero, infinity or NaN
 //		template<typename T> typename enable<bool,T>::type isnormal(T
-//arg)
+// arg)
 //{
 // return functions::isnormal(arg); }
 inline bool isnormal(half arg) { return functions::isnormal(arg); }
@@ -3377,7 +3377,7 @@ inline bool isnormal(expr arg) { return functions::isnormal(arg); }
 /// \retval true for negative number
 /// \retval false for positive number
 //		template<typename T> typename enable<bool,T>::type signbit(T
-//arg)
+// arg)
 //{
 // return functions::signbit(arg); }
 inline bool signbit(half arg) { return functions::signbit(arg); }

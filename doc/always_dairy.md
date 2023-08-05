@@ -37,7 +37,7 @@
 + "[\s\S]*" 
 
 + export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/always/github/nndeploy/build/install   
-+ export LD_LIBRARY_PATH=/home/always/github/nndeploy/third_party/user/linux/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gnu.cuda-11.1.cudnn8.1/TensorRT-7.2.3.4/lib:$LD_LIBRARY_PATH
++ export LD_LIBRARY_PATH=/home/for_all_users/third_party/user/linux/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gnu.cuda-11.1.cudnn8.1/TensorRT-7.2.3.4/lib:$LD_LIBRARY_PATH
 + export PATH=/snap/bin/:$PATH
 + export LD_LIBRARY_PATH=/home/always/github/nndeploy/build/install/:$LD_LIBRARY_PATH
 + export LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH
@@ -48,3 +48,16 @@
 
 git config --global user.name "02200059Z"
 git config --global user.email 2018222066@email.szu.edu.cn
+
+# 2023.07.30
++ 完成六个推理框架的接入
+  + tensor_rt
+  + openvino
+  + tf-lite
+  + onnxruntime
+  + mnn
+  + tnn
++ 接入一组检测算法
++ 开源
+
+OMP_NUM_THREADS=1 mpiexec -n 4 valgrind -s --tool=memcheck --leak-check=full --error-exitcode=1 --errors-for-leak-kinds=definite --show-leak-kinds=definite --undef-value-errors=no exe

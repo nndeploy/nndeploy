@@ -98,6 +98,7 @@ base::Status TensorRtInference::init() {
   status = reshape(tensor_rt_inference_param->max_shape_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "reshape failed");
 
+  device::Device *device = device::getDevice(inference_param_->device_type_);
   auto num_binds = engine_->getNbBindings();
   bindings_.resize(num_binds);
   for (auto i = 0; i < num_binds; ++i) {
@@ -110,8 +111,6 @@ base::Status TensorRtInference::init() {
         TensorRtConvert::convertToDataFormat(engine_->getBindingFormat(i));
 
     if (engine_->bindingIsInput(i)) {
-      device::Device *device =
-          device::getDevice(inference_param_->device_type_);
       device::TensorDesc desc;
       desc.data_type_ = data_type;
       desc.format_ = data_format;
@@ -126,8 +125,6 @@ base::Status TensorRtInference::init() {
 
       bindings_[i] = max_input_buffer->getPtr();
     } else {
-      device::Device *device =
-          device::getDevice(inference_param_->device_type_);
       device::TensorDesc desc;
       desc.data_type_ = data_type;
       desc.format_ = data_format;
