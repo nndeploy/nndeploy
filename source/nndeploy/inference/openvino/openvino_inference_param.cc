@@ -1,17 +1,17 @@
 
-#include "nndeploy/inference/tensor_rt/tensor_rt_inference_param.h"
+#include "nndeploy/inference/openvino/openvino_inference_param.h"
 
 namespace nndeploy {
 namespace inference {
 
 static TypeInferenceParamRegister<
-    TypeInferenceParamCreator<TensorRtInferenceParam>>
-    g_tensor_rt_inference_param_register(base::kInferenceTypeTensorRt);
+    TypeInferenceParamCreator<OpenVinoInferenceParam>>
+    g_openvino_inference_param_register(base::kInferenceTypeOpenVino);
 
-TensorRtInferenceParam::TensorRtInferenceParam() : InferenceParam() {}
-TensorRtInferenceParam::~TensorRtInferenceParam() {}
+OpenVinoInferenceParam::OpenVinoInferenceParam() : InferenceParam() {}
+OpenVinoInferenceParam::~OpenVinoInferenceParam() {}
 
-base::Status TensorRtInferenceParam::parse(const std::string &json,
+base::Status OpenVinoInferenceParam::parse(const std::string &json,
                                            bool is_path) {
   base::Status status = InferenceParam::parse(json, is_path);
   if (status != base::kStatusCodeOk) {
@@ -22,12 +22,12 @@ base::Status TensorRtInferenceParam::parse(const std::string &json,
   return base::kStatusCodeOk;
 }
 
-base::Status TensorRtInferenceParam::set(const std::string &key,
+base::Status OpenVinoInferenceParam::set(const std::string &key,
                                          base::Value &value) {
   return base::kStatusCodeOk;
 }
 
-base::Status TensorRtInferenceParam::get(const std::string &key,
+base::Status OpenVinoInferenceParam::get(const std::string &key,
                                          base::Value &value) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;

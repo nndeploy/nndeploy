@@ -1,24 +1,24 @@
 
-#ifndef _NNDEPLOY_INFERENCE_TENSOR_RT_TENSOR_RT_INFERENCE_PARAM_H_
-#define _NNDEPLOY_INFERENCE_TENSOR_RT_TENSOR_RT_INFERENCE_PARAM_H_
+#ifndef _NNDEPLOY_INFERENCE_OPENVINO_OPENVINO_INFERENCE_PARAM_H_
+#define _NNDEPLOY_INFERENCE_OPENVINO_OPENVINO_INFERENCE_PARAM_H_
 
 #include "nndeploy/inference/inference_param.h"
-#include "nndeploy/inference/tensor_rt/tensor_rt_include.h"
+#include "nndeploy/inference/openvino/openvino_include.h"
 
 namespace nndeploy {
 namespace inference {
 
-class TensorRtInferenceParam : public InferenceParam {
+class OpenVinoInferenceParam : public InferenceParam {
  public:
-  TensorRtInferenceParam();
-  virtual ~TensorRtInferenceParam();
+  OpenVinoInferenceParam();
+  virtual ~OpenVinoInferenceParam();
 
-  TensorRtInferenceParam(const TensorRtInferenceParam &param) = default;
-  TensorRtInferenceParam &operator=(const TensorRtInferenceParam &param) =
+  OpenVinoInferenceParam(const OpenVinoInferenceParam &param) = default;
+  OpenVinoInferenceParam &operator=(const OpenVinoInferenceParam &param) =
       default;
 
-  PARAM_COPY(TensorRtInferenceParam)
-  PARAM_COPY_TO(TensorRtInferenceParam)
+  PARAM_COPY(OpenVinoInferenceParam)
+  PARAM_COPY_TO(OpenVinoInferenceParam)
 
   base::Status parse(const std::string &json, bool is_path = true);
 
@@ -26,11 +26,13 @@ class TensorRtInferenceParam : public InferenceParam {
 
   virtual base::Status get(const std::string &key, base::Value &value);
 
-  int max_batch_size_ = 1;
-  size_t workspace_size_ = 1 << 30;
-  bool is_quant_ = false;
-  std::string int8_calibration_table_path_ = "";
-  std::string model_save_path_ = "";
+  std::vector<base::DeviceType> device_types;
+  /// Number of streams while use OpenVINO
+  int num_streams_ = 1;
+  /// Affinity mode
+  std::string affinity_ = "YES";
+  /// Performance hint mode
+  std::string hint_ = "UNDEFINED";
 };
 
 }  // namespace inference

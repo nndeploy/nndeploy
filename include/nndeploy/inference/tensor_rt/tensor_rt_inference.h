@@ -34,11 +34,11 @@ class TensorRtInference : public Inference {
   virtual base::Status run();
 
  public:
-  base::Status preRunWithOnnxModel(std::string model_buffer,
-                                   TensorRtInferenceParam *config);
+  base::Status initWithOnnxModel(const std::string &model_buffer,
+                                 TensorRtInferenceParam *config);
 
-  base::Status preRunWithTensorRtModel(std::string model_buffer,
-                                       TensorRtInferenceParam *config);
+  base::Status initWithTensorRtModel(const std::string &model_buffer,
+                                     TensorRtInferenceParam *config);
 
   bool checkDynamicShape();
 

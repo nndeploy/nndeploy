@@ -159,7 +159,6 @@ base::Status OnnxRuntimeInference::reshape(base::ShapeMap &shape_map) {
     auto shape = OnnxRuntimeConvert::convertToShape(src_shape);
     current_shape.insert({input_name, shape});
   }
-  bool flag = false;
   for (auto iter : shape_map) {
     auto tmp = current_shape.find(iter.first);
     if (tmp != current_shape.end()) {

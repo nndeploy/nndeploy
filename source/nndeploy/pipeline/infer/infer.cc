@@ -41,17 +41,30 @@ base::Status Infer::reshapeDefault() {
 }
 base::Status Infer::runDefault() {
   base::Status status = base::kStatusCodeOk;
-  for (auto tensor : input_tensors_) {
+  // for (auto tensor : input_tensors_) {
+  //   inference_->setInputTensor(tensor->getName(), tensor);
+  // }
+  // for (auto tensor : output_tensors_) {
+  //   inference_->setOutputTensor(tensor->getName(), tensor);
+  // }
+  // status = inference_->run();
+  std::vector<device::Tensor *> input_tensors = inputs_[0]->getAllTensor();
+  for (auto tensor : input_tensors) {
     inference_->setInputTensor(tensor->getName(), tensor);
   }
-  for (auto tensor : output_tensors_) {
+  std::vector<device::Tensor *> output_tensors = outputs_[0]->getAllTensor();
+  for (auto tensor : output_tensors) {
     inference_->setOutputTensor(tensor->getName(), tensor);
   }
   status = inference_->run();
   return status;
 }
 
-// Template <false, false, false, false>
+/**
+ * @brief 输入输出由infer分配
+ * @details Template <is_input_dynamic = false, is_output_dynamic = false,
+ * can_op_input = false, can_op_output = false>
+ */
 template <>
 base::Status Infer::initTemplate<false, false, false, false>() {
   base::Status status = base::kStatusCodeOk;
@@ -65,7 +78,7 @@ base::Status Infer::initTemplate<false, false, false, false>() {
         new device::Tensor(device, desc, name, base::IntVector());
     input_tensors_.emplace_back(tensor);
   }
-  Packet *input_packet = getInput(0);
+  Packet *input_packet = inputs_[0];
   for (int i = 0; i < input_tensors_.size(); i++) {
     input_packet->set(input_tensors_[i], i);
   }
@@ -77,7 +90,7 @@ base::Status Infer::initTemplate<false, false, false, false>() {
         new device::Tensor(device, desc, name, base::IntVector());
     output_tensors_.emplace_back(tensor);
   }
-  Packet *output_packet = getOutput(0);
+  Packet *output_packet = outputs_[0];
   for (int i = 0; i < output_tensors_.size(); i++) {
     output_packet->set(output_tensors_[i], i);
   }
@@ -97,6 +110,104 @@ base::Status Infer::deinitTemplate<false, false, false, false>() {
   }
   output_tensors_.clear();
   return status;
+}
+template <>
+base::Status Infer::reshapeTemplate<false, false, false, false>() {
+  return reshapeDefault();
+}
+/**
+ * @brief 输入由infer前一个任务分配
+ * @details Template <is_input_dynamic = true, is_output_dynamic = true,
+ * can_op_input = false, can_op_output = false>
+ */
+template <>
+base::Status Infer::initTemplate<true, true, false, false>() {
+  base::Status status = base::kStatusCodeOk;
+  std::vector<std::string> output_names = inference_->getAllOutputTensorName();
+  for (auto name : output_names) {
+    device::Tensor *tensor = new device::Tensor(name);
+    output_tensors_.emplace_back(tensor);
+  }
+  Packet *output_packet = outputs_[0];
+  for (int i = 0; i < output_tensors_.size(); i++) {
+    output_packet->set(output_tensors_[i], i);
+  }
+  return status;
+}
+template <>
+base::Status Infer::deinitTemplate<true, true, false, false>() {
+  base::Status status = base::kStatusCodeOk;
+  for (auto iter : output_tensors_) {
+    delete iter;
+  }
+  output_tensors_.clear();
+  return status;
+}
+template <>
+base::Status Infer::reshapeTemplate<true, true, false, false>() {
+  base::Status status = base::kStatusCodeOk;
+  base::ShapeMap shape_map;
+  std::vector<device::Tensor *> input_tensors = inputs_[0]->getAllTensor();
+  for (auto tensor : input_tensors) {
+    shape_map.insert({tensor->getName(), tensor->getShape()});
+  }
+  status = inference_->reshape(shape_map);
+  return status;
+}
+/**
+ * @brief
+ * 输入由infer分配
+ * 因为不知道输出多大，这里分配一个带一个名字tensor，但是不分配内存，因为不能操作推理框架内部tensor，此处要求在推理框架对该tensor作释放和分配
+ * @details Template <is_input_dynamic = false, is_output_dynamic = true,
+ * can_op_input = false, can_op_output = false>
+ */
+template <>
+base::Status Infer::initTemplate<false, true, false, false>() {
+  base::Status status = base::kStatusCodeOk;
+
+  device::Device *device = device::getDefaultHostDevice();
+
+  std::vector<std::string> input_names = inference_->getAllInputTensorName();
+  for (auto name : input_names) {
+    device::TensorDesc desc = inference_->getInputTensorAlignDesc(name);
+    device::Tensor *tensor =
+        new device::Tensor(device, desc, name, base::IntVector());
+    input_tensors_.emplace_back(tensor);
+  }
+  Packet *input_packet = inputs_[0];
+  for (int i = 0; i < input_tensors_.size(); i++) {
+    input_packet->set(input_tensors_[i], i);
+  }
+
+  std::vector<std::string> output_names = inference_->getAllOutputTensorName();
+  for (auto name : output_names) {
+    device::Tensor *tensor = new device::Tensor(name);
+    output_tensors_.emplace_back(tensor);
+  }
+  Packet *output_packet = outputs_[0];
+  for (int i = 0; i < output_tensors_.size(); i++) {
+    output_packet->set(output_tensors_[i], i);
+  }
+
+  return status;
+}
+template <>
+base::Status Infer::deinitTemplate<false, true, false, false>() {
+  base::Status status = base::kStatusCodeOk;
+  for (auto iter : input_tensors_) {
+    delete iter;
+  }
+  input_tensors_.clear();
+
+  for (auto iter : output_tensors_) {
+    delete iter;
+  }
+  output_tensors_.clear();
+  return status;
+}
+template <>
+base::Status Infer::reshapeTemplate<false, true, false, false>() {
+  return reshapeDefault();
 }
 
 base::Status Infer::init() {
@@ -123,8 +234,8 @@ base::Status Infer::init() {
           status = base::kStatusCodeErrorNotImplement;
           // status = initTemplate<true, true, false, true>();
         } else {
-          status = base::kStatusCodeErrorNotImplement;
-          // status = initTemplate<true, true, false, false>();
+          // status = base::kStatusCodeErrorNotImplement;
+          status = initTemplate<true, true, false, false>();
         }
       }
     } else {
@@ -161,8 +272,8 @@ base::Status Infer::init() {
           status = base::kStatusCodeErrorNotImplement;
           // status = initTemplate<false, true, false, true>();
         } else {
-          status = base::kStatusCodeErrorNotImplement;
-          // status = initTemplate<false, true, false, false>();
+          // status = base::kStatusCodeErrorNotImplement;
+          status = initTemplate<false, true, false, false>();
         }
       }
     } else {
@@ -179,6 +290,7 @@ base::Status Infer::init() {
           status = base::kStatusCodeErrorNotImplement;
           // status = initTemplate<false, false, false, true>();
         } else {
+          // status = base::kStatusCodeErrorNotImplement;
           status = initTemplate<false, false, false, false>();
         }
       }
@@ -204,8 +316,8 @@ base::Status Infer::deinit() {
           status = base::kStatusCodeErrorNotImplement;
           // status = deinitTemplate<true, true, false, true>();
         } else {
-          status = base::kStatusCodeErrorNotImplement;
-          // status = deinitTemplate<true, true, false, false>();
+          // status = base::kStatusCodeErrorNotImplement;
+          status = deinitTemplate<true, true, false, false>();
         }
       }
     } else {
@@ -242,8 +354,8 @@ base::Status Infer::deinit() {
           status = base::kStatusCodeErrorNotImplement;
           // status = deinitTemplate<false, true, false, true>();
         } else {
-          status = base::kStatusCodeErrorNotImplement;
-          // status = deinitTemplate<false, true, false, false>();
+          // status = base::kStatusCodeErrorNotImplement;
+          status = deinitTemplate<false, true, false, false>();
         }
       }
     } else {
@@ -260,6 +372,7 @@ base::Status Infer::deinit() {
           status = base::kStatusCodeErrorNotImplement;
           // status = deinitTemplate<false, false, false, true>();
         } else {
+          // status = base::kStatusCodeErrorNotImplement;
           status = deinitTemplate<false, false, false, false>();
         }
       }
@@ -277,36 +390,36 @@ base::Status Infer::reshape() {
       if (can_op_input_) {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<true, true, true, true>();
+          // status = reshapeTemplate<true, true, true, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<true, true, true, false>();
+          // status = reshapeTemplate<true, true, true, false>();
         }
       } else {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<true, true, false, true>();
+          // status = reshapeTemplate<true, true, false, true>();
         } else {
-          status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<true, true, false, false>();
+          // status = base::kStatusCodeErrorNotImplement;
+          status = reshapeTemplate<true, true, false, false>();
         }
       }
     } else {
       if (can_op_input_) {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<true, false, true, true>();
+          // status = reshapeTemplate<true, false, true, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<true, false, true, false>();
+          // status = reshapeTemplate<true, false, true, false>();
         }
       } else {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<true, false, false, true>();
+          // status = reshapeTemplate<true, false, false, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<true, false, false, false>();
+          // status = reshapeTemplate<true, false, false, false>();
         }
       }
     }
@@ -315,35 +428,36 @@ base::Status Infer::reshape() {
       if (can_op_input_) {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<false, true, true, true>();
+          // status = reshapeTemplate<false, true, true, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<false, true, true, false>();
+          // status = reshapeTemplate<false, true, true, false>();
         }
       } else {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<false, true, false, true>();
+          // status = reshapeTemplate<false, true, false, true>();
         } else {
-          status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<false, true, false, false>();
+          // status = base::kStatusCodeErrorNotImplement;
+          status = reshapeTemplate<false, true, false, false>();
         }
       }
     } else {
       if (can_op_input_) {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<false, false, true, true>();
+          // status = reshapeTemplate<false, false, true, true>();
         } else {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<false, false, true, false>();
+          // status = reshapeTemplate<false, false, true, false>();
         }
       } else {
         if (can_op_output_) {
           status = base::kStatusCodeErrorNotImplement;
-          // status = reshape<false, false, false, true>();
+          // status = reshapeTemplate<false, false, false, true>();
         } else {
-          status = reshapeDefault();
+          // status = base::kStatusCodeErrorNotImplement;
+          status = reshapeTemplate<false, false, false, false>();
         }
       }
     }

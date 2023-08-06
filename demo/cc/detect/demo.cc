@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
   input.set(input_mat);
 
   NNDEPLOY_TIME_POINT_START("pipeline->run()");
-  for (int i = 0; i < 10; ++i) {
+  for (int i = 0; i < 1; ++i) {
     pipeline->run();
   }
   NNDEPLOY_TIME_POINT_END("pipeline->run()");

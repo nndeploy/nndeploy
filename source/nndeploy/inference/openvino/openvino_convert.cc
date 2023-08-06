@@ -1,11 +1,12 @@
 
-#include "nndeploy/inference/tensor_rt/tensor_rt_convert.h"
-#include "nndeploy/inference/tensor_rt/tensor_rt_inference.h"
+#include "nndeploy/inference/openvino/openvino_convert.h"
+
+#include "nndeploy/inference/openvino/openvino_inference.h"
 
 namespace nndeploy {
 namespace inference {
 
-base::DataType TensorRtConvert::convertToDataType(
+base::DataType OpenVinoConvert::convertToDataType(
     const nvinfer1::DataType &src) {
   base::DataType dst;
   switch (src) {
@@ -41,7 +42,7 @@ base::DataType TensorRtConvert::convertToDataType(
   return dst;
 }
 
-nvinfer1::DataType TensorRtConvert::convertFromDataType(base::DataType &src) {
+nvinfer1::DataType OpenVinoConvert::convertFromDataType(base::DataType &src) {
   nvinfer1::DataType dst;
   if (src.code_ == base::kDataTypeCodeFp && src.bits_ == 32 &&
       src.lanes_ == 1) {
@@ -64,7 +65,7 @@ nvinfer1::DataType TensorRtConvert::convertFromDataType(base::DataType &src) {
   return dst;
 }
 
-base::DataFormat TensorRtConvert::convertToDataFormat(
+base::DataFormat OpenVinoConvert::convertToDataFormat(
     const nvinfer1::TensorFormat &src) {
   base::DataFormat dst;
   switch (src) {
@@ -81,7 +82,7 @@ base::DataFormat TensorRtConvert::convertToDataFormat(
   return dst;
 }
 
-base::IntVector TensorRtConvert::convertToShape(const nvinfer1::Dims &src) {
+base::IntVector OpenVinoConvert::convertToShape(const nvinfer1::Dims &src) {
   base::IntVector dst;
   int src_size = src.nbDims;
   for (int i = 0; i < src_size; ++i) {
@@ -90,7 +91,7 @@ base::IntVector TensorRtConvert::convertToShape(const nvinfer1::Dims &src) {
   return dst;
 }
 
-nvinfer1::Dims TensorRtConvert::convertFromShape(const base::IntVector &src) {
+nvinfer1::Dims OpenVinoConvert::convertFromShape(const base::IntVector &src) {
   int src_size = src.size();
   nvinfer1::Dims dst;
   dst.nbDims = src_size;
@@ -98,6 +99,49 @@ nvinfer1::Dims TensorRtConvert::convertFromShape(const base::IntVector &src) {
     dst.d[i] = src[i];
   }
   return dst;
+}
+
+base::Status OpenVinoConvert::convertFromInferenceParam() {
+  if (ov_device_type.find("HETERO") != std::string::npos) {
+    auto supported_ops = core_.query_model(model, ov_device_type);
+    for (auto &&op : model->get_ops()) {
+      auto &affinity = supported_ops[op->get_friendly_name()];
+      op->get_rt_info()["affinity"] = affinity;
+    }
+  }
+
+  if (openvino_inference_param->hint_ == "UNDEFINED") {
+    if (ov_device_type == "CPU") {
+      properties["INFERENCE_NUM_THREADS"] =
+          openvino_inference_param->num_thread_;
+    }
+    if (openvino_inference_param->num_streams_ == -1) {
+      properties["NUM_STREAMS"] = ov::streams::AUTO;
+    } else if (openvino_inference_param->num_streams_ == -2) {
+      properties["NUM_STREAMS"] = ov::streams::NUMA;
+    } else if (openvino_inference_param->num_streams_ > 0) {
+      properties["NUM_STREAMS"] = openvino_inference_param->num_streams_;
+    }
+
+    if (openvino_inference_param->affinity_ == "YES") {
+      properties["AFFINITY"] = "CORE";
+    } else if (openvino_inference_param->affinity_ == "NO") {
+      properties["AFFINITY"] = "NONE";
+    } else if (openvino_inference_param->affinity_ == "NUMA") {
+      properties["AFFINITY"] = "NUMA";
+    } else if (openvino_inference_param->affinity_ == "HYBRID_AWARE") {
+      properties["AFFINITY"] = "HYBRID_AWARE";
+    }
+  } else if (openvino_inference_param->hint_ == "LATENCY") {
+    properties.emplace(
+        ov::hint::performance_mode(ov::hint::PerformanceMode::LATENCY));
+  } else if (openvino_inference_param->hint_ == "THROUGHPUT") {
+    properties.emplace(
+        ov::hint::performance_mode(ov::hint::PerformanceMode::THROUGHPUT));
+  } else if (openvino_inference_param->hint_ == "CUMULATIVE_THROUGHPUT") {
+    properties.emplace(ov::hint::performance_mode(
+        ov::hint::PerformanceMode::CUMULATIVE_THROUGHPUT));
+  }
 }
 
 }  // namespace inference

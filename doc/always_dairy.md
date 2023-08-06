@@ -60,4 +60,15 @@ git config --global user.email 2018222066@email.szu.edu.cn
 + 接入一组检测算法
 + 开源
 
+sudo apt install lam-runtime       # version 7.1.4-7, or
+sudo apt install mpich             # version 4.0-3
+sudo apt install openmpi-bin       # version 4.1.2-2ubuntu1
+sudo apt install slurm-wlm-torque  # version 21.08.5-2ubuntu1
+
 OMP_NUM_THREADS=1 mpiexec -n 4 valgrind -s --tool=memcheck --leak-check=full --error-exitcode=1 --errors-for-leak-kinds=definite --show-leak-kinds=definite --undef-value-errors=no exe
+
+OMP_NUM_THREADS=1 mpiexec -n 4 valgrind -s --tool=memcheck --leak-check=full --error-exitcode=1 --errors-for-leak-kinds=definite --show-leak-kinds=definite --undef-value-errors=no /home/always/github/nndeploy/build/install/demo_detect
+
+# 2023.08.05
++ 推理的模板完成
++ openvino参考fastdeploy，完成接入

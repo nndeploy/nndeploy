@@ -81,14 +81,14 @@ base::Status TensorRtInference::init() {
   }
 
   if (tensor_rt_inference_param->model_type_ == base::kModelTypeOnnx) {
-    status = preRunWithOnnxModel(model_buffer, tensor_rt_inference_param);
+    status = initWithOnnxModel(model_buffer, tensor_rt_inference_param);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "preRunWithOnnxModel failed");
+                           "initWithOnnxModel failed");
   } else if (tensor_rt_inference_param->model_type_ ==
              base::kModelTypeTensorRt) {
-    status = preRunWithTensorRtModel(model_buffer, tensor_rt_inference_param);
+    status = initWithTensorRtModel(model_buffer, tensor_rt_inference_param);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "preRunWithTensorRtModel failed");
+                           "initWithTensorRtModel failed");
   } else {
     NNDEPLOY_LOGE("not support this model type(%d)!\n",
                   tensor_rt_inference_param->model_type_);
@@ -275,8 +275,8 @@ base::Status TensorRtInference::run() {
   return status;
 }
 
-base::Status TensorRtInference::preRunWithOnnxModel(
-    std::string model_buffer,
+base::Status TensorRtInference::initWithOnnxModel(
+    const std::string &model_buffer,
     TensorRtInferenceParam *tensor_rt_inference_param) {
   const auto explicit_batch =
       1U << static_cast<uint32_t>(
@@ -411,8 +411,8 @@ base::Status TensorRtInference::preRunWithOnnxModel(
   return base::kStatusCodeOk;
 }
 
-base::Status TensorRtInference::preRunWithTensorRtModel(
-    std::string model_buffer,
+base::Status TensorRtInference::initWithTensorRtModel(
+    const std::string &model_buffer,
     TensorRtInferenceParam *tensor_rt_inference_param) {
   base::UniquePtr<nvinfer1::IRuntime> runtime{
       nvinfer1::createInferRuntime(g_logger)};

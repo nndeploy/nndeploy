@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_INFERENCE_TENSOR_RT_TENSOR_RT_CONVERT_H_
-#define _NNDEPLOY_INFERENCE_TENSOR_RT_TENSOR_RT_CONVERT_H_
+#ifndef _NNDEPLOY_INFERENCE_OPENVINO_OPENVINO_CONVERT_H_
+#define _NNDEPLOY_INFERENCE_OPENVINO_OPENVINO_CONVERT_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/log.h"
@@ -9,22 +9,22 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/inference/inference_param.h"
-#include "nndeploy/inference/tensor_rt/tensor_rt_include.h"
-#include "nndeploy/inference/tensor_rt/tensor_rt_inference_param.h"
+#include "nndeploy/inference/openvino/openvino_include.h"
+#include "nndeploy/inference/openvino/openvino_inference_param.h"
 
 namespace nndeploy {
 namespace inference {
 
-class TensorRtConvert {
+class OpenVinoConvert {
  public:
-  static base::DataType convertToDataType(const nvinfer1::DataType &src);
-  static nvinfer1::DataType convertFromDataType(base::DataType &src);
+  static base::IntVector convertToShape(const ov::PartialShape &src);
+  static ov::PartialShape convertFromShape(const base::IntVector &src);
 
-  static base::DataFormat convertToDataFormat(
-      const nvinfer1::TensorFormat &src);
-
-  static base::IntVector convertToShape(const nvinfer1::Dims &src);
-  static nvinfer1::Dims convertFromShape(const base::IntVector &src);
+  static base::Status convertFromInferenceParam(OpenVinoInferenceParam *src,
+                                                std::string &dst_device_type,
+                                                ov::AnyMap &dst_properties);
+  static ov::Tensor convertFromTensor(device::Tensor *src);
+  static device::Tensor convertToTensor(ov::Tensor &src);
 };
 
 }  // namespace inference
