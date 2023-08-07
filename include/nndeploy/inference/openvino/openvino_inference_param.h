@@ -26,7 +26,7 @@ class OpenVinoInferenceParam : public InferenceParam {
 
   virtual base::Status get(const std::string &key, base::Value &value);
 
-  std::vector<base::DeviceType> device_types;
+  std::vector<base::DeviceType> device_types_;
   /// Number of streams while use OpenVINO
   int num_streams_ = 1;
   /// Affinity mode

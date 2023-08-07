@@ -72,3 +72,9 @@ OMP_NUM_THREADS=1 mpiexec -n 4 valgrind -s --tool=memcheck --leak-check=full --e
 # 2023.08.05
 + 推理的模板完成
 + openvino参考fastdeploy，完成接入
+
+# 
+base->time_profiler
+device->arm
+inference->tnn
+model->detr、yolo
