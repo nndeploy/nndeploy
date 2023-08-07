@@ -78,3 +78,8 @@ base->time_profiler
 device->arm
 inference->tnn
 model->detr、yolo
+
+# openvino的编译
++ https://blog.csdn.net/cosmos_qiu/article/details/113502773
++ git submodule sync
++ cmake --install . --prefix /home/always/github/openvino/install
