@@ -60,7 +60,10 @@ def parse_args(argv=None):
     args = parser.parse_args(argv[1:])
 
     if not args.directories:
-        args.directories = [os.getcwd()]
+        root_path = os.getcwd()
+        include_path = os.path.join(root_path, 'include')
+        source_path = os.path.join(root_path, 'source')
+        args.directories = [include_path, source_path]
 
     check_clang_format_binary(args)
 
