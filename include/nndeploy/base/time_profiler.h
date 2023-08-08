@@ -16,10 +16,8 @@ class NNDEPLOY_CC_API TimeProfiler : public NonCopyable {
   virtual ~TimeProfiler();
 
   void reset();
-
   void start(const std::string &key);
   void end(const std::string &key);
-
   void print(const std::string &title = "");
 
  private:

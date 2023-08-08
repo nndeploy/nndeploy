@@ -39,7 +39,6 @@ void TimeProfiler::reset() {
   records_.clear();
   order_ = 0;
 }
-
 void TimeProfiler::start(const std::string &key) {
   if (key.empty()) {
     NNDEPLOY_LOGE("name is empty!\n");
@@ -60,7 +59,6 @@ void TimeProfiler::start(const std::string &key) {
     }
   }
 }
-
 void TimeProfiler::end(const std::string &key) {
   if (key.empty()) {
     NNDEPLOY_LOGE("name is empty\n");
