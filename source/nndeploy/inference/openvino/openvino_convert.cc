@@ -7,19 +7,19 @@ namespace nndeploy {
 namespace inference {
 
 std::string OpenVinoConvert::OpenVinoConvert::convertFromDeviceType(
-    const base::device &src, const base::device &srcs) {
+    const base::DeviceType &src, const std::vector<base::DeviceType> &srcs) {
   std::string dst = "CPU";
   if (srcs.empty()) {
-    if (src.code_ == kDeviceTypeCodeOpenCL) {
+    if (src.code_ == base::kDeviceTypeCodeOpenCL) {
       dst = "GPU";
     }
   } else {
     if (device::isHostDeviceType(src) &&
-        srcs[0].code_ == kDeviceTypeCodeOpenCL) {
+        srcs[0].code_ == base::kDeviceTypeCodeOpenCL) {
       dst = "CPU:GPU";
     }
     if (device::isHostDeviceType(srcs[0]) &&
-        src.code_ == kDeviceTypeCodeOpenCL) {
+        src.code_ == base::kDeviceTypeCodeOpenCL) {
       dst = "GPU:CPU";
     }
   }
@@ -94,8 +94,9 @@ base::DataType OpenVinoConvert::convertToDataType(
   return dst;
 }
 
-ov::element::Type OpenVinoConvert::convertFromDataType(base::DataType &src) {
-  ONNXTensorElementDataType dst;
+ov::element::Type OpenVinoConvert::convertFromDataType(
+    const base::DataType &src) {
+  ov::element::Type dst;
   if (src.code_ == base::kDataTypeCodeFp && src.lanes_ == 1) {
     if (src.bits_ == 16) {
       dst = ov::element::f16;
@@ -189,22 +190,24 @@ base::SizeVector OpenVinoConvert::convertToStride(const ov::Strides &src) {
   return dst;
 }
 
-ov::Strides OpenVinoConvert::convertFromShape(const base::SizeVector &src) {
+ov::Strides OpenVinoConvert::convertFromStride(const base::SizeVector &src) {
   return ov::Strides(src);
 }
 
 base::Status OpenVinoConvert::convertFromInferenceParam(
-    OpenVinoInferenceParam *src, std::string &dst_device_type,
-    ov::AnyMap &dst_properties) {
-  dst_device_type = OpenVinoConvert::convertFromDeviceType(src->device_type_,
-                                                           src->device_types_);
-  if (dst_device_type.find("HETERO") != std::string::npos) {
-    auto supported_ops = core_.query_model(model, dst_device_type);
-    for (auto &&op : model->get_ops()) {
-      auto &affinity = supported_ops[op->get_friendly_name()];
-      op->get_rt_info()["affinity"] = affinity;
-    }
-  }
+    OpenVinoInferenceParam *openvino_inference_param,
+    std::string &dst_device_type, ov::AnyMap &dst_properties) {
+  base::Status status = base::kStatusCodeOk;
+  dst_device_type = OpenVinoConvert::convertFromDeviceType(
+      openvino_inference_param->device_type_,
+      openvino_inference_param->device_types_);
+  // if (dst_device_type.find("HETERO") != std::string::npos) {
+  //   auto supported_ops = core_.query_model(model, dst_device_type);
+  //   for (auto &&op : model->get_ops()) {
+  //     auto &affinity = supported_ops[op->get_friendly_name()];
+  //     op->get_rt_info()["affinity"] = affinity;
+  //   }
+  // }
 
   if (openvino_inference_param->hint_ == "UNDEFINED") {
     if (dst_device_type == "CPU") {
@@ -246,21 +249,22 @@ ov::Tensor OpenVinoConvert::convertFromTensor(device::Tensor *src) {
   if (src == nullptr) {
     return ov::Tensor();
   }
-  auto data_type = OpenVinoConvert::convertFromDataType(src->getDataType());
-  auto shape = OpenVinoConvert::convertFromShape(src->getShape());
-  void *data = src->getPtr();
-  ov::Tensor ov_tensor(data_type, shape, data);
-  return ov_tensor;
+  // auto data_type = OpenVinoConvert::convertFromDataType(src->getDataType());
+  // auto shape = OpenVinoConvert::convertFromShape(src->getShape());
+  // void *data = src->getPtr();
+  // ov::Strides strides = OpenVinoConvert::convertFromStride(src->getStride());
+  // ov::Tensor ov_tensor(data_type, shape, (void *)data, strides);
+  // return ov_tensor;
 }
 
 device::Tensor *OpenVinoConvert::convertToTensor(ov::Tensor &src,
                                                  const std::string &name) {
   device::Device *device = device::getDefaultHostDevice();
-  TensorDesc desc;
+  device::TensorDesc desc;
   desc.data_type_ = OpenVinoConvert::convertToDataType(src.get_element_type());
-  des.shape_ = OpenVinoConvert::convertToShape(src.get_shape());
-  desc.format_ = OpenVinoConvert::getDataFormatByShape(des.shape);
-  desc.stride_ = OpenVinoConvert::convertToStride(des.get_strides());
+  desc.shape_ = OpenVinoConvert::convertToShape(src.get_shape());
+  desc.format_ = OpenVinoConvert::getDataFormatByShape(desc.shape_);
+  desc.stride_ = OpenVinoConvert::convertToStride(src.get_strides());
   void *data = src.data();
   device::Tensor *tensor = new device::Tensor(device, desc, data, name);
   return tensor;

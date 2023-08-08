@@ -17,10 +17,10 @@ namespace inference {
 
 class OpenVinoConvert {
  public:
-  static std::string OpenVinoConvert::convertFromDeviceType(
-      const base::device &src, const base::device &srcs);
+  static std::string convertFromDeviceType(
+      const base::DeviceType &src, const std::vector<base::DeviceType> &srcs);
   static base::DataType convertToDataType(const ov::element::Type &src);
-  static ov::element::Type convertFromDataType(base::DataType &src);
+  static ov::element::Type convertFromDataType(const base::DataType &src);
 
   static base::DataFormat getDataFormatByShape(const base::IntVector &src);
 
@@ -34,7 +34,8 @@ class OpenVinoConvert {
                                                 std::string &dst_device_type,
                                                 ov::AnyMap &dst_properties);
   static ov::Tensor convertFromTensor(device::Tensor *src);
-  static device::Tensor *convertToTensor(ov::Tensor &src);
+  static device::Tensor *convertToTensor(ov::Tensor &src,
+                                         const std::string &name = "");
 };
 
 }  // namespace inference

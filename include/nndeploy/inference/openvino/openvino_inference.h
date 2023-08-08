@@ -35,8 +35,8 @@ class OpenVinoInference : public Inference {
 
  private:
   bool initialized_ = false;
-  std::map<std::string, int index> input_index_map_;
-  std::map<std::string, int index> output_index_map_;
+  std::map<std::string, int> input_index_map_;
+  std::map<std::string, int> output_index_map_;
   ov::CompiledModel compiled_model_;
   ov::InferRequest infer_request_;
 };

@@ -25,7 +25,7 @@ base::Status OpenVinoInference::init() {
   } else {
     is_share_command_queue_ = false;
   }
-  is_batch_ = (openvino_inference_param->max_batch_size_ > 1);
+  // is_batch_ = (inference_param->max_batch_size_ > 1);
   reshape(inference_param_->max_shape_);
   return status;
 }
@@ -78,8 +78,6 @@ base::Status OpenVinoInference::reshape(base::ShapeMap &shape_map) {
       dynamic_cast<OpenVinoInferenceParam *>(inference_param_);
 
   std::shared_ptr<ov::Model> model;
-  OpenVinoInferenceParam *openvino_inference_param =
-      dynamic_cast<OpenVinoInferenceParam *>(inference_param_);
   if (openvino_inference_param->is_path_) {
     model = core_.read_model(openvino_inference_param->model_value_[0]);
   } else {
@@ -102,9 +100,9 @@ base::Status OpenVinoInference::reshape(base::ShapeMap &shape_map) {
       return base::kStatusCodeErrorInferenceOpenVino;
     }
   }
-  if (openvino_inference_param.max_shape_.size() > 0) {
+  if (openvino_inference_param->max_shape_.size() > 0) {
     std::map<std::string, ov::PartialShape> ov_shape;
-    for (const auto &item : openvino_inference_param.max_shape_) {
+    for (const auto &item : openvino_inference_param->max_shape_) {
       ov_shape[item.first] = OpenVinoConvert::convertFromShape(item.second);
     }
     model->reshape(ov_shape);
@@ -126,7 +124,7 @@ base::Status OpenVinoInference::reshape(base::ShapeMap &shape_map) {
   status = OpenVinoConvert::convertFromInferenceParam(
       openvino_inference_param, ov_device_type, properties);
 
-  compiled_model_ = core_.compile_model(model, ov_device, properties);
+  compiled_model_ = core_.compile_model(model, ov_device_type, properties);
   infer_request_ = compiled_model_.create_infer_request();
 
   for (auto iter : input_index_map_) {

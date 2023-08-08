@@ -33,6 +33,8 @@ include("${ROOT_PATH}/cmake/tensor_rt.cmake")
 include("${ROOT_PATH}/cmake/onnxruntime.cmake")
 ## tnn
 include("${ROOT_PATH}/cmake/tnn.cmake")
+## openvino
+include("${ROOT_PATH}/cmake/openvino.cmake")
 #################### inference ####################
 
 #################### pipeline ####################
