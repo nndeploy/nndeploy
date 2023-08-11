@@ -15,13 +15,8 @@ namespace base {
 #define PARAM_COPY(param_type)                                       \
  public:                                                             \
   virtual std::shared_ptr<nndeploy::base::Param> copy() {            \
-    param_type *param_ptr = dynamic_cast<param_type *>(param.get()); \
-    if (nullptr == param_ptr) {                                      \
-      NNDEPLOY_LOGE("dynamic cast to %s failed\n", #param_type);     \
-      std::shared_ptr<nndeploy::base::Param> param;                  \
-      return param;                                                  \
-    }                                                                \
     std::shared_ptr<nndeploy::base::Param> param(new param_type());  \
+    param_type *param_ptr = dynamic_cast<param_type *>(param.get()); \
     *param_ptr = *this;                                              \
     return param;                                                    \
   }
@@ -43,8 +38,8 @@ class NNDEPLOY_CC_API Param {
   Param();
   ~Param();
 
-  Param(const Param &param);
-  Param &operator=(const Param &param);
+  Param(const Param &param) = default;
+  Param &operator=(const Param &param) = default;
 
   PARAM_COPY(Param)
   PARAM_COPY_TO(Param)

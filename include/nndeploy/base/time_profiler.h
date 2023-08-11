@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_BASE_TIME_MEASUREMENT_H_
-#define _NNDEPLOY_BASE_TIME_MEASUREMENT_H_
+#ifndef _NNDEPLOY_BASE_TIME_PROFILER_H_
+#define _NNDEPLOY_BASE_TIME_PROFILER_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -73,4 +73,4 @@ extern NNDEPLOY_CC_API void timeProfilerPrint(const std::string &title = "");
 #define NNDEPLOY_TIME_PROFILER_PRINT(title)
 #endif
 
-#endif
+#endif  // _NNDEPLOY_BASE_TIME_PROFILER_H_

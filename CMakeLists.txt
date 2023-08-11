@@ -307,8 +307,8 @@ if(ENABLE_NNDEPLOY_INFERENCE)
   )
   if (ENABLE_NNDEPLOY_INFERENCE_TENSORRT)
     file(GLOB_RECURSE INFERENCE_TENSORRT_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/tensor_rt/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/tensor_rt/*.cc"
+      "${ROOT_PATH}/include/nndeploy/inference/tensorrt/*.h"
+      "${ROOT_PATH}/source/nndeploy/inference/tensorrt/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_TENSORRT_SOURCE})
   endif()

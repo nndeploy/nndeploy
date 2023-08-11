@@ -25,13 +25,13 @@ struct NNDEPLOY_CC_API TensorDesc {
                       const base::IntVector &shape,
                       const base::SizeVector &stride)
       : data_type_(data_type),
-        format_(format),
+        data_format_(format),
         shape_(shape),
         stride_(stride){};
 
   TensorDesc(const TensorDesc &desc) {
     this->data_type_ = desc.data_type_;
-    this->format_ = desc.format_;
+    this->data_format_ = desc.data_format_;
     this->shape_ = desc.shape_;
     this->stride_ = desc.stride_;
   };
@@ -39,10 +39,10 @@ struct NNDEPLOY_CC_API TensorDesc {
 
   virtual ~TensorDesc(){};
 
-  base::DataType data_type_ = base::dataTypeOf<float>();   // 数据类型
-  base::DataFormat format_ = base::kDataFormatNotSupport;  // 数据格式
-  base::IntVector shape_;                                  // 数据形状
-  base::SizeVector stride_;                                // 数据步长
+  base::DataType data_type_ = base::dataTypeOf<float>();        // 数据类型
+  base::DataFormat data_format_ = base::kDataFormatNotSupport;  // 数据格式
+  base::IntVector shape_;                                       // 数据形状
+  base::SizeVector stride_;                                     // 数据步长
 };
 
 /**

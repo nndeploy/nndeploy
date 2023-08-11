@@ -27,8 +27,8 @@ include("${ROOT_PATH}/cmake/cuda.cmake")
 #################### inference ####################
 ## MNN
 include("${ROOT_PATH}/cmake/mnn.cmake")
-## tensor_rt
-include("${ROOT_PATH}/cmake/tensor_rt.cmake")
+## tensorrt
+include("${ROOT_PATH}/cmake/tensorrt.cmake")
 ## onnxruntime
 include("${ROOT_PATH}/cmake/onnxruntime.cmake")
 ## tnn

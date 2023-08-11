@@ -181,7 +181,13 @@ bool Mat::justModify(Buffer *buffer) {
 }
 
 // get
-bool Mat::empty() { return desc_.shape_.empty(); }
+bool Mat::empty() {
+  bool flag = desc_.shape_.empty();
+  if (buffer_) {
+    flag = flag || buffer_->empty();
+  }
+  return flag;
+}
 bool Mat::isContinue() {
   if (desc_.stride_.size() == 0) {
     return true;
@@ -222,18 +228,82 @@ size_t Mat::getStrideIndex(int index) {
 }
 
 Buffer *Mat::getBuffer() { return buffer_; }
-base::DeviceType Mat::getDeviceType() { return buffer_->getDeviceType(); }
-Device *Mat::getDevice() { return buffer_->getDevice(); }
-BufferPool *Mat::getBufferPool() { return buffer_->getBufferPool(); }
-bool Mat::isBufferPool() { return buffer_->isBufferPool(); }
-BufferDesc Mat::getBufferDesc() { return buffer_->getDesc(); }
-size_t Mat::getSize() { return buffer_->getSize(); }
-base::SizeVector Mat::getSizeVector() { return buffer_->getSizeVector(); }
-base::IntVector Mat::getConfig() { return buffer_->getConfig(); }
-void *Mat::getPtr() { return buffer_->getPtr(); }
-int Mat::getId() { return buffer_->getId(); }
+base::DeviceType Mat::getDeviceType() {
+  if (buffer_) {
+    return buffer_->getDeviceType();
+  } else {
+    return base::DeviceType(base::kDeviceTypeCodeNotSupport);
+  }
+}
+Device *Mat::getDevice() {
+  if (buffer_) {
+    return buffer_->getDevice();
+  } else {
+    return nullptr;
+  }
+}
+BufferPool *Mat::getBufferPool() {
+  if (buffer_) {
+    return buffer_->getBufferPool();
+  } else {
+    return nullptr;
+  }
+}
+bool Mat::isBufferPool() {
+  if (buffer_) {
+    return buffer_->isBufferPool();
+  } else {
+    return false;
+  }
+}
+BufferDesc Mat::getBufferDesc() {
+  if (buffer_) {
+    return buffer_->getDesc();
+  } else {
+    return BufferDesc();
+  }
+}
+size_t Mat::getSize() {
+  if (buffer_) {
+    return buffer_->getSize();
+  } else {
+    return 0;
+  }
+}
+base::SizeVector Mat::getSizeVector() {
+  if (buffer_) {
+    return buffer_->getSizeVector();
+  } else {
+    return base::SizeVector();
+  }
+}
+base::IntVector Mat::getConfig() {
+  if (buffer_) {
+    return buffer_->getConfig();
+  } else {
+    return base::IntVector();
+  }
+}
+void *Mat::getPtr() {
+  if (buffer_) {
+    return buffer_->getPtr();
+  } else {
+    return nullptr;
+  }
+}
+int Mat::getId() {
+  if (buffer_) {
+    return buffer_->getId();
+  } else {
+    return -1;
+  }
+}
 BufferSourceType Mat::getBufferSourceType() {
-  return buffer_->getBufferSourceType();
+  if (buffer_) {
+    return buffer_->getBufferSourceType();
+  } else {
+    return device::kBufferSourceTypeNone;
+  }
 }
 
 }  // namespace device

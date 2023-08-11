@@ -118,5 +118,14 @@ IntVector shapeNhwc2Nchw(const IntVector &dims) {
   return nhwc;
 }
 
+bool isDynamicShape(const IntVector &dims) {
+  for (auto iter : dims) {
+    if (iter < 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 }  // namespace base
 }  // namespace nndeploy

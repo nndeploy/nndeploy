@@ -31,6 +31,8 @@ extern NNDEPLOY_CC_API IntVector shapeNchw2Nhwc(const IntVector &dims);
 
 extern NNDEPLOY_CC_API IntVector shapeNhwc2Nchw(const IntVector &dims);
 
+extern NNDEPLOY_CC_API bool isDynamicShape(const IntVector &dims);
+
 }  // namespace base
 }  // namespace nndeploy
 

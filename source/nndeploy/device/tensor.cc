@@ -94,7 +94,7 @@ void Tensor::destory() {
   name_.clear();
 
   desc_.data_type_ = base::dataTypeOf<float>();
-  desc_.format_ = base::kDataFormatNotSupport;
+  desc_.data_format_ = base::kDataFormatNotSupport;
   desc_.shape_.clear();
   desc_.stride_.clear();
 
@@ -145,13 +145,19 @@ bool Tensor::justModify(Buffer *buffer) {
 }
 
 // get
-bool Tensor::empty() { return desc_.shape_.empty(); }
+bool Tensor::empty() {
+  bool flag = desc_.shape_.empty();
+  if (buffer_) {
+    flag = flag || buffer_->empty();
+  }
+  return flag;
+}
 bool Tensor::isExternalBuffer() { return is_external_buffer_; }
 std::string Tensor::getName() { return name_; }
 
 TensorDesc Tensor::getDesc() { return desc_; }
 base::DataType Tensor::getDataType() { return desc_.data_type_; }
-base::DataFormat Tensor::getDataFormat() { return desc_.format_; }
+base::DataFormat Tensor::getDataFormat() { return desc_.data_format_; }
 base::IntVector Tensor::getShape() { return desc_.shape_; }
 int Tensor::getShapeIndex(int index) {
   if (index < desc_.shape_.size()) {
@@ -169,9 +175,7 @@ int Tensor::getBatch() {
 }
 int Tensor::getChannel() {
   int ret = -1;
-  switch (desc_.format_) {
-    case base::kDataFormatScalar:
-      break;
+  switch (desc_.data_format_) {
     case base::kDataFormatN:
       break;
     case base::kDataFormatNC:
@@ -212,7 +216,7 @@ int Tensor::getChannel() {
 }
 int Tensor::getDepth() {
   int ret = -1;
-  switch (desc_.format_) {
+  switch (desc_.data_format_) {
     case base::kDataFormatNCDHW:
       ret = desc_.shape_[2];
       break;
@@ -226,9 +230,7 @@ int Tensor::getDepth() {
 }
 int Tensor::getHeight() {
   int ret = -1;
-  switch (desc_.format_) {
-    case base::kDataFormatScalar:
-      break;
+  switch (desc_.data_format_) {
     case base::kDataFormatN:
       break;
     case base::kDataFormatNC:
@@ -268,9 +270,7 @@ int Tensor::getHeight() {
 }
 int Tensor::getWidth() {
   int ret = -1;
-  switch (desc_.format_) {
-    case base::kDataFormatScalar:
-      break;
+  switch (desc_.data_format_) {
     case base::kDataFormatN:
       break;
     case base::kDataFormatNC:
@@ -319,18 +319,82 @@ size_t Tensor::getStrideIndex(int index) {
   }
 }
 Buffer *Tensor::getBuffer() { return buffer_; }
-base::DeviceType Tensor::getDeviceType() { return buffer_->getDeviceType(); }
-Device *Tensor::getDevice() { return buffer_->getDevice(); }
-BufferPool *Tensor::getBufferPool() { return buffer_->getBufferPool(); }
-bool Tensor::isBufferPool() { return buffer_->isBufferPool(); }
-BufferDesc Tensor::getBufferDesc() { return buffer_->getDesc(); }
-size_t Tensor::getSize() { return buffer_->getSize(); }
-base::SizeVector Tensor::getSizeVector() { return buffer_->getSizeVector(); }
-base::IntVector Tensor::getConfig() { return buffer_->getConfig(); }
-void *Tensor::getPtr() { return buffer_->getPtr(); }
-int Tensor::getId() { return buffer_->getId(); }
+base::DeviceType Tensor::getDeviceType() {
+  if (buffer_) {
+    return buffer_->getDeviceType();
+  } else {
+    return base::DeviceType(base::kDeviceTypeCodeNotSupport);
+  }
+}
+Device *Tensor::getDevice() {
+  if (buffer_) {
+    return buffer_->getDevice();
+  } else {
+    return nullptr;
+  }
+}
+BufferPool *Tensor::getBufferPool() {
+  if (buffer_) {
+    return buffer_->getBufferPool();
+  } else {
+    return nullptr;
+  }
+}
+bool Tensor::isBufferPool() {
+  if (buffer_) {
+    return buffer_->isBufferPool();
+  } else {
+    return false;
+  }
+}
+BufferDesc Tensor::getBufferDesc() {
+  if (buffer_) {
+    return buffer_->getDesc();
+  } else {
+    return BufferDesc();
+  }
+}
+size_t Tensor::getSize() {
+  if (buffer_) {
+    return buffer_->getSize();
+  } else {
+    return 0;
+  }
+}
+base::SizeVector Tensor::getSizeVector() {
+  if (buffer_) {
+    return buffer_->getSizeVector();
+  } else {
+    return base::SizeVector();
+  }
+}
+base::IntVector Tensor::getConfig() {
+  if (buffer_) {
+    return buffer_->getConfig();
+  } else {
+    return base::IntVector();
+  }
+}
+void *Tensor::getPtr() {
+  if (buffer_) {
+    return buffer_->getPtr();
+  } else {
+    return nullptr;
+  }
+}
+int Tensor::getId() {
+  if (buffer_) {
+    return buffer_->getId();
+  } else {
+    return -1;
+  }
+}
 BufferSourceType Tensor::getBufferSourceType() {
-  return buffer_->getBufferSourceType();
+  if (buffer_) {
+    return buffer_->getBufferSourceType();
+  } else {
+    return device::kBufferSourceTypeNone;
+  }
 }
 
 std::map<base::TensorType, std::shared_ptr<TensorCreator>>
