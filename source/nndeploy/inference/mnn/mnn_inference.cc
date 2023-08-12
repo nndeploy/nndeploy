@@ -114,6 +114,7 @@ base::Status MnnInference::reshape(base::ShapeMap &shape_map) {
         flag = true;
       }
     } else {
+      NNDEPLOY_LOGE("Not exsit input[%s].\n", iter.first.c_str());
       return base::kStatusCodeErrorInferenceMnn;
     }
   }
