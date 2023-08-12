@@ -23,8 +23,8 @@ base::Status InferenceParam::get(const std::string &key, base::Value &value) {
   return base::kStatusCodeOk;
 }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
-getGlobalInferenceParamCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
+    &getGlobalInferenceParamCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>>
