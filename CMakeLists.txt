@@ -211,6 +211,10 @@ if(ENABLE_NNDEPLOY_COVERAGE)
   endif()
 endif()
 
+if (ENABLE_NNDEPLOY_ADDRESS_SANTIZER)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+endif()
+
 # include
 include_directories(include)
 include_directories(source)

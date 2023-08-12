@@ -21,5 +21,6 @@ nndeploy是一款支持多平台、高性能、简单易用、模块化的机器
 + TNN
 + FastDeploy
 + OpenCV
++ CGraph
 + OpenVX
 + TVM

@@ -41,13 +41,6 @@ base::Status Infer::reshapeDefault() {
 }
 base::Status Infer::runDefault() {
   base::Status status = base::kStatusCodeOk;
-  // for (auto tensor : input_tensors_) {
-  //   inference_->setInputTensor(tensor->getName(), tensor);
-  // }
-  // for (auto tensor : output_tensors_) {
-  //   inference_->setOutputTensor(tensor->getName(), tensor);
-  // }
-  // status = inference_->run();
   std::vector<device::Tensor *> input_tensors = inputs_[0]->getAllTensor();
   for (auto tensor : input_tensors) {
     inference_->setInputTensor(tensor->getName(), tensor);

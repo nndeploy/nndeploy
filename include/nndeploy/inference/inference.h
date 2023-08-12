@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_INFERENCE_ABSTRACT_INFERENCE_H_
-#define _NNDEPLOY_INFERENCE_ABSTRACT_INFERENCE_H_
+#ifndef _NNDEPLOY_INFERENCE_INFERENCE_H_
+#define _NNDEPLOY_INFERENCE_INFERENCE_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
