@@ -10,14 +10,19 @@
   + facebook/sam-vit-large https://huggingface.co/facebook/sam-vit-large
   + facebook/sam-vit-base https://huggingface.co/facebook/sam-vit-base
 
-## 导出模型
+## 模型导出
+采用sam-vit-base该较小的模型，通HuggingFace+transformer获得模型
 + pytorch:
 + onnx:
 
-## 图优化
+## 模型修改[optional]
 
-## python推理代码
+## 模型图优化
+
+## 模型python推理
 
 ## 模型转换
 
-## c++推理
+## 模型c++推理
+
+## demo

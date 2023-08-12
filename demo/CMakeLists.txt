@@ -1,0 +1,21 @@
+message(STATUS "Building nndeploy demo")
+
+set(NNDEPLOY_DEPEND_LIBRARY_DEMO)
+set(NNDEPLOY_SYSTEM_LIBRARY_DEMO)
+set(NNDEPLOY_THIRD_PARTY_LIBRARY_DEMO)
+include(${ROOT_PATH}/cmake/nndeploy_demo.cmake)
+
+if (ENABLE_NNDEPLOY_MODEL_DETECT)
+  if (ENABLE_NNDEPLOY_MODEL_DETECT_DETR)
+    add_subdirectory(detect/detr)
+  endif()
+  if (ENABLE_NNDEPLOY_MODEL_DEDECT_YOLOV5)
+    add_subdirectory(detect/yolov5)
+  endif()
+endif()
+
+if (ENABLE_NNDEPLOY_MODEL_SEGMENT)
+  if (ENABLE_NNDEPLOY_MODEL_SEGMENT_SEGMENT_ANYTHING)
+    add_subdirectory(segment/segment_anything)
+  endif()
+endif()
