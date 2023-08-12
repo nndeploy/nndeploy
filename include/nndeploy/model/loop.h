@@ -1,0 +1,4 @@
+#ifndef _NNDEPLOY_MODEL_LOOP_H_
+#define _NNDEPLOY_MODEL_LOOP_H_
+
+#endif /* _NNDEPLOY_MODEL_LOOP_H_ */

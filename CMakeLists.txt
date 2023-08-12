@@ -66,8 +66,6 @@ nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_NCNN "ENABLE_NNDEPLOY_INFERENCE_NCNN" 
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TNN "ENABLE_NNDEPLOY_INFERENCE_TNN" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_MNN "ENABLE_NNDEPLOY_INFERENCE_MNN" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_AICOMPILER_TVM "ENABLE_NNDEPLOY_INFERENCE_TVM" OFF)
-## pipeline
-nndeploy_option(ENABLE_NNDEPLOY_PIPELINE "ENABLE_NNDEPLOY_PIPELINE" ON)
 ## model
 nndeploy_option(ENABLE_NNDEPLOY_MODEL "ENABLE_NNDEPLOY_MODEL" ON)
 nndeploy_option(ENABLE_NNDEPLOY_MODEL_DETECT "ENABLE_NNDEPLOY_MODEL_DETECT" OFF)
@@ -348,42 +346,6 @@ if(ENABLE_NNDEPLOY_INFERENCE)
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_TFLITE_SOURCE})
   endif()
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${INFERENCE_SOURCE})
-endif()
-if(ENABLE_NNDEPLOY_PIPELINE)
-  file(GLOB PIPELINE_SOURCE
-    "${ROOT_PATH}/include/nndeploy/pipeline/*.h"
-    "${ROOT_PATH}/source/nndeploy/pipeline/*.cc"
-  )
-  file(GLOB PIPELINE_INFER_SOURCE
-    "${ROOT_PATH}/include/nndeploy/pipeline/infer/*.h"
-    "${ROOT_PATH}/source/nndeploy/pipeline/infer/*.cc"
-  )
-  set(PIPELINE_SOURCE ${PIPELINE_SOURCE} ${PIPELINE_INFER_SOURCE})
-  file(GLOB PIPELINE_PREPROCESS_SOURCE
-    "${ROOT_PATH}/include/nndeploy/pipeline/preprocess/*.h"
-    "${ROOT_PATH}/source/nndeploy/pipeline/preprocess/*.cc"
-  )
-  if(ENABLE_NNDEPLOY_OPENCV)
-    file(GLOB_RECURSE PIPELINE_PREPROCESS_OPENCV_SOURCE
-      "${ROOT_PATH}/include/nndeploy/pipeline/preprocess/opencv/*.h"
-      "${ROOT_PATH}/source/nndeploy/pipeline/preprocess/opencv/*.cc"
-    )
-    set(PIPELINE_PREPROCESS_SOURCE ${PIPELINE_PREPROCESS_SOURCE} ${PIPELINE_PREPROCESS_OPENCV_SOURCE})
-  endif()
-  set(PIPELINE_SOURCE ${PIPELINE_SOURCE} ${PIPELINE_PREPROCESS_SOURCE})
-  file(GLOB PIPELINE_POSTPROCESS_SOURCE
-    "${ROOT_PATH}/include/nndeploy/pipeline/postprocess/*.h"
-    "${ROOT_PATH}/source/nndeploy/pipeline/postprocess/*.cc"
-  )
-  if(ENABLE_NNDEPLOY_OPENCV)
-    file(GLOB_RECURSE PIPELINE_POSTPROCESS_OPENCV_SOURCE
-      "${ROOT_PATH}/include/nndeploy/pipeline/postprocess/opencv/*.h"
-      "${ROOT_PATH}/source/nndeploy/pipeline/postprocess/opencv/*.cc"
-    )
-    set(PIPELINE_POSTPROCESS_SOURCE ${PIPELINE_POSTPROCESS_SOURCE} ${PIPELINE_POSTPROCESS_OPENCV_SOURCE})
-  endif()
-  set(PIPELINE_SOURCE ${PIPELINE_SOURCE} ${PIPELINE_POSTPROCESS_SOURCE})
-  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${PIPELINE_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_MODEL)
   set(MODEL_SOURCE)

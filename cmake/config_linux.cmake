@@ -61,8 +61,6 @@ set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF)
 set(ENABLE_NNDEPLOY_INFERENCE_TNN "/home/for_all_users/third_party/user/linux/tnn-v0.3.0")
 set(ENABLE_NNDEPLOY_INFERENCE_MNN "/home/for_all_users/third_party/user/linux/mnn_2.4.0_linux_x64_cpu_opencl")
 set(ENABLE_NNDEPLOY_AICOMPILER_TVM OFF)
-## pipeline
-set(ENABLE_NNDEPLOY_PIPELINE ON)
 ## model
 set(ENABLE_NNDEPLOY_MODEL ON)
 ## test
