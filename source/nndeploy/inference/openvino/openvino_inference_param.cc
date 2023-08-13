@@ -11,7 +11,7 @@ static TypeInferenceParamRegister<
     g_openvino_inference_param_register(base::kInferenceTypeOpenVino);
 
 OpenVinoInferenceParam::OpenVinoInferenceParam() : InferenceParam() {
-  model_type_ = base::kModelTypeOpenVino;
+  model_type_ = base::kModelTypeOnnx;
   device_type_ = device::getDefaultHostDeviceType();
   num_thread_ = 4;
 }

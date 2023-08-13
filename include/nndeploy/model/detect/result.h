@@ -11,7 +11,7 @@ namespace model {
  * @brief Detect Result
  *
  */
-class NNDEPLOY_CC_API DetectResult : public base::Param {
+class NNDEPLOY_CC_API DetectBBoxResult : public base::Param {
  public:
   int index_;
   int label_id_;
@@ -20,9 +20,9 @@ class NNDEPLOY_CC_API DetectResult : public base::Param {
   device::Mat mask_;
 };
 
-class NNDEPLOY_CC_API DetectResults : public base::Param {
+class NNDEPLOY_CC_API DetectResult : public base::Param {
  public:
-  std::vector<DetectResult> result_;
+  std::vector<DetectBBoxResult> bboxs_;
 };
 
 }  // namespace model

@@ -34,62 +34,77 @@ base::DataType OpenVinoConvert::convertToDataType(
       dst.code_ = base::kDataTypeCodeBFp;
       dst.bits_ = 16;
       dst.lanes_ = 1;
+      break;
     case ov::element::f16:
       dst.code_ = base::kDataTypeCodeFp;
       dst.bits_ = 16;
       dst.lanes_ = 1;
+      break;
     case ov::element::f32:
       dst.code_ = base::kDataTypeCodeFp;
       dst.bits_ = 32;
       dst.lanes_ = 1;
+      break;
     case ov::element::f64:
       dst.code_ = base::kDataTypeCodeFp;
       dst.bits_ = 64;
       dst.lanes_ = 1;
+      break;
     case ov::element::u4:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 4;
       dst.lanes_ = 1;
+      break;
     case ov::element::u8:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 8;
       dst.lanes_ = 1;
+      break;
     case ov::element::u16:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 16;
       dst.lanes_ = 1;
+      break;
     case ov::element::u32:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 32;
       dst.lanes_ = 1;
+      break;
     case ov::element::u64:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 64;
       dst.lanes_ = 1;
+      break;
     case ov::element::i4:
       dst.code_ = base::kDataTypeCodeInt;
       dst.bits_ = 8;
       dst.lanes_ = 1;
+      break;
     case ov::element::i8:
       dst.code_ = base::kDataTypeCodeInt;
       dst.bits_ = 8;
       dst.lanes_ = 1;
+      break;
     case ov::element::i16:
       dst.code_ = base::kDataTypeCodeInt;
       dst.bits_ = 16;
       dst.lanes_ = 1;
+      break;
     case ov::element::i32:
       dst.code_ = base::kDataTypeCodeInt;
       dst.bits_ = 32;
       dst.lanes_ = 1;
+      break;
     case ov::element::i64:
       dst.code_ = base::kDataTypeCodeInt;
       dst.bits_ = 64;
       dst.lanes_ = 1;
+      break;
     default:
       dst.code_ = base::kDataTypeCodeOpaqueHandle;
       dst.bits_ = src.bitwidth();
       dst.lanes_ = 1;
+      break;
   }
   return dst;
 }
@@ -250,10 +265,16 @@ ov::Tensor OpenVinoConvert::convertFromTensor(device::Tensor *src) {
     return ov::Tensor();
   }
   auto data_type = OpenVinoConvert::convertFromDataType(src->getDataType());
-  ov::Shape shape(src->getShape().begin(), src->getShape().end());
+  // ov::Shape shape(src->getShape().begin(), src->getShape().end());
+  ov::Shape ov_shape;
+  auto src_shape = src->getShape();
+  for (auto dim : src_shape) {
+    ov_shape.push_back((size_t)dim);
+  }
   void *data = src->getPtr();
   ov::Strides strides = OpenVinoConvert::convertFromStride(src->getStride());
-  ov::Tensor ov_tensor(data_type, shape, (void *)data, strides);
+  // ov::Tensor ov_tensor(data_type, shape, (void *)data, strides);
+  ov::Tensor ov_tensor(data_type, ov_shape, (void *)data);
   return ov_tensor;
 }
 

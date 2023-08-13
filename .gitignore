@@ -214,6 +214,12 @@ _deps
 # build
 build/
 
+# model_zoo
+model_zoo/model
+
+# third_party
+third_party/lib
+
 # vscode
 .vscode/
 .vs/
