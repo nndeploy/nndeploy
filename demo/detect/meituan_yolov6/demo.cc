@@ -19,10 +19,10 @@ cv::Mat draw_box(cv::Mat &cv_mat, model::DetectResult &result) {
   int i = -1;
   for (auto bbox : result.bboxs_) {
     std::array<float, 4> box;
-    box[0] = bbox.bbox_[0];
-    box[2] = bbox.bbox_[2];
-    box[1] = bbox.bbox_[1];
-    box[3] = bbox.bbox_[3];
+    box[0] = bbox.bbox_[0];  // 640.0;
+    box[2] = bbox.bbox_[2];  // 640.0;
+    box[1] = bbox.bbox_[1];  // 640.0;
+    box[3] = bbox.bbox_[3];  // 640.0;
     NNDEPLOY_LOGE("box[0]:%f, box[2]:%f, box[1]:%f, box[3]:%f\n", box[0],
                   box[2], box[1], box[3]);
     box[0] *= w_ratio;
@@ -36,16 +36,18 @@ cv::Mat draw_box(cv::Mat &cv_mat, model::DetectResult &result) {
     cv::Rect rect = cv::Rect(box[0], box[1], width, height);
     cv::rectangle(cv_mat, rect, randColor[id]);
     std::string text = " ID:" + std::to_string(id);
-    cv::putText(cv_mat, text, cv::Point(0, 0), cv::FONT_HERSHEY_PLAIN, 1,
-                randColor[id]);
+    cv::putText(cv_mat, text, p, cv::FONT_HERSHEY_PLAIN, 1, randColor[id]);
   }
   return cv_mat;
 }
 
 int main(int argc, char *argv[]) {
   std::string name = "meituan_yolov6";
-  base::InferenceType inference_type = base::kInferenceTypeOpenVino;
-  base::DeviceType device_type = device::getDefaultHostDeviceType();
+  // base::InferenceType inference_type = base::kInferenceTypeOpenVino;
+  // base::InferenceType inference_type = base::kInferenceTypeOnnxRuntime;
+  base::InferenceType inference_type = base::kInferenceTypeTensorRt;
+  // base::DeviceType device_type = device::getDefaultHostDeviceType();
+  base::DeviceType device_type(base::kDeviceTypeCodeCuda);
   bool is_path = true;
   std::vector<std::string> model_value;
   model_value.push_back(
@@ -76,7 +78,6 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("pipeline->run()");
 
-  // model::DetectResult *result = (model::DetectResult *)output.getParam();
   draw_box(input_mat, result);
   cv::imwrite(
       "/home/always/github/public/nndeploy/model_zoo/model/meituan_yolov6/"

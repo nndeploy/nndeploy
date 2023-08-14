@@ -430,15 +430,15 @@ base::Status TensorRtInference::initWithOnnxModel(
     return base::kStatusCodeOk;
   }
 
-  base::UniquePtr<nvinfer1::IRuntime> runtime{
-      nvinfer1::createInferRuntime(g_logger)};
-  if (!runtime) {
+  runtime_ = base::UniquePtr<nvinfer1::IRuntime>(
+      nvinfer1::createInferRuntime(g_logger));
+  if (!runtime_) {
     NNDEPLOY_LOGE("createInferRuntime failed!\n");
     return base::kStatusCodeErrorInferenceTensorRt;
   }
 
   engine_ = std::shared_ptr<nvinfer1::ICudaEngine>(
-      runtime->deserializeCudaEngine(plan->data(), plan->size()));
+      runtime_->deserializeCudaEngine(plan->data(), plan->size()));
   if (!engine_) {
     NNDEPLOY_LOGE("deserializeCudaEngine failed!\n");
     return base::kStatusCodeErrorInferenceTensorRt;
@@ -454,15 +454,16 @@ base::Status TensorRtInference::initWithOnnxModel(
 base::Status TensorRtInference::initWithTensorRtModel(
     const std::string &model_buffer,
     TensorRtInferenceParam *tensorrt_inference_param) {
-  base::UniquePtr<nvinfer1::IRuntime> runtime{
-      nvinfer1::createInferRuntime(g_logger)};
-  if (!runtime) {
+  runtime_ = base::UniquePtr<nvinfer1::IRuntime>(
+      nvinfer1::createInferRuntime(g_logger));
+  if (!runtime_) {
     NNDEPLOY_LOGE("createInferRuntime failed!\n");
     return base::kStatusCodeErrorInferenceTensorRt;
   }
 
-  engine_ = std::shared_ptr<nvinfer1::ICudaEngine>(
-      runtime->deserializeCudaEngine(model_buffer.data(), model_buffer.size()));
+  engine_ =
+      std::shared_ptr<nvinfer1::ICudaEngine>(runtime_->deserializeCudaEngine(
+          model_buffer.data(), model_buffer.size()));
   if (!engine_) {
     NNDEPLOY_LOGE("deserializeCudaEngine failed!\n");
     return base::kStatusCodeErrorInferenceTensorRt;

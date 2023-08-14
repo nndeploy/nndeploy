@@ -84,6 +84,10 @@ base::Status MeituanYolov6PostProcess::run() {
       if (n < 0) {
         continue;
       }
+      results_batch.bboxs_[n].bbox_[0] /= param->model_w_;
+      results_batch.bboxs_[n].bbox_[1] /= param->model_h_;
+      results_batch.bboxs_[n].bbox_[2] /= param->model_w_;
+      results_batch.bboxs_[n].bbox_[3] /= param->model_h_;
       results->bboxs_.emplace_back(results_batch.bboxs_[n]);
     }
   }

@@ -14,58 +14,72 @@ base::DataType OnnxRuntimeConvert::convertToDataType(
       dst.code_ = base::kDataTypeCodeFp;
       dst.bits_ = 32;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 8;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_INT8:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 8;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT16:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 16;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_INT16:
       dst.code_ = base::kDataTypeCodeInt;
       dst.bits_ = 16;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32:
       dst.code_ = base::kDataTypeCodeInt;
       dst.bits_ = 32;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64:
       dst.code_ = base::kDataTypeCodeInt;
       dst.bits_ = 64;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_BOOL:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 8;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT16:
       dst.code_ = base::kDataTypeCodeFp;
       dst.bits_ = 16;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_DOUBLE:
       dst.code_ = base::kDataTypeCodeFp;
       dst.bits_ = 64;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT32:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 32;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT64:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 64;
       dst.lanes_ = 1;
+      break;
     case ONNX_TENSOR_ELEMENT_DATA_TYPE_BFLOAT16:
       dst.code_ = base::kDataTypeCodeBFp;
       dst.bits_ = 16;
       dst.lanes_ = 1;
+      break;
     default:
       dst.code_ = base::kDataTypeCodeOpaqueHandle;
       dst.bits_ = sizeof(size_t) * 8;
       dst.lanes_ = 1;
+      break;
   }
   return dst;
 }
@@ -138,12 +152,12 @@ base::DataFormat OnnxRuntimeConvert::getDataFormatByShape(
 base::IntVector OnnxRuntimeConvert::convertToShape(std::vector<int64_t> &src,
                                                    base::IntVector max_shape) {
   base::IntVector dst;
-  if (max_shape.empty()) {
+  if (!max_shape.empty()) {
     dst = max_shape;
   } else {
     int src_size = src.size();
     for (int i = 0; i < src_size; ++i) {
-      dst[i] = (int)src[i];
+      dst.emplace_back((int)src[i]);
     }
   }
   return dst;
@@ -154,7 +168,7 @@ std::vector<int64_t> OnnxRuntimeConvert::convertFromShape(
   int src_size = src.size();
   std::vector<int64_t> dst;
   for (int i = 0; i < src_size; ++i) {
-    dst[i] = (int64_t)src[i];
+    dst.emplace_back((int64_t)src[i]);
   }
   return dst;
 }
