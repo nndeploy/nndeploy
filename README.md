@@ -92,6 +92,7 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
   ```
   mkdir build
   cp cmake/config.cmake build
+  cd build
   ```
 + 编辑`build/config.cmake`来定制编译选项
   + 将`set(ENABLE_NNDEPLOY_OPENCV OFF)`改为`set(ENABLE_NNDEPLOY_OPENCV PATH/linux/OpenCV)`，`nndeploy`会启用并链接`OpenCV`，如果你想启用并链接的其他第三方库，也是做同样的处理
@@ -104,19 +105,29 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
       + 库：`PATH/lib `
 + 开始`make nndeploy`库
   ```
-  cd build
   cmake ..
   make -j4
   ```
++ 安装，将nndeploy相关库可执行文件、第三方库安装至`build/install`
+  ```
+  make install
+  ```
 
-### 第三方库的编译方式
-|                        第三方库                         |  编译文档  |  官方下载链接  | 备注  |
-| :-----------------------------------------------------: | :--------: | :------------: | :---: |
-|     [TensorRT](https://github.com/NVIDIA/TensorRT)      | [编译文档] | [官方下载链接] |       |
-| [OpenVINO](https://github.com/openvinotoolkit/openvino) | [编译文档] | [官方下载链接] |       |
-| [ONNXRuntime](https://github.com/microsoft/onnxruntime) | [编译文档] | [官方下载链接] |       |
-|          [MNN](https://github.com/alibaba/MNN)          | [编译文档] | [官方下载链接] |       |
-|          [TNN](https://github.com/Tencent/TNN)          | [编译文档] | [官方下载链接] |       |
+### 第三方库
+|                        第三方库                         |  主版本  |                                          编译文档                                           |                            官方库下载链接                             |       备注       |
+| :-----------------------------------------------------: | :------: | :-----------------------------------------------------------------------------------------: | :-------------------------------------------------------------------: | :--------------: |
+|       [opencv](https://github.com/opencv/opencv)        |  4.8.0   |                           [链接](https://opencv.org/get-started/)                           |                [链接](https://opencv.org/get-started/)                |                  |
+|     [TensorRT](https://github.com/NVIDIA/TensorRT)      | 8.6.0.12 |  [链接](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing)  |                                [链接]                                 | 支持TensorRT 7， |
+| [OpenVINO](https://github.com/openvinotoolkit/openvino) | 2023.0.1 |      [链接](https://github.com/openvinotoolkit/openvino/blob/master/docs/dev/build.md)      |                                [链接]                                 |                  |
+| [ONNXRuntime](https://github.com/microsoft/onnxruntime) | v1.15.1  | [链接](https://github.com/DefTruth/lite.ai.toolkit/blob/main/docs/ort/ort_useful_api.zh.md) | [链接](https://github.com/microsoft/onnxruntime/releases/tag/v1.15.1) |                  |
+|          [MNN](https://github.com/alibaba/MNN)          |  2.6.2   |            [链接](https://mnn-docs.readthedocs.io/en/latest/compile/engine.html)            |                                [链接]                                 |                  |
+|          [TNN](https://github.com/Tencent/TNN)          |  v0.3.0  |          [链接](https://github.com/Tencent/TNN/blob/master/doc/cn/user/compile.md)          |      [链接](https://github.com/Tencent/TNN/releases/tag/v0.3.0)       |
+|                                                         |
+- 补充说明    
+  - 我使用第三方库的上述版本，通常使用其他版本的也没有问题
+  - TensorRT
+    - [Windows链接](https://zhuanlan.zhihu.com/p/476679322)
+    - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
 
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
@@ -124,7 +135,7 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
 - [mmdeploy](https://github.com/open-mmlab/mmdeploy)
 - [opencv](https://github.com/opencv/opencv)
 - [CGraph](https://github.com/ChunelFeng/CGraph)
-- [TVM](https://github.com/apache/tvm)
+- [tvm](https://github.com/apache/tvm)
 
 ## 联系方式
 - 微信：titian5566 (备注：nndeploy + 姓名)
