@@ -43,11 +43,11 @@ cv::Mat draw_box(cv::Mat &cv_mat, model::DetectResult &result) {
 
 int main(int argc, char *argv[]) {
   std::string name = "meituan_yolov6";
-  // base::InferenceType inference_type = base::kInferenceTypeOpenVino;
+  base::InferenceType inference_type = base::kInferenceTypeOpenVino;
   // base::InferenceType inference_type = base::kInferenceTypeOnnxRuntime;
-  base::InferenceType inference_type = base::kInferenceTypeTensorRt;
-  // base::DeviceType device_type = device::getDefaultHostDeviceType();
-  base::DeviceType device_type(base::kDeviceTypeCodeCuda);
+  // base::InferenceType inference_type = base::kInferenceTypeTensorRt;
+  base::DeviceType device_type = device::getDefaultHostDeviceType();
+  // base::DeviceType device_type(base::kDeviceTypeCodeCuda);
   bool is_path = true;
   std::vector<std::string> model_value;
   model_value.push_back(

@@ -267,12 +267,21 @@ base::Status TensorRtInference::run() {
   cudaStream_t stream_ = (cudaStream_t)device->getCommandQueue();
 #ifdef TENSORRT_MAJOR_8_MINOR_5
   for (auto iter : max_input_tensors_) {
-    context_->setTensorAddress(iter.first.c_str(), iter.second->getBuffer());
+    void *data = iter.second->getBuffer()->getPtr();
+    if (!context_->setTensorAddress(iter.first.c_str(), data)) {
+      NNDEPLOY_LOGE("Fail to setTensorAddress [%s]!\n", iter.first.c_str());
+      return base::kStatusCodeErrorInferenceTensorRt;
+    }
   }
   for (auto iter : max_output_tensors_) {
-    context_->setTensorAddress(iter.first.c_str(), iter.second->getBuffer());
+    void *data = iter.second->getBuffer()->getPtr();
+    if (!context_->setTensorAddress(iter.first.c_str(), data)) {
+      NNDEPLOY_LOGE("Fail to setTensorAddress [%s]!\n", iter.first.c_str());
+      return base::kStatusCodeErrorInferenceTensorRt;
+    }
   }
   if (!context_->enqueueV3(stream_)) {
+    NNDEPLOY_LOGE("Fail to enqueueV3!\n");
     return base::kStatusCodeErrorInferenceTensorRt;
   }
 #else
@@ -286,6 +295,7 @@ base::Status TensorRtInference::run() {
     bindings_[i] = max_output_buffer->getPtr();
   }
   if (!context_->enqueueV2(bindings_.data(), stream_, nullptr)) {
+    NNDEPLOY_LOGE("Fail to enqueueV2!\n");
     return base::kStatusCodeErrorInferenceTensorRt;
   }
 #endif

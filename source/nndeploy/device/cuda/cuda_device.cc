@@ -225,6 +225,7 @@ base::Status CudaDevice::upload(Buffer* src, Buffer* dst) {
 base::Status CudaDevice::synchronize() {
   cudaError_t status = cudaStreamSynchronize(stream_);
   if (cudaSuccess != status) {
+    NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_LOGE("cuda stream synchronize failed\n");
     return base::kStatusCodeErrorDeviceCuda;
   }
