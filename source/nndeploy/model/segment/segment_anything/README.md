@@ -23,7 +23,7 @@
     + preprocessor_config.json - 模型前处理配置文件
     + README.md - 仓库解释，包含了基于transfomers的推理代码
 + 基于transfomers的推理 + 导出torchscript模型 + 导出onnx模型文件
-  + model_zoo/segment_anything.py
+  + resourcesegment_anything.py
 + 模型信息查询
   + 
 ## 模型修改[optional]

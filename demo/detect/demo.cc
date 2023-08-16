@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
   bool is_path = true;
   std::vector<std::string> model_value;
   model_value.push_back(
-      "/home/always/github/public/nndeploy/model_zoo/model/meituan_yolov6/"
+      "/home/always/github/public/nndeploy/resourcemodel/meituan_yolov6/"
       "yolov6m.onnx");
   model::Packet input("detr_in");
   model::Packet output("detr_out");
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
 
   draw_box(input_mat, result);
   cv::imwrite(
-      "/home/always/github/public/nndeploy/model_zoo/model/meituan_yolov6/"
+      "/home/always/github/public/nndeploy/resourcemodel/meituan_yolov6/"
       "sample.jpg",
       input_mat);
 

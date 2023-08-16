@@ -2,7 +2,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY demo_nndeploy_yolov5)
+set(BINARY demo_nndeploy_segment)
 set(DIRECTORY demo)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
@@ -10,14 +10,9 @@ set(THIRD_PARTY_LIBRARY)
 
 # SOURCE
 file(GLOB_RECURSE SOURCE
-  "${ROOT_PATH}/demo/detect/yolov5/*.h"
-  "${ROOT_PATH}/demo/detect/yolov5/*.cc"
-)
-file(GLOB DETECT_SOURCE
   "${ROOT_PATH}/demo/detect/*.h"
   "${ROOT_PATH}/demo/detect/*.cc"
 )
-set(SOURCE ${SOURCE} ${DETECT_SOURCE})
 file(GLOB DEMO_SOURCE
   "${ROOT_PATH}/demo/*.h"
   "${ROOT_PATH}/demo/*.cc"

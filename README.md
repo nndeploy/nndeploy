@@ -22,7 +22,7 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
 | :----------------------------------------------: | :-----------------------------------: | :---------------------------------------: | :---: |
 | [YOLOV3](https://github.com/ultralytics/yolov3)  | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
 | [YOLOV5](https://github.com/ultralytics/yolov5)  | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
-|   [YOLOV6](https://github.com/meituan/YOLOv6)    | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [Always](https://github.com/Alwaysssssss) |       |
+|   [YOLOV6](https://github.com/meituan/YOLOv6)    | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
 |     [YOLOV8](https://github.com/ultralytics)     | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
 | [DETR](https://github.com/facebookresearch/detr) | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
 
@@ -50,7 +50,7 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
   bool is_path = true; // 模型存放方式为路径
   std::vector<std::string> model_value; // 模型文件存放路径
   model_value.push_back(
-      "/home/always/github/public/nndeploy/model_zoo/model/meituan_yolov6/"
+      "/home/always/github/public/nndeploy/resourcemodel/meituan_yolov6/"
       "yolov6m.onnx");
   model::Packet input("detr_in"); // Pipeline的输入Packet，Packet不管理任何数据
   model::Packet output("detr_out"); // Pipeline的输出
@@ -114,13 +114,13 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
   ```
 
 ### 第三方库
-|                        第三方库                         |  主版本  |                                          编译文档                                           |                            官方库下载链接                             |       备注       |
-| :-----------------------------------------------------: | :------: | :-----------------------------------------------------------------------------------------: | :-------------------------------------------------------------------: | :--------------: |
-|       [opencv](https://github.com/opencv/opencv)        |  4.8.0   |                           [链接](https://opencv.org/get-started/)                           |                [链接](https://opencv.org/get-started/)                |                  |
-|     [TensorRT](https://github.com/NVIDIA/TensorRT)      | 8.6.0.12 |  [链接](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing)  |                                [链接]                                 | 支持TensorRT 7， |
-| [OpenVINO](https://github.com/openvinotoolkit/openvino) | 2023.0.1 |      [链接](https://github.com/openvinotoolkit/openvino/blob/master/docs/dev/build.md)      |                                [链接]                                 |                  |
-| [ONNXRuntime](https://github.com/microsoft/onnxruntime) | v1.15.1  | [链接](https://github.com/DefTruth/lite.ai.toolkit/blob/main/docs/ort/ort_useful_api.zh.md) | [链接](https://github.com/microsoft/onnxruntime/releases/tag/v1.15.1) |                  |
-|          [MNN](https://github.com/alibaba/MNN)          |  2.6.2   |            [链接](https://mnn-docs.readthedocs.io/en/latest/compile/engine.html)            |                                [链接]                                 |                  |
+|                        第三方库                         |  主版本  |                                          编译文档                                           |                            官方库下载链接                             |      备注      |
+| :-----------------------------------------------------: | :------: | :-----------------------------------------------------------------------------------------: | :-------------------------------------------------------------------: | :------------: |
+|       [opencv](https://github.com/opencv/opencv)        |  4.8.0   |                           [链接](https://opencv.org/get-started/)                           |                [链接](https://opencv.org/get-started/)                |                |
+|     [TensorRT](https://github.com/NVIDIA/TensorRT)      | 8.6.0.12 |  [链接](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing)  |                                [链接]                                 | 支持TensorRT 7 |
+| [OpenVINO](https://github.com/openvinotoolkit/openvino) | 2023.0.1 |      [链接](https://github.com/openvinotoolkit/openvino/blob/master/docs/dev/build.md)      |                                [链接]                                 |                |
+| [ONNXRuntime](https://github.com/microsoft/onnxruntime) | v1.15.1  | [链接](https://github.com/DefTruth/lite.ai.toolkit/blob/main/docs/ort/ort_useful_api.zh.md) | [链接](https://github.com/microsoft/onnxruntime/releases/tag/v1.15.1) |                |
+|          [MNN](https://github.com/alibaba/MNN)          |  2.6.2   |            [链接](https://mnn-docs.readthedocs.io/en/latest/compile/engine.html)            |                                [链接]                                 |                |
 |          [TNN](https://github.com/Tencent/TNN)          |  v0.3.0  |          [链接](https://github.com/Tencent/TNN/blob/master/doc/cn/user/compile.md)          |      [链接](https://github.com/Tencent/TNN/releases/tag/v0.3.0)       |
 |                                                         |
 - 补充说明    

@@ -12,3 +12,8 @@
 + model层架构的开发
 + infer与inference的优化
 + tensorrt的优化
+
+## 2023.08.16
++ git submodule
++ 两外两个仓库
++ 字符串转枚举

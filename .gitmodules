@@ -1,3 +1,4 @@
-[submodule "third_party/gflags/gflags"]
-	path = third_party/gflags/gflags
+[submodule "third_party/gflags"]
+	path = third_party/gflags
 	url = git@github.com:gflags/gflags.git
+
