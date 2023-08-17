@@ -21,7 +21,7 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
 |                       算法                       |               Inference               |                 开发人员                  | 备注  |
 | :----------------------------------------------: | :-----------------------------------: | :---------------------------------------: | :---: |
 | [YOLOV3](https://github.com/ultralytics/yolov3)  | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
-| [YOLOV5](https://github.com/ultralytics/yolov5)  | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
+| [YOLOV3](https://github.com/ultralytics/yolov5)  | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
 |   [YOLOV6](https://github.com/meituan/YOLOv6)    | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
 |     [YOLOV8](https://github.com/ultralytics)     | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
 | [DETR](https://github.com/facebookresearch/detr) | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
@@ -38,10 +38,10 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
 - 高性能的前后处理（做了一部分）
 
 ## 快速开始
-[这里以YOLO检测模型为例](demo/detect/meituan_yolov6/demo.cc)
+[这里以YOLO检测模型为例](demo/detect/yolo/demo.cc)
 + 创建YOLO推理Pipeline
   ```c++
-  std::string name = "meituan_yolov6";  // 有向无环图Pipeline名称
+  std::string name = "yolo";  // 有向无环图Pipeline名称
   base::InferenceType inference_type = base::kInferenceTypeOpenVino; // 推理后端为OpenVINO
   // base::InferenceType inference_type = base::kInferenceTypeOnnxRuntime; // 推理后端为OnnxRuntime
   // base::InferenceType inference_type = base::kInferenceTypeTensorRt; // 推理后端为TensorRt
@@ -50,12 +50,12 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
   bool is_path = true; // 模型存放方式为路径
   std::vector<std::string> model_value; // 模型文件存放路径
   model_value.push_back(
-      "/home/always/github/public/nndeploy/resourcemodel/meituan_yolov6/"
+      "/home/always/github/public/nndeploy/resourcemodel/yolo/"
       "yolov6m.onnx");
   model::Packet input("detr_in"); // Pipeline的输入Packet，Packet不管理任何数据
   model::Packet output("detr_out"); // Pipeline的输出
   // 创建YoloV6 Pipeline
-  model::Pipeline *pipeline = model::creatMeituanYolov6Pipeline(
+  model::Pipeline *pipeline = model::creatYoloPipeline(
       name, inference_type, device_type, &input, &output, true, model_value);
   if (pipeline == nullptr) {
     NNDEPLOY_LOGE("pipeline is nullptr");

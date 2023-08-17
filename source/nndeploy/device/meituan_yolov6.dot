@@ -1,4 +1,4 @@
-digraph meituan_yolov6 {
+digraph yolo {
 p0x7fffffffd570[label=input]
 p0x7fffffffd570->p0x555555ad6d00[label=detr_in]
 p0x555555ad6d00[label=pre]

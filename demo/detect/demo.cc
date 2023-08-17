@@ -2,7 +2,7 @@
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/model/detect/meituan_yolov6/meituan_yolov6.h"
+#include "nndeploy/model/detect/yolo/yolo.h"
 #include "nndeploy/model/task.h"
 
 using namespace nndeploy;

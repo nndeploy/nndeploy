@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_DETECT_MEITUAN_YOLOV6_MEITUAN_YOLOV6_H_
-#define _NNDEPLOY_MODEL_DETECT_MEITUAN_YOLOV6_MEITUAN_YOLOV6_H_
+#ifndef _NNDEPLOY_MODEL_DETECT_YOLO_YOLO_H_
+#define _NNDEPLOY_MODEL_DETECT_YOLO_YOLO_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -24,9 +24,9 @@
 namespace nndeploy {
 namespace model {
 
-#define MEITUAN_YOLOV6_NAME "MEITUAN_YOLOV6_NAME"
+#define YOLO_NAME "YOLO_NAME"
 
-class NNDEPLOY_CC_API MeituanYolov6PostParam : public base::Param {
+class NNDEPLOY_CC_API YoloPostParam : public base::Param {
  public:
   float score_threshold_;
   float nms_threshold_;
@@ -35,19 +35,19 @@ class NNDEPLOY_CC_API MeituanYolov6PostParam : public base::Param {
   int model_w_;
 };
 
-class NNDEPLOY_CC_API MeituanYolov6PostProcess : public model::Task {
+class NNDEPLOY_CC_API YoloPostProcess : public model::Task {
  public:
-  MeituanYolov6PostProcess(const std::string& name, model::Packet* input,
+  YoloPostProcess(const std::string& name, model::Packet* input,
                            model::Packet* output)
       : Task(name, input, output) {
-    param_ = std::make_shared<MeituanYolov6PostParam>();
+    param_ = std::make_shared<YoloPostParam>();
   }
-  virtual ~MeituanYolov6PostProcess() {}
+  virtual ~YoloPostProcess() {}
 
   virtual base::Status run();
 };
 
-extern NNDEPLOY_CC_API model::Pipeline* creatMeituanYolov6Pipeline(
+extern NNDEPLOY_CC_API model::Pipeline* creatYoloPipeline(
     const std::string& name, base::InferenceType inference_type,
     base::DeviceType device_type, Packet* input, Packet* output,
     base::ModelType model_type, bool is_path,
@@ -56,4 +56,4 @@ extern NNDEPLOY_CC_API model::Pipeline* creatMeituanYolov6Pipeline(
 }  // namespace model
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_DETECT_MEITUAN_YOLOV6_MEITUAN_YOLOV6_H_ */
+#endif /* _NNDEPLOY_MODEL_DETECT_YOLO_YOLO_H_ */

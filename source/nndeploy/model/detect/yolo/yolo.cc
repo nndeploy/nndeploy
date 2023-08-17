@@ -1,4 +1,4 @@
-#include "nndeploy/model/detect/meituan_yolov6/meituan_yolov6.h"
+#include "nndeploy/model/detect/yolo/yolo.h"
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -22,7 +22,7 @@ namespace nndeploy {
 namespace model {
 
 class TypePipelineRegister g_register_meituanyolov6_pipeline(
-    MEITUAN_YOLOV6_NAME, creatMeituanYolov6Pipeline);
+    YOLO_NAME, creatYoloPipeline);
 
 template <typename T>
 int softmax(const T* src, T* dst, int length) {
@@ -37,8 +37,8 @@ int softmax(const T* src, T* dst, int length) {
   return 0;
 }
 
-base::Status MeituanYolov6PostProcess::run() {
-  MeituanYolov6PostParam* param = (MeituanYolov6PostParam*)param_.get();
+base::Status YoloPostProcess::run() {
+  YoloPostParam* param = (YoloPostParam*)param_.get();
   float score_threshold = param->score_threshold_;
   int num_classes = param->num_classes_;
 
@@ -98,7 +98,7 @@ base::Status MeituanYolov6PostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-model::Pipeline* creatMeituanYolov6Pipeline(
+model::Pipeline* creatYoloPipeline(
     const std::string& name, base::InferenceType inference_type,
     base::DeviceType device_type, Packet* input, Packet* output,
     base::ModelType model_type, bool is_path,
@@ -113,7 +113,7 @@ model::Pipeline* creatMeituanYolov6Pipeline(
   model::Task* infer = pipeline->createInfer<model::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
-  model::Task* post = pipeline->createTask<MeituanYolov6PostProcess>(
+  model::Task* post = pipeline->createTask<YoloPostProcess>(
       "postprocess", infer_output, output);
 
   model::CvtclorResizeParam* pre_param =
@@ -135,8 +135,8 @@ model::Pipeline* creatMeituanYolov6Pipeline(
   inference_param->device_type_ = device_type;
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
-  MeituanYolov6PostParam* post_param =
-      dynamic_cast<MeituanYolov6PostParam*>(post->getParam());
+  YoloPostParam* post_param =
+      dynamic_cast<YoloPostParam*>(post->getParam());
   post_param->score_threshold_ = 0.5;
   post_param->nms_threshold_ = 0.45;
   post_param->num_classes_ = 80;
