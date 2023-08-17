@@ -38,7 +38,7 @@ class NNDEPLOY_CC_API YoloPostParam : public base::Param {
 class NNDEPLOY_CC_API YoloPostProcess : public model::Task {
  public:
   YoloPostProcess(const std::string& name, model::Packet* input,
-                           model::Packet* output)
+                  model::Packet* output)
       : Task(name, input, output) {
     param_ = std::make_shared<YoloPostParam>();
   }
