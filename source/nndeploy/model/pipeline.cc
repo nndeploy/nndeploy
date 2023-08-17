@@ -571,5 +571,29 @@ base::Status Pipeline::topologicalSort() {
   return status;
 }
 
+std::map<std::string, creatPipelineFunc>& getGlobalPipelineCreatorMap() {
+  static std::once_flag once;
+  static std::shared_ptr<std::map<std::string, creatPipelineFunc>> creators;
+  std::call_once(once, []() {
+    creators.reset(new std::map<std::string, creatPipelineFunc>);
+  });
+  return *creators;
+}
+
+Pipeline* creatPipeline(const std::string& name,
+                        base::InferenceType inference_type,
+                        base::DeviceType device_type, Packet* input,
+                        Packet* output, base::ModelType model_type,
+                        bool is_path, std::vector<std::string>& model_value,
+                        base::EncryptType encrypt_type) {
+  Pipeline* temp = nullptr;
+  auto& creater_map = getGlobalPipelineCreatorMap();
+  if (creater_map.count(name) > 0) {
+    temp = creater_map[name](name, inference_type, device_type, input, output,
+                             model_type, is_path, model_value, encrypt_type);
+  }
+  return temp;
+}
+
 }  // namespace model
 }  // namespace nndeploy

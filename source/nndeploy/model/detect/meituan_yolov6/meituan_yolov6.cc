@@ -21,6 +21,9 @@
 namespace nndeploy {
 namespace model {
 
+class TypePipelineRegister g_register_meituanyolov6_pipeline(
+    MEITUAN_YOLOV6_NAME, creatMeituanYolov6Pipeline);
+
 template <typename T>
 int softmax(const T* src, T* dst, int length) {
   T denominator{0};
@@ -97,20 +100,21 @@ base::Status MeituanYolov6PostProcess::run() {
 
 model::Pipeline* creatMeituanYolov6Pipeline(
     const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, model::Packet* input, model::Packet* output,
-    bool is_path, std::vector<std::string>& model_value) {
+    base::DeviceType device_type, Packet* input, Packet* output,
+    base::ModelType model_type, bool is_path,
+    std::vector<std::string>& model_value, base::EncryptType encrypt_type) {
   model::Pipeline* pipeline = new model::Pipeline(name, input, output);
   model::Packet* infer_input = pipeline->createPacket("infer_input");
   model::Packet* infer_output = pipeline->createPacket("infer_output");
 
-  model::Task* pre =
-      pipeline->createTask<model::CvtColrResize>("pre", input, infer_input);
+  model::Task* pre = pipeline->createTask<model::CvtColrResize>(
+      "preprocess", input, infer_input);
 
   model::Task* infer = pipeline->createInfer<model::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
   model::Task* post = pipeline->createTask<MeituanYolov6PostProcess>(
-      "post", infer_output, output);
+      "postprocess", infer_output, output);
 
   model::CvtclorResizeParam* pre_param =
       dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());
@@ -130,7 +134,7 @@ model::Pipeline* creatMeituanYolov6Pipeline(
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
 
-  // TODO: 很多信息可以从 pre 和 infer 中获取
+  // TODO: 很多信息可以从 preprocess 和 infer 中获取
   MeituanYolov6PostParam* post_param =
       dynamic_cast<MeituanYolov6PostParam*>(post->getParam());
   post_param->score_threshold_ = 0.5;

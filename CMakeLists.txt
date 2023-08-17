@@ -223,6 +223,7 @@ endif()
 # include
 include_directories(include)
 include_directories(source)
+include_directories(third_party)
 
 # make
 set(NNDEPLOY_SOURCE)
@@ -383,5 +384,8 @@ endif()
 
 # nndeploy_demo
 if (ENABLE_NNDEPLOY_DEMO)
+  add_subdirectory(third_party/gflags)
+  get_target_property(GFLAGS_INCLUDE_DIRS gflags INTERFACE_INCLUDE_DIRECTORIES)
+  include_directories(BEFORE "${GFLAGS_INCLUDE_DIRS}")
   add_subdirectory(${ROOT_PATH}/demo)
 endif()

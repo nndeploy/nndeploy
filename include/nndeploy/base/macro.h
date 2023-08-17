@@ -64,20 +64,6 @@
 #define NNDEPLOY_DEFAULT_STR "nndeploy_default_str"
 #define NNDEPLOY_TO_STR(x) #x
 #define NNDEPLOY_NAMESPACE_PLUS_TO_STR(x) nndeploy_namespace##x
-#define NNDEPLOY_ENUM_TO_STR(x) \
-  case x:                       \
-    str = #x;                   \
-    break;
-#define NNDEPLOY_STR_TO_ENUM(x) \
-  if (str == #x) {              \
-    return x;                   \
-  }
-#define NNDEPLOY_STR_TO_ENUM_WITH_DEFAULT(x, default) \
-  if (str == #x) {                                    \
-    return x;                                         \
-  } else {                                            \
-    return default;                                   \
-  }
 #define NNDEPLOY_GENERATE_DEFAULT_STR()        \
   std::string file = __FILE__;                 \
   std::string function = __FUNCTION__;         \

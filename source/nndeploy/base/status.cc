@@ -23,7 +23,6 @@ Status::operator bool() { return code_ == kStatusCodeOk; }
 std::string Status::desc() {
   std::string str;
   switch (code_) {
-    NNDEPLOY_ENUM_TO_STR(kStatusCodeOk);
     default:
       str = std::to_string(static_cast<int>(code_));
       break;

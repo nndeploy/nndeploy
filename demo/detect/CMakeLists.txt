@@ -8,6 +8,9 @@ set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
 set(THIRD_PARTY_LIBRARY)
 
+# include
+include_directories(${ROOT_PATH}/demo)
+
 # SOURCE
 file(GLOB_RECURSE SOURCE
   "${ROOT_PATH}/demo/detect/*.h"

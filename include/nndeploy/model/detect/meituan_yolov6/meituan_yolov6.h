@@ -24,6 +24,8 @@
 namespace nndeploy {
 namespace model {
 
+#define MEITUAN_YOLOV6_NAME "MEITUAN_YOLOV6_NAME"
+
 class NNDEPLOY_CC_API MeituanYolov6PostParam : public base::Param {
  public:
   float score_threshold_;
@@ -47,8 +49,9 @@ class NNDEPLOY_CC_API MeituanYolov6PostProcess : public model::Task {
 
 extern NNDEPLOY_CC_API model::Pipeline* creatMeituanYolov6Pipeline(
     const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, model::Packet* input, model::Packet* output,
-    bool is_path, std::vector<std::string>& model_value);
+    base::DeviceType device_type, Packet* input, Packet* output,
+    base::ModelType model_type, bool is_path,
+    std::vector<std::string>& model_value, base::EncryptType encrypt_type);
 
 }  // namespace model
 }  // namespace nndeploy

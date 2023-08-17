@@ -1,3 +1,4 @@
+#include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/device/device.h"
@@ -40,23 +41,27 @@ cv::Mat draw_box(cv::Mat &cv_mat, model::DetectResult &result) {
   }
   return cv_mat;
 }
-
+//
 int main(int argc, char *argv[]) {
-  std::string name = "meituan_yolov6";
-  base::InferenceType inference_type = base::kInferenceTypeOpenVino;
-  // base::InferenceType inference_type = base::kInferenceTypeOnnxRuntime;
-  // base::InferenceType inference_type = base::kInferenceTypeTensorRt;
-  base::DeviceType device_type = device::getDefaultHostDeviceType();
-  // base::DeviceType device_type(base::kDeviceTypeCodeCuda);
-  bool is_path = true;
-  std::vector<std::string> model_value;
-  model_value.push_back(
-      "/home/always/github/public/nndeploy/resourcemodel/meituan_yolov6/"
-      "yolov6m.onnx");
-  model::Packet input("detr_in");
-  model::Packet output("detr_out");
-  model::Pipeline *pipeline = model::creatMeituanYolov6Pipeline(
-      name, inference_type, device_type, &input, &output, true, model_value);
+  gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
+  if (demo::FLAGS_usage) {
+    demo::showUsage();
+    return -1;
+  }
+  std::string name = demo::getName();
+  base::InferenceType inference_type = demo::getInferenceType();
+  base::DeviceType device_type = demo::getDeviceType();
+  base::ModelType model_type = demo::getModelType();
+  bool is_path = demo::isPath();
+  std::vector<std::string> model_value = demo::getModelValue();
+  std::string input_path = demo::getInputPath();
+  std::string ouput_path = demo::getOutputPath();
+
+  model::Packet input("detect_in");
+  model::Packet output("detect_out");
+  model::Pipeline *pipeline =
+      model::creatPipeline(name, inference_type, device_type, &input, &output,
+                           model_type, is_path, model_value);
   if (pipeline == nullptr) {
     NNDEPLOY_LOGE("pipeline is nullptr");
     return -1;
@@ -66,8 +71,7 @@ int main(int argc, char *argv[]) {
   pipeline->init();
   NNDEPLOY_TIME_POINT_END("pipeline->init()");
 
-  cv::Mat input_mat =
-      cv::imread("/home/always/github/YOLOv6/deploy/ONNX/OpenCV/sample.jpg");
+  cv::Mat input_mat = cv::imread(input_path);
   input.set(input_mat);
   model::DetectResult result;
   output.set(result);
@@ -79,14 +83,7 @@ int main(int argc, char *argv[]) {
   NNDEPLOY_TIME_POINT_END("pipeline->run()");
 
   draw_box(input_mat, result);
-  cv::imwrite(
-      "/home/always/github/public/nndeploy/resourcemodel/meituan_yolov6/"
-      "sample.jpg",
-      input_mat);
-
-  std::ofstream oss;
-  oss.open("meituan_yolov6.dot", std::ios::out);
-  pipeline->dump(oss);
+  cv::imwrite(ouput_path, input_mat);
 
   pipeline->deinit();
 
