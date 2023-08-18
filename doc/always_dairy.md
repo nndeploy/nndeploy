@@ -17,3 +17,8 @@
 + git submodule
 + 两外两个仓库
 + 字符串转枚举
+
+## 2023.08.18
++ linux库 - 推理库和模型转换器
+  + opencv强烈建议apt-get install
+  + TNN、MNN、OpenVINO、ONNXRUNTIME

@@ -21,8 +21,8 @@
 namespace nndeploy {
 namespace model {
 
-class TypePipelineRegister g_register_meituanyolov6_pipeline(
-    YOLO_NAME, creatYoloPipeline);
+class TypePipelineRegister g_register_yolo_pipeline(YOLO_NAME,
+                                                    createYoloPipeline);
 
 template <typename T>
 int softmax(const T* src, T* dst, int length) {
@@ -98,11 +98,12 @@ base::Status YoloPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-model::Pipeline* creatYoloPipeline(
-    const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, Packet* input, Packet* output,
-    base::ModelType model_type, bool is_path,
-    std::vector<std::string>& model_value, base::EncryptType encrypt_type) {
+model::Pipeline* createYoloPipeline(const std::string& name,
+                                    base::InferenceType inference_type,
+                                    base::DeviceType device_type, Packet* input,
+                                    Packet* output, base::ModelType model_type,
+                                    bool is_path,
+                                    std::vector<std::string>& model_value) {
   model::Pipeline* pipeline = new model::Pipeline(name, input, output);
   model::Packet* infer_input = pipeline->createPacket("infer_input");
   model::Packet* infer_output = pipeline->createPacket("infer_output");
@@ -135,8 +136,7 @@ model::Pipeline* creatYoloPipeline(
   inference_param->device_type_ = device_type;
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
-  YoloPostParam* post_param =
-      dynamic_cast<YoloPostParam*>(post->getParam());
+  YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post->getParam());
   post_param->score_threshold_ = 0.5;
   post_param->nms_threshold_ = 0.45;
   post_param->num_classes_ = 80;

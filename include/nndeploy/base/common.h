@@ -237,6 +237,14 @@ stringToInferenceType(const std::string& src);
 
 extern NNDEPLOY_CC_API EncryptType stringToEncryptType(const std::string& src);
 
+extern NNDEPLOY_CC_API ShareMemoryType
+stringToShareMemoryType(const std::string& src);
+
+extern NNDEPLOY_CC_API PrecisionType
+stringToPrecisionType(const std::string& src);
+
+extern NNDEPLOY_CC_API PowerType stringToPowerType(const std::string& src);
+
 }  // namespace base
 }  // namespace nndeploy
 

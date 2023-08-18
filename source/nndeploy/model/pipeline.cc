@@ -571,26 +571,25 @@ base::Status Pipeline::topologicalSort() {
   return status;
 }
 
-std::map<std::string, creatPipelineFunc>& getGlobalPipelineCreatorMap() {
+std::map<std::string, createPipelineFunc>& getGlobalPipelineCreatorMap() {
   static std::once_flag once;
-  static std::shared_ptr<std::map<std::string, creatPipelineFunc>> creators;
+  static std::shared_ptr<std::map<std::string, createPipelineFunc>> creators;
   std::call_once(once, []() {
-    creators.reset(new std::map<std::string, creatPipelineFunc>);
+    creators.reset(new std::map<std::string, createPipelineFunc>);
   });
   return *creators;
 }
 
-Pipeline* creatPipeline(const std::string& name,
-                        base::InferenceType inference_type,
-                        base::DeviceType device_type, Packet* input,
-                        Packet* output, base::ModelType model_type,
-                        bool is_path, std::vector<std::string>& model_value,
-                        base::EncryptType encrypt_type) {
+Pipeline* createPipeline(const std::string& name,
+                         base::InferenceType inference_type,
+                         base::DeviceType device_type, Packet* input,
+                         Packet* output, base::ModelType model_type,
+                         bool is_path, std::vector<std::string>& model_value) {
   Pipeline* temp = nullptr;
   auto& creater_map = getGlobalPipelineCreatorMap();
   if (creater_map.count(name) > 0) {
     temp = creater_map[name](name, inference_type, device_type, input, output,
-                             model_type, is_path, model_value, encrypt_type);
+                             model_type, is_path, model_value);
   }
   return temp;
 }

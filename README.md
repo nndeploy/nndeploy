@@ -11,11 +11,12 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
 支持的平台和推理框架如下表所示
 |                      OS/Inference                       | Linux | Windows | Android | MacOS |  iOS  |                 开发人员                  | 备注  |
 | :-----------------------------------------------------: | :---: | :-----: | :-----: | :---: | :---: | :---------------------------------------: | :---: |
-|     [TensorRT](https://github.com/NVIDIA/TensorRT)      |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|     [TensorRT](https://github.com/NVIDIA/TensorRT)      |  yes  |   no    |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 | [OpenVINO](https://github.com/openvinotoolkit/openvino) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 | [ONNXRuntime](https://github.com/microsoft/onnxruntime) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 |          [MNN](https://github.com/alibaba/MNN)          |  yes  |   no    |   yes   |  yes  |  no   | [Always](https://github.com/Alwaysssssss) |       |
 |          [TNN](https://github.com/Tencent/TNN)          |  yes  |   no    |   yes   |  yes  |  no   | [02200059Z](https://github.com/02200059Z) |       |
+```注: yes：完成验证，no：尚未验证```
 
 ## 直接可用的算法
 |                       算法                       |               Inference               |                 开发人员                  | 备注  |
@@ -55,7 +56,7 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
   model::Packet input("detr_in"); // Pipeline的输入Packet，Packet不管理任何数据
   model::Packet output("detr_out"); // Pipeline的输出
   // 创建YoloV6 Pipeline
-  model::Pipeline *pipeline = model::creatYoloPipeline(
+  model::Pipeline *pipeline = model::createYoloPipeline(
       name, inference_type, device_type, &input, &output, true, model_value);
   if (pipeline == nullptr) {
     NNDEPLOY_LOGE("pipeline is nullptr");
@@ -132,10 +133,10 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
 - [FastDeploy](https://github.com/PaddlePaddle/FastDeploy)
-- [mmdeploy](https://github.com/open-mmlab/mmdeploy)
 - [opencv](https://github.com/opencv/opencv)
 - [CGraph](https://github.com/ChunelFeng/CGraph)
 - [tvm](https://github.com/apache/tvm)
+- [mmdeploy](https://github.com/open-mmlab/mmdeploy)
 
 ## 联系方式
 - 微信：titian5566 (备注：nndeploy + 姓名)

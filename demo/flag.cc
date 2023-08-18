@@ -20,11 +20,27 @@ DEFINE_string(model_value, "", "model_value");
 
 DEFINE_string(encrypt_type, "", "encrypt_type");
 
+DEFINE_string(license, "", "license");
+
 DEFINE_string(input_type, "", "input_type");
 
 DEFINE_string(input_path, "", "input_path");
 
 DEFINE_string(output_path, "", "output_path");
+
+DEFINE_int32(num_thread, 4, "num_thread");
+
+DEFINE_int32(gpu_tune_kernel, -1, "gpu_tune_kernel");
+
+DEFINE_string(share_memory_mode, "", "share_memory_mode");
+
+DEFINE_string(precision_type, "", "precision_type");
+
+DEFINE_string(power_type, "", "power_type");
+
+DEFINE_string(cache_path, "", "cache_path");
+
+DEFINE_string(library_path, "", "library_path");
 
 void showUsage() {
   std::cout << "Usage: " << std::endl;
@@ -40,12 +56,28 @@ void showUsage() {
             << std::endl;
   std::cout << "  --encrypt_type: encrypt_type, eg: kEncryptTypeNone"
             << std::endl;
+  std::cout << "  --license: license, eg: path/to/lincese or license string"
+            << std::endl;
   std::cout << "  --input_type: input_type, eg: kInputTypeImage" << std::endl;
   std::cout << "  --input_path: input_path, eg: "
                "path/nndeploy_resource/detect/input.jpg"
             << std::endl;
   std::cout << "  --output_path: output_path, eg: "
                "path/nndeploy_resource/detect/output/output.jpg"
+            << std::endl;
+  std::cout << "  --num_thread: num_thread, eg: 4" << std::endl;
+  std::cout << "  --gpu_tune_kernel: gpu_tune_kernel, eg: 1" << std::endl;
+  std::cout
+      << "  --share_memory_mode: share_memory_mode, eg: kShareMemoryTypeNoShare"
+      << std::endl;
+  std::cout << "  --precision_type: precision_type, eg: kPrecisionTypeFp32"
+            << std::endl;
+  std::cout << "  --power_type: power_type, eg: kPowerTypeNormal" << std::endl;
+  std::cout << "  --cache_path: cache_path, eg: "
+               "path/to/model_0.trt"
+            << std::endl;
+  std::cout << "  --library_path: library_path, eg: "
+               "path/to/opencl.so"
             << std::endl;
 }
 
@@ -84,6 +116,8 @@ base::EncryptType getEncryptType() {
   return base::stringToEncryptType(FLAGS_encrypt_type);
 }
 
+std::string getLicense() { return FLAGS_license; }
+
 InputType getInputType() {
   if (FLAGS_input_type == "kInputTypeImage") {
     return kInputTypeImage;
@@ -99,6 +133,46 @@ InputType getInputType() {
 }
 std::string getInputPath() { return FLAGS_input_path; }
 std::string getOutputPath() { return FLAGS_output_path; }
+
+int getNumThread() { return FLAGS_num_thread; }
+int getGpuTuneKernel() { return FLAGS_gpu_tune_kernel; }
+base::ShareMemoryType getShareMemoryType() {
+  return base::stringToShareMemoryType(FLAGS_share_memory_mode);
+}
+base::PrecisionType getPrecisionType() {
+  return base::stringToPrecisionType(FLAGS_precision_type);
+}
+base::PowerType getPowerType() {
+  return base::stringToPowerType(FLAGS_power_type);
+}
+std::vector<std::string> getCachePath() {
+  std::vector<std::string> cache_path;
+  std::string cache_path_str = FLAGS_cache_path;
+  std::string::size_type pos1, pos2;
+  pos2 = cache_path_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    cache_path.push_back(cache_path_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = cache_path_str.find(",", pos1);
+  }
+  cache_path.push_back(cache_path_str.substr(pos1));
+  return cache_path;
+}
+std::vector<std::string> getLibraryPath() {
+  std::vector<std::string> library_path;
+  std::string library_path_str = FLAGS_library_path;
+  std::string::size_type pos1, pos2;
+  pos2 = library_path_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    library_path.push_back(library_path_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = library_path_str.find(",", pos1);
+  }
+  library_path.push_back(library_path_str.substr(pos1));
+  return library_path;
+}
 
 }  // namespace demo
 }  // namespace nndeploy

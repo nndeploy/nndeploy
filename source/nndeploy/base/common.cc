@@ -145,5 +145,45 @@ EncryptType stringToEncryptType(const std::string &src) {
   }
 }
 
+ShareMemoryType stringToShareMemoryType(const std::string &src) {
+  if (src == "kShareMemoryTypeNoShare") {
+    return kShareMemoryTypeNoShare;
+  } else if (src == "kShareMemoryTypeShareFromExternal") {
+    return kShareMemoryTypeShareFromExternal;
+  } else if (src == "kShareMemoryTypeNotSupport") {
+    return kShareMemoryTypeNotSupport;
+  } else {
+    return kShareMemoryTypeNoShare;
+  }
+}
+
+PrecisionType stringToPrecisionType(const std::string &src) {
+  if (src == "kPrecisionTypeBFp16") {
+    return kPrecisionTypeBFp16;
+  } else if (src == "kPrecisionTypeFp16") {
+    return kPrecisionTypeFp16;
+  } else if (src == "kPrecisionTypeFp32") {
+    return kPrecisionTypeFp32;
+  } else if (src == "kPrecisionTypeFp64") {
+    return kPrecisionTypeFp64;
+  } else {
+    return kPrecisionTypeFp32;
+  }
+}
+
+PowerType stringToPowerType(const std::string &src) {
+  if (src == "kPowerTypeNormal") {
+    return kPowerTypeNormal;
+  } else if (src == "kPowerTypeLow") {
+    return kPowerTypeLow;
+  } else if (src == "kPowerTypeHigh") {
+    return kPowerTypeHigh;
+  } else if (src == "kPowerTypeNotSupport") {
+    return kPowerTypeNotSupport;
+  } else {
+    return kPowerTypeNormal;
+  }
+}
+
 }  // namespace base
 }  // namespace nndeploy

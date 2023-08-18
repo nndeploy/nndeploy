@@ -60,8 +60,8 @@ int main(int argc, char *argv[]) {
   model::Packet input("detect_in");
   model::Packet output("detect_out");
   model::Pipeline *pipeline =
-      model::creatPipeline(name, inference_type, device_type, &input, &output,
-                           model_type, is_path, model_value);
+      model::createPipeline(name, inference_type, device_type, &input, &output,
+                            model_type, is_path, model_value);
   if (pipeline == nullptr) {
     NNDEPLOY_LOGE("pipeline is nullptr");
     return -1;
