@@ -91,6 +91,8 @@ int main(int argc, char *argv[]) {
 
   NNDEPLOY_TIME_PROFILER_PRINT();
 
+  NNDEPLOY_TIME_PROFILER_RESET();
+
   printf("hello world!\n");
   return 0;
 }
