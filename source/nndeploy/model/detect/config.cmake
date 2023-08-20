@@ -10,7 +10,6 @@ file(GLOB SOURCE
 )
 
 if (ENABLE_NNDEPLOY_OPENCV)
-  message(STATUS "model/detect: opencv")
   if (ENABLE_NNDEPLOY_MODEL_DETECT_DETR)
     file(GLOB_RECURSE DETR_SOURCE
       "${ROOT_PATH}/include/nndeploy/model/detect/detr/*.h"
