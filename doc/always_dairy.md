@@ -50,3 +50,8 @@
 + nndeploy 安装有 lib和bin - 解决
 + 第三库的安装有太多杂项（暂时不管吧）
 + 要不要区分lib和bin呀，第一个是直接解决了windows下的bin和lib问题，tnn的库是区分了的，这里也区分一下吧
+
+### android / ubuntu
++ http://www.taodudu.cc/news/show-864133.html?action=onClick
+
+cmake -DCMAKE_TOOLCHAIN_FILE=/snap/android-ndk-r25c/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_STL="c++_static" -DANDROID_NATIVE_API_LEVEL="android-14" -DANDROID_TOOLCHAIN=clang -DBUILD_FOR_ANDROID_COMMAND=true ..

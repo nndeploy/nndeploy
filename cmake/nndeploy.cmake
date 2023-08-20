@@ -1,4 +1,15 @@
 
+set(NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX lib)
+if(SYSTEM.Android)
+  list(APPEND NNDEPLOY_SYSTEM_LIBRARY log)
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX ${ANDROID_ABI})
+  message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX: ${NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX}")
+elseif(SYSTEM.Linux)
+elseif(SYSTEM.Darwin)
+elseif(SYSTEM.iOS)
+elseif(SYSTEM.Windows)
+endif()
+
 #################### common ####################
 ## OpenCV
 include("${ROOT_PATH}/cmake/opencv.cmake")

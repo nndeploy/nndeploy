@@ -12,9 +12,21 @@ Status& Status::operator=(int code) {
   return *this;
 };
 
-bool Status::operator==(int code_) { return code_ == code_; };
+bool Status::operator==(int code) {
+  if (code_ == code) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
-bool Status::operator!=(int code_) { return code_ != code_; };
+bool Status::operator!=(int code) {
+  if (code_ != code) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
 Status::operator int() { return code_; }
 

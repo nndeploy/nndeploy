@@ -49,8 +49,8 @@ class NNDEPLOY_CC_API Status {
   Status& operator=(const Status& other) = default;
 
   Status& operator=(int code);
-  bool operator==(int code_);
-  bool operator!=(int code_);
+  bool operator==(int code);
+  bool operator!=(int code);
   operator int();
   operator bool();
 
