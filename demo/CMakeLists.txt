@@ -6,7 +6,8 @@ set(NNDEPLOY_THIRD_PARTY_LIBRARY_DEMO)
 include(${ROOT_PATH}/cmake/nndeploy_demo.cmake)
 
 if (ENABLE_NNDEPLOY_MODEL_DETECT)
-  add_subdirectory(detect)
+  # add_subdirectory(detect)
+  include(${ROOT_PATH}/demo/detect/CMakeLists.txt)
 endif()
 
 if (ENABLE_NNDEPLOY_MODEL_SEGMENT)

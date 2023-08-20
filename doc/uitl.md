@@ -7,4 +7,5 @@
 
 ## cmake 
 + cmake .. -DCMAKE_BUILD_TYPE=Debug
++ cmake .. -DCMAKE_INSTALL_PREFIX=C:\nndeploy\build\install
 

@@ -37,7 +37,16 @@
     + sudo ldconfig（must be）
   + 尝试了很久，还是没有安装成功，故使用tnn官方提供的docker 
     + 参考文档：https://github.com/Tencent/TNN/blob/master/doc/cn/user/convert.md
-## 编译mnn - mnn mnn-quant mnn-convert
+### 编译mnn - mnn mnn-quant mnn-convert
 + ./MNNConvert -f ONNX --modelFile /home/always/Downloads/TRT2021-MedcareAILab/detr_sim.onnx --MNNModel /home/always/Downloads/TRT2021-MedcareAILab/detr_sim_onnx.mnn --bizCode biz
 + quant目录： /home/always/github/MNN/build/max_release
 + convert目录： /home/always/github/MNN/build/max_release
+
+### windows
++ make install 错误 - setlocal - https://blog.csdn.net/duiwangxiaomi/article/details/124184860?spm=1001.2101.3001.6661.1&utm_medium=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-124184860-blog-115333145.235%5Ev38%5Epc_relevant_anti_t3_base&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-124184860-blog-115333145.235%5Ev38%5Epc_relevant_anti_t3_base&utm_relevant_index=1
+  + root权限打开vs
+  + 修改CMAKE_INSTALL_PREFIX
++ vs无法运行单独运行
++ nndeploy 安装有 lib和bin - 解决
++ 第三库的安装有太多杂项（暂时不管吧）
++ 要不要区分lib和bin呀，第一个是直接解决了windows下的bin和lib问题，tnn的库是区分了的，这里也区分一下吧
