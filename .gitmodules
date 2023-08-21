@@ -1,4 +1,4 @@
 [submodule "third_party/gflags"]
 	path = third_party/gflags
-	url = git@github.com:gflags/gflags.git
+	url = https://github.com/gflags/gflags.git
 
