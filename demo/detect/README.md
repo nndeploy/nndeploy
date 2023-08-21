@@ -1,5 +1,8 @@
 # TODO
-./demo_nndeploy_detect --name YOLO_NAME -inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/github/nndeploy_resource/detect/yolo/yolov6m.onnx --input_type kInputTypeImage  --input_path /home/always/github/nndeploy_resource/detect/test_data/sample.jpg --output_path /home/always/github/nndeploy_resource/temp/sample_output.jpg >> debug.txt
+./demo_nndeploy_detect --name YOLO_NAME -inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx --input_type kInputTypeImage  --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 
-C:\github\nndeploy_third_party\windows_x64\onnxruntime-win-x64-1.15.1
+./demo_nndeploy_detect --name YOLO_NAME -inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx --input_type kInputTypeImage  --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
+
+./demo_nndeploy_detect --name YOLO_NAME -inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx --input_type kInputTypeImage  --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
+
 ./demo_nndeploy_detect --name YOLO_NAME -inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:/github/nndeploy_resource/detect/yolo/yolov6m.onnx --input_type kInputTypeImage  --input_path C:/github/nndeploy_resource/detect/test_data/sample.jpg --output_path C:/github/nndeploy_resource/temp/sample_output_windows.jpg

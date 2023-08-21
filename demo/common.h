@@ -17,4 +17,4 @@ enum InputType : int {
 }
 }  // namespace nndeploy
 
-#endif /* CB63CBBE_BDA5_4ECF_AFAA_5BE772F71950 */
+#endif /* _NNDEPLOY_DEMO_COMMON_H_ */
