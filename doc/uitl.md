@@ -4,6 +4,8 @@
 + chgrp -R nndeploy /home/always/github/public/nndeploy/resourcemodel
 + export LD_LIBRARY_PATH=/home/always/github/public/nndeploy/build/install:$LD_LIBRARY_PATH
 + export PATH=/usr/local/cuda/bin:$PATH
++ chgrp -R nndeploy /home/always/huggingface/nndeploy
++ chown -R always /home/always/huggingface/nndeploy
 
 ## cmake 
 + cmake .. -DCMAKE_BUILD_TYPE=Debug

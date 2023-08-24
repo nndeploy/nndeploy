@@ -38,7 +38,8 @@
   + 尝试了很久，还是没有安装成功，故使用tnn官方提供的docker 
     + 参考文档：https://github.com/Tencent/TNN/blob/master/doc/cn/user/convert.md
 ### 编译mnn - mnn mnn-quant mnn-convert
-+ ./MNNConvert -f ONNX --modelFile /home/always/Downloads/TRT2021-MedcareAILab/detr_sim.onnx --MNNModel /home/always/Downloads/TRT2021-MedcareAILab/detr_sim_onnx.mnn --bizCode biz
++ ./MNNConvert -f ONNX --modelFile /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx --MNNModel /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx.mnn --bizCode biz
++ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./converter.py onnx2tnn /workspace/yolov6m.onnx -optimize -v v3.0 
 + quant目录： /home/always/github/MNN/build/max_release
 + convert目录： /home/always/github/MNN/build/max_release
 
