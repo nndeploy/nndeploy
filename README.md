@@ -1,6 +1,7 @@
 
+<img align="right" src="doc/image/Always.jpg" width="64px">
 ## 介绍
-nndeploy是一款支持多平台、简单易用、高性能的机器学习部署框架，一套实现可在多端(云、边、端)完成模型的高性能部署。目前已完成YOLO系列模型的部署，后续会源源不断的去部署开源模型（如果你有需要部署的开源模型，可以联系我）
+nndeploy是一款支持多平台、简单易用、高性能的机器学习部署框架，一套实现可在多端(云、边、端)完成模型的高性能部署。目前已完成YOLO系列、DETR、Segment Anything等模型的部署，后续会继续部署开源模型（如果你有需要部署的开源模型或者其他部署相关的问题，欢迎联系我呀）
 
 ## 架构简介
 ![架构简介](doc/image/nndeploy.png)
@@ -14,29 +15,30 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
 |     [TensorRT](https://github.com/NVIDIA/TensorRT)      |  yes  |   no    |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 | [OpenVINO](https://github.com/openvinotoolkit/openvino) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 | [ONNXRuntime](https://github.com/microsoft/onnxruntime) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|          [MNN](https://github.com/alibaba/MNN)          |  yes  |   no    |   yes   |  yes  |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|          [TNN](https://github.com/Tencent/TNN)          |  yes  |   no    |   yes   |  yes  |  no   | [02200059Z](https://github.com/02200059Z) |       |
+|          [MNN](https://github.com/alibaba/MNN)          |  yes  |   yes   |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|          [TNN](https://github.com/Tencent/TNN)          |  yes  |   yes   |   yes   |  no   |  no   | [02200059Z](https://github.com/02200059Z) |       |
 ```注: yes：完成验证，no：尚未验证```
 
 ## 直接可用的算法
-|                       算法                       |               Inference               |                 开发人员                  | 备注  |
-| :----------------------------------------------: | :-----------------------------------: | :---------------------------------------: | :---: |
-| [YOLOV3](https://github.com/ultralytics/yolov3)  | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
-| [YOLOV3](https://github.com/ultralytics/yolov5)  | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
-|   [YOLOV6](https://github.com/meituan/YOLOv6)    | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
-|     [YOLOV8](https://github.com/ultralytics)     | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
-| [DETR](https://github.com/facebookresearch/detr) | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
+|                                   算法                                   |               Inference               |                 开发人员                  | 备注  |
+| :----------------------------------------------------------------------: | :-----------------------------------: | :---------------------------------------: | :---: |
+|             [YOLOV5](https://github.com/ultralytics/yolov5)              | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
+|               [YOLOV6](https://github.com/meituan/YOLOv6)                | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
+|                 [YOLOV8](https://github.com/ultralytics)                 | TensorRt/OpenVINO/ONNXRuntime/MNN/TNN | [02200059Z](https://github.com/02200059Z) |       |
+|             [DETR](https://github.com/facebookresearch/detr)             |     TensorRt/OpenVINO/ONNXRuntime     | [02200059Z](https://github.com/02200059Z) |       |
+| [segment-anything](https://github.com/facebookresearch/segment-anything) |     TensorRt/OpenVINO/ONNXRuntime     |                                           |       |
 
 ### 简单易用
 - 通过切换推理配置，一套代码可在多端部署，算法接口简单易用
-- 新增算法简单，将AI算法部署抽象为有向无环图Pipeline，前处理为一个节点Task，推理也为一个节点Task，后处理也为一个节点Task。提供了一组较为通用的前处理Task，通用的推理Infer，对于部署一个算法而言通常只需写一个特定后处理Task即可。对于多模型的算法而言，也可以将多个Pipeline组合成一个新的Pipeline。
+- 新增算法简单，将AI算法部署抽象为有向无环图Pipeline，前处理为一个节点Task，推理也为一个节点Task，后处理也为一个节点Task。提供了一组较为通用的前处理Task，通用的推理Infer，对于部署一个算法而言通常只需写一个特定后处理Task即可。对于多模型的算法而言，也可以将多个Pipeline组合成一个新的Pipeline
+- 提供一组通用的前后处理模块
+- 通用的推理模块
 
 ### 高性能
 - 具有各推理后端完全的配置的能力，不会因为对推理框架的抽象而带来性能损失
-- 可直接操作理框架内部分配的输入输出，实现零拷贝（做了一部分）
-- 多个模型可共享一份内存
+- 可直接操作理框架内部分配的输入输出，实现零拷贝（TODO）
 - 线程池（TODO）
-- 高性能的前后处理（做了一部分）
+- 高性能的前后处理（TODO）
 
 ## 快速开始
 [这里以YOLO检测模型为例](demo/detect/yolo/demo.cc)
@@ -137,6 +139,3 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
 - [CGraph](https://github.com/ChunelFeng/CGraph)
 - [tvm](https://github.com/apache/tvm)
 - [mmdeploy](https://github.com/open-mmlab/mmdeploy)
-
-## 联系方式
-- 微信：titian5566 (备注：nndeploy + 姓名)
