@@ -1,12 +1,13 @@
 
-<img align="right" src="doc/image/Always.jpg" width="128px">
+<img align="right" src="doc/image/Always.jpg" width="200px">
 
 ## 介绍
 nndeploy是一款支持多平台、简单易用、高性能的机器学习部署框架，一套实现可在多端(云、边、端)完成模型的高性能部署。目前已完成YOLO系列、DETR、Segment Anything等模型的部署，后续会继续部署开源模型（如果你有需要部署的开源模型或者其他部署相关的问题，欢迎联系我呀）
 
 ## 架构简介
 ![架构简介](doc/image/nndeploy.png)
-注：未着色的为尚未实现
+
+``注：未着色的为尚未实现``
 
 ## 特性简介
 ### 支持多平台
