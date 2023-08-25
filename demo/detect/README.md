@@ -11,5 +11,8 @@
 
 ./demo_nndeploy_detect --name YOLO_NAME -inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx --input_type kInputTypeImage  --input_path C:/huggingface/nndeploy/test_data/detect/sample.jpg --output_path C:/huggingface/nndeploy/temp/sample_output_windows.jpg
 
-
 ./demo_nndeploy_detect --name YOLO_NAME -inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx --input_type kInputTypeImage  --input_path C:/huggingface/nndeploy/test_data/detect/sample.jpg --output_path C:/huggingface/nndeploy/temp/sample_output_windows.jpg
+
+./demo_nndeploy_detect --name YOLO_NAME --inference_type kInferenceTypeTnn --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeTnn --is_path --model_value /data/local/tmp/model_zoo/yolov6m.tnnproto,/data/local/tmp/model_zoo/yolov6m.tnnmdodel --input_type kInputTypeImage  --input_path /data/local/tmp/test_data/detect/sample.jpg --output_path /data/local/tmp/temp/sample_output_and.jpg
+
+./demo_nndeploy_detect --name YOLO_NAME --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeMnn --is_path --model_value /data/local/tmp/model_zoo/yolov6m.onnx.mnn --input_type kInputTypeImage  --input_path /data/local/tmp/test_data/detect/sample.jpg --output_path /data/local/tmp/temp/sample_output_and.jpg

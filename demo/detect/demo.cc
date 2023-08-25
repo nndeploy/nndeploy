@@ -7,7 +7,7 @@
 
 using namespace nndeploy;
 
-cv::Mat draw_box(cv::Mat &cv_mat, model::DetectResult &result) {
+cv::Mat drawBox(cv::Mat &cv_mat, model::DetectResult &result) {
   // float w_ratio = float(cv_mat.cols) / float(640);
   // float h_ratio = float(cv_mat.rows) / float(640);
   float w_ratio = float(cv_mat.cols);
@@ -57,23 +57,6 @@ int main(int argc, char *argv[]) {
   std::string input_path = demo::getInputPath();
   std::string ouput_path = demo::getOutputPath();
 
-  // std::string name = YOLO_NAME;
-  // base::InferenceType inference_type = base::kInferenceTypeTnn;
-  // base::DeviceType device_type = base::kDeviceTypeCodeX86;
-  // base::ModelType model_type = base::kModelTypeTnn;
-  // bool is_path = true;
-  // std::vector<std::string> model_value;
-  // model_value.push_back(
-  //     "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
-  //     "yolov6m.tnnproto");
-  // model_value.push_back(
-  //     "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
-  //     "yolov6m.tnnmodel");
-  // std::string input_path =
-  //     "/home/always/huggingface/nndeploy/test_data/detect/sample.jpg";
-  // std::string ouput_path =
-  //     "/home/always/huggingface/nndeploy/temp/sample_output.jpg";
-
   model::Packet input("detect_in");
   model::Packet output("detect_out");
   model::Pipeline *pipeline =
@@ -99,7 +82,7 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("pipeline->run()");
 
-  draw_box(input_mat, result);
+  drawBox(input_mat, result);
   cv::imwrite(ouput_path, input_mat);
 
   pipeline->deinit();

@@ -24,7 +24,9 @@
 namespace nndeploy {
 namespace model {
 
-#define YOLO_NAME "YOLO_NAME"
+#define NNDEPLOY_YOLOV5 "NNDEPLOY_YOLOV5"
+#define NNDEPLOY_YOLOV6 "NNDEPLOY_YOLOV6"
+#define NNDEPLOY_YOLOV8 "NNDEPLOY_YOLOV8"
 
 class NNDEPLOY_CC_API YoloPostParam : public base::Param {
  public:
@@ -47,7 +49,19 @@ class NNDEPLOY_CC_API YoloPostProcess : public model::Task {
   virtual base::Status run();
 };
 
-extern NNDEPLOY_CC_API model::Pipeline* createYoloPipeline(
+extern NNDEPLOY_CC_API model::Pipeline* createYoloV5Pipeline(
+    const std::string& name, base::InferenceType inference_type,
+    base::DeviceType device_type, Packet* input, Packet* output,
+    base::ModelType model_type, bool is_path,
+    std::vector<std::string>& model_value);
+
+extern NNDEPLOY_CC_API model::Pipeline* createYoloV6Pipeline(
+    const std::string& name, base::InferenceType inference_type,
+    base::DeviceType device_type, Packet* input, Packet* output,
+    base::ModelType model_type, bool is_path,
+    std::vector<std::string>& model_value);
+
+extern NNDEPLOY_CC_API model::Pipeline* createYoloV8Pipeline(
     const std::string& name, base::InferenceType inference_type,
     base::DeviceType device_type, Packet* input, Packet* output,
     base::ModelType model_type, bool is_path,

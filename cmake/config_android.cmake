@@ -7,9 +7,9 @@
 # file so that any local changes will be ignored by git
 #
 # $ mkdir build
-# $ cp cmake/config_nndeploy.cmake build
+# $ cp cmake/config_xx.cmake build
 # $ cd build
-# $ mv config_nndeploy.cmake config.cmake
+# $ mv config_xx.cmake config.cmake
 # $ cmake ..
 # $ make -j8
 # --------------------------------------------------------------------
@@ -20,7 +20,7 @@ set(ENABLE_NNDEPLOY_COVERAGE OFF)
 set(ENABLE_NNDEPLOY_CXX11_ABI ON)
 set(ENABLE_NNDEPLOY_CXX14_ABI OFF)
 set(ENABLE_NNDEPLOY_CXX17_ABI OFF)
-set(ENABLE_NNDEPLOY_OPENMP ON)
+set(ENABLE_NNDEPLOY_OPENMP OFF)
 set(ENABLE_NNDEPLOY_ADDRESS_SANTIZER OFF)
 set(ENABLE_NNDEPLOY_DOCS OFF)
 set(ENABLE_NNDEPLOY_TIME_PROFILER ON)
@@ -73,5 +73,4 @@ set(ENABLE_NNDEPLOY_DEMO ON)
 ## model detect
 set(ENABLE_NNDEPLOY_MODEL_DETECT ON)
 set(ENABLE_NNDEPLOY_MODEL_DETECT_DETR OFF)
-set(ENABLE_NNDEPLOY_MODEL_DETECT_YOLOV3 OFF)
 set(ENABLE_NNDEPLOY_MODEL_DETECT_YOLO ON)

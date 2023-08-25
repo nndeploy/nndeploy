@@ -20,8 +20,3 @@
 + adb push temp/ /data/local/tmp/
 + adb push test_data/ /data/local/tmp/
 + adb pull /data/local/tmp/temp /home/always/huggingface/nndeploy/temp
-
-./demo_nndeploy_detect --name YOLO_NAME --inference_type kInferenceTypeTnn --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeTnn --is_path --model_value /data/local/tmp/model_zoo/yolov6m.tnnproto,/data/local/tmp/model_zoo/yolov6m.tnnmdodel --input_type kInputTypeImage  --input_path /data/local/tmp/test_data/detect/sample.jpg --output_path /data/local/tmp/temp/sample_output_and.jpg
-
-
-./demo_nndeploy_detect --name YOLO_NAME --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeMnn --is_path --model_value /data/local/tmp/model_zoo/yolov6m.onnx.mnn --input_type kInputTypeImage  --input_path /data/local/tmp/test_data/detect/sample.jpg --output_path /data/local/tmp/temp/sample_output_and.jpg

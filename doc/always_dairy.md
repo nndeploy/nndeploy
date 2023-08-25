@@ -44,7 +44,7 @@
 + convert目录： /home/always/github/MNN/build/max_release
 
 ### windows
-+ make install 错误 - setlocal - https://blog.csdn.net/duiwangxiaomi/article/details/124184860?spm=1001.2101.3001.6661.1&utm_medium=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-124184860-blog-115333145.235%5Ev38%5Epc_relevant_anti_t3_base&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-124184860-blog-115333145.235%5Ev38%5Epc_relevant_anti_t3_base&utm_relevant_index=1
++ make install
   + root权限打开vs
   + 修改CMAKE_INSTALL_PREFIX
 + vs无法运行单独运行
@@ -54,8 +54,5 @@
 
 ### android / ubuntu
 + http://www.taodudu.cc/news/show-864133.html?action=onClick
-
-cmake -DCMAKE_TOOLCHAIN_FILE=/snap/android-ndk-r25c/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_STL="c++_static" -DANDROID_NATIVE_API_LEVEL="android-14" -DANDROID_TOOLCHAIN=clang -DBUILD_FOR_ANDROID_COMMAND=true ..
-cmake -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_STL="c++_static" -DANDROID_NATIVE_API_LEVEL="android-14" -DANDROID_TOOLCHAIN=clang -DBUILD_FOR_ANDROID_COMMAND=true ..
-
++ cmake -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_STL="c++_static" -DANDROID_NATIVE_API_LEVEL="android-14" -DANDROID_TOOLCHAIN=clang -DBUILD_FOR_ANDROID_COMMAND=true ..
 + tensor_rt开address_santizer会crash
