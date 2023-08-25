@@ -43,36 +43,36 @@ cv::Mat draw_box(cv::Mat &cv_mat, model::DetectResult &result) {
 }
 //
 int main(int argc, char *argv[]) {
-  // gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
-  // if (demo::FLAGS_usage) {
-  //   demo::showUsage();
-  //   return -1;
-  // }
-  // std::string name = demo::getName();
-  // base::InferenceType inference_type = demo::getInferenceType();
-  // base::DeviceType device_type = demo::getDeviceType();
-  // base::ModelType model_type = demo::getModelType();
-  // bool is_path = demo::isPath();
-  // std::vector<std::string> model_value = demo::getModelValue();
-  // std::string input_path = demo::getInputPath();
-  // std::string ouput_path = demo::getOutputPath();
+  gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
+  if (demo::FLAGS_usage) {
+    demo::showUsage();
+    return -1;
+  }
+  std::string name = demo::getName();
+  base::InferenceType inference_type = demo::getInferenceType();
+  base::DeviceType device_type = demo::getDeviceType();
+  base::ModelType model_type = demo::getModelType();
+  bool is_path = demo::isPath();
+  std::vector<std::string> model_value = demo::getModelValue();
+  std::string input_path = demo::getInputPath();
+  std::string ouput_path = demo::getOutputPath();
 
-  std::string name = YOLO_NAME;
-  base::InferenceType inference_type = base::kInferenceTypeTnn;
-  base::DeviceType device_type = base::kDeviceTypeCodeX86;
-  base::ModelType model_type = base::kModelTypeTnn;
-  bool is_path = true;
-  std::vector<std::string> model_value;
-  model_value.push_back(
-      "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
-      "yolov6m.tnnproto");
-  model_value.push_back(
-      "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
-      "yolov6m.tnnmodel");
-  std::string input_path =
-      "/home/always/huggingface/nndeploy/test_data/detect/sample.jpg";
-  std::string ouput_path =
-      "/home/always/huggingface/nndeploy/temp/sample_output.jpg";
+  // std::string name = YOLO_NAME;
+  // base::InferenceType inference_type = base::kInferenceTypeTnn;
+  // base::DeviceType device_type = base::kDeviceTypeCodeX86;
+  // base::ModelType model_type = base::kModelTypeTnn;
+  // bool is_path = true;
+  // std::vector<std::string> model_value;
+  // model_value.push_back(
+  //     "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
+  //     "yolov6m.tnnproto");
+  // model_value.push_back(
+  //     "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
+  //     "yolov6m.tnnmodel");
+  // std::string input_path =
+  //     "/home/always/huggingface/nndeploy/test_data/detect/sample.jpg";
+  // std::string ouput_path =
+  //     "/home/always/huggingface/nndeploy/temp/sample_output.jpg";
 
   model::Packet input("detect_in");
   model::Packet output("detect_out");

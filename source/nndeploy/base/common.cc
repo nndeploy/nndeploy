@@ -85,7 +85,11 @@ DeviceType stringToDeviceType(const std::string &src) {
   dst.code_ = stringToDeviceTypeCode(code);
   pos1 = pos2 + 1;
   std::string id = src.substr(pos1);
-  dst.device_id_ = stoi(id);
+  if (id.empty()) {
+    dst.device_id_ = -1;
+  } else {
+    dst.device_id_ = stoi(id);
+  }
   return dst;
 }
 
