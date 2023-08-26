@@ -12,9 +12,21 @@ Status& Status::operator=(int code) {
   return *this;
 };
 
-bool Status::operator==(int code_) { return code_ == code_; };
+bool Status::operator==(int code) {
+  if (code_ == code) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
-bool Status::operator!=(int code_) { return code_ != code_; };
+bool Status::operator!=(int code) {
+  if (code_ != code) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
 Status::operator int() { return code_; }
 
@@ -23,7 +35,6 @@ Status::operator bool() { return code_ == kStatusCodeOk; }
 std::string Status::desc() {
   std::string str;
   switch (code_) {
-    NNDEPLOY_ENUM_TO_STR(kStatusCodeOk);
     default:
       str = std::to_string(static_cast<int>(code_));
       break;

@@ -54,8 +54,13 @@ base::Status OnnxRuntimeInference::init() {
     inputs_desc_.emplace_back(OrtValueInfo{input_name, shape, data_type});
 
     device::TensorDesc desc;
-    desc.shape_ = OnnxRuntimeConvert::convertToShape(
-        shape, onnxruntime_inference_param->max_shape_[input_name]);
+    if (onnxruntime_inference_param->max_shape_.find(input_name) !=
+        onnxruntime_inference_param->max_shape_.end()) {
+      desc.shape_ = OnnxRuntimeConvert::convertToShape(
+          shape, onnxruntime_inference_param->max_shape_[input_name]);
+    } else {
+      desc.shape_ = OnnxRuntimeConvert::convertToShape(shape);
+    }
     desc.data_type_ = OnnxRuntimeConvert::convertToDataType(data_type);
     desc.data_format_ = OnnxRuntimeConvert::getDataFormatByShape(desc.shape_);
     device::Tensor *max_input_tensor =

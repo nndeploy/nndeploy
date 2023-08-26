@@ -226,6 +226,25 @@ using IntVector = std::vector<int>;
 using SizeVector = std::vector<size_t>;
 using ShapeMap = std::map<std::string, std::vector<int>>;
 
+extern NNDEPLOY_CC_API DeviceTypeCode
+stringToDeviceTypeCode(const std::string& src);
+extern NNDEPLOY_CC_API DeviceType stringToDeviceType(const std::string& src);
+
+extern NNDEPLOY_CC_API ModelType stringToModelType(const std::string& src);
+
+extern NNDEPLOY_CC_API InferenceType
+stringToInferenceType(const std::string& src);
+
+extern NNDEPLOY_CC_API EncryptType stringToEncryptType(const std::string& src);
+
+extern NNDEPLOY_CC_API ShareMemoryType
+stringToShareMemoryType(const std::string& src);
+
+extern NNDEPLOY_CC_API PrecisionType
+stringToPrecisionType(const std::string& src);
+
+extern NNDEPLOY_CC_API PowerType stringToPowerType(const std::string& src);
+
 }  // namespace base
 }  // namespace nndeploy
 

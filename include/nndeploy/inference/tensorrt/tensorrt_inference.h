@@ -56,7 +56,7 @@ class TensorRtInference : public Inference {
   base::UniquePtr<nvinfer1::IBuilder> builder_;
   base::UniquePtr<nvinfer1::INetworkDefinition> network_;
   base::UniquePtr<nvonnxparser::IParser> parser_;
-
+  base::UniquePtr<nvinfer1::IRuntime> runtime_;
   std::shared_ptr<nvinfer1::ICudaEngine> engine_;
   std::shared_ptr<nvinfer1::IExecutionContext> context_;
 

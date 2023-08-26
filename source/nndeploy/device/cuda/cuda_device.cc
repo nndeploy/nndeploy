@@ -28,7 +28,7 @@ CudaArchitecture::~CudaArchitecture() {
 base::Status CudaArchitecture::checkDevice(int device_id, void* command_queue,
                                            std::string library_path) {
   int device_count = cudaGetNumDevices();
-  if (device_id > 0 && device_id < device_count) {
+  if (device_id > -1 && device_id < device_count) {
     return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("device id is invalid, device id: %d, device count: %d",
@@ -225,6 +225,7 @@ base::Status CudaDevice::upload(Buffer* src, Buffer* dst) {
 base::Status CudaDevice::synchronize() {
   cudaError_t status = cudaStreamSynchronize(stream_);
   if (cudaSuccess != status) {
+    NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_LOGE("cuda stream synchronize failed\n");
     return base::kStatusCodeErrorDeviceCuda;
   }

@@ -99,7 +99,7 @@ float computeIOU(const float *boxes, int i, int j);
  * @param iou_threshold
  * @return base::Status
  */
-base::Status computeNMS(const DetectResults &src, std::vector<int> &keep_idxs,
+base::Status computeNMS(const DetectResult &src, std::vector<int> &keep_idxs,
                         const float iou_threshold);
 
 }  // namespace model

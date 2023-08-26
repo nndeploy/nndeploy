@@ -65,6 +65,7 @@ base::DataFormat TnnConvert::convertToDataFormat(const tnn::DataFormat &src) {
   switch (src) {
     case tnn::DataFormat::DATA_FORMAT_AUTO:
       dst = base::kDataFormatAuto;
+      break;
     case tnn::DataFormat::DATA_FORMAT_NHWC:
       dst = base::kDataFormatNHWC;
       break;
@@ -90,6 +91,7 @@ tnn::DataFormat TnnConvert::convertFromDataFormat(const base::DataFormat &src) {
   switch (src) {
     case base::kDataFormatAuto:
       dst = tnn::DataFormat::DATA_FORMAT_AUTO;
+      break;
     case base::kDataFormatNCHW:
       dst = tnn::DataFormat::DATA_FORMAT_NHWC;
       break;
@@ -263,16 +265,24 @@ base::Status TnnConvert::convertFromInferenceParam(
     inference::TnnInferenceParam *src, tnn::ModelConfig &model_config_,
     tnn::NetworkConfig &network_config_) {
   model_config_.model_type = convertFromModelType(src->model_type_);
-  model_config_.params = src->model_value_;
+  if (src->is_path_) {
+    model_config_.params.resize(src->model_value_.size());
+    model_config_.params[0] = base::openFile(src->model_value_[0]);
+    model_config_.params[1] = base::openFile(src->model_value_[1]);
+  } else {
+    model_config_.params = src->model_value_;
+  }
 
   network_config_.device_type = convertFromDeviceType(src->device_type_);
   network_config_.device_id = src->device_type_.device_id_;
   network_config_.data_format = convertFromDataFormat(src->data_format_);
   network_config_.precision = convertFromPrecisionType(src->precision_type_);
-  network_config_.cache_path = src->cache_path_[0];
+  if (!src->cache_path_.empty()) {
+    network_config_.cache_path = src->cache_path_[0];
+  }
   network_config_.share_memory_mode =
       convertFromShareMemoryMode(src->share_memory_mode_);
-  network_config_.library_path = src->library_path;
+  network_config_.library_path = src->library_path_;
 
   // enable_tune_kernel暂定大于-1为存在gpu使用情况
   if (src->gpu_tune_kernel_ > -1) {

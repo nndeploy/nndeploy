@@ -175,6 +175,28 @@ class NNDEPLOY_CC_API Pipeline : public Task {
   std::vector<std::vector<Task*>> topo_sort_task_;
 };
 
+using createPipelineFunc = std::function<Pipeline*(
+    const std::string& name, base::InferenceType inference_type,
+    base::DeviceType device_type, Packet* input, Packet* output,
+    base::ModelType model_type, bool is_path,
+    std::vector<std::string>& model_value)>;
+
+std::map<std::string, createPipelineFunc>& getGlobalPipelineCreatorMap();
+
+class TypePipelineRegister {
+ public:
+  explicit TypePipelineRegister(const std::string& name,
+                                createPipelineFunc func) {
+    getGlobalPipelineCreatorMap()[name] = func;
+  }
+};
+
+extern NNDEPLOY_CC_API Pipeline* createPipeline(
+    const std::string& name, base::InferenceType inference_type,
+    base::DeviceType device_type, Packet* input, Packet* output,
+    base::ModelType model_type, bool is_path,
+    std::vector<std::string>& model_value);
+
 }  // namespace model
 }  // namespace nndeploy
 

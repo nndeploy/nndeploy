@@ -2,22 +2,20 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY demo_nndeploy_segment_anything)
+set(BINARY demo_nndeploy_detect)
 set(DIRECTORY demo)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
 set(THIRD_PARTY_LIBRARY)
 
+# include
+include_directories(${ROOT_PATH}/demo)
+
 # SOURCE
 file(GLOB_RECURSE SOURCE
-  "${ROOT_PATH}/demo/detect/segment_anything/*.h"
-  "${ROOT_PATH}/demo/detect/segment_anything/*.cc"
-)
-file(GLOB DETECT_SOURCE
   "${ROOT_PATH}/demo/detect/*.h"
   "${ROOT_PATH}/demo/detect/*.cc"
 )
-set(SOURCE ${SOURCE} ${DETECT_SOURCE})
 file(GLOB DEMO_SOURCE
   "${ROOT_PATH}/demo/*.h"
   "${ROOT_PATH}/demo/*.cc"
@@ -42,7 +40,11 @@ list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY})
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY_DEMO})
 target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY}) 
 # install
-install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PATH})
+if(SYSTEM.Windows)
+  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_BIN_PATH})
+else() 
+  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
+endif()
 
 # unset
 unset(SOURCE)
