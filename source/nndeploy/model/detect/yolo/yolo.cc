@@ -21,8 +21,8 @@
 namespace nndeploy {
 namespace model {
 
-class TypePipelineRegister g_register_yolo_pipeline(YOLO_NAME,
-                                                    createYoloPipeline);
+class TypePipelineRegister g_register_yolov6_pipeline(NNDEPLOY_YOLOV6,
+                                                      createYoloV6Pipeline);
 
 template <typename T>
 int softmax(const T* src, T* dst, int length) {
@@ -98,12 +98,12 @@ base::Status YoloPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-model::Pipeline* createYoloPipeline(const std::string& name,
-                                    base::InferenceType inference_type,
-                                    base::DeviceType device_type, Packet* input,
-                                    Packet* output, base::ModelType model_type,
-                                    bool is_path,
-                                    std::vector<std::string>& model_value) {
+model::Pipeline* createYoloV6Pipeline(const std::string& name,
+                                      base::InferenceType inference_type,
+                                      base::DeviceType device_type,
+                                      Packet* input, Packet* output,
+                                      base::ModelType model_type, bool is_path,
+                                      std::vector<std::string>& model_value) {
   model::Pipeline* pipeline = new model::Pipeline(name, input, output);
   model::Packet* infer_input = pipeline->createPacket("infer_input");
   model::Packet* infer_output = pipeline->createPacket("infer_output");

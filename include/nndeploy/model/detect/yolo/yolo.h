@@ -49,11 +49,11 @@ class NNDEPLOY_CC_API YoloPostProcess : public model::Task {
   virtual base::Status run();
 };
 
-extern NNDEPLOY_CC_API model::Pipeline* createYoloV5Pipeline(
-    const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, Packet* input, Packet* output,
-    base::ModelType model_type, bool is_path,
-    std::vector<std::string>& model_value);
+// extern NNDEPLOY_CC_API model::Pipeline* createYoloV5Pipeline(
+//     const std::string& name, base::InferenceType inference_type,
+//     base::DeviceType device_type, Packet* input, Packet* output,
+//     base::ModelType model_type, bool is_path,
+//     std::vector<std::string>& model_value);
 
 extern NNDEPLOY_CC_API model::Pipeline* createYoloV6Pipeline(
     const std::string& name, base::InferenceType inference_type,
@@ -61,11 +61,11 @@ extern NNDEPLOY_CC_API model::Pipeline* createYoloV6Pipeline(
     base::ModelType model_type, bool is_path,
     std::vector<std::string>& model_value);
 
-extern NNDEPLOY_CC_API model::Pipeline* createYoloV8Pipeline(
-    const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, Packet* input, Packet* output,
-    base::ModelType model_type, bool is_path,
-    std::vector<std::string>& model_value);
+// extern NNDEPLOY_CC_API model::Pipeline* createYoloV8Pipeline(
+//     const std::string& name, base::InferenceType inference_type,
+//     base::DeviceType device_type, Packet* input, Packet* output,
+//     base::ModelType model_type, bool is_path,
+//     std::vector<std::string>& model_value);
 
 }  // namespace model
 }  // namespace nndeploy

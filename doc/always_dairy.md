@@ -56,3 +56,8 @@
 + http://www.taodudu.cc/news/show-864133.html?action=onClick
 + cmake -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_STL="c++_static" -DANDROID_NATIVE_API_LEVEL="android-14" -DANDROID_TOOLCHAIN=clang -DBUILD_FOR_ANDROID_COMMAND=true ..
 + tensor_rt开address_santizer会crash
+
+## 2023.08.26
++ rt-detr
++ segment-anything
++ 修改readme
