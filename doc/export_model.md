@@ -57,7 +57,6 @@
   # 保存
   torch.save(model, PATH)
   # 加载
-  # 模型类必须在此之前被定义
   model = torch.load(PATH)
   model.eval()
   ```

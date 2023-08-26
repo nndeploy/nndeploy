@@ -132,6 +132,7 @@ bool OpenCvConvert::convertToTensor(const cv::Mat& src, device::Tensor* dst,
     }
     ret = true;
   } else {
+    NNDEPLOY_LOGE("data format not support!\n");
     ret = false;
   }
 

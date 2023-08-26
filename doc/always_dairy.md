@@ -1,5 +1,37 @@
 # 开发日记
 
+## linux命令行
++ chown -R always /home/always/github/public/nndeploy/resourcemodel
++ chown -R always /home/always/huggingface/nndeploy/model_zoo/detect/yolo
++ chgrp -R nndeploy /home/always/github/public/nndeploy/resourcemodel
++ export LD_LIBRARY_PATH=/home/always/github/public/nndeploy/build/install:$LD_LIBRARY_PATH
++ export PATH=/usr/local/cuda/bin:$PATH
++ chgrp -R nndeploy /data/local/tmp
++ chown -R always /data/local/tmp
+
+## cmake 
++ cmake .. -DCMAKE_BUILD_TYPE=Debug
++ cmake .. -DCMAKE_INSTALL_PREFIX=C:\nndeploy\build\install
++ 
++ cmake -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_STL="c++_static" -DANDROID_NATIVE_API_LEVEL="android-14" -DANDROID_TOOLCHAIN=clang -DBUILD_FOR_ANDROID_COMMAND=true ..
++ cmake -DCMAKE_TOOLCHAIN_FILE=${NDK}/build/cmake/android.toolchain.cmake -DANDROID_ABI="armeabi-v7a" -DANDROID_STL="c++_static" -DANDROID_NATIVE_API_LEVEL="android-14" -DANDROID_TOOLCHAIN=clang -DBUILD_FOR_ANDROID_COMMAND=true ..
++ export LD_LIBRARY_PATH=/data/local/tmp/lib:$LD_LIBRARY_PATH
++ adb push lib/ /data/local/tmp
++ adb push yolov6m.onnx.mnn /data/local/tmp/model_zoo
++ adb push yolov6m.tnn* /data/local/tmp/model_zoo
++ adb push temp/ /data/local/tmp/
++ adb push test_data/ /data/local/tmp/
++ adb pull /data/local/tmp/temp /home/always/huggingface/nndeploy/temp
+
+## 
++ 完成git submodules 
+  + git submodule add git@github.com:gflags/gflags.git
+  + git submodule add git@github.com:Alwaysssssss/nndeploy_resource.git
+  + git submodule update --init --recursive
+  + git submodule update --remote third_party/gflags
+  + git submodule update --init --recursive
+  + git submodule sync
+
 ## 2023.08.08
 + 完成根目录的搭建
 
@@ -61,3 +93,6 @@
 + rt-detr
 + segment-anything
 + 修改readme
++ unset all_proxy && unset ALL_PROXY
++ chown -R always /home/always/github/yolov5
++ chown always yolov8n.onnx 

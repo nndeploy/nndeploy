@@ -24,8 +24,6 @@ cv::Mat drawBox(cv::Mat &cv_mat, model::DetectResult &result) {
     box[2] = bbox.bbox_[2];  // 640.0;
     box[1] = bbox.bbox_[1];  // 640.0;
     box[3] = bbox.bbox_[3];  // 640.0;
-    NNDEPLOY_LOGE("box[0]:%f, box[2]:%f, box[1]:%f, box[3]:%f\n", box[0],
-                  box[2], box[1], box[3]);
     box[0] *= w_ratio;
     box[2] *= w_ratio;
     box[1] *= h_ratio;
@@ -33,6 +31,8 @@ cv::Mat drawBox(cv::Mat &cv_mat, model::DetectResult &result) {
     int width = box[2] - box[0];
     int height = box[3] - box[1];
     int id = bbox.label_id_;
+    NNDEPLOY_LOGE("box[0]:%f, box[1]:%f, width :%d, height :%d\n", box[0],
+                  box[1], width, height);
     cv::Point p = cv::Point(box[0], box[1]);
     cv::Rect rect = cv::Rect(box[0], box[1], width, height);
     cv::rectangle(cv_mat, rect, randColor[id]);
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     demo::showUsage();
     return -1;
   }
-  std::string name = demo::getName();
+  std::string name = demo::getName();  // pipeline name
   base::InferenceType inference_type = demo::getInferenceType();
   base::DeviceType device_type = demo::getDeviceType();
   base::ModelType model_type = demo::getModelType();
