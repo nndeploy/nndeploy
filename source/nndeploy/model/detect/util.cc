@@ -88,7 +88,8 @@ float computeIOU(const float* boxes, int i, int j) {
   return intersection_area / (area_i + area_j - intersection_area);
 }
 
-base::Status computeNMS(const DetectResults& src, std::vector<int>& keep_idxs,
+base::Status computeNMS(const DetectResults& src,
+                        std::vector<int>& keep_idxs,  // 自己建，输入
                         const float iou_threshold) {
   for (auto i = 0; i < src.result_.size(); ++i) {
     keep_idxs[i] = i;
@@ -109,6 +110,40 @@ base::Status computeNMS(const DetectResults& src, std::vector<int>& keep_idxs,
         keep_idxs[j] = -1;
       }
     }
+  }
+  return base::kStatusCodeOk;
+}
+base::Status computeNMS(const DetectResults& src, const float iou_threshold,
+                        DetectResults& dst) {
+  std::vector<int> keep_idxs;
+  for (auto i = 0; i < src.result_.size(); ++i) {
+    keep_idxs[i] = i;
+  }
+  for (auto i = 0; i < keep_idxs.size(); ++i) {
+    auto n = keep_idxs[i];
+    if (n < 0) {
+      continue;
+    }
+    for (auto j = i + 1; j < keep_idxs.size(); ++j) {
+      auto m = keep_idxs[j];
+      if (m < 0) {
+        continue;
+      }
+      float iou = computeIOU(src.result_[n].bbox_, src.result_[m].bbox_);
+
+      if (iou > iou_threshold) {
+        keep_idxs[j] = -1;
+      }
+    }
+  }
+
+  for (auto i = 0; i < src.result_.size(); ++i) {
+    auto j = 0;
+    if (keep_idxs[i] == -1) {
+      continue;
+    }
+    dst.result_[j] = src.result_[i];
+    j++;
   }
   return base::kStatusCodeOk;
 }
