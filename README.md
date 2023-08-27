@@ -1,10 +1,11 @@
 ## 介绍
-nndeploy是一款支持多平台、简单易用、高性能的机器学习部署框架，一套实现可在多端(云、边、端)完成模型的高性能部署。目前已完成YOLO系列、DETR、Segment Anything等模型的部署，后续会继续部署开源模型（如果你有需要部署的开源模型或者其他部署相关的问题，欢迎联系我呀）
+nndeploy是一款最新上线的支持多平台、简单易用、高性能的机器学习部署框架，一套实现可在多端(云、边、端)完成模型的高性能部署。作为一个多平台模型部署工具，我们的框架最大的宗旨就是简单贴心(^‹^)，如果您需要部署自己的模型，目前nndeploy可帮助您在一个文件（大概只要200行代码）之内完成多端部署，还提供了丰富的前后处理和推理模板可供选择帮助您简化流程。
+同时在热门模型当中，目前nndeploy已完成YOLO系列等多个开源模型的部署，可供直接使用，目前我们还在积极接入其它主流开源模型（如果您或团队有需要部署的开源模型或者其他部署相关的问题，随时欢迎来和我们探讨(^-^)）
 
 ## 架构简介
 ![架构简介](doc/image/架构.jpg)
 
-``注：未着色的为尚未实现``
+``注：白色部分为相关功能正在开发验证中，即将上线``
 
 ## 特性简介
 ### 支持多平台
@@ -16,7 +17,8 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
 | [ONNXRuntime](https://github.com/microsoft/onnxruntime) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 |          [MNN](https://github.com/alibaba/MNN)          |  yes  |   yes   |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 |          [TNN](https://github.com/Tencent/TNN)          |  yes  |   yes   |   yes   |  no   |  no   | [02200059Z](https://github.com/02200059Z) |       |
-```注: yes：完成验证，no：尚未验证```
+
+``注: yes：完成在该平台的验证，no：目前正在验证中``
 
 ## 直接可用的算法
 |                      算法                       |             Inference             |                                       开发人员                                       | 备注  |
@@ -214,7 +216,7 @@ nndeploy是一款支持多平台、简单易用、高性能的机器学习部署
     - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
 
 ## 补充说明
-模型以及第三方库测试数据下载链接如下，`但我们强烈建议您自己去管理自己的模型仓库、第三方库、测试数据`。
+部分已验证模型、第三方库、测试数据下载链接如下，`但我们强烈建议您自己去管理自己的模型仓库、第三方库、测试数据`。
 + [模型仓库](https://huggingface.co/alwaysssss/nndeploy/tree/main/model_zoo)
 + [第三方库](https://huggingface.co/alwaysssss/nndeploy/tree/main/third_party)
 + [测试数据](https://huggingface.co/alwaysssss/nndeploy/tree/main/test_data)
