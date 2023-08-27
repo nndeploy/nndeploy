@@ -48,17 +48,27 @@ int main(int argc, char *argv[]) {
     demo::showUsage();
     return -1;
   }
-  std::string name = demo::getName();  // pipeline name
+  // 检测模型的有向无环图pipeline名称，例如:
+  // NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8
+  std::string name = demo::getName();
+  // 推理后端类型，例如:
+  // kInferenceTypeOpenVino/kInferenceTypeTensorRt/kInferenceTypeOnnxRuntime/...
   base::InferenceType inference_type = demo::getInferenceType();
+  // 推理设备类型，例如:
+  // kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
   base::DeviceType device_type = demo::getDeviceType();
+  // 模型类型，例如:
+  // kModelTypeOnnx/kModelTypeMnn/...
   base::ModelType model_type = demo::getModelType();
+  // 模型是否是路径
   bool is_path = demo::isPath();
+  // 模型路径或者模型字符串
   std::vector<std::string> model_value = demo::getModelValue();
-  std::string input_path = demo::getInputPath();
-  std::string ouput_path = demo::getOutputPath();
-
+  // 有向无环图pipeline的输入边packert
   model::Packet input("detect_in");
+  // 有向无环图pipeline的输出边packert
   model::Packet output("detect_out");
+  // 创建检测模型有向无环图pipeline
   model::Pipeline *pipeline =
       model::createPipeline(name, inference_type, device_type, &input, &output,
                             model_type, is_path, model_value);
@@ -67,31 +77,44 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  NNDEPLOY_TIME_POINT_START("pipeline->init()");
-  pipeline->init();
-  NNDEPLOY_TIME_POINT_END("pipeline->init()");
+  // 初始化有向无环图pipeline
+  base::Status status = pipeline->init();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("pipeline init failed");
+    return -1;
+  }
 
+  // 有向无环图pipeline的输入图片路径
+  std::string input_path = demo::getInputPath();
+  // opencv读图
   cv::Mat input_mat = cv::imread(input_path);
+  // 将图片写入有向无环图pipeline输入边
   input.set(input_mat);
+  // 定义有向无环图pipeline的输出结果
   model::DetectResult result;
+  // 将输出结果写入有向无环图pipeline输出边
   output.set(result);
 
-  NNDEPLOY_TIME_POINT_START("pipeline->run()");
-  for (int i = 0; i < 10; ++i) {
-    pipeline->run();
+  // 有向无环图Pipelinez运行
+  status = pipeline->run();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("pipeline run failed");
+    return -1;
   }
-  NNDEPLOY_TIME_POINT_END("pipeline->run()");
 
   drawBox(input_mat, result);
+  std::string ouput_path = demo::getOutputPath();
   cv::imwrite(ouput_path, input_mat);
 
-  pipeline->deinit();
+  // 有向无环图pipelinez反初始化
+  status = pipeline->deinit();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("pipeline deinit failed");
+    return -1;
+  }
 
+  // 有向无环图pipelinez销毁
   delete pipeline;
-
-  NNDEPLOY_TIME_PROFILER_PRINT();
-
-  NNDEPLOY_TIME_PROFILER_RESET();
 
   printf("hello world!\n");
   return 0;
