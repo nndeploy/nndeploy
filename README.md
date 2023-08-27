@@ -19,7 +19,7 @@ nndeploy是一款最新上线的支持多平台、简单易用、高性能的机
 | [ONNXRuntime](https://github.com/microsoft/onnxruntime) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 |          [MNN](https://github.com/alibaba/MNN)          |  yes  |   yes   |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 |          [TNN](https://github.com/Tencent/TNN)          |  yes  |   yes   |   yes   |  no   |  no   | [02200059Z](https://github.com/02200059Z) |       |
-```注: yes：完成验证，no：尚未验证```
+```注: yes：完成验证，no：目前正在验证中```
 
 ## 直接可用的算法
 |                                   算法                                   |               Inference               |                 开发人员                  | 备注  |
