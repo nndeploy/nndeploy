@@ -96,3 +96,4 @@
 + unset all_proxy && unset ALL_PROXY
 + chown -R always /home/always/github/yolov5
 + chown always yolov8n.onnx 
++ tar -cvf ubuntu22.04_x64.tar ubuntu22.04_x64
