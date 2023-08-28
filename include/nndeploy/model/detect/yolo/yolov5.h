@@ -21,18 +21,17 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/model/detect/result.h"
-#include "nndeploy/pipeline/packet.h"
-#include "nndeploy/pipeline/pipeline.h"
-#include "nndeploy/pipeline/task.h"
+#include "nndeploy/model/packet.h"
+#include "nndeploy/model/pipeline.h"
+#include "nndeploy/model/task.h"
 
 namespace nndeploy {
 namespace model {
-namespace opencv {
 
 class NNDEPLOY_CC_API Yolov5PostParam : public base::Param {  // param要改
  public:
-  float conf_thres = 0.4;
-  float iou_thres = 0.5;
+  float conf_thres_ = 0.4;
+  float iou_thres_ = 0.5;
   // yolov5s model configurations
   std::vector<float> strides_ = {32.f, 16.f, 8.f};
   std::vector<float> anchor_grids_ = {116.f, 90.f, 156.f, 198.f, 373.f, 326.f,
@@ -44,27 +43,30 @@ class NNDEPLOY_CC_API Yolov5PostParam : public base::Param {  // param要改
   int grid_per_input_ = 6;
 };
 
-class NNDEPLOY_CC_API Yolov5PostProcess : public pipeline::Task {
+class NNDEPLOY_CC_API Yolov5PostProcess : public Task {
  public:
-  Yolov5PostProcess(const std::string& name, pipeline::Packet* input,
-                    pipeline::Packet* output)
+  Yolov5PostProcess(const std::string& name, Packet* input, Packet* output)
       : Task(name, input, output) {
     param_ = std::make_shared<Yolov5PostParam>();
   }
   virtual ~Yolov5PostProcess() {}
 
   virtual base::Status run();
+  void PostProcessTensors(
+      std::vector<std::shared_ptr<device::Tensor>> outputs,
+      std::vector<std::shared_ptr<device::Tensor>>& post_tensor);
+  void GenerateDetectResult(
+      std::vector<std::shared_ptr<device::Tensor>> outputs, int image_width,
+      int image_height);
 
  private:
-  DetectResults results_;
+  DetectResult results_;
 };
 
-extern NNDEPLOY_CC_API pipeline::Pipeline* creatYolov5Pipeline(
-    const std::string& name, base::InferenceType type, pipeline::Packet* input,
-    pipeline::Packet* output, bool is_path,
-    std::vector<std::string>& model_value);
+extern NNDEPLOY_CC_API Pipeline* creatYolov5Pipeline(
+    const std::string& name, base::InferenceType type, Packet* input,
+    Packet* output, bool is_path, std::vector<std::string>& model_value);
 
-}  // namespace opencv
 }  // namespace model
 }  // namespace nndeploy
 

@@ -114,6 +114,14 @@ class NNDEPLOY_CC_API Packet {
     }
     return tensors_[index];
   }
+  device::Tensor *getTensor(std::string name) {
+    for (auto tensor : tensors_) {
+      if (name == tensor->getName()) {
+        return tensor;
+      }
+    }
+    return nullptr;
+  }
   base::Param *getParam(int index = 0) {
     if (index >= params_.size()) {
       return nullptr;

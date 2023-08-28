@@ -2,15 +2,20 @@
 <img align="right" src="doc/image/Always.jpg" width="200px">
 
 ## 介绍
-nndeploy是一款最新上线的支持多平台、简单易用、高性能的机器学习部署框架，一套实现可在多端(云、边、端)完成模型的高性能部署。作为一个多平台模型部署工具，我们的框架最大的宗旨就是简单贴心(^‹^)，如果您需要部署自己的模型，目前nndeploy可帮助您在一个文件（大概只要200行代码）之内完成多端部署，还提供了丰富的前后处理和推理模板可供选择帮助您简化流程。
-同时在主流模型当中，目前nndeploy已完成YOLO系列等多个开源模型的部署，可供直接使用，目前我们还在积极接入其它主流开源模型（如果您或团队有需要部署的开源模型或者其他部署相关的问题，随时欢迎来和我们探讨(^-^)）
+nndeploy是一款最新上线的支持多平台、简单易用、高性能的机器学习部署框架，一套实现可在多端(云、边、端)完成模型的高性能部署。作为一个多平台模型部署工具，我们的框架最大的宗旨就是简单贴心(^‹^)和高度集成，目前nndeploy已接入TNN，MNN，onnxruntime，openvino，TensorRT等多个业界最好用的推理框架，您在我们的框架下可使用一套代码轻松切换不同具有完全的配置的能力的推理后端进行推理，不用担心一般部署框架对推理框架的阉割而带来的性能损失。
+如果您需要部署自己的模型，目前nndeploy可帮助您在一个文件（大概只要200行代码）之内完成多端部署，还提供了丰富的前后处理和推理模板可供选择帮助您简化流程。如果您只需使用已有主流模型进行自己的推理，目前nndeploy已完成YOLO系列等多个开源模型的部署，可供直接使用，目前我们还在积极接入其它主流开源模型。
+如果您或团队有需要部署的开源模型或者其他部署相关的问题，随时欢迎来和我们探讨(^-^)
+
+（这里是不是也要放个效果示例？）
 
 ## 架构简介
 ![架构简介](doc/image/nndeploy.png)
 
 ``注：白色部分为相关功能正在开发验证中，即将上线``
 
-## 特性简介
+## 特性简介（这个是不是也可以叫能力展示或优势展示？技术方案？）
+nndeploy具有如下优势特性：
+
 ### 支持多平台
 支持的平台和推理框架如下表所示
 |                      OS/Inference                       | Linux | Windows | Android | MacOS |  iOS  |                 开发人员                  | 备注  |
@@ -38,13 +43,15 @@ nndeploy是一款最新上线的支持多平台、简单易用、高性能的机
 - 通用的推理模块
 
 ### 高性能
-- 具有各推理后端完全的配置的能力，不会因为对推理框架的抽象而带来性能损失
+- 具有TNN，MNN，onnxruntime，openvino，TensorRT等多个业界最好用推理后端完全的配置的能力，不会因为对推理框架的抽象而带来性能损失
 - 可直接操作理框架内部分配的输入输出，实现零拷贝（TODO）
 - 线程池（TODO）
 - 高性能的前后处理（TODO）
 
+（这里的TODO是怎么回事，没完成的话可以写目前正在实现一个...的线程池，完成后将具有...的功能）
+
 ## 快速开始
-[这里以YOLO检测模型为例](demo/detect/yolo/demo.cc)
+[这里以YOLO检测模型为例](路径：demo/detect/yolo/demo.cc)
 + 创建YOLO推理Pipeline
   ```c++
   std::string name = "yolo";  // 有向无环图Pipeline名称
@@ -130,12 +137,12 @@ nndeploy是一款最新上线的支持多平台、简单易用、高性能的机
 |          [TNN](https://github.com/Tencent/TNN)          |  v0.3.0  |          [链接](https://github.com/Tencent/TNN/blob/master/doc/cn/user/compile.md)          |      [链接](https://github.com/Tencent/TNN/releases/tag/v0.3.0)       |
 |                                                         |
 - 补充说明    
-  - 我使用第三方库的上述版本，通常使用其他版本的也没有问题
+  - 我们使用第三方库的上述版本，通常使用其他版本的也没有问题
   - TensorRT
     - [Windows链接](https://zhuanlan.zhihu.com/p/476679322)
     - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
 
-## 参考
+## 参考目录
 - [TNN](https://github.com/Tencent/TNN)
 - [FastDeploy](https://github.com/PaddlePaddle/FastDeploy)
 - [opencv](https://github.com/opencv/opencv)

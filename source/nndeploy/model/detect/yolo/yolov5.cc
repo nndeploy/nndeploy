@@ -1,4 +1,4 @@
-#include "nndeploy/model/detect/yolov5/yolov5.h"
+#include "nndeploy/model/detect/yolo/yolov5.h"
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -6,6 +6,7 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/opencv_include.h"
+#include "nndeploy/base/shape.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
@@ -13,9 +14,9 @@
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/pipeline/packet.h"
-#include "nndeploy/pipeline/preprocess/opencv/cvtcolor_resize.h"
-#include "nndeploy/pipeline/task.h"
+#include "nndeploy/model/packet.h"
+#include "nndeploy/model/preprocess/cvtcolor_resize.h"
+#include "nndeploy/model/task.h"
 
 /*
 TODO:
@@ -24,32 +25,18 @@ TODO:
 
 namespace nndeploy {
 namespace model {
-namespace opencv {
 
-// static TypeTaskRegister g_internal_opencv_detr_task_register("opencv_detr",
+//  static TypeTaskRegister g_internal_opencv_detr_task_register("opencv_detr",
 //                                                              creatDetrTask);//需要改
 
-template <typename T>
-int softmax(const T* src, T* dst, int length) {
-  T denominator{0};
-  for (int i = 0; i < length; ++i) {
-    dst[i] = std::exp(src[i]);
-    denominator += dst[i];
-  }
-  for (int i = 0; i < length; ++i) {
-    dst[i] /= denominator;
-  }
-  return 0;
-}
-
 base::Status Yolov5PostProcess::run() {
-  results_.result_.clear();  // 先清空现有的mat，万一里面有东西
+  results_.bboxs_.clear();  // 先清空现有的mat，万一里面有东西
 
-  Yolov5PostParam* temp_param = (Yolov5PostParam*)param_.get();
+  Yolov5PostParam* temp_param = static_cast<Yolov5PostParam*>(param_.get());
   float score_threshold = temp_param->score_threshold_;
   Packet* input = inputs_[0];
-  device::Tensor input_tensor = input->getTensor();
-  auto input_shape = input_tensor.getShape();
+  device::Tensor* input_tensor = input->getTensor();
+  auto input_shape = input_tensor->getShape();
   auto output_tensor_0 = outputs_[0]->getTensor("output");
   auto output_tensor_1 = outputs_[0]->getTensor("463");
   auto output_tensor_2 = outputs_[0]->getTensor("482");
@@ -61,33 +48,29 @@ base::Status Yolov5PostProcess::run() {
 }
 
 // createTask怎么没了？
-pipeline::Pipeline* creatYoloPipeline(const std::string& name,
-                                      base::InferenceType type,
-                                      pipeline::Packet* input,
-                                      pipeline::Packet* output, bool is_path,
-                                      std::vector<std::string>& model_value) {
-  pipeline::Pipeline* pipeline =
-      new pipeline::Pipeline(name, input, output);  // 创建pipeline
+Pipeline* creatYoloPipeline(const std::string& name, base::InferenceType type,
+                            Packet* input, Packet* output, bool is_path,
+                            std::vector<std::string>& model_value) {
+  Pipeline* pipeline = new Pipeline(name, input, output);  // 创建pipeline
 
-  pipeline::Packet* infer_input = pipeline->createPacket(
+  Packet* infer_input = pipeline->createPacket(
       "infer_input");  // 用pipeline创建空的packet：infer_input和infer_output:这时候还都是空的
-  pipeline::Packet* infer_output = pipeline->createPacket("infer_output");
+  Packet* infer_output = pipeline->createPacket("infer_output");
 
-  pipeline::Task* pre = pipeline->createTask<
-      pipeline::opencv::CvtColrResize>(  // 前处理：input->infer_input
-      "pre", input, infer_input);
+  Task* pre =
+      pipeline->createTask<CvtColrResize>(  // 前处理：input->infer_input
+          "pre", input, infer_input);
 
-  pipeline::Task* infer =
-      pipeline
-          ->createInfer<pipeline::Infer>(  // infer：infer_input->infer_output
-              "infer", type, infer_input, infer_output);
+  Task* infer =
+      pipeline->createInfer<Infer>(  // infer：infer_input->infer_output
+          "infer", type, infer_input, infer_output);
 
-  pipeline::Task* post = pipeline->createTask<DetrPostProcess>(
+  Task* post = pipeline->createTask<Yolov5PostProcess>(
       "post", infer_output, output);  // 后处理：infer_output->output
 
   // 取出param，改变mean和std以及一大堆参数
-  pipeline::CvtclorResizeParam* pre_param =
-      dynamic_cast<pipeline::CvtclorResizeParam*>(pre->getParam());
+  CvtclorResizeParam* pre_param =
+      dynamic_cast<CvtclorResizeParam*>(pre->getParam());
   // 暂时找不到，没改 -去哪里找？这是不是个问题？
   pre_param->src_pixel_type_ = base::kPixelTypeRGB;  // nchw一般对应rgb？
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
@@ -137,81 +120,82 @@ void Yolov5PostProcess::PostProcessTensors(
 
     post_tensor.emplace_back(tensor);
   }
+}
 
-  void Yolov5PostProcess::GenerateDetectResult(
-      std::vector<std::shared_ptr<device::Tensor>> outputs, int image_width,
-      int image_height) {
-    int blob_index = 0;
-    // 这里用post_process，得到mat
-    std::vector<std::shared_ptr<device::Tensor>> post_Tensors;
-    PostProcessTensors(outputs, post_Tensors);
-    auto output_Tensors = post_Tensors;
+void Yolov5PostProcess::GenerateDetectResult(
+    std::vector<std::shared_ptr<device::Tensor>> outputs, int image_width,
+    int image_height) {
+  int blob_index = 0;
+  // 这里用post_process，得到mat
+  std::vector<std::shared_ptr<device::Tensor>> post_Tensors;
+  PostProcessTensors(outputs, post_Tensors);
+  auto output_Tensors = post_Tensors;
+  Yolov5PostParam* temp_param = static_cast<Yolov5PostParam*>(param_.get());
+  for (auto& output : output_Tensors) {
+    auto dim = output->getShape();
 
-    for (auto& output : output_Tensors) {
-      auto dim = output->getShape();
-
-      if (dim[3] != num_anchor_ * detect_dim_) {
-        LOGE("Invalid detect output, the size of last dimension is: %d\n",
-             dim[3]);
-        return;
-      }
-      float* data = static_cast<float*>(output->getPtr());
-
-      int num_potential_detecs =
-          dim[1] * dim[2] * num_anchor_;  // 还是49个框的那一套
-      for (int i = 0; i < num_potential_detecs; ++i) {
-        // 分别取出每个框的x,y,w,h
-        float x = data[i * detect_dim_ + 0];
-        float y = data[i * detect_dim_ + 1];
-        float width = data[i * detect_dim_ + 2];
-        float height = data[i * detect_dim_ + 3];
-
-        float objectness = data[i * detect_dim_ + 4];  // 类别概率
-        if (objectness < conf_thres)                   // 筛选框的阈值
-          continue;
-        // center point coord
-        x = (x * 2 - 0.5 + ((i / num_anchor_) % dim[2])) * strides_[blob_index];
-        y = (y * 2 - 0.5 + ((i / num_anchor_) / dim[2]) % dim[1]) *
-            strides_[blob_index];
-        width =
-            pow((width * 2), 2) * anchor_grids_[blob_index * grid_per_input_ +
-                                                (i % num_anchor_) * 2 + 0];
-        height =
-            pow((height * 2), 2) * anchor_grids_[blob_index * grid_per_input_ +
-                                                 (i % num_anchor_) * 2 + 1];
-        // compute coords
-        float x1 = x - width / 2;
-        float y1 = y - height / 2;
-        float x2 = x + width / 2;
-        float y2 = y + height / 2;
-        // compute confidence
-        auto conf_start = data + i * detect_dim_ + 5;
-        auto conf_end = data + (i + 1) * detect_dim_;
-        auto max_conf_iter = std::max_element(conf_start, conf_end);
-        int conf_idx =
-            static_cast<int>(std::distance(conf_start, max_conf_iter));
-        float score = (*max_conf_iter) * objectness;
-
-        // obj_info.image_width = image_width;
-        // obj_info.image_height = image_height;
-        // index不知道是什么，没填上
-        results_.result_.bbox = {x1, y1, x2, y2};
-        results_.result_.score_ = score;
-        results_.result_.label_id = conf_idx;
-        // results_.result_.push_back(obj_info);
-      }
-      blob_index += 1;
+    if (dim[3] != temp_param->num_anchor_ * temp_param->detect_dim_) {
+      NNDEPLOY_LOGE(
+          "Invalid detect output, the size of last dimension is: %d\n", dim[3]);
+      return;
     }
+    float* data = static_cast<float*>(output->getPtr());
 
-    DetectResults temp_results_;
-    std::vector<int> keep_idxs;
+    int num_potential_detecs =
+        dim[1] * dim[2] * temp_param->num_anchor_;  // 还是49个框的那一套
+    for (int i = 0; i < num_potential_detecs; ++i) {
+      // 分别取出每个框的x,y,w,h
+      float x = data[i * temp_param->detect_dim_ + 0];
+      float y = data[i * temp_param->detect_dim_ + 1];
+      float width = data[i * temp_param->detect_dim_ + 2];
+      float height = data[i * temp_param->detect_dim_ + 3];
 
-    computeNMS(results_.result_,  // 这些命名空间都不对，要改！
-               iou_thres, temp_results_);
-    results_.result_.emplace_back(
-        temp_results_);  // 不知道emplace_back这样写对不对
+      float objectness = data[i * temp_param->detect_dim_ + 4];  // 类别概率
+      if (objectness < temp_param->conf_thres_)  // 筛选框的阈值
+        continue;
+      // center point coord
+      x = (x * 2 - 0.5 + ((i / temp_param->num_anchor_) % dim[2])) *
+          temp_param->strides_[blob_index];
+      y = (y * 2 - 0.5 + ((i / temp_param->num_anchor_) / dim[2]) % dim[1]) *
+          temp_param->strides_[blob_index];
+      width =
+          pow((width * 2), 2) *
+          temp_param->anchor_grids_[blob_index * temp_param->grid_per_input_ +
+                                    (i % temp_param->num_anchor_) * 2 + 0];
+      height =
+          pow((height * 2), 2) *
+          temp_param->anchor_grids_[blob_index * temp_param->grid_per_input_ +
+                                    (i % temp_param->num_anchor_) * 2 + 1];
+      // compute coords
+      float x1 = x - width / 2;
+      float y1 = y - height / 2;
+      float x2 = x + width / 2;
+      float y2 = y + height / 2;
+      // compute confidence
+      auto conf_start = data + i * temp_param->detect_dim_ + 5;
+      auto conf_end = data + (i + 1) * temp_param->detect_dim_;
+      auto max_conf_iter = std::max_element(conf_start, conf_end);
+      int conf_idx = static_cast<int>(std::distance(conf_start, max_conf_iter));
+      float score = (*max_conf_iter) * objectness;
+
+      // obj_info.image_width = image_width;
+      // obj_info.image_height = image_height;
+      // index不知道是什么，没填上
+      results_.bboxs_[i].bbox_ = {x1, y1, x2, y2};
+      results_.bboxs_[i].score_ = score;
+      results_.bboxs_[i].label_id_ = conf_idx;
+      // results_.result_.push_back(obj_info);
+    }
+    blob_index += 1;
   }
 
-}  // namespace opencv
+  DetectResult temp_results_;
+  std::vector<int> keep_idxs;
+
+  computeNMS(results_.bboxs_,  // 这些命名空间都不对，要改！
+             temp_param->iou_thres_, temp_results_);
+  results_.emplace_back(temp_results_);  // 不知道emplace_back这样写对不对
+}
+
 }  // namespace model
 }  // namespace nndeploy
