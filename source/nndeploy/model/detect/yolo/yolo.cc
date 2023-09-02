@@ -21,12 +21,12 @@
 namespace nndeploy {
 namespace model {
 
-class TypePipelineRegister g_register_yolov5_pipeline(NNDEPLOY_YOLOV5,
-                                                      createYoloV5Pipeline);
-class TypePipelineRegister g_register_yolov6_pipeline(NNDEPLOY_YOLOV6,
-                                                      createYoloV6Pipeline);
-class TypePipelineRegister g_register_yolov8_pipeline(NNDEPLOY_YOLOV8,
-                                                      createYoloV8Pipeline);
+TypePipelineRegister g_register_yolov5_pipeline(NNDEPLOY_YOLOV5,
+                                                createYoloV5Pipeline);
+TypePipelineRegister g_register_yolov6_pipeline(NNDEPLOY_YOLOV6,
+                                                createYoloV6Pipeline);
+TypePipelineRegister g_register_yolov8_pipeline(NNDEPLOY_YOLOV8,
+                                                createYoloV8Pipeline);
 
 base::Status YoloPostProcess::run() {
   YoloPostParam* param = (YoloPostParam*)param_.get();

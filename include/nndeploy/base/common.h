@@ -66,6 +66,7 @@ enum DeviceTypeCode : int {
   kDeviceTypeCodeOpenCL,
   kDeviceTypeCodeOpenGL,
   kDeviceTypeCodeMetal,
+  kDeviceTypeCodeVulkan,
 
   // not sopport
   kDeviceTypeCodeNotSupport,

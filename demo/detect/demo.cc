@@ -70,8 +70,8 @@ int main(int argc, char *argv[]) {
   model::Packet output("detect_out");
   // 创建检测模型有向无环图pipeline
   model::Pipeline *pipeline =
-      model::createPipeline(name, inference_type, device_type, &input, &output,
-                            model_type, is_path, model_value);
+      model::createYoloV6Pipeline(name, inference_type, device_type, &input,
+                                  &output, model_type, is_path, model_value);
   if (pipeline == nullptr) {
     NNDEPLOY_LOGE("pipeline is nullptr");
     return -1;
