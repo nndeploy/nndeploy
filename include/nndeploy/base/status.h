@@ -38,6 +38,8 @@ enum StatusCode : int {
   kStatusCodeErrorInferenceOpenVino,
   kStatusCodeErrorInferenceTfLite,
   kStatusCodeErrorInferenceCoreML,
+  kStatusCodeErrorInferenceNcnn,
+  kStatusCodeErrorInferencePaddleLite,
 };
 
 class NNDEPLOY_CC_API Status {

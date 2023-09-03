@@ -46,6 +46,8 @@ include("${ROOT_PATH}/cmake/onnxruntime.cmake")
 include("${ROOT_PATH}/cmake/tnn.cmake")
 ## openvino
 include("${ROOT_PATH}/cmake/openvino.cmake")
+## ncnn
+include("${ROOT_PATH}/cmake/ncnn.cmake")
 #################### inference ####################
 
 #################### pipeline ####################

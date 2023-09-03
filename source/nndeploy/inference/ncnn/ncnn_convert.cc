@@ -28,13 +28,13 @@ base::DataFormat NcnnConvert::convertToDataFormat(const int &elempack,
                                                   const size_t &cstep) {
   base::DataFormat dst;
   if (dims == 4) {
-    dst.code_ = base::kDataFormatNCDHW;  // Int
+    dst = base::kDataFormatNCDHW;  // Int
   } else if (dims == 3) {
-    dst.code_ = base::kDataFormatNCHW;  // Int
+    dst = base::kDataFormatNCHW;  // Int
   } else if (dims == 2) {
-    dst.code_ = base::kDataFormatNHW;  // BFp
+    dst = base::kDataFormatNHW;  // BFp
   } else if (dims == 1) {
-    dst.code_ = base::kDataFormatNC;  // Uint
+    dst = base::kDataFormatNC;  // Uint
   } else {
     NNDEPLOY_LOGE("Not support data format[%d]!\n", dims);
   }
@@ -93,7 +93,7 @@ base::Status NcnnConvert::convertFromInferenceParam(
   dst.use_int8_storage = src->use_int8_storage_;
   dst.use_int8_arithmetic = src->use_int8_arithmetic_;
 
-  dst.use_packing_layout_ = src->use_packing_layout_;
+  dst.use_packing_layout = src->use_packing_layout_;
 
   dst.use_shader_pack8 = src->use_shader_pack8_;
 
@@ -149,26 +149,26 @@ base::Status NcnnConvert::matConvertToTensor(ncnn::Mat &src,
 
 ncnn::Mat NcnnConvert::matConvertFromTensor(device::Tensor *src) {
   if (!device::isHostDeviceType(src->getDeviceType())) {
-    Mat dst();
+    ncnn::Mat dst;
     return dst;
   }
   void *data = src->getPtr();
   int elemsize = src->getDataType().size();
   base::IntVector shape = src->getShape();
   if (shape.size() == 2) {
-    Mat dst(shape[1], data, elemsize);
+    ncnn::Mat dst(shape[1], data, elemsize);
     return dst;
   } else if (shape.size() == 3) {
-    Mat dst(shape[2], shape[1], data, elemsize);
+    ncnn::Mat dst(shape[2], shape[1], data, elemsize);
     return dst;
   } else if (shape.size() == 4) {
-    Mat dst(shape[3], shape[2], shape[1], data, elemsize);
+    ncnn::Mat dst(shape[3], shape[2], shape[1], data, elemsize);
     return dst;
   } else if (shape.size() == 5) {
-    Mat dst(shape[4], shape[3], shape[2], shape[1], data, elemsize);
+    ncnn::Mat dst(shape[4], shape[3], shape[2], shape[1], data, elemsize);
     return dst;
   } else {
-    Mat dst();
+    ncnn::Mat dst;
     return dst;
   }
 }

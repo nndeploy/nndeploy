@@ -40,7 +40,7 @@ class NcnnConvert {
    * @param dst
    * @return base::Status
    */
-  static base::Status matConvertToTensor(ncnn::Mat *src,
+  static base::Status matConvertToTensor(ncnn::Mat &src,
                                          const std::string &name,
                                          device::Tensor *dst);
   /**

@@ -33,7 +33,7 @@ base::Status NcnnInference::init() {
   std::string params;
   std::string weights;
   if (ncnn_inference_param->model_type_ == base::kModelTypeNcnn) {
-    if (ncnn_inference_param->is_path) {
+    if (ncnn_inference_param->is_path_) {
       params = base::openFile(ncnn_inference_param->model_value_[0]);
       weights = base::openFile(ncnn_inference_param->model_value_[1]);
     } else {
@@ -46,9 +46,9 @@ base::Status NcnnInference::init() {
     return base::kStatusCodeErrorInferenceNcnn;
   }
 
-  net_.load_param(reinterpret_cast<const unsigned char *>(
+  net_->load_param(reinterpret_cast<const unsigned char *>(
       (const unsigned char *)params.data()));
-  net_.load_model(reinterpret_cast<const unsigned char *>(
+  net_->load_model(reinterpret_cast<const unsigned char *>(
       (const unsigned char *)weights.data()));
 
   status = allocateInputOutputTensor();
@@ -107,12 +107,12 @@ base::Status NcnnInference::run() {
   ncnn::Extractor extractor = net_->create_extractor();
   for (auto iter : external_input_tensors_) {
     ncnn::Mat input_mat = NcnnConvert::matConvertFromTensor(iter.second);
-    extractor.input(iter.first, input_mat);
+    extractor.input(iter.first.c_str(), input_mat);
   }
   for (auto iter : external_output_tensors_) {
     std::string output_name = iter.first;
     ncnn::Mat output_mat;
-    extractor.extract(output_name, output_mat);
+    extractor.extract(output_name.c_str(), output_mat);
     device::Tensor *output_tensor = iter.second;
     NcnnConvert::matConvertToTensor(output_mat, output_name,
                                     output_tensor);  // 浅拷贝
@@ -122,18 +122,18 @@ base::Status NcnnInference::run() {
 
 base::Status NcnnInference::allocateInputOutputTensor() {
   // ncnn::Extractor extractor = net_->create_extractor();
-  const std::vector<Blob> &blobs = net_->blobs();
+  const std::vector<ncnn::Blob> &blobs = net_->blobs();
   const std::vector<int> &input_indexes = net_->input_indexes();
-  for (auto iter : input_indexes) {
-    ncnn::Blob blob = blobs[iter];
+  for (int i = 0; i < input_indexes.size(); i++) {
+    ncnn::Blob blob = blobs[input_indexes[i]];
     device::Tensor *input_tensor = NcnnConvert::blobConvertToTensor(blob);
-    input_tensors_.insert({name, input_tensor});
+    input_tensors_.insert({blob.name, input_tensor});
   }
   const std::vector<int> &output_indexes = net_->output_indexes();
-  for (auto iter : output_indexes) {
-    ncnn::Blob blob = blobs[iter];
+  for (int i = 0; i < output_indexes.size(); i++) {
+    ncnn::Blob blob = blobs[output_indexes[i]];
     device::Tensor *output_tensor = NcnnConvert::blobConvertToTensor(blob);
-    output_tensors_.insert({name, output_tensor});
+    output_tensors_.insert({blob.name, output_tensor});
   }
   return base::kStatusCodeOk;
 }

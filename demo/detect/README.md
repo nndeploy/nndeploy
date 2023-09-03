@@ -42,6 +42,12 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
 + 模型推理
 ./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeTnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeTnn --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.tnnproto,/home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.tnnmdodel --input_type kInputTypeImage  --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 
+## ncnn - 结果错误
++ 模型转换
+./onnx2ncnn /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.param /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.bin
++ 模型推理
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeNcnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeNcnn --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.param,/home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.bin --input_type kInputTypeImage  --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
+
 
 # yolov8
 ## onnxruntime - success
