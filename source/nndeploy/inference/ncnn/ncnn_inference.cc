@@ -30,26 +30,25 @@ base::Status NcnnInference::init() {
       NcnnConvert::convertFromInferenceParam(ncnn_inference_param, net_->opt);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "convertFromInferenceParam failed");
-  std::string params;
-  std::string weights;
+  std::string params = ncnn_inference_param->model_value_[0];
+  std::string weights = ncnn_inference_param->model_value_[1];
   if (ncnn_inference_param->model_type_ == base::kModelTypeNcnn) {
     if (ncnn_inference_param->is_path_) {
-      params = base::openFile(ncnn_inference_param->model_value_[0]);
-      weights = base::openFile(ncnn_inference_param->model_value_[1]);
+      net_->load_param(
+          reinterpret_cast<const char *>((const unsigned char *)params.data()));
+      net_->load_model(reinterpret_cast<const unsigned char *>(
+          (const char *)weights.data()));
     } else {
-      params = ncnn_inference_param->model_value_[0];
-      weights = ncnn_inference_param->model_value_[1];
+      net_->load_param(reinterpret_cast<const unsigned char *>(
+          (const unsigned char *)params.data()));
+      net_->load_model(reinterpret_cast<const unsigned char *>(
+          (const unsigned char *)weights.data()));
     }
   } else {
     NNDEPLOY_LOGE("Not support model type[%d]!\n",
                   ncnn_inference_param->model_type_);
     return base::kStatusCodeErrorInferenceNcnn;
   }
-
-  net_->load_param(reinterpret_cast<const unsigned char *>(
-      (const unsigned char *)params.data()));
-  net_->load_model(reinterpret_cast<const unsigned char *>(
-      (const unsigned char *)weights.data()));
 
   status = allocateInputOutputTensor();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,

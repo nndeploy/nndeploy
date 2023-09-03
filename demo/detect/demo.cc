@@ -50,20 +50,44 @@ int main(int argc, char *argv[]) {
   }
   // 检测模型的有向无环图pipeline名称，例如:
   // NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8
-  std::string name = demo::getName();
+  // std::string name = demo::getName();
+  // // 推理后端类型，例如:
+  // //
+  // kInferenceTypeOpenVino/kInferenceTypeTensorRt/kInferenceTypeOnnxRuntime/...
+  // base::InferenceType inference_type = demo::getInferenceType();
+  // // 推理设备类型，例如:
+  // // kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
+  // base::DeviceType device_type = demo::getDeviceType();
+  // // 模型类型，例如:
+  // // kModelTypeOnnx/kModelTypeMnn/...
+  // base::ModelType model_type = demo::getModelType();
+  // // 模型是否是路径
+  // bool is_path = demo::isPath();
+  // // 模型路径或者模型字符串
+  // std::vector<std::string> model_value = demo::getModelValue();
+
+  // NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8
+  std::string name = "NNDEPLOY_YOLOV5";
   // 推理后端类型，例如:
   // kInferenceTypeOpenVino/kInferenceTypeTensorRt/kInferenceTypeOnnxRuntime/...
-  base::InferenceType inference_type = demo::getInferenceType();
+  base::InferenceType inference_type = base::kInferenceTypeNcnn;
   // 推理设备类型，例如:
   // kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
-  base::DeviceType device_type = demo::getDeviceType();
+  base::DeviceType device_type = device::getDefaultHostDeviceType();
   // 模型类型，例如:
   // kModelTypeOnnx/kModelTypeMnn/...
-  base::ModelType model_type = demo::getModelType();
+  base::ModelType model_type = base::kModelTypeNcnn;
   // 模型是否是路径
   bool is_path = demo::isPath();
   // 模型路径或者模型字符串
-  std::vector<std::string> model_value = demo::getModelValue();
+  std::vector<std::string> model_value;
+  model_value.push_back(
+      "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
+      "yolov5s.onnx.param");
+  model_value.push_back(
+      "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
+      "yolov5s.onnx.bin");
+
   // 有向无环图pipeline的输入边packert
   model::Packet input("detect_in");
   // 有向无环图pipeline的输出边packert
