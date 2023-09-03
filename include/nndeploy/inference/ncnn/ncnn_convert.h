@@ -21,13 +21,11 @@ namespace inference {
 class NcnnConvert {
  public:
   static base::DataType convertToDataType(const int &src);
-
   static base::DataFormat convertToDataFormat(const int &elempack,
                                               const int &dims, const int &w,
                                               const int &h, const int &d,
                                               const int &c,
                                               const size_t &cstep);
-
   static base::IntVector convertToShape(const int &dims, const int &w,
                                         const int &h, const int &d,
                                         const int &c, const size_t &cstep);
@@ -35,8 +33,29 @@ class NcnnConvert {
   static base::Status convertFromInferenceParam(
       inference::NcnnInferenceParam *src, ncnn::Option &dst);
 
-  static base::Status matConvertToTensor(ncnn::Mat *src, device::Tensor *dst);
+  /**
+   * @brief 浅拷贝
+   *
+   * @param src
+   * @param dst
+   * @return base::Status
+   */
+  static base::Status matConvertToTensor(ncnn::Mat *src,
+                                         const std::string &name,
+                                         device::Tensor *dst);
+  /**
+   * @brief 浅拷贝
+   *
+   * @param src
+   * @return ncnn::Mat
+   */
   static ncnn::Mat matConvertFromTensor(device::Tensor *src);
+  /**
+   * @brief 浅拷贝
+   *
+   * @param src
+   * @return device::Tensor*
+   */
   static device::Tensor *blobConvertToTensor(ncnn::Blob &src);
 };
 

@@ -8,243 +8,62 @@ namespace inference {
 base::DataType NcnnConvert::convertToDataType(const int &src) {
   base::DataType dst;
   if (src == 4) {
-    dst.code_ = base::kDataTypeCodeFp;
+    dst.code_ = base::kDataTypeCodeFp;  // Int
+  } else if (src == 2) {
+    dst.code_ = base::kDataTypeCodeFp;  // BFp
+  } else if (src == 1) {
+    dst.code_ = base::kDataTypeCodeInt;  // Uint
+  } else {
+    NNDEPLOY_LOGE("Not support data type[%d]!\n", src);
   }
   dst.bits_ = src * 8;
   dst.lanes_ = 1;
   return dst;
 }
 
-ncnn::DataType NcnnConvert::convertFromDataType(const base::DataType &src) {
-  ncnn::DataType dst;
-  if (src.code_ == base::kDataTypeCodeInt && src.bits_ == 8 &&
-      src.lanes_ == 1) {
-    dst = ncnn::DataType::DATA_TYPE_INT8;
-  } else if (src.code_ == base::kDataTypeCodeInt && src.bits_ == 32 &&
-             src.lanes_ == 1) {
-    dst = ncnn::DataType::DATA_TYPE_INT32;
-  } else if (src.code_ == base::kDataTypeCodeInt && src.bits_ == 64 &&
-             src.lanes_ == 1) {
-    dst = ncnn::DataType::DATA_TYPE_INT64;
-  } else if (src.code_ == base::kDataTypeCodeUint && src.bits_ == 32 &&
-             src.lanes_ == 1) {
-    dst = ncnn::DataType::DATA_TYPE_UINT32;
-  } else if (src.code_ == base::kDataTypeCodeFp && src.bits_ == 32 &&
-             src.lanes_ == 1) {
-    dst = ncnn::DataType::DATA_TYPE_FLOAT;
-  } else if (src.code_ == base::kDataTypeCodeBFp && src.bits_ == 16 &&
-             src.lanes_ == 1) {
-    dst = ncnn::DataType::DATA_TYPE_BFP16;
-  } else if (src.code_ == base::kDataTypeCodeFp && src.bits_ == 16 &&
-             src.lanes_ == 1) {
-    dst = ncnn::DataType::DATA_TYPE_HALF;
-  } else {
-    dst = ncnn::DataType::DATA_TYPE_FLOAT;
-  }
-  return dst;
-}
-
-base::DataFormat NcnnConvert::convertToDataFormat(const ncnn::DataFormat &src) {
+base::DataFormat NcnnConvert::convertToDataFormat(const int &elempack,
+                                                  const int &dims, const int &w,
+                                                  const int &h, const int &d,
+                                                  const int &c,
+                                                  const size_t &cstep) {
   base::DataFormat dst;
-  switch (src) {
-    case ncnn::DataFormat::DATA_FORMAT_AUTO:
-      dst = base::kDataFormatAuto;
-      break;
-    case ncnn::DataFormat::DATA_FORMAT_NHWC:
-      dst = base::kDataFormatNHWC;
-      break;
-    case ncnn::DataFormat::DATA_FORMAT_NCHW:
-      dst = base::kDataFormatNCHW;
-      break;
-    case ncnn::DataFormat::DATA_FORMAT_NC4HW4:
-      dst = base::kDataFormatNC4HW;
-      break;
-    case ncnn::DataFormat::DATA_FORMAT_NC8HW8:
-      dst = base::kDataFormatNC8HW;
-    case ncnn::DataFormat::DATA_FORMAT_NCDHW:
-      dst = base::kDataFormatNCDHW;
-    default:
-      dst = base::kDataFormatNotSupport;
-      break;
+  if (dims == 4) {
+    dst.code_ = base::kDataFormatNCDHW;  // Int
+  } else if (dims == 3) {
+    dst.code_ = base::kDataFormatNCHW;  // Int
+  } else if (dims == 2) {
+    dst.code_ = base::kDataFormatNHW;  // BFp
+  } else if (dims == 1) {
+    dst.code_ = base::kDataFormatNC;  // Uint
+  } else {
+    NNDEPLOY_LOGE("Not support data format[%d]!\n", dims);
   }
   return dst;
 }
 
-ncnn::DataFormat NcnnConvert::convertFromDataFormat(
-    const base::DataFormat &src) {
-  ncnn::DataFormat dst = ncnn::DataFormat::DATA_FORMAT_AUTO;
-  switch (src) {
-    case base::kDataFormatAuto:
-      dst = ncnn::DataFormat::DATA_FORMAT_AUTO;
-      break;
-    case base::kDataFormatNCHW:
-      dst = ncnn::DataFormat::DATA_FORMAT_NHWC;
-      break;
-    case base::kDataFormatNHWC:
-      dst = ncnn::DataFormat::DATA_FORMAT_NHWC;
-      break;
-    case base::kDataFormatNC4HW:
-      dst = ncnn::DataFormat::DATA_FORMAT_NC4HW4;
-      break;
-    case base::kDataFormatNC8HW:
-      dst = ncnn::DataFormat::DATA_FORMAT_NC8HW8;
-      break;
-    case base::kDataFormatNCDHW:
-      dst = ncnn::DataFormat::DATA_FORMAT_NCDHW;
-      break;
-    default:
-      dst = ncnn::DataFormat::DATA_FORMAT_AUTO;
-      break;
+base::IntVector NcnnConvert::convertToShape(const int &dims, const int &w,
+                                            const int &h, const int &d,
+                                            const int &c, const size_t &cstep) {
+  base::IntVector dst;
+  dst.push_back(1);
+  if (dims == 4) {
+    dst.push_back(c);
+    dst.push_back(d);
+    dst.push_back(h);
+    dst.push_back(w);
+  } else if (dims == 3) {
+    dst.push_back(c);
+    dst.push_back(h);
+    dst.push_back(w);
+  } else if (dims == 2) {
+    dst.push_back(h);
+    dst.push_back(w);
+  } else if (dims == 1) {
+    dst.push_back(w);
+  } else {
+    NNDEPLOY_LOGE("Not support data format[%d]!\n", dims);
   }
   return dst;
-}
-
-ncnn::DeviceType NcnnConvert::convertFromDeviceType(
-    const base::DeviceType &src) {
-  ncnn::DeviceType type = ncnn::DeviceType::DEVICE_NAIVE;
-  switch (src.code_) {
-    case base::kDeviceTypeCodeCpu:
-      type = ncnn::DeviceType::DEVICE_NAIVE;
-      break;
-    case base::kDeviceTypeCodeX86:
-      type = ncnn::DeviceType::DEVICE_X86;
-      break;
-    case base::kDeviceTypeCodeArm:
-      type = ncnn::DeviceType::DEVICE_ARM;
-      break;
-    case base::kDeviceTypeCodeOpenCL:
-      type = ncnn::DeviceType::DEVICE_OPENCL;
-      break;
-    case base::kDeviceTypeCodeMetal:
-      type = ncnn::DeviceType::DEVICE_METAL;
-      break;
-    case base::kDeviceTypeCodeCuda:
-      type = ncnn::DeviceType::DEVICE_CUDA;
-      break;
-    default:
-      type = ncnn::DeviceType::DEVICE_NAIVE;
-      break;
-  }
-  return type;
-}
-
-base::DeviceType NcnnConvert::convertToDeviceType(const ncnn::DeviceType &src) {
-  base::DeviceType type = base::kDeviceTypeCodeNotSupport;
-  switch (src) {
-    case ncnn::DeviceType::DEVICE_NAIVE:
-      type = base::kDeviceTypeCodeCpu;
-      break;
-    case ncnn::DeviceType::DEVICE_X86:
-      type = base::kDeviceTypeCodeX86;
-      break;
-    case ncnn::DeviceType::DEVICE_ARM:
-      type = base::kDeviceTypeCodeArm;
-      break;
-    case ncnn::DeviceType::DEVICE_OPENCL:
-      type = base::kDeviceTypeCodeOpenCL;
-      break;
-    case ncnn::DeviceType::DEVICE_METAL:
-      type = base::kDeviceTypeCodeMetal;
-      break;
-    case ncnn::DeviceType::DEVICE_CUDA:
-      type = base::kDeviceTypeCodeCuda;
-      break;
-    default:
-      type = base::kDeviceTypeCodeNotSupport;
-      break;
-  }
-  return type;
-}
-
-base::ModelType NcnnConvert::convertToModelType(const ncnn::ModelType &src) {
-  base::ModelType type = base::kModelTypeDefault;
-  switch (src) {
-    case ncnn::ModelType::MODEL_TYPE_NCNN:
-      type = base::kModelTypeNcnn;
-      break;
-    case ncnn::ModelType::MODEL_TYPE_NCNN:
-      type = base::kModelTypeNcnn;
-      break;
-    case ncnn::ModelType::MODEL_TYPE_OPENVINO:
-      type = base::kModelTypeOpenVino;
-      break;
-    case ncnn::ModelType::MODEL_TYPE_COREML:
-      type = base::kModelTypeCoreML;
-      break;
-    default:
-      type = base::kModelTypeNotSupport;
-      break;
-  }
-  return type;
-}
-
-ncnn::ModelType NcnnConvert::convertFromModelType(const base::ModelType &src) {
-  ncnn::ModelType type = ncnn::ModelType::MODEL_TYPE_NCNN;
-  switch (src) {
-    case base::kModelTypeNcnn:
-      type = ncnn::ModelType::MODEL_TYPE_NCNN;
-      break;
-    case base::kModelTypeNcnn:
-      type = ncnn::ModelType::MODEL_TYPE_NCNN;
-      break;
-    case base::kModelTypeOpenVino:
-      type = ncnn::ModelType::MODEL_TYPE_OPENVINO;
-      break;
-    case base::kModelTypeCoreML:
-      type = ncnn::ModelType::MODEL_TYPE_COREML;
-      break;
-    default:
-      type = ncnn::ModelType::MODEL_TYPE_NCNN;
-      break;
-  }
-  return type;
-}
-
-base::ShareMemoryType NcnnConvert::convertToShareMemoryMode(
-    const ncnn::ShareMemoryMode &src) {
-  base::ShareMemoryType type = base::kShareMemoryTypeNoShare;
-  switch (src) {
-    case ncnn::ShareMemoryMode::SHARE_MEMORY_MODE_SET_FROM_EXTERNAL:
-      type = base::kShareMemoryTypeShareFromExternal;
-      break;
-    case ncnn::ShareMemoryMode::SHARE_MEMORY_MODE_DEFAULT:
-      type = base::kShareMemoryTypeNoShare;
-      break;
-    default:
-      type = base::kShareMemoryTypeNotSupport;
-      break;
-  }
-  return type;
-}
-
-ncnn::ShareMemoryMode NcnnConvert::convertFromShareMemoryMode(
-    const base::ShareMemoryType &src) {
-  ncnn::ShareMemoryMode type = ncnn::ShareMemoryMode::SHARE_MEMORY_MODE_DEFAULT;
-  switch (src) {
-    case base::kShareMemoryTypeShareFromExternal:
-      type = ncnn::ShareMemoryMode::SHARE_MEMORY_MODE_SET_FROM_EXTERNAL;
-      break;
-    default:
-      type = ncnn::ShareMemoryMode::SHARE_MEMORY_MODE_DEFAULT;
-      break;
-  }
-  return type;
-}
-
-ncnn::Precision NcnnConvert::convertFromPrecisionType(
-    const base::PrecisionType &src) {
-  switch (src) {
-    case base::kPrecisionTypeFp16:
-      return ncnn::Precision::PRECISION_LOW;
-    case base::kPrecisionTypeBFp16:
-      return ncnn::Precision::PRECISION_LOW;
-    case base::kPrecisionTypeFp32:
-      return ncnn::Precision::PRECISION_NORMAL;
-    case base::kPrecisionTypeFp64:
-      return ncnn::Precision::PRECISION_HIGH;
-    default:
-      return ncnn::Precision::PRECISION_AUTO;
-  }
 }
 
 base::Status NcnnConvert::convertFromInferenceParam(
@@ -315,7 +134,7 @@ base::Status NcnnConvert::matConvertToTensor(ncnn::Mat &src,
                                              device::Tensor *dst) {
   dst->destory();
   device::Device *device = device::getDefaultHostDevice();
-  base::DataType data_type = convertToDataType(src.elemsize);
+  base::DataType data_type = NcnnConvert::convertToDataType(src.elemsize);
   base::DataFormat data_format =
       convertToDataFormat(src.elempack, src.dims, src.w, src.h, src.d, src.c,
                           src.cstep);  // 目前只使用了shape.dims
@@ -368,7 +187,6 @@ device::Tensor *NcnnConvert::blobConvertToTensor(ncnn::Blob &src) {
   std::string name = src.name;
   device::Tensor *dst = nullptr;
   if (src.shape.data != nullptr) {
-    device::Device *device = device::getDefaultHostDevice();
     void *data_ptr = src.shape.data;
     base::IntVector memory_config = base::IntVector();
     dst =

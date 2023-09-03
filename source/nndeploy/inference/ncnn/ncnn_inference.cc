@@ -46,8 +46,10 @@ base::Status NcnnInference::init() {
     return base::kStatusCodeErrorInferenceNcnn;
   }
 
-  net_.load_param(reinterpret_cast<const unsigned char *>(params.data()));
-  net_.load_model(reinterpret_cast<const unsigned char *>(weights.data()));
+  net_.load_param(reinterpret_cast<const unsigned char *>(
+      (const unsigned char *)params.data()));
+  net_.load_model(reinterpret_cast<const unsigned char *>(
+      (const unsigned char *)weights.data()));
 
   status = allocateInputOutputTensor();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -112,9 +114,9 @@ base::Status NcnnInference::run() {
     ncnn::Mat output_mat;
     extractor.extract(output_name, output_mat);
     device::Tensor *output_tensor = iter.second;
-    NcnnConvert::matConvertToTensor(output_mat, output_tensor);  // 浅拷贝
+    NcnnConvert::matConvertToTensor(output_mat, output_name,
+                                    output_tensor);  // 浅拷贝
   }
-
   return base::kStatusCodeOk;
 }
 

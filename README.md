@@ -44,7 +44,7 @@ nndeploy具有如下优势特性：
 
 ## 快速开始
 ### 使用demo
-[以检测模型demo为例](demo\detect\demo.cc)
+以检测模型demo为例 - demo\detect\demo.cc
 + 创建检测模型有向无环图pipeline
   ```c++
   // 检测模型的有向无环图pipeline名称，例如:
@@ -119,7 +119,7 @@ nndeploy具有如下优势特性：
   ```
 
 ### 部署模型
-以YOLOV5为例。[源文件](source\nndeploy\model\detect\yolo\yolo.cc)，[头文件](include\nndeploy\model\detect\yolo\yolo.h)
+以YOLOV5为例。源文件 - source\nndeploy\model\detect\yolo\yolo.cc，头文件 - include\nndeploy\model\detect\yolo\yolo.h
 + 准备模型文件
 + 搭建模型部署的有向无环图
   ```c++
