@@ -98,8 +98,16 @@
 + chown always yolov8n.onnx 
 + tar -cvf ubuntu22.04_x64.tar ubuntu22.04_x64
 
-## 2023.08.03
+## 2023.09.03
 + ncnn的模型转换
   + cd D:\ncnn\build-2022\tools\onnx
-./onnx2ncnn /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.param /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.bin （命令错误） 
+./onnx2ncnn /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.param /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.bin
+
+## 2023.09.04
++ malloc(): invalid size (unsorted) 由于给model_value.push_back(
+      "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
+      "yolov5s.onnx.param");
+  model_value.push_back(
+      "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
+      "yolov5s.onnx.bin"); 报错
 

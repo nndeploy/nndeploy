@@ -1,6 +1,8 @@
 
 #include "nndeploy/model/preprocess/cvtcolor_resize.h"
 
+#include "nndeploy/model/preprocess/util.h"
+
 namespace nndeploy {
 namespace model {
 
@@ -9,6 +11,18 @@ base::Status CvtColrResize::run() {
       dynamic_cast<CvtclorResizeParam*>(param_.get());
   cv::Mat* src = inputs_[0]->getCvMat();
   device::Tensor* dst = outputs_[0]->getTensor();
+  if (dst->empty()) {
+    device::TensorDesc desc = dst->getDesc();
+    desc.data_type_ = base::dataTypeOf<float>();
+    desc.data_format_ = base::kDataFormatNCHW;
+    desc.shape_.push_back(1);
+    desc.shape_.push_back(getChannelByPixelType(tmp_param->dst_pixel_type_));
+    desc.shape_.push_back(tmp_param->h_);
+    desc.shape_.push_back(tmp_param->w_);
+    dst->justModify(desc);
+    device::Device* device = device::getDefaultHostDevice();
+    dst->allocBuffer(device);
+  }
 
   int c = dst->getChannel();
   int h = dst->getHeight();

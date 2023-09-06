@@ -191,7 +191,7 @@ ov::PartialShape OpenVinoConvert::convertFromShape(const base::IntVector &src) {
   int src_size = src.size();
   std::vector<ov::Dimension> dims;
   for (size_t i = 0; i < src_size; ++i) {
-    dims.emplace_back(ov::Dimension(src[i]));
+    dims.push_back(ov::Dimension(src[i]));
   }
   return ov::PartialShape(dims);
 }

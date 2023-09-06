@@ -33,6 +33,8 @@ class NNDEPLOY_CC_API CvtclorResizeParam : public base::Param {
   base::PixelType src_pixel_type_;
   base::PixelType dst_pixel_type_;
   base::InterpType interp_type_;
+  int h_ = -1;
+  int w_ = -1;
   float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
                      1.0f / 255.0f};
   float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};

@@ -87,6 +87,10 @@ int main(int argc, char *argv[]) {
   model_value.push_back(
       "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
       "yolov5s.onnx.bin");
+  // model_value.push_back(
+  //     "/home/always/github/ncnn/examples/squeezenet_v1.1.param");
+  // model_value.push_back(
+  //     "/home/always/github/ncnn/examples/squeezenet_v1.1.bin");
 
   // 有向无环图pipeline的输入边packert
   model::Packet input("detect_in");
@@ -109,7 +113,9 @@ int main(int argc, char *argv[]) {
   }
 
   // 有向无环图pipeline的输入图片路径
-  std::string input_path = demo::getInputPath();
+  // std::string input_path = demo::getInputPath();
+  std::string input_path =
+      "/home/always/huggingface/nndeploy/test_data/detect/sample.jpg";
   // opencv读图
   cv::Mat input_mat = cv::imread(input_path);
   // 将图片写入有向无环图pipeline输入边
@@ -127,7 +133,10 @@ int main(int argc, char *argv[]) {
   }
 
   drawBox(input_mat, result);
-  std::string ouput_path = demo::getOutputPath();
+  // std::string ouput_path = demo::getOutputPath();
+  std::string ouput_path =
+      "/home/always/huggingface/nndeploy/temp/sample_output.jpg";
+
   cv::imwrite(ouput_path, input_mat);
 
   // 有向无环图pipelinez反初始化

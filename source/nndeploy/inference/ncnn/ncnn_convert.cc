@@ -9,15 +9,21 @@ base::DataType NcnnConvert::convertToDataType(const int &src) {
   base::DataType dst;
   if (src == 4) {
     dst.code_ = base::kDataTypeCodeFp;  // Int
+    dst.bits_ = src * 8;
+    dst.lanes_ = 1;
   } else if (src == 2) {
     dst.code_ = base::kDataTypeCodeFp;  // BFp
+    dst.bits_ = src * 8;
+    dst.lanes_ = 1;
   } else if (src == 1) {
     dst.code_ = base::kDataTypeCodeInt;  // Uint
+    dst.bits_ = src * 8;
+    dst.lanes_ = 1;
   } else {
+    dst = base::dataTypeOf<float>();
     NNDEPLOY_LOGE("Not support data type[%d]!\n", src);
   }
-  dst.bits_ = src * 8;
-  dst.lanes_ = 1;
+
   return dst;
 }
 
@@ -28,14 +34,15 @@ base::DataFormat NcnnConvert::convertToDataFormat(const int &elempack,
                                                   const size_t &cstep) {
   base::DataFormat dst;
   if (dims == 4) {
-    dst = base::kDataFormatNCDHW;  // Int
+    dst = base::kDataFormatNCDHW;
   } else if (dims == 3) {
-    dst = base::kDataFormatNCHW;  // Int
+    dst = base::kDataFormatNCHW;
   } else if (dims == 2) {
-    dst = base::kDataFormatNHW;  // BFp
+    dst = base::kDataFormatNHW;
   } else if (dims == 1) {
-    dst = base::kDataFormatNC;  // Uint
+    dst = base::kDataFormatNC;
   } else {
+    dst = base::kDataFormatNotSupport;
     NNDEPLOY_LOGE("Not support data format[%d]!\n", dims);
   }
   return dst;
@@ -61,6 +68,7 @@ base::IntVector NcnnConvert::convertToShape(const int &dims, const int &w,
   } else if (dims == 1) {
     dst.push_back(w);
   } else {
+    dst.clear();
     NNDEPLOY_LOGE("Not support data format[%d]!\n", dims);
   }
   return dst;

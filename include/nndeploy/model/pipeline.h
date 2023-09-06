@@ -75,14 +75,14 @@ class NNDEPLOY_CC_API Pipeline : public Task {
     if (findPacketWrapper(input) == nullptr) {
       input_wrapper = this->addPacket(input);
     }
-    input_wrapper->consumers_.emplace_back(task_wrapper);
+    input_wrapper->consumers_.push_back(task_wrapper);
     PacketWrapper* output_wrapper = findPacketWrapper(output);
     if (output_wrapper == nullptr) {
       output_wrapper = this->addPacket(output);
     }
-    output_wrapper->producers_.emplace_back(task_wrapper);
+    output_wrapper->producers_.push_back(task_wrapper);
 
-    task_repository_.emplace_back(task_wrapper);
+    task_repository_.push_back(task_wrapper);
     return task;
   }
   template <typename T,
@@ -103,17 +103,17 @@ class NNDEPLOY_CC_API Pipeline : public Task {
       if (findPacketWrapper(input) == nullptr) {
         input_wrapper = this->addPacket(input);
       }
-      input_wrapper->consumers_.emplace_back(task_wrapper);
+      input_wrapper->consumers_.push_back(task_wrapper);
     }
     for (auto output : outputs) {
       PacketWrapper* output_wrapper = findPacketWrapper(output);
       if (output_wrapper == nullptr) {
         output_wrapper = this->addPacket(output);
       }
-      output_wrapper->producers_.emplace_back(task_wrapper);
+      output_wrapper->producers_.push_back(task_wrapper);
     }
 
-    task_repository_.emplace_back(task_wrapper);
+    task_repository_.push_back(task_wrapper);
     return task;
   }
   template <typename T,
@@ -131,14 +131,14 @@ class NNDEPLOY_CC_API Pipeline : public Task {
     if (findPacketWrapper(input) == nullptr) {
       input_wrapper = this->addPacket(input);
     }
-    input_wrapper->consumers_.emplace_back(task_wrapper);
+    input_wrapper->consumers_.push_back(task_wrapper);
     PacketWrapper* output_wrapper = findPacketWrapper(output);
     if (output_wrapper == nullptr) {
       output_wrapper = this->addPacket(output);
     }
-    output_wrapper->producers_.emplace_back(task_wrapper);
+    output_wrapper->producers_.push_back(task_wrapper);
 
-    task_repository_.emplace_back(task_wrapper);
+    task_repository_.push_back(task_wrapper);
     return task;
   }
   base::Status addTask(Task* task);
@@ -179,7 +179,7 @@ using createPipelineFunc = std::function<Pipeline*(
     const std::string& name, base::InferenceType inference_type,
     base::DeviceType device_type, Packet* input, Packet* output,
     base::ModelType model_type, bool is_path,
-    std::vector<std::string>& model_value)>;
+    std::vector<std::string> model_value)>;
 
 std::map<std::string, createPipelineFunc>& getGlobalPipelineCreatorMap();
 
@@ -195,7 +195,7 @@ extern NNDEPLOY_CC_API Pipeline* createPipeline(
     const std::string& name, base::InferenceType inference_type,
     base::DeviceType device_type, Packet* input, Packet* output,
     base::ModelType model_type, bool is_path,
-    std::vector<std::string>& model_value);
+    std::vector<std::string> model_value);
 
 }  // namespace model
 }  // namespace nndeploy

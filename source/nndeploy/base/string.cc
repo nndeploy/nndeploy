@@ -11,8 +11,9 @@ namespace base {
 
 std::string ucharToString(const unsigned char *buffer, int length) {
   std::string str;
+  str.resize(length);
   for (int i = 0; i < length; ++i) {
-    str += buffer[i];
+    str[i] = buffer[i];
   }
   return str;
 }

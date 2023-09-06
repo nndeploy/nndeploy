@@ -8,7 +8,7 @@ Infer::Infer(const std::string &name, base::InferenceType type, Packet *input,
              Packet *output)
     : Task(name, input, output) {
   type_ = type;
-  inference_ = inference::createInference(type);
+  // inference_ = inference::createInference(type);
   if (inference_ == nullptr) {
     NNDEPLOY_LOGE("Failed to create inference");
     constructed_ = false;
@@ -69,7 +69,7 @@ base::Status Infer::initTemplate<false, false, false, false>() {
     device::TensorDesc desc = inference_->getInputTensorAlignDesc(name);
     device::Tensor *tensor =
         new device::Tensor(device, desc, name, base::IntVector());
-    input_tensors_.emplace_back(tensor);
+    input_tensors_.push_back(tensor);
   }
   Packet *input_packet = inputs_[0];
   for (int i = 0; i < input_tensors_.size(); i++) {
@@ -81,7 +81,7 @@ base::Status Infer::initTemplate<false, false, false, false>() {
     device::TensorDesc desc = inference_->getOutputTensorAlignDesc(name);
     device::Tensor *tensor =
         new device::Tensor(device, desc, name, base::IntVector());
-    output_tensors_.emplace_back(tensor);
+    output_tensors_.push_back(tensor);
   }
   Packet *output_packet = outputs_[0];
   for (int i = 0; i < output_tensors_.size(); i++) {
@@ -119,7 +119,7 @@ base::Status Infer::initTemplate<true, true, false, false>() {
   std::vector<std::string> output_names = inference_->getAllOutputTensorName();
   for (auto name : output_names) {
     device::Tensor *tensor = new device::Tensor(name);
-    output_tensors_.emplace_back(tensor);
+    output_tensors_.push_back(tensor);
   }
   Packet *output_packet = outputs_[0];
   for (int i = 0; i < output_tensors_.size(); i++) {
@@ -165,7 +165,7 @@ base::Status Infer::initTemplate<false, true, false, false>() {
     device::TensorDesc desc = inference_->getInputTensorAlignDesc(name);
     device::Tensor *tensor =
         new device::Tensor(device, desc, name, base::IntVector());
-    input_tensors_.emplace_back(tensor);
+    input_tensors_.push_back(tensor);
   }
   Packet *input_packet = inputs_[0];
   for (int i = 0; i < input_tensors_.size(); i++) {
@@ -175,7 +175,7 @@ base::Status Infer::initTemplate<false, true, false, false>() {
   std::vector<std::string> output_names = inference_->getAllOutputTensorName();
   for (auto name : output_names) {
     device::Tensor *tensor = new device::Tensor(name);
-    output_tensors_.emplace_back(tensor);
+    output_tensors_.push_back(tensor);
   }
   Packet *output_packet = outputs_[0];
   for (int i = 0; i < output_tensors_.size(); i++) {

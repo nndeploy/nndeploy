@@ -37,7 +37,7 @@ class NcnnInference : public Inference {
   base::Status deallocateInputOutputTensor();
 
  private:
-  ncnn::Net *net_;
+  ncnn::Net net_;
 };
 
 }  // namespace inference

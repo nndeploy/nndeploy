@@ -90,7 +90,7 @@ base::Status YoloPostProcess::runV5V6() {
           // NNDEPLOY_LOGE("score:%f, x0:%f, y0:%f, x1:%f, y1:%f\n", score, x0,
           // y0,
           //               x1, y1);
-          results_batch.bboxs_.emplace_back(bbox);
+          results_batch.bboxs_.push_back(bbox);
         }
       }
     }
@@ -105,7 +105,7 @@ base::Status YoloPostProcess::runV5V6() {
       results_batch.bboxs_[n].bbox_[1] /= param->model_h_;
       results_batch.bboxs_[n].bbox_[2] /= param->model_w_;
       results_batch.bboxs_[n].bbox_[3] /= param->model_h_;
-      results->bboxs_.emplace_back(results_batch.bboxs_[n]);
+      results->bboxs_.push_back(results_batch.bboxs_[n]);
     }
   }
 
@@ -160,7 +160,7 @@ base::Status YoloPostProcess::runV8() {
           bbox.bbox_[1] = y0;
           bbox.bbox_[2] = x1;
           bbox.bbox_[3] = y1;
-          results_batch.bboxs_.emplace_back(bbox);
+          results_batch.bboxs_.push_back(bbox);
         }
       }
     }
@@ -175,7 +175,7 @@ base::Status YoloPostProcess::runV8() {
       results_batch.bboxs_[n].bbox_[1] /= param->model_h_;
       results_batch.bboxs_[n].bbox_[2] /= param->model_w_;
       results_batch.bboxs_[n].bbox_[3] /= param->model_h_;
-      results->bboxs_.emplace_back(results_batch.bboxs_[n]);
+      results->bboxs_.push_back(results_batch.bboxs_[n]);
     }
   }
 
@@ -187,7 +187,7 @@ model::Pipeline* createYoloV5Pipeline(const std::string& name,
                                       base::DeviceType device_type,
                                       Packet* input, Packet* output,
                                       base::ModelType model_type, bool is_path,
-                                      std::vector<std::string>& model_value) {
+                                      std::vector<std::string> model_value) {
   model::Pipeline* pipeline = new model::Pipeline(name, input, output);
   model::Packet* infer_input = pipeline->createPacket("infer_input");
   model::Packet* infer_output = pipeline->createPacket("infer_output");
@@ -206,6 +206,8 @@ model::Pipeline* createYoloV5Pipeline(const std::string& name,
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
+  pre_param->h_ = 640;
+  pre_param->w_ = 640;
 
   inference::InferenceParam* inference_param =
       (inference::InferenceParam*)(infer->getParam());
@@ -230,7 +232,7 @@ model::Pipeline* createYoloV6Pipeline(const std::string& name,
                                       base::DeviceType device_type,
                                       Packet* input, Packet* output,
                                       base::ModelType model_type, bool is_path,
-                                      std::vector<std::string>& model_value) {
+                                      std::vector<std::string> model_value) {
   model::Pipeline* pipeline = new model::Pipeline(name, input, output);
   model::Packet* infer_input = pipeline->createPacket("infer_input");
   model::Packet* infer_output = pipeline->createPacket("infer_output");
@@ -249,6 +251,8 @@ model::Pipeline* createYoloV6Pipeline(const std::string& name,
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
+  pre_param->h_ = 640;
+  pre_param->w_ = 640;
 
   inference::InferenceParam* inference_param =
       (inference::InferenceParam*)(infer->getParam());
@@ -273,7 +277,7 @@ model::Pipeline* createYoloV8Pipeline(const std::string& name,
                                       base::DeviceType device_type,
                                       Packet* input, Packet* output,
                                       base::ModelType model_type, bool is_path,
-                                      std::vector<std::string>& model_value) {
+                                      std::vector<std::string> model_value) {
   model::Pipeline* pipeline = new model::Pipeline(name, input, output);
   model::Packet* infer_input = pipeline->createPacket("infer_input");
   model::Packet* infer_output = pipeline->createPacket("infer_output");
@@ -292,6 +296,8 @@ model::Pipeline* createYoloV8Pipeline(const std::string& name,
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
+  pre_param->h_ = 640;
+  pre_param->w_ = 640;
 
   inference::InferenceParam* inference_param =
       (inference::InferenceParam*)(infer->getParam());
