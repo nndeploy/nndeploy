@@ -10,7 +10,6 @@ TypeInferenceRegister<TypeInferenceCreator<NcnnInference>>
 NcnnInference::NcnnInference(base::InferenceType type) : Inference(type) {}
 NcnnInference::~NcnnInference() {}
 
-// 默认为init之前inference_param已经初始化，利用inference_param初始化NCNN的instance和其余各项参数
 base::Status NcnnInference::init() {
   base::Status status = base::kStatusCodeOk;
 
@@ -30,15 +29,11 @@ base::Status NcnnInference::init() {
   std::string weights = ncnn_inference_param->model_value_[1];
   if (ncnn_inference_param->model_type_ == base::kModelTypeNcnn) {
     if (ncnn_inference_param->is_path_) {
-      // int ret = net_.load_param(
-      //     "/home/always/github/ncnn/examples/squeezenet_v1.1.param");
       int ret = net_.load_param(reinterpret_cast<const char *>(params.data()));
       if (ret != 0) {
         NNDEPLOY_LOGE("load_param failed! ret=%d\n", ret);
         return base::kStatusCodeErrorInferenceNcnn;
       }
-      // ret = net_.load_model(
-      //     "/home/always/github/ncnn/examples/squeezenet_v1.1.bin");
       ret = net_.load_model(reinterpret_cast<const char *>(weights.data()));
       if (ret != 0) {
         NNDEPLOY_LOGE("load_model failed! ret=%d\n", ret);
@@ -64,8 +59,6 @@ base::Status NcnnInference::init() {
     return base::kStatusCodeErrorInferenceNcnn;
   }
 
-  // extractor_ = net_.create_extractor();
-
   status = allocateInputOutputTensor();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "allocateInputOutputTensor failed!!\n");
@@ -77,7 +70,6 @@ base::Status NcnnInference::deinit() {
   base::Status status = deallocateInputOutputTensor();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "deallocateInputOutputTensor failed!!\n");
-  // delete net_;
   return base::kStatusCodeOk;
 }
 
@@ -119,15 +111,15 @@ base::Status NcnnInference::reshape(base::ShapeMap &shape_map) {
 }
 
 base::Status NcnnInference::run() {
-  auto extractor_ = net_.create_extractor();
+  auto extractor = net_.create_extractor();
   for (auto iter : external_input_tensors_) {
     ncnn::Mat input_mat = NcnnConvert::matConvertFromTensor(iter.second);
-    extractor_.input(iter.first.c_str(), input_mat);
+    extractor.input(iter.first.c_str(), input_mat);
   }
   for (auto iter : external_output_tensors_) {
     std::string output_name = iter.first;
     ncnn::Mat output_mat;
-    extractor_.extract(output_name.c_str(), output_mat);
+    extractor.extract(output_name.c_str(), output_mat);
     device::Tensor *output_tensor = iter.second;
     NcnnConvert::matConvertToTensor(output_mat, output_name,
                                     output_tensor);  // 浅拷贝

@@ -119,6 +119,9 @@ IntVector shapeNhwc2Nchw(const IntVector &dims) {
 }
 
 bool isDynamicShape(const IntVector &dims) {
+  if (dims.empty()) {
+    return true;
+  }
   for (auto iter : dims) {
     if (iter < 0) {
       return true;

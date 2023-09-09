@@ -11,7 +11,7 @@ static TypeTensorRegister<TypeTensorCreator<Tensor>> g_defalut_tensor_register(
 Tensor::Tensor() : buffer_(nullptr) {}
 Tensor::~Tensor() { destory(); }
 
-Tensor::Tensor(const std::string &name) : name_(name){};
+Tensor::Tensor(const std::string &name) : name_(name), buffer_(nullptr){};
 
 Tensor::Tensor(const TensorDesc &desc, const std::string &name) {
   create(desc, name);
@@ -147,7 +147,7 @@ bool Tensor::justModify(Buffer *buffer) {
 // get
 bool Tensor::empty() {
   bool flag = desc_.shape_.empty();
-  if (buffer_) {
+  if (buffer_ != nullptr) {
     flag = flag || buffer_->empty();
   }
   return flag;

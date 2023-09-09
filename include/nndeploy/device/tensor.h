@@ -233,7 +233,7 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   std::string name_;                 // tensor name
   TensorDesc desc_;                  // tensor desc
   bool is_external_buffer_ = false;  // 是否是外部buffer
-  Buffer *buffer_;                   // buffer
+  Buffer *buffer_ = nullptr;         // buffer
 };
 
 class TensorCreator {

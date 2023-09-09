@@ -331,7 +331,6 @@ base::Status Pipeline::run() {
   // NNDEPLOY_LOGI("#######################\n");
   for (auto task_vec : topo_sort_task_) {
     for (auto task : task_vec) {
-      // NNDEPLOY_LOGI("Task name[%s]!\n", task->getName().c_str());
       NNDEPLOY_TIME_POINT_START(task->getName());
       status = task->run();
       NNDEPLOY_TIME_POINT_END(task->getName());

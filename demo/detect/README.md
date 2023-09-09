@@ -49,6 +49,14 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
 + 模型推理
 ./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeNcnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeNcnn --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.param,/home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.bin --input_type kInputTypeImage  --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeNcnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeNcnn --is_path --model_value /data/local/tmp/model_zoo/yolov5s.onnx.param,/data/local/tmp/model_zoo/yolov5s.onnx.bin --input_type kInputTypeImage  --input_path /data/local/tmp/test_data/detect/sample.jpg --output_path /data/local/tmp/temp/sample_output.jpg
+
+
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeNcnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeNcnn --is_path --model_value /data/local/tmp/model_zoo/squeezenet_v1.1.param,/data/local/tmp/model_zoo/squeezenet_v1.1.param.bin --input_type kInputTypeImage  --input_path /data/local/tmp/test_data/detect/sample.jpg --output_path /data/local/tmp/temp/sample_output.jpg
+
+./demo_nndeploy_detect /data/local/tmp/test_data/detect/sample.jpg
+
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5_MULTI_OUTPUT --inference_type kInferenceTypeNcnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeNcnn --is_path --model_value /data/local/tmp/lib/yolov5s_6.0.param,/data/local/tmp/lib/yolov5s_6.0.bin --input_type kInputTypeImage  --input_path /data/local/tmp/test_data/detect/sample.jpg --output_path /data/local/tmp/temp/sample_output.jpg
 
 # yolov8
 ## onnxruntime - success

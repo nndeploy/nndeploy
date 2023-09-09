@@ -56,7 +56,6 @@ base::Status YoloPostProcess::runV5V6() {
 
   DetectResult* results = (DetectResult*)outputs_[0]->getParam();
   results->bboxs_.clear();
-  NNDEPLOY_LOGE("batch:%d, height:%d, width:%d.\n", batch, height, width);
 
   for (int b = 0; b < batch; ++b) {
     float* data_batch = data + b * height * width;

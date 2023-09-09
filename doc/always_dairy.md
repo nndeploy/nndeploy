@@ -18,10 +18,14 @@
 + export LD_LIBRARY_PATH=/data/local/tmp/lib:$LD_LIBRARY_PATH
 + adb push lib/ /data/local/tmp
 + adb push yolov6m.onnx.mnn /data/local/tmp/model_zoo
++ adb push yolov5s.onnx.param /data/local/tmp/model_zoo
++ adb push yolov5s.onnx.bin /data/local/tmp/model_zoo
 + adb push yolov6m.tnn* /data/local/tmp/model_zoo
 + adb push temp/ /data/local/tmp/
 + adb push test_data/ /data/local/tmp/
 + adb pull /data/local/tmp/temp /home/always/huggingface/nndeploy/temp
+
+
 
 ## 
 + 完成git submodules 

@@ -7,9 +7,9 @@
 # file so that any local changes will be ignored by git
 #
 # $ mkdir build
-# $ cp cmake/config_xx.cmake build
+# $ cp cmake/config_nndeploy.cmake build
 # $ cd build
-# $ mv config_xx.cmake config.cmake
+# $ mv config_nndeploy.cmake config.cmake
 # $ cmake ..
 # $ make -j8
 # --------------------------------------------------------------------
@@ -59,7 +59,7 @@ set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "/home/always/huggingface/nndeploy/third_
 set(ENABLE_NNDEPLOY_INFERENCE_COREML OFF)
 set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF)
 set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/onnxruntime-linux-x64-1.15.1")
-set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF)
+set(ENABLE_NNDEPLOY_INFERENCE_NCNN "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/ncnn-20230816-ubuntu-2204-shared")
 set(ENABLE_NNDEPLOY_INFERENCE_TNN "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/tnn-v0.3.0")
 set(ENABLE_NNDEPLOY_INFERENCE_MNN "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/mnn_2.6.0_linux_x64_cpu_opencl")
 set(ENABLE_NNDEPLOY_AICOMPILER_TVM OFF)

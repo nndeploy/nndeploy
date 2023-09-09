@@ -41,6 +41,7 @@ cv::Mat drawBox(cv::Mat &cv_mat, model::DetectResult &result) {
   }
   return cv_mat;
 }
+
 //
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
@@ -48,50 +49,23 @@ int main(int argc, char *argv[]) {
     demo::showUsage();
     return -1;
   }
+
   // 检测模型的有向无环图pipeline名称，例如:
   // NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8
-  // std::string name = demo::getName();
-  // // 推理后端类型，例如:
-  // //
-  // kInferenceTypeOpenVino/kInferenceTypeTensorRt/kInferenceTypeOnnxRuntime/...
-  // base::InferenceType inference_type = demo::getInferenceType();
-  // // 推理设备类型，例如:
-  // // kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
-  // base::DeviceType device_type = demo::getDeviceType();
-  // // 模型类型，例如:
-  // // kModelTypeOnnx/kModelTypeMnn/...
-  // base::ModelType model_type = demo::getModelType();
-  // // 模型是否是路径
-  // bool is_path = demo::isPath();
-  // // 模型路径或者模型字符串
-  // std::vector<std::string> model_value = demo::getModelValue();
-
-  // NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8
-  std::string name = "NNDEPLOY_YOLOV5";
+  std::string name = demo::getName();
   // 推理后端类型，例如:
-  // kInferenceTypeOpenVino/kInferenceTypeTensorRt/kInferenceTypeOnnxRuntime/...
-  base::InferenceType inference_type = base::kInferenceTypeNcnn;
+  // kInferenceTypeOpenVino / kInferenceTypeTensorRt / kInferenceTypeOnnxRuntime
+  base::InferenceType inference_type = demo::getInferenceType();
   // 推理设备类型，例如:
   // kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
-  base::DeviceType device_type = device::getDefaultHostDeviceType();
+  base::DeviceType device_type = demo::getDeviceType();
   // 模型类型，例如:
   // kModelTypeOnnx/kModelTypeMnn/...
-  base::ModelType model_type = base::kModelTypeNcnn;
+  base::ModelType model_type = demo::getModelType();
   // 模型是否是路径
   bool is_path = demo::isPath();
   // 模型路径或者模型字符串
-  std::vector<std::string> model_value;
-  model_value.push_back(
-      "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
-      "yolov5s.onnx.param");
-  model_value.push_back(
-      "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
-      "yolov5s.onnx.bin");
-  // model_value.push_back(
-  //     "/home/always/github/ncnn/examples/squeezenet_v1.1.param");
-  // model_value.push_back(
-  //     "/home/always/github/ncnn/examples/squeezenet_v1.1.bin");
-
+  std::vector<std::string> model_value = demo::getModelValue();
   // 有向无环图pipeline的输入边packert
   model::Packet input("detect_in");
   // 有向无环图pipeline的输出边packert
@@ -113,9 +87,7 @@ int main(int argc, char *argv[]) {
   }
 
   // 有向无环图pipeline的输入图片路径
-  // std::string input_path = demo::getInputPath();
-  std::string input_path =
-      "/home/always/huggingface/nndeploy/test_data/detect/sample.jpg";
+  std::string input_path = demo::getInputPath();
   // opencv读图
   cv::Mat input_mat = cv::imread(input_path);
   // 将图片写入有向无环图pipeline输入边
@@ -133,10 +105,7 @@ int main(int argc, char *argv[]) {
   }
 
   drawBox(input_mat, result);
-  // std::string ouput_path = demo::getOutputPath();
-  std::string ouput_path =
-      "/home/always/huggingface/nndeploy/temp/sample_output.jpg";
-
+  std::string ouput_path = demo::getOutputPath();
   cv::imwrite(ouput_path, input_mat);
 
   // 有向无环图pipelinez反初始化
@@ -149,6 +118,7 @@ int main(int argc, char *argv[]) {
   // 有向无环图pipelinez销毁
   delete pipeline;
 
-  printf("hello world!\n");
+  NNDEPLOY_LOGE("hello world!\n");
+
   return 0;
 }

@@ -50,6 +50,7 @@ class NcnnConvert {
    * @return ncnn::Mat
    */
   static ncnn::Mat matConvertFromTensor(device::Tensor *src);
+
   /**
    * @brief 浅拷贝
    *

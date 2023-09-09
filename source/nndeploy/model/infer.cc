@@ -8,7 +8,7 @@ Infer::Infer(const std::string &name, base::InferenceType type, Packet *input,
              Packet *output)
     : Task(name, input, output) {
   type_ = type;
-  // inference_ = inference::createInference(type);
+  inference_ = inference::createInference(type);
   if (inference_ == nullptr) {
     NNDEPLOY_LOGE("Failed to create inference");
     constructed_ = false;
@@ -116,6 +116,17 @@ base::Status Infer::reshapeTemplate<false, false, false, false>() {
 template <>
 base::Status Infer::initTemplate<true, true, false, false>() {
   base::Status status = base::kStatusCodeOk;
+
+  std::vector<std::string> input_names = inference_->getAllInputTensorName();
+  for (auto name : input_names) {
+    device::Tensor *tensor = new device::Tensor(name);
+    input_tensors_.push_back(tensor);
+  }
+  Packet *input_packet = inputs_[0];
+  for (int i = 0; i < input_tensors_.size(); i++) {
+    input_packet->set(input_tensors_[i], i);
+  }
+
   std::vector<std::string> output_names = inference_->getAllOutputTensorName();
   for (auto name : output_names) {
     device::Tensor *tensor = new device::Tensor(name);
@@ -125,11 +136,16 @@ base::Status Infer::initTemplate<true, true, false, false>() {
   for (int i = 0; i < output_tensors_.size(); i++) {
     output_packet->set(output_tensors_[i], i);
   }
+
   return status;
 }
 template <>
 base::Status Infer::deinitTemplate<true, true, false, false>() {
   base::Status status = base::kStatusCodeOk;
+  for (auto iter : input_tensors_) {
+    delete iter;
+  }
+  input_tensors_.clear();
   for (auto iter : output_tensors_) {
     delete iter;
   }
