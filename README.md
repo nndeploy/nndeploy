@@ -1,16 +1,16 @@
 ## 介绍
 nndeploy是一款最新上线的支持多平台、简单易用、高性能的机器学习部署框架，一套实现可在多端(云、边、端)完成模型的高性能部署。
 
-作为一个多平台模型部署工具，我们的框架最大的宗旨就是简单贴心(^‹^)，目前nndeploy已接入TensorRT、MNN、OpenVINO、ONNXRuntime、TNN五个业界知名的推理框架，后续会继续接入NCNN、tf-lite、paddle-lite、coreML，在我们的框架下可使用一套代码轻松切换不同的推理后端进行推理，且不用担心部署框架对推理框架的抽象而带来的性能损失。
+作为一个多平台模型部署工具，我们的框架最大的宗旨就是简单贴心(^‹^)，目前nndeploy已完成TensorRT、OpenVINO、ONNXRuntime、MNN、TNN、NCNN六个业界知名的推理框架的继承，后续会继续接入tf-lite、paddle-lite、coreML、TVM、AITemplate，在我们的框架下可使用一套代码轻松切换不同的推理后端进行推理，且不用担心部署框架对推理框架的抽象而带来的性能损失。
 
 如果您需要部署自己的模型，目前nndeploy可帮助您在一个文件（大概只要200行代码）之内完成多端部署，提供了一些的前后处理和推理模板可供选择帮助您简化流程；如果只需使用已有主流模型进行自己的推理，目前nndeploy已完成YOLO系列等多个开源模型的部署，可供直接使用，目前我们还在积极部署其它开源模型（如果您或团队有需要部署的开源模型或者其他部署相关的问题，欢迎随时来和我们探讨(^-^)）
 
 ## 架构简介
-![架构简介](doc/image/架构.jpg)
+![架构简介](doc/image/架构.png)
 
 ``注：白色部分为相关功能正在开发验证中，即将上线``
 
-## 能力展示
+## 优势特性
 nndeploy具有如下优势特性：
 ### 支持多平台
 支持的平台和推理框架如下表所示
@@ -21,6 +21,7 @@ nndeploy具有如下优势特性：
 | [ONNXRuntime](https://github.com/microsoft/onnxruntime) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 |          [MNN](https://github.com/alibaba/MNN)          |  yes  |   yes   |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 |          [TNN](https://github.com/Tencent/TNN)          |  yes  |   yes   |   yes   |  no   |  no   | [02200059Z](https://github.com/02200059Z) |       |
+|        [ncnn](https://github.com/Tencent/ncnn/)         |  no   |   no    |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 
 ``注: yes：完成在该平台的验证，no：目前正在验证中``
 
@@ -43,138 +44,7 @@ nndeploy具有如下优势特性：
 - 一组高性能的算子正在开发中，完成后将加速你模型前后处理速度
 
 ## 快速开始
-### 使用demo
-以检测模型demo为例 - demo\detect\demo.cc
-+ 创建检测模型有向无环图pipeline
-  ```c++
-  // 检测模型的有向无环图pipeline名称，例如:
-  // NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8
-  std::string name = demo::getName();
-  // 推理后端类型，例如:
-  // kInferenceTypeOpenVino/kInferenceTypeTensorRt/kInferenceTypeOnnxRuntime/...
-  base::InferenceType inference_type = demo::getInferenceType();
-  // 推理设备类型，例如:
-  // kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
-  base::DeviceType device_type = demo::getDeviceType();
-  // 模型类型，例如:
-  // kModelTypeOnnx/kModelTypeMnn/...
-  base::ModelType model_type = demo::getModelType();
-  // 模型是否是路径
-  bool is_path = demo::isPath();
-  // 模型路径或者模型字符串
-  std::vector<std::string> model_value = demo::getModelValue();
-  // 有向无环图pipeline的输入边packert
-  model::Packet input("detect_in");
-  // 有向无环图pipeline的输出边packert
-  model::Packet output("detect_out");
-  // 创建检测模型有向无环图pipeline
-  model::Pipeline *pipeline =
-      model::createPipeline(name, inference_type, device_type, &input, &output,
-                            model_type, is_path, model_value);
-  if (pipeline == nullptr) {
-    NNDEPLOY_LOGE("pipeline is nullptr");
-    return -1;
-  }
-  ```
-+ 初始化有向无环图pipeline
-  ```c++
-  base::Status status = pipeline->init();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("pipeline init failed");
-    return -1;
-  }
-  ```
-+ 给有向无环图pipeline写入输入边输出边
-  ```c++
-  // 有向无环图pipeline的输入图片路径
-  std::string input_path = demo::getInputPath();
-  // opencv读图
-  cv::Mat input_mat = cv::imread(input_path);
-  // 将图片写入有向无环图pipeline输入边
-  input.set(input_mat);
-  // 定义有向无环图pipeline的输出结果
-  model::DetectResult result;
-  // 将输出结果写入有向无环图pipeline输出边
-  output.set(result);
-  ```
-+ 有向无环图pipeline运行
-  ```c++
-  status = pipeline->run();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("pipeline run failed");
-    return -1;
-  }
-  ```
-+ 有向无环图pipeline反初始化
-  ```c++
-  status = pipeline->deinit();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("pipeline deinit failed");
-    return -1;
-  }
-  ```
-+ 有向无环图pipeline销毁
-  ```c++
-  delete pipeline;
-  ```
-
-### 部署模型
-以YOLOV5为例。源文件 - source\nndeploy\model\detect\yolo\yolo.cc，头文件 - include\nndeploy\model\detect\yolo\yolo.h
-+ 准备模型文件
-+ 搭建模型部署的有向无环图
-  ```c++
-  model::Pipeline* createYoloV5Pipeline(const std::string& name,
-                                      base::InferenceType inference_type,
-                                      base::DeviceType device_type,
-                                      Packet* input, Packet* output,
-                                      base::ModelType model_type, bool is_path,
-                                      std::vector<std::string>& model_value) {
-    model::Pipeline* pipeline = new model::Pipeline(name, input, output); // 有向无环图
-    model::Packet* infer_input = pipeline->createPacket("infer_input"); // infer任务的输入
-    model::Packet* infer_output = pipeline->createPacket("infer_output"); // infer任务的输出
-    // YOLOV5模型前处理任务model::CvtColrResize，输入边为input，输出边为infer_input
-    model::Task* pre = pipeline->createTask<model::CvtColrResize>(
-        "preprocess", input, infer_input);
-    // YOLOV5模型推理任务model::Infer(通用模板)，输入边为infer_input，输出边为infer_output
-    model::Task* infer = pipeline->createInfer<model::Infer>(
-        "infer", inference_type, infer_input, infer_output);
-    // YOLOV5模型后处理任务YoloPostProcess，输入边为infer_output，输出边为output
-    model::Task* post = pipeline->createTask<YoloPostProcess>(
-        "postprocess", infer_output, output);
-    // YOLOV5模型前处理任务pre的参数配置
-    model::CvtclorResizeParam* pre_param =
-        dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());
-    pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-    pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-    pre_param->interp_type_ = base::kInterpTypeLinear;
-    // YOLOV5模型推理任务infer的参数配置
-    inference::InferenceParam* inference_param =
-        (inference::InferenceParam*)(infer->getParam());
-    inference_param->is_path_ = is_path;
-    inference_param->model_value_ = model_value;
-    inference_param->device_type_ = device_type;
-
-    // YOLOV5模型后处理任务post的参数配置
-    YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post->getParam());
-    post_param->score_threshold_ = 0.5;
-    post_param->nms_threshold_ = 0.45;
-    post_param->num_classes_ = 80;
-    post_param->model_h_ = 640;
-    post_param->model_w_ = 640;
-    post_param->version_ = 5;
-
-    return pipeline;
-  }
-  ```
-  `注：前后处理任务有时候需要自己写`
-+ 注册createYoloV5Pipeline
-  ```c++
-  #define NNDEPLOY_YOLOV5 "NNDEPLOY_YOLOV5"
-  class TypePipelineRegister g_register_yolov5_pipeline(NNDEPLOY_YOLOV5,
-                                                    createYoloV5Pipeline);
-  ```
-
-## 编译
+### 00-编译
 + 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
   ```
   mkdir build
@@ -201,7 +71,7 @@ nndeploy具有如下优势特性：
   make install
   ```
 
-### 第三方库
+### 01-第三方库编译文档以及官方下载链接
 |                        第三方库                         |  主版本  |                                          编译文档                                           |                                                                               官方库下载链接                                                                               |                 备注                 |
 | :-----------------------------------------------------: | :------: | :-----------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------: |
 |       [opencv](https://github.com/opencv/opencv)        |  4.8.0   |                           [链接](https://opencv.org/get-started/)                           |                                                                  [链接](https://opencv.org/get-started/)                                                                   |                                      |
@@ -209,16 +79,63 @@ nndeploy具有如下优势特性：
 | [OpenVINO](https://github.com/openvinotoolkit/openvino) | 2023.0.1 |      [链接](https://github.com/openvinotoolkit/openvino/blob/master/docs/dev/build.md)      | [链接](https://www.intel.com/content/www/us/en/developer/tools/openvino-toolkit/download.html?ENVIRONMENT=RUNTIME&OP_SYSTEM=MACOS&VERSION=v_2023_0_1&DISTRIBUTION=ARCHIVE) |                                      |
 | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | v1.15.1  | [链接](https://github.com/DefTruth/lite.ai.toolkit/blob/main/docs/ort/ort_useful_api.zh.md) |                                                   [链接](https://github.com/microsoft/onnxruntime/releases/tag/v1.15.1)                                                    |                                      |
 |          [MNN](https://github.com/alibaba/MNN)          |  2.6.2   |            [链接](https://mnn-docs.readthedocs.io/en/latest/compile/engine.html)            |                                                         [链接](https://github.com/alibaba/MNN/releases/tag/2.6.0)                                                          |                                      |
-|          [TNN](https://github.com/Tencent/TNN)          |  v0.3.0  |          [链接](https://github.com/Tencent/TNN/blob/master/doc/cn/user/compile.md)          |                                                         [链接](https://github.com/Tencent/TNN/releases/tag/v0.3.0)                                                         |
-|                                                         |
+|          [TNN](https://github.com/Tencent/TNN)          |  v0.3.0  |          [链接](https://github.com/Tencent/TNN/blob/master/doc/cn/user/compile.md)          |                                                         [链接](https://github.com/Tencent/TNN/releases/tag/v0.3.0)                                                         |                                      |
+|        [ncnn](https://github.com/Tencent/ncnn/)         |  v0.3.0  |            [链接](https://github.com/Tencent/ncnn/tree/master/docs/how-to-build)            |                                                       [链接](https://github.com/Tencent/ncnn/releases/tag/20230816)                                                        |                                      |
 - 补充说明    
   - 我使用第三方库的上述版本，通常使用其他版本的也没有问题
   - TensorRT
     - [Windows链接](https://zhuanlan.zhihu.com/p/476679322)
     - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
 
-## 资源仓库
-我们将部分已验证模型、第三方库、测试数据放在[HuggingFace](https://huggingface.co/alwaysssss/nndeploy)上，如果您有需要可以去下载，`但强烈建议您自己去管理自己的模型仓库、第三方库、测试数据`。
+### 02-nndeploy资源仓库
+已验证模型下载链接、第三方库下载链接、测试数据下载链接，如果您有需要可以去下载，`但强烈建议您自己去管理自己的模型仓库、第三方库、测试数据`。
+
+
+### 03-在linux下跑通检测模型YOLOV5S demo
+#### 准备工作
++ 安装opencv
+  + sudo apt install libopencv-dev
+  + [参考链接](https://cloud.tencent.com/developer/article/1657529)
++ 下载模型，解压
++ 下载第三方库，解压
++ 下载测试数据，解压
+#### 编译
++ 在根目录创建`build`目录，将`cmake/config_demo.cmake`复制到该目录，修改名称为`config.cmake`
+  ```
+  mkdir build
+  cp cmake/config.cmake build
+  mv config_demo.cmake config.cmake
+  cd build
+  ```
++ 编辑`build/config.cmake`来定制编译选项
++ 将所有第三方库的路径改为您的路径，例如set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "PATH/third_party/ubuntu22.04_x64/onnxruntime-linux-x64-1.15.1")改为set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "PATH/third_party/ubuntu22.04_x64/onnxruntime-linux-x64-1.15.1")。`PATH为您下载第三方库后的解压路径`
++ 开始`make nndeploy`库
+  ```
+  cmake ..
+  make -j4
+  ```
++ 安装，将nndeploy相关库可执行文件、第三方库安装至`build/install/lib`
+  ```
+  make install
+  ```
+#### 运行
+```
+cd PATH/nndeploy/build/install/lib
+export LD_LIBRARY_PATH=PATH/nndeploy/build/install/lib:$LD_LIBRARY_PATH
+// onnxruntime 下运行 yolov5s demo
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+
+// openvino 下运行 yolov5s demo
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+
+// tensorrt 下运行 yolov5s demo
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+
+// tensorrt 下运行 yolov5s demo
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeMnn --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx.mnn --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+```
+`注：请将上述PATH更换为自己对应的目录`
+
 
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
