@@ -14,30 +14,37 @@ base::DataType TensorRtConvert::convertToDataType(
       dst.code_ = base::kDataTypeCodeFp;
       dst.bits_ = 32;
       dst.lanes_ = 1;
+      break;
     case nvinfer1::DataType::kHALF:
       dst.code_ = base::kDataTypeCodeBFp;
       dst.bits_ = 16;
       dst.lanes_ = 1;
+      break;
     case nvinfer1::DataType::kINT32:
       dst.code_ = base::kDataTypeCodeInt;
       dst.bits_ = 32;
       dst.lanes_ = 1;
+      break;
     case nvinfer1::DataType::kINT8:
       dst.code_ = base::kDataTypeCodeInt;
       dst.bits_ = 8;
       dst.lanes_ = 1;
+      break;
     case nvinfer1::DataType::kUINT8:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 8;
       dst.lanes_ = 1;
+      break;
     case nvinfer1::DataType::kBOOL:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 8;
       dst.lanes_ = 1;
+      break;
     default:
       dst.code_ = base::kDataTypeCodeFp;
       dst.bits_ = 32;
       dst.lanes_ = 1;
+      break;
   }
   return dst;
 }
