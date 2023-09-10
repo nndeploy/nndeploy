@@ -27,6 +27,10 @@ class OpenCvConvert {
 
   static int convertFromInterpType(base::InterpType src);
 
+  static int convertFromBorderType(base::BorderType src);
+
+  static cv::Scalar convertFromScalar(const base::Scalar2d& src);
+
   /**
    * @brief cast + normalize + premute
    *

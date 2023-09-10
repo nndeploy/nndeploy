@@ -21,25 +21,57 @@
 namespace nndeploy {
 namespace model {
 
-int getChannelByPixelType(base::PixelType pixel_type) {
-  int channel = 0;
-  switch (pixel_type) {
-    case base::kPixelTypeGRAY:
-      channel = 1;
-      break;
-    case base::kPixelTypeRGB:
-    case base::kPixelTypeBGR:
-      channel = 3;
-      break;
-    case base::kPixelTypeRGBA:
-    case base::kPixelTypeBGRA:
-      channel = 4;
-      break;
-    default:
-      NNDEPLOY_LOGE("pixel type not support");
-      break;
+extern NNDEPLOY_CC_API int getChannelByPixelType(base::PixelType pixel_type);
+
+template <typename T>
+void normalizeC1(const T* __restrict src, float* __restrict dst, size_t size,
+                 const float* __restrict scale, const float* __restrict mean,
+                 const float* __restrict std) {
+  const float mul_scale = scale[0] / std[0];
+  const float add_bias = -mean[0] / std[0];
+  for (size_t i = 0; i < size; ++i) {
+    dst[i] = src[i] * mul_scale + add_bias;
   }
-  return channel;
+}
+template <typename T>
+void normalizeC2(const T* __restrict src, float* __restrict dst, size_t size,
+                 const float* __restrict scale, const float* __restrict mean,
+                 const float* __restrict std) {
+  const float mul_scale[2] = {scale[0] / std[0], scale[1] / std[1]};
+  const float add_bias[2] = {-mean[0] / std[0], -mean[1] / std[1]};
+  for (size_t i = 0; i < size * 2; i += 2) {
+    dst[i] = src[i] * mul_scale[0] + add_bias[0];
+    dst[i + 1] = src[i + 1] * mul_scale[1] + add_bias[1];
+  }
+}
+template <typename T>
+void normalizeC3(const T* __restrict src, float* __restrict dst, size_t size,
+                 const float* __restrict scale, const float* __restrict mean,
+                 const float* __restrict std) {
+  const float mul_scale[3] = {scale[0] / std[0], scale[1] / std[1],
+                              scale[2] / std[2]};
+  const float add_bias[3] = {-mean[0] / std[0], -mean[1] / std[1],
+                             -mean[2] / std[2]};
+  for (size_t i = 0; i < size * 3; i += 3) {
+    dst[i] = src[i] * mul_scale[0] + add_bias[0];
+    dst[i + 1] = src[i + 1] * mul_scale[1] + add_bias[1];
+    dst[i + 2] = src[i + 2] * mul_scale[2] + add_bias[2];
+  }
+}
+template <typename T>
+void normalizeC4(const T* __restrict src, float* __restrict dst, size_t size,
+                 const float* __restrict scale, const float* __restrict mean,
+                 const float* __restrict std) {
+  const float mul_scale[4] = {scale[0] / std[0], scale[1] / std[1],
+                              scale[2] / std[2], scale[3] / std[3]};
+  const float add_bias[4] = {-mean[0] / std[0], -mean[1] / std[1],
+                             -mean[2] / std[2], -mean[3] / std[3]};
+  for (size_t i = 0; i < size * 3; i += 3) {
+    dst[i] = src[i] * mul_scale[0] + add_bias[0];
+    dst[i + 1] = src[i + 1] * mul_scale[1] + add_bias[1];
+    dst[i + 2] = src[i + 2] * mul_scale[2] + add_bias[2];
+    dst[i + 3] = src[i + 3] * mul_scale[3] + add_bias[3];
+  }
 }
 
 }  // namespace model

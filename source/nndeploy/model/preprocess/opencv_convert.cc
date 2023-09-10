@@ -100,6 +100,34 @@ int OpenCvConvert::convertFromInterpType(base::InterpType src) {
   return ret;
 }
 
+int OpenCvConvert::convertFromBorderType(base::BorderType src) {
+  int ret = -1;
+  switch (src) {
+    case base::kBorderTypeConstant:
+      ret = cv::BORDER_CONSTANT;
+      break;
+    case base::kBorderTypeReflect:
+      ret = cv::BORDER_REFLECT;
+      break;
+    case base::kBorderTypeEdge:
+      ret = cv::BORDER_REPLICATE;
+      break;
+    case base::kInterpTypeNotSupport:
+      ret = -1;
+      break;
+    default:
+      ret = -1;
+      break;
+  }
+
+  return ret;
+}
+
+cv::Scalar OpenCvConvert::convertFromScalar(const base::Scalar2d& src) {
+  cv::Scalar ret(src.val_[0], src.val_[1], src.val_[2], src.val_[3]);
+  return ret;
+}
+
 /**
  * @brief cast + normalize + premute
  *

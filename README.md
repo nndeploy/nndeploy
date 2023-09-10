@@ -5,10 +5,10 @@ nndeploy是一款最新上线的支持多平台、简单易用、高性能的机
 
 如果您需要部署自己的模型，目前nndeploy可帮助您在一个文件（大概只要200行代码）之内完成多端部署，提供了一些的前后处理和推理模板可供选择帮助您简化流程；如果只需使用已有主流模型进行自己的推理，目前nndeploy已完成YOLO系列等多个开源模型的部署，可供直接使用，目前我们还在积极部署其它开源模型（如果您或团队有需要部署的开源模型或者其他部署相关的问题，欢迎随时来和我们探讨(^-^)）
 
+
 ## 架构简介
 ![架构简介](doc/image/架构.png)
 
-``注：白色部分为相关功能正在开发验证中，即将上线``
 
 ## 优势特性
 nndeploy具有如下优势特性：
@@ -44,7 +44,7 @@ nndeploy具有如下优势特性：
 - 一组高性能的算子正在开发中，完成后将加速你模型前后处理速度
 
 ## 快速开始
-### 00-编译
+### 编译
 + 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
   ```
   mkdir build
@@ -71,7 +71,11 @@ nndeploy具有如下优势特性：
   make install
   ```
 
-### 01-第三方库编译文档以及官方下载链接
+### nndeploy资源仓库
+已验证模型、第三方库、测试数据放在HuggingFace上，如果您有需要可以去下载，[下载链接](https://huggingface.co/alwaysssss/nndeploy)。`但强烈建议您自己去管理自己的模型仓库、第三方库、测试数据`。
+
++ 第三方库编译文档以及官方下载链接
+
 |                        第三方库                         |  主版本  |                                          编译文档                                           |                                                                               官方库下载链接                                                                               |                 备注                 |
 | :-----------------------------------------------------: | :------: | :-----------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------: |
 |       [opencv](https://github.com/opencv/opencv)        |  4.8.0   |                           [链接](https://opencv.org/get-started/)                           |                                                                  [链接](https://opencv.org/get-started/)                                                                   |                                      |
@@ -87,24 +91,20 @@ nndeploy具有如下优势特性：
     - [Windows链接](https://zhuanlan.zhihu.com/p/476679322)
     - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
 
-### 02-nndeploy资源仓库
-已验证模型下载链接、第三方库下载链接、测试数据下载链接，如果您有需要可以去下载，`但强烈建议您自己去管理自己的模型仓库、第三方库、测试数据`。
-
-
-### 03-在linux下跑通检测模型YOLOV5S demo
+### 跑通检测模型YOLOV5s demo
 #### 准备工作
-+ 安装opencv
++ Linux下需安装opencv
   + sudo apt install libopencv-dev
   + [参考链接](https://cloud.tencent.com/developer/article/1657529)
-+ 下载模型，解压
-+ 下载第三方库，解压
-+ 下载测试数据，解压
++ [下载模型](https://huggingface.co/alwaysssss/nndeploy/resolve/main/model_zoo/detect/yolo/yolov5s.onnx)，解压
++ 下载第三方库，[ubuntu22.04](https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/ubuntu22.04_x64.tar)，[windows]()暂未上传， [android](https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/android.tar)。 解压
++ [下载测试数据](https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg)
 #### 编译
 + 在根目录创建`build`目录，将`cmake/config_demo.cmake`复制到该目录，修改名称为`config.cmake`
   ```
   mkdir build
   cp cmake/config.cmake build
-  mv config_demo.cmake config.cmake
+  mv config_yolov5s.cmake config.cmake
   cd build
   ```
 + 编辑`build/config.cmake`来定制编译选项
@@ -118,24 +118,41 @@ nndeploy具有如下优势特性：
   ```
   make install
   ```
-#### 运行
-```
+#### Linux下运行YOLOV5s
+```shell
 cd PATH/nndeploy/build/install/lib
 export LD_LIBRARY_PATH=PATH/nndeploy/build/install/lib:$LD_LIBRARY_PATH
-// onnxruntime 下运行 yolov5s demo
+// onnxruntime 推理
 ./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
 
-// openvino 下运行 yolov5s demo
+// openvino 推理
 ./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
 
-// tensorrt 下运行 yolov5s demo
+// tensorrt 推理
 ./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
 
-// tensorrt 下运行 yolov5s demo
+// tensorrt 推理
 ./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeMnn --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx.mnn --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
 ```
 `注：请将上述PATH更换为自己对应的目录`
 
+#### Windows下运行YOLOV5s
+```shell
+cd PATH/nndeploy/build/install/bin
+export LD_LIBRARY_PATH=PATH/nndeploy/build/install/bin:$LD_LIBRARY_PATH
+// onnxruntime 推理
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+
+// openvino 推理
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+
+// tensorrt 推理
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+
+// MNN 推理
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeMnn --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx.mnn --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+```
+`注：请将上述PATH更换为自己对应的目录`
 
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
