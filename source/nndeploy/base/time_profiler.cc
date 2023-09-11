@@ -97,7 +97,7 @@ void TimeProfiler::print(const std::string &title) {
   for (auto &it : records) {
     if (it->type_ == kEnd) {
       printf("%-20s%-20d%-20.3f%-20.3f%-20.3f\n", it->key_.c_str(),
-             it->call_times_, (float)(it->cost_time_ / 1000.0f),
+             it->call_times_, static_cast<float>(it->cost_time_ / 1000.0f),
              it->cost_time_ / 1000.0f / it->call_times_, it->flops_);
     }
   }

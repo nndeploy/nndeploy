@@ -10,8 +10,8 @@ std::array<float, 4> getOriginBox(float xmin, float ymin, float xmax,
                                   int ori_height) {
   xmin = std::max(xmin / scale_factor[0] + x_offset, 0.f);
   ymin = std::max(ymin / scale_factor[1] + y_offset, 0.f);
-  xmax = std::min(xmax / scale_factor[2] + x_offset, (float)ori_width - 1.f);
-  ymax = std::min(ymax / scale_factor[3] + y_offset, (float)ori_height - 1.f);
+  xmax = std::min(xmax / scale_factor[2] + x_offset, static_cast<float>(ori_width) - 1.f);
+  ymax = std::min(ymax / scale_factor[3] + y_offset, static_cast<float>(ori_height) - 1.f);
   return {xmin, ymin, xmax, ymax};
 }
 
@@ -22,9 +22,9 @@ std::array<float, 4> getOriginBox(const std::array<float, 4>& box,
   float xmin = std::max(box[0] / scale_factor[0] + x_offset, 0.f);
   float ymin = std::max(box[1] / scale_factor[1] + y_offset, 0.f);
   float xmax =
-      std::min(box[3] / scale_factor[2] + x_offset, (float)ori_width - 1.f);
+      std::min(box[3] / scale_factor[2] + x_offset, static_cast<float>(ori_width) - 1.f);
   float ymax =
-      std::min(box[4] / scale_factor[3] + y_offset, (float)ori_height - 1.f);
+      std::min(box[4] / scale_factor[3] + y_offset, static_cast<float>(ori_height) - 1.f);
   return {xmin, ymin, xmax, ymax};
 }
 

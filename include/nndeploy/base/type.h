@@ -476,12 +476,13 @@ inline T Point<T>::dot(const Point& pt) const {
 
 template <typename T>
 inline double Point<T>::ddot(const Point& pt) const {
-  return (double)x_ * (double)(pt.x_) + (double)y_ * (double)(pt.y_);
+  return static_cast<double>(x_) * static_cast<double>(pt.x_) +
+         static_cast<double>(y_) * static_cast<double>(pt.y_);
 }
 
 template <typename T>
 inline double Point<T>::cross(const Point& pt) const {
-  return (double)x_ * pt.y_ - (double)y_ * pt.x_;
+  return static_cast<double>(x_) * pt.y_ - static_cast<double>(y_) * pt.x_;
 }
 
 template <typename T>
@@ -547,7 +548,7 @@ static inline Point<T>& operator/=(Point<T>& a, double b) {
 
 template <typename T>
 static inline double norm(const Point<T>& pt) {
-  return std::sqrt((double)pt.x_ * pt.x_ + (double)pt.y_ * pt.y_);
+  return std::sqrt(static_cast<double>(pt.x_) * pt.x_ + static_cast<double>(pt.y_) * pt.y_);
 }
 
 template <typename T>
@@ -678,7 +679,7 @@ inline T Point3<T>::dot(const Point3& pt) const {
 
 template <typename T>
 inline double Point3<T>::ddot(const Point3& pt) const {
-  return (double)x_ * pt.x_ + (double)y_ * pt.y_ + (double)z_ * pt.z_;
+  return static_cast<double>(x_) * pt.x_ + static_cast<double>(y_) * pt.y_ + static_cast<double>(z_) * pt.z_;
 }
 
 template <typename T>
@@ -753,8 +754,8 @@ static inline Point3<T>& operator/=(Point3<T>& a, double b) {
 
 template <typename T>
 static inline double norm(const Point3<T>& pt) {
-  return std::sqrt((double)pt.x_ * pt.x_ + (double)pt.y_ * pt.y_ +
-                   (double)pt.z_ * pt.z_);
+  return std::sqrt(static_cast<double>(pt.x_) * pt.x_ + static_cast<double>(pt.y_) * pt.y_ +
+                   static_cast<double>(pt.z_) * pt.z_);
 }
 
 template <typename T>
