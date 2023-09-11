@@ -72,7 +72,7 @@ nndeploy具有如下优势特性：
   ```
 
 ### nndeploy资源仓库
-已验证模型、第三方库、测试数据放在HuggingFace上，如果您有需要可以去下载，[下载链接](https://huggingface.co/alwaysssss/nndeploy)。`但强烈建议您自己去管理自己的模型仓库、第三方库、测试数据`。
+已验证模型、第三方库、测试数据放在HuggingFace上，如果您有需要可以去下载，[下载链接](https://huggingface.co/alwaysssss/nndeploy/tree/main)。`但强烈建议您自己去管理自己的模型仓库、第三方库、测试数据`。
 
 + 第三方库编译文档以及官方下载链接
 
@@ -97,8 +97,22 @@ nndeploy具有如下优势特性：
   + sudo apt install libopencv-dev
   + [参考链接](https://cloud.tencent.com/developer/article/1657529)
 + [下载模型](https://huggingface.co/alwaysssss/nndeploy/resolve/main/model_zoo/detect/yolo/yolov5s.onnx)，解压
-+ 下载第三方库，[ubuntu22.04](https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/ubuntu22.04_x64.tar)，[windows]()暂未上传， [android](https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/android.tar)。 解压
+  ```shell
+  wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/model_zoo/detect/yolo/yolov5s.onnx
+  ```
++ 下载第三方库，[ubuntu22.04](https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/ubuntu22.04_x64.tar)，[windows](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/windows_x64.7z)， [android](https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/android.tar)。 解压
+  ```shell
+  # ubuntu22.04_x64
+  wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/ubuntu22.04_x64.tar
+  # windows
+  wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/windows_x64.7z
+  # android
+  wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/android.tar
+  ```
 + [下载测试数据](https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg)
+  ```shell
+  wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg
+  ```
 #### 编译
 + 在根目录创建`build`目录，将`cmake/config_demo.cmake`复制到该目录，修改名称为`config.cmake`
   ```
