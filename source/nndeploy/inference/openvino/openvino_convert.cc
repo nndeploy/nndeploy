@@ -269,7 +269,7 @@ ov::Tensor OpenVinoConvert::convertFromTensor(device::Tensor *src) {
   ov::Shape ov_shape;
   auto src_shape = src->getShape();
   for (auto dim : src_shape) {
-    ov_shape.push_back((size_t)dim);
+    ov_shape.push_back(static_cast<size_t>(dim));
   }
   void *data = src->getPtr();
   ov::Strides strides = OpenVinoConvert::convertFromStride(src->getStride());

@@ -36,8 +36,8 @@ base::Status X86Architecture::enableDevice(int device_id, void* command_queue,
   if (devices_.find(device_id) == devices_.end()) {
     base::DeviceType device_type(base::kDeviceTypeCodeX86, device_id);
     X86Device* device = new X86Device(device_type, command_queue, library_path);
-    if (device == NULL) {
-      NNDEPLOY_LOGE("device is NULL");
+    if (device == nullptr) {
+      NNDEPLOY_LOGE("device is nullptr");
       return base::kStatusCodeErrorOutOfMemory;
     }
     if (device->init() != base::kStatusCodeOk) {

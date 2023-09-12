@@ -93,7 +93,7 @@
 
 #ifndef NNDEPLOY_ALIGN_PTR
 #define NNDEPLOY_ALIGN_PTR(x, y) \
-  (void*)((size_t)(x) & (~((size_t)(NNDEPLOY_ABS(y) - 1))))
+  (void*)(x & ~static_cast<size_t>(NNDEPLOY_ABS(y) - 1))
 #endif
 
 #ifndef NNDEPLOY_MIN

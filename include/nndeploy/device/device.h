@@ -103,11 +103,11 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
   virtual ~Architecture();
 
   virtual base::Status checkDevice(int device_id = 0,
-                                   void* command_queue = NULL,
+                                   void* command_queue = nullptr,
                                    std::string library_path = "") = 0;
 
   virtual base::Status enableDevice(int device_id = 0,
-                                    void* command_queue = NULL,
+                                    void* command_queue = nullptr,
                                     std::string library_path = "") = 0;
 
   virtual Device* getDevice(int device_id) = 0;
@@ -203,7 +203,7 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   base::DeviceType getDeviceType();
 
  protected:
-  Device(base::DeviceType device_type, void* command_queue = NULL,
+  Device(base::DeviceType device_type, void* command_queue = nullptr,
          std::string library_path = "")
       : device_type_(device_type){};
   virtual ~Device(){};
