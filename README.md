@@ -1,9 +1,9 @@
 ## 介绍
-nndeploy是一款最新上线的支持多平台、简单易用、高性能的机器学习部署框架，一套实现可在多端(云、边、端)完成模型的高性能部署。
+nndeploy是一款最新上线的支持多平台、高性能、简单易用的机器学习部署框架，一套实现可在多端(云、边、端)完成模型的高性能部署。
 
-作为一个多平台模型部署工具，我们的框架最大的宗旨就是简单贴心(^‹^)，目前nndeploy已完成TensorRT、OpenVINO、ONNXRuntime、MNN、TNN、NCNN六个业界知名的推理框架的继承，后续会继续接入tf-lite、paddle-lite、coreML、TVM、AITemplate，在我们的框架下可使用一套代码轻松切换不同的推理后端进行推理，且不用担心部署框架对推理框架的抽象而带来的性能损失。
+作为一个多平台模型部署工具，我们的框架最大的宗旨就是高性能以及简单贴心(^‹^)，目前nndeploy已完成TensorRT、OpenVINO、ONNXRuntime、MNN、TNN、NCNN六个业界知名的推理框架的继承，后续会继续接入tf-lite、paddle-lite、coreML、TVM、AITemplate，在我们的框架下可使用一套代码轻松切换不同的推理后端进行推理，且不用担心部署框架对推理框架的抽象而带来的性能损失。
 
-如果您需要部署自己的模型，目前nndeploy可帮助您在一个文件（大概只要200行代码）之内完成多端部署，提供了一些的前后处理和推理模板可供选择帮助您简化流程；如果只需使用已有主流模型进行自己的推理，目前nndeploy已完成YOLO系列等多个开源模型的部署，可供直接使用，目前我们还在积极部署其它开源模型（如果您或团队有需要部署的开源模型或者其他部署相关的问题，欢迎随时来和我们探讨(^-^)）
+如果你需要部署自己的模型，目前nndeploy可帮助你在一个文件（大概只要200行代码）完成模型在多端的部署。nndeploy提供了高性能的前后处理模板和推理模板，上述模板可帮助你简化端到端的部署流程。如果只需使用已有主流模型进行自己的推理，目前nndeploy已完成YOLO系列等多个开源模型的部署，可供直接使用，目前我们还在积极部署其它开源模型。（如果你或团队有需要部署的开源模型或者其他部署相关的问题，非常欢迎随时来和我们探讨(^-^)）
 
 
 ## 架构简介
@@ -33,14 +33,119 @@ nndeploy具有如下优势特性：
 |    [YOLOV8](https://github.com/ultralytics)     | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |       |
 
 ### 简单易用
-- 通过切换推理配置，一套代码可在多端部署，算法的使用接口简单易用
-- 新增算法简单，将AI算法部署抽象为有向无环图Pipeline，前处理为一个任务Task，推理也为一个任务Task，后处理也为一个任务Task，也可以将多个Pipeline组合成一个新的Pipeline
-- 通用的推理模板和前后处理模板
+- **一套代码多端部署**：通过切换推理配置，一套代码即可在多端部署，算法的使用接口简单易用。示例代码如下
+  ```c++
+  int main(int argc, char *argv[]) {
+     // 有向无环图pipeline名称，例如:
+    // NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8
+    std::string name = demo::getName();
+    // 推理后端类型，例如:
+    // kInferenceTypeOpenVino / kInferenceTypeTensorRt / kInferenceTypeOnnxRuntime
+    base::InferenceType inference_type = demo::getInferenceType();
+    // 推理设备类型，例如:
+    // kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
+    base::DeviceType device_type = demo::getDeviceType();
+    // 模型类型，例如:
+    // kModelTypeOnnx/kModelTypeMnn/...
+    base::ModelType model_type = demo::getModelType();
+    // 模型是否是路径
+    bool is_path = demo::isPath();
+    // 模型路径或者模型字符串
+    std::vector<std::string> model_value = demo::getModelValue();
+    // 有向无环图pipeline的输入边packert
+    model::Packet input("detect_in");
+    // 有向无环图pipeline的输出边packert
+    model::Packet output("detect_out");
+    // 创建模型有向无环图pipeline
+    model::Pipeline *pipeline =
+        model::createPipeline(name, inference_type, device_type, &input, &output,
+                            model_type, is_path, model_value);
+
+    // 初始化有向无环图pipeline
+    base::Status status = pipeline->init();
+
+    // 输入图片
+    cv::Mat input_mat = cv::imread(input_path);
+    // 将图片写入有向无环图pipeline输入边
+    input.set(input_mat);
+    // 定义有向无环图pipeline的输出结果
+    model::DetectResult result;
+    // 将输出结果写入有向无环图pipeline输出边
+    output.set(result);
+
+    // 有向无环图Pipeline运行
+    status = pipeline->run();
+
+    // 有向无环图pipelinez反初始化
+    status = pipeline->deinit();
+
+    // 有向无环图pipeline销毁
+    delete pipeline;
+
+    return 0;
+  }
+  ```
+
+- **算法部署简单**：将AI算法端到端（前处理->推理->后处理）的部署抽象为有向无环图Pipeline，前处理为一个任务Task，推理也为一个任务Task，后处理也为一个任务Task，提供了高性能的前后处理模板和推理模板，上述模板可帮助你进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题。示例代码如下
+  ```c++
+  model::Pipeline* createYoloV5Pipeline(const std::string& name,
+                                      base::InferenceType inference_type,
+                                      base::DeviceType device_type,
+                                      Packet* input, Packet* output,
+                                      base::ModelType model_type, bool is_path,
+                                      std::vector<std::string>& model_value) {
+    model::Pipeline* pipeline = new model::Pipeline(name, input, output); // 有向无环图
+
+    model::Packet* infer_input = pipeline->createPacket("infer_input"); // 推理模板的输入边
+    model::Packet* infer_output = pipeline->createPacket("infer_output"); // 推理模板的输出
+
+    // 搭建有向无图（preprocess->infer->postprocess）
+    // 模型前处理模板model::CvtColrResize，输入边为input，输出边为infer_input
+    model::Task* pre = pipeline->createTask<model::CvtColrResize>(
+        "preprocess", input, infer_input);
+    // 模型推理模板model::Infer(通用模板)，输入边为infer_input，输出边为infer_output
+    model::Task* infer = pipeline->createInfer<model::Infer>(
+        "infer", inference_type, infer_input, infer_output);
+    // 模型后处理模板YoloPostProcess，输入边为infer_output，输出边为output
+    model::Task* post = pipeline->createTask<YoloPostProcess>(
+        "postprocess", infer_output, output);
+
+    // 模型前处理任务pre的参数配置
+    model::CvtclorResizeParam* pre_param =
+        dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());
+    pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+    pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+    pre_param->interp_type_ = base::kInterpTypeLinear;
+    pre_param->h_ = 640;
+    pre_param->w_ = 640;
+
+    // 模型推理任务infer的参数配置
+    inference::InferenceParam* inference_param =
+        (inference::InferenceParam*)(infer->getParam());
+    inference_param->is_path_ = is_path;
+    inference_param->model_value_ = model_value;
+    inference_param->device_type_ = device_type;
+
+    // 模型后处理任务post的参数配置
+    YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post->getParam());
+    post_param->score_threshold_ = 0.5;
+    post_param->nms_threshold_ = 0.45;
+    post_param->num_classes_ = 80;
+    post_param->model_h_ = 640;
+    post_param->model_w_ = 640;
+    post_param->version_ = 5;
+
+    return pipeline;
+  }
+  ```
 
 ### 高性能
-- 可配置推理框架所有参数，不会因为对推理框架的抽象而带来性能损失
-- 可直接操作理框架内部分配的输入输出，实现前后处理的零拷贝，目前正在不断完善不同格式的Tensor的零拷贝
-- 线程池正在开发完善中，可实现多任务流水线并行
+- **推理框架的高性能抽象**：每个推理框架也都有其各自的特性，需要足够尊重以及理解这些推理框架，才能在抽象中不丢失推理框架的特性，并做到统一的使用的体验。nndeploy可配置第三方推理框架绝大部分参数，保证了推理性能。可直接操作理框架内部分配的输入输出，实现前后处理的零拷贝，提升模型部署端到端的性能。
+  
+- 线程池正在开发完善中，可实现有向无环图的流水线并行
+  
+- 内存池正在开发完善重，可实现高效的内存分配与释放
+  
 - 一组高性能的算子正在开发中，完成后将加速你模型前后处理速度
 
 ## 快速开始
@@ -167,6 +272,11 @@ export LD_LIBRARY_PATH=PATH/nndeploy/build/install/bin:$LD_LIBRARY_PATH
 ./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeMnn --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx.mnn --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
 ```
 `注：请将上述PATH更换为自己对应的目录`
+
+## 社区文档
+- [Always](https://github.com/Alwaysssssss)，[02200059Z](https://github.com/02200059Z):《[nndeploy综述](https://zhuanlan.zhihu.com/p/656359928)》
+- [02200059Z](https://github.com/02200059Z):《[如何新增一个推理框架](https://blog.csdn.net/echoesssss/article/details/132674100?spm=1001.2014.3001.5502)》
+
 
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
