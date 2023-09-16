@@ -80,11 +80,13 @@ int main(int argc, char *argv[]) {
   }
 
   // 初始化有向无环图pipeline
+  NNDEPLOY_TIME_POINT_START("pipeline->init()");
   base::Status status = pipeline->init();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("pipeline init failed");
     return -1;
   }
+  NNDEPLOY_TIME_POINT_END("pipeline->init()");
 
   // 有向无环图pipeline的输入图片路径
   std::string input_path = demo::getInputPath();
@@ -98,22 +100,28 @@ int main(int argc, char *argv[]) {
   output.set(result);
 
   // 有向无环图Pipelinez运行
+  NNDEPLOY_TIME_POINT_START("pipeline->run()");
   status = pipeline->run();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("pipeline run failed");
     return -1;
   }
+  NNDEPLOY_TIME_POINT_END("pipeline->run()");
 
   drawBox(input_mat, result);
   std::string ouput_path = demo::getOutputPath();
   cv::imwrite(ouput_path, input_mat);
 
   // 有向无环图pipelinez反初始化
+  NNDEPLOY_TIME_POINT_START("pipeline->deinit()");
   status = pipeline->deinit();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("pipeline deinit failed");
     return -1;
   }
+  NNDEPLOY_TIME_POINT_END("pipeline->deinit()");
+
+  NNDEPLOY_TIME_PROFILER_PRINT("detetct time profiler");
 
   // 有向无环图pipelinez销毁
   delete pipeline;

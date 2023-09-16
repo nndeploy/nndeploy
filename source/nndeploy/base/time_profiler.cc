@@ -33,9 +33,9 @@ TimeProfiler::TimeProfiler() {}
 TimeProfiler::~TimeProfiler() { reset(); }
 
 void TimeProfiler::reset() {
-  for (auto &it : records_) {
-    delete it.second;
-  }
+  // for (auto &it : records_) {
+  //   delete it.second;
+  // }
   records_.clear();
   order_ = 0;
 }
@@ -47,7 +47,9 @@ void TimeProfiler::start(const std::string &key) {
   uint64_t start = getTime();
   if (records_.find(key) == records_.end()) {
     ++order_;
-    Record *record = new Record(key, order_, start);
+    Record *ptr = new Record(key, order_, start);
+    std::shared_ptr<Record> record;
+    record.reset(ptr);
     records_[key] = record;
   } else {
     if (records_[key]->type_ == kEnd) {
@@ -78,13 +80,15 @@ void TimeProfiler::end(const std::string &key) {
 }
 
 void TimeProfiler::print(const std::string &title) {
-  std::vector<Record *> records;
+  std::vector<std::shared_ptr<Record>> records;
   for (auto &it : records_) {
     records.push_back(it.second);
   }
   std::sort(
       records.begin(), records.end(),
-      [](const Record *a, const Record *b) { return a->order_ < b->order_; });
+      [](const std::shared_ptr<Record> a, const std::shared_ptr<Record> b) {
+        return a->order_ < b->order_;
+      });
   printf("TimeProfiler: %s\n", title.c_str());
   printf(
       "------------------------------------------------------------------------"

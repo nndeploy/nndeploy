@@ -112,6 +112,12 @@ ModelType stringToModelType(const std::string &src) {
     return kModelTypeTnn;
   } else if (src == "kModelTypeMnn") {
     return kModelTypeMnn;
+  } else if (src == "kModelTypePaddleLite") {
+    return kModelTypePaddleLite;
+  } else if (src == "kModelTypeTvm") {
+    return kModelTypeTvm;
+  } else if (src == "kModelTypeAITemplate") {
+    return kModelTypeAITemplate;
   } else {
     return kModelTypeNotSupport;
   }
@@ -136,6 +142,12 @@ InferenceType stringToInferenceType(const std::string &src) {
     return kInferenceTypeTnn;
   } else if (src == "kInferenceTypeMnn") {
     return kInferenceTypeMnn;
+  } else if (src == "kInferenceTypePaddleLite") {
+    return kInferenceTypePaddleLite;
+  } else if (src == "kInferenceTypeTvm") {
+    return kInferenceTypeTvm;
+  } else if (src == "kInferenceTypeAITemplate") {
+    return kInferenceTypeAITemplate;
   } else {
     return kInferenceTypeNotSupport;
   }

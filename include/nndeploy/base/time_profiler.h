@@ -26,8 +26,15 @@ class NNDEPLOY_CC_API TimeProfiler : public NonCopyable {
     kEnd,
   };
   struct Record {
-    Record(const std::string &key, int64_t order, uint64_t start,
-           float flops = 0.0f)
+    Record(const std::string &key, int64_t order, uint64_t start)
+        : key_(key),
+          type_(kStart),
+          order_(order),
+          call_times_(1),
+          cost_time_((uint64_t)0),
+          flops_(0.0f),
+          start_(start) {}
+    Record(const std::string &key, int64_t order, uint64_t start, float flops)
         : key_(key),
           type_(kStart),
           order_(order),
@@ -46,7 +53,7 @@ class NNDEPLOY_CC_API TimeProfiler : public NonCopyable {
 
  private:
   int64_t order_ = 0;
-  std::map<std::string, Record *> records_;
+  std::map<std::string, std::shared_ptr<Record>> records_;
 };
 
 extern NNDEPLOY_CC_API void timeProfilerReset();

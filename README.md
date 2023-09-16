@@ -219,10 +219,10 @@ nndeploy具有如下优势特性：
   wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg
   ```
 #### 编译
-+ 在根目录创建`build`目录，将`cmake/config_demo.cmake`复制到该目录，修改名称为`config.cmake`
++ 在根目录创建`build`目录，将`cmake/config_os.cmake（config_linux.cmake/config_windows.cmake/config_android.cmake）`复制到该目录，修改名称为`config.cmake`
   ```
   mkdir build
-  cp cmake/config.cmake build
+  cp cmake/config_xx.cmake build
   mv config_yolov5s.cmake config.cmake
   cd build
   ```
