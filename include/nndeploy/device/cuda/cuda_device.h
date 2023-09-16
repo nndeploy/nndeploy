@@ -16,11 +16,11 @@ class CudaArchitecture : public Architecture {
   virtual ~CudaArchitecture();
 
   virtual base::Status checkDevice(int device_id = 0,
-                                   void* command_queue = NULL,
+                                   void* command_queue = nullptr,
                                    std::string library_path = "") override;
 
   virtual base::Status enableDevice(int device_id = 0,
-                                    void* command_queue = NULL,
+                                    void* command_queue = nullptr,
                                     std::string library_path = "") override;
 
   virtual Device* getDevice(int device_id) override;
@@ -56,7 +56,7 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   virtual void* getCommandQueue();
 
  protected:
-  CudaDevice(base::DeviceType device_type, void* command_queue = NULL,
+  CudaDevice(base::DeviceType device_type, void* command_queue = nullptr,
              std::string library_path = "")
       : Device(device_type), external_command_queue_(command_queue){};
   virtual ~CudaDevice(){};
@@ -65,7 +65,7 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   virtual base::Status deinit();
 
  private:
-  void* external_command_queue_ = NULL;
+  void* external_command_queue_ = nullptr;
   cudaStream_t stream_;
 };
 

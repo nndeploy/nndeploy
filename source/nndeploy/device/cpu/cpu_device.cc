@@ -36,8 +36,8 @@ base::Status CpuArchitecture::enableDevice(int device_id, void* command_queue,
   if (devices_.find(device_id) == devices_.end()) {
     base::DeviceType device_type(base::kDeviceTypeCodeCpu, device_id);
     CpuDevice* device = new CpuDevice(device_type, command_queue, library_path);
-    if (device == NULL) {
-      NNDEPLOY_LOGE("device is NULL");
+    if (device == nullptr) {
+      NNDEPLOY_LOGE("device is nullptr");
       return base::kStatusCodeErrorOutOfMemory;
     }
     if (device->init() != base::kStatusCodeOk) {

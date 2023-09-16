@@ -44,8 +44,8 @@ base::Status CudaArchitecture::enableDevice(int device_id, void* command_queue,
   if (devices_.find(device_id) == devices_.end()) {
     CudaDevice* device =
         new CudaDevice(device_type, command_queue, library_path);
-    if (device == NULL) {
-      NNDEPLOY_LOGE("device is NULL");
+    if (device == nullptr) {
+      NNDEPLOY_LOGE("device is nullptr");
       return base::kStatusCodeErrorOutOfMemory;
     }
 

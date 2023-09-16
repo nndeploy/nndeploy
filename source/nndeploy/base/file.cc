@@ -55,11 +55,11 @@ DIR* opendir(const char* path) {
   size_t copied = mbstowcs(wfull_path, full_path.c_str(), MAX_PATH);
   assert((copied != MAX_PATH) && (copied != (size_t)-1));
   dir->handle = ::FindFirstFileExW(wfull_path, FindExInfoStandard, &dir->data,
-                                   FindExSearchNameMatch, NULL, 0);
+                                   FindExSearchNameMatch, nullptr, 0);
 #else
   dir->handle = ::FindFirstFileExA((std::string(path) + "\\*").c_str(),
                                    FindExInfoStandard, &dir->data,
-                                   FindExSearchNameMatch, NULL, 0);
+                                   FindExSearchNameMatch, nullptr, 0);
 #endif
   if (dir->handle == INVALID_HANDLE_VALUE) {
     /*closedir will do all cleanup*/
@@ -74,7 +74,7 @@ dirent* readdir(DIR* dir) {
   if (dir->ent.d_name != 0) {
     if (::FindNextFileW(dir->handle, &dir->data) != TRUE) return 0;
   }
-  size_t asize = wcstombs(NULL, dir->data.cFileName, 0);
+  size_t asize = wcstombs(nullptr, dir->data.cFileName, 0);
   assert((asize != 0) && (asize != (size_t)-1));
   char* aname = new char[asize + 1];
   aname[asize] = 0;
@@ -247,7 +247,7 @@ bool exists(const std::string& path) {
 #endif
 }
 
-bool isDirectory(const std::string& path) { return isDir(path, NULL); }
+bool isDirectory(const std::string& path) { return isDir(path, nullptr); }
 
 void removeAllFile(const std::string& path) {
   if (!exists(path)) return;
@@ -284,14 +284,14 @@ std::string getcwd() {
 #ifdef WINRT
   return std::string();
 #else
-  DWORD sz = GetCurrentDirectoryA(0, NULL);
+  DWORD sz = GetCurrentDirectoryA(0, nullptr);
   sz = GetCurrentDirectoryA((DWORD)buf.size(), buf.data());
-  return std::string(buf.data(), (size_t)sz);
+  return std::string(buf.data(), static_cast<size_t>(sz));
 #endif
 #elif NNDEPLOY_OS_UNIX
   for (;;) {
     char* p = ::getcwd(buf.data(), buf.size());
-    if (p == NULL) {
+    if (p == nullptr) {
       if (errno == ERANGE) {
         continue;
       }
@@ -299,7 +299,7 @@ std::string getcwd() {
     }
     break;
   }
-  return std::string(buf.data(), (size_t)strlen(buf.data()));
+  return std::string(buf.data(), static_cast<size_t>(strlen(buf.data())));
 #else
   return std::string();
 #endif
@@ -308,9 +308,9 @@ std::string getcwd() {
 std::string canonicalPath(const std::string& path) {
   std::string result;
 #ifdef _WIN32
-  const char* result_str = _fullpath(NULL, path.c_str(), 0);
+  const char* result_str = _fullpath(nullptr, path.c_str(), 0);
 #else
-  const char* result_str = realpath(path.c_str(), NULL);
+  const char* result_str = realpath(path.c_str(), nullptr);
 #endif
   if (result_str) {
     result = std::string(result_str);
@@ -395,7 +395,7 @@ bool createDirectory(const std::string& path) {
   wchar_t wpath[MAX_PATH];
   size_t copied = mbstowcs(wpath, path.c_str(), MAX_PATH);
   assert((copied != MAX_PATH) && (copied != (size_t)-1));
-  int result = CreateDirectoryA(wpath, NULL) ? 0 : -1;
+  int result = CreateDirectoryA(wpath, nullptr) ? 0 : -1;
 #else
   int result = _mkdir(path.c_str());
 #endif

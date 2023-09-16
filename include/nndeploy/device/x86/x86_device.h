@@ -14,11 +14,11 @@ class X86Architecture : public Architecture {
   virtual ~X86Architecture();
 
   virtual base::Status checkDevice(int device_id = 0,
-                                   void* command_queue = NULL,
+                                   void* command_queue = nullptr,
                                    std::string library_path = "") override;
 
   virtual base::Status enableDevice(int device_id = 0,
-                                    void* command_queue = NULL,
+                                    void* command_queue = nullptr,
                                     std::string library_path = "") override;
 
   virtual Device* getDevice(int device_id) override;
@@ -50,7 +50,7 @@ class NNDEPLOY_CC_API X86Device : public Device {
   virtual base::Status upload(Buffer* src, Buffer* dst);
 
  protected:
-  X86Device(base::DeviceType device_type, void* command_queue = NULL,
+  X86Device(base::DeviceType device_type, void* command_queue = nullptr,
             std::string library_path = "")
       : Device(device_type){};
   virtual ~X86Device(){};
