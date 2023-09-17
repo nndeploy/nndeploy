@@ -110,7 +110,6 @@ class NNDEPLOY_CC_API Loop : public Task {
  private:
   bool check(const std::vector<Packet*>& packets,
              const std::vector<Packet*>& loop_packets);
-  Task* findTask(const std::string& name);
 
  protected:
   Task* loop_task_ = nullptr;

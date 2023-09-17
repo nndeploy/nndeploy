@@ -97,6 +97,7 @@ bool Loop::check(const std::vector<Packet*>& packets,
       return false;
     }
   }
+  return true;
 }
 
 }  // namespace model

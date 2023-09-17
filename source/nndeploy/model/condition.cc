@@ -41,7 +41,10 @@ base::Status Condition::setTaskParam(const std::string& task_name,
 
 base::Param* Condition::getTaskParam(const std::string& task_name) {
   Task* task = findTask(task_name);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(task, "task is null!");
+  if (task == nullptr) {
+    NNDEPLOY_LOGE("task is null!\n");
+    return nullptr;
+  }
   return task->getParam();
 }
 
@@ -113,6 +116,7 @@ bool Condition::check(const std::vector<Packet*>& packets,
       return false;
     }
   }
+  return true;
 }
 
 Task* Condition::findTask(const std::string& name) {
