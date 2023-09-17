@@ -21,6 +21,10 @@ class NNDEPLOY_CC_API ParallelLoopBody {
   virtual void operator()(const base::Range& range) const = 0;
 };
 
+extern NNDEPLOY_CC_API void setThreadNum(int num);
+
+extern NNDEPLOY_CC_API int getThreadNum();
+
 /**
  * @brief Parallel data processor
  */

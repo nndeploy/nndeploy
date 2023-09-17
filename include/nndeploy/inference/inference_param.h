@@ -18,44 +18,16 @@ namespace inference {
 
 /**
  * @brief InferenceParam is the base class of all inference param.
- * @details
- * 用于推理的参数类，所有推理的参数都继承自这个类
- * 这里列出绝大部分参数，不同的推理类可能只用到其中的一部分，也有一些推理类会用到其他的参数
  */
 class NNDEPLOY_CC_API InferenceParam : public base::Param {
  public:
-  /**
-   * @brief Construct a new Inference Param object
-   *
-   */
   InferenceParam();
-  /**
-   * @brief Destroy the Inference Param object
-   *
-   */
   virtual ~InferenceParam();
-  /**
-   * @brief Construct a new Inference Param object
-   *
-   * @param param
-   */
+
   InferenceParam(const InferenceParam &param) = default;
-  /**
-   * @brief Overload the = operator
-   *
-   * @param param
-   * @return InferenceParam&
-   */
   InferenceParam &operator=(const InferenceParam &param) = default;
-  /**
-   * @brief Construct a new param copy object
-   *
-   */
+
   PARAM_COPY(InferenceParam)
-  /**
-   * @brief Construct a new param copy to object
-   *
-   */
   PARAM_COPY_TO(InferenceParam)
 
   /**
@@ -132,8 +104,8 @@ class TypeInferenceParamCreator : public InferenceParamCreator {
  * @return std::map<base::InferenceType,
  * std::shared_ptr<InferenceParamCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
-    &getGlobalInferenceParamCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
+getGlobalInferenceParamCreatorMap();
 
 /**
  * @brief TypeInferenceParamRegister is the template class of all inference

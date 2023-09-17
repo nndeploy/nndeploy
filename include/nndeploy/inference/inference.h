@@ -18,9 +18,10 @@
 
 namespace nndeploy {
 namespace inference {
+
 /**
  * @brief 推理的基类
- * @details 推理的基类，所有的推理都需要继承这个类，主要包含一下几个部分
+ * @details
  * # 根据InferencParam *param初始化
  * # 写入输入tensor数据
  * # 推理
@@ -28,22 +29,13 @@ namespace inference {
  * # 其他
  * ## 获取输入输出tensor的信息
  * ## 获取推理初始化后的各种信息：例如内存大小，gflops等
+ *
  */
 class NNDEPLOY_CC_API Inference {
  public:
-  /**
-   * @brief Construct a new Inference object
-   *
-   * @param type
-   */
   Inference(base::InferenceType type);
   virtual ~Inference();
 
-  /**
-   * @brief Get the Inference Type
-   *
-   * @return base::InferenceType
-   */
   base::InferenceType getInferenceType();
 
   /**
@@ -80,19 +72,19 @@ class NNDEPLOY_CC_API Inference {
    */
   base::ShapeMap getMinShape();
   /**
-   * @brief 对动态输入的推理，获取输入tensor的opt_shape
+   * @brief 针对动态输入的推理，获取输入tensor的opt_shape
    *
    * @return base::ShapeMap
    */
   base::ShapeMap getOptShape();
   /**
-   * @brief 对动态输入的推理，获取输入tensor的max_shape
+   * @brief 针对动态输入的推理，获取输入tensor的max_shape
    *
    * @return base::ShapeMap
    */
   base::ShapeMap getMaxShape();
   /**
-   * @brief 对动态输入的推理，设置输入tensor的shape
+   * @brief 针对动态输入的推理，设置输入tensor的shape
    *
    * @param shape_map
    * @return base::Status
@@ -127,7 +119,7 @@ class NNDEPLOY_CC_API Inference {
    */
   virtual base::Status setMemory(device::Buffer *buffer, int index);
   /**
-   * @brief 获得推理时计算量
+   * @brief 获得推理计算量
    *
    * @return float
    */
@@ -140,7 +132,7 @@ class NNDEPLOY_CC_API Inference {
    */
   virtual bool isBatch();
   /**
-   * @brief 该推理是否与nndeploy共享一个command queue
+   * @brief 该推理实例是否与nndeploy共享一个command queue
    *
    * @return bool
    */
@@ -154,9 +146,7 @@ class NNDEPLOY_CC_API Inference {
   /**
    * @brief 是否为动态输出
    *
-   * @return true
-   * @details
-   * 有些模型的输出是动态的，其形状是需要中间节点的输出来决定的（一般而言都是输入尺寸确定，输出即确定）
+   * @return bool
    */
   virtual bool isOutputDynamic();
   /**
@@ -409,8 +399,8 @@ class TypeInferenceCreator : public InferenceCreator {
  *
  * @return std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板
