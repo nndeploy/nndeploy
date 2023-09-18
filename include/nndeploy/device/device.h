@@ -32,10 +32,10 @@ enum BufferSourceType : int {
 
 struct NNDEPLOY_CC_API BufferDesc {
   BufferDesc(){};
-  explicit BufferDesc(size_t size) { size_.push_back(size); }
+  explicit BufferDesc(size_t size) { size_.emplace_back(size); }
   explicit BufferDesc(size_t* size, size_t len) {
     for (int i = 0; i < len; ++i) {
-      size_.push_back(size[i]);
+      size_.emplace_back(size[i]);
     }
   }
   explicit BufferDesc(const base::SizeVector& size,
@@ -44,7 +44,7 @@ struct NNDEPLOY_CC_API BufferDesc {
   explicit BufferDesc(size_t* size, size_t len, const base::IntVector& config)
       : config_(config) {
     for (int i = 0; i < len; ++i) {
-      size_.push_back(size[i]);
+      size_.emplace_back(size[i]);
     }
   }
 

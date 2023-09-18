@@ -102,7 +102,7 @@ static void generateProposals(const int* anchors, int stride, const int model_w,
             bbox.label_id_ = class_index;
             bbox.score_ = confidence;
 
-            results->bboxs_.push_back(bbox);
+            results->bboxs_.emplace_back(bbox);
           }
         }
       }
@@ -150,7 +150,7 @@ base::Status YoloMultiOutputPostProcess::run() {
     results_batch.bboxs_[n].bbox_[1] /= param->model_h_;
     results_batch.bboxs_[n].bbox_[2] /= param->model_w_;
     results_batch.bboxs_[n].bbox_[3] /= param->model_h_;
-    results->bboxs_.push_back(results_batch.bboxs_[n]);
+    results->bboxs_.emplace_back(results_batch.bboxs_[n]);
   }
   return base::kStatusCodeOk;
 }
