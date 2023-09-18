@@ -150,6 +150,12 @@ nndeploy具有如下优势特性：
 
 ## 快速开始
 ### 编译
++ 拉取源代码
+
+```shell
+git clone --recursive https://github.com/Alwaysssssss/nndeploy.git
+```
+
 + 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
   ```
   mkdir build
