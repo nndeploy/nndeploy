@@ -390,7 +390,7 @@ class InferenceCreator {
 template <typename T>
 class TypeInferenceCreator : public InferenceCreator {
   virtual Inference *createInference(base::InferenceType type) {
-    return new T(type);
+    return std::make_shared<T>(T(type));
   }
 };
 
@@ -411,7 +411,7 @@ template <typename T>
 class TypeInferenceRegister {
  public:
   explicit TypeInferenceRegister(base::InferenceType type) {
-    getGlobalInferenceCreatorMap()[type] = std::shared_ptr<T>(new T());
+    getGlobalInferenceCreatorMap()[type] = std::make_shared<T>();
   }
 };
 

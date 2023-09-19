@@ -138,7 +138,7 @@ class TypeArchitectureRegister {
   explicit TypeArchitectureRegister(base::DeviceTypeCode type) {
     auto& architecture_map = getArchitectureMap();
     if (architecture_map.find(type) == architecture_map.end()) {
-      architecture_map[type] = std::shared_ptr<T>(new T(type));
+      architecture_map[type] = std::make_shared<T>(type);
     }
   }
 };
