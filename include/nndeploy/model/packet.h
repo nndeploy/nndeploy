@@ -144,18 +144,18 @@ class NNDEPLOY_CC_API Packet {
   std::vector<cv::Mat *> getAllCvMat() { return cv_mats_; }
 #endif
 
-  void push_back(device::Buffer *buffer) { buffers_.push_back(buffer); }
-  void push_back(device::Buffer &buffer) { buffers_.push_back(&buffer); }
-  void push_back(device::Mat *mat) { mats_.push_back(mat); }
-  void push_back(device::Mat &mat) { mats_.push_back(&mat); }
-  void push_back(device::Tensor *tensor) { tensors_.push_back(tensor); }
-  void push_back(device::Tensor &tensor) { tensors_.push_back(&tensor); }
-  void push_back(base::Param *param) { params_.push_back(param); }
-  void push_back(base::Param &param) { params_.push_back(&param); }
-  void push_back(void *anything) { anythings_.push_back(anything); }
+  void push_back(device::Buffer *buffer) { buffers_.emplace_back(buffer); }
+  void push_back(device::Buffer &buffer) { buffers_.emplace_back(&buffer); }
+  void push_back(device::Mat *mat) { mats_.emplace_back(mat); }
+  void push_back(device::Mat &mat) { mats_.emplace_back(&mat); }
+  void push_back(device::Tensor *tensor) { tensors_.emplace_back(tensor); }
+  void push_back(device::Tensor &tensor) { tensors_.emplace_back(&tensor); }
+  void push_back(base::Param *param) { params_.emplace_back(param); }
+  void push_back(base::Param &param) { params_.emplace_back(&param); }
+  void push_back(void *anything) { anythings_.emplace_back(anything); }
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  void push_back(cv::Mat *cv_mat) { cv_mats_.push_back(cv_mat); }
-  void push_back(cv::Mat &cv_mat) { cv_mats_.push_back(&cv_mat); }
+  void push_back(cv::Mat *cv_mat) { cv_mats_.emplace_back(cv_mat); }
+  void push_back(cv::Mat &cv_mat) { cv_mats_.emplace_back(&cv_mat); }
 #endif
 
   void erase(device::Buffer *buffer) {

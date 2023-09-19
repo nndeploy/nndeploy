@@ -108,10 +108,10 @@
 ./onnx2ncnn /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.param /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.bin
 
 ## 2023.09.04
-+ malloc(): invalid size (unsorted) 由于给model_value.push_back(
++ malloc(): invalid size (unsorted) 由于给model_value.emplace_back(
       "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
       "yolov5s.onnx.param");
-  model_value.push_back(
+  model_value.emplace_back(
       "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/"
       "yolov5s.onnx.bin"); 报错
 

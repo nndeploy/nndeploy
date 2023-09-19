@@ -254,7 +254,7 @@ template <typename T>
 class TypeTensorRegister {
  public:
   explicit TypeTensorRegister(base::TensorType type) {
-    getGlobalTensorCreatorMap()[type] = std::shared_ptr<T>(new T());
+    getGlobalTensorCreatorMap()[type] = std::make_shared<T>(T());
   }
 };
 
