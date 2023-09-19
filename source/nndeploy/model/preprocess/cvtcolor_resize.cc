@@ -15,10 +15,10 @@ base::Status CvtColrResize::run() {
     device::TensorDesc desc = dst->getDesc();
     desc.data_type_ = base::dataTypeOf<float>();
     desc.data_format_ = base::kDataFormatNCHW;
-    desc.shape_.push_back(1);
-    desc.shape_.push_back(getChannelByPixelType(tmp_param->dst_pixel_type_));
-    desc.shape_.push_back(tmp_param->h_);
-    desc.shape_.push_back(tmp_param->w_);
+    desc.shape_.emplace_back(1);
+    desc.shape_.emplace_back(getChannelByPixelType(tmp_param->dst_pixel_type_));
+    desc.shape_.emplace_back(tmp_param->h_);
+    desc.shape_.emplace_back(tmp_param->w_);
     dst->justModify(desc);
     device::Device* device = device::getDefaultHostDevice();
     dst->allocBuffer(device);

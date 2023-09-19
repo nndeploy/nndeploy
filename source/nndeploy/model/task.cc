@@ -9,8 +9,8 @@ Task::Task(const std::string &name, Packet *input, Packet *output)
   if (input == nullptr || output == nullptr) {
     constructed_ = false;
   } else {
-    inputs_.push_back(input);
-    outputs_.push_back(output);
+    inputs_.emplace_back(input);
+    outputs_.emplace_back(output);
     constructed_ = true;
   }
 }

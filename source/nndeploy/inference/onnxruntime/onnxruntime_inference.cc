@@ -51,7 +51,7 @@ base::Status OnnxRuntimeInference::init() {
         type_info.GetTensorTypeAndShapeInfo().GetShape();
     ONNXTensorElementDataType data_type =
         type_info.GetTensorTypeAndShapeInfo().GetElementType();
-    inputs_desc_.push_back(OrtValueInfo{input_name, shape, data_type});
+    inputs_desc_.emplace_back(OrtValueInfo{input_name, shape, data_type});
 
     device::TensorDesc desc;
     if (onnxruntime_inference_param->max_shape_.find(input_name) !=
@@ -86,7 +86,7 @@ base::Status OnnxRuntimeInference::init() {
         type_info.GetTensorTypeAndShapeInfo().GetShape();
     ONNXTensorElementDataType data_type =
         type_info.GetTensorTypeAndShapeInfo().GetElementType();
-    outputs_desc_.push_back(OrtValueInfo{output_name, shape, data_type});
+    outputs_desc_.emplace_back(OrtValueInfo{output_name, shape, data_type});
 
     if (!isDynamic(shape)) {
       device::TensorDesc desc;

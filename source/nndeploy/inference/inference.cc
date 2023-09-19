@@ -143,14 +143,14 @@ std::string Inference::getOutputName(int i) {
 std::vector<std::string> Inference::getAllInputTensorName() {
   std::vector<std::string> input_tensor_names;
   for (auto &tensor : input_tensors_) {
-    input_tensor_names.push_back(tensor.first);
+    input_tensor_names.emplace_back(tensor.first);
   }
   return input_tensor_names;
 }
 std::vector<std::string> Inference::getAllOutputTensorName() {
   std::vector<std::string> output_tensor_names;
   for (auto &tensor : output_tensors_) {
-    output_tensor_names.push_back(tensor.first);
+    output_tensor_names.emplace_back(tensor.first);
   }
   return output_tensor_names;
 }
@@ -267,14 +267,14 @@ std::map<std::string, device::Tensor *> Inference::getAllOutputTensorMap() {
 std::vector<device::Tensor *> Inference::getAllInputTensorVector() {
   std::vector<device::Tensor *> input_tensor;
   for (auto &tensor : input_tensors_) {
-    input_tensor.push_back(tensor.second);
+    input_tensor.emplace_back(tensor.second);
   }
   return input_tensor;
 }
 std::vector<device::Tensor *> Inference::getAllOutputTensorVector() {
   std::vector<device::Tensor *> output_tensor;
   for (auto &tensor : output_tensors_) {
-    output_tensor.push_back(tensor.second);
+    output_tensor.emplace_back(tensor.second);
   }
   return output_tensor;
 }
