@@ -97,7 +97,7 @@ base::IntVector TensorRtConvert::convertToShape(const nvinfer1::Dims &src) {
   base::IntVector dst;
   int src_size = src.nbDims;
   for (int i = 0; i < src_size; ++i) {
-    dst.push_back(src.d[i]);
+    dst.emplace_back(src.d[i]);
   }
   return dst;
 }

@@ -196,7 +196,7 @@ static void globRec(const std::string& directory, const std::string& wildchart,
         }
 
         if (wildchart.empty() || wildcmp(name, wildchart.c_str()))
-          result.push_back(entry);
+          result.emplace_back(entry);
       }
     } catch (...) {
       closedir(dir);

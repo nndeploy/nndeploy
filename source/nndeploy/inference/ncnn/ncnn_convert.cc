@@ -52,21 +52,21 @@ base::IntVector NcnnConvert::convertToShape(const int &dims, const int &w,
                                             const int &h, const int &d,
                                             const int &c, const size_t &cstep) {
   base::IntVector dst;
-  dst.push_back(1);
+  dst.emplace_back(1);
   if (dims == 4) {
-    dst.push_back(c);
-    dst.push_back(d);
-    dst.push_back(h);
-    dst.push_back(w);
+    dst.emplace_back(c);
+    dst.emplace_back(d);
+    dst.emplace_back(h);
+    dst.emplace_back(w);
   } else if (dims == 3) {
-    dst.push_back(c);
-    dst.push_back(h);
-    dst.push_back(w);
+    dst.emplace_back(c);
+    dst.emplace_back(h);
+    dst.emplace_back(w);
   } else if (dims == 2) {
-    dst.push_back(h);
-    dst.push_back(w);
+    dst.emplace_back(h);
+    dst.emplace_back(w);
   } else if (dims == 1) {
-    dst.push_back(w);
+    dst.emplace_back(w);
   } else {
     dst.clear();
     NNDEPLOY_LOGE("Not support data format[%d]!\n", dims);

@@ -43,7 +43,7 @@ class NNDEPLOY_CC_API Condition : public Task {
       return nullptr;
     }
     Task* task = dynamic_cast<Task*>(new T(name, input, output));
-    condition_task_.push_back(task);
+    condition_task_.emplace_back(task);
     return task;
   }
   template <typename T,
@@ -65,7 +65,7 @@ class NNDEPLOY_CC_API Condition : public Task {
       return nullptr;
     }
     Task* task = dynamic_cast<Task*>(new T(name, inputs, outputs));
-    condition_task_.push_back(task);
+    condition_task_.emplace_back(task);
     return task;
   }
   template <typename T,
@@ -85,7 +85,7 @@ class NNDEPLOY_CC_API Condition : public Task {
       return nullptr;
     }
     Task* task = dynamic_cast<Task*>(new T(name, type, input, output));
-    condition_task_.push_back(task);
+    condition_task_.emplace_back(task);
     return task;
   }
 
