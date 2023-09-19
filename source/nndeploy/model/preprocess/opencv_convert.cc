@@ -149,7 +149,7 @@ bool OpenCvConvert::convertToTensor(const cv::Mat& src, device::Tensor* dst,
     std::vector<cv::Mat> tmp_vec;
     for (int i = 0; i < c; ++i) {
       float* data = (float*)dst->getPtr() + w * h * i;
-      tmp_vec.emplace_back(cv::Mat(cv::Size(w, h), CV_32FC1, data));
+      tmp_vec.push_back(cv::Mat(cv::Size(w, h), CV_32FC1, data));
     }
     cv::split(tmp, tmp_vec);
     for (int i = 0; i < c; ++i) {

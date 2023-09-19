@@ -447,7 +447,7 @@ base::Status TensorRtInference::initWithOnnxModel(
     return base::kStatusCodeErrorInferenceTensorRt;
   }
 
-  engine_ = std::make_shared<nvinfer1::ICudaEngine>(
+  engine_ = std::shared_ptr<nvinfer1::ICudaEngine>(
       runtime_->deserializeCudaEngine(plan->data(), plan->size()));
   if (!engine_) {
     NNDEPLOY_LOGE("deserializeCudaEngine failed!\n");
@@ -472,7 +472,7 @@ base::Status TensorRtInference::initWithTensorRtModel(
   }
 
   engine_ =
-      std::make_shared<nvinfer1::ICudaEngine>(runtime_->deserializeCudaEngine(
+      std::shared_ptr<nvinfer1::ICudaEngine>(runtime_->deserializeCudaEngine(
           model_buffer.data(), model_buffer.size()));
   if (!engine_) {
     NNDEPLOY_LOGE("deserializeCudaEngine failed!\n");
@@ -489,7 +489,7 @@ base::Status TensorRtInference::initWithTensorRtModel(
 bool TensorRtInference::checkDynamicShape() { return true; }
 
 base::Status TensorRtInference::CreateExecuteContext() {
-  context_ = std::make_shared<nvinfer1::IExecutionContext>(
+  context_ = std::shared_ptr<nvinfer1::IExecutionContext>(
       engine_->createExecutionContextWithoutDeviceMemory());
   if (!context_) {
     return base::kStatusCodeErrorInferenceTensorRt;

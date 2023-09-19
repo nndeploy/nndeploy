@@ -179,9 +179,9 @@ base::IntVector OpenVinoConvert::convertToShape(const ov::PartialShape &src) {
   for (int i = 0; i < src.size(); ++i) {
     auto dim = src[i];
     if (dim.is_dynamic()) {
-      dst.emplace_back(-1);  // -1 means dynamic shape
+      dst.push_back(-1);  // -1 means dynamic shape
     } else {
-      dst.emplace_back(dim.get_length());
+      dst.push_back(dim.get_length());
     }
   }
   return dst;
@@ -191,7 +191,7 @@ ov::PartialShape OpenVinoConvert::convertFromShape(const base::IntVector &src) {
   int src_size = src.size();
   std::vector<ov::Dimension> dims;
   for (size_t i = 0; i < src_size; ++i) {
-    dims.emplace_back(ov::Dimension(src[i]));
+    dims.push_back(ov::Dimension(src[i]));
   }
   return ov::PartialShape(dims);
 }
@@ -200,7 +200,7 @@ base::SizeVector OpenVinoConvert::convertToStride(const ov::Strides &src) {
   base::SizeVector dst;
   for (int i = 0; i < src.size(); ++i) {
     auto dim = src[i];
-    dst.emplace_back(dim);
+    dst.push_back(dim);
   }
   return dst;
 }
@@ -269,7 +269,7 @@ ov::Tensor OpenVinoConvert::convertFromTensor(device::Tensor *src) {
   ov::Shape ov_shape;
   auto src_shape = src->getShape();
   for (auto dim : src_shape) {
-    ov_shape.emplace_back(static_cast<size_t>(dim));
+    ov_shape.push_back(static_cast<size_t>(dim));
   }
   void *data = src->getPtr();
   ov::Strides strides = OpenVinoConvert::convertFromStride(src->getStride());

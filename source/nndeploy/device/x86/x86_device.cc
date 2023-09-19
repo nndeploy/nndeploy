@@ -87,7 +87,7 @@ BufferDesc X86Device::toBufferDesc(const MatDesc& desc,
   } else {
     size = desc.stride_[0];
   }
-  buffer_desc.size_.emplace_back(size);
+  buffer_desc.size_.push_back(size);
   return buffer_desc;
 }
 
@@ -113,7 +113,7 @@ BufferDesc X86Device::toBufferDesc(const TensorDesc& desc,
   } else {
     size = desc.stride_[0];
   }
-  buffer_desc.size_.emplace_back(size);
+  buffer_desc.size_.push_back(size);
   return buffer_desc;
 }
 

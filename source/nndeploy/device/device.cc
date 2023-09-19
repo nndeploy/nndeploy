@@ -50,7 +50,7 @@ int Device::compareBufferDesc(const BufferDesc& desc1,
 Buffer* Device::create(size_t size, void* ptr,
                        BufferSourceType buffer_source_type) {
   BufferDesc desc;
-  desc.size_.emplace_back(size);
+  desc.size_.push_back(size);
   Buffer* buffer = new Buffer(this, desc, ptr, buffer_source_type);
   return buffer;
 }
@@ -64,7 +64,7 @@ Buffer* Device::create(const BufferDesc& desc, void* ptr,
 Buffer* Device::create(size_t size, int id,
                        BufferSourceType buffer_source_type) {
   BufferDesc desc;
-  desc.size_.emplace_back(size);
+  desc.size_.push_back(size);
   Buffer* buffer = new Buffer(this, desc, id, buffer_source_type);
   return buffer;
 }

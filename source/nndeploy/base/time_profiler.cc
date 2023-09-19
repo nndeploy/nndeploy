@@ -82,7 +82,7 @@ void TimeProfiler::end(const std::string &key) {
 void TimeProfiler::print(const std::string &title) {
   std::vector<std::shared_ptr<Record>> records;
   for (auto &it : records_) {
-    records.emplace_back(it.second);
+    records.push_back(it.second);
   }
   std::sort(
       records.begin(), records.end(),
