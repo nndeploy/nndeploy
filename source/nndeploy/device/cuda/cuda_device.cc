@@ -84,7 +84,7 @@ std::vector<DeviceInfo> CudaArchitecture::getDeviceInfo(
   for (int i = 0; i < device_count; ++i) {
     cudaDeviceProp p = cudaGetDeviceProperty(i);
     DeviceInfo device_info;
-    device_info_list.emplace_back(device_info);
+    device_info_list.push_back(device_info);
   }
   return device_info_list;
 }
@@ -109,7 +109,7 @@ BufferDesc CudaDevice::toBufferDesc(const MatDesc& desc,
   } else {
     size = desc.stride_[0];
   }
-  buffer_desc.size_.emplace_back(size);
+  buffer_desc.size_.push_back(size);
   return buffer_desc;
 }
 
@@ -135,7 +135,7 @@ BufferDesc CudaDevice::toBufferDesc(const TensorDesc& desc,
   } else {
     size = desc.stride_[0];
   }
-  buffer_desc.size_.emplace_back(size);
+  buffer_desc.size_.push_back(size);
   return buffer_desc;
 }
 

@@ -89,7 +89,7 @@ base::Status YoloPostProcess::runV5V6() {
           // NNDEPLOY_LOGE("score:%f, x0:%f, y0:%f, x1:%f, y1:%f\n", score, x0,
           // y0,
           //               x1, y1);
-          results_batch.bboxs_.emplace_back(bbox);
+          results_batch.bboxs_.push_back(bbox);
         }
       }
     }
@@ -104,7 +104,7 @@ base::Status YoloPostProcess::runV5V6() {
       results_batch.bboxs_[n].bbox_[1] /= param->model_h_;
       results_batch.bboxs_[n].bbox_[2] /= param->model_w_;
       results_batch.bboxs_[n].bbox_[3] /= param->model_h_;
-      results->bboxs_.emplace_back(results_batch.bboxs_[n]);
+      results->bboxs_.push_back(results_batch.bboxs_[n]);
     }
   }
 
@@ -159,7 +159,7 @@ base::Status YoloPostProcess::runV8() {
           bbox.bbox_[1] = y0;
           bbox.bbox_[2] = x1;
           bbox.bbox_[3] = y1;
-          results_batch.bboxs_.emplace_back(bbox);
+          results_batch.bboxs_.push_back(bbox);
         }
       }
     }
@@ -174,7 +174,7 @@ base::Status YoloPostProcess::runV8() {
       results_batch.bboxs_[n].bbox_[1] /= param->model_h_;
       results_batch.bboxs_[n].bbox_[2] /= param->model_w_;
       results_batch.bboxs_[n].bbox_[3] /= param->model_h_;
-      results->bboxs_.emplace_back(results_batch.bboxs_[n]);
+      results->bboxs_.push_back(results_batch.bboxs_[n]);
     }
   }
 

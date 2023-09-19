@@ -76,7 +76,7 @@ Packet* Pipeline::createPacket(const std::string& name) {
   PacketWrapper* packet_wrapper = new PacketWrapper();
   packet_wrapper->is_external_ = false;
   packet_wrapper->packet_ = packet;
-  packet_repository_.emplace_back(packet_wrapper);
+  packet_repository_.push_back(packet_wrapper);
   return packet;
 }
 PacketWrapper* Pipeline::addPacket(Packet* packet) {
@@ -85,7 +85,7 @@ PacketWrapper* Pipeline::addPacket(Packet* packet) {
   PacketWrapper* packet_wrapper = new PacketWrapper();
   packet_wrapper->is_external_ = true;
   packet_wrapper->packet_ = packet;
-  packet_repository_.emplace_back(packet_wrapper);
+  packet_repository_.push_back(packet_wrapper);
   return packet_wrapper;
 }
 
@@ -102,12 +102,12 @@ PacketWrapper* Pipeline::addPacket(Packet* packet) {
 //   if (findPacketWrapper(input) == nullptr) {
 //     this->addPacket(input);
 //   }
-//   findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
+//   findPacketWrapper(input)->consumers_.push_back(task_wrapper);
 //   if (findPacketWrapper(output) == nullptr) {
 //     this->addPacket(output);
 //   }
-//   findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
-//   task_repository_.emplace_back(task_wrapper);
+//   findPacketWrapper(output)->producers_.push_back(task_wrapper);
+//   task_repository_.push_back(task_wrapper);
 //   return task;
 // }
 // template <typename T>
@@ -127,15 +127,15 @@ PacketWrapper* Pipeline::addPacket(Packet* packet) {
 //     if (findPacketWrapper(input) == nullptr) {
 //       this->addPacket(input);
 //     }
-//     findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
+//     findPacketWrapper(input)->consumers_.push_back(task_wrapper);
 //   }
 //   for (auto output : outputs) {
 //     if (findPacketWrapper(output) == nullptr) {
 //       this->addPacket(output);
 //     }
-//     findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
+//     findPacketWrapper(output)->producers_.push_back(task_wrapper);
 //   }
-//   task_repository_.emplace_back(task_wrapper);
+//   task_repository_.push_back(task_wrapper);
 //   return task;
 // }
 // template <typename T>
@@ -152,12 +152,12 @@ PacketWrapper* Pipeline::addPacket(Packet* packet) {
 //   if (findPacketWrapper(input) == nullptr) {
 //     this->addPacket(input);
 //   }
-//   findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
+//   findPacketWrapper(input)->consumers_.push_back(task_wrapper);
 //   if (findPacketWrapper(output) == nullptr) {
 //     this->addPacket(output);
 //   }
-//   findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
-//   task_repository_.emplace_back(task_wrapper);
+//   findPacketWrapper(output)->producers_.push_back(task_wrapper);
+//   task_repository_.push_back(task_wrapper);
 //   return task;
 // }
 base::Status Pipeline::addTask(Task* task) {
@@ -172,17 +172,17 @@ base::Status Pipeline::addTask(Task* task) {
     if (findPacketWrapper(input) == nullptr) {
       input_wrapper = this->addPacket(input);
     }
-    input_wrapper->consumers_.emplace_back(task_wrapper);
+    input_wrapper->consumers_.push_back(task_wrapper);
   }
   for (auto output : task->getAllOutput()) {
     PacketWrapper* output_wrapper = findPacketWrapper(output);
     if (output_wrapper == nullptr) {
       output_wrapper = this->addPacket(output);
     }
-    output_wrapper->producers_.emplace_back(task_wrapper);
+    output_wrapper->producers_.push_back(task_wrapper);
   }
 
-  task_repository_.emplace_back(task_wrapper);
+  task_repository_.push_back(task_wrapper);
   return status;
 }
 
@@ -444,7 +444,7 @@ std::vector<TaskWrapper*> Pipeline::findStartTasks() {
   std::vector<TaskWrapper*> start_tasks;
   for (auto task_wrapper : task_repository_) {
     if (task_wrapper->predecessors_.empty()) {
-      start_tasks.emplace_back(task_wrapper);
+      start_tasks.push_back(task_wrapper);
     }
   }
   return start_tasks;
@@ -454,7 +454,7 @@ std::vector<TaskWrapper*> Pipeline::findEndTasks() {
   std::vector<TaskWrapper*> end_tasks;
   for (auto task_wrapper : task_repository_) {
     if (task_wrapper->successors_.empty()) {
-      end_tasks.emplace_back(task_wrapper);
+      end_tasks.push_back(task_wrapper);
     }
   }
   return end_tasks;
@@ -464,7 +464,7 @@ base::Status Pipeline::TopoSortBFS(TaskWrapper* task_wrapper) {
   std::vector<Task*> dst;
   task_wrapper->color_ = kTaskColorGray;
   std::deque<TaskWrapper*> task_deque;
-  task_deque.emplace_back(task_wrapper);
+  task_deque.push_back(task_wrapper);
   while (!task_deque.empty()) {
     TaskWrapper* task_wrapper = task_deque.front();
     if (task_wrapper->color_ == kTaskColorBlack) {
@@ -489,14 +489,14 @@ base::Status Pipeline::TopoSortBFS(TaskWrapper* task_wrapper) {
         return base::kStatusCodeErrorInvalidValue;
       } else if (successor->color_ == kTaskColorWhite) {
         successor->color_ = kTaskColorGray;
-        task_deque.emplace_back(successor);
+        task_deque.push_back(successor);
       }
     }
     task_deque.pop_front();
     task_wrapper->color_ = kTaskColorBlack;
-    dst.emplace_back(task_wrapper->task_);
+    dst.push_back(task_wrapper->task_);
   }
-  topo_sort_task_.emplace_back(dst);
+  topo_sort_task_.push_back(dst);
   return base::kStatusCodeOk;
 }
 
@@ -561,10 +561,10 @@ base::Status Pipeline::topologicalSort() {
     }
     std::vector<Task*> task_dst;
     while (!dst.empty()) {
-      task_dst.emplace_back(dst.top()->task_);
+      task_dst.push_back(dst.top()->task_);
       dst.pop();
     }
-    topo_sort_task_.emplace_back(task_dst);
+    topo_sort_task_.push_back(task_dst);
   }
 
   return status;

@@ -15,20 +15,21 @@ namespace base {
 #define PARAM_COPY(param_type)                                       \
  public:                                                             \
   virtual std::shared_ptr<nndeploy::base::Param> copy() {            \
-    std::shared_ptr<param_type> param = std::make_shared<param_type> \
-                                (*dynamic_cast<param_type*>(this));  \
+    std::shared_ptr<nndeploy::base::Param> param(new param_type());  \
+    param_type *param_ptr = dynamic_cast<param_type *>(param.get()); \
+    *param_ptr = *this;                                              \
     return param;                                                    \
   }
 
 #define PARAM_COPY_TO(param_type)                                       \
  public:                                                                \
   virtual nndeploy::base::Status copyTo(nndeploy::base::Param *param) { \
-    std::shared_ptr<param_type> param_ptr = std::make_shared<param_type>\
-                                   (*dynamic_cast<param_type*>(this));  \
+    param_type *param_ptr = dynamic_cast<param_type *>(param);          \
     if (nullptr == param_ptr) {                                         \
       NNDEPLOY_LOGE("dynamic cast to %s failed\n", #param_type);        \
       return nndeploy::base::kStatusCodeErrorInvalidParam;              \
     }                                                                   \
+    *param_ptr = *this;                                                 \
     return nndeploy::base::kStatusCodeOk;                               \
   }
 

@@ -104,11 +104,11 @@ std::vector<std::string> getModelValue() {
   pos2 = model_value_str.find(",");
   pos1 = 0;
   while (std::string::npos != pos2) {
-    model_value.emplace_back(model_value_str.substr(pos1, pos2 - pos1));
+    model_value.push_back(model_value_str.substr(pos1, pos2 - pos1));
     pos1 = pos2 + 1;
     pos2 = model_value_str.find(",", pos1);
   }
-  model_value.emplace_back(model_value_str.substr(pos1));
+  model_value.push_back(model_value_str.substr(pos1));
   return model_value;
 }
 
@@ -152,11 +152,11 @@ std::vector<std::string> getCachePath() {
   pos2 = cache_path_str.find(",");
   pos1 = 0;
   while (std::string::npos != pos2) {
-    cache_path.emplace_back(cache_path_str.substr(pos1, pos2 - pos1));
+    cache_path.push_back(cache_path_str.substr(pos1, pos2 - pos1));
     pos1 = pos2 + 1;
     pos2 = cache_path_str.find(",", pos1);
   }
-  cache_path.emplace_back(cache_path_str.substr(pos1));
+  cache_path.push_back(cache_path_str.substr(pos1));
   return cache_path;
 }
 std::vector<std::string> getLibraryPath() {
@@ -166,11 +166,11 @@ std::vector<std::string> getLibraryPath() {
   pos2 = library_path_str.find(",");
   pos1 = 0;
   while (std::string::npos != pos2) {
-    library_path.emplace_back(library_path_str.substr(pos1, pos2 - pos1));
+    library_path.push_back(library_path_str.substr(pos1, pos2 - pos1));
     pos1 = pos2 + 1;
     pos2 = library_path_str.find(",", pos1);
   }
-  library_path.emplace_back(library_path_str.substr(pos1));
+  library_path.push_back(library_path_str.substr(pos1));
   return library_path;
 }
 
