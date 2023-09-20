@@ -1,7 +1,4 @@
 
-全栈式多终端模型部署框架**nndeploy**重磅开源！
-
-
 # 项目地址：https://github.com/Alwaysssssss/nndeploy
 
 # 介绍
@@ -197,6 +194,6 @@ nndeploy是一款最新上线的支持多平台、高性能、简单易用的机
 - 微信群：nndeploy表情包交流群
 
 # 本文作者：
-- [02200059Z](https://github.com/02200059Z)、
+- [02200059Z](https://github.com/02200059Z)
 - [qixuxiang](https://github.com/qixuxiang)
 - [Always](https://github.com/Alwaysssssss)
