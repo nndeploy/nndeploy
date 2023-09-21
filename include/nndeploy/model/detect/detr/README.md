@@ -1,17 +1,27 @@
 # readme
 
-## 链接
-+ github
-  + https://github.com/meituan/YOLOv6
-+ 2022美团技术总结
-  + https://s3plus.meituan.net/v1/mss_e63d09aec75b41879dcb3069234793ac/file/2022%E5%B9%B4%E7%BE%8E%E5%9B%A2%E6%8A%80%E6%9C%AF%E5%B9%B4%E8%B4%A7-%E5%90%88%E8%BE%91.pdf
+## 算法
++ 去github找到该算法
+  + 模型下载
+  + 找到模型python推理代码
 
-## 模型
-+ 通官方页面 https://github.com/meituan/YOLOv6 下载模型
-+ 导出onnx模型文件
-  + python ./deploy/ONNX/export_onnx.py --weights /home/always/github/public/nndeploy/resourcemodel/yolo/yolov6l.pt --simplify
-  + python ./deploy/ONNX/export_onnx.py --weights /home/always/github/public/nndeploy/resourcemodel/yolo/yolov6s.pt --simplify
-    + 运行失败
-  + python ./deploy/ONNX/export_onnx.py --weights /home/always/github/public/nndeploy/resourcemodel/yolo/yolov6m.pt --simplify
-  + python ./deploy/ONNX/export_onnx.py --weights /home/always/github/public/nndeploy/resourcemodel/yolo/yolov6n.pt --simplify
-    + 运行失败
+## 模型转换
++ 模型转换为onnx模型文件
++ 用netron打开，配合python推理代码一起阅读
+
+## 模型图优化
++ onnxsim使用
+
+## 新建文件
++ include\nndeploy\model\detect\detr\detr.h
++ source\nndeploy\model\detect\detr\detr.cc
+
+## c++代码编写
+
+## cmake编写
+
+
+## 编译
+
+
+## 执行

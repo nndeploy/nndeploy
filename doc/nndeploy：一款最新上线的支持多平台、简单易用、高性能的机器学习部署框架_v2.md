@@ -182,9 +182,6 @@ nndeploy是一款最新上线的支持多平台、高性能、简单易用的机
 # 未来计划
 - 接入更多的推理框架，包括TFLite、coreML、TVM、AITemplate、RKNN、算能等等推理软件栈
 - 部署更多的算法，包括Stable Diffusion、DETR、Segment Anything等等热门开源模型
-- 开发线程池，并于有向无环图完成联动，完成后可实现有向无环图的流水线并行
-- 开发内存池，完成后可实现高效的内存分配与释放
-- 开发一组高性能的算子，完成后将加速你模型前后处理速度
 
 ![flag](image/flag.jpeg#pic_center)
 
