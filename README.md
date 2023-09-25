@@ -58,7 +58,7 @@
   
 - 一组高性能的算子正在开发中，完成后将加速您模型前后处理速度
 
-![阿Q正传.gif](docs/image/meme1.gif)
+![阿Q正传.gif](docs/image/meme_aq.gif)
 
 ### 简单易用
 
@@ -339,9 +339,7 @@ export LD_LIBRARY_PATH=PATH/nndeploy/build/install/bin:$LD_LIBRARY_PATH
 ## 加入我们
 - 欢迎大家参与，一起打造最简单易用、高性能的机器学习部署框架
 - 微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy)
-- 微信群：nndeploy表情包交流群
   
-<img align="left" src="docs/image/Always.jpg" width="512px">
-<img align="left" src="docs/image/nndeploy表情包交流群.jpg" width="512px">
+<img align="left" src="docs/image/wechat.jpg" width="512px">
 
 

@@ -18,16 +18,9 @@ Welcome to nndeploy's documentation!
 
    user_guide/deploy_a_new_algorithm
    user_guide/export_model
-   user_guide/thread_pool
-
-.. toctree::
-   :maxdepth: 1
-   :caption: 开发记录
-
-   dev_record/always_dairy
 
 .. toctree::
    :maxdepth: 1
    :caption: 常见问题
    
-   question_answer/q_a
+   question_answer/question_answer

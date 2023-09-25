@@ -162,7 +162,7 @@ nndeploy是一款最新上线的支持多平台、高性能、简单易用的机
   
 - 一组高性能的算子正在开发中，完成后将加速你模型前后处理速度
 
-![阿Q正传.gif](../../image/meme1.gif)
+![阿Q正传.gif](../../image/meme_aq.gif)
 
 ## nndeploy架构详解
 - **Directed Acyclic Graph**：有向无环图子模块。模型端到端的部署为**模型前处理->模型推理->模型推理**，这是一个非常典型的有向无环图，对于多模型组合的算法而言，是更加复杂的的有向无环图，直接写业务代码去串联整个过程不仅容易出错，而且还效率低下，采用有向无环图的方式可以极大的缩减业务代码的编写。
@@ -183,12 +183,11 @@ nndeploy是一款最新上线的支持多平台、高性能、简单易用的机
 - 接入更多的推理框架，包括TFLite、coreML、TVM、AITemplate、RKNN、算能等等推理软件栈
 - 部署更多的算法，包括Stable Diffusion、DETR、Segment Anything等等热门开源模型
 
-![flag](../../image/meme2.jpeg)
+![flag](../../image/meme_flag.jpeg)
 
 ## 加入我们
 - 欢迎大家参与，一起打造最简单易用、高性能的机器学习部署框架
 - 微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy)
-- 微信群：nndeploy表情包交流群
 
 ## 本文作者
 - [02200059Z](https://github.com/02200059Z)
