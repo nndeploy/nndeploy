@@ -213,6 +213,7 @@ _deps
 
 # build
 build/
+docs/build
 
 # vscode
 .vscode/
