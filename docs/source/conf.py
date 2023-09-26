@@ -8,9 +8,9 @@
 import sphinx_rtd_theme
 
 project = 'nndeploy'
-copyright = '2023, shi jiaxing'
-author = 'shi jiaxing'
-release = '0.1.0'
+copyright = 'nndeploy'
+author = 'nndeploy'
+release = '0.1.0.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

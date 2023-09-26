@@ -1,6 +1,6 @@
 # 社区问题
 
-## 问题一 来自[Always](https://github.com/Alwaysssssss)
+## 问题一 来自 nndeploy交流群
 ### Q: 我想了解一下：onnx runtime也可以选择不同的execution provider: https://onnxruntime.ai/docs/execution-providers/ nndeploy与其思路的差别主要在哪里呢？ 
 ### A: ONNXRuntime与nndeploy最大的区别是：ONNXRuntime首先是一个的推理框架，然后可以接入其他推理框架，nndeploy明确定位就是一个多端部署框架。这个会带来的差异主要是如下两点
 - ONNXRuntime为了保证其他推理框架兼容其自身，在功能上会对其他推理框架有一定程度的阉割（比如TNN、mnn操作推理框架内部分配的输入输出、OpenVINO CPU-GPU异构模式、模型量化等等），导致模型通过EP只是能跑起来，性能应该不好。nndeploy希望类似：你搞了很久的trt，然后你就trt搭建了一个自己的小型框架，可以完全操纵trt;
@@ -8,7 +8,7 @@
 
 总结而言，都是调用第三方推理框架，使用nndeploy功能更全面、性能更好、体验更丝滑。
 
-## 问题二 来自[Always](https://github.com/Alwaysssssss)
+## 问题二 来自 nndeploy交流群
 ### Q: nndeploy相对于openmmlab的mmdeploy以及paddle的fastdeploy会有什么优势？
 ### A: 非常开心可以和openmmlab的mmdeploy以及paddle的fastdeploy放在一起比较，毫无疑问，openmmlab的mmdeploy以及paddle的fastdeploy都是行业巨擘，有非常大影响力，据我所知都有非常多公司在使用这个两个库。因为我们是nndeploy的开发者，所以我们这里主要谈谈我们的优势。
 - 更加开放。目前fd家重点是paddle的模型仓库以及主推自家推理框架，mmdp家主要是openmmlab的模型仓库以及主推自家推理框架，而nndeploy积极集成各家的推理框架，不设限的部署热门的开源模型。nndeploy想跳出这个"特定优先支持"，做一个更加通用普适的部署框架
