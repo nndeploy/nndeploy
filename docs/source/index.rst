@@ -10,7 +10,7 @@ Welcome to nndeploy's documentation!
    :maxdepth: 1
    :caption: 介绍
 
-   intro/index
+   introduction/index
 
 .. toctree::
    :maxdepth: 1
