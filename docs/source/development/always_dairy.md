@@ -98,6 +98,7 @@
 + segment-anything
 + 修改readme
 + unset all_proxy && unset ALL_PROXY
++ set all_proxy && set ALL_PROXY
 + chown -R always /home/always/github/yolov5
 + chown always yolov8n.onnx 
 + tar -cvf ubuntu22.04_x64.tar ubuntu22.04_x64

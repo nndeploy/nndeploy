@@ -197,6 +197,10 @@ model::Pipeline* createYoloV5MultiOutputPipeline(
   post_param->model_w_ = 640;
   post_param->version_ = 5;
 
+  post_param->name_stride_8 = "482";
+  post_param->name_stride_16 = "463";
+  post_param->name_stride_32 = "output";
+
   return pipeline;
 }
 

@@ -174,8 +174,22 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.tnnproto,/home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.tnnmdodel \
                        --input_type kInputTypeImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
-                       --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
+                       --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg                       
 ```
+
+```shell
+./demo_nndeploy_detect \
+                       --name NNDEPLOY_YOLOV5_MULTI_OUTPUT \
+                       --inference_type kInferenceTypeTnn \
+                       --device_type kDeviceTypeCodeX86:0 \
+                       --model_type kModelTypeTnn \
+                       --is_path \
+                       --model_value /home/always/github/tnn-models/model/yolov5/yolov5s.tnnproto,/home/always/Downloads/yolov5s.tnnmdodel \
+                       --input_type kInputTypeImage  \
+                       --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
+                       --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg                       
+```
+
 
 ## ncnn - 结果错误
 

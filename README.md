@@ -194,10 +194,10 @@
 ## 快速开始
 ### 编译状态
 
-|  系统  | 编译状态 |
-|-------|---------|
-| Linux | [![linux](https://github.com/wangzhaode/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/linux.yml) |
-| Macos | [![macos](https://github.com/wangzhaode/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/macos.yml) |
+| 系统    | 编译状态                                                                                                                                                           |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Linux   | [![linux](https://github.com/wangzhaode/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/linux.yml)       |
+| Macos   | [![macos](https://github.com/wangzhaode/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/macos.yml)       |
 | Windows | [![windows](https://github.com/wangzhaode/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/windows.yml) |
 
 ### 编译
@@ -248,7 +248,7 @@ git clone --recursive https://github.com/Alwaysssssss/nndeploy.git
 |          [TNN](https://github.com/Tencent/TNN)          |  v0.3.0  |          [链接](https://github.com/Tencent/TNN/blob/master/doc/cn/user/compile.md)          |                                                         [链接](https://github.com/Tencent/TNN/releases/tag/v0.3.0)                                                         |                                      |
 |        [ncnn](https://github.com/Tencent/ncnn/)         |  v0.3.0  |            [链接](https://github.com/Tencent/ncnn/tree/master/docs/how-to-build)            |                                                       [链接](https://github.com/Tencent/ncnn/releases/tag/20230816)                                                        |                                      |
 - 补充说明    
-  - 我使用第三方库的上述版本，通常使用其他版本的也没有问题
+  - 我们使用第三方库的上述版本，通常使用其他版本的也没有问题
   - TensorRT
     - [Windows链接](https://zhuanlan.zhihu.com/p/476679322)
     - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
