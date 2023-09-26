@@ -192,6 +192,14 @@
 - 部署更多的算法，包括 `Stable Diffusion`、`DETR`、`SAM`等等热门开源模型
 
 ## 快速开始
+### 编译状态
+
+|  系统  | 编译状态 |
+|-------|---------|
+| Linux | [![linux](https://github.com/wangzhaode/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/linux.yml) |
+| Macos | [![macos](https://github.com/wangzhaode/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/macos.yml) |
+| Windows | [![windows](https://github.com/wangzhaode/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/windows.yml) |
+
 ### 编译
 + 拉取源代码
 

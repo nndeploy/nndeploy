@@ -1,0 +1,30 @@
+name: linux
+on:
+  push:
+    branches:
+     - master
+     - 'feature/**'
+    paths:
+      - 'src/**'
+      - '.github/workflows/linux.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/**'
+      - '.github/workflows/linux.yml'
+
+jobs:
+  build:
+    name: linux-build
+    runs-on: ubuntu-latest
+  
+    steps:
+      - uses: actions/checkout@v3
+      # build
+      - name: build
+        run: |
+            mkdir build
+            cd build
+            cmake ..
+            make -j4
+            
