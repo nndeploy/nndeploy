@@ -272,7 +272,7 @@ git clone --recursive https://github.com/Alwaysssssss/nndeploy.git
   ```
   mkdir build
   cp cmake/config_xx.cmake build
-  mv config_yolov5s.cmake config.cmake
+  mv config_xx.cmake config.cmake
   cd build
   ```
 + 编辑`build/config.cmake`来定制编译选项
