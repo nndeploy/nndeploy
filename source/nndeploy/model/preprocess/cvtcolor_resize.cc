@@ -28,8 +28,7 @@ base::Status CvtColrResize::run() {
   int h = dst->getHeight();
   int w = dst->getWidth();
 
-  cv::Mat tmp = *src;
-
+  cv::Mat tmp_cvt;
   if (tmp_param->src_pixel_type_ != tmp_param->dst_pixel_type_) {
     base::CvtColorType cvt_type = base::calCvtColorType(
         tmp_param->src_pixel_type_, tmp_param->dst_pixel_type_);
@@ -38,17 +37,22 @@ base::Status CvtColrResize::run() {
       return base::kStatusCodeErrorNotSupport;
     }
     int cv_cvt_type = OpenCvConvert::convertFromCvtColorType(cvt_type);
-    cv::cvtColor(tmp, tmp, cv_cvt_type);
+    cv::cvtColor(*src, tmp_cvt, cv_cvt_type);
+  } else {
+    tmp_cvt = *src;
   }
 
+  cv::Mat tmp_resize;
   if (tmp_param->interp_type_ != base::kInterpTypeNotSupport) {
     int interp_type =
         OpenCvConvert::convertFromInterpType(tmp_param->interp_type_);
-    cv::resize(*src, tmp, cv::Size(w, h), 0.0, 0.0, interp_type);
+    cv::resize(tmp_cvt, tmp_resize, cv::Size(w, h), 0.0, 0.0, interp_type);
+  } else {
+    tmp_resize = tmp_cvt;
   }
 
-  OpenCvConvert::convertToTensor(tmp, dst, tmp_param->scale_, tmp_param->mean_,
-                                 tmp_param->std_);
+  OpenCvConvert::convertToTensor(tmp_resize, dst, tmp_param->scale_,
+                                 tmp_param->mean_, tmp_param->std_);
 
   return base::kStatusCodeOk;
 }
