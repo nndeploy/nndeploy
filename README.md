@@ -342,6 +342,8 @@ export LD_LIBRARY_PATH=PATH/nndeploy/build/install/bin:$LD_LIBRARY_PATH
 - [CGraph](https://github.com/ChunelFeng/CGraph)
 - [tvm](https://github.com/apache/tvm)
 - [mmdeploy](https://github.com/open-mmlab/mmdeploy)
+- [FlyCV](https://github.com/PaddlePaddle/FlyCV)
+- [ThreadPool](https://github.com/progschj/ThreadPool)
 
 
 ## 加入我们
@@ -349,5 +351,7 @@ export LD_LIBRARY_PATH=PATH/nndeploy/build/install/bin:$LD_LIBRARY_PATH
 - 微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy)
   
 <img align="left" src="docs/image/wechat.jpg" width="512px">
+
+<img align="left" src="docs/image/wechat_group.jpg" width="512px">
 
 

@@ -12,6 +12,10 @@
 namespace nndeploy {
 namespace thread_pool {
 
+enum ParallelForApiType : int {
+  kParallelForApiTypeDefault = 0x0000,
+};
+
 /**
  * @brief Base class for parallel data processors
  */
@@ -20,6 +24,8 @@ class NNDEPLOY_CC_API ParallelLoopBody {
   virtual ~ParallelLoopBody() {}
   virtual void operator()(const base::Range& range) const = 0;
 };
+
+extern NNDEPLOY_CC_API int defaultNumberOfThreads();
 
 extern NNDEPLOY_CC_API void setThreadNum(int num);
 
