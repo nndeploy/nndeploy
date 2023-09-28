@@ -243,6 +243,14 @@ base::Status Pipeline::init() {
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("TopologicalSort and Check Cycle!\n");
   // NNDEPLOY_LOGI("##############\n");
+  /**
+   * @brief
+   * @note
+   * # 联通图
+   * # task并行
+   * # task串行
+   * # 条件并行
+   */
   status = topologicalSort();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("Toposort failed");
