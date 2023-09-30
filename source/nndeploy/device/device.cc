@@ -100,7 +100,7 @@ base::DeviceType getDefaultHostDeviceType() {
 #if NNDEPLOY_ARCHITECTURE_X86
   dst.code_ = base::kDeviceTypeCodeX86;
 #elif NNDEPLOY_ARCHITECTURE_ARM
-  dst.code_ = base::kDeviceTypeCodeARM;
+  dst.code_ = base::kDeviceTypeCodeArm;
 #else
   dst.code_ = base::kDeviceTypeCodeCpu;
 #endif
