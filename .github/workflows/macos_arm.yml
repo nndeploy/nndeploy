@@ -1,0 +1,36 @@
+name: macOS-arm64 CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.cpp'
+      - '**.h'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.cpp'
+      - '**.h'
+
+jobs:
+  build:
+    runs-on: macos-11.0-arm64
+    name: Build and Test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: |
+          brew update
+          brew install cmake
+
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_OSX_ARCHITECTURES=arm64
+          make -j$(sysctl -n hw.logicalcpu)

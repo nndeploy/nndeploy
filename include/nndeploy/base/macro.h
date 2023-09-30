@@ -171,7 +171,7 @@ static inline int NNDEPLOY_XADD(int* addr, int delta) {
 #define NNDEPLOY_OS_ANDROID 1
 #endif
 
-#if (defined __APPLE__ && defined TARGET_OS_MAC)
+#if (defined __APPLE__ && (defined __arm64__ || defined TARGET_OS_MAC))
 #undef NNDEPLOY_OS_DARWIN
 #define NNDEPLOY_OS_DARWIN 1
 #endif
