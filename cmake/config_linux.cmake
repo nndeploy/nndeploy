@@ -62,6 +62,7 @@ set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "/home/always/huggingface/nndeploy/thi
 set(ENABLE_NNDEPLOY_INFERENCE_NCNN "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/ncnn-20230816-ubuntu-2204-shared")
 set(ENABLE_NNDEPLOY_INFERENCE_TNN "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/tnn-v0.3.0")
 set(ENABLE_NNDEPLOY_INFERENCE_MNN "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/mnn_2.6.0_linux_x64_cpu_opencl")
+set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE "/data/qixuxiang/Paddle-Lite")
 set(ENABLE_NNDEPLOY_AICOMPILER_TVM OFF)
 ## model
 set(ENABLE_NNDEPLOY_MODEL ON)
