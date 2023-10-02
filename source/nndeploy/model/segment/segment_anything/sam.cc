@@ -11,6 +11,8 @@ TypePipelineRegister g_register_sam_pipeline(NNDEPLOY_SAM, createSamPipeline);
 // 后处理
 base::Status SamPostProcess::run() {
   SamPostParam* param = dynamic_cast<SamPostParam*>(param_.get());
+
+  return base::kStatusCodeOk;
 }
 
 // 构建SAM的input
