@@ -20,7 +20,7 @@ NLP的大型预训练模型通过强大的zero-shot和few-shot能力彻底改变
 
 **数据**：最终数据集 SA-1B 包括来自 1100 万张图像的超过 1B 个掩码。 SA-1B是使用我们的数据引擎完全自动收集的，其掩码比任何现有的分割数据集多400倍。
 
-![image-20230926205450040](../../image/image-20230926205450040.png)
+![image-20230926205450040](../../image/image_20230926205450040.png)
 
 # SAM模型导出
 
@@ -58,16 +58,7 @@ onnxsim image_encoder.onnx  image_encoder_sim.onnx
 
 输出如图所示的优化结果：
 
-![image-20230927144033791](../../image/image-20230927144033791.png)
-
-![image-20230930151231183](../../image/image-20230930151231183.png)
-
-
-
-
-
-把inputs输入的地方加入一个task，打进pipeline
-
+![image-20230927144033791](../../image/image_20230927144033791.png)
 
 
 # nndeploy部署SAM
