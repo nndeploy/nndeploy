@@ -243,6 +243,14 @@ base::Status Pipeline::init() {
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("TopologicalSort and Check Cycle!\n");
   // NNDEPLOY_LOGI("##############\n");
+  /**
+   * @brief
+   * @note
+   * # 联通图（多个独立的子图）
+   * # task并行（图中存在可以并行的task）
+   * # 流水线并行（通过流水线的方式并行）
+   * # 条件并行（通过条件判断的方式并行）
+   */
   status = topologicalSort();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("Toposort failed");

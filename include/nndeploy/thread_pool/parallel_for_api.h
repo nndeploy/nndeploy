@@ -21,7 +21,7 @@ class ParallelForApi {
                           double nstripes = -1.0) = 0;
 };
 
-std::shared_ptr<ParallelForApi> getParallelForApi(
+std::shared_ptr<ParallelForApi>& getParallelForApi(
     ParallelForApiType type = kParallelForApiTypeDefault);
 
 }  // namespace thread_pool

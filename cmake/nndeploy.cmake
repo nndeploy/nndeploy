@@ -48,6 +48,8 @@ include("${ROOT_PATH}/cmake/tnn.cmake")
 include("${ROOT_PATH}/cmake/openvino.cmake")
 ## ncnn
 include("${ROOT_PATH}/cmake/ncnn.cmake")
+## paddle-lite
+include("${ROOT_PATH}/cmake/paddlelite.cmake")
 #################### inference ####################
 
 #################### pipeline ####################

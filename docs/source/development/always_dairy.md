@@ -98,6 +98,7 @@
 + segment-anything
 + 修改readme
 + unset all_proxy && unset ALL_PROXY
++ set all_proxy && set ALL_PROXY
 + chown -R always /home/always/github/yolov5
 + chown always yolov8n.onnx 
 + tar -cvf ubuntu22.04_x64.tar ubuntu22.04_x64
@@ -118,3 +119,12 @@
 ## 2023.09.16
 + 完善代码，让社区同学更好的来开发
 
+## 2023.09.28
++ 中秋请假
++ Pipeline并行模式的探索
+
+
+## 2023.10.01
++ init -> reshape -> 写入输入/写入输出 -> run 都有可能分配内存
+
++ （input）前处理 -》 推理 -》 后处理 (output)

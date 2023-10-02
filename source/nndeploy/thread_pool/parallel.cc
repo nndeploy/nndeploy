@@ -15,7 +15,7 @@ void setThreadNum(int num) {
   std::shared_ptr<ParallelForApi>& api =
       getParallelForApi(g_parallel_for_api_type);
   if (api) {
-    api->setNumThreads(g_num_threads);
+    api->setThreadNum(num);
   }
 }
 

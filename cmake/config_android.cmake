@@ -62,6 +62,7 @@ set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME OFF)
 set(ENABLE_NNDEPLOY_INFERENCE_NCNN "/home/always/huggingface/nndeploy/third_party/android/ncnn-20230816-android-shared")
 set(ENABLE_NNDEPLOY_INFERENCE_TNN "/home/always/huggingface/nndeploy/third_party/android/tnn-v0.3.0-android")
 set(ENABLE_NNDEPLOY_INFERENCE_MNN "/home/always/huggingface/nndeploy/third_party/android/mnn_2.6.0_android_armv7_armv8_cpu_opencl_vulkan")
+set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE OFF)
 set(ENABLE_NNDEPLOY_AICOMPILER_TVM OFF)
 ## model
 set(ENABLE_NNDEPLOY_MODEL ON)

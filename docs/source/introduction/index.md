@@ -1,4 +1,7 @@
-## 介绍
+
+> 项目地址：<https://github.com/Alwaysssssss/nndeploy>
+
+# 介绍
 
 `nndeploy` 是一款最新上线的支持多平台、高性能、简单易用的机器学习部署框架。做到一个框架就可完成多端(云、边、端)模型的高性能部署。
 
@@ -8,7 +11,7 @@
 
 目前 `nndeploy` 已完成 `YOLO` 系列等多个开源模型的部署，可供直接使用，目前我们还在积极部署其它开源模型。（如果您或团队有需要部署的开源模型或者其他部署相关的问题，非常欢迎随时来和我们探讨 😁）
 
-## 模型部署的痛点
+# 模型部署的痛点
 
 - 现在业界尚不存在各方面都远超其同类产品的推理框架，不同推理框架在不同平台、硬件下分别具有各自的优势。例如，在 `Linux` + `NVidia` 显卡机器推理，`TensorRT` 是性能最好的推理框架；在 `Windows` + `x86 CPU` 机器推理，`OpenVINO` 是性能最好的推理框架；在 `ARM Android` 下，有 `ncnn`、`MNN`、`TFLite`、TNN等一系列选择。
 
@@ -18,13 +21,13 @@
   
 - 目前很多场景是需要由多个模型组合解决该业务问题（例如stable diffusion、老照片修复、人脸识别等等），直接采用推理框架的原生接口，会有大量且低效的业务代码编写
 
-## 架构简介
+# 架构简介
 
-![架构简介](docs/image/arch.png)
+![架构简介](../../image/arch.png)
 
-## `nndeploy` 的优势
+# `nndeploy` 的优势
 
-### 支持多平台和多推理框架
+## 支持多平台和多推理框架
 
 - 支持多种推理框架：对多个业界知名推理框架的全面支持，包括 `TensorRT`、`OpenVINO`、`ONNXRuntime`、`MNN`、`TNN`、`ncnn` 等。未来，我们将继续扩展支持，包括 `TFLite`、`paddle-lite`、`coreML`、`TVM`、`AITemplate`、`RKNN`等
 - 支持多种不同操作系统，包括 `Android`、`Linux`、`Windows`，正在适配 `macOS`、`IOS`。致力于在各种操作系统上无缝运行您的深度学习模型
@@ -38,7 +41,7 @@
 |          [TNN](https://github.com/Tencent/TNN)          |  yes  |   yes   |   yes   |  no   |  no   | [02200059Z](https://github.com/02200059Z) |       |
 |        [ncnn](https://github.com/Tencent/ncnn/)         |  no   |   no    |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
 
-### 直接可用的算法
+## 直接可用的算法
 
 - 目前已完成 [YOLOV5](https://github.com/ultralytics/yolov5)、[YOLOV6](https://github.com/meituan/YOLOv6)、[YOLOV8](https://github.com/ultralytics) 等模型的部署，可供您直接使用，后续我们持续不断去部署其它开源模型，让您开箱即用
 
@@ -48,7 +51,7 @@
 |   [YOLOV6](https://github.com/meituan/YOLOv6)   |   TensorRt/OpenVINO/ONNXRuntime   | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |       |
 |    [YOLOV8](https://github.com/ultralytics)     | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |       |
 
-### 高性能
+## 高性能
 
 - **推理框架的高性能抽象**：每个推理框架也都有其各自的特性，需要足够尊重以及理解这些推理框架，才能在抽象中不丢失推理框架的特性，并做到统一的使用的体验。`nndeploy` 可配置第三方推理框架绝大部分参数，保证了推理性能。可直接操作理框架内部分配的输入输出，实现前后处理的零拷贝，提升模型部署端到端的性能。
   
@@ -58,7 +61,7 @@
   
 - 一组高性能的算子正在开发中，完成后将加速您模型前后处理速度
 
-### 简单易用
+## 简单易用
 
 - **一套代码多端部署**：通过切换推理配置，一套代码即可在多端部署，算法的使用接口简单易用。示例代码如下：
 
@@ -168,7 +171,7 @@
   }
   ```
 
-## 架构详解
+# 架构详解
 
 - **Directed Acyclic Graph**：有向无环图子模块。模型端到端的部署流程可抽象成 `3` 个子块：**模型前处理->模型推理->模型推理**，这是一个非常典型的有向无环图，对于多模型组合的算法而言，是更加复杂的的有向无环图，直接写业务代码去串联整个过程不仅容易出错，而且还效率低下，采用有向无环图的方式可以极大的缩减业务代码的编写。
 
@@ -184,174 +187,22 @@
 
 - **Device**：设备管理子模块。为不同的设备提供统一的内存分配、内存拷贝、执行流管理等操作。
 
-![阿Q正传.gif](docs/image/meme_aq.gif)
+![阿Q正传.gif](../../image/meme_aq.gif)
 
-## TODO
+# TODO
 
-- 接入更多的推理框架，包括 `TFLite`、`paddle-lite`、`coreML`、`TVM`、`AITemplate`、`RKNN`、算能等等推理软件栈
+- 接入更多的推理框架，包括`TFLite`、`paddle-lite`、`coreML`、`TVM`、`AITemplate`、`RKNN`、算能等等推理软件栈
 - 部署更多的算法，包括 `Stable Diffusion`、`DETR`、`SAM`等等热门开源模型
 
-## 快速开始
-### 编译状态
+# 加入我们
 
-| 系统    | 编译状态                                                                                                                                                           |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Linux   | [![linux](https://github.com/wangzhaode/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/linux.yml)       |
-| Macos   | [![macos](https://github.com/wangzhaode/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/macos.yml)       |
-| Windows | [![windows](https://github.com/wangzhaode/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/windows.yml) |
-
-### 编译
-+ 拉取源代码
-
-```shell
-git clone --recursive https://github.com/Alwaysssssss/nndeploy.git
-```
-
-+ 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
-  ```
-  mkdir build
-  cp cmake/config.cmake build
-  cd build
-  ```
-+ 编辑`build/config.cmake`来定制编译选项
-  + 将`set(ENABLE_NNDEPLOY_OPENCV OFF)`改为`set(ENABLE_NNDEPLOY_OPENCV PATH/linux/OpenCV)`，`nndeploy`会启用并链接`OpenCV`，如果你想启用并链接的其他第三方库，也是做同样的处理
-  + 将`set(ENABLE_NNDEPLOY_DEVICE_CPU OFF)`改为`set(ENABLE_NNDEPLOY_DEVICE_CPU ON)`，`nndeploy`会启用`CPU`设备。如果你想启用其他设备（ARM、X86、CUDA …），也是做同样的处理
-  + 将`set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME OFF)`改为`set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "PATH/linux/onnxruntime-linux-x64-1.15.1")`，`nndeploy`会启用并链接推理后端`ONNXRuntime`。如果你想启用并链接其他推理后端（OpenVINO、TensorRT、TNN …），也是做同样的处理
-  + `启用并链接第三方库有两种选择`
-    + 开关`ON` - 当你安装了该库，并且可以通过find_package找到该库，可以采用该方式，例如CUDA、CUDNN、OpenCV、TenosrRT
-    + 路径`PATH` - 头文件以及库的根路径，其形式必须为
-      + 头文件：`PATH/include`
-      + 库：`PATH/lib `
-      + windows dll: `PATH/bin`
-+ 开始`make nndeploy`库
-  ```
-  cmake ..
-  make -j4
-  ```
-+ 安装，将nndeploy相关库可执行文件、第三方库安装至`build/install/lib`
-  ```
-  make install
-  ```
-
-### nndeploy 资源仓库
-已验证模型、第三方库、测试数据放在HuggingFace上，如果您有需要可以去下载，[下载链接](https://huggingface.co/alwaysssss/nndeploy/tree/main)。`但强烈建议您自己去管理自己的模型仓库、第三方库、测试数据`。
-
-+ 第三方库编译文档以及官方下载链接
-
-|                        第三方库                         |  主版本  |                                          编译文档                                           |                                                                               官方库下载链接                                                                               |                 备注                 |
-| :-----------------------------------------------------: | :------: | :-----------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------: |
-|       [opencv](https://github.com/opencv/opencv)        |  4.8.0   |                           [链接](https://opencv.org/get-started/)                           |                                                                  [链接](https://opencv.org/get-started/)                                                                   |                                      |
-|     [TensorRT](https://github.com/NVIDIA/TensorRT)      | 8.6.0.12 |  [链接](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing)  |                                                            [链接](https://developer.nvidia.com/zh-cn/tensorrt)                                                             | 支持TensorRT 7、支持jetson-orin-nano |
-| [OpenVINO](https://github.com/openvinotoolkit/openvino) | 2023.0.1 |      [链接](https://github.com/openvinotoolkit/openvino/blob/master/docs/dev/build.md)      | [链接](https://www.intel.com/content/www/us/en/developer/tools/openvino-toolkit/download.html?ENVIRONMENT=RUNTIME&OP_SYSTEM=MACOS&VERSION=v_2023_0_1&DISTRIBUTION=ARCHIVE) |                                      |
-| [ONNXRuntime](https://github.com/microsoft/onnxruntime) | v1.15.1  | [链接](https://github.com/DefTruth/lite.ai.toolkit/blob/main/docs/ort/ort_useful_api.zh.md) |                                                   [链接](https://github.com/microsoft/onnxruntime/releases/tag/v1.15.1)                                                    |                                      |
-|          [MNN](https://github.com/alibaba/MNN)          |  2.6.2   |            [链接](https://mnn-docs.readthedocs.io/en/latest/compile/engine.html)            |                                                         [链接](https://github.com/alibaba/MNN/releases/tag/2.6.0)                                                          |                                      |
-|          [TNN](https://github.com/Tencent/TNN)          |  v0.3.0  |          [链接](https://github.com/Tencent/TNN/blob/master/doc/cn/user/compile.md)          |                                                         [链接](https://github.com/Tencent/TNN/releases/tag/v0.3.0)                                                         |                                      |
-|        [ncnn](https://github.com/Tencent/ncnn/)         |  v0.3.0  |            [链接](https://github.com/Tencent/ncnn/tree/master/docs/how-to-build)            |                                                       [链接](https://github.com/Tencent/ncnn/releases/tag/20230816)                                                        |                                      |
-- 补充说明    
-  - 我们使用第三方库的上述版本，通常使用其他版本的也没有问题
-  - TensorRT
-    - [Windows链接](https://zhuanlan.zhihu.com/p/476679322)
-    - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
-
-## 跑通检测模型 YOLOv5s demo
-### 准备工作
-+ Linux下需安装opencv
-  + sudo apt install libopencv-dev
-  + [参考链接](https://cloud.tencent.com/developer/article/1657529)
-+ [下载模型](https://huggingface.co/alwaysssss/nndeploy/resolve/main/model_zoo/detect/yolo/yolov5s.onnx)，解压
-  ```shell
-  wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/model_zoo/detect/yolo/yolov5s.onnx
-  ```
-+ 下载第三方库，[ubuntu22.04](https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/ubuntu22.04_x64.tar)，[windows](https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/windows_x64.7z)， [android](https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/android.tar)。 解压
-  ```shell
-  # ubuntu22.04_x64
-  wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/ubuntu22.04_x64.tar
-  # windows
-  wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/windows_x64.7z
-  # android
-  wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/android.tar
-  ```
-+ [下载测试数据](https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg)
-  ```shell
-  wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg
-  ```
-### 编译
-+ 在根目录创建`build`目录，将`cmake/config_os.cmake（config_linux.cmake/config_windows.cmake/config_android.cmake）`复制到该目录，修改名称为`config.cmake`
-  ```
-  mkdir build
-  cp cmake/config_xx.cmake build
-  mv config_xx.cmake config.cmake
-  cd build
-  ```
-+ 编辑`build/config.cmake`来定制编译选项
-+ 将所有第三方库的路径改为您的路径，例如set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "PATH/third_party/ubuntu22.04_x64/onnxruntime-linux-x64-1.15.1")改为set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "PATH/third_party/ubuntu22.04_x64/onnxruntime-linux-x64-1.15.1")。`PATH为您下载第三方库后的解压路径`
-+ 开始`make nndeploy`库
-  ```
-  cmake ..
-  make -j4
-  ```
-+ 安装，将nndeploy相关库可执行文件、第三方库安装至`build/install/lib`
-  ```
-  make install
-  ```
-#### Linux 下运行 YOLOv5s
-```shell
-cd PATH/nndeploy/build/install/lib
-export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
-// onnxruntime 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
-
-// openVINO 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
-
-// tensorrt 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
-
-// MNN 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeMnn --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx.mnn --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
-```
-`注：请将上述PATH更换为自己对应的目录`
-
-#### Windows下运行YOLOv5s
-```shell
-cd PATH/nndeploy/build/install/bin
-export LD_LIBRARY_PATH=PATH/nndeploy/build/install/bin:$LD_LIBRARY_PATH
-// onnxruntime 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
-
-// openvino 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
-
-// tensorrt 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
-
-// MNN 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeMnn --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx.mnn --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
-```
-`注：请将上述PATH更换为自己对应的目录`
-
-## 社区文档
-- [Always](https://github.com/Alwaysssssss)，[02200059Z](https://github.com/02200059Z):《[nndeploy综述](https://zhuanlan.zhihu.com/p/656359928)》
-- [02200059Z](https://github.com/02200059Z):《[如何新增一个推理框架](https://blog.csdn.net/echoesssss/article/details/132674100?spm=1001.2014.3001.5502)》
-
-
-## 参考
-- [TNN](https://github.com/Tencent/TNN)
-- [FastDeploy](https://github.com/PaddlePaddle/FastDeploy)
-- [opencv](https://github.com/opencv/opencv)
-- [CGraph](https://github.com/ChunelFeng/CGraph)
-- [tvm](https://github.com/apache/tvm)
-- [mmdeploy](https://github.com/open-mmlab/mmdeploy)
-- [FlyCV](https://github.com/PaddlePaddle/FlyCV)
-- [ThreadPool](https://github.com/progschj/ThreadPool)
-
-
-## 加入我们
 - 欢迎大家参与，一起打造最简单易用、高性能的机器学习部署框架
-- 微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy)
-  
-<img align="left" src="docs/image/wechat.jpg" width="512px">
+- 微信：titian5566 (可加我微信进 `nndeploy` 交流群，备注：`nndeploy`)
 
-<img align="left" src="docs/image/wechat_group.jpg" width="512px">
+# 本文作者
 
-
+- [02200059Z](https://github.com/02200059Z)
+- [qixuxiang](https://github.com/qixuxiang)
+- [PeterH0323](https://github.com/PeterH0323)
+- [youxiudeshouyeren](https://github.com/youxiudeshouyeren)
+- [Always](https://github.com/Alwaysssssss)
