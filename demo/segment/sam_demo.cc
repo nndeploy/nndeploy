@@ -4,6 +4,8 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/model/segment/segment_anything/sam.h"
 #include "nndeploy/model/task.h"
+#include "nndeploy/model/segment/result.h"
+
 using namespace nndeploy;
 
 int main(int argc, char *argv[]) {
@@ -11,9 +13,9 @@ int main(int argc, char *argv[]) {
   if (demo::FLAGS_usage) {
     demo::showUsage();
     return -1;
-  } 
+  }
 
-   // 检测模型的有向无环图pipeline名称
+  // 检测模型的有向无环图pipeline名称
   // NNDEPLOY_SAM
   std::string name = demo::getName();
   // 推理后端类型，例如:
@@ -28,13 +30,12 @@ int main(int argc, char *argv[]) {
   // 模型是否是路径
   bool is_path = demo::isPath();
 
-   // 模型路径或者模型字符串
+  // 模型路径或者模型字符串
   std::vector<std::string> model_value = demo::getModelValue();
   // 有向无环图pipeline的输入边packert
   model::Packet input("segment_in");
   // 有向无环图pipeline的输出边packert
   model::Packet output("segment_out");
-
 
   // 创建检测模型有向无环图pipeline
   model::Pipeline *pipeline =
@@ -45,8 +46,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-
-// 初始化有向无环图pipeline
+  // 初始化有向无环图pipeline
   NNDEPLOY_TIME_POINT_START("pipeline->init()");
   base::Status status = pipeline->init();
   if (status != base::kStatusCodeOk) {
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
   // 将图片写入有向无环图pipeline输入边
   input.set(input_mat);
   // 定义有向无环图pipeline的输出结果
-  model::DetectResult result;
+  model::SegmentResult result;
   // 将输出结果写入有向无环图pipeline输出边
   output.set(result);
 
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("pipeline->run()");
 
-  //drawBox(input_mat, result);
+  // drawBox(input_mat, result);
   std::string ouput_path = demo::getOutputPath();
   cv::imwrite(ouput_path, input_mat);
 

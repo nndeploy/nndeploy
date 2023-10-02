@@ -22,9 +22,9 @@
 namespace nndeploy {
 namespace model {
 
-
- NNDEPLOY_CC_API device::Tensor* convertVectorToTensor(std::vector<float> &data,std::vector<int> dst_shape, device::Device *device, base::DataFormat data_format,std::string name);
-
+NNDEPLOY_CC_API device::Tensor *convertVectorToTensor(
+    std::vector<float> &data, std::vector<int> dst_shape,
+    device::Device *device, base::DataFormat data_format, std::string name);
 
 }  // namespace model
 }  // namespace nndeploy

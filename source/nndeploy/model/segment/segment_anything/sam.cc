@@ -1,4 +1,5 @@
 #include "nndeploy/model/segment/segment_anything/sam.h"
+
 #include "nndeploy/base/opencv_include.h"
 #include "nndeploy/model/preprocess/cvtcolor_resize.h"
 #include "nndeploy/model/segment/util.h"
@@ -107,30 +108,31 @@ model::Pipeline* createSamPipeline(const std::string& name,
   model::Task* postprocess = pipeline->createTask<SamPostProcess>(
       "postprocess", segment_output, output);
 
-
   model::CvtclorResizeParam* pre_param =
       dynamic_cast<model::CvtclorResizeParam*>(preprocess->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
   pre_param->h_ = 1024;
-  pre_param->w_ = 1024;  
-  pre_param->mean_[1]=123.675;
-  pre_param->mean_[2]=116.28;
-  pre_param->mean_[3]=103.53;
-  pre_param->std_[1]=58.395;
-  pre_param->std_[2]=57.12;
-  pre_param->std_[3]=57.375;
-
+  pre_param->w_ = 1024;
+  pre_param->mean_[1] = 123.675;
+  pre_param->mean_[2] = 116.28;
+  pre_param->mean_[3] = 103.53;
+  pre_param->std_[1] = 58.395;
+  pre_param->std_[2] = 57.12;
+  pre_param->std_[3] = 57.375;
 
   inference::InferenceParam* embedding_inference_param =
       (inference::InferenceParam*)(embedding_inference->getParam());
 
-
-// TODO： 由于sam包含两个模型，当前flag只支持传一个地址进来，因此先在这里写死两个模型地址，后续改为传参
-  std::string path1 =
-      "/data/sjx/code/nndeploy_resource/nndeploy/model_zoo/segment/sam/image_encoder_sim.onnx";
-  std::string path2 = "/data/sjx/code/segment-anything/sam.onnx";
+  // TODO：
+  // 由于sam包含两个模型，当前flag只支持传一个地址进来，因此先在这里写死两个模型地址，后续改为传参
+  //   std::string path1 =
+  //       "/data/sjx/code/nndeploy_resource/nndeploy/model_zoo/segment/sam/"
+  //       "image_encoder_sim.onnx";
+  //   std::string path2 = "/data/sjx/code/segment-anything/sam.onnx";
+  std::string path1 = "C:\\Users\\59595\\Downloads\\mobile_embed.mnn";
+  std::string path2 = "C:\\Users\\59595\\Downloads\\segment_vitb_fp32.mnn";
 
   embedding_inference_param->is_path_ = is_path;
   embedding_inference_param->model_value_ = std::vector<std::string>(1, path1);
@@ -142,9 +144,6 @@ model::Pipeline* createSamPipeline(const std::string& name,
   segment_inference_param->is_path_ = is_path;
   segment_inference_param->model_value_ = std::vector<std::string>(1, path2);
   segment_inference_param->device_type_ = device_type;
-
-
-
 
   SamPostParam* post_param =
       dynamic_cast<SamPostParam*>(postprocess->getParam());
