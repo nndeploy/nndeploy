@@ -5,7 +5,7 @@ namespace nndeploy {
 namespace inference {
 
 TypeInferenceRegister<TypeInferenceCreator<CoremlInference>>
-    g_mnn_inference_register(base::kInferenceTypeCoreML);
+    g_coreml_inference_register(base::kInferenceTypeCoreML);
 
 CoremlInference::CoremlInference(base::InferenceType type) : Inference(type) {}
 CoremlInference::~CoremlInference() {}
