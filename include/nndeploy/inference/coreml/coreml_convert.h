@@ -30,9 +30,9 @@ class CoremlConvert {
   // You need to free it manually
   static NSObject *convertFromDeviceType(const base::DeviceType &src);
 
-  static device::Tensor *convertToTensor(MLFeatureValue *src, std::string name,
+  static device::Tensor *convertToTensor(MLFeatureDescription *src, NSString *name,
                                          device::Device *device);
-  static MLFeatureValue *convertFromTensor(device::Tensor *src);
+  static MLFeatureDescription *convertFromTensor(device::Tensor *src);
 
   static base::Status convertFromInferenceParam(CoremlInferenceParam *src,
                                                 MLModelConfiguration *dst);

@@ -66,5 +66,37 @@ base::Status CoremlConvert::convertFromInferenceParam(
   return base::kStatusCodeOk;
 }
 
+device::Tensor *CoremlConvert::convertToTensor(MLFeatureDescription *src, NSString *name,
+                                device::Device *device) {
+  MLFeatureType tensor_type = [src type];
+  device::Tensor *dst = nullptr;
+  device::TensorDesc desc;
+  switch (tensor_type) {
+    case MLFeatureTypeImage:
+    {
+      MLImageConstraint *image_attr = [src imageConstraint];
+      base::DataType data_type = CoremlConvert::convertToDataType([image_attr pixelFormatType]);
+      base::DataFormat format = base::kDataFormatNHWC;
+      base::IntVector shape = {1, int([image_attr pixelsHigh]), int ([image_attr pixelsWide]), 3};
+      base::SizeVector stride = base::SizeVector();
+      desc = device::TensorDesc(data_type, format, shape, stride);
+      break;
+    }
+    case MLFeatureTypeDouble:
+    {
+      base::DataType data_type = base::DataType();
+      base::DataFormat format = base::kDataFormatN;
+      base::IntVector shape = {1};
+      base::SizeVector stride = base::SizeVector();
+      desc = device::TensorDesc(data_type, format, shape, stride);
+      break;
+    }
+    default:
+      break;
+  }
+  dst = new device::Tensor(desc, std::string([name cStringUsingEncoding:NSASCIIStringEncoding]));
+  return dst;
+}
+
 }  // namespace inference
 }  // namespace nndeploy

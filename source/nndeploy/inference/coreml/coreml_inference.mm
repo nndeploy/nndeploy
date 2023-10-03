@@ -145,13 +145,13 @@ device::TensorDesc CoremlInference::getOutputTensorAlignDesc(
 
 base::Status CoremlInference::run() {
   if (dict_ == nil) {
-    dict_ = [NSDictionary alloc];
+    dict_ = [[NSMutableDictionary alloc] init];
   }
   for (auto iter : external_input_tensors_) {
     CVPixelBufferRef photodata = NULL;
     int width = iter.second->getWidth();
     int height = iter.second->getHeight();
-    int stride = iter.second->getStride()[0];
+    int stride = width;
     OSType pixelFormat = kCVPixelFormatType_OneComponent8;
     CVReturn status = CVPixelBufferCreateWithBytes(
         kCFAllocatorDefault, width, height, pixelFormat, iter.second->getPtr(),
@@ -159,9 +159,9 @@ base::Status CoremlInference::run() {
     if (status != 0) {
       NNDEPLOY_LOGE("Tensor create failed");
     }
-    auto input_data = [MLFeatureValue featureValueWithPixelBuffer:photodata];
-    [dict_ setValue:input_data
-             forKey:[NSString stringWithCString:iter.first.c_str() encoding:NSASCIIStringEncoding]];
+    MLFeatureValue* input_data = [MLFeatureValue featureValueWithPixelBuffer:photodata];
+    [dict_ setObject:[NSString stringWithCString:iter.first.c_str() encoding:NSASCIIStringEncoding]
+             forKey:input_data];
   }
   MLDictionaryFeatureProvider *provider =
       [[MLDictionaryFeatureProvider alloc] initWithDictionary:dict_
@@ -182,31 +182,14 @@ base::Status CoremlInference::allocateInputOutputTensor() {
   MLModelDescription *model_description = [mlmodel_ modelDescription];
   NSDictionary<NSString *, MLFeatureDescription *> *model_input_feature = [model_description inputDescriptionsByName];
   for (NSString * iter in model_input_feature) {
-    std::string name([iter cStringUsingEncoding:NSASCIIStringEncoding]);
-    MLFeatureDescription *attr = model_input_feature[iter];
-    MLImageConstraint *constraint = [attr imageConstraint];
-    base::DataType data_type = CoremlConvert::convertToDataType([constraint pixelFormatType]);
-    base::DataFormat data_fmt = base::kDataFormatAuto;
-    base::IntVector shape = {(int)constraint.pixelsHigh, (int)constraint.pixelsWide};
-    base::SizeVector stride = base::SizeVector();
-    device::TensorDesc desc(data_type, data_fmt, shape, stride);
-    device::Tensor *dst = nullptr;
-    dst = new device::Tensor(desc, name);
-    input_tensors_.insert({name, dst});
+    device::Tensor *input_tensor =
+            CoremlConvert::convertToTensor(model_input_feature[iter], iter, device);
+    input_tensors_.insert({std::string([iter cStringUsingEncoding:NSASCIIStringEncoding]), input_tensor});
   }
   NSDictionary<NSString *, MLFeatureDescription *> *model_output_feature = [model_description outputDescriptionsByName];
   for (NSString * iter in model_output_feature) {
-    std::string name([iter cStringUsingEncoding:NSASCIIStringEncoding]);
-    MLFeatureDescription *attr = model_output_feature[iter];
-    MLImageConstraint *constraint = [attr imageConstraint];
-    base::DataType data_type = CoremlConvert::convertToDataType([constraint pixelFormatType]);
-    base::DataFormat data_fmt = base::kDataFormatAuto;
-    base::IntVector shape = {(int)constraint.pixelsHigh, (int)constraint.pixelsWide};
-    base::SizeVector stride = base::SizeVector();
-    device::TensorDesc desc(data_type, data_fmt, shape, stride);
-    device::Tensor *dst = nullptr;
-    dst = new device::Tensor(desc, name);
-    output_tensors_.insert({name, dst});
+    device::Tensor *dst = CoremlConvert::convertToTensor(model_input_feature[iter], iter, device);
+    output_tensors_.insert({std::string([iter cStringUsingEncoding:NSASCIIStringEncoding]), dst});
   }
   return base::kStatusCodeOk;
 }

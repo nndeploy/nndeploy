@@ -48,8 +48,8 @@ class CoremlInference : public Inference {
   MLModel *mlmodel_ = nullptr;
   NSError *err_ = nil;
   MLModelConfiguration *config_ = nullptr;
-  NSDictionary *dict_ = nullptr;
-  NSDictionary *result_ = nullptr;
+  NSMutableDictionary *dict_ = nullptr;
+  NSMutableDictionary *result_ = nullptr;
 };
 
 }  // namespace inference
