@@ -17,6 +17,9 @@ if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config.cmake)
   include(${CMAKE_CURRENT_BINARY_DIR}/config.cmake)
 endif()
 
+# you must have return sentence for un-void function
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type")
+
 # common
 nndeploy_option(ENABLE_NNDEPLOY_BUILD_SHARED "ENABLE_NNDEPLOY_BUILD_SHARED" ON)
 nndeploy_option(ENABLE_NNDEPLOY_SYMBOL_HIDE "ENABLE_NNDEPLOY_SYMBOL_HIDE" OFF)
@@ -337,6 +340,14 @@ if(ENABLE_NNDEPLOY_INFERENCE)
       "${ROOT_PATH}/source/nndeploy/inference/openvino/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_OPENVINO_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_INFERENCE_COREML)
+    file(GLOB_RECURSE INFERENCE_COREML_SOURCE
+      "${ROOT_PATH}/include/nndeploy/inference/coreml/*.h"
+      "${ROOT_PATH}/source/nndeploy/inference/coreml/*.cc"
+      "${ROOT_PATH}/source/nndeploy/inference/coreml/*.mm"
+    )
+    set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_COREML_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME)
     file(GLOB_RECURSE INFERENCE_ONNXRUNTIME_SOURCE

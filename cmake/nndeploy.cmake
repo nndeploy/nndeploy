@@ -1,5 +1,6 @@
 
 set(NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX lib)
+
 if(SYSTEM.Android)
   list(APPEND NNDEPLOY_SYSTEM_LIBRARY log)
   set(NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX ${ANDROID_ABI})
@@ -10,52 +11,63 @@ elseif(SYSTEM.iOS)
 elseif(SYSTEM.Windows)
 endif()
 
-#################### common ####################
-## OpenCV
+# ################### common ####################
+# # OpenCV
 include("${ROOT_PATH}/cmake/opencv.cmake")
-#################### common ####################
 
-#################### base ####################
-#################### base ####################
+# ################### common ####################
 
-#################### thread ####################
-#################### thread ####################
+# ################### base ####################
+# ################### base ####################
 
-#################### cryption ####################
-#################### cryption ####################
+# ################### thread ####################
+# ################### thread ####################
 
-#################### device ####################
-## CUDA & CUDNN
+# ################### cryption ####################
+# ################### cryption ####################
+
+# ################### device ####################
+# # CUDA & CUDNN
 include("${ROOT_PATH}/cmake/cuda.cmake")
-#################### device ####################
 
-#################### op ####################
-#################### op ####################
+# ################### device ####################
 
-#################### forward ####################
-#################### forward ####################
+# ################### op ####################
+# ################### op ####################
 
-#################### inference ####################
-## MNN
+# ################### forward ####################
+# ################### forward ####################
+
+# ################### inference ####################
+# # MNN
 include("${ROOT_PATH}/cmake/mnn.cmake")
-## tensorrt
+
+# # tensorrt
 include("${ROOT_PATH}/cmake/tensorrt.cmake")
-## onnxruntime
+
+# # onnxruntime
 include("${ROOT_PATH}/cmake/onnxruntime.cmake")
-## tnn
+
+# # tnn
 include("${ROOT_PATH}/cmake/tnn.cmake")
-## openvino
+
+# # openvino
 include("${ROOT_PATH}/cmake/openvino.cmake")
-## ncnn
+
+# # ncnn
 include("${ROOT_PATH}/cmake/ncnn.cmake")
-## paddle-lite
+
+# # coreml
+include("${ROOT_PATH}/cmake/coreml.cmake")
+
+# # paddle-lite
 include("${ROOT_PATH}/cmake/paddlelite.cmake")
-#################### inference ####################
 
-#################### pipeline ####################
-#################### pipeline ####################
+# ################### inference ####################
 
-#################### model ####################
-#################### model ####################
+# ################### pipeline ####################
+# ################### pipeline ####################
 
+# ################### model ####################
+# ################### model ####################
 message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY: ${NNDEPLOY_THIRD_PARTY_LIBRARY}")
