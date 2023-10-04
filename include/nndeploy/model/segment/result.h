@@ -13,7 +13,7 @@ namespace model {
  * @brief Detect Result
  *
  */
-class NNDEPLOY_CC_API DetectResult : public base::Param {
+class NNDEPLOY_CC_API SegmentResult : public base::Param {
  public:
   device::Tensor mask_;
   device::Tensor score_;

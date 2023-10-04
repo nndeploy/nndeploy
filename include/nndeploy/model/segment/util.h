@@ -20,7 +20,13 @@
 #include "nndeploy/model/segment/result.h"
 
 namespace nndeploy {
-namespace model {}  // namespace model
+namespace model {
+
+NNDEPLOY_CC_API device::Tensor *convertVectorToTensor(
+    std::vector<float> &data, std::vector<int> dst_shape,
+    device::Device *device, base::DataFormat data_format, std::string name);
+
+}  // namespace model
 }  // namespace nndeploy
 
 #endif /* _NNDEPLOY_MODEL_SEGMENT_COMMON_H_ */

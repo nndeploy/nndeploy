@@ -1,3 +1,5 @@
+message(STATUS "model/segment")
+
 # set
 set(SOURCE)
 
