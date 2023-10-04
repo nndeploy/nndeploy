@@ -41,8 +41,6 @@ class NNDEPLOY_CC_API SamPostProcess : public model::Task {
   }
   virtual ~SamPostProcess() {}
 
-  virtual base::Status reshape();
-
   virtual base::Status run();
 };
 
@@ -53,6 +51,8 @@ class NNDEPLOY_CC_API SamBuildInput : public model::Task {
                 model::Packet* output)
       : Task(name, input, output) {}
   virtual ~SamBuildInput() {}
+
+  virtual base::Status reshape();
 
   virtual base::Status run();
 };

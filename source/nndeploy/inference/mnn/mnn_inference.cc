@@ -110,7 +110,7 @@ base::Status MnnInference::reshape(base::ShapeMap &shape_map) {
       } else {
         MNN::Tensor *tensor =
             interpreter_->getSessionInput(session_, iter.first.c_str());
-        interpreter_->resizeTensor(tensor, tmp);
+        interpreter_->resizeTensor(tensor, iter.second);
         flag = true;
       }
     } else {

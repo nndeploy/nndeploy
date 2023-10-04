@@ -123,7 +123,7 @@ bool isDynamicShape(const IntVector &dims) {
     return true;
   }
   for (auto iter : dims) {
-    if (iter < 0) {
+    if (iter <= 0) {
       return true;
     }
   }

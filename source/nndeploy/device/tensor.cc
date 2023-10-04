@@ -1,5 +1,4 @@
 
-
 #include "nndeploy/device/tensor.h"
 
 namespace nndeploy {
@@ -40,24 +39,42 @@ Tensor::Tensor(const TensorDesc &desc, Buffer *buffer,
 void Tensor::create(const TensorDesc &desc, const std::string &name) {
   create(nullptr, desc, nullptr, nullptr, -1, name, base::IntVector());
 }
+void Tensor::create(const TensorDesc &desc) {
+  create(nullptr, desc, nullptr, nullptr, -1, base::IntVector());
+}
 
 void Tensor::create(Device *device, const TensorDesc &desc,
                     const std::string &name, const base::IntVector &config) {
   create(device, desc, nullptr, nullptr, -1, name, config);
+}
+void Tensor::create(Device *device, const TensorDesc &desc,
+                    const base::IntVector &config) {
+  create(device, desc, nullptr, nullptr, -1, config);
 }
 
 void Tensor::create(Device *device, const TensorDesc &desc, void *data_ptr,
                     const std::string &name, const base::IntVector &config) {
   create(device, desc, nullptr, data_ptr, -1, name, config);
 }
+void Tensor::create(Device *device, const TensorDesc &desc, void *data_ptr,
+                    const base::IntVector &config) {
+  create(device, desc, nullptr, data_ptr, -1, config);
+}
 void Tensor::create(Device *device, const TensorDesc &desc, int data_id,
                     const std::string &name, const base::IntVector &config) {
   create(device, desc, nullptr, nullptr, data_id, name, config);
+}
+void Tensor::create(Device *device, const TensorDesc &desc, int data_id,
+                    const base::IntVector &config) {
+  create(device, desc, nullptr, nullptr, data_id, config);
 }
 
 void Tensor::create(const TensorDesc &desc, Buffer *buffer,
                     const std::string &name) {
   create(nullptr, desc, buffer, nullptr, -1, name, base::IntVector());
+}
+void Tensor::create(const TensorDesc &desc, Buffer *buffer) {
+  create(nullptr, desc, buffer, nullptr, -1, base::IntVector());
 }
 
 void Tensor::create(Device *device, const TensorDesc &desc, Buffer *buffer,
@@ -65,6 +82,35 @@ void Tensor::create(Device *device, const TensorDesc &desc, Buffer *buffer,
                     const base::IntVector &config) {
   desc_ = desc;
   name_ = name;
+  if (buffer != nullptr) {
+    is_external_buffer_ = true;
+    buffer_ = buffer;
+    return;
+  }
+  if (device != nullptr) {
+    is_external_buffer_ = false;
+    if (data_ptr != nullptr) {
+      BufferDesc buffer_desc = device->toBufferDesc(desc, config);
+      buffer_ =
+          device->create(buffer_desc, data_ptr, kBufferSourceTypeExternal);
+      return;
+    } else if (data_id != -1) {
+      BufferDesc buffer_desc = device->toBufferDesc(desc, config);
+      buffer_ = device->create(buffer_desc, data_id, kBufferSourceTypeExternal);
+      return;
+    } else {
+      BufferDesc buffer_desc = device->toBufferDesc(desc, config);
+      buffer_ = device->allocate(buffer_desc);
+      return;
+    }
+  }
+  return;
+}
+
+void Tensor::create(Device *device, const TensorDesc &desc, Buffer *buffer,
+                    void *data_ptr, int data_id,
+                    const base::IntVector &config) {
+  desc_ = desc;
   if (buffer != nullptr) {
     is_external_buffer_ = true;
     buffer_ = buffer;
@@ -397,8 +443,8 @@ BufferSourceType Tensor::getBufferSourceType() {
   }
 }
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>>
-    &getGlobalTensorCreatorMap() {
+std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
+getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorType, std::shared_ptr<TensorCreator>>>

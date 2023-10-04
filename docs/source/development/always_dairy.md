@@ -128,3 +128,6 @@
 + init -> reshape -> 写入输入/写入输出 -> run 都有可能分配内存
 
 + （input）前处理 -》 推理 -》 后处理 (output)
+
+## 2023.10.04
++ cmake -DINTTYPES_FORMAT:STRING=C99 ..

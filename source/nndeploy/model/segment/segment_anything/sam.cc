@@ -71,7 +71,10 @@ base::Status SamBuildInput::reshape() {
       device::TensorDesc desc = dst->getDesc();
       desc.data_type_ = base::dataTypeOf<float>();
       desc.data_format_ = base::kDataFormatNCHW;
-      desc.shape_.emplace_back(2);
+      desc.shape_.emplace_back(1);
+      desc.shape_.emplace_back(256);
+      desc.shape_.emplace_back(64);
+      desc.shape_.emplace_back(64);
       dst->justModify(desc);
       dst->allocBuffer(cur_device);
     }
@@ -106,39 +109,41 @@ base::Status SamBuildInput::run() {
   scale_points.push_back(0);
   scale_points.push_back(0);
 
-  // point_coords
-  device::Tensor* point_coords_tensor =
-      convertVectorToTensor(scale_points, {1, 2, 2}, cur_device,
-                            base::kDataFormatNCHW, "point_coords");
+  //// point_coords
+  // device::Tensor* point_coords_tensor =
+  //     convertVectorToTensor(scale_points, {1, 2, 2}, cur_device,
+  //                           base::kDataFormatNCHW, "point_coords");
 
-  // point_labels
-  std::vector<float> point_labels = {1, -1};
+  //// point_labels
+  // std::vector<float> point_labels = {1, -1};
 
-  device::Tensor* point_labels_tensor = convertVectorToTensor(
-      point_labels, {1, 2}, cur_device, base::kDataFormatNCHW, "point_labels");
+  // device::Tensor* point_labels_tensor = convertVectorToTensor(
+  //     point_labels, {1, 2}, cur_device, base::kDataFormatNCHW,
+  //     "point_labels");
 
-  // has_mask_input
-  std::vector<float> has_mask_input = {1};
-  device::Tensor* has_mask_input_tensor = convertVectorToTensor(
-      has_mask_input, {1}, cur_device, base::kDataFormatNCHW, "has_mask_input");
+  //// has_mask_input
+  // std::vector<float> has_mask_input = {1};
+  // device::Tensor* has_mask_input_tensor = convertVectorToTensor(
+  //     has_mask_input, {1}, cur_device, base::kDataFormatNCHW,
+  //     "has_mask_input");
 
-  // mask_input
-  std::vector<float> mask_input(size_t(256 * 256), float(0));
-  device::Tensor* mask_input_tensor =
-      convertVectorToTensor(mask_input, {1, 1, 256, 256}, cur_device,
-                            base::kDataFormatNCHW, "mask_input");
+  //// mask_input
+  // std::vector<float> mask_input(size_t(256 * 256), float(0));
+  // device::Tensor* mask_input_tensor =
+  //     convertVectorToTensor(mask_input, {1, 1, 256, 256}, cur_device,
+  //                           base::kDataFormatNCHW, "mask_input");
 
-  // orig_im_size
-  std::vector<float> orig_im_size = {float(origin_h), float(origin_w)};
-  device::Tensor* orig_im_size_tensor = convertVectorToTensor(
-      orig_im_size, {2}, cur_device, base::kDataFormatNCHW, "orig_im_size");
+  //// orig_im_size
+  // std::vector<float> orig_im_size = {float(origin_h), float(origin_w)};
+  // device::Tensor* orig_im_size_tensor = convertVectorToTensor(
+  //     orig_im_size, {2}, cur_device, base::kDataFormatNCHW, "orig_im_size");
 
-  outputs_[0]->set(has_mask_input_tensor, 0);
-  outputs_[0]->set(inputs_[0]->getTensor(), 1);
-  outputs_[0]->set(mask_input_tensor, 2);
-  outputs_[0]->set(orig_im_size_tensor, 3);
-  outputs_[0]->set(point_coords_tensor, 4);
-  outputs_[0]->set(point_labels_tensor, 5);
+  // outputs_[0]->set(has_mask_input_tensor, 0);
+  // outputs_[0]->set(inputs_[0]->getTensor(), 1);
+  // outputs_[0]->set(mask_input_tensor, 2);
+  // outputs_[0]->set(orig_im_size_tensor, 3);
+  // outputs_[0]->set(point_coords_tensor, 4);
+  // outputs_[0]->set(point_labels_tensor, 5);
 
   return base::kStatusCodeOk;
 }
@@ -195,8 +200,11 @@ model::Pipeline* createSamPipeline(const std::string& name,
   //       "/data/sjx/code/nndeploy_resource/nndeploy/model_zoo/segment/sam/"
   //       "image_encoder_sim.onnx";
   //   std::string path2 = "/data/sjx/code/segment-anything/sam.onnx";
-  std::string path1 = "C:\\Users\\59595\\Downloads\\mobile_embed.mnn";
-  std::string path2 = "C:\\Users\\59595\\Downloads\\segment_vitb_fp32.mnn";
+  // std::string path1 = "C:\\Users\\59595\\Downloads\\mobile_embed.mnn";
+  // std::string path2 = "C:\\Users\\59595\\Downloads\\segment_vitb_fp32.mnn";
+
+  std::string path1 = "C:\\Users\\59595\\Downloads\\embed_vitb_fp32.onnx";
+  std::string path2 = "C:\\Users\\59595\\Downloads\\segment_vitb_fp32.onnx";
 
   embedding_inference_param->is_path_ = is_path;
   embedding_inference_param->model_value_ = std::vector<std::string>(1, path1);
@@ -208,6 +216,14 @@ model::Pipeline* createSamPipeline(const std::string& name,
   segment_inference_param->is_path_ = is_path;
   segment_inference_param->model_value_ = std::vector<std::string>(1, path2);
   segment_inference_param->device_type_ = device_type;
+  segment_inference_param->is_dynamic_shape_ = true;
+  segment_inference_param->max_shape_.insert({"point_coords", {1, 2, 2}});
+  segment_inference_param->max_shape_.insert({"point_labels", {1, 2}});
+  segment_inference_param->max_shape_.insert({"has_mask_input", {1}});
+  segment_inference_param->max_shape_.insert({"mask_input", {1, 1, 256, 256}});
+  segment_inference_param->max_shape_.insert({"orig_im_size", {2}});
+  segment_inference_param->max_shape_.insert(
+      {"image_embeddings", {1, 256, 64, 64}});
 
   SamPostParam* post_param =
       dynamic_cast<SamPostParam*>(postprocess->getParam());

@@ -126,7 +126,14 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
    * @param name
    * @details Tensor必须为空
    */
-  void create(const TensorDesc &desc, const std::string &name = "");
+  void create(const TensorDesc &desc, const std::string &name);
+  /**
+   * @brief 创建一个tensor
+   *
+   * @param desc
+   * @details Tensor必须为空
+   */
+  void create(const TensorDesc &desc);
   /**
    * @brief 创建一个tensor
    *
@@ -136,8 +143,17 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
    * @param config
    * @details Tensor必须为空
    */
+  void create(Device *device, const TensorDesc &desc, const std::string &name,
+              const base::IntVector &config = base::IntVector());
+  /**
+   * @brief 创建一个tensor
+   *
+   * @param device
+   * @param desc
+   * @param config
+   * @details Tensor必须为空
+   */
   void create(Device *device, const TensorDesc &desc,
-              const std::string &name = "",
               const base::IntVector &config = base::IntVector());
   /**
    * @brief 创建一个tensor
@@ -150,7 +166,18 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
    * @details Tensor必须为空
    */
   void create(Device *device, const TensorDesc &desc, void *data_ptr,
-              const std::string &name = "",
+              const std::string &name,
+              const base::IntVector &config = base::IntVector());
+  /**
+   * @brief 创建一个tensor
+   *
+   * @param device
+   * @param desc
+   * @param data_ptr
+   * @param config
+   * @details Tensor必须为空
+   */
+  void create(Device *device, const TensorDesc &desc, void *data_ptr,
               const base::IntVector &config = base::IntVector());
   /**
    * @brief 创建一个tensor
@@ -163,7 +190,18 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
    * @details Tensor必须为空
    */
   void create(Device *device, const TensorDesc &desc, int data_id,
-              const std::string &name = "",
+              const std::string &name,
+              const base::IntVector &config = base::IntVector());
+  /**
+   * @brief 创建一个tensor
+   *
+   * @param device
+   * @param desc
+   * @param data_id
+   * @param config
+   * @details Tensor必须为空
+   */
+  void create(Device *device, const TensorDesc &desc, int data_id,
               const base::IntVector &config = base::IntVector());
   /**
    * @brief 创建一个tensor
@@ -173,8 +211,15 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
    * @param name
    * @details Tensor必须为空
    */
-  void create(const TensorDesc &desc, Buffer *buffer,
-              const std::string &name = "");
+  void create(const TensorDesc &desc, Buffer *buffer, const std::string &name);
+  /**
+   * @brief 创建一个tensor
+   *
+   * @param desc
+   * @param buffers
+   * @details Tensor必须为空
+   */
+  void create(const TensorDesc &desc, Buffer *buffer);
 
   /**
    * @brief 让tensor变为空
@@ -228,9 +273,11 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   void create(Device *device, const TensorDesc &desc, Buffer *buffer,
               void *data_ptr, int data_id, const std::string &name,
               const base::IntVector &config);
+  void create(Device *device, const TensorDesc &desc, Buffer *buffer,
+              void *data_ptr, int data_id, const base::IntVector &config);
 
  private:
-  std::string name_;                 // tensor name
+  std::string name_ = "";            // tensor name
   TensorDesc desc_;                  // tensor desc
   bool is_external_buffer_ = false;  // 是否是外部buffer
   Buffer *buffer_ = nullptr;         // buffer
@@ -247,8 +294,8 @@ class TypeTensorCreator : public TensorCreator {
   virtual Tensor *createTensor() { return new T(); }
 };
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>>
-    &getGlobalTensorCreatorMap();
+std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
+getGlobalTensorCreatorMap();
 
 template <typename T>
 class TypeTensorRegister {

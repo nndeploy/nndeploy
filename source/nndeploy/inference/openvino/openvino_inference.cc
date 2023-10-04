@@ -153,12 +153,22 @@ base::Status OpenVinoInference::run() {
   // outputs
   for (auto iter : external_output_tensors_) {
     device::Tensor *external_tensor = iter.second;
-    ov::Tensor ov_tensor = OpenVinoConvert::convertFromTensor(external_tensor);
-    infer_request_.set_tensor(iter.first, ov_tensor);
+    if (!external_tensor->empty()) {
+      ov::Tensor ov_tensor =
+          OpenVinoConvert::convertFromTensor(external_tensor);
+      infer_request_.set_tensor(iter.first, ov_tensor);
+    }
   }
   // forward
   infer_request_.start_async();
   infer_request_.wait();
+  for (auto iter : external_output_tensors_) {
+    device::Tensor *external_tensor = iter.second;
+    if (external_tensor->empty()) {
+      ov::Tensor ov_tensor = infer_request_.get_tensor(iter.first);
+      external_tensor = OpenVinoConvert::convertToTensor(ov_tensor, iter.first);
+    }
+  }
   return status;
 }
 
