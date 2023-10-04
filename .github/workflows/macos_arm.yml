@@ -31,6 +31,7 @@ jobs:
       - name: Build
         run: |
           mkdir build
+          cp cmake/config.cmake build
           cd build
           cmake .. -DCMAKE_OSX_ARCHITECTURES=arm64
           make -j$(sysctl -n hw.logicalcpu)
