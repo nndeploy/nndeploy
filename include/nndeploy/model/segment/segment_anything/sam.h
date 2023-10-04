@@ -16,10 +16,11 @@
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/segment/result.h"
 #include "nndeploy/model/packet.h"
 #include "nndeploy/model/pipeline.h"
+#include "nndeploy/model/segment/result.h"
 #include "nndeploy/model/task.h"
+
 
 namespace nndeploy {
 namespace model {
@@ -39,6 +40,8 @@ class NNDEPLOY_CC_API SamPostProcess : public model::Task {
     param_ = std::make_shared<SamPostParam>();
   }
   virtual ~SamPostProcess() {}
+
+  virtual base::Status reshape();
 
   virtual base::Status run();
 };

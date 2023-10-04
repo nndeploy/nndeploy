@@ -16,7 +16,69 @@ base::Status SamPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-// 构建SAM的input
+// 构建SamBuildInput
+base::Status SamBuildInput::reshape() {
+  device::Device* cur_device = device::getDefaultHostDevice();
+  for (int i = 0; i < outputs_[0]->sizeTensor(); i++) {
+    if (outputs_[0]->getTensor(i)->getName() == "point_coords") {
+      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::TensorDesc desc = dst->getDesc();
+      desc.data_type_ = base::dataTypeOf<float>();
+      desc.data_format_ = base::kDataFormatNCHW;
+      desc.shape_.emplace_back(1);
+      desc.shape_.emplace_back(2);
+      desc.shape_.emplace_back(2);
+      dst->justModify(desc);
+      dst->allocBuffer(cur_device);
+    } else if (outputs_[0]->getTensor(i)->getName() == "point_labels") {
+      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::TensorDesc desc = dst->getDesc();
+      desc.data_type_ = base::dataTypeOf<float>();
+      desc.data_format_ = base::kDataFormatNCHW;
+      desc.shape_.emplace_back(1);
+      desc.shape_.emplace_back(2);
+      dst->justModify(desc);
+      dst->allocBuffer(cur_device);
+    } else if (outputs_[0]->getTensor(i)->getName() == "has_mask_input") {
+      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::TensorDesc desc = dst->getDesc();
+      desc.data_type_ = base::dataTypeOf<float>();
+      desc.data_format_ = base::kDataFormatNCHW;
+      desc.shape_.emplace_back(1);
+      dst->justModify(desc);
+      dst->allocBuffer(cur_device);
+    } else if (outputs_[0]->getTensor(i)->getName() == "mask_input") {
+      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::TensorDesc desc = dst->getDesc();
+      desc.data_type_ = base::dataTypeOf<float>();
+      desc.data_format_ = base::kDataFormatNCHW;
+      desc.shape_.emplace_back(1);
+      desc.shape_.emplace_back(1);
+      desc.shape_.emplace_back(256);
+      desc.shape_.emplace_back(256);
+      dst->justModify(desc);
+      dst->allocBuffer(cur_device);
+    } else if (outputs_[0]->getTensor(i)->getName() == "orig_im_size") {
+      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::TensorDesc desc = dst->getDesc();
+      desc.data_type_ = base::dataTypeOf<float>();
+      desc.data_format_ = base::kDataFormatNCHW;
+      desc.shape_.emplace_back(2);
+      dst->justModify(desc);
+      dst->allocBuffer(cur_device);
+    } else if (outputs_[0]->getTensor(i)->getName() == "image_embeddings") {
+      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::TensorDesc desc = dst->getDesc();
+      desc.data_type_ = base::dataTypeOf<float>();
+      desc.data_format_ = base::kDataFormatNCHW;
+      desc.shape_.emplace_back(2);
+      dst->justModify(desc);
+      dst->allocBuffer(cur_device);
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
 base::Status SamBuildInput::run() {
   int length = 1024;  // TODO(sjx): 修改为配置项
   int new_h, new_w;
@@ -99,9 +161,11 @@ model::Pipeline* createSamPipeline(const std::string& name,
   model::Task* embedding_inference = pipeline->createInfer<model::Infer>(
       "embedding_inference", inference_type, embedding_input, embedding_output);
 
+  // 输出
   model::Task* build_input = pipeline->createTask<SamBuildInput>(
       "build_input", embedding_output, build_sam_input);
 
+  // 这个推理任务本身是动态输入的
   model::Task* segment_inference = pipeline->createInfer<model::Infer>(
       "segment_inference", inference_type, build_sam_input, segment_output);
 

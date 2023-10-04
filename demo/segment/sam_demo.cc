@@ -2,9 +2,9 @@
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/device/device.h"
+#include "nndeploy/model/segment/result.h"
 #include "nndeploy/model/segment/segment_anything/sam.h"
 #include "nndeploy/model/task.h"
-#include "nndeploy/model/segment/result.h"
 
 using namespace nndeploy;
 
@@ -65,6 +65,12 @@ int main(int argc, char *argv[]) {
   model::SegmentResult result;
   // 将输出结果写入有向无环图pipeline输出边
   output.set(result);
+
+  status = pipeline->reshape();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("pipeline reshape failed");
+    return -1;
+  }
 
   // 有向无环图Pipelinez运行
   NNDEPLOY_TIME_POINT_START("pipeline->run()");
