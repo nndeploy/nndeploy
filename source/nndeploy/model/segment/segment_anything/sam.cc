@@ -203,8 +203,11 @@ model::Pipeline* createSamPipeline(const std::string& name,
   // std::string path1 = "C:\\Users\\59595\\Downloads\\mobile_embed.mnn";
   // std::string path2 = "C:\\Users\\59595\\Downloads\\segment_vitb_fp32.mnn";
 
-  std::string path1 = "C:\\Users\\59595\\Downloads\\embed_vitb_fp32.onnx";
-  std::string path2 = "C:\\Users\\59595\\Downloads\\segment_vitb_fp32.onnx";
+  // std::string path1 = "C:\\Users\\59595\\Downloads\\embed_vitb_fp32.onnx";
+  // std::string path2 = "C:\\Users\\59595\\Downloads\\segment_vitb_fp32.onnx";
+
+  std::string path1 = "/home/always/Downloads/embed_vitb_fp32.onnx";
+  std::string path2 = "/home/always/Downloads/segment_vitb_fp32.onnx";
 
   embedding_inference_param->is_path_ = is_path;
   embedding_inference_param->model_value_ = std::vector<std::string>(1, path1);
