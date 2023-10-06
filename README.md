@@ -2,7 +2,7 @@
 
 `nndeploy` 是一款最新上线的支持多平台、高性能、简单易用的机器学习部署框架。做到一个框架就可完成多端(云、边、端)模型的高性能部署。
 
-作为一个多平台模型部署工具，我们的框架最大的宗旨就是高性能以及使用简单贴心😚，目前 `nndeploy` 已完成 [TensorRT](https://github.com/NVIDIA/TensorRT)、[OpenVINO](https://github.com/openvinotoolkit/openvino) 、[ONNXRuntime](https://github.com/microsoft/onnxruntime)、[MNN](https://github.com/alibaba/MNN)、[TNN](https://github.com/Tencent/TNN)、[ncnn](https://github.com/Tencent/ncnn/) 六个业界知名的推理框架的集成，后续会继续接入 `TFLite`、`paddle-lite`、`coreML`、`TVM`、`AITemplate`，在我们的框架下可使用一套代码轻松切换不同的推理后端进行推理，且不用担心部署框架对推理框架的抽象而带来的性能损失。
+作为一个多平台模型部署工具，我们的框架最大的宗旨就是高性能以及使用简单贴心😚，目前 `nndeploy` 已完成 [TensorRT](https://github.com/NVIDIA/TensorRT)、[OpenVINO](https://github.com/openvinotoolkit/openvino) 、[ONNXRuntime](https://github.com/microsoft/onnxruntime)、[MNN](https://github.com/alibaba/MNN)、[TNN](https://github.com/Tencent/TNN)、[ncnn](https://github.com/Tencent/ncnn/) 、[coreML](https://github.com/apple/coremltools)、[paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite)八个业界知名的推理框架的集成，后续会继续接入 `TFLite`、`TVM`、`OpenPPL`、`Tengine`、`AITemplate`、`RKNN`、`sophgo`，在我们的框架下可使用一套代码轻松切换不同的推理后端进行推理，且不用担心部署框架对推理框架的抽象而带来的性能损失。
 
 如果您需要部署自己的模型，目前 `nndeploy` 只需大概只要 `200` 行代码就可以完成模型在多端的部署。 同时还提供了高性能的前后处理模板和推理模板，该模板可帮助您简化模型端到端的部署流程。
 
@@ -29,16 +29,16 @@
 - 支持多种推理框架：对多个业界知名推理框架的全面支持，包括 `TensorRT`、`OpenVINO`、`ONNXRuntime`、`MNN`、`TNN`、`ncnn` 、`coreML`、`paddle-lite`。未来，我们将继续扩展支持，包括 `TFLite`、`TVM`、`OpenPPL`、`Tengine`、`AITemplate`、`RKNN`、`sophgo`等
 - 支持多种不同操作系统，包括 `Android`、`Linux`、`Windows`、`macOS`，正在适配 `IOS`。致力于在各种操作系统上无缝运行您的深度学习模型
 
-|                        OS/Inference                        |  Linux   | Windows | Android | MacOS |  IOS  |                 开发人员                  | 备注  |
-| :--------------------------------------------------------: | :------: | :-----: | :-----: | :---: | :---: | :---------------------------------------: | :---: |
-|       [TensorRT](https://github.com/NVIDIA/TensorRT)       |   yes    |   no    |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|  [OpenVINO](https://github.com/openvinotoolkit/openvino)   |   yes    |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|  [ONNXRuntime](https://github.com/microsoft/onnxruntime)   |   yes    |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|           [MNN](https://github.com/alibaba/MNN)            |   yes    |   yes   |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|           [TNN](https://github.com/Tencent/TNN)            |   yes    |   yes   |   yes   |  no   |  no   | [02200059Z](https://github.com/02200059Z) |       |
-|          [ncnn](https://github.com/Tencent/ncnn)           |    no    |   no    |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|       [coreML](https://github.com/apple/coremltools)       |    no    |   no    |   no    |  yes  |  no   |  [JoDio-zd](https://github.com/JoDio-zd)  |       |
-| [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) | nocoreml |   no    |   no    |  no   |  no   | [qixuxiang](https://github.com/qixuxiang) |       |
+|                        OS/Inference                        | Linux | Windows | Android | MacOS |  IOS  |                 开发人员                  | 备注  |
+| :--------------------------------------------------------: | :---: | :-----: | :-----: | :---: | :---: | :---------------------------------------: | :---: |
+|       [TensorRT](https://github.com/NVIDIA/TensorRT)       |  yes  |   no    |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|  [OpenVINO](https://github.com/openvinotoolkit/openvino)   |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|  [ONNXRuntime](https://github.com/microsoft/onnxruntime)   |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|           [MNN](https://github.com/alibaba/MNN)            |  yes  |   yes   |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|           [TNN](https://github.com/Tencent/TNN)            |  yes  |   yes   |   yes   |  no   |  no   | [02200059Z](https://github.com/02200059Z) |       |
+|          [ncnn](https://github.com/Tencent/ncnn)           |  no   |   no    |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|       [coreML](https://github.com/apple/coremltools)       |  no   |   no    |   no    |  yes  |  no   |  [JoDio-zd](https://github.com/JoDio-zd)  |       |
+| [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |  no   |   no    |   no    |  no   |  no   | [qixuxiang](https://github.com/qixuxiang) |       |
 
 ### 直接可用的算法
 
