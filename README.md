@@ -349,11 +349,9 @@ export LD_LIBRARY_PATH=PATH/nndeploy/build/install/bin:$LD_LIBRARY_PATH
 
 
 ## 加入我们
-- 欢迎大家参与，一起打造最简单易用、高性能的机器学习部署框架
+- nndeploy还处于初级阶段，欢迎参与，我们一起打造最简单易用、高性能的机器学习部署框架
 - 微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy)
   
 <img align="left" src="docs/image/wechat.jpg" width="512px">
-
-<img align="left" src="docs/image/wechat_group.jpg" width="512px">
 
 

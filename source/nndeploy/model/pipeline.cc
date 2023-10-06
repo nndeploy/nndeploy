@@ -340,6 +340,7 @@ base::Status Pipeline::run() {
   for (auto task_vec : topo_sort_task_) {
     for (auto task : task_vec) {
       NNDEPLOY_TIME_POINT_START(task->getName());
+      NNDEPLOY_LOGE("TASK RUN %s\n", task->getName().c_str());
       status = task->run();
       NNDEPLOY_TIME_POINT_END(task->getName());
       if (status != base::kStatusCodeOk) {
