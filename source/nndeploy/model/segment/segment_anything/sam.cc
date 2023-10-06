@@ -106,8 +106,8 @@ base::Status SamBuildInput::run() {
     scale_points[2 * i] = scale_points[2 * i] * scale_w;
     scale_points[2 * i + 1] = scale_points[2 * i + 1] * scale_h;
   }
-  scale_points.push_back(0);
-  scale_points.push_back(0);
+  scale_points.emplace_back(0);
+  scale_points.emplace_back(0);
 
   //// point_coords
   // device::Tensor* point_coords_tensor =
