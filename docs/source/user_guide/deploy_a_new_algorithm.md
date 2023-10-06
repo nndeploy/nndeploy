@@ -13,8 +13,8 @@
     model::Pipeline* pipeline = new model::Pipeline(name, input, output); // 有向无环图
     model::Packet* infer_input = pipeline->createPacket("infer_input"); // infer任务的输入
     model::Packet* infer_output = pipeline->createPacket("infer_output"); // infer任务的输出
-    // YOLOV5模型前处理任务model::CvtColrResize，输入边为input，输出边为infer_input
-    model::Task* pre = pipeline->createTask<model::CvtColrResize>(
+    // YOLOV5模型前处理任务model::CvtColorResize，输入边为input，输出边为infer_input
+    model::Task* pre = pipeline->createTask<model::CvtColorResize>(
         "preprocess", input, infer_input);
     // YOLOV5模型推理任务model::Infer(通用模板)，输入边为infer_input，输出边为infer_output
     model::Task* infer = pipeline->createInfer<model::Infer>(

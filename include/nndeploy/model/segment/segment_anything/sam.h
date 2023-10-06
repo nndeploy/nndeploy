@@ -21,7 +21,6 @@
 #include "nndeploy/model/segment/result.h"
 #include "nndeploy/model/task.h"
 
-
 namespace nndeploy {
 namespace model {
 

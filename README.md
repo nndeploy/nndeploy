@@ -131,8 +131,8 @@
     model::Packet* infer_output = pipeline->createPacket("infer_output"); // 推理模板的输出
 
     // 搭建有向无图（preprocess->infer->postprocess）
-    // 模型前处理模板model::CvtColrResize，输入边为input，输出边为infer_input
-    model::Task* pre = pipeline->createTask<model::CvtColrResize>(
+    // 模型前处理模板model::CvtColorResize，输入边为input，输出边为infer_input
+    model::Task* pre = pipeline->createTask<model::CvtColorResize>(
         "preprocess", input, infer_input);
     // 模型推理模板model::Infer(通用模板)，输入边为infer_input，输出边为infer_output
     model::Task* infer = pipeline->createInfer<model::Infer>(

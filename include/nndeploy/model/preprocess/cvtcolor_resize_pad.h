@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_PREPROCESS_CVTCOLOR_RESIZE_H_
-#define _NNDEPLOY_MODEL_PREPROCESS_CVTCOLOR_RESIZE_H_
+#ifndef _NNDEPLOY_MODEL_PREPROCESS_CVTCOLOR_RESIZE_PAD_H_
+#define _NNDEPLOY_MODEL_PREPROCESS_CVTCOLOR_RESIZE_PAD_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -23,13 +23,13 @@
 namespace nndeploy {
 namespace model {
 
-class NNDEPLOY_CC_API CvtColorResize : public Task {
+class NNDEPLOY_CC_API CvtColorResizePad : public Task {
  public:
-  CvtColorResize(const std::string& name, Packet* input, Packet* output)
+  CvtColorResizePad(const std::string& name, Packet* input, Packet* output)
       : Task(name, input, output) {
-    param_ = std::make_shared<CvtclorResizeParam>();
+    param_ = std::make_shared<CvtclorResizePadParam>();
   }
-  virtual ~CvtColorResize() {}
+  virtual ~CvtColorResizePad() {}
 
   virtual base::Status run();
 };
@@ -37,4 +37,4 @@ class NNDEPLOY_CC_API CvtColorResize : public Task {
 }  // namespace model
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_PREPROCESS_CVTCOLOR_RESIZE_H_ */
+#endif /* _NNDEPLOY_MODEL_PREPROCESS_CVTCOLOR_RESIZE_PAD_H_ */

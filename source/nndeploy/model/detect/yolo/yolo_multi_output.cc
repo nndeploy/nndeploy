@@ -164,7 +164,7 @@ model::Pipeline* createYoloV5MultiOutputPipeline(
   model::Packet* infer_input = pipeline->createPacket("infer_input");
   model::Packet* infer_output = pipeline->createPacket("infer_output");
 
-  model::Task* pre = pipeline->createTask<model::CvtColrResize>(
+  model::Task* pre = pipeline->createTask<model::CvtColorResize>(
       "preprocess", input, infer_input);
 
   model::Task* infer = pipeline->createInfer<model::Infer>(
