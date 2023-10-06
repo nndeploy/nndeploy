@@ -62,7 +62,7 @@ base::Status PaddleLiteInference::run() {
   return status;
 }
 
-base::Status MnnInference::allocateInputOutputTensor() {
+base::Status PaddleLiteInference::allocateInputOutputTensor() {
   device::Device *device = nullptr;
   if (device::isHostDeviceType(inference_param_->device_type_)) {
     device = device::getDevice(inference_param_->device_type_);
@@ -91,7 +91,7 @@ base::Status MnnInference::allocateInputOutputTensor() {
   return base::kStatusCodeOk;
 }
 
-base::Status MnnInference::deallocateInputOutputTensor() {
+base::Status PaddleLiteInference::deallocateInputOutputTensor() {
   for (auto iter : input_tensors_) {
     delete iter.second;
   }

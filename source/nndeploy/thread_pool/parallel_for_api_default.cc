@@ -265,7 +265,7 @@ bool ParallelPool::setWorkThreads(int num) {
     return false;
   } else {
     for (size_t i = work_threads_.size(); i < num; ++i) {
-      work_threads_.push_back(
+      work_threads_.emplace_back(
           std::shared_ptr<WorkerThread>(new WorkerThread(*this, (unsigned)i)));
     }
   }
