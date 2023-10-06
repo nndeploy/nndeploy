@@ -31,15 +31,17 @@ class PaddleLiteInference : public Inference {
 
   virtual base::Status run();
 
-private:
-    paddle::lite_api::MobileConfig config_;
-    std::shared_ptr<paddle::lite_api::PaddlePredictor> predictor_;
-    size_t power_mode_ = 0;
+ private:
+  base::Status allocateInputOutputTensor();
+  base::Status deallocateInputOutputTensor();
 
+ private:
+  paddle::lite_api::CxxConfig config_;
+  std::shared_ptr<paddle::lite_api::PaddlePredictor> predictor_;
+  std::map<std::string, int> io_name_index_;
 };
 
 }  // namespace inference
 }  // namespace nndeploy
-
 
 #endif

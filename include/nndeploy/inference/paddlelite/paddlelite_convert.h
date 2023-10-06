@@ -11,18 +11,20 @@
 #include "nndeploy/inference/inference_param.h"
 #include "nndeploy/inference/paddlelite/paddlelite_include.h"
 
-
 namespace nndeploy {
 namespace inference {
 
 class PaddleLiteConvert {
  public:
-  static base::DataType convertToDataType(const paddle::lite_api::PrecisionType &src);
-  static paddle::lite_api::PrecisionType convertFromDataType(const base::DataType &src);
+  static base::DataType convertToDataType(
+      const paddle::lite_api::PrecisionType &src);
+  static paddle::lite_api::PrecisionType convertFromDataType(
+      const base::DataType &src);
 
-  static paddle::lite::TargetType convertFromDeviceType(const base::DeviceType &src);
-  static base::DeviceType convertToDeviceType(const paddle::lite::TargetType &src);
-  
+  static paddle::lite::TargetType convertFromDeviceType(
+      const base::DeviceType &src);
+  static base::DeviceType convertToDeviceType(
+      const paddle::lite::TargetType &src);
 
   static base::DataFormat convertToDataFormat(
       const paddle::lite_api::DataLayoutType &src);
@@ -30,6 +32,8 @@ class PaddleLiteConvert {
   static base::IntVector convertToShape(const paddle::lite::DDim &src);
   static paddle::lite::DDim convertFromShape(const base::IntVector &src);
 
+  static base::Status convertFromInferenceParam(
+      PaddleLiteInferenceParam *src, paddle::lite_api::CxxConfig &dst);
 };
 
 }  // namespace inference

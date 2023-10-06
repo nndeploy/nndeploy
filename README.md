@@ -26,17 +26,19 @@
 
 ### 支持多平台和多推理框架
 
-- 支持多种推理框架：对多个业界知名推理框架的全面支持，包括 `TensorRT`、`OpenVINO`、`ONNXRuntime`、`MNN`、`TNN`、`ncnn` 等。未来，我们将继续扩展支持，包括 `TFLite`、`paddle-lite`、`coreML`、`TVM`、`AITemplate`、`RKNN`等
-- 支持多种不同操作系统，包括 `Android`、`Linux`、`Windows`，正在适配 `macOS`、`IOS`。致力于在各种操作系统上无缝运行您的深度学习模型
+- 支持多种推理框架：对多个业界知名推理框架的全面支持，包括 `TensorRT`、`OpenVINO`、`ONNXRuntime`、`MNN`、`TNN`、`ncnn` 、`coreML`、`paddle-lite`。未来，我们将继续扩展支持，包括 `TFLite`、`TVM`、`OpenPPL`、`Tengine`、`AITemplate`、`RKNN`、`sophgo`等
+- 支持多种不同操作系统，包括 `Android`、`Linux`、`Windows`、`macOS`，正在适配 `IOS`。致力于在各种操作系统上无缝运行您的深度学习模型
 
-|                      OS/Inference                       | Linux | Windows | Android | MacOS |  IOS  |                 开发人员                  | 备注  |
-| :-----------------------------------------------------: | :---: | :-----: | :-----: | :---: | :---: | :---------------------------------------: | :---: |
-|     [TensorRT](https://github.com/NVIDIA/TensorRT)      |  yes  |   no    |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-| [OpenVINO](https://github.com/openvinotoolkit/openvino) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-| [ONNXRuntime](https://github.com/microsoft/onnxruntime) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|          [MNN](https://github.com/alibaba/MNN)          |  yes  |   yes   |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|          [TNN](https://github.com/Tencent/TNN)          |  yes  |   yes   |   yes   |  no   |  no   | [02200059Z](https://github.com/02200059Z) |       |
-|        [ncnn](https://github.com/Tencent/ncnn/)         |  no   |   no    |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|                        OS/Inference                        |  Linux   | Windows | Android | MacOS |  IOS  |                 开发人员                  | 备注  |
+| :--------------------------------------------------------: | :------: | :-----: | :-----: | :---: | :---: | :---------------------------------------: | :---: |
+|       [TensorRT](https://github.com/NVIDIA/TensorRT)       |   yes    |   no    |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|  [OpenVINO](https://github.com/openvinotoolkit/openvino)   |   yes    |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|  [ONNXRuntime](https://github.com/microsoft/onnxruntime)   |   yes    |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|           [MNN](https://github.com/alibaba/MNN)            |   yes    |   yes   |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|           [TNN](https://github.com/Tencent/TNN)            |   yes    |   yes   |   yes   |  no   |  no   | [02200059Z](https://github.com/02200059Z) |       |
+|          [ncnn](https://github.com/Tencent/ncnn)           |    no    |   no    |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+|       [coreML](https://github.com/apple/coremltools)       |    no    |   no    |   no    |  yes  |  no   |  [JoDio-zd](https://github.com/JoDio-zd)  |       |
+| [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) | nocoreml |   no    |   no    |  no   |  no   | [qixuxiang](https://github.com/qixuxiang) |       |
 
 ### 直接可用的算法
 
@@ -188,7 +190,7 @@
 
 ## TODO
 
-- 接入更多的推理框架，包括 `TFLite`、`paddle-lite`、`coreML`、`TVM`、`AITemplate`、`RKNN`、算能等等推理软件栈
+- 接入更多的推理框架，包括 `TFLite`、`TVM`、`OpenPPL`、`Tengine`、`AITemplate`、`RKNN`、`sophgo`等等推理软件栈
 - 部署更多的算法，包括 `Stable Diffusion`、`DETR`、`SAM`等等热门开源模型
 
 ## 快速开始

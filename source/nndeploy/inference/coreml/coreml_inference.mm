@@ -4,8 +4,8 @@
 namespace nndeploy {
 namespace inference {
 
-TypeInferenceRegister<TypeInferenceCreator<CoremlInference>>
-    g_coreml_inference_register(base::kInferenceTypeCoreML);
+TypeInferenceRegister<TypeInferenceCreator<CoremlInference>> g_coreml_inference_register(
+    base::kInferenceTypeCoreML);
 
 CoremlInference::CoremlInference(base::InferenceType type) : Inference(type) {}
 CoremlInference::~CoremlInference() {}
@@ -26,13 +26,10 @@ base::Status CoremlInference::init() {
   CoremlConvert::convertFromInferenceParam(coreml_inference_param, config_);
 
   if (inference_param_->is_path_) {
-    NSURL *model_path = [NSURL
-        fileURLWithPath:[NSString
-                            stringWithCString:inference_param_->model_value_[0]
-                                                  .c_str() encoding:NSASCIIStringEncoding]];
-    mlmodel_ = [MLModel modelWithContentsOfURL:model_path
-                                 configuration:config_
-                                         error:&err_];
+    NSURL *model_path =
+        [NSURL fileURLWithPath:[NSString stringWithCString:inference_param_->model_value_[0].c_str()
+                                                  encoding:NSASCIIStringEncoding]];
+    mlmodel_ = [MLModel modelWithContentsOfURL:model_path configuration:config_ error:&err_];
     CHECK_ERR(err_);
   } else {
     NNDEPLOY_LOGI("You will load model from memory\n");
@@ -61,16 +58,13 @@ base::Status CoremlInference::deinit() {
   return status;
 }
 
-base::Status CoremlInference::reshape(base::ShapeMap &shape_map) {
-  return base::kStatusCodeOk;
-}
+base::Status CoremlInference::reshape(base::ShapeMap &shape_map) { return base::kStatusCodeOk; }
 
 int64_t CoremlInference::getMemorySize() { return 0; }
 
 float CoremlInference::getGFLOPs() { return 1000.f; }
 
-device::TensorDesc CoremlInference::getInputTensorAlignDesc(
-    const std::string &name) {
+device::TensorDesc CoremlInference::getInputTensorAlignDesc(const std::string &name) {
   if (input_tensors_.count(name) > 0) {
     device::TensorDesc desc = input_tensors_[name]->getDesc();
     if (desc.shape_.size() == 5) {
@@ -84,8 +78,7 @@ device::TensorDesc CoremlInference::getInputTensorAlignDesc(
         desc.data_format_ = base::kDataFormatNCHW;
       }
     } else if (desc.shape_.size() == 3) {
-      if (desc.data_format_ != base::kDataFormatNHW &&
-          desc.data_format_ != base::kDataFormatNWC &&
+      if (desc.data_format_ != base::kDataFormatNHW && desc.data_format_ != base::kDataFormatNWC &&
           desc.data_format_ != base::kDataFormatNCW) {
         desc.data_format_ = base::kDataFormatNHW;
       }
@@ -106,8 +99,7 @@ device::TensorDesc CoremlInference::getInputTensorAlignDesc(
   }
 }
 
-device::TensorDesc CoremlInference::getOutputTensorAlignDesc(
-    const std::string &name) {
+device::TensorDesc CoremlInference::getOutputTensorAlignDesc(const std::string &name) {
   if (output_tensors_.count(name) > 0) {
     device::TensorDesc desc = output_tensors_[name]->getDesc();
     if (desc.shape_.size() == 5) {
@@ -121,8 +113,7 @@ device::TensorDesc CoremlInference::getOutputTensorAlignDesc(
         desc.data_format_ = base::kDataFormatNCHW;
       }
     } else if (desc.shape_.size() == 3) {
-      if (desc.data_format_ != base::kDataFormatNHW &&
-          desc.data_format_ != base::kDataFormatNWC &&
+      if (desc.data_format_ != base::kDataFormatNHW && desc.data_format_ != base::kDataFormatNWC &&
           desc.data_format_ != base::kDataFormatNCW) {
         desc.data_format_ = base::kDataFormatNHW;
       }
@@ -153,23 +144,25 @@ base::Status CoremlInference::run() {
     int height = iter.second->getHeight();
     int stride = width;
     OSType pixelFormat = kCVPixelFormatType_OneComponent8;
-    CVReturn status = CVPixelBufferCreateWithBytes(
-        kCFAllocatorDefault, width, height, pixelFormat, iter.second->getPtr(),
-        stride, NULL, NULL, NULL, &photodata);
+    CVReturn status =
+        CVPixelBufferCreateWithBytes(kCFAllocatorDefault, width, height, pixelFormat,
+                                     iter.second->getPtr(), stride, NULL, NULL, NULL, &photodata);
     if (status != 0) {
       NNDEPLOY_LOGE("Tensor create failed");
     }
-    MLFeatureValue* input_data = [MLFeatureValue featureValueWithPixelBuffer:photodata];
+    MLFeatureValue *input_data = [MLFeatureValue featureValueWithPixelBuffer:photodata];
     [dict_ setObject:[NSString stringWithCString:iter.first.c_str() encoding:NSASCIIStringEncoding]
-             forKey:input_data];
+              forKey:input_data];
   }
   MLDictionaryFeatureProvider *provider =
-      [[MLDictionaryFeatureProvider alloc] initWithDictionary:dict_
-                                                        error:&err_];
-  NSDictionary<NSString *, MLFeatureValue *>* res = [[mlmodel_ predictionFromFeatures:provider error:&err_] dictionary];
+      [[MLDictionaryFeatureProvider alloc] initWithDictionary:dict_ error:&err_];
+  NSDictionary<NSString *, MLFeatureValue *> *res =
+      [[mlmodel_ predictionFromFeatures:provider error:&err_] dictionary];
   for (auto iter : external_output_tensors_) {
-    MLFeatureValue *value = res[[NSString stringWithCString:iter.first.c_str() encoding:NSASCIIStringEncoding]];
-    [&](void *&& data) -> void *& {return data;}(iter.second->getPtr()) = CVPixelBufferGetBaseAddress([value imageBufferValue]);
+    MLFeatureValue *value =
+        res[[NSString stringWithCString:iter.first.c_str() encoding:NSASCIIStringEncoding]];
+    [&](void *&&data) -> void *& { return data; }(iter.second->getPtr()) =
+                             CVPixelBufferGetBaseAddress([value imageBufferValue]);
   }
   return base::kStatusCodeOk;
 }
@@ -180,14 +173,17 @@ base::Status CoremlInference::allocateInputOutputTensor() {
     device = device::getDevice(inference_param_->device_type_);
   }
   MLModelDescription *model_description = [mlmodel_ modelDescription];
-  NSDictionary<NSString *, MLFeatureDescription *> *model_input_feature = [model_description inputDescriptionsByName];
-  for (NSString * iter in model_input_feature) {
+  NSDictionary<NSString *, MLFeatureDescription *> *model_input_feature =
+      [model_description inputDescriptionsByName];
+  for (NSString *iter in model_input_feature) {
     device::Tensor *input_tensor =
-            CoremlConvert::convertToTensor(model_input_feature[iter], iter, device);
-    input_tensors_.insert({std::string([iter cStringUsingEncoding:NSASCIIStringEncoding]), input_tensor});
+        CoremlConvert::convertToTensor(model_input_feature[iter], iter, device);
+    input_tensors_.insert(
+        {std::string([iter cStringUsingEncoding:NSASCIIStringEncoding]), input_tensor});
   }
-  NSDictionary<NSString *, MLFeatureDescription *> *model_output_feature = [model_description outputDescriptionsByName];
-  for (NSString * iter in model_output_feature) {
+  NSDictionary<NSString *, MLFeatureDescription *> *model_output_feature =
+      [model_description outputDescriptionsByName];
+  for (NSString *iter in model_output_feature) {
     device::Tensor *dst = CoremlConvert::convertToTensor(model_input_feature[iter], iter, device);
     output_tensors_.insert({std::string([iter cStringUsingEncoding:NSASCIIStringEncoding]), dst});
   }

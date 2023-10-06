@@ -26,8 +26,10 @@ class CoremlInferenceParam : public InferenceParam {
 
   /// @brief A Boolean value that determines whether to allow low-precision
   /// accumulation on a GPU.
-  bool low_precision_acceleration_ = false;
-  enum inferenceUnits {
+  bool low_precision_acceleration_ =
+      false;  // reivew： 可否使用InferenceParam::precision_type_
+  enum inferenceUnits {  // reivew： 可否使用InferenceParam::device_type_,
+                         // 参照openvino的做法，继续沿用该做法的法，需要inferenceUnits->InferenceUnits
     ALL_UNITS = 0,
     CPU_ONLY = 1,
     CPU_AND_GPU = 2,

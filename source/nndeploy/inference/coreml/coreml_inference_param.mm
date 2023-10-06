@@ -4,8 +4,7 @@
 namespace nndeploy {
 namespace inference {
 
-static TypeInferenceParamRegister<
-    TypeInferenceParamCreator<CoremlInferenceParam>>
+static TypeInferenceParamRegister<TypeInferenceParamCreator<CoremlInferenceParam>>
     g_coreml_inference_param_register(base::kInferenceTypeCoreML);
 
 CoremlInferenceParam::CoremlInferenceParam() : InferenceParam() {
@@ -16,8 +15,7 @@ CoremlInferenceParam::CoremlInferenceParam() : InferenceParam() {
 
 CoremlInferenceParam::~CoremlInferenceParam() {}
 
-base::Status CoremlInferenceParam::parse(const std::string &json,
-                                         bool is_path) {
+base::Status CoremlInferenceParam::parse(const std::string &json, bool is_path) {
   std::string json_content = "";
   base::Status status = InferenceParam::parse(json_content, false);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "parse json failed!");
@@ -25,14 +23,12 @@ base::Status CoremlInferenceParam::parse(const std::string &json,
   return base::kStatusCodeOk;
 }
 
-base::Status CoremlInferenceParam::set(const std::string &key,
-                                       base::Value &value) {
+base::Status CoremlInferenceParam::set(const std::string &key, base::Value &value) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
 
-base::Status CoremlInferenceParam::get(const std::string &key,
-                                       base::Value &value) {
+base::Status CoremlInferenceParam::get(const std::string &key, base::Value &value) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

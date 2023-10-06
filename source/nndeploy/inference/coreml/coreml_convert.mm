@@ -4,6 +4,10 @@
 namespace nndeploy {
 namespace inference {
 
+/**
+ * @brief Convert from base::DataType to MLFeatureType
+ * @review：只有这一种类型吗？
+ */
 base::DataType CoremlConvert::convertToDataType(const OSType &src) {
   base::DataType dst;
   switch (src) {
@@ -19,19 +23,22 @@ base::DataType CoremlConvert::convertToDataType(const OSType &src) {
   return dst;
 }
 
+/**
+ * @review：
+ */
 NSObject *CoremlConvert::convertFromDeviceType(const base::DeviceType &src) {
   NSObject *type = nil;
   switch (src.code_) {
     case base::kDeviceTypeCodeCpu:
     case base::kDeviceTypeCodeX86:
     case base::kDeviceTypeCodeArm:
-    case base::kDeviceTypeCodeOpenCL:
+    case base::kDeviceTypeCodeOpenCL:  // review： 这个应该属于GPU吧？或者属于default
       type = reinterpret_cast<NSObject *>(new MLCPUComputeDevice());
       break;
-    case base::kDeviceTypeCodeOpenGL:
+    case base::kDeviceTypeCodeOpenGL:  // review： 属于default会不会更好呀
     case base::kDeviceTypeCodeMetal:
-    case base::kDeviceTypeCodeCuda:
-    case base::kDeviceTypeCodeVulkan:
+    case base::kDeviceTypeCodeCuda:    // review： 属于default会不会更好呀
+    case base::kDeviceTypeCodeVulkan:  // review： 属于default会不会更好呀
       type = reinterpret_cast<NSObject *>(new MLGPUComputeDevice());
       break;
     case base::kDeviceTypeCodeNpu:
@@ -43,8 +50,8 @@ NSObject *CoremlConvert::convertFromDeviceType(const base::DeviceType &src) {
   return type;
 }
 
-base::Status CoremlConvert::convertFromInferenceParam(
-    CoremlInferenceParam *src, MLModelConfiguration *dst) {
+base::Status CoremlConvert::convertFromInferenceParam(CoremlInferenceParam *src,
+                                                      MLModelConfiguration *dst) {
   dst.allowLowPrecisionAccumulationOnGPU = src->low_precision_acceleration_;
   switch (src->inference_units_) {
     case CoremlInferenceParam::inferenceUnits::ALL_UNITS:
@@ -67,23 +74,21 @@ base::Status CoremlConvert::convertFromInferenceParam(
 }
 
 device::Tensor *CoremlConvert::convertToTensor(MLFeatureDescription *src, NSString *name,
-                                device::Device *device) {
+                                               device::Device *device) {
   MLFeatureType tensor_type = [src type];
   device::Tensor *dst = nullptr;
   device::TensorDesc desc;
   switch (tensor_type) {
-    case MLFeatureTypeImage:
-    {
+    case MLFeatureTypeImage: {
       MLImageConstraint *image_attr = [src imageConstraint];
       base::DataType data_type = CoremlConvert::convertToDataType([image_attr pixelFormatType]);
       base::DataFormat format = base::kDataFormatNHWC;
-      base::IntVector shape = {1, int([image_attr pixelsHigh]), int ([image_attr pixelsWide]), 3};
+      base::IntVector shape = {1, int([image_attr pixelsHigh]), int([image_attr pixelsWide]), 3};
       base::SizeVector stride = base::SizeVector();
       desc = device::TensorDesc(data_type, format, shape, stride);
       break;
     }
-    case MLFeatureTypeDouble:
-    {
+    case MLFeatureTypeDouble: {
       base::DataType data_type = base::DataType();
       base::DataFormat format = base::kDataFormatN;
       base::IntVector shape = {1};

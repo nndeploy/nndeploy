@@ -21,7 +21,7 @@ base::DataType PaddleLiteConvert::convertToDataType(
       dst.lanes_ = 1;
       break;
     case paddle::lite_api::PrecisionType::kFP16:
-      dst.code_ = base::kDataTypeCodeBFp;
+      dst.code_ = base::kDataTypeCodeFp;
       dst.bits_ = 16;
       dst.lanes_ = 1;
     case paddle::lite_api::PrecisionType::kInt64:
@@ -54,7 +54,7 @@ base::DataType PaddleLiteConvert::convertToDataType(
       dst.bits_ = 8;
       dst.lanes_ = 1;
       break;
-    case paddle::lite_api::PrecisionType::kAny: 
+    case paddle::lite_api::PrecisionType::kAny:
       dst.code_ = base::kDataTypeCodeOpaqueHandle;
       dst.bits_ = sizeof(size_t) * 8;
       dst.lanes_ = 1;
@@ -79,7 +79,7 @@ paddle::lite_api::PrecisionType PaddleLiteConvert::convertFromDataType(
     } else {
       dst = paddle::lite_api::PrecisionType::kUnk;
     }
-  } else if (src.code_ == base::kDataTypeCodeBFp && src.bits_ == 16 &&
+  } else if (src.code_ == base::kDataTypeCodeFp && src.bits_ == 16 &&
              src.lanes_ == 1) {
     dst = paddle::lite_api::PrecisionType::kFP16;
   } else if (src.code_ == base::kDataTypeCodeInt && src.lanes_ == 1) {
@@ -106,7 +106,8 @@ paddle::lite_api::PrecisionType PaddleLiteConvert::convertFromDataType(
   return dst;
 }
 
-paddle::lite::TargetType PaddleLiteConvert::convertFromDeviceType(const base::DeviceType &src) {
+paddle::lite::TargetType PaddleLiteConvert::convertFromDeviceType(
+    const base::DeviceType &src) {
   paddle::lite::TargetType type = paddle::lite::TargetType::kHost;
   switch (src.code_) {
     case base::kDeviceTypeCodeCpu:
@@ -129,16 +130,17 @@ paddle::lite::TargetType PaddleLiteConvert::convertFromDeviceType(const base::De
       break;
     case base::kDeviceTypeCodeNotSupport:
       type = paddle::lite::TargetType::kUnk;
-      break;   
+      break;
   }
   return type;
 }
 
-base::DeviceType PaddleLiteConvert::convertToDeviceType(const paddle::lite::TargetType &src) {
+base::DeviceType PaddleLiteConvert::convertToDeviceType(
+    const paddle::lite::TargetType &src) {
   base::DeviceType type = base::kDeviceTypeCodeNotSupport;
   switch (src) {
     case paddle::lite::TargetType::kHost:
-      type = base::kDeviceTypeCodeCpu;
+      type = device::getDefaultHostDeviceType();
       break;
     case paddle::lite::TargetType::kX86:
       type = base::kDeviceTypeCodeX86;
@@ -179,25 +181,38 @@ base::DataFormat PaddleLiteConvert::convertToDataFormat(
       dst = base::kDataFormatNCHW;
       break;
   }
-  return dst;      
+  return dst;
 }
 
-base::IntVector PaddleLiteConvert::convertToShape(const paddle::lite::DDim &src) {
+base::IntVector PaddleLiteConvert::convertToShape(
+    const paddle::lite::DDim &src) {
   base::IntVector dst;
   size_t src_size = src.size();
   for (int i = 0; i < src_size; ++i) {
-    dst.push_back(src[i]);
+    dst.emplace_back(src[i]);
   }
   return dst;
 }
 
-paddle::lite::DDim PaddleLiteConvert::convertFromShape(const base::IntVector &src) {
+paddle::lite::DDim PaddleLiteConvert::convertFromShape(
+    const base::IntVector &src) {
   size_t src_size = src.size();
   paddle::lite::DDim dst;
   for (int i = 0; i < src_size; ++i) {
     dst[i] = src[i];
   }
   return dst;
+}
+
+base::Status PaddleLiteConvert::convertFromInferenceParam(
+    PaddleLiteInferenceParam *src, paddle::lite_api::CxxConfig &dst) {
+  base::Status status = base::kStatusCodeOk;
+
+  dst.set_model_from_file(model_buffer);
+  dst.set_power_mode(static_cast<paddle::lite_api::PowerMode>(power_mode_));
+  dst.set_threads(paddlelite_inference_param->num_thread_);
+
+  return status;
 }
 
 }  // namespace inference

@@ -31,16 +31,16 @@ class CoremlInference : public Inference {
   virtual base::Status init();
   virtual base::Status deinit();
 
-  virtual base::Status reshape(base::ShapeMap &shape_map);
+  virtual base::Status reshape(base::ShapeMap &shape_map);  // review: 不支持动态shape吗？
 
-  virtual int64_t getMemorySize();
+  virtual int64_t getMemorySize();  // review： 返回-1会不会更好呀
 
-  virtual float getGFLOPs();
+  virtual float getGFLOPs();  // review： 返回-1会不会更好呀
 
   virtual device::TensorDesc getInputTensorAlignDesc(const std::string &name);
   virtual device::TensorDesc getOutputTensorAlignDesc(const std::string &name);
 
-  virtual base::Status run();
+  virtual base::Status run();  // review：怎么看起来只能支持 int8的输入 tensor呀
 
  private:
   base::Status allocateInputOutputTensor();
