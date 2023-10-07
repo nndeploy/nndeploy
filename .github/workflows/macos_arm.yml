@@ -1,6 +1,7 @@
 name: macOS-arm64 CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -17,21 +18,16 @@ on:
 jobs:
   build:
     runs-on: macos-11.0-arm64
-    name: Build and Test
+    name: Build mac-m1
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Install Dependencies
-        run: |
-          brew update
-          brew install cmake
+        uses: actions/checkout@v3
 
       - name: Build
         run: |
           mkdir build
-          cp cmake/config.cmake build
+          cp cmake/config_m1.cmake ./build/config.cmake
           cd build
           cmake .. -DCMAKE_OSX_ARCHITECTURES=arm64
-          make -j$(sysctl -n hw.logicalcpu)
+          make -j4

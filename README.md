@@ -198,9 +198,9 @@
 
 | 系统    | 编译状态                                                                                                                                                           |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Linux   | [![linux](https://github.com/wangzhaode/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/linux.yml)       |
-| Macos   | [![macos](https://github.com/wangzhaode/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/macos.yml)       |
-| Windows | [![windows](https://github.com/wangzhaode/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/wangzhaode/nndeploy/actions/workflows/windows.yml) |
+| Linux   | [![linux](https://ci.appveyor.com/api/projects/status/nqh88yms75w8n57m?svg=true)](https://ci.appveyor.com/project/JoDio-zd/nndeploy-e4eok)       |
+| Macos   | [![macos](https://ci.appveyor.com/api/projects/status/1d8ivj48m81mk4av?svg=true)](https://ci.appveyor.com/project/JoDio-zd/nndeploy)       |
+| Windows | [![windows](https://ci.appveyor.com/api/projects/status/8odb7nw1iwrd5x02?svg=true)](https://ci.appveyor.com/project/JoDio-zd/nndeploy-784fp) |
 
 ### 编译
 + 拉取源代码
