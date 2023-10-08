@@ -196,11 +196,11 @@
 ## 快速开始
 ### 编译状态
 
-| 系统    | 编译状态                                                                                                                                                           |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Linux   | [![linux](https://ci.appveyor.com/api/projects/status/nqh88yms75w8n57m?svg=true)](https://ci.appveyor.com/project/JoDio-zd/nndeploy-e4eok)       |
-| Macos   | [![macos](https://ci.appveyor.com/api/projects/status/1d8ivj48m81mk4av?svg=true)](https://ci.appveyor.com/project/JoDio-zd/nndeploy)       |
-| Windows | [![windows](https://ci.appveyor.com/api/projects/status/8odb7nw1iwrd5x02?svg=true)](https://ci.appveyor.com/project/JoDio-zd/nndeploy-784fp) |
+| 系统    | 编译状态                                                                                                                                         |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Linux   | [![linux](https://ci.appveyor.com/api/projects/status/a135va7wtjot4iaw?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-pdc3k)   |
+| Macos   | [![macos](https://ci.appveyor.com/api/projects/status/7sey9eqhfnnedqi2?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy)         |
+| Windows | [![windows](https://ci.appveyor.com/api/projects/status/4gsf91utksd7v595?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-ovpc5) |
 
 ### 编译
 + 拉取源代码
@@ -350,7 +350,7 @@ export LD_LIBRARY_PATH=PATH/nndeploy/build/install/bin:$LD_LIBRARY_PATH
 
 ## 加入我们
 - nndeploy还处于初级阶段，欢迎参与，我们一起打造最简单易用、高性能的机器学习部署框架
-- 微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy)
+- 微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy+姓名)
   
 <img align="left" src="docs/image/wechat.jpg" width="512px">
 
