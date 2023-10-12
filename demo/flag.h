@@ -5,6 +5,7 @@
 #include "common.h"
 #include "gflags/gflags.h"
 #include "nndeploy/base/common.h"
+#include "nndeploy/base/file.h"
 
 namespace nndeploy {
 namespace demo {
@@ -211,6 +212,7 @@ base::PrecisionType getPrecisionType();
 base::PowerType getPowerType();
 std::vector<std::string> getCachePath();
 std::vector<std::string> getLibraryPath();
+std::vector<std::string> getAllFileFromDir(std::string dir_path);
 
 }  // namespace demo
 }  // namespace nndeploy
