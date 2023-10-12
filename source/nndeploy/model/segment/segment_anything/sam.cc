@@ -13,6 +13,11 @@ TypePipelineRegister g_register_sam_pipeline(NNDEPLOY_SAM, createSamPipeline);
 base::Status SamPostProcess::run() {
   SamPostParam* param = dynamic_cast<SamPostParam*>(param_.get());
 
+  device::Tensor* mask = inputs_[0]->getTensor("masks");
+
+  SegmentResult* result = dynamic_cast<SegmentResult*>(outputs_[0]->getParam());
+  result->mask_ = mask;
+
   return base::kStatusCodeOk;
 }
 
@@ -191,8 +196,10 @@ model::Pipeline* createSamPipeline(const std::string& name,
   std::vector<Packet*> inputs;
   inputs.emplace_back(embedding_output);
   inputs.emplace_back(input);
-  model::Task* build_input = pipeline->createTask<SamBuildInput>(
-      "build_input", embedding_output, build_sam_input);
+  std::vector<Packet*> outputs;
+  outputs.emplace_back(build_sam_input);
+  model::Task* build_input =
+      pipeline->createTask<SamBuildInput>("build_input", inputs, outputs);
   // 这个推理任务本身是动态输入的
   model::Task* segment_inference = pipeline->createInfer<model::Infer>(
       "segment_inference", inference_type, build_sam_input, segment_output);

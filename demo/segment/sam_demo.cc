@@ -81,9 +81,12 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("pipeline->run()");
 
-  // drawBox(input_mat, result);
+  device::Tensor* mask = result.mask_;
+  cv::Mat mask_output(mask->getHeight(), mask->getWidth(), CV_32FC1, mask->getPtr());
+  cv::threshold(mask_output, mask_output, 0.0, 255.0, cv::THRESH_BINARY);
+  mask_output.convertTo(mask_output, CV_8U);
   std::string ouput_path = demo::getOutputPath();
-  cv::imwrite(ouput_path, input_mat);
+  cv::imwrite(ouput_path, mask_output);
 
   // 有向无环图pipelinez反初始化
   NNDEPLOY_TIME_POINT_START("pipeline->deinit()");

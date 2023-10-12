@@ -15,8 +15,8 @@ namespace model {
  */
 class NNDEPLOY_CC_API SegmentResult : public base::Param {
  public:
-  device::Tensor mask_;
-  device::Tensor score_;
+  device::Tensor *mask_;
+  device::Tensor *score_;
   int height_;
   int width_;
   int classes_;

@@ -49,6 +49,9 @@ class NNDEPLOY_CC_API SamBuildInput : public model::Task {
   SamBuildInput(const std::string& name, model::Packet* input,
                 model::Packet* output)
       : Task(name, input, output) {}
+  SamBuildInput(const std::string& name, std::vector<Packet*> inputs,
+                std::vector<Packet*> outputs)
+      : Task(name, inputs, outputs) {}
   virtual ~SamBuildInput() {}
 
   virtual base::Status reshape();

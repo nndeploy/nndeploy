@@ -291,5 +291,19 @@ device::Tensor *OpenVinoConvert::convertToTensor(ov::Tensor &src,
   return tensor;
 }
 
+base::Status OpenVinoConvert::convertToTensor(ov::Tensor &src,
+                                              device::Tensor *dst) {
+  base::Status status = base::kStatusCodeOk;
+  device::Device *device = device::getDefaultHostDevice();
+  device::TensorDesc desc;
+  desc.data_type_ = OpenVinoConvert::convertToDataType(src.get_element_type());
+  desc.shape_ = OpenVinoConvert::convertToShape(src.get_shape());
+  desc.data_format_ = OpenVinoConvert::getDataFormatByShape(desc.shape_);
+  desc.stride_ = OpenVinoConvert::convertToStride(src.get_strides());
+  void *data = src.data();
+  dst->create(device, desc, data);
+  return status;
+}
+
 }  // namespace inference
 }  // namespace nndeploy

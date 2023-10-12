@@ -166,7 +166,7 @@ base::Status OpenVinoInference::run() {
     device::Tensor *external_tensor = iter.second;
     if (external_tensor->empty()) {
       ov::Tensor ov_tensor = infer_request_.get_tensor(iter.first);
-      external_tensor = OpenVinoConvert::convertToTensor(ov_tensor, iter.first);
+      OpenVinoConvert::convertToTensor(ov_tensor, external_tensor);
     }
   }
   return status;

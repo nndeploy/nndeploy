@@ -1,7 +1,9 @@
 
 #include "nndeploy/model/preprocess/cvtcolor_resize_pad.h"
 
+#include "nndeploy/model/preprocess/opencv_util.h"
 #include "nndeploy/model/preprocess/util.h"
+
 
 namespace nndeploy {
 namespace model {
@@ -65,9 +67,9 @@ base::Status CvtColorResizePad::run() {
   }
 
   tmp_param->top_ = 0;
-  tmp_param->bottom_ = h - new_h - top_;
+  tmp_param->bottom_ = h - new_h - tmp_param->top_;
   tmp_param->left_ = 0;
-  tmp_param->right_ = w - new_w - left_;
+  tmp_param->right_ = w - new_w - tmp_param->left_;
   cv::Mat tmp_pad;
   OpenCvUtil::copyMakeBorder(tmp_resize, tmp_pad, tmp_param->top_,
                              tmp_param->bottom_, tmp_param->left_,

@@ -36,6 +36,8 @@ class OpenVinoConvert {
   static ov::Tensor convertFromTensor(device::Tensor *src);
   static device::Tensor *convertToTensor(ov::Tensor &src,
                                          const std::string &name = "");
+
+  static base::Status convertToTensor(ov::Tensor &src, device::Tensor *dst);
 };
 
 }  // namespace inference
