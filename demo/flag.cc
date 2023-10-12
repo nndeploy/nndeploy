@@ -174,5 +174,13 @@ std::vector<std::string> getLibraryPath() {
   return library_path;
 }
 
+std::vector<std::string> getAllFileFromDir(std::string dir_path) {
+  std::vector<std::string> allFile = {};
+  if (nndeploy::base::isDirectory(dir_path)) {
+    nndeploy::base::glob(dir_path, "", allFile);
+  }
+  return allFile;
+}
+
 }  // namespace demo
 }  // namespace nndeploy
