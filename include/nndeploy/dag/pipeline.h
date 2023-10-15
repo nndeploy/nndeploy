@@ -141,6 +141,7 @@ class NNDEPLOY_CC_API Pipeline : public Task {
     return task;
   }
   base::Status addTask(Task* task);
+  Task* getTask(const std::string& task_name);
 
   base::Status setTaskParam(const std::string& task_name, base::Param* param);
   base::Param* getTaskParam(const std::string& task_name);
@@ -185,7 +186,7 @@ std::map<std::string, createPipelineFunc>& getGlobalPipelineCreatorMap();
 class TypePipelineRegister {
  public:
   explicit TypePipelineRegister(const std::string& name,
-                                     createPipelineFunc func) {
+                                createPipelineFunc func) {
     getGlobalPipelineCreatorMap()[name] = func;
   }
 };

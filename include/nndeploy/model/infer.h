@@ -23,6 +23,8 @@ class NNDEPLOY_CC_API Infer : public dag::Task {
   virtual base::Status reshape();
   virtual base::Status run();
 
+  virtual inference::Inference *getInference();
+
  private:
   template <bool is_input_dynamic, bool is_output_dynamic, bool can_op_input,
             bool can_op_output>

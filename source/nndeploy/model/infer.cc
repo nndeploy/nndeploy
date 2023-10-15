@@ -481,5 +481,7 @@ base::Status Infer::run() {
   return status;
 }
 
+inference::Inference *Infer::getInference() { return inference_; }
+
 }  // namespace model
 }  // namespace nndeploy

@@ -183,6 +183,14 @@ base::Status Pipeline::addTask(Task* task) {
   task_repository_.emplace_back(task_wrapper);
   return status;
 }
+Task* Pipeline::getTask(const std::string& task_name) {
+  for (auto task_wrapper : task_repository_) {
+    if (task_wrapper->name_ == task_name) {
+      return task_wrapper->task_;
+    }
+  }
+  return nullptr;
+}
 
 base::Status Pipeline::setTaskParam(const std::string& task_name,
                                     base::Param* param) {
