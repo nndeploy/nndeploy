@@ -10,13 +10,13 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/dag/packet.h"
+#include "nndeploy/dag/task.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/packet.h"
 #include "nndeploy/model/preprocess/params.h"
-#include "nndeploy/model/task.h"
 
 namespace nndeploy {
 namespace model {

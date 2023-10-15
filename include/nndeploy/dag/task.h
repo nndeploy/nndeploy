@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_TASK_H_
-#define _NNDEPLOY_MODEL_TASK_H_
+#ifndef _NNDEPLOY_DAG_TASK_H_
+#define _NNDEPLOY_DAG_TASK_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -10,14 +10,14 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/dag/packet.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/packet.h"
 
 namespace nndeploy {
-namespace model {
+namespace dag {
 
 class NNDEPLOY_CC_API Task {
  public:
@@ -68,7 +68,7 @@ using MultiIOTaskFunc = std::function<base::Status(std::vector<Packet*> input,
                                                    std::vector<Packet*> output,
                                                    base::Param* param)>;
 
-}  // namespace model
+}  // namespace dag
 }  // namespace nndeploy
 
 #endif

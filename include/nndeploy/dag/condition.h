@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_MODEL_CONDITION_H_
-#define _NNDEPLOY_MODEL_CONDITION_H_
+#ifndef _NNDEPLOY_DAG_CONDITION_H_
+#define _NNDEPLOY_DAG_CONDITION_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -9,16 +9,15 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/dag/packet.h"
+#include "nndeploy/dag/task.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/infer.h"
-#include "nndeploy/model/packet.h"
-#include "nndeploy/model/task.h"
 
 namespace nndeploy {
-namespace model {
+namespace dag {
 
 class NNDEPLOY_CC_API Condition : public Task {
  public:
@@ -110,7 +109,7 @@ class NNDEPLOY_CC_API Condition : public Task {
   std::vector<Task*> condition_task_;
 };
 
-}  // namespace model
+}  // namespace dag
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_CONDITION_H_ */
+#endif /* _NNDEPLOY_DAG_CONDITION_H_ */

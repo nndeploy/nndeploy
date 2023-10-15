@@ -4,9 +4,9 @@
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
+#include "nndeploy/dag/task.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/model/detect/yolo/yolo.h"
-#include "nndeploy/model/task.h"
 
 using namespace nndeploy;
 
@@ -70,22 +70,22 @@ int main(int argc, char *argv[]) {
   // 模型路径或者模型字符串
   std::vector<std::string> model_value = demo::getModelValue();
   // 有向无环图pipeline的输入边packert
-  model::Packet input("detect_in");
+  dag::Packet input("detect_in");
   // 有向无环图pipeline的输出边packert
-  model::Packet output("detect_out");
+  dag::Packet output("detect_out");
   // 创建检测模型有向无环图pipeline
-  model::Pipeline *pipeline =
-      model::createPipeline(name, inference_type, device_type, &input, &output,
-                            model_type, is_path, model_value);
+  dag::Pipeline *pipeline =
+      dag::createPipeline(name, inference_type, device_type, &input, &output,
+                          model_type, is_path, model_value);
 
   // 有向无环图pipeline的输入边packert
-  model::Packet input1("detect_in");
+  dag::Packet input1("detect_in");
   // 有向无环图pipeline的输出边packert
-  model::Packet output1("detect_out");
+  dag::Packet output1("detect_out");
   // 创建检测模型有向无环图pipeline
-  model::Pipeline *pipeline1 =
-      model::createPipeline(name, inference_type, device_type, &input1,
-                            &output1, model_type, is_path, model_value);
+  dag::Pipeline *pipeline1 =
+      dag::createPipeline(name, inference_type, device_type, &input1, &output1,
+                          model_type, is_path, model_value);
   if (pipeline == nullptr) {
     NNDEPLOY_LOGE("pipeline is nullptr");
     return -1;
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> all_file = demo::getAllFileFromDir(input_path);
   std::mutex tt;
   int i = 0;
-  auto funcs = [&](model::Pipeline *pipeline) {
+  auto funcs = [&](dag::Pipeline *pipeline) {
     std::string file_path;
     while (!all_file.empty()) {
       tt.lock();

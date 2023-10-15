@@ -11,21 +11,22 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/dag/packet.h"
+#include "nndeploy/dag/task.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/packet.h"
 #include "nndeploy/model/preprocess/opencv_convert.h"
 #include "nndeploy/model/preprocess/params.h"
-#include "nndeploy/model/task.h"
 
 namespace nndeploy {
 namespace model {
 
-class NNDEPLOY_CC_API CvtColorResize : public Task {
+class NNDEPLOY_CC_API CvtColorResize : public dag::Task {
  public:
-  CvtColorResize(const std::string& name, Packet* input, Packet* output)
+  CvtColorResize(const std::string& name, dag::Packet* input,
+                 dag::Packet* output)
       : Task(name, input, output) {
     param_ = std::make_shared<CvtclorResizeParam>();
   }

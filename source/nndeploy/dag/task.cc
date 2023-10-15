@@ -1,8 +1,8 @@
 
-#include "nndeploy/model/task.h"
+#include "nndeploy/dag/task.h"
 
 namespace nndeploy {
-namespace model {
+namespace dag {
 
 Task::Task(const std::string &name, Packet *input, Packet *output)
     : name_(name) {
@@ -73,5 +73,5 @@ base::Status Task::deinit() {
 
 base::Status Task::reshape() { return base::kStatusCodeOk; }
 
-}  // namespace model
+}  // namespace dag
 }  // namespace nndeploy

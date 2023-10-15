@@ -1,5 +1,5 @@
 
-#include "nndeploy/model/condition.h"
+#include "nndeploy/dag/condition.h"
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -10,17 +10,15 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/dag/packet.h"
+#include "nndeploy/dag/task.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/inference/inference.h"
-#include "nndeploy/inference/inference_param.h"
-#include "nndeploy/model/packet.h"
-#include "nndeploy/model/task.h"
 
 namespace nndeploy {
-namespace model {
+namespace dag {
 
 Condition::Condition(const std::string& name, Packet* input, Packet* output)
     : Task(name, input, output) {}
@@ -128,5 +126,5 @@ Task* Condition::findTask(const std::string& name) {
   return nullptr;
 }
 
-}  // namespace model
+}  // namespace dag
 }  // namespace nndeploy

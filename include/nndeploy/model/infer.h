@@ -2,17 +2,17 @@
 #ifndef _NNDEPLOY_MODEL_INFER_H_
 #define _NNDEPLOY_MODEL_INFER_H_
 
+#include "nndeploy/dag/task.h"
 #include "nndeploy/inference/inference.h"
 #include "nndeploy/inference/inference_param.h"
-#include "nndeploy/model/task.h"
 
 namespace nndeploy {
 namespace model {
 
-class NNDEPLOY_CC_API Infer : public Task {
+class NNDEPLOY_CC_API Infer : public dag::Task {
  public:
-  Infer(const std::string &name, base::InferenceType type, Packet *input,
-        Packet *output);
+  Infer(const std::string &name, base::InferenceType type, dag::Packet *input,
+        dag::Packet *output);
   virtual ~Infer();
 
   virtual base::Status setParam(base::Param *param);

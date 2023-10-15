@@ -64,6 +64,8 @@ set(ENABLE_NNDEPLOY_INFERENCE_TNN "/home/always/huggingface/nndeploy/third_party
 set(ENABLE_NNDEPLOY_INFERENCE_MNN "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/mnn_2.6.0_linux_x64_cpu_opencl")
 set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE "/data/qixuxiang/Paddle-Lite")
 set(ENABLE_NNDEPLOY_AICOMPILER_TVM OFF)
+## dag
+set(ENABLE_NNDEPLOY_DAG ON)
 ## model
 set(ENABLE_NNDEPLOY_MODEL ON)
 ## test

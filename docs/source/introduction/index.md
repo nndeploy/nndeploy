@@ -84,12 +84,12 @@
     // 模型路径或者模型字符串
     std::vector<std::string> model_value = demo::getModelValue();
     // 有向无环图pipeline的输入边packert
-    model::Packet input("detect_in");
+    dag::Packet input("detect_in");
     // 有向无环图pipeline的输出边packert
-    model::Packet output("detect_out");
+    dag::Packet output("detect_out");
     // 创建模型有向无环图pipeline
-    model::Pipeline *pipeline =
-        model::createPipeline(name, inference_type, device_type, &input, &output,
+    dag::Pipeline *pipeline =
+        dag::createPipeline(name, inference_type, device_type, &input, &output,
                             model_type, is_path, model_value);
 
     // 初始化有向无环图pipeline
@@ -120,26 +120,26 @@
 - **算法部署简单**：将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 `Pipeline`，前处理为一个 `Task`，推理也为一个 `Task`，后处理也为一个 `Task`，提供了高性能的前后处理模板和推理模板，上述模板可帮助您进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题。示例代码如下:
 
   ```c++
-  model::Pipeline* createYoloV5Pipeline(const std::string& name,
+  dag::Pipeline* createYoloV5Pipeline(const std::string& name,
                                       base::InferenceType inference_type,
                                       base::DeviceType device_type,
-                                      Packet* input, Packet* output,
+                                      dag::Packet* input, dag::Packet* output,
                                       base::ModelType model_type, bool is_path,
                                       std::vector<std::string>& model_value) {
-    model::Pipeline* pipeline = new model::Pipeline(name, input, output); // 有向无环图
+    dag::Pipeline* pipeline = new dag::Pipeline(name, input, output); // 有向无环图
 
-    model::Packet* infer_input = pipeline->createPacket("infer_input"); // 推理模板的输入边
-    model::Packet* infer_output = pipeline->createPacket("infer_output"); // 推理模板的输出
+    dag::Packet* infer_input = pipeline->createPacket("infer_input"); // 推理模板的输入边
+    dag::Packet* infer_output = pipeline->createPacket("infer_output"); // 推理模板的输出
 
     // 搭建有向无图（preprocess->infer->postprocess）
     // 模型前处理模板model::CvtColorResize，输入边为input，输出边为infer_input
-    model::Task* pre = pipeline->createTask<model::CvtColorResize>(
+    dag:::Task* pre = pipeline->createTask<model::CvtColorResize>(
         "preprocess", input, infer_input);
     // 模型推理模板model::Infer(通用模板)，输入边为infer_input，输出边为infer_output
-    model::Task* infer = pipeline->createInfer<model::Infer>(
+    dag:::Task* infer = pipeline->createInfer<model::Infer>(
         "infer", inference_type, infer_input, infer_output);
     // 模型后处理模板YoloPostProcess，输入边为infer_output，输出边为output
-    model::Task* post = pipeline->createTask<YoloPostProcess>(
+    dag:::Task* post = pipeline->createTask<YoloPostProcess>(
         "postprocess", infer_output, output);
 
     // 模型前处理任务pre的参数配置

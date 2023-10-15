@@ -4,23 +4,23 @@
 + 准备模型文件
 + 搭建模型部署的有向无环图
   ```c++
-  model::Pipeline* createYoloV5Pipeline(const std::string& name,
+  dag::Pipeline* createYoloV5Pipeline(const std::string& name,
                                       base::InferenceType inference_type,
                                       base::DeviceType device_type,
-                                      Packet* input, Packet* output,
+                                      dag::Packet* input, dag::Packet* output,
                                       base::ModelType model_type, bool is_path,
                                       std::vector<std::string>& model_value) {
-    model::Pipeline* pipeline = new model::Pipeline(name, input, output); // 有向无环图
-    model::Packet* infer_input = pipeline->createPacket("infer_input"); // infer任务的输入
-    model::Packet* infer_output = pipeline->createPacket("infer_output"); // infer任务的输出
+    dag::Pipeline* pipeline = new dag::Pipeline(name, input, output); // 有向无环图
+    dag::Packet* infer_input = pipeline->createPacket("infer_input"); // infer任务的输入
+    dag::Packet* infer_output = pipeline->createPacket("infer_output"); // infer任务的输出
     // YOLOV5模型前处理任务model::CvtColorResize，输入边为input，输出边为infer_input
-    model::Task* pre = pipeline->createTask<model::CvtColorResize>(
+    dag:::Task* pre = pipeline->createTask<model::CvtColorResize>(
         "preprocess", input, infer_input);
     // YOLOV5模型推理任务model::Infer(通用模板)，输入边为infer_input，输出边为infer_output
-    model::Task* infer = pipeline->createInfer<model::Infer>(
+    dag:::Task* infer = pipeline->createInfer<model::Infer>(
         "infer", inference_type, infer_input, infer_output);
     // YOLOV5模型后处理任务YoloPostProcess，输入边为infer_output，输出边为output
-    model::Task* post = pipeline->createTask<YoloPostProcess>(
+    dag:::Task* post = pipeline->createTask<YoloPostProcess>(
         "postprocess", infer_output, output);
     // YOLOV5模型前处理任务pre的参数配置
     model::CvtclorResizeParam* pre_param =
@@ -51,6 +51,6 @@
 + 注册createYoloV5Pipeline
   ```c++
   #define NNDEPLOY_YOLOV5 "NNDEPLOY_YOLOV5"
-  class TypePipelineRegister g_register_yolov5_pipeline(NNDEPLOY_YOLOV5,
+  class dag::TypePipelineRegister g_register_yolov5_pipeline(NNDEPLOY_YOLOV5,
                                                     createYoloV5Pipeline);
   ```

@@ -4,8 +4,8 @@
 namespace nndeploy {
 namespace model {
 
-Infer::Infer(const std::string &name, base::InferenceType type, Packet *input,
-             Packet *output)
+Infer::Infer(const std::string &name, base::InferenceType type,
+             dag::Packet *input, dag::Packet *output)
     : Task(name, input, output) {
   type_ = type;
   inference_ = inference::createInference(type);
@@ -71,7 +71,7 @@ base::Status Infer::initTemplate<false, false, false, false>() {
         new device::Tensor(device, desc, name, base::IntVector());
     input_tensors_.emplace_back(tensor);
   }
-  Packet *input_packet = inputs_[0];
+  dag::Packet *input_packet = inputs_[0];
   for (int i = 0; i < input_tensors_.size(); i++) {
     input_packet->set(input_tensors_[i], i);
   }
@@ -83,7 +83,7 @@ base::Status Infer::initTemplate<false, false, false, false>() {
         new device::Tensor(device, desc, name, base::IntVector());
     output_tensors_.emplace_back(tensor);
   }
-  Packet *output_packet = outputs_[0];
+  dag::Packet *output_packet = outputs_[0];
   for (int i = 0; i < output_tensors_.size(); i++) {
     output_packet->set(output_tensors_[i], i);
   }
@@ -122,7 +122,7 @@ base::Status Infer::initTemplate<true, true, false, false>() {
     device::Tensor *tensor = new device::Tensor(name);
     input_tensors_.emplace_back(tensor);
   }
-  Packet *input_packet = inputs_[0];
+  dag::Packet *input_packet = inputs_[0];
   for (int i = 0; i < input_tensors_.size(); i++) {
     input_packet->set(input_tensors_[i], i);
   }
@@ -132,7 +132,7 @@ base::Status Infer::initTemplate<true, true, false, false>() {
     device::Tensor *tensor = new device::Tensor(name);
     output_tensors_.emplace_back(tensor);
   }
-  Packet *output_packet = outputs_[0];
+  dag::Packet *output_packet = outputs_[0];
   for (int i = 0; i < output_tensors_.size(); i++) {
     output_packet->set(output_tensors_[i], i);
   }
@@ -183,7 +183,7 @@ base::Status Infer::initTemplate<false, true, false, false>() {
         new device::Tensor(device, desc, name, base::IntVector());
     input_tensors_.emplace_back(tensor);
   }
-  Packet *input_packet = inputs_[0];
+  dag::Packet *input_packet = inputs_[0];
   for (int i = 0; i < input_tensors_.size(); i++) {
     input_packet->set(input_tensors_[i], i);
   }
@@ -193,7 +193,7 @@ base::Status Infer::initTemplate<false, true, false, false>() {
     device::Tensor *tensor = new device::Tensor(name);
     output_tensors_.emplace_back(tensor);
   }
-  Packet *output_packet = outputs_[0];
+  dag::Packet *output_packet = outputs_[0];
   for (int i = 0; i < output_tensors_.size(); i++) {
     output_packet->set(output_tensors_[i], i);
   }

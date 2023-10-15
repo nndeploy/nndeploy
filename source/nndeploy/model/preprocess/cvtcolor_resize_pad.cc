@@ -4,7 +4,6 @@
 #include "nndeploy/model/preprocess/opencv_util.h"
 #include "nndeploy/model/preprocess/util.h"
 
-
 namespace nndeploy {
 namespace model {
 

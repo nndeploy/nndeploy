@@ -9,24 +9,26 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/dag/packet.h"
+#include "nndeploy/dag/task.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/model/detect/util.h"
-#include "nndeploy/model/packet.h"
+#include "nndeploy/model/infer.h"
 #include "nndeploy/model/preprocess/cvtcolor_resize.h"
-#include "nndeploy/model/task.h"
+
 
 namespace nndeploy {
 namespace model {
 
-TypePipelineRegister g_register_yolov5_pipeline(NNDEPLOY_YOLOV5,
-                                                createYoloV5Pipeline);
-TypePipelineRegister g_register_yolov6_pipeline(NNDEPLOY_YOLOV6,
-                                                createYoloV6Pipeline);
-TypePipelineRegister g_register_yolov8_pipeline(NNDEPLOY_YOLOV8,
-                                                createYoloV8Pipeline);
+dag::TypePipelineRegister g_register_yolov5_pipeline(NNDEPLOY_YOLOV5,
+                                                     createYoloV5Pipeline);
+dag::TypePipelineRegister g_register_yolov6_pipeline(NNDEPLOY_YOLOV6,
+                                                     createYoloV6Pipeline);
+dag::TypePipelineRegister g_register_yolov8_pipeline(NNDEPLOY_YOLOV8,
+                                                     createYoloV8Pipeline);
 
 base::Status YoloPostProcess::run() {
   YoloPostParam* param = (YoloPostParam*)param_.get();
@@ -181,24 +183,24 @@ base::Status YoloPostProcess::runV8() {
   return base::kStatusCodeOk;
 }
 
-model::Pipeline* createYoloV5Pipeline(const std::string& name,
-                                      base::InferenceType inference_type,
-                                      base::DeviceType device_type,
-                                      Packet* input, Packet* output,
-                                      base::ModelType model_type, bool is_path,
-                                      std::vector<std::string> model_value) {
-  model::Pipeline* pipeline = new model::Pipeline(name, input, output);
-  model::Packet* infer_input = pipeline->createPacket("infer_input");
-  model::Packet* infer_output = pipeline->createPacket("infer_output");
+dag::Pipeline* createYoloV5Pipeline(const std::string& name,
+                                    base::InferenceType inference_type,
+                                    base::DeviceType device_type,
+                                    dag::Packet* input, dag::Packet* output,
+                                    base::ModelType model_type, bool is_path,
+                                    std::vector<std::string> model_value) {
+  dag::Pipeline* pipeline = new dag::Pipeline(name, input, output);
+  dag::Packet* infer_input = pipeline->createPacket("infer_input");
+  dag::Packet* infer_output = pipeline->createPacket("infer_output");
 
-  model::Task* pre = pipeline->createTask<model::CvtColorResize>(
+  dag::Task* pre = pipeline->createTask<model::CvtColorResize>(
       "preprocess", input, infer_input);
 
-  model::Task* infer = pipeline->createInfer<model::Infer>(
+  dag::Task* infer = pipeline->createInfer<model::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
-  model::Task* post = pipeline->createTask<YoloPostProcess>(
-      "postprocess", infer_output, output);
+  dag::Task* post = pipeline->createTask<YoloPostProcess>("postprocess",
+                                                          infer_output, output);
 
   model::CvtclorResizeParam* pre_param =
       dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());
@@ -226,24 +228,24 @@ model::Pipeline* createYoloV5Pipeline(const std::string& name,
   return pipeline;
 }
 
-model::Pipeline* createYoloV6Pipeline(const std::string& name,
-                                      base::InferenceType inference_type,
-                                      base::DeviceType device_type,
-                                      Packet* input, Packet* output,
-                                      base::ModelType model_type, bool is_path,
-                                      std::vector<std::string> model_value) {
-  model::Pipeline* pipeline = new model::Pipeline(name, input, output);
-  model::Packet* infer_input = pipeline->createPacket("infer_input");
-  model::Packet* infer_output = pipeline->createPacket("infer_output");
+dag::Pipeline* createYoloV6Pipeline(const std::string& name,
+                                    base::InferenceType inference_type,
+                                    base::DeviceType device_type,
+                                    dag::Packet* input, dag::Packet* output,
+                                    base::ModelType model_type, bool is_path,
+                                    std::vector<std::string> model_value) {
+  dag::Pipeline* pipeline = new dag::Pipeline(name, input, output);
+  dag::Packet* infer_input = pipeline->createPacket("infer_input");
+  dag::Packet* infer_output = pipeline->createPacket("infer_output");
 
-  model::Task* pre = pipeline->createTask<model::CvtColorResize>(
+  dag::Task* pre = pipeline->createTask<model::CvtColorResize>(
       "preprocess", input, infer_input);
 
-  model::Task* infer = pipeline->createInfer<model::Infer>(
+  dag::Task* infer = pipeline->createInfer<model::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
-  model::Task* post = pipeline->createTask<YoloPostProcess>(
-      "postprocess", infer_output, output);
+  dag::Task* post = pipeline->createTask<YoloPostProcess>("postprocess",
+                                                          infer_output, output);
 
   model::CvtclorResizeParam* pre_param =
       dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());
@@ -271,24 +273,24 @@ model::Pipeline* createYoloV6Pipeline(const std::string& name,
   return pipeline;
 }
 
-model::Pipeline* createYoloV8Pipeline(const std::string& name,
-                                      base::InferenceType inference_type,
-                                      base::DeviceType device_type,
-                                      Packet* input, Packet* output,
-                                      base::ModelType model_type, bool is_path,
-                                      std::vector<std::string> model_value) {
-  model::Pipeline* pipeline = new model::Pipeline(name, input, output);
-  model::Packet* infer_input = pipeline->createPacket("infer_input");
-  model::Packet* infer_output = pipeline->createPacket("infer_output");
+dag::Pipeline* createYoloV8Pipeline(const std::string& name,
+                                    base::InferenceType inference_type,
+                                    base::DeviceType device_type,
+                                    dag::Packet* input, dag::Packet* output,
+                                    base::ModelType model_type, bool is_path,
+                                    std::vector<std::string> model_value) {
+  dag::Pipeline* pipeline = new dag::Pipeline(name, input, output);
+  dag::Packet* infer_input = pipeline->createPacket("infer_input");
+  dag::Packet* infer_output = pipeline->createPacket("infer_output");
 
-  model::Task* pre = pipeline->createTask<model::CvtColorResize>(
+  dag::Task* pre = pipeline->createTask<model::CvtColorResize>(
       "preprocess", input, infer_input);
 
-  model::Task* infer = pipeline->createInfer<model::Infer>(
+  dag::Task* infer = pipeline->createInfer<model::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
-  model::Task* post = pipeline->createTask<YoloPostProcess>(
-      "postprocess", infer_output, output);
+  dag::Task* post = pipeline->createTask<YoloPostProcess>("postprocess",
+                                                          infer_output, output);
 
   model::CvtclorResizeParam* pre_param =
       dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());

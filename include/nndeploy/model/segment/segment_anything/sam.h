@@ -12,14 +12,14 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/dag/packet.h"
+#include "nndeploy/dag/pipeline.h"
+#include "nndeploy/dag/task.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/packet.h"
-#include "nndeploy/model/pipeline.h"
 #include "nndeploy/model/segment/result.h"
-#include "nndeploy/model/task.h"
 
 namespace nndeploy {
 namespace model {
@@ -31,10 +31,10 @@ class NNDEPLOY_CC_API SamPostParam : public base::Param {
  public:
 };
 
-class NNDEPLOY_CC_API SamPostProcess : public model::Task {
+class NNDEPLOY_CC_API SamPostProcess : public dag::Task {
  public:
-  SamPostProcess(const std::string& name, model::Packet* input,
-                 model::Packet* output)
+  SamPostProcess(const std::string& name, dag::Packet* input,
+                 dag::Packet* output)
       : Task(name, input, output) {
     param_ = std::make_shared<SamPostParam>();
   }
@@ -44,13 +44,13 @@ class NNDEPLOY_CC_API SamPostProcess : public model::Task {
 };
 
 // 构建prompt_endocer和mask_decoder的输入
-class NNDEPLOY_CC_API SamBuildInput : public model::Task {
+class NNDEPLOY_CC_API SamBuildInput : public dag::Task {
  public:
-  SamBuildInput(const std::string& name, model::Packet* input,
-                model::Packet* output)
+  SamBuildInput(const std::string& name, dag::Packet* input,
+                dag::Packet* output)
       : Task(name, input, output) {}
-  SamBuildInput(const std::string& name, std::vector<Packet*> inputs,
-                std::vector<Packet*> outputs)
+  SamBuildInput(const std::string& name, std::vector<dag::Packet*> inputs,
+                std::vector<dag::Packet*> outputs)
       : Task(name, inputs, outputs) {}
   virtual ~SamBuildInput() {}
 
@@ -59,9 +59,9 @@ class NNDEPLOY_CC_API SamBuildInput : public model::Task {
   virtual base::Status run();
 };
 
-extern NNDEPLOY_CC_API model::Pipeline* createSamPipeline(
+extern NNDEPLOY_CC_API dag::Pipeline* createSamPipeline(
     const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, Packet* input, Packet* output,
+    base::DeviceType device_type, dag::Packet* input, dag::Packet* output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_values);
 

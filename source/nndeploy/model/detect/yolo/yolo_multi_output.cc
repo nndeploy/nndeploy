@@ -9,19 +9,20 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/dag/packet.h"
+#include "nndeploy/dag/task.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/model/detect/util.h"
-#include "nndeploy/model/packet.h"
+#include "nndeploy/model/infer.h"
 #include "nndeploy/model/preprocess/cvtcolor_resize.h"
-#include "nndeploy/model/task.h"
 
 namespace nndeploy {
 namespace model {
 
-TypePipelineRegister g_register_yolov5_multi_output_pipeline(
+dag::TypePipelineRegister g_register_yolov5_multi_output_pipeline(
     NNDEPLOY_YOLOV5_MULTI_OUTPUT, createYoloV5MultiOutputPipeline);
 
 static inline float sigmoid(float x) {
@@ -155,22 +156,22 @@ base::Status YoloMultiOutputPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-model::Pipeline* createYoloV5MultiOutputPipeline(
+dag::Pipeline* createYoloV5MultiOutputPipeline(
     const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, Packet* input, Packet* output,
+    base::DeviceType device_type, dag::Packet* input, dag::Packet* output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value) {
-  model::Pipeline* pipeline = new model::Pipeline(name, input, output);
-  model::Packet* infer_input = pipeline->createPacket("infer_input");
-  model::Packet* infer_output = pipeline->createPacket("infer_output");
+  dag::Pipeline* pipeline = new dag::Pipeline(name, input, output);
+  dag::Packet* infer_input = pipeline->createPacket("infer_input");
+  dag::Packet* infer_output = pipeline->createPacket("infer_output");
 
-  model::Task* pre = pipeline->createTask<model::CvtColorResize>(
+  dag::Task* pre = pipeline->createTask<model::CvtColorResize>(
       "preprocess", input, infer_input);
 
-  model::Task* infer = pipeline->createInfer<model::Infer>(
+  dag::Task* infer = pipeline->createInfer<model::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
-  model::Task* post = pipeline->createTask<YoloMultiOutputPostProcess>(
+  dag::Task* post = pipeline->createTask<YoloMultiOutputPostProcess>(
       "postprocess", infer_output, output);
 
   model::CvtclorResizeParam* pre_param =

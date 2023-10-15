@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_MODEL_PIPELINE_H_
-#define _NNDEPLOY_MODEL_PIPELINE_H_
+#ifndef _NNDEPLOY_DAG_PIPELINE_H_
+#define _NNDEPLOY_DAG_PIPELINE_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -9,16 +9,15 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/dag/packet.h"
+#include "nndeploy/dag/task.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/infer.h"
-#include "nndeploy/model/packet.h"
-#include "nndeploy/model/task.h"
 
 namespace nndeploy {
-namespace model {
+namespace dag {
 
 enum TaskColorType : int {
   kTaskColorWhite = 0x0000,
@@ -186,7 +185,7 @@ std::map<std::string, createPipelineFunc>& getGlobalPipelineCreatorMap();
 class TypePipelineRegister {
  public:
   explicit TypePipelineRegister(const std::string& name,
-                                createPipelineFunc func) {
+                                     createPipelineFunc func) {
     getGlobalPipelineCreatorMap()[name] = func;
   }
 };
@@ -197,7 +196,7 @@ extern NNDEPLOY_CC_API Pipeline* createPipeline(
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value);
 
-}  // namespace model
+}  // namespace dag
 }  // namespace nndeploy
 
-#endif  // _NNDEPLOY_MODEL_PIPELINE_H_
+#endif  // _NNDEPLOY_DAG_PIPELINE_H_
