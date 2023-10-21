@@ -7,7 +7,7 @@ pip install recommonmark
 pip install sphinx-markdown-tables
 ```
 
-2. Build HTML
+2. Build html
 ```
 make html
 ```
