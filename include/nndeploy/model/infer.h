@@ -13,6 +13,8 @@ class NNDEPLOY_CC_API Infer : public dag::Task {
  public:
   Infer(const std::string &name, base::InferenceType type, dag::Packet *input,
         dag::Packet *output);
+  Infer(const std::string &name, base::InferenceType type,
+        std::vector<dag::Packet *> inputs, std::vector<dag::Packet *> outputs);
   virtual ~Infer();
 
   virtual base::Status setParam(base::Param *param);

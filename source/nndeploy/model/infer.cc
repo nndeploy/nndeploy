@@ -16,6 +16,19 @@ Infer::Infer(const std::string &name, base::InferenceType type,
     constructed_ = true;
   }
 }
+Infer::Infer(const std::string &name, base::InferenceType type,
+             std::vector<dag::Packet *> inputs,
+             std::vector<dag::Packet *> outputs)
+    : Task(name, inputs, outputs) {
+  type_ = type;
+  inference_ = inference::createInference(type);
+  if (inference_ == nullptr) {
+    NNDEPLOY_LOGE("Failed to create inference");
+    constructed_ = false;
+  } else {
+    constructed_ = true;
+  }
+}
 
 Infer::~Infer() { delete inference_; }
 
