@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
   // 将输出结果写入有向无环图graph输出边
   output.set(result);
 
-  status = graph->reshape();
+  // status = graph->reshape();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("graph reshape failed");
     return -1;
