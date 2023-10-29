@@ -10,20 +10,20 @@ nndeploy is a cross-platform, high-performing, and user-friendly AI model deploy
 
 ## 1. cross-platform and consistent
 
-As long as the environment is supported, the code for deploying models through nndeploy can be used across multiple platforms without modification, regardless of the operating system and inference framework version.
+As long as the environment is supported, the code for deploying models through nndeploy can be used across multiple platforms without modification, regardless of the operating system and inference framework.
 
 The current supported environment is as follows, which will continue to be updated in the future:
 
-| Inference/OS | Linux | Windows | Android | MacOS |  IOS  |   developer      | remarks |
-| :-------------------------------------------------------- | :---: | :-----: | :-----: | :---: | :---: | :--------------------------------------- | :---: |
-|       [TensorRT](https://github.com/NVIDIA/TensorRT)       |  √  |   -    |   -    |  -   |  -   | [Always](https://github.com/Alwaysssssss) |       |
-|  [OpenVI-](https://github.com/openvi-toolkit/openvi-)   |  √  |   √   |   -    |  -   |  -   | [Always](https://github.com/Alwaysssssss) |       |
-|  [ONNXRuntime](https://github.com/microsoft/onnxruntime)   |  √  |   √   |   -    |  -   |  -   | [Always](https://github.com/Alwaysssssss) |       |
-|           [MNN](https://github.com/alibaba/MNN)            |  √  |   √   |   √   |  -   |  -   | [Always](https://github.com/Alwaysssssss) |       |
-|           [TNN](https://github.com/Tencent/TNN)            |  √  |   √   |   √   |  -   |  -   | [02200059Z](https://github.com/02200059Z) |       |
-|          [ncnn](https://github.com/Tencent/ncnn)           |  -   |   -    |   √   |  -   |  -   | [Always](https://github.com/Alwaysssssss) |       |
-|       [coreML](https://github.com/apple/coremltools)       |  -   |   -    |   -    |  √  |  -   |  [JoDio-zd](https://github.com/JoDio-zd)  |       |
-| [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |  -   |   -    |   -    |  -   |  -   | [qixuxiang](https://github.com/qixuxiang) |       |
+| Inference/OS                                               | Linux | Windows | Android | MacOS |  IOS  | developer                                 | remarks |
+| :--------------------------------------------------------- | :---: | :-----: | :-----: | :---: | :---: | :---------------------------------------- | :-----: |
+| [TensorRT](https://github.com/NVIDIA/TensorRT)             |   √   |    -    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
+| [OpenVI-](https://github.com/openvi-toolkit/openvi-)       |   √   |    √    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
+| [ONNXRuntime](https://github.com/microsoft/onnxruntime)    |   √   |    √    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
+| [MNN](https://github.com/alibaba/MNN)                      |   √   |    √    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
+| [TNN](https://github.com/Tencent/TNN)                      |   √   |    √    |    √    |   -   |   -   | [02200059Z](https://github.com/02200059Z) |         |
+| [ncnn](https://github.com/Tencent/ncnn)                    |   -   |    -    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
+| [coreML](https://github.com/apple/coremltools)             |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)   |         |
+| [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang) |         |
 
 **Notice:** TFLite, TVM, OpenPPL, Tengine, AITemplate, RKNN, sophgo, MindSpore-lite, Horizon are also on the agenda as we work to cover mainstream inference frameworks
 
@@ -40,11 +40,11 @@ What's more, we are developing and refining the following:
 
 Out-of-the-box AI models are our goal, but our are focusing on development of the system at this time. Nevertheless, [YOLOv5](https://github.com/ultralytics/yolov5), [YOLOv6](https://github.com/meituan/YOLOv6), [YOLOv8](https://github.com/ultralytics) are already supported, and it is believed that the list will soon be expanded.
 
-|   model  |             Inference             |          developer      | remarks |
-| :--------------------------------------------- | :------------------------------- | :----------------------------------------------------------------------------------: | :---: |
-| [YOLOv5](https://github.com/ultralytics/yolov5) | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z), [Always](https://github.com/Alwaysssssss) |       |
-|   [YOLOv6](https://github.com/meituan/YOLOv6)   |   TensorRt/OpenVINO/ONNXRuntime   | [02200059Z](https://github.com/02200059Z), [Always](https://github.com/Alwaysssssss) |       |
-|    [YOLOv8](https://github.com/ultralytics)     | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z), [Always](https://github.com/Alwaysssssss) |       |
+| model                                           | Inference                         |                                      developer                                       | remarks |
+| :---------------------------------------------- | :-------------------------------- | :----------------------------------------------------------------------------------: | :-----: |
+| [YOLOv5](https://github.com/ultralytics/yolov5) | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z), [Always](https://github.com/Alwaysssssss) |         |
+| [YOLOv6](https://github.com/meituan/YOLOv6)     | TensorRt/OpenVINO/ONNXRuntime     | [02200059Z](https://github.com/02200059Z), [Always](https://github.com/Alwaysssssss) |         |
+| [YOLOv8](https://github.com/ultralytics)        | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z), [Always](https://github.com/Alwaysssssss) |         |
 
 
 ## 4. user-friendly
@@ -56,10 +56,10 @@ If you have any related questions, feel free to contact us. 😁
 # Quick Start
 ## Support
 
-| OS    | status                                                                                                                               |
-| ------- | :------------------------------------------------------------------------------------------------------------------------------------------------: |
-| Linux   | [![linux](https://ci.appveyor.com/api/projects/status/a135va7wtjot4iaw?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-pdc3k)   |
-| Macos   | [![macos](https://ci.appveyor.com/api/projects/status/7sey9eqhfnnedqi2?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy)         |
+| OS      |                                                                      status                                                                      |
+| ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
+| Linux   |  [![linux](https://ci.appveyor.com/api/projects/status/a135va7wtjot4iaw?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-pdc3k)  |
+| Macos   |     [![macos](https://ci.appveyor.com/api/projects/status/7sey9eqhfnnedqi2?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy)     |
 | Windows | [![windows](https://ci.appveyor.com/api/projects/status/4gsf91utksd7v595?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-ovpc5) |
 
 ## Build

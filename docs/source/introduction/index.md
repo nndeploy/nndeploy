@@ -5,7 +5,7 @@
 
 `nndeploy` 是一款最新上线的支持多平台、高性能、简单易用的机器学习部署框架。做到一个框架就可完成多端(云、边、端)模型的高性能部署。
 
-作为一个多平台模型部署工具，我们的框架最大的宗旨就是高性能以及使用简单贴心😚，目前 `nndeploy` 已完成 [TensorRT](https://github.com/NVIDIA/TensorRT)、[OpenVINO](https://github.com/openvinotoolkit/openvino) 、[ONNXRuntime](https://github.com/microsoft/onnxruntime)、[MNN](https://github.com/alibaba/MNN)、[TNN](https://github.com/Tencent/TNN)、[ncnn](https://github.com/Tencent/ncnn/) 六个业界知名的推理框架的集成，后续会继续接入 `TFLite`、`paddle-lite`、`coreML`、`TVM`、`AITemplate`，在我们的框架下可使用一套代码轻松切换不同的推理后端进行推理，且不用担心部署框架对推理框架的抽象而带来的性能损失。
+作为一个多平台模型部署工具，我们的框架最大的宗旨就是高性能以及使用简单贴心😚，目前 `nndeploy` 已完成 [TensorRT](https://github.com/NVIDIA/TensorRT)、[OpenVINO](https://github.com/openvinotoolkit/openvino) 、[ONNXRuntime](https://github.com/microsoft/onnxruntime)、[MNN](https://github.com/alibaba/MNN)、[TNN](https://github.com/Tencent/TNN)、[ncnn](https://github.com/Tencent/ncnn/) 六个业界知名的推理框架的集成，后续会继续接入 `TFLite`、`paddle-lite`、`coreML`、`TVM`、，在我们的框架下可使用一套代码轻松切换不同的推理后端进行推理，且不用担心部署框架对推理框架的抽象而带来的性能损失。
 
 如果您需要部署自己的模型，目前 `nndeploy` 只需大概只要 `200` 行代码就可以完成模型在多端的部署。 同时还提供了高性能的前后处理模板和推理模板，该模板可帮助您简化模型端到端的部署流程。
 
@@ -29,7 +29,7 @@
 
 ## 支持多平台和多推理框架
 
-- 支持多种推理框架：对多个业界知名推理框架的全面支持，包括 `TensorRT`、`OpenVINO`、`ONNXRuntime`、`MNN`、`TNN`、`ncnn` 等。未来，我们将继续扩展支持，包括 `TFLite`、`paddle-lite`、`coreML`、`TVM`、`AITemplate`、`RKNN`等
+- 支持多种推理框架：对多个业界知名推理框架的全面支持，包括 `TensorRT`、`OpenVINO`、`ONNXRuntime`、`MNN`、`TNN`、`ncnn` 等。未来，我们将继续扩展支持，包括 `TFLite`、`paddle-lite`、`coreML`、`TVM`、`RKNN`等
 - 支持多种不同操作系统，包括 `Android`、`Linux`、`Windows`，正在适配 `macOS`、`IOS`。致力于在各种操作系统上无缝运行您的深度学习模型
 
 |                      OS/Inference                       | Linux | Windows | Android | MacOS |  IOS  |                 开发人员                  | 备注  |
@@ -63,113 +63,8 @@
 
 ## 简单易用
 
-- **一套代码多端部署**：通过切换推理配置，一套代码即可在多端部署，算法的使用接口简单易用。示例代码如下：
-
-  ```c++
-  int main(int argc, char *argv[]) {
-     // 有向无环图pipeline名称，例如:
-    //  NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8
-    std::string name = demo::getName();
-    // 推理后端类型，例如:
-    // kInferenceTypeOpenVino / kInferenceTypeTensorRt / kInferenceTypeOnnxRuntime
-    base::InferenceType inference_type = demo::getInferenceType();
-    // 推理设备类型，例如:
-    // kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
-    base::DeviceType device_type = demo::getDeviceType();
-    // 模型类型，例如:
-    // kModelTypeOnnx/kModelTypeMnn/...
-    base::ModelType model_type = demo::getModelType();
-    // 模型是否是路径
-    bool is_path = demo::isPath();
-    // 模型路径或者模型字符串
-    std::vector<std::string> model_value = demo::getModelValue();
-    // 有向无环图pipeline的输入边packert
-    dag::Packet input("detect_in");
-    // 有向无环图pipeline的输出边packert
-    dag::Packet output("detect_out");
-    // 创建模型有向无环图pipeline
-    dag::Pipeline *pipeline =
-        dag::createPipeline(name, inference_type, device_type, &input, &output,
-                            model_type, is_path, model_value);
-
-    // 初始化有向无环图pipeline
-    base::Status status = pipeline->init();
-
-    // 输入图片
-    cv::Mat input_mat = cv::imread(input_path);
-    // 将图片写入有向无环图pipeline输入边
-    input.set(input_mat);
-    // 定义有向无环图pipeline的输出结果
-    model::DetectResult result;
-    // 将输出结果写入有向无环图pipeline输出边
-    output.set(result);
-
-    // 有向无环图Pipeline运行
-    status = pipeline->run();
-
-    // 有向无环图pipelinez反初始化
-    status = pipeline->deinit();
-
-    // 有向无环图pipeline销毁
-    delete pipeline;
-
-    return 0;
-  }
-  ```
-  
-- **算法部署简单**：将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 `Pipeline`，前处理为一个 `Task`，推理也为一个 `Task`，后处理也为一个 `Task`，提供了高性能的前后处理模板和推理模板，上述模板可帮助您进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题。示例代码如下:
-
-  ```c++
-  dag::Pipeline* createYoloV5Pipeline(const std::string& name,
-                                      base::InferenceType inference_type,
-                                      base::DeviceType device_type,
-                                      dag::Packet* input, dag::Packet* output,
-                                      base::ModelType model_type, bool is_path,
-                                      std::vector<std::string>& model_value) {
-    dag::Pipeline* pipeline = new dag::Pipeline(name, input, output); // 有向无环图
-
-    dag::Packet* infer_input = pipeline->createPacket("infer_input"); // 推理模板的输入边
-    dag::Packet* infer_output = pipeline->createPacket("infer_output"); // 推理模板的输出
-
-    // 搭建有向无图（preprocess->infer->postprocess）
-    // 模型前处理模板model::CvtColorResize，输入边为input，输出边为infer_input
-    dag:::Task* pre = pipeline->createTask<model::CvtColorResize>(
-        "preprocess", input, infer_input);
-    // 模型推理模板model::Infer(通用模板)，输入边为infer_input，输出边为infer_output
-    dag:::Task* infer = pipeline->createInfer<model::Infer>(
-        "infer", inference_type, infer_input, infer_output);
-    // 模型后处理模板YoloPostProcess，输入边为infer_output，输出边为output
-    dag:::Task* post = pipeline->createTask<YoloPostProcess>(
-        "postprocess", infer_output, output);
-
-    // 模型前处理任务pre的参数配置
-    model::CvtclorResizeParam* pre_param =
-        dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());
-    pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-    pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-    pre_param->interp_type_ = base::kInterpTypeLinear;
-    pre_param->h_ = 640;
-    pre_param->w_ = 640;
-
-    // 模型推理任务infer的参数配置
-    inference::InferenceParam* inference_param =
-        (inference::InferenceParam*)(infer->getParam());
-    inference_param->is_path_ = is_path;
-    inference_param->model_value_ = model_value;
-    inference_param->device_type_ = device_type;
-
-    // 模型后处理任务post的参数配置
-    YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post->getParam());
-    post_param->score_threshold_ = 0.5;
-    post_param->nms_threshold_ = 0.45;
-    post_param->num_classes_ = 80;
-    post_param->model_h_ = 640;
-    post_param->model_w_ = 640;
-    post_param->version_ = 5;
-
-    return pipeline;
-  }
-  ```
+- **一套代码多端部署**：通过切换推理配置，一套代码即可在多端部署，算法的使用接口简单易用。
+- **算法部署简单**：将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 `Pipeline`，前处理为一个 `Task`，推理也为一个 `Task`，后处理也为一个 `Task`，提供了高性能的前后处理模板和推理模板，上述模板可帮助您进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题。
 
 # 架构详解
 
@@ -187,11 +82,9 @@
 
 - **Device**：设备管理子模块。为不同的设备提供统一的内存分配、内存拷贝、执行流管理等操作。
 
-![阿Q正传.gif](../../image/meme_aq.gif)
-
 # TODO
 
-- 接入更多的推理框架，包括`TFLite`、`paddle-lite`、`coreML`、`TVM`、`AITemplate`、`RKNN`、算能等等推理软件栈
+- 接入更多的推理框架，包括`TFLite`、`paddle-lite`、`coreML`、`TVM`、`RKNN`、算能等等推理软件栈
 - 部署更多的算法，包括 `Stable Diffusion`、`DETR`、`SAM`等等热门开源模型
 
 # 加入我们
