@@ -11,8 +11,8 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -23,11 +23,11 @@
 namespace nndeploy {
 namespace model {
 
-class NNDEPLOY_CC_API CvtColorResizePad : public dag::Task {
+class NNDEPLOY_CC_API CvtColorResizePad : public dag::Node {
  public:
-  CvtColorResizePad(const std::string& name, dag::Packet* input,
-                    dag::Packet* output)
-      : Task(name, input, output) {
+  CvtColorResizePad(const std::string& name, dag::Edge* input,
+                    dag::Edge* output)
+      : Node(name, input, output) {
     param_ = std::make_shared<CvtclorResizePadParam>();
   }
   virtual ~CvtColorResizePad() {}

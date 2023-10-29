@@ -9,8 +9,8 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -19,16 +19,16 @@
 namespace nndeploy {
 namespace dag {
 
-class NNDEPLOY_CC_API Condition : public Task {
+class NNDEPLOY_CC_API Condition : public Node {
  public:
-  Condition(const std::string& name, Packet* input, Packet* output);
-  Condition(const std::string& name, std::vector<Packet*> inputs,
-            std::vector<Packet*> outputs);
+  Condition(const std::string& name, Edge* input, Edge* output);
+  Condition(const std::string& name, std::vector<Edge*> inputs,
+            std::vector<Edge*> outputs);
   virtual ~Condition();
 
   template <typename T,
-            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
-  Task* createTask(const std::string& name, Packet* input, Packet* output) {
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createNode(const std::string& name, Edge* input, Edge* output) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
     bool flag = check({input}, inputs_);
@@ -41,14 +41,14 @@ class NNDEPLOY_CC_API Condition : public Task {
       NNDEPLOY_LOGE("output is not in condition outputs!\n");
       return nullptr;
     }
-    Task* task = dynamic_cast<Task*>(new T(name, input, output));
-    condition_task_.emplace_back(task);
-    return task;
+    Node* node = dynamic_cast<Node*>(new T(name, input, output));
+    condition_node_.emplace_back(node);
+    return node;
   }
   template <typename T,
-            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
-  Task* createTask(const std::string& name, std::vector<Packet*> inputs,
-                   std::vector<Packet*> outputs) {
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createNode(const std::string& name, std::vector<Edge*> inputs,
+                   std::vector<Edge*> outputs) {
     if (inputs.empty() || outputs.empty()) {
       NNDEPLOY_LOGE("inputs or outputs is empty!\n");
       return nullptr;
@@ -63,14 +63,14 @@ class NNDEPLOY_CC_API Condition : public Task {
       NNDEPLOY_LOGE("outputs is not in condition outputs!\n");
       return nullptr;
     }
-    Task* task = dynamic_cast<Task*>(new T(name, inputs, outputs));
-    condition_task_.emplace_back(task);
-    return task;
+    Node* node = dynamic_cast<Node*>(new T(name, inputs, outputs));
+    condition_node_.emplace_back(node);
+    return node;
   }
   template <typename T,
-            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
-  Task* createInfer(const std::string& name, base::InferenceType type,
-                    Packet* input, Packet* output) {
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createInfer(const std::string& name, base::InferenceType type,
+                    Edge* input, Edge* output) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
     bool flag = check({input}, inputs_);
@@ -83,13 +83,13 @@ class NNDEPLOY_CC_API Condition : public Task {
       NNDEPLOY_LOGE("output is not in condition outputs!\n");
       return nullptr;
     }
-    Task* task = dynamic_cast<Task*>(new T(name, type, input, output));
-    condition_task_.emplace_back(task);
-    return task;
+    Node* node = dynamic_cast<Node*>(new T(name, type, input, output));
+    condition_node_.emplace_back(node);
+    return node;
   }
 
-  base::Status setTaskParam(const std::string& task_name, base::Param* param);
-  base::Param* getTaskParam(const std::string& task_name);
+  base::Status setNodeParam(const std::string& node_name, base::Param* param);
+  base::Param* getNodeParam(const std::string& node_name);
 
   virtual void setPipelineParallel(bool is_pipeline_parallel);
 
@@ -103,12 +103,12 @@ class NNDEPLOY_CC_API Condition : public Task {
   virtual base::Status run();
 
  private:
-  bool check(const std::vector<Packet*>& packets,
-             const std::vector<Packet*>& condition_packets);
-  Task* findTask(const std::string& name);
+  bool check(const std::vector<Edge*>& edges,
+             const std::vector<Edge*>& condition_edges);
+  Node* findNode(const std::string& name);
 
  protected:
-  std::vector<Task*> condition_task_;
+  std::vector<Node*> condition_node_;
 };
 
 }  // namespace dag

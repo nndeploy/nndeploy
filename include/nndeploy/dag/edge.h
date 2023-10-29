@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_DAG_PACKET_H_
-#define _NNDEPLOY_DAG_PACKET_H_
+#ifndef _NNDEPLOY_DAG_EDGE_H_
+#define _NNDEPLOY_DAG_EDGE_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -19,10 +19,10 @@
 namespace nndeploy {
 namespace dag {
 
-class NNDEPLOY_CC_API Packet {
+class NNDEPLOY_CC_API Edge {
  public:
-  Packet(const std::string &name = "") : name_(name) {}
-  virtual ~Packet() {}
+  Edge(const std::string &name = "") : name_(name) {}
+  virtual ~Edge() {}
 
   std::string getName() { return name_; }
 
@@ -295,4 +295,4 @@ class NNDEPLOY_CC_API Packet {
 }  // namespace dag
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_DAG_PACKET_H_ */
+#endif /* _NNDEPLOY_DAG_EDGE_H_ */

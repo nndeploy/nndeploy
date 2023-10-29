@@ -12,9 +12,9 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
-#include "nndeploy/dag/pipeline.h"
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/graph.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -46,11 +46,11 @@ class NNDEPLOY_CC_API YoloMultiOutputPostParam : public base::Param {
   int version_ = -1;
 };
 
-class NNDEPLOY_CC_API YoloMultiOutputPostProcess : public dag::Task {
+class NNDEPLOY_CC_API YoloMultiOutputPostProcess : public dag::Node {
  public:
-  YoloMultiOutputPostProcess(const std::string& name, dag::Packet* input,
-                             dag::Packet* output)
-      : Task(name, input, output) {
+  YoloMultiOutputPostProcess(const std::string& name, dag::Edge* input,
+                             dag::Edge* output)
+      : Node(name, input, output) {
     param_ = std::make_shared<YoloMultiOutputPostParam>();
   }
   virtual ~YoloMultiOutputPostProcess() {}
@@ -58,9 +58,9 @@ class NNDEPLOY_CC_API YoloMultiOutputPostProcess : public dag::Task {
   virtual base::Status run();
 };
 
-extern NNDEPLOY_CC_API dag::Pipeline* createYoloV5MultiOutputPipeline(
+extern NNDEPLOY_CC_API dag::Graph* createYoloV5MultiOutputGraph(
     const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Packet* input, dag::Packet* output,
+    base::DeviceType device_type, dag::Edge* input, dag::Edge* output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value);
 

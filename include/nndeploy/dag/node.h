@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_DAG_TASK_H_
-#define _NNDEPLOY_DAG_TASK_H_
+#ifndef _NNDEPLOY_DAG_NODE_H_
+#define _NNDEPLOY_DAG_NODE_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -10,7 +10,7 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
+#include "nndeploy/dag/edge.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -19,25 +19,25 @@
 namespace nndeploy {
 namespace dag {
 
-// 每个task都要负责分配其输出的packet的内存
-class NNDEPLOY_CC_API Task {
+// 每个node都要负责分配其输出的edge的内存
+class NNDEPLOY_CC_API Node {
  public:
-  Task(const std::string& name, Packet* input, Packet* output);
-  Task(const std::string& name, std::vector<Packet*> inputs,
-       std::vector<Packet*> outputs);
+  Node(const std::string& name, Edge* input, Edge* output);
+  Node(const std::string& name, std::vector<Edge*> inputs,
+       std::vector<Edge*> outputs);
 
-  virtual ~Task();
+  virtual ~Node();
 
   std::string getName();
 
   virtual base::Status setParam(base::Param* param);
   virtual base::Param* getParam();
 
-  Packet* getInput(int index = 0);
-  Packet* getOutput(int index = 0);
+  Edge* getInput(int index = 0);
+  Edge* getOutput(int index = 0);
 
-  std::vector<Packet*> getAllInput();
-  std::vector<Packet*> getAllOutput();
+  std::vector<Edge*> getAllInput();
+  std::vector<Edge*> getAllOutput();
 
   bool getConstructed();
   bool getInitialized();
@@ -57,8 +57,8 @@ class NNDEPLOY_CC_API Task {
  protected:
   std::string name_;
   std::shared_ptr<base::Param> param_;
-  std::vector<Packet*> inputs_;
-  std::vector<Packet*> outputs_;
+  std::vector<Edge*> inputs_;
+  std::vector<Edge*> outputs_;
 
   bool constructed_ = false;
   bool initialized_ = false;
@@ -66,12 +66,11 @@ class NNDEPLOY_CC_API Task {
   bool is_pipeline_parallel_ = false;
 };
 
-using SingleIOTaskFunc = std::function<base::Status(
-    Packet* input, Packet* output, base::Param* param)>;
+using SingleIONodeFunc =
+    std::function<base::Status(Edge* input, Edge* output, base::Param* param)>;
 
-using MultiIOTaskFunc = std::function<base::Status(std::vector<Packet*> input,
-                                                   std::vector<Packet*> output,
-                                                   base::Param* param)>;
+using MultiIONodeFunc = std::function<base::Status(
+    std::vector<Edge*> input, std::vector<Edge*> output, base::Param* param)>;
 
 }  // namespace dag
 }  // namespace nndeploy

@@ -6,7 +6,7 @@ namespace demo {
 
 DEFINE_bool(usage, false, "usage");
 
-DEFINE_string(name, "", "pipeline name");
+DEFINE_string(name, "", "graph name");
 
 DEFINE_string(inference_type, "", "inference_type");
 
@@ -44,7 +44,7 @@ DEFINE_string(library_path, "", "library_path");
 
 void showUsage() {
   std::cout << "Usage: " << std::endl;
-  std::cout << "  --name: pipeline name, eg: yolo_v5_v6_v8" << std::endl;
+  std::cout << "  --name: graph name, eg: yolo_v5_v6_v8" << std::endl;
   std::cout << "  --inference_type: inference_type, eg: kInferenceTypeOpenVino"
             << std::endl;
   std::cout << "  --device_type: device_type, eg: kDeviceTypeCodeX86:0"

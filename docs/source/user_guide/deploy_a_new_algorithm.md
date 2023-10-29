@@ -4,23 +4,23 @@
 + 准备模型文件
 + 搭建模型部署的有向无环图
   ```c++
-  dag::Pipeline* createYoloV5Pipeline(const std::string& name,
+  dag::Graph* createYoloV5Graph(const std::string& name,
                                       base::InferenceType inference_type,
                                       base::DeviceType device_type,
-                                      dag::Packet* input, dag::Packet* output,
+                                      dag::Edge* input, dag::Edge* output,
                                       base::ModelType model_type, bool is_path,
                                       std::vector<std::string>& model_value) {
-    dag::Pipeline* pipeline = new dag::Pipeline(name, input, output); // 有向无环图
-    dag::Packet* infer_input = pipeline->createPacket("infer_input"); // infer任务的输入
-    dag::Packet* infer_output = pipeline->createPacket("infer_output"); // infer任务的输出
+    dag::Graph* graph = new dag::Graph(name, input, output); // 有向无环图
+    dag::Edge* infer_input = graph->createEdge("infer_input"); // infer任务的输入
+    dag::Edge* infer_output = graph->createEdge("infer_output"); // infer任务的输出
     // YOLOV5模型前处理任务model::CvtColorResize，输入边为input，输出边为infer_input
-    dag:::Task* pre = pipeline->createTask<model::CvtColorResize>(
+    dag:::Node* pre = graph->createNode<model::CvtColorResize>(
         "preprocess", input, infer_input);
     // YOLOV5模型推理任务model::Infer(通用模板)，输入边为infer_input，输出边为infer_output
-    dag:::Task* infer = pipeline->createInfer<model::Infer>(
+    dag:::Node* infer = graph->createInfer<model::Infer>(
         "infer", inference_type, infer_input, infer_output);
     // YOLOV5模型后处理任务YoloPostProcess，输入边为infer_output，输出边为output
-    dag:::Task* post = pipeline->createTask<YoloPostProcess>(
+    dag:::Node* post = graph->createNode<YoloPostProcess>(
         "postprocess", infer_output, output);
     // YOLOV5模型前处理任务pre的参数配置
     model::CvtclorResizeParam* pre_param =
@@ -44,13 +44,13 @@
     post_param->model_w_ = 640;
     post_param->version_ = 5;
 
-    return pipeline;
+    return graph;
   }
   ```
   `注：前后处理任务有时候需要自己写`
-+ 注册createYoloV5Pipeline
++ 注册createYoloV5Graph
   ```c++
   #define NNDEPLOY_YOLOV5 "NNDEPLOY_YOLOV5"
-  class dag::TypePipelineRegister g_register_yolov5_pipeline(NNDEPLOY_YOLOV5,
-                                                    createYoloV5Pipeline);
+  class dag::TypeGraphRegister g_register_yolov5_graph(NNDEPLOY_YOLOV5,
+                                                    createYoloV5Graph);
   ```

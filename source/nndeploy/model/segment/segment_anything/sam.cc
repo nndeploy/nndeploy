@@ -8,8 +8,7 @@
 namespace nndeploy {
 namespace model {
 
-dag::TypePipelineRegister g_register_sam_pipeline(NNDEPLOY_SAM,
-                                                  createSamPipeline);
+dag::TypeGraphRegister g_register_sam_graph(NNDEPLOY_SAM, createSamGraph);
 
 // 后处理
 base::Status SamPostProcess::run() {
@@ -178,35 +177,35 @@ base::Status SamBuildInput::run() {
   return base::kStatusCodeOk;
 }
 
-dag::Pipeline* createSamPipeline(const std::string& name,
-                                 base::InferenceType inference_type,
-                                 base::DeviceType device_type,
-                                 dag::Packet* input, dag::Packet* output,
-                                 base::ModelType model_type, bool is_path,
-                                 std::vector<std::string> model_values) {
-  dag::Pipeline* pipeline = new dag::Pipeline(name, input, output);
-  dag::Packet* embedding_input = pipeline->createPacket("embedding_input");
-  dag::Packet* embedding_output = pipeline->createPacket("embedding_output");
-  dag::Packet* build_sam_input = pipeline->createPacket("build_input");
-  dag::Packet* segment_output = pipeline->createPacket("segment_output");
+dag::Graph* createSamGraph(const std::string& name,
+                           base::InferenceType inference_type,
+                           base::DeviceType device_type, dag::Edge* input,
+                           dag::Edge* output, base::ModelType model_type,
+                           bool is_path,
+                           std::vector<std::string> model_values) {
+  dag::Graph* graph = new dag::Graph(name, input, output);
+  dag::Edge* embedding_input = graph->createEdge("embedding_input");
+  dag::Edge* embedding_output = graph->createEdge("embedding_output");
+  dag::Edge* build_sam_input = graph->createEdge("build_input");
+  dag::Edge* segment_output = graph->createEdge("segment_output");
 
-  dag::Task* preprocess = pipeline->createTask<model::CvtColorResizePad>(
+  dag::Node* preprocess = graph->createNode<model::CvtColorResizePad>(
       "preprocess", input, embedding_input);
-  dag::Task* embedding_inference = pipeline->createInfer<model::Infer>(
+  dag::Node* embedding_inference = graph->createInfer<model::Infer>(
       "embedding_inference", inference_type, embedding_input, embedding_output);
   // 输出
-  std::vector<dag::Packet*> inputs;
+  std::vector<dag::Edge*> inputs;
   inputs.emplace_back(embedding_output);
   inputs.emplace_back(input);
-  std::vector<dag::Packet*> outputs;
+  std::vector<dag::Edge*> outputs;
   outputs.emplace_back(build_sam_input);
-  dag::Task* build_input =
-      pipeline->createTask<SamBuildInput>("build_input", inputs, outputs);
+  dag::Node* build_input =
+      graph->createNode<SamBuildInput>("build_input", inputs, outputs);
   // 这个推理任务本身是动态输入的
-  dag::Task* segment_inference = pipeline->createInfer<model::Infer>(
+  dag::Node* segment_inference = graph->createInfer<model::Infer>(
       "segment_inference", inference_type, build_sam_input, segment_output);
-  dag::Task* postprocess = pipeline->createTask<SamPostProcess>(
-      "postprocess", segment_output, output);
+  dag::Node* postprocess =
+      graph->createNode<SamPostProcess>("postprocess", segment_output, output);
 
   model::CvtclorResizePadParam* pre_param =
       dynamic_cast<model::CvtclorResizePadParam*>(preprocess->getParam());
@@ -250,7 +249,7 @@ dag::Pipeline* createSamPipeline(const std::string& name,
   SamPostParam* post_param =
       dynamic_cast<SamPostParam*>(postprocess->getParam());
 
-  return pipeline;
+  return graph;
 }
 
 }  // namespace model

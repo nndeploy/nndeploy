@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_DAG_PIPELINE_H_
-#define _NNDEPLOY_DAG_PIPELINE_H_
+#ifndef _NNDEPLOY_DAG_GRAPH_H_
+#define _NNDEPLOY_DAG_GRAPH_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -9,8 +9,8 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -19,132 +19,132 @@
 namespace nndeploy {
 namespace dag {
 
-enum TaskColorType : int {
-  kTaskColorWhite = 0x0000,
-  kTaskColorGray,
-  kTaskColorBlack
+enum NodeColorType : int {
+  kNodeColorWhite = 0x0000,
+  kNodeColorGray,
+  kNodeColorBlack
 };
 
-class TaskWrapper {
+class NodeWrapper {
  public:
   bool is_external_;
-  Task* task_;
+  Node* node_;
   std::string name_;
-  std::vector<TaskWrapper*> predecessors_;
-  std::vector<TaskWrapper*> successors_;
-  TaskColorType color_ = kTaskColorWhite;
+  std::vector<NodeWrapper*> predecessors_;
+  std::vector<NodeWrapper*> successors_;
+  NodeColorType color_ = kNodeColorWhite;
 };
 
-class PacketWrapper {
+class EdgeWrapper {
  public:
   bool is_external_;
-  Packet* packet_;
-  std::vector<TaskWrapper*> producers_;
-  std::vector<TaskWrapper*> consumers_;
+  Edge* edge_;
+  std::vector<NodeWrapper*> producers_;
+  std::vector<NodeWrapper*> consumers_;
 };
 
 enum TopoSortType : int { kTopoSortTypeBFS = 0x0000, kTopoSortTypeDFS };
 
-class NNDEPLOY_CC_API PipelineParam : public base::Param {
+class NNDEPLOY_CC_API GraphParam : public base::Param {
  public:
   TopoSortType topo_sort_type_ = kTopoSortTypeDFS;
 };
 
-class NNDEPLOY_CC_API Pipeline : public Task {
+class NNDEPLOY_CC_API Graph : public Node {
  public:
-  Pipeline(const std::string& name, Packet* input, Packet* output);
-  Pipeline(const std::string& name, std::vector<Packet*> inputs,
-           std::vector<Packet*> outputs);
-  ~Pipeline();
+  Graph(const std::string& name, Edge* input, Edge* output);
+  Graph(const std::string& name, std::vector<Edge*> inputs,
+        std::vector<Edge*> outputs);
+  ~Graph();
 
-  Packet* createPacket(const std::string& name = "");
-  PacketWrapper* addPacket(Packet* packet);
+  Edge* createEdge(const std::string& name = "");
+  EdgeWrapper* addEdge(Edge* edge);
 
   template <typename T,
-            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
-  Task* createTask(const std::string& name, Packet* input, Packet* output) {
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createNode(const std::string& name, Edge* input, Edge* output) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    Task* task = dynamic_cast<Task*>(new T(name, input, output));
-    TaskWrapper* task_wrapper = new TaskWrapper();
-    task_wrapper->is_external_ = false;
-    task_wrapper->task_ = task;
-    task_wrapper->name_ = name;
-    PacketWrapper* input_wrapper = findPacketWrapper(input);
-    if (findPacketWrapper(input) == nullptr) {
-      input_wrapper = this->addPacket(input);
+    Node* node = dynamic_cast<Node*>(new T(name, input, output));
+    NodeWrapper* node_wrapper = new NodeWrapper();
+    node_wrapper->is_external_ = false;
+    node_wrapper->node_ = node;
+    node_wrapper->name_ = name;
+    EdgeWrapper* input_wrapper = findEdgeWrapper(input);
+    if (findEdgeWrapper(input) == nullptr) {
+      input_wrapper = this->addEdge(input);
     }
-    input_wrapper->consumers_.emplace_back(task_wrapper);
-    PacketWrapper* output_wrapper = findPacketWrapper(output);
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+    EdgeWrapper* output_wrapper = findEdgeWrapper(output);
     if (output_wrapper == nullptr) {
-      output_wrapper = this->addPacket(output);
+      output_wrapper = this->addEdge(output);
     }
-    output_wrapper->producers_.emplace_back(task_wrapper);
+    output_wrapper->producers_.emplace_back(node_wrapper);
 
-    task_repository_.emplace_back(task_wrapper);
-    return task;
+    node_repository_.emplace_back(node_wrapper);
+    return node;
   }
   template <typename T,
-            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
-  Task* createTask(const std::string& name, std::vector<Packet*> inputs,
-                   std::vector<Packet*> outputs) {
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createNode(const std::string& name, std::vector<Edge*> inputs,
+                   std::vector<Edge*> outputs) {
     if (inputs.empty() || outputs.empty()) {
       NNDEPLOY_LOGE("inputs or outputs is empty!\n");
       return nullptr;
     }
-    Task* task = dynamic_cast<Task*>(new T(name, inputs, outputs));
-    TaskWrapper* task_wrapper = new TaskWrapper();
-    task_wrapper->is_external_ = false;
-    task_wrapper->task_ = task;
-    task_wrapper->name_ = name;
+    Node* node = dynamic_cast<Node*>(new T(name, inputs, outputs));
+    NodeWrapper* node_wrapper = new NodeWrapper();
+    node_wrapper->is_external_ = false;
+    node_wrapper->node_ = node;
+    node_wrapper->name_ = name;
     for (auto input : inputs) {
-      PacketWrapper* input_wrapper = findPacketWrapper(input);
-      if (findPacketWrapper(input) == nullptr) {
-        input_wrapper = this->addPacket(input);
+      EdgeWrapper* input_wrapper = findEdgeWrapper(input);
+      if (findEdgeWrapper(input) == nullptr) {
+        input_wrapper = this->addEdge(input);
       }
-      input_wrapper->consumers_.emplace_back(task_wrapper);
+      input_wrapper->consumers_.emplace_back(node_wrapper);
     }
     for (auto output : outputs) {
-      PacketWrapper* output_wrapper = findPacketWrapper(output);
+      EdgeWrapper* output_wrapper = findEdgeWrapper(output);
       if (output_wrapper == nullptr) {
-        output_wrapper = this->addPacket(output);
+        output_wrapper = this->addEdge(output);
       }
-      output_wrapper->producers_.emplace_back(task_wrapper);
+      output_wrapper->producers_.emplace_back(node_wrapper);
     }
 
-    task_repository_.emplace_back(task_wrapper);
-    return task;
+    node_repository_.emplace_back(node_wrapper);
+    return node;
   }
   template <typename T,
-            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
-  Task* createInfer(const std::string& name, base::InferenceType type,
-                    Packet* input, Packet* output) {
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createInfer(const std::string& name, base::InferenceType type,
+                    Edge* input, Edge* output) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    Task* task = dynamic_cast<Task*>(new T(name, type, input, output));
-    TaskWrapper* task_wrapper = new TaskWrapper();
-    task_wrapper->is_external_ = false;
-    task_wrapper->task_ = task;
-    task_wrapper->name_ = name;
-    PacketWrapper* input_wrapper = findPacketWrapper(input);
-    if (findPacketWrapper(input) == nullptr) {
-      input_wrapper = this->addPacket(input);
+    Node* node = dynamic_cast<Node*>(new T(name, type, input, output));
+    NodeWrapper* node_wrapper = new NodeWrapper();
+    node_wrapper->is_external_ = false;
+    node_wrapper->node_ = node;
+    node_wrapper->name_ = name;
+    EdgeWrapper* input_wrapper = findEdgeWrapper(input);
+    if (findEdgeWrapper(input) == nullptr) {
+      input_wrapper = this->addEdge(input);
     }
-    input_wrapper->consumers_.emplace_back(task_wrapper);
-    PacketWrapper* output_wrapper = findPacketWrapper(output);
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+    EdgeWrapper* output_wrapper = findEdgeWrapper(output);
     if (output_wrapper == nullptr) {
-      output_wrapper = this->addPacket(output);
+      output_wrapper = this->addEdge(output);
     }
-    output_wrapper->producers_.emplace_back(task_wrapper);
+    output_wrapper->producers_.emplace_back(node_wrapper);
 
-    task_repository_.emplace_back(task_wrapper);
-    return task;
+    node_repository_.emplace_back(node_wrapper);
+    return node;
   }
-  base::Status addTask(Task* task);
-  Task* getTask(const std::string& task_name);
+  base::Status addNode(Node* node);
+  Node* getNode(const std::string& node_name);
 
-  base::Status setTaskParam(const std::string& task_name, base::Param* param);
-  base::Param* getTaskParam(const std::string& task_name);
+  base::Status setNodeParam(const std::string& node_name, base::Param* param);
+  base::Param* getNodeParam(const std::string& node_name);
 
   virtual void setPipelineParallel(bool is_pipeline_parallel);
 
@@ -158,48 +158,49 @@ class NNDEPLOY_CC_API Pipeline : public Task {
   base::Status dump(std::ostream& oss = std::cout);
 
  protected:
-  PacketWrapper* findPacketWrapper(Packet* packet);
-  TaskWrapper* findTaskWrapper(const std::string& task_name);
-  TaskWrapper* findTaskWrapper(Task* task);
+  EdgeWrapper* findEdgeWrapper(Edge* edge);
+  NodeWrapper* findNodeWrapper(const std::string& node_name);
+  NodeWrapper* findNodeWrapper(Node* node);
 
-  std::vector<TaskWrapper*> findStartTasks();
-  std::vector<TaskWrapper*> findEndTasks();
+  std::vector<NodeWrapper*> findStartNodes();
+  std::vector<NodeWrapper*> findEndNodes();
 
-  base::Status TopoSortBFS(TaskWrapper* task_wrapper);
-  base::Status TopoSortDFS(TaskWrapper* task_wrapper,
-                           std::stack<TaskWrapper*>& dst);
+  base::Status TopoSortBFS(NodeWrapper* node_wrapper);
+  base::Status TopoSortDFS(NodeWrapper* node_wrapper,
+                           std::stack<NodeWrapper*>& dst);
   base::Status topologicalSort();
 
  protected:
-  std::vector<PacketWrapper*> packet_repository_;
-  std::vector<TaskWrapper*> task_repository_;
+  std::vector<EdgeWrapper*> edge_repository_;
+  std::vector<NodeWrapper*> node_repository_;
 
-  std::vector<std::vector<Task*>> topo_sort_task_;
+  std::vector<std::vector<Node*>> topo_sort_node_;
 };
 
-using createPipelineFunc = std::function<Pipeline*(
+using createGraphFunc = std::function<Graph*(
     const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, Packet* input, Packet* output,
+    base::DeviceType device_type, Edge* input, Edge* output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value)>;
 
-std::map<std::string, createPipelineFunc>& getGlobalPipelineCreatorMap();
+std::map<std::string, createGraphFunc>& getGlobalGraphCreatorMap();
 
-class TypePipelineRegister {
+class TypeGraphRegister {
  public:
-  explicit TypePipelineRegister(const std::string& name,
-                                createPipelineFunc func) {
-    getGlobalPipelineCreatorMap()[name] = func;
+  explicit TypeGraphRegister(const std::string& name, createGraphFunc func) {
+    getGlobalGraphCreatorMap()[name] = func;
   }
 };
 
-extern NNDEPLOY_CC_API Pipeline* createPipeline(
-    const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, Packet* input, Packet* output,
-    base::ModelType model_type, bool is_path,
-    std::vector<std::string> model_value);
+extern NNDEPLOY_CC_API Graph* createGraph(const std::string& name,
+                                          base::InferenceType inference_type,
+                                          base::DeviceType device_type,
+                                          Edge* input, Edge* output,
+                                          base::ModelType model_type,
+                                          bool is_path,
+                                          std::vector<std::string> model_value);
 
 }  // namespace dag
 }  // namespace nndeploy
 
-#endif  // _NNDEPLOY_DAG_PIPELINE_H_
+#endif  // _NNDEPLOY_DAG_GRAPH_H_

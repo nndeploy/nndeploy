@@ -9,8 +9,8 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -19,16 +19,15 @@
 #include "nndeploy/model/infer.h"
 #include "nndeploy/model/preprocess/cvtcolor_resize.h"
 
-
 namespace nndeploy {
 namespace model {
 
-dag::TypePipelineRegister g_register_yolov5_pipeline(NNDEPLOY_YOLOV5,
-                                                     createYoloV5Pipeline);
-dag::TypePipelineRegister g_register_yolov6_pipeline(NNDEPLOY_YOLOV6,
-                                                     createYoloV6Pipeline);
-dag::TypePipelineRegister g_register_yolov8_pipeline(NNDEPLOY_YOLOV8,
-                                                     createYoloV8Pipeline);
+dag::TypeGraphRegister g_register_yolov5_graph(NNDEPLOY_YOLOV5,
+                                               createYoloV5Graph);
+dag::TypeGraphRegister g_register_yolov6_graph(NNDEPLOY_YOLOV6,
+                                               createYoloV6Graph);
+dag::TypeGraphRegister g_register_yolov8_graph(NNDEPLOY_YOLOV8,
+                                               createYoloV8Graph);
 
 base::Status YoloPostProcess::run() {
   YoloPostParam* param = (YoloPostParam*)param_.get();
@@ -183,24 +182,24 @@ base::Status YoloPostProcess::runV8() {
   return base::kStatusCodeOk;
 }
 
-dag::Pipeline* createYoloV5Pipeline(const std::string& name,
-                                    base::InferenceType inference_type,
-                                    base::DeviceType device_type,
-                                    dag::Packet* input, dag::Packet* output,
-                                    base::ModelType model_type, bool is_path,
-                                    std::vector<std::string> model_value) {
-  dag::Pipeline* pipeline = new dag::Pipeline(name, input, output);
-  dag::Packet* infer_input = pipeline->createPacket("infer_input");
-  dag::Packet* infer_output = pipeline->createPacket("infer_output");
+dag::Graph* createYoloV5Graph(const std::string& name,
+                              base::InferenceType inference_type,
+                              base::DeviceType device_type, dag::Edge* input,
+                              dag::Edge* output, base::ModelType model_type,
+                              bool is_path,
+                              std::vector<std::string> model_value) {
+  dag::Graph* graph = new dag::Graph(name, input, output);
+  dag::Edge* infer_input = graph->createEdge("infer_input");
+  dag::Edge* infer_output = graph->createEdge("infer_output");
 
-  dag::Task* pre = pipeline->createTask<model::CvtColorResize>(
-      "preprocess", input, infer_input);
+  dag::Node* pre = graph->createNode<model::CvtColorResize>("preprocess", input,
+                                                            infer_input);
 
-  dag::Task* infer = pipeline->createInfer<model::Infer>(
+  dag::Node* infer = graph->createInfer<model::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
-  dag::Task* post = pipeline->createTask<YoloPostProcess>("postprocess",
-                                                          infer_output, output);
+  dag::Node* post =
+      graph->createNode<YoloPostProcess>("postprocess", infer_output, output);
 
   model::CvtclorResizeParam* pre_param =
       dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());
@@ -225,27 +224,27 @@ dag::Pipeline* createYoloV5Pipeline(const std::string& name,
   post_param->model_w_ = 640;
   post_param->version_ = 5;
 
-  return pipeline;
+  return graph;
 }
 
-dag::Pipeline* createYoloV6Pipeline(const std::string& name,
-                                    base::InferenceType inference_type,
-                                    base::DeviceType device_type,
-                                    dag::Packet* input, dag::Packet* output,
-                                    base::ModelType model_type, bool is_path,
-                                    std::vector<std::string> model_value) {
-  dag::Pipeline* pipeline = new dag::Pipeline(name, input, output);
-  dag::Packet* infer_input = pipeline->createPacket("infer_input");
-  dag::Packet* infer_output = pipeline->createPacket("infer_output");
+dag::Graph* createYoloV6Graph(const std::string& name,
+                              base::InferenceType inference_type,
+                              base::DeviceType device_type, dag::Edge* input,
+                              dag::Edge* output, base::ModelType model_type,
+                              bool is_path,
+                              std::vector<std::string> model_value) {
+  dag::Graph* graph = new dag::Graph(name, input, output);
+  dag::Edge* infer_input = graph->createEdge("infer_input");
+  dag::Edge* infer_output = graph->createEdge("infer_output");
 
-  dag::Task* pre = pipeline->createTask<model::CvtColorResize>(
-      "preprocess", input, infer_input);
+  dag::Node* pre = graph->createNode<model::CvtColorResize>("preprocess", input,
+                                                            infer_input);
 
-  dag::Task* infer = pipeline->createInfer<model::Infer>(
+  dag::Node* infer = graph->createInfer<model::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
-  dag::Task* post = pipeline->createTask<YoloPostProcess>("postprocess",
-                                                          infer_output, output);
+  dag::Node* post =
+      graph->createNode<YoloPostProcess>("postprocess", infer_output, output);
 
   model::CvtclorResizeParam* pre_param =
       dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());
@@ -270,27 +269,27 @@ dag::Pipeline* createYoloV6Pipeline(const std::string& name,
   post_param->model_w_ = 640;
   post_param->version_ = 6;
 
-  return pipeline;
+  return graph;
 }
 
-dag::Pipeline* createYoloV8Pipeline(const std::string& name,
-                                    base::InferenceType inference_type,
-                                    base::DeviceType device_type,
-                                    dag::Packet* input, dag::Packet* output,
-                                    base::ModelType model_type, bool is_path,
-                                    std::vector<std::string> model_value) {
-  dag::Pipeline* pipeline = new dag::Pipeline(name, input, output);
-  dag::Packet* infer_input = pipeline->createPacket("infer_input");
-  dag::Packet* infer_output = pipeline->createPacket("infer_output");
+dag::Graph* createYoloV8Graph(const std::string& name,
+                              base::InferenceType inference_type,
+                              base::DeviceType device_type, dag::Edge* input,
+                              dag::Edge* output, base::ModelType model_type,
+                              bool is_path,
+                              std::vector<std::string> model_value) {
+  dag::Graph* graph = new dag::Graph(name, input, output);
+  dag::Edge* infer_input = graph->createEdge("infer_input");
+  dag::Edge* infer_output = graph->createEdge("infer_output");
 
-  dag::Task* pre = pipeline->createTask<model::CvtColorResize>(
-      "preprocess", input, infer_input);
+  dag::Node* pre = graph->createNode<model::CvtColorResize>("preprocess", input,
+                                                            infer_input);
 
-  dag::Task* infer = pipeline->createInfer<model::Infer>(
+  dag::Node* infer = graph->createInfer<model::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
-  dag::Task* post = pipeline->createTask<YoloPostProcess>("postprocess",
-                                                          infer_output, output);
+  dag::Node* post =
+      graph->createNode<YoloPostProcess>("postprocess", infer_output, output);
 
   model::CvtclorResizeParam* pre_param =
       dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());
@@ -315,7 +314,7 @@ dag::Pipeline* createYoloV8Pipeline(const std::string& name,
   post_param->model_w_ = 640;
   post_param->version_ = 8;
 
-  return pipeline;
+  return graph;
 }
 
 }  // namespace model

@@ -9,8 +9,8 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -22,8 +22,8 @@
 namespace nndeploy {
 namespace model {
 
-dag::TypePipelineRegister g_register_yolov5_multi_output_pipeline(
-    NNDEPLOY_YOLOV5_MULTI_OUTPUT, createYoloV5MultiOutputPipeline);
+dag::TypeGraphRegister g_register_yolov5_multi_output_graph(
+    NNDEPLOY_YOLOV5_MULTI_OUTPUT, createYoloV5MultiOutputGraph);
 
 static inline float sigmoid(float x) {
   return static_cast<float>(1.f / (1.f + exp(-x)));
@@ -156,22 +156,24 @@ base::Status YoloMultiOutputPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-dag::Pipeline* createYoloV5MultiOutputPipeline(
-    const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Packet* input, dag::Packet* output,
-    base::ModelType model_type, bool is_path,
-    std::vector<std::string> model_value) {
-  dag::Pipeline* pipeline = new dag::Pipeline(name, input, output);
-  dag::Packet* infer_input = pipeline->createPacket("infer_input");
-  dag::Packet* infer_output = pipeline->createPacket("infer_output");
+dag::Graph* createYoloV5MultiOutputGraph(const std::string& name,
+                                         base::InferenceType inference_type,
+                                         base::DeviceType device_type,
+                                         dag::Edge* input, dag::Edge* output,
+                                         base::ModelType model_type,
+                                         bool is_path,
+                                         std::vector<std::string> model_value) {
+  dag::Graph* graph = new dag::Graph(name, input, output);
+  dag::Edge* infer_input = graph->createEdge("infer_input");
+  dag::Edge* infer_output = graph->createEdge("infer_output");
 
-  dag::Task* pre = pipeline->createTask<model::CvtColorResize>(
-      "preprocess", input, infer_input);
+  dag::Node* pre = graph->createNode<model::CvtColorResize>("preprocess", input,
+                                                            infer_input);
 
-  dag::Task* infer = pipeline->createInfer<model::Infer>(
+  dag::Node* infer = graph->createInfer<model::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
-  dag::Task* post = pipeline->createTask<YoloMultiOutputPostProcess>(
+  dag::Node* post = graph->createNode<YoloMultiOutputPostProcess>(
       "postprocess", infer_output, output);
 
   model::CvtclorResizeParam* pre_param =
@@ -202,7 +204,7 @@ dag::Pipeline* createYoloV5MultiOutputPipeline(
   post_param->name_stride_16 = "463";
   post_param->name_stride_32 = "output";
 
-  return pipeline;
+  return graph;
 }
 
 }  // namespace model

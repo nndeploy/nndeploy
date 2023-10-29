@@ -10,8 +10,8 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -20,25 +20,25 @@
 namespace nndeploy {
 namespace dag {
 
-Loop::Loop(const std::string& name, Packet* input, Packet* output)
-    : Task(name, input, output) {}
-Loop::Loop(const std::string& name, std::vector<Packet*> inputs,
-           std::vector<Packet*> outputs)
-    : Task(name, inputs, outputs) {}
+Loop::Loop(const std::string& name, Edge* input, Edge* output)
+    : Node(name, input, output) {}
+Loop::Loop(const std::string& name, std::vector<Edge*> inputs,
+           std::vector<Edge*> outputs)
+    : Node(name, inputs, outputs) {}
 Loop::~Loop() {}
 
 void Loop::setPipelineParallel(bool is_pipeline_parallel) {
-  Task::setPipelineParallel(is_pipeline_parallel);
-  if (loop_task_ != nullptr) {
-    loop_task_->setPipelineParallel(is_pipeline_parallel);
+  Node::setPipelineParallel(is_pipeline_parallel);
+  if (loop_node_ != nullptr) {
+    loop_node_->setPipelineParallel(is_pipeline_parallel);
   }
 }
 
 base::Status Loop::init() {
   base::Status status = base::kStatusCodeOk;
-  status = loop_task_->init();
+  status = loop_node_->init();
   if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("Task init failed!\n");
+    NNDEPLOY_LOGE("Node init failed!\n");
     return status;
   }
   return status;
@@ -46,9 +46,9 @@ base::Status Loop::init() {
 
 base::Status Loop::deinit() {
   base::Status status = base::kStatusCodeOk;
-  status = loop_task_->deinit();
+  status = loop_node_->deinit();
   if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("Task deinit failed!\n");
+    NNDEPLOY_LOGE("Node deinit failed!\n");
     return status;
   }
   return status;
@@ -62,9 +62,9 @@ base::Status Loop::deinit() {
 //     return base::kStatusCodeErrorInvalidValue;
 //   }
 //   for (int i = 0; i < size; i++) {
-//     status = loop_task_->reshape();
+//     status = loop_node_->reshape();
 //     if (status != base::kStatusCodeOk) {
-//       NNDEPLOY_LOGE("Task reshape failed!\n");
+//       NNDEPLOY_LOGE("Node reshape failed!\n");
 //       return status;
 //     }
 //   }
@@ -79,21 +79,21 @@ base::Status Loop::run() {
     return base::kStatusCodeErrorInvalidValue;
   }
   for (int i = 0; i < size; i++) {
-    status = loop_task_->run();
+    status = loop_node_->run();
     if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Task reshape failed!\n");
+      NNDEPLOY_LOGE("Node reshape failed!\n");
       return status;
     }
   }
   return status;
 }
 
-bool Loop::check(const std::vector<Packet*>& packets,
-                 const std::vector<Packet*>& loop_packets) {
-  for (auto packet : packets) {
+bool Loop::check(const std::vector<Edge*>& edges,
+                 const std::vector<Edge*>& loop_edges) {
+  for (auto edge : edges) {
     bool flag = false;
-    for (auto loop_packet : loop_packets) {
-      if (packet == loop_packet) {
+    for (auto loop_edge : loop_edges) {
+      if (edge == loop_edge) {
         flag = true;
         break;
       }

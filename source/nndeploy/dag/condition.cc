@@ -10,8 +10,8 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -20,45 +20,45 @@
 namespace nndeploy {
 namespace dag {
 
-Condition::Condition(const std::string& name, Packet* input, Packet* output)
-    : Task(name, input, output) {}
-Condition::Condition(const std::string& name, std::vector<Packet*> inputs,
-                     std::vector<Packet*> outputs)
-    : Task(name, inputs, outputs) {}
-Condition::~Condition() { condition_task_.clear(); }
+Condition::Condition(const std::string& name, Edge* input, Edge* output)
+    : Node(name, input, output) {}
+Condition::Condition(const std::string& name, std::vector<Edge*> inputs,
+                     std::vector<Edge*> outputs)
+    : Node(name, inputs, outputs) {}
+Condition::~Condition() { condition_node_.clear(); }
 
-base::Status Condition::setTaskParam(const std::string& task_name,
+base::Status Condition::setNodeParam(const std::string& node_name,
                                      base::Param* param) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is null!");
-  Task* task = findTask(task_name);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(task, "task is null!");
-  status = task->setParam(param);
+  Node* node = findNode(node_name);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
+  status = node->setParam(param);
   return status;
 }
 
-base::Param* Condition::getTaskParam(const std::string& task_name) {
-  Task* task = findTask(task_name);
-  if (task == nullptr) {
-    NNDEPLOY_LOGE("task is null!\n");
+base::Param* Condition::getNodeParam(const std::string& node_name) {
+  Node* node = findNode(node_name);
+  if (node == nullptr) {
+    NNDEPLOY_LOGE("node is null!\n");
     return nullptr;
   }
-  return task->getParam();
+  return node->getParam();
 }
 
 void Condition::setPipelineParallel(bool is_pipeline_parallel) {
-  Task::setPipelineParallel(is_pipeline_parallel);
-  for (auto task : condition_task_) {
-    task->setPipelineParallel(is_pipeline_parallel);
+  Node::setPipelineParallel(is_pipeline_parallel);
+  for (auto node : condition_node_) {
+    node->setPipelineParallel(is_pipeline_parallel);
   }
 }
 
 base::Status Condition::init() {
   base::Status status = base::kStatusCodeOk;
-  for (auto task : condition_task_) {
-    status = task->init();
+  for (auto node : condition_node_) {
+    status = node->init();
     if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Task init failed!\n");
+      NNDEPLOY_LOGE("Node init failed!\n");
       return status;
     }
   }
@@ -67,10 +67,10 @@ base::Status Condition::init() {
 
 base::Status Condition::deinit() {
   base::Status status = base::kStatusCodeOk;
-  for (auto task : condition_task_) {
-    status = task->deinit();
+  for (auto node : condition_node_) {
+    status = node->deinit();
     if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Task deinit failed!\n");
+      NNDEPLOY_LOGE("Node deinit failed!\n");
       return status;
     }
   }
@@ -80,13 +80,13 @@ base::Status Condition::deinit() {
 // base::Status Condition::reshape() {
 //   base::Status status = base::kStatusCodeOk;
 //   int index = choose();
-//   if (index < 0 || index >= condition_task_.size()) {
+//   if (index < 0 || index >= condition_node_.size()) {
 //     NNDEPLOY_LOGE("choose index is invalid!\n");
 //     return base::kStatusCodeErrorInvalidValue;
 //   }
-//   status = condition_task_[index]->reshape();
+//   status = condition_node_[index]->reshape();
 //   if (status != base::kStatusCodeOk) {
-//     NNDEPLOY_LOGE("Task reshape failed!\n");
+//     NNDEPLOY_LOGE("Node reshape failed!\n");
 //     return status;
 //   }
 //   return status;
@@ -95,24 +95,24 @@ base::Status Condition::deinit() {
 base::Status Condition::run() {
   base::Status status = base::kStatusCodeOk;
   int index = choose();
-  if (index < 0 || index >= condition_task_.size()) {
+  if (index < 0 || index >= condition_node_.size()) {
     NNDEPLOY_LOGE("choose index is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
-  status = condition_task_[index]->run();
+  status = condition_node_[index]->run();
   if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("Task run failed!\n");
+    NNDEPLOY_LOGE("Node run failed!\n");
     return status;
   }
   return status;
 }
 
-bool Condition::check(const std::vector<Packet*>& packets,
-                      const std::vector<Packet*>& condition_packets) {
-  for (auto packet : packets) {
+bool Condition::check(const std::vector<Edge*>& edges,
+                      const std::vector<Edge*>& condition_edges) {
+  for (auto edge : edges) {
     bool flag = false;
-    for (auto condition_packet : condition_packets) {
-      if (packet == condition_packet) {
+    for (auto condition_edge : condition_edges) {
+      if (edge == condition_edge) {
         flag = true;
         break;
       }
@@ -124,10 +124,10 @@ bool Condition::check(const std::vector<Packet*>& packets,
   return true;
 }
 
-Task* Condition::findTask(const std::string& name) {
-  for (auto task : condition_task_) {
-    if (task->getName() == name) {
-      return task;
+Node* Condition::findNode(const std::string& name) {
+  for (auto node : condition_node_) {
+    if (node->getName() == name) {
+      return node;
     }
   }
   return nullptr;

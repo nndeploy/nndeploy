@@ -67,7 +67,7 @@
 
   ```c++
   int main(int argc, char *argv[]) {
-     // 有向无环图pipeline名称，例如:
+     // 有向无环图graph名称，例如:
     //  NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8
     std::string name = demo::getName();
     // 推理后端类型，例如:
@@ -83,63 +83,63 @@
     bool is_path = demo::isPath();
     // 模型路径或者模型字符串
     std::vector<std::string> model_value = demo::getModelValue();
-    // 有向无环图pipeline的输入边packert
-    dag::Packet input("detect_in");
-    // 有向无环图pipeline的输出边packert
-    dag::Packet output("detect_out");
-    // 创建模型有向无环图pipeline
-    dag::Pipeline *pipeline =
-        dag::createPipeline(name, inference_type, device_type, &input, &output,
+    // 有向无环图graph的输入边packert
+    dag::Edge input("detect_in");
+    // 有向无环图graph的输出边packert
+    dag::Edge output("detect_out");
+    // 创建模型有向无环图graph
+    dag::Graph *graph =
+        dag::createGraph(name, inference_type, device_type, &input, &output,
                             model_type, is_path, model_value);
 
-    // 初始化有向无环图pipeline
-    base::Status status = pipeline->init();
+    // 初始化有向无环图graph
+    base::Status status = graph->init();
 
     // 输入图片
     cv::Mat input_mat = cv::imread(input_path);
-    // 将图片写入有向无环图pipeline输入边
+    // 将图片写入有向无环图graph输入边
     input.set(input_mat);
-    // 定义有向无环图pipeline的输出结果
+    // 定义有向无环图graph的输出结果
     model::DetectResult result;
-    // 将输出结果写入有向无环图pipeline输出边
+    // 将输出结果写入有向无环图graph输出边
     output.set(result);
 
-    // 有向无环图Pipeline运行
-    status = pipeline->run();
+    // 有向无环图Graph运行
+    status = graph->run();
 
-    // 有向无环图pipelinez反初始化
-    status = pipeline->deinit();
+    // 有向无环图graphz反初始化
+    status = graph->deinit();
 
-    // 有向无环图pipeline销毁
-    delete pipeline;
+    // 有向无环图graph销毁
+    delete graph;
 
     return 0;
   }
   ```
   
-- **算法部署简单**：将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 `Pipeline`，前处理为一个 `Task`，推理也为一个 `Task`，后处理也为一个 `Task`，提供了高性能的前后处理模板和推理模板，上述模板可帮助您进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题。示例代码如下:
+- **算法部署简单**：将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 `Graph`，前处理为一个 `Node`，推理也为一个 `Node`，后处理也为一个 `Node`，提供了高性能的前后处理模板和推理模板，上述模板可帮助您进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题。示例代码如下:
 
   ```c++
-  dag::Pipeline* createYoloV5Pipeline(const std::string& name,
+  dag::Graph* createYoloV5Graph(const std::string& name,
                                       base::InferenceType inference_type,
                                       base::DeviceType device_type,
-                                      dag::Packet* input, dag::Packet* output,
+                                      dag::Edge* input, dag::Edge* output,
                                       base::ModelType model_type, bool is_path,
                                       std::vector<std::string>& model_value) {
-    dag::Pipeline* pipeline = new dag::Pipeline(name, input, output); // 有向无环图
+    dag::Graph* graph = new dag::Graph(name, input, output); // 有向无环图
 
-    dag::Packet* infer_input = pipeline->createPacket("infer_input"); // 推理模板的输入边
-    dag::Packet* infer_output = pipeline->createPacket("infer_output"); // 推理模板的输出
+    dag::Edge* infer_input = graph->createEdge("infer_input"); // 推理模板的输入边
+    dag::Edge* infer_output = graph->createEdge("infer_output"); // 推理模板的输出
 
     // 搭建有向无图（preprocess->infer->postprocess）
     // 模型前处理模板model::CvtColorResize，输入边为input，输出边为infer_input
-    dag:::Task* pre = pipeline->createTask<model::CvtColorResize>(
+    dag:::Node* pre = graph->createNode<model::CvtColorResize>(
         "preprocess", input, infer_input);
     // 模型推理模板model::Infer(通用模板)，输入边为infer_input，输出边为infer_output
-    dag:::Task* infer = pipeline->createInfer<model::Infer>(
+    dag:::Node* infer = graph->createInfer<model::Infer>(
         "infer", inference_type, infer_input, infer_output);
     // 模型后处理模板YoloPostProcess，输入边为infer_output，输出边为output
-    dag:::Task* post = pipeline->createTask<YoloPostProcess>(
+    dag:::Node* post = graph->createNode<YoloPostProcess>(
         "postprocess", infer_output, output);
 
     // 模型前处理任务pre的参数配置
@@ -167,7 +167,7 @@
     post_param->model_w_ = 640;
     post_param->version_ = 5;
 
-    return pipeline;
+    return graph;
   }
   ```
 
@@ -175,7 +175,7 @@
 
 - **Directed Acyclic Graph**：有向无环图子模块。模型端到端的部署流程可抽象成 `3` 个子块：**模型前处理->模型推理->模型推理**，这是一个非常典型的有向无环图，对于多模型组合的算法而言，是更加复杂的的有向无环图，直接写业务代码去串联整个过程不仅容易出错，而且还效率低下，采用有向无环图的方式可以极大的缩减业务代码的编写。
 
-- **Process Template**：前后处理模板以及推理子模板。我们希望还再可以简化您的部署流程，因此在模型端到端的部署的**模型前处理->模型推理->模型推理**的三个过程中，我们进一步设计模板。尤其是在推理模板上面花了足够多的心思，针对不同的模型，又有很多差异性，例如**单输入、多输出、静态形状输入、动态形状输入、静态形状输出、动态形状输出、是否可操作推理框架内部分配输入输出**等等一系列不同，只有具备丰富模型部署经验的工程师才能快速解决上述问题，故我们基于多端推理模块 `Inference` + 有向无环图节点 `Task` 再设计功能强大的**推理模板Infer**，这个推理模板可以帮您在内部处理上述针对模型的不同带来的差异。
+- **Process Template**：前后处理模板以及推理子模板。我们希望还再可以简化您的部署流程，因此在模型端到端的部署的**模型前处理->模型推理->模型推理**的三个过程中，我们进一步设计模板。尤其是在推理模板上面花了足够多的心思，针对不同的模型，又有很多差异性，例如**单输入、多输出、静态形状输入、动态形状输入、静态形状输出、动态形状输出、是否可操作推理框架内部分配输入输出**等等一系列不同，只有具备丰富模型部署经验的工程师才能快速解决上述问题，故我们基于多端推理模块 `Inference` + 有向无环图节点 `Node` 再设计功能强大的**推理模板Infer**，这个推理模板可以帮您在内部处理上述针对模型的不同带来的差异。
   
 - **Resouce Pool**：资源管理子模块。正在开发线程池以及内存池（这块是 `nndeploy` 正在火热开发的模块，期待大佬一起来搞事情）。线程池可实现有向无环图的流水线并行，内存池可实现高效的内存分配与释放。
 

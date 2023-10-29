@@ -63,9 +63,9 @@ onnxsim image_encoder.onnx  image_encoder_sim.onnx
 
 # nndeploy部署SAM
 
-SAM的模型包含两部分，用于生成image_embedding的vit模型和生成mask的模型。因此包含了这两部分的推理。整个pipeline的有向无环图如下：
+SAM的模型包含两部分，用于生成image_embedding的vit模型和生成mask的模型。因此包含了这两部分的推理。整个graph的有向无环图如下：
 
-![SAM部署pipeline](../../image/SAM_pipeline.png)
+![SAM部署graph](../../image/SAM_graph.png)
 
-需要构建以上5个task来组成整个pipeline：
+需要构建以上5个node来组成整个graph：
 

@@ -9,8 +9,8 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -19,18 +19,18 @@
 namespace nndeploy {
 namespace dag {
 
-class NNDEPLOY_CC_API Loop : public Task {
+class NNDEPLOY_CC_API Loop : public Node {
  public:
-  Loop(const std::string& name, Packet* input, Packet* output);
-  Loop(const std::string& name, std::vector<Packet*> inputs,
-       std::vector<Packet*> outputs);
+  Loop(const std::string& name, Edge* input, Edge* output);
+  Loop(const std::string& name, std::vector<Edge*> inputs,
+       std::vector<Edge*> outputs);
   virtual ~Loop();
 
   template <typename T,
-            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
-  Task* createTask(const std::string& name, Packet* input, Packet* output) {
-    if (loop_task_ != nullptr) {
-      NNDEPLOY_LOGE("loop_task_ must be nullptr!\n");
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createNode(const std::string& name, Edge* input, Edge* output) {
+    if (loop_node_ != nullptr) {
+      NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
     }
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
@@ -45,15 +45,15 @@ class NNDEPLOY_CC_API Loop : public Task {
       NNDEPLOY_LOGE("output is not in loop outputs!\n");
       return nullptr;
     }
-    loop_task_ = dynamic_cast<Task*>(new T(name, input, output));
-    return loop_task_;
+    loop_node_ = dynamic_cast<Node*>(new T(name, input, output));
+    return loop_node_;
   }
   template <typename T,
-            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
-  Task* createTask(const std::string& name, std::vector<Packet*> inputs,
-                   std::vector<Packet*> outputs) {
-    if (loop_task_ != nullptr) {
-      NNDEPLOY_LOGE("loop_task_ must be nullptr!\n");
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createNode(const std::string& name, std::vector<Edge*> inputs,
+                   std::vector<Edge*> outputs) {
+    if (loop_node_ != nullptr) {
+      NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
     }
     if (inputs.empty() || outputs.empty()) {
@@ -70,15 +70,15 @@ class NNDEPLOY_CC_API Loop : public Task {
       NNDEPLOY_LOGE("outputs is not in loop outputs!\n");
       return nullptr;
     }
-    loop_task_ = dynamic_cast<Task*>(new T(name, inputs, outputs));
-    return loop_task_;
+    loop_node_ = dynamic_cast<Node*>(new T(name, inputs, outputs));
+    return loop_node_;
   }
   template <typename T,
-            typename std::enable_if<std::is_base_of<Task, T>{}, int>::type = 0>
-  Task* createInfer(const std::string& name, base::InferenceType type,
-                    Packet* input, Packet* output) {
-    if (loop_task_ != nullptr) {
-      NNDEPLOY_LOGE("loop_task_ must be nullptr!\n");
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createInfer(const std::string& name, base::InferenceType type,
+                    Edge* input, Edge* output) {
+    if (loop_node_ != nullptr) {
+      NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
     }
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
@@ -93,8 +93,8 @@ class NNDEPLOY_CC_API Loop : public Task {
       NNDEPLOY_LOGE("output is not in loop outputs!\n");
       return nullptr;
     }
-    loop_task_ = dynamic_cast<Task*>(new T(name, type, input, output));
-    return loop_task_;
+    loop_node_ = dynamic_cast<Node*>(new T(name, type, input, output));
+    return loop_node_;
   }
 
   virtual void setPipelineParallel(bool is_pipeline_parallel);
@@ -109,11 +109,11 @@ class NNDEPLOY_CC_API Loop : public Task {
   virtual base::Status run();
 
  private:
-  bool check(const std::vector<Packet*>& packets,
-             const std::vector<Packet*>& loop_packets);
+  bool check(const std::vector<Edge*>& edges,
+             const std::vector<Edge*>& loop_edges);
 
  protected:
-  Task* loop_task_ = nullptr;
+  Node* loop_node_ = nullptr;
 };
 
 }  // namespace dag

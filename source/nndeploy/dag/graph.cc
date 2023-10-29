@@ -1,4 +1,6 @@
 
+#include "nndeploy/dag/graph.h"
+
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -8,9 +10,8 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/packet.h"
-#include "nndeploy/dag/pipeline.h"
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -19,235 +20,235 @@
 namespace nndeploy {
 namespace dag {
 
-Pipeline::Pipeline(const std::string& name, Packet* input, Packet* output)
-    : Task(name, input, output) {
-  param_ = std::make_shared<PipelineParam>();
-  if (nullptr == addPacket(input)) {
+Graph::Graph(const std::string& name, Edge* input, Edge* output)
+    : Node(name, input, output) {
+  param_ = std::make_shared<GraphParam>();
+  if (nullptr == addEdge(input)) {
     constructed_ = false;
     return;
   }
-  if (nullptr == addPacket(output)) {
+  if (nullptr == addEdge(output)) {
     constructed_ = false;
     return;
   }
   constructed_ = true;
 }
-Pipeline::Pipeline(const std::string& name, std::vector<Packet*> inputs,
-                   std::vector<Packet*> outputs)
-    : Task(name, inputs, outputs) {
-  param_ = std::make_shared<PipelineParam>();
+Graph::Graph(const std::string& name, std::vector<Edge*> inputs,
+             std::vector<Edge*> outputs)
+    : Node(name, inputs, outputs) {
+  param_ = std::make_shared<GraphParam>();
   for (auto input : inputs) {
-    if (nullptr == addPacket(input)) {
+    if (nullptr == addEdge(input)) {
       constructed_ = false;
       return;
     }
   }
   for (auto output : outputs) {
-    if (nullptr == addPacket(output)) {
+    if (nullptr == addEdge(output)) {
       constructed_ = false;
       return;
     }
   }
   constructed_ = true;
 }
-Pipeline::~Pipeline() {
-  for (auto task_wrapper : task_repository_) {
-    if (!task_wrapper->is_external_) {
-      delete task_wrapper->task_;
+Graph::~Graph() {
+  for (auto node_wrapper : node_repository_) {
+    if (!node_wrapper->is_external_) {
+      delete node_wrapper->node_;
     }
-    delete task_wrapper;
+    delete node_wrapper;
   }
-  for (auto packet_wrapper : packet_repository_) {
-    if (!packet_wrapper->is_external_) {
-      delete packet_wrapper->packet_;
+  for (auto edge_wrapper : edge_repository_) {
+    if (!edge_wrapper->is_external_) {
+      delete edge_wrapper->edge_;
     }
-    delete packet_wrapper;
+    delete edge_wrapper;
   }
-  topo_sort_task_.clear();
-  task_repository_.clear();
-  packet_repository_.clear();
+  topo_sort_node_.clear();
+  node_repository_.clear();
+  edge_repository_.clear();
 }
 
-Packet* Pipeline::createPacket(const std::string& name) {
-  Packet* packet = new Packet(name);
-  PacketWrapper* packet_wrapper = new PacketWrapper();
-  packet_wrapper->is_external_ = false;
-  packet_wrapper->packet_ = packet;
-  packet_repository_.emplace_back(packet_wrapper);
-  return packet;
+Edge* Graph::createEdge(const std::string& name) {
+  Edge* edge = new Edge(name);
+  EdgeWrapper* edge_wrapper = new EdgeWrapper();
+  edge_wrapper->is_external_ = false;
+  edge_wrapper->edge_ = edge;
+  edge_repository_.emplace_back(edge_wrapper);
+  return edge;
 }
-PacketWrapper* Pipeline::addPacket(Packet* packet) {
+EdgeWrapper* Graph::addEdge(Edge* edge) {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(packet, "packet is null!");
-  PacketWrapper* packet_wrapper = new PacketWrapper();
-  packet_wrapper->is_external_ = true;
-  packet_wrapper->packet_ = packet;
-  packet_repository_.emplace_back(packet_wrapper);
-  return packet_wrapper;
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(edge, "edge is null!");
+  EdgeWrapper* edge_wrapper = new EdgeWrapper();
+  edge_wrapper->is_external_ = true;
+  edge_wrapper->edge_ = edge;
+  edge_repository_.emplace_back(edge_wrapper);
+  return edge_wrapper;
 }
 
 // template <typename T>
-// Task* Pipeline::createTask(const std::string& name, Packet* input,
-//                            Packet* output) {
+// Node* Graph::createNode(const std::string& name, Edge* input,
+//                            Edge* output) {
 //   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
 //   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-//   Task* task = dynamic_cast<Task*>(new T(name, input, output));
-//   TaskWrapper* task_wrapper = new TaskWrapper();
-//   task_wrapper->is_external_ = false;
-//   task_wrapper->task_ = task;
-//   task_wrapper->name_ = name;
-//   if (findPacketWrapper(input) == nullptr) {
-//     this->addPacket(input);
+//   Node* node = dynamic_cast<Node*>(new T(name, input, output));
+//   NodeWrapper* node_wrapper = new NodeWrapper();
+//   node_wrapper->is_external_ = false;
+//   node_wrapper->node_ = node;
+//   node_wrapper->name_ = name;
+//   if (findEdgeWrapper(input) == nullptr) {
+//     this->addEdge(input);
 //   }
-//   findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
-//   if (findPacketWrapper(output) == nullptr) {
-//     this->addPacket(output);
+//   findEdgeWrapper(input)->consumers_.emplace_back(node_wrapper);
+//   if (findEdgeWrapper(output) == nullptr) {
+//     this->addEdge(output);
 //   }
-//   findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
-//   task_repository_.emplace_back(task_wrapper);
-//   return task;
+//   findEdgeWrapper(output)->producers_.emplace_back(node_wrapper);
+//   node_repository_.emplace_back(node_wrapper);
+//   return node;
 // }
 // template <typename T>
-// Task* Pipeline::createTask(const std::string& name, std::vector<Packet*>
+// Node* Graph::createNode(const std::string& name, std::vector<Edge*>
 // inputs,
-//                            std::vector<Packet*> outputs) {
+//                            std::vector<Edge*> outputs) {
 //   if (inputs.empty() || outputs.empty()) {
 //     NNDEPLOY_LOGE("inputs or outputs is empty!\n");
 //     return nullptr;
 //   }
-//   Task* task = dynamic_cast<Task*>(new T(name, inputs, outputs));
-//   TaskWrapper* task_wrapper = new TaskWrapper();
-//   task_wrapper->is_external_ = false;
-//   task_wrapper->task_ = task;
-//   task_wrapper->name_ = name;
+//   Node* node = dynamic_cast<Node*>(new T(name, inputs, outputs));
+//   NodeWrapper* node_wrapper = new NodeWrapper();
+//   node_wrapper->is_external_ = false;
+//   node_wrapper->node_ = node;
+//   node_wrapper->name_ = name;
 //   for (auto input : inputs) {
-//     if (findPacketWrapper(input) == nullptr) {
-//       this->addPacket(input);
+//     if (findEdgeWrapper(input) == nullptr) {
+//       this->addEdge(input);
 //     }
-//     findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
+//     findEdgeWrapper(input)->consumers_.emplace_back(node_wrapper);
 //   }
 //   for (auto output : outputs) {
-//     if (findPacketWrapper(output) == nullptr) {
-//       this->addPacket(output);
+//     if (findEdgeWrapper(output) == nullptr) {
+//       this->addEdge(output);
 //     }
-//     findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
+//     findEdgeWrapper(output)->producers_.emplace_back(node_wrapper);
 //   }
-//   task_repository_.emplace_back(task_wrapper);
-//   return task;
+//   node_repository_.emplace_back(node_wrapper);
+//   return node;
 // }
 // template <typename T>
-// Task* Pipeline::createInfer(const std::string& name, base::InferenceType
+// Node* Graph::createInfer(const std::string& name, base::InferenceType
 // type,
-//                             Packet* input, Packet* output) {
+//                             Edge* input, Edge* output) {
 //   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
 //   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-//   Task* task = dynamic_cast<Task*>(new T(name, type, input, output));
-//   TaskWrapper* task_wrapper = new TaskWrapper();
-//   task_wrapper->is_external_ = false;
-//   task_wrapper->task_ = task;
-//   task_wrapper->name_ = name;
-//   if (findPacketWrapper(input) == nullptr) {
-//     this->addPacket(input);
+//   Node* node = dynamic_cast<Node*>(new T(name, type, input, output));
+//   NodeWrapper* node_wrapper = new NodeWrapper();
+//   node_wrapper->is_external_ = false;
+//   node_wrapper->node_ = node;
+//   node_wrapper->name_ = name;
+//   if (findEdgeWrapper(input) == nullptr) {
+//     this->addEdge(input);
 //   }
-//   findPacketWrapper(input)->consumers_.emplace_back(task_wrapper);
-//   if (findPacketWrapper(output) == nullptr) {
-//     this->addPacket(output);
+//   findEdgeWrapper(input)->consumers_.emplace_back(node_wrapper);
+//   if (findEdgeWrapper(output) == nullptr) {
+//     this->addEdge(output);
 //   }
-//   findPacketWrapper(output)->producers_.emplace_back(task_wrapper);
-//   task_repository_.emplace_back(task_wrapper);
-//   return task;
+//   findEdgeWrapper(output)->producers_.emplace_back(node_wrapper);
+//   node_repository_.emplace_back(node_wrapper);
+//   return node;
 // }
-base::Status Pipeline::addTask(Task* task) {
+base::Status Graph::addNode(Node* node) {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(task, "task is null!");
-  TaskWrapper* task_wrapper = new TaskWrapper();
-  task_wrapper->is_external_ = true;
-  task_wrapper->task_ = task;
-  task_wrapper->name_ = task->getName();
-  for (auto input : task->getAllInput()) {
-    PacketWrapper* input_wrapper = findPacketWrapper(input);
-    if (findPacketWrapper(input) == nullptr) {
-      input_wrapper = this->addPacket(input);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
+  NodeWrapper* node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = true;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = node->getName();
+  for (auto input : node->getAllInput()) {
+    EdgeWrapper* input_wrapper = findEdgeWrapper(input);
+    if (findEdgeWrapper(input) == nullptr) {
+      input_wrapper = this->addEdge(input);
     }
-    input_wrapper->consumers_.emplace_back(task_wrapper);
+    input_wrapper->consumers_.emplace_back(node_wrapper);
   }
-  for (auto output : task->getAllOutput()) {
-    PacketWrapper* output_wrapper = findPacketWrapper(output);
+  for (auto output : node->getAllOutput()) {
+    EdgeWrapper* output_wrapper = findEdgeWrapper(output);
     if (output_wrapper == nullptr) {
-      output_wrapper = this->addPacket(output);
+      output_wrapper = this->addEdge(output);
     }
-    output_wrapper->producers_.emplace_back(task_wrapper);
+    output_wrapper->producers_.emplace_back(node_wrapper);
   }
 
-  task_repository_.emplace_back(task_wrapper);
+  node_repository_.emplace_back(node_wrapper);
   return status;
 }
-Task* Pipeline::getTask(const std::string& task_name) {
-  for (auto task_wrapper : task_repository_) {
-    if (task_wrapper->name_ == task_name) {
-      return task_wrapper->task_;
+Node* Graph::getNode(const std::string& node_name) {
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->name_ == node_name) {
+      return node_wrapper->node_;
     }
   }
   return nullptr;
 }
 
-base::Status Pipeline::setTaskParam(const std::string& task_name,
-                                    base::Param* param) {
+base::Status Graph::setNodeParam(const std::string& node_name,
+                                 base::Param* param) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is null!");
-  TaskWrapper* task_wrapper = findTaskWrapper(task_name);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(task_wrapper, "task_wrapper is null!");
-  status = task_wrapper->task_->setParam(param);
+  NodeWrapper* node_wrapper = findNodeWrapper(node_name);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper, "node_wrapper is null!");
+  status = node_wrapper->node_->setParam(param);
   return status;
 }
 
-base::Param* Pipeline::getTaskParam(const std::string& task_name) {
-  TaskWrapper* task_wrapper = findTaskWrapper(task_name);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(task_wrapper, "task_wrapper is null!");
-  return task_wrapper->task_->getParam();
+base::Param* Graph::getNodeParam(const std::string& node_name) {
+  NodeWrapper* node_wrapper = findNodeWrapper(node_name);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(node_wrapper, "node_wrapper is null!");
+  return node_wrapper->node_->getParam();
 }
 
-void Pipeline::setPipelineParallel(bool is_pipeline_parallel) {
-  Task::setPipelineParallel(is_pipeline_parallel);
-  for (auto task_wrapper : task_repository_) {
-    task_wrapper->task_->setPipelineParallel(is_pipeline_parallel);
+void Graph::setPipelineParallel(bool is_pipeline_parallel) {
+  Node::setPipelineParallel(is_pipeline_parallel);
+  for (auto node_wrapper : node_repository_) {
+    node_wrapper->node_->setPipelineParallel(is_pipeline_parallel);
   }
 }
 
-base::Status Pipeline::init() {
+base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  for (auto task_wrapper : task_repository_) {
-    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(task_wrapper->task_,
-                                         "packet_repository_ task is null!");
+  for (auto node_wrapper : node_repository_) {
+    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper->node_,
+                                         "edge_repository_ node is null!");
   }
-  for (auto packet_wrapper : packet_repository_) {
-    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(packet_wrapper->packet_,
-                                         "packet_repository_ packet is null!");
+  for (auto edge_wrapper : edge_repository_) {
+    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
+                                         "edge_repository_ edge is null!");
   }
 
   // NNDEPLOY_LOGI("####################\n");
   // NNDEPLOY_LOGI("Mark Predecessors And Successors Phase!\n");
   // NNDEPLOY_LOGI("####################\n");
-  for (auto task_wrapper : task_repository_) {
-    Task* task = task_wrapper->task_;
-    std::vector<Packet*> inputs = task->getAllInput();
+  for (auto node_wrapper : node_repository_) {
+    Node* node = node_wrapper->node_;
+    std::vector<Edge*> inputs = node->getAllInput();
     for (auto input : inputs) {
-      PacketWrapper* input_wrapper = findPacketWrapper(input);
+      EdgeWrapper* input_wrapper = findEdgeWrapper(input);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "input_wrapper is null!");
-      task_wrapper->predecessors_.assign(input_wrapper->producers_.begin(),
+      node_wrapper->predecessors_.assign(input_wrapper->producers_.begin(),
                                          input_wrapper->producers_.end());
     }
-    std::vector<Packet*> outputs = task->getAllOutput();
+    std::vector<Edge*> outputs = node->getAllOutput();
     for (auto output : outputs) {
-      PacketWrapper* output_wrapper = findPacketWrapper(output);
+      EdgeWrapper* output_wrapper = findEdgeWrapper(output);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
                                            "output_wrapper is null!");
-      task_wrapper->successors_.assign(output_wrapper->consumers_.begin(),
+      node_wrapper->successors_.assign(output_wrapper->consumers_.begin(),
                                        output_wrapper->consumers_.end());
     }
   }
@@ -259,7 +260,7 @@ base::Status Pipeline::init() {
    * @brief
    * @note
    * # 联通图（多个独立的子图）
-   * # task并行（图中存在可以并行的task）
+   * # node并行（图中存在可以并行的node）
    * # 流水线并行（通过流水线的方式并行）
    * # 条件并行（通过条件判断的方式并行）
    */
@@ -270,7 +271,7 @@ base::Status Pipeline::init() {
   }
 
   // // NNDEPLOY_LOGI("############################\n");
-  // // NNDEPLOY_LOGI("Checking for Unvisited Packet!\n");
+  // // NNDEPLOY_LOGI("Checking for Unvisited Edge!\n");
   // // NNDEPLOY_LOGI("############################\n");
 
   // // NNDEPLOY_LOGI("############################\n");
@@ -286,13 +287,13 @@ base::Status Pipeline::init() {
   // // NNDEPLOY_LOGI("############################\n");
 
   // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Task Initialize Phase!\n");
+  // NNDEPLOY_LOGI("Node Initialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  for (auto task_vec : topo_sort_task_) {
-    for (auto task : task_vec) {
-      status = task->init();
+  for (auto node_vec : topo_sort_node_) {
+    for (auto node : node_vec) {
+      status = node->init();
       if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("Task init failed!\n");
+        NNDEPLOY_LOGE("Node init failed!\n");
         return status;
       }
     }
@@ -309,16 +310,16 @@ base::Status Pipeline::init() {
   return status;
 }
 
-base::Status Pipeline::deinit() {
+base::Status Graph::deinit() {
   base::Status status = base::kStatusCodeOk;
   // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Task DeInitialize Phase!\n");
+  // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  for (auto task_vec : topo_sort_task_) {
-    for (auto task : task_vec) {
-      status = task->deinit();
+  for (auto node_vec : topo_sort_node_) {
+    for (auto node : node_vec) {
+      status = node->deinit();
       if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("Task deinit failed!\n");
+        NNDEPLOY_LOGE("Node deinit failed!\n");
         return status;
       }
     }
@@ -326,16 +327,16 @@ base::Status Pipeline::deinit() {
   return status;
 }
 
-// base::Status Pipeline::reshape() {
+// base::Status Graph::reshape() {
 //   base::Status status = base::kStatusCodeOk;
 //   // NNDEPLOY_LOGI("#######################\n");
-//   // NNDEPLOY_LOGI("Task reshape Phase!\n");
+//   // NNDEPLOY_LOGI("Node reshape Phase!\n");
 //   // NNDEPLOY_LOGI("#######################\n");
-//   for (auto task_vec : topo_sort_task_) {
-//     for (auto task : task_vec) {
-//       status = task->reshape();
+//   for (auto node_vec : topo_sort_node_) {
+//     for (auto node : node_vec) {
+//       status = node->reshape();
 //       if (status != base::kStatusCodeOk) {
-//         NNDEPLOY_LOGE("Task run failed!\n");
+//         NNDEPLOY_LOGE("Node run failed!\n");
 //         return status;
 //       }
 //     }
@@ -343,20 +344,20 @@ base::Status Pipeline::deinit() {
 //   return status;
 // }
 
-base::Status Pipeline::run() {
+base::Status Graph::run() {
   base::Status status = base::kStatusCodeOk;
   is_running_ = true;
   // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Task run Phase!\n");
+  // NNDEPLOY_LOGI("Node run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  for (auto task_vec : topo_sort_task_) {
-    for (auto task : task_vec) {
-      NNDEPLOY_TIME_POINT_START(task->getName());
-      NNDEPLOY_LOGE("TASK RUN %s\n", task->getName().c_str());
-      status = task->run();
-      NNDEPLOY_TIME_POINT_END(task->getName());
+  for (auto node_vec : topo_sort_node_) {
+    for (auto node : node_vec) {
+      NNDEPLOY_TIME_POINT_START(node->getName());
+      NNDEPLOY_LOGE("NODE RUN %s\n", node->getName().c_str());
+      status = node->run();
+      NNDEPLOY_TIME_POINT_END(node->getName());
       if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("Task run failed!\n");
+        NNDEPLOY_LOGE("Node run failed!\n");
         return status;
       }
     }
@@ -364,25 +365,25 @@ base::Status Pipeline::run() {
   return status;
 }
 
-base::Status Pipeline::dump(std::ostream& oss) {
+base::Status Graph::dump(std::ostream& oss) {
   base::Status status = base::kStatusCodeOk;
   // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Task dump Phase!\n");
+  // NNDEPLOY_LOGI("Node dump Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
   if (name_.empty()) {
-    oss << "digraph pipeline {\n";
+    oss << "digraph graph {\n";
   } else {
     oss << "digraph " << name_ << " {\n";
   }
-  for (auto task_vec : topo_sort_task_) {
-    for (auto task : task_vec) {
-      TaskWrapper* task_wrapper = findTaskWrapper(task);
-      if (task_wrapper->predecessors_.empty()) {
-        auto inputs = task->getAllInput();
+  for (auto node_vec : topo_sort_node_) {
+    for (auto node : node_vec) {
+      NodeWrapper* node_wrapper = findNodeWrapper(node);
+      if (node_wrapper->predecessors_.empty()) {
+        auto inputs = node->getAllInput();
         for (auto input : inputs) {
           oss << "p" << (void*)input << "[label=input]\n";
           oss << "p" << (void*)input << "->"
-              << "p" << (void*)task;
+              << "p" << (void*)node;
           if (input->getName().empty()) {
             oss << "\n";
           } else {
@@ -390,16 +391,16 @@ base::Status Pipeline::dump(std::ostream& oss) {
           }
         }
       }
-      if (task->getName().empty()) {
-        oss << "p" << (void*)task << "\n";
+      if (node->getName().empty()) {
+        oss << "p" << (void*)node << "\n";
       } else {
-        oss << "p" << (void*)task << "[label=" << task->getName() << "]\n";
+        oss << "p" << (void*)node << "[label=" << node->getName() << "]\n";
       }
-      if (task_wrapper->successors_.empty()) {
-        auto outputs = task->getAllOutput();
+      if (node_wrapper->successors_.empty()) {
+        auto outputs = node->getAllOutput();
         for (auto output : outputs) {
           oss << "p" << (void*)output << "[label=output]\n";
-          oss << "p" << (void*)task << "->"
+          oss << "p" << (void*)node << "->"
               << "p" << (void*)output;
           if (output->getName().empty()) {
             oss << "\n";
@@ -408,12 +409,12 @@ base::Status Pipeline::dump(std::ostream& oss) {
           }
         }
       } else {
-        for (auto successor : task_wrapper->successors_) {
-          oss << "p" << (void*)task << "->"
-              << "p" << (void*)(successor->task_);
-          auto outputs = task->getAllOutput();
-          auto inputs = successor->task_->getAllInput();
-          Packet* out_in = nullptr;
+        for (auto successor : node_wrapper->successors_) {
+          oss << "p" << (void*)node << "->"
+              << "p" << (void*)(successor->node_);
+          auto outputs = node->getAllOutput();
+          auto inputs = successor->node_->getAllInput();
+          Edge* out_in = nullptr;
           for (auto output : outputs) {
             for (auto input : inputs) {
               if (output == input) {
@@ -436,67 +437,67 @@ base::Status Pipeline::dump(std::ostream& oss) {
   return status;
 }
 
-PacketWrapper* Pipeline::findPacketWrapper(Packet* packet) {
-  for (auto packet_wrapper : packet_repository_) {
-    if (packet_wrapper->packet_ == packet) {
-      return packet_wrapper;
+EdgeWrapper* Graph::findEdgeWrapper(Edge* edge) {
+  for (auto edge_wrapper : edge_repository_) {
+    if (edge_wrapper->edge_ == edge) {
+      return edge_wrapper;
     }
   }
   return nullptr;
 }
-TaskWrapper* Pipeline::findTaskWrapper(const std::string& task_name) {
-  for (auto task_wrapper : task_repository_) {
-    if (task_wrapper->name_ == task_name) {
-      return task_wrapper;
+NodeWrapper* Graph::findNodeWrapper(const std::string& node_name) {
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->name_ == node_name) {
+      return node_wrapper;
     }
   }
   return nullptr;
 }
-TaskWrapper* Pipeline::findTaskWrapper(Task* task) {
-  for (auto task_wrapper : task_repository_) {
-    if (task_wrapper->task_ == task) {
-      return task_wrapper;
+NodeWrapper* Graph::findNodeWrapper(Node* node) {
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_ == node) {
+      return node_wrapper;
     }
   }
   return nullptr;
 }
 
-std::vector<TaskWrapper*> Pipeline::findStartTasks() {
-  std::vector<TaskWrapper*> start_tasks;
-  for (auto task_wrapper : task_repository_) {
-    if (task_wrapper->predecessors_.empty()) {
-      start_tasks.emplace_back(task_wrapper);
+std::vector<NodeWrapper*> Graph::findStartNodes() {
+  std::vector<NodeWrapper*> start_nodes;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->predecessors_.empty()) {
+      start_nodes.emplace_back(node_wrapper);
     }
   }
-  return start_tasks;
+  return start_nodes;
 }
 
-std::vector<TaskWrapper*> Pipeline::findEndTasks() {
-  std::vector<TaskWrapper*> end_tasks;
-  for (auto task_wrapper : task_repository_) {
-    if (task_wrapper->successors_.empty()) {
-      end_tasks.emplace_back(task_wrapper);
+std::vector<NodeWrapper*> Graph::findEndNodes() {
+  std::vector<NodeWrapper*> end_nodes;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->successors_.empty()) {
+      end_nodes.emplace_back(node_wrapper);
     }
   }
-  return end_tasks;
+  return end_nodes;
 }
 
-base::Status Pipeline::TopoSortBFS(TaskWrapper* task_wrapper) {
-  std::vector<Task*> dst;
-  task_wrapper->color_ = kTaskColorGray;
-  std::deque<TaskWrapper*> task_deque;
-  task_deque.emplace_back(task_wrapper);
-  while (!task_deque.empty()) {
-    TaskWrapper* task_wrapper = task_deque.front();
-    if (task_wrapper->color_ == kTaskColorBlack) {
-      task_deque.pop_front();
+base::Status Graph::TopoSortBFS(NodeWrapper* node_wrapper) {
+  std::vector<Node*> dst;
+  node_wrapper->color_ = kNodeColorGray;
+  std::deque<NodeWrapper*> node_deque;
+  node_deque.emplace_back(node_wrapper);
+  while (!node_deque.empty()) {
+    NodeWrapper* node_wrapper = node_deque.front();
+    if (node_wrapper->color_ == kNodeColorBlack) {
+      node_deque.pop_front();
       continue;
     }
     bool flag = false;
-    for (auto predecessor : task_wrapper->predecessors_) {
-      if (predecessor->color_ != kTaskColorBlack) {
-        predecessor->color_ = kTaskColorGray;
-        task_deque.emplace_front(predecessor);
+    for (auto predecessor : node_wrapper->predecessors_) {
+      if (predecessor->color_ != kNodeColorBlack) {
+        predecessor->color_ = kNodeColorGray;
+        node_deque.emplace_front(predecessor);
         flag = true;
         break;
       }
@@ -504,32 +505,32 @@ base::Status Pipeline::TopoSortBFS(TaskWrapper* task_wrapper) {
     if (flag) {
       continue;
     }
-    for (auto successor : task_wrapper->successors_) {
-      if (successor->color_ == kTaskColorBlack) {
-        NNDEPLOY_LOGE("Cycle detected in pipeline");
+    for (auto successor : node_wrapper->successors_) {
+      if (successor->color_ == kNodeColorBlack) {
+        NNDEPLOY_LOGE("Cycle detected in graph");
         return base::kStatusCodeErrorInvalidValue;
-      } else if (successor->color_ == kTaskColorWhite) {
-        successor->color_ = kTaskColorGray;
-        task_deque.emplace_back(successor);
+      } else if (successor->color_ == kNodeColorWhite) {
+        successor->color_ = kNodeColorGray;
+        node_deque.emplace_back(successor);
       }
     }
-    task_deque.pop_front();
-    task_wrapper->color_ = kTaskColorBlack;
-    dst.emplace_back(task_wrapper->task_);
+    node_deque.pop_front();
+    node_wrapper->color_ = kNodeColorBlack;
+    dst.emplace_back(node_wrapper->node_);
   }
-  topo_sort_task_.emplace_back(dst);
+  topo_sort_node_.emplace_back(dst);
   return base::kStatusCodeOk;
 }
 
-base::Status Pipeline::TopoSortDFS(TaskWrapper* task_wrapper,
-                                   std::stack<TaskWrapper*>& dst) {
+base::Status Graph::TopoSortDFS(NodeWrapper* node_wrapper,
+                                std::stack<NodeWrapper*>& dst) {
   base::Status status = base::kStatusCodeOk;
-  task_wrapper->color_ = kTaskColorGray;
-  for (auto successor : task_wrapper->successors_) {
-    if (successor->color_ == kTaskColorWhite) {
+  node_wrapper->color_ = kNodeColorGray;
+  for (auto successor : node_wrapper->successors_) {
+    if (successor->color_ == kNodeColorWhite) {
       status = TopoSortDFS(successor, dst);
-    } else if (successor->color_ == kTaskColorGray) {
-      NNDEPLOY_LOGE("Cycle detected in pipeline");
+    } else if (successor->color_ == kNodeColorGray) {
+      NNDEPLOY_LOGE("Cycle detected in graph");
       status = base::kStatusCodeErrorInvalidValue;
     } else {
       continue;
@@ -538,8 +539,8 @@ base::Status Pipeline::TopoSortDFS(TaskWrapper* task_wrapper,
   if (status != base::kStatusCodeOk) {
     return status;
   }
-  task_wrapper->color_ = kTaskColorBlack;
-  dst.push(task_wrapper);
+  node_wrapper->color_ = kNodeColorBlack;
+  dst.push(node_wrapper);
   return base::kStatusCodeOk;
 }
 
@@ -548,65 +549,64 @@ base::Status Pipeline::TopoSortDFS(TaskWrapper* task_wrapper,
  *
  * @return base::Status
  */
-base::Status Pipeline::topologicalSort() {
+base::Status Graph::topologicalSort() {
   base::Status status = base::kStatusCodeOk;
 
-  std::vector<TaskWrapper*> start_tasks = findStartTasks();
-  if (start_tasks.empty()) {
-    NNDEPLOY_LOGE("No start task found in pipeline");
+  std::vector<NodeWrapper*> start_nodes = findStartNodes();
+  if (start_nodes.empty()) {
+    NNDEPLOY_LOGE("No start node found in graph");
     return base::kStatusCodeErrorInvalidValue;
   }
-  PipelineParam* param = dynamic_cast<PipelineParam*>(this->param_.get());
+  GraphParam* param = dynamic_cast<GraphParam*>(this->param_.get());
   if (param->topo_sort_type_ == kTopoSortTypeBFS) {
-    for (auto task_wrapper : start_tasks) {
-      if (task_wrapper->color_ == kTaskColorBlack) {
+    for (auto node_wrapper : start_nodes) {
+      if (node_wrapper->color_ == kNodeColorBlack) {
         continue;
       }
-      status = TopoSortBFS(task_wrapper);
+      status = TopoSortBFS(node_wrapper);
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("TopoSortBFS failed");
         return status;
       }
     }
   } else {
-    std::stack<TaskWrapper*> dst;
-    for (auto task_wrapper : start_tasks) {
-      if (task_wrapper->color_ == kTaskColorBlack) {
+    std::stack<NodeWrapper*> dst;
+    for (auto node_wrapper : start_nodes) {
+      if (node_wrapper->color_ == kNodeColorBlack) {
         continue;
       }
-      status = TopoSortDFS(task_wrapper, dst);
+      status = TopoSortDFS(node_wrapper, dst);
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("TopoSortDFS failed");
         return status;
       }
     }
-    std::vector<Task*> task_dst;
+    std::vector<Node*> node_dst;
     while (!dst.empty()) {
-      task_dst.emplace_back(dst.top()->task_);
+      node_dst.emplace_back(dst.top()->node_);
       dst.pop();
     }
-    topo_sort_task_.emplace_back(task_dst);
+    topo_sort_node_.emplace_back(node_dst);
   }
 
   return status;
 }
 
-std::map<std::string, createPipelineFunc>& getGlobalPipelineCreatorMap() {
+std::map<std::string, createGraphFunc>& getGlobalGraphCreatorMap() {
   static std::once_flag once;
-  static std::shared_ptr<std::map<std::string, createPipelineFunc>> creators;
+  static std::shared_ptr<std::map<std::string, createGraphFunc>> creators;
   std::call_once(once, []() {
-    creators.reset(new std::map<std::string, createPipelineFunc>);
+    creators.reset(new std::map<std::string, createGraphFunc>);
   });
   return *creators;
 }
 
-Pipeline* createPipeline(const std::string& name,
-                         base::InferenceType inference_type,
-                         base::DeviceType device_type, Packet* input,
-                         Packet* output, base::ModelType model_type,
-                         bool is_path, std::vector<std::string> model_value) {
-  Pipeline* temp = nullptr;
-  auto& creater_map = getGlobalPipelineCreatorMap();
+Graph* createGraph(const std::string& name, base::InferenceType inference_type,
+                   base::DeviceType device_type, Edge* input, Edge* output,
+                   base::ModelType model_type, bool is_path,
+                   std::vector<std::string> model_value) {
+  Graph* temp = nullptr;
+  auto& creater_map = getGlobalGraphCreatorMap();
   if (creater_map.count(name) > 0) {
     temp = creater_map[name](name, inference_type, device_type, input, output,
                              model_type, is_path, model_value);

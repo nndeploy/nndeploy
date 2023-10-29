@@ -1,11 +1,10 @@
 
-#include "nndeploy/dag/task.h"
+#include "nndeploy/dag/node.h"
 
 namespace nndeploy {
 namespace dag {
 
-Task::Task(const std::string &name, Packet *input, Packet *output)
-    : name_(name) {
+Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
   if (input == nullptr || output == nullptr) {
     constructed_ = false;
   } else {
@@ -14,8 +13,8 @@ Task::Task(const std::string &name, Packet *input, Packet *output)
     constructed_ = true;
   }
 }
-Task::Task(const std::string &name, std::vector<Packet *> inputs,
-           std::vector<Packet *> outputs)
+Node::Node(const std::string &name, std::vector<Edge *> inputs,
+           std::vector<Edge *> outputs)
     : name_(name) {
   if (inputs.empty() || outputs.empty()) {
     constructed_ = false;
@@ -25,58 +24,58 @@ Task::Task(const std::string &name, std::vector<Packet *> inputs,
     constructed_ = true;
   }
 }
-Task::~Task() {
+Node::~Node() {
   constructed_ = false;
   initialized_ = false;
   is_running_ = false;
 }
 
-std::string Task::getName() { return name_; }
+std::string Node::getName() { return name_; }
 
-base::Status Task::setParam(base::Param *param) {
+base::Status Node::setParam(base::Param *param) {
   if (param_ != nullptr) {
     return param->copyTo(param_.get());
   }
   return base::kStatusCodeErrorNullParam;
 }
-base::Param *Task::getParam() { return param_.get(); }
+base::Param *Node::getParam() { return param_.get(); }
 
-Packet *Task::getInput(int index) {
+Edge *Node::getInput(int index) {
   if (inputs_.size() > index) {
     return inputs_[index];
   }
   return nullptr;
 }
-Packet *Task::getOutput(int index) {
+Edge *Node::getOutput(int index) {
   if (outputs_.size() > index) {
     return outputs_[index];
   }
   return nullptr;
 }
 
-std::vector<Packet *> Task::getAllInput() { return inputs_; }
-std::vector<Packet *> Task::getAllOutput() { return outputs_; }
+std::vector<Edge *> Node::getAllInput() { return inputs_; }
+std::vector<Edge *> Node::getAllOutput() { return outputs_; }
 
-bool Task::getConstructed() { return constructed_; }
-bool Task::getInitialized() { return initialized_; }
+bool Node::getConstructed() { return constructed_; }
+bool Node::getInitialized() { return initialized_; }
 
-bool Task::isRunning() { return is_running_; }
+bool Node::isRunning() { return is_running_; }
 
-void Task::setPipelineParallel(bool is_pipeline_parallel) {
+void Node::setPipelineParallel(bool is_pipeline_parallel) {
   is_pipeline_parallel_ = is_pipeline_parallel;
 }
-bool Task::isPipelineParallel() { return is_pipeline_parallel_; }
+bool Node::isPipelineParallel() { return is_pipeline_parallel_; }
 
-base::Status Task::init() {
+base::Status Node::init() {
   initialized_ = true;
   return base::kStatusCodeOk;
 }
-base::Status Task::deinit() {
+base::Status Node::deinit() {
   initialized_ = false;
   return base::kStatusCodeOk;
 }
 
-// base::Status Task::reshape() { return base::kStatusCodeOk; }
+// base::Status Node::reshape() { return base::kStatusCodeOk; }
 
 }  // namespace dag
 }  // namespace nndeploy

@@ -67,13 +67,13 @@
         <mxCell id="Ttfk6c4jHyExXrdg_O_r-119" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;Directed Acyclic Graph&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;/font&gt;&lt;br&gt;&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
           <mxGeometry x="3776" y="473" width="212" height="111" as="geometry" />
         </mxCell>
-        <mxCell id="Ttfk6c4jHyExXrdg_O_r-120" value="Task" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="Ttfk6c4jHyExXrdg_O_r-120" value="Node" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="3886" y="496.5" width="92" height="35" as="geometry" />
         </mxCell>
-        <mxCell id="Ttfk6c4jHyExXrdg_O_r-121" value="dag::Packet" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="Ttfk6c4jHyExXrdg_O_r-121" value="dag::Edge" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="3784" y="539" width="92" height="35" as="geometry" />
         </mxCell>
-        <mxCell id="Ttfk6c4jHyExXrdg_O_r-122" value="Pipeline" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="Ttfk6c4jHyExXrdg_O_r-122" value="Graph" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="3784" y="496.5" width="92" height="35" as="geometry" />
         </mxCell>
         <mxCell id="Ttfk6c4jHyExXrdg_O_r-123" value="..." style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
