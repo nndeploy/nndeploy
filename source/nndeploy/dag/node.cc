@@ -62,6 +62,11 @@ bool Task::getInitialized() { return initialized_; }
 
 bool Task::isRunning() { return is_running_; }
 
+void Task::setPipelineParallel(bool is_pipeline_parallel) {
+  is_pipeline_parallel_ = is_pipeline_parallel;
+}
+bool Task::isPipelineParallel() { return is_pipeline_parallel_; }
+
 base::Status Task::init() {
   initialized_ = true;
   return base::kStatusCodeOk;
@@ -71,7 +76,7 @@ base::Status Task::deinit() {
   return base::kStatusCodeOk;
 }
 
-base::Status Task::reshape() { return base::kStatusCodeOk; }
+// base::Status Task::reshape() { return base::kStatusCodeOk; }
 
 }  // namespace dag
 }  // namespace nndeploy

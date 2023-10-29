@@ -27,6 +27,13 @@ Loop::Loop(const std::string& name, std::vector<Packet*> inputs,
     : Task(name, inputs, outputs) {}
 Loop::~Loop() {}
 
+void Loop::setPipelineParallel(bool is_pipeline_parallel) {
+  Task::setPipelineParallel(is_pipeline_parallel);
+  if (loop_task_ != nullptr) {
+    loop_task_->setPipelineParallel(is_pipeline_parallel);
+  }
+}
+
 base::Status Loop::init() {
   base::Status status = base::kStatusCodeOk;
   status = loop_task_->init();
@@ -47,22 +54,22 @@ base::Status Loop::deinit() {
   return status;
 }
 
-base::Status Loop::reshape() {
-  base::Status status = base::kStatusCodeOk;
-  int size = loops();
-  if (size < 1) {
-    NNDEPLOY_LOGE("loops size is invalid!\n");
-    return base::kStatusCodeErrorInvalidValue;
-  }
-  for (int i = 0; i < size; i++) {
-    status = loop_task_->reshape();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Task reshape failed!\n");
-      return status;
-    }
-  }
-  return status;
-}
+// base::Status Loop::reshape() {
+//   base::Status status = base::kStatusCodeOk;
+//   int size = loops();
+//   if (size < 1) {
+//     NNDEPLOY_LOGE("loops size is invalid!\n");
+//     return base::kStatusCodeErrorInvalidValue;
+//   }
+//   for (int i = 0; i < size; i++) {
+//     status = loop_task_->reshape();
+//     if (status != base::kStatusCodeOk) {
+//       NNDEPLOY_LOGE("Task reshape failed!\n");
+//       return status;
+//     }
+//   }
+//   return status;
+// }
 
 base::Status Loop::run() {
   base::Status status = base::kStatusCodeOk;

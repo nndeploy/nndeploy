@@ -91,12 +91,14 @@ class NNDEPLOY_CC_API Condition : public Task {
   base::Status setTaskParam(const std::string& task_name, base::Param* param);
   base::Param* getTaskParam(const std::string& task_name);
 
+  virtual void setPipelineParallel(bool is_pipeline_parallel);
+
   virtual base::Status init();
   virtual base::Status deinit();
 
   virtual int choose() = 0;
 
-  virtual base::Status reshape();
+  // virtual base::Status reshape();
 
   virtual base::Status run();
 

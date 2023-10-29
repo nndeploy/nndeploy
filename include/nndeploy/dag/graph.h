@@ -146,10 +146,12 @@ class NNDEPLOY_CC_API Pipeline : public Task {
   base::Status setTaskParam(const std::string& task_name, base::Param* param);
   base::Param* getTaskParam(const std::string& task_name);
 
+  virtual void setPipelineParallel(bool is_pipeline_parallel);
+
   base::Status init();
   base::Status deinit();
 
-  base::Status reshape();
+  // base::Status reshape();
 
   base::Status run();
 

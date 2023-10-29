@@ -1,6 +1,4 @@
 
-#include "nndeploy/dag/pipeline.h"
-
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -11,6 +9,7 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/packet.h"
+#include "nndeploy/dag/pipeline.h"
 #include "nndeploy/dag/task.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
@@ -208,6 +207,13 @@ base::Param* Pipeline::getTaskParam(const std::string& task_name) {
   return task_wrapper->task_->getParam();
 }
 
+void Pipeline::setPipelineParallel(bool is_pipeline_parallel) {
+  Task::setPipelineParallel(is_pipeline_parallel);
+  for (auto task_wrapper : task_repository_) {
+    task_wrapper->task_->setPipelineParallel(is_pipeline_parallel);
+  }
+}
+
 base::Status Pipeline::init() {
   base::Status status = base::kStatusCodeOk;
 
@@ -320,22 +326,22 @@ base::Status Pipeline::deinit() {
   return status;
 }
 
-base::Status Pipeline::reshape() {
-  base::Status status = base::kStatusCodeOk;
-  // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Task reshape Phase!\n");
-  // NNDEPLOY_LOGI("#######################\n");
-  for (auto task_vec : topo_sort_task_) {
-    for (auto task : task_vec) {
-      status = task->reshape();
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("Task run failed!\n");
-        return status;
-      }
-    }
-  }
-  return status;
-}
+// base::Status Pipeline::reshape() {
+//   base::Status status = base::kStatusCodeOk;
+//   // NNDEPLOY_LOGI("#######################\n");
+//   // NNDEPLOY_LOGI("Task reshape Phase!\n");
+//   // NNDEPLOY_LOGI("#######################\n");
+//   for (auto task_vec : topo_sort_task_) {
+//     for (auto task : task_vec) {
+//       status = task->reshape();
+//       if (status != base::kStatusCodeOk) {
+//         NNDEPLOY_LOGE("Task run failed!\n");
+//         return status;
+//       }
+//     }
+//   }
+//   return status;
+// }
 
 base::Status Pipeline::run() {
   base::Status status = base::kStatusCodeOk;

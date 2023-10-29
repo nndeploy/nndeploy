@@ -97,12 +97,14 @@ class NNDEPLOY_CC_API Loop : public Task {
     return loop_task_;
   }
 
+  virtual void setPipelineParallel(bool is_pipeline_parallel);
+
   virtual base::Status init();
   virtual base::Status deinit();
 
   virtual int loops() = 0;
 
-  virtual base::Status reshape();
+  // virtual base::Status reshape();
 
   virtual base::Status run();
 

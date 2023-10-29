@@ -20,6 +20,8 @@ class NNDEPLOY_CC_API Infer : public dag::Task {
   virtual base::Status setParam(base::Param *param);
   virtual base::Param *getParam();
 
+  // virtual void setPipelineParallel(bool is_pipeline_parallel);
+
   virtual base::Status init();
   virtual base::Status deinit();
   virtual base::Status reshape();

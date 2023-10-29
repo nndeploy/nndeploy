@@ -46,6 +46,13 @@ base::Param* Condition::getTaskParam(const std::string& task_name) {
   return task->getParam();
 }
 
+void Condition::setPipelineParallel(bool is_pipeline_parallel) {
+  Task::setPipelineParallel(is_pipeline_parallel);
+  for (auto task : condition_task_) {
+    task->setPipelineParallel(is_pipeline_parallel);
+  }
+}
+
 base::Status Condition::init() {
   base::Status status = base::kStatusCodeOk;
   for (auto task : condition_task_) {
@@ -70,20 +77,20 @@ base::Status Condition::deinit() {
   return status;
 }
 
-base::Status Condition::reshape() {
-  base::Status status = base::kStatusCodeOk;
-  int index = choose();
-  if (index < 0 || index >= condition_task_.size()) {
-    NNDEPLOY_LOGE("choose index is invalid!\n");
-    return base::kStatusCodeErrorInvalidValue;
-  }
-  status = condition_task_[index]->reshape();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("Task reshape failed!\n");
-    return status;
-  }
-  return status;
-}
+// base::Status Condition::reshape() {
+//   base::Status status = base::kStatusCodeOk;
+//   int index = choose();
+//   if (index < 0 || index >= condition_task_.size()) {
+//     NNDEPLOY_LOGE("choose index is invalid!\n");
+//     return base::kStatusCodeErrorInvalidValue;
+//   }
+//   status = condition_task_[index]->reshape();
+//   if (status != base::kStatusCodeOk) {
+//     NNDEPLOY_LOGE("Task reshape failed!\n");
+//     return status;
+//   }
+//   return status;
+// }
 
 base::Status Condition::run() {
   base::Status status = base::kStatusCodeOk;

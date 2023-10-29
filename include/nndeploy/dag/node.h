@@ -19,6 +19,7 @@
 namespace nndeploy {
 namespace dag {
 
+// 每个task都要负责分配其输出的packet的内存
 class NNDEPLOY_CC_API Task {
  public:
   Task(const std::string& name, Packet* input, Packet* output);
@@ -43,10 +44,13 @@ class NNDEPLOY_CC_API Task {
 
   bool isRunning();
 
+  virtual void setPipelineParallel(bool is_pipeline_parallel);
+  bool isPipelineParallel();
+
   virtual base::Status init();
   virtual base::Status deinit();
 
-  virtual base::Status reshape();
+  // virtual base::Status reshape();
 
   virtual base::Status run() = 0;
 
@@ -59,6 +63,7 @@ class NNDEPLOY_CC_API Task {
   bool constructed_ = false;
   bool initialized_ = false;
   bool is_running_ = false;
+  bool is_pipeline_parallel_ = false;
 };
 
 using SingleIOTaskFunc = std::function<base::Status(
