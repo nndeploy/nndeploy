@@ -20,7 +20,7 @@
 
 ## 架构简介
 
-![架构简介](docs/image/arch.png)
+![Architecture](../image/architecture.jpg)
 
 ## `nndeploy` 的优势
 
@@ -186,8 +186,6 @@
 
 - **Device**：设备管理子模块。为不同的设备提供统一的内存分配、内存拷贝、执行流管理等操作。
 
-![阿Q正传.gif](docs/image/meme_aq.gif)
-
 ## TODO
 
 - 接入更多的推理框架，包括 `TFLite`、`TVM`、`OpenPPL`、`Tengine`、`AITemplate`、`RKNN`、`sophgo`、`MindSpore-lite`、`Horizen`等等推理软件栈
@@ -331,6 +329,82 @@ export LD_LIBRARY_PATH=PATH/nndeploy/build/install/bin:$LD_LIBRARY_PATH
 ./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeMnn --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx.mnn --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
 ```
 `注：请将上述PATH更换为自己对应的目录`
+
+## Build
+> We take `Ubuntu 22.04` as an example.
+
+1. download source-code
+  
+    ```shell
+    cd ~/
+
+    # download nndeploy source code
+    git clone --recursive https://github.com/Alwaysssssss/nndeploy.git
+
+    # download dependency
+    cd ~/nndeploy/third_party
+    wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/third_party/ubuntu22.04_x64.tar
+    tar -xavf ubuntu22.04_x64.tar
+    rm -rf ubuntu22.04_x64.tar
+    ```
+
+2. make `cmake/config.cmake` ready
+
+    ```
+    mkdir -p ~/nndeploy/build
+    cp nndeploy/cmake/config.cmake nndeploy/build
+    ```
+    then, set `ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME` to `"~/nndeploy/third_party/ubuntu22.04_x64/onnxruntime-linux-x64-1.15.1"`
+
+    you can learn more about `config.cmake` to customize  compilation options according to [config.cmake-options](docs\documents\config_cmake-options.md).
+
+3. make
+   
+     ```
+     cd ~/nndeploy/build
+     cmake ..
+     make -j4
+     ```
+
+4. installation
+   > nndeploy files will be installed to `build/install/lib/`
+   
+    ```
+    cd ~/nndeploy/build
+    make install
+    ```
+
+5. deploy model
+
+    > We will show how to run [YOLOv5s.onnx](https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg) by nndeploy in Linux with backend of `onnxruntime-CPU`. We use [input.jpg](https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg) as model input.
+
+    * prepare environment
+    ```shell
+    cd ~/nndeploy
+    # add library env to system_path
+    export LD_LIBRARY_PATH=$(pwd)/build/install/lib:$LD_LIBRARY_PATH
+
+    # install dependencice
+    sudo apt install libopencv-dev
+    ```
+    
+    * run
+    ```shell
+
+    # run
+    cd ~/nndeploy
+    ./demo_nndeploy_detect                                                \
+      --name NNDEPLOY_YOLOV5                                              \
+      --inference_type kInferenceTypeOnnxRuntime                          \
+      --device_type kDeviceTypeCodeX86:0                                  \
+      --model_type kModelTypeOnnx                                         \
+      --is_path                                                           \
+      --model_value $your_path/YOLOv5s.onnx                               \
+      --input_type kInputTypeImage                                        \
+      --input_path $your_path/input.jpg                                   \
+      --output_path $your_path/output.jpg
+    ```
+    You can learn more about the usage of nndeploy by [user manual]().
 
 ## 社区文档
 - [Always](https://github.com/Alwaysssssss)，[02200059Z](https://github.com/02200059Z):《[nndeploy综述](https://zhuanlan.zhihu.com/p/656359928)》

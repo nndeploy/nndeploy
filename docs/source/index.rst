@@ -14,13 +14,31 @@ Welcome to nndeploy's documentation!
 
 .. toctree::
    :maxdepth: 1
-   :caption: 使用教程
+   :caption: 快速开始
 
-   user_guide/deploy_a_new_algorithm
-   user_guide/export_model
+   quick_start/quick_start
+
+.. toctree::
+   :maxdepth: 1
+   :caption: model
+
+   model/deploy_a_new_model
+   model/export_model
+
+.. toctree::
+   :maxdepth: 1
+   :caption: inference
+
+   inference/new_inference
+
+.. toctree::
+   :maxdepth: 1
+   :caption: op
+
+   op/todo
 
 .. toctree::
    :maxdepth: 1
    :caption: 常见问题
    
-   question_answer/question_answer
+   faq/faq
