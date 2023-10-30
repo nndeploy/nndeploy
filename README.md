@@ -2,7 +2,7 @@
 [简体中文](README_CN.md) | English
 
 ## Introduction
-nndeploy is a cross-platform, high-performing, and user-friendly AI model deployment framework. We strive to deliver a consistent and user-friendly experience across various inference framework backends in complex deployment environments and focus on performance.
+nndeploy is a cross-platform, high-performing, and straightforward AI model deployment framework. We strive to deliver a consistent and user-friendly experience across various inference framework backends in complex deployment environments and focus on performance.
 
 ## Architecture
 ![Architecture](docs/image/architecture.jpg)
