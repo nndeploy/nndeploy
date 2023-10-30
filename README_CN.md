@@ -55,7 +55,7 @@
 - **算法部署简单**：将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 `Graph`，前处理为一个 `Node`，推理也为一个 `Node`，后处理也为一个 `Node`，提供了高性能的前后处理模板和推理模板，上述模板可帮助您进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题。
 
 ## 文档
-- 更多信息，访问 nndeploy 文档。
+- 更多信息，访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/introduction/index.html)。
 
 ## Roadmap
 - 有向无环图的各种各种的并行，提升模型性能

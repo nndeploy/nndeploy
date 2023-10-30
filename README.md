@@ -55,7 +55,7 @@ nndeploy's primary purpose is user friendliness and high performance. We have bu
 If you have any related questions, feel free to contact us. 😁
 
 ## Document
-- For more information, please visit the nndeploy documentation.
+- For more information, please visit the [nndeploy documentation](https://nndeploy-zh.readthedocs.io/zh/latest/introduction/index.html).
 
 ## Roadmap
 - Parallel
