@@ -1,20 +1,19 @@
 
-[English](README.md) | 简体中文
+[简体中文](README_CN.md) | English
 
-## 介绍
+## Introduction
+nndeploy is a cross-platform, high-performing, and straightforward AI model deployment framework. We strive to deliver a consistent and user-friendly experience across various inference framework backends in complex deployment environments and focus on performance.
 
-`nndeploy`是一款跨平台、高性能、简单易用的模型端到端部署框架。我们致力于屏蔽不同推理软硬件设施差异，提供一致且用户友好的编程体验，同时专注于部署推理性能。
-
-## 架构
-
+## Architecture
 ![Architecture](docs/image/architecture.jpg)
 
-## 特性
+## Fetures
 
-### 1. 支持多平台和多一致性
+### 1. cross-platform and consistent
 
-只要环境受支持，通过`nndeploy`部署模型的代码无需修改即可跨多个平台以及各多个推理框架使用。
-当前支持的环境如下：
+As long as the environment is supported, the code for deploying models through nndeploy can be used across multiple platforms without modification, regardless of the operating system and inference framework.
+
+The current supported environment is as follows, which will continue to be updated in the future:
 
 | Inference/OS                                               | Linux | Windows | Android | MacOS |  IOS  | developer                                 | remarks |
 | :--------------------------------------------------------- | :---: | :-----: | :-----: | :---: | :---: | :---------------------------------------- | :-----: |
@@ -27,21 +26,20 @@
 | [coreML](https://github.com/apple/coremltools)             |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)   |         |
 | [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang) |         |
 
-**Notice:** TFLite, TVM, OpenPPL, RKNN, sophgo, MindSpore-lite, Horizon正在开发中，我们正在努力覆盖绝大部分的主流推理框架
+**Notice:** TFLite, TVM, OpenPPL, Tengine, AITemplate, RKNN, sophgo, MindSpore-lite, Horizon are also on the agenda as we work to cover mainstream inference frameworks
 
-### 2. 高性能
+### 2. High Performance
 
-- **推理框架的高性能抽象**：每个推理框架也都有其各自的特性，需要足够尊重以及理解这些推理框架，才能在抽象中不丢失推理框架的特性，并做到统一的使用的体验。`nndeploy` 可配置第三方推理框架绝大部分参数，保证了推理性能。可直接操作理框架内部分配的输入输出，实现前后处理的零拷贝，提升模型部署端到端的性能。
-  
-- 线程池正在开发完善中，可实现有向无环图的流水线并行
-  
-- 内存池正在开发完善中，可实现高效的内存分配与释放
-  
-- 一组高性能的算子正在开发中，完成后将加速您模型前后处理速度
+The difference of model structure, inference framework and hardware resource will lead to different inference performance. nndeploy deeply understands and preserves as much as possible the features of the back-end inference framework without compromising the computational efficiency of the native inference framework with a consistent code experience. In addition, we realize the efficient connection between the pre/post-processing and the model inference process through the exquisitely designed memory zero copy, which effectively guarantees the end-to-end delay of model inference.
 
-### 3. 直接可用的算法
+What's more, we are developing and refining the following:
+* **Thread Pool**: better pipelined parallel optimization
+* **Memory Pool**: more efficient memory allocation and release
+* **HPC Operators**: optimize pre/post-processing efficiency
 
-目前已完成 [YOLOV5](https://github.com/ultralytics/yolov5)、[YOLOV6](https://github.com/meituan/YOLOv6)、[YOLOV8](https://github.com/ultralytics) 等模型的部署，可供您直接使用，后续我们持续不断去部署其它开源模型，让您开箱即用
+### 3. Models built-in
+
+Out-of-the-box AI models are our goal, but our are focusing on development of the system at this time. Nevertheless, [YOLOv5](https://github.com/ultralytics/yolov5), [YOLOv6](https://github.com/meituan/YOLOv6), [YOLOv8](https://github.com/ultralytics) are already supported, and it is believed that the list will soon be expanded.
 
 | model                                           | Inference                         | developer                                                                            | remarks |
 | :---------------------------------------------- | :-------------------------------- | :----------------------------------------------------------------------------------- | :-----: |
@@ -49,28 +47,30 @@
 | [YOLOV6](https://github.com/meituan/YOLOv6)     | TensorRt/OpenVINO/ONNXRuntime     | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
 | [YOLOV8](https://github.com/ultralytics)        | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
 
-### 高性能
 
-- **一套代码多端部署**：通过切换推理配置，一套代码即可在多端部署，算法的使用接口简单易用。
-- **算法部署简单**：将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 `Graph`，前处理为一个 `Node`，推理也为一个 `Node`，后处理也为一个 `Node`，提供了高性能的前后处理模板和推理模板，上述模板可帮助您进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题。
+### 4. user-friendly
 
-## 文档
-- 更多信息，访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/introduction/index.html)。
+nndeploy's primary purpose is user friendliness and high performance. We have built-in support for the major inference frameworks and provide them with a unified interface abstraction on which you can implement platform/framework independent inference code without worrying about performance loss. We now provide additional templates for the pre/post-processing for AI algorithms, which can help you simplify the end-to-end deployment process of the model, and the built-in algorithms mentioned above are also part of the ease of use.
+
+If you have any related questions, feel free to contact us. 😁
+
+## Document
+- For more information, please visit the [nndeploy documentation](https://nndeploy-zh.readthedocs.io/zh/latest/introduction/index.html).
 
 ## Roadmap
-- 有向无环图的各种各种的并行，提升模型性能
-- 接入更多的算法，例如ppocr、sam、detr等，一个是去更充分的验证我们这个框架，另一个是让更多人可以知道nndeploy
-- 接入更多的推理框架，例如rknn(rknn在工业场景使用的非常非常多)
-- 从0到1搭建OP模块，提升性能
+- Parallel
+- More Model
+- More Inference
+- OP
 
-## 编译状态
+## Support
 | OS      |                                                                      status                                                                      |
 | ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
 | Linux   |  [![linux](https://ci.appveyor.com/api/projects/status/a135va7wtjot4iaw?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-pdc3k)  |
 | Macos   |     [![macos](https://ci.appveyor.com/api/projects/status/7sey9eqhfnnedqi2?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy)     |
 | Windows | [![windows](https://ci.appveyor.com/api/projects/status/4gsf91utksd7v595?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-ovpc5) |
 
-## 参考
+# Reference
 - [TNN](https://github.com/Tencent/TNN)
 - [FastDeploy](https://github.com/PaddlePaddle/FastDeploy)
 - [opencv](https://github.com/opencv/opencv)
@@ -81,14 +81,10 @@
 - [ThreadPool](https://github.com/progschj/ThreadPool)
 - [torchpipe](https://github.com/torchpipe/torchpipe)
 
-## 加入我们
-- `nndeploy`还处于初级阶段，欢迎参与，我们一起打造最简单易用、高性能的模型端到端部署框架
-- 微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy+姓名)
+## Contact Us
 
+> nndeploy is still in its infancy, welcome to join us.
+
+* Wechat：titian5566
+  
   <img align="left" src="docs/image/wechat.jpg" width="225px">
-
-
-
-
-
-
