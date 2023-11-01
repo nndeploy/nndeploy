@@ -75,7 +75,5 @@ base::Status Node::deinit() {
   return base::kStatusCodeOk;
 }
 
-// base::Status Node::reshape() { return base::kStatusCodeOk; }
-
 }  // namespace dag
 }  // namespace nndeploy

@@ -50,8 +50,6 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status init();
   virtual base::Status deinit();
 
-  // virtual base::Status reshape();
-
   virtual base::Status run() = 0;
 
  protected:
