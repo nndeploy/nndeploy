@@ -1,5 +1,5 @@
 
-> 项目地址：<https://github.com/Alwaysssssss/nndeploy>
+> 项目地址：<https://github.com/DeployAI/nndeploy>
 
 # 介绍
 
@@ -13,7 +13,7 @@
 
 # 架构简介
 
-![Architecture](../image/architecture.jpg)
+![Architecture](../../image/architecture.jpg)
 
 # `nndeploy` 的优势
 

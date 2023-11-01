@@ -49,7 +49,7 @@
 | [YOLOV6](https://github.com/meituan/YOLOv6)     | TensorRt/OpenVINO/ONNXRuntime     | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
 | [YOLOV8](https://github.com/ultralytics)        | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
 
-### 高性能
+### 4. 简单易用
 
 - **一套代码多端部署**：通过切换推理配置，一套代码即可在多端部署，算法的使用接口简单易用。
 - **算法部署简单**：将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 `Graph`，前处理为一个 `Node`，推理也为一个 `Node`，后处理也为一个 `Node`，提供了高性能的前后处理模板和推理模板，上述模板可帮助您进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题。
