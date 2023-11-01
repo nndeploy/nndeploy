@@ -75,12 +75,14 @@
  *
  */
 #ifndef NNDEPLOY_UP_DIV
-#define NNDEPLOY_UP_DIV(x, y) ((static_cast<int>(x) + static_cast<int>(y) - (1)) / static_cast<int>(y))
+#define NNDEPLOY_UP_DIV(x, y) \
+  ((static_cast<int>(x) + static_cast<int>(y) - (1)) / static_cast<int>(y))
 #endif
 
 #ifndef NNDEPLOY_ROUND_UP
-#define NNDEPLOY_ROUND_UP(x, y) \
-  ((static_cast<int>(x) + static_cast<int>(y) - (1)) / static_cast<int>(y) * static_cast<int>(y))
+#define NNDEPLOY_ROUND_UP(x, y)                                              \
+  ((static_cast<int>(x) + static_cast<int>(y) - (1)) / static_cast<int>(y) * \
+   static_cast<int>(y))
 #endif
 
 #ifndef NNDEPLOY_ALIGN_UP4

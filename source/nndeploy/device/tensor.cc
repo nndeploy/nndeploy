@@ -443,8 +443,8 @@ BufferSourceType Tensor::getBufferSourceType() {
   }
 }
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
-getGlobalTensorCreatorMap() {
+std::map<base::TensorType, std::shared_ptr<TensorCreator>>
+    &getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorType, std::shared_ptr<TensorCreator>>>

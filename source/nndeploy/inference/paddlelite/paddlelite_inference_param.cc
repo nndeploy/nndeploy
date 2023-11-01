@@ -16,7 +16,7 @@ PaddleLiteInferenceParam::PaddleLiteInferenceParam() : InferenceParam() {
 PaddleLiteInferenceParam::~PaddleLiteInferenceParam() {}
 
 base::Status PaddleLiteInferenceParam::parse(const std::string &json,
-                                           bool is_path) {
+                                             bool is_path) {
   base::Status status = InferenceParam::parse(json, is_path);
   if (status != base::kStatusCodeOk) {
     // TODO: log
@@ -27,12 +27,12 @@ base::Status PaddleLiteInferenceParam::parse(const std::string &json,
 }
 
 base::Status PaddleLiteInferenceParam::set(const std::string &key,
-                                         base::Value &value) {
+                                           base::Value &value) {
   return base::kStatusCodeOk;
 }
 
 base::Status PaddleLiteInferenceParam::get(const std::string &key,
-                                         base::Value &value) {
+                                           base::Value &value) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

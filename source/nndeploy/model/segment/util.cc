@@ -9,7 +9,7 @@ namespace model {
 /// @param device 设备指针
 /// @param data_format 数据排布格式
 /// @param name tensor名称
-/// @return 
+/// @return
 NNDEPLOY_CC_API device::Tensor* convertVectorToTensor(
     std::vector<float>& data, std::vector<int> dst_shape,
     device::Device* device, base::DataFormat data_format, std::string name) {
