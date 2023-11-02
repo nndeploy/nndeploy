@@ -40,7 +40,9 @@ base::Status PaddleLiteInference::init() {
 }
 
 base::Status PaddleLiteInference::deinit() {
-  base::Status status = base::kStatusCodeOk;
+  base::Status status = deallocateInputOutputTensor();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "deallocateInputOutputTensor failed!!\n");
   return status;
 }
 
