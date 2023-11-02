@@ -75,9 +75,13 @@ class WorkerThread {
         thread_id_(thread_id),
         stop_(false),
         active_wait_(2000) {
-    thread_ = std::thread(
-        [](void* work_thread) { ((WorkerThread*)work_thread)->loop_body(); },
-        this);
+    // 检查线程是否能够成功启动，如果不能则抛出异常。  
+    if (thread_.joinable()) { // 如果线程可join，说明线程已经启动过了，抛出异常。  
+       NNDEPLOY_LOGE("Thread already started\n");  
+    }   
+    else { // 如果线程不可join，说明线程未启动，可以启动。  
+      thread_ = std::thread([this] { this->loop_body(); });  // 启动线程，并赋值给thread_成员变量。  
+    }  
   }
 
   ~WorkerThread() {
@@ -119,7 +123,7 @@ class WorkerThread {
       allow_active_wait = true;
 
       std::shared_ptr<ParallelJob> j_ptr;
-      swap(j_ptr, job_);
+      j_ptr.swap(job_);
       awake_ = false;
       lock.unlock();
 
@@ -138,7 +142,7 @@ class WorkerThread {
       if (active == completed_) {
         bool need_notify = !j_ptr->completed_;
         j_ptr->completed_ = true;
-        j_ptr = nullptr;
+	j_ptr.reset();
         if (need_notify) {
           std::unique_lock<std::mutex> tlock(parallel_pool_.mutex_notify_);
           tlock.unlock();
@@ -188,10 +192,10 @@ void ParallelPool::parallelFor(const base::Range& range,
     body(range);
     return;
   }
-
-  setWorkThreads(thread_num_ - 1);
-  job_ = std::shared_ptr<ParallelJob>(
-      new ParallelJob(*this, range, body, nstripes));
+  if (!job_) {
+    setWorkThreads(thread_num_ - 1);
+    job_ = std::make_shared<ParallelJob>(*this, range, body, nstripes);
+  }
   lock.unlock();
 
   for (size_t i = 0; i < work_threads_.size(); ++i) {
@@ -240,7 +244,7 @@ void ParallelPool::parallelFor(const base::Range& range,
 
   if (job_) {
     std::unique_lock<std::mutex> lock(pool_mutex_);
-    job_ = nullptr;
+    job_.reset();
   }
 }
 
@@ -249,24 +253,23 @@ bool ParallelPool::setWorkThreads(int num) {
     return false;
   }
 
-  if (num < work_threads_.size()) {
-    std::vector<std::shared_ptr<WorkerThread> > release_threads(
-        work_threads_.size() - num);
-    for (size_t i = num; i < work_threads_.size(); ++i) {
-      std::unique_lock<std::mutex> lock(work_threads_[i]->thread_mutex_);
-      work_threads_[i]->stop();
-      work_threads_[i]->awake_ = true;
-      lock.unlock();
-      work_threads_[i]->cond_thread_wake_.notify_all();
-      std::swap(work_threads_[i], release_threads[i - num]);
+  size_t old_size = work_threads_.size();
+  if (num < old_size) {
+    std::vector<std::shared_ptr<WorkerThread>> release_threads;
+    for (size_t i = num; i < old_size; ++i) {
+      release_threads.emplace_back(std::move(work_threads_[i]));
     }
     work_threads_.resize(num);
-    release_threads.clear();
+    for (auto& thread : release_threads) {
+      thread->stop();
+      thread->awake_ = true;
+      thread->cond_thread_wake_.notify_all();
+    }
     return false;
   } else {
-    for (size_t i = work_threads_.size(); i < num; ++i) {
+    for (size_t i = old_size; i < num; ++i) {
       work_threads_.emplace_back(
-          std::shared_ptr<WorkerThread>(new WorkerThread(*this, (unsigned)i)));
+          std::make_shared<WorkerThread>(*this, static_cast<unsigned>(i)));
     }
   }
   return false;

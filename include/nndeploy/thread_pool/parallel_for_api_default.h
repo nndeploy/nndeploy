@@ -42,7 +42,7 @@ class ParallelPool {
   std::mutex pool_mutex_;
   int thread_num_;
   std::vector<std::shared_ptr<WorkerThread>> work_threads_;
-  std::shared_ptr<ParallelJob> job_;
+  std::shared_ptr<ParallelJob> job_ = nullptr;
   const int active_wait_;
 };
 
