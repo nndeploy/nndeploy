@@ -21,7 +21,7 @@ class ParallelJob {
   ~ParallelJob() {}
 
   int run() {
-    int total_cnt = range_.size();
+    int total_cnt = static_cast<int>(range_.size());
     int step = 1;
 
     if (nstripes_ <= 1) {
@@ -30,7 +30,7 @@ class ParallelJob {
     } else {
       step = nstripes_;
     }
-
+    std::vector<std::future<void>> futures;
     for (;;) {
       int start = cur_position_.fetch_add(step, std::memory_order_seq_cst);
       if (start >= total_cnt) {
@@ -38,10 +38,18 @@ class ParallelJob {
       }
 
       int end = std::min(total_cnt, start + step);
-
-      body_(base::Range(range_.start_ + start, range_.start_ + end));
+      // 将并行任务提交给线程池执行，并获取对应的future对象
+      std::future<void> fut = std::async(
+          std::launch::async, std::bind(&ParallelLoopBody::operator(), &body_, std::placeholders::_1), 
+          base::Range(range_.start_ + start, range_.start_ + end));
+      futures.emplace_back(std::move(fut));
     }
-
+    // 检查任务是否成功完成，如果未成功完成则抛出异常。
+    for (auto& fut : futures) {
+      if (fut.wait_for(std::chrono::milliseconds(300)) != std::future_status::ready) {
+          NNDEPLOY_LOGE("Task failed to complete within 300ms\n");
+      }
+    }
     return 0;
   }
 
@@ -142,7 +150,7 @@ class WorkerThread {
       if (active == completed_) {
         bool need_notify = !j_ptr->completed_;
         j_ptr->completed_ = true;
-	j_ptr.reset();
+        j_ptr.reset();
         if (need_notify) {
           std::unique_lock<std::mutex> tlock(parallel_pool_.mutex_notify_);
           tlock.unlock();
