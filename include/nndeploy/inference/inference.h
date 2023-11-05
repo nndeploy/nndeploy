@@ -323,6 +323,14 @@ class NNDEPLOY_CC_API Inference {
    */
   virtual base::Status run() = 0;
 
+  /**
+   * @brief Get the Output Tensor object
+   *
+   * @param name
+   * @return device::Tensor*
+   */
+  virtual device::Tensor *getOutputTensor(const std::string &name);
+
  protected:
   /**
    * @brief 推理框架的类型

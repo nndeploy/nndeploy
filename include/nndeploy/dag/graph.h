@@ -19,12 +19,6 @@
 namespace nndeploy {
 namespace dag {
 
-enum NodeColorType : int {
-  kNodeColorWhite = 0x0000,
-  kNodeColorGray,
-  kNodeColorBlack
-};
-
 class NodeWrapper {
  public:
   bool is_external_;
@@ -42,8 +36,6 @@ class EdgeWrapper {
   std::vector<NodeWrapper*> producers_;
   std::vector<NodeWrapper*> consumers_;
 };
-
-enum TopoSortType : int { kTopoSortTypeBFS = 0x0000, kTopoSortTypeDFS };
 
 class NNDEPLOY_CC_API GraphParam : public base::Param {
  public:

@@ -20,15 +20,37 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
   virtual base::Status setParam(base::Param *param);
   virtual base::Param *getParam();
 
+  // virtual void setPipelineParallel(bool is_pipeline_parallel);
+
   virtual base::Status init();
   virtual base::Status deinit();
+  virtual base::Status reshape();
   virtual base::Status run();
 
   virtual inference::Inference *getInference();
 
  private:
+  template <bool is_input_dynamic, bool is_output_dynamic, bool can_op_input,
+            bool can_op_output>
+  base::Status initTemplate();
+  template <bool is_input_dynamic, bool is_output_dynamic, bool can_op_input,
+            bool can_op_output>
+  base::Status deinitTemplate();
+  template <bool is_input_dynamic, bool is_output_dynamic, bool can_op_input,
+            bool can_op_output>
+  base::Status reshapeTemplate();
+
+  base::Status initDefault();
+  base::Status deinitDefault();
+  base::Status reshapeDefault();
+  base::Status runDefault();
+
+ private:
   base::InferenceType type_;
   inference::Inference *inference_ = nullptr;
+
+  std::vector<device::Tensor *> input_tensors_;
+  std::vector<device::Tensor *> output_tensors_;
 
   bool is_input_dynamic_ = false;
   bool is_output_dynamic_ = false;

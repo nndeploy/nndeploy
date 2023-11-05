@@ -10,6 +10,7 @@
 #include "nndeploy/base/opencv_include.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
+#include "nndeploy/dag/type.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -19,280 +20,159 @@
 namespace nndeploy {
 namespace dag {
 
-class NNDEPLOY_CC_API Edge {
+class Node;
+
+enum EdgeFlag : int {
+  kEdgeFlagBuffer,
+  kEdgeFlagMat = 1,
+#ifdef ENABLE_NNDEPLOY_OPENCV
+  kEdgeFlagCvMat = 2,
+#endif
+  kEdgeFlagTensor = 4,
+  kEdgeFlagParam = 8,
+
+  kEdgeFlagVoid = 1 << 30,
+
+  kEdgeFlagNone = 1 << 31,
+};
+
+class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
  public:
-  Edge(const std::string &name = "") : name_(name) {}
-  virtual ~Edge() {}
+  AbstractEdge() {}
+  virtual ~AbstractEdge() {}
+  virtual base::Status set(device::Buffer *buffer, bool is_external = true,
+                           int pts = -1) = 0;
+  virtual base::Status set(device::Buffer &buffer, bool is_external = true,
+                           int pts = -1) = 0;
+  virtual base::Status set(device::Mat *mat, bool is_external = true,
+                           int pts = -1) = 0;
+  virtual base::Status set(device::Mat &mat, bool is_external = true,
+                           int pts = -1) = 0;
+#ifdef ENABLE_NNDEPLOY_OPENCV
+  virtual base::Status set(cv::Mat *cv_mat, bool is_external = true,
+                           int pts = -1) = 0;
+  virtual base::Status set(cv::Mat &cv_mat, bool is_external = true,
+                           int pts = -1) = 0;
+#endif
+  virtual base::Status set(device::Tensor *tensor, bool is_external = true,
+                           int pts = -1) = 0;
+  virtual base::Status set(device::Tensor &tensor, bool is_external = true,
+                           int pts = -1) = 0;
+  virtual base::Status set(base::Param *param, bool is_external = true,
+                           int pts = -1) = 0;
+  virtual base::Status set(base::Param &param, bool is_external = true,
+                           int pts = -1) = 0;
+  virtual base::Status set(void *anything, bool is_external = true,
+                           int pts = -1) = 0;
+
+  virtual base::Status create(device::Device *device,
+                              const device::BufferDesc &desc) = 0;
+  virtual base::Status create(device::Device *device,
+                              const device::TensorDesc &desc,
+                              const std::string &name) = 0;
+  virtual base::Status create(device::Device *device,
+                              const device::MatDesc &desc,
+                              const std::string &name) = 0;
+
+  virtual device::Buffer *getBuffer() = 0;
+  virtual device::Mat *getMat() = 0;
+#ifdef ENABLE_NNDEPLOY_OPENCV
+  virtual cv::Mat *getCvMat() = 0;
+#endif
+  virtual device::Tensor *getTensor() = 0;
+  virtual base::Param *getParam() = 0;
+  virtual base::Status *getAnything() = 0;
+
+  bool isExternal() { return is_external_; }
+  int getPts() { return pts_; }
+
+ private:
+  bool is_external_ = true;
+  EdgeFlag flag_ = kEdgeFlagNone;
+  int pts_ = -1;
+  std::vector<Node *> producers_;
+  std::vector<Node *> consumers_;
+};
+
+class NNDEPLOY_CC_API FixedEdge : public AbstractEdge {
+  void *anything_;
+};
+
+// typedef std::map<int, void *> ConsumedAnything;
+
+class NNDEPLOY_CC_API PipelineEdge : public AbstractEdge {
+  thread_pool::SafeQueue<int> alread_consumed_;
+  thread_pool::SafeQueue<void *> anything_;
+  std::map<Node *, int> consumed_;
+};
+
+/**
+ * @brief 需要保证Edge和Mat、Tensor名字一致
+ *
+ */
+class NNDEPLOY_CC_API Edge : public base::NonCopyable {
+ public:
+  Edge() : name_(""), abstact_edge_(nullptr) {}
+  Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
+  virtual ~Edge() { delete abstact_edge_; }
 
   std::string getName() { return name_; }
 
-  void set(device::Buffer *buffer, int index = 0) {
-    if (index >= buffers_.size()) {
-      buffers_.resize(index + 1);
-    }
-    buffers_[index] = buffer;
-  }
-  void set(device::Buffer &buffer, int index = 0) {
-    if (index >= buffers_.size()) {
-      buffers_.resize(index + 1);
-    }
-    buffers_[index] = &buffer;
-  }
-  void set(device::Mat *mat, int index = 0) {
-    if (index >= mats_.size()) {
-      mats_.resize(index + 1);
-    }
-    mats_[index] = mat;
-  }
-  void set(device::Mat &mat, int index = 0) {
-    if (index >= mats_.size()) {
-      mats_.resize(index + 1);
-    }
-    mats_[index] = &mat;
-  }
-  void set(device::Tensor *tensor, int index = 0) {
-    if (index >= tensors_.size()) {
-      tensors_.resize(index + 1);
-    }
-    tensors_[index] = tensor;
-  }
-  void set(device::Tensor &tensor, int index = 0) {
-    if (index >= tensors_.size()) {
-      tensors_.resize(index + 1);
-    }
-    tensors_[index] = &tensor;
-  }
-  void set(base::Param *param, int index = 0) {
-    if (index >= params_.size()) {
-      params_.resize(index + 1);
-    }
-    params_[index] = param;
-  }
-  void set(base::Param &param, int index = 0) {
-    if (index >= params_.size()) {
-      params_.resize(index + 1);
-    }
-    params_[index] = &param;
-  }
-  void set(void *anything, int index = 0) {
-    if (index >= anythings_.size()) {
-      anythings_.resize(index + 1);
-    }
-    anythings_[index] = anything;
-  }
-#ifdef ENABLE_NNDEPLOY_OPENCV
-  void set(cv::Mat *cv_mat, int index = 0) {
-    if (index >= cv_mats_.size()) {
-      cv_mats_.resize(index + 1);
-    }
-    cv_mats_[index] = cv_mat;
-  }
-  void set(cv::Mat &cv_mat, int index = 0) {
-    if (index >= cv_mats_.size()) {
-      cv_mats_.resize(index + 1);
-    }
-    cv_mats_[index] = &cv_mat;
-  }
-#endif
+  base::Status construct(ParallelType paralle_type,
+                         std::initializer_list<Node *> producers,
+                         std::initializer_list<Node *> consumers);
 
-  device::Buffer *getBuffer(int index = 0) {
-    if (index >= buffers_.size()) {
-      return nullptr;
-    }
-    return buffers_[index];
-  }
-  device::Mat *getMat(int index = 0) {
-    if (index >= mats_.size()) {
-      return nullptr;
-    }
-    return mats_[index];
-  }
-  device::Tensor *getTensor(int index = 0) {
-    if (index >= tensors_.size()) {
-      return nullptr;
-    }
-    return tensors_[index];
-  }
-  device::Tensor *getTensor(const std::string &name) {
-    for (auto tensor : tensors_) {
-      if (name == tensor->getName()) {
-        return tensor;
-      }
-    }
-    return nullptr;
-  }
-  base::Param *getParam(int index = 0) {
-    if (index >= params_.size()) {
-      return nullptr;
-    }
-    return params_[index];
-  }
-  void *getAnything(int index) {
-    if (index >= anythings_.size()) {
-      return nullptr;
-    }
-    return anythings_[index];
-  }
+  base::Status set(device::Buffer *buffer, bool is_external = true,
+                   int pts = -1);
+  base::Status set(device::Buffer &buffer, bool is_external = true,
+                   int pts = -1);
+  base::Status set(device::Mat *mat, bool is_external = true, int pts = -1);
+  base::Status set(device::Mat &mat, bool is_external = true, int pts = -1);
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  cv::Mat *getCvMat(int index = 0) {
-    if (index >= cv_mats_.size()) {
-      return nullptr;
-    }
-    return cv_mats_[index];
-  }
+  base::Status set(cv::Mat *cv_mat, bool is_external = true, int pts = -1);
+  base::Status set(cv::Mat &cv_mat, bool is_external = true, int pts = -1);
 #endif
+  base::Status set(device::Tensor *tensor, bool is_external = true,
+                   int pts = -1);
+  base::Status set(device::Tensor &tensor, bool is_external = true,
+                   int pts = -1);
+  base::Status set(base::Param *param, bool is_external = true, int pts = -1);
+  base::Status set(base::Param &param, bool is_external = true, int pts = -1);
+  base::Status set(void *anything, bool is_external = true, int pts = -1);
 
-  std::vector<device::Buffer *> getAllBuffer() { return buffers_; }
-  std::vector<device::Mat *> getAllMat() { return mats_; }
-  std::vector<device::Tensor *> getAllTensor() { return tensors_; }
-  std::vector<base::Param *> getAllParam() { return params_; }
-  std::vector<void *> getAllAnything() { return anythings_; }
-#ifdef ENABLE_NNDEPLOY_OPENCV
-  std::vector<cv::Mat *> getAllCvMat() { return cv_mats_; }
-#endif
+  base::Status create(device::Device *device, const device::BufferDesc &desc,
+                      int pts = -1);
+  base::Status create(device::Device *device, const device::TensorDesc &desc,
+                      int pts = -1);
+  base::Status create(device::Device *device, const device::MatDesc &desc,
+                      int pts = -1);
 
-  void push_back(device::Buffer *buffer) { buffers_.emplace_back(buffer); }
-  void push_back(device::Buffer &buffer) { buffers_.emplace_back(&buffer); }
-  void push_back(device::Mat *mat) { mats_.emplace_back(mat); }
-  void push_back(device::Mat &mat) { mats_.emplace_back(&mat); }
-  void push_back(device::Tensor *tensor) { tensors_.emplace_back(tensor); }
-  void push_back(device::Tensor &tensor) { tensors_.emplace_back(&tensor); }
-  void push_back(base::Param *param) { params_.emplace_back(param); }
-  void push_back(base::Param &param) { params_.emplace_back(&param); }
-  void push_back(void *anything) { anythings_.emplace_back(anything); }
+  device::Buffer *getBuffer();
+  device::Mat *getMat();
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  void push_back(cv::Mat *cv_mat) { cv_mats_.emplace_back(cv_mat); }
-  void push_back(cv::Mat &cv_mat) { cv_mats_.emplace_back(&cv_mat); }
+  cv::Mat *getCvMat();
 #endif
+  device::Tensor *getTensor();
+  base::Param *getParam();
+  void *getAnything();
 
-  void erase(device::Buffer *buffer) {
-    auto it = std::find(buffers_.begin(), buffers_.end(), buffer);
-    if (it != buffers_.end()) {
-      buffers_.erase(it);
-    }
-  }
-  void erase(device::Buffer &buffer) {
-    auto it = std::find(buffers_.begin(), buffers_.end(), &buffer);
-    if (it != buffers_.end()) {
-      buffers_.erase(it);
-    }
-  }
-  void erase(device::Mat *mat) {
-    auto it = std::find(mats_.begin(), mats_.end(), mat);
-    if (it != mats_.end()) {
-      mats_.erase(it);
-    }
-  }
-  void erase(device::Mat &mat) {
-    auto it = std::find(mats_.begin(), mats_.end(), &mat);
-    if (it != mats_.end()) {
-      mats_.erase(it);
-    }
-  }
-  void erase(device::Tensor *tensor) {
-    auto it = std::find(tensors_.begin(), tensors_.end(), tensor);
-    if (it != tensors_.end()) {
-      tensors_.erase(it);
-    }
-  }
-  void erase(device::Tensor &tensor) {
-    auto it = std::find(tensors_.begin(), tensors_.end(), &tensor);
-    if (it != tensors_.end()) {
-      tensors_.erase(it);
-    }
-  }
-  void erase(base::Param *param) {
-    auto it = std::find(params_.begin(), params_.end(), param);
-    if (it != params_.end()) {
-      params_.erase(it);
-    }
-  }
-  void erase(base::Param &param) {
-    auto it = std::find(params_.begin(), params_.end(), &param);
-    if (it != params_.end()) {
-      params_.erase(it);
-    }
-  }
-  void erase(void *anything) {
-    auto it = std::find(anythings_.begin(), anythings_.end(), anything);
-    if (it != anythings_.end()) {
-      anythings_.erase(it);
-    }
-  }
+  device::Buffer *getBuffer(const Node *comsumer);
+  device::Mat *getMat(const Node *comsumer);
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  void erase(cv::Mat *cv_mat) {
-    auto it = std::find(cv_mats_.begin(), cv_mats_.end(), cv_mat);
-    if (it != cv_mats_.end()) {
-      cv_mats_.erase(it);
-    }
-  }
-  void erase(cv::Mat &cv_mat) {
-    auto it = std::find(cv_mats_.begin(), cv_mats_.end(), &cv_mat);
-    if (it != cv_mats_.end()) {
-      cv_mats_.erase(it);
-    }
-  }
+  cv::Mat *getCvMat(const Node *comsumer);
 #endif
+  device::Tensor *getTensor(const Node *comsumer);
+  base::Param *getParam(const Node *comsumer);
+  void *getAnything(const Node *comsumer);
 
-  void clear() {
-    clearBuffer();
-    clearMat();
-    clearTensor();
-    clearParam();
-    clearAnything();
-#ifdef ENABLE_NNDEPLOY_OPENCV
-    clearCvMat();
-#endif
-  }
-  void clearBuffer() { buffers_.clear(); }
-  void clearMat() { mats_.clear(); }
-  void clearTensor() { tensors_.clear(); }
-  void clearParam() { params_.clear(); }
-  void clearAnything() { anythings_.clear(); }
-#ifdef ENABLE_NNDEPLOY_OPENCV
-  void clearCvMat() { cv_mats_.clear(); }
-#endif
-
-  size_t sizeBuffer() { return buffers_.size(); }
-  size_t sizeMat() { return mats_.size(); }
-  size_t sizeTensor() { return tensors_.size(); }
-  size_t sizeParam() { return params_.size(); }
-  size_t sizeAnything() { return anythings_.size(); }
-#ifdef ENABLE_NNDEPLOY_OPENCV
-  size_t sizeCvMat() { return cv_mats_.size(); }
-#endif
-
-  bool empty() {
-    bool flag = emptyBuffer() && emptyMat() && emptyTensor() && emptyParam() &&
-                emptyAnything();
-#ifdef ENABLE_NNDEPLOY_OPENCV
-    flag = flag && emptyCvMat();
-#endif
-    return flag;
-  }
-  bool emptyBuffer() { return buffers_.empty(); }
-  bool emptyMat() { return mats_.empty(); }
-  bool emptyTensor() { return tensors_.empty(); }
-  bool emptyParam() { return params_.empty(); }
-  bool emptyAnything() { return anythings_.empty(); }
-#ifdef ENABLE_NNDEPLOY_OPENCV
-  bool emptyCvMat() { return cv_mats_.empty(); }
-#endif
+  int getPts();
 
  private:
   std::string name_;
-
-  std::vector<device::Buffer *> buffers_;
-  std::vector<device::Mat *> mats_;
-  std::vector<device::Tensor *> tensors_;
-  std::vector<base::Param *> params_;
-  std::vector<void *> anythings_;
-#ifdef ENABLE_NNDEPLOY_OPENCV
-  std::vector<cv::Mat *> cv_mats_;
-#endif
+  AbstractEdge *abstact_edge_;
 };
 
 }  // namespace dag
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_DAG_EDGE_H_ */
+#endif /* _NNDEPLOY_DAG_EDGE_V2_H_ */
