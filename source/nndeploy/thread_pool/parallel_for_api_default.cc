@@ -21,7 +21,7 @@ class ParallelJob {
   ~ParallelJob() {}
 
   int run() {
-    int total_cnt = range_.size();
+    int total_cnt = static_cast<int>(range_.size());
     int step = 1;
 
     if (nstripes_ <= 1) {
@@ -31,7 +31,7 @@ class ParallelJob {
       step = nstripes_;
     }
 
-    for (;;) {
+    while (true) {
       int start = cur_position_.fetch_add(step, std::memory_order_seq_cst);
       if (start >= total_cnt) {
         break;
@@ -142,7 +142,7 @@ class WorkerThread {
       if (active == completed_) {
         bool need_notify = !j_ptr->completed_;
         j_ptr->completed_ = true;
-	j_ptr.reset();
+        j_ptr.reset();
         if (need_notify) {
           std::unique_lock<std::mutex> tlock(parallel_pool_.mutex_notify_);
           tlock.unlock();
@@ -192,10 +192,12 @@ void ParallelPool::parallelFor(const base::Range& range,
     body(range);
     return;
   }
+
   if (!job_) {
     setWorkThreads(thread_num_ - 1);
     job_ = std::make_shared<ParallelJob>(*this, range, body, nstripes);
   }
+
   lock.unlock();
 
   for (size_t i = 0; i < work_threads_.size(); ++i) {
@@ -221,25 +223,13 @@ void ParallelPool::parallelFor(const base::Range& range,
   if (job_->completed_ || job_->active_thread_num_ == 0) {
     job_->completed_ = true;
   } else {
-    if (active_wait_ > 0) {
-      for (int i = 0; i < active_wait_; i++) {
-        if (job_->completed_) {
-          break;
-        }
-
-        std::this_thread::yield();
-      }
-    }
-
-    if (!job_->completed_) {
-      std::unique_lock<std::mutex> tlock(mutex_notify_);
-      for (;;) {
-        if (job_->completed_) {
-          break;
-        }
-        job_complete_.wait(tlock);
-      }
-    }
+    bool completed = false;
+    std::unique_lock<std::mutex> tlock(mutex_notify_);
+    //job_complete_.wait(tlock, [this] { return job_->completed_; });
+    job_complete_.wait(tlock, [this, &completed] { 
+        completed = std::atomic_load(&job_->completed_);
+        return completed; 
+    });
   }
 
   if (job_) {
