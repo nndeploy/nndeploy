@@ -17,3 +17,7 @@ if (ENABLE_NNDEPLOY_MODEL_SEGMENT)
   include(${ROOT_PATH}/demo/segment/config.cmake)
 endif()
 
+if (ENABLE_NNDEPLOY_DEMO_PIPELINE_DAG)
+  include(${ROOT_PATH}/demo/pipeline_dag/config.cmake)
+endif()
+

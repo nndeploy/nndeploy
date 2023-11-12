@@ -41,6 +41,9 @@ enum StatusCode : int {
   kStatusCodeErrorInferenceNcnn,
   kStatusCodeErrorInferencePaddleLite,
   kStatusCodeErrorInferenceTvm,
+
+  // dag
+  kStatusCodeErrorDagQueueFull,
 };
 
 class NNDEPLOY_CC_API Status {
