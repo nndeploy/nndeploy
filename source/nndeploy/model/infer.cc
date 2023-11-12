@@ -65,9 +65,12 @@ base::Status Infer::run() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   for (auto output : outputs_) {
     std::string name = output->getName();
-  }
-  if (1) {
-  } else {
+    dag::ParallelType parallel_type = output->getParallelType();
+    if (parallel_type &
+        dag::kParallelTypePipeline == dag::kParallelTypePipeline) {
+      device::Tensor *tensor = inference_->getOutputTensor(name, true, );
+    } else {
+    }
   }
   return status;
 }
