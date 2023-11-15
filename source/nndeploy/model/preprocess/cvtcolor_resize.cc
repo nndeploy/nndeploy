@@ -32,7 +32,7 @@ base::Status CvtColorResize::run() {
   desc.shape_.emplace_back(tmp_param->h_);
   desc.shape_.emplace_back(tmp_param->w_);
   outputs_[0]->create(device, desc);
-  device::Tensor* dst = outputs_[0]->getTensor();
+  device::Tensor* dst = outputs_[0]->getTensor(this);
 
   int c = dst->getChannel();
   int h = dst->getHeight();

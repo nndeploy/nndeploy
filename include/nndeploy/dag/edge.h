@@ -87,11 +87,6 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
   int getPts() { return pts_; }
 
  private:
-  bool is_external_ = true;
-  EdgeFlag flag_ = kEdgeFlagNone;
-  int pts_ = -1;
-  std::vector<Node *> producers_;
-  std::vector<Node *> consumers_;
 };
 
 class NNDEPLOY_CC_API FixedEdge : public AbstractEdge {
@@ -101,6 +96,12 @@ class NNDEPLOY_CC_API FixedEdge : public AbstractEdge {
 // typedef std::map<int, void *> ConsumedAnything;
 
 class NNDEPLOY_CC_API PipelineEdge : public AbstractEdge {
+  bool is_external_ = true;
+  EdgeFlag flag_ = kEdgeFlagNone;
+  int pts_ = -1;
+  std::vector<Node *> producers_;
+  std::vector<Node *> consumers_;
+
   thread_pool::SafeQueue<int> alread_consumed_;
   thread_pool::SafeQueue<void *> anything_;
   std::map<Node *, int> consumed_;
@@ -122,50 +123,42 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
                          std::initializer_list<Node *> producers,
                          std::initializer_list<Node *> consumers);
 
-  base::Status set(device::Buffer *buffer, bool is_external = true,
-                   int pts = -1);
-  base::Status set(device::Buffer &buffer, bool is_external = true,
-                   int pts = -1);
-  base::Status set(device::Mat *mat, bool is_external = true, int pts = -1);
-  base::Status set(device::Mat &mat, bool is_external = true, int pts = -1);
-#ifdef ENABLE_NNDEPLOY_OPENCV
-  base::Status set(cv::Mat *cv_mat, bool is_external = true, int pts = -1);
-  base::Status set(cv::Mat &cv_mat, bool is_external = true, int pts = -1);
-#endif
-  base::Status set(device::Tensor *tensor, bool is_external = true,
-                   int pts = -1);
-  base::Status set(device::Tensor &tensor, bool is_external = true,
-                   int pts = -1);
-  base::Status set(base::Param *param, bool is_external = true, int pts = -1);
-  base::Status set(base::Param &param, bool is_external = true, int pts = -1);
-  base::Status set(void *anything, bool is_external = true, int pts = -1);
-
+  base::Status set(device::Buffer *buffer, int index_ = -1,
+                   bool is_external = true);
+  base::Status set(device::Buffer &buffer, int index_ = -1,
+                   bool is_external = true);
   base::Status create(device::Device *device, const device::BufferDesc &desc,
-                      int pts = -1);
-  base::Status create(device::Device *device, const device::TensorDesc &desc,
-                      int pts = -1);
-  base::Status create(device::Device *device, const device::MatDesc &desc,
-                      int pts = -1);
-
-  device::Buffer *getBuffer();
-  device::Mat *getMat();
-#ifdef ENABLE_NNDEPLOY_OPENCV
-  cv::Mat *getCvMat();
-#endif
-  device::Tensor *getTensor();
-  base::Param *getParam();
-  void *getAnything();
-
+                      int index_ = -1);
   device::Buffer *getBuffer(const Node *comsumer);
+
+  base::Status set(device::Mat *mat, int index_ = -1, bool is_external = true);
+  base::Status set(device::Mat &mat, int index_ = -1, bool is_external = true);
+  base::Status create(device::Device *device, const device::MatDesc &desc,
+                      int index_ = -1);
   device::Mat *getMat(const Node *comsumer);
+
 #ifdef ENABLE_NNDEPLOY_OPENCV
+  base::Status set(cv::Mat *cv_mat, int index_ = -1, bool is_external = true);
+  base::Status set(cv::Mat &cv_mat, int index_ = -1, bool is_external = true);
   cv::Mat *getCvMat(const Node *comsumer);
 #endif
+
+  base::Status set(device::Tensor *tensor, int index_ = -1,
+                   bool is_external = true);
+  base::Status set(device::Tensor &tensor, int index_ = -1,
+                   bool is_external = true);
+  base::Status create(device::Device *device, const device::TensorDesc &desc,
+                      int index_ = -1);
   device::Tensor *getTensor(const Node *comsumer);
+
+  base::Status set(base::Param *param, bool is_external = true, int pts = -1);
+  base::Status set(base::Param &param, bool is_external = true, int pts = -1);
   base::Param *getParam(const Node *comsumer);
+
+  base::Status set(void *anything, bool is_external = true, int pts = -1);
   void *getAnything(const Node *comsumer);
 
-  int getPts();
+  int getIndex(const Node *comsumer);
 
  private:
   std::string name_;

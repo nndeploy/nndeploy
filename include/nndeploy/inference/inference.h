@@ -304,17 +304,6 @@ class NNDEPLOY_CC_API Inference {
    */
   virtual base::Status setInputTensor(const std::string &name,
                                       device::Tensor *input_tensor);
-  /**
-   * @brief Set the Output Tensor object
-   *
-   * @param name
-   * @param output_tensor
-   * @return base::Status
-   * @details
-   * 传入外部的tensor
-   */
-  virtual base::Status setOutputTensor(const std::string &name,
-                                       device::Tensor *output_tensor);
 
   /**
    * @brief 推理
@@ -329,7 +318,8 @@ class NNDEPLOY_CC_API Inference {
    * @param name
    * @return device::Tensor*
    */
-  virtual device::Tensor *getOutputTensor(const std::string &name);
+  virtual device::Tensor *getOutputTensorAfterRun(const std::string &name,
+                                                  bool is_external);
 
  protected:
   /**
@@ -372,12 +362,6 @@ class NNDEPLOY_CC_API Inference {
    * 外部输入tensor的map，也可以是input_tensors_
    */
   std::map<std::string, device::Tensor *> external_input_tensors_;
-  /**
-   * @brief 外部输出tensor的map
-   * @details
-   * 外部输出tensor的map，也可以是output_tensors_
-   */
-  std::map<std::string, device::Tensor *> external_output_tensors_;
 };
 
 /**

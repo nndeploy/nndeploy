@@ -68,8 +68,11 @@ base::Status Infer::run() {
     dag::ParallelType parallel_type = output->getParallelType();
     if (parallel_type &
         dag::kParallelTypePipeline == dag::kParallelTypePipeline) {
-      device::Tensor *tensor = inference_->getOutputTensor(name, true, );
+      device::Tensor *tensor = inference_->getOutputTensorAfterRun(name, true);
+      output->set(tensor, false);
     } else {
+      device::Tensor *tensor = inference_->getOutputTensorAfterRun(name, false);
+      output->set(tensor, true);
     }
   }
   return status;
