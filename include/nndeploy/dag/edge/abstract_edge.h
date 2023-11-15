@@ -9,6 +9,8 @@
 #include "nndeploy/base/opencv_include.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
+#include "nndeploy/dag/edge/data_packet.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/dag/type.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
@@ -77,6 +79,33 @@ class AbstractEdge : public base::NonCopyable {
   std::vector<Node *> consumers_;
 };
 
+class EdgeCreator {
+ public:
+  virtual ~EdgeCreator(){};
+  virtual Edge *createEdge(ParallelType paralle_type,
+                           std::initializer_list<Node *> producers,
+                           std::initializer_list<Node *> consumers) = 0;
+};
+
+template <typename T>
+class TypeEdgeCreator : public EdgeCreator {
+  virtual Edge *createEdge(ParallelType paralle_type,
+                           std::initializer_list<Node *> producers,
+                           std::initializer_list<Node *> consumers) {
+    return new T(paralle_type, producers, consumers);
+  }
+};
+
+std::map<ParallelType, std::shared_ptr<EdgeCreator>> &getGlobalEdgeCreatorMap();
+
+template <typename T>
+class TypeEdgeRegister {
+ public:
+  explicit TypeEdgeRegister(base::EdgeType type) {
+    getGlobalEdgeCreatorMap()[type] = std::shared_ptr<T>(new T());
+  }
+};
+
 AbstractEdge *createEdge(ParallelType paralle_type,
                          std::initializer_list<Node *> producers,
                          std::initializer_list<Node *> consumers);
@@ -84,4 +113,4 @@ AbstractEdge *createEdge(ParallelType paralle_type,
 }  // namespace dag
 }  // namespace nndeploy
 
-#endif /* E89A600B_4DA6_4278_B3D4_5AEBE24E8745 */
+#endif

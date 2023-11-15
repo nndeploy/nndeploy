@@ -72,12 +72,11 @@ class PipelineEdge : public AbstractEdge {
   virtual int getIndex(const Node *comsumer) = 0;
 
  private:
-  thread_pool::SafeQueue<int> alread_consumed_;
-  thread_pool::SafeQueue<DataPacket *> data_packet_;
+  thread_pool::SafeVector<std::map<DataPacket *, int>> data_packet_;
   std::map<Node *, int> consumed_;
 };
 
 }  // namespace dag
 }  // namespace nndeploy
 
-#endif /* E89A600B_4DA6_4278_B3D4_5AEBE24E8745 */
+#endif
