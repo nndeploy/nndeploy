@@ -71,10 +71,13 @@ class DataPacket : public base::NonCopyable {
   int getIndex();
 
  private:
+  void destory();
+
+ private:
   bool is_external_ = true;
-  int index;
+  int index_ = -1;
   Flag flag_ = kFlagNone;
-  void *anything_;
+  void *anything_ = nullptr;
 };
 
 }  // namespace dag
