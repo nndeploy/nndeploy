@@ -37,46 +37,42 @@ class DataPacket : public base::NonCopyable {
   DataPacket();
   virtual ~DataPacket();
 
-  base::Status set(device::Buffer *buffer, int index_ = -1,
-                   bool is_external = true);
-  base::Status set(device::Buffer &buffer, int index_ = -1,
-                   bool is_external = true);
+  base::Status set(device::Buffer *buffer, int index, bool is_external);
+  base::Status set(device::Buffer &buffer, int index, bool is_external);
   base::Status create(device::Device *device, const device::BufferDesc &desc,
-                      int index_ = -1);
+                      int index);
   device::Buffer *getBuffer();
 
-  base::Status set(device::Mat *mat, int index_ = -1, bool is_external = true);
-  base::Status set(device::Mat &mat, int index_ = -1, bool is_external = true);
+  base::Status set(device::Mat *mat, int index, bool is_external);
+  base::Status set(device::Mat &mat, int index, bool is_external);
   base::Status create(device::Device *device, const device::MatDesc &desc,
-                      int index_ = -1);
+                      int index);
   device::Mat *getMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  base::Status set(cv::Mat *cv_mat, int index_ = -1, bool is_external = true);
-  base::Status set(cv::Mat &cv_mat, int index_ = -1, bool is_external = true);
+  base::Status set(cv::Mat *cv_mat, int index, bool is_external);
+  base::Status set(cv::Mat &cv_mat, int index, bool is_external);
   cv::Mat *getCvMat();
 #endif
 
-  base::Status set(device::Tensor *tensor, int index_ = -1,
-                   bool is_external = true);
-  base::Status set(device::Tensor &tensor, int index_ = -1,
-                   bool is_external = true);
+  base::Status set(device::Tensor *tensor, int index, bool is_external);
+  base::Status set(device::Tensor &tensor, int index, bool is_external);
   base::Status create(device::Device *device, const device::TensorDesc &desc,
-                      int index_ = -1);
+                      int index);
   device::Tensor *getTensor();
 
-  base::Status set(base::Param *param, bool is_external = true, int pts = -1);
-  base::Status set(base::Param &param, bool is_external = true, int pts = -1);
+  base::Status set(base::Param *param, int index, bool is_external);
+  base::Status set(base::Param &param, int index, bool is_external);
   base::Param *getParam();
 
-  base::Status set(void *anything, bool is_external = true, int pts = -1);
+  base::Status set(void *anything, int index, bool is_external);
   void *getAnything();
 
   int getIndex();
 
  private:
   bool is_external_ = true;
-  int index_ = -1;
+  int index;
   Flag flag_ = kFlagNone;
   void *anything_;
 };

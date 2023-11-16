@@ -25,50 +25,38 @@ class FixedEdge : public AbstractEdge {
             std::initializer_list<Node *> consumers);
   virtual ~FixedEdge();
 
-  virtual base::Status set(device::Buffer *buffer, int index_ = -1,
-                           bool is_external = true) = 0;
-  virtual base::Status set(device::Buffer &buffer, int index_ = -1,
-                           bool is_external = true) = 0;
+  virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
+  virtual base::Status set(device::Buffer &buffer, int index, bool is_external);
   virtual base::Status create(device::Device *device,
-                              const device::BufferDesc &desc,
-                              int index_ = -1) = 0;
-  virtual device::Buffer *getBuffer(const Node *comsumer) = 0;
+                              const device::BufferDesc &desc, int index);
+  virtual device::Buffer *getBuffer(const Node *comsumer);
 
-  virtual base::Status set(device::Mat *mat, int index_ = -1,
-                           bool is_external = true) = 0;
-  virtual base::Status set(device::Mat &mat, int index_ = -1,
-                           bool is_external = true) = 0;
+  virtual base::Status set(device::Mat *mat, int index, bool is_external);
+  virtual base::Status set(device::Mat &mat, int index, bool is_external);
   virtual base::Status create(device::Device *device,
-                              const device::MatDesc &desc, int index_ = -1) = 0;
-  virtual device::Mat *getMat(const Node *comsumer) = 0;
+                              const device::MatDesc &desc, int index);
+  virtual device::Mat *getMat(const Node *comsumer);
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  virtual base::Status set(cv::Mat *cv_mat, int index_ = -1,
-                           bool is_external = true) = 0;
-  virtual base::Status set(cv::Mat &cv_mat, int index_ = -1,
-                           bool is_external = true) = 0;
-  virtual cv::Mat *getCvMat(const Node *comsumer) = 0;
+  virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
+  virtual base::Status set(cv::Mat &cv_mat, int index, bool is_external);
+  virtual cv::Mat *getCvMat(const Node *comsumer);
 #endif
 
-  virtual base::Status set(device::Tensor *tensor, int index_ = -1,
-                           bool is_external = true) = 0;
-  virtual base::Status set(device::Tensor &tensor, int index_ = -1,
-                           bool is_external = true) = 0;
+  virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
+  virtual base::Status set(device::Tensor &tensor, int index, bool is_external);
   virtual base::Status create(device::Device *device,
-                              const device::TensorDesc &desc, int index_ = -1);
-  virtual device::Tensor *getTensor(const Node *comsumer) = 0;
+                              const device::TensorDesc &desc, int index);
+  virtual device::Tensor *getTensor(const Node *comsumer);
 
-  virtual base::Status set(base::Param *param, bool is_external = true,
-                           int pts = -1) = 0;
-  virtual base::Status set(base::Param &param, bool is_external = true,
-                           int pts = -1) = 0;
-  virtual base::Param *getParam(const Node *comsumer) = 0;
+  virtual base::Status set(base::Param *param, int index, bool is_external);
+  virtual base::Status set(base::Param &param, int index, bool is_external);
+  virtual base::Param *getParam(const Node *comsumer);
 
-  virtual base::Status set(void *anything, bool is_external = true,
-                           int pts = -1) = 0;
-  virtual void *getAnything(const Node *comsumer) = 0;
+  virtual base::Status set(void *anything, int index, bool is_external);
+  virtual void *getAnything(const Node *comsumer);
 
-  virtual int getIndex(const Node *comsumer) = 0;
+  virtual int getIndex(const Node *comsumer);
 
  private:
   DataPacket *data_packet_;

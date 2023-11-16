@@ -29,6 +29,7 @@ class NNDEPLOY_CC_API Buffer : public base::NonCopyable {
   Buffer(BufferPool *buffer_pool, const BufferDesc &desc, int id,
          BufferSourceType buffer_source_type);
 
+ public:
   virtual ~Buffer();
 
  public:
@@ -62,6 +63,8 @@ class NNDEPLOY_CC_API Buffer : public base::NonCopyable {
    */
   int ref_count_ = 0;
 };
+
+void destory(device::Buffer *buffer);
 
 }  // namespace device
 }  // namespace nndeploy

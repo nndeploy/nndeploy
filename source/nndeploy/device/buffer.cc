@@ -86,5 +86,15 @@ int Buffer::getId() { return data_id_; }
 
 BufferSourceType Buffer::getBufferSourceType() { return buffer_source_type_; }
 
+void destory(device::Buffer *buffer) {
+  if (buffer->isBufferPool()) {
+    BufferPool *pool = buffer->getBufferPool();
+    pool->deallocate(buffer);
+  } else {
+    Device *device = buffer->getDevice();
+    device->deallocate(buffer);
+  }
+}
+
 }  // namespace device
 }  // namespace nndeploy

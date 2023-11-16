@@ -73,7 +73,7 @@ class AbstractEdge : public base::NonCopyable {
 
   virtual int getIndex(const Node *comsumer) = 0;
 
- private:
+ protected:
   ParallelType paralle_type_;
   std::vector<Node *> producers_;
   std::vector<Node *> consumers_;
@@ -82,16 +82,16 @@ class AbstractEdge : public base::NonCopyable {
 class EdgeCreator {
  public:
   virtual ~EdgeCreator(){};
-  virtual Edge *createEdge(ParallelType paralle_type,
-                           std::initializer_list<Node *> producers,
-                           std::initializer_list<Node *> consumers) = 0;
+  virtual AbstractEdge *createEdge(ParallelType paralle_type,
+                                   std::initializer_list<Node *> producers,
+                                   std::initializer_list<Node *> consumers) = 0;
 };
 
 template <typename T>
 class TypeEdgeCreator : public EdgeCreator {
-  virtual Edge *createEdge(ParallelType paralle_type,
-                           std::initializer_list<Node *> producers,
-                           std::initializer_list<Node *> consumers) {
+  virtual AbstractEdge *createEdge(ParallelType paralle_type,
+                                   std::initializer_list<Node *> producers,
+                                   std::initializer_list<Node *> consumers) {
     return new T(paralle_type, producers, consumers);
   }
 };
@@ -101,7 +101,7 @@ std::map<ParallelType, std::shared_ptr<EdgeCreator>> &getGlobalEdgeCreatorMap();
 template <typename T>
 class TypeEdgeRegister {
  public:
-  explicit TypeEdgeRegister(base::EdgeType type) {
+  explicit TypeEdgeRegister(ParallelType type) {
     getGlobalEdgeCreatorMap()[type] = std::shared_ptr<T>(new T());
   }
 };
