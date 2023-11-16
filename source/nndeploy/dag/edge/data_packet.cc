@@ -38,7 +38,7 @@ base::Status DataPacket::create(device::Device *device,
       buffer = device->allocate(desc);
     } else {
       buffer = (device::Buffer *)(anything_);
-      if (buffer->desc() != desc) {
+      if (buffer->getDesc() != desc) {
         destory();
         buffer = device->allocate(desc);
       }
@@ -50,14 +50,60 @@ base::Status DataPacket::create(device::Device *device,
   anything_ = (void *)(&buffer);
 }
 device::Buffer *DataPacket::getBuffer() {
-  return (device::Buffer *)(anything_);
+  if (flag_ != kFlagBuffer) {
+    return nullptr;
+  } else {
+    return (device::Buffer *)(anything_);
+  }
 }
 
-base::Status DataPacket::set(device::Mat *mat, int index, bool is_external);
-base::Status DataPacket::set(device::Mat &mat, int index, bool is_external);
+base::Status DataPacket::set(device::Mat *mat, int index, bool is_external) {
+  if (mat != anything_) {
+    destory();
+  }
+  is_external_ = is_external;
+  index_ = index;
+  flag_ = kFlagMat;
+  anything_ = (void *)mat;
+}
+base::Status DataPacket::set(device::Mat &mat, int index, bool is_external) {
+  if (&mat != anything_) {
+    destory();
+  }
+  is_external_ = is_external;
+  index_ = index;
+  flag_ = kFlagMat;
+  anything_ = (void *)(&mat);
+}
 base::Status DataPacket::create(device::Device *device,
-                                const device::MatDesc &desc, int index);
-device::Mat *getMat();
+                                const device::MatDesc &desc, int index) {
+  device::Mat *mat = nullptr;
+  if (anything_ == nullptr) {
+    mat = new device::Mat(device, desc);
+  } else {
+    if (flag_ != kFlagMat) {
+      destory();
+      mat = new device::Mat(device, desc);
+    } else {
+      mat = (device::Mat *)(anything_);
+      if (Mat->getDesc() != desc) {
+        destory();
+        mat = new device::Mat(device, desc);
+      }
+    }
+  }
+  is_external_ = false;
+  index_ = index;
+  flag_ = kFlagBuffer;
+  anything_ = (void *)(&mat);
+}
+device::Mat *DataPacket::getMat() {
+  if (flag_ != kFlagMat) {
+    return nullptr;
+  } else {
+    return (device::Mat *)(anything_);
+  }
+}
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status DataPacket::set(cv::Mat *cv_mat, int index, bool is_external);
