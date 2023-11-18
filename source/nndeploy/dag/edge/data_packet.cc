@@ -108,7 +108,7 @@ device::Mat *DataPacket::getMat() {
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status DataPacket::set(cv::Mat *cv_mat, int index, bool is_external);
 base::Status DataPacket::set(cv::Mat &cv_mat, int index, bool is_external);
-cv::Mat *getCvMat();
+cv::Mat *DataPacket::getCvMat();
 #endif
 
 base::Status DataPacket::set(device::Tensor *tensor, int index,
@@ -117,16 +117,22 @@ base::Status DataPacket::set(device::Tensor &tensor, int index,
                              bool is_external);
 base::Status DataPacket::create(device::Device *device,
                                 const device::TensorDesc &desc, int index);
-device::Tensor *getTensor();
+device::Tensor *DataPacket::getTensor();
 
 base::Status DataPacket::set(base::Param *param, int index, bool is_external);
 base::Status DataPacket::set(base::Param &param, int index, bool is_external);
-base::Param *getParam();
+base::Param *DataPacket::getParam();
 
 base::Status DataPacket::set(void *anything, int index, bool is_external);
-void *getAnything();
+void *DataPacket::getAnything() {
+  if (flag_ == kFlagBuffer) {
+    return (device::Buffer *)(anything_);
+  } else if (flag_ == kFlagMat) {
+    return (device::Mat *)(anything_);
+  }
+}
 
-int getIndex();
+int DataPacket::getIndex() { return index_; }
 
 void DataPacket::destory() {
   if (!is_external_ && anything_ != nullptr) {
