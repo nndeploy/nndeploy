@@ -39,6 +39,17 @@ struct NNDEPLOY_CC_API TensorDesc {
 
   virtual ~TensorDesc(){};
 
+  bool operator==(const TensorDesc &other) {
+    bool flag0 = std::equal(shape_.begin(), shape_.end(), other.shape_.begin(),
+                            other.shape_.end());
+    bool flag1 = std::equal(stride_.begin(), stride_.end(),
+                            other.stride_.begin(), other.stride_.end());
+    bool flag2 = data_type_ == other.data_type_;
+    bool flag3 = data_format_ == other.data_format_;
+    return flag0 && flag1 && flag2 && flag3;
+  }
+  bool operator!=(const TensorDesc &other) { return !(*this == other); }
+
   base::DataType data_type_ = base::dataTypeOf<float>();        // 数据类型
   base::DataFormat data_format_ = base::kDataFormatNotSupport;  // 数据格式
   base::IntVector shape_;                                       // 数据形状

@@ -319,7 +319,7 @@ class NNDEPLOY_CC_API Inference {
    * @return device::Tensor*
    */
   virtual device::Tensor *getOutputTensorAfterRun(const std::string &name,
-                                                  bool is_external);
+                                                  bool is_external) = 0;
 
  protected:
   /**

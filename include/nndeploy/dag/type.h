@@ -35,6 +35,11 @@ enum ParallelType : int {
       kParallelTypePipeline,  // 这个从edge出发似乎是做不到的
 };
 
+enum EdgeType : int {
+  kEdgeTypeFixed = 0x0001,
+  kEdgeTypePipeline = 0x0001 << 1,
+};
+
 enum TopoSortType : int { kTopoSortTypeBFS = 0x0000, kTopoSortTypeDFS };
 
 }  // namespace dag

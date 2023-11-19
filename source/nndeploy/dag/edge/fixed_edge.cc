@@ -1,7 +1,12 @@
 #include "nndeploy/dag/edge/fixed_edge.h"
 
+#include "nndeploy/dag/node.h"
+
 namespace nndeploy {
 namespace dag {
+
+TypeEdgeRegister<TypeEdgeCreator<FixedEdge>> g_fixed_edge_register(
+    kEdgeTypeFixed);
 
 FixedEdge::FixedEdge(ParallelType paralle_type,
                      std::initializer_list<Node *> producers,
@@ -21,8 +26,9 @@ base::Status FixedEdge::set(device::Buffer &buffer, int index,
   return data_packet_->set(buffer, index, is_external);
 }
 base::Status FixedEdge::create(device::Device *device,
-                               const device::BufferDesc &desc, int index) {
-  return data_packet_->create(device, desc, index);
+                               const device::BufferDesc &desc, int index,
+                               const std::string &name) {
+  return data_packet_->create(device, desc, index, name);
 }
 device::Buffer *FixedEdge::getBuffer(const Node *comsumer) {
   return data_packet_->getBuffer();
@@ -35,8 +41,9 @@ base::Status FixedEdge::set(device::Mat &mat, int index, bool is_external) {
   return data_packet_->set(mat, index, is_external);
 }
 base::Status FixedEdge::create(device::Device *device,
-                               const device::MatDesc &desc, int index) {
-  return data_packet_->create(device, desc, index);
+                               const device::MatDesc &desc, int index,
+                               const std::string &name) {
+  return data_packet_->create(device, desc, index, name);
 }
 device::Mat *FixedEdge::getMat(const Node *comsumer) {
   return data_packet_->getMat();

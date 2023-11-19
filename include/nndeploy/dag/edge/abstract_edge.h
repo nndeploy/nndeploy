@@ -10,7 +10,6 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/dag/edge/data_packet.h"
-#include "nndeploy/dag/node.h"
 #include "nndeploy/dag/type.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
@@ -21,6 +20,8 @@
 namespace nndeploy {
 namespace dag {
 
+class Node;
+
 class AbstractEdge : public base::NonCopyable {
  public:
   AbstractEdge(ParallelType paralle_type,
@@ -28,47 +29,43 @@ class AbstractEdge : public base::NonCopyable {
                std::initializer_list<Node *> consumers);
   virtual ~AbstractEdge();
 
-  virtual base::Status set(device::Buffer *buffer, int index_ = -1,
-                           bool is_external = true) = 0;
-  virtual base::Status set(device::Buffer &buffer, int index_ = -1,
-                           bool is_external = true) = 0;
+  virtual base::Status set(device::Buffer *buffer, int index,
+                           bool is_external) = 0;
+  virtual base::Status set(device::Buffer &buffer, int index,
+                           bool is_external) = 0;
   virtual base::Status create(device::Device *device,
-                              const device::BufferDesc &desc,
-                              int index_ = -1) = 0;
+                              const device::BufferDesc &desc, int index) = 0;
   virtual device::Buffer *getBuffer(const Node *comsumer) = 0;
 
-  virtual base::Status set(device::Mat *mat, int index_ = -1,
-                           bool is_external = true) = 0;
-  virtual base::Status set(device::Mat &mat, int index_ = -1,
-                           bool is_external = true) = 0;
+  virtual base::Status set(device::Mat *mat, int index, bool is_external) = 0;
+  virtual base::Status set(device::Mat &mat, int index, bool is_external) = 0;
   virtual base::Status create(device::Device *device,
-                              const device::MatDesc &desc, int index_ = -1) = 0;
+                              const device::MatDesc &desc, int index,
+                              const std::string &name) = 0;
   virtual device::Mat *getMat(const Node *comsumer) = 0;
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  virtual base::Status set(cv::Mat *cv_mat, int index_ = -1,
-                           bool is_external = true) = 0;
-  virtual base::Status set(cv::Mat &cv_mat, int index_ = -1,
-                           bool is_external = true) = 0;
+  virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external) = 0;
+  virtual base::Status set(cv::Mat &cv_mat, int index, bool is_external) = 0;
   virtual cv::Mat *getCvMat(const Node *comsumer) = 0;
 #endif
 
-  virtual base::Status set(device::Tensor *tensor, int index_ = -1,
-                           bool is_external = true) = 0;
-  virtual base::Status set(device::Tensor &tensor, int index_ = -1,
-                           bool is_external = true) = 0;
+  virtual base::Status set(device::Tensor *tensor, int index,
+                           bool is_external) = 0;
+  virtual base::Status set(device::Tensor &tensor, int index,
+                           bool is_external) = 0;
   virtual base::Status create(device::Device *device,
-                              const device::TensorDesc &desc, int index_ = -1);
+                              const device::TensorDesc &desc, int index,
+                              const std::string &name);
   virtual device::Tensor *getTensor(const Node *comsumer) = 0;
 
-  virtual base::Status set(base::Param *param, bool is_external = true,
+  virtual base::Status set(base::Param *param, bool is_external,
                            int pts = -1) = 0;
-  virtual base::Status set(base::Param &param, bool is_external = true,
+  virtual base::Status set(base::Param &param, bool is_external,
                            int pts = -1) = 0;
   virtual base::Param *getParam(const Node *comsumer) = 0;
 
-  virtual base::Status set(void *anything, bool is_external = true,
-                           int pts = -1) = 0;
+  virtual base::Status set(void *anything, bool is_external, int pts = -1) = 0;
   virtual void *getAnything(const Node *comsumer) = 0;
 
   virtual int getIndex(const Node *comsumer) = 0;
@@ -96,12 +93,12 @@ class TypeEdgeCreator : public EdgeCreator {
   }
 };
 
-std::map<ParallelType, std::shared_ptr<EdgeCreator>> &getGlobalEdgeCreatorMap();
+std::map<EdgeType, std::shared_ptr<EdgeCreator>> &getGlobalEdgeCreatorMap();
 
 template <typename T>
 class TypeEdgeRegister {
  public:
-  explicit TypeEdgeRegister(ParallelType type) {
+  explicit TypeEdgeRegister(EdgeType type) {
     getGlobalEdgeCreatorMap()[type] = std::shared_ptr<T>(new T());
   }
 };

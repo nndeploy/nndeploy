@@ -86,7 +86,7 @@ int Buffer::getId() { return data_id_; }
 
 BufferSourceType Buffer::getBufferSourceType() { return buffer_source_type_; }
 
-void destory(device::Buffer *buffer) {
+void destoryBuffer(device::Buffer *buffer) {
   if (buffer->isBufferPool()) {
     BufferPool *pool = buffer->getBufferPool();
     pool->deallocate(buffer);

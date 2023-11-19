@@ -1,6 +1,8 @@
 
 #include "nndeploy/dag/edge.h"
 
+#include "nndeploy/dag/node.h"
+
 namespace nndeploy {
 namespace dag {
 
@@ -37,7 +39,7 @@ base::Status Edge::set(device::Mat &mat, int index_, bool is_external) {
 }
 base::Status Edge::create(device::Device *device, const device::MatDesc &desc,
                           int index_) {
-  return abstact_edge_->create(device, desc, index_);
+  return abstact_edge_->create(device, desc, index_, name_);
 }
 device::Mat *Edge::getMat(const Node *comsumer) {
   return abstact_edge_->getMat(comsumer);
@@ -63,7 +65,7 @@ base::Status Edge::set(device::Tensor &tensor, int index_, bool is_external) {
 }
 base::Status Edge::create(device::Device *device,
                           const device::TensorDesc &desc, int index_) {
-  return abstact_edge_->create(device, desc, index_);
+  return abstact_edge_->create(device, desc, index_, name_);
 }
 device::Tensor *Edge::getTensor(const Node *comsumer) {
   return abstact_edge_->getTensor(comsumer);

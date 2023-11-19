@@ -10,6 +10,7 @@
 #include "nndeploy/base/opencv_include.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
+#include "nndeploy/dag/edge/abstract_edge.h"
 #include "nndeploy/dag/type.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
@@ -21,7 +22,7 @@ namespace nndeploy {
 namespace dag {
 
 /**
- * @brief 需要保证Edge和Mat、Tensor名字一致
+ * @brief 需要保证Edge和Mat、Tensor名字一致, 还有一些检测的工作要做
  *
  */
 class NNDEPLOY_CC_API Edge : public base::NonCopyable {

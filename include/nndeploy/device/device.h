@@ -72,6 +72,15 @@ struct NNDEPLOY_CC_API BufferDesc {
 
   virtual ~BufferDesc(){};
 
+  bool operator==(const BufferDesc& other) {
+    bool flag0 = std::equal(size_.begin(), size_.end(), other.size_.begin(),
+                            other.size_.end());
+    bool flag1 = std::equal(config_.begin(), config_.end(),
+                            other.config_.begin(), other.config_.end());
+    return flag0 && flag1;
+  }
+  bool operator!=(const BufferDesc& other) { return !(*this == other); }
+
   /**
    * @brief
    * 1d size

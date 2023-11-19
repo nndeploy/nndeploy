@@ -47,6 +47,16 @@ struct NNDEPLOY_CC_API MatDesc {
 
   virtual ~MatDesc(){};
 
+  bool operator==(const MatDesc &other) {
+    bool flag0 = std::equal(shape_.begin(), shape_.end(), other.shape_.begin(),
+                            other.shape_.end());
+    bool flag1 = std::equal(stride_.begin(), stride_.end(),
+                            other.stride_.begin(), other.stride_.end());
+    bool flag2 = data_type_ == other.data_type_;
+    return flag0 && flag1 && flag2;
+  }
+  bool operator!=(const MatDesc &other) { return !(*this == other); }
+
   base::DataType data_type_;
 
   base::IntVector shape_;

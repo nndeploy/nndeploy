@@ -46,7 +46,7 @@ class DataPacket : public base::NonCopyable {
   base::Status set(device::Mat *mat, int index, bool is_external);
   base::Status set(device::Mat &mat, int index, bool is_external);
   base::Status create(device::Device *device, const device::MatDesc &desc,
-                      int index);
+                      int index, const std::string &name);
   device::Mat *getMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
@@ -58,7 +58,7 @@ class DataPacket : public base::NonCopyable {
   base::Status set(device::Tensor *tensor, int index, bool is_external);
   base::Status set(device::Tensor &tensor, int index, bool is_external);
   base::Status create(device::Device *device, const device::TensorDesc &desc,
-                      int index);
+                      int index, const std::string &name);
   device::Tensor *getTensor();
 
   base::Status set(base::Param *param, int index, bool is_external);
