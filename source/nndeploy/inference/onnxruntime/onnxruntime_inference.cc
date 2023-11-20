@@ -200,26 +200,42 @@ base::Status OnnxRuntimeInference::run() {
 
     session_.Run({}, *binding_);
 
-    std::vector<Ort::Value> ort_outputs = binding_->GetOutputValues();
-    for (size_t i = 0; i < ort_outputs.size(); ++i) {
-      auto output_name = outputs_desc_[i].name;
-      device::Tensor *output_tensor = nullptr;
-      if (external_output_tensors_.find(output_name) !=
-          external_output_tensors_.end()) {
-        output_tensor = external_output_tensors_[output_name];
-        OnnxRuntimeConvert::convertToTensor(ort_outputs[i], output_name, device,
-                                            output_tensor);
-      } else {
-        output_tensor = output_tensors_[output_name];
-        OnnxRuntimeConvert::convertToTensor(ort_outputs[i], output_name, device,
-                                            output_tensor);
-      }
+    for (auto iter : ort_outputs_) {
+      iter.release();
     }
+    ort_outputs_.clear();
+    ort_outputs_ = binding_->GetOutputValues();
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());
     status = base::kStatusCodeErrorInferenceOnnxRuntime;
   }
   return status;
+}
+
+virtual device::Tensor *OnnxRuntimeInference::getOutputTensorAfterRun(
+    const std::string &name, bool is_copy) {
+  device::Device *device = device::getDefaultHostDevice();
+  for (size_t i = 0; i < ort_outputs.size(); ++i) {
+    auto output_name = outputs_desc_[i].name;
+    if (output_name != name) {
+      continue;
+    }
+    device::Tensor *output_tensor = output_tensors_[output_name];
+    OnnxRuntimeConvert::convertToTensor(ort_outputs[i], output_name, device,
+                                        output_tensor);
+    device::TensorDesc desc = output_tensor->getDesc();
+    if (is_copy) {
+      device::Tensor *external_output_tensor =
+          new device::Tensor(device, desc, name);
+      device->copy(output_tensor, copy_output_tensor);
+      return external_output_tensor;
+    } else {
+      void *data_ptr = output_tensor->getPtr();
+      device::Tensor *external_output_tensor =
+          new device::Tensor(device, desc, data_ptr, name);
+      return external_output_tensor;
+    }
+  }
 }
 
 bool OnnxRuntimeInference::isDynamic(std::vector<int64_t> &shape) {

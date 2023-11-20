@@ -319,7 +319,7 @@ class NNDEPLOY_CC_API Inference {
    * @return device::Tensor*
    */
   virtual device::Tensor *getOutputTensorAfterRun(const std::string &name,
-                                                  bool is_external) = 0;
+                                                  bool is_copy) = 0;
 
  protected:
   /**
@@ -391,8 +391,8 @@ class TypeInferenceCreator : public InferenceCreator {
  *
  * @return std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板

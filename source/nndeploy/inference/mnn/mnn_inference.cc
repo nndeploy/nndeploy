@@ -242,18 +242,45 @@ base::Status MnnInference::run() {
     return base::kStatusCodeErrorInferenceMnn;
   }
   // outputs
-  for (auto iter : external_output_tensors_) {
-    MNN::Tensor *internal_tensor =
-        interpreter_->getSessionOutput(session_, iter.first.c_str());
-    if (internal_tensor == nullptr) {
-      NNDEPLOY_LOGE("iinterpreter_->getSessionOutput failed.\n");
-      return base::kStatusCodeErrorInferenceMnn;
-    }
-    MNN::Tensor *external_tensor = MnnConvert::convertFromTensor(iter.second);
+  // for (auto iter : external_output_tensors_) {
+  //   MNN::Tensor *internal_tensor =
+  //       interpreter_->getSessionOutput(session_, iter.first.c_str());
+  //   if (internal_tensor == nullptr) {
+  //     NNDEPLOY_LOGE("iinterpreter_->getSessionOutput failed.\n");
+  //     return base::kStatusCodeErrorInferenceMnn;
+  //   }
+  //   MNN::Tensor *external_tensor =
+  //   MnnConvert::convertFromTensor(iter.second);
+  //   internal_tensor->copyToHostTensor(external_tensor);
+  //   delete external_tensor;
+  // }
+  return base::kStatusCodeOk;
+}
+
+virtual device::Tensor *MnnInference::getOutputTensorAfterRun(
+    const std::string &name, bool is_copy) {
+  MNN::Tensor *internal_tensor =
+      interpreter_->getSessionOutput(session_, name.c_str());
+  if (internal_tensor == nullptr) {
+    NNDEPLOY_LOGE("iinterpreter_->getSessionOutput failed.\n");
+    return base::kStatusCodeErrorInferenceMnn;
+  }
+  bool can_op_flag = internal_tensor->getDimensionType() !=
+                     MNN::Tensor::DimensionType::CAFFE_C4;
+  can_op_flag = can_op_flag && is_share_command_queue_;
+  device::Device *device = device::getDefaultHostDevice();
+  if (is_copy || !can_op_flag) {
+    device::TensorDesc desc = this->getInputTensorAlignDesc(name);
+    device::Tensor *output_tensor = new device::Tensor(device, desc, name);
+    MNN::Tensor *external_tensor = MnnConvert::convertFromTensor(output_tensor);
     internal_tensor->copyToHostTensor(external_tensor);
     delete external_tensor;
+    return output_tensor;
+  } else {
+    device::Tensor *output_tensor =
+        MnnConvert::convertToTensor(internal_tensor, name, device);
+    return output_tensor;
   }
-  return base::kStatusCodeOk;
 }
 
 base::Status MnnInference::allocateInputOutputTensor() {
