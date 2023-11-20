@@ -10,7 +10,7 @@ namespace model {
 base::Status CvtColorResizePad::run() {
   CvtclorResizePadParam* tmp_param =
       dynamic_cast<CvtclorResizePadParam*>(param_.get());
-  cv::Mat* src = inputs_[0]->getCvMat();
+  cv::Mat* src = inputs_[0]->getCvMat(this);
   device::Tensor* dst = outputs_[0]->getTensor();
   if (dst->empty()) {
     device::TensorDesc desc = dst->getDesc();

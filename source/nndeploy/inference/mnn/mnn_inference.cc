@@ -257,13 +257,13 @@ base::Status MnnInference::run() {
   return base::kStatusCodeOk;
 }
 
-virtual device::Tensor *MnnInference::getOutputTensorAfterRun(
-    const std::string &name, bool is_copy) {
+device::Tensor *MnnInference::getOutputTensorAfterRun(const std::string &name,
+                                                      bool is_copy) {
   MNN::Tensor *internal_tensor =
       interpreter_->getSessionOutput(session_, name.c_str());
   if (internal_tensor == nullptr) {
     NNDEPLOY_LOGE("iinterpreter_->getSessionOutput failed.\n");
-    return base::kStatusCodeErrorInferenceMnn;
+    return nullptr;
   }
   bool can_op_flag = internal_tensor->getDimensionType() !=
                      MNN::Tensor::DimensionType::CAFFE_C4;

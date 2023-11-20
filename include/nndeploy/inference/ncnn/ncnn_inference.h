@@ -32,6 +32,9 @@ class NcnnInference : public Inference {
 
   virtual base::Status run();
 
+  virtual device::Tensor *getOutputTensorAfterRun(const std::string &name,
+                                                  bool is_copy);
+
  private:
   base::Status allocateInputOutputTensor();
   base::Status deallocateInputOutputTensor();

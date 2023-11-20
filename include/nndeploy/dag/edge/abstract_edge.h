@@ -59,16 +59,15 @@ class AbstractEdge : public base::NonCopyable {
                               const std::string &name);
   virtual device::Tensor *getTensor(const Node *comsumer) = 0;
 
-  virtual base::Status set(base::Param *param, bool is_external,
-                           int pts = -1) = 0;
-  virtual base::Status set(base::Param &param, bool is_external,
-                           int pts = -1) = 0;
+  virtual base::Status set(base::Param *param, int index, bool is_external) = 0;
+  virtual base::Status set(base::Param &param, int index, bool is_external) = 0;
   virtual base::Param *getParam(const Node *comsumer) = 0;
 
-  virtual base::Status set(void *anything, bool is_external, int pts = -1) = 0;
+  virtual base::Status set(void *anything, int index, bool is_external) = 0;
   virtual void *getAnything(const Node *comsumer) = 0;
 
   virtual int getIndex(const Node *comsumer) = 0;
+  ParallelType getParallelType() { return paralle_type_; }
 
  protected:
   ParallelType paralle_type_;

@@ -58,7 +58,7 @@ base::Status Infer::deinit() {
 base::Status Infer::run() {
   base::Status status = base::kStatusCodeOk;
   for (auto input : inputs_) {
-    device::Tensor *tensor = input->getTensor(*this);
+    device::Tensor *tensor = input->getTensor(this);
     inference_->setInputTensor(tensor->getName(), tensor);
   }
   status = inference_->run();
@@ -72,7 +72,7 @@ base::Status Infer::run() {
       output->set(tensor, false);
     } else {
       device::Tensor *tensor = inference_->getOutputTensorAfterRun(name, false);
-      output->set(tensor, true);
+      output->set(tensor, false);
     }
   }
   return status;

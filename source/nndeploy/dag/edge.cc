@@ -92,5 +92,9 @@ int Edge::getIndex(const Node *comsumer) {
   return abstact_edge_->getIndex(comsumer);
 }
 
+ParallelType Edge::getParallelType() {
+  return abstact_edge_->getParallelType();
+}
+
 }  // namespace dag
 }  // namespace nndeploy

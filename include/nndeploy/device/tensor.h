@@ -40,10 +40,26 @@ struct NNDEPLOY_CC_API TensorDesc {
   virtual ~TensorDesc(){};
 
   bool operator==(const TensorDesc &other) {
-    bool flag0 = std::equal(shape_.begin(), shape_.end(), other.shape_.begin(),
-                            other.shape_.end());
-    bool flag1 = std::equal(stride_.begin(), stride_.end(),
-                            other.stride_.begin(), other.stride_.end());
+    bool flag0 = false;
+    if (shape_.size() == other.shape_.size()) {
+      flag0 = true;
+      for (int i = 0; i < shape_.size(); ++i) {
+        if (shape_[i] != other.shape_[i]) {
+          flag0 = false;
+          break;
+        }
+      }
+    }
+    bool flag1 = false;
+    if (stride_.size() == other.stride_.size()) {
+      flag1 = true;
+      for (int i = 0; i < stride_.size(); ++i) {
+        if (stride_[i] != other.stride_[i]) {
+          flag1 = false;
+          break;
+        }
+      }
+    }
     bool flag2 = data_type_ == other.data_type_;
     bool flag3 = data_format_ == other.data_format_;
     return flag0 && flag1 && flag2 && flag3;

@@ -69,6 +69,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   void *getAnything(const Node *comsumer);
 
   int getIndex(const Node *comsumer);
+  ParallelType getParallelType();
 
  private:
   std::string name_;

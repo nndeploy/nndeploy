@@ -73,10 +73,26 @@ struct NNDEPLOY_CC_API BufferDesc {
   virtual ~BufferDesc(){};
 
   bool operator==(const BufferDesc& other) {
-    bool flag0 = std::equal(size_.begin(), size_.end(), other.size_.begin(),
-                            other.size_.end());
-    bool flag1 = std::equal(config_.begin(), config_.end(),
-                            other.config_.begin(), other.config_.end());
+    bool flag0 = false;
+    if (size_.size() == other.size_.size()) {
+      flag0 = true;
+      for (int i = 0; i < size_.size(); ++i) {
+        if (size_[i] != other.size_[i]) {
+          flag0 = false;
+          break;
+        }
+      }
+    }
+    bool flag1 = false;
+    if (config_.size() == other.config_.size()) {
+      flag1 = true;
+      for (int i = 0; i < config_.size(); ++i) {
+        if (config_[i] != other.config_[i]) {
+          flag1 = false;
+          break;
+        }
+      }
+    }
     return flag0 && flag1;
   }
   bool operator!=(const BufferDesc& other) { return !(*this == other); }

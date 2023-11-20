@@ -26,9 +26,8 @@ base::Status FixedEdge::set(device::Buffer &buffer, int index,
   return data_packet_->set(buffer, index, is_external);
 }
 base::Status FixedEdge::create(device::Device *device,
-                               const device::BufferDesc &desc, int index,
-                               const std::string &name) {
-  return data_packet_->create(device, desc, index, name);
+                               const device::BufferDesc &desc, int index) {
+  return data_packet_->create(device, desc, index);
 }
 device::Buffer *FixedEdge::getBuffer(const Node *comsumer) {
   return data_packet_->getBuffer();
@@ -70,8 +69,9 @@ base::Status FixedEdge::set(device::Tensor &tensor, int index,
   return data_packet_->set(tensor, index, is_external);
 }
 base::Status FixedEdge::create(device::Device *device,
-                               const device::TensorDesc &desc, int index) {
-  return data_packet_->create(device, desc, index);
+                               const device::TensorDesc &desc, int index,
+                               const std::string &name) {
+  return data_packet_->create(device, desc, index, name);
 }
 device::Tensor *FixedEdge::getTensor(const Node *comsumer) {
   return data_packet_->getTensor();

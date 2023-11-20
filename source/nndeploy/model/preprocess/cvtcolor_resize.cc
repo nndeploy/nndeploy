@@ -9,7 +9,7 @@ namespace model {
 base::Status CvtColorResize::run() {
   CvtclorResizeParam* tmp_param =
       dynamic_cast<CvtclorResizeParam*>(param_.get());
-  cv::Mat* src = inputs_[0]->getCvMat();
+  cv::Mat* src = inputs_[0]->getCvMat(this);
   // device::Tensor* dst = outputs_[0]->getTensor();
   // if (dst->empty()) {
   //   device::TensorDesc desc = dst->getDesc();
@@ -31,7 +31,7 @@ base::Status CvtColorResize::run() {
   desc.shape_.emplace_back(getChannelByPixelType(tmp_param->dst_pixel_type_));
   desc.shape_.emplace_back(tmp_param->h_);
   desc.shape_.emplace_back(tmp_param->w_);
-  outputs_[0]->create(device, desc);
+  outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
   device::Tensor* dst = outputs_[0]->getTensor(this);
 
   int c = dst->getChannel();
