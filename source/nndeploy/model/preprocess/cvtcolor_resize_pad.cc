@@ -11,19 +11,29 @@ base::Status CvtColorResizePad::run() {
   CvtclorResizePadParam* tmp_param =
       dynamic_cast<CvtclorResizePadParam*>(param_.get());
   cv::Mat* src = inputs_[0]->getCvMat(this);
-  device::Tensor* dst = outputs_[0]->getTensor();
-  if (dst->empty()) {
-    device::TensorDesc desc = dst->getDesc();
-    desc.data_type_ = base::dataTypeOf<float>();
-    desc.data_format_ = base::kDataFormatNCHW;
-    desc.shape_.emplace_back(1);
-    desc.shape_.emplace_back(getChannelByPixelType(tmp_param->dst_pixel_type_));
-    desc.shape_.emplace_back(tmp_param->h_);
-    desc.shape_.emplace_back(tmp_param->w_);
-    dst->justModify(desc);
-    device::Device* device = device::getDefaultHostDevice();
-    dst->allocBuffer(device);
-  }
+  // device::Tensor* dst = outputs_[0]->getTensor();
+  // if (dst->empty()) {
+  //   device::TensorDesc desc = dst->getDesc();
+  //   desc.data_type_ = base::dataTypeOf<float>();
+  //   desc.data_format_ = base::kDataFormatNCHW;
+  //   desc.shape_.emplace_back(1);
+  //   desc.shape_.emplace_back(getChannelByPixelType(tmp_param->dst_pixel_type_));
+  //   desc.shape_.emplace_back(tmp_param->h_);
+  //   desc.shape_.emplace_back(tmp_param->w_);
+  //   dst->justModify(desc);
+  //   device::Device* device = device::getDefaultHostDevice();
+  //   dst->allocBuffer(device);
+  // }
+  device::Device* device = device::getDefaultHostDevice();
+  device::TensorDesc desc;
+  desc.data_type_ = base::dataTypeOf<float>();
+  desc.data_format_ = base::kDataFormatNCHW;
+  desc.shape_.emplace_back(1);
+  desc.shape_.emplace_back(getChannelByPixelType(tmp_param->dst_pixel_type_));
+  desc.shape_.emplace_back(tmp_param->h_);
+  desc.shape_.emplace_back(tmp_param->w_);
+  outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
+  device::Tensor* dst = outputs_[0]->getTensor(this);
 
   int c = dst->getChannel();
   int h = dst->getHeight();

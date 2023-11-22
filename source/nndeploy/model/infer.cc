@@ -57,6 +57,14 @@ base::Status Infer::deinit() {
 }
 base::Status Infer::run() {
   base::Status status = base::kStatusCodeOk;
+  if (is_input_dynamic_) {
+    base::ShapeMap shape_map;
+    for (auto input : inputs_) {
+      device::Tensor *tensor = input->getTensor(this);
+      shape_map[tensor->getName()] = tensor->getShape();
+    }
+    inference_->reshape(shape_map);
+  }
   for (auto input : inputs_) {
     device::Tensor *tensor = input->getTensor(this);
     inference_->setInputTensor(tensor->getName(), tensor);
