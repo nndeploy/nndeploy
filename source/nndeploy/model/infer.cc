@@ -6,7 +6,7 @@ namespace model {
 
 Infer::Infer(const std::string &name, base::InferenceType type,
              dag::Edge *input, dag::Edge *output)
-    : Node(name, input, output) {
+    : dag::Node(name, input, output) {
   type_ = type;
   inference_ = inference::createInference(type);
   if (inference_ == nullptr) {
@@ -17,8 +17,9 @@ Infer::Infer(const std::string &name, base::InferenceType type,
   }
 }
 Infer::Infer(const std::string &name, base::InferenceType type,
-             std::vector<dag::Edge *> inputs, std::vector<dag::Edge *> outputs)
-    : Node(name, inputs, outputs) {
+             std::initializer_list<dag::Edge *> inputs,
+             std::initializer_list<dag::Edge *> outputs)
+    : dag::Node(name, inputs, outputs) {
   type_ = type;
   inference_ = inference::createInference(type);
   if (inference_ == nullptr) {

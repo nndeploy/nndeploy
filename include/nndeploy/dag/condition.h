@@ -22,8 +22,8 @@ namespace dag {
 class NNDEPLOY_CC_API Condition : public Node {
  public:
   Condition(const std::string& name, Edge* input, Edge* output);
-  Condition(const std::string& name, std::vector<Edge*> inputs,
-            std::vector<Edge*> outputs);
+  Condition(const std::string& name, std::initializer_list<Edge*> inputs,
+            std::initializer_list<Edge*> outputs);
   virtual ~Condition();
 
   template <typename T,

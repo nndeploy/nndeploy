@@ -22,8 +22,9 @@ namespace dag {
 
 Condition::Condition(const std::string& name, Edge* input, Edge* output)
     : Node(name, input, output) {}
-Condition::Condition(const std::string& name, std::vector<Edge*> inputs,
-                     std::vector<Edge*> outputs)
+Condition::Condition(const std::string& name,
+                     std::initializer_list<Edge*> inputs,
+                     std::initializer_list<Edge*> outputs)
     : Node(name, inputs, outputs) {}
 Condition::~Condition() { condition_node_.clear(); }
 

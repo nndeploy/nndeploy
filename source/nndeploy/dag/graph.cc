@@ -33,8 +33,8 @@ Graph::Graph(const std::string& name, Edge* input, Edge* output)
   }
   constructed_ = true;
 }
-Graph::Graph(const std::string& name, std::vector<Edge*> inputs,
-             std::vector<Edge*> outputs)
+Graph::Graph(const std::string& name, std::initializer_list<Edge*> inputs,
+             std::initializer_list<Edge*> outputs)
     : Node(name, inputs, outputs) {
   param_ = std::make_shared<GraphParam>();
   for (auto input : inputs) {

@@ -37,35 +37,35 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
                          std::initializer_list<Node *> producers,
                          std::initializer_list<Node *> consumers);
 
-  base::Status set(device::Buffer *buffer, int index_, bool is_external = true);
-  base::Status set(device::Buffer &buffer, int index_, bool is_external = true);
+  base::Status set(device::Buffer *buffer, int index, bool is_external = true);
+  base::Status set(device::Buffer &buffer, int index, bool is_external = true);
   base::Status create(device::Device *device, const device::BufferDesc &desc,
-                      int index_);
+                      int index);
   device::Buffer *getBuffer(const Node *comsumer);
 
-  base::Status set(device::Mat *mat, int index_, bool is_external = true);
-  base::Status set(device::Mat &mat, int index_, bool is_external = true);
+  base::Status set(device::Mat *mat, int index, bool is_external = true);
+  base::Status set(device::Mat &mat, int index, bool is_external = true);
   base::Status create(device::Device *device, const device::MatDesc &desc,
-                      int index_);
+                      int index);
   device::Mat *getMat(const Node *comsumer);
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  base::Status set(cv::Mat *cv_mat, int index_, bool is_external = true);
-  base::Status set(cv::Mat &cv_mat, int index_, bool is_external = true);
+  base::Status set(cv::Mat *cv_mat, int index, bool is_external = true);
+  base::Status set(cv::Mat &cv_mat, int index, bool is_external = true);
   cv::Mat *getCvMat(const Node *comsumer);
 #endif
 
-  base::Status set(device::Tensor *tensor, int index_, bool is_external = true);
-  base::Status set(device::Tensor &tensor, int index_, bool is_external = true);
+  base::Status set(device::Tensor *tensor, int index, bool is_external = true);
+  base::Status set(device::Tensor &tensor, int index, bool is_external = true);
   base::Status create(device::Device *device, const device::TensorDesc &desc,
-                      int index_);
+                      int index);
   device::Tensor *getTensor(const Node *comsumer);
 
-  base::Status set(base::Param *param, int index_, bool is_external = true);
-  base::Status set(base::Param &param, int index_, bool is_external = true);
+  base::Status set(base::Param *param, int index, bool is_external = true);
+  base::Status set(base::Param &param, int index, bool is_external = true);
   base::Param *getParam(const Node *comsumer);
 
-  base::Status set(void *anything, int index_, bool is_external = true);
+  base::Status set(void *anything, int index, bool is_external = true);
   void *getAnything(const Node *comsumer);
 
   int getIndex(const Node *comsumer);

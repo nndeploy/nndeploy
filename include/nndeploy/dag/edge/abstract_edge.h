@@ -56,7 +56,7 @@ class AbstractEdge : public base::NonCopyable {
                            bool is_external) = 0;
   virtual base::Status create(device::Device *device,
                               const device::TensorDesc &desc, int index,
-                              const std::string &name);
+                              const std::string &name) = 0;
   virtual device::Tensor *getTensor(const Node *comsumer) = 0;
 
   virtual base::Status set(base::Param *param, int index, bool is_external) = 0;

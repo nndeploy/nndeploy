@@ -93,11 +93,7 @@ int main(int argc, char *argv[]) {
   // opencv读图
   cv::Mat input_mat = cv::imread(input_path);
   // 将图片写入有向无环图graph输入边
-  input.set(input_mat);
-  // 定义有向无环图graph的输出结果
-  model::DetectResult result;
-  // 将输出结果写入有向无环图graph输出边
-  output.set(result);
+  input.set(input_mat, 0);
 
   // 有向无环图Graphz运行
   NNDEPLOY_TIME_POINT_START("graph->run()");
@@ -108,7 +104,14 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->run()");
 
-  drawBox(input_mat, result);
+  // 得到有向无环图graph的输出结果
+  model::DetectResult *result = (model::DetectResult *)output.getParam(nullptr);
+  if (result == nullptr) {
+    NNDEPLOY_LOGE("result is nullptr");
+    return -1;
+  }
+
+  drawBox(input_mat, *result);
   std::string ouput_path = demo::getOutputPath();
   cv::imwrite(ouput_path, input_mat);
 

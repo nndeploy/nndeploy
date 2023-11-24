@@ -14,7 +14,8 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
   Infer(const std::string &name, base::InferenceType type, dag::Edge *input,
         dag::Edge *output);
   Infer(const std::string &name, base::InferenceType type,
-        std::vector<dag::Edge *> inputs, std::vector<dag::Edge *> outputs);
+        std::initializer_list<dag::Edge *> inputs,
+        std::initializer_list<dag::Edge *> outputs);
   virtual ~Infer();
 
   virtual base::Status setParam(base::Param *param);

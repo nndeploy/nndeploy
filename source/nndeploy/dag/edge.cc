@@ -17,72 +17,72 @@ base::Status Edge::construct(ParallelType paralle_type,
   }
 }
 
-base::Status Edge::set(device::Buffer *buffer, int index_, bool is_external) {
-  return abstact_edge_->set(buffer, index_, is_external);
+base::Status Edge::set(device::Buffer *buffer, int index, bool is_external) {
+  return abstact_edge_->set(buffer, index, is_external);
 }
-base::Status Edge::set(device::Buffer &buffer, int index_, bool is_external) {
-  return abstact_edge_->set(buffer, index_, is_external);
+base::Status Edge::set(device::Buffer &buffer, int index, bool is_external) {
+  return abstact_edge_->set(buffer, index, is_external);
 }
 base::Status Edge::create(device::Device *device,
-                          const device::BufferDesc &desc, int index_) {
-  return abstact_edge_->create(device, desc, index_);
+                          const device::BufferDesc &desc, int index) {
+  return abstact_edge_->create(device, desc, index);
 }
 device::Buffer *Edge::getBuffer(const Node *comsumer) {
   return abstact_edge_->getBuffer(comsumer);
 }
 
-base::Status Edge::set(device::Mat *mat, int index_, bool is_external) {
-  return abstact_edge_->set(mat, index_, is_external);
+base::Status Edge::set(device::Mat *mat, int index, bool is_external) {
+  return abstact_edge_->set(mat, index, is_external);
 }
-base::Status Edge::set(device::Mat &mat, int index_, bool is_external) {
-  return abstact_edge_->set(mat, index_, is_external);
+base::Status Edge::set(device::Mat &mat, int index, bool is_external) {
+  return abstact_edge_->set(mat, index, is_external);
 }
 base::Status Edge::create(device::Device *device, const device::MatDesc &desc,
-                          int index_) {
-  return abstact_edge_->create(device, desc, index_, name_);
+                          int index) {
+  return abstact_edge_->create(device, desc, index, name_);
 }
 device::Mat *Edge::getMat(const Node *comsumer) {
   return abstact_edge_->getMat(comsumer);
 }
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-base::Status Edge::set(cv::Mat *cv_mat, int index_, bool is_external) {
-  return abstact_edge_->set(cv_mat, index_, is_external);
+base::Status Edge::set(cv::Mat *cv_mat, int index, bool is_external) {
+  return abstact_edge_->set(cv_mat, index, is_external);
 }
-base::Status Edge::set(cv::Mat &cv_mat, int index_, bool is_external) {
-  return abstact_edge_->set(cv_mat, index_, is_external);
+base::Status Edge::set(cv::Mat &cv_mat, int index, bool is_external) {
+  return abstact_edge_->set(cv_mat, index, is_external);
 }
 cv::Mat *Edge::getCvMat(const Node *comsumer) {
   return abstact_edge_->getCvMat(comsumer);
 }
 #endif
 
-base::Status Edge::set(device::Tensor *tensor, int index_, bool is_external) {
-  return abstact_edge_->set(tensor, index_, is_external);
+base::Status Edge::set(device::Tensor *tensor, int index, bool is_external) {
+  return abstact_edge_->set(tensor, index, is_external);
 }
-base::Status Edge::set(device::Tensor &tensor, int index_, bool is_external) {
-  return abstact_edge_->set(tensor, index_, is_external);
+base::Status Edge::set(device::Tensor &tensor, int index, bool is_external) {
+  return abstact_edge_->set(tensor, index, is_external);
 }
 base::Status Edge::create(device::Device *device,
-                          const device::TensorDesc &desc, int index_) {
-  return abstact_edge_->create(device, desc, index_, name_);
+                          const device::TensorDesc &desc, int index) {
+  return abstact_edge_->create(device, desc, index, name_);
 }
 device::Tensor *Edge::getTensor(const Node *comsumer) {
   return abstact_edge_->getTensor(comsumer);
 }
 
-base::Status Edge::set(base::Param *param, int index_, bool is_external) {
-  return abstact_edge_->set(param, index_, is_external);
+base::Status Edge::set(base::Param *param, int index, bool is_external) {
+  return abstact_edge_->set(param, index, is_external);
 }
-base::Status Edge::set(base::Param &param, int index_, bool is_external) {
-  return abstact_edge_->set(param, index_, is_external);
+base::Status Edge::set(base::Param &param, int index, bool is_external) {
+  return abstact_edge_->set(param, index, is_external);
 }
 base::Param *Edge::getParam(const Node *comsumer) {
   return abstact_edge_->getParam(comsumer);
 }
 
-base::Status Edge::set(void *anything, int index_, bool is_external) {
-  return abstact_edge_->set(anything, index_, is_external);
+base::Status Edge::set(void *anything, int index, bool is_external) {
+  return abstact_edge_->set(anything, index, is_external);
 }
 void *Edge::getAnything(const Node *comsumer) {
   return abstact_edge_->getAnything(comsumer);

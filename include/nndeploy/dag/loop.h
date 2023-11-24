@@ -22,8 +22,8 @@ namespace dag {
 class NNDEPLOY_CC_API Loop : public Node {
  public:
   Loop(const std::string& name, Edge* input, Edge* output);
-  Loop(const std::string& name, std::vector<Edge*> inputs,
-       std::vector<Edge*> outputs);
+  Loop(const std::string& name, std::initializer_list<Edge*> inputs,
+       std::initializer_list<Edge*> outputs);
   virtual ~Loop();
 
   template <typename T,

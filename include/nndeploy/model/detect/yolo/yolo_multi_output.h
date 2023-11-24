@@ -48,9 +48,10 @@ class NNDEPLOY_CC_API YoloMultiOutputPostParam : public base::Param {
 
 class NNDEPLOY_CC_API YoloMultiOutputPostProcess : public dag::Node {
  public:
-  YoloMultiOutputPostProcess(const std::string& name, dag::Edge* input,
-                             dag::Edge* output)
-      : Node(name, input, output) {
+  YoloMultiOutputPostProcess(const std::string& name,
+                             std::initializer_list<dag::Edge*> inputs,
+                             std::initializer_list<dag::Edge*> outputs)
+      : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<YoloMultiOutputPostParam>();
   }
   virtual ~YoloMultiOutputPostProcess() {}

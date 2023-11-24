@@ -49,14 +49,14 @@ base::Status YoloPostProcess::runV5V6() {
   float score_threshold = param->score_threshold_;
   int num_classes = param->num_classes_;
 
-  device::Tensor* tensor = inputs_[0]->getTensor();
+  device::Tensor* tensor = inputs_[0]->getTensor(this);
   float* data = (float*)tensor->getPtr();
   int batch = tensor->getBatch();
   int height = tensor->getHeight();
   int width = tensor->getWidth();
 
-  DetectResult* results = (DetectResult*)outputs_[0]->getParam();
-  results->bboxs_.clear();
+  DetectResult* results = new DetectResult();
+  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
 
   for (int b = 0; b < batch; ++b) {
     float* data_batch = data + b * height * width;
@@ -117,7 +117,7 @@ base::Status YoloPostProcess::runV8() {
   float score_threshold = param->score_threshold_;
   int num_classes = param->num_classes_;
 
-  device::Tensor* tensor = inputs_[0]->getTensor();
+  device::Tensor* tensor = inputs_[0]->getTensor(this);
   float* data = (float*)tensor->getPtr();
   int batch = tensor->getBatch();
   int height = tensor->getHeight();
@@ -129,8 +129,8 @@ base::Status YoloPostProcess::runV8() {
   std::swap(height, width);
   data = (float*)cv_mat_dst.data;
 
-  DetectResult* results = (DetectResult*)outputs_[0]->getParam();
-  results->bboxs_.clear();
+  DetectResult* results = new DetectResult();
+  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
 
   for (int b = 0; b < batch; ++b) {
     float* data_batch = data + b * height * width;

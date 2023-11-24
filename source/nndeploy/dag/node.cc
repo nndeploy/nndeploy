@@ -13,14 +13,14 @@ Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
     constructed_ = true;
   }
 }
-Node::Node(const std::string &name, std::vector<Edge *> inputs,
-           std::vector<Edge *> outputs)
+Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
+           std::initializer_list<Edge *> outputs)
     : name_(name) {
-  if (inputs.empty() || outputs.empty()) {
+  inputs_ = inputs;
+  outputs_ = outputs;
+  if (inputs_.empty() || outputs_.empty()) {
     constructed_ = false;
   } else {
-    inputs_ = inputs;
-    outputs_ = outputs;
     constructed_ = true;
   }
 }

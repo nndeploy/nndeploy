@@ -45,8 +45,8 @@ class NNDEPLOY_CC_API GraphParam : public base::Param {
 class NNDEPLOY_CC_API Graph : public Node {
  public:
   Graph(const std::string& name, Edge* input, Edge* output);
-  Graph(const std::string& name, std::vector<Edge*> inputs,
-        std::vector<Edge*> outputs);
+  Graph(const std::string& name, std::initializer_list<Edge*> inputs,
+        std::initializer_list<Edge*> outputs);
   ~Graph();
 
   Edge* createEdge(const std::string& name = "");
@@ -78,12 +78,12 @@ class NNDEPLOY_CC_API Graph : public Node {
   }
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node* createNode(const std::string& name, std::vector<Edge*> inputs,
-                   std::vector<Edge*> outputs) {
-    if (inputs.empty() || outputs.empty()) {
-      NNDEPLOY_LOGE("inputs or outputs is empty!\n");
-      return nullptr;
-    }
+  Node* createNode(const std::string& name, std::initializer_list<Edge*> inputs,
+                   std::initializer_list<Edge*> outputs) {
+    // if (inputs.empty() || outputs.empty()) {
+    //   NNDEPLOY_LOGE("inputs or outputs is empty!\n");
+    //   return nullptr;
+    // }
     Node* node = dynamic_cast<Node*>(new T(name, inputs, outputs));
     NodeWrapper* node_wrapper = new NodeWrapper();
     node_wrapper->is_external_ = false;
@@ -128,6 +128,38 @@ class NNDEPLOY_CC_API Graph : public Node {
       output_wrapper = this->addEdge(output);
     }
     output_wrapper->producers_.emplace_back(node_wrapper);
+
+    node_repository_.emplace_back(node_wrapper);
+    return node;
+  }
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createInfer(const std::string& name, base::InferenceType type,
+                    std::initializer_list<Edge*> inputs,
+                    std::initializer_list<Edge*> outputs) {
+    // if (inputs.empty() || outputs.empty()) {
+    //   NNDEPLOY_LOGE("inputs or outputs is empty!\n");
+    //   return nullptr;
+    // }
+    Node* node = dynamic_cast<Node*>(new T(name, type, inputs, outputs));
+    NodeWrapper* node_wrapper = new NodeWrapper();
+    node_wrapper->is_external_ = false;
+    node_wrapper->node_ = node;
+    node_wrapper->name_ = name;
+    for (auto input : inputs) {
+      EdgeWrapper* input_wrapper = findEdgeWrapper(input);
+      if (findEdgeWrapper(input) == nullptr) {
+        input_wrapper = this->addEdge(input);
+      }
+      input_wrapper->consumers_.emplace_back(node_wrapper);
+    }
+    for (auto output : outputs) {
+      EdgeWrapper* output_wrapper = findEdgeWrapper(output);
+      if (output_wrapper == nullptr) {
+        output_wrapper = this->addEdge(output);
+      }
+      output_wrapper->producers_.emplace_back(node_wrapper);
+    }
 
     node_repository_.emplace_back(node_wrapper);
     return node;

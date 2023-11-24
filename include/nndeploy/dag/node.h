@@ -23,8 +23,8 @@ namespace dag {
 class NNDEPLOY_CC_API Node {
  public:
   Node(const std::string& name, Edge* input, Edge* output);
-  Node(const std::string& name, std::vector<Edge*> inputs,
-       std::vector<Edge*> outputs);
+  Node(const std::string& name, std::initializer_list<Edge*> inputs,
+       std::initializer_list<Edge*> outputs);
 
   virtual ~Node();
 
