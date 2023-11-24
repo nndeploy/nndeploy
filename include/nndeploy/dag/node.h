@@ -19,7 +19,10 @@
 namespace nndeploy {
 namespace dag {
 
-// 每个node都要负责分配其输出的edge的内存
+/**
+ * @brief
+ * @note 每个node都要负责分配其输出的edge的内存
+ */
 class NNDEPLOY_CC_API Node {
  public:
   Node(const std::string& name, Edge* input, Edge* output);
@@ -64,7 +67,8 @@ using SingleIONodeFunc =
     std::function<base::Status(Edge* input, Edge* output, base::Param* param)>;
 
 using MultiIONodeFunc = std::function<base::Status(
-    std::vector<Edge*> input, std::vector<Edge*> output, base::Param* param)>;
+    std::initializer_list<Edge*> input, std::initializer_list<Edge*> output,
+    base::Param* param)>;
 
 }  // namespace dag
 }  // namespace nndeploy
