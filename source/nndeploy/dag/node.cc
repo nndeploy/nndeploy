@@ -61,11 +61,6 @@ bool Node::getInitialized() { return initialized_; }
 
 bool Node::isRunning() { return is_running_; }
 
-void Node::setPipelineParallel(bool is_pipeline_parallel) {
-  is_pipeline_parallel_ = is_pipeline_parallel;
-}
-bool Node::isPipelineParallel() { return is_pipeline_parallel_; }
-
 base::Status Node::init() {
   initialized_ = true;
   return base::kStatusCodeOk;

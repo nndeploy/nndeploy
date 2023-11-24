@@ -170,12 +170,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   base::Status setNodeParam(const std::string& node_name, base::Param* param);
   base::Param* getNodeParam(const std::string& node_name);
 
-  virtual void setPipelineParallel(bool is_pipeline_parallel);
-
   base::Status init();
   base::Status deinit();
-
-  // base::Status reshape();
 
   base::Status run();
 

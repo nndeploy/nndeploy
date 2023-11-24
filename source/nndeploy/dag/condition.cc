@@ -47,13 +47,6 @@ base::Param* Condition::getNodeParam(const std::string& node_name) {
   return node->getParam();
 }
 
-void Condition::setPipelineParallel(bool is_pipeline_parallel) {
-  Node::setPipelineParallel(is_pipeline_parallel);
-  for (auto node : condition_node_) {
-    node->setPipelineParallel(is_pipeline_parallel);
-  }
-}
-
 base::Status Condition::init() {
   base::Status status = base::kStatusCodeOk;
   for (auto node : condition_node_) {
@@ -77,21 +70,6 @@ base::Status Condition::deinit() {
   }
   return status;
 }
-
-// base::Status Condition::reshape() {
-//   base::Status status = base::kStatusCodeOk;
-//   int index = choose();
-//   if (index < 0 || index >= condition_node_.size()) {
-//     NNDEPLOY_LOGE("choose index is invalid!\n");
-//     return base::kStatusCodeErrorInvalidValue;
-//   }
-//   status = condition_node_[index]->reshape();
-//   if (status != base::kStatusCodeOk) {
-//     NNDEPLOY_LOGE("Node reshape failed!\n");
-//     return status;
-//   }
-//   return status;
-// }
 
 base::Status Condition::run() {
   base::Status status = base::kStatusCodeOk;

@@ -208,13 +208,6 @@ base::Param* Graph::getNodeParam(const std::string& node_name) {
   return node_wrapper->node_->getParam();
 }
 
-void Graph::setPipelineParallel(bool is_pipeline_parallel) {
-  Node::setPipelineParallel(is_pipeline_parallel);
-  for (auto node_wrapper : node_repository_) {
-    node_wrapper->node_->setPipelineParallel(is_pipeline_parallel);
-  }
-}
-
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 

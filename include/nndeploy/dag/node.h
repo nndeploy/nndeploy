@@ -44,9 +44,6 @@ class NNDEPLOY_CC_API Node {
 
   bool isRunning();
 
-  virtual void setPipelineParallel(bool is_pipeline_parallel);
-  bool isPipelineParallel();
-
   virtual base::Status init();
   virtual base::Status deinit();
 
@@ -61,7 +58,6 @@ class NNDEPLOY_CC_API Node {
   bool constructed_ = false;
   bool initialized_ = false;
   bool is_running_ = false;
-  bool is_pipeline_parallel_ = false;
 };
 
 using SingleIONodeFunc =

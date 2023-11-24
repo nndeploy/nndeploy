@@ -47,12 +47,8 @@ class NNDEPLOY_CC_API Condition : public Node {
   }
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node* createNode(const std::string& name, std::vector<Edge*> inputs,
-                   std::vector<Edge*> outputs) {
-    if (inputs.empty() || outputs.empty()) {
-      NNDEPLOY_LOGE("inputs or outputs is empty!\n");
-      return nullptr;
-    }
+  Node* createNode(const std::string& name, std::initializer_list<Edge*> inputs,
+                   std::initializer_list<Edge*> outputs) {
     bool flag = check(inputs, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("inputs is not in condition inputs!\n");
@@ -87,18 +83,33 @@ class NNDEPLOY_CC_API Condition : public Node {
     condition_node_.emplace_back(node);
     return node;
   }
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node* createInfer(const std::string& name, base::InferenceType type,
+                    std::initializer_list<Edge*> inputs,
+                    std::initializer_list<Edge*> outputs) {
+    bool flag = check(inputs, inputs_);
+    if (!flag) {
+      NNDEPLOY_LOGE("inputs is not in condition inputs!\n");
+      return nullptr;
+    }
+    flag = check(outputs, outputs_);
+    if (!flag) {
+      NNDEPLOY_LOGE("outputs is not in condition outputs!\n");
+      return nullptr;
+    }
+    Node* node = dynamic_cast<Node*>(new T(name, type, inputs, outputs));
+    condition_node_.emplace_back(node);
+    return node;
+  }
 
   base::Status setNodeParam(const std::string& node_name, base::Param* param);
   base::Param* getNodeParam(const std::string& node_name);
-
-  virtual void setPipelineParallel(bool is_pipeline_parallel);
 
   virtual base::Status init();
   virtual base::Status deinit();
 
   virtual int choose() = 0;
-
-  // virtual base::Status reshape();
 
   virtual base::Status run();
 
