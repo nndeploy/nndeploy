@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_DAG_EDGE_EDGE_ABSTRACT_EDGE_H_
-#define _NNDEPLOY_DAG_EDGE_EDGE_ABSTRACT_EDGE_H_
+#ifndef _NNDEPLOY_DAG_EDGE_ABSTRACT_EDGE_H_
+#define _NNDEPLOY_DAG_EDGE_ABSTRACT_EDGE_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"

@@ -19,12 +19,6 @@
 namespace nndeploy {
 namespace dag {
 
-enum NodeColorType : int {
-  kNodeColorWhite = 0x0000,
-  kNodeColorGray,
-  kNodeColorBlack
-};
-
 enum ParallelType : int {
   kParallelTypeNone = 0x0001,
   kParallelTypeTask = 0x0001 << 1,
@@ -39,8 +33,6 @@ enum EdgeType : int {
   kEdgeTypeFixed = 0x0001,
   kEdgeTypePipeline = 0x0001 << 1,
 };
-
-enum TopoSortType : int { kTopoSortTypeBFS = 0x0000, kTopoSortTypeDFS };
 
 }  // namespace dag
 }  // namespace nndeploy

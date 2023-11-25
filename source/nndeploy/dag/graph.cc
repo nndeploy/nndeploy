@@ -64,7 +64,6 @@ Graph::~Graph() {
     }
     delete edge_wrapper;
   }
-  topo_sort_node_.clear();
   node_repository_.clear();
   edge_repository_.clear();
 }
@@ -74,6 +73,7 @@ Edge* Graph::createEdge(const std::string& name) {
   EdgeWrapper* edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = false;
   edge_wrapper->edge_ = edge;
+  edge_wrapper->name_ = name;
   edge_repository_.emplace_back(edge_wrapper);
   return edge;
 }
@@ -83,81 +83,11 @@ EdgeWrapper* Graph::addEdge(Edge* edge) {
   EdgeWrapper* edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = true;
   edge_wrapper->edge_ = edge;
+  edge_wrapper->name_ = edge->getName();
   edge_repository_.emplace_back(edge_wrapper);
   return edge_wrapper;
 }
 
-// template <typename T>
-// Node* Graph::createNode(const std::string& name, Edge* input,
-//                            Edge* output) {
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-//   Node* node = dynamic_cast<Node*>(new T(name, input, output));
-//   NodeWrapper* node_wrapper = new NodeWrapper();
-//   node_wrapper->is_external_ = false;
-//   node_wrapper->node_ = node;
-//   node_wrapper->name_ = name;
-//   if (findEdgeWrapper(input) == nullptr) {
-//     this->addEdge(input);
-//   }
-//   findEdgeWrapper(input)->consumers_.emplace_back(node_wrapper);
-//   if (findEdgeWrapper(output) == nullptr) {
-//     this->addEdge(output);
-//   }
-//   findEdgeWrapper(output)->producers_.emplace_back(node_wrapper);
-//   node_repository_.emplace_back(node_wrapper);
-//   return node;
-// }
-// template <typename T>
-// Node* Graph::createNode(const std::string& name, std::vector<Edge*>
-// inputs,
-//                            std::vector<Edge*> outputs) {
-//   if (inputs.empty() || outputs.empty()) {
-//     NNDEPLOY_LOGE("inputs or outputs is empty!\n");
-//     return nullptr;
-//   }
-//   Node* node = dynamic_cast<Node*>(new T(name, inputs, outputs));
-//   NodeWrapper* node_wrapper = new NodeWrapper();
-//   node_wrapper->is_external_ = false;
-//   node_wrapper->node_ = node;
-//   node_wrapper->name_ = name;
-//   for (auto input : inputs) {
-//     if (findEdgeWrapper(input) == nullptr) {
-//       this->addEdge(input);
-//     }
-//     findEdgeWrapper(input)->consumers_.emplace_back(node_wrapper);
-//   }
-//   for (auto output : outputs) {
-//     if (findEdgeWrapper(output) == nullptr) {
-//       this->addEdge(output);
-//     }
-//     findEdgeWrapper(output)->producers_.emplace_back(node_wrapper);
-//   }
-//   node_repository_.emplace_back(node_wrapper);
-//   return node;
-// }
-// template <typename T>
-// Node* Graph::createInfer(const std::string& name, base::InferenceType
-// type,
-//                             Edge* input, Edge* output) {
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-//   Node* node = dynamic_cast<Node*>(new T(name, type, input, output));
-//   NodeWrapper* node_wrapper = new NodeWrapper();
-//   node_wrapper->is_external_ = false;
-//   node_wrapper->node_ = node;
-//   node_wrapper->name_ = name;
-//   if (findEdgeWrapper(input) == nullptr) {
-//     this->addEdge(input);
-//   }
-//   findEdgeWrapper(input)->consumers_.emplace_back(node_wrapper);
-//   if (findEdgeWrapper(output) == nullptr) {
-//     this->addEdge(output);
-//   }
-//   findEdgeWrapper(output)->producers_.emplace_back(node_wrapper);
-//   node_repository_.emplace_back(node_wrapper);
-//   return node;
-// }
 base::Status Graph::addNode(Node* node) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
@@ -166,14 +96,14 @@ base::Status Graph::addNode(Node* node) {
   node_wrapper->node_ = node;
   node_wrapper->name_ = node->getName();
   for (auto input : node->getAllInput()) {
-    EdgeWrapper* input_wrapper = findEdgeWrapper(input);
-    if (findEdgeWrapper(input) == nullptr) {
+    EdgeWrapper* input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
       input_wrapper = this->addEdge(input);
     }
     input_wrapper->consumers_.emplace_back(node_wrapper);
   }
   for (auto output : node->getAllOutput()) {
-    EdgeWrapper* output_wrapper = findEdgeWrapper(output);
+    EdgeWrapper* output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
       output_wrapper = this->addEdge(output);
     }
@@ -183,33 +113,28 @@ base::Status Graph::addNode(Node* node) {
   node_repository_.emplace_back(node_wrapper);
   return status;
 }
-Node* Graph::getNode(const std::string& node_name) {
-  for (auto node_wrapper : node_repository_) {
-    if (node_wrapper->name_ == node_name) {
-      return node_wrapper->node_;
-    }
-  }
-  return nullptr;
-}
 
 base::Status Graph::setNodeParam(const std::string& node_name,
                                  base::Param* param) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is null!");
-  NodeWrapper* node_wrapper = findNodeWrapper(node_name);
+  NodeWrapper* node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper, "node_wrapper is null!");
   status = node_wrapper->node_->setParam(param);
   return status;
 }
 
 base::Param* Graph::getNodeParam(const std::string& node_name) {
-  NodeWrapper* node_wrapper = findNodeWrapper(node_name);
+  NodeWrapper* node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(node_wrapper, "node_wrapper is null!");
   return node_wrapper->node_->getParam();
 }
 
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
+
+  GraphParam* graph_param = dynamic_cast<GraphParam*>(param_.get());
+  ParallelType parallel_type = graph_param->parallel_type_;
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
@@ -221,6 +146,10 @@ base::Status Graph::init() {
   for (auto edge_wrapper : edge_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
                                          "edge_repository_ edge is null!");
+    if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
+      NNDEPLOY_LOGI("this edge[%s] is unuseless!\n",
+                    edge_wrapper->edge_->getName().c_str());
+    }
   }
 
   // NNDEPLOY_LOGI("####################\n");
@@ -230,7 +159,7 @@ base::Status Graph::init() {
     Node* node = node_wrapper->node_;
     std::vector<Edge*> inputs = node->getAllInput();
     for (auto input : inputs) {
-      EdgeWrapper* input_wrapper = findEdgeWrapper(input);
+      EdgeWrapper* input_wrapper = findEdgeWrapper(edge_repository_, input);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "input_wrapper is null!");
       node_wrapper->predecessors_.assign(input_wrapper->producers_.begin(),
@@ -238,7 +167,7 @@ base::Status Graph::init() {
     }
     std::vector<Edge*> outputs = node->getAllOutput();
     for (auto output : outputs) {
-      EdgeWrapper* output_wrapper = findEdgeWrapper(output);
+      EdgeWrapper* output_wrapper = findEdgeWrapper(edge_repository_, output);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
                                            "output_wrapper is null!");
       node_wrapper->successors_.assign(output_wrapper->consumers_.begin(),
@@ -247,58 +176,53 @@ base::Status Graph::init() {
   }
 
   // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("TopologicalSort and Check Cycle!\n");
+  // NNDEPLOY_LOGI("construct edge\n");
   // NNDEPLOY_LOGI("##############\n");
-  /**
-   * @brief
-   * @note
-   * # 联通图（多个独立的子图）
-   * # node并行（图中存在可以并行的node）
-   * # 流水线并行（通过流水线的方式并行）
-   * # 条件并行（通过条件判断的方式并行）
-   */
-  status = topologicalSort();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("Toposort failed");
-    return status;
-  }
-
-  // // NNDEPLOY_LOGI("############################\n");
-  // // NNDEPLOY_LOGI("Checking for Unvisited Edge!\n");
-  // // NNDEPLOY_LOGI("############################\n");
-
-  // // NNDEPLOY_LOGI("############################\n");
-  // // NNDEPLOY_LOGI("Optimizer Graph V1!\n");
-  // // NNDEPLOY_LOGI("############################\n");
-
-  // // NNDEPLOY_LOGI("#########################\n");
-  // // NNDEPLOY_LOGI("Device Verification Phase!\n");
-  // // NNDEPLOY_LOGI("#########################\n");
-
-  // // NNDEPLOY_LOGI("############################\n");
-  // // NNDEPLOY_LOGI("Optimizer Graph V2!\n");
-  // // NNDEPLOY_LOGI("############################\n");
-
-  // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Node Initialize Phase!\n");
-  // NNDEPLOY_LOGI("#######################\n");
-  for (auto node_vec : topo_sort_node_) {
-    for (auto node : node_vec) {
-      status = node->init();
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("Node init failed!\n");
-        return status;
-      }
+  for (auto edge_wrapper : edge_repository_) {
+    std::vector<Node*> producers;
+    for (auto producer : edge_wrapper->producers_) {
+      producers.emplace_back(producer->node_);
     }
+    std::vector<Node*> consumers;
+    for (auto consumer : edge_wrapper->consumers_) {
+      consumers.emplace_back(consumer->node_);
+    }
+    base::Status status =
+        edge_wrapper->edge_->construct(parallel_type, producers, consumers);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "construct edge failed!");
   }
 
-  // // NNDEPLOY_LOGI("########################\n");
-  // // NNDEPLOY_LOGI("Memory Allocation Phase!\n");
-  // // NNDEPLOY_LOGI("########################\n");
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("create executor\n");
+  // NNDEPLOY_LOGI("##############\n");
+  if (parallel_type == kParallelTypeNone) {
+    executor_ = std::make_shared<SingleThreadExecutor>();
+  }
+  // } else if (parallel_type == kParallelTypeTask) {
+  //   executor_ = std::make_shared<TaskExecutor>();
+  // } else if (parallel_type == kParallelTypePipeline) {
+  //   executor_ = std::make_shared<PipelineExecutor>();
+  // } else if (parallel_type == kParallelTypeData) {
+  //   executor_ = std::make_shared<DataParallelExecutor>();
+  // } else if (parallel_type == kParallelTypeTaskPipeline) {
+  //   executor_ = std::make_shared<TaskPipelineExecutor>();
+  // } else {
+  //   NNDEPLOY_LOGE("parallel_type is invalid!\n");
+  //   return base::kStatusCodeErrorInvalidValue;
+  // }
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
 
-  // // NNDEPLOY_LOGI("#######################\n");
-  // // NNDEPLOY_LOGI("Cost Calculations!\n");
-  // // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("executor init\n");
+  // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
+  // NNDEPLOY_LOGI("2. Device Verification Phase!\n");
+  // NNDEPLOY_LOGI("3. Optimizer Graph V2!\n");
+  // NNDEPLOY_LOGI("4. Memory Allocation Phase!\n");
+  // NNDEPLOY_LOGI("5. Cost Calculations!\n");
+  // NNDEPLOY_LOGI("##############\n");
+  status = executor_->init(edge_repository_, node_repository_);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
 
   return status;
 }
@@ -308,34 +232,11 @@ base::Status Graph::deinit() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  for (auto node_vec : topo_sort_node_) {
-    for (auto node : node_vec) {
-      status = node->deinit();
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("Node deinit failed!\n");
-        return status;
-      }
-    }
-  }
+  status = executor_->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "executor deinit failed!");
   return status;
 }
-
-// base::Status Graph::reshape() {
-//   base::Status status = base::kStatusCodeOk;
-//   // NNDEPLOY_LOGI("#######################\n");
-//   // NNDEPLOY_LOGI("Node reshape Phase!\n");
-//   // NNDEPLOY_LOGI("#######################\n");
-//   for (auto node_vec : topo_sort_node_) {
-//     for (auto node : node_vec) {
-//       status = node->reshape();
-//       if (status != base::kStatusCodeOk) {
-//         NNDEPLOY_LOGE("Node run failed!\n");
-//         return status;
-//       }
-//     }
-//   }
-//   return status;
-// }
 
 base::Status Graph::run() {
   base::Status status = base::kStatusCodeOk;
@@ -343,245 +244,14 @@ base::Status Graph::run() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  for (auto node_vec : topo_sort_node_) {
-    for (auto node : node_vec) {
-      NNDEPLOY_TIME_POINT_START(node->getName());
-      NNDEPLOY_LOGE("NODE RUN %s\n", node->getName().c_str());
-      status = node->run();
-      NNDEPLOY_TIME_POINT_END(node->getName());
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("Node run failed!\n");
-        return status;
-      }
-    }
-  }
+  status = executor_->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
   return status;
 }
 
 base::Status Graph::dump(std::ostream& oss) {
-  base::Status status = base::kStatusCodeOk;
-  // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Node dump Phase!\n");
-  // NNDEPLOY_LOGI("#######################\n");
-  if (name_.empty()) {
-    oss << "digraph graph {\n";
-  } else {
-    oss << "digraph " << name_ << " {\n";
-  }
-  for (auto node_vec : topo_sort_node_) {
-    for (auto node : node_vec) {
-      NodeWrapper* node_wrapper = findNodeWrapper(node);
-      if (node_wrapper->predecessors_.empty()) {
-        auto inputs = node->getAllInput();
-        for (auto input : inputs) {
-          oss << "p" << (void*)input << "[label=input]\n";
-          oss << "p" << (void*)input << "->"
-              << "p" << (void*)node;
-          if (input->getName().empty()) {
-            oss << "\n";
-          } else {
-            oss << "[label=" << input->getName() << "]\n";
-          }
-        }
-      }
-      if (node->getName().empty()) {
-        oss << "p" << (void*)node << "\n";
-      } else {
-        oss << "p" << (void*)node << "[label=" << node->getName() << "]\n";
-      }
-      if (node_wrapper->successors_.empty()) {
-        auto outputs = node->getAllOutput();
-        for (auto output : outputs) {
-          oss << "p" << (void*)output << "[label=output]\n";
-          oss << "p" << (void*)node << "->"
-              << "p" << (void*)output;
-          if (output->getName().empty()) {
-            oss << "\n";
-          } else {
-            oss << "[label=" << output->getName() << "]\n";
-          }
-        }
-      } else {
-        for (auto successor : node_wrapper->successors_) {
-          oss << "p" << (void*)node << "->"
-              << "p" << (void*)(successor->node_);
-          auto outputs = node->getAllOutput();
-          auto inputs = successor->node_->getAllInput();
-          Edge* out_in = nullptr;
-          for (auto output : outputs) {
-            for (auto input : inputs) {
-              if (output == input) {
-                out_in = output;
-              }
-            }
-          }
-          if (out_in != nullptr) {
-            if (out_in->getName().empty()) {
-              oss << "\n";
-            } else {
-              oss << "[label=" << out_in->getName() << "]\n";
-            }
-          }
-        }
-      }
-    }
-  }
-  oss << "}\n";
-  return status;
-}
-
-EdgeWrapper* Graph::findEdgeWrapper(Edge* edge) {
-  for (auto edge_wrapper : edge_repository_) {
-    if (edge_wrapper->edge_ == edge) {
-      return edge_wrapper;
-    }
-  }
-  return nullptr;
-}
-NodeWrapper* Graph::findNodeWrapper(const std::string& node_name) {
-  for (auto node_wrapper : node_repository_) {
-    if (node_wrapper->name_ == node_name) {
-      return node_wrapper;
-    }
-  }
-  return nullptr;
-}
-NodeWrapper* Graph::findNodeWrapper(Node* node) {
-  for (auto node_wrapper : node_repository_) {
-    if (node_wrapper->node_ == node) {
-      return node_wrapper;
-    }
-  }
-  return nullptr;
-}
-
-std::vector<NodeWrapper*> Graph::findStartNodes() {
-  std::vector<NodeWrapper*> start_nodes;
-  for (auto node_wrapper : node_repository_) {
-    if (node_wrapper->predecessors_.empty()) {
-      start_nodes.emplace_back(node_wrapper);
-    }
-  }
-  return start_nodes;
-}
-
-std::vector<NodeWrapper*> Graph::findEndNodes() {
-  std::vector<NodeWrapper*> end_nodes;
-  for (auto node_wrapper : node_repository_) {
-    if (node_wrapper->successors_.empty()) {
-      end_nodes.emplace_back(node_wrapper);
-    }
-  }
-  return end_nodes;
-}
-
-base::Status Graph::TopoSortBFS(NodeWrapper* node_wrapper) {
-  std::vector<Node*> dst;
-  node_wrapper->color_ = kNodeColorGray;
-  std::deque<NodeWrapper*> node_deque;
-  node_deque.emplace_back(node_wrapper);
-  while (!node_deque.empty()) {
-    NodeWrapper* node_wrapper = node_deque.front();
-    if (node_wrapper->color_ == kNodeColorBlack) {
-      node_deque.pop_front();
-      continue;
-    }
-    bool flag = false;
-    for (auto predecessor : node_wrapper->predecessors_) {
-      if (predecessor->color_ != kNodeColorBlack) {
-        predecessor->color_ = kNodeColorGray;
-        node_deque.emplace_front(predecessor);
-        flag = true;
-        break;
-      }
-    }
-    if (flag) {
-      continue;
-    }
-    for (auto successor : node_wrapper->successors_) {
-      if (successor->color_ == kNodeColorBlack) {
-        NNDEPLOY_LOGE("Cycle detected in graph");
-        return base::kStatusCodeErrorInvalidValue;
-      } else if (successor->color_ == kNodeColorWhite) {
-        successor->color_ = kNodeColorGray;
-        node_deque.emplace_back(successor);
-      }
-    }
-    node_deque.pop_front();
-    node_wrapper->color_ = kNodeColorBlack;
-    dst.emplace_back(node_wrapper->node_);
-  }
-  topo_sort_node_.emplace_back(dst);
-  return base::kStatusCodeOk;
-}
-
-base::Status Graph::TopoSortDFS(NodeWrapper* node_wrapper,
-                                std::stack<NodeWrapper*>& dst) {
-  base::Status status = base::kStatusCodeOk;
-  node_wrapper->color_ = kNodeColorGray;
-  for (auto successor : node_wrapper->successors_) {
-    if (successor->color_ == kNodeColorWhite) {
-      status = TopoSortDFS(successor, dst);
-    } else if (successor->color_ == kNodeColorGray) {
-      NNDEPLOY_LOGE("Cycle detected in graph");
-      status = base::kStatusCodeErrorInvalidValue;
-    } else {
-      continue;
-    }
-  }
-  if (status != base::kStatusCodeOk) {
-    return status;
-  }
-  node_wrapper->color_ = kNodeColorBlack;
-  dst.push(node_wrapper);
-  return base::kStatusCodeOk;
-}
-
-/**
- * @brief topo sort and check cycle
- *
- * @return base::Status
- */
-base::Status Graph::topologicalSort() {
-  base::Status status = base::kStatusCodeOk;
-
-  std::vector<NodeWrapper*> start_nodes = findStartNodes();
-  if (start_nodes.empty()) {
-    NNDEPLOY_LOGE("No start node found in graph");
-    return base::kStatusCodeErrorInvalidValue;
-  }
-  GraphParam* param = dynamic_cast<GraphParam*>(this->param_.get());
-  if (param->topo_sort_type_ == kTopoSortTypeBFS) {
-    for (auto node_wrapper : start_nodes) {
-      if (node_wrapper->color_ == kNodeColorBlack) {
-        continue;
-      }
-      status = TopoSortBFS(node_wrapper);
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("TopoSortBFS failed");
-        return status;
-      }
-    }
-  } else {
-    std::stack<NodeWrapper*> dst;
-    for (auto node_wrapper : start_nodes) {
-      if (node_wrapper->color_ == kNodeColorBlack) {
-        continue;
-      }
-      status = TopoSortDFS(node_wrapper, dst);
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("TopoSortDFS failed");
-        return status;
-      }
-    }
-    std::vector<Node*> node_dst;
-    while (!dst.empty()) {
-      node_dst.emplace_back(dst.top()->node_);
-      dst.pop();
-    }
-    topo_sort_node_.emplace_back(node_dst);
-  }
-
+  base::Status status = dump(node_repository_, name_, oss);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
   return status;
 }
 
