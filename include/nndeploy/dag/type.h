@@ -23,10 +23,7 @@ enum ParallelType : int {
   kParallelTypeNone = 0x0001,
   kParallelTypeTask = 0x0001 << 1,
   kParallelTypePipeline = 0x0001 << 2,
-  kParallelTypeData = 0x0001 << 3,
-  kParallelTypeTaskPipeline =
-      kParallelTypeTask |
-      kParallelTypePipeline,  // 这个从edge出发似乎是做不到的
+  kParallelTypeAdapt = 0x0001 << 3,
 };
 
 enum EdgeType : int {

@@ -57,28 +57,11 @@ base::Status Loop::run() {
   for (int i = 0; i < size; i++) {
     status = loop_node_->run();
     if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Node reshape failed!\n");
+      NNDEPLOY_LOGE("Node run failed!\n");
       return status;
     }
   }
   return status;
-}
-
-bool Loop::check(const std::vector<Edge*>& edges,
-                 const std::vector<Edge*>& loop_edges) {
-  for (auto edge : edges) {
-    bool flag = false;
-    for (auto loop_edge : loop_edges) {
-      if (edge == loop_edge) {
-        flag = true;
-        break;
-      }
-    }
-    if (!flag) {
-      return false;
-    }
-  }
-  return true;
 }
 
 }  // namespace dag

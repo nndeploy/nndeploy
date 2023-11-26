@@ -84,9 +84,15 @@ std::vector<NodeWrapper*> findEndNodes(
 base::Status dump(std::vector<NodeWrapper*>& node_repository,
                   const std::string& name = "", std::ostream& oss = std::cout);
 
+base::Status topoSortBFS(std::vector<NodeWrapper*>& node_repository,
+                         std::vector<NodeWrapper*>& topo_sort_node);
+
+base::Status topoSortDFS(std::vector<NodeWrapper*>& node_repository,
+                         std::vector<NodeWrapper*>& topo_sort_node);
+
 base::Status topoSort(std::vector<NodeWrapper*>& node_repository,
                       TopoSortType topo_sort_type,
-                      std::vector<std::vector<NodeWrapper*>>& topo_sort_node) {}
+                      std::vector<NodeWrapper*>& topo_sort_node);
 
 }  // namespace dag
 }  // namespace nndeploy

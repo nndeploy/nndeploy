@@ -86,23 +86,6 @@ base::Status Condition::run() {
   return status;
 }
 
-bool Condition::check(const std::vector<Edge*>& edges,
-                      const std::vector<Edge*>& condition_edges) {
-  for (auto edge : edges) {
-    bool flag = false;
-    for (auto condition_edge : condition_edges) {
-      if (edge == condition_edge) {
-        flag = true;
-        break;
-      }
-    }
-    if (!flag) {
-      return false;
-    }
-  }
-  return true;
-}
-
 Node* Condition::findNode(const std::string& name) {
   for (auto node : condition_node_) {
     if (node->getName() == name) {

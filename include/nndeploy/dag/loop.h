@@ -11,6 +11,7 @@
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/dag/util.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -35,12 +36,12 @@ class NNDEPLOY_CC_API Loop : public Node {
     }
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    bool flag = check({input}, inputs_);
+    bool flag = checkedge({input}, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("input is not in loop inputs!\n");
       return nullptr;
     }
-    flag = check({output}, outputs_);
+    flag = checkedge({output}, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("output is not in loop outputs!\n");
       return nullptr;
@@ -56,16 +57,12 @@ class NNDEPLOY_CC_API Loop : public Node {
       NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
     }
-    // if (inputs.empty() || outputs.empty()) {
-    //   NNDEPLOY_LOGE("inputs or outputs is empty!\n");
-    //   return nullptr;
-    // }
-    bool flag = check(inputs, inputs_);
+    bool flag = checkedge(inputs, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("inputs is not in loop inputs!\n");
       return nullptr;
     }
-    flag = check(outputs, outputs_);
+    flag = checkedge(outputs, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("outputs is not in loop outputs!\n");
       return nullptr;
@@ -83,12 +80,12 @@ class NNDEPLOY_CC_API Loop : public Node {
     }
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    bool flag = check({input}, inputs_);
+    bool flag = checkedge({input}, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("input is not in loop inputs!\n");
       return nullptr;
     }
-    flag = check({output}, outputs_);
+    flag = checkedge({output}, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("output is not in loop outputs!\n");
       return nullptr;
@@ -105,16 +102,12 @@ class NNDEPLOY_CC_API Loop : public Node {
       NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
     }
-    // if (inputs.empty() || outputs.empty()) {
-    //   NNDEPLOY_LOGE("inputs or outputs is empty!\n");
-    //   return nullptr;
-    // }
-    bool flag = check(inputs, inputs_);
+    bool flag = checkedge(inputs, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("inputs is not in loop inputs!\n");
       return nullptr;
     }
-    flag = check(outputs, outputs_);
+    flag = checkedge(outputs, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("outputs is not in loop outputs!\n");
       return nullptr;
@@ -129,10 +122,6 @@ class NNDEPLOY_CC_API Loop : public Node {
   virtual int loops() = 0;
 
   virtual base::Status run();
-
- private:
-  bool check(const std::vector<Edge*>& edges,
-             const std::vector<Edge*>& loop_edges);
 
  protected:
   Node* loop_node_ = nullptr;
