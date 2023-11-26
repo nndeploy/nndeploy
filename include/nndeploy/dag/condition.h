@@ -32,12 +32,12 @@ class NNDEPLOY_CC_API Condition : public Node {
   Node* createNode(const std::string& name, Edge* input, Edge* output) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    bool flag = checkedge({input}, inputs_);
+    bool flag = checkEdge({input}, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("input is not in condition inputs!\n");
       return nullptr;
     }
-    flag = checkedge({output}, outputs_);
+    flag = checkEdge({output}, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("output is not in condition outputs!\n");
       return nullptr;
@@ -50,12 +50,12 @@ class NNDEPLOY_CC_API Condition : public Node {
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node* createNode(const std::string& name, std::initializer_list<Edge*> inputs,
                    std::initializer_list<Edge*> outputs) {
-    bool flag = checkedge(inputs, inputs_);
+    bool flag = checkEdge(inputs, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("inputs is not in condition inputs!\n");
       return nullptr;
     }
-    flag = checkedge(outputs, outputs_);
+    flag = checkEdge(outputs, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("outputs is not in condition outputs!\n");
       return nullptr;
@@ -70,12 +70,12 @@ class NNDEPLOY_CC_API Condition : public Node {
                     Edge* input, Edge* output) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    bool flag = checkedge({input}, inputs_);
+    bool flag = checkEdge({input}, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("input is not in condition inputs!\n");
       return nullptr;
     }
-    flag = checkedge({output}, outputs_);
+    flag = checkEdge({output}, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("output is not in condition outputs!\n");
       return nullptr;
@@ -89,12 +89,12 @@ class NNDEPLOY_CC_API Condition : public Node {
   Node* createInfer(const std::string& name, base::InferenceType type,
                     std::initializer_list<Edge*> inputs,
                     std::initializer_list<Edge*> outputs) {
-    bool flag = checkedge(inputs, inputs_);
+    bool flag = checkEdge(inputs, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("inputs is not in condition inputs!\n");
       return nullptr;
     }
-    flag = checkedge(outputs, outputs_);
+    flag = checkEdge(outputs, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("outputs is not in condition outputs!\n");
       return nullptr;

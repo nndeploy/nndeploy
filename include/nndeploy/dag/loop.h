@@ -36,12 +36,12 @@ class NNDEPLOY_CC_API Loop : public Node {
     }
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    bool flag = checkedge({input}, inputs_);
+    bool flag = checkEdge({input}, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("input is not in loop inputs!\n");
       return nullptr;
     }
-    flag = checkedge({output}, outputs_);
+    flag = checkEdge({output}, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("output is not in loop outputs!\n");
       return nullptr;
@@ -57,12 +57,12 @@ class NNDEPLOY_CC_API Loop : public Node {
       NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
     }
-    bool flag = checkedge(inputs, inputs_);
+    bool flag = checkEdge(inputs, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("inputs is not in loop inputs!\n");
       return nullptr;
     }
-    flag = checkedge(outputs, outputs_);
+    flag = checkEdge(outputs, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("outputs is not in loop outputs!\n");
       return nullptr;
@@ -80,12 +80,12 @@ class NNDEPLOY_CC_API Loop : public Node {
     }
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
     NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    bool flag = checkedge({input}, inputs_);
+    bool flag = checkEdge({input}, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("input is not in loop inputs!\n");
       return nullptr;
     }
-    flag = checkedge({output}, outputs_);
+    flag = checkEdge({output}, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("output is not in loop outputs!\n");
       return nullptr;
@@ -102,12 +102,12 @@ class NNDEPLOY_CC_API Loop : public Node {
       NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
     }
-    bool flag = checkedge(inputs, inputs_);
+    bool flag = checkEdge(inputs, inputs_);
     if (!flag) {
       NNDEPLOY_LOGE("inputs is not in loop inputs!\n");
       return nullptr;
     }
-    flag = checkedge(outputs, outputs_);
+    flag = checkEdge(outputs, outputs_);
     if (!flag) {
       NNDEPLOY_LOGE("outputs is not in loop outputs!\n");
       return nullptr;
