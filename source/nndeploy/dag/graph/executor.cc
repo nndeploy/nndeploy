@@ -185,79 +185,68 @@ base::Status topoSortBFS(std::vector<NodeWrapper*>& node_repository,
   }
   while (!node_deque.empty()) {
     NodeWrapper* node_wrapper = node_deque.front();
-    if (node_wrapper->color_ == kNodeColorBlack) {
-      node_deque.pop_front();
-      continue;
-    }
-    bool flag = false;
-    for (auto predecessor : node_wrapper->predecessors_) {
-      if (predecessor->color_ != kNodeColorBlack) {
-        predecessor->color_ = kNodeColorGray;
-        node_deque.emplace_front(predecessor);
-        flag = true;
-        break;
-      }
-    }
-    if (flag) {
-      continue;
-    }
     for (auto successor : node_wrapper->successors_) {
-      if (successor->color_ == kNodeColorBlack) {
-        NNDEPLOY_LOGE("Cycle detected in graph");
-        return base::kStatusCodeErrorInvalidValue;
-      } else if (successor->color_ == kNodeColorWhite) {
+      if (successor->color_ == kNodeColorWhite) {
         successor->color_ = kNodeColorGray;
         node_deque.emplace_back(successor);
+      } else if (successor->color_ == kNodeColorGray) {
+        continue;
+      } else {
+        NNDEPLOY_LOGE("Cycle detected in graph");
+        return base::kStatusCodeErrorInvalidValue;
       }
     }
     node_deque.pop_front();
     node_wrapper->color_ = kNodeColorBlack;
-    dst.emplace_back(node_wrapper);
+    topo_sort_node.emplace_back(node_wrapper);
   }
   return base::kStatusCodeOk;
+}
+
+base::Status TopoSortDFSRecursive(NodeWrapper* node_wrapper,
+                                  std::stack<NodeWrapper*>& dst) {
+  base::Status status = base::kStatusCodeOk;
+  node_wrapper->color_ = kNodeColorGray;
+  for (auto successor : node_wrapper->successors_) {
+    if (successor->color_ == kNodeColorWhite) {
+      status = TopoSortDFSRecursive(successor, dst);
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "Cycle detected in graph");
+    } else if (successor->color_ == kNodeColorGray) {
+      NNDEPLOY_LOGE("Cycle detected in graph");
+      return base::kStatusCodeErrorInvalidValue;
+    } else {
+      continue;
+    }
+  }
+  node_wrapper->color_ = kNodeColorBlack;
+  dst.push(node_wrapper);
+  return status;
 }
 
 base::Status topoSortDFS(std::vector<NodeWrapper*>& node_repository,
                          std::vector<NodeWrapper*>& topo_sort_node) {
   base::Status status = base::kStatusCodeOk;
-  node_wrapper->color_ = kNodeColorGray;
-  for (auto successor : node_wrapper->successors_) {
-    if (successor->color_ == kNodeColorWhite) {
-      status = TopoSortDFS(successor, dst);
-    } else if (successor->color_ == kNodeColorGray) {
+  std::vector<NodeWrapper*> start_nodes = findStartNodes(node_repository);
+  if (start_nodes.empty()) {
+    NNDEPLOY_LOGE("No start node found in graph");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  std::stack<NodeWrapper*> dst;
+  for (auto node_wrapper : start_nodes) {
+    if (node_wrapper->color_ == kNodeColorWhite) {
+      status = TopoSortDFSRecursive(node_wrapper, dst);
+    } else if (node_wrapper->color_ == kNodeColorGray) {
       NNDEPLOY_LOGE("Cycle detected in graph");
       status = base::kStatusCodeErrorInvalidValue;
     } else {
       continue;
     }
   }
-  if (status != base::kStatusCodeOk) {
-    return status;
+  while (!dst.empty()) {
+    topo_sort_node.emplace_back(dst.top());
+    dst.pop();
   }
-  node_wrapper->color_ = kNodeColorBlack;
-  dst.push(node_wrapper);
-  return base::kStatusCodeOk;
-}
-
-base::Status topoSortDFS(std::vector<NodeWrapper*>& node_repository,
-                         std::vector<NodeWrapper*>& topo_sort_node) {
-  base::Status status = base::kStatusCodeOk;
-  node_wrapper->color_ = kNodeColorGray;
-  for (auto successor : node_wrapper->successors_) {
-    if (successor->color_ == kNodeColorWhite) {
-      status = TopoSortDFS(successor, dst);
-    } else if (successor->color_ == kNodeColorGray) {
-      NNDEPLOY_LOGE("Cycle detected in graph");
-      status = base::kStatusCodeErrorInvalidValue;
-    } else {
-      continue;
-    }
-  }
-  if (status != base::kStatusCodeOk) {
-    return status;
-  }
-  node_wrapper->color_ = kNodeColorBlack;
-  dst.push(node_wrapper);
   return base::kStatusCodeOk;
 }
 
@@ -280,6 +269,14 @@ base::Status topoSort(std::vector<NodeWrapper*>& node_repository,
     return base::kStatusCodeErrorInvalidValue;
   }
   return status;
+}
+
+base::Status setColor(std::vector<NodeWrapper*>& node_repository,
+                      NodeColorType color) {
+  for (auto node_wrapper : node_repository) {
+    node_wrapper->color_ = color;
+  }
+  return base::kStatusCodeOk;
 }
 
 }  // namespace dag

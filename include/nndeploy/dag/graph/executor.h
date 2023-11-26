@@ -94,6 +94,9 @@ base::Status topoSort(std::vector<NodeWrapper*>& node_repository,
                       TopoSortType topo_sort_type,
                       std::vector<NodeWrapper*>& topo_sort_node);
 
+base::Status setColor(std::vector<NodeWrapper*>& node_repository,
+                      NodeColorType color);
+
 }  // namespace dag
 }  // namespace nndeploy
 

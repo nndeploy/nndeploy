@@ -197,20 +197,18 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("create executor\n");
   // NNDEPLOY_LOGI("##############\n");
   if (parallel_type == kParallelTypeNone) {
-    executor_ = std::make_shared<SingleThreadExecutor>();
+    executor_ = std::make_shared<SequentialExecutor>();
+  } else if (parallel_type == kParallelTypeTask) {
+    executor_ = std::make_shared<ParallelTaskExecutor>();
+  } else if (parallel_type == kParallelTypePipeline) {
+    executor_ = std::make_shared<ParallelPipelineExecutor>();
+  } else if (parallel_type == kParallelTypeAdaptive) {
+    // rewriteGraph();
+    ;
+  } else {
+    NNDEPLOY_LOGE("parallel_type is invalid!\n");
+    return base::kStatusCodeErrorInvalidValue;
   }
-  // } else if (parallel_type == kParallelTypeTask) {
-  //   executor_ = std::make_shared<TaskExecutor>();
-  // } else if (parallel_type == kParallelTypePipeline) {
-  //   executor_ = std::make_shared<PipelineExecutor>();
-  // } else if (parallel_type == kParallelTypeData) {
-  //   executor_ = std::make_shared<DataParallelExecutor>();
-  // } else if (parallel_type == kParallelTypeTaskPipeline) {
-  //   executor_ = std::make_shared<TaskPipelineExecutor>();
-  // } else {
-  //   NNDEPLOY_LOGE("parallel_type is invalid!\n");
-  //   return base::kStatusCodeErrorInvalidValue;
-  // }
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
 
   // NNDEPLOY_LOGI("##############\n");
