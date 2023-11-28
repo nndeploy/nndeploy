@@ -24,9 +24,8 @@ class Node;
 
 class AbstractEdge : public base::NonCopyable {
  public:
-  AbstractEdge(ParallelType paralle_type,
-               std::initializer_list<Node *> producers,
-               std::initializer_list<Node *> consumers);
+  AbstractEdge(ParallelType paralle_type, std::vector<Node *> &producers,
+               std::vector<Node *> &consumers);
   virtual ~AbstractEdge();
 
   virtual base::Status set(device::Buffer *buffer, int index,
@@ -79,15 +78,15 @@ class EdgeCreator {
  public:
   virtual ~EdgeCreator(){};
   virtual AbstractEdge *createEdge(ParallelType paralle_type,
-                                   std::initializer_list<Node *> producers,
-                                   std::initializer_list<Node *> consumers) = 0;
+                                   std::vector<Node *> &producers,
+                                   std::vector<Node *> &consumers) = 0;
 };
 
 template <typename T>
 class TypeEdgeCreator : public EdgeCreator {
   virtual AbstractEdge *createEdge(ParallelType paralle_type,
-                                   std::initializer_list<Node *> producers,
-                                   std::initializer_list<Node *> consumers) {
+                                   std::vector<Node *> &producers,
+                                   std::vector<Node *> &consumers) {
     return new T(paralle_type, producers, consumers);
   }
 };
@@ -103,8 +102,8 @@ class TypeEdgeRegister {
 };
 
 AbstractEdge *createEdge(ParallelType paralle_type,
-                         std::initializer_list<Node *> producers,
-                         std::initializer_list<Node *> consumers);
+                         std::vector<Node *> &producers,
+                         std::vector<Node *> &consumers);
 
 }  // namespace dag
 }  // namespace nndeploy

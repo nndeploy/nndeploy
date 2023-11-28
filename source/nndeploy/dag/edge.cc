@@ -7,8 +7,8 @@ namespace nndeploy {
 namespace dag {
 
 base::Status Edge::construct(ParallelType paralle_type,
-                             std::initializer_list<Node *> producers,
-                             std::initializer_list<Node *> consumers) {
+                             std::vector<Node *> &producers,
+                             std::vector<Node *> &consumers) {
   abstact_edge_ = createEdge(paralle_type, producers, consumers);
   if (abstact_edge_ == nullptr) {
     return base::kStatusCodeErrorOutOfMemory;

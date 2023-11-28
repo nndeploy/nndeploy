@@ -75,13 +75,15 @@ class WorkerThread {
         thread_id_(thread_id),
         stop_(false),
         active_wait_(2000) {
-    // 检查线程是否能够成功启动，如果不能则抛出异常。  
-    if (thread_.joinable()) { // 如果线程可join，说明线程已经启动过了，抛出异常。  
-       NNDEPLOY_LOGE("Thread already started\n");  
-    }   
-    else { // 如果线程不可join，说明线程未启动，可以启动。  
-      thread_ = std::thread([this] { this->loop_body(); });  // 启动线程，并赋值给thread_成员变量。  
-    }  
+    // 检查线程是否能够成功启动，如果不能则抛出异常。
+    if (thread_.joinable()) {
+      // 如果线程可join，说明线程已经启动过了，抛出异常。
+      NNDEPLOY_LOGE("Thread already started\n");
+    } else {  // 如果线程不可join，说明线程未启动，可以启动。
+      thread_ = std::thread([this] {
+        this->loop_body();
+      });  // 启动线程，并赋值给thread_成员变量。
+    }
   }
 
   ~WorkerThread() {
@@ -225,10 +227,10 @@ void ParallelPool::parallelFor(const base::Range& range,
   } else {
     bool completed = false;
     std::unique_lock<std::mutex> tlock(mutex_notify_);
-    //job_complete_.wait(tlock, [this] { return job_->completed_; });
-    job_complete_.wait(tlock, [this, &completed] { 
-        completed = std::atomic_load(&job_->completed_);
-        return completed; 
+    // job_complete_.wait(tlock, [this] { return job_->completed_; });
+    job_complete_.wait(tlock, [this, &completed] {
+      completed = std::atomic_load(&job_->completed_);
+      return completed;
     });
   }
 

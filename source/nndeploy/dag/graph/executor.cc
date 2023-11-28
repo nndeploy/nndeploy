@@ -100,8 +100,8 @@ std::vector<NodeWrapper*> findEndNodes(
   return end_nodes;
 }
 
-base::Status dump(std::vector<NodeWrapper*>& node_repository,
-                  const std::string& name, std::ostream& oss) {
+base::Status dumpDag(std::vector<NodeWrapper*>& node_repository,
+                     const std::string& name, std::ostream& oss) {
   base::Status status = base::kStatusCodeOk;
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node dump Phase!\n");

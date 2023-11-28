@@ -81,8 +81,9 @@ std::vector<NodeWrapper*> findStartNodes(
 std::vector<NodeWrapper*> findEndNodes(
     std::vector<NodeWrapper*>& node_repository);
 
-base::Status dump(std::vector<NodeWrapper*>& node_repository,
-                  const std::string& name = "", std::ostream& oss = std::cout);
+base::Status dumpDag(std::vector<NodeWrapper*>& node_repository,
+                     const std::string& name = "",
+                     std::ostream& oss = std::cout);
 
 base::Status topoSortBFS(std::vector<NodeWrapper*>& node_repository,
                          std::vector<NodeWrapper*>& topo_sort_node);

@@ -7,8 +7,8 @@ namespace nndeploy {
 namespace dag {
 
 AbstractEdge::AbstractEdge(ParallelType paralle_type,
-                           std::initializer_list<Node *> producers,
-                           std::initializer_list<Node *> consumers)
+                           std::vector<Node *> &producers,
+                           std::vector<Node *> &consumers)
     : paralle_type_(paralle_type),
       producers_(producers),
       consumers_(consumers) {}
@@ -36,18 +36,15 @@ EdgeType getEdgeType(ParallelType type) {
       return kEdgeTypeFixed;
     case kParallelTypePipeline:
       return kEdgeTypePipeline;
-    case kParallelTypeData:
-      return kEdgeTypeFixed;
-    case kParallelTypeTaskPipeline:
+    case kParallelTypeAdaptive:
       return kEdgeTypePipeline;
     default:
       return kEdgeTypeFixed;
   }
 }
 
-AbstractEdge *createEdge(ParallelType type,
-                         std::initializer_list<Node *> producers,
-                         std::initializer_list<Node *> consumers) {
+AbstractEdge *createEdge(ParallelType type, std::vector<Node *> &producers,
+                         std::vector<Node *> &consumers) {
   AbstractEdge *temp = nullptr;
   auto &creater_map = getGlobalEdgeCreatorMap();
   EdgeType edge_type = getEdgeType(type);

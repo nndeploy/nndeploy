@@ -22,8 +22,8 @@ namespace dag {
 
 class FixedEdge : public AbstractEdge {
  public:
-  FixedEdge(ParallelType paralle_type, std::initializer_list<Node *> producers,
-            std::initializer_list<Node *> consumers);
+  FixedEdge(ParallelType paralle_type, std::vector<Node *> &producers,
+            std::vector<Node *> &consumers);
   virtual ~FixedEdge();
 
   virtual base::Status set(device::Buffer *buffer, int index, bool is_external);

@@ -8,9 +8,8 @@ namespace dag {
 TypeEdgeRegister<TypeEdgeCreator<FixedEdge>> g_fixed_edge_register(
     kEdgeTypeFixed);
 
-FixedEdge::FixedEdge(ParallelType paralle_type,
-                     std::initializer_list<Node *> producers,
-                     std::initializer_list<Node *> consumers)
+FixedEdge::FixedEdge(ParallelType paralle_type, std::vector<Node *> &producers,
+                     std::vector<Node *> &consumers)
     : AbstractEdge(paralle_type, producers, consumers) {
   data_packet_ = new DataPacket();
 }

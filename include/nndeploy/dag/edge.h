@@ -34,8 +34,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   std::string getName() { return name_; }
 
   base::Status construct(ParallelType paralle_type,
-                         std::initializer_list<Node *> producers,
-                         std::initializer_list<Node *> consumers);
+                         std::vector<Node *> &producers,
+                         std::vector<Node *> &consumers);
 
   base::Status set(device::Buffer *buffer, int index, bool is_external = true);
   base::Status set(device::Buffer &buffer, int index, bool is_external = true);
