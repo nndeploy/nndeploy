@@ -11,6 +11,7 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/graph/sequential_executor.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
@@ -196,18 +197,20 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("create executor\n");
   // NNDEPLOY_LOGI("##############\n");
-  // if (parallel_type == kParallelTypeNone) {
-  //   executor_ = std::make_shared<SequentialExecutor>();
-  // } else if (parallel_type == kParallelTypeTask) {
+  if (parallel_type == kParallelTypeNone) {
+    executor_ = std::make_shared<SequentialExecutor>();
+  } else {
+    NNDEPLOY_LOGE("parallel_type is invalid!\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  // else if (parallel_type == kParallelTypeTask) {
   //   executor_ = std::make_shared<ParallelTaskExecutor>();
-  // } else if (parallel_type == kParallelTypePipeline) {
+  // }
+  // else if (parallel_type == kParallelTypePipeline) {
   //   executor_ = std::make_shared<ParallelPipelineExecutor>();
-  // } else if (parallel_type == kParallelTypeAdaptive) {
-  //   // rewriteGraph();
-  //   ;
-  // } else {
-  //   NNDEPLOY_LOGE("parallel_type is invalid!\n");
-  //   return base::kStatusCodeErrorInvalidValue;
+  // }
+  // else if (parallel_type == kParallelTypeAdaptive) {
+  //   rewriteGraph();
   // }
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
 

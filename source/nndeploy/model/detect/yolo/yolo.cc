@@ -189,8 +189,8 @@ dag::Graph* createYoloV5Graph(const std::string& name,
                               bool is_path,
                               std::vector<std::string> model_value) {
   dag::Graph* graph = new dag::Graph(name, input, output);
-  dag::Edge* infer_input = graph->createEdge("infer_input");
-  dag::Edge* infer_output = graph->createEdge("infer_output");
+  dag::Edge* infer_input = graph->createEdge("images");
+  dag::Edge* infer_output = graph->createEdge("outputs");
 
   dag::Node* pre = graph->createNode<model::CvtColorResize>("preprocess", input,
                                                             infer_input);
@@ -234,8 +234,8 @@ dag::Graph* createYoloV6Graph(const std::string& name,
                               bool is_path,
                               std::vector<std::string> model_value) {
   dag::Graph* graph = new dag::Graph(name, input, output);
-  dag::Edge* infer_input = graph->createEdge("infer_input");
-  dag::Edge* infer_output = graph->createEdge("infer_output");
+  dag::Edge* infer_input = graph->createEdge("images");
+  dag::Edge* infer_output = graph->createEdge("outputs");
 
   dag::Node* pre = graph->createNode<model::CvtColorResize>("preprocess", input,
                                                             infer_input);
@@ -279,8 +279,8 @@ dag::Graph* createYoloV8Graph(const std::string& name,
                               bool is_path,
                               std::vector<std::string> model_value) {
   dag::Graph* graph = new dag::Graph(name, input, output);
-  dag::Edge* infer_input = graph->createEdge("infer_input");
-  dag::Edge* infer_output = graph->createEdge("infer_output");
+  dag::Edge* infer_input = graph->createEdge("images");
+  dag::Edge* infer_output = graph->createEdge("outputs");
 
   dag::Node* pre = graph->createNode<model::CvtColorResize>("preprocess", input,
                                                             infer_input);
