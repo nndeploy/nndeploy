@@ -31,15 +31,7 @@ int64_t Inference::getMemorySize() {
   NNDEPLOY_LOGI("this api is not implemented");
   return -1;
 }
-int64_t Inference::getMemorySize(int index) {
-  NNDEPLOY_LOGI("this api is not implemented");
-  return -1;
-}
 base::Status Inference::setMemory(device::Buffer *buffer) {
-  NNDEPLOY_LOGI("this api is not implemented");
-  return base::kStatusCodeOk;
-}
-base::Status Inference::setMemory(device::Buffer *buffer, int index) {
   NNDEPLOY_LOGI("this api is not implemented");
   return base::kStatusCodeOk;
 }

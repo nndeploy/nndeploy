@@ -56,6 +56,12 @@ base::Status Infer::deinit() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
   return status;
 }
+
+int64_t Infer::getMemorySize() { return inference_->getMemorySize(); }
+base::Status Infer::setMemory(device::Buffer *buffer) {
+  return inference_->setMemory(buffer);
+}
+
 base::Status Infer::run() {
   base::Status status = base::kStatusCodeOk;
   int index = -1;

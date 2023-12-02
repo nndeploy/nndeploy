@@ -98,26 +98,12 @@ class NNDEPLOY_CC_API Inference {
    */
   virtual int64_t getMemorySize();
   /**
-   * @brief 获取推理所需的内存大小，有些推理需要多个内存，这里根据index获取
-   *
-   * @param index
-   * @return int64_t
-   */
-  virtual int64_t getMemorySize(int index);
-  /**
    * @brief 设置推理所需的内存（推理内存由外部分配）
    *
    * @param buffer
    * @return base::Status
    */
   virtual base::Status setMemory(device::Buffer *buffer);
-  /**
-   * @brief 设置推理所需的内存（推理内存由外部分配）
-   *
-   * @param buffer
-   * @return base::Status
-   */
-  virtual base::Status setMemory(device::Buffer *buffer, int index);
   /**
    * @brief 获得推理计算量
    *

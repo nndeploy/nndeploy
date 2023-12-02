@@ -77,5 +77,14 @@ base::Status Node::deinit() {
   return base::kStatusCodeOk;
 }
 
+int64_t Node::getMemorySize() {
+  NNDEPLOY_LOGI("this api is not implemented");
+  return -1;
+}
+base::Status Node::setMemory(device::Buffer *buffer) {
+  NNDEPLOY_LOGI("this api is not implemented");
+  return base::kStatusCodeOk;
+}
+
 }  // namespace dag
 }  // namespace nndeploy
