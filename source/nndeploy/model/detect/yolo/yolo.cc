@@ -190,7 +190,7 @@ dag::Graph* createYoloV5Graph(const std::string& name,
                               std::vector<std::string> model_value) {
   dag::Graph* graph = new dag::Graph(name, input, output);
   dag::Edge* infer_input = graph->createEdge("images");
-  dag::Edge* infer_output = graph->createEdge("outputs");
+  dag::Edge* infer_output = graph->createEdge("output0");
 
   dag::Node* pre = graph->createNode<model::CvtColorResize>("preprocess", input,
                                                             infer_input);

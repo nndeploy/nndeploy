@@ -33,6 +33,9 @@ class NNDEPLOY_CC_API Node {
 
   std::string getName();
 
+  base::Status setDeviceType(base::DeviceType device_type);
+  base::DeviceType getDeviceType();
+
   virtual base::Status setParam(base::Param* param);
   virtual base::Param* getParam();
 
@@ -54,6 +57,7 @@ class NNDEPLOY_CC_API Node {
 
  protected:
   std::string name_;
+  base::DeviceType device_type_;
   std::shared_ptr<base::Param> param_;
   std::vector<Edge*> inputs_;
   std::vector<Edge*> outputs_;

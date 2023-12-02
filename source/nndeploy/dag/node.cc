@@ -16,6 +16,7 @@ Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
 Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
            std::initializer_list<Edge *> outputs)
     : name_(name) {
+  device_type_ = device::getDefaultHostDeviceType();
   inputs_ = inputs;
   outputs_ = outputs;
   if (inputs_.empty() || outputs_.empty()) {
@@ -31,6 +32,12 @@ Node::~Node() {
 }
 
 std::string Node::getName() { return name_; }
+
+base::Status Node::setDeviceType(base::DeviceType device_type) {
+  device_type_ = device_type;
+  return base::Status();
+}
+base::DeviceType Node::getDeviceType() { return device_type_; }
 
 base::Status Node::setParam(base::Param *param) {
   if (param_ != nullptr) {

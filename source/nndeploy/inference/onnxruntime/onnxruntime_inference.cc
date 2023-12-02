@@ -200,11 +200,11 @@ base::Status OnnxRuntimeInference::run() {
 
     session_.Run({}, *binding_);
 
-    for (int i = 0; i < ort_outputs_.size(); ++i) {
-      ort_outputs_[i].release();
-    }
-    ort_outputs_.clear();
-    ort_outputs_ = std::move(binding_->GetOutputValues());
+    // for (int i = 0; i < ort_outputs_.size(); ++i) {
+    //   ort_outputs_[i].release();
+    // }
+    // ort_outputs_.clear();
+    // ort_outputs_ = std::move(binding_->GetOutputValues());
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());
     status = base::kStatusCodeErrorInferenceOnnxRuntime;
@@ -214,15 +214,16 @@ base::Status OnnxRuntimeInference::run() {
 
 device::Tensor *OnnxRuntimeInference::getOutputTensorAfterRun(
     const std::string &name, bool is_copy) {
+  auto ort_outputs = binding_->GetOutputValues();
   device::Tensor *external_output_tensor = nullptr;
   device::Device *device = device::getDefaultHostDevice();
-  for (size_t i = 0; i < ort_outputs_.size(); ++i) {
+  for (size_t i = 0; i < ort_outputs.size(); ++i) {
     auto output_name = outputs_desc_[i].name;
     if (output_name != name) {
       continue;
     }
     device::Tensor *output_tensor = output_tensors_[output_name];
-    OnnxRuntimeConvert::convertToTensor(ort_outputs_[i], output_name, device,
+    OnnxRuntimeConvert::convertToTensor(ort_outputs[i], output_name, device,
                                         output_tensor);
     device::TensorDesc desc = output_tensor->getDesc();
     if (is_copy) {
