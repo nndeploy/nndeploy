@@ -4,6 +4,7 @@
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/model/detect/yolo/yolo.h"
+#include "nndeploy/thread_pool/thread_pool.h"
 
 using namespace nndeploy;
 
@@ -49,6 +50,8 @@ int main(int argc, char *argv[]) {
     demo::showUsage();
     return -1;
   }
+
+  thread_pool::ThreadPool *tp = new thread_pool::ThreadPool(8);
 
   // 检测模型的有向无环图graph名称，例如:
   // NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8

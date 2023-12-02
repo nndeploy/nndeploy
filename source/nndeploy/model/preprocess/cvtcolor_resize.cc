@@ -61,7 +61,7 @@ base::Status CvtColorResize::run() {
     tmp_resize = tmp_cvt;
   }
 
-  OpenCvConvert::convertToTensor(tmp_resize, 56tk, tmp_param->scale_,
+  OpenCvConvert::convertToTensor(tmp_resize, dst, tmp_param->scale_,
                                  tmp_param->mean_, tmp_param->std_);
 
   return base::kStatusCodeOk;
