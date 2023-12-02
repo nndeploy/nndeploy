@@ -75,6 +75,7 @@ If you have any related questions, feel free to contact us. 😁
 - [FastDeploy](https://github.com/PaddlePaddle/FastDeploy)
 - [opencv](https://github.com/opencv/opencv)
 - [CGraph](https://github.com/ChunelFeng/CGraph)
+- [CThreadPool](https://github.com/ChunelFeng/CThreadPool)
 - [tvm](https://github.com/apache/tvm)
 - [mmdeploy](https://github.com/open-mmlab/mmdeploy)
 - [FlyCV](https://github.com/PaddlePaddle/FlyCV)
