@@ -204,7 +204,7 @@ base::Status OnnxRuntimeInference::run() {
       ort_outputs_[i].release();
     }
     ort_outputs_.clear();
-    ort_outputs_ = binding_->GetOutputValues();
+    ort_outputs_ = std::move(binding_->GetOutputValues());
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());
     status = base::kStatusCodeErrorInferenceOnnxRuntime;

@@ -59,6 +59,7 @@ base::Status YoloPostProcess::runV5V6() {
   outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
 
   for (int b = 0; b < batch; ++b) {
+    NNDEPLOY_LOGE("bk\n");
     float* data_batch = data + b * height * width;
     DetectResult results_batch;
     for (int h = 0; h < height; ++h) {
@@ -87,9 +88,8 @@ base::Status YoloPostProcess::runV5V6() {
           bbox.bbox_[1] = y0;
           bbox.bbox_[2] = x1;
           bbox.bbox_[3] = y1;
-          // NNDEPLOY_LOGE("score:%f, x0:%f, y0:%f, x1:%f, y1:%f\n", score, x0,
-          // y0,
-          //               x1, y1);
+          NNDEPLOY_LOGE("score:%f, x0:%f, y0:%f, x1:%f, y1:%f\n", score, x0, y0,
+                        x1, y1);
           results_batch.bboxs_.emplace_back(bbox);
         }
       }
