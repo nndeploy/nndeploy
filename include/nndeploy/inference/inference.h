@@ -304,8 +304,9 @@ class NNDEPLOY_CC_API Inference {
    * @param name
    * @return device::Tensor*
    */
-  virtual device::Tensor *getOutputTensorAfterRun(const std::string &name,
-                                                  bool is_copy) = 0;
+  virtual device::Tensor *getOutputTensorAfterRun(
+      const std::string &name, base::DeviceType device_type, bool is_copy,
+      base::DataFormat data_format = base::kDataFormatAuto) = 0;
 
  protected:
   /**

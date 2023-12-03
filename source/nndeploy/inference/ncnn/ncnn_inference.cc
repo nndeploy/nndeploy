@@ -116,7 +116,7 @@ base::Status NcnnInference::run() {
     ncnn::Mat input_mat = NcnnConvert::matConvertFromTensor(iter.second);
     extractor.input(iter.first.c_str(), input_mat);
   }
-  for (auto iter : external_output_tensors_) {
+  for (auto iter : output_tensors_) {
     std::string output_name = iter.first;
     ncnn::Mat output_mat;
     extractor.extract(output_name.c_str(), output_mat);
@@ -125,6 +125,24 @@ base::Status NcnnInference::run() {
                                     output_tensor);  // 浅拷贝
   }
   return base::kStatusCodeOk;
+}
+
+device::Tensor *NcnnInference::getOutputTensorAfterRun(
+    const std::string &name, base::DeviceType device_type, bool is_copy,
+    base::DataFormat data_format) {
+  device::Device *device = device::getDevice(device_type);
+  device::Tensor *internal_tensor = output_tensors_[name];
+  device::TensorDesc desc = this->getInputTensorAlignDesc(name);
+  bool flag = is_copy || (internal_tensor->getDevice() != device);
+  if (flag) {
+    device::Tensor *output_tensor = new device::Tensor(device, desc, name);
+    copyBuffer(internal_tensor->getBuffer(), output_tensor->getBuffer());
+    return output_tensor;
+  } else {
+    device::Tensor *output_tensor =
+        new device::Tensor(desc, internal_tensor->getBuffer(), name);
+    return output_tensor;
+  }
 }
 
 base::Status NcnnInference::allocateInputOutputTensor() {

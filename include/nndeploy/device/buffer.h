@@ -66,6 +66,9 @@ class NNDEPLOY_CC_API Buffer : public base::NonCopyable {
 
 NNDEPLOY_CC_API void destoryBuffer(device::Buffer *buffer);
 
+NNDEPLOY_CC_API base::Status copyBuffer(device::Buffer *src,
+                                        device::Buffer *dst);
+
 }  // namespace device
 }  // namespace nndeploy
 

@@ -257,8 +257,9 @@ base::Status MnnInference::run() {
   return base::kStatusCodeOk;
 }
 
-device::Tensor *MnnInference::getOutputTensorAfterRun(const std::string &name,
-                                                      bool is_copy) {
+device::Tensor *MnnInference::getOutputTensorAfterRun(
+    const std::string &name, base::DeviceType device_type, bool is_copy,
+    base::DataFormat data_format) {
   MNN::Tensor *internal_tensor =
       interpreter_->getSessionOutput(session_, name.c_str());
   if (internal_tensor == nullptr) {

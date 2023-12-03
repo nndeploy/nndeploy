@@ -64,7 +64,14 @@ base::Status Infer::setMemory(device::Buffer *buffer) {
 
 base::Status Infer::run() {
   base::Status status = base::kStatusCodeOk;
-  int index = -1;
+  int index = inputs_[0]->getIndex(this);
+  for (int i = 1; i < inputs_.size(); i++) {
+    int compare_index = inputs_[i]->getIndex(this);
+    if (index != compare_index) {
+      NNDEPLOY_LOGE("index not equal");
+      return base::kStatusCodeErrorInvalidValue;
+    }
+  }
   if (is_input_dynamic_) {
     base::ShapeMap shape_map;
     for (auto input : inputs_) {
@@ -75,9 +82,6 @@ base::Status Infer::run() {
   }
   for (auto input : inputs_) {
     device::Tensor *tensor = input->getTensor(this);
-    index = input->getIndex(this);
-    NNDEPLOY_LOGE("input name: %s, index: %d", tensor->getName().c_str(),
-                  index);
     inference_->setInputTensor(tensor->getName(), tensor);
   }
   status = inference_->run();
@@ -86,7 +90,8 @@ base::Status Infer::run() {
     std::string name = output->getName();
     dag::ParallelType parallel_type = output->getParallelType();
     bool flag = parallel_type == dag::kParallelTypePipeline;
-    device::Tensor *tensor = inference_->getOutputTensorAfterRun(name, flag);
+    device::Tensor *tensor =
+        inference_->getOutputTensorAfterRun(name, device_type_, flag);
     output->set(tensor, index, false);
   }
   return status;

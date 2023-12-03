@@ -148,10 +148,10 @@ base::Status NcnnConvert::matConvertToTensor(ncnn::Mat &src,
                           src.cstep);  // 目前只使用了shape.dims
   base::IntVector dims =
       convertToShape(src.dims, src.w, src.h, src.d, src.c, src.cstep);
-  device::TensorDesc tensor_desc_(data_type, data_format, dims,
-                                  base::SizeVector());
+  device::TensorDesc tensor_desc(data_type, data_format, dims,
+                                 base::SizeVector());
   void *data_ptr = src.data;
-  dst->create(device, tensor_desc_, data_ptr, name);
+  dst->create(device, tensor_desc, data_ptr, name);
   return base::kStatusCodeOk;
 }
 
@@ -190,17 +190,17 @@ device::Tensor *NcnnConvert::blobConvertToTensor(ncnn::Blob &src) {
   base::IntVector dims =
       convertToShape(src.shape.dims, src.shape.w, src.shape.h, src.shape.d,
                      src.shape.c, src.shape.cstep);
-  device::TensorDesc tensor_desc_(data_type, data_format, dims,
-                                  base::SizeVector());
+  device::TensorDesc tensor_desc(data_type, data_format, dims,
+                                 base::SizeVector());
   std::string name = src.name;
   device::Tensor *dst = nullptr;
   if (src.shape.data != nullptr) {
     void *data_ptr = src.shape.data;
     base::IntVector memory_config = base::IntVector();
     dst =
-        new device::Tensor(device, tensor_desc_, data_ptr, name, memory_config);
+        new device::Tensor(device, tensor_desc, data_ptr, name, memory_config);
   } else {
-    dst = new device::Tensor(tensor_desc_, name);
+    dst = new device::Tensor(tensor_desc, name);
   }
 
   return dst;

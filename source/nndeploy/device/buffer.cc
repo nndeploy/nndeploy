@@ -96,5 +96,23 @@ void destoryBuffer(device::Buffer *buffer) {
   }
 }
 
+base::Status copyBuffer(device::Buffer *src, device::Buffer *dst) {
+  device::Device *src_device = src->getDevice();
+  base::DeviceType src_device_type = src_device->getDeviceType();
+  device::Device *dst_device = dst->getDevice();
+  base::DeviceType dst_device_type = dst_device->getDeviceType();
+  if (src_device_type == dst_device_type) {
+    return src_device->copy(src, dst);
+  } else if (device::isHostDeviceType(src_device_type) &&
+             !device::isHostDeviceType(dst_device_type)) {
+    return src_device->upload(src, dst);
+  } else if (!device::isHostDeviceType(src_device_type) &&
+             device::isHostDeviceType(dst_device_type)) {
+    return dst_device->download(src, dst);
+  } else {
+    return base::kStatusCodeErrorNotImplement;
+  }
+}
+
 }  // namespace device
 }  // namespace nndeploy
