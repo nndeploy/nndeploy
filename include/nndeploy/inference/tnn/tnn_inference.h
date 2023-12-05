@@ -35,6 +35,10 @@ class TnnInference : public Inference {
 
   virtual base::Status run();
 
+  virtual device::Tensor *getOutputTensorAfterRun(
+      const std::string &name, base::DeviceType device_type, bool is_copy,
+      base::DataFormat data_format = base::kDataFormatAuto);
+
  private:
   base::Status allocateInputOutputTensor();
   base::Status deallocateInputOutputTensor();

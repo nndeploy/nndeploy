@@ -36,14 +36,9 @@ class OnnxRuntimeInference : public Inference {
 
   virtual base::Status run();
 
-  /**
-   * @brief Get the Output Tensor object
-   *
-   * @param name
-   * @return device::Tensor*
-   */
-  virtual device::Tensor *getOutputTensorAfterRun(const std::string &name,
-                                                  bool is_copy);
+  virtual device::Tensor *getOutputTensorAfterRun(
+      const std::string &name, base::DeviceType device_type, bool is_copy,
+      base::DataFormat data_format = base::kDataFormatAuto);
 
  private:
   bool isDynamic(std::vector<int64_t> &shape);
@@ -61,8 +56,6 @@ class OnnxRuntimeInference : public Inference {
 
   std::map<std::string, device::Tensor *> max_input_tensors_;
   std::map<std::string, device::Tensor *> max_output_tensors_;
-
-  std::vector<Ort::Value> ort_outputs_;
 };
 
 }  // namespace inference

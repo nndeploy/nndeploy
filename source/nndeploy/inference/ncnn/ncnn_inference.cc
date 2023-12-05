@@ -132,11 +132,11 @@ device::Tensor *NcnnInference::getOutputTensorAfterRun(
     base::DataFormat data_format) {
   device::Device *device = device::getDevice(device_type);
   device::Tensor *internal_tensor = output_tensors_[name];
-  device::TensorDesc desc = this->getInputTensorAlignDesc(name);
+  device::TensorDesc desc = internal_tensor->getDesc();
   bool flag = is_copy || (internal_tensor->getDevice() != device);
   if (flag) {
     device::Tensor *output_tensor = new device::Tensor(device, desc, name);
-    copyBuffer(internal_tensor->getBuffer(), output_tensor->getBuffer());
+    deepCopyBuffer(internal_tensor->getBuffer(), output_tensor->getBuffer());
     return output_tensor;
   } else {
     device::Tensor *output_tensor =

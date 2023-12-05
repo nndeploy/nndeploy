@@ -135,21 +135,46 @@ base::Status TnnInference::run() {
     NNDEPLOY_LOGE("TNN forward failed!\n");
     return base::kStatusCodeErrorInferenceTnn;
   }
-  for (auto iter : external_output_tensors_) {
-    std::string output_name = iter.first;
-    base::DeviceType device_type = iter.second->getDeviceType();
-    tnn::DeviceType tnn_device_type =
-        TnnConvert::convertFromDeviceType(device_type);
-    std::shared_ptr<tnn::Mat> mat;
-    instance_->GetOutputMat(mat, param, iter.first, tnn_device_type);
-    device::Tensor *tmp_tenosr =
-        TnnConvert::matConvertToTensor(mat.get(), output_name);
-    device::Device *device = device::getDevice(device_type);
-    device->copy(tmp_tenosr->getBuffer(), iter.second->getBuffer());
-    delete tmp_tenosr;
-  }
+  // for (auto iter : external_output_tensors_) {
+  //   std::string output_name = iter.first;
+  //   base::DeviceType device_type = iter.second->getDeviceType();
+  //   tnn::DeviceType tnn_device_type =
+  //       TnnConvert::convertFromDeviceType(device_type);
+  //   std::shared_ptr<tnn::Mat> mat;
+  //   instance_->GetOutputMat(mat, param, iter.first, tnn_device_type);
+  //   device::Tensor *tmp_tenosr =
+  //       TnnConvert::matConvertToTensor(mat.get(), output_name);
+  //   device::Device *device = device::getDevice(device_type);
+  //   device->copy(tmp_tenosr->getBuffer(), iter.second->getBuffer());
+  //   delete tmp_tenosr;
+  // }
 
   return base::kStatusCodeOk;
+}
+
+device::Tensor *TnnInference::getOutputTensorAfterRun(
+    const std::string &name, base::DeviceType device_type, bool is_copy,
+    base::DataFormat data_format) {
+  device::Device *device = device::getDevice(device_type);
+  tnn::DeviceType tnn_device_type =
+      TnnConvert::convertFromDeviceType(device_type);
+  tnn::MatConvertParam param = tnn::MatConvertParam();
+  std::shared_ptr<tnn::Mat> mat;
+  instance_->GetOutputMat(mat, param, name, tnn_device_type);
+  device::Tensor *internal_tensor =
+      TnnConvert::matConvertToTensor(mat.get(), name);
+  device::TensorDesc desc = internal_tensor->getDesc();
+  bool flag = is_copy || (internal_tensor->getDevice() != device);
+  device::Tensor *output_tensor = nullptr;
+  if (flag) {
+    output_tensor = new device::Tensor(device, desc, name);
+    deepCopyBuffer(internal_tensor->getBuffer(), output_tensor->getBuffer());
+    delete internal_tensor;
+    return output_tensor;
+  } else {
+    output_tensor = internal_tensor;
+    return output_tensor;
+  }
 }
 
 base::Status TnnInference::allocateInputOutputTensor() {

@@ -151,25 +151,43 @@ base::Status OpenVinoInference::run() {
     infer_request_.set_tensor(iter.first, ov_tensor);
   }
   // outputs
-  for (auto iter : external_output_tensors_) {
-    device::Tensor *external_tensor = iter.second;
-    if (!external_tensor->empty()) {
-      ov::Tensor ov_tensor =
-          OpenVinoConvert::convertFromTensor(external_tensor);
-      infer_request_.set_tensor(iter.first, ov_tensor);
-    }
-  }
+  // for (auto iter : external_output_tensors_) {
+  //   device::Tensor *external_tensor = iter.second;
+  //   if (!external_tensor->empty()) {
+  //     ov::Tensor ov_tensor =
+  //         OpenVinoConvert::convertFromTensor(external_tensor);
+  //     infer_request_.set_tensor(iter.first, ov_tensor);
+  //   }
+  // }
   // forward
   infer_request_.start_async();
   infer_request_.wait();
-  for (auto iter : external_output_tensors_) {
-    device::Tensor *external_tensor = iter.second;
-    if (external_tensor->empty()) {
-      ov::Tensor ov_tensor = infer_request_.get_tensor(iter.first);
-      OpenVinoConvert::convertToTensor(ov_tensor, external_tensor);
-    }
-  }
+  // for (auto iter : external_output_tensors_) {
+  //   device::Tensor *external_tensor = iter.second;
+  //   if (external_tensor->empty()) {
+  //     ov::Tensor ov_tensor = infer_request_.get_tensor(iter.first);
+  //     OpenVinoConvert::convertToTensor(ov_tensor, external_tensor);
+  //   }
+  // }
   return status;
+}
+
+device::Tensor *OpenVinoInference::getOutputTensorAfterRun(
+    const std::string &name, base::DeviceType device_type, bool is_copy,
+    base::DataFormat data_format) {
+  device::Device *device = device::getDevice(device_type);
+  device::Tensor *internal_tensor = output_tensors_[name];
+  device::TensorDesc desc = internal_tensor->getDesc();
+  bool flag = is_copy || (internal_tensor->getDevice() != device);
+  if (flag) {
+    device::Tensor *output_tensor = new device::Tensor(device, desc, name);
+    deepCopyBuffer(internal_tensor->getBuffer(), output_tensor->getBuffer());
+    return output_tensor;
+  } else {
+    device::Tensor *output_tensor =
+        new device::Tensor(desc, internal_tensor->getBuffer(), name);
+    return output_tensor;
+  }
 }
 
 }  // namespace inference

@@ -213,7 +213,8 @@ base::Status OnnxRuntimeInference::run() {
 }
 
 device::Tensor *OnnxRuntimeInference::getOutputTensorAfterRun(
-    const std::string &name, bool is_copy) {
+    const std::string &name, base::DeviceType device_type, bool is_copy,
+    base::DataFormat data_format) {
   auto ort_outputs = binding_->GetOutputValues();
   device::Tensor *external_output_tensor = nullptr;
   device::Device *device = device::getDefaultHostDevice();
@@ -232,8 +233,8 @@ device::Tensor *OnnxRuntimeInference::getOutputTensorAfterRun(
                    external_output_tensor->getBuffer());
       return external_output_tensor;
     } else {
-      void *data_ptr = output_tensor->getPtr();
-      external_output_tensor = new device::Tensor(device, desc, data_ptr, name);
+      external_output_tensor =
+          new device::Tensor(desc, output_tensor->getBuffer(), name);
       return external_output_tensor;
     }
   }

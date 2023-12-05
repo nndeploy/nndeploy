@@ -302,22 +302,40 @@ base::Status TensorRtInference::run() {
   status = device->synchronize();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "synchronize failed");
   // outputs
-  for (auto iter : external_output_tensors_) {
-    device::Tensor *external_tensor = iter.second;
-    device::Buffer *extern_buffer = external_tensor->getBuffer();
-    device::Tensor *internal_tensor = output_tensors_[iter.first];
-    device::Buffer *internal_buffer = internal_tensor->getBuffer();
-    base::DeviceType device_type = extern_buffer->getDeviceType();
-    if (device::isHostDeviceType(device_type)) {
-      device->download(internal_buffer, extern_buffer);
-    } else if (device_type == device->getDeviceType()) {
-      device->copy(internal_buffer, extern_buffer);
-    } else {
-      NNDEPLOY_LOGE("run failed, device type is not supported!\n");
-      return base::kStatusCodeErrorInferenceTensorRt;
-    }
-  }
+  // for (auto iter : external_output_tensors_) {
+  //   device::Tensor *external_tensor = iter.second;
+  //   device::Buffer *extern_buffer = external_tensor->getBuffer();
+  //   device::Tensor *internal_tensor = output_tensors_[iter.first];
+  //   device::Buffer *internal_buffer = internal_tensor->getBuffer();
+  //   base::DeviceType device_type = extern_buffer->getDeviceType();
+  //   if (device::isHostDeviceType(device_type)) {
+  //     device->download(internal_buffer, extern_buffer);
+  //   } else if (device_type == device->getDeviceType()) {
+  //     device->copy(internal_buffer, extern_buffer);
+  //   } else {
+  //     NNDEPLOY_LOGE("run failed, device type is not supported!\n");
+  //     return base::kStatusCodeErrorInferenceTensorRt;
+  //   }
+  // }
   return status;
+}
+
+device::Tensor *TensorRtInference::getOutputTensorAfterRun(
+    const std::string &name, base::DeviceType device_type, bool is_copy,
+    base::DataFormat data_format) {
+  device::Device *device = device::getDevice(device_type);
+  device::Tensor *internal_tensor = output_tensors_[name];
+  device::TensorDesc desc = internal_tensor->getDesc();
+  bool flag = is_copy || (internal_tensor->getDevice() != device);
+  if (flag) {
+    device::Tensor *output_tensor = new device::Tensor(device, desc, name);
+    deepCopyBuffer(internal_tensor->getBuffer(), output_tensor->getBuffer());
+    return output_tensor;
+  } else {
+    device::Tensor *output_tensor =
+        new device::Tensor(desc, internal_tensor->getBuffer(), name);
+    return output_tensor;
+  }
 }
 
 base::Status TensorRtInference::initWithOnnxModel(
