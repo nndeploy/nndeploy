@@ -439,12 +439,12 @@ BufferSourceType Tensor::getBufferSourceType() {
   if (buffer_) {
     return buffer_->getBufferSourceType();
   } else {
-    return device::kBufferSourceTypeNone;
+    return kBufferSourceTypeNone;
   }
 }
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>>
-    &getGlobalTensorCreatorMap() {
+std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
+getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorType, std::shared_ptr<TensorCreator>>>
@@ -463,6 +463,37 @@ Tensor *createTensor(base::TensorType type) {
     temp = creater_map[type]->createTensor();
   }
   return temp;
+}
+
+base::Status shallowCopyTensor(Tensor *src, Tensor *dst) {
+  if (dst != nullptr) {
+    dst->justModify(src->getDesc());
+    dst->justModify(src->getBuffer());
+  } else {
+    return base::kStatusCodeErrorNotImplement;
+  }
+}
+
+base::Status deepCopyTensor(Tensor *src, Tensor *dst) {
+  return deepCopyBuffer(src->getBuffer(), dst->getBuffer());
+}
+
+Tensor *getShallowCopyTensor(Tensor *src) {
+  std::string name = src->getName();
+  Device *device = src->getDevice();
+  TensorDesc desc = src->getDesc();
+  Buffer *buffer = src->getBuffer();
+  Tensor *dst = new Tensor(desc, buffer, name);
+  return dst;
+}
+
+Tensor *getDeepCopyTensor(Tensor *src) {
+  std::string name = src->getName();
+  Device *device = src->getDevice();
+  TensorDesc desc = src->getDesc();
+  Tensor *dst = new Tensor(device, desc, name);
+  deepCopyTensor(src, dst);
+  return dst;
 }
 
 }  // namespace device

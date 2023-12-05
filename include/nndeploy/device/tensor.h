@@ -321,8 +321,8 @@ class TypeTensorCreator : public TensorCreator {
   virtual Tensor *createTensor() { return new T(); }
 };
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>>
-    &getGlobalTensorCreatorMap();
+std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
+getGlobalTensorCreatorMap();
 
 template <typename T>
 class TypeTensorRegister {
@@ -333,6 +333,14 @@ class TypeTensorRegister {
 };
 
 extern NNDEPLOY_CC_API Tensor *createTensor(base::TensorType type);
+
+extern NNDEPLOY_CC_API base::Status shallowCopyTensor(Tensor *src, Tensor *dst);
+
+extern NNDEPLOY_CC_API base::Status deepCopyTensor(Tensor *src, Tensor *dst);
+
+extern NNDEPLOY_CC_API Tensor *getShallowCopyTensor(Tensor *src);
+
+extern NNDEPLOY_CC_API Tensor *getDeepCopyTensor(Tensor *src);
 
 }  // namespace device
 }  // namespace nndeploy
