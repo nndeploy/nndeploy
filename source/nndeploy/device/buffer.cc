@@ -86,7 +86,7 @@ int Buffer::getId() { return data_id_; }
 
 BufferSourceType Buffer::getBufferSourceType() { return buffer_source_type_; }
 
-void destoryBuffer(buffer *buffer) {
+void destoryBuffer(Buffer *buffer) {
   if (buffer->isBufferPool()) {
     BufferPool *pool = buffer->getBufferPool();
     pool->deallocate(buffer);
@@ -96,7 +96,7 @@ void destoryBuffer(buffer *buffer) {
   }
 }
 
-base::Status deepCopyBuffer(buffer *src, buffer *dst) {
+base::Status deepCopyBuffer(Buffer *src, Buffer *dst) {
   Device *src_device = src->getDevice();
   base::DeviceType src_device_type = src_device->getDeviceType();
   Device *dst_device = dst->getDevice();
@@ -114,10 +114,10 @@ base::Status deepCopyBuffer(buffer *src, buffer *dst) {
   }
 }
 
-buffer *getDeepCopyBuffer(buffer *src) {
+Buffer *getDeepCopyBuffer(Buffer *src) {
   Device *src_device = src->getDevice();
   base::DeviceType src_device_type = src_device->getDeviceType();
-  buffer *dst = src_device->allocate(src->getDesc());
+  Buffer *dst = src_device->allocate(src->getDesc());
   src_device->copy(src, dst);
   return dst;
 }

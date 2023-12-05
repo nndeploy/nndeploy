@@ -64,11 +64,11 @@ class NNDEPLOY_CC_API Buffer : public base::NonCopyable {
   int ref_count_ = 0;
 };
 
-NNDEPLOY_CC_API void destoryBuffer(buffer *buffer);
+NNDEPLOY_CC_API void destoryBuffer(Buffer *buffer);
 
-NNDEPLOY_CC_API base::Status deepCopyBuffer(buffer *src, buffer *dst);
+NNDEPLOY_CC_API base::Status deepCopyBuffer(Buffer *src, Buffer *dst);
 
-NNDEPLOY_CC_API buffer *getDeepCopyBuffer(buffer *src);
+NNDEPLOY_CC_API Buffer *getDeepCopyBuffer(Buffer *src);
 
 }  // namespace device
 }  // namespace nndeploy
