@@ -118,6 +118,7 @@ base::Status NcnnInference::run() {
   }
   for (auto iter : output_tensors_) {
     std::string output_name = iter.first;
+    // TODO：这个内存是浅拷贝，需要保证这个内存在在这个函数结束之前不会被释放？
     ncnn::Mat output_mat;
     extractor.extract(output_name.c_str(), output_mat);
     device::Tensor *output_tensor = iter.second;

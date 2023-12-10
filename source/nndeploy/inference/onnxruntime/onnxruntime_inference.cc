@@ -215,9 +215,11 @@ base::Status OnnxRuntimeInference::run() {
 device::Tensor *OnnxRuntimeInference::getOutputTensorAfterRun(
     const std::string &name, base::DeviceType device_type, bool is_copy,
     base::DataFormat data_format) {
+  // TODO：这个内存是浅拷贝，需要保证这个内存在在这个函数结束之前不会被释放？
   auto ort_outputs = binding_->GetOutputValues();
   device::Tensor *external_output_tensor = nullptr;
-  device::Device *device = device::getDefaultHostDevice();
+  bool flag = is_copy || (!device::isHostDeviceType(device_type));
+  device::Device *device = device::getDevice(device_type);
   for (size_t i = 0; i < ort_outputs.size(); ++i) {
     auto output_name = outputs_desc_[i].name;
     if (output_name != name) {
@@ -227,7 +229,7 @@ device::Tensor *OnnxRuntimeInference::getOutputTensorAfterRun(
     OnnxRuntimeConvert::convertToTensor(ort_outputs[i], output_name, device,
                                         output_tensor);
     device::TensorDesc desc = output_tensor->getDesc();
-    if (is_copy) {
+    if (flag) {
       external_output_tensor = new device::Tensor(device, desc, name);
       device->copy(output_tensor->getBuffer(),
                    external_output_tensor->getBuffer());
