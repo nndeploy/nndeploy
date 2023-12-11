@@ -200,11 +200,11 @@ base::Status OnnxRuntimeInference::run() {
 
     session_.Run({}, *binding_);
 
-    // for (int i = 0; i < ort_outputs_.size(); ++i) {
-    //   ort_outputs_[i].release();
-    // }
-    // ort_outputs_.clear();
-    // ort_outputs_ = std::move(binding_->GetOutputValues());
+    for (int i = 0; i < internal_outputs_.size(); ++i) {
+      internal_outputs_[i].release();
+    }
+    internal_outputs_.clear();
+    internal_outputs_ = std::move(binding_->GetOutputValues());
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());
     status = base::kStatusCodeErrorInferenceOnnxRuntime;
@@ -215,19 +215,17 @@ base::Status OnnxRuntimeInference::run() {
 device::Tensor *OnnxRuntimeInference::getOutputTensorAfterRun(
     const std::string &name, base::DeviceType device_type, bool is_copy,
     base::DataFormat data_format) {
-  // TODO：这个内存是浅拷贝，需要保证这个内存在在这个函数结束之前不会被释放？
-  auto ort_outputs = binding_->GetOutputValues();
   device::Tensor *external_output_tensor = nullptr;
   bool flag = is_copy || (!device::isHostDeviceType(device_type));
   device::Device *device = device::getDevice(device_type);
-  for (size_t i = 0; i < ort_outputs.size(); ++i) {
+  for (size_t i = 0; i < internal_outputs_.size(); ++i) {
     auto output_name = outputs_desc_[i].name;
     if (output_name != name) {
       continue;
     }
     device::Tensor *output_tensor = output_tensors_[output_name];
-    OnnxRuntimeConvert::convertToTensor(ort_outputs[i], output_name, device,
-                                        output_tensor);
+    OnnxRuntimeConvert::convertToTensor(internal_outputs_[i], output_name,
+                                        device, output_tensor);
     device::TensorDesc desc = output_tensor->getDesc();
     if (flag) {
       external_output_tensor = new device::Tensor(device, desc, name);

@@ -67,6 +67,7 @@ base::Status NcnnInference::init() {
 }
 
 base::Status NcnnInference::deinit() {
+  internal_outputs_.clear();
   base::Status status = deallocateInputOutputTensor();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "deallocateInputOutputTensor failed!!\n");
@@ -116,11 +117,13 @@ base::Status NcnnInference::run() {
     ncnn::Mat input_mat = NcnnConvert::matConvertFromTensor(iter.second);
     extractor.input(iter.first.c_str(), input_mat);
   }
+  internal_outputs_.clear();
   for (auto iter : output_tensors_) {
     std::string output_name = iter.first;
     // TODO：这个内存是浅拷贝，需要保证这个内存在在这个函数结束之前不会被释放？
     ncnn::Mat output_mat;
     extractor.extract(output_name.c_str(), output_mat);
+    internal_outputs_.insert({output_name, output_mat});
     device::Tensor *output_tensor = iter.second;
     NcnnConvert::matConvertToTensor(output_mat, output_name,
                                     output_tensor);  // 浅拷贝
