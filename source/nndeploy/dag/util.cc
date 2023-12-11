@@ -4,11 +4,11 @@
 namespace nndeploy {
 namespace dag {
 
-bool checkEdge(const std::vector<Edge*>& edges,
-               const std::vector<Edge*>& check_edges) {
-  for (auto edge : edges) {
+bool checkEdge(const std::vector<Edge*>& src_edges,
+               const std::vector<Edge*>& dst_edges) {
+  for (auto edge : src_edges) {
     bool flag = false;
-    for (auto check_edge : check_edges) {
+    for (auto check_edge : dst_edges) {
       if (edge == check_edge) {
         flag = true;
         break;
