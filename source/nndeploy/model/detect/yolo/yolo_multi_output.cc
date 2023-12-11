@@ -190,9 +190,9 @@ dag::Graph* createYoloV5MultiOutputGraph(const std::string& name,
   post_param->model_w_ = 640;
   post_param->version_ = 5;
 
-  post_param->name_stride_8 = "482";
-  post_param->name_stride_16 = "463";
-  post_param->name_stride_32 = "output";
+  post_param->name_stride_8 = "output";
+  post_param->name_stride_16 = "376";
+  post_param->name_stride_32 = "401";
 
   return graph;
 }
