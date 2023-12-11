@@ -30,11 +30,13 @@ base::DataType TensorRtConvert::convertToDataType(
       dst.bits_ = 8;
       dst.lanes_ = 1;
       break;
+#ifdef TENSORRT_MAJOR_8_MINOR_5
     case nvinfer1::DataType::kUINT8:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 8;
       dst.lanes_ = 1;
       break;
+#endif
     case nvinfer1::DataType::kBOOL:
       dst.code_ = base::kDataTypeCodeUint;
       dst.bits_ = 8;
@@ -64,9 +66,11 @@ nvinfer1::DataType TensorRtConvert::convertFromDataType(
   } else if (src.code_ == base::kDataTypeCodeInt && src.bits_ == 8 &&
              src.lanes_ == 1) {
     dst = nvinfer1::DataType::kINT8;
+#ifdef TENSORRT_MAJOR_8_MINOR_5
   } else if (src.code_ == base::kDataTypeCodeUint && src.bits_ == 8 &&
              src.lanes_ == 1) {
     dst = nvinfer1::DataType::kUINT8;
+#endif
   } else {
     dst = nvinfer1::DataType::kFLOAT;
   }

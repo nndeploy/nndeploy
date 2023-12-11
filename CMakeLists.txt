@@ -77,6 +77,7 @@ nndeploy_option(ENABLE_NNDEPLOY_TEST "ENABLE_NNDEPLOY_TEST" OFF)
 ## demo
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "ENABLE_NNDEPLOY_DEMO" OFF)
 
+# include(.vscode/config_cyy.cmake)
 # print option
 print_summary()
 
