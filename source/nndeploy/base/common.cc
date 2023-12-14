@@ -118,6 +118,8 @@ ModelType stringToModelType(const std::string &src) {
     return kModelTypeTvm;
   } else if (src == "kModelTypeAITemplate") {
     return kModelTypeAITemplate;
+  } else if (src == "KModelTypeMdc") {
+    return kModelTypeMdc;
   } else {
     return kModelTypeNotSupport;
   }
@@ -148,6 +150,8 @@ InferenceType stringToInferenceType(const std::string &src) {
     return kInferenceTypeTvm;
   } else if (src == "kInferenceTypeAITemplate") {
     return kInferenceTypeAITemplate;
+  } else if (src == "kInferenceTypeMdc") {
+    return kInferenceTypeMdc;
   } else {
     return kInferenceTypeNotSupport;
   }

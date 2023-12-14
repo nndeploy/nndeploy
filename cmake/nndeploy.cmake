@@ -63,6 +63,9 @@ include("${ROOT_PATH}/cmake/coreml.cmake")
 # # paddle-lite
 include("${ROOT_PATH}/cmake/paddlelite.cmake")
 
+# # mdc
+include("${ROOT_PATH}/cmake/mdc.cmake")
+
 # ################### inference ####################
 
 # ################### graph ####################

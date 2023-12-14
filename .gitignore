@@ -211,9 +211,12 @@ CTestTestfile.cmake
 _deps
 
 # build
-build/
+build
 docs/build
 
 # vscode
 .vscode/
 .vs/
+
+#third_party
+third_party/thirdparty
