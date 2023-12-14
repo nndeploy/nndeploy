@@ -26,6 +26,8 @@
 | [ncnn](https://github.com/Tencent/ncnn)                    |   -   |    -    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
 | [coreML](https://github.com/apple/coremltools)             |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)   |         |
 | [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang) |         |
+| [MDC](https://github.com/PaddlePaddle/Paddle-Lite)         |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)         |         |
+
 
 **Notice:** TFLite, TVM, OpenPPL, RKNN, sophgo, MindSpore-lite, Horizon正在开发中，我们正在努力覆盖绝大部分的主流推理框架
 
@@ -81,6 +83,19 @@
 - [FlyCV](https://github.com/PaddlePaddle/FlyCV)
 - [ThreadPool](https://github.com/progschj/ThreadPool)
 - [torchpipe](https://github.com/torchpipe/torchpipe)
+
+## 贡献者
+- [02200059Z](https://github.com/02200059Z)
+- [JoDio-zd](https://github.com/JoDio-zd)
+- [qixuxiang](https://github.com/qixuxiang)
+- [CYYAI](https://github.com/CYYAI)
+- [Always](https://github.com/Alwaysssssss)
+- [youxiudeshouyeren](https://github.com/youxiudeshouyeren)
+- [PeterH0323](https://github.com/PeterH0323)
+- [100312dog](https://github.com/100312dog)
+- [wangzhaode](https://github.com/wangzhaode)
+- [ChunelFeng](https://github.com/ChunelFeng)
+- [acheerfulish](https://github.com/acheerfulish)
 
 ## 加入我们
 - `nndeploy`还处于初级阶段，欢迎参与，我们一起打造最简单易用、高性能的模型端到端部署框架

@@ -25,6 +25,7 @@ The current supported environment is as follows, which will continue to be updat
 | [ncnn](https://github.com/Tencent/ncnn)                    |   -   |    -    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
 | [coreML](https://github.com/apple/coremltools)             |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)   |         |
 | [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang) |         |
+| [MDC](https://github.com/PaddlePaddle/Paddle-Lite)         |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)         |         |
 
 **Notice:** TFLite, TVM, OpenPPL, Tengine, AITemplate, RKNN, sophgo, MindSpore-lite, Horizon are also on the agenda as we work to cover mainstream inference frameworks
 
@@ -82,8 +83,20 @@ If you have any related questions, feel free to contact us. 😁
 - [ThreadPool](https://github.com/progschj/ThreadPool)
 - [torchpipe](https://github.com/torchpipe/torchpipe)
 
-## Contact Us
+## COntributors
+- [02200059Z](https://github.com/02200059Z)
+- [JoDio-zd](https://github.com/JoDio-zd)
+- [qixuxiang](https://github.com/qixuxiang)
+- [CYYAI](https://github.com/CYYAI)
+- [Always](https://github.com/Alwaysssssss)
+- [youxiudeshouyeren](https://github.com/youxiudeshouyeren)
+- [PeterH0323](https://github.com/PeterH0323)
+- [100312dog](https://github.com/100312dog)
+- [wangzhaode](https://github.com/wangzhaode)
+- [ChunelFeng](https://github.com/ChunelFeng)
+- [acheerfulish](https://github.com/acheerfulish)
 
+## Contact Us
 > nndeploy is still in its infancy, welcome to join us.
 
 * Wechat：titian5566
