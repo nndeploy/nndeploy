@@ -25,6 +25,8 @@ extern NNDEPLOY_CC_API void removeAllFile(const std::string& path);
 
 extern NNDEPLOY_CC_API std::string getcwd();
 
+extern NNDEPLOY_CC_API std::vector<std::string> split_string(const std::string& str, const std::string& spstr);
+
 /**
  * @brief Converts path p to a canonical absolute path
  * Symlinks are processed if there is support for them on running platform.
@@ -34,8 +36,7 @@ extern NNDEPLOY_CC_API std::string getcwd();
 extern NNDEPLOY_CC_API std::string canonicalPath(const std::string& path);
 
 /** Join path components */
-extern NNDEPLOY_CC_API std::string joinPath(const std::string& base,
-                                            const std::string& path);
+extern NNDEPLOY_CC_API std::string joinPath(const std::string& base, const std::string& path);
 
 /** Get parent directory */
 extern NNDEPLOY_CC_API std::string getParentPath(const std::string& path);
@@ -53,10 +54,8 @@ extern NNDEPLOY_CC_API std::wstring getParentPath(const std::wstring& path);
  * @param recursive scan nested directories too
  * @param includeDirectories include directories into results list
  */
-extern NNDEPLOY_CC_API void glob(const std::string& directory,
-                                 const std::string& pattern,
-                                 std::vector<std::string>& result,
-                                 bool recursive = false,
+extern NNDEPLOY_CC_API void glob(const std::string& directory, const std::string& pattern,
+                                 std::vector<std::string>& result, bool recursive = false,
                                  bool includeDirectories = false);
 
 /**
@@ -69,10 +68,8 @@ extern NNDEPLOY_CC_API void glob(const std::string& directory,
  * @param recursive scan nested directories too
  * @param includeDirectories include directories into results list
  */
-extern NNDEPLOY_CC_API void globRelative(const std::string& directory,
-                                         const std::string& pattern,
-                                         std::vector<std::string>& result,
-                                         bool recursive = false,
+extern NNDEPLOY_CC_API void globRelative(const std::string& directory, const std::string& pattern,
+                                         std::vector<std::string>& result, bool recursive = false,
                                          bool includeDirectories = false);
 
 extern NNDEPLOY_CC_API bool createDirectory(const std::string& path);

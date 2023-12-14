@@ -54,11 +54,9 @@ DIR* opendir(const char* path) {
   wchar_t wfull_path[MAX_PATH];
   size_t copied = mbstowcs(wfull_path, full_path.c_str(), MAX_PATH);
   assert((copied != MAX_PATH) && (copied != (size_t)-1));
-  dir->handle = ::FindFirstFileExW(wfull_path, FindExInfoStandard, &dir->data,
-                                   FindExSearchNameMatch, nullptr, 0);
+  dir->handle = ::FindFirstFileExW(wfull_path, FindExInfoStandard, &dir->data, FindExSearchNameMatch, nullptr, 0);
 #else
-  dir->handle = ::FindFirstFileExA((std::string(path) + "\\*").c_str(),
-                                   FindExInfoStandard, &dir->data,
+  dir->handle = ::FindFirstFileExA((std::string(path) + "\\*").c_str(), FindExInfoStandard, &dir->data,
                                    FindExSearchNameMatch, nullptr, 0);
 #endif
   if (dir->handle == INVALID_HANDLE_VALUE) {
@@ -117,8 +115,7 @@ static bool isDir(const std::string& path, DIR* dir) {
     assert((copied != MAX_PATH) && (copied != (size_t)-1));
     status = ::GetFileAttributesExW(wpath, GetFileExInfoStandard, &all_attrs);
 #else
-    status =
-        ::GetFileAttributesExA(path.c_str(), GetFileExInfoStandard, &all_attrs);
+    status = ::GetFileAttributesExA(path.c_str(), GetFileExInfoStandard, &all_attrs);
 #endif
     attributes = all_attrs.dwFileAttributes;
   }
@@ -170,9 +167,8 @@ static bool wildcmp(const char* string, const char* wild) {
   return *wild == 0;
 }
 
-static void globRec(const std::string& directory, const std::string& wildchart,
-                    std::vector<std::string>& result, bool recursive,
-                    bool includeDirectories, const std::string& pathPrefix) {
+static void globRec(const std::string& directory, const std::string& wildchart, std::vector<std::string>& result,
+                    bool recursive, bool includeDirectories, const std::string& pathPrefix) {
   DIR* dir;
 
   if ((dir = opendir(directory.c_str())) != 0) {
@@ -181,22 +177,18 @@ static void globRec(const std::string& directory, const std::string& wildchart,
       struct dirent* ent;
       while ((ent = readdir(dir)) != 0) {
         const char* name = ent->d_name;
-        if ((name[0] == 0) || (name[0] == '.' && name[1] == 0) ||
-            (name[0] == '.' && name[1] == '.' && name[2] == 0))
+        if ((name[0] == 0) || (name[0] == '.' && name[1] == 0) || (name[0] == '.' && name[1] == '.' && name[2] == 0))
           continue;
 
         std::string path = joinPath(directory, name);
         std::string entry = joinPath(pathPrefix, name);
 
         if (isDir(path, dir)) {
-          if (recursive)
-            globRec(path, wildchart, result, recursive, includeDirectories,
-                    entry);
+          if (recursive) globRec(path, wildchart, result, recursive, includeDirectories, entry);
           if (!includeDirectories) continue;
         }
 
-        if (wildchart.empty() || wildcmp(name, wildchart.c_str()))
-          result.emplace_back(entry);
+        if (wildchart.empty() || wildcmp(name, wildchart.c_str())) result.emplace_back(entry);
       }
     } catch (...) {
       closedir(dir);
@@ -235,8 +227,7 @@ bool exists(const std::string& path) {
     assert((copied != MAX_PATH) && (copied != (size_t)-1));
     status = ::GetFileAttributesExW(wpath, GetFileExInfoStandard, &all_attrs);
 #else
-    status =
-        ::GetFileAttributesExA(path.c_str(), GetFileExInfoStandard, &all_attrs);
+    status = ::GetFileAttributesExA(path.c_str(), GetFileExInfoStandard, &all_attrs);
 #endif
   }
 
@@ -305,6 +296,35 @@ std::string getcwd() {
 #endif
 }
 
+std::vector<std::string> split_string(const std::string& str, const std::string& spstr) {
+  std::vector<std::string> res;
+  if (str.empty()) return res;
+  if (spstr.empty()) return {str};
+
+  auto p = str.find(spstr);
+  if (p == std::string::npos) return {str};
+
+  res.reserve(5);
+  std::string::size_type prev = 0;
+  int lent = spstr.length();
+  const char* ptr = str.c_str();
+
+  while (p not_eq std::string::npos) {
+    int len = p - prev;
+    if (len > 0) {
+      res.emplace_back(str.substr(prev, len));
+    }
+    prev = p + lent;
+    p = str.find(spstr, prev);
+  }
+
+  int len = str.length() - prev;
+  if (len > 0) {
+    res.emplace_back(str.substr(prev, len));
+  }
+  return res;
+}
+
 std::string canonicalPath(const std::string& path) {
   std::string result;
 #ifdef _WIN32
@@ -348,8 +368,7 @@ std::wstring getParentPath(const std::wstring& path) {
   return std::wstring(path, 0, loc);
 }
 
-void glob(std::string pattern, std::vector<std::string>& result,
-          bool recursive) {
+void glob(std::string pattern, std::vector<std::string>& result, bool recursive) {
   result.clear();
   std::string path, wildchart;
 
@@ -374,18 +393,15 @@ void glob(std::string pattern, std::vector<std::string>& result,
   std::sort(result.begin(), result.end());
 }
 
-void glob(const std::string& directory, const std::string& pattern,
-          std::vector<std::string>& result, bool recursive,
+void glob(const std::string& directory, const std::string& pattern, std::vector<std::string>& result, bool recursive,
           bool includeDirectories) {
   globRec(directory, pattern, result, recursive, includeDirectories, directory);
   std::sort(result.begin(), result.end());
 }
 
-void globRelative(const std::string& directory, const std::string& pattern,
-                  std::vector<std::string>& result, bool recursive,
-                  bool includeDirectories) {
-  globRec(directory, pattern, result, recursive, includeDirectories,
-          std::string());
+void globRelative(const std::string& directory, const std::string& pattern, std::vector<std::string>& result,
+                  bool recursive, bool includeDirectories) {
+  globRec(directory, pattern, result, recursive, includeDirectories, std::string());
   std::sort(result.begin(), result.end());
 }
 

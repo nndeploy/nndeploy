@@ -16,8 +16,7 @@ cv::Mat drawBox(cv::Mat &cv_mat, model::DetectResult &result) {
   const int CNUM = 80;
   cv::RNG rng(0xFFFFFFFF);
   cv::Scalar_<int> randColor[CNUM];
-  for (int i = 0; i < CNUM; i++)
-    rng.fill(randColor[i], cv::RNG::UNIFORM, 0, 256);
+  for (int i = 0; i < CNUM; i++) rng.fill(randColor[i], cv::RNG::UNIFORM, 0, 256);
   int i = -1;
   for (auto bbox : result.bboxs_) {
     std::array<float, 4> box;
@@ -32,8 +31,7 @@ cv::Mat drawBox(cv::Mat &cv_mat, model::DetectResult &result) {
     int width = box[2] - box[0];
     int height = box[3] - box[1];
     int id = bbox.label_id_;
-    NNDEPLOY_LOGE("box[0]:%f, box[1]:%f, width :%d, height :%d\n", box[0],
-                  box[1], width, height);
+    NNDEPLOY_LOGE("box[0]:%f, box[1]:%f, width :%d, height :%d\n", box[0], box[1], width, height);
     cv::Point p = cv::Point(box[0], box[1]);
     cv::Rect rect = cv::Rect(box[0], box[1], width, height);
     cv::rectangle(cv_mat, rect, randColor[id]);
@@ -85,8 +83,7 @@ int main(int argc, char *argv[]) {
   // 模型是否是路径
   bool is_path = true;
   // 模型路径或者模型字符串
-  std::string model_value_path =
-      "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx";
+  std::string model_value_path = "/home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx";
   std::vector<std::string> model_value;
   model_value.push_back(model_value_path);
   // 有向无环图graph的输入边packert
@@ -95,8 +92,7 @@ int main(int argc, char *argv[]) {
   dag::Edge output("detect_out");
   // 创建检测模型有向无环图graph
   dag::Graph *graph =
-      dag::createGraph(name, inference_type, device_type, &input, &output,
-                       model_type, is_path, model_value);
+      dag::createGraph(name, inference_type, device_type, &input, &output, model_type, is_path, model_value);
   if (graph == nullptr) {
     NNDEPLOY_LOGE("graph is nullptr");
     return -1;
@@ -113,8 +109,7 @@ int main(int argc, char *argv[]) {
 
   // 有向无环图graph的输入图片路径
   // std::string input_path = demo::getInputPath();
-  std::string input_path =
-      "/home/always/huggingface/nndeploy/test_data/detect/sample.jpg";
+  std::string input_path = "/home/always/huggingface/nndeploy/test_data/detect/sample.jpg";
   // opencv读图
   cv::Mat input_mat = cv::imread(input_path);
   // 将图片写入有向无环图graph输入边
@@ -138,8 +133,7 @@ int main(int argc, char *argv[]) {
 
   drawBox(input_mat, *result);
   // std::string ouput_path = demo::getOutputPath();
-  std::string ouput_path =
-      "/home/always/huggingface/nndeploy/temp/sample_output.jpg";
+  std::string ouput_path = "/home/always/huggingface/nndeploy/temp/sample_output.jpg";
   cv::imwrite(ouput_path, input_mat);
 
   // 有向无环图graphz反初始化
