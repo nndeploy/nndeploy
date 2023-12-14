@@ -214,6 +214,7 @@ dag::Graph* createYoloV5Graph(const std::string& name,
   inference_param->is_path_ = is_path;
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
+  inference_param->model_type_ = model_type;
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
   YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post->getParam());
@@ -259,6 +260,7 @@ dag::Graph* createYoloV6Graph(const std::string& name,
   inference_param->is_path_ = is_path;
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
+  inference_param->model_type_ = model_type;
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
   YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post->getParam());
@@ -304,6 +306,7 @@ dag::Graph* createYoloV8Graph(const std::string& name,
   inference_param->is_path_ = is_path;
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
+  inference_param->model_type_ = model_type;
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
   YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post->getParam());
