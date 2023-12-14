@@ -51,9 +51,9 @@ base::Status YoloPostProcess::runV5V6() {
 
   device::Tensor* tensor = inputs_[0]->getTensor(this);
   float* data = (float*)tensor->getPtr();
-  int batch = tensor->getBatch();
-  int height = tensor->getHeight();
-  int width = tensor->getWidth();
+  int batch = tensor->getShapeIndex(0);
+  int height = tensor->getShapeIndex(1);
+  int width = tensor->getShapeIndex(2);
 
   DetectResult* results = new DetectResult();
   outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
@@ -119,9 +119,9 @@ base::Status YoloPostProcess::runV8() {
 
   device::Tensor* tensor = inputs_[0]->getTensor(this);
   float* data = (float*)tensor->getPtr();
-  int batch = tensor->getBatch();
-  int height = tensor->getHeight();
-  int width = tensor->getWidth();
+  int batch = tensor->getShapeIndex(0);
+  int height = tensor->getShapeIndex(1);
+  int width = tensor->getShapeIndex(2);
 
   cv::Mat cv_mat_src(height, width, CV_32FC1, data);
   cv::Mat cv_mat_dst(width, height, CV_32FC1);
@@ -214,6 +214,7 @@ dag::Graph* createYoloV5Graph(const std::string& name,
   inference_param->is_path_ = is_path;
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
+  inference_param->model_type_ = model_type;
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
   YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post->getParam());
@@ -259,6 +260,7 @@ dag::Graph* createYoloV6Graph(const std::string& name,
   inference_param->is_path_ = is_path;
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
+  inference_param->model_type_ = model_type;
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
   YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post->getParam());
@@ -304,6 +306,7 @@ dag::Graph* createYoloV8Graph(const std::string& name,
   inference_param->is_path_ = is_path;
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
+  inference_param->model_type_ = model_type;
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
   YoloPostParam* post_param = dynamic_cast<YoloPostParam*>(post->getParam());
