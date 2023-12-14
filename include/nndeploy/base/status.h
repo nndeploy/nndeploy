@@ -51,10 +51,10 @@ class NNDEPLOY_CC_API Status {
   Status(int code = kStatusCodeOk);
   ~Status();
 
-  Status(const Status& other) = default;
-  Status& operator=(const Status& other) = default;
+  Status(const Status &other) = default;
+  Status &operator=(const Status &other) = default;
 
-  Status& operator=(int code);
+  Status &operator=(int code);
   bool operator==(int code);
   bool operator!=(int code);
   operator int();

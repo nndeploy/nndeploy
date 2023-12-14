@@ -18,13 +18,15 @@ enum DataTypeCode : uint8_t {
 
 struct NNDEPLOY_CC_API DataType {
   DataType() : code_(kDataTypeCodeFp), bits_(32), lanes_(1){};
-  DataType(uint8_t code, uint8_t bits, uint16_t lanes = (uint16_t)1) : code_(code), bits_(bits), lanes_(lanes) {}
-  DataType(const DataType& other) = default;
-  DataType& operator=(const DataType& other) = default;
-  bool operator==(const DataType& other) const {
-    return code_ == other.code_ && bits_ == other.bits_ && lanes_ == other.lanes_;
+  DataType(uint8_t code, uint8_t bits, uint16_t lanes = (uint16_t)1)
+      : code_(code), bits_(bits), lanes_(lanes) {}
+  DataType(const DataType &other) = default;
+  DataType &operator=(const DataType &other) = default;
+  bool operator==(const DataType &other) const {
+    return code_ == other.code_ && bits_ == other.bits_ &&
+           lanes_ == other.lanes_;
   }
-  bool operator==(const DataTypeCode& other) const { return code_ == other; }
+  bool operator==(const DataTypeCode &other) const { return code_ == other; }
   uint8_t code_;
   uint8_t bits_;
   uint16_t lanes_;
@@ -74,16 +76,19 @@ enum DeviceTypeCode : int {
 
 struct NNDEPLOY_CC_API DeviceType {
   DeviceType() : code_(kDeviceTypeCodeCpu), device_id_(0) {}
-  DeviceType(DeviceTypeCode code, int device_id = 0) : code_(code), device_id_(device_id) {}
-  DeviceType(const DeviceType& other) = default;
-  DeviceType& operator=(const DeviceType& other) = default;
-  DeviceType& operator=(const DeviceTypeCode& other) {
+  DeviceType(DeviceTypeCode code, int device_id = 0)
+      : code_(code), device_id_(device_id) {}
+  DeviceType(const DeviceType &other) = default;
+  DeviceType &operator=(const DeviceType &other) = default;
+  DeviceType &operator=(const DeviceTypeCode &other) {
     code_ = other;
     device_id_ = 0;
     return *this;
   }
-  bool operator==(const DeviceType& other) const { return code_ == other.code_ && device_id_ == other.device_id_; }
-  bool operator==(const DeviceTypeCode& other) const { return code_ == other; }
+  bool operator==(const DeviceType &other) const {
+    return code_ == other.code_ && device_id_ == other.device_id_;
+  }
+  bool operator==(const DeviceTypeCode &other) const { return code_ == other; }
   DeviceTypeCode code_;
   int device_id_;
 };
@@ -234,20 +239,24 @@ using IntVector = std::vector<int>;
 using SizeVector = std::vector<size_t>;
 using ShapeMap = std::map<std::string, std::vector<int>>;
 
-extern NNDEPLOY_CC_API DeviceTypeCode stringToDeviceTypeCode(const std::string& src);
-extern NNDEPLOY_CC_API DeviceType stringToDeviceType(const std::string& src);
+extern NNDEPLOY_CC_API DeviceTypeCode
+stringToDeviceTypeCode(const std::string &src);
+extern NNDEPLOY_CC_API DeviceType stringToDeviceType(const std::string &src);
 
-extern NNDEPLOY_CC_API ModelType stringToModelType(const std::string& src);
+extern NNDEPLOY_CC_API ModelType stringToModelType(const std::string &src);
 
-extern NNDEPLOY_CC_API InferenceType stringToInferenceType(const std::string& src);
+extern NNDEPLOY_CC_API InferenceType
+stringToInferenceType(const std::string &src);
 
-extern NNDEPLOY_CC_API EncryptType stringToEncryptType(const std::string& src);
+extern NNDEPLOY_CC_API EncryptType stringToEncryptType(const std::string &src);
 
-extern NNDEPLOY_CC_API ShareMemoryType stringToShareMemoryType(const std::string& src);
+extern NNDEPLOY_CC_API ShareMemoryType
+stringToShareMemoryType(const std::string &src);
 
-extern NNDEPLOY_CC_API PrecisionType stringToPrecisionType(const std::string& src);
+extern NNDEPLOY_CC_API PrecisionType
+stringToPrecisionType(const std::string &src);
 
-extern NNDEPLOY_CC_API PowerType stringToPowerType(const std::string& src);
+extern NNDEPLOY_CC_API PowerType stringToPowerType(const std::string &src);
 
 }  // namespace base
 }  // namespace nndeploy

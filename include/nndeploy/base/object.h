@@ -13,22 +13,22 @@ namespace base {
 class NNDEPLOY_CC_API NonCopyable {
  public:
   NonCopyable() = default;
-  NonCopyable(const NonCopyable&) = delete;
-  NonCopyable(NonCopyable&&) = delete;
-  NonCopyable& operator=(const NonCopyable&) = delete;
-  NonCopyable& operator=(NonCopyable&&) = delete;
+  NonCopyable(const NonCopyable &) = delete;
+  NonCopyable(NonCopyable &&) = delete;
+  NonCopyable &operator=(const NonCopyable &) = delete;
+  NonCopyable &operator=(NonCopyable &&) = delete;
 };
 
 class NNDEPLOY_CC_API Movable {
  public:
   Movable() = default;
-  Movable(const Movable&) = delete;
-  Movable& operator=(const Movable&) = delete;
+  Movable(const Movable &) = delete;
+  Movable &operator=(const Movable &) = delete;
 };
 
 struct NNDEPLOY_CC_API Deleter {
   template <typename T>
-  void operator()(T* obj) const {
+  void operator()(T *obj) const {
     if (obj) {
       delete obj;
     }
@@ -44,7 +44,7 @@ class NNDEPLOY_CC_API Singleton {
   /**
   @brief get a reference to the singleton object
   */
-  inline static T& getInstance() {
+  inline static T &getInstance() {
     static T instance;
     return instance;
   }
@@ -52,10 +52,10 @@ class NNDEPLOY_CC_API Singleton {
  private:
   Singleton() = default;
   ~Singleton() = default;
-  Singleton(const Singleton&) = delete;
-  Singleton& operator=(const Singleton&) = delete;
-  Singleton(Singleton&&) = delete;
-  Singleton& operator=(Singleton&&) = delete;
+  Singleton(const Singleton &) = delete;
+  Singleton &operator=(const Singleton &) = delete;
+  Singleton(Singleton &&) = delete;
+  Singleton &operator=(Singleton &&) = delete;
 };
 
 }  // namespace base

@@ -28,31 +28,31 @@ class OpenCvUtil {
                        base::PixelType src_pixel_type,
                        base::PixelType dst_pixel_type);
   static void cvtColor(cv::InputArray src, cv::OutputArray dst,
-                       const CvtcolorParam& param);
+                       const CvtcolorParam &param);
 
   static void resize(cv::InputArray src, cv::OutputArray dst, int dst_w,
                      int dst_h, float scale_w, float scale_h,
                      base::InterpType interp_type);
   static void resize(cv::InputArray src, cv::OutputArray dst,
-                     const ResizeParam& param);
+                     const ResizeParam &param);
 
   static void copyMakeBorder(cv::InputArray src, cv::OutputArray dst, int top,
                              int bottom, int left, int right,
                              base::BorderType border_type,
-                             const base::Scalar2d& border_val);
+                             const base::Scalar2d &border_val);
   static void copyMakeBorder(cv::InputArray src, cv::OutputArray dst,
-                             const PaddingParam& param);
+                             const PaddingParam &param);
 
   static void warpAffine(cv::InputArray src, cv::OutputArray dst,
-                         float* transform, int dst_w, int dst_h,
+                         float *transform, int dst_w, int dst_h,
                          base::InterpType interp_type,
                          base::BorderType border_type,
-                         const base::Scalar2d& border_val);
+                         const base::Scalar2d &border_val);
   static void warpAffine(cv::InputArray src, cv::OutputArray dst,
-                         const WarpAffineParam& param);
+                         const WarpAffineParam &param);
 
   static cv::Mat crop(cv::InputArray src, int x, int y, int w, int h);
-  static cv::Mat crop(cv::InputArray src, const CropParam& param);
+  static cv::Mat crop(cv::InputArray src, const CropParam &param);
 };
 
 }  // namespace model

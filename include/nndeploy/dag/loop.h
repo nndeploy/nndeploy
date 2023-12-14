@@ -22,14 +22,14 @@ namespace dag {
 
 class NNDEPLOY_CC_API Loop : public Node {
  public:
-  Loop(const std::string& name, Edge* input, Edge* output);
-  Loop(const std::string& name, std::initializer_list<Edge*> inputs,
-       std::initializer_list<Edge*> outputs);
+  Loop(const std::string &name, Edge *input, Edge *output);
+  Loop(const std::string &name, std::initializer_list<Edge *> inputs,
+       std::initializer_list<Edge *> outputs);
   virtual ~Loop();
 
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node* createNode(const std::string& name, Edge* input, Edge* output) {
+  Node *createNode(const std::string &name, Edge *input, Edge *output) {
     if (loop_node_ != nullptr) {
       NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
@@ -46,13 +46,14 @@ class NNDEPLOY_CC_API Loop : public Node {
       NNDEPLOY_LOGE("output is not in loop outputs!\n");
       return nullptr;
     }
-    loop_node_ = dynamic_cast<Node*>(new T(name, input, output));
+    loop_node_ = dynamic_cast<Node *>(new T(name, input, output));
     return loop_node_;
   }
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node* createNode(const std::string& name, std::initializer_list<Edge*> inputs,
-                   std::initializer_list<Edge*> outputs) {
+  Node *createNode(const std::string &name,
+                   std::initializer_list<Edge *> inputs,
+                   std::initializer_list<Edge *> outputs) {
     if (loop_node_ != nullptr) {
       NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
@@ -67,13 +68,13 @@ class NNDEPLOY_CC_API Loop : public Node {
       NNDEPLOY_LOGE("outputs is not in loop outputs!\n");
       return nullptr;
     }
-    loop_node_ = dynamic_cast<Node*>(new T(name, inputs, outputs));
+    loop_node_ = dynamic_cast<Node *>(new T(name, inputs, outputs));
     return loop_node_;
   }
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node* createInfer(const std::string& name, base::InferenceType type,
-                    Edge* input, Edge* output) {
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    Edge *input, Edge *output) {
     if (loop_node_ != nullptr) {
       NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
@@ -90,14 +91,14 @@ class NNDEPLOY_CC_API Loop : public Node {
       NNDEPLOY_LOGE("output is not in loop outputs!\n");
       return nullptr;
     }
-    loop_node_ = dynamic_cast<Node*>(new T(name, type, input, output));
+    loop_node_ = dynamic_cast<Node *>(new T(name, type, input, output));
     return loop_node_;
   }
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node* createInfer(const std::string& name, base::InferenceType type,
-                    std::initializer_list<Edge*> inputs,
-                    std::initializer_list<Edge*> outputs) {
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    std::initializer_list<Edge *> inputs,
+                    std::initializer_list<Edge *> outputs) {
     if (loop_node_ != nullptr) {
       NNDEPLOY_LOGE("loop_node_ must be nullptr!\n");
       return nullptr;
@@ -112,7 +113,7 @@ class NNDEPLOY_CC_API Loop : public Node {
       NNDEPLOY_LOGE("outputs is not in loop outputs!\n");
       return nullptr;
     }
-    loop_node_ = dynamic_cast<Node*>(new T(name, type, inputs, outputs));
+    loop_node_ = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
     return loop_node_;
   }
 
@@ -124,7 +125,7 @@ class NNDEPLOY_CC_API Loop : public Node {
   virtual base::Status run();
 
  protected:
-  Node* loop_node_ = nullptr;
+  Node *loop_node_ = nullptr;
 };
 
 }  // namespace dag

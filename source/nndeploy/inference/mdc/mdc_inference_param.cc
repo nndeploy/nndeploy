@@ -6,8 +6,8 @@
 namespace nndeploy {
 namespace inference {
 
-static TypeInferenceParamRegister<TypeInferenceParamCreator<MdcInferenceParam>> g_mdc_inference_param_register(
-    base::kInferenceTypeMdc);
+static TypeInferenceParamRegister<TypeInferenceParamCreator<MdcInferenceParam>>
+    g_mdc_inference_param_register(base::kInferenceTypeMdc);
 
 MdcInferenceParam::MdcInferenceParam() : InferenceParam() {
   model_type_ = base::kModelTypeMdc;
@@ -26,9 +26,13 @@ base::Status MdcInferenceParam::parse(const std::string &json, bool is_path) {
   return base::kStatusCodeOk;
 }
 
-base::Status MdcInferenceParam::set(const std::string &key, base::Value &value) { return base::kStatusCodeOk; }
+base::Status MdcInferenceParam::set(const std::string &key,
+                                    base::Value &value) {
+  return base::kStatusCodeOk;
+}
 
-base::Status MdcInferenceParam::get(const std::string &key, base::Value &value) {
+base::Status MdcInferenceParam::get(const std::string &key,
+                                    base::Value &value) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

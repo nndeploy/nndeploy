@@ -29,9 +29,9 @@ static inline float sigmoid(float x) {
   return static_cast<float>(1.f / (1.f + exp(-x)));
 }
 
-static void generateProposals(const int* anchors, int stride, const int model_w,
-                              const int model_h, device::Tensor* tensor,
-                              float score_threshold, DetectResult* results) {
+static void generateProposals(const int *anchors, int stride, const int model_w,
+                              const int model_h, device::Tensor *tensor,
+                              float score_threshold, DetectResult *results) {
   const int num_grid = tensor->getHeight();
 
   int num_grid_x;
@@ -47,17 +47,17 @@ static void generateProposals(const int* anchors, int stride, const int model_w,
   const int num_class = tensor->getWidth() - 5;
   const int num_anchors = 3;
 
-  float* data = (float*)tensor->getPtr();
+  float *data = (float *)tensor->getPtr();
 
   for (int q = 0; q < num_anchors; q++) {
     const float anchor_w = anchors[q * 2];
     const float anchor_h = anchors[q * 2 + 1];
 
-    float* data_channel = data + q * num_grid * (num_class + 5);
+    float *data_channel = data + q * num_grid * (num_class + 5);
 
     for (int i = 0; i < num_grid_y; i++) {
       for (int j = 0; j < num_grid_x; j++) {
-        const float* featptr = data + (i * num_grid_x + j) * (num_class + 5);
+        const float *featptr = data + (i * num_grid_x + j) * (num_class + 5);
         float box_confidence = sigmoid(featptr[4]);
         if (box_confidence >= score_threshold) {
           // find class index with max class score
@@ -112,19 +112,19 @@ static void generateProposals(const int* anchors, int stride, const int model_w,
 }
 
 base::Status YoloMultiOutputPostProcess::run() {
-  YoloMultiOutputPostParam* param = (YoloMultiOutputPostParam*)param_.get();
-  DetectResult* results = new DetectResult();
+  YoloMultiOutputPostParam *param = (YoloMultiOutputPostParam *)param_.get();
+  DetectResult *results = new DetectResult();
   outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
   DetectResult results_batch;
-  device::Tensor* tensor_0 = inputs_[0]->getTensor(this);
+  device::Tensor *tensor_0 = inputs_[0]->getTensor(this);
   generateProposals(param->anchors_stride_8, 8, param->model_w_,
                     param->model_h_, tensor_0, param->score_threshold_,
                     &results_batch);
-  device::Tensor* tensor_1 = inputs_[1]->getTensor(this);
+  device::Tensor *tensor_1 = inputs_[1]->getTensor(this);
   generateProposals(param->anchors_stride_16, 16, param->model_w_,
                     param->model_h_, tensor_1, param->score_threshold_,
                     &results_batch);
-  device::Tensor* tensor_2 = inputs_[2]->getTensor(this);
+  device::Tensor *tensor_2 = inputs_[2]->getTensor(this);
   generateProposals(param->anchors_stride_32, 32, param->model_w_,
                     param->model_h_, tensor_2, param->score_threshold_,
                     &results_batch);
@@ -144,45 +144,45 @@ base::Status YoloMultiOutputPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-dag::Graph* createYoloV5MultiOutputGraph(const std::string& name,
+dag::Graph *createYoloV5MultiOutputGraph(const std::string &name,
                                          base::InferenceType inference_type,
                                          base::DeviceType device_type,
-                                         dag::Edge* input, dag::Edge* output,
+                                         dag::Edge *input, dag::Edge *output,
                                          base::ModelType model_type,
                                          bool is_path,
                                          std::vector<std::string> model_value) {
-  dag::Graph* graph = new dag::Graph(name, input, output);
-  dag::Edge* infer_input = graph->createEdge("infer_input");
-  dag::Edge* infer_0 = graph->createEdge("output");
-  dag::Edge* infer_1 = graph->createEdge("376");
-  dag::Edge* infer_2 = graph->createEdge("401");
+  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Edge *infer_input = graph->createEdge("infer_input");
+  dag::Edge *infer_0 = graph->createEdge("output");
+  dag::Edge *infer_1 = graph->createEdge("376");
+  dag::Edge *infer_2 = graph->createEdge("401");
 
-  dag::Node* pre = graph->createNode<model::CvtColorResize>("preprocess", input,
+  dag::Node *pre = graph->createNode<model::CvtColorResize>("preprocess", input,
                                                             infer_input);
 
-  dag::Node* infer = graph->createInfer<model::Infer>(
+  dag::Node *infer = graph->createInfer<model::Infer>(
       "infer", inference_type, {infer_input}, {infer_0, infer_1, infer_2});
 
-  dag::Node* post = graph->createNode<YoloMultiOutputPostProcess>(
+  dag::Node *post = graph->createNode<YoloMultiOutputPostProcess>(
       "postprocess", {infer_0, infer_1, infer_2}, {output});
 
-  model::CvtclorResizeParam* pre_param =
-      dynamic_cast<model::CvtclorResizeParam*>(pre->getParam());
+  model::CvtclorResizeParam *pre_param =
+      dynamic_cast<model::CvtclorResizeParam *>(pre->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
   pre_param->h_ = 640;
   pre_param->w_ = 640;
 
-  inference::InferenceParam* inference_param =
-      (inference::InferenceParam*)(infer->getParam());
+  inference::InferenceParam *inference_param =
+      (inference::InferenceParam *)(infer->getParam());
   inference_param->is_path_ = is_path;
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
-  YoloMultiOutputPostParam* post_param =
-      dynamic_cast<YoloMultiOutputPostParam*>(post->getParam());
+  YoloMultiOutputPostParam *post_param =
+      dynamic_cast<YoloMultiOutputPostParam *>(post->getParam());
   post_param->score_threshold_ = 0.7;
   post_param->nms_threshold_ = 0.3;
   post_param->num_classes_ = 80;

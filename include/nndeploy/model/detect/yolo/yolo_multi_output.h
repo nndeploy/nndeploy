@@ -48,9 +48,9 @@ class NNDEPLOY_CC_API YoloMultiOutputPostParam : public base::Param {
 
 class NNDEPLOY_CC_API YoloMultiOutputPostProcess : public dag::Node {
  public:
-  YoloMultiOutputPostProcess(const std::string& name,
-                             std::initializer_list<dag::Edge*> inputs,
-                             std::initializer_list<dag::Edge*> outputs)
+  YoloMultiOutputPostProcess(const std::string &name,
+                             std::initializer_list<dag::Edge *> inputs,
+                             std::initializer_list<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<YoloMultiOutputPostParam>();
   }
@@ -59,9 +59,9 @@ class NNDEPLOY_CC_API YoloMultiOutputPostProcess : public dag::Node {
   virtual base::Status run();
 };
 
-extern NNDEPLOY_CC_API dag::Graph* createYoloV5MultiOutputGraph(
-    const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Edge* input, dag::Edge* output,
+extern NNDEPLOY_CC_API dag::Graph *createYoloV5MultiOutputGraph(
+    const std::string &name, base::InferenceType inference_type,
+    base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value);
 

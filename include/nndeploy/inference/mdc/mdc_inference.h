@@ -36,8 +36,9 @@ class MdcInference : public Inference {
 
   virtual base::Status run();
 
-  virtual device::Tensor *getOutputTensorAfterRun(const std::string &name, base::DeviceType device_type, bool is_copy,
-                                                  base::DataFormat data_format = base::kDataFormatAuto);
+  virtual device::Tensor *getOutputTensorAfterRun(
+      const std::string &name, base::DeviceType device_type, bool is_copy,
+      base::DataFormat data_format = base::kDataFormatAuto);
 
  private:
   bool isDynamic(std::vector<int64_t> &shape);
@@ -46,7 +47,8 @@ class MdcInference : public Inference {
  private:
   int batch_size_ = 1;
 
-  const char *aclConfigPath = "";  // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看mdc文档
+  const char *aclConfigPath =
+      "";  // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看mdc文档
 
   aclrtContext context_ = nullptr;
 

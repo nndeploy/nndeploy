@@ -25,9 +25,9 @@ namespace dag {
  */
 class NNDEPLOY_CC_API Node {
  public:
-  Node(const std::string& name, Edge* input, Edge* output);
-  Node(const std::string& name, std::initializer_list<Edge*> inputs,
-       std::initializer_list<Edge*> outputs);
+  Node(const std::string &name, Edge *input, Edge *output);
+  Node(const std::string &name, std::initializer_list<Edge *> inputs,
+       std::initializer_list<Edge *> outputs);
 
   virtual ~Node();
 
@@ -36,14 +36,14 @@ class NNDEPLOY_CC_API Node {
   base::Status setDeviceType(base::DeviceType device_type);
   base::DeviceType getDeviceType();
 
-  virtual base::Status setParam(base::Param* param);
-  virtual base::Param* getParam();
+  virtual base::Status setParam(base::Param *param);
+  virtual base::Param *getParam();
 
-  Edge* getInput(int index = 0);
-  Edge* getOutput(int index = 0);
+  Edge *getInput(int index = 0);
+  Edge *getOutput(int index = 0);
 
-  std::vector<Edge*> getAllInput();
-  std::vector<Edge*> getAllOutput();
+  std::vector<Edge *> getAllInput();
+  std::vector<Edge *> getAllOutput();
 
   bool getConstructed();
   bool getInitialized();
@@ -54,7 +54,7 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status deinit();
 
   virtual int64_t getMemorySize();
-  virtual base::Status setMemory(device::Buffer* buffer);
+  virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual base::Status run() = 0;
 
@@ -62,8 +62,8 @@ class NNDEPLOY_CC_API Node {
   std::string name_;
   base::DeviceType device_type_;
   std::shared_ptr<base::Param> param_;
-  std::vector<Edge*> inputs_;
-  std::vector<Edge*> outputs_;
+  std::vector<Edge *> inputs_;
+  std::vector<Edge *> outputs_;
 
   bool constructed_ = false;
   bool initialized_ = false;
@@ -71,11 +71,11 @@ class NNDEPLOY_CC_API Node {
 };
 
 using SingleIONodeFunc =
-    std::function<base::Status(Edge* input, Edge* output, base::Param* param)>;
+    std::function<base::Status(Edge *input, Edge *output, base::Param *param)>;
 
 using MultiIONodeFunc = std::function<base::Status(
-    std::initializer_list<Edge*> input, std::initializer_list<Edge*> output,
-    base::Param* param)>;
+    std::initializer_list<Edge *> input, std::initializer_list<Edge *> output,
+    base::Param *param)>;
 
 }  // namespace dag
 }  // namespace nndeploy

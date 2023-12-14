@@ -12,7 +12,7 @@ int defaultNumberOfThreads() { return 4; }
 
 void setThreadNum(int num) {
   int num_threads = (num < 0) ? defaultNumberOfThreads() : (unsigned)num;
-  std::shared_ptr<ParallelForApi>& api =
+  std::shared_ptr<ParallelForApi> &api =
       getParallelForApi(g_parallel_for_api_type);
   if (api) {
     api->setThreadNum(num);
@@ -20,7 +20,7 @@ void setThreadNum(int num) {
 }
 
 int getThreadNum() {
-  std::shared_ptr<ParallelForApi>& api =
+  std::shared_ptr<ParallelForApi> &api =
       getParallelForApi(g_parallel_for_api_type);
   if (api) {
     return api->getThreadNum();
@@ -28,12 +28,12 @@ int getThreadNum() {
   return 0;
 }
 
-void parallelFor(const base::Range& range, const ParallelLoopBody& body,
+void parallelFor(const base::Range &range, const ParallelLoopBody &body,
                  double nstripes) {
   if (range.empty()) {
     return;
   }
-  std::shared_ptr<ParallelForApi>& api =
+  std::shared_ptr<ParallelForApi> &api =
       getParallelForApi(g_parallel_for_api_type);
   if (api) {
     api->parallelFor(range, body, nstripes);

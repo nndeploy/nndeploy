@@ -22,7 +22,8 @@ class MdcConvert {
 
   static base::DataFormat getDataFormatByShape(const base::IntVector &src);
 
-  static base::IntVector convertToShape(std::vector<int64_t> &src, base::IntVector max_shape = base::IntVector());
+  static base::IntVector convertToShape(
+      std::vector<int64_t> &src, base::IntVector max_shape = base::IntVector());
   static std::vector<int64_t> convertFromShape(const base::IntVector &src);
 };
 

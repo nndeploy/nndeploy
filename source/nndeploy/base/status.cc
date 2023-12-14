@@ -7,7 +7,7 @@ namespace base {
 Status::Status(int code) : code_(code) {}
 Status::~Status() {}
 
-Status& Status::operator=(int code) {
+Status &Status::operator=(int code) {
   code_ = code;
   return *this;
 };

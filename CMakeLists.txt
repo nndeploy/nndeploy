@@ -80,8 +80,7 @@ nndeploy_option(ENABLE_NNDEPLOY_TEST "ENABLE_NNDEPLOY_TEST" OFF)
 ## demo
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "ENABLE_NNDEPLOY_DEMO" OFF)
 
-# include(.vscode/config_mdc.cmake)
-# include(.vscode/config_tensorrt.cmake)
+
 # print option
 print_summary()
 

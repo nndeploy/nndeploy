@@ -16,14 +16,14 @@ class CudaArchitecture : public Architecture {
   virtual ~CudaArchitecture();
 
   virtual base::Status checkDevice(int device_id = 0,
-                                   void* command_queue = nullptr,
+                                   void *command_queue = nullptr,
                                    std::string library_path = "") override;
 
   virtual base::Status enableDevice(int device_id = 0,
-                                    void* command_queue = nullptr,
+                                    void *command_queue = nullptr,
                                     std::string library_path = "") override;
 
-  virtual Device* getDevice(int device_id) override;
+  virtual Device *getDevice(int device_id) override;
 
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") override;
@@ -37,26 +37,26 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   friend class CudaArchitecture;
 
  public:
-  virtual BufferDesc toBufferDesc(const MatDesc& desc,
-                                  const base::IntVector& config);
+  virtual BufferDesc toBufferDesc(const MatDesc &desc,
+                                  const base::IntVector &config);
 
-  virtual BufferDesc toBufferDesc(const TensorDesc& desc,
-                                  const base::IntVector& config);
+  virtual BufferDesc toBufferDesc(const TensorDesc &desc,
+                                  const base::IntVector &config);
 
-  virtual Buffer* allocate(size_t size);
-  virtual Buffer* allocate(const BufferDesc& desc);
-  virtual void deallocate(Buffer* buffer);
+  virtual Buffer *allocate(size_t size);
+  virtual Buffer *allocate(const BufferDesc &desc);
+  virtual void deallocate(Buffer *buffer);
 
-  virtual base::Status copy(Buffer* src, Buffer* dst);
-  virtual base::Status download(Buffer* src, Buffer* dst);
-  virtual base::Status upload(Buffer* src, Buffer* dst);
+  virtual base::Status copy(Buffer *src, Buffer *dst);
+  virtual base::Status download(Buffer *src, Buffer *dst);
+  virtual base::Status upload(Buffer *src, Buffer *dst);
 
   virtual base::Status synchronize();
 
-  virtual void* getCommandQueue();
+  virtual void *getCommandQueue();
 
  protected:
-  CudaDevice(base::DeviceType device_type, void* command_queue = nullptr,
+  CudaDevice(base::DeviceType device_type, void *command_queue = nullptr,
              std::string library_path = "")
       : Device(device_type), external_command_queue_(command_queue){};
   virtual ~CudaDevice(){};
@@ -65,7 +65,7 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   virtual base::Status deinit();
 
  private:
-  void* external_command_queue_ = nullptr;
+  void *external_command_queue_ = nullptr;
   cudaStream_t stream_;
 };
 

@@ -84,7 +84,8 @@ aclDataType MdcConvert::convertFromDataType(const base::DataType &src) {
     } else {
       dst = ACL_DT_UNDEFINED;
     }
-  } else if (src.code_ == base::kDataTypeCodeFp && src.bits_ == 16 && src.lanes_ == 1) {
+  } else if (src.code_ == base::kDataTypeCodeFp && src.bits_ == 16 &&
+             src.lanes_ == 1) {
     dst = ACL_FLOAT16;
   } else if (src.code_ == base::kDataTypeCodeInt && src.lanes_ == 1) {
     if (src.bits_ == 8) {
@@ -134,7 +135,8 @@ base::DataFormat MdcConvert::getDataFormatByShape(const base::IntVector &src) {
   return dst;
 }
 
-base::IntVector MdcConvert::convertToShape(std::vector<int64_t> &src, base::IntVector max_shape) {
+base::IntVector MdcConvert::convertToShape(std::vector<int64_t> &src,
+                                           base::IntVector max_shape) {
   base::IntVector dst;
   if (!max_shape.empty()) {
     dst = max_shape;

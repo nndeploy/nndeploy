@@ -29,7 +29,7 @@ class OpenCvConvert {
 
   static int convertFromBorderType(base::BorderType src);
 
-  static cv::Scalar convertFromScalar(const base::Scalar2d& src);
+  static cv::Scalar convertFromScalar(const base::Scalar2d &src);
 
   /**
    * @brief cast + normalize + premute
@@ -37,8 +37,8 @@ class OpenCvConvert {
    * @return true
    * @return false
    */
-  static bool convertToTensor(const cv::Mat& src, device::Tensor* dst,
-                              float* scale, float* mean, float* std);
+  static bool convertToTensor(const cv::Mat &src, device::Tensor *dst,
+                              float *scale, float *mean, float *std);
 };
 
 }  // namespace model
