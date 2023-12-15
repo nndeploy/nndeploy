@@ -72,6 +72,14 @@
 | Macos   |     [![macos](https://ci.appveyor.com/api/projects/status/7sey9eqhfnnedqi2?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy)     |
 | Windows | [![windows](https://ci.appveyor.com/api/projects/status/4gsf91utksd7v595?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-ovpc5) |
 
+
+
+| OS      |                                                                      status                                                                      |
+| ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
+| Linux | [![linux](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml) |
+| Macos | [![macos](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml) |
+| Windows | [![windows](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml) |
+
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
 - [FastDeploy](https://github.com/PaddlePaddle/FastDeploy)
@@ -93,7 +101,7 @@
 - [youxiudeshouyeren](https://github.com/youxiudeshouyeren)
 - [PeterH0323](https://github.com/PeterH0323)
 - [100312dog](https://github.com/100312dog)
-- [wangzhaode](https://github.com/wangzhaode)
+- [DeployAI](https://github.com/DeployAI)
 - [ChunelFeng](https://github.com/ChunelFeng)
 - [acheerfulish](https://github.com/acheerfulish)
 
