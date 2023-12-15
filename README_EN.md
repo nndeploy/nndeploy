@@ -67,9 +67,9 @@ If you have any related questions, feel free to contact us. 😁
 ## Support
 | OS      |                                                                      status                                                                      |
 | ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
-| Linux   |  [![linux](https://ci.appveyor.com/api/projects/status/a135va7wtjot4iaw?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-pdc3k)  |
-| Macos   |     [![macos](https://ci.appveyor.com/api/projects/status/7sey9eqhfnnedqi2?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy)     |
-| Windows | [![windows](https://ci.appveyor.com/api/projects/status/4gsf91utksd7v595?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-ovpc5) |
+| Linux | [![linux](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml) |
+| Macos | [![macos](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml) |
+| Windows | [![windows](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml) |
 
 # Reference
 - [TNN](https://github.com/Tencent/TNN)

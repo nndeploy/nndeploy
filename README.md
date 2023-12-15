@@ -65,15 +65,6 @@
 - 接入更多的推理框架，例如rknn(rknn在工业场景使用的非常非常多)
 - 从0到1搭建OP模块，提升性能
 
-## 编译状态
-| OS      |                                                                      status                                                                      |
-| ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
-| Linux   |  [![linux](https://ci.appveyor.com/api/projects/status/a135va7wtjot4iaw?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-pdc3k)  |
-| Macos   |     [![macos](https://ci.appveyor.com/api/projects/status/7sey9eqhfnnedqi2?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy)     |
-| Windows | [![windows](https://ci.appveyor.com/api/projects/status/4gsf91utksd7v595?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-ovpc5) |
-
-
-
 | OS      |                                                                      status                                                                      |
 | ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
 | Linux | [![linux](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml) |
