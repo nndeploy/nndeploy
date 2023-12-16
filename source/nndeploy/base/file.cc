@@ -319,7 +319,7 @@ std::vector<std::string> split_string(const std::string &str,
   int lent = spstr.length();
   const char *ptr = str.c_str();
 
-  while (p not_eq std::string::npos) {
+  while (p != std::string::npos) {
     int len = p - prev;
     if (len > 0) {
       res.emplace_back(str.substr(prev, len));
@@ -442,8 +442,8 @@ bool createDirectory(const std::string &path) {
   return true;
 }
 
-bool createDirectories(const std::string &path_) {
-  std::string path = path_;
+bool createDirectories(const std::string &path_param) {
+  std::string path = path_param;
   for (;;) {
     char last_char = path.empty() ? 0 : path[path.length() - 1];
     if (isPathSeparator(last_char)) {

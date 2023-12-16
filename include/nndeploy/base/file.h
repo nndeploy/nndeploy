@@ -79,7 +79,7 @@ extern NNDEPLOY_CC_API void globRelative(const std::string &directory,
                                          bool include_directories = false);
 
 extern NNDEPLOY_CC_API bool createDirectory(const std::string &path);
-extern NNDEPLOY_CC_API bool createDirectories(const std::string &path);
+extern NNDEPLOY_CC_API bool createDirectories(const std::string &path_param);
 
 }  // namespace base
 }  // namespace nndeploy
