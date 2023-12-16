@@ -25,6 +25,7 @@ permissions:
 
 jobs:
   build:
+    name: windows-build
     runs-on: windows-latest
 
     steps:
@@ -38,7 +39,7 @@ jobs:
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Build
-        run:|
+        run: |
             mkdir build
             cp cmake/config.cmake build
             cd build
