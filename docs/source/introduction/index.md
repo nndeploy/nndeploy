@@ -82,6 +82,14 @@
 - 接入更多的推理框架，包括`TFLite`、`paddle-lite`、`coreML`、`TVM`、`RKNN`、算能等等推理软件栈
 - 部署更多的算法，包括 `Stable Diffusion`、`DETR`、`SAM`等等热门开源模型
 
+
+## Support
+| OS      |                                                                      status                                                                      |
+| ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
+| Linux | [![linux](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml) |
+| Macos | [![macos](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml) |
+| Windows | [![windows](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml) |
+
 # 加入我们
 
 - 欢迎大家参与，一起打造最简单易用、高性能的机器学习部署框架

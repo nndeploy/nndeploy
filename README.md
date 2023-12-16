@@ -65,12 +65,6 @@
 - 接入更多的推理框架，例如rknn(rknn在工业场景使用的非常非常多)
 - 从0到1搭建OP模块，提升性能
 
-| OS      |                                                                      status                                                                      |
-| ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
-| Linux | [![linux](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml) |
-| Macos | [![macos](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml) |
-| Windows | [![windows](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml) |
-
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
 - [FastDeploy](https://github.com/PaddlePaddle/FastDeploy)

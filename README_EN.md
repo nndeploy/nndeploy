@@ -64,13 +64,6 @@ If you have any related questions, feel free to contact us. 😁
 - More Inference
 - OP
 
-## Support
-| OS      |                                                                      status                                                                      |
-| ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
-| Linux | [![linux](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml) |
-| Macos | [![macos](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml) |
-| Windows | [![windows](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml) |
-
 # Reference
 - [TNN](https://github.com/Tencent/TNN)
 - [FastDeploy](https://github.com/PaddlePaddle/FastDeploy)
