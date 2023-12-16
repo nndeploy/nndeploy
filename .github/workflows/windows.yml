@@ -1,0 +1,30 @@
+name: windows
+on:
+  push:
+    branches:
+     - main
+     - 'feature/**'
+    paths:
+      - 'src/**'
+      - '.github/workflows/windows.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - '.github/workflows/windows.yml'
+
+jobs:
+  build:
+    name: windows-build
+    runs-on: windows-latest
+  
+    steps:
+      - uses: actions/checkout@v3
+      # build
+      - name: build
+        run: |
+            mkdir build
+            cp cmake/config.cmake build
+            cd build
+            cmake ..
+            cmake --build . --config Release -j 4
