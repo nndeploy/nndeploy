@@ -13,7 +13,7 @@
 
 ### 1. 支持多平台和多一致性
 
-只要环境受支持，通过`nndeploy`部署模型的代码无需修改即可跨多个平台以及各多个推理框架使用。
+只要环境支持，通过`nndeploy`部署模型的代码无需修改即可跨多个平台以及各多个推理框架使用。
 当前支持的环境如下：
 
 | Inference/OS                                               | Linux | Windows | Android | MacOS |  IOS  | developer                                 | remarks |

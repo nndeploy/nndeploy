@@ -107,7 +107,7 @@ base::Status MdcInference::init() {
     std::string output_src_name =
         std::string(aclmdlGetOutputNameByIndex(modelDesc_, i));
     // 由于mdc输出名称会自动加前缀且用:分开，这里找出真正的输出名称，对齐onnxruntime
-    std::string output_name = base::split_string(output_src_name, ":").back();
+    std::string output_name = base::splitString(output_src_name, ":").back();
     mdc_change_output_names_.insert({output_src_name, output_name});
     std::vector<int64_t> output_shape;
     aclmdlIODims output_dim;

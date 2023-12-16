@@ -146,7 +146,7 @@ Buffer *MdcDevice::allocate(const BufferDesc &desc) {
     return nullptr;
   }
   if (data == nullptr) {
-    NNDEPLOY_LOGE("cuda alloc got nullptr\n");
+    NNDEPLOY_LOGE("mdc alloc got nullptr\n");
     return nullptr;
   }
   Buffer *buffer = Device::create(desc, data, kBufferSourceTypeAllocate);
@@ -287,32 +287,35 @@ base::Status MdcDevice::init() {
   }
   return base::kStatusCodeOk;
 }
+
+// Always：修改了deinit函数，分为两种情况
+// 1. 共享了外部的command_queue，此时不需要释放stream_和context_
+// 2. 没有共享外部的command_queue，此时需要释放stream_和context_
 base::Status MdcDevice::deinit() {
-  // if (external_command_queue_ != nullptr) {
-  //   NNDEPLOY_CUDA_CHECK(cudaStreamDestroy(stream_));
-  // }
-  aclError ret;
-  if (stream_ != nullptr) {
-    ret = aclrtDestroyStream(stream_);
-    if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclrtDestroyStream failed, errorCode is %d", ret);
-      return base::kStatusCodeErrorDeviceMdc;
+  if (external_command_queue_ != nullptr) {
+    aclError ret;
+    if (stream_ != nullptr) {
+      ret = aclrtDestroyStream(stream_);
+      if (ret != ACL_SUCCESS) {
+        NNDEPLOY_LOGE("aclrtDestroyStream failed, errorCode is %d", ret);
+        return base::kStatusCodeErrorDeviceMdc;
+      }
+      stream_ = nullptr;
     }
-    stream_ = nullptr;
-  }
 
-  if (context_ != nullptr) {
-    ret = aclrtDestroyContext(context_);
-    if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclrtDestroyContext failed, errorCode is %d", ret);
-      return base::kStatusCodeErrorDeviceMdc;
-    }
-    context_ = nullptr;
+    if (context_ != nullptr) {
+      ret = aclrtDestroyContext(context_);
+      if (ret != ACL_SUCCESS) {
+        NNDEPLOY_LOGE("aclrtDestroyContext failed, errorCode is %d", ret);
+        return base::kStatusCodeErrorDeviceMdc;
+      }
+      context_ = nullptr;
 
-    ret = aclrtResetDevice(device_type_.device_id_);
-    if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclrtResetDevice failed, errorCode is %d", ret);
-      return base::kStatusCodeErrorDeviceMdc;
+      ret = aclrtResetDevice(device_type_.device_id_);
+      if (ret != ACL_SUCCESS) {
+        NNDEPLOY_LOGE("aclrtResetDevice failed, errorCode is %d", ret);
+        return base::kStatusCodeErrorDeviceMdc;
+      }
     }
   }
   return base::kStatusCodeOk;

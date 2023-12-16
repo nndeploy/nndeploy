@@ -65,6 +65,8 @@ DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {
     return kDeviceTypeCodeX86;
   } else if (src == "kDeviceTypeCodeCuda") {
     return kDeviceTypeCodeCuda;
+  } else if (src == "kDeviceTypeCodeMdc") {
+    return kDeviceTypeCodeMdc;
   } else if (src == "kDeviceTypeCodeOpenCL") {
     return kDeviceTypeCodeOpenCL;
   } else if (src == "kDeviceTypeCodeOpenGL") {

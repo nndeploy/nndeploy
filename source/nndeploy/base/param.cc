@@ -13,6 +13,9 @@ Param::~Param() {}
 //   return *this;
 // }
 
+void Param::setName(const std::string &name) { name_ = name; }
+std::string Param::getName() { return name_; }
+
 base::Status Param::parse(const std::string &json, bool is_path) {
   return base::kStatusCodeOk;
 }

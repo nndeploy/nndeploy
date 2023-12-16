@@ -244,6 +244,12 @@ base::Status CudaDevice::init() {
 }
 base::Status CudaDevice::deinit() {
   if (external_command_queue_ != nullptr) {
+    cudaError_t status = cudaStreamSynchronize(stream_);
+    if (cudaSuccess != status) {
+      NNDEPLOY_CUDA_CHECK(status);
+      NNDEPLOY_LOGE("cuda stream synchronize failed\n");
+      return base::kStatusCodeErrorDeviceCuda;
+    }
     NNDEPLOY_CUDA_CHECK(cudaStreamDestroy(stream_));
   }
   return base::kStatusCodeOk;

@@ -305,36 +305,6 @@ std::string getcwd() {
 #endif
 }
 
-std::vector<std::string> split_string(const std::string &str,
-                                      const std::string &spstr) {
-  std::vector<std::string> res;
-  if (str.empty()) return res;
-  if (spstr.empty()) return {str};
-
-  auto p = str.find(spstr);
-  if (p == std::string::npos) return {str};
-
-  res.reserve(5);
-  std::string::size_type prev = 0;
-  int lent = spstr.length();
-  const char *ptr = str.c_str();
-
-  while (p != std::string::npos) {
-    int len = p - prev;
-    if (len > 0) {
-      res.emplace_back(str.substr(prev, len));
-    }
-    prev = p + lent;
-    p = str.find(spstr, prev);
-  }
-
-  int len = str.length() - prev;
-  if (len > 0) {
-    res.emplace_back(str.substr(prev, len));
-  }
-  return res;
-}
-
 std::string canonicalPath(const std::string &path) {
   std::string result;
 #ifdef _WIN32

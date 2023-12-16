@@ -25,9 +25,6 @@ extern NNDEPLOY_CC_API void removeAllFile(const std::string &path);
 
 extern NNDEPLOY_CC_API std::string getcwd();
 
-extern NNDEPLOY_CC_API std::vector<std::string> split_string(
-    const std::string &str, const std::string &spstr);
-
 /**
  * @brief Converts path p to a canonical absolute path
  * Symlinks are processed if there is support for them on running platform.
