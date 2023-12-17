@@ -86,7 +86,7 @@
 - [youxiudeshouyeren](https://github.com/youxiudeshouyeren)
 - [PeterH0323](https://github.com/PeterH0323)
 - [100312dog](https://github.com/100312dog)
-- [DeployAI](https://github.com/DeployAI)
+- [wangzhaode](https://github.com/wangzhaode)
 - [ChunelFeng](https://github.com/ChunelFeng)
 - [acheerfulish](https://github.com/acheerfulish)
 
