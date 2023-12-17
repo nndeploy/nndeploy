@@ -27,3 +27,6 @@
 + 其他：
   + 变量名是 全部小写呀？
   + OrtValueInfo这个是不是改一下比较好呀
+  + 在readme中需要备注以下，主要是那个操作系统端运行，可以在那些芯片上上跑起来
+  + aclrt -> cuda runtime api
+  + aclmdl -> 这个mdl是指什么含义呀
