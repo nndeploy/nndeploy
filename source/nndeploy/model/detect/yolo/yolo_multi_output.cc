@@ -116,17 +116,17 @@ base::Status YoloMultiOutputPostProcess::run() {
   DetectResult *results = new DetectResult();
   outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
   DetectResult results_batch;
-  device::Tensor *tensor_0 = inputs_[0]->getTensor(this);
+  device::Tensor *tensor_stride_8 = inputs_[0]->getTensor(this);
   generateProposals(param->anchors_stride_8, 8, param->model_w_,
-                    param->model_h_, tensor_0, param->score_threshold_,
+                    param->model_h_, tensor_stride_8, param->score_threshold_,
                     &results_batch);
-  device::Tensor *tensor_1 = inputs_[1]->getTensor(this);
+  device::Tensor *tensor_stride_16 = inputs_[1]->getTensor(this);
   generateProposals(param->anchors_stride_16, 16, param->model_w_,
-                    param->model_h_, tensor_1, param->score_threshold_,
+                    param->model_h_, tensor_stride_16, param->score_threshold_,
                     &results_batch);
-  device::Tensor *tensor_2 = inputs_[2]->getTensor(this);
+  device::Tensor *tensor_stride_32 = inputs_[2]->getTensor(this);
   generateProposals(param->anchors_stride_32, 32, param->model_w_,
-                    param->model_h_, tensor_2, param->score_threshold_,
+                    param->model_h_, tensor_stride_32, param->score_threshold_,
                     &results_batch);
   std::vector<int> keep_idxs(results_batch.bboxs_.size());
   computeNMS(results_batch, keep_idxs, param->nms_threshold_);
@@ -153,18 +153,19 @@ dag::Graph *createYoloV5MultiOutputGraph(const std::string &name,
                                          std::vector<std::string> model_value) {
   dag::Graph *graph = new dag::Graph(name, input, output);
   dag::Edge *infer_input = graph->createEdge("infer_input");
-  dag::Edge *infer_0 = graph->createEdge("output");
-  dag::Edge *infer_1 = graph->createEdge("376");
-  dag::Edge *infer_2 = graph->createEdge("401");
+  dag::Edge *edge_stride_8 = graph->createEdge("output");  // [1, 3, 80, 80, 85]
+  dag::Edge *edge_stride_16 = graph->createEdge("376");    // [1, 3, 40, 40, 85]
+  dag::Edge *edge_stride_32 = graph->createEdge("401");    // [1, 3, 20, 20, 85]
 
   dag::Node *pre = graph->createNode<model::CvtColorResize>("preprocess", input,
                                                             infer_input);
 
   dag::Node *infer = graph->createInfer<model::Infer>(
-      "infer", inference_type, {infer_input}, {infer_0, infer_1, infer_2});
+      "infer", inference_type, {infer_input},
+      {edge_stride_8, edge_stride_16, edge_stride_32});
 
   dag::Node *post = graph->createNode<YoloMultiOutputPostProcess>(
-      "postprocess", {infer_0, infer_1, infer_2}, {output});
+      "postprocess", {edge_stride_8, edge_stride_16, edge_stride_32}, {output});
 
   model::CvtclorResizeParam *pre_param =
       dynamic_cast<model::CvtclorResizeParam *>(pre->getParam());
@@ -189,10 +190,6 @@ dag::Graph *createYoloV5MultiOutputGraph(const std::string &name,
   post_param->model_h_ = 640;
   post_param->model_w_ = 640;
   post_param->version_ = 5;
-
-  post_param->name_stride_8 = "output";
-  post_param->name_stride_16 = "376";
-  post_param->name_stride_32 = "401";
 
   return graph;
 }
