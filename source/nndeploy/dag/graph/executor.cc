@@ -1,6 +1,8 @@
 
 #include "nndeploy/dag/graph/executor.h"
 
+#include "nndeploy/thread_pool/thread_pool.h"
+
 namespace nndeploy {
 namespace dag {
 
@@ -275,6 +277,41 @@ base::Status setColor(std::vector<NodeWrapper *> &node_repository,
                       NodeColorType color) {
   for (auto node_wrapper : node_repository) {
     node_wrapper->color_ = color;
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status commitTask(
+    NodeWrapper* node_wrapper, thread_pool::ThreadPool* thread_pool,
+    thread_pool::SafeWSQueue<std::future<base::Status>>& end_tasks) {
+  // 节点执行条件： 1.前驱节点是空
+  // 或者不为空，但是所有前驱节点均执行完毕 2.该节点尚未执行
+
+  bool run_condition = node_wrapper->predecessors_.empty();
+  if (!run_condition) {
+    bool all_pre_done = true;
+    for (auto iter : node_wrapper->predecessors_) {
+      all_pre_done &= (iter->color_ == kNodeColorGray);
+    }
+    run_condition = all_pre_done;
+  }
+
+  if (run_condition && (node_wrapper->color_ == kNodeColorWhite)) {
+    auto run_func = [node_wrapper, thread_pool, &end_tasks] {
+      base::Status status = node_wrapper->node_->run();
+      node_wrapper->color_ = kNodeColorGray;
+      std::cout<<node_wrapper->node_->getName()<<std::endl;
+      for (auto iter : node_wrapper->successors_) {
+        commitTask(iter, thread_pool, end_tasks);
+      }
+      return status;
+    };
+
+    auto r = thread_pool->commit(run_func);
+    if(node_wrapper->successors_.empty()){
+      end_tasks.tryPush(std::move(r));
+    }
+
   }
   return base::kStatusCodeOk;
 }

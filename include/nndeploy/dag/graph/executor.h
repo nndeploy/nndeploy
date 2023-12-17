@@ -16,6 +16,8 @@
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/thread_pool/safe_ws_queue.h"
+#include "nndeploy/thread_pool/thread_pool.h"
 
 namespace nndeploy {
 namespace dag {
@@ -97,6 +99,10 @@ base::Status topoSort(std::vector<NodeWrapper *> &node_repository,
 
 base::Status setColor(std::vector<NodeWrapper *> &node_repository,
                       NodeColorType color);
+
+base::Status commitTask(
+    NodeWrapper* node_wrapper, thread_pool::ThreadPool* thread_pool,
+    thread_pool::SafeWSQueue<std::future<base::Status>>& end_tasks);
 
 }  // namespace dag
 }  // namespace nndeploy
