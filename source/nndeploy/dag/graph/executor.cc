@@ -300,6 +300,7 @@ base::Status commitTask(
     auto run_func = [node_wrapper, thread_pool, &end_tasks] {
       base::Status status = node_wrapper->node_->run();
       node_wrapper->color_ = kNodeColorGray;
+      std::cout<<node_wrapper->node_->getName()<<std::endl;
       for (auto iter : node_wrapper->successors_) {
         commitTask(iter, thread_pool, end_tasks);
       }

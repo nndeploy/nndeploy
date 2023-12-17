@@ -18,9 +18,10 @@ class ParallelTaskExecutor : public Executor {
   // 构建线程池   构造任务（本来要执行的任务 和 将自己的后继节点加入线程池的部分
   virtual base::Status init(std::vector<EdgeWrapper*>& edge_repository,
                             std::vector<NodeWrapper*>& node_repository) {
-    thread_pool_ptr_=new thread_pool::ThreadPool();
+    thread_pool_ptr_ = new thread_pool::ThreadPool();
     thread_pool_ptr_->init();
     start_nodes_ = findStartNodes(node_repository);
+    end_task_count_ = findEndNodes(node_repository).size();
     all_nodes_ptr_ = &node_repository;
     if (start_nodes_.empty()) {
       NNDEPLOY_LOGE("No start node found in graph");
@@ -52,10 +53,17 @@ class ParallelTaskExecutor : public Executor {
       commitTask(iter, thread_pool_ptr_, end_tasks_);
     }
     base::Status status;
-    auto& end_queue=end_tasks_.getQueue();
-    for (auto& iter : end_queue ) {
-      status = iter.get();
+
+    while (true) {
+      auto& end_queue = end_tasks_.getQueue();
+      if (end_queue.size() == end_task_count_) {
+        for (auto& iter : end_queue) {
+          status = iter.get();
+        }
+       return status;
+      }
     }
+
     return status;
   }
 
@@ -64,6 +72,7 @@ class ParallelTaskExecutor : public Executor {
   std::vector<NodeWrapper*>* all_nodes_ptr_ = nullptr;
   std::vector<NodeWrapper*> start_nodes_;
   thread_pool::SafeWSQueue<std::future<base::Status>> end_tasks_;
+  int end_task_count_ = 0;
 };
 
 }  // namespace dag
