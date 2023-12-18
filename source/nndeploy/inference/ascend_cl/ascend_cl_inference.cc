@@ -1,33 +1,33 @@
 
-#include "nndeploy/inference/mdc/mdc_inference.h"
+#include "nndeploy/inference/ascend_cl/ascend_cl_inference.h"
 
 #include "nndeploy/base/shape.h"
-#include "nndeploy/inference/mdc/mdc_convert.h"
-#include "nndeploy/inference/mdc/mdc_inference_param.h"
+#include "nndeploy/inference/ascend_cl/ascend_cl_convert.h"
+#include "nndeploy/inference/ascend_cl/ascend_cl_inference_param.h"
 
 namespace nndeploy {
 namespace inference {
 
-TypeInferenceRegister<TypeInferenceCreator<MdcInference>>
-    g_mdc_inference_register(base::kInferenceTypeMdc);
+TypeInferenceRegister<TypeInferenceCreator<AscendclInference>>
+    g_mdc_inference_register(base::kInferenceTypeASCENDCL);
 
-MdcInference::MdcInference(base::InferenceType type) : Inference(type) {}
+AscendclInference::AscendclInference(base::InferenceType type) : Inference(type) {}
 
-MdcInference::~MdcInference() {}
+AscendclInference::~AscendclInference() {}
 
-base::Status MdcInference::init() {
+base::Status AscendclInference::init() {
   base::Status status = base::kStatusCodeOk;
   // is_share_command_queue_ = true;
-  MdcInferenceParam *mdc_inference_param =
-      dynamic_cast<MdcInferenceParam *>(inference_param_);
+  AscendclInferenceParam *mdc_inference_param =
+      dynamic_cast<AscendclInferenceParam *>(inference_param_);
 
   device::Device *device = nullptr;
 
-  if (mdc_inference_param->model_type_ == base::kModelTypeMdc) {
+  if (mdc_inference_param->model_type_ == base::kModelTypeASCENDCL) {
     aclError ret = aclInit(aclConfigPath);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclInit failed, errorCode is %d", ret);
-      status = base::kStatusCodeErrorInferenceMdc;
+      status = base::kStatusCodeErrorInferenceASCENDCL;
     }
     device = device::getDevice(inference_param_->device_type_);
     context_ = device->getCommandQueue();
@@ -37,27 +37,27 @@ base::Status MdcInference::init() {
           mdc_inference_param->model_value_[0].c_str(), &modelId_);
       if (ret != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclmdlLoadFromFile failed, errorCode is %d", ret);
-        status = base::kStatusCodeErrorInferenceMdc;
+        status = base::kStatusCodeErrorInferenceASCENDCL;
       }
     } else {
       NNDEPLOY_LOGE(
           "Currently, direct input is not supported. Please use the "
           "om file as input");
-      status = base::kStatusCodeErrorInferenceMdc;
+      status = base::kStatusCodeErrorInferenceASCENDCL;
     }
 
     modelDesc_ = aclmdlCreateDesc();
     ret = aclmdlGetDesc(modelDesc_, modelId_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclmdlGetDesc failed, errorCode is %d", ret);
-      status = base::kStatusCodeErrorInferenceMdc;
+      status = base::kStatusCodeErrorInferenceASCENDCL;
     }
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "initWithMdcModel failed");
+                           "initWithASCENDCLModel failed");
   } else {
     NNDEPLOY_LOGE("not support this model type(%d)!\n",
                   mdc_inference_param->model_type_);
-    return base::kStatusCodeErrorInferenceMdc;
+    return base::kStatusCodeErrorInferenceASCENDCL;
   }
 
   size_t n_inputs = aclmdlGetNumInputs(modelDesc_);
@@ -70,23 +70,22 @@ base::Status MdcInference::init() {
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("init: Get input_{%d} dims failed, errorCode is %d", i,
                     ret);
-      status = base::kStatusCodeErrorInferenceMdc;
+      status = base::kStatusCodeErrorInferenceASCENDCL;
     }
     for (int dim_index = 0; dim_index < input_dim.dimCount; dim_index++)
       input_shape.push_back(input_dim.dims[dim_index]);
     aclDataType data_type = aclmdlGetInputDataType(modelDesc_, i);
-    inputs_desc_.emplace_back(OrtValueInfo{input_name, input_shape, data_type});
 
     device::TensorDesc desc;
     if (mdc_inference_param->max_shape_.find(input_name) !=
         mdc_inference_param->max_shape_.end()) {
-      desc.shape_ = MdcConvert::convertToShape(
+      desc.shape_ = AscendclConvert::convertToShape(
           input_shape, mdc_inference_param->max_shape_[input_name]);
     } else {
-      desc.shape_ = MdcConvert::convertToShape(input_shape);
+      desc.shape_ = AscendclConvert::convertToShape(input_shape);
     }
-    desc.data_type_ = MdcConvert::convertToDataType(data_type);
-    desc.data_format_ = MdcConvert::getDataFormatByShape(desc.shape_);
+    desc.data_type_ = AscendclConvert::convertToDataType(data_type);
+    desc.data_format_ = AscendclConvert::getDataFormatByShape(desc.shape_);
 
     device::Tensor *max_input_tensor =
         new device::Tensor(device, desc, input_name);
@@ -115,20 +114,18 @@ base::Status MdcInference::init() {
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("init: Get output_{%d} shape failed, errorCode is %d", i,
                     ret);
-      status = base::kStatusCodeErrorInferenceMdc;
+      status = base::kStatusCodeErrorInferenceASCENDCL;
     }
     for (int dim_index = 0; dim_index < output_dim.dimCount; dim_index++)
       output_shape.push_back(output_dim.dims[dim_index]);
     aclDataType data_type = aclmdlGetOutputDataType(modelDesc_, i);
-    outputs_desc_.emplace_back(
-        OrtValueInfo{output_name, output_shape, data_type});
 
     if (!isDynamic(output_shape)) {
       device::TensorDesc desc;
-      desc.shape_ = MdcConvert::convertToShape(output_shape);
+      desc.shape_ = AscendclConvert::convertToShape(output_shape);
       desc.shape_[0] = batch_size_;
-      desc.data_type_ = MdcConvert::convertToDataType(data_type);
-      desc.data_format_ = MdcConvert::getDataFormatByShape(desc.shape_);
+      desc.data_type_ = AscendclConvert::convertToDataType(data_type);
+      desc.data_format_ = AscendclConvert::getDataFormatByShape(desc.shape_);
       device::Tensor *max_output_tensor =
           new device::Tensor(device, desc, output_name);
       max_output_tensors_.insert({output_name, max_output_tensor});
@@ -148,7 +145,7 @@ base::Status MdcInference::init() {
   return status;
 }
 
-base::Status MdcInference::deinit() {
+base::Status AscendclInference::deinit() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : input_tensors_) {
     delete iter.second;
@@ -170,7 +167,7 @@ base::Status MdcInference::deinit() {
   return status;
 }
 
-base::Status MdcInference::reshape(base::ShapeMap &shape_map) {
+base::Status AscendclInference::reshape(base::ShapeMap &shape_map) {
   base::Status status = base::kStatusCodeOk;
 
   base::ShapeMap current_shape;
@@ -184,11 +181,11 @@ base::Status MdcInference::reshape(base::ShapeMap &shape_map) {
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("reshape: Get input_{%d} shape failed, errorCode is %d", i,
                     ret);
-      status = base::kStatusCodeErrorInferenceMdc;
+      status = base::kStatusCodeErrorInferenceASCENDCL;
     }
     for (int dim_index = 0; dim_index < input_dim.dimCount; dim_index++)
       input_shape.push_back(input_dim.dims[dim_index]);
-    auto shape = MdcConvert::convertToShape(input_shape);
+    auto shape = AscendclConvert::convertToShape(input_shape);
     current_shape.insert({input_name, shape});
   }
 
@@ -206,13 +203,13 @@ base::Status MdcInference::reshape(base::ShapeMap &shape_map) {
     } else {
       NNDEPLOY_LOGE("reshape failed, not found input tensor(%s)!\n",
                     iter.first.c_str());
-      return base::kStatusCodeErrorInferenceMdc;
+      return base::kStatusCodeErrorInferenceASCENDCL;
     }
   }
   return status;
 }
 
-base::Status MdcInference::run() {
+base::Status AscendclInference::run() {
   base::Status status = base::kStatusCodeOk;
 
   inputDataset_ = aclmdlCreateDataset();
@@ -221,7 +218,7 @@ base::Status MdcInference::run() {
   aclError ret = aclrtSetCurrentContext(context_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d", ret);
-    return base::kStatusCodeErrorInferenceMdc;
+    return base::kStatusCodeErrorInferenceASCENDCL;
   }
   device::Device *device = device::getDevice(inference_param_->device_type_);
 
@@ -241,7 +238,7 @@ base::Status MdcInference::run() {
         device->copy(extern_buffer, internal_buffer);
       } else {
         NNDEPLOY_LOGE("mdc run failed, device type is not supported!\n");
-        return base::kStatusCodeErrorInferenceMdc;
+        return base::kStatusCodeErrorInferenceASCENDCL;
       }
 
       device::Buffer *input_buffer = input_tensors_[input_name]->getBuffer();
@@ -252,7 +249,7 @@ base::Status MdcInference::run() {
         NNDEPLOY_LOGE(
             "input_{%d}: aclmdlAddDatasetBuffer failed, errorCode is %d.", i,
             ret);
-        return base::kStatusCodeErrorInferenceMdc;
+        return base::kStatusCodeErrorInferenceASCENDCL;
       }
     }
 
@@ -270,7 +267,7 @@ base::Status MdcInference::run() {
         NNDEPLOY_LOGE(
             "ouput_{%d}: aclmdlAddDatasetBuffer failed, errorCode is %d.", i,
             ret);
-        return base::kStatusCodeErrorInferenceMdc;
+        return base::kStatusCodeErrorInferenceASCENDCL;
       }
     }
 
@@ -278,7 +275,7 @@ base::Status MdcInference::run() {
     aclError ret = aclmdlExecute(modelId_, inputDataset_, outputDataset_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("mdc execute model failed, errorCode is %d", ret);
-      return base::kStatusCodeErrorInferenceMdc;
+      return base::kStatusCodeErrorInferenceASCENDCL;
     }
 
     status = device->synchronize();
@@ -301,17 +298,17 @@ base::Status MdcInference::run() {
     //     device->copy(internal_buffer, extern_buffer);
     //   } else {
     //     NNDEPLOY_LOGE("run failed, device type is not supported!\n");
-    //     return base::kStatusCodeErrorInferenceMdc;
+    //     return base::kStatusCodeErrorInferenceASCENDCL;
     //   }
     // }
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());
-    status = base::kStatusCodeErrorInferenceMdc;
+    status = base::kStatusCodeErrorInferenceASCENDCL;
   }
   return status;
 }
 
-device::Tensor *MdcInference::getOutputTensorAfterRun(
+device::Tensor *AscendclInference::getOutputTensorAfterRun(
     const std::string &name, base::DeviceType device_type, bool is_copy,
     base::DataFormat data_format) {
   device::Device *device = device::getDevice(device_type);
@@ -329,7 +326,7 @@ device::Tensor *MdcInference::getOutputTensorAfterRun(
   }
 }
 
-bool MdcInference::isDynamic(std::vector<int64_t> &shape) {
+bool AscendclInference::isDynamic(std::vector<int64_t> &shape) {
   int size = shape.size();
   for (int i = 1; i < size; ++i) {
     if (shape[i] < 0) {
@@ -339,7 +336,7 @@ bool MdcInference::isDynamic(std::vector<int64_t> &shape) {
   return false;
 }
 
-void MdcInference::ReleaseAllResource() {
+void AscendclInference::ReleaseAllResource() {
   aclError ret;
   // release resource includes acl resource, data set and unload model
   for (size_t i = 0; i < aclmdlGetDatasetNumBuffers(inputDataset_); ++i) {

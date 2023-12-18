@@ -308,8 +308,8 @@ if(ENABLE_NNDEPLOY_DEVICE)
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_MDC)
     file(GLOB_RECURSE DEVICE_MDC_SOURCE
-      "${ROOT_PATH}/include/nndeploy/device/mdc/*.h"
-      "${ROOT_PATH}/source/nndeploy/device/mdc/*.cc"
+      "${ROOT_PATH}/include/nndeploy/device/ascend_cl/*.h"
+      "${ROOT_PATH}/source/nndeploy/device/ascend_cl/*.cc"
     )
     set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_MDC_SOURCE})
   endif()
@@ -400,8 +400,8 @@ if(ENABLE_NNDEPLOY_INFERENCE)
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_MDC)
     file(GLOB_RECURSE INFERENCE_MDC_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/mdc/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/mdc/*.cc"
+      "${ROOT_PATH}/include/nndeploy/inference/ascend_cl/*.h"
+      "${ROOT_PATH}/source/nndeploy/inference/ascend_cl/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_MDC_SOURCE})
   endif()

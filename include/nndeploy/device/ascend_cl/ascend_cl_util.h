@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_DEVICE_MDC_MDC_UTIL_H_
-#define _NNDEPLOY_DEVICE_MDC_MDC_UTIL_H_
+#ifndef _NNDEPLOY_DEVICE_MDC_ASCEND_CL_UTIL_H_
+#define _NNDEPLOY_DEVICE_MDC_ASCEND_CL_UTIL_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -8,7 +8,7 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
-#include "nndeploy/device/mdc/mdc_include.h"
+#include "nndeploy/device/ascend_cl/ascend_cl_include.h"
 
 namespace nndeploy {
 namespace device {
@@ -47,4 +47,4 @@ inline int mdcGetDeviceId() {
 }  // namespace device
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_DEVICE_MDC_MDC_UTIL_H_ */
+#endif /* _NNDEPLOY_DEVICE_MDC_ASCEND_CL_UTIL_H_ */

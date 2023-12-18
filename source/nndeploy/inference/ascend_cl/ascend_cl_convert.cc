@@ -1,10 +1,10 @@
 
-#include "nndeploy/inference/mdc/mdc_convert.h"
+#include "nndeploy/inference/ascend_cl/ascend_cl_convert.h"
 
 namespace nndeploy {
 namespace inference {
 
-base::DataType MdcConvert::convertToDataType(const aclDataType &src) {
+base::DataType AscendclConvert::convertToDataType(const aclDataType &src) {
   base::DataType dst;
   switch (src) {
     case ACL_FLOAT:
@@ -76,7 +76,7 @@ base::DataType MdcConvert::convertToDataType(const aclDataType &src) {
   return dst;
 }
 
-aclDataType MdcConvert::convertFromDataType(const base::DataType &src) {
+aclDataType AscendclConvert::convertFromDataType(const base::DataType &src) {
   aclDataType dst;
   if (src.code_ == base::kDataTypeCodeFp && src.lanes_ == 1) {
     if (src.bits_ == 32) {
@@ -117,7 +117,7 @@ aclDataType MdcConvert::convertFromDataType(const base::DataType &src) {
   return dst;
 }
 
-base::DataFormat MdcConvert::getDataFormatByShape(const base::IntVector &src) {
+base::DataFormat AscendclConvert::getDataFormatByShape(const base::IntVector &src) {
   base::DataFormat dst = base::kDataFormatNotSupport;
   if (src.size() == 5) {
     dst = base::kDataFormatNCDHW;
@@ -135,7 +135,7 @@ base::DataFormat MdcConvert::getDataFormatByShape(const base::IntVector &src) {
   return dst;
 }
 
-base::IntVector MdcConvert::convertToShape(std::vector<int64_t> &src,
+base::IntVector AscendclConvert::convertToShape(std::vector<int64_t> &src,
                                            base::IntVector max_shape) {
   base::IntVector dst;
   if (!max_shape.empty()) {
@@ -149,7 +149,7 @@ base::IntVector MdcConvert::convertToShape(std::vector<int64_t> &src,
   return dst;
 }
 
-std::vector<int64_t> MdcConvert::convertFromShape(const base::IntVector &src) {
+std::vector<int64_t> AscendclConvert::convertFromShape(const base::IntVector &src) {
   int src_size = src.size();
   std::vector<int64_t> dst;
   for (int i = 0; i < src_size; ++i) {
