@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_INFERENCE_MDC_MDC_INFERENCE_H_
-#define _NNDEPLOY_INFERENCE_MDC_MDC_INFERENCE_H_
+#ifndef _NNDEPLOY_INFERENCE_MDC_ASCEND_CL_INFERENCE_H_
+#define _NNDEPLOY_INFERENCE_MDC_ASCEND_CL_INFERENCE_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/log.h"
@@ -12,22 +12,16 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/inference/inference.h"
 #include "nndeploy/inference/inference_param.h"
-#include "nndeploy/inference/mdc/mdc_include.h"
-#include "nndeploy/inference/mdc/mdc_inference_param.h"
+#include "nndeploy/inference/ascend_cl/ascend_cl_include.h"
+#include "nndeploy/inference/ascend_cl/ascend_cl_inference_param.h"
 
 namespace nndeploy {
 namespace inference {
 
-struct OrtValueInfo {
-  std::string name;
-  std::vector<int64_t> shape;
-  aclDataType dtype;
-};
-
-class MdcInference : public Inference {
+class AscendclInference : public Inference {
  public:
-  MdcInference(base::InferenceType type);
-  virtual ~MdcInference();
+  AscendclInference(base::InferenceType type);
+  virtual ~AscendclInference();
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -57,9 +51,6 @@ class MdcInference : public Inference {
   aclmdlDataset *outputDataset_ = nullptr;
 
   uint32_t modelId_;
-
-  std::vector<OrtValueInfo> inputs_desc_;
-  std::vector<OrtValueInfo> outputs_desc_;
 
   std::map<std::string, device::Tensor *> max_input_tensors_;
   std::map<std::string, device::Tensor *> max_output_tensors_;
