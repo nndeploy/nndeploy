@@ -132,10 +132,10 @@ base::Param *Graph::getNodeParam(const std::string &node_name) {
   return node_wrapper->node_->getParam();
 }
 
-base::Status Graph::setParallelType(const ParallelType& type){
-  GraphParam* graph_param = dynamic_cast<GraphParam*>(param_.get());
-  graph_param->parallel_type_= type;
-  return  base::kStatusCodeOk;
+base::Status Graph::setParallelType(const ParallelType &type) {
+  GraphParam *graph_param = dynamic_cast<GraphParam *>(param_.get());
+  graph_param->parallel_type_ = type;
+  return base::kStatusCodeOk;
 }
 
 base::Status Graph::init() {

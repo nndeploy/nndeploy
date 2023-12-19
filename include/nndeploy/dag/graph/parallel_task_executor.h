@@ -60,7 +60,7 @@ class ParallelTaskExecutor : public Executor {
         for (auto& iter : end_queue) {
           status = iter.get();
         }
-       return status;
+        return status;
       }
     }
 
