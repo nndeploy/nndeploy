@@ -152,6 +152,8 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   base::Status dump(std::ostream &oss = std::cout);
 
+  base::Status setParallelType(const ParallelType& type);
+
  protected:
   std::vector<EdgeWrapper *> edge_repository_;
   std::vector<NodeWrapper *> node_repository_;

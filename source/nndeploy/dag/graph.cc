@@ -132,6 +132,12 @@ base::Param *Graph::getNodeParam(const std::string &node_name) {
   return node_wrapper->node_->getParam();
 }
 
+base::Status Graph::setParallelType(const ParallelType& type){
+  GraphParam* graph_param = dynamic_cast<GraphParam*>(param_.get());
+  graph_param->parallel_type_= type;
+  return  base::kStatusCodeOk;
+}
+
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
@@ -199,7 +205,7 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("create executor\n");
   // NNDEPLOY_LOGI("##############\n");
   if (parallel_type == kParallelTypeNone) {
-    executor_ = std::make_shared<ParallelTaskExecutor>();
+    executor_ = std::make_shared<SequentialExecutor>();
   } else if (parallel_type == kParallelTypeTask) {
     executor_ = std::make_shared<ParallelTaskExecutor>();
   } else {
