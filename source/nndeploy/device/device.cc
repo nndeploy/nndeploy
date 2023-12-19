@@ -17,8 +17,8 @@ base::DeviceTypeCode Architecture::getDeviceTypeCode() {
   return device_type_code_;
 }
 
-std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>
-    &getArchitectureMap() {
+std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>> &
+getArchitectureMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>>
@@ -81,6 +81,12 @@ base::Status Device::synchronize() {
   NNDEPLOY_LOGI("this device[%d, %d] can't synchronize!\n", device_type_.code_,
                 device_type_.device_id_);
   return base::kStatusCodeOk;
+}
+
+void *Device::getContext() {
+  NNDEPLOY_LOGI("this device[%d, %d] can't getContext!\n", device_type_.code_,
+                device_type_.device_id_);
+  return nullptr;
 }
 
 void *Device::getCommandQueue() {

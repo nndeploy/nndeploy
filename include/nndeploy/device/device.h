@@ -154,8 +154,8 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
   base::DeviceTypeCode device_type_code_;
 };
 
-std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>
-    &getArchitectureMap();
+std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>> &
+getArchitectureMap();
 
 template <typename T>
 class TypeArchitectureRegister {
@@ -223,6 +223,7 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
 
   virtual base::Status synchronize();
 
+  virtual void *getContext();
   virtual void *getCommandQueue();
 
   base::DeviceType getDeviceType();

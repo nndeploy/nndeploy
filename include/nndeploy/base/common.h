@@ -63,7 +63,7 @@ enum DeviceTypeCode : int {
   kDeviceTypeCodeArm,
   kDeviceTypeCodeX86,
   kDeviceTypeCodeCuda,
-  kDeviceTypeCodeASCENDCL,
+  kDeviceTypeCodeAscendCL,
   kDeviceTypeCodeOpenCL,
   kDeviceTypeCodeOpenGL,
   kDeviceTypeCodeMetal,
@@ -194,7 +194,7 @@ enum ModelType : int {
   kModelTypeCoreML,
   kModelTypeTfLite,
   kModelTypeOnnx,
-  kModelTypeASCENDCL,
+  kModelTypeAscendCL,
 
   kModelTypeNcnn,
   kModelTypeTnn,
@@ -216,7 +216,7 @@ enum InferenceType : int {
   kInferenceTypeCoreML,
   kInferenceTypeTfLite,
   kInferenceTypeOnnxRuntime,
-  kInferenceTypeASCENDCL,
+  kInferenceTypeAscendCL,
 
   kInferenceTypeNcnn,
   kInferenceTypeTnn,

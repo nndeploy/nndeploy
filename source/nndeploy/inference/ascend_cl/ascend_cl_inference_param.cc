@@ -6,18 +6,20 @@
 namespace nndeploy {
 namespace inference {
 
-static TypeInferenceParamRegister<TypeInferenceParamCreator<AscendclInferenceParam>>
-    g_mdc_inference_param_register(base::kInferenceTypeASCENDCL);
+static TypeInferenceParamRegister<
+    TypeInferenceParamCreator<AscendCLInferenceParam>>
+    g_ascend_cl_inference_param_register(base::kInferenceTypeAscendCL);
 
-AscendclInferenceParam::AscendclInferenceParam() : InferenceParam() {
-  model_type_ = base::kModelTypeASCENDCL;
-  device_type_.code_ = base::kDeviceTypeCodeASCENDCL;
+AscendCLInferenceParam::AscendCLInferenceParam() : InferenceParam() {
+  model_type_ = base::kModelTypeAscendCL;
+  device_type_.code_ = base::kDeviceTypeCodeAscendCL;
   device_type_.device_id_ = 0;
   num_thread_ = 4;
 }
-AscendclInferenceParam::~AscendclInferenceParam() {}
+AscendCLInferenceParam::~AscendCLInferenceParam() {}
 
-base::Status AscendclInferenceParam::parse(const std::string &json, bool is_path) {
+base::Status AscendCLInferenceParam::parse(const std::string &json,
+                                           bool is_path) {
   base::Status status = InferenceParam::parse(json, is_path);
   if (status != base::kStatusCodeOk) {
     // TODO: log
@@ -27,13 +29,13 @@ base::Status AscendclInferenceParam::parse(const std::string &json, bool is_path
   return base::kStatusCodeOk;
 }
 
-base::Status AscendclInferenceParam::set(const std::string &key,
-                                    base::Value &value) {
+base::Status AscendCLInferenceParam::set(const std::string &key,
+                                         base::Value &value) {
   return base::kStatusCodeOk;
 }
 
-base::Status AscendclInferenceParam::get(const std::string &key,
-                                    base::Value &value) {
+base::Status AscendCLInferenceParam::get(const std::string &key,
+                                         base::Value &value) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

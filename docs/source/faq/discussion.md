@@ -29,3 +29,23 @@
 + 在readme中需要备注以下，主要是那个操作系统端运行，可以在那些芯片上上跑起来，是否要把它添加到主页的README上呢
 + aclrt -> cuda runtime api
 + aclmdl -> 这个mdl是指什么含义呀
+
+### v2修改
++ 部分头文件中使用的是_MDC_和mdc
++ 变量名全部小写
++ 代码中ASCENDCL以及AscendCL的字段改为 -> AscendCL，有如下几个原因
+  + AscendCL是官方写法
+  + 内部的写法比较倾向AscendCL， 例如设备中OpenCL、推理框架中的TensorRt
++ 设备类Device增加void* getContext()接口
+  + 对于设备而言，通常都有上下文环境以及执行队列的概念
+  + 在inference/ascend_cl中有获取上下文的需求
++ 在run函数里面，这里每次都重新创建数据集，却没有去销毁，这里有问题吗？
+```c++
+base::Status AscendCLInference::run() {
+  base::Status status = base::kStatusCodeOk;
+
+  // Always: 
+  input_dataset_ = aclmdlCreateDataset();
+  output_dataset_ = aclmdlCreateDataset();
+}
+```

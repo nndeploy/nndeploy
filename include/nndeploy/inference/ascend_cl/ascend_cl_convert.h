@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_INFERENCE_MDC_ASCEND_CL_CONVERT_H_
-#define _NNDEPLOY_INFERENCE_MDC_ASCEND_CL_CONVERT_H_
+#ifndef _NNDEPLOY_INFERENCE_ASCEND_CL_CONVERT_H_
+#define _NNDEPLOY_INFERENCE_ASCEND_CL_CONVERT_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/log.h"
@@ -8,14 +8,14 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/inference/inference_param.h"
 #include "nndeploy/inference/ascend_cl/ascend_cl_include.h"
 #include "nndeploy/inference/ascend_cl/ascend_cl_inference_param.h"
+#include "nndeploy/inference/inference_param.h"
 
 namespace nndeploy {
 namespace inference {
 
-class AscendclConvert {
+class AscendCLConvert {
  public:
   static base::DataType convertToDataType(const aclDataType &src);
   static aclDataType convertFromDataType(const base::DataType &src);

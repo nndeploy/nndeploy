@@ -3,17 +3,17 @@
 #ifndef _NNDEPLOY_DEVICE_ASCEND_CL_DEVICE_H_
 #define _NNDEPLOY_DEVICE_ASCEND_CL_DEVICE_H_
 
-#include "nndeploy/device/device.h"
 #include "nndeploy/device/ascend_cl/ascend_cl_include.h"
+#include "nndeploy/device/device.h"
 
 namespace nndeploy {
 namespace device {
 
-class AscendclArchitecture : public Architecture {
+class AscendCLArchitecture : public Architecture {
  public:
-  explicit AscendclArchitecture(base::DeviceTypeCode device_type_code);
+  explicit AscendCLArchitecture(base::DeviceTypeCode device_type_code);
 
-  virtual ~AscendclArchitecture();
+  virtual ~AscendCLArchitecture();
 
   virtual base::Status checkDevice(int device_id = 0,
                                    void *command_queue = nullptr,
@@ -33,8 +33,8 @@ class AscendclArchitecture : public Architecture {
  * @brief
  *
  */
-class NNDEPLOY_CC_API AscendclDevice : public Device {
-  friend class AscendclArchitecture;
+class NNDEPLOY_CC_API AscendCLDevice : public Device {
+  friend class AscendCLArchitecture;
 
  public:
   virtual BufferDesc toBufferDesc(const MatDesc &desc,
@@ -53,13 +53,14 @@ class NNDEPLOY_CC_API AscendclDevice : public Device {
 
   virtual base::Status synchronize();
 
+  virtual void *getContext();
   virtual void *getCommandQueue();
 
  protected:
-  AscendclDevice(base::DeviceType device_type, void *command_queue = nullptr,
-            std::string library_path = "")
+  AscendCLDevice(base::DeviceType device_type, void *command_queue = nullptr,
+                 std::string library_path = "")
       : Device(device_type), external_command_queue_(command_queue){};
-  virtual ~AscendclDevice(){};
+  virtual ~AscendCLDevice(){};
 
   virtual base::Status init();
   virtual base::Status deinit();

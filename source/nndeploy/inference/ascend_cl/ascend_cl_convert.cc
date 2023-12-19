@@ -4,7 +4,7 @@
 namespace nndeploy {
 namespace inference {
 
-base::DataType AscendclConvert::convertToDataType(const aclDataType &src) {
+base::DataType AscendCLConvert::convertToDataType(const aclDataType &src) {
   base::DataType dst;
   switch (src) {
     case ACL_FLOAT:
@@ -76,7 +76,7 @@ base::DataType AscendclConvert::convertToDataType(const aclDataType &src) {
   return dst;
 }
 
-aclDataType AscendclConvert::convertFromDataType(const base::DataType &src) {
+aclDataType AscendCLConvert::convertFromDataType(const base::DataType &src) {
   aclDataType dst;
   if (src.code_ == base::kDataTypeCodeFp && src.lanes_ == 1) {
     if (src.bits_ == 32) {
@@ -117,7 +117,8 @@ aclDataType AscendclConvert::convertFromDataType(const base::DataType &src) {
   return dst;
 }
 
-base::DataFormat AscendclConvert::getDataFormatByShape(const base::IntVector &src) {
+base::DataFormat AscendCLConvert::getDataFormatByShape(
+    const base::IntVector &src) {
   base::DataFormat dst = base::kDataFormatNotSupport;
   if (src.size() == 5) {
     dst = base::kDataFormatNCDHW;
@@ -135,8 +136,8 @@ base::DataFormat AscendclConvert::getDataFormatByShape(const base::IntVector &sr
   return dst;
 }
 
-base::IntVector AscendclConvert::convertToShape(std::vector<int64_t> &src,
-                                           base::IntVector max_shape) {
+base::IntVector AscendCLConvert::convertToShape(std::vector<int64_t> &src,
+                                                base::IntVector max_shape) {
   base::IntVector dst;
   if (!max_shape.empty()) {
     dst = max_shape;
@@ -149,7 +150,8 @@ base::IntVector AscendclConvert::convertToShape(std::vector<int64_t> &src,
   return dst;
 }
 
-std::vector<int64_t> AscendclConvert::convertFromShape(const base::IntVector &src) {
+std::vector<int64_t> AscendCLConvert::convertFromShape(
+    const base::IntVector &src) {
   int src_size = src.size();
   std::vector<int64_t> dst;
   for (int i = 0; i < src_size; ++i) {

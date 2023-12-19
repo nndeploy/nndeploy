@@ -1,23 +1,24 @@
 
-#ifndef _NNDEPLOY_INFERENCE_MDC_ASCEND_CL_INFERENCE_PARAM_H_
-#define _NNDEPLOY_INFERENCE_MDC_ASCEND_CL_INFERENCE_PARAM_H_
+#ifndef _NNDEPLOY_INFERENCE_ASCEND_CL_INFERENCE_PARAM_H_
+#define _NNDEPLOY_INFERENCE_ASCEND_CL_INFERENCE_PARAM_H_
 
-#include "nndeploy/inference/inference_param.h"
 #include "nndeploy/inference/ascend_cl/ascend_cl_include.h"
+#include "nndeploy/inference/inference_param.h"
 
 namespace nndeploy {
 namespace inference {
 
-class AscendclInferenceParam : public InferenceParam {
+class AscendCLInferenceParam : public InferenceParam {
  public:
-  AscendclInferenceParam();
-  virtual ~AscendclInferenceParam();
+  AscendCLInferenceParam();
+  virtual ~AscendCLInferenceParam();
 
-  AscendclInferenceParam(const AscendclInferenceParam &param) = default;
-  AscendclInferenceParam &operator=(const AscendclInferenceParam &param) = default;
+  AscendCLInferenceParam(const AscendCLInferenceParam &param) = default;
+  AscendCLInferenceParam &operator=(const AscendCLInferenceParam &param) =
+      default;
 
-  PARAM_COPY(AscendclInferenceParam)
-  PARAM_COPY_TO(AscendclInferenceParam)
+  PARAM_COPY(AscendCLInferenceParam)
+  PARAM_COPY_TO(AscendCLInferenceParam)
 
   base::Status parse(const std::string &json, bool is_path = true);
 
