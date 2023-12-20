@@ -17,6 +17,7 @@ AscendCLInference::AscendCLInference(base::InferenceType type)
 AscendCLInference::~AscendCLInference() {}
 
 base::Status AscendCLInference::init() {
+  aclError ret;
   base::Status status = base::kStatusCodeOk;
   // is_share_command_queue_ = true;
   AscendCLInferenceParam *ascend_cl_inference_param =
@@ -25,7 +26,7 @@ base::Status AscendCLInference::init() {
   device::Device *device = nullptr;
 
   if (ascend_cl_inference_param->model_type_ == base::kModelTypeAscendCL) {
-    aclError ret = aclInit(acl_config_path_);
+    ret = aclInit(acl_config_path_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclInit failed, errorCode is %d", ret);
       status = base::kStatusCodeErrorInferenceAscendCL;
@@ -33,8 +34,14 @@ base::Status AscendCLInference::init() {
     device = device::getDevice(inference_param_->device_type_);
     context_ = (aclrtContext)device->getContext();
 
+    ret = aclrtSetCurrentContext(context_);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d", ret);
+      status = base::kStatusCodeErrorInferenceAscendCL;
+    }
+
     if (ascend_cl_inference_param->is_path_) {
-      aclError ret = aclmdlLoadFromFile(
+      ret = aclmdlLoadFromFile(
           ascend_cl_inference_param->model_value_[0].c_str(), &model_id_);
       if (ret != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclmdlLoadFromFile failed, errorCode is %d", ret);
@@ -53,6 +60,10 @@ base::Status AscendCLInference::init() {
       NNDEPLOY_LOGE("aclmdlGetDesc failed, errorCode is %d", ret);
       status = base::kStatusCodeErrorInferenceAscendCL;
     }
+
+    input_dataset_ = aclmdlCreateDataset();
+    output_dataset_ = aclmdlCreateDataset();
+
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "initWithASCENDCLModel failed");
   } else {
@@ -67,7 +78,7 @@ base::Status AscendCLInference::init() {
         std::string(aclmdlGetInputNameByIndex(model_desc_, i));
     std::vector<int64_t> input_shape;
     aclmdlIODims input_dim;
-    aclError ret = aclmdlGetInputDims(model_desc_, i, &input_dim);
+    ret = aclmdlGetInputDims(model_desc_, i, &input_dim);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("init: Get input_{%d} dims failed, errorCode is %d", i,
                     ret);
@@ -96,6 +107,13 @@ base::Status AscendCLInference::init() {
     device::Tensor *current_input_tensor =
         new device::Tensor(desc, max_input_buffer, input_name);
     input_tensors_.insert({input_name, current_input_tensor});
+
+    aclDataBuffer *input_data = aclCreateDataBuffer(max_input_buffer->getPtr(), max_input_buffer->getDesc().size_[0]);
+    ret = aclmdlAddDatasetBuffer(input_dataset_, input_data);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("input_{%d}: aclmdlAddDatasetBuffer failed, errorCode is %d.", i, ret);
+      status = base::kStatusCodeErrorInferenceAscendCL;
+    }
   }
 
   for (auto iter : input_tensors_) {
@@ -111,7 +129,7 @@ base::Status AscendCLInference::init() {
     ascend_cl_change_output_names_.insert({output_src_name, output_name});
     std::vector<int64_t> output_shape;
     aclmdlIODims output_dim;
-    aclError ret = aclmdlGetOutputDims(model_desc_, i, &output_dim);
+    ret = aclmdlGetOutputDims(model_desc_, i, &output_dim);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("init: Get output_{%d} shape failed, errorCode is %d", i,
                     ret);
@@ -121,6 +139,7 @@ base::Status AscendCLInference::init() {
       output_shape.push_back(output_dim.dims[dim_index]);
     aclDataType data_type = aclmdlGetOutputDataType(model_desc_, i);
 
+    device::Buffer *max_output_buffer;
     if (!isDynamic(output_shape)) {
       device::TensorDesc desc;
       desc.shape_ = AscendCLConvert::convertToShape(output_shape);
@@ -131,7 +150,7 @@ base::Status AscendCLInference::init() {
           new device::Tensor(device, desc, output_name);
       max_output_tensors_.insert({output_name, max_output_tensor});
 
-      device::Buffer *max_output_buffer = max_output_tensor->getBuffer();
+      max_output_buffer = max_output_tensor->getBuffer();
       device::Tensor *current_output_tensor =
           new device::Tensor(desc, max_output_buffer, output_name);
       output_tensors_.insert({output_name, current_output_tensor});
@@ -140,7 +159,15 @@ base::Status AscendCLInference::init() {
       max_output_tensors_.insert({output_name, max_output_tensor});
 
       device::Tensor *current_output_tensor = new device::Tensor(output_name);
+      max_output_buffer = current_output_tensor->getBuffer();
       output_tensors_.insert({output_name, current_output_tensor});
+    }
+
+    aclDataBuffer *output_data = aclCreateDataBuffer(max_output_buffer->getPtr(), max_output_buffer->getDesc().size_[0]);
+    ret = aclmdlAddDatasetBuffer(output_dataset_, output_data);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("ouput_{%d}: aclmdlAddDatasetBuffer failed, errorCode is %d.", i, ret);
+      status = base::kStatusCodeErrorInferenceAscendCL;
     }
   }
   return status;
@@ -213,10 +240,6 @@ base::Status AscendCLInference::reshape(base::ShapeMap &shape_map) {
 base::Status AscendCLInference::run() {
   base::Status status = base::kStatusCodeOk;
 
-  // Always: 这里每次都重新创建数据集，在run函数里面不用释放吗？
-  input_dataset_ = aclmdlCreateDataset();
-  output_dataset_ = aclmdlCreateDataset();
-
   aclError ret = aclrtSetCurrentContext(context_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d", ret);
@@ -242,35 +265,6 @@ base::Status AscendCLInference::run() {
         NNDEPLOY_LOGE("ascend_cl run failed, device type is not supported!\n");
         return base::kStatusCodeErrorInferenceAscendCL;
       }
-
-      device::Buffer *input_buffer = input_tensors_[input_name]->getBuffer();
-      aclDataBuffer *inputData = aclCreateDataBuffer(
-          input_buffer->getPtr(), input_buffer->getDesc().size_[0]);
-      aclError ret = aclmdlAddDatasetBuffer(input_dataset_, inputData);
-      if (ret != ACL_SUCCESS) {
-        NNDEPLOY_LOGE(
-            "input_{%d}: aclmdlAddDatasetBuffer failed, errorCode is %d.", i,
-            ret);
-        return base::kStatusCodeErrorInferenceAscendCL;
-      }
-    }
-
-    size_t n_outputs = aclmdlGetNumOutputs(model_desc_);
-    for (auto i = 0; i < n_outputs; ++i) {
-      std::string output_src_name =
-          std::string(aclmdlGetOutputNameByIndex(model_desc_, i));
-      device::Buffer *output_buffer =
-          output_tensors_[ascend_cl_change_output_names_[output_src_name]]
-              ->getBuffer();
-      aclDataBuffer *outputData = aclCreateDataBuffer(
-          output_buffer->getPtr(), output_buffer->getDesc().size_[0]);
-      aclError ret = aclmdlAddDatasetBuffer(output_dataset_, outputData);
-      if (ret != ACL_SUCCESS) {
-        NNDEPLOY_LOGE(
-            "ouput_{%d}: aclmdlAddDatasetBuffer failed, errorCode is %d.", i,
-            ret);
-        return base::kStatusCodeErrorInferenceAscendCL;
-      }
     }
 
     // forward
@@ -283,26 +277,6 @@ base::Status AscendCLInference::run() {
     status = device->synchronize();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "synchronize failed");
 
-    // outputs
-    // for (auto i = 0; i < n_outputs; ++i) {
-    //   std::string output_src_name =
-    //   std::string(aclmdlGetOutputNameByIndex(model_desc_, i)); device::Tensor
-    //   *external_tensor =
-    //   external_output_tensors_[ascend_cl_change_output_names_[output_src_name]];
-    //   device::Buffer *extern_buffer = external_tensor->getBuffer();
-    //   device::Tensor *internal_tensor =
-    //   output_tensors_[ascend_cl_change_output_names_[output_src_name]];
-    //   device::Buffer *internal_buffer = internal_tensor->getBuffer();
-    //   base::DeviceType device_type = extern_buffer->getDeviceType();
-    //   if (device::isHostDeviceType(device_type)) {
-    //     device->download(internal_buffer, extern_buffer);
-    //   } else if (device_type == device->getDeviceType()) {
-    //     device->copy(internal_buffer, extern_buffer);
-    //   } else {
-    //     NNDEPLOY_LOGE("run failed, device type is not supported!\n");
-    //     return base::kStatusCodeErrorInferenceAscendCL;
-    //   }
-    // }
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());
     status = base::kStatusCodeErrorInferenceAscendCL;
