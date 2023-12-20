@@ -69,7 +69,7 @@ enum DeviceTypeCode : int {
   kDeviceTypeCodeMetal,
   kDeviceTypeCodeVulkan,
   kDeviceTypeCodeNpu,
-
+  kDeviceTypeCodeMdc,
   // not sopport
   kDeviceTypeCodeNotSupport,
 };
@@ -203,7 +203,7 @@ enum ModelType : int {
 
   kModelTypeTvm,
   kModelTypeAITemplate,
-
+  kModelTypeMdc,
   // not sopport
   kModelTypeNotSupport,
 };
@@ -226,6 +226,7 @@ enum InferenceType : int {
   kInferenceTypeTvm,
   kInferenceTypeAITemplate,
 
+  kInferenceTypeMdc,
   // not sopport
   kInferenceTypeNotSupport,
 };
