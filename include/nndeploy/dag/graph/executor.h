@@ -101,8 +101,8 @@ base::Status setColor(std::vector<NodeWrapper *> &node_repository,
                       NodeColorType color);
 
 base::Status commitTask(
-    NodeWrapper* node_wrapper, thread_pool::ThreadPool* thread_pool,
-    thread_pool::SafeWSQueue<std::future<base::Status>>& end_tasks);
+    NodeWrapper *node_wrapper, thread_pool::ThreadPool *thread_pool,
+    thread_pool::SafeWSQueue<std::future<base::Status>> &end_tasks);
 
 }  // namespace dag
 }  // namespace nndeploy

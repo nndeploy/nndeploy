@@ -49,3 +49,7 @@ base::Status AscendCLInference::run() {
   output_dataset_ = aclmdlCreateDataset();
 }
 ```
+
+## clang-format
+
+纯google格式，但是最近好像这个格式在变动，导致使用clang-format导致有大量代码都发生了变化
