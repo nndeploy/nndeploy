@@ -15,6 +15,11 @@
 #include "nndeploy/inference/coreml/coreml_inference_param.h"
 #include "nndeploy/inference/inference_param.h"
 
+#import <CoreML/CoreML.h>
+#import <Metal/Metal.h>
+#import <Foundation/Foundation.h>
+
+
 namespace nndeploy {
 namespace inference {
 

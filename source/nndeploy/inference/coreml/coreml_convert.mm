@@ -1,6 +1,10 @@
 
 #include "nndeploy/inference/coreml/coreml_convert.h"
 
+#import <CoreML/CoreML.h>
+#import <Metal/Metal.h>
+#import <Foundation/Foundation.h>
+
 namespace nndeploy {
 namespace inference {
 
@@ -28,25 +32,26 @@ base::DataType CoremlConvert::convertToDataType(const OSType &src) {
  */
 NSObject *CoremlConvert::convertFromDeviceType(const base::DeviceType &src) {
   NSObject *type = nil;
-  switch (src.code_) {
-    case base::kDeviceTypeCodeCpu:
-    case base::kDeviceTypeCodeX86:
-    case base::kDeviceTypeCodeArm:
-    case base::kDeviceTypeCodeOpenCL:  // review： 这个应该属于GPU吧？或者属于default
-      type = reinterpret_cast<NSObject *>(new MLCPUComputeDevice());
-      break;
-    case base::kDeviceTypeCodeOpenGL:  // review： 属于default会不会更好呀
-    case base::kDeviceTypeCodeMetal:
-    case base::kDeviceTypeCodeCuda:    // review： 属于default会不会更好呀
-    case base::kDeviceTypeCodeVulkan:  // review： 属于default会不会更好呀
-      type = reinterpret_cast<NSObject *>(new MLGPUComputeDevice());
-      break;
-    case base::kDeviceTypeCodeNpu:
-      type = reinterpret_cast<NSObject *>(new MLNeuralEngineComputeDevice());
-      break;
-    default:
-      type = reinterpret_cast<NSObject *>(new MLCPUComputeDevice());
-  }
+  // if (@available(iOS 17.0, macOS 14.0)){}
+  // switch (src.code_) {
+  //   case base::kDeviceTypeCodeCpu:
+  //   case base::kDeviceTypeCodeX86:
+  //   case base::kDeviceTypeCodeArm:
+  //   case base::kDeviceTypeCodeOpenCL:  // review： 这个应该属于GPU吧？或者属于default
+  //     type = reinterpret_cast<NSObject *>(new MLCPUComputeDevice());
+  //     break;
+  //   case base::kDeviceTypeCodeOpenGL:  // review： 属于default会不会更好呀
+  //   case base::kDeviceTypeCodeMetal:
+  //   case base::kDeviceTypeCodeCuda:    // review： 属于default会不会更好呀
+  //   case base::kDeviceTypeCodeVulkan:  // review： 属于default会不会更好呀
+  //     type = reinterpret_cast<NSObject *>(new MLGPUComputeDevice());
+  //     break;
+  //   case base::kDeviceTypeCodeNpu:
+  //     type = reinterpret_cast<NSObject *>(new MLNeuralEngineComputeDevice());
+  //     break;
+  //   default:
+  //     type = reinterpret_cast<NSObject *>(new MLCPUComputeDevice());
+  // }
   return type;
 }
 
@@ -64,7 +69,9 @@ base::Status CoremlConvert::convertFromInferenceParam(CoremlInferenceParam *src,
       dst.computeUnits = MLComputeUnitsCPUAndGPU;
       break;
     case CoremlInferenceParam::inferenceUnits::CPU_AND_NPU:
-      dst.computeUnits = MLComputeUnitsCPUAndNeuralEngine;
+      if (@available(iOS 16.0, macOS 13.0, *)) {
+        //dst.computeUnits = MLComputeUnitsCPUAndNeuralEngine;
+      }
       break;
     default:
       dst.computeUnits = MLComputeUnitsCPUOnly;

@@ -158,13 +158,20 @@ base::Status CoremlInference::run() {
       [[MLDictionaryFeatureProvider alloc] initWithDictionary:dict_ error:&err_];
   NSDictionary<NSString *, MLFeatureValue *> *res =
       [[mlmodel_ predictionFromFeatures:provider error:&err_] dictionary];
-  for (auto iter : external_output_tensors_) {
-    MLFeatureValue *value =
-        res[[NSString stringWithCString:iter.first.c_str() encoding:NSASCIIStringEncoding]];
-    [&](void *&&data) -> void *& { return data; }(iter.second->getPtr()) =
-                             CVPixelBufferGetBaseAddress([value imageBufferValue]);
-  }
+  // for (auto iter : external_output_tensors_) {
+  //   MLFeatureValue *value =
+  //       res[[NSString stringWithCString:iter.first.c_str() encoding:NSASCIIStringEncoding]];
+  //   [&](void *&&data) -> void *& { return data; }(iter.second->getPtr()) =
+  //                            CVPixelBufferGetBaseAddress([value imageBufferValue]);
+  // }
   return base::kStatusCodeOk;
+}
+
+device::Tensor *CoremlInference::getOutputTensorAfterRun(const std::string &name,  base::DeviceType device_type, bool is_copy,
+      base::DataFormat data_format) {
+
+
+
 }
 
 base::Status CoremlInference::allocateInputOutputTensor() {
