@@ -108,7 +108,7 @@ base::Status deepCopyBuffer(Buffer *src, Buffer *dst) {
     return src_device->upload(src, dst);
   } else if (!isHostDeviceType(src_device_type) &&
              isHostDeviceType(dst_device_type)) {
-    return dst_device->download(src, dst);
+    return src_device->download(src, dst);
   } else {
     return base::kStatusCodeErrorNotImplement;
   }

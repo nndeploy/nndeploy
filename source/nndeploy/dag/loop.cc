@@ -20,10 +20,10 @@
 namespace nndeploy {
 namespace dag {
 
-Loop::Loop(const std::string& name, Edge* input, Edge* output)
+Loop::Loop(const std::string &name, Edge *input, Edge *output)
     : Node(name, input, output) {}
-Loop::Loop(const std::string& name, std::initializer_list<Edge*> inputs,
-           std::initializer_list<Edge*> outputs)
+Loop::Loop(const std::string &name, std::initializer_list<Edge *> inputs,
+           std::initializer_list<Edge *> outputs)
     : Node(name, inputs, outputs) {}
 Loop::~Loop() {}
 

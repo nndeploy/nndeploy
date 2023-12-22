@@ -42,6 +42,7 @@ class NcnnInference : public Inference {
 
  private:
   ncnn::Net net_;
+  std::map<std::string, ncnn::Mat> internal_outputs_;
 };
 
 }  // namespace inference

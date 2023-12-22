@@ -161,6 +161,10 @@ device::Tensor *TnnInference::getOutputTensorAfterRun(
   tnn::MatConvertParam param = tnn::MatConvertParam();
   std::shared_ptr<tnn::Mat> mat;
   instance_->GetOutputMat(mat, param, name, tnn_device_type);
+  if (output_mat_map_.find(name) != output_mat_map_.end()) {
+    output_mat_map_.erase(name);
+  }
+  output_mat_map_[name] = mat;
   device::Tensor *internal_tensor =
       TnnConvert::matConvertToTensor(mat.get(), name);
   device::TensorDesc desc = internal_tensor->getDesc();
@@ -207,6 +211,7 @@ base::Status TnnInference::deallocateInputOutputTensor() {
     delete iter.second;
   }
   output_tensors_.clear();
+  output_mat_map_.clear();
   return base::kStatusCodeOk;
 }
 

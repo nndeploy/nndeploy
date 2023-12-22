@@ -15,11 +15,31 @@ extern NNDEPLOY_CC_API std::string wstringToString(const std::wstring &wstr);
 
 extern NNDEPLOY_CC_API std::wstring stringToWstring(const std::string &str);
 
-template <typename T>
-extern NNDEPLOY_CC_API std::string toString(T value);
+extern NNDEPLOY_CC_API std::vector<std::string> splitString(
+    const std::string &str, const std::string &spstr);
 
 template <typename T>
-extern NNDEPLOY_CC_API std::string vectorToString(std::vector<T> val);
+std::string toString(T value) {
+  std::ostringstream os;
+  os << value;
+  return os.str();
+}
+
+template <typename T>
+std::string vectorToString(std::vector<T> val) {
+  if (val.empty()) {
+    return "";
+  }
+
+  std::stringstream stream;
+  stream << "[";
+  for (int i = 0; i < val.size(); ++i) {
+    stream << val[i];
+    if (i != val.size() - 1) stream << ",";
+  }
+  stream << "]";
+  return stream.str();
+}
 
 }  // namespace base
 }  // namespace nndeploy

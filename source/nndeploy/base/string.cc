@@ -34,27 +34,34 @@ std::wstring stringToWstring(const std::string &str) {
   return converter.from_bytes(str);
 }
 
-template <typename T>
-std::string toString(T value) {
-  std::ostringstream os;
-  os << value;
-  return os.str();
-}
+std::vector<std::string> splitString(const std::string &str,
+                                     const std::string &spstr) {
+  std::vector<std::string> res;
+  if (str.empty()) return res;
+  if (spstr.empty()) return {str};
 
-template <typename T>
-std::string vectorToString(std::vector<T> val) {
-  if (val.empty()) {
-    return "";
+  auto p = str.find(spstr);
+  if (p == std::string::npos) return {str};
+
+  res.reserve(5);
+  std::string::size_type prev = 0;
+  int lent = spstr.length();
+  const char *ptr = str.c_str();
+
+  while (p != std::string::npos) {
+    int len = p - prev;
+    if (len > 0) {
+      res.emplace_back(str.substr(prev, len));
+    }
+    prev = p + lent;
+    p = str.find(spstr, prev);
   }
 
-  std::stringstream stream;
-  stream << "[";
-  for (int i = 0; i < val.size(); ++i) {
-    stream << val[i];
-    if (i != val.size() - 1) stream << ",";
+  int len = str.length() - prev;
+  if (len > 0) {
+    res.emplace_back(str.substr(prev, len));
   }
-  stream << "]";
-  return stream.str();
+  return res;
 }
 
 }  // namespace base

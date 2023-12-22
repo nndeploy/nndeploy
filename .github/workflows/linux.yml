@@ -2,13 +2,13 @@ name: linux
 on:
   push:
     branches:
-     - master
+     - main
      - 'feature/**'
     paths:
       - 'src/**'
       - '.github/workflows/linux.yml'
   pull_request:
-    branches: [master]
+    branches: [main]
     paths:
       - 'src/**'
       - '.github/workflows/linux.yml'

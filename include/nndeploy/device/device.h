@@ -33,26 +33,26 @@ enum BufferSourceType : int {
 struct NNDEPLOY_CC_API BufferDesc {
   BufferDesc(){};
   explicit BufferDesc(size_t size) { size_.emplace_back(size); }
-  explicit BufferDesc(size_t* size, size_t len) {
+  explicit BufferDesc(size_t *size, size_t len) {
     for (int i = 0; i < len; ++i) {
       size_.emplace_back(size[i]);
     }
   }
-  explicit BufferDesc(const base::SizeVector& size,
-                      const base::IntVector& config)
+  explicit BufferDesc(const base::SizeVector &size,
+                      const base::IntVector &config)
       : size_(size), config_(config) {}
-  explicit BufferDesc(size_t* size, size_t len, const base::IntVector& config)
+  explicit BufferDesc(size_t *size, size_t len, const base::IntVector &config)
       : config_(config) {
     for (int i = 0; i < len; ++i) {
       size_.emplace_back(size[i]);
     }
   }
 
-  BufferDesc(const BufferDesc& desc) {
+  BufferDesc(const BufferDesc &desc) {
     size_ = desc.size_;
     config_ = desc.config_;
   }
-  BufferDesc& operator=(const BufferDesc& desc) {
+  BufferDesc &operator=(const BufferDesc &desc) {
     size_ = std::move(desc.size_);
     config_ = std::move(desc.config_);
     size_ = desc.size_;
@@ -60,11 +60,11 @@ struct NNDEPLOY_CC_API BufferDesc {
     return *this;
   }
 
-  BufferDesc(BufferDesc&& desc) {
+  BufferDesc(BufferDesc &&desc) {
     size_ = std::move(desc.size_);
     config_ = std::move(desc.config_);
   }
-  BufferDesc& operator=(BufferDesc&& desc) {
+  BufferDesc &operator=(BufferDesc &&desc) {
     size_ = std::move(desc.size_);
     config_ = std::move(desc.config_);
     return *this;
@@ -72,7 +72,7 @@ struct NNDEPLOY_CC_API BufferDesc {
 
   virtual ~BufferDesc(){};
 
-  bool operator==(const BufferDesc& other) {
+  bool operator==(const BufferDesc &other) {
     bool flag0 = false;
     if (size_.size() == other.size_.size()) {
       flag0 = true;
@@ -95,7 +95,7 @@ struct NNDEPLOY_CC_API BufferDesc {
     }
     return flag0 && flag1;
   }
-  bool operator!=(const BufferDesc& other) { return !(*this == other); }
+  bool operator!=(const BufferDesc &other) { return !(*this == other); }
 
   /**
    * @brief
@@ -128,14 +128,14 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
   virtual ~Architecture();
 
   virtual base::Status checkDevice(int device_id = 0,
-                                   void* command_queue = nullptr,
+                                   void *command_queue = nullptr,
                                    std::string library_path = "") = 0;
 
   virtual base::Status enableDevice(int device_id = 0,
-                                    void* command_queue = nullptr,
+                                    void *command_queue = nullptr,
                                     std::string library_path = "") = 0;
 
-  virtual Device* getDevice(int device_id) = 0;
+  virtual Device *getDevice(int device_id) = 0;
 
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") = 0;
@@ -148,20 +148,20 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
    * @brief device_id -> device
    *
    */
-  std::map<int, Device*> devices_;
+  std::map<int, Device *> devices_;
 
  private:
   base::DeviceTypeCode device_type_code_;
 };
 
-std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>&
-getArchitectureMap();
+std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>
+    &getArchitectureMap();
 
 template <typename T>
 class TypeArchitectureRegister {
  public:
   explicit TypeArchitectureRegister(base::DeviceTypeCode type) {
-    auto& architecture_map = getArchitectureMap();
+    auto &architecture_map = getArchitectureMap();
     if (architecture_map.find(type) == architecture_map.end()) {
       architecture_map[type] = std::shared_ptr<T>(new T(type));
     }
@@ -176,11 +176,11 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   friend class Architecture;
 
  public:
-  virtual BufferDesc toBufferDesc(const MatDesc& desc,
-                                  const base::IntVector& config) = 0;
+  virtual BufferDesc toBufferDesc(const MatDesc &desc,
+                                  const base::IntVector &config) = 0;
 
-  virtual BufferDesc toBufferDesc(const TensorDesc& desc,
-                                  const base::IntVector& config) = 0;
+  virtual BufferDesc toBufferDesc(const TensorDesc &desc,
+                                  const base::IntVector &config) = 0;
   /**
    * @brief
    *
@@ -191,29 +191,29 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
    * 0 desc1 == desc2
    * 1 desc1 > desc2
    */
-  virtual int compareBufferDesc(const BufferDesc& desc1,
-                                const BufferDesc& desc2);
+  virtual int compareBufferDesc(const BufferDesc &desc1,
+                                const BufferDesc &desc2);
 
-  virtual Buffer* allocate(size_t size) = 0;
-  virtual Buffer* allocate(const BufferDesc& desc) = 0;
-  virtual void deallocate(Buffer* buffer) = 0;
+  virtual Buffer *allocate(size_t size) = 0;
+  virtual Buffer *allocate(const BufferDesc &desc) = 0;
+  virtual void deallocate(Buffer *buffer) = 0;
 
-  Buffer* create(
-      size_t size, void* ptr,
+  Buffer *create(
+      size_t size, void *ptr,
       BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
-  Buffer* create(
-      const BufferDesc& desc, void* ptr,
+  Buffer *create(
+      const BufferDesc &desc, void *ptr,
       BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
-  Buffer* create(
+  Buffer *create(
       size_t size, int id,
       BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
-  Buffer* create(
-      const BufferDesc& desc, int id,
+  Buffer *create(
+      const BufferDesc &desc, int id,
       BufferSourceType buffer_source_type = kBufferSourceTypeExternal);
 
-  virtual base::Status copy(Buffer* src, Buffer* dst) = 0;
-  virtual base::Status download(Buffer* src, Buffer* dst) = 0;
-  virtual base::Status upload(Buffer* src, Buffer* dst) = 0;
+  virtual base::Status copy(Buffer *src, Buffer *dst) = 0;
+  virtual base::Status download(Buffer *src, Buffer *dst) = 0;
+  virtual base::Status upload(Buffer *src, Buffer *dst) = 0;
   // TODO: map/unmap
   // virtual Buffer* map(Buffer* src);
   // virtual base::Status unmap(Buffer* src, Buffer* dst);
@@ -223,12 +223,13 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
 
   virtual base::Status synchronize();
 
-  virtual void* getCommandQueue();
+  virtual void *getContext();
+  virtual void *getCommandQueue();
 
   base::DeviceType getDeviceType();
 
  protected:
-  Device(base::DeviceType device_type, void* command_queue = nullptr,
+  Device(base::DeviceType device_type, void *command_queue = nullptr,
          std::string library_path = "")
       : device_type_(device_type){};
   virtual ~Device(){};
@@ -236,29 +237,29 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   virtual base::Status init() = 0;
   virtual base::Status deinit() = 0;
 
-  void destory(Buffer* buffer);
+  void destory(Buffer *buffer);
 
  protected:
   base::DeviceType device_type_;
 };
 
-extern NNDEPLOY_CC_API Architecture* getArchitecture(base::DeviceTypeCode type);
+extern NNDEPLOY_CC_API Architecture *getArchitecture(base::DeviceTypeCode type);
 
 extern NNDEPLOY_CC_API base::DeviceType getDefaultHostDeviceType();
 
-extern NNDEPLOY_CC_API Device* getDefaultHostDevice();
+extern NNDEPLOY_CC_API Device *getDefaultHostDevice();
 
 extern NNDEPLOY_CC_API bool isHostDeviceType(base::DeviceType device_type);
 
 extern NNDEPLOY_CC_API base::Status checkDevice(base::DeviceType device_type,
-                                                void* command_queue,
+                                                void *command_queue,
                                                 std::string library_path);
 
 extern NNDEPLOY_CC_API base::Status enableDevice(base::DeviceType device_type,
-                                                 void* command_queue,
+                                                 void *command_queue,
                                                  std::string library_path);
 
-extern NNDEPLOY_CC_API Device* getDevice(base::DeviceType device_type);
+extern NNDEPLOY_CC_API Device *getDevice(base::DeviceType device_type);
 
 extern NNDEPLOY_CC_API std::vector<DeviceInfo> getDeviceInfo(
     base::DeviceTypeCode type, std::string library_path);

@@ -16,7 +16,7 @@ class SafeWSQueue {
    * @param task
    * @return
    */
-  bool tryPush(T&& task) {
+  bool tryPush(T &&task) {
     bool result = false;
     if (lock_.try_lock()) {
       deque_.emplace_back(std::forward<T>(task));
@@ -31,7 +31,7 @@ class SafeWSQueue {
    * @param task
    * @return
    */
-  bool tryPop(T& task) {
+  bool tryPop(T &task) {
     bool result = false;
     if (!deque_.empty() && lock_.try_lock()) {
       if (!deque_.empty()) {
@@ -50,7 +50,7 @@ class SafeWSQueue {
    * @param task
    * @return
    */
-  bool trySteal(T& task) {
+  bool trySteal(T &task) {
     bool result = false;
     if (!deque_.empty() && lock_.try_lock()) {
       if (!deque_.empty()) {
@@ -64,9 +64,7 @@ class SafeWSQueue {
     return result;
   }
 
-  std::deque<T>& getQueue(){
-    return deque_;
-  }
+  std::deque<T> &getQueue() { return deque_; }
 
   SafeWSQueue() = default;
 

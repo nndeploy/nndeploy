@@ -63,6 +63,9 @@ include("${ROOT_PATH}/cmake/coreml.cmake")
 # # paddle-lite
 include("${ROOT_PATH}/cmake/paddlelite.cmake")
 
+# # ascend_cl
+include("${ROOT_PATH}/cmake/ascend_cl.cmake")
+
 # ################### inference ####################
 
 # ################### graph ####################

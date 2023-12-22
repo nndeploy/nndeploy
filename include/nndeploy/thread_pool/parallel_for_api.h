@@ -16,12 +16,12 @@ class ParallelForApi {
 
   virtual int getThreadNum() = 0;
 
-  virtual int parallelFor(const base::Range& range,
-                          const ParallelLoopBody& body,
+  virtual int parallelFor(const base::Range &range,
+                          const ParallelLoopBody &body,
                           double nstripes = -1.0) = 0;
 };
 
-std::shared_ptr<ParallelForApi>& getParallelForApi(
+std::shared_ptr<ParallelForApi> &getParallelForApi(
     ParallelForApiType type = kParallelForApiTypeDefault);
 
 }  // namespace thread_pool

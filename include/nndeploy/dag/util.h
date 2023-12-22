@@ -14,8 +14,8 @@
 namespace nndeploy {
 namespace dag {
 
-bool checkEdge(const std::vector<Edge*>& edges,
-               const std::vector<Edge*>& check_edges);
+bool checkEdge(const std::vector<Edge *> &src_edges,
+               const std::vector<Edge *> &dst_edges);
 
 }  // namespace dag
 }  // namespace nndeploy

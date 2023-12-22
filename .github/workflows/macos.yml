@@ -2,13 +2,13 @@ name: macos
 on:
   push:
     branches:
-     - master
+     - main
      - 'feature/**'
     paths:
       - 'src/**'
       - '.github/workflows/macos.yml'
   pull_request:
-    branches: [master]
+    branches: [main]
     paths:
       - 'src/**'
       - '.github/workflows/macos.yml'

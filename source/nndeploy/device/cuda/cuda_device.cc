@@ -17,7 +17,7 @@ CudaArchitecture::CudaArchitecture(base::DeviceTypeCode device_type_code)
 
 CudaArchitecture::~CudaArchitecture() {
   for (auto iter : devices_) {
-    CudaDevice* tmp_device = dynamic_cast<CudaDevice*>(iter.second);
+    CudaDevice *tmp_device = dynamic_cast<CudaDevice *>(iter.second);
     if (tmp_device->deinit() != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("device deinit failed");
     }
@@ -25,7 +25,7 @@ CudaArchitecture::~CudaArchitecture() {
   }
 };
 
-base::Status CudaArchitecture::checkDevice(int device_id, void* command_queue,
+base::Status CudaArchitecture::checkDevice(int device_id, void *command_queue,
                                            std::string library_path) {
   int device_count = cudaGetNumDevices();
   if (device_id > -1 && device_id < device_count) {
@@ -37,12 +37,12 @@ base::Status CudaArchitecture::checkDevice(int device_id, void* command_queue,
   }
 }
 
-base::Status CudaArchitecture::enableDevice(int device_id, void* command_queue,
+base::Status CudaArchitecture::enableDevice(int device_id, void *command_queue,
                                             std::string library_path) {
   base::DeviceType device_type(base::kDeviceTypeCodeCuda, device_id);
   std::lock_guard<std::mutex> lock(mutex_);
   if (devices_.find(device_id) == devices_.end()) {
-    CudaDevice* device =
+    CudaDevice *device =
         new CudaDevice(device_type, command_queue, library_path);
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr");
@@ -62,8 +62,8 @@ base::Status CudaArchitecture::enableDevice(int device_id, void* command_queue,
   return base::kStatusCodeOk;
 }
 
-Device* CudaArchitecture::getDevice(int device_id) {
-  Device* device = nullptr;
+Device *CudaArchitecture::getDevice(int device_id) {
+  Device *device = nullptr;
   if (devices_.find(device_id) != devices_.end()) {
     return devices_[device_id];
   } else {
@@ -97,8 +97,8 @@ std::vector<DeviceInfo> CudaArchitecture::getDeviceInfo(
  * @return BufferDesc
  * @note: 暂未考虑锁业的情况
  */
-BufferDesc CudaDevice::toBufferDesc(const MatDesc& desc,
-                                    const base::IntVector& config) {
+BufferDesc CudaDevice::toBufferDesc(const MatDesc &desc,
+                                    const base::IntVector &config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
   size_t size = desc.data_type_.size();
@@ -123,8 +123,8 @@ BufferDesc CudaDevice::toBufferDesc(const MatDesc& desc,
  * 通过stride_替代了data_format_，stride_的第一个元素表示的是整个tensor的大小
  * 意味着在TensorDesc的构造函数要花很多心思来计算stride_
  */
-BufferDesc CudaDevice::toBufferDesc(const TensorDesc& desc,
-                                    const base::IntVector& config) {
+BufferDesc CudaDevice::toBufferDesc(const TensorDesc &desc,
+                                    const base::IntVector &config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
   size_t size = desc.data_type_.size();
@@ -139,12 +139,12 @@ BufferDesc CudaDevice::toBufferDesc(const TensorDesc& desc,
   return buffer_desc;
 }
 
-Buffer* CudaDevice::allocate(size_t size) {
+Buffer *CudaDevice::allocate(size_t size) {
   BufferDesc desc(size);
   return this->allocate(desc);
 }
-Buffer* CudaDevice::allocate(const BufferDesc& desc) {
-  void* data = nullptr;
+Buffer *CudaDevice::allocate(const BufferDesc &desc) {
+  void *data = nullptr;
   cudaError_t status = cudaMalloc(&data, desc.size_[0]);
   if (cudaSuccess != status) {
     NNDEPLOY_LOGE("cuda alloc failed with size %lu for %p, status:%d\n",
@@ -155,10 +155,10 @@ Buffer* CudaDevice::allocate(const BufferDesc& desc) {
     NNDEPLOY_LOGE("cuda alloc got nullptr\n");
     return nullptr;
   }
-  Buffer* buffer = Device::create(desc, data, kBufferSourceTypeAllocate);
+  Buffer *buffer = Device::create(desc, data, kBufferSourceTypeAllocate);
   return buffer;
 }
-void CudaDevice::deallocate(Buffer* buffer) {
+void CudaDevice::deallocate(Buffer *buffer) {
   if (buffer == nullptr) {
     return;
   }
@@ -171,7 +171,7 @@ void CudaDevice::deallocate(Buffer* buffer) {
     Device::destory(buffer);
   } else if (buffer_source_type == kBufferSourceTypeAllocate) {
     if (buffer->getPtr() != nullptr) {
-      void* data = buffer->getPtr();
+      void *data = buffer->getPtr();
       NNDEPLOY_CUDA_CHECK(cudaFree(data));
     }
     Device::destory(buffer);
@@ -182,7 +182,7 @@ void CudaDevice::deallocate(Buffer* buffer) {
   }
 }
 
-base::Status CudaDevice::copy(Buffer* src, Buffer* dst) {
+base::Status CudaDevice::copy(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     cudaError_t status =
         cudaMemcpyAsync(dst->getPtr(), src->getPtr(), src->getDesc().size_[0],
@@ -195,7 +195,7 @@ base::Status CudaDevice::copy(Buffer* src, Buffer* dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status CudaDevice::download(Buffer* src, Buffer* dst) {
+base::Status CudaDevice::download(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     cudaError_t status =
         cudaMemcpyAsync(dst->getPtr(), src->getPtr(), src->getDesc().size_[0],
@@ -208,7 +208,7 @@ base::Status CudaDevice::download(Buffer* src, Buffer* dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status CudaDevice::upload(Buffer* src, Buffer* dst) {
+base::Status CudaDevice::upload(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     cudaError_t status =
         cudaMemcpyAsync(dst->getPtr(), src->getPtr(), src->getDesc().size_[0],
@@ -231,7 +231,7 @@ base::Status CudaDevice::synchronize() {
   }
   return base::kStatusCodeOk;
 }
-void* CudaDevice::getCommandQueue() { return (void*)(stream_); }
+void *CudaDevice::getCommandQueue() { return (void *)(stream_); }
 
 base::Status CudaDevice::init() {
   if (external_command_queue_ == nullptr) {
@@ -244,6 +244,12 @@ base::Status CudaDevice::init() {
 }
 base::Status CudaDevice::deinit() {
   if (external_command_queue_ != nullptr) {
+    cudaError_t status = cudaStreamSynchronize(stream_);
+    if (cudaSuccess != status) {
+      NNDEPLOY_CUDA_CHECK(status);
+      NNDEPLOY_LOGE("cuda stream synchronize failed\n");
+      return base::kStatusCodeErrorDeviceCuda;
+    }
     NNDEPLOY_CUDA_CHECK(cudaStreamDestroy(stream_));
   }
   return base::kStatusCodeOk;

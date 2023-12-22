@@ -27,7 +27,7 @@ static const char k_g_native_separator = '\\';
 const char k_g_dir_separators[] = "/\\";
 namespace {
 struct dirent {
-  const char* d_name;
+  const char *d_name;
 };
 
 struct DIR {
@@ -46,8 +46,8 @@ struct DIR {
 #endif
 };
 
-DIR* opendir(const char* path) {
-  DIR* dir = new DIR;
+DIR *opendir(const char *path) {
+  DIR *dir = new DIR;
   dir->ent.d_name = 0;
 #if defined(WINRT) || defined(_WIN32_WCE)
   std::string full_path = std::string(path) + "\\*";
@@ -69,14 +69,14 @@ DIR* opendir(const char* path) {
   return dir;
 }
 
-dirent* readdir(DIR* dir) {
+dirent *readdir(DIR *dir) {
 #if defined(WINRT) || defined(_WIN32_WCE)
   if (dir->ent.d_name != 0) {
     if (::FindNextFileW(dir->handle, &dir->data) != TRUE) return 0;
   }
   size_t asize = wcstombs(nullptr, dir->data.cFileName, 0);
   assert((asize != 0) && (asize != (size_t)-1));
-  char* aname = new char[asize + 1];
+  char *aname = new char[asize + 1];
   aname[asize] = 0;
   wcstombs(aname, dir->data.cFileName, asize);
   dir->ent.d_name = aname;
@@ -89,7 +89,7 @@ dirent* readdir(DIR* dir) {
   return &dir->ent;
 }
 
-void closedir(DIR* dir) {
+void closedir(DIR *dir) {
   ::FindClose(dir->handle);
   delete dir;
 }
@@ -103,7 +103,7 @@ const char k_g_dir_separators[] = "/";
 namespace nndeploy {
 namespace base {
 
-static bool isDir(const std::string& path, DIR* dir) {
+static bool isDir(const std::string &path, DIR *dir) {
 #if defined _WIN32 || defined _WIN32_WCE
   DWORD attributes;
   BOOL status = TRUE;
@@ -132,7 +132,7 @@ static bool isDir(const std::string& path, DIR* dir) {
 #endif
 }
 
-static bool wildcmp(const char* string, const char* wild) {
+static bool wildcmp(const char *string, const char *wild) {
   // Based on wildcmp written by Jack Handy - <A
   // href="mailto:jakkhandy@hotmail.com">jakkhandy@hotmail.com</A>
   const char *cp = 0, *mp = 0;
@@ -170,17 +170,17 @@ static bool wildcmp(const char* string, const char* wild) {
   return *wild == 0;
 }
 
-static void globRec(const std::string& directory, const std::string& wildchart,
-                    std::vector<std::string>& result, bool recursive,
-                    bool includeDirectories, const std::string& pathPrefix) {
-  DIR* dir;
+static void globRec(const std::string &directory, const std::string &wildchart,
+                    std::vector<std::string> &result, bool recursive,
+                    bool include_directories, const std::string &pathPrefix) {
+  DIR *dir;
 
   if ((dir = opendir(directory.c_str())) != 0) {
     /* find all the files and directories within directory */
     try {
-      struct dirent* ent;
+      struct dirent *ent;
       while ((ent = readdir(dir)) != 0) {
-        const char* name = ent->d_name;
+        const char *name = ent->d_name;
         if ((name[0] == 0) || (name[0] == '.' && name[1] == 0) ||
             (name[0] == '.' && name[1] == '.' && name[2] == 0))
           continue;
@@ -190,9 +190,9 @@ static void globRec(const std::string& directory, const std::string& wildchart,
 
         if (isDir(path, dir)) {
           if (recursive)
-            globRec(path, wildchart, result, recursive, includeDirectories,
+            globRec(path, wildchart, result, recursive, include_directories,
                     entry);
-          if (!includeDirectories) continue;
+          if (!include_directories) continue;
         }
 
         if (wildchart.empty() || wildcmp(name, wildchart.c_str()))
@@ -208,7 +208,7 @@ static void globRec(const std::string& directory, const std::string& wildchart,
   }
 }
 
-std::string openFile(const std::string& file_path) {
+std::string openFile(const std::string &file_path) {
   std::string result = "";
   std::ifstream fin(file_path, std::ios::in | std::ios::binary);
   if (!fin.is_open()) {
@@ -224,7 +224,7 @@ std::string openFile(const std::string& file_path) {
 
 bool isPathSeparator(char c) { return c == '/' || c == '\\'; }
 
-bool exists(const std::string& path) {
+bool exists(const std::string &path) {
 #if defined _WIN32 || defined WINCE
   BOOL status = TRUE;
   {
@@ -247,15 +247,15 @@ bool exists(const std::string& path) {
 #endif
 }
 
-bool isDirectory(const std::string& path) { return isDir(path, nullptr); }
+bool isDirectory(const std::string &path) { return isDir(path, nullptr); }
 
-void removeAllFile(const std::string& path) {
+void removeAllFile(const std::string &path) {
   if (!exists(path)) return;
   if (isDirectory(path)) {
     std::vector<std::string> entries;
     glob(path, std::string(), entries, false, true);
     for (size_t i = 0; i < entries.size(); i++) {
-      const std::string& e = entries[i];
+      const std::string &e = entries[i];
       removeAllFile(e);
     }
 #ifdef _MSC_VER
@@ -290,7 +290,7 @@ std::string getcwd() {
 #endif
 #elif NNDEPLOY_OS_UNIX
   for (;;) {
-    char* p = ::getcwd(buf.data(), buf.size());
+    char *p = ::getcwd(buf.data(), buf.size());
     if (p == nullptr) {
       if (errno == ERANGE) {
         continue;
@@ -305,21 +305,21 @@ std::string getcwd() {
 #endif
 }
 
-std::string canonicalPath(const std::string& path) {
+std::string canonicalPath(const std::string &path) {
   std::string result;
 #ifdef _WIN32
-  const char* result_str = _fullpath(nullptr, path.c_str(), 0);
+  const char *result_str = _fullpath(nullptr, path.c_str(), 0);
 #else
-  const char* result_str = realpath(path.c_str(), nullptr);
+  const char *result_str = realpath(path.c_str(), nullptr);
 #endif
   if (result_str) {
     result = std::string(result_str);
-    free((void*)result_str);
+    free((void *)result_str);
   }
   return result.empty() ? path : result;
 }
 
-std::string joinPath(const std::string& base, const std::string& path) {
+std::string joinPath(const std::string &base, const std::string &path) {
   if (base.empty()) return path;
   if (path.empty()) return base;
 
@@ -336,19 +336,19 @@ std::string joinPath(const std::string& base, const std::string& path) {
   return result;
 }
 
-std::string getParentPath(const std::string& path) {
+std::string getParentPath(const std::string &path) {
   std::string::size_type loc = path.find_last_of("/\\");
   if (loc == std::string::npos) return std::string();
   return std::string(path, 0, loc);
 }
 
-std::wstring getParentPath(const std::wstring& path) {
+std::wstring getParentPath(const std::wstring &path) {
   std::wstring::size_type loc = path.find_last_of(L"/\\");
   if (loc == std::wstring::npos) return std::wstring();
   return std::wstring(path, 0, loc);
 }
 
-void glob(std::string pattern, std::vector<std::string>& result,
+void glob(std::string pattern, std::vector<std::string> &result,
           bool recursive) {
   result.clear();
   std::string path, wildchart;
@@ -374,22 +374,23 @@ void glob(std::string pattern, std::vector<std::string>& result,
   std::sort(result.begin(), result.end());
 }
 
-void glob(const std::string& directory, const std::string& pattern,
-          std::vector<std::string>& result, bool recursive,
-          bool includeDirectories) {
-  globRec(directory, pattern, result, recursive, includeDirectories, directory);
+void glob(const std::string &directory, const std::string &pattern,
+          std::vector<std::string> &result, bool recursive,
+          bool include_directories) {
+  globRec(directory, pattern, result, recursive, include_directories,
+          directory);
   std::sort(result.begin(), result.end());
 }
 
-void globRelative(const std::string& directory, const std::string& pattern,
-                  std::vector<std::string>& result, bool recursive,
-                  bool includeDirectories) {
-  globRec(directory, pattern, result, recursive, includeDirectories,
+void globRelative(const std::string &directory, const std::string &pattern,
+                  std::vector<std::string> &result, bool recursive,
+                  bool include_directories) {
+  globRec(directory, pattern, result, recursive, include_directories,
           std::string());
   std::sort(result.begin(), result.end());
 }
 
-bool createDirectory(const std::string& path) {
+bool createDirectory(const std::string &path) {
 #if defined WIN32 || defined _WIN32 || defined WINCE
 #ifdef WINRT
   wchar_t wpath[MAX_PATH];
@@ -411,8 +412,8 @@ bool createDirectory(const std::string& path) {
   return true;
 }
 
-bool createDirectories(const std::string& path_) {
-  std::string path = path_;
+bool createDirectories(const std::string &path_param) {
+  std::string path = path_param;
   for (;;) {
     char last_char = path.empty() ? 0 : path[path.length() - 1];
     if (isPathSeparator(last_char)) {

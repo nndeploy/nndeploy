@@ -481,7 +481,6 @@ base::Status deepCopyTensor(Tensor *src, Tensor *dst) {
 
 Tensor *getShallowCopyTensor(Tensor *src) {
   std::string name = src->getName();
-  Device *device = src->getDevice();
   TensorDesc desc = src->getDesc();
   Buffer *buffer = src->getBuffer();
   Tensor *dst = new Tensor(desc, buffer, name);

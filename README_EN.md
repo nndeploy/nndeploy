@@ -25,6 +25,7 @@ The current supported environment is as follows, which will continue to be updat
 | [ncnn](https://github.com/Tencent/ncnn)                    |   -   |    -    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
 | [coreML](https://github.com/apple/coremltools)             |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)   |         |
 | [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang) |         |
+| [AscendCL](https://www.hiascend.com/zh/)                   |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)         |         |
 
 **Notice:** TFLite, TVM, OpenPPL, Tengine, AITemplate, RKNN, sophgo, MindSpore-lite, Horizon are also on the agenda as we work to cover mainstream inference frameworks
 
@@ -33,7 +34,7 @@ The current supported environment is as follows, which will continue to be updat
 The difference of model structure, inference framework and hardware resource will lead to different inference performance. nndeploy deeply understands and preserves as much as possible the features of the back-end inference framework without compromising the computational efficiency of the native inference framework with a consistent code experience. In addition, we realize the efficient connection between the pre/post-processing and the model inference process through the exquisitely designed memory zero copy, which effectively guarantees the end-to-end delay of model inference.
 
 What's more, we are developing and refining the following:
-* **Thread Pool**: better pipelined parallel optimization
+* **Thread Pool**
 * **Memory Pool**: more efficient memory allocation and release
 * **HPC Operators**: optimize pre/post-processing efficiency
 
@@ -54,6 +55,10 @@ nndeploy's primary purpose is user friendliness and high performance. We have bu
 
 If you have any related questions, feel free to contact us. 😁
 
+### 5. Parallel
+- **task parallel**
+- **pipeline parallel**
+
 ## Document
 - For more information, please visit the [nndeploy documentation](https://nndeploy-zh.readthedocs.io/zh/latest/introduction/index.html).
 
@@ -62,13 +67,6 @@ If you have any related questions, feel free to contact us. 😁
 - More Model
 - More Inference
 - OP
-
-## Support
-| OS      |                                                                      status                                                                      |
-| ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
-| Linux   |  [![linux](https://ci.appveyor.com/api/projects/status/a135va7wtjot4iaw?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-pdc3k)  |
-| Macos   |     [![macos](https://ci.appveyor.com/api/projects/status/7sey9eqhfnnedqi2?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy)     |
-| Windows | [![windows](https://ci.appveyor.com/api/projects/status/4gsf91utksd7v595?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-ovpc5) |
 
 # Reference
 - [TNN](https://github.com/Tencent/TNN)
@@ -82,8 +80,8 @@ If you have any related questions, feel free to contact us. 😁
 - [ThreadPool](https://github.com/progschj/ThreadPool)
 - [torchpipe](https://github.com/torchpipe/torchpipe)
 
-## Contact Us
 
+## Contact Us
 > nndeploy is still in its infancy, welcome to join us.
 
 * Wechat：titian5566

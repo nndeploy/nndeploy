@@ -10,16 +10,16 @@ namespace model {
 /// @param data_format 数据排布格式
 /// @param name tensor名称
 /// @return
-NNDEPLOY_CC_API device::Tensor* convertVectorToTensor(
-    std::vector<float>& data, std::vector<int> dst_shape,
-    device::Device* device, base::DataFormat data_format, std::string name) {
+NNDEPLOY_CC_API device::Tensor *convertVectorToTensor(
+    std::vector<float> &data, std::vector<int> dst_shape,
+    device::Device *device, base::DataFormat data_format, std::string name) {
   base::IntVector shape = dst_shape;
 
   base::DataType data_type = base::dataTypeOf<float>();
   base::SizeVector stride = base::SizeVector();
   device::TensorDesc tensor_desc(data_type, data_format, dst_shape, stride);
 
-  device::Tensor* tensor =
+  device::Tensor *tensor =
       new device::Tensor(device, tensor_desc, data.data(), name);
 
   return tensor;

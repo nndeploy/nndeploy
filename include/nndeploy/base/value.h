@@ -13,8 +13,8 @@ namespace base {
 class NNDEPLOY_CC_API Value {
  public:
   Value() = default;
-  Value(const Value& value) = default;
-  Value(Value&& value) noexcept {
+  Value(const Value &value) = default;
+  Value(Value &&value) noexcept {
     data_type_ = value.data_type_;
     len_ = value.len_;
     internal_value_ = value.internal_value_;
@@ -26,14 +26,14 @@ class NNDEPLOY_CC_API Value {
   }
 
   template <typename T>
-  Value(T* value, int64_t len) {
+  Value(T *value, int64_t len) {
     set(value, len);
   }
 
   ~Value(){};
 
-  Value& operator=(const Value& value) = default;
-  Value& operator=(Value&& value) noexcept {
+  Value &operator=(const Value &value) = default;
+  Value &operator=(Value &&value) noexcept {
     data_type_ = value.data_type_;
     len_ = value.len_;
     internal_value_ = value.internal_value_;
@@ -44,32 +44,32 @@ class NNDEPLOY_CC_API Value {
   void set(T value) {
     data_type_ = dataTypeOf<T>();
     len_ = 0;
-    internal_value_ = (void*)(&value);
+    internal_value_ = (void *)(&value);
   }
 
   template <typename T>
-  void set(T* value, int64_t len) {
+  void set(T *value, int64_t len) {
     data_type_ = dataTypeOf<T>();
     len_ = 0;
-    internal_value_ = (void*)(&value);
+    internal_value_ = (void *)(&value);
   }
 
   template <typename T>
   T get() {
     DataType data_type = dataTypeOf<T>();
     if (data_type_ == data_type && len_ == 0) {
-      return (*(T*)(internal_value_));
+      return (*(T *)(internal_value_));
     } else {
       return T();
     }
   }
 
   template <typename T>
-  T* get(int64_t& len) {
+  T *get(int64_t &len) {
     DataType data_type = dataTypeOf<T>();
     if (data_type_ == data_type && len_ >= 0) {
       len = len_;
-      return (T*)(internal_value_);
+      return (T *)(internal_value_);
     } else {
       return nullptr;
     }
@@ -88,7 +88,7 @@ class NNDEPLOY_CC_API Value {
    * if the data is invalid, len_ == -1
    */
   int64_t len_ = -1;
-  void* internal_value_;
+  void *internal_value_;
 };
 
 }  // namespace base

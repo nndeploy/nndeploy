@@ -25,7 +25,7 @@ namespace model {
 
 class NNDEPLOY_CC_API CvtColorResize : public dag::Node {
  public:
-  CvtColorResize(const std::string& name, dag::Edge* input, dag::Edge* output)
+  CvtColorResize(const std::string &name, dag::Edge *input, dag::Edge *output)
       : Node(name, input, output) {
     param_ = std::make_shared<CvtclorResizeParam>();
   }

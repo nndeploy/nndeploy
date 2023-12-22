@@ -24,9 +24,9 @@ namespace model {
 extern NNDEPLOY_CC_API int getChannelByPixelType(base::PixelType pixel_type);
 
 template <typename T>
-void normalizeC1(const T* __restrict src, float* __restrict dst, size_t size,
-                 const float* __restrict scale, const float* __restrict mean,
-                 const float* __restrict std) {
+void normalizeC1(const T *__restrict src, float *__restrict dst, size_t size,
+                 const float *__restrict scale, const float *__restrict mean,
+                 const float *__restrict std) {
   const float mul_scale = scale[0] / std[0];
   const float add_bias = -mean[0] / std[0];
   for (size_t i = 0; i < size; ++i) {
@@ -34,9 +34,9 @@ void normalizeC1(const T* __restrict src, float* __restrict dst, size_t size,
   }
 }
 template <typename T>
-void normalizeC2(const T* __restrict src, float* __restrict dst, size_t size,
-                 const float* __restrict scale, const float* __restrict mean,
-                 const float* __restrict std) {
+void normalizeC2(const T *__restrict src, float *__restrict dst, size_t size,
+                 const float *__restrict scale, const float *__restrict mean,
+                 const float *__restrict std) {
   const float mul_scale[2] = {scale[0] / std[0], scale[1] / std[1]};
   const float add_bias[2] = {-mean[0] / std[0], -mean[1] / std[1]};
   for (size_t i = 0; i < size * 2; i += 2) {
@@ -45,9 +45,9 @@ void normalizeC2(const T* __restrict src, float* __restrict dst, size_t size,
   }
 }
 template <typename T>
-void normalizeC3(const T* __restrict src, float* __restrict dst, size_t size,
-                 const float* __restrict scale, const float* __restrict mean,
-                 const float* __restrict std) {
+void normalizeC3(const T *__restrict src, float *__restrict dst, size_t size,
+                 const float *__restrict scale, const float *__restrict mean,
+                 const float *__restrict std) {
   const float mul_scale[3] = {scale[0] / std[0], scale[1] / std[1],
                               scale[2] / std[2]};
   const float add_bias[3] = {-mean[0] / std[0], -mean[1] / std[1],
@@ -59,9 +59,9 @@ void normalizeC3(const T* __restrict src, float* __restrict dst, size_t size,
   }
 }
 template <typename T>
-void normalizeC4(const T* __restrict src, float* __restrict dst, size_t size,
-                 const float* __restrict scale, const float* __restrict mean,
-                 const float* __restrict std) {
+void normalizeC4(const T *__restrict src, float *__restrict dst, size_t size,
+                 const float *__restrict scale, const float *__restrict mean,
+                 const float *__restrict std) {
   const float mul_scale[4] = {scale[0] / std[0], scale[1] / std[1],
                               scale[2] / std[2], scale[3] / std[3]};
   const float add_bias[4] = {-mean[0] / std[0], -mean[1] / std[1],

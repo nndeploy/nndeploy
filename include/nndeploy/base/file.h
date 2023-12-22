@@ -14,14 +14,14 @@ namespace base {
 #define NNDEPLOY_PATH_SEP "/"
 #endif
 
-extern NNDEPLOY_CC_API std::string openFile(const std::string& file_path);
+extern NNDEPLOY_CC_API std::string openFile(const std::string &file_path);
 
 extern NNDEPLOY_CC_API bool isPathSeparator(char c);
 
-extern NNDEPLOY_CC_API bool exists(const std::string& path);
-extern NNDEPLOY_CC_API bool isDirectory(const std::string& path);
+extern NNDEPLOY_CC_API bool exists(const std::string &path);
+extern NNDEPLOY_CC_API bool isDirectory(const std::string &path);
 
-extern NNDEPLOY_CC_API void removeAllFile(const std::string& path);
+extern NNDEPLOY_CC_API void removeAllFile(const std::string &path);
 
 extern NNDEPLOY_CC_API std::string getcwd();
 
@@ -31,15 +31,15 @@ extern NNDEPLOY_CC_API std::string getcwd();
  *
  * @param path input path. Target file/directory should exist.
  */
-extern NNDEPLOY_CC_API std::string canonicalPath(const std::string& path);
+extern NNDEPLOY_CC_API std::string canonicalPath(const std::string &path);
 
 /** Join path components */
-extern NNDEPLOY_CC_API std::string joinPath(const std::string& base,
-                                            const std::string& path);
+extern NNDEPLOY_CC_API std::string joinPath(const std::string &base,
+                                            const std::string &path);
 
 /** Get parent directory */
-extern NNDEPLOY_CC_API std::string getParentPath(const std::string& path);
-extern NNDEPLOY_CC_API std::wstring getParentPath(const std::wstring& path);
+extern NNDEPLOY_CC_API std::string getParentPath(const std::string &path);
+extern NNDEPLOY_CC_API std::wstring getParentPath(const std::wstring &path);
 
 /**
  * Generate a list of all files that match the globbing pattern.
@@ -51,13 +51,13 @@ extern NNDEPLOY_CC_API std::wstring getParentPath(const std::wstring& path);
  * disable filtering and return all results
  * @param[out] result result of globing.
  * @param recursive scan nested directories too
- * @param includeDirectories include directories into results list
+ * @param include_directories include directories into results list
  */
-extern NNDEPLOY_CC_API void glob(const std::string& directory,
-                                 const std::string& pattern,
-                                 std::vector<std::string>& result,
+extern NNDEPLOY_CC_API void glob(const std::string &directory,
+                                 const std::string &pattern,
+                                 std::vector<std::string> &result,
                                  bool recursive = false,
-                                 bool includeDirectories = false);
+                                 bool include_directories = false);
 
 /**
  * Generate a list of all files that match the globbing pattern.
@@ -67,16 +67,16 @@ extern NNDEPLOY_CC_API void glob(const std::string& directory,
  * disable filtering and return all results
  * @param[out] result globbing result with relative paths from base directory
  * @param recursive scan nested directories too
- * @param includeDirectories include directories into results list
+ * @param include_directories include directories into results list
  */
-extern NNDEPLOY_CC_API void globRelative(const std::string& directory,
-                                         const std::string& pattern,
-                                         std::vector<std::string>& result,
+extern NNDEPLOY_CC_API void globRelative(const std::string &directory,
+                                         const std::string &pattern,
+                                         std::vector<std::string> &result,
                                          bool recursive = false,
-                                         bool includeDirectories = false);
+                                         bool include_directories = false);
 
-extern NNDEPLOY_CC_API bool createDirectory(const std::string& path);
-extern NNDEPLOY_CC_API bool createDirectories(const std::string& path);
+extern NNDEPLOY_CC_API bool createDirectory(const std::string &path);
+extern NNDEPLOY_CC_API bool createDirectories(const std::string &path_param);
 
 }  // namespace base
 }  // namespace nndeploy

@@ -48,6 +48,8 @@ class TnnInference : public Inference {
   tnn::NetworkConfig network_config_;
   tnn::TNN *tnn_ = nullptr;
   std::shared_ptr<tnn::Instance> instance_;
+
+  std::map<std::string, std::shared_ptr<tnn::Mat>> output_mat_map_;
 };
 
 }  // namespace inference

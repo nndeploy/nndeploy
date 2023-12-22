@@ -286,13 +286,16 @@ base::Status TensorRtInference::run() {
   }
 #else
   auto num_binds = getNbBindings();
-  if (bindingIsInput(i)) {
-    auto max_input_buffer = max_input_tensors_[io_index_name_[i]]->getBuffer();
-    bindings_[i] = max_input_buffer->getPtr();
-  } else {
-    auto max_output_buffer =
-        max_output_tensors_[io_index_name_[i]]->getBuffer();
-    bindings_[i] = max_output_buffer->getPtr();
+  for (int i = 0; i < num_binds; ++i) {
+    if (bindingIsInput(i)) {
+      auto max_input_buffer =
+          max_input_tensors_[io_index_name_[i]]->getBuffer();
+      bindings_[i] = max_input_buffer->getPtr();
+    } else {
+      auto max_output_buffer =
+          max_output_tensors_[io_index_name_[i]]->getBuffer();
+      bindings_[i] = max_output_buffer->getPtr();
+    }
   }
   if (!context_->enqueueV2(bindings_.data(), stream_, nullptr)) {
     NNDEPLOY_LOGE("Fail to enqueueV2!\n");
