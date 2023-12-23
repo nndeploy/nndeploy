@@ -114,6 +114,7 @@ class NNDEPLOY_CC_API CvtclorResizeParam : public base::Param {
                      1.0f / 255.0f};
   float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  bool normalize_ = true;
 };
 
 /**

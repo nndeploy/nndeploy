@@ -154,6 +154,8 @@ InferenceType stringToInferenceType(const std::string &src) {
     return kInferenceTypeAITemplate;
   } else if (src == "kInferenceTypeAscendCL") {
     return kInferenceTypeAscendCL;
+  } else if (src == "kInferenceTypeRknn"){
+    return kInferenceTypeRknn;
   } else {
     return kInferenceTypeNotSupport;
   }

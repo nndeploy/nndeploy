@@ -200,6 +200,7 @@ enum ModelType : int {
   kModelTypeTnn,
   kModelTypeMnn,
   kModelTypePaddleLite,
+  kModelTypeRknn,
 
   kModelTypeTvm,
   kModelTypeAITemplate,
@@ -221,6 +222,7 @@ enum InferenceType : int {
   kInferenceTypeTnn,
   kInferenceTypeMnn,
   kInferenceTypePaddleLite,
+  kInferenceTypeRknn,
 
   kInferenceTypeTvm,
   kInferenceTypeAITemplate,

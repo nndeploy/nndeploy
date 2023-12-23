@@ -43,6 +43,7 @@ enum StatusCode : int {
   kStatusCodeErrorInferenceCoreML,
   kStatusCodeErrorInferenceNcnn,
   kStatusCodeErrorInferencePaddleLite,
+  kStatusCodeErrorInferenceRknn,
   kStatusCodeErrorInferenceTvm,
 };
 

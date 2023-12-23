@@ -25,12 +25,16 @@ base::Status CvtColorResize::run() {
   // }
   device::Device *device = device::getDefaultHostDevice();
   device::TensorDesc desc;
-  desc.data_type_ = base::dataTypeOf<float>();
-  desc.data_format_ = base::kDataFormatNCHW;
-  desc.shape_.emplace_back(1);
-  desc.shape_.emplace_back(getChannelByPixelType(tmp_param->dst_pixel_type_));
-  desc.shape_.emplace_back(tmp_param->h_);
-  desc.shape_.emplace_back(tmp_param->w_);
+  if(tmp_param->normalize_){
+    desc.data_type_ = base::dataTypeOf<float>();
+    desc.data_format_ = base::kDataFormatNCHW;
+    desc.shape_ = {1, getChannelByPixelType(tmp_param->dst_pixel_type_), tmp_param->h_, tmp_param->w_};
+  }else{
+    desc.data_type_ = base::dataTypeOf<uint8_t>();
+    desc.data_format_ = base::kDataFormatNHWC;
+    desc.shape_ = {1, tmp_param->h_, tmp_param->w_, getChannelByPixelType(tmp_param->dst_pixel_type_)};
+  }
+
   outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
   device::Tensor *dst = outputs_[0]->getTensor(this);
 
@@ -52,17 +56,27 @@ base::Status CvtColorResize::run() {
     tmp_cvt = *src;
   }
 
-  cv::Mat tmp_resize;
-  if (tmp_param->interp_type_ != base::kInterpTypeNotSupport) {
-    int interp_type =
-        OpenCvConvert::convertFromInterpType(tmp_param->interp_type_);
-    cv::resize(tmp_cvt, tmp_resize, cv::Size(w, h), 0.0, 0.0, interp_type);
-  } else {
-    tmp_resize = tmp_cvt;
+  if(tmp_param->normalize_){
+    cv::Mat tmp_resize;
+    if (tmp_param->interp_type_ != base::kInterpTypeNotSupport) {
+      int interp_type =
+          OpenCvConvert::convertFromInterpType(tmp_param->interp_type_);
+      cv::resize(tmp_cvt, tmp_resize, cv::Size(w, h), 0.0, 0.0, interp_type);
+    } else {
+      tmp_resize = tmp_cvt;
+    }
+    OpenCvConvert::convertToTensor(tmp_resize, dst, tmp_param->scale_,
+                                   tmp_param->mean_, tmp_param->std_);
+  }else{
+    cv::Mat tmp_resize(h, w, CV_8UC3, (uint8_t *)dst->getPtr());
+    if (tmp_param->interp_type_ != base::kInterpTypeNotSupport) {
+      int interp_type =
+          OpenCvConvert::convertFromInterpType(tmp_param->interp_type_);
+      cv::resize(tmp_cvt, tmp_resize, cv::Size(w, h), 0.0, 0.0, interp_type);
+    } else {
+      tmp_cvt.copyTo(tmp_resize);
+    }
   }
-
-  OpenCvConvert::convertToTensor(tmp_resize, dst, tmp_param->scale_,
-                                 tmp_param->mean_, tmp_param->std_);
 
   return base::kStatusCodeOk;
 }
