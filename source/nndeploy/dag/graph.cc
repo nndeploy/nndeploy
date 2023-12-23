@@ -170,8 +170,14 @@ base::Status Graph::init() {
       EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "input_wrapper is null!");
+<<<<<<< HEAD
       
       node_wrapper->predecessors_.insert(node_wrapper->predecessors_.end(),input_wrapper->producers_.begin(),
+=======
+
+      node_wrapper->predecessors_.insert(node_wrapper->predecessors_.end(),
+                                         input_wrapper->producers_.begin(),
+>>>>>>> upstream/main
                                          input_wrapper->producers_.end());
     }
     std::vector<Edge *> outputs = node->getAllOutput();
@@ -179,7 +185,12 @@ base::Status Graph::init() {
       EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
                                            "output_wrapper is null!");
+<<<<<<< HEAD
       node_wrapper->successors_.insert(node_wrapper->successors_.end(),output_wrapper->consumers_.begin(),
+=======
+      node_wrapper->successors_.insert(node_wrapper->successors_.end(),
+                                       output_wrapper->consumers_.begin(),
+>>>>>>> upstream/main
                                        output_wrapper->consumers_.end());
     }
   }
