@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_DEVICE_MDC_MDC_UTIL_H_
-#define _NNDEPLOY_DEVICE_MDC_MDC_UTIL_H_
+#ifndef _NNDEPLOY_DEVICE_ASCEND_CL_UTIL_H_
+#define _NNDEPLOY_DEVICE_ASCEND_CL_UTIL_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -8,12 +8,12 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
-#include "nndeploy/device/mdc/mdc_include.h"
+#include "nndeploy/device/ascend_cl/ascend_cl_include.h"
 
 namespace nndeploy {
 namespace device {
 
-#define NNDEPLOY_MDC_CHECK(status)                                      \
+#define NNDEPLOY_ASCEND_CL_CHECK(status)                                \
   do {                                                                  \
     aclError __ret = status;                                            \
     if (__ret != ACL_ERROR_NONE) {                                      \
@@ -24,7 +24,7 @@ namespace device {
 /**
  * @brief queries the number of available devices
  */
-inline uint32_t mdcGetNumDevices() {
+inline uint32_t ascendCLGetNumDevices() {
   uint32_t n = 0;
   aclError ret = aclrtGetDeviceCount(&n);
   if (ret != ACL_SUCCESS) {
@@ -35,7 +35,7 @@ inline uint32_t mdcGetNumDevices() {
 /**
  * @brief gets the current device associated with the caller thread
  */
-inline int mdcGetDeviceId() {
+inline int ascendCLGetDeviceId() {
   int id;
   aclError ret = aclrtGetDevice(&id);
   if (ret != ACL_SUCCESS) {
@@ -47,4 +47,4 @@ inline int mdcGetDeviceId() {
 }  // namespace device
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_DEVICE_MDC_MDC_UTIL_H_ */
+#endif /* _NNDEPLOY_DEVICE_ASCEND_CL_UTIL_H_ */

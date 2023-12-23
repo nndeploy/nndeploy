@@ -223,6 +223,7 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
 
   virtual base::Status synchronize();
 
+  virtual void *getContext();
   virtual void *getCommandQueue();
 
   base::DeviceType getDeviceType();

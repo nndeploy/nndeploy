@@ -83,6 +83,12 @@ base::Status Device::synchronize() {
   return base::kStatusCodeOk;
 }
 
+void *Device::getContext() {
+  NNDEPLOY_LOGI("this device[%d, %d] can't getContext!\n", device_type_.code_,
+                device_type_.device_id_);
+  return nullptr;
+}
+
 void *Device::getCommandQueue() {
   NNDEPLOY_LOGI("this device[%d, %d] can't getCommandQueue!\n",
                 device_type_.code_, device_type_.device_id_);

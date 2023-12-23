@@ -11,9 +11,9 @@
 
 ## 特性
 
-### 1. 支持多平台和多一致性
+### 1. 支持多平台和一致性
 
-只要环境受支持，通过`nndeploy`部署模型的代码无需修改即可跨多个平台以及各多个推理框架使用。
+只要环境支持，通过`nndeploy`部署模型的代码无需修改即可跨多个平台以及各多个推理框架使用。
 当前支持的环境如下：
 
 | Inference/OS                                               | Linux | Windows | Android | MacOS |  IOS  | developer                                 | remarks |
@@ -26,7 +26,7 @@
 | [ncnn](https://github.com/Tencent/ncnn)                    |   -   |    -    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
 | [coreML](https://github.com/apple/coremltools)             |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)   |         |
 | [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang) |         |
-| [MDC](https://github.com/PaddlePaddle/Paddle-Lite)         |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)         |         |
+| [AscendCL](https://www.hiascend.com/zh/)                   |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)         |         |
 
 
 **Notice:** TFLite, TVM, OpenPPL, RKNN, sophgo, MindSpore-lite, Horizon正在开发中，我们正在努力覆盖绝大部分的主流推理框架
@@ -35,7 +35,7 @@
 
 - **推理框架的高性能抽象**：每个推理框架也都有其各自的特性，需要足够尊重以及理解这些推理框架，才能在抽象中不丢失推理框架的特性，并做到统一的使用的体验。`nndeploy` 可配置第三方推理框架绝大部分参数，保证了推理性能。可直接操作理框架内部分配的输入输出，实现前后处理的零拷贝，提升模型部署端到端的性能。
   
-- 线程池正在开发完善中，可实现有向无环图的流水线并行
+- 线程池正在开发完善中
   
 - 内存池正在开发完善中，可实现高效的内存分配与释放
   
@@ -53,8 +53,13 @@
 
 ### 4. 简单易用
 
-- **一套代码多端部署**：通过切换推理配置，一套代码即可在多端部署，算法的使用接口简单易用。
-- **算法部署简单**：将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 `Graph`，前处理为一个 `Node`，推理也为一个 `Node`，后处理也为一个 `Node`，提供了高性能的前后处理模板和推理模板，上述模板可帮助您进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题。
+- **一套代码多端部署**：通过切换推理配置，一套代码即可在多端部署，算法的使用接口简单易用
+- **算法部署简单**：将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 `Graph`，前处理为一个 `Node`，推理也为一个 `Node`，后处理也为一个 `Node`，提供了高性能的前后处理模板和推理模板，上述模板可帮助您进一步简化端到端的部署流程。有向无环图还可以高性能且高效的解决多模型部署的痛点问题
+
+
+### 5. 并行
+- **任务并行**
+- **流水线并行**
 
 ## 文档
 - 更多信息，访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/introduction/index.html)。
@@ -64,13 +69,6 @@
 - 接入更多的算法，例如ppocr、sam、detr等，一个是去更充分的验证我们这个框架，另一个是让更多人可以知道nndeploy
 - 接入更多的推理框架，例如rknn(rknn在工业场景使用的非常非常多)
 - 从0到1搭建OP模块，提升性能
-
-## 编译状态
-| OS      |                                                                      status                                                                      |
-| ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
-| Linux   |  [![linux](https://ci.appveyor.com/api/projects/status/a135va7wtjot4iaw?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-pdc3k)  |
-| Macos   |     [![macos](https://ci.appveyor.com/api/projects/status/7sey9eqhfnnedqi2?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy)     |
-| Windows | [![windows](https://ci.appveyor.com/api/projects/status/4gsf91utksd7v595?svg=true)](https://ci.appveyor.com/project/Alwaysssssss/nndeploy-ovpc5) |
 
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
@@ -83,19 +81,6 @@
 - [FlyCV](https://github.com/PaddlePaddle/FlyCV)
 - [ThreadPool](https://github.com/progschj/ThreadPool)
 - [torchpipe](https://github.com/torchpipe/torchpipe)
-
-## 贡献者
-- [02200059Z](https://github.com/02200059Z)
-- [JoDio-zd](https://github.com/JoDio-zd)
-- [qixuxiang](https://github.com/qixuxiang)
-- [CYYAI](https://github.com/CYYAI)
-- [Always](https://github.com/Alwaysssssss)
-- [youxiudeshouyeren](https://github.com/youxiudeshouyeren)
-- [PeterH0323](https://github.com/PeterH0323)
-- [100312dog](https://github.com/100312dog)
-- [wangzhaode](https://github.com/wangzhaode)
-- [ChunelFeng](https://github.com/ChunelFeng)
-- [acheerfulish](https://github.com/acheerfulish)
 
 ## 加入我们
 - `nndeploy`还处于初级阶段，欢迎参与，我们一起打造最简单易用、高性能的模型端到端部署框架

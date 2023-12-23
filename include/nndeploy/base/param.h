@@ -44,6 +44,9 @@ class NNDEPLOY_CC_API Param {
   PARAM_COPY(Param)
   PARAM_COPY_TO(Param)
 
+  void setName(const std::string &name);
+  std::string getName();
+
   virtual base::Status parse(const std::string &json, bool is_path = true);
 
   virtual base::Status set(const std::string &key, base::Value &value);

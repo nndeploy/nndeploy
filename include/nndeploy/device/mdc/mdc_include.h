@@ -1,7 +1,0 @@
-
-#ifndef _NNDEPLOY_DEVICE_CUDA_MDC_INCLUDE_H_
-#define _NNDEPLOY_DEVICE_CUDA_MDC_INCLUDE_H_
-
-#include "acl/acl.h"
-
-#endif /* _NNDEPLOY_DEVICE_CUDA_MDC_INCLUDE_H_ */

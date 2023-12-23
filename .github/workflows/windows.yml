@@ -2,13 +2,13 @@ name: windows
 on:
   push:
     branches:
-     - master
+     - main
      - 'feature/**'
     paths:
       - 'src/**'
       - '.github/workflows/windows.yml'
   pull_request:
-    branches: [master]
+    branches: [main]
     paths:
       - 'src/**'
       - '.github/workflows/windows.yml'

@@ -33,11 +33,14 @@
 | [coreML](https://github.com/apple/coremltools)             |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)   |         |
 | [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang) |         |
 | [MDC](https://github.com/PaddlePaddle/Paddle-Lite)         |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)         |         |
+
+
+
 ## 直接可用的算法
 
 - 目前已完成 [YOLOV5](https://github.com/ultralytics/yolov5)、[YOLOV6](https://github.com/meituan/YOLOv6)、[YOLOV8](https://github.com/ultralytics) 等模型的部署，可供您直接使用，后续我们持续不断去部署其它开源模型，让您开箱即用
 
-|                      算法                       |             Inference             |                                       开发人员                                       | 备注  |
+|                      算法                       |             Inference             |                                       developer                                       | 备注  |
 | :---------------------------------------------: | :-------------------------------: | :----------------------------------------------------------------------------------: | :---: |
 | [YOLOV5](https://github.com/ultralytics/yolov5) | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |       |
 |   [YOLOV6](https://github.com/meituan/YOLOv6)   |   TensorRt/OpenVINO/ONNXRuntime   | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |       |
@@ -78,6 +81,14 @@
 
 - 接入更多的推理框架，包括`TFLite`、`paddle-lite`、`coreML`、`TVM`、`RKNN`、算能等等推理软件栈
 - 部署更多的算法，包括 `Stable Diffusion`、`DETR`、`SAM`等等热门开源模型
+
+
+## Support
+| OS      |                                                                      status                                                                      |
+| ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
+| Linux | [![linux](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml) |
+| Macos | [![macos](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml) |
+| Windows | [![windows](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml) |
 
 # 加入我们
 

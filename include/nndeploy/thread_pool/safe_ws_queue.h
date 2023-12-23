@@ -64,6 +64,8 @@ class SafeWSQueue {
     return result;
   }
 
+  std::deque<T> &getQueue() { return deque_; }
+
   SafeWSQueue() = default;
 
  private:

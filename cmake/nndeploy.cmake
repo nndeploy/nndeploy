@@ -66,8 +66,8 @@ include("${ROOT_PATH}/cmake/paddlelite.cmake")
 # # rknn
 include("${ROOT_PATH}/cmake/rknn.cmake")
 
-# # mdc
-include("${ROOT_PATH}/cmake/mdc.cmake")
+# # ascend_cl
+include("${ROOT_PATH}/cmake/ascend_cl.cmake")
 
 # ################### inference ####################
 

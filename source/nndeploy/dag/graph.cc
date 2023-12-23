@@ -11,6 +11,7 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/graph/parallel_task_executor.h"
 #include "nndeploy/dag/graph/sequential_executor.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
@@ -131,6 +132,12 @@ base::Param *Graph::getNodeParam(const std::string &node_name) {
   return node_wrapper->node_->getParam();
 }
 
+base::Status Graph::setParallelType(const ParallelType &type) {
+  GraphParam *graph_param = dynamic_cast<GraphParam *>(param_.get());
+  graph_param->parallel_type_ = type;
+  return base::kStatusCodeOk;
+}
+
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
@@ -163,7 +170,9 @@ base::Status Graph::init() {
       EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "input_wrapper is null!");
-      node_wrapper->predecessors_.assign(input_wrapper->producers_.begin(),
+
+      node_wrapper->predecessors_.insert(node_wrapper->predecessors_.end(),
+                                         input_wrapper->producers_.begin(),
                                          input_wrapper->producers_.end());
     }
     std::vector<Edge *> outputs = node->getAllOutput();
@@ -171,7 +180,8 @@ base::Status Graph::init() {
       EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
                                            "output_wrapper is null!");
-      node_wrapper->successors_.assign(output_wrapper->consumers_.begin(),
+      node_wrapper->successors_.insert(node_wrapper->successors_.end(),
+                                       output_wrapper->consumers_.begin(),
                                        output_wrapper->consumers_.end());
     }
   }
@@ -199,6 +209,8 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("##############\n");
   if (parallel_type == kParallelTypeNone) {
     executor_ = std::make_shared<SequentialExecutor>();
+  } else if (parallel_type == kParallelTypeTask) {
+    executor_ = std::make_shared<ParallelTaskExecutor>();
   } else {
     NNDEPLOY_LOGE("parallel_type is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;

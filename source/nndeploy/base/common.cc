@@ -65,6 +65,8 @@ DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {
     return kDeviceTypeCodeX86;
   } else if (src == "kDeviceTypeCodeCuda") {
     return kDeviceTypeCodeCuda;
+  } else if (src == "kDeviceTypeCodeMdc") {
+    return kDeviceTypeCodeMdc;
   } else if (src == "kDeviceTypeCodeOpenCL") {
     return kDeviceTypeCodeOpenCL;
   } else if (src == "kDeviceTypeCodeOpenGL") {
@@ -118,8 +120,8 @@ ModelType stringToModelType(const std::string &src) {
     return kModelTypeTvm;
   } else if (src == "kModelTypeAITemplate") {
     return kModelTypeAITemplate;
-  } else if (src == "KModelTypeMdc") {
-    return kModelTypeMdc;
+  } else if (src == "KModelTypeAscendCL") {
+    return kModelTypeAscendCL;
   } else {
     return kModelTypeNotSupport;
   }
@@ -150,8 +152,8 @@ InferenceType stringToInferenceType(const std::string &src) {
     return kInferenceTypeTvm;
   } else if (src == "kInferenceTypeAITemplate") {
     return kInferenceTypeAITemplate;
-  } else if (src == "kInferenceTypeMdc") {
-    return kInferenceTypeMdc;
+  } else if (src == "kInferenceTypeAscendCL") {
+    return kInferenceTypeAscendCL;
   } else if (src == "kInferenceTypeRknn"){
     return kInferenceTypeRknn;
   } else {

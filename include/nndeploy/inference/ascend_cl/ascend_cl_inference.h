@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_INFERENCE_MDC_MDC_INFERENCE_H_
-#define _NNDEPLOY_INFERENCE_MDC_MDC_INFERENCE_H_
+#ifndef _NNDEPLOY_INFERENCE_ASCEND_CL_INFERENCE_H_
+#define _NNDEPLOY_INFERENCE_ASCEND_CL_INFERENCE_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/log.h"
@@ -10,24 +10,18 @@
 #include "nndeploy/base/value.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/inference/ascend_cl/ascend_cl_include.h"
+#include "nndeploy/inference/ascend_cl/ascend_cl_inference_param.h"
 #include "nndeploy/inference/inference.h"
 #include "nndeploy/inference/inference_param.h"
-#include "nndeploy/inference/mdc/mdc_include.h"
-#include "nndeploy/inference/mdc/mdc_inference_param.h"
 
 namespace nndeploy {
 namespace inference {
 
-struct OrtValueInfo {
-  std::string name;
-  std::vector<int64_t> shape;
-  aclDataType dtype;
-};
-
-class MdcInference : public Inference {
+class AscendCLInference : public Inference {
  public:
-  MdcInference(base::InferenceType type);
-  virtual ~MdcInference();
+  AscendCLInference(base::InferenceType type);
+  virtual ~AscendCLInference();
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -47,23 +41,20 @@ class MdcInference : public Inference {
  private:
   int batch_size_ = 1;
 
-  const char *aclConfigPath =
-      "";  // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看mdc文档
+  const char *acl_config_path_ =
+      "";  // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看ascend_cl文档
 
   aclrtContext context_ = nullptr;
 
-  aclmdlDesc *modelDesc_ = nullptr;
-  aclmdlDataset *inputDataset_ = nullptr;
-  aclmdlDataset *outputDataset_ = nullptr;
+  aclmdlDesc *model_desc_ = nullptr;
+  aclmdlDataset *input_dataset_ = nullptr;
+  aclmdlDataset *output_dataset_ = nullptr;
 
-  uint32_t modelId_;
-
-  std::vector<OrtValueInfo> inputs_desc_;
-  std::vector<OrtValueInfo> outputs_desc_;
+  uint32_t model_id_;
 
   std::map<std::string, device::Tensor *> max_input_tensors_;
   std::map<std::string, device::Tensor *> max_output_tensors_;
-  std::map<std::string, std::string> mdc_change_output_names_;
+  std::map<std::string, std::string> ascend_cl_change_output_names_;
 };
 
 }  // namespace inference

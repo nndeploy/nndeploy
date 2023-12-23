@@ -25,9 +25,6 @@ extern NNDEPLOY_CC_API void removeAllFile(const std::string &path);
 
 extern NNDEPLOY_CC_API std::string getcwd();
 
-extern NNDEPLOY_CC_API std::vector<std::string> split_string(
-    const std::string &str, const std::string &spstr);
-
 /**
  * @brief Converts path p to a canonical absolute path
  * Symlinks are processed if there is support for them on running platform.
@@ -79,7 +76,7 @@ extern NNDEPLOY_CC_API void globRelative(const std::string &directory,
                                          bool include_directories = false);
 
 extern NNDEPLOY_CC_API bool createDirectory(const std::string &path);
-extern NNDEPLOY_CC_API bool createDirectories(const std::string &path);
+extern NNDEPLOY_CC_API bool createDirectories(const std::string &path_param);
 
 }  // namespace base
 }  // namespace nndeploy
