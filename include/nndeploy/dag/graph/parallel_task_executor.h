@@ -15,40 +15,41 @@ class ParallelTaskExecutor : public Executor {
 
   virtual ~ParallelTaskExecutor(){};
 
-  // 构建线程池   构造任务（本来要执行的任务 和 将自己的后继节点加入线程池的部分
   virtual base::Status init(std::vector<EdgeWrapper*>& edge_repository,
                             std::vector<NodeWrapper*>& node_repository) {
-    thread_pool_ = new thread_pool::ThreadPool();  // 最大并行度，决定线程的数量
+    thread_pool_ =
+        new thread_pool::ThreadPool();  // TODO:
+                                        // 计算图的最大并行度，决定线程的数量
     thread_pool_->init();
     start_nodes_ = findStartNodes(node_repository);
     base::Status status = topoSortDFS(node_repository, topo_sort_node_);
     all_task_count_ = node_repository.size();
-
     if (start_nodes_.empty()) {
       NNDEPLOY_LOGE("No start node found in graph");
       return base::kStatusCodeErrorInvalidValue;
     }
 
     for (auto iter : topo_sort_node_) {
+      iter->color_ = kNodeColorWhite;
       status = iter->node_->init();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "存在节点初始化失败");
     }
 
     return status;
   }
 
-  // 销毁线程池
   virtual base::Status deinit() {
     base::Status status = base::kStatusCodeOk;
     for (auto iter : topo_sort_node_) {
-      iter->color_ = kNodeColorWhite;
       status = iter->node_->deinit();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "存在节点反初始化失败");
     }
-    thread_pool_->destroy();  // thread_pool_ptr_指针delete
+    thread_pool_->destroy();
     delete thread_pool_;
     return status;
   }
 
-  // 唤醒start_nodes的执行
   virtual base::Status run() {
     for (auto iter : start_nodes_) {
       process(iter);
@@ -56,14 +57,20 @@ class ParallelTaskExecutor : public Executor {
     wait();
 
     for (auto iter : topo_sort_node_) {
-      NNDEPLOY_RETURN_ON_NEQ(iter->color_, kNodeColorGray,
-                             "存在未执行完的节点");
+      if (iter->color_ != kNodeColorBlack) {
+        std::string info{"存在未执行完的节点"};
+        info.append(iter->name_);
+        NNDEPLOY_RETURN_ON_NEQ(iter->color_, kNodeColorBlack, info.c_str());
+      }
     }
-    
+
+    afterGraphRun();
     return base::kStatusCodeOk;
   }
 
+  // 提交一个节点执行
   void process(NodeWrapper* node_wrapper) {
+    node_wrapper->color_ = kNodeColorGray;
     const auto& func = [this, node_wrapper] {
       node_wrapper->node_->run();
       afterNodeRun(node_wrapper);
@@ -71,16 +78,21 @@ class ParallelTaskExecutor : public Executor {
     thread_pool_->commit(func);
   }
 
+  // 状态更新；加入后续节点执行；唤醒主线程
   void afterNodeRun(NodeWrapper* node_wrapper) {
-    node_wrapper->color_ = kNodeColorGray;
     completed_task_count_++;
+    node_wrapper->color_ = kNodeColorBlack;
     for (auto successor : node_wrapper->successors_) {
       bool all_pre_done = true;
       for (auto iter : successor->predecessors_) {
-        all_pre_done &= (iter->color_ == kNodeColorGray);
+        all_pre_done &= (iter->color_ == kNodeColorBlack);
       }
-      if (all_pre_done) {
-        process(successor);
+      if (all_pre_done && successor->color_ == kNodeColorWhite) {
+        if (successor->predecessors_.size() <= 1) {
+          process(successor);
+        } else {
+          process(successor);
+        }
       }
     }
 
@@ -89,15 +101,33 @@ class ParallelTaskExecutor : public Executor {
       return;
     }
 
-    std::lock_guard<std::mutex> lock(lock_);
+    std::lock_guard<std::mutex> lock(main_lock_);
+    std::cout << completed_task_count_ << std::endl;
     if (completed_task_count_ >= all_task_count_) {
       cv_.notify_one();
     }
   }
 
+  // 一个节点有多个前驱节点时，防止多次加入执行
+  void submitTaskSynchronized(NodeWrapper* node_wrapper) {
+    std::lock_guard<std::mutex> lock(commit_lock_);
+    if (node_wrapper->color_ == kNodeColorWhite) {
+      process(node_wrapper);
+    }
+  }
+
+  // 等待所有节点执行完成
   void wait() {
-    std::unique_lock<std::mutex> lock(lock_);
+    std::unique_lock<std::mutex> lock(main_lock_);
     cv_.wait(lock, [this] { return completed_task_count_ >= all_task_count_; });
+  }
+
+  // 初始化每次执行的状态信息
+  void afterGraphRun() {
+    completed_task_count_ = 0;
+    for (auto iter : topo_sort_node_) {
+      iter->color_ = kNodeColorWhite;
+    }
   }
 
  private:
@@ -106,7 +136,8 @@ class ParallelTaskExecutor : public Executor {
   std::vector<NodeWrapper*> start_nodes_;     // 没有依赖的起始节点
   std::atomic<int> completed_task_count_{0};  // 已执行结束的元素个数
   int all_task_count_ = 0;  // 需要执行的所有节点个数
-  std::mutex lock_;
+  std::mutex main_lock_;
+  std::mutex commit_lock_;
   std::condition_variable cv_;
 };
 
