@@ -22,7 +22,7 @@ enum ParallelForApiType : int {
 class NNDEPLOY_CC_API ParallelLoopBody {
  public:
   virtual ~ParallelLoopBody() {}
-  virtual void operator()(const base::Range& range) const = 0;
+  virtual void operator()(const base::Range &range) const = 0;
 };
 
 extern NNDEPLOY_CC_API int defaultNumberOfThreads();
@@ -34,8 +34,8 @@ extern NNDEPLOY_CC_API int getThreadNum();
 /**
  * @brief Parallel data processor
  */
-extern NNDEPLOY_CC_API void parallelFor(const base::Range& range,
-                                        const ParallelLoopBody& body,
+extern NNDEPLOY_CC_API void parallelFor(const base::Range &range,
+                                        const ParallelLoopBody &body,
                                         double nstripes = -1.0);
 
 }  // namespace thread_pool

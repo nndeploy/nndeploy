@@ -95,7 +95,7 @@
 
 #ifndef NNDEPLOY_ALIGN_PTR
 #define NNDEPLOY_ALIGN_PTR(x, y) \
-  (void*)(x & ~static_cast<size_t>(NNDEPLOY_ABS(y) - 1))
+  (void *)(x & ~static_cast<size_t>(NNDEPLOY_ABS(y) - 1))
 #endif
 
 #ifndef NNDEPLOY_MIN
@@ -118,29 +118,29 @@
     !defined __INTEL_COMPILER
 #ifdef __ATOMIC_ACQ_REL
 #define NNDEPLOY_XADD(addr, delta) \
-  __c11_atomic_fetch_add((_Atomic(int)*)(addr), delta, __ATOMIC_ACQ_REL)
+  __c11_atomic_fetch_add((_Atomic(int) *)(addr), delta, __ATOMIC_ACQ_REL)
 #else
 #define NNDEPLOY_XADD(addr, delta) \
-  __atomic_fetch_add((_Atomic(int)*)(addr), delta, 4)
+  __atomic_fetch_add((_Atomic(int) *)(addr), delta, 4)
 #endif
 #else
 #if defined __ATOMIC_ACQ_REL && !defined __clang__
 // version for gcc >= 4.7
-#define NNDEPLOY_XADD(addr, delta)                              \
-  (int)__atomic_fetch_add((unsigned*)(addr), (unsigned)(delta), \
+#define NNDEPLOY_XADD(addr, delta)                               \
+  (int)__atomic_fetch_add((unsigned *)(addr), (unsigned)(delta), \
                           __ATOMIC_ACQ_REL)
 #else
 #define NNDEPLOY_XADD(addr, delta) \
-  (int)__sync_fetch_and_add((unsigned*)(addr), (unsigned)(delta))
+  (int)__sync_fetch_and_add((unsigned *)(addr), (unsigned)(delta))
 #endif
 #endif
 #elif defined _MSC_VER && !defined RC_INVOKED
 #include <intrin.h>
 #define NNDEPLOY_XADD(addr, delta) \
-  (int)_InterlockedExchangeAdd((long volatile*)addr, delta)
+  (int)_InterlockedExchangeAdd((long volatile *)addr, delta)
 #else
 #ifdef NNDEPLOY_FORCE_UNSAFE_XADD
-static inline int NNDEPLOY_XADD(int* addr, int delta) {
+static inline int NNDEPLOY_XADD(int *addr, int delta) {
   int tmp = *addr;
   *addr += delta;
   return tmp;
@@ -173,14 +173,15 @@ static inline int NNDEPLOY_XADD(int* addr, int delta) {
 #define NNDEPLOY_OS_ANDROID 1
 #endif
 
-#if (defined __APPLE__ && (defined __arm64__ || defined TARGET_OS_MAC))
+#if (defined __APPLE__)
+#include <TargetConditionals.h>
+#if defined(TARGET_OS_MAC)
 #undef NNDEPLOY_OS_DARWIN
 #define NNDEPLOY_OS_DARWIN 1
-#endif
-
-#if (defined __APPLE__ && defined TARGET_OS_IPHONE)
+#elif defined(TARGET_OS_IPHONE)
 #undef NNDEPLOY_OS_IOS
 #define NNDEPLOY_OS_IOS 1
+#endif
 #endif
 
 #ifdef _WIN32

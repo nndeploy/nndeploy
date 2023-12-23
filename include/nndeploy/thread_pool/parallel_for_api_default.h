@@ -13,8 +13,8 @@ class WorkerThread;
 
 class ParallelPool {
  public:
-  static ParallelPool& getInstance() {
-    static ParallelPool* instance = new ParallelPool;
+  static ParallelPool &getInstance() {
+    static ParallelPool *instance = new ParallelPool;
     return *instance;
   }
 
@@ -26,7 +26,7 @@ class ParallelPool {
 
   int getThreadNum() const;
 
-  void parallelFor(const base::Range& range, const ParallelLoopBody& body,
+  void parallelFor(const base::Range &range, const ParallelLoopBody &body,
                    double nstripes);
 
   void stop() { setWorkThreads(0); }
@@ -56,8 +56,8 @@ class ParallelForApiDefault : public ParallelForApi {
 
   virtual int getThreadNum();
 
-  virtual int parallelFor(const base::Range& range,
-                          const ParallelLoopBody& body, double nstripes = -1.0);
+  virtual int parallelFor(const base::Range &range,
+                          const ParallelLoopBody &body, double nstripes = -1.0);
 };
 
 }  // namespace thread_pool

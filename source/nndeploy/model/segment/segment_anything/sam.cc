@@ -12,11 +12,12 @@ dag::TypeGraphRegister g_register_sam_graph(NNDEPLOY_SAM, createSamGraph);
 
 // 后处理
 base::Status SamPostProcess::run() {
-  SamPostParam* param = dynamic_cast<SamPostParam*>(param_.get());
+  SamPostParam *param = dynamic_cast<SamPostParam *>(param_.get());
 
-  device::Tensor* mask = inputs_[0]->getTensor("masks");
+  device::Tensor *mask = inputs_[0]->getTensor("masks");
 
-  SegmentResult* result = dynamic_cast<SegmentResult*>(outputs_[0]->getParam());
+  SegmentResult *result =
+      dynamic_cast<SegmentResult *>(outputs_[0]->getParam());
   result->mask_ = mask;
 
   return base::kStatusCodeOk;
@@ -24,10 +25,10 @@ base::Status SamPostProcess::run() {
 
 // 构建SamBuildInput
 base::Status SamBuildInput::reshape() {
-  device::Device* cur_device = device::getDefaultHostDevice();
+  device::Device *cur_device = device::getDefaultHostDevice();
   for (int i = 0; i < outputs_[0]->sizeTensor(); i++) {
     if (outputs_[0]->getTensor(i)->getName() == "point_coords") {
-      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::Tensor *dst = outputs_[0]->getTensor(i);
       device::TensorDesc desc = dst->getDesc();
       desc.data_type_ = base::dataTypeOf<float>();
       desc.data_format_ = base::kDataFormatNCHW;
@@ -37,7 +38,7 @@ base::Status SamBuildInput::reshape() {
       dst->justModify(desc);
       dst->allocBuffer(cur_device);
     } else if (outputs_[0]->getTensor(i)->getName() == "point_labels") {
-      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::Tensor *dst = outputs_[0]->getTensor(i);
       device::TensorDesc desc = dst->getDesc();
       desc.data_type_ = base::dataTypeOf<float>();
       desc.data_format_ = base::kDataFormatNCHW;
@@ -46,7 +47,7 @@ base::Status SamBuildInput::reshape() {
       dst->justModify(desc);
       dst->allocBuffer(cur_device);
     } else if (outputs_[0]->getTensor(i)->getName() == "has_mask_input") {
-      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::Tensor *dst = outputs_[0]->getTensor(i);
       device::TensorDesc desc = dst->getDesc();
       desc.data_type_ = base::dataTypeOf<float>();
       desc.data_format_ = base::kDataFormatNCHW;
@@ -54,7 +55,7 @@ base::Status SamBuildInput::reshape() {
       dst->justModify(desc);
       dst->allocBuffer(cur_device);
     } else if (outputs_[0]->getTensor(i)->getName() == "mask_input") {
-      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::Tensor *dst = outputs_[0]->getTensor(i);
       device::TensorDesc desc = dst->getDesc();
       desc.data_type_ = base::dataTypeOf<float>();
       desc.data_format_ = base::kDataFormatNCHW;
@@ -65,7 +66,7 @@ base::Status SamBuildInput::reshape() {
       dst->justModify(desc);
       dst->allocBuffer(cur_device);
     } else if (outputs_[0]->getTensor(i)->getName() == "orig_im_size") {
-      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::Tensor *dst = outputs_[0]->getTensor(i);
       device::TensorDesc desc = dst->getDesc();
       desc.data_type_ = base::dataTypeOf<float>();
       desc.data_format_ = base::kDataFormatNCHW;
@@ -73,7 +74,7 @@ base::Status SamBuildInput::reshape() {
       dst->justModify(desc);
       dst->allocBuffer(cur_device);
     } else if (outputs_[0]->getTensor(i)->getName() == "image_embeddings") {
-      device::Tensor* dst = outputs_[0]->getTensor(i);
+      device::Tensor *dst = outputs_[0]->getTensor(i);
       device::TensorDesc desc = dst->getDesc();
       desc.data_type_ = base::dataTypeOf<float>();
       desc.data_format_ = base::kDataFormatNCHW;
@@ -89,9 +90,9 @@ base::Status SamBuildInput::reshape() {
 }
 
 base::Status SamBuildInput::run() {
-  device::Device* cur_device = device::getDefaultHostDevice();
+  device::Device *cur_device = device::getDefaultHostDevice();
 
-  cv::Mat* src = inputs_[1]->getCvMat();
+  cv::Mat *src = inputs_[1]->getCvMat();
   int origin_h = src->rows;
   int origin_w = src->cols;
   float scale_h = (float)1024 / origin_h;
@@ -117,59 +118,59 @@ base::Status SamBuildInput::run() {
     }
     scale_points.emplace_back(0);
     scale_points.emplace_back(0);
-    device::Tensor* point_coords_tensor =
+    device::Tensor *point_coords_tensor =
         outputs_[0]->getTensor("point_coords");
     size_t size = point_coords_tensor->getSize();
-    void* data = point_coords_tensor->getPtr();
-    std::memcpy(data, (void*)scale_points.data(), size);
+    void *data = point_coords_tensor->getPtr();
+    std::memcpy(data, (void *)scale_points.data(), size);
   }
 
   // point_labels
   {
     std::vector<float> point_labels = {1, -1};
-    device::Tensor* point_labels_tensor =
+    device::Tensor *point_labels_tensor =
         outputs_[0]->getTensor("point_labels");
     size_t size = point_labels_tensor->getSize();
-    void* data = point_labels_tensor->getPtr();
-    std::memcpy(data, (void*)point_labels.data(), size);
+    void *data = point_labels_tensor->getPtr();
+    std::memcpy(data, (void *)point_labels.data(), size);
   }
 
   // has_mask_input
   {
     std::vector<float> has_mask_input = {1};
-    device::Tensor* has_mask_input_tensor =
+    device::Tensor *has_mask_input_tensor =
         outputs_[0]->getTensor("has_mask_input");
     size_t size = has_mask_input_tensor->getSize();
-    void* data = has_mask_input_tensor->getPtr();
-    std::memcpy(data, (void*)has_mask_input.data(), size);
+    void *data = has_mask_input_tensor->getPtr();
+    std::memcpy(data, (void *)has_mask_input.data(), size);
   }
 
   // mask_input
   {
     std::vector<float> mask_input(size_t(256 * 256), float(0));
-    device::Tensor* mask_input_tensor = outputs_[0]->getTensor("mask_input");
+    device::Tensor *mask_input_tensor = outputs_[0]->getTensor("mask_input");
     size_t size = mask_input_tensor->getSize();
-    void* data = mask_input_tensor->getPtr();
-    std::memcpy(data, (void*)mask_input.data(), size);
+    void *data = mask_input_tensor->getPtr();
+    std::memcpy(data, (void *)mask_input.data(), size);
   }
 
   // orig_im_size
   {
     std::vector<float> orig_im_size = {float(origin_h), float(origin_w)};
-    device::Tensor* orig_im_size_tensor =
+    device::Tensor *orig_im_size_tensor =
         outputs_[0]->getTensor("orig_im_size");
     size_t size = orig_im_size_tensor->getSize();
-    void* data = orig_im_size_tensor->getPtr();
-    std::memcpy(data, (void*)orig_im_size.data(), size);
+    void *data = orig_im_size_tensor->getPtr();
+    std::memcpy(data, (void *)orig_im_size.data(), size);
   }
 
   // image_embeddings
   {
-    device::Tensor* input = inputs_[0]->getTensor();
-    device::Buffer* input_buffer = input->getBuffer();
-    device::Tensor* image_embeddings_tensor =
+    device::Tensor *input = inputs_[0]->getTensor();
+    device::Buffer *input_buffer = input->getBuffer();
+    device::Tensor *image_embeddings_tensor =
         outputs_[0]->getTensor("image_embeddings");
-    device::Buffer* image_embeddings_buffer =
+    device::Buffer *image_embeddings_buffer =
         image_embeddings_tensor->getBuffer();
     cur_device->copy(input_buffer, image_embeddings_buffer);
   }
@@ -177,38 +178,38 @@ base::Status SamBuildInput::run() {
   return base::kStatusCodeOk;
 }
 
-dag::Graph* createSamGraph(const std::string& name,
+dag::Graph *createSamGraph(const std::string &name,
                            base::InferenceType inference_type,
-                           base::DeviceType device_type, dag::Edge* input,
-                           dag::Edge* output, base::ModelType model_type,
+                           base::DeviceType device_type, dag::Edge *input,
+                           dag::Edge *output, base::ModelType model_type,
                            bool is_path,
                            std::vector<std::string> model_values) {
-  dag::Graph* graph = new dag::Graph(name, input, output);
-  dag::Edge* embedding_input = graph->createEdge("embedding_input");
-  dag::Edge* embedding_output = graph->createEdge("embedding_output");
-  dag::Edge* build_sam_input = graph->createEdge("build_input");
-  dag::Edge* segment_output = graph->createEdge("segment_output");
+  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Edge *embedding_input = graph->createEdge("embedding_input");
+  dag::Edge *embedding_output = graph->createEdge("embedding_output");
+  dag::Edge *build_sam_input = graph->createEdge("build_input");
+  dag::Edge *segment_output = graph->createEdge("segment_output");
 
-  dag::Node* preprocess = graph->createNode<model::CvtColorResizePad>(
+  dag::Node *preprocess = graph->createNode<model::CvtColorResizePad>(
       "preprocess", input, embedding_input);
-  dag::Node* embedding_inference = graph->createInfer<model::Infer>(
+  dag::Node *embedding_inference = graph->createInfer<model::Infer>(
       "embedding_inference", inference_type, embedding_input, embedding_output);
   // 输出
-  std::vector<dag::Edge*> inputs;
+  std::vector<dag::Edge *> inputs;
   inputs.emplace_back(embedding_output);
   inputs.emplace_back(input);
-  std::vector<dag::Edge*> outputs;
+  std::vector<dag::Edge *> outputs;
   outputs.emplace_back(build_sam_input);
-  dag::Node* build_input =
+  dag::Node *build_input =
       graph->createNode<SamBuildInput>("build_input", inputs, outputs);
   // 这个推理任务本身是动态输入的
-  dag::Node* segment_inference = graph->createInfer<model::Infer>(
+  dag::Node *segment_inference = graph->createInfer<model::Infer>(
       "segment_inference", inference_type, build_sam_input, segment_output);
-  dag::Node* postprocess =
+  dag::Node *postprocess =
       graph->createNode<SamPostProcess>("postprocess", segment_output, output);
 
-  model::CvtclorResizePadParam* pre_param =
-      dynamic_cast<model::CvtclorResizePadParam*>(preprocess->getParam());
+  model::CvtclorResizePadParam *pre_param =
+      dynamic_cast<model::CvtclorResizePadParam *>(preprocess->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -224,15 +225,15 @@ dag::Graph* createSamGraph(const std::string& name,
   pre_param->std_[2] = 57.12;
   pre_param->std_[3] = 57.375;
 
-  inference::InferenceParam* embedding_inference_param =
-      (inference::InferenceParam*)(embedding_inference->getParam());
+  inference::InferenceParam *embedding_inference_param =
+      (inference::InferenceParam *)(embedding_inference->getParam());
   embedding_inference_param->is_path_ = is_path;
   embedding_inference_param->model_value_ =
       std::vector<std::string>(1, model_values[0]);
   embedding_inference_param->device_type_ = device_type;
 
-  inference::InferenceParam* segment_inference_param =
-      (inference::InferenceParam*)(segment_inference->getParam());
+  inference::InferenceParam *segment_inference_param =
+      (inference::InferenceParam *)(segment_inference->getParam());
   segment_inference_param->is_path_ = is_path;
   segment_inference_param->model_value_ =
       std::vector<std::string>(1, model_values[1]);
@@ -246,8 +247,8 @@ dag::Graph* createSamGraph(const std::string& name,
   segment_inference_param->max_shape_.insert(
       {"image_embeddings", {1, 256, 64, 64}});
 
-  SamPostParam* post_param =
-      dynamic_cast<SamPostParam*>(postprocess->getParam());
+  SamPostParam *post_param =
+      dynamic_cast<SamPostParam *>(postprocess->getParam());
 
   return graph;
 }

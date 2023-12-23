@@ -7,9 +7,9 @@ namespace nndeploy {
 namespace model {
 
 base::Status CvtColorResize::run() {
-  CvtclorResizeParam* tmp_param =
-      dynamic_cast<CvtclorResizeParam*>(param_.get());
-  cv::Mat* src = inputs_[0]->getCvMat(this);
+  CvtclorResizeParam *tmp_param =
+      dynamic_cast<CvtclorResizeParam *>(param_.get());
+  cv::Mat *src = inputs_[0]->getCvMat(this);
   // device::Tensor* dst = outputs_[0]->getTensor();
   // if (dst->empty()) {
   //   device::TensorDesc desc = dst->getDesc();
@@ -23,7 +23,7 @@ base::Status CvtColorResize::run() {
   //   device::Device* device = device::getDefaultHostDevice();
   //   dst->allocBuffer(device);
   // }
-  device::Device* device = device::getDefaultHostDevice();
+  device::Device *device = device::getDefaultHostDevice();
   device::TensorDesc desc;
   desc.data_type_ = base::dataTypeOf<float>();
   desc.data_format_ = base::kDataFormatNCHW;
@@ -32,7 +32,7 @@ base::Status CvtColorResize::run() {
   desc.shape_.emplace_back(tmp_param->h_);
   desc.shape_.emplace_back(tmp_param->w_);
   outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
-  device::Tensor* dst = outputs_[0]->getTensor(this);
+  device::Tensor *dst = outputs_[0]->getTensor(this);
 
   int c = dst->getChannel();
   int h = dst->getHeight();

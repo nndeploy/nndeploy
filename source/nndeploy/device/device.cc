@@ -17,8 +17,8 @@ base::DeviceTypeCode Architecture::getDeviceTypeCode() {
   return device_type_code_;
 }
 
-std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>&
-getArchitectureMap() {
+std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>
+    &getArchitectureMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>>
@@ -30,8 +30,8 @@ getArchitectureMap() {
   return *architecture_map;
 }
 
-int Device::compareBufferDesc(const BufferDesc& desc1,
-                              const BufferDesc& desc2) {
+int Device::compareBufferDesc(const BufferDesc &desc1,
+                              const BufferDesc &desc2) {
   size_t size_1 = 1;
   size_t size_2 = 1;
   for (size_t i = 0; i < desc1.size_.size(); i++) {
@@ -47,35 +47,35 @@ int Device::compareBufferDesc(const BufferDesc& desc1,
   }
 }
 
-Buffer* Device::create(size_t size, void* ptr,
+Buffer *Device::create(size_t size, void *ptr,
                        BufferSourceType buffer_source_type) {
   BufferDesc desc;
   desc.size_.emplace_back(size);
-  Buffer* buffer = new Buffer(this, desc, ptr, buffer_source_type);
+  Buffer *buffer = new Buffer(this, desc, ptr, buffer_source_type);
   return buffer;
 }
 
-Buffer* Device::create(const BufferDesc& desc, void* ptr,
+Buffer *Device::create(const BufferDesc &desc, void *ptr,
                        BufferSourceType buffer_source_type) {
-  Buffer* buffer = new Buffer(this, desc, ptr, buffer_source_type);
+  Buffer *buffer = new Buffer(this, desc, ptr, buffer_source_type);
   return buffer;
 }
 
-Buffer* Device::create(size_t size, int id,
+Buffer *Device::create(size_t size, int id,
                        BufferSourceType buffer_source_type) {
   BufferDesc desc;
   desc.size_.emplace_back(size);
-  Buffer* buffer = new Buffer(this, desc, id, buffer_source_type);
+  Buffer *buffer = new Buffer(this, desc, id, buffer_source_type);
   return buffer;
 }
 
-Buffer* Device::create(const BufferDesc& desc, int id,
+Buffer *Device::create(const BufferDesc &desc, int id,
                        BufferSourceType buffer_source_type) {
-  Buffer* buffer = new Buffer(this, desc, id, buffer_source_type);
+  Buffer *buffer = new Buffer(this, desc, id, buffer_source_type);
   return buffer;
 }
 
-void Device::destory(Buffer* buffer) { delete buffer; }
+void Device::destory(Buffer *buffer) { delete buffer; }
 
 base::Status Device::synchronize() {
   NNDEPLOY_LOGI("this device[%d, %d] can't synchronize!\n", device_type_.code_,
@@ -83,7 +83,13 @@ base::Status Device::synchronize() {
   return base::kStatusCodeOk;
 }
 
-void* Device::getCommandQueue() {
+void *Device::getContext() {
+  NNDEPLOY_LOGI("this device[%d, %d] can't getContext!\n", device_type_.code_,
+                device_type_.device_id_);
+  return nullptr;
+}
+
+void *Device::getCommandQueue() {
   NNDEPLOY_LOGI("this device[%d, %d] can't getCommandQueue!\n",
                 device_type_.code_, device_type_.device_id_);
   return nullptr;
@@ -91,7 +97,7 @@ void* Device::getCommandQueue() {
 
 base::DeviceType Device::getDeviceType() { return device_type_; }
 
-Architecture* getArchitecture(base::DeviceTypeCode type) {
+Architecture *getArchitecture(base::DeviceTypeCode type) {
   return getArchitectureMap()[type].get();
 }
 
@@ -110,7 +116,7 @@ base::DeviceType getDefaultHostDeviceType() {
   return dst;
 }
 
-Device* getDefaultHostDevice() {
+Device *getDefaultHostDevice() {
   base::DeviceType device_type = getDefaultHostDeviceType();
   return getDevice(device_type);
 }
@@ -121,22 +127,22 @@ bool isHostDeviceType(base::DeviceType device_type) {
          device_type.code_ == base::kDeviceTypeCodeArm;
 }
 
-base::Status checkDevice(base::DeviceType device_type, void* command_queue,
+base::Status checkDevice(base::DeviceType device_type, void *command_queue,
                          std::string library_path) {
-  Architecture* architecture = getArchitecture(device_type.code_);
+  Architecture *architecture = getArchitecture(device_type.code_);
   return architecture->checkDevice(device_type.device_id_, command_queue,
                                    library_path);
 }
 
-base::Status enableDevice(base::DeviceType device_type, void* command_queue,
+base::Status enableDevice(base::DeviceType device_type, void *command_queue,
                           std::string library_path) {
-  Architecture* architecture = getArchitecture(device_type.code_);
+  Architecture *architecture = getArchitecture(device_type.code_);
   return architecture->enableDevice(device_type.device_id_, command_queue,
                                     library_path);
 }
 
-Device* getDevice(base::DeviceType device_type) {
-  Architecture* architecture = getArchitecture(device_type.code_);
+Device *getDevice(base::DeviceType device_type) {
+  Architecture *architecture = getArchitecture(device_type.code_);
   if (architecture == nullptr) {
     NNDEPLOY_LOGE("Architecture is not registered for device type: %d",
                   device_type.code_);
@@ -147,7 +153,7 @@ Device* getDevice(base::DeviceType device_type) {
 
 std::vector<DeviceInfo> getDeviceInfo(base::DeviceTypeCode type,
                                       std::string library_path) {
-  Architecture* architecture = getArchitecture(type);
+  Architecture *architecture = getArchitecture(type);
   return architecture->getDeviceInfo(library_path);
 }
 

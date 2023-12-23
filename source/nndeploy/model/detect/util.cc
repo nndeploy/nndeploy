@@ -5,7 +5,7 @@ namespace nndeploy {
 namespace model {
 
 std::array<float, 4> getOriginBox(float xmin, float ymin, float xmax,
-                                  float ymax, const float* scale_factor,
+                                  float ymax, const float *scale_factor,
                                   float x_offset, float y_offset, int ori_width,
                                   int ori_height) {
   xmin = std::max(xmin / scale_factor[0] + x_offset, 0.f);
@@ -17,8 +17,8 @@ std::array<float, 4> getOriginBox(float xmin, float ymin, float xmax,
   return {xmin, ymin, xmax, ymax};
 }
 
-std::array<float, 4> getOriginBox(const std::array<float, 4>& box,
-                                  const float* scale_factor, float x_offset,
+std::array<float, 4> getOriginBox(const std::array<float, 4> &box,
+                                  const float *scale_factor, float x_offset,
                                   float y_offset, int ori_width,
                                   int ori_height) {
   float xmin = std::max(box[0] / scale_factor[0] + x_offset, 0.f);
@@ -47,8 +47,8 @@ float computeIOU(float xmin0, float ymin0, float xmax0, float ymax0,
   return intersection_area / (area_i + area_j - intersection_area);
 }
 
-float computeIOU(const std::array<float, 4>& box0,
-                 const std::array<float, 4>& box1) {
+float computeIOU(const std::array<float, 4> &box0,
+                 const std::array<float, 4> &box1) {
   const float area_i = (box0[3] - box0[1]) * (box0[2] - box0[0]);
   const float area_j = (box1[3] - box1[1]) * (box1[2] - box1[0]);
   if (area_i <= 0 || area_j <= 0) {
@@ -64,7 +64,7 @@ float computeIOU(const std::array<float, 4>& box0,
   return intersection_area / (area_i + area_j - intersection_area);
 }
 
-float computeIOU(const float* boxes, int i, int j) {
+float computeIOU(const float *boxes, int i, int j) {
   const float x_min_i = std::min<float>(boxes[i * 4 + 0], boxes[i * 4 + 2]);
   const float y_min_i = std::min<float>(boxes[i * 4 + 1], boxes[i * 4 + 3]);
   const float x_max_i = std::max<float>(boxes[i * 4 + 0], boxes[i * 4 + 2]);
@@ -90,7 +90,7 @@ float computeIOU(const float* boxes, int i, int j) {
   return intersection_area / (area_i + area_j - intersection_area);
 }
 
-base::Status computeNMS(const DetectResult& src, std::vector<int>& keep_idxs,
+base::Status computeNMS(const DetectResult &src, std::vector<int> &keep_idxs,
                         const float iou_threshold) {
   for (auto i = 0; i < src.bboxs_.size(); ++i) {
     keep_idxs[i] = i;

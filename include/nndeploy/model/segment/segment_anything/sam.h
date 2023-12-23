@@ -33,7 +33,7 @@ class NNDEPLOY_CC_API SamPostParam : public base::Param {
 
 class NNDEPLOY_CC_API SamPostProcess : public dag::Node {
  public:
-  SamPostProcess(const std::string& name, dag::Edge* input, dag::Edge* output)
+  SamPostProcess(const std::string &name, dag::Edge *input, dag::Edge *output)
       : Node(name, input, output) {
     param_ = std::make_shared<SamPostParam>();
   }
@@ -45,10 +45,10 @@ class NNDEPLOY_CC_API SamPostProcess : public dag::Node {
 // 构建prompt_endocer和mask_decoder的输入
 class NNDEPLOY_CC_API SamBuildInput : public dag::Node {
  public:
-  SamBuildInput(const std::string& name, dag::Edge* input, dag::Edge* output)
+  SamBuildInput(const std::string &name, dag::Edge *input, dag::Edge *output)
       : Node(name, input, output) {}
-  SamBuildInput(const std::string& name, std::vector<dag::Edge*> inputs,
-                std::vector<dag::Edge*> outputs)
+  SamBuildInput(const std::string &name, std::vector<dag::Edge *> inputs,
+                std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {}
   virtual ~SamBuildInput() {}
 
@@ -57,9 +57,9 @@ class NNDEPLOY_CC_API SamBuildInput : public dag::Node {
   virtual base::Status run();
 };
 
-extern NNDEPLOY_CC_API dag::Graph* createSamGraph(
-    const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Edge* input, dag::Edge* output,
+extern NNDEPLOY_CC_API dag::Graph *createSamGraph(
+    const std::string &name, base::InferenceType inference_type,
+    base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_values);
 

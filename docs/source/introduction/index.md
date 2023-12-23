@@ -22,20 +22,25 @@
 - 支持多种推理框架：对多个业界知名推理框架的全面支持，包括 `TensorRT`、`OpenVINO`、`ONNXRuntime`、`MNN`、`TNN`、`ncnn` 等。未来，我们将继续扩展支持，包括 `TFLite`、`paddle-lite`、`coreML`、`TVM`、`RKNN`等
 - 支持多种不同操作系统，包括 `Android`、`Linux`、`Windows`，正在适配 `macOS`、`IOS`。致力于在各种操作系统上无缝运行您的深度学习模型
 
-|                      OS/Inference                       | Linux | Windows | Android | MacOS |  IOS  |                 开发人员                  | 备注  |
-| :-----------------------------------------------------: | :---: | :-----: | :-----: | :---: | :---: | :---------------------------------------: | :---: |
-|     [TensorRT](https://github.com/NVIDIA/TensorRT)      |  yes  |   no    |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-| [OpenVINO](https://github.com/openvinotoolkit/openvino) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-| [ONNXRuntime](https://github.com/microsoft/onnxruntime) |  yes  |   yes   |   no    |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|          [MNN](https://github.com/alibaba/MNN)          |  yes  |   yes   |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
-|          [TNN](https://github.com/Tencent/TNN)          |  yes  |   yes   |   yes   |  no   |  no   | [02200059Z](https://github.com/02200059Z) |       |
-|        [ncnn](https://github.com/Tencent/ncnn/)         |  no   |   no    |   yes   |  no   |  no   | [Always](https://github.com/Alwaysssssss) |       |
+| Inference/OS                                               | Linux | Windows | Android | MacOS |  IOS  | developer                                 | remarks |
+| :--------------------------------------------------------- | :---: | :-----: | :-----: | :---: | :---: | :---------------------------------------- | :-----: |
+| [TensorRT](https://github.com/NVIDIA/TensorRT)             |   √   |    -    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
+| [OpenVINO](https://github.com/openvinotoolkit/openvino)    |   √   |    √    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
+| [ONNXRuntime](https://github.com/microsoft/onnxruntime)    |   √   |    √    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
+| [MNN](https://github.com/alibaba/MNN)                      |   √   |    √    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
+| [TNN](https://github.com/Tencent/TNN)                      |   √   |    √    |    √    |   -   |   -   | [02200059Z](https://github.com/02200059Z) |         |
+| [ncnn](https://github.com/Tencent/ncnn)                    |   -   |    -    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
+| [coreML](https://github.com/apple/coremltools)             |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)   |         |
+| [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang) |         |
+| [MDC](https://github.com/PaddlePaddle/Paddle-Lite)         |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)         |         |
+
+
 
 ## 直接可用的算法
 
 - 目前已完成 [YOLOV5](https://github.com/ultralytics/yolov5)、[YOLOV6](https://github.com/meituan/YOLOv6)、[YOLOV8](https://github.com/ultralytics) 等模型的部署，可供您直接使用，后续我们持续不断去部署其它开源模型，让您开箱即用
 
-|                      算法                       |             Inference             |                                       开发人员                                       | 备注  |
+|                      算法                       |             Inference             |                                       developer                                       | 备注  |
 | :---------------------------------------------: | :-------------------------------: | :----------------------------------------------------------------------------------: | :---: |
 | [YOLOV5](https://github.com/ultralytics/yolov5) | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |       |
 |   [YOLOV6](https://github.com/meituan/YOLOv6)   |   TensorRt/OpenVINO/ONNXRuntime   | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |       |
@@ -77,10 +82,18 @@
 - 接入更多的推理框架，包括`TFLite`、`paddle-lite`、`coreML`、`TVM`、`RKNN`、算能等等推理软件栈
 - 部署更多的算法，包括 `Stable Diffusion`、`DETR`、`SAM`等等热门开源模型
 
+
+## Support
+| OS      |                                                                      status                                                                      |
+| ------- | :----------------------------------------------------------------------------------------------------------------------------------------------: |
+| Linux | [![linux](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/linux.yml) |
+| Macos | [![macos](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/macos.yml) |
+| Windows | [![windows](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml/badge.svg)](https://github.com/DeployAI/nndeploy/actions/workflows/windows.yml) |
+
 # 加入我们
 
 - 欢迎大家参与，一起打造最简单易用、高性能的机器学习部署框架
-- 微信：titian5566 (可加我微信进 `nndeploy` 交流群，备注：`nndeploy`)
+- 微信：titian5566 (加我微信可进 `nndeploy` 交流群，备注：`nndeploy`)
 
 # 本文作者
 

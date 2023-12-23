@@ -12,8 +12,8 @@ class SequentialExecutor : public Executor {
   SequentialExecutor(){};
   virtual ~SequentialExecutor(){};
 
-  virtual base::Status init(std::vector<EdgeWrapper*>& edge_repository,
-                            std::vector<NodeWrapper*>& node_repository) {
+  virtual base::Status init(std::vector<EdgeWrapper *> &edge_repository,
+                            std::vector<NodeWrapper *> &node_repository) {
     base::Status status = topoSortDFS(node_repository, topo_sort_node_);
     for (auto iter : topo_sort_node_) {
       status = iter->node_->init();
@@ -37,7 +37,7 @@ class SequentialExecutor : public Executor {
   }
 
  protected:
-  std::vector<NodeWrapper*> topo_sort_node_;
+  std::vector<NodeWrapper *> topo_sort_node_;
 };
 
 }  // namespace dag

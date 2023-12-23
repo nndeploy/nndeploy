@@ -22,7 +22,7 @@
 namespace nndeploy {
 namespace dag {
 
-Graph::Graph(const std::string& name, Edge* input, Edge* output)
+Graph::Graph(const std::string &name, Edge *input, Edge *output)
     : Node(name, input, output) {
   param_ = std::make_shared<GraphParam>();
   if (nullptr == addEdge(input)) {
@@ -35,8 +35,8 @@ Graph::Graph(const std::string& name, Edge* input, Edge* output)
   }
   constructed_ = true;
 }
-Graph::Graph(const std::string& name, std::initializer_list<Edge*> inputs,
-             std::initializer_list<Edge*> outputs)
+Graph::Graph(const std::string &name, std::initializer_list<Edge *> inputs,
+             std::initializer_list<Edge *> outputs)
     : Node(name, inputs, outputs) {
   param_ = std::make_shared<GraphParam>();
   for (auto input : inputs) {
@@ -70,19 +70,19 @@ Graph::~Graph() {
   edge_repository_.clear();
 }
 
-Edge* Graph::createEdge(const std::string& name) {
-  Edge* edge = new Edge(name);
-  EdgeWrapper* edge_wrapper = new EdgeWrapper();
+Edge *Graph::createEdge(const std::string &name) {
+  Edge *edge = new Edge(name);
+  EdgeWrapper *edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = false;
   edge_wrapper->edge_ = edge;
   edge_wrapper->name_ = name;
   edge_repository_.emplace_back(edge_wrapper);
   return edge;
 }
-EdgeWrapper* Graph::addEdge(Edge* edge) {
+EdgeWrapper *Graph::addEdge(Edge *edge) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(edge, "edge is null!");
-  EdgeWrapper* edge_wrapper = new EdgeWrapper();
+  EdgeWrapper *edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = true;
   edge_wrapper->edge_ = edge;
   edge_wrapper->name_ = edge->getName();
@@ -90,22 +90,22 @@ EdgeWrapper* Graph::addEdge(Edge* edge) {
   return edge_wrapper;
 }
 
-base::Status Graph::addNode(Node* node) {
+base::Status Graph::addNode(Node *node) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
-  NodeWrapper* node_wrapper = new NodeWrapper();
+  NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = true;
   node_wrapper->node_ = node;
   node_wrapper->name_ = node->getName();
   for (auto input : node->getAllInput()) {
-    EdgeWrapper* input_wrapper = findEdgeWrapper(edge_repository_, input);
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
       input_wrapper = this->addEdge(input);
     }
     input_wrapper->consumers_.emplace_back(node_wrapper);
   }
   for (auto output : node->getAllOutput()) {
-    EdgeWrapper* output_wrapper = findEdgeWrapper(edge_repository_, output);
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
       output_wrapper = this->addEdge(output);
     }
@@ -116,32 +116,32 @@ base::Status Graph::addNode(Node* node) {
   return status;
 }
 
-base::Status Graph::setNodeParam(const std::string& node_name,
-                                 base::Param* param) {
+base::Status Graph::setNodeParam(const std::string &node_name,
+                                 base::Param *param) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is null!");
-  NodeWrapper* node_wrapper = findNodeWrapper(node_repository_, node_name);
+  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper, "node_wrapper is null!");
   status = node_wrapper->node_->setParam(param);
   return status;
 }
 
-base::Param* Graph::getNodeParam(const std::string& node_name) {
-  NodeWrapper* node_wrapper = findNodeWrapper(node_repository_, node_name);
+base::Param *Graph::getNodeParam(const std::string &node_name) {
+  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(node_wrapper, "node_wrapper is null!");
   return node_wrapper->node_->getParam();
 }
 
-base::Status Graph::setParallelType(const ParallelType& type){
-  GraphParam* graph_param = dynamic_cast<GraphParam*>(param_.get());
-  graph_param->parallel_type_= type;
-  return  base::kStatusCodeOk;
+base::Status Graph::setParallelType(const ParallelType &type) {
+  GraphParam *graph_param = dynamic_cast<GraphParam *>(param_.get());
+  graph_param->parallel_type_ = type;
+  return base::kStatusCodeOk;
 }
 
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
-  GraphParam* graph_param = dynamic_cast<GraphParam*>(param_.get());
+  GraphParam *graph_param = dynamic_cast<GraphParam *>(param_.get());
   ParallelType parallel_type = graph_param->parallel_type_;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -164,19 +164,19 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("Mark Predecessors And Successors Phase!\n");
   // NNDEPLOY_LOGI("####################\n");
   for (auto node_wrapper : node_repository_) {
-    Node* node = node_wrapper->node_;
-    std::vector<Edge*> inputs = node->getAllInput();
+    Node *node = node_wrapper->node_;
+    std::vector<Edge *> inputs = node->getAllInput();
     for (auto input : inputs) {
-      EdgeWrapper* input_wrapper = findEdgeWrapper(edge_repository_, input);
+      EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "input_wrapper is null!");
       
       node_wrapper->predecessors_.insert(node_wrapper->predecessors_.end(),input_wrapper->producers_.begin(),
                                          input_wrapper->producers_.end());
     }
-    std::vector<Edge*> outputs = node->getAllOutput();
+    std::vector<Edge *> outputs = node->getAllOutput();
     for (auto output : outputs) {
-      EdgeWrapper* output_wrapper = findEdgeWrapper(edge_repository_, output);
+      EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
                                            "output_wrapper is null!");
       node_wrapper->successors_.insert(node_wrapper->successors_.end(),output_wrapper->consumers_.begin(),
@@ -188,11 +188,11 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("construct edge\n");
   // NNDEPLOY_LOGI("##############\n");
   for (auto edge_wrapper : edge_repository_) {
-    std::vector<Node*> producers;
+    std::vector<Node *> producers;
     for (auto producer : edge_wrapper->producers_) {
       producers.emplace_back(producer->node_);
     }
-    std::vector<Node*> consumers;
+    std::vector<Node *> consumers;
     for (auto consumer : edge_wrapper->consumers_) {
       consumers.emplace_back(consumer->node_);
     }
@@ -260,13 +260,13 @@ base::Status Graph::run() {
   return status;
 }
 
-base::Status Graph::dump(std::ostream& oss) {
+base::Status Graph::dump(std::ostream &oss) {
   base::Status status = dumpDag(node_repository_, name_, oss);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
   return status;
 }
 
-std::map<std::string, createGraphFunc>& getGlobalGraphCreatorMap() {
+std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<std::string, createGraphFunc>> creators;
   std::call_once(once, []() {
@@ -275,12 +275,12 @@ std::map<std::string, createGraphFunc>& getGlobalGraphCreatorMap() {
   return *creators;
 }
 
-Graph* createGraph(const std::string& name, base::InferenceType inference_type,
-                   base::DeviceType device_type, Edge* input, Edge* output,
+Graph *createGraph(const std::string &name, base::InferenceType inference_type,
+                   base::DeviceType device_type, Edge *input, Edge *output,
                    base::ModelType model_type, bool is_path,
                    std::vector<std::string> model_value) {
-  Graph* temp = nullptr;
-  auto& creater_map = getGlobalGraphCreatorMap();
+  Graph *temp = nullptr;
+  auto &creater_map = getGlobalGraphCreatorMap();
   if (creater_map.count(name) > 0) {
     temp = creater_map[name](name, inference_type, device_type, input, output,
                              model_type, is_path, model_value);

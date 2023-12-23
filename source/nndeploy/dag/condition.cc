@@ -20,26 +20,26 @@
 namespace nndeploy {
 namespace dag {
 
-Condition::Condition(const std::string& name, Edge* input, Edge* output)
+Condition::Condition(const std::string &name, Edge *input, Edge *output)
     : Node(name, input, output) {}
-Condition::Condition(const std::string& name,
-                     std::initializer_list<Edge*> inputs,
-                     std::initializer_list<Edge*> outputs)
+Condition::Condition(const std::string &name,
+                     std::initializer_list<Edge *> inputs,
+                     std::initializer_list<Edge *> outputs)
     : Node(name, inputs, outputs) {}
 Condition::~Condition() { condition_node_.clear(); }
 
-base::Status Condition::setNodeParam(const std::string& node_name,
-                                     base::Param* param) {
+base::Status Condition::setNodeParam(const std::string &node_name,
+                                     base::Param *param) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is null!");
-  Node* node = findNode(node_name);
+  Node *node = findNode(node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
   status = node->setParam(param);
   return status;
 }
 
-base::Param* Condition::getNodeParam(const std::string& node_name) {
-  Node* node = findNode(node_name);
+base::Param *Condition::getNodeParam(const std::string &node_name) {
+  Node *node = findNode(node_name);
   if (node == nullptr) {
     NNDEPLOY_LOGE("node is null!\n");
     return nullptr;
@@ -86,7 +86,7 @@ base::Status Condition::run() {
   return status;
 }
 
-Node* Condition::findNode(const std::string& name) {
+Node *Condition::findNode(const std::string &name) {
   for (auto node : condition_node_) {
     if (node->getName() == name) {
       return node;

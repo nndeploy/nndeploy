@@ -41,7 +41,7 @@ class NNDEPLOY_CC_API YoloPostParam : public base::Param {
 
 class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
  public:
-  YoloPostProcess(const std::string& name, dag::Edge* input, dag::Edge* output)
+  YoloPostProcess(const std::string &name, dag::Edge *input, dag::Edge *output)
       : Node(name, input, output) {
     param_ = std::make_shared<YoloPostParam>();
   }
@@ -53,21 +53,21 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
   base::Status runV8();
 };
 
-extern NNDEPLOY_CC_API dag::Graph* createYoloV5Graph(
-    const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Edge* input, dag::Edge* output,
+extern NNDEPLOY_CC_API dag::Graph *createYoloV5Graph(
+    const std::string &name, base::InferenceType inference_type,
+    base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value);
 
-extern NNDEPLOY_CC_API dag::Graph* createYoloV6Graph(
-    const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Edge* input, dag::Edge* output,
+extern NNDEPLOY_CC_API dag::Graph *createYoloV6Graph(
+    const std::string &name, base::InferenceType inference_type,
+    base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value);
 
-extern NNDEPLOY_CC_API dag::Graph* createYoloV8Graph(
-    const std::string& name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Edge* input, dag::Edge* output,
+extern NNDEPLOY_CC_API dag::Graph *createYoloV8Graph(
+    const std::string &name, base::InferenceType inference_type,
+    base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value);
 

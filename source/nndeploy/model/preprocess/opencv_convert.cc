@@ -123,7 +123,7 @@ int OpenCvConvert::convertFromBorderType(base::BorderType src) {
   return ret;
 }
 
-cv::Scalar OpenCvConvert::convertFromScalar(const base::Scalar2d& src) {
+cv::Scalar OpenCvConvert::convertFromScalar(const base::Scalar2d &src) {
   cv::Scalar ret(src.val_[0], src.val_[1], src.val_[2], src.val_[3]);
   return ret;
 }
@@ -134,8 +134,8 @@ cv::Scalar OpenCvConvert::convertFromScalar(const base::Scalar2d& src) {
  * @return true
  * @return false
  */
-bool OpenCvConvert::convertToTensor(const cv::Mat& src, device::Tensor* dst,
-                                    float* scale, float* mean, float* std) {
+bool OpenCvConvert::convertToTensor(const cv::Mat &src, device::Tensor *dst,
+                                    float *scale, float *mean, float *std) {
   bool ret = false;
 
   int c = dst->getShapeIndex(1);
@@ -148,7 +148,7 @@ bool OpenCvConvert::convertToTensor(const cv::Mat& src, device::Tensor* dst,
     src.convertTo(tmp, cv_type);
     std::vector<cv::Mat> tmp_vec;
     for (int i = 0; i < c; ++i) {
-      float* data = (float*)dst->getPtr() + w * h * i;
+      float *data = (float *)dst->getPtr() + w * h * i;
       tmp_vec.emplace_back(cv::Mat(cv::Size(w, h), CV_32FC1, data));
     }
     cv::split(tmp, tmp_vec);

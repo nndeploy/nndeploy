@@ -46,7 +46,7 @@ class LocalThread {
     thread_ = std::move(std::thread(&LocalThread::run, this));
   }
 
-  void setThreadPoolInfo(int index, std::vector<LocalThread*>* pool_threads) {
+  void setThreadPoolInfo(int index, std::vector<LocalThread *> *pool_threads) {
     index_ = index;
     pool_threads_ = pool_threads;
     total_thread_size_ = (int)pool_threads->size();
@@ -58,7 +58,7 @@ class LocalThread {
    */
   base::Status run() {
     if (std::any_of(pool_threads_->begin(), pool_threads_->end(),
-                    [](LocalThread* thd) { return nullptr == thd; })) {
+                    [](LocalThread *thd) { return nullptr == thd; })) {
       return base::Status(base::kStatusCodeErrorThreadPool);
     }
 
@@ -79,7 +79,7 @@ class LocalThread {
    * @param task
    * @return
    */
-  void pushTask(RTask&& task) {
+  void pushTask(RTask &&task) {
     while (!(primary_queue_.tryPush(std::forward<RTask>(task)))) {
       std::this_thread::yield();
     }
@@ -91,19 +91,19 @@ class LocalThread {
    * @param task
    * @return
    */
-  bool popTask(RTask& task) { return primary_queue_.tryPop(task); }
+  bool popTask(RTask &task) { return primary_queue_.tryPop(task); }
 
   /**
    * 从其他线程窃取一个任务
    * @param task
    * @return
    */
-  bool stealTask(RTask& task) {
+  bool stealTask(RTask &task) {
     if (pool_threads_->size() < total_thread_size_) {
       return false;
     }
 
-    for (auto& target : steal_targets_) {
+    for (auto &target : steal_targets_) {
       if (((*pool_threads_)[target]) ||
           ((*pool_threads_)[target])->primary_queue_.trySteal(task)) {
         return true;
@@ -119,7 +119,7 @@ class LocalThread {
   int index_;
   int total_thread_size_;
   SafeWSQueue<RTask> primary_queue_;
-  std::vector<LocalThread*>* pool_threads_;
+  std::vector<LocalThread *> *pool_threads_;
   std::vector<int> steal_targets_;
   std::mutex mutex_;
   std::condition_variable cv_;

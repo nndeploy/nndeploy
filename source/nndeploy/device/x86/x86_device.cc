@@ -16,7 +16,7 @@ X86Architecture::X86Architecture(base::DeviceTypeCode device_type_code)
 
 X86Architecture::~X86Architecture() {
   for (auto iter : devices_) {
-    X86Device* tmp_device = dynamic_cast<X86Device*>(iter.second);
+    X86Device *tmp_device = dynamic_cast<X86Device *>(iter.second);
     if (tmp_device->deinit() != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("device deinit failed");
     }
@@ -24,18 +24,18 @@ X86Architecture::~X86Architecture() {
   }
 };
 
-base::Status X86Architecture::checkDevice(int device_id, void* command_queue,
+base::Status X86Architecture::checkDevice(int device_id, void *command_queue,
                                           std::string library_path) {
   return base::kStatusCodeOk;
 }
 
-base::Status X86Architecture::enableDevice(int device_id, void* command_queue,
+base::Status X86Architecture::enableDevice(int device_id, void *command_queue,
                                            std::string library_path) {
   device_id = 0;
   std::lock_guard<std::mutex> lock(mutex_);
   if (devices_.find(device_id) == devices_.end()) {
     base::DeviceType device_type(base::kDeviceTypeCodeX86, device_id);
-    X86Device* device = new X86Device(device_type, command_queue, library_path);
+    X86Device *device = new X86Device(device_type, command_queue, library_path);
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr");
       return base::kStatusCodeErrorOutOfMemory;
@@ -53,9 +53,9 @@ base::Status X86Architecture::enableDevice(int device_id, void* command_queue,
   return base::kStatusCodeOk;
 }
 
-Device* X86Architecture::getDevice(int device_id) {
+Device *X86Architecture::getDevice(int device_id) {
   device_id = 0;
-  Device* device = nullptr;
+  Device *device = nullptr;
   if (devices_.find(device_id) != devices_.end()) {
     device = devices_[device_id];
   } else {
@@ -75,8 +75,8 @@ std::vector<DeviceInfo> X86Architecture::getDeviceInfo(
   return device_info_list;
 }
 
-BufferDesc X86Device::toBufferDesc(const MatDesc& desc,
-                                   const base::IntVector& config) {
+BufferDesc X86Device::toBufferDesc(const MatDesc &desc,
+                                   const base::IntVector &config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
   size_t size = desc.data_type_.size();
@@ -101,8 +101,8 @@ BufferDesc X86Device::toBufferDesc(const MatDesc& desc,
  * 通过stride_替代了data_format_，stride_的第一个元素表示的是整个tensor的大小
  * 意味着在TensorDesc的构造函数要花很多心思来计算stride_
  */
-BufferDesc X86Device::toBufferDesc(const TensorDesc& desc,
-                                   const base::IntVector& config) {
+BufferDesc X86Device::toBufferDesc(const TensorDesc &desc,
+                                   const base::IntVector &config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
   size_t size = desc.data_type_.size();
@@ -117,16 +117,16 @@ BufferDesc X86Device::toBufferDesc(const TensorDesc& desc,
   return buffer_desc;
 }
 
-Buffer* X86Device::allocate(size_t size) {
+Buffer *X86Device::allocate(size_t size) {
   BufferDesc desc(size);
   return this->allocate(desc);
 }
-Buffer* X86Device::allocate(const BufferDesc& desc) {
-  void* data = malloc(desc.size_[0]);
-  Buffer* buffer = Device::create(desc, data, kBufferSourceTypeAllocate);
+Buffer *X86Device::allocate(const BufferDesc &desc) {
+  void *data = malloc(desc.size_[0]);
+  Buffer *buffer = Device::create(desc, data, kBufferSourceTypeAllocate);
   return buffer;
 }
-void X86Device::deallocate(Buffer* buffer) {
+void X86Device::deallocate(Buffer *buffer) {
   if (buffer == nullptr) {
     return;
   }
@@ -139,7 +139,7 @@ void X86Device::deallocate(Buffer* buffer) {
     Device::destory(buffer);
   } else if (buffer_source_type == kBufferSourceTypeAllocate) {
     if (buffer->getPtr() != nullptr) {
-      void* data = buffer->getPtr();
+      void *data = buffer->getPtr();
       free(data);
     }
     Device::destory(buffer);
@@ -150,7 +150,7 @@ void X86Device::deallocate(Buffer* buffer) {
   }
 }
 
-base::Status X86Device::copy(Buffer* src, Buffer* dst) {
+base::Status X86Device::copy(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     memcpy(dst->getPtr(), src->getPtr(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
@@ -159,7 +159,7 @@ base::Status X86Device::copy(Buffer* src, Buffer* dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::download(Buffer* src, Buffer* dst) {
+base::Status X86Device::download(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     memcpy(dst->getPtr(), src->getPtr(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
@@ -168,7 +168,7 @@ base::Status X86Device::download(Buffer* src, Buffer* dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::upload(Buffer* src, Buffer* dst) {
+base::Status X86Device::upload(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     memcpy(dst->getPtr(), src->getPtr(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;

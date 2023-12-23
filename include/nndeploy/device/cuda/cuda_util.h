@@ -78,7 +78,7 @@ inline void cudaSetDeviceId(int id) { NNDEPLOY_CUDA_CHECK(cudaSetDevice(id)); }
 /**
  * @brief obtains the device property
  */
-inline void cudaGetDeviceProperty(int i, cudaDeviceProp& p) {
+inline void cudaGetDeviceProperty(int i, cudaDeviceProp &p) {
   NNDEPLOY_CUDA_CHECK(cudaGetDeviceProperties(&p, i));
 }
 
@@ -94,7 +94,7 @@ inline cudaDeviceProp cudaGetDeviceProperty(int i) {
 /**
  * @brief dumps the device property
  */
-inline void cudaDumpDeviceProperty(std::ostream& os, const cudaDeviceProp& p) {
+inline void cudaDumpDeviceProperty(std::ostream &os, const cudaDeviceProp &p) {
   os << "Major revision number:         " << p.major << '\n'
      << "Minor revision number:         " << p.minor << '\n'
      << "Name:                          " << p.name << '\n'

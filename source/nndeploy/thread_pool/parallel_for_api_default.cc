@@ -8,8 +8,8 @@ namespace thread_pool {
 
 class ParallelJob {
  public:
-  ParallelJob(const ParallelPool& parallel_pool, const base::Range& range,
-              const ParallelLoopBody& body, int nstripes)
+  ParallelJob(const ParallelPool &parallel_pool, const base::Range &range,
+              const ParallelLoopBody &body, int nstripes)
       : cur_position_(0),
         active_thread_num_(0),
         completed_thread_num_(0),
@@ -45,7 +45,7 @@ class ParallelJob {
     return 0;
   }
 
-  const base::Range& range() { return range_; }
+  const base::Range &range() { return range_; }
 
  public:
   std::atomic<int> cur_position_;
@@ -60,15 +60,15 @@ class ParallelJob {
   std::atomic<bool> completed_;
 
  private:
-  const ParallelPool& parallel_pool_;
+  const ParallelPool &parallel_pool_;
   const base::Range range_;
-  const ParallelLoopBody& body_;
+  const ParallelLoopBody &body_;
   const int nstripes_;
 };
 
 class WorkerThread {
  public:
-  WorkerThread(ParallelPool& parallel_pool, unsigned int thread_id)
+  WorkerThread(ParallelPool &parallel_pool, unsigned int thread_id)
       : awake_(false),
         is_active_(true),
         parallel_pool_(parallel_pool),
@@ -162,7 +162,7 @@ class WorkerThread {
   std::mutex thread_mutex_;
 
  private:
-  ParallelPool& parallel_pool_;
+  ParallelPool &parallel_pool_;
   const unsigned int thread_id_;
   std::thread thread_;
   std::atomic<bool> stop_;
@@ -185,8 +185,8 @@ void ParallelPool::setThreadNum(int num) {
 
 int ParallelPool::getThreadNum() const { return thread_num_; }
 
-void ParallelPool::parallelFor(const base::Range& range,
-                               const ParallelLoopBody& body, double nstripes) {
+void ParallelPool::parallelFor(const base::Range &range,
+                               const ParallelLoopBody &body, double nstripes) {
   std::unique_lock<std::mutex> lock(pool_mutex_);
 
   if (thread_num_ <= 1 || job_ || nstripes == 1) {
@@ -203,7 +203,7 @@ void ParallelPool::parallelFor(const base::Range& range,
   lock.unlock();
 
   for (size_t i = 0; i < work_threads_.size(); ++i) {
-    WorkerThread& thread = *(work_threads_[i].get());
+    WorkerThread &thread = *(work_threads_[i].get());
     if (thread.is_active_ || thread.awake_ || thread.job_) {
       std::unique_lock<std::mutex> lock(thread.thread_mutex_);
       thread.job_ = job_;
@@ -252,7 +252,7 @@ bool ParallelPool::setWorkThreads(int num) {
       release_threads.emplace_back(std::move(work_threads_[i]));
     }
     work_threads_.resize(num);
-    for (auto& thread : release_threads) {
+    for (auto &thread : release_threads) {
       thread->stop();
       thread->awake_ = true;
       thread->cond_thread_wake_.notify_all();
@@ -275,8 +275,8 @@ int ParallelForApiDefault::getThreadNum() {
   return ParallelPool::getInstance().getThreadNum();
 }
 
-int ParallelForApiDefault::parallelFor(const base::Range& range,
-                                       const ParallelLoopBody& body,
+int ParallelForApiDefault::parallelFor(const base::Range &range,
+                                       const ParallelLoopBody &body,
                                        double nstripes) {
   ParallelPool::getInstance().parallelFor(range, body, nstripes);
   return 0;
