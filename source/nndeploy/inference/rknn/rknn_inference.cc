@@ -1,6 +1,3 @@
-//
-// Created by fsw on 23-12-15.
-//
 
 #include "nndeploy/inference/rknn/rknn_inference.h"
 

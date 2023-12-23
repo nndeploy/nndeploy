@@ -1,6 +1,3 @@
-//
-// Created by fsw on 23-12-15.
-//
 
 #ifndef _NNDEPLOY_INFERENCE_RKNN_RKNN_CONVERT_H_
 #define _NNDEPLOY_INFERENCE_RKNN_RKNN_CONVERT_H_
