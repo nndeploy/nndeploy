@@ -64,6 +64,8 @@ set(ENABLE_NNDEPLOY_INFERENCE_NCNN "/home/always/huggingface/nndeploy/third_part
 set(ENABLE_NNDEPLOY_INFERENCE_TNN "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/tnn-v0.3.0")
 set(ENABLE_NNDEPLOY_INFERENCE_MNN "/home/always/huggingface/nndeploy/third_party/ubuntu22.04_x64/mnn_2.6.0_linux_x64_cpu_opencl")
 set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE "/data/qixuxiang/Paddle-Lite")
+set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_1 "/home/toybrick/Documents/nndeploy/third_party/librknn_api_3399_aarch64")
+set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 OFF)
 set(ENABLE_NNDEPLOY_AICOMPILER_TVM OFF)
 ## dag
 set(ENABLE_NNDEPLOY_DAG ON)

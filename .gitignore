@@ -218,5 +218,6 @@ docs/build
 .vscode/
 .vs/
 
-#third_party
+third_party/
+models/
 third_party/thirdparty

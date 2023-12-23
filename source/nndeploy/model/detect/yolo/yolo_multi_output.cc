@@ -30,21 +30,15 @@ static inline float sigmoid(float x) {
 }
 
 static void generateProposals(const int *anchors, int stride, const int model_w,
-                              const int model_h, device::Tensor *tensor,
+                              const int model_h, device::Tensor *tensor, float obj_threshold,
                               float score_threshold, DetectResult *results) {
-  const int num_grid = tensor->getHeight();
+//  const int num_grid = tensor->getHeight();
 
-  int num_grid_x;
-  int num_grid_y;
-  if (model_w > model_h) {
-    num_grid_x = model_w / stride;
-    num_grid_y = num_grid / num_grid_x;
-  } else {
-    num_grid_y = model_h / stride;
-    num_grid_x = num_grid / num_grid_y;
-  }
+  int num_grid_y = tensor->getShapeIndex(2);
+  int num_grid_x = tensor->getShapeIndex(3);
+  int num_grid = num_grid_y * num_grid_x;
 
-  const int num_class = tensor->getWidth() - 5;
+  const int num_class = tensor->getShapeIndex(1) / 3 - 5;
   const int num_anchors = 3;
 
   float *data = (float *)tensor->getPtr();
@@ -53,24 +47,24 @@ static void generateProposals(const int *anchors, int stride, const int model_w,
     const float anchor_w = anchors[q * 2];
     const float anchor_h = anchors[q * 2 + 1];
 
-    float *data_channel = data + q * num_grid * (num_class + 5);
+//    float *data_channel = data + q * num_grid * (num_class + 5);
 
     for (int i = 0; i < num_grid_y; i++) {
       for (int j = 0; j < num_grid_x; j++) {
-        const float *featptr = data + (i * num_grid_x + j) * (num_class + 5);
-        float box_confidence = sigmoid(featptr[4]);
-        if (box_confidence >= score_threshold) {
+        float *feat_ptr = data + (num_class + 5) * q * num_grid + i * num_grid_x + j;
+        float box_confidence = feat_ptr[4 * num_grid];
+        if (box_confidence >= obj_threshold) {
           // find class index with max class score
           int class_index = 0;
           float class_score = -FLT_MAX;
           for (int k = 0; k < num_class; k++) {
-            float score = featptr[5 + k];
+            float score = feat_ptr[(5 + k) * num_grid];
             if (score > class_score) {
               class_index = k;
               class_score = score;
             }
           }
-          float confidence = box_confidence * sigmoid(class_score);
+          float confidence = box_confidence * class_score;
           if (confidence >= score_threshold) {
             // yolov5/models/yolo.py Detect forward
             // y = x[i].sigmoid()
@@ -78,10 +72,10 @@ static void generateProposals(const int *anchors, int stride, const int model_w,
             // self.grid[i].to(x[i].device)) * self.stride[i]  # xy y[..., 2:4]
             // = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
 
-            float dx = sigmoid(featptr[0]);
-            float dy = sigmoid(featptr[1]);
-            float dw = sigmoid(featptr[2]);
-            float dh = sigmoid(featptr[3]);
+            float dx = *feat_ptr;
+            float dy = feat_ptr[num_grid];
+            float dw = feat_ptr[2 * num_grid];
+            float dh = feat_ptr[3 * num_grid];
 
             float pb_cx = (dx * 2.f - 0.5f + j) * stride;
             float pb_cy = (dy * 2.f - 0.5f + i) * stride;
@@ -118,15 +112,15 @@ base::Status YoloMultiOutputPostProcess::run() {
   DetectResult results_batch;
   device::Tensor *tensor_0 = inputs_[0]->getTensor(this);
   generateProposals(param->anchors_stride_8, 8, param->model_w_,
-                    param->model_h_, tensor_0, param->score_threshold_,
+                    param->model_h_, tensor_0, param->obj_threshold_, param->score_threshold_,
                     &results_batch);
   device::Tensor *tensor_1 = inputs_[1]->getTensor(this);
   generateProposals(param->anchors_stride_16, 16, param->model_w_,
-                    param->model_h_, tensor_1, param->score_threshold_,
+                    param->model_h_, tensor_1, param->obj_threshold_, param->score_threshold_,
                     &results_batch);
   device::Tensor *tensor_2 = inputs_[2]->getTensor(this);
   generateProposals(param->anchors_stride_32, 32, param->model_w_,
-                    param->model_h_, tensor_2, param->score_threshold_,
+                    param->model_h_, tensor_2, param->obj_threshold_, param->score_threshold_,
                     &results_batch);
   std::vector<int> keep_idxs(results_batch.bboxs_.size());
   computeNMS(results_batch, keep_idxs, param->nms_threshold_);
@@ -152,10 +146,20 @@ dag::Graph *createYoloV5MultiOutputGraph(const std::string &name,
                                          bool is_path,
                                          std::vector<std::string> model_value) {
   dag::Graph *graph = new dag::Graph(name, input, output);
-  dag::Edge *infer_input = graph->createEdge("infer_input");
-  dag::Edge *infer_0 = graph->createEdge("output");
-  dag::Edge *infer_1 = graph->createEdge("376");
-  dag::Edge *infer_2 = graph->createEdge("401");
+  dag::Edge *infer_input = graph->createEdge("images_205");
+  dag::Edge *infer_0 = graph->createEdge("Sigmoid_Sigmoid_199/out0_0");
+  dag::Edge *infer_1 = graph->createEdge("Sigmoid_Sigmoid_201/out0_1");
+  dag::Edge *infer_2 = graph->createEdge("Sigmoid_Sigmoid_203/out0_2");
+
+//  dag::Edge *infer_input = graph->createEdge("image");
+//  dag::Edge *infer_0 = graph->createEdge("output0");
+//  dag::Edge *infer_1 = graph->createEdge("output1");
+//  dag::Edge *infer_2 = graph->createEdge("output2");
+
+//  dag::Edge *infer_input = graph->createEdge("images");
+//  dag::Edge *infer_0 = graph->createEdge("output0");
+//  dag::Edge *infer_1 = graph->createEdge("329");
+//  dag::Edge *infer_2 = graph->createEdge("331");
 
   dag::Node *pre = graph->createNode<model::CvtColorResize>("preprocess", input,
                                                             infer_input);
@@ -173,26 +177,29 @@ dag::Graph *createYoloV5MultiOutputGraph(const std::string &name,
   pre_param->interp_type_ = base::kInterpTypeLinear;
   pre_param->h_ = 640;
   pre_param->w_ = 640;
+  pre_param->normalize_ = false;
 
   inference::InferenceParam *inference_param =
       (inference::InferenceParam *)(infer->getParam());
   inference_param->is_path_ = is_path;
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
+  inference_param->model_type_ = model_type;
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
   YoloMultiOutputPostParam *post_param =
       dynamic_cast<YoloMultiOutputPostParam *>(post->getParam());
-  post_param->score_threshold_ = 0.7;
+  post_param->score_threshold_ = 0.5 * 0.5;
+  post_param->obj_threshold_ = 0.5;
   post_param->nms_threshold_ = 0.3;
   post_param->num_classes_ = 80;
   post_param->model_h_ = 640;
   post_param->model_w_ = 640;
   post_param->version_ = 5;
 
-  post_param->name_stride_8 = "output";
-  post_param->name_stride_16 = "376";
-  post_param->name_stride_32 = "401";
+//  post_param->name_stride_8 = "output";
+//  post_param->name_stride_16 = "376";
+//  post_param->name_stride_32 = "401";
 
   return graph;
 }

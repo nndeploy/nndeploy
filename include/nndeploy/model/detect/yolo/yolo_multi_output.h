@@ -30,6 +30,7 @@ class NNDEPLOY_CC_API YoloMultiOutputPostParam : public base::Param {
  public:
   float score_threshold_;
   float nms_threshold_;
+  float obj_threshold_;
   int num_classes_;
   int model_h_;
   int model_w_;

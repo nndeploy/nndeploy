@@ -152,6 +152,8 @@ InferenceType stringToInferenceType(const std::string &src) {
     return kInferenceTypeAITemplate;
   } else if (src == "kInferenceTypeMdc") {
     return kInferenceTypeMdc;
+  } else if (src == "kInferenceTypeRknn"){
+    return kInferenceTypeRknn;
   } else {
     return kInferenceTypeNotSupport;
   }
