@@ -82,6 +82,8 @@ base::Status CoremlConvert::convertFromInferenceParam(CoremlInferenceParam *src,
 
 device::Tensor *CoremlConvert::convertToTensor(MLFeatureDescription *src, NSString *name,
                                                device::Device *device) {
+  //这里有需要进一步确认
+  
   MLFeatureType tensor_type = [src type];
   device::Tensor *dst = nullptr;
   device::TensorDesc desc;
@@ -109,6 +111,9 @@ device::Tensor *CoremlConvert::convertToTensor(MLFeatureDescription *src, NSStri
   dst = new device::Tensor(desc, std::string([name cStringUsingEncoding:NSASCIIStringEncoding]));
   return dst;
 }
+
+
+// void CoremmlConvert::convertFromTensor(NSMutableDictionary) {}
 
 }  // namespace inference
 }  // namespace nndeploy
