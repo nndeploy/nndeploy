@@ -577,9 +577,11 @@ nvinfer1::TensorFormat TensorRtInference::getBindingFormat(
 nvinfer1::Dims TensorRtInference::getBindingDimensions(int32_t binding_index) {
 #ifdef TENSORRT_MAJOR_8_MINOR_5
   char const *name = engine_->getIOTensorName(binding_index);
-  return engine_->getTensorShape(name);
+  //return engine_->getTensorShape(name);
+  return context_->getTensorShape(name);
 #else
-  return engine_->getBindingDimensions(binding_index);
+  //return engine_->getBindingDimensions(binding_index);
+  return context_->getBindingDimensions(binding_index);
 #endif  // TENSORRT_MAJOR_8_MINOR_5
 }
 
