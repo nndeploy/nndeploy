@@ -18,6 +18,27 @@
 namespace nndeploy {
 namespace inference {
 
+class AscendCLInitSingleton {
+ public:
+  static AscendCLInitSingleton &GetInstance() {
+    static AscendCLInitSingleton mdc_instance;
+    return mdc_instance;
+  }
+
+ private:
+  AscendCLInitSingleton() {
+    const char *aclConfigPath = "";
+    // aclInit(aclConfigPath);
+    aclError ret = aclInit(aclConfigPath);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclInit failed, errorCode is %d", ret);
+    }
+  };
+  ~AscendCLInitSingleton(){};
+  AscendCLInitSingleton(const AscendCLInitSingleton &);
+  const AscendCLInitSingleton &operator=(const AscendCLInitSingleton &);
+};
+
 class AscendCLInference : public Inference {
  public:
   AscendCLInference(base::InferenceType type);

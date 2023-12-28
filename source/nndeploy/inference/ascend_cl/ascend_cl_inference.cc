@@ -26,11 +26,12 @@ base::Status AscendCLInference::init() {
   device::Device *device = nullptr;
 
   if (ascend_cl_inference_param->model_type_ == base::kModelTypeAscendCL) {
-    ret = aclInit(acl_config_path_);
-    if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclInit failed, errorCode is %d", ret);
-      status = base::kStatusCodeErrorInferenceAscendCL;
-    }
+    // ret = aclInit(acl_config_path_);
+    // if (ret != ACL_SUCCESS) {
+    //   NNDEPLOY_LOGE("aclInit failed, errorCode is %d", ret);
+    //   status = base::kStatusCodeErrorInferenceAscendCL;
+    // }
+    AscendCLInitSingleton &obj = AscendCLInitSingleton::GetInstance();
     device = device::getDevice(inference_param_->device_type_);
     context_ = (aclrtContext)device->getContext();
 
@@ -108,10 +109,13 @@ base::Status AscendCLInference::init() {
         new device::Tensor(desc, max_input_buffer, input_name);
     input_tensors_.insert({input_name, current_input_tensor});
 
-    aclDataBuffer *input_data = aclCreateDataBuffer(max_input_buffer->getPtr(), max_input_buffer->getDesc().size_[0]);
+    aclDataBuffer *input_data = aclCreateDataBuffer(
+        max_input_buffer->getPtr(), max_input_buffer->getDesc().size_[0]);
     ret = aclmdlAddDatasetBuffer(input_dataset_, input_data);
     if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("input_{%d}: aclmdlAddDatasetBuffer failed, errorCode is %d.", i, ret);
+      NNDEPLOY_LOGE(
+          "input_{%d}: aclmdlAddDatasetBuffer failed, errorCode is %d.", i,
+          ret);
       status = base::kStatusCodeErrorInferenceAscendCL;
     }
   }
@@ -163,10 +167,13 @@ base::Status AscendCLInference::init() {
       output_tensors_.insert({output_name, current_output_tensor});
     }
 
-    aclDataBuffer *output_data = aclCreateDataBuffer(max_output_buffer->getPtr(), max_output_buffer->getDesc().size_[0]);
+    aclDataBuffer *output_data = aclCreateDataBuffer(
+        max_output_buffer->getPtr(), max_output_buffer->getDesc().size_[0]);
     ret = aclmdlAddDatasetBuffer(output_dataset_, output_data);
     if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("ouput_{%d}: aclmdlAddDatasetBuffer failed, errorCode is %d.", i, ret);
+      NNDEPLOY_LOGE(
+          "ouput_{%d}: aclmdlAddDatasetBuffer failed, errorCode is %d.", i,
+          ret);
       status = base::kStatusCodeErrorInferenceAscendCL;
     }
   }
