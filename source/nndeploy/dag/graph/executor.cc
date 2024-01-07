@@ -173,6 +173,15 @@ base::Status dumpDag(std::vector<NodeWrapper *> &node_repository,
   return status;
 }
 
+void checkUnuseNode(std::vector<NodeWrapper *> &node_repository) {
+  for (auto node_wrapper : node_repository) {
+    if (node_wrapper->color_ == kNodeColorWhite) {
+      NNDEPLOY_LOGE("Unuse node found in graph, Node name: %s.",
+                    node_wrapper->name_.c_str());
+    }
+  }
+}
+
 base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,
                          std::vector<NodeWrapper *> &topo_sort_node) {
   std::vector<NodeWrapper *> start_nodes = findStartNodes(node_repository);
@@ -202,6 +211,9 @@ base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,
     node_wrapper->color_ = kNodeColorBlack;
     topo_sort_node.emplace_back(node_wrapper);
   }
+
+  checkUnuseNode(node_repository);
+
   return base::kStatusCodeOk;
 }
 
@@ -249,6 +261,9 @@ base::Status topoSortDFS(std::vector<NodeWrapper *> &node_repository,
     topo_sort_node.emplace_back(dst.top());
     dst.pop();
   }
+
+  checkUnuseNode(node_repository);
+
   return base::kStatusCodeOk;
 }
 

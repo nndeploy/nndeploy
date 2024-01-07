@@ -11,6 +11,7 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/graph/parallel_pipeline_executor.h"
 #include "nndeploy/dag/graph/parallel_task_executor.h"
 #include "nndeploy/dag/graph/sequential_executor.h"
 #include "nndeploy/dag/node.h"
@@ -211,19 +212,12 @@ base::Status Graph::init() {
     executor_ = std::make_shared<SequentialExecutor>();
   } else if (parallel_type == kParallelTypeTask) {
     executor_ = std::make_shared<ParallelTaskExecutor>();
+  } else if (parallel_type == kParallelTypePipeline) {
+    executor_ = std::make_shared<ParallelPipelineExecutor>();
   } else {
     NNDEPLOY_LOGE("parallel_type is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
-  // else if (parallel_type == kParallelTypeTask) {
-  //   executor_ = std::make_shared<ParallelTaskExecutor>();
-  // }
-  // else if (parallel_type == kParallelTypePipeline) {
-  //   executor_ = std::make_shared<ParallelPipelineExecutor>();
-  // }
-  // else if (parallel_type == kParallelTypeAdaptive) {
-  //   rewriteGraph();
-  // }
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
 
   // NNDEPLOY_LOGI("##############\n");
