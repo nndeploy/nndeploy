@@ -70,6 +70,9 @@ class DataPacket : public base::NonCopyable {
 
   int getIndex();
 
+  void notifyWritten(void *anything);
+  bool isNotifyWritten() { return written_; }
+
  private:
   void destory();
 
@@ -77,6 +80,7 @@ class DataPacket : public base::NonCopyable {
   bool is_external_ = true;
   int index_ = -1;
   Flag flag_ = kFlagNone;
+  bool written_ = false;
   void *anything_ = nullptr;
 };
 

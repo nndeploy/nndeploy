@@ -20,7 +20,7 @@ PipelineEdge::~PipelineEdge() {
   consumers_count_ = -1;
 
   for (auto iter : data_packets_) {
-    delete iter;
+    delete iter.first;
   }
   data_packets_.clear();
 
@@ -35,14 +35,12 @@ base::Status PipelineEdge::set(device::Buffer *buffer, int index,
   // 上锁
   std::lock_guard<std::mutex> lock(lock_);
   data_packets_.push_back({dp, 0});
-  // 通知所有等待的线程
-  cv_.notify_all();
 }
 base::Status PipelineEdge::set(device::Buffer &buffer, int index,
                                bool is_external);
 base::Status PipelineEdge::create(device::Device *device,
                                   const device::BufferDesc &desc, int index);
-virtual device::Buffer *getBuffer(const Node *comsumer) {
+virtual device::Buffer *getBuffer(const Node *node) {
   std::lock_guard<std::mutex> lock(lock_);  // 锁上互斥锁
   // 等待通知，释放锁，被唤醒后重新上锁
   cv_.wait(lock, [this] { return !data_packets_.empty(); });
@@ -50,7 +48,7 @@ virtual device::Buffer *getBuffer(const Node *comsumer) {
   DataPacket *tmp = nullptr;
 
   // 该edge没有消费者，即为输出edge
-  if (comsumer == nullptr) {
+  if (node == nullptr) {
     if (consumed_.empty()) {
       for (auto iter = data_packets_.begin(); iter != data_packets_.end();
            ++iter) {
@@ -75,16 +73,15 @@ virtual device::Buffer *getBuffer(const Node *comsumer) {
      * #### 有数据包，拿到数据
      */
     // check
-    auto iter = consumed_.find(comsumer);
+    auto iter = consumed_.find(node);
     if (iter == consumed_.end()) {
-      NNDEPLOY_LOGE("This comsumer[%s] is error.\n",
-                    comsumer->getName().c_str());
+      NNDEPLOY_LOGE("This node[%s] is error.\n", node->getName().c_str());
       return nullptr;
     } else {
       int index = iter->second;
       if (index >= data_packets_.size()) {
-        NNDEPLOY_LOGE("This comsumer[%s]'s index[%d] is error.\n",
-                      comsumer->getName().c_str(), index);
+        NNDEPLOY_LOGE("This node[%s]'s index[%d] is error.\n",
+                      node->getName().c_str(), index);
         return nullptr;
       }
       auto iter = data_packets_.begin();
@@ -114,12 +111,12 @@ base::Status PipelineEdge::set(device::Mat *mat, int index, bool is_external);
 base::Status PipelineEdge::set(device::Mat &mat, int index, bool is_external);
 base::Status PipelineEdge::create(device::Device *device,
                                   const device::MatDesc &desc, int index);
-virtual device::Mat *getMat(const Node *comsumer);
+virtual device::Mat *getMat(const Node *node);
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status PipelineEdge::set(cv::Mat *cv_mat, int index, bool is_external);
 base::Status PipelineEdge::set(cv::Mat &cv_mat, int index, bool is_external);
-virtual cv::Mat *getCvMat(const Node *comsumer);
+virtual cv::Mat *getCvMat(const Node *node);
 #endif
 
 base::Status PipelineEdge::set(device::Tensor *tensor, int index,
@@ -128,26 +125,33 @@ base::Status PipelineEdge::set(device::Tensor &tensor, int index,
                                bool is_external);
 base::Status PipelineEdge::create(device::Device *device,
                                   const device::TensorDesc &desc, int index);
-virtual device::Tensor *getTensor(const Node *comsumer);
+virtual device::Tensor *getTensor(const Node *node);
 
 base::Status PipelineEdge::set(base::Param *param, int index, bool is_external);
 base::Status PipelineEdge::set(base::Param &param, int index, bool is_external);
-virtual base::Param *getParam(const Node *comsumer);
+virtual base::Param *getParam(const Node *node);
 
 base::Status PipelineEdge::set(void *anything, int index, bool is_external);
-virtual void *getAnything(const Node *comsumer);
+virtual void *getAnything(const Node *node);
 
-virtual int getIndex(const Node *comsumer);
+virtual int getIndex(const Node *node);
 
-DataPacket *PipelineEdge::getDataPacket(const Node *comsumer) {
+DataPacket *PipelineEdge::getDataPacket(const Node *node) {
   // 锁上互斥锁
   std::lock_guard<std::mutex> lock(lock_);
   // 等待通知，释放锁，被唤醒后重新上锁
   cv_.wait(lock);
+
+  // 消费者发出数据请求
+  // list最后一个节点
+  if (producers_.find(node) != producers_.end()) {
+    return data_packets_.rbegin()->first;
+  }
+
   // 返回值
   DataPacket *tmp = nullptr;
   // 该edge没有消费者，即为输出edge
-  if (comsumer == nullptr) {
+  if (node == nullptr) {
     if (consumed_.empty()) {
       for (auto iter = data_packets_.begin(); iter != data_packets_.end();
            ++iter) {
@@ -177,16 +181,15 @@ DataPacket *PipelineEdge::getDataPacket(const Node *comsumer) {
      * #### 有数据包，拿到数据
      */
     // check
-    auto iter = consumed_.find(comsumer);
+    auto iter = consumed_.find(node);
     if (iter == consumed_.end()) {
-      NNDEPLOY_LOGE("This comsumer[%s] is error.\n",
-                    comsumer->getName().c_str());
+      NNDEPLOY_LOGE("This node[%s] is error.\n", node->getName().c_str());
       return nullptr;
     } else {
       int index = iter->second;
       if (index >= data_packets_.size()) {
-        NNDEPLOY_LOGE("This comsumer[%s]'s index[%d] is error.\n",
-                      comsumer->getName().c_str(), index);
+        NNDEPLOY_LOGE("This node[%s]'s index[%d] is error.\n",
+                      node->getName().c_str(), index);
         return nullptr;
       }
       auto iter = data_packets_.begin();

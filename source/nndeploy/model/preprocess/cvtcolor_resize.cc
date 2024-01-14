@@ -25,14 +25,16 @@ base::Status CvtColorResize::run() {
   // }
   device::Device *device = device::getDefaultHostDevice();
   device::TensorDesc desc;
-  if(tmp_param->normalize_){
+  if (tmp_param->normalize_) {
     desc.data_type_ = base::dataTypeOf<float>();
     desc.data_format_ = base::kDataFormatNCHW;
-    desc.shape_ = {1, getChannelByPixelType(tmp_param->dst_pixel_type_), tmp_param->h_, tmp_param->w_};
-  }else{
+    desc.shape_ = {1, getChannelByPixelType(tmp_param->dst_pixel_type_),
+                   tmp_param->h_, tmp_param->w_};
+  } else {
     desc.data_type_ = base::dataTypeOf<uint8_t>();
     desc.data_format_ = base::kDataFormatNHWC;
-    desc.shape_ = {1, tmp_param->h_, tmp_param->w_, getChannelByPixelType(tmp_param->dst_pixel_type_)};
+    desc.shape_ = {1, tmp_param->h_, tmp_param->w_,
+                   getChannelByPixelType(tmp_param->dst_pixel_type_)};
   }
 
   outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
@@ -56,7 +58,7 @@ base::Status CvtColorResize::run() {
     tmp_cvt = *src;
   }
 
-  if(tmp_param->normalize_){
+  if (tmp_param->normalize_) {
     cv::Mat tmp_resize;
     if (tmp_param->interp_type_ != base::kInterpTypeNotSupport) {
       int interp_type =
@@ -67,7 +69,7 @@ base::Status CvtColorResize::run() {
     }
     OpenCvConvert::convertToTensor(tmp_resize, dst, tmp_param->scale_,
                                    tmp_param->mean_, tmp_param->std_);
-  }else{
+  } else {
     cv::Mat tmp_resize(h, w, CV_8UC3, (uint8_t *)dst->getPtr());
     if (tmp_param->interp_type_ != base::kInterpTypeNotSupport) {
       int interp_type =
@@ -78,6 +80,8 @@ base::Status CvtColorResize::run() {
     }
   }
 
+  // 通知Edge，数据已经完成写入
+  outputs_[0]->notifyWritten(dst);
   return base::kStatusCodeOk;
 }
 

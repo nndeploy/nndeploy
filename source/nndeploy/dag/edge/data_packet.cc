@@ -258,6 +258,13 @@ void *DataPacket::getAnything() {
 
 int DataPacket::getIndex() { return index_; }
 
+void DataPacket::notifyWritten(void *anything) {
+  if (anything == anything_) {
+    written_ = true;
+  }
+}
+bool DataPacket::isNotifyWritten() { return written_; }
+
 void DataPacket::destory() {
   if (!is_external_ && anything_ != nullptr) {
     if (flag_ == kFlagBuffer) {

@@ -30,19 +30,19 @@ class FixedEdge : public AbstractEdge {
   virtual base::Status set(device::Buffer &buffer, int index, bool is_external);
   virtual base::Status create(device::Device *device,
                               const device::BufferDesc &desc, int index);
-  virtual device::Buffer *getBuffer(const Node *comsumer);
+  virtual device::Buffer *getBuffer(const Node *node);
 
   virtual base::Status set(device::Mat *mat, int index, bool is_external);
   virtual base::Status set(device::Mat &mat, int index, bool is_external);
   virtual base::Status create(device::Device *device,
                               const device::MatDesc &desc, int index,
                               const std::string &name);
-  virtual device::Mat *getMat(const Node *comsumer);
+  virtual device::Mat *getMat(const Node *node);
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
   virtual base::Status set(cv::Mat &cv_mat, int index, bool is_external);
-  virtual cv::Mat *getCvMat(const Node *comsumer);
+  virtual cv::Mat *getCvMat(const Node *node);
 #endif
 
   virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
@@ -50,16 +50,18 @@ class FixedEdge : public AbstractEdge {
   virtual base::Status create(device::Device *device,
                               const device::TensorDesc &desc, int index,
                               const std::string &name);
-  virtual device::Tensor *getTensor(const Node *comsumer);
+  virtual device::Tensor *getTensor(const Node *node);
 
   virtual base::Status set(base::Param *param, int index, bool is_external);
   virtual base::Status set(base::Param &param, int index, bool is_external);
-  virtual base::Param *getParam(const Node *comsumer);
+  virtual base::Param *getParam(const Node *node);
 
   virtual base::Status set(void *anything, int index, bool is_external);
-  virtual void *getAnything(const Node *comsumer);
+  virtual void *getAnything(const Node *node);
 
-  virtual int getIndex(const Node *comsumer);
+  virtual int getIndex(const Node *node);
+
+  virtual void notifyWritten(void *anything);
 
  private:
   DataPacket *data_packet_;

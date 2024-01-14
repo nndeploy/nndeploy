@@ -28,7 +28,7 @@ base::Status FixedEdge::create(device::Device *device,
                                const device::BufferDesc &desc, int index) {
   return data_packet_->create(device, desc, index);
 }
-device::Buffer *FixedEdge::getBuffer(const Node *comsumer) {
+device::Buffer *FixedEdge::getBuffer(const Node *node) {
   return data_packet_->getBuffer();
 }
 
@@ -43,7 +43,7 @@ base::Status FixedEdge::create(device::Device *device,
                                const std::string &name) {
   return data_packet_->create(device, desc, index, name);
 }
-device::Mat *FixedEdge::getMat(const Node *comsumer) {
+device::Mat *FixedEdge::getMat(const Node *node) {
   return data_packet_->getMat();
 }
 
@@ -54,7 +54,7 @@ base::Status FixedEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
 base::Status FixedEdge::set(cv::Mat &cv_mat, int index, bool is_external) {
   return data_packet_->set(cv_mat, index, is_external);
 }
-cv::Mat *FixedEdge::getCvMat(const Node *comsumer) {
+cv::Mat *FixedEdge::getCvMat(const Node *node) {
   return data_packet_->getCvMat();
 }
 #endif
@@ -72,7 +72,7 @@ base::Status FixedEdge::create(device::Device *device,
                                const std::string &name) {
   return data_packet_->create(device, desc, index, name);
 }
-device::Tensor *FixedEdge::getTensor(const Node *comsumer) {
+device::Tensor *FixedEdge::getTensor(const Node *node) {
   return data_packet_->getTensor();
 }
 
@@ -82,19 +82,21 @@ base::Status FixedEdge::set(base::Param *param, int index, bool is_external) {
 base::Status FixedEdge::set(base::Param &param, int index, bool is_external) {
   return data_packet_->set(param, index, is_external);
 }
-base::Param *FixedEdge::getParam(const Node *comsumer) {
+base::Param *FixedEdge::getParam(const Node *node) {
   return data_packet_->getParam();
 }
 
 base::Status FixedEdge::set(void *anything, int index, bool is_external) {
   return data_packet_->set(anything, index, is_external);
 }
-void *FixedEdge::getAnything(const Node *comsumer) {
+void *FixedEdge::getAnything(const Node *node) {
   return data_packet_->getAnything();
 }
 
-int FixedEdge::getIndex(const Node *comsumer) {
-  return data_packet_->getIndex();
+int FixedEdge::getIndex(const Node *node) { return data_packet_->getIndex(); }
+
+void FixedEdge::notifyWritten(void *anything) {
+  data_packet_->notifyWritten(anything);
 }
 
 }  // namespace dag
