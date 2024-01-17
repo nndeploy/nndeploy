@@ -21,7 +21,8 @@ class ParallelPipelineExecutor : public Executor {
     for (auto iter : topo_sort_node_) {
       iter->color_ = kNodeColorWhite;
       status = iter->node_->init();
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "存在节点初始化失败");
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "failed iter->node_->init()");
     }
 
     all_task_count_ = topo_sort_node_.size();
@@ -38,13 +39,23 @@ class ParallelPipelineExecutor : public Executor {
     for (auto iter : topo_sort_node_) {
       status = iter->node_->deinit();
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                             "存在节点反初始化失败");
+                             "failed iter->node_->deinit()");
     }
     thread_pool_->destroy();
     delete thread_pool_;
     return status;
   }
 
+  /**
+   * @brief
+   *
+   * @return base::Status
+   * @note
+   * # 1. 什么时候启动这些线程呢？
+   * # 2. 什么时候结束这些线程呢？
+   * # 3.
+   * 在一批数据中只能启动一次，然后一直运行，直到数据处理完毕，然后回收线程，等待下一批线程开始
+   */
   virtual base::Status run() {
     static std::once_flag once;
     std::call_once(once, [this]() { this->process(); });

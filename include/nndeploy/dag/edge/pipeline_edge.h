@@ -67,6 +67,14 @@ class PipelineEdge : public AbstractEdge {
   DataPacket *getDataPacket(const Node *node);
 
   /**
+   * @brief Get the Graph Input Edge Data Packet object
+   *
+   * @param node
+   * @return DataPacket*
+   * @note 用于获取图的输入节点的数据包
+   */
+  DataPacket *getGraphInputEdgeDataPacket(const Node *node);
+  /**
    * @brief Get the Graph Output Edge Data Packet object
    *
    * @param node
@@ -74,6 +82,14 @@ class PipelineEdge : public AbstractEdge {
    * @note 用于获取图的输出节点的数据包
    */
   DataPacket *getGraphOutputEdgeDataPacket(const Node *node);
+  /**
+   * @brief Get the Consumer Node Edge Data Packet object
+   *
+   * @param node
+   * @return DataPacket*
+   * @note 用于获取消费者节点的数据包
+   */
+  DataPacket *getConsumerNodeEdgeDataPacket(const Node *node);
   /**
    * @brief Get the Producer Node Edge Data Packet object
    *
@@ -84,14 +100,6 @@ class PipelineEdge : public AbstractEdge {
    * # 2. 中间节点的输入边
    */
   DataPacket *getProducerNodeEdgeDataPacket(const Node *node);
-  /**
-   * @brief Get the Consumer Node Edge Data Packet object
-   *
-   * @param node
-   * @return DataPacket*
-   * @note 用于获取消费者节点的数据包
-   */
-  DataPacket *getConsumerNodeEdgeDataPacket(const Node *node);
 
  private:
   std::mutex lock_;

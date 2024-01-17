@@ -239,26 +239,88 @@ bool PipelineEdge::notifyWritten(void *anything) {
 }
 
 DataPacket *PipelineEdge::getDataPacket(const Node *node) {
-  if (node == nullptr) {  // 输入edge
+  if (producers_.empty() && consumers_.find(node) != consumers_.end()) {
+    return getGraphInputEdgeDataPacket(node);
+  } else if (consumers_.empty() && node == nullptr) {
     return getGraphOutputEdgeDataPacket(node);
-  } else if (producers_.find(node) != producers_.end()) {
-    return data_packets_.rbegin()->first;
   } else if (consumers_.find(node) != consumers_.end()) {
-    int index = consumed_[node];
-    DataPacket *dp = getIndex(index);
-    if (dp->isNotifyWritten()) {
-      return dp;
-    } else {
-      NNDEPLOY_LOGE("This node[%s] is not written.\n", node->getName().c_str());
-      return nullptr;
-    }
+    return getConsumerNodeEdgeDataPacket(node);
+  } else if (producers_.find(node) != producers_.end()) {
+    return getProducerNodeEdgeDataPacket(node);
   } else {
     NNDEPLOY_LOGE("This node[%s] is error.\n", node->getName().c_str());
     return nullptr;
   }
 }
 
+/**
+ * @brief Get the Graph Input Edge Data Packet object
+ *
+ * @param node
+ * @return DataPacket*
+ * @note 用于获取图的输入节点的数据包
+ */
+DataPacket *PipelineEdge::getGraphInputEdgeDataPacket(const Node *node) {
+  int index = consumed_[node];
+  // consumed_ update
+  consumed_[node]++;
+  // check
+  if (index >= data_packets_.size()) {
+    NNDEPLOY_LOGE("This index[%d] is error.\n", index);
+    return nullptr;
+  }
+  // find
+  int count = 0;
+  auto iter = data_packets_.begin();
+  for (int i = 0; i <= index; i++) {
+    if (iter.second == consumers_count_) {
+      count++;
+    }
+    iter++;
+  }
+  iter.second++;
+  DataPacket *dp = iter.first;
+  // update
+  for (auto iter : consumed_) {
+    iter.second -= count;
+  }
+  int i = 0;
+  for (auto iter : data_packets_) {
+    delete iter.first;
+    data_packets_.pop_front();
+    i++;
+    if (i == count) {
+      break;
+    }
+  }
+  return dp;
+}
+/**
+ * @brief Get the Graph Output Edge Data Packet object
+ *
+ * @param node
+ * @return DataPacket*
+ * @note 用于获取图的输出节点的数据包
+ */
 DataPacket *PipelineEdge::getGraphOutputEdgeDataPacket(const Node *node) {}
+/**
+ * @brief Get the Consumer Node Edge Data Packet object
+ *
+ * @param node
+ * @return DataPacket*
+ * @note 用于获取消费者节点的数据包
+ */
+DataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(const Node *node) {}
+/**
+ * @brief Get the Producer Node Edge Data Packet object
+ *
+ * @param node
+ * @return DataPacket*
+ * @note 用于获取生产者节点的数据包
+ * # 1. 整个图的输入边
+ * # 2. 中间节点的输入边
+ */
+DataPacket *PipelineEdge::getProducerNodeEdgeDataPacket(const Node *node) {}
 
 }  // namespace dag
 }  // namespace nndeploy
