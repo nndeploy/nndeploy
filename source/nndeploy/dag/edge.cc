@@ -94,8 +94,8 @@ ParallelType Edge::getParallelType() {
   return abstact_edge_->getParallelType();
 }
 
-void Edge::notifyWritten(void *anything) {
-  abstact_edge_->notifyWritten(anything);
+bool Edge::notifyWritten(void *anything) {
+  return abstact_edge_->notifyWritten(anything);
 }
 
 }  // namespace dag

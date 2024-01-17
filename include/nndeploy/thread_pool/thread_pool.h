@@ -21,8 +21,11 @@ class NNDEPLOY_CC_API ThreadPool {
     for (int i = 0; i < max_thread_size_; i++) {
       auto ptr = new LocalThread();  // 创建核心线程数
       ptr->setThreadPoolInfo(i, &threads_);
-      ptr->init();
+      // ptr->init();
       threads_.emplace_back(ptr);
+    }
+    for (int i = 0; i < max_thread_size_; i++) {
+      threads_[i]->init();
     }
 
     return base::Status();
@@ -59,5 +62,24 @@ class NNDEPLOY_CC_API ThreadPool {
 
 }  // namespace thread_pool
 }  // namespace nndeploy
+
+// demo
+// int main(int argc, char *argv[]) {
+//   nndeploy::thread_pool::ThreadPool pool(4);
+//   pool.init();
+
+//   auto func = [](int a, int b) { return a + b; };
+//   auto result1 = pool.commit(std::bind(func, 1, 2));
+//   std::cout << result1.get() << std::endl;
+
+//   int i = 0;
+//   int j = 0;
+//   auto result2 = pool.commit([i, j] {
+//     return add(i, j); }));
+//   std::cout << result2.get() << std::endl;
+
+//   pool.destroy();
+//   return 0;
+// }
 
 #endif  //_NNDEPLOY_THREAD_POOL_THREAD_POOL_H_

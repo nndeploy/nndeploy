@@ -258,9 +258,12 @@ void *DataPacket::getAnything() {
 
 int DataPacket::getIndex() { return index_; }
 
-void DataPacket::notifyWritten(void *anything) {
+bool DataPacket::notifyWritten(void *anything) {
   if (anything == anything_) {
     written_ = true;
+    return true;
+  } else {
+    return false;
   }
 }
 bool DataPacket::isNotifyWritten() { return written_; }
@@ -290,8 +293,9 @@ void DataPacket::destory() {
   }
 
   is_external_ = true;
-  flag_ = kFlagNone;
   index_ = -1;
+  flag_ = kFlagNone;
+  written_ = false;
   anything_ = nullptr;
 }
 

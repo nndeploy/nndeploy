@@ -22,8 +22,8 @@ class ParallelTaskExecutor : public Executor {
                                         // 计算图的最大并行度，决定线程的数量
     thread_pool_->init();
     start_nodes_ = findStartNodes(node_repository);
-    base::Status status = topoSortDFS(node_repository, topo_sort_node_);
-    all_task_count_ = node_repository.size();
+    base::Status status = topoSortBFS(node_repository, topo_sort_node_);
+    all_task_count_ = topo_sort_node_.size();
     if (start_nodes_.empty()) {
       NNDEPLOY_LOGE("No start node found in graph");
       return base::kStatusCodeErrorInvalidValue;
@@ -32,7 +32,7 @@ class ParallelTaskExecutor : public Executor {
     for (auto iter : topo_sort_node_) {
       iter->color_ = kNodeColorWhite;
       status = iter->node_->init();
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "存在节点初始化失败");
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node init failure");
     }
 
     return status;
@@ -43,7 +43,7 @@ class ParallelTaskExecutor : public Executor {
     for (auto iter : topo_sort_node_) {
       status = iter->node_->deinit();
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                             "存在节点反初始化失败");
+                             "node deinit failure");
     }
     thread_pool_->destroy();
     delete thread_pool_;
@@ -91,7 +91,7 @@ class ParallelTaskExecutor : public Executor {
         if (successor->predecessors_.size() <= 1) {
           process(successor);
         } else {
-          process(successor);
+          submitTaskSynchronized(successor);
         }
       }
     }
@@ -102,7 +102,7 @@ class ParallelTaskExecutor : public Executor {
     }
 
     std::lock_guard<std::mutex> lock(main_lock_);
-    std::cout << completed_task_count_ << std::endl;
+
     if (completed_task_count_ >= all_task_count_) {
       cv_.notify_one();
     }

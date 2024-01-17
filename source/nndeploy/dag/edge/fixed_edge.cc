@@ -95,8 +95,8 @@ void *FixedEdge::getAnything(const Node *node) {
 
 int FixedEdge::getIndex(const Node *node) { return data_packet_->getIndex(); }
 
-void FixedEdge::notifyWritten(void *anything) {
-  data_packet_->notifyWritten(anything);
+bool FixedEdge::notifyWritten(void *anything) {
+  return data_packet_->notifyWritten(anything);
 }
 
 }  // namespace dag

@@ -68,7 +68,7 @@ class AbstractEdge : public base::NonCopyable {
   virtual int getIndex(const Node *node) = 0;
   ParallelType getParallelType() { return paralle_type_; }
 
-  virtual void notifyWritten(void *anything) = 0;
+  virtual bool notifyWritten(void *anything) = 0;
 
  protected:
   ParallelType paralle_type_;

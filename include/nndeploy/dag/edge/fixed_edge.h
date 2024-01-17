@@ -61,7 +61,7 @@ class FixedEdge : public AbstractEdge {
 
   virtual int getIndex(const Node *node);
 
-  virtual void notifyWritten(void *anything);
+  virtual bool notifyWritten(void *anything);
 
  private:
   DataPacket *data_packet_;

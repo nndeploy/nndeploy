@@ -70,7 +70,7 @@ class DataPacket : public base::NonCopyable {
 
   int getIndex();
 
-  void notifyWritten(void *anything);
+  bool notifyWritten(void *anything);
   bool isNotifyWritten() { return written_; }
 
  private:

@@ -215,5 +215,50 @@ DataPacket *PipelineEdge::getDataPacket(const Node *node) {
   return tmp;
 }
 
+DataPacket *PipelineEdge::getIndex(int i) {
+  if (i >= data_packets_.size()) {
+    NNDEPLOY_LOGE("This index[%d] is error.\n", i);
+    return nullptr;
+  }
+  auto iter = data_packets_.begin();
+  for (int i = 0; i <= index; i++) {
+    iter++;
+  }
+  iter.second++;
+  return iter.first;
+}
+
+bool PipelineEdge::notifyWritten(void *anything) {
+  std::lock_guard<std::mutex> lock(lock_);
+  for (auto iter = data_packets_.begin(); iter != data_packets_.end(); ++iter) {
+    if (iter.first->notifyWritten(anything)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+DataPacket *PipelineEdge::getDataPacket(const Node *node) {
+  if (node == nullptr) {  // 输入edge
+    return getGraphOutputEdgeDataPacket(node);
+  } else if (producers_.find(node) != producers_.end()) {
+    return data_packets_.rbegin()->first;
+  } else if (consumers_.find(node) != consumers_.end()) {
+    int index = consumed_[node];
+    DataPacket *dp = getIndex(index);
+    if (dp->isNotifyWritten()) {
+      return dp;
+    } else {
+      NNDEPLOY_LOGE("This node[%s] is not written.\n", node->getName().c_str());
+      return nullptr;
+    }
+  } else {
+    NNDEPLOY_LOGE("This node[%s] is error.\n", node->getName().c_str());
+    return nullptr;
+  }
+}
+
+DataPacket *PipelineEdge::getGraphOutputEdgeDataPacket(const Node *node) {}
+
 }  // namespace dag
 }  // namespace nndeploy

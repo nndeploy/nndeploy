@@ -61,8 +61,37 @@ class PipelineEdge : public AbstractEdge {
 
   virtual int getIndex(const Node *node);
 
+  virtual bool notifyWritten(void *anything);
+
  private:
   DataPacket *getDataPacket(const Node *node);
+
+  /**
+   * @brief Get the Graph Output Edge Data Packet object
+   *
+   * @param node
+   * @return DataPacket*
+   * @note 用于获取图的输出节点的数据包
+   */
+  DataPacket *getGraphOutputEdgeDataPacket(const Node *node);
+  /**
+   * @brief Get the Producer Node Edge Data Packet object
+   *
+   * @param node
+   * @return DataPacket*
+   * @note 用于获取生产者节点的数据包
+   * # 1. 整个图的输入边
+   * # 2. 中间节点的输入边
+   */
+  DataPacket *getProducerNodeEdgeDataPacket(const Node *node);
+  /**
+   * @brief Get the Consumer Node Edge Data Packet object
+   *
+   * @param node
+   * @return DataPacket*
+   * @note 用于获取消费者节点的数据包
+   */
+  DataPacket *getConsumerNodeEdgeDataPacket(const Node *node);
 
  private:
   std::mutex lock_;
