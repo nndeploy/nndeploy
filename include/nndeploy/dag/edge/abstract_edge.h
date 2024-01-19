@@ -30,14 +30,13 @@ class AbstractEdge : public base::NonCopyable {
 
   virtual base::Status set(device::Buffer *buffer, int index,
                            bool is_external) = 0;
-  virtual base::Status set(device::Buffer &buffer, int index,
-                           bool is_external) = 0;
+  virtual base::Status set(device::Buffer &buffer, int index) = 0;
   virtual base::Status create(device::Device *device,
                               const device::BufferDesc &desc, int index) = 0;
   virtual device::Buffer *getBuffer(const Node *node) = 0;
 
   virtual base::Status set(device::Mat *mat, int index, bool is_external) = 0;
-  virtual base::Status set(device::Mat &mat, int index, bool is_external) = 0;
+  virtual base::Status set(device::Mat &mat, int index) = 0;
   virtual base::Status create(device::Device *device,
                               const device::MatDesc &desc, int index,
                               const std::string &name) = 0;
@@ -45,21 +44,20 @@ class AbstractEdge : public base::NonCopyable {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external) = 0;
-  virtual base::Status set(cv::Mat &cv_mat, int index, bool is_external) = 0;
+  virtual base::Status set(cv::Mat &cv_mat, int index) = 0;
   virtual cv::Mat *getCvMat(const Node *node) = 0;
 #endif
 
   virtual base::Status set(device::Tensor *tensor, int index,
                            bool is_external) = 0;
-  virtual base::Status set(device::Tensor &tensor, int index,
-                           bool is_external) = 0;
+  virtual base::Status set(device::Tensor &tensor, int index) = 0;
   virtual base::Status create(device::Device *device,
                               const device::TensorDesc &desc, int index,
                               const std::string &name) = 0;
   virtual device::Tensor *getTensor(const Node *node) = 0;
 
   virtual base::Status set(base::Param *param, int index, bool is_external) = 0;
-  virtual base::Status set(base::Param &param, int index, bool is_external) = 0;
+  virtual base::Status set(base::Param &param, int index) = 0;
   virtual base::Param *getParam(const Node *node) = 0;
 
   virtual base::Status set(void *anything, int index, bool is_external) = 0;

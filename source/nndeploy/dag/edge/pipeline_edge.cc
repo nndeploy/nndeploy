@@ -10,6 +10,7 @@ PipelineEdge::PipelineEdge(ParallelType paralle_type,
                            std::initializer_list<Node *> producers,
                            std::initializer_list<Node *> consumers)
     : AbstractEdge(paralle_type, producers, consumers) {
+  producers_count_ = producers.size();
   consumers_count_ = consumers.size();
   for (auto iter : consumers) {
     consumed_.insert({iter, 0});
@@ -17,6 +18,7 @@ PipelineEdge::PipelineEdge(ParallelType paralle_type,
 }
 
 PipelineEdge::~PipelineEdge() {
+  producers_count_ = -1;
   consumers_count_ = -1;
 
   for (auto iter : data_packets_) {
@@ -29,93 +31,77 @@ PipelineEdge::~PipelineEdge() {
 
 base::Status PipelineEdge::set(device::Buffer *buffer, int index,
                                bool is_external) {
-  DataPacket *dp = new DataPacket();
-  dp->set(buffer, index, is_external);
+  PipelineDataPacket *dp = new PipelineDataPacket();
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n")
+  base::Status status = dp->set(buffer, index, is_external);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "PipelineDataPacket set error.\n")
 
   // 上锁
-  std::lock_guard<std::mutex> lock(lock_);
+  std::lock_guard<std::mutex> lock(mutex_);
   data_packets_.push_back({dp, 0});
+  cv_.notify_all();
+
+  // graph输入tensor的时候，需要通知开始节点
+  if (producers_count_ == 0) {
+    status = dp->notifyWritten(buffer);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           " PipelineDataPacket notifyWritten error.\n");
+  }
+
+  return status;
 }
-base::Status PipelineEdge::set(device::Buffer &buffer, int index,
-                               bool is_external);
+base::Status PipelineEdge::set(device::Buffer &buffer, int index) {
+  PipelineDataPacket *dp = new PipelineDataPacket();
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n")
+  base::Status status = dp->set(buffer, index);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "PipelineDataPacket set error.\n")
+
+  // 上锁
+  std::lock_guard<std::mutex> lock(mutex_);
+  data_packets_.push_back({dp, 0});
+  cv_.notify_all();
+
+  // graph输入tensor的时候，需要通知开始节点
+  if (producers_count_ == 0) {
+    status = dp->notifyWritten(&buffer);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           " PipelineDataPacket notifyWritten error.\n");
+  }
+
+  return status;
+}
 base::Status PipelineEdge::create(device::Device *device,
-                                  const device::BufferDesc &desc, int index);
+                                  const device::BufferDesc &desc, int index) {
+  PipelineDataPacket *dp = new PipelineDataPacket();
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n")
+  base::Status status = dp->create(device, desc, index);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "PipelineDataPacket create error.\n")
+
+  // 上锁
+  std::lock_guard<std::mutex> lock(mutex_);
+  data_packets_.push_back({dp, 0});
+  cv_.notify_all();
+
+  return status;
+}
 virtual device::Buffer *getBuffer(const Node *node) {
-  std::lock_guard<std::mutex> lock(lock_);  // 锁上互斥锁
-  // 等待通知，释放锁，被唤醒后重新上锁
-  cv_.wait(lock, [this] { return !data_packets_.empty(); });
-
-  DataPacket *tmp = nullptr;
-
-  // 该edge没有消费者，即为输出edge
-  if (node == nullptr) {
-    if (consumed_.empty()) {
-      for (auto iter = data_packets_.begin(); iter != data_packets_.end();
-           ++iter) {
-        iter.second++;
-        if (iter.second == 1) {
-          tmp = iter.first;
-          break;
-        }
-      }
-    } else {
-      NNDEPLOY_LOGE("This edge has consumer.\n");
-      return nullptr;
-    }
-  } else {  // 该edge有消费者，即不为输出edge
-    /**
-     * @brief
-     * #. 检测node是否合理
-     * ## 不合理，报错
-     * ## 合理
-     * ### 检测是否有数据包
-     * #### 没有数据包，报错
-     * #### 有数据包，拿到数据
-     */
-    // check
-    auto iter = consumed_.find(node);
-    if (iter == consumed_.end()) {
-      NNDEPLOY_LOGE("This node[%s] is error.\n", node->getName().c_str());
-      return nullptr;
-    } else {
-      int index = iter->second;
-      if (index >= data_packets_.size()) {
-        NNDEPLOY_LOGE("This node[%s]'s index[%d] is error.\n",
-                      node->getName().c_str(), index);
-        return nullptr;
-      }
-      auto iter = data_packets_.begin();
-      for (int i = 0; i <= index; i++) {
-        if (iter.second == consumers_count_) {
-          iter.second++;
-        }
-        iter++;
-      }
-      iter.second++;
-      tmp = iter.first;
-    }
-  }
-
-  // 移除数据包
-  for (auto iter = data_packets_.begin(); iter != data_packets_.end(); ++iter) {
-    if (iter.second > consumers_count_) {
-      delete iter.first;
-      data_packets_.erase(iter);
-    }
-  }
+  PipelineDataPacket *dp = getDataPacket(node);
 
   return tmp->getBuffer();
 }
 
 base::Status PipelineEdge::set(device::Mat *mat, int index, bool is_external);
-base::Status PipelineEdge::set(device::Mat &mat, int index, bool is_external);
+base::Status PipelineEdge::set(device::Mat &mat, int index);
 base::Status PipelineEdge::create(device::Device *device,
                                   const device::MatDesc &desc, int index);
 virtual device::Mat *getMat(const Node *node);
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status PipelineEdge::set(cv::Mat *cv_mat, int index, bool is_external);
-base::Status PipelineEdge::set(cv::Mat &cv_mat, int index, bool is_external);
+base::Status PipelineEdge::set(cv::Mat &cv_mat, int index);
 virtual cv::Mat *getCvMat(const Node *node);
 #endif
 
@@ -128,7 +114,7 @@ base::Status PipelineEdge::create(device::Device *device,
 virtual device::Tensor *getTensor(const Node *node);
 
 base::Status PipelineEdge::set(base::Param *param, int index, bool is_external);
-base::Status PipelineEdge::set(base::Param &param, int index, bool is_external);
+base::Status PipelineEdge::set(base::Param &param, int index);
 virtual base::Param *getParam(const Node *node);
 
 base::Status PipelineEdge::set(void *anything, int index, bool is_external);
@@ -136,109 +122,35 @@ virtual void *getAnything(const Node *node);
 
 virtual int getIndex(const Node *node);
 
-DataPacket *PipelineEdge::getDataPacket(const Node *node) {
-  // 锁上互斥锁
-  std::lock_guard<std::mutex> lock(lock_);
-  // 等待通知，释放锁，被唤醒后重新上锁
-  cv_.wait(lock);
-
-  // 消费者发出数据请求
-  // list最后一个节点
-  if (producers_.find(node) != producers_.end()) {
-    return data_packets_.rbegin()->first;
-  }
-
-  // 返回值
-  DataPacket *tmp = nullptr;
-  // 该edge没有消费者，即为输出edge
-  if (node == nullptr) {
-    if (consumed_.empty()) {
-      for (auto iter = data_packets_.begin(); iter != data_packets_.end();
-           ++iter) {
-        iter.second++;
-        if (iter.second == 2) {
-          delete iter.first;
-          data_packets_.erase(iter);
-        } else if (iter.second == 1) {
-          tmp = iter.first;
-          break;
-        } else {
-          continue;
-        }
-      }
-    } else {
-      NNDEPLOY_LOGE("This edge has consumer.\n");
-      return nullptr;
-    }
-  } else {  // 该edge有消费者，即不为输出edge
-    /**
-     * @brief
-     * #. 检测node是否合理
-     * ## 不合理，报错
-     * ## 合理
-     * ### 检测是否有数据包
-     * #### 没有数据包，报错
-     * #### 有数据包，拿到数据
-     */
-    // check
-    auto iter = consumed_.find(node);
-    if (iter == consumed_.end()) {
-      NNDEPLOY_LOGE("This node[%s] is error.\n", node->getName().c_str());
-      return nullptr;
-    } else {
-      int index = iter->second;
-      if (index >= data_packets_.size()) {
-        NNDEPLOY_LOGE("This node[%s]'s index[%d] is error.\n",
-                      node->getName().c_str(), index);
-        return nullptr;
-      }
-      auto iter = data_packets_.begin();
-      for (int i = 0; i <= index; i++) {
-        if (iter.second == consumers_count_) {
-          iter.second++;
-        }
-        iter++;
-      }
-      iter.second++;
-      tmp = iter.first;
-    }
-  }
-
-  // 移除数据包
-  for (auto iter = data_packets_.begin(); iter != data_packets_.end(); ++iter) {
-    if (iter.second > consumers_count_) {
-      delete iter.first;
-      data_packets_.erase(iter);
-    }
-  }
-
-  return tmp;
-}
-
-DataPacket *PipelineEdge::getIndex(int i) {
-  if (i >= data_packets_.size()) {
-    NNDEPLOY_LOGE("This index[%d] is error.\n", i);
-    return nullptr;
-  }
-  auto iter = data_packets_.begin();
-  for (int i = 0; i <= index; i++) {
-    iter++;
-  }
-  iter.second++;
-  return iter.first;
-}
+// PipelineDataPacket *PipelineEdge::getIndex(int i) {
+//   if (i >= data_packets_.size()) {
+//     NNDEPLOY_LOGE("This index[%d] is error.\n", i);
+//     return nullptr;
+//   }
+//   auto iter = data_packets_.begin();
+//   for (int i = 0; i <= index; i++) {
+//     iter++;
+//   }
+//   iter.second++;
+//   return iter.first;
+// }
 
 bool PipelineEdge::notifyWritten(void *anything) {
-  std::lock_guard<std::mutex> lock(lock_);
+  std::lock_guard<std::mutex> lock(mutex_);
+  boo is_notify = false;
   for (auto iter = data_packets_.begin(); iter != data_packets_.end(); ++iter) {
     if (iter.first->notifyWritten(anything)) {
-      return true;
+      is_notify = true;
+      break;
     }
   }
-  return false;
+  if (!is_notify) {
+    NNDEPLOY_LOGE("This anything[%p] is error.\n", anything);
+  }
+  return is_notify;
 }
 
-DataPacket *PipelineEdge::getDataPacket(const Node *node) {
+PipelineDataPacket *PipelineEdge::getDataPacket(const Node *node) {
   if (producers_.empty() && consumers_.find(node) != consumers_.end()) {
     return getGraphInputEdgeDataPacket(node);
   } else if (consumers_.empty() && node == nullptr) {
@@ -257,19 +169,27 @@ DataPacket *PipelineEdge::getDataPacket(const Node *node) {
  * @brief Get the Graph Input Edge Data Packet object
  *
  * @param node
- * @return DataPacket*
+ * @return PipelineDataPacket*
  * @note 用于获取图的输入节点的数据包
  */
-DataPacket *PipelineEdge::getGraphInputEdgeDataPacket(const Node *node) {
-  int index = consumed_[node];
-  // consumed_ update
-  consumed_[node]++;
-  // check
-  if (index >= data_packets_.size()) {
-    NNDEPLOY_LOGE("This index[%d] is error.\n", index);
-    return nullptr;
-  }
+PipelineDataPacket *PipelineEdge::getGraphInputEdgeDataPacket(
+    const Node *node) {
+  /**
+   * @brief 多个线程在调用条件变量的wait方法时会阻塞住
+   * notify_one:
+   * 此时调用notify_one会随机唤醒一个阻塞的线程，而其余的线程将仍然处于阻塞状态，等待下一次唤醒
+   *
+   * notify_all:
+   * 调用notify_all则会唤醒所有线程，线程会争抢锁，当然只有一个线程会获得到锁，而其余未获得锁的线程也将不再阻塞，而是进入到类似轮询的状态，等待锁资源释放后再去争抢。
+   *
+   * 假如同时有10个线程阻塞在wait方法上，则需要调用10次notify_one，而仅仅只需要调用1次notify_all
+   *
+   * @return std::unique_lock<std::mutex>
+   */
+  std::unique_lock<std::mutex> lock(mutex_);
+  cv_.wait(lock, [this] { return consumed_[node] < data_packets_.size() });
   // find
+  int index = consumed_[node];
   int count = 0;
   auto iter = data_packets_.begin();
   for (int i = 0; i <= index; i++) {
@@ -279,48 +199,116 @@ DataPacket *PipelineEdge::getGraphInputEdgeDataPacket(const Node *node) {
     iter++;
   }
   iter.second++;
-  DataPacket *dp = iter.first;
+  PipelineDataPacket *dp = iter.first;
   // update
+  consumed_[node]++;  // 会导致下一次数据没有的时候线程一直在等待
   for (auto iter : consumed_) {
     iter.second -= count;
   }
-  int i = 0;
-  for (auto iter : data_packets_) {
+  auto iter = data_packets_.begin();
+  for (int i = 0; i < count; i++) {
     delete iter.first;
-    data_packets_.pop_front();
-    i++;
-    if (i == count) {
-      break;
-    }
+    iter++;
   }
+  data_packets_.erase(data_packets_.begin(), iter);
+
   return dp;
 }
 /**
  * @brief Get the Graph Output Edge Data Packet object
  *
  * @param node
- * @return DataPacket*
+ * @return PipelineDataPacket*
  * @note 用于获取图的输出节点的数据包
  */
-DataPacket *PipelineEdge::getGraphOutputEdgeDataPacket(const Node *node) {}
+PipelineDataPacket *PipelineEdge::getGraphOutputEdgeDataPacket(
+    const Node *node) {
+  std::unique_lock<std::mutex> lock(mutex_);
+  cv_.wait(lock, [this] {
+    if (data_packets_.empty()) {
+      return false;
+    }
+    for (auto iter : data_packets_) {
+      if (iter.second == consumers_) {
+        return true;
+      }
+    }
+    return false;
+  });
+  // find
+  int count = 0;
+  PipelineDataPacket *dp = nullptr;
+  for (iter = data_packets_.begin(); iter != data_packets_.end(); ++iter) {
+    if (iter.second == consumers_) {
+      PipelineDataPacket *dp = iter.first;
+      break;
+    }
+    count++;
+  }
+  iter.second++;
+  // update
+  auto iter = data_packets_.begin();
+  for (int i = 0; i < count; i++) {
+    delete iter.first;
+    iter++;
+  }
+  data_packets_.erase(data_packets_.begin(), iter);
+
+  return dp;
+}
 /**
  * @brief Get the Consumer Node Edge Data Packet object
  *
  * @param node
- * @return DataPacket*
- * @note 用于获取消费者节点的数据包
+ * @return PipelineDataPacket*
+ * @note 用于获取消费者节点的数据包，对应节点的输入边
  */
-DataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(const Node *node) {}
+PipelineDataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(
+    const Node *node) {
+  std::unique_lock<std::mutex> lock(mutex_);
+  cv_.wait(lock, [this] { return consumed_[node] < data_packets_.size() });
+  // find
+  int index = consumed_[node];
+  int count = 0;
+  auto iter = data_packets_.begin();
+  for (int i = 0; i <= index; i++) {
+    if (iter.second == consumers_count_) {
+      count++;
+    }
+    iter++;
+  }
+  iter.second++;
+  PipelineDataPacket *dp = iter.first;
+  // update
+  consumed_[node]++;  // 会导致下一次数据没有的时候线程一直在等待
+  for (auto iter : consumed_) {
+    iter.second -= count;
+  }
+  auto iter = data_packets_.begin();
+  for (int i = 0; i < count; i++) {
+    delete iter.first;
+    iter++;
+  }
+  data_packets_.erase(data_packets_.begin(), iter);
+
+  return dp;
+}
 /**
  * @brief Get the Producer Node Edge Data Packet object
  *
  * @param node
- * @return DataPacket*
+ * @return PipelineDataPacket*
  * @note 用于获取生产者节点的数据包
  * # 1. 整个图的输入边
  * # 2. 中间节点的输入边
  */
-DataPacket *PipelineEdge::getProducerNodeEdgeDataPacket(const Node *node) {}
+PipelineDataPacket *PipelineEdge::getProducerNodeEdgeDataPacket(
+    const Node *node) {
+  std::unique_lock<std::mutex> lock(mutex_);
+  cv_.wait(lock, [this] { return !data_packets_.empty(); });
+  PipelineDataPacket *dp = data_packets_.rbegin()->first;
+  return dp;
+}
 
 }  // namespace dag
 }  // namespace nndeploy

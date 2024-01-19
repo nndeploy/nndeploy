@@ -38,51 +38,78 @@ class DataPacket : public base::NonCopyable {
   virtual ~DataPacket();
 
   base::Status set(device::Buffer *buffer, int index, bool is_external);
-  base::Status set(device::Buffer &buffer, int index, bool is_external);
+  base::Status set(device::Buffer &buffer, int index);
   base::Status create(device::Device *device, const device::BufferDesc &desc,
                       int index);
-  device::Buffer *getBuffer();
+  virtual device::Buffer *getBuffer();
 
   base::Status set(device::Mat *mat, int index, bool is_external);
-  base::Status set(device::Mat &mat, int index, bool is_external);
+  base::Status set(device::Mat &mat, int index);
   base::Status create(device::Device *device, const device::MatDesc &desc,
                       int index, const std::string &name);
-  device::Mat *getMat();
+  virtual device::Mat *getMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   base::Status set(cv::Mat *cv_mat, int index, bool is_external);
-  base::Status set(cv::Mat &cv_mat, int index, bool is_external);
-  cv::Mat *getCvMat();
+  base::Status set(cv::Mat &cv_mat, int index);
+  virtual cv::Mat *getCvMat();
 #endif
 
   base::Status set(device::Tensor *tensor, int index, bool is_external);
-  base::Status set(device::Tensor &tensor, int index, bool is_external);
+  base::Status set(device::Tensor &tensor, int index);
   base::Status create(device::Device *device, const device::TensorDesc &desc,
                       int index, const std::string &name);
-  device::Tensor *getTensor();
+  virtual device::Tensor *getTensor();
 
   base::Status set(base::Param *param, int index, bool is_external);
-  base::Status set(base::Param &param, int index, bool is_external);
-  base::Param *getParam();
+  base::Status set(base::Param &param, int index);
+  virtual base::Param *getParam();
 
   base::Status set(void *anything, int index, bool is_external);
-  void *getAnything();
+  virtual void *getAnything();
 
   int getIndex();
 
-  bool notifyWritten(void *anything);
-  bool isNotifyWritten() { return written_; }
+  virtual bool notifyWritten(void *anything);
+  virtual bool isNotifyWritten();
 
- private:
+ protected:
   void destory();
 
- private:
+ protected:
   bool is_external_ = true;
   int index_ = -1;
   Flag flag_ = kFlagNone;
   bool written_ = false;
   void *anything_ = nullptr;
 };
+
+class PipelineDataPacket : public DataPacket {
+ public:
+  PipelineDataPacket();
+  virtual ~PipelineDataPacket();
+
+  device::Buffer *getBuffer();
+
+  device::Mat *getMat();
+
+#ifdef ENABLE_NNDEPLOY_OPENCV
+  virtual cv::Mat *getCvMat();
+#endif
+
+  virtual device::Tensor *getTensor();
+
+  virtual base::Param *getParam();
+
+  virtual void *getAnything();
+
+  virtual bool notifyWritten(void *anything);
+  virtual bool isNotifyWritten() { return written_; }
+
+ protected:
+  std::mutex mutex_;
+  std::condition_variable cv_;
+}
 
 }  // namespace dag
 }  // namespace nndeploy

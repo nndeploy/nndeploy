@@ -20,9 +20,8 @@ base::Status FixedEdge::set(device::Buffer *buffer, int index,
                             bool is_external) {
   return data_packet_->set(buffer, index, is_external);
 }
-base::Status FixedEdge::set(device::Buffer &buffer, int index,
-                            bool is_external) {
-  return data_packet_->set(buffer, index, is_external);
+base::Status FixedEdge::set(device::Buffer &buffer, int index) {
+  return data_packet_->set(buffer, index);
 }
 base::Status FixedEdge::create(device::Device *device,
                                const device::BufferDesc &desc, int index) {
@@ -35,8 +34,8 @@ device::Buffer *FixedEdge::getBuffer(const Node *node) {
 base::Status FixedEdge::set(device::Mat *mat, int index, bool is_external) {
   return data_packet_->set(mat, index, is_external);
 }
-base::Status FixedEdge::set(device::Mat &mat, int index, bool is_external) {
-  return data_packet_->set(mat, index, is_external);
+base::Status FixedEdge::set(device::Mat &mat, int index) {
+  return data_packet_->set(mat, index);
 }
 base::Status FixedEdge::create(device::Device *device,
                                const device::MatDesc &desc, int index,
@@ -51,8 +50,8 @@ device::Mat *FixedEdge::getMat(const Node *node) {
 base::Status FixedEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
   return data_packet_->set(cv_mat, index, is_external);
 }
-base::Status FixedEdge::set(cv::Mat &cv_mat, int index, bool is_external) {
-  return data_packet_->set(cv_mat, index, is_external);
+base::Status FixedEdge::set(cv::Mat &cv_mat, int index) {
+  return data_packet_->set(cv_mat, index);
 }
 cv::Mat *FixedEdge::getCvMat(const Node *node) {
   return data_packet_->getCvMat();
@@ -63,9 +62,8 @@ base::Status FixedEdge::set(device::Tensor *tensor, int index,
                             bool is_external) {
   return data_packet_->set(tensor, index, is_external);
 }
-base::Status FixedEdge::set(device::Tensor &tensor, int index,
-                            bool is_external) {
-  return data_packet_->set(tensor, index, is_external);
+base::Status FixedEdge::set(device::Tensor &tensor, int index) {
+  return data_packet_->set(tensor, index);
 }
 base::Status FixedEdge::create(device::Device *device,
                                const device::TensorDesc &desc, int index,
@@ -79,8 +77,8 @@ device::Tensor *FixedEdge::getTensor(const Node *node) {
 base::Status FixedEdge::set(base::Param *param, int index, bool is_external) {
   return data_packet_->set(param, index, is_external);
 }
-base::Status FixedEdge::set(base::Param &param, int index, bool is_external) {
-  return data_packet_->set(param, index, is_external);
+base::Status FixedEdge::set(base::Param &param, int index) {
+  return data_packet_->set(param, index);
 }
 base::Param *FixedEdge::getParam(const Node *node) {
   return data_packet_->getParam();

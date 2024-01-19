@@ -20,8 +20,8 @@ base::Status Edge::construct(ParallelType paralle_type,
 base::Status Edge::set(device::Buffer *buffer, int index, bool is_external) {
   return abstact_edge_->set(buffer, index, is_external);
 }
-base::Status Edge::set(device::Buffer &buffer, int index, bool is_external) {
-  return abstact_edge_->set(buffer, index, is_external);
+base::Status Edge::set(device::Buffer &buffer, int index) {
+  return abstact_edge_->set(buffer, index);
 }
 base::Status Edge::create(device::Device *device,
                           const device::BufferDesc &desc, int index) {
@@ -34,8 +34,8 @@ device::Buffer *Edge::getBuffer(const Node *node) {
 base::Status Edge::set(device::Mat *mat, int index, bool is_external) {
   return abstact_edge_->set(mat, index, is_external);
 }
-base::Status Edge::set(device::Mat &mat, int index, bool is_external) {
-  return abstact_edge_->set(mat, index, is_external);
+base::Status Edge::set(device::Mat &mat, int index) {
+  return abstact_edge_->set(mat, index);
 }
 base::Status Edge::create(device::Device *device, const device::MatDesc &desc,
                           int index) {
@@ -49,8 +49,8 @@ device::Mat *Edge::getMat(const Node *node) {
 base::Status Edge::set(cv::Mat *cv_mat, int index, bool is_external) {
   return abstact_edge_->set(cv_mat, index, is_external);
 }
-base::Status Edge::set(cv::Mat &cv_mat, int index, bool is_external) {
-  return abstact_edge_->set(cv_mat, index, is_external);
+base::Status Edge::set(cv::Mat &cv_mat, int index) {
+  return abstact_edge_->set(cv_mat, index);
 }
 cv::Mat *Edge::getCvMat(const Node *node) {
   return abstact_edge_->getCvMat(node);
@@ -60,8 +60,8 @@ cv::Mat *Edge::getCvMat(const Node *node) {
 base::Status Edge::set(device::Tensor *tensor, int index, bool is_external) {
   return abstact_edge_->set(tensor, index, is_external);
 }
-base::Status Edge::set(device::Tensor &tensor, int index, bool is_external) {
-  return abstact_edge_->set(tensor, index, is_external);
+base::Status Edge::set(device::Tensor &tensor, int index) {
+  return abstact_edge_->set(tensor, index);
 }
 base::Status Edge::create(device::Device *device,
                           const device::TensorDesc &desc, int index) {
@@ -74,8 +74,8 @@ device::Tensor *Edge::getTensor(const Node *node) {
 base::Status Edge::set(base::Param *param, int index, bool is_external) {
   return abstact_edge_->set(param, index, is_external);
 }
-base::Status Edge::set(base::Param &param, int index, bool is_external) {
-  return abstact_edge_->set(param, index, is_external);
+base::Status Edge::set(base::Param &param, int index) {
+  return abstact_edge_->set(param, index);
 }
 base::Param *Edge::getParam(const Node *node) {
   return abstact_edge_->getParam(node);

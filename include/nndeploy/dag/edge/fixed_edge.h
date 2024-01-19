@@ -27,13 +27,13 @@ class FixedEdge : public AbstractEdge {
   virtual ~FixedEdge();
 
   virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
-  virtual base::Status set(device::Buffer &buffer, int index, bool is_external);
+  virtual base::Status set(device::Buffer &buffer, int index);
   virtual base::Status create(device::Device *device,
                               const device::BufferDesc &desc, int index);
   virtual device::Buffer *getBuffer(const Node *node);
 
   virtual base::Status set(device::Mat *mat, int index, bool is_external);
-  virtual base::Status set(device::Mat &mat, int index, bool is_external);
+  virtual base::Status set(device::Mat &mat, int index);
   virtual base::Status create(device::Device *device,
                               const device::MatDesc &desc, int index,
                               const std::string &name);
@@ -41,19 +41,19 @@ class FixedEdge : public AbstractEdge {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
-  virtual base::Status set(cv::Mat &cv_mat, int index, bool is_external);
+  virtual base::Status set(cv::Mat &cv_mat, int index);
   virtual cv::Mat *getCvMat(const Node *node);
 #endif
 
   virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
-  virtual base::Status set(device::Tensor &tensor, int index, bool is_external);
+  virtual base::Status set(device::Tensor &tensor, int index);
   virtual base::Status create(device::Device *device,
                               const device::TensorDesc &desc, int index,
                               const std::string &name);
   virtual device::Tensor *getTensor(const Node *node);
 
   virtual base::Status set(base::Param *param, int index, bool is_external);
-  virtual base::Status set(base::Param &param, int index, bool is_external);
+  virtual base::Status set(base::Param &param, int index);
   virtual base::Param *getParam(const Node *node);
 
   virtual base::Status set(void *anything, int index, bool is_external);

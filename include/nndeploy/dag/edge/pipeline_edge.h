@@ -21,6 +21,19 @@
 namespace nndeploy {
 namespace dag {
 
+/**
+ * @brief
+ * 1. 只能一个线程得到整个图的结果
+ * 2. 每条边的生产者只能是一个节点
+ * @note
+ * # 问题一：对于多输入的节点，会不会产生输入不匹配的情况呢？
+ * ## 答：不会，因为节点内部会一直等待多输入的数据都到来，才会开始执行。
+ * # 问题二：当处理完一批数据后，线程池中线程是不是要释放呢？
+ * ## 答：未知，需要进一步学习线程池原理
+ * # 问题三：某个先发出的notify，另外一个线程后开始等待，这种情况怎么办
+ * ## 答：未知
+ * # 问题四：有没有单纯等待某个条件达成的方法
+ */
 class PipelineEdge : public AbstractEdge {
  public:
   PipelineEdge(ParallelType paralle_type,
@@ -29,31 +42,31 @@ class PipelineEdge : public AbstractEdge {
   virtual ~PipelineEdge();
 
   virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
-  virtual base::Status set(device::Buffer &buffer, int index, bool is_external);
+  virtual base::Status set(device::Buffer &buffer, int index);
   virtual base::Status create(device::Device *device,
                               const device::BufferDesc &desc, int index);
   virtual device::Buffer *getBuffer(const Node *node);
 
   virtual base::Status set(device::Mat *mat, int index, bool is_external);
-  virtual base::Status set(device::Mat &mat, int index, bool is_external);
+  virtual base::Status set(device::Mat &mat, int index);
   virtual base::Status create(device::Device *device,
                               const device::MatDesc &desc, int index);
   virtual device::Mat *getMat(const Node *node);
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
-  virtual base::Status set(cv::Mat &cv_mat, int index, bool is_external);
+  virtual base::Status set(cv::Mat &cv_mat, int index);
   virtual cv::Mat *getCvMat(const Node *node);
 #endif
 
   virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
-  virtual base::Status set(device::Tensor &tensor, int index, bool is_external);
+  virtual base::Status set(device::Tensor &tensor, int index);
   virtual base::Status create(device::Device *device,
                               const device::TensorDesc &desc, int index);
   virtual device::Tensor *getTensor(const Node *node);
 
   virtual base::Status set(base::Param *param, int index, bool is_external);
-  virtual base::Status set(base::Param &param, int index, bool is_external);
+  virtual base::Status set(base::Param &param, int index);
   virtual base::Param *getParam(const Node *node);
 
   virtual base::Status set(void *anything, int index, bool is_external);
@@ -64,50 +77,50 @@ class PipelineEdge : public AbstractEdge {
   virtual bool notifyWritten(void *anything);
 
  private:
-  DataPacket *getDataPacket(const Node *node);
+  PipelineDataPacket *getDataPacket(const Node *node);
 
   /**
    * @brief Get the Graph Input Edge Data Packet object
    *
    * @param node
-   * @return DataPacket*
+   * @return PipelineDataPacket*
    * @note 用于获取图的输入节点的数据包
    */
-  DataPacket *getGraphInputEdgeDataPacket(const Node *node);
+  PipelineDataPacket *getGraphInputEdgeDataPacket(const Node *node);
   /**
    * @brief Get the Graph Output Edge Data Packet object
    *
    * @param node
-   * @return DataPacket*
+   * @return PipelineDataPacket*
    * @note 用于获取图的输出节点的数据包
    */
-  DataPacket *getGraphOutputEdgeDataPacket(const Node *node);
+  PipelineDataPacket *getGraphOutputEdgeDataPacket(const Node *node);
   /**
    * @brief Get the Consumer Node Edge Data Packet object
    *
    * @param node
-   * @return DataPacket*
+   * @return PipelineDataPacket*
    * @note 用于获取消费者节点的数据包
    */
-  DataPacket *getConsumerNodeEdgeDataPacket(const Node *node);
+  PipelineDataPacket *getConsumerNodeEdgeDataPacket(const Node *node);
   /**
    * @brief Get the Producer Node Edge Data Packet object
    *
    * @param node
-   * @return DataPacket*
+   * @return PipelineDataPacket*
    * @note 用于获取生产者节点的数据包
-   * # 1. 整个图的输入边
-   * # 2. 中间节点的输入边
    */
-  DataPacket *getProducerNodeEdgeDataPacket(const Node *node);
+  PipelineDataPacket *getProducerNodeEdgeDataPacket(const Node *node);
 
  private:
-  std::mutex lock_;
+  std::mutex mutex_;
   std::condition_variable cv_;
+  // 有多少个生产者
+  int producers_count_ = -1;
   // 有多少个消费者
-  int consumers_count_ = 0;
+  int consumers_count_ = -1;
   // 被消费的数据包以及被消费的次数
-  std::list<std::map<DataPacket *, int>> data_packets_;
+  std::list<std::map<PipelineDataPacket *, int>> data_packets_;
   // 每个消费者 消费 的数据包索引
   std::map<Node *, int> consumed_;
 };
