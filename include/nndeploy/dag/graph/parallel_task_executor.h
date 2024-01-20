@@ -17,9 +17,10 @@ class ParallelTaskExecutor : public Executor {
 
   virtual base::Status init(std::vector<EdgeWrapper*>& edge_repository,
                             std::vector<NodeWrapper*>& node_repository) {
+    // TODO:
+    // 计算图的最大并行度，决定线程的数量
     thread_pool_ =
-        new thread_pool::ThreadPool();  // TODO:
-                                        // 计算图的最大并行度，决定线程的数量
+        new thread_pool::ThreadPool();  
     thread_pool_->init();
     start_nodes_ = findStartNodes(node_repository);
     base::Status status = topoSortBFS(node_repository, topo_sort_node_);
@@ -58,7 +59,7 @@ class ParallelTaskExecutor : public Executor {
 
     for (auto iter : topo_sort_node_) {
       if (iter->color_ != kNodeColorBlack) {
-        std::string info{"存在未执行完的节点"};
+        std::string info{"exist node not finish!\n"};
         info.append(iter->name_);
         NNDEPLOY_RETURN_ON_NEQ(iter->color_, kNodeColorBlack, info.c_str());
       }

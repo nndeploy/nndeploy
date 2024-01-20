@@ -82,14 +82,6 @@ class PipelineEdge : public AbstractEdge {
   PipelineDataPacket *getDataPacket(const Node *node);
 
   /**
-   * @brief Get the Graph Input Edge Data Packet object
-   *
-   * @param node
-   * @return PipelineDataPacket*
-   * @note 用于获取图的输入节点的数据包
-   */
-  PipelineDataPacket *getGraphInputEdgeDataPacket(const Node *node);
-  /**
    * @brief Get the Graph Output Edge Data Packet object
    *
    * @param node
@@ -105,14 +97,6 @@ class PipelineEdge : public AbstractEdge {
    * @note 用于获取消费者节点的数据包
    */
   PipelineDataPacket *getConsumerNodeEdgeDataPacket(const Node *node);
-  /**
-   * @brief Get the Producer Node Edge Data Packet object
-   *
-   * @param node
-   * @return PipelineDataPacket*
-   * @note 用于获取生产者节点的数据包
-   */
-  PipelineDataPacket *getProducerNodeEdgeDataPacket(const Node *node);
 
  private:
   std::mutex mutex_;

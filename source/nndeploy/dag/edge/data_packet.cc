@@ -355,7 +355,7 @@ bool PipelineDataPacket::notifyWritten(device::Buffer *buffer) {
 }
 device::Buffer *PipelineDataPacket::getBuffer() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [] { return written_; });
+  cv_.wait(lock, [this] { return written_; });
   return DataPacket::getBuffer();
 }
 
@@ -385,7 +385,7 @@ bool PipelineDataPacket::notifyWritten(device::Mat *mat) {
 }
 device::Mat *PipelineDataPacket::getMat() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [] { return written_; });
+  cv_.wait(lock, [this] { return written_; });
   return DataPacket::getMat();
 }
 
@@ -400,7 +400,7 @@ base::Status PipelineDataPacket::set(cv::Mat *cv_mat, int index,
   return status;
 }
 base::Status PipelineDataPacket::set(cv::Mat &cv_mat, int index) {
-  base::Status status = DataPacket::set(mat, index);
+  base::Status status = DataPacket::set(cv_mat, index);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
   std::unique_lock<std::mutex> lock(mutex_);
@@ -409,7 +409,7 @@ base::Status PipelineDataPacket::set(cv::Mat &cv_mat, int index) {
 }
 cv::Mat *PipelineDataPacket::getCvMat() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [] { return written_; });
+  cv_.wait(lock, [this] { return written_; });
   return DataPacket::getCvMat();
 }
 #endif
@@ -440,7 +440,7 @@ bool PipelineDataPacket::notifyWritten(device::Tensor *tensor) {
 }
 device::Tensor *PipelineDataPacket::getTensor() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [] { return written_; });
+  cv_.wait(lock, [this] { return written_; });
   return DataPacket::getTensor();
 }
 
@@ -463,7 +463,7 @@ base::Status PipelineDataPacket::set(base::Param &param, int index) {
 }
 base::Param *PipelineDataPacket::getParam() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [] { return written_; });
+  cv_.wait(lock, [this] { return written_; });
   return DataPacket::getParam();
 }
 
@@ -478,7 +478,7 @@ base::Status PipelineDataPacket::set(void *anything, int index,
 }
 void *PipelineDataPacket::getAnything() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [] { return written_; });
+  cv_.wait(lock, [this] { return written_; });
   return DataPacket::getAnything();
 }
 

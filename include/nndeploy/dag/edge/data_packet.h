@@ -120,7 +120,7 @@ class PipelineDataPacket : public DataPacket {
  protected:
   std::mutex mutex_;
   std::condition_variable cv_;
-}
+};
 
 }  // namespace dag
 }  // namespace nndeploy
