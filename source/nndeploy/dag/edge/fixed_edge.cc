@@ -23,9 +23,12 @@ base::Status FixedEdge::set(device::Buffer *buffer, int index,
 base::Status FixedEdge::set(device::Buffer &buffer, int index) {
   return data_packet_->set(buffer, index);
 }
-base::Status FixedEdge::create(device::Device *device,
-                               const device::BufferDesc &desc, int index) {
+device::Buffer *FixedEdge::create(device::Device *device,
+                                  const device::BufferDesc &desc, int index) {
   return data_packet_->create(device, desc, index);
+}
+bool FixedEdge::notifyWritten(device::Buffer *buffer) {
+  return data_packet_->notifyWritten(buffer);
 }
 device::Buffer *FixedEdge::getBuffer(const Node *node) {
   return data_packet_->getBuffer();
@@ -37,10 +40,13 @@ base::Status FixedEdge::set(device::Mat *mat, int index, bool is_external) {
 base::Status FixedEdge::set(device::Mat &mat, int index) {
   return data_packet_->set(mat, index);
 }
-base::Status FixedEdge::create(device::Device *device,
+device::Mat *FixedEdge::create(device::Device *device,
                                const device::MatDesc &desc, int index,
                                const std::string &name) {
   return data_packet_->create(device, desc, index, name);
+}
+bool FixedEdge::notifyWritten(device::Mat *mat) {
+  return data_packet_->notifyWritten(mat);
 }
 device::Mat *FixedEdge::getMat(const Node *node) {
   return data_packet_->getMat();
@@ -65,10 +71,13 @@ base::Status FixedEdge::set(device::Tensor *tensor, int index,
 base::Status FixedEdge::set(device::Tensor &tensor, int index) {
   return data_packet_->set(tensor, index);
 }
-base::Status FixedEdge::create(device::Device *device,
-                               const device::TensorDesc &desc, int index,
-                               const std::string &name) {
+device::Tensor *FixedEdge::create(device::Device *device,
+                                  const device::TensorDesc &desc, int index,
+                                  const std::string &name) {
   return data_packet_->create(device, desc, index, name);
+}
+bool FixedEdge::notifyWritten(device::Tensor *tensor) {
+  return data_packet_->notifyWritten(tensor);
 }
 device::Tensor *FixedEdge::getTensor(const Node *node) {
   return data_packet_->getTensor();
@@ -92,10 +101,6 @@ void *FixedEdge::getAnything(const Node *node) {
 }
 
 int FixedEdge::getIndex(const Node *node) { return data_packet_->getIndex(); }
-
-bool FixedEdge::notifyWritten(void *anything) {
-  return data_packet_->notifyWritten(anything);
-}
 
 }  // namespace dag
 }  // namespace nndeploy

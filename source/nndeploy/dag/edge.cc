@@ -23,9 +23,12 @@ base::Status Edge::set(device::Buffer *buffer, int index, bool is_external) {
 base::Status Edge::set(device::Buffer &buffer, int index) {
   return abstact_edge_->set(buffer, index);
 }
-base::Status Edge::create(device::Device *device,
-                          const device::BufferDesc &desc, int index) {
+device::Buffer *Edge::create(device::Device *device,
+                             const device::BufferDesc &desc, int index) {
   return abstact_edge_->create(device, desc, index);
+}
+bool Edge::notifyWritten(device::Buffer *buffer) {
+  return abstact_edge_->notifyWritten(buffer);
 }
 device::Buffer *Edge::getBuffer(const Node *node) {
   return abstact_edge_->getBuffer(node);
@@ -37,9 +40,12 @@ base::Status Edge::set(device::Mat *mat, int index, bool is_external) {
 base::Status Edge::set(device::Mat &mat, int index) {
   return abstact_edge_->set(mat, index);
 }
-base::Status Edge::create(device::Device *device, const device::MatDesc &desc,
+device::Mat *Edge::create(device::Device *device, const device::MatDesc &desc,
                           int index) {
   return abstact_edge_->create(device, desc, index, name_);
+}
+bool Edge::notifyWritten(device::Mat *mat) {
+  return abstact_edge_->notifyWritten(mat);
 }
 device::Mat *Edge::getMat(const Node *node) {
   return abstact_edge_->getMat(node);
@@ -63,9 +69,12 @@ base::Status Edge::set(device::Tensor *tensor, int index, bool is_external) {
 base::Status Edge::set(device::Tensor &tensor, int index) {
   return abstact_edge_->set(tensor, index);
 }
-base::Status Edge::create(device::Device *device,
-                          const device::TensorDesc &desc, int index) {
+device::Tensor *Edge::create(device::Device *device,
+                             const device::TensorDesc &desc, int index) {
   return abstact_edge_->create(device, desc, index, name_);
+}
+bool Edge::notifyWritten(device::Tensor *tensor) {
+  return abstact_edge_->notifyWritten(tensor);
 }
 device::Tensor *Edge::getTensor(const Node *node) {
   return abstact_edge_->getTensor(node);
@@ -92,10 +101,6 @@ int Edge::getIndex(const Node *node) { return abstact_edge_->getIndex(node); }
 
 ParallelType Edge::getParallelType() {
   return abstact_edge_->getParallelType();
-}
-
-bool Edge::notifyWritten(void *anything) {
-  return abstact_edge_->notifyWritten(anything);
 }
 
 }  // namespace dag

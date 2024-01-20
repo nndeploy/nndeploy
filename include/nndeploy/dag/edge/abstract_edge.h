@@ -31,15 +31,17 @@ class AbstractEdge : public base::NonCopyable {
   virtual base::Status set(device::Buffer *buffer, int index,
                            bool is_external) = 0;
   virtual base::Status set(device::Buffer &buffer, int index) = 0;
-  virtual base::Status create(device::Device *device,
-                              const device::BufferDesc &desc, int index) = 0;
+  virtual device::Buffer *create(device::Device *device,
+                                 const device::BufferDesc &desc, int index) = 0;
+  virtual bool notifyWritten(device::Buffer *buffer) = 0;
   virtual device::Buffer *getBuffer(const Node *node) = 0;
 
   virtual base::Status set(device::Mat *mat, int index, bool is_external) = 0;
   virtual base::Status set(device::Mat &mat, int index) = 0;
-  virtual base::Status create(device::Device *device,
+  virtual device::Mat *create(device::Device *device,
                               const device::MatDesc &desc, int index,
                               const std::string &name) = 0;
+  virtual bool notifyWritten(device::Mat *mat) = 0;
   virtual device::Mat *getMat(const Node *node) = 0;
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
@@ -51,9 +53,10 @@ class AbstractEdge : public base::NonCopyable {
   virtual base::Status set(device::Tensor *tensor, int index,
                            bool is_external) = 0;
   virtual base::Status set(device::Tensor &tensor, int index) = 0;
-  virtual base::Status create(device::Device *device,
-                              const device::TensorDesc &desc, int index,
-                              const std::string &name) = 0;
+  virtual device::Tensor *create(device::Device *device,
+                                 const device::TensorDesc &desc, int index,
+                                 const std::string &name) = 0;
+  virtual bool notifyWritten(device::Tensor *tensor) = 0;
   virtual device::Tensor *getTensor(const Node *node) = 0;
 
   virtual base::Status set(base::Param *param, int index, bool is_external) = 0;
@@ -65,8 +68,6 @@ class AbstractEdge : public base::NonCopyable {
 
   virtual int getIndex(const Node *node) = 0;
   ParallelType getParallelType() { return paralle_type_; }
-
-  virtual bool notifyWritten(void *anything) = 0;
 
  protected:
   ParallelType paralle_type_;

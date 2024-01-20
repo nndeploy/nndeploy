@@ -39,14 +39,16 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   base::Status set(device::Buffer *buffer, int index, bool is_external = true);
   base::Status set(device::Buffer &buffer, int index);
-  base::Status create(device::Device *device, const device::BufferDesc &desc,
-                      int index);
+  device::Buffer *create(device::Device *device, const device::BufferDesc &desc,
+                         int index);
+  bool notifyWritten(device::Buffer *buffer);
   device::Buffer *getBuffer(const Node *node);
 
   base::Status set(device::Mat *mat, int index, bool is_external = true);
   base::Status set(device::Mat &mat, int index);
-  base::Status create(device::Device *device, const device::MatDesc &desc,
+  device::Mat *create(device::Device *device, const device::MatDesc &desc,
                       int index);
+  bool notifyWritten(device::Mat *mat);
   device::Mat *getMat(const Node *node);
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
@@ -57,8 +59,9 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   base::Status set(device::Tensor *tensor, int index, bool is_external = true);
   base::Status set(device::Tensor &tensor, int index);
-  base::Status create(device::Device *device, const device::TensorDesc &desc,
-                      int index);
+  device::Tensor *create(device::Device *device, const device::TensorDesc &desc,
+                         int index);
+  bool notifyWritten(device::Tensor *tensor);
   device::Tensor *getTensor(const Node *node);
 
   base::Status set(base::Param *param, int index, bool is_external = true);
@@ -70,8 +73,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   int getIndex(const Node *node);
   ParallelType getParallelType();
-
-  bool notifyWritten(void *anything);
 
  private:
   std::string name_;

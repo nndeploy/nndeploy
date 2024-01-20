@@ -28,15 +28,17 @@ class FixedEdge : public AbstractEdge {
 
   virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
   virtual base::Status set(device::Buffer &buffer, int index);
-  virtual base::Status create(device::Device *device,
-                              const device::BufferDesc &desc, int index);
+  virtual device::Buffer *create(device::Device *device,
+                                 const device::BufferDesc &desc, int index);
+  virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer(const Node *node);
 
   virtual base::Status set(device::Mat *mat, int index, bool is_external);
   virtual base::Status set(device::Mat &mat, int index);
-  virtual base::Status create(device::Device *device,
+  virtual device::Mat *create(device::Device *device,
                               const device::MatDesc &desc, int index,
                               const std::string &name);
+  virtual bool notifyWritten(device::Mat *mat);
   virtual device::Mat *getMat(const Node *node);
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
@@ -47,9 +49,10 @@ class FixedEdge : public AbstractEdge {
 
   virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
   virtual base::Status set(device::Tensor &tensor, int index);
-  virtual base::Status create(device::Device *device,
-                              const device::TensorDesc &desc, int index,
-                              const std::string &name);
+  virtual device::Tensor *create(device::Device *device,
+                                 const device::TensorDesc &desc, int index,
+                                 const std::string &name);
+  virtual bool notifyWritten(device::Tensor *tensor);
   virtual device::Tensor *getTensor(const Node *node);
 
   virtual base::Status set(base::Param *param, int index, bool is_external);
@@ -60,8 +63,6 @@ class FixedEdge : public AbstractEdge {
   virtual void *getAnything(const Node *node);
 
   virtual int getIndex(const Node *node);
-
-  virtual bool notifyWritten(void *anything);
 
  private:
   DataPacket *data_packet_;

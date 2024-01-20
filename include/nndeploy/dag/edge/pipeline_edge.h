@@ -36,21 +36,23 @@ namespace dag {
  */
 class PipelineEdge : public AbstractEdge {
  public:
-  PipelineEdge(ParallelType paralle_type,
-               std::initializer_list<Node *> producers,
-               std::initializer_list<Node *> consumers);
+  PipelineEdge(ParallelType paralle_type, std::vector<Node *> &producers,
+               std::vector<Node *> &consumers);
   virtual ~PipelineEdge();
 
   virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
   virtual base::Status set(device::Buffer &buffer, int index);
-  virtual base::Status create(device::Device *device,
-                              const device::BufferDesc &desc, int index);
+  virtual device::Buffer *create(device::Device *device,
+                                 const device::BufferDesc &desc, int index);
+  virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer(const Node *node);
 
   virtual base::Status set(device::Mat *mat, int index, bool is_external);
   virtual base::Status set(device::Mat &mat, int index);
-  virtual base::Status create(device::Device *device,
-                              const device::MatDesc &desc, int index);
+  virtual device::Mat *create(device::Device *device,
+                              const device::MatDesc &desc, int index,
+                              const std::string &name);
+  virtual bool notifyWritten(device::Mat *mat);
   virtual device::Mat *getMat(const Node *node);
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
@@ -61,8 +63,10 @@ class PipelineEdge : public AbstractEdge {
 
   virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
   virtual base::Status set(device::Tensor &tensor, int index);
-  virtual base::Status create(device::Device *device,
-                              const device::TensorDesc &desc, int index);
+  virtual device::Tensor *create(device::Device *device,
+                                 const device::TensorDesc &desc, int index,
+                                 const std::string &name);
+  virtual bool notifyWritten(device::Tensor *tensor);
   virtual device::Tensor *getTensor(const Node *node);
 
   virtual base::Status set(base::Param *param, int index, bool is_external);
@@ -73,8 +77,6 @@ class PipelineEdge : public AbstractEdge {
   virtual void *getAnything(const Node *node);
 
   virtual int getIndex(const Node *node);
-
-  virtual bool notifyWritten(void *anything);
 
  private:
   PipelineDataPacket *getDataPacket(const Node *node);

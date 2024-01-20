@@ -37,41 +37,41 @@ class DataPacket : public base::NonCopyable {
   DataPacket();
   virtual ~DataPacket();
 
-  base::Status set(device::Buffer *buffer, int index, bool is_external);
-  base::Status set(device::Buffer &buffer, int index);
-  base::Status create(device::Device *device, const device::BufferDesc &desc,
-                      int index);
+  virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
+  virtual base::Status set(device::Buffer &buffer, int index);
+  device::Buffer *create(device::Device *device, const device::BufferDesc &desc,
+                         int index);
+  virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer();
 
-  base::Status set(device::Mat *mat, int index, bool is_external);
-  base::Status set(device::Mat &mat, int index);
-  base::Status create(device::Device *device, const device::MatDesc &desc,
+  virtual base::Status set(device::Mat *mat, int index, bool is_external);
+  virtual base::Status set(device::Mat &mat, int index);
+  device::Mat *create(device::Device *device, const device::MatDesc &desc,
                       int index, const std::string &name);
+  virtual bool notifyWritten(device::Mat *mat);
   virtual device::Mat *getMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  base::Status set(cv::Mat *cv_mat, int index, bool is_external);
-  base::Status set(cv::Mat &cv_mat, int index);
+  virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
+  virtual base::Status set(cv::Mat &cv_mat, int index);
   virtual cv::Mat *getCvMat();
 #endif
 
-  base::Status set(device::Tensor *tensor, int index, bool is_external);
-  base::Status set(device::Tensor &tensor, int index);
-  base::Status create(device::Device *device, const device::TensorDesc &desc,
-                      int index, const std::string &name);
+  virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
+  virtual base::Status set(device::Tensor &tensor, int index);
+  device::Tensor *create(device::Device *device, const device::TensorDesc &desc,
+                         int index, const std::string &name);
+  virtual bool notifyWritten(device::Tensor *tensor);
   virtual device::Tensor *getTensor();
 
-  base::Status set(base::Param *param, int index, bool is_external);
-  base::Status set(base::Param &param, int index);
+  virtual base::Status set(base::Param *param, int index, bool is_external);
+  virtual base::Status set(base::Param &param, int index);
   virtual base::Param *getParam();
 
-  base::Status set(void *anything, int index, bool is_external);
+  virtual base::Status set(void *anything, int index, bool is_external);
   virtual void *getAnything();
 
   int getIndex();
-
-  virtual bool notifyWritten(void *anything);
-  virtual bool isNotifyWritten();
 
  protected:
   void destory();
@@ -89,22 +89,33 @@ class PipelineDataPacket : public DataPacket {
   PipelineDataPacket();
   virtual ~PipelineDataPacket();
 
-  device::Buffer *getBuffer();
+  virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
+  virtual base::Status set(device::Buffer &buffer, int index);
+  virtual bool notifyWritten(device::Buffer *buffer);
+  virtual device::Buffer *getBuffer();
 
-  device::Mat *getMat();
+  virtual base::Status set(device::Mat *mat, int index, bool is_external);
+  virtual base::Status set(device::Mat &mat, int index);
+  virtual bool notifyWritten(device::Mat *mat);
+  virtual device::Mat *getMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
+  virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
+  virtual base::Status set(cv::Mat &cv_mat, int index);
   virtual cv::Mat *getCvMat();
 #endif
 
+  virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
+  virtual base::Status set(device::Tensor &tensor, int index);
+  virtual bool notifyWritten(device::Tensor *tensor);
   virtual device::Tensor *getTensor();
 
+  virtual base::Status set(base::Param *param, int index, bool is_external);
+  virtual base::Status set(base::Param &param, int index);
   virtual base::Param *getParam();
 
+  virtual base::Status set(void *anything, int index, bool is_external);
   virtual void *getAnything();
-
-  virtual bool notifyWritten(void *anything);
-  virtual bool isNotifyWritten() { return written_; }
 
  protected:
   std::mutex mutex_;
