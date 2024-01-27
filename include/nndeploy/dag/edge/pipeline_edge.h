@@ -101,12 +101,10 @@ class PipelineEdge : public AbstractEdge {
  private:
   std::mutex mutex_;
   std::condition_variable cv_;
-  // 有多少个生产者
-  int producers_count_ = -1;
   // 有多少个消费者
-  int consumers_count_ = -1;
-  // 被消费的数据包以及被消费的次数
-  std::list<std::map<PipelineDataPacket *, int>> data_packets_;
+  int consumers_size_ = 0;
+  // 数据包
+  std::list<PipelineDataPacket *> data_packets_;
   // 每个消费者 消费 的数据包索引
   std::map<Node *, int> consumed_;
 };

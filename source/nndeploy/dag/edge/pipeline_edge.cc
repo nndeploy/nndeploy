@@ -1,4 +1,5 @@
 #include "nndeploy/dag/edge/pipeline_edge.h"
+
 #include "nndeploy/dag/edge/data_packet.h"
 
 namespace nndeploy {
@@ -11,19 +12,17 @@ PipelineEdge::PipelineEdge(ParallelType paralle_type,
                            std::vector<Node *> &producers,
                            std::vector<Node *> &consumers)
     : AbstractEdge(paralle_type, producers, consumers) {
-  producers_count_ = producers.size();
-  consumers_count_ = consumers.size();
+  consumers_size_ = consumers.size();
   for (auto iter : consumers) {
     consumed_.insert({iter, 0});
   }
 }
 
 PipelineEdge::~PipelineEdge() {
-  producers_count_ = -1;
-  consumers_count_ = -1;
+  consumers_size_ = 0;
 
   for (auto iter : data_packets_) {
-    delete (iter.begin()->first);
+    delete iter;
   }
   data_packets_.clear();
 
@@ -32,13 +31,11 @@ PipelineEdge::~PipelineEdge() {
 
 base::Status PipelineEdge::set(device::Buffer *buffer, int index,
                                bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(buffer, index, is_external);
@@ -47,13 +44,11 @@ base::Status PipelineEdge::set(device::Buffer *buffer, int index,
   return status;
 }
 base::Status PipelineEdge::set(device::Buffer &buffer, int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(buffer, index);
@@ -64,13 +59,11 @@ base::Status PipelineEdge::set(device::Buffer &buffer, int index) {
 device::Buffer *PipelineEdge::create(device::Device *device,
                                      const device::BufferDesc &desc,
                                      int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   device::Buffer *ret_value = dp->create(device, desc, index);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
@@ -83,8 +76,7 @@ bool PipelineEdge::notifyWritten(device::Buffer *buffer) {
   bool is_notify = false;
   for (auto iter = data_packets_.rbegin(); iter != data_packets_.rend();
        ++iter) {
-    auto dp = iter->begin()->first;
-    if (dp->notifyWritten(buffer)) {
+    if ((*iter)->notifyWritten(buffer)) {
       is_notify = true;
       break;
     }
@@ -103,13 +95,11 @@ device::Buffer *PipelineEdge::getBuffer(const Node *node) {
 }
 
 base::Status PipelineEdge::set(device::Mat *mat, int index, bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(mat, index, is_external);
@@ -118,13 +108,11 @@ base::Status PipelineEdge::set(device::Mat *mat, int index, bool is_external) {
   return status;
 }
 base::Status PipelineEdge::set(device::Mat &mat, int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(mat, index);
@@ -135,13 +123,11 @@ base::Status PipelineEdge::set(device::Mat &mat, int index) {
 device::Mat *PipelineEdge::create(device::Device *device,
                                   const device::MatDesc &desc, int index,
                                   const std::string &name) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   device::Mat *ret_value = dp->create(device, desc, index, name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
@@ -154,8 +140,7 @@ bool PipelineEdge::notifyWritten(device::Mat *mat) {
   bool is_notify = false;
   for (auto iter = data_packets_.rbegin(); iter != data_packets_.rend();
        ++iter) {
-    auto dp = iter->begin()->first;
-    if (dp->notifyWritten(mat)) {
+    if ((*iter)->notifyWritten(mat)) {
       is_notify = true;
       break;
     }
@@ -175,13 +160,11 @@ device::Mat *PipelineEdge::getMat(const Node *node) {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status PipelineEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(cv_mat, index, is_external);
@@ -190,13 +173,11 @@ base::Status PipelineEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
   return status;
 }
 base::Status PipelineEdge::set(cv::Mat &cv_mat, int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(cv_mat, index);
@@ -215,13 +196,11 @@ cv::Mat *PipelineEdge::getCvMat(const Node *node) {
 
 base::Status PipelineEdge::set(device::Tensor *tensor, int index,
                                bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(tensor, index, is_external);
@@ -230,13 +209,11 @@ base::Status PipelineEdge::set(device::Tensor *tensor, int index,
   return status;
 }
 base::Status PipelineEdge::set(device::Tensor &tensor, int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(tensor, index);
@@ -247,13 +224,11 @@ base::Status PipelineEdge::set(device::Tensor &tensor, int index) {
 device::Tensor *PipelineEdge::create(device::Device *device,
                                      const device::TensorDesc &desc, int index,
                                      const std::string &name) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   device::Tensor *ret_value = dp->create(device, desc, index, name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
@@ -265,8 +240,7 @@ bool PipelineEdge::notifyWritten(device::Tensor *tensor) {
   bool is_notify = false;
   for (auto iter = data_packets_.rbegin(); iter != data_packets_.rend();
        ++iter) {
-    auto dp = iter->begin()->first;
-    if (dp->notifyWritten(tensor)) {
+    if ((*iter)->notifyWritten(tensor)) {
       is_notify = true;
       break;
     }
@@ -286,13 +260,11 @@ device::Tensor *PipelineEdge::getTensor(const Node *node) {
 
 base::Status PipelineEdge::set(base::Param *param, int index,
                                bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(param, index, is_external);
@@ -301,13 +273,11 @@ base::Status PipelineEdge::set(base::Param *param, int index,
   return status;
 }
 base::Status PipelineEdge::set(base::Param &param, int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(param, index);
@@ -324,13 +294,11 @@ base::Param *PipelineEdge::getParam(const Node *node) {
 }
 
 base::Status PipelineEdge::set(void *anything, int index, bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket();
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  std::map<PipelineDataPacket *, int> dp_map;
-  dp_map.insert({dp, 0});
-  data_packets_.push_back(dp_map);
+  data_packets_.push_back(dp);
   cv_.notify_all();
   // set
   base::Status status = dp->set(anything, index, is_external);
@@ -360,7 +328,7 @@ PipelineDataPacket *PipelineEdge::getDataPacket(const Node *node) {
   if (consumers_.empty() && node == nullptr) {
     return getGraphOutputEdgeDataPacket(node);
   } else if (std::find(consumers_.begin(), consumers_.end(), node) !=
-           consumers_.end()) {
+             consumers_.end()) {
     return getConsumerNodeEdgeDataPacket(node);
   } else {
     if (node != nullptr) {
@@ -391,26 +359,27 @@ PipelineDataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(
    * 调用notify_all则会唤醒所有线程，线程会争抢锁，当然只有一个线程会获得到锁，而其余未获得锁的线程也将不再阻塞，而是进入到类似轮询的状态，等待锁资源释放后再去争抢。
    *
    * 假如同时有10个线程阻塞在wait方法上，则需要调用10次notify_one，而仅仅只需要调用1次notify_all
-   *
-   * @return std::unique_lock<std::mutex>
    */
   Node *tmp_node = const_cast<Node *>(node);
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [this, tmp_node] {
     return consumed_[tmp_node] < data_packets_.size();
   });
+
   // find
+  PipelineDataPacket *dp = nullptr;
   int index = consumed_[tmp_node];
   int count = 0;
   auto iter = data_packets_.begin();
-  for (int i = 0; i <= index; i++) {
-    if (iter->begin()->second == consumers_count_) {
+  for (int i = 0; i < index; i++) {
+    if ((*iter)->getConsumersCount() == consumers_size_) {
       count++;
     }
     iter++;
   }
-  iter->begin()->second++;
-  PipelineDataPacket *dp = iter->begin()->first;
+  dp = (*iter);
+  dp->increaseConsumersCount();
+
   // update
   consumed_[tmp_node]++;  // 会导致下一次数据没有的时候线程一直在等待
   for (auto iter : consumed_) {
@@ -418,7 +387,7 @@ PipelineDataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(
   }
   iter = data_packets_.begin();
   for (int i = 0; i < count; i++) {
-    delete iter->begin()->first;
+    delete (*iter);
     iter++;
   }
   data_packets_.erase(data_packets_.begin(), iter);
@@ -431,6 +400,7 @@ PipelineDataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(
  * @param node
  * @return PipelineDataPacket*
  * @note 用于获取图的输出节点的数据包
+ * @perf 这里还可以再优化性能
  */
 PipelineDataPacket *PipelineEdge::getGraphOutputEdgeDataPacket(
     const Node *node) {
@@ -441,32 +411,35 @@ PipelineDataPacket *PipelineEdge::getGraphOutputEdgeDataPacket(
       return false;
     }
     for (auto iter : data_packets_) {
-      if (iter.begin()->second == consumers_count_) {
+      if (iter->getConsumersCount() == consumers_size_) {
         return true;
       }
     }
     return false;
   });
+
   // find
   int count = 0;
   PipelineDataPacket *dp = nullptr;
   auto iter = data_packets_.begin();
   for (; iter != data_packets_.end(); ++iter) {
-    if (iter->begin()->second == consumers_count_) {
-      PipelineDataPacket *dp = iter->begin()->first;
+    if ((*iter)->getConsumersCount() == consumers_size_) {
+      dp = (*iter);
+      (*iter)->increaseConsumersCount();
       break;
     }
     count++;
   }
-  iter->begin()->second++;
+
   // update
   iter = data_packets_.begin();
   for (int i = 0; i < count; i++) {
-    delete iter->begin()->first;
+    delete (*iter);
     iter++;
   }
   data_packets_.erase(data_packets_.begin(), iter);
 
+  // 返回值
   return dp;
 }
 

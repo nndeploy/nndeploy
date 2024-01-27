@@ -325,7 +325,8 @@ void DataPacket::destory() {
   anything_ = nullptr;
 }
 
-PipelineDataPacket::PipelineDataPacket() {}
+PipelineDataPacket::PipelineDataPacket(int consumers_size)
+    : consumers_size_(consumers_size), consumers_count_(0) {}
 
 PipelineDataPacket::~PipelineDataPacket() { destory(); }
 
@@ -481,6 +482,13 @@ void *PipelineDataPacket::getAnything() {
   cv_.wait(lock, [this] { return written_; });
   return DataPacket::getAnything();
 }
+
+void PipelineDataPacket::increaseConsumersCount() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  consumers_count_++;
+}
+int PipelineDataPacket::getConsumersSize() { return consumers_size_; }
+int PipelineDataPacket::getConsumersCount() { return consumers_count_; }
 
 }  // namespace dag
 }  // namespace nndeploy

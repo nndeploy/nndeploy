@@ -86,7 +86,7 @@ class DataPacket : public base::NonCopyable {
 
 class PipelineDataPacket : public DataPacket {
  public:
-  PipelineDataPacket();
+  PipelineDataPacket(int consumers_size);
   virtual ~PipelineDataPacket();
 
   virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
@@ -117,9 +117,16 @@ class PipelineDataPacket : public DataPacket {
   virtual base::Status set(void *anything, int index, bool is_external);
   virtual void *getAnything();
 
+  void increaseConsumersCount();
+
+  int getConsumersSize();
+  int getConsumersCount();
+
  protected:
   std::mutex mutex_;
   std::condition_variable cv_;
+  int consumers_size_ = 0;
+  int consumers_count_ = 0;
 };
 
 }  // namespace dag
