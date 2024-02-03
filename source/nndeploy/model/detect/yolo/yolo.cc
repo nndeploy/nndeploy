@@ -30,6 +30,8 @@ dag::TypeGraphRegister g_register_yolov8_graph(NNDEPLOY_YOLOV8,
                                                createYoloV8Graph);
 
 base::Status YoloPostProcess::run() {
+  NNDEPLOY_LOGE("YoloPostProcess::run!Thread ID: %d.\n",
+                std::this_thread::get_id());
   YoloPostParam *param = (YoloPostParam *)param_.get();
 
   if (param->version_ == 5 || param->version_ == 6) {
@@ -56,7 +58,6 @@ base::Status YoloPostProcess::runV5V6() {
   int width = tensor->getShapeIndex(2);
 
   DetectResult *results = new DetectResult();
-  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
 
   for (int b = 0; b < batch; ++b) {
     NNDEPLOY_LOGE("bk\n");
@@ -108,7 +109,7 @@ base::Status YoloPostProcess::runV5V6() {
       results->bboxs_.emplace_back(results_batch.bboxs_[n]);
     }
   }
-
+  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
   return base::kStatusCodeOk;
 }
 
@@ -132,7 +133,6 @@ base::Status YoloPostProcess::runV8() {
   data = (float *)cv_mat_dst.data;
 
   DetectResult *results = new DetectResult();
-  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
 
   for (int b = 0; b < batch; ++b) {
     float *data_batch = data + b * height * width;
@@ -180,7 +180,8 @@ base::Status YoloPostProcess::runV8() {
       results->bboxs_.emplace_back(results_batch.bboxs_[n]);
     }
   }
-
+  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
+  NNDEPLOY_LOGE("postprocess!\n");
   return base::kStatusCodeOk;
 }
 

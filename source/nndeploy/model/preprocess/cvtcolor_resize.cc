@@ -7,6 +7,7 @@ namespace nndeploy {
 namespace model {
 
 base::Status CvtColorResize::run() {
+  NNDEPLOY_LOGE("preprocess!Thread ID: %d.\n", std::this_thread::get_id());
   CvtclorResizeParam *tmp_param =
       dynamic_cast<CvtclorResizeParam *>(param_.get());
   cv::Mat *src = inputs_[0]->getCvMat(this);
@@ -37,8 +38,8 @@ base::Status CvtColorResize::run() {
                    getChannelByPixelType(tmp_param->dst_pixel_type_)};
   }
 
-  outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
-  device::Tensor *dst = outputs_[0]->getTensor(this);
+  device::Tensor *dst =
+      outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
 
   int c = dst->getChannel();
   int h = dst->getHeight();
@@ -81,7 +82,9 @@ base::Status CvtColorResize::run() {
   }
 
   // 通知Edge，数据已经完成写入
+  NNDEPLOY_LOGE("preprocess!\n");
   outputs_[0]->notifyWritten(dst);
+  NNDEPLOY_LOGE("preprocess!\n");
   return base::kStatusCodeOk;
 }
 

@@ -114,7 +114,6 @@ static void generateProposals(const int *anchors, int stride, const int model_w,
 base::Status YoloMultiOutputPostProcess::run() {
   YoloMultiOutputPostParam *param = (YoloMultiOutputPostParam *)param_.get();
   DetectResult *results = new DetectResult();
-  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
   DetectResult results_batch;
   device::Tensor *tensor_stride_8 = inputs_[0]->getTensor(this);
   generateProposals(param->anchors_stride_8, 8, param->model_w_,
@@ -141,6 +140,7 @@ base::Status YoloMultiOutputPostProcess::run() {
     results_batch.bboxs_[n].bbox_[3] /= param->model_h_;
     results->bboxs_.emplace_back(results_batch.bboxs_[n]);
   }
+  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
   return base::kStatusCodeOk;
 }
 

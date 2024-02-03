@@ -88,6 +88,9 @@ base::Status CvtColorResizePad::run() {
   OpenCvConvert::convertToTensor(tmp_pad, dst, tmp_param->scale_,
                                  tmp_param->mean_, tmp_param->std_);
 
+  // 通知Edge，数据已经完成写入
+  outputs_[0]->notifyWritten(dst);
+
   return base::kStatusCodeOk;
 }
 

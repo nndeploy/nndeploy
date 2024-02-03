@@ -31,18 +31,22 @@ class ParallelPipelineExecutor : public Executor {
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "thread_pool_ init failed");
 
+    process();
     return status;
   }
 
   virtual base::Status deinit() {
     base::Status status = base::kStatusCodeOk;
+    pipeline_flag_ = false;
+
+    thread_pool_->destroy();
+    delete thread_pool_;
+
     for (auto iter : topo_sort_node_) {
       status = iter->node_->deinit();
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "failed iter->node_->deinit()");
     }
-    thread_pool_->destroy();
-    delete thread_pool_;
     return status;
   }
 
@@ -56,15 +60,15 @@ class ParallelPipelineExecutor : public Executor {
    * # 3.
    * 在一批数据中只能启动一次，然后一直运行，直到数据处理完毕，然后回收线程，等待下一批线程开始
    */
-  virtual base::Status run() {
-    static std::once_flag once;
-    std::call_once(once, [this]() { this->process(); });
-    return base::kStatusCodeOk;
-  }
+  virtual base::Status run() { return base::kStatusCodeOk; }
 
   void process() {
     for (auto iter : topo_sort_node_) {
-      const auto& func = [this, iter] { iter->node_->run(); };
+      const auto& func = [this, iter] {
+        while (this->pipeline_flag_) {
+          iter->node_->run();
+        }
+      };
       thread_pool_->commit(func);
     }
   }
@@ -73,6 +77,7 @@ class ParallelPipelineExecutor : public Executor {
   thread_pool::ThreadPool* thread_pool_ = nullptr;
   std::vector<NodeWrapper*> topo_sort_node_;
   int all_task_count_ = 0;
+  bool pipeline_flag_ = true;
 };
 
 }  // namespace dag

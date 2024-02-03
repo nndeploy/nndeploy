@@ -340,3 +340,6 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/ \
                        --output_path /home/always/huggingface/nndeploy/temp/
 ```
+
+
+--name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov5s_siso.onnx --input_type kInputTypeImage --input_path C:\huggingface\nndeploy\test_data\detect --output_path C:\huggingface\nndeploy\temp

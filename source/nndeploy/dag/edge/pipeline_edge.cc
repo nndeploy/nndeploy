@@ -190,7 +190,11 @@ cv::Mat *PipelineEdge::getCvMat(const Node *node) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
       dp, "PipelineDataPacket getDataPacket error.\n");
 
-  return dp->getCvMat();
+  cv::Mat *ret = dp->getCvMat();
+
+  NNDEPLOY_LOGE("cv::Mat = %p!\n", ret);
+
+  return ret;
 }
 #endif
 
@@ -332,8 +336,7 @@ PipelineDataPacket *PipelineEdge::getDataPacket(const Node *node) {
     return getConsumerNodeEdgeDataPacket(node);
   } else {
     if (node != nullptr) {
-      const char *s = tmp_node->getName().c_str();
-      NNDEPLOY_LOGE("This node[%s] is error.\n", s);
+      NNDEPLOY_LOGE("This node[%s] is error.\n", tmp_node->getName().c_str());
     } else {
       NNDEPLOY_LOGE("This node is error.\n");
     }
