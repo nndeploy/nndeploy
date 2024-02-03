@@ -332,25 +332,26 @@ PipelineDataPacket::~PipelineDataPacket() { destory(); }
 
 base::Status PipelineDataPacket::set(device::Buffer *buffer, int index,
                                      bool is_external) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(buffer, index, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
 base::Status PipelineDataPacket::set(device::Buffer &buffer, int index) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(buffer, index);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
 bool PipelineDataPacket::notifyWritten(device::Buffer *buffer) {
+  std::unique_lock<std::mutex> lock(mutex_);
   bool status = DataPacket::notifyWritten(buffer);
   NNDEPLOY_RETURN_ON_NEQ(status, true, "DataPacket::notifyWritten failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
+
   cv_.notify_all();
   return status;
 }
@@ -362,25 +363,25 @@ device::Buffer *PipelineDataPacket::getBuffer() {
 
 base::Status PipelineDataPacket::set(device::Mat *mat, int index,
                                      bool is_external) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(mat, index, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
 base::Status PipelineDataPacket::set(device::Mat &mat, int index) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(mat, index);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
 bool PipelineDataPacket::notifyWritten(device::Mat *mat) {
+  std::unique_lock<std::mutex> lock(mutex_);
   bool status = DataPacket::notifyWritten(mat);
   NNDEPLOY_RETURN_ON_NEQ(status, true, "DataPacket::notifyWritten failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
@@ -393,18 +394,18 @@ device::Mat *PipelineDataPacket::getMat() {
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status PipelineDataPacket::set(cv::Mat *cv_mat, int index,
                                      bool is_external) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(cv_mat, index, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
 base::Status PipelineDataPacket::set(cv::Mat &cv_mat, int index) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(cv_mat, index);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
@@ -417,25 +418,25 @@ cv::Mat *PipelineDataPacket::getCvMat() {
 
 base::Status PipelineDataPacket::set(device::Tensor *tensor, int index,
                                      bool is_external) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(tensor, index, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
 base::Status PipelineDataPacket::set(device::Tensor &tensor, int index) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(tensor, index);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
 bool PipelineDataPacket::notifyWritten(device::Tensor *tensor) {
+  std::unique_lock<std::mutex> lock(mutex_);
   bool status = DataPacket::notifyWritten(tensor);
   NNDEPLOY_RETURN_ON_NEQ(status, true, "DataPacket::notifyWritten failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
@@ -447,18 +448,18 @@ device::Tensor *PipelineDataPacket::getTensor() {
 
 base::Status PipelineDataPacket::set(base::Param *param, int index,
                                      bool is_external) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(param, index, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
 base::Status PipelineDataPacket::set(base::Param &param, int index) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(param, index);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }
@@ -470,10 +471,10 @@ base::Param *PipelineDataPacket::getParam() {
 
 base::Status PipelineDataPacket::set(void *anything, int index,
                                      bool is_external) {
+  std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(anything, index, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
-  std::unique_lock<std::mutex> lock(mutex_);
   cv_.notify_all();
   return status;
 }

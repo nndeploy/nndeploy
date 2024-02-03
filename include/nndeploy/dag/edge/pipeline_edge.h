@@ -105,8 +105,10 @@ class PipelineEdge : public AbstractEdge {
   int consumers_size_ = 0;
   // 数据包
   std::list<PipelineDataPacket *> data_packets_;
-  // 每个消费者 消费 的数据包索引
-  std::map<Node *, int> consumed_;
+  // 每个消费者 消费 的数据包最新索引
+  std::map<Node *, int> to_consume_index_;
+  // 每个消费者 消费 的挡墙数据包
+  std::map<Node *, PipelineDataPacket *> consuming_dp_;
 };
 
 }  // namespace dag

@@ -31,16 +31,17 @@ class ParallelPipelineExecutor : public Executor {
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "thread_pool_ init failed");
 
-    process();
     return status;
   }
 
   virtual base::Status deinit() {
     base::Status status = base::kStatusCodeOk;
     pipeline_flag_ = false;
-
+    NNDEPLOY_LOGE("bk.\n");
     thread_pool_->destroy();
+    NNDEPLOY_LOGE("bk.\n");
     delete thread_pool_;
+    NNDEPLOY_LOGE("bk.\n");
 
     for (auto iter : topo_sort_node_) {
       status = iter->node_->deinit();
@@ -60,16 +61,24 @@ class ParallelPipelineExecutor : public Executor {
    * # 3.
    * 在一批数据中只能启动一次，然后一直运行，直到数据处理完毕，然后回收线程，等待下一批线程开始
    */
-  virtual base::Status run() { return base::kStatusCodeOk; }
+  virtual base::Status run() {
+    static std::once_flag once;
+    std::call_once(once, &ParallelPipelineExecutor::process, this);
+    return base::kStatusCodeOk;
+  }
 
   void process() {
     for (auto iter : topo_sort_node_) {
-      const auto& func = [this, iter] {
-        while (this->pipeline_flag_) {
-          iter->node_->run();
+      auto func = [iter](ParallelPipelineExecutor* ppe) -> base::Status {
+        base::Status status = base::kStatusCodeOk;
+        while (ppe->pipeline_flag_) {
+          status = iter->node_->run();
+          NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                                 "node execute failed!\n");
         }
+        return status;
       };
-      thread_pool_->commit(func);
+      thread_pool_->commit(std::bind(func, this));
     }
   }
 

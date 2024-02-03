@@ -42,7 +42,6 @@ base::Status YoloPostProcess::run() {
     NNDEPLOY_LOGE("Unsupported version: %d", param->version_);
     return base::kStatusCodeErrorInvalidValue;
   }
-
   return base::kStatusCodeOk;
 }
 

@@ -14,7 +14,8 @@ PipelineEdge::PipelineEdge(ParallelType paralle_type,
     : AbstractEdge(paralle_type, producers, consumers) {
   consumers_size_ = consumers.size();
   for (auto iter : consumers) {
-    consumed_.insert({iter, 0});
+    to_consume_index_.insert({iter, 0});
+    consuming_dp_.insert({iter, nullptr});
   }
 }
 
@@ -26,7 +27,8 @@ PipelineEdge::~PipelineEdge() {
   }
   data_packets_.clear();
 
-  consumed_.clear();
+  consuming_dp_.clear();
+  to_consume_index_.clear();
 }
 
 base::Status PipelineEdge::set(device::Buffer *buffer, int index,
@@ -35,12 +37,13 @@ base::Status PipelineEdge::set(device::Buffer *buffer, int index,
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  base::Status status = dp->set(buffer, index, is_external);
   data_packets_.push_back(dp);
   cv_.notify_all();
-  // set
-  base::Status status = dp->set(buffer, index, is_external);
+
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
+
   return status;
 }
 base::Status PipelineEdge::set(device::Buffer &buffer, int index) {
@@ -319,29 +322,38 @@ void *PipelineEdge::getAnything(const Node *node) {
 }
 
 int PipelineEdge::getIndex(const Node *node) {
-  PipelineDataPacket *dp = getDataPacket(node);
-  if (dp == nullptr) {
-    NNDEPLOY_LOGE("PipelineDataPacket getDataPacket is nullptr!\n");
+  Node *tmp_node = const_cast<Node *>(node);
+  auto iter = consuming_dp_.find(tmp_node);
+  if (iter == consuming_dp_.end()) {
+    NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
     return -1;
   }
-  return dp->getIndex();
+  if (iter->second == nullptr) {
+    NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
+    NNDEPLOY_LOGE("dp is nullptr!\n");
+    return -1;
+  }
+  int index = iter->second->getIndex();
+  return index;
 }
 
 PipelineDataPacket *PipelineEdge::getDataPacket(const Node *node) {
   Node *tmp_node = const_cast<Node *>(node);
+  PipelineDataPacket *ret_value = nullptr;
   if (consumers_.empty() && node == nullptr) {
-    return getGraphOutputEdgeDataPacket(node);
+    ret_value = getGraphOutputEdgeDataPacket(node);
   } else if (std::find(consumers_.begin(), consumers_.end(), node) !=
              consumers_.end()) {
-    return getConsumerNodeEdgeDataPacket(node);
+    ret_value = getConsumerNodeEdgeDataPacket(node);
   } else {
     if (node != nullptr) {
       NNDEPLOY_LOGE("This node[%s] is error.\n", tmp_node->getName().c_str());
     } else {
       NNDEPLOY_LOGE("This node is error.\n");
     }
-    return nullptr;
   }
+  consuming_dp_[tmp_node] = ret_value;
+  return ret_value;
 }
 
 /**
@@ -366,12 +378,12 @@ PipelineDataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(
   Node *tmp_node = const_cast<Node *>(node);
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [this, tmp_node] {
-    return consumed_[tmp_node] < data_packets_.size();
+    return to_consume_index_[tmp_node] < data_packets_.size();
   });
 
   // find
   PipelineDataPacket *dp = nullptr;
-  int index = consumed_[tmp_node];
+  int index = to_consume_index_[tmp_node];
   int count = 0;
   auto iter = data_packets_.begin();
   for (int i = 0; i < index; i++) {
@@ -384,16 +396,30 @@ PipelineDataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(
   dp->increaseConsumersCount();
 
   // update
-  consumed_[tmp_node]++;  // 会导致下一次数据没有的时候线程一直在等待
-  for (auto iter : consumed_) {
-    iter.second -= count;
+  to_consume_index_[tmp_node]++;  // 会导致下一次数据没有的时候线程一直在等待
+  // for (auto iter : to_consume_index_) {
+  //   iter.second -= count;
+  // }
+  // iter = data_packets_.begin();
+  // for (int i = 0; i < count; i++) {
+  //   delete (*iter);
+  //   iter++;
+  // }
+  // data_packets_.erase(data_packets_.begin(), iter);
+
+  if (tmp_node != nullptr) {
+    NNDEPLOY_LOGE("node name %s!Thread ID: %d.\n", tmp_node->getName().c_str(),
+                  std::this_thread::get_id());
+    NNDEPLOY_LOGE("data_packets_.size = %d.Thread ID: %d.\n",
+                  data_packets_.size(), std::this_thread::get_id());
+    auto iter = data_packets_.begin();
+    for (int i = 0; i < data_packets_.size(); i++) {
+      NNDEPLOY_LOGE("getConsumersCount = %d. size = %d. Thread ID: %d.\n",
+                    (*iter)->getConsumersCount(), consumers_size_,
+                    std::this_thread::get_id());
+      iter++;
+    }
   }
-  iter = data_packets_.begin();
-  for (int i = 0; i < count; i++) {
-    delete (*iter);
-    iter++;
-  }
-  data_packets_.erase(data_packets_.begin(), iter);
 
   return dp;
 }
@@ -434,13 +460,26 @@ PipelineDataPacket *PipelineEdge::getGraphOutputEdgeDataPacket(
     count++;
   }
 
-  // update
-  iter = data_packets_.begin();
-  for (int i = 0; i < count; i++) {
-    delete (*iter);
-    iter++;
+  if (tmp_node == nullptr) {
+    NNDEPLOY_LOGE("node name!Thread ID: %d.\n", std::this_thread::get_id());
+    NNDEPLOY_LOGE("data_packets_.size = %d.Thread ID: %d.\n",
+                  data_packets_.size(), std::this_thread::get_id());
+    auto iter = data_packets_.begin();
+    for (int i = 0; i < data_packets_.size(); i++) {
+      NNDEPLOY_LOGE("getConsumersCount = %d. size = %d. Thread ID: %d.\n",
+                    (*iter)->getConsumersCount(), consumers_size_,
+                    std::this_thread::get_id());
+      iter++;
+    }
   }
-  data_packets_.erase(data_packets_.begin(), iter);
+
+  // update
+  // iter = data_packets_.begin();
+  // for (int i = 0; i < count; i++) {
+  //   delete (*iter);
+  //   iter++;
+  // }
+  // data_packets_.erase(data_packets_.begin(), iter);
 
   // 返回值
   return dp;

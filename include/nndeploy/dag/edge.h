@@ -76,7 +76,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
  private:
   std::string name_;
-  AbstractEdge *abstact_edge_;
+  AbstractEdge *abstact_edge_ = nullptr;
 };
 
 }  // namespace dag
