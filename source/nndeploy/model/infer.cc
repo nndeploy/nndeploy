@@ -100,7 +100,7 @@ base::Status Infer::setMemory(device::Buffer *buffer) {
 // }
 
 base::Status Infer::run() {
-  NNDEPLOY_LOGE("Infer::run!Thread ID: %d.\n", std::this_thread::get_id());
+  // NNDEPLOY_LOGE("Infer::run!Thread ID: %d.\n", std::this_thread::get_id());
   base::Status status = base::kStatusCodeOk;
   std::vector<device::Tensor *> tensors;
   std::vector<int> indexs;
@@ -137,7 +137,7 @@ base::Status Infer::run() {
         inference_->getOutputTensorAfterRun(name, device_type_, flag);
     output->set(tensor, index, false);
   }
-  NNDEPLOY_LOGE("infer end!Thread ID: %d.\n", std::this_thread::get_id());
+  // NNDEPLOY_LOGE("infer end!Thread ID: %d.\n", std::this_thread::get_id());
   return status;
 }
 

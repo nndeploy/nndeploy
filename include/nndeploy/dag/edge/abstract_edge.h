@@ -35,6 +35,7 @@ class AbstractEdge : public base::NonCopyable {
                                  const device::BufferDesc &desc, int index) = 0;
   virtual bool notifyWritten(device::Buffer *buffer) = 0;
   virtual device::Buffer *getBuffer(const Node *node) = 0;
+  virtual device::Buffer *getGraphOutputBuffer() = 0;
 
   virtual base::Status set(device::Mat *mat, int index, bool is_external) = 0;
   virtual base::Status set(device::Mat &mat, int index) = 0;
@@ -43,11 +44,13 @@ class AbstractEdge : public base::NonCopyable {
                               const std::string &name) = 0;
   virtual bool notifyWritten(device::Mat *mat) = 0;
   virtual device::Mat *getMat(const Node *node) = 0;
+  virtual device::Mat *getGraphOutputMat() = 0;
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external) = 0;
   virtual base::Status set(cv::Mat &cv_mat, int index) = 0;
   virtual cv::Mat *getCvMat(const Node *node) = 0;
+  virtual cv::Mat *getGraphOutputCvMat() = 0;
 #endif
 
   virtual base::Status set(device::Tensor *tensor, int index,
@@ -58,16 +61,25 @@ class AbstractEdge : public base::NonCopyable {
                                  const std::string &name) = 0;
   virtual bool notifyWritten(device::Tensor *tensor) = 0;
   virtual device::Tensor *getTensor(const Node *node) = 0;
+  virtual device::Tensor *getGraphOutputTensor() = 0;
 
   virtual base::Status set(base::Param *param, int index, bool is_external) = 0;
   virtual base::Status set(base::Param &param, int index) = 0;
   virtual base::Param *getParam(const Node *node) = 0;
+  virtual base::Param *getGraphOutputParam() = 0;
 
   virtual base::Status set(void *anything, int index, bool is_external) = 0;
   virtual void *getAnything(const Node *node) = 0;
+  virtual void *getGraphOutputAnything() = 0;
 
   virtual int getIndex(const Node *node) = 0;
+  virtual int getGraphOutputIndex() = 0;
+
+  virtual bool updateData(const Node *node) = 0;
+
   ParallelType getParallelType() { return paralle_type_; }
+
+  virtual bool requestTerminate() = 0;
 
  protected:
   ParallelType paralle_type_;

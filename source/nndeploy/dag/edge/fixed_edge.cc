@@ -33,6 +33,9 @@ bool FixedEdge::notifyWritten(device::Buffer *buffer) {
 device::Buffer *FixedEdge::getBuffer(const Node *node) {
   return data_packet_->getBuffer();
 }
+device::Buffer *FixedEdge::getGraphOutputBuffer() {
+  return data_packet_->getBuffer();
+}
 
 base::Status FixedEdge::set(device::Mat *mat, int index, bool is_external) {
   return data_packet_->set(mat, index, is_external);
@@ -51,6 +54,7 @@ bool FixedEdge::notifyWritten(device::Mat *mat) {
 device::Mat *FixedEdge::getMat(const Node *node) {
   return data_packet_->getMat();
 }
+device::Mat *FixedEdge::getGraphOutputMat() { return data_packet_->getMat(); }
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status FixedEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
@@ -62,6 +66,7 @@ base::Status FixedEdge::set(cv::Mat &cv_mat, int index) {
 cv::Mat *FixedEdge::getCvMat(const Node *node) {
   return data_packet_->getCvMat();
 }
+cv::Mat *FixedEdge::getGraphOutputCvMat() { return data_packet_->getCvMat(); }
 #endif
 
 base::Status FixedEdge::set(device::Tensor *tensor, int index,
@@ -82,6 +87,9 @@ bool FixedEdge::notifyWritten(device::Tensor *tensor) {
 device::Tensor *FixedEdge::getTensor(const Node *node) {
   return data_packet_->getTensor();
 }
+device::Tensor *FixedEdge::getGraphOutputTensor() {
+  return data_packet_->getTensor();
+}
 
 base::Status FixedEdge::set(base::Param *param, int index, bool is_external) {
   return data_packet_->set(param, index, is_external);
@@ -92,6 +100,9 @@ base::Status FixedEdge::set(base::Param &param, int index) {
 base::Param *FixedEdge::getParam(const Node *node) {
   return data_packet_->getParam();
 }
+base::Param *FixedEdge::getGraphOutputParam() {
+  return data_packet_->getParam();
+}
 
 base::Status FixedEdge::set(void *anything, int index, bool is_external) {
   return data_packet_->set(anything, index, is_external);
@@ -99,8 +110,16 @@ base::Status FixedEdge::set(void *anything, int index, bool is_external) {
 void *FixedEdge::getAnything(const Node *node) {
   return data_packet_->getAnything();
 }
+void *FixedEdge::getGraphOutputAnything() {
+  return data_packet_->getAnything();
+}
 
 int FixedEdge::getIndex(const Node *node) { return data_packet_->getIndex(); }
+int FixedEdge::getGraphOutputIndex() { return data_packet_->getIndex(); }
+
+bool FixedEdge::updateData(const Node *node) { return true; }
+
+bool FixedEdge::requestTerminate() { return true; }
 
 }  // namespace dag
 }  // namespace nndeploy

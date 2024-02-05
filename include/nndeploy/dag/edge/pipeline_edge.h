@@ -24,7 +24,6 @@ namespace dag {
 /**
  * @brief
  * 1. 只能一个线程得到整个图的结果
- * 2. 每条边的生产者只能是一个节点
  * @note
  * # 问题一：对于多输入的节点，会不会产生输入不匹配的情况呢？
  * ## 答：不会，因为节点内部会一直等待多输入的数据都到来，才会开始执行。
@@ -46,6 +45,7 @@ class PipelineEdge : public AbstractEdge {
                                  const device::BufferDesc &desc, int index);
   virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer(const Node *node);
+  virtual device::Buffer *getGraphOutputBuffer();
 
   virtual base::Status set(device::Mat *mat, int index, bool is_external);
   virtual base::Status set(device::Mat &mat, int index);
@@ -54,11 +54,13 @@ class PipelineEdge : public AbstractEdge {
                               const std::string &name);
   virtual bool notifyWritten(device::Mat *mat);
   virtual device::Mat *getMat(const Node *node);
+  virtual device::Mat *getGraphOutputMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
   virtual base::Status set(cv::Mat &cv_mat, int index);
   virtual cv::Mat *getCvMat(const Node *node);
+  virtual cv::Mat *getGraphOutputCvMat();
 #endif
 
   virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
@@ -68,41 +70,37 @@ class PipelineEdge : public AbstractEdge {
                                  const std::string &name);
   virtual bool notifyWritten(device::Tensor *tensor);
   virtual device::Tensor *getTensor(const Node *node);
+  virtual device::Tensor *getGraphOutputTensor();
 
   virtual base::Status set(base::Param *param, int index, bool is_external);
   virtual base::Status set(base::Param &param, int index);
   virtual base::Param *getParam(const Node *node);
+  virtual base::Param *getGraphOutputParam();
 
   virtual base::Status set(void *anything, int index, bool is_external);
   virtual void *getAnything(const Node *node);
+  virtual void *getGraphOutputAnything();
 
   virtual int getIndex(const Node *node);
+  virtual int getGraphOutputIndex();
+
+  virtual bool updateData(const Node *node);
+
+  virtual bool requestTerminate();
 
  private:
-  PipelineDataPacket *getDataPacket(const Node *node);
+  virtual bool updateGraphOutputData();
 
-  /**
-   * @brief Get the Graph Output Edge Data Packet object
-   *
-   * @param node
-   * @return PipelineDataPacket*
-   * @note 用于获取图的输出节点的数据包
-   */
-  PipelineDataPacket *getGraphOutputEdgeDataPacket(const Node *node);
-  /**
-   * @brief Get the Consumer Node Edge Data Packet object
-   *
-   * @param node
-   * @return PipelineDataPacket*
-   * @note 用于获取消费者节点的数据包
-   */
-  PipelineDataPacket *getConsumerNodeEdgeDataPacket(const Node *node);
+  bool checkNode(const Node *node);
+
+  PipelineDataPacket *getDataPacket(const Node *node);
 
  private:
   std::mutex mutex_;
   std::condition_variable cv_;
+  bool terminate_flag_ = false;
   // 有多少个消费者
-  int consumers_size_ = 0;
+  int consumers_size_;
   // 数据包
   std::list<PipelineDataPacket *> data_packets_;
   // 每个消费者 消费 的数据包最新索引

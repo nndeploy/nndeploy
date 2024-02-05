@@ -7,7 +7,8 @@ namespace nndeploy {
 namespace model {
 
 base::Status CvtColorResize::run() {
-  NNDEPLOY_LOGE("preprocess start!Thread ID: %d.\n", std::this_thread::get_id());
+  // NNDEPLOY_LOGE("preprocess start!Thread ID: %d.\n",
+  //               std::this_thread::get_id());
   CvtclorResizeParam *tmp_param =
       dynamic_cast<CvtclorResizeParam *>(param_.get());
   cv::Mat *src = inputs_[0]->getCvMat(this);
@@ -83,7 +84,6 @@ base::Status CvtColorResize::run() {
 
   // 通知Edge，数据已经完成写入
   outputs_[0]->notifyWritten(dst);
-  NNDEPLOY_LOGE("preprocess end!Thread ID: %d.\n", std::this_thread::get_id());
   return base::kStatusCodeOk;
 }
 

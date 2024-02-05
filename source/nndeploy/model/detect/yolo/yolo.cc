@@ -30,8 +30,8 @@ dag::TypeGraphRegister g_register_yolov8_graph(NNDEPLOY_YOLOV8,
                                                createYoloV8Graph);
 
 base::Status YoloPostProcess::run() {
-  NNDEPLOY_LOGE("YoloPostProcess::run!Thread ID: %d.\n",
-                std::this_thread::get_id());
+  // NNDEPLOY_LOGE("YoloPostProcess::run!Thread ID: %d.\n",
+  //               std::this_thread::get_id());
   YoloPostParam *param = (YoloPostParam *)param_.get();
 
   if (param->version_ == 5 || param->version_ == 6) {
@@ -59,7 +59,7 @@ base::Status YoloPostProcess::runV5V6() {
   DetectResult *results = new DetectResult();
 
   for (int b = 0; b < batch; ++b) {
-    NNDEPLOY_LOGE("bk\n");
+    // NNDEPLOY_LOGE("bk\n");
     float *data_batch = data + b * height * width;
     DetectResult results_batch;
     for (int h = 0; h < height; ++h) {

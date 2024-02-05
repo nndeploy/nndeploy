@@ -326,9 +326,12 @@ void DataPacket::destory() {
 }
 
 PipelineDataPacket::PipelineDataPacket(int consumers_size)
-    : consumers_size_(consumers_size), consumers_count_(0) {}
+    : DataPacket(), consumers_size_(consumers_size), consumers_count_(0) {}
 
-PipelineDataPacket::~PipelineDataPacket() { destory(); }
+PipelineDataPacket::~PipelineDataPacket() {
+  consumers_size_ = 0;
+  consumers_count_ = 0;
+}
 
 base::Status PipelineDataPacket::set(device::Buffer *buffer, int index,
                                      bool is_external) {
@@ -350,9 +353,10 @@ base::Status PipelineDataPacket::set(device::Buffer &buffer, int index) {
 bool PipelineDataPacket::notifyWritten(device::Buffer *buffer) {
   std::unique_lock<std::mutex> lock(mutex_);
   bool status = DataPacket::notifyWritten(buffer);
-  NNDEPLOY_RETURN_ON_NEQ(status, true, "DataPacket::notifyWritten failed!\n");
+  if (status) {
+    cv_.notify_all();
+  }
 
-  cv_.notify_all();
   return status;
 }
 device::Buffer *PipelineDataPacket::getBuffer() {
@@ -381,8 +385,9 @@ base::Status PipelineDataPacket::set(device::Mat &mat, int index) {
 bool PipelineDataPacket::notifyWritten(device::Mat *mat) {
   std::unique_lock<std::mutex> lock(mutex_);
   bool status = DataPacket::notifyWritten(mat);
-  NNDEPLOY_RETURN_ON_NEQ(status, true, "DataPacket::notifyWritten failed!\n");
-  cv_.notify_all();
+  if (status) {
+    cv_.notify_all();
+  }
   return status;
 }
 device::Mat *PipelineDataPacket::getMat() {
@@ -436,8 +441,9 @@ base::Status PipelineDataPacket::set(device::Tensor &tensor, int index) {
 bool PipelineDataPacket::notifyWritten(device::Tensor *tensor) {
   std::unique_lock<std::mutex> lock(mutex_);
   bool status = DataPacket::notifyWritten(tensor);
-  NNDEPLOY_RETURN_ON_NEQ(status, true, "DataPacket::notifyWritten failed!\n");
-  cv_.notify_all();
+  if (status) {
+    cv_.notify_all();
+  }
   return status;
 }
 device::Tensor *PipelineDataPacket::getTensor() {

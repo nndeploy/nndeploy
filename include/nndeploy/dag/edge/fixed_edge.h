@@ -32,6 +32,7 @@ class FixedEdge : public AbstractEdge {
                                  const device::BufferDesc &desc, int index);
   virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer(const Node *node);
+  virtual device::Buffer *getGraphOutputBuffer();
 
   virtual base::Status set(device::Mat *mat, int index, bool is_external);
   virtual base::Status set(device::Mat &mat, int index);
@@ -40,11 +41,13 @@ class FixedEdge : public AbstractEdge {
                               const std::string &name);
   virtual bool notifyWritten(device::Mat *mat);
   virtual device::Mat *getMat(const Node *node);
+  virtual device::Mat *getGraphOutputMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
   virtual base::Status set(cv::Mat &cv_mat, int index);
   virtual cv::Mat *getCvMat(const Node *node);
+  virtual cv::Mat *getGraphOutputCvMat();
 #endif
 
   virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
@@ -54,15 +57,23 @@ class FixedEdge : public AbstractEdge {
                                  const std::string &name);
   virtual bool notifyWritten(device::Tensor *tensor);
   virtual device::Tensor *getTensor(const Node *node);
+  virtual device::Tensor *getGraphOutputTensor();
 
   virtual base::Status set(base::Param *param, int index, bool is_external);
   virtual base::Status set(base::Param &param, int index);
   virtual base::Param *getParam(const Node *node);
+  virtual base::Param *getGraphOutputParam();
 
   virtual base::Status set(void *anything, int index, bool is_external);
   virtual void *getAnything(const Node *node);
+  virtual void *getGraphOutputAnything();
 
   virtual int getIndex(const Node *node);
+  virtual int getGraphOutputIndex();
+
+  virtual bool updateData(const Node *node);
+
+  virtual bool requestTerminate();
 
  private:
   DataPacket *data_packet_;

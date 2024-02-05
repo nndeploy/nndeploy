@@ -94,59 +94,40 @@ int main(int argc, char *argv[]) {
 
   // 有向无环图graph的输入文件夹路径
   std::string input_path = demo::getInputPath();
-  std::string ouput_path = demo::getOutputPath();
   std::vector<std::string> all_file = demo::getAllFileFromDir(input_path);
   int index = 0;
   for (auto file_path : all_file) {
-    NNDEPLOY_LOGI("file:%s\n", file_path.c_str());
+    // NNDEPLOY_LOGI("file:%s\n", file_path.c_str());
     cv::Mat *input_mat = new cv::Mat(cv::imread(file_path));
 
     input.set(input_mat, index, false);
 
     graph->run();
 
-    //model::DetectResult *result =
-    //    (model::DetectResult *)output.getParam(nullptr);
-    //if (result == nullptr) {
-    //  NNDEPLOY_LOGE("result is nullptr");
-    //  return -1;
-    //}
-
-    //drawBox(*input_mat, *result);
-    //std::string full_ouput_path = ouput_path + "\\" + std::to_string(index) +
-    //                               "_" + demo::getName() + ".jpg";
-
-    //std::cout << full_ouput_path << std::endl; 
-    //cv::imwrite(full_ouput_path, *input_mat);
-
     index++;
   }
 
-  //std::string ouput_path = demo::getOutputPath();
+  std::string ouput_path = demo::getOutputPath();
   index = 0;
-  NNDEPLOY_LOGE("all_file.size() = %d.\n", all_file.size());
   for (; index < all_file.size();) {
     auto file_path = all_file[index];
-    NNDEPLOY_LOGI("file:%s\n", file_path.c_str());
-     cv::Mat input_mat = cv::imread(file_path);
+    // NNDEPLOY_LOGI("file:%s\n", file_path.c_str());
+    cv::Mat input_mat = cv::imread(file_path);
 
-     model::DetectResult *result =
-         (model::DetectResult *)output.getParam(nullptr);
-     if (result == nullptr) {
-       NNDEPLOY_LOGE("result is nullptr");
-       return -1;
-     }
+    model::DetectResult *result =
+        (model::DetectResult *)output.getGraphOutputParam();
+    if (result == nullptr) {
+      NNDEPLOY_LOGE("result is nullptr");
+      return -1;
+    }
 
-     drawBox(input_mat, *result);
-     std::string full_ouput_path = ouput_path + "\\" + std::to_string(index)
-     +
+    drawBox(input_mat, *result);
+    std::string full_ouput_path = ouput_path + "\\" + std::to_string(index) +
                                   "_" + demo::getName() + ".jpg";
 
-     cv::imwrite(full_ouput_path, input_mat);
-     index++;
+    cv::imwrite(full_ouput_path, input_mat);
+    index++;
   }
-
-  NNDEPLOY_LOGE("bk.\n");
 
   // 有向无环图graph反初始化
   status = graph->deinit();

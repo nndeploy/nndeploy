@@ -17,6 +17,10 @@ PipelineEdge::PipelineEdge(ParallelType paralle_type,
     to_consume_index_.insert({iter, 0});
     consuming_dp_.insert({iter, nullptr});
   }
+  if (consumers_.empty()) {
+    to_consume_index_.insert({nullptr, 0});
+    consuming_dp_.insert({nullptr, nullptr});
+  }
 }
 
 PipelineEdge::~PipelineEdge() {
@@ -37,10 +41,10 @@ base::Status PipelineEdge::set(device::Buffer *buffer, int index,
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
-  base::Status status = dp->set(buffer, index, is_external);
   data_packets_.push_back(dp);
   cv_.notify_all();
-
+  // set
+  base::Status status = dp->set(buffer, index, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
 
@@ -91,6 +95,25 @@ bool PipelineEdge::notifyWritten(device::Buffer *buffer) {
 }
 device::Buffer *PipelineEdge::getBuffer(const Node *node) {
   PipelineDataPacket *dp = getDataPacket(node);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
+      dp, "PipelineDataPacket getDataPacket error.\n");
+
+  return dp->getBuffer();
+}
+device::Buffer *PipelineEdge::getGraphOutputBuffer() {
+  bool flag = false;
+  flag = checkNode(nullptr);
+  if (!flag) {
+    return nullptr;
+  }
+  flag = updateGraphOutputData();
+  if (!flag) {
+    if (terminate_flag_) {
+      NNDEPLOY_LOGI("User voluntarily terminates.\n");
+    }
+    return nullptr;
+  }
+  PipelineDataPacket *dp = getDataPacket(nullptr);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
       dp, "PipelineDataPacket getDataPacket error.\n");
 
@@ -157,6 +180,24 @@ device::Mat *PipelineEdge::getMat(const Node *node) {
   PipelineDataPacket *dp = getDataPacket(node);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
       dp, "PipelineDataPacket getDataPacket error.\n");
+  return dp->getMat();
+}
+device::Mat *PipelineEdge::getGraphOutputMat() {
+  bool flag = false;
+  flag = checkNode(nullptr);
+  if (!flag) {
+    return nullptr;
+  }
+  flag = updateGraphOutputData();
+  if (!flag) {
+    if (terminate_flag_) {
+      NNDEPLOY_LOGI("User voluntarily terminates.\n");
+    }
+    return nullptr;
+  }
+  PipelineDataPacket *dp = getDataPacket(nullptr);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
+      dp, "PipelineDataPacket getDataPacket error.\n");
 
   return dp->getMat();
 }
@@ -193,11 +234,26 @@ cv::Mat *PipelineEdge::getCvMat(const Node *node) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
       dp, "PipelineDataPacket getDataPacket error.\n");
 
-  cv::Mat *ret = dp->getCvMat();
+  return dp->getCvMat();
+}
+cv::Mat *PipelineEdge::getGraphOutputCvMat() {
+  bool flag = false;
+  flag = checkNode(nullptr);
+  if (!flag) {
+    return nullptr;
+  }
+  flag = updateGraphOutputData();
+  if (!flag) {
+    if (terminate_flag_) {
+      NNDEPLOY_LOGI("User voluntarily terminates.\n");
+    }
+    return nullptr;
+  }
+  PipelineDataPacket *dp = getDataPacket(nullptr);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
+      dp, "PipelineDataPacket getDataPacket error.\n");
 
-  NNDEPLOY_LOGE("cv::Mat = %p!\n", ret);
-
-  return ret;
+  return dp->getCvMat();
 }
 #endif
 
@@ -264,6 +320,25 @@ device::Tensor *PipelineEdge::getTensor(const Node *node) {
 
   return dp->getTensor();
 }
+device::Tensor *PipelineEdge::getGraphOutputTensor() {
+  bool flag = false;
+  flag = checkNode(nullptr);
+  if (!flag) {
+    return nullptr;
+  }
+  flag = updateGraphOutputData();
+  if (!flag) {
+    if (terminate_flag_) {
+      NNDEPLOY_LOGI("User voluntarily terminates.\n");
+    }
+    return nullptr;
+  }
+  PipelineDataPacket *dp = getDataPacket(nullptr);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
+      dp, "PipelineDataPacket getDataPacket error.\n");
+
+  return dp->getTensor();
+}
 
 base::Status PipelineEdge::set(base::Param *param, int index,
                                bool is_external) {
@@ -299,6 +374,25 @@ base::Param *PipelineEdge::getParam(const Node *node) {
 
   return dp->getParam();
 }
+base::Param *PipelineEdge::getGraphOutputParam() {
+  bool flag = false;
+  flag = checkNode(nullptr);
+  if (!flag) {
+    return nullptr;
+  }
+  flag = updateGraphOutputData();
+  if (!flag) {
+    if (terminate_flag_) {
+      NNDEPLOY_LOGI("User voluntarily terminates.\n");
+    }
+    return nullptr;
+  }
+  PipelineDataPacket *dp = getDataPacket(nullptr);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
+      dp, "PipelineDataPacket getDataPacket error.\n");
+
+  return dp->getParam();
+}
 
 base::Status PipelineEdge::set(void *anything, int index, bool is_external) {
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
@@ -320,40 +414,72 @@ void *PipelineEdge::getAnything(const Node *node) {
 
   return dp->getAnything();
 }
+void *PipelineEdge::getGraphOutputAnything() {
+  bool flag = false;
+  flag = checkNode(nullptr);
+  if (!flag) {
+    return nullptr;
+  }
+  flag = updateGraphOutputData();
+  if (!flag) {
+    if (terminate_flag_) {
+      NNDEPLOY_LOGI("User voluntarily terminates.\n");
+    }
+    return nullptr;
+  }
+  PipelineDataPacket *dp = getDataPacket(nullptr);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
+      dp, "PipelineDataPacket getDataPacket error.\n");
+
+  return dp->getAnything();
+}
 
 int PipelineEdge::getIndex(const Node *node) {
-  Node *tmp_node = const_cast<Node *>(node);
-  auto iter = consuming_dp_.find(tmp_node);
-  if (iter == consuming_dp_.end()) {
-    NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
+  PipelineDataPacket *dp = getDataPacket(node);
+  if (dp == nullptr) {
+    NNDEPLOY_LOGE("PipelineDataPacket getDataPacket error.\n");
     return -1;
   }
-  if (iter->second == nullptr) {
-    NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
-    NNDEPLOY_LOGE("dp is nullptr!\n");
+  int index = dp->getIndex();
+  return index;
+}
+int PipelineEdge::getGraphOutputIndex() {
+  bool flag = false;
+  flag = checkNode(nullptr);
+  if (!flag) {
     return -1;
   }
-  int index = iter->second->getIndex();
+  PipelineDataPacket *dp = getDataPacket(nullptr);
+  if (dp == nullptr) {
+    NNDEPLOY_LOGE("PipelineDataPacket getDataPacket error.\n");
+    return -1;
+  }
+  int index = dp->getIndex();
   return index;
 }
 
-PipelineDataPacket *PipelineEdge::getDataPacket(const Node *node) {
-  Node *tmp_node = const_cast<Node *>(node);
-  PipelineDataPacket *ret_value = nullptr;
+bool PipelineEdge::requestTerminate() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  terminate_flag_ = true;
+  cv_.notify_all();
+  return true;
+}
+
+bool PipelineEdge::checkNode(const Node *node) {
   if (consumers_.empty() && node == nullptr) {
-    ret_value = getGraphOutputEdgeDataPacket(node);
+    return true;
   } else if (std::find(consumers_.begin(), consumers_.end(), node) !=
              consumers_.end()) {
-    ret_value = getConsumerNodeEdgeDataPacket(node);
+    return true;
   } else {
     if (node != nullptr) {
+      Node *tmp_node = const_cast<Node *>(node);
       NNDEPLOY_LOGE("This node[%s] is error.\n", tmp_node->getName().c_str());
     } else {
       NNDEPLOY_LOGE("This node is error.\n");
     }
+    return false;
   }
-  consuming_dp_[tmp_node] = ret_value;
-  return ret_value;
 }
 
 /**
@@ -363,23 +489,16 @@ PipelineDataPacket *PipelineEdge::getDataPacket(const Node *node) {
  * @return PipelineDataPacket*
  * @note 用于获取消费者节点的数据包，对应节点的输入边
  */
-PipelineDataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(
-    const Node *node) {
-  /**
-   * @brief 多个线程在调用条件变量的wait方法时会阻塞住
-   * notify_one:
-   * 此时调用notify_one会随机唤醒一个阻塞的线程，而其余的线程将仍然处于阻塞状态，等待下一次唤醒
-   *
-   * notify_all:
-   * 调用notify_all则会唤醒所有线程，线程会争抢锁，当然只有一个线程会获得到锁，而其余未获得锁的线程也将不再阻塞，而是进入到类似轮询的状态，等待锁资源释放后再去争抢。
-   *
-   * 假如同时有10个线程阻塞在wait方法上，则需要调用10次notify_one，而仅仅只需要调用1次notify_all
-   */
+bool PipelineEdge::updateData(const Node *node) {
   Node *tmp_node = const_cast<Node *>(node);
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [this, tmp_node] {
-    return to_consume_index_[tmp_node] < data_packets_.size();
+    return to_consume_index_[tmp_node] < data_packets_.size() ||
+           terminate_flag_;
   });
+  if (terminate_flag_) {
+    return false;
+  }
 
   // find
   PipelineDataPacket *dp = nullptr;
@@ -396,32 +515,19 @@ PipelineDataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(
   dp->increaseConsumersCount();
 
   // update
-  to_consume_index_[tmp_node]++;  // 会导致下一次数据没有的时候线程一直在等待
-  // for (auto iter : to_consume_index_) {
-  //   iter.second -= count;
-  // }
-  // iter = data_packets_.begin();
-  // for (int i = 0; i < count; i++) {
-  //   delete (*iter);
-  //   iter++;
-  // }
-  // data_packets_.erase(data_packets_.begin(), iter);
-
-  if (tmp_node != nullptr) {
-    NNDEPLOY_LOGE("node name %s!Thread ID: %d.\n", tmp_node->getName().c_str(),
-                  std::this_thread::get_id());
-    NNDEPLOY_LOGE("data_packets_.size = %d.Thread ID: %d.\n",
-                  data_packets_.size(), std::this_thread::get_id());
-    auto iter = data_packets_.begin();
-    for (int i = 0; i < data_packets_.size(); i++) {
-      NNDEPLOY_LOGE("getConsumersCount = %d. size = %d. Thread ID: %d.\n",
-                    (*iter)->getConsumersCount(), consumers_size_,
-                    std::this_thread::get_id());
-      iter++;
-    }
+  for (auto &iter : to_consume_index_) {
+    iter.second -= count;
   }
+  to_consume_index_[tmp_node]++;  // 会导致下一次数据没有的时候线程一直在等待
+  iter = data_packets_.begin();
+  for (int i = 0; i < count; i++) {
+    delete (*iter);
+    iter++;
+  }
+  data_packets_.erase(data_packets_.begin(), iter);
 
-  return dp;
+  consuming_dp_[tmp_node] = dp;
+  return true;
 }
 /**
  * @brief Get the Graph Output Edge Data Packet object
@@ -431,21 +537,25 @@ PipelineDataPacket *PipelineEdge::getConsumerNodeEdgeDataPacket(
  * @note 用于获取图的输出节点的数据包
  * @perf 这里还可以再优化性能
  */
-PipelineDataPacket *PipelineEdge::getGraphOutputEdgeDataPacket(
-    const Node *node) {
-  Node *tmp_node = const_cast<Node *>(node);
+bool PipelineEdge::updateGraphOutputData() {
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [this] {
+    bool flag = false;
     if (data_packets_.empty()) {
-      return false;
+      flag = false;
     }
     for (auto iter : data_packets_) {
       if (iter->getConsumersCount() == consumers_size_) {
-        return true;
+        flag = true;
+        break;
       }
     }
-    return false;
+    return flag || terminate_flag_;
   });
+
+  if (terminate_flag_) {
+    return false;
+  }
 
   // find
   int count = 0;
@@ -460,29 +570,32 @@ PipelineDataPacket *PipelineEdge::getGraphOutputEdgeDataPacket(
     count++;
   }
 
-  if (tmp_node == nullptr) {
-    NNDEPLOY_LOGE("node name!Thread ID: %d.\n", std::this_thread::get_id());
-    NNDEPLOY_LOGE("data_packets_.size = %d.Thread ID: %d.\n",
-                  data_packets_.size(), std::this_thread::get_id());
-    auto iter = data_packets_.begin();
-    for (int i = 0; i < data_packets_.size(); i++) {
-      NNDEPLOY_LOGE("getConsumersCount = %d. size = %d. Thread ID: %d.\n",
-                    (*iter)->getConsumersCount(), consumers_size_,
-                    std::this_thread::get_id());
-      iter++;
-    }
-  }
-
   // update
-  // iter = data_packets_.begin();
-  // for (int i = 0; i < count; i++) {
-  //   delete (*iter);
-  //   iter++;
-  // }
-  // data_packets_.erase(data_packets_.begin(), iter);
+  iter = data_packets_.begin();
+  for (int i = 0; i < count; i++) {
+    delete (*iter);
+    iter++;
+  }
+  data_packets_.erase(data_packets_.begin(), iter);
 
   // 返回值
-  return dp;
+  consuming_dp_[nullptr] = dp;
+  return true;
+}
+
+PipelineDataPacket *PipelineEdge::getDataPacket(const Node *node) {
+  Node *tmp_node = const_cast<Node *>(node);
+  auto iter = consuming_dp_.find(tmp_node);
+  if (iter == consuming_dp_.end()) {
+    NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
+    return nullptr;
+  }
+  if (iter->second == nullptr) {
+    NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
+    NNDEPLOY_LOGE("dp is nullptr!\n");
+    return nullptr;
+  }
+  return iter->second;
 }
 
 }  // namespace dag

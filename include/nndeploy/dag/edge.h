@@ -22,7 +22,7 @@ namespace nndeploy {
 namespace dag {
 
 /**
- * @brief 需要保证Edge和Mat、Tensor名字一致, 还有一些检测的工作要做
+ * @brief 需要保证Edge和Mat、Tensor名字一致
  *
  */
 class NNDEPLOY_CC_API Edge : public base::NonCopyable {
@@ -43,6 +43,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
                          int index);
   bool notifyWritten(device::Buffer *buffer);
   device::Buffer *getBuffer(const Node *node);
+  device::Buffer *getGraphOutputBuffer();
 
   base::Status set(device::Mat *mat, int index, bool is_external = true);
   base::Status set(device::Mat &mat, int index);
@@ -50,11 +51,13 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
                       int index);
   bool notifyWritten(device::Mat *mat);
   device::Mat *getMat(const Node *node);
+  device::Mat *getGraphOutputMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   base::Status set(cv::Mat *cv_mat, int index, bool is_external = true);
   base::Status set(cv::Mat &cv_mat, int index);
   cv::Mat *getCvMat(const Node *node);
+  cv::Mat *getGraphOutputCvMat();
 #endif
 
   base::Status set(device::Tensor *tensor, int index, bool is_external = true);
@@ -63,16 +66,34 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
                          int index);
   bool notifyWritten(device::Tensor *tensor);
   device::Tensor *getTensor(const Node *node);
+  device::Tensor *getGraphOutputTensor();
 
   base::Status set(base::Param *param, int index, bool is_external = true);
   base::Status set(base::Param &param, int index);
   base::Param *getParam(const Node *node);
+  base::Param *getGraphOutputParam();
 
   base::Status set(void *anything, int index, bool is_external = true);
   void *getAnything(const Node *node);
+  void *getGraphOutputAnything();
 
   int getIndex(const Node *node);
+  int getGraphOutputIndex();
+
+  /**
+   * @brief
+   *
+   * @param node
+   * @return true
+   * @return false
+   * @note
+   * 服务于流水线并行模式，更新流水线中数据
+   */
+  bool updateData(const Node *node);
+
   ParallelType getParallelType();
+
+  bool requestTerminate();
 
  private:
   std::string name_;

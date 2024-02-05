@@ -30,18 +30,20 @@ class ParallelPipelineExecutor : public Executor {
     status = thread_pool_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "thread_pool_ init failed");
-
+    // 不要做无效边检测，需要的话交给graph做
+    edge_repository_ = edge_repository;
     return status;
   }
 
   virtual base::Status deinit() {
     base::Status status = base::kStatusCodeOk;
-    pipeline_flag_ = false;
-    NNDEPLOY_LOGE("bk.\n");
+    for (auto iter : edge_repository_) {
+      bool flag = iter->edge_->requestTerminate();
+      NNDEPLOY_RETURN_ON_NEQ(flag, true,
+                             "failed iter->edge_->requestTerminate()");
+    }
     thread_pool_->destroy();
-    NNDEPLOY_LOGE("bk.\n");
     delete thread_pool_;
-    NNDEPLOY_LOGE("bk.\n");
 
     for (auto iter : topo_sort_node_) {
       status = iter->node_->deinit();
@@ -55,11 +57,7 @@ class ParallelPipelineExecutor : public Executor {
    * @brief
    *
    * @return base::Status
-   * @note
-   * # 1. 什么时候启动这些线程呢？
-   * # 2. 什么时候结束这些线程呢？
-   * # 3.
-   * 在一批数据中只能启动一次，然后一直运行，直到数据处理完毕，然后回收线程，等待下一批线程开始
+   * @note 线程处于挂起状态基本不会占用资源
    */
   virtual base::Status run() {
     static std::once_flag once;
@@ -69,16 +67,28 @@ class ParallelPipelineExecutor : public Executor {
 
   void process() {
     for (auto iter : topo_sort_node_) {
-      auto func = [iter](ParallelPipelineExecutor* ppe) -> base::Status {
+      auto func = [iter]() -> base::Status {
         base::Status status = base::kStatusCodeOk;
-        while (ppe->pipeline_flag_) {
+        while (true) {
+          bool terminate_flag = false;
+          auto inputs = iter->node_->getAllInput();
+          for (auto input : inputs) {
+            auto dp = input->updateData(iter->node_);
+            if (!dp) {
+              terminate_flag = true;
+              break;
+            }
+          }
+          if (terminate_flag) {
+            break;
+          }
           status = iter->node_->run();
           NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                                  "node execute failed!\n");
         }
         return status;
       };
-      thread_pool_->commit(std::bind(func, this));
+      thread_pool_->commit(std::bind(func));
     }
   }
 
@@ -86,7 +96,7 @@ class ParallelPipelineExecutor : public Executor {
   thread_pool::ThreadPool* thread_pool_ = nullptr;
   std::vector<NodeWrapper*> topo_sort_node_;
   int all_task_count_ = 0;
-  bool pipeline_flag_ = true;
+  std::vector<EdgeWrapper*> edge_repository_;
 };
 
 }  // namespace dag
