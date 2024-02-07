@@ -2,45 +2,38 @@
 [简体中文](README.md) | English
 
 ## Introduction
-nndeploy is a cross-platform, high-performing, and straightforward AI model deployment framework. We strive to deliver a consistent and user-friendly experience across various inference framework backends in complex deployment environments and focus on performance.
+nndeploy is a cross-platform, high-performing, and straightforward AI model deployment framework. We strive to deliver a consistent and user-friendly experience across various inference framework in complex deployment environments and focus on performance.
 
 ## Architecture
 ![Architecture](docs/image/architecture.jpg)
 
 ## Fetures
 
-### 1. cross-platform and consistent
+### 1. Supports multiple platforms and multiple inference frameworks
 
 As long as the environment is supported, the code for deploying models through nndeploy can be used across multiple platforms without modification, regardless of the operating system and inference framework.
 
-The current supported environment is as follows, which will continue to be updated in the future:
+The current supported inference framework is as follows:
 
-| Inference/OS                                               | Linux | Windows | Android | MacOS |  IOS  | developer                                 | remarks |
-| :--------------------------------------------------------- | :---: | :-----: | :-----: | :---: | :---: | :---------------------------------------- | :-----: |
-| [TensorRT](https://github.com/NVIDIA/TensorRT)             |   √   |    -    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
-| [OpenVINO](https://github.com/openvinotoolkit/openvino)    |   √   |    √    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
-| [ONNXRuntime](https://github.com/microsoft/onnxruntime)    |   √   |    √    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
-| [MNN](https://github.com/alibaba/MNN)                      |   √   |    √    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
-| [TNN](https://github.com/Tencent/TNN)                      |   √   |    √    |    √    |   -   |   -   | [02200059Z](https://github.com/02200059Z) |         |
-| [ncnn](https://github.com/Tencent/ncnn)                    |   -   |    -    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss) |         |
-| [coreML](https://github.com/apple/coremltools)             |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)   |         |
-| [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite) |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang) |         |
-| [AscendCL](https://www.hiascend.com/zh/)                   |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)         |         |
+| Inference/OS                                                                     | Linux | Windows | Android | MacOS |  IOS  | developer                                                                          | remarks |
+| :------------------------------------------------------------------------------- | :---: | :-----: | :-----: | :---: | :---: | :--------------------------------------------------------------------------------- | :-----: |
+| [TensorRT](https://github.com/NVIDIA/TensorRT)                                   |   √   |    -    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
+| [OpenVINO](https://github.com/openvinotoolkit/openvino)                          |   √   |    √    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
+| [ONNXRuntime](https://github.com/microsoft/onnxruntime)                          |   √   |    √    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
+| [MNN](https://github.com/alibaba/MNN)                                            |   √   |    √    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
+| [TNN](https://github.com/Tencent/TNN)                                            |   √   |    √    |    √    |   -   |   -   | [02200059Z](https://github.com/02200059Z)                                          |         |
+| [ncnn](https://github.com/Tencent/ncnn)                                          |   -   |    -    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
+| [coreML](https://github.com/apple/coremltools)                                   |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)、[jaywlinux](https://github.com/jaywlinux) |         |
+| [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite)                       |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang)                                          |         |
+| [AscendCL](https://www.hiascend.com/zh/)                                         |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)                                                  |         |
+| [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) |   √   |    -    |    -    |   -   |   -   | [100312dog](https://github.com/100312dog)                                          |         |
 
-**Notice:** TFLite, TVM, OpenPPL, Tengine, AITemplate, RKNN, sophgo, MindSpore-lite, Horizon are also on the agenda as we work to cover mainstream inference frameworks
 
-### 2. High Performance
+**Notice:** TFLite, TVM, OpenPPL, sophgo, Horizon are also on the agenda as we work to cover mainstream inference frameworks
 
-The difference of model structure, inference framework and hardware resource will lead to different inference performance. nndeploy deeply understands and preserves as much as possible the features of the back-end inference framework without compromising the computational efficiency of the native inference framework with a consistent code experience. In addition, we realize the efficient connection between the pre/post-processing and the model inference process through the exquisitely designed memory zero copy, which effectively guarantees the end-to-end delay of model inference.
+### 2. Out-of-the-box AI models
 
-What's more, we are developing and refining the following:
-* **Thread Pool**
-* **Memory Pool**: more efficient memory allocation and release
-* **HPC Operators**: optimize pre/post-processing efficiency
-
-### 3. Models built-in
-
-Out-of-the-box AI models are our goal, but our are focusing on development of the system at this time. Nevertheless, [YOLOv5](https://github.com/ultralytics/yolov5), [YOLOv6](https://github.com/meituan/YOLOv6), [YOLOv8](https://github.com/ultralytics) are already supported, and it is believed that the list will soon be expanded.
+[YOLOv5](https://github.com/ultralytics/yolov5), [YOLOv6](https://github.com/meituan/YOLOv6), [YOLOv8](https://github.com/ultralytics) are already supported, and it is believed that the list will soon be expanded. Out-of-the-box AI models are our goal.
 
 | model                                           | Inference                         | developer                                                                            | remarks |
 | :---------------------------------------------- | :-------------------------------- | :----------------------------------------------------------------------------------- | :-----: |
@@ -49,24 +42,46 @@ Out-of-the-box AI models are our goal, but our are focusing on development of th
 | [YOLOV8](https://github.com/ultralytics)        | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
 
 
-### 4. user-friendly
+### 3. Simple and easy to use
 
-nndeploy's primary purpose is user friendliness and high performance. We have built-in support for the major inference frameworks and provide them with a unified interface abstraction on which you can implement platform/framework independent inference code without worrying about performance loss. We now provide additional templates for the pre/post-processing for AI algorithms, which can help you simplify the end-to-end deployment process of the model, and the built-in algorithms mentioned above are also part of the ease of use.
+- **One set of code for multi-platform deployment**: By switching inference configurations, one set of code can be deployed across multiple platforms, with a user-friendly and easy-to-use interface for the algorithms.
 
-If you have any related questions, feel free to contact us. 😁
+- **Simple Algorithm Deployment**: The deployment of AI algorithms from end to end (pre-processing -> inference -> post-processing) is abstracted into a Directed Acyclic Graph (DAG) Graph, with pre-processing as a Node, inference as another Node, and post-processing as yet another Node. High-performance templates for pre-processing and inference are provided. These templates can help you further simplify the end-to-end deployment process. The Directed Acyclic Graph can also solve the pain points of deploying multiple models efficiently and with high performance.
+
+### 4. High Performance
+
+- **High Performance Abstraction of the Inference Framework**: Each inference framework also has its own unique features. nndeploy deeply understands and preserves as much as possible the features of the inference framework without compromising the computational efficiency of the native inference framework with a consistent code experience. In addition, we realize the efficient connection between the pre/post-processing and the model inference process through the exquisitely designed memory zero copy, which effectively guarantees the end-to-end delay of model inference.
+
+- **Thread Pool**: Enhances the concurrency performance and resource utilization of model deployment. Additionally, it supports automatic parallelism for CPU operators, which can improve the performance of CPU operator execution.
+
+- **Memory Pool**: More efficient memory allocation and release(TODO)
+
+- **HPC Operators**: Optimize pre/post-processing efficiency(TODO)
 
 ### 5. Parallel
-- **task parallel**
-- **pipeline parallel**
+
+- **Pipeline Parallel**: In scenarios dealing with multiple frames, the model deployment method based on Directed Acyclic Graph (DAG) allows binding the pre-processing Node, inference Node, and post-processing Node to three different threads. Each thread can be bound to different hardware devices, enabling these three Nodes to process in a pipeline parallel manner. In complex scenarios involving multiple models and multiple hardware devices, the advantages of pipeline parallelism can be fully leveraged, significantly increasing the overall throughput.
+
+- **Task Parallel**: In complex scenarios involving multiple models and multiple hardware devices, the model deployment method based on Directed Acyclic Graph (DAG) can fully explore the parallelism in model deployment, shortening the duration of a single algorithm's full process execution.
+
 
 ## Document
 - For more information, please visit the [nndeploy documentation](https://nndeploy-zh.readthedocs.io/zh/latest/introduction/index.html).
 
+
 ## Roadmap
-- Parallel
-- More Model
-- More Inference
-- OP
+- Deploy more algorithms
+  - BEV
+  - InstanceID
+  - OCR
+  - ......
+- Large language model inference module on a single machine
+- Documentation
+- Video
+- Code review
+- User-friendly - compilation issues, third-party library resources, model resources, data resources
+- Enhance already integrated inference frameworks like coreml, paddle-lite, and integrate new inference framework TFLite
+
 
 # Reference
 - [TNN](https://github.com/Tencent/TNN)
@@ -82,8 +97,7 @@ If you have any related questions, feel free to contact us. 😁
 
 
 ## Contact Us
-> nndeploy is still in its infancy, welcome to join us.
-
-* Wechat：titian5566
+- nndeploy is still in its infancy, welcome to join us.
+- Wechat：titian5566
   
   <img align="left" src="docs/image/wechat.jpg" width="225px">

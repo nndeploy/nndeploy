@@ -3,42 +3,60 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to nndeploy's documentation!
+欢迎来到 nndeploy 的中文文档！
 =========================================
 
 .. toctree::
    :maxdepth: 1
    :caption: 介绍
 
-   introduction/index
+   introduction/introduction.md
+
+.. toctree::
+   :maxdepth: 1
+   :caption: 编译
+
+   build/build.md
 
 .. toctree::
    :maxdepth: 1
    :caption: 快速开始
 
-   quick_start/quick_start
+   quick_start/quick_start.md
 
 .. toctree::
    :maxdepth: 1
    :caption: model
 
-   model/deploy_a_new_model
-   model/export_model
+   model/new_model.md
+   model/export_model.md
 
 .. toctree::
    :maxdepth: 1
    :caption: inference
 
-   inference/new_inference
+   inference/new_inference.md
 
 .. toctree::
    :maxdepth: 1
    :caption: op
 
-   op/todo
+   op/new_op.md
+
+.. toctree::
+   :maxdepth: 1
+   :caption: device
+
+   op/new_device.md
 
 .. toctree::
    :maxdepth: 1
    :caption: 常见问题
    
-   faq/faq
+   faq/faq.md
+
+.. toctree::
+   :maxdepth: 1
+   :caption: 知识分享
+
+   knowledge_shared/export_model.md
