@@ -71,9 +71,9 @@ The current supported inference framework is as follows:
 
 ## Roadmap
 - Deploy more algorithms
-  - BEV
-  - InstanceID
-  - OCR
+  - [BEV](https://github.com/fundamentalvision/BEVFormer)
+  - [InstantID](https://github.com/InstantID/InstantID)
+  - [OCR](https://github.com/PaddlePaddle/PaddleOCR)
   - ......
 - Large language model inference module on a single machine
 - Documentation

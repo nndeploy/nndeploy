@@ -73,9 +73,9 @@
 
 ## 下一步规划
 - 部署更多的算法
-  - [BEV]()
-  - [InstanceID]()
-  - [OCR]()
+  - [BEV](https://github.com/fundamentalvision/BEVFormer)
+  - [InstantID](https://github.com/InstantID/InstantID)
+  - [OCR](https://github.com/PaddlePaddle/PaddleOCR)
   - ......
 - 单机下的大语言模型推理模块
 - 文档
