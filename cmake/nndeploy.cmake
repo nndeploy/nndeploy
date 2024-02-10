@@ -4,7 +4,6 @@ set(NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX lib)
 if(SYSTEM.Android)
   list(APPEND NNDEPLOY_SYSTEM_LIBRARY log)
   set(NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX ${ANDROID_ABI})
-  message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX: ${NNDEPLOY_THIRD_PARTY_LIBRARY_PATH_SUFFIX}")
 elseif(SYSTEM.Linux)
 elseif(SYSTEM.Darwin)
 elseif(SYSTEM.iOS)
@@ -14,7 +13,6 @@ endif()
 # ################### common ####################
 # # OpenCV
 include("${ROOT_PATH}/cmake/opencv.cmake")
-
 # ################### common ####################
 
 # ################### base ####################
@@ -29,7 +27,6 @@ include("${ROOT_PATH}/cmake/opencv.cmake")
 # ################### device ####################
 # # CUDA & CUDNN
 include("${ROOT_PATH}/cmake/cuda.cmake")
-
 # ################### device ####################
 
 # ################### op ####################
@@ -68,12 +65,10 @@ include("${ROOT_PATH}/cmake/rknn.cmake")
 
 # # ascend_cl
 include("${ROOT_PATH}/cmake/ascend_cl.cmake")
-
 # ################### inference ####################
 
-# ################### graph ####################
-# ################### graph ####################
+# ################### dag ####################
+# ################### dag ####################
 
 # ################### model ####################
 # ################### model ####################
-message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY: ${NNDEPLOY_THIRD_PARTY_LIBRARY}")

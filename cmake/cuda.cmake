@@ -2,12 +2,12 @@
 # Enhanced version of find CUDA.
 #
 # Usage:
-#   find_cuda(${USE_CUDA} ${USE_CUDNN})
+#   find_cuda(${ENABLE_NNDEPLOY_DEVICE_CUDA} ${ENABLE_NNDEPLOY_DEVICE_CUDNN})
 #
-# - When USE_CUDA=ON, use auto search
-# - When USE_CUDA=/path/to/cuda-path, use the cuda path
-# - When USE_CUDNN=ON, use auto search
-# - When USE_CUDNN=/path/to/cudnn-path, use the cudnn path
+# - When ENABLE_NNDEPLOY_DEVICE_CUDA=ON, use auto search
+# - When ENABLE_NNDEPLOY_DEVICE_CUDA=/path/to/cuda-path, use the cuda path
+# - When ENABLE_NNDEPLOY_DEVICE_CUDNN=ON, use auto search
+# - When ENABLE_NNDEPLOY_DEVICE_CUDNN=/path/to/cudnn-path, use the cudnn path
 #
 # Provide variables:
 #
