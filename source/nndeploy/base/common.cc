@@ -47,7 +47,7 @@ DataType dataTypeOf<int16_t>() {
 }
 
 template <>
-DataType dataTypeOf<int>() {
+DataType dataTypeOf<int32_t>() {
   return DataType(kDataTypeCodeInt, 32);
 }
 
@@ -65,14 +65,18 @@ DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {
     return kDeviceTypeCodeX86;
   } else if (src == "kDeviceTypeCodeCuda") {
     return kDeviceTypeCodeCuda;
-  } else if (src == "kDeviceTypeCodeMdc") {
-    return kDeviceTypeCodeMdc;
+  } else if (src == "kDeviceTypeCodeAscendCL") {
+    return kDeviceTypeCodeAscendCL;
   } else if (src == "kDeviceTypeCodeOpenCL") {
     return kDeviceTypeCodeOpenCL;
   } else if (src == "kDeviceTypeCodeOpenGL") {
     return kDeviceTypeCodeOpenGL;
   } else if (src == "kDeviceTypeCodeMetal") {
     return kDeviceTypeCodeMetal;
+  } else if (src == "kDeviceTypeCodeVulkan") {
+    return kDeviceTypeCodeVulkan;
+  } else if (src == "kDeviceTypeCodeAppleNpu") {
+    return kDeviceTypeCodeAppleNpu;
   } else {
     return kDeviceTypeCodeNotSupport;
   }
@@ -108,6 +112,8 @@ ModelType stringToModelType(const std::string &src) {
     return kModelTypeTfLite;
   } else if (src == "kModelTypeOnnx") {
     return kModelTypeOnnx;
+  } else if (src == "KModelTypeAscendCL") {
+    return kModelTypeAscendCL;
   } else if (src == "kModelTypeNcnn") {
     return kModelTypeNcnn;
   } else if (src == "kModelTypeTnn") {
@@ -116,12 +122,12 @@ ModelType stringToModelType(const std::string &src) {
     return kModelTypeMnn;
   } else if (src == "kModelTypePaddleLite") {
     return kModelTypePaddleLite;
+  } else if (src == "kModelTypeRknn") {
+    return kModelTypeRknn;
   } else if (src == "kModelTypeTvm") {
     return kModelTypeTvm;
   } else if (src == "kModelTypeAITemplate") {
     return kModelTypeAITemplate;
-  } else if (src == "KModelTypeAscendCL") {
-    return kModelTypeAscendCL;
   } else {
     return kModelTypeNotSupport;
   }
@@ -154,7 +160,7 @@ InferenceType stringToInferenceType(const std::string &src) {
     return kInferenceTypeAITemplate;
   } else if (src == "kInferenceTypeAscendCL") {
     return kInferenceTypeAscendCL;
-  } else if (src == "kInferenceTypeRknn"){
+  } else if (src == "kInferenceTypeRknn") {
     return kInferenceTypeRknn;
   } else {
     return kInferenceTypeNotSupport;

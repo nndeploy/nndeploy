@@ -10,6 +10,11 @@ pip install sphinx-markdown-tables
 ## Build html
 ```
 cd docs
+# 中文文档
+cd zh_cn
+make html
+# 英文文档
+cd en
 make html
 ```
 

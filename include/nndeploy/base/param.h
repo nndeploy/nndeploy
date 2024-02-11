@@ -36,10 +36,10 @@ namespace base {
 class NNDEPLOY_CC_API Param {
  public:
   Param();
-  ~Param();
+  virtual ~Param();
 
-  Param(const Param &param) = default;
-  Param &operator=(const Param &param) = default;
+  Param(const Param &param);
+  Param &operator=(const Param &param);
 
   PARAM_COPY(Param)
   PARAM_COPY_TO(Param)

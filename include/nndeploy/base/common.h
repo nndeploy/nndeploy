@@ -54,7 +54,7 @@ NNDEPLOY_CC_API DataType dataTypeOf<int8_t>();
 template <>
 NNDEPLOY_CC_API DataType dataTypeOf<int16_t>();
 template <>
-NNDEPLOY_CC_API DataType dataTypeOf<int>();
+NNDEPLOY_CC_API DataType dataTypeOf<int32_t>();
 template <>
 NNDEPLOY_CC_API DataType dataTypeOf<int64_t>();
 
@@ -68,8 +68,7 @@ enum DeviceTypeCode : int {
   kDeviceTypeCodeOpenGL,
   kDeviceTypeCodeMetal,
   kDeviceTypeCodeVulkan,
-  kDeviceTypeCodeNpu,
-  kDeviceTypeCodeMdc,
+  kDeviceTypeCodeAppleNpu,
   // not sopport
   kDeviceTypeCodeNotSupport,
 };
