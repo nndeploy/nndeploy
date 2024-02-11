@@ -1,4 +1,4 @@
-# 社区问题
+# faq
 
 ## 问题一 来自 nndeploy交流群
 ### Q: 我想了解一下：onnx runtime也可以选择不同的execution provider: https://onnxruntime.ai/docs/execution-providers/ nndeploy与其思路的差别主要在哪里呢？ 

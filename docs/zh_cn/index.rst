@@ -10,7 +10,7 @@
    :maxdepth: 1
    :caption: 介绍
 
-   ../../README.md
+   introduction/README.md
 
 .. toctree::
    :maxdepth: 1
@@ -43,4 +43,4 @@
    :maxdepth: 1
    :caption: 知识分享
 
-   knowledge_shared/export_model.md
+   knowledge_shared/export_onnx.md
