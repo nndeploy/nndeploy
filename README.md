@@ -68,7 +68,7 @@
     
 
 ## 文档
-- 更多信息，访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/introduction/index.html)。
+- 更多信息，访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/)。
 
 
 ## 下一步规划
