@@ -1,5 +1,5 @@
 
-[English](README_EN.md) | 简体中文
+# introduction
 
 ## 介绍
 
@@ -67,10 +67,6 @@
 - **任务并行**：在多模型以及多硬件设备的的复杂场景下，基于有向无环图的模型部署方式，可充分挖掘模型部署中的并行性，缩短单次算法全流程运行耗时
     
 
-## 文档
-- 更多信息，访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/introduction/index.html)。
-
-
 ## 下一步规划
 - 部署更多的算法
   - [BEV](https://github.com/fundamentalvision/BEVFormer)
@@ -102,4 +98,4 @@
 - `nndeploy`还处于初级阶段，欢迎参与，我们一起打造最简单易用、高性能的模型端到端部署框架
 - 微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy+姓名)
 
-  <img align="left" src="docs/image/wechat.jpg" width="225px">
+  <img align="left" src="../../image/wechat.jpg" width="225px">

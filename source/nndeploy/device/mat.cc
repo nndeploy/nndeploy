@@ -154,8 +154,9 @@ void Mat::allocBuffer(Device *device, const base::IntVector &config) {
 void Mat::deallocateBuffer() {
   if (buffer_ != nullptr && is_external_buffer_ == false) {
     if (buffer_->subRef() == 1) {
-      Device *device = buffer_->getDevice();
-      device->deallocate(buffer_);
+      // Device *device = buffer_->getDevice();
+      // device->deallocate(buffer_);
+      destoryBuffer(buffer_);
     }
   }
   buffer_ = nullptr;

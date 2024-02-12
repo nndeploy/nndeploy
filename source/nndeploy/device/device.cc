@@ -17,8 +17,8 @@ base::DeviceTypeCode Architecture::getDeviceTypeCode() {
   return device_type_code_;
 }
 
-std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>
-    &getArchitectureMap() {
+std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>> &
+getArchitectureMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>>
@@ -98,7 +98,13 @@ void *Device::getCommandQueue() {
 base::DeviceType Device::getDeviceType() { return device_type_; }
 
 Architecture *getArchitecture(base::DeviceTypeCode type) {
-  return getArchitectureMap()[type].get();
+  auto arch_map = getArchitectureMap();
+  auto arch = arch_map.find(type);
+  if (arch == arch_map.end()) {
+    return nullptr;
+  } else {
+    return arch->second.get();
+  }
 }
 
 base::DeviceType getDefaultHostDeviceType() {

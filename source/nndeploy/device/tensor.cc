@@ -164,8 +164,9 @@ void Tensor::allocBuffer(Device *device, const base::IntVector &config) {
 void Tensor::deallocateBuffer() {
   if (buffer_ != nullptr && is_external_buffer_ == false) {
     if (buffer_->subRef() == 1) {
-      Device *device = buffer_->getDevice();
-      device->deallocate(buffer_);
+      // Device *device = buffer_->getDevice();
+      // device->deallocate(buffer_);
+      destoryBuffer(buffer_);
     }
   }
   buffer_ = nullptr;
@@ -443,8 +444,8 @@ BufferSourceType Tensor::getBufferSourceType() {
   }
 }
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>>
-    &getGlobalTensorCreatorMap() {
+std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
+getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorType, std::shared_ptr<TensorCreator>>>
