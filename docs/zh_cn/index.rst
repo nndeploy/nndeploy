@@ -21,7 +21,7 @@
 
 .. toctree::
    :maxdepth: 1
-   :caption: developer_guide
+   :caption: 开发者指南
 
    developer_guide/how_to_support_new_model.md
    developer_guide/how_to_support_new_inference.md
