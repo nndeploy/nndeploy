@@ -32,7 +32,7 @@
 
 + （1）在`<path>\include\nndeploy\device`下新增`xxx\xxx_device.h`文件
 
-+ （2）在`<path>\source\nndeploy\device`下新增`xxx\xxx_device.h`文件
++ （2）在`<path>\source\nndeploy\device`下新增`xxx\xxx_device.cc`文件
 
 + （3）[可选]在`<path>\source\nndeploy\device`下新增`xxx\xxx_include.h`文件，用于包含设备必要的头文件
 
@@ -248,17 +248,17 @@
   + 新增设备编译选项`nndeploy_option(ENABLE_NNDEPLOY_DEVICE_XXX "ENABLE_NNDEPLOY_DEVICE_XXX" OFF)`
   + 由于新设备的增加，增加了源文件和头文件，需将源文件和头文件加入到编译文件中，需在`if(ENABLE_NNDEPLOY_DEVICE) endif()`的代码块中增加如下cmake源码
     ```shell
-    if (ENABLE_NNDEPLOY_DEVICE_CPU)
-      file(GLOB_RECURSE DEVICE_CPU_SOURCE
-        "${ROOT_PATH}/include/nndeploy/device/cpu/*.h"
-        "${ROOT_PATH}/source/nndeploy/device/cpu/*.cc"
+    if (ENABLE_NNDEPLOY_DEVICE_XXX)
+      file(GLOB_RECURSE DEVICE_XXX_SOURCE
+        "${ROOT_PATH}/include/nndeploy/device/xxx/*.h"
+        "${ROOT_PATH}/source/nndeploy/device/xxx/*.cc"
       )
-      set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_CPU_SOURCE})
+      set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_XXX_SOURCE})
     endif()
     ```
 
 + （2）[可选]如果需要链接设备相关的三方库
-  + 需要在`<path>\cmake`目录下新增`xxx.cmake`，类似`<path>\cmake\ascend_cl.cmake`和`<path>\cmake\cuda.cmake`
+  + 需要在`<path>\cmake`目录下新增`xxx.cmake`，类似`<path>\cmake\ascend_cl.cmake`或`<path>\cmake\cuda.cmake`
   + 修改`<path>\cmake\nndeploy.cmake`，新增`include("${ROOT_PATH}/cmake/xxx.cmake")`
 
 + （3）修改`<path>\build\config.cmake`,新增设备编译选项`set(ENABLE_NNDEPLOY_DEVICE_XXX ON)`
