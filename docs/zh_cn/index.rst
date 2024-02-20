@@ -29,6 +29,18 @@
 
 .. toctree::
    :maxdepth: 1
+   :caption: 架构指南
+
+   architecture_guide/process_template.md
+   architecture_guide/directed_acyclic_graph.md
+   architecture_guide/resourse_pool.md
+   architecture_guide/parallel.md
+   architecture_guide/data_container.md
+   architecture_guide/op.md
+   architecture_guide/inference.md
+
+.. toctree::
+   :maxdepth: 1
    :caption: 常见问题
    
    faq/faq.md
