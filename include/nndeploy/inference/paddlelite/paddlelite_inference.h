@@ -29,7 +29,14 @@ class PaddleLiteInference : public Inference {
 
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
+  virtual device::TensorDesc getInputTensorAlignDesc(const std::string &name);
+  virtual device::TensorDesc getOutputTensorAlignDesc(const std::string &name);
+
   virtual base::Status run();
+
+  virtual device::Tensor *getOutputTensorAfterRun(
+      const std::string &name, base::DeviceType device_type, bool is_copy,
+      base::DataFormat data_format = base::kDataFormatAuto);
 
  private:
   base::Status allocateInputOutputTensor();

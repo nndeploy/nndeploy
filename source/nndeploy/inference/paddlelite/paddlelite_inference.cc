@@ -55,13 +55,61 @@ base::Status PaddleLiteInference::run() {
   base::Status status = base::kStatusCodeOk;
   // inputs
   for (auto iter : external_input_tensors_) {
+    std::string name = iter.first;
+    device::Tensor *tensor = iter.second;
+
+    auto iter = io_name_index_.find(name);
+    if (iter == io_name_index_.end()) {
+      NNDEPLOY_LOGE("Cannot find input with name: %s in loaded model.\n",
+                    name.c_str());
+      return base::kStatusCodeErrorInferencePaddleLite;
+    }
+
+    // paddle::lite_api::shape_t shape =
+    //     PaddleLiteConvert::convertToShape(tensor->getShape());
+
+    auto pd_tensor = predictor_->GetInput(iter->second);
+    // pd_tensor->Resize(inputs[i].shape);
+
+    status = PaddleLiteConvert::copyFromTensor(tensor, pd_tensor);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "PaddleLiteConvert::copyFromTensor failed!!\n");
   }
   // forward
   predictor_->Run();
-  // outputs
-  for (auto iter : external_output_tensors_) {
-  }
   return status;
+}
+
+device::Tensor *PaddleLiteInference::getOutputTensorAfterRun(
+    const std::string &name, base::DeviceType device_type, bool is_copy,
+    base::DataFormat data_format) {
+  auto iter = io_name_index_.find(name);
+  if (iter == io_name_index_.end()) {
+    NNDEPLOY_LOGE("Cannot find output with name: %s in loaded model.\n",
+                  name.c_str());
+    return nullptr;
+  }
+  std::unique_ptr<paddle::lite_api::Tensor> pd_tensor =
+      predictor_->GetOutput(iter->second);
+  if (pd_tensor == nullptr) {
+    NNDEPLOY_LOGE("predictor_->GetOutput failed.\n");
+    return nullptr;
+  }
+  bool can_op_flag = true;
+  can_op_flag = can_op_flag && is_share_command_queue_;
+  device::Device *device = device::getDefaultHostDevice();
+  if (is_copy || !can_op_flag) {
+    device::TensorDesc desc = this->getInputTensorAlignDesc(name);
+    device::Tensor *output_tensor = new device::Tensor(device, desc, name);
+    MNN::Tensor *external_tensor = MnnConvert::convertFromTensor(output_tensor);
+    internal_tensor->copyToHostTensor(external_tensor);
+    delete external_tensor;
+    return output_tensor;
+  } else {
+    device::Tensor *output_tensor =
+        MnnConvert::convertToTensor(internal_tensor, name, device);
+    return output_tensor;
+  }
 }
 
 base::Status PaddleLiteInference::allocateInputOutputTensor() {
@@ -75,8 +123,8 @@ base::Status PaddleLiteInference::allocateInputOutputTensor() {
     io_name_index_[input_names[i]] = i;
     std::unique_ptr<paddle::lite_api::Tensor> pd_tensor =
         predictor_->GetInput(i);
-    // device::Tensor *tensor =
-    //     PaddleLiteConvert::convertToTensor(pd_tensor, name, device);
+    device::Tensor *tensor =
+        PaddleLiteConvert::convertToTensor(pd_tensor, name, device);
     input_tensors_.insert({name, tensor});
   }
   std::vector<std::string> output_names = predictor_->GetOutputNames();
@@ -85,8 +133,8 @@ base::Status PaddleLiteInference::allocateInputOutputTensor() {
     TensorInfo info;
     std::unique_ptr<paddle::lite_api::Tensor> pd_tensor =
         predictor_->GetOutput(i);
-    // device::Tensor *tensor =
-    //     PaddleLiteConvert::convertToTensor(pd_tensor, name, device);
+    device::Tensor *tensor =
+        PaddleLiteConvert::convertToTensor(pd_tensor, name, device);
     output_tensors_.insert({name, tensor});
   }
 
