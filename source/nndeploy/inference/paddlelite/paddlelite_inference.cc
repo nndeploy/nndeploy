@@ -48,9 +48,14 @@ base::Status PaddleLiteInference::deinit() {
 
 base::Status PaddleLiteInference::reshape(base::ShapeMap &shape_map) {
   base::Status status = base::kStatusCodeOk;
+  bool flag = false;
   for (auto iter : shape_map) {
     std::string name = iter.first;
     IntVector shape = iter.second;
+    if (base::shapeEqual(shape, input_tensors_[name]->getShape())) {
+      continue;
+    }
+    flag = true;
     auto io_iter = io_name_index_.find(name);
     if (io_iter == io_name_index_.end()) {
       NNDEPLOY_LOGE("Cannot find input with name: %s in loaded model.\n",
@@ -61,6 +66,14 @@ base::Status PaddleLiteInference::reshape(base::ShapeMap &shape_map) {
     paddle::lite_api::shape_t pd_shape =
         PaddleLiteConvert::convertToShape(shape);
     pd_tensor->Resize(pd_shape);
+  }
+  if (flag) {
+    status = deallocateInputOutputTensor();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "deallocateInputOutputTensor failed!!\n");
+    status = allocateInputOutputTensor();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "allocateInputOutputTensor failed!!\n");
   }
   return status;
 }
@@ -78,10 +91,10 @@ base::Status PaddleLiteInference::run() {
                     name.c_str());
       return base::kStatusCodeErrorInferencePaddleLite;
     }
-    auto pd_tensor = predictor_->GetInput(io_iter->second);
-    status = PaddleLiteConvert::copyFromTensor(tensor, pd_tensor);
+    // copy data to input tensor, 那这里只能时host端的数据了
+    status = device::deepCopyTensor(tensor, input_tensors_[name]);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "PaddleLiteConvert::copyFromTensor failed!!\n");
+                           "device::deepCopyTensor!\n");
   }
   // forward
   predictor_->Run();
@@ -106,12 +119,12 @@ device::Tensor *PaddleLiteInference::getOutputTensorAfterRun(
   bool can_op_flag = true;
   can_op_flag = can_op_flag && is_share_command_queue_;
   device::Device *device = device::getDefaultHostDevice();
+  device::Tensor *internal_tensor =
+      PaddleLiteConvert::convertToTensor(pd_tensor);
   if (is_copy || !can_op_flag) {
     device::TensorDesc desc = this->getInputTensorAlignDesc(name);
     device::Tensor *output_tensor = new device::Tensor(device, desc, name);
-    MNN::Tensor *external_tensor = MnnConvert::convertFromTensor(output_tensor);
-    internal_tensor->copyToHostTensor(external_tensor);
-    delete external_tensor;
+    device::deepCopyTensor(internal_tensor, output_tensor);
     return output_tensor;
   } else {
     device::Tensor *output_tensor =

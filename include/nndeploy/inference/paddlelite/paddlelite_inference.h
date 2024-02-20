@@ -29,8 +29,9 @@ class PaddleLiteInference : public Inference {
 
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
-  virtual device::TensorDesc getInputTensorAlignDesc(const std::string &name);
-  virtual device::TensorDesc getOutputTensorAlignDesc(const std::string &name);
+  // virtual device::TensorDesc getInputTensorAlignDesc(const std::string
+  // &name); virtual device::TensorDesc getOutputTensorAlignDesc(const
+  // std::string &name);
 
   virtual base::Status run();
 

@@ -92,7 +92,6 @@ The current supported inference framework is as follows:
 - [tvm](https://github.com/apache/tvm)
 - [mmdeploy](https://github.com/open-mmlab/mmdeploy)
 - [FlyCV](https://github.com/PaddlePaddle/FlyCV)
-- [ThreadPool](https://github.com/progschj/ThreadPool)
 - [torchpipe](https://github.com/torchpipe/torchpipe)
 
 
