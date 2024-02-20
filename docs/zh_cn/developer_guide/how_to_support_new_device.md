@@ -1,4 +1,4 @@
-# how_to_support_new_device
+# 新增一个设备
 
 ## 介绍
 

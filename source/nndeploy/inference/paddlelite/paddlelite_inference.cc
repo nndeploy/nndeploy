@@ -48,6 +48,20 @@ base::Status PaddleLiteInference::deinit() {
 
 base::Status PaddleLiteInference::reshape(base::ShapeMap &shape_map) {
   base::Status status = base::kStatusCodeOk;
+  for (auto iter : shape_map) {
+    std::string name = iter.first;
+    IntVector shape = iter.second;
+    auto io_iter = io_name_index_.find(name);
+    if (io_iter == io_name_index_.end()) {
+      NNDEPLOY_LOGE("Cannot find input with name: %s in loaded model.\n",
+                    name.c_str());
+      return base::kStatusCodeErrorInferencePaddleLite;
+    }
+    auto pd_tensor = predictor_->GetInput(io_iter->second);
+    paddle::lite_api::shape_t pd_shape =
+        PaddleLiteConvert::convertToShape(shape);
+    pd_tensor->Resize(pd_shape);
+  }
   return status;
 }
 
@@ -58,19 +72,13 @@ base::Status PaddleLiteInference::run() {
     std::string name = iter.first;
     device::Tensor *tensor = iter.second;
 
-    auto iter = io_name_index_.find(name);
-    if (iter == io_name_index_.end()) {
+    auto io_iter = io_name_index_.find(name);
+    if (io_iter == io_name_index_.end()) {
       NNDEPLOY_LOGE("Cannot find input with name: %s in loaded model.\n",
                     name.c_str());
       return base::kStatusCodeErrorInferencePaddleLite;
     }
-
-    // paddle::lite_api::shape_t shape =
-    //     PaddleLiteConvert::convertToShape(tensor->getShape());
-
-    auto pd_tensor = predictor_->GetInput(iter->second);
-    // pd_tensor->Resize(inputs[i].shape);
-
+    auto pd_tensor = predictor_->GetInput(io_iter->second);
     status = PaddleLiteConvert::copyFromTensor(tensor, pd_tensor);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "PaddleLiteConvert::copyFromTensor failed!!\n");
