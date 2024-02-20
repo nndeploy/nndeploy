@@ -10,7 +10,40 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
 
 ## 编译宏介绍
 
-参考`path/cmake/config.cmake`
+参考`path/cmake/config.cmake`介绍
+
+
+## 环境要求
+
+### Windows环境要求
+
++ cmake >= 3.12
+
++ Microsoft Visual Studio >= 2017
+
+### Linux环境要求
+
++ cmake >= 3.12
+  
++ gcc >= 4.9
+
+### Android环境要求
+
++ cmake >= 3.12
+
++ ndk
+
+### MacM1环境要求
+
++ cmake >= 3.12
+
++ xcode
+
+### iOS环境要求
+
++ cmake >= 3.12
+
++ xcode
 
 
 ## 整体编译方案
@@ -49,41 +82,7 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
   ```
 
 
-## 环境要求
-
-### Windows环境要求
-
-+ cmake >= 3.12
-
-+ Microsoft Visual Studio >= 2017
-
-### Linux环境要求
-
-+ cmake >= 3.12
-  
-+ gcc >= 4.9
-
-### Android环境要求
-
-+ cmake >= 3.12
-
-+ ndk
-
-### MacM1环境要求
-
-+ cmake >= 3.12
-
-+ xcode
-
-### iOS环境要求
-
-+ cmake >= 3.12
-
-+ xcode
-
-
 ## nndeploy提供的第三方库资源
-
 
 ### Windows下载资源
 
