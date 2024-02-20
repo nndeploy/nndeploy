@@ -24,10 +24,13 @@ inference是nndeploy的多端推理子模块，通过对第三方推理框架的
 
 + （2）修改文件 `<path>\source\nndeploy\base\common.cc`，在`ModelType stringToModelType(const std::string &src)`函数中添加字符串转换为新模型格式类枚举实现
 
-#### 2.1 新增InferenceType枚举
+#### 1.2 新增InferenceType枚举
 + （1）修改文件 `<path>\include\nndeploy\base\common.h`，在`InferenceType`中添加新推理框架格式的枚举，格式为`kInferenceTypeXxx` 
 
 + （2）修改文件 `<path>\source\nndeploy\base\common.cc`，在`InferenceType stringToInferenceType(const std::string &src)`函数中添加字符串转换为新推理框架格式的枚举实现
+
+#### 1.3 新增错误类枚举
++ （1）修改文件 `<path>\include\nndeploy\base\status.h`，在`StatusCode`中添加新错误的枚举，格式为`kStatusCodeErrorInferenceXxx` 
 
 
 ### 步骤二： 继承基类InferenceParam

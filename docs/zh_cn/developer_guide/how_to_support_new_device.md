@@ -16,15 +16,19 @@
 
 新增一个设备主要分为以下三个步骤：
 
-+ 1. 新增设备类型枚举
-+ 2. 继承基类Architecture、继承基类Device
-+ 3. 修改cmake
++ （1）新增设备类型枚举
+
++ （2）继承基类Architecture、继承基类Device
+
++ （3）修改cmake
 
 ### 步骤一：新增设备类型枚举
 
 + （1）修改文件 `<path>\include\nndeploy\base\common.h`，在`DeviceTypeCode`中添加新设备的枚举，格式为`kDeviceTypeCodeXxx` 
 
 + （2）修改文件 `<path>\source\nndeploy\base\common.cc`，在`DeviceTypeCode stringToDeviceTypeCode(const std::string &src)`函数中添加字符串转换为新设备的枚举实现
+
++ （3）修改文件 `<path>\include\nndeploy\base\status.h`，在`StatusCode`中添加新错误的枚举，格式为`kStatusCodeErrorDeviceXxx` 
 
 ### 步骤二： 继承基类Architecture、继承基类Device
 
@@ -193,7 +197,7 @@
      * @brief synchronize
      *
      * @return base::Status
-     */
+     */brancg
     virtual base::Status synchronize(); 
 
     /**
