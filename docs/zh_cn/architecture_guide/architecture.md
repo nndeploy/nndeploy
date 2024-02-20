@@ -22,7 +22,7 @@
 
 ## 架构简介
 
-![Architecture](../image/architecture.jpg)
+![Architecture](../../image/architecture.jpg)
 
 ## 架构详解
 
