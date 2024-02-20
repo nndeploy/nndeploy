@@ -10,11 +10,15 @@ inference是nndeploy的多端推理子模块，通过对第三方推理框架的
 
 新增一个推理框架主要分为以下五个步骤：
 
-+ 1. 新增推理框架相关枚举类型
-+ 2. 继承基类InferenceParam
-+ 3. 继承基类Inference
-+ 4. 编写Converter
-+ 5. 修改cmake
++ （1）新增推理框架相关枚举类型
+  
++ （2）继承基类InferenceParam
+  
++ （3）继承基类Inference
+  
++ （4）编写Converter
+  
++ （5）修改cmake
 
 
 ### 步骤一：新增设备类型枚举
