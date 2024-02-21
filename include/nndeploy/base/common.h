@@ -35,7 +35,7 @@ struct NNDEPLOY_CC_API DataType {
 
 template <typename T>
 DataType dataTypeOf() {
-  return DataType(kDataTypeCodeOpaqueHandle, sizeof(T));
+  return DataType(kDataTypeCodeOpaqueHandle, sizeof(T) << 3);
 }
 template <>
 NNDEPLOY_CC_API DataType dataTypeOf<float>();
