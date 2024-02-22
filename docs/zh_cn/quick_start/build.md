@@ -143,10 +143,6 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
   |          [MNN](https://github.com/alibaba/MNN)          |  2.6.2   | [下载链接](https://opencv.org/get-started/) |       |
   |          [TNN](https://github.com/Tencent/TNN)          |  v0.3.0  | [下载链接](https://opencv.org/get-started/) |       |
   |        [ncnn](https://github.com/Tencent/ncnn/)         |  v0.3.0  | [下载链接](https://opencv.org/get-started/) |       |
-
-  + 安装opencv
-    sudo apt install libopencv-dev [参考链接](https://cloud.tencent.com/developer/article/1657529)
-  + 安装TensorRT、cudnn、cuda、显卡驱动
   
 + 具体步骤
   + 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
@@ -256,5 +252,3 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
 - TensorRT
   - [Windows链接](https://zhuanlan.zhihu.com/p/476679322)
   - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
-
-
