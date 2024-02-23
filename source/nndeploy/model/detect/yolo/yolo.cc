@@ -88,8 +88,9 @@ base::Status YoloPostProcess::runV5V6() {
           bbox.bbox_[1] = y0;
           bbox.bbox_[2] = x1;
           bbox.bbox_[3] = y1;
-          NNDEPLOY_LOGE("score:%f, x0:%f, y0:%f, x1:%f, y1:%f\n", score, x0, y0,
-                        x1, y1);
+          // NNDEPLOY_LOGE("score:%f, x0:%f, y0:%f, x1:%f, y1:%f\n", score, x0,
+          // y0,
+          //               x1, y1);
           results_batch.bboxs_.emplace_back(bbox);
         }
       }
@@ -118,8 +119,9 @@ base::Status YoloPostProcess::runV8() {
   int num_classes = param->num_classes_;
 
   device::Tensor *tensor = inputs_[0]->getTensor(this);
-  NNDEPLOY_LOGI("**********%d,%d,%d,%d", tensor->getBatch(),
-                tensor->getChannel(), tensor->getHeight(), tensor->getWidth());
+  // NNDEPLOY_LOGI("**********%d,%d,%d,%d", tensor->getBatch(),
+  //               tensor->getChannel(), tensor->getHeight(),
+  //               tensor->getWidth());
   float *data = (float *)tensor->getPtr();
   int batch = tensor->getShapeIndex(0);
   int height = tensor->getShapeIndex(1);
@@ -180,7 +182,7 @@ base::Status YoloPostProcess::runV8() {
     }
   }
   outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
-  NNDEPLOY_LOGE("postprocess!\n");
+  // NNDEPLOY_LOGE("postprocess!\n");
   return base::kStatusCodeOk;
 }
 

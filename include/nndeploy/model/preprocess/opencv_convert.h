@@ -31,6 +31,24 @@ class OpenCvConvert {
 
   static cv::Scalar convertFromScalar(const base::Scalar2d &src);
 
+  static int convertFromDataType(base::DataType src);
+
+  /**
+   * @brief
+   *
+   * @param src must uint8_t
+   * @param dst
+   * @param data_type
+   * @param scale
+   * @param mean
+   * @param std
+   * @return true
+   * @return false
+   */
+  static bool normalize(const cv::Mat &src, cv::Mat &dst,
+                        base::DataType data_type, float *scale, float *mean,
+                        float *std);
+
   /**
    * @brief cast + normalize + premute
    *
@@ -38,7 +56,8 @@ class OpenCvConvert {
    * @return false
    */
   static bool convertToTensor(const cv::Mat &src, device::Tensor *dst,
-                              float *scale, float *mean, float *std);
+                              bool normalize, float *scale, float *mean,
+                              float *std);
 };
 
 }  // namespace model

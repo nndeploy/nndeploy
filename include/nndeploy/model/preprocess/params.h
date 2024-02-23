@@ -108,13 +108,15 @@ class NNDEPLOY_CC_API CvtclorResizeParam : public base::Param {
   base::PixelType src_pixel_type_;
   base::PixelType dst_pixel_type_;
   base::InterpType interp_type_;
+  base::DataType data_type_ = base::dataTypeOf<float>();
+  base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
   int h_ = -1;
   int w_ = -1;
+  bool normalize_ = true;
   float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
                      1.0f / 255.0f};
   float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  bool normalize_ = true;
 };
 
 /**
@@ -126,8 +128,11 @@ class NNDEPLOY_CC_API CvtclorResizePadParam : public base::Param {
   base::PixelType src_pixel_type_;
   base::PixelType dst_pixel_type_;
   base::InterpType interp_type_;
+  base::DataType data_type_ = base::dataTypeOf<float>();
+  base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
   int h_ = -1;
   int w_ = -1;
+  bool normalize_ = true;
   float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
                      1.0f / 255.0f};
   float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};

@@ -11,29 +11,19 @@ base::Status CvtColorResizePad::run() {
   CvtclorResizePadParam *tmp_param =
       dynamic_cast<CvtclorResizePadParam *>(param_.get());
   cv::Mat *src = inputs_[0]->getCvMat(this);
-  // device::Tensor* dst = outputs_[0]->getTensor();
-  // if (dst->empty()) {
-  //   device::TensorDesc desc = dst->getDesc();
-  //   desc.data_type_ = base::dataTypeOf<float>();
-  //   desc.data_format_ = base::kDataFormatNCHW;
-  //   desc.shape_.emplace_back(1);
-  //   desc.shape_.emplace_back(getChannelByPixelType(tmp_param->dst_pixel_type_));
-  //   desc.shape_.emplace_back(tmp_param->h_);
-  //   desc.shape_.emplace_back(tmp_param->w_);
-  //   dst->justModify(desc);
-  //   device::Device* device = device::getDefaultHostDevice();
-  //   dst->allocBuffer(device);
-  // }
   device::Device *device = device::getDefaultHostDevice();
   device::TensorDesc desc;
-  desc.data_type_ = base::dataTypeOf<float>();
-  desc.data_format_ = base::kDataFormatNCHW;
-  desc.shape_.emplace_back(1);
-  desc.shape_.emplace_back(getChannelByPixelType(tmp_param->dst_pixel_type_));
-  desc.shape_.emplace_back(tmp_param->h_);
-  desc.shape_.emplace_back(tmp_param->w_);
-  outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
-  device::Tensor *dst = outputs_[0]->getTensor(this);
+  desc.data_type_ = tmp_param->data_type_;
+  desc.data_format_ = tmp_param->data_format_;
+  if (desc.data_format_ == base::kDataFormatNCHW) {
+    desc.shape_ = {1, getChannelByPixelType(tmp_param->dst_pixel_type_),
+                   tmp_param->h_, tmp_param->w_};
+  } else {
+    desc.shape_ = {1, tmp_param->h_, tmp_param->w_,
+                   getChannelByPixelType(tmp_param->dst_pixel_type_)};
+  }
+  device::Tensor *dst =
+      outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
 
   int c = dst->getChannel();
   int h = dst->getHeight();
@@ -85,8 +75,9 @@ base::Status CvtColorResizePad::run() {
                              tmp_param->right_, tmp_param->border_type_,
                              tmp_param->border_val_);
 
-  OpenCvConvert::convertToTensor(tmp_pad, dst, tmp_param->scale_,
-                                 tmp_param->mean_, tmp_param->std_);
+  OpenCvConvert::convertToTensor(tmp_pad, dst, tmp_param->normalize_,
+                                 tmp_param->scale_, tmp_param->mean_,
+                                 tmp_param->std_);
 
   // 通知Edge，数据已经完成写入
   outputs_[0]->notifyWritten(dst);

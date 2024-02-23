@@ -32,8 +32,8 @@ cv::Mat drawBox(cv::Mat &cv_mat, model::DetectResult &result) {
     int width = box[2] - box[0];
     int height = box[3] - box[1];
     int id = bbox.label_id_;
-    NNDEPLOY_LOGE("box[0]:%f, box[1]:%f, width :%d, height :%d\n", box[0],
-                  box[1], width, height);
+    // NNDEPLOY_LOGE("box[0]:%f, box[1]:%f, width :%d, height :%d\n", box[0],
+    //               box[1], width, height);
     cv::Point p = cv::Point(box[0], box[1]);
     cv::Rect rect = cv::Rect(box[0], box[1], width, height);
     cv::rectangle(cv_mat, rect, randColor[id]);
