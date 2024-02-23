@@ -74,7 +74,7 @@ IntVector shapeMin(const IntVector &dims0, const IntVector &dims1,
 
 bool shapeEqual(const IntVector &dims0, const IntVector &dims1, int start_index,
                 int end_index) {
-  if (dims0.size() == 0 && dims1.size() == 0) {
+  if (dims0.empty() && dims1.empty()) {
     return true;
   }
 
