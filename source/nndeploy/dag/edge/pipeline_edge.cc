@@ -494,7 +494,8 @@ bool PipelineEdge::updateData(const Node *node) {
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [this, tmp_node] {
     return to_consume_index_[tmp_node] < data_packets_.size() ||
-           terminate_flag_;
+           terminate_flag_;  // 消费者需求的数据已存在，否则等待最新数据  ||
+                             // 数据被消耗结束
   });
   if (terminate_flag_) {
     return false;
@@ -524,7 +525,7 @@ bool PipelineEdge::updateData(const Node *node) {
     delete (*iter);
     iter++;
   }
-  data_packets_.erase(data_packets_.begin(), iter);
+  data_packets_.erase(data_packets_.begin(), iter);  //销毁不会被使用到的数据
 
   consuming_dp_[tmp_node] = dp;
   return true;
