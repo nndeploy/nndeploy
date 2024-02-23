@@ -103,9 +103,9 @@ class PipelineEdge : public AbstractEdge {
   int consumers_size_;
   // 数据包
   std::list<PipelineDataPacket *> data_packets_;
-  // 每个消费者 消费 的数据包最新索引
+  // 每个消费者 消费 的数据包最新索引  与下面当前数据包的关系为该索引为其+1
   std::map<Node *, int> to_consume_index_;
-  // 每个消费者 消费 的挡墙数据包
+  // 每个消费者 消费 的当前数据包
   std::map<Node *, PipelineDataPacket *> consuming_dp_;
 };
 
