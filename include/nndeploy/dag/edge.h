@@ -22,7 +22,7 @@ namespace nndeploy {
 namespace dag {
 
 /**
- * @brief 需要保证Edge和Mat、Tensor名字一致
+ * @brief The names of Edge, Mat, and Tensor need to be consistent.
  *
  */
 class NNDEPLOY_CC_API Edge : public base::NonCopyable {
@@ -86,13 +86,19 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    * @param node
    * @return true
    * @return false
-   * @note
-   * 服务于流水线并行模式，更新流水线中数据
+   * @note Serving the pipeline parallel mode, update the data in the pipeline.
    */
   bool updateData(const Node *node);
 
   ParallelType getParallelType();
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   * @note Serving the pipeline parallel mode, terminate pipeline.
+   */
   bool requestTerminate();
 
  private:

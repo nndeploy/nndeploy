@@ -21,7 +21,7 @@ namespace dag {
 
 /**
  * @brief
- * @note 每个node都要负责分配其输出的edge的内存
+ * @note Each node is responsible for allocating memory for its output edges.
  */
 class NNDEPLOY_CC_API Node {
  public:
@@ -46,8 +46,11 @@ class NNDEPLOY_CC_API Node {
   std::vector<Edge *> getAllOutput();
 
   bool getConstructed();
+
+  void setInitializedFlag(bool flag);
   bool getInitialized();
 
+  void setRunningFlag(bool flag);
   bool isRunning();
 
   virtual base::Status init();

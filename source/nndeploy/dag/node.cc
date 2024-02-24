@@ -64,18 +64,15 @@ std::vector<Edge *> Node::getAllInput() { return inputs_; }
 std::vector<Edge *> Node::getAllOutput() { return outputs_; }
 
 bool Node::getConstructed() { return constructed_; }
+
+void Node::setInitializedFlag(bool flag) { initialized_ = flag; }
 bool Node::getInitialized() { return initialized_; }
 
+void Node::setRunningFlag(bool flag) { is_running_ = flag; }
 bool Node::isRunning() { return is_running_; }
 
-base::Status Node::init() {
-  initialized_ = true;
-  return base::kStatusCodeOk;
-}
-base::Status Node::deinit() {
-  initialized_ = false;
-  return base::kStatusCodeOk;
-}
+base::Status Node::init() { return base::kStatusCodeOk; }
+base::Status Node::deinit() { return base::kStatusCodeOk; }
 
 int64_t Node::getMemorySize() {
   NNDEPLOY_LOGI("this api is not implemented");

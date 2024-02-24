@@ -142,6 +142,11 @@ base::Status Graph::setParallelType(const ParallelType &type) {
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(false);
+
   GraphParam *graph_param = dynamic_cast<GraphParam *>(param_.get());
   ParallelType parallel_type = graph_param->parallel_type_;
 
@@ -231,11 +236,22 @@ base::Status Graph::init() {
   status = executor_->init(edge_repository_, node_repository_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
 
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag true!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(true);
+
   return status;
 }
 
 base::Status Graph::deinit() {
   base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(false);
+
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
@@ -247,12 +263,23 @@ base::Status Graph::deinit() {
 
 base::Status Graph::run() {
   base::Status status = base::kStatusCodeOk;
-  is_running_ = true;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setRunningFlag true!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setRunningFlag(true);
+
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
   status = executor_->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setRunningFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setRunningFlag(false);
+
   return status;
 }
 

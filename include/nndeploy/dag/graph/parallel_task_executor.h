@@ -19,8 +19,7 @@ class ParallelTaskExecutor : public Executor {
                             std::vector<NodeWrapper*>& node_repository) {
     // TODO:
     // 计算图的最大并行度，决定线程的数量
-    thread_pool_ =
-        new thread_pool::ThreadPool();  
+    thread_pool_ = new thread_pool::ThreadPool();
     thread_pool_->init();
     start_nodes_ = findStartNodes(node_repository);
     base::Status status = topoSortBFS(node_repository, topo_sort_node_);
@@ -32,8 +31,10 @@ class ParallelTaskExecutor : public Executor {
 
     for (auto iter : topo_sort_node_) {
       iter->color_ = kNodeColorWhite;
+      iter->node_->setInitializedFlag(false);
       status = iter->node_->init();
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node init failure");
+      iter->node_->setInitializedFlag(true);
     }
 
     return status;
@@ -45,6 +46,7 @@ class ParallelTaskExecutor : public Executor {
       status = iter->node_->deinit();
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "node deinit failure");
+      iter->node_->setInitializedFlag(false);
     }
     thread_pool_->destroy();
     delete thread_pool_;
@@ -73,7 +75,14 @@ class ParallelTaskExecutor : public Executor {
   void process(NodeWrapper* node_wrapper) {
     node_wrapper->color_ = kNodeColorGray;
     const auto& func = [this, node_wrapper] {
-      node_wrapper->node_->run();
+      node_wrapper->node_->setRunningFlag(true);
+      base::Status status = node_wrapper->node_->run();
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("node[%s] execute failed!.\n",
+                      node_wrapper->node_->getName().c_str());
+        return;
+      }
+      node_wrapper->node_->setRunningFlag(false);
       afterNodeRun(node_wrapper);
     };
     thread_pool_->commit(func);
