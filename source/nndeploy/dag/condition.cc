@@ -50,11 +50,13 @@ base::Param *Condition::getNodeParam(const std::string &node_name) {
 base::Status Condition::init() {
   base::Status status = base::kStatusCodeOk;
   for (auto node : condition_node_) {
+    node->setInitializedFlag(false);
     status = node->init();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node init failed!\n");
       return status;
     }
+    node->setInitializedFlag(true);
   }
   return status;
 }
@@ -67,6 +69,7 @@ base::Status Condition::deinit() {
       NNDEPLOY_LOGE("Node deinit failed!\n");
       return status;
     }
+    node->setInitializedFlag(false);
   }
   return status;
 }
@@ -78,11 +81,13 @@ base::Status Condition::run() {
     NNDEPLOY_LOGE("choose index is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
+  condition_node_[index]->setRunningFlag(true);
   status = condition_node_[index]->run();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("Node run failed!\n");
     return status;
   }
+  condition_node_[index]->setRunningFlag(false);
   return status;
 }
 

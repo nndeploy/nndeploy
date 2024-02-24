@@ -29,11 +29,13 @@ Loop::~Loop() {}
 
 base::Status Loop::init() {
   base::Status status = base::kStatusCodeOk;
+  loop_node_->setInitializedFlag(false);
   status = loop_node_->init();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("Node init failed!\n");
     return status;
   }
+  loop_node_->setInitializedFlag(true);
   return status;
 }
 
@@ -44,6 +46,7 @@ base::Status Loop::deinit() {
     NNDEPLOY_LOGE("Node deinit failed!\n");
     return status;
   }
+  loop_node_->setInitializedFlag(false);
   return status;
 }
 
@@ -55,11 +58,13 @@ base::Status Loop::run() {
     return base::kStatusCodeErrorInvalidValue;
   }
   for (int i = 0; i < size; i++) {
+    loop_node_->setRunningFlag(true);
     status = loop_node_->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node run failed!\n");
       return status;
     }
+    loop_node_->setRunningFlag(false);
   }
   return status;
 }
