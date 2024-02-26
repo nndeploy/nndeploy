@@ -22,7 +22,7 @@ namespace dag {
 
 class NNDEPLOY_CC_API GraphParam : public base::Param {
  public:
-  ParallelType parallel_type_ = kParallelTypeNone;
+  size_t reserved_;
 };
 
 class NNDEPLOY_CC_API Graph : public Node {
@@ -145,14 +145,12 @@ class NNDEPLOY_CC_API Graph : public Node {
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);
 
-  base::Status init();
-  base::Status deinit();
+  virtual base::Status init();
+  virtual base::Status deinit();
 
-  base::Status run();
+  virtual base::Status run();
 
   base::Status dump(std::ostream &oss = std::cout);
-
-  base::Status setParallelType(const ParallelType &type);
 
  protected:
   std::vector<EdgeWrapper *> edge_repository_;

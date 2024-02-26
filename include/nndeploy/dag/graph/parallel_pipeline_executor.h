@@ -33,7 +33,7 @@ class ParallelPipelineExecutor : public Executor {
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "thread_pool_ init failed");
     // 将所有节点塞入线程池
-    this->process();
+    // this->process();
     // 不要做无效边检测，需要的话交给graph做
     edge_repository_ = edge_repository;
     return status;
@@ -71,6 +71,7 @@ class ParallelPipelineExecutor : public Executor {
   }
 
   void process() {
+    // NNDEPLOY_LOGE("ppe run Thread ID: %d.\n", std::this_thread::get_id());
     for (auto iter : topo_sort_node_) {
       auto func = [iter]() -> base::Status {
         base::Status status = base::kStatusCodeOk;
@@ -78,7 +79,13 @@ class ParallelPipelineExecutor : public Executor {
           bool terminate_flag = false;
           auto inputs = iter->node_->getAllInput();
           for (auto input : inputs) {
+            // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
+            //               iter->node_->getName().c_str(),
+            //               std::this_thread::get_id());
             bool flag = input->updateData(iter->node_);
+            // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
+            //               iter->node_->getName().c_str(),
+            //               std::this_thread::get_id());
             if (!flag) {
               terminate_flag = true;
               break;

@@ -30,7 +30,7 @@ enum NodeColorType : int {
 
 enum TopoSortType : int { kTopoSortTypeBFS = 0x0000, kTopoSortTypeDFS };
 
-class NodeWrapper {
+class NNDEPLOY_CC_API NodeWrapper {
  public:
   bool is_external_;
   Node *node_;
@@ -40,7 +40,7 @@ class NodeWrapper {
   NodeColorType color_ = kNodeColorWhite;
 };
 
-class EdgeWrapper {
+class NNDEPLOY_CC_API EdgeWrapper {
  public:
   bool is_external_;
   Edge *edge_;
@@ -61,26 +61,26 @@ class Executor : public base::NonCopyable {
   virtual base::Status run() = 0;
 };
 
-Edge *getEdge(std::vector<EdgeWrapper *> &edge_repository,
-              const std::string &edge_name);
-EdgeWrapper *findEdgeWrapper(std::vector<EdgeWrapper *> &edge_repository,
-                             const std::string &edge_name);
-EdgeWrapper *findEdgeWrapper(std::vector<EdgeWrapper *> &edge_repository,
-                             Edge *edge);
-std::vector<EdgeWrapper *> findStartEdges(
+NNDEPLOY_CC_API Edge *getEdge(std::vector<EdgeWrapper *> &edge_repository,
+                              const std::string &edge_name);
+NNDEPLOY_CC_API EdgeWrapper *findEdgeWrapper(
+    std::vector<EdgeWrapper *> &edge_repository, const std::string &edge_name);
+NNDEPLOY_CC_API EdgeWrapper *findEdgeWrapper(
+    std::vector<EdgeWrapper *> &edge_repository, Edge *edge);
+NNDEPLOY_CC_API std::vector<EdgeWrapper *> findStartEdges(
     std::vector<EdgeWrapper *> &edge_repository);
-std::vector<EdgeWrapper *> findEndEdges(
+NNDEPLOY_CC_API std::vector<EdgeWrapper *> findEndEdges(
     std::vector<EdgeWrapper *> &edge_repository);
 
-Node *getNode(std::vector<NodeWrapper *> &node_repository,
-              const std::string &node_name);
-NodeWrapper *findNodeWrapper(std::vector<NodeWrapper *> &node_repository,
-                             const std::string &node_name);
-NodeWrapper *findNodeWrapper(std::vector<NodeWrapper *> &node_repository,
-                             Node *node);
-std::vector<NodeWrapper *> findStartNodes(
+NNDEPLOY_CC_API Node *getNode(std::vector<NodeWrapper *> &node_repository,
+                              const std::string &node_name);
+NNDEPLOY_CC_API NodeWrapper *findNodeWrapper(
+    std::vector<NodeWrapper *> &node_repository, const std::string &node_name);
+NNDEPLOY_CC_API NodeWrapper *findNodeWrapper(
+    std::vector<NodeWrapper *> &node_repository, Node *node);
+NNDEPLOY_CC_API std::vector<NodeWrapper *> findStartNodes(
     std::vector<NodeWrapper *> &node_repository);
-std::vector<NodeWrapper *> findEndNodes(
+NNDEPLOY_CC_API std::vector<NodeWrapper *> findEndNodes(
     std::vector<NodeWrapper *> &node_repository);
 
 base::Status dumpDag(std::vector<NodeWrapper *> &node_repository,
@@ -97,8 +97,8 @@ base::Status topoSort(std::vector<NodeWrapper *> &node_repository,
                       TopoSortType topo_sort_type,
                       std::vector<NodeWrapper *> &topo_sort_node);
 
-base::Status setColor(std::vector<NodeWrapper *> &node_repository,
-                      NodeColorType color);
+NNDEPLOY_CC_API base::Status setColor(
+    std::vector<NodeWrapper *> &node_repository, NodeColorType color);
 
 }  // namespace dag
 }  // namespace nndeploy

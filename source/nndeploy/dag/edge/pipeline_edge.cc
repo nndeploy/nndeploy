@@ -8,20 +8,8 @@ namespace dag {
 TypeEdgeRegister<TypeEdgeCreator<PipelineEdge>> g_pipeline_edge_register(
     kEdgeTypePipeline);
 
-PipelineEdge::PipelineEdge(ParallelType paralle_type,
-                           std::vector<Node *> &producers,
-                           std::vector<Node *> &consumers)
-    : AbstractEdge(paralle_type, producers, consumers) {
-  consumers_size_ = consumers.size();
-  for (auto iter : consumers) {
-    to_consume_index_.insert({iter, 0});
-    consuming_dp_.insert({iter, nullptr});
-  }
-  if (consumers_.empty()) {
-    to_consume_index_.insert({nullptr, 0});
-    consuming_dp_.insert({nullptr, nullptr});
-  }
-}
+PipelineEdge::PipelineEdge(ParallelType paralle_type)
+    : AbstractEdge(paralle_type) {}
 
 PipelineEdge::~PipelineEdge() {
   consumers_size_ = 0;
@@ -33,6 +21,25 @@ PipelineEdge::~PipelineEdge() {
 
   consuming_dp_.clear();
   to_consume_index_.clear();
+}
+
+base::Status PipelineEdge::construct() {
+  consumers_size_ = consumers_.size();
+  for (auto iter : consumers_) {
+    if (to_consume_index_.find(iter) == to_consume_index_.end()) {
+      to_consume_index_.insert({iter, 0});
+    }
+    if (consuming_dp_.find(iter) == consuming_dp_.end()) {
+      consuming_dp_.insert({iter, nullptr});
+    }
+    // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n", iter->getName().c_str(),
+    //               std::this_thread::get_id());
+  }
+  if (consumers_.empty()) {
+    to_consume_index_.insert({nullptr, 0});
+    consuming_dp_.insert({nullptr, nullptr});
+  }
+  return base::kStatusCodeOk;
 }
 
 base::Status PipelineEdge::set(device::Buffer *buffer, int index,
@@ -525,7 +532,7 @@ bool PipelineEdge::updateData(const Node *node) {
     delete (*iter);
     iter++;
   }
-  data_packets_.erase(data_packets_.begin(), iter);  //销毁不会被使用到的数据
+  data_packets_.erase(data_packets_.begin(), iter);  // 销毁不会被使用到的数据
 
   consuming_dp_[tmp_node] = dp;
   return true;

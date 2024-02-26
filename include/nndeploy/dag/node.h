@@ -11,6 +11,7 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/type.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -47,6 +48,9 @@ class NNDEPLOY_CC_API Node {
 
   bool getConstructed();
 
+  base::Status setParallelType(const ParallelType &paralle_type);
+  ParallelType getParallelType();
+
   void setInitializedFlag(bool flag);
   bool getInitialized();
 
@@ -69,6 +73,7 @@ class NNDEPLOY_CC_API Node {
   std::vector<Edge *> outputs_;
 
   bool constructed_ = false;
+  ParallelType parallel_type_ = kParallelTypeNone;
   bool initialized_ = false;
   bool is_running_ = false;
 };

@@ -17,3 +17,8 @@ if (ENABLE_NNDEPLOY_MODEL_SEGMENT)
   include(${ROOT_PATH}/demo/segment/config.cmake)
 endif()
 
+set(ENABLE_NNDEPLOY_DEMO_DAG ON)
+if (ENABLE_NNDEPLOY_DEMO_DAG)
+  include(${ROOT_PATH}/demo/dag/config.cmake)
+endif()
+

@@ -65,6 +65,12 @@ std::vector<Edge *> Node::getAllOutput() { return outputs_; }
 
 bool Node::getConstructed() { return constructed_; }
 
+base::Status Node::setParallelType(const ParallelType &paralle_type) {
+  parallel_type_ = paralle_type;
+  return base::kStatusCodeOk;
+}
+ParallelType Node::getParallelType() { return parallel_type_; }
+
 void Node::setInitializedFlag(bool flag) { initialized_ = flag; }
 bool Node::getInitialized() { return initialized_; }
 

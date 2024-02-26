@@ -32,9 +32,10 @@ namespace dag {
  */
 class PipelineEdge : public AbstractEdge {
  public:
-  PipelineEdge(ParallelType paralle_type, std::vector<Node *> &producers,
-               std::vector<Node *> &consumers);
+  PipelineEdge(ParallelType paralle_type);
   virtual ~PipelineEdge();
+
+  virtual base::Status construct();
 
   virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
   virtual base::Status set(device::Buffer &buffer, int index);

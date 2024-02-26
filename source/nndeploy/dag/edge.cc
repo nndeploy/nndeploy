@@ -6,15 +6,10 @@
 namespace nndeploy {
 namespace dag {
 
-base::Status Edge::construct(ParallelType paralle_type,
-                             std::vector<Node *> &producers,
-                             std::vector<Node *> &consumers) {
-  abstact_edge_ = createEdge(paralle_type, producers, consumers);
-  if (abstact_edge_ == nullptr) {
-    return base::kStatusCodeErrorOutOfMemory;
-  } else {
-    return base::kStatusCodeOk;
-  }
+base::Status Edge::construct() {
+  // NNDEPLOY_LOGE("Edge name[%s], Thread ID: %d.\n", name_.c_str(),
+  //               std::this_thread::get_id());
+  return abstact_edge_->construct();
 }
 
 base::Status Edge::set(device::Buffer *buffer, int index, bool is_external) {
@@ -122,8 +117,24 @@ bool Edge::updateData(const Node *node) {
   return abstact_edge_->updateData(node);
 }
 
+base::Status Edge::setParallelType(const ParallelType &paralle_type) {
+  if (abstact_edge_ == nullptr) {
+    abstact_edge_ = createEdge(paralle_type);
+    if (abstact_edge_ == nullptr) {
+      return base::kStatusCodeErrorOutOfMemory;
+    }
+  }
+  return base::kStatusCodeOk;
+}
 ParallelType Edge::getParallelType() {
   return abstact_edge_->getParallelType();
+}
+
+base::Status Edge::increaseProducers(std::vector<Node *> &producers) {
+  return abstact_edge_->increaseProducers(producers);
+}
+base::Status Edge::increaseConsumers(std::vector<Node *> &consumers) {
+  return abstact_edge_->increaseConsumers(consumers);
 }
 
 bool Edge::requestTerminate() { return abstact_edge_->requestTerminate(); }

@@ -1,0 +1,24 @@
+// digraph sep_graph {
+// p0000009D69AFFDA0[label=input]
+// p0000009D69AFFDA0->p000001ECC6AAB2A0[label=sub_in_0]
+// p000001ECC6AAB2A0[label=sub_graph_0]
+// p000001ECC6AAB2A0->p000001ECC6AD0FF0[label=sub_out_0]
+// p000001ECC6AD0FF0[label=op_0_1]
+// p000001ECC6AD0FF0->p000001ECC6AAB7E0[label=sub_in_1]
+// p000001ECC6AAB7E0[label=sub_graph_1]
+// p0000009D69AFFD10[label=output]
+// p000001ECC6AAB7E0->p0000009D69AFFD10[label=sub_out_1]
+// }
+
+// digraph par_graph {
+// p000000DAEE0FFC60[label=input]
+// p000000DAEE0FFC60->p000002607A82BA40[label=sub_in_0]
+// p000002607A82BA40[label=sub_graph_0]
+// p000000DAEE0FFC30[label=output]
+// p000002607A82BA40->p000000DAEE0FFC30[label=sub_out_0]
+// p000000DAEE0FFC00[label=input]
+// p000000DAEE0FFC00->p000002607A8301E0[label=sub_in_1]
+// p000002607A8301E0[label=sub_graph_1]
+// p000000DAEE0FFBD0[label=output]
+// p000002607A8301E0->p000000DAEE0FFBD0[label=sub_out_1]
+// }

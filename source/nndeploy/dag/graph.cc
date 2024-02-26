@@ -133,12 +133,6 @@ base::Param *Graph::getNodeParam(const std::string &node_name) {
   return node_wrapper->node_->getParam();
 }
 
-base::Status Graph::setParallelType(const ParallelType &type) {
-  GraphParam *graph_param = dynamic_cast<GraphParam *>(param_.get());
-  graph_param->parallel_type_ = type;
-  return base::kStatusCodeOk;
-}
-
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
@@ -147,8 +141,15 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
 
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("graph_param!\n");
+  // NNDEPLOY_LOGI("###########################\n");
   GraphParam *graph_param = dynamic_cast<GraphParam *>(param_.get());
-  ParallelType parallel_type = graph_param->parallel_type_;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("parallel_type!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  ParallelType parallel_type = parallel_type_;
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
@@ -171,6 +172,7 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("####################\n");
   for (auto node_wrapper : node_repository_) {
     Node *node = node_wrapper->node_;
+    node->setParallelType(parallel_type);
     std::vector<Edge *> inputs = node->getAllInput();
     for (auto input : inputs) {
       EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
@@ -204,8 +206,16 @@ base::Status Graph::init() {
     for (auto consumer : edge_wrapper->consumers_) {
       consumers.emplace_back(consumer->node_);
     }
-    base::Status status =
-        edge_wrapper->edge_->construct(parallel_type, producers, consumers);
+    base::Status status = edge_wrapper->edge_->setParallelType(parallel_type);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "setParallelType failed!");
+    status = edge_wrapper->edge_->increaseProducers(producers);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "increaseProducers failed!");
+    status = edge_wrapper->edge_->increaseConsumers(consumers);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "increaseConsumers failed!");
+    status = edge_wrapper->edge_->construct();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "construct edge failed!");
   }
@@ -218,6 +228,8 @@ base::Status Graph::init() {
   } else if (parallel_type == kParallelTypeTask) {
     executor_ = std::make_shared<ParallelTaskExecutor>();
   } else if (parallel_type == kParallelTypePipeline) {
+    NNDEPLOY_LOGE(
+        "executor_ = std::make_shared<ParallelPipelineExecutor>()!\n");
     executor_ = std::make_shared<ParallelPipelineExecutor>();
   } else {
     NNDEPLOY_LOGE("parallel_type is invalid!\n");
@@ -235,6 +247,22 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("##############\n");
   status = executor_->init(edge_repository_, node_repository_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
+
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("process\n");
+  // NNDEPLOY_LOGI("##############\n");
+  if (parallel_type == kParallelTypeNone) {
+    ;
+  } else if (parallel_type == kParallelTypeTask) {
+    ;
+  } else if (parallel_type == kParallelTypePipeline) {
+    ParallelPipelineExecutor *ppe_executor =
+        dynamic_cast<ParallelPipelineExecutor *>(executor_.get());
+    ppe_executor->process();
+  } else {
+    NNDEPLOY_LOGE("parallel_type is invalid!\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");

@@ -24,9 +24,10 @@ class Node;
 
 class AbstractEdge : public base::NonCopyable {
  public:
-  AbstractEdge(ParallelType paralle_type, std::vector<Node *> &producers,
-               std::vector<Node *> &consumers);
+  AbstractEdge(ParallelType paralle_type);
   virtual ~AbstractEdge();
+
+  virtual base::Status construct() = 0;
 
   virtual base::Status set(device::Buffer *buffer, int index,
                            bool is_external) = 0;
@@ -77,12 +78,15 @@ class AbstractEdge : public base::NonCopyable {
 
   virtual bool updateData(const Node *node) = 0;
 
-  ParallelType getParallelType() { return paralle_type_; }
+  ParallelType getParallelType();
+
+  base::Status increaseProducers(std::vector<Node *> &producers);
+  base::Status increaseConsumers(std::vector<Node *> &consumers);
 
   virtual bool requestTerminate() = 0;
 
  protected:
-  ParallelType paralle_type_;
+  ParallelType parallel_type_;
   std::vector<Node *> producers_;
   std::vector<Node *> consumers_;
 };
@@ -90,17 +94,13 @@ class AbstractEdge : public base::NonCopyable {
 class EdgeCreator {
  public:
   virtual ~EdgeCreator(){};
-  virtual AbstractEdge *createEdge(ParallelType paralle_type,
-                                   std::vector<Node *> &producers,
-                                   std::vector<Node *> &consumers) = 0;
+  virtual AbstractEdge *createEdge(ParallelType paralle_type) = 0;
 };
 
 template <typename T>
 class TypeEdgeCreator : public EdgeCreator {
-  virtual AbstractEdge *createEdge(ParallelType paralle_type,
-                                   std::vector<Node *> &producers,
-                                   std::vector<Node *> &consumers) {
-    return new T(paralle_type, producers, consumers);
+  virtual AbstractEdge *createEdge(ParallelType paralle_type) {
+    return new T(paralle_type);
   }
 };
 
@@ -114,9 +114,7 @@ class TypeEdgeRegister {
   }
 };
 
-AbstractEdge *createEdge(ParallelType paralle_type,
-                         std::vector<Node *> &producers,
-                         std::vector<Node *> &consumers);
+AbstractEdge *createEdge(ParallelType paralle_type);
 
 }  // namespace dag
 }  // namespace nndeploy

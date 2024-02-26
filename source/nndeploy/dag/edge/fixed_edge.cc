@@ -8,13 +8,13 @@ namespace dag {
 TypeEdgeRegister<TypeEdgeCreator<FixedEdge>> g_fixed_edge_register(
     kEdgeTypeFixed);
 
-FixedEdge::FixedEdge(ParallelType paralle_type, std::vector<Node *> &producers,
-                     std::vector<Node *> &consumers)
-    : AbstractEdge(paralle_type, producers, consumers) {
+FixedEdge::FixedEdge(ParallelType paralle_type) : AbstractEdge(paralle_type) {
   data_packet_ = new DataPacket();
 }
 
 FixedEdge::~FixedEdge() { delete data_packet_; }
+
+base::Status FixedEdge::construct() { return base::kStatusCodeOk; }
 
 base::Status FixedEdge::set(device::Buffer *buffer, int index,
                             bool is_external) {
