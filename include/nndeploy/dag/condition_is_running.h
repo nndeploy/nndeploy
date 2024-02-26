@@ -38,9 +38,16 @@ class NNDEPLOY_CC_API ConditionIsRunning : public Condition {
 
   virtual base::Status run();
 
+ private:
+  base::Status runPipeline();
+  base::Status runDefault();
+
  protected:
   thread_pool::ThreadPool *thread_pool_ = nullptr;
   int all_task_count_ = 0;
+  int index_ = 0;
+  std::mutex mutex_;
+  std::condition_variable cv_;
 };
 
 }  // namespace dag

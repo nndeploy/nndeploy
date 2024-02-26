@@ -175,23 +175,23 @@ int main(int argc, char *argv[]) {
     delete sep_graph;
   }
 
-   {
-     dag::Graph *par_graph = new dag::Graph("par_graph", {&sub_in_0,
-     &sub_in_1},
-                                            {&sub_out_0, &sub_out_1});
-     par_graph->addNode(sub_graph_0);
-     par_graph->addNode(sub_graph_1);
+  //{
+  //  dag::Graph *par_graph = new dag::Graph("par_graph", {&sub_in_0,
+  //  &sub_in_1},
+  //                                         {&sub_out_0, &sub_out_1});
+  //  par_graph->addNode(sub_graph_0);
+  //  par_graph->addNode(sub_graph_1);
 
-     par_graph->init();
+  //  par_graph->init();
 
-     par_graph->dump();
+  //  par_graph->dump();
 
-     // delete par_graph;
-   }
+  //   delete par_graph;
+  //}
 
-  // 有向无环图graphz销毁
-  //delete sub_graph_0;
-  //delete sub_graph_1;
+  // 有向无环图graph销毁
+  delete sub_graph_0;
+  delete sub_graph_1;
 
   NNDEPLOY_LOGE("hello world!\n");
 

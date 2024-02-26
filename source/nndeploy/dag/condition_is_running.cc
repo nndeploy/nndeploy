@@ -65,18 +65,30 @@ base::Status ConditionIsRunning::deinit() {
 
 // 需要wait等待
 int ConditionIsRunning::choose() {
-  int i = 0;
-  for (auto node : condition_node_) {
-    bool is_running = node->isRunning();
-    if (is_running) {
-      return i;
+  int ret = -1;
+  while (ret == -1) {
+    for (int j = 0; j < all_task_count_; j++) {
+      int i = (index_ + j) % all_task_count_;  // 使用模运算保持索引在数组范围内
+      bool is_running = condition_node_[i]->isRunning();
+      if (!is_running) {
+        ret = index_;
+        index_ = ret + 1;
+        break;
+      }
     }
-    ++i;
   }
-  return -1;
+  return ret;
 }
 
 base::Status ConditionIsRunning::run() {
+  if (parallel_type_ == kParallelTypePipeline) {
+    return this->runPipeline();
+  } else {
+    return this->runDefault();
+  }
+}
+
+base::Status ConditionIsRunning::runPipeline() {
   base::Status status = base::kStatusCodeOk;
   int index = choose();
   if (index < 0 || index >= condition_node_.size()) {
@@ -85,6 +97,30 @@ base::Status ConditionIsRunning::run() {
   }
   auto func = [this, index]() -> base::Status {
     base::Status status = base::kStatusCodeOk;
+    auto inputs = condition_node_[index]->getAllInput();
+    for (auto input : inputs) {
+      // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
+      //               iter->node_->getName().c_str(),
+      //               std::this_thread::get_id());
+      bool flag = input->updateData(condition_node_[index]);
+      // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
+      //               iter->node_->getName().c_str(),
+      //               std::this_thread::get_id());
+      if (!flag) {
+        return status;
+      }
+      int innner_index = input->getIndex(condition_node_[index]);
+      int condition_index = input->getIndex(this);
+      for (; innner_index < condition_index; innner_index++) {
+        bool flag = input->updateData(condition_node_[index]);
+        // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
+        //               iter->node_->getName().c_str(),
+        //               std::this_thread::get_id());
+        if (!flag) {
+          return status;
+        }
+      }
+    }
     this->condition_node_[index]->setRunningFlag(true);
     status = this->condition_node_[index]->run();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -93,6 +129,20 @@ base::Status ConditionIsRunning::run() {
     return status;
   };
   thread_pool_->commit(std::bind(func));
+  return status;
+}
+
+base::Status ConditionIsRunning::runDefault() {
+  base::Status status = base::kStatusCodeOk;
+  int index = choose();
+  if (index < 0 || index >= condition_node_.size()) {
+    NNDEPLOY_LOGE("choose index is invalid!\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  this->condition_node_[index]->setRunningFlag(true);
+  status = this->condition_node_[index]->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node execute failed!\n");
+  this->condition_node_[index]->setRunningFlag(false);
   return status;
 }
 

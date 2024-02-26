@@ -228,8 +228,8 @@ base::Status Graph::init() {
   } else if (parallel_type == kParallelTypeTask) {
     executor_ = std::make_shared<ParallelTaskExecutor>();
   } else if (parallel_type == kParallelTypePipeline) {
-    NNDEPLOY_LOGE(
-        "executor_ = std::make_shared<ParallelPipelineExecutor>()!\n");
+    // NNDEPLOY_LOGE(
+    //     "executor_ = std::make_shared<ParallelPipelineExecutor>()!\n");
     executor_ = std::make_shared<ParallelPipelineExecutor>();
   } else {
     NNDEPLOY_LOGE("parallel_type is invalid!\n");
