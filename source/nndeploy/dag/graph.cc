@@ -15,6 +15,7 @@
 #include "nndeploy/dag/graph/parallel_task_executor.h"
 #include "nndeploy/dag/graph/sequential_executor.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/dag/util.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -80,6 +81,16 @@ Edge *Graph::createEdge(const std::string &name) {
   edge_repository_.emplace_back(edge_wrapper);
   return edge;
 }
+
+Edge *Graph::getEdge(const std::string &name) {
+  for (EdgeWrapper *edge_wrapper : edge_repository_) {
+    if (edge_wrapper->name_ == name) {
+      return edge_wrapper->edge_;
+    }
+  }
+  return nullptr;
+}
+
 EdgeWrapper *Graph::addEdge(Edge *edge) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(edge, "edge is null!");
@@ -179,18 +190,19 @@ base::Status Graph::init() {
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "input_wrapper is null!");
 
-      node_wrapper->predecessors_.insert(node_wrapper->predecessors_.end(),
-                                         input_wrapper->producers_.begin(),
-                                         input_wrapper->producers_.end());
+      for (auto producer : input_wrapper->producers_) {
+        insertUnique(node_wrapper->predecessors_, producer);
+      }
     }
     std::vector<Edge *> outputs = node->getAllOutput();
     for (auto output : outputs) {
       EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
                                            "output_wrapper is null!");
-      node_wrapper->successors_.insert(node_wrapper->successors_.end(),
-                                       output_wrapper->consumers_.begin(),
-                                       output_wrapper->consumers_.end());
+
+      for (auto consumer : output_wrapper->consumers_) {
+        insertUnique(node_wrapper->successors_, consumer);
+      }
     }
   }
 
