@@ -117,6 +117,7 @@ base::Status dumpDag(std::vector<NodeWrapper *> &node_repository,
     Node *node = node_wrapper->node_;
     if (node_wrapper->predecessors_.empty()) {
       auto inputs = node->getAllInput();
+      //TODO: sjx 当input的这条边有多个消费者节点时，只dump了一个节点
       for (auto input : inputs) {
         oss << "p" << (void *)input << "[label=input]\n";
         oss << "p" << (void *)input << "->"
@@ -147,23 +148,24 @@ base::Status dumpDag(std::vector<NodeWrapper *> &node_repository,
       }
     } else {
       for (auto successor : node_wrapper->successors_) {
-        oss << "p" << (void *)node << "->"
-            << "p" << (void *)(successor->node_);
         auto outputs = node->getAllOutput();
         auto inputs = successor->node_->getAllInput();
-        Edge *out_in = nullptr;
+        // 两Node间可能有多条Edge
         for (auto output : outputs) {
+          Edge *out_in = nullptr;
           for (auto input : inputs) {
             if (output == input) {
               out_in = output;
             }
           }
-        }
-        if (out_in != nullptr) {
-          if (out_in->getName().empty()) {
-            oss << "\n";
-          } else {
-            oss << "[label=" << out_in->getName() << "]\n";
+          if (out_in != nullptr) {
+            oss << "p" << (void *)node << "->"
+                << "p" << (void *)(successor->node_);
+            if (out_in->getName().empty()) {
+              oss << "\n";
+            } else {
+              oss << "[label=" << out_in->getName() << "]\n";
+            }
           }
         }
       }
