@@ -304,7 +304,7 @@ base::Status Inference::setInputTensor(const std::string &name,
       external_input_tensors_[new_name] = input_tensor;
     }
   } else {
-    NNDEPLOY_LOGI("input_tensor nama: %s not exist!\n", new_name.c_str());
+    NNDEPLOY_LOGI("input_tensor name: %s not exist!\n", new_name.c_str());
   }
 
   return status;

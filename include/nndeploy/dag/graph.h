@@ -17,6 +17,10 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
 
+/**
+ * @brief 有向无环图
+ */
+
 namespace nndeploy {
 namespace dag {
 
@@ -25,6 +29,9 @@ class NNDEPLOY_CC_API GraphParam : public base::Param {
   size_t reserved_;
 };
 
+/**
+ * @brief 有向无环图节点
+ */
 class NNDEPLOY_CC_API Graph : public Node {
  public:
   Graph(const std::string &name, Edge *input, Edge *output);
@@ -32,9 +39,34 @@ class NNDEPLOY_CC_API Graph : public Node {
         std::initializer_list<Edge *> outputs);
   ~Graph();
 
+  /**
+   * @brief 在Graph中创建一条Edge
+   * @param  name             edge名称
+   * @return Edge*
+   */
   Edge *createEdge(const std::string &name);
+
+  /**
+   * @brief 将一条已有的Edge加入Graph中
+   * @param  edge             已有的Edge
+   * @return EdgeWrapper*
+   */
   EdgeWrapper *addEdge(Edge *edge);
 
+  /**
+   * @brief 获取Graph中的Edge
+   * @param  name             edge名称
+   * @return Edge*
+   */
+  Edge *getEdge(const std::string &name);
+
+  /**
+   * @brief 在Graph中创建一个Node，并关联input、output的Edge
+   * @param  name             Node名称
+   * @param  input            输入Edge
+   * @param  output           输出Edge
+   * @return Node*
+   */
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, Edge *input, Edge *output) {
@@ -59,6 +91,14 @@ class NNDEPLOY_CC_API Graph : public Node {
     node_repository_.emplace_back(node_wrapper);
     return node;
   }
+
+  /**
+   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  inputs            多个输入Edge
+   * @param  outputs           多个输出Edge
+   * @return Node*
+   */
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name,
@@ -87,6 +127,15 @@ class NNDEPLOY_CC_API Graph : public Node {
     node_repository_.emplace_back(node_wrapper);
     return node;
   }
+
+    /**
+   * @brief 在Graph中创建一个Infer Node，并关联input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  input            输入Edge
+   * @param  output           输出Edge
+   * @return Node*
+   */
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
@@ -112,6 +161,15 @@ class NNDEPLOY_CC_API Graph : public Node {
     node_repository_.emplace_back(node_wrapper);
     return node;
   }
+
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  inputs            多个输入Edge
+   * @param  outputs           多个输出Edge
+   * @return Node*
+   */
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
@@ -140,7 +198,14 @@ class NNDEPLOY_CC_API Graph : public Node {
     node_repository_.emplace_back(node_wrapper);
     return node;
   }
+
+  /**
+   * @brief 将一个已有的Node加入Graph
+   * @param  node             已有Node
+   * @return base::Status 
+   */
   base::Status addNode(Node *node);
+
 
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);
