@@ -10,6 +10,7 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/dag/util.h"
 #include "nndeploy/device/buffer.h"
@@ -20,106 +21,19 @@
 namespace nndeploy {
 namespace dag {
 
-class NNDEPLOY_CC_API Condition : public Node {
+class NNDEPLOY_CC_API Condition : public Graph {
  public:
   Condition(const std::string &name, Edge *input, Edge *output);
   Condition(const std::string &name, std::initializer_list<Edge *> inputs,
             std::initializer_list<Edge *> outputs);
   virtual ~Condition();
 
-  template <typename T,
-            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node *createNode(const std::string &name, Edge *input, Edge *output) {
-    NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
-    NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    bool flag = checkEdge({input}, inputs_);
-    if (!flag) {
-      NNDEPLOY_LOGE("input is not in condition inputs!\n");
-      return nullptr;
-    }
-    flag = checkEdge({output}, outputs_);
-    if (!flag) {
-      NNDEPLOY_LOGE("output is not in condition outputs!\n");
-      return nullptr;
-    }
-    Node *node = dynamic_cast<Node *>(new T(name, input, output));
-    condition_node_.emplace_back(node);
-    return node;
-  }
-  template <typename T,
-            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node *createNode(const std::string &name,
-                   std::initializer_list<Edge *> inputs,
-                   std::initializer_list<Edge *> outputs) {
-    bool flag = checkEdge(inputs, inputs_);
-    if (!flag) {
-      NNDEPLOY_LOGE("inputs is not in condition inputs!\n");
-      return nullptr;
-    }
-    flag = checkEdge(outputs, outputs_);
-    if (!flag) {
-      NNDEPLOY_LOGE("outputs is not in condition outputs!\n");
-      return nullptr;
-    }
-    Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
-    condition_node_.emplace_back(node);
-    return node;
-  }
-  template <typename T,
-            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node *createInfer(const std::string &name, base::InferenceType type,
-                    Edge *input, Edge *output) {
-    NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
-    NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    bool flag = checkEdge({input}, inputs_);
-    if (!flag) {
-      NNDEPLOY_LOGE("input is not in condition inputs!\n");
-      return nullptr;
-    }
-    flag = checkEdge({output}, outputs_);
-    if (!flag) {
-      NNDEPLOY_LOGE("output is not in condition outputs!\n");
-      return nullptr;
-    }
-    Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
-    condition_node_.emplace_back(node);
-    return node;
-  }
-  template <typename T,
-            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node *createInfer(const std::string &name, base::InferenceType type,
-                    std::initializer_list<Edge *> inputs,
-                    std::initializer_list<Edge *> outputs) {
-    bool flag = checkEdge(inputs, inputs_);
-    if (!flag) {
-      NNDEPLOY_LOGE("inputs is not in condition inputs!\n");
-      return nullptr;
-    }
-    flag = checkEdge(outputs, outputs_);
-    if (!flag) {
-      NNDEPLOY_LOGE("outputs is not in condition outputs!\n");
-      return nullptr;
-    }
-    Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
-    condition_node_.emplace_back(node);
-    return node;
-  }
-
-  base::Status setNodeParam(const std::string &node_name, base::Param *param);
-  base::Param *getNodeParam(const std::string &node_name);
-
-  virtual base::Status init();
-  virtual base::Status deinit();
-
   virtual int choose() = 0;
 
   virtual base::Status run();
 
- private:
-  Node *findNode(const std::string &name);
-
  protected:
-  std::vector<Node *> condition_node_;
+  virtual base::Status executorr();
 };
 
 }  // namespace dag

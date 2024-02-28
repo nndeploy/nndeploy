@@ -26,7 +26,6 @@ namespace dag {
 
 Graph::Graph(const std::string &name, Edge *input, Edge *output)
     : Node(name, input, output) {
-  param_ = std::make_shared<GraphParam>();
   if (nullptr == addEdge(input)) {
     constructed_ = false;
     return;
@@ -40,7 +39,6 @@ Graph::Graph(const std::string &name, Edge *input, Edge *output)
 Graph::Graph(const std::string &name, std::initializer_list<Edge *> inputs,
              std::initializer_list<Edge *> outputs)
     : Node(name, inputs, outputs) {
-  param_ = std::make_shared<GraphParam>();
   for (auto input : inputs) {
     if (nullptr == addEdge(input)) {
       constructed_ = false;
@@ -152,10 +150,69 @@ base::Status Graph::init() {
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
 
+  status = this->construct();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "graph construct failed!");
+
+  status = this->executorr();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "graph executorr failed!");
+
   // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("graph_param!\n");
+  // NNDEPLOY_LOGI("setInitializedFlag true!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  GraphParam *graph_param = dynamic_cast<GraphParam *>(param_.get());
+  setInitializedFlag(true);
+
+  return status;
+}
+
+base::Status Graph::deinit() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(false);
+
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  status = executor_->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "executor deinit failed!");
+  return status;
+}
+
+base::Status Graph::run() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setRunningFlag true!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setRunningFlag(true);
+
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Node run Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  status = executor_->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setRunningFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setRunningFlag(false);
+
+  return status;
+}
+
+base::Status Graph::dump(std::ostream &oss) {
+  base::Status status = dumpDag(node_repository_, name_, oss);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
+  return status;
+}
+
+base::Status Graph::construct() {
+  base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("parallel_type!\n");
@@ -231,6 +288,16 @@ base::Status Graph::init() {
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "construct edge failed!");
   }
+  return status;
+}
+
+base::Status Graph::executorr() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("parallel_type!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  ParallelType parallel_type = parallel_type_;
 
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("create executor\n");
@@ -275,58 +342,6 @@ base::Status Graph::init() {
     NNDEPLOY_LOGE("parallel_type is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
-
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag true!\n");
-  // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(true);
-
-  return status;
-}
-
-base::Status Graph::deinit() {
-  base::Status status = base::kStatusCodeOk;
-
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
-  // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
-
-  // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
-  // NNDEPLOY_LOGI("#######################\n");
-  status = executor_->deinit();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "executor deinit failed!");
-  return status;
-}
-
-base::Status Graph::run() {
-  base::Status status = base::kStatusCodeOk;
-
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setRunningFlag true!\n");
-  // NNDEPLOY_LOGI("###########################\n");
-  setRunningFlag(true);
-
-  // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Node run Phase!\n");
-  // NNDEPLOY_LOGI("#######################\n");
-  status = executor_->run();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
-
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setRunningFlag false!\n");
-  // NNDEPLOY_LOGI("###########################\n");
-  setRunningFlag(false);
-
-  return status;
-}
-
-base::Status Graph::dump(std::ostream &oss) {
-  base::Status status = dumpDag(node_repository_, name_, oss);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
-  return status;
 }
 
 std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap() {

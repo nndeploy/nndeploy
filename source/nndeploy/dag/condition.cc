@@ -16,88 +16,91 @@
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/dag/graph/condition_executor.h"
+#include "nndeploy/dag/graph/condition_parallel_pipeline_executor.h"
 
 namespace nndeploy {
 namespace dag {
 
 Condition::Condition(const std::string &name, Edge *input, Edge *output)
-    : Node(name, input, output) {}
+    : Graph(name, input, output) {}
 Condition::Condition(const std::string &name,
                      std::initializer_list<Edge *> inputs,
                      std::initializer_list<Edge *> outputs)
-    : Node(name, inputs, outputs) {}
-Condition::~Condition() { condition_node_.clear(); }
+    : Graph(name, inputs, outputs) {}
+Condition::~Condition() {}
 
-base::Status Condition::setNodeParam(const std::string &node_name,
-                                     base::Param *param) {
+base::Status Condition::executorr() {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is null!");
-  Node *node = findNode(node_name);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
-  status = node->setParam(param);
-  return status;
-}
 
-base::Param *Condition::getNodeParam(const std::string &node_name) {
-  Node *node = findNode(node_name);
-  if (node == nullptr) {
-    NNDEPLOY_LOGE("node is null!\n");
-    return nullptr;
-  }
-  return node->getParam();
-}
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("parallel_type!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  ParallelType parallel_type = parallel_type_;
 
-base::Status Condition::init() {
-  base::Status status = base::kStatusCodeOk;
-  for (auto node : condition_node_) {
-    node->setInitializedFlag(false);
-    status = node->init();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Node init failed!\n");
-      return status;
-    }
-    node->setInitializedFlag(true);
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("create executor\n");
+  // NNDEPLOY_LOGI("##############\n");
+  if (parallel_type == kParallelTypeNone) {
+    executor_ = std::make_shared<ConditionExecutor>();
+  } else if (parallel_type == kParallelTypeTask) {
+    executor_ = std::make_shared<ConditionExecutor>();
+  } else if (parallel_type == kParallelTypePipeline) {
+    executor_ = std::make_shared<ConditionParallelPipelineExecutor>();
+  } else {
+    NNDEPLOY_LOGE("parallel_type is invalid!\n");
+    return base::kStatusCodeErrorInvalidValue;
   }
-  return status;
-}
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
 
-base::Status Condition::deinit() {
-  base::Status status = base::kStatusCodeOk;
-  for (auto node : condition_node_) {
-    status = node->deinit();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Node deinit failed!\n");
-      return status;
-    }
-    node->setInitializedFlag(false);
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("executor init\n");
+  // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
+  // NNDEPLOY_LOGI("2. Device Verification Phase!\n");
+  // NNDEPLOY_LOGI("3. Optimizer Graph V2!\n");
+  // NNDEPLOY_LOGI("4. Memory Allocation Phase!\n");
+  // NNDEPLOY_LOGI("5. Cost Calculations!\n");
+  // NNDEPLOY_LOGI("##############\n");
+  status = executor_->init(edge_repository_, node_repository_);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
+
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("process\n");
+  // NNDEPLOY_LOGI("##############\n");
+  if (parallel_type == kParallelTypeNone) {
+    ;
+  } else if (parallel_type == kParallelTypeTask) {
+    ;
+  } else if (parallel_type == kParallelTypePipeline) {
+    ConditionParallelPipelineExecutor *cppe_executor =
+        dynamic_cast<ConditionParallelPipelineExecutor *>(executor_.get());
+    /*cppe_executor->process();*/
+  } else {
+    NNDEPLOY_LOGE("parallel_type is invalid!\n");
+    return base::kStatusCodeErrorInvalidValue;
   }
-  return status;
 }
 
 base::Status Condition::run() {
   base::Status status = base::kStatusCodeOk;
-  int index = choose();
-  if (index < 0 || index >= condition_node_.size()) {
+
+  setRunningFlag(true);
+
+  int index = this->choose();
+  if (index < 0 || index >= node_repository_.size()) {
     NNDEPLOY_LOGE("choose index is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
-  condition_node_[index]->setRunningFlag(true);
-  status = condition_node_[index]->run();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("Node run failed!\n");
-    return status;
-  }
-  condition_node_[index]->setRunningFlag(false);
-  return status;
-}
 
-Node *Condition::findNode(const std::string &name) {
-  for (auto node : condition_node_) {
-    if (node->getName() == name) {
-      return node;
-    }
-  }
-  return nullptr;
+  ConditionExecutor *condition_executor =
+      dynamic_cast<ConditionExecutor *>(executor_.get());
+  condition_executor->select(index);
+  status = condition_executor->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
+
+  setRunningFlag(false);
+
+  return status;
 }
 
 }  // namespace dag

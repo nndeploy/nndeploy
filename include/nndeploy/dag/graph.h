@@ -24,11 +24,6 @@
 namespace nndeploy {
 namespace dag {
 
-class NNDEPLOY_CC_API GraphParam : public base::Param {
- public:
-  size_t reserved_;
-};
-
 /**
  * @brief 有向无环图节点
  */
@@ -128,7 +123,7 @@ class NNDEPLOY_CC_API Graph : public Node {
     return node;
   }
 
-    /**
+  /**
    * @brief 在Graph中创建一个Infer Node，并关联input、output的Edge
    * @param  name             Node名称
    * @param  type            Infer的引擎类型
@@ -202,10 +197,9 @@ class NNDEPLOY_CC_API Graph : public Node {
   /**
    * @brief 将一个已有的Node加入Graph
    * @param  node             已有Node
-   * @return base::Status 
+   * @return base::Status
    */
   base::Status addNode(Node *node);
-
 
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);
@@ -216,6 +210,10 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status run();
 
   base::Status dump(std::ostream &oss = std::cout);
+
+ protected:
+  virtual base::Status construct();
+  virtual base::Status executorr();
 
  protected:
   std::vector<EdgeWrapper *> edge_repository_;
