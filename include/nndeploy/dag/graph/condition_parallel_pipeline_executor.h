@@ -14,6 +14,35 @@ class ConditionParallelPipelineExecutor : public ConditionExecutor {
   ConditionParallelPipelineExecutor(){};
   virtual ~ConditionParallelPipelineExecutor(){};
 
+  virtual base::Status init(std::vector<EdgeWrapper *> &edge_repository,
+                            std::vector<NodeWrapper *> &node_repository) {
+    base::Status status =
+        ConditionExecutor::init(edge_repository, node_repository);
+
+    all_task_count_ = node_repository.size();
+    thread_pool_ = new thread_pool::ThreadPool(all_task_count_);
+    status = thread_pool_->init();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "thread_pool_ init failed");
+    // 不要做无效边检测，需要的话交给graph做
+    edge_repository_ = edge_repository;
+
+    return status;
+  }
+
+  virtual base::Status deinit() {
+    base::Status status = base::kStatusCodeOk;
+    for (auto iter : edge_repository_) {
+      bool flag = iter->edge_->requestTerminate();
+      NNDEPLOY_RETURN_ON_NEQ(flag, true,
+                             "failed iter->edge_->requestTerminate()");
+    }
+    thread_pool_->destroy();
+    delete thread_pool_;
+    status = ConditionExecutor::deinit();
+    return status;
+  }
+
   virtual base::Status run() {
     base::Status status = base::kStatusCodeOk;
     auto func = [this]() -> base::Status {
@@ -56,8 +85,8 @@ class ConditionParallelPipelineExecutor : public ConditionExecutor {
 
  protected:
   thread_pool::ThreadPool *thread_pool_ = nullptr;
-  std::mutex mutex_;
-  std::condition_variable cv_;
+  int all_task_count_ = 0;
+  std::vector<EdgeWrapper *> edge_repository_;
 };
 
 }  // namespace dag

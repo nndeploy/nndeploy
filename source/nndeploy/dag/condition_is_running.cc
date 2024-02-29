@@ -36,7 +36,7 @@ int ConditionIsRunning::choose() {
   while (ret == -1) {
     for (int j = 0; j < all_task_count; j++) {
       int i = (index_ + j) % all_task_count;  // 使用模运算保持索引在数组范围内
-      bool is_running = node_repository_[i]->node_s->isRunning();
+      bool is_running = node_repository_[i]->node_->isRunning();
       if (!is_running) {
         ret = index_;
         index_ = ret + 1;

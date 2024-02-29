@@ -33,7 +33,7 @@ class NNDEPLOY_CC_API Condition : public Graph {
   virtual base::Status run();
 
  protected:
-  virtual base::Status executorr();
+  virtual base::Status executor();
 };
 
 }  // namespace dag

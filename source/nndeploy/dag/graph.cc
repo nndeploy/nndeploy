@@ -154,9 +154,8 @@ base::Status Graph::init() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
 
-  status = this->executorr();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "graph executorr failed!");
+  status = this->executor();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph executor failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");
@@ -291,7 +290,7 @@ base::Status Graph::construct() {
   return status;
 }
 
-base::Status Graph::executorr() {
+base::Status Graph::executor() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");

@@ -38,6 +38,7 @@ class ConditionExecutor : public Executor {
     return status;
   }
 
+  void setCondition(Node *condition) { condition_ = condition; }
   void select(int index) { index_ = index; }
 
   virtual base::Status run() {

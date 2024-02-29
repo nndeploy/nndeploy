@@ -213,7 +213,7 @@ class NNDEPLOY_CC_API Graph : public Node {
 
  protected:
   virtual base::Status construct();
-  virtual base::Status executorr();
+  virtual base::Status executor();
 
  protected:
   std::vector<EdgeWrapper *> edge_repository_;

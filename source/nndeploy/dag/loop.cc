@@ -21,51 +21,30 @@ namespace nndeploy {
 namespace dag {
 
 Loop::Loop(const std::string &name, Edge *input, Edge *output)
-    : Node(name, input, output) {}
+    : Graph(name, input, output) {}
 Loop::Loop(const std::string &name, std::initializer_list<Edge *> inputs,
            std::initializer_list<Edge *> outputs)
-    : Node(name, inputs, outputs) {}
+    : Graph(name, inputs, outputs) {}
 Loop::~Loop() {}
-
-base::Status Loop::init() {
-  base::Status status = base::kStatusCodeOk;
-  loop_node_->setInitializedFlag(false);
-  status = loop_node_->init();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("Node init failed!\n");
-    return status;
-  }
-  loop_node_->setInitializedFlag(true);
-  return status;
-}
-
-base::Status Loop::deinit() {
-  base::Status status = base::kStatusCodeOk;
-  status = loop_node_->deinit();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("Node deinit failed!\n");
-    return status;
-  }
-  loop_node_->setInitializedFlag(false);
-  return status;
-}
 
 base::Status Loop::run() {
   base::Status status = base::kStatusCodeOk;
+  setRunningFlag(true);
+
   int size = loops();
   if (size < 1) {
     NNDEPLOY_LOGE("loops size is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
   for (int i = 0; i < size; i++) {
-    loop_node_->setRunningFlag(true);
-    status = loop_node_->run();
+    status = executor_->run();
     if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Node run failed!\n");
+      NNDEPLOY_LOGE("loops Graph run failed!\n");
       return status;
     }
-    loop_node_->setRunningFlag(false);
   }
+
+  setRunningFlag(false);
   return status;
 }
 
