@@ -205,7 +205,8 @@ base::Status Graph::run() {
 }
 
 base::Status Graph::dump(std::ostream &oss) {
-  base::Status status = dumpDag(node_repository_, name_, oss);
+  base::Status status = dumpDag(edge_repository_, node_repository_, inputs_,
+                                outputs_, name_, oss);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
   return status;
 }
@@ -341,6 +342,7 @@ base::Status Graph::executor() {
     NNDEPLOY_LOGE("parallel_type is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
+  return status;
 }
 
 std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap() {

@@ -83,9 +83,11 @@ NNDEPLOY_CC_API std::vector<NodeWrapper *> findStartNodes(
 NNDEPLOY_CC_API std::vector<NodeWrapper *> findEndNodes(
     std::vector<NodeWrapper *> &node_repository);
 
-base::Status dumpDag(std::vector<NodeWrapper *> &node_repository,
-                     const std::string &name = "",
-                     std::ostream &oss = std::cout);
+base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
+                     std::vector<NodeWrapper *> &node_repository,
+                     std::vector<Edge *> &graph_inputs,
+                     std::vector<Edge *> &graph_outputs,
+                     const std::string &name, std::ostream &oss);
 
 base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,
                          std::vector<NodeWrapper *> &topo_sort_node);

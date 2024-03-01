@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
     sep_graph->run();
     NNDEPLOY_LOGE("sep_graph->run();\n");
 
-    // sep_graph->dump();
+    sep_graph->dump();
 
     int count = 2;
     for (int i = 0; i < count; ++i) {

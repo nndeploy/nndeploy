@@ -102,7 +102,10 @@ std::vector<NodeWrapper *> findEndNodes(
   return end_nodes;
 }
 
-base::Status dumpDag(std::vector<NodeWrapper *> &node_repository,
+base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
+                     std::vector<NodeWrapper *> &node_repository,
+                     std::vector<Edge *> &graph_inputs,
+                     std::vector<Edge *> &graph_outputs,
                      const std::string &name, std::ostream &oss) {
   base::Status status = base::kStatusCodeOk;
   // NNDEPLOY_LOGI("#######################\n");
@@ -113,61 +116,71 @@ base::Status dumpDag(std::vector<NodeWrapper *> &node_repository,
   } else {
     oss << "digraph " << name << " {\n";
   }
-  for (auto node_wrapper : node_repository) {
-    Node *node = node_wrapper->node_;
-    if (node_wrapper->predecessors_.empty()) {
-      auto inputs = node->getAllInput();
-      //TODO: sjx 当input的这条边有多个消费者节点时，只dump了一个节点
-      for (auto input : inputs) {
-        oss << "p" << (void *)input << "[label=input]\n";
-        oss << "p" << (void *)input << "->"
-            << "p" << (void *)node;
-        if (input->getName().empty()) {
-          oss << "\n";
-        } else {
-          oss << "[label=" << input->getName() << "]\n";
-        }
+  for (auto input : graph_inputs) {
+    if (input->getName().empty()) {
+      oss << "p" << (void *)input << "[shape=box, label=input]\n";
+    } else {
+      oss << "p" << (void *)input << "[shape=box, label=" << input->getName()
+          << "]\n";
+    }
+    EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository, input);
+    for (auto node_wrapper : edge_wrapper->consumers_) {
+      auto node = node_wrapper->node_;
+      oss << "p" << (void *)input << "->"
+          << "p" << (void *)node;
+      if (input->getName().empty()) {
+        oss << "\n";
+      } else {
+        oss << "[label=" << input->getName() << "]\n";
       }
     }
+  }
+  for (auto node_wrapper : node_repository) {
+    Node *node = node_wrapper->node_;
     if (node->getName().empty()) {
-      oss << "p" << (void *)node << "\n";
+      oss << "p" << (void *)node << "[label=node]\n";
     } else {
       oss << "p" << (void *)node << "[label=" << node->getName() << "]\n";
     }
-    if (node_wrapper->successors_.empty()) {
+    for (auto successor : node_wrapper->successors_) {
       auto outputs = node->getAllOutput();
+      auto inputs = successor->node_->getAllInput();
+      // 两Node间可能有多条Edge
       for (auto output : outputs) {
-        oss << "p" << (void *)output << "[label=output]\n";
-        oss << "p" << (void *)node << "->"
-            << "p" << (void *)output;
-        if (output->getName().empty()) {
-          oss << "\n";
-        } else {
-          oss << "[label=" << output->getName() << "]\n";
+        Edge *out_in = nullptr;
+        for (auto input : inputs) {
+          if (output == input) {
+            out_in = output;
+          }
+        }
+        if (out_in != nullptr) {
+          oss << "p" << (void *)node << "->"
+              << "p" << (void *)(successor->node_);
+          if (out_in->getName().empty()) {
+            oss << "\n";
+          } else {
+            oss << "[label=" << out_in->getName() << "]\n";
+          }
         }
       }
+    }
+  }
+  for (auto output : graph_outputs) {
+    if (output->getName().empty()) {
+      oss << "p" << (void *)output << "[shape=box, label=output]\n";
     } else {
-      for (auto successor : node_wrapper->successors_) {
-        auto outputs = node->getAllOutput();
-        auto inputs = successor->node_->getAllInput();
-        // 两Node间可能有多条Edge
-        for (auto output : outputs) {
-          Edge *out_in = nullptr;
-          for (auto input : inputs) {
-            if (output == input) {
-              out_in = output;
-            }
-          }
-          if (out_in != nullptr) {
-            oss << "p" << (void *)node << "->"
-                << "p" << (void *)(successor->node_);
-            if (out_in->getName().empty()) {
-              oss << "\n";
-            } else {
-              oss << "[label=" << out_in->getName() << "]\n";
-            }
-          }
-        }
+      oss << "p" << (void *)output << "[shape=box, label=" << output->getName()
+          << "]\n";
+    }
+    EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository, output);
+    for (auto node_wrapper : edge_wrapper->producers_) {
+      auto node = node_wrapper->node_;
+      oss << "p" << (void *)node << "->"
+          << "p" << (void *)output;
+      if (output->getName().empty()) {
+        oss << "\n";
+      } else {
+        oss << "[label=" << output->getName() << "]\n";
       }
     }
   }

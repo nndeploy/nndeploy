@@ -11,21 +11,65 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/graph/parallel_pipeline_executor.h"
+#include "nndeploy/dag/graph/parallel_task_executor.h"
+#include "nndeploy/dag/graph/sequential_executor.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
 
+
 namespace nndeploy {
 namespace dag {
 
-Loop::Loop(const std::string &name, Edge *input, Edge *output)
-    : Graph(name, input, output) {}
+Loop::Loop(const std::string &name, Edge *input, Edge *output, bool update_flag)
+    : Graph(name, input, output), update_flag_(update_flag) {}
 Loop::Loop(const std::string &name, std::initializer_list<Edge *> inputs,
-           std::initializer_list<Edge *> outputs)
-    : Graph(name, inputs, outputs) {}
+           std::initializer_list<Edge *> outputs, bool update_flag)
+    : Graph(name, inputs, outputs), update_flag_(update_flag) {}
 Loop::~Loop() {}
+
+base::Status Loop::init() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(false);
+
+  status = this->construct();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "graph construct failed!");
+
+  status = this->executor();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph executor failed!");
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag true!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(true);
+
+  return status;
+}
+
+base::Status Loop::deinit() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(false);
+
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  status = executor_->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "executor deinit failed!");
+  return status;
+}
 
 base::Status Loop::run() {
   base::Status status = base::kStatusCodeOk;
@@ -37,15 +81,93 @@ base::Status Loop::run() {
     return base::kStatusCodeErrorInvalidValue;
   }
   for (int i = 0; i < size; i++) {
+    if (update_flag_ && i > 0) {
+      auto inputs = this->getAllInput();
+      for (auto input : inputs) {
+        // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
+        //               iter->node_->getName().c_str(),
+        //               std::this_thread::get_id());
+        bool flag = input->updateData(this);
+        // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
+        //               iter->node_->getName().c_str(),
+        //               std::this_thread::get_id());
+        if (!flag) {
+          return status;
+        }
+      }
+    }
+    status = this->beforeRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("loops Graph beforeRun failed!\n");
+      return status;
+    }
     status = executor_->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("loops Graph run failed!\n");
+      return status;
+    }
+    status = this->afterRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("loops Graph afterRun failed!\n");
       return status;
     }
   }
 
   setRunningFlag(false);
   return status;
+}
+
+base::Status Loop::executor() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("parallel_type!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  ParallelType parallel_type = parallel_type_;
+
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("create executor\n");
+  // NNDEPLOY_LOGI("##############\n");
+  if (parallel_type == kParallelTypeNone) {
+    executor_ = std::make_shared<SequentialExecutor>();
+  } else if (parallel_type == kParallelTypeTask) {
+    executor_ = std::make_shared<ParallelTaskExecutor>();
+  } else if (parallel_type == kParallelTypePipeline) {
+    // NNDEPLOY_LOGE(
+    //     "executor_ = std::make_shared<ParallelPipelineExecutor>()!\n");
+    executor_ = std::make_shared<ParallelPipelineExecutor>();
+  } else {
+    NNDEPLOY_LOGE("parallel_type is invalid!\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
+
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("executor init\n");
+  // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
+  // NNDEPLOY_LOGI("2. Device Verification Phase!\n");
+  // NNDEPLOY_LOGI("3. Optimizer Graph V2!\n");
+  // NNDEPLOY_LOGI("4. Memory Allocation Phase!\n");
+  // NNDEPLOY_LOGI("5. Cost Calculations!\n");
+  // NNDEPLOY_LOGI("##############\n");
+  status = executor_->init(edge_repository_, node_repository_);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
+
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("process\n");
+  // NNDEPLOY_LOGI("##############\n");
+  if (parallel_type == kParallelTypeNone) {
+    ;
+  } else if (parallel_type == kParallelTypeTask) {
+    ;
+  } else if (parallel_type == kParallelTypePipeline) {
+    ParallelPipelineExecutor *ppe_executor =
+        dynamic_cast<ParallelPipelineExecutor *>(executor_.get());
+    ppe_executor->process();
+  } else {
+    NNDEPLOY_LOGE("parallel_type is invalid!\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
 }
 
 }  // namespace dag

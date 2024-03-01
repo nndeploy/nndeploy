@@ -28,6 +28,9 @@ class NNDEPLOY_CC_API Condition : public Graph {
             std::initializer_list<Edge *> outputs);
   virtual ~Condition();
 
+  virtual base::Status init();
+  virtual base::Status deinit();
+
   virtual int choose() = 0;
 
   virtual base::Status run();

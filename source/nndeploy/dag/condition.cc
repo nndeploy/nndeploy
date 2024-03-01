@@ -30,6 +30,68 @@ Condition::Condition(const std::string &name,
     : Graph(name, inputs, outputs) {}
 Condition::~Condition() {}
 
+base::Status Condition::init() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(false);
+
+  status = this->construct();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "graph construct failed!");
+
+  status = this->executor();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph executor failed!");
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag true!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(true);
+
+  return status;
+}
+
+base::Status Condition::deinit() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(false);
+
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  status = executor_->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "executor deinit failed!");
+  return status;
+}
+
+base::Status Condition::run() {
+  base::Status status = base::kStatusCodeOk;
+
+  setRunningFlag(true);
+
+  int index = this->choose();
+  if (index < 0 || index >= node_repository_.size()) {
+    NNDEPLOY_LOGE("choose index is invalid!\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  ConditionExecutor *condition_executor =
+      dynamic_cast<ConditionExecutor *>(executor_.get());
+  condition_executor->select(index);
+  status = condition_executor->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
+
+  setRunningFlag(false);
+
+  return status;
+}
+
 base::Status Condition::executor() {
   base::Status status = base::kStatusCodeOk;
 
@@ -84,28 +146,6 @@ base::Status Condition::executor() {
     NNDEPLOY_LOGE("parallel_type is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
-
-  return status;
-}
-
-base::Status Condition::run() {
-  base::Status status = base::kStatusCodeOk;
-
-  setRunningFlag(true);
-
-  int index = this->choose();
-  if (index < 0 || index >= node_repository_.size()) {
-    NNDEPLOY_LOGE("choose index is invalid!\n");
-    return base::kStatusCodeErrorInvalidValue;
-  }
-
-  ConditionExecutor *condition_executor =
-      dynamic_cast<ConditionExecutor *>(executor_.get());
-  condition_executor->select(index);
-  status = condition_executor->run();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
-
-  setRunningFlag(false);
 
   return status;
 }

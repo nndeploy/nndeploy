@@ -23,17 +23,25 @@ namespace dag {
 
 class NNDEPLOY_CC_API Loop : public Graph {
  public:
-  Loop(const std::string &name, Edge *input, Edge *output);
+  Loop(const std::string &name, Edge *input, Edge *output,
+       bool update_flag = false);
   Loop(const std::string &name, std::initializer_list<Edge *> inputs,
-       std::initializer_list<Edge *> outputs);
+       std::initializer_list<Edge *> outputs, bool update_flag = false);
   virtual ~Loop();
 
-  virtual int loops() = 0;
+  virtual base::Status init();
+  virtual base::Status deinit();
 
+  virtual int loops() = 0;
+  virtual base::Status beforeRun() = 0;
   virtual base::Status run();
+  virtual base::Status afterRun() = 0;
 
  protected:
   virtual base::Status executor();
+
+ protected:
+  bool update_flag_ = false;
 };
 
 }  // namespace dag
