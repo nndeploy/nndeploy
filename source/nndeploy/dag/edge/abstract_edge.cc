@@ -43,8 +43,6 @@ EdgeType getEdgeType(ParallelType type) {
       return kEdgeTypeFixed;
     case kParallelTypePipeline:
       return kEdgeTypePipeline;
-    case kParallelTypeAdaptive:
-      return kEdgeTypePipeline;
     default:
       return kEdgeTypeFixed;
   }

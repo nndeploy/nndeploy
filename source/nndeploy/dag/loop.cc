@@ -11,15 +11,14 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
-#include "nndeploy/dag/graph/parallel_pipeline_executor.h"
-#include "nndeploy/dag/graph/parallel_task_executor.h"
-#include "nndeploy/dag/graph/sequential_executor.h"
+#include "nndeploy/dag/executor/parallel_pipeline_executor.h"
+#include "nndeploy/dag/executor/parallel_task_executor.h"
+#include "nndeploy/dag/executor/sequential_executor.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-
 
 namespace nndeploy {
 namespace dag {
@@ -153,21 +152,7 @@ base::Status Loop::executor() {
   status = executor_->init(edge_repository_, node_repository_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
 
-  // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("process\n");
-  // NNDEPLOY_LOGI("##############\n");
-  if (parallel_type == kParallelTypeNone) {
-    ;
-  } else if (parallel_type == kParallelTypeTask) {
-    ;
-  } else if (parallel_type == kParallelTypePipeline) {
-    ParallelPipelineExecutor *ppe_executor =
-        dynamic_cast<ParallelPipelineExecutor *>(executor_.get());
-    ppe_executor->process();
-  } else {
-    NNDEPLOY_LOGE("parallel_type is invalid!\n");
-    return base::kStatusCodeErrorInvalidValue;
-  }
+  return status;
 }
 
 }  // namespace dag

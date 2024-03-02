@@ -11,9 +11,9 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
-#include "nndeploy/dag/graph/parallel_pipeline_executor.h"
-#include "nndeploy/dag/graph/parallel_task_executor.h"
-#include "nndeploy/dag/graph/sequential_executor.h"
+#include "nndeploy/dag/executor/parallel_pipeline_executor.h"
+#include "nndeploy/dag/executor/parallel_task_executor.h"
+#include "nndeploy/dag/executor/sequential_executor.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/dag/util.h"
 #include "nndeploy/device/buffer.h"
@@ -26,13 +26,17 @@ namespace dag {
 
 Graph::Graph(const std::string &name, Edge *input, Edge *output)
     : Node(name, input, output) {
-  if (nullptr == addEdge(input)) {
-    constructed_ = false;
-    return;
+  if (input != nullptr) {
+    if (nullptr == addEdge(input)) {
+      constructed_ = false;
+      return;
+    }
   }
-  if (nullptr == addEdge(output)) {
-    constructed_ = false;
-    return;
+  if (output != nullptr) {
+    if (nullptr == addEdge(output)) {
+      constructed_ = false;
+      return;
+    }
   }
   constructed_ = true;
 }
@@ -275,9 +279,11 @@ base::Status Graph::construct() {
     for (auto consumer : edge_wrapper->consumers_) {
       consumers.emplace_back(consumer->node_);
     }
+    // 后set会覆盖前set
     base::Status status = edge_wrapper->edge_->setParallelType(parallel_type);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "setParallelType failed!");
+    // 必须在abstract_edge管理该字段
     status = edge_wrapper->edge_->increaseProducers(producers);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "increaseProducers failed!");
@@ -307,8 +313,6 @@ base::Status Graph::executor() {
   } else if (parallel_type == kParallelTypeTask) {
     executor_ = std::make_shared<ParallelTaskExecutor>();
   } else if (parallel_type == kParallelTypePipeline) {
-    // NNDEPLOY_LOGE(
-    //     "executor_ = std::make_shared<ParallelPipelineExecutor>()!\n");
     executor_ = std::make_shared<ParallelPipelineExecutor>();
   } else {
     NNDEPLOY_LOGE("parallel_type is invalid!\n");
@@ -327,21 +331,6 @@ base::Status Graph::executor() {
   status = executor_->init(edge_repository_, node_repository_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
 
-  // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("process\n");
-  // NNDEPLOY_LOGI("##############\n");
-  if (parallel_type == kParallelTypeNone) {
-    ;
-  } else if (parallel_type == kParallelTypeTask) {
-    ;
-  } else if (parallel_type == kParallelTypePipeline) {
-    ParallelPipelineExecutor *ppe_executor =
-        dynamic_cast<ParallelPipelineExecutor *>(executor_.get());
-    ppe_executor->process();
-  } else {
-    NNDEPLOY_LOGE("parallel_type is invalid!\n");
-    return base::kStatusCodeErrorInvalidValue;
-  }
   return status;
 }
 

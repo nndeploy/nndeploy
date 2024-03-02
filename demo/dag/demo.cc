@@ -56,45 +56,7 @@ class NNDEPLOY_CC_API OpNode : public dag::Node {
   }
 };
 
-// {
-//   sub_graph_0->init();
-//   sub_graph_0->run();
-
-//   sub_graph_0->dump();
-
-//   int count = 2;
-//   for (int i = 0; i < count; ++i) {
-//     device::Device *device = device::getDefaultHostDevice();
-//     device::TensorDesc desc;
-//     desc.data_type_ = base::dataTypeOf<float>();
-//     desc.data_format_ = base::DataFormat::kDataFormatNCHW;
-//     desc.shape_ = {1, 3, 512, 512};
-//     device::Tensor *input_tensor =
-//         new device::Tensor(device, desc, "sub_in_0 ");
-
-//     sub_in_0.set(input_tensor, i, false);
-//   }
-
-//   for (int i = 0; i < count; ++i) {
-//     device::Tensor *result = sub_out_0.getGraphOutputTensor();
-//     if (result == nullptr) {
-//       NNDEPLOY_LOGE("result is nullptr");
-//       return -1;
-//     }
-//   }
-
-//   // 有向无环图graph反初始化
-//   status = sub_graph_0->deinit();
-//   if (status != base::kStatusCodeOk) {
-//     NNDEPLOY_LOGE("graph deinit failed");
-//     return -1;
-//   }
-
-//   // delete sep_graph;
-//   return 0;
-// }
-
-int main(int argc, char *argv[]) {
+int seqGraph() {
   dag::Edge sub_in_0("sub_in_0");
   dag::Edge sub_out_0("sub_out_0");
   dag::Graph *sub_graph_0 =
@@ -175,25 +137,65 @@ int main(int argc, char *argv[]) {
     delete sep_graph;
   }
 
-  //{
-  //  dag::Graph *par_graph = new dag::Graph("par_graph", {&sub_in_0,
-  //  &sub_in_1},
-  //                                         {&sub_out_0, &sub_out_1});
-  //  par_graph->addNode(sub_graph_0);
-  //  par_graph->addNode(sub_graph_1);
-
-  //  par_graph->init();
-
-  //  par_graph->dump();
-
-  //   delete par_graph;
-  //}
-
   // 有向无环图graph销毁
   delete sub_graph_0;
   delete sub_graph_1;
 
+  return 0;
+}
+
+int parallelGraph() {
+  dag::Edge sub_in_0("sub_in_0");
+  dag::Edge sub_out_0("sub_out_0");
+  dag::Graph *sub_graph_0 =
+      new dag::Graph("sub_graph_0", &sub_in_0, &sub_out_0);
+  dag::Edge *op_0_1_out = sub_graph_0->createEdge("op_1_1_out");
+  dag::Node *op_0_1 =
+      sub_graph_0->createNode<OpNode>("op_0_1", &sub_in_0, op_0_1_out);
+  dag::Node *op_0_2 =
+      sub_graph_0->createNode<OpNode>("op_0_2", op_0_1_out, &sub_out_0);
+  base::Status status =
+      sub_graph_0->setParallelType(dag::kParallelTypePipeline);
+
+  //dag::Edge sub_in_1("sub_in_1");
+  dag::Edge sub_out_1("sub_out_1");
+  dag::Graph *sub_graph_1 =
+      new dag::Graph("sub_graph_1", &sub_in_0, &sub_out_1);
+  dag::Edge *op_1_1_out = sub_graph_1->createEdge("op_1_1_out");
+  dag::Node *op_1_1 =
+      sub_graph_1->createNode<OpNode>("op_1_1", &sub_in_0, op_1_1_out);
+  dag::Node *op_1_2 =
+      sub_graph_1->createNode<OpNode>("op_1_2", op_1_1_out, &sub_out_1);
+  status = sub_graph_1->setParallelType(dag::kParallelTypePipeline);
+
+  {
+    dag::Edge sub_out_2("sub_out_2");
+    dag::Graph *par_graph = new dag::Graph("par_graph", {&sub_in_0},
+                                           {&sub_out_0, &sub_out_1, &sub_out_2});
+    par_graph->addNode(sub_graph_0);
+    par_graph->addNode(sub_graph_1);
+    dag::Node *op_parallel_out =
+        par_graph->createNode<OpNode>(
+        "op_parallel_out", &sub_out_1, &sub_out_2);
+    status = sub_graph_1->setParallelType(dag::kParallelTypePipeline);
+
+    par_graph->init();
+
+    par_graph->dump();
+
+    delete par_graph;
+  }
+  // 有向无环图graph销毁
+  delete sub_graph_0;
+  delete sub_graph_1;
+
+  return 0;
+}
+
+int main(int argc, char *argv[]) {
   NNDEPLOY_LOGE("hello world!\n");
+
+  parallelGraph();
 
   return 0;
 }

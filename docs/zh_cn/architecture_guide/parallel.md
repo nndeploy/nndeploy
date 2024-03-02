@@ -7,7 +7,7 @@ nndeploy当前支持任务级并行和流水线并行两种并行方式。二者
 
 ## 任务级并行
 
-代码位于`nndeploy/include/nndeploy/dag/graph/parallel_task_executor.h`
+代码位于`nndeploy/include/nndeploy/dag/executor/parallel_task_executor.h`
 
 任务级并行利用模型内部节点的并行性，将多个节点调度在多个线程中同时执行。假设有一个9节点的有向无环图，其拓扑架构如下，边表示数据的流向，用边连接的两个节点具有生产者-消费者的依赖关系，当生产者节点运行完毕后，消费者节点才能运行。例如E节点需要等C节点和D节点运行完毕后再运行。
 
@@ -47,7 +47,7 @@ nndeploy采用的方式是运行时动态解图，在每个节点计算完毕后
 
 ## 流水线并行
 
- 代码位于`nndeploy/include/nndeploy/dag/graph/parallel_pipeline_executor.h`
+ 代码位于`nndeploy/include/nndeploy/dag/executor/parallel_pipeline_executor.h`
 
 流水线并行是一种基于流水线思想的并行计算模型，主要用于解决计算密集型任务的并行执行问题，例如图像处理、视频编解码、机器学习等领域。其面向的场景为多批输入数据。流水线并行的原理是将一个大型计算任务拆分为若干个小的子任务，然后将这些子任务分配给不同的计算单元同时执行，每个计算单元只负责执行其中的一个子任务，完成后将结果传递给下一个计算单元，以此类推，直到所有子任务都被执行完成并合并为最终结果。其优点为可以充分利用计算资源，提高整体吞吐量。
 

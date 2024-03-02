@@ -1,5 +1,5 @@
 
-#include "nndeploy/dag/condition_is_running.h"
+#include "nndeploy/dag/running_condition.h"
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -20,17 +20,17 @@
 namespace nndeploy {
 namespace dag {
 
-ConditionIsRunning::ConditionIsRunning(const std::string &name, Edge *input,
-                                       Edge *output)
+RunningCondition::RunningCondition(const std::string &name, Edge *input,
+                                   Edge *output)
     : Condition(name, input, output) {}
-ConditionIsRunning::ConditionIsRunning(const std::string &name,
-                                       std::initializer_list<Edge *> inputs,
-                                       std::initializer_list<Edge *> outputs)
+RunningCondition::RunningCondition(const std::string &name,
+                                   std::initializer_list<Edge *> inputs,
+                                   std::initializer_list<Edge *> outputs)
     : Condition(name, inputs, outputs) {}
-ConditionIsRunning::~ConditionIsRunning() {}
+RunningCondition::~RunningCondition() {}
 
 // 需要wait等待
-int ConditionIsRunning::choose() {
+int RunningCondition::choose() {
   int ret = -1;
   int all_task_count = node_repository_.size();
   while (ret == -1) {

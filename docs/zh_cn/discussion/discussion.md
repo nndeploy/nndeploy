@@ -135,3 +135,20 @@ base::Status AscendCLInference::run() {
   + 模型导出
   + 量化
 + 问题讨论
+
+## dag 代码review
++ condition和loop是Graph而不是Node
+  + Graph继承Node
+  + 相比Node，Graph区别主要如下
+    + Graph具备管理Node的能力
+    + Graph的执行委托executor
++ 是否要把executor挪到主目录下来
++ 并把executor中的帮助函数放到util中来
++ 命名的修改
+  + condition_is_running -> runnint_condition
+  + graph目录 -> executor目录
+  + condition_parallel_pipeline_executor -> parallel_pipeline_condition_executor
++ 解决Graph嵌入Graph偶发性错误问题
++ 功能验证
+  + 一个图中各个子模块都有各自的并行方式（串行、任务并行、流水线并行）
++ 当一个Edge既是整个图的输出也是某个中间节点的输入，这个该如何解决（主要麻烦点在流水线并行模式，待review解决）

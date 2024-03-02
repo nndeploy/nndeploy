@@ -11,8 +11,8 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
-#include "nndeploy/dag/graph/condition_executor.h"
-#include "nndeploy/dag/graph/condition_parallel_pipeline_executor.h"
+#include "nndeploy/dag/executor/condition_executor.h"
+#include "nndeploy/dag/executor/parallel_pipeline_condition_executor.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
@@ -85,7 +85,8 @@ base::Status Condition::run() {
       dynamic_cast<ConditionExecutor *>(executor_.get());
   condition_executor->select(index);
   status = condition_executor->run();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "condition executor run failed!");
 
   setRunningFlag(false);
 
@@ -108,7 +109,7 @@ base::Status Condition::executor() {
   } else if (parallel_type == kParallelTypeTask) {
     executor_ = std::make_shared<ConditionExecutor>();
   } else if (parallel_type == kParallelTypePipeline) {
-    executor_ = std::make_shared<ConditionParallelPipelineExecutor>();
+    executor_ = std::make_shared<ParallelPipelineConditionExecutor>();
   } else {
     NNDEPLOY_LOGE("parallel_type is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
@@ -129,23 +130,6 @@ base::Status Condition::executor() {
   ConditionExecutor *condition_executor =
       dynamic_cast<ConditionExecutor *>(executor_.get());
   condition_executor->setCondition(this);
-
-  // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("process\n");
-  // NNDEPLOY_LOGI("##############\n");
-  if (parallel_type == kParallelTypeNone) {
-    ;
-  } else if (parallel_type == kParallelTypeTask) {
-    ;
-  } else if (parallel_type == kParallelTypePipeline) {
-    // ConditionParallelPipelineExecutor *cppe_executor =
-    //     dynamic_cast<ConditionParallelPipelineExecutor *>(executor_.get());
-    // cppe_executor->process();
-    ;
-  } else {
-    NNDEPLOY_LOGE("parallel_type is invalid!\n");
-    return base::kStatusCodeErrorInvalidValue;
-  }
 
   return status;
 }

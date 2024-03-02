@@ -1,8 +1,8 @@
 
-#ifndef _NNDEPLOY_DAG_GRAPH_PARALLEL_TASK_EXECUTOR_H_
-#define _NNDEPLOY_DAG_GRAPH_PARALLEL_TASK_EXECUTOR_H_
+#ifndef _NNDEPLOY_DAG_EXECUTOR_PARALLEL_TASK_EXECUTOR_H_
+#define _NNDEPLOY_DAG_EXECUTOR_PARALLEL_TASK_EXECUTOR_H_
 
-#include "nndeploy/dag/graph/executor.h"
+#include "nndeploy/dag/executor.h"
 #include "nndeploy/thread_pool/safe_ws_queue.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 
@@ -154,4 +154,4 @@ class ParallelTaskExecutor : public Executor {
 }  // namespace dag
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_DAG_GRAPH_PARALLEL_TASK_EXECUTOR_H_ */
+#endif /* _NNDEPLOY_DAG_EXECUTOR_PARALLEL_TASK_EXECUTOR_H_ */

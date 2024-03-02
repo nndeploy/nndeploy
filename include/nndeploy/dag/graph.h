@@ -10,8 +10,10 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
-#include "nndeploy/dag/graph/executor.h"
+#include "nndeploy/dag/executor.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/dag/type.h"
+#include "nndeploy/dag/util.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
@@ -65,8 +67,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, Edge *input, Edge *output) {
-    NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
-    NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
+    // NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
+    // NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
     Node *node = dynamic_cast<Node *>(new T(name, input, output));
     NodeWrapper *node_wrapper = new NodeWrapper();
     node_wrapper->is_external_ = false;
@@ -135,8 +137,8 @@ class NNDEPLOY_CC_API Graph : public Node {
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     Edge *input, Edge *output) {
-    NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
-    NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
+    // NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
+    // NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
     Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
     NodeWrapper *node_wrapper = new NodeWrapper();
     node_wrapper->is_external_ = false;
@@ -248,4 +250,4 @@ extern NNDEPLOY_CC_API Graph *createGraph(const std::string &name,
 }  // namespace dag
 }  // namespace nndeploy
 
-#endif  // _NNDEPLOY_DAG_GRAPH_H_
+#endif  // _NNDEPLOY_DAG_EXECUTOR_H_

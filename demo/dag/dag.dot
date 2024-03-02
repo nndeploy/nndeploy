@@ -1,23 +1,15 @@
-// digraph sep_graph {
-// p0000002DF88FFA28[shape=box, label=input]
-// p0000002DF88FFA28->p0000015D21E9AA80[label=sub_in_0]
-// p0000015D21E9AA80[label=sub_graph_0]
-// p0000015D21E9AA80->p0000015D21EC9F10[label=sub_out_0]
-// p0000015D21EC9F10[label=op_link]
-// p0000015D21EC9F10->p0000015D21E9BA80[label=sub_in_1]
-// p0000015D21E9BA80[label=sub_graph_1]
-// p0000002DF88FF9A8[shape=box, label=sub_out_1]
-// p0000015D21E9BA80->p0000002DF88FF9A8[label=sub_out_1]
-// }
-
-digraph sep_graph {
-p000000777572FD78[shape=box, label=sub_in_0]
-p000000777572FD78->p0000024C33D6AA80[label=sub_in_0]
-p0000024C33D6AA80[label=sub_graph_0]
-p0000024C33D6AA80->p0000024C33DA5CE0[label=sub_out_0]
-p0000024C33DA5CE0[label=op_link]
-p0000024C33DA5CE0->p0000024C33D6BA30[label=sub_in_1]
-p0000024C33D6BA30[label=sub_graph_1]
-p000000777572FCF8[shape=box, label=sub_out_1]
-p0000024C33D6BA30->p000000777572FCF8[label=sub_out_1]
+digraph par_graph {
+p000000150358FDA0[shape=box, label=sub_in_0]
+p000000150358FDA0->p000001A7B4AFAAB0[label=sub_in_0]
+p000000150358FDA0->p000001A7B4AFBAB0[label=sub_in_0]
+p000001A7B4AFAAB0[label=sub_graph_0]
+p000001A7B4AFBAB0[label=sub_graph_1]
+p000001A7B4AFBAB0->p000001A7B4B33930[label=sub_out_1]
+p000001A7B4B33930[label=op_parallel_out]
+p000000150358FD70[shape=box, label=sub_out_0]
+p000001A7B4AFAAB0->p000000150358FD70[label=sub_out_0]
+p000000150358FD40[shape=box, label=sub_out_1]
+p000001A7B4AFBAB0->p000000150358FD40[label=sub_out_1]
+p000000150358FDD0[shape=box, label=sub_out_2]
+p000001A7B4B33930->p000000150358FDD0[label=sub_out_2]
 }
