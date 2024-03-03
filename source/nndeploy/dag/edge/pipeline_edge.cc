@@ -114,7 +114,7 @@ device::Buffer *PipelineEdge::getGraphOutputBuffer() {
   if (!flag) {
     return nullptr;
   }
-  flag = updateData(nullptr);
+  flag = update(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -199,7 +199,7 @@ device::Mat *PipelineEdge::getGraphOutputMat() {
   if (!flag) {
     return nullptr;
   }
-  flag = updateData(nullptr);
+  flag = update(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -255,7 +255,7 @@ cv::Mat *PipelineEdge::getGraphOutputCvMat() {
   if (!flag) {
     return nullptr;
   }
-  flag = updateData(nullptr);
+  flag = update(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -342,7 +342,7 @@ device::Tensor *PipelineEdge::getGraphOutputTensor() {
   if (!flag) {
     return nullptr;
   }
-  flag = updateData(nullptr);
+  flag = update(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -398,7 +398,7 @@ base::Param *PipelineEdge::getGraphOutputParam() {
   if (!flag) {
     return nullptr;
   }
-  flag = updateData(nullptr);
+  flag = update(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -439,7 +439,7 @@ void *PipelineEdge::getGraphOutputAnything() {
   if (!flag) {
     return nullptr;
   }
-  flag = updateData(nullptr);
+  flag = update(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -521,7 +521,7 @@ bool PipelineEdge::markGraphOutput() {
  * @return PipelineDataPacket*
  * @note 用于获取消费者节点的数据包，对应节点的输入边
  */
-bool PipelineEdge::updateData(const Node *node) {
+bool PipelineEdge::update(const Node *node) {
   Node *tmp_node = const_cast<Node *>(node);
   if (!checkNode(tmp_node)) {
     NNDEPLOY_LOGE("This node is error.\n");

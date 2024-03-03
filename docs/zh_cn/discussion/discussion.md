@@ -142,8 +142,8 @@ base::Status AscendCLInference::run() {
   + 相比Node，Graph区别主要如下
     + Graph具备管理Node的能力
     + Graph的执行委托executor
-+ 是否要把executor挪到主目录下来
-+ 并把executor中的帮助函数放到util中来
++ 把executor.h挪到主目录下来
++ 并把executor.h中的帮助函数放到util中来
 + 命名的修改
   + condition_is_running -> runnint_condition
   + graph目录 -> executor目录
@@ -151,7 +151,14 @@ base::Status AscendCLInference::run() {
 + 解决Graph嵌入Graph偶发性错误问题
 + 功能验证
   + 一个图中各个子模块都有各自的并行方式（串行、任务并行、流水线并行）
-+ 当一个Edge既是整个图的输出也是某个中间节点的输入，这个该如何解决（主要麻烦点在流水线并行模式，待review解决）
+  + 当一个Edge既是整个图的输出也是某个中间节点的输入，这个该如何解决（主要麻烦点在流水线并行模式，待review解决）(yi)
 
 ## dag pipeline edge
-+ 
+## 图中串图
+### 大图
++ Parameter Validation Phase
++ Mark Predecessors And Successors Phase
+  + 为其每个子节点（节点或者图）修改并行属性
+    + 当其子节点已有并行属性，不修改，否则修改
++ construct edge
+  + 

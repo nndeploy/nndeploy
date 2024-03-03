@@ -106,6 +106,8 @@ base::Status Condition::executor() {
   // NNDEPLOY_LOGI("##############\n");
   if (parallel_type == kParallelTypeNone) {
     executor_ = std::make_shared<ConditionExecutor>();
+  } else if (parallel_type == kParallelTypeSequential) {
+    executor_ = std::make_shared<ConditionExecutor>();
   } else if (parallel_type == kParallelTypeTask) {
     executor_ = std::make_shared<ConditionExecutor>();
   } else if (parallel_type == kParallelTypePipeline) {

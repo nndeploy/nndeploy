@@ -12,11 +12,7 @@ Edge::~Edge() { delete abstact_edge_; }
 
 std::string Edge::getName() { return name_; }
 
-base::Status Edge::construct() {
-  // NNDEPLOY_LOGE("Edge name[%s], Thread ID: %d.\n", name_.c_str(),
-  //               std::this_thread::get_id());
-  return abstact_edge_->construct();
-}
+base::Status Edge::construct() { return abstact_edge_->construct(); }
 
 base::Status Edge::set(device::Buffer *buffer, int index, bool is_external) {
   return abstact_edge_->set(buffer, index, is_external);
@@ -119,9 +115,7 @@ void *Edge::getGraphOutputAnything() {
 int Edge::getIndex(const Node *node) { return abstact_edge_->getIndex(node); }
 int Edge::getGraphOutputIndex() { return abstact_edge_->getGraphOutputIndex(); }
 
-bool Edge::updateData(const Node *node) {
-  return abstact_edge_->updateData(node);
-}
+bool Edge::update(const Node *node) { return abstact_edge_->update(node); }
 
 bool Edge::markGraphOutput() { return abstact_edge_->markGraphOutput(); }
 
@@ -134,13 +128,19 @@ base::Status Edge::setParallelType(const ParallelType &paralle_type) {
     }
   } else {
     ParallelType cur_paralle_type = abstact_edge_->getParallelType();
-    if (cur_paralle_type != paralle_type) {
-      delete abstact_edge_;
-      abstact_edge_ = createEdge(paralle_type);
-      if (abstact_edge_ == nullptr) {
+    if ((int)paralle_type > (int)cur_paralle_type) {
+      // delete abstact_edge_;
+      AbstractEdge *new_abstact_edge = createEdge(paralle_type);
+      if (new_abstact_edge == nullptr) {
         NNDEPLOY_LOGE("out of memory!\n");
         return base::kStatusCodeErrorOutOfMemory;
       }
+      std::vector<Node *> producers = abstact_edge_->getProducers();
+      new_abstact_edge->increaseProducers(producers);
+      std::vector<Node *> consumers = abstact_edge_->getConsumers();
+      new_abstact_edge->increaseConsumers(consumers);
+      delete abstact_edge_;
+      abstact_edge_ = new_abstact_edge;
     }
   }
   return base::kStatusCodeOk;

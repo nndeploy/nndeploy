@@ -48,7 +48,7 @@ base::Status ParallelPipelineConditionExecutor::run() {
       // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
       //               iter->node_->getName().c_str(),
       //               std::this_thread::get_id());
-      bool flag = input->updateData(cur_node);
+      bool flag = input->update(cur_node);
       // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
       //               iter->node_->getName().c_str(),
       //               std::this_thread::get_id());
@@ -58,7 +58,7 @@ base::Status ParallelPipelineConditionExecutor::run() {
       int innner_index = input->getIndex(cur_node);
       int condition_index = input->getIndex(this->condition_);
       for (; innner_index < condition_index; innner_index++) {
-        bool flag = input->updateData(cur_node);
+        bool flag = input->update(cur_node);
         // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
         //               iter->node_->getName().c_str(),
         //               std::this_thread::get_id());

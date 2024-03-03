@@ -74,7 +74,9 @@ std::vector<Edge *> Node::getAllOutput() { return outputs_; }
 bool Node::getConstructed() { return constructed_; }
 
 base::Status Node::setParallelType(const ParallelType &paralle_type) {
-  parallel_type_ = paralle_type;
+  if (parallel_type_ == kParallelTypeNone) {
+    parallel_type_ = paralle_type;
+  }
   return base::kStatusCodeOk;
 }
 ParallelType Node::getParallelType() { return parallel_type_; }
@@ -95,6 +97,21 @@ int64_t Node::getMemorySize() {
 base::Status Node::setMemory(device::Buffer *buffer) {
   NNDEPLOY_LOGI("this api is not implemented");
   return base::kStatusCodeOk;
+}
+
+bool Node::updataInput() {
+  bool terminate_flag = false;
+  for (auto input : inputs_) {
+    bool flag = input->update(this);
+    if (!flag) {
+      terminate_flag = true;
+      break;
+    }
+  }
+  if (terminate_flag) {
+    return false;
+  }
+  return true;
 }
 
 }  // namespace dag

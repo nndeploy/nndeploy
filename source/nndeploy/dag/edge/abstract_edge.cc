@@ -17,6 +17,7 @@ AbstractEdge::~AbstractEdge() {
 
 ParallelType AbstractEdge::getParallelType() { return parallel_type_; }
 
+std::vector<Node *> AbstractEdge::getProducers() { return producers_; }
 base::Status AbstractEdge::increaseProducers(std::vector<Node *> &producers) {
   // producers_.insert(producers_.end(), producers.begin(), producers.end());
   for (auto iter : producers) {
@@ -24,6 +25,7 @@ base::Status AbstractEdge::increaseProducers(std::vector<Node *> &producers) {
   }
   return base::kStatusCodeOk;
 }
+std::vector<Node *> AbstractEdge::getConsumers() { return consumers_; }
 base::Status AbstractEdge::increaseConsumers(std::vector<Node *> &consumers) {
   // consumers_.insert(consumers_.end(), consumers.begin(), consumers.end());
   for (auto iter : consumers) {
@@ -45,6 +47,8 @@ std::map<EdgeType, std::shared_ptr<EdgeCreator>> &getGlobalEdgeCreatorMap() {
 EdgeType getEdgeType(ParallelType type) {
   switch (type) {
     case kParallelTypeNone:
+      return kEdgeTypeFixed;
+    case kParallelTypeSequential:
       return kEdgeTypeFixed;
     case kParallelTypeTask:
       return kEdgeTypeFixed;

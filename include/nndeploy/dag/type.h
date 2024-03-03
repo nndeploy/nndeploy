@@ -15,8 +15,9 @@ namespace dag {
 
 enum ParallelType : int {
   kParallelTypeNone = 0x0001,
-  kParallelTypeTask = 0x0001 << 1,
-  kParallelTypePipeline = 0x0001 << 2,
+  kParallelTypeSequential = 0x0001 << 1,
+  kParallelTypeTask = 0x0001 << 2,
+  kParallelTypePipeline = 0x0001 << 3,
 };
 
 enum EdgeType : int {

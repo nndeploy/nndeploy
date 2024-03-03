@@ -73,7 +73,7 @@ void ParallelPipelineExecutor::commitThreadPool() {
           // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
           //               iter->node_->getName().c_str(),
           //               std::this_thread::get_id());
-          bool flag = input->updateData(iter->node_);
+          bool flag = input->update(iter->node_);
           // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
           //               iter->node_->getName().c_str(),
           //               std::this_thread::get_id());

@@ -35,8 +35,8 @@ class NNDEPLOY_CC_API OpNode : public dag::Node {
   virtual ~OpNode() {}
 
   virtual base::Status run() {
-    NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n", name_.c_str(),
-                  std::this_thread::get_id());
+    // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n", name_.c_str(),
+    //               std::this_thread::get_id());
     OpParam *tmp_param = dynamic_cast<OpParam *>(param_.get());
     device::Tensor *src = inputs_[0]->getTensor(this);
     device::Device *device = device::getDefaultHostDevice();
@@ -176,16 +176,13 @@ int parallelGraph() {
     par_graph->addNode(sub_graph_1);
     dag::Node *op_parallel_out = par_graph->createNode<OpNode>(
         "op_parallel_out", &sub_out_1, &sub_out_2);
-    status = sub_graph_1->setParallelType(dag::kParallelTypePipeline);
+    // status = par_graph->setParallelType(dag::kParallelTypePipeline);
 
     par_graph->init();
 
     sub_out_1.markGraphOutput();
 
     par_graph->dump();
-
-    par_graph->run();
-    NNDEPLOY_LOGE("sep_graph->run();\n");
 
     int count = 2;
     for (int i = 0; i < count; ++i) {
@@ -199,7 +196,10 @@ int parallelGraph() {
 
       sub_in_0.set(input_tensor, i, false);
 
-      NNDEPLOY_LOGE("sub_in_0.set(input_tensor, i, false);\n");
+      // NNDEPLOY_LOGE("sub_in_0.set(input_tensor, i, false);\n");
+
+      par_graph->run();
+      // NNDEPLOY_LOGE("sep_graph->run();\n");
     }
 
     for (int i = 0; i < count; ++i) {
@@ -208,17 +208,17 @@ int parallelGraph() {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
       }
-      NNDEPLOY_LOGE(
-          "device::Tensor *result[%p] = sub_out_1.getGraphOutputTensor();\n",
-          result);
+      /*     NNDEPLOY_LOGE(
+               "device::Tensor *result[%p] =
+         sub_out_1.getGraphOutputTensor();\n", result);*/
       device::Tensor *result_2 = sub_out_2.getGraphOutputTensor();
       if (result_2 == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
       }
-      NNDEPLOY_LOGE(
-          "device::Tensor *result_2[%p] = sub_out_2.getGraphOutputTensor();\n",
-          result);
+      // NNDEPLOY_LOGE(
+      //     "device::Tensor *result_2[%p] =
+      //     sub_out_2.getGraphOutputTensor();\n", result);
     }
 
     // 有向无环图graph反初始化

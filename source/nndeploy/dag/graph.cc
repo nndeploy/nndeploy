@@ -310,6 +310,8 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("##############\n");
   if (parallel_type == kParallelTypeNone) {
     executor_ = std::make_shared<SequentialExecutor>();
+  } else if (parallel_type == kParallelTypeSequential) {
+    executor_ = std::make_shared<SequentialExecutor>();
   } else if (parallel_type == kParallelTypeTask) {
     executor_ = std::make_shared<ParallelTaskExecutor>();
   } else if (parallel_type == kParallelTypePipeline) {

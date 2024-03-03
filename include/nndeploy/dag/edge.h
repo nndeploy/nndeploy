@@ -86,7 +86,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    * @return false
    * @note Serving the pipeline parallel mode, update the data in the pipeline.
    */
-  bool updateData(const Node *node);
+  bool update(const Node *node);
 
   bool markGraphOutput();
 

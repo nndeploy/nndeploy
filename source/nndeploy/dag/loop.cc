@@ -86,7 +86,7 @@ base::Status Loop::run() {
         // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
         //               iter->node_->getName().c_str(),
         //               std::this_thread::get_id());
-        bool flag = input->updateData(this);
+        bool flag = input->update(this);
         // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
         //               iter->node_->getName().c_str(),
         //               std::this_thread::get_id());
@@ -128,6 +128,8 @@ base::Status Loop::executor() {
   // NNDEPLOY_LOGI("create executor\n");
   // NNDEPLOY_LOGI("##############\n");
   if (parallel_type == kParallelTypeNone) {
+    executor_ = std::make_shared<SequentialExecutor>();
+  } else if (parallel_type == kParallelTypeSequential) {
     executor_ = std::make_shared<SequentialExecutor>();
   } else if (parallel_type == kParallelTypeTask) {
     executor_ = std::make_shared<ParallelTaskExecutor>();

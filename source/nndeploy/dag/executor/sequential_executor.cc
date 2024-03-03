@@ -37,6 +37,24 @@ base::Status SequentialExecutor::run() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : topo_sort_node_) {
     iter->node_->setRunningFlag(true);
+    bool terminate_flag = false;
+    auto inputs = iter->node_->getAllInput();
+    for (auto input : inputs) {
+      // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
+      //               iter->node_->getName().c_str(),
+      //               std::this_thread::get_id());
+      bool flag = input->update(iter->node_);
+      // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
+      //               iter->node_->getName().c_str(),
+      //               std::this_thread::get_id());
+      if (!flag) {
+        terminate_flag = true;
+        break;
+      }
+    }
+    if (terminate_flag) {
+      break;
+    }
     status = iter->node_->run();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "node execute failed!\n");

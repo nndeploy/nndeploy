@@ -117,7 +117,7 @@ void *FixedEdge::getGraphOutputAnything() {
 int FixedEdge::getIndex(const Node *node) { return data_packet_->getIndex(); }
 int FixedEdge::getGraphOutputIndex() { return data_packet_->getIndex(); }
 
-bool FixedEdge::updateData(const Node *node) { return true; }
+bool FixedEdge::update(const Node *node) { return true; }
 
 bool FixedEdge::requestTerminate() { return true; }
 

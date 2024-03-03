@@ -82,7 +82,7 @@ class PipelineEdge : public AbstractEdge {
   virtual int getIndex(const Node *node);
   virtual int getGraphOutputIndex();
 
-  virtual bool updateData(const Node *node);
+  virtual bool update(const Node *node);
 
   virtual bool requestTerminate();
 
