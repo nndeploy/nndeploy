@@ -117,6 +117,7 @@ class PipelineDataPacket : public DataPacket {
   virtual base::Status set(void *anything, int index, bool is_external);
   virtual void *getAnything();
 
+  void increaseConsumersSize();
   void increaseConsumersCount();
 
   int getConsumersSize();

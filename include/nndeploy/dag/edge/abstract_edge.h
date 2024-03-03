@@ -78,6 +78,8 @@ class AbstractEdge : public base::NonCopyable {
 
   virtual bool updateData(const Node *node) = 0;
 
+  virtual bool markGraphOutput() = 0;
+
   ParallelType getParallelType();
 
   base::Status increaseProducers(std::vector<Node *> &producers);

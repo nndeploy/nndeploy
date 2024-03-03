@@ -86,14 +86,17 @@ class PipelineEdge : public AbstractEdge {
 
   virtual bool requestTerminate();
 
+  virtual bool markGraphOutput();
+
  private:
-  virtual bool updateGraphOutputData();
+  // virtual bool updateGraphOutputData();
 
   bool checkNode(const Node *node);
 
   PipelineDataPacket *getDataPacket(const Node *node);
 
  private:
+  std::once_flag once_;
   std::mutex mutex_;
   std::condition_variable cv_;
   bool terminate_flag_ = false;

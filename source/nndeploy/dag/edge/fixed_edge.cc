@@ -121,5 +121,7 @@ bool FixedEdge::updateData(const Node *node) { return true; }
 
 bool FixedEdge::requestTerminate() { return true; }
 
+bool FixedEdge::markGraphOutput() { return true; }
+
 }  // namespace dag
 }  // namespace nndeploy

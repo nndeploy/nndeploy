@@ -32,22 +32,21 @@ base::Status PipelineEdge::construct() {
     if (consuming_dp_.find(iter) == consuming_dp_.end()) {
       consuming_dp_.insert({iter, nullptr});
     }
-    // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n", iter->getName().c_str(),
-    //               std::this_thread::get_id());
   }
-  if (consumers_.empty()) {
-    to_consume_index_.insert({nullptr, 0});
-    consuming_dp_.insert({nullptr, nullptr});
-  }
+  // if (consumers_.empty()) {
+  //   to_consume_index_.insert({nullptr, 0});
+  //   consuming_dp_.insert({nullptr, nullptr});
+  // }
   return base::kStatusCodeOk;
 }
 
 base::Status PipelineEdge::set(device::Buffer *buffer, int index,
                                bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -58,10 +57,11 @@ base::Status PipelineEdge::set(device::Buffer *buffer, int index,
   return status;
 }
 base::Status PipelineEdge::set(device::Buffer &buffer, int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -73,10 +73,11 @@ base::Status PipelineEdge::set(device::Buffer &buffer, int index) {
 device::Buffer *PipelineEdge::create(device::Device *device,
                                      const device::BufferDesc &desc,
                                      int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   device::Buffer *ret_value = dp->create(device, desc, index);
@@ -109,11 +110,11 @@ device::Buffer *PipelineEdge::getBuffer(const Node *node) {
 }
 device::Buffer *PipelineEdge::getGraphOutputBuffer() {
   bool flag = false;
-  flag = checkNode(nullptr);
+  flag = markGraphOutput();
   if (!flag) {
     return nullptr;
   }
-  flag = updateGraphOutputData();
+  flag = updateData(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -128,10 +129,11 @@ device::Buffer *PipelineEdge::getGraphOutputBuffer() {
 }
 
 base::Status PipelineEdge::set(device::Mat *mat, int index, bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -141,10 +143,11 @@ base::Status PipelineEdge::set(device::Mat *mat, int index, bool is_external) {
   return status;
 }
 base::Status PipelineEdge::set(device::Mat &mat, int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -156,10 +159,11 @@ base::Status PipelineEdge::set(device::Mat &mat, int index) {
 device::Mat *PipelineEdge::create(device::Device *device,
                                   const device::MatDesc &desc, int index,
                                   const std::string &name) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   device::Mat *ret_value = dp->create(device, desc, index, name);
@@ -191,11 +195,11 @@ device::Mat *PipelineEdge::getMat(const Node *node) {
 }
 device::Mat *PipelineEdge::getGraphOutputMat() {
   bool flag = false;
-  flag = checkNode(nullptr);
+  flag = markGraphOutput();
   if (!flag) {
     return nullptr;
   }
-  flag = updateGraphOutputData();
+  flag = updateData(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -211,10 +215,11 @@ device::Mat *PipelineEdge::getGraphOutputMat() {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status PipelineEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -224,10 +229,11 @@ base::Status PipelineEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
   return status;
 }
 base::Status PipelineEdge::set(cv::Mat &cv_mat, int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -245,11 +251,11 @@ cv::Mat *PipelineEdge::getCvMat(const Node *node) {
 }
 cv::Mat *PipelineEdge::getGraphOutputCvMat() {
   bool flag = false;
-  flag = checkNode(nullptr);
+  flag = markGraphOutput();
   if (!flag) {
     return nullptr;
   }
-  flag = updateGraphOutputData();
+  flag = updateData(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -266,10 +272,11 @@ cv::Mat *PipelineEdge::getGraphOutputCvMat() {
 
 base::Status PipelineEdge::set(device::Tensor *tensor, int index,
                                bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -279,10 +286,11 @@ base::Status PipelineEdge::set(device::Tensor *tensor, int index,
   return status;
 }
 base::Status PipelineEdge::set(device::Tensor &tensor, int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -294,10 +302,11 @@ base::Status PipelineEdge::set(device::Tensor &tensor, int index) {
 device::Tensor *PipelineEdge::create(device::Device *device,
                                      const device::TensorDesc &desc, int index,
                                      const std::string &name) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   device::Tensor *ret_value = dp->create(device, desc, index, name);
@@ -329,11 +338,11 @@ device::Tensor *PipelineEdge::getTensor(const Node *node) {
 }
 device::Tensor *PipelineEdge::getGraphOutputTensor() {
   bool flag = false;
-  flag = checkNode(nullptr);
+  flag = markGraphOutput();
   if (!flag) {
     return nullptr;
   }
-  flag = updateGraphOutputData();
+  flag = updateData(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -349,10 +358,11 @@ device::Tensor *PipelineEdge::getGraphOutputTensor() {
 
 base::Status PipelineEdge::set(base::Param *param, int index,
                                bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -362,10 +372,11 @@ base::Status PipelineEdge::set(base::Param *param, int index,
   return status;
 }
 base::Status PipelineEdge::set(base::Param &param, int index) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -383,11 +394,11 @@ base::Param *PipelineEdge::getParam(const Node *node) {
 }
 base::Param *PipelineEdge::getGraphOutputParam() {
   bool flag = false;
-  flag = checkNode(nullptr);
+  flag = markGraphOutput();
   if (!flag) {
     return nullptr;
   }
-  flag = updateGraphOutputData();
+  flag = updateData(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -402,10 +413,11 @@ base::Param *PipelineEdge::getGraphOutputParam() {
 }
 
 base::Status PipelineEdge::set(void *anything, int index, bool is_external) {
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
   // 上锁
   std::lock_guard<std::mutex> lock(mutex_);
+  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+
   data_packets_.push_back(dp);
   cv_.notify_all();
   // set
@@ -423,11 +435,11 @@ void *PipelineEdge::getAnything(const Node *node) {
 }
 void *PipelineEdge::getGraphOutputAnything() {
   bool flag = false;
-  flag = checkNode(nullptr);
+  flag = markGraphOutput();
   if (!flag) {
     return nullptr;
   }
-  flag = updateGraphOutputData();
+  flag = updateData(nullptr);
   if (!flag) {
     if (terminate_flag_) {
       NNDEPLOY_LOGI("User voluntarily terminates.\n");
@@ -451,11 +463,11 @@ int PipelineEdge::getIndex(const Node *node) {
   return index;
 }
 int PipelineEdge::getGraphOutputIndex() {
-  bool flag = false;
-  flag = checkNode(nullptr);
-  if (!flag) {
-    return -1;
-  }
+  // bool flag = false;
+  // flag = markGraphOutput();
+  // if (!flag) {
+  //   return -1;
+  // }
   PipelineDataPacket *dp = getDataPacket(nullptr);
   if (dp == nullptr) {
     NNDEPLOY_LOGE("PipelineDataPacket getDataPacket error.\n");
@@ -473,7 +485,7 @@ bool PipelineEdge::requestTerminate() {
 }
 
 bool PipelineEdge::checkNode(const Node *node) {
-  if (consumers_.empty() && node == nullptr) {
+  if (node == nullptr) {
     return true;
   } else if (std::find(consumers_.begin(), consumers_.end(), node) !=
              consumers_.end()) {
@@ -489,6 +501,19 @@ bool PipelineEdge::checkNode(const Node *node) {
   }
 }
 
+bool PipelineEdge::markGraphOutput() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  std::call_once(once_, [this]() {
+    this->consumers_size_ = this->consumers_size_ + 1;
+    this->to_consume_index_.insert({nullptr, 0});
+    this->consuming_dp_.insert({nullptr, nullptr});
+    for (auto iter : this->data_packets_) {
+      (iter)->increaseConsumersSize();
+    }
+  });
+  return true;
+}
+
 /**
  * @brief Get the Consumer Node Edge Data Packet object
  *
@@ -498,6 +523,10 @@ bool PipelineEdge::checkNode(const Node *node) {
  */
 bool PipelineEdge::updateData(const Node *node) {
   Node *tmp_node = const_cast<Node *>(node);
+  if (!checkNode(tmp_node)) {
+    NNDEPLOY_LOGE("This node is error.\n");
+    return false;
+  }
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [this, tmp_node] {
     return to_consume_index_[tmp_node] < data_packets_.size() ||
@@ -545,51 +574,51 @@ bool PipelineEdge::updateData(const Node *node) {
  * @note 用于获取图的输出节点的数据包
  * @perf 这里还可以再优化性能
  */
-bool PipelineEdge::updateGraphOutputData() {
-  std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [this] {
-    bool flag = false;
-    if (data_packets_.empty()) {
-      flag = false;
-    }
-    for (auto iter : data_packets_) {
-      if (iter->getConsumersCount() == consumers_size_) {
-        flag = true;
-        break;
-      }
-    }
-    return flag || terminate_flag_;
-  });
+// bool PipelineEdge::updateGraphOutputData() {
+//   std::unique_lock<std::mutex> lock(mutex_);
+//   cv_.wait(lock, [this] {
+//     bool flag = false;
+//     if (data_packets_.empty()) {
+//       flag = false;
+//     }
+//     for (auto iter : data_packets_) {
+//       if (iter->getConsumersCount() == consumers_size_) {
+//         flag = true;
+//         break;
+//       }
+//     }
+//     return flag || terminate_flag_;
+//   });
 
-  if (terminate_flag_) {
-    return false;
-  }
+//   if (terminate_flag_) {
+//     return false;
+//   }
 
-  // find
-  int count = 0;
-  PipelineDataPacket *dp = nullptr;
-  auto iter = data_packets_.begin();
-  for (; iter != data_packets_.end(); ++iter) {
-    if ((*iter)->getConsumersCount() == consumers_size_) {
-      dp = (*iter);
-      (*iter)->increaseConsumersCount();
-      break;
-    }
-    count++;
-  }
+//   // find
+//   int count = 0;
+//   PipelineDataPacket *dp = nullptr;
+//   auto iter = data_packets_.begin();
+//   for (; iter != data_packets_.end(); ++iter) {
+//     if ((*iter)->getConsumersCount() == consumers_size_) {
+//       dp = (*iter);
+//       (*iter)->increaseConsumersCount();
+//       break;
+//     }
+//     count++;
+//   }
 
-  // update
-  iter = data_packets_.begin();
-  for (int i = 0; i < count; i++) {
-    delete (*iter);
-    iter++;
-  }
-  data_packets_.erase(data_packets_.begin(), iter);
+//   // update
+//   iter = data_packets_.begin();
+//   for (int i = 0; i < count; i++) {
+//     delete (*iter);
+//     iter++;
+//   }
+//   data_packets_.erase(data_packets_.begin(), iter);
 
-  // 返回值
-  consuming_dp_[nullptr] = dp;
-  return true;
-}
+//   // 返回值
+//   consuming_dp_[nullptr] = dp;
+//   return true;
+// }
 
 PipelineDataPacket *PipelineEdge::getDataPacket(const Node *node) {
   Node *tmp_node = const_cast<Node *>(node);

@@ -490,6 +490,10 @@ void *PipelineDataPacket::getAnything() {
   return DataPacket::getAnything();
 }
 
+void PipelineDataPacket::increaseConsumersSize() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  consumers_size_++;
+}
 void PipelineDataPacket::increaseConsumersCount() {
   std::unique_lock<std::mutex> lock(mutex_);
   consumers_count_++;

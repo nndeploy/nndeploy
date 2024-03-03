@@ -27,11 +27,11 @@ namespace dag {
  */
 class NNDEPLOY_CC_API Edge : public base::NonCopyable {
  public:
-  Edge() : name_(""), abstact_edge_(nullptr) {}
-  Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
-  virtual ~Edge() { delete abstact_edge_; }
+  Edge();
+  Edge(const std::string &name);
+  virtual ~Edge();
 
-  std::string getName() { return name_; }
+  std::string getName();
 
   base::Status construct();
 
@@ -87,6 +87,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    * @note Serving the pipeline parallel mode, update the data in the pipeline.
    */
   bool updateData(const Node *node);
+
+  bool markGraphOutput();
 
   base::Status setParallelType(const ParallelType &paralle_type);
   ParallelType getParallelType();

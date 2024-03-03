@@ -95,10 +95,10 @@ int seqGraph() {
 
     sep_graph->init();
 
+    sep_graph->dump();
+
     sep_graph->run();
     NNDEPLOY_LOGE("sep_graph->run();\n");
-
-    sep_graph->dump();
 
     int count = 2;
     for (int i = 0; i < count; ++i) {
@@ -157,7 +157,7 @@ int parallelGraph() {
   base::Status status =
       sub_graph_0->setParallelType(dag::kParallelTypePipeline);
 
-  //dag::Edge sub_in_1("sub_in_1");
+  // dag::Edge sub_in_1("sub_in_1");
   dag::Edge sub_out_1("sub_out_1");
   dag::Graph *sub_graph_1 =
       new dag::Graph("sub_graph_1", &sub_in_0, &sub_out_1);
@@ -170,18 +170,63 @@ int parallelGraph() {
 
   {
     dag::Edge sub_out_2("sub_out_2");
-    dag::Graph *par_graph = new dag::Graph("par_graph", {&sub_in_0},
-                                           {&sub_out_0, &sub_out_1, &sub_out_2});
+    dag::Graph *par_graph = new dag::Graph(
+        "par_graph", {&sub_in_0}, {&sub_out_0, &sub_out_1, &sub_out_2});
     par_graph->addNode(sub_graph_0);
     par_graph->addNode(sub_graph_1);
-    dag::Node *op_parallel_out =
-        par_graph->createNode<OpNode>(
+    dag::Node *op_parallel_out = par_graph->createNode<OpNode>(
         "op_parallel_out", &sub_out_1, &sub_out_2);
     status = sub_graph_1->setParallelType(dag::kParallelTypePipeline);
 
     par_graph->init();
 
+    sub_out_1.markGraphOutput();
+
     par_graph->dump();
+
+    par_graph->run();
+    NNDEPLOY_LOGE("sep_graph->run();\n");
+
+    int count = 2;
+    for (int i = 0; i < count; ++i) {
+      device::Device *device = device::getDefaultHostDevice();
+      device::TensorDesc desc;
+      desc.data_type_ = base::dataTypeOf<float>();
+      desc.data_format_ = base::DataFormat::kDataFormatNCHW;
+      desc.shape_ = {1, 3, 512, 512};
+      device::Tensor *input_tensor =
+          new device::Tensor(device, desc, "sub_in_0 ");
+
+      sub_in_0.set(input_tensor, i, false);
+
+      NNDEPLOY_LOGE("sub_in_0.set(input_tensor, i, false);\n");
+    }
+
+    for (int i = 0; i < count; ++i) {
+      device::Tensor *result = sub_out_1.getGraphOutputTensor();
+      if (result == nullptr) {
+        NNDEPLOY_LOGE("result is nullptr");
+        return -1;
+      }
+      NNDEPLOY_LOGE(
+          "device::Tensor *result[%p] = sub_out_1.getGraphOutputTensor();\n",
+          result);
+      device::Tensor *result_2 = sub_out_2.getGraphOutputTensor();
+      if (result_2 == nullptr) {
+        NNDEPLOY_LOGE("result is nullptr");
+        return -1;
+      }
+      NNDEPLOY_LOGE(
+          "device::Tensor *result_2[%p] = sub_out_2.getGraphOutputTensor();\n",
+          result);
+    }
+
+    // 有向无环图graph反初始化
+    status = par_graph->deinit();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("graph deinit failed");
+      return -1;
+    }
 
     delete par_graph;
   }
@@ -193,9 +238,15 @@ int parallelGraph() {
 }
 
 int main(int argc, char *argv[]) {
-  NNDEPLOY_LOGE("hello world!\n");
+  NNDEPLOY_LOGE("start!\n");
 
-  parallelGraph();
+  int count = 2;
+  for (int i = 0; i < count; i++) {
+    parallelGraph();
+    // seqGraph();
+  }
+
+  NNDEPLOY_LOGE("end!\n");
 
   return 0;
 }

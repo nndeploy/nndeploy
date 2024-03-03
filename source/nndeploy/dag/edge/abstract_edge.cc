@@ -2,6 +2,7 @@
 #include "nndeploy/dag/edge/abstract_edge.h"
 
 #include "nndeploy/dag/node.h"
+#include "nndeploy/dag/util.h"
 
 namespace nndeploy {
 namespace dag {
@@ -17,11 +18,17 @@ AbstractEdge::~AbstractEdge() {
 ParallelType AbstractEdge::getParallelType() { return parallel_type_; }
 
 base::Status AbstractEdge::increaseProducers(std::vector<Node *> &producers) {
-  producers_.insert(producers_.end(), producers.begin(), producers.end());
+  // producers_.insert(producers_.end(), producers.begin(), producers.end());
+  for (auto iter : producers) {
+    insertUnique(producers_, iter);
+  }
   return base::kStatusCodeOk;
 }
 base::Status AbstractEdge::increaseConsumers(std::vector<Node *> &consumers) {
-  consumers_.insert(consumers_.end(), consumers.begin(), consumers.end());
+  // consumers_.insert(consumers_.end(), consumers.begin(), consumers.end());
+  for (auto iter : consumers) {
+    insertUnique(consumers_, iter);
+  }
   return base::kStatusCodeOk;
 }
 

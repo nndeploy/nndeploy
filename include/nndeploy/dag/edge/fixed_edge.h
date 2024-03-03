@@ -76,6 +76,8 @@ class FixedEdge : public AbstractEdge {
 
   virtual bool requestTerminate();
 
+  virtual bool markGraphOutput();
+
  private:
   DataPacket *data_packet_;
 };

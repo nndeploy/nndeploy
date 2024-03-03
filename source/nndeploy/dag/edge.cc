@@ -6,6 +6,12 @@
 namespace nndeploy {
 namespace dag {
 
+Edge::Edge() : name_(""), abstact_edge_(nullptr) {}
+Edge::Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
+Edge::~Edge() { delete abstact_edge_; }
+
+std::string Edge::getName() { return name_; }
+
 base::Status Edge::construct() {
   // NNDEPLOY_LOGE("Edge name[%s], Thread ID: %d.\n", name_.c_str(),
   //               std::this_thread::get_id());
@@ -117,11 +123,24 @@ bool Edge::updateData(const Node *node) {
   return abstact_edge_->updateData(node);
 }
 
+bool Edge::markGraphOutput() { return abstact_edge_->markGraphOutput(); }
+
 base::Status Edge::setParallelType(const ParallelType &paralle_type) {
   if (abstact_edge_ == nullptr) {
     abstact_edge_ = createEdge(paralle_type);
     if (abstact_edge_ == nullptr) {
+      NNDEPLOY_LOGE("out of memory!\n");
       return base::kStatusCodeErrorOutOfMemory;
+    }
+  } else {
+    ParallelType cur_paralle_type = abstact_edge_->getParallelType();
+    if (cur_paralle_type != paralle_type) {
+      delete abstact_edge_;
+      abstact_edge_ = createEdge(paralle_type);
+      if (abstact_edge_ == nullptr) {
+        NNDEPLOY_LOGE("out of memory!\n");
+        return base::kStatusCodeErrorOutOfMemory;
+      }
     }
   }
   return base::kStatusCodeOk;
