@@ -129,7 +129,6 @@ base::Status Edge::setParallelType(const ParallelType &paralle_type) {
   } else {
     ParallelType cur_paralle_type = abstact_edge_->getParallelType();
     if ((int)paralle_type > (int)cur_paralle_type) {
-      // delete abstact_edge_;
       AbstractEdge *new_abstact_edge = createEdge(paralle_type);
       if (new_abstact_edge == nullptr) {
         NNDEPLOY_LOGE("out of memory!\n");

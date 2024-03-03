@@ -63,9 +63,13 @@ class NNDEPLOY_CC_API Node {
   virtual int64_t getMemorySize();
   virtual base::Status setMemory(device::Buffer *buffer);
 
-  virtual bool updataInput();
+  bool updataInput();
 
+  virtual base::Status prerun();
   virtual base::Status run() = 0;
+  virtual base::Status postrun();
+
+  virtual base::Status process();
 
  protected:
   std::string name_;

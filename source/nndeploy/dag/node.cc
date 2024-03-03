@@ -114,5 +114,18 @@ bool Node::updataInput() {
   return true;
 }
 
+base::Status Node::prerun() { return base::kStatusCodeOk; }
+base::Status Node::postrun() { return base::kStatusCodeOk; }
+
+base::Status Node::process() {
+  bool flag = this->updataInput();
+  if (flag) {
+    this->prerun();
+    this->run();
+    this->postrun();
+  } else {
+  }
+}
+
 }  // namespace dag
 }  // namespace nndeploy
