@@ -242,8 +242,8 @@ int main(int argc, char *argv[]) {
 
   int count = 2;
   for (int i = 0; i < count; i++) {
-    // parallelGraph();
-    seqGraph();
+     parallelGraph();
+    //seqGraph();
   }
 
   NNDEPLOY_LOGE("end!\n");

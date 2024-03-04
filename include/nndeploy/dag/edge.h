@@ -78,15 +78,10 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   int getIndex(const Node *node);
   int getGraphOutputIndex();
 
-  /**
-   * @brief
-   *
-   * @param node
-   * @return true
-   * @return false
-   * @note Serving the pipeline parallel mode, update the data in the pipeline.
-   */
-  bool update(const Node *node);
+  int getPosition(const Node *node);
+  int getGraphOutputPosition();
+
+  EdgeUpdateFlag update(const Node *node);
 
   bool markGraphOutput();
 
@@ -96,13 +91,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   base::Status increaseProducers(std::vector<Node *> &producers);
   base::Status increaseConsumers(std::vector<Node *> &consumers);
 
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   * @note Serving the pipeline parallel mode, terminate pipeline.
-   */
   bool requestTerminate();
 
  private:

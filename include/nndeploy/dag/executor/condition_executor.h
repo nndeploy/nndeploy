@@ -20,10 +20,13 @@ class ConditionExecutor : public Executor {
   void select(int index);
   virtual base::Status run();
 
+  virtual base::Status process();
+
  protected:
   int index_ = -1;
   Node *condition_ = nullptr;
   std::vector<NodeWrapper *> node_repository_;
+  std::vector<EdgeWrapper *> edge_repository_;
 };
 
 }  // namespace dag

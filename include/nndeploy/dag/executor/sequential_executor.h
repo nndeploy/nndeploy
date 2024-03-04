@@ -20,6 +20,7 @@ class SequentialExecutor : public Executor {
 
  protected:
   std::vector<NodeWrapper *> topo_sort_node_;
+  std::vector<EdgeWrapper *> edge_repository_;
 };
 
 }  // namespace dag

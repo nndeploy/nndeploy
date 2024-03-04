@@ -23,11 +23,11 @@
 namespace nndeploy {
 namespace dag {
 
-Loop::Loop(const std::string &name, Edge *input, Edge *output, bool update_flag)
-    : Graph(name, input, output), update_flag_(update_flag) {}
+Loop::Loop(const std::string &name, Edge *input, Edge *output)
+    : Graph(name, input, output) {}
 Loop::Loop(const std::string &name, std::initializer_list<Edge *> inputs,
-           std::initializer_list<Edge *> outputs, bool update_flag)
-    : Graph(name, inputs, outputs), update_flag_(update_flag) {}
+           std::initializer_list<Edge *> outputs)
+    : Graph(name, inputs, outputs) {}
 Loop::~Loop() {}
 
 base::Status Loop::init() {
@@ -72,6 +72,7 @@ base::Status Loop::deinit() {
 
 base::Status Loop::run() {
   base::Status status = base::kStatusCodeOk;
+
   setRunningFlag(true);
 
   int size = loops();
@@ -80,42 +81,15 @@ base::Status Loop::run() {
     return base::kStatusCodeErrorInvalidValue;
   }
   for (int i = 0; i < size; i++) {
-    if (update_flag_ && i > 0) {
-      auto inputs = this->getAllInput();
-      for (auto input : inputs) {
-        // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
-        //               iter->node_->getName().c_str(),
-        //               std::this_thread::get_id());
-        bool flag = input->update(this);
-        // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
-        //               iter->node_->getName().c_str(),
-        //               std::this_thread::get_id());
-        if (!flag) {
-          return status;
-        }
-      }
-    }
-    status = this->beforeRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("loops Graph beforeRun failed!\n");
-      return status;
-    }
     status = executor_->run();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("loops Graph run failed!\n");
-      return status;
-    }
-    status = this->afterRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("loops Graph afterRun failed!\n");
-      return status;
-    }
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
   }
 
   setRunningFlag(false);
   return status;
 }
 
+// may be is not right
 base::Status Loop::executor() {
   base::Status status = base::kStatusCodeOk;
 

@@ -76,7 +76,10 @@ class AbstractEdge : public base::NonCopyable {
   virtual int getIndex(const Node *node) = 0;
   virtual int getGraphOutputIndex() = 0;
 
-  virtual bool update(const Node *node) = 0;
+  virtual int getPosition(const Node *node) = 0;
+  virtual int getGraphOutputPosition() = 0;
+
+  virtual EdgeUpdateFlag update(const Node *node) = 0;
 
   virtual bool markGraphOutput() = 0;
 
@@ -94,6 +97,7 @@ class AbstractEdge : public base::NonCopyable {
   ParallelType parallel_type_;
   std::vector<Node *> producers_;
   std::vector<Node *> consumers_;
+  bool terminate_flag_ = false;
 };
 
 class EdgeCreator {

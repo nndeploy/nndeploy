@@ -117,9 +117,21 @@ void *FixedEdge::getGraphOutputAnything() {
 int FixedEdge::getIndex(const Node *node) { return data_packet_->getIndex(); }
 int FixedEdge::getGraphOutputIndex() { return data_packet_->getIndex(); }
 
-bool FixedEdge::update(const Node *node) { return true; }
+int FixedEdge::getPosition(const Node *node) { return 0; }
+int FixedEdge::getGraphOutputPosition() { return 0; }
 
-bool FixedEdge::requestTerminate() { return true; }
+EdgeUpdateFlag FixedEdge::update(const Node *node) {
+  if (terminate_flag_) {
+    return kEdgeUpdateFlagTerminate;
+  } else {
+    return kEdgeUpdateFlagComplete;
+  }
+}
+
+bool FixedEdge::requestTerminate() {
+  terminate_flag_ = true;
+  return true;
+}
 
 bool FixedEdge::markGraphOutput() { return true; }
 

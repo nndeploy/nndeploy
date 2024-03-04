@@ -20,10 +20,18 @@ base::Status SequentialExecutor::init(
     }
     iter->node_->setInitializedFlag(true);
   }
+  edge_repository_ = edge_repository;
   return status;
 }
 base::Status SequentialExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
+  for (auto iter : edge_repository_) {
+    bool flag = iter->edge_->requestTerminate();
+    if (!flag) {
+      NNDEPLOY_LOGE("failed iter->edge_->requestTerminate()!\n");
+      return base::kStatusCodeErrorDag;
+    }
+  }
   for (auto iter : topo_sort_node_) {
     status = iter->node_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -36,29 +44,18 @@ base::Status SequentialExecutor::deinit() {
 base::Status SequentialExecutor::run() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : topo_sort_node_) {
-    iter->node_->setRunningFlag(true);
-    bool terminate_flag = false;
-    auto inputs = iter->node_->getAllInput();
-    for (auto input : inputs) {
-      // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
-      //               iter->node_->getName().c_str(),
-      //               std::this_thread::get_id());
-      bool flag = input->update(iter->node_);
-      // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
-      //               iter->node_->getName().c_str(),
-      //               std::this_thread::get_id());
-      if (!flag) {
-        terminate_flag = true;
-        break;
-      }
+    EdgeUpdateFlag edge_update_flag = iter->node_->updataInput();
+    if (edge_update_flag == kEdgeUpdateFlagComplete) {
+      iter->node_->setRunningFlag(true);
+      status = iter->node_->run();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "node execute failed!\n");
+      iter->node_->setRunningFlag(false);
+    } else if (edge_update_flag == kEdgeUpdateFlagTerminate) {
+      ;
+    } else {
+      status = base::kStatusCodeErrorUnknown;
     }
-    if (terminate_flag) {
-      break;
-    }
-    status = iter->node_->run();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "node execute failed!\n");
-    iter->node_->setRunningFlag(false);
   }
   return status;
 }

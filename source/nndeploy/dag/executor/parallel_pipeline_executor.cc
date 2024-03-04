@@ -38,8 +38,10 @@ base::Status ParallelPipelineExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : edge_repository_) {
     bool flag = iter->edge_->requestTerminate();
-    NNDEPLOY_RETURN_ON_NEQ(flag, true,
-                           "failed iter->edge_->requestTerminate()");
+    if (!flag) {
+      NNDEPLOY_LOGE("failed iter->edge_->requestTerminate()!\n");
+      return base::kStatusCodeErrorDag;
+    }
   }
   thread_pool_->destroy();
   delete thread_pool_;
@@ -67,29 +69,19 @@ void ParallelPipelineExecutor::commitThreadPool() {
     auto func = [iter]() -> base::Status {
       base::Status status = base::kStatusCodeOk;
       while (true) {
-        bool terminate_flag = false;
-        auto inputs = iter->node_->getAllInput();
-        for (auto input : inputs) {
-          // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
-          //               iter->node_->getName().c_str(),
-          //               std::this_thread::get_id());
-          bool flag = input->update(iter->node_);
-          // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
-          //               iter->node_->getName().c_str(),
-          //               std::this_thread::get_id());
-          if (!flag) {
-            terminate_flag = true;
-            break;
-          }
-        }
-        if (terminate_flag) {
+        EdgeUpdateFlag edge_update_flag = iter->node_->updataInput();
+        if (edge_update_flag == kEdgeUpdateFlagComplete) {
+          iter->node_->setRunningFlag(true);
+          status = iter->node_->run();
+          NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                                 "node execute failed!\n");
+          iter->node_->setRunningFlag(false);
+        } else if (edge_update_flag == kEdgeUpdateFlagTerminate) {
+          break;
+        } else {
+          status = base::kStatusCodeErrorUnknown;
           break;
         }
-        iter->node_->setRunningFlag(true);
-        status = iter->node_->run();
-        NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                               "node execute failed!\n");
-        iter->node_->setRunningFlag(false);
       }
       return status;
     };

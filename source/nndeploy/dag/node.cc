@@ -99,32 +99,15 @@ base::Status Node::setMemory(device::Buffer *buffer) {
   return base::kStatusCodeOk;
 }
 
-bool Node::updataInput() {
-  bool terminate_flag = false;
+EdgeUpdateFlag Node::updataInput() {
+  EdgeUpdateFlag flag = kEdgeUpdateFlagComplete;
   for (auto input : inputs_) {
-    bool flag = input->update(this);
-    if (!flag) {
-      terminate_flag = true;
+    flag = input->update(this);
+    if (flag != kEdgeUpdateFlagComplete) {
       break;
     }
   }
-  if (terminate_flag) {
-    return false;
-  }
-  return true;
-}
-
-base::Status Node::prerun() { return base::kStatusCodeOk; }
-base::Status Node::postrun() { return base::kStatusCodeOk; }
-
-base::Status Node::process() {
-  bool flag = this->updataInput();
-  if (flag) {
-    this->prerun();
-    this->run();
-    this->postrun();
-  } else {
-  }
+  return flag;
 }
 
 }  // namespace dag

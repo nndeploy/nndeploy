@@ -25,6 +25,12 @@ enum EdgeType : int {
   kEdgeTypePipeline = 0x0001 << 1,
 };
 
+enum EdgeUpdateFlag : int {
+  kEdgeUpdateFlagComplete = 0x0001,
+  kEdgeUpdateFlagTerminate = 0x0001 << 1,
+  kEdgeUpdateFlagError = 0x0001 << 2,
+};
+
 enum NodeColorType : int {
   kNodeColorWhite = 0x0000,
   kNodeColorGray,

@@ -29,18 +29,26 @@ base::Status ParallelTaskExecutor::init(
     iter->node_->setInitializedFlag(true);
   }
 
+  edge_repository_ = edge_repository;
   return status;
 }
 
 base::Status ParallelTaskExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
+  for (auto iter : edge_repository_) {
+    bool flag = iter->edge_->requestTerminate();
+    if (!flag) {
+      NNDEPLOY_LOGE("failed iter->edge_->requestTerminate()!\n");
+      return base::kStatusCodeErrorDag;
+    }
+  }
+  thread_pool_->destroy();
+  delete thread_pool_;
   for (auto iter : topo_sort_node_) {
     status = iter->node_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node deinit failure");
     iter->node_->setInitializedFlag(false);
   }
-  thread_pool_->destroy();
-  delete thread_pool_;
   return status;
 }
 
@@ -65,15 +73,22 @@ base::Status ParallelTaskExecutor::run() {
 void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
   node_wrapper->color_ = kNodeColorGray;
   const auto& func = [this, node_wrapper] {
-    node_wrapper->node_->setRunningFlag(true);
-    base::Status status = node_wrapper->node_->run();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("node[%s] execute failed!.\n",
-                    node_wrapper->node_->getName().c_str());
+    EdgeUpdateFlag edge_update_flag = node_wrapper->node_->updataInput();
+    if (edge_update_flag == kEdgeUpdateFlagComplete) {
+      node_wrapper->node_->setRunningFlag(true);
+      base::Status status = node_wrapper->node_->run();
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("node[%s] execute failed!.\n",
+                      node_wrapper->node_->getName().c_str());
+        return;
+      }
+      node_wrapper->node_->setRunningFlag(false);
+      afterNodeRun(node_wrapper);
+    } else if (edge_update_flag == kEdgeUpdateFlagTerminate) {
+      return;
+    } else {
       return;
     }
-    node_wrapper->node_->setRunningFlag(false);
-    afterNodeRun(node_wrapper);
   };
   thread_pool_->commit(func);
 }

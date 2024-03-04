@@ -21,10 +21,18 @@ base::Status ConditionExecutor::init(
     }
     iter->node_->setInitializedFlag(true);
   }
+  edge_repository_ = edge_repository;
   return status;
 }
 base::Status ConditionExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
+  for (auto iter : edge_repository_) {
+    bool flag = iter->edge_->requestTerminate();
+    if (!flag) {
+      NNDEPLOY_LOGE("failed iter->edge_->requestTerminate()!\n");
+      return base::kStatusCodeErrorDag;
+    }
+  }
   for (auto iter : node_repository_) {
     status = iter->node_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -39,12 +47,37 @@ void ConditionExecutor::setCondition(Node *condition) {
 }
 void ConditionExecutor::select(int index) { index_ = index; }
 
-base::Status ConditionExecutor::run() {
+base::Status ConditionExecutor::run() { return this->run(); }
+
+base::Status ConditionExecutor::process() {
   base::Status status = base::kStatusCodeOk;
-  this->node_repository_[index_]->node_->setRunningFlag(true);
-  status = this->node_repository_[index_]->node_->run();
+  Node *cur_node = this->node_repository_[index_]->node_;
+  auto inputs = cur_node->getAllInput();
+  for (auto input : inputs) {
+    EdgeUpdateFlag flag = input->update(cur_node);
+    if (flag == kEdgeUpdateFlagComplete) {
+      int innner_index = input->getIndex(cur_node);
+      int condition_index = input->getIndex(this->condition_);
+      for (; innner_index < condition_index; innner_index++) {
+        EdgeUpdateFlag flag = input->update(cur_node);
+        if (flag == kEdgeUpdateFlagComplete) {
+          continue;
+        } else if (flag == kEdgeUpdateFlagTerminate) {
+          return base::kStatusCodeOk;
+        } else {
+          return base::kStatusCodeErrorDag;
+        }
+      }
+    } else if (flag == kEdgeUpdateFlagTerminate) {
+      return base::kStatusCodeOk;
+    } else {
+      return base::kStatusCodeErrorDag;
+    }
+  }
+  cur_node->setRunningFlag(true);
+  status = cur_node->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node execute failed!\n");
-  this->node_repository_[index_]->node_->setRunningFlag(false);
+  cur_node->setRunningFlag(false);
   return status;
 }
 

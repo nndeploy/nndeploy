@@ -29,51 +29,25 @@ base::Status ParallelPipelineConditionExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : edge_repository_) {
     bool flag = iter->edge_->requestTerminate();
-    NNDEPLOY_RETURN_ON_NEQ(flag, true,
-                           "failed iter->edge_->requestTerminate()");
+    if (!flag) {
+      NNDEPLOY_LOGE("failed iter->edge_->requestTerminate()!\n");
+      return base::kStatusCodeErrorDag;
+    }
   }
   thread_pool_->destroy();
   delete thread_pool_;
-  status = ConditionExecutor::deinit();
+  for (auto iter : node_repository_) {
+    status = iter->node_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "failed iter->node_->deinit()");
+    iter->node_->setInitializedFlag(false);
+  }
   return status;
 }
 
 base::Status ParallelPipelineConditionExecutor::run() {
   base::Status status = base::kStatusCodeOk;
-  auto func = [this]() -> base::Status {
-    base::Status status = base::kStatusCodeOk;
-    Node *cur_node = this->node_repository_[index_]->node_;
-    auto inputs = cur_node->getAllInput();
-    for (auto input : inputs) {
-      // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
-      //               iter->node_->getName().c_str(),
-      //               std::this_thread::get_id());
-      bool flag = input->update(cur_node);
-      // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
-      //               iter->node_->getName().c_str(),
-      //               std::this_thread::get_id());
-      if (!flag) {
-        return status;
-      }
-      int innner_index = input->getIndex(cur_node);
-      int condition_index = input->getIndex(this->condition_);
-      for (; innner_index < condition_index; innner_index++) {
-        bool flag = input->update(cur_node);
-        // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n",
-        //               iter->node_->getName().c_str(),
-        //               std::this_thread::get_id());
-        if (!flag) {
-          return status;
-        }
-      }
-    }
-    cur_node->setRunningFlag(true);
-    status = cur_node->run();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "node execute failed!\n");
-    cur_node->setRunningFlag(false);
-    return status;
-  };
+  auto func = [this]() -> base::Status { return this->process(); };
   thread_pool_->commit(std::bind(func));
   return status;
 }

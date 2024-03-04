@@ -82,7 +82,10 @@ class PipelineEdge : public AbstractEdge {
   virtual int getIndex(const Node *node);
   virtual int getGraphOutputIndex();
 
-  virtual bool update(const Node *node);
+  virtual int getPosition(const Node *node);
+  virtual int getGraphOutputPosition();
+
+  virtual EdgeUpdateFlag update(const Node *node);
 
   virtual bool requestTerminate();
 
@@ -99,7 +102,6 @@ class PipelineEdge : public AbstractEdge {
   std::once_flag once_;
   std::mutex mutex_;
   std::condition_variable cv_;
-  bool terminate_flag_ = false;
   // 有多少个消费者
   int consumers_size_;
   // 数据包

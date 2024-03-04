@@ -115,7 +115,16 @@ void *Edge::getGraphOutputAnything() {
 int Edge::getIndex(const Node *node) { return abstact_edge_->getIndex(node); }
 int Edge::getGraphOutputIndex() { return abstact_edge_->getGraphOutputIndex(); }
 
-bool Edge::update(const Node *node) { return abstact_edge_->update(node); }
+int Edge::getPosition(const Node *node) {
+  return abstact_edge_->getPosition(node);
+}
+int Edge::getGraphOutputPosition() {
+  return abstact_edge_->getGraphOutputPosition();
+}
+
+EdgeUpdateFlag Edge::update(const Node *node) {
+  return abstact_edge_->update(node);
+}
 
 bool Edge::markGraphOutput() { return abstact_edge_->markGraphOutput(); }
 

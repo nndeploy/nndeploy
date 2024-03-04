@@ -72,7 +72,10 @@ class FixedEdge : public AbstractEdge {
   virtual int getIndex(const Node *node);
   virtual int getGraphOutputIndex();
 
-  virtual bool update(const Node *node);
+  virtual int getPosition(const Node *node);
+  virtual int getGraphOutputPosition();
+
+  virtual EdgeUpdateFlag update(const Node *node);
 
   virtual bool requestTerminate();
 

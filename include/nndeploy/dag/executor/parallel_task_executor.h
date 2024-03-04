@@ -58,6 +58,7 @@ class ParallelTaskExecutor : public Executor {
   std::mutex main_lock_;
   std::mutex commit_lock_;
   std::condition_variable cv_;
+  std::vector<EdgeWrapper*> edge_repository_;
 };
 
 }  // namespace dag
