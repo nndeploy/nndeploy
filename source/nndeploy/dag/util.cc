@@ -195,13 +195,50 @@ base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
   return status;
 }
 
-void checkUnuseNode(std::vector<NodeWrapper *> &node_repository) {
+std::vector<NodeWrapper *> checkUnuseNode(
+    std::vector<NodeWrapper *> &node_repository) {
+  std::vector<NodeWrapper *> unused;
   for (auto node_wrapper : node_repository) {
     if (node_wrapper->color_ == kNodeColorWhite) {
       NNDEPLOY_LOGE("Unuse node found in graph, Node name: %s.",
                     node_wrapper->name_.c_str());
+      unused.emplace_back(node_wrapper);
     }
   }
+  return unused;
+}
+std::vector<EdgeWrapper *> checkUnuseEdge(
+    std::vector<NodeWrapper *> &node_repository,
+    std::vector<EdgeWrapper *> &edge_repository) {
+  std::vector<EdgeWrapper *> unused_edges;
+  std::vector<NodeWrapper *> unused_nodes = checkUnuseNode(node_repository);
+  for (auto iter : unused_nodes) {
+    for (auto iter_input : iter->node_->getAllInput()) {
+      EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository, iter_input);
+      if (input_wrapper != nullptr) {
+        NNDEPLOY_LOGE("Unuse edge found in graph, edge name: %s.",
+                      input_wrapper->name_.c_str());
+        unused_edges.emplace_back(input_wrapper);
+      }
+    }
+    for (auto iter_output : iter->node_->getAllOutput()) {
+      EdgeWrapper *output_wrapper =
+          findEdgeWrapper(edge_repository, iter_output);
+      if (output_wrapper != nullptr) {
+        NNDEPLOY_LOGE("Unuse edge found in graph, edge name: %s.",
+                      output_wrapper->name_.c_str());
+        unused_edges.emplace_back(output_wrapper);
+      }
+    }
+  }
+  for (auto edge_wrapper : edge_repository) {
+    if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
+      NNDEPLOY_LOGE("Unuse edge found in graph, edge name: %s.",
+                    edge_wrapper->name_.c_str());
+      unused_edges.emplace_back(edge_wrapper);
+    }
+  }
+  return unused_edges;
 }
 
 base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,

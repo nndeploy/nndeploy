@@ -5,13 +5,6 @@ namespace nndeploy {
 namespace dag {
 
 Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
-  // if (input == nullptr || output == nullptr) {
-  //   constructed_ = false;
-  // } else {
-  //   inputs_.emplace_back(input);
-  //   outputs_.emplace_back(output);
-  //   constructed_ = true;
-  // }
   if (input != nullptr) {
     inputs_.emplace_back(input);
   }
@@ -27,11 +20,6 @@ Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
   inputs_ = inputs;
   outputs_ = outputs;
   constructed_ = true;
-  // if (inputs_.empty() || outputs_.empty()) {
-  //   constructed_ = false;
-  // } else {
-  //   constructed_ = true;
-  // }
 }
 Node::~Node() {
   constructed_ = false;
