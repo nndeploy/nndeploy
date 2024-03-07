@@ -87,6 +87,8 @@ void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
     } else if (edge_update_flag == kEdgeUpdateFlagTerminate) {
       return;
     } else {
+      NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",
+                    node_wrapper->node_->getName().c_str());
       return;
     }
   };

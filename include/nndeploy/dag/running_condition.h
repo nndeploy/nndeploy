@@ -29,7 +29,7 @@ class NNDEPLOY_CC_API RunningCondition : public Condition {
   virtual int choose();
 
  protected:
-  int index_ = 0;
+  int next_i_ = 0;
 };
 
 }  // namespace dag

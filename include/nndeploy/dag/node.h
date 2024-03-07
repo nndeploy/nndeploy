@@ -51,6 +51,8 @@ class NNDEPLOY_CC_API Node {
   base::Status setParallelType(const ParallelType &paralle_type);
   ParallelType getParallelType();
 
+  void setInnerFlag(bool flag);
+
   void setInitializedFlag(bool flag);
   bool getInitialized();
 
@@ -75,6 +77,8 @@ class NNDEPLOY_CC_API Node {
   std::vector<Edge *> outputs_;
 
   bool constructed_ = false;
+  // 是否是图中内部节点
+  bool is_inner_ = false;
   ParallelType parallel_type_ = kParallelTypeNone;
   bool initialized_ = false;
   bool is_running_ = false;

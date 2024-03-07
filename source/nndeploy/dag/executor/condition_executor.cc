@@ -56,9 +56,9 @@ base::Status ConditionExecutor::process() {
   for (auto input : inputs) {
     EdgeUpdateFlag flag = input->update(cur_node);
     if (flag == kEdgeUpdateFlagComplete) {
-      int innner_index = input->getIndex(cur_node);
-      int condition_index = input->getIndex(this->condition_);
-      for (; innner_index < condition_index; innner_index++) {
+      int innner_position = input->getPosition(cur_node);
+      int condition_position = input->getPosition(this->condition_);
+      for (; innner_position < condition_position; innner_position++) {
         EdgeUpdateFlag flag = input->update(cur_node);
         if (flag == kEdgeUpdateFlagComplete) {
           continue;
@@ -71,6 +71,8 @@ base::Status ConditionExecutor::process() {
     } else if (flag == kEdgeUpdateFlagTerminate) {
       return base::kStatusCodeOk;
     } else {
+      NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",
+                    cur_node->getName().c_str());
       return base::kStatusCodeErrorDag;
     }
   }

@@ -69,6 +69,8 @@ base::Status Node::setParallelType(const ParallelType &paralle_type) {
 }
 ParallelType Node::getParallelType() { return parallel_type_; }
 
+void Node::setInnerFlag(bool flag) { is_inner_ = flag; }
+
 void Node::setInitializedFlag(bool flag) { initialized_ = flag; }
 bool Node::getInitialized() { return initialized_; }
 

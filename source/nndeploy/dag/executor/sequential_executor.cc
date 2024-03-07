@@ -54,7 +54,9 @@ base::Status SequentialExecutor::run() {
     } else if (edge_update_flag == kEdgeUpdateFlagTerminate) {
       ;
     } else {
-      status = base::kStatusCodeErrorUnknown;
+      NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",
+                    iter->node_->getName().c_str());
+      return base::kStatusCodeErrorDag;
     }
   }
   return status;

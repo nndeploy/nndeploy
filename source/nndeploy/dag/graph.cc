@@ -245,6 +245,7 @@ base::Status Graph::construct() {
   for (auto node_wrapper : node_repository_) {
     Node *node = node_wrapper->node_;
     node->setParallelType(parallel_type);
+    node->setInnerFlag(true);
     std::vector<Edge *> inputs = node->getAllInput();
     for (auto input : inputs) {
       EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
@@ -279,7 +280,6 @@ base::Status Graph::construct() {
     for (auto consumer : edge_wrapper->consumers_) {
       consumers.emplace_back(consumer->node_);
     }
-    // 后set会覆盖前set
     base::Status status = edge_wrapper->edge_->setParallelType(parallel_type);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "setParallelType failed!");
@@ -294,6 +294,13 @@ base::Status Graph::construct() {
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "construct edge failed!");
   }
+
+  if (!is_inner_) {
+    for (auto iter : outputs_) {
+      iter->markGraphOutput();
+    }
+  }
+
   return status;
 }
 
