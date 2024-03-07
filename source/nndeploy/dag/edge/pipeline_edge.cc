@@ -33,10 +33,6 @@ base::Status PipelineEdge::construct() {
       consuming_dp_.insert({iter, nullptr});
     }
   }
-  // if (consumers_.empty()) {
-  //   to_consume_index_.insert({nullptr, 0});
-  //   consuming_dp_.insert({nullptr, nullptr});
-  // }
   return base::kStatusCodeOk;
 }
 
@@ -109,10 +105,6 @@ device::Buffer *PipelineEdge::getBuffer(const Node *node) {
   return dp->getBuffer();
 }
 device::Buffer *PipelineEdge::getGraphOutputBuffer() {
-  bool flag = markGraphOutput();
-  if (!flag) {
-    return nullptr;
-  }
   PipelineDataPacket *dp = nullptr;
   EdgeUpdateFlag update_flag = update(nullptr);
   if (update_flag == kEdgeUpdateFlagTerminate) {
@@ -122,9 +114,9 @@ device::Buffer *PipelineEdge::getGraphOutputBuffer() {
   } else {
     dp = getDataPacket(nullptr);
   }
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getDataPacket error.\n");
-
+  if (dp == nullptr) {
+    return nullptr;
+  }
   return dp->getBuffer();
 }
 
@@ -194,10 +186,6 @@ device::Mat *PipelineEdge::getMat(const Node *node) {
   return dp->getMat();
 }
 device::Mat *PipelineEdge::getGraphOutputMat() {
-  bool flag = markGraphOutput();
-  if (!flag) {
-    return nullptr;
-  }
   PipelineDataPacket *dp = nullptr;
   EdgeUpdateFlag update_flag = update(nullptr);
   if (update_flag == kEdgeUpdateFlagTerminate) {
@@ -207,9 +195,9 @@ device::Mat *PipelineEdge::getGraphOutputMat() {
   } else {
     dp = getDataPacket(nullptr);
   }
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getDataPacket error.\n");
-
+  if (dp == nullptr) {
+    return nullptr;
+  }
   return dp->getMat();
 }
 
@@ -250,10 +238,6 @@ cv::Mat *PipelineEdge::getCvMat(const Node *node) {
   return dp->getCvMat();
 }
 cv::Mat *PipelineEdge::getGraphOutputCvMat() {
-  bool flag = markGraphOutput();
-  if (!flag) {
-    return nullptr;
-  }
   PipelineDataPacket *dp = nullptr;
   EdgeUpdateFlag update_flag = update(nullptr);
   if (update_flag == kEdgeUpdateFlagTerminate) {
@@ -263,9 +247,9 @@ cv::Mat *PipelineEdge::getGraphOutputCvMat() {
   } else {
     dp = getDataPacket(nullptr);
   }
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getDataPacket error.\n");
-
+  if (dp == nullptr) {
+    return nullptr;
+  }
   return dp->getCvMat();
 }
 #endif
@@ -337,10 +321,6 @@ device::Tensor *PipelineEdge::getTensor(const Node *node) {
   return dp->getTensor();
 }
 device::Tensor *PipelineEdge::getGraphOutputTensor() {
-  bool flag = markGraphOutput();
-  if (!flag) {
-    return nullptr;
-  }
   PipelineDataPacket *dp = nullptr;
   EdgeUpdateFlag update_flag = update(nullptr);
   if (update_flag == kEdgeUpdateFlagTerminate) {
@@ -350,9 +330,9 @@ device::Tensor *PipelineEdge::getGraphOutputTensor() {
   } else {
     dp = getDataPacket(nullptr);
   }
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getDataPacket error.\n");
-
+  if (dp == nullptr) {
+    return nullptr;
+  }
   return dp->getTensor();
 }
 
@@ -393,10 +373,6 @@ base::Param *PipelineEdge::getParam(const Node *node) {
   return dp->getParam();
 }
 base::Param *PipelineEdge::getGraphOutputParam() {
-  bool flag = markGraphOutput();
-  if (!flag) {
-    return nullptr;
-  }
   PipelineDataPacket *dp = nullptr;
   EdgeUpdateFlag update_flag = update(nullptr);
   if (update_flag == kEdgeUpdateFlagTerminate) {
@@ -406,9 +382,9 @@ base::Param *PipelineEdge::getGraphOutputParam() {
   } else {
     dp = getDataPacket(nullptr);
   }
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getDataPacket error.\n");
-
+  if (dp == nullptr) {
+    return nullptr;
+  }
   return dp->getParam();
 }
 
@@ -434,10 +410,6 @@ void *PipelineEdge::getAnything(const Node *node) {
   return dp->getAnything();
 }
 void *PipelineEdge::getGraphOutputAnything() {
-  bool flag = markGraphOutput();
-  if (!flag) {
-    return nullptr;
-  }
   PipelineDataPacket *dp = nullptr;
   EdgeUpdateFlag update_flag = update(nullptr);
   if (update_flag == kEdgeUpdateFlagTerminate) {
@@ -447,9 +419,9 @@ void *PipelineEdge::getGraphOutputAnything() {
   } else {
     dp = getDataPacket(nullptr);
   }
-  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
-      dp, "PipelineDataPacket getDataPacket error.\n");
-
+  if (dp == nullptr) {
+    return nullptr;
+  }
   return dp->getAnything();
 }
 
@@ -463,11 +435,6 @@ int PipelineEdge::getIndex(const Node *node) {
   return index;
 }
 int PipelineEdge::getGraphOutputIndex() {
-  // bool flag = false;
-  // flag = markGraphOutput();
-  // if (!flag) {
-  //   return -1;
-  // }
   PipelineDataPacket *dp = getDataPacket(nullptr);
   if (dp == nullptr) {
     NNDEPLOY_LOGE("PipelineDataPacket getDataPacket error.\n");
@@ -499,36 +466,6 @@ bool PipelineEdge::requestTerminate() {
   std::unique_lock<std::mutex> lock(mutex_);
   terminate_flag_ = true;
   cv_.notify_all();
-  return true;
-}
-
-bool PipelineEdge::checkNode(const Node *node) {
-  if (node == nullptr) {
-    return true;
-  } else if (std::find(consumers_.begin(), consumers_.end(), node) !=
-             consumers_.end()) {
-    return true;
-  } else {
-    if (node != nullptr) {
-      Node *tmp_node = const_cast<Node *>(node);
-      NNDEPLOY_LOGE("This node[%s] is error.\n", tmp_node->getName().c_str());
-    } else {
-      NNDEPLOY_LOGE("This node is error.\n");
-    }
-    return false;
-  }
-}
-
-bool PipelineEdge::markGraphOutput() {
-  std::unique_lock<std::mutex> lock(mutex_);
-  std::call_once(once_, [this]() {
-    this->consumers_size_ = this->consumers_size_ + 1;
-    this->to_consume_index_.insert({nullptr, 0});
-    this->consuming_dp_.insert({nullptr, nullptr});
-    for (auto iter : this->data_packets_) {
-      (iter)->increaseConsumersSize();
-    }
-  });
   return true;
 }
 
@@ -584,59 +521,6 @@ EdgeUpdateFlag PipelineEdge::update(const Node *node) {
   consuming_dp_[tmp_node] = dp;
   return kEdgeUpdateFlagComplete;
 }
-/**
- * @brief Get the Graph Output Edge Data Packet object
- *
- * @param node
- * @return PipelineDataPacket*
- * @note 用于获取图的输出节点的数据包
- * @perf 这里还可以再优化性能
- */
-// bool PipelineEdge::updateGraphOutputData() {
-//   std::unique_lock<std::mutex> lock(mutex_);
-//   cv_.wait(lock, [this] {
-//     bool flag = false;
-//     if (data_packets_.empty()) {
-//       flag = false;
-//     }
-//     for (auto iter : data_packets_) {
-//       if (iter->getConsumersCount() == consumers_size_) {
-//         flag = true;
-//         break;
-//       }
-//     }
-//     return flag || terminate_flag_;
-//   });
-
-//   if (terminate_flag_) {
-//     return false;
-//   }
-
-//   // find
-//   int count = 0;
-//   PipelineDataPacket *dp = nullptr;
-//   auto iter = data_packets_.begin();
-//   for (; iter != data_packets_.end(); ++iter) {
-//     if ((*iter)->getConsumersCount() == consumers_size_) {
-//       dp = (*iter);
-//       (*iter)->increaseConsumersCount();
-//       break;
-//     }
-//     count++;
-//   }
-
-//   // update
-//   iter = data_packets_.begin();
-//   for (int i = 0; i < count; i++) {
-//     delete (*iter);
-//     iter++;
-//   }
-//   data_packets_.erase(data_packets_.begin(), iter);
-
-//   // 返回值
-//   consuming_dp_[nullptr] = dp;
-//   return true;
-// }
 
 PipelineDataPacket *PipelineEdge::getDataPacket(const Node *node) {
   Node *tmp_node = const_cast<Node *>(node);

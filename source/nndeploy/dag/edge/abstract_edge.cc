@@ -34,6 +34,27 @@ base::Status AbstractEdge::increaseConsumers(std::vector<Node *> &consumers) {
   return base::kStatusCodeOk;
 }
 
+bool AbstractEdge::markGraphOutput() {
+  Node *node = nullptr;
+  insertUnique(consumers_, node);
+  return true;
+}
+
+bool AbstractEdge::checkNode(const Node *node) {
+  if (std::find(consumers_.begin(), consumers_.end(), node) !=
+      consumers_.end()) {
+    return true;
+  } else {
+    if (node != nullptr) {
+      Node *tmp_node = const_cast<Node *>(node);
+      NNDEPLOY_LOGE("This node[%s] is error.\n", tmp_node->getName().c_str());
+    } else {
+      NNDEPLOY_LOGE("This node is error.\n");
+    }
+    return false;
+  }
+}
+
 std::map<EdgeType, std::shared_ptr<EdgeCreator>> &getGlobalEdgeCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<EdgeType, std::shared_ptr<EdgeCreator>>>
@@ -67,6 +88,27 @@ AbstractEdge *createEdge(ParallelType type) {
     temp = creater_map[edge_type]->createEdge(type);
   }
   return temp;
+}
+
+AbstractEdge *recreateEdge(AbstractEdge *abstact_edge,
+                           const ParallelType &paralle_type) {
+  ParallelType cur_paralle_type = abstact_edge->getParallelType();
+  AbstractEdge *new_abstact_edge = nullptr;
+  if ((int)paralle_type > (int)cur_paralle_type) {
+    new_abstact_edge = createEdge(paralle_type);
+    if (new_abstact_edge == nullptr) {
+      NNDEPLOY_LOGE("out of memory!\n");
+      return nullptr;
+    }
+    std::vector<Node *> producers = abstact_edge->getProducers();
+    new_abstact_edge->increaseProducers(producers);
+    std::vector<Node *> consumers = abstact_edge->getConsumers();
+    new_abstact_edge->increaseConsumers(consumers);
+    delete abstact_edge;
+  } else {
+    new_abstact_edge = abstact_edge;
+  }
+  return new_abstact_edge;
 }
 
 }  // namespace dag

@@ -136,19 +136,10 @@ base::Status Edge::setParallelType(const ParallelType &paralle_type) {
       return base::kStatusCodeErrorOutOfMemory;
     }
   } else {
-    ParallelType cur_paralle_type = abstact_edge_->getParallelType();
-    if ((int)paralle_type > (int)cur_paralle_type) {
-      AbstractEdge *new_abstact_edge = createEdge(paralle_type);
-      if (new_abstact_edge == nullptr) {
-        NNDEPLOY_LOGE("out of memory!\n");
-        return base::kStatusCodeErrorOutOfMemory;
-      }
-      std::vector<Node *> producers = abstact_edge_->getProducers();
-      new_abstact_edge->increaseProducers(producers);
-      std::vector<Node *> consumers = abstact_edge_->getConsumers();
-      new_abstact_edge->increaseConsumers(consumers);
-      delete abstact_edge_;
-      abstact_edge_ = new_abstact_edge;
+    abstact_edge_ = recreateEdge(abstact_edge_, paralle_type);
+    if (abstact_edge_ == nullptr) {
+      NNDEPLOY_LOGE("out of memory!\n");
+      return base::kStatusCodeErrorOutOfMemory;
     }
   }
   return base::kStatusCodeOk;

@@ -89,13 +89,7 @@ class PipelineEdge : public AbstractEdge {
 
   virtual bool requestTerminate();
 
-  virtual bool markGraphOutput();
-
  private:
-  // virtual bool updateGraphOutputData();
-
-  bool checkNode(const Node *node);
-
   PipelineDataPacket *getDataPacket(const Node *node);
 
  private:

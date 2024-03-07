@@ -81,7 +81,7 @@ class AbstractEdge : public base::NonCopyable {
 
   virtual EdgeUpdateFlag update(const Node *node) = 0;
 
-  virtual bool markGraphOutput() = 0;
+  virtual bool markGraphOutput();
 
   ParallelType getParallelType();
 
@@ -92,6 +92,9 @@ class AbstractEdge : public base::NonCopyable {
   base::Status increaseConsumers(std::vector<Node *> &consumers);
 
   virtual bool requestTerminate() = 0;
+
+ protected:
+  bool checkNode(const Node *node);
 
  protected:
   ParallelType parallel_type_;
@@ -124,6 +127,9 @@ class TypeEdgeRegister {
 };
 
 AbstractEdge *createEdge(ParallelType paralle_type);
+
+AbstractEdge *recreateEdge(AbstractEdge *abstact_edge,
+                           const ParallelType &paralle_type);
 
 }  // namespace dag
 }  // namespace nndeploy

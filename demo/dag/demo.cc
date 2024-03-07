@@ -180,7 +180,7 @@ int parallelGraph() {
 
     par_graph->init();
 
-    sub_out_1.markGraphOutput();
+    //sub_out_1.markGraphOutput();
 
     par_graph->dump();
 
@@ -216,9 +216,9 @@ int parallelGraph() {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
       }
-      // NNDEPLOY_LOGE(
-      //     "device::Tensor *result_2[%p] =
-      //     sub_out_2.getGraphOutputTensor();\n", result);
+       NNDEPLOY_LOGE(
+          "device::Tensor *result_2[%p] = sub_out_2.getGraphOutputTensor();\n",
+          result_2);
     }
 
     // 有向无环图graph反初始化
