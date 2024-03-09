@@ -11,12 +11,12 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/dag/edge/abstract_edge.h"
-#include "nndeploy/dag/type.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
+
 
 namespace nndeploy {
 namespace dag {
@@ -81,12 +81,12 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   int getPosition(const Node *node);
   int getGraphOutputPosition();
 
-  EdgeUpdateFlag update(const Node *node);
+  base::EdgeUpdateFlag update(const Node *node);
 
   bool markGraphOutput();
 
-  base::Status setParallelType(const ParallelType &paralle_type);
-  ParallelType getParallelType();
+  base::Status setParallelType(const base::ParallelType &paralle_type);
+  base::ParallelType getParallelType();
 
   base::Status increaseProducers(std::vector<Node *> &producers);
   base::Status increaseConsumers(std::vector<Node *> &consumers);

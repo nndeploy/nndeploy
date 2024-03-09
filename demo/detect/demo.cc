@@ -1,17 +1,18 @@
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
+#include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/model/detect/yolo/yolo.h"
 #include "nndeploy/thread_pool/thread_pool.h"
-#include "nndeploy/codec/codec.h"
 
 using namespace nndeploy;
 
 class DrawBoxNode : public dag::Node {
  public:
-  DrawBoxNode(const std::string &name, std::initializer_list<dag::Edge *> inputs,
+  DrawBoxNode(const std::string &name,
+              std::initializer_list<dag::Edge *> inputs,
               std::initializer_list<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {}
   virtual ~DrawBoxNode() {}
@@ -85,9 +86,9 @@ int main(int argc, char *argv[]) {
   base::CodecFlag codec_flag = demo::getCodecFlag();
   // output path
   std::string ouput_path = demo::getOutputPath();
-  // dag::kParallelTypePipeline
-  //dag::ParallelType pt = dag::kParallelTypePipeline;
-  dag::ParallelType pt = dag::kParallelTypeSequential;
+  // base::kParallelTypePipeline
+  // base::ParallelType pt = base::kParallelTypePipeline;
+  base::ParallelType pt = base::kParallelTypeSequential;
 
   // graph
   dag::Graph *graph = new dag::Graph("demo", nullptr, nullptr);

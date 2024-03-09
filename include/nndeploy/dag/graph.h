@@ -12,12 +12,12 @@
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/executor.h"
 #include "nndeploy/dag/node.h"
-#include "nndeploy/dag/type.h"
 #include "nndeploy/dag/util.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
+
 
 /**
  * @brief 有向无环图

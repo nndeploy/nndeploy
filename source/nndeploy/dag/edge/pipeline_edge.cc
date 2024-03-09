@@ -6,9 +6,9 @@ namespace nndeploy {
 namespace dag {
 
 TypeEdgeRegister<TypeEdgeCreator<PipelineEdge>> g_pipeline_edge_register(
-    kEdgeTypePipeline);
+    base::kEdgeTypePipeline);
 
-PipelineEdge::PipelineEdge(ParallelType paralle_type)
+PipelineEdge::PipelineEdge(base::ParallelType paralle_type)
     : AbstractEdge(paralle_type) {}
 
 PipelineEdge::~PipelineEdge() {
@@ -106,10 +106,10 @@ device::Buffer *PipelineEdge::getBuffer(const Node *node) {
 }
 device::Buffer *PipelineEdge::getGraphOutputBuffer() {
   PipelineDataPacket *dp = nullptr;
-  EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == kEdgeUpdateFlagTerminate) {
+  base::EdgeUpdateFlag update_flag = update(nullptr);
+  if (update_flag == base::kEdgeUpdateFlagTerminate) {
     NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == kEdgeUpdateFlagError) {
+  } else if (update_flag == base::kEdgeUpdateFlagError) {
     NNDEPLOY_LOGI("getGraphOutput update error.\n");
   } else {
     dp = getDataPacket(nullptr);
@@ -187,10 +187,10 @@ device::Mat *PipelineEdge::getMat(const Node *node) {
 }
 device::Mat *PipelineEdge::getGraphOutputMat() {
   PipelineDataPacket *dp = nullptr;
-  EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == kEdgeUpdateFlagTerminate) {
+  base::EdgeUpdateFlag update_flag = update(nullptr);
+  if (update_flag == base::kEdgeUpdateFlagTerminate) {
     NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == kEdgeUpdateFlagError) {
+  } else if (update_flag == base::kEdgeUpdateFlagError) {
     NNDEPLOY_LOGI("getGraphOutput update error.\n");
   } else {
     dp = getDataPacket(nullptr);
@@ -239,10 +239,10 @@ cv::Mat *PipelineEdge::getCvMat(const Node *node) {
 }
 cv::Mat *PipelineEdge::getGraphOutputCvMat() {
   PipelineDataPacket *dp = nullptr;
-  EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == kEdgeUpdateFlagTerminate) {
+  base::EdgeUpdateFlag update_flag = update(nullptr);
+  if (update_flag == base::kEdgeUpdateFlagTerminate) {
     NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == kEdgeUpdateFlagError) {
+  } else if (update_flag == base::kEdgeUpdateFlagError) {
     NNDEPLOY_LOGI("getGraphOutput update error.\n");
   } else {
     dp = getDataPacket(nullptr);
@@ -322,10 +322,10 @@ device::Tensor *PipelineEdge::getTensor(const Node *node) {
 }
 device::Tensor *PipelineEdge::getGraphOutputTensor() {
   PipelineDataPacket *dp = nullptr;
-  EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == kEdgeUpdateFlagTerminate) {
+  base::EdgeUpdateFlag update_flag = update(nullptr);
+  if (update_flag == base::kEdgeUpdateFlagTerminate) {
     NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == kEdgeUpdateFlagError) {
+  } else if (update_flag == base::kEdgeUpdateFlagError) {
     NNDEPLOY_LOGI("getGraphOutput update error.\n");
   } else {
     dp = getDataPacket(nullptr);
@@ -374,10 +374,10 @@ base::Param *PipelineEdge::getParam(const Node *node) {
 }
 base::Param *PipelineEdge::getGraphOutputParam() {
   PipelineDataPacket *dp = nullptr;
-  EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == kEdgeUpdateFlagTerminate) {
+  base::EdgeUpdateFlag update_flag = update(nullptr);
+  if (update_flag == base::kEdgeUpdateFlagTerminate) {
     NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == kEdgeUpdateFlagError) {
+  } else if (update_flag == base::kEdgeUpdateFlagError) {
     NNDEPLOY_LOGI("getGraphOutput update error.\n");
   } else {
     dp = getDataPacket(nullptr);
@@ -411,10 +411,10 @@ void *PipelineEdge::getAnything(const Node *node) {
 }
 void *PipelineEdge::getGraphOutputAnything() {
   PipelineDataPacket *dp = nullptr;
-  EdgeUpdateFlag update_flag = update(nullptr);
-  if (update_flag == kEdgeUpdateFlagTerminate) {
+  base::EdgeUpdateFlag update_flag = update(nullptr);
+  if (update_flag == base::kEdgeUpdateFlagTerminate) {
     NNDEPLOY_LOGI("User voluntarily terminates.\n");
-  } else if (update_flag == kEdgeUpdateFlagError) {
+  } else if (update_flag == base::kEdgeUpdateFlagError) {
     NNDEPLOY_LOGI("getGraphOutput update error.\n");
   } else {
     dp = getDataPacket(nullptr);
@@ -476,11 +476,11 @@ bool PipelineEdge::requestTerminate() {
  * @return PipelineDataPacket*
  * @note 用于获取消费者节点的数据包，对应节点的输入边
  */
-EdgeUpdateFlag PipelineEdge::update(const Node *node) {
+base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
   Node *tmp_node = const_cast<Node *>(node);
   if (!checkNode(tmp_node)) {
     NNDEPLOY_LOGE("This node is error.\n");
-    return kEdgeUpdateFlagError;
+    return base::kEdgeUpdateFlagError;
   }
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [this, tmp_node] {
@@ -489,7 +489,7 @@ EdgeUpdateFlag PipelineEdge::update(const Node *node) {
                              // 数据被消耗结束
   });
   if (terminate_flag_) {
-    return kEdgeUpdateFlagTerminate;
+    return base::kEdgeUpdateFlagTerminate;
   }
 
   // find
@@ -519,7 +519,7 @@ EdgeUpdateFlag PipelineEdge::update(const Node *node) {
   data_packets_.erase(data_packets_.begin(), iter);  // 销毁不会被使用到的数据
 
   consuming_dp_[tmp_node] = dp;
-  return kEdgeUpdateFlagComplete;
+  return base::kEdgeUpdateFlagComplete;
 }
 
 PipelineDataPacket *PipelineEdge::getDataPacket(const Node *node) {

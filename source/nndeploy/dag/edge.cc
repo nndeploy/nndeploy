@@ -122,13 +122,13 @@ int Edge::getGraphOutputPosition() {
   return abstact_edge_->getGraphOutputPosition();
 }
 
-EdgeUpdateFlag Edge::update(const Node *node) {
+base::EdgeUpdateFlag Edge::update(const Node *node) {
   return abstact_edge_->update(node);
 }
 
 bool Edge::markGraphOutput() { return abstact_edge_->markGraphOutput(); }
 
-base::Status Edge::setParallelType(const ParallelType &paralle_type) {
+base::Status Edge::setParallelType(const base::ParallelType &paralle_type) {
   if (abstact_edge_ == nullptr) {
     abstact_edge_ = createEdge(paralle_type);
     if (abstact_edge_ == nullptr) {
@@ -144,7 +144,7 @@ base::Status Edge::setParallelType(const ParallelType &paralle_type) {
   }
   return base::kStatusCodeOk;
 }
-ParallelType Edge::getParallelType() {
+base::ParallelType Edge::getParallelType() {
   return abstact_edge_->getParallelType();
 }
 

@@ -249,6 +249,32 @@ enum CodecFlag : int {
   kCodecFlagOther,
 };
 
+enum ParallelType : int {
+  kParallelTypeNone = 0x0001,
+  kParallelTypeSequential = 0x0001 << 1,
+  kParallelTypeTask = 0x0001 << 2,
+  kParallelTypePipeline = 0x0001 << 3,
+};
+
+enum EdgeType : int {
+  kEdgeTypeFixed = 0x0001,
+  kEdgeTypePipeline = 0x0001 << 1,
+};
+
+enum EdgeUpdateFlag : int {
+  kEdgeUpdateFlagComplete = 0x0001,
+  kEdgeUpdateFlagTerminate = 0x0001 << 1,
+  kEdgeUpdateFlagError = 0x0001 << 2,
+};
+
+enum NodeColorType : int {
+  kNodeColorWhite = 0x0000,
+  kNodeColorGray,
+  kNodeColorBlack
+};
+
+enum TopoSortType : int { kTopoSortTypeBFS = 0x0000, kTopoSortTypeDFS };
+
 using IntVector = std::vector<int>;
 using SizeVector = std::vector<size_t>;
 using ShapeMap = std::map<std::string, std::vector<int>>;

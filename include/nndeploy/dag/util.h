@@ -10,7 +10,6 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
-#include "nndeploy/dag/type.h"
 
 namespace nndeploy {
 namespace dag {
@@ -22,7 +21,7 @@ class NNDEPLOY_CC_API NodeWrapper {
   std::string name_;
   std::vector<NodeWrapper *> predecessors_;
   std::vector<NodeWrapper *> successors_;
-  NodeColorType color_ = kNodeColorWhite;
+  base::NodeColorType color_ = base::kNodeColorWhite;
 };
 
 class NNDEPLOY_CC_API EdgeWrapper {
@@ -57,7 +56,7 @@ NNDEPLOY_CC_API std::vector<NodeWrapper *> findEndNodes(
     std::vector<NodeWrapper *> &node_repository);
 
 NNDEPLOY_CC_API base::Status setColor(
-    std::vector<NodeWrapper *> &node_repository, NodeColorType color);
+    std::vector<NodeWrapper *> &node_repository, base::NodeColorType color);
 
 base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
                      std::vector<NodeWrapper *> &node_repository,
@@ -78,7 +77,7 @@ base::Status topoSortDFS(std::vector<NodeWrapper *> &node_repository,
                          std::vector<NodeWrapper *> &topo_sort_node);
 
 base::Status topoSort(std::vector<NodeWrapper *> &node_repository,
-                      TopoSortType topo_sort_type,
+                      base::TopoSortType topo_sort_type,
                       std::vector<NodeWrapper *> &topo_sort_node);
 
 bool checkEdge(const std::vector<Edge *> &src_edges,

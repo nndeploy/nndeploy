@@ -10,19 +10,19 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/dag/edge/abstract_edge.h"
-#include "nndeploy/dag/type.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
 
+
 namespace nndeploy {
 namespace dag {
 
 class FixedEdge : public AbstractEdge {
  public:
-  FixedEdge(ParallelType paralle_type);
+  FixedEdge(base::ParallelType paralle_type);
   virtual ~FixedEdge();
 
   virtual base::Status construct();
@@ -75,7 +75,7 @@ class FixedEdge : public AbstractEdge {
   virtual int getPosition(const Node *node);
   virtual int getGraphOutputPosition();
 
-  virtual EdgeUpdateFlag update(const Node *node);
+  virtual base::EdgeUpdateFlag update(const Node *node);
 
   virtual bool requestTerminate();
 

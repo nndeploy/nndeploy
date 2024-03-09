@@ -54,21 +54,21 @@ base::Status ConditionExecutor::process() {
   Node *cur_node = this->node_repository_[index_]->node_;
   auto inputs = cur_node->getAllInput();
   for (auto input : inputs) {
-    EdgeUpdateFlag flag = input->update(cur_node);
-    if (flag == kEdgeUpdateFlagComplete) {
+    base::EdgeUpdateFlag flag = input->update(cur_node);
+    if (flag == base::kEdgeUpdateFlagComplete) {
       int innner_position = input->getPosition(cur_node);
       int condition_position = input->getPosition(this->condition_);
       for (; innner_position < condition_position; innner_position++) {
-        EdgeUpdateFlag flag = input->update(cur_node);
-        if (flag == kEdgeUpdateFlagComplete) {
+        base::EdgeUpdateFlag flag = input->update(cur_node);
+        if (flag == base::kEdgeUpdateFlagComplete) {
           continue;
-        } else if (flag == kEdgeUpdateFlagTerminate) {
+        } else if (flag == base::kEdgeUpdateFlagTerminate) {
           return base::kStatusCodeOk;
         } else {
           return base::kStatusCodeErrorDag;
         }
       }
-    } else if (flag == kEdgeUpdateFlagTerminate) {
+    } else if (flag == base::kEdgeUpdateFlagTerminate) {
       return base::kStatusCodeOk;
     } else {
       NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",

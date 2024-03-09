@@ -11,12 +11,12 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/dag/edge/abstract_edge.h"
 #include "nndeploy/dag/node.h"
-#include "nndeploy/dag/type.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
+
 
 namespace nndeploy {
 namespace dag {
@@ -32,7 +32,7 @@ namespace dag {
  */
 class PipelineEdge : public AbstractEdge {
  public:
-  PipelineEdge(ParallelType paralle_type);
+  PipelineEdge(base::ParallelType paralle_type);
   virtual ~PipelineEdge();
 
   virtual base::Status construct();
@@ -85,7 +85,7 @@ class PipelineEdge : public AbstractEdge {
   virtual int getPosition(const Node *node);
   virtual int getGraphOutputPosition();
 
-  virtual EdgeUpdateFlag update(const Node *node);
+  virtual base::EdgeUpdateFlag update(const Node *node);
 
   virtual bool requestTerminate();
 

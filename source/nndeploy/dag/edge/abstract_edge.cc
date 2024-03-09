@@ -7,7 +7,7 @@
 namespace nndeploy {
 namespace dag {
 
-AbstractEdge::AbstractEdge(ParallelType paralle_type)
+AbstractEdge::AbstractEdge(base::ParallelType paralle_type)
     : parallel_type_(paralle_type) {}
 
 AbstractEdge::~AbstractEdge() {
@@ -15,7 +15,7 @@ AbstractEdge::~AbstractEdge() {
   consumers_.clear();
 }
 
-ParallelType AbstractEdge::getParallelType() { return parallel_type_; }
+base::ParallelType AbstractEdge::getParallelType() { return parallel_type_; }
 
 std::vector<Node *> AbstractEdge::getProducers() { return producers_; }
 base::Status AbstractEdge::increaseProducers(std::vector<Node *> &producers) {
@@ -55,35 +55,36 @@ bool AbstractEdge::checkNode(const Node *node) {
   }
 }
 
-std::map<EdgeType, std::shared_ptr<EdgeCreator>> &getGlobalEdgeCreatorMap() {
+std::map<base::EdgeType, std::shared_ptr<EdgeCreator>> &
+getGlobalEdgeCreatorMap() {
   static std::once_flag once;
-  static std::shared_ptr<std::map<EdgeType, std::shared_ptr<EdgeCreator>>>
+  static std::shared_ptr<std::map<base::EdgeType, std::shared_ptr<EdgeCreator>>>
       creators;
   std::call_once(once, []() {
-    creators.reset(new std::map<EdgeType, std::shared_ptr<EdgeCreator>>);
+    creators.reset(new std::map<base::EdgeType, std::shared_ptr<EdgeCreator>>);
   });
   return *creators;
 }
 
-EdgeType getEdgeType(ParallelType type) {
+base::EdgeType getEdgeType(base::ParallelType type) {
   switch (type) {
-    case kParallelTypeNone:
-      return kEdgeTypeFixed;
-    case kParallelTypeSequential:
-      return kEdgeTypeFixed;
-    case kParallelTypeTask:
-      return kEdgeTypeFixed;
-    case kParallelTypePipeline:
-      return kEdgeTypePipeline;
+    case base::kParallelTypeNone:
+      return base::kEdgeTypeFixed;
+    case base::kParallelTypeSequential:
+      return base::kEdgeTypeFixed;
+    case base::kParallelTypeTask:
+      return base::kEdgeTypeFixed;
+    case base::kParallelTypePipeline:
+      return base::kEdgeTypePipeline;
     default:
-      return kEdgeTypeFixed;
+      return base::kEdgeTypeFixed;
   }
 }
 
-AbstractEdge *createEdge(ParallelType type) {
+AbstractEdge *createEdge(base::ParallelType type) {
   AbstractEdge *temp = nullptr;
   auto &creater_map = getGlobalEdgeCreatorMap();
-  EdgeType edge_type = getEdgeType(type);
+  base::EdgeType edge_type = getEdgeType(type);
   if (creater_map.count(edge_type) > 0) {
     temp = creater_map[edge_type]->createEdge(type);
   }
@@ -91,8 +92,8 @@ AbstractEdge *createEdge(ParallelType type) {
 }
 
 AbstractEdge *recreateEdge(AbstractEdge *abstact_edge,
-                           const ParallelType &paralle_type) {
-  ParallelType cur_paralle_type = abstact_edge->getParallelType();
+                           const base::ParallelType &paralle_type) {
+  base::ParallelType cur_paralle_type = abstact_edge->getParallelType();
   AbstractEdge *new_abstact_edge = nullptr;
   if ((int)paralle_type > (int)cur_paralle_type) {
     new_abstact_edge = createEdge(paralle_type);

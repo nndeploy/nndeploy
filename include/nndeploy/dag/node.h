@@ -11,11 +11,11 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
-#include "nndeploy/dag/type.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
+
 
 namespace nndeploy {
 namespace dag {
@@ -48,8 +48,8 @@ class NNDEPLOY_CC_API Node {
 
   bool getConstructed();
 
-  base::Status setParallelType(const ParallelType &paralle_type);
-  ParallelType getParallelType();
+  base::Status setParallelType(const base::ParallelType &paralle_type);
+  base::ParallelType getParallelType();
 
   void setInnerFlag(bool flag);
 
@@ -65,7 +65,7 @@ class NNDEPLOY_CC_API Node {
   virtual int64_t getMemorySize();
   virtual base::Status setMemory(device::Buffer *buffer);
 
-  virtual EdgeUpdateFlag updataInput();
+  virtual base::EdgeUpdateFlag updataInput();
 
   virtual base::Status run() = 0;
 
@@ -79,7 +79,7 @@ class NNDEPLOY_CC_API Node {
   bool constructed_ = false;
   // 是否是图中内部节点
   bool is_inner_ = false;
-  ParallelType parallel_type_ = kParallelTypeNone;
+  base::ParallelType parallel_type_ = base::kParallelTypeNone;
   bool initialized_ = false;
   bool is_running_ = false;
 };

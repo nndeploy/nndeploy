@@ -102,7 +102,7 @@ std::vector<NodeWrapper *> findEndNodes(
 }
 
 base::Status setColor(std::vector<NodeWrapper *> &node_repository,
-                      NodeColorType color) {
+                      base::NodeColorType color) {
   for (auto node_wrapper : node_repository) {
     node_wrapper->color_ = color;
   }
@@ -199,7 +199,7 @@ std::vector<NodeWrapper *> checkUnuseNode(
     std::vector<NodeWrapper *> &node_repository) {
   std::vector<NodeWrapper *> unused;
   for (auto node_wrapper : node_repository) {
-    if (node_wrapper->color_ == kNodeColorWhite) {
+    if (node_wrapper->color_ == base::kNodeColorWhite) {
       NNDEPLOY_LOGE("Unuse node found in graph, Node name: %s.",
                     node_wrapper->name_.c_str());
       unused.emplace_back(node_wrapper);
@@ -250,16 +250,16 @@ base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,
   }
   std::deque<NodeWrapper *> node_deque;
   for (auto node_wrapper : start_nodes) {
-    node_wrapper->color_ = kNodeColorGray;
+    node_wrapper->color_ = base::kNodeColorGray;
     node_deque.emplace_back(node_wrapper);
   }
   while (!node_deque.empty()) {
     NodeWrapper *node_wrapper = node_deque.front();
     for (auto successor : node_wrapper->successors_) {
-      if (successor->color_ == kNodeColorWhite) {
-        successor->color_ = kNodeColorGray;
+      if (successor->color_ == base::kNodeColorWhite) {
+        successor->color_ = base::kNodeColorGray;
         node_deque.emplace_back(successor);
-      } else if (successor->color_ == kNodeColorGray) {
+      } else if (successor->color_ == base::kNodeColorGray) {
         continue;
       } else {
         NNDEPLOY_LOGE("Cycle detected in graph");
@@ -267,7 +267,7 @@ base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,
       }
     }
     node_deque.pop_front();
-    node_wrapper->color_ = kNodeColorBlack;
+    node_wrapper->color_ = base::kNodeColorBlack;
     topo_sort_node.emplace_back(node_wrapper);
   }
 
@@ -279,20 +279,20 @@ base::Status topoSortBFS(std::vector<NodeWrapper *> &node_repository,
 base::Status TopoSortDFSRecursive(NodeWrapper *node_wrapper,
                                   std::stack<NodeWrapper *> &dst) {
   base::Status status = base::kStatusCodeOk;
-  node_wrapper->color_ = kNodeColorGray;
+  node_wrapper->color_ = base::kNodeColorGray;
   for (auto successor : node_wrapper->successors_) {
-    if (successor->color_ == kNodeColorWhite) {
+    if (successor->color_ == base::kNodeColorWhite) {
       status = TopoSortDFSRecursive(successor, dst);
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "Cycle detected in graph");
-    } else if (successor->color_ == kNodeColorGray) {
+    } else if (successor->color_ == base::kNodeColorGray) {
       NNDEPLOY_LOGE("Cycle detected in graph");
       return base::kStatusCodeErrorInvalidValue;
     } else {
       continue;
     }
   }
-  node_wrapper->color_ = kNodeColorBlack;
+  node_wrapper->color_ = base::kNodeColorBlack;
   dst.push(node_wrapper);
   return status;
 }
@@ -307,9 +307,9 @@ base::Status topoSortDFS(std::vector<NodeWrapper *> &node_repository,
   }
   std::stack<NodeWrapper *> dst;
   for (auto node_wrapper : start_nodes) {
-    if (node_wrapper->color_ == kNodeColorWhite) {
+    if (node_wrapper->color_ == base::kNodeColorWhite) {
       status = TopoSortDFSRecursive(node_wrapper, dst);
-    } else if (node_wrapper->color_ == kNodeColorGray) {
+    } else if (node_wrapper->color_ == base::kNodeColorGray) {
       NNDEPLOY_LOGE("Cycle detected in graph");
       status = base::kStatusCodeErrorInvalidValue;
     } else {
@@ -327,15 +327,15 @@ base::Status topoSortDFS(std::vector<NodeWrapper *> &node_repository,
 }
 
 base::Status topoSort(std::vector<NodeWrapper *> &node_repository,
-                      TopoSortType topo_sort_type,
+                      base::TopoSortType topo_sort_type,
                       std::vector<NodeWrapper *> &topo_sort_node) {
   base::Status status = base::kStatusCodeOk;
-  if (topo_sort_type == kTopoSortTypeBFS) {
+  if (topo_sort_type == base::kTopoSortTypeBFS) {
     status = topoSortBFS(node_repository, topo_sort_node);
     if (status != base::kStatusCodeOk) {
       return status;
     }
-  } else if (topo_sort_type == kTopoSortTypeDFS) {
+  } else if (topo_sort_type == base::kTopoSortTypeDFS) {
     status = topoSortDFS(node_repository, topo_sort_node);
     if (status != base::kStatusCodeOk) {
       return status;

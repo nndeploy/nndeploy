@@ -22,7 +22,7 @@ base::Status ParallelTaskExecutor::init(
   }
 
   for (auto iter : topo_sort_node_) {
-    iter->color_ = kNodeColorWhite;
+    iter->color_ = base::kNodeColorWhite;
     iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node init failure");
@@ -59,10 +59,10 @@ base::Status ParallelTaskExecutor::run() {
   wait();
 
   for (auto iter : topo_sort_node_) {
-    if (iter->color_ != kNodeColorBlack) {
+    if (iter->color_ != base::kNodeColorBlack) {
       std::string info{"exist node not finish!\n"};
       info.append(iter->name_);
-      NNDEPLOY_RETURN_ON_NEQ(iter->color_, kNodeColorBlack, info.c_str());
+      NNDEPLOY_RETURN_ON_NEQ(iter->color_, base::kNodeColorBlack, info.c_str());
     }
   }
 
@@ -71,10 +71,10 @@ base::Status ParallelTaskExecutor::run() {
 }
 
 void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
-  node_wrapper->color_ = kNodeColorGray;
+  node_wrapper->color_ = base::kNodeColorGray;
   const auto& func = [this, node_wrapper] {
-    EdgeUpdateFlag edge_update_flag = node_wrapper->node_->updataInput();
-    if (edge_update_flag == kEdgeUpdateFlagComplete) {
+    base::EdgeUpdateFlag edge_update_flag = node_wrapper->node_->updataInput();
+    if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
       node_wrapper->node_->setRunningFlag(true);
       base::Status status = node_wrapper->node_->run();
       if (status != base::kStatusCodeOk) {
@@ -84,7 +84,7 @@ void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
       }
       node_wrapper->node_->setRunningFlag(false);
       afterNodeRun(node_wrapper);
-    } else if (edge_update_flag == kEdgeUpdateFlagTerminate) {
+    } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
       return;
     } else {
       NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",
@@ -97,13 +97,13 @@ void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
 
 void ParallelTaskExecutor::afterNodeRun(NodeWrapper* node_wrapper) {
   completed_task_count_++;
-  node_wrapper->color_ = kNodeColorBlack;
+  node_wrapper->color_ = base::kNodeColorBlack;
   for (auto successor : node_wrapper->successors_) {
     bool all_pre_done = true;
     for (auto iter : successor->predecessors_) {
-      all_pre_done &= (iter->color_ == kNodeColorBlack);
+      all_pre_done &= (iter->color_ == base::kNodeColorBlack);
     }
-    if (all_pre_done && successor->color_ == kNodeColorWhite) {
+    if (all_pre_done && successor->color_ == base::kNodeColorWhite) {
       if (successor->predecessors_.size() <= 1) {
         process(successor);
       } else {
@@ -126,7 +126,7 @@ void ParallelTaskExecutor::afterNodeRun(NodeWrapper* node_wrapper) {
 
 void ParallelTaskExecutor::submitTaskSynchronized(NodeWrapper* node_wrapper) {
   std::lock_guard<std::mutex> lock(commit_lock_);
-  if (node_wrapper->color_ == kNodeColorWhite) {
+  if (node_wrapper->color_ == base::kNodeColorWhite) {
     process(node_wrapper);
   }
 }
@@ -139,7 +139,7 @@ void ParallelTaskExecutor::wait() {
 void ParallelTaskExecutor::afterGraphRun() {
   completed_task_count_ = 0;
   for (auto iter : topo_sort_node_) {
-    iter->color_ = kNodeColorWhite;
+    iter->color_ = base::kNodeColorWhite;
   }
 }
 

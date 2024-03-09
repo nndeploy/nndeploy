@@ -89,8 +89,8 @@ base::Status Infer::setMemory(device::Buffer *buffer) {
 //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
 //   for (auto output : outputs_) {
 //     std::string name = output->getName();
-//     dag::ParallelType parallel_type = output->getParallelType();
-//     bool flag = parallel_type == dag::kParallelTypePipeline;
+//     base::ParallelType parallel_type = output->getParallelType();
+//     bool flag = parallel_type == base::kParallelTypePipeline;
 //     device::Tensor *tensor =
 //         inference_->getOutputTensorAfterRun(name, device_type_, flag);
 //     output->set(tensor, index, false);
@@ -131,8 +131,8 @@ base::Status Infer::run() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   for (auto output : outputs_) {
     std::string name = output->getName();
-    dag::ParallelType parallel_type = output->getParallelType();
-    bool flag = parallel_type == dag::kParallelTypePipeline;
+    base::ParallelType parallel_type = output->getParallelType();
+    bool flag = parallel_type == base::kParallelTypePipeline;
     device::Tensor *tensor =
         inference_->getOutputTensorAfterRun(name, device_type_, flag);
     output->set(tensor, index, false);

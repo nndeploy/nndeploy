@@ -61,13 +61,13 @@ std::vector<Edge *> Node::getAllOutput() { return outputs_; }
 
 bool Node::getConstructed() { return constructed_; }
 
-base::Status Node::setParallelType(const ParallelType &paralle_type) {
-  if (parallel_type_ == kParallelTypeNone) {
+base::Status Node::setParallelType(const base::ParallelType &paralle_type) {
+  if (parallel_type_ == base::kParallelTypeNone) {
     parallel_type_ = paralle_type;
   }
   return base::kStatusCodeOk;
 }
-ParallelType Node::getParallelType() { return parallel_type_; }
+base::ParallelType Node::getParallelType() { return parallel_type_; }
 
 void Node::setInnerFlag(bool flag) { is_inner_ = flag; }
 
@@ -89,11 +89,11 @@ base::Status Node::setMemory(device::Buffer *buffer) {
   return base::kStatusCodeOk;
 }
 
-EdgeUpdateFlag Node::updataInput() {
-  EdgeUpdateFlag flag = kEdgeUpdateFlagComplete;
+base::EdgeUpdateFlag Node::updataInput() {
+  base::EdgeUpdateFlag flag = base::kEdgeUpdateFlagComplete;
   for (auto input : inputs_) {
     flag = input->update(this);
-    if (flag != kEdgeUpdateFlagComplete) {
+    if (flag != base::kEdgeUpdateFlagComplete) {
       break;
     }
   }

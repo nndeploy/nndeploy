@@ -221,7 +221,7 @@ base::Status Graph::construct() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("parallel_type!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  ParallelType parallel_type = parallel_type_;
+  base::ParallelType parallel_type = parallel_type_;
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
@@ -310,18 +310,18 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("parallel_type!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  ParallelType parallel_type = parallel_type_;
+  base::ParallelType parallel_type = parallel_type_;
 
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("create executor\n");
   // NNDEPLOY_LOGI("##############\n");
-  if (parallel_type == kParallelTypeNone) {
+  if (parallel_type == base::kParallelTypeNone) {
     executor_ = std::make_shared<SequentialExecutor>();
-  } else if (parallel_type == kParallelTypeSequential) {
+  } else if (parallel_type == base::kParallelTypeSequential) {
     executor_ = std::make_shared<SequentialExecutor>();
-  } else if (parallel_type == kParallelTypeTask) {
+  } else if (parallel_type == base::kParallelTypeTask) {
     executor_ = std::make_shared<ParallelTaskExecutor>();
-  } else if (parallel_type == kParallelTypePipeline) {
+  } else if (parallel_type == base::kParallelTypePipeline) {
     executor_ = std::make_shared<ParallelPipelineExecutor>();
   } else {
     NNDEPLOY_LOGE("parallel_type is invalid!\n");

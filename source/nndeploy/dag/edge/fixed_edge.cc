@@ -6,9 +6,10 @@ namespace nndeploy {
 namespace dag {
 
 TypeEdgeRegister<TypeEdgeCreator<FixedEdge>> g_fixed_edge_register(
-    kEdgeTypeFixed);
+    base::kEdgeTypeFixed);
 
-FixedEdge::FixedEdge(ParallelType paralle_type) : AbstractEdge(paralle_type) {
+FixedEdge::FixedEdge(base::ParallelType paralle_type)
+    : AbstractEdge(paralle_type) {
   data_packet_ = new DataPacket();
 }
 
@@ -120,11 +121,11 @@ int FixedEdge::getGraphOutputIndex() { return data_packet_->getIndex(); }
 int FixedEdge::getPosition(const Node *node) { return 0; }
 int FixedEdge::getGraphOutputPosition() { return 0; }
 
-EdgeUpdateFlag FixedEdge::update(const Node *node) {
+base::EdgeUpdateFlag FixedEdge::update(const Node *node) {
   if (terminate_flag_) {
-    return kEdgeUpdateFlagTerminate;
+    return base::kEdgeUpdateFlagTerminate;
   } else {
-    return kEdgeUpdateFlagComplete;
+    return base::kEdgeUpdateFlagComplete;
   }
 }
 

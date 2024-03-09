@@ -10,12 +10,12 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/dag/edge/data_packet.h"
-#include "nndeploy/dag/type.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
+
 
 namespace nndeploy {
 namespace dag {
@@ -24,7 +24,7 @@ class Node;
 
 class AbstractEdge : public base::NonCopyable {
  public:
-  AbstractEdge(ParallelType paralle_type);
+  AbstractEdge(base::ParallelType paralle_type);
   virtual ~AbstractEdge();
 
   virtual base::Status construct() = 0;
@@ -79,11 +79,11 @@ class AbstractEdge : public base::NonCopyable {
   virtual int getPosition(const Node *node) = 0;
   virtual int getGraphOutputPosition() = 0;
 
-  virtual EdgeUpdateFlag update(const Node *node) = 0;
+  virtual base::EdgeUpdateFlag update(const Node *node) = 0;
 
   virtual bool markGraphOutput();
 
-  ParallelType getParallelType();
+  base::ParallelType getParallelType();
 
   std::vector<Node *> getProducers();
   base::Status increaseProducers(std::vector<Node *> &producers);
@@ -97,7 +97,7 @@ class AbstractEdge : public base::NonCopyable {
   bool checkNode(const Node *node);
 
  protected:
-  ParallelType parallel_type_;
+  base::ParallelType parallel_type_;
   std::vector<Node *> producers_;
   std::vector<Node *> consumers_;
   bool terminate_flag_ = false;
@@ -106,30 +106,31 @@ class AbstractEdge : public base::NonCopyable {
 class EdgeCreator {
  public:
   virtual ~EdgeCreator(){};
-  virtual AbstractEdge *createEdge(ParallelType paralle_type) = 0;
+  virtual AbstractEdge *createEdge(base::ParallelType paralle_type) = 0;
 };
 
 template <typename T>
 class TypeEdgeCreator : public EdgeCreator {
-  virtual AbstractEdge *createEdge(ParallelType paralle_type) {
+  virtual AbstractEdge *createEdge(base::ParallelType paralle_type) {
     return new T(paralle_type);
   }
 };
 
-std::map<EdgeType, std::shared_ptr<EdgeCreator>> &getGlobalEdgeCreatorMap();
+std::map<base::EdgeType, std::shared_ptr<EdgeCreator>> &
+getGlobalEdgeCreatorMap();
 
 template <typename T>
 class TypeEdgeRegister {
  public:
-  explicit TypeEdgeRegister(EdgeType type) {
+  explicit TypeEdgeRegister(base::EdgeType type) {
     getGlobalEdgeCreatorMap()[type] = std::shared_ptr<T>(new T());
   }
 };
 
-AbstractEdge *createEdge(ParallelType paralle_type);
+AbstractEdge *createEdge(base::ParallelType paralle_type);
 
 AbstractEdge *recreateEdge(AbstractEdge *abstact_edge,
-                           const ParallelType &paralle_type);
+                           const base::ParallelType &paralle_type);
 
 }  // namespace dag
 }  // namespace nndeploy
