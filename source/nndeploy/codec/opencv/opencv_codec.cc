@@ -199,8 +199,9 @@ base::Status OpenCvImagesEncodeNode::deinit() { return base::kStatusCodeOk; }
 
 base::Status OpenCvImagesEncodeNode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
-  std::string name = std::to_string(index_);
+  std::string name = std::to_string(index_) + ".jpg";
   std::string full_path = base::joinPath(path_, name);
+  // NNDEPLOY_LOGE("full_path = %s.\n", full_path.c_str());
   cv::imwrite(full_path, *mat);
   index_++;
   return base::kStatusCodeOk;

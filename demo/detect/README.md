@@ -9,7 +9,7 @@
                        --model_type kModelTypeOnnx \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx \
-                       --input_type kInputTypeImage \
+                       --codec_flag kCodecFlagImage \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -23,7 +23,7 @@
                        --model_type kModelTypeOnnx \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx \
-                       --input_type kInputTypeImage \
+                       --codec_flag kCodecFlagImage \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -37,7 +37,7 @@
                        --model_type kModelTypeOnnx \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx \
-                       --input_type kInputTypeImage \
+                       --codec_flag kCodecFlagImage \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -61,7 +61,7 @@
                        --model_type kModelTypeMnn \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.onnx.mnn \
-                       --input_type kInputTypeImage \
+                       --codec_flag kCodecFlagImage \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -83,7 +83,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeTnn \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.tnnproto,/home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov6m.tnnmdodel \
-                       --input_type kInputTypeImage \
+                       --codec_flag kCodecFlagImage \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -99,7 +99,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeOnnx \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx \
-                       --input_type kInputTypeImage \
+                       --codec_flag kCodecFlagImage \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -113,7 +113,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeOnnx \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx \
-                       --input_type kInputTypeImage \
+                       --codec_flag kCodecFlagImage \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -127,7 +127,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeOnnx \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -149,7 +149,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeMnn \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.mnn \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -172,7 +172,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeTnn \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.tnnproto,/home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.tnnmdodel \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg                       
 ```
@@ -185,7 +185,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeTnn \
                        --is_path \
                        --model_value /home/always/github/tnn-models/model/yolov5/yolov5s.tnnproto,/home/always/Downloads/yolov5s.tnnmdodel \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg                       
 ```
@@ -206,7 +206,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeNcnn \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.param,/home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov5s.onnx.bin \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -218,7 +218,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeNcnn \
                        --is_path \
                        --model_value /data/local/tmp/model_zoo/yolov5s.onnx.param,/data/local/tmp/model_zoo/yolov5s.onnx.bin \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /data/local/tmp/test_data/detect/sample.jpg \
                        --output_path /data/local/tmp/temp/sample_output.jpg
 ```
@@ -230,7 +230,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeNcnn \
                        --is_path \
                        --model_value /data/local/tmp/model_zoo/squeezenet_v1.1.param,/data/local/tmp/model_zoo/squeezenet_v1.1.param.bin \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /data/local/tmp/test_data/detect/sample.jpg \
                        --output_path /data/local/tmp/temp/sample_output.jpg
 ```
@@ -246,7 +246,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeNcnn \
                        --is_path \
                        --model_value /data/local/tmp/lib/yolov5s_6.0.param,/data/local/tmp/lib/yolov5s_6.0.bin \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /data/local/tmp/test_data/detect/sample.jpg \
                        --output_path /data/local/tmp/temp/sample_output.jpg
 ```
@@ -262,7 +262,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeOnnx \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -276,7 +276,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeOnnx \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -290,7 +290,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeOnnx \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -314,7 +314,7 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeMnn \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx.mnn \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
@@ -336,7 +336,11 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
                        --model_type kModelTypeTnn \
                        --is_path \
                        --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.tnnproto,/home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.tnnmdodel \
-                       --input_type kInputTypeImage  \
+                       --codec_flag kCodecFlagImage  \
                        --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg \
                        --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
+
+--name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov5s.onnx --codec_flag kCodecFlagImage --input_path C:\huggingface\nndeploy\test_data\detect\sample.jpg --output_path C:\huggingface\nndeploy\temp\sample_output.jpg
+
+--name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov5s.onnx --codec_flag kCodecFlagImages --input_path C:\huggingface\nndeploy\test_data\detect --output_path C:\huggingface\nndeploy\temp
