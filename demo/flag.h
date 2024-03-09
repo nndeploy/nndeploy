@@ -2,7 +2,6 @@
 #ifndef _NNDEPLOY_DEMO_FLAG_H_
 #define _NNDEPLOY_DEMO_FLAG_H_
 
-#include "common.h"
 #include "gflags/gflags.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/file.h"

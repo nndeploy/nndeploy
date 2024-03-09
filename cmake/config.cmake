@@ -69,10 +69,10 @@ set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 OFF) # 是否使能INFERENCE RKNN_T
 set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL OFF) # 是否使能INFERENCE ASCEND_CL，默认为OFF
 ## dag
 set(ENABLE_NNDEPLOY_DAG ON) # 是否编译dag目录中文件，默认为ON
-## model
-set(ENABLE_NNDEPLOY_MODEL ON) # 是否编译model目录中文件，默认为ON
 ## codec
 set(ENABLE_NNDEPLOY_CODEC ON) # 是否编译编解码库，默认为ON
+## model
+set(ENABLE_NNDEPLOY_MODEL ON) # 是否编译model目录中文件，默认为ON
 ## test
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
 ## demo

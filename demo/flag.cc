@@ -22,7 +22,9 @@ DEFINE_string(encrypt_type, "", "encrypt_type");
 
 DEFINE_string(license, "", "license");
 
-DEFINE_string(input_type, "", "input_type");
+DEFINE_string(codec_type, "", "codec_type");
+
+DEFINE_string(codec_flag, "", "codec_flag");
 
 DEFINE_string(input_path, "", "input_path");
 
