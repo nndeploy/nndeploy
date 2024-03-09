@@ -235,6 +235,20 @@ enum EncryptType : int {
   kEncryptTypeBase64,
 };
 
+enum CodecType : int {
+  kCodecTypeNone = 0x0000,
+  kCodecTypeOpenCV,
+};
+
+enum CodecFlag : int {
+  kCodecFlagImage = 0x0000,
+  kCodecFlagImages,
+  kCodecFlagVideo,
+  kCodecFlagCamera,
+
+  kCodecFlagOther,
+};
+
 using IntVector = std::vector<int>;
 using SizeVector = std::vector<size_t>;
 using ShapeMap = std::map<std::string, std::vector<int>>;
@@ -257,6 +271,10 @@ extern NNDEPLOY_CC_API PrecisionType
 stringToPrecisionType(const std::string &src);
 
 extern NNDEPLOY_CC_API PowerType stringToPowerType(const std::string &src);
+
+extern NNDEPLOY_CC_API CodecType stringCodecType(const std::string &src);
+
+extern NNDEPLOY_CC_API CodecFlag stringCodecFlag(const std::string &src);
 
 }  // namespace base
 }  // namespace nndeploy

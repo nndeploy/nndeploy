@@ -197,6 +197,7 @@ cython_debug/
 *.ptx
 *.cubin
 *.fatbin
+*.dot
 
 # camke
 CMakeLists.txt.user

@@ -71,11 +71,12 @@ set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL OFF) # 是否使能INFERENCE ASCEND_CL�
 set(ENABLE_NNDEPLOY_DAG ON) # 是否编译dag目录中文件，默认为ON
 ## model
 set(ENABLE_NNDEPLOY_MODEL ON) # 是否编译model目录中文件，默认为ON
+## codec
+set(ENABLE_NNDEPLOY_CODEC ON) # 是否编译编解码库，默认为ON
 ## test
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
 ## demo
 set(ENABLE_NNDEPLOY_DEMO OFF) # 是否使能可执行程序demo，默认为OFF
-set(ENABLE_NNDEPLOY_DEMO_PARALLEL_PIPELINE OFF) # 是否使能流水线并行的可执行程序demo，默认为OFF
 
 ## model detect
 set(ENABLE_NNDEPLOY_MODEL_DETECT OFF) # 是否使能检测类模型，默认为OFF

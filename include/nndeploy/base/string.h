@@ -41,6 +41,8 @@ std::string vectorToString(std::vector<T> val) {
   return stream.str();
 }
 
+extern NNDEPLOY_CC_API bool isNumeric(const std::string &str);
+
 }  // namespace base
 }  // namespace nndeploy
 

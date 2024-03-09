@@ -64,5 +64,14 @@ std::vector<std::string> splitString(const std::string &str,
   return res;
 }
 
+bool isNumeric(const std::string &str) {
+  for (char c : str) {
+    if (!isdigit(c)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 }  // namespace base
 }  // namespace nndeploy

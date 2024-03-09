@@ -58,7 +58,8 @@ void showUsage() {
             << std::endl;
   std::cout << "  --license: license, eg: path/to/lincese or license string"
             << std::endl;
-  std::cout << "  --input_type: input_type, eg: kInputTypeImage" << std::endl;
+  std::cout << "  --codec_type: codec_type, eg: kCodecTypeOpenCV" << std::endl;
+  std::cout << "  --codec_flag: codec_type, eg: kCodecFlagImage" << std::endl;
   std::cout << "  --input_path: input_path, eg: "
                "path/nndeploy_resource/detect/input.jpg"
             << std::endl;
@@ -118,19 +119,6 @@ base::EncryptType getEncryptType() {
 
 std::string getLicense() { return FLAGS_license; }
 
-InputType getInputType() {
-  if (FLAGS_input_type == "kInputTypeImage") {
-    return kInputTypeImage;
-  } else if (FLAGS_input_type == "kInputTypeVideo") {
-    return kInputTypeVideo;
-  } else if (FLAGS_input_type == "kInputTypeCamera") {
-    return kInputTypeCamera;
-  } else if (FLAGS_input_type == "kDeviceTypeOther") {
-    return kDeviceTypeOther;
-  } else {
-    return kInputTypeImage;
-  }
-}
 std::string getInputPath() { return FLAGS_input_path; }
 std::string getOutputPath() { return FLAGS_output_path; }
 
@@ -144,6 +132,12 @@ base::PrecisionType getPrecisionType() {
 }
 base::PowerType getPowerType() {
   return base::stringToPowerType(FLAGS_power_type);
+}
+base::CodecType getCodecType() {
+  return base::stringCodecType(FLAGS_codec_type);
+}
+base::CodecFlag getCodecFlag() {
+  return base::stringCodecFlag(FLAGS_codec_flag);
 }
 std::vector<std::string> getCachePath() {
   std::vector<std::string> cache_path;

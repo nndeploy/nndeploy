@@ -80,66 +80,59 @@ int seqGraph() {
       sub_graph_1->createNode<OpNode>("op_1_2", op_1_1_out, &sub_out_1);
   status = sub_graph_1->setParallelType(dag::kParallelTypePipeline);
 
-  {
-    dag::Graph *sep_graph = new dag::Graph("sep_graph", &sub_in_0, &sub_out_1);
-    sep_graph->addNode(sub_graph_0);
-    dag::Node *op_link =
-        sep_graph->createNode<OpNode>("op_link", &sub_out_0, &sub_in_1);
-    sep_graph->addNode(sub_graph_1);
+  dag::Graph *sep_graph = new dag::Graph("sep_graph", &sub_in_0, &sub_out_1);
+  sep_graph->addNode(sub_graph_0);
+  dag::Node *op_link =
+      sep_graph->createNode<OpNode>("op_link", &sub_out_0, &sub_in_1);
+  sep_graph->addNode(sub_graph_1);
 
-    status = sep_graph->setParallelType(dag::kParallelTypePipeline);
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("graph setParallelType failed");
+  status = sep_graph->setParallelType(dag::kParallelTypePipeline);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph setParallelType failed");
+    return -1;
+  }
+
+  sep_graph->init();
+
+  sep_graph->dump();
+
+  sep_graph->run();
+  NNDEPLOY_LOGE("sep_graph->run();\n");
+
+  int count = 2;
+  for (int i = 0; i < count; ++i) {
+    device::Device *device = device::getDefaultHostDevice();
+    device::TensorDesc desc;
+    desc.data_type_ = base::dataTypeOf<float>();
+    desc.data_format_ = base::DataFormat::kDataFormatNCHW;
+    desc.shape_ = {1, 3, 512, 512};
+    device::Tensor *input_tensor =
+        new device::Tensor(device, desc, "sub_in_0 ");
+
+    sub_in_0.set(input_tensor, i, false);
+
+    NNDEPLOY_LOGE("sub_in_0.set(input_tensor, i, false);\n");
+  }
+
+  for (int i = 0; i < count; ++i) {
+    device::Tensor *result = sub_out_1.getGraphOutputTensor();
+    if (result == nullptr) {
+      NNDEPLOY_LOGE("result is nullptr");
       return -1;
     }
+  }
 
-    sep_graph->init();
-
-    sep_graph->dump();
-
-    sep_graph->run();
-    NNDEPLOY_LOGE("sep_graph->run();\n");
-
-    int count = 2;
-    for (int i = 0; i < count; ++i) {
-      device::Device *device = device::getDefaultHostDevice();
-      device::TensorDesc desc;
-      desc.data_type_ = base::dataTypeOf<float>();
-      desc.data_format_ = base::DataFormat::kDataFormatNCHW;
-      desc.shape_ = {1, 3, 512, 512};
-      device::Tensor *input_tensor =
-          new device::Tensor(device, desc, "sub_in_0 ");
-
-      sub_in_0.set(input_tensor, i, false);
-
-      NNDEPLOY_LOGE("sub_in_0.set(input_tensor, i, false);\n");
-    }
-
-    for (int i = 0; i < count; ++i) {
-      device::Tensor *result = sub_out_1.getGraphOutputTensor();
-      if (result == nullptr) {
-        NNDEPLOY_LOGE("result is nullptr");
-        return -1;
-      }
-
-      NNDEPLOY_LOGE(
-          "device::Tensor *result[%p] = sub_out_1.getGraphOutputTensor();\n",
-          result);
-    }
-
-    // 有向无环图graph反初始化
-    status = sep_graph->deinit();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("graph deinit failed");
-      return -1;
-    }
-
-    delete sep_graph;
+  // 有向无环图graph反初始化
+  status = sep_graph->deinit();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph deinit failed");
+    return -1;
   }
 
   // 有向无环图graph销毁
   delete sub_graph_0;
   delete sub_graph_1;
+  delete sep_graph;
 
   return 0;
 }
@@ -180,7 +173,7 @@ int parallelGraph() {
 
     par_graph->init();
 
-    //sub_out_1.markGraphOutput();
+    // sub_out_1.markGraphOutput();
 
     par_graph->dump();
 
@@ -216,7 +209,7 @@ int parallelGraph() {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
       }
-       NNDEPLOY_LOGE(
+      NNDEPLOY_LOGE(
           "device::Tensor *result_2[%p] = sub_out_2.getGraphOutputTensor();\n",
           result_2);
     }
@@ -242,8 +235,15 @@ int main(int argc, char *argv[]) {
 
   int count = 2;
   for (int i = 0; i < count; i++) {
-     parallelGraph();
-    //seqGraph();
+    // sequential graph
+    // parallel task grah
+    // parallel pipepline graph
+    // loop graph - 暂不支持流水线并行模式
+    // condition graph
+    // condition running graph
+
+    // adapative graph - 任务并行 嵌入 串行子图
+    // adapative graph - 流水线并行 嵌入 串行子图
   }
 
   NNDEPLOY_LOGE("end!\n");

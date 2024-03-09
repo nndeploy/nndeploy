@@ -74,13 +74,14 @@ nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 "ENABLE_NNDEPLOY_INFERE
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL "ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL" OFF)
 ## dag
 nndeploy_option(ENABLE_NNDEPLOY_DAG "ENABLE_NNDEPLOY_DAG" ON)
+## codec
+nndeploy_option(ENABLE_NNDEPLOY_CODEC "ENABLE_NNDEPLOY_CODEC" ON)
 ## model
 nndeploy_option(ENABLE_NNDEPLOY_MODEL "ENABLE_NNDEPLOY_MODEL" ON)
 ## test
 nndeploy_option(ENABLE_NNDEPLOY_TEST "ENABLE_NNDEPLOY_TEST" OFF)
 ## demo
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "ENABLE_NNDEPLOY_DEMO" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEMO_PARALLEL_PIPELINE "ENABLE_NNDEPLOY_DEMO_PARALLEL_PIPELINE" OFF)
 
 # print option
 print_summary()
@@ -423,6 +424,20 @@ if(ENABLE_NNDEPLOY_DAG)
     "${ROOT_PATH}/source/nndeploy/dag/*.cc"
   )
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${DAG_SOURCE})
+endif()
+if(ENABLE_NNDEPLOY_CODEC)
+  file(GLOB CODEC_SOURCE
+    "${ROOT_PATH}/include/nndeploy/codec/*.h"
+    "${ROOT_PATH}/source/nndeploy/codec/*.cc"
+  )
+  if (ENABLE_NNDEPLOY_OPENCV)
+    file(GLOB_RECURSE CODEC_OPENCV_SOURCE
+      "${ROOT_PATH}/include/nndeploy/codec/opencv/*.h"
+      "${ROOT_PATH}/source/nndeploy/codec/opencv/*.cc"
+    )
+    set(CODEC_SOURCE ${CODEC_SOURCE} ${CODEC_OPENCV_SOURCE})
+  endif()
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${CODEC_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_MODEL)
   set(MODEL_SOURCE)

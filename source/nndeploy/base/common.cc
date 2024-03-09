@@ -215,5 +215,29 @@ PowerType stringToPowerType(const std::string &src) {
   }
 }
 
+CodecType stringCodecType(const std::string &src) {
+  if (src == "kCodecTypeOpenCV") {
+    return kCodecTypeOpenCV;
+  } else {
+    return kCodecTypeNone;
+  }
+}
+
+CodecFlag stringCodecFlag(const std::string &src) {
+  if (src == "kCodecFlagImage") {
+    return kCodecFlagImage;
+  } else if (src == "kCodecFlagImages") {
+    return kCodecFlagImages;
+  } else if (src == "kCodecFlagVideo") {
+    return kCodecFlagVideo;
+  } else if (src == "kCodecFlagCamera") {
+    return kCodecFlagCamera;
+  } else if (src == "kCodecFlagOther") {
+    return kCodecFlagOther;
+  } else {
+    return kCodecFlagImage;
+  }
+}
+
 }  // namespace base
 }  // namespace nndeploy

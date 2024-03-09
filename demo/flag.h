@@ -103,13 +103,22 @@ DECLARE_string(license);
 /**
  * @brief Construct a new declare string object
  * @note
- * --input_type
- *  kInputTypeImage
- *  kInputTypeVideo
- *  kInputTypeCamera
- *  kDeviceTypeOther
+ * --codec_type
+ *  kCodecTypeOpenCV
  */
-DECLARE_string(input_type);
+DECLARE_string(codec_type);
+
+/**
+ * @brief Construct a new declare string object
+ * @note
+ * --codec_flag
+ *  kCodecFlagImage
+ *  kCodecFlagImages
+ *  kCodecFlagVideo
+ *  kCodecFlagCamera
+ *  kCodecFlagOther
+ */
+DECLARE_string(codec_flag);
 
 /**
  * @brief Construct a new declare string object
@@ -202,7 +211,8 @@ bool isPath();
 std::vector<std::string> getModelValue();
 base::EncryptType getEncryptType();
 std::string getLicense();
-InputType getInputType();
+base::CodecType getCodecType();
+base::CodecFlag getCodecFlag();
 std::string getInputPath();
 std::string getOutputPath();
 int getNumThread();
