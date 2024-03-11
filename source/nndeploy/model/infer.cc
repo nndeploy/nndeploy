@@ -135,6 +135,11 @@ base::Status Infer::run() {
     bool flag = parallel_type == base::kParallelTypePipeline;
     device::Tensor *tensor =
         inference_->getOutputTensorAfterRun(name, device_type_, flag);
+    if (tensor == nullptr) {
+      NNDEPLOY_LOGE("can't getOutputTensorAfterRun[%s].\n", name.c_str());
+      status = base::kStatusCodeErrorInvalidParam;
+      break;
+    }
     output->set(tensor, index, false);
   }
   // NNDEPLOY_LOGE("infer end!Thread ID: %d.\n", std::this_thread::get_id());

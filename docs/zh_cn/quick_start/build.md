@@ -15,11 +15,11 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
 
 ## config.cmake的编辑规则
 
-+ `nndeploy`使能`X86`设备。将`set(ENABLE_NNDEPLOY_DEVICE_X86 OFF)`改为`set(ENABLE_NNDEPLOY_DEVICE_X86 ON)`，如果你想使能其他设备（ARM、X86、CUDA …），也可做同样的处理
-+ `nndeploy`通过路径的方式使能并链接推理后端`ONNXRuntime`。将`set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME OFF)`改为`set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "path/onnxruntime")`，如果你想启用并链接其他推理后端（OpenVINO、MNN、TNN …），也可做同样的处理
-+ `nndeploy`通过find_package的方式使能并链接推理后端`TensorRT`。将`set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF)`改为`set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON)`，对于其他可以通过find_package找到的库，也可做同样的处理
-+ 编译模型部署实例。首先将模型类别`set(NABLE_NNDEPLOY_MODEL_XXX OFF)`改为`set(NABLE_NNDEPLOY_MODEL_XXX ON)`，再将具体的模型`set(NABLE_NNDEPLOY_MODEL_XXX_YYY OFF)`改为`set(NABLE_NNDEPLOY_MODEL_XXX_YYY ON)`
-+ 编译示例的可执行程序，将`set(ENABLE_NNDEPLOY_DEMO OFF)`改为`set(ENABLE_NNDEPLOY_DEMO ON)`
++ `nndeploy`使能`X86`设备。`set(ENABLE_NNDEPLOY_DEVICE_X86 ON)`，如果你想使能其他设备（ARM、X86、CUDA …），也可做同样的处理
++ `nndeploy`通过路径的方式使能并链接推理后端`ONNXRuntime`。`set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "path/onnxruntime")`，如果你想启用并链接其他推理后端（OpenVINO、MNN、TNN …），也可做同样的处理
++ `nndeploy`通过find_package的方式使能并链接推理后端`TensorRT`。`set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON)`，对于其他可以通过find_package找到的库，也可做同样的处理
++ `nndeploy`使能模型部署实例。首先将模型类别`set(NABLE_NNDEPLOY_MODEL_XXX ON)`，再将具体的模型`set(NABLE_NNDEPLOY_MODEL_XXX_YYY ON)`
++ `nndeploy`使能可执行程序，`set(ENABLE_NNDEPLOY_DEMO ON)`
 
 ### 使能并链接第三方库的两种方法
 + 方法一：路径`path`，头文件以及库的根路径，其形式必须修改为
@@ -89,7 +89,7 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
   注：将上述所有库打包为一个压缩包ubuntu22.04_x64.tar，存放在huggingface上，使用前请将压缩包ubuntu22.04_x64.tar解压
 
   + 安装opencv
-    sudo apt install libopencv-dev [参考链接](https://cloud.tencent.com/developer/article/1657529)
+    + sudo apt install libopencv-dev [参考链接](https://cloud.tencent.com/developer/article/1657529)
   + 安装TensorRT、cudnn、cuda、显卡驱动
   
 + 具体步骤
@@ -124,7 +124,7 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
   + ndk
 
 + nndeploy提供的第三方库
-  
+
   |                  第三方库                  | 主版本 |                                  Android下载链接                                  | 备注  |
   | :----------------------------------------: | :----: | :-------------------------------------------------------------------------------: | :---: |
   | [opencv](https://github.com/opencv/opencv) | 4.8.0  | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/android.tar |       |
@@ -142,7 +142,7 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
     cd build
     ```
 
-  + 编辑`build/config.cmake`自定义编译选项（笔者的自定义编译选项：[path/cmake/config_linux.cmake](../../../cmake/config_linux.cmake)）
+  + 编辑`build/config.cmake`自定义编译选项（笔者的自定义编译选项：[path/cmake/config_android.cmake](../../../cmake/config_android.cmake)）
       
   + 开始`cmake`，需要指定ndk编译工具链
     ```
@@ -193,3 +193,6 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
 - TensorRT
   - [Windows链接](https://zhuanlan.zhihu.com/p/476679322)
   - 安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致
+
+- 在windows平台下，系统目录自带onnxruntime，故你在运行时或许可能会链接到系统目录下自带的onnxruntime，从而导致运行时出错。解决办法
+  - 将你自己的onnxruntime库拷贝至build目录下
