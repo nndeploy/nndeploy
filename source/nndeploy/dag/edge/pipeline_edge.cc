@@ -505,20 +505,35 @@ base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
   }
   dp = (*iter);
   dp->increaseConsumersCount();
+  consuming_dp_[tmp_node] = dp;
 
   // update
-  for (auto &iter : to_consume_index_) {
-    iter.second -= count;
-  }
-  to_consume_index_[tmp_node]++;  // 会导致下一次数据没有的时候线程一直在等待
+  int real_count = 0;
   iter = data_packets_.begin();
   for (int i = 0; i < count; i++) {
-    delete (*iter);
-    iter++;
+    bool delete_flag = true;
+    for (auto consuming_dp : consuming_dp_) {
+      if (consuming_dp.second == *iter) {
+        delete_flag = false;
+        break;
+      }
+    }
+    if (delete_flag) {
+      delete (*iter);
+      iter++;
+      real_count++;
+    } else {
+      break;
+    }
   }
-  data_packets_.erase(data_packets_.begin(), iter);  // 销毁不会被使用到的数据
+  // 销毁不会被使用到的数据
+  data_packets_.erase(data_packets_.begin(), iter);
+  for (auto &iter : to_consume_index_) {
+    iter.second -= real_count;
+  }
+  // 让下一次数据没有的时候线程一直在等待
+  to_consume_index_[tmp_node]++;
 
-  consuming_dp_[tmp_node] = dp;
   return base::kEdgeUpdateFlagComplete;
 }
 

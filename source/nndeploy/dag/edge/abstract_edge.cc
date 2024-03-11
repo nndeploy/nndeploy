@@ -37,6 +37,7 @@ base::Status AbstractEdge::increaseConsumers(std::vector<Node *> &consumers) {
 bool AbstractEdge::markGraphOutput() {
   Node *node = nullptr;
   insertUnique(consumers_, node);
+  this->construct();
   return true;
 }
 

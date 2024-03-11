@@ -215,7 +215,7 @@ PowerType stringToPowerType(const std::string &src) {
   }
 }
 
-CodecType stringCodecType(const std::string &src) {
+CodecType stringToCodecType(const std::string &src) {
   if (src == "kCodecTypeOpenCV") {
     return kCodecTypeOpenCV;
   } else {
@@ -223,7 +223,7 @@ CodecType stringCodecType(const std::string &src) {
   }
 }
 
-CodecFlag stringCodecFlag(const std::string &src) {
+CodecFlag stringToCodecFlag(const std::string &src) {
   if (src == "kCodecFlagImage") {
     return kCodecFlagImage;
   } else if (src == "kCodecFlagImages") {
@@ -236,6 +236,20 @@ CodecFlag stringCodecFlag(const std::string &src) {
     return kCodecFlagOther;
   } else {
     return kCodecFlagImage;
+  }
+}
+
+ParallelType stringToParallelType(const std::string &src) {
+  if (src == "kParallelTypeNone") {
+    return kParallelTypeNone;
+  } else if (src == "kParallelTypeSequential") {
+    return kParallelTypeSequential;
+  } else if (src == "kParallelTypeTask") {
+    return kParallelTypeTask;
+  } else if (src == "kParallelTypePipeline") {
+    return kParallelTypePipeline;
+  } else {
+    return kParallelTypeNone;
   }
 }
 

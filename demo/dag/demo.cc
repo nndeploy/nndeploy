@@ -9,7 +9,7 @@
 
 using namespace nndeploy;
 
-class OpParam : public base::Param {
+class ProcessParam : public base::Param {
  public:
   base::DataType data_type_ = base::dataTypeOf<float>();
   base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
@@ -18,19 +18,19 @@ class OpParam : public base::Param {
   size_t execute_time_ = 10;
 };
 
-class NNDEPLOY_CC_API OpNode : public dag::Node {
+class NNDEPLOY_CC_API ProcessNode : public dag::Node {
  public:
-  OpNode(const std::string &name, dag::Edge *input, dag::Edge *output)
+  ProcessNode(const std::string &name, dag::Edge *input, dag::Edge *output)
       : Node(name, input, output) {
-    param_ = std::make_shared<OpParam>();
-    OpParam *op_param = dynamic_cast<OpParam *>(param_.get());
+    param_ = std::make_shared<ProcessParam>();
+    ProcessParam *op_param = dynamic_cast<ProcessParam *>(param_.get());
   }
-  virtual ~OpNode() {}
+  virtual ~ProcessNode() {}
 
   virtual base::Status run() {
     // NNDEPLOY_LOGE("Node name[%s], Thread ID: %d.\n", name_.c_str(),
     //               std::this_thread::get_id());
-    OpParam *tmp_param = dynamic_cast<OpParam *>(param_.get());
+    ProcessParam *tmp_param = dynamic_cast<ProcessParam *>(param_.get());
     device::Tensor *src = inputs_[0]->getTensor(this);
     device::Device *device = device::getDefaultHostDevice();
     device::TensorDesc desc;
@@ -43,42 +43,46 @@ class NNDEPLOY_CC_API OpNode : public dag::Node {
     // execute time
     std::this_thread::sleep_for(
         std::chrono::milliseconds(tmp_param->execute_time_));
+    NNDEPLOY_LOGI("running node = [%s]!\n", name_.c_str());
 
     outputs_[0]->notifyWritten(dst);
     return base::kStatusCodeOk;
   }
 };
 
+dag::Graph *createGraph(const std::string &name, dag::Edge *input,
+                        dag::Edge *output, base::ParallelType pt) {
+  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Edge *preprocess_out = graph->createEdge(name + "_preprocess_out");
+  dag::Edge *infer_out = graph->createEdge(name + "_infer_out");
+  dag::Node *preprocess = graph->createNode<ProcessNode>(name + "_preprocess",
+                                                         input, preprocess_out);
+  dag::Node *infer = graph->createNode<ProcessNode>(name + "_infer",
+                                                    preprocess_out, infer_out);
+  dag::Node *postprocess =
+      graph->createNode<ProcessNode>(name + "_postprocess", infer_out, output);
+  graph->setParallelType(pt);
+  return graph;
+}
+
 int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
                 base::ParallelType pt, int count = 16) {
-  // construct graph
-  dag::Edge sub_in_0("sub_in_0");
-  dag::Edge sub_out_0("sub_out_0");
-  dag::Graph *sub_graph_0 =
-      new dag::Graph("sub_graph_0", &sub_in_0, &sub_out_0);
-  dag::Edge *op_0_1_out = sub_graph_0->createEdge("op_1_1_out");
-  dag::Node *op_0_1 =
-      sub_graph_0->createNode<OpNode>("op_0_1", &sub_in_0, op_0_1_out);
-  dag::Node *op_0_2 =
-      sub_graph_0->createNode<OpNode>("op_0_2", op_0_1_out, &sub_out_0);
-  base::Status status = sub_graph_0->setParallelType(pt_0);
+  //
+  base::Status status = base::kStatusCodeOk;
+  dag::Edge graph_in("graph_in");
+  dag::Edge graph_out("graph_out");
+  dag::Graph *graph = new dag::Graph("serial_graph", &graph_in, &graph_out);
+  dag::Edge *model_0_out = graph->createEdge("model_0_out");
+  dag::Edge *op_link_out = graph->createEdge("op_link_out");
 
-  dag::Edge sub_in_1("sub_in_1");
-  dag::Edge sub_out_1("sub_out_1");
-  dag::Graph *sub_graph_1 =
-      new dag::Graph("sub_graph_1", &sub_in_1, &sub_out_1);
-  dag::Edge *op_1_1_out = sub_graph_1->createEdge("op_1_1_out");
-  dag::Node *op_1_1 =
-      sub_graph_1->createNode<OpNode>("op_1_1", &sub_in_1, op_1_1_out);
-  dag::Node *op_1_2 =
-      sub_graph_1->createNode<OpNode>("op_1_2", op_1_1_out, &sub_out_1);
-  status = sub_graph_1->setParallelType(pt_1);
-
-  dag::Graph *graph = new dag::Graph("graph", &sub_in_0, &sub_out_1);
-  graph->addNode(sub_graph_0);
+  dag::Graph *model_0_graph =
+      createGraph("model_0_graph", &graph_in, model_0_out, pt_0);
+  graph->addNode(model_0_graph);
   dag::Node *op_link =
-      graph->createNode<OpNode>("op_link", &sub_out_0, &sub_in_1);
-  graph->addNode(sub_graph_1);
+      graph->createNode<ProcessNode>("op_link", model_0_out, op_link_out);
+  dag::Graph *model_1_graph =
+      createGraph("model_1_graph", op_link_out, &graph_out, pt_1);
+  graph->addNode(model_1_graph);
   status = graph->setParallelType(pt);
 
   // init
@@ -89,11 +93,9 @@ int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   }
 
   // dump
-  status = graph->dump();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("graph dump failed.\n");
-    return -1;
-  }
+  graph->dump();
+  model_0_graph->dump();
+  model_1_graph->dump();
 
   // run
   for (int i = 0; i < count; ++i) {
@@ -103,9 +105,8 @@ int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
     desc.data_type_ = base::dataTypeOf<float>();
     desc.data_format_ = base::DataFormat::kDataFormatNCHW;
     desc.shape_ = {1, 3, 512, 512};
-    device::Tensor *input_tensor =
-        new device::Tensor(device, desc, "sub_in_0 ");
-    sub_in_0.set(input_tensor, i, false);
+    device::Tensor *input_tensor = new device::Tensor(device, desc, "graph_in");
+    graph_in.set(input_tensor, i, false);
 
     // run
     status = graph->run();
@@ -116,7 +117,7 @@ int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 
     // get output (not base::kParallelTypePipeline)
     if (pt != base::kParallelTypePipeline) {
-      device::Tensor *result = sub_out_1.getGraphOutputTensor();
+      device::Tensor *result = graph_out.getGraphOutputTensor();
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
@@ -126,7 +127,7 @@ int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   // get output (base::kParallelTypePipeline)
   if (pt == base::kParallelTypePipeline) {
     for (int i = 0; i < count; ++i) {
-      device::Tensor *result = sub_out_1.getGraphOutputTensor();
+      device::Tensor *result = graph_out.getGraphOutputTensor();
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
@@ -142,8 +143,8 @@ int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   }
 
   // 有向无环图graph销毁
-  delete sub_graph_0;
-  delete sub_graph_1;
+  delete model_0_graph;
+  delete model_1_graph;
   delete graph;
 
   return 0;
@@ -151,35 +152,26 @@ int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 
 int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
                   base::ParallelType pt, int count = 16) {
-  // construct graph
-  dag::Edge sub_in_0("sub_in_0");
-  dag::Edge sub_out_0("sub_out_0");
-  dag::Graph *sub_graph_0 =
-      new dag::Graph("sub_graph_0", &sub_in_0, &sub_out_0);
-  dag::Edge *op_0_1_out = sub_graph_0->createEdge("op_1_1_out");
-  dag::Node *op_0_1 =
-      sub_graph_0->createNode<OpNode>("op_0_1", &sub_in_0, op_0_1_out);
-  dag::Node *op_0_2 =
-      sub_graph_0->createNode<OpNode>("op_0_2", op_0_1_out, &sub_out_0);
-  base::Status status = sub_graph_0->setParallelType(pt_0);
+  base::Status status = base::kStatusCodeOk;
+  dag::Edge graph_in("graph_in");
+  dag::Edge graph_out_0("graph_out_0");
+  dag::Edge graph_out_1("graph_out_1");
+  dag::Edge graph_out_2("graph_out_2");
+  dag::Edge graph_out_3("graph_out_3");
+  dag::Graph *graph =
+      new dag::Graph("parallel_graph", {&graph_in},
+                     {&graph_out_0, &graph_out_1, &graph_out_2, &graph_out_3});
 
-  dag::Edge sub_out_1("sub_out_1");
-  dag::Graph *sub_graph_1 =
-      new dag::Graph("sub_graph_1", &sub_in_0, &sub_out_1);
-  dag::Edge *op_1_1_out = sub_graph_1->createEdge("op_1_1_out");
-  dag::Node *op_1_1 =
-      sub_graph_1->createNode<OpNode>("op_1_1", &sub_in_0, op_1_1_out);
-  dag::Node *op_1_2 =
-      sub_graph_1->createNode<OpNode>("op_1_2", op_1_1_out, &sub_out_1);
-  status = sub_graph_1->setParallelType(pt_1);
-
-  dag::Edge sub_out_2("sub_out_2");
-  dag::Graph *graph = new dag::Graph("graph", {&sub_in_0},
-                                     {&sub_out_0, &sub_out_1, &sub_out_2});
-  graph->addNode(sub_graph_0);
-  graph->addNode(sub_graph_1);
-  dag::Node *op_parallel_out =
-      graph->createNode<OpNode>("op_parallel_out", &sub_out_1, &sub_out_2);
+  dag::Graph *model_0_graph =
+      createGraph("model_0_graph", &graph_in, &graph_out_0, pt_0);
+  graph->addNode(model_0_graph);
+  dag::Node *mode_post_0 =
+      graph->createNode<ProcessNode>("mode_post_0", &graph_out_0, &graph_out_1);
+  dag::Graph *model_1_graph =
+      createGraph("model_1_graph", &graph_in, &graph_out_2, pt_1);
+  graph->addNode(model_1_graph);
+  dag::Node *mode_post_1 =
+      graph->createNode<ProcessNode>("mode_post_1", &graph_out_2, &graph_out_3);
   status = graph->setParallelType(pt);
 
   // init
@@ -191,10 +183,8 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 
   // dump
   status = graph->dump();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("graph dump failed.\n");
-    return -1;
-  }
+  model_0_graph->dump();
+  model_1_graph->dump();
 
   // run
   for (int i = 0; i < count; ++i) {
@@ -204,8 +194,8 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
     desc.data_format_ = base::DataFormat::kDataFormatNCHW;
     desc.shape_ = {1, 3, 512, 512};
     device::Tensor *input_tensor =
-        new device::Tensor(device, desc, "sub_in_0 ");
-    sub_in_0.set(input_tensor, i, false);
+        new device::Tensor(device, desc, "graph_in ");
+    graph_in.set(input_tensor, i, false);
 
     graph->run();
     if (status != base::kStatusCodeOk) {
@@ -215,13 +205,23 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 
     // get output (not base::kParallelTypePipeline)
     if (pt != base::kParallelTypePipeline) {
-      device::Tensor *result_1 = sub_out_1.getGraphOutputTensor();
+      device::Tensor *result_0 = graph_out_0.getGraphOutputTensor();
+      if (result_0 == nullptr) {
+        NNDEPLOY_LOGE("result_1 is nullptr");
+        return -1;
+      }
+      device::Tensor *result_1 = graph_out_1.getGraphOutputTensor();
       if (result_1 == nullptr) {
         NNDEPLOY_LOGE("result_1 is nullptr");
         return -1;
       }
-      device::Tensor *result_2 = sub_out_2.getGraphOutputTensor();
+      device::Tensor *result_2 = graph_out_2.getGraphOutputTensor();
       if (result_2 == nullptr) {
+        NNDEPLOY_LOGE("result_1 is nullptr");
+        return -1;
+      }
+      device::Tensor *result_3 = graph_out_3.getGraphOutputTensor();
+      if (result_3 == nullptr) {
         NNDEPLOY_LOGE("result_1 is nullptr");
         return -1;
       }
@@ -229,15 +229,27 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   }
   if (pt == base::kParallelTypePipeline) {
     for (int i = 0; i < count; ++i) {
-      device::Tensor *result_1 = sub_out_1.getGraphOutputTensor();
-      if (result_1 == nullptr) {
-        NNDEPLOY_LOGE("result_1 is nullptr");
-        return -1;
-      }
-      device::Tensor *result_2 = sub_out_2.getGraphOutputTensor();
-      if (result_2 == nullptr) {
-        NNDEPLOY_LOGE("result is nullptr");
-        return -1;
+      if (pt != base::kParallelTypePipeline) {
+        device::Tensor *result_0 = graph_out_0.getGraphOutputTensor();
+        if (result_0 == nullptr) {
+          NNDEPLOY_LOGE("result_1 is nullptr");
+          return -1;
+        }
+        device::Tensor *result_1 = graph_out_1.getGraphOutputTensor();
+        if (result_1 == nullptr) {
+          NNDEPLOY_LOGE("result_1 is nullptr");
+          return -1;
+        }
+        device::Tensor *result_2 = graph_out_2.getGraphOutputTensor();
+        if (result_2 == nullptr) {
+          NNDEPLOY_LOGE("result_1 is nullptr");
+          return -1;
+        }
+        device::Tensor *result_3 = graph_out_3.getGraphOutputTensor();
+        if (result_3 == nullptr) {
+          NNDEPLOY_LOGE("result_1 is nullptr");
+          return -1;
+        }
       }
     }
   }
@@ -250,8 +262,8 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   }
 
   // 有向无环图graph销毁
-  delete sub_graph_0;
-  delete sub_graph_1;
+  delete model_0_graph;
+  delete model_1_graph;
   delete graph;
 
   return 0;
@@ -261,67 +273,73 @@ int main(int argc, char *argv[]) {
   NNDEPLOY_LOGE("start!\n");
   int ret = 0;
 
-  int count = 8;
+  int count = 1;
   for (int i = 0; i < count; i++) {
-    // sequential graph
     ret = serialGraph(base::kParallelTypeSequential,
                       base::kParallelTypeSequential,
-                      base::kParallelTypeSequential);
+                      base::kParallelTypeSequential, 1);
     if (ret != 0) {
       return ret;
     }
-    ret = parallelGraph(base::kParallelTypeSequential,
-                        base::kParallelTypeSequential,
-                        base::kParallelTypeSequential);
-    if (ret != 0) {
-      return ret;
-    }
-    // parallel task grah
-    ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                      base::kParallelTypeTask);
-    if (ret != 0) {
-      return ret;
-    }
-    ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                        base::kParallelTypeTask);
-    if (ret != 0) {
-      return ret;
-    }
-    // parallel pipepline graph
-    ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
-                      base::kParallelTypePipeline);
-    if (ret != 0) {
-      return ret;
-    }
-    ret = parallelGraph(base::kParallelTypeNone, base::kParallelTypeNone,
-                        base::kParallelTypePipeline);
-    if (ret != 0) {
-      return ret;
-    }
-    // parallel pipepline graph / sugraph sequential
-    ret =
-        serialGraph(base::kParallelTypeSequential,
-                    base::kParallelTypeSequential, base::kParallelTypePipeline);
-    if (ret != 0) {
-      return ret;
-    }
-    ret = parallelGraph(base::kParallelTypeSequential,
-                        base::kParallelTypeSequential,
-                        base::kParallelTypePipeline);
-    if (ret != 0) {
-      return ret;
-    }
-    // parallel pipepline graph / sugraph task
-    ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                      base::kParallelTypePipeline);
-    if (ret != 0) {
-      return ret;
-    }
-    ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                        base::kParallelTypePipeline);
-    if (ret != 0) {
-      return ret;
-    }
+    // ret = serialGraph(base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential);
+    // if (ret != 0) {
+    //   return ret;
+    // }
+    // ret = parallelGraph(base::kParallelTypeSequential,
+    //                     base::kParallelTypeSequential,
+    //                     base::kParallelTypeSequential);
+    // if (ret != 0) {
+    //   return ret;
+    // }
+    //  // parallel task grah
+    //  ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                    base::kParallelTypeTask);
+    //  if (ret != 0) {
+    //    return ret;
+    //  }
+    //  ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                      base::kParallelTypeTask);
+    //  if (ret != 0) {
+    //    return ret;
+    //  }
+    //  // parallel pipepline graph
+    //  ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
+    //                    base::kParallelTypePipeline);
+    //  if (ret != 0) {
+    //    return ret;
+    //  }
+    //  ret = parallelGraph(base::kParallelTypeNone, base::kParallelTypeNone,
+    //                      base::kParallelTypePipeline);
+    //  if (ret != 0) {
+    //    return ret;
+    //  }
+    //  // parallel pipepline graph / sugraph sequential
+    //  ret =
+    //      serialGraph(base::kParallelTypeSequential,
+    //                  base::kParallelTypeSequential,
+    //                  base::kParallelTypePipeline);
+    //  if (ret != 0) {
+    //    return ret;
+    //  }
+    //  ret = parallelGraph(base::kParallelTypeSequential,
+    //                      base::kParallelTypeSequential,
+    //                      base::kParallelTypePipeline);
+    //  if (ret != 0) {
+    //    return ret;
+    //  }
+    //  // parallel pipepline graph / sugraph task
+    //  ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                    base::kParallelTypePipeline);
+    //  if (ret != 0) {
+    //    return ret;
+    //  }
+    //  ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                      base::kParallelTypePipeline);
+    //  if (ret != 0) {
+    //    return ret;
+    //  }
 
     // TODO
     // loop graph - 暂不支持流水线并行模式

@@ -344,3 +344,8 @@ sudo docker run --volume=$(pwd):/workspace -it tnn-convert:latest python3 ./conv
 --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov5s.onnx --codec_flag kCodecFlagImage --input_path C:\huggingface\nndeploy\test_data\detect\sample.jpg --output_path C:\huggingface\nndeploy\temp\sample_output.jpg
 
 --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov5s.onnx --codec_flag kCodecFlagImages --input_path C:\huggingface\nndeploy\test_data\detect --output_path C:\huggingface\nndeploy\temp
+
+--name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov5s.onnx --codec_flag kCodecFlagVideo --input_path C:\huggingface\nndeploy\test_data\detect\test_video.mp4 --output_path C:\huggingface\nndeploy\temp\result_test_video.avi
+
+
+--name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov5s.onnx --codec_flag kCodecFlagCamera --input_path 0 --output_path C:\huggingface\nndeploy\temp\result_test_video.avi

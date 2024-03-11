@@ -40,6 +40,14 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
   int getWidth() { return width_; };
   int getHeight() { return height_; };
 
+  virtual base::EdgeUpdateFlag updataInput() {
+    if (index_ < size_) {
+      return base::kEdgeUpdateFlagComplete;
+    } else {
+      return base::kEdgeUpdateFlagTerminate;
+    }
+  }
+
   virtual base::Status run() = 0;
 
  protected:
@@ -74,7 +82,7 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
   base::CodecFlag flag_ = base::kCodecFlagImage;
   std::string path_ = "";
   std::string ref_path_ = "";
-  std::string fourcc_ = "X264";
+  std::string fourcc_ = "MJPG";
   double fps_ = 0.0;
   int width_ = 0;
   int height_ = 0;

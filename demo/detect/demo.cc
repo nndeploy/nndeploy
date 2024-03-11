@@ -86,21 +86,21 @@ int main(int argc, char *argv[]) {
   base::CodecFlag codec_flag = demo::getCodecFlag();
   // output path
   std::string ouput_path = demo::getOutputPath();
-  // base::kParallelTypePipeline
-  // base::ParallelType pt = base::kParallelTypePipeline;
-  base::ParallelType pt = base::kParallelTypeSequential;
-
-  // graph
-  dag::Graph *graph = new dag::Graph("demo", nullptr, nullptr);
-  if (graph == nullptr) {
-    NNDEPLOY_LOGE("graph is nullptr");
-    return -1;
-  }
+  // base::kParallelTypePipeline / base::kParallelTypeSequential
+  base::ParallelType pt = demo::getParallelType();
 
   // 有向无环图graph的输入边packert
   dag::Edge input("detect_in");
   // 有向无环图graph的输出边packert
   dag::Edge output("detect_out");
+
+  // graph
+  dag::Graph *graph = new dag::Graph("demo", nullptr, &output);
+  if (graph == nullptr) {
+    NNDEPLOY_LOGE("graph is nullptr");
+    return -1;
+  }
+
   // 创建检测模型有向无环图graph
   dag::Graph *detect_graph =
       dag::createGraph(name, inference_type, device_type, &input, &output,
@@ -125,6 +125,7 @@ int main(int argc, char *argv[]) {
   // 解码节点
   codec::EncodeNode *encode_node = codec::createEncodeNode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
+  encode_node->setRefPath(input_path);
   encode_node->setPath(ouput_path);
   graph->addNode(encode_node);
 
@@ -147,10 +148,39 @@ int main(int argc, char *argv[]) {
   status = graph->dump();
   status = detect_graph->dump();
 
+  NNDEPLOY_TIME_POINT_START("graph->run");
   int size = decode_node->getSize();
+  NNDEPLOY_LOGE("size = %d.\n", size);
   for (int i = 0; i < size; ++i) {
-    graph->run();
+    status = graph->run();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("graph deinit failed");
+      return -1;
+    }
+
+    if (pt != base::kParallelTypePipeline) {
+      model::DetectResult *result =
+          (model::DetectResult *)output.getGraphOutputParam();
+      if (result == nullptr) {
+        NNDEPLOY_LOGE("result is nullptr");
+        return -1;
+      }
+    }
   }
+
+  if (pt == base::kParallelTypePipeline) {
+    // NNDEPLOY_LOGE("size = %d.\n", size);
+    for (int i = 0; i < size; ++i) {
+      model::DetectResult *result =
+          (model::DetectResult *)output.getGraphOutputParam();
+      // NNDEPLOY_LOGE("%p.\n", result);
+      if (result == nullptr) {
+        NNDEPLOY_LOGE("result is nullptr");
+        return -1;
+      }
+    }
+  }
+  NNDEPLOY_TIME_POINT_END("graph->run");
 
   // 有向无环图graph反初始化
   status = graph->deinit();
@@ -158,6 +188,8 @@ int main(int argc, char *argv[]) {
     NNDEPLOY_LOGE("graph deinit failed");
     return -1;
   }
+
+  NNDEPLOY_TIME_PROFILER_PRINT("demo");
 
   // 有向无环图graph销毁
   delete detect_graph;

@@ -298,9 +298,12 @@ stringToPrecisionType(const std::string &src);
 
 extern NNDEPLOY_CC_API PowerType stringToPowerType(const std::string &src);
 
-extern NNDEPLOY_CC_API CodecType stringCodecType(const std::string &src);
+extern NNDEPLOY_CC_API CodecType stringToCodecType(const std::string &src);
 
-extern NNDEPLOY_CC_API CodecFlag stringCodecFlag(const std::string &src);
+extern NNDEPLOY_CC_API CodecFlag stringToCodecFlag(const std::string &src);
+
+extern NNDEPLOY_CC_API ParallelType
+stringToParallelType(const std::string &src);
 
 }  // namespace base
 }  // namespace nndeploy

@@ -17,7 +17,6 @@
 #include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
 
-
 namespace nndeploy {
 namespace dag {
 

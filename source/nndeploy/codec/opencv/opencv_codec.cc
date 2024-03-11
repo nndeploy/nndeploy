@@ -3,6 +3,8 @@
 
 #include "nndeploy/base/file.h"
 
+// using namespace cv;
+
 namespace nndeploy {
 namespace codec {
 
@@ -105,6 +107,7 @@ base::Status OpenCvVedioDecodeNode::init() {
 }
 base::Status OpenCvVedioDecodeNode::deinit() {
   if (cap_ != nullptr) {
+    cap_->release();
     delete cap_;
     cap_ = nullptr;
   }
@@ -145,7 +148,7 @@ base::Status OpenCvCameraDecodeNode::init() {
   }
 
   fps_ = cap_->get(cv::CAP_PROP_FPS);
-  size_ = 60 * (int)fps_;
+  size_ = 25 * 10;
   width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
   height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
   NNDEPLOY_LOGI("Video frame count: %d.\n", size_);
@@ -157,6 +160,7 @@ base::Status OpenCvCameraDecodeNode::init() {
 }
 base::Status OpenCvCameraDecodeNode::deinit() {
   if (cap_ != nullptr) {
+    cap_->release();
     delete cap_;
     cap_ = nullptr;
   }
@@ -201,7 +205,6 @@ base::Status OpenCvImagesEncodeNode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
   std::string name = std::to_string(index_) + ".jpg";
   std::string full_path = base::joinPath(path_, name);
-  // NNDEPLOY_LOGE("full_path = %s.\n", full_path.c_str());
   cv::imwrite(full_path, *mat);
   index_++;
   return base::kStatusCodeOk;
@@ -226,8 +229,6 @@ base::Status OpenCvVedioEncodeNode::init() {
     NNDEPLOY_LOGI("Video FPS: %f.\n", fps_);
     NNDEPLOY_LOGI("Video width_: %d.\n", width_);
     NNDEPLOY_LOGI("Video height_: %d.\n", height_);
-
-    return status;
   }
 
   int fourcc =
@@ -247,10 +248,12 @@ base::Status OpenCvVedioEncodeNode::init() {
 base::Status OpenCvVedioEncodeNode::deinit() {
   base::Status status = base::kStatusCodeOk;
   if (!cap_) {
+    cap_->release();
     delete cap_;
     cap_ = nullptr;
   }
   if (!writer_) {
+    writer_->release();
     delete writer_;
     writer_ = nullptr;
   }

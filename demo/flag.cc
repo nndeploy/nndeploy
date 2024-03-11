@@ -40,6 +40,8 @@ DEFINE_string(precision_type, "", "precision_type");
 
 DEFINE_string(power_type, "", "power_type");
 
+DEFINE_string(parallel_type, "", "parallel_type");
+
 DEFINE_string(cache_path, "", "cache_path");
 
 DEFINE_string(library_path, "", "library_path");
@@ -76,6 +78,8 @@ void showUsage() {
   std::cout << "  --precision_type: precision_type, eg: kPrecisionTypeFp32"
             << std::endl;
   std::cout << "  --power_type: power_type, eg: kPowerTypeNormal" << std::endl;
+  std::cout << "  --parallel_type: parallel_type, eg: kParallelTypeSequential"
+            << std::endl;
   std::cout << "  --cache_path: cache_path, eg: "
                "path/to/model_0.trt"
             << std::endl;
@@ -135,11 +139,14 @@ base::PrecisionType getPrecisionType() {
 base::PowerType getPowerType() {
   return base::stringToPowerType(FLAGS_power_type);
 }
+base::ParallelType getParallelType() {
+  return base::stringToParallelType(FLAGS_parallel_type);
+}
 base::CodecType getCodecType() {
-  return base::stringCodecType(FLAGS_codec_type);
+  return base::stringToCodecType(FLAGS_codec_type);
 }
 base::CodecFlag getCodecFlag() {
-  return base::stringCodecFlag(FLAGS_codec_flag);
+  return base::stringToCodecFlag(FLAGS_codec_flag);
 }
 std::vector<std::string> getCachePath() {
   std::vector<std::string> cache_path;

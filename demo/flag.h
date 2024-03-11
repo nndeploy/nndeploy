@@ -187,6 +187,17 @@ DECLARE_string(power_type);
 /**
  * @brief Construct a new declare string object
  * @note
+ * --parallel_type
+ *  kParallelTypeNone
+ *  kParallelTypeSequential
+ *  kParallelTypeTask
+ *  kParallelTypePipeline
+ */
+DECLARE_string(parallel_type);
+
+/**
+ * @brief Construct a new declare string object
+ * @note
  * --cache_path
  *  "path/to/model_0.trt,path/to/model_1.trt"
  */
@@ -219,6 +230,7 @@ int getGpuTuneKernel();
 base::ShareMemoryType getShareMemoryType();
 base::PrecisionType getPrecisionType();
 base::PowerType getPowerType();
+base::ParallelType getParallelType();
 std::vector<std::string> getCachePath();
 std::vector<std::string> getLibraryPath();
 std::vector<std::string> getAllFileFromDir(std::string dir_path);
