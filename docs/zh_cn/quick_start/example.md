@@ -8,20 +8,20 @@
 
 ### Windows 下运行 demo_nndeploy_dag
 ```shell
-cd PATH/nndeploy/build/install/bin
+cd /home/always/huggingface/nndeploy/nndeploy/build/install/bin
 .\demo_nndeploy_dag.exe
 ```
 
 ### Linux 下运行 demo_nndeploy_dag
 ```shell
-cd PATH/nndeploy/build/install/lib
+cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
 export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 ./demo_nndeploy_dag
 ```
 
 ### Andorid 下运行 demo_nndeploy_dag
 ```shell
-cd PATH/nndeploy/build/install/lib
+cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
 
 adb push * /
 
@@ -35,50 +35,48 @@ export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 
 ### 效果示例
 ```shell
-E/nndeploy_default_str: main [File C:\utils\nndeploy\demo\dag\demo.cc][Line 273] start!
+E/nndeploy_default_str: main [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 273] start!
 digraph serial_graph {
-p000000B88A54FB30[shape=box, label=graph_in]
-p000000B88A54FB30->p000001C480A1DCF0[label=graph_in]
-p000001C480A1DCF0[label=model_0_graph]
-p000001C480A1DCF0->p000001C480A51C10[label=model_0_out]
-p000001C480A51C10[label=op_link]
-p000001C480A51C10->p000001C480A1DAC0[label=op_link_out]
-p000001C480A1DAC0[label=model_1_graph]
-p000000B88A54FB00[shape=box, label=graph_out]
-p000001C480A1DAC0->p000000B88A54FB00[label=graph_out]
+p0x7ffeec419690[shape=box, label=graph_in]
+p0x7ffeec419690->p0x5614d9427700[label=graph_in]
+p0x5614d9427700[label=model_0_graph]
+p0x5614d9427700->p0x5614d941c230[label=model_0_out]
+p0x5614d941c230[label=op_link]
+p0x5614d941c230->p0x5614d9428260[label=op_link_out]
+p0x5614d9428260[label=model_1_graph]
+p0x7ffeec4196c0[shape=box, label=graph_out]
+p0x5614d9428260->p0x7ffeec4196c0[label=graph_out]
 }
 digraph model_0_graph {
-p000000B88A54FB30[shape=box, label=graph_in]
-p000000B88A54FB30->p000001C480A52EA0[label=graph_in]
-p000001C480A52EA0[label=model_0_graph_preprocess]
-p000001C480A52EA0->p000001C480A51310[label=model_0_graph_preprocess_out]
-p000001C480A51310[label=model_0_graph_infer]
-p000001C480A51310->p000001C480A52FC0[label=model_0_graph_infer_out]
-p000001C480A52FC0[label=model_0_graph_postprocess]
-p000001C480A5AB50[shape=box, label=model_0_out]
-p000001C480A52FC0->p000001C480A5AB50[label=model_0_out]
+p0x7ffeec419690[shape=box, label=graph_in]
+p0x7ffeec419690->p0x5614d9420e00[label=graph_in]
+p0x5614d9420e00[label=model_0_graph_preprocess]
+p0x5614d9420e00->p0x5614d9418e00[label=model_0_graph_preprocess_out]
+p0x5614d9418e00[label=model_0_graph_infer]
+p0x5614d9418e00->p0x5614d941b100[label=model_0_graph_infer_out]
+p0x5614d941b100[label=model_0_graph_postprocess]
+p0x5614d94275a0[shape=box, label=model_0_out]
+p0x5614d941b100->p0x5614d94275a0[label=model_0_out]
 }
 digraph model_1_graph {
-p000001C480A5A950[shape=box, label=op_link_out]
-p000001C480A5A950->p000001C480A52990[label=op_link_out]
-p000001C480A52990[label=model_1_graph_preprocess]
-p000001C480A52990->p000001C480A52510[label=model_1_graph_preprocess_out]
-p000001C480A52510[label=model_1_graph_infer]
-p000001C480A52510->p000001C480A51E50[label=model_1_graph_infer_out]
-p000001C480A51E50[label=model_1_graph_postprocess]
-p000000B88A54FB00[shape=box, label=graph_out]
-p000001C480A51E50->p000000B88A54FB00[label=graph_out]
+p0x5614d9427650[shape=box, label=op_link_out]
+p0x5614d9427650->p0x5614d9419b60[label=op_link_out]
+p0x5614d9419b60[label=model_1_graph_preprocess]
+p0x5614d9419b60->p0x5614d94c0b00[label=model_1_graph_preprocess_out]
+p0x5614d94c0b00[label=model_1_graph_infer]
+p0x5614d94c0b00->p0x5614d94c0d80[label=model_1_graph_infer_out]
+p0x5614d94c0d80[label=model_1_graph_postprocess]
+p0x7ffeec4196c0[shape=box, label=graph_out]
+p0x5614d94c0d80->p0x7ffeec4196c0[label=graph_out]
 }
-I/nndeploy_default_str: ProcessNode::run [File C:\utils\nndeploy\demo\dag\demo.cc][Line 46] running node = [model_0_graph_preprocess]!
-I/nndeploy_default_str: ProcessNode::run [File C:\utils\nndeploy\demo\dag\demo.cc][Line 46] running node = [model_0_graph_infer]!
-I/nndeploy_default_str: ProcessNode::run [File C:\utils\nndeploy\demo\dag\demo.cc][Line 46] running node = [model_0_graph_postprocess]!
-I/nndeploy_default_str: ProcessNode::run [File C:\utils\nndeploy\demo\dag\demo.cc][Line 46] running node = [op_link]!
-I/nndeploy_default_str: ProcessNode::run [File C:\utils\nndeploy\demo\dag\demo.cc][Line 46] running node = [model_1_graph_preprocess]!
-I/nndeploy_default_str: ProcessNode::run [File C:\utils\nndeploy\demo\dag\demo.cc][Line 46] running node = [model_1_graph_infer]!
-I/nndeploy_default_str: ProcessNode::run [File C:\utils\nndeploy\demo\dag\demo.cc][Line 46] running node = [model_1_graph_postprocess]!
-E/nndeploy_default_str: main [File C:\utils\nndeploy\demo\dag\demo.cc][Line 350] end!
-
-C:\utils\nndeploy\build\RelWithDebInfo\demo_nndeploy_dag.exe (进程 10080)已退出，代码为 0。
+I/nndeploy_default_str: run [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 46] running node = [model_0_graph_preprocess]!
+I/nndeploy_default_str: run [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 46] running node = [model_0_graph_infer]!
+I/nndeploy_default_str: run [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 46] running node = [model_0_graph_postprocess]!
+I/nndeploy_default_str: run [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 46] running node = [op_link]!
+I/nndeploy_default_str: run [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 46] running node = [model_1_graph_preprocess]!
+I/nndeploy_default_str: run [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 46] running node = [model_1_graph_infer]!
+I/nndeploy_default_str: run [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 46] running node = [model_1_graph_postprocess]!
+E/nndeploy_default_str: main [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 350] end!
 ```
 
 
@@ -96,7 +94,7 @@ C:\utils\nndeploy\build\RelWithDebInfo\demo_nndeploy_dag.exe (进程 10080)已�
 
 ### Windows 下运行 demo_nndeploy_detect
 ```shell
-cd PATH/nndeploy/build/install/bin
+cd /home/always/huggingface/nndeploy/nndeploy/build/install/bin
 .\demo_nndeploy_detect.exe --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\detect\sample.jpg --output_path C:\huggingface\nndeploy\temp\sample_output.jpg
 ```
 
@@ -104,16 +102,17 @@ cd PATH/nndeploy/build/install/bin
 
 ### Linux 下运行 YOLOv5s
 ```shell
-cd PATH/nndeploy/build/install/lib
+cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
 export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
-// onnxruntime 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
 
-// openVINO 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+// TensorRt 部署
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 
-// tensorrt 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+// OnnxRuntime 部署
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
+
+// OpenVino 部署
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
 
 `注：请将上述PATH更换为自己对应的目录`
@@ -122,7 +121,7 @@ export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 
 ### Andorid下运行YOLOV5s
 ```shell
-cd PATH/nndeploy/build/install/lib
+cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
 
 adb push 
 
@@ -130,9 +129,10 @@ adb push
 
 adb push
 
-export LD_LIBRARY_PATH=PATH/nndeploy/build/install/bin:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/home/always/huggingface/nndeploy/nndeploy/build/install/bin:$LD_LIBRARY_PATH
 // mnn 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value PATH/model_zoo/detect/yolo/yolov5s.onnx --input_type kInputTypeImage  --input_path PATH/test_data/detect/sample.jpg --output_path PATH/temp/sample_output.jpg
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --input_type kInputTypeImage  --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
 ```
 
 ### 效果示例
+![sample](../../image/demo/sample.jpg) ![sample_output](../../image/demo/sample_output.jpg)
