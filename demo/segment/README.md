@@ -1,13 +1,10 @@
 # TODO
 
-./demo_nndeploy_segment --name NNDEPLOY_SAM \
-                       --inference_type kInferenceTypeMnn \
-                       --device_type kDeviceTypeCodeX86:0 \
-                       --model_type kModelTypeMnn \
-                       --is_path \
-                       --input_type kInputTypeImage \
-                       --input_path C:\huggingface\nndeploy\test_data\detect\sample.jpg \
-                       --output_path C:\huggingface\nndeploy\test_data\detect\sample_output.jpg
+
+
+./demo_nndeploy_segment --name NNDEPLOY_SAM --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /data/sjx/code/nndeploy_resource/nndeploy/model_zoo/segment/sam/image_encoder_sim.onnx,/data/sjx/code/nndeploy_resource/nndeploy/model_zoo/segment/sam/sam_sim.onnx --codec_flag kCodecFlagImage --input_path /data/sjx/code/nndeploy_resource/nndeploy/test_data/detect/sample.jpg --output_path /data/sjx/code/nndeploy/build/sam_result.jpg
+
+
 
 
 --name NNDEPLOY_SAM --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeMnn --is_path --input_type kInputTypeImage --input_path C:\huggingface\nndeploy\test_data\detect\sample.jpg --output_path C:\huggingface\nndeploy\test_data\detect\sample_output.jpg
