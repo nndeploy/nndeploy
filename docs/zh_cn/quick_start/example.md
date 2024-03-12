@@ -85,6 +85,7 @@ E/nndeploy_default_str: main [File /home/always/github/public/nndeploy/demo/dag/
 ### [下载模型](https://huggingface.co/alwaysssss/nndeploy/blob/main/model_zoo/detect/yolo/yolov8n.onnx)
   ```shell
   wget https://huggingface.co/alwaysssss/nndeploy/blob/main/model_zoo/detect/yolo/yolov8n.onnx
+  wget https://huggingface.co/alwaysssss/nndeploy/blob/main/model_zoo/detect/yolo/yolov8n.onnx.mnn
   ```
 
 ### [下载测试数据](https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg)
@@ -100,7 +101,7 @@ cd /home/always/huggingface/nndeploy/nndeploy/build/install/bin
 
 `注：请将上述PATH更换为自己对应的目录`
 
-### Linux 下运行 YOLOv5s
+### Linux 下运行 demo_nndeploy_detect
 ```shell
 cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
 export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
@@ -119,19 +120,22 @@ export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 
 
 
-### Andorid下运行YOLOV5s
+### Andorid 下运行 demo_nndeploy_detect
 ```shell
 cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
+adb push ./* /data/local/tmp
 
-adb push 
+cd /home/always/huggingface/nndeploy/model_zoo/detect/yolo/
+adb push ./yolov8n.onnx.mnn /data/local/tmp
 
-adb push
+cd /home/always/huggingface/nndeploy/test_data/detect/
+adb push ./sample.jpg /data/local/tmp
 
-adb push
-
-export LD_LIBRARY_PATH=/home/always/huggingface/nndeploy/nndeploy/build/install/bin:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/data/local/tmp:$LD_LIBRARY_PATH
 // mnn 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV5 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --input_type kInputTypeImage  --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
+./demo_nndeploy_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeMnn --is_path --model_value ./yolov8n.onnx.mnn --input_type kInputTypeImage  --input_path ./sample.jpg --output_path ./sample_output.jpg
+
+adb pull /data/local/tmp/sample_output.jpg ./
 ```
 
 ### 效果示例
