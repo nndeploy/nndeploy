@@ -47,12 +47,11 @@ class NNDEPLOY_CC_API SamBuildInput : public dag::Node {
  public:
   SamBuildInput(const std::string &name, dag::Edge *input, dag::Edge *output)
       : Node(name, input, output) {}
-  SamBuildInput(const std::string &name, std::vector<dag::Edge *> inputs,
-                std::vector<dag::Edge *> outputs)
+  SamBuildInput(const std::string &name,
+                std::initializer_list<dag::Edge *> inputs,
+                std::initializer_list<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {}
   virtual ~SamBuildInput() {}
-
-  virtual base::Status reshape();
 
   virtual base::Status run();
 };
