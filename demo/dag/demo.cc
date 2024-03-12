@@ -43,7 +43,7 @@ class NNDEPLOY_CC_API ProcessNode : public dag::Node {
     // execute time
     std::this_thread::sleep_for(
         std::chrono::milliseconds(tmp_param->execute_time_));
-    NNDEPLOY_LOGI("running node = [%s]!\n", name_.c_str());
+    // NNDEPLOY_LOGI("running node = [%s]!\n", name_.c_str());
 
     outputs_[0]->notifyWritten(dst);
     return base::kStatusCodeOk;
@@ -98,6 +98,7 @@ int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   model_1_graph->dump();
 
   // run
+  NNDEPLOY_TIME_POINT_START("graph->run");
   for (int i = 0; i < count; ++i) {
     // set input
     device::Device *device = device::getDefaultHostDevice();
@@ -134,6 +135,9 @@ int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
       }
     }
   }
+  NNDEPLOY_TIME_POINT_END("graph->run");
+  NNDEPLOY_TIME_PROFILER_PRINT("demo");
+  NNDEPLOY_TIME_PROFILER_RESET();
 
   // 有向无环图graph反初始化
   status = graph->deinit();
@@ -187,6 +191,7 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   model_1_graph->dump();
 
   // run
+  NNDEPLOY_TIME_POINT_START("graph->run");
   for (int i = 0; i < count; ++i) {
     device::Device *device = device::getDefaultHostDevice();
     device::TensorDesc desc;
@@ -253,6 +258,9 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
       }
     }
   }
+  NNDEPLOY_TIME_POINT_END("graph->run");
+  NNDEPLOY_TIME_PROFILER_PRINT("demo");
+  NNDEPLOY_TIME_PROFILER_RESET();
 
   // 有向无环图graph反初始化
   status = graph->deinit();
@@ -281,12 +289,12 @@ int main(int argc, char *argv[]) {
     if (ret != 0) {
       return ret;
     }
-    // ret = serialGraph(base::kParallelTypeSequential,
-    //                   base::kParallelTypeSequential,
-    //                   base::kParallelTypeSequential);
-    // if (ret != 0) {
-    //   return ret;
-    // }
+    ret = serialGraph(base::kParallelTypeSequential,
+                      base::kParallelTypeSequential,
+                      base::kParallelTypeSequential, 1000);
+    if (ret != 0) {
+      return ret;
+    }
     // ret = parallelGraph(base::kParallelTypeSequential,
     //                     base::kParallelTypeSequential,
     //                     base::kParallelTypeSequential);
@@ -305,11 +313,11 @@ int main(int argc, char *argv[]) {
     //    return ret;
     //  }
     //  // parallel pipepline graph
-    //  ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
-    //                    base::kParallelTypePipeline);
-    //  if (ret != 0) {
-    //    return ret;
-    //  }
+    ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
+                      base::kParallelTypePipeline, 1000);
+    if (ret != 0) {
+      return ret;
+    }
     //  ret = parallelGraph(base::kParallelTypeNone, base::kParallelTypeNone,
     //                      base::kParallelTypePipeline);
     //  if (ret != 0) {
