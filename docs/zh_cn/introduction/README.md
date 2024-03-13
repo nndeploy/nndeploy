@@ -67,19 +67,22 @@
 - **任务并行**：在多模型以及多硬件设备的的复杂场景下，基于有向无环图的模型部署方式，可充分挖掘模型部署中的并行性，缩短单次算法全流程运行耗时
     
 
+## 资源仓库
+
+- 我们已将第三方库、模型仓库和测试数据上传至[HuggingFace](https://huggingface.co/alwaysssss/nndeploy)上，如有需要，欢迎您前往下载使用。
+
+
 ## 下一步规划
-- 部署更多的算法
+- 部署算法
   - [BEV](https://github.com/fundamentalvision/BEVFormer)
   - [InstantID](https://github.com/InstantID/InstantID)
   - [OCR](https://github.com/PaddlePaddle/PaddleOCR)
   - ......
-- 单机下的大语言模型推理模块
-- 文档
-- 视频
-- 代码review
-- 用户友好 - 编译问题、第三方库资源、模型资源、数据资源
-- 完善已接入的推理框架coreml、paddle-lite，接入新的推理框架TFLite
-
+- 推理后端
+  - 完善已接入的推理框架coreml
+  - 完善已接入的推理框架paddle-lite
+  - 接入新的推理框架TFLite
+- 分布式
 
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
