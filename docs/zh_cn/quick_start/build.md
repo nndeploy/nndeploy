@@ -144,9 +144,9 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
 
   + 编辑`build/config.cmake`自定义编译选项（笔者的自定义编译选项：[path/cmake/config_android.cmake](../../../cmake/config_android.cmake)）
       
-  + 开始`cmake`，需要指定ndk编译工具链
+  + 开始`cmake`，需要指定ndk
     ```
-    cmake ..
+    cmake .. -DCMAKE_TOOLCHAIN_FILE=/snap/android-ndk-r25c/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_STL=c++_static -DANDROID_NATIVE_API_LEVEL=android-14 -DANDROID_TOOLCHAIN=clang -DBUILD_FOR_ANDROID_COMMAND=true
     ```
 
   + 开始编译
@@ -158,6 +158,8 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
      ```
     make install
     ```
+
+  注：
 
 ## Mac（TODO）
 

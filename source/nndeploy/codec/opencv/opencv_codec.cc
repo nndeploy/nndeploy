@@ -278,7 +278,11 @@ base::Status OpenCvCameraEncodeNode::deinit() {
 base::Status OpenCvCameraEncodeNode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
   if (mat != nullptr) {
+#if NNDEPLOY_OS_WINDOWS
     cv::imshow(path_, *mat);
+#else
+    ;
+#endif
   }
   return base::kStatusCodeOk;
 }

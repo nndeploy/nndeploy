@@ -9,13 +9,13 @@
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
+#include "nndeploy/base/time_profiler.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-
 
 namespace nndeploy {
 namespace dag {
@@ -56,6 +56,9 @@ class NNDEPLOY_CC_API Node {
   void setInitializedFlag(bool flag);
   bool getInitialized();
 
+  void setTimeProfileFlag(bool flag);
+  bool getTimeProfileFlag();
+
   void setRunningFlag(bool flag);
   bool isRunning();
 
@@ -82,6 +85,7 @@ class NNDEPLOY_CC_API Node {
   base::ParallelType parallel_type_ = base::kParallelTypeNone;
   bool initialized_ = false;
   bool is_running_ = false;
+  bool is_time_profile_ = false;
 };
 
 using SingleIONodeFunc =

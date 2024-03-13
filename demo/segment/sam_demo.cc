@@ -1,12 +1,37 @@
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
+#include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/model/segment/result.h"
 #include "nndeploy/model/segment/segment_anything/sam.h"
 
 using namespace nndeploy;
+
+class DrawMaskNode : public dag::Node {
+ public:
+  DrawMaskNode(const std::string &name,
+               std::initializer_list<dag::Edge *> inputs,
+               std::initializer_list<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {}
+  virtual ~DrawMaskNode() {}
+
+  virtual base::Status run() {
+    cv::Mat *input_mat = inputs_[0]->getCvMat(this);
+    model::SegmentResult *result =
+        (model::SegmentResult *)inputs_[1]->getParam(this);
+    device::Tensor *mask = result->mask_;
+    cv::Mat mask_output(mask->getHeight(), mask->getWidth(), CV_32FC1,
+                        mask->getPtr());
+    cv::threshold(mask_output, mask_output, 0.0, 255.0, cv::THRESH_BINARY);
+    mask_output.convertTo(mask_output, CV_8U);
+    cv::Mat *output_mat = new cv::Mat(mask_output);
+    outputs_[0]->set(output_mat, inputs_[0]->getIndex(this), false);
+
+    return base::kStatusCodeOk;
+  }
+};
 
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
@@ -32,62 +57,88 @@ int main(int argc, char *argv[]) {
 
   // 模型路径或者模型字符串
   std::vector<std::string> model_value = demo::getModelValue();
+  // input path
+  std::string input_path = demo::getInputPath();
+  // input path
+  base::CodecFlag codec_flag = demo::getCodecFlag();
+  // output path
+  std::string ouput_path = demo::getOutputPath();
+  // base::kParallelTypePipeline
+  // base::ParallelType pt = base::kParallelTypePipeline;
+  base::ParallelType pt = base::kParallelTypeSequential;
+
+  // graph
+  dag::Graph *graph = new dag::Graph("demo", nullptr, nullptr);
+  if (graph == nullptr) {
+    NNDEPLOY_LOGE("graph is nullptr");
+    return -1;
+  }
+
   // 有向无环图graph的输入边packert
   dag::Edge input("segment_in");
   // 有向无环图graph的输出边packert
   dag::Edge output("segment_out");
 
   // 创建检测模型有向无环图graph
-  dag::Graph *graph =
+  dag::Graph *segment_graph =
       dag::createGraph(name, inference_type, device_type, &input, &output,
                        model_type, is_path, model_value);
-  if (graph == nullptr) {
-    NNDEPLOY_LOGE("graph is nullptr");
+  if (segment_graph == nullptr) {
+    NNDEPLOY_LOGE("segment_graph is nullptr");
     return -1;
   }
 
+  graph->addNode(segment_graph);
+
+  // 解码节点
+  codec::DecodeNode *decode_node = codec::createDecodeNode(
+      base::kCodecTypeOpenCV, codec_flag, "decode_node", &input);
+
+  decode_node->setPath(input_path);
+  graph->addNode(decode_node);
+
+  // draw mask
+  dag::Edge *draw_mask = graph->createEdge("draw_mask");
+  dag::Node *draw_mask_node = graph->createNode<DrawMaskNode>(
+      "DrawMaskNode", {&input, &output}, {draw_mask});
+ 
+
+  // 编码节点
+  codec::EncodeNode *encode_node = codec::createEncodeNode(
+      base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_mask);
+  encode_node->setPath(ouput_path);
+  graph->addNode(encode_node);
+
+  base::Status status = graph->setParallelType(pt);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph setParallelType failed");
+    return -1;
+  }
   // 初始化有向无环图graph
   NNDEPLOY_TIME_POINT_START("graph->init()");
-  base::Status status = graph->init();
+  status = graph->init();
+
+  graph->dump();
+  segment_graph->dump();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("graph init failed");
     return -1;
   }
   NNDEPLOY_TIME_POINT_END("graph->init()");
 
-  // 有向无环图graph的输入图片路径
-  std::string input_path = demo::getInputPath();
-  // opencv读图
-  cv::Mat input_mat = cv::imread(input_path);
-  // 将图片写入有向无环图graph输入边
-  input.set(input_mat);
-  // 定义有向无环图graph的输出结果
-  model::SegmentResult result;
-  // 将输出结果写入有向无环图graph输出边
-  output.set(result);
-
-  // status = graph->reshape();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("graph reshape failed");
-    return -1;
-  }
-
   // 有向无环图Graphz运行
   NNDEPLOY_TIME_POINT_START("graph->run()");
-  status = graph->run();
+  int size = decode_node->getSize();
+  for (int i = 0; i < size; ++i) {
+    graph->run();
+  }
+
+  NNDEPLOY_TIME_POINT_END("graph->run()");
+
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("graph run failed");
     return -1;
   }
-  NNDEPLOY_TIME_POINT_END("graph->run()");
-
-  device::Tensor *mask = result.mask_;
-  cv::Mat mask_output(mask->getHeight(), mask->getWidth(), CV_32FC1,
-                      mask->getPtr());
-  cv::threshold(mask_output, mask_output, 0.0, 255.0, cv::THRESH_BINARY);
-  mask_output.convertTo(mask_output, CV_8U);
-  std::string ouput_path = demo::getOutputPath();
-  cv::imwrite(ouput_path, mask_output);
 
   // 有向无环图graphz反初始化
   NNDEPLOY_TIME_POINT_START("graph->deinit()");
@@ -98,10 +149,11 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->deinit()");
 
-  NNDEPLOY_TIME_PROFILER_PRINT("detetct time profiler");
+  NNDEPLOY_TIME_PROFILER_PRINT("segment time profiler");
 
   // 有向无环图graphz销毁
   delete graph;
+  delete segment_graph;
 
   NNDEPLOY_LOGE("hello world!\n");
 

@@ -114,7 +114,7 @@ int OpenCvConvert::convertFromBorderType(base::BorderType src) {
     case base::kBorderTypeEdge:
       ret = cv::BORDER_REPLICATE;
       break;
-    case base::kInterpTypeNotSupport:
+    case base::kBorderTypeNotSupport:
       ret = -1;
       break;
     default:
