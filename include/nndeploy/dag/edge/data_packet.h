@@ -15,10 +15,20 @@
 #include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
 
-
 namespace nndeploy {
 namespace dag {
 
+/**
+ * @brief
+ * 数据包的状态
+ * # 未创建
+ * # 已创建
+ * # 已写入
+ * # 没被消费
+ * # 正在被消费
+ * # 被消费过
+ * # 被所有节点消费
+ */
 class DataPacket : public base::NonCopyable {
  public:
   enum Flag : int {
