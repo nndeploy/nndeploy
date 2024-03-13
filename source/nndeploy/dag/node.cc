@@ -74,7 +74,19 @@ void Node::setInnerFlag(bool flag) { is_inner_ = flag; }
 void Node::setInitializedFlag(bool flag) { initialized_ = flag; }
 bool Node::getInitialized() { return initialized_; }
 
-void Node::setRunningFlag(bool flag) { is_running_ = flag; }
+void Node::setTimeProfileFlag(bool flag) { is_time_profile_ = flag; }
+bool Node::getTimeProfileFlag() { return is_time_profile_; }
+
+void Node::setRunningFlag(bool flag) {
+  is_running_ = flag;
+  if (is_time_profile_) {
+    if (is_running_) {
+      NNDEPLOY_TIME_POINT_START(name_ + " run()");
+    } else {
+      NNDEPLOY_TIME_POINT_END(name_ + " run()");
+    }
+  }
+}
 bool Node::isRunning() { return is_running_; }
 
 base::Status Node::init() { return base::kStatusCodeOk; }
