@@ -68,6 +68,10 @@ The current supported inference framework is as follows:
 ## Document
 - For more information, please visit the [nndeploy documentation](https://nndeploy-zh.readthedocs.io/zh/latest/).
 
+## resource repository
+
+- We have uploaded third-party libraries, model repositories, and test data to [HuggingFace](https://huggingface.co/alwaysssss/nndeploy). If you need them, feel free to download them.
+
 
 ## Roadmap
 - Deploy more algorithms
@@ -75,12 +79,11 @@ The current supported inference framework is as follows:
   - [InstantID](https://github.com/InstantID/InstantID)
   - [OCR](https://github.com/PaddlePaddle/PaddleOCR)
   - ......
-- Large language model inference module on a single machine
-- Documentation
-- Video
-- Code review
-- User-friendly - compilation issues, third-party library resources, model resources, data resources
-- Enhance already integrated inference frameworks like coreml, paddle-lite, and integrate new inference framework TFLite
+- inference frameworks
+  - Enhance already integrated coreml
+  - Enhance already integrated paddle-lite
+  - integrate new inference framework TFLite
+- distributed
 
 
 # Reference
