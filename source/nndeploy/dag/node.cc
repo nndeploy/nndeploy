@@ -22,6 +22,8 @@ Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
   constructed_ = true;
 }
 Node::~Node() {
+  inputs_.clear();
+  outputs_.clear();
   constructed_ = false;
   initialized_ = false;
   is_running_ = false;

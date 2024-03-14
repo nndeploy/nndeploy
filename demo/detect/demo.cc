@@ -192,6 +192,8 @@ int main(int argc, char *argv[]) {
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
 
   // 有向无环图graph销毁
+  delete encode_node;
+  delete decode_node;
   delete detect_graph;
   delete graph;
 

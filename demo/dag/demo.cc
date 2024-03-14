@@ -281,6 +281,20 @@ int main(int argc, char *argv[]) {
   NNDEPLOY_LOGE("start!\n");
   int ret = 0;
 
+  nndeploy::thread_pool::ThreadPool pool(4);
+  pool.init();
+
+  auto func = [](int a, int b) { return a + b; };
+  auto result1 = pool.commit(std::bind(func, 1, 2));
+  std::cout << result1.get() << std::endl;
+
+  int i = 0;
+  int j = 0;
+  auto result2 = pool.commit([i, j] { return i + j; });
+  std::cout << result2.get() << std::endl;
+
+  pool.destroy();
+
   int count = 1;
   for (int i = 0; i < count; i++) {
     ret = serialGraph(base::kParallelTypeSequential,
@@ -289,12 +303,12 @@ int main(int argc, char *argv[]) {
     if (ret != 0) {
       return ret;
     }
-    ret = serialGraph(base::kParallelTypeSequential,
-                      base::kParallelTypeSequential,
-                      base::kParallelTypeSequential, 1000);
-    if (ret != 0) {
-      return ret;
-    }
+    // ret = serialGraph(base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential,
+    //                   base::kParallelTypeSequential, 1);
+    // if (ret != 0) {
+    //   return ret;
+    // }
     // ret = parallelGraph(base::kParallelTypeSequential,
     //                     base::kParallelTypeSequential,
     //                     base::kParallelTypeSequential);
@@ -314,15 +328,15 @@ int main(int argc, char *argv[]) {
     //  }
     //  // parallel pipepline graph
     ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
-                      base::kParallelTypePipeline, 1000);
+                      base::kParallelTypePipeline, 100);
     if (ret != 0) {
       return ret;
     }
-    //  ret = parallelGraph(base::kParallelTypeNone, base::kParallelTypeNone,
-    //                      base::kParallelTypePipeline);
-    //  if (ret != 0) {
-    //    return ret;
-    //  }
+    ret = parallelGraph(base::kParallelTypeNone, base::kParallelTypeNone,
+                        base::kParallelTypePipeline, 100);
+    if (ret != 0) {
+      return ret;
+    }
     //  // parallel pipepline graph / sugraph sequential
     //  ret =
     //      serialGraph(base::kParallelTypeSequential,
