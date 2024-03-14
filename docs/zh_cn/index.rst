@@ -43,6 +43,12 @@
 
 .. toctree::
    :maxdepth: 1
+   :caption: 版本发行
+
+   version_record/v1_0_0_0.md
+
+.. toctree::
+   :maxdepth: 1
    :caption: 常见问题
    
    faq/faq.md
