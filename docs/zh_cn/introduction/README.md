@@ -42,6 +42,7 @@
 | [YOLOV5](https://github.com/ultralytics/yolov5) | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
 | [YOLOV6](https://github.com/meituan/YOLOv6)     | TensorRt/OpenVINO/ONNXRuntime     | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
 | [YOLOV8](https://github.com/ultralytics)        | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
+| [SAM](https://github.com/facebookresearch/segment-anything)        | ONNXRuntime| [youxiudeshouyeren](https://github.com/youxiudeshouyeren)、[Always](https://github.com/Alwaysssssss) |         |
 
 
 ### 3. 简单易用
