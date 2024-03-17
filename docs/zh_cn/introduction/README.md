@@ -37,12 +37,12 @@
 
 目前已完成 [YOLOV5](https://github.com/ultralytics/yolov5)、[YOLOV6](https://github.com/meituan/YOLOv6)、[YOLOV8](https://github.com/ultralytics) 等模型的部署，可供您直接使用，后续我们持续不断去部署其它开源模型，让您开箱即用
 
-| model                                           | Inference                         | developer                                                                            | remarks |
-| :---------------------------------------------- | :-------------------------------- | :----------------------------------------------------------------------------------- | :-----: |
-| [YOLOV5](https://github.com/ultralytics/yolov5) | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
-| [YOLOV6](https://github.com/meituan/YOLOv6)     | TensorRt/OpenVINO/ONNXRuntime     | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
-| [YOLOV8](https://github.com/ultralytics)        | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss) |         |
-| [SAM](https://github.com/facebookresearch/segment-anything)        | ONNXRuntime| [youxiudeshouyeren](https://github.com/youxiudeshouyeren)、[Always](https://github.com/Alwaysssssss) |         |
+| model                                                       | Inference                         | developer                                                                                            | remarks |
+| :---------------------------------------------------------- | :-------------------------------- | :--------------------------------------------------------------------------------------------------- | :-----: |
+| [YOLOV5](https://github.com/ultralytics/yolov5)             | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss)                 |         |
+| [YOLOV6](https://github.com/meituan/YOLOv6)                 | TensorRt/OpenVINO/ONNXRuntime     | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss)                 |         |
+| [YOLOV8](https://github.com/ultralytics)                    | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss)                 |         |
+| [SAM](https://github.com/facebookresearch/segment-anything) | ONNXRuntime                       | [youxiudeshouyeren](https://github.com/youxiudeshouyeren)、[Always](https://github.com/Alwaysssssss) |         |
 
 
 ### 3. 简单易用
@@ -83,7 +83,19 @@
   - 完善已接入的推理框架coreml
   - 完善已接入的推理框架paddle-lite
   - 接入新的推理框架TFLite
+- 设备管理模块
+  - 新增OpenCL的设备管理模块
+  - 新增ROCM的设备管理模块
+- 内存优化
+  - 针对nndeploy的内部的数据容器Buffer、Mat、Tensor，建立异构设备的内存池，实现高性能的内存分配与释放
+  - 基于模型部署的有向无环图，在串行执行的模式下，支持多节点共享内存机制
+  - 基于模型部署的有向无环图，在流水线并行执行的模式下，支持边的环形队列共享内存机制
+- 高性能op
+  - 对opencv高性能算子的补充
+  - 对推理框架缺失算子的补充
 - 分布式
+  - 在多模型共同完成一个任务的场景里，将多个模型调度到多个机器上分布式执行
+  - 在大模型的场景下，通过切割大模型为多个子模型的方式，将多个子模型调度到多个机器上分布式执行
 
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
@@ -98,5 +110,5 @@
 
 
 ## 加入我们
-- `nndeploy`还处于初级阶段，欢迎参与，我们一起打造最简单易用、高性能的模型端到端部署框架
+- nndeploy是由一群志同道合、素未谋面的网友共同开发以及维护，我们不定时讨论技术，分享行业见解。当前nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们，收获成就，打磨技术，通过草根的力量，一起共同打造最简单易用、最高性能的模型端到端部署框架。
 - 微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy+姓名)

@@ -74,16 +74,29 @@ The current supported inference framework is as follows:
 
 
 ## Roadmap
+
 - Deploy more algorithms
   - [BEV](https://github.com/fundamentalvision/BEVFormer)
   - [InstantID](https://github.com/InstantID/InstantID)
   - [OCR](https://github.com/PaddlePaddle/PaddleOCR)
   - ......
-- inference frameworks
+- Inference frameworks
   - Enhance already integrated coreml
   - Enhance already integrated paddle-lite
   - integrate new inference framework TFLite
-- distributed
+- Device manager
+  - OpenCL Device
+  - ROCM Device
+- Memory optimization
+  - Establish memory pools for internal data containers Buffer, Mat, and Tensor in nndeploy, targeting heterogeneous devices, to achieve high-performance memory allocation and deallocation.
+  - Based on the directed acyclic graph of model deployment, with sequential execution mode, support multi-node shared memory mechanism.
+  - Based on the directed acyclic graph of model deployment, in the pipelined parallel execution mode, support the edge's circular queue shared memory mechanism.
+- Hpc op
+  - Supplement on high-performance operators in OpenCV
+  - Supplementing missing operators in the inference framework
+- Distributed
+  - In scenarios where multiple models collaborate to accomplish a task, distribute the execution of multiple models across multiple machines.
+  - In scenarios involving large models, distribute the execution of multiple sub-models across multiple machines by partitioning the large model into multiple smaller sub-models.
 
 
 # Reference
@@ -100,6 +113,6 @@ The current supported inference framework is as follows:
 
 ## Contact Us
 - nndeploy is still in its infancy, welcome to join us.
-- Wechat：titian5566
-  
+- Wechat：titian5566(mention: nndeploy+name) 
+
   <img align="left" src="docs/image/wechat.jpg" width="225px">
