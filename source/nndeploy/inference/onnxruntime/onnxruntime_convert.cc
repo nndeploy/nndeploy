@@ -186,6 +186,7 @@ base::Status OnnxRuntimeConvert::convertFromInferenceParam(
   if (src.execution_mode_ >= 0) {
     dst.SetExecutionMode(ExecutionMode(src.execution_mode_));
   }
+  // dst.DisableCpuMemArena();
 
   if (src.device_type_ == base::kDeviceTypeCodeCuda) {
     auto all_providers = Ort::GetAvailableProviders();

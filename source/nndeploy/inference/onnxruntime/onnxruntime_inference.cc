@@ -116,6 +116,10 @@ base::Status OnnxRuntimeInference::init() {
 
 base::Status OnnxRuntimeInference::deinit() {
   base::Status status = base::kStatusCodeOk;
+  for (int i = 0; i < internal_outputs_.size(); ++i) {
+    internal_outputs_[i].release();
+  }
+  internal_outputs_.clear();
   for (auto iter : input_tensors_) {
     delete iter.second;
   }
@@ -204,7 +208,8 @@ base::Status OnnxRuntimeInference::run() {
       internal_outputs_[i].release();
     }
     internal_outputs_.clear();
-    internal_outputs_ = std::move(binding_->GetOutputValues());
+    // internal_outputs_ = std::move(binding_->GetOutputValues());
+    internal_outputs_ = binding_->GetOutputValues();
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());
     status = base::kStatusCodeErrorInferenceOnnxRuntime;

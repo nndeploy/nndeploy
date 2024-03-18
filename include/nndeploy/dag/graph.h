@@ -18,7 +18,6 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
 
-
 /**
  * @brief 有向无环图
  */
@@ -34,7 +33,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   Graph(const std::string &name, Edge *input, Edge *output);
   Graph(const std::string &name, std::initializer_list<Edge *> inputs,
         std::initializer_list<Edge *> outputs);
-  ~Graph();
+  virtual ~Graph();
 
   /**
    * @brief 在Graph中创建一条Edge

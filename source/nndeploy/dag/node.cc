@@ -22,6 +22,7 @@ Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
   constructed_ = true;
 }
 Node::~Node() {
+  // NNDEPLOY_LOGE("Node::~Node() name:%s.\n", name_.c_str());
   inputs_.clear();
   outputs_.clear();
   constructed_ = false;
