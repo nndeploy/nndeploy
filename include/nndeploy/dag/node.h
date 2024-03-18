@@ -59,6 +59,9 @@ class NNDEPLOY_CC_API Node {
   void setTimeProfileFlag(bool flag);
   bool getTimeProfileFlag();
 
+  void setDebugFlag(bool flag);
+  bool getDebugFlag();
+
   void setRunningFlag(bool flag);
   bool isRunning();
 
@@ -86,6 +89,7 @@ class NNDEPLOY_CC_API Node {
   bool initialized_ = false;
   bool is_running_ = false;
   bool is_time_profile_ = false;
+  bool is_debug_ = false;
 };
 
 using SingleIONodeFunc =

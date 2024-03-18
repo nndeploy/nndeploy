@@ -80,6 +80,9 @@ bool Node::getInitialized() { return initialized_; }
 void Node::setTimeProfileFlag(bool flag) { is_time_profile_ = flag; }
 bool Node::getTimeProfileFlag() { return is_time_profile_; }
 
+void Node::setDebugFlag(bool flag) { is_debug_ = flag; }
+bool Node::getDebugFlag() { return is_debug_; }
+
 void Node::setRunningFlag(bool flag) {
   is_running_ = flag;
   if (is_time_profile_) {
@@ -87,6 +90,13 @@ void Node::setRunningFlag(bool flag) {
       NNDEPLOY_TIME_POINT_START(name_ + " run()");
     } else {
       NNDEPLOY_TIME_POINT_END(name_ + " run()");
+    }
+  }
+  if (is_debug_) {
+    if (is_running_) {
+      NNDEPLOY_LOGE("%s start.\n", name_.c_str());
+    } else {
+      NNDEPLOY_LOGE("%s end.\n", name_.c_str());
     }
   }
 }

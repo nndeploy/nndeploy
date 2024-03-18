@@ -23,7 +23,8 @@ base::Status OpenCvImageDecodeNode::run() {
   cv::Mat *mat = new cv::Mat(cv::imread(path_));
   width_ = mat->cols;
   height_ = mat->rows;
-  outputs_[0]->set(mat, 0, false);
+  outputs_[0]->set(mat, index_, false);
+  index_++;
   return base::kStatusCodeOk;
 }
 
