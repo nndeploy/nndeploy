@@ -10,7 +10,7 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
 
 ## 编译宏介绍
 
-参考[path/cmake/config.cmake](../../../cmake/config.cmake) 详细介绍，该文件详细介绍了所有编译宏含义以及用法。
+参考[complie_option.md](complie_option.md) 详细介绍，该文件详细介绍了所有编译宏含义以及用法。
 
 
 ## config.cmake的编辑规则
