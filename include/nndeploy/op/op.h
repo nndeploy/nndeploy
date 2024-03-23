@@ -7,6 +7,7 @@
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
+#include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
@@ -16,17 +17,21 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/op/type.h"
 
 namespace nndeploy {
 namespace op {
 
 class NNDEPLOY_CC_API NNOp {
  public:
-  NNOp(const std::string &name, NNOpType op_type, base::DeviceType device_type);
+  NNOp(const std::string &name, std::vector<std::string> &model_key,
+       NNOpType op_type, base::DeviceType device_type);
 
   virtual ~NNOp();
 
-  virtual base::Status construct(std::vector<std::string> &model_value) = 0;
+  // 这个接口不好，输入是模型的权重参数，用std::string表示，不够直观且不好查找权重参数
+  virtual base::Status construct(std::vector<std::string> &model_value,
+                                 std::vector<std::string> &model_key) = 0;
 
   std::string getName();
 
@@ -60,12 +65,17 @@ class NNDEPLOY_CC_API NNOp {
 
   virtual base::Status reshape(std::vector<device::Tensor *> inputs) = 0;
 
+  virtual base::Status preRun() = 0;
   virtual base::Status run() = 0;
+  virtual base::Status afterRun() = 0;
 
  protected:
   std::string name_;
+  NNOpType op_type_;
   base::DeviceType device_type_;
+
   std::shared_ptr<base::Param> param_;
+
   std::vector<device::Tensor *> inputs_;
   std::vector<device::Tensor *> outputs_;
 
