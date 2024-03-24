@@ -9,55 +9,64 @@ namespace forward {
 
 class NNDEPLOY_CC_API NNForwad : public op::NNOp {
  public:
-  NNForwad(const std::string &name, op::NNOpType op_type,
-           base::DeviceType device_type);
+  NNForwad(const std::string &name, NNOpType op_type,
+           base::DeviceType device_type, interpreter::Interpreter *interpreter,
+           std::vector<std::string> &weight_key,
+           std::vector<device::Tensor *> inputs,
+           std::vector<device::Tensor *> outputs);
 
   virtual ~NNForwad();
 
-  virtual base::Status construct(std::vector<std::string> &model_value);
+  device::Tensor *createTensor(const std::string &name);
 
-  virtual base::Status init(std::vector<device::Tensor *> inputs,
-                            std::vector<device::Tensor *> outputs);
+  TensorWrapper *addTensor(device::Tensor *tensor);
+
+  op::NNOp *createOp(const std::string &name, NNOpType op_type,
+                     base::DeviceType device_type,
+                     interpreter::Interpreter *interpreter,
+                     std::vector<std::string> &weight_key,
+                     std::vector<device::Tensor *> inputs,
+                     std::vector<device::Tensor *> outputs);
+
+  NNOpWrapper *addOp(op::NNOp *op);
+
+  virtual base::Status init();
 
   virtual base::Status deinit();
 
   virtual base::Status run();
 
-  virtual base::Status backward() = 0;
-
-  virtual base::Status update() = 0;
-
-  virtual base::Status setParam(base::Param *param) = 0;
-
-  virtual base::Param *getParam() = 0;
-
-  virtual base::Status setParallelType(
-      const base::ParallelType &paralle_type) = 0;
-
-  virtual base::ParallelType getParallelType() = 0;
-
-  virtual void setInnerFlag(bool flag) = 0;
-
-  virtual void setInitializedFlag(bool flag) = 0;
-
-  virtual bool getInitialized() = 0;
-
-  virtual void setTimeProfileFlag(bool flag) = 0;
-
-  virtual bool getTimeProfileFlag() = 0;
-
-  virtual void setDebugFlag(bool flag) = 0;
-
-  virtual bool getDebugFlag() = 0;
-
-  virtual void setRunningFlag(bool flag) = 0;
-
-  virtual bool isRunning() = 0;
-
  protected:
-  std::vector<device::Tensor *> inputs_;
-  std::vector<device::Tensor *> outputs_;
+  std::vector<TensorWrapper *> tensor_repository_;
+  std::vector<NNOpWrapper *> nnop_repository_;
 };
+
+NNForwad *createNNForward(const std::string &name, NNOpType op_type,
+                          base::DeviceType device_type,
+                          interpreter::Interpreter *interpreter,
+                          std::vector<std::string> &weight_key,
+                          std::vector<device::Tensor *> inputs,
+                          std::vector<device::Tensor *> outputs) {
+  NNForwad *llama = NNForwad(name, op_type, device_type, interpreter,
+                             weight_key, inputs, outputs);
+
+  device::Tensor *attention_0_output =
+      llama->createTensor("attention_0_output");
+  device::Tensor *attention_0_op =
+      llama->createOp("attention_0_op", kNNOpTypeAttention, device_type,
+                      interpreter, weight_key, inputs, attention_0_output);
+
+  llama->init();
+
+  return llama;
+}
+
+base::Status deleteNNForward(NNForwad *forward) {
+  base::Status status = forward->deinit();
+  delete forward;
+
+  return status;
+}
 
 }  // namespace forward
 }  // namespace nndeploy

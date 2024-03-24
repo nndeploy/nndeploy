@@ -24,14 +24,20 @@ namespace op {
 
 class NNDEPLOY_CC_API NNOp {
  public:
-  NNOp(const std::string &name, std::vector<std::string> &model_key,
-       NNOpType op_type, base::DeviceType device_type);
+  /**
+   * @brief Construct a new NNOp object
+   *
+   * @param name - op name
+   * @param op_type - op type
+   * @param device_type - device type
+   */
+  NNOp(const std::string &name, NNOpType op_type, base::DeviceType device_type,
+       interpreter::Interpreter *interpreter,
+       std::vector<std::string> &weight_key,
+       std::vector<device::Tensor *> inputs,
+       std::vector<device::Tensor *> outputs);
 
   virtual ~NNOp();
-
-  // 这个接口不好，输入是模型的权重参数，用std::string表示，不够直观且不好查找权重参数
-  virtual base::Status construct(std::vector<std::string> &model_value,
-                                 std::vector<std::string> &model_key) = 0;
 
   std::string getName();
 
@@ -59,15 +65,12 @@ class NNDEPLOY_CC_API NNOp {
   void setRunningFlag(bool flag);
   bool isRunning();
 
-  virtual base::Status init(std::vector<device::Tensor *> inputs,
-                            std::vector<device::Tensor *> outputs) = 0;
+  virtual base::Status init() = 0;
   virtual base::Status deinit() = 0;
 
   virtual base::Status reshape(std::vector<device::Tensor *> inputs) = 0;
 
-  virtual base::Status preRun() = 0;
   virtual base::Status run() = 0;
-  virtual base::Status afterRun() = 0;
 
  protected:
   std::string name_;
@@ -75,6 +78,9 @@ class NNDEPLOY_CC_API NNOp {
   base::DeviceType device_type_;
 
   std::shared_ptr<base::Param> param_;
+
+  interpreter::Interpreter *interpreter_;
+  std::vector<std::string> weight_key_;
 
   std::vector<device::Tensor *> inputs_;
   std::vector<device::Tensor *> outputs_;

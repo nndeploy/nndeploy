@@ -19,6 +19,8 @@ namespace op {
 enum NNOpType : int {
   kNNOpTypeForward = 0x0000,
 
+  kNNOpTypeAttention,
+
   kNNOpTypeMatMul,
   kNNOpTypeGemv,
 
