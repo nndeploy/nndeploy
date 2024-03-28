@@ -74,7 +74,7 @@ git clone --recursive https://github.com/DeployAI/nndeploy.git
 
 + 环境要求
   + cmake >= 3.12
-  + gcc >= 4.9
+  + gcc >= 5.1
 
 + nndeploy提供的第三方库
 
