@@ -51,17 +51,14 @@ class NNDEPLOY_CC_API Buffer : public base::NonCopyable {
   inline int subRef() { return NNDEPLOY_XADD(&ref_count_, -1); }
 
  private:
-  Device *device_ = nullptr;
-  BufferPool *buffer_pool_ = nullptr;
-  BufferDesc desc_;
-  void *data_ptr_ = nullptr;
-  int data_id_ = -1;
+  Device *device_ = nullptr;           // 内存对应的具体设备
+  BufferPool *buffer_pool_ = nullptr;  // 内存来自内存池
+  BufferDesc desc_;                    // BufferDesc
+  void *data_ptr_ = nullptr;           // 设备数据可以用指针表示
+  int data_id_ = -1;  // 设备数据需要用id表示，例如OpenGL设备
+  // 内存类型，例如外部传入、内部分配、内存映射
   BufferSourceType buffer_source_type_ = kBufferSourceTypeNone;
-  /**
-   * @brief buffer引用计数
-   *
-   */
-  int ref_count_ = 0;
+  int ref_count_ = 0;  // buffer引用计数
 };
 
 NNDEPLOY_CC_API void destoryBuffer(Buffer *buffer);

@@ -28,7 +28,13 @@ namespace inference {
  * # 得到输出tensor数据
  * # 其他
  * ## 获取输入输出tensor的信息
- * ## 获取推理初始化后的各种信息：例如内存大小，gflops等
+ * ### 动态输入
+ * ### 动态输出
+ * ### 是否可以操作推理框架分配的输入
+ * ### 是否可以操作推理框架分配的输出
+ * ## 获取推理初始化后的各种信息
+ * ### 例如内存大小
+ * ### gflops等
  *
  */
 class NNDEPLOY_CC_API Inference {
@@ -378,8 +384,8 @@ class TypeInferenceCreator : public InferenceCreator {
  *
  * @return std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板

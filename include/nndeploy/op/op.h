@@ -22,22 +22,21 @@
 namespace nndeploy {
 namespace op {
 
-class NNDEPLOY_CC_API NNOp {
+class NNDEPLOY_CC_API Op {
  public:
   /**
-   * @brief Construct a new NNOp object
+   * @brief Construct a new Op object
    *
    * @param name - op name
    * @param op_type - op type
    * @param device_type - device type
    */
-  NNOp(const std::string &name, NNOpType op_type, base::DeviceType device_type,
-       interpreter::Interpreter *interpreter,
-       std::vector<std::string> &weight_key,
-       std::vector<device::Tensor *> inputs,
-       std::vector<device::Tensor *> outputs);
+  Op(const std::string &name, OpType op_type, base::DeviceType device_type,
+     interpreter::Interpreter *interpreter,
+     std::vector<std::string> &weight_key, std::vector<device::Tensor *> inputs,
+     std::vector<device::Tensor *> outputs);
 
-  virtual ~NNOp();
+  virtual ~Op();
 
   std::string getName();
 
@@ -74,7 +73,7 @@ class NNDEPLOY_CC_API NNOp {
 
  protected:
   std::string name_;
-  NNOpType op_type_;
+  OpType op_type_;
   base::DeviceType device_type_;
 
   std::shared_ptr<base::Param> param_;

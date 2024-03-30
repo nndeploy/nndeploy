@@ -7,9 +7,9 @@
 namespace nndeploy {
 namespace forward {
 
-class NNDEPLOY_CC_API NNForwad : public op::NNOp {
+class NNDEPLOY_CC_API NNForwad : public op::Op {
  public:
-  NNForwad(const std::string &name, NNOpType op_type,
+  NNForwad(const std::string &name, OpType op_type,
            base::DeviceType device_type, interpreter::Interpreter *interpreter,
            std::vector<std::string> &weight_key,
            std::vector<device::Tensor *> inputs,
@@ -21,14 +21,14 @@ class NNDEPLOY_CC_API NNForwad : public op::NNOp {
 
   TensorWrapper *addTensor(device::Tensor *tensor);
 
-  op::NNOp *createOp(const std::string &name, NNOpType op_type,
-                     base::DeviceType device_type,
-                     interpreter::Interpreter *interpreter,
-                     std::vector<std::string> &weight_key,
-                     std::vector<device::Tensor *> inputs,
-                     std::vector<device::Tensor *> outputs);
+  op::Op *createOp(const std::string &name, OpType op_type,
+                   base::DeviceType device_type,
+                   interpreter::Interpreter *interpreter,
+                   std::vector<std::string> &weight_key,
+                   std::vector<device::Tensor *> inputs,
+                   std::vector<device::Tensor *> outputs);
 
-  NNOpWrapper *addOp(op::NNOp *op);
+  NNOpWrapper *addOp(op::Op *op);
 
   virtual base::Status init();
 
@@ -37,28 +37,28 @@ class NNDEPLOY_CC_API NNForwad : public op::NNOp {
   virtual base::Status run();
 
  protected:
+  bool auto_construct_forward_flag_ = false;
   std::vector<TensorWrapper *> tensor_repository_;
   std::vector<NNOpWrapper *> nnop_repository_;
 };
 
-NNForwad *createNNForward(const std::string &name, NNOpType op_type,
+NNForwad *createNNForward(const std::string &name, OpType op_type,
                           base::DeviceType device_type,
                           interpreter::Interpreter *interpreter,
                           std::vector<std::string> &weight_key,
                           std::vector<device::Tensor *> inputs,
                           std::vector<device::Tensor *> outputs) {
-  NNForwad *llama = NNForwad(name, op_type, device_type, interpreter,
-                             weight_key, inputs, outputs);
+  NNForwad *stable_diffusion = NNForwad(name, op_type, device_type, interpreter,
+                                        weight_key, inputs, outputs);
 
-  device::Tensor *attention_0_output =
-      llama->createTensor("attention_0_output");
-  device::Tensor *attention_0_op =
-      llama->createOp("attention_0_op", kNNOpTypeAttention, device_type,
-                      interpreter, weight_key, inputs, attention_0_output);
+  device::Tensor *op_0_output = llama->createTensor("op_0_output");
+  op::Op *op_0 = stable_diffusion->createOp(
+      "op_0", kNNOpTypeAttention, device_type, interpreter, {"op_0_weight"},
+      inputs, attention_0_output);
 
-  llama->init();
+  stable_diffusion->init();
 
-  return llama;
+  return stable_diffusion;
 }
 
 base::Status deleteNNForward(NNForwad *forward) {

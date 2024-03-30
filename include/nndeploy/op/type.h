@@ -16,7 +16,7 @@ namespace nndeploy {
 namespace op {
 
 // GEMMA的算子集合
-enum NNOpType : int {
+enum OpType : int {
   kNNOpTypeForward = 0x0000,
 
   kNNOpTypeAttention,

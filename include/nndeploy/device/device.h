@@ -100,7 +100,7 @@ struct NNDEPLOY_CC_API BufferDesc {
   /**
    * @brief
    * 1d size
-   * 2d h w c
+   * 2d h w c - 例如OpenCL cl::Image2d
    * 3d unknown
    */
   base::SizeVector size_;
@@ -154,8 +154,8 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
   base::DeviceTypeCode device_type_code_;
 };
 
-std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>
-    &getArchitectureMap();
+std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>> &
+getArchitectureMap();
 
 template <typename T>
 class TypeArchitectureRegister {

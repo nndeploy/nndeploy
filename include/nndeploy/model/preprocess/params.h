@@ -21,7 +21,7 @@ namespace nndeploy {
 namespace model {
 
 /**
- * @brief 基本的预处理
+ * @brief 前处理通常由如下算子组合排列
  * cvtcolor
  * resize
  * padding
