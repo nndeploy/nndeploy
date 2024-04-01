@@ -1,25 +1,5 @@
 # 架构
 
-## 介绍
-
-`nndeploy` 是一款最新上线的支持多平台、高性能、简单易用的机器学习部署框架。做到一个框架就可完成多端(云、边、端)模型的高性能部署。
-
-作为一个多平台模型部署工具，我们的框架最大的宗旨就是高性能以及使用简单贴心😚，目前 `nndeploy` 已完成 [TensorRT](https://github.com/NVIDIA/TensorRT)、[OpenVINO](https://github.com/openvinotoolkit/openvino) 、[ONNXRuntime](https://github.com/microsoft/onnxruntime)、[MNN](https://github.com/alibaba/MNN)、[TNN](https://github.com/Tencent/TNN)、[ncnn](https://github.com/Tencent/ncnn/) 、[coreML](https://github.com/apple/coremltools)、[paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite)八个业界知名的推理框架的集成，后续会继续接入 `TFLite`、`TVM`、`OpenPPL`、`Tengine`、`AITemplate`、`RKNN`、`sophgo`、`MindSpore-lite`、`Horizen`，在我们的框架下可使用一套代码轻松切换不同的推理后端进行推理，且不用担心部署框架对推理框架的抽象而带来的性能损失。
-
-如果您需要部署自己的模型，目前 `nndeploy` 只需大概只要 `200` 行代码就可以完成模型在多端的部署。 同时还提供了高性能的前后处理模板和推理模板，该模板可帮助您简化模型端到端的部署流程。
-
-目前 `nndeploy` 已完成 `YOLO` 系列等多个开源模型的部署，可供直接使用，目前我们还在积极部署其它开源模型。（如果您或团队有需要部署的开源模型或者其他部署相关的问题，非常欢迎随时来和我们探讨 😁）
-
-## 模型部署的痛点
-
-+ 现在业界尚不存在各方面都远超其同类产品的推理框架，不同推理框架在不同平台、硬件下分别具有各自的优势。例如，在 `Linux` + `NVidia` 显卡机器推理，`TensorRT` 是性能最好的推理框架；在 `Windows` + `x86 CPU` 机器推理，`OpenVINO` 是性能最好的推理框架；在 `ARM Android` 下，有 `ncnn`、`MNN`、`TFLite`、`TNN`等一系列选择。
-
-+ 不同的推理框架有不一样的推理接口、推理配置等 API，针对不同推理框架都需要写一套代码，这对模型部署工程师而言，将带来较大学习成本、开发成本、维护成本
-  
-+ 模型部署不仅仅只有模型推理，还有前处理、后处理，推理框架往往只提供模型推理的功能
-  
-+ 目前很多场景是需要由多个模型组合解决该业务问题（例如stable diffusion、老照片修复、人脸识别等等），直接采用推理框架的原生接口，会有大量且低效的业务代码编写
-
 ## 架构简介
 
 ![Architecture](../../image/architecture.jpg)

@@ -63,4 +63,5 @@
    :maxdepth: 1
    :caption: 知识分享
 
+   knowledge_shared/nndeploy-一款开源的模型端到端部署框架.md
    knowledge_shared/export_onnx.md
