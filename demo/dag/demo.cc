@@ -121,10 +121,12 @@ dag::Graph *createGraphMISO(const std::string &name,
     i++;
     preprocess_out.emplace_back(out);
   }
+  std::initializer_list<dag::Edge *> preprocess_out_param(
+      &preprocess_out.front(), &preprocess_out.front() + preprocess_out.size());
   dag::Edge *tmp;
   dag::Edge *infer_out = graph->createEdge(name + "_infer_out");
   dag::Node *preprocess = graph->createNode<MIMOProcessNode>(
-      name + "_preprocess", inputs, {preprocess_out[0], preprocess_out[1]});
+      name + "_preprocess", inputs, preprocess_out_param);
   dag::Node *infer = graph->createNode<MIMOProcessNode>(
       name + "_infer", {preprocess_out[0], preprocess_out[1]}, {infer_out});
   dag::Node *postprocess =

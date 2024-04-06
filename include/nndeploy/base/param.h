@@ -38,23 +38,14 @@ class NNDEPLOY_CC_API Param {
   Param();
   virtual ~Param();
 
-  Param(const Param &param);
-  Param &operator=(const Param &param);
-
   PARAM_COPY(Param)
   PARAM_COPY_TO(Param)
-
-  void setName(const std::string &name);
-  std::string getName();
 
   virtual base::Status parse(const std::string &json, bool is_path = true);
 
   virtual base::Status set(const std::string &key, base::Value &value);
 
   virtual base::Status get(const std::string &key, base::Value &value);
-
- public:
-  std::string name_;
 };
 
 }  // namespace base
