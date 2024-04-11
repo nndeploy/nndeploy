@@ -1,4 +1,4 @@
-# nndeploy - 从需求分析到架构设计
+# nndeploy - 一款开源的模型端到端部署框架
 
 本文首发于GiantPandaCV，欢迎转载。
 
