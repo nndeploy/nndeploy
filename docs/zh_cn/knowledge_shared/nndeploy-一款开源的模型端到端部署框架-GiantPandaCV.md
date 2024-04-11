@@ -193,7 +193,7 @@ nndeploy提供了统一的Tensor以及推理所需的超参数数据结构，每
 
 这是一个非常典型的有向无环图，**模型前处理->模型推理->模型推理**构成**NNDEPLOY_YOLOV8** DAG(可供外部调用的库)，该DAG与编解码节点以及画框节点又可以共同构成一个新的DAG(可执行程序的demo)
 
-![yolov8_dag](https://img-blog.csdnimg.cn/direct/08fd89e469674b83a12faefe6adda923.jpeg)
+![yolov8_dag](https://img-blog.csdnimg.cn/direct/4abffdc1eb2244c1941028e8fab84c3a.jpeg)
 
 注：对于已部署好的模型，需要编写demo展示效果，而demo需要处理多种格式的输入，例如**图片输入输出、文件夹中多张图片的输入输出、视频的输入输出**等，通过将上述编解码节点化，可以更通用以及更高效的完成demo的编写，达到快速展示效果的目的。
 
