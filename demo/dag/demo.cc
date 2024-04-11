@@ -2,10 +2,10 @@
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/shape.h"
 #include "nndeploy/base/time_profiler.h"
+#include "nndeploy/dag/condition.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/loop.h"
-#include "nndeploy/dag/condition.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/model/detect/yolo/yolo.h"
@@ -113,25 +113,27 @@ dag::Graph *createGraphMISO(const std::string &name,
                             dag::Edge *output, base::ParallelType pt) {
   dag::Graph *graph = new dag::Graph(name, inputs, {output});
 
-  std::vector<dag::Edge *> preprocess_out;
-  int i = 0;
-  for (auto input : inputs) {
-    dag::Edge *out =
-        graph->createEdge(name + "_preprocess_out_" + std::to_string(i));
-    i++;
-    preprocess_out.emplace_back(out);
-  }
-  std::initializer_list<dag::Edge *> preprocess_out_param(
-      &preprocess_out.front(), &preprocess_out.front() + preprocess_out.size());
-  dag::Edge *tmp;
-  dag::Edge *infer_out = graph->createEdge(name + "_infer_out");
-  dag::Node *preprocess = graph->createNode<MIMOProcessNode>(
-      name + "_preprocess", inputs, preprocess_out_param);
-  dag::Node *infer = graph->createNode<MIMOProcessNode>(
-      name + "_infer", {preprocess_out[0], preprocess_out[1]}, {infer_out});
-  dag::Node *postprocess =
-      graph->createNode<ProcessNode>(name + "_postprocess", infer_out, output);
-  graph->setParallelType(pt);
+  // std::vector<dag::Edge *> preprocess_out;
+  // int i = 0;
+  // for (auto input : inputs) {
+  //   dag::Edge *out =
+  //       graph->createEdge(name + "_preprocess_out_" + std::to_string(i));
+  //   i++;
+  //   preprocess_out.emplace_back(out);
+  // }
+  // std::initializer_list<dag::Edge *> preprocess_out_param(
+  //     &preprocess_out.front(), preprocess_out.front() +
+  //     preprocess_out.size());
+  // dag::Edge *tmp;
+  // dag::Edge *infer_out = graph->createEdge(name + "_infer_out");
+  // dag::Node *preprocess = graph->createNode<MIMOProcessNode>(
+  //     name + "_preprocess", inputs, preprocess_out_param);
+  // dag::Node *infer = graph->createNode<MIMOProcessNode>(
+  //     name + "_infer", {preprocess_out[0], preprocess_out[1]}, {infer_out});
+  // dag::Node *postprocess =
+  //     graph->createNode<ProcessNode>(name + "_postprocess", infer_out,
+  //     output);
+  // graph->setParallelType(pt);
   return graph;
 };
 
@@ -160,7 +162,7 @@ class NNDEPLOY_CC_API DemoCondition : public dag::Condition {
       : dag::Condition(name, input, output){};
   DemoCondition(const std::string &name,
                 std::initializer_list<dag::Edge *> inputs,
-           std::initializer_list<dag::Edge *> outputs)
+                std::initializer_list<dag::Edge *> outputs)
       : dag::Condition(name, inputs, outputs){};
   virtual ~DemoCondition(){};
 
@@ -168,8 +170,8 @@ class NNDEPLOY_CC_API DemoCondition : public dag::Condition {
 };
 
 dag::Graph *createGraphCondition(const std::string &name,
-                            std::initializer_list<dag::Edge *> inputs,
-                            dag::Edge *output, base::ParallelType pt) {
+                                 std::initializer_list<dag::Edge *> inputs,
+                                 dag::Edge *output, base::ParallelType pt) {
   dag::Graph *condition_graph = new DemoCondition(name, inputs, {output});
   return condition_graph;
 }
@@ -410,7 +412,7 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   dag::Graph *super_resolution = createGraph(
       "super_resolution", scratch_repair_out, super_resolution_out, pt_0);
   graph->addNode(super_resolution);
-  //super_resolution_out->markGraphOutput();
+  // super_resolution_out->markGraphOutput();
 
   dag::Edge *face_detection_out = graph->createEdge("face_detection_out");
   dag::Graph *face_detection = createGraph(
@@ -517,8 +519,8 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   }
 
   // 有向无环图graph销毁
-  //delete model_0_graph;
-  //delete model_1_graph;
+  // delete model_0_graph;
+  // delete model_1_graph;
   delete graph;
 
   return 0;
@@ -580,14 +582,14 @@ int main(int argc, char *argv[]) {
     //    return ret;
     //  }
     //  // parallel pipepline graph
-    //ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
+    // ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
     //                  base::kParallelTypePipeline, 100);
-    //if (ret != 0) {
+    // if (ret != 0) {
     //  return ret;
     //}
-    //ret = parallelGraph(base::kParallelTypeNone, base::kParallelTypeNone,
+    // ret = parallelGraph(base::kParallelTypeNone, base::kParallelTypeNone,
     //                    base::kParallelTypePipeline, 100);
-    //if (ret != 0) {
+    // if (ret != 0) {
     //  return ret;
     //}
     //  // parallel pipepline graph / sugraph sequential

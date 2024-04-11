@@ -1,25 +1,35 @@
 
 #include "nndeploy/op/op.h"
 
+#include "nndeploy/op/ir.h"
+
 namespace nndeploy {
 namespace op {
 
-Op::Op(const std::string &name, OpType op_type)
-    : name_(name), op_type_(op_type) {
+Op::Op(base::DeviceType device_type, const std::string &name, OpType op_type)
+    : device_type_(device_type), op_desc_(name, op_type) {
   constructed_ = true;
 }
-Op::Op(const std::string &name, OpType op_type,
-       std::initializer_list<device::Tensor *> inputs,
-       std::initializer_list<device::Tensor *> outputs)
-    : name_(name), op_type_(op_type) {
-  inputs_ = inputs;
-  outputs_ = outputs;
+Op::Op(base::DeviceType device_type, const std::string &name, OpType op_type,
+       std::initializer_list<const std::string &> inputs,
+       std::initializer_list<const std::string &> outputs,
+       std::initializer_list<const std::string &> weights)
+    : device_type_(device_type),
+      op_desc_(name, op_type, inputs, outputs, weights) {
+  constructed_ = true;
+}
+Op::Op(base::DeviceType device_type, const std::string &name, OpType op_type,
+       std::vector<std::string> &inputs, std::vector<std::string> &outputs,
+       std::vector<std::string> &weights)
+    : device_type_(device_type),
+      op_desc_(name, op_type, inputs, outputs, weights) {
   constructed_ = true;
 }
 Op::~Op() {
-  // NNDEPLOY_LOGE("Op::~Op() name:%s.\n", name_.c_str());
   inputs_.clear();
   outputs_.clear();
+  weights_.clear();
+  variables_.clear();
   constructed_ = false;
   initialized_ = false;
   is_running_ = false;
@@ -27,17 +37,42 @@ Op::~Op() {
   is_debug_ = false;
 }
 
-std::string Op::getName() { return name_; }
+std::string Op::getName() { return op_desc_.name_; }
 
 base::Status Op::setParam(base::Param *param) {
-  if (param_ != nullptr) {
-    return param->copyTo(param_.get());
+  if (param != nullptr) {
+    return param->copyTo(op_param_.get());
   }
   return base::kStatusCodeErrorNullParam;
 }
-base::Param *Op::getParam() { return param_.get(); }
+base::Param *Op::getParam() { return op_param_.get(); }
 
 base::DeviceType Op::getDeviceType() { return device_type_; }
+
+base::Status Op::setPrecisionType(base::PrecisionType precision_type) {
+  precision_type_ = precision_type;
+  return base::kStatusCodeOk;
+}
+base::Status Op::getPrecisionType() { return precision_type_; }
+
+std::string Op::getInputName(int index) {
+  if (op_desc_.inputs_.size() > index) {
+    return op_desc_.inputs_[index];
+  }
+  return std::string();
+}
+std::string Op::getOutputName(int index) {
+  if (op_desc_.outputs_.size() > index) {
+    return op_desc_.outputs_[index];
+  }
+  return std::string();
+}
+std::string Op::getWeightName(int index) {
+  if (op_desc_.weights_.size() > index) {
+    return op_desc_.weights_[index];
+  }
+  return std::string();
+}
 
 device::Tensor *Op::getInput(int index) {
   if (inputs_.size() > index) {
@@ -51,9 +86,60 @@ device::Tensor *Op::getOutput(int index) {
   }
   return nullptr;
 }
+device::Tensor *Op::getWeight(int index) {
+  if (weights_.size() > index) {
+    return weights_[index];
+  }
+  return nullptr;
+}
+base::Status Op::setInput(device::Tensor *input, int index) {
+  if (input != nullptr) {
+    if (inputs_.size() > index) {
+      inputs_[index] = input;
+      return base::kStatusCodeOk;
+    }
+  }
+  return base::kStatusCodeErrorInvalidParam;
+}
+base::Status Op::setOutput(device::Tensor *output, int index) {
+  if (output != nullptr) {
+    if (outputs_.size() > index) {
+      outputs_[index] = output;
+      return base::kStatusCodeOk;
+    }
+  }
+  return base::kStatusCodeErrorInvalidParam;
+}
+base::Status Op::setWeight(device::Tensor *weight, int index) {
+  if (weight != nullptr) {
+    if (weights_.size() > index) {
+      weights_[index] = weight;
+      return base::kStatusCodeOk;
+    }
+  }
+  return base::kStatusCodeErrorInvalidParam;
+}
+
+std::vector<std::string> Op::getAllInputName() { return op_desc_.inputs_; }
+std::vector<std::string> Op::getAllOutputName() { return op_desc_.outputs_; }
+std::vector<std::string> Op::getAllWeightName() { return op_desc_.weights_; }
 
 std::vector<device::Tensor *> Op::getAllInput() { return inputs_; }
 std::vector<device::Tensor *> Op::getAllOutput() { return outputs_; }
+std::vector<device::Tensor *> Op::getAllWeight() { return weights_; }
+
+base::Status Op::setAllInput(std::vector<device::Tensor *> inputs) {
+  inputs_ = inputs;
+  return base::kStatusCodeOk;
+}
+base::Status Op::setAllOutput(std::vector<device::Tensor *> outputs) {
+  outputs_ = outputs;
+  return base::kStatusCodeOk;
+}
+base::Status Op::setAllWeight(std::vector<device::Tensor *> weights) {
+  weights_ = weights;
+  return base::kStatusCodeOk;
+}
 
 bool Op::getConstructed() { return constructed_; }
 
@@ -80,16 +166,16 @@ void Op::setRunningFlag(bool flag) {
   is_running_ = flag;
   if (is_time_profile_) {
     if (is_running_) {
-      NNDEPLOY_TIME_POINT_START(name_ + " run()");
+      NNDEPLOY_TIME_POINT_START(op_desc_.name_ + " run()");
     } else {
-      NNDEPLOY_TIME_POINT_END(name_ + " run()");
+      NNDEPLOY_TIME_POINT_END(op_desc_.name_ + " run()");
     }
   }
   if (is_debug_) {
     if (is_running_) {
-      NNDEPLOY_LOGE("%s start.\n", name_.c_str());
+      NNDEPLOY_LOGE("%s start.\n", op_desc_.name_.c_str());
     } else {
-      NNDEPLOY_LOGE("%s end.\n", name_.c_str());
+      NNDEPLOY_LOGE("%s end.\n", op_desc_.name_.c_str());
     }
   }
 }
@@ -105,17 +191,50 @@ base::Status Op::reshape(std::vector<device::Tensor *> inputs) {
 base::Status Op::preRun() { return base::kStatusCodeOk; }
 base::Status Op::postRun() { return base::kStatusCodeOk; }
 
-// Op *createOp(std::string name, OpType op_type,
-//              base::DeviceType device_type) {
-//   return new Op(name, op_type, device_type);
-// }
+std::map<base::DeviceType, std::map<OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap() {
+  static std::once_flag once;
+  static std::shared_ptr<
+      std::map<base::DeviceType, std::map<OpType, std::shared_ptr<OpCreator>>>>
+      creators;
+  std::call_once(once, []() {
+    creators.reset(new std::map<base::DeviceType,
+                                std::map<OpType, std::shared_ptr<OpCreator>>>);
+  });
+  return *creators;
+}
 
-// Op *createOp(std::string name, OpType op_type, base::DeviceType
-// device_type,
-//              std::initializer_list<device::Tensor *> inputs,
-//              std::initializer_list<device::Tensor *> outputs) {
-//   return new Op(name, op_type, device_type, inputs, outputs);
-// }
+Op *createOp(base::DeviceType device_type, const std::string &name,
+             OpType op_type, std::initializer_list<const std::string &> inputs,
+             std::initializer_list<const std::string &> outputs,
+             std::initializer_list<const std::string &> weights) {
+  auto &creater_map = getGlobalOpCreatorMap();
+  if (creater_map.count(device_type) > 0) {
+    auto &device_map = creater_map[device_type];
+    if (device_map.count(op_type) > 0) {
+      auto &creator = device_map[op_type];
+      return creator->createOp(device_type, name, op_type, inputs, outputs,
+                               weights);
+    }
+  }
+  return nullptr;
+}
+
+Op *createOp(base::DeviceType device_type, const std::string &name,
+             OpType op_type, std::vector<std::string> &inputs,
+             std::vector<std::string> &outputs,
+             std::vector<std::string> &weights) {
+  auto &creater_map = getGlobalOpCreatorMap();
+  if (creater_map.count(device_type) > 0) {
+    auto &device_map = creater_map[device_type];
+    if (device_map.count(op_type) > 0) {
+      auto &creator = device_map[op_type];
+      return creator->createOp(device_type, name, op_type, inputs, outputs,
+                               weights);
+    }
+  }
+  return nullptr;
+}
 
 }  // namespace op
 }  // namespace nndeploy

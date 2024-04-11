@@ -28,11 +28,15 @@ class NNDEPLOY_CC_API Op {
   Op(base::DeviceType device_type, const std::string &name, OpType op_type,
      std::initializer_list<const std::string &> inputs,
      std::initializer_list<const std::string &> outputs,
-     std::initializer_list<const std::string &> weights = {});
+     std::initializer_list<const std::string &> weights);
+
+  Op(base::DeviceType device_type, const std::string &name, OpType op_type,
+     std::vector<std::string> &inputs, std::vector<std::string> &outputs,
+     std::vector<std::string> &weights);
 
   virtual ~Op();
 
-  const std::string &getName();
+  std::string getName();
 
   virtual base::Status setParam(base::Param *param);
   virtual base::Param *getParam();
@@ -43,25 +47,25 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status setPrecisionType(base::PrecisionType precision_type);
   base::Status getPrecisionType();
 
-  const std::string &getInputName(int index = 0);
-  const std::string &getOutputName(int index = 0);
-  const std::string &getWeightName(int index = 0);
-  Tensor *getInput(int index = 0);
-  Tensor *getOutput(int index = 0);
-  Tensor *getWeight(int index = 0);
-  base::Status setInput(Tensor *input, int index = 0);
-  base::Status setOutput(Tensor *output, int index = 0);
-  base::Status setWeight(Tensor *weight, int index = 0);
+  std::string getInputName(int index = 0);
+  std::string getOutputName(int index = 0);
+  std::string getWeightName(int index = 0);
+  device::Tensor *getInput(int index = 0);
+  device::Tensor *getOutput(int index = 0);
+  device::Tensor *getWeight(int index = 0);
+  base::Status setInput(device::Tensor *input, int index = 0);
+  base::Status setOutput(device::Tensor *output, int index = 0);
+  base::Status setWeight(device::Tensor *weight, int index = 0);
 
-  std::vector<const std::string &> getAllInputName();
-  std::vector<const std::string &> getAllOutputName();
-  std::vector<const std::string &> getAllWeightName();
-  std::vector<Tensor *> getAllInput();
-  std::vector<Tensor *> getAllOutput();
-  std::vector<Tensor *> getAllWeight();
-  base::Status setAllInput(std::vector<Tensor *> inputs);
-  base::Status setAllOutput(std::vector<Tensor *> outputs);
-  base::Status setAllWeight(std::vector<Tensor *> weights);
+  std::vector<std::string> getAllInputName();
+  std::vector<std::string> getAllOutputName();
+  std::vector<std::string> getAllWeightName();
+  std::vector<device::Tensor *> getAllInput();
+  std::vector<device::Tensor *> getAllOutput();
+  std::vector<device::Tensor *> getAllWeight();
+  base::Status setAllInput(std::vector<device::Tensor *> inputs);
+  base::Status setAllOutput(std::vector<device::Tensor *> outputs);
+  base::Status setAllWeight(std::vector<device::Tensor *> weights);
 
   bool getConstructed();
 
@@ -92,7 +96,7 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status postRun();
 
  protected:
-  OpDesc op_desc;
+  OpDesc op_desc_;
   std::shared_ptr<base::Param> op_param_;
 
   base::DeviceType device_type_;
@@ -121,11 +125,16 @@ class NNDEPLOY_CC_API Op {
 class OpCreator {
  public:
   virtual ~OpCreator(){};
-  virtual Op *CreateOp(
-      base::DeviceType device_type, const std::string &name, OpType op_type,
-      std::initializer_list<const std::string &> inputs,
-      std::initializer_list<const std::string &> outputs,
-      std::initializer_list<const std::string &> weights = {}) = 0;
+  virtual Op *createOp(base::DeviceType device_type, const std::string &name,
+                       OpType op_type,
+                       std::initializer_list<const std::string &> inputs,
+                       std::initializer_list<const std::string &> outputs,
+                       std::initializer_list<const std::string &> weights) = 0;
+
+  virtual Op *createOp(base::DeviceType device_type, const std::string &name,
+                       OpType op_type, std::vector<std::string> &inputs,
+                       std::vector<std::string> &outputs,
+                       std::vector<std::string> &weights) = 0;
 };
 
 /**
@@ -135,11 +144,18 @@ class OpCreator {
  */
 template <typename T>
 class TypeOpCreator : public OpCreator {
-  virtual Op *CreateOp(
-      base::DeviceType device_type, const std::string &name, OpType op_type,
-      std::initializer_list<const std::string &> inputs,
-      std::initializer_list<const std::string &> outputs,
-      std::initializer_list<const std::string &> weights = {}) {
+  virtual Op *createOp(base::DeviceType device_type, const std::string &name,
+                       OpType op_type,
+                       std::initializer_list<const std::string &> inputs,
+                       std::initializer_list<const std::string &> outputs,
+                       std::initializer_list<const std::string &> weights) {
+    return new T(device_type, name, op_type, inputs, outputs, weights);
+  }
+
+  virtual Op *createOp(base::DeviceType device_type, const std::string &name,
+                       OpType op_type, std::vector<std::string> &inputs,
+                       std::vector<std::string> &outputs,
+                       std::vector<std::string> &weights) {
     return new T(device_type, name, op_type, inputs, outputs, weights);
   }
 };
@@ -150,8 +166,8 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceType, std::map<OpType, std::shared_ptr<OpCreator>>> &
-getGlobalOpCreatorMap();
+std::map<base::DeviceType, std::map<OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板
@@ -161,7 +177,7 @@ getGlobalOpCreatorMap();
 template <typename T>
 class TypeOpRegister {
  public:
-  explicit TypeOpRegister(base::DeviceType device_type, OpType op_type, ) {
+  explicit TypeOpRegister(base::DeviceType device_type, OpType op_type) {
     getGlobalOpCreatorMap()[device_type][op_type] = std::shared_ptr<T>(new T());
   }
 };
@@ -169,7 +185,12 @@ class TypeOpRegister {
 Op *createOp(base::DeviceType device_type, const std::string &name,
              OpType op_type, std::initializer_list<const std::string &> inputs,
              std::initializer_list<const std::string &> outputs,
-             std::initializer_list<const std::string &> weights = {});
+             std::initializer_list<const std::string &> weights);
+
+Op *createOp(base::DeviceType device_type, const std::string &name,
+             OpType op_type, std::vector<std::string> &inputs,
+             std::vector<std::string> &outputs,
+             std::vector<std::string> &weights);
 
 using SISOOpFunc =
     std::function<base::Status(device::Tensor *input, device::Tensor *output,

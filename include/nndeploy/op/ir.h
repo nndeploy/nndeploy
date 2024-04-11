@@ -41,6 +41,29 @@ enum OpType : int {
 class NNDEPLOY_CC_API OpDesc {
  public:
   OpDesc() {}
+
+  OpDesc(const std::string &name, OpType op_type)
+      : name_(name), op_type_(op_type) {}
+
+  OpDesc(const std::string &name, OpType op_type,
+         std::initializer_list<const std::string &> inputs,
+         std::initializer_list<const std::string &> outputs,
+         std::initializer_list<const std::string &> weights)
+      : name_(name),
+        op_type_(op_type),
+        inputs_(inputs),
+        outputs_(outputs),
+        weights_(weights) {}
+
+  OpDesc(const std::string &name, OpType op_type,
+         std::vector<std::string> &inputs, std::vector<std::string> &outputs,
+         std::vector<std::string> &weights)
+      : name_(name),
+        op_type_(op_type),
+        inputs_(inputs),
+        outputs_(outputs),
+        weights_(weights) {}
+
   virtual ~OpDesc() {}
 
   // 算子名称
@@ -114,7 +137,7 @@ class ModelDesc {
 class OpParamCreator {
  public:
   virtual ~OpParamCreator(){};
-  virtual std::shared_ptr<OpParam> createOpParam(OpType type) = 0;
+  virtual std::shared_ptr<base::Param> createOpParam(OpType type) = 0;
 };
 
 /**
@@ -124,13 +147,13 @@ class OpParamCreator {
  */
 template <typename T>
 class TypeOpParamCreator : public OpParamCreator {
-  virtual std::shared_ptr<OpParam> createOpParam(OpType type) {
+  virtual std::shared_ptr<base::Param> createOpParam(OpType type) {
     return std::make_shared<T>();
   }
 };
 
 /**
- * @brief Get the Global OpParam Creator Map object
+ * @brief Get the Global base::Param Creator Map object
  *
  * @return std::map<OpType, std::shared_ptr<OpParamCreator>>&
  */
@@ -150,7 +173,7 @@ class TypeOpParamRegister {
 };
 
 /**
- * @brief Create a OpParam object
+ * @brief Create a base::Param object
  *
  * @param type
  * @return std::shared_ptr<base::Param>
@@ -160,3 +183,5 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
 
 }  // namespace op
 }  // namespace nndeploy
+
+#endif /* _NNDEPLOY_OP_IR_H_ */

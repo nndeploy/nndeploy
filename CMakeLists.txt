@@ -443,6 +443,7 @@ if(ENABLE_NNDEPLOY_MODEL)
   set(MODEL_SOURCE)
   include(${ROOT_PATH}/source/nndeploy/model/config.cmake)
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${MODEL_SOURCE})
+  message(STATUS "MODEL_SOURCE: ${MODEL_SOURCE}")
 endif()
 # nndeploy
 ## TARGET
