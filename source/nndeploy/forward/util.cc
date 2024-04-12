@@ -24,7 +24,7 @@ TensorWrapper *findTensorWrapper(
   return nullptr;
 }
 TensorWrapper *findTensorWrapper(
-    std::vector<TensorWrapper *> &tensor_repository, Tensor *tensor) {
+    std::vector<TensorWrapper *> &tensor_repository, device::Tensor *tensor) {
   for (auto tensor_wrapper : tensor_repository) {
     if (tensor_wrapper->tensor_ == tensor) {
       return tensor_wrapper;
@@ -109,8 +109,8 @@ base::Status setColor(std::vector<OpWrapper *> &op_repository,
 
 base::Status dumpForward(std::vector<TensorWrapper *> &tensor_repository,
                          std::vector<OpWrapper *> &op_repository,
-                         std::vector<Tensor *> &graph_inputs,
-                         std::vector<Tensor *> &graph_outputs,
+                         std::vector<device::Tensor *> &graph_inputs,
+                         std::vector<device::Tensor *> &graph_outputs,
                          const std::string &name, std::ostream &oss) {
   base::Status status = base::kStatusCodeOk;
   // NNDEPLOY_LOGI("#######################\n");
@@ -152,7 +152,7 @@ base::Status dumpForward(std::vector<TensorWrapper *> &tensor_repository,
       auto inputs = successor->op_->getAllInput();
       // 两op::Op间可能有多条Tensor
       for (auto output : outputs) {
-        Tensor *out_in = nullptr;
+        device::Tensor *out_in = nullptr;
         for (auto input : inputs) {
           if (output == input) {
             out_in = output;
@@ -197,7 +197,7 @@ base::Status dumpForward(std::vector<TensorWrapper *> &tensor_repository,
 std::vector<OpWrapper *> checkUnuseOp(std::vector<OpWrapper *> &op_repository) {
   std::vector<OpWrapper *> unused;
   for (auto op_wrapper : op_repository) {
-    if (op_wrapper->color_ == base::kop::OpColorWhite) {
+    if (op_wrapper->color_ == base::kNodeColorWhite) {
       NNDEPLOY_LOGE("Unuse op found in graph, op::Op name: %s.",
                     op_wrapper->name_.c_str());
       unused.emplace_back(op_wrapper);
@@ -209,7 +209,7 @@ std::vector<TensorWrapper *> checkUnuseTensor(
     std::vector<OpWrapper *> &op_repository,
     std::vector<TensorWrapper *> &tensor_repository) {
   std::vector<TensorWrapper *> unused_tensors;
-  std::vector<OpWrapper *> unused_ops = checkUnuseop::Op(op_repository);
+  std::vector<OpWrapper *> unused_ops = checkUnuseOp(op_repository);
   for (auto iter : unused_ops) {
     for (auto iter_input : iter->op_->getAllInput()) {
       TensorWrapper *input_wrapper =
@@ -243,23 +243,23 @@ std::vector<TensorWrapper *> checkUnuseTensor(
 
 base::Status topoSortBFS(std::vector<OpWrapper *> &op_repository,
                          std::vector<OpWrapper *> &topo_sort_op) {
-  std::vector<OpWrapper *> start_ops = findStartop::Ops(op_repository);
+  std::vector<OpWrapper *> start_ops = findStartOps(op_repository);
   if (start_ops.empty()) {
     NNDEPLOY_LOGE("No start op found in graph");
     return base::kStatusCodeErrorInvalidValue;
   }
   std::deque<OpWrapper *> op_deque;
   for (auto op_wrapper : start_ops) {
-    op_wrapper->color_ = base::kop::OpColorGray;
+    op_wrapper->color_ = base::kNodeColorGray;
     op_deque.emplace_back(op_wrapper);
   }
   while (!op_deque.empty()) {
     OpWrapper *op_wrapper = op_deque.front();
     for (auto successor : op_wrapper->successors_) {
-      if (successor->color_ == base::kop::OpColorWhite) {
-        successor->color_ = base::kop::OpColorGray;
+      if (successor->color_ == base::kNodeColorWhite) {
+        successor->color_ = base::kNodeColorGray;
         op_deque.emplace_back(successor);
-      } else if (successor->color_ == base::kop::OpColorGray) {
+      } else if (successor->color_ == base::kNodeColorGray) {
         continue;
       } else {
         NNDEPLOY_LOGE("Cycle detected in graph");
@@ -267,7 +267,7 @@ base::Status topoSortBFS(std::vector<OpWrapper *> &op_repository,
       }
     }
     op_deque.pop_front();
-    op_wrapper->color_ = base::kop::OpColorBlack;
+    op_wrapper->color_ = base::kNodeColorBlack;
     topo_sort_op.emplace_back(op_wrapper);
   }
 
@@ -279,20 +279,20 @@ base::Status topoSortBFS(std::vector<OpWrapper *> &op_repository,
 base::Status TopoSortDFSRecursive(OpWrapper *op_wrapper,
                                   std::stack<OpWrapper *> &dst) {
   base::Status status = base::kStatusCodeOk;
-  op_wrapper->color_ = base::kop::OpColorGray;
+  op_wrapper->color_ = base::kNodeColorGray;
   for (auto successor : op_wrapper->successors_) {
-    if (successor->color_ == base::kop::OpColorWhite) {
+    if (successor->color_ == base::kNodeColorWhite) {
       status = TopoSortDFSRecursive(successor, dst);
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "Cycle detected in graph");
-    } else if (successor->color_ == base::kop::OpColorGray) {
+    } else if (successor->color_ == base::kNodeColorGray) {
       NNDEPLOY_LOGE("Cycle detected in graph");
       return base::kStatusCodeErrorInvalidValue;
     } else {
       continue;
     }
   }
-  op_wrapper->color_ = base::kop::OpColorBlack;
+  op_wrapper->color_ = base::kNodeColorBlack;
   dst.push(op_wrapper);
   return status;
 }
@@ -300,16 +300,16 @@ base::Status TopoSortDFSRecursive(OpWrapper *op_wrapper,
 base::Status topoSortDFS(std::vector<OpWrapper *> &op_repository,
                          std::vector<OpWrapper *> &topo_sort_op) {
   base::Status status = base::kStatusCodeOk;
-  std::vector<OpWrapper *> start_ops = findStartop::Ops(op_repository);
+  std::vector<OpWrapper *> start_ops = findStartOps(op_repository);
   if (start_ops.empty()) {
     NNDEPLOY_LOGE("No start op found in graph");
     return base::kStatusCodeErrorInvalidValue;
   }
   std::stack<OpWrapper *> dst;
   for (auto op_wrapper : start_ops) {
-    if (op_wrapper->color_ == base::kop::OpColorWhite) {
+    if (op_wrapper->color_ == base::kNodeColorWhite) {
       status = TopoSortDFSRecursive(op_wrapper, dst);
-    } else if (op_wrapper->color_ == base::kop::OpColorGray) {
+    } else if (op_wrapper->color_ == base::kNodeColorGray) {
       NNDEPLOY_LOGE("Cycle detected in graph");
       status = base::kStatusCodeErrorInvalidValue;
     } else {
@@ -347,8 +347,8 @@ base::Status topoSort(std::vector<OpWrapper *> &op_repository,
   return status;
 }
 
-bool checkTensor(const std::vector<Tensor *> &src_tensors,
-                 const std::vector<Tensor *> &dst_tensors) {
+bool checkTensor(const std::vector<device::Tensor *> &src_tensors,
+                 const std::vector<device::Tensor *> &dst_tensors) {
   for (auto tensor : src_tensors) {
     bool flag = false;
     for (auto check_tensor : dst_tensors) {

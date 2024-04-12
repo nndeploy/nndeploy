@@ -11,9 +11,9 @@ Op::Op(base::DeviceType device_type, const std::string &name, OpType op_type)
   constructed_ = true;
 }
 Op::Op(base::DeviceType device_type, const std::string &name, OpType op_type,
-       std::initializer_list<const std::string &> inputs,
-       std::initializer_list<const std::string &> outputs,
-       std::initializer_list<const std::string &> weights)
+       std::initializer_list<std::string> inputs,
+       std::initializer_list<std::string> outputs,
+       std::initializer_list<std::string> weights)
     : device_type_(device_type),
       op_desc_(name, op_type, inputs, outputs, weights) {
   constructed_ = true;
@@ -191,30 +191,31 @@ base::Status Op::reshape(std::vector<device::Tensor *> inputs) {
 base::Status Op::preRun() { return base::kStatusCodeOk; }
 base::Status Op::postRun() { return base::kStatusCodeOk; }
 
-std::map<base::DeviceType, std::map<OpType, std::shared_ptr<OpCreator>>>
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
     &getGlobalOpCreatorMap() {
   static std::once_flag once;
-  static std::shared_ptr<
-      std::map<base::DeviceType, std::map<OpType, std::shared_ptr<OpCreator>>>>
+  static std::shared_ptr<std::map<base::DeviceTypeCode,
+                                  std::map<OpType, std::shared_ptr<OpCreator>>>>
       creators;
   std::call_once(once, []() {
-    creators.reset(new std::map<base::DeviceType,
+    creators.reset(new std::map<base::DeviceTypeCode,
                                 std::map<OpType, std::shared_ptr<OpCreator>>>);
   });
   return *creators;
 }
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
-             OpType op_type, std::initializer_list<const std::string &> inputs,
-             std::initializer_list<const std::string &> outputs,
-             std::initializer_list<const std::string &> weights) {
+             OpType op_type, std::initializer_list<std::string> inputs,
+             std::initializer_list<std::string> outputs,
+             std::initializer_list<std::string> weights) {
   auto &creater_map = getGlobalOpCreatorMap();
-  if (creater_map.count(device_type) > 0) {
-    auto &device_map = creater_map[device_type];
-    if (device_map.count(op_type) > 0) {
-      auto &creator = device_map[op_type];
-      return creator->createOp(device_type, name, op_type, inputs, outputs,
-                               weights);
+  auto device_map = creater_map.find(device_type.code_);
+  if (device_map != creater_map.end()) {
+    auto &op_map = device_map->second;
+    auto creator = op_map.find(op_type);
+    if (creator != op_map.end()) {
+      return creator->second->createOp(device_type, name, op_type, inputs,
+                                       outputs, weights);
     }
   }
   return nullptr;
@@ -225,12 +226,13 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
              std::vector<std::string> &outputs,
              std::vector<std::string> &weights) {
   auto &creater_map = getGlobalOpCreatorMap();
-  if (creater_map.count(device_type) > 0) {
-    auto &device_map = creater_map[device_type];
-    if (device_map.count(op_type) > 0) {
-      auto &creator = device_map[op_type];
-      return creator->createOp(device_type, name, op_type, inputs, outputs,
-                               weights);
+  auto device_map = creater_map.find(device_type.code_);
+  if (device_map != creater_map.end()) {
+    auto &op_map = device_map->second;
+    auto creator = op_map.find(op_type);
+    if (creator != op_map.end()) {
+      return creator->second->createOp(device_type, name, op_type, inputs,
+                                       outputs, weights);
     }
   }
   return nullptr;

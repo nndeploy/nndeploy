@@ -26,8 +26,8 @@ Forwad::~Forwad() {
   tensor_repository_.clear();
 }
 
-Tensor *Forwad::createTensor(const std::string &name) {
-  Tensor *tensor = new Tensor(name);
+device::Tensor *Forwad::createTensor(const std::string &name) {
+  device::Tensor *tensor = new device::Tensor(name);
   TensorWrapper *tensor_wrapper = new TensorWrapper();
   tensor_wrapper->is_external_ = false;
   tensor_wrapper->tensor_ = tensor;
@@ -36,7 +36,7 @@ Tensor *Forwad::createTensor(const std::string &name) {
   return tensor;
 }
 
-TensorWrapper *Forwad::addTensor(Tensor *tensor, bool is_external) {
+TensorWrapper *Forwad::addTensor(device::Tensor *tensor, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(tensor, "tensor is null!");
   TensorWrapper *tensor_wrapper = new TensorWrapper();
@@ -47,13 +47,75 @@ TensorWrapper *Forwad::addTensor(Tensor *tensor, bool is_external) {
   return tensor_wrapper;
 }
 
-Tensor *Forwad::getTensor(const std::string &name) {
+device::Tensor *Forwad::getTensor(const std::string &name) {
   for (TensorWrapper *tensor_wrapper : tensor_repository_) {
     if (tensor_wrapper->name_ == name) {
       return tensor_wrapper->tensor_;
     }
   }
   return nullptr;
+}
+
+op::Op *Forwad::createOp(base::DeviceType device_type, const std::string &name,
+                         op::OpType op_type,
+                         std::initializer_list<std::string> inputs,
+                         std::initializer_list<std::string> outputs,
+                         std::initializer_list<std::string> weights) {
+  op::Op *op = createOp(device_type, name, op_type, inputs, outputs, weights);
+  OpWrapper *op_wrapper = new OpWrapper();
+  op_wrapper->is_external_ = false;
+  op_wrapper->op_ = op;
+  op_wrapper->name_ = name;
+  for (auto input : inputs) {
+    TensorWrapper *input_wrapper = findTensorWrapper(tensor_repository_, input);
+    if (input_wrapper == nullptr) {
+      device::Tensor *tensor = this->createTensor(input);
+      input_wrapper = this->addTensor(tensor, false);
+    }
+    input_wrapper->consumers_.emplace_back(op_wrapper);
+  }
+  for (auto output : outputs) {
+    TensorWrapper *output_wrapper =
+        findTensorWrapper(tensor_repository_, output);
+    if (output_wrapper == nullptr) {
+      device::Tensor *tensor = this->createTensor(output);
+      output_wrapper = this->addTensor(tensor, false);
+    }
+    output_wrapper->producers_.emplace_back(op_wrapper);
+  }
+
+  op_repository_.emplace_back(op_wrapper);
+  return op;
+}
+op::Op *Forwad::createOp(base::DeviceType device_type, const std::string &name,
+                         op::OpType op_type, std::vector<std::string> &inputs,
+                         std::vector<std::string> &outputs,
+                         std::vector<std::string> &weights) {
+  op::Op *op = createOp(device_type, name, op_type, inputs, outputs, weights);
+  OpWrapper *op_wrapper = new OpWrapper();
+  op_wrapper->is_external_ = false;
+  op_wrapper->op_ = op;
+  op_wrapper->name_ = name;
+  for (auto input : inputs) {
+    TensorWrapper *input_wrapper = findTensorWrapper(tensor_repository_, input);
+    if (input_wrapper == nullptr) {
+      device::Tensor *tensor = this->createTensor(input);
+      input_wrapper = this->addTensor(tensor, false);
+    }
+    input_wrapper->consumers_.emplace_back(op_wrapper);
+  }
+  for (auto output : outputs) {
+    TensorWrapper *output_wrapper =
+        findTensorWrapper(tensor_repository_, output);
+    if (output_wrapper == nullptr) {
+      device::Tensor *tensor = this->createTensor(output);
+      output_wrapper = this->addTensor(tensor, false);
+    }
+    output_wrapper->producers_.emplace_back(op_wrapper);
+  }
+
+  op_repository_.emplace_back(op_wrapper);
+  return op;
 }
 
 base::Status Forwad::addOp(op::Op *op, bool is_external) {
@@ -66,7 +128,7 @@ base::Status Forwad::addOp(op::Op *op, bool is_external) {
   for (auto input : op->getAllInput()) {
     TensorWrapper *input_wrapper = findTensorWrapper(tensor_repository_, input);
     if (input_wrapper == nullptr) {
-      input_wrapper = this->addTensor(input);
+      input_wrapper = this->addTensor(input, is_external);  // todo
     }
     input_wrapper->consumers_.emplace_back(op_wrapper);
   }
@@ -74,7 +136,7 @@ base::Status Forwad::addOp(op::Op *op, bool is_external) {
     TensorWrapper *output_wrapper =
         findTensorWrapper(tensor_repository_, output);
     if (output_wrapper == nullptr) {
-      output_wrapper = this->addTensor(output);
+      output_wrapper = this->addTensor(output, is_external);
     }
     output_wrapper->producers_.emplace_back(op_wrapper);
   }
@@ -160,12 +222,14 @@ base::Status Forwad::run() {
   return status;
 }
 
-base::Status Forwad::dump(std::ostream &oss) {
-  base::Status status = dumpForward(tensor_repository_, op_repository_, inputs_,
-                                    outputs_, name_, oss);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
-  return status;
-}
+// base::Status Forwad::dump(std::ostream &oss) {
+//   // base::Status status = dumpForward(tensor_repository_, op_repository_,
+//   // inputs_,
+//   // //                                   outputs_, name_, oss);
+//   // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
+//   // return status;
+//   return base::kStatusCodeOk;
+// }
 
 base::Status Forwad::construct() {
   base::Status status = base::kStatusCodeOk;
@@ -199,7 +263,7 @@ base::Status Forwad::construct() {
     Op *op = op_wrapper->op_;
     op->setParallelType(parallel_type);
     op->setInnerFlag(true);
-    std::vector<Tensor *> inputs = op->getAllInput();
+    std::vector<device::Tensor *> inputs = op->getAllInput();
     for (auto input : inputs) {
       TensorWrapper *input_wrapper =
           findTensorWrapper(tensor_repository_, input);
@@ -210,7 +274,7 @@ base::Status Forwad::construct() {
         insertUnique(op_wrapper->predecessors_, producer);
       }
     }
-    std::vector<Tensor *> outputs = op->getAllOutput();
+    std::vector<device::Tensor *> outputs = op->getAllOutput();
     for (auto output : outputs) {
       TensorWrapper *output_wrapper =
           findTensorWrapper(tensor_repository_, output);
@@ -235,27 +299,27 @@ base::Status Forwad::construct() {
     for (auto consumer : tensor_wrapper->consumers_) {
       consumers.emplace_back(consumer->op_);
     }
-    base::Status status =
-        tensor_wrapper->tensor_->setParallelType(parallel_type);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "setParallelType failed!");
-    // 必须在abstract_tensor管理该字段
-    status = tensor_wrapper->tensor_->increaseProducers(producers);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "increaseProducers failed!");
-    status = tensor_wrapper->tensor_->increaseConsumers(consumers);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "increaseConsumers failed!");
-    status = tensor_wrapper->tensor_->construct();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "construct tensor failed!");
+    // base::Status status =
+    //     tensor_wrapper->tensor_->setParallelType(parallel_type);
+    // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+    //                        "setParallelType failed!");
+    // // 必须在abstract_tensor管理该字段
+    // status = tensor_wrapper->tensor_->increaseProducers(producers);
+    // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+    //                        "increaseProducers failed!");
+    // status = tensor_wrapper->tensor_->increaseConsumers(consumers);
+    // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+    //                        "increaseConsumers failed!");
+    // status = tensor_wrapper->tensor_->construct();
+    // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+    //                        "construct tensor failed!");
   }
 
-  if (!is_inner_) {
-    for (auto iter : outputs_) {
-      iter->markGraphOutput();
-    }
-  }
+  // if (!is_inner_) {
+  //   for (auto iter : outputs_) {
+  //     iter->markGraphOutput();
+  //   }
+  // }
 
   return status;
 }
@@ -299,7 +363,8 @@ base::Status Forwad::runtime() {
   return status;
 }
 
-Forwad *createForward(const ModelDesc &model_desc, base::DeviceType device_type,
+Forwad *createForward(const op::ModelDesc &model_desc,
+                      base::DeviceType device_type,
                       base::PrecisionType precision_type) {
   return nullptr;
 }

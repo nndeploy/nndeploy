@@ -22,7 +22,7 @@ class NNDEPLOY_CC_API OpWrapper {
   std::string name_;
   std::vector<OpWrapper *> predecessors_;
   std::vector<OpWrapper *> successors_;
-  base::OpColorType color_ = base::kOpColorWhite;
+  base::NodeColorType color_ = base::kNodeColorWhite;
 };
 
 class NNDEPLOY_CC_API TensorWrapper {

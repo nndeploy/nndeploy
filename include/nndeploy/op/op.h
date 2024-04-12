@@ -26,9 +26,9 @@ class NNDEPLOY_CC_API Op {
   Op(base::DeviceType device_type, const std::string &name, OpType op_type);
 
   Op(base::DeviceType device_type, const std::string &name, OpType op_type,
-     std::initializer_list<const std::string &> inputs,
-     std::initializer_list<const std::string &> outputs,
-     std::initializer_list<const std::string &> weights);
+     std::initializer_list<std::string> inputs,
+     std::initializer_list<std::string> outputs,
+     std::initializer_list<std::string> weights);
 
   Op(base::DeviceType device_type, const std::string &name, OpType op_type,
      std::vector<std::string> &inputs, std::vector<std::string> &outputs,
@@ -127,9 +127,9 @@ class OpCreator {
   virtual ~OpCreator(){};
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type,
-                       std::initializer_list<const std::string &> inputs,
-                       std::initializer_list<const std::string &> outputs,
-                       std::initializer_list<const std::string &> weights) = 0;
+                       std::initializer_list<std::string> inputs,
+                       std::initializer_list<std::string> outputs,
+                       std::initializer_list<std::string> weights) = 0;
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type, std::vector<std::string> &inputs,
@@ -146,9 +146,9 @@ template <typename T>
 class TypeOpCreator : public OpCreator {
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type,
-                       std::initializer_list<const std::string &> inputs,
-                       std::initializer_list<const std::string &> outputs,
-                       std::initializer_list<const std::string &> weights) {
+                       std::initializer_list<std::string> inputs,
+                       std::initializer_list<std::string> outputs,
+                       std::initializer_list<std::string> weights) {
     return new T(device_type, name, op_type, inputs, outputs, weights);
   }
 
@@ -166,7 +166,7 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceType, std::map<OpType, std::shared_ptr<OpCreator>>>
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
     &getGlobalOpCreatorMap();
 
 /**
@@ -177,15 +177,17 @@ std::map<base::DeviceType, std::map<OpType, std::shared_ptr<OpCreator>>>
 template <typename T>
 class TypeOpRegister {
  public:
-  explicit TypeOpRegister(base::DeviceType device_type, OpType op_type) {
-    getGlobalOpCreatorMap()[device_type][op_type] = std::shared_ptr<T>(new T());
+  explicit TypeOpRegister(base::DeviceTypeCode device_type_code,
+                          OpType op_type) {
+    getGlobalOpCreatorMap()[device_type_code][op_type] =
+        std::shared_ptr<T>(new T());
   }
 };
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
-             OpType op_type, std::initializer_list<const std::string &> inputs,
-             std::initializer_list<const std::string &> outputs,
-             std::initializer_list<const std::string &> weights);
+             OpType op_type, std::initializer_list<std::string> inputs,
+             std::initializer_list<std::string> outputs,
+             std::initializer_list<std::string> weights);
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
              OpType op_type, std::vector<std::string> &inputs,

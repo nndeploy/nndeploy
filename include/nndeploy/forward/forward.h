@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_FORWARD_FORWARD_H_
 #define _NNDEPLOY_FORWARD_FORWARD_H_
 
+#include "nndeploy/forward/runtime.h"
 #include "nndeploy/forward/util.h"
 #include "nndeploy/op/op.h"
 
@@ -21,28 +22,32 @@ class NNDEPLOY_CC_API Forwad : public op::Op {
 
   op::Op *createOp(base::DeviceType device_type, const std::string &name,
                    op::OpType op_type,
-                   std::initializer_list<const std::string &> inputs,
-                   std::initializer_list<const std::string &> outputs,
-                   std::initializer_list<const std::string &> weights);
+                   std::initializer_list<std::string> inputs,
+                   std::initializer_list<std::string> outputs,
+                   std::initializer_list<std::string> weights);
   op::Op *createOp(base::DeviceType device_type, const std::string &name,
                    op::OpType op_type, std::vector<std::string> &inputs,
                    std::vector<std::string> &outputs,
                    std::vector<std::string> &weights);
-  OpWrapper *addOp(op::Op *op, bool is_external);
+  base::Status addOp(op::Op *op, bool is_external);
 
   base::Status setOpParam(const std::string &op_name, base::Param *param);
   base::Param *getOpParam(const std::string &op_name);
 
-  virtual base::Status setPrecisionType(base::PrecisionType precision_type);
+  virtual base::Status setPrecisionType(base::PrecisionType precision_type) {
+    return base::Status();
+  };
 
   virtual base::Status init();
   virtual base::Status deinit();
 
-  virtual base::Status reshape(std::vector<device::Tensor *> inputs);
+  virtual base::Status reshape(std::vector<device::Tensor *> inputs) {
+    return base::Status();
+  };
 
-  virtual base::Status preRun();
+  virtual base::Status preRun() { return base::Status(); };
   virtual base::Status run();
-  virtual base::Status postRun();
+  virtual base::Status postRun() { return base::Status(); };
 
  protected:
   virtual base::Status construct();

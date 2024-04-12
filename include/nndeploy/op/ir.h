@@ -46,9 +46,9 @@ class NNDEPLOY_CC_API OpDesc {
       : name_(name), op_type_(op_type) {}
 
   OpDesc(const std::string &name, OpType op_type,
-         std::initializer_list<const std::string &> inputs,
-         std::initializer_list<const std::string &> outputs,
-         std::initializer_list<const std::string &> weights)
+         std::initializer_list<std::string> inputs,
+         std::initializer_list<std::string> outputs,
+         std::initializer_list<std::string> weights)
       : name_(name),
         op_type_(op_type),
         inputs_(inputs),
