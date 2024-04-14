@@ -57,6 +57,23 @@ Graph::Graph(const std::string &name, std::initializer_list<Edge *> inputs,
   }
   constructed_ = true;
 }
+Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
+             std::vector<Edge *> outputs)
+    : Node(name, inputs, outputs) {
+  for (auto input : inputs) {
+    if (nullptr == addEdge(input)) {
+      constructed_ = false;
+      return;
+    }
+  }
+  for (auto output : outputs) {
+    if (nullptr == addEdge(output)) {
+      constructed_ = false;
+      return;
+    }
+  }
+  constructed_ = true;
+}
 Graph::~Graph() {
   for (auto node_wrapper : node_repository_) {
     if (!node_wrapper->is_external_) {
@@ -93,35 +110,72 @@ Edge *Graph::getEdge(const std::string &name) {
   return nullptr;
 }
 
-EdgeWrapper *Graph::addEdge(Edge *edge) {
+// EdgeWrapper *Graph::addEdge(Edge *edge) {
+//   base::Status status = base::kStatusCodeOk;
+//   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(edge, "edge is null!");
+//   EdgeWrapper *edge_wrapper = new EdgeWrapper();
+//   edge_wrapper->is_external_ = true;
+//   edge_wrapper->edge_ = edge;
+//   edge_wrapper->name_ = edge->getName();
+//   edge_repository_.emplace_back(edge_wrapper);
+//   return edge_wrapper;
+// }
+
+EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(edge, "edge is null!");
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
-  edge_wrapper->is_external_ = true;
+  edge_wrapper->is_external_ = is_external;
   edge_wrapper->edge_ = edge;
   edge_wrapper->name_ = edge->getName();
   edge_repository_.emplace_back(edge_wrapper);
   return edge_wrapper;
 }
 
-base::Status Graph::addNode(Node *node) {
+// base::Status Graph::addNode(Node *node) {
+//   base::Status status = base::kStatusCodeOk;
+//   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
+//   NodeWrapper *node_wrapper = new NodeWrapper();
+//   node_wrapper->is_external_ = true;
+//   node_wrapper->node_ = node;
+//   node_wrapper->name_ = node->getName();
+//   for (auto input : node->getAllInput()) {
+//     EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+//     if (input_wrapper == nullptr) {
+//       input_wrapper = this->addEdge(input);
+//     }
+//     input_wrapper->consumers_.emplace_back(node_wrapper);
+//   }
+//   for (auto output : node->getAllOutput()) {
+//     EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+//     if (output_wrapper == nullptr) {
+//       output_wrapper = this->addEdge(output);
+//     }
+//     output_wrapper->producers_.emplace_back(node_wrapper);
+//   }
+
+//   node_repository_.emplace_back(node_wrapper);
+//   return status;
+// }
+
+base::Status Graph::addNode(Node *node, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
   NodeWrapper *node_wrapper = new NodeWrapper();
-  node_wrapper->is_external_ = true;
+  node_wrapper->is_external_ = is_external;
   node_wrapper->node_ = node;
   node_wrapper->name_ = node->getName();
   for (auto input : node->getAllInput()) {
     EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
-      input_wrapper = this->addEdge(input);
+      input_wrapper = this->addEdge(input, is_external);
     }
     input_wrapper->consumers_.emplace_back(node_wrapper);
   }
   for (auto output : node->getAllOutput()) {
     EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
-      output_wrapper = this->addEdge(output);
+      output_wrapper = this->addEdge(output, is_external);
     }
     output_wrapper->producers_.emplace_back(node_wrapper);
   }
@@ -218,6 +272,8 @@ base::Status Graph::dump(std::ostream &oss) {
 base::Status Graph::construct() {
   base::Status status = base::kStatusCodeOk;
 
+  NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
+
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("parallel_type!\n");
   // NNDEPLOY_LOGI("###########################\n");
@@ -301,10 +357,13 @@ base::Status Graph::construct() {
     }
   }
 
+  NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
+
   return status;
 }
 
 base::Status Graph::executor() {
+  // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -340,6 +399,7 @@ base::Status Graph::executor() {
   status = executor_->init(edge_repository_, node_repository_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
 
+  // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
   return status;
 }
 

@@ -33,6 +33,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   Graph(const std::string &name, Edge *input, Edge *output);
   Graph(const std::string &name, std::initializer_list<Edge *> inputs,
         std::initializer_list<Edge *> outputs);
+  Graph(const std::string &name, std::vector<Edge *> inputs,
+        std::vector<Edge *> outputs);
   virtual ~Graph();
 
   /**
@@ -47,7 +49,14 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @param  edge             已有的Edge
    * @return EdgeWrapper*
    */
-  EdgeWrapper *addEdge(Edge *edge);
+  // EdgeWrapper *addEdge(Edge *edge);
+
+  /**
+   * @brief 将一条已有的Edge加入Graph中
+   * @param  edge             已有的Edge
+   * @return EdgeWrapper*
+   */
+  EdgeWrapper *addEdge(Edge *edge, bool is_external = true);
 
   /**
    * @brief 获取Graph中的Edge
@@ -65,28 +74,93 @@ class NNDEPLOY_CC_API Graph : public Node {
    */
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node *createNode(const std::string &name, Edge *input, Edge *output) {
-    // NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
-    // NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    Node *node = dynamic_cast<Node *>(new T(name, input, output));
-    NodeWrapper *node_wrapper = new NodeWrapper();
-    node_wrapper->is_external_ = false;
-    node_wrapper->node_ = node;
-    node_wrapper->name_ = name;
-    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
-    if (input_wrapper == nullptr) {
-      input_wrapper = this->addEdge(input);
-    }
-    input_wrapper->consumers_.emplace_back(node_wrapper);
-    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
-    if (output_wrapper == nullptr) {
-      output_wrapper = this->addEdge(output);
-    }
-    output_wrapper->producers_.emplace_back(node_wrapper);
+  Node *createNode(const std::string &name, Edge *input, Edge *output);
 
-    node_repository_.emplace_back(node_wrapper);
-    return node;
-  }
+  /**
+   * @brief 在Graph中创建一个Node，并关联input、output的Edge
+   * @param  name             Node名称
+   * @param  input            输入Edge name
+   * @param  output           输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name, const std::string &input_name,
+                   const std::string &output_name);
+
+  /**
+   * @brief 在Graph中创建一个Node，并关联input、output的Edge
+   * @param  name             Node名称
+   * @param  input            输入Edge
+   * @param  output           输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name, Edge *input,
+                   const std::string &output_name);
+
+  /**
+   * @brief 在Graph中创建一个Node，并关联input、output的Edge
+   * @param  name             Node名称
+   * @param  input            输入Edge name
+   * @param  output           输出Edge
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name, const std::string &input_name,
+                   Edge *output);
+
+  /**
+   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  inputs            多个输入Edge
+   * @param  outputs           多个输出Edge
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name, std::vector<Edge *> inputs,
+                   std::vector<Edge *> outputs);
+
+  /**
+   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  inputs            多个输入Edge
+   * @param  outputs           多个输出Edge
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name,
+                   std::vector<std::string> input_names,
+                   std::vector<std::string> output_names);
+
+  /**
+   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  inputs            多个输入Edge
+   * @param  outputs           多个输出Edge
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name,
+                   std::vector<std::string> input_names,
+                   std::vector<Edge *> outputs);
+
+  /**
+   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  inputs            多个输入Edge
+   * @param  outputs           多个输出Edge
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name, std::vector<Edge *> inputs,
+                   std::vector<std::string> output_names);
 
   /**
    * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
@@ -99,30 +173,46 @@ class NNDEPLOY_CC_API Graph : public Node {
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name,
                    std::initializer_list<Edge *> inputs,
-                   std::initializer_list<Edge *> outputs) {
-    Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
-    NodeWrapper *node_wrapper = new NodeWrapper();
-    node_wrapper->is_external_ = false;
-    node_wrapper->node_ = node;
-    node_wrapper->name_ = name;
-    for (auto input : inputs) {
-      EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
-      if (input_wrapper == nullptr) {
-        input_wrapper = this->addEdge(input);
-      }
-      input_wrapper->consumers_.emplace_back(node_wrapper);
-    }
-    for (auto output : outputs) {
-      EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
-      if (output_wrapper == nullptr) {
-        output_wrapper = this->addEdge(output);
-      }
-      output_wrapper->producers_.emplace_back(node_wrapper);
-    }
+                   std::initializer_list<Edge *> outputs);
 
-    node_repository_.emplace_back(node_wrapper);
-    return node;
-  }
+  /**
+   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  inputs            多个输入Edge name
+   * @param  outputs           多个输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name,
+                   std::initializer_list<std::string> input_names,
+                   std::initializer_list<std::string> output_names);
+
+  /**
+   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  inputs            多个输入Edge
+   * @param  outputs           多个输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name,
+                   std::initializer_list<Edge *> inputs,
+                   std::initializer_list<std::string> output_names);
+
+  /**
+   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  inputs            多个输入Edge name
+   * @param  outputs           多个输出Edge
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name,
+                   std::initializer_list<std::string> input_names,
+                   std::initializer_list<Edge *> outputs);
 
   /**
    * @brief 在Graph中创建一个Infer Node，并关联input、output的Edge
@@ -135,28 +225,102 @@ class NNDEPLOY_CC_API Graph : public Node {
   template <typename T,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
-                    Edge *input, Edge *output) {
-    // NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(input, "input is null!");
-    // NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(output, "output is null!");
-    Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
-    NodeWrapper *node_wrapper = new NodeWrapper();
-    node_wrapper->is_external_ = false;
-    node_wrapper->node_ = node;
-    node_wrapper->name_ = name;
-    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
-    if (input_wrapper == nullptr) {
-      input_wrapper = this->addEdge(input);
-    }
-    input_wrapper->consumers_.emplace_back(node_wrapper);
-    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
-    if (output_wrapper == nullptr) {
-      output_wrapper = this->addEdge(output);
-    }
-    output_wrapper->producers_.emplace_back(node_wrapper);
+                    Edge *input, Edge *output);
 
-    node_repository_.emplace_back(node_wrapper);
-    return node;
-  }
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  input            输入Edge name
+   * @param  output           输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    const std::string &input_name,
+                    const std::string &output_name);
+
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  input            输入Edge name
+   * @param  output           输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    Edge *input, const std::string &output_name);
+
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  input            输入Edge name
+   * @param  output           输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    const std::string &input_name, Edge *output);
+
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  inputs            多个输入Edge
+   * @param  outputs           多个输出Edge
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    std::vector<Edge *> inputs, std::vector<Edge *> outputs);
+
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  inputs            多个输入Edge name
+   * @param  outputs           多个输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    std::vector<std::string> input_names,
+                    std::vector<std::string> output_names);
+
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  inputs            多个输入Edge
+   * @param  outputs           多个输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    std::vector<Edge *> inputs,
+                    std::vector<std::string> output_names);
+
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  inputs            多个输入Edge name
+   * @param  outputs           多个输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    std::vector<std::string> input_names,
+                    std::vector<Edge *> outputs);
 
   /**
    * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
@@ -170,37 +334,58 @@ class NNDEPLOY_CC_API Graph : public Node {
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::initializer_list<Edge *> inputs,
-                    std::initializer_list<Edge *> outputs) {
-    Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
-    NodeWrapper *node_wrapper = new NodeWrapper();
-    node_wrapper->is_external_ = false;
-    node_wrapper->node_ = node;
-    node_wrapper->name_ = name;
-    for (auto input : inputs) {
-      EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
-      if (input_wrapper == nullptr) {
-        input_wrapper = this->addEdge(input);
-      }
-      input_wrapper->consumers_.emplace_back(node_wrapper);
-    }
-    for (auto output : outputs) {
-      EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
-      if (output_wrapper == nullptr) {
-        output_wrapper = this->addEdge(output);
-      }
-      output_wrapper->producers_.emplace_back(node_wrapper);
-    }
+                    std::initializer_list<Edge *> outputs);
 
-    node_repository_.emplace_back(node_wrapper);
-    return node;
-  }
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  inputs            多个输入Edge name
+   * @param  outputs           多个输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    std::initializer_list<std::string> input_names,
+                    std::initializer_list<std::string> output_names);
+
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  inputs            多个输入Edge
+   * @param  outputs           多个输出Edge name
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    std::initializer_list<Edge *> inputs,
+                    std::initializer_list<std::string> output_names);
+
+  /**
+   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
+   * @param  name             Node名称
+   * @param  type            Infer的引擎类型
+   * @param  inputs            多个输入Edge name
+   * @param  outputs           多个输出Edge
+   * @return Node*
+   */
+  template <typename T,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const std::string &name, base::InferenceType type,
+                    std::initializer_list<std::string> input_names,
+                    std::initializer_list<Edge *> outputs);
+
+  // base::Status addNode(Node *node);
 
   /**
    * @brief 将一个已有的Node加入Graph
    * @param  node             已有Node
    * @return base::Status
    */
-  base::Status addNode(Node *node);
+  base::Status addNode(Node *node, bool is_external = true);
 
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);
@@ -222,6 +407,820 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   std::shared_ptr<Executor> executor_;
 };
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name, Edge *input, Edge *output) {
+  Node *node = dynamic_cast<Node *>(new T(name, input, output));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+  if (input_wrapper == nullptr) {
+    input_wrapper = this->addEdge(input);
+  }
+  input_wrapper->consumers_.emplace_back(node_wrapper);
+  EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+  if (output_wrapper == nullptr) {
+    output_wrapper = this->addEdge(output);
+  }
+  output_wrapper->producers_.emplace_back(node_wrapper);
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name, const std::string &input_name,
+                        const std::string &output_name) {
+  Edge *input = getEdge(input_name);
+  if (input == nullptr) {
+    input = createEdge(input_name);
+  }
+  Edge *output = getEdge(output_name);
+  if (output == nullptr) {
+    output = createEdge(output_name);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, input, output));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+  if (input_wrapper == nullptr) {
+    input_wrapper = this->addEdge(input);
+  }
+  input_wrapper->consumers_.emplace_back(node_wrapper);
+  EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+  if (output_wrapper == nullptr) {
+    output_wrapper = this->addEdge(output);
+  }
+  output_wrapper->producers_.emplace_back(node_wrapper);
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name, Edge *input,
+                        const std::string &output_name) {
+  Edge *output = getEdge(output_name);
+  if (output == nullptr) {
+    output = createEdge(output_name);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, input, output));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+  if (input_wrapper == nullptr) {
+    input_wrapper = this->addEdge(input);
+  }
+  input_wrapper->consumers_.emplace_back(node_wrapper);
+  EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+  if (output_wrapper == nullptr) {
+    output_wrapper = this->addEdge(output);
+  }
+  output_wrapper->producers_.emplace_back(node_wrapper);
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name, const std::string &input_name,
+                        Edge *output) {
+  Edge *input = getEdge(input_name);
+  if (input == nullptr) {
+    input = createEdge(input_name);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, input, output));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+  if (input_wrapper == nullptr) {
+    input_wrapper = this->addEdge(input);
+  }
+  input_wrapper->consumers_.emplace_back(node_wrapper);
+  EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+  if (output_wrapper == nullptr) {
+    output_wrapper = this->addEdge(output);
+  }
+  output_wrapper->producers_.emplace_back(node_wrapper);
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
+                        std::vector<Edge *> outputs) {
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name,
+                        std::vector<std::string> input_names,
+                        std::vector<std::string> output_names) {
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name,
+                        std::vector<std::string> input_names,
+                        std::vector<Edge *> outputs) {
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
+                        std::vector<std::string> output_names) {
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name,
+                        std::initializer_list<Edge *> inputs,
+                        std::initializer_list<Edge *> outputs) {
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name,
+                        std::initializer_list<std::string> input_names,
+                        std::initializer_list<std::string> output_names) {
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name,
+                        std::initializer_list<Edge *> inputs,
+                        std::initializer_list<std::string> output_names) {
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const std::string &name,
+                        std::initializer_list<std::string> input_names,
+                        std::initializer_list<Edge *> outputs) {
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         Edge *input, Edge *output) {
+  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+  if (input_wrapper == nullptr) {
+    input_wrapper = this->addEdge(input);
+  }
+  input_wrapper->consumers_.emplace_back(node_wrapper);
+  EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+  if (output_wrapper == nullptr) {
+    output_wrapper = this->addEdge(output);
+  }
+  output_wrapper->producers_.emplace_back(node_wrapper);
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         const std::string &input_name,
+                         const std::string &output_name) {
+  Edge *input = getEdge(input_name);
+  if (input == nullptr) {
+    input = createEdge(input_name);
+  }
+  Edge *output = getEdge(output_name);
+  if (output == nullptr) {
+    output = createEdge(output_name);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+  if (input_wrapper == nullptr) {
+    input_wrapper = this->addEdge(input);
+  }
+  input_wrapper->consumers_.emplace_back(node_wrapper);
+  EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+  if (output_wrapper == nullptr) {
+    output_wrapper = this->addEdge(output);
+  }
+  output_wrapper->producers_.emplace_back(node_wrapper);
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         Edge *input, const std::string &output_name) {
+  Edge *output = getEdge(output_name);
+  if (output == nullptr) {
+    output = createEdge(output_name);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+  if (input_wrapper == nullptr) {
+    input_wrapper = this->addEdge(input);
+  }
+  input_wrapper->consumers_.emplace_back(node_wrapper);
+  EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+  if (output_wrapper == nullptr) {
+    output_wrapper = this->addEdge(output);
+  }
+  output_wrapper->producers_.emplace_back(node_wrapper);
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         const std::string &input_name, Edge *output) {
+  Edge *input = getEdge(input_name);
+  if (input == nullptr) {
+    input = createEdge(input_name);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+  if (input_wrapper == nullptr) {
+    input_wrapper = this->addEdge(input);
+  }
+  input_wrapper->consumers_.emplace_back(node_wrapper);
+  EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+  if (output_wrapper == nullptr) {
+    output_wrapper = this->addEdge(output);
+  }
+  output_wrapper->producers_.emplace_back(node_wrapper);
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         std::vector<Edge *> inputs,
+                         std::vector<Edge *> outputs) {
+  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         std::vector<std::string> input_names,
+                         std::vector<std::string> output_names) {
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         std::vector<Edge *> inputs,
+                         std::vector<std::string> output_names) {
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         std::vector<std::string> input_names,
+                         std::vector<Edge *> outputs) {
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         std::initializer_list<Edge *> inputs,
+                         std::initializer_list<Edge *> outputs) {
+  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         std::initializer_list<std::string> input_names,
+                         std::initializer_list<std::string> output_names) {
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         std::initializer_list<Edge *> inputs,
+                         std::initializer_list<std::string> output_names) {
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
+
+template <typename T,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const std::string &name, base::InferenceType type,
+                         std::initializer_list<std::string> input_names,
+                         std::initializer_list<Edge *> outputs) {
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  return node;
+}
 
 using createGraphFunc = std::function<Graph *(
     const std::string &name, base::InferenceType inference_type,

@@ -5,6 +5,7 @@ namespace nndeploy {
 namespace dag {
 
 Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
+  device_type_ = device::getDefaultHostDeviceType();
   if (input != nullptr) {
     inputs_.emplace_back(input);
   }
@@ -21,8 +22,17 @@ Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
   outputs_ = outputs;
   constructed_ = true;
 }
+Node::Node(const std::string &name, std::vector<Edge *> inputs,
+           std::vector<Edge *> outputs)
+    : name_(name) {
+  device_type_ = device::getDefaultHostDeviceType();
+  inputs_ = inputs;
+  outputs_ = outputs;
+  constructed_ = true;
+}
+
 Node::~Node() {
-  // NNDEPLOY_LOGE("Node::~Node() name:%s.\n", name_.c_str());
+  // NNDEPLOY_LOGI("Node::~Node() name:%s.\n", name_.c_str());
   inputs_.clear();
   outputs_.clear();
   constructed_ = false;
@@ -74,7 +84,16 @@ base::ParallelType Node::getParallelType() { return parallel_type_; }
 
 void Node::setInnerFlag(bool flag) { is_inner_ = flag; }
 
-void Node::setInitializedFlag(bool flag) { initialized_ = flag; }
+void Node::setInitializedFlag(bool flag) {
+  initialized_ = flag;
+  if (is_debug_) {
+    if (initialized_) {
+      NNDEPLOY_LOGE("%s init finish.\n", name_.c_str());
+    } else {
+      NNDEPLOY_LOGE("%s not init.\n", name_.c_str());
+    }
+  }
+}
 bool Node::getInitialized() { return initialized_; }
 
 void Node::setTimeProfileFlag(bool flag) { is_time_profile_ = flag; }
@@ -94,9 +113,9 @@ void Node::setRunningFlag(bool flag) {
   }
   if (is_debug_) {
     if (is_running_) {
-      NNDEPLOY_LOGE("%s start.\n", name_.c_str());
+      NNDEPLOY_LOGE("%s run start.\n", name_.c_str());
     } else {
-      NNDEPLOY_LOGE("%s end.\n", name_.c_str());
+      NNDEPLOY_LOGE("%s run end.\n", name_.c_str());
     }
   }
 }

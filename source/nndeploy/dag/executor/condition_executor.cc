@@ -47,11 +47,14 @@ void ConditionExecutor::setCondition(Node *condition) {
 }
 void ConditionExecutor::select(int index) { index_ = index; }
 
-base::Status ConditionExecutor::run() { return this->run(); }
+base::Status ConditionExecutor::run() { return this->process(); }
 
 base::Status ConditionExecutor::process() {
   base::Status status = base::kStatusCodeOk;
   Node *cur_node = this->node_repository_[index_]->node_;
+  // NNDEPLOY_LOGE("ConditionExecutor::process() index:%d\n", index_);
+  // NNDEPLOY_LOGE("ConditionExecutor::process() cur_node:%s\n",
+  //               cur_node->getName().c_str());
   auto inputs = cur_node->getAllInput();
   for (auto input : inputs) {
     base::EdgeUpdateFlag flag = input->update(cur_node);

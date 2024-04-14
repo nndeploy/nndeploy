@@ -63,6 +63,12 @@ class NNDEPLOY_CC_API MIMOProcessNode : public dag::Node {
     param_ = std::make_shared<ProcessParam>();
     ProcessParam *op_param = dynamic_cast<ProcessParam *>(param_.get());
   }
+  MIMOProcessNode(const std::string &name, std::vector<dag::Edge *> inputs,
+                  std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
+    param_ = std::make_shared<ProcessParam>();
+    ProcessParam *op_param = dynamic_cast<ProcessParam *>(param_.get());
+  }
   virtual ~MIMOProcessNode() {}
 
   virtual base::Status run() {
@@ -113,27 +119,23 @@ dag::Graph *createGraphMISO(const std::string &name,
                             dag::Edge *output, base::ParallelType pt) {
   dag::Graph *graph = new dag::Graph(name, inputs, {output});
 
-  // std::vector<dag::Edge *> preprocess_out;
-  // int i = 0;
-  // for (auto input : inputs) {
-  //   dag::Edge *out =
-  //       graph->createEdge(name + "_preprocess_out_" + std::to_string(i));
-  //   i++;
-  //   preprocess_out.emplace_back(out);
-  // }
-  // std::initializer_list<dag::Edge *> preprocess_out_param(
-  //     &preprocess_out.front(), preprocess_out.front() +
-  //     preprocess_out.size());
-  // dag::Edge *tmp;
-  // dag::Edge *infer_out = graph->createEdge(name + "_infer_out");
-  // dag::Node *preprocess = graph->createNode<MIMOProcessNode>(
-  //     name + "_preprocess", inputs, preprocess_out_param);
-  // dag::Node *infer = graph->createNode<MIMOProcessNode>(
-  //     name + "_infer", {preprocess_out[0], preprocess_out[1]}, {infer_out});
-  // dag::Node *postprocess =
-  //     graph->createNode<ProcessNode>(name + "_postprocess", infer_out,
-  //     output);
-  // graph->setParallelType(pt);
+  std::vector<dag::Edge *> preprocess_out;
+  int i = 0;
+  for (auto input : inputs) {
+    dag::Edge *out =
+        graph->createEdge(name + "_preprocess_out_" + std::to_string(i));
+    i++;
+    preprocess_out.emplace_back(out);
+  }
+  dag::Edge *tmp;
+  dag::Edge *infer_out = graph->createEdge(name + "_infer_out");
+  dag::Node *preprocess = graph->createNode<MIMOProcessNode>(
+      name + "_preprocess", inputs, preprocess_out);
+  dag::Node *infer = graph->createNode<MIMOProcessNode>(
+      name + "_infer", preprocess_out, {infer_out});
+  dag::Node *postprocess =
+      graph->createNode<ProcessNode>(name + "_postprocess", infer_out, output);
+  graph->setParallelType(pt);
   return graph;
 };
 
@@ -166,7 +168,7 @@ class NNDEPLOY_CC_API DemoCondition : public dag::Condition {
       : dag::Condition(name, inputs, outputs){};
   virtual ~DemoCondition(){};
 
-  virtual int choose() { return 0; };
+  virtual int choose() { return 1; };
 };
 
 dag::Graph *createGraphCondition(const std::string &name,
@@ -426,7 +428,6 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 
   dag::Node *condition_no_face = condition_face_graph->createNode<ProcessNode>(
       "condition_no_face", super_resolution_out, &graph_out);
-  condition_face_graph->addNode(condition_no_face);
 
   dag::Graph *loop_multi_face_graph = createGraphLoop(
       "loop_multi_face_graph", {super_resolution_out, face_detection_out},
@@ -437,7 +438,6 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
       loop_multi_face_graph->createEdge("face_correction_out");
   dag::Node *face_correction = loop_multi_face_graph->createNode<ProcessNode>(
       "face_correction", face_detection_out, face_correction_out);
-  loop_multi_face_graph->addNode(face_correction);
 
   dag::Edge *face_repair_out =
       loop_multi_face_graph->createEdge("face_repair_out");
@@ -472,6 +472,7 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   // run
   NNDEPLOY_TIME_POINT_START("graph->run");
   for (int i = 0; i < count; ++i) {
+    NNDEPLOY_LOGE("RUN START i = %d\n", i);
     // set input
     device::Device *device = device::getDefaultHostDevice();
     device::TensorDesc desc;
@@ -496,6 +497,7 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
         return -1;
       }
     }
+    NNDEPLOY_LOGE("RUN END i = %d\n", i);
   }
   // get output (base::kParallelTypePipeline)
   if (pt == base::kParallelTypePipeline) {
@@ -511,17 +513,21 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
   NNDEPLOY_TIME_PROFILER_RESET();
 
+  NNDEPLOY_LOGE("graph->deinit() start.\n");
   // 有向无环图graph反初始化
   status = graph->deinit();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("graph deinit failed");
     return -1;
   }
+  NNDEPLOY_LOGE("graph->deinit() end.\n");
 
   // 有向无环图graph销毁
   // delete model_0_graph;
   // delete model_1_graph;
   delete graph;
+
+  NNDEPLOY_LOGE("delete graph end.\n");
 
   return 0;
 }
@@ -529,20 +535,6 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 int main(int argc, char *argv[]) {
   NNDEPLOY_LOGE("start!\n");
   int ret = 0;
-
-  nndeploy::thread_pool::ThreadPool pool(4);
-  pool.init();
-
-  auto func = [](int a, int b) { return a + b; };
-  auto result1 = pool.commit(std::bind(func, 1, 2));
-  std::cout << result1.get() << std::endl;
-
-  int i = 0;
-  int j = 0;
-  auto result2 = pool.commit([i, j] { return i + j; });
-  std::cout << result2.get() << std::endl;
-
-  pool.destroy();
 
   int count = 1;
   for (int i = 0; i < count; i++) {
