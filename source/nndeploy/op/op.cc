@@ -92,6 +92,18 @@ device::Tensor *Op::getWeight(int index) {
   }
   return nullptr;
 }
+base::Status Op::setInput(device::Tensor *input) {
+  inputs_.emplace_back(input);
+  return base::kStatusCodeErrorInvalidParam;
+}
+base::Status Op::setOutput(device::Tensor *output) {
+  outputs_.emplace_back(output);
+  return base::kStatusCodeErrorInvalidParam;
+}
+base::Status Op::setWeight(device::Tensor *weight) {
+  weights_.emplace_back(weight);
+  return base::kStatusCodeErrorInvalidParam;
+}
 base::Status Op::setInput(device::Tensor *input, int index) {
   if (input != nullptr) {
     if (inputs_.size() > index) {
@@ -173,9 +185,9 @@ void Op::setRunningFlag(bool flag) {
   }
   if (is_debug_) {
     if (is_running_) {
-      NNDEPLOY_LOGE("%s start.\n", op_desc_.name_.c_str());
+      NNDEPLOY_LOGE("%s run start.\n", op_desc_.name_.c_str());
     } else {
-      NNDEPLOY_LOGE("%s end.\n", op_desc_.name_.c_str());
+      NNDEPLOY_LOGE("%s run end.\n", op_desc_.name_.c_str());
     }
   }
 }

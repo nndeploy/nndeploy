@@ -9,6 +9,53 @@ namespace forward {
 Forwad::Forwad(base::DeviceType device_type, const std::string &name,
                op::OpType op_type)
     : op::Op(device_type, name, op_type) {}
+
+Forwad::Forwad(base::DeviceType device_type, const std::string &name,
+               op::OpType op_type, std::initializer_list<std::string> inputs,
+               std::initializer_list<std::string> outputs,
+               std::initializer_list<std::string> weights)
+    : op::Op(device_type, name, op_type, inputs, outputs, weights) {
+  for (auto input : inputs) {
+    device::Tensor *tensor = createTensor(input);
+    if (tensor == nullptr) {
+      NNDEPLOY_LOGE("create tensor failed!\n");
+      return;
+    }
+    this->setInput(tensor);
+  }
+  for (auto output : outputs) {
+    device::Tensor *tensor = createTensor(output);
+    if (tensor == nullptr) {
+      NNDEPLOY_LOGE("create tensor failed!\n");
+      return;
+    }
+    this->setOutput(tensor);
+  }
+}
+
+Forwad::Forwad(base::DeviceType device_type, const std::string &name,
+               op::OpType op_type, std::vector<std::string> &inputs,
+               std::vector<std::string> &outputs,
+               std::vector<std::string> &weights)
+    : op::Op(device_type, name, op_type, inputs, outputs, weights) {
+  for (auto input : inputs) {
+    device::Tensor *tensor = createTensor(input);
+    if (tensor == nullptr) {
+      NNDEPLOY_LOGE("create tensor failed!\n");
+      return;
+    }
+    this->setInput(tensor);
+  }
+  for (auto output : outputs) {
+    device::Tensor *tensor = createTensor(output);
+    if (tensor == nullptr) {
+      NNDEPLOY_LOGE("create tensor failed!\n");
+      return;
+    }
+    this->setOutput(tensor);
+  }
+}
+
 Forwad::~Forwad() {
   for (auto op_wrapper : op_repository_) {
     if (!op_wrapper->is_external_) {
@@ -24,6 +71,13 @@ Forwad::~Forwad() {
   }
   op_repository_.clear();
   tensor_repository_.clear();
+}
+
+base::Status Forwad::setModelDesc(std::shared_ptr<op::ModelDesc> model_desc) {
+  base::Status status = base::kStatusCodeOk;
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(model_desc, "model_desc is null!");
+  model_desc_ = model_desc.get();
+  return status;
 }
 
 device::Tensor *Forwad::createTensor(const std::string &name) {
@@ -70,18 +124,30 @@ op::Op *Forwad::createOp(base::DeviceType device_type, const std::string &name,
     TensorWrapper *input_wrapper = findTensorWrapper(tensor_repository_, input);
     if (input_wrapper == nullptr) {
       device::Tensor *tensor = this->createTensor(input);
+      if (tensor == nullptr) {
+        NNDEPLOY_LOGE("create tensor failed!\n");
+        return nullptr;
+      }
+      op->setInput(tensor);
       input_wrapper = this->addTensor(tensor, false);
     }
-    input_wrapper->consumers_.emplace_back(op_wrapper);
+    // input_wrapper->consumers_.emplace_back(op_wrapper);
+    insertUnique(input_wrapper->consumers_, op_wrapper);
   }
   for (auto output : outputs) {
     TensorWrapper *output_wrapper =
         findTensorWrapper(tensor_repository_, output);
     if (output_wrapper == nullptr) {
       device::Tensor *tensor = this->createTensor(output);
+      if (tensor == nullptr) {
+        NNDEPLOY_LOGE("create tensor failed!\n");
+        return nullptr;
+      }
+      op->setOutput(tensor);
       output_wrapper = this->addTensor(tensor, false);
     }
-    output_wrapper->producers_.emplace_back(op_wrapper);
+    // output_wrapper->producers_.emplace_back(op_wrapper);
+    insertUnique(output_wrapper->producers_, op_wrapper);
   }
 
   op_repository_.emplace_back(op_wrapper);
@@ -100,18 +166,30 @@ op::Op *Forwad::createOp(base::DeviceType device_type, const std::string &name,
     TensorWrapper *input_wrapper = findTensorWrapper(tensor_repository_, input);
     if (input_wrapper == nullptr) {
       device::Tensor *tensor = this->createTensor(input);
+      if (tensor == nullptr) {
+        NNDEPLOY_LOGE("create tensor failed!\n");
+        return nullptr;
+      }
+      op->setInput(tensor);
       input_wrapper = this->addTensor(tensor, false);
     }
-    input_wrapper->consumers_.emplace_back(op_wrapper);
+    // input_wrapper->consumers_.emplace_back(op_wrapper);
+    insertUnique(input_wrapper->consumers_, op_wrapper);
   }
   for (auto output : outputs) {
     TensorWrapper *output_wrapper =
         findTensorWrapper(tensor_repository_, output);
     if (output_wrapper == nullptr) {
       device::Tensor *tensor = this->createTensor(output);
+      if (tensor == nullptr) {
+        NNDEPLOY_LOGE("create tensor failed!\n");
+        return nullptr;
+      }
+      op->setOutput(tensor);
       output_wrapper = this->addTensor(tensor, false);
     }
-    output_wrapper->producers_.emplace_back(op_wrapper);
+    // output_wrapper->producers_.emplace_back(op_wrapper);
+    insertUnique(output_wrapper->producers_, op_wrapper);
   }
 
   op_repository_.emplace_back(op_wrapper);
@@ -130,7 +208,8 @@ base::Status Forwad::addOp(op::Op *op, bool is_external) {
     if (input_wrapper == nullptr) {
       input_wrapper = this->addTensor(input, is_external);  // todo
     }
-    input_wrapper->consumers_.emplace_back(op_wrapper);
+    // input_wrapper->consumers_.emplace_back(op_wrapper);
+    insertUnique(input_wrapper->consumers_, op_wrapper);
   }
   for (auto output : op->getAllOutput()) {
     TensorWrapper *output_wrapper =
@@ -138,7 +217,8 @@ base::Status Forwad::addOp(op::Op *op, bool is_external) {
     if (output_wrapper == nullptr) {
       output_wrapper = this->addTensor(output, is_external);
     }
-    output_wrapper->producers_.emplace_back(op_wrapper);
+    // output_wrapper->producers_.emplace_back(op_wrapper);
+    insertUnique(output_wrapper->producers_, op_wrapper);
   }
 
   op_repository_.emplace_back(op_wrapper);
@@ -200,6 +280,50 @@ base::Status Forwad::deinit() {
   return status;
 }
 
+base::Status Forwad::reshape(std::vector<device::Tensor *> inputs) {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setRunningFlag true!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  // setRunningFlag(true);
+
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Op run Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  status = runtime_->reshape(inputs);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime preRun failed!");
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setRunningFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  // setRunningFlag(false);
+
+  return status;
+};
+
+base::Status Forwad::preRun() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setRunningFlag true!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  // setRunningFlag(true);
+
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Op run Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  status = runtime_->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime preRun failed!");
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setRunningFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  // setRunningFlag(false);
+
+  return status;
+};
+
 base::Status Forwad::run() {
   base::Status status = base::kStatusCodeOk;
 
@@ -222,14 +346,35 @@ base::Status Forwad::run() {
   return status;
 }
 
-// base::Status Forwad::dump(std::ostream &oss) {
-//   // base::Status status = dumpForward(tensor_repository_, op_repository_,
-//   // inputs_,
-//   // //                                   outputs_, name_, oss);
-//   // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
-//   // return status;
-//   return base::kStatusCodeOk;
-// }
+base::Status Forwad::postRun() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setRunningFlag true!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  // setRunningFlag(true);
+
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Op run Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  status = runtime_->postRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime run failed!");
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setRunningFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  // setRunningFlag(false);
+
+  return status;
+};
+
+base::Status Forwad::dump(std::ostream &oss) {
+  base::Status status = dumpForward(tensor_repository_, op_repository_, inputs_,
+                                    outputs_, op_desc_.name_, oss);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
+  return status;
+  return base::kStatusCodeOk;
+}
 
 base::Status Forwad::construct() {
   base::Status status = base::kStatusCodeOk;
@@ -261,6 +406,7 @@ base::Status Forwad::construct() {
   // NNDEPLOY_LOGI("####################\n");
   for (auto op_wrapper : op_repository_) {
     Op *op = op_wrapper->op_;
+    op->setPrecisionType(precision_type_);
     op->setParallelType(parallel_type);
     op->setInnerFlag(true);
     std::vector<device::Tensor *> inputs = op->getAllInput();
@@ -357,14 +503,14 @@ base::Status Forwad::runtime() {
   // NNDEPLOY_LOGI("4. Memory Allocation Phase!\n");
   // NNDEPLOY_LOGI("5. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
-  status = runtime_->init(tensor_repository_, op_repository_);
+  status =
+      runtime_->init(tensor_repository_, op_repository_, model_desc_->weights_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime init failed!");
 
   return status;
 }
 
-Forwad *createForward(const op::ModelDesc &model_desc,
-                      base::DeviceType device_type,
+Forwad *createForward(op::ModelDesc *model_desc, base::DeviceType device_type,
                       base::PrecisionType precision_type) {
   return nullptr;
 }

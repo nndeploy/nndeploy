@@ -13,11 +13,21 @@ class NNDEPLOY_CC_API Forwad : public op::Op {
  public:
   Forwad(base::DeviceType device_type, const std::string &name,
          op::OpType op_type);
+  Forwad(base::DeviceType device_type, const std::string &name,
+         op::OpType op_type, std::initializer_list<std::string> inputs,
+         std::initializer_list<std::string> outputs,
+         std::initializer_list<std::string> weights);
+
+  Forwad(base::DeviceType device_type, const std::string &name,
+         op::OpType op_type, std::vector<std::string> &inputs,
+         std::vector<std::string> &outputs, std::vector<std::string> &weights);
 
   virtual ~Forwad();
 
+  base::Status setModelDesc(std::shared_ptr<op::ModelDesc> model_desc);
+
   device::Tensor *createTensor(const std::string &name);
-  TensorWrapper *addTensor(device::Tensor *tensor, bool is_external);
+  TensorWrapper *addTensor(device::Tensor *tensor, bool is_external = true);
   device::Tensor *getTensor(const std::string &name);
 
   op::Op *createOp(base::DeviceType device_type, const std::string &name,
@@ -34,20 +44,16 @@ class NNDEPLOY_CC_API Forwad : public op::Op {
   base::Status setOpParam(const std::string &op_name, base::Param *param);
   base::Param *getOpParam(const std::string &op_name);
 
-  virtual base::Status setPrecisionType(base::PrecisionType precision_type) {
-    return base::Status();
-  };
-
   virtual base::Status init();
   virtual base::Status deinit();
 
-  virtual base::Status reshape(std::vector<device::Tensor *> inputs) {
-    return base::Status();
-  };
+  virtual base::Status reshape(std::vector<device::Tensor *> inputs);
 
-  virtual base::Status preRun() { return base::Status(); };
+  virtual base::Status preRun();
   virtual base::Status run();
-  virtual base::Status postRun() { return base::Status(); };
+  virtual base::Status postRun();
+
+  base::Status dump(std::ostream &oss);
 
  protected:
   virtual base::Status construct();
@@ -62,14 +68,15 @@ class NNDEPLOY_CC_API Forwad : public op::Op {
   virtual base::Status runtime();
 
  protected:
+  op::ModelDesc *model_desc_;
+
   std::vector<TensorWrapper *> tensor_repository_;
   std::vector<OpWrapper *> op_repository_;
 
   std::shared_ptr<Runtime> runtime_;
 };
 
-Forwad *createForward(const op::ModelDesc &model_desc,
-                      base::DeviceType device_type,
+Forwad *createForward(op::ModelDesc *model_desc, base::DeviceType device_type,
                       base::PrecisionType precision_type);
 
 }  // namespace forward

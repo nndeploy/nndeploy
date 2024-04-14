@@ -20,11 +20,17 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
   Runtime(){};
   virtual ~Runtime(){};
 
-  virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
-                            std::vector<OpWrapper *> &op_repository) = 0;
+  virtual base::Status init(
+      std::vector<TensorWrapper *> &tensor_repository,
+      std::vector<OpWrapper *> &op_repository,
+      std::map<std::string, device::Tensor *> weights) = 0;
   virtual base::Status deinit() = 0;
 
+  virtual base::Status reshape(std::vector<device::Tensor *> inputs) = 0;
+
+  virtual base::Status preRun() = 0;
   virtual base::Status run() = 0;
+  virtual base::Status postRun() = 0;
 };
 
 }  // namespace forward

@@ -170,14 +170,16 @@ base::Status Graph::addNode(Node *node, bool is_external) {
     if (input_wrapper == nullptr) {
       input_wrapper = this->addEdge(input, is_external);
     }
-    input_wrapper->consumers_.emplace_back(node_wrapper);
+    // input_wrapper->consumers_.emplace_back(node_wrapper);
+    insertUnique(input_wrapper->consumers_, node_wrapper);
   }
   for (auto output : node->getAllOutput()) {
     EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
       output_wrapper = this->addEdge(output, is_external);
     }
-    output_wrapper->producers_.emplace_back(node_wrapper);
+    // output_wrapper->producers_.emplace_back(node_wrapper);
+    insertUnique(output_wrapper->producers_, node_wrapper);
   }
 
   node_repository_.emplace_back(node_wrapper);
