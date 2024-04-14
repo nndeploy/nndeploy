@@ -47,7 +47,7 @@ class NNDEPLOY_CC_API Forwad : public op::Op {
   virtual base::Status init();
   virtual base::Status deinit();
 
-  virtual base::Status reshape(std::vector<device::Tensor *> inputs);
+  virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual base::Status preRun();
   virtual base::Status run();

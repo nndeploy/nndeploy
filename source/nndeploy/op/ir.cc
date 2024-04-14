@@ -4,8 +4,8 @@
 namespace nndeploy {
 namespace op {
 
-std::map<OpType, std::shared_ptr<OpParamCreator>> &
-getGlobalOpParamCreatorMap() {
+std::map<OpType, std::shared_ptr<OpParamCreator>>
+    &getGlobalOpParamCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<OpType, std::shared_ptr<OpParamCreator>>>
       creators;

@@ -53,9 +53,9 @@ class NNDEPLOY_CC_API Op {
   device::Tensor *getInput(int index = 0);
   device::Tensor *getOutput(int index = 0);
   device::Tensor *getWeight(int index = 0);
-  base::Status setInput(device::Tensor *input);
-  base::Status setOutput(device::Tensor *output);
-  base::Status setWeight(device::Tensor *weight);
+  virtual base::Status setInput(device::Tensor *input);
+  virtual base::Status setOutput(device::Tensor *output);
+  virtual base::Status setWeight(device::Tensor *weight);
   base::Status setInput(device::Tensor *input, int index);
   base::Status setOutput(device::Tensor *output, int index);
   base::Status setWeight(device::Tensor *weight, int index);
@@ -92,7 +92,7 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status init();
   virtual base::Status deinit();
 
-  virtual base::Status reshape(std::vector<device::Tensor *> inputs);
+  virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual base::Status preRun();
   virtual base::Status run() = 0;

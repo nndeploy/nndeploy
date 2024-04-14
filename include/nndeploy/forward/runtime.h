@@ -26,7 +26,7 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
       std::map<std::string, device::Tensor *> weights) = 0;
   virtual base::Status deinit() = 0;
 
-  virtual base::Status reshape(std::vector<device::Tensor *> inputs) = 0;
+  virtual base::Status reshape(base::ShapeMap &shape_map) = 0;
 
   virtual base::Status preRun() = 0;
   virtual base::Status run() = 0;

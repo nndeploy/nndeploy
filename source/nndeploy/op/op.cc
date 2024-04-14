@@ -196,7 +196,7 @@ bool Op::isRunning() { return is_running_; }
 base::Status Op::init() { return base::kStatusCodeOk; }
 base::Status Op::deinit() { return base::kStatusCodeOk; }
 
-base::Status Op::reshape(std::vector<device::Tensor *> inputs) {
+base::Status Op::reshape(base::ShapeMap &shape_map) {
   return base::kStatusCodeOk;
 }
 

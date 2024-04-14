@@ -15,22 +15,22 @@ Forwad::Forwad(base::DeviceType device_type, const std::string &name,
                std::initializer_list<std::string> outputs,
                std::initializer_list<std::string> weights)
     : op::Op(device_type, name, op_type, inputs, outputs, weights) {
-  for (auto input : inputs) {
-    device::Tensor *tensor = createTensor(input);
-    if (tensor == nullptr) {
-      NNDEPLOY_LOGE("create tensor failed!\n");
-      return;
-    }
-    this->setInput(tensor);
-  }
-  for (auto output : outputs) {
-    device::Tensor *tensor = createTensor(output);
-    if (tensor == nullptr) {
-      NNDEPLOY_LOGE("create tensor failed!\n");
-      return;
-    }
-    this->setOutput(tensor);
-  }
+  // for (auto input : inputs) {
+  //   device::Tensor *tensor = createTensor(input);
+  //   if (tensor == nullptr) {
+  //     NNDEPLOY_LOGE("create tensor failed!\n");
+  //     return;
+  //   }
+  //   this->setInput(tensor);
+  // }
+  // for (auto output : outputs) {
+  //   device::Tensor *tensor = createTensor(output);
+  //   if (tensor == nullptr) {
+  //     NNDEPLOY_LOGE("create tensor failed!\n");
+  //     return;
+  //   }
+  //   this->setOutput(tensor);
+  // }
 }
 
 Forwad::Forwad(base::DeviceType device_type, const std::string &name,
@@ -38,22 +38,22 @@ Forwad::Forwad(base::DeviceType device_type, const std::string &name,
                std::vector<std::string> &outputs,
                std::vector<std::string> &weights)
     : op::Op(device_type, name, op_type, inputs, outputs, weights) {
-  for (auto input : inputs) {
-    device::Tensor *tensor = createTensor(input);
-    if (tensor == nullptr) {
-      NNDEPLOY_LOGE("create tensor failed!\n");
-      return;
-    }
-    this->setInput(tensor);
-  }
-  for (auto output : outputs) {
-    device::Tensor *tensor = createTensor(output);
-    if (tensor == nullptr) {
-      NNDEPLOY_LOGE("create tensor failed!\n");
-      return;
-    }
-    this->setOutput(tensor);
-  }
+  // for (auto input : inputs) {
+  //   device::Tensor *tensor = createTensor(input);
+  //   if (tensor == nullptr) {
+  //     NNDEPLOY_LOGE("create tensor failed!\n");
+  //     return;
+  //   }
+  //   this->setInput(tensor);
+  // }
+  // for (auto output : outputs) {
+  //   device::Tensor *tensor = createTensor(output);
+  //   if (tensor == nullptr) {
+  //     NNDEPLOY_LOGE("create tensor failed!\n");
+  //     return;
+  //   }
+  //   this->setOutput(tensor);
+  // }
 }
 
 Forwad::~Forwad() {
@@ -280,7 +280,7 @@ base::Status Forwad::deinit() {
   return status;
 }
 
-base::Status Forwad::reshape(std::vector<device::Tensor *> inputs) {
+base::Status Forwad::reshape(base::ShapeMap &shape_map) {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -291,7 +291,7 @@ base::Status Forwad::reshape(std::vector<device::Tensor *> inputs) {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = runtime_->reshape(inputs);
+  status = runtime_->reshape(shape_map);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime preRun failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
