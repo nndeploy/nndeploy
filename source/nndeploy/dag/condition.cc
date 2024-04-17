@@ -80,6 +80,10 @@ base::Status Condition::run() {
     NNDEPLOY_LOGE("choose index is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
+  // NNDEPLOY_LOGI("choose index is %d!\n", index);
+  // for (auto iter : node_repository_) {
+  //   NNDEPLOY_LOGE("Node %s run\n", iter->node_->getName().c_str());
+  // }
 
   ConditionExecutor *condition_executor =
       dynamic_cast<ConditionExecutor *>(executor_.get());

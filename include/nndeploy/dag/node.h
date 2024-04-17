@@ -29,6 +29,8 @@ class NNDEPLOY_CC_API Node {
   Node(const std::string &name, Edge *input, Edge *output);
   Node(const std::string &name, std::initializer_list<Edge *> inputs,
        std::initializer_list<Edge *> outputs);
+  Node(const std::string &name, std::vector<Edge *> inputs,
+       std::vector<Edge *> outputs);
 
   virtual ~Node();
 
@@ -92,11 +94,17 @@ class NNDEPLOY_CC_API Node {
   bool is_debug_ = false;
 };
 
-using SingleIONodeFunc =
+using SISONodeFunc =
     std::function<base::Status(Edge *input, Edge *output, base::Param *param)>;
 
-using MultiIONodeFunc = std::function<base::Status(
-    std::initializer_list<Edge *> input, std::initializer_list<Edge *> output,
+using SIMONodeFunc = std::function<base::Status(
+    Edge *input, std::initializer_list<Edge *> outputs, base::Param *param)>;
+
+using MISONodeFunc = std::function<base::Status(
+    std::initializer_list<Edge *> inputs, Edge *output, base::Param *param)>;
+
+using MIMONodeFunc = std::function<base::Status(
+    std::initializer_list<Edge *> inputs, std::initializer_list<Edge *> outputs,
     base::Param *param)>;
 
 }  // namespace dag

@@ -326,7 +326,7 @@ if(ENABLE_NNDEPLOY_OP)
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${OP_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_FORWARD)
-  file(GLOB_RECURSE FORWARD_SOURCE
+  file(GLOB FORWARD_SOURCE
     "${ROOT_PATH}/include/nndeploy/forward/*.h"
     "${ROOT_PATH}/source/nndeploy/forward/*.cc"
   )
@@ -443,6 +443,7 @@ if(ENABLE_NNDEPLOY_MODEL)
   set(MODEL_SOURCE)
   include(${ROOT_PATH}/source/nndeploy/model/config.cmake)
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${MODEL_SOURCE})
+  message(STATUS "MODEL_SOURCE: ${MODEL_SOURCE}")
 endif()
 # nndeploy
 ## TARGET

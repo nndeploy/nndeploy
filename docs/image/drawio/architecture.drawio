@@ -1,6 +1,6 @@
-<mxfile host="Electron" modified="2024-03-24T15:33:39.015Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.5 Chrome/114.0.5735.243 Electron/25.3.1 Safari/537.36" version="21.6.5" etag="UbL28jDKm1uHEeT4N60Q" type="device">
+<mxfile host="Electron" modified="2024-03-31T14:47:29.890Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.5 Chrome/114.0.5735.243 Electron/25.3.1 Safari/537.36" etag="MCnXYx2vUPJCozK2rVWO" version="21.6.5" type="device">
   <diagram name="第 1 页" id="Ku7rGSH6ahA40yERtkHX">
-    <mxGraphModel dx="-4744" dy="711" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="-4796" dy="675" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -193,7 +193,7 @@
         <mxCell id="1AGhxPWf7ZvOHqWeiri_-9" value="Task" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="5987" y="631" width="80" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="1AGhxPWf7ZvOHqWeiri_-10" value="Adaptive" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+        <mxCell id="1AGhxPWf7ZvOHqWeiri_-10" value="Hybrid" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="5896.78" y="664" width="80" height="30" as="geometry" />
         </mxCell>
         <mxCell id="1AGhxPWf7ZvOHqWeiri_-11" value="&lt;b&gt;...&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">

@@ -17,7 +17,6 @@
 #include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
 
-
 namespace nndeploy {
 namespace dag {
 
@@ -83,6 +82,13 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   base::EdgeUpdateFlag update(const Node *node);
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   * @note must be called after the graph is initialized
+   */
   bool markGraphOutput();
 
   base::Status setParallelType(const base::ParallelType &paralle_type);
