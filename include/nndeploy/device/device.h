@@ -27,7 +27,7 @@ enum BufferSourceType : int {
   kBufferSourceTypeNone = 0x0000,
   kBufferSourceTypeAllocate,
   kBufferSourceTypeExternal,
-  kBufferSourceTypeMapped,
+  kBufferSourceTypeMapped,  //CPU和GPU都存在
 };
 
 struct NNDEPLOY_CC_API BufferDesc {
@@ -60,7 +60,11 @@ struct NNDEPLOY_CC_API BufferDesc {
     return *this;
   }
 
+<<<<<<< Updated upstream
   BufferDesc(BufferDesc&& desc) {
+=======
+  BufferDesc(BufferDesc &&desc) {   //&&是什么意思
+>>>>>>> Stashed changes
     size_ = std::move(desc.size_);
     config_ = std::move(desc.config_);
   }
@@ -72,6 +76,34 @@ struct NNDEPLOY_CC_API BufferDesc {
 
   virtual ~BufferDesc(){};
 
+<<<<<<< Updated upstream
+=======
+  bool operator==(const BufferDesc &other) {  //为什么==可以解释为config和size大小一致而！=解释为指针指向同一个东西
+    bool flag0 = false;
+    if (size_.size() == other.size_.size()) {
+      flag0 = true;
+      for (int i = 0; i < size_.size(); ++i) {
+        if (size_[i] != other.size_[i]) {
+          flag0 = false;
+          break;
+        }
+      }
+    }
+    bool flag1 = false;
+    if (config_.size() == other.config_.size()) {
+      flag1 = true;
+      for (int i = 0; i < config_.size(); ++i) {
+        if (config_[i] != other.config_[i]) {
+          flag1 = false;
+          break;
+        }
+      }
+    }
+    return flag0 && flag1;
+  }
+  bool operator!=(const BufferDesc &other) { return !(*this == other); }
+
+>>>>>>> Stashed changes
   /**
    * @brief
    * 1d size
