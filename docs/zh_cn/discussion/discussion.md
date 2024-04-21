@@ -177,3 +177,27 @@ base::Status AscendCLInference::run() {
       + 输出边 - 没有消费者，且是整张图的输出
       + 输出边 也是 中间节点的输入边 - 由消费者 且 是整张图的的输出
   + model
+
+## stable diffusion
++ sudo docker run --rm -it --runtime=nvidia --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
++ sudo docker run --rm -it --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
++ sudo docker run --rm --runtime=nvidia --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
++ sudo docker run --rm -it --gpus all -v $PWD:/workspace tensorrt-ubuntu20.04-cuda11.8:latest /bin/bash
+
+# export http_proxy=127.0.0.1:7890
+
+export http_proxy="http://127.0.0.1:7890"
+export https_proxy="http://127.0.0.1:7890"
+
+export http_proxy="http://127.0.0.1:7891"
+export https_proxy="http://127.0.0.1:7891"
+
+export PATH=/usr/local/cuda-11.8/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+
+export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64
+export PATH=$PATH:/usr/local/cuda-11.8/bin
+
+
+/home/always/Downloads
