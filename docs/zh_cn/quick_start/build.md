@@ -4,7 +4,7 @@
 ## 拉取源代码
 
 ```shell
-git clone --recursive https://github.com/DeployAI/nndeploy.git
+git clone --recursive https://github.com/nndeploy/nndeploy.git
 ```
 
 

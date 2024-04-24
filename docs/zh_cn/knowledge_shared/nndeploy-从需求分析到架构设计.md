@@ -1,18 +1,21 @@
-# nndeploy - 一款开源的模型端到端部署框架
+# 开源的AI部署框架nndeploy - 从需求分析到架构设计
 
-本文首发于GiantPandaCV，欢迎转载。
+项目地址：https://github.com/nndeploy/nndeploy 欢迎star和PR
 
-项目地址：https://github.com/DeployAI/nndeploy 欢迎star和PR
+## 1. 模型部署实际案例
+
+通过模型部署的实际案例，来回答一下什么是部署框架。
+
+这是一个`AI智能抠图`模型多端部署实际案例，通过人像分割模型，把蒙娜丽莎图片中抠出来。训练框架负责训练这个算法，通过推理框架在生产环境完成上线。训练框架有pytorch、tf等，各个大厂也推出自己的推理框架，例如NVIDIA的TensorRT，intel的OpenVINO、阿里的mnn等等。从训练框架到推理框架之间也有较多的痛点问题需要解决，而部署框架就是来解决这些痛点问题。从该实际案例中，可发现模型部署的一个明显的痛点问题，该p图软件有ios、android、网页、电脑（win mac 麒麟）等众多版本，没有部署框架将很难解决这个多端部署的痛点问题。具体痛点的问题会在下一章的需求分析中详细介绍。
+
+
+![multi_end_deploy_case](https://img-blog.csdnimg.cn/direct/5bed42763a7642b39e6fccc7b47626f2.jpeg)
 
 ## 1 需求分析
 
 首先是需求分析，也就是为什么要做nndeploy，模型多端部署有什么实际场景，目前`模型多端部署`以及`模型部署`有哪些痛点。
 
-### 1.1 多端部署实际案例
 
-这是一个`AI智能抠图`多端部署的实际案例，通过人像分割模型，把蒙娜丽莎从图片中抠出来，使用的是国内的某p图软件，该软件有ios、android、网页、电脑（win mac 麒麟）等众多版本，这个例子说明了模型有多端部署的实际的需求。
-
-![multi_end_deploy_case](https://img-blog.csdnimg.cn/direct/5bed42763a7642b39e6fccc7b47626f2.jpeg)
 
 
 ### 1.2 `模型多端部署`以及`模型部署`痛点
