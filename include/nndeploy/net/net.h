@@ -1,28 +1,28 @@
 
-#ifndef _NNDEPLOY_FORWARD_FORWARD_H_
-#define _NNDEPLOY_FORWARD_FORWARD_H_
+#ifndef _NNDEPLOY_NET_NET_H_
+#define _NNDEPLOY_NET_NET_H_
 
-#include "nndeploy/forward/runtime.h"
-#include "nndeploy/forward/util.h"
+#include "nndeploy/net/session.h"
+#include "nndeploy/net/util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
-namespace forward {
+namespace net {
 
-class NNDEPLOY_CC_API Forwad : public op::Op {
+class NNDEPLOY_CC_API Net : public op::Op {
  public:
-  Forwad(base::DeviceType device_type, const std::string &name,
-         op::OpType op_type);
-  Forwad(base::DeviceType device_type, const std::string &name,
-         op::OpType op_type, std::initializer_list<std::string> inputs,
-         std::initializer_list<std::string> outputs,
-         std::initializer_list<std::string> weights);
+  Net(base::DeviceType device_type, const std::string &name,
+      op::OpType op_type);
+  Net(base::DeviceType device_type, const std::string &name, op::OpType op_type,
+      std::initializer_list<std::string> inputs,
+      std::initializer_list<std::string> outputs,
+      std::initializer_list<std::string> weights);
 
-  Forwad(base::DeviceType device_type, const std::string &name,
-         op::OpType op_type, std::vector<std::string> &inputs,
-         std::vector<std::string> &outputs, std::vector<std::string> &weights);
+  Net(base::DeviceType device_type, const std::string &name, op::OpType op_type,
+      std::vector<std::string> &inputs, std::vector<std::string> &outputs,
+      std::vector<std::string> &weights);
 
-  virtual ~Forwad();
+  virtual ~Net();
 
   base::Status setModelDesc(std::shared_ptr<op::ModelDesc> model_desc);
 
@@ -58,14 +58,14 @@ class NNDEPLOY_CC_API Forwad : public op::Op {
  protected:
   virtual base::Status construct();
   // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("runtime init\n");
+  // NNDEPLOY_LOGI("session init\n");
   // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
   // NNDEPLOY_LOGI("2. Device Verification Phase!\n");
   // NNDEPLOY_LOGI("3. Optimizer Graph V2!\n");
   // NNDEPLOY_LOGI("4. Memory Allocation Phase!\n");
   // NNDEPLOY_LOGI("5. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
-  virtual base::Status runtime();
+  virtual base::Status session();
 
  protected:
   op::ModelDesc *model_desc_;
@@ -73,13 +73,13 @@ class NNDEPLOY_CC_API Forwad : public op::Op {
   std::vector<TensorWrapper *> tensor_repository_;
   std::vector<OpWrapper *> op_repository_;
 
-  std::shared_ptr<Runtime> runtime_;
+  std::shared_ptr<Session> session_;
 };
 
-Forwad *createForward(op::ModelDesc *model_desc, base::DeviceType device_type,
-                      base::PrecisionType precision_type);
+Net *createNet(op::ModelDesc *model_desc, base::DeviceType device_type,
+               base::PrecisionType precision_type);
 
-}  // namespace forward
+}  // namespace net
 }  // namespace nndeploy
 
 #endif

@@ -50,8 +50,8 @@ set(ENABLE_NNDEPLOY_OP OFF) # 是否编译op目录中文件，默认为OFF
 set(ENABLE_NNDEPLOY_OP_NN OFF) # 是否编译op nn录中文件，默认为OFF
 set(ENABLE_NNDEPLOY_OP_CV OFF) # 是否编译op cv录中文件，默认为OFF
 set(ENABLE_NNDEPLOY_OP_AUDIO OFF) # 是否编译op audio录中文件，默认为OFF
-## forward
-set(ENABLE_NNDEPLOY_FORWARD OFF)  # 是否编译forward目录中文件，默认为OFF
+## net
+set(ENABLE_NNDEPLOY_NET OFF)  # 是否编译net目录中文件，默认为OFF
 ## inference
 set(ENABLE_NNDEPLOY_INFERENCE ON) # 是否编译inference目录中文件，默认为ON
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON) # 是否使能INFERENCE TENSORRT，默认为OFF

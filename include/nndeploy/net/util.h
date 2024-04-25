@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_FORWARD_UTIL_H_
-#define _NNDEPLOY_FORWARD_UTIL_H_
+#ifndef _NNDEPLOY_NET_UTIL_H_
+#define _NNDEPLOY_NET_UTIL_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -13,7 +13,7 @@
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
-namespace forward {
+namespace net {
 
 class NNDEPLOY_CC_API OpWrapper {
  public:
@@ -61,11 +61,11 @@ NNDEPLOY_CC_API std::vector<OpWrapper *> findEndOps(
 NNDEPLOY_CC_API base::Status setColor(std::vector<OpWrapper *> &op_repository,
                                       base::NodeColorType color);
 
-base::Status dumpForward(std::vector<TensorWrapper *> &tensor_repository,
-                         std::vector<OpWrapper *> &op_repository,
-                         std::vector<device::Tensor *> &graph_inputs,
-                         std::vector<device::Tensor *> &graph_outputs,
-                         const std::string &name, std::ostream &oss);
+base::Status dumpNet(std::vector<TensorWrapper *> &tensor_repository,
+                     std::vector<OpWrapper *> &op_repository,
+                     std::vector<device::Tensor *> &graph_inputs,
+                     std::vector<device::Tensor *> &graph_outputs,
+                     const std::string &name, std::ostream &oss);
 
 std::vector<OpWrapper *> checkUnuseOp(std::vector<OpWrapper *> &op_repository);
 std::vector<TensorWrapper *> checkUnuseTensor(
@@ -98,7 +98,7 @@ void insertUnique(std::vector<T> &vec, const T &val) {
   }
 }
 
-}  // namespace forward
+}  // namespace net
 }  // namespace nndeploy
 
 #endif /* _NNDEPLOY_DAG_UTIL_H_ */

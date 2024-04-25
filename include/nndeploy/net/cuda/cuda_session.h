@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_FORWARD_CUDA_CUDA_RUNTIME_H_
-#define _NNDEPLOY_FORWARD_CUDA_CUDA_RUNTIME_H_
+#ifndef _NNDEPLOY_NET_CUDA_CUDA_SESSION_H_
+#define _NNDEPLOY_NET_CUDA_CUDA_SESSION_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -10,15 +10,15 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/forward/util.h"
+#include "nndeploy/net/util.h"
 
 namespace nndeploy {
-namespace forward {
+namespace net {
 
-class NNDEPLOY_CC_API CudaRuntime : public base::NonCopyable {
+class NNDEPLOY_CC_API CudaSession : public base::NonCopyable {
  public:
-  CudaRuntime(){};
-  virtual ~CudaRuntime(){};
+  CudaSession(){};
+  virtual ~CudaSession(){};
 
   virtual base::Status init(
       std::vector<TensorWrapper *> &tensor_repository,
@@ -33,7 +33,7 @@ class NNDEPLOY_CC_API CudaRuntime : public base::NonCopyable {
   virtual base::Status postRun() = 0;
 };
 
-}  // namespace forward
+}  // namespace net
 }  // namespace nndeploy
 
 #endif
