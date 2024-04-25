@@ -1,19 +1,19 @@
 
-#include "nndeploy/forward/forward.h"
+#include "nndeploy/net/net.h"
 
-#include "nndeploy/forward/runtime.h"
+#include "nndeploy/net/session.h"
 
 namespace nndeploy {
-namespace forward {
+namespace net {
 
-Forwad::Forwad(base::DeviceType device_type, const std::string &name,
-               op::OpType op_type)
+Net::Net(base::DeviceType device_type, const std::string &name,
+         op::OpType op_type)
     : op::Op(device_type, name, op_type) {}
 
-Forwad::Forwad(base::DeviceType device_type, const std::string &name,
-               op::OpType op_type, std::initializer_list<std::string> inputs,
-               std::initializer_list<std::string> outputs,
-               std::initializer_list<std::string> weights)
+Net::Net(base::DeviceType device_type, const std::string &name,
+         op::OpType op_type, std::initializer_list<std::string> inputs,
+         std::initializer_list<std::string> outputs,
+         std::initializer_list<std::string> weights)
     : op::Op(device_type, name, op_type, inputs, outputs, weights) {
   // for (auto input : inputs) {
   //   device::Tensor *tensor = createTensor(input);
@@ -33,10 +33,9 @@ Forwad::Forwad(base::DeviceType device_type, const std::string &name,
   // }
 }
 
-Forwad::Forwad(base::DeviceType device_type, const std::string &name,
-               op::OpType op_type, std::vector<std::string> &inputs,
-               std::vector<std::string> &outputs,
-               std::vector<std::string> &weights)
+Net::Net(base::DeviceType device_type, const std::string &name,
+         op::OpType op_type, std::vector<std::string> &inputs,
+         std::vector<std::string> &outputs, std::vector<std::string> &weights)
     : op::Op(device_type, name, op_type, inputs, outputs, weights) {
   // for (auto input : inputs) {
   //   device::Tensor *tensor = createTensor(input);
@@ -56,7 +55,7 @@ Forwad::Forwad(base::DeviceType device_type, const std::string &name,
   // }
 }
 
-Forwad::~Forwad() {
+Net::~Net() {
   for (auto op_wrapper : op_repository_) {
     if (!op_wrapper->is_external_) {
       delete op_wrapper->op_;
@@ -73,14 +72,14 @@ Forwad::~Forwad() {
   tensor_repository_.clear();
 }
 
-base::Status Forwad::setModelDesc(std::shared_ptr<op::ModelDesc> model_desc) {
+base::Status Net::setModelDesc(std::shared_ptr<op::ModelDesc> model_desc) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(model_desc, "model_desc is null!");
   model_desc_ = model_desc.get();
   return status;
 }
 
-device::Tensor *Forwad::createTensor(const std::string &name) {
+device::Tensor *Net::createTensor(const std::string &name) {
   device::Tensor *tensor = new device::Tensor(name);
   TensorWrapper *tensor_wrapper = new TensorWrapper();
   tensor_wrapper->is_external_ = false;
@@ -90,7 +89,7 @@ device::Tensor *Forwad::createTensor(const std::string &name) {
   return tensor;
 }
 
-TensorWrapper *Forwad::addTensor(device::Tensor *tensor, bool is_external) {
+TensorWrapper *Net::addTensor(device::Tensor *tensor, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(tensor, "tensor is null!");
   TensorWrapper *tensor_wrapper = new TensorWrapper();
@@ -101,7 +100,7 @@ TensorWrapper *Forwad::addTensor(device::Tensor *tensor, bool is_external) {
   return tensor_wrapper;
 }
 
-device::Tensor *Forwad::getTensor(const std::string &name) {
+device::Tensor *Net::getTensor(const std::string &name) {
   for (TensorWrapper *tensor_wrapper : tensor_repository_) {
     if (tensor_wrapper->name_ == name) {
       return tensor_wrapper->tensor_;
@@ -110,11 +109,11 @@ device::Tensor *Forwad::getTensor(const std::string &name) {
   return nullptr;
 }
 
-op::Op *Forwad::createOp(base::DeviceType device_type, const std::string &name,
-                         op::OpType op_type,
-                         std::initializer_list<std::string> inputs,
-                         std::initializer_list<std::string> outputs,
-                         std::initializer_list<std::string> weights) {
+op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
+                      op::OpType op_type,
+                      std::initializer_list<std::string> inputs,
+                      std::initializer_list<std::string> outputs,
+                      std::initializer_list<std::string> weights) {
   op::Op *op = createOp(device_type, name, op_type, inputs, outputs, weights);
   OpWrapper *op_wrapper = new OpWrapper();
   op_wrapper->is_external_ = false;
@@ -153,10 +152,10 @@ op::Op *Forwad::createOp(base::DeviceType device_type, const std::string &name,
   op_repository_.emplace_back(op_wrapper);
   return op;
 }
-op::Op *Forwad::createOp(base::DeviceType device_type, const std::string &name,
-                         op::OpType op_type, std::vector<std::string> &inputs,
-                         std::vector<std::string> &outputs,
-                         std::vector<std::string> &weights) {
+op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
+                      op::OpType op_type, std::vector<std::string> &inputs,
+                      std::vector<std::string> &outputs,
+                      std::vector<std::string> &weights) {
   op::Op *op = createOp(device_type, name, op_type, inputs, outputs, weights);
   OpWrapper *op_wrapper = new OpWrapper();
   op_wrapper->is_external_ = false;
@@ -196,7 +195,7 @@ op::Op *Forwad::createOp(base::DeviceType device_type, const std::string &name,
   return op;
 }
 
-base::Status Forwad::addOp(op::Op *op, bool is_external) {
+base::Status Net::addOp(op::Op *op, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(op, "op is null!");
   OpWrapper *op_wrapper = new OpWrapper();
@@ -225,8 +224,7 @@ base::Status Forwad::addOp(op::Op *op, bool is_external) {
   return status;
 }
 
-base::Status Forwad::setOpParam(const std::string &op_name,
-                                base::Param *param) {
+base::Status Net::setOpParam(const std::string &op_name, base::Param *param) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is null!");
   OpWrapper *op_wrapper = findOpWrapper(op_repository_, op_name);
@@ -235,13 +233,13 @@ base::Status Forwad::setOpParam(const std::string &op_name,
   return status;
 }
 
-base::Param *Forwad::getOpParam(const std::string &op_name) {
+base::Param *Net::getOpParam(const std::string &op_name) {
   OpWrapper *op_wrapper = findOpWrapper(op_repository_, op_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(op_wrapper, "op_wrapper is null!");
   return op_wrapper->op_->getParam();
 }
 
-base::Status Forwad::init() {
+base::Status Net::init() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -253,8 +251,8 @@ base::Status Forwad::init() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
 
-  status = this->runtime();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph runtime failed!");
+  status = this->session();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph session failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");
@@ -264,7 +262,7 @@ base::Status Forwad::init() {
   return status;
 }
 
-base::Status Forwad::deinit() {
+base::Status Net::deinit() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -275,12 +273,12 @@ base::Status Forwad::deinit() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = runtime_->deinit();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime deinit failed!");
+  status = session_->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session deinit failed!");
   return status;
 }
 
-base::Status Forwad::reshape(base::ShapeMap &shape_map) {
+base::Status Net::reshape(base::ShapeMap &shape_map) {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -291,8 +289,8 @@ base::Status Forwad::reshape(base::ShapeMap &shape_map) {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = runtime_->reshape(shape_map);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime preRun failed!");
+  status = session_->reshape(shape_map);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session preRun failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
@@ -302,7 +300,7 @@ base::Status Forwad::reshape(base::ShapeMap &shape_map) {
   return status;
 };
 
-base::Status Forwad::preRun() {
+base::Status Net::preRun() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -313,8 +311,8 @@ base::Status Forwad::preRun() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = runtime_->preRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime preRun failed!");
+  status = session_->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session preRun failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
@@ -324,7 +322,7 @@ base::Status Forwad::preRun() {
   return status;
 };
 
-base::Status Forwad::run() {
+base::Status Net::run() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -335,8 +333,8 @@ base::Status Forwad::run() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = runtime_->run();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime run failed!");
+  status = session_->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session run failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
@@ -346,7 +344,7 @@ base::Status Forwad::run() {
   return status;
 }
 
-base::Status Forwad::postRun() {
+base::Status Net::postRun() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -357,8 +355,8 @@ base::Status Forwad::postRun() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = runtime_->postRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime run failed!");
+  status = session_->postRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session run failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
@@ -368,15 +366,15 @@ base::Status Forwad::postRun() {
   return status;
 };
 
-base::Status Forwad::dump(std::ostream &oss) {
-  base::Status status = dumpForward(tensor_repository_, op_repository_, inputs_,
-                                    outputs_, op_desc_.name_, oss);
+base::Status Net::dump(std::ostream &oss) {
+  base::Status status = dumpNet(tensor_repository_, op_repository_, inputs_,
+                                outputs_, op_desc_.name_, oss);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
   return status;
   return base::kStatusCodeOk;
 }
 
-base::Status Forwad::construct() {
+base::Status Net::construct() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -470,7 +468,7 @@ base::Status Forwad::construct() {
   return status;
 }
 
-base::Status Forwad::runtime() {
+base::Status Net::session() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -479,41 +477,41 @@ base::Status Forwad::runtime() {
   base::ParallelType parallel_type = parallel_type_;
 
   // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("create runtime\n");
+  // NNDEPLOY_LOGI("create session\n");
   // NNDEPLOY_LOGI("##############\n");
   // if (parallel_type == base::kParallelTypeNone) {
-  //   runtime_ = std::make_shared<SequentialExecutor>();
+  //   session_ = std::make_shared<SequentialExecutor>();
   // } else if (parallel_type == base::kParallelTypeSequential) {
-  //   runtime_ = std::make_shared<SequentialExecutor>();
+  //   session_ = std::make_shared<SequentialExecutor>();
   // } else if (parallel_type == base::kParallelTypeTask) {
-  //   runtime_ = std::make_shared<ParallelTaskExecutor>();
+  //   session_ = std::make_shared<ParallelTaskExecutor>();
   // } else if (parallel_type == base::kParallelTypePipeline) {
-  //   runtime_ = std::make_shared<ParallelPipelineExecutor>();
+  //   session_ = std::make_shared<ParallelPipelineExecutor>();
   // } else {
   //   NNDEPLOY_LOGE("parallel_type is invalid!\n");
   //   return base::kStatusCodeErrorInvalidValue;
   // }
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(runtime_, "Create runtime failed!");
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(session_, "Create session failed!");
 
   // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("runtime init\n");
-  // NNDEPLOY_LOGI("1. Optimizer Forwad V1!\n");
+  // NNDEPLOY_LOGI("session init\n");
+  // NNDEPLOY_LOGI("1. Optimizer Net V1!\n");
   // NNDEPLOY_LOGI("2. Device Verification Phase!\n");
-  // NNDEPLOY_LOGI("3. Optimizer Forwad V2!\n");
+  // NNDEPLOY_LOGI("3. Optimizer Net V2!\n");
   // NNDEPLOY_LOGI("4. Memory Allocation Phase!\n");
   // NNDEPLOY_LOGI("5. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
   status =
-      runtime_->init(tensor_repository_, op_repository_, model_desc_->weights_);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime init failed!");
+      session_->init(tensor_repository_, op_repository_, model_desc_->weights_);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session init failed!");
 
   return status;
 }
 
-Forwad *createForward(op::ModelDesc *model_desc, base::DeviceType device_type,
-                      base::PrecisionType precision_type) {
+Net *createNet(op::ModelDesc *model_desc, base::DeviceType device_type,
+               base::PrecisionType precision_type) {
   return nullptr;
 }
 
-}  // namespace forward
+}  // namespace net
 }  // namespace nndeploy

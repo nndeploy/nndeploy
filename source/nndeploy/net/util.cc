@@ -1,8 +1,8 @@
 
-#include "nndeploy/forward/util.h"
+#include "nndeploy/net/util.h"
 
 namespace nndeploy {
-namespace forward {
+namespace net {
 
 device::Tensor *getTensor(std::vector<TensorWrapper *> &tensor_repository,
                           const std::string &tensor_name) {
@@ -107,11 +107,11 @@ base::Status setColor(std::vector<OpWrapper *> &op_repository,
   return base::kStatusCodeOk;
 }
 
-base::Status dumpForward(std::vector<TensorWrapper *> &tensor_repository,
-                         std::vector<OpWrapper *> &op_repository,
-                         std::vector<device::Tensor *> &graph_inputs,
-                         std::vector<device::Tensor *> &graph_outputs,
-                         const std::string &name, std::ostream &oss) {
+base::Status dumpNet(std::vector<TensorWrapper *> &tensor_repository,
+                     std::vector<OpWrapper *> &op_repository,
+                     std::vector<device::Tensor *> &graph_inputs,
+                     std::vector<device::Tensor *> &graph_outputs,
+                     const std::string &name, std::ostream &oss) {
   base::Status status = base::kStatusCodeOk;
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("op::Op dump Phase!\n");
@@ -364,5 +364,5 @@ bool checkTensor(const std::vector<device::Tensor *> &src_tensors,
   return true;
 }
 
-}  // namespace forward
+}  // namespace net
 }  // namespace nndeploy
