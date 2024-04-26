@@ -409,7 +409,7 @@ class NNDEPLOY_CC_API Graph : public Node {
 };
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, Edge *input, Edge *output) {
   Node *node = dynamic_cast<Node *>(new T(name, input, output));
   NodeWrapper *node_wrapper = new NodeWrapper();
@@ -432,7 +432,7 @@ Node *Graph::createNode(const std::string &name, Edge *input, Edge *output) {
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, const std::string &input_name,
                         const std::string &output_name) {
   Edge *input = getEdge(input_name);
@@ -464,7 +464,7 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, Edge *input,
                         const std::string &output_name) {
   Edge *output = getEdge(output_name);
@@ -492,7 +492,7 @@ Node *Graph::createNode(const std::string &name, Edge *input,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, const std::string &input_name,
                         Edge *output) {
   Edge *input = getEdge(input_name);
@@ -520,7 +520,7 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
                         std::vector<Edge *> outputs) {
   Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs));
@@ -548,7 +548,7 @@ Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name,
                         std::vector<std::string> input_names,
                         std::vector<std::string> output_names) {
@@ -593,7 +593,7 @@ Node *Graph::createNode(const std::string &name,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name,
                         std::vector<std::string> input_names,
                         std::vector<Edge *> outputs) {
@@ -630,7 +630,7 @@ Node *Graph::createNode(const std::string &name,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
                         std::vector<std::string> output_names) {
   std::vector<Edge *> outputs;
@@ -666,7 +666,7 @@ Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name,
                         std::initializer_list<Edge *> inputs,
                         std::initializer_list<Edge *> outputs) {
@@ -695,7 +695,7 @@ Node *Graph::createNode(const std::string &name,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name,
                         std::initializer_list<std::string> input_names,
                         std::initializer_list<std::string> output_names) {
@@ -740,7 +740,7 @@ Node *Graph::createNode(const std::string &name,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name,
                         std::initializer_list<Edge *> inputs,
                         std::initializer_list<std::string> output_names) {
@@ -777,7 +777,7 @@ Node *Graph::createNode(const std::string &name,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name,
                         std::initializer_list<std::string> input_names,
                         std::initializer_list<Edge *> outputs) {
@@ -814,7 +814,7 @@ Node *Graph::createNode(const std::string &name,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          Edge *input, Edge *output) {
   Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
@@ -838,7 +838,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          const std::string &input_name,
                          const std::string &output_name) {
@@ -871,7 +871,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          Edge *input, const std::string &output_name) {
   Edge *output = getEdge(output_name);
@@ -899,7 +899,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          const std::string &input_name, Edge *output) {
   Edge *input = getEdge(input_name);
@@ -927,7 +927,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::vector<Edge *> inputs,
                          std::vector<Edge *> outputs) {
@@ -956,7 +956,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::vector<std::string> input_names,
                          std::vector<std::string> output_names) {
@@ -1001,7 +1001,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::vector<Edge *> inputs,
                          std::vector<std::string> output_names) {
@@ -1038,7 +1038,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::vector<std::string> input_names,
                          std::vector<Edge *> outputs) {
@@ -1075,7 +1075,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::initializer_list<Edge *> inputs,
                          std::initializer_list<Edge *> outputs) {
@@ -1104,7 +1104,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::initializer_list<std::string> input_names,
                          std::initializer_list<std::string> output_names) {
@@ -1149,7 +1149,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::initializer_list<Edge *> inputs,
                          std::initializer_list<std::string> output_names) {
@@ -1186,7 +1186,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::initializer_list<std::string> input_names,
                          std::initializer_list<Edge *> outputs) {
