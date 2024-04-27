@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_STABLE_DIFFUSION_STABLE_DIFFUSION_H_
-#define _NNDEPLOY_MODEL_STABLE_DIFFUSION_STABLE_DIFFUSION_H_
+#ifndef _NNDEPLOY_MODEL_STABLE_DIFFUSION_CLIP_H_
+#define _NNDEPLOY_MODEL_STABLE_DIFFUSION_CLIP_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -23,19 +23,9 @@
 namespace nndeploy {
 namespace model {
 
-#define NNDEPLOY_STABLE_DIFFUSION_TEXT2IMAGE \
-  "NNDEPLOY_STABLE_DIFFUSION_TEXT2IMAGE"
-
-#define NNDEPLOY_STABLE_DIFFUSION_IMAGE2IMAGE \
-  "NNDEPLOY_STABLE_DIFFUSION_IMAGE2IMAGE"
-
-#define NNDEPLOY_STABLE_DIFFUSION_INPAINT "NNDEPLOY_STABLE_DIFFUSION_INPAINT"
-
-extern NNDEPLOY_CC_API dag::Graph *createStableDiffusionText2ImageGraph(
+extern NNDEPLOY_CC_API dag::Graph *createCLIPGraph(
     const std::string &name, dag::Edge *input, dag::Edge *output,
-    base::InferenceType clip_inference_type, SchedulerType scheduler_type,
-    base::InferenceType unet_inference_type,
-    base::InferenceType vae_inference_type, std::vector<base::Param *> &param);
+    base::InferenceType inference_type, std::vector<base::Param *> &param);
 
 }  // namespace model
 }  // namespace nndeploy

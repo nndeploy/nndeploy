@@ -263,9 +263,23 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   bool justModify(const TensorDesc &desc);
   bool justModify(Buffer *buffer);
 
+  // dst必须预先分配内存
+  bool convertTo(Tensor *dst);
+  Tensor *convertTo(base::DataType data_type);
+
+  bool shallowCopy(Tensor *dst);
+  Tensor *shallowCopy();
+
+  bool deepCopy(Tensor *dst);
+  Tensor *deepCopy();
+
   // get
   bool empty();
+
   bool isExternalBuffer();
+  bool isSameDevice(Tensor *tensor);
+  bool isSameDesc(Tensor *tensor);
+  bool isSameBuffer(Tensor *tensor);
 
   std::string getName();
 
@@ -321,8 +335,8 @@ class TypeTensorCreator : public TensorCreator {
   virtual Tensor *createTensor() { return new T(); }
 };
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>>
-    &getGlobalTensorCreatorMap();
+std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
+getGlobalTensorCreatorMap();
 
 template <typename T>
 class TypeTensorRegister {
