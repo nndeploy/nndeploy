@@ -42,9 +42,35 @@ base::Status SchedulerDDIM::setTimesteps() {
   return status;
 }
 
-base::Status SchedulerDDIM::scaleModelInput(device::Tensor *sample, int index);
+device::Tensor *SchedulerDDIM::scaleModelInput(device::Tensor *sample,
+                                               int index) {
+  return sample;
+}
 
-base::Status SchedulerDDIM::configure() {}
+float SchedulerDDIM::getVariance(int64_t timesteps, int64_t prev_timestep) {
+  float alpha_prod_t = alphas_cumprod_[timesteps];
+  float alpha_prod_t_prev = (prev_timestep >= 0)
+                                ? alphas_cumprod_[prev_timestep]
+                                : final_alpha_cumprod_;
+  float beta_prod_t = 1.0 - alpha_prod_t;
+  float beta_prod_t_prev = 1.0 - alpha_prod_t_prev;
+
+  float variance = (beta_prod_t_prev / beta_prod_t) *
+                   (1.0 - alpha_prod_t / alpha_prod_t_prev);
+  return variance;
+}
+
+base::Status SchedulerDDIM::configure() {
+  base::Status status = base::kStatusCodeOk;
+  timesteps_.resize(param_->num_inference_steps);
+  float step_ratio =
+      (float)param_->num_train_timesteps / (float)param_->num_inference_steps;
+  for (int i = 0; i < param_->num_inference_steps; i++) {
+    int64_t prev_timestep = timesteps_[i] - (int64_t)(step_ratio);
+    variance[i] = getVariance(timesteps_[i], prev_timestep);
+  }
+  return status;
+}
 
 base::Status SchedulerDDIM::step(device::Tensor *sample,
                                  device::Tensor *latents, int index,

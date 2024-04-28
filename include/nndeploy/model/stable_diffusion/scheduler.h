@@ -86,7 +86,8 @@ class NNDEPLOY_CC_API Scheduler : public dag::Loop {
    */
   virtual base::Status configure() = 0;
 
-  virtual base::Status scaleModelInput(device::Tensor *sample, int index) = 0;
+  virtual device::Tensor *scaleModelInput(device::Tensor *sample,
+                                          int index) = 0;
 
   /**
    * @brief
@@ -131,7 +132,9 @@ class NNDEPLOY_CC_API SchedulerDDIM : public Scheduler {
 
   virtual base::Status setTimesteps(int num_inference_steps);
 
-  virtual base::Status scaleModelInput(device::Tensor *sample, int index);
+  virtual device::Tensor *scaleModelInput(device::Tensor *sample, int index);
+
+  float getVariance(int64_t timesteps, int64_t prev_timestep);
 
   virtual base::Status configure();
 
@@ -153,6 +156,8 @@ class NNDEPLOY_CC_API SchedulerDDIM : public Scheduler {
   float final_alpha_cumprod_ = 1.0;
   // standard deviation of the initial noise distribution
   float init_noise_sigma_ = 1.0;
+
+  std::vector<float> variance_;
 
   std::vector<int64_t> timesteps_;
 

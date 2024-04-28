@@ -22,7 +22,7 @@ namespace model {
 
 class NNDEPLOY_CC_API ConvertToParam : public base::Param {
  public:
-  base::DataType dst_data_type_ = base::kDataTypeFp32;
+  base::DataType dst_data_type_ = base::dataTypeOf<float>();
 };
 
 class NNDEPLOY_CC_API ConvertTo : public dag::Node {
