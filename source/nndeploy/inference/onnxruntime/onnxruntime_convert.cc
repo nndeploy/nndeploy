@@ -272,7 +272,7 @@ Ort::Value OnnxRuntimeConvert::convertFromTensor(device::Tensor *src) {
                                 OrtMemTypeDefault);
     auto dst_shape = convertFromShape(src->getShape());
     auto ort_value = Ort::Value::CreateTensor(
-        memory_info, src->getPtr(), src->getSize(), dst_shape.data(),
+        memory_info, src->getData(), src->getSize(), dst_shape.data(),
         src->getShape().size(), dst_data_type);
     return ort_value;
   } else if (device::isHostDeviceType(device_type)) {
@@ -280,7 +280,7 @@ Ort::Value OnnxRuntimeConvert::convertFromTensor(device::Tensor *src) {
                                 OrtMemTypeDefault);
     auto dst_shape = convertFromShape(src->getShape());
     auto ort_value = Ort::Value::CreateTensor(
-        memory_info, src->getPtr(), src->getSize(), dst_shape.data(),
+        memory_info, src->getData(), src->getSize(), dst_shape.data(),
         src->getShape().size(), dst_data_type);
     return ort_value;
   } else {

@@ -10,9 +10,8 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/device/buffer.h"
-#include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/device/mat.h"
+#include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 
 namespace nndeploy {

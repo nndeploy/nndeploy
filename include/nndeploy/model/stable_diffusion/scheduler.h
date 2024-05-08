@@ -16,10 +16,11 @@
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
-#include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
+#include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/model/convert_to.h"
+
 
 namespace nndeploy {
 namespace model {
@@ -152,14 +153,14 @@ class NNDEPLOY_CC_API SchedulerDDIM : public Scheduler {
   virtual base::Status run();
 
  private:
-  std::vector<float> alphas_cumprod_;
+  std::vector<float> alphas_cumprod_;  // alpha的累积乘积
   float final_alpha_cumprod_ = 1.0;
   // standard deviation of the initial noise distribution
-  float init_noise_sigma_ = 1.0;
+  float init_noise_sigma_ = 1.0;  // 初始噪声的标准差
 
-  std::vector<float> variance_;
+  // std::vector<float> variance_;
 
-  std::vector<int64_t> timesteps_;
+  std::vector<int64_t> timesteps_;  // 时间步序列
 
   device::Tensor *latent_tensor_ = nullptr;
   device::Tensor *timestep_tensor_ = nullptr;

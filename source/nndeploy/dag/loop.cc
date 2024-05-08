@@ -16,9 +16,10 @@
 #include "nndeploy/dag/executor/sequential_executor.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
-#include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
+#include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+
 
 namespace nndeploy {
 namespace dag {

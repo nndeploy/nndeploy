@@ -2,8 +2,8 @@
 #include "nndeploy/device/device.h"
 
 #include "nndeploy/device/buffer.h"
-#include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
+
 
 namespace nndeploy {
 namespace device {
@@ -30,69 +30,41 @@ getArchitectureMap() {
   return *architecture_map;
 }
 
-int Device::compareBufferDesc(const BufferDesc &desc1,
-                              const BufferDesc &desc2) {
-  size_t size_1 = 1;
-  size_t size_2 = 1;
-  for (size_t i = 0; i < desc1.size_.size(); i++) {
-    size_1 *= desc1.size_[i];
-    size_2 *= desc2.size_[i];
-  }
-  if (size_1 < size_2) {
-    return -1;
-  } else if (size_1 == size_2) {
-    return 0;
-  } else {
-    return 1;
-  }
-}
-
-Buffer *Device::create(size_t size, void *ptr,
-                       BufferSourceType buffer_source_type) {
-  BufferDesc desc;
-  desc.size_.emplace_back(size);
-  Buffer *buffer = new Buffer(this, desc, ptr, buffer_source_type);
-  return buffer;
-}
-
-Buffer *Device::create(const BufferDesc &desc, void *ptr,
-                       BufferSourceType buffer_source_type) {
-  Buffer *buffer = new Buffer(this, desc, ptr, buffer_source_type);
-  return buffer;
-}
-
-Buffer *Device::create(size_t size, int id,
-                       BufferSourceType buffer_source_type) {
-  BufferDesc desc;
-  desc.size_.emplace_back(size);
-  Buffer *buffer = new Buffer(this, desc, id, buffer_source_type);
-  return buffer;
-}
-
-Buffer *Device::create(const BufferDesc &desc, int id,
-                       BufferSourceType buffer_source_type) {
-  Buffer *buffer = new Buffer(this, desc, id, buffer_source_type);
-  return buffer;
-}
-
-void Device::destory(Buffer *buffer) { delete buffer; }
-
-base::Status Device::synchronize() {
-  NNDEPLOY_LOGI("this device[%d, %d] can't synchronize!\n", device_type_.code_,
-                device_type_.device_id_);
-  return base::kStatusCodeOk;
-}
-
 void *Device::getContext() {
   NNDEPLOY_LOGI("this device[%d, %d] can't getContext!\n", device_type_.code_,
                 device_type_.device_id_);
   return nullptr;
 }
 
-void *Device::getCommandQueue() {
+base::Status Device::newCommandQueue(int index) {
+  NNDEPLOY_LOGI("this device[%d, %d] can't newCommandQueue!\n",
+                device_type_.code_, device_type_.device_id_);
+  return base::kStatusCodeOk;
+}
+base::Status Device::deleteCommandQueue(int index) {
+  NNDEPLOY_LOGI("this device[%d, %d] can't deleteCommandQueue!\n",
+                device_type_.code_, device_type_.device_id_);
+  return base::kStatusCodeOk;
+}
+base::Status Device::deleteCommandQueue(void *command_queue) {
+  NNDEPLOY_LOGI("this device[%d, %d] can't deleteCommandQueue!\n",
+                device_type_.code_, device_type_.device_id_);
+  return nullptr;
+}
+base::Status Device::setCommandQueue(void *command_queue, int index) {
+  NNDEPLOY_LOGI("this device[%d, %d] can't setCommandQueue!\n",
+                device_type_.code_, device_type_.device_id_);
+  return nullptr;
+}
+void *Device::getCommandQueue(int index) {
   NNDEPLOY_LOGI("this device[%d, %d] can't getCommandQueue!\n",
                 device_type_.code_, device_type_.device_id_);
   return nullptr;
+}
+base::Status Device::synchronize(int index) {
+  NNDEPLOY_LOGI("this device[%d, %d] can't synchronize!\n", device_type_.code_,
+                device_type_.device_id_);
+  return base::kStatusCodeOk;
 }
 
 base::DeviceType Device::getDeviceType() { return device_type_; }

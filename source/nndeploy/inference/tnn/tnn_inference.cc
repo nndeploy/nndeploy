@@ -85,7 +85,7 @@ base::Status TnnInference::setMemory(device::Buffer *buffer) {
   int memory_size_free = buffer->getSize();
 
   if (memory_size_free >= memory_size) {
-    tnn::Status tnnstatus = instance_->SetForwardMemory(buffer->getPtr());  //
+    tnn::Status tnnstatus = instance_->SetForwardMemory(buffer->getData());  //
     if (tnnstatus != tnn::StatusCode::TNN_OK) {
       NNDEPLOY_LOGE("TNN SetForwardMemory failed!\n");
       return base::kStatusCodeErrorInferenceTnn;

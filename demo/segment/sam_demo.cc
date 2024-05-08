@@ -23,7 +23,7 @@ class DrawMaskNode : public dag::Node {
         (model::SegmentResult *)inputs_[1]->getParam(this);
     device::Tensor *mask = result->mask_;
     cv::Mat mask_output(mask->getHeight(), mask->getWidth(), CV_32FC1,
-                        mask->getPtr());
+                        mask->getData());
     cv::threshold(mask_output, mask_output, 0.0, 255.0, cv::THRESH_BINARY);
     mask_output.convertTo(mask_output, CV_8U);
     cv::Mat *output_mat = new cv::Mat(mask_output);
@@ -101,7 +101,6 @@ int main(int argc, char *argv[]) {
   dag::Edge *draw_mask = graph->createEdge("draw_mask");
   dag::Node *draw_mask_node = graph->createNode<DrawMaskNode>(
       "DrawMaskNode", {&input, &output}, {draw_mask});
- 
 
   // 编码节点
   codec::EncodeNode *encode_node = codec::createEncodeNode(

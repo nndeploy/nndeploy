@@ -3,8 +3,8 @@
 #define _NNDEPLOY_MODEL_SEGMENT_RESULT_H_
 
 #include "nndeploy/base/param.h"
-#include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
+
 
 namespace nndeploy {
 namespace model {

@@ -269,13 +269,13 @@ bool OpenCvConvert::convertToTensor(const cv::Mat &src, device::Tensor *dst,
     }
     std::vector<cv::Mat> tmp_vec;
     for (int i = 0; i < c; ++i) {
-      int8_t *data = ((int8_t *)dst->getPtr()) + w * h * i * data_type_size;
+      int8_t *data = ((int8_t *)dst->getData()) + w * h * i * data_type_size;
       tmp_vec.emplace_back(
           cv::Mat(cv::Size(w, h), cv_single_type, (void *)data));
     }
     cv::split(tmp, tmp_vec);
   } else if (dst->getDataFormat() == base::kDataFormatNHWC) {
-    int8_t *data = (int8_t *)dst->getPtr();
+    int8_t *data = (int8_t *)dst->getData();
     cv::Mat tmp(cv::Size(w, h), cv_mix_type, (void *)data);
     if (normalize) {
       ret = OpenCvConvert::normalize(src, tmp, data_type, scale, mean, std);

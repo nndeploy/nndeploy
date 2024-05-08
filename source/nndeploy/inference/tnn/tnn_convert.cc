@@ -333,7 +333,7 @@ tnn::Mat *TnnConvert::matConvertFromTensor(device::Tensor *src) {
     NNDEPLOY_LOGE("TNN matConvertFromTensor failed!\n");
     return nullptr;
   }
-  void *data = src->getPtr();
+  void *data = src->getData();
   tnn::DeviceType device_type = convertFromDeviceType(src->getDeviceType());
   tnn::Mat *dst = new tnn::Mat(device_type, mat_type, shape_dims, data);
   return dst;

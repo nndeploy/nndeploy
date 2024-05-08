@@ -202,7 +202,7 @@ MNN::Tensor *MnnConvert::convertFromTensor(device::Tensor *src) {
   device::TensorDesc desc = src->getDesc();
   std::vector<int> shape = desc.shape_;
   halide_type_t type = MnnConvert::convertFromDataType(desc.data_type_);
-  void *data = src->getPtr();
+  void *data = src->getData();
   MNN::Tensor::DimensionType dimType =
       MnnConvert::convertFromDataFormat(desc.data_format_);
   MNN::Tensor *dst = MNN::Tensor::create(shape, type, data, dimType);

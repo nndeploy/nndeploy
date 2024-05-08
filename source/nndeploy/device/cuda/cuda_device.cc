@@ -3,7 +3,6 @@
 
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/cuda/cuda_util.h"
-#include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
 
 namespace nndeploy {
@@ -170,8 +169,8 @@ void CudaDevice::deallocate(Buffer *buffer) {
       buffer_source_type == kBufferSourceTypeExternal) {
     Device::destory(buffer);
   } else if (buffer_source_type == kBufferSourceTypeAllocate) {
-    if (buffer->getPtr() != nullptr) {
-      void *data = buffer->getPtr();
+    if (buffer->getData() != nullptr) {
+      void *data = buffer->getData();
       NNDEPLOY_CUDA_CHECK(cudaFree(data));
     }
     Device::destory(buffer);
@@ -185,7 +184,7 @@ void CudaDevice::deallocate(Buffer *buffer) {
 base::Status CudaDevice::copy(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     cudaError_t status =
-        cudaMemcpyAsync(dst->getPtr(), src->getPtr(), src->getDesc().size_[0],
+        cudaMemcpyAsync(dst->getData(), src->getData(), src->getDesc().size_[0],
                         cudaMemcpyDeviceToDevice, stream_);
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream_));
@@ -198,7 +197,7 @@ base::Status CudaDevice::copy(Buffer *src, Buffer *dst) {
 base::Status CudaDevice::download(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     cudaError_t status =
-        cudaMemcpyAsync(dst->getPtr(), src->getPtr(), src->getDesc().size_[0],
+        cudaMemcpyAsync(dst->getData(), src->getData(), src->getDesc().size_[0],
                         cudaMemcpyDeviceToHost, stream_);
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream_));
@@ -211,7 +210,7 @@ base::Status CudaDevice::download(Buffer *src, Buffer *dst) {
 base::Status CudaDevice::upload(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     cudaError_t status =
-        cudaMemcpyAsync(dst->getPtr(), src->getPtr(), src->getDesc().size_[0],
+        cudaMemcpyAsync(dst->getData(), src->getData(), src->getDesc().size_[0],
                         cudaMemcpyHostToDevice, stream_);
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream_));

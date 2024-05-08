@@ -3,7 +3,6 @@
 
 #include "nndeploy/device/ascend_cl/ascend_cl_util.h"
 #include "nndeploy/device/buffer.h"
-#include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
 
 namespace nndeploy {
@@ -168,8 +167,8 @@ void AscendCLDevice::deallocate(Buffer *buffer) {
       buffer_source_type == kBufferSourceTypeExternal) {
     Device::destory(buffer);
   } else if (buffer_source_type == kBufferSourceTypeAllocate) {
-    if (buffer->getPtr() != nullptr) {
-      void *data = buffer->getPtr();
+    if (buffer->getData() != nullptr) {
+      void *data = buffer->getData();
       // NNDEPLOY_CUDA_CHECK(cudaFree(data));
       aclError ret = aclrtFree(data);
       if (ret != ACL_SUCCESS) {
@@ -188,8 +187,8 @@ void AscendCLDevice::deallocate(Buffer *buffer) {
 
 base::Status AscendCLDevice::copy(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
-    aclError ret = aclrtMemcpyAsync(dst->getPtr(), dst->getDesc().size_[0],
-                                    src->getPtr(), src->getDesc().size_[0],
+    aclError ret = aclrtMemcpyAsync(dst->getData(), dst->getDesc().size_[0],
+                                    src->getData(), src->getDesc().size_[0],
                                     ACL_MEMCPY_DEVICE_TO_DEVICE, stream_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("copy fuction: aclrtMemcpyAsync failed, errorCode is %d",
@@ -210,8 +209,8 @@ base::Status AscendCLDevice::copy(Buffer *src, Buffer *dst) {
 }
 base::Status AscendCLDevice::download(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
-    aclError ret = aclrtMemcpyAsync(dst->getPtr(), dst->getDesc().size_[0],
-                                    src->getPtr(), src->getDesc().size_[0],
+    aclError ret = aclrtMemcpyAsync(dst->getData(), dst->getDesc().size_[0],
+                                    src->getData(), src->getDesc().size_[0],
                                     ACL_MEMCPY_DEVICE_TO_HOST, stream_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE(
@@ -233,8 +232,8 @@ base::Status AscendCLDevice::download(Buffer *src, Buffer *dst) {
 }
 base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
-    aclError ret = aclrtMemcpyAsync(dst->getPtr(), dst->getDesc().size_[0],
-                                    src->getPtr(), src->getDesc().size_[0],
+    aclError ret = aclrtMemcpyAsync(dst->getData(), dst->getDesc().size_[0],
+                                    src->getData(), src->getDesc().size_[0],
                                     ACL_MEMCPY_HOST_TO_DEVICE, stream_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("upload fuction: aclrtMemcpyAsync failed, errorCode is %d",

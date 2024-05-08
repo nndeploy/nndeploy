@@ -380,16 +380,16 @@ Device *Tensor::getDevice() {
     return nullptr;
   }
 }
-BufferPool *Tensor::getBufferPool() {
+MemoryPool *Tensor::getMemoryPool() {
   if (buffer_) {
-    return buffer_->getBufferPool();
+    return buffer_->getMemoryPool();
   } else {
     return nullptr;
   }
 }
-bool Tensor::isBufferPool() {
+bool Tensor::isMemoryPool() {
   if (buffer_) {
-    return buffer_->isBufferPool();
+    return buffer_->isMemoryPool();
   } else {
     return false;
   }
@@ -422,9 +422,9 @@ base::IntVector Tensor::getConfig() {
     return base::IntVector();
   }
 }
-void *Tensor::getPtr() {
+void *Tensor::getData() {
   if (buffer_) {
-    return buffer_->getPtr();
+    return buffer_->getData();
   } else {
     return nullptr;
   }

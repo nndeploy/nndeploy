@@ -9,8 +9,8 @@
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/device/buffer.h"
-#include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
+#include "nndeploy/device/memory_pool.h"
 
 namespace nndeploy {
 namespace device {
@@ -76,7 +76,7 @@ struct NNDEPLOY_CC_API TensorDesc {
  * @brief Tensor类
  *
  */
-class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
+class NNDEPLOY_CC_API Tensor {
  public:
   /**
    * @brief Construct a new Tensor object
@@ -264,22 +264,22 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   bool justModify(Buffer *buffer);
 
   // dst必须预先分配内存
-  //bool convertTo(Tensor *dst);
-  //Tensor *convertTo(base::DataType data_type);
+  // bool convertTo(Tensor *dst);
+  // Tensor *convertTo(base::DataType data_type);
 
-  //bool shallowCopy(Tensor *dst);
-  //Tensor *shallowCopy();
+  // bool shallowCopy(Tensor *dst);
+  // Tensor *shallowCopy();
 
-  //bool deepCopy(Tensor *dst);
-  //Tensor *deepCopy();
+  // bool deepCopy(Tensor *dst);
+  // Tensor *deepCopy();
 
   // get
   bool empty();
 
   bool isExternalBuffer();
-  //bool isSameDevice(Tensor *tensor);
-  //bool isSameDesc(Tensor *tensor);
-  //bool isSameBuffer(Tensor *tensor);
+  // bool isSameDevice(Tensor *tensor);
+  // bool isSameDesc(Tensor *tensor);
+  // bool isSameBuffer(Tensor *tensor);
 
   std::string getName();
 
@@ -299,13 +299,13 @@ class NNDEPLOY_CC_API Tensor : public base::NonCopyable {
   Buffer *getBuffer();
   base::DeviceType getDeviceType();
   Device *getDevice();
-  BufferPool *getBufferPool();
-  bool isBufferPool();
+  MemoryPool *getMemoryPool();
+  bool isMemoryPool();
   BufferDesc getBufferDesc();
   size_t getSize();
   base::SizeVector getSizeVector();
   base::IntVector getConfig();
-  void *getPtr();
+  void *getData();
   int getId();
   BufferSourceType getBufferSourceType();
 

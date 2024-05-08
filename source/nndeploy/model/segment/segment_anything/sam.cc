@@ -62,7 +62,7 @@ base::Status SamBuildInput::run() {
           iter->create(cur_device, desc, inputs_[0]->getIndex(this));
 
       size_t size = point_coords_tensor->getSize();
-      void *data = point_coords_tensor->getPtr();
+      void *data = point_coords_tensor->getData();
       std::memcpy(data, (void *)scale_points.data(), size);
     } else if (name == "point_labels") {
       std::vector<float> point_labels = {1, -1};
@@ -73,7 +73,7 @@ base::Status SamBuildInput::run() {
       device::Tensor *point_labels_tensor =
           iter->create(cur_device, desc, inputs_[0]->getIndex(this));
       size_t size = point_labels_tensor->getSize();
-      void *data = point_labels_tensor->getPtr();
+      void *data = point_labels_tensor->getData();
       std::memcpy(data, (void *)point_labels.data(), size);
     } else if (name == "has_mask_input") {
       std::vector<float> has_mask_input = {1};
@@ -83,7 +83,7 @@ base::Status SamBuildInput::run() {
       device::Tensor *has_mask_input_tensor =
           iter->create(cur_device, desc, inputs_[0]->getIndex(this));
       size_t size = has_mask_input_tensor->getSize();
-      void *data = has_mask_input_tensor->getPtr();
+      void *data = has_mask_input_tensor->getData();
       std::memcpy(data, (void *)has_mask_input.data(), size);
     } else if (name == "mask_input") {
       std::vector<float> mask_input(size_t(256 * 256), float(0));
@@ -96,7 +96,7 @@ base::Status SamBuildInput::run() {
       device::Tensor *mask_input_tensor =
           iter->create(cur_device, desc, inputs_[0]->getIndex(this));
       size_t size = mask_input_tensor->getSize();
-      void *data = mask_input_tensor->getPtr();
+      void *data = mask_input_tensor->getData();
       std::memcpy(data, (void *)mask_input.data(), size);
     } else if (name == "orig_im_size")
 
@@ -108,7 +108,7 @@ base::Status SamBuildInput::run() {
       device::Tensor *orig_im_size_tensor =
           iter->create(cur_device, desc, inputs_[0]->getIndex(this));
       size_t size = orig_im_size_tensor->getSize();
-      void *data = orig_im_size_tensor->getPtr();
+      void *data = orig_im_size_tensor->getData();
       std::memcpy(data, (void *)orig_im_size.data(), size);
     }
   }

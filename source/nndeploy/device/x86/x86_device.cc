@@ -2,7 +2,6 @@
 #include "nndeploy/device/x86/x86_device.h"
 
 #include "nndeploy/device/buffer.h"
-#include "nndeploy/device/mat.h"
 #include "nndeploy/device/tensor.h"
 
 namespace nndeploy {
@@ -138,8 +137,8 @@ void X86Device::deallocate(Buffer *buffer) {
       buffer_source_type == kBufferSourceTypeExternal) {
     Device::destory(buffer);
   } else if (buffer_source_type == kBufferSourceTypeAllocate) {
-    if (buffer->getPtr() != nullptr) {
-      void *data = buffer->getPtr();
+    if (buffer->getData() != nullptr) {
+      void *data = buffer->getData();
       free(data);
     }
     Device::destory(buffer);
@@ -152,7 +151,7 @@ void X86Device::deallocate(Buffer *buffer) {
 
 base::Status X86Device::copy(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
-    memcpy(dst->getPtr(), src->getPtr(), src->getDesc().size_[0]);
+    memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("copy buffer failed");
@@ -161,7 +160,7 @@ base::Status X86Device::copy(Buffer *src, Buffer *dst) {
 }
 base::Status X86Device::download(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
-    memcpy(dst->getPtr(), src->getPtr(), src->getDesc().size_[0]);
+    memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("download buffer failed");
@@ -170,7 +169,7 @@ base::Status X86Device::download(Buffer *src, Buffer *dst) {
 }
 base::Status X86Device::upload(Buffer *src, Buffer *dst) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
-    memcpy(dst->getPtr(), src->getPtr(), src->getDesc().size_[0]);
+    memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("upload buffer failed");

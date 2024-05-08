@@ -147,7 +147,7 @@ base::Status TensorRtInference::init() {
           new device::Tensor(desc, max_input_buffer, name);
       input_tensors_.insert({name, current_input_tensor});
 
-      // bindings_[i] = max_input_buffer->getPtr();
+      // bindings_[i] = max_input_buffer->getData();
     } else {
       device::TensorDesc desc;
       desc.data_type_ = data_type;
@@ -162,7 +162,7 @@ base::Status TensorRtInference::init() {
           new device::Tensor(desc, max_output_buffer, name);
       output_tensors_.insert({name, current_output_tensor});
 
-      // bindings_[i] = max_output_buffer->getPtr();
+      // bindings_[i] = max_output_buffer->getData();
     }
   }
 
@@ -233,7 +233,7 @@ int64_t TensorRtInference::getMemorySize() { return forward_memory_size_; }
 
 base::Status TensorRtInference::setMemory(device::Buffer *buffer) {
   if (buffer && buffer->getSize() >= forward_memory_size_) {
-    void *forward_memory_ = buffer->getPtr();
+    void *forward_memory_ = buffer->getData();
     context_->setDeviceMemory(forward_memory_);
     return base::kStatusCodeOk;
   } else {
@@ -267,14 +267,14 @@ base::Status TensorRtInference::run() {
   cudaStream_t stream_ = (cudaStream_t)device->getCommandQueue();
 #ifdef TENSORRT_MAJOR_8_MINOR_5
   for (auto iter : max_input_tensors_) {
-    void *data = iter.second->getBuffer()->getPtr();
+    void *data = iter.second->getBuffer()->getData();
     if (!context_->setTensorAddress(iter.first.c_str(), data)) {
       NNDEPLOY_LOGE("Fail to setTensorAddress [%s]!\n", iter.first.c_str());
       return base::kStatusCodeErrorInferenceTensorRt;
     }
   }
   for (auto iter : max_output_tensors_) {
-    void *data = iter.second->getBuffer()->getPtr();
+    void *data = iter.second->getBuffer()->getData();
     if (!context_->setTensorAddress(iter.first.c_str(), data)) {
       NNDEPLOY_LOGE("Fail to setTensorAddress [%s]!\n", iter.first.c_str());
       return base::kStatusCodeErrorInferenceTensorRt;
@@ -290,11 +290,11 @@ base::Status TensorRtInference::run() {
     if (bindingIsInput(i)) {
       auto max_input_buffer =
           max_input_tensors_[io_index_name_[i]]->getBuffer();
-      bindings_[i] = max_input_buffer->getPtr();
+      bindings_[i] = max_input_buffer->getData();
     } else {
       auto max_output_buffer =
           max_output_tensors_[io_index_name_[i]]->getBuffer();
-      bindings_[i] = max_output_buffer->getPtr();
+      bindings_[i] = max_output_buffer->getData();
     }
   }
   if (!context_->enqueueV2(bindings_.data(), stream_, nullptr)) {
@@ -523,7 +523,7 @@ base::Status TensorRtInference::CreateExecuteContext() {
   } else {
     device::Device *device = device::getDevice(inference_param_->device_type_);
     inner_forward_buffer_ = device->allocate(forward_memory_size_);
-    context_->setDeviceMemory(inner_forward_buffer_->getPtr());
+    context_->setDeviceMemory(inner_forward_buffer_->getData());
   }
   return base::kStatusCodeOk;
 }
@@ -577,10 +577,10 @@ nvinfer1::TensorFormat TensorRtInference::getBindingFormat(
 nvinfer1::Dims TensorRtInference::getBindingDimensions(int32_t binding_index) {
 #ifdef TENSORRT_MAJOR_8_MINOR_5
   char const *name = engine_->getIOTensorName(binding_index);
-  //return engine_->getTensorShape(name);
+  // return engine_->getTensorShape(name);
   return context_->getTensorShape(name);
 #else
-  //return engine_->getBindingDimensions(binding_index);
+  // return engine_->getBindingDimensions(binding_index);
   return context_->getBindingDimensions(binding_index);
 #endif  // TENSORRT_MAJOR_8_MINOR_5
 }

@@ -12,8 +12,8 @@
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
-#include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
+#include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/model/detect/util.h"
 #include "nndeploy/model/infer.h"
@@ -51,7 +51,7 @@ base::Status YoloPostProcess::runV5V6() {
   int num_classes = param->num_classes_;
 
   device::Tensor *tensor = inputs_[0]->getTensor(this);
-  float *data = (float *)tensor->getPtr();
+  float *data = (float *)tensor->getData();
   int batch = tensor->getShapeIndex(0);
   int height = tensor->getShapeIndex(1);
   int width = tensor->getShapeIndex(2);
@@ -122,7 +122,7 @@ base::Status YoloPostProcess::runV8() {
   // NNDEPLOY_LOGI("**********%d,%d,%d,%d", tensor->getBatch(),
   //               tensor->getChannel(), tensor->getHeight(),
   //               tensor->getWidth());
-  float *data = (float *)tensor->getPtr();
+  float *data = (float *)tensor->getData();
   int batch = tensor->getShapeIndex(0);
   int height = tensor->getShapeIndex(1);
   int width = tensor->getShapeIndex(2);

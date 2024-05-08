@@ -160,7 +160,7 @@ ncnn::Mat NcnnConvert::matConvertFromTensor(device::Tensor *src) {
     ncnn::Mat dst;
     return dst;
   }
-  void *data = src->getPtr();
+  void *data = src->getData();
   int elemsize = src->getDataType().size();
   base::IntVector shape = src->getShape();
   if (shape.size() == 2) {

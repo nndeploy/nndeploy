@@ -146,7 +146,7 @@ base::Status CoremlInference::run() {
     OSType pixelFormat = kCVPixelFormatType_OneComponent8;
     CVReturn status =
         CVPixelBufferCreateWithBytes(kCFAllocatorDefault, width, height, pixelFormat,
-                                     iter.second->getPtr(), stride, NULL, NULL, NULL, &photodata);
+                                     iter.second->getData(), stride, NULL, NULL, NULL, &photodata);
     if (status != 0) {
       NNDEPLOY_LOGE("Tensor create failed");
     }
@@ -161,7 +161,7 @@ base::Status CoremlInference::run() {
   for (auto iter : external_output_tensors_) {
     MLFeatureValue *value =
         res[[NSString stringWithCString:iter.first.c_str() encoding:NSASCIIStringEncoding]];
-    [&](void *&&data) -> void *& { return data; }(iter.second->getPtr()) =
+    [&](void *&&data) -> void *& { return data; }(iter.second->getData()) =
                              CVPixelBufferGetBaseAddress([value imageBufferValue]);
   }
   return base::kStatusCodeOk;

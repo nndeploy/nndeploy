@@ -2,8 +2,6 @@
 #ifndef _NNDEPLOY_MODEL_DETECT_RESULT_H_
 #define _NNDEPLOY_MODEL_DETECT_RESULT_H_
 
-#include "nndeploy/device/mat.h"
-
 namespace nndeploy {
 namespace model {
 

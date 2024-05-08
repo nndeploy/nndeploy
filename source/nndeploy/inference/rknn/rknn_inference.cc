@@ -11,8 +11,7 @@ namespace inference {
 TypeInferenceRegister<TypeInferenceCreator<RknnInference>>
     g_rknn_inference_register(base::kInferenceTypeRknn);
 
-RknnInference::RknnInference(base::InferenceType type)
-    : Inference(type) {}
+RknnInference::RknnInference(base::InferenceType type) : Inference(type) {}
 
 RknnInference::~RknnInference() {}
 
@@ -27,7 +26,7 @@ base::Status RknnInference::init() {
     model_buffer = rknn_inference_param->model_value_[0];
   }
 
-  if(model_buffer.empty()){
+  if (model_buffer.empty()) {
     NNDEPLOY_LOGET("Load model failed, model buffer empty\n", "RKNN");
     return base::kStatusCodeErrorInferenceRknn;
   }
@@ -66,19 +65,21 @@ base::Status RknnInference::init() {
     };
     auto name = std::string(input_attr.name);
     std::cout << name << std::endl;
-    base::IntVector shape = RknnConvert::convertToShape(input_attr, rknn_inference_param->input_data_format_);
-    base::DataType data_type = RknnConvert::convertToDataType(rknn_inference_param->input_data_type_);
-    base::DataFormat data_format = RknnConvert::convertToDataFormat(rknn_inference_param->input_data_format_);
+    base::IntVector shape = RknnConvert::convertToShape(
+        input_attr, rknn_inference_param->input_data_format_);
+    base::DataType data_type =
+        RknnConvert::convertToDataType(rknn_inference_param->input_data_type_);
+    base::DataFormat data_format = RknnConvert::convertToDataFormat(
+        rknn_inference_param->input_data_format_);
 
     device::TensorDesc desc;
     desc.shape_ = shape;
     desc.data_type_ = data_type;
     desc.data_format_ = data_format;
 
-    // create empty buffer tensor for input, use setInputTensor to set buffer later.
-    // avoid unnecessray memory copy
-    device::Tensor *input_tensor =
-        new device::Tensor(desc, name);
+    // create empty buffer tensor for input, use setInputTensor to set buffer
+    // later. avoid unnecessray memory copy
+    device::Tensor *input_tensor = new device::Tensor(desc, name);
     input_tensors_.insert({name, input_tensor});
 
     inputs_index_name_[i] = name;
@@ -106,20 +107,19 @@ base::Status RknnInference::init() {
     desc.data_type_ = base::DataType(base::kDataTypeCodeFp, 32, 1);
     desc.data_format_ = RknnConvert::convertToDataFormat(output_attr.fmt);
 
-    device::Tensor *output_tensor =
-        new device::Tensor(device, desc, name);
+    device::Tensor *output_tensor = new device::Tensor(device, desc, name);
     output_tensors_.insert({name, output_tensor});
 
     output.index = i;
     output.want_float = true;
     output.is_prealloc = true;
     output.size = output_attr.n_elems * sizeof(float);
-    output.buf = output_tensor->getPtr();
+    output.buf = output_tensor->getData();
   }
   return status;
 }
 
-base::Status RknnInference::deinit(){
+base::Status RknnInference::deinit() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : input_tensors_) {
     delete iter.second;
@@ -132,10 +132,10 @@ base::Status RknnInference::deinit(){
   return status;
 }
 
-base::Status RknnInference::run(){
+base::Status RknnInference::run() {
   base::Status status = base::kStatusCodeOk;
-  for(int i = 0; i < rknn_inputs_.size(); i++){
-    rknn_inputs_[i].buf = input_tensors_[inputs_index_name_[i]]->getPtr();
+  for (int i = 0; i < rknn_inputs_.size(); i++) {
+    rknn_inputs_[i].buf = input_tensors_[inputs_index_name_[i]]->getData();
   }
   if (!CHECK_RKNN(rknn_inputs_set(rknn_ctx_, rknn_inputs_.size(),
                                   rknn_inputs_.data()))) {
@@ -152,7 +152,7 @@ base::Status RknnInference::run(){
 }
 
 base::Status RknnInference::setInputTensor(const std::string &name,
-                            device::Tensor *input_tensor){
+                                           device::Tensor *input_tensor) {
   base::Status status = base::kStatusCodeOk;
 
   if (input_tensors_.count(name) > 0) {
@@ -164,13 +164,13 @@ base::Status RknnInference::setInputTensor(const std::string &name,
   return status;
 }
 
-base::Status RknnInference::reshape(base::ShapeMap &shape_map){
-    return base::kStatusCodeOk;
+base::Status RknnInference::reshape(base::ShapeMap &shape_map) {
+  return base::kStatusCodeOk;
 }
 
-device::Tensor* RknnInference::getOutputTensorAfterRun(
+device::Tensor *RknnInference::getOutputTensorAfterRun(
     const std::string &name, base::DeviceType device_type, bool is_copy,
-    base::DataFormat data_format){
+    base::DataFormat data_format) {
   device::Device *device = device::getDevice(device_type);
   device::Tensor *internal_tensor = output_tensors_[name];
   device::TensorDesc desc = internal_tensor->getDesc();

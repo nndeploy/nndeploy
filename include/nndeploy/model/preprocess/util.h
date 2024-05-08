@@ -14,10 +14,11 @@
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
-#include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
+#include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/model/preprocess/params.h"
+
 
 namespace nndeploy {
 namespace model {

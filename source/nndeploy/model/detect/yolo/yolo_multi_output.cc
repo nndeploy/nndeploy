@@ -12,8 +12,8 @@
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
-#include "nndeploy/device/buffer_pool.h"
 #include "nndeploy/device/device.h"
+#include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/model/detect/util.h"
 #include "nndeploy/model/infer.h"
@@ -47,7 +47,7 @@ static void generateProposals(const int *anchors, int stride, const int model_w,
   const int num_class = tensor->getWidth() - 5;
   const int num_anchors = 3;
 
-  float *data = (float *)tensor->getPtr();
+  float *data = (float *)tensor->getData();
 
   for (int q = 0; q < num_anchors; q++) {
     const float anchor_w = anchors[q * 2];

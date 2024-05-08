@@ -156,10 +156,10 @@ enum BufferStatus : int {
   kBufferStatusUsed,
 };
 
-enum BufferPoolType : int {
-  kBufferPoolTypeEmbed = 0x0000,
-  kBufferPoolTypeUnity,
-  kBufferPoolTypeChunkIndepend,
+enum MemoryPoolType : int {
+  kMemoryPoolTypeEmbed = 0x0000,
+  kMemoryPoolTypeUnity,
+  kMemoryPoolTypeChunkIndepend,
 };
 
 enum TensorType : int {

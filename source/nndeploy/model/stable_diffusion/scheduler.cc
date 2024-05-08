@@ -13,6 +13,21 @@ std::vector<float> custom_linspace(float start, float end, int steps) {
   return values;
 }
 
+base::Status initializeLatents(int batch_size, int unet_channels,
+                               int latent_height, int latent_width,
+                               float init_noise_sigma,
+                               device ::Tensor *latents) {
+  latents_dtype = torch.float32;  // # text_embeddings.dtype
+  latents_shape =
+      (batch_size, unet_channels, latent_height, latent_width)latents =
+          torch.randn(latents_shape, device = self.device,
+                      dtype = latents_dtype, generator = self.generator);
+  // # Scale the initial noise by the standard deviation required by the
+  // scheduler
+  latents = latents * self.scheduler.init_noise_sigma;
+  return latents;
+}
+
 SchedulerDDIM::SchedulerDDIM(const std::string &name,
                              SchedulerType scheduler_type, dag::Edge *input,
                              dag::Edge *output)
@@ -71,14 +86,75 @@ base::Status SchedulerDDIM::configure() {
   }
   return status;
 }
+/**
+ * @brief
+ *
+ * @param sample
+ * @param latents
+ * @param index
+ * @param timestep
+ * @return base::Status
+ * # See formulas (12) and (16) of DDIM paper
+ * # https://arxiv.org/pdf/2010.02502.pdf
+ * # Ideally, read DDIM paper in-detail understanding
+ * # Notation (<variable name> -> <name in paper>
+ * # - pred_noise_t -> e_theta(x_t, t)
+ * # - pred_original_sample -> f_theta(x_t, t) or x_0
+ * # - std_dev_t -> sigma_t
+ * # - eta -> η
+ * # - pred_sample_direction -> "direction pointing to x_t"
+ * # - pred_prev_sample -> "x_t-1"
+ */
+base::Status SchedulerDDIM::step(device::Tensor *model_output,
+                                 device::Tensor *sample, int index,
+                                 std::vector<int64_t> &timestep, float eta,
+                                 bool use_clipped_model_output,
+                                 std::mt19937 &generator,
+                                 device::Tensor *variance_noise) {
+  base::Status status = base::kStatusCodeOk;
 
-base::Status SchedulerDDIM::step(device::Tensor *sample,
-                                 device::Tensor *latents, int index,
-                                 int timestep);
+  //
+  int prev_idx = idx + 1;
+  float alpha_prod_t = alphas_cumprod_[idx];
+  float alpha_prod_t_prev = (prev_idx < param_->num_train_timesteps_)
+                                ? alphas_cumprod_[prev_idx]
+                                : final_alpha_cumprod_;
+  float beta_prod_t = 1.0 - alpha_prod_t;
+
+  // 3. compute predicted original sample from predicted noise also called
+  // "predicted x_0" of formula(12) from https: //arxiv.org/pdf/2010.02502.pdf
+  device::Tensor *pred_original_sample = nullptr;
+  if (prediction_type_ == "epsilon") {
+    device::Tensor model_output_tmp = std::sqrtf(beta_prod_t) * model_output;
+    float alpha_prod_t_sqrt = std::sqrtf(alpha_prod_t);
+    op::sub({sample, &model_output_tmp}, pred_original_sample, nullptr);
+    // pred_original_sample =
+  } else if (prediction_type_ == "epsilon") {
+    pred_original_sample = getDeepCopyTensor(sample);
+  } else if (prediction_type_ == "v_prediction") {
+    device::Tensor sample_tmp = std::sqrtf(alpha_prod_t) * sample;
+    device::Tensor model_output_tmp = std::sqrtf(beta_prod_t) * (*model_output);
+    op::sub({&sample_tmp, &model_output_tmp}, pred_original_sample, nullptr);
+    // pred_original_sample =
+  } else {
+    NNDEPLOY_LOGE("Invalid prediction type!\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  return status;
+}
 
 base::Status SchedulerDDIM::addNoise(device::Tensor *init_latents,
                                      device::Tensor *noise, int idx,
-                                     int latent_timestep);
+                                     int latent_timestep) {
+  float sqrt_alpha_prod = std::sqrtf(alphas_cumprod_[idx]);
+  float sqrt_one_minus_alpha_prod = std::sqrtf(1.0f - alphas_cumprod_[idx]);
+
+  device::Tensor *noisy_latents = device::getDeepCopyTensor(init_latents);
+  op::addFunction({init_latents, noise}, noisy_latents, nullptr);
+
+  return noisy_latents;
+}
 
 base::Status SchedulerDDIM::init() {
   base::Status status = base::kStatusCodeOk;
