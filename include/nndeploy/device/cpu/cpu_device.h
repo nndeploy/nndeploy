@@ -13,11 +13,10 @@ class CpuArchitecture : public Architecture {
 
   virtual ~CpuArchitecture();
 
-  virtual base::Status checkDevice(int device_id = 0,
-                                   void *command_queue = nullptr,
+  virtual base::Status checkDevice(int device_id, void *command_queue = nullptr,
                                    std::string library_path = "") override;
 
-  virtual base::Status enableDevice(int device_id = 0,
+  virtual base::Status enableDevice(int device_id,
                                     void *command_queue = nullptr,
                                     std::string library_path = "") override;
 
@@ -35,15 +34,17 @@ class NNDEPLOY_CC_API CpuDevice : public Device {
   friend class CpuArchitecture;
 
  public:
-  virtual BufferDesc toBufferDesc(const MatDesc &desc,
-                                  const base::IntVector &config);
-
   virtual BufferDesc toBufferDesc(const TensorDesc &desc,
                                   const base::IntVector &config);
 
-  virtual Buffer *allocate(size_t size);
-  virtual Buffer *allocate(const BufferDesc &desc);
-  virtual void deallocate(Buffer *buffer);
+  virtual void *allocate(size_t size);
+  virtual void *allocate(const BufferDesc &desc);
+
+  virtual void deallocate(void *ptr);
+
+  virtual base::Status copy(void *src, void *dst, size_t size);
+  virtual base::Status download(void *src, void *dst, size_t size);
+  virtual base::Status upload(void *src, void *dst, size_t size);
 
   virtual base::Status copy(Buffer *src, Buffer *dst);
   virtual base::Status download(Buffer *src, Buffer *dst);

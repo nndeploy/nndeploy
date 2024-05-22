@@ -91,8 +91,6 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
    * @param config
    * @return BufferDesc
    */
-  virtual BufferDesc toBufferDesc(const MatDesc &desc,
-                                  const base::IntVector &config);
 
   /**
    * @brief Convert TensorDesc to BufferDesc.

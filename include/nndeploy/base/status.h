@@ -67,6 +67,10 @@ class NNDEPLOY_CC_API Status {
   bool operator==(const StatusCode &other) const;
   bool operator==(int other) const;
 
+  bool operator!=(const Status &other) const;
+  bool operator!=(const StatusCode &other) const;
+  bool operator!=(int other) const;
+
   operator int() const;
   operator bool() const;
 

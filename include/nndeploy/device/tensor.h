@@ -42,8 +42,8 @@ class NNDEPLOY_CC_API Tensor {
   Tensor(const Tensor &tensor);
   Tensor &operator=(const Tensor &tensor);
 
-  Tensor(Tensor &&tensor);
-  Tensor &operator=(Tensor &&tensor);
+  Tensor(Tensor &&tensor) noexcept;
+  Tensor &operator=(Tensor &&tensor) noexcept;
 
   virtual ~Tensor();
 
@@ -115,7 +115,7 @@ class NNDEPLOY_CC_API Tensor {
   Device *getDevice() const;
   MemoryPool *getMemoryPool() const;
   bool isMemoryPool() const;
-  BufferDesc getBufferDesc() const;
+  BufferDesc toBufferDesc() const;
   size_t getSize() const;
   base::SizeVector getSizeVector() const;
   base::IntVector getConfig() const;

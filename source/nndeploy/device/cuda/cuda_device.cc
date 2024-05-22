@@ -94,30 +94,6 @@ std::vector<DeviceInfo> CudaArchitecture::getDeviceInfo(
  * @param desc
  * @param config
  * @return BufferDesc
- * @note: 暂未考虑锁业的情况
- */
-BufferDesc CudaDevice::toBufferDesc(const MatDesc &desc,
-                                    const base::IntVector &config) {
-  BufferDesc buffer_desc;
-  buffer_desc.config_ = config;
-  size_t size = desc.data_type_.size();
-  if (desc.stride_.empty()) {
-    for (int i = 0; i < desc.shape_.size(); ++i) {
-      size *= desc.shape_[i];
-    }
-  } else {
-    size = desc.stride_[0];
-  }
-  buffer_desc.size_.emplace_back(size);
-  return buffer_desc;
-}
-
-/**
- * @brief
- *
- * @param desc
- * @param config
- * @return BufferDesc
  * @note:
  * 通过stride_替代了data_format_，stride_的第一个元素表示的是整个tensor的大小
  * 意味着在TensorDesc的构造函数要花很多心思来计算stride_

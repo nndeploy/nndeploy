@@ -74,22 +74,6 @@ std::vector<DeviceInfo> CpuArchitecture::getDeviceInfo(
   return device_info_list;
 }
 
-BufferDesc CpuDevice::toBufferDesc(const MatDesc &desc,
-                                   const base::IntVector &config) {
-  BufferDesc buffer_desc;
-  buffer_desc.config_ = config;
-  size_t size = desc.data_type_.size();
-  if (desc.stride_.empty()) {
-    for (int i = 0; i < desc.shape_.size(); ++i) {
-      size *= desc.shape_[i];
-    }
-  } else {
-    size = desc.stride_[0];
-  }
-  buffer_desc.size_.emplace_back(size);
-  return buffer_desc;
-}
-
 /**
  * @brief
  *
@@ -116,41 +100,59 @@ BufferDesc CpuDevice::toBufferDesc(const TensorDesc &desc,
   return buffer_desc;
 }
 
-Buffer *CpuDevice::allocate(size_t size) {
-  BufferDesc desc(size);
-  return this->allocate(desc);
+void *CpuDevice::allocate(size_t size) {
+  void *data = malloc(size);
+  if (data == nullptr) {
+    NNDEPLOY_LOGE("allocate buffer failed");
+    return nullptr;
+  }
+  return data;
 }
-Buffer *CpuDevice::allocate(const BufferDesc &desc) {
+void *CpuDevice::allocate(const BufferDesc &desc) {
   void *data = malloc(desc.size_[0]);
-  Buffer *buffer = Device::create(desc, data, kMemoryTypeAllocate);
-  return buffer;
+  if (data == nullptr) {
+    NNDEPLOY_LOGE("allocate buffer failed");
+    return nullptr;
+  }
+  return data;
 }
-void CpuDevice::deallocate(Buffer *buffer) {
-  if (buffer == nullptr) {
+void CpuDevice::deallocate(void *ptr) {
+  if (ptr == nullptr) {
     return;
   }
-  if (buffer->subRef() > 1) {
-    return;
-  }
-  MemoryType buffer_source_type = buffer->getMemoryType();
-  if (buffer_source_type == kMemoryTypeNone ||
-      buffer_source_type == kMemoryTypeExternal) {
-    Device::destory(buffer);
-  } else if (buffer_source_type == kMemoryTypeAllocate) {
-    if (buffer->getData() != nullptr) {
-      void *data = buffer->getData();
-      free(data);
-    }
-    Device::destory(buffer);
-  } else if (buffer_source_type == kMemoryTypeMapped) {
-    return;
+  free(ptr);
+}
+
+base::Status CpuDevice::copy(void *src, void *dst, size_t size) {
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst, src, size);
+    return base::kStatusCodeOk;
   } else {
-    return;
+    NNDEPLOY_LOGE("copy buffer failed");
+    return base::kStatusCodeErrorOutOfMemory;
+  }
+}
+base::Status CpuDevice::download(void *src, void *dst, size_t size) {
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst, src, size);
+    return base::kStatusCodeOk;
+  } else {
+    NNDEPLOY_LOGE("copy buffer failed");
+    return base::kStatusCodeErrorOutOfMemory;
+  }
+}
+base::Status CpuDevice::upload(void *src, void *dst, size_t size) {
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst, src, size);
+    return base::kStatusCodeOk;
+  } else {
+    NNDEPLOY_LOGE("copy buffer failed");
+    return base::kStatusCodeErrorOutOfMemory;
   }
 }
 
 base::Status CpuDevice::copy(Buffer *src, Buffer *dst) {
-  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
+  if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
   } else {
@@ -159,7 +161,7 @@ base::Status CpuDevice::copy(Buffer *src, Buffer *dst) {
   }
 }
 base::Status CpuDevice::download(Buffer *src, Buffer *dst) {
-  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
+  if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
   } else {
@@ -168,7 +170,7 @@ base::Status CpuDevice::download(Buffer *src, Buffer *dst) {
   }
 }
 base::Status CpuDevice::upload(Buffer *src, Buffer *dst) {
-  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
+  if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
   } else {

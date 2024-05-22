@@ -45,6 +45,30 @@ bool Status::operator==(int other) const {
   }
 };
 
+bool Status::operator!=(const Status &other) const {
+  if (code_ != other.code_) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+bool Status::operator!=(const StatusCode &other) const {
+  if (code_ != other) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+bool Status::operator != (int other) const {
+  if (code_ != other) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 Status::operator int() const { return code_; }
 
 Status::operator bool() const { return code_ == kStatusCodeOk; }

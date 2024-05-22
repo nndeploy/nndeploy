@@ -81,8 +81,8 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   friend class Architecture;
 
  public:
-  virtual BufferDesc getBufferDesc(const TensorDesc &desc,
-                                   const base::IntVector &config) = 0;
+  virtual BufferDesc toBufferDesc(const TensorDesc &desc,
+                                  const base::IntVector &config) = 0;
 
   virtual void *allocate(size_t size) = 0;
   virtual void *allocate(const BufferDesc &desc) = 0;

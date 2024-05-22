@@ -37,9 +37,6 @@ class NNDEPLOY_CC_API AscendCLDevice : public Device {
   friend class AscendCLArchitecture;
 
  public:
-  virtual BufferDesc toBufferDesc(const MatDesc &desc,
-                                  const base::IntVector &config);
-
   virtual BufferDesc toBufferDesc(const TensorDesc &desc,
                                   const base::IntVector &config);
 

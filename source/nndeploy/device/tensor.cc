@@ -7,8 +7,6 @@ namespace device {
 static TypeTensorRegister<TypeTensorCreator<Tensor>> g_defalut_tensor_register(
     base::kTensorTypeDefault);
 
-// Tensor
-
 Tensor::Tensor() {}
 Tensor::Tensor(const std::string &name) : name_(name){};
 Tensor::Tensor(const TensorDesc &desc, const std::string &name)
@@ -20,7 +18,7 @@ Tensor::Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name)
 Tensor::Tensor(Device *device, const TensorDesc &desc, const std::string &name,
                const base::IntVector &config)
     : name_(name), desc_(desc), is_external_(false) {
-  BufferDesc buffer_desc = device->getBufferDesc(desc, config);
+  BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   void *ptr = device->allocate(buffer_desc);
   buffer_ = new Buffer(device, buffer_desc, ptr, base::kMemoryTypeAllocate);
   ref_count_ = new int(1);
@@ -28,7 +26,7 @@ Tensor::Tensor(Device *device, const TensorDesc &desc, const std::string &name,
 Tensor::Tensor(Device *device, const TensorDesc &desc, void *data_ptr,
                const std::string &name, const base::IntVector &config)
     : desc_(desc), name_(name), is_external_(false) {
-  BufferDesc buffer_desc = device->getBufferDesc(desc, config);
+  BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   buffer_ =
       new Buffer(device, buffer_desc, data_ptr, base::kMemoryTypeExternal);
   ref_count_ = new int(1);
@@ -37,7 +35,7 @@ Tensor::Tensor(MemoryPool *memory_pool, const TensorDesc &desc,
                const std::string &name, const base::IntVector &config)
     : desc_(desc), name_(name), is_external_(false) {
   Device *device = memory_pool->getDevice();
-  BufferDesc buffer_desc = device->getBufferDesc(desc, config);
+  BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   void *ptr = memory_pool->allocate(buffer_desc);
   buffer_ =
       new Buffer(memory_pool, buffer_desc, ptr, base::kMemoryTypeAllocate);
@@ -47,7 +45,7 @@ Tensor::Tensor(MemoryPool *memory_pool, const TensorDesc &desc, void *data_ptr,
                const std::string &name, const base::IntVector &config)
     : desc_(desc), name_(name), is_external_(false) {
   Device *device = memory_pool->getDevice();
-  BufferDesc buffer_desc = device->getBufferDesc(desc, config);
+  BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   buffer_ =
       new Buffer(memory_pool, buffer_desc, data_ptr, base::kMemoryTypeExternal);
   ref_count_ = new int(1);
@@ -77,7 +75,7 @@ Tensor &Tensor::operator=(const Tensor &tensor) {
   return *this;
 }
 
-Tensor::Tensor(Tensor &&tensor) {
+Tensor::Tensor(Tensor &&tensor) noexcept {
   if (this == &tensor) {
     return;
   }
@@ -88,7 +86,7 @@ Tensor::Tensor(Tensor &&tensor) {
   buffer_ = tensor.buffer_;
   tensor.clear();
 }
-Tensor &Tensor::operator=(Tensor &&tensor) {
+Tensor &Tensor::operator=(Tensor &&tensor) noexcept {
   if (this == &tensor) {
     return *this;
   }
@@ -141,7 +139,7 @@ void Tensor::create(Device *device, const TensorDesc &desc,
   name_ = name;
   desc_ = desc;
   is_external_ = false;
-  BufferDesc buffer_desc = device->getBufferDesc(desc, config);
+  BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   void *ptr = device->allocate(buffer_desc);
   buffer_ = new Buffer(device, buffer_desc, ptr, base::kMemoryTypeAllocate);
   ref_count_ = new int(1);
@@ -155,7 +153,7 @@ void Tensor::create(Device *device, const TensorDesc &desc, void *data_ptr,
   name_ = name;
   desc_ = desc;
   is_external_ = false;
-  BufferDesc buffer_desc = device->getBufferDesc(desc, config);
+  BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   buffer_ =
       new Buffer(device, buffer_desc, data_ptr, base::kMemoryTypeExternal);
   ref_count_ = new int(1);
@@ -170,7 +168,7 @@ void Tensor::create(MemoryPool *memory_pool, const TensorDesc &desc,
   desc_ = desc;
   is_external_ = false;
   Device *device = memory_pool->getDevice();
-  BufferDesc buffer_desc = device->getBufferDesc(desc, config);
+  BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   void *ptr = memory_pool->allocate(buffer_desc);
   buffer_ =
       new Buffer(memory_pool, buffer_desc, ptr, base::kMemoryTypeAllocate);
@@ -187,7 +185,7 @@ void Tensor::create(MemoryPool *memory_pool, const TensorDesc &desc,
   desc_ = desc;
   is_external_ = false;
   Device *device = memory_pool->getDevice();
-  BufferDesc buffer_desc = device->getBufferDesc(desc, config);
+  BufferDesc buffer_desc = device->toBufferDesc(desc, config);
   buffer_ =
       new Buffer(memory_pool, buffer_desc, data_ptr, base::kMemoryTypeExternal);
   ref_count_ = new int(1);
@@ -207,7 +205,7 @@ void Tensor::clear() {
 }
 
 void Tensor::allocate(Device *device, const base::IntVector &config) {
-  BufferDesc dst_buffer_desc = device->getBufferDesc(desc_, config);
+  BufferDesc dst_buffer_desc = device->toBufferDesc(desc_, config);
   if (buffer_ != nullptr && device == buffer_->getDevice()) {
     BufferDesc src_buffer_desc = buffer_->getDesc();
     if (src_buffer_desc >= dst_buffer_desc) {
@@ -222,7 +220,7 @@ void Tensor::allocate(Device *device, const base::IntVector &config) {
 }
 void Tensor::allocate(MemoryPool *memory_pool, const base::IntVector &config) {
   Device *device = memory_pool->getDevice();
-  BufferDesc dst_buffer_desc = device->getBufferDesc(desc_, config);
+  BufferDesc dst_buffer_desc = device->toBufferDesc(desc_, config);
   if (buffer_ != nullptr) {
     BufferDesc src_buffer_desc = buffer_->getDesc();
     if (src_buffer_desc >= dst_buffer_desc) {
@@ -519,7 +517,7 @@ bool Tensor::isMemoryPool() const {
     return false;
   }
 }
-BufferDesc Tensor::getBufferDesc() const {
+BufferDesc Tensor::toBufferDesc() const {
   if (buffer_) {
     return buffer_->getDesc();
   } else {
