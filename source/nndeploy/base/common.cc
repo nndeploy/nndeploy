@@ -1,10 +1,27 @@
 
 #include "nndeploy/base/common.h"
 
-#include "nndeploy/base/macro.h"
-
 namespace nndeploy {
 namespace base {
+
+DataType::DataType() : code_(kDataTypeCodeFp), bits_(32), lanes_(1) {}
+DataType::DataType(uint8_t code, uint8_t bits, uint16_t lanes)
+    : code_(code), bits_(bits), lanes_(lanes) {}
+
+DataType::DataType(const DataType &other) = default;
+DataType &DataType::operator=(const DataType &other) = default;
+
+DataType::DataType(DataType &&other) = default;
+DataType &DataType::operator=(DataType &&other) = default;
+
+bool DataType::operator==(const DataType &other) const {
+  return code_ == other.code_ && bits_ == other.bits_ && lanes_ == other.lanes_;
+}
+bool DataType::operator==(const DataTypeCode &other) const {
+  return code_ == other;
+}
+
+size_t DataType::size() const { return (bits_ * lanes_) >> 3; }
 
 template <>
 DataType dataTypeOf<float>() {
@@ -54,6 +71,28 @@ DataType dataTypeOf<int32_t>() {
 template <>
 DataType dataTypeOf<int64_t>() {
   return DataType(kDataTypeCodeInt, 64);
+}
+
+DeviceType::DeviceType() : code_(kDeviceTypeCodeCpu), device_id_(0) {}
+DeviceType::DeviceType(DeviceTypeCode code, int device_id)
+    : code_(code), device_id_(device_id) {}
+
+DeviceType::DeviceType(const DeviceType &other) = default;
+DeviceType &DeviceType::operator=(const DeviceType &other) = default;
+DeviceType &DeviceType::operator=(const DeviceTypeCode &other) {
+  code_ = other;
+  device_id_ = 0;
+  return *this;
+}
+
+DeviceType::DeviceType(DeviceType &&other) = default;
+DeviceType &DeviceType::operator=(DeviceType &&other) = default;
+
+bool DeviceType::operator==(const DeviceType &other) const {
+  return code_ == other.code_ && device_id_ == other.device_id_;
+}
+bool DeviceType::operator==(const DeviceTypeCode &other) const {
+  return code_ == other;
 }
 
 DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {

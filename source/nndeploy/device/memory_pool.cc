@@ -1,6 +1,8 @@
 
 #include "nndeploy/device/memory_pool.h"
 
+#include "nndeploy/device/buffer.h"
+
 namespace nndeploy {
 namespace device {
 

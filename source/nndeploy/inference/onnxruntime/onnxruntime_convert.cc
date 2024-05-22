@@ -229,8 +229,7 @@ base::Status OnnxRuntimeConvert::convertToTensor(Ort::Value &src,
   base::Status status = base::kStatusCodeOk;
 
   bool copy_flag = false;
-  if (!dst->empty() &&
-      dst->getBufferSourceType() == device::kBufferSourceTypeAllocate) {
+  if (!dst->empty() && dst->getMemoryType() == device::kMemoryTypeAllocate) {
     copy_flag = true;
   }
 

@@ -55,16 +55,24 @@ class NNDEPLOY_CC_API Status {
   Status(int code = kStatusCodeOk);
   ~Status();
 
-  Status(const Status &other) = default;
-  Status &operator=(const Status &other) = default;
+  Status(const Status &other);
+  Status &operator=(const Status &other);
+  Status &operator=(const StatusCode &other);
+  Status &operator=(int other);
 
-  Status &operator=(int code);
-  bool operator==(int code);
-  bool operator!=(int code);
-  operator int();
-  operator bool();
+  Status(Status &&other);
+  Status &operator=(Status &&other);
 
-  std::string desc();
+  bool operator==(const Status &other) const;
+  bool operator==(const StatusCode &other) const;
+  bool operator==(int other) const;
+
+  operator int() const;
+  operator bool() const;
+
+  std::string desc() const;
+
+  Status operator+(const Status &other);
 
  private:
   int code_ = kStatusCodeOk;

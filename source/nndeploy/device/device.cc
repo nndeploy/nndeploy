@@ -1,10 +1,6 @@
 
 #include "nndeploy/device/device.h"
 
-#include "nndeploy/device/buffer.h"
-#include "nndeploy/device/tensor.h"
-
-
 namespace nndeploy {
 namespace device {
 
@@ -49,12 +45,12 @@ base::Status Device::deleteCommandQueue(int index) {
 base::Status Device::deleteCommandQueue(void *command_queue) {
   NNDEPLOY_LOGI("this device[%d, %d] can't deleteCommandQueue!\n",
                 device_type_.code_, device_type_.device_id_);
-  return nullptr;
+  return base::kStatusCodeOk;
 }
-base::Status Device::setCommandQueue(void *command_queue, int index) {
+base::Status Device::setCommandQueue(void *command_queue) {
   NNDEPLOY_LOGI("this device[%d, %d] can't setCommandQueue!\n",
                 device_type_.code_, device_type_.device_id_);
-  return nullptr;
+  return base::kStatusCodeOk;
 }
 void *Device::getCommandQueue(int index) {
   NNDEPLOY_LOGI("this device[%d, %d] can't getCommandQueue!\n",

@@ -7,32 +7,56 @@ namespace base {
 Status::Status(int code) : code_(code) {}
 Status::~Status() {}
 
-Status &Status::operator=(int code) {
-  code_ = code;
+Status::Status(const Status &other) = default;
+Status &Status::operator=(const Status &other) = default;
+Status &Status::operator=(const StatusCode &other) {
+  code_ = other;
+  return *this;
+};
+Status &Status::operator=(int other) {
+  code_ = other;
   return *this;
 };
 
-bool Status::operator==(int code) {
-  if (code_ == code) {
+Status::Status(Status &&other) = default;
+Status &Status::operator=(Status &&other) = default;
+
+bool Status::operator==(const Status &other) const {
+  if (code_ == other.code_) {
     return true;
   } else {
     return false;
   }
 };
 
-bool Status::operator!=(int code) {
-  if (code_ != code) {
+bool Status::operator==(const StatusCode &other) const {
+  if (code_ == other) {
     return true;
   } else {
     return false;
   }
 };
 
-Status::operator int() { return code_; }
+bool Status::operator==(int other) const {
+  if (code_ == other) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
-Status::operator bool() { return code_ == kStatusCodeOk; }
+Status::operator int() const { return code_; }
 
-std::string Status::desc() {
+Status::operator bool() const { return code_ == kStatusCodeOk; }
+
+Status Status::operator+(const Status &other) { 
+  if (code_ == kStatusCodeOk) {
+    code_ = other.code_;
+  }
+  return *this;
+}
+
+std::string Status::desc() const {
   std::string str;
   switch (code_) {
     default:

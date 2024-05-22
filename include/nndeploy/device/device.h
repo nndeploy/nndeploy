@@ -8,13 +8,13 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
-#include "nndeploy/device/buffer.h"
-#include "nndeploy/device/tensor.h"
+#include "nndeploy/device/type.h"
 
 namespace nndeploy {
 namespace device {
 
 class Device;
+class Buffer;
 
 struct NNDEPLOY_CC_API DeviceInfo {
   base::DeviceType device_type_;
@@ -81,12 +81,13 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   friend class Architecture;
 
  public:
-  virtual void *allocate(size_t size) = 0;
-  virtual void deallocate(void *ptr) = 0;
+  virtual BufferDesc getBufferDesc(const TensorDesc &desc,
+                                   const base::IntVector &config) = 0;
 
-  virtual Buffer *allocate(const BufferDesc &desc) = 0;
-  virtual Tensor *allocate(const TensorDesc &desc,
-                           const base::IntVector &config) = 0;
+  virtual void *allocate(size_t size) = 0;
+  virtual void *allocate(const BufferDesc &desc) = 0;
+
+  virtual void deallocate(void *ptr) = 0;
 
   virtual base::Status copy(void *src, void *dst, size_t size) = 0;
   virtual base::Status download(void *src, void *dst, size_t size) = 0;
@@ -108,7 +109,8 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   virtual base::Status newCommandQueue(int index = -1);
   virtual base::Status deleteCommandQueue(int index = -1);
   virtual base::Status deleteCommandQueue(void *command_queue);
-  virtual base::Status setCommandQueue(void *command_queue, int index = -1);
+  virtual base::Status setCommandQueue(void *command_queue);
+
   virtual void *getCommandQueue(int index = 0);
 
   virtual base::Status synchronize(int index = 0);

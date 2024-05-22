@@ -8,103 +8,70 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
+#include "nndeploy/device/device.h"
+#include "nndeploy/device/memory_pool.h"
 
 namespace nndeploy {
 namespace device {
 
-class Device;
-class MemoryPool;
-
-/**
- * @brief buffer的内存来源类型
- */
-enum BufferSourceType : int {
-  kBufferSourceTypeNone = 0x0000,
-  kBufferSourceTypeAllocate,
-  kBufferSourceTypeExternal,
-  kBufferSourceTypeMapped,
-};
-
-struct NNDEPLOY_CC_API BufferDesc {
-  BufferDesc();
-  explicit BufferDesc(size_t size);
-  explicit BufferDesc(size_t *size, size_t len);
-  explicit BufferDesc(const base::SizeVector &size,
-                      const base::IntVector &config);
-  explicit BufferDesc(size_t *size, size_t len, const base::IntVector &config);
-
-  BufferDesc(const BufferDesc &desc);
-  BufferDesc &operator=(const BufferDesc &desc);
-
-  BufferDesc(BufferDesc &&desc);
-  BufferDesc &operator=(BufferDesc &&desc);
-
-  virtual ~BufferDesc();
-
-  bool isSameConfig(const BufferDesc &desc);
-  bool isSameDim(const BufferDesc &desc);
-  bool is1D();
-
-  bool operator>(const BufferDesc &other);
-  bool operator>=(const BufferDesc &other);
-  bool operator==(const BufferDesc &other);
-  bool operator!=(const BufferDesc &other);
-
-  /**
-   * @brief
-   * 1d size
-   * 2d h w c - 例如OpenCL cl::Image2d
-   * 3d unknown
-   */
-  base::SizeVector size_;
-  /**
-   * @brief
-   * 根据不同的设备以及内存形态有不同的config_
-   */
-  base::IntVector config_;
-};
-
 class NNDEPLOY_CC_API Buffer {
  public:
+  Buffer(Device *device, size_t size);
   Buffer(Device *device, const BufferDesc &desc);
-  Buffer(Device *device, const BufferDesc &desc);
-  Buffer(MemoryPool *memory_pool, const BufferDesc &desc);
-  Buffer(MemoryPool *memory_pool, const BufferDesc &desc);
+
+  Buffer(Device *device, size_t size, void *ptr);
   Buffer(Device *device, const BufferDesc &desc, void *ptr);
-  Buffer(Device *device, const BufferDesc &desc, int id);
+
+  Buffer(Device *device, size_t size, void *ptr, base::MemoryType memory_type);
+  Buffer(Device *device, const BufferDesc &desc, void *ptr,
+         base::MemoryType memory_type);
+
+  Buffer(MemoryPool *memory_pool, size_t size);
+  Buffer(MemoryPool *memory_pool, const BufferDesc &desc);
+
+  Buffer::Buffer(MemoryPool *memory_pool, size_t size, void *ptr,
+                 base::MemoryType memory_type);
+  Buffer::Buffer(MemoryPool *memory_pool, const BufferDesc &desc, void *ptr,
+                 base::MemoryType memory_type);
 
   Buffer(const Buffer &buffer);
   Buffer &operator=(const Buffer &buffer);
 
-  Buffer(Buffer &&buffer);
-  Buffer &operator=(Buffer &&buffer);
+  Buffer(Buffer &&buffer) noexcept;
+  Buffer &operator=(Buffer &&buffer) noexcept;
 
   virtual ~Buffer();
 
   // clone and copy
   Buffer *clone();
-  base::Status deepCopy(Buffer *dst);
+  base::Status copyTo(Buffer *dst);
 
   // get
-  bool empty();
-  base::DeviceType getDeviceType();
-  Device *getDevice();
-  MemoryPool *getMemoryPool();
-  bool isMemoryPool();
-  BufferDesc getDesc();
-  size_t getSize();
-  base::SizeVector getSizeVector();
-  base::IntVector getConfig();
-  void *getData();
-  BufferSourceType getBufferSourceType();
+  bool empty() const;
+  base::DeviceType getDeviceType() const;
+  Device *getDevice() const;
+  MemoryPool *getMemoryPool() const;
+  bool isMemoryPool() const;
+  BufferDesc getDesc() const;
+  size_t getSize() const;
+  base::SizeVector getSizeVector() const;
+  base::IntVector getConfig() const;
+  void *getData() const;
+  base::MemoryType getMemoryType() const;
 
-  inline int addRef() { return NNDEPLOY_XADD(&ref_count_, 1); }
-  inline int subRef() { return NNDEPLOY_XADD(&ref_count_, -1); }
+  inline int addRef() const { return NNDEPLOY_XADD(ref_count_, 1); }
+  inline int subRef() const { return NNDEPLOY_XADD(ref_count_, -1); }
+
+ private:
+  void clear();
 
  private:
   Device *device_ = nullptr;           // 内存对应的具体设备
   MemoryPool *memory_pool_ = nullptr;  // 内存来自内存池
   BufferDesc desc_;                    // BufferDesc
+  // 内存类型，例如外部传入、内部分配、内存映射
+  base::MemoryType memory_type_ = base::kMemoryTypeNone;
+  int *ref_count_;  // 引用计数
   /**
    * @brief
    * # 通常情况下，可以用指针表示（void *data_ptr_ = nullptr;）
@@ -113,9 +80,6 @@ class NNDEPLOY_CC_API Buffer {
    * ## 返回：void *ptr = (void *)((size_t)id);
    */
   void *data_;
-  // 内存类型，例如外部传入、内部分配、内存映射
-  BufferSourceType buffer_source_type_ = kBufferSourceTypeNone;
-  int ref_count_ = 0;  // buffer引用计数
 };
 
 }  // namespace device

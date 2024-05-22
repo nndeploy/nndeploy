@@ -152,7 +152,7 @@ Buffer *AscendCLDevice::allocate(const BufferDesc &desc) {
     NNDEPLOY_LOGE("ascend_cl alloc got nullptr\n");
     return nullptr;
   }
-  Buffer *buffer = Device::create(desc, data, kBufferSourceTypeAllocate);
+  Buffer *buffer = Device::create(desc, data, kMemoryTypeAllocate);
   return buffer;
 }
 void AscendCLDevice::deallocate(Buffer *buffer) {
@@ -162,11 +162,11 @@ void AscendCLDevice::deallocate(Buffer *buffer) {
   if (buffer->subRef() > 1) {
     return;
   }
-  BufferSourceType buffer_source_type = buffer->getBufferSourceType();
-  if (buffer_source_type == kBufferSourceTypeNone ||
-      buffer_source_type == kBufferSourceTypeExternal) {
+  MemoryType buffer_source_type = buffer->getMemoryType();
+  if (buffer_source_type == kMemoryTypeNone ||
+      buffer_source_type == kMemoryTypeExternal) {
     Device::destory(buffer);
-  } else if (buffer_source_type == kBufferSourceTypeAllocate) {
+  } else if (buffer_source_type == kMemoryTypeAllocate) {
     if (buffer->getData() != nullptr) {
       void *data = buffer->getData();
       // NNDEPLOY_CUDA_CHECK(cudaFree(data));
@@ -178,7 +178,7 @@ void AscendCLDevice::deallocate(Buffer *buffer) {
       }
     }
     Device::destory(buffer);
-  } else if (buffer_source_type == kBufferSourceTypeMapped) {
+  } else if (buffer_source_type == kMemoryTypeMapped) {
     return;
   } else {
     return;

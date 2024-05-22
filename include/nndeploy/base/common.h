@@ -17,20 +17,23 @@ enum DataTypeCode : uint8_t {
 };
 
 struct NNDEPLOY_CC_API DataType {
-  DataType() : code_(kDataTypeCodeFp), bits_(32), lanes_(1){};
-  DataType(uint8_t code, uint8_t bits, uint16_t lanes = (uint16_t)1)
-      : code_(code), bits_(bits), lanes_(lanes) {}
-  DataType(const DataType &other) = default;
-  DataType &operator=(const DataType &other) = default;
-  bool operator==(const DataType &other) const {
-    return code_ == other.code_ && bits_ == other.bits_ &&
-           lanes_ == other.lanes_;
-  }
-  bool operator==(const DataTypeCode &other) const { return code_ == other; }
+  DataType();
+  DataType(uint8_t code, uint8_t bits, uint16_t lanes = (uint16_t)1);
+
+  DataType(const DataType &other);
+  DataType &operator=(const DataType &other);
+
+  DataType(DataType &&other);
+  DataType &operator=(DataType &&other);
+
+  bool operator==(const DataType &other) const;
+  bool operator==(const DataTypeCode &other) const;
+
+  size_t DataType::size() const;
+
   uint8_t code_;
   uint8_t bits_;
   uint16_t lanes_;
-  size_t size() const { return (bits_ * lanes_) >> 3; }
 };
 
 template <typename T>
@@ -74,20 +77,19 @@ enum DeviceTypeCode : int {
 };
 
 struct NNDEPLOY_CC_API DeviceType {
-  DeviceType() : code_(kDeviceTypeCodeCpu), device_id_(0) {}
-  DeviceType(DeviceTypeCode code, int device_id = 0)
-      : code_(code), device_id_(device_id) {}
-  DeviceType(const DeviceType &other) = default;
-  DeviceType &operator=(const DeviceType &other) = default;
-  DeviceType &operator=(const DeviceTypeCode &other) {
-    code_ = other;
-    device_id_ = 0;
-    return *this;
-  }
-  bool operator==(const DeviceType &other) const {
-    return code_ == other.code_ && device_id_ == other.device_id_;
-  }
-  bool operator==(const DeviceTypeCode &other) const { return code_ == other; }
+  DeviceType();
+  DeviceType(DeviceTypeCode code, int device_id = 0);
+
+  DeviceType(const DeviceType &other);
+  DeviceType &operator=(const DeviceType &other);
+  DeviceType &operator=(const DeviceTypeCode &other);
+
+  DeviceType(DeviceType &&other) ;
+  DeviceType &operator=(DeviceType &&other) ;
+
+  bool operator==(const DeviceType &other) const;
+  bool operator==(const DeviceTypeCode &other) const;
+
   DeviceTypeCode code_;
   int device_id_;
 };
@@ -151,9 +153,11 @@ enum ShareMemoryType : int {
   kShareMemoryTypeNotSupport,
 };
 
-enum BufferStatus : int {
-  kBufferStatusFree = 0x0000,
-  kBufferStatusUsed,
+enum MemoryType : int {
+  kMemoryTypeNone = 0x0000,
+  kMemoryTypeAllocate,
+  kMemoryTypeExternal,
+  kMemoryTypeMapped,
 };
 
 enum MemoryPoolType : int {

@@ -122,7 +122,7 @@ Buffer *X86Device::allocate(size_t size) {
 }
 Buffer *X86Device::allocate(const BufferDesc &desc) {
   void *data = malloc(desc.size_[0]);
-  Buffer *buffer = Device::create(desc, data, kBufferSourceTypeAllocate);
+  Buffer *buffer = Device::create(desc, data, kMemoryTypeAllocate);
   return buffer;
 }
 void X86Device::deallocate(Buffer *buffer) {
@@ -132,17 +132,17 @@ void X86Device::deallocate(Buffer *buffer) {
   if (buffer->subRef() > 1) {
     return;
   }
-  BufferSourceType buffer_source_type = buffer->getBufferSourceType();
-  if (buffer_source_type == kBufferSourceTypeNone ||
-      buffer_source_type == kBufferSourceTypeExternal) {
+  MemoryType buffer_source_type = buffer->getMemoryType();
+  if (buffer_source_type == kMemoryTypeNone ||
+      buffer_source_type == kMemoryTypeExternal) {
     Device::destory(buffer);
-  } else if (buffer_source_type == kBufferSourceTypeAllocate) {
+  } else if (buffer_source_type == kMemoryTypeAllocate) {
     if (buffer->getData() != nullptr) {
       void *data = buffer->getData();
       free(data);
     }
     Device::destory(buffer);
-  } else if (buffer_source_type == kBufferSourceTypeMapped) {
+  } else if (buffer_source_type == kMemoryTypeMapped) {
     return;
   } else {
     return;
