@@ -123,7 +123,7 @@ void X86Device::deallocate(void *ptr) {
   free(ptr);
 }
 
-base::Status X86Device::copy(void *src, void *dst, size_t size) {
+base::Status X86Device::copy(void *src, void *dst, size_t size, int index) {
   if (src != nullptr && dst != nullptr) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
@@ -132,7 +132,7 @@ base::Status X86Device::copy(void *src, void *dst, size_t size) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::download(void *src, void *dst, size_t size) {
+base::Status X86Device::download(void *src, void *dst, size_t size, int index) {
   if (src != nullptr && dst != nullptr) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
@@ -141,7 +141,7 @@ base::Status X86Device::download(void *src, void *dst, size_t size) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::upload(void *src, void *dst, size_t size) {
+base::Status X86Device::upload(void *src, void *dst, size_t size, int index) {
   if (src != nullptr && dst != nullptr) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
@@ -151,7 +151,7 @@ base::Status X86Device::upload(void *src, void *dst, size_t size) {
   }
 }
 
-base::Status X86Device::copy(Buffer *src, Buffer *dst) {
+base::Status X86Device::copy(Buffer *src, Buffer *dst, int index) {
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
@@ -160,7 +160,7 @@ base::Status X86Device::copy(Buffer *src, Buffer *dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::download(Buffer *src, Buffer *dst) {
+base::Status X86Device::download(Buffer *src, Buffer *dst, int index) {
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
@@ -169,7 +169,7 @@ base::Status X86Device::download(Buffer *src, Buffer *dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::upload(Buffer *src, Buffer *dst) {
+base::Status X86Device::upload(Buffer *src, Buffer *dst, int index) {
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;

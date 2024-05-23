@@ -43,13 +43,14 @@ class NNDEPLOY_CC_API X86Device : public Device {
 
   virtual void deallocate(void *ptr);
 
-  virtual base::Status copy(void *src, void *dst, size_t size);
-  virtual base::Status download(void *src, void *dst, size_t size);
-  virtual base::Status upload(void *src, void *dst, size_t size);
+  virtual base::Status copy(void *src, void *dst, size_t size, int index = 0);
+  virtual base::Status download(void *src, void *dst, size_t size,
+                                int index = 0);
+  virtual base::Status upload(void *src, void *dst, size_t size, int index = 0);
 
-  virtual base::Status copy(Buffer *src, Buffer *dst);
-  virtual base::Status download(Buffer *src, Buffer *dst);
-  virtual base::Status upload(Buffer *src, Buffer *dst);
+  virtual base::Status copy(Buffer *src, Buffer *dst, int index = 0);
+  virtual base::Status download(Buffer *src, Buffer *dst, int index = 0);
+  virtual base::Status upload(Buffer *src, Buffer *dst, int index = 0);
 
  protected:
   X86Device(base::DeviceType device_type, void *command_queue = nullptr,

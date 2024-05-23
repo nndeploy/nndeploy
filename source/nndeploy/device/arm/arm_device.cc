@@ -84,7 +84,7 @@ std::vector<DeviceInfo> ArmArchitecture::getDeviceInfo(
  * 通过stride_替代了data_format_，stride_的第一个元素表示的是整个tensor的大小
  * 意味着在TensorDesc的构造函数要花很多心思来计算stride_
  */
-BufferDesc X86Device::toBufferDesc(const TensorDesc &desc,
+BufferDesc ArmDevice::toBufferDesc(const TensorDesc &desc,
                                    const base::IntVector &config) {
   BufferDesc buffer_desc;
   buffer_desc.config_ = config;
@@ -100,7 +100,7 @@ BufferDesc X86Device::toBufferDesc(const TensorDesc &desc,
   return buffer_desc;
 }
 
-void *X86Device::allocate(size_t size) {
+void *ArmDevice::allocate(size_t size) {
   void *data = malloc(size);
   if (data == nullptr) {
     NNDEPLOY_LOGE("allocate buffer failed");
@@ -108,7 +108,7 @@ void *X86Device::allocate(size_t size) {
   }
   return data;
 }
-void *X86Device::allocate(const BufferDesc &desc) {
+void *ArmDevice::allocate(const BufferDesc &desc) {
   void *data = malloc(desc.size_[0]);
   if (data == nullptr) {
     NNDEPLOY_LOGE("allocate buffer failed");
@@ -116,14 +116,14 @@ void *X86Device::allocate(const BufferDesc &desc) {
   }
   return data;
 }
-void X86Device::deallocate(void *ptr) {
+void ArmDevice::deallocate(void *ptr) {
   if (ptr == nullptr) {
     return;
   }
   free(ptr);
 }
 
-base::Status X86Device::copy(void *src, void *dst, size_t size) {
+base::Status ArmDevice::copy(void *src, void *dst, size_t size, int index) {
   if (src != nullptr && dst != nullptr) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
@@ -132,7 +132,7 @@ base::Status X86Device::copy(void *src, void *dst, size_t size) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::download(void *src, void *dst, size_t size) {
+base::Status ArmDevice::download(void *src, void *dst, size_t size, int index) {
   if (src != nullptr && dst != nullptr) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
@@ -141,7 +141,7 @@ base::Status X86Device::download(void *src, void *dst, size_t size) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::upload(void *src, void *dst, size_t size) {
+base::Status ArmDevice::upload(void *src, void *dst, size_t size, int index) {
   if (src != nullptr && dst != nullptr) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
@@ -151,7 +151,7 @@ base::Status X86Device::upload(void *src, void *dst, size_t size) {
   }
 }
 
-base::Status X86Device::copy(Buffer *src, Buffer *dst) {
+base::Status ArmDevice::copy(Buffer *src, Buffer *dst, int index) {
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
@@ -160,7 +160,7 @@ base::Status X86Device::copy(Buffer *src, Buffer *dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::download(Buffer *src, Buffer *dst) {
+base::Status ArmDevice::download(Buffer *src, Buffer *dst, int index) {
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
@@ -169,7 +169,7 @@ base::Status X86Device::download(Buffer *src, Buffer *dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::upload(Buffer *src, Buffer *dst) {
+base::Status ArmDevice::upload(Buffer *src, Buffer *dst, int index) {
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
     return base::kStatusCodeOk;
@@ -179,8 +179,8 @@ base::Status X86Device::upload(Buffer *src, Buffer *dst) {
   }
 }
 
-base::Status X86Device::init() { return base::kStatusCodeOk; }
-base::Status X86Device::deinit() { return base::kStatusCodeOk; }
+base::Status ArmDevice::init() { return base::kStatusCodeOk; }
+base::Status ArmDevice::deinit() { return base::kStatusCodeOk; }
 
 }  // namespace device
 }  // namespace nndeploy

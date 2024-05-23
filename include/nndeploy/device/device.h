@@ -89,13 +89,16 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
 
   virtual void deallocate(void *ptr) = 0;
 
-  virtual base::Status copy(void *src, void *dst, size_t size) = 0;
-  virtual base::Status download(void *src, void *dst, size_t size) = 0;
-  virtual base::Status upload(void *src, void *dst, size_t size) = 0;
+  virtual base::Status copy(void *src, void *dst, size_t size,
+                            int index = 0) = 0;
+  virtual base::Status download(void *src, void *dst, size_t size,
+                                int index = 0) = 0;
+  virtual base::Status upload(void *src, void *dst, size_t size,
+                              int index = 0) = 0;
 
-  virtual base::Status copy(Buffer *src, Buffer *dst) = 0;
-  virtual base::Status download(Buffer *src, Buffer *dst) = 0;
-  virtual base::Status upload(Buffer *src, Buffer *dst) = 0;
+  virtual base::Status copy(Buffer *src, Buffer *dst, int index = 0) = 0;
+  virtual base::Status download(Buffer *src, Buffer *dst, int index = 0) = 0;
+  virtual base::Status upload(Buffer *src, Buffer *dst, int index = 0) = 0;
 
   // TODO: map/unmap
   // virtual Buffer* map(Buffer* src);
@@ -106,7 +109,7 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
 
   virtual void *getContext();
 
-  virtual base::Status newCommandQueue(int index = -1);
+  virtual base::Status newCommandQueue();
   virtual base::Status deleteCommandQueue(int index = -1);
   virtual base::Status deleteCommandQueue(void *command_queue);
   virtual base::Status setCommandQueue(void *command_queue);

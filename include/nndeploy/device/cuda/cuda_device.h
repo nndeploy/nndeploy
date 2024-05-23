@@ -35,8 +35,7 @@ class CudaArchitecture : public Architecture {
    * library provided by the user
    * @return base::Status
    */
-  virtual base::Status checkDevice(int device_id = 0,
-                                   void *command_queue = nullptr,
+  virtual base::Status checkDevice(int device_id, void *command_queue = nullptr,
                                    std::string library_path = "") override;
 
   /**
@@ -50,7 +49,7 @@ class CudaArchitecture : public Architecture {
    * library provided by the user
    * @return base::Status
    */
-  virtual base::Status enableDevice(int device_id = 0,
+  virtual base::Status enableDevice(int device_id,
                                     void *command_queue = nullptr,
                                     std::string library_path = "") override;
 
@@ -72,6 +71,12 @@ class CudaArchitecture : public Architecture {
       std::string library_path = "") override;
 };
 
+class CudaStreamWrapper {
+ public:
+  void *external_command_queue_ = nullptr;
+  cudaStream_t stream_;
+};
+
 /**
  * @brief
  *
@@ -84,85 +89,40 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   friend class CudaArchitecture;
 
  public:
-  /**
-   * @brief Convert MatDesc to BufferDesc.
-   *
-   * @param desc
-   * @param config
-   * @return BufferDesc
-   */
-
-  /**
-   * @brief Convert TensorDesc to BufferDesc.
-   *
-   * @param desc
-   * @param config
-   * @return BufferDesc
-   */
   virtual BufferDesc toBufferDesc(const TensorDesc &desc,
                                   const base::IntVector &config);
-  /**
-   * @brief Allocate Buffer
-   *
-   * @param size
-   * @return Buffer*
-   */
-  virtual Buffer *allocate(size_t size);
-  /**
-   * @brief Allocate Buffer
-   *
-   * @param desc
-   * @return Buffer*
-   */
-  virtual Buffer *allocate(const BufferDesc &desc);
-  /**
-   * @brief Deallocate buffer
-   *
-   * @param buffer
-   */
-  virtual void deallocate(Buffer *buffer);
 
-  /**
-   * @brief Copy buffer
-   *
-   * @param src - Device's buffer.
-   * @param dst - Device's buffer.
-   * @return base::Status
-   * @note Ensure that the memory space of dst is greater than or equal to src.
-   */
-  virtual base::Status copy(Buffer *src, Buffer *dst);
-  /**
-   * @brief Download memory from the device to the host.
-   *
-   * @param src - Device's buffer.
-   * @param dst - Host's buffer.
-   * @return base::Status
-   * @note Ensure that the memory space of dst is greater than or equal to src.
-   */
-  virtual base::Status download(Buffer *src, Buffer *dst);
-  /**
-   * @brief Upload memory from the host to the device.
-   *
-   * @param src - Host's buffer.
-   * @param dst - Device's buffer.
-   * @return base::Status
-   * @note Ensure that the memory space of dst is greater than or equal to src.
-   */
-  virtual base::Status upload(Buffer *src, Buffer *dst);
+  virtual void *allocate(size_t size);
+  virtual void *allocate(const BufferDesc &desc);
 
-  /**
-   * @brief synchronize
-   *
-   * @return base::Status
-   */
-  virtual base::Status synchronize();
+  virtual void deallocate(void *ptr);
 
-  /**
-   * @brief Get the Command Queue object
-   *
-   * @return void*
-   */
-  virtual void *getCommandQueue();
+  virtual base::Status copy(void *src, void *dst, size_t size, int index = 0);
+  virtual base::Status download(void *src, void *dst, size_t size,
+                                int index = 0);
+  virtual base::Status upload(void *src, void *dst, size_t size, int index = 0);
+
+  virtual base::Status copy(Buffer *src, Buffer *dst, int index = 0);
+  virtual base::Status download(Buffer *src, Buffer *dst, int index = 0);
+  virtual base::Status upload(Buffer *src, Buffer *dst, int index = 0);
+
+  // TODO: map/unmap
+  // virtual Buffer* map(Buffer* src);
+  // virtual base::Status unmap(Buffer* src, Buffer* dst);
+  // TODO: share? opencl / vpu / hvx?
+  // virtual Buffer* share(Buffer* src);
+  // virtual base::Status unshare(Buffer* src, Buffer* dst);
+
+  virtual void *getContext();
+
+  virtual base::Status newCommandQueue();
+  virtual base::Status deleteCommandQueue(int index = -1);
+  virtual base::Status deleteCommandQueue(void *command_queue);
+  virtual base::Status setCommandQueue(void *command_queue);
+
+  virtual void *getCommandQueue(int index = 0);
+
+  virtual base::Status synchronize(int index = 0);
 
  protected:
   /**
@@ -174,7 +134,10 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
    */
   CudaDevice(base::DeviceType device_type, void *command_queue = nullptr,
              std::string library_path = "")
-      : Device(device_type), external_command_queue_(command_queue){};
+      : Device(device_type) {
+    cuda_stream_wrapper_.resize(1);
+    cuda_stream_wrapper_[0].external_command_queue_ = command_queue;
+  };
   /**
    * @brief Destroy the Cuda Device object
    *
@@ -195,8 +158,7 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   virtual base::Status deinit();
 
  private:
-  void *external_command_queue_ = nullptr;
-  cudaStream_t stream_;
+  std::vector<CudaStreamWrapper> cuda_stream_wrapper_;
 };
 
 }  // namespace device

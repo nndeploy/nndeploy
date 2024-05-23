@@ -91,30 +91,6 @@ std::vector<DeviceInfo> AscendCLArchitecture::getDeviceInfo(
  * @param desc
  * @param config
  * @return BufferDesc
- * @note: 暂未考虑锁业的情况
- */
-BufferDesc AscendCLDevice::toBufferDesc(const MatDesc &desc,
-                                        const base::IntVector &config) {
-  BufferDesc buffer_desc;
-  buffer_desc.config_ = config;
-  size_t size = desc.data_type_.size();
-  if (desc.stride_.empty()) {
-    for (int i = 0; i < desc.shape_.size(); ++i) {
-      size *= desc.shape_[i];
-    }
-  } else {
-    size = desc.stride_[0];
-  }
-  buffer_desc.size_.emplace_back(size);
-  return buffer_desc;
-}
-
-/**
- * @brief
- *
- * @param desc
- * @param config
- * @return BufferDesc
  * @note:
  * 通过stride_替代了data_format_，stride_的第一个元素表示的是整个tensor的大小
  * 意味着在TensorDesc的构造函数要花很多心思来计算stride_
@@ -152,40 +128,20 @@ Buffer *AscendCLDevice::allocate(const BufferDesc &desc) {
     NNDEPLOY_LOGE("ascend_cl alloc got nullptr\n");
     return nullptr;
   }
-  Buffer *buffer = Device::create(desc, data, kMemoryTypeAllocate);
-  return buffer;
+  return data;
 }
 void AscendCLDevice::deallocate(Buffer *buffer) {
-  if (buffer == nullptr) {
+  if (ptr == nullptr) {
     return;
   }
-  if (buffer->subRef() > 1) {
-    return;
-  }
-  MemoryType buffer_source_type = buffer->getMemoryType();
-  if (buffer_source_type == kMemoryTypeNone ||
-      buffer_source_type == kMemoryTypeExternal) {
-    Device::destory(buffer);
-  } else if (buffer_source_type == kMemoryTypeAllocate) {
-    if (buffer->getData() != nullptr) {
-      void *data = buffer->getData();
-      // NNDEPLOY_CUDA_CHECK(cudaFree(data));
-      aclError ret = aclrtFree(data);
-      if (ret != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("deallocate fuction: aclrtFree failed, errorCode is %d",
-                      ret);
-        return;
-      }
-    }
-    Device::destory(buffer);
-  } else if (buffer_source_type == kMemoryTypeMapped) {
-    return;
-  } else {
+  aclError ret = aclrtFree(data);
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("deallocate fuction: aclrtFree failed, errorCode is %d", ret);
     return;
   }
 }
 
-base::Status AscendCLDevice::copy(Buffer *src, Buffer *dst) {
+base::Status AscendCLDevice::copy(Buffer *src, Buffer *dst, int index = 0) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     aclError ret = aclrtMemcpyAsync(dst->getData(), dst->getDesc().size_[0],
                                     src->getData(), src->getDesc().size_[0],
@@ -207,7 +163,7 @@ base::Status AscendCLDevice::copy(Buffer *src, Buffer *dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status AscendCLDevice::download(Buffer *src, Buffer *dst) {
+base::Status AscendCLDevice::download(Buffer *src, Buffer *dst, int index = 0) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     aclError ret = aclrtMemcpyAsync(dst->getData(), dst->getDesc().size_[0],
                                     src->getData(), src->getDesc().size_[0],
@@ -230,7 +186,7 @@ base::Status AscendCLDevice::download(Buffer *src, Buffer *dst) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst) {
+base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst, int index = 0) {
   if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
     aclError ret = aclrtMemcpyAsync(dst->getData(), dst->getDesc().size_[0],
                                     src->getData(), src->getDesc().size_[0],
@@ -275,6 +231,7 @@ base::Status AscendCLDevice::init() {
       return base::kStatusCodeErrorDeviceAscendCL;
     }
 
+    // Always: 当贡献外部的command_queue时，不需要创建context吗？
     ret = aclrtCreateContext(&context_, device_type_.device_id_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclrtCreateContext failed, errorCode is %d", ret);
@@ -296,30 +253,38 @@ base::Status AscendCLDevice::init() {
 // 1. 共享了外部的command_queue，此时不需要释放stream_和context_
 // 2. 没有共享外部的command_queue，此时需要释放stream_和context_
 base::Status AscendCLDevice::deinit() {
-  if (external_command_queue_ != nullptr) {
-    aclError ret;
-    if (stream_ != nullptr) {
-      ret = aclrtDestroyStream(stream_);
-      if (ret != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclrtDestroyStream failed, errorCode is %d", ret);
-        return base::kStatusCodeErrorDeviceAscendCL;
-      }
-      stream_ = nullptr;
+  for (auto iter : acl_stream_wrapper_) {
+    aclError ret = aclrtSynchronizeStream(iter.stream_);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE(
+          "synchronize fuction: aclrtSynchronizeStream failed, errorCode is %d",
+          ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
     }
-
-    if (context_ != nullptr) {
-      ret = aclrtDestroyContext(context_);
-      if (ret != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclrtDestroyContext failed, errorCode is %d", ret);
-        return base::kStatusCodeErrorDeviceAscendCL;
+    if (iter.external_command_queue_ != nullptr) {
+      aclError ret;
+      if (iter.stream_ != nullptr) {
+        ret = aclrtDestroyStream(iter.stream_);
+        if (ret != ACL_SUCCESS) {
+          NNDEPLOY_LOGE("aclrtDestroyStream failed, errorCode is %d", ret);
+          return base::kStatusCodeErrorDeviceAscendCL;
+        }
+        stream_ = nullptr;
       }
-      context_ = nullptr;
+    }
+  }
+  if (context_ != nullptr) {
+    ret = aclrtDestroyContext(context_);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclrtDestroyContext failed, errorCode is %d", ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
+    context_ = nullptr;
 
-      ret = aclrtResetDevice(device_type_.device_id_);
-      if (ret != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclrtResetDevice failed, errorCode is %d", ret);
-        return base::kStatusCodeErrorDeviceAscendCL;
-      }
+    ret = aclrtResetDevice(device_type_.device_id_);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclrtResetDevice failed, errorCode is %d", ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
     }
   }
   return base::kStatusCodeOk;

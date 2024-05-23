@@ -32,7 +32,7 @@ void *Device::getContext() {
   return nullptr;
 }
 
-base::Status Device::newCommandQueue(int index) {
+base::Status Device::newCommandQueue() {
   NNDEPLOY_LOGI("this device[%d, %d] can't newCommandQueue!\n",
                 device_type_.code_, device_type_.device_id_);
   return base::kStatusCodeOk;

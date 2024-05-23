@@ -173,7 +173,8 @@
      * @return base::Status
      * @note Ensure that the memory space of dst is greater than or equal to src.
      */
-    virtual base::Status copy(Buffer *src, Buffer *dst);
+    virtual base::Status copy(Buffer *src, Buffer *dst,
+                            int index = 0);
     /**
      * @brief Download memory from the device to the host.
      *
@@ -182,7 +183,8 @@
      * @return base::Status
      * @note Ensure that the memory space of dst is greater than or equal to src.
      */
-    virtual base::Status download(Buffer *src, Buffer *dst);
+    virtual base::Status download(Buffer *src, Buffer *dst,
+                            int index = 0);
     /**
      * @brief Upload memory from the host to the device.
      *
@@ -191,7 +193,8 @@
      * @return base::Status
      * @note Ensure that the memory space of dst is greater than or equal to src.
      */
-    virtual base::Status upload(Buffer *src, Buffer *dst);  
+    virtual base::Status upload(Buffer *src, Buffer *dst,
+                            int index = 0);  
 
     /**
      * @brief synchronize
