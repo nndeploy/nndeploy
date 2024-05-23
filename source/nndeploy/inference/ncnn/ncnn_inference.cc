@@ -92,7 +92,7 @@ base::Status NcnnInference::reshape(base::ShapeMap &shape_map) {
 
   if (flag) {
     for (auto iter : input_tensors_) {
-      iter.second->deallocateBuffer();
+      iter.second->deallocate();
       device::TensorDesc desc = iter.second->getDesc();
       desc.shape_.clear();
       desc.stride_.clear();
@@ -100,7 +100,7 @@ base::Status NcnnInference::reshape(base::ShapeMap &shape_map) {
       iter.second->justModify(desc);
     }
     for (auto iter : output_tensors_) {
-      iter.second->deallocateBuffer();
+      iter.second->deallocate();
       device::TensorDesc desc = iter.second->getDesc();
       desc.shape_.clear();
       desc.stride_.clear();
@@ -140,7 +140,7 @@ device::Tensor *NcnnInference::getOutputTensorAfterRun(
   bool flag = is_copy || (internal_tensor->getDevice() != device);
   if (flag) {
     device::Tensor *output_tensor = new device::Tensor(device, desc, name);
-    deepCopyBuffer(internal_tensor->getBuffer(), output_tensor->getBuffer());
+    internal_tensor->getBuffer()->copyTo(output_tensor->getBuffer());
     return output_tensor;
   } else {
     device::Tensor *output_tensor =

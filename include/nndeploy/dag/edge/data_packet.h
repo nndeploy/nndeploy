@@ -31,8 +31,7 @@ namespace dag {
 class DataPacket : public base::NonCopyable {
  public:
   enum Flag : int {
-    kFlagBuffer,
-    kFlagMat = 1,
+    kFlagBuffer = 1,
 #ifdef ENABLE_NNDEPLOY_OPENCV
     kFlagCvMat = 2,
 #endif
@@ -52,13 +51,6 @@ class DataPacket : public base::NonCopyable {
                          int index);
   virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer();
-
-  virtual base::Status set(device::Mat *mat, int index, bool is_external);
-  virtual base::Status set(device::Mat &mat, int index);
-  device::Mat *create(device::Device *device, const device::MatDesc &desc,
-                      int index, const std::string &name);
-  virtual bool notifyWritten(device::Mat *mat);
-  virtual device::Mat *getMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
@@ -102,11 +94,6 @@ class PipelineDataPacket : public DataPacket {
   virtual base::Status set(device::Buffer &buffer, int index);
   virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer();
-
-  virtual base::Status set(device::Mat *mat, int index, bool is_external);
-  virtual base::Status set(device::Mat &mat, int index);
-  virtual bool notifyWritten(device::Mat *mat);
-  virtual device::Mat *getMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);

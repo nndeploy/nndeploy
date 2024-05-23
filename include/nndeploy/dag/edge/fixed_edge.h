@@ -15,7 +15,6 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 
-
 namespace nndeploy {
 namespace dag {
 
@@ -33,15 +32,6 @@ class FixedEdge : public AbstractEdge {
   virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer(const Node *node);
   virtual device::Buffer *getGraphOutputBuffer();
-
-  virtual base::Status set(device::Mat *mat, int index, bool is_external);
-  virtual base::Status set(device::Mat &mat, int index);
-  virtual device::Mat *create(device::Device *device,
-                              const device::MatDesc &desc, int index,
-                              const std::string &name);
-  virtual bool notifyWritten(device::Mat *mat);
-  virtual device::Mat *getMat(const Node *node);
-  virtual device::Mat *getGraphOutputMat();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);

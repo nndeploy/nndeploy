@@ -15,7 +15,7 @@ class NNDEPLOY_CC_API DetectBBoxResult : public base::Param {
   int label_id_;
   float score_;
   std::array<float, 4> bbox_;  // xmin, ymin, xmax, ymax
-  device::Mat mask_;
+  device::Tensor mask_;
 };
 
 class NNDEPLOY_CC_API DetectResult : public base::Param {

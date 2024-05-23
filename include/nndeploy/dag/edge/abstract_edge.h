@@ -36,15 +36,6 @@ class AbstractEdge : public base::NonCopyable {
   virtual device::Buffer *getBuffer(const Node *node) = 0;
   virtual device::Buffer *getGraphOutputBuffer() = 0;
 
-  virtual base::Status set(device::Mat *mat, int index, bool is_external) = 0;
-  virtual base::Status set(device::Mat &mat, int index) = 0;
-  virtual device::Mat *create(device::Device *device,
-                              const device::MatDesc &desc, int index,
-                              const std::string &name) = 0;
-  virtual bool notifyWritten(device::Mat *mat) = 0;
-  virtual device::Mat *getMat(const Node *node) = 0;
-  virtual device::Mat *getGraphOutputMat() = 0;
-
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external) = 0;
   virtual base::Status set(cv::Mat &cv_mat, int index) = 0;
@@ -114,8 +105,8 @@ class TypeEdgeCreator : public EdgeCreator {
   }
 };
 
-std::map<base::EdgeType, std::shared_ptr<EdgeCreator>> &
-getGlobalEdgeCreatorMap();
+std::map<base::EdgeType, std::shared_ptr<EdgeCreator>>
+    &getGlobalEdgeCreatorMap();
 
 template <typename T>
 class TypeEdgeRegister {

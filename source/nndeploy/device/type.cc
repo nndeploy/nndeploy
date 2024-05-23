@@ -135,6 +135,7 @@ TensorDesc &TensorDesc::operator=(const TensorDesc &desc) {
   data_format_ = desc.data_format_;
   shape_ = desc.shape_;
   stride_ = desc.stride_;
+  return *this;
 }
 
 TensorDesc::TensorDesc(TensorDesc &&desc) noexcept {
@@ -154,6 +155,7 @@ TensorDesc &TensorDesc::operator=(TensorDesc &&desc) noexcept {
   data_format_ = desc.data_format_;
   shape_ = std::move(desc.shape_);
   stride_ = std::move(desc.stride_);
+  return *this;
 }
 
 TensorDesc::~TensorDesc(){};

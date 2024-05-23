@@ -37,16 +37,19 @@ device::Buffer *DataPacket::create(device::Device *device,
   base::Status status = base::kStatusCodeOk;
   device::Buffer *buffer = nullptr;
   if (anything_ == nullptr) {
-    buffer = device->allocate(desc);
+    void *data = device->allocate(desc);
+    buffer = new device::Buffer(device, desc, data);
   } else {
     if (flag_ != kFlagBuffer) {
       destory();
-      buffer = device->allocate(desc);
+      void *data = device->allocate(desc);
+      buffer = new device::Buffer(device, desc, data);
     } else {
       buffer = (device::Buffer *)(anything_);
       if (buffer->getDesc() != desc) {
         destory();
-        buffer = device->allocate(desc);
+        void *data = device->allocate(desc);
+        buffer = new device::Buffer(device, desc, data);
       }
     }
   }
@@ -70,72 +73,6 @@ device::Buffer *DataPacket::getBuffer() {
     return nullptr;
   } else {
     return (device::Buffer *)(anything_);
-  }
-}
-
-base::Status DataPacket::set(device::Mat *mat, int index, bool is_external) {
-  base::Status status = base::kStatusCodeOk;
-  if (mat != anything_) {
-    destory();
-  }
-  is_external_ = is_external;
-  index_ = index;
-  flag_ = kFlagMat;
-  written_ = true;
-  anything_ = (void *)mat;
-  return status;
-}
-base::Status DataPacket::set(device::Mat &mat, int index) {
-  base::Status status = base::kStatusCodeOk;
-  if (&mat != anything_) {
-    destory();
-  }
-  is_external_ = true;
-  index_ = index;
-  flag_ = kFlagMat;
-  written_ = true;
-  anything_ = (void *)(&mat);
-  return status;
-}
-device::Mat *DataPacket::create(device::Device *device,
-                                const device::MatDesc &desc, int index,
-                                const std::string &name) {
-  base::Status status = base::kStatusCodeOk;
-  device::Mat *mat = nullptr;
-  if (anything_ == nullptr) {
-    mat = new device::Mat(device, desc, name);
-  } else {
-    if (flag_ != kFlagMat) {
-      destory();
-      mat = new device::Mat(device, desc, name);
-    } else {
-      mat = (device::Mat *)(anything_);
-      if (mat->getDesc() != desc) {
-        destory();
-        mat = new device::Mat(device, desc, name);
-      }
-    }
-  }
-  is_external_ = false;
-  index_ = index;
-  flag_ = kFlagMat;
-  written_ = false;
-  anything_ = (void *)(mat);
-  return mat;
-}
-bool DataPacket::notifyWritten(device::Mat *mat) {
-  if ((void *)mat == anything_) {
-    written_ = true;
-    return true;
-  } else {
-    return false;
-  }
-}
-device::Mat *DataPacket::getMat() {
-  if (flag_ != kFlagMat) {
-    return nullptr;
-  } else {
-    return (device::Mat *)(anything_);
   }
 }
 
@@ -298,9 +235,6 @@ void DataPacket::destory() {
   if (!is_external_ && anything_ != nullptr) {
     if (flag_ == kFlagBuffer) {
       device::Buffer *tmp = (device::Buffer *)(anything_);
-      device::destoryBuffer(tmp);
-    } else if (flag_ == kFlagMat) {
-      device::Mat *tmp = (device::Mat *)(anything_);
       delete tmp;
     }
 #ifdef ENABLE_NNDEPLOY_OPENCV
@@ -363,37 +297,6 @@ device::Buffer *PipelineDataPacket::getBuffer() {
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [this] { return written_; });
   return DataPacket::getBuffer();
-}
-
-base::Status PipelineDataPacket::set(device::Mat *mat, int index,
-                                     bool is_external) {
-  std::unique_lock<std::mutex> lock(mutex_);
-  base::Status status = DataPacket::set(mat, index, is_external);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "DataPacket::set failed!\n");
-  cv_.notify_all();
-  return status;
-}
-base::Status PipelineDataPacket::set(device::Mat &mat, int index) {
-  std::unique_lock<std::mutex> lock(mutex_);
-  base::Status status = DataPacket::set(mat, index);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "DataPacket::set failed!\n");
-  cv_.notify_all();
-  return status;
-}
-bool PipelineDataPacket::notifyWritten(device::Mat *mat) {
-  std::unique_lock<std::mutex> lock(mutex_);
-  bool status = DataPacket::notifyWritten(mat);
-  if (status) {
-    cv_.notify_all();
-  }
-  return status;
-}
-device::Mat *PipelineDataPacket::getMat() {
-  std::unique_lock<std::mutex> lock(mutex_);
-  cv_.wait(lock, [this] { return written_; });
-  return DataPacket::getMat();
 }
 
 #ifdef ENABLE_NNDEPLOY_OPENCV

@@ -229,7 +229,7 @@ base::Status OnnxRuntimeConvert::convertToTensor(Ort::Value &src,
   base::Status status = base::kStatusCodeOk;
 
   bool copy_flag = false;
-  if (!dst->empty() && dst->getMemoryType() == device::kMemoryTypeAllocate) {
+  if (!dst->empty() && dst->getMemoryType() == base::kMemoryTypeAllocate) {
     copy_flag = true;
   }
 
@@ -245,12 +245,13 @@ base::Status OnnxRuntimeConvert::convertToTensor(Ort::Value &src,
   size_t src_size = src_numel * elesize;
   const void *value_ptr = src.GetTensorData<void *>();
   if (copy_flag) {
-    device::Buffer *src_buffer = device->create(src_size, (void *)value_ptr);
+    device::Buffer *src_buffer =
+        new device::Buffer(device, src_size, (void *)value_ptr);
     device::Buffer *dst_buffer = dst->getBuffer();
     device->copy(src_buffer, dst_buffer);
     device->deallocate(src_buffer);
   } else {
-    dst->destory();
+    dst->clear();
     device::TensorDesc desc;
     desc.shape_ = OnnxRuntimeConvert::convertToShape(src_shape);
     desc.data_type_ = dst_data_type;

@@ -29,7 +29,7 @@ struct NNDEPLOY_CC_API DataType {
   bool operator==(const DataType &other) const;
   bool operator==(const DataTypeCode &other) const;
 
-  size_t DataType::size() const;
+  size_t size() const;
 
   uint8_t code_;
   uint8_t bits_;
@@ -84,8 +84,8 @@ struct NNDEPLOY_CC_API DeviceType {
   DeviceType &operator=(const DeviceType &other);
   DeviceType &operator=(const DeviceTypeCode &other);
 
-  DeviceType(DeviceType &&other) ;
-  DeviceType &operator=(DeviceType &&other) ;
+  DeviceType(DeviceType &&other);
+  DeviceType &operator=(DeviceType &&other);
 
   bool operator==(const DeviceType &other) const;
   bool operator==(const DeviceTypeCode &other) const;

@@ -13,10 +13,10 @@ base::Status ConvertTo::run() {
   int index = inputs_[0]->getIndex(this);
   if (src_desc.data_type_ == param->dst_data_type_) {
     if (parallel_type_ != base::kParallelTypePipeline) {
-      device::Tensor *dst = device::getShallowCopyTensor(src);
+      device::Tensor *dst = new device::Tensor(*src);
       outputs_[0]->set(dst, index);
     } else {
-      device::Tensor *dst = device::getDeepCopyTensor(src);
+      device::Tensor *dst = src->clone();
       outputs_[0]->set(dst, index);
     }
   } else {

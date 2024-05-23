@@ -177,7 +177,7 @@ device::Tensor *RknnInference::getOutputTensorAfterRun(
   bool flag = is_copy || (internal_tensor->getDevice() != device);
   if (flag) {
     device::Tensor *output_tensor = new device::Tensor(device, desc, name);
-    deepCopyBuffer(internal_tensor->getBuffer(), output_tensor->getBuffer());
+    internal_tensor->getBuffer()->copyTo(output_tensor->getBuffer());
     return output_tensor;
   } else {
     device::Tensor *output_tensor =

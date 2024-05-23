@@ -332,7 +332,7 @@ device::Tensor *TensorRtInference::getOutputTensorAfterRun(
   bool flag = is_copy || (internal_tensor->getDevice() != device);
   if (flag) {
     device::Tensor *output_tensor = new device::Tensor(device, desc, name);
-    deepCopyBuffer(internal_tensor->getBuffer(), output_tensor->getBuffer());
+    internal_tensor->getBuffer()->copyTo(output_tensor->getBuffer());
     return output_tensor;
   } else {
     device::Tensor *output_tensor =
@@ -522,8 +522,10 @@ base::Status TensorRtInference::CreateExecuteContext() {
     ;
   } else {
     device::Device *device = device::getDevice(inference_param_->device_type_);
-    inner_forward_buffer_ = device->allocate(forward_memory_size_);
-    context_->setDeviceMemory(inner_forward_buffer_->getData());
+    void *data = device->allocate(forward_memory_size_);
+    inner_forward_buffer_ =
+        new device::Buffer(device, forward_memory_size_, data);
+    context_->setDeviceMemory(data);
   }
   return base::kStatusCodeOk;
 }

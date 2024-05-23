@@ -172,7 +172,7 @@ device::Tensor *TnnInference::getOutputTensorAfterRun(
   device::Tensor *output_tensor = nullptr;
   if (flag) {
     output_tensor = new device::Tensor(device, desc, name);
-    deepCopyBuffer(internal_tensor->getBuffer(), output_tensor->getBuffer());
+    internal_tensor->getBuffer()->copyTo(output_tensor->getBuffer());
     delete internal_tensor;
     return output_tensor;
   } else {

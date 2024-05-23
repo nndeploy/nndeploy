@@ -160,6 +160,7 @@ base::Status CudaDevice::download(void *src, void *dst, size_t size,
         cudaMemcpyAsync(dst, src, size, cudaMemcpyDeviceToHost, stream);
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
+    return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("copy buffer failed");
     return base::kStatusCodeErrorOutOfMemory;
@@ -194,6 +195,7 @@ base::Status CudaDevice::copy(Buffer *src, Buffer *dst, int index) {
   }
 }
 base::Status CudaDevice::download(Buffer *src, Buffer *dst, int index) {
+  cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     cudaError_t status =
         cudaMemcpyAsync(dst->getData(), src->getData(), src->getDesc().size_[0],
@@ -207,6 +209,7 @@ base::Status CudaDevice::download(Buffer *src, Buffer *dst, int index) {
   }
 }
 base::Status CudaDevice::upload(Buffer *src, Buffer *dst, int index) {
+  cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     cudaError_t status =
         cudaMemcpyAsync(dst->getData(), src->getData(), src->getDesc().size_[0],

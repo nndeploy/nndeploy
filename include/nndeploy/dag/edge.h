@@ -41,14 +41,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   device::Buffer *getBuffer(const Node *node);
   device::Buffer *getGraphOutputBuffer();
 
-  base::Status set(device::Mat *mat, int index, bool is_external = true);
-  base::Status set(device::Mat &mat, int index);
-  device::Mat *create(device::Device *device, const device::MatDesc &desc,
-                      int index);
-  bool notifyWritten(device::Mat *mat);
-  device::Mat *getMat(const Node *node);
-  device::Mat *getGraphOutputMat();
-
 #ifdef ENABLE_NNDEPLOY_OPENCV
   base::Status set(cv::Mat *cv_mat, int index, bool is_external = true);
   base::Status set(cv::Mat &cv_mat, int index);

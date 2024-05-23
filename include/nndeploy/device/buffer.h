@@ -29,10 +29,10 @@ class NNDEPLOY_CC_API Buffer {
   Buffer(MemoryPool *memory_pool, size_t size);
   Buffer(MemoryPool *memory_pool, const BufferDesc &desc);
 
-  Buffer::Buffer(MemoryPool *memory_pool, size_t size, void *ptr,
-                 base::MemoryType memory_type);
-  Buffer::Buffer(MemoryPool *memory_pool, const BufferDesc &desc, void *ptr,
-                 base::MemoryType memory_type);
+  Buffer(MemoryPool *memory_pool, size_t size, void *ptr,
+         base::MemoryType memory_type);
+  Buffer(MemoryPool *memory_pool, const BufferDesc &desc, void *ptr,
+         base::MemoryType memory_type);
 
   Buffer(const Buffer &buffer);
   Buffer &operator=(const Buffer &buffer);

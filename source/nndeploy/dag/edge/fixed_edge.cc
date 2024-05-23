@@ -38,25 +38,6 @@ device::Buffer *FixedEdge::getGraphOutputBuffer() {
   return data_packet_->getBuffer();
 }
 
-base::Status FixedEdge::set(device::Mat *mat, int index, bool is_external) {
-  return data_packet_->set(mat, index, is_external);
-}
-base::Status FixedEdge::set(device::Mat &mat, int index) {
-  return data_packet_->set(mat, index);
-}
-device::Mat *FixedEdge::create(device::Device *device,
-                               const device::MatDesc &desc, int index,
-                               const std::string &name) {
-  return data_packet_->create(device, desc, index, name);
-}
-bool FixedEdge::notifyWritten(device::Mat *mat) {
-  return data_packet_->notifyWritten(mat);
-}
-device::Mat *FixedEdge::getMat(const Node *node) {
-  return data_packet_->getMat();
-}
-device::Mat *FixedEdge::getGraphOutputMat() { return data_packet_->getMat(); }
-
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status FixedEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
   return data_packet_->set(cv_mat, index, is_external);

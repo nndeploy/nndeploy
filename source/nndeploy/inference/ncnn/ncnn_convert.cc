@@ -140,7 +140,7 @@ base::Status NcnnConvert::convertFromInferenceParam(
 base::Status NcnnConvert::matConvertToTensor(ncnn::Mat &src,
                                              const std::string &name,
                                              device::Tensor *dst) {
-  dst->destory();
+  dst->clear();
   device::Device *device = device::getDefaultHostDevice();
   base::DataType data_type = NcnnConvert::convertToDataType(src.elemsize);
   base::DataFormat data_format =

@@ -34,26 +34,6 @@ device::Buffer *Edge::getGraphOutputBuffer() {
   return abstact_edge_->getGraphOutputBuffer();
 }
 
-base::Status Edge::set(device::Mat *mat, int index, bool is_external) {
-  return abstact_edge_->set(mat, index, is_external);
-}
-base::Status Edge::set(device::Mat &mat, int index) {
-  return abstact_edge_->set(mat, index);
-}
-device::Mat *Edge::create(device::Device *device, const device::MatDesc &desc,
-                          int index) {
-  return abstact_edge_->create(device, desc, index, name_);
-}
-bool Edge::notifyWritten(device::Mat *mat) {
-  return abstact_edge_->notifyWritten(mat);
-}
-device::Mat *Edge::getMat(const Node *node) {
-  return abstact_edge_->getMat(node);
-}
-device::Mat *Edge::getGraphOutputMat() {
-  return abstact_edge_->getGraphOutputMat();
-}
-
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status Edge::set(cv::Mat *cv_mat, int index, bool is_external) {
   return abstact_edge_->set(cv_mat, index, is_external);
