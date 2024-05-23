@@ -18,7 +18,6 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/op/ir.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -129,6 +128,10 @@ class NNDEPLOY_CC_API Op {
 class OpCreator {
  public:
   virtual ~OpCreator(){};
+
+  virtual Op *createOp(base::DeviceType device_type, const std::string &name,
+                       OpType op_type) = 0;
+
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type,
                        std::initializer_list<std::string> inputs,
@@ -148,6 +151,11 @@ class OpCreator {
  */
 template <typename T>
 class TypeOpCreator : public OpCreator {
+  virtual Op *createOp(base::DeviceType device_type, const std::string &name,
+                       OpType op_type) {
+    return new T(device_type, name, op_type);
+  }
+
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type,
                        std::initializer_list<std::string> inputs,
@@ -187,6 +195,9 @@ class TypeOpRegister {
         std::shared_ptr<T>(new T());
   }
 };
+
+Op *createOp(base::DeviceType device_type, const std::string &name,
+             OpType op_type);
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
              OpType op_type, std::initializer_list<std::string> inputs,

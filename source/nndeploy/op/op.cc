@@ -203,8 +203,8 @@ base::Status Op::reshape(base::ShapeMap &shape_map) {
 base::Status Op::preRun() { return base::kStatusCodeOk; }
 base::Status Op::postRun() { return base::kStatusCodeOk; }
 
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
-    &getGlobalOpCreatorMap() {
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
+getGlobalOpCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::DeviceTypeCode,
                                   std::map<OpType, std::shared_ptr<OpCreator>>>>
@@ -214,6 +214,20 @@ std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
                                 std::map<OpType, std::shared_ptr<OpCreator>>>);
   });
   return *creators;
+}
+
+Op *createOp(base::DeviceType device_type, const std::string &name,
+             OpType op_type) {
+  auto &creater_map = getGlobalOpCreatorMap();
+  auto device_map = creater_map.find(device_type.code_);
+  if (device_map != creater_map.end()) {
+    auto &op_map = device_map->second;
+    auto creator = op_map.find(op_type);
+    if (creator != op_map.end()) {
+      return creator->second->createOp(device_type, name, op_type);
+    }
+  }
+  return nullptr;
 }
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
