@@ -71,7 +71,7 @@ class NNDEPLOY_CC_API Buffer {
   BufferDesc desc_;                    // BufferDesc
   // 内存类型，例如外部传入、内部分配、内存映射
   base::MemoryType memory_type_ = base::kMemoryTypeNone;
-  int *ref_count_;  // 引用计数
+  int *ref_count_ = nullptr;  // 引用计数
   /**
    * @brief
    * # 通常情况下，可以用指针表示（void *data_ptr_ = nullptr;）
@@ -79,7 +79,7 @@ class NNDEPLOY_CC_API Buffer {
    * ## 使用：size_t id = (size_t)(data_);
    * ## 返回：void *ptr = (void *)((size_t)id);
    */
-  void *data_;
+  void *data_ = nullptr;
 };
 
 }  // namespace device

@@ -130,7 +130,7 @@ class NNDEPLOY_CC_API Tensor {
   std::string name_ = "";     // tensor name
   TensorDesc desc_;           // tensor desc
   bool is_external_ = false;  // is external
-  int *ref_count_;            // 引用计数
+  int *ref_count_ = nullptr;  // 引用计数
   Buffer *buffer_ = nullptr;  // buffer
 };
 

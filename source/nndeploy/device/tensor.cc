@@ -59,7 +59,9 @@ Tensor::Tensor(const Tensor &tensor) {
   desc_ = tensor.desc_;
   is_external_ = tensor.is_external_;
   ref_count_ = tensor.ref_count_;
-  tensor.addRef();
+  if (ref_count_ != nullptr) {
+    tensor.addRef();
+  }
   buffer_ = tensor.buffer_;
 }
 Tensor &Tensor::operator=(const Tensor &tensor) {
@@ -70,7 +72,9 @@ Tensor &Tensor::operator=(const Tensor &tensor) {
   desc_ = tensor.desc_;
   is_external_ = tensor.is_external_;
   ref_count_ = tensor.ref_count_;
-  tensor.addRef();
+  if (ref_count_ != nullptr) {
+    tensor.addRef();
+  }
   buffer_ = tensor.buffer_;
   return *this;
 }

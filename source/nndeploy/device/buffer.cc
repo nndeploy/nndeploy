@@ -100,8 +100,10 @@ Buffer::Buffer(const Buffer &buffer) {
   memory_pool_ = buffer.memory_pool_;
   desc_ = buffer.desc_;
   memory_type_ = buffer.memory_type_;
-  buffer.addRef();
   ref_count_ = buffer.ref_count_;
+  if (ref_count_ != nullptr) {
+    buffer.addRef();
+  }
   data_ = buffer.data_;
 }
 Buffer &Buffer::operator=(const Buffer &buffer) {
@@ -112,8 +114,10 @@ Buffer &Buffer::operator=(const Buffer &buffer) {
   memory_pool_ = buffer.memory_pool_;
   desc_ = buffer.desc_;
   memory_type_ = buffer.memory_type_;
-  buffer.addRef();
   ref_count_ = buffer.ref_count_;
+  if (ref_count_ != nullptr) {
+    buffer.addRef();
+  }
   data_ = buffer.data_;
   return *this;
 }
