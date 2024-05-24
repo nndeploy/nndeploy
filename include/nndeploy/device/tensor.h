@@ -78,6 +78,7 @@ class NNDEPLOY_CC_API Tensor {
   void deallocate();
 
   // modify
+  base::Status reshape(base::IntVector shape);
   bool justModify(const TensorDesc &desc);
   bool justModify(Buffer *buffer);
 

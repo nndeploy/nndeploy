@@ -244,6 +244,25 @@ void Tensor::deallocate() {
   ref_count_ = nullptr;
 }
 
+base::Status Tensor::reshape(base::IntVector shape) {
+  if (shape.empty()) {
+    NNDEPLOY_LOGE("shape is empty");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  if (desc_.shape_ == shape) {
+    return base::kStatusCodeOk;
+  }
+  if (buffer_ == nullptr) {
+    desc_.shape_ = shape;
+    return base::kStatusCodeOk;
+  }
+  if (desc_.shape_.size() != shape.size()) {
+    NNDEPLOY_LOGE("shape size is not equal");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  desc_.shape_ = shape;
+  return base::kStatusCodeOk;
+}
 bool Tensor::justModify(const TensorDesc &desc) {
   if (buffer_ == nullptr) {
     desc_ = desc;
