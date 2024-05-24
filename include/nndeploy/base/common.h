@@ -29,6 +29,9 @@ struct NNDEPLOY_CC_API DataType {
   bool operator==(const DataType &other) const;
   bool operator==(const DataTypeCode &other) const;
 
+  bool operator!=(const DataType &other) const;
+  bool operator!=(const DataTypeCode &other) const;
+
   size_t size() const;
 
   uint8_t code_;
@@ -89,6 +92,9 @@ struct NNDEPLOY_CC_API DeviceType {
 
   bool operator==(const DeviceType &other) const;
   bool operator==(const DeviceTypeCode &other) const;
+
+  bool operator!=(const DeviceType &other) const;
+  bool operator!=(const DeviceTypeCode &other) const;
 
   DeviceTypeCode code_;
   int device_id_;
@@ -308,6 +314,8 @@ extern NNDEPLOY_CC_API CodecFlag stringToCodecFlag(const std::string &src);
 
 extern NNDEPLOY_CC_API ParallelType
 stringToParallelType(const std::string &src);
+
+PrecisionType getPrecisionType(DataType data_type);
 
 }  // namespace base
 }  // namespace nndeploy

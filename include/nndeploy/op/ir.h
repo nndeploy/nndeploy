@@ -22,6 +22,7 @@ enum OpType : int {
   // unary
 
   // binary
+  kOpTypeAdd,
 
   // shape
 

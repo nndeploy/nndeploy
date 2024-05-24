@@ -21,6 +21,13 @@ bool DataType::operator==(const DataTypeCode &other) const {
   return code_ == other;
 }
 
+bool DataType::operator!=(const DataType &other) const {
+  return !(*this == other);
+}
+bool DataType::operator!=(const DataTypeCode &other) const {
+  return !(*this == other);
+}
+
 size_t DataType::size() const { return (bits_ * lanes_) >> 3; }
 
 template <>
@@ -93,6 +100,13 @@ bool DeviceType::operator==(const DeviceType &other) const {
 }
 bool DeviceType::operator==(const DeviceTypeCode &other) const {
   return code_ == other;
+}
+
+bool DeviceType::operator!=(const DeviceType &other) const {
+  return !(*this == other);
+}
+bool DeviceType::operator!=(const DeviceTypeCode &other) const {
+  return !(*this == other);
 }
 
 DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {
@@ -289,6 +303,20 @@ ParallelType stringToParallelType(const std::string &src) {
     return kParallelTypePipeline;
   } else {
     return kParallelTypeNone;
+  }
+}
+
+PrecisionType getPrecisionType(DataType data_type) {
+  if (data_type.code_ == kDataTypeCodeBFp && data_type.bits_ == 16) {
+    return kPrecisionTypeBFp16;
+  } else if (data_type.code_ == kDataTypeCodeFp && data_type.bits_ == 16) {
+    return kPrecisionTypeFp16;
+  } else if (data_type.code_ == kDataTypeCodeFp && data_type.bits_ == 32) {
+    return kPrecisionTypeFp32;
+  } else if (data_type.code_ == kDataTypeCodeFp && data_type.bits_ == 64) {
+    return kPrecisionTypeFp64;
+  } else {
+    return kPrecisionTypeFp32;
   }
 }
 
