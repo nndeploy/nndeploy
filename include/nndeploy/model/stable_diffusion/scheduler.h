@@ -12,27 +12,23 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/dag/dag::Edge.h"
+#include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/dag/loop.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/model/convert_to.h"
+#include "nndeploy/model/stable_diffusion/type.h"
+
+#include <random>
 
 
 namespace nndeploy {
 namespace model {
 
-enum SchedulerType : public int {
-  kSchedulerDDIM = 0x0000,
-  kSchedulerDPM,
-  kSchedulerEulerA,
-  kSchedulerLMSD,
-  kSchedulerPNDM,
-  kSchedulerNotSupport,
-};
 
 class NNDEPLOY_CC_API SchedulerParam : public base::Param {
  public:
@@ -49,7 +45,7 @@ class NNDEPLOY_CC_API SchedulerParam : public base::Param {
    */
   std::string prediction_type_ = "v_prediction";  // 预测噪声的方法
 
-  int num_inference_steps = 50;
+  int num_inference_steps_ = 50;
 };
 
 /**
@@ -65,9 +61,12 @@ class NNDEPLOY_CC_API Scheduler : public dag::Loop {
   Scheduler(const std::string &name, SchedulerType scheduler_type,
             dag::Edge *input, dag::Edge *output)
       : Loop(name, input, output), scheduler_type_(scheduler_type) {}
-  Scheduler(const std::string &name, std::initializer_list<dag::Edge *> inputs,
+
+  Scheduler(const std::string &name, SchedulerType scheduler_type,
+            std::initializer_list<dag::Edge *> inputs,
             std::initializer_list<dag::Edge *> outputs)
       : Loop(name, inputs, outputs), scheduler_type_(scheduler_type) {}
+
   virtual ~Scheduler() {}
 
   /**
@@ -101,8 +100,12 @@ class NNDEPLOY_CC_API Scheduler : public dag::Loop {
    * @note
    *  生成过程中的每一步都会调用此方法，它根据当前的时间步计算并更新生成的样本。
    */
-  virtual base::Status step(device::Tensor *sample, device::Tensor *latents,
-                            int index, int timestep) = 0;
+  virtual base::Status step(device::Tensor *model_output,
+                            device::Tensor *sample, int idx,
+                            std::vector<int64_t> &timestep, float eta,
+                            bool use_clipped_model_output,
+                            std::mt19937 &generator,
+                            device::Tensor *variance_noise) = 0;
 
   /**
    * @brief
@@ -126,12 +129,12 @@ class NNDEPLOY_CC_API SchedulerDDIM : public Scheduler {
  public:
   SchedulerDDIM(const std::string &name, SchedulerType scheduler_type,
                 dag::Edge *input, dag::Edge *output);
-  SchedulerDDIM(const std::string &name,
+  SchedulerDDIM(const std::string &name, SchedulerType scheduler_type,
                 std::initializer_list<dag::Edge *> inputs,
                 std::initializer_list<dag::Edge *> outputs);
-  virtual ~SchedulerDDIM() {}
+  virtual ~SchedulerDDIM();
 
-  virtual base::Status setTimesteps(int num_inference_steps);
+  virtual base::Status setTimesteps();
 
   virtual device::Tensor *scaleModelInput(device::Tensor *sample, int index);
 
@@ -139,15 +142,19 @@ class NNDEPLOY_CC_API SchedulerDDIM : public Scheduler {
 
   virtual base::Status configure();
 
-  virtual base::Status step(device::Tensor *sample, device::Tensor *latents,
-                            int index, int timestep);
+  virtual base::Status step(device::Tensor *model_output,
+                            device::Tensor *sample, int idx,
+                            std::vector<int64_t> &timestep, float eta,
+                            bool use_clipped_model_output,
+                            std::mt19937 &generator,
+                            device::Tensor *variance_noise);
 
   virtual base::Status addNoise(device::Tensor *init_latents,
                                 device::Tensor *noise, int idx,
                                 int latent_timestep);
 
   virtual base::Status init();
-  // virtual base::Status deinit() {}
+  virtual base::Status deinit();
 
   virtual int loops();
   virtual base::Status run();
@@ -156,26 +163,14 @@ class NNDEPLOY_CC_API SchedulerDDIM : public Scheduler {
   std::vector<float> alphas_cumprod_;  // alpha的累积乘积
   float final_alpha_cumprod_ = 1.0;
   // standard deviation of the initial noise distribution
-  float init_noise_sigma_ = 1.0;  // 初始噪声的标准差
-
-  // std::vector<float> variance_;
+  float init_noise_sigma_ = 1.0f;  // 初始噪声的标准差
 
   std::vector<int64_t> timesteps_;  // 时间步序列
+  std::vector<float> variance_;     // 方差
 
   device::Tensor *latent_tensor_ = nullptr;
   device::Tensor *timestep_tensor_ = nullptr;
 };
-
-Scheduler *createScheduler(const std::string &name,
-                           SchedulerType scheduler_type, dag::Edge *input,
-                           dag::Edge *output) {
-  switch (scheduler_type) {
-    case kSchedulerDDIM:
-      return new SchedulerDDIM(name, scheduler_type, input, output);
-    default:
-      return nullptr;
-  }
-}
 
 extern NNDEPLOY_CC_API dag::Graph *createSchedulerUNetGraph(
     const std::string &name, dag::Edge *input, dag::Edge *output,

@@ -19,7 +19,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-
+#include "nndeploy/model/stable_diffusion/type.h"
 
 namespace nndeploy {
 namespace model {

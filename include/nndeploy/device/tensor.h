@@ -77,6 +77,16 @@ class NNDEPLOY_CC_API Tensor {
                 const base::IntVector &config = base::IntVector());
   void deallocate();
 
+  template <typename T>
+  base::Status set(T value) {
+    if (buffer_ == nullptr) {
+      NNDEPLOY_LOGE("buffer_ is empty");
+      return base::kStatusCodeErrorNullParam;
+    }
+
+    return buffer_->set(value);
+  }
+
   // modify
   base::Status reshape(base::IntVector shape);
   bool justModify(const TensorDesc &desc);
@@ -125,6 +135,30 @@ class NNDEPLOY_CC_API Tensor {
 
   inline int addRef() const { return NNDEPLOY_XADD(ref_count_, 1); }
   inline int subRef() const { return NNDEPLOY_XADD(ref_count_, -1); }
+
+  friend Tensor &operator+(const Tensor &a, const Tensor &b);
+  template <typename T>
+  friend Tensor &operator+(const T &a, const Tensor &b);
+  template <typename T>
+  friend Tensor &operator+(const Tensor &a, const T &b);
+
+  friend Tensor &operator-(const Tensor &a, const Tensor &b);
+  template <typename T>
+  friend Tensor &operator-(const T &a, const Tensor &b);
+  template <typename T>
+  friend Tensor &operator-(const Tensor &a, const T &b);
+
+  friend Tensor &operator*(const Tensor &a, const Tensor &b);
+  template <typename T>
+  friend Tensor &operator*(const T &a, const Tensor &b);
+  template <typename T>
+  friend Tensor &operator*(const Tensor &a, const T &b);
+
+  friend Tensor &operator/(const Tensor &a, const Tensor &b);
+  template <typename T>
+  friend Tensor &operator/(const T &a, const Tensor &b);
+  template <typename T>
+  friend Tensor &operator/(const Tensor &a, const T &b);
 
  private:
   std::string name_ = "";     // tensor name

@@ -29,6 +29,18 @@ Infer::Infer(const std::string &name, base::InferenceType type,
     constructed_ = true;
   }
 }
+Infer::Infer(const std::string &name, base::InferenceType type,
+             std::vector<dag::Edge *> inputs, std::vector<dag::Edge *> outputs)
+    : dag::Node(name, inputs, outputs) {
+  type_ = type;
+  inference_ = inference::createInference(type);
+  if (inference_ == nullptr) {
+    NNDEPLOY_LOGE("Failed to create inference");
+    constructed_ = false;
+  } else {
+    constructed_ = true;
+  }
+}
 
 Infer::~Infer() { delete inference_; }
 

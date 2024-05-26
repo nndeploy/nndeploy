@@ -25,3 +25,13 @@ nndeploy_option(ENABLE_NNDEPLOY_MODEL_SEGMENT_SEGMENT_ANYTHING "ENABLE_NNDEPLOY_
 if (ENABLE_NNDEPLOY_MODEL_SEGMENT)
   include(${ROOT_PATH}/source/nndeploy/model/segment/config.cmake)
 endif()
+
+nndeploy_option(ENABLE_NNDEPLOY_MODEL_TOKENIZER "ENABLE_NNDEPLOY_MODEL_TOKENIZER" OFF)
+if (ENABLE_NNDEPLOY_MODEL_TOKENIZER)
+  include(${ROOT_PATH}/source/nndeploy/model/tokenizer/config.cmake)
+endif()
+
+nndeploy_option(ENABLE_NNDEPLOY_MODEL_STABLE_DIFFUSION "ENABLE_NNDEPLOY_MODEL_STABLE_DIFFUSION" OFF)
+if (ENABLE_NNDEPLOY_MODEL_STABLE_DIFFUSION)
+  include(${ROOT_PATH}/source/nndeploy/model/stable_diffusion/config.cmake)
+endif()

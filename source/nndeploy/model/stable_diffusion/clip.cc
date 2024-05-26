@@ -2,7 +2,7 @@
 #include "nndeploy/model/stable_diffusion/clip.h"
 
 #include "nndeploy/model/infer.h"
-// #include "nndeploy/model/tokenizer/clip_tokenizer.h"
+#include "nndeploy/model/tokenizer/clip_tokenizer.h"
 #include "nndeploy/model/convert_to.h"
 
 namespace nndeploy {
@@ -36,7 +36,7 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *input,
   // tokenizer->setParam(param[0]);
   dag::Node *clip_convert_to_pre =
       graph->createNode<ConvertTo>("clip_convert_to_pre", input, "input_ids");
-  clip_convert_to->setParam(param[0]);
+  clip_convert_to_pre->setParam(param[0]);
 
   /**
    * @brief

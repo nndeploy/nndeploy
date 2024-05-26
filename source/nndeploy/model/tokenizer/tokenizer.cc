@@ -1,8 +1,14 @@
-#ifndef A097C731_AEE3_4436_89C3_8BBA0973E57A
-#define A097C731_AEE3_4436_89C3_8BBA0973E57A
-#ifndef A7250B78_1CB2_490B_BD45_1640DCDC87CD
-#define A7250B78_1CB2_490B_BD45_1640DCDC87CD
 
-#endif /* A7250B78_1CB2_490B_BD45_1640DCDC87CD */
+#include "nndeploy/model/tokenizer/tokenizer.h"
 
-#endif /* A097C731_AEE3_4436_89C3_8BBA0973E57A */
+namespace nndeploy {
+namespace model {
+
+Tokenizer::Tokenizer(const std::string &name, dag::Edge *input,
+                     dag::Edge *output)
+    : dag::Node(name, input, output) {}
+
+Tokenizer::~Tokenizer() {}
+
+}
+}  // namespace nndeploy

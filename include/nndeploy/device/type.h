@@ -43,7 +43,7 @@ struct NNDEPLOY_CC_API BufferDesc {
   /**
    * @brief
    * 1d size
-   * 2d h w c - 例如OpenCL cl::Image2d
+   * 2d h w c sizeof(T) - 例如OpenCL cl::Image2d
    * 3d unknown
    */
   base::SizeVector size_;

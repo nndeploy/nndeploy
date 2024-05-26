@@ -1,7 +1,4 @@
 
-#ifndef _NNDEPLOY_OP_ADD_H_
-#define _NNDEPLOY_OP_ADD_H_
-
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -18,6 +15,7 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/op/ir.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/op/function.h"
 
 namespace nndeploy {
 namespace op {
@@ -75,10 +73,30 @@ base::Status add(device::Tensor *input1, device::Tensor *input2,
   status = op->deinit();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
 
+  delete op;
+
   return status;
+}
+
+base::Status sub(device::Tensor *input1, device::Tensor *input2,
+                 device::Tensor *output) {
+  return base::Status();
+}
+
+base::Status mul(device::Tensor *input1, device::Tensor *input2,
+                 device::Tensor *output) {
+  return base::Status();
+}
+
+base::Status div(device::Tensor *input1, device::Tensor *input2,
+                 device::Tensor *output) {
+  return base::Status();
+}
+
+base::Status clamp(device::Tensor *input, float min, float max,
+                   device::Tensor *output) {
+  return base::Status();
 }
 
 }  // namespace op
 }  // namespace nndeploy
-
-#endif

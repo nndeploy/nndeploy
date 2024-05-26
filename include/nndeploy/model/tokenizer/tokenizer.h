@@ -16,7 +16,9 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/segment/result.h"
+#include "nndeploy/dag/node.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/graph.h"
 
 namespace nndeploy {
 namespace model {
@@ -37,15 +39,8 @@ class NNDEPLOY_CC_API TokenizerString : public base::Param {
  */
 class NNDEPLOY_CC_API Tokenizer : public dag::Node {
  public:
-  Tokenizer(const std::string &name, Edge *input, Edge *output);
-
+  Tokenizer(const std::string &name, dag::Edge *input, dag::Edge *output);
   virtual ~Tokenizer();
-
-  virtual base::Status setParam(base::Param *param);
-  virtual base::Param *getParam();
-
-  virtual base::Status init();
-  virtual base::Status deinit();
 
   virtual base::Status run() = 0;
 

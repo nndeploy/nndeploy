@@ -1199,7 +1199,11 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     inputs.emplace_back(input);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  std::vector<Edge *> outputs_vec;
+  for (auto output : outputs) {
+    outputs_vec.emplace_back(output);
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs_vec));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;

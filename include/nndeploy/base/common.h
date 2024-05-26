@@ -101,7 +101,7 @@ struct NNDEPLOY_CC_API DeviceType {
 };
 
 enum DataFormat : int {
-  // 1D
+  // 1D，scale
   kDataFormatN = 0x0000,
 
   // 2D

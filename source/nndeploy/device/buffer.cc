@@ -136,7 +136,7 @@ Buffer::Buffer(Buffer &&buffer) noexcept {
 }
 Buffer &Buffer::operator=(Buffer &&buffer) noexcept {
   if (this == &buffer) {
-    *this;
+    return *this;
   }
   device_ = buffer.device_;
   memory_pool_ = buffer.memory_pool_;

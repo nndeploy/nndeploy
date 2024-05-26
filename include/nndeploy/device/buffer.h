@@ -42,6 +42,35 @@ class NNDEPLOY_CC_API Buffer {
 
   virtual ~Buffer();
 
+  template <typename T>
+  base::Status set(T value) {
+    if (data_ == nullptr) {
+      NNDEPLOY_LOGE("data_ is empty");
+      return base::kStatusCodeErrorNullParam;
+    }
+    T *value_ptr = nullptr;
+    if (isHostDeviceType(device_->getDeviceType())) {
+      value_ptr = (T *)data_;
+    } else {
+      Device *host_device = getDefaultHostDevice();
+      value_ptr = (T *)(host_device->allocate(desc_));
+    }
+
+    size_t size = this->getSize();
+    size_t ele_size = sizeof(T);
+    size_t ele_count = size / ele_size;
+    for (size_t i = 0; i < ele_count; ++i) {
+      value_ptr[i] = value;
+    }
+    if (!isHostDeviceType(device_->getDeviceType())) {
+      device_->upload(data_, value_ptr, size);
+      Device *host_device = getDefaultHostDevice();
+      host_device->deallocate(value_ptr);
+    }
+
+    return base::kStatusCodeOk;
+  };
+
   // clone and copy
   Buffer *clone();
   base::Status copyTo(Buffer *dst);
