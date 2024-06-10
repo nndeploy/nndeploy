@@ -73,8 +73,8 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
   base::ShapeMap min_shape_ = base::ShapeMap();  // 当为动态输入时最小shape
   base::ShapeMap opt_shape_ = base::ShapeMap();  // 当为动态输入时最优shape
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
-  std::vector<std::string> cache_path_ = {};  // 缓存路径
-  std::vector<std::string> library_path_ = {};  // 第三方推理框架的动态库路径
+  std::vector<std::string> cache_path_;          // 缓存路径
+  std::vector<std::string> library_path_;  // 第三方推理框架的动态库路径
 };
 
 /**
@@ -104,8 +104,8 @@ class TypeInferenceParamCreator : public InferenceParamCreator {
  * @return std::map<base::InferenceType,
  * std::shared_ptr<InferenceParamCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
-    &getGlobalInferenceParamCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
+getGlobalInferenceParamCreatorMap();
 
 /**
  * @brief TypeInferenceParamRegister is the template class of all inference

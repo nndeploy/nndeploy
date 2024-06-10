@@ -184,7 +184,7 @@ base::Status AscendCLInference::run() {
 + sudo docker run --rm --runtime=nvidia --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
 + sudo docker run --rm -it --gpus all -v $PWD:/workspace tensorrt-ubuntu20.04-cuda11.8:latest /bin/bash
 
-# export http_proxy=127.0.0.1:7890
+## export http_proxy=127.0.0.1:7890
 
 export http_proxy="http://127.0.0.1:7890"
 export https_proxy="http://127.0.0.1:7890"
@@ -201,3 +201,58 @@ export PATH=$PATH:/usr/local/cuda-11.8/bin
 
 
 /home/always/Downloads
+
+## 算子讨论（与守夜大佬讨论）
+
+1. Op的分类实现
+例如 二元算子、nn类算子、数学类算子、激活函数类算子，可以共享一些诸如类型检查之类的函数
+
++ 1. unay
++ 2. binary
++ elementwise
++ nn - compute
++ shape - concat
+
+1. 注册机制
+根据设备进行op注册
++ op_type + device （只保留这个）
+
+## 在op内部区别（不是编译、也不是多个子类 - 最传统的函数的方式，if else）
++ data_type + data_format（一两钟实现）
+
++ opencl - image2d_t buffer
+
+1. 属性层
+为每个Op制定attrs（param），用于统一的参数传递，也便于类型检查（tvm的方式）
+
+1. 类型检查
+类型检查包含数据类型的合法性（在某个设备上是否支持） 
+推导输出的shape大小和维度  relay 
+
+init时调用
+
+5. 计算层（我也觉得）
+假设一切输入、属性、内存都是合法的，只专注计算
+
+6. 调用方式（）
+如何提供一个明确的接口，可以方便的看出需要进行的参数传递和内容、顺序
+
+relay.nn.conv2d([inputs],kernel,stride)
+
+## 映射关系
+conv2d_attrs={
+
+}
+relay.call("conv2d",conv2d_attrs)
+
+7. 内存管理
+op与edge如何协同  不存在
+net op tensor
+
+
+修改：（这个看你设计）
+每一个算子都需要一个头文件吗？？
+将参数统一为vector<tensor> inputs, vector<tensor> outputs
+weights是否作为inputs中的一员传递 (统一接口层)
+
+attrs作为具体计算类的一个属性赋值

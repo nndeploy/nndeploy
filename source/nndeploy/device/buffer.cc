@@ -149,14 +149,13 @@ Buffer &Buffer::operator=(Buffer &&buffer) noexcept {
 }
 
 Buffer::~Buffer() {
-  if (data_ != nullptr && ref_count_ != nullptr && this->subRef() == 1 &&
-      memory_type_ == base::kMemoryTypeAllocate) {
-    if (memory_pool_ != nullptr) {
+  if (data_ != nullptr && ref_count_ != nullptr && this->subRef() == 1) {
+    if (memory_pool_ != nullptr && memory_type_ == base::kMemoryTypeAllocate) {
       if (data_ != nullptr) {
         memory_pool_->deallocate(data_);
       }
     } else {
-      if (data_ != nullptr) {
+      if (data_ != nullptr && memory_type_ == base::kMemoryTypeAllocate) {
         device_->deallocate(data_);
       }
     }

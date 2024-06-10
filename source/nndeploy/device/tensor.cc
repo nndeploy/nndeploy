@@ -239,9 +239,10 @@ void Tensor::allocate(MemoryPool *memory_pool, const base::IntVector &config) {
   ref_count_ = new int(1);
 }
 void Tensor::deallocate() {
-  if (buffer_ != nullptr && ref_count_ != nullptr && this->subRef() == 1 &&
-      !is_external_) {
-    delete buffer_;
+  if (buffer_ != nullptr && ref_count_ != nullptr && this->subRef() == 1) {
+    if (!is_external_) {
+      delete buffer_;
+    }
     delete ref_count_;
   }
   buffer_ = nullptr;

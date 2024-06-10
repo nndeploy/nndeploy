@@ -24,7 +24,7 @@ base::Status ConvertTo::run() {
     dst_desc.data_type_ = param->dst_data_type_;
     device::Tensor *dst =
         outputs_[0]->create(src->getDevice(), dst_desc, index);
-    // status = src->convertTo(dst);
+    // status = op::cast(src, dst, src_desc.data_type_, dst_desc.data_type_);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "convertTo failed.");
   }
 

@@ -15,20 +15,16 @@ void customLinspace(float start, float end, int steps,
   }
 }
 
-base::Status initializeLatents(int batch_size, int unet_channels,
-                               int latent_height, int latent_width,
-                               float init_noise_sigma,
+base::Status initializeLatents(std::mt19937 &generator, float init_noise_sigma,
                                device ::Tensor *latents) {
-  // latents_dtype = torch.float32;  // # text_embeddings.dtype
-  // latents_shape =
-  //     (batch_size, unet_channels, latent_height, latent_width)latents =
-  //         torch.randn(latents_shape, device = self.device,
-  //                     dtype = latents_dtype, generator = self.generator);
-  //// # Scale the initial noise by the standard deviation required by the
-  //// scheduler
-  // latents = latents * self.scheduler.init_noise_sigma;
-  // return latents;
   base::Status status = base::kStatusCodeOk;
+
+  // # Scale the initial noise by the standard deviation required by the
+  // scheduler
+  // status = latents->randn(generator);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "randn failed!");
+  // status = op::mul(latents, init_noise_sigma, latents);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "mul failed!");
 
   return status;
 }
@@ -51,15 +47,16 @@ SchedulerDDIM::~SchedulerDDIM() {}
 base::Status SchedulerDDIM::setTimesteps() {
   base::Status status = base::kStatusCodeOk;
   SchedulerParam *scheduler_param = (SchedulerParam *)(param_.get());
-  float step_ratio = (float)scheduler_param->num_train_timesteps_ /
-                     (float)scheduler_param->num_inference_steps_;
+  int step_ratio = scheduler_param->num_train_timesteps_ /
+                   scheduler_param->num_inference_steps_;
   timesteps_.clear();
+  // creates integer timesteps by multiplying by ratio
+  // casting to int to avoid issues when num_inference_step is power of 3
   timesteps_.resize(scheduler_param->num_inference_steps_);
   for (int i = 0; i < scheduler_param->num_inference_steps_; i++) {
-    timesteps_[i] = (int64_t)(std::lround(
-                        (float)(scheduler_param->num_inference_steps_ - 1 - i) *
-                        step_ratio)) +
-                    scheduler_param->steps_offset_;
+    timesteps_[i] =
+        (int64_t)((scheduler_param->num_inference_steps_ - 1 - i) * step_ratio +
+                  scheduler_param->steps_offset_);
   }
   return status;
 }
@@ -85,11 +82,11 @@ float SchedulerDDIM::getVariance(int64_t timesteps, int64_t prev_timestep) {
 base::Status SchedulerDDIM::configure() {
   base::Status status = base::kStatusCodeOk;
   SchedulerParam *scheduler_param = (SchedulerParam *)(param_.get());
-  variance_.resize(scheduler_param->num_inference_steps_);
-  float step_ratio = (float)scheduler_param->num_train_timesteps_ /
-                     (float)scheduler_param->num_inference_steps_;
+  variance_.resize(scheduler_param->num_inference_steps_, 0.0f);
+  int64_t step_ratio = (int64_t)scheduler_param->num_train_timesteps_ /
+                       (int64_t)scheduler_param->num_inference_steps_;
   for (int i = 0; i < scheduler_param->num_inference_steps_; i++) {
-    int64_t prev_timestep = timesteps_[i] - (int64_t)(step_ratio);
+    int64_t prev_timestep = timesteps_[i] - step_ratio;
     variance_[i] = getVariance(timesteps_[i], prev_timestep);
   }
   return status;
@@ -128,7 +125,7 @@ base::Status SchedulerDDIM::step(device::Tensor *model_output,
 
   float alpha_prod_t = alphas_cumprod_[idx];
   device::TensorDesc alpha_prod_t_desc(base::dataTypeOf<float>(),
-                                          base::kDataFormatN, {1});
+                                       base::kDataFormatN, {1});
   device::Tensor alpha_prod_t_tensor(host_device, alpha_prod_t_desc);
   alpha_prod_t_tensor.set(alpha_prod_t);
   float alpha_prod_t_sqrt = std::sqrtf(alpha_prod_t);
@@ -139,13 +136,13 @@ base::Status SchedulerDDIM::step(device::Tensor *model_output,
                                 ? alphas_cumprod_[prev_idx]
                                 : final_alpha_cumprod_;
   device::TensorDesc alpha_prod_t_prev_desc(base::dataTypeOf<float>(),
-                                       base::kDataFormatN, {1});
+                                            base::kDataFormatN, {1});
   device::Tensor alpha_prod_t_prev_tensor(host_device, alpha_prod_t_prev_desc);
   alpha_prod_t_prev_tensor.set(alpha_prod_t_prev);
 
   float beta_prod_t = 1.0 - alpha_prod_t;
   device::TensorDesc beta_prod_t_desc(base::dataTypeOf<float>(),
-                                            base::kDataFormatN, {1});
+                                      base::kDataFormatN, {1});
   device::Tensor beta_prod_t_tensor(host_device, beta_prod_t_desc);
   beta_prod_t_tensor.set(beta_prod_t);
   float beta_prod_t_sqrt = std::sqrtf(beta_prod_t);
@@ -155,7 +152,7 @@ base::Status SchedulerDDIM::step(device::Tensor *model_output,
   // 3. compute predicted original sample from predicted noise also called
   // "predicted x_0" of formula(12) from https: //arxiv.org/pdf/2010.02502.pdf
   device::Tensor pred_original_sample(model_output->getDevice(),
-                                       model_output->getDesc());
+                                      model_output->getDesc());
   if (scheduler_param->prediction_type_ == "epsilon") {
     device::Tensor tmp1(model_output->getDevice(), model_output->getDesc());
     op::mul(&beta_prod_t_sqrt_tensor, model_output, &tmp1);
@@ -168,12 +165,11 @@ base::Status SchedulerDDIM::step(device::Tensor *model_output,
     device::Tensor sample_tmp(sample->getDevice(), sample->getDesc());
     op::mul(&alpha_prod_t_sqrt_tensor, sample, &sample_tmp);
     device::Tensor model_output_tmp(model_output->getDevice(),
-                              model_output->getDesc());
+                                    model_output->getDesc());
     op::mul(&beta_prod_t_sqrt_tensor, model_output, &model_output_tmp);
     op::sub(&sample_tmp, &model_output_tmp, &pred_original_sample);
 
-    op::mul(&beta_prod_t_sqrt_tensor, sample,
-            &sample_tmp);
+    op::mul(&beta_prod_t_sqrt_tensor, sample, &sample_tmp);
     op::mul(&alpha_prod_t_sqrt_tensor, model_output, &model_output_tmp);
     op::add(&sample_tmp, &model_output_tmp, model_output);
   } else {
@@ -201,8 +197,9 @@ base::Status SchedulerDDIM::step(device::Tensor *model_output,
     op::sub(sample, &pred_original_sample_tmp, &sample_tmp);
     op::div(&sample_tmp, &beta_prod_t_sqrt_tensor, model_output);
   }
-  
-  // # 6. compute "direction pointing to x_t" of formula (12) from https://arxiv.org/pdf/2010.02502.pdf
+
+  // # 6. compute "direction pointing to x_t" of formula (12) from
+  // https://arxiv.org/pdf/2010.02502.pdf
   float coff_model_output =
       std::sqrtf(1 - alpha_prod_t_prev - std_dev_t * std_dev_t);
   device::Tensor coff_model_output_tensor(host_device, beta_prod_t_desc);
@@ -211,14 +208,13 @@ base::Status SchedulerDDIM::step(device::Tensor *model_output,
                                        model_output->getDesc());
   op::mul(&coff_model_output_tensor, model_output, &pred_sample_direction);
 
-  // # 7. compute x_t without "random noise" of formula(12) from https: //arxiv.org/pdf/2010.02502.pdf
+  // # 7. compute x_t without "random noise" of formula(12) from https:
+  // //arxiv.org/pdf/2010.02502.pdf
   float alpha_prod_t_prev_sqrt = std::sqrtf(alpha_prod_t_prev);
   device::Tensor pred_original_sample_temp;
-  pred_original_sample_temp =
-      alpha_prod_t_prev_sqrt * pred_original_sample;
+  pred_original_sample_temp = alpha_prod_t_prev_sqrt * pred_original_sample;
   device::Tensor prev_sample;
-  prev_sample =
-      pred_original_sample_temp + pred_sample_direction;
+  prev_sample = pred_original_sample_temp + pred_sample_direction;
 
   return status;
 }
@@ -230,14 +226,15 @@ base::Status SchedulerDDIM::addNoise(device::Tensor *init_latents,
   device::Device *host_device = device::getDefaultHostDevice();
 
   float sqrt_alpha_prod = std::sqrtf(alphas_cumprod_[idx]);
-  device::TensorDesc sqrt_alpha_prod_desc(base::dataTypeOf<float>(),base::kDataFormatN,{1});
+  device::TensorDesc sqrt_alpha_prod_desc(base::dataTypeOf<float>(),
+                                          base::kDataFormatN, {1});
   device::Tensor sqrt_alpha_prod_tensor(host_device, sqrt_alpha_prod_desc);
   sqrt_alpha_prod_tensor.set(sqrt_alpha_prod);
   op::mul(&sqrt_alpha_prod_tensor, init_latents, init_latents);
 
   float sqrt_one_minus_alpha_prod = std::sqrtf(1.0f - alphas_cumprod_[idx]);
   device::TensorDesc sqrt_one_minus_alpha_prod_desc(base::dataTypeOf<float>(),
-                                          base::kDataFormatN, {1});
+                                                    base::kDataFormatN, {1});
   device::Tensor sqrt_one_minus_alpha_prod_tensor(host_device,
                                                   sqrt_alpha_prod_desc);
   sqrt_one_minus_alpha_prod_tensor.set(sqrt_one_minus_alpha_prod);
@@ -253,8 +250,9 @@ base::Status SchedulerDDIM::init() {
 
   // # this schedule is very specific to the latent diffusion model.
   // ## 计算betas，它们是方差的平方根，从beta_start的平方根到beta_end的平方根
-  std::vector<float> betas;
   SchedulerParam *scheduler_param = (SchedulerParam *)(param_.get());
+  std::vector<float> betas;
+  betas.resize(scheduler_param->num_train_timesteps_);
   customLinspace(std::sqrtf(scheduler_param->beta_start_),
                  std::sqrtf(scheduler_param->beta_end_),
                  scheduler_param->num_train_timesteps_, betas);
@@ -315,27 +313,57 @@ base::Status SchedulerDDIM::run() {
 
   setRunningFlag(true);
 
+  SchedulerParam *scheduler_param = (SchedulerParam *)(param_.get());
+
   int size = loops();
   if (size < 1) {
     NNDEPLOY_LOGE("loops size is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
+  device::Device *host_device = device::getDefaultHostDevice();
+
+  // encoder_hidden_states
+  dag::Edge *encoder_hidden_states = this->getEdge("encoder_hidden_states");
+  device::Tensor *encoder_hidden_states_tensor =
+      encoder_hidden_states->getTensor(this);
+  int index = encoder_hidden_states->getIndex(this);
+  int batch_size = encoder_hidden_states_tensor->getBatch();
+
   // build sample
-  //dag::Edge *sample = this->getEdge("sample");
-  //latent_tensor_ = sample->createTensor();
-  //// build timestep
-  //dag::Edge *timestep = this->getEdge("timestep");
-  //timestep_tensor_ = sample->createTensor();
-  //for (int i = 0; i < size; i++) {
-  //  // set sample
-  //  // set timestep
-  //  sample->set(latent_, index);
-  //  device::Tensor *timestep_tensor = new device::Tensor();
-  //  status = executor_->run();
-  //  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
-  //  // update sample
-  //  // update timestep
-  //}
+  dag::Edge *sample = this->getEdge("sample");
+  device::TensorDesc sample_desc;
+  sample_desc.data_type_ = base::dataTypeOf<float>();
+  sample_desc.data_format_ = base::kDataFormatNCHW;
+  sample_desc.shape_.emplace_back(batch_size);
+  sample_desc.shape_.emplace_back(scheduler_param->unet_channels_);
+  int latent_height = scheduler_param->image_height_ / 8;
+  sample_desc.shape_.emplace_back(latent_height);
+  int latent_width = scheduler_param->image_width_ / 8;
+  sample_desc.shape_.emplace_back(latent_width);
+  device::Tensor *sample_tensor =
+      sample->create(host_device, sample_desc, index);
+
+  // build timestep
+  dag::Edge *timestep = this->getEdge("timestep");
+  device::TensorDesc timestep_desc;
+  timestep_desc.data_type_ = base::dataTypeOf<float>();
+  timestep_desc.data_format_ = base::kDataFormatNC;
+  timestep_desc.shape_.emplace_back(batch_size);
+  timestep_desc.shape_.emplace_back(1);
+  device::Tensor *timestep_tensor =
+      timestep->create(host_device, timestep_desc, index);
+
+  for (int i = 0; i < size; i++) {
+    // set sample
+    // set timestep
+    // sample->set(latent_, index);
+    // device::Tensor *timestep_tensor = new device::Tensor();
+    // status = executor_->run();
+    // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run
+    // failed!");
+    // update sample
+    // update timestep
+  }
 
   setRunningFlag(false);
   return status;

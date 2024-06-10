@@ -1,9 +1,10 @@
 
 #include "nndeploy/model/stable_diffusion/stable_diffusion.h"
 
+#include "nndeploy/model/infer.h"
 #include "nndeploy/model/stable_diffusion/clip.h"
 #include "nndeploy/model/stable_diffusion/scheduler.h"
-#include "nndeploy/model/infer.h"
+
 
 // TODO: Edge要支持能够支持同名的情况
 // TODO: Node的名字能够支持同名的情况
@@ -30,7 +31,10 @@ dag::Graph *createStableDiffusionText2ImageGraph(
   // graph
   dag::Graph *graph = new dag::Graph(name, input, output);
 
-  // clip
+  /**
+   * @brief
+   *
+   */
   dag::Edge *encoder_hidden_states = graph->createEdge("encoder_hidden_states");
   dag::Graph *sd_clip = createCLIPGraph("sd_clip", input, encoder_hidden_states,
                                         clip_inference_type, param);
@@ -39,7 +43,7 @@ dag::Graph *createStableDiffusionText2ImageGraph(
   // scheduler_unet
   dag::Edge *latent = graph->createEdge("latent");
   std::vector<base::Param *>::iterator it = param.begin() + 3;
-  std::vector<base::Param *> schedule_unet_param(it, it+ 2);
+  std::vector<base::Param *> schedule_unet_param(it, it + 2);
   dag::Graph *sd_scheduler_unet = createSchedulerUNetGraph(
       "sd_scheduler_unet", encoder_hidden_states, latent, scheduler_type,
       unet_inference_type, schedule_unet_param);

@@ -2,6 +2,8 @@
 #ifndef _NNDEPLOY_MODEL_STABLE_DIFFUSION_SCHEDULER_H_
 #define _NNDEPLOY_MODEL_STABLE_DIFFUSION_SCHEDULER_H_
 
+#include <random>
+
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -14,8 +16,8 @@
 #include "nndeploy/base/value.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
-#include "nndeploy/dag/node.h"
 #include "nndeploy/dag/loop.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
@@ -23,12 +25,8 @@
 #include "nndeploy/model/convert_to.h"
 #include "nndeploy/model/stable_diffusion/type.h"
 
-#include <random>
-
-
 namespace nndeploy {
 namespace model {
-
 
 class NNDEPLOY_CC_API SchedulerParam : public base::Param {
  public:
@@ -44,8 +42,10 @@ class NNDEPLOY_CC_API SchedulerParam : public base::Param {
    * v_prediction or epsilon
    */
   std::string prediction_type_ = "v_prediction";  // 预测噪声的方法
-
   int num_inference_steps_ = 50;
+  int unet_channels_ = 3;
+  int image_height_ = 640;
+  int image_width_ = 640;
 };
 
 /**
@@ -167,9 +167,6 @@ class NNDEPLOY_CC_API SchedulerDDIM : public Scheduler {
 
   std::vector<int64_t> timesteps_;  // 时间步序列
   std::vector<float> variance_;     // 方差
-
-  device::Tensor *latent_tensor_ = nullptr;
-  device::Tensor *timestep_tensor_ = nullptr;
 };
 
 extern NNDEPLOY_CC_API dag::Graph *createSchedulerUNetGraph(
