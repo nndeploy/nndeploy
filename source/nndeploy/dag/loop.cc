@@ -29,6 +29,9 @@ Loop::Loop(const std::string &name, Edge *input, Edge *output)
 Loop::Loop(const std::string &name, std::initializer_list<Edge *> inputs,
            std::initializer_list<Edge *> outputs)
     : Graph(name, inputs, outputs) {}
+Loop::Loop(const std::string &name, std::vector<dag::Edge *> &inputs,
+           std::vector<dag::Edge *> &outputs)
+    : Graph(name, inputs, outputs) {}
 Loop::~Loop() {}
 
 base::Status Loop::init() {

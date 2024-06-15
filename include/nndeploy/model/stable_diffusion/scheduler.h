@@ -43,7 +43,7 @@ class NNDEPLOY_CC_API SchedulerParam : public base::Param {
    */
   std::string prediction_type_ = "v_prediction";  // 预测噪声的方法
   int num_inference_steps_ = 50;
-  int unet_channels_ = 3;
+  int unet_channels_ = 4;
   int image_height_ = 640;
   int image_width_ = 640;
 };
@@ -66,13 +66,16 @@ class NNDEPLOY_CC_API Scheduler : public dag::Loop {
             std::initializer_list<dag::Edge *> inputs,
             std::initializer_list<dag::Edge *> outputs)
       : Loop(name, inputs, outputs), scheduler_type_(scheduler_type) {}
+  Scheduler(const std::string &name, SchedulerType scheduler_type,
+            std::vector<dag::Edge *> &inputs, std::vector<dag::Edge *> &outputs)
+      : Loop(name, inputs, outputs), scheduler_type_(scheduler_type) {}
 
   virtual ~Scheduler() {}
 
   /**
    * @brief Set the Timesteps object
    *
-   * @param num_inference_steps
+   * @param num_Scheduler_steps
    * @return base::Status
    * @note 设置推断过程中的时间步
    */
@@ -122,52 +125,73 @@ class NNDEPLOY_CC_API Scheduler : public dag::Loop {
                                 int latent_timestep) = 0;
 
  protected:
-  SchedulerType scheduler_type_ = kSchedulerNotSupport;
+  SchedulerType scheduler_type_ = kSchedulerTypeNotSupport;
 };
 
-class NNDEPLOY_CC_API SchedulerDDIM : public Scheduler {
+void customLinspace(float start, float end, int steps,
+                    std::vector<float> &values);
+
+base::Status initializeLatents(std::mt19937 &generator, float init_noise_sigma,
+                               device ::Tensor *latents);
+
+/**
+ * @brief 推理框架的创建类
+ *
+ */
+class SchedulerCreator {
  public:
-  SchedulerDDIM(const std::string &name, SchedulerType scheduler_type,
-                dag::Edge *input, dag::Edge *output);
-  SchedulerDDIM(const std::string &name, SchedulerType scheduler_type,
-                std::initializer_list<dag::Edge *> inputs,
-                std::initializer_list<dag::Edge *> outputs);
-  virtual ~SchedulerDDIM();
-
-  virtual base::Status setTimesteps();
-
-  virtual device::Tensor *scaleModelInput(device::Tensor *sample, int index);
-
-  float getVariance(int64_t timesteps, int64_t prev_timestep);
-
-  virtual base::Status configure();
-
-  virtual base::Status step(device::Tensor *model_output,
-                            device::Tensor *sample, int idx,
-                            std::vector<int64_t> &timestep, float eta,
-                            bool use_clipped_model_output,
-                            std::mt19937 &generator,
-                            device::Tensor *variance_noise);
-
-  virtual base::Status addNoise(device::Tensor *init_latents,
-                                device::Tensor *noise, int idx,
-                                int latent_timestep);
-
-  virtual base::Status init();
-  virtual base::Status deinit();
-
-  virtual int loops();
-  virtual base::Status run();
-
- private:
-  std::vector<float> alphas_cumprod_;  // alpha的累积乘积
-  float final_alpha_cumprod_ = 1.0;
-  // standard deviation of the initial noise distribution
-  float init_noise_sigma_ = 1.0f;  // 初始噪声的标准差
-
-  std::vector<int64_t> timesteps_;  // 时间步序列
-  std::vector<float> variance_;     // 方差
+  virtual ~SchedulerCreator(){};
+  virtual Scheduler *createScheduler(const std::string &name,
+                                     SchedulerType type,
+                                     std::vector<dag::Edge *> &input,
+                                     std::vector<dag::Edge *> &output) = 0;
 };
+
+/**
+ * @brief 推理框架的创建类模板
+ *
+ * @tparam T
+ */
+template <typename T>
+class TypeSchedulerCreator : public SchedulerCreator {
+  virtual Scheduler *createScheduler(const std::string &name,
+                                     SchedulerType type,
+                                     std::vector<dag::Edge *> &input,
+                                     std::vector<dag::Edge *> &output) {
+    return new T(name, type, input, output);
+  }
+};
+
+/**
+ * @brief Get the Global Scheduler Creator Map object
+ *
+ * @return std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>&
+ */
+std::map<SchedulerType, std::shared_ptr<SchedulerCreator>> &
+getGlobalSchedulerCreatorMap();
+
+/**
+ * @brief 推理框架的创建类的注册类模板
+ *
+ * @tparam T
+ */
+template <typename T>
+class TypeSchedulerRegister {
+ public:
+  explicit TypeSchedulerRegister(SchedulerType type) {
+    getGlobalSchedulerCreatorMap()[type] = std::shared_ptr<T>(new T());
+  }
+};
+
+/**
+ * @brief Create a Scheduler object
+ *
+ * @param type
+ * @return Scheduler*
+ */
+extern NNDEPLOY_CC_API Scheduler *createScheduler(
+    const std::string &name, SchedulerType type,
+    std::vector<dag::Edge *> &input, std::vector<dag::Edge *> &output);
 
 extern NNDEPLOY_CC_API dag::Graph *createSchedulerUNetGraph(
     const std::string &name, dag::Edge *input, dag::Edge *output,

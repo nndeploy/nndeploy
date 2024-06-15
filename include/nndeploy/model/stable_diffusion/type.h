@@ -6,12 +6,12 @@ namespace nndeploy {
 namespace model {
 
 enum SchedulerType : int {
-  kSchedulerDDIM = 0x0000,
-  kSchedulerDPM,
-  kSchedulerEulerA,
-  kSchedulerLMSD,
-  kSchedulerPNDM,
-  kSchedulerNotSupport,
+  kSchedulerTypeDDIM = 0x0000,
+  kSchedulerTypeDPM,
+  kSchedulerTypeEulerA,
+  kSchedulerTypeLMSD,
+  kSchedulerTypePNDM,
+  kSchedulerTypeNotSupport,
 };
 
 }

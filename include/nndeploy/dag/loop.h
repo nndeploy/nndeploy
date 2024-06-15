@@ -27,6 +27,8 @@ class NNDEPLOY_CC_API Loop : public Graph {
   Loop(const std::string &name, Edge *input, Edge *output);
   Loop(const std::string &name, std::initializer_list<Edge *> inputs,
        std::initializer_list<Edge *> outputs);
+  Loop(const std::string &name, std::vector<dag::Edge *> &inputs,
+       std::vector<dag::Edge *> &outputs);
   virtual ~Loop();
 
   virtual base::Status init();
