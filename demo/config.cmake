@@ -17,4 +17,6 @@ if (ENABLE_NNDEPLOY_MODEL_SEGMENT)
   include(${ROOT_PATH}/demo/segment/config.cmake)
 endif()
 
-
+if (ENABLE_NNDEPLOY_NET)
+  include(${ROOT_PATH}/demo/test_net/config.cmake)
+endif()

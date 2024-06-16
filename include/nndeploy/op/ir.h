@@ -20,6 +20,7 @@ enum OpType : int {
   kOpTypeForward = 0x0000,
 
   // unary
+  kOpTypeRelu,
 
   // binary
   kOpTypeAdd,
@@ -27,6 +28,7 @@ enum OpType : int {
   // shape
 
   // computation intensive
+  kOpTypeConv2d,
 
   kOpTypeNone,
 };
@@ -46,24 +48,24 @@ class NNDEPLOY_CC_API OpDesc {
   OpDesc(const std::string &name, OpType op_type)
       : name_(name), op_type_(op_type) {}
 
-  OpDesc(const std::string &name, OpType op_type,
-         std::initializer_list<std::string> inputs,
-         std::initializer_list<std::string> outputs,
-         std::initializer_list<std::string> weights)
-      : name_(name),
-        op_type_(op_type),
-        inputs_(inputs),
-        outputs_(outputs),
-        weights_(weights) {}
+  // OpDesc(const std::string &name, OpType op_type,
+  //        std::initializer_list<std::string> inputs,
+  //        std::initializer_list<std::string> outputs,
+  //        std::initializer_list<std::string> weights)
+  //     : name_(name),
+  //       op_type_(op_type),
+  //       inputs_(inputs),
+  //       outputs_(outputs),
+  //       weights_(weights) {}
 
-  OpDesc(const std::string &name, OpType op_type,
-         std::vector<std::string> &inputs, std::vector<std::string> &outputs,
-         std::vector<std::string> &weights)
-      : name_(name),
-        op_type_(op_type),
-        inputs_(inputs),
-        outputs_(outputs),
-        weights_(weights) {}
+  // OpDesc(const std::string &name, OpType op_type,
+  //        std::vector<std::string> &inputs, std::vector<std::string> &outputs,
+  //        std::vector<std::string> &weights)
+  //     : name_(name),
+  //       op_type_(op_type),
+  //       inputs_(inputs),
+  //       outputs_(outputs),
+  //       weights_(weights) {}
 
   virtual ~OpDesc() {}
 
@@ -71,12 +73,11 @@ class NNDEPLOY_CC_API OpDesc {
   std::string name_;
   // 节点类型
   OpType op_type_;
-  // 节点输入
+  // 节点输入 : 包含 input、weight等所有参与计算的数据
   std::vector<std::string> inputs_;
   // 节点输出
   std::vector<std::string> outputs_;
-  // 节点参数
-  std::vector<std::string> weights_;
+
 };
 
 /**
@@ -108,28 +109,7 @@ class ValueDesc {
   base::IntVector shape_;
 };
 
-/**
- * @brief 参照onnx的格式，描述模型的结构
- *
- */
-class ModelDesc {
- public:
-  ModelDesc(){};
-  virtual ~ModelDesc(){};
 
-  // 描述模型的名称
-  std::string name_;
-  // 模型算子列表
-  std::vector<std::shared_ptr<OpDescAndParam>> op_desc_params_;
-  // 模型权重
-  std::map<std::string, device::Tensor *> weights_;
-  // 模型输入
-  std::vector<ValueDesc *> inputs_;
-  // 模型输出
-  std::vector<ValueDesc *> outputs_;
-  // 模型中间值，一般通常为空，多用于调试
-  std::vector<ValueDesc *> values_;
-};
 
 /**
  * @brief 算子参数的创建类

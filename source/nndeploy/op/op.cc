@@ -6,25 +6,8 @@
 namespace nndeploy {
 namespace op {
 
-Op::Op(base::DeviceType device_type, const std::string &name, OpType op_type)
-    : device_type_(device_type), op_desc_(name, op_type) {
-  constructed_ = true;
-}
-Op::Op(base::DeviceType device_type, const std::string &name, OpType op_type,
-       std::initializer_list<std::string> inputs,
-       std::initializer_list<std::string> outputs,
-       std::initializer_list<std::string> weights)
-    : device_type_(device_type),
-      op_desc_(name, op_type, inputs, outputs, weights) {
-  constructed_ = true;
-}
-Op::Op(base::DeviceType device_type, const std::string &name, OpType op_type,
-       std::vector<std::string> &inputs, std::vector<std::string> &outputs,
-       std::vector<std::string> &weights)
-    : device_type_(device_type),
-      op_desc_(name, op_type, inputs, outputs, weights) {
-  constructed_ = true;
-}
+Op::Op() { constructed_ = true; }
+
 Op::~Op() {
   inputs_.clear();
   outputs_.clear();
@@ -37,15 +20,33 @@ Op::~Op() {
   is_debug_ = false;
 }
 
+base::Status Op::setOpType(OpType optype) {
+  op_desc_.op_type_ = optype;
+  return base::kStatusCodeOk;
+}
+OpType Op::getOpType() { return op_desc_.op_type_; }
+
+base::Status Op::setName(std::string name) {
+  op_desc_.name_ = name;
+  return base::kStatusCodeOk;
+}
+
 std::string Op::getName() { return op_desc_.name_; }
 
-base::Status Op::setParam(base::Param *param) {
+base::Status Op::setParam(std::shared_ptr<base::Param> param) {
   if (param != nullptr) {
-    return param->copyTo(op_param_.get());
+    // return param->copyTo(op_param_.get());
+    op_param_ = param;
+    return base::kStatusCodeOk; 
   }
-  return base::kStatusCodeErrorNullParam;
+  return base::kStatusCodeErrorNullParam; // 并不是所以Op都有param，例如relu  
 }
-base::Param *Op::getParam() { return op_param_.get(); }
+std::shared_ptr<base::Param> Op::getParam() { return op_param_; }
+
+base::Status Op::setDeviceType(base::DeviceType device_type) {
+  device_type_ = device_type;
+  return base::kStatusCodeOk;
+}
 
 base::DeviceType Op::getDeviceType() { return device_type_; }
 
@@ -67,12 +68,6 @@ std::string Op::getOutputName(int index) {
   }
   return std::string();
 }
-std::string Op::getWeightName(int index) {
-  if (op_desc_.weights_.size() > index) {
-    return op_desc_.weights_[index];
-  }
-  return std::string();
-}
 
 device::Tensor *Op::getInput(int index) {
   if (inputs_.size() > index) {
@@ -86,12 +81,7 @@ device::Tensor *Op::getOutput(int index) {
   }
   return nullptr;
 }
-device::Tensor *Op::getWeight(int index) {
-  if (weights_.size() > index) {
-    return weights_[index];
-  }
-  return nullptr;
-}
+
 base::Status Op::setInput(device::Tensor *input) {
   inputs_.emplace_back(input);
   return base::kStatusCodeErrorInvalidParam;
@@ -100,10 +90,7 @@ base::Status Op::setOutput(device::Tensor *output) {
   outputs_.emplace_back(output);
   return base::kStatusCodeErrorInvalidParam;
 }
-base::Status Op::setWeight(device::Tensor *weight) {
-  weights_.emplace_back(weight);
-  return base::kStatusCodeErrorInvalidParam;
-}
+
 base::Status Op::setInput(device::Tensor *input, int index) {
   if (input != nullptr) {
     if (inputs_.size() > index) {
@@ -122,23 +109,32 @@ base::Status Op::setOutput(device::Tensor *output, int index) {
   }
   return base::kStatusCodeErrorInvalidParam;
 }
-base::Status Op::setWeight(device::Tensor *weight, int index) {
-  if (weight != nullptr) {
-    if (weights_.size() > index) {
-      weights_[index] = weight;
-      return base::kStatusCodeOk;
-    }
-  }
-  return base::kStatusCodeErrorInvalidParam;
+
+base::Status Op::setAllInputName(std::initializer_list<std::string> name) {
+  op_desc_.inputs_ = name;
+  return base::kStatusCodeOk;
+}
+
+base::Status Op::setAllOutputName(std::initializer_list<std::string> name) {
+  op_desc_.outputs_ = name;
+  return base::kStatusCodeOk;
+}
+
+base::Status Op::setAllInputName(std::vector<std::string> &name) {
+  op_desc_.inputs_ = name;
+  return base::kStatusCodeOk;
+}
+
+base::Status Op::setAllOutputName(std::vector<std::string> &name) {
+  op_desc_.outputs_ = name;
+  return base::kStatusCodeOk;
 }
 
 std::vector<std::string> Op::getAllInputName() { return op_desc_.inputs_; }
 std::vector<std::string> Op::getAllOutputName() { return op_desc_.outputs_; }
-std::vector<std::string> Op::getAllWeightName() { return op_desc_.weights_; }
 
 std::vector<device::Tensor *> Op::getAllInput() { return inputs_; }
 std::vector<device::Tensor *> Op::getAllOutput() { return outputs_; }
-std::vector<device::Tensor *> Op::getAllWeight() { return weights_; }
 
 base::Status Op::setAllInput(std::vector<device::Tensor *> inputs) {
   inputs_ = inputs;
@@ -146,10 +142,6 @@ base::Status Op::setAllInput(std::vector<device::Tensor *> inputs) {
 }
 base::Status Op::setAllOutput(std::vector<device::Tensor *> outputs) {
   outputs_ = outputs;
-  return base::kStatusCodeOk;
-}
-base::Status Op::setAllWeight(std::vector<device::Tensor *> weights) {
-  weights_ = weights;
   return base::kStatusCodeOk;
 }
 
@@ -232,8 +224,7 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
              OpType op_type, std::initializer_list<std::string> inputs,
-             std::initializer_list<std::string> outputs,
-             std::initializer_list<std::string> weights) {
+             std::initializer_list<std::string> outputs) {
   auto &creater_map = getGlobalOpCreatorMap();
   auto device_map = creater_map.find(device_type.code_);
   if (device_map != creater_map.end()) {
@@ -241,7 +232,7 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
     auto creator = op_map.find(op_type);
     if (creator != op_map.end()) {
       return creator->second->createOp(device_type, name, op_type, inputs,
-                                       outputs, weights);
+                                       outputs);
     }
   }
   return nullptr;
@@ -249,8 +240,7 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
              OpType op_type, std::vector<std::string> &inputs,
-             std::vector<std::string> &outputs,
-             std::vector<std::string> &weights) {
+             std::vector<std::string> &outputs) {
   auto &creater_map = getGlobalOpCreatorMap();
   auto device_map = creater_map.find(device_type.code_);
   if (device_map != creater_map.end()) {
@@ -258,7 +248,7 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
     auto creator = op_map.find(op_type);
     if (creator != op_map.end()) {
       return creator->second->createOp(device_type, name, op_type, inputs,
-                                       outputs, weights);
+                                       outputs);
     }
   }
   return nullptr;
