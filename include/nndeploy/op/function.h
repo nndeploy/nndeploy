@@ -24,41 +24,49 @@ namespace device {
 device::Tensor &operator+(const device::Tensor &a, const device::Tensor &b);
 template <typename T>
 device::Tensor &operator+(const T &a, const device::Tensor &b) {
-  return device::Tensor();
+  device::Tensor result = device::Tensor();
+  return result;
 }
 template <typename T>
 device::Tensor &operator+(const device::Tensor &a, const T &b) {
-  return device::Tensor();
+  device::Tensor result = device::Tensor();
+  return result;
 }
 
 device::Tensor &operator-(const device::Tensor &a, const device::Tensor &b);
 template <typename T>
 device::Tensor &operator-(const T &a, const device::Tensor &b) {
-  return device::Tensor();
+  device::Tensor result = device::Tensor();
+  return result;
 }
 template <typename T>
 device::Tensor &operator-(const device::Tensor &a, const T &b) {
-  return device::Tensor();
+  device::Tensor result = device::Tensor();
+  return result;
 }
 
 device::Tensor &operator*(const device::Tensor &a, const device::Tensor &b);
 template <typename T>
 device::Tensor &operator*(const T &a, const device::Tensor &b) {
-  return device::Tensor();
+  device::Tensor result = device::Tensor();
+  return result;
 }
 template <typename T>
 device::Tensor &operator*(const device::Tensor &a, const T &b) {
-  return device::Tensor();
+  device::Tensor result = device::Tensor();
+  return result;
 }
 
 device::Tensor &operator/(const device::Tensor &a, const device::Tensor &b);
 template <typename T>
 device::Tensor &operator/(const T &a, const device::Tensor &b) {
-  return device::Tensor();
+  device::Tensor result = device::Tensor();
+  return result;
 }
 template <typename T>
 device::Tensor &operator/(const device::Tensor &a, const T &b) {
-  return device::Tensor();
+  device::Tensor result = device::Tensor();
+  return result;
 }
 
 }  // namespace device
