@@ -37,9 +37,9 @@ base::Status Op::setParam(std::shared_ptr<base::Param> param) {
   if (param != nullptr) {
     // return param->copyTo(op_param_.get());
     op_param_ = param;
-    return base::kStatusCodeOk; 
+    return base::kStatusCodeOk;
   }
-  return base::kStatusCodeErrorNullParam; // 并不是所以Op都有param，例如relu  
+  return base::kStatusCodeErrorNullParam;  // 并不是所以Op都有param，例如relu
 }
 std::shared_ptr<base::Param> Op::getParam() { return op_param_; }
 
@@ -195,8 +195,8 @@ base::Status Op::reshape(base::ShapeMap &shape_map) {
 base::Status Op::preRun() { return base::kStatusCodeOk; }
 base::Status Op::postRun() { return base::kStatusCodeOk; }
 
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
-getGlobalOpCreatorMap() {
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::DeviceTypeCode,
                                   std::map<OpType, std::shared_ptr<OpCreator>>>>

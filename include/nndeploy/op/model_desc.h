@@ -11,9 +11,9 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/op/base/conv2d.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/ir.h"
-#include "nndeploy/op/base/conv2d.h"
 
 namespace nndeploy {
 
@@ -28,17 +28,19 @@ class ModelDesc {
   ModelDesc(){};
   virtual ~ModelDesc(){};
 
+ public:
   /**
    * @brief  一系列创建函数
    */
+  // conv2d
+  std::shared_ptr<Expr> MakeConv2d(std::shared_ptr<Expr> input,
+                                   std::shared_ptr<Expr> weight,
+                                   std::shared_ptr<Conv2dParam> param,
+                                   std::string name);
+  // relu
+  std::shared_ptr<Expr> MakeRelu(std::shared_ptr<Expr> input, std::string name);
 
- std::shared_ptr<Expr> MakeConv2d(std::shared_ptr<Expr> input,
-                                          std::shared_ptr<Expr> weight,
-                                          std::shared_ptr<Conv2dParam> param,std::string name) ;
-
-
-std::shared_ptr<Expr> MakeRelu(std::shared_ptr<Expr> input,std::string name);
-
+ public:
   // 描述模型的名称
   std::string name_;
   // 模型算子列表
@@ -51,7 +53,6 @@ std::shared_ptr<Expr> MakeRelu(std::shared_ptr<Expr> input,std::string name);
   std::vector<ValueDesc *> outputs_;
   // 模型中间值，一般通常为空，多用于调试
   std::vector<ValueDesc *> values_;
-
 };
 
 }  // namespace op

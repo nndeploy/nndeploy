@@ -48,24 +48,14 @@ class NNDEPLOY_CC_API OpDesc {
   OpDesc(const std::string &name, OpType op_type)
       : name_(name), op_type_(op_type) {}
 
-  // OpDesc(const std::string &name, OpType op_type,
-  //        std::initializer_list<std::string> inputs,
-  //        std::initializer_list<std::string> outputs,
-  //        std::initializer_list<std::string> weights)
-  //     : name_(name),
-  //       op_type_(op_type),
-  //       inputs_(inputs),
-  //       outputs_(outputs),
-  //       weights_(weights) {}
+  OpDesc(const std::string &name, OpType op_type,
+         std::initializer_list<std::string> inputs,
+         std::initializer_list<std::string> outputs)
+      : name_(name), op_type_(op_type), inputs_(inputs), outputs_(outputs) {}
 
-  // OpDesc(const std::string &name, OpType op_type,
-  //        std::vector<std::string> &inputs, std::vector<std::string> &outputs,
-  //        std::vector<std::string> &weights)
-  //     : name_(name),
-  //       op_type_(op_type),
-  //       inputs_(inputs),
-  //       outputs_(outputs),
-  //       weights_(weights) {}
+  OpDesc(const std::string &name, OpType op_type,
+         std::vector<std::string> &inputs, std::vector<std::string> &outputs)
+      : name_(name), op_type_(op_type), inputs_(inputs), outputs_(outputs) {}
 
   virtual ~OpDesc() {}
 
@@ -77,7 +67,6 @@ class NNDEPLOY_CC_API OpDesc {
   std::vector<std::string> inputs_;
   // 节点输出
   std::vector<std::string> outputs_;
-
 };
 
 /**
@@ -108,8 +97,6 @@ class ValueDesc {
   // 张量形状
   base::IntVector shape_;
 };
-
-
 
 /**
  * @brief 算子参数的创建类

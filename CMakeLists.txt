@@ -52,9 +52,6 @@ nndeploy_option(ENABLE_NNDEPLOY_DEVICE_MTK_VPU "ENABLE_NNDEPLOY_DEVICE_MTK_VPU" 
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL "ENABLE_NNDEPLOY_DEVICE_ASCEND_CL" OFF)
 ## op
 nndeploy_option(ENABLE_NNDEPLOY_OP "ENABLE_NNDEPLOY_OP" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_OP_NN "ENABLE_NNDEPLOY_OP_NN" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_OP_CV "ENABLE_NNDEPLOY_OP_CV" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_OP_AUDIO "ENABLE_NNDEPLOY_OP_AUDIO" OFF)
 ## net
 nndeploy_option(ENABLE_NNDEPLOY_NET "ENABLE_NNDEPLOY_NET" OFF)
 ## inference
@@ -322,16 +319,50 @@ if(ENABLE_NNDEPLOY_OP)
   file(GLOB OP_SOURCE
     "${ROOT_PATH}/include/nndeploy/op/*.h"
     "${ROOT_PATH}/source/nndeploy/op/*.cc"
-    "${ROOT_PATH}/source/nndeploy/op/impl/cpu/*.cc"
+    "${ROOT_PATH}/include/nndeploy/op/base/*.h"
+    "${ROOT_PATH}/source/nndeploy/op/base/*.cc"
   )
+  if (ENABLE_NNDEPLOY_DEVICE_CPU)
+    file(GLOB_RECURSE OP_CPU_SOURCE
+      "${ROOT_PATH}/include/nndeploy/op/impl/cpu/*.h"
+      "${ROOT_PATH}/source/nndeploy/op/impl/cpu/*.cc"
+    )
+    set(OP_SOURCE ${OP_SOURCE} ${OP_CPU_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_X86)
+    file(GLOB_RECURSE OP_X86_SOURCE
+      "${ROOT_PATH}/include/nndeploy/op/impl/x86/*.h"
+      "${ROOT_PATH}/source/nndeploy/op/impl/x86/*.cc"
+    )
+    set(OP_SOURCE ${OP_SOURCE} ${OP_X86_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_ARM)
+    file(GLOB_RECURSE OP_ARM_SOURCE
+      "${ROOT_PATH}/include/nndeploy/op/impl/arm/*.h"
+      "${ROOT_PATH}/source/nndeploy/op/impl/arm/*.cc"
+    )
+    set(OP_SOURCE ${OP_SOURCE} ${OP_ARM_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_CUDA)
+    file(GLOB_RECURSE OP_CUDA_SOURCE
+      "${ROOT_PATH}/include/nndeploy/op/impl/cuda/*.h"
+      "${ROOT_PATH}/source/nndeploy/op/impl/cuda/*.cc"
+    )
+    set(OP_SOURCE ${OP_SOURCE} ${OP_CUDA_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
+    file(GLOB_RECURSE OP_ASCEND_CL_SOURCE
+      "${ROOT_PATH}/include/nndeploy/op/impl/ascend_cl/*.h"
+      "${ROOT_PATH}/source/nndeploy/op/impl/ascend_cl/*.cc"
+    )
+    set(OP_SOURCE ${OP_SOURCE} ${OP_ASCEND_CL_SOURCE})
+  endif()
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${OP_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_NET)
   file(GLOB NET_SOURCE
     "${ROOT_PATH}/include/nndeploy/net/*.h"
     "${ROOT_PATH}/source/nndeploy/net/*.cc"
-    "${ROOT_PATH}/include/nndeploy/net/test/*.h"
-    "${ROOT_PATH}/source/nndeploy/net/test/*.cc"
   )
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${NET_SOURCE})
 endif()

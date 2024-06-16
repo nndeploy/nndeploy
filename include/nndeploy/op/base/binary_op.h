@@ -24,20 +24,7 @@ namespace op {
 
 class BinaryOp : public Op {
  public:
-  BinaryOp(base::DeviceType device_type, const std::string &name,
-           OpType op_type)
-      : Op(device_type, name, op_type) {}
-
-  BinaryOp(base::DeviceType device_type, const std::string &name,
-           OpType op_type, std::initializer_list<std::string> inputs,
-           std::initializer_list<std::string> outputs,
-           std::initializer_list<std::string> weights)
-      : Op(device_type, name, op_type, inputs, outputs, weights) {}
-
-  BinaryOp(base::DeviceType device_type, const std::string &name,
-           OpType op_type, std::vector<std::string> &inputs,
-           std::vector<std::string> &outputs, std::vector<std::string> &weights)
-      : Op(device_type, name, op_type, inputs, outputs, weights) {}
+  BinaryOp() : Op() {}
 
   virtual ~BinaryOp() {}
 

@@ -46,12 +46,9 @@ set(ENABLE_NNDEPLOY_DEVICE_HVX OFF) # 是否使能device apple hvx，默认为OF
 set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL OFF) # 是否使能device apple ascend cl，默认为OFF
 ## op
-set(ENABLE_NNDEPLOY_OP OFF) # 是否编译op目录中文件，默认为OFF
-set(ENABLE_NNDEPLOY_OP_NN OFF) # 是否编译op nn录中文件，默认为OFF
-set(ENABLE_NNDEPLOY_OP_CV OFF) # 是否编译op cv录中文件，默认为OFF
-set(ENABLE_NNDEPLOY_OP_AUDIO OFF) # 是否编译op audio录中文件，默认为OFF
+set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
 ## net
-set(ENABLE_NNDEPLOY_NET OFF)  # 是否编译net目录中文件，默认为OFF
+set(ENABLE_NNDEPLOY_NET ON)  # 是否编译net目录中文件，默认为OFF
 ## inference
 set(ENABLE_NNDEPLOY_INFERENCE ON) # 是否编译inference目录中文件，默认为ON
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # 是否使能INFERENCE TENSORRT，默认为OFF
@@ -86,8 +83,3 @@ set(ENABLE_NNDEPLOY_MODEL_DETECT_YOLO OFF) # 是否使能检测类 YOLO 模型�
 ## model segment
 set(ENABLE_NNDEPLOY_MODEL_SEGMENT OFF) # 是否使能分割类模型，默认为OFF
 set(ENABLE_NNDEPLOY_MODEL_SEGMENT_SEGMENT_ANYTHING OFF) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF
-
-## net
-set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
-set(ENABLE_NNDEPLOY_OP_NN ON) # 是否编译op nn录中文件，默认为OFF
-set(ENABLE_NNDEPLOY_NET ON)

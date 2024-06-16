@@ -7,7 +7,7 @@
 namespace nndeploy {
 namespace net {
 
-Net::Net() {}
+Net::Net() : op::Op() {}
 
 Net::~Net() {
   for (auto op_wrapper : op_repository_) {
@@ -486,7 +486,7 @@ base::Status Net::session() {
   return status;
 }
 
-Net *createNet(op::ModelDesc *model_desc, base::DeviceType device_type,
+Net *createNet(std::shared_ptr<op::ModelDesc>, base::DeviceType device_type,
                base::PrecisionType precision_type) {
   return nullptr;
 }
