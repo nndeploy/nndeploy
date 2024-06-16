@@ -323,7 +323,7 @@ base::Status DDIMScheduler::run() {
   device::TensorDesc sample_desc;
   sample_desc.data_type_ = base::dataTypeOf<float>();
   sample_desc.data_format_ = base::kDataFormatNCHW;
-  sample_desc.shape_.emplace_back(batch_size);
+  sample_desc.shape_.emplace_back(batch_size * 2);
   sample_desc.shape_.emplace_back(scheduler_param->unet_channels_);
   int latent_height = scheduler_param->image_height_ / 8;
   sample_desc.shape_.emplace_back(latent_height);
@@ -342,17 +342,33 @@ base::Status DDIMScheduler::run() {
   device::Tensor *timestep_tensor =
       timestep->create(host_device, timestep_desc, index);
 
+  // build latent
+  device::TensorDesc latent_desc;
+  latent_desc.data_type_ = base::dataTypeOf<float>();
+  latent_desc.data_format_ = base::kDataFormatNCHW;
+  latent_desc.shape_.emplace_back(batch_size);
+  latent_desc.shape_.emplace_back(scheduler_param->unet_channels_);
+  int latent_height = scheduler_param->image_height_ / 8;
+  latent_desc.shape_.emplace_back(latent_height);
+  int latent_width = scheduler_param->image_width_ / 8;
+  latent_desc.shape_.emplace_back(latent_width);
+  device::Tensor *latent =
+      outputs_[0]->create(host_device, latent_desc, inputs_[0]->getIndex(this));
+  std::mt19937 generator;
+  initializeLatents(generator, init_noise_sigma_, latent);
+
   for (int i = 0; i < size; i++) {
-    // set sample
-    // set timestep
-    // sample->set(latent_, index);
-    // device::Tensor *timestep_tensor = new device::Tensor();
+    // op::concat({latent, latent}, 0, sample);
     // status = executor_->run();
     // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run
     // failed!");
-    // update sample
-    // update timestep
+    // op::split(sample, 0, noise_pred_uncond_, noise_pred_text_)
+    // step(noise_pred_uncond_, sample, i, timestep, eta, false, generator,
+    //      nullptr);
   }
+
+  // float scale = 1.0f / 0.18215f;
+  // op::mul(latents, scale, latents);
 
   setRunningFlag(false);
   return status;

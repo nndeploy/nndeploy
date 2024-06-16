@@ -74,6 +74,8 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
 
   std::vector<int64_t> timesteps_;  // 时间步序列
   std::vector<float> variance_;     // 方差
+  device::Tensor *noise_pred_uncond_ = nullptr;
+  device::Tensor *noise_pred_text_ = nullptr;
 };
 
 }  // namespace model
