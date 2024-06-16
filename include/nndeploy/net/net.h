@@ -4,6 +4,7 @@
 
 #include "nndeploy/net/session.h"
 #include "nndeploy/net/util.h"
+#include "nndeploy/op/model_desc.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -11,38 +12,27 @@ namespace net {
 
 class NNDEPLOY_CC_API Net : public op::Op {
  public:
-  Net(base::DeviceType device_type, const std::string &name,
-      op::OpType op_type);
-  Net(base::DeviceType device_type, const std::string &name, op::OpType op_type,
-      std::initializer_list<std::string> inputs,
-      std::initializer_list<std::string> outputs,
-      std::initializer_list<std::string> weights);
-
-  Net(base::DeviceType device_type, const std::string &name, op::OpType op_type,
-      std::vector<std::string> &inputs, std::vector<std::string> &outputs,
-      std::vector<std::string> &weights);
-
+  Net();
   virtual ~Net();
 
   base::Status setModelDesc(std::shared_ptr<op::ModelDesc> model_desc);
 
-  device::Tensor *createTensor(const std::string &name);
+  TensorWrapper *createTensor(const std::string &name);
   TensorWrapper *addTensor(device::Tensor *tensor, bool is_external = true);
   device::Tensor *getTensor(const std::string &name);
 
   op::Op *createOp(base::DeviceType device_type, const std::string &name,
                    op::OpType op_type,
                    std::initializer_list<std::string> inputs,
-                   std::initializer_list<std::string> outputs,
-                   std::initializer_list<std::string> weights);
+                   std::initializer_list<std::string> outputs);
   op::Op *createOp(base::DeviceType device_type, const std::string &name,
                    op::OpType op_type, std::vector<std::string> &inputs,
-                   std::vector<std::string> &outputs,
-                   std::vector<std::string> &weights);
+                   std::vector<std::string> &outputs);
   base::Status addOp(op::Op *op, bool is_external);
 
-  base::Status setOpParam(const std::string &op_name, base::Param *param);
-  base::Param *getOpParam(const std::string &op_name);
+  base::Status setOpParam(const std::string &op_name,
+                          std::shared_ptr<base::Param> param);
+  std::shared_ptr<base::Param> getOpParam(const std::string &op_name);
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -68,7 +58,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   virtual base::Status session();
 
  protected:
-  op::ModelDesc *model_desc_;
+  std::shared_ptr<op::ModelDesc> model_desc_;
 
   std::vector<TensorWrapper *> tensor_repository_;
   std::vector<OpWrapper *> op_repository_;

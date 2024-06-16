@@ -17,31 +17,28 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/op/ir.h"
+// #include "nndeploy/op/model_desc.h"
 
 namespace nndeploy {
 namespace op {
 
 class NNDEPLOY_CC_API Op {
  public:
-  Op(base::DeviceType device_type, const std::string &name, OpType op_type);
-
-  Op(base::DeviceType device_type, const std::string &name, OpType op_type,
-     std::initializer_list<std::string> inputs,
-     std::initializer_list<std::string> outputs,
-     std::initializer_list<std::string> weights);
-
-  Op(base::DeviceType device_type, const std::string &name, OpType op_type,
-     std::vector<std::string> &inputs, std::vector<std::string> &outputs,
-     std::vector<std::string> &weights);
+  Op();
 
   virtual ~Op();
 
+  base::Status setName(std::string name);
   std::string getName();
 
-  virtual base::Status setParam(base::Param *param);
-  virtual base::Param *getParam();
+  virtual base::Status setParam(std::shared_ptr<base::Param> param);
+  virtual std::shared_ptr<base::Param> getParam();
 
+  base::Status setDeviceType(base::DeviceType device_type);
   base::DeviceType getDeviceType();
+
+  base::Status setOpType(OpType optype);
+  OpType getOpType();
 
   // 设置为virtual的原因：精度不同，内存分配不同，计算方式不同
   virtual base::Status setPrecisionType(base::PrecisionType precision_type);
@@ -49,26 +46,30 @@ class NNDEPLOY_CC_API Op {
 
   std::string getInputName(int index = 0);
   std::string getOutputName(int index = 0);
-  std::string getWeightName(int index = 0);
+
   device::Tensor *getInput(int index = 0);
   device::Tensor *getOutput(int index = 0);
-  device::Tensor *getWeight(int index = 0);
+
   virtual base::Status setInput(device::Tensor *input);
   virtual base::Status setOutput(device::Tensor *output);
-  virtual base::Status setWeight(device::Tensor *weight);
+
   base::Status setInput(device::Tensor *input, int index);
   base::Status setOutput(device::Tensor *output, int index);
-  base::Status setWeight(device::Tensor *weight, int index);
+
+  base::Status setAllInputName(std::initializer_list<std::string>);
+  base::Status setAllOutputName(std::initializer_list<std::string>);
+
+  base::Status setAllInputName(std::vector<std::string> &);
+  base::Status setAllOutputName(std::vector<std::string> &);
 
   std::vector<std::string> getAllInputName();
   std::vector<std::string> getAllOutputName();
-  std::vector<std::string> getAllWeightName();
+
   std::vector<device::Tensor *> getAllInput();
   std::vector<device::Tensor *> getAllOutput();
-  std::vector<device::Tensor *> getAllWeight();
+
   base::Status setAllInput(std::vector<device::Tensor *> inputs);
   base::Status setAllOutput(std::vector<device::Tensor *> outputs);
-  base::Status setAllWeight(std::vector<device::Tensor *> weights);
 
   bool getConstructed();
 
@@ -135,13 +136,11 @@ class OpCreator {
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type,
                        std::initializer_list<std::string> inputs,
-                       std::initializer_list<std::string> outputs,
-                       std::initializer_list<std::string> weights) = 0;
+                       std::initializer_list<std::string> outputs) = 0;
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type, std::vector<std::string> &inputs,
-                       std::vector<std::string> &outputs,
-                       std::vector<std::string> &weights) = 0;
+                       std::vector<std::string> &outputs) = 0;
 };
 
 /**
@@ -153,22 +152,36 @@ template <typename T>
 class TypeOpCreator : public OpCreator {
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type) {
-    return new T(device_type, name, op_type);
+    auto op = new T();
+    op->setDeviceType(device_type);
+    op->setName(name);
+    op->setOpType(op_type);
+    return op;
   }
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type,
                        std::initializer_list<std::string> inputs,
-                       std::initializer_list<std::string> outputs,
-                       std::initializer_list<std::string> weights) {
-    return new T(device_type, name, op_type, inputs, outputs, weights);
+                       std::initializer_list<std::string> outputs) {
+    auto op = new T();
+    op->setDeviceType(device_type);
+    op->setName(name);
+    op->setOpType(op_type);
+    op->setAllInputName(inputs);
+    op->setAllOutputName(outputs);
+    return op;
   }
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type, std::vector<std::string> &inputs,
-                       std::vector<std::string> &outputs,
-                       std::vector<std::string> &weights) {
-    return new T(device_type, name, op_type, inputs, outputs, weights);
+                       std::vector<std::string> &outputs ) {
+    auto op = new T();
+    op->setDeviceType(device_type);
+    op->setName(name);
+    op->setOpType(op_type);
+    op->setAllInputName(inputs);
+    op->setAllOutputName(outputs);
+    return op;
   }
 };
 
@@ -201,13 +214,11 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
              OpType op_type, std::initializer_list<std::string> inputs,
-             std::initializer_list<std::string> outputs,
-             std::initializer_list<std::string> weights);
+             std::initializer_list<std::string> outputs);
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
              OpType op_type, std::vector<std::string> &inputs,
-             std::vector<std::string> &outputs,
-             std::vector<std::string> &weights);
+             std::vector<std::string> &outputs);
 
 using SISOOpFunc =
     std::function<base::Status(device::Tensor *input, device::Tensor *output,
@@ -225,6 +236,10 @@ using MIMOOpFunc =
     std::function<base::Status(std::initializer_list<device::Tensor *> inputs,
                                std::initializer_list<device::Tensor *> outputs,
                                std::shared_ptr<base::Param> op_param)>;
+
+#define REGISTER_OP_IMPLEMENTION(device_type_code, op_type_code, op_class) \
+  TypeOpRegister<TypeOpCreator<op_class>> g_##op_class##_register(         \
+      device_type_code, op_type_code);
 
 }  // namespace op
 }  // namespace nndeploy

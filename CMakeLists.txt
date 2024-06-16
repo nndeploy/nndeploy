@@ -322,6 +322,7 @@ if(ENABLE_NNDEPLOY_OP)
   file(GLOB OP_SOURCE
     "${ROOT_PATH}/include/nndeploy/op/*.h"
     "${ROOT_PATH}/source/nndeploy/op/*.cc"
+    "${ROOT_PATH}/source/nndeploy/op/impl/cpu/*.cc"
   )
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${OP_SOURCE})
 endif()
@@ -329,6 +330,8 @@ if(ENABLE_NNDEPLOY_NET)
   file(GLOB NET_SOURCE
     "${ROOT_PATH}/include/nndeploy/net/*.h"
     "${ROOT_PATH}/source/nndeploy/net/*.cc"
+    "${ROOT_PATH}/include/nndeploy/net/test/*.h"
+    "${ROOT_PATH}/source/nndeploy/net/test/*.cc"
   )
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${NET_SOURCE})
 endif()
