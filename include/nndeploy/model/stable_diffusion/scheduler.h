@@ -42,10 +42,10 @@ class NNDEPLOY_CC_API SchedulerParam : public base::Param {
    * v_prediction or epsilon
    */
   std::string prediction_type_ = "v_prediction";  // 预测噪声的方法
-  int num_inference_steps_ = 50;
-  int unet_channels_ = 4;
-  int image_height_ = 640;
-  int image_width_ = 640;
+  int num_inference_steps_ = 50;                  // 推断步数
+  int unet_channels_ = 4;                         // channel
+  int image_height_ = 640;                        // height
+  int image_width_ = 640;                         // width
 };
 
 class NNDEPLOY_CC_API Scheduler {
@@ -54,29 +54,6 @@ class NNDEPLOY_CC_API Scheduler {
   virtual ~Scheduler() {}
 
   void setParam(SchedulerParam *param);
-
-  /**
-   * @brief
-   *
-   * @param start
-   * @param end
-   * @param steps
-   * @param values
-   */
-  void customLinspace(float start, float end, int steps,
-                      std::vector<float> &values);
-
-  /**
-   * @brief
-   *
-   * @param generator
-   * @param init_noise_sigma
-   * @param latents
-   * @return base::Status
-   */
-  base::Status initializeLatents(std::mt19937 &generator,
-                                 float init_noise_sigma,
-                                 device ::Tensor *latents);
 
   /**
    * @brief Set the Timesteps object
@@ -116,9 +93,8 @@ class NNDEPLOY_CC_API Scheduler {
    * @note
    *  生成过程中的每一步都会调用此方法，它根据当前的时间步计算并更新生成的样本。
    */
-  virtual base::Status step(device::Tensor *model_output,
-                            device::Tensor *sample, int idx,
-                            std::vector<int64_t> &timestep, float eta,
+  virtual base::Status step(device::Tensor *output, device::Tensor *sample,
+                            int idx, std::vector<int64_t> &timestep, float eta,
                             bool use_clipped_model_output,
                             std::mt19937 &generator,
                             device::Tensor *variance_noise) = 0;
@@ -190,6 +166,28 @@ class TypeSchedulerRegister {
  * @return Scheduler*
  */
 extern NNDEPLOY_CC_API Scheduler *createScheduler(SchedulerType type);
+
+/**
+ * @brief
+ *
+ * @param start
+ * @param end
+ * @param steps
+ * @param values
+ */
+void customLinspace(float start, float end, int steps,
+                    std::vector<float> &values);
+
+/**
+ * @brief
+ *
+ * @param generator
+ * @param init_noise_sigma
+ * @param latents
+ * @return base::Status
+ */
+base::Status initializeLatents(std::mt19937 &generator, float init_noise_sigma,
+                               device ::Tensor *latents);
 
 }  // namespace model
 }  // namespace nndeploy

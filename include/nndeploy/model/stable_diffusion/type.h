@@ -9,7 +9,7 @@ enum StableDiffusionType : int {
   kStableDiffusionTypeTextToImage = 0x0000,
   kStableDiffusionTypeImageToImage,
   kStableDiffusionTypeInpaint,
-  kSchedulerTypeNotSupport,
+  kStableDiffusionTypeNotSupport,
 };
 
 enum SchedulerType : int {

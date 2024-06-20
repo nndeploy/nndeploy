@@ -31,9 +31,9 @@ class Text2ImagesSchedulerUNet : public dag::Loop {
     SchedulerParam *scheduler_param = (SchedulerParam *)(param_.get());
     std::vector<float> betas;
     betas.resize(scheduler_param->num_train_timesteps_);
-    scheduler_->customLinspace(std::sqrtf(scheduler_param->beta_start_),
-                               std::sqrtf(scheduler_param->beta_end_),
-                               scheduler_param->num_train_timesteps_, betas);
+    customLinspace(std::sqrt(scheduler_param->beta_start_),
+                   std::sqrt(scheduler_param->beta_end_),
+                   scheduler_param->num_train_timesteps_, betas);
     // ## 计算alphas，它们是1减去beta的平方
     std::vector<float> alphas(scheduler_param->num_train_timesteps_, 0.0f);
     for (int i = 0; i < scheduler_param->num_train_timesteps_; i++) {
@@ -136,14 +136,14 @@ class Text2ImagesSchedulerUNet : public dag::Loop {
     latent_desc.data_format_ = base::kDataFormatNCHW;
     latent_desc.shape_.emplace_back(batch_size);
     latent_desc.shape_.emplace_back(scheduler_param->unet_channels_);
-    int latent_height = scheduler_param->image_height_ / 8;
+    latent_height = scheduler_param->image_height_ / 8;
     latent_desc.shape_.emplace_back(latent_height);
-    int latent_width = scheduler_param->image_width_ / 8;
+    latent_width = scheduler_param->image_width_ / 8;
     latent_desc.shape_.emplace_back(latent_width);
     device::Tensor *latent = outputs_[0]->create(host_device, latent_desc,
                                                  inputs_[0]->getIndex(this));
     std::mt19937 generator;
-    scheduler_->initializeLatents(generator, init_noise_sigma_, latent);
+    initializeLatents(generator, init_noise_sigma_, latent);
 
     for (int i = 0; i < size; i++) {
       // op::concat({latent, latent}, 0, sample);

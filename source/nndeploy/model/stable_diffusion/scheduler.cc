@@ -9,29 +9,6 @@ namespace model {
 
 void Scheduler::setParam(SchedulerParam *param) { scheduler_param_ = param; }
 
-void Scheduler::customLinspace(float start, float end, int steps,
-                               std::vector<float> &values) {
-  float step_size = (end - start) / (steps - 1);
-  for (int i = 0; i < steps; ++i) {
-    values[i] = start + i * step_size;
-  }
-}
-
-base::Status Scheduler::initializeLatents(std::mt19937 &generator,
-                                          float init_noise_sigma,
-                                          device ::Tensor *latents) {
-  base::Status status = base::kStatusCodeOk;
-
-  // # Scale the initial noise by the standard deviation required by the
-  // scheduler
-  // status = latents->randn(generator);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "randn failed!");
-  // status = op::mul(latents, init_noise_sigma, latents);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "mul failed!");
-
-  return status;
-}
-
 std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>
     &getGlobalSchedulerCreatorMap() {
   static std::once_flag once;
@@ -52,6 +29,28 @@ Scheduler *createScheduler(SchedulerType type) {
     temp = creater_map[type]->createScheduler(type);
   }
   return temp;
+}
+
+void customLinspace(float start, float end, int steps,
+                    std::vector<float> &values) {
+  float step_size = (end - start) / (steps - 1);
+  for (int i = 0; i < steps; ++i) {
+    values[i] = start + i * step_size;
+  }
+}
+
+base::Status initializeLatents(std::mt19937 &generator, float init_noise_sigma,
+                               device ::Tensor *latents) {
+  base::Status status = base::kStatusCodeOk;
+
+  // # Scale the initial noise by the standard deviation required by the
+  // scheduler
+  // status = latents->randn(generator);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "randn failed!");
+  // status = op::mul(latents, init_noise_sigma, latents);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "mul failed!");
+
+  return status;
 }
 
 }  // namespace model

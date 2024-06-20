@@ -52,7 +52,6 @@ float DDIMScheduler::getVariance(int64_t timesteps, int64_t prev_timestep) {
 
 base::Status DDIMScheduler::configure() {
   base::Status status = base::kStatusCodeOk;
-  SchedulerParam *scheduler_param_ = (SchedulerParam *)(param_.get());
   variance_.resize(scheduler_param_->num_inference_steps_, 0.0f);
   int64_t step_ratio = (int64_t)scheduler_param_->num_train_timesteps_ /
                        (int64_t)scheduler_param_->num_inference_steps_;
@@ -88,7 +87,6 @@ base::Status DDIMScheduler::step(device::Tensor *model_output,
                                  std::mt19937 &generator,
                                  device::Tensor *variance_noise) {
   base::Status status = base::kStatusCodeOk;
-  SchedulerParam *scheduler_param_ = (SchedulerParam *)(param_.get());
   device::Device *host_device = device::getDefaultHostDevice();
 
   //
@@ -99,7 +97,7 @@ base::Status DDIMScheduler::step(device::Tensor *model_output,
                                        base::kDataFormatN, {1});
   device::Tensor alpha_prod_t_tensor(host_device, alpha_prod_t_desc);
   alpha_prod_t_tensor.set(alpha_prod_t);
-  float alpha_prod_t_sqrt = std::sqrtf(alpha_prod_t);
+  float alpha_prod_t_sqrt = std::sqrt(alpha_prod_t);
   device::Tensor alpha_prod_t_sqrt_tensor(host_device, alpha_prod_t_desc);
   alpha_prod_t_sqrt_tensor.set(alpha_prod_t_sqrt);
 
@@ -116,7 +114,7 @@ base::Status DDIMScheduler::step(device::Tensor *model_output,
                                       base::kDataFormatN, {1});
   device::Tensor beta_prod_t_tensor(host_device, beta_prod_t_desc);
   beta_prod_t_tensor.set(beta_prod_t);
-  float beta_prod_t_sqrt = std::sqrtf(beta_prod_t);
+  float beta_prod_t_sqrt = std::sqrt(beta_prod_t);
   device::Tensor beta_prod_t_sqrt_tensor(host_device, beta_prod_t_desc);
   beta_prod_t_sqrt_tensor.set(beta_prod_t_sqrt);
 
@@ -172,7 +170,7 @@ base::Status DDIMScheduler::step(device::Tensor *model_output,
   // # 6. compute "direction pointing to x_t" of formula (12) from
   // https://arxiv.org/pdf/2010.02502.pdf
   float coff_model_output =
-      std::sqrtf(1 - alpha_prod_t_prev - std_dev_t * std_dev_t);
+      std::sqrt(1 - alpha_prod_t_prev - std_dev_t * std_dev_t);
   device::Tensor coff_model_output_tensor(host_device, beta_prod_t_desc);
   coff_model_output_tensor.set(coff_model_output);
   device::Tensor pred_sample_direction(model_output->getDevice(),
@@ -181,7 +179,7 @@ base::Status DDIMScheduler::step(device::Tensor *model_output,
 
   // # 7. compute x_t without "random noise" of formula(12) from https:
   // //arxiv.org/pdf/2010.02502.pdf
-  float alpha_prod_t_prev_sqrt = std::sqrtf(alpha_prod_t_prev);
+  float alpha_prod_t_prev_sqrt = std::sqrt(alpha_prod_t_prev);
   device::Tensor pred_original_sample_temp;
   pred_original_sample_temp = alpha_prod_t_prev_sqrt * pred_original_sample;
   device::Tensor prev_sample;
@@ -196,14 +194,14 @@ base::Status DDIMScheduler::addNoise(device::Tensor *init_latents,
   base::Status status = base::kStatusCodeOk;
   device::Device *host_device = device::getDefaultHostDevice();
 
-  float sqrt_alpha_prod = std::sqrtf(alphas_cumprod_[idx]);
+  float sqrt_alpha_prod = std::sqrt(alphas_cumprod_[idx]);
   device::TensorDesc sqrt_alpha_prod_desc(base::dataTypeOf<float>(),
                                           base::kDataFormatN, {1});
   device::Tensor sqrt_alpha_prod_tensor(host_device, sqrt_alpha_prod_desc);
   sqrt_alpha_prod_tensor.set(sqrt_alpha_prod);
   op::mul(&sqrt_alpha_prod_tensor, init_latents, init_latents);
 
-  float sqrt_one_minus_alpha_prod = std::sqrtf(1.0f - alphas_cumprod_[idx]);
+  float sqrt_one_minus_alpha_prod = std::sqrt(1.0f - alphas_cumprod_[idx]);
   device::TensorDesc sqrt_one_minus_alpha_prod_desc(base::dataTypeOf<float>(),
                                                     base::kDataFormatN, {1});
   device::Tensor sqrt_one_minus_alpha_prod_tensor(host_device,
