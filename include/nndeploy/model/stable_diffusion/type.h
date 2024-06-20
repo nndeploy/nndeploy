@@ -5,6 +5,13 @@
 namespace nndeploy {
 namespace model {
 
+enum StableDiffusionType : int {
+  kStableDiffusionTypeTextToImage = 0x0000,
+  kStableDiffusionTypeImageToImage,
+  kStableDiffusionTypeInpaint,
+  kSchedulerTypeNotSupport,
+};
+
 enum SchedulerType : int {
   kSchedulerTypeDDIM = 0x0000,
   kSchedulerTypeDPM,
@@ -14,7 +21,7 @@ enum SchedulerType : int {
   kSchedulerTypeNotSupport,
 };
 
-}
+}  // namespace model
 }  // namespace nndeploy
 
-#endif /* EF9DBD3E_CD64_43CE_9603_BF0DEBB5E94A */
+#endif /* _NNDEPLOY_MODEL_STABLE_DIFFUSION_TYPE_H_ */

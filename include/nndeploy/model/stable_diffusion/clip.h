@@ -24,8 +24,9 @@ namespace nndeploy {
 namespace model {
 
 extern NNDEPLOY_CC_API dag::Graph *createCLIPGraph(
-    const std::string &name, dag::Edge *input, dag::Edge *output,
-    base::InferenceType inference_type, std::vector<base::Param *> &param);
+    const std::string &name, dag::Edge *prompt, dag::Edge *negative_prompt,
+    dag::Edge *output, base::InferenceType inference_type,
+    std::vector<base::Param *> &param);
 
 }  // namespace model
 }  // namespace nndeploy

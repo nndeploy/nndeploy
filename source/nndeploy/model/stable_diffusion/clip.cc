@@ -5,51 +5,42 @@
 #include "nndeploy/model/infer.h"
 #include "nndeploy/model/tokenizer/clip_tokenizer.h"
 
-
 namespace nndeploy {
 namespace model {
 
-/**
- * @brief
- *
- * @param name
- * @param input
- * @param output
- * @param param
- * @return dag::Graph*
- * input(prompt + negative prompt) -> cliptokenizer(yes or no) -> CLIP(batch) ->
- * output(text_embeddings)
- */
-dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *input,
-                            dag::Edge *output,
+dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
+                            dag::Edge *negative_prompt, dag::Edge *output,
                             base::InferenceType inference_type,
                             std::vector<base::Param *> &param) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt}, {output});
+
+  //   /**
+  //    * @brief tokenizer
+  //    * prompt or negative_prompt
+  //    */
+  //   dag::Node *tokenizer_prompt = graph->createNode<CLIPTokenizer>(
+  //       "tokenizer_prompt", prompt, "prompt_ids");
+  //   tokenizer_prompt->setParam(param[0]);
+  //   dag::Node *tokenizer_negative_prompt = graph->createNode<CLIPTokenizer>(
+  //       "tokenizer_negative_prompt", negative_prompt, "negative_prompt_ids");
+  //   tokenizer_prompt->setParam(param[1]);
+
+  //   /**
+  //    * @brief TensorConcat
+  //    */
+  //   dag::Node *tensor_concat = graph->createNode<TensorConcat>(
+  //       "tensor_concat", inference_type, {"prompt_ids",
+  //       "negative_prompt_ids"},
+  //       {"input_ids"});
+  //   tensor_concat->setParam(param[2]);
 
   /**
-   * @brief
-   * yes or no,
-   * 目前这个阶段暂时没做CLIPTokenizer，所以input就是input_ids，会在内部做一个拷贝操作
-   */
-  // dag::Node *clip_clip_tokenizer =
-  //     graph->createNode<CLIPTokenizer>("clip_clip_tokenizer", input,
-  //     "input_ids");
-  // tokenizer->setParam(param[0]);
-  dag::Node *clip_convert_to_pre =
-      graph->createNode<ConvertTo>("clip_convert_to_pre", input, "input_ids");
-  clip_convert_to_pre->setParam(param[0]);
-
-  /**
-   * @brief
+   * @brief createInfer
    * batch = 2， 多batch的推理
    */
-  dag::Node *clip_clip_infer = graph->createInfer<Infer>(
-      "clip_clip_infer", inference_type, "input_ids", "text_embeddings");
-  clip_clip_infer->setParam(param[1]);
-
-  dag::Node *clip_convert_to_post = graph->createNode<ConvertTo>(
-      "clip_convert_to_post", "text_embeddings", output);
-  clip_convert_to_post->setParam(param[2]);
+  dag::Node *infer =
+      graph->createInfer<Infer>("infer", inference_type, "input_ids", output);
+  infer->setParam(param[3]);
 
   return graph;
 }

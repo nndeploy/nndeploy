@@ -48,29 +48,35 @@ class NNDEPLOY_CC_API SchedulerParam : public base::Param {
   int image_width_ = 640;
 };
 
-/**
- * @brief
- * @note 主要是如下4个目的：
- * 1- 迭代次数
- * 2- 构建latent
- * 3- timestep
- * 4- convert_to encoder_hidden_states
- */
-class NNDEPLOY_CC_API Scheduler : public dag::Loop {
+class NNDEPLOY_CC_API Scheduler {
  public:
-  Scheduler(const std::string &name, SchedulerType scheduler_type,
-            dag::Edge *input, dag::Edge *output)
-      : Loop(name, input, output), scheduler_type_(scheduler_type) {}
-
-  Scheduler(const std::string &name, SchedulerType scheduler_type,
-            std::initializer_list<dag::Edge *> inputs,
-            std::initializer_list<dag::Edge *> outputs)
-      : Loop(name, inputs, outputs), scheduler_type_(scheduler_type) {}
-  Scheduler(const std::string &name, SchedulerType scheduler_type,
-            std::vector<dag::Edge *> &inputs, std::vector<dag::Edge *> &outputs)
-      : Loop(name, inputs, outputs), scheduler_type_(scheduler_type) {}
-
+  Scheduler(SchedulerType type) : scheduler_type_(type) {}
   virtual ~Scheduler() {}
+
+  void setParam(SchedulerParam *param);
+
+  /**
+   * @brief
+   *
+   * @param start
+   * @param end
+   * @param steps
+   * @param values
+   */
+  void customLinspace(float start, float end, int steps,
+                      std::vector<float> &values);
+
+  /**
+   * @brief
+   *
+   * @param generator
+   * @param init_noise_sigma
+   * @param latents
+   * @return base::Status
+   */
+  base::Status initializeLatents(std::mt19937 &generator,
+                                 float init_noise_sigma,
+                                 device ::Tensor *latents);
 
   /**
    * @brief Set the Timesteps object
@@ -89,6 +95,13 @@ class NNDEPLOY_CC_API Scheduler : public dag::Loop {
    */
   virtual base::Status configure() = 0;
 
+  /**
+   * @brief
+   *
+   * @param sample
+   * @param index
+   * @return device::Tensor*
+   */
   virtual device::Tensor *scaleModelInput(device::Tensor *sample,
                                           int index) = 0;
 
@@ -126,13 +139,8 @@ class NNDEPLOY_CC_API Scheduler : public dag::Loop {
 
  protected:
   SchedulerType scheduler_type_ = kSchedulerTypeNotSupport;
+  SchedulerParam *scheduler_param_;
 };
-
-void customLinspace(float start, float end, int steps,
-                    std::vector<float> &values);
-
-base::Status initializeLatents(std::mt19937 &generator, float init_noise_sigma,
-                               device ::Tensor *latents);
 
 /**
  * @brief 推理框架的创建类
@@ -141,10 +149,7 @@ base::Status initializeLatents(std::mt19937 &generator, float init_noise_sigma,
 class SchedulerCreator {
  public:
   virtual ~SchedulerCreator(){};
-  virtual Scheduler *createScheduler(const std::string &name,
-                                     SchedulerType type,
-                                     std::vector<dag::Edge *> &input,
-                                     std::vector<dag::Edge *> &output) = 0;
+  virtual Scheduler *createScheduler(SchedulerType type) = 0;
 };
 
 /**
@@ -154,12 +159,7 @@ class SchedulerCreator {
  */
 template <typename T>
 class TypeSchedulerCreator : public SchedulerCreator {
-  virtual Scheduler *createScheduler(const std::string &name,
-                                     SchedulerType type,
-                                     std::vector<dag::Edge *> &input,
-                                     std::vector<dag::Edge *> &output) {
-    return new T(name, type, input, output);
-  }
+  virtual Scheduler *createScheduler(SchedulerType type) { return new T(type); }
 };
 
 /**
@@ -167,8 +167,8 @@ class TypeSchedulerCreator : public SchedulerCreator {
  *
  * @return std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>&
  */
-std::map<SchedulerType, std::shared_ptr<SchedulerCreator>> &
-getGlobalSchedulerCreatorMap();
+std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>
+    &getGlobalSchedulerCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板
@@ -189,14 +189,7 @@ class TypeSchedulerRegister {
  * @param type
  * @return Scheduler*
  */
-extern NNDEPLOY_CC_API Scheduler *createScheduler(
-    const std::string &name, SchedulerType type,
-    std::vector<dag::Edge *> &input, std::vector<dag::Edge *> &output);
-
-extern NNDEPLOY_CC_API dag::Graph *createSchedulerUNetGraph(
-    const std::string &name, dag::Edge *input, dag::Edge *output,
-    SchedulerType scheduler_type, base::InferenceType inference_type,
-    std::vector<base::Param *> &param);
+extern NNDEPLOY_CC_API Scheduler *createScheduler(SchedulerType type);
 
 }  // namespace model
 }  // namespace nndeploy

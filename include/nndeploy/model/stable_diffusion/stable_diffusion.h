@@ -32,11 +32,72 @@ namespace model {
 
 #define NNDEPLOY_STABLE_DIFFUSION_INPAINT "NNDEPLOY_STABLE_DIFFUSION_INPAINT"
 
+/**
+ * @brief Create a Stable Diffusion Text 2 Image Graph object
+ *
+ * @param name
+ * @param prompt
+ * @param negative_prompt
+ * @param output
+ * @param clip_inference_type
+ * @param scheduler_type
+ * @param unet_inference_type
+ * @param vae_inference_type
+ * @param param
+ * @return dag::Graph*
+ */
 extern NNDEPLOY_CC_API dag::Graph *createStableDiffusionText2ImageGraph(
-    const std::string &name, dag::Edge *input, dag::Edge *output,
-    base::InferenceType clip_inference_type, SchedulerType scheduler_type,
-    base::InferenceType unet_inference_type,
+    const std::string &name, dag::Edge *prompt, dag::Edge *negative_prompt,
+    dag::Edge *output, base::InferenceType clip_inference_type,
+    SchedulerType scheduler_type, base::InferenceType unet_inference_type,
     base::InferenceType vae_inference_type, std::vector<base::Param *> &param);
+
+// /**
+//  * @brief Create a Stable Diffusion Image2 Image Graph object
+//  *
+//  * @param name
+//  * @param prompt
+//  * @param negative_prompt
+//  * @param input_image
+//  * @param output
+//  * @param clip_inference_type
+//  * @param scheduler_type
+//  * @param unet_inference_type
+//  * @param vae_inference_type
+//  * @param param
+//  * @return dag::Graph*
+//  */
+// extern NNDEPLOY_CC_API dag::Graph *createStableDiffusionImage2ImageGraph(
+//     const std::string &name, dag::Edge *prompt, dag::Edge *negative_prompt,
+//     dag::Edge *input_image, dag::Edge *output,
+//     base::InferenceType clip_inference_type, SchedulerType scheduler_type,
+//     base::InferenceType unet_inference_type,
+//     base::InferenceType vae_inference_type, std::vector<base::Param *>
+//     &param);
+
+// /**
+//  * @brief Create a Stable Diffusion Inpaint Graph object
+//  *
+//  * @param name
+//  * @param prompt
+//  * @param negative_prompt
+//  * @param input_image
+//  * @param mask_image
+//  * @param output
+//  * @param clip_inference_type
+//  * @param scheduler_type
+//  * @param unet_inference_type
+//  * @param vae_inference_type
+//  * @param param
+//  * @return dag::Graph*
+//  */
+// extern NNDEPLOY_CC_API dag::Graph *createStableDiffusionInpaintGraph(
+//     const std::string &name, dag::Edge *prompt, dag::Edge *negative_prompt,
+//     dag::Edge *input_image, dag::Edge *mask_image, dag::Edge *output,
+//     base::InferenceType clip_inference_type, SchedulerType scheduler_type,
+//     base::InferenceType unet_inference_type,
+//     base::InferenceType vae_inference_type, std::vector<base::Param *>
+//     &param);
 
 }  // namespace model
 }  // namespace nndeploy

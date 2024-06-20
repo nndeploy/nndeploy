@@ -31,14 +31,7 @@ namespace model {
 
 class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
  public:
-  DDIMScheduler(const std::string &name, SchedulerType scheduler_type,
-                dag::Edge *input, dag::Edge *output);
-  DDIMScheduler(const std::string &name, SchedulerType scheduler_type,
-                std::initializer_list<dag::Edge *> inputs,
-                std::initializer_list<dag::Edge *> outputs);
-  DDIMScheduler(const std::string &name, SchedulerType scheduler_type,
-                std::vector<dag::Edge *> &inputs,
-                std::vector<dag::Edge *> &outputs);
+  DDIMScheduler(SchedulerType scheduler_type);
   virtual ~DDIMScheduler();
 
   virtual base::Status setTimesteps();
@@ -60,13 +53,7 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
                                 device::Tensor *noise, int idx,
                                 int latent_timestep);
 
-  virtual base::Status init();
-  virtual base::Status deinit();
-
-  virtual int loops();
-  virtual base::Status run();
-
- private:
+ public:
   std::vector<float> alphas_cumprod_;  // alpha的累积乘积
   float final_alpha_cumprod_ = 1.0;
   // standard deviation of the initial noise distribution
