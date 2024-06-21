@@ -26,44 +26,8 @@ class Text2ImagesSchedulerUNet : public dag::Loop {
   virtual base::Status init() {
     base::Status status = base::kStatusCodeOk;
 
-    // # this schedule is very specific to the latent diffusion model.
-    // ## 计算betas，它们是方差的平方根，从beta_start的平方根到beta_end的平方根
-    SchedulerParam *scheduler_param = (SchedulerParam *)(param_.get());
-    std::vector<float> betas;
-    betas.resize(scheduler_param->num_train_timesteps_);
-    customLinspace(std::sqrt(scheduler_param->beta_start_),
-                   std::sqrt(scheduler_param->beta_end_),
-                   scheduler_param->num_train_timesteps_, betas);
-    // ## 计算alphas，它们是1减去beta的平方
-    std::vector<float> alphas(scheduler_param->num_train_timesteps_, 0.0f);
-    for (int i = 0; i < scheduler_param->num_train_timesteps_; i++) {
-      alphas[i] = 1 - betas[i] * betas[i];
-    }
-    // ## alphas_cumprod_
-    alphas_cumprod_.resize(scheduler_param->num_train_timesteps_, 0.0f);
-    alphas_cumprod_[0] = alphas[0];
-    for (int i = 1; i < scheduler_param->num_train_timesteps_; i++) {
-      alphas_cumprod_[i] = alphas_cumprod_[i - 1] * alphas[i];
-    }
-    // # standard deviation of the initial noise distribution
-    init_noise_sigma_ = 1.0f;
-
-    // # At every step in ddim, we are looking into the previous alphas_cumprod
-    // For the final step, there is no previous alphas_cumprod because we are
-    // already at 0 `set_alpha_to_one` decides whether we set this parameter
-    // simply to one or whether we use the final alpha of the "non-previous"
-    // one.
-    if (scheduler_param->set_alpha_to_one_) {
-      final_alpha_cumprod_ = 1.0;
-    } else {
-      final_alpha_cumprod_ = alphas_cumprod_.front();
-    }
-
-    // timesteps_
-    timesteps_.resize(scheduler_param->num_train_timesteps_, 0);
-    for (int i = 0; i < scheduler_param->num_train_timesteps_; i++) {
-      timesteps_[i] = scheduler_param->num_train_timesteps_ - 1 - i;
-    }
+    status = scheduler_->init();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed!");
 
     status = scheduler_->setTimesteps();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setTimesteps failed!");
@@ -78,6 +42,10 @@ class Text2ImagesSchedulerUNet : public dag::Loop {
   }
   virtual base::Status deinit() {
     base::Status status = base::kStatusCodeOk;
+
+    status = scheduler_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed!");
+
     return status;
   }
 
@@ -107,11 +75,11 @@ class Text2ImagesSchedulerUNet : public dag::Loop {
     int batch_size = encoder_hidden_states_tensor->getBatch();
 
     // build sample
-    dag::Edge *sample = this->getEdge("sample");
+    dag ::Edge *sample = this->getEdge("sample");
     device::TensorDesc sample_desc;
     sample_desc.data_type_ = base::dataTypeOf<float>();
     sample_desc.data_format_ = base::kDataFormatNCHW;
-    sample_desc.shape_.emplace_back(batch_size * 2);
+    sample_desc.shape_.emplace_back(batch_size);
     sample_desc.shape_.emplace_back(scheduler_param->unet_channels_);
     int latent_height = scheduler_param->image_height_ / 8;
     sample_desc.shape_.emplace_back(latent_height);
@@ -125,7 +93,7 @@ class Text2ImagesSchedulerUNet : public dag::Loop {
     device::TensorDesc timestep_desc;
     timestep_desc.data_type_ = base::dataTypeOf<float>();
     timestep_desc.data_format_ = base::kDataFormatNC;
-    timestep_desc.shape_.emplace_back(batch_size);
+    timestep_desc.shape_.emplace_back(1);
     timestep_desc.shape_.emplace_back(1);
     device::Tensor *timestep_tensor =
         timestep->create(host_device, timestep_desc, index);
@@ -134,7 +102,7 @@ class Text2ImagesSchedulerUNet : public dag::Loop {
     device::TensorDesc latent_desc;
     latent_desc.data_type_ = base::dataTypeOf<float>();
     latent_desc.data_format_ = base::kDataFormatNCHW;
-    latent_desc.shape_.emplace_back(batch_size);
+    latent_desc.shape_.emplace_back(batch_size / 2);
     latent_desc.shape_.emplace_back(scheduler_param->unet_channels_);
     latent_height = scheduler_param->image_height_ / 8;
     latent_desc.shape_.emplace_back(latent_height);
@@ -145,18 +113,30 @@ class Text2ImagesSchedulerUNet : public dag::Loop {
     std::mt19937 generator;
     initializeLatents(generator, init_noise_sigma_, latent);
 
-    for (int i = 0; i < size; i++) {
-      // op::concat({latent, latent}, 0, sample);
-      // status = executor_->run();
-      // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run
-      // failed!");
-      // op::split(sample, 0, noise_pred_uncond_, noise_pred_text_)
-      // step(noise_pred_uncond_, sample, i, timestep, eta, false, generator,
-      //      nullptr);
-    }
+    device::Tensor *noise_pred_uncond_ =
+        new device::Tensor(host_device, latent_desc);  //
+    device::Tensor *noise_pred_text_ =
+        new device::Tensor(host_device, latent_desc);  //
+
+    // for (int i = 0; i < size; i++) {
+    //   // 算子
+    //   op::concat({latent, latent}, 0, sample);
+    //   status = executor_->run();
+    //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+    //                          "executor runfailed!");
+    //   op::split(sample, 0, noise_pred_uncond_, noise_pred_text_);
+    //   scheduler_->step(noise_pred_uncond_, latent, i);
+    // }
 
     // float scale = 1.0f / 0.18215f;
-    // op::mul(latents, scale, latents);
+    // op::mul(latent, scale, latent);
+
+    if (noise_pred_uncond_ != nullptr) {
+      delete noise_pred_uncond_;
+    }
+    if (noise_pred_text_ != nullptr) {
+      delete noise_pred_text_;
+    }
 
     setRunningFlag(false);
     return status;
@@ -165,15 +145,11 @@ class Text2ImagesSchedulerUNet : public dag::Loop {
  private:
   SchedulerType scheduler_type_ = kSchedulerTypeNotSupport;
   Scheduler *scheduler_ = nullptr;
-  std::vector<float> alphas_cumprod_;  // alpha的累积乘积
-  float final_alpha_cumprod_ = 1.0;
   // standard deviation of the initial noise distribution
-  float init_noise_sigma_ = 1.0f;  // 初始噪声的标准差
-
-  std::vector<int64_t> timesteps_;  // 时间步序列
-  std::vector<float> variance_;     // 方差
-  device::Tensor *noise_pred_uncond_ = nullptr;
-  device::Tensor *noise_pred_text_ = nullptr;
+  device::Tensor *latent_model_input_ = nullptr;
+  float init_noise_sigma_ = 1.0f;                // 初始噪声的标准差
+  device::Tensor *noise_pred_uncond_ = nullptr;  //
+  device::Tensor *noise_pred_text_ = nullptr;    //
 };
 
 dag::Graph *createText2ImagesSchedulerUNetGraph(

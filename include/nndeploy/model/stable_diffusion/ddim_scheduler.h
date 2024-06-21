@@ -34,6 +34,9 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
   DDIMScheduler(SchedulerType scheduler_type);
   virtual ~DDIMScheduler();
 
+  virtual base::Status init();
+  virtual base::Status deinit();
+
   virtual base::Status setTimesteps();
 
   virtual device::Tensor *scaleModelInput(device::Tensor *sample, int index);
@@ -56,13 +59,9 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
  public:
   std::vector<float> alphas_cumprod_;  // alpha的累积乘积
   float final_alpha_cumprod_ = 1.0;
-  // standard deviation of the initial noise distribution
-  float init_noise_sigma_ = 1.0f;  // 初始噪声的标准差
 
   std::vector<int64_t> timesteps_;  // 时间步序列
   std::vector<float> variance_;     // 方差
-  device::Tensor *noise_pred_uncond_ = nullptr;
-  device::Tensor *noise_pred_text_ = nullptr;
 };
 
 }  // namespace model

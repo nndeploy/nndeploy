@@ -67,10 +67,12 @@ class NNDEPLOY_CC_API Scheduler {
    */
   void setParam(SchedulerParam *param);
 
+  virtual base::Status init() = 0;
+  virtual base::Status deinit() = 0;
+
   /**
    * @brief Set the Timesteps object
    *
-   * @param num_Scheduler_steps
    * @return base::Status
    * @note 设置推断过程中的时间步
    */
