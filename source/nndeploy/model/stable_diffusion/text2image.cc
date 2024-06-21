@@ -187,27 +187,28 @@ dag::Graph *createText2ImagesSchedulerUNetGraph(
   std::vector<dag::Edge *> outputs;
   outputs.emplace_back(latent);
   // scheduler
-  Text2ImagesSchedulerUNet *scheduler =
+  Text2ImagesSchedulerUNet *text2image_scheduler_unet =
       new Text2ImagesSchedulerUNet(name, scheduler_type, inputs, outputs);
-  scheduler->setParam(param[0]);
+  text2image_scheduler_unet->setParam(param[0]);
   // convert_to
   dag::Edge *encoder_hidden_states =
-      scheduler->createEdge("encoder_hidden_states");
-  // dag::Node *tensor_convert_to = scheduler->createInfer<TensorConvertTo>(
-  //     "tensor_convert_to", inference_type, text_embeddings,
-  //     encoder_hidden_states);
+      text2image_scheduler_unet->createEdge("encoder_hidden_states");
+  // dag::Node *tensor_convert_to =
+  //     text2image_scheduler_unet->createInfer<TensorConvertTo>(
+  //         "tensor_convert_to", inference_type, text_embeddings,
+  //         encoder_hidden_states);
   // tensor_convert_to->setParam(param[1]);
-  // scheduler->addNode(tensor_convert_to, false);
+  // text2image_scheduler_unet->addNode(tensor_convert_to, false);
 
-  dag::Edge *sample = scheduler->createEdge("sample");
-  dag::Edge *timestep = scheduler->createEdge("timestep");
-  dag::Node *unet = scheduler->createInfer<Infer>(
+  dag::Edge *sample = text2image_scheduler_unet->createEdge("sample");
+  dag::Edge *timestep = text2image_scheduler_unet->createEdge("timestep");
+  dag::Node *unet = text2image_scheduler_unet->createInfer<Infer>(
       "unet", inference_type, {sample, timestep, encoder_hidden_states},
       outputs);
   unet->setParam(param[2]);
-  scheduler->addNode(unet, false);
+  text2image_scheduler_unet->addNode(unet, false);
 
-  return scheduler;
+  return text2image_scheduler_unet;
 }
 
 /**
@@ -243,11 +244,11 @@ dag::Graph *createStableDiffusionText2ImageGraph(
   // scheduler_unet
   dag::Edge *latent = graph->createEdge("latent");
   std::vector<base::Param *>::iterator it = param.begin() + 4;
-  std::vector<base::Param *> schedule_unet_param(it, it + 2);
-  dag::Graph *text2images_scheduler_unet = createText2ImagesSchedulerUNetGraph(
+  std::vector<base::Param *> schedule_unet_param(it, it + 3);
+  dag::Graph *text2image_scheduler_unet = createText2ImagesSchedulerUNetGraph(
       "scheduler_unet", text_embeddings, latent, scheduler_type,
       unet_inference_type, schedule_unet_param);
-  graph->addNode(text2images_scheduler_unet, false);
+  graph->addNode(text2image_scheduler_unet, false);
 
   // vae
   dag::Node *vae =

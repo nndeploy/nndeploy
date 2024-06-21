@@ -37,15 +37,22 @@ class NNDEPLOY_CC_API SchedulerParam : public base::Param {
   bool clip_sample_ = false;        // 是否裁剪样本
   bool set_alpha_to_one_ = false;  // 是否将alpha的累积乘积的最后一个元素设置为1
   int steps_offset_ = 1;  // 时间步偏移
-  /**
-   * @brief
-   * v_prediction or epsilon
-   */
-  std::string prediction_type_ = "v_prediction";  // 预测噪声的方法
-  int num_inference_steps_ = 50;                  // 推断步数
-  int unet_channels_ = 4;                         // channel
-  int image_height_ = 640;                        // height
-  int image_width_ = 640;                         // width
+  std::string prediction_type_ =
+      "v_prediction";  // 预测噪声的方法， v_prediction or epsilon
+  int num_inference_steps_ = 50;  // 推断步数
+  int unet_channels_ = 4;         // channel
+  int image_height_ = 640;        // height
+  int image_width_ = 640;         // width
+
+  // DPMSchedulerParam
+  int solver_order_ = 2;
+  bool predict_epsilon_ = true;
+  bool thresholding_ = false;
+  float dynamic_thresholding_ratio_ = 0.995;
+  float sample_max_value_ = 1.0f;
+  std::string algorithm_type_ = "dpmsolver++";
+  std::string solver_type_ = "midpoint";
+  bool lower_order_final = true;
 };
 
 class NNDEPLOY_CC_API Scheduler {
@@ -53,6 +60,11 @@ class NNDEPLOY_CC_API Scheduler {
   Scheduler(SchedulerType type) : scheduler_type_(type) {}
   virtual ~Scheduler() {}
 
+  /**
+   * @brief Set the Param object
+   *
+   * @param param
+   */
   void setParam(SchedulerParam *param);
 
   /**
