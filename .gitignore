@@ -218,7 +218,3 @@ docs/build
 # vscode
 .vscode/
 .vs/
-
-third_party/
-models/
-third_party/thirdparty
