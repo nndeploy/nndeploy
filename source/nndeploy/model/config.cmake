@@ -26,7 +26,6 @@ if (ENABLE_NNDEPLOY_MODEL_SEGMENT)
   include(${ROOT_PATH}/source/nndeploy/model/segment/config.cmake)
 endif()
 
-nndeploy_option(ENABLE_NNDEPLOY_MODEL_TOKENIZER "ENABLE_NNDEPLOY_MODEL_TOKENIZER" OFF)
 if (ENABLE_NNDEPLOY_MODEL_TOKENIZER)
   include(${ROOT_PATH}/source/nndeploy/model/tokenizer/config.cmake)
 endif()
