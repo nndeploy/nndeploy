@@ -108,10 +108,10 @@ class NNDEPLOY_CC_API Scheduler {
    *  生成过程中的每一步都会调用此方法，它根据当前的时间步计算并更新生成的样本。
    */
   virtual base::Status step(device::Tensor *output, device::Tensor *sample,
-                            int idx, std::vector<int64_t> &timestep, float eta,
-                            bool use_clipped_model_output,
-                            std::mt19937 &generator,
-                            device::Tensor *variance_noise) = 0;
+                            int idx, float timestep, float eta = 0,
+                            bool use_clipped_model_output = false,
+                            std::mt19937 generator = std::mt19937(),
+                            device::Tensor *variance_noise = nullptr) = 0;
 
   /**
    * @brief
@@ -126,6 +126,13 @@ class NNDEPLOY_CC_API Scheduler {
   virtual base::Status addNoise(device::Tensor *init_latents,
                                 device::Tensor *noise, int idx,
                                 int latent_timestep) = 0;
+
+  /**
+   * @brief Get the Timestep object
+   *
+   * @return std::vector<float>&
+   */
+  virtual std::vector<float> &getTimestep() = 0;
 
  protected:
   SchedulerType scheduler_type_ = kSchedulerTypeNotSupport;

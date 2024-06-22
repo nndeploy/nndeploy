@@ -127,11 +127,10 @@ base::Status DDIMScheduler::configure() {
  * # - pred_sample_direction -> "direction pointing to x_t"
  * # - pred_prev_sample -> "x_t-1"
  */
-base::Status DDIMScheduler::step(device::Tensor *model_output,
-                                 device::Tensor *sample, int idx,
-                                 std::vector<int64_t> &timestep, float eta,
+base::Status DDIMScheduler::step(device::Tensor *output, device::Tensor *sample,
+                                 int idx, float timestep, float eta,
                                  bool use_clipped_model_output,
-                                 std::mt19937 &generator,
+                                 std::mt19937 generator,
                                  device::Tensor *variance_noise) {
   base::Status status = base::kStatusCodeOk;
   device::Device *host_device = device::getDefaultHostDevice();
@@ -167,27 +166,25 @@ base::Status DDIMScheduler::step(device::Tensor *model_output,
 
   // 3. compute predicted original sample from predicted noise also called
   // "predicted x_0" of formula(12) from https: //arxiv.org/pdf/2010.02502.pdf
-  device::Tensor pred_original_sample(model_output->getDevice(),
-                                      model_output->getDesc());
+  device::Tensor pred_original_sample(output->getDevice(), output->getDesc());
   if (scheduler_param_->prediction_type_ == "epsilon") {
-    device::Tensor tmp1(model_output->getDevice(), model_output->getDesc());
-    op::mul(&beta_prod_t_sqrt_tensor, model_output, &tmp1);
-    device::Tensor tmp2(model_output->getDevice(), model_output->getDesc());
+    device::Tensor tmp1(output->getDevice(), output->getDesc());
+    op::mul(&beta_prod_t_sqrt_tensor, output, &tmp1);
+    device::Tensor tmp2(output->getDevice(), output->getDesc());
     op::sub(sample, &tmp1, &tmp2);
     op::div(&tmp2, &tmp1, &alpha_prod_t_sqrt_tensor);
   } else if (scheduler_param_->prediction_type_ == "sample") {
-    model_output->copyTo(&pred_original_sample);
+    output->copyTo(&pred_original_sample);
   } else if (scheduler_param_->prediction_type_ == "v_prediction") {
     device::Tensor sample_tmp(sample->getDevice(), sample->getDesc());
     op::mul(&alpha_prod_t_sqrt_tensor, sample, &sample_tmp);
-    device::Tensor model_output_tmp(model_output->getDevice(),
-                                    model_output->getDesc());
-    op::mul(&beta_prod_t_sqrt_tensor, model_output, &model_output_tmp);
+    device::Tensor model_output_tmp(output->getDevice(), output->getDesc());
+    op::mul(&beta_prod_t_sqrt_tensor, output, &model_output_tmp);
     op::sub(&sample_tmp, &model_output_tmp, &pred_original_sample);
 
     op::mul(&beta_prod_t_sqrt_tensor, sample, &sample_tmp);
-    op::mul(&alpha_prod_t_sqrt_tensor, model_output, &model_output_tmp);
-    op::add(&sample_tmp, &model_output_tmp, model_output);
+    op::mul(&alpha_prod_t_sqrt_tensor, output, &model_output_tmp);
+    op::add(&sample_tmp, &model_output_tmp, output);
   } else {
     NNDEPLOY_LOGE("Invalid prediction type!\n");
     return base::kStatusCodeErrorInvalidValue;
@@ -204,14 +201,14 @@ base::Status DDIMScheduler::step(device::Tensor *model_output,
   float std_dev_t = eta * sqrtf(variance);
 
   if (use_clipped_model_output) {
-    // the model_output is always re-derived from the clipped x_0 in Glide
+    // the output is always re-derived from the clipped x_0 in Glide
     device::Tensor pred_original_sample_tmp(pred_original_sample.getDevice(),
                                             pred_original_sample.getDesc());
     op::mul(&alpha_prod_t_sqrt_tensor, &pred_original_sample,
             &pred_original_sample_tmp);
     device::Tensor sample_tmp(sample->getDevice(), sample->getDesc());
     op::sub(sample, &pred_original_sample_tmp, &sample_tmp);
-    op::div(&sample_tmp, &beta_prod_t_sqrt_tensor, model_output);
+    op::div(&sample_tmp, &beta_prod_t_sqrt_tensor, output);
   }
 
   // # 6. compute "direction pointing to x_t" of formula (12) from
@@ -220,9 +217,8 @@ base::Status DDIMScheduler::step(device::Tensor *model_output,
       std::sqrt(1 - alpha_prod_t_prev - std_dev_t * std_dev_t);
   device::Tensor coff_model_output_tensor(host_device, beta_prod_t_desc);
   coff_model_output_tensor.set(coff_model_output);
-  device::Tensor pred_sample_direction(model_output->getDevice(),
-                                       model_output->getDesc());
-  op::mul(&coff_model_output_tensor, model_output, &pred_sample_direction);
+  device::Tensor pred_sample_direction(output->getDevice(), output->getDesc());
+  op::mul(&coff_model_output_tensor, output, &pred_sample_direction);
 
   // # 7. compute x_t without "random noise" of formula(12) from https:
   // //arxiv.org/pdf/2010.02502.pdf
@@ -260,6 +256,8 @@ base::Status DDIMScheduler::addNoise(device::Tensor *init_latents,
 
   return status;
 }
+
+std::vector<float> &DDIMScheduler::getTimestep() { return timesteps_; }
 
 }  // namespace model
 }  // namespace nndeploy
