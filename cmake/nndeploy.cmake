@@ -71,4 +71,5 @@ include("${ROOT_PATH}/cmake/ascend_cl.cmake")
 # ################### dag ####################
 
 # ################### model ####################
+include("${ROOT_PATH}/cmake/tokenizer_cpp.cmake")
 # ################### model ####################
