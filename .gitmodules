@@ -2,3 +2,6 @@
 	path = third_party/gflags
 	url = https://github.com/gflags/gflags.git
 
+[submodule "third_party/tokenizers-cpp"]
+	path = third_party/tokenizers-cpp
+	url = https://github.com/mlc-ai/tokenizers-cpp
