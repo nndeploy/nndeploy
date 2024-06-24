@@ -10,5 +10,5 @@ Tokenizer::Tokenizer(const std::string &name, dag::Edge *input,
 
 Tokenizer::~Tokenizer() {}
 
-}
+}  // namespace model
 }  // namespace nndeploy

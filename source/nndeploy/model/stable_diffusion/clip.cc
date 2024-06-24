@@ -3,7 +3,7 @@
 
 #include "nndeploy/model/convert_to.h"
 #include "nndeploy/model/infer.h"
-#include "nndeploy/model/tokenizer/clip_tokenizer.h"
+#include "nndeploy/model/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 
 namespace nndeploy {
 namespace model {
@@ -14,16 +14,16 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
                             std::vector<base::Param *> &param) {
   dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt}, {output});
 
-  //   /**
-  //    * @brief tokenizer
-  //    * prompt or negative_prompt
-  //    */
-  //   dag::Node *tokenizer_prompt = graph->createNode<CLIPTokenizer>(
-  //       "tokenizer_prompt", prompt, "prompt_ids");
-  //   tokenizer_prompt->setParam(param[0]);
-  //   dag::Node *tokenizer_negative_prompt = graph->createNode<CLIPTokenizer>(
-  //       "tokenizer_negative_prompt", negative_prompt, "negative_prompt_ids");
-  //   tokenizer_prompt->setParam(param[1]);
+  /**
+   * @brief tokenizer
+   * prompt or negative_prompt
+   */
+  dag::Node *tokenizer_prompt =
+      graph->createNode<TokenizerCpp>("tokenizer_prompt", prompt, "prompt_ids");
+  tokenizer_prompt->setParam(param[0]);
+  dag::Node *tokenizer_negative_prompt = graph->createNode<TokenizerCpp>(
+      "tokenizer_negative_prompt", negative_prompt, "negative_prompt_ids");
+  tokenizer_prompt->setParam(param[1]);
 
   //   /**
   //    * @brief TensorConcat
