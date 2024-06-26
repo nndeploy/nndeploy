@@ -159,8 +159,8 @@ int main(int argc, char* argv[]) {
   tp->tokenizer_type_ =
       nndeploy::model::TokenizerType::kTokenizerTypeSentencePiece;
   NNDEPLOY_LOGE("test tokenizer_cpp\n");
-  auto blob = LoadBytesFromFile("./tokenizer.model");
-  tp->model_blob_ = blob;
+  // auto blob = LoadBytesFromFile("./tokenizer.model");
+  tp->model_blob_ = "./tokenizer.model";
   NNDEPLOY_LOGE("test tokenizer_cpp\n");
   // tokenizer_cpp->setParam((nndeploy::base::Param*)tp);
   NNDEPLOY_LOGE("test tokenizer_cpp\n");

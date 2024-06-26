@@ -72,6 +72,8 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
 
   //  encode or decode
   bool is_encode_;
+  // is_path
+  bool is_path_ = true;
   // The type of tokenizer
   TokenizerType tokenizer_type_;
 

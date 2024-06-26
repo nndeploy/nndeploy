@@ -1,6 +1,8 @@
 
 #include "nndeploy/model/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 
+#include "nndeploy/base/file.h"
+
 namespace nndeploy {
 namespace model {
 
@@ -17,25 +19,64 @@ base::Status TokenizerCpp::init() {
 
   // param_
   TokenizerPraram* tokenizer_param = (TokenizerPraram*)(param_.get());
+
   if (tokenizer_param->tokenizer_type_ == TokenizerType::kTokenizerTypeHF) {
-    tokenizer_ =
-        tokenizers::Tokenizer::FromBlobJSON(tokenizer_param->json_blob_);
+    if (tokenizer_param->json_blob_.empty()) {
+      NNDEPLOY_LOGE("json_blob_ is empty\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    // Read blob from file.
+    std::string blob;
+    if (tokenizer_param->is_path_) {
+      blob = base::openFile(tokenizer_param->json_blob_);
+    } else {
+      blob = tokenizer_param->json_blob_;
+    }
+    tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
   } else if (tokenizer_param->tokenizer_type_ ==
              TokenizerType::kTokenizerTypeBPE) {
+    if (tokenizer_param->vocab_blob_.empty() ||
+        tokenizer_param->merges_blob_.empty()) {
+      NNDEPLOY_LOGE("vocab_blob_ or  merges_blob_ is empty\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    // Read blob from file.
+    if (!tokenizer_param->is_path_) {
+      NNDEPLOY_LOGE("vocab_blob_ and  merges_blob_ must be path\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
     tokenizer_ = tokenizers::Tokenizer::FromBlobByteLevelBPE(
         tokenizer_param->vocab_blob_, tokenizer_param->merges_blob_,
         tokenizer_param->added_tokens_);
   } else if (tokenizer_param->tokenizer_type_ ==
              TokenizerType::kTokenizerTypeSentencePiece) {
-    NNDEPLOY_LOGE("test tokenizer_cpp\n");
-    NNDEPLOY_LOGE("%s\n", tokenizer_param->model_blob_.c_str());
-    tokenizer_ = tokenizers::Tokenizer::FromBlobSentencePiece(
-        tokenizer_param->model_blob_);
-    NNDEPLOY_LOGE("test tokenizer_cpp\n");
+    if (tokenizer_param->model_blob_.empty()) {
+      NNDEPLOY_LOGE("model_blob_ is empty\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    // Read blob from file.
+    std::string blob;
+    if (tokenizer_param->is_path_) {
+      blob = base::openFile(tokenizer_param->model_blob_);
+    } else {
+      blob = tokenizer_param->model_blob_;
+    }
+    tokenizer_ = tokenizers::Tokenizer::FromBlobSentencePiece(blob);
   } else if (tokenizer_param->tokenizer_type_ ==
              TokenizerType::kTokenizerTypeRWKVWorld) {
-    tokenizer_ = tokenizers::Tokenizer::FromBlobSentencePiece(
-        tokenizer_param->model_blob_);
+    if (tokenizer_param->model_blob_.empty()) {
+      NNDEPLOY_LOGE("model_blob_ is empty\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    // Read blob from file.
+    std::string blob;
+    if (tokenizer_param->is_path_) {
+      blob = base::openFile(tokenizer_param->model_blob_);
+    } else {
+      NNDEPLOY_LOGE("model_blob_ is in-memory\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    tokenizer_ = tokenizers::Tokenizer::FromBlobRWKVWorld(blob);
   } else {
     status = base::kStatusCodeErrorInvalidParam;
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
