@@ -20,12 +20,9 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
 
   base::Status init() {
     base::Status status = base::kStatusCodeOk;
-    NNDEPLOY_LOGE("test tokenizer_cpp\n");
 
     // param_
     TokenizerPraram *tokenizer_param = (TokenizerPraram *)(param_.get());
-    NNDEPLOY_LOGE("%d\n", tokenizer_param->tokenizer_type_);
-    NNDEPLOY_LOGE("%s\n", tokenizer_param->model_blob_.c_str());
 
     if (tokenizer_param->tokenizer_type_ == TokenizerType::kTokenizerTypeHF) {
       if (tokenizer_param->json_blob_.empty()) {
@@ -124,12 +121,12 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
     std::vector<std::vector<int32_t>> ids;
     ids.reserve(texts.size());
     for (const auto &text : texts) {
-      NNDEPLOY_LOGE("text=%s\n", text.c_str());
+      // NNDEPLOY_LOGE("text=%s\n", text.c_str());
       ids.push_back(tokenizer_->Encode(text));
     }
-    for (size_t i = 0; i < ids.size(); ++i) {
-      printEncodeResult(ids[i]);
-    }
+    // for (size_t i = 0; i < ids.size(); ++i) {
+    //   printEncodeResult(ids[i]);
+    // }
 
     device::Device *device = device::getDevice(device_type_);
     if (device == nullptr) {

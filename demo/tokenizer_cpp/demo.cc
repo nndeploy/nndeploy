@@ -141,7 +141,6 @@ int main(int argc, char* argv[]) {
 
   nndeploy::dag::Edge* input_edge = new nndeploy::dag::Edge("input_edge");
   nndeploy::dag::Edge* output_edge = new nndeploy::dag::Edge("output_edge");
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
 
   nndeploy::dag::Graph graph("graph", input_edge, output_edge);
 
@@ -149,41 +148,35 @@ int main(int argc, char* argv[]) {
       (nndeploy::model::TokenizerCpp*)
           graph.createNode<nndeploy::model::TokenizerCpp>("name", input_edge,
                                                           output_edge);
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
+
   nndeploy::model::TokenizerPraram* tp =
       (nndeploy::model::TokenizerPraram*)tokenizer_cpp->getParam();
   if (tp == nullptr) {
-    NNDEPLOY_LOGE("test tokenizer_cpp\n");
     return -1;
   }
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
-  NNDEPLOY_LOGE("%p\n", tp);
+
   tp->is_encode_ = true;
 
   tp->tokenizer_type_ =
       nndeploy::model::TokenizerType::kTokenizerTypeSentencePiece;
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
+
   // auto blob = LoadBytesFromFile("./tokenizer.model");
   tp->model_blob_ = "./tokenizer.model";
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
+
   // tokenizer_cpp->setParam((nndeploy::base::Param*)tp);
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
 
   graph.init();
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
 
   // std::string prompt = "What is the  capital of Canada?";
   std::string prompt =
       "a beautiful photograph of Mt. Fuji during cherry blossom";
   nndeploy::model::TokenizerText tt;
   tt.texts_.push_back(prompt);
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
+
   input_edge->set((nndeploy::base::Param*)(&tt), 0);
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
 
   auto vocab_size = tokenizer_cpp->getVocabSize();
   std::cout << "vocab_size=" << vocab_size << std::endl;
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
 
   graph.run();
 

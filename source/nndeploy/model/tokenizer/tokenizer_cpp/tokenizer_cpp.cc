@@ -15,7 +15,6 @@ TokenizerCpp::~TokenizerCpp() {}
 
 base::Status TokenizerCpp::init() {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_LOGE("test tokenizer_cpp\n");
 
   // param_
   TokenizerPraram* tokenizer_param = (TokenizerPraram*)(param_.get());

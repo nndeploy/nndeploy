@@ -64,14 +64,13 @@ enum TokenizerType : int {
 
 class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
  public:
-  TokenizerPraram() : base::Param() { NNDEPLOY_LOGE("test tokenizer_cpp\n"); }
+  TokenizerPraram() : base::Param() {}
   virtual ~TokenizerPraram() {}
 
   PARAM_COPY(TokenizerPraram)
   PARAM_COPY_TO(TokenizerPraram)
 
   TokenizerPraram &operator=(const TokenizerPraram &tp) {
-    NNDEPLOY_LOGE("test tokenizer_cpp\n");
     if (this == &tp) {
       return *this;
     }
@@ -84,9 +83,6 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
     merges_blob_ = tp.merges_blob_;
     added_tokens_ = tp.added_tokens_;
     max_length_ = tp.max_length_;
-    NNDEPLOY_LOGE("tp.tokenizer_type_ %d\n", tp.tokenizer_type_);
-    NNDEPLOY_LOGE("%d\n", tokenizer_type_);
-    NNDEPLOY_LOGE("%s\n", model_blob_.c_str());
 
     return *this;
   }

@@ -50,7 +50,6 @@ base::DeviceType Node::getDeviceType() { return device_type_; }
 
 base::Status Node::setParam(base::Param *param) {
   if (param_ != nullptr) {
-    NNDEPLOY_LOGE("param_ is not nullptr.\n");
     return param->copyTo(param_.get());
   }
   return base::kStatusCodeErrorNullParam;
