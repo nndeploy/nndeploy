@@ -40,13 +40,20 @@ base::Status TokenizerCpp::init() {
       return base::kStatusCodeErrorInvalidParam;
     }
     // Read blob from file.
-    if (!tokenizer_param->is_path_) {
-      NNDEPLOY_LOGE("vocab_blob_ and  merges_blob_ must be path\n");
-      return base::kStatusCodeErrorInvalidParam;
+    std::string vocab_blob;
+    std::string merges_blob;
+    std::string added_tokens;
+    if (tokenizer_param->is_path_) {
+      vocab_blob = base::openFile(tokenizer_param->vocab_blob_);
+      merges_blob = base::openFile(tokenizer_param->merges_blob_);
+      added_tokens = base::openFile(tokenizer_param->added_tokens_);
+    } else {
+      vocab_blob = tokenizer_param->vocab_blob_;
+      merges_blob = tokenizer_param->merges_blob_;
+      added_tokens = tokenizer_param->added_tokens_;
     }
     tokenizer_ = tokenizers::Tokenizer::FromBlobByteLevelBPE(
-        tokenizer_param->vocab_blob_, tokenizer_param->merges_blob_,
-        tokenizer_param->added_tokens_);
+        vocab_blob, merges_blob, added_tokens);
   } else if (tokenizer_param->tokenizer_type_ ==
              TokenizerType::kTokenizerTypeSentencePiece) {
     if (tokenizer_param->model_blob_.empty()) {
@@ -70,7 +77,8 @@ base::Status TokenizerCpp::init() {
     // Read blob from file.
     std::string blob;
     if (tokenizer_param->is_path_) {
-      blob = base::openFile(tokenizer_param->model_blob_);
+      // blob = base::openFile(tokenizer_param->model_blob_);
+      blob = tokenizer_param->model_blob_;
     } else {
       NNDEPLOY_LOGE("model_blob_ is in-memory\n");
       return base::kStatusCodeErrorInvalidParam;

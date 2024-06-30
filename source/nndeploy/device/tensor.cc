@@ -1,7 +1,6 @@
 
 #include "nndeploy/device/tensor.h"
 
-#include "nndeploy/base/half.h"
 #include "nndeploy/base/string.h"
 
 namespace nndeploy {
@@ -381,6 +380,11 @@ void Tensor::print() {
   } else {
     NNDEPLOY_LOGE("data type is not support");
   }
+
+  if (!device::isHostDeviceType(this->getDeviceType())) {
+    delete host_buffer;
+  }
+
   return;
 }
 

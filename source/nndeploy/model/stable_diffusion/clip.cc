@@ -82,7 +82,8 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
       // Read blob from file.
       std::string blob;
       if (tokenizer_param->is_path_) {
-        blob = base::openFile(tokenizer_param->model_blob_);
+        // blob = base::openFile(tokenizer_param->model_blob_);
+        blob = tokenizer_param->model_blob_;
       } else {
         NNDEPLOY_LOGE("model_blob_ is in-memory\n");
         return base::kStatusCodeErrorInvalidParam;
@@ -149,6 +150,8 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
         value[i] = ids[j][i];
       }
     }
+
+    outputs_[0]->notifyWritten(tensor);
     return status;
   }
 

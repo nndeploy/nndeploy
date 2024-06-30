@@ -4,6 +4,7 @@
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
+#include "nndeploy/base/half.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
@@ -194,6 +195,57 @@ class TypeTensorRegister {
 };
 
 extern NNDEPLOY_CC_API Tensor *createTensor(base::TensorType type);
+
+template <typename T, typename T1>
+base::Status randnTensor(T &generator, T1 mean, T1 std,
+                         device ::Tensor *tensor) {
+  base::Status status = base::kStatusCodeOk;
+  if (tensor == nullptr) {
+    NNDEPLOY_LOGE("tensor is empty");
+    return base::kStatusCodeErrorNullParam;
+  }
+  Device *host_device = getDefaultHostDevice();
+  Buffer *host_buffer = nullptr;
+  if (!device::isHostDeviceType(tensor->getDeviceType())) {
+    host_buffer = new Buffer(host_device, tensor->toBufferDesc());
+    if (host_buffer == nullptr) {
+      NNDEPLOY_LOGE("host_buffer is empty");
+      return base::kStatusCodeErrorNullParam;
+    }
+  } else {
+    host_buffer = tensor->getBuffer();
+  }
+  size_t size = host_buffer->getSize();
+  base::DataType data_type = tensor->getDataType();
+  size_t ele_size = data_type.size();
+  size_t ele_count = size / ele_size;
+  void *data = host_buffer->getData();
+  generator.seed(std::random_device()());
+  std::normal_distribution<T1> normal(mean, std);
+  for (size_t i = 0; i < ele_count; ++i) {
+    if (data_type.code_ == base::kDataTypeCodeBFp && data_type.bits_ == 16 &&
+        data_type.lanes_ == 1) {
+      float normal_g = normal(generator);
+      base::convertFromFloatToBfp16(&normal_g, (void *)((uint16_t *)data + i),
+                                    1);
+    } else if (data_type.code_ == base::kDataTypeCodeFp &&
+               data_type.bits_ == 16 && data_type.lanes_ == 1) {
+      float normal_g = normal(generator);
+      base::convertFromFloatToFp16(&normal_g, (void *)((uint16_t *)data + i),
+                                   1);
+    } else {
+      ((T1 *)data)[i] = normal(generator);
+    }
+  }
+  if (!device::isHostDeviceType(tensor->getDeviceType())) {
+    status = host_buffer->copyTo(tensor->getBuffer());
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("copyTo failed!");
+      return status;
+    }
+  }
+  return status;
+}
 
 }  // namespace device
 }  // namespace nndeploy
