@@ -97,6 +97,9 @@ class NNDEPLOY_CC_API Tensor {
   // dst必须预先分配内存
   base::Status copyTo(Tensor *dst);
 
+  // print
+  void print();
+
   // bool
   bool isSameDevice(Tensor *tensor) const;
   bool isSameMemoryPool(Tensor *tensor) const;
@@ -179,8 +182,8 @@ class TypeTensorCreator : public TensorCreator {
   virtual Tensor *createTensor() { return new T(); }
 };
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
-getGlobalTensorCreatorMap();
+std::map<base::TensorType, std::shared_ptr<TensorCreator>>
+    &getGlobalTensorCreatorMap();
 
 template <typename T>
 class TypeTensorRegister {

@@ -7,6 +7,8 @@
 #include <string>
 
 #include "nndeploy/base/glic_stl_include.h"
+#include "nndeploy/inference/inference_param.h"
+#include "nndeploy/model/stable_diffusion/clip.h"
 #include "nndeploy/model/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 
 using tokenizers::Tokenizer;
@@ -38,7 +40,9 @@ void PrintEncodeResult(const std::vector<int>& ids) {
 void TestTokenizer(std::unique_ptr<Tokenizer> tok, bool print_vocab = false,
                    bool check_id_back = true) {
   // Check #1. Encode and Decode
-  std::string prompt = "What is the  capital of Canada?";
+  // std::string prompt = "What is the  capital of Canada?";
+  std::string prompt =
+      "a beautiful photograph of mt. fuji during cherry blossom";
   std::vector<int> ids = tok->Encode(prompt);
   std::string decoded_prompt = tok->Decode(ids);
   PrintEncodeResult(ids);
@@ -168,7 +172,9 @@ int main(int argc, char* argv[]) {
   graph.init();
   NNDEPLOY_LOGE("test tokenizer_cpp\n");
 
-  std::string prompt = "What is the  capital of Canada?";
+  // std::string prompt = "What is the  capital of Canada?";
+  std::string prompt =
+      "a beautiful photograph of Mt. Fuji during cherry blossom";
   nndeploy::model::TokenizerText tt;
   tt.texts_.push_back(prompt);
   NNDEPLOY_LOGE("test tokenizer_cpp\n");
@@ -186,6 +192,54 @@ int main(int argc, char* argv[]) {
 
   std::vector<int> ids = ti->ids_[0];
   PrintEncodeResult(ids);
+
+  nndeploy::model::TokenizerPraram* tokenizer_concat_param =
+      new nndeploy::model::TokenizerPraram();
+  tokenizer_concat_param->tokenizer_type_ =
+      nndeploy::model::TokenizerType::kTokenizerTypeHF;
+  tokenizer_concat_param->json_blob_ = "./clip_tokenizer.json";
+
+  // tokenizer_concat_param->tokenizer_type_ =
+  //     nndeploy::model::TokenizerType::kTokenizerTypeBPE;
+  // tokenizer_concat_param->vocab_blob_ = "./tokenizer_vocab.json";
+  // tokenizer_concat_param->merges_blob_ = "./tokenizer_merges.txt";
+  // tokenizer_concat_param->added_tokens_ =
+  // "./tokenizer_special_tokens_map.json";
+
+  nndeploy::base::InferenceType inference_type =
+      nndeploy::base::kInferenceTypeOnnxRuntime;
+  nndeploy::inference::InferenceParam* inference_param =
+      nndeploy::inference::createInferenceParam(inference_type);
+  inference_param->model_type_ = nndeploy::base::kModelTypeOnnx;
+  inference_param->model_value_.push_back(
+      "/home/always/github/TensorRT/demo/DiffusionZH/onnx/clip.onnx");
+
+  std::vector<nndeploy::base::Param*> param;
+  param.push_back(tokenizer_concat_param);
+  param.push_back(inference_param);
+
+  nndeploy::dag::Edge eprompt;
+  nndeploy::dag::Edge negative_prompt;
+  nndeploy::dag::Edge output("text_embeddings");
+  nndeploy::dag::Graph* clip_graph = nndeploy::model::createCLIPGraph(
+      "clip", &eprompt, &negative_prompt, &output, inference_type, param);
+
+  clip_graph->init();
+
+  nndeploy::model::TokenizerText tteprompt;
+  tteprompt.texts_.push_back(
+      "a beautiful photograph of Mt. Fuji during cherry blossom");
+  eprompt.set((nndeploy::base::Param*)(&tteprompt), 0);
+
+  nndeploy::model::TokenizerText tt_neg;
+  tt_neg.texts_.push_back("");
+  negative_prompt.set((nndeploy::base::Param*)(&tt_neg), 0);
+
+  clip_graph->run();
+
+  nndeploy::device::Tensor* tensor =
+      (nndeploy::device::Tensor*)(output.getGraphOutputTensor());
+  tensor->print();
 
   return 0;
 }

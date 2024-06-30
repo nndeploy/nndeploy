@@ -43,6 +43,23 @@ std::string vectorToString(std::vector<T> val) {
 
 extern NNDEPLOY_CC_API bool isNumeric(const std::string &str);
 
+template <typename T>
+void printData(T *data, size_t size) {
+  if (data == nullptr) {
+    return;
+  }
+
+  std::stringstream stream;
+  stream << "[";
+  for (int i = 0; i < size; ++i) {
+    stream << data[i];
+    if (i != size - 1) stream << ",";
+  }
+  stream << "]";
+
+  std::cout << stream.str() << std::endl;
+}
+
 }  // namespace base
 }  // namespace nndeploy
 

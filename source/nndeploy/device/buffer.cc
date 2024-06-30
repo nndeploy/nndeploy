@@ -192,6 +192,14 @@ base::Status Buffer::copyTo(Buffer *dst) {
   }
 }
 
+void Buffer::print() {
+  std::cout << "Buffer: " << std::endl;
+  std::cout << "device type: "
+            << base::deviceTypeToString(this->getDeviceType()) << std::endl;
+  std::cout << "ref_count: " << ref_count_[0] << std::endl;
+  desc_.print();
+}
+
 // get
 bool Buffer::empty() const { return false; }
 

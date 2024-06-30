@@ -70,6 +70,27 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
   PARAM_COPY(TokenizerPraram)
   PARAM_COPY_TO(TokenizerPraram)
 
+  TokenizerPraram &operator=(const TokenizerPraram &tp) {
+    NNDEPLOY_LOGE("test tokenizer_cpp\n");
+    if (this == &tp) {
+      return *this;
+    }
+    is_encode_ = tp.is_encode_;
+    is_path_ = tp.is_path_;
+    tokenizer_type_ = tp.tokenizer_type_;
+    json_blob_ = tp.json_blob_;
+    model_blob_ = tp.model_blob_;
+    vocab_blob_ = tp.vocab_blob_;
+    merges_blob_ = tp.merges_blob_;
+    added_tokens_ = tp.added_tokens_;
+    max_length_ = tp.max_length_;
+    NNDEPLOY_LOGE("tp.tokenizer_type_ %d\n", tp.tokenizer_type_);
+    NNDEPLOY_LOGE("%d\n", tokenizer_type_);
+    NNDEPLOY_LOGE("%s\n", model_blob_.c_str());
+
+    return *this;
+  }
+
   //  encode or decode
   bool is_encode_;
   // is_path
@@ -108,6 +129,8 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
   std::string vocab_blob_;
   std::string merges_blob_;
   std::string added_tokens_;
+
+  int max_length_ = 77;
 };
 
 class NNDEPLOY_CC_API TokenizerText : public base::Param {

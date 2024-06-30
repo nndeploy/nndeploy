@@ -103,6 +103,22 @@ bool BufferDesc::operator!=(const BufferDesc &other) const {
   return !(*this == other);
 }
 
+void BufferDesc::print() {
+  std::cout << "BufferDesc: \n";
+  std::cout << "size: ";
+  for (int i = 0; i < size_.size(); ++i) {
+    std::cout << size_[i] << " ";
+  }
+  std::cout << std::endl;
+  if (!config_.empty()) {
+    std::cout << "config: ";
+    for (int i = 0; i < config_.size(); ++i) {
+      std::cout << config_[i] << " ";
+    }
+    std::cout << std::endl;
+  }
+}
+
 // TensorDesc
 TensorDesc::TensorDesc(){};
 
@@ -187,6 +203,25 @@ bool TensorDesc::operator==(const TensorDesc &other) const {
 }
 bool TensorDesc::operator!=(const TensorDesc &other) const {
   return !(*this == other);
+}
+
+void TensorDesc::print() {
+  std::cout << "TensorDesc: \n";
+  std::cout << "data_type: " << base::dataTypeToString(data_type_) << std::endl;
+  std::cout << "data_format: " << base::dataFormatToString(data_format_)
+            << std::endl;
+  std::cout << "shape: ";
+  for (int i = 0; i < shape_.size(); ++i) {
+    std::cout << shape_[i] << " ";
+  }
+  std::cout << std::endl;
+  if (!stride_.empty()) {
+    std::cout << "stride: ";
+    for (int i = 0; i < stride_.size(); ++i) {
+      std::cout << stride_[i] << " ";
+    }
+    std::cout << std::endl;
+  }
 }
 
 }  // namespace device
