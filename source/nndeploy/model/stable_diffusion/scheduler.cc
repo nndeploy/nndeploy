@@ -47,6 +47,7 @@ base::Status initializeLatents(std::mt19937 &generator, float init_noise_sigma,
   // scheduler
   status = device::randnTensor(generator, 0.0, 1.0, latents);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "randn failed!");
+  // TODO:op::mul
   // status = op::mul(latents, init_noise_sigma, latents);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "mul failed!");
 

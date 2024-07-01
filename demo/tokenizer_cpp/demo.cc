@@ -232,7 +232,23 @@ int main(int argc, char* argv[]) {
 
   nndeploy::device::Tensor* tensor =
       (nndeploy::device::Tensor*)(output.getGraphOutputTensor());
-  tensor->print();
+  // tensor->print();
+
+  nndeploy::device::Device* host_device =
+      nndeploy::device::getDefaultHostDevice();
+  nndeploy::device::TensorDesc desc;
+  desc.data_type_ = nndeploy::base::dataTypeOf<int32_t>();
+  desc.data_format_ = nndeploy::base::kDataFormatNCHW;
+  desc.shape_ = {1, 3, 8, 8};
+  nndeploy::device::Tensor* r_tensor =
+      new nndeploy::device ::Tensor(host_device, desc);
+  std::mt19937 generator;
+  nndeploy::device::randnTensor(generator, 1.0f, 100.f, r_tensor);
+  r_tensor->print();
+
+  std::default_random_engine generator_v2;
+  nndeploy::device::randnTensor(generator_v2, 1.0f, 100.f, r_tensor, 1);
+  r_tensor->print();
 
   return 0;
 }

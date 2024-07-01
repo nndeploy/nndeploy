@@ -196,9 +196,9 @@ class TypeTensorRegister {
 
 extern NNDEPLOY_CC_API Tensor *createTensor(base::TensorType type);
 
-template <typename T, typename T1>
-base::Status randnTensor(T &generator, T1 mean, T1 std,
-                         device ::Tensor *tensor) {
+template <typename T>
+base::Status randnTensor(T &generator, float mean, float std, Tensor *tensor,
+                         int64_t seed = -1) {
   base::Status status = base::kStatusCodeOk;
   if (tensor == nullptr) {
     NNDEPLOY_LOGE("tensor is empty");
@@ -220,29 +220,85 @@ base::Status randnTensor(T &generator, T1 mean, T1 std,
   size_t ele_size = data_type.size();
   size_t ele_count = size / ele_size;
   void *data = host_buffer->getData();
-  generator.seed(std::random_device()());
-  std::normal_distribution<T1> normal(mean, std);
-  for (size_t i = 0; i < ele_count; ++i) {
-    if (data_type.code_ == base::kDataTypeCodeBFp && data_type.bits_ == 16 &&
-        data_type.lanes_ == 1) {
-      float normal_g = normal(generator);
-      base::convertFromFloatToBfp16(&normal_g, (void *)((uint16_t *)data + i),
-                                    1);
-    } else if (data_type.code_ == base::kDataTypeCodeFp &&
-               data_type.bits_ == 16 && data_type.lanes_ == 1) {
-      float normal_g = normal(generator);
-      base::convertFromFloatToFp16(&normal_g, (void *)((uint16_t *)data + i),
-                                   1);
-    } else {
-      ((T1 *)data)[i] = normal(generator);
-    }
+  if (seed == -1) {
+    generator.seed(std::random_device()());
+  } else {
+    generator.seed(seed);
   }
+  std::normal_distribution<float> normal(mean, std);
+  if (data_type.code_ == base::kDataTypeCodeInt && data_type.bits_ == 8 &&
+      data_type.lanes_ == 1) {
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((int8_t *)data)[i] = (int8_t)(normal(generator));
+    }
+  } else if (data_type.code_ == base::kDataTypeCodeInt &&
+             data_type.bits_ == 16 && data_type.lanes_ == 1) {
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((int16_t *)data)[i] = (int16_t)(normal(generator));
+    }
+  } else if (data_type.code_ == base::kDataTypeCodeInt &&
+             data_type.bits_ == 32 && data_type.lanes_ == 1) {
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((int32_t *)data)[i] = (int32_t)(normal(generator));
+    }
+  } else if (data_type.code_ == base::kDataTypeCodeInt &&
+             data_type.bits_ == 64 && data_type.lanes_ == 1) {
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((int64_t *)data)[i] = (int64_t)(normal(generator));
+    }
+  } else if (data_type.code_ == base::kDataTypeCodeUint &&
+             data_type.bits_ == 8 && data_type.lanes_ == 1) {
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((uint8_t *)data)[i] = (uint8_t)(normal(generator));
+    }
+  } else if (data_type.code_ == base::kDataTypeCodeUint &&
+             data_type.bits_ == 16 && data_type.lanes_ == 1) {
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((uint16_t *)data)[i] = (uint16_t)(normal(generator));
+    }
+  } else if (data_type.code_ == base::kDataTypeCodeUint &&
+             data_type.bits_ == 32 && data_type.lanes_ == 1) {
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((uint32_t *)data)[i] = (uint32_t)(normal(generator));
+    }
+  } else if (data_type.code_ == base::kDataTypeCodeUint &&
+             data_type.bits_ == 64 && data_type.lanes_ == 1) {
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((uint64_t *)data)[i] = (uint64_t)(normal(generator));
+    }
+  } else if (data_type.code_ == base::kDataTypeCodeFp &&
+             data_type.bits_ == 32 && data_type.lanes_ == 1) {
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((float *)data)[i] = (float)(normal(generator));
+    }
+  } else if (data_type.code_ == base::kDataTypeCodeFp &&
+             data_type.bits_ == 64 && data_type.lanes_ == 1) {
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((double *)data)[i] = (double)(normal(generator));
+    }
+  } else if (data_type.code_ == base::kDataTypeCodeBFp &&
+             data_type.bits_ == 16 && data_type.lanes_ == 1) {
+    float *fp32 = (float *)malloc(ele_count * sizeof(float));
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((float *)fp32)[i] = (float)(normal(generator));
+    }
+    base::convertFromFloatToBfp16(fp32, (void *)data, ele_count);
+    free(fp32);
+  } else if (data_type.code_ == base::kDataTypeCodeFp &&
+             data_type.bits_ == 16 && data_type.lanes_ == 1) {
+    float *fp32 = (float *)malloc(ele_count * sizeof(float));
+    for (size_t i = 0; i < ele_count; ++i) {
+      ((float *)fp32)[i] = (float)(normal(generator));
+    }
+    base::convertFromFloatToFp16(fp32, (void *)data, ele_count);
+    free(fp32);
+  } else {
+    NNDEPLOY_LOGE("data type is not support");
+  }
+
   if (!device::isHostDeviceType(tensor->getDeviceType())) {
     status = host_buffer->copyTo(tensor->getBuffer());
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("copyTo failed!");
-      return status;
-    }
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "copyTo failed!");
   }
   return status;
 }
