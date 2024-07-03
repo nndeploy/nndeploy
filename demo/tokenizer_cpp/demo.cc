@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
   nndeploy::device::Device* host_device =
       nndeploy::device::getDefaultHostDevice();
   nndeploy::device::TensorDesc desc;
-  desc.data_type_ = nndeploy::base::dataTypeOf<int32_t>();
+  desc.data_type_ = nndeploy::base::dataTypeOf<float>();
   desc.data_format_ = nndeploy::base::kDataFormatNCHW;
   desc.shape_ = {1, 3, 8, 8};
   nndeploy::device::Tensor* r_tensor =
