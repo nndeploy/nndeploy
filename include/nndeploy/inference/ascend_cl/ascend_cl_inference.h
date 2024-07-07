@@ -18,27 +18,6 @@
 namespace nndeploy {
 namespace inference {
 
-class AscendCLInitSingleton {
- public:
-  static AscendCLInitSingleton &GetInstance() {
-    static AscendCLInitSingleton mdc_instance;
-    return mdc_instance;
-  }
-
- private:
-  AscendCLInitSingleton() {
-    const char *aclConfigPath = "";
-    // aclInit(aclConfigPath);
-    aclError ret = aclInit(aclConfigPath);
-    if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclInit failed, errorCode is %d", ret);
-    }
-  };
-  ~AscendCLInitSingleton(){};
-  AscendCLInitSingleton(const AscendCLInitSingleton &);
-  const AscendCLInitSingleton &operator=(const AscendCLInitSingleton &);
-};
-
 class AscendCLInference : public Inference {
  public:
   AscendCLInference(base::InferenceType type);
@@ -57,13 +36,10 @@ class AscendCLInference : public Inference {
 
  private:
   bool isDynamic(std::vector<int64_t> &shape);
-  virtual void ReleaseAllResource();
+  virtual void releaseAllResource();
 
  private:
   int batch_size_ = 1;
-
-  const char *acl_config_path_ =
-      "";  // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看ascend_cl文档
 
   aclrtContext context_ = nullptr;
 

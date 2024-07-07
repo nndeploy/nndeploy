@@ -26,15 +26,8 @@ base::Status AscendCLInference::init() {
   device::Device *device = nullptr;
 
   if (ascend_cl_inference_param->model_type_ == base::kModelTypeAscendCL) {
-    // ret = aclInit(acl_config_path_);
-    // if (ret != ACL_SUCCESS) {
-    //   NNDEPLOY_LOGE("aclInit failed, errorCode is %d", ret);
-    //   status = base::kStatusCodeErrorInferenceAscendCL;
-    // }
-    AscendCLInitSingleton &obj = AscendCLInitSingleton::GetInstance();
     device = device::getDevice(inference_param_->device_type_);
     context_ = (aclrtContext)device->getContext();
-
     ret = aclrtSetCurrentContext(context_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d", ret);
@@ -198,7 +191,7 @@ base::Status AscendCLInference::deinit() {
     delete iter.second;
   }
   max_output_tensors_.clear();
-  ReleaseAllResource();
+  releaseAllResource();
   return status;
 }
 
@@ -319,7 +312,7 @@ bool AscendCLInference::isDynamic(std::vector<int64_t> &shape) {
   return false;
 }
 
-void AscendCLInference::ReleaseAllResource() {
+void AscendCLInference::releaseAllResource() {
   aclError ret;
   // release resource includes acl resource, data set and unload model
   for (size_t i = 0; i < aclmdlGetDatasetNumBuffers(input_dataset_); ++i) {
@@ -348,11 +341,6 @@ void AscendCLInference::ReleaseAllResource() {
   ret = aclmdlUnload(model_id_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("unload model failed, errorCode is %d", ret);
-  }
-
-  ret = aclFinalize();
-  if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
   }
 }
 

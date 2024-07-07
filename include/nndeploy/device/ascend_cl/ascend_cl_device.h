@@ -15,6 +15,8 @@ class AscendCLArchitecture : public Architecture {
 
   virtual ~AscendCLArchitecture();
 
+  void setAclConfigPath(int device_id, const std::string &acl_config_path);
+
   virtual base::Status checkDevice(int device_id = 0,
                                    void *command_queue = nullptr,
                                    std::string library_path = "") override;
@@ -27,6 +29,10 @@ class AscendCLArchitecture : public Architecture {
 
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") override;
+
+ private:
+  // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看ascend_cl文档
+  std::map<int, std::string> acl_config_path_map_ = "";
 };
 
 class AclStreamWrapper {
@@ -69,7 +75,7 @@ class NNDEPLOY_CC_API AscendCLDevice : public Device {
 
   virtual void *getContext();
 
-  virtual base::Status newCommandQueue(int index = -1);
+  virtual base::Status newCommandQueue();
   virtual base::Status deleteCommandQueue(int index = -1);
   virtual base::Status deleteCommandQueue(void *command_queue);
   virtual base::Status setCommandQueue(void *command_queue);
@@ -87,12 +93,16 @@ class NNDEPLOY_CC_API AscendCLDevice : public Device {
   };
   virtual ~AscendCLDevice(){};
 
+  void setAclConfigPath(const std::string &acl_config_path);
+
   virtual base::Status init();
   virtual base::Status deinit();
 
  private:
   std::vector<AclStreamWrapper> acl_stream_wrapper_;
   aclrtContext context_ = nullptr;
+  // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看ascend_cl文档
+  std::string acl_config_path_ = "";
 };
 
 }  // namespace device

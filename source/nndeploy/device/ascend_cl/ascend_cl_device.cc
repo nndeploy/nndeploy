@@ -25,6 +25,11 @@ AscendCLArchitecture::~AscendCLArchitecture() {
   }
 };
 
+void AscendCLArchitecture::setAclConfigPath(
+    int device_id, const std::string &acl_config_path) {
+  acl_config_path_map_[device_id] = acl_config_path;
+}
+
 base::Status AscendCLArchitecture::checkDevice(int device_id,
                                                void *command_queue,
                                                std::string library_path) {
@@ -49,6 +54,10 @@ base::Status AscendCLArchitecture::enableDevice(int device_id,
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr");
       return base::kStatusCodeErrorOutOfMemory;
+    }
+
+    if (acl_config_path_map_.find(device_id) != acl_config_path_map_.end()) {
+      device->setAclConfigPath(acl_config_path_map_[device_id]);
     }
 
     if (device->init() != base::kStatusCodeOk) {
@@ -111,11 +120,11 @@ BufferDesc AscendCLDevice::toBufferDesc(const TensorDesc &desc,
   return buffer_desc;
 }
 
-Buffer *AscendCLDevice::allocate(size_t size) {
+void *AscendCLDevice::allocate(size_t size) {
   BufferDesc desc(size);
   return this->allocate(desc);
 }
-Buffer *AscendCLDevice::allocate(const BufferDesc &desc) {
+void *AscendCLDevice::allocate(const BufferDesc &desc) {
   void *data = nullptr;
   aclError status =
       aclrtMalloc(&data, desc.size_[0], ACL_MEM_MALLOC_NORMAL_ONLY);
@@ -130,22 +139,23 @@ Buffer *AscendCLDevice::allocate(const BufferDesc &desc) {
   }
   return data;
 }
-void AscendCLDevice::deallocate(Buffer *buffer) {
+void AscendCLDevice::deallocate(void *ptr) {
   if (ptr == nullptr) {
     return;
   }
-  aclError ret = aclrtFree(data);
+  aclError ret = aclrtFree(ptr);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("deallocate fuction: aclrtFree failed, errorCode is %d", ret);
     return;
   }
 }
 
-base::Status AscendCLDevice::copy(Buffer *src, Buffer *dst, int index = 0) {
-  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
-    aclError ret = aclrtMemcpyAsync(dst->getData(), dst->getDesc().size_[0],
-                                    src->getData(), src->getDesc().size_[0],
-                                    ACL_MEMCPY_DEVICE_TO_DEVICE, stream_);
+base::Status AscendCLDevice::copy(void *src, void *dst, size_t size,
+                                  int index) {
+  aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
+  if (src != nullptr && dst != nullptr) {
+    aclError status = aclrtMemcpyAsync(dst, size, src, size,
+                                       ACL_MEMCPY_DEVICE_TO_DEVICE, stream);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("copy fuction: aclrtMemcpyAsync failed, errorCode is %d",
                     ret);
@@ -159,15 +169,16 @@ base::Status AscendCLDevice::copy(Buffer *src, Buffer *dst, int index = 0) {
     }
     return base::kStatusCodeOk;
   } else {
-    // TODO: add log
+    NNDEPLOY_LOGE("copy buffer failed");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status AscendCLDevice::download(Buffer *src, Buffer *dst, int index = 0) {
-  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
-    aclError ret = aclrtMemcpyAsync(dst->getData(), dst->getDesc().size_[0],
-                                    src->getData(), src->getDesc().size_[0],
-                                    ACL_MEMCPY_DEVICE_TO_HOST, stream_);
+base::Status AscendCLDevice::download(void *src, void *dst, size_t size,
+                                      int index) {
+  aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
+  if (src != nullptr && dst != nullptr) {
+    aclError status = aclrtMemcpyAsync(dst, size, src, size,
+                                       ACL_MEMCPY_DEVICE_TO_HOST, stream);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE(
           "download fuction: aclrtMemcpyAsync failed, errorCode is %d", ret);
@@ -182,15 +193,16 @@ base::Status AscendCLDevice::download(Buffer *src, Buffer *dst, int index = 0) {
     }
     return base::kStatusCodeOk;
   } else {
-    // TODO: add log
+    NNDEPLOY_LOGE("copy buffer failed");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst, int index = 0) {
-  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
-    aclError ret = aclrtMemcpyAsync(dst->getData(), dst->getDesc().size_[0],
-                                    src->getData(), src->getDesc().size_[0],
-                                    ACL_MEMCPY_HOST_TO_DEVICE, stream_);
+base::Status AscendCLDevice::upload(void *src, void *dst, size_t size,
+                                    int index) {
+  aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
+  if (src != nullptr && dst != nullptr) {
+    aclError status = aclrtMemcpyAsync(dst, size, src, size,
+                                       ACL_MEMCPY_HOST_TO_DEVICE, stream);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("upload fuction: aclrtMemcpyAsync failed, errorCode is %d",
                     ret);
@@ -205,13 +217,152 @@ base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst, int index = 0) {
     }
     return base::kStatusCodeOk;
   } else {
+    NNDEPLOY_LOGE("copy buffer failed");
+    return base::kStatusCodeErrorOutOfMemory;
+  }
+}
+
+base::Status AscendCLDevice::copy(Buffer *src, Buffer *dst, int index) {
+  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
+    aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
+    aclError ret = aclrtMemcpyAsync(dst->getData(), src->getDesc().size_[0],
+                                    src->getData(), src->getDesc().size_[0],
+                                    ACL_MEMCPY_DEVICE_TO_DEVICE, stream);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("copy fuction: aclrtMemcpyAsync failed, errorCode is %d",
+                    ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
+    ret = aclrtSynchronizeStream(stream);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE(
+          "copy fuction: aclrtSynchronizeStream failed, errorCode is %d", ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
+    return base::kStatusCodeOk;
+  } else {
+    // TODO: add log
+    return base::kStatusCodeErrorOutOfMemory;
+  }
+}
+base::Status AscendCLDevice::download(Buffer *src, Buffer *dst, int index) {
+  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
+    aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
+    aclError ret = aclrtMemcpyAsync(dst->getData(), src->getDesc().size_[0],
+                                    src->getData(), src->getDesc().size_[0],
+                                    ACL_MEMCPY_DEVICE_TO_HOST, stream);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE(
+          "download fuction: aclrtMemcpyAsync failed, errorCode is %d", ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
+    ret = aclrtSynchronizeStream(stream);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE(
+          "download fuction: aclrtSynchronizeStream failed, errorCode is %d",
+          ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
+    return base::kStatusCodeOk;
+  } else {
+    // TODO: add log
+    return base::kStatusCodeErrorOutOfMemory;
+  }
+}
+base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst, int index) {
+  if (compareBufferDesc(dst->getDesc(), src->getDesc()) >= 0) {
+    aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
+    aclError ret = aclrtMemcpyAsync(dst->getData(), src->getDesc().size_[0],
+                                    src->getData(), src->getDesc().size_[0],
+                                    ACL_MEMCPY_HOST_TO_DEVICE, stream);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("upload fuction: aclrtMemcpyAsync failed, errorCode is %d",
+                    ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
+    ret = aclrtSynchronizeStream(stream);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE(
+          "upload fuction: aclrtSynchronizeStream failed, errorCode is %d",
+          ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
+    return base::kStatusCodeOk;
+  } else {
     // TODO: add log
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
 
-base::Status AscendCLDevice::synchronize() {
-  aclError ret = aclrtSynchronizeStream(stream_);
+void *AscendCLDevice::getContext() { return (void *)context_; }
+
+base::Status AscendCLDevice::newCommandQueue() {
+  AclStreamWrapper acl_stream_wrapper;
+  acl_stream_wrapper.external_command_queue_ = nullptr;
+  aclError status = aclrtCreateStream(&acl_stream_wrapper.stream_);
+  if (ACL_SUCCESS != status) {
+    NNDEPLOY_LOGE("acl stream create failed\n");
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
+  acl_stream_wrapper_.emplace_back(acl_stream_wrapper);
+  return base::kStatusCodeOk;
+}
+base::Status AscendCLDevice::deleteCommandQueue(int index) {
+  if (index < 0) {
+    index = acl_stream_wrapper_.size() - 1;
+  }
+  if (index < acl_stream_wrapper_.size()) {
+    base::Status status = synchronize(index);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "synchronize failed");
+    if (acl_stream_wrapper_[index].external_command_queue_ == nullptr) {
+      aclError status = aclrtDestroyStream(acl_stream_wrapper_[index].stream_);
+      if (ACL_SUCCESS != status) {
+        NNDEPLOY_LOGE("acl stream destroy failed\n");
+        return base::kStatusCodeErrorDeviceAscendCL;
+      }
+    }
+    acl_stream_wrapper_.erase(acl_stream_wrapper_.begin() + index);
+    return base::kStatusCodeOk;
+  } else {
+    NNDEPLOY_LOGE("index[%d] is error\n", index);
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
+}
+base::Status AscendCLDevice::deleteCommandQueue(void *command_queue) {
+  for (int i = 0; i < acl_stream_wrapper_.size(); ++i) {
+    if (command_queue == (void *)(acl_stream_wrapper_[i].stream_)) {
+      return this->deleteCommandQueue(i);
+    }
+  }
+  NNDEPLOY_LOGE("command queue is not found\n");
+  return base::kStatusCodeOk;
+}
+base::Status AscendCLDevice::setCommandQueue(void *command_queue) {
+  if (command_queue == nullptr) {
+    NNDEPLOY_LOGE("command queue is nullptr\n");
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
+  AclStreamWrapper acl_stream_wrapper;
+  acl_stream_wrapper.external_command_queue_ = command_queue;
+  acl_stream_wrapper.stream_ = (aclrtStream)command_queue;
+  acl_stream_wrapper_.emplace_back(acl_stream_wrapper);
+  return base::kStatusCodeOk;
+}
+
+void *AscendCLDevice::getCommandQueue(int index) {
+  if (index < 0) {
+    index = acl_stream_wrapper_.size() - 1;
+  }
+  if (index < acl_stream_wrapper_.size()) {
+    return (void *)(acl_stream_wrapper_[index].stream_);
+  } else {
+    return nullptr;
+  }
+}
+
+base::Status AscendCLDevice::synchronize(int index) {
+  aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
+  aclError ret = aclrtSynchronizeStream(stream);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE(
         "synchronize fuction: aclrtSynchronizeStream failed, errorCode is %d",
@@ -220,24 +371,31 @@ base::Status AscendCLDevice::synchronize() {
   }
   return base::kStatusCodeOk;
 }
-void *AscendCLDevice::getContext() { return (void *)context_; }
-void *AscendCLDevice::getCommandQueue() { return (void *)stream_; }
+
+void AscendCLDevice::setAclConfigPath(const std::string &acl_config_path) {
+  acl_config_path_ = acl_config_path;
+}
 
 base::Status AscendCLDevice::init() {
   if (external_command_queue_ == nullptr) {
+    // 初始化
+    aclError ret = aclInit(acl_config_path_.c_str());
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclInit failed, errorCode is %d", ret);
+    }
+    // 选择设备
     aclError ret = aclrtSetDevice(device_type_.device_id_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclrtSetDevice failed, errorCode is %d", ret);
       return base::kStatusCodeErrorDeviceAscendCL;
     }
-
-    // Always: 当贡献外部的command_queue时，不需要创建context吗？
+    // Always: 当共享外部的command_queue时，不需要创建context吗？
     ret = aclrtCreateContext(&context_, device_type_.device_id_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclrtCreateContext failed, errorCode is %d", ret);
       return base::kStatusCodeErrorDeviceAscendCL;
     }
-
+    // 创建流
     ret = aclrtCreateStream(&stream_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclrtCreateStream failed, errorCode is %d", ret);
@@ -284,6 +442,12 @@ base::Status AscendCLDevice::deinit() {
     ret = aclrtResetDevice(device_type_.device_id_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclrtResetDevice failed, errorCode is %d", ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
+
+    ret = aclFinalize();
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
       return base::kStatusCodeErrorDeviceAscendCL;
     }
   }
