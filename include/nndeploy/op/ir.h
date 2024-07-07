@@ -99,6 +99,30 @@ class ValueDesc {
 };
 
 /**
+ * @brief 参照onnx的格式，描述模型的结构
+ *
+ */
+class ModelDesc {
+ public:
+  ModelDesc(){};
+  virtual ~ModelDesc(){};
+
+ public:
+  // 描述模型的名称
+  std::string name_;
+  // 模型算子列表
+  std::vector<std::shared_ptr<OpDescAndParam>> op_desc_params_;
+  // 模型权重
+  std::map<std::string, device::Tensor *> weights_;
+  // 模型输入
+  std::vector<ValueDesc *> inputs_;
+  // 模型输出
+  std::vector<ValueDesc *> outputs_;
+  // 模型中间值，一般通常为空，多用于调试
+  std::vector<ValueDesc *> values_;
+};
+
+/**
  * @brief 算子参数的创建类
  *
  */

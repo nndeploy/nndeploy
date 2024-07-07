@@ -174,7 +174,7 @@ class TypeOpCreator : public OpCreator {
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type, std::vector<std::string> &inputs,
-                       std::vector<std::string> &outputs ) {
+                       std::vector<std::string> &outputs) {
     auto op = new T();
     op->setDeviceType(device_type);
     op->setName(name);
@@ -191,8 +191,8 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
-getGlobalOpCreatorMap();
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板
@@ -237,9 +237,9 @@ using MIMOOpFunc =
                                std::initializer_list<device::Tensor *> outputs,
                                std::shared_ptr<base::Param> op_param)>;
 
-#define REGISTER_OP_IMPLEMENTION(device_type_code, op_type_code, op_class) \
-  TypeOpRegister<TypeOpCreator<op_class>> g_##op_class##_register(         \
-      device_type_code, op_type_code);
+#define REGISTER_OP_IMPLEMENTION(device_type_code, op_type, op_class) \
+  TypeOpRegister<TypeOpCreator<op_class>> g_##op_class##_register(    \
+      device_type_code, op_type);
 
 }  // namespace op
 }  // namespace nndeploy

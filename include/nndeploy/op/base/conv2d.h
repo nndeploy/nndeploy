@@ -9,15 +9,13 @@ namespace nndeploy {
 namespace op {
 
 class Conv2dParam : public base::Param {
-  public:
+ public:
   std::vector<int> strides{1, 1};
   std::vector<int> padding{0, 0};
   std::vector<int> kernel_size;
 };
 
-class BaseConv2dOp : public Op  {
-
-};
+class BaseConv2dOp : public Op {};
 
 }  // namespace op
 }  // namespace nndeploy

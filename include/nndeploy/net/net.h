@@ -66,7 +66,8 @@ class NNDEPLOY_CC_API Net : public op::Op {
   std::shared_ptr<Session> session_;
 };
 
-Net *createNet(std::shared_ptr<op::ModelDesc>, base::DeviceType device_type,
+Net *createNet(std::shared_ptr<op::ModelDesc> model_desc,
+               base::DeviceType device_type,
                base::PrecisionType precision_type);
 
 }  // namespace net
