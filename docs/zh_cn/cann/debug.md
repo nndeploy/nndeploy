@@ -20,8 +20,8 @@
   通过学习该堂课程，初步了解了
 
   + 晟腾 AI core 的基本架构（后续基于文档深入理解）
-    + SPMD架构，多个core（`具体是多少个core？`），每个core包含
-      + 计算单元 - 矩阵运算的cube、向量运算的vector、标量计算的scalar，标量计算单元也充当核内cpu作用，要负责指令接受、调度等等功能（如何区分fp32、fp16、int8？`是不同的数据类型都有一套计算单元吗？`）
+    + SPMD架构，多个core（`具体是多少个AI core？`），每个core包含
+      + 计算单元 - 矩阵运算的cube、向量运算的vector、标量计算的scalar，标量计算单元也充当核内cpu作用，要负责指令接受、调度等等功能（`如何区分fp32、fp16、int8？是不同的数据类型都有一套计算单元吗？`）
       + 内存单元 - global memory + local memory（这个较为复杂，后续需要单独详细理解）+ 寄存器（这个会类似gpgpu中的寄存器文件吗？）
       + DMA 单元 - DMA单元负责数据传输（global memory 与 local memory之间的数据传输）
       + 调度模块（名字是这个吗？负责指令的发送、多个运算单元之间的同步）
@@ -54,3 +54,42 @@
   + 硬件体系架构
   + 编程体系架构 与cuda类比
     + 编程粒度
+
+## 2024-07-06
+### 总结 和 问题
++ 华为昇腾边缘推理盒子
+  + 对于小公司以及个人开发者而言，`开发者套件(Atlas 200I DK A2, 背后的芯片为 加速模块Atlas 200I A2(8TOPS))` 最为方便（开发板卡形式，可以支持摄像头接入、linux桌面），价格合适
+  + 购买链接 - https://www.vmall.com/product/10086362347457.html?cid=207641
++ 电脑选购 - 惠普暗夜精灵
++ 达芬奇架构（AI core）
+  + 计算单元（scalar（cpu） + vector + cube）（还有很多细节有待展开）
+  + 内存单元（global memory + local memory ）（还有很多细节有待展开）
+  + 数据搬运单元（DMA）（还有很多细节有待展开）
++ 数据流 + 同步信号流
+  + 计算（标量给scalar， 向量给vector，矩阵给cube，异步指令流）
+  + 计算会产生依赖，数据依赖（需要同步信号流）、控制依赖（scalar cpu解决吧）
++ Ascend C 
+  + 以ADD入门
+    + host api
+    + device api(多级API)
+  + 优化方法
+    + double buffer
++ 2024-07-03遗留问题
+  + CANN已经包含了推理工具链（AscendCL-aclmdl），为什么这里还会有一个推理工具链MindIE呢？
+    + 官方简介：昇腾推理引擎，基于昇腾硬件的运行加速、调试调优、快速迁移部署的高性能深度学习推理框架，分层开放满足各类需求，统一接口使能极简开发，沉淀能力构筑极致性能
+    + 个人理解（较为片面）：基于CANN（AscendCL-aclmdl）
+      + 开发MindRT(接口会有点点类似Trt，提高易用性，可以通过onnx直接创建推理示例、也可以手动构图)
+      + 针对大模型场景，往往通用的推理接口不好用，所以有了（MindIE-SD和MindIE-LLM，类似英伟达的FasterTransformer）
+      + MindIE-Service: 推理服务化框架（类似英伟达的Inference Triton Server）
+  + 具体是多少个AI core？
+    + 每个芯片都包含多个AI core（每个AI core只共享主存），具体依据芯片型号不同而不同（我没有找到具体的资料）
+  + 计算单元 - 矩阵运算的cube、向量运算的vector、标量计算的scalar，标量计算单元也充当核内cpu作用，要负责指令接受、调度等等功能（`如何区分fp32、fp16、int8？是不同的数据类型都有一套计算单元吗？`）
+    + 由矩阵运算的cube、向量运算的vector、标量计算的scalar内部去区分不同的计算类型，以矩阵运算的cube单元（Atlas 200I A2 的cube）为例
+      + 内部的一个cube既可以做fp16，也可以做int8，fp16(16x16的fp16矩阵计算、32x16或者16x32的int8矩阵计算)
+  + AIR（`这个是开源的吗？`最好直接使用或者借鉴该IR，目前框架内部有一套IR的上层数据结构，但最最最最麻烦的还是具体算子的IR，以及各种序列以及反序列化）
+    + 需要进一步查找资料，我想用这个IR作为nndeploy里面的IR
+
+### 明日安排
++ AIR
+  + 看能不能将nndeploy的IR和AIR进行整合，或者直接使用AIR
++ 完善nndeploy中目前已接入的CANN（aclrt[runtime]和aclmdl[推理]）
