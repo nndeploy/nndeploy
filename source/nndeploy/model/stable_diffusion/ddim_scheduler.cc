@@ -131,7 +131,7 @@ base::Status DDIMScheduler::step(device::Tensor *output, device::Tensor *sample,
                                  int idx, float timestep, float eta,
                                  bool use_clipped_model_output,
                                  std::mt19937 generator,
-                                 device::Tensor *variance_noise) {
+                                 device::Tensor *variance_noise) { // discussion
   base::Status status = base::kStatusCodeOk;
   device::Device *host_device = device::getDefaultHostDevice();
 
@@ -166,7 +166,7 @@ base::Status DDIMScheduler::step(device::Tensor *output, device::Tensor *sample,
 
   // 3. compute predicted original sample from predicted noise also called
   // "predicted x_0" of formula(12) from https: //arxiv.org/pdf/2010.02502.pdf
-  device::Tensor pred_original_sample(output->getDevice(), output->getDesc());
+  device::Tensor pred_original_sample(output->getDevice(), output->getDesc()); 
   if (scheduler_param_->prediction_type_ == "epsilon") {
     device::Tensor tmp1(output->getDevice(), output->getDesc());
     op::mul(&beta_prod_t_sqrt_tensor, output, &tmp1);
