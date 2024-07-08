@@ -42,7 +42,7 @@
 |                                  |
 # 核心概念
 oneDNN的主要概念是原语，引擎，流和内存对象。
-![[Pasted image 20240706144704.png]]
+![](/docs/image/knownledge_share/ondDNN%20architecture.png)
 **原语：
 	基元（dnnl::primitive**）是一个封装了特定计算诸如前向卷积，向后LSTM计算，或数据变换操作的算符对象。单个原语有时可以表示更复杂的**融合计算**，例如一个前向卷积操作然后紧跟着一个ReLU操作。除其他事项外，融合是通过原语的属性机制来控制的。（原语和纯函数之间最重要的区别是原语可以**存储状态**。）
 		1、基元状态的一部分是不可变的。例如，卷积基元存储参数（如张量形状），并可以预先计算其他相关参数（如缓存阻塞）。这种方法允许 oneDNN 基元预先生成专门针对要执行的操作而定制的代码。oneDNN 编程模型假设执行预计算所需的时间可以通过重复使用同一基元多次执行计算来分摊。
@@ -73,7 +73,7 @@ offset_nChw8c(n, c, h, w) = n * CHW
                           + (c % 8)
 ```
 
-![[Pasted image 20240706151655.png]]
+![](/docs/image/knownledge_share/oneDNN%20Dataformat.png)
 
 # 一个简单的例子
 [Example code：](https://oneapi-src.github.io/oneDNN/example_getting_started.cpp.html#doxid-getting-started-8cpp-example)
