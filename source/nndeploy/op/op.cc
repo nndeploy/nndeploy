@@ -20,8 +20,9 @@ Op::~Op() {
   is_debug_ = false;
 }
 
-base::Status Op::setOpType(OpType optype) {
-  op_desc_.op_type_ = optype;
+base::Status Op::setOpType(OpType op_type) {
+  op_desc_.op_type_ = op_type;
+  op_desc_.op_param_ = createOpParam(op_type);
   return base::kStatusCodeOk;
 }
 OpType Op::getOpType() { return op_desc_.op_type_; }
@@ -35,13 +36,11 @@ std::string Op::getName() { return op_desc_.name_; }
 
 base::Status Op::setParam(std::shared_ptr<base::Param> param) {
   if (param != nullptr) {
-    // return param->copyTo(op_param_.get());
-    op_param_ = param;
-    return base::kStatusCodeOk;
+    return param->copyTo(op_desc_.op_param_.get());
   }
   return base::kStatusCodeErrorNullParam;  // 并不是所以Op都有param，例如relu
 }
-std::shared_ptr<base::Param> Op::getParam() { return op_param_; }
+std::shared_ptr<base::Param> Op::getParam() { return op_desc_.op_param_; }
 
 base::Status Op::setDeviceType(base::DeviceType device_type) {
   device_type_ = device_type;

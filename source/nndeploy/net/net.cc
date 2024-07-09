@@ -342,24 +342,23 @@ base::Status Net::construct() {
   // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
   // NNDEPLOY_LOGI("###########################\n");
 
-  for (auto op_desc_param : model_desc_->op_desc_params_) {
+  for (auto op_desc_ : model_desc_->op_descs_) {
     // 获得每一个Op的输入、输出名字
     std::vector<std::string> inputNames;
     std::vector<std::string> outputNames;
-    for (auto input_name : op_desc_param->op_desc_.inputs_) {
+    for (auto input_name : op_desc_->inputs_) {
       insertUnique(inputNames, input_name);
     }
-    for (auto output_name : op_desc_param->op_desc_.outputs_) {
+    for (auto output_name : op_desc_->outputs_) {
       insertUnique(outputNames, output_name);
     }
 
     // createOp内部包含了CreateTensor的步骤，且是Unique的
-    auto op = this->createOp(device_type_, op_desc_param->op_desc_.name_,
-                             op_desc_param->op_desc_.op_type_, inputNames,
-                             outputNames);
+    auto op = this->createOp(device_type_, op_desc_->name_, op_desc_->op_type_,
+                             inputNames, outputNames);
 
     op->setParam(
-        op_desc_param
+        op_desc_
             ->op_param_);  // 不对param进行判空检查  有些op没有param，例如relu
   }
 

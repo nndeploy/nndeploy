@@ -1,32 +1,18 @@
 
-#ifndef _NNDEPLOY_OP_BINARY_ADD_H_
-#define _NNDEPLOY_OP_BINARY_ADD_H_
+#ifndef _NNDEPLOY_OP_OP_BINARY_H_
+#define _NNDEPLOY_OP_OP_BINARY_H_
 
-#include "nndeploy/base/common.h"
-#include "nndeploy/base/glic_stl_include.h"
-#include "nndeploy/base/log.h"
-#include "nndeploy/base/macro.h"
-#include "nndeploy/base/object.h"
-#include "nndeploy/base/param.h"
-#include "nndeploy/base/status.h"
-#include "nndeploy/base/string.h"
-#include "nndeploy/base/time_profiler.h"
-#include "nndeploy/base/value.h"
-#include "nndeploy/device/buffer.h"
-#include "nndeploy/device/device.h"
-#include "nndeploy/device/memory_pool.h"
-#include "nndeploy/device/tensor.h"
 #include "nndeploy/op/ir.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
 namespace op {
 
-class BinaryOp : public Op {
+class OpBinary : public Op {
  public:
-  BinaryOp() : Op() {}
+  OpBinary() : Op() {}
 
-  virtual ~BinaryOp() {}
+  virtual ~OpBinary() {}
 
   virtual base::Status reshape(base::ShapeMap &shape_map) {
     base::Status status = base::kStatusCodeOk;
@@ -52,6 +38,17 @@ class BinaryOp : public Op {
     return status;
   }
 };
+
+base::Status add(device::Tensor *input1, device::Tensor *input2,
+                 device::Tensor *output);
+base::Status sub(device::Tensor *input1, device::Tensor *input2,
+                 device::Tensor *output);
+base::Status mul(device::Tensor *input1, device::Tensor *input2,
+                 device::Tensor *output);
+base::Status div(device::Tensor *input1, device::Tensor *input2,
+                 device::Tensor *output);
+base::Status clamp(device::Tensor *input, float min, float max,
+                   device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

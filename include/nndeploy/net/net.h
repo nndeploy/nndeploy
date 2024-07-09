@@ -4,7 +4,7 @@
 
 #include "nndeploy/net/session.h"
 #include "nndeploy/net/util.h"
-#include "nndeploy/op/model_desc.h"
+#include "nndeploy/op/ir.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {

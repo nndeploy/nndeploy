@@ -1,11 +1,11 @@
-#include "nndeploy/op/base/conv2d.h"
 
 #include "nndeploy/op/op.h"
+#include "nndeploy/op/op_conv2d.h"
+
 namespace nndeploy {
 namespace op {
-class CpuConv2dOp : public BaseConv2dOp {
+class CpuOpConv2d : public OpConv2d {
  public:
-  
   base::Status run() {
     std::cout << "conv2d runing" << std::endl;
 
@@ -14,6 +14,6 @@ class CpuConv2dOp : public BaseConv2dOp {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
-                         kOpTypeConv2d, CpuConv2dOp)
+                         kOpTypeConv2d, CpuOpConv2d)
 }  // namespace op
 }  // namespace nndeploy

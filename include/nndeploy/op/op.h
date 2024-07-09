@@ -37,7 +37,7 @@ class NNDEPLOY_CC_API Op {
   base::Status setDeviceType(base::DeviceType device_type);
   base::DeviceType getDeviceType();
 
-  base::Status setOpType(OpType optype);
+  base::Status setOpType(OpType op_type);
   OpType getOpType();
 
   // 设置为virtual的原因：精度不同，内存分配不同，计算方式不同
@@ -101,7 +101,6 @@ class NNDEPLOY_CC_API Op {
 
  protected:
   OpDesc op_desc_;
-  std::shared_ptr<base::Param> op_param_;
 
   base::DeviceType device_type_;
   base::PrecisionType precision_type_ = base::kPrecisionTypeFp32;

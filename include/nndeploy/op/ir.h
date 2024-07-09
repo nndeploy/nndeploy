@@ -17,7 +17,7 @@ namespace nndeploy {
 namespace op {
 
 enum OpType : int {
-  kOpTypeForward = 0x0000,
+  kOpTypeNet = 0x0000,
 
   // unary
   kOpTypeRelu,
@@ -39,26 +39,33 @@ enum OpType : int {
  * # 2. 算子类型
  * # 3. 算子输入
  * # 4. 算子输出
- * # 5. 算子权重 - 将权重单独列出
+ * # 5. 算子的参数
  */
 class NNDEPLOY_CC_API OpDesc {
  public:
-  OpDesc() {}
+  OpDesc();
 
-  OpDesc(const std::string &name, OpType op_type)
-      : name_(name), op_type_(op_type) {}
+  OpDesc(const std::string &name, OpType op_type);
+  OpDesc(const std::string &name, OpType op_type,
+         std::shared_ptr<base::Param> op_param);
 
   OpDesc(const std::string &name, OpType op_type,
          std::initializer_list<std::string> inputs,
-         std::initializer_list<std::string> outputs)
-      : name_(name), op_type_(op_type), inputs_(inputs), outputs_(outputs) {}
+         std::initializer_list<std::string> outputs);
+  OpDesc(const std::string &name, OpType op_type,
+         std::initializer_list<std::string> inputs,
+         std::initializer_list<std::string> outputs,
+         std::shared_ptr<base::Param> op_param);
 
   OpDesc(const std::string &name, OpType op_type,
-         std::vector<std::string> &inputs, std::vector<std::string> &outputs)
-      : name_(name), op_type_(op_type), inputs_(inputs), outputs_(outputs) {}
+         std::vector<std::string> &inputs, std::vector<std::string> &outputs);
+  OpDesc(const std::string &name, OpType op_type,
+         std::vector<std::string> &inputs, std::vector<std::string> &outputs,
+         std::shared_ptr<base::Param> op_param);
 
-  virtual ~OpDesc() {}
+  virtual ~OpDesc();
 
+ public:
   // 算子名称
   std::string name_;
   // 节点类型
@@ -67,19 +74,6 @@ class NNDEPLOY_CC_API OpDesc {
   std::vector<std::string> inputs_;
   // 节点输出
   std::vector<std::string> outputs_;
-};
-
-/**
- * @brief
- *
- */
-class NNDEPLOY_CC_API OpDescAndParam {
- public:
-  OpDescAndParam() {}
-  virtual ~OpDescAndParam() {}
-
-  // 算子描述
-  OpDesc op_desc_;
   // 算子参数
   std::shared_ptr<base::Param> op_param_;
 };
@@ -89,6 +83,14 @@ class NNDEPLOY_CC_API OpDescAndParam {
  *
  */
 class ValueDesc {
+ public:
+  ValueDesc();
+
+  ValueDesc(const std::string &name);
+  ValueDesc(const std::string &name, base::DataType data_type);
+  ValueDesc(const std::string &name, base::DataType data_type,
+            base::IntVector shape);
+
  public:
   // 名称
   std::string name_;
@@ -104,22 +106,22 @@ class ValueDesc {
  */
 class ModelDesc {
  public:
-  ModelDesc(){};
-  virtual ~ModelDesc(){};
+  ModelDesc();
+  virtual ~ModelDesc();
 
  public:
   // 描述模型的名称
   std::string name_;
   // 模型算子列表
-  std::vector<std::shared_ptr<OpDescAndParam>> op_desc_params_;
+  std::vector<std::shared_ptr<OpDesc>> op_descs_;
   // 模型权重
   std::map<std::string, device::Tensor *> weights_;
   // 模型输入
-  std::vector<ValueDesc *> inputs_;
+  std::vector<std::shared_ptr<ValueDesc>> inputs_;
   // 模型输出
-  std::vector<ValueDesc *> outputs_;
+  std::vector<std::shared_ptr<ValueDesc>> outputs_;
   // 模型中间值，一般通常为空，多用于调试
-  std::vector<ValueDesc *> values_;
+  std::vector<std::shared_ptr<ValueDesc>> values_;
 };
 
 /**
@@ -172,6 +174,17 @@ class TypeOpParamRegister {
  */
 extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
     OpType op_type);
+
+#define REGISTER_OP_PARAM_IMPLEMENTION(op_type, op_param_class) \
+  TypeOpParamRegister<TypeOpParamCreator<op_param_class>>       \
+      g_##op_param_class##_register(op_type);
+
+class Conv2dParam : public base::Param {
+ public:
+  std::vector<int> strides{1, 1};
+  std::vector<int> padding{0, 0};
+  std::vector<int> kernel_size;
+};
 
 }  // namespace op
 }  // namespace nndeploy

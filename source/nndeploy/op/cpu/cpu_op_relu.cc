@@ -1,13 +1,12 @@
-#include "nndeploy/op/base/relu.h"
-
 #include "nndeploy/op/op.h"
+#include "nndeploy/op/op_elementwise.h"
 
 namespace nndeploy
 
 {
 namespace op {
 
-class CpuReluOp : public BaseReluOp {
+class CpuOpRelu : public OpElementWise {
  public:
   base::Status run() {
     std::cout << "relu runing" << std::endl;
@@ -16,9 +15,8 @@ class CpuReluOp : public BaseReluOp {
   }
 };
 
-
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
-                         kOpTypeRelu, CpuReluOp)
+REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu, kOpTypeRelu,
+                         CpuOpRelu)
 
 }  // namespace op
 

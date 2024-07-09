@@ -4,7 +4,7 @@
 #define _NNDEPLOY_NET_TEST_TEST_H_
 
 #include "nndeploy/net/net.h"
-#include "nndeploy/op/model_desc.h"
+#include "nndeploy/op/ir.h"
 
 namespace nndeploy {
 

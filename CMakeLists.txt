@@ -329,41 +329,39 @@ if(ENABLE_NNDEPLOY_OP)
   file(GLOB OP_SOURCE
     "${ROOT_PATH}/include/nndeploy/op/*.h"
     "${ROOT_PATH}/source/nndeploy/op/*.cc"
-    "${ROOT_PATH}/include/nndeploy/op/base/*.h"
-    "${ROOT_PATH}/source/nndeploy/op/base/*.cc"
   )
   if (ENABLE_NNDEPLOY_DEVICE_CPU)
     file(GLOB_RECURSE OP_CPU_SOURCE
-      "${ROOT_PATH}/include/nndeploy/op/impl/cpu/*.h"
-      "${ROOT_PATH}/source/nndeploy/op/impl/cpu/*.cc"
+      "${ROOT_PATH}/include/nndeploy/op/cpu/*.h"
+      "${ROOT_PATH}/source/nndeploy/op/cpu/*.cc"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_CPU_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_X86)
     file(GLOB_RECURSE OP_X86_SOURCE
-      "${ROOT_PATH}/include/nndeploy/op/impl/x86/*.h"
-      "${ROOT_PATH}/source/nndeploy/op/impl/x86/*.cc"
+      "${ROOT_PATH}/include/nndeploy/op/x86/*.h"
+      "${ROOT_PATH}/source/nndeploy/op/x86/*.cc"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_X86_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_ARM)
     file(GLOB_RECURSE OP_ARM_SOURCE
-      "${ROOT_PATH}/include/nndeploy/op/impl/arm/*.h"
-      "${ROOT_PATH}/source/nndeploy/op/impl/arm/*.cc"
+      "${ROOT_PATH}/include/nndeploy/op/arm/*.h"
+      "${ROOT_PATH}/source/nndeploy/op/arm/*.cc"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_ARM_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_CUDA)
     file(GLOB_RECURSE OP_CUDA_SOURCE
-      "${ROOT_PATH}/include/nndeploy/op/impl/cuda/*.h"
-      "${ROOT_PATH}/source/nndeploy/op/impl/cuda/*.cc"
+      "${ROOT_PATH}/include/nndeploy/op/cuda/*.h"
+      "${ROOT_PATH}/source/nndeploy/op/cuda/*.cc"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_CUDA_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
     file(GLOB_RECURSE OP_ASCEND_CL_SOURCE
-      "${ROOT_PATH}/include/nndeploy/op/impl/ascend_cl/*.h"
-      "${ROOT_PATH}/source/nndeploy/op/impl/ascend_cl/*.cc"
+      "${ROOT_PATH}/include/nndeploy/op/ascend_cl/*.h"
+      "${ROOT_PATH}/source/nndeploy/op/ascend_cl/*.cc"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_ASCEND_CL_SOURCE})
   endif()
