@@ -190,12 +190,16 @@ base::Status Op::deinit() { return base::kStatusCodeOk; }
 base::Status Op::reshape(base::ShapeMap &shape_map) {
   return base::kStatusCodeOk;
 }
+base::Status Op::inferDataType(
+    std::map<std::string, base::DataType> &dtype_map) {
+  return base::kStatusCodeOk;
+}
 
 base::Status Op::preRun() { return base::kStatusCodeOk; }
 base::Status Op::postRun() { return base::kStatusCodeOk; }
 
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
-    &getGlobalOpCreatorMap() {
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
+getGlobalOpCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::DeviceTypeCode,
                                   std::map<OpType, std::shared_ptr<OpCreator>>>>

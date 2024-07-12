@@ -94,6 +94,8 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status deinit();
 
   virtual base::Status reshape(base::ShapeMap &shape_map);
+  virtual base::Status inferDataType(
+      std::map<std::string, base::DataType> &dtype_map);
 
   virtual base::Status preRun();
   virtual base::Status run() = 0;
@@ -190,8 +192,8 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
-    &getGlobalOpCreatorMap();
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
+getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板

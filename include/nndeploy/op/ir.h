@@ -122,6 +122,8 @@ class ModelDesc {
   std::vector<std::shared_ptr<ValueDesc>> outputs_;
   // 模型中间值，一般通常为空，多用于调试
   std::vector<std::shared_ptr<ValueDesc>> values_;
+  // 模型块
+  std::vector<std::shared_ptr<ModelDesc>> blocks_;
 };
 
 /**
@@ -178,6 +180,11 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
 #define REGISTER_OP_PARAM_IMPLEMENTION(op_type, op_param_class) \
   TypeOpParamRegister<TypeOpParamCreator<op_param_class>>       \
       g_##op_param_class##_register(op_type);
+
+class OpParam : public base::Param {
+ public:
+  int reserved_;
+};
 
 class Conv2dParam : public base::Param {
  public:

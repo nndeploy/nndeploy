@@ -70,8 +70,8 @@ ValueDesc::ValueDesc(const std::string &name, base::DataType data_type,
 ModelDesc::ModelDesc() {}
 ModelDesc::~ModelDesc(){};
 
-std::map<OpType, std::shared_ptr<OpParamCreator>>
-    &getGlobalOpParamCreatorMap() {
+std::map<OpType, std::shared_ptr<OpParamCreator>> &
+getGlobalOpParamCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<OpType, std::shared_ptr<OpParamCreator>>>
       creators;

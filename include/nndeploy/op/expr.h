@@ -40,15 +40,18 @@ class NNDEPLOY_CC_API Expr {
  * @brief  一系列创建函数
  */
 // input
-std::shared_ptr<Expr> MakeInput(
-    std::shared_ptr<op::ModelDesc> model_desc, std::string name,
+std::shared_ptr<Expr> makeInput(
+    std::shared_ptr<ModelDesc> model_desc, std::string name,
     base::DataType data_type = base::dataTypeOf<float>(),
     base::IntVector shape = base::IntVector());
 // output
-void MakeOutput(std::shared_ptr<op::ModelDesc> model_desc,
+void makeOutput(std::shared_ptr<ModelDesc> model_desc,
                 std::shared_ptr<Expr> expr);
+// block
+std::shared_ptr<Expr> makeBlock(std::shared_ptr<ModelDesc> model_desc,
+                                std::shared_ptr<ModelDesc> model_block);
 // conv2d
-std::shared_ptr<Expr> MakeConv2d(std::shared_ptr<op::ModelDesc> model_desc,
+std::shared_ptr<Expr> makeConv2d(std::shared_ptr<ModelDesc> model_desc,
                                  std::shared_ptr<Expr> input,
                                  std::shared_ptr<Conv2dParam> param,
                                  const std::string &weight = "",
@@ -56,7 +59,7 @@ std::shared_ptr<Expr> MakeConv2d(std::shared_ptr<op::ModelDesc> model_desc,
                                  std::string op_name = "",
                                  std::string output_name = "");
 // relu
-std::shared_ptr<Expr> MakeRelu(std::shared_ptr<op::ModelDesc> model_desc,
+std::shared_ptr<Expr> makeRelu(std::shared_ptr<ModelDesc> model_desc,
                                std::shared_ptr<Expr> input,
                                std::string op_name = "",
                                std::string output_name = "");
