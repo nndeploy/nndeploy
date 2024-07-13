@@ -11,31 +11,14 @@ namespace op {
 class OpBinary : public Op {
  public:
   OpBinary() : Op() {}
-
   virtual ~OpBinary() {}
 
-  virtual base::Status reshape(base::ShapeMap &shape_map) {
-    base::Status status = base::kStatusCodeOk;
-    for (auto input : inputs_) {
-      std::string name = input->getName();
-      if (shape_map.find(name) == shape_map.end()) {
-        NNDEPLOY_LOGE("shape_map not found %s", name.c_str());
-        return base::kStatusCodeErrorInvalidParam;
-      }
-      status = input->reshape(shape_map[name]);
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "reshape failed");
-    }
-    auto iter = shape_map.begin();
-    base::IntVector shape0 = iter->second;
-    iter++;
-    base::IntVector shape1 = iter->second;
-    base::IntVector shape_out = shape0;
-    if (shape0.size() < shape1.size()) {
-      shape_out = shape1;
-    }
-    status = outputs_[0]->reshape(shape_out);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "reshape failed");
-    return status;
+  virtual base::Status inferShape() {
+    auto input0_shape = inputs_[0]->getShape();
+    auto input1_shape = inputs_[1]->getShape();
+    auto output_shape = base::shapeMax(input0_shape, input1_shape, 0, -1);
+    outputs_[0]->reshape(output_shape);
+    return base::kStatusCodeOk;
   }
 };
 

@@ -13,13 +13,13 @@ TestNet::TestNet() {
 
   // auto model_desc = std::make_shared<op::ModelDesc>();
 
-  // auto conv1_p = std::make_shared<op::Conv2dParam>();
+  // auto conv1_p = std::make_shared<op::ConvParam>();
   // conv1_p->padding = {1, 1};
   // auto conv1 =
-  //     model_desc->MakeConv2d(input_expr, weight_expr, conv1_p, "conv.1");
+  //     model_desc->MakeConv(input_expr, weight_expr, conv1_p, "conv.1");
   // // TODO： 这样是不是更加简洁？
   // // auto conv1 =
-  // //     model_desc->MakeConv2d("input_expr", "weight_expr", conv1_p,
+  // //     model_desc->MakeConv("input_expr", "weight_expr", conv1_p,
   // "conv.1"); auto relu1 = model_desc->MakeRelu(conv1, "relu.1");
 
   // net_->setModelDesc(model_desc);

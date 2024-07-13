@@ -15,20 +15,187 @@
 
 namespace nndeploy {
 namespace op {
-
+/**
+ * @brief 算子类型
+ * 算子分类
+ * # unary
+ *  ## activation
+ *  ## math
+ * # binary - broadcast and elementwise
+ * # reduce
+ * # computation intensive
+ *  ## conv
+ *  ## matmul
+ * # shape
+ *  ## concat
+ *  ## split
+ * # normalization
+ * # pooling
+ *
+ * deeolink的分类
+ *  1. Convolution类
+    2. Pooling类
+    3. Pad类
+    4. Loss类
+    5. Norm类
+    6. Activation类
+    7. Dropout类
+    8. Optimizer类
+    9. Communication类
+    10. Interpolate类
+    1. BLAS类
+    2. Linalg类
+    3. Permute类，对真实内存做数据重排，典型算子为roll、concat等
+    # 相比Permute类算子，其没有对真实内存数据做操作和移动，
+    # 只是指针信息或者Copy，包括reshape和Indexing等
+    4. View/Copy类，
+    5. Advanced Indexing类
+    6. Distribution类
+    7. Sort类
+ */
 enum OpType : int {
   kOpTypeNet = 0x0000,
 
-  // unary
-  kOpTypeRelu,
-
-  // binary
+  kOpTypeAbs,
   kOpTypeAdd,
-
-  // shape
-
-  // computation intensive
-  kOpTypeConv2d,
+  kOpTypeAcos,
+  kOpTypeAdam,
+  kOpTypeAnd,
+  kOpTypeArgMax,
+  kOpTypeArgMin,
+  kOpTypeAsin,
+  kOpTypeAtan,
+  kOpTypeAveragePool,
+  kOpTypeBatchNormalization,
+  kOpTypeCast,
+  kOpTypeCeil,
+  kOpTypeClip,
+  kOpTypeConcat,
+  kOpTypeConstant,
+  kOpTypeConv,
+  kOpTypeCos,
+  kOpTypeCosh,
+  kOpTypeDepthToSpace,
+  kOpTypeDequantizeLinear,
+  kOpTypeDet,
+  kOpTypeDiv,
+  kOpTypeDropout,
+  kOpTypeEinsum,
+  kOpTypeElu,
+  kOpTypeEqual,
+  kOpTypeErf,
+  kOpTypeExp,
+  kOpTypeFlatten,
+  kOpTypeFloor,
+  kOpTypeGather,
+  kOpTypeGemm,
+  kOpTypeGlobalAveragePool,
+  kOpTypeGlobalLpPool,
+  kOpTypeGlobalMaxPool,
+  kOpTypeGreater,
+  kOpTypeHardSigmoid,
+  kOpTypeIdentity,
+  kOpTypeIf,
+  kOpTypeImageScaler,
+  kOpTypeInstanceNormalization,
+  kOpTypeIsInf,
+  kOpTypeIsNaN,
+  kOpTypeLRN,
+  kOpTypeLSTM,
+  kOpTypeLeakyRelu,
+  kOpTypeLess,
+  kOpTypeLog,
+  kOpTypeLogSoftmax,
+  kOpTypeLoop,
+  kOpTypeLpNormalization,
+  kOpTypeLpPool,
+  kOpTypeMatMul,
+  kOpTypeMatMulInteger,
+  kOpTypeMax,
+  kOpTypeMaxPool,
+  kOpTypeMaxRoiPool,
+  kOpTypeMaxUnpool,
+  kOpTypeMean,
+  kOpTypeMin,
+  kOpTypeMod,
+  kOpTypeMomentum,
+  kOpTypeMul,
+  kOpTypeMultinomial,
+  kOpTypeNeg,
+  kOpTypeNegLogSoftmax,
+  kOpTypeNonMaxSuppression,
+  kOpTypeNonZero,
+  kOpTypeNot,
+  kOpTypeOneHot,
+  kOpTypeOnesLike,
+  kOpTypeOr,
+  kOpTypePad,
+  kOpTypePow,
+  kOpTypePRelu,
+  kOpTypeQLinearConv,
+  kOpTypeQLinearMatMul,
+  kOpTypeQuantizeLinear,
+  kOpTypeRNN,
+  kOpTypeRandomNormal,
+  kOpTypeRandomNormalLike,
+  kOpTypeRandomUniform,
+  kOpTypeRandomUniformLike,
+  kOpTypeRange,
+  kOpTypeReciprocal,
+  kOpTypeReduceL1,
+  kOpTypeReduceL2,
+  kOpTypeReduceLogSum,
+  kOpTypeReduceLogSumExp,
+  kOpTypeReduceMax,
+  kOpTypeReduceMean,
+  kOpTypeReduceMin,
+  kOpTypeReduceProd,
+  kOpTypeReduceSum,
+  kOpTypeReduceSumSquare,
+  kOpTypeRelu,
+  kOpTypeReshape,
+  kOpTypeResize,
+  kOpTypeReverseSequence,
+  kOpTypeRoiAlign,
+  kOpTypeRound,
+  kOpTypeScale,
+  kOpTypeScan,
+  kOpTypeScatter,
+  kOpTypeSelu,
+  kOpTypeSequenceAt,
+  kOpTypeSequenceConstruct,
+  kOpTypeSequenceEmpty,
+  kOpTypeSequenceErase,
+  kOpTypeSequenceInsert,
+  kOpTypeSequenceLength,
+  kOpTypeShape,
+  kOpTypeShrink,
+  kOpTypeSigmoid,
+  kOpTypeSign,
+  kOpTypeSin,
+  kOpTypeSinh,
+  kOpTypeSize,
+  kOpTypeSlice,
+  kOpTypeSoftmax,
+  kOpTypeSoftplus,
+  kOpTypeSoftsign,
+  kOpTypeSpaceToDepth,
+  kOpTypeSplit,
+  kOpTypeSqrt,
+  kOpTypeSqueeze,
+  kOpTypeSub,
+  kOpTypeSum,
+  kOpTypeTan,
+  kOpTypeTanh,
+  kOpTypeTfIdf,
+  kOpTypeThresholdedRelu,
+  kOpTypeTile,
+  kOpTypeTopK,
+  kOpTypeTranspose,
+  kOpTypeUnsqueeze,
+  kOpTypeUpsample,
+  kOpTypeWhere,
+  kOpTypeXor,
 
   kOpTypeNone,
 };
@@ -179,18 +346,216 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
 
 #define REGISTER_OP_PARAM_IMPLEMENTION(op_type, op_param_class) \
   TypeOpParamRegister<TypeOpParamCreator<op_param_class>>       \
-      g_##op_param_class##_register(op_type);
+      g_##op_type##_##op_param_class##_register(op_type);
 
 class OpParam : public base::Param {
  public:
-  int reserved_;
+  OpParam(){};
+  virtual ~OpParam(){};
+
+  PARAM_COPY(OpParam)
+  PARAM_COPY_TO(OpParam)
+  // 保留字段,key-value的形式
+  std::map<std::string, base::Value> reserved_param_;
+  // 保留字段,也可以充void *使用
+  size_t reserved_;
 };
 
-class Conv2dParam : public base::Param {
+class ConcatParam : public OpParam {
  public:
-  std::vector<int> strides{1, 1};
-  std::vector<int> padding{0, 0};
-  std::vector<int> kernel_size;
+  ConcatParam(){};
+  virtual ~ConcatParam(){};
+
+  PARAM_COPY(ConcatParam)
+  PARAM_COPY_TO(ConcatParam)
+  int axis_;
+  int new_axis_;
+};
+
+class ConvParam : public OpParam {
+ public:
+  // 构造函数
+  ConvParam() {}
+  virtual ~ConvParam() {}
+
+  // 复制构造函数
+  ConvParam(const ConvParam &other) {
+    strides_ = other.strides_;
+    auto_pad_ = other.auto_pad_;
+    dilations_ = other.dilations_;
+    kernel_shape_ = other.kernel_shape_;
+    pads_ = other.pads_;
+    group_ = other.group_;
+  }
+
+  // 赋值运算符
+  ConvParam &operator=(const ConvParam &other) {
+    if (this != &other) {
+      strides_ = other.strides_;
+      auto_pad_ = other.auto_pad_;
+      dilations_ = other.dilations_;
+      kernel_shape_ = other.kernel_shape_;
+      pads_ = other.pads_;
+      group_ = other.group_;
+    }
+    return *this;
+  }
+
+  PARAM_COPY(ConvParam)
+  PARAM_COPY_TO(ConvParam)
+
+  // input channels of blob, devide by group
+  int input_channel = 0;
+  // the total output channels of blob, not devide by group
+  int output_channel = 0;
+  // 卷积步长
+  std::vector<int> strides_ = {1, 1};
+  // 自动填充方式
+  std::string auto_pad_ = "";
+  // 扩张系数
+  std::vector<int> dilations_ = {1, 1};
+  // 卷积核大小
+  std::vector<int> kernel_shape_;
+  // 填充大小
+  std::vector<int> pads_ = {0, 0, 0, 0};
+  // 组数
+  int group_ = 1;
+
+  bool is_fusion_op_ = false;
+  OpType activate_op_ = kOpTypeRelu;
+};
+// MaxPool 参数类
+class MaxPoolParam : public OpParam {
+ public:
+  MaxPoolParam() {}
+  virtual ~MaxPoolParam() {}
+
+  MaxPoolParam(const MaxPoolParam &other) {
+    strides_ = other.strides_;
+    kernel_shape_ = other.kernel_shape_;
+    pads_ = other.pads_;
+  }
+
+  MaxPoolParam &operator=(const MaxPoolParam &other) {
+    if (this != &other) {
+      strides_ = other.strides_;
+      kernel_shape_ = other.kernel_shape_;
+      pads_ = other.pads_;
+    }
+    return *this;
+  }
+
+  PARAM_COPY(MaxPoolParam)
+  PARAM_COPY_TO(MaxPoolParam)
+
+  std::vector<int> strides_ = {1, 1};     // 步长
+  std::vector<int> kernel_shape_;         // 池化核大小
+  std::vector<int> pads_ = {0, 0, 0, 0};  // 填充大小
+  std::string auto_pad_ = "";             // 自动填充方式
+};
+
+// Reshape 参数类
+class ReshapeParam : public OpParam {
+ public:
+  ReshapeParam() {}
+  virtual ~ReshapeParam() {}
+
+  ReshapeParam(const ReshapeParam &other) { shape_ = other.shape_; }
+
+  ReshapeParam &operator=(const ReshapeParam &other) {
+    if (this != &other) {
+      shape_ = other.shape_;
+    }
+    return *this;
+  }
+
+  PARAM_COPY(ReshapeParam)
+  PARAM_COPY_TO(ReshapeParam)
+
+  std::vector<int64_t> shape_;  // 目标形状
+};
+
+// Resize 参数类
+class ResizeParam : public OpParam {
+ public:
+  ResizeParam() {}
+  virtual ~ResizeParam() {}
+
+  ResizeParam(const ResizeParam &other) {
+    scales_ = other.scales_;
+    sizes_ = other.sizes_;
+    mode_ = other.mode_;
+  }
+
+  ResizeParam &operator=(const ResizeParam &other) {
+    if (this != &other) {
+      scales_ = other.scales_;
+      sizes_ = other.sizes_;
+      mode_ = other.mode_;
+    }
+    return *this;
+  }
+
+  PARAM_COPY(ResizeParam)
+  PARAM_COPY_TO(ResizeParam)
+
+  std::vector<float> scales_;  // 缩放比例
+  std::vector<int> sizes_;     // 目标尺寸
+  std::string mode_;           // 插值模式
+};
+
+// Slice 参数类
+class SliceParam : public OpParam {
+ public:
+  SliceParam() {}
+  virtual ~SliceParam() {}
+
+  SliceParam(const SliceParam &other) {
+    starts_ = other.starts_;
+    ends_ = other.ends_;
+    axes_ = other.axes_;
+  }
+
+  SliceParam &operator=(const SliceParam &other) {
+    if (this != &other) {
+      starts_ = other.starts_;
+      ends_ = other.ends_;
+      axes_ = other.axes_;
+    }
+    return *this;
+  }
+
+  PARAM_COPY(SliceParam)
+  PARAM_COPY_TO(SliceParam)
+
+  std::vector<int> starts_;  // 开始索引
+  std::vector<int> ends_;    // 结束索引
+  std::vector<int> axes_;    // 切片轴
+};
+
+// Softmax 参数类
+class SoftmaxParam : public OpParam {
+ public:
+  SoftmaxParam() : axis_(1) {}  // 默认轴为1
+  virtual ~SoftmaxParam() {}
+
+  PARAM_COPY(SoftmaxParam)
+  PARAM_COPY_TO(SoftmaxParam)
+
+  int axis_;  // 应用 Softmax 的轴
+};
+
+// Split 参数类
+class SplitParam : public OpParam {
+ public:
+  SplitParam() : axis_(0), split_(1) {}  // 默认轴为0，分割数为1
+  virtual ~SplitParam() {}
+
+  PARAM_COPY(SplitParam)
+  PARAM_COPY_TO(SplitParam)
+
+  int axis_;   // 分割轴
+  int split_;  // 分割数
 };
 
 }  // namespace op

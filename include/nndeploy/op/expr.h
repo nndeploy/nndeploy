@@ -51,13 +51,13 @@ void makeOutput(std::shared_ptr<ModelDesc> model_desc,
 std::shared_ptr<Expr> makeBlock(std::shared_ptr<ModelDesc> model_desc,
                                 std::shared_ptr<ModelDesc> model_block);
 // conv2d
-std::shared_ptr<Expr> makeConv2d(std::shared_ptr<ModelDesc> model_desc,
-                                 std::shared_ptr<Expr> input,
-                                 std::shared_ptr<Conv2dParam> param,
-                                 const std::string &weight = "",
-                                 const std::string &bias = "",
-                                 std::string op_name = "",
-                                 std::string output_name = "");
+std::shared_ptr<Expr> makeConv(std::shared_ptr<ModelDesc> model_desc,
+                               std::shared_ptr<Expr> input,
+                               std::shared_ptr<ConvParam> param,
+                               const std::string &weight = "",
+                               const std::string &bias = "",
+                               std::string op_name = "",
+                               std::string output_name = "");
 // relu
 std::shared_ptr<Expr> makeRelu(std::shared_ptr<ModelDesc> model_desc,
                                std::shared_ptr<Expr> input,

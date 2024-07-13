@@ -1,12 +1,12 @@
 #include "nndeploy/op/op.h"
-#include "nndeploy/op/op_elementwise.h"
+#include "nndeploy/op/op_unary.h"
 
 namespace nndeploy
 
 {
 namespace op {
 
-class CpuOpRelu : public OpElementWise {
+class CpuOpRelu : public OpUnary {
  public:
   base::Status run() {
     std::cout << "relu runing" << std::endl;

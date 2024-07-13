@@ -8,7 +8,7 @@
 namespace nndeploy {
 namespace op {
 
-class OpReduce : public Op {};
+class OpSplit : public Op {};
 
 }  // namespace op
 }  // namespace nndeploy

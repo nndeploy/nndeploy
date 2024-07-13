@@ -68,19 +68,19 @@ std::shared_ptr<Expr> makeBlock(std::shared_ptr<ModelDesc> model_desc,
   auto expr = std::make_shared<Expr>(model_block);
   return expr;
 }
-std::shared_ptr<Expr> makeConv2d(std::shared_ptr<ModelDesc> model_desc,
-                                 std::shared_ptr<Expr> input,
-                                 std::shared_ptr<Conv2dParam> param,
-                                 const std::string &weight,
-                                 const std::string &bias, std::string op_name,
-                                 std::string output_name) {
+std::shared_ptr<Expr> makeConv(std::shared_ptr<ModelDesc> model_desc,
+                               std::shared_ptr<Expr> input,
+                               std::shared_ptr<ConvParam> param,
+                               const std::string &weight,
+                               const std::string &bias, std::string op_name,
+                               std::string output_name) {
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
       int index = model_desc->op_descs_.size();
-      name = "conv2d" + std::to_string(index);
+      name = "conv" + std::to_string(index);
     } else {
-      name = "conv2d";
+      name = "conv";
     }
   }
   std::vector<std::string> inputs = {input->getOutputName()[0]};
@@ -98,7 +98,7 @@ std::shared_ptr<Expr> makeConv2d(std::shared_ptr<ModelDesc> model_desc,
     outputs.push_back(name + ".output");
   }
   auto op_desc =
-      std::make_shared<OpDesc>(name, kOpTypeConv2d, inputs, outputs, param);
+      std::make_shared<OpDesc>(name, kOpTypeConv, inputs, outputs, param);
   if (model_desc != nullptr) {
     model_desc->op_descs_.push_back(op_desc);
   }
@@ -143,7 +143,7 @@ std::shared_ptr<Expr> makeRelu(std::shared_ptr<ModelDesc> model_desc,
 //     224},
 //                            model_desc);
 //     auto conv1 =
-//         makeConv2d(input, "weight", "bias", std::make_shared<Conv2dParam>(),
+//         makeConv(input, "weight", "bias", std::make_shared<ConvParam>(),
 //                    "conv1", "conv1.output", model_desc);
 //     auto relu1 = makeRelu(conv1, "relu1", "relu1.output", model_desc);
 //     auto output = makeOutput(relu1, model_desc);
@@ -151,23 +151,23 @@ std::shared_ptr<Expr> makeRelu(std::shared_ptr<ModelDesc> model_desc,
 //   {
 //     auto model_desc = std::make_shared<ModelDesc>();
 //     auto input = makeInput(model_desc);
-//     auto conv1 = makeConv2d(model_desc, input, "weight", "bias");
+//     auto conv1 = makeConv(model_desc, input, "weight", "bias");
 //     auto relu1 = makeRelu(model_desc, conv1);
 //     auto output = makeOutput(model_desc, relu1);
 //   }
 // }
 
-class VAE {
- public:
-  VAE() {
-    auto model_desc = std::make_shared<ModelDesc>();
-    auto input = makeInput(model_desc, "input");
-    auto conv1 = makeConv2d(model_desc, input, std::make_shared<Conv2dParam>(),
-                            "weight", "bias");
-    auto relu1 = makeRelu(model_desc, conv1);
-    makeOutput(model_desc, relu1);
-  }
-};
+// class VAE {
+//  public:
+//   VAE() {
+//     auto model_desc = std::make_shared<ModelDesc>();
+//     auto input = makeInput(model_desc, "input");
+//     auto conv1 = makeConv(model_desc, input, std::make_shared<ConvParam>(),
+//                             "weight", "bias");
+//     auto relu1 = makeRelu(model_desc, conv1);
+//     makeOutput(model_desc, relu1);
+//   }
+// };
 
 }  // namespace op
 }  // namespace nndeploy

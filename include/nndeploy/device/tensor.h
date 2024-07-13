@@ -114,6 +114,7 @@ class NNDEPLOY_CC_API Tensor {
   std::string getName() const;
   TensorDesc getDesc() const;
   base::DataType getDataType() const;
+  void setDataType(base::DataType data_type);
   base::DataFormat getDataFormat() const;
   base::IntVector getShape() const;
   int getShapeIndex(int index) const;
@@ -139,30 +140,6 @@ class NNDEPLOY_CC_API Tensor {
 
   inline int addRef() const { return NNDEPLOY_XADD(ref_count_, 1); }
   inline int subRef() const { return NNDEPLOY_XADD(ref_count_, -1); }
-
-  friend Tensor &operator+(const Tensor &a, const Tensor &b);
-  template <typename T>
-  friend Tensor &operator+(const T &a, const Tensor &b);
-  template <typename T>
-  friend Tensor &operator+(const Tensor &a, const T &b);
-
-  friend Tensor &operator-(const Tensor &a, const Tensor &b);
-  template <typename T>
-  friend Tensor &operator-(const T &a, const Tensor &b);
-  template <typename T>
-  friend Tensor &operator-(const Tensor &a, const T &b);
-
-  friend Tensor &operator*(const Tensor &a, const Tensor &b);
-  template <typename T>
-  friend Tensor &operator*(const T &a, const Tensor &b);
-  template <typename T>
-  friend Tensor &operator*(const Tensor &a, const T &b);
-
-  friend Tensor &operator/(const Tensor &a, const Tensor &b);
-  template <typename T>
-  friend Tensor &operator/(const T &a, const Tensor &b);
-  template <typename T>
-  friend Tensor &operator/(const Tensor &a, const T &b);
 
  private:
   std::string name_ = "";     // tensor name

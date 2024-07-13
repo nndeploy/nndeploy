@@ -188,18 +188,38 @@ base::Status Op::init() { return base::kStatusCodeOk; }
 base::Status Op::deinit() { return base::kStatusCodeOk; }
 
 base::Status Op::reshape(base::ShapeMap &shape_map) {
-  return base::kStatusCodeOk;
-}
-base::Status Op::inferDataType(
-    std::map<std::string, base::DataType> &dtype_map) {
+  bool channge_flag = false;
+  for (auto input : inputs_) {
+    std::string name = input->getName();
+    if (shape_map.find(name) != shape_map.end()) {
+      base::IntVector old_shape = input->getShape();
+      base::IntVector new_shape = shape_map[name];
+      if (base::shapeEqual(old_shape, new_shape, 0, -1)) {
+        continue;
+      }
+    }
+    channge_flag = true;
+  }
+  if (channge_flag) {
+    this->inferShape();
+  }
   return base::kStatusCodeOk;
 }
 
 base::Status Op::preRun() { return base::kStatusCodeOk; }
 base::Status Op::postRun() { return base::kStatusCodeOk; }
 
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
-getGlobalOpCreatorMap() {
+base::Status Op::inferDataType() {
+  auto input_dtype = inputs_[0]->getDataType();
+  for (int i = 0; i < outputs_.size(); ++i) {
+    outputs_[i]->setDataType(input_dtype);
+  }
+  return base::kStatusCodeOk;
+};
+base::Status Op::inferShape() { return base::kStatusCodeOk; };
+
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::DeviceTypeCode,
                                   std::map<OpType, std::shared_ptr<OpCreator>>>>

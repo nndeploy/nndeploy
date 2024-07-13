@@ -224,9 +224,11 @@ base::Status DDIMScheduler::step(device::Tensor *output, device::Tensor *sample,
   // //arxiv.org/pdf/2010.02502.pdf
   float alpha_prod_t_prev_sqrt = std::sqrt(alpha_prod_t_prev);
   device::Tensor pred_original_sample_temp;
-  pred_original_sample_temp = alpha_prod_t_prev_sqrt * pred_original_sample;
+  // pred_original_sample_temp = alpha_prod_t_prev_sqrt * pred_original_sample;
+  // op::mul
   device::Tensor prev_sample;
-  prev_sample = pred_original_sample_temp + pred_sample_direction;
+  // prev_sample = pred_original_sample_temp + pred_sample_direction;
+  // op::add
 
   return status;
 }

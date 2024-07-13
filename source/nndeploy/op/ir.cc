@@ -70,8 +70,8 @@ ValueDesc::ValueDesc(const std::string &name, base::DataType data_type,
 ModelDesc::ModelDesc() {}
 ModelDesc::~ModelDesc(){};
 
-std::map<OpType, std::shared_ptr<OpParamCreator>> &
-getGlobalOpParamCreatorMap() {
+std::map<OpType, std::shared_ptr<OpParamCreator>>
+    &getGlobalOpParamCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<OpType, std::shared_ptr<OpParamCreator>>>
       creators;
@@ -90,7 +90,27 @@ std::shared_ptr<base::Param> createOpParam(OpType type) {
   return temp;
 }
 
-REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeConv2d, Conv2dParam);
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeConcat, ConcatParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeConv, ConvParam);
+
+// MaxPool 算子参数类的注册函数
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeMaxPool, MaxPoolParam);
+
+// Reshape 算子参数类的注册函数
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeReshape, ReshapeParam);
+
+// Resize 算子参数类的注册函数
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeResize, ResizeParam);
+
+// Slice 算子参数类的注册函数
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeSlice, SliceParam);
+
+// Softmax 算子参数类的注册函数
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeSoftmax, SoftmaxParam);
+
+// Split 算子参数类的注册函数
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeSplit, SplitParam);
 
 }  // namespace op
 }  // namespace nndeploy

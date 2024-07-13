@@ -8,6 +8,7 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/param.h"
+#include "nndeploy/base/shape.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
@@ -17,7 +18,6 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/op/ir.h"
-// #include "nndeploy/op/model_desc.h"
 
 namespace nndeploy {
 namespace op {
@@ -94,12 +94,14 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status deinit();
 
   virtual base::Status reshape(base::ShapeMap &shape_map);
-  virtual base::Status inferDataType(
-      std::map<std::string, base::DataType> &dtype_map);
 
   virtual base::Status preRun();
   virtual base::Status run() = 0;
   virtual base::Status postRun();
+
+ protected:
+  virtual base::Status inferDataType();
+  virtual base::Status inferShape();
 
  protected:
   OpDesc op_desc_;
@@ -192,8 +194,8 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
-getGlobalOpCreatorMap();
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板

@@ -432,6 +432,9 @@ std::string Tensor::getName() const { return name_; }
 
 TensorDesc Tensor::getDesc() const { return desc_; }
 base::DataType Tensor::getDataType() const { return desc_.data_type_; }
+void Tensor::setDataType(base::DataType data_type) {
+  desc_.data_type_ = data_type;
+}
 base::DataFormat Tensor::getDataFormat() const { return desc_.data_format_; }
 base::IntVector Tensor::getShape() const { return desc_.shape_; }
 int Tensor::getShapeIndex(int index) const {
