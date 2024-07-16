@@ -15,11 +15,15 @@ class NNDEPLOY_CC_API Net : public op::Op {
   Net();
   virtual ~Net();
 
+  // 在这个函数之前调用setDeviceType
   base::Status setModelDesc(std::shared_ptr<op::ModelDesc> model_desc);
 
   TensorWrapper *createTensor(const std::string &name);
   TensorWrapper *addTensor(device::Tensor *tensor, bool is_external = true);
   device::Tensor *getTensor(const std::string &name);
+
+  bool isWeight(const std::string &name);
+  base::Status covertWeight(op::Op *op, const std::string &weight);
 
   op::Op *createOp(base::DeviceType device_type, const std::string &name,
                    op::OpType op_type,
@@ -28,7 +32,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   op::Op *createOp(base::DeviceType device_type, const std::string &name,
                    op::OpType op_type, std::vector<std::string> &inputs,
                    std::vector<std::string> &outputs);
-  base::Status addOp(op::Op *op, bool is_external);
+  base::Status addNet(Net *net, bool is_external);
 
   base::Status setOpParam(const std::string &op_name,
                           std::shared_ptr<base::Param> param);
@@ -47,13 +51,13 @@ class NNDEPLOY_CC_API Net : public op::Op {
 
  protected:
   virtual base::Status construct();
+  // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
+  base::Status optimizer();
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("session init\n");
-  // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
-  // NNDEPLOY_LOGI("2. Device Verification Phase!\n");
-  // NNDEPLOY_LOGI("3. Optimizer Graph V2!\n");
-  // NNDEPLOY_LOGI("4. Memory Allocation Phase!\n");
-  // NNDEPLOY_LOGI("5. Cost Calculations!\n");
+  // NNDEPLOY_LOGI("#. Optimizer Graph V2!\n");
+  // NNDEPLOY_LOGI("#. Memory Allocation Phase!\n");
+  // NNDEPLOY_LOGI("#. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
   virtual base::Status session();
 
@@ -61,9 +65,17 @@ class NNDEPLOY_CC_API Net : public op::Op {
   std::shared_ptr<op::ModelDesc> model_desc_;
 
   std::vector<TensorWrapper *> tensor_repository_;
+  /*
+   * 权重占用内存量 - 很占内存，不占内存
+   * 设备 - 例如cann而言，就需要吧model_desc_中的权重文件加载到cann中
+   */
+  std::map<std::string, device::Tensor *> weights_;
+  // 模型权重路径 - 当权重文件很大时，通过多级存储的方式解决
+  std::map<std::string, std::string> weights_path_;
+  std::map<std::string, op::Op *> weight_op_;
   std::vector<OpWrapper *> op_repository_;
 
-  std::shared_ptr<Session> session_;
+  Session *session_;
 };
 
 Net *createNet(std::shared_ptr<op::ModelDesc> model_desc,

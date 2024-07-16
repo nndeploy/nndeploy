@@ -11,7 +11,6 @@ Op::Op() { constructed_ = true; }
 Op::~Op() {
   inputs_.clear();
   outputs_.clear();
-  weights_.clear();
   variables_.clear();
   constructed_ = false;
   initialized_ = false;
@@ -54,6 +53,12 @@ base::Status Op::setPrecisionType(base::PrecisionType precision_type) {
   return base::kStatusCodeOk;
 }
 base::Status Op::getPrecisionType() { return precision_type_; }
+
+device::Tensor *Op::covertWeight(device::Tensor *weight) { return nullptr; }
+device::Tensor *Op::covertWeight(const std::string &weight,
+                                 const std::string &path) {
+  return nullptr;
+}
 
 std::string Op::getInputName(int index) {
   if (op_desc_.inputs_.size() > index) {
@@ -218,8 +223,8 @@ base::Status Op::inferDataType() {
 };
 base::Status Op::inferShape() { return base::kStatusCodeOk; };
 
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
-    &getGlobalOpCreatorMap() {
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
+getGlobalOpCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::DeviceTypeCode,
                                   std::map<OpType, std::shared_ptr<OpCreator>>>>

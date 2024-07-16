@@ -16,14 +16,19 @@ Net::~Net() {
     }
     delete op_wrapper;
   }
+  op_repository_.clear();
   for (auto tensor_wrapper : tensor_repository_) {
     if (!tensor_wrapper->is_external_) {
       delete tensor_wrapper->tensor_;
     }
     delete tensor_wrapper;
   }
-  op_repository_.clear();
   tensor_repository_.clear();
+  for (auto weight : weight_map_) {
+    delete weight.second;
+  }
+  weight_map_.clear();
+  weights_path_.clear();
 }
 
 base::Status Net::setModelDesc(std::shared_ptr<op::ModelDesc> model_desc) {
@@ -63,19 +68,55 @@ device::Tensor *Net::getTensor(const std::string &name) {
   return nullptr;
 }
 
+bool Net::isWeight(const std::string &name) {
+  if (model_desc_->weights_.find(name) != model_desc_->weights_.end()) {
+    return true;
+  }
+  if (model_desc_->weights_path_.find(name) !=
+      model_desc_->weights_path_.end()) {
+    return true;
+  }
+  return false;
+}
+base::Status Net::covertWeight(op::Op *op, const std::string &weight) {
+  base::Status status = base::kStatusCodeOk;
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(op, "op is null!");
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(model_desc_, "model_desc is null!");
+  if (model_desc_->weights_.find(weight) != model_desc_->weights_.end()) {
+    device::Tensor *tensor = model_desc_->weights_[weight];
+    device::Tensor *weight_tensor = op->covertWeight(tensor);
+    weights_[weight] = weight_tensor;
+  } else if (model_desc_->weights_path_.find(weight) !=
+             model_desc_->weights_path_.end()) {
+    std::string path = model_desc_->weights_path_[weight];
+    weights_path_[weight] = path;
+    weight_op_[weight] = op;
+  } else {
+    NNDEPLOY_LOGE("weight[%s] is not found!\n", weight.c_str());
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  return status;
+}
+
 op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
                       op::OpType op_type,
                       std::initializer_list<std::string> inputs,
                       std::initializer_list<std::string> outputs) {
-  op::Op *op =
-      op::createOp(device_type, name, op_type, inputs,
-                   outputs);  // TODO: 这里命名与namespace op下的createOp冲突
-                              // 必须使用op::  否则递归了
+  // TODO: 这里命名与namespace op下的createOp冲突
+  // 必须使用op::  否则递归了
+  op::Op *op = op::createOp(device_type, name, op_type, inputs, outputs);
   OpWrapper *op_wrapper = new OpWrapper();
   op_wrapper->is_external_ = false;
   op_wrapper->op_ = op;
   op_wrapper->name_ = name;
   for (auto input : inputs) {
+    if (isWeight(input)) {
+      base::Status status = covertWeight(op, input);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("covert weight failed!\n");
+        return nullptr;
+      }
+    }
     TensorWrapper *input_wrapper = findTensorWrapper(tensor_repository_, input);
     if (input_wrapper == nullptr) {
       input_wrapper = this->createTensor(input);
@@ -115,6 +156,13 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
   op_wrapper->op_ = op;
   op_wrapper->name_ = name;
   for (auto input : inputs) {
+    if (isWeight(input)) {
+      base::Status status = covertWeight(op, input);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("covert weight failed!\n");
+        return nullptr;
+      }
+    }
     TensorWrapper *input_wrapper = findTensorWrapper(tensor_repository_, input);
     if (input_wrapper == nullptr) {
       input_wrapper = this->createTensor(input);
@@ -146,14 +194,14 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
   return op;
 }
 
-base::Status Net::addOp(op::Op *op, bool is_external) {
+base::Status Net::addNet(op::Op *net, bool is_external) {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(op, "op is null!");
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(net, "op is null!");
   OpWrapper *op_wrapper = new OpWrapper();
   op_wrapper->is_external_ = is_external;
-  op_wrapper->op_ = op;
-  op_wrapper->name_ = op->getName();
-  for (auto input : op->getAllInput()) {
+  op_wrapper->op_ = net;
+  op_wrapper->name_ = net->getName();
+  for (auto input : net->getAllInput()) {
     TensorWrapper *input_wrapper = findTensorWrapper(tensor_repository_, input);
     if (input_wrapper == nullptr) {
       input_wrapper = this->addTensor(input, is_external);  // todo
@@ -161,7 +209,7 @@ base::Status Net::addOp(op::Op *op, bool is_external) {
     // input_wrapper->consumers_.emplace_back(op_wrapper);
     insertUnique(input_wrapper->consumers_, op_wrapper);
   }
-  for (auto output : op->getAllOutput()) {
+  for (auto output : net->getAllOutput()) {
     TensorWrapper *output_wrapper =
         findTensorWrapper(tensor_repository_, output);
     if (output_wrapper == nullptr) {
@@ -227,6 +275,8 @@ base::Status Net::deinit() {
   // NNDEPLOY_LOGI("#######################\n");
   status = session_->deinit();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session deinit failed!");
+  delete session_;
+  session_ = nullptr;
   return status;
 }
 
@@ -322,7 +372,6 @@ base::Status Net::dump(std::ostream &oss) {
   base::Status status = dumpNet(tensor_repository_, op_repository_, inputs_,
                                 outputs_, op_desc_.name_, oss);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
-  return status;
   return base::kStatusCodeOk;
 }
 
@@ -344,22 +393,20 @@ base::Status Net::construct() {
 
   for (auto op_desc_ : model_desc_->op_descs_) {
     // 获得每一个Op的输入、输出名字
-    std::vector<std::string> inputNames;
-    std::vector<std::string> outputNames;
+    std::vector<std::string> input_names;
+    std::vector<std::string> output_names;
     for (auto input_name : op_desc_->inputs_) {
-      insertUnique(inputNames, input_name);
+      insertUnique(input_names, input_name);
     }
     for (auto output_name : op_desc_->outputs_) {
-      insertUnique(outputNames, output_name);
+      insertUnique(output_names, output_name);
     }
 
     // createOp内部包含了CreateTensor的步骤，且是Unique的
     auto op = this->createOp(device_type_, op_desc_->name_, op_desc_->op_type_,
-                             inputNames, outputNames);
-
-    op->setParam(
-        op_desc_
-            ->op_param_);  // 不对param进行判空检查  有些op没有param，例如relu
+                             input_names, output_names);
+    // 不对param进行判空检查  有些op没有param，例如relu
+    op->setParam(op_desc_->op_param_);
   }
 
   for (auto op_wrapper : op_repository_) {
@@ -436,50 +483,33 @@ base::Status Net::construct() {
     //                        "construct tensor failed!");
   }
 
-  // if (!is_inner_) {
-  //   for (auto iter : outputs_) {
-  //     iter->markGraphOutput();
-  //   }
-  // }
+  optimizer();
 
+  return status;
+}
+
+base::Status Net::optimizer() {
+  base::Status status = base::kStatusCodeOk;
   return status;
 }
 
 base::Status Net::session() {
   base::Status status = base::kStatusCodeOk;
 
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("parallel_type!\n");
-  // NNDEPLOY_LOGI("###########################\n");
-  base::ParallelType parallel_type = parallel_type_;
-
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("create session\n");
   // NNDEPLOY_LOGI("##############\n");
-  // if (parallel_type == base::kParallelTypeNone) {
-  //   session_ = std::make_shared<SequentialExecutor>();
-  // } else if (parallel_type == base::kParallelTypeSequential) {
-  //   session_ = std::make_shared<SequentialExecutor>();
-  // } else if (parallel_type == base::kParallelTypeTask) {
-  //   session_ = std::make_shared<ParallelTaskExecutor>();
-  // } else if (parallel_type == base::kParallelTypePipeline) {
-  //   session_ = std::make_shared<ParallelPipelineExecutor>();
-  // } else {
-  //   NNDEPLOY_LOGE("parallel_type is invalid!\n");
-  //   return base::kStatusCodeErrorInvalidValue;
-  // }
+  session_ = createSession(device_type_, parallel_type_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(session_, "Create session failed!");
 
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("session init\n");
-  // NNDEPLOY_LOGI("1. Optimizer Net V1!\n");
-  // NNDEPLOY_LOGI("2. Device Verification Phase!\n");
-  // NNDEPLOY_LOGI("3. Optimizer Net V2!\n");
-  // NNDEPLOY_LOGI("4. Memory Allocation Phase!\n");
-  // NNDEPLOY_LOGI("5. Cost Calculations!\n");
+  // NNDEPLOY_LOGI("#. Optimizer Graph V2!\n");
+  // NNDEPLOY_LOGI("#. Memory Allocation Phase!\n");
+  // NNDEPLOY_LOGI("#. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
-  status =
-      session_->init(tensor_repository_, op_repository_, model_desc_->weights_);
+  status = session_->init(tensor_repository_, op_repository_, weights_,
+                          weights_path_, weight_op_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session init failed!");
 
   return status;
