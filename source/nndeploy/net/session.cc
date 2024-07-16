@@ -6,8 +6,8 @@ namespace nndeploy {
 namespace net {
 
 std::map<base::DeviceTypeCode,
-         std::map<base::ParallelType, std::shared_ptr<SessionCreator>>> &
-getGlobalSessionCreatorMap() {
+         std::map<base::ParallelType, std::shared_ptr<SessionCreator>>>
+    &getGlobalSessionCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::DeviceTypeCode,

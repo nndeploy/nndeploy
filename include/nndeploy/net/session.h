@@ -67,8 +67,8 @@ class TypeSessionCreator : public SessionCreator {
  * std::shared_ptr<SessionCreator>>>&
  */
 std::map<base::DeviceTypeCode,
-         std::map<base::ParallelType, std::shared_ptr<SessionCreator>>> &
-getGlobalSessionCreatorMap();
+         std::map<base::ParallelType, std::shared_ptr<SessionCreator>>>
+    &getGlobalSessionCreatorMap();
 
 /**
  * @brief Session的创建类的注册类模板
@@ -80,7 +80,7 @@ class TypeSessionRegister {
  public:
   explicit TypeSessionRegister(base::DeviceTypeCode device_type_code,
                                base::ParallelType parallel_type) {
-    getGlobalSessionCreatorMap()[device_type_code][Session_type] =
+    getGlobalSessionCreatorMap()[device_type_code][parallel_type] =
         std::shared_ptr<T>(new T());
   }
 };

@@ -24,11 +24,12 @@ Net::~Net() {
     delete tensor_wrapper;
   }
   tensor_repository_.clear();
-  for (auto weight : weight_map_) {
+  for (auto weight : weights_) {
     delete weight.second;
   }
-  weight_map_.clear();
+  weights_.clear();
   weights_path_.clear();
+  weight_op_.clear();
 }
 
 base::Status Net::setModelDesc(std::shared_ptr<op::ModelDesc> model_desc) {
@@ -194,7 +195,7 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
   return op;
 }
 
-base::Status Net::addNet(op::Op *net, bool is_external) {
+base::Status Net::addNet(Net *net, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(net, "op is null!");
   OpWrapper *op_wrapper = new OpWrapper();
