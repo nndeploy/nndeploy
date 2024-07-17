@@ -68,7 +68,13 @@ ValueDesc::ValueDesc(const std::string &name, base::DataType data_type,
     : name_(name), data_type_(data_type), shape_(shape) {}
 
 ModelDesc::ModelDesc() {}
-ModelDesc::~ModelDesc(){};
+ModelDesc::~ModelDesc() {
+  for (auto iter : weights_) {
+    if (iter.second != nullptr) {
+      delete iter.second;
+    }
+  }
+}
 
 std::map<OpType, std::shared_ptr<OpParamCreator>>
     &getGlobalOpParamCreatorMap() {

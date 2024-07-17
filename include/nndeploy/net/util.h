@@ -28,6 +28,7 @@ class NNDEPLOY_CC_API OpWrapper {
 class NNDEPLOY_CC_API TensorWrapper {
  public:
   bool is_external_;
+  bool is_weight_ = false;
   device::Tensor *tensor_;
   std::string name_;
   std::vector<OpWrapper *> producers_;

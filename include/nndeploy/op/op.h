@@ -44,9 +44,6 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status setPrecisionType(base::PrecisionType precision_type);
   base::Status getPrecisionType();
 
-  // 内部分配，外部管理
-  virtual device::Tensor *covertWeight(device::Tensor *weight);
-
   std::string getInputName(int index = 0);
   std::string getOutputName(int index = 0);
 
@@ -196,8 +193,8 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
-getGlobalOpCreatorMap();
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板

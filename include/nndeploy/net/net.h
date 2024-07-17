@@ -16,14 +16,15 @@ class NNDEPLOY_CC_API Net : public op::Op {
   virtual ~Net();
 
   // 在这个函数之前调用setDeviceType
-  base::Status setModelDesc(std::shared_ptr<op::ModelDesc> model_desc);
+  base::Status setModelDesc(op::ModelDesc *model_desc);
 
-  TensorWrapper *createTensor(const std::string &name);
-  TensorWrapper *addTensor(device::Tensor *tensor, bool is_external = true);
+  TensorWrapper *createTensor(const std::string &name, bool is_weight = false);
+  TensorWrapper *addTensor(device::Tensor *tensor, bool is_external = true,
+                           bool is_weight = false);
   device::Tensor *getTensor(const std::string &name);
 
   bool isWeight(const std::string &name);
-  base::Status covertWeight(op::Op *op, const std::string &weight);
+  device::Tensor *getWeight(const std::string &weight);
 
   op::Op *createOp(base::DeviceType device_type, const std::string &name,
                    op::OpType op_type,
@@ -50,6 +51,10 @@ class NNDEPLOY_CC_API Net : public op::Op {
   base::Status dump(std::ostream &oss);
 
  protected:
+  virtual base::Status inferDataType();
+  virtual base::Status inferShape();
+
+ protected:
   virtual base::Status construct();
   // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
   base::Status optimizer();
@@ -62,20 +67,20 @@ class NNDEPLOY_CC_API Net : public op::Op {
   virtual base::Status session();
 
  protected:
-  std::shared_ptr<op::ModelDesc> model_desc_;
+  op::ModelDesc *model_desc_;
 
   std::vector<TensorWrapper *> tensor_repository_;
-  /*
-   * 设备 - 例如cann而言，就需要吧model_desc_中的权重文件加载到cann中
-   */
-  std::map<std::string, device::Tensor *> weights_;
   std::vector<OpWrapper *> op_repository_;
+
+  bool is_dynamic_shape_ = false;                // 是否是动态shape
+  base::ShapeMap min_shape_ = base::ShapeMap();  // 当为动态输入时最小shape
+  base::ShapeMap opt_shape_ = base::ShapeMap();  // 当为动态输入时最优shape
+  base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
 
   Session *session_;
 };
 
-Net *createNet(std::shared_ptr<op::ModelDesc> model_desc,
-               base::DeviceType device_type,
+Net *createNet(op::ModelDesc *model_desc, base::DeviceType device_type,
                base::PrecisionType precision_type);
 
 }  // namespace net

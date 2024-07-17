@@ -21,10 +21,7 @@ class NNDEPLOY_CC_API Session : public base::NonCopyable {
   virtual ~Session(){};
 
   virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
-                            std::vector<OpWrapper *> &op_repository,
-                            std::map<std::string, device::Tensor *> &weights,
-                            std::map<std::string, std::string> &weights_path_,
-                            std::map<std::string, op::Op *> &weight_op_) = 0;
+                            std::vector<OpWrapper *> &op_repository) = 0;
   virtual base::Status deinit() = 0;
 
   virtual base::Status reshape(base::ShapeMap &shape_map) = 0;

@@ -40,8 +40,8 @@ std::vector<std::string> Expr::getOutputName() {
   }
 }
 
-std::shared_ptr<Expr> makeInput(std::shared_ptr<ModelDesc> model_desc,
-                                std::string name, base::DataType data_type,
+std::shared_ptr<Expr> makeInput(ModelDesc *model_desc, std::string name,
+                                base::DataType data_type,
                                 base::IntVector shape) {
   auto value_desc = std::make_shared<ValueDesc>(name, data_type, shape);
   if (model_desc != nullptr) {
@@ -50,8 +50,7 @@ std::shared_ptr<Expr> makeInput(std::shared_ptr<ModelDesc> model_desc,
   auto expr = std::make_shared<Expr>(value_desc);
   return expr;
 }
-void makeOutput(std::shared_ptr<ModelDesc> model_desc,
-                std::shared_ptr<Expr> expr) {
+void makeOutput(ModelDesc *model_desc, std::shared_ptr<Expr> expr) {
   if (model_desc != nullptr) {
     std::vector<std::string> output = expr->getOutputName();
     for (auto &name : output) {
@@ -60,7 +59,7 @@ void makeOutput(std::shared_ptr<ModelDesc> model_desc,
     }
   }
 }
-std::shared_ptr<Expr> makeBlock(std::shared_ptr<ModelDesc> model_desc,
+std::shared_ptr<Expr> makeBlock(ModelDesc *model_desc,
                                 std::shared_ptr<ModelDesc> model_block) {
   if (model_desc != nullptr) {
     model_desc->blocks_.push_back(model_block);
@@ -68,7 +67,7 @@ std::shared_ptr<Expr> makeBlock(std::shared_ptr<ModelDesc> model_desc,
   auto expr = std::make_shared<Expr>(model_block);
   return expr;
 }
-std::shared_ptr<Expr> makeConv(std::shared_ptr<ModelDesc> model_desc,
+std::shared_ptr<Expr> makeConv(ModelDesc *model_desc,
                                std::shared_ptr<Expr> input,
                                std::shared_ptr<ConvParam> param,
                                const std::string &weight,
@@ -107,7 +106,7 @@ std::shared_ptr<Expr> makeConv(std::shared_ptr<ModelDesc> model_desc,
   return expr;
 }
 
-std::shared_ptr<Expr> makeRelu(std::shared_ptr<ModelDesc> model_desc,
+std::shared_ptr<Expr> makeRelu(ModelDesc *model_desc,
                                std::shared_ptr<Expr> input, std::string op_name,
                                std::string output_name) {
   std::string name = op_name;
@@ -137,7 +136,7 @@ std::shared_ptr<Expr> makeRelu(std::shared_ptr<ModelDesc> model_desc,
 }
 
 // TODO: @Leonisux:
-// 补充llama的算子的手动构图函数  
+// 补充llama的算子的手动构图函数
 
 // void testExpr() {
 //   {
@@ -160,21 +159,17 @@ std::shared_ptr<Expr> makeRelu(std::shared_ptr<ModelDesc> model_desc,
 //   }
 // }
 
-class Llama {
+class Llama : public ModelDesc {
  public:
-  Llama() {};
-  ~Llama() {};
-  init() {
-    model_desc_ = std::make_shared<ModelDesc>();
-    auto input = makeInput(model_desc_, "input");
-    auto conv1 = makeConv(model_desc_, input, std::make_shared<ConvParam>(),
-                            "weight", "bias");
-    auto relu1 = makeRelu(model_desc_, conv1);
-    makeOutput(model_desc_, relu1);
+  Llama(){};
+  ~Llama(){};
+  void init() {
+    auto input = makeInput(this, "input");
+    auto conv1 =
+        makeConv(this, input, std::make_shared<ConvParam>(), "weight", "bias");
+    auto relu1 = makeRelu(this, conv1);
+    makeOutput(this, relu1);
   }
-
-  private:
-    std::shared_ptr<ModelDesc> model_desc_;
 };
 
 }  // namespace op
