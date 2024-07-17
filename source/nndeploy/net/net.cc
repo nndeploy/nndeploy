@@ -28,8 +28,6 @@ Net::~Net() {
     delete weight.second;
   }
   weights_.clear();
-  weights_path_.clear();
-  weight_op_.clear();
 }
 
 base::Status Net::setModelDesc(std::shared_ptr<op::ModelDesc> model_desc) {
@@ -73,10 +71,6 @@ bool Net::isWeight(const std::string &name) {
   if (model_desc_->weights_.find(name) != model_desc_->weights_.end()) {
     return true;
   }
-  if (model_desc_->weights_path_.find(name) !=
-      model_desc_->weights_path_.end()) {
-    return true;
-  }
   return false;
 }
 base::Status Net::covertWeight(op::Op *op, const std::string &weight) {
@@ -87,11 +81,6 @@ base::Status Net::covertWeight(op::Op *op, const std::string &weight) {
     device::Tensor *tensor = model_desc_->weights_[weight];
     device::Tensor *weight_tensor = op->covertWeight(tensor);
     weights_[weight] = weight_tensor;
-  } else if (model_desc_->weights_path_.find(weight) !=
-             model_desc_->weights_path_.end()) {
-    std::string path = model_desc_->weights_path_[weight];
-    weights_path_[weight] = path;
-    weight_op_[weight] = op;
   } else {
     NNDEPLOY_LOGE("weight[%s] is not found!\n", weight.c_str());
     return base::kStatusCodeErrorInvalidValue;
@@ -509,8 +498,7 @@ base::Status Net::session() {
   // NNDEPLOY_LOGI("#. Memory Allocation Phase!\n");
   // NNDEPLOY_LOGI("#. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
-  status = session_->init(tensor_repository_, op_repository_, weights_,
-                          weights_path_, weight_op_);
+  status = session_->init(tensor_repository_, op_repository_, weights_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session init failed!");
 
   return status;

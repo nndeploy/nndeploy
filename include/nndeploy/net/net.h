@@ -66,13 +66,9 @@ class NNDEPLOY_CC_API Net : public op::Op {
 
   std::vector<TensorWrapper *> tensor_repository_;
   /*
-   * 权重占用内存量 - 很占内存，不占内存
    * 设备 - 例如cann而言，就需要吧model_desc_中的权重文件加载到cann中
    */
   std::map<std::string, device::Tensor *> weights_;
-  // 模型权重路径 - 当权重文件很大时，通过多级存储的方式解决
-  std::map<std::string, std::string> weights_path_;
-  std::map<std::string, op::Op *> weight_op_;
   std::vector<OpWrapper *> op_repository_;
 
   Session *session_;

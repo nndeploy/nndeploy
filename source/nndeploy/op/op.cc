@@ -55,10 +55,6 @@ base::Status Op::setPrecisionType(base::PrecisionType precision_type) {
 base::Status Op::getPrecisionType() { return precision_type_; }
 
 device::Tensor *Op::covertWeight(device::Tensor *weight) { return nullptr; }
-device::Tensor *Op::covertWeight(const std::string &weight,
-                                 const std::string &path) {
-  return nullptr;
-}
 
 std::string Op::getInputName(int index) {
   if (op_desc_.inputs_.size() > index) {

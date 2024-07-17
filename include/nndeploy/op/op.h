@@ -46,8 +46,6 @@ class NNDEPLOY_CC_API Op {
 
   // 内部分配，外部管理
   virtual device::Tensor *covertWeight(device::Tensor *weight);
-  virtual device::Tensor *covertWeight(const std::string &weight,
-                                       const std::string &path);
 
   std::string getInputName(int index = 0);
   std::string getOutputName(int index = 0);
