@@ -136,6 +136,9 @@ std::shared_ptr<Expr> makeRelu(std::shared_ptr<ModelDesc> model_desc,
   return expr;
 }
 
+// TODO: @Leonisux:
+// 补充llama的算子的手动构图函数  
+
 // void testExpr() {
 //   {
 //     auto model_desc = std::make_shared<ModelDesc>();
@@ -157,17 +160,22 @@ std::shared_ptr<Expr> makeRelu(std::shared_ptr<ModelDesc> model_desc,
 //   }
 // }
 
-// class VAE {
-//  public:
-//   VAE() {
-//     auto model_desc = std::make_shared<ModelDesc>();
-//     auto input = makeInput(model_desc, "input");
-//     auto conv1 = makeConv(model_desc, input, std::make_shared<ConvParam>(),
-//                             "weight", "bias");
-//     auto relu1 = makeRelu(model_desc, conv1);
-//     makeOutput(model_desc, relu1);
-//   }
-// };
+class Llama {
+ public:
+  Llama() {};
+  ~Llama() {};
+  init() {
+    model_desc_ = std::make_shared<ModelDesc>();
+    auto input = makeInput(model_desc_, "input");
+    auto conv1 = makeConv(model_desc_, input, std::make_shared<ConvParam>(),
+                            "weight", "bias");
+    auto relu1 = makeRelu(model_desc_, conv1);
+    makeOutput(model_desc_, relu1);
+  }
+
+  private:
+    std::shared_ptr<ModelDesc> model_desc_;
+};
 
 }  // namespace op
 }  // namespace nndeploy

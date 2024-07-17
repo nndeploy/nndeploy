@@ -64,6 +64,9 @@ std::shared_ptr<Expr> makeRelu(std::shared_ptr<ModelDesc> model_desc,
                                std::string op_name = "",
                                std::string output_name = "");
 
+// TODO: @Leonisux:
+// 补充llama的算子的手动构图函数                    
+
 }  // namespace op
 }  // namespace nndeploy
 

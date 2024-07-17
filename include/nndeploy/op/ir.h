@@ -197,6 +197,9 @@ enum OpType : int {
   kOpTypeWhere,
   kOpTypeXor,
 
+  // TODO: @Leonisux: 
+  // 1. 增加llama的算子类型
+
   kOpTypeNone,
 };
 
@@ -283,8 +286,6 @@ class ModelDesc {
   std::vector<std::shared_ptr<OpDesc>> op_descs_;
   // 模型权重
   std::map<std::string, device::Tensor *> weights_;
-  // 模型权重路径 - 当权重文件很大时，通过多级存储的方式解决
-  std::map<std::string, std::string> weights_path_;
   // 模型输入
   std::vector<std::shared_ptr<ValueDesc>> inputs_;
   // 模型输出
@@ -559,6 +560,9 @@ class SplitParam : public OpParam {
   int axis_;   // 分割轴
   int split_;  // 分割数
 };
+
+// TODO: @Leonisux:
+// 补充llama的算子的参数
 
 }  // namespace op
 }  // namespace nndeploy

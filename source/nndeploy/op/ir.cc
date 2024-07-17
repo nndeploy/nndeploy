@@ -112,5 +112,8 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeSoftmax, SoftmaxParam);
 // Split 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeSplit, SplitParam);
 
+// TODO: @Leonisux:
+// 补充llama的算子的参数的注册
+
 }  // namespace op
 }  // namespace nndeploy
