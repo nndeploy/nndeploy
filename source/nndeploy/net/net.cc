@@ -225,6 +225,8 @@ base::Status Net::init() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
 
+  // 即使是设备相关的图优化，也可以放在优化器中做
+  // 经过这一次图优化之后
   status = optimizer();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
@@ -279,6 +281,24 @@ base::Status Net::deinit() {
   return status;
 }
 
+base::Status Net::inferDataType() {
+  base::Status status = base::kStatusCodeOk;
+  for (auto iter : op_repository_) {
+    status = iter->op_->inferDataType();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "inferDataType failed!");
+  }
+  return status;
+};
+base::Status Net::inferShape() {
+  base::Status status = base::kStatusCodeOk;
+  for (auto iter : op_repository_) {
+    status = iter->op_->inferShape();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "inferDataType failed!");
+  }
+  return status;
+};
 base::Status Net::reshape(base::ShapeMap &shape_map) {
   base::Status status = base::kStatusCodeOk;
 
@@ -374,21 +394,6 @@ base::Status Net::dump(std::ostream &oss) {
   return base::kStatusCodeOk;
 }
 
-base::Status Net::inferDataType() {
-  base::Status status = base::kStatusCodeOk;
-  for (auto iter : op_repository_) {
-    // status = iter->op_->inferDataType();
-  }
-  return status;
-};
-base::Status Net::inferShape() {
-  base::Status status = base::kStatusCodeOk;
-  for (auto iter : op_repository_) {
-    // status = iter->op_->inferShape();
-  }
-  return status;
-};
-
 /**
  * @brief 遍历ModelDesc中的构图信息，生成TensorWrapper和OpWrapper
  * @return base::Status
@@ -401,10 +406,7 @@ base::Status Net::construct() {
   // NNDEPLOY_LOGI("###########################\n");
   base::ParallelType parallel_type = parallel_type_;
 
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
-  // NNDEPLOY_LOGI("###########################\n");
-
+  // 算子的构建
   for (auto op_desc_ : model_desc_->op_descs_) {
     // 获得每一个Op的输入、输出名字
     std::vector<std::string> input_names;
@@ -423,6 +425,36 @@ base::Status Net::construct() {
     op->setParam(op_desc_->op_param_);
   }
 
+  // 输入的构建
+  for (auto input : model_desc_->inputs_) {
+    TensorWrapper *input_wrapper =
+        findTensorWrapper(tensor_repository_, input->name_);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->createTensor(input->name_);
+      NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
+                                           "create tensor failed!");
+    }
+    inputs_.emplace_back(input_wrapper->tensor_);
+
+    input_wrapper->tensor_->setDataType(input->data_type_);
+
+    base::IntVector shape = input->shape_;
+    if (shape.empty()) {
+      if (opt_shape_.find(input->name_) != opt_shape_.end()) {
+        shape = opt_shape_[input->name_];
+      }
+    }
+    if (is_dynamic_shape_) {
+      if (max_shape_.find(input->name_) != max_shape_.end()) {
+        shape = max_shape_[input->name_];
+      }
+    }
+    input_wrapper->tensor_->reshape(shape);
+  }
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
+  // NNDEPLOY_LOGI("###########################\n");
   for (auto op_wrapper : op_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(op_wrapper->op_,
                                          "tensor_repository_ op is null!");

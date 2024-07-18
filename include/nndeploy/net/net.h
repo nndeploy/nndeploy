@@ -42,6 +42,8 @@ class NNDEPLOY_CC_API Net : public op::Op {
   virtual base::Status init();
   virtual base::Status deinit();
 
+  virtual base::Status inferDataType();
+  virtual base::Status inferShape();
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual base::Status preRun();
@@ -49,10 +51,6 @@ class NNDEPLOY_CC_API Net : public op::Op {
   virtual base::Status postRun();
 
   base::Status dump(std::ostream &oss);
-
- protected:
-  virtual base::Status inferDataType();
-  virtual base::Status inferShape();
 
  protected:
   virtual base::Status construct();
