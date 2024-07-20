@@ -10,7 +10,7 @@ git clone --recursive https://github.com/nndeploy/nndeploy.git
 
 ## 编译宏介绍
 
-参考[complie_option.md](complie_option.md) 详细介绍，该文件详细介绍了所有编译宏含义以及用法。
+参考[config.cmake](../../../cmake/config.cmake) 详细介绍，该文件详细介绍了所有编译宏含义以及用法。
 
 
 ## config.cmake的编辑规则
@@ -21,12 +21,12 @@ git clone --recursive https://github.com/nndeploy/nndeploy.git
 + `nndeploy`使能模型部署实例。首先将模型类别`set(NABLE_NNDEPLOY_MODEL_XXX ON)`，再将具体的模型`set(NABLE_NNDEPLOY_MODEL_XXX_YYY ON)`
 + `nndeploy`使能可执行程序，`set(ENABLE_NNDEPLOY_DEMO ON)`
 
-### 使能并链接第三方库的两种方法
-+ 方法一：路径`path`，头文件以及库的根路径，其形式必须修改为
+### `使能并链接第三方库的两种方法`
++ `方法一`：路径`path`，头文件以及库的根路径，其形式必须修改为
   + 头文件：`path/include`
   + 库：`path/lib `
   + windows dll: `path/bin`
-+ 方法二：开关`ON`，如果你安装了该库，并且可以通过find_package找到该库，可以采用该方式，例如CUDA、CUDNN、OpenCV、TenosrRT
++ `方法二`：开关`ON`，如果你安装了该库，并且可以通过find_package找到该库，可以采用该方式，例如CUDA、CUDNN、OpenCV、TenosrRT
 
 
 ## 主库编译

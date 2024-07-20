@@ -16,9 +16,9 @@
 set(ENABLE_NNDEPLOY_BUILD_SHARED ON) # 是否编译为动态库，默认ON
 set(ENABLE_NNDEPLOY_SYMBOL_HIDE ON) # 符号表是否隐藏，默认为ON
 set(ENABLE_NNDEPLOY_COVERAGE OFF) # 是否使能代码覆盖率分析，默认为OFF
-set(ENABLE_NNDEPLOY_CXX11_ABI ON) # C++的版本，选择为C++11，默认为ON
+set(ENABLE_NNDEPLOY_CXX11_ABI OFF) # C++的版本，选择为C++11，默认为ON
 set(ENABLE_NNDEPLOY_CXX14_ABI OFF) # C++的版本，选择为C++14，默认为OFF
-set(ENABLE_NNDEPLOY_CXX17_ABI OFF) # C++的版本，选择为C++17，默认为OFF
+set(ENABLE_NNDEPLOY_CXX17_ABI ON) # C++的版本，选择为C++17，默认为OFF
 set(ENABLE_NNDEPLOY_CXX20_ABI OFF) # C++的版本，选择为C++20，默认为OFF
 set(ENABLE_NNDEPLOY_OPENMP ON) # 否使用OpenMP，该选项在Mac/iOS平台无效，默认为ON
 set(ENABLE_NNDEPLOY_ADDRESS_SANTIZER OFF) # 内存泄露检测，默认为OFF
@@ -46,12 +46,9 @@ set(ENABLE_NNDEPLOY_DEVICE_HVX OFF) # 是否使能device apple hvx，默认为OF
 set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL OFF) # 是否使能device apple ascend cl，默认为OFF
 ## op
-set(ENABLE_NNDEPLOY_OP OFF) # 是否编译op目录中文件，默认为OFF
-set(ENABLE_NNDEPLOY_OP_NN OFF) # 是否编译op nn录中文件，默认为OFF
-set(ENABLE_NNDEPLOY_OP_CV OFF) # 是否编译op cv录中文件，默认为OFF
-set(ENABLE_NNDEPLOY_OP_AUDIO OFF) # 是否编译op audio录中文件，默认为OFF
-## net
-set(ENABLE_NNDEPLOY_NET OFF)  # 是否编译net目录中文件，默认为OFF
+set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
+## forward
+set(ENABLE_NNDEPLOY_NET ON)  # 是否编译forward目录中文件，默认为OFF
 ## inference
 set(ENABLE_NNDEPLOY_INFERENCE ON) # 是否编译inference目录中文件，默认为ON
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON) # 是否使能INFERENCE TENSORRT，默认为OFF
@@ -84,5 +81,12 @@ set(ENABLE_NNDEPLOY_MODEL_DETECT_DETR OFF) # 是否使能检测类 DETR 模型�
 set(ENABLE_NNDEPLOY_MODEL_DETECT_YOLO ON) # 是否使能检测类 YOLO 模型，默认为OFF
 
 ## model segment
-set(ENABLE_NNDEPLOY_MODEL_SEGMENT OFF) # 是否使能分割类模型，默认为OFF
-set(ENABLE_NNDEPLOY_MODEL_SEGMENT_SEGMENT_ANYTHING OFF) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF
+set(ENABLE_NNDEPLOY_MODEL_SEGMENT ON) # 是否使能分割类模型，默认为OFF
+set(ENABLE_NNDEPLOY_MODEL_SEGMENT_SEGMENT_ANYTHING ON) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF
+
+## model tokenizer
+set(ENABLE_NNDEPLOY_MODEL_TOKENIZER ON) # 是否使能分割类模型，默认为OFF
+set(ENABLE_NNDEPLOY_MODEL_TOKENIZER_CPP ON) # 是否使能分割类模型，默认为OFF
+
+## model stable diffusion
+set(ENABLE_NNDEPLOY_MODEL_STABLE_DIFFUSION ON) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF

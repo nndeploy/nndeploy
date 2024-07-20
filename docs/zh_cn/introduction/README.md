@@ -42,7 +42,9 @@
 | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) |   √   |    -    |    -    |   -   |   -   | [100312dog](https://github.com/100312dog)                                          |         |
 
 
-**Notice:** TFLite, TVM, OpenPPL, sophgo, Horizon正在开发中，我们正在努力覆盖绝大部分的主流推理框架
+**Notice:** 
+- TFLite, TVM, OpenPPL, sophgo, Horizon正在开发中，我们正在努力覆盖绝大部分的主流推理框架
+- `选择对应推理后端时，加载的模型文件仍为该推理后端要求的模型文件格式`
 
 ### 3. 简单易用
 
