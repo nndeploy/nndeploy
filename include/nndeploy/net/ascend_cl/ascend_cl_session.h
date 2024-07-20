@@ -10,6 +10,7 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/device/ascend_cl/ascend_cl_device.h"
 #include "nndeploy/net/session.h"
 #include "nndeploy/net/util.h"
 
@@ -22,8 +23,7 @@ class NNDEPLOY_CC_API AscendCLSession : public Session {
   virtual ~AscendCLSession(){};
 
   virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
-                            std::vector<OpWrapper *> &op_repository,
-                            std::map<std::string, device::Tensor *> weights);
+                            std::vector<OpWrapper *> &op_repository);
   virtual base::Status deinit();
 
   virtual base::Status reshape(base::ShapeMap &shape_map);

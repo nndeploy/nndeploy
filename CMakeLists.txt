@@ -372,6 +372,41 @@ if(ENABLE_NNDEPLOY_NET)
     "${ROOT_PATH}/include/nndeploy/net/*.h"
     "${ROOT_PATH}/source/nndeploy/net/*.cc"
   )
+  if (ENABLE_NNDEPLOY_DEVICE_CPU)
+    file(GLOB_RECURSE NET_CPU_SOURCE
+      "${ROOT_PATH}/include/nndeploy/net/cpu/*.h"
+      "${ROOT_PATH}/source/nndeploy/net/cpu/*.cc"
+    )
+    set(NET_SOURCE ${NET_SOURCE} ${NET_CPU_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_X86)
+    file(GLOB_RECURSE NET_X86_SOURCE
+      "${ROOT_PATH}/include/nndeploy/net/x86/*.h"
+      "${ROOT_PATH}/source/nndeploy/net/x86/*.cc"
+    )
+    set(NET_SOURCE ${NET_SOURCE} ${NET_X86_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_ARM)
+    file(GLOB_RECURSE NET_ARM_SOURCE
+      "${ROOT_PATH}/include/nndeploy/net/arm/*.h"
+      "${ROOT_PATH}/source/nndeploy/net/arm/*.cc"
+    )
+    set(NET_SOURCE ${NET_SOURCE} ${NET_ARM_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_CUDA)
+    file(GLOB_RECURSE NET_CUDA_SOURCE
+      "${ROOT_PATH}/include/nndeploy/net/cuda/*.h"
+      "${ROOT_PATH}/source/nndeploy/net/cuda/*.cc"
+    )
+    set(NET_SOURCE ${NET_SOURCE} ${NET_CUDA_SOURCE})
+  endif()
+  if (ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
+    file(GLOB_RECURSE NET_ASCEND_CL_SOURCE
+      "${ROOT_PATH}/include/nndeploy/net/ascend_cl/*.h"
+      "${ROOT_PATH}/source/nndeploy/net/ascend_cl/*.cc"
+    )
+    set(NET_SOURCE ${NET_SOURCE} ${NET_ASCEND_CL_SOURCE})
+  endif()
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${NET_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_INFERENCE)

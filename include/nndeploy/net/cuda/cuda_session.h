@@ -10,6 +10,8 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/device/cuda/cuda_device.h"
+#include "nndeploy/net/session.h"
 #include "nndeploy/net/util.h"
 
 namespace nndeploy {
@@ -20,10 +22,8 @@ class NNDEPLOY_CC_API CudaSession : public base::NonCopyable {
   CudaSession(){};
   virtual ~CudaSession(){};
 
-  virtual base::Status init(
-      std::vector<TensorWrapper *> &tensor_repository,
-      std::vector<OpWrapper *> &op_repository,
-      std::map<std::string, device::Tensor *> weights) = 0;
+  virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
+                            std::vector<OpWrapper *> &op_repository) = 0;
   virtual base::Status deinit() = 0;
 
   virtual base::Status reshape(base::ShapeMap &shape_map) = 0;
