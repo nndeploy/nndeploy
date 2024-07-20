@@ -109,6 +109,58 @@ bool DeviceType::operator!=(const DeviceTypeCode &other) const {
   return !(*this == other);
 }
 
+std::string dataTypeToString(DataType data_type) {
+  std::string dst;
+  if (data_type.code_ == kDataTypeCodeFp) {
+    dst = "kDataTypeCodeFp";
+  } else if (data_type.code_ == kDataTypeCodeUint) {
+    dst = "kDataTypeCodeUint";
+  } else if (data_type.code_ == kDataTypeCodeInt) {
+    dst = "kDataTypeCodeInt";
+  } else {
+    dst = "kDataTypeCodeNotSupport";
+  }
+  dst += std::to_string(data_type.bits_);
+  if (data_type.lanes_ > 1) {
+    dst += "x" + std::to_string(data_type.lanes_);
+  }
+  return dst;
+}
+
+std::string dataFormatToString(DataFormat data_format) {
+  std::string dst;
+  if (data_format == kDataFormatN) {
+    dst = "kDataFormatN";
+  } else if (data_format == kDataFormatNC) {
+    dst = "kDataFormatNC";
+  } else if (data_format == kDataFormatNHW) {
+    dst = "kDataFormatNHW";
+  } else if (data_format == kDataFormatNWC) {
+    dst = "kDataFormatNWC";
+  } else if (data_format == kDataFormatNCW) {
+    dst = "kDataFormatNCW";
+  } else if (data_format == kDataFormatNCHW) {
+    dst = "kDataFormatNCHW";
+  } else if (data_format == kDataFormatNHWC) {
+    dst = "kDataFormatNHWC";
+  } else if (data_format == kDataFormatOIHW) {
+    dst = "kDataFormatOIHW";
+  } else if (data_format == kDataFormatNC4HW) {
+    dst = "kDataFormatNC4HW";
+  } else if (data_format == kDataFormatNC8HW) {
+    dst = "kDataFormatNC8HW";
+  } else if (data_format == kDataFormatNCDHW) {
+    dst = "kDataFormatNCDHW";
+  } else if (data_format == kDataFormatNDHWC) {
+    dst = "kDataFormatNDHWC";
+  } else if (data_format == kDataFormatAuto) {
+    dst = "kDataFormatAuto";
+  } else {
+    dst = "kDataFormatNotSupport";
+  }
+  return dst;
+}
+
 DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {
   if (src == "kDeviceTypeCodeCpu") {
     return kDeviceTypeCodeCpu;
@@ -149,6 +201,35 @@ DeviceType stringToDeviceType(const std::string &src) {
   } else {
     dst.device_id_ = stoi(id);
   }
+  return dst;
+}
+
+std::string deviceTypeToString(DeviceType src) {
+  std::string dst;
+  if (src.code_ == kDeviceTypeCodeCpu) {
+    dst = "kDeviceTypeCodeCpu";
+  } else if (src.code_ == kDeviceTypeCodeArm) {
+    dst = "kDeviceTypeCodeArm";
+  } else if (src.code_ == kDeviceTypeCodeX86) {
+    dst = "kDeviceTypeCodeX86";
+  } else if (src.code_ == kDeviceTypeCodeCuda) {
+    dst = "kDeviceTypeCodeCuda";
+  } else if (src.code_ == kDeviceTypeCodeAscendCL) {
+    dst = "kDeviceTypeCodeAscendCL";
+  } else if (src.code_ == kDeviceTypeCodeOpenCL) {
+    dst = "kDeviceTypeCodeOpenCL";
+  } else if (src.code_ == kDeviceTypeCodeOpenGL) {
+    dst = "kDeviceTypeCodeOpenGL";
+  } else if (src.code_ == kDeviceTypeCodeMetal) {
+    dst = "kDeviceTypeCodeMetal";
+  } else if (src.code_ == kDeviceTypeCodeVulkan) {
+    dst = "kDeviceTypeCodeVulkan";
+  } else if (src.code_ == kDeviceTypeCodeAppleNpu) {
+    dst = "kDeviceTypeCodeAppleNpu";
+  } else {
+    dst = "kDeviceTypeCodeNotSupport";
+  }
+  dst += ":" + std::to_string(src.device_id_);
   return dst;
 }
 

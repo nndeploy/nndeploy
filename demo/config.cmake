@@ -20,3 +20,7 @@ endif()
 if (ENABLE_NNDEPLOY_NET)
   include(${ROOT_PATH}/demo/test_net/config.cmake)
 endif()
+
+if (ENABLE_NNDEPLOY_MODEL_TOKENIZER_CPP)
+  include(${ROOT_PATH}/demo/tokenizer_cpp/config.cmake)
+endif()

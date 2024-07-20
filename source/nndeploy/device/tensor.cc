@@ -1,6 +1,8 @@
 
 #include "nndeploy/device/tensor.h"
 
+#include "nndeploy/base/string.h"
+
 namespace nndeploy {
 namespace device {
 
@@ -307,6 +309,85 @@ base::Status Tensor::copyTo(Tensor *dst) {
   return status;
 }
 
+// 类似pytorch的打印函数
+void Tensor::print() {
+  std::string name = this->getName();
+  base::DataType data_type = desc_.data_type_;
+  std::cout << "Tensor: " << name << std::endl;
+  std::cout << "device type: "
+            << base::deviceTypeToString(this->getDeviceType()) << std::endl;
+  std::cout << "ref_count: " << ref_count_[0] << std::endl;
+  desc_.print();
+  Device *host_device = getDefaultHostDevice();
+  Buffer *host_buffer = nullptr;
+  if (!device::isHostDeviceType(this->getDeviceType())) {
+    host_buffer = new Buffer(host_device, this->toBufferDesc());
+    if (host_buffer == nullptr) {
+      NNDEPLOY_LOGE("host_buffer is empty");
+      return;
+    }
+    buffer_->copyTo(host_buffer);
+  } else {
+    host_buffer = buffer_;
+  }
+  size_t size = host_buffer->getSize();
+  size_t ele_size = data_type.size();
+  size_t ele_count = size / ele_size;
+  void *data = host_buffer->getData();
+
+  if (data_type.code_ == base::kDataTypeCodeInt && data_type.bits_ == 8 &&
+      data_type.lanes_ == 1) {
+    base::printData((int8_t *)data, ele_count);
+  } else if (data_type.code_ == base::kDataTypeCodeInt &&
+             data_type.bits_ == 16 && data_type.lanes_ == 1) {
+    base::printData((int16_t *)data, ele_count);
+  } else if (data_type.code_ == base::kDataTypeCodeInt &&
+             data_type.bits_ == 32 && data_type.lanes_ == 1) {
+    base::printData((int32_t *)data, ele_count);
+  } else if (data_type.code_ == base::kDataTypeCodeInt &&
+             data_type.bits_ == 64 && data_type.lanes_ == 1) {
+    base::printData((int64_t *)data, ele_count);
+  } else if (data_type.code_ == base::kDataTypeCodeUint &&
+             data_type.bits_ == 8 && data_type.lanes_ == 1) {
+    base::printData((uint8_t *)data, ele_count);
+  } else if (data_type.code_ == base::kDataTypeCodeUint &&
+             data_type.bits_ == 16 && data_type.lanes_ == 1) {
+    base::printData((uint16_t *)data, ele_count);
+  } else if (data_type.code_ == base::kDataTypeCodeUint &&
+             data_type.bits_ == 32 && data_type.lanes_ == 1) {
+    base::printData((uint32_t *)data, ele_count);
+  } else if (data_type.code_ == base::kDataTypeCodeUint &&
+             data_type.bits_ == 64 && data_type.lanes_ == 1) {
+    base::printData((uint64_t *)data, ele_count);
+  } else if (data_type.code_ == base::kDataTypeCodeFp &&
+             data_type.bits_ == 32 && data_type.lanes_ == 1) {
+    base::printData((float *)data, ele_count);
+  } else if (data_type.code_ == base::kDataTypeCodeFp &&
+             data_type.bits_ == 64 && data_type.lanes_ == 1) {
+    base::printData((double *)data, ele_count);
+  } else if (data_type.code_ == base::kDataTypeCodeBFp &&
+             data_type.bits_ == 16 && data_type.lanes_ == 1) {
+    float *fp32 = (float *)malloc(ele_count * sizeof(float));
+    base::convertFromBfp16ToFloat((void *)data, fp32, ele_count);
+    base::printData((float *)fp32, ele_count);
+    free(fp32);
+  } else if (data_type.code_ == base::kDataTypeCodeFp &&
+             data_type.bits_ == 16 && data_type.lanes_ == 1) {
+    float *fp32 = (float *)malloc(ele_count * sizeof(float));
+    base::convertFromFp16ToFloat((void *)data, fp32, ele_count);
+    base::printData((float *)data, ele_count);
+    free(fp32);
+  } else {
+    NNDEPLOY_LOGE("data type is not support");
+  }
+
+  if (!device::isHostDeviceType(this->getDeviceType())) {
+    delete host_buffer;
+  }
+
+  return;
+}
+
 bool Tensor::isSameDevice(Tensor *tensor) const {
   Device *src = this->getDevice();
   Device *dst = this->getDevice();
@@ -584,8 +665,8 @@ base::MemoryType Tensor::getMemoryType() const {
   }
 }
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
-getGlobalTensorCreatorMap() {
+std::map<base::TensorType, std::shared_ptr<TensorCreator>>
+    &getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorType, std::shared_ptr<TensorCreator>>>

@@ -40,6 +40,8 @@ struct NNDEPLOY_CC_API BufferDesc {
   bool operator==(const BufferDesc &other) const;
   bool operator!=(const BufferDesc &other) const;
 
+  void print();
+
   /**
    * @brief
    * 1d size
@@ -76,6 +78,8 @@ struct NNDEPLOY_CC_API TensorDesc {
 
   bool operator==(const TensorDesc &other) const;
   bool operator!=(const TensorDesc &other) const;
+
+  void print();
 
   base::DataType data_type_ = base::dataTypeOf<float>();        // 数据类型
   base::DataFormat data_format_ = base::kDataFormatNotSupport;  // 数据格式

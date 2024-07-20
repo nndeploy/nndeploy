@@ -75,6 +75,8 @@ class NNDEPLOY_CC_API Buffer {
   Buffer *clone();
   base::Status copyTo(Buffer *dst);
 
+  void print();
+
   // get
   bool empty() const;
   base::DeviceType getDeviceType() const;
