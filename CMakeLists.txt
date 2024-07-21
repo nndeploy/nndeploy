@@ -52,6 +52,8 @@ nndeploy_option(ENABLE_NNDEPLOY_DEVICE_MTK_VPU "ENABLE_NNDEPLOY_DEVICE_MTK_VPU" 
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL "ENABLE_NNDEPLOY_DEVICE_ASCEND_CL" OFF)
 ## op
 nndeploy_option(ENABLE_NNDEPLOY_OP "ENABLE_NNDEPLOY_OP" OFF)
+## interpret
+nndeploy_option(ENABLE_NNDEPLOY_INTERPRET "ENABLE_NNDEPLOY_INTERPRET" OFF)
 ## net
 nndeploy_option(ENABLE_NNDEPLOY_NET "ENABLE_NNDEPLOY_NET" OFF)
 ## inference
@@ -244,7 +246,13 @@ if (ENABLE_NNDEPLOY_ADDRESS_SANTIZER)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
 endif()
 
+if (ENABLE_NNDEPLOY_INTERPRET)
+  set(ENABLE_NNDEPLOY_PROTOBUF ON)
+  set(ENABLE_NNDEPLOY_ONNX ON)
+endif()
+
 # include
+include_directories(ROOT_PATH)
 include_directories(include)
 include_directories(source)
 include_directories(third_party)
@@ -366,6 +374,13 @@ if(ENABLE_NNDEPLOY_OP)
     set(OP_SOURCE ${OP_SOURCE} ${OP_ASCEND_CL_SOURCE})
   endif()
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${OP_SOURCE})
+endif()
+if(ENABLE_NNDEPLOY_INTERPRET)
+  file(GLOB_RECURSE INTERPRET_SOURCE
+    "${ROOT_PATH}/include/nndeploy/interpret/*.h"
+    "${ROOT_PATH}/source/nndeploy/interpret/*.cc"
+  )
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${INTERPRET_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_NET)
   file(GLOB NET_SOURCE
@@ -533,6 +548,7 @@ target_link_libraries(${NNDEPLOY_BINARY} ${NNDEPLOY_DEPEND_LIBRARY})
 target_link_libraries(${NNDEPLOY_BINARY} ${NNDEPLOY_SYSTEM_LIBRARY}) 
 ## THIRD_PARTY_LIBRARY
 target_link_libraries(${NNDEPLOY_BINARY} ${NNDEPLOY_THIRD_PARTY_LIBRARY}) 
+message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY: ${NNDEPLOY_THIRD_PARTY_LIBRARY}")
 ## install
 if(SYSTEM.Windows)
   install(TARGETS ${NNDEPLOY_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
@@ -563,3 +579,5 @@ endif()
 if (ENABLE_NNDEPLOY_DEMO)
   include(${ROOT_PATH}/demo/config.cmake)
 endif()
+
+message(STATUS "CMAKE END. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")

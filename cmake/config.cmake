@@ -47,6 +47,8 @@ set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认�
 set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL OFF) # 是否使能device apple ascend cl，默认为OFF
 ## op
 set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
+## interpret
+set(ENABLE_NNDEPLOY_INTERPRET OFF)  # 是否编译interpret目录中文件，默认为OFF
 ## net
 set(ENABLE_NNDEPLOY_NET ON)  # 是否编译net目录中文件，默认为OFF
 ## inference

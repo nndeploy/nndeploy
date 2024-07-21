@@ -33,6 +33,8 @@ include("${ROOT_PATH}/cmake/cuda.cmake")
 # ################### op ####################
 
 # ################### net ####################
+include("${ROOT_PATH}/cmake/protobuf.cmake")
+include("${ROOT_PATH}/cmake/onnx.cmake")
 # ################### net ####################
 
 # ################### inference ####################

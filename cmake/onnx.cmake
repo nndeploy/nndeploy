@@ -1,0 +1,17 @@
+
+include(ExternalProject)
+include(cmake/util.cmake)
+
+if (ENABLE_NNDEPLOY_ONNX STREQUAL "OFF")
+elseif (ENABLE_NNDEPLOY_ONNX STREQUAL "ON")
+  set(LIBS onnx)
+  set(ONNX_ROOT ${PROJECT_SOURCE_DIR}/third_party/onnx)
+  # set(ONNX_USE_PROTOBUF_SHARED_LIBS OFF)
+  set(ONNX_CUSTOM_PROTOC_EXECUTABLE ${PROJECT_SOURCE_DIR}/build/protoc)
+  # set(Protobuf_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/third_party/protobuf/src)
+  # set(Protobuf_LIBRARIES ${PROJECT_SOURCE_DIR}/build/third_party/protobuf/libprotobuf.a)
+  add_subdirectory_if_no_target(${ONNX_ROOT} ${LIBS})
+  include_directories(${ONNX_ROOT})
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${LIBS})
+else()
+endif()

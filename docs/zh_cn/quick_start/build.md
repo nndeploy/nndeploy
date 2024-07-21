@@ -4,7 +4,8 @@
 ## 拉取源代码
 
 ```shell
-git clone --recursive https://github.com/nndeploy/nndeploy.git
+git clone https://github.com/nndeploy/nndeploy.git
+git submodule update --init --recursive
 ```
 
 
@@ -198,3 +199,10 @@ git clone --recursive https://github.com/nndeploy/nndeploy.git
 
 - 在windows平台下，系统目录自带onnxruntime，故你在运行时或许可能会链接到系统目录下自带的onnxruntime，从而导致运行时出错。解决办法
   - 将你自己的onnxruntime库拷贝至build目录下
+
+- 使能ENABLE_NNDEPLOY_NET，需要链接onnx和protobuf，会出现如下cmake error，实际已经完成了cmake，故可以继续make，make不会报错
+  ```shell
+  CMake Error in third_party/onnx/CMakeLists.txt:
+  export called with target "onnx_proto" which requires target "libprotobuf"
+  that is not in any export set.
+  ```

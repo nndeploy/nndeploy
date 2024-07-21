@@ -145,3 +145,9 @@
 + 单算子测试，等板卡回来就开始测试
 + 内存优化的策略可行吗？
 + 针对动态shape好搞吗
++ git submodule add git@github.com:onnx/onnx.git third_party/onnx
++ git submodule add git@github.com:protocolbuffers/protobuf.git third_party/protobuf
+
+CMake Error in third_party/onnx/CMakeLists.txt:
+  export called with target "onnx_proto" which requires target "libprotobuf"
+  that is not in any export set.
