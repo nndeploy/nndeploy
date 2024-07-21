@@ -12,14 +12,14 @@
 namespace nndeploy {
 namespace op {
 
-std::string GetDataBufferString(const aclDataBuffer* buf);
+std::string getDataBufferString(const aclDataBuffer* buf);
 
-std::string GetTensorDescString(const aclTensorDesc* desc);
+std::string getTensorDescString(const aclTensorDesc* desc);
 
-std::string GetOpDescString(std::vector<aclTensorDesc*> descs,
+std::string getOpDescString(std::vector<aclTensorDesc*> descs,
                             const std::string msg);
 
-std::string GetOpInfoString(std::vector<aclTensorDesc*> descs,
+std::string getOpInfoString(std::vector<aclTensorDesc*> descs,
                             std::vector<aclDataBuffer*> buffs,
                             const std::string msg);
 

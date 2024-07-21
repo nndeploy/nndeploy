@@ -32,6 +32,9 @@ enum StatusCode : int {
   kStatusCodeErrorDeviceOpenGL,
   kStatusCodeErrorDeviceMetal,
 
+  // op
+  kStatusCodeErrorOpAscendCL,
+
   // inference
   kStatusCodeErrorInferenceTensorRt,
   kStatusCodeErrorInferenceTnn,

@@ -8,6 +8,30 @@
 namespace nndeploy {
 namespace base {
 
+typedef union {
+  float f;
+  uint32_t u;
+} cvt_32b;
+
+typedef struct bfp16_struct {
+ public:
+  uint16_t w = 0;
+
+  bfp16_struct() : w(0) {}
+
+  bfp16_struct(float vf) {
+    cvt_32b c;
+    c.f = vf;
+    w = c.u >> 16;
+  }
+
+  operator const float() const {
+    cvt_32b c;
+    c.u = w << 16;
+    return c.f;
+  }
+} bfp16_t;
+
 extern NNDEPLOY_CC_API bool convertFromFloatToBfp16(float *fp32, void *bfp16,
                                                     int count);
 

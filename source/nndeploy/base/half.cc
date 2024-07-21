@@ -28,30 +28,6 @@ namespace base {
 const float MAX_HALF_FLOAT = 65504.0f;
 const float MIN_HALF_FLOAT = -65504.0f;
 
-typedef union {
-  float f;
-  uint32_t u;
-} cvt_32b;
-
-typedef struct bfp16_struct {
- public:
-  uint16_t w = 0;
-
-  bfp16_struct() : w(0) {}
-
-  bfp16_struct(float vf) {
-    cvt_32b c;
-    c.f = vf;
-    w = c.u >> 16;
-  }
-
-  operator const float() const {
-    cvt_32b c;
-    c.u = w << 16;
-    return c.f;
-  }
-} bfp16_t;
-
 bool convertFromFloatToBfp16(float *fp32, void *bfp16, int count) {
   bfp16_t *bfp16ptr = (bfp16_t *)bfp16;
   for (int i = 0; i < count; ++i) {
