@@ -23,7 +23,7 @@ export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 ```shell
 cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
 
-adb push * /
+adb push * /data/local/tmp/
 
 adb shell 
 
