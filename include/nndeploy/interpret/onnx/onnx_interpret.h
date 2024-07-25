@@ -4,23 +4,36 @@
 #include "nndeploy/interpret/interpret.h"
 #include "nndeploy/op/ir.h"
 #include "nndeploy/op/op.h"
+#include "onnx/common/assertions.h"
+#include "onnx/common/file_utils.h"
+#include "onnx/common/ir.h"
+#include "onnx/common/ir_pb_converter.h"
+#include "onnx/common/platform_helpers.h"
 #include "onnx/onnx_pb.h"
+#include "onnx/proto_utils.h"
 
 namespace nndeploy {
 namespace interpret {
 
 class OnnxInterpret : public Interpret {
  public:
-  OnnxInterpret() : Interpret(){};
-  virtual ~OnnxInterpret(){};
+  OnnxInterpret();
+  virtual ~OnnxInterpret();
 
-  base::DataType convertToDataType(onnx::TensorProto::DataType data_type);
-  base::IntVector convertToShape(onnx::TensorShapeProto_Dimension dim);
-
-  std::shared_ptr<op::OpDesc> convertToOpDesc(const onnx::NodeProto &onnx_node);
-  device::Tensor *convertToTensor(const onnx::TensorProto &initializer);
-  std::shared_ptr<op::ValueDesc> convertToValueDesc(
-      const onnx::ValueInfoProto &input);
+  static base::DataType convertToDataType(
+      const onnx::TensorProto_DataType &src);
+  static base::IntVector convertToShape(const onnx::TensorShapeProto &src);
+  static base::DataFormat convertToDataFormat(const onnx::TensorShapeProto &src,
+                                              bool is_weight);
+  static base::IntVector convertToShape(
+      const google::protobuf::RepeatedField<::int64_t> &src);
+  static base::DataFormat convertToDataFormat(
+      const google::protobuf::RepeatedField<::int64_t> &src, bool is_weight);
+  static std::shared_ptr<op::OpDesc> convertToOpDesc(
+      const onnx::NodeProto &src);
+  static device::Tensor *convertToTensor(const onnx::TensorProto &src);
+  static std::shared_ptr<op::ValueDesc> convertToValueDesc(
+      const onnx::ValueInfoProto &src);
 
   virtual base::Status interpret(const std::vector<std::string> &model_value,
                                  const std::vector<op::ValueDesc> &input);
@@ -29,34 +42,60 @@ class OnnxInterpret : public Interpret {
   std::unique_ptr<onnx::ModelProto> onnx_model_;
 };
 
-/**
- * @brief 算子参数的创建类
- *
- */
-class OpParamCreator {
+class OnnxOpConvert {
  public:
-  virtual ~OpParamCreator(){};
-  virtual std::shared_ptr<base::Param> createOpParam(OpType type) = 0;
+  OnnxOpConvert() {}
+  virtual ~OnnxOpConvert() {}
+
+  virtual std::shared_ptr<op::OpDesc> convert(
+      const onnx::NodeProto &onnx_node) = 0;
+
+  base::Status convert(const onnx::NodeProto &onnx_node,
+                       std::shared_ptr<op::OpDesc> &op_desc) {
+    base::Status status = base::kStatusCodeOk;
+    op_desc->name_ = onnx_node.name();
+    std::vector<std::string> inputs;
+    for (int i = 0; i < onnx_node.input_size(); ++i) {
+      op_desc->inputs_.push_back(onnx_node.input(i));
+    }
+    for (int i = 0; i < onnx_node.output_size(); ++i) {
+      op_desc->outputs_.push_back(onnx_node.output(i));
+    }
+    return status;
+  };
 };
 
 /**
- * @brief 算子参数的创建类模板
+ * @brief 算子参数的转换类
+ *s
+ */
+class OnnxOpConvertCreator {
+ public:
+  virtual ~OnnxOpConvertCreator(){};
+  virtual std::shared_ptr<OnnxOpConvert> createOnnxOpConvert(
+      const std::string &type) = 0;
+};
+
+/**
+ * @brief 算子参数的转换类模板
  *
  * @tparam T
  */
 template <typename T>
-class TypeOpParamCreator : public OpParamCreator {
-  virtual std::shared_ptr<base::Param> createOpParam(OpType type) {
+class TypeOnnxOpConvertCreator : public OnnxOpConvertCreator {
+  virtual std::shared_ptr<OnnxOpConvert> createOnnxOpConvert(
+      const std::string &type) {
     return std::make_shared<T>();
   }
 };
 
 /**
- * @brief Get the Global base::Param Creator Map object
+ * @brief Get the Global OnnxOpConvert Creator Map object
  *
- * @return std::map<OpType, std::shared_ptr<OpParamCreator>>&
+ * @return std::map<op::OpType, std::shared_ptr<OnnxOpConvertCreator>>&
  */
-std::map<OpType, std::shared_ptr<OpParamCreator>> &getGlobalOpParamCreatorMap();
+std::map<std::string, std::shared_ptr<OnnxOpConvertCreator>>
+    &getGlobalOnnxOpConvertCreatorMap();
 
 /**
  * @brief 算子参数的创建类的注册类模板
@@ -64,25 +103,25 @@ std::map<OpType, std::shared_ptr<OpParamCreator>> &getGlobalOpParamCreatorMap();
  * @tparam T
  */
 template <typename T>
-class TypeOpParamRegister {
+class TypeOnnxOpConvertRegister {
  public:
-  explicit TypeOpParamRegister(OpType type) {
-    getGlobalOpParamCreatorMap()[type] = std::shared_ptr<T>(new T());
+  explicit TypeOnnxOpConvertRegister(const std::string &type) {
+    getGlobalOnnxOpConvertCreatorMap()[type] = std::shared_ptr<T>(new T());
   }
 };
 
 /**
- * @brief Create a base::Param object
+ * @brief Create a OnnxOpConvert object
  *
  * @param type
- * @return std::shared_ptr<base::Param>
+ * @return std::shared_ptr<OnnxOpConvert>
  */
-extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
-    OpType op_type);
+extern NNDEPLOY_CC_API std::shared_ptr<OnnxOpConvert> createOnnxOpConvert(
+    const std::string &type);
 
-#define REGISTER_OP_PARAM_IMPLEMENTION(op_type, op_param_class) \
-  TypeOpParamRegister<TypeOpParamCreator<op_param_class>>       \
-      g_##op_type##_##op_param_class##_register(op_type);
+#define REGISTER_ONNX_OP_CONVERT_IMPLEMENTION(op_type, onnx_op_convert_class) \
+  TypeOnnxOpConvertRegister<TypeOnnxOpConvertCreator<onnx_op_convert_class>>  \
+      g_##onnx_op_convert_class##_register(op_type);
 
 }  // namespace interpret
 }  // namespace nndeploy

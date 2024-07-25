@@ -6,6 +6,10 @@ namespace op {
 
 OpDesc::OpDesc() {}
 
+OpDesc::OpDesc(OpType op_type) : op_type_(op_type) {
+  op_param_ = createOpParam(op_type);
+}
+
 OpDesc::OpDesc(const std::string &name, OpType op_type)
     : name_(name), op_type_(op_type) {
   op_param_ = createOpParam(op_type);

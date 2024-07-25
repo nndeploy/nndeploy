@@ -197,7 +197,7 @@ enum OpType : int {
   kOpTypeWhere,
   kOpTypeXor,
 
-  // TODO: @Leonisux: 
+  // TODO: @Leonisux:
   // 1. 增加llama的算子类型
 
   kOpTypeNone,
@@ -215,6 +215,7 @@ class NNDEPLOY_CC_API OpDesc {
  public:
   OpDesc();
 
+  OpDesc(OpType op_type);
   OpDesc(const std::string &name, OpType op_type);
   OpDesc(const std::string &name, OpType op_type,
          std::shared_ptr<base::Param> op_param);
