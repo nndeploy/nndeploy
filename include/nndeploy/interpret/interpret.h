@@ -10,7 +10,7 @@ namespace interpret {
 
 class Interpret {
  public:
-  Interpret() : model_desc_(nullptr){};
+  Interpret() { model_desc_ = new op::ModelDesc(); };
   virtual ~Interpret() {
     if (model_desc_ != nullptr) {
       delete model_desc_;

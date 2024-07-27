@@ -11,22 +11,24 @@
 namespace nndeploy {
 namespace interpret {
 
-class OnnxConvConvert : public OnnxOpConvert {
+class OnnxMaxPoolConvert : public OnnxOpConvert {
  public:
-  OnnxConvConvert() : OnnxOpConvert() {}
-  virtual ~OnnxConvConvert() {}
+  OnnxMaxPoolConvert() : OnnxOpConvert() {}
+  virtual ~OnnxMaxPoolConvert() {}
 
   virtual std::shared_ptr<op::OpDesc> convert(
       const onnx::NodeProto &onnx_node) {
     std::shared_ptr<op::OpDesc> op_desc =
-        std::make_shared<op::OpDesc>(op::kOpTypeConv);
+        std::make_shared<op::OpDesc>(op::kOpTypeMaxPool);
     OnnxOpConvert::convert(onnx_node, op_desc);
-    op::ConvParam *param = (op::ConvParam *)(op_desc->op_param_.get());
+    op::MaxPoolParam *param = (op::MaxPoolParam *)(op_desc->op_param_.get());
     param->auto_pad_ =
         OnnxInterpret::getAttributeString(onnx_node, "auto_pad", "NOTSET");
-    param->dilations_ =
-        OnnxInterpret::getAttributeIntVector(onnx_node, "dilations");
-    param->group_ = OnnxInterpret::getAttributeInt(onnx_node, "group", 1);
+    param->ceil_mode_ =
+        OnnxInterpret::getAttributeInt(onnx_node, "ceil_mode", 0);
+    param->storage_order_ =
+        OnnxInterpret::getAttributeInt(onnx_node, "storage_order", 0);
+    OnnxInterpret::getAttributeIntVector(onnx_node, "dilations");
     param->kernel_shape_ =
         OnnxInterpret::getAttributeIntVector(onnx_node, "kernel_shape");
     param->pads_ = OnnxInterpret::getAttributeIntVector(onnx_node, "pads");
@@ -36,7 +38,7 @@ class OnnxConvConvert : public OnnxOpConvert {
   };
 };
 
-REGISTER_ONNX_OP_CONVERT_IMPLEMENTION("Conv", OnnxConvConvert);
+REGISTER_ONNX_OP_CONVERT_IMPLEMENTION("MaxPool", OnnxMaxPoolConvert);
 
 }  // namespace interpret
 }  // namespace nndeploy

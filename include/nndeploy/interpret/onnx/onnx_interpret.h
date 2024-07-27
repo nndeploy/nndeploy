@@ -35,8 +35,38 @@ class OnnxInterpret : public Interpret {
   static std::shared_ptr<op::ValueDesc> convertToValueDesc(
       const onnx::ValueInfoProto &src);
 
-  virtual base::Status interpret(const std::vector<std::string> &model_value,
-                                 const std::vector<op::ValueDesc> &input);
+  // get attribute value
+  static onnx::AttributeProto_AttributeType getAttributeType(
+      const char *type_name);
+  static int32_t getAttributeInt(const onnx::NodeProto &node,
+                                 const std::string &name, int default_value);
+  static std::vector<int32_t> getAttributeIntVector(const onnx::NodeProto &node,
+                                                    const std::string &name);
+  static std::vector<int64_t> getAttributeInt64Vector(
+      const onnx::NodeProto &node, const std::string &name);
+  static float getAttributeFloat(const onnx::NodeProto &node,
+                                 const std::string &name, float default_value);
+  static std::string getAttributeString(const onnx::NodeProto &node,
+                                        const std::string &name,
+                                        std::string def);
+  static std::vector<std::string> getAttributeStringVector(
+      const onnx::NodeProto &node, const std::string &name);
+  static std::vector<std::string> splitString(std::string &s,
+                                              const std::string &c);
+  static std::vector<uint8_t> getAttributeUInt8Vector(
+      const onnx::NodeProto &node, const std::string &name);
+  static std::vector<int8_t> asymmetric2Symmetric(
+      std::vector<uint8_t> &raw_value, uint8_t zero_point);
+  static onnx::TensorProto getAttributeTensor(const onnx::NodeProto &node,
+                                              const char *key);
+  static int getTensorProtoDataSize(const onnx::TensorProto &tp);
+  static void *getDataFromTensor(const onnx::TensorProto &tensor);
+  static const onnx::TensorProto *getTensorFromConstantNode(
+      const onnx::NodeProto &constant_node);
+
+  virtual base::Status interpret(
+      const std::vector<std::string> &model_value,
+      const std::vector<op::ValueDesc> &input = std::vector<op::ValueDesc>());
 
  private:
   std::unique_ptr<onnx::ModelProto> onnx_model_;

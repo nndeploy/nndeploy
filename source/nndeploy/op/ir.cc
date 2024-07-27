@@ -80,6 +80,39 @@ ModelDesc::~ModelDesc() {
   }
 }
 
+base::Status ModelDesc::dump(std::ostream &oss) {
+  oss << "ModelDesc: " << std::endl;
+  oss << "  name: " << name_ << std::endl;
+  oss << "  inputs: " << std::endl;
+  for (auto iter : inputs_) {
+    oss << "    " << iter->name_ << " : "
+        << base::dataTypeToString(iter->data_type_) << " : ";
+    for (auto i : iter->shape_) {
+      oss << i << " ";
+    }
+    oss << std::endl;
+  }
+  oss << "  outputs: " << std::endl;
+  for (auto iter : outputs_) {
+    oss << "    " << iter->name_ << " : "
+        << base::dataTypeToString(iter->data_type_) << " : ";
+    for (auto i : iter->shape_) {
+      oss << i << " ";
+    }
+    oss << std::endl;
+  }
+  oss << "  weights: " << std::endl;
+  for (auto iter : weights_) {
+    oss << "    " << iter.first;
+    oss << std::endl;
+  }
+  oss << "  op_descs: " << std::endl;
+  for (auto iter : op_descs_) {
+    oss << "    " << iter->name_ << " : " << iter->op_type_ << std::endl;
+  }
+  return base::kStatusCodeOk;
+}
+
 std::map<OpType, std::shared_ptr<OpParamCreator>>
     &getGlobalOpParamCreatorMap() {
   static std::once_flag once;
@@ -92,11 +125,14 @@ std::map<OpType, std::shared_ptr<OpParamCreator>>
 }
 
 std::shared_ptr<base::Param> createOpParam(OpType type) {
+  NNDEPLOY_LOGE("hello world\n");
   std::shared_ptr<base::Param> temp;
   auto &creater_map = getGlobalOpParamCreatorMap();
   if (creater_map.count(type) > 0) {
     temp = creater_map[type]->createOpParam(type);
+    NNDEPLOY_LOGE("hello world\n");
   }
+  NNDEPLOY_LOGE("hello world\n");
   return temp;
 }
 
@@ -113,14 +149,14 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeReshape, ReshapeParam);
 // Resize 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeResize, ResizeParam);
 
-// Slice 算子参数类的注册函数
-REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeSlice, SliceParam);
-
 // Softmax 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeSoftmax, SoftmaxParam);
 
 // Split 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeSplit, SplitParam);
+
+// Tranpose 算子参数类的注册函数
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeTranspose, TransposeParam);
 
 // TODO: @Leonisux:
 // 补充llama的算子的参数的注册

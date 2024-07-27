@@ -280,6 +280,8 @@ class ModelDesc {
   ModelDesc();
   virtual ~ModelDesc();
 
+  base::Status dump(std::ostream &oss);
+
  public:
   // 描述模型的名称
   std::string name_;
@@ -373,7 +375,6 @@ class ConcatParam : public OpParam {
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
   int axis_;
-  int new_axis_;
 };
 
 class ConvParam : public OpParam {
@@ -408,22 +409,18 @@ class ConvParam : public OpParam {
   PARAM_COPY(ConvParam)
   PARAM_COPY_TO(ConvParam)
 
-  // input channels of blob, devide by group
-  int input_channel = 0;
-  // the total output channels of blob, not devide by group
-  int output_channel = 0;
-  // 卷积步长
-  std::vector<int> strides_ = {1, 1};
   // 自动填充方式
   std::string auto_pad_ = "";
   // 扩张系数
   std::vector<int> dilations_ = {1, 1};
+  // 组数
+  int group_ = 1;
   // 卷积核大小
   std::vector<int> kernel_shape_;
   // 填充大小
   std::vector<int> pads_ = {0, 0, 0, 0};
-  // 组数
-  int group_ = 1;
+  // 卷积步长
+  std::vector<int> strides_ = {1, 1};
 
   bool is_fusion_op_ = false;
   OpType activate_op_ = kOpTypeRelu;
@@ -451,11 +448,13 @@ class MaxPoolParam : public OpParam {
 
   PARAM_COPY(MaxPoolParam)
   PARAM_COPY_TO(MaxPoolParam)
-
-  std::vector<int> strides_ = {1, 1};     // 步长
+  std::string auto_pad_ = "";             // 自动填充方式
+  int ceil_mode_ = 0;                     // 是否向上取整
+  std::vector<int> dilations_ = {1, 1};   // 扩张系数
   std::vector<int> kernel_shape_;         // 池化核大小
   std::vector<int> pads_ = {0, 0, 0, 0};  // 填充大小
-  std::string auto_pad_ = "";             // 自动填充方式
+  int storage_order_ = 0;                 // 存储顺序
+  std::vector<int> strides_ = {1, 1};     // 步长
 };
 
 // Reshape 参数类
@@ -464,11 +463,11 @@ class ReshapeParam : public OpParam {
   ReshapeParam() {}
   virtual ~ReshapeParam() {}
 
-  ReshapeParam(const ReshapeParam &other) { shape_ = other.shape_; }
+  ReshapeParam(const ReshapeParam &other) { allowzero_ = other.allowzero_; }
 
   ReshapeParam &operator=(const ReshapeParam &other) {
     if (this != &other) {
-      shape_ = other.shape_;
+      allowzero_ = other.allowzero_;
     }
     return *this;
   }
@@ -476,7 +475,7 @@ class ReshapeParam : public OpParam {
   PARAM_COPY(ReshapeParam)
   PARAM_COPY_TO(ReshapeParam)
 
-  std::vector<int64_t> shape_;  // 目标形状
+  int allowzero_;  // 是否允许0
 };
 
 // Resize 参数类
@@ -485,56 +484,18 @@ class ResizeParam : public OpParam {
   ResizeParam() {}
   virtual ~ResizeParam() {}
 
-  ResizeParam(const ResizeParam &other) {
-    scales_ = other.scales_;
-    sizes_ = other.sizes_;
-    mode_ = other.mode_;
-  }
-
-  ResizeParam &operator=(const ResizeParam &other) {
-    if (this != &other) {
-      scales_ = other.scales_;
-      sizes_ = other.sizes_;
-      mode_ = other.mode_;
-    }
-    return *this;
-  }
-
   PARAM_COPY(ResizeParam)
   PARAM_COPY_TO(ResizeParam)
 
-  std::vector<float> scales_;  // 缩放比例
-  std::vector<int> sizes_;     // 目标尺寸
-  std::string mode_;           // 插值模式
-};
-
-// Slice 参数类
-class SliceParam : public OpParam {
- public:
-  SliceParam() {}
-  virtual ~SliceParam() {}
-
-  SliceParam(const SliceParam &other) {
-    starts_ = other.starts_;
-    ends_ = other.ends_;
-    axes_ = other.axes_;
-  }
-
-  SliceParam &operator=(const SliceParam &other) {
-    if (this != &other) {
-      starts_ = other.starts_;
-      ends_ = other.ends_;
-      axes_ = other.axes_;
-    }
-    return *this;
-  }
-
-  PARAM_COPY(SliceParam)
-  PARAM_COPY_TO(SliceParam)
-
-  std::vector<int> starts_;  // 开始索引
-  std::vector<int> ends_;    // 结束索引
-  std::vector<int> axes_;    // 切片轴
+  int antialias_ = 0;
+  int axes_ = INT_MAX;  // 轴，当为INT_MAX时，表示未设置
+  std::string coordinate_transformation_mode_ = "half_pixel";
+  float cubic_coeff_a_ = -0.75;
+  int exclude_outside_ = 0;
+  float extrapolation_value_ = -0.0;
+  std::string keep_aspect_ratio_policy_ = "stretch";
+  std::string mode_ = "nearest";
+  std::string nearest_mode_ = "round_prefer_floor";
 };
 
 // Softmax 参数类
@@ -552,14 +513,26 @@ class SoftmaxParam : public OpParam {
 // Split 参数类
 class SplitParam : public OpParam {
  public:
-  SplitParam() : axis_(0), split_(1) {}  // 默认轴为0，分割数为1
+  SplitParam() : OpParam() {}  // 默认轴为0，分割数为1
   virtual ~SplitParam() {}
 
   PARAM_COPY(SplitParam)
   PARAM_COPY_TO(SplitParam)
 
-  int axis_;   // 分割轴
-  int split_;  // 分割数
+  int axis_ = 0;               // 分割轴
+  int num_outputs_ = INT_MAX;  // 分割数
+};
+
+// Transpose 参数类
+class TransposeParam : public OpParam {
+ public:
+  TransposeParam() : OpParam() {}  // 默认轴为0，分割数为1
+  virtual ~TransposeParam() {}
+
+  PARAM_COPY(TransposeParam)
+  PARAM_COPY_TO(TransposeParam)
+
+  std::vector<int> perm_;
 };
 
 // TODO: @Leonisux:
