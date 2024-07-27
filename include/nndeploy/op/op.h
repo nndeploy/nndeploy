@@ -31,14 +31,14 @@ class NNDEPLOY_CC_API Op {
   base::Status setName(std::string name);
   std::string getName();
 
+  base::Status setOpType(OpType op_type);
+  OpType getOpType();
+
   virtual base::Status setParam(std::shared_ptr<base::Param> param);
   virtual std::shared_ptr<base::Param> getParam();
 
   base::Status setDeviceType(base::DeviceType device_type);
   base::DeviceType getDeviceType();
-
-  base::Status setOpType(OpType op_type);
-  OpType getOpType();
 
   // 设置为virtual的原因：精度不同，内存分配不同，计算方式不同
   virtual base::Status setPrecisionType(base::PrecisionType precision_type);
@@ -191,8 +191,8 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
-getGlobalOpCreatorMap();
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板

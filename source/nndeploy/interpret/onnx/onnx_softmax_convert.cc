@@ -22,7 +22,7 @@ class OnnxSoftmaxConvert : public OnnxOpConvert {
         std::make_shared<op::OpDesc>(op::kOpTypeSoftmax);
     OnnxOpConvert::convert(onnx_node, op_desc);
     op::SoftmaxParam *param = (op::SoftmaxParam *)(op_desc->op_param_.get());
-    param->axis_ = OnnxInterpret::getAttributeInt(onnx_node, "axis_", -1);
+    param->axis_ = OnnxInterpret::getAttributeInt(onnx_node, "axis", -1);
     return op_desc;
   };
 };

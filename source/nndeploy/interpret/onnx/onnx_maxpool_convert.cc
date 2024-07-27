@@ -26,12 +26,12 @@ class OnnxMaxPoolConvert : public OnnxOpConvert {
         OnnxInterpret::getAttributeString(onnx_node, "auto_pad", "NOTSET");
     param->ceil_mode_ =
         OnnxInterpret::getAttributeInt(onnx_node, "ceil_mode", 0);
-    param->storage_order_ =
-        OnnxInterpret::getAttributeInt(onnx_node, "storage_order", 0);
     OnnxInterpret::getAttributeIntVector(onnx_node, "dilations");
     param->kernel_shape_ =
         OnnxInterpret::getAttributeIntVector(onnx_node, "kernel_shape");
     param->pads_ = OnnxInterpret::getAttributeIntVector(onnx_node, "pads");
+    param->storage_order_ =
+        OnnxInterpret::getAttributeInt(onnx_node, "storage_order", 0);
     param->strides_ =
         OnnxInterpret::getAttributeIntVector(onnx_node, "strides");
     return op_desc;

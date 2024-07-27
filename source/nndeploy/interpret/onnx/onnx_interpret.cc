@@ -16,6 +16,7 @@ namespace interpret {
 OnnxInterpret::OnnxInterpret() : Interpret() {}
 OnnxInterpret::~OnnxInterpret() {}
 
+// convert
 base::DataType OnnxInterpret::convertToDataType(
     const onnx::TensorProto_DataType& src) {
   base::DataType dst;
@@ -63,9 +64,8 @@ base::DataType OnnxInterpret::convertToDataType(
       dst.bits_ = 16;
       dst.lanes_ = 1;
       break;
-    default:
+    default:  // 要不要扩充呢？
       NNDEPLOY_LOGE("Not support onnx TypeProto type: %d", src);
-      assert(0);
       break;
   }
   return dst;
@@ -74,8 +74,12 @@ base::IntVector OnnxInterpret::convertToShape(
     const onnx::TensorShapeProto& src) {
   base::IntVector dst;
   int dim_size = src.dim_size();
-  for (int i = 0; i < dim_size; ++i) {
-    dst.push_back(src.dim(i).dim_value());
+  if (dim_size == 0) {
+    dst.push_back(1);
+  } else {
+    for (int i = 0; i < dim_size; ++i) {
+      dst.push_back(src.dim(i).dim_value());
+    }
   }
   return dst;
 }
@@ -83,9 +87,7 @@ base::DataFormat OnnxInterpret::convertToDataFormat(
     const onnx::TensorShapeProto& src, bool is_weight) {
   base::DataFormat dst;
   int dim_size = src.dim_size();
-  if (dim_size == 1) {
-    dst = base::kDataFormatN;
-  } else if (dim_size == 2) {
+  if (dim_size <= 2) {
     dst = base::kDataFormatNC;
   } else if (dim_size == 3) {
     dst = base::kDataFormatNCW;
@@ -99,7 +101,6 @@ base::DataFormat OnnxInterpret::convertToDataFormat(
     dst = base::kDataFormatNCDHW;
   } else {
     NNDEPLOY_LOGE("Not support onnx TensorShapeProto dim size: %d", dim_size);
-    assert(0);
   }
   return dst;
 }
@@ -108,8 +109,12 @@ base::IntVector OnnxInterpret::convertToShape(
     const google::protobuf::RepeatedField<::int64_t>& src) {
   base::IntVector dst;
   int dim_size = src.size();
-  for (int i = 0; i < dim_size; ++i) {
-    dst.push_back(src[i]);
+  if (dim_size == 0) {
+    dst.push_back(1);
+  } else {
+    for (int i = 0; i < dim_size; ++i) {
+      dst.push_back(src[i]);
+    }
   }
   return dst;
 }
@@ -117,11 +122,7 @@ base::DataFormat OnnxInterpret::convertToDataFormat(
     const google::protobuf::RepeatedField<::int64_t>& src, bool is_weight) {
   base::DataFormat dst;
   int dim_size = src.size();
-  if (dim_size == 0) {
-    dst = base::kDataFormatN;
-  } else if (dim_size == 1) {
-    dst = base::kDataFormatNC;
-  } else if (dim_size == 2) {
+  if (dim_size <= 2) {
     dst = base::kDataFormatNC;
   } else if (dim_size == 3) {
     dst = base::kDataFormatNCW;
@@ -134,8 +135,7 @@ base::DataFormat OnnxInterpret::convertToDataFormat(
   } else if (dim_size == 5) {
     dst = base::kDataFormatNCDHW;
   } else {
-    NNDEPLOY_LOGE("Not support onnx TensorShapeProto dim size: %d\n", dim_size);
-    assert(0);
+    NNDEPLOY_LOGE("Not support onnx TensorShapeProto dim size: %d", dim_size);
   }
   return dst;
 }
@@ -144,20 +144,24 @@ std::shared_ptr<op::OpDesc> OnnxInterpret::convertToOpDesc(
   auto convert = createOnnxOpConvert(src.op_type());
   if (convert == nullptr) {
     NNDEPLOY_LOGE("Not support onnx op type: %s\n", src.op_type().c_str());
+    return nullptr;
   }
   std::shared_ptr<op::OpDesc> dst = convert->convert(src);
   return dst;
 }
 device::Tensor* OnnxInterpret::convertToTensor(const onnx::TensorProto& src) {
   std::string name = src.name();
-  NNDEPLOY_LOGE("convertToTensor name = %s\n", name.c_str());
+  // NNDEPLOY_LOGI("name = %s\n", name.c_str());
   device::TensorDesc desc;
   onnx::TensorProto_DataType onnx_data_type =
       (onnx::TensorProto_DataType)src.data_type();
   desc.data_type_ = convertToDataType(onnx_data_type);
   desc.data_format_ = convertToDataFormat(src.dims(), true);
   desc.shape_ = convertToShape(src.dims());
-  void* data_ptr = (void*)src.raw_data().data();
+  void* data_ptr = getDataFromTensor(src);
+  // debug
+  // NNDEPLOY_LOGI("data_ptr = %p\n", data_ptr);
+  // desc.print();
   device::Device* device = device::getDefaultHostDevice();
   device::Tensor* tensor = new device::Tensor(device, desc, data_ptr, name);
   return tensor;
@@ -165,9 +169,11 @@ device::Tensor* OnnxInterpret::convertToTensor(const onnx::TensorProto& src) {
 std::shared_ptr<op::ValueDesc> OnnxInterpret::convertToValueDesc(
     const onnx::ValueInfoProto& src) {
   std::string name = src.name();
+  // 判断是否存在
   onnx::TensorProto_DataType onnx_data_type =
       (onnx::TensorProto_DataType)src.type().tensor_type().elem_type();
   base::DataType data_type = convertToDataType(onnx_data_type);
+  // 判断是否存在
   base::IntVector shape = convertToShape(src.type().tensor_type().shape());
   return std::make_shared<op::ValueDesc>(name, data_type, shape);
 }
@@ -463,7 +469,7 @@ base::Status OnnxInterpret::interpret(
     NNDEPLOY_LOGE("model_value[%s] is error.\n", model_value[0].c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  NNDEPLOY_LOGE("hello world\n");
+
   google::protobuf::io::IstreamInputStream proto_input_stream(&input_stream);
   google::protobuf::io::CodedInputStream coded_input_stream(
       &proto_input_stream);
@@ -472,38 +478,39 @@ base::Status OnnxInterpret::interpret(
 #else
   coded_input_stream.SetTotalBytesLimit(INT_MAX, INT_MAX / 2);
 #endif
-  NNDEPLOY_LOGE("hello world\n");
   this->onnx_model_ = std::unique_ptr<onnx::ModelProto>(new onnx::ModelProto());
   bool success = this->onnx_model_->ParseFromCodedStream(&coded_input_stream);
-  NNDEPLOY_LOGE("hello world\n");
   input_stream.close();
-  NNDEPLOY_LOGE("hello world\n");
 
   // 解析图
   const auto& onnx_graph = onnx_model_->graph();
+
+  // # 解析名字
+  model_desc_->name_ = onnx_model_->graph().name();
+
   // # 解析输入
-  NNDEPLOY_LOGE("hello world\n");
   const int input_size = onnx_graph.input_size();
   NNDEPLOY_LOGE("input_size = %d\n", input_size);
   for (int i = 0; i < input_size; ++i) {
     const auto& input = onnx_graph.input(i);
-    NNDEPLOY_LOGE("hello world\n");
+
     std::shared_ptr<op::ValueDesc> value_desc = convertToValueDesc(input);
-    NNDEPLOY_LOGE("hello world\n");
+
     model_desc_->inputs_.push_back(value_desc);
-    NNDEPLOY_LOGE("hello world\n");
   }
-  NNDEPLOY_LOGE("hello world\n");
+
   // # 解析输出
   const int output_size = onnx_graph.output_size();
+  NNDEPLOY_LOGE("output_size = %d\n", output_size);
   for (int i = 0; i < output_size; ++i) {
     const auto& output = onnx_graph.output(i);
     std::shared_ptr<op::ValueDesc> value_desc = convertToValueDesc(output);
     model_desc_->outputs_.push_back(value_desc);
   }
-  NNDEPLOY_LOGE("hello world\n");
+
   // # 解析权重
   const int initializer_size = onnx_graph.initializer_size();
+  NNDEPLOY_LOGE("initializer_size = %d\n", initializer_size);
   for (int i = 0; i < initializer_size; ++i) {
     const auto& initializer = onnx_graph.initializer(i);
     std::string name = initializer.name();
@@ -511,10 +518,11 @@ base::Status OnnxInterpret::interpret(
     device::Tensor* tensor = convertToTensor(initializer);
     model_desc_->weights_.insert(std::make_pair(name, tensor));
   }
-  NNDEPLOY_LOGE("hello world\n");
+
   // # 节点个数
   const int node_size = onnx_graph.node_size();
-  // # 解析const节点
+  NNDEPLOY_LOGE("node_size = %d\n", node_size);
+  // ## 解析const节点
   for (int i = 0; i < node_size; ++i) {
     const auto& onnx_node = onnx_graph.node(i);
     const std::string& node_op_type = onnx_node.op_type();
@@ -526,20 +534,21 @@ base::Status OnnxInterpret::interpret(
       model_desc_->weights_.insert(std::make_pair(name, tensor));
     }
   }
-  NNDEPLOY_LOGE("hello world\n");
-  // # 解析节点
+  // ## 解析节点
   for (int i = 0; i < node_size; ++i) {
     const auto& onnx_node = onnx_graph.node(i);
     const std::string& node_op_type = onnx_node.op_type();
     if (node_op_type == "Constant") {
       continue;
     }
-    NNDEPLOY_LOGE("node_op_type = %s\n", node_op_type.c_str());
+    // NNDEPLOY_LOGE("node_op_type = %s\n", node_op_type.c_str());
     std::shared_ptr<op::OpDesc> op_desc = convertToOpDesc(onnx_node);
-    NNDEPLOY_LOGE("hello world\n");
+    if (op_desc == nullptr) {
+      NNDEPLOY_LOGE("convertToOpDesc error: %s\n", node_op_type.c_str());
+      return base::kStatusCodeErrorInvalidParam;
+    }
     model_desc_->op_descs_.push_back(op_desc);
   }
-  NNDEPLOY_LOGE("hello world\n");
 
   return status;
 }
@@ -560,10 +569,6 @@ getGlobalOnnxOpConvertCreatorMap() {
 std::shared_ptr<OnnxOpConvert> createOnnxOpConvert(const std::string& type) {
   std::shared_ptr<OnnxOpConvert> temp = nullptr;
   auto& creater_map = getGlobalOnnxOpConvertCreatorMap();
-  // debug
-  for (auto iter : creater_map) {
-    NNDEPLOY_LOGE("iter.first = %s\n", iter.first.c_str());
-  }
   if (creater_map.count(type) > 0) {
     temp = creater_map[type]->createOnnxOpConvert(type);
   }

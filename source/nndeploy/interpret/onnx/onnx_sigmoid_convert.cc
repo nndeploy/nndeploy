@@ -18,13 +18,8 @@ class OnnxSigmoidConvert : public OnnxOpConvert {
 
   virtual std::shared_ptr<op::OpDesc> convert(
       const onnx::NodeProto &onnx_node) {
-    NNDEPLOY_LOGE("hello world\n");
     std::shared_ptr<op::OpDesc> op_desc =
         std::make_shared<op::OpDesc>(op::kOpTypeSigmoid);
-    if (op_desc == nullptr) {
-      NNDEPLOY_LOGE("op_desc is nullptr\n");
-    }
-    NNDEPLOY_LOGE("hello world\n");
     OnnxOpConvert::convert(onnx_node, op_desc);
     return op_desc;
   };

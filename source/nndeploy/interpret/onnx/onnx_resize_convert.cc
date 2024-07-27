@@ -32,7 +32,9 @@ class OnnxResizeConvert : public OnnxOpConvert {
     param->exclude_outside_ =
         OnnxInterpret::getAttributeInt(onnx_node, "exclude_outside", 0);
     param->extrapolation_value_ = OnnxInterpret::getAttributeFloat(
-        onnx_node, "extrapolation_value", -0.75);
+        onnx_node, "extrapolation_value", -0.0);
+    param->keep_aspect_ratio_policy_ = OnnxInterpret::getAttributeString(
+        onnx_node, "keep_aspect_ratio_policy", "stretch");
     param->mode_ =
         OnnxInterpret::getAttributeString(onnx_node, "mode", "nearest");
     param->nearest_mode_ = OnnxInterpret::getAttributeString(

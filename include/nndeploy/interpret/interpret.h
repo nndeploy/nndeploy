@@ -17,9 +17,9 @@ class Interpret {
     }
   };
 
-  virtual base::Status interpret(
-      const std::vector<std::string> &model_value,
-      const std::vector<op::ValueDesc> &input = {}) = 0;
+  virtual base::Status interpret(const std::vector<std::string> &model_value,
+                                 const std::vector<op::ValueDesc> &input =
+                                     std::vector<op::ValueDesc>()) = 0;
 
   op::ModelDesc *getModelDesc() { return model_desc_; };
 

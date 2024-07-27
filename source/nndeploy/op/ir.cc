@@ -5,11 +5,9 @@ namespace nndeploy {
 namespace op {
 
 OpDesc::OpDesc() {}
-
 OpDesc::OpDesc(OpType op_type) : op_type_(op_type) {
   op_param_ = createOpParam(op_type);
 }
-
 OpDesc::OpDesc(const std::string &name, OpType op_type)
     : name_(name), op_type_(op_type) {
   op_param_ = createOpParam(op_type);
@@ -23,7 +21,6 @@ OpDesc::OpDesc(const std::string &name, OpType op_type,
     op_param_ = createOpParam(op_type);
   }
 }
-
 OpDesc::OpDesc(const std::string &name, OpType op_type,
                std::initializer_list<std::string> inputs,
                std::initializer_list<std::string> outputs)
@@ -41,7 +38,6 @@ OpDesc::OpDesc(const std::string &name, OpType op_type,
     op_param_ = createOpParam(op_type);
   }
 }
-
 OpDesc::OpDesc(const std::string &name, OpType op_type,
                std::vector<std::string> &inputs,
                std::vector<std::string> &outputs)
@@ -63,7 +59,6 @@ OpDesc::OpDesc(const std::string &name, OpType op_type,
 OpDesc::~OpDesc() {}
 
 ValueDesc::ValueDesc() {}
-
 ValueDesc::ValueDesc(const std::string &name) : name_(name) {}
 ValueDesc::ValueDesc(const std::string &name, base::DataType data_type)
     : name_(name), data_type_(data_type) {}
@@ -85,31 +80,38 @@ base::Status ModelDesc::dump(std::ostream &oss) {
   oss << "  name: " << name_ << std::endl;
   oss << "  inputs: " << std::endl;
   for (auto iter : inputs_) {
-    oss << "    " << iter->name_ << " : "
-        << base::dataTypeToString(iter->data_type_) << " : ";
-    for (auto i : iter->shape_) {
-      oss << i << " ";
-    }
+    oss << "    " << iter->name_;
     oss << std::endl;
   }
   oss << "  outputs: " << std::endl;
   for (auto iter : outputs_) {
-    oss << "    " << iter->name_ << " : "
-        << base::dataTypeToString(iter->data_type_) << " : ";
-    for (auto i : iter->shape_) {
-      oss << i << " ";
-    }
-    oss << std::endl;
-  }
-  oss << "  weights: " << std::endl;
-  for (auto iter : weights_) {
-    oss << "    " << iter.first;
+    oss << "    " << iter->name_;
     oss << std::endl;
   }
   oss << "  op_descs: " << std::endl;
   for (auto iter : op_descs_) {
     oss << "    " << iter->name_ << " : " << iter->op_type_ << std::endl;
   }
+  oss << "  weights: " << std::endl;
+  for (auto iter : weights_) {
+    oss << "    " << iter.first;
+    oss << std::endl;
+  }
+  if (values_.size() > 0) {
+    oss << "  values_: " << std::endl;
+    for (auto iter : values_) {
+      oss << "    " << iter->name_;
+      oss << std::endl;
+    }
+  }
+  if (blocks_.size() > 0) {
+    oss << "  blocks_: " << std::endl;
+    for (auto iter : blocks_) {
+      oss << "    " << iter->name_;
+      oss << std::endl;
+    }
+  }
+
   return base::kStatusCodeOk;
 }
 
@@ -125,19 +127,18 @@ std::map<OpType, std::shared_ptr<OpParamCreator>>
 }
 
 std::shared_ptr<base::Param> createOpParam(OpType type) {
-  NNDEPLOY_LOGE("hello world\n");
   std::shared_ptr<base::Param> temp;
   auto &creater_map = getGlobalOpParamCreatorMap();
   if (creater_map.count(type) > 0) {
     temp = creater_map[type]->createOpParam(type);
-    NNDEPLOY_LOGE("hello world\n");
   }
-  NNDEPLOY_LOGE("hello world\n");
   return temp;
 }
 
+// Concat 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeConcat, ConcatParam);
 
+// Conv 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeConv, ConvParam);
 
 // MaxPool 算子参数类的注册函数

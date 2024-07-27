@@ -32,7 +32,7 @@ namespace op {
  * # normalization
  * # pooling
  *
- * deeolink的分类
+ * deeplink的分类
  *  1. Convolution类
     2. Pooling类
     3. Pad类
@@ -214,12 +214,10 @@ enum OpType : int {
 class NNDEPLOY_CC_API OpDesc {
  public:
   OpDesc();
-
   OpDesc(OpType op_type);
   OpDesc(const std::string &name, OpType op_type);
   OpDesc(const std::string &name, OpType op_type,
          std::shared_ptr<base::Param> op_param);
-
   OpDesc(const std::string &name, OpType op_type,
          std::initializer_list<std::string> inputs,
          std::initializer_list<std::string> outputs);
@@ -227,7 +225,6 @@ class NNDEPLOY_CC_API OpDesc {
          std::initializer_list<std::string> inputs,
          std::initializer_list<std::string> outputs,
          std::shared_ptr<base::Param> op_param);
-
   OpDesc(const std::string &name, OpType op_type,
          std::vector<std::string> &inputs, std::vector<std::string> &outputs);
   OpDesc(const std::string &name, OpType op_type,
@@ -256,7 +253,6 @@ class NNDEPLOY_CC_API OpDesc {
 class ValueDesc {
  public:
   ValueDesc();
-
   ValueDesc(const std::string &name);
   ValueDesc(const std::string &name, base::DataType data_type);
   ValueDesc(const std::string &name, base::DataType data_type,
@@ -356,11 +352,13 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
 
 class OpParam : public base::Param {
  public:
-  OpParam(){};
+  OpParam() : base::Param(){};
   virtual ~OpParam(){};
 
   PARAM_COPY(OpParam)
   PARAM_COPY_TO(OpParam)
+
+ public:
   // 保留字段,key-value的形式
   std::map<std::string, base::Value> reserved_param_;
   // 保留字段,也可以充void *使用
@@ -369,48 +367,28 @@ class OpParam : public base::Param {
 
 class ConcatParam : public OpParam {
  public:
-  ConcatParam(){};
+  ConcatParam() : OpParam(){};
   virtual ~ConcatParam(){};
 
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
-  int axis_;
+
+ public:
+  int axis_ = 1;  // 拼接的维度
 };
 
 class ConvParam : public OpParam {
  public:
   // 构造函数
-  ConvParam() {}
+  ConvParam() : OpParam() {}
   virtual ~ConvParam() {}
-
-  // 复制构造函数
-  ConvParam(const ConvParam &other) {
-    strides_ = other.strides_;
-    auto_pad_ = other.auto_pad_;
-    dilations_ = other.dilations_;
-    kernel_shape_ = other.kernel_shape_;
-    pads_ = other.pads_;
-    group_ = other.group_;
-  }
-
-  // 赋值运算符
-  ConvParam &operator=(const ConvParam &other) {
-    if (this != &other) {
-      strides_ = other.strides_;
-      auto_pad_ = other.auto_pad_;
-      dilations_ = other.dilations_;
-      kernel_shape_ = other.kernel_shape_;
-      pads_ = other.pads_;
-      group_ = other.group_;
-    }
-    return *this;
-  }
 
   PARAM_COPY(ConvParam)
   PARAM_COPY_TO(ConvParam)
 
+ public:
   // 自动填充方式
-  std::string auto_pad_ = "";
+  std::string auto_pad_ = "NOTSET";
   // 扩张系数
   std::vector<int> dilations_ = {1, 1};
   // 组数
@@ -422,33 +400,21 @@ class ConvParam : public OpParam {
   // 卷积步长
   std::vector<int> strides_ = {1, 1};
 
+  // 基于onnx扩展的参数
   bool is_fusion_op_ = false;
   OpType activate_op_ = kOpTypeRelu;
 };
 // MaxPool 参数类
 class MaxPoolParam : public OpParam {
  public:
-  MaxPoolParam() {}
+  MaxPoolParam() : OpParam() {}
   virtual ~MaxPoolParam() {}
-
-  MaxPoolParam(const MaxPoolParam &other) {
-    strides_ = other.strides_;
-    kernel_shape_ = other.kernel_shape_;
-    pads_ = other.pads_;
-  }
-
-  MaxPoolParam &operator=(const MaxPoolParam &other) {
-    if (this != &other) {
-      strides_ = other.strides_;
-      kernel_shape_ = other.kernel_shape_;
-      pads_ = other.pads_;
-    }
-    return *this;
-  }
 
   PARAM_COPY(MaxPoolParam)
   PARAM_COPY_TO(MaxPoolParam)
-  std::string auto_pad_ = "";             // 自动填充方式
+
+ public:
+  std::string auto_pad_ = "NOTSET";       // 自动填充方式
   int ceil_mode_ = 0;                     // 是否向上取整
   std::vector<int> dilations_ = {1, 1};   // 扩张系数
   std::vector<int> kernel_shape_;         // 池化核大小
@@ -460,33 +426,26 @@ class MaxPoolParam : public OpParam {
 // Reshape 参数类
 class ReshapeParam : public OpParam {
  public:
-  ReshapeParam() {}
+  ReshapeParam() : OpParam() {}
   virtual ~ReshapeParam() {}
-
-  ReshapeParam(const ReshapeParam &other) { allowzero_ = other.allowzero_; }
-
-  ReshapeParam &operator=(const ReshapeParam &other) {
-    if (this != &other) {
-      allowzero_ = other.allowzero_;
-    }
-    return *this;
-  }
 
   PARAM_COPY(ReshapeParam)
   PARAM_COPY_TO(ReshapeParam)
 
-  int allowzero_;  // 是否允许0
+ public:
+  int allowzero_ = 0;  // 是否允许0
 };
 
 // Resize 参数类
 class ResizeParam : public OpParam {
  public:
-  ResizeParam() {}
+  ResizeParam() : OpParam() {}
   virtual ~ResizeParam() {}
 
   PARAM_COPY(ResizeParam)
   PARAM_COPY_TO(ResizeParam)
 
+ public:
   int antialias_ = 0;
   int axes_ = INT_MAX;  // 轴，当为INT_MAX时，表示未设置
   std::string coordinate_transformation_mode_ = "half_pixel";
@@ -501,13 +460,14 @@ class ResizeParam : public OpParam {
 // Softmax 参数类
 class SoftmaxParam : public OpParam {
  public:
-  SoftmaxParam() : axis_(1) {}  // 默认轴为1
+  SoftmaxParam() : OpParam() {}
   virtual ~SoftmaxParam() {}
 
   PARAM_COPY(SoftmaxParam)
   PARAM_COPY_TO(SoftmaxParam)
 
-  int axis_;  // 应用 Softmax 的轴
+ public:
+  int axis_ = -1;  // 应用 Softmax 的轴
 };
 
 // Split 参数类
@@ -519,6 +479,7 @@ class SplitParam : public OpParam {
   PARAM_COPY(SplitParam)
   PARAM_COPY_TO(SplitParam)
 
+ public:
   int axis_ = 0;               // 分割轴
   int num_outputs_ = INT_MAX;  // 分割数
 };
@@ -532,6 +493,7 @@ class TransposeParam : public OpParam {
   PARAM_COPY(TransposeParam)
   PARAM_COPY_TO(TransposeParam)
 
+ public:
   std::vector<int> perm_;
 };
 

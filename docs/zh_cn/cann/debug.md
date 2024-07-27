@@ -151,3 +151,10 @@
 CMake Error in third_party/onnx/CMakeLists.txt:
   export called with target "onnx_proto" which requires target "libprotobuf"
   that is not in any export set.
+
+
+## 2024.07.27
++ 从ir开始梳理 - 与onnx对齐
++ 稍微梳理一下op
++ 梳理解释器 - 完善onnx解释器
++ 增加上层op

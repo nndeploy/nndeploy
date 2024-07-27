@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_INTERPRET_ONNX_INTERPRET_H_
-#define _NNDEPLOY_INTERPRET_ONNX_INTERPRET_H_
+#ifndef _NNDEPLOY_INTERPRET_ONNX_ONNX_INTERPRET_H_
+#define _NNDEPLOY_INTERPRET_ONNX_ONNX_INTERPRET_H_
 
 #include "nndeploy/interpret/interpret.h"
 #include "nndeploy/op/ir.h"
@@ -20,6 +20,7 @@ class OnnxInterpret : public Interpret {
   OnnxInterpret();
   virtual ~OnnxInterpret();
 
+  // convert
   static base::DataType convertToDataType(
       const onnx::TensorProto_DataType &src);
   static base::IntVector convertToShape(const onnx::TensorShapeProto &src);
