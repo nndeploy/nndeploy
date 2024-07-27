@@ -163,7 +163,7 @@ device::TensorDesc MnnInference::getInputTensorAlignDesc(
       if (desc.data_format_ != base::kDataFormatNHW &&
           desc.data_format_ != base::kDataFormatNWC &&
           desc.data_format_ != base::kDataFormatNCW) {
-        desc.data_format_ = base::kDataFormatNHW;
+        desc.data_format_ = base::kDataFormatNCW;
       }
     } else if (desc.shape_.size() == 2) {
       if (desc.data_format_ != base::kDataFormatNC) {
@@ -199,7 +199,7 @@ device::TensorDesc MnnInference::getOutputTensorAlignDesc(
       if (desc.data_format_ != base::kDataFormatNHW &&
           desc.data_format_ != base::kDataFormatNWC &&
           desc.data_format_ != base::kDataFormatNCW) {
-        desc.data_format_ = base::kDataFormatNHW;
+        desc.data_format_ = base::kDataFormatNCW;
       }
     } else if (desc.shape_.size() == 2) {
       if (desc.data_format_ != base::kDataFormatNC) {

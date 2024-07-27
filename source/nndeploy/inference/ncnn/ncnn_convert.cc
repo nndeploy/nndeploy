@@ -38,7 +38,7 @@ base::DataFormat NcnnConvert::convertToDataFormat(const int &elempack,
   } else if (dims == 3) {
     dst = base::kDataFormatNCHW;
   } else if (dims == 2) {
-    dst = base::kDataFormatNHW;
+    dst = base::kDataFormatNCW;
   } else if (dims == 1) {
     dst = base::kDataFormatNC;
   } else {

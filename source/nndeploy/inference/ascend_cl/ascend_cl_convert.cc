@@ -125,7 +125,7 @@ base::DataFormat AscendCLConvert::getDataFormatByShape(
   } else if (src.size() == 4) {
     dst = base::kDataFormatNCHW;
   } else if (src.size() == 3) {
-    dst = base::kDataFormatNHW;
+    dst = base::kDataFormatNCW;
   } else if (src.size() == 2) {
     dst = base::kDataFormatNC;
   } else if (src.size() == 1) {

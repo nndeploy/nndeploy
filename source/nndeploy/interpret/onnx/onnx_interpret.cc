@@ -87,7 +87,9 @@ base::DataFormat OnnxInterpret::convertToDataFormat(
     const onnx::TensorShapeProto& src, bool is_weight) {
   base::DataFormat dst;
   int dim_size = src.dim_size();
-  if (dim_size <= 2) {
+  if (dim_size <= 1) {
+    dst = base::kDataFormatNC;
+  } else if (dim_size == 2) {
     dst = base::kDataFormatNC;
   } else if (dim_size == 3) {
     dst = base::kDataFormatNCW;
@@ -122,7 +124,9 @@ base::DataFormat OnnxInterpret::convertToDataFormat(
     const google::protobuf::RepeatedField<::int64_t>& src, bool is_weight) {
   base::DataFormat dst;
   int dim_size = src.size();
-  if (dim_size <= 2) {
+  if (dim_size <= 1) {
+    dst = base::kDataFormatNC;
+  } else if (dim_size == 2) {
     dst = base::kDataFormatNC;
   } else if (dim_size == 3) {
     dst = base::kDataFormatNCW;

@@ -32,7 +32,7 @@ static inline float sigmoid(float x) {
 static void generateProposals(const int *anchors, int stride, const int model_w,
                               const int model_h, device::Tensor *tensor,
                               float score_threshold, DetectResult *results) {
-  const int num_grid = tensor->getHeight();
+  const int num_grid = tensor->getShapeIndex(1);
 
   int num_grid_x;
   int num_grid_y;
