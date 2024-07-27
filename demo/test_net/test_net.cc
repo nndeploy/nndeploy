@@ -30,7 +30,7 @@ int main() {
   }
   NNDEPLOY_LOGE("hello world\n");
 
-  // md->dump(std::cout);
+  md->dump(std::cout);
 
   return 0;
 }

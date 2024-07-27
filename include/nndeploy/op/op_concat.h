@@ -8,7 +8,17 @@
 namespace nndeploy {
 namespace op {
 
-class OpConcat : public Op {};
+class OpConcat : public Op {
+ public:
+  OpConcat() : Op() {}
+  virtual ~OpConcat() {}
+
+  virtual base::Status inferShape();
+};
+
+NNDEPLOY_CC_API base::Status concat(std::vector<device::Tensor *> input,
+                                    std::shared_ptr<ConcatParam> param,
+                                    device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

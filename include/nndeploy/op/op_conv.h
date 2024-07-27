@@ -8,7 +8,18 @@ namespace nndeploy {
 
 namespace op {
 
-class OpConv : public Op {};
+class OpConv : public Op {
+ public:
+  OpConv() : Op() {}
+  virtual ~OpConv() {}
+
+  virtual base::Status inferShape();
+};
+
+NNDEPLOY_CC_API base::Status conv(device::Tensor *input, device::Tensor *weight,
+                                  device::Tensor *bias,
+                                  std::shared_ptr<ConvParam> param,
+                                  device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

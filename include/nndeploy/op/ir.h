@@ -365,6 +365,23 @@ class OpParam : public base::Param {
   size_t reserved_;
 };
 
+class BatchNormalizationParam : public OpParam {
+ public:
+  BatchNormalizationParam() : OpParam(){};
+  virtual ~BatchNormalizationParam(){};
+
+  PARAM_COPY(BatchNormalizationParam)
+  PARAM_COPY_TO(BatchNormalizationParam)
+
+ public:
+  // The epsilon value to use to avoid division by zero.
+  float epsilon_ = 1e-05;
+  // Factor used in computing the running mean and variance.e.g., running_mean =
+  // running_mean * momentum + mean * (1 - momentum).
+  float momentum_ = 0.9;
+  int training_mode_ = 0;
+};
+
 class ConcatParam : public OpParam {
  public:
   ConcatParam() : OpParam(){};

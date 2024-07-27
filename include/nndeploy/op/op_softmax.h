@@ -10,14 +10,10 @@ namespace op {
 
 class OpSoftmax : public Op {
  public:
-  OpSoftmax() {}
+  OpSoftmax() : Op() {}
   virtual ~OpSoftmax() {}
 
-  virtual base::Status inferShape() {
-    auto input_shape = inputs_[0]->getShape();
-    outputs_[0]->reshape(input_shape);
-    return base::kStatusCodeOk;
-  }
+  virtual base::Status inferShape();
 };
 
 }  // namespace op

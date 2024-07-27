@@ -8,7 +8,12 @@
 namespace nndeploy {
 namespace op {
 
-class OpSplit : public Op {};
+class OpSplit : public Op {
+  OpSplit() : Op() {}
+  virtual ~OpSplit() {}
+
+  virtual base::Status inferShape();
+};
 
 }  // namespace op
 }  // namespace nndeploy
