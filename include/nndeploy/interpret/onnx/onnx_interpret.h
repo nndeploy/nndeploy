@@ -15,6 +15,11 @@
 namespace nndeploy {
 namespace interpret {
 
+/**
+ * @brief 使用的是最新的onnx版本 - target_ir_version=21
+ * @link https://github.com/onnx/onnx/blob/main/docs/Versioning.md
+ * @note：最好是能够在线升级到最新的onnx版本
+ */
 class OnnxInterpret : public Interpret {
  public:
   OnnxInterpret();

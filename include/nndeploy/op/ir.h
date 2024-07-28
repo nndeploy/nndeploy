@@ -453,7 +453,7 @@ class ReshapeParam : public OpParam {
   int allowzero_ = 0;  // 是否允许0
 };
 
-// Resize 参数类
+// Resize 参数类 - opset 18~19
 class ResizeParam : public OpParam {
  public:
   ResizeParam() : OpParam() {}

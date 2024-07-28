@@ -164,3 +164,29 @@ CMake Error in third_party/onnx/CMakeLists.txt:
 + 完善上层op
 + 增加华为晟腾算子
 + 搭建cann开发环境
+
+Released Versions
+ONNX version 	IR version 	Opset version ai.onnx 	Opset version ai.onnx.ml 	Opset version ai.onnx.training
+1.0 	3 	1 	1 	-
+1.1 	3 	5 	1 	-
+1.1.2 	3 	6 	1 	-
+1.2 	3 	7 	1 	-
+1.3 	3 	8 	1 	-
+1.4.1 	4 	9 	1 	-
+1.5.0 	5 	10 	1 	-
+1.6.0 	6 	11 	2 	-
+1.7.0 	7 	12 	2 	1
+1.8.0 	7 	13 	2 	1
+1.8.1 	7 	13 	2 	1
+1.9.0 	7 	14 	2 	1
+1.10.0 	8 	15 	2 	1
+1.10.1 	8 	15 	2 	1
+1.10.2 	8 	15 	2 	1
+1.11.0 	8 	16 	3 	1
+1.12.0 	8 	17 	3 	1
+1.13.0 	8 	18 	3 	1
+1.13.1 	8 	18 	3 	1
+1.14.0 	9 	19 	3 	1
+1.14.1 	9 	19 	3 	1
+1.15.0 	9 	20 	4 	1
+1.16.0 	10 	21 	5 	1
