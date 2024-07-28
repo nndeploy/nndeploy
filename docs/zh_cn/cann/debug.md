@@ -158,3 +158,9 @@ CMake Error in third_party/onnx/CMakeLists.txt:
 + 稍微梳理一下op
 + 梳理解释器 - 完善onnx解释器
 + 增加上层op
+
+
+## 2024.07.27
++ 完善上层op
++ 增加华为晟腾算子
++ 搭建cann开发环境

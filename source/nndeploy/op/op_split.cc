@@ -26,69 +26,45 @@ base::Status OpSplit::inferShape() {
   // 参数
   auto param = dynamic_cast<SplitParam*>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
-  // int allowzero = param->allowzero_;
+  int axis = param->axis_;
+  int rank = inputs_[0]->getShape().size();
+  if (axis < -rank || axis >= rank) {
+    NNDEPLOY_LOGE("axis is invalid.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  if (axis < 0) {
+    axis += (int)inputs_[0]->getShape().size();
+    param->axis_ = axis;
+  }
 
+  //
+  base::IntVector input_shape = inputs_[0]->getShape();
+  int axis_size = input_shape[axis];
   int target_shape_size = inputs_[1]->getShapeIndex(0);
   int64_t* target_shape_data = (int64_t*)inputs_[1]->getData();
-  base::IntVector output_shape;
+  int axis_split_size = 0;
   for (int i = 0; i < target_shape_size; i++) {
-    output_shape.push_back((int)target_shape_data[i]);
-  }
-  std::vector<bool> unresolvedZeros(target_shape_size, false);
-  int negativeOneDim = -1;
-  int64_t outputProduct = 1;
-  bool outputProductValid = true;
-  for (int i = 0; i < static_cast<int>(target_shape_size); ++i) {
-    const auto dim_value = target_shape_data[i];
-
-    if (dim_value == -1) {
-      negativeOneDim = i;
-    } else if (dim_value == 0) {
-      // Check if data input has a shape and if the index i is within
-      // its bounds. If these conditions are satisfied, any dimension
-      // value/param should be propagated. If dimension value cannot be
-      // inferred, set the corresponding  unresolvedZeros flag to true.
-      // If allowzero is set however, do not propagate values, since output
-      // dimension is explicitly zero.
-      NNDEPLOY_LOGE("Invalid dimension value: %d.\n", dim_value);
-    } else if (dim_value > 0) {
-      // Set the dimension value to dim_value
-      output_shape[i] = dim_value;
-      outputProduct *= dim_value;
-    } else {
-      // Check if value is less than -1; fail if so
-      NNDEPLOY_LOGE("Invalid dimension value: %d.\n", dim_value);
+    if (target_shape_data[i] < 0) {
+      NNDEPLOY_LOGE("target_shape_data[%d] < 0.\n", i);
+      return base::kStatusCodeErrorInvalidParam;
     }
+    axis_split_size += target_shape_data[i];
+  }
+  if (axis_split_size != axis_size) {
+    NNDEPLOY_LOGE("axis_split_size != axis_size.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  if (outputs_.size() != target_shape_size) {
+    NNDEPLOY_LOGE("outputs_.size() != target_shape_size.\n");
+    return base::kStatusCodeErrorInvalidParam;
   }
 
-  // If negativeOneDim has been set, we attempt to infer its value. This
-  // can be done if all dimension values for the data input tensor shape
-  // are known other than the ones corresponding to unresolvedZeros
-  // flags.
-  if (negativeOneDim > -1 && outputProductValid) {
-    // First, attempt to compute product of data input shape dimensions
-    // that are not marked by unresolvedZeros. If not possible, set the
-    // inputProductValid flag to false.
-    if (!outputProduct) {
-      NNDEPLOY_LOGE(
-          "Invalid Target shape product of 0. Product cannot be 0 in "
-          "combination with -1");
-    }
-    int64_t inputProduct = 1;
-    bool inputProductValid = true;
-    base::IntVector dataInputTensorShape = inputs_[0]->getShape();
-    for (int i = 0; i < dataInputTensorShape.size(); ++i) {
-      inputProduct *= dataInputTensorShape[i];
-    }
-    if (inputProductValid) {
-      if (inputProduct % outputProduct != 0) {
-        NNDEPLOY_LOGE("Dimension could not be inferred: incompatible shapes");
-      }
-      output_shape[negativeOneDim] = (inputProduct / outputProduct);
-    }
+  // infer output shape
+  for (size_t i = 0; i < outputs_.size(); i++) {
+    auto output_shape = input_shape;
+    output_shape[axis] = target_shape_data[i];
+    outputs_[i]->reshape(output_shape);
   }
-
-  outputs_[0]->reshape(output_shape);
 
   return status;
 }
