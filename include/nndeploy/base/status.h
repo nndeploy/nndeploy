@@ -49,6 +49,8 @@ enum StatusCode : int {
   kStatusCodeErrorInferenceRknn,
   kStatusCodeErrorInferenceTvm,
 
+  kStatusCodeErrorInferenceSnpe,
+
   //
   kStatusCodeErrorDag,
 };

@@ -29,6 +29,23 @@ static inline float sigmoid(float x) {
   return static_cast<float>(1.f / (1.f + exp(-x)));
 }
 
+static void nhwc_to_nchw(float* data, int h, int w, int c)
+{
+    float *dst = new float[h * w * c];
+    for (int i = 0; i < h * w; ++i)
+    {
+        float* src_pt = data + i * c;
+        float* dst_pt = dst + i;
+        for (int j = 0; j < c; ++j)
+        {
+            *dst_pt = (c == 4) ? uos_exp(*src_pt++) : (*src_pt++);
+            dst_pt += h * w;
+        }
+    }
+    memcpy(data, dst, sizeof(float) * h * w * c);
+    delete [] dst;
+}
+
 static void generateProposals(const int *anchors, int stride, const int model_w,
                               const int model_h, device::Tensor *tensor,
                               float score_threshold, DetectResult *results) {
@@ -48,6 +65,13 @@ static void generateProposals(const int *anchors, int stride, const int model_w,
   const int num_anchors = 3;
 
   float *data = (float *)tensor->getData();
+
+#ifdef ENABLE_NNDEPLOY_INFERENCE_SNPE
+  int h = tensor->getHeight();
+  int w = tensor->getWidth();
+  int c = tensor->getChannel();  
+  nhwc_to_nchw(data, num_grid, num_grid, num_);
+#endif
 
   for (int q = 0; q < num_anchors; q++) {
     const float anchor_w = anchors[q * 2];
