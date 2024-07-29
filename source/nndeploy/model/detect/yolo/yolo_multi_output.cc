@@ -29,23 +29,6 @@ static inline float sigmoid(float x) {
   return static_cast<float>(1.f / (1.f + exp(-x)));
 }
 
-static void nhwc_to_nchw(float* data, int h, int w, int c)
-{
-    float *dst = new float[h * w * c];
-    for (int i = 0; i < h * w; ++i)
-    {
-        float* src_pt = data + i * c;
-        float* dst_pt = dst + i;
-        for (int j = 0; j < c; ++j)
-        {
-            *dst_pt = (c == 4) ? uos_exp(*src_pt++) : (*src_pt++);
-            dst_pt += h * w;
-        }
-    }
-    memcpy(data, dst, sizeof(float) * h * w * c);
-    delete [] dst;
-}
-
 static void generateProposals(const int *anchors, int stride, const int model_w,
                               const int model_h, device::Tensor *tensor,
                               float score_threshold, DetectResult *results) {
@@ -65,13 +48,6 @@ static void generateProposals(const int *anchors, int stride, const int model_w,
   const int num_anchors = 3;
 
   float *data = (float *)tensor->getData();
-
-#ifdef ENABLE_NNDEPLOY_INFERENCE_SNPE
-  int h = tensor->getHeight();
-  int w = tensor->getWidth();
-  int c = tensor->getChannel();  
-  nhwc_to_nchw(data, num_grid, num_grid, num_);
-#endif
 
   for (int q = 0; q < num_anchors; q++) {
     const float anchor_w = anchors[q * 2];
@@ -204,16 +180,6 @@ dag::Graph *createYoloV5MultiOutputGraph(const std::string &name,
   inference_param->is_path_ = is_path;
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
-
-#ifdef ENABLE_NNDEPLOY_INFERENCE_SNPE
-  inference_param->snpe_runtime_ = "dsp";
-  inference_param->snpe_perf_mode_ = 5;
-  inference_param->snpe_profiling_level_ = 0;
-  inference_param->snpe_buffer_type_ = 0;
-  inference_param->input_names_ = {"images"};
-  inference_param->output_tensor_names_ = {"output0", "output1", "output2"};
-  inference_param->output_layer_names_  = {"Conv_199", "Conv_200", "Conv_201"};
-#endif
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
   YoloMultiOutputPostParam *post_param =

@@ -1,16 +1,13 @@
 #include "nndeploy/inference/snpe/snpe_inference.h"
 
-namespace nndeploy
-{
-namespace inference
-{
+namespace nndeploy {
+namespace inference {
 
 TypeInferenceRegister<TypeInferenceCreator<SnpeInference>>
     g_snpe_inference_register(base::kInferenceTypeSnpe);
 
 SnpeInference::SnpeInference(base::InferenceType type) : Inference(type) {}
 SnpeInference::~SnpeInference() {}
-
 
 base::Status SnpeInference::init()
 {
@@ -19,11 +16,9 @@ base::Status SnpeInference::init()
     SnpeInferenceParam *snpe_inference_param =
         dynamic_cast<SnpeInferenceParam *>(inference_param_);
 
-        base::Status status = base::kStatusCodeOk;
-
     zdl::DlSystem::Runtime_t runtime;
-    std::string snpe_runtime = snpe_inference_param->snpe_runtime_;
-    NNDEPLOY_LOGE("snpe_perf_mode is : [%s].\n", snpe_runtime.c_str());
+    std::string snpe_runtime = snpe_inference_param->runtime_;
+    std::cout << "snpe_runtime is : [" << snpe_runtime << "]." << std::endl;
     if (snpe_runtime == "cpu")
     {
         runtime = zdl::DlSystem::Runtime_t::CPU;
@@ -42,20 +37,18 @@ base::Status SnpeInference::init()
     }
     else
     {
-        NNDEPLOY_RETURN_ON_NEQ("SNPE runtime option[%s] is not valid!\
-                Defaulting to the CPU runtime.\n", snpe_runtime.c_str());
+        std::cout << "SNPE runtime option[" << snpe_runtime << "] is not valid! Defaulting to the CPU runtime." << std::endl;
         runtime = zdl::DlSystem::Runtime_t::CPU;
     }
     if (!zdl::SNPE::SNPEFactory::isRuntimeAvailable(runtime))
     {
-        NNDEPLOY_RETURN_ON_NEQ("Selected runtime[%d] not available!\
-            Please check your environment and runtime setting in .json!\n", static_cast<int>(runtime));
+        std::cout << "Selected runtime[" << snpe_runtime << "] not available! Please check your environment and runtime setting in .json!" << std::endl;
         std::abort();
     }
 
     zdl::DlSystem::PerformanceProfile_t perf_mode;
-    int32_t snpe_perf_mode = snpe_inference_param->snpe_perf_mode_;
-    NNDEPLOY_LOGE("snpe_perf_mode is : [%d].\n", snpe_perf_mode);
+    int32_t snpe_perf_mode = snpe_inference_param->perf_mode_;
+    std::cout << "snpe_perf_mode is : [" << snpe_perf_mode << "]." << std::endl;
     switch (snpe_perf_mode)
     {
         case 0:
@@ -77,13 +70,13 @@ base::Status SnpeInference::init()
             perf_mode = zdl::DlSystem::PerformanceProfile_t::BURST;
             break;
         default:
-            NNDEPLOY_RETURN_ON_EQ("SNPE performance mode[%d] is not valid!\n", snpe_perf_mode);
+            std::cout << "SNPE performance mode[" << snpe_perf_mode << "] is not valid!" << std::endl;
             std::abort();
     }
 
     zdl::DlSystem::ProfilingLevel_t profiling_level;
-    int32_t snpe_profiling_level = snpe_inference_param->snpe_profiling_level_;
-    NNDEPLOY_LOGE("snpe_profiling_level is : [%d].\n", snpe_profiling_level);
+    int32_t snpe_profiling_level = snpe_inference_param->profiling_level_;
+    std::cout << "snpe_profiling_level is : [" << snpe_profiling_level << "]." << std::endl;
     switch (snpe_profiling_level)
     {
         case 0:
@@ -96,45 +89,41 @@ base::Status SnpeInference::init()
             profiling_level = zdl::DlSystem::ProfilingLevel_t::DETAILED;
             break;
         default:
-            NNDEPLOY_RETURN_ON_NEQ("SNPE profiling level[%d] is not valid!\n", snpe_profiling_level);
+            std::cout << "SNPE profiling level[" << snpe_profiling_level << "] is not valid!" << std::endl;
             std::abort();
     }
 
-    int32_t buffer_type = snpe_inference_param->snpe_buffer_type_;
-    int32_t bit_width;
+    int32_t buffer_type = snpe_inference_param->buffer_type_;
+    std::cout << "buffer_type is : [" << buffer_type << "]." << std::endl;
+    int32_t bit_width = 0;
     switch (buffer_type)
     {
     case 0:
-        buffer_type = USERBUFFER_FLOAT;
-        bit_width = 32;
+        buffer_type_ = USERBUFFER_FLOAT;
         break;
     case 1:
-        buffer_type = USERBUFFER_TF8;
-        bit_width = 8;
+        buffer_type_ = USERBUFFER_TF8;
         break;
     case 2:
-        buffer_type = ITENSOR;
-        bit_width = 32; // or 8
+        buffer_type_ = ITENSOR;
         break;
     case 3:
-        buffer_type = USERBUFFER_TF16;
-        bit_width = 16;
+        buffer_type_ = USERBUFFER_TF16;
         break;
     default:
-        NNDEPLOY_RETURN_ON_EQ("The buffer type is not supported.\n");
+        std::cout << "The buffer type is not supported." << std::endl;
         break;
     }
-    bool use_user_supplied_buffers = (buffer_type == USERBUFFER_FLOAT ||
-                                      buffer_type == USERBUFFER_TF8 ||
-                                      buffer_type == USERBUFFER_TF16 ||
-                                      buffer_type == ITENSOR);
+    bool use_user_supplied_buffers = (buffer_type_ == USERBUFFER_FLOAT ||
+                                      buffer_type_ == USERBUFFER_TF8 ||
+                                      buffer_type_ == USERBUFFER_TF16 ||
+                                      buffer_type_ == ITENSOR);
 
     std::string modelfile_path = snpe_inference_param->model_value_[0];
     std::ifstream dlcFile(modelfile_path);
     if (!dlcFile)
     {
-        NNDEPLOY_LOGE("DLC file[%s] not valid. Please ensure that you\
-                have provided a valid dlc file!\n", modelfile_path.c_str());
+        std::cout << "DLC file[" << modelfile_path << "] not valid. Please ensure that you have provided a valid dlc file!" << std::endl;
         std::abort();
     }
 
@@ -142,11 +131,11 @@ base::Status SnpeInference::init()
             zdl::DlContainer::IDlContainer::open(zdl::DlSystem::String(modelfile_path.c_str()));
     if (container == nullptr)
     {
-        NNDEPLOY_RETURN_ON_EQ("Error while opening the container file[%s].\n", modelfile_path.c_str());
-        return nullptr;
+        std::cout << "Error while opening the container file[" << modelfile_path << "]." << std::endl;
+        return base::kStatusCodeErrorInferenceSnpe;
     }
 
-    zdl::DlSystem::UDLFactoryFunc udl_func = UdlExample::MyUDLFactory;
+    zdl::DlSystem::UDLFactoryFunc udl_func = MyUDLFactory;
     zdl::DlSystem::UDLBundle udl_bundle;
     udl_bundle.cookie = (void*)0xdeadbeaf, udl_bundle.func = udl_func; // 0xdeadbeaf to test cookie
     zdl::DlSystem::PlatformConfig platform_config;
@@ -158,6 +147,7 @@ base::Status SnpeInference::init()
     std::vector<std::string> output_layer_names = snpe_inference_param->output_layer_names_;
     for (int i = 0; i < output_layer_names.size(); i++)
     {
+        std::cout << "output_layer_names[" << i << "] is : " << output_layer_names[i] << std::endl;
         outputLayerNames.append(output_layer_names[i].c_str());
     }
 
@@ -173,26 +163,28 @@ base::Status SnpeInference::init()
                            .setInitCacheMode(usingInitCaching)
                            .build();
     }
+    
+    std::cout << "finish snpe setting......" << std::endl;
 
     if (snpe_ == nullptr)
     {
-        NNDEPLOY_RETURN_ON_EQ("Error while building SNPE object.\n");
-        return nullptr;
+        std::cout << "Error while building SNPE object." << std::endl;
+        return base::kStatusCodeErrorInferenceSnpe;
     }
 
     if (buffer_type == USERBUFFER_FLOAT)
     {
-        createInputBufferMap(*input_map_, application_input_buffers_, snpe_user_input_buffers_, snpe_, false, bit_width);
-        createOutputBufferMap(*output_map_, application_output_buffers_, snpe_user_output_buffers_, snpe_, false, bit_width);
+        createInputBufferMap(input_map_, application_input_buffers_, snpe_user_input_buffers_, snpe_, false, bit_width);
+        createOutputBufferMap(output_map_, application_output_buffers_, snpe_user_output_buffers_, snpe_, false, bit_width);
     }
     else if (buffer_type == USERBUFFER_TF8 || buffer_type == USERBUFFER_TF16)
     {
-        createInputBufferMap(*input_map_, application_input_buffers_, snpe_user_input_buffers_, snpe_, true, bit_width);
-        createOutputBufferMap(*output_map_, application_output_buffers_, snpe_user_output_buffers_, snpe_, true, bit_width);
+        createInputBufferMap(input_map_, application_input_buffers_, snpe_user_input_buffers_, snpe_, true, bit_width);
+        createOutputBufferMap(output_map_, application_output_buffers_, snpe_user_output_buffers_, snpe_, true, bit_width);
     }
     else if (buffer_type == ITENSOR)
     {
-        createITensors(&inputTensor_, snpe_, 1);
+        std::cout << "The ITensor data type is not supported!" << std::endl;
     }
 
     status = allocateInputOutputTensor();
@@ -211,21 +203,28 @@ base::Status SnpeInference::deinit()
 
 base::Status SnpeInference::run()
 {
+    std::cout << "start snpe execute......" << std::endl;
     bool execStatus = snpe_->execute(input_map_, output_map_);
     if (execStatus != true)
     {
         std::cout << "Error while executing the network! Error info: "
                 << zdl::DlSystem::getLastErrorString() << std::endl;
 
-        return kStatusCodeErrorInferenceSnpe;
+        return base::kStatusCodeErrorInferenceSnpe;
     }
+    std::cout << "end snpe execute......" << std::endl;
 
+    return base::kStatusCodeOk;
+}
+
+base::Status SnpeInference::reshape(base::ShapeMap &shape_map)
+{
     return base::kStatusCodeOk;
 }
 
 device::Tensor *SnpeInference::getOutputTensorAfterRun(
             const std::string &name, base::DeviceType device_type, bool is_copy,
-            base::DataFormat data_format = base::kDataFormatAuto)
+            base::DataFormat data_format)
 {
     device::Device *device = device::getDevice(device_type);
     device::Tensor *internal_tensor = output_tensors_[name];
@@ -257,7 +256,9 @@ base::Status SnpeInference::allocateInputOutputTensor()
     const zdl::DlSystem::StringList& output_tensor_names = *output_tensor_names_opt;
     const zdl::DlSystem::StringList& output_layer_names = *output_layer_names_opt;
 
+    device::Device *host_device = device::getDefaultHostDevice();
     device::Device *device = nullptr;
+    std::cout << "inference_param_->device_type_ is : " << inference_param_->device_type_.code_ << std::endl;
     if (device::isHostDeviceType(inference_param_->device_type_))
     {
         device = device::getDevice(inference_param_->device_type_);
@@ -275,11 +276,12 @@ base::Status SnpeInference::allocateInputOutputTensor()
         }
         std::cout << "]" << std::endl;
 
-        zdl::DlSystem::Dimension &dims = tensorShape.getDimensions();
+        const zdl::DlSystem::Dimension *dims = tensorShape.getDimensions();
         size_t rank = tensorShape.rank();
         base::IntVector shape = SnpeConvert::convertToShape(dims, rank);
-        base::DataType data_type = SnpeConvert::convertToDataType(buffer_type);
+        base::DataType data_type = SnpeConvert::convertToDataType(buffer_type_);
         base::DataFormat data_format = SnpeConvert::convertToDataFormat();
+
         device::TensorDesc desc;
         desc.data_type_ = data_type;
         desc.data_format_ = data_format;
@@ -287,17 +289,11 @@ base::Status SnpeInference::allocateInputOutputTensor()
         desc.stride_ = base::SizeVector();
 
         device::Tensor *input_tensor = nullptr;
-        if (device == nullptr)
-        {
-            input_tensor = new device::Tensor(desc, name);
-        }
-        else
-        {
-            void* data_ptr = reinterpret_cast<void*>(&application_input_buffers_.at(name.c_str())[0]);
-            base::IntVector memory_config = base::IntVector();
-            input_tensor = new device::Tensor(device, desc, data_ptr, name, memory_config);
-        }
-        
+        void* data_ptr = reinterpret_cast<void*>(&application_input_buffers_.at(name)[0]);
+        base::IntVector memory_config = base::IntVector();
+        std::cout << "start new input tensor[" << name << "]" << std::endl;
+        input_tensor = new device::Tensor(device, desc, data_ptr, name, memory_config);
+
         input_tensors_.insert({name, input_tensor});
     }
     for (const char* name : output_tensor_names)
@@ -311,11 +307,12 @@ base::Status SnpeInference::allocateInputOutputTensor()
         }
         std::cout << "]" << std::endl;
 
-        zdl::DlSystem::Dimension &dims = tensorShape.getDimensions();
+        const zdl::DlSystem::Dimension *dims = tensorShape.getDimensions();
         size_t rank = tensorShape.rank();
         base::IntVector shape = SnpeConvert::convertToShape(dims, rank);
-        base::DataType data_type = SnpeConvert::convertToDataType(buffer_type);
+        base::DataType data_type = SnpeConvert::convertToDataType(buffer_type_);
         base::DataFormat data_format = SnpeConvert::convertToDataFormat();
+
         device::TensorDesc desc;
         desc.data_type_ = data_type;
         desc.data_format_ = data_format;
@@ -323,16 +320,10 @@ base::Status SnpeInference::allocateInputOutputTensor()
         desc.stride_ = base::SizeVector();
 
         device::Tensor *output_tensor = nullptr;
-        if (device == nullptr)
-        {
-            output_tensor = new device::Tensor(desc, name);
-        }
-        else
-        {
-            void* data_ptr = reinterpret_cast<void*>(&application_output_buffers_.at(name.c_str())[0]);
-            base::IntVector memory_config = base::IntVector();
-            output_tensor = new device::Tensor(device, desc, data_ptr, name, memory_config);
-        }
+        void* data_ptr = reinterpret_cast<void*>(&application_output_buffers_.at(name)[0]);
+        base::IntVector memory_config = base::IntVector();
+        std::cout << "start new output tensor[" << name << "]" << std::endl;
+        output_tensor = new device::Tensor(device, desc, data_ptr, name, memory_config);
 
         output_tensors_.insert({name, output_tensor});
     }
@@ -340,6 +331,9 @@ base::Status SnpeInference::allocateInputOutputTensor()
     {
         std::cout << "output layer[" << name << "]" << std::endl;
     }
+    std::cout << "finish allocateInputOutputTensor....." << std::endl;
+
+    return base::kStatusCodeOk;
 }
 
 base::Status SnpeInference::deallocateInputOutputTensor()
@@ -405,7 +399,7 @@ void SnpeInference::createUserBuffer(zdl::DlSystem::UserBufferMap& userBufferMap
     size_t bufferElementSize = 0;
     if (isTfNBuffer)
     {
-        bufferElementSize = bitWidth / 8;
+        bufferElementSize = sizeof(uint8_t);
     }
     else
     {
@@ -431,13 +425,13 @@ void SnpeInference::createUserBuffer(zdl::DlSystem::UserBufferMap& userBufferMap
     std::unique_ptr<zdl::DlSystem::UserBufferEncoding> userBufferEncoding;
     if (isTfNBuffer)
     {
-        userBufferEncoding = std::unique_ptr<zdl::DlSystem::UserBufferEncodingTfN>(
-            new zdl::DlSystem::UserBufferEncodingTfN(0,1.0, bitWidth));
+        userBufferEncoding = std::move(std::unique_ptr<zdl::DlSystem::UserBufferEncodingTf8>
+                (new zdl::DlSystem::UserBufferEncodingTf8(0,1.0)));
     }
     else
     {
-        userBufferEncoding = std::unique_ptr<zdl::DlSystem::UserBufferEncodingFloat>(
-            new zdl::DlSystem::UserBufferEncodingFloat());
+        userBufferEncoding = std::move(std::unique_ptr<zdl::DlSystem::UserBufferEncodingFloat>
+                (new zdl::DlSystem::UserBufferEncodingFloat()));
     }
 
     // create user-backed storage to load input data onto it
@@ -454,6 +448,7 @@ void SnpeInference::createUserBuffer(zdl::DlSystem::UserBufferMap& userBufferMap
         std::cerr << "Error while creating user buffer." << std::endl;
         std::abort();
     }
+
     // add the user-backed buffer to the inputMap, which is later on fed to the network for execution
     userBufferMap.add(name, snpeUserBackedBuffers.back().get());
 }
@@ -561,25 +556,6 @@ void SnpeInference::createInputBufferMap(zdl::DlSystem::UserBufferMap& inputMap,
     for (const char *name : inputNames)
     {
         createUserBuffer(inputMap, applicationBuffers, snpeUserBackedBuffers, snpe, name);
-    }
-}
-
-void SnpeInference::createITensors(std::unique_ptr<zdl::DlSystem::ITensor>* inputs,
-                        std::unique_ptr<zdl::SNPE::SNPE>& snpe,
-                        const size_t inputSize)
-{
-    const auto &inputTensorNamesRef = snpe->getInputTensorNames();
-    if (!inputTensorNamesRef)
-        throw std::runtime_error("Error obtaining Input tensor names!");
-    const auto &inputTensorNames = *inputTensorNamesRef;
-    if (inputTensorNames.size() != inputSize)
-        throw std::runtime_error("Input tensor's size is not equal to inputSize!");
-
-    for (size_t i = 0; i < inputTensorNames.size(); i++)
-    {
-        const auto &inputDimsRef = snpe->getInputDimensions(inputTensorNames.at(i));
-        const auto &inputDims = *inputDimsRef;
-        inputs[i] = zdl::SNPE::SNPEFactory::getTensorFactory().createTensor(inputDims);
     }
 }
 

@@ -137,6 +137,7 @@ base::Status Infer::run() {
     inference_->reshape(shape_map);
   }
   for (auto tensor : tensors) {
+    std::cout << "setInputTensor name is : " << tensor->getName() << std::endl;
     inference_->setInputTensor(tensor->getName(), tensor);
   }
   status = inference_->run();

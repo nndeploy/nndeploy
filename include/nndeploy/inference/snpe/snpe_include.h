@@ -1,7 +1,6 @@
 #ifndef _NNDEPLOY_INFERENCE_SNPE_SNPE_INCLUDE_H_
 #define _NNDEPLOY_INFERENCE_SNPE_SNPE_INCLUDE_H_
 
-
 #include <DlSystem/RuntimeList.hpp>
 #include <DlSystem/UserBufferMap.hpp>
 #include <DlSystem/ITensor.hpp>
@@ -25,22 +24,17 @@
 #include "DlContainer/IDlContainer.hpp"
 #include "DiagLog/IDiagLog.hpp"
 
+namespace nndeploy {
+namespace inference {
 
-namespace nndeploy
-{
-namespace inference
-{
-
-enum SnpeRuntime_t : int
-{
+enum SnpeRuntime_t : int {
     SNPE_RT_CPU = 0x0000,
     SNPE_RT_GPU,
     SNPE_RT_DSP,
     SNPE_RT_AIP
 };
 
-enum SnpePerfMode_t : int
-{
+enum SnpePerfMode_t : int {
     SNPE_PERF_BALANCED = 0x0000,
     SNPE_PERF_HIGH_PERFORMANCE,
     SNPE_PERF_POWER_SAVER,
@@ -49,28 +43,25 @@ enum SnpePerfMode_t : int
     SNPE_PERF_BURST
 };
 
-enum SnpeProfilingLevel_t : int
-{
+enum SnpeProfilingLevel_t : int {
     SNPE_PROFILING_OFF = 0x0000,
     SNPE_PROFILING_BASIC,
     SNPE_PROFILING_DETAILED
 };
 
-enum SnpeBuffer_Type_t : int
-{
+enum SnpeBuffer_Type_t : int {
     USERBUFFER_FLOAT = 0x0000,
     USERBUFFER_TF8,
     ITENSOR,
     USERBUFFER_TF16
 };
 
-enum SnpeUserBufferSource_Type_t : int
-{
+enum SnpeUserBufferSource_Type_t : int {
     CPUBUFFER = 0x0000,
     GLBUFFER
 };
 
-}
+} // ns
 }
 
 #endif

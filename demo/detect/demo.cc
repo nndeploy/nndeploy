@@ -138,12 +138,16 @@ int main(int argc, char *argv[]) {
 
   // 初始化有向无环图graph
   NNDEPLOY_TIME_POINT_START("graph->init()");
+  std::cout << "graph init......" << std::endl;
   status = graph->init();
   if (status != base::kStatusCodeOk) {
+    std::cout << "graph init failed" << std::endl;
     NNDEPLOY_LOGE("graph init failed");
     return -1;
   }
   NNDEPLOY_TIME_POINT_END("graph->init()");
+
+  std::cout << "graph dump....." << std::endl;
 
   status = graph->dump();
   status = detect_graph->dump();
@@ -152,6 +156,7 @@ int main(int argc, char *argv[]) {
   int size = decode_node->getSize();
   // size = 2;
   // decode_node->setSize(size);
+  std::cout << "size = " << size << std::endl;
   NNDEPLOY_LOGE("size = %d.\n", size);
   for (int i = 0; i < size; ++i) {
     status = graph->run();

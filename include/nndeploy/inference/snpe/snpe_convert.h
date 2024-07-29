@@ -14,13 +14,10 @@
 #include "nndeploy/inference/snpe/snpe_include.h"
 #include "nndeploy/inference/snpe/snpe_inference_param.h"
 
-namespace nndeploy
-{
-namespace inference
-{
+namespace nndeploy {
+namespace inference {
 
-class SnpeConvert
-{
+class SnpeConvert {
 public:
     SnpeConvert();
     ~SnpeConvert();
