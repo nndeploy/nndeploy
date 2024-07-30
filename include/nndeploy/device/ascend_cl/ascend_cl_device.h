@@ -32,7 +32,7 @@ class AscendCLArchitecture : public Architecture {
 
  private:
   // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看ascend_cl文档
-  std::map<int, std::string> acl_config_path_map_ = "";
+  std::map<int, std::string> acl_config_path_map_;
 };
 
 class AclStreamWrapper {
@@ -91,7 +91,7 @@ class NNDEPLOY_CC_API AscendCLDevice : public Device {
     acl_stream_wrapper_.resize(1);
     acl_stream_wrapper_[0].external_command_queue_ = command_queue;
   };
-  virtual ~AscendCLDevice(){};
+  virtual ~AscendCLDevice() {};
 
   void setAclConfigPath(const std::string &acl_config_path);
 
