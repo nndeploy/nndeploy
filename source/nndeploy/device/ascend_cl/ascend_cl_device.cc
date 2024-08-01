@@ -420,7 +420,7 @@ base::Status AscendCLDevice::deinit() {
           ret);
       return base::kStatusCodeErrorDeviceAscendCL;
     }
-    if (iter.external_command_queue_ != nullptr) {
+    if (iter.external_command_queue_ == nullptr) {
       aclError ret;
       if (iter.stream_ != nullptr) {
         ret = aclrtDestroyStream(iter.stream_);
