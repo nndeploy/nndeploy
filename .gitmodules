@@ -9,3 +9,7 @@
 [submodule "third_party/protobuf"]
 	path = third_party/protobuf
 	url = https://github.com/protocolbuffers/protobuf.git
+[submodule "third_party/onnx"]
+	path = third_party/onnx
+	url = https://github.com/onnx/onnx.git
+	ref = refs/tags/v1.15.0
