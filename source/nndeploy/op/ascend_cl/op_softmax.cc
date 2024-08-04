@@ -1,6 +1,9 @@
 #include "nndeploy/op/op_softmax.h"
 
 #include "aclnnop/aclnn_softmax.h"
+#include "nndeploy/op/ascend_cl/acl_op_convert.h"
+#include "nndeploy/op/ascend_cl/acl_op_include.h"
+#include "nndeploy/op/ascend_cl/acl_op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -26,7 +29,7 @@ class AscendCLOpSoftmax : public OpSoftmax {
     inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
 
     // 创建算子
-    aclnn_status = aclnnSoftmaxGetWorkspaceSize(
+    aclnnStatus aclnn_status = aclnnSoftmaxGetWorkspaceSize(
         inner_input_, dim_, inner_output_, &workspace_size_, executor_);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACLNN_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,

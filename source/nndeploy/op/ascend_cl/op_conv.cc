@@ -1,6 +1,9 @@
 #include "nndeploy/op/op_conv.h"
 
 #include "aclnnop/aclnn_convolution.h"
+#include "nndeploy/op/ascend_cl/acl_op_convert.h"
+#include "nndeploy/op/ascend_cl/acl_op_include.h"
+#include "nndeploy/op/ascend_cl/acl_op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -42,7 +45,7 @@ class AscendCLOpConv : public OpConv {
     inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
 
     // 创建算子
-    aclnn_status = aclnnConvolutionGetWorkspaceSize(
+    aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSize(
         inner_input_, inner_weight_, inner_bias_, stride_, padding_, dilation_,
         transposed_, output_padding_, groups_, inner_output_, cube_math_type_,
         &workspace_size_, &executor_);
@@ -97,7 +100,7 @@ class AscendCLOpConv : public OpConv {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeConv, AscendCLOpConvolution)
+                         kOpTypeConv, AscendCLOpConv)
 
 }  // namespace op
 }  // namespace nndeploy

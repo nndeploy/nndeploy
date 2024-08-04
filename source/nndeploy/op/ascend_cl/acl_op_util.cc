@@ -1,5 +1,3 @@
-#ifndef _NNDEPLOY_OP_ASCEND_CL_ACL_OP_UTIL_H_
-#define _NNDEPLOY_OP_ASCEND_CL_ACL_OP_UTIL_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/log.h"
@@ -12,7 +10,26 @@
 namespace nndeploy {
 namespace op {
 
-std::string getTensorDescString(const aclTensorDesc* desc);
+std::string getTensorDescString(const aclTensorDesc* desc) {
+  auto data_type = aclGetTensorDescType(desc);
+  auto origin_format = aclGetTensorDescFormat(desc);  // origin format
+
+  std::stringstream ss;
+  ss << "TensorDesc: data_type = " << data_type
+     << ", origin_format = " << origin_format << ", origin_dims = [";
+
+  size_t rank = aclGetTensorDescNumDims(desc);
+  for (auto i = 0; i < rank; ++i) {
+    int64_t dim_size = -1;
+    PADDLE_ENFORCE_NPU_SUCCESS(aclGetTensorDescDimV2(desc, i, &dim_size));
+    ss << dim_size;
+    if (i < rank - 1) {
+      ss << ", ";
+    }
+  }
+  ss << "]";
+  return ss.str();
+}
 
 std::string getOpDescString(std::vector<aclTensorDesc*> descs,
                             const std::string msg);
@@ -48,5 +65,3 @@ NNDEPLOY_CC_API aclDataType aclDataTypeOf<int64_t>();
 
 }  // namespace op
 }  // namespace nndeploy
-
-#endif
