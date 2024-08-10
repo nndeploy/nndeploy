@@ -91,10 +91,9 @@ class AscendCLOpConv : public OpConv {
   int64_t groups_;
   aclTensor *inner_output_;
   int8_t cube_math_type_;
-  uint64_t workspace_size_ = 0;
+
   aclOpExecutor *executor_;
 
-  void *workspace_ = nullptr;
   aclrtStream inner_stream_;
   aclopAttr *attr_{nullptr};
 };

@@ -19,11 +19,12 @@ namespace net {
 
 class NNDEPLOY_CC_API AscendCLSession : public Session {
  public:
-  AscendCLSession(){};
-  virtual ~AscendCLSession(){};
+  AscendCLSession(const base::DeviceType &device_type);
+  virtual ~AscendCLSession();
 
   virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
-                            std::vector<OpWrapper *> &op_repository);
+                            std::vector<OpWrapper *> &op_repository,
+                            bool is_dynamic_shape, base::ShapeMap max_shape);
   virtual base::Status deinit();
 
   virtual base::Status reshape(base::ShapeMap &shape_map);
@@ -31,6 +32,13 @@ class NNDEPLOY_CC_API AscendCLSession : public Session {
   virtual base::Status preRun();
   virtual base::Status run();
   virtual base::Status postRun();
+
+ protected:
+  std::shared_ptr<TensorPool1DChunkIndepend> tensor_pool_;
+  bool is_dynamic_shape_ = false;                // 是否是动态shape
+  base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
+  std::vector<TensorWrapper *> tensor_repository_;
+  std::vector<OpWrapper *> op_repository;
 };
 
 }  // namespace net

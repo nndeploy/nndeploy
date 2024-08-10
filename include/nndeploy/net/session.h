@@ -17,11 +17,13 @@ namespace net {
 
 class NNDEPLOY_CC_API Session : public base::NonCopyable {
  public:
-  Session(){};
+  Session(const base::DeviceType &device_type) : device_type_(device_type){};
   virtual ~Session(){};
 
   virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
-                            std::vector<OpWrapper *> &op_repository) = 0;
+                            std::vector<OpWrapper *> &op_repository,
+                            bool is_dynamic_shape,
+                            base::ShapeMap max_shape) = 0;
   virtual base::Status deinit() = 0;
 
   virtual base::Status reshape(base::ShapeMap &shape_map) = 0;
@@ -29,6 +31,9 @@ class NNDEPLOY_CC_API Session : public base::NonCopyable {
   virtual base::Status preRun() = 0;
   virtual base::Status run() = 0;
   virtual base::Status postRun() = 0;
+
+ protected:
+  base::DeviceType device_type_;
 };
 
 /**
@@ -39,7 +44,7 @@ class SessionCreator {
  public:
   virtual ~SessionCreator(){};
 
-  virtual Session *createSession(base::DeviceTypeCode device_type_code,
+  virtual Session *createSession(const base::DeviceType &device_type,
                                  base::ParallelType parallel_type) = 0;
 };
 
@@ -50,9 +55,9 @@ class SessionCreator {
  */
 template <typename T>
 class TypeSessionCreator : public SessionCreator {
-  virtual Session *createSession(base::DeviceTypeCode device_type_code,
+  virtual Session *createSession(const base::DeviceType &device_type,
                                  base::ParallelType parallel_type) {
-    auto Session = new T();
+    auto Session = new T(device_type);
     return Session;
   }
 };
@@ -75,14 +80,14 @@ std::map<base::DeviceTypeCode,
 template <typename T>
 class TypeSessionRegister {
  public:
-  explicit TypeSessionRegister(base::DeviceTypeCode device_type_code,
+  explicit TypeSessionRegister(const base::DeviceType &device_type,
                                base::ParallelType parallel_type) {
-    getGlobalSessionCreatorMap()[device_type_code][parallel_type] =
-        std::shared_ptr<T>(new T());
+    getGlobalSessionCreatorMap()[device_type.code_][parallel_type] =
+        std::shared_ptr<T>(new T(device_type));
   }
 };
 
-Session *createSession(base::DeviceType device_type,
+Session *createSession(const base::DeviceType &device_type,
                        base::ParallelType parallel_type);
 
 }  // namespace net

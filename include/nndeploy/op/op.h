@@ -93,6 +93,9 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status init();
   virtual base::Status deinit();
 
+  virtual uint64_t getWorkspaceSize();
+  virtual void setWorkspace(void *workspace);
+
   virtual base::Status inferDataType();
   virtual base::Status inferShape();
   virtual base::Status reshape(base::ShapeMap &shape_map);
@@ -110,7 +113,8 @@ class NNDEPLOY_CC_API Op {
   std::vector<device::Tensor *> inputs_;
   std::vector<device::Tensor *> outputs_;
 
-  std::vector<device::Tensor *> variables_;
+  uint64_t workspace_size_ = 0;
+  void *workspace_ = nullptr;
 
   bool constructed_ = false;
   // 是否是图中内部节点

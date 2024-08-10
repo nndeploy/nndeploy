@@ -22,7 +22,7 @@ std::map<base::DeviceTypeCode,
   return *creators;
 }
 
-Session *createSession(base::DeviceType device_type,
+Session *createSession(const base::DeviceType &device_type,
                        base::ParallelType parallel_type) {
   auto &creater_map = getGlobalSessionCreatorMap();
   auto device_map = creater_map.find(device_type.code_);
@@ -30,7 +30,7 @@ Session *createSession(base::DeviceType device_type,
     auto &Session_map = device_map->second;
     auto creator = Session_map.find(parallel_type);
     if (creator != Session_map.end()) {
-      return creator->second->createSession(device_type.code_, parallel_type);
+      return creator->second->createSession(device_type, parallel_type);
     }
   }
   return nullptr;

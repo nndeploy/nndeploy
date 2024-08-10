@@ -559,7 +559,8 @@ base::Status Net::session() {
   // NNDEPLOY_LOGI("#. Memory Allocation Phase!\n");
   // NNDEPLOY_LOGI("#. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
-  status = session_->init(tensor_repository_, op_repository_);
+  status = session_->init(tensor_repository_, op_repository_, is_dynamic_shape_,
+                          max_shape_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session init failed!");
 
   return status;

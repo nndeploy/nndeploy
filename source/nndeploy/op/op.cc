@@ -11,7 +11,6 @@ Op::Op() { constructed_ = true; }
 Op::~Op() {
   inputs_.clear();
   outputs_.clear();
-  variables_.clear();
   constructed_ = false;
   initialized_ = false;
   is_running_ = false;
@@ -192,6 +191,9 @@ bool Op::isRunning() { return is_running_; }
 
 base::Status Op::init() { return base::kStatusCodeOk; }
 base::Status Op::deinit() { return base::kStatusCodeOk; }
+
+uint64_t Op::getWorkspaceSize() { return workspace_size_; }
+void Op::setWorkspace(void *workspace) { workspace_ = workspace; }
 
 base::Status Op::inferDataType() {
   auto input_dtype = inputs_[0]->getDataType();
