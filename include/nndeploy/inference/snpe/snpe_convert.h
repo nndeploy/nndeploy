@@ -27,7 +27,6 @@ public:
     static base::DataFormat convertToDataFormat();
 
     static base::IntVector convertToShape(const zdl::DlSystem::Dimension *dims, size_t rank);
-
 };
 
 }

@@ -163,8 +163,6 @@ base::Status SnpeInference::init()
                            .setInitCacheMode(usingInitCaching)
                            .build();
     }
-    
-    std::cout << "finish snpe setting......" << std::endl;
 
     if (snpe_ == nullptr)
     {
@@ -203,16 +201,27 @@ base::Status SnpeInference::deinit()
 
 base::Status SnpeInference::run()
 {
-    std::cout << "start snpe execute......" << std::endl;
-    bool execStatus = snpe_->execute(input_map_, output_map_);
-    if (execStatus != true)
+    for (auto iter : external_input_tensors_)
     {
-        std::cout << "Error while executing the network! Error info: "
+        device::Tensor* tensor = iter.second;
+        int n = tensor->getBatch();
+        int h = tensor->getHeight();
+        int w = tensor->getWidth();
+        int c = tensor->getChannel();
+        int elemsize = n * h * w * c * sizeof(float);
+        std::string name = iter.first;
+        float *data = static_cast<float*>(tensor->getData());
+        memcpy(application_input_buffers_.at(name).data(), data, elemsize);
+
+        bool execStatus = snpe_->execute(input_map_, output_map_);
+        if (execStatus != true)
+        {
+            std::cout << "Error while executing the network! Error info: "
                 << zdl::DlSystem::getLastErrorString() << std::endl;
 
-        return base::kStatusCodeErrorInferenceSnpe;
+            return base::kStatusCodeErrorInferenceSnpe;
+        }
     }
-    std::cout << "end snpe execute......" << std::endl;
 
     return base::kStatusCodeOk;
 }
@@ -258,7 +267,6 @@ base::Status SnpeInference::allocateInputOutputTensor()
 
     device::Device *host_device = device::getDefaultHostDevice();
     device::Device *device = nullptr;
-    std::cout << "inference_param_->device_type_ is : " << inference_param_->device_type_.code_ << std::endl;
     if (device::isHostDeviceType(inference_param_->device_type_))
     {
         device = device::getDevice(inference_param_->device_type_);
@@ -266,15 +274,9 @@ base::Status SnpeInference::allocateInputOutputTensor()
 
     for (const char* name : input_tensor_names)
     {
-        std::cout << "input tensor[" << name << "] dims: [ ";
         const zdl::DlSystem::Optional<zdl::DlSystem::TensorShape> &tensorShapeOpt =
                 snpe_->getInputDimensions(name);
         const zdl::DlSystem::TensorShape& tensorShape = *tensorShapeOpt;
-        for (size_t i = 0; i < tensorShape.rank(); i++)
-        {
-            std::cout << tensorShape[i] << "  ";
-        }
-        std::cout << "]" << std::endl;
 
         const zdl::DlSystem::Dimension *dims = tensorShape.getDimensions();
         size_t rank = tensorShape.rank();
@@ -291,21 +293,14 @@ base::Status SnpeInference::allocateInputOutputTensor()
         device::Tensor *input_tensor = nullptr;
         void* data_ptr = reinterpret_cast<void*>(&application_input_buffers_.at(name)[0]);
         base::IntVector memory_config = base::IntVector();
-        std::cout << "start new input tensor[" << name << "]" << std::endl;
         input_tensor = new device::Tensor(device, desc, data_ptr, name, memory_config);
 
         input_tensors_.insert({name, input_tensor});
     }
     for (const char* name : output_tensor_names)
     {
-        std::cout << "output tensor[" << name << "] dims: [ ";
         auto bufferAttributesOpt = snpe_->getInputOutputBufferAttributes(name);
         const zdl::DlSystem::TensorShape& tensorShape = (*bufferAttributesOpt)->getDims();
-        for (size_t i = 0; i < tensorShape.rank(); i++)
-        {
-            std::cout << tensorShape[i] << "  ";
-        }
-        std::cout << "]" << std::endl;
 
         const zdl::DlSystem::Dimension *dims = tensorShape.getDimensions();
         size_t rank = tensorShape.rank();
@@ -322,16 +317,10 @@ base::Status SnpeInference::allocateInputOutputTensor()
         device::Tensor *output_tensor = nullptr;
         void* data_ptr = reinterpret_cast<void*>(&application_output_buffers_.at(name)[0]);
         base::IntVector memory_config = base::IntVector();
-        std::cout << "start new output tensor[" << name << "]" << std::endl;
         output_tensor = new device::Tensor(device, desc, data_ptr, name, memory_config);
 
         output_tensors_.insert({name, output_tensor});
     }
-    for (const char* name : output_layer_names)
-    {
-        std::cout << "output layer[" << name << "]" << std::endl;
-    }
-    std::cout << "finish allocateInputOutputTensor....." << std::endl;
 
     return base::kStatusCodeOk;
 }

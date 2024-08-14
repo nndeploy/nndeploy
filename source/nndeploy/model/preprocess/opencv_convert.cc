@@ -275,10 +275,8 @@ bool OpenCvConvert::convertToTensor(const cv::Mat &src, device::Tensor *dst,
     }
     cv::split(tmp, tmp_vec);
   } else if (dst->getDataFormat() == base::kDataFormatNHWC) {
-    std::cout << "dst dataformat is kDataFormatNHWC." << std::endl;
     int8_t *data = (int8_t *)dst->getData();
     cv::Mat tmp(cv::Size(w, h), cv_mix_type, (void *)data);
-    std::cout << "normalize is : " << normalize << std::endl;
     if (normalize) {
       ret = OpenCvConvert::normalize(src, tmp, data_type, scale, mean, std);
       if (!ret) {

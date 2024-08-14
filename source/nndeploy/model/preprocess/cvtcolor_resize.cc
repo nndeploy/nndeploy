@@ -16,8 +16,6 @@ base::Status CvtColorResize::run() {
   device::TensorDesc desc;
   desc.data_type_ = tmp_param->data_type_;
   desc.data_format_ = tmp_param->data_format_;
-  // std::cout << "desc.data_type_ is : " << static_cast<int>(desc.data_type_) << std::endl;
-  std::cout << "desc.data_format_ is : " << desc.data_format_ << std::endl;
   if (desc.data_format_ == base::kDataFormatNCHW) {
     desc.shape_ = {1, getChannelByPixelType(tmp_param->dst_pixel_type_),
                    tmp_param->h_, tmp_param->w_};
@@ -32,8 +30,6 @@ base::Status CvtColorResize::run() {
   int h = dst->getHeight();
   int w = dst->getWidth();
 
-  std::cout << "dst shape : " << h << " x " << w << " x " << c << std::endl;
-
   cv::Mat tmp_cvt;
   if (tmp_param->src_pixel_type_ != tmp_param->dst_pixel_type_) {
     base::CvtColorType cvt_type = base::calCvtColorType(
@@ -42,9 +38,7 @@ base::Status CvtColorResize::run() {
       NNDEPLOY_LOGE("cvtColor type not support");
       return base::kStatusCodeErrorNotSupport;
     }
-    std::cout << "cvt_type is : " << static_cast<int>(cvt_type) << std::endl;
     int cv_cvt_type = OpenCvConvert::convertFromCvtColorType(cvt_type);
-    std::cout << "cv_cvt_type is : " << cv_cvt_type << std::endl;
     cv::cvtColor(*src, tmp_cvt, cv_cvt_type);
   } else {
     tmp_cvt = *src;

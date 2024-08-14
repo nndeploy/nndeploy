@@ -22,81 +22,81 @@ namespace inference {
 
 class SnpeInference : public Inference {
 public:
-    SnpeInference(base::InferenceType type);
-    virtual ~SnpeInference();
+   SnpeInference(base::InferenceType type);
+   virtual ~SnpeInference();
 
-    virtual base::Status init();
-    virtual base::Status deinit();
+   virtual base::Status init();
+   virtual base::Status deinit();
 
-    virtual base::Status reshape(base::ShapeMap &shape_map);
+   virtual base::Status reshape(base::ShapeMap &shape_map);
 
-    virtual base::Status run();
+   virtual base::Status run();
 
-    virtual device::Tensor *getOutputTensorAfterRun(
-        const std::string &name, base::DeviceType device_type, bool is_copy,
-        base::DataFormat data_format = base::kDataFormatAuto
-    );
-
-private:
-    size_t calcSizeFromDims(const zdl::DlSystem::Dimension *dims,
-                        size_t rank, size_t elementSize);
-    size_t getResizableDim();
-    void setResizableDim(size_t resizableDim);
-
-    base::Status allocateInputOutputTensor();
-    base::Status deallocateInputOutputTensor();
-
-    typedef unsigned int GLuint;
-
-    // Helper function to fill a single entry of the UserBufferMap with the given user-backed buffer
-    void createUserBuffer(zdl::DlSystem::UserBufferMap& userBufferMap,
-                        std::unordered_map<std::string, std::vector<uint8_t>>& applicationBuffers,
-                        std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>>& snpeUserBackedBuffers,
-                        std::unique_ptr<zdl::SNPE::SNPE>& snpe,
-                        const char * name,
-                        const bool isTfNBuffer,
-                        int bitWidth);
-
-    void createUserBuffer(zdl::DlSystem::UserBufferMap& userBufferMap,
-                        std::unordered_map<std::string, GLuint>& applicationBuffers,
-                        std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>>& snpeUserBackedBuffers,
-                        std::unique_ptr<zdl::SNPE::SNPE>& snpe,
-                        const char * name);
-
-    // Create a UserBufferMap of the SNPE network inputs
-    void createInputBufferMap(zdl::DlSystem::UserBufferMap& inputMap,
-                            std::unordered_map<std::string, std::vector<uint8_t>>& applicationBuffers,
-                            std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>>& snpeUserBackedBuffers,
-                            std::unique_ptr<zdl::SNPE::SNPE>& snpe,
-                            const bool isTfNBuffer,
-                            int bitWidth);
-
-    void createInputBufferMap(zdl::DlSystem::UserBufferMap& inputMap,
-                            std::unordered_map<std::string, GLuint>& applicationBuffers,
-                            std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>>& snpeUserBackedBuffers,
-                            std::unique_ptr<zdl::SNPE::SNPE>& snpe);
-
-    // Create a UserBufferMap of the SNPE network outputs
-    void createOutputBufferMap(zdl::DlSystem::UserBufferMap& outputMap,
-                            std::unordered_map<std::string, std::vector<uint8_t>>& applicationBuffers,
-                            std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>>& snpeUserBackedBuffers,
-                            std::unique_ptr<zdl::SNPE::SNPE>& snpe,
-                            const bool isTfNBuffer,
-                            int bitWidth);
+   virtual device::Tensor *getOutputTensorAfterRun(
+      const std::string &name, base::DeviceType device_type, bool is_copy,
+      base::DataFormat data_format = base::kDataFormatAuto
+   );
 
 private:
-    size_t resizable_dim;
+   size_t calcSizeFromDims(const zdl::DlSystem::Dimension *dims,
+                     size_t rank, size_t elementSize);
+   size_t getResizableDim();
+   void setResizableDim(size_t resizableDim);
 
-    SnpeBuffer_Type_t buffer_type_;
+   base::Status allocateInputOutputTensor();
+   base::Status deallocateInputOutputTensor();
 
-    std::unique_ptr<zdl::SNPE::SNPE> snpe_;
-    zdl::DlSystem::UserBufferMap input_map_;
-    zdl::DlSystem::UserBufferMap output_map_;
-    std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>> snpe_user_input_buffers_;
-    std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>> snpe_user_output_buffers_;
-    std::unordered_map<std::string, std::vector<uint8_t>> application_input_buffers_;
-    std::unordered_map<std::string, std::vector<uint8_t>> application_output_buffers_;
-    std::unique_ptr<zdl::DlSystem::ITensor> inputTensor_;
+   typedef unsigned int GLuint;
+
+   // Helper function to fill a single entry of the UserBufferMap with the given user-backed buffer
+   void createUserBuffer(zdl::DlSystem::UserBufferMap& userBufferMap,
+                     std::unordered_map<std::string, std::vector<uint8_t>>& applicationBuffers,
+                     std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>>& snpeUserBackedBuffers,
+                     std::unique_ptr<zdl::SNPE::SNPE>& snpe,
+                     const char * name,
+                     const bool isTfNBuffer,
+                     int bitWidth);
+
+   void createUserBuffer(zdl::DlSystem::UserBufferMap& userBufferMap,
+                     std::unordered_map<std::string, GLuint>& applicationBuffers,
+                     std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>>& snpeUserBackedBuffers,
+                     std::unique_ptr<zdl::SNPE::SNPE>& snpe,
+                     const char * name);
+
+   // Create a UserBufferMap of the SNPE network inputs
+   void createInputBufferMap(zdl::DlSystem::UserBufferMap& inputMap,
+                           std::unordered_map<std::string, std::vector<uint8_t>>& applicationBuffers,
+                           std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>>& snpeUserBackedBuffers,
+                           std::unique_ptr<zdl::SNPE::SNPE>& snpe,
+                           const bool isTfNBuffer,
+                           int bitWidth);
+
+   void createInputBufferMap(zdl::DlSystem::UserBufferMap& inputMap,
+                           std::unordered_map<std::string, GLuint>& applicationBuffers,
+                           std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>>& snpeUserBackedBuffers,
+                           std::unique_ptr<zdl::SNPE::SNPE>& snpe);
+
+   // Create a UserBufferMap of the SNPE network outputs
+   void createOutputBufferMap(zdl::DlSystem::UserBufferMap& outputMap,
+                           std::unordered_map<std::string, std::vector<uint8_t>>& applicationBuffers,
+                           std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>>& snpeUserBackedBuffers,
+                           std::unique_ptr<zdl::SNPE::SNPE>& snpe,
+                           const bool isTfNBuffer,
+                           int bitWidth);
+
+private:
+   size_t resizable_dim;
+
+   SnpeBuffer_Type_t buffer_type_;
+
+   std::unique_ptr<zdl::SNPE::SNPE> snpe_;
+   zdl::DlSystem::UserBufferMap input_map_;
+   zdl::DlSystem::UserBufferMap output_map_;
+   std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>> snpe_user_input_buffers_;
+   std::vector<std::unique_ptr<zdl::DlSystem::IUserBuffer>> snpe_user_output_buffers_;
+   std::unordered_map<std::string, std::vector<uint8_t>> application_input_buffers_;
+   std::unordered_map<std::string, std::vector<uint8_t>> application_output_buffers_;
+   std::unique_ptr<zdl::DlSystem::ITensor> inputTensor_;
 };
 
 #define DEADBEAF_PTR (void*)(static_cast<intptr_t>(0xdeadbeaf))

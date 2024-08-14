@@ -18,6 +18,8 @@
 #include "nndeploy/model/detect/util.h"
 #include "nndeploy/model/infer.h"
 #include "nndeploy/model/preprocess/cvtcolor_resize.h"
+#include "nndeploy/model/preprocess/cvtcolor_resize_pad.h"
+#include "nndeploy/model/preprocess/warpaffine_preprocess.h"
 
 namespace nndeploy {
 namespace model {
@@ -51,22 +53,19 @@ static void generateProposals(const int *anchors, const int* strides, int stride
                               device::Tensor *tensor,
                               float score_threshold, DetectResult *results)
 {
-    std::cout << "start run generateProposals......." << std::endl;
     int num_grid_x = (int)(model_w / strides[stride]);
     int num_grid_y = (int)(model_h / strides[stride]);
 
     float *data = (float *)tensor->getData();
 
+    base::IntVector shapevector = tensor->getShape();
+
+    int h = tensor->getHeight();
+    int w = tensor->getWidth();
+    int c = tensor->getChannel();
+
     if (tensor->getDataFormat() == base::kDataFormatNHWC)
     {
-        int h = tensor->getHeight();
-        int w = tensor->getWidth();
-        int c = tensor->getChannel();
-        std::cout << "tensor[" << tensor->getName() << "] shape: [ "
-                << h << " x "
-                << w << " x "
-                << c << " ]"
-                << std::endl;
         nhwc_to_nchw(data, h, w, c);
     }
 
@@ -81,7 +80,7 @@ static void generateProposals(const int *anchors, const int* strides, int stride
             float objness = sigmoid(data[obj_index]);
 
             if(objness < score_threshold)
-            continue;
+                continue;
 
             int label = 0;
             float prob = 0.0;
@@ -136,30 +135,50 @@ static void generateProposals(const int *anchors, const int* strides, int stride
             bbox.label_id_ = label;
             bbox.score_ = confidence;
             results->bboxs_.emplace_back(bbox);
-            std::cout << label << " : " << x0 << ", " << y0 << ", " << x1 << ", " << y1 << std::endl;
         }
     }
 }
 
 base::Status YoloMultiConvOutputPostProcess::run()
 {
-    std::cout << "start run YoloMultiConvOutputPostProcess......." << std::endl;
     YoloMultiConvOutputPostParam *param = (YoloMultiConvOutputPostParam *)param_.get();
     DetectResult *results = new DetectResult();
     DetectResult results_batch;
 
-    for (int stride = 0; stride < 3; stride++)
+    cv::Mat *src = inputs_[0]->getCvMat(this);
+    int h = param->model_h_;
+    int w = param->model_w_;
+
+    int origin_h = src->rows;
+    int origin_w = src->cols;
+    float scale_h = (float)h / origin_h;
+    float scale_w = (float)w / origin_w;
+    float scale = std::min(scale_h, scale_w);
+
+    float i2d[6];
+    float d2i[6];
+
+    i2d[0] = scale;
+    i2d[1] = 0;
+    i2d[2] = (-scale * origin_w + w + scale - 1) * 0.5;
+    i2d[3] = 0;
+    i2d[4] = scale;
+    i2d[5] = (-scale * origin_h + h + scale - 1) * 0.5;
+
+    cv::Mat m2x3_i2d(2, 3, CV_32F, i2d);
+    cv::Mat m2x3_d2i(2, 3, CV_32F, d2i);
+    cv::invertAffineTransform(m2x3_i2d, m2x3_d2i);
+
+    for (int stride = 1; stride < 4; stride++)
     {
         device::Tensor *tensor_stride = inputs_[stride]->getTensor(this);
-        generateProposals(param->anchors_[stride], param->strides_, stride,
+        generateProposals(param->anchors_[stride - 1], param->strides_, stride - 1,
                           param->model_w_, param->model_h_, param->det_len_,
                           tensor_stride, param->score_threshold_,
                           &results_batch);
     }
     std::vector<int> keep_idxs(results_batch.bboxs_.size());
-    std::cout << "before nms, keep_idxs size : " << keep_idxs.size() << std::endl;
-    computeNMS(results_batch, keep_idxs, param->nms_threshold_);
-    std::cout << "after nms,  keep_idxs size : " << keep_idxs.size() << std::endl;
+    FaastNMS(results_batch, keep_idxs, param->nms_threshold_);
     for (auto i = 0; i < keep_idxs.size(); ++i)
     {
         auto n = keep_idxs[i];
@@ -167,10 +186,12 @@ base::Status YoloMultiConvOutputPostProcess::run()
         {
             continue;
         }
-        results_batch.bboxs_[n].bbox_[0] /= param->model_w_;
-        results_batch.bboxs_[n].bbox_[1] /= param->model_h_;
-        results_batch.bboxs_[n].bbox_[2] /= param->model_w_;
-        results_batch.bboxs_[n].bbox_[3] /= param->model_h_;
+
+        results_batch.bboxs_[n].bbox_[0] = results_batch.bboxs_[n].bbox_[0] * d2i[0] + d2i[2];
+        results_batch.bboxs_[n].bbox_[1] = results_batch.bboxs_[n].bbox_[1] * d2i[0] + d2i[5];
+        results_batch.bboxs_[n].bbox_[2] = results_batch.bboxs_[n].bbox_[2] * d2i[0] + d2i[2];
+        results_batch.bboxs_[n].bbox_[3] = results_batch.bboxs_[n].bbox_[3] * d2i[0] + d2i[5];
+
         results->bboxs_.emplace_back(results_batch.bboxs_[n]);
     }
     outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
@@ -191,23 +212,33 @@ dag::Graph *createYoloV5MultiConvOutputGraph(const std::string &name,
     dag::Edge *edge_stride_16 = graph->createEdge("output1");    // [1, 40, 40, 255]
     dag::Edge *edge_stride_32 = graph->createEdge("output2");    // [1, 20, 20, 255]
 
-    dag::Node *pre = graph->createNode<model::CvtColorResize>("preprocess", input, infer_input);
+    dag::Node *pre = graph->createNode<model::WarpaffinePreprocess>("preprocess", input, infer_input);
 
     dag::Node *infer = graph->createInfer<model::Infer>(
             "infer", inference_type, {infer_input},
             {edge_stride_8, edge_stride_16, edge_stride_32});
 
     dag::Node *post = graph->createNode<YoloMultiConvOutputPostProcess>(
-            "postprocess", {edge_stride_8, edge_stride_16, edge_stride_32}, {output});
+            "postprocess", {input, edge_stride_8, edge_stride_16, edge_stride_32}, {output});
 
-    model::CvtclorResizeParam *pre_param =
-        dynamic_cast<model::CvtclorResizeParam *>(pre->getParam());
+    model::WarpAffineParam *pre_param =
+        dynamic_cast<model::WarpAffineParam *>(pre->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_    = base::kInterpTypeLinear;
     pre_param->data_format_    = base::kDataFormatNHWC;
     pre_param->h_ = 640;
     pre_param->w_ = 640;
+    pre_param->scale_[1] = 1.0f;
+    pre_param->scale_[2] = 1.0f;
+    pre_param->scale_[3] = 1.0f;
+    pre_param->mean_[1] = 0.0f;
+    pre_param->mean_[2] = 0.0f;
+    pre_param->mean_[3] = 0.0f;
+    pre_param->std_[1] = 255.0f;
+    pre_param->std_[2] = 255.0f;
+    pre_param->std_[3] = 255.0f;
+    pre_param->const_value_ = 114;
 
     inference::InferenceParam *inference_param =
         (inference::InferenceParam *)(infer->getParam());
@@ -215,7 +246,6 @@ dag::Graph *createYoloV5MultiConvOutputGraph(const std::string &name,
     inference_param->model_value_ = model_value;
     inference_param->device_type_ = device_type;
 
-    std::cout << "start set param of snpe...." << std::endl;
     inference_param->runtime_ = "dsp";
     inference_param->perf_mode_ = 5;
     inference_param->profiling_level_ = 0;
@@ -223,7 +253,6 @@ dag::Graph *createYoloV5MultiConvOutputGraph(const std::string &name,
     inference_param->input_names_ = {"images"};
     inference_param->output_tensor_names_ = {"output0", "output1", "output2"};
     inference_param->output_layer_names_  = {"Conv_199", "Conv_200", "Conv_201"};
-    std::cout << "end set param of snpe...." << std::endl;
 
     // TODO: 很多信息可以从 preprocess 和 infer 中获取
     YoloMultiConvOutputPostParam *post_param =

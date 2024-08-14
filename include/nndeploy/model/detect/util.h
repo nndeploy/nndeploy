@@ -101,6 +101,9 @@ float computeIOU(const float *boxes, int i, int j);
 base::Status computeNMS(const DetectResult &src, std::vector<int> &keep_idxs,
                         const float iou_threshold);
 
+base::Status FaastNMS(const DetectResult &src, std::vector<int> &keep_idxs,
+                        const float iou_threshold);
+
 }  // namespace model
 }  // namespace nndeploy
 

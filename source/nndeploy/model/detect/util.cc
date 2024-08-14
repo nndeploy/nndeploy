@@ -120,5 +120,39 @@ base::Status computeNMS(const DetectResult &src, std::vector<int> &keep_idxs,
   return base::kStatusCodeOk;
 }
 
+base::Status FaastNMS(const DetectResult &src, std::vector<int> &keep_idxs,
+                        const float iou_threshold)
+{
+  for (auto i = 0; i < src.bboxs_.size(); ++i)
+  {
+    keep_idxs[i] = i;
+  }
+  for (int i = 0; i < src.bboxs_.size(); i++)
+  {
+    DetectBBoxResult currentbbox = src.bboxs_[i];
+    for (int j = 0; j < src.bboxs_.size(); j++)
+    {
+      DetectBBoxResult itembbox = src.bboxs_[j];
+      if (j == i || currentbbox.label_id_ != itembbox.label_id_)
+        continue;
+
+      if (itembbox.score_ >= currentbbox.score_)
+      {
+        if (itembbox.score_ == currentbbox.score_ && j < i)
+          continue;
+
+        float iou = computeIOU(currentbbox.bbox_, itembbox.bbox_);
+
+        if (iou > iou_threshold)
+        {
+          keep_idxs[i] = -1;
+        }
+      }
+    }
+  }
+
+  return base::kStatusCodeOk;
+}
+
 }  // namespace model
 }  // namespace nndeploy
