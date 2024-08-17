@@ -14,6 +14,8 @@ enum DataTypeCode : uint8_t {
   kDataTypeCodeFp,
   kDataTypeCodeBFp,
   kDataTypeCodeOpaqueHandle,
+
+  kDataTypeCodeNotSupport,
 };
 
 struct NNDEPLOY_CC_API DataType {

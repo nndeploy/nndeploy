@@ -30,16 +30,16 @@ class AscendCLOpSoftmax : public OpSoftmax {
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnSoftmaxGetWorkspaceSize(
-        inner_input_, dim_, inner_output_, &workspace_size_, executor_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACLNN_SUCCESS,
+        inner_input_, dim_, inner_output_, &workspace_size_, &executor_);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
                                  "aclnnSoftmaxGetWorkspaceSize failed.");
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
     aclnnStatus aclnn_status =
-        aclnnSoftmax(workspace_, workspace_size_, executor_, stream_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACLNN_SUCCESS,
+        aclnnSoftmax(workspace_, workspace_size_, executor_, inner_stream_);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
                                  "aclnnSoftmax failed.");
 
@@ -48,7 +48,7 @@ class AscendCLOpSoftmax : public OpSoftmax {
   virtual base::Status postRun() {
     aclDestroyTensor(inner_input_);
     aclDestroyTensor(inner_output_);
-    aclDestroyExecutor(executor_);
+    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 

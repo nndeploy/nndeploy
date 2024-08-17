@@ -152,7 +152,8 @@ base::Status OpResize::inferShape() {
     } else if (str == "not_smaller") {
       keep_aspect_ratio_policy = KeepAspectRatioPolicy::NOT_SMALLER;
     } else {
-      NNDEPLOY_LOGE("Unknown value for `keep_aspect_ratio_policy`: ", str, ".");
+      NNDEPLOY_LOGE("Unknown value for `keep_aspect_ratio_policy`: %s.\n",
+                    str.c_str());
       return base::kStatusCodeErrorInvalidParam;
     }
   }
@@ -180,15 +181,17 @@ base::Status OpResize::inferShape() {
     if (!axes.empty()) {
       if (sizes_data.size() != axes.size()) {
         NNDEPLOY_LOGE(
-            "Number of elements of input 'sizes' (", sizes_data.size(),
-            ") does not match the number of axes (", axes.size(), ").");
+            "Number of elements of input sizes(ld%) does not match the number "
+            "of axes (ld%).\n",
+            sizes_data.size(), axes.size());
       }
     } else {
       // sizes_data contains scales for all axes
       if (sizes_data.size() != rank_x) {
-        NNDEPLOY_LOGE("Number of elements of input 'sizes' (",
-                      sizes_data.size(),
-                      ") must be same as rank of input 'X' (", rank_x, ").");
+        NNDEPLOY_LOGE(
+            "Number of elements of input 'sizes' (ld%) must be same as rank of "
+            "input 'X' (ld%).\n",
+            sizes_data.size(), rank_x);
       }
     }
 
@@ -224,8 +227,9 @@ base::Status OpResize::inferShape() {
         // be resized
         if (scales_data.size() != axes.size()) {
           NNDEPLOY_LOGE(
-              "Number of elements of input 'scales' (", scales_data.size(),
-              ") does not match the number of axes (", axes.size(), ").");
+              "Number of elements of input 'scales' (ld%) does not match the "
+              "number of axes (ld%).\n",
+              scales_data.size(), axes.size());
         }
 
         std::vector<float> tmp(rank_x, 1.0f);

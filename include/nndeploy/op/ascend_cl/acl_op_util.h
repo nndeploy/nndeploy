@@ -12,6 +12,8 @@
 namespace nndeploy {
 namespace op {
 
+std::string getDataBufferString(const aclDataBuffer* buf);
+
 std::string getTensorDescString(const aclTensorDesc* desc);
 
 std::string getOpDescString(std::vector<aclTensorDesc*> descs,

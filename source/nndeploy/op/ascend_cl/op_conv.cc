@@ -17,9 +17,9 @@ class AscendCLOpConv : public OpConv {
     stride_ = AclOpConvert::convertFromIntVector(param->strides_);
     padding_ = AclOpConvert::convertFromIntVector(param->pads_);
     dilation_ = AclOpConvert::convertFromIntVector(param->dilations_);
-    output_padding_ = AclOpConvert::convertFromIntVector(output_pads_);
+    // output_padding_ = AclOpConvert::convertFromIntVector(output_pads_);
     transposed_ = false;
-    groups_ = param->groups_;
+    groups_ = param->group_;
     cube_math_type_ = 0;
 
     // 流
@@ -49,15 +49,15 @@ class AscendCLOpConv : public OpConv {
         inner_input_, inner_weight_, inner_bias_, stride_, padding_, dilation_,
         transposed_, output_padding_, groups_, inner_output_, cube_math_type_,
         &workspace_size_, &executor_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACLNN_SUCCESS,
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
                                  "aclnnConvolutionGetWorkspaceSize failed.");
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
     aclnnStatus aclnn_status =
-        aclnnConvolution(workspace_, workspace_size_, executor_, stream_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACLNN_SUCCESS,
+        aclnnConvolution(workspace_, workspace_size_, executor_, inner_stream_);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
                                  "aclnnSoftmax failed.");
 
@@ -70,7 +70,7 @@ class AscendCLOpConv : public OpConv {
       aclDestroyTensor(inner_bias_);
     }
     aclDestroyTensor(inner_output_);
-    aclDestroyExecutor(executor_);
+    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 

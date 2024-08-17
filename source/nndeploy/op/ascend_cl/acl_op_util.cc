@@ -10,6 +10,20 @@
 namespace nndeploy {
 namespace op {
 
+std::string getDataBufferString(const aclDataBuffer* buf) {
+  auto size = aclGetDataBufferSizeV2(buf);
+  auto addr = aclGetDataBufferAddr(buf);
+  auto numel = size / sizeof(float);
+  std::vector<float> cpu_data(numel, 0);
+  aclrtMemcpy(cpu_data.data(), size, addr, size, ACL_MEMCPY_DEVICE_TO_HOST);
+  std::stringstream ss;
+  for (auto value : cpu_data) {
+    ss << value << ",";
+  }
+  ss << "]";
+  return ss.str();
+}
+
 std::string getTensorDescString(const aclTensorDesc* desc) {
   auto data_type = aclGetTensorDescType(desc);
   auto origin_format = aclGetTensorDescFormat(desc);  // origin format
@@ -21,7 +35,7 @@ std::string getTensorDescString(const aclTensorDesc* desc) {
   size_t rank = aclGetTensorDescNumDims(desc);
   for (auto i = 0; i < rank; ++i) {
     int64_t dim_size = -1;
-    PADDLE_ENFORCE_NPU_SUCCESS(aclGetTensorDescDimV2(desc, i, &dim_size));
+    aclGetTensorDescDimV2(desc, i, &dim_size);
     ss << dim_size;
     if (i < rank - 1) {
       ss << ", ";
@@ -32,36 +46,77 @@ std::string getTensorDescString(const aclTensorDesc* desc) {
 }
 
 std::string getOpDescString(std::vector<aclTensorDesc*> descs,
-                            const std::string msg);
+                            const std::string msg) {
+  std::stringstream ss;
+  for (auto i = 0; i < descs.size(); ++i) {
+    ss << " - " << msg << "[" << std::to_string(i)
+       << "]: ";  // Input[i] or Output[i]
+    ss << getTensorDescString(descs[i]) << "\n";
+  }
+  return ss.str();
+}
 
 std::string getOpInfoString(std::vector<aclTensorDesc*> descs,
                             std::vector<aclDataBuffer*> buffs,
-                            const std::string msg);
+                            const std::string msg) {
+  if (descs.size() != buffs.size()) {
+    NNDEPLOY_LOGE("descs.size()[%ld] != buffs.size()[%ld].\n", descs.size(),
+                 buffs.size());
+    return "";
+  }
+  std::stringstream ss;
+  for (auto i = 0; i < descs.size(); ++i) {
+    ss << msg << "[" << std::to_string(i) << "]: ";  // Input[i] or Output[i]
+    ss << getTensorDescString(descs[i]) << "\n";
+    ss << getDataBufferString(buffs[i]) << "\n";
+  }
+  return ss.str();
+}
 
 template <typename T>
 aclDataType aclDataTypeOf() {
   return ACL_FLOAT;
 }
 template <>
-NNDEPLOY_CC_API aclDataType aclDataTypeOf<float>();
+aclDataType aclDataTypeOf<float>() {
+  return ACL_FLOAT;
+}
 template <>
-NNDEPLOY_CC_API aclDataType aclDataTypeOf<double>();
+aclDataType aclDataTypeOf<double>() {
+  return ACL_DOUBLE;
+}
 template <>
-NNDEPLOY_CC_API aclDataType aclDataTypeOf<uint8_t>();
+aclDataType aclDataTypeOf<uint8_t>() {
+  return ACL_UINT8;
+}
 template <>
-NNDEPLOY_CC_API aclDataType aclDataTypeOf<uint16_t>();
+aclDataType aclDataTypeOf<uint16_t>() {
+  return ACL_UINT16;
+}
 template <>
-NNDEPLOY_CC_API aclDataType aclDataTypeOf<uint32_t>();
+aclDataType aclDataTypeOf<uint32_t>() {
+  return ACL_UINT32;
+}
 template <>
-NNDEPLOY_CC_API aclDataType aclDataTypeOf<uint64_t>();
+aclDataType aclDataTypeOf<uint64_t>() {
+  return ACL_UINT64;
+}
 template <>
-NNDEPLOY_CC_API aclDataType aclDataTypeOf<int8_t>();
+aclDataType aclDataTypeOf<int8_t>() {
+  return ACL_INT8;
+}
 template <>
-NNDEPLOY_CC_API aclDataType aclDataTypeOf<int16_t>();
+aclDataType aclDataTypeOf<int16_t>() {
+  return ACL_INT16;
+}
 template <>
-NNDEPLOY_CC_API aclDataType aclDataTypeOf<int32_t>();
+aclDataType aclDataTypeOf<int32_t>() {
+  return ACL_INT32;
+}
 template <>
-NNDEPLOY_CC_API aclDataType aclDataTypeOf<int64_t>();
+aclDataType aclDataTypeOf<int64_t>() {
+  return ACL_INT64;
+}
 
 }  // namespace op
 }  // namespace nndeploy
