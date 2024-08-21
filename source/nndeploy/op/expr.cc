@@ -106,16 +106,18 @@ std::shared_ptr<Expr> makeConv(ModelDesc *model_desc,
   return expr;
 }
 
-std::shared_ptr<Expr> makeRelu(ModelDesc *model_desc,
-                               std::shared_ptr<Expr> input, std::string op_name,
-                               std::string output_name) {
+std::shared_ptr<Expr> makeSoftMax(ModelDesc *model_desc,
+                                  std::shared_ptr<Expr> input,
+                                  std::shared_ptr<SoftmaxParam> param,
+                                  std::string op_name,
+                                  std::string output_name) {
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
       int index = model_desc->op_descs_.size();
-      name = "relu" + std::to_string(index);
+      name = "softmax" + std::to_string(index);
     } else {
-      name = "relu";
+      name = "softmax";
     }
   }
   std::vector<std::string> inputs = {input->getOutputName()[0]};
@@ -126,7 +128,8 @@ std::shared_ptr<Expr> makeRelu(ModelDesc *model_desc,
   } else {
     outputs.push_back(name + ".output");
   }
-  auto op_desc = std::make_shared<OpDesc>(name, kOpTypeRelu, inputs, outputs);
+  auto op_desc =
+      std::make_shared<OpDesc>(name, kOpTypeSoftmax, inputs, outputs, param);
   if (model_desc != nullptr) {
     model_desc->op_descs_.push_back(op_desc);
   }
@@ -161,14 +164,16 @@ std::shared_ptr<Expr> makeRelu(ModelDesc *model_desc,
 
 class Llama : public ModelDesc {
  public:
-  Llama(){};
-  ~Llama(){};
+  Llama() {};
+  ~Llama() {};
   void init() {
     auto input = makeInput(this, "input");
-    auto conv1 =
-        makeConv(this, input, std::make_shared<ConvParam>(), "weight", "bias");
-    auto relu1 = makeRelu(this, conv1);
-    makeOutput(this, relu1);
+    // auto conv1 =
+    //     makeConv(this, input, std::make_shared<ConvParam>(), "weight",
+    //     "bias");
+    // auto relu1 = makeRelu(this, conv1);
+    auto softmax = makeSoftMax(this, input, std::make_shared<SoftmaxParam>());
+    makeOutput(this, softmax);
   }
 };
 
