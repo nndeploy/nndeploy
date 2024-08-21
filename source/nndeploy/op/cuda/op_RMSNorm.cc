@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "nndeploy/op/op_RMSNorm_f32.h"
+#include "nndeploy/op/op_rmsnorm.h"
 #include "nndeploy/op/op.h"
 
 
@@ -21,8 +21,8 @@ class CudaOpRMSNormf32 : public OpRMSNorm {
     dim3 block(num_threads);
     RMSNorm<T><<<grid, block>>>(decoder_out->data,
                             rsd,
-                            attn_norm_weight.gamma,
-                            eps,
+                            scale,//RMSNorm weights
+                            eps,//RMSNorm eps
                             num_tokens,
                             hidden_units);
   }
