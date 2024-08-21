@@ -199,6 +199,7 @@ enum OpType : int {
 
   // TODO: @Leonisux:
   // 1. 增加llama的算子类型
+  kOpTypeRMSNorm,
 
   kOpTypeNone,
 };
@@ -301,7 +302,7 @@ class ModelDesc {
  */
 class OpParamCreator {
  public:
-  virtual ~OpParamCreator(){};
+  virtual ~OpParamCreator() {};
   virtual std::shared_ptr<base::Param> createOpParam(OpType type) = 0;
 };
 
@@ -352,8 +353,8 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
 
 class OpParam : public base::Param {
  public:
-  OpParam() : base::Param(){};
-  virtual ~OpParam(){};
+  OpParam() : base::Param() {};
+  virtual ~OpParam() {};
 
   PARAM_COPY(OpParam)
   PARAM_COPY_TO(OpParam)
@@ -367,8 +368,8 @@ class OpParam : public base::Param {
 
 class BatchNormalizationParam : public OpParam {
  public:
-  BatchNormalizationParam() : OpParam(){};
-  virtual ~BatchNormalizationParam(){};
+  BatchNormalizationParam() : OpParam() {};
+  virtual ~BatchNormalizationParam() {};
 
   PARAM_COPY(BatchNormalizationParam)
   PARAM_COPY_TO(BatchNormalizationParam)
@@ -384,8 +385,8 @@ class BatchNormalizationParam : public OpParam {
 
 class ConcatParam : public OpParam {
  public:
-  ConcatParam() : OpParam(){};
-  virtual ~ConcatParam(){};
+  ConcatParam() : OpParam() {};
+  virtual ~ConcatParam() {};
 
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
@@ -516,6 +517,19 @@ class TransposeParam : public OpParam {
 
 // TODO: @Leonisux:
 // 补充llama的算子的参数
+// RMSNorm 参数类
+class RMSNormParam : public OpParam {
+ public:
+  RMSNormParam() : OpParam() {}  // 默认轴为0，分割数为1
+  virtual ~RMSNormParam() {}
+
+  PARAM_COPY(RMSNormParam)
+  PARAM_COPY_TO(RMSNormParam)
+
+ public:
+  float eps_ = 1e-6;
+  bool is_last_ = false;
+};
 
 }  // namespace op
 }  // namespace nndeploy
