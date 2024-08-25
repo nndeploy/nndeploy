@@ -191,3 +191,30 @@ ONNX version 	IR version 	Opset version ai.onnx 	Opset version ai.onnx.ml 	Opset
 1.15.0 	9 	20 	4 	1
 1.16.0 	10 	21 	5 	1
 
+
+Finish! Here is the difference:
+┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
+┃            ┃ Original Model ┃ Simplified Model ┃
+┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━┩
+│ Add        │ 8              │ 8                │
+│ Concat     │ 19             │ 19               │
+│ Constant   │ 139            │ 139              │
+│ Conv       │ 64             │ 64               │
+│ Div        │ 1              │ 1                │
+│ MaxPool    │ 3              │ 3                │
+│ Mul        │ 58             │ 58               │
+│ Reshape    │ 5              │ 5                │
+│ Resize     │ 2              │ 2                │
+│ Sigmoid    │ 58             │ 58               │
+│ Slice      │ 2              │ 2                │
+│ Softmax    │ 1              │ 1                │
+│ Split      │ 9              │ 9                │
+│ Sub        │ 2              │ 2                │
+│ Transpose  │ 2              │ 2                │
+│ Model Size │ 12.2MiB        │ 12.2MiB          │
+└────────────┴────────────────┴──────────────────┘
+
+## 2024.08.24
++ 初步解决的编译和net以及session的运行时问题
++ 但是单算子调用出现了错误，错误为内部错误，但是模型又可以运行
+  + 原因：我买的是华为昇腾310b的推理卡，官网显示不能单算子模式调用，那我这种形式该怎么做呢，去910上搞吗

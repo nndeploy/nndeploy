@@ -6,12 +6,18 @@ namespace nndeploy {
 namespace net {
 
 TypeSessionRegister<TypeSessionCreator<AscendCLSession>>
-    g_ascend_cl_session_register(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                                 base::ParallelType::kParallelTypeSequential);
+    g_ascend_cl_session_register_seq(
+        base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
+        base::ParallelType::kParallelTypeSequential);
+
+TypeSessionRegister<TypeSessionCreator<AscendCLSession>>
+    g_ascend_cl_session_register_none(
+        base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
+        base::ParallelType::kParallelTypeNone);
 
 AscendCLSession::AscendCLSession(const base::DeviceType &device_type)
-    : Session(device_type){};
-AscendCLSession::~AscendCLSession(){};
+    : Session(device_type) {};
+AscendCLSession::~AscendCLSession() {};
 
 base::Status AscendCLSession::init(
     std::vector<TensorWrapper *> &tensor_repository,
@@ -20,8 +26,8 @@ base::Status AscendCLSession::init(
   base::Status status = base::kStatusCodeOk;
   device::Device *device = device::getDevice(device_type_);
   // # 激活值的tensor分配
-  tensor_pool_ = std::make_shared<TensorPool1DChunkIndepend>(
-      device, op_repository, tensor_repository);
+  tensor_pool_ = std::make_shared<TensorPool1DSharedObjectGreedyBySizeImprove>(
+      device, tensor_repository, op_repository);
   /**
    * @brief
    * 如果是动态shape且max_shape为空时，那么不需要分配tensor
@@ -46,8 +52,13 @@ base::Status AscendCLSession::init(
       } else if (shape_size == 1) {
         tensor->setDataFormat(base::DataFormat::kDataFormatN);
       }
+      auto desc = tensor->getDesc();
+      NNDEPLOY_LOGE("tensor name = %s.\n", tensor->getName().c_str());
+      desc.print();
     }
+    NNDEPLOY_LOGE("hello world\n");
     status = tensor_pool_->allocate();
+    NNDEPLOY_LOGE("hello world\n");
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("tensor_pool_ allocate failed\n");
       return status;
@@ -96,7 +107,8 @@ base::Status AscendCLSession::reshape(base::ShapeMap &shape_map) {
   for (auto iter : shape_map) {
     std::string name = iter.first;
     base::IntVector shape = iter.second;
-    for (auto tensor : tensor_repository_) {
+    for (auto tensor_wrapper : tensor_repository_) {
+      auto tensor = tensor_wrapper->tensor_;
       if (tensor->getName() == name) {
         base::IntVector old_shape = tensor->getShape();
         if (base::shapeEqual(old_shape, shape, 0, -1)) {
@@ -163,6 +175,8 @@ base::Status AscendCLSession::run() {
       max_workspace_size = workspace_size;
     }
   }
+  NNDEPLOY_LOGE("max_workspace_size is %d.\n",
+                static_cast<int32_t>(max_workspace_size));
   device::Device *device = device::getDevice(device_type_);
   void *workspace = nullptr;
   if (max_workspace_size > 0) {

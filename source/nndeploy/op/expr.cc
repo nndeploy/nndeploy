@@ -162,20 +162,5 @@ std::shared_ptr<Expr> makeSoftMax(ModelDesc *model_desc,
 //   }
 // }
 
-class Llama : public ModelDesc {
- public:
-  Llama() {};
-  ~Llama() {};
-  void init() {
-    auto input = makeInput(this, "input");
-    // auto conv1 =
-    //     makeConv(this, input, std::make_shared<ConvParam>(), "weight",
-    //     "bias");
-    // auto relu1 = makeRelu(this, conv1);
-    auto softmax = makeSoftMax(this, input, std::make_shared<SoftmaxParam>());
-    makeOutput(this, softmax);
-  }
-};
-
 }  // namespace op
 }  // namespace nndeploy

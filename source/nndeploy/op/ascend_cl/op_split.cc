@@ -1,6 +1,6 @@
-#include "nndeploy/op/op_softmax.h"
+#include "nndeploy/op/op_split.h"
 
-#include "aclnnop/aclnn_softmax.h"
+#include "aclnnop/aclnn_split_tensor.h"
 #include "nndeploy/op/ascend_cl/acl_op_convert.h"
 #include "nndeploy/op/ascend_cl/acl_op_include.h"
 #include "nndeploy/op/ascend_cl/acl_op_util.h"
@@ -9,14 +9,15 @@
 namespace nndeploy {
 namespace op {
 
-class AscendCLOpSoftmax : public OpSoftmax {
+class AscendCLOpSplit : public OpSplit {
  public:
-  AscendCLOpSoftmax() {}
-  virtual ~AscendCLOpSoftmax() {}
-  
+  AscendCLOpSplit() {}
+  virtual ~AscendCLOpSplit() {}
+
   virtual base::Status init() {
     // 参数
-    SoftmaxParam* param = (SoftmaxParam*)op_desc_.op_param_.get();
+    SplitParam* param = (SplitParam*)op_desc_.op_param_.get();
+    split_sections_ = (uint64_t)param->num_outputs_;
     dim_ = (int64_t)param->axis_;
 
     // 流
@@ -29,42 +30,41 @@ class AscendCLOpSoftmax : public OpSoftmax {
   virtual base::Status preRun() {
     // 输入输出
     inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_outputs_ = AclOpConvert::convertFromTensor(outputs_);
 
     // 创建算子
-    aclnnStatus aclnn_status = aclnnSoftmaxGetWorkspaceSize(
-        inner_input_, dim_, inner_output_, &workspace_size_, &executor_);
+    aclnnStatus aclnn_status = aclnnSplitTensorGetWorkspaceSize(
+        inner_input_, split_sections_, dim_, inner_outputs_, &workspace_size_,
+        &executor_);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSoftmaxGetWorkspaceSize failed.");
+                                 "aclnnSplitGetWorkspaceSize failed.");
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
     // 输入输出
     aclnnStatus aclnn_status =
-        aclnnSoftmax(workspace_, workspace_size_, executor_, inner_stream_);
-    NNDEPLOY_LOGE("dim_ is %d.\n", static_cast<int32_t>(dim_));
-    NNDEPLOY_LOGE("Execute Operator failed. error code is %d.\n",
-                  static_cast<int32_t>(aclnn_status));
+        aclnnSplitTensor(workspace_, workspace_size_, executor_, inner_stream_);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSoftmax failed.");
+                                 "aclnnSplit failed.");
 
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
     aclDestroyTensor(inner_input_);
-    aclDestroyTensor(inner_output_);
+    aclDestroyTensorList(inner_outputs_);
     // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 
  private:
-  std::string inner_op_type_ = "SoftmaxV2";
+  std::string inner_op_type_ = "SplitV2";
 
   aclTensor* inner_input_ = nullptr;
+  uint64_t split_sections_ = 0;
   int64_t dim_ = 0;
-  aclTensor* inner_output_ = nullptr;
+  aclTensorList* inner_outputs_ = nullptr;
   aclOpExecutor* executor_;
 
   aclrtStream inner_stream_;
@@ -72,7 +72,7 @@ class AscendCLOpSoftmax : public OpSoftmax {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeSoftmax, AscendCLOpSoftmax)
+                         kOpTypeSplit, AscendCLOpSplit)
 
 }  // namespace op
 }  // namespace nndeploy

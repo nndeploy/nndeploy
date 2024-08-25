@@ -11,6 +11,9 @@ namespace op {
 
 class AscendCLOpConv : public OpConv {
  public:
+  AscendCLOpConv() {}
+  virtual ~AscendCLOpConv() {}
+
   virtual base::Status init() {
     // 参数
     ConvParam *param = (ConvParam *)op_desc_.op_param_.get();
@@ -73,9 +76,6 @@ class AscendCLOpConv : public OpConv {
     // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
-
-  uint64_t getWorkspaceSize() { return workspace_size_; }
-  void setWorkspace(void *workspace) { workspace_ = workspace; }
 
  private:
   std::string inner_op_type_ = "Convolution";

@@ -180,18 +180,16 @@ base::Status OpResize::inferShape() {
   if (hasSizesInput) {
     if (!axes.empty()) {
       if (sizes_data.size() != axes.size()) {
-        NNDEPLOY_LOGE(
-            "Number of elements of input sizes(ld%) does not match the number "
-            "of axes (ld%).\n",
-            sizes_data.size(), axes.size());
+        // NNDEPLOY_LOGE(
+        //     "Number of elements of input sizes(ld%) does not match the number
+        //     " "of axes (ld%).\n", sizes_data.size(), axes.size());
       }
     } else {
       // sizes_data contains scales for all axes
       if (sizes_data.size() != rank_x) {
-        NNDEPLOY_LOGE(
-            "Number of elements of input 'sizes' (ld%) must be same as rank of "
-            "input 'X' (ld%).\n",
-            sizes_data.size(), rank_x);
+        // NNDEPLOY_LOGE(
+        //     "Number of elements of input 'sizes' (ld%) must be same as rank
+        //     of " "input 'X' (ld%).\n", sizes_data.size(), rank_x);
       }
     }
 
@@ -226,10 +224,9 @@ base::Status OpResize::inferShape() {
         // scales_data contains scales for a subset of axes. The rest should not
         // be resized
         if (scales_data.size() != axes.size()) {
-          NNDEPLOY_LOGE(
-              "Number of elements of input 'scales' (ld%) does not match the "
-              "number of axes (ld%).\n",
-              scales_data.size(), axes.size());
+          // NNDEPLOY_LOGE(
+          //     "Number of elements of input 'scales' (ld%) does not match the
+          //     " "number of axes (ld%).\n", scales_data.size(), axes.size());
         }
 
         std::vector<float> tmp(rank_x, 1.0f);

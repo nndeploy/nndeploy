@@ -30,6 +30,12 @@ class AclOpConvert {
 
   template <typename T>
   static aclScalar *convertFromScalar(const base::Scalar<T> &src);
+
+  template <typename T>
+  static aclScalar *convertFromScalar(float src);
+
+  static aclScalar *convertFromScalar(float src,
+                                      const base::DataType &data_type);
   // template <typename T>
   // aclScalarList *convertFromScalar(const std::vector<base::Scalar<T>> &src);
 

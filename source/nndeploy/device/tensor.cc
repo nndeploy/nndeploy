@@ -10,9 +10,9 @@ static TypeTensorRegister<TypeTensorCreator<Tensor>> g_defalut_tensor_register(
     base::kTensorTypeDefault);
 
 Tensor::Tensor() {}
-Tensor::Tensor(const std::string &name) : name_(name){};
+Tensor::Tensor(const std::string &name) : name_(name) {};
 Tensor::Tensor(const TensorDesc &desc, const std::string &name)
-    : name_(name), desc_(desc){};
+    : name_(name), desc_(desc) {};
 Tensor::Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name)
     : name_(name), desc_(desc), is_external_(true), buffer_(buffer) {
   ref_count_ = new int(1);
@@ -436,6 +436,9 @@ void Tensor::setDataType(base::DataType data_type) {
   desc_.data_type_ = data_type;
 }
 base::DataFormat Tensor::getDataFormat() const { return desc_.data_format_; }
+void Tensor::setDataFormat(base::DataFormat data_format) {
+  desc_.data_format_ = data_format;
+}
 base::IntVector Tensor::getShape() const { return desc_.shape_; }
 int Tensor::getShapeIndex(int index) const {
   if (index < desc_.shape_.size()) {
@@ -668,8 +671,8 @@ base::MemoryType Tensor::getMemoryType() const {
   }
 }
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>>
-    &getGlobalTensorCreatorMap() {
+std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
+getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorType, std::shared_ptr<TensorCreator>>>

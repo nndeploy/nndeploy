@@ -9,6 +9,7 @@ namespace nndeploy {
 namespace op {
 
 class OpSplit : public Op {
+ public:
   OpSplit() : Op() {}
   virtual ~OpSplit() {}
 

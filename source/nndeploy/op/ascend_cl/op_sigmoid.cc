@@ -1,24 +1,19 @@
-#include "nndeploy/op/op_softmax.h"
-
-#include "aclnnop/aclnn_softmax.h"
+#include "aclnnop/aclnn_sigmoid.h"
 #include "nndeploy/op/ascend_cl/acl_op_convert.h"
 #include "nndeploy/op/ascend_cl/acl_op_include.h"
 #include "nndeploy/op/ascend_cl/acl_op_util.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/op/op_unary.h"
 
 namespace nndeploy {
 namespace op {
 
-class AscendCLOpSoftmax : public OpSoftmax {
+class AscendCLOpSigmoid : public OpUnary {
  public:
-  AscendCLOpSoftmax() {}
-  virtual ~AscendCLOpSoftmax() {}
+ AscendCLOpSigmoid() {}
+  virtual ~AscendCLOpSigmoid() {}
   
   virtual base::Status init() {
-    // 参数
-    SoftmaxParam* param = (SoftmaxParam*)op_desc_.op_param_.get();
-    dim_ = (int64_t)param->axis_;
-
     // 流
     device::Device* device = device::getDevice(device_type_);
     inner_stream_ = (aclrtStream)device->getCommandQueue();
@@ -32,23 +27,20 @@ class AscendCLOpSoftmax : public OpSoftmax {
     inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
 
     // 创建算子
-    aclnnStatus aclnn_status = aclnnSoftmaxGetWorkspaceSize(
-        inner_input_, dim_, inner_output_, &workspace_size_, &executor_);
+    aclnnStatus aclnn_status = aclnnSigmoidGetWorkspaceSize(
+        inner_input_, inner_output_, &workspace_size_, &executor_);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSoftmaxGetWorkspaceSize failed.");
+                                 "aclnnSigmoidGetWorkspaceSize failed.");
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
     // 输入输出
     aclnnStatus aclnn_status =
-        aclnnSoftmax(workspace_, workspace_size_, executor_, inner_stream_);
-    NNDEPLOY_LOGE("dim_ is %d.\n", static_cast<int32_t>(dim_));
-    NNDEPLOY_LOGE("Execute Operator failed. error code is %d.\n",
-                  static_cast<int32_t>(aclnn_status));
+        aclnnSigmoid(workspace_, workspace_size_, executor_, inner_stream_);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSoftmax failed.");
+                                 "aclnnSigmoid failed.");
 
     return base::kStatusCodeOk;
   }
@@ -60,10 +52,9 @@ class AscendCLOpSoftmax : public OpSoftmax {
   }
 
  private:
-  std::string inner_op_type_ = "SoftmaxV2";
+  std::string inner_op_type_ = "Sigmoid";
 
   aclTensor* inner_input_ = nullptr;
-  int64_t dim_ = 0;
   aclTensor* inner_output_ = nullptr;
   aclOpExecutor* executor_;
 
@@ -72,7 +63,7 @@ class AscendCLOpSoftmax : public OpSoftmax {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeSoftmax, AscendCLOpSoftmax)
+                         kOpTypeSigmoid, AscendCLOpSigmoid)
 
 }  // namespace op
 }  // namespace nndeploy

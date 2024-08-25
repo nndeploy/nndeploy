@@ -413,6 +413,156 @@ aclScalar *AclOpConvert::convertFromScalar(const base::Scalar<T> &src) {
   aclScalar *acl_scalar = aclCreateScalar(value, acl_data_type);
   return acl_scalar;
 }
+template <typename T>
+aclScalar *AclOpConvert::convertFromScalar(float src) {
+  aclDataType acl_data_type = aclDataTypeOf<T>();
+  void *value = nullptr;
+  aclScalar *acl_scalar = nullptr;
+  switch (acl_data_type) {
+    case ACL_FLOAT:
+      value = malloc(sizeof(float));
+      *(float *)value = src;
+      break;
+    case ACL_FLOAT16:
+      value = malloc(sizeof(float) >> 1);
+      base::convertFromFloatToFp16(&src, value, 1);
+      break;
+    case ACL_INT8:
+      value = malloc(sizeof(int8_t));
+      *(int8_t *)value = base::saturate_cast<int8_t>(src);
+      break;
+    case ACL_INT16:
+      value = malloc(sizeof(int16_t));
+      *(int16_t *)value = base::saturate_cast<int16_t>(src);
+      break;
+    case ACL_INT32:
+      value = malloc(sizeof(int32_t));
+      *(int32_t *)value = base::saturate_cast<int32_t>(src);
+      break;
+    case ACL_INT64:
+      value = malloc(sizeof(int64_t));
+      *(int64_t *)value = base::saturate_cast<int64_t>(src);
+      break;
+    case ACL_UINT8:
+      value = malloc(sizeof(uint8_t));
+      *(uint8_t *)value = base::saturate_cast<uint8_t>(src);
+      break;
+    case ACL_UINT16:
+      value = malloc(sizeof(uint16_t));
+      *(uint16_t *)value = base::saturate_cast<uint16_t>(src);
+      break;
+    case ACL_UINT32:
+      value = malloc(sizeof(uint32_t));
+      *(uint32_t *)value = base::saturate_cast<uint32_t>(src);
+      break;
+    case ACL_UINT64:
+      value = malloc(sizeof(uint64_t));
+      *(uint64_t *)value = base::saturate_cast<uint64_t>(src);
+      break;
+    case ACL_BOOL:
+      value = malloc(sizeof(int8_t));
+      *(int8_t *)value = base::saturate_cast<int8_t>(src);
+      break;
+#if 0
+    case ACL_INT4:
+      value = malloc(sizeof(int8_t));
+      *(int8_t *)value = base::saturate_cast<int8_t>(src);
+      break;
+#endif
+    case ACL_UINT1:
+      value = malloc(sizeof(uint8_t));
+      *(uint8_t *)value = base::saturate_cast<uint8_t>(src);
+      break;
+    case ACL_BF16:
+      value = malloc(sizeof(float) >> 1);
+      base::convertFromFloatToBfp16(&src, value, 1);
+      break;
+    default:
+      break;
+  }
+  if (value != nullptr) {
+    acl_scalar = aclCreateScalar(value, acl_data_type);
+  }
+  if (value != nullptr) {
+    free(value);
+  }
+  return acl_scalar;
+}
+aclScalar *AclOpConvert::convertFromScalar(float src,
+                                           const base::DataType &data_type) {
+  aclDataType acl_data_type = convertFromDataType(data_type);
+  void *value = nullptr;
+  aclScalar *acl_scalar = nullptr;
+  switch (acl_data_type) {
+    case ACL_FLOAT:
+      value = malloc(sizeof(float));
+      *(float *)value = src;
+      break;
+    case ACL_FLOAT16:
+      value = malloc(sizeof(float) >> 1);
+      base::convertFromFloatToFp16(&src, value, 1);
+      break;
+    case ACL_INT8:
+      value = malloc(sizeof(int8_t));
+      *(int8_t *)value = base::saturate_cast<int8_t>(src);
+      break;
+    case ACL_INT16:
+      value = malloc(sizeof(int16_t));
+      *(int16_t *)value = base::saturate_cast<int16_t>(src);
+      break;
+    case ACL_INT32:
+      value = malloc(sizeof(int32_t));
+      *(int32_t *)value = base::saturate_cast<int32_t>(src);
+      break;
+    case ACL_INT64:
+      value = malloc(sizeof(int64_t));
+      *(int64_t *)value = base::saturate_cast<int64_t>(src);
+      break;
+    case ACL_UINT8:
+      value = malloc(sizeof(uint8_t));
+      *(uint8_t *)value = base::saturate_cast<uint8_t>(src);
+      break;
+    case ACL_UINT16:
+      value = malloc(sizeof(uint16_t));
+      *(uint16_t *)value = base::saturate_cast<uint16_t>(src);
+      break;
+    case ACL_UINT32:
+      value = malloc(sizeof(uint32_t));
+      *(uint32_t *)value = base::saturate_cast<uint32_t>(src);
+      break;
+    case ACL_UINT64:
+      value = malloc(sizeof(uint64_t));
+      *(uint64_t *)value = base::saturate_cast<uint64_t>(src);
+      break;
+    case ACL_BOOL:
+      value = malloc(sizeof(int8_t));
+      *(int8_t *)value = base::saturate_cast<int8_t>(src);
+      break;
+#if 0
+    case ACL_INT4:
+      value = malloc(sizeof(int8_t));
+      *(int8_t *)value = base::saturate_cast<int8_t>(src);
+      break;
+#endif
+    case ACL_UINT1:
+      value = malloc(sizeof(uint8_t));
+      *(uint8_t *)value = base::saturate_cast<uint8_t>(src);
+      break;
+    case ACL_BF16:
+      value = malloc(sizeof(float) >> 1);
+      base::convertFromFloatToBfp16(&src, value, 1);
+      break;
+    default:
+      break;
+  }
+  if (value != nullptr) {
+    acl_scalar = aclCreateScalar(value, acl_data_type);
+  }
+  if (value != nullptr) {
+    free(value);
+  }
+  return acl_scalar;
+}
 // template <typename T>
 // aclScalarList *AclOpConvert::convertFromScalar(
 //     const std::vector<base::Scalar<T>> &src);

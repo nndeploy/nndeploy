@@ -46,13 +46,13 @@ class TensorPool1DSharedObject : public TensorPool {
   std::vector<size_t> positional_maximum_;
 };
 
-class kTensorPool1DSharedObjectTypeGreedyBySizeImprove
+class TensorPool1DSharedObjectGreedyBySizeImprove
     : public TensorPool1DSharedObject {
  public:
-  kTensorPool1DSharedObjectTypeGreedyBySizeImprove(
+  TensorPool1DSharedObjectGreedyBySizeImprove(
       device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
       std::vector<OpWrapper *> &op_repository);
-  virtual ~kTensorPool1DSharedObjectTypeGreedyBySizeImprove();
+  virtual ~TensorPool1DSharedObjectGreedyBySizeImprove();
 
   virtual base::Status allocate();
   virtual base::Status deallocate();

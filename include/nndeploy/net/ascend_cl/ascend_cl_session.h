@@ -12,6 +12,7 @@
 #include "nndeploy/base/value.h"
 #include "nndeploy/device/ascend_cl/ascend_cl_device.h"
 #include "nndeploy/net/session.h"
+#include "nndeploy/net/tensor_pool_1d.h"
 #include "nndeploy/net/util.h"
 
 namespace nndeploy {
@@ -34,11 +35,11 @@ class NNDEPLOY_CC_API AscendCLSession : public Session {
   virtual base::Status postRun();
 
  protected:
-  std::shared_ptr<TensorPool1DChunkIndepend> tensor_pool_;
+  std::shared_ptr<TensorPool1DSharedObjectGreedyBySizeImprove> tensor_pool_;
   bool is_dynamic_shape_ = false;                // 是否是动态shape
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
   std::vector<TensorWrapper *> tensor_repository_;
-  std::vector<OpWrapper *> op_repository;
+  std::vector<OpWrapper *> op_repository_;
 };
 
 }  // namespace net
