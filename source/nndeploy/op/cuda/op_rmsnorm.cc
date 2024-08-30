@@ -9,27 +9,12 @@
 namespace nndeploy {
 namespace op {
 
+
 template <typename T>
-struct Vec {
-  using Type = T;
-  static constexpr int size = 0;
-};
-
-// TODO: @Leonisux cuda 有 half类型吗？
-template <>
-struct Vec<half> {  // 到底是fp16 or bfp16
-  using Type = half2;
-  static constexpr int size = 2;
-};
-template <>
-struct Vec<float> {
-  using Type = float4;
-  static constexpr int size = 4;
-};
-
 // 这些函数定义为文件内部函数，不需要暴露给外部，也不需要与类绑定
-static __global__ void RMSNorm(T* decoder_out, T* decoder_residual, T* scale,
-                               float eps, int num_tokens, int hidden_units) {
+static __global__ void RMSNormKernel(T* decoder_out, T* decoder_residual,
+                                     T* scale, float eps, int num_tokens,
+                                     int hidden_units) {
   int vec_size = Vec<T>::size;
   using Vec_t = typename Vec<T>::Type;
   float thread_sum = 0.0f;
@@ -61,8 +46,9 @@ static __global__ void RMSNorm(T* decoder_out, T* decoder_residual, T* scale,
     dout[idx].z = out.z * inv_mean * s[idx].z;
     dout[idx].w = out.w * inv_mean * s[idx].w;
   }
-}
+};
 
+template <typename T>
 static __device__ T warpReduceSum(T val) {
   for (int i = 32 / 2; i > 0; i >>= 1) {
     val += __shfl_xor_sync(0xffffffff, val, i);
@@ -70,6 +56,7 @@ static __device__ T warpReduceSum(T val) {
   return val;  // 32 threads return val, but only 0th thread is sum val
 }
 
+template <typename T>
 static __device__ T blockReduceSum(T val) {
   int tid = threadIdx.x;
   int wid = tid / 32;
@@ -132,15 +119,16 @@ class CudaOpRMSNorm : public OpRMSNorm {
 
     dim3 grid(num_tokens);
     dim3 block(num_threads);
-
+    /*
     if (data_type.code_ == base::kDataTypeCodeFp && data_type.bits_ == 16) {
-      RMSNorm<half><<<grid, block>>>((half*)input_data, (half*)output_data,
+      RMSNormKernel<half><<<grid, block>>>((half*)input_data, (half*)output_data,
                                      (half*)scale_data,  // RMSNorm weights
                                      eps,                // RMSNorm eps
                                      num_tokens, hidden_units);
     } else if (data_type.code_ == base::kDataTypeCodeFp &&
                data_type.bits_ == 32) {
-      RMSNorm<float><<<grid, block>>>((float*)input_data, (float*)output_data,
+      RMSNormKernel<float>
+          <<<grid, block>>>((float*)input_data, (float*)output_data,
                                       (float*)scale_data,  // RMSNorm weights
                                       eps,                 // RMSNorm eps
                                       num_tokens, hidden_units);
@@ -148,7 +136,7 @@ class CudaOpRMSNorm : public OpRMSNorm {
       NNDEPLOY_LOGE("Unsupported precision type: %d\n", precision_type_);
       return base::kStatusCodeErrorInvalidParam;
     }
-
+    */
     return status;
   }
   // virtual base::Status postRun() {}
@@ -162,7 +150,8 @@ class CudaOpRMSNorm : public OpRMSNorm {
   // LayerNormWeight<T>& attn_norm_weight;  // RMSNorm weights，这个没有被用到呀
   // float eps;                             // RMSNorm eps
   // bool is_last;  // for print last rmsnorm output to debug
-}
+};
 
 }  // namespace op
 }  // namespace nndeploy
+

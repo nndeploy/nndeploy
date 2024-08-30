@@ -218,3 +218,6 @@ docs/build
 # vscode
 .vscode/
 .vs/
+
+# third_party
+third_party
