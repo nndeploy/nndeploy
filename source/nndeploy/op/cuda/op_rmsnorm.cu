@@ -1,13 +1,36 @@
-#include "nndeploy/op/op_rmsnorm.h"
-
 #include <stdio.h>
 
 #include "nndeploy/device/cuda/cuda_device.h"
 #include "nndeploy/op/ir.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/op/op_rmsnorm.h"
 
 namespace nndeploy {
 namespace op {
+
+static __device__ float warpReduceSum(float val) {
+  for (int i = 32 / 2; i > 0; i >>= 1) {
+    val += __shfl_xor_sync(0xffffffff, val, i);
+  }
+  return val;  // 32 threads return val, but only 0th thread is sum val
+}
+
+static __device__ float blockReduceSum(float val) {
+  int tid = threadIdx.x;
+  int wid = tid / 32;
+  int laneid = tid % 32;
+  int warpnum = (blockDim.x + 31) / 32;
+  static __shared__ float warpsum[64];
+  val = warpReduceSum(val);
+  if (laneid == 0) {
+    warpsum[wid] = val;
+  }
+  __syncthreads();
+  float sum = tid < warpnum ? warpsum[tid] : 0.0f;
+  sum =
+      warpReduceSum(sum);  // though 0th own the sum, but dont need to shfl sync
+  return sum;
+}
 
 static __global__ void RMSNormKernel(float* decoder_out,
                                      float* decoder_residual, float* scale,
@@ -44,30 +67,6 @@ static __global__ void RMSNormKernel(float* decoder_out,
   }
 };
 
-
-static __device__ float warpReduceSum(float val) {
-  for (int i = 32 / 2; i > 0; i >>= 1) {
-    val += __shfl_xor_sync(0xffffffff, val, i);
-  }
-  return val;  // 32 threads return val, but only 0th thread is sum val
-}
-
-static __device__ float blockReduceSum(float val) {
-  int tid = threadIdx.x;
-  int wid = tid / 32;
-  int laneid = tid % 32;
-  int warpnum = (blockDim.x + 31) / 32;
-  static __shared__ float warpsum[64];
-  val = warpReduceSum(val);
-  if (laneid == 0) {
-    warpsum[wid] = val;
-  }
-  __syncthreads();
-  float sum = tid < warpnum ? warpsum[tid] : 0.0f;
-  sum = warpReduceSum(sum);  // though 0th own the sum, but dont need to shfl sync
-  return sum;
-}
-
 class CudaOpRMSNorm : public OpRMSNorm {
  public:
   CudaOpRMSNorm() : OpRMSNorm() {}
@@ -95,15 +94,16 @@ class CudaOpRMSNorm : public OpRMSNorm {
 
     dim3 grid(num_tokens);
     dim3 block(num_threads);
-      RMSNormKernel<float>
-          <<<grid, block>>>((float*)input_data, (float*)output_data,
-                                      (float*)scale_data,  // RMSNorm weights
-                                      eps,                 // RMSNorm eps
-                                      num_tokens, hidden_units);
+    RMSNormKernel<<<grid, block>>>((float*)input_data, (float*)output_data,
+                                   (float*)scale_data,  // RMSNorm weights
+                                   eps,                 // RMSNorm eps
+                                   num_tokens, hidden_units);
     return status;
   }
 };
 
+REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCuda,
+                         kOpTypeRMSNorm, CudaOpRMSNorm)
+
 }  // namespace op
 }  // namespace nndeploy
-
