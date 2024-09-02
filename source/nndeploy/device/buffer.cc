@@ -183,7 +183,7 @@ base::Status Buffer::copyTo(Buffer *dst) {
     return src_device->copy(this, dst);
   } else if (isHostDeviceType(src_device_type) &&
              !isHostDeviceType(dst_device_type)) {
-    return src_device->upload(this, dst);
+    return dst_device->upload(this, dst);
   } else if (!isHostDeviceType(src_device_type) &&
              isHostDeviceType(dst_device_type)) {
     return src_device->download(this, dst);

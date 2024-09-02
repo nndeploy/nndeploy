@@ -276,6 +276,7 @@ base::Status randnTensor(T &generator, float mean, float std, Tensor *tensor,
   if (!device::isHostDeviceType(tensor->getDeviceType())) {
     status = host_buffer->copyTo(tensor->getBuffer());
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "copyTo failed!");
+    delete host_buffer;
   }
   return status;
 }
