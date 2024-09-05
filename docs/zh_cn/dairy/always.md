@@ -218,3 +218,10 @@ Finish! Here is the difference:
 + 初步解决的编译和net以及session的运行时问题
 + 但是单算子调用出现了错误，错误为内部错误，但是模型又可以运行
   + 原因：我买的是华为昇腾310b的推理卡，官网显示不能单算子模式调用，那我这种形式该怎么做呢，去910上搞吗
+
+
+## 2024.09.05
+
++ 更换git submodule
+
+  git submodule add https://github.com/mlc-ai/tokenizers-cpp.git third_party/tokenizers-cpp

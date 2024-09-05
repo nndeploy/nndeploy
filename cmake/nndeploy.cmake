@@ -78,3 +78,8 @@ include("${ROOT_PATH}/cmake/snpe.cmake")
 # ################### model ####################
 include("${ROOT_PATH}/cmake/tokenizer_cpp.cmake")
 # ################### model ####################
+
+# ################### demo ####################
+if(ENABLE_NNDEPLOY_DEMO STREQUAL "ON")
+  set(NNDEPLOY_THIRD_PARTY_LIBRARY_DEMO ${NNDEPLOY_THIRD_PARTY_LIBRARY_DEMO} gflags)
+endif()    
