@@ -161,6 +161,8 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeTranspose, TransposeParam);
 
 // TODO: @Leonisux:
 // 补充llama的算子的参数的注册
+// RMSNorm 算子参数类的注册函数
+// REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeRMSNorm, TransposeParam);
 
 }  // namespace op
 }  // namespace nndeploy
