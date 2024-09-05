@@ -1,8 +1,34 @@
 
+
+include_directories(${ROOT_PATH}/plugin/include)
+include_directories(${ROOT_PATH}/plugin/source)
+
 file(GLOB MODEL_SOURCE
   "${ROOT_PATH}/include/nndeploy/model/*.h"
   "${ROOT_PATH}/source/nndeploy/model/*.cc"
 )
+
+if(ENABLE_NNDEPLOY_CODEC)
+  file(GLOB CODEC_SOURCE
+    "${ROOT_PATH}/include/nndeploy/codec/*.h"
+    "${ROOT_PATH}/source/nndeploy/codec/*.cc"
+  )
+  if (ENABLE_NNDEPLOY_OPENCV)
+    file(GLOB_RECURSE CODEC_OPENCV_SOURCE
+      "${ROOT_PATH}/include/nndeploy/codec/opencv/*.h"
+      "${ROOT_PATH}/source/nndeploy/codec/opencv/*.cc"
+    )
+    set(CODEC_SOURCE ${CODEC_SOURCE} ${CODEC_OPENCV_SOURCE})
+  endif()
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${CODEC_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_MODEL)
+  set(MODEL_SOURCE)
+  include(${ROOT_PATH}/source/nndeploy/model/config.cmake)
+  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${MODEL_SOURCE})
+  # message(STATUS "MODEL_SOURCE: ${MODEL_SOURCE}")
+endif()
 
 if(ENABLE_NNDEPLOY_OPENCV)
   file(GLOB_RECURSE MODEL_PREPROCESS_SOURCE

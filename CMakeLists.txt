@@ -10,6 +10,8 @@ set(NNDEPLOY_PATCH_VERSION 0)
 set(NNDEPLOY_BUILD_VERSION 0)
 set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDEPLOY_PATCH_VERSION}.${NNDEPLOY_BUILD_VERSION}")
 
+message(STATUS "CMAKE BEIGIN. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")
+
 include(cmake/util.cmake)
 include(cmake/summary.cmake)
 
@@ -17,7 +19,7 @@ if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config.cmake)
   include(${CMAKE_CURRENT_BINARY_DIR}/config.cmake)
 endif()
 
-# common
+# framework
 nndeploy_option(ENABLE_NNDEPLOY_BUILD_SHARED "ENABLE_NNDEPLOY_BUILD_SHARED" ON)
 nndeploy_option(ENABLE_NNDEPLOY_SYMBOL_HIDE "ENABLE_NNDEPLOY_SYMBOL_HIDE" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_COVERAGE "ENABLE_NNDEPLOY_COVERAGE" OFF)
@@ -74,15 +76,14 @@ nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL "ENABLE_NNDEPLOY_INFERENCE_A
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_SNPE "ENABLE_NNDEPLOY_INFERENCE_SNPE" OFF)
 ## dag
 nndeploy_option(ENABLE_NNDEPLOY_DAG "ENABLE_NNDEPLOY_DAG" ON)
-## codec
-nndeploy_option(ENABLE_NNDEPLOY_CODEC "ENABLE_NNDEPLOY_CODEC" ON)
-## model
-nndeploy_option(ENABLE_NNDEPLOY_MODEL "ENABLE_NNDEPLOY_MODEL" ON)
-nndeploy_option(ENABLE_NNDEPLOY_MODEL_TOKENIZER "ENABLE_NNDEPLOY_MODEL_TOKENIZER" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_MODEL_TOKENIZER_CPP "ENABLE_NNDEPLOY_MODEL_TOKENIZER_CPP" OFF)
-## test
+
+# plugin
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN "ENABLE_NNDEPLOY_PLUGIN" OFF)
+
+# test
 nndeploy_option(ENABLE_NNDEPLOY_TEST "ENABLE_NNDEPLOY_TEST" OFF)
-## demo
+
+# demo
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "ENABLE_NNDEPLOY_DEMO" OFF)
 
 # print option
@@ -253,82 +254,86 @@ if (ENABLE_NNDEPLOY_INTERPRET)
 endif()
 
 # include
-include_directories(ROOT_PATH)
-include_directories(include)
-include_directories(source)
+include_directories(${ROOT_PATH}/framework/include)
+include_directories(${ROOT_PATH}/framework/source)
 include_directories(third_party)
 
 # make
 set(NNDEPLOY_SOURCE)
 set(NNDEPLOY_OBJECT)
-set(NNDEPLOY_BINARY nndeploy)
-set(NNDEPLOY_DIRECTORY nndeploy)
+set(NNDEPLOY_BINARY nndeploy_framework)
+set(NNDEPLOY_DIRECTORY nndeploy_framework)
 set(NNDEPLOY_DEPEND_LIBRARY)
 set(NNDEPLOY_SYSTEM_LIBRARY)
 set(NNDEPLOY_THIRD_PARTY_LIBRARY)
+set(NNDEPLOY_THIRD_PARTY_LIBRARY_PLUGIN)
+set(NNDEPLOY_THIRD_PARTY_LIBRARY_TEST)
+set(NNDEPLOY_THIRD_PARTY_LIBRARY_DEMO)
 # nndeploy third party lib
 include(${ROOT_PATH}/cmake/nndeploy.cmake)
+# nndeploy framework
+set(FRAMEWORK_ROOT_PATH ${ROOT_PATH}/framework)
 # nndeploy source
 ## attention GLOB or GLOB_RECURSE
 if(ENABLE_NNDEPLOY_BASE)
   file(GLOB_RECURSE BASE_SOURCE
-    "${ROOT_PATH}/include/nndeploy/base/*.h"
-    "${ROOT_PATH}/include/nndeploy/base/*.hpp"
-    "${ROOT_PATH}/source/nndeploy/base/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/base/*.h"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/base/*.hpp"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/base/*.cc"
   )
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${BASE_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_THREAD_POOL)
   file(GLOB_RECURSE THREAD_POOL_SOURCE
-    "${ROOT_PATH}/include/nndeploy/thread_pool/*.h"
-    "${ROOT_PATH}/source/nndeploy/thread_pool/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/thread_pool/*.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/thread_pool/*.cc"
   )
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${THREAD_POOL_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_CRYPTION)
   file(GLOB CRYPTION_SOURCE
-    "${ROOT_PATH}/include/nndeploy/cryption/*.h"
-    "${ROOT_PATH}/source/nndeploy/cryption/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/cryption/*.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/cryption/*.cc"
   )
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${CRYPTION_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_DEVICE)
   file(GLOB DEVICE_SOURCE
-    "${ROOT_PATH}/include/nndeploy/device/*.h"
-    "${ROOT_PATH}/source/nndeploy/device/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/*.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/device/*.cc"
   )
   if (ENABLE_NNDEPLOY_DEVICE_CPU)
     file(GLOB_RECURSE DEVICE_CPU_SOURCE
-      "${ROOT_PATH}/include/nndeploy/device/cpu/*.h"
-      "${ROOT_PATH}/source/nndeploy/device/cpu/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/cpu/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/device/cpu/*.cc"
     )
     set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_CPU_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_X86)
     file(GLOB_RECURSE DEVICE_X86_SOURCE
-      "${ROOT_PATH}/include/nndeploy/device/x86/*.h"
-      "${ROOT_PATH}/source/nndeploy/device/x86/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/x86/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/device/x86/*.cc"
     )
     set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_X86_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_ARM)
     file(GLOB_RECURSE DEVICE_ARM_SOURCE
-      "${ROOT_PATH}/include/nndeploy/device/arm/*.h"
-      "${ROOT_PATH}/source/nndeploy/device/arm/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/arm/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/device/arm/*.cc"
     )
     set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_ARM_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_CUDA)
     file(GLOB_RECURSE DEVICE_CUDA_SOURCE
-      "${ROOT_PATH}/include/nndeploy/device/cuda/*.h"
-      "${ROOT_PATH}/source/nndeploy/device/cuda/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/cuda/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/device/cuda/*.cc"
     )
     set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_CUDA_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
     file(GLOB_RECURSE DEVICE_ASCEND_CL_SOURCE
-      "${ROOT_PATH}/include/nndeploy/device/ascend_cl/*.h"
-      "${ROOT_PATH}/source/nndeploy/device/ascend_cl/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/ascend_cl/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/device/ascend_cl/*.cc"
     )
     set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_ASCEND_CL_SOURCE})
   endif()
@@ -336,42 +341,42 @@ if(ENABLE_NNDEPLOY_DEVICE)
 endif()
 if(ENABLE_NNDEPLOY_OP)
   file(GLOB OP_SOURCE
-    "${ROOT_PATH}/include/nndeploy/op/*.h"
-    "${ROOT_PATH}/source/nndeploy/op/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/*.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/*.cc"
   )
   if (ENABLE_NNDEPLOY_DEVICE_CPU)
     file(GLOB_RECURSE OP_CPU_SOURCE
-      "${ROOT_PATH}/include/nndeploy/op/cpu/*.h"
-      "${ROOT_PATH}/source/nndeploy/op/cpu/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/cpu/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/cpu/*.cc"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_CPU_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_X86)
     file(GLOB_RECURSE OP_X86_SOURCE
-      "${ROOT_PATH}/include/nndeploy/op/x86/*.h"
-      "${ROOT_PATH}/source/nndeploy/op/x86/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/x86/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/x86/*.cc"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_X86_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_ARM)
     file(GLOB_RECURSE OP_ARM_SOURCE
-      "${ROOT_PATH}/include/nndeploy/op/arm/*.h"
-      "${ROOT_PATH}/source/nndeploy/op/arm/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/arm/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/arm/*.cc"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_ARM_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_CUDA)
     file(GLOB_RECURSE OP_CUDA_SOURCE
-      "${ROOT_PATH}/include/nndeploy/op/cuda/*.h"
-      "${ROOT_PATH}/source/nndeploy/op/cuda/*.cc"
-      "${ROOT_PATH}/source/nndeploy/op/*.cu"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/cuda/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/cuda/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/*.cu"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_CUDA_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
     file(GLOB_RECURSE OP_ASCEND_CL_SOURCE
-      "${ROOT_PATH}/include/nndeploy/op/ascend_cl/*.h"
-      "${ROOT_PATH}/source/nndeploy/op/ascend_cl/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/ascend_cl/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/ascend_cl/*.cc"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_ASCEND_CL_SOURCE})
   endif()
@@ -379,48 +384,48 @@ if(ENABLE_NNDEPLOY_OP)
 endif()
 if(ENABLE_NNDEPLOY_INTERPRET)
   file(GLOB_RECURSE INTERPRET_SOURCE
-    "${ROOT_PATH}/include/nndeploy/interpret/*.h"
-    "${ROOT_PATH}/source/nndeploy/interpret/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/interpret/*.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/interpret/*.cc"
   )
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${INTERPRET_SOURCE})
 endif()
 if(ENABLE_NNDEPLOY_NET)
   file(GLOB NET_SOURCE
-    "${ROOT_PATH}/include/nndeploy/net/*.h"
-    "${ROOT_PATH}/source/nndeploy/net/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/*.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/*.cc"
   )
   if (ENABLE_NNDEPLOY_DEVICE_CPU)
     file(GLOB_RECURSE NET_CPU_SOURCE
-      "${ROOT_PATH}/include/nndeploy/net/cpu/*.h"
-      "${ROOT_PATH}/source/nndeploy/net/cpu/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/cpu/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/cpu/*.cc"
     )
     set(NET_SOURCE ${NET_SOURCE} ${NET_CPU_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_X86)
     file(GLOB_RECURSE NET_X86_SOURCE
-      "${ROOT_PATH}/include/nndeploy/net/x86/*.h"
-      "${ROOT_PATH}/source/nndeploy/net/x86/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/x86/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/x86/*.cc"
     )
     set(NET_SOURCE ${NET_SOURCE} ${NET_X86_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_ARM)
     file(GLOB_RECURSE NET_ARM_SOURCE
-      "${ROOT_PATH}/include/nndeploy/net/arm/*.h"
-      "${ROOT_PATH}/source/nndeploy/net/arm/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/arm/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/arm/*.cc"
     )
     set(NET_SOURCE ${NET_SOURCE} ${NET_ARM_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_CUDA)
     file(GLOB_RECURSE NET_CUDA_SOURCE
-      "${ROOT_PATH}/include/nndeploy/net/cuda/*.h"
-      "${ROOT_PATH}/source/nndeploy/net/cuda/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/cuda/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/cuda/*.cc"
     )
     set(NET_SOURCE ${NET_SOURCE} ${NET_CUDA_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
     file(GLOB_RECURSE NET_ASCEND_CL_SOURCE
-      "${ROOT_PATH}/include/nndeploy/net/ascend_cl/*.h"
-      "${ROOT_PATH}/source/nndeploy/net/ascend_cl/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/ascend_cl/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/ascend_cl/*.cc"
     )
     set(NET_SOURCE ${NET_SOURCE} ${NET_ASCEND_CL_SOURCE})
   endif()
@@ -428,91 +433,91 @@ if(ENABLE_NNDEPLOY_NET)
 endif()
 if(ENABLE_NNDEPLOY_INFERENCE)
   file(GLOB INFERENCE_SOURCE
-    "${ROOT_PATH}/include/nndeploy/inference/*.h"
-    "${ROOT_PATH}/source/nndeploy/inference/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/*.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/*.cc"
   )
   if (ENABLE_NNDEPLOY_INFERENCE_TENSORRT)
     file(GLOB_RECURSE INFERENCE_TENSORRT_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/tensorrt/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/tensorrt/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/tensorrt/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/tensorrt/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_TENSORRT_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_TNN)
     file(GLOB_RECURSE INFERENCE_TNN_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/tnn/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/tnn/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/tnn/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/tnn/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_TNN_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_MNN)
     file(GLOB_RECURSE INFERENCE_MNN_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/mnn/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/mnn/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/mnn/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/mnn/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_MNN_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_OPENVINO)
     file(GLOB_RECURSE INFERENCE_OPENVINO_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/openvino/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/openvino/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/openvino/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/openvino/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_OPENVINO_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_COREML)
     file(GLOB_RECURSE INFERENCE_COREML_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/coreml/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/coreml/*.cc"
-      "${ROOT_PATH}/source/nndeploy/inference/coreml/*.mm"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/coreml/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/coreml/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/coreml/*.mm"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_COREML_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME)
     file(GLOB_RECURSE INFERENCE_ONNXRUNTIME_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/onnxruntime/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/onnxruntime/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/onnxruntime/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/onnxruntime/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_ONNXRUNTIME_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_TFLITE)
     file(GLOB_RECURSE INFERENCE_TFLITE_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/tflite/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/tflite/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/tflite/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/tflite/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_TFLITE_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_NCNN)
     file(GLOB_RECURSE INFERENCE_NCNN_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/ncnn/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/ncnn/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/ncnn/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/ncnn/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_NCNN_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_PADDLELITE)
     file(GLOB_RECURSE INFERENCE_PADDLELITE_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/paddlelite/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/paddlelite/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/paddlelite/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/paddlelite/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_PADDLELITE_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_RKNN)
     file(GLOB_RECURSE INFERENCE_RKNN_SOURCE
-            "${ROOT_PATH}/include/nndeploy/inference/rknn/*.h"
-            "${ROOT_PATH}/source/nndeploy/inference/rknn/*.cc"
+            "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/rknn/*.h"
+            "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/rknn/*.cc"
             )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_RKNN_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL)
     file(GLOB_RECURSE INFERENCE_ASCEND_CL_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/ascend_cl/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/ascend_cl/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/ascend_cl/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/ascend_cl/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_ASCEND_CL_SOURCE})
   endif()
   if (ENABLE_NNDEPLOY_INFERENCE_SNPE)
     file(GLOB_RECURSE INFERENCE_SNPE_SOURCE
-      "${ROOT_PATH}/include/nndeploy/inference/snpe/*.h"
-      "${ROOT_PATH}/source/nndeploy/inference/snpe/*.cc"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/snpe/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/snpe/*.cc"
     )
     set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_SNPE_SOURCE})
   endif()
@@ -520,31 +525,11 @@ if(ENABLE_NNDEPLOY_INFERENCE)
 endif()
 if(ENABLE_NNDEPLOY_DAG)
   file(GLOB_RECURSE DAG_SOURCE
-    "${ROOT_PATH}/include/nndeploy/dag/*.h"
-    "${ROOT_PATH}/include/nndeploy/dag/*.hpp"
-    "${ROOT_PATH}/source/nndeploy/dag/*.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/dag/*.h"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/dag/*.hpp"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/dag/*.cc"
   )
   set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${DAG_SOURCE})
-endif()
-if(ENABLE_NNDEPLOY_CODEC)
-  file(GLOB CODEC_SOURCE
-    "${ROOT_PATH}/include/nndeploy/codec/*.h"
-    "${ROOT_PATH}/source/nndeploy/codec/*.cc"
-  )
-  if (ENABLE_NNDEPLOY_OPENCV)
-    file(GLOB_RECURSE CODEC_OPENCV_SOURCE
-      "${ROOT_PATH}/include/nndeploy/codec/opencv/*.h"
-      "${ROOT_PATH}/source/nndeploy/codec/opencv/*.cc"
-    )
-    set(CODEC_SOURCE ${CODEC_SOURCE} ${CODEC_OPENCV_SOURCE})
-  endif()
-  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${CODEC_SOURCE})
-endif()
-if(ENABLE_NNDEPLOY_MODEL)
-  set(MODEL_SOURCE)
-  include(${ROOT_PATH}/source/nndeploy/model/config.cmake)
-  set(NNDEPLOY_SOURCE ${NNDEPLOY_SOURCE} ${MODEL_SOURCE})
-  # message(STATUS "MODEL_SOURCE: ${MODEL_SOURCE}")
 endif()
 # nndeploy
 ## TARGET
@@ -552,9 +537,11 @@ add_library(${NNDEPLOY_BINARY} ${NNDEPLOY_LIB_TYPE} ${NNDEPLOY_SOURCE} ${NNDEPLO
 ## DIRECTORY
 set_property(TARGET ${NNDEPLOY_BINARY} PROPERTY FOLDER ${NNDEPLOY_DIRECTORY})
 ## DEPEND_LIBRARY
-target_link_libraries(${NNDEPLOY_BINARY} ${NNDEPLOY_DEPEND_LIBRARY}) 
+target_link_libraries(${NNDEPLOY_BINARY} ${NNDEPLOY_DEPEND_LIBRARY})
+message(STATUS "NNDEPLOY_DEPEND_LIBRARY: ${NNDEPLOY_DEPEND_LIBRARY}")
 ## SYSTEM_LIBRARY
 target_link_libraries(${NNDEPLOY_BINARY} ${NNDEPLOY_SYSTEM_LIBRARY}) 
+message(STATUS "NNDEPLOY_SYSTEM_LIBRARY: ${NNDEPLOY_SYSTEM_LIBRARY}")
 ## THIRD_PARTY_LIBRARY
 target_link_libraries(${NNDEPLOY_BINARY} ${NNDEPLOY_THIRD_PARTY_LIBRARY}) 
 message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY: ${NNDEPLOY_THIRD_PARTY_LIBRARY}")
@@ -564,7 +551,12 @@ if(SYSTEM.Windows)
 else() 
   install(TARGETS ${NNDEPLOY_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
 endif()
- 
+
+# plugin
+if(ENABLE_NNDEPLOY_PLUGIN)
+  include(${ROOT_PATH}/plugin/config.cmake)
+endif()
+
 # GFLAGS
 set(ENABLE_NNDEPLOY_GFLAGS)
 if(ENABLE_NNDEPLOY_TEST)
@@ -579,12 +571,12 @@ if(ENABLE_NNDEPLOY_GFLAGS)
   include_directories(BEFORE "${GFLAGS_INCLUDE_DIRS}")
 endif()
 
-# nndeploy_test
+# test
 if(ENABLE_NNDEPLOY_TEST)
   include(${ROOT_PATH}/test/config.cmake)
 endif()
 
-# nndeploy_demo
+# demo
 if (ENABLE_NNDEPLOY_DEMO)
   include(${ROOT_PATH}/demo/config.cmake)
 endif()
