@@ -118,7 +118,7 @@ base::Status enableDevice(base::DeviceType device_type, void *command_queue,
 Device *getDevice(base::DeviceType device_type) {
   Architecture *architecture = getArchitecture(device_type.code_);
   if (architecture == nullptr) {
-    NNDEPLOY_LOGE("Architecture is not registered for device type: %d",
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
                   device_type.code_);
     return nullptr;
   }

@@ -58,10 +58,24 @@ class NNDEPLOY_CC_API PaddingParam : public base::Param {
 };
 
 class NNDEPLOY_CC_API WarpAffineParam : public base::Param {
- public:
+public:
   float transform_[2][3];
   int dst_w_;
   int dst_h_;
+
+  base::PixelType src_pixel_type_;
+  base::PixelType dst_pixel_type_;
+  base::DataType data_type_ = base::dataTypeOf<float>();
+  base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
+  int h_ = -1;
+  int w_ = -1;
+  bool normalize_ = true;
+  float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
+                     1.0f / 255.0f};
+  float mean_[4]  = {0.0f, 0.0f, 0.0f, 0.0f};
+  float std_[4]   = {1.0f, 1.0f, 1.0f, 1.0f};
+  int const_value_ = 114;
+
   base::InterpType interp_type_ = base::kInterpTypeLinear;
   base::BorderType border_type_ = base::kBorderTypeConstant;
   base::Scalar2d border_val_ = 0.0f;

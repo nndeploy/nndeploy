@@ -67,6 +67,9 @@ include("${ROOT_PATH}/cmake/rknn.cmake")
 
 # # ascend_cl
 include("${ROOT_PATH}/cmake/ascend_cl.cmake")
+
+# # snpe
+include("${ROOT_PATH}/cmake/snpe.cmake")
 # ################### inference ####################
 
 # ################### dag ####################

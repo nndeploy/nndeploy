@@ -215,6 +215,9 @@ enum ModelType : int {
 
   kModelTypeTvm,
   kModelTypeAITemplate,
+
+  kModelTypeSnpe,
+
   // not sopport
   kModelTypeNotSupport,
 };
@@ -237,6 +240,8 @@ enum InferenceType : int {
 
   kInferenceTypeTvm,
   kInferenceTypeAITemplate,
+
+  kInferenceTypeSnpe,
 
   // not sopport
   kInferenceTypeNotSupport,
