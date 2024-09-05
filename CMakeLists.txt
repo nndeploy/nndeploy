@@ -364,6 +364,7 @@ if(ENABLE_NNDEPLOY_OP)
     file(GLOB_RECURSE OP_CUDA_SOURCE
       "${ROOT_PATH}/include/nndeploy/op/cuda/*.h"
       "${ROOT_PATH}/source/nndeploy/op/cuda/*.cc"
+      "${ROOT_PATH}/source/nndeploy/op/*.cu"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_CUDA_SOURCE})
   endif()

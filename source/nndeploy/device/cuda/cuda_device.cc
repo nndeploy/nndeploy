@@ -214,6 +214,7 @@ base::Status CudaDevice::upload(Buffer *src, Buffer *dst, int index) {
     cudaError_t status =
         cudaMemcpyAsync(dst->getData(), src->getData(), src->getDesc().size_[0],
                         cudaMemcpyHostToDevice, stream);
+
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
     return base::kStatusCodeOk;
