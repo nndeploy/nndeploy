@@ -26,6 +26,8 @@ namespace detect {
  */
 class NNDEPLOY_CC_API DetectBBoxResult : public base::Param {
  public:
+  DetectBBoxResult(){};
+  virtual ~DetectBBoxResult(){};
   int index_;
   int label_id_;
   float score_;
@@ -35,6 +37,8 @@ class NNDEPLOY_CC_API DetectBBoxResult : public base::Param {
 
 class NNDEPLOY_CC_API DetectResult : public base::Param {
  public:
+  DetectResult(){};
+  virtual ~DetectResult(){};
   std::vector<DetectBBoxResult> bboxs_;
 };
 

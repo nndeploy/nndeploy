@@ -54,3 +54,6 @@ nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION "ENABLE_NNDEPLOY_PLUGIN_
 if (ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/stable_diffusion/config.cmake)
 endif()
+
+# appedn list
+message(STATUS "NNDEPLOY_PLUGIN_LIST: ${NNDEPLOY_PLUGIN_LIST}")

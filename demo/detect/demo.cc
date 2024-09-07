@@ -10,6 +10,9 @@
 
 using namespace nndeploy;
 
+// dag::TypeGraphRegister g_register_yolov8_graph("test",
+//                                                detect::createYoloV8Graph);
+
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
   if (demo::FLAGS_usage) {
