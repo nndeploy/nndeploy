@@ -18,18 +18,19 @@ namespace nndeploy {
 namespace inference {
 
 class SnpeConvert {
-public:
-    SnpeConvert();
-    ~SnpeConvert();
+ public:
+  SnpeConvert();
+  ~SnpeConvert();
 
-    static base::DataType convertToDataType(SnpeBuffer_Type_t &src);
+  static base::DataType convertToDataType(SnpeBuffer_Type_t &src);
 
-    static base::DataFormat convertToDataFormat();
+  static base::DataFormat convertToDataFormat();
 
-    static base::IntVector convertToShape(const zdl::DlSystem::Dimension *dims, size_t rank);
+  static base::IntVector convertToShape(const zdl::DlSystem::Dimension *dims,
+                                        size_t rank);
 };
 
-}
-}
+}  // namespace inference
+}  // namespace nndeploy
 
 #endif

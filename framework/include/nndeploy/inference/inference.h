@@ -16,7 +16,6 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/inference/inference_param.h"
 
-
 namespace nndeploy {
 namespace inference {
 
@@ -364,7 +363,7 @@ class NNDEPLOY_CC_API Inference {
  */
 class InferenceCreator {
  public:
-  virtual ~InferenceCreator(){};
+  virtual ~InferenceCreator() {};
   virtual Inference *createInference(base::InferenceType type) = 0;
 };
 

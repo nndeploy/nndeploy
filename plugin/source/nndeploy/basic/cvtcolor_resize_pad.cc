@@ -1,11 +1,11 @@
 
-#include "nndeploy/model/preprocess/cvtcolor_resize_pad.h"
+#include "nndeploy/basic/cvtcolor_resize_pad.h"
 
-#include "nndeploy/model/preprocess/opencv_util.h"
-#include "nndeploy/model/preprocess/util.h"
+#include "nndeploy/basic/opencv_util.h"
+#include "nndeploy/basic/util.h"
 
 namespace nndeploy {
-namespace model {
+namespace basic {
 
 base::Status CvtColorResizePad::run() {
   CvtclorResizePadParam *tmp_param =
@@ -85,5 +85,5 @@ base::Status CvtColorResizePad::run() {
   return base::kStatusCodeOk;
 }
 
-}  // namespace model
+}  // namespace basic
 }  // namespace nndeploy

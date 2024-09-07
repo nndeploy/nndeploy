@@ -1,9 +1,9 @@
-#include "nndeploy/model/preprocess/opencv_convert.h"
+#include "nndeploy/basic/opencv_convert.h"
 
-#include "nndeploy/model/preprocess/util.h"
+#include "nndeploy/basic/util.h"
 
 namespace nndeploy {
-namespace model {
+namespace basic {
 
 int OpenCvConvert::convertFromCvtColorType(base::CvtColorType src) {
   int ret = -1;
@@ -293,5 +293,5 @@ bool OpenCvConvert::convertToTensor(const cv::Mat &src, device::Tensor *dst,
   return ret;
 }
 
-}  // namespace model
+}  // namespace basic
 }  // namespace nndeploy

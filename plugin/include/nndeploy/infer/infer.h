@@ -1,13 +1,13 @@
 
-#ifndef _NNDEPLOY_MODEL_INFER_H_
-#define _NNDEPLOY_MODEL_INFER_H_
+#ifndef _NNDEPLOY_INFER_INFER_H_
+#define _NNDEPLOY_INFER_INFER_H_
 
 #include "nndeploy/dag/node.h"
 #include "nndeploy/inference/inference.h"
 #include "nndeploy/inference/inference_param.h"
 
 namespace nndeploy {
-namespace model {
+namespace infer {
 
 class NNDEPLOY_CC_API Infer : public dag::Node {
  public:
@@ -43,7 +43,7 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
   bool can_op_output_ = false;
 };
 
-}  // namespace model
+}  // namespace infer
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_INFER_H_ */
+#endif /* _NNDEPLOY_INFER_INFER_H_ */

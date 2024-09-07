@@ -19,10 +19,10 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/stable_diffusion/type.h"
+#include "nndeploy/stable_diffusion/type.h"
 
 namespace nndeploy {
-namespace model {
+namespace stable_diffusion {
 
 #define NNDEPLOY_STABLE_DIFFUSION_TEXT2IMAGE \
   "NNDEPLOY_STABLE_DIFFUSION_TEXT2IMAGE"
@@ -99,7 +99,7 @@ extern NNDEPLOY_CC_API dag::Graph *createStableDiffusionText2ImageGraph(
 //     base::InferenceType vae_inference_type, std::vector<base::Param *>
 //     &param);
 
-}  // namespace model
+}  // namespace stable_diffusion
 }  // namespace nndeploy
 
 #endif

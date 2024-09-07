@@ -1,12 +1,12 @@
 
-#include "nndeploy/model/stable_diffusion/ddim_scheduler.h"
+#include "nndeploy/stable_diffusion/ddim_scheduler.h"
 
-#include "nndeploy/model/infer.h"
-#include "nndeploy/model/stable_diffusion/scheduler.h"
+#include "nndeploy/infer/infer.h"
+#include "nndeploy/stable_diffusion/scheduler.h"
 #include "nndeploy/op/op_binary.h"
 
 namespace nndeploy {
-namespace model {
+namespace stable_diffusion {
 
 TypeSchedulerRegister<TypeSchedulerCreator<DDIMScheduler>>
     g_ddim_scheduler_register(kSchedulerTypeDDIM);
@@ -127,11 +127,10 @@ base::Status DDIMScheduler::configure() {
  * # - pred_sample_direction -> "direction pointing to x_t"
  * # - pred_prev_sample -> "x_t-1"
  */
-base::Status DDIMScheduler::step(device::Tensor *output, device::Tensor *sample,
-                                 int idx, float timestep, float eta,
-                                 bool use_clipped_model_output,
-                                 std::mt19937 generator,
-                                 device::Tensor *variance_noise) { // discussion
+base::Status DDIMScheduler::step(
+    device::Tensor *output, device::Tensor *sample, int idx, float timestep,
+    float eta, bool use_clipped_model_output, std::mt19937 generator,
+    device::Tensor *variance_noise) {  // discussion
   base::Status status = base::kStatusCodeOk;
   device::Device *host_device = device::getDefaultHostDevice();
 
@@ -166,7 +165,7 @@ base::Status DDIMScheduler::step(device::Tensor *output, device::Tensor *sample,
 
   // 3. compute predicted original sample from predicted noise also called
   // "predicted x_0" of formula(12) from https: //arxiv.org/pdf/2010.02502.pdf
-  device::Tensor pred_original_sample(output->getDevice(), output->getDesc()); 
+  device::Tensor pred_original_sample(output->getDevice(), output->getDesc());
   if (scheduler_param_->prediction_type_ == "epsilon") {
     device::Tensor tmp1(output->getDevice(), output->getDesc());
     op::mul(&beta_prod_t_sqrt_tensor, output, &tmp1);
@@ -261,5 +260,5 @@ base::Status DDIMScheduler::addNoise(device::Tensor *init_latents,
 
 std::vector<float> &DDIMScheduler::getTimestep() { return timesteps_; }
 
-}  // namespace model
+}  // namespace stable_diffusion
 }  // namespace nndeploy

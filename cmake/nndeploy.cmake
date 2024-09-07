@@ -84,12 +84,12 @@ include("${ROOT_PATH}/cmake/tokenizer_cpp.cmake")
 
 # ################### test ####################
 if(ENABLE_NNDEPLOY_TEST STREQUAL "ON")
-  set(NNDEPLOY_THIRD_PARTY_LIBRARY_TEST ${NNDEPLOY_THIRD_PARTY_LIBRARY_TEST} gflags)
+  set(NNDEPLOY_TEST_THIRD_PARTY_LIBRARY ${NNDEPLOY_TEST_THIRD_PARTY_LIBRARY} gflags)
 endif()    
 # ################### test ####################
 
 # ################### demo ####################
 if(ENABLE_NNDEPLOY_DEMO STREQUAL "ON")
-  set(NNDEPLOY_THIRD_PARTY_LIBRARY_DEMO ${NNDEPLOY_THIRD_PARTY_LIBRARY_DEMO} gflags)
+  set(NNDEPLOY_DEMO_THIRD_PARTY_LIBRARY ${NNDEPLOY_DEMO_THIRD_PARTY_LIBRARY} gflags)
 endif()    
 # ################### demo ####################

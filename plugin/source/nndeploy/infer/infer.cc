@@ -1,8 +1,8 @@
 
-#include "nndeploy/model/infer.h"
+#include "nndeploy/infer/infer.h"
 
 namespace nndeploy {
-namespace model {
+namespace infer {
 
 Infer::Infer(const std::string &name, base::InferenceType type,
              dag::Edge *input, dag::Edge *output)
@@ -160,5 +160,5 @@ base::Status Infer::run() {
 
 inference::Inference *Infer::getInference() { return inference_; }
 
-}  // namespace model
+}  // namespace infer
 }  // namespace nndeploy

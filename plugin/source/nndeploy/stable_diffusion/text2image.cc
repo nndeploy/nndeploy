@@ -1,14 +1,14 @@
 
-#include "nndeploy/model/infer.h"
-#include "nndeploy/model/stable_diffusion/clip.h"
-#include "nndeploy/model/stable_diffusion/scheduler.h"
-#include "nndeploy/model/stable_diffusion/stable_diffusion.h"
+#include "nndeploy/infer/infer.h"
+#include "nndeploy/stable_diffusion/clip.h"
+#include "nndeploy/stable_diffusion/scheduler.h"
+#include "nndeploy/stable_diffusion/stable_diffusion.h"
 
 // TODO: Edge要支持能够支持同名的情况
 // TODO: Node的名字能够支持同名的情况
 
 namespace nndeploy {
-namespace model {
+namespace stable_diffusion {
 
 class Text2ImagesSchedulerUNet : public dag::Loop {
  public:
@@ -178,7 +178,7 @@ dag::Graph *createText2ImagesSchedulerUNetGraph(
 
   dag::Edge *sample = text2image_scheduler_unet->createEdge("sample");
   dag::Edge *timestep = text2image_scheduler_unet->createEdge("timestep");
-  dag::Node *unet = text2image_scheduler_unet->createInfer<Infer>(
+  dag::Node *unet = text2image_scheduler_unet->createInfer<infer::Infer>(
       "unet", inference_type, {sample, timestep, encoder_hidden_states},
       outputs);
   unet->setParam(param[2]);
@@ -227,12 +227,12 @@ dag::Graph *createStableDiffusionText2ImageGraph(
   graph->addNode(text2image_scheduler_unet, false);
 
   // vae
-  dag::Node *vae =
-      graph->createInfer<Infer>("vae", vae_inference_type, latent, output);
+  dag::Node *vae = graph->createInfer<infer::Infer>("vae", vae_inference_type,
+                                                    latent, output);
   vae->setParam(param[5]);
 
   return graph;
 }
 
-}  // namespace model
+}  // namespace stable_diffusion
 }  // namespace nndeploy

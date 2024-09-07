@@ -3,8 +3,6 @@
 
 #include "nndeploy/base/file.h"
 
-// using namespace cv;
-
 namespace nndeploy {
 namespace codec {
 

@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_SEGMENT_SAM_SAM_H_
-#define _NNDEPLOY_MODEL_SEGMENT_SAM_SAM_H_
+#ifndef _NNDEPLOY_SEGMENT_SAM_SAM_H_
+#define _NNDEPLOY_SEGMENT_SAM_SAM_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -19,11 +19,10 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/segment/result.h"
-
+#include "nndeploy/segment/result.h"
 
 namespace nndeploy {
-namespace model {
+namespace segment {
 
 #define NNDEPLOY_SAM "NNDEPLOY_SAM"
 
@@ -63,6 +62,6 @@ extern NNDEPLOY_CC_API dag::Graph *createSamGraph(
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_values);
 
-}  // namespace model
+}  // namespace segment
 }  // namespace nndeploy
 #endif

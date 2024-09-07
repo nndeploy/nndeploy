@@ -1,16 +1,16 @@
 
-#include "nndeploy/model/stable_diffusion/scheduler.h"
+#include "nndeploy/stable_diffusion/scheduler.h"
 
-#include "nndeploy/model/infer.h"
+#include "nndeploy/infer/infer.h"
 #include "nndeploy/op/op_binary.h"
 
 namespace nndeploy {
-namespace model {
+namespace stable_diffusion {
 
 void Scheduler::setParam(SchedulerParam *param) { scheduler_param_ = param; }
 
-std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>
-    &getGlobalSchedulerCreatorMap() {
+std::map<SchedulerType, std::shared_ptr<SchedulerCreator>> &
+getGlobalSchedulerCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>>
@@ -54,5 +54,5 @@ base::Status initializeLatents(std::mt19937 &generator, float init_noise_sigma,
   return status;
 }
 
-}  // namespace model
+}  // namespace stable_diffusion
 }  // namespace nndeploy

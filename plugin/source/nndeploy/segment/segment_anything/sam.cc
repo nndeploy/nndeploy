@@ -1,12 +1,12 @@
-#include "nndeploy/model/segment/segment_anything/sam.h"
+#include "nndeploy/segment/segment_anything/sam.h"
 
 #include "nndeploy/base/opencv_include.h"
-#include "nndeploy/model/infer.h"
-#include "nndeploy/model/preprocess/cvtcolor_resize_pad.h"
-#include "nndeploy/model/segment/util.h"
+#include "nndeploy/basic/cvtcolor_resize_pad.h"
+#include "nndeploy/infer/infer.h"
+#include "nndeploy/segment/util.h"
 
 namespace nndeploy {
-namespace model {
+namespace segment {
 
 dag::TypeGraphRegister g_register_sam_graph(NNDEPLOY_SAM, createSamGraph);
 
@@ -133,16 +133,16 @@ dag::Graph *createSamGraph(const std::string &name,
   dag::Edge *mask_input = graph->createEdge("mask_input");
   dag::Edge *orig_im_size = graph->createEdge("orig_im_size");
 
-  dag::Node *preprocess = graph->createNode<model::CvtColorResizePad>(
+  dag::Node *preprocess = graph->createNode<basic::CvtColorResizePad>(
       "preprocess", input, input_image);
-  dag::Node *embedding_inference = graph->createInfer<model::Infer>(
+  dag::Node *embedding_inference = graph->createInfer<infer::Infer>(
       "embedding_inference", inference_type, input_image, image_embeddings);
 
   dag::Node *build_input = graph->createNode<SamBuildInput>(
       "build_input", {input},
       {has_mask_input, point_coords, point_labels, orig_im_size, mask_input});
   // 这个推理任务本身是动态输入的
-  dag::Node *segment_inference = graph->createInfer<model::Infer>(
+  dag::Node *segment_inference = graph->createInfer<infer::Infer>(
       "segment_inference", inference_type,
       {image_embeddings, has_mask_input, point_coords, point_labels,
        orig_im_size, mask_input},
@@ -150,8 +150,8 @@ dag::Graph *createSamGraph(const std::string &name,
   dag::Node *postprocess =
       graph->createNode<SamPostProcess>("postprocess", segment_output, output);
 
-  model::CvtclorResizePadParam *pre_param =
-      dynamic_cast<model::CvtclorResizePadParam *>(preprocess->getParam());
+  basic::CvtclorResizePadParam *pre_param =
+      dynamic_cast<basic::CvtclorResizePadParam *>(preprocess->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -195,5 +195,5 @@ dag::Graph *createSamGraph(const std::string &name,
   return graph;
 }
 
-}  // namespace model
+}  // namespace segment
 }  // namespace nndeploy

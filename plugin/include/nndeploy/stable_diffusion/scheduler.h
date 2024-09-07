@@ -22,11 +22,11 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/convert_to.h"
-#include "nndeploy/model/stable_diffusion/type.h"
+#include "nndeploy/basic/convert_to.h"
+#include "nndeploy/stable_diffusion/type.h"
 
 namespace nndeploy {
-namespace model {
+namespace stable_diffusion {
 
 class NNDEPLOY_CC_API SchedulerParam : public base::Param {
  public:
@@ -145,7 +145,7 @@ class NNDEPLOY_CC_API Scheduler {
  */
 class SchedulerCreator {
  public:
-  virtual ~SchedulerCreator(){};
+  virtual ~SchedulerCreator() {};
   virtual Scheduler *createScheduler(SchedulerType type) = 0;
 };
 
@@ -164,8 +164,8 @@ class TypeSchedulerCreator : public SchedulerCreator {
  *
  * @return std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>&
  */
-std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>
-    &getGlobalSchedulerCreatorMap();
+std::map<SchedulerType, std::shared_ptr<SchedulerCreator>> &
+getGlobalSchedulerCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板
@@ -210,7 +210,7 @@ void customLinspace(float start, float end, int steps,
 base::Status initializeLatents(std::mt19937 &generator, float init_noise_sigma,
                                device ::Tensor *latents);
 
-}  // namespace model
+}  // namespace stable_diffusion
 }  // namespace nndeploy
 
 #endif

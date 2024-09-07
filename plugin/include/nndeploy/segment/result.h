@@ -1,13 +1,12 @@
 
-#ifndef _NNDEPLOY_MODEL_SEGMENT_RESULT_H_
-#define _NNDEPLOY_MODEL_SEGMENT_RESULT_H_
+#ifndef _NNDEPLOY_SEGMENT_RESULT_H_
+#define _NNDEPLOY_SEGMENT_RESULT_H_
 
 #include "nndeploy/base/param.h"
 #include "nndeploy/device/tensor.h"
 
-
 namespace nndeploy {
-namespace model {
+namespace segment {
 
 /**
  * @brief Detect Result
@@ -22,7 +21,7 @@ class NNDEPLOY_CC_API SegmentResult : public base::Param {
   int classes_;
 };
 
-}  // namespace model
+}  // namespace segment
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_SEGMENT_RESULT_H_ */
+#endif /* _NNDEPLOY_SEGMENT_RESULT_H_ */

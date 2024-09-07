@@ -19,6 +19,7 @@ struct NNDEPLOY_CC_API BufferDesc {
   BufferDesc();
   explicit BufferDesc(size_t size);
   explicit BufferDesc(size_t *size, size_t len);
+  explicit BufferDesc(size_t size, const base::IntVector &config);
   explicit BufferDesc(const base::SizeVector &size,
                       const base::IntVector &config);
   explicit BufferDesc(size_t *size, size_t len, const base::IntVector &config);
@@ -32,6 +33,13 @@ struct NNDEPLOY_CC_API BufferDesc {
 
   virtual ~BufferDesc();
 
+  size_t getSize() const;
+  base::SizeVector getSizeVector() const;
+  size_t getRealSize() const;
+  base::SizeVector getRealSizeVector() const;
+
+  base::IntVector getConfig() const;
+
   bool isSameConfig(const BufferDesc &desc) const;
   bool isSameDim(const BufferDesc &desc) const;
   bool is1D() const;
@@ -42,6 +50,13 @@ struct NNDEPLOY_CC_API BufferDesc {
 
   void print();
 
+  bool justModify(const size_t &size);
+  bool justModify(const base::SizeVector &size);
+  bool justModify(const BufferDesc &desc);
+
+  void clear();
+
+ private:
   /**
    * @brief
    * 1d size
@@ -54,6 +69,11 @@ struct NNDEPLOY_CC_API BufferDesc {
    * 根据不同的设备以及内存形态有不同的config_
    */
   base::IntVector config_;
+  /**
+   * @brief
+   * 真实内存大小，无法修改
+   */
+  base::SizeVector real_size_;
 };
 
 /**

@@ -1,9 +1,9 @@
 
-#ifndef _NNDEPLOY_MODEL_DETECT_RESULT_H_
-#define _NNDEPLOY_MODEL_DETECT_RESULT_H_
+#ifndef _NNDEPLOY_DETECT_DETECT_RESULT_H_
+#define _NNDEPLOY_DETECT_DETECT_RESULT_H_
 
 namespace nndeploy {
-namespace model {
+namespace detect {
 
 /**
  * @brief Detect Result
@@ -23,7 +23,7 @@ class NNDEPLOY_CC_API DetectResult : public base::Param {
   std::vector<DetectBBoxResult> bboxs_;
 };
 
-}  // namespace model
+}  // namespace detect
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_DETECT_RESULT_H_ */
+#endif /* _NNDEPLOY_DETECT_DETECT_RESULT_H_ */

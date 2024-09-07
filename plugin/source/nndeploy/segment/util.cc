@@ -1,7 +1,7 @@
-#include "nndeploy/model/segment/util.h"
+#include "nndeploy/segment/util.h"
 
 namespace nndeploy {
-namespace model {
+namespace segment {
 
 /// @brief 将一个float vector转换为当前设备的tensor
 /// @param data 代转换数组
@@ -24,5 +24,6 @@ NNDEPLOY_CC_API device::Tensor *convertVectorToTensor(
 
   return tensor;
 }
-}  // namespace model
+
+}  // namespace segment
 }  // namespace nndeploy

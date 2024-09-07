@@ -23,11 +23,11 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/model/convert_to.h"
-#include "nndeploy/model/stable_diffusion/scheduler.h"
-#include "nndeploy/model/stable_diffusion/type.h"
+#include "nndeploy/stable_diffusion/scheduler.h"
+#include "nndeploy/stable_diffusion/type.h"
 
 namespace nndeploy {
-namespace model {
+namespace stable_diffusion {
 
 class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
  public:
@@ -65,7 +65,7 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
   std::vector<float> variance_;   // 方差
 };
 
-}  // namespace model
+}  // namespace stable_diffusion
 }  // namespace nndeploy
 
 #endif

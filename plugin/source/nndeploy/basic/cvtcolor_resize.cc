@@ -1,10 +1,10 @@
 
-#include "nndeploy/model/preprocess/cvtcolor_resize.h"
+#include "nndeploy/basic/cvtcolor_resize.h"
 
-#include "nndeploy/model/preprocess/util.h"
+#include "nndeploy/basic/util.h"
 
 namespace nndeploy {
-namespace model {
+namespace basic {
 
 base::Status CvtColorResize::run() {
   // NNDEPLOY_LOGE("preprocess start!Thread ID: %d.\n",
@@ -61,5 +61,5 @@ base::Status CvtColorResize::run() {
   return base::kStatusCodeOk;
 }
 
-}  // namespace model
+}  // namespace basic
 }  // namespace nndeploy

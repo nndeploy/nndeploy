@@ -14,7 +14,7 @@ enum DataTypeCode : uint8_t {
   kDataTypeCodeFp,
   kDataTypeCodeBFp,
   kDataTypeCodeOpaqueHandle,
-
+  // not sopport
   kDataTypeCodeNotSupport,
 };
 

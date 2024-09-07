@@ -1,7 +1,7 @@
 include(ExternalProject)
 
-if (ENABLE_NNDEPLOY_MODEL_TOKENIZER_CPP STREQUAL "OFF")
-elseif (ENABLE_NNDEPLOY_MODEL_TOKENIZER_CPP STREQUAL "ON")
+if (ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP STREQUAL "OFF")
+elseif (ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP STREQUAL "ON")
   message("tokenizer_cpp is ON")
   set(TOKENZIER_CPP_PATH third_party/tokenizers-cpp)
   add_subdirectory(${TOKENZIER_CPP_PATH} tokenizers)

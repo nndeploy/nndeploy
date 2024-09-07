@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_CONVERT_TO_H_
-#define _NNDEPLOY_MODEL_CONVERT_TO_H_
+#ifndef _NNDEPLOY_BASIC_CONVERT_TO_H_
+#define _NNDEPLOY_BASIC_CONVERT_TO_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -18,7 +18,7 @@
 #include "nndeploy/device/tensor.h"
 
 namespace nndeploy {
-namespace model {
+namespace basic {
 
 class NNDEPLOY_CC_API ConvertToParam : public base::Param {
  public:
@@ -36,7 +36,7 @@ class NNDEPLOY_CC_API ConvertTo : public dag::Node {
   virtual base::Status run();
 };
 
-}  // namespace model
+}  // namespace basic
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_CONVERT_TO_H_ */
+#endif /* _NNDEPLOY_BASIC_CONVERT_TO_H_ */

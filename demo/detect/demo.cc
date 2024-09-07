@@ -1,12 +1,13 @@
 #include "flag.h"
+#include "nndeploy/base/drawbox.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/detect/yolo/yolo.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/model/detect/yolo/yolo.h"
 #include "nndeploy/thread_pool/thread_pool.h"
-#include "nndeploy/base/drawbox.h"
+
 
 using namespace nndeploy;
 
@@ -73,15 +74,12 @@ int main(int argc, char *argv[]) {
   // draw box
   dag::Edge *draw_output = graph->createEdge("draw_output");
   dag::Node *draw_box_node;
-  if (name == "NNDEPLOY_YOLOV5_MULTI_CONV_OUTPUT")
-  {
-    draw_box_node = graph->createNode<YoloMultiConvDrawBoxNode>(
-      "DrawBoxNode", {&input, &output}, {draw_output});
-  }
-  else
-  {
-    draw_box_node = graph->createNode<DrawBoxNode>(
-      "DrawBoxNode", {&input, &output}, {draw_output});
+  if (name == "NNDEPLOY_YOLOV5_MULTI_CONV_OUTPUT") {
+    draw_box_node = graph->createNode<detect::YoloMultiConvDrawBoxNode>(
+        "DrawBoxNode", {&input, &output}, {draw_output});
+  } else {
+    draw_box_node = graph->createNode<detect::DrawBoxNode>(
+        "DrawBoxNode", {&input, &output}, {draw_output});
   }
 
   // 解码节点

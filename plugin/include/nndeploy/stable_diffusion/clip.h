@@ -21,14 +21,14 @@
 #include "nndeploy/device/tensor.h"
 
 namespace nndeploy {
-namespace model {
+namespace stable_diffusion {
 
 extern NNDEPLOY_CC_API dag::Graph *createCLIPGraph(
     const std::string &name, dag::Edge *prompt, dag::Edge *negative_prompt,
     dag::Edge *output, base::InferenceType inference_type,
     std::vector<base::Param *> &param);
 
-}  // namespace model
+}  // namespace stable_diffusion
 }  // namespace nndeploy
 
 #endif

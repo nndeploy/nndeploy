@@ -18,7 +18,6 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 
-
 /**
  * @brief 有向无环图
  */
@@ -73,9 +72,10 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @param  output           输出Edge
    * @return Node*
    */
-  template <typename T,
+  template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node *createNode(const std::string &name, Edge *input, Edge *output);
+  Node *createNode(const std::string &name, Edge *input, Edge *output,
+                   Args &...args);
 
   /**
    * @brief 在Graph中创建一个Node，并关联input、output的Edge
@@ -409,10 +409,11 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::shared_ptr<Executor> executor_;
 };
 
-template <typename T,
+template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
-Node *Graph::createNode(const std::string &name, Edge *input, Edge *output) {
-  Node *node = dynamic_cast<Node *>(new T(name, input, output));
+Node *Graph::createNode(const std::string &name, Edge *input, Edge *output,
+                        Args &...args) {
+  Node *node = dynamic_cast<Node *>(new T(name, input, output, args...));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;

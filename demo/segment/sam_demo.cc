@@ -4,8 +4,8 @@
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/model/segment/result.h"
-#include "nndeploy/model/segment/segment_anything/sam.h"
+#include "nndeploy/segment/result.h"
+#include "nndeploy/segment/segment_anything/sam.h"
 
 using namespace nndeploy;
 

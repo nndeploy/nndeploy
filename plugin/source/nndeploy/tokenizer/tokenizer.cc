@@ -1,8 +1,8 @@
 
-#include "nndeploy/model/tokenizer/tokenizer.h"
+#include "nndeploy/tokenizer/tokenizer.h"
 
 namespace nndeploy {
-namespace model {
+namespace tokenizer {
 
 Tokenizer::Tokenizer(const std::string &name, dag::Edge *input,
                      dag::Edge *output)
@@ -10,5 +10,5 @@ Tokenizer::Tokenizer(const std::string &name, dag::Edge *input,
 
 Tokenizer::~Tokenizer() {}
 
-}  // namespace model
+}  // namespace tokenizer
 }  // namespace nndeploy

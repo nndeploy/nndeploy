@@ -17,7 +17,6 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 
-
 namespace nndeploy {
 namespace codec {
 
@@ -64,8 +63,8 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
 class NNDEPLOY_CC_API EncodeNode : public dag::Node {
  public:
   EncodeNode(base::CodecFlag flag, const std::string &name, dag::Edge *input)
-      : dag::Node(name, input, nullptr), flag_(flag){};
-  virtual ~EncodeNode(){};
+      : dag::Node(name, input, nullptr), flag_(flag) {};
+  virtual ~EncodeNode() {};
 
   base::CodecFlag getCodecFlag() { return flag_; }
   void setPath(const std::string &path) { path_ = path; }

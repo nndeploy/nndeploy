@@ -5,19 +5,29 @@ namespace nndeploy {
 namespace device {
 
 BufferDesc::BufferDesc() {}
-BufferDesc::BufferDesc(size_t size) { size_.emplace_back(size); }
+BufferDesc::BufferDesc(size_t size) {
+  size_.emplace_back(size);
+  real_size_.emplace_back(size);
+}
 BufferDesc::BufferDesc(size_t *size, size_t len) {
   for (int i = 0; i < len; ++i) {
     size_.emplace_back(size[i]);
+    real_size_.emplace_back(size[i]);
   }
+}
+BufferDesc::BufferDesc(size_t size, const base::IntVector &config)
+    : config_(config) {
+  size_.emplace_back(size);
+  real_size_.emplace_back(size);
 }
 BufferDesc::BufferDesc(const base::SizeVector &size,
                        const base::IntVector &config)
-    : size_(size), config_(config) {}
+    : size_(size), config_(config), real_size_(size) {}
 BufferDesc::BufferDesc(size_t *size, size_t len, const base::IntVector &config)
     : config_(config) {
   for (int i = 0; i < len; ++i) {
     size_.emplace_back(size[i]);
+    real_size_.emplace_back(size[i]);
   }
 }
 
@@ -27,6 +37,7 @@ BufferDesc::BufferDesc(const BufferDesc &desc) {
   }
   size_ = desc.size_;
   config_ = desc.config_;
+  real_size_ = desc.real_size_;
 }
 BufferDesc &BufferDesc::operator=(const BufferDesc &desc) {
   if (this == &desc) {
@@ -34,10 +45,12 @@ BufferDesc &BufferDesc::operator=(const BufferDesc &desc) {
   }
   size_ = desc.size_;
   config_ = desc.config_;
+  real_size_ = desc.real_size_;
   return *this;
 }
 BufferDesc &BufferDesc::operator=(size_t size) {
   size_.emplace_back(size);
+  real_size_.emplace_back(size);
   return *this;
 }
 
@@ -47,6 +60,7 @@ BufferDesc::BufferDesc(BufferDesc &&desc) noexcept {
   }
   size_ = std::move(desc.size_);
   config_ = std::move(desc.config_);
+  real_size_ = std::move(desc.real_size_);
 }
 BufferDesc &BufferDesc::operator=(BufferDesc &&desc) noexcept {
   if (this == &desc) {
@@ -54,10 +68,36 @@ BufferDesc &BufferDesc::operator=(BufferDesc &&desc) noexcept {
   }
   size_ = std::move(desc.size_);
   config_ = std::move(desc.config_);
+  real_size_ = std::move(desc.real_size_);
   return *this;
 }
 
-BufferDesc::~BufferDesc(){};
+BufferDesc::~BufferDesc() {};
+
+size_t BufferDesc::getSize() const {
+  if (size_.empty()) {
+    return 0;
+  }
+  size_t size = 1;
+  for (auto iter : size_) {
+    size *= iter;
+  }
+  return size;
+}
+base::SizeVector BufferDesc::getSizeVector() const { return size_; }
+size_t BufferDesc::getRealSize() const {
+  if (real_size_.empty()) {
+    return 0;
+  }
+  size_t size = 1;
+  for (auto iter : real_size_) {
+    size *= iter;
+  }
+  return size;
+}
+base::SizeVector BufferDesc::getRealSizeVector() const { return real_size_; }
+
+base::IntVector BufferDesc::getConfig() const { return config_; }
 
 bool BufferDesc::isSameConfig(const BufferDesc &desc) const {
   if (config_.size() != desc.config_.size()) {
@@ -109,6 +149,10 @@ void BufferDesc::print() {
   for (int i = 0; i < size_.size(); ++i) {
     std::cout << size_[i] << " ";
   }
+  std::cout << "real_size: ";
+  for (int i = 0; i < real_size_.size(); ++i) {
+    std::cout << real_size_[i] << " ";
+  }
   std::cout << std::endl;
   if (!config_.empty()) {
     std::cout << "config: ";
@@ -119,12 +163,76 @@ void BufferDesc::print() {
   }
 }
 
+bool BufferDesc::justModify(const size_t &size) {
+  if (size_.size() == 1) {
+    if (size > real_size_[0]) {
+      NNDEPLOY_LOGE("size=%ld great than real_size_[0]=%ld.\n", size,
+                    real_size_[0]);
+      return false;
+    }
+    size_[0] = size;
+    return true;
+  } else {
+    NNDEPLOY_LOGE("size_.size[%ld] not equal 1.\n", size_.size());
+    return false;
+  }
+}
+
+bool BufferDesc::justModify(const base::SizeVector &size) {
+  if (size_.size() == size.size()) {
+    for (size_t i = 0; i < size.size(); ++i) {
+      if (size[i] > real_size_[i]) {
+        NNDEPLOY_LOGE("size[%ld]=%ld great than real_size_[%ld]=%ld.\n", i,
+                      size[i], i, real_size_[i]);
+        return false;
+      }
+      size_[i] = size[i];
+    }
+    return true;
+  } else {
+    NNDEPLOY_LOGE("size_.size[%ld] not equal 1.\n", size_.size());
+    return false;
+  }
+}
+bool BufferDesc::justModify(
+    const BufferDesc &desc) {
+  if (config_.size() != desc.config_.size()) {
+    return false;
+  }
+  for (size_t i = 0; i < config_.size(); ++i) {
+    if (config_[i] != desc.config_[i]) {
+      return false;
+    }
+  }
+  const base::SizeVector size = desc.size_;
+  if (size_.size() == size.size()) {
+    for (size_t i = 0; i < size.size(); ++i) {
+      if (size[i] > real_size_[i]) {
+        NNDEPLOY_LOGE("size[%ld]=%ld great than real_size_[%ld]=%ld.\n", i,
+                      size[i], i, real_size_[i]);
+        return false;
+      }
+      size_[i] = size[i];
+    }
+    return true;
+  } else {
+    NNDEPLOY_LOGE("size_.size[%ld] not equal 1.\n", size_.size());
+    return false;
+  }
+}
+
+void BufferDesc::clear() {
+  size_.clear();
+  config_.clear();
+  real_size_.clear();
+}
+
 // TensorDesc
-TensorDesc::TensorDesc(){};
+TensorDesc::TensorDesc() {};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
                        const base::IntVector &shape)
-    : data_type_(data_type), data_format_(format), shape_(shape){};
+    : data_type_(data_type), data_format_(format), shape_(shape) {};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
                        const base::IntVector &shape,
@@ -132,7 +240,7 @@ TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
     : data_type_(data_type),
       data_format_(format),
       shape_(shape),
-      stride_(stride){};
+      stride_(stride) {};
 
 TensorDesc::TensorDesc(const TensorDesc &desc) {
   if (this == &desc) {
@@ -174,7 +282,7 @@ TensorDesc &TensorDesc::operator=(TensorDesc &&desc) noexcept {
   return *this;
 }
 
-TensorDesc::~TensorDesc(){};
+TensorDesc::~TensorDesc() {};
 
 bool TensorDesc::operator==(const TensorDesc &other) const {
   bool flag0 = false;

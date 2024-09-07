@@ -1,15 +1,43 @@
-message(STATUS "model/stable_diffusion")
+message(STATUS "plugin/stable_diffusion")
 
 # set
-set(SOURCE)
+set(PLUGIN_SOURCE)
+set(PLUGIN_OBJECT)
+set(PLUGIN_BINARY nndeploy_plugin_stable_diffusion)
 
 # SOURCE
-file(GLOB SOURCE
-  "${ROOT_PATH}/include/nndeploy/model/stable_diffusion/*.h"
-  "${ROOT_PATH}/source/nndeploy/model/stable_diffusion/*.cc"
+file(GLOB_RECURSE PLUGIN_SOURCE
+  "${PLUGIN_ROOT_PATH}/include/nndeploy/stable_diffusion/*.h"
+  "${PLUGIN_ROOT_PATH}/source/nndeploy/stable_diffusion/*.cc"
 )
 
-set(MODEL_SOURCE ${MODEL_SOURCE} ${SOURCE})
+## TARGET
+add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJECT})
+## DIRECTORY
+set_property(TARGET ${PLUGIN_BINARY} PROPERTY FOLDER ${NNDEPLOY_PLUGIN_DIRECTORY})
+## DEPEND_LIBRARY
+target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_DEPEND_LIBRARY})
+## SYSTEM_LIBRARY
+target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_SYSTEM_LIBRARY}) 
+## THIRD_PARTY_LIBRARY
+target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_THIRD_PARTY_LIBRARY}) 
+## NNDEPLOY_FRAMEWORK_BINARY
+target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_FRAMEWORK_BINARY}) 
+## NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY
+target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY}) 
+## install
+if(SYSTEM.Windows)
+  install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+else() 
+  install(TARGETS ${PLUGIN_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
+endif()
+
+# appedn list
+set(NNDEPLOY_PLUGIN_LIST ${NNDEPLOY_PLUGIN_LIST} ${PLUGIN_BINARY})
 
 # unset
-unset(SOURCE)
+unset(PLUGIN_SOURCE)
+unset(PLUGIN_OBJECT)
+unset(PLUGIN_BINARY)
+
+

@@ -115,10 +115,10 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
 
   virtual void *getContext();
 
-  virtual base::Status newCommandQueue();
+  virtual int newCommandQueue();
   virtual base::Status deleteCommandQueue(int index = -1);
   virtual base::Status deleteCommandQueue(void *command_queue);
-  virtual base::Status setCommandQueue(void *command_queue);
+  virtual int setCommandQueue(void *command_queue, bool is_external = true);
 
   virtual void *getCommandQueue(int index = 0);
 
@@ -135,14 +135,16 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   CudaDevice(base::DeviceType device_type, void *command_queue = nullptr,
              std::string library_path = "")
       : Device(device_type) {
-    cuda_stream_wrapper_.resize(1);
-    cuda_stream_wrapper_[0].external_command_queue_ = command_queue;
+    CudaStreamWrapper cuda_stream_wrapper;
+    cuda_stream_wrapper.external_command_queue_ = command_queue;
+    cuda_stream_wrapper.stream_ = (cudaStream_t)command_queue;
+    insertStream(stream_index_, cuda_stream_wrapper_, cuda_stream_wrapper);
   };
   /**
    * @brief Destroy the Cuda Device object
    *
    */
-  virtual ~CudaDevice(){};
+  virtual ~CudaDevice() {};
 
   /**
    * @brief init
@@ -158,7 +160,8 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   virtual base::Status deinit();
 
  private:
-  std::vector<CudaStreamWrapper> cuda_stream_wrapper_;
+  int stream_index_ = 0;
+  std::map<int, CudaStreamWrapper> cuda_stream_wrapper_;
 };
 
 }  // namespace device

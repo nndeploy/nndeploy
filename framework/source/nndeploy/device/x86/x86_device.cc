@@ -11,7 +11,7 @@ TypeArchitectureRegister<X86Architecture> x86_architecture_register(
     base::kDeviceTypeCodeX86);
 
 X86Architecture::X86Architecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code){};
+    : Architecture(device_type_code) {};
 
 X86Architecture::~X86Architecture() {
   for (auto iter : devices_) {
@@ -86,8 +86,6 @@ std::vector<DeviceInfo> X86Architecture::getDeviceInfo(
  */
 BufferDesc X86Device::toBufferDesc(const TensorDesc &desc,
                                    const base::IntVector &config) {
-  BufferDesc buffer_desc;
-  buffer_desc.config_ = config;
   size_t size = desc.data_type_.size();
   if (desc.stride_.empty()) {
     for (int i = 0; i < desc.shape_.size(); ++i) {
@@ -96,8 +94,7 @@ BufferDesc X86Device::toBufferDesc(const TensorDesc &desc,
   } else {
     size = desc.stride_[0];
   }
-  buffer_desc.size_.emplace_back(size);
-  return buffer_desc;
+  return BufferDesc(size, config);
 }
 
 void *X86Device::allocate(size_t size) {
@@ -109,7 +106,7 @@ void *X86Device::allocate(size_t size) {
   return data;
 }
 void *X86Device::allocate(const BufferDesc &desc) {
-  void *data = malloc(desc.size_[0]);
+  void *data = malloc(desc.getRealSize());
   if (data == nullptr) {
     NNDEPLOY_LOGE("allocate buffer failed");
     return nullptr;
@@ -153,7 +150,7 @@ base::Status X86Device::upload(void *src, void *dst, size_t size, int index) {
 
 base::Status X86Device::copy(Buffer *src, Buffer *dst, int index) {
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
-    memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
+    memcpy(dst->getData(), src->getData(), src->getSize());
     return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("copy buffer failed");
@@ -162,7 +159,7 @@ base::Status X86Device::copy(Buffer *src, Buffer *dst, int index) {
 }
 base::Status X86Device::download(Buffer *src, Buffer *dst, int index) {
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
-    memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
+    memcpy(dst->getData(), src->getData(), src->getSize());
     return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("download buffer failed");
@@ -171,7 +168,7 @@ base::Status X86Device::download(Buffer *src, Buffer *dst, int index) {
 }
 base::Status X86Device::upload(Buffer *src, Buffer *dst, int index) {
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
-    memcpy(dst->getData(), src->getData(), src->getDesc().size_[0]);
+    memcpy(dst->getData(), src->getData(), src->getSize());
     return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("upload buffer failed");

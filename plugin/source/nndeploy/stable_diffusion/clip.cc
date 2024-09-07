@@ -1,12 +1,12 @@
 
-#include "nndeploy/model/stable_diffusion/clip.h"
+#include "nndeploy/stable_diffusion/clip.h"
 
-#include "nndeploy/model/convert_to.h"
-#include "nndeploy/model/infer.h"
-#include "nndeploy/model/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
+#include "nndeploy/infer/infer.h"
+#include "nndeploy/basic/convert_to.h"
+#include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 
 namespace nndeploy {
-namespace model {
+namespace stable_diffusion {
 
 class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
  public:
@@ -14,7 +14,7 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
                   std::initializer_list<dag::Edge *> inputs,
                   std::initializer_list<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    param_ = std::make_shared<TokenizerPraram>();
+    param_ = std::make_shared<tokenizer::TokenizerPraram>();
   }
   virtual ~TokenizerConcat() {}
 
@@ -22,9 +22,10 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
     base::Status status = base::kStatusCodeOk;
 
     // param_
-    TokenizerPraram *tokenizer_param = (TokenizerPraram *)(param_.get());
+    tokenizer::TokenizerPraram *tokenizer_param = (tokenizer::TokenizerPraram *)(param_.get());
 
-    if (tokenizer_param->tokenizer_type_ == TokenizerType::kTokenizerTypeHF) {
+    if (tokenizer_param->tokenizer_type_ ==
+        tokenizer::TokenizerType::kTokenizerTypeHF) {
       if (tokenizer_param->json_blob_.empty()) {
         NNDEPLOY_LOGE("json_blob_ is empty\n");
         return base::kStatusCodeErrorInvalidParam;
@@ -38,7 +39,7 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
       }
       tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
     } else if (tokenizer_param->tokenizer_type_ ==
-               TokenizerType::kTokenizerTypeBPE) {
+               tokenizer::TokenizerType::kTokenizerTypeBPE) {
       if (tokenizer_param->vocab_blob_.empty() ||
           tokenizer_param->merges_blob_.empty()) {
         NNDEPLOY_LOGE("vocab_blob_ or  merges_blob_ is empty\n");
@@ -60,7 +61,7 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
       tokenizer_ = tokenizers::Tokenizer::FromBlobByteLevelBPE(
           vocab_blob, merges_blob, added_tokens);
     } else if (tokenizer_param->tokenizer_type_ ==
-               TokenizerType::kTokenizerTypeSentencePiece) {
+               tokenizer::TokenizerType::kTokenizerTypeSentencePiece) {
       if (tokenizer_param->model_blob_.empty()) {
         NNDEPLOY_LOGE("model_blob_ is empty\n");
         return base::kStatusCodeErrorInvalidParam;
@@ -74,7 +75,7 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
       }
       tokenizer_ = tokenizers::Tokenizer::FromBlobSentencePiece(blob);
     } else if (tokenizer_param->tokenizer_type_ ==
-               TokenizerType::kTokenizerTypeRWKVWorld) {
+               tokenizer::TokenizerType::kTokenizerTypeRWKVWorld) {
       if (tokenizer_param->model_blob_.empty()) {
         NNDEPLOY_LOGE("model_blob_ is empty\n");
         return base::kStatusCodeErrorInvalidParam;
@@ -107,10 +108,12 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
     base::Status status = base::kStatusCodeOk;
 
     // param_
-    TokenizerPraram *tokenizer_concat_param = (TokenizerPraram *)(param_.get());
+    tokenizer::TokenizerPraram *tokenizer_concat_param = (tokenizer::TokenizerPraram *)(param_.get());
 
-    TokenizerText *text_param1 = (TokenizerText *)(inputs_[0]->getParam(this));
-    TokenizerText *text_param2 = (TokenizerText *)(inputs_[1]->getParam(this));
+    tokenizer::TokenizerText *text_param1 =
+        (tokenizer::TokenizerText *)(inputs_[0]->getParam(this));
+    tokenizer::TokenizerText *text_param2 =
+        (tokenizer::TokenizerText *)(inputs_[1]->getParam(this));
     int index = inputs_[0]->getIndex(this);
 
     std::vector<std::string> texts;
@@ -187,11 +190,11 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
    * 多batch的推理
    */
   dag::Node *infer =
-      graph->createInfer<Infer>("infer", inference_type, input_ids, output);
+      graph->createInfer<infer::Infer>("infer", inference_type, input_ids, output);
   infer->setParam(param[1]);
 
   return graph;
 }
 
-}  // namespace model
+}  // namespace stable_diffusion
 }  // namespace nndeploy

@@ -1,16 +1,14 @@
-#ifndef _NNDEPLOY_BASE_DRAWBOX_H_
-#define _NNDEPLOY_BASE_DRAWBOX_H_
+#ifndef _NNDEPLOY_DETECT_DRAWBOX_H_
+#define _NNDEPLOY_DETECT_DRAWBOX_H_
 
-#include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/model/detect/yolo/yolo.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 
-using namespace nndeploy;
+namespace nndeploy {
+namespace detect {
 
 class DrawBoxNode : public dag::Node {
  public:
@@ -63,8 +61,8 @@ class DrawBoxNode : public dag::Node {
 class YoloMultiConvDrawBoxNode : public dag::Node {
  public:
   YoloMultiConvDrawBoxNode(const std::string &name,
-              std::initializer_list<dag::Edge *> inputs,
-              std::initializer_list<dag::Edge *> outputs)
+                           std::initializer_list<dag::Edge *> inputs,
+                           std::initializer_list<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {}
   virtual ~YoloMultiConvDrawBoxNode() {}
 
@@ -103,5 +101,8 @@ class YoloMultiConvDrawBoxNode : public dag::Node {
     return base::kStatusCodeOk;
   }
 };
+
+}  // namespace detect
+}  // namespace nndeploy
 
 #endif

@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_PREPROCESS_PARAMS_H_
-#define _NNDEPLOY_MODEL_PREPROCESS_PARAMS_H_
+#ifndef _NNDEPLOY_BASIC_PARAMS_H_
+#define _NNDEPLOY_BASIC_PARAMS_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -17,9 +17,8 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 
-
 namespace nndeploy {
-namespace model {
+namespace basic {
 
 /**
  * @brief 前处理通常由如下算子组合排列
@@ -58,7 +57,7 @@ class NNDEPLOY_CC_API PaddingParam : public base::Param {
 };
 
 class NNDEPLOY_CC_API WarpAffineParam : public base::Param {
-public:
+ public:
   float transform_[2][3];
   int dst_w_;
   int dst_h_;
@@ -72,8 +71,8 @@ public:
   bool normalize_ = true;
   float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
                      1.0f / 255.0f};
-  float mean_[4]  = {0.0f, 0.0f, 0.0f, 0.0f};
-  float std_[4]   = {1.0f, 1.0f, 1.0f, 1.0f};
+  float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
   int const_value_ = 114;
 
   base::InterpType interp_type_ = base::kInterpTypeLinear;
@@ -161,7 +160,7 @@ class NNDEPLOY_CC_API CvtclorResizePadParam : public base::Param {
   base::Scalar2d border_val_ = 0.0;
 };
 
-}  // namespace model
+}  // namespace basic
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_PARAMS_H_ */
+#endif /* _NNDEPLOY_BASIC_PARAMS_H_ */

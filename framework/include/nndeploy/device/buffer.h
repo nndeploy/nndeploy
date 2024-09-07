@@ -77,6 +77,10 @@ class NNDEPLOY_CC_API Buffer {
 
   void print();
 
+  bool justModify(const size_t &size);
+  bool justModify(const base::SizeVector &size);
+  bool justModify(const BufferDesc &desc);
+
   // get
   bool empty() const;
   base::DeviceType getDeviceType() const;
@@ -86,6 +90,8 @@ class NNDEPLOY_CC_API Buffer {
   BufferDesc getDesc() const;
   size_t getSize() const;
   base::SizeVector getSizeVector() const;
+  size_t getRealSize() const;
+  base::SizeVector getRealSizeVector() const;
   base::IntVector getConfig() const;
   void *getData() const;
   base::MemoryType getMemoryType() const;

@@ -1,10 +1,10 @@
 
-#include "nndeploy/model/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
+#include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 
 #include "nndeploy/base/file.h"
 
 namespace nndeploy {
-namespace model {
+namespace tokenizer {
 
 TokenizerCpp::TokenizerCpp(const std::string& name, dag::Edge* input,
                            dag::Edge* output)
@@ -194,5 +194,5 @@ int32_t TokenizerCpp::tokenToId(const std::string& token) {
   return tokenizer_->TokenToId(token);
 }
 
-}  // namespace model
+}  // namespace tokenizer
 }  // namespace nndeploy

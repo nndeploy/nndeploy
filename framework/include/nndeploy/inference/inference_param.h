@@ -76,6 +76,7 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
   std::vector<std::string> cache_path_;          // 缓存路径
   std::vector<std::string> library_path_;  // 第三方推理框架的动态库路径
 
+  // new feature
   std::string runtime_;
   int32_t perf_mode_;
   int32_t profiling_level_;
@@ -92,7 +93,7 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
  */
 class InferenceParamCreator {
  public:
-  virtual ~InferenceParamCreator(){};
+  virtual ~InferenceParamCreator() {};
   virtual InferenceParam *createInferenceParam() = 0;
 };
 

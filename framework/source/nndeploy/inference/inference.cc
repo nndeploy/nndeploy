@@ -334,8 +334,8 @@ base::Status Inference::setInputTensor(const std::string &name,
 //   return status;
 // }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>>

@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_DETECT_UTIL_H_
-#define _NNDEPLOY_MODEL_DETECT_UTIL_H_
+#ifndef _NNDEPLOY_DETECT_DETECT_UTIL_H_
+#define _NNDEPLOY_DETECT_DETECT_UTIL_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -12,14 +12,15 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/type.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/detect/result.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/detect/result.h"
+
 
 namespace nndeploy {
-namespace model {
+namespace detect {
 
 /**
  * @brief Get the Origin Box object
@@ -101,10 +102,10 @@ float computeIOU(const float *boxes, int i, int j);
 base::Status computeNMS(const DetectResult &src, std::vector<int> &keep_idxs,
                         const float iou_threshold);
 
-base::Status FaastNMS(const DetectResult &src, std::vector<int> &keep_idxs,
-                        const float iou_threshold);
+base::Status fastNMS(const DetectResult &src, std::vector<int> &keep_idxs,
+                     const float iou_threshold);
 
-}  // namespace model
+}  // namespace detect
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_DETECT_COMMON_H_ */
+#endif /* _NNDEPLOY_DETECT_DETECT_COMMON_H_ */

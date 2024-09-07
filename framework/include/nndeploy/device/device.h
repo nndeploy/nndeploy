@@ -9,6 +9,7 @@
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/device/type.h"
+#include "nndeploy/device/util.h"
 
 namespace nndeploy {
 namespace device {
@@ -109,10 +110,10 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
 
   virtual void *getContext();
 
-  virtual base::Status newCommandQueue();
+  virtual int newCommandQueue();
   virtual base::Status deleteCommandQueue(int index = -1);
   virtual base::Status deleteCommandQueue(void *command_queue);
-  virtual base::Status setCommandQueue(void *command_queue);
+  virtual int setCommandQueue(void *command_queue, bool is_external = true);
 
   virtual void *getCommandQueue(int index = 0);
 
@@ -123,8 +124,8 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
  protected:
   Device(base::DeviceType device_type, void *command_queue = nullptr,
          std::string library_path = "")
-      : device_type_(device_type){};
-  virtual ~Device(){};
+      : device_type_(device_type) {};
+  virtual ~Device() {};
 
   virtual base::Status init() = 0;
   virtual base::Status deinit() = 0;
@@ -153,6 +154,8 @@ extern NNDEPLOY_CC_API Device *getDevice(base::DeviceType device_type);
 
 extern NNDEPLOY_CC_API std::vector<DeviceInfo> getDeviceInfo(
     base::DeviceTypeCode type, std::string library_path);
+
+extern NNDEPLOY_CC_API base::Status destoryArchitecture();
 
 }  // namespace device
 }  // namespace nndeploy

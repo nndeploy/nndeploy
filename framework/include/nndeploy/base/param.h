@@ -48,9 +48,6 @@ class NNDEPLOY_CC_API Param {
   virtual base::Status get(const std::string &key, base::Value &value);
 };
 
-static float i2d[6];
-static float d2i[6];
-
 }  // namespace base
 }  // namespace nndeploy
 

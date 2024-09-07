@@ -5,9 +5,9 @@ namespace nndeploy {
 namespace device {
 
 Architecture::Architecture(base::DeviceTypeCode device_type_code)
-    : device_type_code_(device_type_code){};
+    : device_type_code_(device_type_code) {};
 
-Architecture::~Architecture(){};
+Architecture::~Architecture() {};
 
 base::DeviceTypeCode Architecture::getDeviceTypeCode() {
   return device_type_code_;
@@ -32,10 +32,10 @@ void *Device::getContext() {
   return nullptr;
 }
 
-base::Status Device::newCommandQueue() {
+int Device::newCommandQueue() {
   NNDEPLOY_LOGI("this device[%d, %d] can't newCommandQueue!\n",
                 device_type_.code_, device_type_.device_id_);
-  return base::kStatusCodeOk;
+  return -1;
 }
 base::Status Device::deleteCommandQueue(int index) {
   NNDEPLOY_LOGI("this device[%d, %d] can't deleteCommandQueue!\n",
@@ -47,10 +47,10 @@ base::Status Device::deleteCommandQueue(void *command_queue) {
                 device_type_.code_, device_type_.device_id_);
   return base::kStatusCodeOk;
 }
-base::Status Device::setCommandQueue(void *command_queue) {
+int Device::setCommandQueue(void *command_queue, bool is_external) {
   NNDEPLOY_LOGI("this device[%d, %d] can't setCommandQueue!\n",
                 device_type_.code_, device_type_.device_id_);
-  return base::kStatusCodeOk;
+  return -1;
 }
 void *Device::getCommandQueue(int index) {
   NNDEPLOY_LOGI("this device[%d, %d] can't getCommandQueue!\n",
@@ -129,6 +129,12 @@ std::vector<DeviceInfo> getDeviceInfo(base::DeviceTypeCode type,
                                       std::string library_path) {
   Architecture *architecture = getArchitecture(type);
   return architecture->getDeviceInfo(library_path);
+}
+
+base::Status destoryArchitecture() {
+  auto &architecture_map = getArchitectureMap();
+  architecture_map.clear();
+  return base::kStatusCodeOk;
 }
 
 }  // namespace device

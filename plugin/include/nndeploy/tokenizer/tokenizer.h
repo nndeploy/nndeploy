@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_TOKENIZER_TOKENIZER_H_
-#define _NNDEPLOY_MODEL_TOKENIZER_TOKENIZER_H_
+#ifndef _NNDEPLOY_TOKENIZER_TOKENIZER_TOKENIZER_H_
+#define _NNDEPLOY_TOKENIZER_TOKENIZER_TOKENIZER_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -21,7 +21,7 @@
 #include "nndeploy/device/tensor.h"
 
 namespace nndeploy {
-namespace model {
+namespace tokenizer {
 
 //---------------------------------------------------
 // Factory functions from byte-blobs
@@ -150,7 +150,7 @@ class NNDEPLOY_CC_API Tokenizer : public dag::Node {
   virtual ~Tokenizer();
 };
 
-}  // namespace model
+}  // namespace tokenizer
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_TOKENIZER_TOKENIZER_H_ */
+#endif /* _NNDEPLOY_TOKENIZER_TOKENIZER_TOKENIZER_H_ */

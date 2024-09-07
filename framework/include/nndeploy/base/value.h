@@ -30,7 +30,7 @@ class NNDEPLOY_CC_API Value {
     set(value, len);
   }
 
-  ~Value(){};
+  ~Value() {};
 
   Value &operator=(const Value &value) = default;
   Value &operator=(Value &&value) noexcept {

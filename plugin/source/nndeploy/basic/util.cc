@@ -1,7 +1,7 @@
-#include "nndeploy/model/preprocess/util.h"
+#include "nndeploy/basic/util.h"
 
 namespace nndeploy {
-namespace model {
+namespace basic {
 
 int getChannelByPixelType(base::PixelType pixel_type) {
   int channel = 0;
@@ -24,5 +24,5 @@ int getChannelByPixelType(base::PixelType pixel_type) {
   return channel;
 }
 
-}  // namespace model
+}  // namespace basic
 }  // namespace nndeploy

@@ -192,6 +192,16 @@ base::Status Buffer::copyTo(Buffer *dst) {
   }
 }
 
+bool Buffer::justModify(const size_t &size) {
+  return desc_.justModify(size);
+}
+bool Buffer::justModify(const base::SizeVector &size) {
+  return desc_.justModify(size);
+}
+bool Buffer::justModify(const BufferDesc &desc) {
+  return desc_.justModify(desc);
+}
+
 void Buffer::print() {
   std::cout << "Buffer: " << std::endl;
   std::cout << "device type: "
@@ -221,20 +231,17 @@ bool Buffer::isMemoryPool() const {
 
 BufferDesc Buffer::getDesc() const { return desc_; }
 
-size_t Buffer::getSize() const {
-  if (desc_.size_.empty()) {
-    return 0;
-  }
-  size_t size = 1;
-  for (auto iter : desc_.size_) {
-    size *= iter;
-  }
-  return size;
+size_t Buffer::getSize() const { return desc_.getSize(); }
+
+base::SizeVector Buffer::getSizeVector() const { return desc_.getSizeVector(); }
+
+size_t Buffer::getRealSize() const { return desc_.getRealSize(); }
+
+base::SizeVector Buffer::getRealSizeVector() const {
+  return desc_.getRealSizeVector();
 }
 
-base::SizeVector Buffer::getSizeVector() const { return desc_.size_; }
-
-base::IntVector Buffer::getConfig() const { return desc_.config_; }
+base::IntVector Buffer::getConfig() const { return desc_.getConfig(); }
 
 void *Buffer::getData() const { return data_; }
 
@@ -243,8 +250,7 @@ base::MemoryType Buffer::getMemoryType() const { return memory_type_; }
 void Buffer::clear() {
   device_ = nullptr;
   memory_pool_ = nullptr;
-  desc_.size_.clear();
-  desc_.config_.clear();
+  desc_.clear();
   memory_type_ = base::kMemoryTypeNone;
   ref_count_ = nullptr;
   data_ = nullptr;

@@ -8,26 +8,26 @@
 namespace nndeploy {
 namespace inference {
 class SnpeInferenceParam : public InferenceParam {
-public:
-    SnpeInferenceParam();
-    virtual ~SnpeInferenceParam();
+ public:
+  SnpeInferenceParam();
+  virtual ~SnpeInferenceParam();
 
-    SnpeInferenceParam(const SnpeInferenceParam &param) = default;
-    SnpeInferenceParam &operator=(const SnpeInferenceParam &param) = default;
+  SnpeInferenceParam(const SnpeInferenceParam &param) = default;
+  SnpeInferenceParam &operator=(const SnpeInferenceParam &param) = default;
 
-    PARAM_COPY(SnpeInferenceParam)
-    PARAM_COPY_TO(SnpeInferenceParam)
+  PARAM_COPY(SnpeInferenceParam)
+  PARAM_COPY_TO(SnpeInferenceParam)
 
-    base::Status parse(const std::string &json, bool is_path = true);
+  base::Status parse(const std::string &json, bool is_path = true);
 
-    virtual base::Status set(const std::string &key, base::Value &value);
+  virtual base::Status set(const std::string &key, base::Value &value);
 
-    virtual base::Status get(const std::string &key, base::Value &value);
+  virtual base::Status get(const std::string &key, base::Value &value);
 
-    std::vector<std::string> save_tensors_;
+  std::vector<std::string> save_tensors_;
 };
 
-} // namespace inference
-} // namespace nndeploy
+}  // namespace inference
+}  // namespace nndeploy
 
 #endif

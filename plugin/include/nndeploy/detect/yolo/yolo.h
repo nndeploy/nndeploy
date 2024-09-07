@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_DETECT_YOLO_YOLO_H_
-#define _NNDEPLOY_MODEL_DETECT_YOLO_YOLO_H_
+#ifndef _NNDEPLOY_DETECT_DETECT_YOLO_YOLO_H_
+#define _NNDEPLOY_DETECT_DETECT_YOLO_YOLO_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -15,15 +15,15 @@
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/detect/result.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/detect/result.h"
 
 
 namespace nndeploy {
-namespace model {
+namespace detect {
 
 #define NNDEPLOY_YOLOV5 "NNDEPLOY_YOLOV5"
 #define NNDEPLOY_YOLOV6 "NNDEPLOY_YOLOV6"
@@ -72,7 +72,7 @@ extern NNDEPLOY_CC_API dag::Graph *createYoloV8Graph(
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value);
 
-}  // namespace model
+}  // namespace detect
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_DETECT_YOLO_YOLO_H_ */
+#endif /* _NNDEPLOY_DETECT_DETECT_YOLO_YOLO_H_ */

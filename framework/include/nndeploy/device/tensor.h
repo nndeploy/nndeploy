@@ -135,6 +135,8 @@ class NNDEPLOY_CC_API Tensor {
   BufferDesc toBufferDesc() const;
   size_t getSize() const;
   base::SizeVector getSizeVector() const;
+  size_t getRealSize() const;
+  base::SizeVector getRealSizeVector() const;
   base::IntVector getConfig() const;
   void *getData() const;
   base::MemoryType getMemoryType() const;

@@ -1,10 +1,10 @@
 
-#include "nndeploy/model/preprocess/opencv_util.h"
+#include "nndeploy/basic/opencv_util.h"
 
-#include "nndeploy/model/preprocess/util.h"
+#include "nndeploy/basic/util.h"
 
 namespace nndeploy {
-namespace model {
+namespace basic {
 
 void OpenCvUtil::cvtColor(cv::InputArray src, cv::OutputArray dst,
                           base::PixelType src_pixel_type,
@@ -93,5 +93,5 @@ cv::Mat OpenCvUtil::crop(cv::InputArray src, const CropParam &param) {
   return dst;
 }
 
-}  // namespace model
+}  // namespace basic
 }  // namespace nndeploy

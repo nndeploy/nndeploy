@@ -1,24 +1,15 @@
-
-message(STATUS "model/segment")
+message(STATUS "plugin/codec")
 
 # set
 set(PLUGIN_SOURCE)
 set(PLUGIN_OBJECT)
-set(PLUGIN_BINARY nndeploy_plugin_segment)
+set(PLUGIN_BINARY nndeploy_plugin_codec)
 
 # SOURCE
-file(GLOB PLUGIN_SOURCE
-  "${PLUGIN_ROOT_PATH}/include/nndeploy/segment/*.h"
-  "${PLUGIN_ROOT_PATH}/source/nndeploy/segment/*.cc"
+file(GLOB_RECURSE PLUGIN_SOURCE
+  "${PLUGIN_ROOT_PATH}/include/nndeploy/codec/*.h"
+  "${PLUGIN_ROOT_PATH}/source/nndeploy/codec/*.cc"
 )
-
-if (ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING)
-  file(GLOB_RECURSE SEGMENT_ANYTHING_SOURCE
-    "${PLUGIN_ROOT_PATH}/include/nndeploy/segment/segment_anything/*.h"
-    "${PLUGIN_ROOT_PATH}/source/nndeploy/segment/segment_anything/*.cc"
-  )
-  set(PLUGIN_SOURCE ${PLUGIN_SOURCE} ${SEGMENT_ANYTHING_SOURCE})
-endif()
 
 ## TARGET
 add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJECT})

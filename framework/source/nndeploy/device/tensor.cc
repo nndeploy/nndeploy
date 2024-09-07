@@ -276,8 +276,16 @@ bool Tensor::justModify(const TensorDesc &desc) {
     return true;
   } else {
     // TODO, 做到可以安全修改
-    desc_ = desc;
-    return true;
+    Device *device = buffer_->getDevice();
+    base::IntVector config = buffer_->getConfig();
+    BufferDesc buffer_desc = device->toBufferDesc(desc, config);
+    bool flag = buffer_->justModify(buffer_desc.getSize());
+    if (flag) {
+      desc_ = desc;
+      return true;
+    } else {
+      return false;
+    }
   }
 }
 
@@ -645,6 +653,20 @@ size_t Tensor::getSize() const {
 base::SizeVector Tensor::getSizeVector() const {
   if (buffer_) {
     return buffer_->getSizeVector();
+  } else {
+    return base::SizeVector();
+  }
+}
+size_t Tensor::getRealSize() const {
+  if (buffer_) {
+    return buffer_->getRealSize();
+  } else {
+    return 0;
+  }
+}
+base::SizeVector Tensor::getRealSizeVector() const {
+  if (buffer_) {
+    return buffer_->getRealSizeVector();
   } else {
     return base::SizeVector();
   }

@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_MODEL_TOKENIZER_TOKENIZER_CPP_TOKENIZER_CPP_H_
-#define _NNDEPLOY_MODEL_TOKENIZER_TOKENIZER_CPP_TOKENIZER_CPP_H_
+#ifndef _NNDEPLOY_TOKENIZER_TOKENIZER_TOKENIZER_CPP_TOKENIZER_CPP_H_
+#define _NNDEPLOY_TOKENIZER_TOKENIZER_TOKENIZER_CPP_TOKENIZER_CPP_H_
 
 #include <tokenizers_cpp.h>
 
@@ -21,10 +21,10 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/model/tokenizer/tokenizer.h"
+#include "nndeploy/tokenizer/tokenizer.h"
 
 namespace nndeploy {
-namespace model {
+namespace tokenizer {
 
 /**
  * @brief Tokenizer
@@ -91,7 +91,7 @@ class NNDEPLOY_CC_API TokenizerCpp : public nndeploy::model::Tokenizer {
   std::unique_ptr<tokenizers::Tokenizer> tokenizer_;
 };
 
-}  // namespace model
+}  // namespace tokenizer
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_MODEL_TOKENIZER_TOKENIZER_H_ */
+#endif /* _NNDEPLOY_TOKENIZER_TOKENIZER_TOKENIZER_H_ */

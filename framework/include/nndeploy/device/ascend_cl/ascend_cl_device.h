@@ -75,10 +75,10 @@ class NNDEPLOY_CC_API AscendCLDevice : public Device {
 
   virtual void *getContext();
 
-  virtual base::Status newCommandQueue();
+  virtual int newCommandQueue();
   virtual base::Status deleteCommandQueue(int index = -1);
   virtual base::Status deleteCommandQueue(void *command_queue);
-  virtual base::Status setCommandQueue(void *command_queue);
+  virtual int setCommandQueue(void *command_queue, bool is_external = true);
 
   virtual void *getCommandQueue(int index);
 
@@ -88,8 +88,10 @@ class NNDEPLOY_CC_API AscendCLDevice : public Device {
   AscendCLDevice(base::DeviceType device_type, void *command_queue = nullptr,
                  std::string library_path = "")
       : Device(device_type) {
-    acl_stream_wrapper_.resize(1);
-    acl_stream_wrapper_[0].external_command_queue_ = command_queue;
+    AclStreamWrapper acl_stream_wrapper;
+    acl_stream_wrapper.external_command_queue_ = command_queue;
+    acl_stream_wrapper.stream_ = (aclrtStream)command_queue;
+    insertStream(stream_index_, acl_stream_wrapper_, acl_stream_wrapper);
   };
   virtual ~AscendCLDevice() {};
 
@@ -99,7 +101,8 @@ class NNDEPLOY_CC_API AscendCLDevice : public Device {
   virtual base::Status deinit();
 
  private:
-  std::vector<AclStreamWrapper> acl_stream_wrapper_;
+  int stream_index_ = 0;
+  std::map<int, AclStreamWrapper> acl_stream_wrapper_;
   aclrtContext context_ = nullptr;
   // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看ascend_cl文档
   std::string acl_config_path_ = "";
