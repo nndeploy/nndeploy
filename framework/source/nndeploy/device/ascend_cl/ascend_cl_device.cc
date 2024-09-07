@@ -15,7 +15,7 @@ TypeArchitectureRegister<AscendCLArchitecture> ascend_cl_architecture_register(
 
 AscendCLArchitecture::AscendCLArchitecture(
     base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code) {};
+    : Architecture(device_type_code){};
 
 AscendCLArchitecture::~AscendCLArchitecture() {
   for (auto iter : devices_) {
@@ -307,9 +307,9 @@ int AscendCLDevice::newCommandQueue() {
     NNDEPLOY_LOGE("acl stream create failed\n");
     return base::kStatusCodeErrorDeviceAscendCL;
   }
-  base::Status status =
+  base::Status nndp_status =
       insertStream(stream_index_, acl_stream_wrapper_, acl_stream_wrapper);
-  NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, -1,
+  NNDEPLOY_RETURN_VALUE_ON_NEQ(nndp_status, base::kStatusCodeOk, -1,
                                "insertStream failed");
   return stream_index_;
 }
@@ -377,7 +377,7 @@ void *AscendCLDevice::getCommandQueue(int index) {
     NNDEPLOY_LOGE("getCommandQueue failed.\n");
     return nullptr;
   } else {
-    return acl_stream_wrapper_[index];
+    return (void *)acl_stream_wrapper_[index].stream_;
   }
 }
 
@@ -431,22 +431,22 @@ base::Status AscendCLDevice::init() {
 // 2. 没有共享外部的command_queue，此时需要释放stream_和context_
 base::Status AscendCLDevice::deinit() {
   for (auto iter : acl_stream_wrapper_) {
-    aclError ret = aclrtSynchronizeStream(iter.stream_);
+    aclError ret = aclrtSynchronizeStream(iter.second.stream_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE(
           "synchronize fuction: aclrtSynchronizeStream failed, errorCode is %d",
           ret);
       return base::kStatusCodeErrorDeviceAscendCL;
     }
-    if (iter.external_command_queue_ == nullptr) {
+    if (iter.second.external_command_queue_ == nullptr) {
       aclError ret;
-      if (iter.stream_ != nullptr) {
-        ret = aclrtDestroyStream(iter.stream_);
+      if (iter.second.stream_ != nullptr) {
+        ret = aclrtDestroyStream(iter.second.stream_);
         if (ret != ACL_SUCCESS) {
           NNDEPLOY_LOGE("aclrtDestroyStream failed, errorCode is %d", ret);
           return base::kStatusCodeErrorDeviceAscendCL;
         }
-        iter.stream_ = nullptr;
+        iter.second.stream_ = nullptr;
       }
     }
   }

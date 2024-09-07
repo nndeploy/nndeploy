@@ -12,7 +12,7 @@ TypeArchitectureRegister<CudaArchitecture> cuda_architecture_register(
     base::kDeviceTypeCodeCuda);
 
 CudaArchitecture::CudaArchitecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code) {};
+    : Architecture(device_type_code){};
 
 CudaArchitecture::~CudaArchitecture() {
   for (auto iter : devices_) {
@@ -181,7 +181,7 @@ base::Status CudaDevice::copy(Buffer *src, Buffer *dst, int index) {
   cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     cudaError_t status =
-        cudaMemcpyAsync(dst->getData(), src->getData(), src->getDesc().size_[0],
+        cudaMemcpyAsync(dst->getData(), src->getData(), src->getSize(),
                         cudaMemcpyDeviceToDevice, stream);
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
@@ -195,7 +195,7 @@ base::Status CudaDevice::download(Buffer *src, Buffer *dst, int index) {
   cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     cudaError_t status =
-        cudaMemcpyAsync(dst->getData(), src->getData(), src->getDesc().size_[0],
+        cudaMemcpyAsync(dst->getData(), src->getData(), src->getSize(),
                         cudaMemcpyDeviceToHost, stream);
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
@@ -209,9 +209,8 @@ base::Status CudaDevice::upload(Buffer *src, Buffer *dst, int index) {
   cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
   if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
     cudaError_t status =
-        cudaMemcpyAsync(dst->getData(), src->getData(), src->getDesc().size_[0],
+        cudaMemcpyAsync(dst->getData(), src->getData(), src->getSize(),
                         cudaMemcpyHostToDevice, stream);
-
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
     return base::kStatusCodeOk;
@@ -223,7 +222,7 @@ base::Status CudaDevice::upload(Buffer *src, Buffer *dst, int index) {
 
 void *CudaDevice::getContext() { return nullptr; }
 
-base::Status CudaDevice::newCommandQueue() {
+int CudaDevice::newCommandQueue() {
   if (cuda_stream_wrapper_.size() == INT_MAX) {
     NNDEPLOY_LOGE("stream index is out of range\n");
     return -1;
@@ -236,9 +235,9 @@ base::Status CudaDevice::newCommandQueue() {
     NNDEPLOY_LOGE("cuda stream create failed\n");
     return base::kStatusCodeErrorDeviceCuda;
   }
-  base::Status status =
+  base::Status nndp_status =
       insertStream(stream_index_, cuda_stream_wrapper_, cuda_stream_wrapper);
-  NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, -1,
+  NNDEPLOY_RETURN_VALUE_ON_NEQ(nndp_status, base::kStatusCodeOk, -1,
                                "insertStream failed");
   return stream_index_;
 }
@@ -306,7 +305,7 @@ void *CudaDevice::getCommandQueue(int index) {
     NNDEPLOY_LOGE("getCommandQueue failed.\n");
     return nullptr;
   } else {
-    return cuda_stream_wrapper_[index];
+    return (void *)cuda_stream_wrapper_[index].stream_;
   }
 }
 
@@ -329,14 +328,14 @@ base::Status CudaDevice::init() {
 }
 base::Status CudaDevice::deinit() {
   for (auto iter : cuda_stream_wrapper_) {
-    cudaError_t status = cudaStreamSynchronize(iter.stream_);
+    cudaError_t status = cudaStreamSynchronize(iter.second.stream_);
     if (cudaSuccess != status) {
       NNDEPLOY_CUDA_CHECK(status);
       NNDEPLOY_LOGE("cuda stream synchronize failed\n");
       return base::kStatusCodeErrorDeviceCuda;
     }
-    if (iter.external_command_queue_ == nullptr) {
-      NNDEPLOY_CUDA_CHECK(cudaStreamDestroy(iter.stream_));
+    if (iter.second.external_command_queue_ == nullptr) {
+      NNDEPLOY_CUDA_CHECK(cudaStreamDestroy(iter.second.stream_));
     }
   }
   return base::kStatusCodeOk;

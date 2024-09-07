@@ -68,27 +68,29 @@ set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 OFF) # 是否使能INFERENCE RKNN_T
 set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL OFF) # 是否使能INFERENCE ASCEND_CL，默认为OFF
 ## dag
 set(ENABLE_NNDEPLOY_DAG ON) # 是否编译dag目录中文件，默认为ON
-## codec
-set(ENABLE_NNDEPLOY_CODEC ON) # 是否编译编解码库，默认为ON
-## model
-set(ENABLE_NNDEPLOY_PLUGIN ON) # 是否编译model目录中文件，默认为ON
-## test
+
+# plugin
+set(ENABLE_NNDEPLOY_PLUGIN ON) # 是否编译plugin目录中文件，默认为ON
+# test
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
-## demo
-set(ENABLE_NNDEPLOY_DEMO ON) # 是否使能可执行程序demo，默认为OFF
+# demo
+set(ENABLE_NNDEPLOY_DEMO OFF) # 是否使能可执行程序demo，默认为OFF
 
-## model detect
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT ON) # 是否使能检测类模型，默认为OFF
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR OFF) # 是否使能检测类 DETR 模型，默认为OFF
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO ON) # 是否使能检测类 YOLO 模型，默认为OFF
-
-## model segment
-set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT OFF) # 是否使能分割类模型，默认为OFF
-set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING OFF) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF
-
-## model tokenizer
-set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER ON) # 是否使能分割类模型，默认为OFF
-set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON) # 是否使能分割类模型，默认为OFF
-
-## model stable diffusion
-set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION ON) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF
+# plugin
+## basic
+set(ENABLE_NNDEPLOY_PLUGIN_BASIC ON) # 是否编译plugin目录中文件，默认为ON
+## basic
+set(ENABLE_NNDEPLOY_PLUGIN_INFER ON) # 是否编译plugin目录中文件，默认为ON
+## codec
+set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON) # 是否编译plugin目录中文件，默认为ON
+## detect
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT ON)
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR OFF)
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO ON)
+## segment
+set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT OFF)
+set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING OFF)
+## tokenizer
+set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
+## stable_diffusion
+set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)
