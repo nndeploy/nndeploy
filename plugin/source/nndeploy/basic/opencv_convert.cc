@@ -149,7 +149,11 @@ int OpenCvConvert::convertFromDataType(base::DataType src) {
     dst = CV_16U;
   } else if (src.code_ == base::kDataTypeCodeFp && src.bits_ == 16 &&
              src.lanes_ == 1) {
+#if CV_VERSION_MAJOR >= 4
     dst = CV_16F;
+#else
+    dst = CV_32F;
+#endif
   } else if (src.code_ == base::kDataTypeCodeFp && src.bits_ == 32 &&
              src.lanes_ == 1) {
     dst = CV_32F;
