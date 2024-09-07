@@ -19,8 +19,8 @@ class DrawMaskNode : public dag::Node {
 
   virtual base::Status run() {
     cv::Mat *input_mat = inputs_[0]->getCvMat(this);
-    model::SegmentResult *result =
-        (model::SegmentResult *)inputs_[1]->getParam(this);
+    segment::SegmentResult *result =
+        (segment::SegmentResult *)inputs_[1]->getParam(this);
     device::Tensor *mask = result->mask_;
     cv::Mat mask_output(mask->getHeight(), mask->getWidth(), CV_32FC1,
                         mask->getData());

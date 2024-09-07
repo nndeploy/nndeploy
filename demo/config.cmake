@@ -1,9 +1,5 @@
 message(STATUS "Building nndeploy demo")
 
-set(NNDEPLOY_DEPEND_LIBRARY_DEMO)
-set(NNDEPLOY_SYSTEM_LIBRARY_DEMO)
-set(NNDEPLOY_DEMO_THIRD_PARTY_LIBRARY)
-
 if (ENABLE_NNDEPLOY_DAG)
   include(${ROOT_PATH}/demo/dag/config.cmake)
 endif()

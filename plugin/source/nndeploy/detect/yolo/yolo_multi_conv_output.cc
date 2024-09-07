@@ -1,5 +1,7 @@
 #include "nndeploy/detect/yolo/yolo_multi_conv_output.h"
 
+#include <cmath>
+
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -37,7 +39,7 @@ static void nhwc_to_nchw(float *data, int h, int w, int c) {
     float *src_pt = data + i * c;
     float *dst_pt = dst + i;
     for (int j = 0; j < c; ++j) {
-      *dst_pt = (c == 4) ? std::expf(*src_pt++) : (*src_pt++);
+      *dst_pt = (c == 4) ? std::exp(*src_pt++) : (*src_pt++);
       dst_pt += h * w;
     }
   }

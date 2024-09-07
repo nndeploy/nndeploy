@@ -7,8 +7,8 @@
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/loop.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/detect/yolo/yolo.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/model/detect/yolo/yolo.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 
 using namespace nndeploy;

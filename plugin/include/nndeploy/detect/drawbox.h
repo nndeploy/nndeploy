@@ -4,6 +4,7 @@
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/detect/result.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 
@@ -20,8 +21,7 @@ class DrawBoxNode : public dag::Node {
 
   virtual base::Status run() {
     cv::Mat *input_mat = inputs_[0]->getCvMat(this);
-    model::DetectResult *result =
-        (model::DetectResult *)inputs_[1]->getParam(this);
+    DetectResult *result = (DetectResult *)inputs_[1]->getParam(this);
     float w_ratio = float(input_mat->cols);
     float h_ratio = float(input_mat->rows);
     const int CNUM = 80;
@@ -68,8 +68,7 @@ class YoloMultiConvDrawBoxNode : public dag::Node {
 
   virtual base::Status run() {
     cv::Mat *input_mat = inputs_[0]->getCvMat(this);
-    model::DetectResult *result =
-        (model::DetectResult *)inputs_[1]->getParam(this);
+    DetectResult *result = (DetectResult *)inputs_[1]->getParam(this);
     float w_ratio = float(input_mat->cols);
     float h_ratio = float(input_mat->rows);
     const int CNUM = 80;

@@ -1,13 +1,12 @@
 #include "flag.h"
-#include "nndeploy/base/drawbox.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/detect/drawbox.h"
 #include "nndeploy/detect/yolo/yolo.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/thread_pool/thread_pool.h"
-
 
 using namespace nndeploy;
 
@@ -121,8 +120,8 @@ int main(int argc, char *argv[]) {
     }
 
     if (pt != base::kParallelTypePipeline) {
-      model::DetectResult *result =
-          (model::DetectResult *)output.getGraphOutputParam();
+      detect::DetectResult *result =
+          (detect::DetectResult *)output.getGraphOutputParam();
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
@@ -133,8 +132,8 @@ int main(int argc, char *argv[]) {
   if (pt == base::kParallelTypePipeline) {
     // NNDEPLOY_LOGE("size = %d.\n", size);
     for (int i = 0; i < size; ++i) {
-      model::DetectResult *result =
-          (model::DetectResult *)output.getGraphOutputParam();
+      detect::DetectResult *result =
+          (detect::DetectResult *)output.getGraphOutputParam();
       // NNDEPLOY_LOGE("%p.\n", result);
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");

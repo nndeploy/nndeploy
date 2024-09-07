@@ -24,7 +24,7 @@ base::Status TensorPool1DSharedObject::initTensorUsageRecord() {
     device::TensorDesc tensor_desc = tensor_repository_[i]->tensor_->getDesc();
     device::BufferDesc buffer_desc =
         device_->toBufferDesc(tensor_desc, config_);
-    tensor_usage_record->size_ = buffer_desc.size_[0];
+    tensor_usage_record->size_ = buffer_desc.getSize();
     int min = op_repository.size() - 1;
     int max = 0;
     std::vector<int> order_index =
