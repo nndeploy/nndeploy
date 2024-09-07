@@ -31,6 +31,16 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   std::string getName();
 
+  /**
+   * @brief Set the Parallel Type object
+   *
+   * @param paralle_type
+   * @return base::Status
+   * @note 在construct之前，调用该函数，内部创建出具体的edge
+   */
+  base::Status setParallelType(const base::ParallelType &paralle_type);
+  base::ParallelType getParallelType();
+
   base::Status construct();
 
   base::Status set(device::Buffer *buffer, int index, bool is_external = true);
@@ -81,9 +91,6 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
    * @note must be called after the graph is initialized
    */
   bool markGraphOutput();
-
-  base::Status setParallelType(const base::ParallelType &paralle_type);
-  base::ParallelType getParallelType();
 
   base::Status increaseProducers(std::vector<Node *> &producers);
   base::Status increaseConsumers(std::vector<Node *> &consumers);

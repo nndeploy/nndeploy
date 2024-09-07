@@ -22,7 +22,7 @@ namespace dag {
 
 /**
  * @brief
- * @note Each node is responsible for allocating memory for its output edges.
+ * @note Each node is responsible for allocating memory for it's output edges.
  */
 class NNDEPLOY_CC_API Node {
  public:
@@ -41,6 +41,7 @@ class NNDEPLOY_CC_API Node {
 
   virtual base::Status setParam(base::Param *param);
   virtual base::Param *getParam();
+  virtual base::Status setExternalParam(base::Param *external_param);
 
   Edge *getInput(int index = 0);
   Edge *getOutput(int index = 0);
@@ -81,6 +82,7 @@ class NNDEPLOY_CC_API Node {
   std::string name_;
   base::DeviceType device_type_;
   std::shared_ptr<base::Param> param_;
+  std::vector<base::Param *> external_param_;
   std::vector<Edge *> inputs_;
   std::vector<Edge *> outputs_;
 

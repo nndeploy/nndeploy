@@ -96,6 +96,11 @@ void insertUnique(std::vector<T> &vec, const T &val) {
   }
 }
 
+// base::Status getValueFromParamVec(const std::vector<base::Param *>
+// &param_vec,
+// const std::string &key, base::Value
+// &value);
+
 }  // namespace dag
 }  // namespace nndeploy
 

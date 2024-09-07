@@ -33,6 +33,7 @@ Node::Node(const std::string &name, std::vector<Edge *> inputs,
 
 Node::~Node() {
   // NNDEPLOY_LOGI("Node::~Node() name:%s.\n", name_.c_str());
+  external_param_.clear();
   inputs_.clear();
   outputs_.clear();
   constructed_ = false;
@@ -55,6 +56,10 @@ base::Status Node::setParam(base::Param *param) {
   return base::kStatusCodeErrorNullParam;
 }
 base::Param *Node::getParam() { return param_.get(); }
+base::Status Node::setExternalParam(base::Param *external_param) {
+  external_param_.emplace_back(external_param);
+  return base::kStatusCodeOk;
+}
 
 Edge *Node::getInput(int index) {
   if (inputs_.size() > index) {
