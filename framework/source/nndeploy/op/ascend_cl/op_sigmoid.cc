@@ -10,9 +10,9 @@ namespace op {
 
 class AscendCLOpSigmoid : public OpUnary {
  public:
- AscendCLOpSigmoid() {}
+  AscendCLOpSigmoid() {}
   virtual ~AscendCLOpSigmoid() {}
-  
+
   virtual base::Status init() {
     // 流
     device::Device* device = device::getDevice(device_type_);

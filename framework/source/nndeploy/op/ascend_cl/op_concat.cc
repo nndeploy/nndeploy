@@ -11,7 +11,7 @@ namespace op {
 
 class AscendCLOpConcat : public OpConcat {
  public:
-   AscendCLOpConcat() {}
+  AscendCLOpConcat() {}
   virtual ~AscendCLOpConcat() {}
 
   virtual base::Status init() {

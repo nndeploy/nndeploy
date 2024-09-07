@@ -21,11 +21,12 @@ class RknnConvert {
 
   static base::DataFormat convertToDataFormat(const rknn_tensor_format &src);
 
-  static base::IntVector convertToShape(const rknn_tensor_attr &src, const rknn_tensor_format &dst_fmt=RKNN_TENSOR_FORMAT_MAX);
+  static base::IntVector convertToShape(
+      const rknn_tensor_attr &src,
+      const rknn_tensor_format &dst_fmt = RKNN_TENSOR_FORMAT_MAX);
 };
 
 }  // namespace inference
 }  // namespace nndeploy
-
 
 #endif

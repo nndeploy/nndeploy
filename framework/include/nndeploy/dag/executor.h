@@ -14,7 +14,6 @@
 #include "nndeploy/dag/node.h"
 #include "nndeploy/dag/util.h"
 
-
 namespace nndeploy {
 namespace dag {
 

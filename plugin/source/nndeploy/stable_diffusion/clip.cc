@@ -1,8 +1,8 @@
 
 #include "nndeploy/stable_diffusion/clip.h"
 
-#include "nndeploy/infer/infer.h"
 #include "nndeploy/basic/convert_to.h"
+#include "nndeploy/infer/infer.h"
 #include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 
 namespace nndeploy {
@@ -22,7 +22,8 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
     base::Status status = base::kStatusCodeOk;
 
     // param_
-    tokenizer::TokenizerPraram *tokenizer_param = (tokenizer::TokenizerPraram *)(param_.get());
+    tokenizer::TokenizerPraram *tokenizer_param =
+        (tokenizer::TokenizerPraram *)(param_.get());
 
     if (tokenizer_param->tokenizer_type_ ==
         tokenizer::TokenizerType::kTokenizerTypeHF) {
@@ -108,7 +109,8 @@ class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
     base::Status status = base::kStatusCodeOk;
 
     // param_
-    tokenizer::TokenizerPraram *tokenizer_concat_param = (tokenizer::TokenizerPraram *)(param_.get());
+    tokenizer::TokenizerPraram *tokenizer_concat_param =
+        (tokenizer::TokenizerPraram *)(param_.get());
 
     tokenizer::TokenizerText *text_param1 =
         (tokenizer::TokenizerText *)(inputs_[0]->getParam(this));
@@ -189,8 +191,8 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
    * @brief createInfer
    * 多batch的推理
    */
-  dag::Node *infer =
-      graph->createInfer<infer::Infer>("infer", inference_type, input_ids, output);
+  dag::Node *infer = graph->createInfer<infer::Infer>("infer", inference_type,
+                                                      input_ids, output);
   infer->setParam(param[1]);
 
   return graph;

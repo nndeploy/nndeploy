@@ -302,7 +302,7 @@ class ModelDesc {
  */
 class OpParamCreator {
  public:
-  virtual ~OpParamCreator() {};
+  virtual ~OpParamCreator(){};
   virtual std::shared_ptr<base::Param> createOpParam(OpType type) = 0;
 };
 
@@ -353,8 +353,8 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
 
 class OpParam : public base::Param {
  public:
-  OpParam() : base::Param() {};
-  virtual ~OpParam() {};
+  OpParam() : base::Param(){};
+  virtual ~OpParam(){};
 
   PARAM_COPY(OpParam)
   PARAM_COPY_TO(OpParam)
@@ -368,8 +368,8 @@ class OpParam : public base::Param {
 
 class BatchNormalizationParam : public OpParam {
  public:
-  BatchNormalizationParam() : OpParam() {};
-  virtual ~BatchNormalizationParam() {};
+  BatchNormalizationParam() : OpParam(){};
+  virtual ~BatchNormalizationParam(){};
 
   PARAM_COPY(BatchNormalizationParam)
   PARAM_COPY_TO(BatchNormalizationParam)
@@ -385,8 +385,8 @@ class BatchNormalizationParam : public OpParam {
 
 class ConcatParam : public OpParam {
  public:
-  ConcatParam() : OpParam() {};
-  virtual ~ConcatParam() {};
+  ConcatParam() : OpParam(){};
+  virtual ~ConcatParam(){};
 
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)

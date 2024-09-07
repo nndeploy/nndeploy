@@ -52,24 +52,23 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeBlock(
     ModelDesc *model_desc, std::shared_ptr<ModelDesc> model_block);
 // conv2d
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeConv(ModelDesc *model_desc,
-                               std::shared_ptr<Expr> input,
-                               std::shared_ptr<ConvParam> param,
-                               const std::string &weight = "",
-                               const std::string &bias = "",
-                               std::string op_name = "",
-                               std::string output_name = "");
+                                               std::shared_ptr<Expr> input,
+                                               std::shared_ptr<ConvParam> param,
+                                               const std::string &weight = "",
+                                               const std::string &bias = "",
+                                               std::string op_name = "",
+                                               std::string output_name = "");
 // relu
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeRelu(ModelDesc *model_desc,
-                               std::shared_ptr<Expr> input,
-                               std::string op_name = "",
-                               std::string output_name = "");
+                                               std::shared_ptr<Expr> input,
+                                               std::string op_name = "",
+                                               std::string output_name = "");
 
 // relu
-NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftMax(ModelDesc *model_desc,
-                                  std::shared_ptr<Expr> input,
-                                  std::shared_ptr<SoftmaxParam> param,
-                                  std::string op_name = "",
-                                  std::string output_name = "");
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftMax(
+    ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<SoftmaxParam> param, std::string op_name = "",
+    std::string output_name = "");
 
 // TODO: @Leonisux:
 // 补充llama的算子的手动构图函数

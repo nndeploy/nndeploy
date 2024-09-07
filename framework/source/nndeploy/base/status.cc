@@ -61,7 +61,7 @@ bool Status::operator!=(const StatusCode &other) const {
   }
 };
 
-bool Status::operator != (int other) const {
+bool Status::operator!=(int other) const {
   if (code_ != other) {
     return true;
   } else {
@@ -73,7 +73,7 @@ Status::operator int() const { return code_; }
 
 Status::operator bool() const { return code_ == kStatusCodeOk; }
 
-Status Status::operator+(const Status &other) { 
+Status Status::operator+(const Status &other) {
   if (code_ == kStatusCodeOk) {
     code_ = other.code_;
   }

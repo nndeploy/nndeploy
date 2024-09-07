@@ -14,8 +14,7 @@ class RknnInferenceParam : public InferenceParam {
   virtual ~RknnInferenceParam();
 
   RknnInferenceParam(const RknnInferenceParam &param) = default;
-  RknnInferenceParam &operator=(const RknnInferenceParam &param) =
-      default;
+  RknnInferenceParam &operator=(const RknnInferenceParam &param) = default;
 
   PARAM_COPY(RknnInferenceParam)
   PARAM_COPY_TO(RknnInferenceParam)
@@ -29,7 +28,6 @@ class RknnInferenceParam : public InferenceParam {
   rknn_tensor_format input_data_format_;
   rknn_tensor_type input_data_type_;
   bool input_pass_through_;
-
 };
 
 }  // namespace inference

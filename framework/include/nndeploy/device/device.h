@@ -60,8 +60,8 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
   base::DeviceTypeCode device_type_code_;
 };
 
-std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>> &
-getArchitectureMap();
+std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>
+    &getArchitectureMap();
 
 template <typename T>
 class TypeArchitectureRegister {
@@ -124,8 +124,8 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
  protected:
   Device(base::DeviceType device_type, void *command_queue = nullptr,
          std::string library_path = "")
-      : device_type_(device_type) {};
-  virtual ~Device() {};
+      : device_type_(device_type){};
+  virtual ~Device(){};
 
   virtual base::Status init() = 0;
   virtual base::Status deinit() = 0;

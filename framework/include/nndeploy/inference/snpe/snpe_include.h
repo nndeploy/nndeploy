@@ -23,7 +23,6 @@
 #include "DlSystem/UDLFunc.hpp"
 #include "SNPE/SNPEBuilder.hpp"
 
-
 namespace nndeploy {
 namespace inference {
 

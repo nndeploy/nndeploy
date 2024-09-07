@@ -21,7 +21,6 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 
-
 namespace nndeploy {
 namespace detect {
 

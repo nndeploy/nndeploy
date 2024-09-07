@@ -28,7 +28,7 @@ base::Status OpRMSNorm::inferShape() {
 }
 
 base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
-                 device::Tensor *output) {
+                     device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
   if (input1 == nullptr || input2 == nullptr || output == nullptr) {
     NNDEPLOY_LOGE("input1 or input2 or output is nullptr");

@@ -11,7 +11,7 @@ TypeArchitectureRegister<CpuArchitecture> cpu_architecture_register(
     base::kDeviceTypeCodeCpu);
 
 CpuArchitecture::CpuArchitecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code) {};
+    : Architecture(device_type_code){};
 
 CpuArchitecture::~CpuArchitecture() {
   for (auto iter : devices_) {

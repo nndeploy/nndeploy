@@ -2,7 +2,6 @@
 
 #include "nndeploy/inference/snpe/snpe_include.h"
 
-
 namespace nndeploy {
 namespace inference {
 

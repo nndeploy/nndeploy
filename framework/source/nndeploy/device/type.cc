@@ -72,7 +72,7 @@ BufferDesc &BufferDesc::operator=(BufferDesc &&desc) noexcept {
   return *this;
 }
 
-BufferDesc::~BufferDesc() {};
+BufferDesc::~BufferDesc(){};
 
 size_t BufferDesc::getSize() const {
   if (size_.empty()) {
@@ -194,8 +194,7 @@ bool BufferDesc::justModify(const base::SizeVector &size) {
     return false;
   }
 }
-bool BufferDesc::justModify(
-    const BufferDesc &desc) {
+bool BufferDesc::justModify(const BufferDesc &desc) {
   if (config_.size() != desc.config_.size()) {
     return false;
   }
@@ -228,11 +227,11 @@ void BufferDesc::clear() {
 }
 
 // TensorDesc
-TensorDesc::TensorDesc() {};
+TensorDesc::TensorDesc(){};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
                        const base::IntVector &shape)
-    : data_type_(data_type), data_format_(format), shape_(shape) {};
+    : data_type_(data_type), data_format_(format), shape_(shape){};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
                        const base::IntVector &shape,
@@ -240,7 +239,7 @@ TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
     : data_type_(data_type),
       data_format_(format),
       shape_(shape),
-      stride_(stride) {};
+      stride_(stride){};
 
 TensorDesc::TensorDesc(const TensorDesc &desc) {
   if (this == &desc) {
@@ -282,7 +281,7 @@ TensorDesc &TensorDesc::operator=(TensorDesc &&desc) noexcept {
   return *this;
 }
 
-TensorDesc::~TensorDesc() {};
+TensorDesc::~TensorDesc(){};
 
 bool TensorDesc::operator==(const TensorDesc &other) const {
   bool flag0 = false;

@@ -14,6 +14,7 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
+#include "nndeploy/basic/convert_to.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/loop.h"
@@ -22,7 +23,6 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/basic/convert_to.h"
 #include "nndeploy/stable_diffusion/type.h"
 
 namespace nndeploy {
@@ -145,7 +145,7 @@ class NNDEPLOY_CC_API Scheduler {
  */
 class SchedulerCreator {
  public:
-  virtual ~SchedulerCreator() {};
+  virtual ~SchedulerCreator(){};
   virtual Scheduler *createScheduler(SchedulerType type) = 0;
 };
 
@@ -164,8 +164,8 @@ class TypeSchedulerCreator : public SchedulerCreator {
  *
  * @return std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>&
  */
-std::map<SchedulerType, std::shared_ptr<SchedulerCreator>> &
-getGlobalSchedulerCreatorMap();
+std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>
+    &getGlobalSchedulerCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板

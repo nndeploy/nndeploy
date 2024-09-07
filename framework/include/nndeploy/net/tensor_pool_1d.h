@@ -73,13 +73,13 @@ class TensorPool1DSharedObjectGreedyByBreadth
   virtual base::Status deallocate();
 
  private:
-
   std::vector<std::shared_ptr<Chunk>> chunks_;
   std::unordered_map<std::shared_ptr<Chunk>, size_t>
       chunk_sizes_;  // 由于Chunk可能扩容，先预存size，在分配算法结束后统一开辟
 
-  std::unordered_map<std::shared_ptr<Chunk>,std::set<std::shared_ptr<TensorUsageRecord>>> chunk_schedules;//记录chunk由哪些tensor共享
-
+  std::unordered_map<std::shared_ptr<Chunk>,
+                     std::set<std::shared_ptr<TensorUsageRecord>>>
+      chunk_schedules;  //记录chunk由哪些tensor共享
 };
 
 }  // namespace net

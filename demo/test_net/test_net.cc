@@ -10,8 +10,8 @@ using namespace nndeploy;
 
 class CannTest : public op::ModelDesc {
  public:
-  CannTest() {};
-  ~CannTest() {};
+  CannTest(){};
+  ~CannTest(){};
   void init() {
     auto input =
         op::makeInput(this, "input", base::dataTypeOf<float>(), {1, 3, 16, 16});

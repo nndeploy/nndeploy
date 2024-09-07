@@ -61,7 +61,7 @@ std::string getOpInfoString(std::vector<aclTensorDesc*> descs,
                             const std::string msg) {
   if (descs.size() != buffs.size()) {
     NNDEPLOY_LOGE("descs.size()[%ld] != buffs.size()[%ld].\n", descs.size(),
-                 buffs.size());
+                  buffs.size());
     return "";
   }
   std::stringstream ss;

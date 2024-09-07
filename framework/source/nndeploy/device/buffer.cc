@@ -192,9 +192,7 @@ base::Status Buffer::copyTo(Buffer *dst) {
   }
 }
 
-bool Buffer::justModify(const size_t &size) {
-  return desc_.justModify(size);
-}
+bool Buffer::justModify(const size_t &size) { return desc_.justModify(size); }
 bool Buffer::justModify(const base::SizeVector &size) {
   return desc_.justModify(size);
 }

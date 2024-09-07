@@ -8,3 +8,6 @@
 	path = third_party/onnx
 	url = https://github.com/onnx/onnx.git
 	ref = refs/tags/v1.15.0
+[submodule "third_party/tokenizers-cpp"]
+	path = third_party/tokenizers-cpp
+	url = https://github.com/mlc-ai/tokenizers-cpp.git

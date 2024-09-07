@@ -4,9 +4,9 @@
 namespace nndeploy {
 namespace inference {
 
-base::DataType RknnConvert::convertToDataType(const rknn_tensor_type &src){
+base::DataType RknnConvert::convertToDataType(const rknn_tensor_type &src) {
   base::DataType dst;
-  switch(src){
+  switch (src) {
     case RKNN_TENSOR_FLOAT32:
       dst.code_ = base::kDataTypeCodeFp;
       dst.bits_ = 32;
@@ -58,7 +58,8 @@ base::DataFormat RknnConvert::convertToDataFormat(
   return dst;
 }
 
-base::IntVector RknnConvert::convertToShape(const rknn_tensor_attr &src, const rknn_tensor_format &dst_fmt) {
+base::IntVector RknnConvert::convertToShape(const rknn_tensor_attr &src,
+                                            const rknn_tensor_format &dst_fmt) {
   base::IntVector dst;
   for (int i = 0; i < src.n_dims; i++) {
     dst.push_back(int(src.dims[i]));
@@ -66,22 +67,22 @@ base::IntVector RknnConvert::convertToShape(const rknn_tensor_attr &src, const r
 #ifdef RKNN_TOOLKIT_1
   std::reverse(dst.begin(), dst.end());
 #endif
-  switch (dst_fmt){
+  switch (dst_fmt) {
     case RKNN_TENSOR_FORMAT_MAX:
       break;
     case RKNN_TENSOR_NHWC:
-      if(src.fmt == RKNN_TENSOR_NCHW){
+      if (src.fmt == RKNN_TENSOR_NCHW) {
         // nchw -> nhwc
-        if(src.n_dims > 3){
+        if (src.n_dims > 3) {
           std::swap(dst[1], dst[3]);
           std::swap(dst[1], dst[2]);
         }
       }
       break;
     case RKNN_TENSOR_NCHW:
-      if(src.fmt == RKNN_TENSOR_NHWC){
+      if (src.fmt == RKNN_TENSOR_NHWC) {
         // nhwc -> nchw
-        if(src.n_dims > 3){
+        if (src.n_dims > 3) {
           std::swap(dst[1], dst[3]);
           std::swap(dst[2], dst[3]);
         }

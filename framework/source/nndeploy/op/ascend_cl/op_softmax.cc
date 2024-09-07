@@ -13,7 +13,7 @@ class AscendCLOpSoftmax : public OpSoftmax {
  public:
   AscendCLOpSoftmax() {}
   virtual ~AscendCLOpSoftmax() {}
-  
+
   virtual base::Status init() {
     // 参数
     SoftmaxParam* param = (SoftmaxParam*)op_desc_.op_param_.get();

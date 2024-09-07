@@ -11,7 +11,7 @@ TypeArchitectureRegister<ArmArchitecture> arm_architecture_register(
     base::kDeviceTypeCodeArm);
 
 ArmArchitecture::ArmArchitecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code) {};
+    : Architecture(device_type_code){};
 
 ArmArchitecture::~ArmArchitecture() {
   for (auto iter : devices_) {

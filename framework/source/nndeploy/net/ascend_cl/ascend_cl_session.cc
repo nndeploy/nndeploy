@@ -16,8 +16,8 @@ TypeSessionRegister<TypeSessionCreator<AscendCLSession>>
         base::ParallelType::kParallelTypeNone);
 
 AscendCLSession::AscendCLSession(const base::DeviceType &device_type)
-    : Session(device_type) {};
-AscendCLSession::~AscendCLSession() {};
+    : Session(device_type){};
+AscendCLSession::~AscendCLSession(){};
 
 base::Status AscendCLSession::init(
     std::vector<TensorWrapper *> &tensor_repository,
