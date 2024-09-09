@@ -221,3 +221,6 @@ docs/build
 
 # third_party
 # third_party
+
+# xmake
+.xmake
