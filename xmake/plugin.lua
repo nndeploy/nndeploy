@@ -1,4 +1,5 @@
 target("nndeploy_plugin_basic")
+    set_kind("$(kind)")
     if has_config("ENABLE_NNDEPLOY_BUILD_SHARED") then 
         set_kind("shared")
     else
@@ -9,4 +10,4 @@ target("nndeploy_plugin_basic")
     add_includedirs("$(projectdir)/plugin/include")
     add_includedirs("$(projectdir)/framework/include")
 
-target("nndeploy_plugin_torchscript")
+--target("nndeploy_plugin_torchscript")

@@ -8,6 +8,18 @@ option("ENABLE_NNDEPLOY_SYMBOL_HIDE")
 option("ENABLE_NNDEPLOY_COVERAGE")
     set_default(false)
 
+option("ENABLE_NNDEPLOY_CXX11_ABI")
+    set_default(true)
+
+option("ENABLE_NNDEPLOY_CXX14_ABI")
+    set_default(false)
+
+option("ENABLE_NNDEPLOY_CXX17_ABI")
+    set_default(false)
+
+option("ENABLE_NNDEPLOY_CXX20_ABI")
+    set_default(false)
+
 option("ENABLE_NNDEPLOY_OPENMP")
     set_default(false)
 
