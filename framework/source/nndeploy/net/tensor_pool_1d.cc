@@ -325,8 +325,8 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
             std::max(chunk_sizes_[best_chunk], tensor_usuage->size_);  // 扩容
       }
       chunk_schedules_[best_chunk].insert(tensor_usuage);
+      assigned_tensors_.insert(tensor_usuage);
     }
-    assigned_tensors_.insert(tensor_usage);
   }
 
   // 开辟内存
