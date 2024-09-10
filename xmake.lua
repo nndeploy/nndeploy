@@ -95,6 +95,6 @@ target("nndeploy")
 
 includes("@builtin/xpack")
 xpack("nndeploy")
-    add_targets("nndeploy_framework")
+    add_targets("nndeploy_framework","nndeploy_plugin_basic")
     set_basename("nndeploy")
     set_formats("zip")
