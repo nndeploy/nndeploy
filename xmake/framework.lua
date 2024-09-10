@@ -1,10 +1,11 @@
 function wrap_add_files(module_name, tables)
     for name, config in pairs(tables) do
         if has_config(config) then
+            print("add files for " .. name)
             local prefix = "$(projectdir)/framework/source"
-            add_files(prefix .. "/nndeploy/" .. module_name .. "/" .. name .."/*.cc")
-            add_headerfiles(prefix .. "/(nndeploy/" .. module_name .. "/" .. name .."/*.h)")
-            add_headerfiles(prefix .. "/(nndeploy/" .. module_name .. "/" .. name .."/*.hpp)")
+            add_files(prefix .. "/nndeploy/" .. module_name .. "/" .. name .."/**.cc")
+            add_headerfiles(prefix .. "/(nndeploy/" .. module_name .. "/" .. name .."/**.h)")
+            add_headerfiles(prefix .. "/(nndeploy/" .. module_name .. "/" .. name .."/**.hpp)")
         end
     end
 end
@@ -28,19 +29,19 @@ target("nndeploy_framework")
     end
 
     if has_config("ENABLE_NNDEPLOY_BASE") then 
-        add_files("$(projectdir)/framework/source/nndeploy/base/*.cc")
-        add_headerfiles("$(projectdir)/framework/include/(nndeploy/base/*.h)")
-        add_headerfiles("$(projectdir)/framework/include/(nndeploy/base/*.hpp)")
+        add_files("$(projectdir)/framework/source/nndeploy/base/**.cc")
+        add_headerfiles("$(projectdir)/framework/include/(nndeploy/base/**.h)")
+        add_headerfiles("$(projectdir)/framework/include/(nndeploy/base/**.hpp)")
     end
 
     if has_config("ENABLE_NNDEPLOY_THREAD_POOL") then 
-        add_files("$(projectdir)/framework/source/nndeploy/thread_pool/*.cc")
-        add_headerfiles("$(projectdir)/framework/include/(nndeploy/thread_pool/*.h)")
+        add_files("$(projectdir)/framework/source/nndeploy/thread_pool/**.cc")
+        add_headerfiles("$(projectdir)/framework/include/(nndeploy/thread_pool/**.h)")
     end
 
     if has_config("ENABLE_NNDEPLOY_CRYPTION") then 
-        add_files("$(projectdir)/framework/source/nndeploy/cryption/*.cc")
-        add_headerfiles("$(projectdir)/framework/include/(nndeploy/cryption/*.h)")
+        add_files("$(projectdir)/framework/source/nndeploy/cryption/**.cc")
+        add_headerfiles("$(projectdir)/framework/include/(nndeploy/cryption/**.h)")
     end
 
     if has_config("ENABLE_NNDEPLOY_DEVICE") then 
@@ -142,6 +143,6 @@ target("nndeploy_framework")
     end
 
     if has_config("ENABLE_NNDEPLOY_DAG") then
-        add_files("$(projectdir)/framework/source/nndeploy/dag/*.cc")
-        add_headerfiles("$(projectdir)/framework/include/(nndeploy/dag/*.h)")
+        add_files("$(projectdir)/framework/source/nndeploy/dag/**.cc")
+        add_headerfiles("$(projectdir)/framework/include/(nndeploy/dag/**.h)")
     end

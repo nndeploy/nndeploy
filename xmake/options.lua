@@ -158,6 +158,6 @@ option("ENABLE_NNDEPLOY_TEST")
 
 -- demo
 option("ENABLE_NNDEPLOY_DEMO")
-    set_default(false)
+    set_default(true)
 
  

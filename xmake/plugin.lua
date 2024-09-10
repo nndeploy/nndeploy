@@ -1,4 +1,4 @@
-target("nndeploy_plugin_basic")
+--[[ target("nndeploy_plugin_basic")
     set_kind("$(kind)")
     if has_config("ENABLE_NNDEPLOY_BUILD_SHARED") then 
         set_kind("shared")
@@ -104,4 +104,4 @@ target("nndeploy_plugin_stable_diffusion")
     add_includedirs("$(projectdir)/framework/include")
 
     add_files("$(projectdir)/plugin/source/nndeploy/stable_diffusion/*.cc")
-    add_headerfiles("$(projectdir)/plugin/include/nndeploy/stable_diffusion/*.h")
+    add_headerfiles("$(projectdir)/plugin/include/nndeploy/stable_diffusion/*.h") ]]
