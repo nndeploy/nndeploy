@@ -34,7 +34,10 @@ package("tokenizer-cpp")
         import("package.tools.cmake").install(package, configs)
 
         os.cp("include/*.h", package:installdir("include"))
-        os.cp(path.join(package:buildir(), "*.a"), package:installdir("lib"))
+        os.trycp(path.join(package:buildir(), "*.a"), package:installdir("lib"))
+        os.trycp(path.join(package:buildir(), "*.lib"), package:installdir("lib"))
+        os.trycp(path.join(package:buildir(), "*.dll"), package:installdir("lib"))
+        os.trycp(path.join(package:buildir(), "*.so"), package:installdir("lib"))
     end)
     
     add_linkgroups("tokenizers_cpp", "tokenizers_c", {group = true})

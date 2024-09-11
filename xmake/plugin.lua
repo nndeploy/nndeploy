@@ -1,5 +1,6 @@
 target("nndeploy_plugin_basic")
     set_kind("$(kind)")
+    add_deps("nndeploy_framework")
     if has_config("ENABLE_NNDEPLOY_BUILD_SHARED") then 
         set_kind("shared")
     else
@@ -10,10 +11,13 @@ target("nndeploy_plugin_basic")
 
     add_files("$(projectdir)/plugin/source/nndeploy/basic/**.cc")
     add_headerfiles("$(projectdir)/plugin/include/nndeploy/basic/**.h")
+    add_links("nndeploy_framework")
+    add_packages("opencv")
 
 
 target("nndeploy_plugin_infer")
     set_kind("$(kind)")
+    add_deps("nndeploy_framework")
     if has_config("ENABLE_NNDEPLOY_BUILD_SHARED") then 
         set_kind("shared")
     else
@@ -24,6 +28,8 @@ target("nndeploy_plugin_infer")
 
     add_files("$(projectdir)/plugin/source/nndeploy/infer/**.cc")
     add_headerfiles("$(projectdir)/plugin/include/nndeploy/infer/**.h")
+    add_packages("opencv")
+    add_links("nndeploy_framework")
 
 
 target("nndeploy_plugin_codec")
@@ -38,10 +44,13 @@ target("nndeploy_plugin_codec")
 
     add_files("$(projectdir)/plugin/source/nndeploy/codec/**.cc")
     add_headerfiles("$(projectdir)/plugin/include/nndeploy/codec/**.h")
+    add_links("nndeploy_framework")
+    add_packages("opencv")
 
 
 target("nndeploy_plugin_detect")
     set_kind("$(kind)")
+    add_deps("nndeploy_framework")
     if has_config("ENABLE_NNDEPLOY_BUILD_SHARED") then 
         set_kind("shared")
     else
@@ -62,10 +71,12 @@ target("nndeploy_plugin_detect")
         add_files("$(projectdir)/plugin/source/nndeploy/detect/yolo/**.cc")
         add_headerfiles("$(projectdir)/plugin/include/nndeploy/detect/yolo/**.h")
     end
+    add_links("nndeploy_framework")
 
 
 target("nndeploy_plugin_segment")
     set_kind("$(kind)")
+    add_deps("nndeploy_framework")
     if has_config("ENABLE_NNDEPLOY_BUILD_SHARED") then 
         set_kind("shared")
     else
@@ -82,9 +93,12 @@ target("nndeploy_plugin_segment")
         add_headerfiles("$(projectdir)/plugin/include/nndeploy/segment/segment_anything/**.h")
     end
 
+    add_links("nndeploy_framework")
+    
 
 -- target("nndeploy_plugin_tokenizer")
 --     set_kind("$(kind)")
+--     add_deps("nndeploy_framework")
 --     if has_config("ENABLE_NNDEPLOY_BUILD_SHARED") then 
 --         set_kind("shared")
 --     else
@@ -100,6 +114,7 @@ target("nndeploy_plugin_segment")
 
 -- target("nndeploy_plugin_stable_diffusion")
 --     set_kind("$(kind)")
+--     add_deps("nndeploy_framework")
 --     if has_config("ENABLE_NNDEPLOY_BUILD_SHARED") then 
 --         set_kind("shared")
 --     else
@@ -111,3 +126,4 @@ target("nndeploy_plugin_segment")
 --     add_files("$(projectdir)/plugin/source/nndeploy/stable_diffusion/**.cc")
 --     add_headerfiles("$(projectdir)/plugin/include/nndeploy/stable_diffusion/**.h")
 --     add_packages("tokenizer-cpp")
+--     add_links("nndeploy_framework")
