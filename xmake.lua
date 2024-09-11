@@ -33,19 +33,19 @@ if has_config("ENABLE_NNDEPLOY_COVERAGE") then
 end
 
 if has_config("ENABLE_NNDEPLOY_CXX11_ABI") then
-    set_languages("cxx11")
+    set_languages("c++11")
 end
 
 if has_config("ENABLE_NNDEPLOY_CXX14_ABI") then
-    set_languages("cxx14")
+    set_languages("c++14")
 end
 
 if has_config("ENABLE_NNDEPLOY_CXX17_ABI") then
-    set_languages("cxx17")
+    set_languages("c++17")
 end
 
 if has_config("ENABLE_NNDEPLOY_CXX20_ABI") then
-    set_languages("cxx20")
+    set_languages("c++20")
 end
 
 if has_config("ENABLE_NNDEPLOY_OPENMP") then
