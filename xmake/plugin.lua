@@ -1,3 +1,4 @@
+includes("framework.lua")
 target("nndeploy_plugin_basic")
     set_kind("$(kind)")
     add_deps("nndeploy_framework")
@@ -34,6 +35,7 @@ target("nndeploy_plugin_infer")
 
 target("nndeploy_plugin_codec")
     set_kind("$(kind)")
+    add_deps("nndeploy_framework")
     if has_config("ENABLE_NNDEPLOY_BUILD_SHARED") then 
         set_kind("shared")
     else
