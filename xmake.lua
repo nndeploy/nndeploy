@@ -90,12 +90,10 @@ target("nndeploy")
     set_kind("phony")
     add_rules("summary")
     add_deps("nndeploy_framework")
-    -- add_deps("nndeploy_plugin_basic")
-    add_deps("demo_dag")
 
 
 includes("@builtin/xpack")
 xpack("nndeploy")
-    add_targets("nndeploy_framework","nndeploy_plugin_basic")
+    add_targets("nndeploy_framework")
     set_basename("nndeploy")
     set_formats("zip")

@@ -88,7 +88,7 @@ option("ENABLE_NNDEPLOY_DEVICE_ASCEND_CL")
 
 -- op
 option("ENABLE_NNDEPLOY_OP")
-    set_default(false)
+    set_default(true)
 
 -- interpret
 option("ENABLE_NNDEPLOY_INTERPRET")
@@ -96,7 +96,7 @@ option("ENABLE_NNDEPLOY_INTERPRET")
 
 -- net
 option("ENABLE_NNDEPLOY_NET")
-    set_default(false)
+    set_default(true)
 
 -- inference
 option("ENABLE_NNDEPLOY_INFERENCE")
@@ -155,9 +155,16 @@ option("ENABLE_NNDEPLOY_PLUGIN")
 -- test
 option("ENABLE_NNDEPLOY_TEST")
     set_default(false)
+    add_deps("ENABLE_NNDEPLOY_DEMO")
+    before_check(function (option)
+        if option:dep("ENABLE_NNDEPLOY_DEMO"):enabled() then
+            option:enable(true)
+        end
+    end)
 
 -- demo
 option("ENABLE_NNDEPLOY_DEMO")
     set_default(true)
+    
 
  

@@ -1,7 +1,6 @@
 function wrap_add_files(module_name, tables)
     for name, config in pairs(tables) do
         if has_config(config) then
-            print("add files for " .. name)
             local prefix = "$(projectdir)/framework/source"
             add_files(prefix .. "/nndeploy/" .. module_name .. "/" .. name .."/**.cc")
             add_headerfiles(prefix .. "/(nndeploy/" .. module_name .. "/" .. name .."/**.h)")
