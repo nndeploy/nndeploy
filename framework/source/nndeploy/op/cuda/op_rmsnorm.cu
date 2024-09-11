@@ -33,14 +33,17 @@ static __device__ float blockReduceSum(float val) {
 }
 
 static __global__ void RMSNormKernel(float* decoder_out,
-                                     float* decoder_residual, float* scale,
-                                     float eps, int num_tokens,
+                                     float* normalized_out,
+                                     float* decoder_residual, 
+                                     float* scale,
+                                     float eps, 
+                                     int num_tokens,
                                      int hidden_units) {
   int vec_size = 4;
   float thread_sum = 0.0f;
   float4* dout = (float4*)(decoder_out + blockIdx.x * hidden_units / vec_size);
-  float4* rsd =
-      (float4*)(decoder_residual + blockIdx.x * hidden_units / vec_size);
+  float4* nout = (float4*)(normalized_out + blockIdx.x * hidden_units / vec_size);
+  float4* rsd = (float4*)(decoder_residual + blockIdx.x * hidden_units / vec_size);
   for (int idx = threadIdx.x; idx < hidden_units / vec_size;
        idx += blockDim.x) {
     float4 vec = dout[idx];
@@ -56,16 +59,18 @@ static __global__ void RMSNormKernel(float* decoder_out,
     inv_mean = rsqrtf((float)thread_sum / hidden_units + eps);
   }
   __syncthreads();
+
   float4* s = (float4*)scale;
   for (int idx = threadIdx.x; idx < hidden_units / vec_size;
        idx += blockDim.x) {
     float4 out = dout[idx];
-    dout[idx].x = out.x * inv_mean * s[idx].x;
-    dout[idx].y = out.y * inv_mean * s[idx].y;
-    dout[idx].z = out.z * inv_mean * s[idx].z;
-    dout[idx].w = out.w * inv_mean * s[idx].w;
+    nout[idx].x = out.x * inv_mean * s[idx].x;
+    nout[idx].y = out.y * inv_mean * s[idx].y;
+    nout[idx].z = out.z * inv_mean * s[idx].z;
+    nout[idx].w = out.w * inv_mean * s[idx].w;
   }
-};
+}
+
 
 class CudaOpRMSNorm : public OpRMSNorm {
  public:
@@ -76,10 +81,11 @@ class CudaOpRMSNorm : public OpRMSNorm {
   virtual base::Status run() {
     base::Status status = base::kStatusCodeOk;
 
-    auto param = dynamic_cast<RMSNormParam*>(op_desc_.op_param_.get());
-    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param,
-                                         "op_desc_.op_param_ is nullptr");
-    float eps = param->eps_;
+    // auto param = dynamic_cast<RMSNormParam*>(op_desc_.op_param_.get());
+    // NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param,
+    //                                      "op_desc_.op_param_ is nullptr");
+    // float eps = param->eps_;
+    float eps = 1e-6;
 
     int num_tokens = inputs_[0]->getShapeIndex(0);
     int hidden_units = inputs_[0]->getShapeIndex(1);
@@ -88,16 +94,20 @@ class CudaOpRMSNorm : public OpRMSNorm {
 
     void* input_data = inputs_[0]->getData();
     void* scale_data = inputs_[1]->getData();  // RMSNorm weights
+    void* rsd = inputs_[2]->getData();  
+
     void* output_data = outputs_[0]->getData();
 
-    base::DataType data_type = inputs_[0]->getDataType();
+    // base::DataType data_type = inputs_[0]->getDataType();
 
     dim3 grid(num_tokens);
     dim3 block(num_threads);
     RMSNormKernel<<<grid, block>>>((float*)input_data, (float*)output_data,
+                                   (float*)rsd,
                                    (float*)scale_data,  // RMSNorm weights
                                    eps,                 // RMSNorm eps
                                    num_tokens, hidden_units);
+
     return status;
   }
 };
