@@ -27,6 +27,10 @@ target("nndeploy_framework")
         add_packages("opencv")
     end
 
+    if has_config("ENABLE_NNDEPLOY_DEVICE_CUDA") then
+        add_packages("cuda")
+    end
+
     if has_config("ENABLE_NNDEPLOY_BASE") then 
         add_files("$(projectdir)/framework/source/nndeploy/base/**.cc")
         add_headerfiles("$(projectdir)/framework/include/(nndeploy/base/**.h)")
@@ -84,6 +88,7 @@ target("nndeploy_framework")
             ascend_cl = "ENABLE_NNDEPLOY_DEVICE_ASCEND_CL"
         }
 
+        
         wrap_add_files("op", op_device_tabels)  
     end
 
