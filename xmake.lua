@@ -3,7 +3,10 @@ set_version("2.0.0+0", {build = "%Y-%m-%d %H:%M"})
 set_license("Apache-2.0")
 add_rules("mode.debug", "mode.release")
 
+add_repositories("local-repo xmake/repo")
 includes("xmake/*.lua")
+
+add_requires("tokenizer-cpp")  --需手动安装rust环境
 
 if is_plat("linux") then 
     add_syslinks("pthread")

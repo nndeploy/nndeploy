@@ -131,6 +131,6 @@ target("demo_test_op")
 --     add_files("$(projectdir)/demo/tokenizer_cpp/**.cc")
 --     add_headerfiles("$(projectdir)/demo/tokenizer_cpp/**.h")
 
---     add_packages("opencv", "gflags")
+--     add_packages("opencv", "gflags","tokenizer-cpp")
 --     add_links("nndeploy_framework" )
 --     add_ldflags("-Wl,--no-as-needed")

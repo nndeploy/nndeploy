@@ -95,6 +95,7 @@ target("nndeploy_plugin_segment")
 
 --     add_files("$(projectdir)/plugin/source/nndeploy/tokenizer/**.cc")
 --     add_headerfiles("$(projectdir)/plugin/include/nndeploy/tokenizer/**.h")
+--     add_packages("tokenizer-cpp")
 
 
 -- target("nndeploy_plugin_stable_diffusion")
@@ -109,3 +110,4 @@ target("nndeploy_plugin_segment")
 
 --     add_files("$(projectdir)/plugin/source/nndeploy/stable_diffusion/**.cc")
 --     add_headerfiles("$(projectdir)/plugin/include/nndeploy/stable_diffusion/**.h")
+--     add_packages("tokenizer-cpp")
