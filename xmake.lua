@@ -11,7 +11,11 @@ add_requires("tokenizer-cpp")  --需手动安装rust环境
 if is_plat("linux") then 
     add_syslinks("pthread")
 elseif is_plat("windows") then 
-    add_cxxflags("-Werror=return-type")
+    add_cxflags("/IGNORE:4286 /wd4273 /wd4819")
+    add_ldflags("/force:unresolved")
+    if has_config("ENABLE_NNDEPLOY_BUILD_SHARED") then 
+        add_defines("DENABLE_NNDEPLOY_BUILDING_DLL")
+    end
 end
 
 if is_mode("debug") then 
