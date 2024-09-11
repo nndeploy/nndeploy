@@ -15,22 +15,23 @@ package("tokenizer-cpp")
     add_configs("spm_enable_tcmalloc", {description = "override sentence piece config", default = false, type = "boolean"})
 
     add_deps("cmake")
-    add_deps("msgpack-c", "sentencepiece")
+    --add_deps("msgpack-c", "sentencepiece")
 
     if is_plat("linux") then
         add_syslinks("pthread", "dl")
     end
 
     on_install(function (package)
-        io.replace("CMakeLists.txt", "add_subdirectory(msgpack)", "", {plain = true})
-        io.replace("CMakeLists.txt", "add_subdirectory(sentencepiece sentencepiece EXCLUDE_FROM_ALL)", "", {plain = true})
+        --io.replace("CMakeLists.txt", "add_subdirectory(msgpack)", "", {plain = true})
+        --io.replace("CMakeLists.txt", "add_subdirectory(sentencepiece sentencepiece EXCLUDE_FROM_ALL)", "", {plain = true})
 
         local configs = {"-DCMAKE_CXX_STANDARD=17"}
         table.insert(configs, "-DMSGPACK_USE_BOOST=" .. (package:config("msgpack_use_boost") and "ON" or "OFF"))
         table.insert(configs, "-DMLC_ENABLE_SENTENCEPIECE_TOKENIZER=" .. (package:config("mlc_enable_sentencepiece_tokenizer") and "ON" or "OFF"))
         table.insert(configs, "-DSPM_ENABLE_SHARED=" .. (package:config("spm_enable_shared") and "ON" or "OFF"))
         table.insert(configs, "-DSPM_ENABLE_TCMALLOC=" .. (package:config("spm_enable_tcmalloc") and "ON" or "OFF"))
-        import("package.tools.cmake").install(package, configs,{packagedeps = {"sentencepiece","msgpack-c"}})
+        -- import("package.tools.cmake").install(package, configs,{packagedeps = {"sentencepiece","msgpack-c"}})
+        import("package.tools.cmake").install(package, configs)
 
         os.cp("include/*.h", package:installdir("include"))
         os.cp(path.join(package:buildir(), "*.a"), package:installdir("lib"))
