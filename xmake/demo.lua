@@ -15,10 +15,10 @@ target("demo_dag")
     add_includedirs("$(projectdir)/demo")
 
     add_files("$(projectdir)/demo/*.cc")
-    add_headerfiles("$(projectdir)/demo/*.h")
+    add_headerfiles("$(projectdir)/demo/*.h", {install = false})
 
     add_files("$(projectdir)/demo/dag/**.cc")
-    add_headerfiles("$(projectdir)/demo/dag/**.h")
+    add_headerfiles("$(projectdir)/demo/dag/**.h", {install = false})
 
     add_packages("opencv", "gflags", "onnxruntime")
     add_links("nndeploy_framework")
@@ -38,10 +38,10 @@ target("demo_detect")
     add_includedirs("$(projectdir)/demo")
 
     add_files("$(projectdir)/demo/*.cc")
-    add_headerfiles("$(projectdir)/demo/*.h")
+    add_headerfiles("$(projectdir)/demo/*.h", {install = false})
 
     add_files("$(projectdir)/demo/detect/**.cc")
-    add_headerfiles("$(projectdir)/demo/detect/**.h")
+    add_headerfiles("$(projectdir)/demo/detect/**.h", {install = false})
 
     add_packages("opencv", "gflags", "onnxruntime")
     add_links("nndeploy_framework","nndeploy_plugin_codec")
@@ -60,10 +60,10 @@ target("demo_segment")
     add_includedirs("$(projectdir)/demo")
 
     add_files("$(projectdir)/demo/*.cc")
-    add_headerfiles("$(projectdir)/demo/*.h")
+    add_headerfiles("$(projectdir)/demo/*.h", {install = false})
 
     add_files("$(projectdir)/demo/segment/**.cc")
-    add_headerfiles("$(projectdir)/demo/segment/**.h")
+    add_headerfiles("$(projectdir)/demo/segment/**.h", {install = false})
 
     add_packages("opencv", "gflags", "onnxruntime")
     add_links("nndeploy_framework", "nndeploy_plugin_codec")
@@ -82,10 +82,10 @@ target("demo_test_net")
     add_includedirs("$(projectdir)/demo")
 
     add_files("$(projectdir)/demo/*.cc")
-    add_headerfiles("$(projectdir)/demo/*.h")
+    add_headerfiles("$(projectdir)/demo/*.h", {install = false})
 
     add_files("$(projectdir)/demo/test_net/**.cc")
-    add_headerfiles("$(projectdir)/demo/test_net/**.h")
+    add_headerfiles("$(projectdir)/demo/test_net/**.h", {install = false})
 
     add_packages("opencv", "gflags", "onnxruntime")
     add_links("nndeploy_framework" )
@@ -104,10 +104,10 @@ target("demo_test_op")
     add_includedirs("$(projectdir)/demo")
 
     add_files("$(projectdir)/demo/*.cc")
-    add_headerfiles("$(projectdir)/demo/*.h")
+    add_headerfiles("$(projectdir)/demo/*.h", {install = false})
 
     add_files("$(projectdir)/demo/test_op/**.cc")
-    add_headerfiles("$(projectdir)/demo/test_op/**.h")
+    add_headerfiles("$(projectdir)/demo/test_op/**.h", {install = false})
 
     add_packages("opencv", "gflags")
     add_links("nndeploy_framework" )

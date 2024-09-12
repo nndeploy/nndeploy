@@ -11,7 +11,7 @@ target("nndeploy_plugin_basic")
     add_includedirs("$(projectdir)/framework/include")
 
     add_files("$(projectdir)/plugin/source/nndeploy/basic/**.cc")
-    add_headerfiles("$(projectdir)/plugin/include/nndeploy/basic/**.h")
+    add_headerfiles("$(projectdir)/plugin/include/(nndeploy/basic/**.h)")
     add_links("nndeploy_framework")
     add_packages("opencv")
 
@@ -28,7 +28,7 @@ target("nndeploy_plugin_infer")
     add_includedirs("$(projectdir)/framework/include")
 
     add_files("$(projectdir)/plugin/source/nndeploy/infer/**.cc")
-    add_headerfiles("$(projectdir)/plugin/include/nndeploy/infer/**.h")
+    add_headerfiles("$(projectdir)/plugin/include/(nndeploy/infer/**.h)")
     add_packages("opencv")
     add_links("nndeploy_framework")
 
@@ -45,7 +45,7 @@ target("nndeploy_plugin_codec")
     add_includedirs("$(projectdir)/framework/include")
 
     add_files("$(projectdir)/plugin/source/nndeploy/codec/**.cc")
-    add_headerfiles("$(projectdir)/plugin/include/nndeploy/codec/**.h")
+    add_headerfiles("$(projectdir)/plugin/include/(nndeploy/codec/**.h)")
     add_links("nndeploy_framework")
     add_packages("opencv")
 
@@ -62,16 +62,16 @@ target("nndeploy_plugin_detect")
     add_includedirs("$(projectdir)/framework/include")
 
     add_files("$(projectdir)/plugin/source/nndeploy/detect/*.cc")
-    add_headerfiles("$(projectdir)/plugin/include/nndeploy/detect/*.h")
+    add_headerfiles("$(projectdir)/plugin/include/(nndeploy/detect/*.h)")
 
     if has_config("ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR") then
         add_files("$(projectdir)/plugin/source/nndeploy/detect/detr/**.cc")
-        add_headerfiles("$(projectdir)/plugin/include/nndeploy/detect/detr/**.h")
+        add_headerfiles("$(projectdir)/plugin/include/(nndeploy/detect/detr/**.h)")
     end
 
     if has_config("ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO") then
         add_files("$(projectdir)/plugin/source/nndeploy/detect/yolo/**.cc")
-        add_headerfiles("$(projectdir)/plugin/include/nndeploy/detect/yolo/**.h")
+        add_headerfiles("$(projectdir)/plugin/include/(nndeploy/detect/yolo/**.h)")
     end
     add_links("nndeploy_framework")
 
@@ -88,11 +88,11 @@ target("nndeploy_plugin_segment")
     add_includedirs("$(projectdir)/framework/include")
 
     add_files("$(projectdir)/plugin/source/nndeploy/segment/*.cc")
-    add_headerfiles("$(projectdir)/plugin/include/nndeploy/segment/*.h")
+    add_headerfiles("$(projectdir)/plugin/include/(nndeploy/segment/*.h)")
 
     if has_config("ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING") then
         add_files("$(projectdir)/plugin/source/nndeploy/segment/segment_anything/**.cc")
-        add_headerfiles("$(projectdir)/plugin/include/nndeploy/segment/segment_anything/**.h")
+        add_headerfiles("$(projectdir)/plugin/include/(nndeploy/segment/segment_anything/**.h)")
     end
 
     add_links("nndeploy_framework")
@@ -110,7 +110,7 @@ target("nndeploy_plugin_segment")
 --     add_includedirs("$(projectdir)/framework/include")
 
 --     add_files("$(projectdir)/plugin/source/nndeploy/tokenizer/**.cc")
---     add_headerfiles("$(projectdir)/plugin/include/nndeploy/tokenizer/**.h")
+--     add_headerfiles("$(projectdir)/plugin/include/(nndeploy/tokenizer/**.h)")
 --     add_packages("tokenizer-cpp")
 
 
@@ -126,6 +126,6 @@ target("nndeploy_plugin_segment")
 --     add_includedirs("$(projectdir)/framework/include")
 
 --     add_files("$(projectdir)/plugin/source/nndeploy/stable_diffusion/**.cc")
---     add_headerfiles("$(projectdir)/plugin/include/nndeploy/stable_diffusion/**.h")
+--     add_headerfiles("$(projectdir)/plugin/include/(nndeploy/stable_diffusion/**.h)")
 --     add_packages("tokenizer-cpp")
 --     add_links("nndeploy_framework")
