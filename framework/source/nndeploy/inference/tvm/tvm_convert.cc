@@ -155,9 +155,31 @@ base::SizeVector TvmConvert::convertToStride(const int64_t *strides,
 device::Tensor *TvmConvert::convertToTensor(const tvm::runtime::NDArray &src,
                                             std::string name) {
   auto data_type = convertToDataType(src.DataType());
-  auto data_format =
-      convertToDataFormat("NCHW");  // TODO: tvm的NDArray没有layout属性
   auto data_shape = convertToShape(src.Shape());
+
+  base::DataFormat data_format;  // TVM的NDArray中缺失data_format信息,
+                                 // 根据shape大小给一个默认的format
+  switch (data_shape.size()) {
+    case 1:
+      data_format = base::kDataFormatN;
+      break;
+    case 2:
+      data_format = base::kDataFormatNC;
+      break;
+    case 3:
+      data_format = base::kDataFormatNHW;
+      break;
+    case 4:
+      data_format = base::kDataFormatNCHW;
+      break;
+    case 5:
+      data_format = base::kDataFormatNCDHW;
+      break;
+    default:
+      data_format = base::kDataFormatNotSupport;
+      break;
+  }
+
   auto device_type = convertToDeviceType(src->device.device_type);
   auto device = device::getDevice(device_type);
   base::SizeVector strides = convertToStride(src->strides, src->ndim);
