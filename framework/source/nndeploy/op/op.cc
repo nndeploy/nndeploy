@@ -106,7 +106,7 @@ base::Status Op::setOutput(device::Tensor *output, int index) {
       outputs_[index] = output;
       return base::kStatusCodeOk;
     } else if (outputs_.size() == index) {
-      inputs_.emplace_back(output);
+      outputs_.emplace_back(output);
       return base::kStatusCodeOk;
     }
   }

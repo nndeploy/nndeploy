@@ -3,6 +3,7 @@
 
 #include "nndeploy/op/ir.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/device/cuda/cuda_device.h"
 
 namespace nndeploy {
 
@@ -16,10 +17,11 @@ class OpRMSNorm : public Op {
   virtual base::Status inferShape();
 };
 
-NNDEPLOY_CC_API base::Status rmsNorm(device::Tensor *input1,
-                                     device::Tensor *input2,
-                                     device::Tensor *output);
+NNDEPLOY_CC_API base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,device::Tensor *input3,
+                 device::Tensor *output);
 
-}  // namespace op
-}  // namespace nndeploy
+} // op
+} // nndeploy
 #endif
+
+
