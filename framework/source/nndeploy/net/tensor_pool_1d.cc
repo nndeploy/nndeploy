@@ -272,7 +272,7 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
   for (const auto &task : op_breadths_) {
     // 遍历当前task的所有tensor usuage
     for (auto &tensor_usuage : task->breadth_) {
-      if (tensor_usuage->is_allocated_) {
+      if (assigned_tensors_.count(tensor_usuage) != 0) {
         continue;
       }
 
@@ -324,12 +324,13 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
         chunk_sizes_[best_chunk] =
             std::max(chunk_sizes_[best_chunk], tensor_usuage->size_);  // 扩容
       }
-      chunk_schedules[best_chunk].insert(tensor_usuage);
+      chunk_schedules_[best_chunk].insert(tensor_usuage);
+      assigned_tensors_.insert(tensor_usuage);
     }
   }
 
   // 开辟内存
-  for (auto kv : chunk_schedules) {
+  for (auto kv : chunk_schedules_) {
     auto chunk = kv.first;
     auto tensors = kv.second;
     chunk->buffer_ = new device::Buffer(device_, chunk_sizes_[chunk]);
@@ -375,7 +376,7 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::deallocate() {
   }
 
   chunk_sizes_.clear();
-  chunk_schedules.clear();
+  chunk_schedules_.clear();
 
   return status;
 }

@@ -70,6 +70,9 @@ include("${ROOT_PATH}/cmake/ascend_cl.cmake")
 
 # # snpe
 include("${ROOT_PATH}/cmake/snpe.cmake")
+
+# # tvm
+include("${ROOT_PATH}/cmake/tvm.cmake")
 # ################### inference ####################
 
 # ################### dag ####################
