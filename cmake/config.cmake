@@ -92,3 +92,6 @@ set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP OFF) # 是否使能分割类模型，�
 
 ## model stable diffusion
 set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF
+
+## enable python api
+set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口
