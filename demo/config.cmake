@@ -23,7 +23,3 @@ endif()
 if (ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
   include(${ROOT_PATH}/demo/tokenizer_cpp/config.cmake)
 endif()
-
-if (ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
-  include(${ROOT_PATH}/demo/test_acl/config.cmake)
-endif()

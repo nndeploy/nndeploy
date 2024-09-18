@@ -74,6 +74,7 @@ base::IntVector OnnxInterpret::convertToShape(
     const onnx::TensorShapeProto& src) {
   base::IntVector dst;
   int dim_size = src.dim_size();
+  // TODO 是否要给一个一维的默认值呢
   if (dim_size == 0) {
     dst.push_back(1);
   } else {
@@ -111,6 +112,7 @@ base::IntVector OnnxInterpret::convertToShape(
     const google::protobuf::RepeatedField<::int64_t>& src) {
   base::IntVector dst;
   int dim_size = src.size();
+  // TODO 是否要给一个一维的默认值呢
   if (dim_size == 0) {
     dst.push_back(1);
   } else {
@@ -484,7 +486,28 @@ base::Status OnnxInterpret::interpret(
 #endif
   this->onnx_model_ = std::unique_ptr<onnx::ModelProto>(new onnx::ModelProto());
   bool success = this->onnx_model_->ParseFromCodedStream(&coded_input_stream);
+  if (!success) {
+    NNDEPLOY_LOGE("解析ONNX模型失败");
+    return base::kStatusCodeErrorInvalidParam;
+  }
   input_stream.close();
+
+  // 检查并转换ONNX模型版本
+  if (this->onnx_model_->ir_version() != target_version_) {
+    NNDEPLOY_LOGI("当前模型版本: %d, 正在转换到版本 %d./n",
+                  this->onnx_model_->ir_version(), target_version_);
+    try {
+      onnx::ModelProto converted_model =
+          onnx::version_conversion::ConvertVersion(*(this->onnx_model_),
+                                                   target_version_);
+      *(this->onnx_model_) = std::move(converted_model);
+      NNDEPLOY_LOGI("模型版本成功转换到 %d./n",
+                    this->onnx_model_->ir_version());
+    } catch (const std::exception& e) {
+      NNDEPLOY_LOGE("版本转换过程中发生错误: %s./n", e.what());
+      return base::kStatusCodeErrorInvalidParam;
+    }
+  }
 
   // 解析图
   const auto& onnx_graph = onnx_model_->graph();

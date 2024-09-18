@@ -115,8 +115,8 @@ base::Status ModelDesc::dump(std::ostream &oss) {
   return base::kStatusCodeOk;
 }
 
-std::map<OpType, std::shared_ptr<OpParamCreator>>
-    &getGlobalOpParamCreatorMap() {
+std::map<OpType, std::shared_ptr<OpParamCreator>> &
+getGlobalOpParamCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<OpType, std::shared_ptr<OpParamCreator>>>
       creators;
@@ -162,7 +162,7 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeTranspose, TransposeParam);
 // TODO: @Leonisux:
 // 补充llama的算子的参数的注册
 // RMSNorm 算子参数类的注册函数
-// REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeRMSNorm, TransposeParam);
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeRMSNorm, RMSNormParam);
 
 }  // namespace op
 }  // namespace nndeploy

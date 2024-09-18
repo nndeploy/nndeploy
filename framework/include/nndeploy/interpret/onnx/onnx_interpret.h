@@ -11,6 +11,7 @@
 #include "onnx/common/platform_helpers.h"
 #include "onnx/onnx_pb.h"
 #include "onnx/proto_utils.h"
+#include "onnx/version_converter/convert.h"
 
 namespace nndeploy {
 namespace interpret {
@@ -75,6 +76,7 @@ class OnnxInterpret : public Interpret {
       const std::vector<op::ValueDesc> &input = std::vector<op::ValueDesc>());
 
  private:
+  int target_version_ = 20;
   std::unique_ptr<onnx::ModelProto> onnx_model_;
 };
 
@@ -107,7 +109,7 @@ class OnnxOpConvert {
  */
 class OnnxOpConvertCreator {
  public:
-  virtual ~OnnxOpConvertCreator(){};
+  virtual ~OnnxOpConvertCreator() {};
   virtual std::shared_ptr<OnnxOpConvert> createOnnxOpConvert(
       const std::string &type) = 0;
 };
@@ -130,8 +132,8 @@ class TypeOnnxOpConvertCreator : public OnnxOpConvertCreator {
  *
  * @return std::map<op::OpType, std::shared_ptr<OnnxOpConvertCreator>>&
  */
-std::map<std::string, std::shared_ptr<OnnxOpConvertCreator>>
-    &getGlobalOnnxOpConvertCreatorMap();
+std::map<std::string, std::shared_ptr<OnnxOpConvertCreator>> &
+getGlobalOnnxOpConvertCreatorMap();
 
 /**
  * @brief 算子参数的创建类的注册类模板
