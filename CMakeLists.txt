@@ -86,6 +86,9 @@ nndeploy_option(ENABLE_NNDEPLOY_TEST "ENABLE_NNDEPLOY_TEST" OFF)
 # demo
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "ENABLE_NNDEPLOY_DEMO" OFF)
 
+# python
+nndeploy_option(ENABLE_NNDEPLOY_PYTHON "ENABLE_NNDEPLOY_PYTHON" OFF)
+
 # print option
 print_summary()
 
@@ -588,6 +591,11 @@ endif()
 # demo
 if (ENABLE_NNDEPLOY_DEMO)
   include(${ROOT_PATH}/demo/config.cmake)
+endif()
+
+# python
+if(ENABLE_NNDEPLOY_PYTHON)
+  add_subdirectory(python)
 endif()
 
 message(STATUS "CMAKE END. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")
