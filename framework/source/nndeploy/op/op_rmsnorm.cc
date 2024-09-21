@@ -1,4 +1,3 @@
-
 #include "nndeploy/op/op_rmsnorm.h"
 
 #include "nndeploy/base/common.h"
@@ -27,10 +26,10 @@ base::Status OpRMSNorm::inferShape() {
   return base::kStatusCodeOk;
 }
 
-base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
-                     device::Tensor *output) {
+base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2, device::Tensor *input3,
+                 device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
-  if (input1 == nullptr || input2 == nullptr || output == nullptr) {
+  if (input1 == nullptr || input2 == nullptr || input3 == nullptr || output == nullptr) {
     NNDEPLOY_LOGE("input1 or input2 or output is nullptr");
     return base::kStatusCodeErrorNullParam;
   }
@@ -39,17 +38,20 @@ base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
-  if (output->getDataType().code_ == base::kDataTypeCodeFp ||
-      output->getDataType().code_ == base::kDataTypeCodeBFp) {
-    base::PrecisionType precision_type =
-        getPrecisionType(output->getDataType());
-    status = op->setPrecisionType(precision_type);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "setPrecisionType failed");
-  }
+  // if (output->getDataType().code_ == base::kDataTypeCodeFp ||
+  //     output->getDataType().code_ == base::kDataTypeCodeBFp) {
+  //   base::PrecisionType precision_type =
+  //       getPrecisionType(output->getDataType());
+  //   status = op->setPrecisionType(precision_type);
+  //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+  //                          "setPrecisionType failed");
+  // }
+
   status = op->setInput(input1, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setInput(input2, 1);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(input3, 2);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setOutput(output, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
