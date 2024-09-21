@@ -2,7 +2,9 @@
 #include <pybind11/stl.h>
 
 #include "nndeploy/device/tensor.h"
+
 #include "pybind11_tensor.h"
+#include "pybind11_op.h"
 
 using namespace nndeploy;
 namespace py = pybind11;
@@ -11,6 +13,7 @@ PYBIND11_MODULE(nndeploy, m) {
   // 导出时保持cpp中的namespace层级
   py::module_ device = m.def_submodule("device");
   py::module_ base = m.def_submodule("base");
+  py::module_ op = m.def_submodule("op");
 
   // nndeploy::base::DataTypeCode 导出为 base.DataTypeCode
   py::enum_<base::DataTypeCode>(base, "DataTypeCode")
@@ -81,8 +84,17 @@ PYBIND11_MODULE(nndeploy, m) {
               device::Tensor::allocate,
           py::arg("device"), py::arg("config") = base::IntVector())
       .def_buffer(
-          tensor_to_buffer_info)  // 通过np.asarray(tensor)转换为numpy array
+          tensorToBufferInfo)  // 通过np.asarray(tensor)转换为numpy array
       .def(py::init([](py::buffer const b, base::DeviceTypeCode device_code) {
-        return buffer_info_to_tensor(b, device_code);
-      }));
+        return bufferInfoToTensor(b, device_code);
+      }))
+      // 移动Tensor到其他设备上
+      .def("to", [](py::object self, base::DeviceTypeCode device_code) {
+        device::Tensor *tensor = self.cast<device::Tensor *>();
+        moveTensorToDevice(tensor, device_code);
+      });
+
+  // Op导出
+  // 例如 nndeploy::op::add  -> nndeploy.op.add
+  op.def("rms_norm", rmsNormFunc);
 }

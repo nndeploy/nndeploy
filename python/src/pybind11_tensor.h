@@ -6,12 +6,13 @@
 #include <string>
 
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/device/buffer.h"
 
 using namespace nndeploy;
 namespace py = pybind11;
 
 // 获取tensor的数值类型 根据元素的bit位宽决定
-std::string get_tensor_format(device::Tensor* tensor) {
+std::string getTensorFormat(device::Tensor* tensor) {
   std::string format;
   auto elemsize = tensor->getDataType().bits_ / 8;
   if (elemsize == 4) {
@@ -43,7 +44,7 @@ std::vector<long> calculateStridesBaseShape(const base::IntVector& shape) {
 }
 
 // 获取nndepoly::device::Tensor 转 numpy array的必要信息
-py::buffer_info tensor_to_buffer_info(device::Tensor* tensor) {
+py::buffer_info tensorToBufferInfo(device::Tensor* tensor) {
   void* data = nullptr;
   auto device_type_code = tensor->getDeviceType().code_;
   if (device_type_code ==
@@ -63,7 +64,7 @@ py::buffer_info tensor_to_buffer_info(device::Tensor* tensor) {
     py::pybind11_fail(ss.str());
   }
   auto elemsize = tensor->getDataType().bits_ / 8;
-  auto format = get_tensor_format(tensor);
+  auto format = getTensorFormat(tensor);
   auto dims = tensor->getShape().size();
   auto strides = calculateStridesBaseShape(
       tensor->getShape());  // nndeploy中的strides可能为空，根据shape重新计算
@@ -83,7 +84,7 @@ py::buffer_info tensor_to_buffer_info(device::Tensor* tensor) {
 }
 
 // 从numpy初始化1个Tensor
-std::unique_ptr<device::Tensor> buffer_info_to_tensor(
+std::unique_ptr<device::Tensor> bufferInfoToTensor(
     py::buffer const b, base::DeviceTypeCode device_code) {
   device::Tensor* tensor = nullptr;
 
@@ -150,6 +151,27 @@ std::unique_ptr<device::Tensor> buffer_info_to_tensor(
     pybind11::pybind11_fail(ss.str());
   }
   return std::unique_ptr<device::Tensor>(tensor);
+}
+
+// 将Tensor搬移到其他设备上
+void moveTensorToDevice(device::Tensor* tensor,
+                        base::DeviceTypeCode device_code) {
+  auto cur_device = tensor->getDevice();
+  auto dst_device = device::getDevice(base::DeviceType(device_code));
+  // TODO: 直接对比两个指针表示是同一设备 对不对？
+  if (cur_device != dst_device) {
+    auto dst_buffer_desc = tensor->getBuffer()->getDesc();
+    auto cur_buffer = tensor->getBuffer();
+    auto dst_buffer = new device::Buffer(dst_device, dst_buffer_desc);
+    if (cur_buffer->copyTo(dst_buffer) != base::kStatusCodeOk) {
+      std::stringstream ss;
+      ss << "move Tensor from "
+         << base::deviceTypeToString(cur_device->getDeviceType()) << " to "
+         << base::deviceTypeToString(dst_device->getDeviceType()) << " failed!";
+      pybind11::pybind11_fail(ss.str());
+    }
+    tensor->justModify(dst_buffer);
+  }
 }
 
 #endif
