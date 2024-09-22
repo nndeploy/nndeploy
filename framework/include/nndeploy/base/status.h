@@ -81,11 +81,15 @@ class NNDEPLOY_CC_API Status {
 
   std::string desc() const;
 
+  StatusCode getStatusCode();
+
   Status operator+(const Status &other);
 
  private:
   int code_ = kStatusCodeOk;
 };
+
+std::string statusCodeToString(StatusCode code);
 
 #define NNDEPLOY_ASSERT(x)                     \
   {                                            \

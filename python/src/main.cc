@@ -2,9 +2,8 @@
 #include <pybind11/stl.h>
 
 #include "nndeploy/device/tensor.h"
-
-#include "pybind11_tensor.h"
 #include "pybind11_op.h"
+#include "pybind11_tensor.h"
 
 using namespace nndeploy;
 namespace py = pybind11;
@@ -89,10 +88,13 @@ PYBIND11_MODULE(nndeploy, m) {
         return bufferInfoToTensor(b, device_code);
       }))
       // 移动Tensor到其他设备上
-      .def("to", [](py::object self, base::DeviceTypeCode device_code) {
-        device::Tensor *tensor = self.cast<device::Tensor *>();
-        moveTensorToDevice(tensor, device_code);
-      });
+      .def(
+          "to",
+          [](py::object self, base::DeviceTypeCode device_code) {
+            device::Tensor *tensor = self.cast<device::Tensor *>();
+            return moveTensorToDevice(tensor, device_code);
+          },
+          py::return_value_policy::reference);
 
   // Op导出
   // 例如 nndeploy::op::add  -> nndeploy.op.add

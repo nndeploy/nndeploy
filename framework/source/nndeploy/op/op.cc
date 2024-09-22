@@ -233,12 +233,13 @@ base::Status Op::checkOrAllocOutput() {
   inferShape();
   for (auto output : outputs_) {
     if (output->getBuffer() == nullptr) {
-      auto device = device::getDevice(output->getDeviceType());
+      auto device = device::getDevice(inputs_[0]->getDeviceType());
       output->allocate(device);
 
     } else {
       // TODO: 如何进行检查： 直接检查Buffer的size 和
       // 形状推理后Tensor的size大小吗
+      
       status = base::kStatusCodeErrorOutOfMemory;
 
       break;

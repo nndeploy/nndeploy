@@ -9,26 +9,23 @@
 
 using namespace nndeploy;
 
-std::unique_ptr<device::Tensor> rmsNormFunc(device::Tensor* input1,
-                                            device::Tensor* input2) {
+device::Tensor* rmsNormFunc(device::Tensor* input1, device::Tensor* input2,
+                            device::Tensor* input3) {
   std::stringstream ss;
-  if (input1->getDesc() != input2->getDesc()) {
-    ss << "nndeploy::op::add failed:  input1 and input2 are different in "
-          "shape、stride or data type!";
-    pybind11::pybind11_fail(ss.str());
-  }
 
   auto output_tensor_desc = input1->getDesc();
   auto output_tensor_device = input1->getDevice();
 
-  device::Tensor* output = new device::Tensor(output_tensor_device, output_tensor_desc);
-  base::Status status = op::rmsNorm(input1, input2, output);
-    if(status!=base::kStatusCodeOk){
-    ss << "nndeploy::op::add failed: error code " << status.desc();
+  device::Tensor* output =
+      new device::Tensor(output_tensor_desc, "rms_norm_output");
+  base::Status status = op::rmsNorm(input1, input2, input3, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::rms_norm failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
     pybind11::pybind11_fail(ss.str());
-    }
+  }
 
-    return std::unique_ptr<device::Tensor>(output);
+  return output;
 }
 
 #endif

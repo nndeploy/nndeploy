@@ -26,14 +26,15 @@ base::Status OpRMSNorm::inferShape() {
   return base::kStatusCodeOk;
 }
 
-base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2, device::Tensor *input3,
-                 device::Tensor *output) {
+base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
+                     device::Tensor *input3, device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
-  if (input1 == nullptr || input2 == nullptr || input3 == nullptr || output == nullptr) {
+  if (input1 == nullptr || input2 == nullptr || input3 == nullptr ||
+      output == nullptr) {
     NNDEPLOY_LOGE("input1 or input2 or output is nullptr");
     return base::kStatusCodeErrorNullParam;
   }
-  Op *op = createOp(output->getDeviceType(), "", kOpTypeRMSNorm);
+  Op *op = createOp(input1->getDeviceType(), "", kOpTypeRMSNorm);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
