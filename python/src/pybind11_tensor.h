@@ -5,13 +5,14 @@
 
 #include <string>
 
+#include "nndeploy/device/buffer.h"
 #include "nndeploy/device/tensor.h"
 
 using namespace nndeploy;
 namespace py = pybind11;
 
 // 获取tensor的数值类型 根据元素的bit位宽决定
-std::string get_tensor_format(device::Tensor* tensor) {
+std::string getTensorFormat(device::Tensor* tensor) {
   std::string format;
   auto elemsize = tensor->getDataType().bits_ / 8;
   if (elemsize == 4) {
@@ -43,17 +44,19 @@ std::vector<long> calculateStridesBaseShape(const base::IntVector& shape) {
 }
 
 // 获取nndepoly::device::Tensor 转 numpy array的必要信息
-py::buffer_info tensor_to_buffer_info(device::Tensor* tensor) {
+py::buffer_info tensorToBufferInfo(device::Tensor* tensor) {
   void* data = nullptr;
   auto device_type_code = tensor->getDeviceType().code_;
   if (device_type_code ==
       base::kDeviceTypeCodeCpu) {  // 如果是cpu，则直接将其传递给numpy array
     data = tensor->getBuffer()->getData();
 
-  } else if (
-      device_type_code ==
-      base::
-          kDeviceTypeCodeCuda) {  // TODO:如果是cuda，则新开辟一块cpu内存，将cuda上的数据拷贝过去
+  } else {
+    std::stringstream ss;
+    ss << "convert nndeploy.device.Tensor to numpy array only support device "
+          ":cpu  but get device_code:"
+       << base::deviceTypeToString(device_type_code);
+    pybind11::pybind11_fail(ss.str());
   }
 
   if (data == nullptr) {
@@ -63,7 +66,7 @@ py::buffer_info tensor_to_buffer_info(device::Tensor* tensor) {
     py::pybind11_fail(ss.str());
   }
   auto elemsize = tensor->getDataType().bits_ / 8;
-  auto format = get_tensor_format(tensor);
+  auto format = getTensorFormat(tensor);
   auto dims = tensor->getShape().size();
   auto strides = calculateStridesBaseShape(
       tensor->getShape());  // nndeploy中的strides可能为空，根据shape重新计算
@@ -83,8 +86,8 @@ py::buffer_info tensor_to_buffer_info(device::Tensor* tensor) {
 }
 
 // 从numpy初始化1个Tensor
-std::unique_ptr<device::Tensor> buffer_info_to_tensor(
-    py::buffer const b, base::DeviceTypeCode device_code) {
+device::Tensor* bufferInfoToTensor(py::buffer const b,
+                                   base::DeviceTypeCode device_code) {
   device::Tensor* tensor = nullptr;
 
   py::buffer_info info = b.request();
@@ -149,7 +152,31 @@ std::unique_ptr<device::Tensor> buffer_info_to_tensor(
     ss << "convert numpy.ndarray to nndeploy Tensor only support device :cpu ";
     pybind11::pybind11_fail(ss.str());
   }
-  return std::unique_ptr<device::Tensor>(tensor);
+  return tensor;
+}
+
+// 将Tensor搬移到其他设备上
+device::Tensor* moveTensorToDevice(device::Tensor* tensor,
+                                   base::DeviceTypeCode device_code) {
+  auto cur_device = tensor->getDevice();
+  auto dst_device = device::getDevice(base::DeviceType(device_code));
+  // TODO: 直接对比两个指针表示是同一设备 对不对？
+  if (cur_device != dst_device) {
+    auto dst_buffer_desc = tensor->getBuffer()->getDesc();
+    auto cur_buffer = tensor->getBuffer();
+    auto dst_buffer = new device::Buffer(dst_device, dst_buffer_desc);
+    if (cur_buffer->copyTo(dst_buffer) != base::kStatusCodeOk) {
+      std::stringstream ss;
+      ss << "move Tensor from "
+         << base::deviceTypeToString(cur_device->getDeviceType()) << " to "
+         << base::deviceTypeToString(dst_device->getDeviceType()) << " failed!";
+      pybind11::pybind11_fail(ss.str());
+    }
+
+    tensor->justModify(dst_buffer);
+  }
+
+  return tensor;
 }
 
 #endif

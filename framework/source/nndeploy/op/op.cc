@@ -226,8 +226,31 @@ base::Status Op::reshape(base::ShapeMap &shape_map) {
 base::Status Op::preRun() { return base::kStatusCodeOk; }
 base::Status Op::postRun() { return base::kStatusCodeOk; }
 
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
-    &getGlobalOpCreatorMap() {
+// 对所有输出Tensor进行检查，检查其内存是否满足Op运行
+// 或者申请内存
+base::Status Op::checkOrAllocOutput() {
+  base::Status status = base::kStatusCodeOk;
+  inferShape();
+  for (auto output : outputs_) {
+    if (output->getBuffer() == nullptr) {
+      auto device = device::getDevice(inputs_[0]->getDeviceType());
+      output->allocate(device);
+
+    } else {
+      // TODO: 如何进行检查： 直接检查Buffer的size 和
+      // 形状推理后Tensor的size大小吗
+      
+      status = base::kStatusCodeErrorOutOfMemory;
+
+      break;
+    }
+  }
+
+  return status;
+}
+
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
+getGlobalOpCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::DeviceTypeCode,
                                   std::map<OpType, std::shared_ptr<OpCreator>>>>
