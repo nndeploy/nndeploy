@@ -34,7 +34,7 @@ class AscendCLOpReshape : public OpReshape {
           outputs_[0]->getData(), outputs_[0]->getSize(), inputs_[0]->getData(),
           inputs_[0]->getSize(), ACL_MEMCPY_DEVICE_TO_DEVICE, inner_stream_);
       if (ret != ACL_SUCCESS) {
-        NNDEPLOY_LOG_ERROR("aclrtMemcpyAsync failed.");
+        NNDEPLOY_LOGE("aclrtMemcpyAsync failed.");
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
@@ -46,6 +46,8 @@ class AscendCLOpReshape : public OpReshape {
   // TODO: 待完善
   std::string inner_op_type_ = "Reshape";
   int allowzero_ = 0;
+  aclrtStream inner_stream_;
+  aclopAttr* attr_{nullptr};
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,

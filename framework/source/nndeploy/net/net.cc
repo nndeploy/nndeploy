@@ -75,6 +75,10 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
   // TODO: 这里命名与namespace op下的createOp冲突
   // 必须使用op::  否则递归了
   op::Op *op = op::createOp(device_type, name, op_type, inputs, outputs);
+  if (op == nullptr) {
+    NNDEPLOY_LOGE("Failed to create Op: %s\n", name.c_str());
+    return nullptr;
+  }
   OpWrapper *op_wrapper = new OpWrapper();
   op_wrapper->is_external_ = false;
   op_wrapper->op_ = op;
@@ -84,11 +88,12 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
     if (input_wrapper == nullptr) {
       if (isWeight(input)) {
         device::Tensor *weight = getWeight(input);
-        input_wrapper = new TensorWrapper();
-        input_wrapper->is_external_ = false;
-        input_wrapper->is_weight_ = true;
-        input_wrapper->tensor_ = weight;
-        input_wrapper->name_ = input;
+        // input_wrapper = new TensorWrapper();
+        // input_wrapper->is_external_ = false;
+        // input_wrapper->is_weight_ = true;
+        // input_wrapper->tensor_ = weight;
+        // input_wrapper->name_ = input;
+        input_wrapper = this->addTensor(weight, false, true);
       } else {
         input_wrapper = this->createTensor(input);
         if (input_wrapper == nullptr) {
@@ -123,6 +128,10 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
                       op::OpType op_type, std::vector<std::string> &inputs,
                       std::vector<std::string> &outputs) {
   op::Op *op = op::createOp(device_type, name, op_type, inputs, outputs);
+  if (op == nullptr) {
+    NNDEPLOY_LOGE("Failed to create Op: %s\n", name.c_str());
+    return nullptr;
+  }
   OpWrapper *op_wrapper = new OpWrapper();
   op_wrapper->is_external_ = false;
   op_wrapper->op_ = op;
@@ -132,11 +141,12 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
     if (input_wrapper == nullptr) {
       if (isWeight(input)) {
         device::Tensor *weight = getWeight(input);
-        input_wrapper = new TensorWrapper();
-        input_wrapper->is_external_ = false;
-        input_wrapper->is_weight_ = true;
-        input_wrapper->tensor_ = weight;
-        input_wrapper->name_ = input;
+        // input_wrapper = new TensorWrapper();
+        // input_wrapper->is_external_ = false;
+        // input_wrapper->is_weight_ = true;
+        // input_wrapper->tensor_ = weight;
+        // input_wrapper->name_ = input;
+        input_wrapper = this->addTensor(weight, false, true);
       } else {
         input_wrapper = this->createTensor(input);
         if (input_wrapper == nullptr) {
@@ -234,9 +244,11 @@ base::Status Net::init() {
   status = optimizer();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
+  NNDEPLOY_LOGE("hello world\n");
 
   status = inferDataType();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferDataType failed!");
+  NNDEPLOY_LOGE("hello world\n");
 
   status = inferShape();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferShape failed!");
@@ -301,6 +313,7 @@ base::Status Net::inferDataType() {
 base::Status Net::inferShape() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
+    NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->inferShape();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "inferDataType failed!");
@@ -421,14 +434,20 @@ base::Status Net::construct() {
     std::vector<std::string> output_names;
     for (auto input_name : op_desc_->inputs_) {
       insertUnique(input_names, input_name);
+      NNDEPLOY_LOGE("op_desc->inputs_ = %s\n", input_name.c_str());
     }
     for (auto output_name : op_desc_->outputs_) {
       insertUnique(output_names, output_name);
+      NNDEPLOY_LOGE("op_desc->outputs_ = %s\n", output_name.c_str());
     }
 
     // createOp内部包含了CreateTensor的步骤，且是Unique的
     auto op = this->createOp(device_type_, op_desc_->name_, op_desc_->op_type_,
                              input_names, output_names);
+    if (op == nullptr) {
+      NNDEPLOY_LOGE("Failed to create Op: %s\n", op_desc_->name_.c_str());
+      return base::kStatusCodeErrorInvalidValue;
+    }
     // 不对param进行判空检查  有些op没有param，例如relu
     op->setParam(op_desc_->op_param_);
   }
@@ -460,6 +479,18 @@ base::Status Net::construct() {
     input_wrapper->tensor_->reshape(shape);
   }
 
+  // 输出的构建
+  for (auto output : model_desc_->outputs_) {
+    TensorWrapper *output_wrapper =
+        findTensorWrapper(tensor_repository_, output->name_);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->createTensor(output->name_);
+      NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
+                                           "create tensor failed!");
+    }
+    outputs_.emplace_back(output_wrapper->tensor_);
+  }
+
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
   // NNDEPLOY_LOGI("###########################\n");
@@ -468,6 +499,7 @@ base::Status Net::construct() {
                                          "tensor_repository_ op is null!");
   }
   for (auto tensor_wrapper : tensor_repository_) {
+    NNDEPLOY_LOGI("tensor name = %s\n", tensor_wrapper->name_.c_str());
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(tensor_wrapper->tensor_,
                                          "tensor_repository_ tensor is null!");
     if (tensor_wrapper->producers_.empty() &&

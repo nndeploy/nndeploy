@@ -6,6 +6,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/op/ascend_cl/acl_op_include.h"
+#include "nndeploy/op/ascend_cl/acl_op_util.h"
 
 namespace nndeploy {
 namespace op {
@@ -73,10 +74,6 @@ std::string getOpInfoString(std::vector<aclTensorDesc*> descs,
   return ss.str();
 }
 
-template <typename T>
-aclDataType aclDataTypeOf() {
-  return ACL_FLOAT;
-}
 template <>
 aclDataType aclDataTypeOf<float>() {
   return ACL_FLOAT;

@@ -116,17 +116,19 @@ base::Status dumpNet(std::vector<TensorWrapper *> &tensor_repository,
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("op::Op dump Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
+
   if (name.empty()) {
-    oss << "digraph graph {\n";
+    oss << "digraph graphviz {\n";
   } else {
     oss << "digraph " << name << " {\n";
   }
   for (auto input : graph_inputs) {
     if (input->getName().empty()) {
-      oss << "p" << (void *)input << "[shape=box, label=input]\n";
+      oss << "p" << (void *)input << "[shape=box, label=\"" << "input"
+          << "\"]\n";
     } else {
-      oss << "p" << (void *)input << "[shape=box, label=" << input->getName()
-          << "]\n";
+      oss << "p" << (void *)input << "[shape=box, label=\"" << input->getName()
+          << "\"]\n";
     }
     TensorWrapper *tensor_wrapper = findTensorWrapper(tensor_repository, input);
     for (auto op_wrapper : tensor_wrapper->consumers_) {
@@ -136,16 +138,21 @@ base::Status dumpNet(std::vector<TensorWrapper *> &tensor_repository,
       if (input->getName().empty()) {
         oss << "\n";
       } else {
-        oss << "[label=" << input->getName() << "]\n";
+        oss << "[label=\"" << input->getName() << ", Shape: ";
+        for (auto dim : input->getShape()) {
+          oss << dim << " ";
+        }
+        // oss.seekp(-1, std::ios_base::cur);  // 移除最后一个空格
+        oss << "\"]\n";
       }
     }
   }
   for (auto op_wrapper : op_repository) {
     op::Op *op = op_wrapper->op_;
     if (op->getName().empty()) {
-      oss << "p" << (void *)op << "[label=op]\n";
+      oss << "p" << (void *)op << "[label=\"" << "op" << "\"]\n";
     } else {
-      oss << "p" << (void *)op << "[label=" << op->getName() << "]\n";
+      oss << "p" << (void *)op << "[label=\"" << op->getName() << "\"]\n";
     }
     for (auto successor : op_wrapper->successors_) {
       auto outputs = op->getAllOutput();
@@ -164,7 +171,12 @@ base::Status dumpNet(std::vector<TensorWrapper *> &tensor_repository,
           if (out_in->getName().empty()) {
             oss << "\n";
           } else {
-            oss << "[label=" << out_in->getName() << "]\n";
+            oss << "[label=\"" << out_in->getName() << ", Shape: ";
+            for (auto dim : out_in->getShape()) {
+              oss << dim << " ";
+            }
+            // oss.seekp(-1, std::ios_base::cur);  // 移除最后一个空格
+            oss << "\"]\n";
           }
         }
       }
@@ -172,10 +184,11 @@ base::Status dumpNet(std::vector<TensorWrapper *> &tensor_repository,
   }
   for (auto output : graph_outputs) {
     if (output->getName().empty()) {
-      oss << "p" << (void *)output << "[shape=box, label=output]\n";
+      oss << "p" << (void *)output << "[shape=box, label=\"" << "output"
+          << "\"]\n";
     } else {
-      oss << "p" << (void *)output << "[shape=box, label=" << output->getName()
-          << "]\n";
+      oss << "p" << (void *)output << "[shape=box, label=\""
+          << output->getName() << "\"]\n";
     }
     TensorWrapper *tensor_wrapper =
         findTensorWrapper(tensor_repository, output);
@@ -186,9 +199,17 @@ base::Status dumpNet(std::vector<TensorWrapper *> &tensor_repository,
       if (output->getName().empty()) {
         oss << "\n";
       } else {
-        oss << "[label=" << output->getName() << "]\n";
+        oss << "[label=\"" << output->getName() << "\"]\n";
       }
     }
+    // 打印tensor的形状信息
+    oss << "p" << (void *)output << "[label=\"" << output->getName()
+        << ", Shape: ";
+    for (auto dim : output->getShape()) {
+      oss << dim << " ";
+    }
+    // oss.seekp(-1, std::ios_base::cur);  // 移除最后一个空格
+    oss << "\"]\n";
   }
   oss << "}\n";
   return status;

@@ -214,7 +214,7 @@ base::Status OpResize::inferShape() {
   } else if (nullptr != scales) {
     // Infer output shape's dimension value if 'scales' is known.
     if (inputs_[2]->getDataType() == base::dataTypeOf<float>()) {
-      size_t size = inputs_[2]->getSize();
+      size_t size = inputs_[2]->getSize() / sizeof(float);
       std::vector<float> scales_data(size);
       for (size_t i = 0; i < size; i++) {
         scales_data[i] = scales[i];

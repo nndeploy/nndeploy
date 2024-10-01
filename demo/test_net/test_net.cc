@@ -33,6 +33,7 @@ int main() {
       std::make_shared<interpret::OnnxInterpret>();
   std::vector<std::string> model_value;
   model_value.push_back("/root/model/yolov8n.onnx");
+  // model_value.push_back("/root/model/modified_yolov8n.onnx");
   NNDEPLOY_LOGE("hello world\n");
   base::Status status = onnx_interpret->interpret(model_value);
   if (status != base::kStatusCodeOk) {
@@ -53,21 +54,22 @@ int main() {
   // auto cann_model = std::make_shared<CannTest>();
   // cann_model->init();
 
-  // NNDEPLOY_LOGE("hello world\n");
-  // auto cann_net = std::make_shared<net::Net>();
+  NNDEPLOY_LOGE("hello world\n");
+  auto cann_net = std::make_shared<net::Net>();
   // cann_net->setModelDesc(cann_model.get());
-  // NNDEPLOY_LOGE("hello world\n");
+  cann_net->setModelDesc(md);
+  NNDEPLOY_LOGE("hello world\n");
 
-  // base::DeviceType device_type;
-  // device_type.code_ = base::kDeviceTypeCodeAscendCL;
-  // device_type.device_id_ = 0;
-  // cann_net->setDeviceType(device_type);
+  base::DeviceType device_type;
+  device_type.code_ = base::kDeviceTypeCodeAscendCL;
+  device_type.device_id_ = 0;
+  cann_net->setDeviceType(device_type);
 
-  // cann_net->init();
-  // NNDEPLOY_LOGE("hello world\n");
+  cann_net->init();
+  NNDEPLOY_LOGE("hello world\n");
 
-  // cann_net->dump(std::cout);
-  // NNDEPLOY_LOGE("hello world\n");
+  cann_net->dump(std::cout);
+  NNDEPLOY_LOGE("hello world\n");
 
   // cann_net->preRun();
   // NNDEPLOY_LOGE("hello world\n");
@@ -76,8 +78,8 @@ int main() {
   // cann_net->postRun();
   // NNDEPLOY_LOGE("hello world\n");
 
-  // cann_net->deinit();
-  // NNDEPLOY_LOGE("hello world\n");
+  cann_net->deinit();
+  NNDEPLOY_LOGE("hello world\n");
 
   return 0;
 }

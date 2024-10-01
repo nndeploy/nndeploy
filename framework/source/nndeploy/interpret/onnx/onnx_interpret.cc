@@ -172,6 +172,22 @@ device::Tensor* OnnxInterpret::convertToTensor(const onnx::TensorProto& src) {
   device::Tensor* tensor = new device::Tensor(device, desc, data_ptr, name);
   return tensor;
 }
+device::Tensor* OnnxInterpret::convertToTensor(const onnx::TensorProto& src,
+                                               const std::string& name) {
+  device::TensorDesc desc;
+  onnx::TensorProto_DataType onnx_data_type =
+      (onnx::TensorProto_DataType)src.data_type();
+  desc.data_type_ = convertToDataType(onnx_data_type);
+  desc.data_format_ = convertToDataFormat(src.dims(), true);
+  desc.shape_ = convertToShape(src.dims());
+  void* data_ptr = getDataFromTensor(src);
+  // debug
+  // NNDEPLOY_LOGI("data_ptr = %p\n", data_ptr);
+  // desc.print();
+  device::Device* device = device::getDefaultHostDevice();
+  device::Tensor* tensor = new device::Tensor(device, desc, data_ptr, name);
+  return tensor;
+}
 std::shared_ptr<op::ValueDesc> OnnxInterpret::convertToValueDesc(
     const onnx::ValueInfoProto& src) {
   std::string name = src.name();
@@ -456,6 +472,7 @@ const onnx::TensorProto* OnnxInterpret::getTensorFromConstantNode(
   for (int i = 0; i < constant_node.attribute_size(); ++i) {
     const auto& attribute_proto = constant_node.attribute(i);
     const auto& attribute_name = attribute_proto.name();
+    NNDEPLOY_LOGE("attribute_name = %s.\n", attribute_name.c_str());
     if (attribute_name == "value") {
       return &attribute_proto.t();
     }
@@ -494,17 +511,29 @@ base::Status OnnxInterpret::interpret(
 
   // 检查并转换ONNX模型版本
   if (this->onnx_model_->ir_version() != target_version_) {
-    NNDEPLOY_LOGI("当前模型版本: %d, 正在转换到版本 %d./n",
+    NNDEPLOY_LOGI("当前模型版本: %d, 正在转换到版本 %d.\n",
                   this->onnx_model_->ir_version(), target_version_);
     try {
       onnx::ModelProto converted_model =
           onnx::version_conversion::ConvertVersion(*(this->onnx_model_),
                                                    target_version_);
+      // 存储ONNX模型
+      std::ofstream output_stream("converted_model.onnx",
+                                  std::ofstream::out | std::ofstream::binary);
+      if (!output_stream.is_open()) {
+        NNDEPLOY_LOGE("无法打开输出文件.\n");
+        return base::kStatusCodeErrorInvalidParam;
+      }
+      if (!converted_model.SerializeToOstream(&output_stream)) {
+        NNDEPLOY_LOGE("无法序列化ONNX模型.\n");
+        return base::kStatusCodeErrorInvalidParam;
+      }
+      output_stream.close();
       *(this->onnx_model_) = std::move(converted_model);
-      NNDEPLOY_LOGI("模型版本成功转换到 %d./n",
+      NNDEPLOY_LOGI("模型版本成功转换到 %d.\n",
                     this->onnx_model_->ir_version());
     } catch (const std::exception& e) {
-      NNDEPLOY_LOGE("版本转换过程中发生错误: %s./n", e.what());
+      NNDEPLOY_LOGE("版本转换过程中发生错误: %s.\n", e.what());
       return base::kStatusCodeErrorInvalidParam;
     }
   }
@@ -541,6 +570,7 @@ base::Status OnnxInterpret::interpret(
   for (int i = 0; i < initializer_size; ++i) {
     const auto& initializer = onnx_graph.initializer(i);
     std::string name = initializer.name();
+    // NNDEPLOY_LOGI("initializer name = %s\n", name.c_str());
     // 浅拷贝权重数据
     device::Tensor* tensor = convertToTensor(initializer);
     model_desc_->weights_.insert(std::make_pair(name, tensor));
@@ -556,8 +586,9 @@ base::Status OnnxInterpret::interpret(
     if (node_op_type == "Constant") {
       const onnx::TensorProto* initializer =
           getTensorFromConstantNode(onnx_node);
-      std::string name = initializer->name();
-      device::Tensor* tensor = convertToTensor(*initializer);
+      std::string name = onnx_node.output(0);  // 非常重要
+
+      device::Tensor* tensor = convertToTensor(*initializer, name);
       model_desc_->weights_.insert(std::make_pair(name, tensor));
     }
   }

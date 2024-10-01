@@ -54,7 +54,7 @@ class AscendCLOpSlice : public OpSlice {
 
     // 创建算子
     aclnnStatus aclnn_status =
-        aclnnSliceGetWorkspaceSize(inner_inputs_, dim_, start_, end_, step_,
+        aclnnSliceGetWorkspaceSize(inner_input_, dim_, start_, end_, step_,
                                    inner_output_, &workspace_size_, &executor_);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
