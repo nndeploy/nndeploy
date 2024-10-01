@@ -48,7 +48,7 @@ int main() {
   }
   NNDEPLOY_LOGE("hello world\n");
 
-  md->dump(std::cout);
+  // md->dump(std::cout);
 
   // NNDEPLOY_LOGE("hello world\n");
   // auto cann_model = std::make_shared<CannTest>();
@@ -68,8 +68,8 @@ int main() {
   cann_net->init();
   NNDEPLOY_LOGE("hello world\n");
 
-  cann_net->dump(std::cout);
-  NNDEPLOY_LOGE("hello world\n");
+  // cann_net->dump(std::cout);
+  // NNDEPLOY_LOGE("hello world\n");
 
   // cann_net->preRun();
   // NNDEPLOY_LOGE("hello world\n");

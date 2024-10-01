@@ -48,7 +48,33 @@ bool isInterval(std::array<int, 2> &interval,
       return true;
     }
   }
-  return true;
+  return false;
+}
+
+void tensorUsageRecordPrint(
+    const std::vector<std::shared_ptr<TensorUsageRecord>>
+        &tensor_usage_records) {
+  // 统计tensor的个数，并累加大小
+  size_t total_tensor_count = 0;
+  size_t total_memory_size = 0;
+  for (const auto &tensor_usage_record : tensor_usage_records) {
+    total_tensor_count++;
+    total_memory_size += tensor_usage_record->size_;
+  }
+  NNDEPLOY_LOGE("Total tensor count: %zu\n", total_tensor_count);
+  NNDEPLOY_LOGE("Total memory size: %zu\n", total_memory_size);
+}
+
+void chunkPrint(const std::vector<std::shared_ptr<Chunk>> &chunks) {
+  // 统计chunk的个数，并累加大小
+  size_t total_chunk_count = 0;
+  size_t total_chunk_size = 0;
+  for (const auto &chunk : chunks) {
+    total_chunk_count++;
+    total_chunk_size += chunk->buffer_->getSize();
+  }
+  NNDEPLOY_LOGE("Total chunk count: %zu\n", total_chunk_count);
+  NNDEPLOY_LOGE("Total chunk size: %zu\n", total_chunk_size);
 }
 
 }  // namespace net

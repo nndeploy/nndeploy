@@ -86,7 +86,7 @@ base::Status OpSlice::inferShape() {
     }
   }
 
-  base::IntVector output_shape(input_shape.size(), 0);
+  base::IntVector output_shape = input_shape;
 
   for (size_t i = 0; i < axes.size(); ++i) {
     int64_t axis = axes[i];
