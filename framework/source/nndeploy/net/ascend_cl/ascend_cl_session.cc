@@ -16,8 +16,8 @@ TypeSessionRegister<TypeSessionCreator<AscendCLSession>>
         base::ParallelType::kParallelTypeNone);
 
 AscendCLSession::AscendCLSession(const base::DeviceType &device_type)
-    : Session(device_type){};
-AscendCLSession::~AscendCLSession(){};
+    : Session(device_type) {};
+AscendCLSession::~AscendCLSession() {};
 
 base::Status AscendCLSession::init(
     std::vector<TensorWrapper *> &tensor_repository,
@@ -157,6 +157,7 @@ base::Status AscendCLSession::reshape(base::ShapeMap &shape_map) {
 base::Status AscendCLSession::preRun() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
+    NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->preRun();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s preRun failed\n", iter->op_->getName().c_str());

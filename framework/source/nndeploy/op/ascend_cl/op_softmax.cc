@@ -43,9 +43,6 @@ class AscendCLOpSoftmax : public OpSoftmax {
     // 输入输出
     aclnnStatus aclnn_status =
         aclnnSoftmax(workspace_, workspace_size_, executor_, inner_stream_);
-    NNDEPLOY_LOGE("dim_ is %d.\n", static_cast<int32_t>(dim_));
-    NNDEPLOY_LOGE("Execute Operator failed. error code is %d.\n",
-                  static_cast<int32_t>(aclnn_status));
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
                                  "aclnnSoftmax failed.");
@@ -55,7 +52,6 @@ class AscendCLOpSoftmax : public OpSoftmax {
   virtual base::Status postRun() {
     aclDestroyTensor(inner_input_);
     aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 

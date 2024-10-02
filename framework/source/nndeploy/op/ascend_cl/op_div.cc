@@ -50,12 +50,10 @@ class AscendCLOpDiv : public OpBinary {
     aclDestroyTensor(inner_input_0_);
     aclDestroyTensor(inner_input_1_);
     aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 
  private:
-  // TODO: 待完善
   std::string inner_op_type_ = "Div";
 
   aclTensor* inner_input_0_ = nullptr;

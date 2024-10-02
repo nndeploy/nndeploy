@@ -21,11 +21,7 @@ class AscendCLOpSlice : public OpSlice {
 
     return base::kStatusCodeOk;
   }
-  virtual base::Status deinit() { return base::kStatusCodeOk; }
-  virtual base::Status preRun() {
-    // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    // Start Generation Here
+  virtual base::Status deinit() {
     if (inputs_[1]->getDataType() == base::dataTypeOf<int32_t>()) {
       start_ = *(static_cast<int32_t*>(inputs_[1]->getData()));
     } else {
@@ -50,6 +46,11 @@ class AscendCLOpSlice : public OpSlice {
     } else {
       step_ = 1;
     }
+    return base::kStatusCodeOk;
+  }
+  virtual base::Status preRun() {
+    // 输入输出
+    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
     inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
 
     // 创建算子
@@ -74,12 +75,10 @@ class AscendCLOpSlice : public OpSlice {
   virtual base::Status postRun() {
     aclDestroyTensor(inner_input_);
     aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 
  private:
-  // TODO: 待完善
   std::string inner_op_type_ = "Slice";
 
   aclTensor* inner_input_ = nullptr;

@@ -47,7 +47,6 @@ class AscendCLOpSigmoid : public OpUnary {
   virtual base::Status postRun() {
     aclDestroyTensor(inner_input_);
     aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 

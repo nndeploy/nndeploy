@@ -19,13 +19,20 @@ class AscendCLOpAdd : public OpBinary {
 
     return base::kStatusCodeOk;
   }
-  virtual base::Status deinit() { return base::kStatusCodeOk; }
+  virtual base::Status deinit() {
+    if (alpha_ != nullptr) {
+      aclDestroyScalar(alpha_);
+    }
+    return base::kStatusCodeOk;
+  }
   virtual base::Status preRun() {
     // 输入输出
     inner_input_0_ = AclOpConvert::convertFromTensor(inputs_[0]);
     inner_input_1_ = AclOpConvert::convertFromTensor(inputs_[1]);
-    alpha_ = AclOpConvert::convertFromScalar(1.0f, inputs_[0]->getDataType());
-    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(alpha_, "aclCreateScalar failed.");
+    if (alpha_ == nullptr) {
+      alpha_ = AclOpConvert::convertFromScalar(1.0f, inputs_[0]->getDataType());
+      NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(alpha_, "aclCreateScalar failed.");
+    }
     inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
 
     // 创建算子
@@ -50,14 +57,11 @@ class AscendCLOpAdd : public OpBinary {
   virtual base::Status postRun() {
     aclDestroyTensor(inner_input_0_);
     aclDestroyTensor(inner_input_1_);
-    aclDestroyScalar(alpha_);
     aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 
  private:
-  // TODO: 待完善
   std::string inner_op_type_ = "Add";
 
   aclTensor* inner_input_0_ = nullptr;

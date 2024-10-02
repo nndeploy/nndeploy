@@ -52,12 +52,10 @@ class AscendCLOpConcat : public OpConcat {
   virtual base::Status postRun() {
     aclDestroyTensorList(inner_inputs_);
     aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 
  private:
-  // TODO: 待完善
   std::string inner_op_type_ = "Concat";
 
   aclTensorList* inner_inputs_ = nullptr;

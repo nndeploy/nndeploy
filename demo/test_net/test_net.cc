@@ -71,8 +71,8 @@ int main() {
   // cann_net->dump(std::cout);
   // NNDEPLOY_LOGE("hello world\n");
 
-  // cann_net->preRun();
-  // NNDEPLOY_LOGE("hello world\n");
+  cann_net->preRun();
+  NNDEPLOY_LOGE("hello world\n");
   // cann_net->run();
   // NNDEPLOY_LOGE("hello world\n");
   // cann_net->postRun();

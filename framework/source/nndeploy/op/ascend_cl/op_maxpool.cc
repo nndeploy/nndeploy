@@ -1,6 +1,6 @@
 #include "nndeploy/op/op_maxpool.h"
 
-// #include "aclnnop/aclnn_max_pool.h"
+#include "aclnnop/aclnn_max_pool.h"
 #include "nndeploy/op/ascend_cl/acl_op_convert.h"
 #include "nndeploy/op/ascend_cl/acl_op_include.h"
 #include "nndeploy/op/ascend_cl/acl_op_util.h"
@@ -44,31 +44,29 @@ class AscendCLOpMaxPool : public OpMaxPool {
   }
   virtual base::Status preRun() {
     // 输入输出
-    // inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    // inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
+    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
 
-    // // 创建算子
-    // aclnnStatus aclnn_status = aclnnMaxPoolGetWorkspaceSize(
-    //     inner_input_, kernel_shape_, stride_, auto_pad_, padding_, dilation_,
-    //     ceil_mode_, inner_output_, &workspace_size_, &executor_);
-    // NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-    //                              base::kStatusCodeErrorOpAscendCL,
-    //                              "aclnnMaxPoolGetWorkspaceSize failed.");
+    // 创建算子
+    aclnnStatus aclnn_status = aclnnMaxPoolGetWorkspaceSize(
+        inner_input_, kernel_shape_, stride_, auto_pad_, padding_, dilation_,
+        ceil_mode_, inner_output_, &workspace_size_, &executor_);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
+                                 base::kStatusCodeErrorOpAscendCL,
+                                 "aclnnMaxPoolGetWorkspaceSize failed.");
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
-    // aclnnStatus aclnn_status =
-    //     aclnnMaxPool(workspace_, workspace_size_, executor_, inner_stream_);
-    // NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-    //                              base::kStatusCodeErrorOpAscendCL,
-    //                              "aclnnSoftmax failed.");
-
+    aclnnStatus aclnn_status =
+        aclnnMaxPool(workspace_, workspace_size_, executor_, inner_stream_);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
+                                 base::kStatusCodeErrorOpAscendCL,
+                                 "aclnnSoftmax failed.");
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
     aclDestroyTensor(inner_input_);
     aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 
@@ -83,7 +81,6 @@ class AscendCLOpMaxPool : public OpMaxPool {
   aclIntArray *dilation_;
   int64_t ceil_mode_;
   aclTensor *inner_output_;
-
   aclOpExecutor *executor_;
 
   aclrtStream inner_stream_;

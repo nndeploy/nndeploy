@@ -372,6 +372,8 @@ aclFormat AclOpConvert::convertFromDataFormat(const base::DataFormat &src) {
     dst = ACL_FORMAT_NCL;
   } else if (src == base::kDataFormatNCHW) {
     dst = ACL_FORMAT_NCHW;
+  } else if (src == base::kDataFormatOIHW) {
+    dst = ACL_FORMAT_NCHW;
   } else if (src == base::kDataFormatNHWC) {
     dst = ACL_FORMAT_NHWC;
   } else if (src == base::kDataFormatNCDHW) {

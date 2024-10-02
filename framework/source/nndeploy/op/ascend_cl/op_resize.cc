@@ -1,6 +1,6 @@
 #include "nndeploy/op/op_resize.h"
 
-// #include "aclnnop/aclnn_resize.h"
+#include "aclnnop/aclnn_resize.h"
 #include "nndeploy/op/ascend_cl/acl_op_convert.h"
 #include "nndeploy/op/ascend_cl/acl_op_include.h"
 #include "nndeploy/op/ascend_cl/acl_op_util.h"
@@ -16,67 +16,62 @@ class AscendCLOpResize : public OpResize {
 
   virtual base::Status init() {
     // 参数
-    // auto param = dynamic_cast<ResizeParam*>(op_desc_.op_param_.get());
-    // mode_ = static_cast<int64_t>(param->mode_);
+    auto param = dynamic_cast<ResizeParam*>(op_desc_.op_param_.get());
+    mode_ = static_cast<int64_t>(param->mode_);
 
-    // // 流
-    // device::Device* device = device::getDevice(device_type_);
-    // inner_stream_ = (aclrtStream)device->getCommandQueue();
+    // 流
+    device::Device* device = device::getDevice(device_type_);
+    inner_stream_ = (aclrtStream)device->getCommandQueue();
 
     return base::kStatusCodeOk;
   }
   virtual base::Status deinit() {
-    // if (scales_ != nullptr) {
-    //   aclDestoryFloatArray(scales_);
-    // }
+    if (scales_ != nullptr) {
+      aclDestoryFloatArray(scales_);
+    }
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {
     // 输入输出
-    // inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    // base::DataType data_type = inputs_[1]->getDataType();
-    // if (data_type.code_ != base::kDataTypeCodeFp) {
-    //   NNDEPLOY_LOG_ERROR("Resize only support float data type.");
-    //   return base::kStatusCodeErrorInvalidParam;
-    // }
-    // if (scales_ == nullptr) {
-    //   float* data = (float*)inputs_[1]->getData();
-    //   size_t size = inputs_[1]->getSize() >> 2;
-    //   scales_ = aclCreateFloatArray(data, size);
-    // }
-    // inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
+    base::DataType data_type = inputs_[1]->getDataType();
+    if (data_type.code_ != base::kDataTypeCodeFp) {
+      NNDEPLOY_LOG_ERROR("Resize only support float data type.");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    if (scales_ == nullptr) {
+      float* data = (float*)inputs_[1]->getData();
+      size_t size = inputs_[1]->getSize() / sizeof(float);
+      scales_ = aclCreateFloatArray(data, size);
+    }
+    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
 
-    // // 创建算子
-    // char* mode = mode_.c_str();
-    // aclnnStatus aclnn_status =
-    //     aclnnResizeGetWorkspaceSize(inner_inputs_, scales_, mode,
-    //     inner_output_,
-    //                                 &workspace_size_, &executor_);
-    // NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-    //                              base::kStatusCodeErrorOpAscendCL,
-    //                              "aclnnResizeGetWorkspaceSize failed.");
+    // 创建算子
+    char* mode = mode_.c_str();
+    aclnnStatus aclnn_status =
+        aclnnResizeGetWorkspaceSize(inner_inputs_, scales_, mode, inner_output_,
+                                    &workspace_size_, &executor_);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
+                                 base::kStatusCodeErrorOpAscendCL,
+                                 "aclnnResizeGetWorkspaceSize failed.");
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
     // 输入输出
-    // aclnnStatus aclnn_status =
-    //     aclnnResize(workspace_, workspace_size_, executor_, inner_stream_);
-    // NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-    //                              base::kStatusCodeErrorOpAscendCL,
-    //                              "aclnnCat failed.");
-
+    aclnnStatus aclnn_status =
+        aclnnResize(workspace_, workspace_size_, executor_, inner_stream_);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
+                                 base::kStatusCodeErrorOpAscendCL,
+                                 "aclnnCat failed.");
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    // aclDestroyTensor(inner_input_);
-    // // aclDestroyFloatArray(scales_);
-    // aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
+    aclDestroyTensor(inner_input_);
+    aclDestroyTensor(inner_output_);
     return base::kStatusCodeOk;
   }
 
  private:
-  // TODO: 待完善
   std::string inner_op_type_ = "Resize";
 
   aclTensor* inner_input_ = nullptr;

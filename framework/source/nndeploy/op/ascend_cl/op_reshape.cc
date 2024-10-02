@@ -28,7 +28,6 @@ class AscendCLOpReshape : public OpReshape {
   virtual base::Status preRun() { return base::kStatusCodeOk; }
   // inferShape已经把事情做完了，这里只需要把输入数据拷贝到输出即可
   virtual base::Status run() {
-    // Start Generation Here
     if (outputs_[0]->getData() != inputs_[0]->getData()) {
       aclError ret = aclrtMemcpyAsync(
           outputs_[0]->getData(), outputs_[0]->getSize(), inputs_[0]->getData(),
@@ -43,9 +42,10 @@ class AscendCLOpReshape : public OpReshape {
   virtual base::Status postRun() { return base::kStatusCodeOk; }
 
  private:
-  // TODO: 待完善
   std::string inner_op_type_ = "Reshape";
+
   int allowzero_ = 0;
+
   aclrtStream inner_stream_;
   aclopAttr* attr_{nullptr};
 };

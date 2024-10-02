@@ -59,6 +59,8 @@ base::Status OpSplit::inferShape() {
     return base::kStatusCodeErrorInvalidParam;
   }
 
+  param->num_outputs_ = target_shape_size;
+
   // infer output shape
   for (size_t i = 0; i < outputs_.size(); i++) {
     auto output_shape = input_shape;

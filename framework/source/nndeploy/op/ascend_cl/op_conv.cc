@@ -20,14 +20,29 @@ class AscendCLOpConv : public OpConv {
     stride_ = AclOpConvert::convertFromIntVector(param->strides_);
     padding_ = AclOpConvert::convertFromIntVector(param->pads_);
     dilation_ = AclOpConvert::convertFromIntVector(param->dilations_);
-    // output_padding_ = AclOpConvert::convertFromIntVector(output_pads_);
     transposed_ = false;
+    base::IntVector output_pads = {0, 0, 0, 0};
+    output_padding_ = AclOpConvert::convertFromIntVector(output_pads);
     groups_ = param->group_;
     cube_math_type_ = 0;
 
     // 流
     device::Device *device = device::getDevice(device_type_);
     inner_stream_ = (aclrtStream)device->getCommandQueue();
+
+    // 权重
+    weight_ = new device::Tensor(device, inputs_[1]->getDesc(),
+                                 inputs_[1]->getName());
+    weight_->getDesc().print();
+    inputs_[1]->copyTo(weight_);
+    inner_weight_ = AclOpConvert::convertFromTensor(weight_);
+    if (inputs_.size() > 2) {
+      bias_ = new device::Tensor(device, inputs_[2]->getDesc(),
+                                 inputs_[2]->getName());
+      bias_->getDesc().print();
+      inputs_[2]->copyTo(bias_);
+      inner_bias_ = AclOpConvert::convertFromTensor(bias_);
+    }
 
     return base::kStatusCodeOk;
   }
@@ -36,15 +51,18 @@ class AscendCLOpConv : public OpConv {
     aclDestroyIntArray(padding_);
     aclDestroyIntArray(dilation_);
     aclDestroyIntArray(output_padding_);
+
+    aclDestroyTensor(inner_weight_);
+    aclDestroyTensor(inner_bias_);
+
+    delete weight_;
+    delete bias_;
+
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {
     // 输入输出
     inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    inner_weight_ = AclOpConvert::convertFromTensor(inputs_[1]);
-    if (inputs_.size() > 2) {
-      inner_bias_ = AclOpConvert::convertFromTensor(inputs_[2]);
-    }
     inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
 
     // 创建算子
@@ -66,16 +84,7 @@ class AscendCLOpConv : public OpConv {
 
     return base::kStatusCodeOk;
   }
-  virtual base::Status postRun() {
-    aclDestroyTensor(inner_input_);
-    aclDestroyTensor(inner_weight_);
-    if (inner_bias_ != nullptr) {
-      aclDestroyTensor(inner_bias_);
-    }
-    aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
-    return base::kStatusCodeOk;
-  }
+  virtual base::Status postRun() { return base::kStatusCodeOk; }
 
  private:
   std::string inner_op_type_ = "Convolution";
@@ -96,6 +105,9 @@ class AscendCLOpConv : public OpConv {
 
   aclrtStream inner_stream_;
   aclopAttr *attr_{nullptr};
+
+  device::Tensor *weight_;
+  device::Tensor *bias_;
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
