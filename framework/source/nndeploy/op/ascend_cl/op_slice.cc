@@ -50,8 +50,8 @@ class AscendCLOpSlice : public OpSlice {
   }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status =

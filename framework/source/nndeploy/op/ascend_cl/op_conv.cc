@@ -33,15 +33,28 @@ class AscendCLOpConv : public OpConv {
     // 权重
     weight_ = new device::Tensor(device, inputs_[1]->getDesc(),
                                  inputs_[1]->getName());
-    weight_->getDesc().print();
+    // weight_->getDesc().print();
     inputs_[1]->copyTo(weight_);
-    inner_weight_ = AclOpConvert::convertFromTensor(weight_);
+    if (weight_->getShape().size() == 3) {
+      dst_data_format_ = ACL_FORMAT_NCL;
+    } else if (weight_->getShape().size() == 4) {
+      dst_data_format_ = ACL_FORMAT_NCHW;
+    } else if (weight_->getShape().size() == 5) {
+      dst_data_format_ = ACL_FORMAT_NCDHW;
+    } else {
+      NNDEPLOY_LOGE("not support shape size: %d", weight_->getShape().size());
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+    if (transposed_) {
+      dst_data_format_ = = ACL_FORMAT_ND;
+    }
+    inner_weight_ = AclOpConvert::convertFromTensor(weight_, dst_data_format_);
     if (inputs_.size() > 2) {
       bias_ = new device::Tensor(device, inputs_[2]->getDesc(),
                                  inputs_[2]->getName());
-      bias_->getDesc().print();
+      // bias_->getDesc().print();
       inputs_[2]->copyTo(bias_);
-      inner_bias_ = AclOpConvert::convertFromTensor(bias_);
+      inner_bias_ = AclOpConvert::convertFromTensor(bias_, dst_data_format_);
     }
 
     return base::kStatusCodeOk;
@@ -62,8 +75,10 @@ class AscendCLOpConv : public OpConv {
   }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_input_ =
+        AclOpConvert::convertFromTensor(inputs_[0], dst_data_format_);
+    inner_output_ =
+        AclOpConvert::convertFromTensor(outputs_[0], dst_data_format_);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSize(
@@ -88,6 +103,8 @@ class AscendCLOpConv : public OpConv {
 
  private:
   std::string inner_op_type_ = "Convolution";
+
+  aclFormat dst_data_format_ = ACL_FORMAT_NCHW;
 
   aclTensor *inner_input_;
   aclTensor *inner_weight_;

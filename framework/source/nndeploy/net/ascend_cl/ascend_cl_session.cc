@@ -46,7 +46,7 @@ base::Status AscendCLSession::init(
           tensor->setDataFormat(base::DataFormat::kDataFormatNCHW);
         }
       } else if (shape_size == 3) {
-        tensor->setDataFormat(base::DataFormat::kDataFormatNCW);
+        tensor->setDataFormat(base::DataFormat::kDataFormatNCL);
       } else if (shape_size == 2) {
         tensor->setDataFormat(base::DataFormat::kDataFormatNC);
       } else if (shape_size == 1) {

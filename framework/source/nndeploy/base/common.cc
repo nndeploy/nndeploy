@@ -133,12 +133,8 @@ std::string dataFormatToString(DataFormat data_format) {
     dst = "kDataFormatN";
   } else if (data_format == kDataFormatNC) {
     dst = "kDataFormatNC";
-  } else if (data_format == kDataFormatNHW) {
-    dst = "kDataFormatNHW";
-  } else if (data_format == kDataFormatNWC) {
-    dst = "kDataFormatNWC";
-  } else if (data_format == kDataFormatNCW) {
-    dst = "kDataFormatNCW";
+  } else if (data_format == kDataFormatNCL) {
+    dst = "kDataFormatNCL";
   } else if (data_format == kDataFormatNCHW) {
     dst = "kDataFormatNCHW";
   } else if (data_format == kDataFormatNHWC) {

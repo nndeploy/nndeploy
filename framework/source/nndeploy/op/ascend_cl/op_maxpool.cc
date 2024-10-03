@@ -29,6 +29,15 @@ class AscendCLOpMaxPool : public OpMaxPool {
     dilation_ = AclOpConvert::convertFromIntVector(param->dilations_);
     ceil_mode_ = (int64_t)param->ceil_mode_;
 
+    if (param->kernel_shape_.size() == 1) {
+      dst_data_format_ = ACL_FORMAT_NCL;
+    } else if (param->kernel_shape_.size() == 2) {
+      dst_data_format_ = ACL_FORMAT_NCHW;
+    } else {
+      NNDEPLOY_LOGE("not support shape size: %d", weight_->getShape().size());
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+
     // 流
     device::Device *device = device::getDevice(device_type_);
     inner_stream_ = (aclrtStream)device->getCommandQueue();
@@ -44,8 +53,10 @@ class AscendCLOpMaxPool : public OpMaxPool {
   }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_input_ =
+        AclOpConvert::convertFromTensor(inputs_[0], dst_data_format_);
+    inner_output_ =
+        AclOpConvert::convertFromTensor(outputs_[0], dst_data_format_);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnMaxPoolGetWorkspaceSize(
@@ -72,6 +83,8 @@ class AscendCLOpMaxPool : public OpMaxPool {
 
  private:
   std::string inner_op_type_ = "MaxPool";
+
+  aclFormat dst_data_format_ = ACL_FORMAT_NCHW;
 
   aclTensor *inner_input_;
   aclIntArray *kernel_shape_;

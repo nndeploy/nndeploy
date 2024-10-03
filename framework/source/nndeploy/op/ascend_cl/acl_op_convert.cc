@@ -27,28 +27,25 @@ base::IntVector inferShapeLessTo4(base::IntVector dims) {
     return base::IntVector();
   }
   switch (dims.size()) {
-    case 0:
+    case 0:  // 标量
       res[0] = 1;
       res[1] = 1;
       res[2] = 1;
       res[3] = 1;
       break;
-    case 1:
-      // RESHAPE_TYPE_C;
+    case 1:  // kDataFormatN、kDataFormatNC
       res[0] = 1;
       res[1] = dims[0];
       res[2] = 1;
       res[3] = 1;
       break;
     case 2:
-      // RESHAPE_TYPE_CH;
       res[0] = 1;
       res[1] = dims[0];
       res[2] = dims[1];
       res[3] = 1;
       break;
     case 3:
-      // RESHAPE_TYPE_CHW;
       res[0] = 1;
       res[1] = dims[0];
       res[2] = dims[1];
@@ -227,24 +224,49 @@ base::IntVector inferShapeofND(base::IntVector dims) {
 using ShapeInfer = std::function<base::IntVector(base::IntVector dims)>;
 
 struct AclFormatConvert {
-  aclFormat format_ = ACL_FORMAT_ND;
-  aclFormat base_format_ = ACL_FORMAT_ND;
+  aclFormat dst_format_ = ACL_FORMAT_ND;
+  aclFormat src_format_ = ACL_FORMAT_ND;
   ShapeInfer func_ = nullptr;
-  char format_name_[30] = {0};
+  char format_name_[128] = {0};
   bool is_padded_ = false;
 };
 
 // clang-format off
-std::unordered_map<aclFormat, AclFormatConvert> g_acl_format_convert = {
-  {ACL_FORMAT_NC1HWC0,      (AclFormatConvert){ACL_FORMAT_NC1HWC0,    ACL_FORMAT_NCHW,    inferShape4To5,         "NC1HWC0",      true}}, // NOLINT
-  {ACL_FORMAT_ND,           (AclFormatConvert){ACL_FORMAT_ND,         ACL_FORMAT_ND,      inferShapeofND,         "ND",           false}}, // NOLINT
-  {ACL_FORMAT_NCHW,         (AclFormatConvert){ACL_FORMAT_NCHW,       ACL_FORMAT_NCHW,    inferShapeofNCHW,       "NCHW",         false}}, // NOLINT
-  {ACL_FORMAT_FRACTAL_NZ,   (AclFormatConvert){ACL_FORMAT_FRACTAL_NZ, ACL_FORMAT_ND,      inferShapeNDToNZ,       "FRACTAL_NZ",   true}}, // NOLINT
-  {ACL_FORMAT_FRACTAL_Z,    (AclFormatConvert){ACL_FORMAT_FRACTAL_Z,  ACL_FORMAT_NCHW,    inferShapeNDToZ,        "FRACTAL_Z",    true}}, // NOLINT
-  {ACL_FORMAT_NDHWC,        (AclFormatConvert){ACL_FORMAT_NDHWC,      ACL_FORMAT_NCDHW,   inferShapeOfNDHWC,      "NDHWC",        false}}, // NOLINT
-  {ACL_FORMAT_NCDHW,        (AclFormatConvert){ACL_FORMAT_NCDHW,      ACL_FORMAT_NCDHW,   inferShapeOfNCDHW,      "NCDHW",        false}}, // NOLINT
-  {ACL_FORMAT_NDC1HWC0,     (AclFormatConvert){ACL_FORMAT_NDC1HWC0,   ACL_FORMAT_NCDHW,   inferShapeOfNDC1HWC0,   "NDC1HWC0",     true}}, // NOLINT
-  {ACL_FRACTAL_Z_3D,        (AclFormatConvert){ACL_FRACTAL_Z_3D,      ACL_FORMAT_NCDHW,   inferShapeOfFZ3D,       "FRACTAL_Z_3D", true}}, // NOLINT
+std::map<aclFormat, std::map<aclFormat, AclFormatConvert>> g_acl_format_convert = {
+    // ACL_FORMAT_N、ACL_FORMAT_NC、ACL_FORMAT_NCL、ACL_FORMAT_NCHW、ACL_FORMAT_NHWC、ACL_FORMAT_HWCN
+    // -> ACL_FORMAT_ND
+    {ACL_FORMAT_ND,
+     {{ACL_FORMAT_ND, (AclFormatConvert){ACL_FORMAT_ND, ACL_FORMAT_ND,
+                                        inferShapeofND, "ND", false}}}},
+    // ACL_FORMAT_N、ACL_FORMAT_NC、ACL_FORMAT_NCL、ACL_FORMAT_NCHW ->
+    // ACL_FORMAT_NCHW
+    {ACL_FORMAT_NCHW,
+      {{ACL_FORMAT_NCHW, (AclFormatConvert){ACL_FORMAT_NCHW, ACL_FORMAT_NCHW,
+                                          inferShapeofNCHW, "NCHW", false}}}},
+    {ACL_FORMAT_NC1HWC0,
+     {{ACL_FORMAT_NCHW, (AclFormatConvert){ACL_FORMAT_NC1HWC0, ACL_FORMAT_NCHW,
+                                          inferShape4To5, "NC1HWC0", true}}}},
+
+    {ACL_FORMAT_FRACTAL_NZ,
+      {{ACL_FORMAT_ND, (AclFormatConvert){ACL_FORMAT_FRACTAL_NZ, ACL_FORMAT_ND,
+                                        inferShapeNDToNZ, "FRACTAL_NZ", true}}}},
+    {ACL_FORMAT_FRACTAL_Z,
+      {{ACL_FORMAT_NCHW, (AclFormatConvert){ACL_FORMAT_FRACTAL_Z, ACL_FORMAT_NCHW,
+                                          inferShapeNDToZ, "FRACTAL_Z", true}}}},
+    {ACL_FORMAT_NDHWC,
+      {{ACL_FORMAT_NCDHW, (AclFormatConvert){ACL_FORMAT_NDHWC, ACL_FORMAT_NCDHW,
+                                           inferShapeOfNDHWC, "NDHWC", false}}}},
+    {ACL_FORMAT_NCDHW,
+      {{ACL_FORMAT_NCDHW, (AclFormatConvert){ACL_FORMAT_NCDHW, ACL_FORMAT_NCDHW,
+                                           inferShapeOfNCDHW, "NCDHW", false}}}},
+    {ACL_FORMAT_NDC1HWC0,
+      {{ACL_FORMAT_NCDHW,
+      (AclFormatConvert){ACL_FORMAT_NDC1HWC0, ACL_FORMAT_NCDHW,
+                         inferShapeOfNDC1HWC0, "NDC1HWC0", true}}}},
+    {ACL_FRACTAL_Z_3D,
+      {{ACL_FORMAT_NCDHW,
+      (AclFormatConvert){ACL_FRACTAL_Z_3D, ACL_FORMAT_NCDHW, inferShapeOfFZ3D,
+                         "FRACTAL_Z_3D", true}}}},
 };
 // clang-format on
 
@@ -362,13 +384,24 @@ aclDataType AclOpConvert::convertFromDataType(const base::DataType &src) {
   return dst;
 }
 
+aclFormat AclOpConvert::convertFromDataFormat(base::IntVector shape) {
+  if (shape.size() == 3) {
+    return ACL_FORMAT_NCL;
+  } else if (shape.size() == 4) {
+    return ACL_FORMAT_NCHW;
+  } else if (shape.size() == 5) {
+    return ACL_FORMAT_NCDHW;
+  } else {
+    return ACL_FORMAT_UNDEFINED;
+  }
+}
 aclFormat AclOpConvert::convertFromDataFormat(const base::DataFormat &src) {
   aclFormat dst = ACL_FORMAT_UNDEFINED;
-  if (src == base::kDataFormatNC) {
+  if (src == base::kDataFormatN) {
     dst = ACL_FORMAT_NC;
-  } else if (src == base::kDataFormatNCW) {
-    dst = ACL_FORMAT_NCL;
-  } else if (src == base::kDataFormatNCW) {
+  } else if (src == base::kDataFormatNC) {
+    dst = ACL_FORMAT_NC;
+  } else if (src == base::kDataFormatNCL) {
     dst = ACL_FORMAT_NCL;
   } else if (src == base::kDataFormatNCHW) {
     dst = ACL_FORMAT_NCHW;
@@ -387,16 +420,22 @@ aclFormat AclOpConvert::convertFromDataFormat(const base::DataFormat &src) {
   }
   return dst;
 }
-base::IntVector AclOpConvert::inferShape(const aclFormat &format,
+base::IntVector AclOpConvert::inferShape(const aclFormat &dst_format,
+                                         const aclFormat &src_format,
                                          base::IntVector shape) {
-  auto iter = g_acl_format_convert.find(format);
+  auto iter = g_acl_format_convert.find(dst_format);
   if (iter != g_acl_format_convert.end()) {
-    if (iter->second.func_) {
-      return iter->second.func_(shape);
+    auto iter_iter = iter->second.find(src_format);
+    if (iter_iter == iter->second.end()) {
+      iter_iter = iter->second.begin();
+    }
+    if (iter_iter->second.func_) {
+      return iter_iter->second.func_(shape);
     }
   }
-  NNDEPLOY_LOGE("unsupport InferShape with format %d with shape %s", format,
-                base::vectorToString(shape).c_str());
+  NNDEPLOY_LOGE(
+      "unsupport InferShape with dst_format %d src_format %d with shape %s",
+      dst_format, src_format, base::vectorToString(shape).c_str());
   return base::IntVector();
 }
 
@@ -596,7 +635,8 @@ aclFloatArray *AclOpConvert::convertFromFloatVector(
 //   return dst;
 // }
 
-aclTensor *AclOpConvert::convertFromTensor(const device::Tensor *src) {
+aclTensor *AclOpConvert::convertFromTensor(const device::Tensor *src,
+                                           aclFormat dst_data_format) {
   base::DeviceType device_type = src->getDeviceType();
   if (device_type.code_ != base::kDeviceTypeCodeAscendCL) {
     NNDEPLOY_LOGE("device type is not Ascend when convertFromTensor.\n");
@@ -606,18 +646,18 @@ aclTensor *AclOpConvert::convertFromTensor(const device::Tensor *src) {
   base::DataType src_data_type = src->getDataType();
   aclDataType dst_data_type = AclOpConvert::convertFromDataType(src_data_type);
 
+  base::DataFormat src_data_format = src->getDataFormat();
+  aclFormat acl_data_format =
+      AclOpConvert::convertFromDataFormat(src_data_format);
   base::IntVector src_shape = src->getShape();
-  std::vector<int64_t> dst_dim = AclOpConvert::convertFromShape(src_shape);
+  base::IntVector dim =
+      AclOpConvert::inferShape(dst_data_format, acl_data_format, src_shape);
+  std::vector<int64_t> dst_dim = AclOpConvert::convertFromShape(dim);
 
   base::SizeVector src_stride = src->getStride();
   std::vector<int64_t> dst_stride(src_stride.begin(), src_stride.end());
 
   int64_t offset = 0;
-
-  base::DataFormat src_data_format = src->getDataFormat();
-  aclFormat dst_data_format =
-      AclOpConvert::convertFromDataFormat(src_data_format);
-
   void *data = src->getData();
 
   aclTensor *dst = aclCreateTensor(
@@ -629,10 +669,10 @@ aclTensor *AclOpConvert::convertFromTensor(const device::Tensor *src) {
   return dst;
 }
 aclTensorList *AclOpConvert::AclOpConvert::convertFromTensor(
-    const std::vector<device::Tensor *> &src) {
+    const std::vector<device::Tensor *> &src, aclFormat dst_data_format) {
   std::vector<const aclTensor *> tensor_list(src.size());
   for (size_t i = 0; i < src.size(); i++) {
-    tensor_list[i] = convertFromTensor(src[i]);
+    tensor_list[i] = convertFromTensor(src[i], dst_data_format);
   }
   auto acl_tensor_list =
       aclCreateTensorList(tensor_list.data(), tensor_list.size());

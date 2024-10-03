@@ -31,8 +31,8 @@ class AscendCLOpSplit : public OpSplit {
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    inner_outputs_ = AclOpConvert::convertFromTensor(outputs_);
+    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_outputs_ = AclOpConvert::convertFromTensor(outputs_, ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnSplitTensorGetWorkspaceSize(

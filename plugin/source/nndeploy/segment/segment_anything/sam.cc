@@ -54,7 +54,7 @@ base::Status SamBuildInput::run() {
       scale_points.emplace_back(0);
       scale_points.emplace_back(0);
       desc.data_type_ = base::dataTypeOf<float>();
-      desc.data_format_ = base::kDataFormatNCW;
+      desc.data_format_ = base::kDataFormatNCL;
       desc.shape_.emplace_back(1);
       desc.shape_.emplace_back(2);
       desc.shape_.emplace_back(2);
@@ -67,7 +67,7 @@ base::Status SamBuildInput::run() {
     } else if (name == "point_labels") {
       std::vector<float> point_labels = {1, -1};
       desc.data_type_ = base::dataTypeOf<float>();
-      desc.data_format_ = base::kDataFormatNCW;
+      desc.data_format_ = base::kDataFormatNCL;
       desc.shape_.emplace_back(1);
       desc.shape_.emplace_back(1);
       device::Tensor *point_labels_tensor =

@@ -93,7 +93,7 @@ base::DataFormat OnnxInterpret::convertToDataFormat(
   } else if (dim_size == 2) {
     dst = base::kDataFormatNC;
   } else if (dim_size == 3) {
-    dst = base::kDataFormatNCW;
+    dst = base::kDataFormatNCL;
   } else if (dim_size == 4) {
     if (is_weight) {
       dst = base::kDataFormatOIHW;
@@ -131,7 +131,7 @@ base::DataFormat OnnxInterpret::convertToDataFormat(
   } else if (dim_size == 2) {
     dst = base::kDataFormatNC;
   } else if (dim_size == 3) {
-    dst = base::kDataFormatNCW;
+    dst = base::kDataFormatNCL;
   } else if (dim_size == 4) {
     if (is_weight) {
       dst = base::kDataFormatOIHW;

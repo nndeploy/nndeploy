@@ -27,13 +27,13 @@ class AscendCLOpSub : public OpBinary {
   }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_0_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    inner_input_1_ = AclOpConvert::convertFromTensor(inputs_[1]);
+    inner_input_0_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_input_1_ = AclOpConvert::convertFromTensor(inputs_[1], ACL_FORMAT_ND);
     if (alpha_ == nullptr) {
       alpha_ = AclOpConvert::convertFromScalar(1.0f, inputs_[0]->getDataType());
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(alpha_, "aclCreateScalar failed.");
     }
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status =

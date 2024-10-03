@@ -33,7 +33,7 @@ class AscendCLOpResize : public OpResize {
   }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
+    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_NCHW);
     base::DataType data_type = inputs_[1]->getDataType();
     if (data_type.code_ != base::kDataTypeCodeFp) {
       NNDEPLOY_LOG_ERROR("Resize only support float data type.");
@@ -44,7 +44,8 @@ class AscendCLOpResize : public OpResize {
       size_t size = inputs_[1]->getSize() / sizeof(float);
       scales_ = aclCreateFloatArray(data, size);
     }
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_output_ =
+        AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_NCHW);
 
     // 创建算子
     char* mode = mode_.c_str();

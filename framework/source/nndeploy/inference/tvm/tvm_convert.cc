@@ -167,7 +167,7 @@ device::Tensor *TvmConvert::convertToTensor(const tvm::runtime::NDArray &src,
       data_format = base::kDataFormatNC;
       break;
     case 3:
-      data_format = base::kDataFormatNHW;
+      data_format = base::kDataFormatNCL;
       break;
     case 4:
       data_format = base::kDataFormatNCHW;

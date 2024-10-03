@@ -131,7 +131,7 @@ device::Tensor* bufferInfoToTensor(py::buffer const b,
       desc.data_format_ = base::kDataFormatNC;
       break;
     case 3:
-      desc.data_format_ = base::kDataFormatNHW;
+      desc.data_format_ = base::kDataFormatNCL;
       break;
     case 4:
       desc.data_format_ = base::kDataFormatNCHW;
