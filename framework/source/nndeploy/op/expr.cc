@@ -138,6 +138,38 @@ std::shared_ptr<Expr> makeSoftMax(ModelDesc *model_desc,
   return expr;
 }
 
+std::shared_ptr<Expr> makeAdd(
+    ModelDesc *model_desc, std::shared_ptr<Expr> input_0, std::shared_ptr<Expr> input_1, std::string op_name,
+    std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "add" + std::to_string(index);
+    } else {
+      name = "add";
+    }
+  }
+  std::vector<std::string> inputs;
+  inputs.emplace_back(input_0->getOutputName()[0]);
+  inputs.emplace_back(input_1->getOutputName()[0]);
+  // 节点输出
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<OpDesc>(name, kOpTypeAdd, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
 // TODO: @Leonisux:
 // 补充llama的算子的手动构图函数
 

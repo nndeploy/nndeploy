@@ -63,7 +63,7 @@ class NNDEPLOY_CC_API Buffer {
       value_ptr[i] = value;
     }
     if (!isHostDeviceType(device_->getDeviceType())) {
-      device_->upload(data_, value_ptr, size);
+      device_->upload(value_ptr, data_, size);
       Device *host_device = getDefaultHostDevice();
       host_device->deallocate(value_ptr);
     }

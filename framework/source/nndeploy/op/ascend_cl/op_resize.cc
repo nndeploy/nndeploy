@@ -17,7 +17,7 @@ class AscendCLOpResize : public OpResize {
   virtual base::Status init() {
     // 参数
     auto param = dynamic_cast<ResizeParam*>(op_desc_.op_param_.get());
-    mode_ = static_cast<int64_t>(param->mode_);
+    mode_ = param->mode_;
 
     // 流
     device::Device* device = device::getDevice(device_type_);
@@ -27,7 +27,7 @@ class AscendCLOpResize : public OpResize {
   }
   virtual base::Status deinit() {
     if (scales_ != nullptr) {
-      aclDestoryFloatArray(scales_);
+      aclDestroyFloatArray(scales_);
     }
     return base::kStatusCodeOk;
   }
@@ -36,7 +36,7 @@ class AscendCLOpResize : public OpResize {
     inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_NCHW);
     base::DataType data_type = inputs_[1]->getDataType();
     if (data_type.code_ != base::kDataTypeCodeFp) {
-      NNDEPLOY_LOG_ERROR("Resize only support float data type.");
+      NNDEPLOY_LOGE("Resize only support float data type.");
       return base::kStatusCodeErrorInvalidParam;
     }
     if (scales_ == nullptr) {
@@ -48,9 +48,9 @@ class AscendCLOpResize : public OpResize {
         AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_NCHW);
 
     // 创建算子
-    char* mode = mode_.c_str();
+    char* mode = mode_.data();
     aclnnStatus aclnn_status =
-        aclnnResizeGetWorkspaceSize(inner_inputs_, scales_, mode, inner_output_,
+        aclnnResizeGetWorkspaceSize(inner_input_, scales_, mode, inner_output_,
                                     &workspace_size_, &executor_);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,

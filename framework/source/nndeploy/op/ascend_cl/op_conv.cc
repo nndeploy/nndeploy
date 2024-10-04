@@ -45,8 +45,8 @@ class AscendCLOpConv : public OpConv {
       NNDEPLOY_LOGE("not support shape size: %d", weight_->getShape().size());
       return base::kStatusCodeErrorOpAscendCL;
     }
-    if (transposed_) {
-      dst_data_format_ = = ACL_FORMAT_ND;
+    if (transposed_ == true) {
+      dst_data_format_ = ACL_FORMAT_ND;
     }
     inner_weight_ = AclOpConvert::convertFromTensor(weight_, dst_data_format_);
     if (inputs_.size() > 2) {
@@ -60,17 +60,28 @@ class AscendCLOpConv : public OpConv {
     return base::kStatusCodeOk;
   }
   virtual base::Status deinit() {
-    aclDestroyIntArray(stride_);
+    if (stride_ != nullptr){
+      aclDestroyIntArray(stride_);
+    }
     aclDestroyIntArray(padding_);
     aclDestroyIntArray(dilation_);
     aclDestroyIntArray(output_padding_);
 
-    aclDestroyTensor(inner_weight_);
-    aclDestroyTensor(inner_bias_);
+    if (inner_weight_ != nullptr) {
+      aclDestroyTensor(inner_weight_);
+    }
+    if (inner_weight_ != nullptr) {
+      aclDestroyTensor(inner_bias_);
+    }
 
-    delete weight_;
-    delete bias_;
-
+    if (weight_ != nullptr){
+      delete weight_;
+    }
+   
+    if (bias_ != nullptr){
+      delete bias_;
+    }
+  
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {

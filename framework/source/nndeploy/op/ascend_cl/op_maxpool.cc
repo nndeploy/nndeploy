@@ -34,7 +34,7 @@ class AscendCLOpMaxPool : public OpMaxPool {
     } else if (param->kernel_shape_.size() == 2) {
       dst_data_format_ = ACL_FORMAT_NCHW;
     } else {
-      NNDEPLOY_LOGE("not support shape size: %d", weight_->getShape().size());
+      NNDEPLOY_LOGE("not support shape size: %d", param->kernel_shape_.size());
       return base::kStatusCodeErrorOpAscendCL;
     }
 

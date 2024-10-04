@@ -64,10 +64,15 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeRelu(ModelDesc *model_desc,
                                                std::string op_name = "",
                                                std::string output_name = "");
 
-// relu
+// softmax
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftMax(
     ModelDesc *model_desc, std::shared_ptr<Expr> input,
     std::shared_ptr<SoftmaxParam> param, std::string op_name = "",
+    std::string output_name = "");
+
+// add
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeAdd(
+    ModelDesc *model_desc, std::shared_ptr<Expr> input_0, std::shared_ptr<Expr> input_1, std::string op_name = "",
     std::string output_name = "");
 
 // TODO: @Leonisux:
