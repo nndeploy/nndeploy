@@ -1,9 +1,9 @@
 #include "nndeploy/op/op_slice.h"
 
 #include "aclnnop/aclnn_slice.h"
-#include "nndeploy/op/ascend_cl/acl_op_convert.h"
-#include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
+#include "nndeploy/op/ascend_cl/op_convert.h"
+#include "nndeploy/op/ascend_cl/op_include.h"
+#include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -50,8 +50,10 @@ class AscendCLOpSlice : public OpSlice {
   }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    inner_input_ =
+        AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_output_ =
+        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status =
@@ -94,7 +96,7 @@ class AscendCLOpSlice : public OpSlice {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeSlice, AscendCLOpSlice)
+                         ir::kOpTypeSlice, AscendCLOpSlice)
 
 }  // namespace op
 }  // namespace nndeploy

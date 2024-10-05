@@ -15,7 +15,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -24,7 +24,7 @@ namespace op {
 base::Status OpReshape::inferShape() {
   base::Status status = base::kStatusCodeOk;
   // 参数
-  auto param = dynamic_cast<ReshapeParam*>(op_desc_.op_param_.get());
+  auto param = dynamic_cast<ir::ReshapeParam*>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int allowzero = param->allowzero_;
 

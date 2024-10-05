@@ -14,7 +14,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -34,7 +34,7 @@ base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
     NNDEPLOY_LOGE("input1 or input2 or output is nullptr");
     return base::kStatusCodeErrorNullParam;
   }
-  Op *op = createOp(input1->getDeviceType(), "", kOpTypeRMSNorm);
+  Op *op = createOp(input1->getDeviceType(), "", ir::kOpTypeRMSNorm);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;

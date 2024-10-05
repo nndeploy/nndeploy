@@ -63,7 +63,10 @@ def parse_args(argv=None):
         root_path = os.getcwd()
         framework_path = os.path.join(root_path, 'framework')
         plugin_path = os.path.join(root_path, 'plugin')
-        args.directories = [framework_path, plugin_path]
+        demo_path = os.path.join(root_path, 'demo')
+        test_path = os.path.join(root_path, 'test')
+        python_path = os.path.join(root_path, 'python')
+        args.directories = [framework_path, plugin_path, demo_path, test_path, python_path]
 
     check_clang_format_binary(args)
 

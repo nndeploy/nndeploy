@@ -2,9 +2,9 @@
 
 #include "aclnn_kernels/transpose.h"
 // #include "aclnn/opdev/make_op_executor.h"
-#include "nndeploy/op/ascend_cl/acl_op_convert.h"
-#include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
+#include "nndeploy/op/ascend_cl/op_convert.h"
+#include "nndeploy/op/ascend_cl/op_include.h"
+#include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -17,8 +17,8 @@ class AscendCLOpTranspose : public OpTranspose {
 
   virtual base::Status init() {
     // 参数
-    auto param = dynamic_cast<TransposeParam *>(op_desc_.op_param_.get());
-    perm_array_ = AclOpConvert::convertFromIntVector(param->perm_);
+    auto param = dynamic_cast<ir::TransposeParam *>(op_desc_.op_param_.get());
+    perm_array_ = AscendCLOpConvert::convertFromIntVector(param->perm_);
 
     // 流
     device::Device *device = device::getDevice(device_type_);
@@ -37,8 +37,10 @@ class AscendCLOpTranspose : public OpTranspose {
   }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    inner_input_ =
+        AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_output_ =
+        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
@@ -68,7 +70,7 @@ class AscendCLOpTranspose : public OpTranspose {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeTranspose, AscendCLOpTranspose)
+                         ir::kOpTypeTranspose, AscendCLOpTranspose)
 
 }  // namespace op
 }  // namespace nndeploy

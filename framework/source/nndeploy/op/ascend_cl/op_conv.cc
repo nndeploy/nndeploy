@@ -1,13 +1,14 @@
 #include "nndeploy/op/op_conv.h"
 
 #include "aclnnop/aclnn_convolution.h"
-#include "nndeploy/op/ascend_cl/acl_op_convert.h"
-#include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
+#include "nndeploy/op/ascend_cl/op_convert.h"
+#include "nndeploy/op/ascend_cl/op_include.h"
+#include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
 namespace op {
+// class AscendCLOpConvCallCustomnnop : public OpConv {};
 
 class AscendCLOpConv : public OpConv {
  public:
@@ -16,13 +17,13 @@ class AscendCLOpConv : public OpConv {
 
   virtual base::Status init() {
     // 参数
-    ConvParam *param = (ConvParam *)op_desc_.op_param_.get();
-    stride_ = AclOpConvert::convertFromIntVector(param->strides_);
-    padding_ = AclOpConvert::convertFromIntVector(param->pads_);
-    dilation_ = AclOpConvert::convertFromIntVector(param->dilations_);
+    ir::ConvParam *param = (ir::ConvParam *)op_desc_.op_param_.get();
+    stride_ = AscendCLOpConvert::convertFromIntVector(param->strides_);
+    padding_ = AscendCLOpConvert::convertFromIntVector(param->pads_);
+    dilation_ = AscendCLOpConvert::convertFromIntVector(param->dilations_);
     transposed_ = false;
     base::IntVector output_pads = {0, 0, 0, 0};
-    output_padding_ = AclOpConvert::convertFromIntVector(output_pads);
+    output_padding_ = AscendCLOpConvert::convertFromIntVector(output_pads);
     groups_ = param->group_;
     cube_math_type_ = 0;
 
@@ -48,13 +49,15 @@ class AscendCLOpConv : public OpConv {
     if (transposed_ == true) {
       dst_data_format_ = ACL_FORMAT_ND;
     }
-    inner_weight_ = AclOpConvert::convertFromTensor(weight_, dst_data_format_);
+    inner_weight_ =
+        AscendCLOpConvert::convertFromTensor(weight_, dst_data_format_);
     if (inputs_.size() > 2) {
       bias_ = new device::Tensor(device, inputs_[2]->getDesc(),
                                  inputs_[2]->getName());
       // bias_->getDesc().print();
       inputs_[2]->copyTo(bias_);
-      inner_bias_ = AclOpConvert::convertFromTensor(bias_, dst_data_format_);
+      inner_bias_ =
+          AscendCLOpConvert::convertFromTensor(bias_, dst_data_format_);
     }
 
     return base::kStatusCodeOk;
@@ -87,15 +90,19 @@ class AscendCLOpConv : public OpConv {
   virtual base::Status preRun() {
     // 输入输出
     inner_input_ =
-        AclOpConvert::convertFromTensor(inputs_[0], dst_data_format_);
+        AscendCLOpConvert::convertFromTensor(inputs_[0], dst_data_format_);
     inner_output_ =
-        AclOpConvert::convertFromTensor(outputs_[0], dst_data_format_);
+        AscendCLOpConvert::convertFromTensor(outputs_[0], dst_data_format_);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSize(
         inner_input_, inner_weight_, inner_bias_, stride_, padding_, dilation_,
         transposed_, output_padding_, groups_, inner_output_, cube_math_type_,
         &workspace_size_, &executor_);
+    // aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSizeCustom(
+    //     inner_input_, inner_weight_, inner_bias_, stride_, padding_,
+    //     dilation_, transposed_, output_padding_, groups_, inner_output_,
+    //     cube_math_type_, &workspace_size_, &executor_);
     if (aclnn_status != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclnnConvolutionGetWorkspaceSize 失败，错误码: %d",
                     aclnn_status);
@@ -143,7 +150,7 @@ class AscendCLOpConv : public OpConv {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeConv, AscendCLOpConv)
+                         ir::kOpTypeConv, AscendCLOpConv)
 
 }  // namespace op
 }  // namespace nndeploy

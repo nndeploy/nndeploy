@@ -1,0 +1,87 @@
+message(STATUS "python")
+
+# set
+set(SOURCE)
+set(OBJECT)
+set(BINARY pynndeploy)
+set(DIRECTORY pynndeploy)
+set(DEPEND_LIBRARY)
+set(SYSTEM_LIBRARY)
+set(THIRD_PARTY_LIBRARY)
+
+set(PACKAGE_VERSION ${NNDEPLOY_VERSION})
+add_definitions(-DVERSION_INFO="${PACKAGE_VERSION}")
+
+# pybind
+add_subdirectory(${ROOT_PATH}/third_party/pybind11)
+
+# include
+include_directories(${ROOT_PATH}/python)
+include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
+
+# SOURCE
+file(GLOB PYTHON_SOURCE
+  "${ROOT_PATH}/demo/*.h"
+  "${ROOT_PATH}/demo/*.cc"
+)
+set(SOURCE ${SOURCE} ${PYTHON_SOURCE})
+
+# OBJECT
+
+# BINARY
+pybind11_add_module(${BINARY} ${SOURCE})
+
+# properties
+set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+
+# yes or no
+set_target_properties(${binary} PROPERTIES OUTPUT_NAME "nndeploy")
+set_target_properties(${binary} PROPERTIES PREFIX "" LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/nndeploy")
+set_property(TARGET ${binary} PROPERTY FOLDER "python")
+
+# DIRECTORY
+set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
+
+# DEPEND_LIBRARY
+list(APPEND DEPEND_LIBRARY ${NNDEPLOY_FRAMEWORK_BINARY})
+list(APPEND DEPEND_LIBRARY ${NNDEPLOY_DEPEND_LIBRARY})
+list(APPEND DEPEND_LIBRARY ${NNDEPLOY_PYTHON_DEPEND_LIBRARY})
+target_link_libraries(${BINARY} ${DEPEND_LIBRARY})
+
+# SYSTEM_LIBRARY
+list(APPEND SYSTEM_LIBRARY ${NNDEPLOY_SYSTEM_LIBRARY})
+list(APPEND SYSTEM_LIBRARY ${NNDEPLOY_PYTHON_SYSTEM_LIBRARY})
+target_link_libraries(${BINARY} ${SYSTEM_LIBRARY})
+
+# THIRD_PARTY_LIBRARY
+list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY})
+list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PYTHON_THIRD_PARTY_LIBRARY})
+list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
+list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_LIST})
+target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY})
+
+# install
+if(SYSTEM.Windows)
+  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_BIN_PATH})
+else()
+  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
+endif()
+
+# python yes or no
+if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
+  add_custom_command(TARGET ${binary} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/nndeploy${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
+    ${PROJECT_SOURCE_DIR}/nndeploy/_C/nndeploy${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION})
+endif("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
+
+# setup yes or no
+configure_file(setup.py.i ${PROJECT_SOURCE_DIR}/setup.py)
+
+# unset
+unset(SOURCE)
+unset(OBJECT)
+unset(BINARY)
+unset(DIRECTORY)
+unset(DEPEND_LIBRARY)
+unset(SYSTEM_LIBRARY)
+unset(THIRD_PARTY_LIBRARY)

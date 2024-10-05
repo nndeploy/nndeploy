@@ -25,13 +25,17 @@ set(ENABLE_NNDEPLOY_ADDRESS_SANTIZER OFF) # 内存泄露检测，默认为OFF
 set(ENABLE_NNDEPLOY_TIME_PROFILER ON) # 时间性能Profile，默认为ON
 set(ENABLE_NNDEPLOY_OPENCV OFF) # 是否链接第三方库opencv，默认为OFF
 set(NNDEPLOY_OPENCV_LIBS) # 链接的具体的opencv库名称，例如opencv_world480，opencv_java4等
-## base
+
+# # base
 set(ENABLE_NNDEPLOY_BASE ON) # 是否编译base目录中文件，默认为ON
-## thread
+
+# # thread
 set(ENABLE_NNDEPLOY_THREAD_POOL ON) # 是否编译thread_pool目录中文件，默认为ON
-## cryption
+
+# # cryption
 set(ENABLE_NNDEPLOY_CRYPTION OFF) # 是否编译crytion目录中文件，默认为ON
-## device
+
+# # device
 set(ENABLE_NNDEPLOY_DEVICE ON) # 是否编译device目录中文件，默认为ON
 set(ENABLE_NNDEPLOY_DEVICE_CPU ON) # 是否使能device cpu，默认为ON
 set(ENABLE_NNDEPLOY_DEVICE_ARM OFF) # 是否使能device arm，默认为OFF
@@ -45,13 +49,17 @@ set(ENABLE_NNDEPLOY_DEVICE_APPLE_NPU OFF) # 是否使能device apple npu，默�
 set(ENABLE_NNDEPLOY_DEVICE_HVX OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL OFF) # 是否使能device apple ascend cl，默认为OFF
-## op
+
+# # op
 set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
-## interpret
-set(ENABLE_NNDEPLOY_INTERPRET OFF)  # 是否编译interpret目录中文件，默认为OFF
-## net
-set(ENABLE_NNDEPLOY_NET ON)  # 是否编译net目录中文件，默认为OFF
-## inference
+
+# # ir
+set(ENABLE_NNDEPLOY_IR OFF) # 是否编译ir目录中文件，默认为OFF
+
+# # net
+set(ENABLE_NNDEPLOY_NET ON) # 是否编译net目录中文件，默认为OFF
+
+# # inference
 set(ENABLE_NNDEPLOY_INFERENCE ON) # 是否编译inference目录中文件，默认为ON
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # 是否使能INFERENCE TENSORRT，默认为OFF
 set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO OFF) # 是否使能INFERENCE OPENVINO，默认为OFF
@@ -66,32 +74,37 @@ set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE OFF) # 是否使能INFERENCE PADDLELITE
 set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_1 OFF) # 是否使能INFERENCE RKNN_TOOLKIT_1，默认为OFF
 set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 OFF) # 是否使能INFERENCE RKNN_TOOLKIT_2，默认为OFF
 set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL OFF) # 是否使能INFERENCE ASCEND_CL，默认为OFF
-## dag
+
+# # dag
 set(ENABLE_NNDEPLOY_DAG ON) # 是否编译dag目录中文件，默认为ON
-## codec
+
+# # codec
 set(ENABLE_NNDEPLOY_CODEC ON) # 是否编译编解码库，默认为ON
-## model
+
+# # model
 set(ENABLE_NNDEPLOY_PLUGIN ON) # 是否编译model目录中文件，默认为ON
-## test
+
+# # test
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
-## demo
+
+# # demo
 set(ENABLE_NNDEPLOY_DEMO ON) # 是否使能可执行程序demo，默认为OFF
 
-## model detect
+# # model detect
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT OFF) # 是否使能检测类模型，默认为OFF
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR OFF) # 是否使能检测类 DETR 模型，默认为OFF
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO OFF) # 是否使能检测类 YOLO 模型，默认为OFF
 
-## model segment
+# # model segment
 set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT OFF) # 是否使能分割类模型，默认为OFF
 set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING OFF) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF
 
-## model tokenizer
+# # model tokenizer
 set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF) # 是否使能分割类模型，默认为OFF
 set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP OFF) # 是否使能分割类模型，默认为OFF
 
-## model stable diffusion
+# # model stable diffusion
 set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF
 
-## enable python api
+# # enable python api
 set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口

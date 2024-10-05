@@ -15,7 +15,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -24,7 +24,7 @@ namespace op {
 base::Status OpConcat::inferShape() {
   base::Status status = base::kStatusCodeOk;
   // 参数
-  auto param = dynamic_cast<ConcatParam *>(op_desc_.op_param_.get());
+  auto param = dynamic_cast<ir::ConcatParam *>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int axis = param->axis_;
   int rank = inputs_[0]->getShape().size();
@@ -65,7 +65,7 @@ base::Status OpConcat::inferShape() {
 }
 
 base::Status concat(std::vector<device::Tensor *> input,
-                    std::shared_ptr<ConcatParam> param,
+                    std::shared_ptr<ir::ConcatParam> param,
                     device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
   return status;

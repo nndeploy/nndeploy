@@ -11,7 +11,7 @@ Net::Net() : op::Op() {}
 
 Net::~Net() {}
 
-base::Status Net::setModelDesc(op::ModelDesc *model_desc) {
+base::Status Net::setModelDesc(ir::ModelDesc *model_desc) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(model_desc, "model_desc is null!");
   model_desc_ = model_desc;
@@ -69,7 +69,7 @@ device::Tensor *Net::getWeight(const std::string &weight) {
 }
 
 op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
-                      op::OpType op_type,
+                      ir::OpType op_type,
                       std::initializer_list<std::string> inputs,
                       std::initializer_list<std::string> outputs) {
   // TODO: 这里命名与namespace op下的createOp冲突
@@ -125,7 +125,7 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
   return op;
 }
 op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
-                      op::OpType op_type, std::vector<std::string> &inputs,
+                      ir::OpType op_type, std::vector<std::string> &inputs,
                       std::vector<std::string> &outputs) {
   op::Op *op = op::createOp(device_type, name, op_type, inputs, outputs);
   if (op == nullptr) {
@@ -609,7 +609,7 @@ base::Status Net::session() {
   return status;
 }
 
-Net *createNet(op::ModelDesc *model_desc, base::DeviceType device_type,
+Net *createNet(ir::ModelDesc *model_desc, base::DeviceType device_type,
                base::PrecisionType precision_type) {
   Net *net = new Net();
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(net, "net is null!");

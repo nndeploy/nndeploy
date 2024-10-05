@@ -15,8 +15,8 @@ class CpuOpRelu : public OpUnary {
   }
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu, kOpTypeRelu,
-                         CpuOpRelu)
+REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+                         ir::kOpTypeRelu, CpuOpRelu)
 
 }  // namespace op
 

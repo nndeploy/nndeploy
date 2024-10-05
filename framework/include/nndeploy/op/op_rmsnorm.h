@@ -1,7 +1,7 @@
 #ifndef _NNDEPLOY_OP_OP_RMSNORM_H_
 #define _NNDEPLOY_OP_OP_RMSNORM_H_
 
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 // @不能在这个目录下，包含具体设备相关头文件
 // #include "nndeploy/device/cuda/cuda_device.h"

@@ -53,8 +53,8 @@ set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL ON) # 是否使能device apple ascend cl，
 # # op
 set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
 
-# # interpret
-set(ENABLE_NNDEPLOY_INTERPRET OFF) # 是否编译interpret目录中文件，默认为OFF
+# # ir
+set(ENABLE_NNDEPLOY_IR OFF) # 是否编译ir目录中文件，默认为OFF
 
 # # net
 set(ENABLE_NNDEPLOY_NET ON) # 是否编译forward目录中文件，默认为OFF
@@ -80,29 +80,37 @@ set(ENABLE_NNDEPLOY_DAG ON) # 是否编译dag目录中文件，默认为ON
 
 # plugin
 set(ENABLE_NNDEPLOY_PLUGIN ON) # 是否编译plugin目录中文件，默认为ON
+
 # test
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
+
 # demo
 set(ENABLE_NNDEPLOY_DEMO OFF) # 是否使能可执行程序demo，默认为OFF
 
 # plugin
-## basic
-set(ENABLE_NNDEPLOY_PLUGIN_BASIC ON) # 是否编译plugin目录中文件，默认为ON
-## basic
+# # basic
+set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON) # 是否编译plugin目录中文件，默认为ON
+
+# # basic
 set(ENABLE_NNDEPLOY_PLUGIN_INFER ON) # 是否编译plugin目录中文件，默认为ON
-## codec
+
+# # codec
 set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON) # 是否编译plugin目录中文件，默认为ON
-## detect
+
+# # detect
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT ON)
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR OFF)
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO ON)
-## segment
+
+# # segment
 set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT OFF)
 set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING OFF)
-## tokenizer
+
+# # tokenizer
 set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
-## stable_diffusion
+
+# # stable_diffusion
 set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)
 
-## enable python api
+# # enable python api
 set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口

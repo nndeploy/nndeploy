@@ -142,11 +142,11 @@ dag::Graph *createGraphMISO(const std::string &name,
 class NNDEPLOY_CC_API DemoLoop : public dag::Loop {
  public:
   DemoLoop(const std::string &name, dag::Edge *input, dag::Edge *output)
-      : dag::Loop(name, input, output){};
+      : dag::Loop(name, input, output) {};
   DemoLoop(const std::string &name, std::initializer_list<dag::Edge *> inputs,
            std::initializer_list<dag::Edge *> outputs)
-      : dag::Loop(name, inputs, outputs){};
-  virtual ~DemoLoop(){};
+      : dag::Loop(name, inputs, outputs) {};
+  virtual ~DemoLoop() {};
 
   virtual int loops() { return 2; };
 };
@@ -161,12 +161,12 @@ dag::Graph *createGraphLoop(const std::string &name,
 class NNDEPLOY_CC_API DemoCondition : public dag::Condition {
  public:
   DemoCondition(const std::string &name, dag::Edge *input, dag::Edge *output)
-      : dag::Condition(name, input, output){};
+      : dag::Condition(name, input, output) {};
   DemoCondition(const std::string &name,
                 std::initializer_list<dag::Edge *> inputs,
                 std::initializer_list<dag::Edge *> outputs)
-      : dag::Condition(name, inputs, outputs){};
-  virtual ~DemoCondition(){};
+      : dag::Condition(name, inputs, outputs) {};
+  virtual ~DemoCondition() {};
 
   virtual int choose() { return 1; };
 };

@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "nndeploy/device/cuda/cuda_device.h"
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/op_rmsnorm.h"
 
@@ -86,7 +86,7 @@ class CudaOpRMSNorm : public OpRMSNorm {
   virtual base::Status run() {
     base::Status status = base::kStatusCodeOk;
 
-    // auto param = dynamic_cast<RMSNormParam*>(op_desc_.op_param_.get());
+    // auto param = dynamic_cast<ir::RMSNormParam*>(op_desc_.op_param_.get());
     // NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param,
     //                                      "op_desc_.op_param_ is nullptr");
     // float eps = param->eps_;
@@ -117,7 +117,7 @@ class CudaOpRMSNorm : public OpRMSNorm {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCuda,
-                         kOpTypeRMSNorm, CudaOpRMSNorm)
+                         ir::kOpTypeRMSNorm, CudaOpRMSNorm)
 
 }  // namespace op
 }  // namespace nndeploy

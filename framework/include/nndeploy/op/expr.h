@@ -4,7 +4,7 @@
 
 #include "nndeploy/base/macro.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 
 namespace nndeploy {
 namespace op {
@@ -23,17 +23,17 @@ class NNDEPLOY_CC_API Expr {
   Expr(const std::string &name, base::DataType data_type);
   Expr(const std::string &name, base::DataType data_type,
        base::IntVector shape);
-  Expr(std::shared_ptr<ValueDesc> value_desc);
-  Expr(std::shared_ptr<OpDesc> op_desc);
-  Expr(std::shared_ptr<ModelDesc> model_desc);
+  Expr(std::shared_ptr<ir::ValueDesc> value_desc);
+  Expr(std::shared_ptr<ir::OpDesc> op_desc);
+  Expr(std::shared_ptr<ir::ModelDesc> model_desc);
 
   std::vector<std::string> getOutputName();
 
  protected:
   ExprType expr_type_;
-  std::shared_ptr<ValueDesc> value_desc_;
-  std::shared_ptr<OpDesc> op_desc_;
-  std::shared_ptr<ModelDesc> model_desc_;
+  std::shared_ptr<ir::ValueDesc> value_desc_;
+  std::shared_ptr<ir::OpDesc> op_desc_;
+  std::shared_ptr<ir::ModelDesc> model_desc_;
 };
 
 /**
@@ -41,37 +41,35 @@ class NNDEPLOY_CC_API Expr {
  */
 // input
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeInput(
-    ModelDesc *model_desc, std::string name,
+    ir::ModelDesc *model_desc, std::string name,
     base::DataType data_type = base::dataTypeOf<float>(),
     base::IntVector shape = base::IntVector());
 // output
-NNDEPLOY_CC_API void makeOutput(ModelDesc *model_desc,
+NNDEPLOY_CC_API void makeOutput(ir::ModelDesc *model_desc,
                                 std::shared_ptr<Expr> expr);
 // block
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeBlock(
-    ModelDesc *model_desc, std::shared_ptr<ModelDesc> model_block);
+    ir::ModelDesc *model_desc, std::shared_ptr<ir::ModelDesc> model_block);
 // conv2d
-NNDEPLOY_CC_API std::shared_ptr<Expr> makeConv(ModelDesc *model_desc,
-                                               std::shared_ptr<Expr> input,
-                                               std::shared_ptr<ConvParam> param,
-                                               const std::string &weight = "",
-                                               const std::string &bias = "",
-                                               std::string op_name = "",
-                                               std::string output_name = "");
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeConv(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::ConvParam> param, const std::string &weight = "",
+    const std::string &bias = "", std::string op_name = "",
+    std::string output_name = "");
 // relu
-NNDEPLOY_CC_API std::shared_ptr<Expr> makeRelu(ModelDesc *model_desc,
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
                                                std::shared_ptr<Expr> input,
                                                std::string op_name = "",
                                                std::string output_name = "");
 
 // softmax
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftMax(
-    ModelDesc *model_desc, std::shared_ptr<Expr> input,
-    std::shared_ptr<SoftmaxParam> param, std::string op_name = "",
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::SoftmaxParam> param, std::string op_name = "",
     std::string output_name = "");
 
 // add
-NNDEPLOY_CC_API std::shared_ptr<Expr> makeAdd(ModelDesc *model_desc,
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeAdd(ir::ModelDesc *model_desc,
                                               std::shared_ptr<Expr> input_0,
                                               std::shared_ptr<Expr> input_1,
                                               std::string op_name = "",
