@@ -11,7 +11,7 @@ TypeArchitectureRegister<X86Architecture> x86_architecture_register(
     base::kDeviceTypeCodeX86);
 
 X86Architecture::X86Architecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code){};
+    : Architecture(device_type_code) {};
 
 X86Architecture::~X86Architecture() {
   for (auto iter : devices_) {

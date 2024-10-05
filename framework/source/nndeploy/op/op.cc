@@ -239,7 +239,7 @@ base::Status Op::checkOrAllocOutput() {
     } else {
       // TODO: 如何进行检查： 直接检查Buffer的size 和
       // 形状推理后Tensor的size大小吗
-      
+
       status = base::kStatusCodeErrorOutOfMemory;
 
       break;

@@ -145,7 +145,7 @@ class NNDEPLOY_CC_API Scheduler {
  */
 class SchedulerCreator {
  public:
-  virtual ~SchedulerCreator(){};
+  virtual ~SchedulerCreator() {};
   virtual Scheduler *createScheduler(SchedulerType type) = 0;
 };
 
@@ -164,8 +164,8 @@ class TypeSchedulerCreator : public SchedulerCreator {
  *
  * @return std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>&
  */
-std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>
-    &getGlobalSchedulerCreatorMap();
+std::map<SchedulerType, std::shared_ptr<SchedulerCreator>> &
+getGlobalSchedulerCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板

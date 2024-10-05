@@ -61,9 +61,9 @@ def parse_args(argv=None):
 
     if not args.directories:
         root_path = os.getcwd()
-        include_path = os.path.join(root_path, 'include')
-        source_path = os.path.join(root_path, 'source')
-        args.directories = [include_path, source_path]
+        framework_path = os.path.join(root_path, 'framework')
+        plugin_path = os.path.join(root_path, 'plugin')
+        args.directories = [framework_path, plugin_path]
 
     check_clang_format_binary(args)
 
@@ -150,4 +150,6 @@ def main():
 
 
 if __name__ == '__main__':
+    print("start clang format")
     main()  # pragma: no cover
+    print("end clang format")

@@ -138,9 +138,10 @@ std::shared_ptr<Expr> makeSoftMax(ModelDesc *model_desc,
   return expr;
 }
 
-std::shared_ptr<Expr> makeAdd(
-    ModelDesc *model_desc, std::shared_ptr<Expr> input_0, std::shared_ptr<Expr> input_1, std::string op_name,
-    std::string output_name) {
+std::shared_ptr<Expr> makeAdd(ModelDesc *model_desc,
+                              std::shared_ptr<Expr> input_0,
+                              std::shared_ptr<Expr> input_1,
+                              std::string op_name, std::string output_name) {
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
@@ -160,8 +161,7 @@ std::shared_ptr<Expr> makeAdd(
   } else {
     outputs.push_back(name + ".output");
   }
-  auto op_desc =
-      std::make_shared<OpDesc>(name, kOpTypeAdd, inputs, outputs);
+  auto op_desc = std::make_shared<OpDesc>(name, kOpTypeAdd, inputs, outputs);
   if (model_desc != nullptr) {
     model_desc->op_descs_.push_back(op_desc);
   }

@@ -276,7 +276,7 @@ base::Status Net::deinit() {
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
 
-   // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
   status = session_->deinit();
@@ -292,7 +292,7 @@ base::Status Net::deinit() {
     delete op_wrapper;
   }
   op_repository_.clear();
-   NNDEPLOY_LOGE("hello world\n");
+  NNDEPLOY_LOGE("hello world\n");
   for (auto tensor_wrapper : tensor_repository_) {
     if (!tensor_wrapper->is_external_) {
       delete tensor_wrapper->tensor_;
@@ -300,7 +300,7 @@ base::Status Net::deinit() {
     delete tensor_wrapper;
   }
   tensor_repository_.clear();
- NNDEPLOY_LOGE("hello world\n");
+  NNDEPLOY_LOGE("hello world\n");
   return status;
 }
 

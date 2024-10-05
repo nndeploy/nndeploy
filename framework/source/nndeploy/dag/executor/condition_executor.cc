@@ -4,8 +4,8 @@
 namespace nndeploy {
 namespace dag {
 
-ConditionExecutor::ConditionExecutor() : Executor(){};
-ConditionExecutor::~ConditionExecutor(){};
+ConditionExecutor::ConditionExecutor() : Executor() {};
+ConditionExecutor::~ConditionExecutor() {};
 
 base::Status ConditionExecutor::init(
     std::vector<EdgeWrapper *> &edge_repository,

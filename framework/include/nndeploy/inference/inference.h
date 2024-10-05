@@ -363,7 +363,7 @@ class NNDEPLOY_CC_API Inference {
  */
 class InferenceCreator {
  public:
-  virtual ~InferenceCreator(){};
+  virtual ~InferenceCreator() {};
   virtual Inference *createInference(base::InferenceType type) = 0;
 };
 
@@ -384,8 +384,8 @@ class TypeInferenceCreator : public InferenceCreator {
  *
  * @return std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板

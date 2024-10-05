@@ -19,8 +19,8 @@ namespace net {
 
 class NNDEPLOY_CC_API CudaSession : public base::NonCopyable {
  public:
-  CudaSession(){};
-  virtual ~CudaSession(){};
+  CudaSession() {};
+  virtual ~CudaSession() {};
 
   virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
                             std::vector<OpWrapper *> &op_repository) = 0;

@@ -280,6 +280,28 @@ class ModelDesc {
   base::Status dump(std::ostream &oss);
 
  public:
+  // 序列化接口
+  // base::Status serialize(std::ostream &output) const;
+  // base::Status deserialize(std::istream &input);
+
+  // // 辅助函数
+  // base::Status serializeOpDesc(const std::shared_ptr<OpDesc> &op_desc,
+  //                              std::ostream &output) const;
+  // base::Status deserializeOpDesc(std::istream &input,
+  //                                std::shared_ptr<OpDesc> &op_desc);
+
+  // base::Status serializeValueDesc(const std::shared_ptr<ValueDesc>
+  // &value_desc,
+  //                                 std::ostream &output) const;
+  // base::Status deserializeValueDesc(std::istream &input,
+  //                                   std::shared_ptr<ValueDesc> &value_desc);
+
+  // base::Status serializeTensor(const device::Tensor *tensor,
+  //                              std::ostream &output) const;
+  // base::Status deserializeTensor(std::istream &input, device::Tensor
+  // *&tensor);
+
+ public:
   // 描述模型的名称
   std::string name_;
   // 模型算子列表

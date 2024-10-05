@@ -17,8 +17,8 @@ namespace net {
 
 class NNDEPLOY_CC_API Session : public base::NonCopyable {
  public:
-  Session(const base::DeviceType &device_type) : device_type_(device_type){};
-  virtual ~Session(){};
+  Session(const base::DeviceType &device_type) : device_type_(device_type) {};
+  virtual ~Session() {};
 
   virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
                             std::vector<OpWrapper *> &op_repository,
@@ -42,7 +42,7 @@ class NNDEPLOY_CC_API Session : public base::NonCopyable {
  */
 class SessionCreator {
  public:
-  virtual ~SessionCreator(){};
+  virtual ~SessionCreator() {};
 
   virtual Session *createSession(const base::DeviceType &device_type,
                                  base::ParallelType parallel_type) = 0;
@@ -69,8 +69,8 @@ class TypeSessionCreator : public SessionCreator {
  * std::shared_ptr<SessionCreator>>>&
  */
 std::map<base::DeviceTypeCode,
-         std::map<base::ParallelType, std::shared_ptr<SessionCreator>>>
-    &getGlobalSessionCreatorMap();
+         std::map<base::ParallelType, std::shared_ptr<SessionCreator>>> &
+getGlobalSessionCreatorMap();
 
 /**
  * @brief Session的创建类的注册类模板

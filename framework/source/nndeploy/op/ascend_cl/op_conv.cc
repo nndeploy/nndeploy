@@ -60,7 +60,7 @@ class AscendCLOpConv : public OpConv {
     return base::kStatusCodeOk;
   }
   virtual base::Status deinit() {
-    if (stride_ != nullptr){
+    if (stride_ != nullptr) {
       aclDestroyIntArray(stride_);
     }
     aclDestroyIntArray(padding_);
@@ -74,14 +74,14 @@ class AscendCLOpConv : public OpConv {
       aclDestroyTensor(inner_bias_);
     }
 
-    if (weight_ != nullptr){
+    if (weight_ != nullptr) {
       delete weight_;
     }
-   
-    if (bias_ != nullptr){
+
+    if (bias_ != nullptr) {
       delete bias_;
     }
-  
+
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {
@@ -96,6 +96,10 @@ class AscendCLOpConv : public OpConv {
         inner_input_, inner_weight_, inner_bias_, stride_, padding_, dilation_,
         transposed_, output_padding_, groups_, inner_output_, cube_math_type_,
         &workspace_size_, &executor_);
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnConvolutionGetWorkspaceSize 失败，错误码: %d",
+                    aclnn_status);
+    }
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
                                  "aclnnConvolutionGetWorkspaceSize failed.");
@@ -106,7 +110,7 @@ class AscendCLOpConv : public OpConv {
         aclnnConvolution(workspace_, workspace_size_, executor_, inner_stream_);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSoftmax failed.");
+                                 "aclnnConvolution failed.");
 
     return base::kStatusCodeOk;
   }

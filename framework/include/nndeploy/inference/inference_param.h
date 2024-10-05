@@ -93,7 +93,7 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
  */
 class InferenceParamCreator {
  public:
-  virtual ~InferenceParamCreator(){};
+  virtual ~InferenceParamCreator() {};
   virtual InferenceParam *createInferenceParam() = 0;
 };
 
@@ -113,8 +113,8 @@ class TypeInferenceParamCreator : public InferenceParamCreator {
  * @return std::map<base::InferenceType,
  * std::shared_ptr<InferenceParamCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
-    &getGlobalInferenceParamCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
+getGlobalInferenceParamCreatorMap();
 
 /**
  * @brief TypeInferenceParamRegister is the template class of all inference

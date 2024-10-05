@@ -9,7 +9,6 @@ TvmInferenceParam::TvmInferenceParam() : InferenceParam() {
   model_type_ = base::kModelTypeTvm;
   device_type_ = device::getDefaultHostDeviceType();
   num_thread_ = 4;
-  
 }
 TvmInferenceParam::~TvmInferenceParam() {}
 

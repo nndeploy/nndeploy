@@ -19,8 +19,8 @@ namespace dag {
 
 class NNDEPLOY_CC_API Executor : public base::NonCopyable {
  public:
-  Executor(){};
-  virtual ~Executor(){};
+  Executor() {};
+  virtual ~Executor() {};
 
   virtual base::Status init(std::vector<EdgeWrapper *> &edge_repository,
                             std::vector<NodeWrapper *> &node_repository) = 0;

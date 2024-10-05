@@ -6,6 +6,7 @@ elseif(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL STREQUAL "ON")
 else()
   include_directories(${ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL}/include)
   include_directories(${ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL}/include/aclnn)
+
   # include_directories(${ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL}/include/experiment/platform)
   set(LIB_PATH ${ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL}/lib64)
   set(LIBS "ascendcl" "nnopbase" "opapi")

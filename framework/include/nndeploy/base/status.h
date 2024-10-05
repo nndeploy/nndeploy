@@ -21,6 +21,7 @@ enum StatusCode : int {
   kStatusCodeErrorInvalidParam,
   kStatusCodeErrorNullParam,
   kStatusCodeErrorThreadPool,
+  kStatusCodeErrorIO,
 
   // device
   kStatusCodeErrorDeviceCpu,

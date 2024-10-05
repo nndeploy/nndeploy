@@ -1,4 +1,6 @@
 
+#include "nndeploy/op/ascend_cl/acl_op_util.h"
+
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
@@ -6,7 +8,6 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
 
 namespace nndeploy {
 namespace op {

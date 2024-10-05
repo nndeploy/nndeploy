@@ -104,7 +104,7 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status run() = 0;
   virtual base::Status postRun();
 
-// 检查输出tensor的
+  // 检查输出tensor的
   virtual base::Status checkOrAllocOutput();
 
  protected:
@@ -135,7 +135,7 @@ class NNDEPLOY_CC_API Op {
  */
 class OpCreator {
  public:
-  virtual ~OpCreator(){};
+  virtual ~OpCreator() {};
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        OpType op_type) = 0;
@@ -198,8 +198,8 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
-    &getGlobalOpCreatorMap();
+std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
+getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板
