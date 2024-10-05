@@ -50,11 +50,12 @@ set(ENABLE_NNDEPLOY_DEVICE_HVX OFF) # 是否使能device apple hvx，默认为OF
 set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL OFF) # 是否使能device apple ascend cl，默认为OFF
 
+# # ir
+set(ENABLE_NNDEPLOY_IR ON) # 是否编译ir目录中文件，默认为OFF
+set(ENABLE_NNDEPLOY_IR_ONNX OFF) # 是否编译ir目录中文件，默认为OFF
+
 # # op
 set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
-
-# # ir
-set(ENABLE_NNDEPLOY_IR OFF) # 是否编译ir目录中文件，默认为OFF
 
 # # net
 set(ENABLE_NNDEPLOY_NET ON) # 是否编译net目录中文件，默认为OFF
@@ -78,33 +79,39 @@ set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL OFF) # 是否使能INFERENCE ASCEND_CL�
 # # dag
 set(ENABLE_NNDEPLOY_DAG ON) # 是否编译dag目录中文件，默认为ON
 
-# # codec
-set(ENABLE_NNDEPLOY_CODEC ON) # 是否编译编解码库，默认为ON
+# plugin
+set(ENABLE_NNDEPLOY_PLUGIN OFF) # 是否编译plugin目录中文件，默认为ON
 
-# # model
-set(ENABLE_NNDEPLOY_PLUGIN ON) # 是否编译model目录中文件，默认为ON
-
-# # test
+# test
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
 
-# # demo
-set(ENABLE_NNDEPLOY_DEMO ON) # 是否使能可执行程序demo，默认为OFF
+# demo
+set(ENABLE_NNDEPLOY_DEMO OFF) # 是否使能可执行程序demo，默认为OFF
 
-# # model detect
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT OFF) # 是否使能检测类模型，默认为OFF
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR OFF) # 是否使能检测类 DETR 模型，默认为OFF
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO OFF) # 是否使能检测类 YOLO 模型，默认为OFF
-
-# # model segment
-set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT OFF) # 是否使能分割类模型，默认为OFF
-set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING OFF) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF
-
-# # model tokenizer
-set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF) # 是否使能分割类模型，默认为OFF
-set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP OFF) # 是否使能分割类模型，默认为OFF
-
-# # model stable diffusion
-set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF) # 是否使能分割类 SEGMENT_ANYTHING 模型，默认为OFF
-
-# # enable python api
+# enable python api
 set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口
+
+# plugin
+# # preprocess
+set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS OFF) # 是否编译plugin目录中文件，默认为ON
+
+# # infer
+set(ENABLE_NNDEPLOY_PLUGIN_INFER OFF) # 是否编译plugin目录中文件，默认为ON
+
+# # codec
+set(ENABLE_NNDEPLOY_PLUGIN_CODEC OFF) # 是否编译plugin目录中文件，默认为ON
+
+# # detect
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT OFF)
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR OFF)
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO OFF)
+
+# # segment
+set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT OFF)
+set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING OFF)
+
+# # tokenizer
+set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
+
+# # stable_diffusion
+set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)

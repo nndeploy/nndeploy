@@ -11,6 +11,10 @@ endif()
 
 if(ENABLE_NNDEPLOY_DEVICE)
   include(${ROOT_PATH}/demo/device/config.cmake)
+
+  if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
+    include(${ROOT_PATH}/demo/ascend_cl/config.cmake)
+  endif()
 endif()
 
 if(ENABLE_NNDEPLOY_IR)

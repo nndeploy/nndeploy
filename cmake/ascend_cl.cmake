@@ -1,14 +1,14 @@
 
 include(ExternalProject)
 
-if(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL STREQUAL "OFF")
-elseif(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL STREQUAL "ON")
+if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL STREQUAL "OFF")
+elseif(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL STREQUAL "ON")
 else()
-  include_directories(${ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL}/include)
-  include_directories(${ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL}/include/aclnn)
+  include_directories(${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/include)
+  include_directories(${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/include/aclnn)
 
-  # include_directories(${ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL}/include/experiment/platform)
-  set(LIB_PATH ${ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL}/lib64)
+  # include_directories(${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/include/experiment/platform)
+  set(LIB_PATH ${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/lib64)
   set(LIBS "ascendcl" "nnopbase" "opapi")
 
   foreach(LIB ${LIBS})
@@ -24,7 +24,7 @@ else()
   endforeach()
 
   if(SYSTEM.Windows)
-    set(BIN_PATH ${ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL}/bin)
+    set(BIN_PATH ${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/bin)
     link_directories(${BIN_PATH})
     file(GLOB_RECURSE INSTALL_BINS "${BIN_PATH}/*.dll")
 

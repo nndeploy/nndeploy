@@ -50,14 +50,15 @@ set(ENABLE_NNDEPLOY_DEVICE_HVX OFF) # 是否使能device apple hvx，默认为OF
 set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL OFF) # 是否使能device apple ascend cl，默认为OFF
 
-# # op
-set(ENABLE_NNDEPLOY_OP OFF) # 是否编译op目录中文件，默认为OFF
-
 # # ir
-set(ENABLE_NNDEPLOY_IR OFF) # 是否编译ir目录中文件，默认为OFF
+set(ENABLE_NNDEPLOY_IR ON) # 是否编译ir目录中文件，默认为OFF
+set(ENABLE_NNDEPLOY_IR_ONNX OFF) # 是否编译ir目录中文件，默认为OFF
+
+# # op
+set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
 
 # # net
-set(ENABLE_NNDEPLOY_NET OFF) # 是否编译net目录中文件，默认为OFF
+set(ENABLE_NNDEPLOY_NET ON) # 是否编译net目录中文件，默认为OFF
 
 # # inference
 set(ENABLE_NNDEPLOY_INFERENCE ON) # 是否编译inference目录中文件，默认为ON
@@ -85,7 +86,10 @@ set(ENABLE_NNDEPLOY_PLUGIN ON) # 是否编译plugin目录中文件，默认为ON
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
 
 # demo
-set(ENABLE_NNDEPLOY_DEMO OFF) # 是否使能可执行程序demo，默认为OFF
+set(ENABLE_NNDEPLOY_DEMO ON) # 是否使能可执行程序demo，默认为OFF
+
+# enable python api
+set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口
 
 # plugin
 # # basic
@@ -111,6 +115,3 @@ set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
 
 # # stable_diffusion
 set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)
-
-# # enable python api
-set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口

@@ -23,7 +23,7 @@ set(ENABLE_NNDEPLOY_CXX20_ABI OFF) # C++的版本，选择为C++20，默认为OF
 set(ENABLE_NNDEPLOY_OPENMP ON) # 否使用OpenMP，该选项在Mac/iOS平台无效，默认为ON
 set(ENABLE_NNDEPLOY_ADDRESS_SANTIZER OFF) # 内存泄露检测，默认为OFF
 set(ENABLE_NNDEPLOY_TIME_PROFILER ON) # 时间性能Profile，默认为ON
-set(ENABLE_NNDEPLOY_OPENCV ON) # 是否链接第三方库opencv，默认为OFF
+set(ENABLE_NNDEPLOY_OPENCV OFF) # 是否链接第三方库opencv，默认为OFF
 set(NNDEPLOY_OPENCV_LIBS) # 链接的具体的opencv库名称，例如opencv_world480，opencv_java4等
 
 # # base
@@ -38,8 +38,8 @@ set(ENABLE_NNDEPLOY_CRYPTION OFF) # 是否编译crytion目录中文件，默认�
 # # device
 set(ENABLE_NNDEPLOY_DEVICE ON) # 是否编译device目录中文件，默认为ON
 set(ENABLE_NNDEPLOY_DEVICE_CPU ON) # 是否使能device cpu，默认为ON
-set(ENABLE_NNDEPLOY_DEVICE_ARM OFF) # 是否使能device arm，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_X86 ON) # 是否使能device x86，默认为OFF
+set(ENABLE_NNDEPLOY_DEVICE_ARM ON) # 是否使能device arm，默认为OFF
+set(ENABLE_NNDEPLOY_DEVICE_X86 OFF) # 是否使能device x86，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_CUDA OFF) # 是否使能device cuda，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_CUDNN OFF) # 是否使能device cudnn，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_OPENCL OFF) # 是否使能device opencl，默认为OFF
@@ -48,13 +48,14 @@ set(ENABLE_NNDEPLOY_DEVICE_METAL OFF) # 是否使能device metal，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_APPLE_NPU OFF) # 是否使能device apple npu，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_HVX OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL ON) # 是否使能device apple ascend cl，默认为OFF
+set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL "/usr/local/Ascend/ascend-toolkit/latest/aarch64-linux") # 是否使能device apple ascend cl，默认为OFF
+
+# # ir
+set(ENABLE_NNDEPLOY_IR ON) # 是否编译ir目录中文件，默认为OFF
+set(ENABLE_NNDEPLOY_IR_ONNX OFF) # 是否编译ir目录中文件，默认为OFF
 
 # # op
 set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
-
-# # ir
-set(ENABLE_NNDEPLOY_IR OFF) # 是否编译ir目录中文件，默认为OFF
 
 # # net
 set(ENABLE_NNDEPLOY_NET ON) # 是否编译forward目录中文件，默认为OFF
@@ -73,13 +74,13 @@ set(ENABLE_NNDEPLOY_INFERENCE_TVM OFF) # 是否使能INFERENCE TVM，默认为OF
 set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE OFF) # 是否使能INFERENCE PADDLELITE，默认为OFF
 set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_1 OFF) # 是否使能INFERENCE RKNN_TOOLKIT_1，默认为OFF
 set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 OFF) # 是否使能INFERENCE RKNN_TOOLKIT_2，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL "/usr/local/Ascend/ascend-toolkit/7.0.RC1/aarch64-linux") # 是否使能INFERENCE ASCEND_CL，默认为OFF
+set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL ON) # 是否使能INFERENCE ASCEND_CL，默认为OFF
 
 # # dag
 set(ENABLE_NNDEPLOY_DAG ON) # 是否编译dag目录中文件，默认为ON
 
 # plugin
-set(ENABLE_NNDEPLOY_PLUGIN ON) # 是否编译plugin目录中文件，默认为ON
+set(ENABLE_NNDEPLOY_PLUGIN OFF) # 是否编译plugin目录中文件，默认为ON
 
 # test
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
@@ -87,11 +88,14 @@ set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
 # demo
 set(ENABLE_NNDEPLOY_DEMO OFF) # 是否使能可执行程序demo，默认为OFF
 
+# enable python api
+set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口
+
 # plugin
-# # basic
+# # preprocess
 set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON) # 是否编译plugin目录中文件，默认为ON
 
-# # basic
+# # infer
 set(ENABLE_NNDEPLOY_PLUGIN_INFER ON) # 是否编译plugin目录中文件，默认为ON
 
 # # codec
@@ -111,6 +115,3 @@ set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
 
 # # stable_diffusion
 set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)
-
-# # enable python api
-set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口
