@@ -19,5 +19,13 @@ base::Status Param::get(const std::string &key, base::Value &value) {
   return base::kStatusCodeOk;
 }
 
+base::Status Param::serialize(std::ostream &stream) {
+  return base::kStatusCodeOk;
+}
+
+base::Status Param::deserialize(const std::string &str) {
+  return base::kStatusCodeOk;
+}
+
 }  // namespace base
 }  // namespace nndeploy

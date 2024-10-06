@@ -111,19 +111,51 @@ bool DeviceType::operator!=(const DeviceTypeCode &other) const {
 
 std::string dataTypeToString(DataType data_type) {
   std::string dst;
-  if (data_type.code_ == kDataTypeCodeFp) {
-    dst = "kDataTypeCodeFp";
-  } else if (data_type.code_ == kDataTypeCodeUint) {
+  if (data_type.code_ == kDataTypeCodeUint) {
     dst = "kDataTypeCodeUint";
   } else if (data_type.code_ == kDataTypeCodeInt) {
     dst = "kDataTypeCodeInt";
+  } else if (data_type.code_ == kDataTypeCodeFp) {
+    dst = "kDataTypeCodeFp";
+  } else if (data_type.code_ == kDataTypeCodeBFp) {
+    dst = "kDataTypeCodeBFp";
+  } else if (data_type.code_ == kDataTypeCodeOpaqueHandle) {
+    dst = "kDataTypeCodeOpaqueHandle";
   } else {
     dst = "kDataTypeCodeNotSupport";
   }
+  dst += " ";
   dst += std::to_string(data_type.bits_);
-  if (data_type.lanes_ > 1) {
-    dst += "x" + std::to_string(data_type.lanes_);
+  dst += " ";
+  dst += std::to_string(data_type.lanes_);
+  return dst;
+}
+
+DataType stringToDataType(const std::string &str) {
+  DataType dst;
+  std::istringstream iss(str);
+  std::string code_str, bits_str, lanes_str;
+
+  iss >> code_str >> bits_str >> lanes_str;
+
+  if (code_str == "kDataTypeCodeUint") {
+    dst.code_ = kDataTypeCodeUint;
+  } else if (code_str == "kDataTypeCodeInt") {
+    dst.code_ = kDataTypeCodeInt;
+  } else if (code_str == "kDataTypeCodeFp") {
+    dst.code_ = kDataTypeCodeFp;
+  } else if (code_str == "kDataTypeCodeBFp") {
+    dst.code_ = kDataTypeCodeBFp;
+  } else if (code_str == "kDataTypeCodeOpaqueHandle") {
+    dst.code_ = kDataTypeCodeOpaqueHandle;
+  } else {
+    dst.code_ = kDataTypeCodeNotSupport;
   }
+
+  dst.bits_ = std::stoi(bits_str);
+
+  dst.lanes_ = std::stoi(lanes_str);
+
   return dst;
 }
 

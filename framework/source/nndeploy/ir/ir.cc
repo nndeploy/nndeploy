@@ -4,6 +4,317 @@
 namespace nndeploy {
 namespace ir {
 
+static const std::map<OpType, std::string> g_optype_string_map = {
+    {kOpTypeNet, "kOpTypeNet"},
+    {kOpTypeAbs, "kOpTypeAbs"},
+    {kOpTypeAdd, "kOpTypeAdd"},
+    {kOpTypeAcos, "kOpTypeAcos"},
+    {kOpTypeAdam, "kOpTypeAdam"},
+    {kOpTypeAnd, "kOpTypeAnd"},
+    {kOpTypeArgMax, "kOpTypeArgMax"},
+    {kOpTypeArgMin, "kOpTypeArgMin"},
+    {kOpTypeAsin, "kOpTypeAsin"},
+    {kOpTypeAtan, "kOpTypeAtan"},
+    {kOpTypeAveragePool, "kOpTypeAveragePool"},
+    {kOpTypeBatchNormalization, "kOpTypeBatchNormalization"},
+    {kOpTypeCast, "kOpTypeCast"},
+    {kOpTypeCeil, "kOpTypeCeil"},
+    {kOpTypeClip, "kOpTypeClip"},
+    {kOpTypeConcat, "kOpTypeConcat"},
+    {kOpTypeConstant, "kOpTypeConstant"},
+    {kOpTypeConv, "kOpTypeConv"},
+    {kOpTypeCos, "kOpTypeCos"},
+    {kOpTypeCosh, "kOpTypeCosh"},
+    {kOpTypeDepthToSpace, "kOpTypeDepthToSpace"},
+    {kOpTypeDequantizeLinear, "kOpTypeDequantizeLinear"},
+    {kOpTypeDet, "kOpTypeDet"},
+    {kOpTypeDiv, "kOpTypeDiv"},
+    {kOpTypeDropout, "kOpTypeDropout"},
+    {kOpTypeEinsum, "kOpTypeEinsum"},
+    {kOpTypeElu, "kOpTypeElu"},
+    {kOpTypeEqual, "kOpTypeEqual"},
+    {kOpTypeErf, "kOpTypeErf"},
+    {kOpTypeExp, "kOpTypeExp"},
+    {kOpTypeFlatten, "kOpTypeFlatten"},
+    {kOpTypeFloor, "kOpTypeFloor"},
+    {kOpTypeGather, "kOpTypeGather"},
+    {kOpTypeGemm, "kOpTypeGemm"},
+    {kOpTypeGlobalAveragePool, "kOpTypeGlobalAveragePool"},
+    {kOpTypeGlobalLpPool, "kOpTypeGlobalLpPool"},
+    {kOpTypeGlobalMaxPool, "kOpTypeGlobalMaxPool"},
+    {kOpTypeGreater, "kOpTypeGreater"},
+    {kOpTypeHardSigmoid, "kOpTypeHardSigmoid"},
+    {kOpTypeIdentity, "kOpTypeIdentity"},
+    {kOpTypeIf, "kOpTypeIf"},
+    {kOpTypeImageScaler, "kOpTypeImageScaler"},
+    {kOpTypeInstanceNormalization, "kOpTypeInstanceNormalization"},
+    {kOpTypeIsInf, "kOpTypeIsInf"},
+    {kOpTypeIsNaN, "kOpTypeIsNaN"},
+    {kOpTypeLRN, "kOpTypeLRN"},
+    {kOpTypeLSTM, "kOpTypeLSTM"},
+    {kOpTypeLeakyRelu, "kOpTypeLeakyRelu"},
+    {kOpTypeLess, "kOpTypeLess"},
+    {kOpTypeLog, "kOpTypeLog"},
+    {kOpTypeLogSoftmax, "kOpTypeLogSoftmax"},
+    {kOpTypeLoop, "kOpTypeLoop"},
+    {kOpTypeLpNormalization, "kOpTypeLpNormalization"},
+    {kOpTypeLpPool, "kOpTypeLpPool"},
+    {kOpTypeMatMul, "kOpTypeMatMul"},
+    {kOpTypeMatMulInteger, "kOpTypeMatMulInteger"},
+    {kOpTypeMax, "kOpTypeMax"},
+    {kOpTypeMaxPool, "kOpTypeMaxPool"},
+    {kOpTypeMaxRoiPool, "kOpTypeMaxRoiPool"},
+    {kOpTypeMaxUnpool, "kOpTypeMaxUnpool"},
+    {kOpTypeMean, "kOpTypeMean"},
+    {kOpTypeMin, "kOpTypeMin"},
+    {kOpTypeMod, "kOpTypeMod"},
+    {kOpTypeMomentum, "kOpTypeMomentum"},
+    {kOpTypeMul, "kOpTypeMul"},
+    {kOpTypeMultinomial, "kOpTypeMultinomial"},
+    {kOpTypeNeg, "kOpTypeNeg"},
+    {kOpTypeNegLogSoftmax, "kOpTypeNegLogSoftmax"},
+    {kOpTypeNonMaxSuppression, "kOpTypeNonMaxSuppression"},
+    {kOpTypeNonZero, "kOpTypeNonZero"},
+    {kOpTypeNot, "kOpTypeNot"},
+    {kOpTypeOneHot, "kOpTypeOneHot"},
+    {kOpTypeOnesLike, "kOpTypeOnesLike"},
+    {kOpTypeOr, "kOpTypeOr"},
+    {kOpTypePad, "kOpTypePad"},
+    {kOpTypePow, "kOpTypePow"},
+    {kOpTypePRelu, "kOpTypePRelu"},
+    {kOpTypeQLinearConv, "kOpTypeQLinearConv"},
+    {kOpTypeQLinearMatMul, "kOpTypeQLinearMatMul"},
+    {kOpTypeQuantizeLinear, "kOpTypeQuantizeLinear"},
+    {kOpTypeRNN, "kOpTypeRNN"},
+    {kOpTypeRandomNormal, "kOpTypeRandomNormal"},
+    {kOpTypeRandomNormalLike, "kOpTypeRandomNormalLike"},
+    {kOpTypeRandomUniform, "kOpTypeRandomUniform"},
+    {kOpTypeRandomUniformLike, "kOpTypeRandomUniformLike"},
+    {kOpTypeRange, "kOpTypeRange"},
+    {kOpTypeReciprocal, "kOpTypeReciprocal"},
+    {kOpTypeReduceL1, "kOpTypeReduceL1"},
+    {kOpTypeReduceL2, "kOpTypeReduceL2"},
+    {kOpTypeReduceLogSum, "kOpTypeReduceLogSum"},
+    {kOpTypeReduceLogSumExp, "kOpTypeReduceLogSumExp"},
+    {kOpTypeReduceMax, "kOpTypeReduceMax"},
+    {kOpTypeReduceMean, "kOpTypeReduceMean"},
+    {kOpTypeReduceMin, "kOpTypeReduceMin"},
+    {kOpTypeReduceProd, "kOpTypeReduceProd"},
+    {kOpTypeReduceSum, "kOpTypeReduceSum"},
+    {kOpTypeReduceSumSquare, "kOpTypeReduceSumSquare"},
+    {kOpTypeRelu, "kOpTypeRelu"},
+    {kOpTypeReshape, "kOpTypeReshape"},
+    {kOpTypeResize, "kOpTypeResize"},
+    {kOpTypeReverseSequence, "kOpTypeReverseSequence"},
+    {kOpTypeRoiAlign, "kOpTypeRoiAlign"},
+    {kOpTypeRound, "kOpTypeRound"},
+    {kOpTypeScale, "kOpTypeScale"},
+    {kOpTypeScan, "kOpTypeScan"},
+    {kOpTypeScatter, "kOpTypeScatter"},
+    {kOpTypeSelu, "kOpTypeSelu"},
+    {kOpTypeSequenceAt, "kOpTypeSequenceAt"},
+    {kOpTypeSequenceConstruct, "kOpTypeSequenceConstruct"},
+    {kOpTypeSequenceEmpty, "kOpTypeSequenceEmpty"},
+    {kOpTypeSequenceErase, "kOpTypeSequenceErase"},
+    {kOpTypeSequenceInsert, "kOpTypeSequenceInsert"},
+    {kOpTypeSequenceLength, "kOpTypeSequenceLength"},
+    {kOpTypeShape, "kOpTypeShape"},
+    {kOpTypeShrink, "kOpTypeShrink"},
+    {kOpTypeSigmoid, "kOpTypeSigmoid"},
+    {kOpTypeSign, "kOpTypeSign"},
+    {kOpTypeSin, "kOpTypeSin"},
+    {kOpTypeSinh, "kOpTypeSinh"},
+    {kOpTypeSize, "kOpTypeSize"},
+    {kOpTypeSlice, "kOpTypeSlice"},
+    {kOpTypeSoftmax, "kOpTypeSoftmax"},
+    {kOpTypeSoftplus, "kOpTypeSoftplus"},
+    {kOpTypeSoftsign, "kOpTypeSoftsign"},
+    {kOpTypeSpaceToDepth, "kOpTypeSpaceToDepth"},
+    {kOpTypeSplit, "kOpTypeSplit"},
+    {kOpTypeSqrt, "kOpTypeSqrt"},
+    {kOpTypeSqueeze, "kOpTypeSqueeze"},
+    {kOpTypeSub, "kOpTypeSub"},
+    {kOpTypeSum, "kOpTypeSum"},
+    {kOpTypeTan, "kOpTypeTan"},
+    {kOpTypeTanh, "kOpTypeTanh"},
+    {kOpTypeTfIdf, "kOpTypeTfIdf"},
+    {kOpTypeThresholdedRelu, "kOpTypeThresholdedRelu"},
+    {kOpTypeTile, "kOpTypeTile"},
+    {kOpTypeTopK, "kOpTypeTopK"},
+    {kOpTypeTranspose, "kOpTypeTranspose"},
+    {kOpTypeUnsqueeze, "kOpTypeUnsqueeze"},
+    {kOpTypeUpsample, "kOpTypeUpsample"},
+    {kOpTypeWhere, "kOpTypeWhere"},
+    {kOpTypeXor, "kOpTypeXor"},
+    {kOpTypeRMSNorm, "kOpTypeRMSNorm"},
+    {kOpTypeNone, "kOpTypeNone"},
+};
+
+static const std::map<std::string, OpType> g_string_optype_map = {
+    {"kOpTypeNet", kOpTypeNet},
+    {"kOpTypeAbs", kOpTypeAbs},
+    {"kOpTypeAdd", kOpTypeAdd},
+    {"kOpTypeAcos", kOpTypeAcos},
+    {"kOpTypeAdam", kOpTypeAdam},
+    {"kOpTypeAnd", kOpTypeAnd},
+    {"kOpTypeArgMax", kOpTypeArgMax},
+    {"kOpTypeArgMin", kOpTypeArgMin},
+    {"kOpTypeAsin", kOpTypeAsin},
+    {"kOpTypeAtan", kOpTypeAtan},
+    {"kOpTypeAveragePool", kOpTypeAveragePool},
+    {"kOpTypeBatchNormalization", kOpTypeBatchNormalization},
+    {"kOpTypeCast", kOpTypeCast},
+    {"kOpTypeCeil", kOpTypeCeil},
+    {"kOpTypeClip", kOpTypeClip},
+    {"kOpTypeConcat", kOpTypeConcat},
+    {"kOpTypeConstant", kOpTypeConstant},
+    {"kOpTypeConv", kOpTypeConv},
+    {"kOpTypeCos", kOpTypeCos},
+    {"kOpTypeCosh", kOpTypeCosh},
+    {"kOpTypeDepthToSpace", kOpTypeDepthToSpace},
+    {"kOpTypeDequantizeLinear", kOpTypeDequantizeLinear},
+    {"kOpTypeDet", kOpTypeDet},
+    {"kOpTypeDiv", kOpTypeDiv},
+    {"kOpTypeDropout", kOpTypeDropout},
+    {"kOpTypeEinsum", kOpTypeEinsum},
+    {"kOpTypeElu", kOpTypeElu},
+    {"kOpTypeEqual", kOpTypeEqual},
+    {"kOpTypeErf", kOpTypeErf},
+    {"kOpTypeExp", kOpTypeExp},
+    {"kOpTypeFlatten", kOpTypeFlatten},
+    {"kOpTypeFloor", kOpTypeFloor},
+    {"kOpTypeGather", kOpTypeGather},
+    {"kOpTypeGemm", kOpTypeGemm},
+    {"kOpTypeGlobalAveragePool", kOpTypeGlobalAveragePool},
+    {"kOpTypeGlobalLpPool", kOpTypeGlobalLpPool},
+    {"kOpTypeGlobalMaxPool", kOpTypeGlobalMaxPool},
+    {"kOpTypeGreater", kOpTypeGreater},
+    {"kOpTypeHardSigmoid", kOpTypeHardSigmoid},
+    {"kOpTypeIdentity", kOpTypeIdentity},
+    {"kOpTypeIf", kOpTypeIf},
+    {"kOpTypeImageScaler", kOpTypeImageScaler},
+    {"kOpTypeInstanceNormalization", kOpTypeInstanceNormalization},
+    {"kOpTypeIsInf", kOpTypeIsInf},
+    {"kOpTypeIsNaN", kOpTypeIsNaN},
+    {"kOpTypeLRN", kOpTypeLRN},
+    {"kOpTypeLSTM", kOpTypeLSTM},
+    {"kOpTypeLeakyRelu", kOpTypeLeakyRelu},
+    {"kOpTypeLess", kOpTypeLess},
+    {"kOpTypeLog", kOpTypeLog},
+    {"kOpTypeLogSoftmax", kOpTypeLogSoftmax},
+    {"kOpTypeLoop", kOpTypeLoop},
+    {"kOpTypeLpNormalization", kOpTypeLpNormalization},
+    {"kOpTypeLpPool", kOpTypeLpPool},
+    {"kOpTypeMatMul", kOpTypeMatMul},
+    {"kOpTypeMatMulInteger", kOpTypeMatMulInteger},
+    {"kOpTypeMax", kOpTypeMax},
+    {"kOpTypeMaxPool", kOpTypeMaxPool},
+    {"kOpTypeMaxRoiPool", kOpTypeMaxRoiPool},
+    {"kOpTypeMaxUnpool", kOpTypeMaxUnpool},
+    {"kOpTypeMean", kOpTypeMean},
+    {"kOpTypeMin", kOpTypeMin},
+    {"kOpTypeMod", kOpTypeMod},
+    {"kOpTypeMomentum", kOpTypeMomentum},
+    {"kOpTypeMul", kOpTypeMul},
+    {"kOpTypeMultinomial", kOpTypeMultinomial},
+    {"kOpTypeNeg", kOpTypeNeg},
+    {"kOpTypeNegLogSoftmax", kOpTypeNegLogSoftmax},
+    {"kOpTypeNonMaxSuppression", kOpTypeNonMaxSuppression},
+    {"kOpTypeNonZero", kOpTypeNonZero},
+    {"kOpTypeNot", kOpTypeNot},
+    {"kOpTypeOneHot", kOpTypeOneHot},
+    {"kOpTypeOnesLike", kOpTypeOnesLike},
+    {"kOpTypeOr", kOpTypeOr},
+    {"kOpTypePad", kOpTypePad},
+    {"kOpTypePow", kOpTypePow},
+    {"kOpTypePRelu", kOpTypePRelu},
+    {"kOpTypeQLinearConv", kOpTypeQLinearConv},
+    {"kOpTypeQLinearMatMul", kOpTypeQLinearMatMul},
+    {"kOpTypeQuantizeLinear", kOpTypeQuantizeLinear},
+    {"kOpTypeRNN", kOpTypeRNN},
+    {"kOpTypeRandomNormal", kOpTypeRandomNormal},
+    {"kOpTypeRandomNormalLike", kOpTypeRandomNormalLike},
+    {"kOpTypeRandomUniform", kOpTypeRandomUniform},
+    {"kOpTypeRandomUniformLike", kOpTypeRandomUniformLike},
+    {"kOpTypeRange", kOpTypeRange},
+    {"kOpTypeReciprocal", kOpTypeReciprocal},
+    {"kOpTypeReduceL1", kOpTypeReduceL1},
+    {"kOpTypeReduceL2", kOpTypeReduceL2},
+    {"kOpTypeReduceLogSum", kOpTypeReduceLogSum},
+    {"kOpTypeReduceLogSumExp", kOpTypeReduceLogSumExp},
+    {"kOpTypeReduceMax", kOpTypeReduceMax},
+    {"kOpTypeReduceMean", kOpTypeReduceMean},
+    {"kOpTypeReduceMin", kOpTypeReduceMin},
+    {"kOpTypeReduceProd", kOpTypeReduceProd},
+    {"kOpTypeReduceSum", kOpTypeReduceSum},
+    {"kOpTypeReduceSumSquare", kOpTypeReduceSumSquare},
+    {"kOpTypeRelu", kOpTypeRelu},
+    {"kOpTypeReshape", kOpTypeReshape},
+    {"kOpTypeResize", kOpTypeResize},
+    {"kOpTypeReverseSequence", kOpTypeReverseSequence},
+    {"kOpTypeRoiAlign", kOpTypeRoiAlign},
+    {"kOpTypeRound", kOpTypeRound},
+    {"kOpTypeScale", kOpTypeScale},
+    {"kOpTypeScan", kOpTypeScan},
+    {"kOpTypeScatter", kOpTypeScatter},
+    {"kOpTypeSelu", kOpTypeSelu},
+    {"kOpTypeSequenceAt", kOpTypeSequenceAt},
+    {"kOpTypeSequenceConstruct", kOpTypeSequenceConstruct},
+    {"kOpTypeSequenceEmpty", kOpTypeSequenceEmpty},
+    {"kOpTypeSequenceErase", kOpTypeSequenceErase},
+    {"kOpTypeSequenceInsert", kOpTypeSequenceInsert},
+    {"kOpTypeSequenceLength", kOpTypeSequenceLength},
+    {"kOpTypeShape", kOpTypeShape},
+    {"kOpTypeShrink", kOpTypeShrink},
+    {"kOpTypeSigmoid", kOpTypeSigmoid},
+    {"kOpTypeSign", kOpTypeSign},
+    {"kOpTypeSin", kOpTypeSin},
+    {"kOpTypeSinh", kOpTypeSinh},
+    {"kOpTypeSize", kOpTypeSize},
+    {"kOpTypeSlice", kOpTypeSlice},
+    {"kOpTypeSoftmax", kOpTypeSoftmax},
+    {"kOpTypeSoftplus", kOpTypeSoftplus},
+    {"kOpTypeSoftsign", kOpTypeSoftsign},
+    {"kOpTypeSpaceToDepth", kOpTypeSpaceToDepth},
+    {"kOpTypeSplit", kOpTypeSplit},
+    {"kOpTypeSqrt", kOpTypeSqrt},
+    {"kOpTypeSqueeze", kOpTypeSqueeze},
+    {"kOpTypeSub", kOpTypeSub},
+    {"kOpTypeSum", kOpTypeSum},
+    {"kOpTypeTan", kOpTypeTan},
+    {"kOpTypeTanh", kOpTypeTanh},
+    {"kOpTypeTfIdf", kOpTypeTfIdf},
+    {"kOpTypeThresholdedRelu", kOpTypeThresholdedRelu},
+    {"kOpTypeTile", kOpTypeTile},
+    {"kOpTypeTopK", kOpTypeTopK},
+    {"kOpTypeTranspose", kOpTypeTranspose},
+    {"kOpTypeUnsqueeze", kOpTypeUnsqueeze},
+    {"kOpTypeUpsample", kOpTypeUpsample},
+    {"kOpTypeWhere", kOpTypeWhere},
+    {"kOpTypeXor", kOpTypeXor},
+    {"kOpTypeRMSNorm", kOpTypeRMSNorm},
+    {"kOpTypeNone", kOpTypeNone},
+};
+
+std::string opTypeToString(OpType op_type) {
+  auto iter = g_optype_string_map.find(op_type);
+  if (iter != g_optype_string_map.end()) {
+    return iter->second;
+  }
+  NNDEPLOY_LOGE("Error: op_type not found in g_optype_string_map\n");
+  return std::string();
+}
+
+OpType stringToOpType(const std::string &op_type_name) {
+  auto iter = g_string_optype_map.find(op_type_name);
+  if (iter != g_string_optype_map.end()) {
+    return iter->second;
+  }
+  NNDEPLOY_LOGE("Error: op_type_name=%s not found in g_string_optype_map\n",
+                op_type_name.c_str());
+  return kOpTypeNone;
+}
+
 OpDesc::OpDesc() {}
 OpDesc::OpDesc(OpType op_type) : op_type_(op_type) {
   op_param_ = createOpParam(op_type);
@@ -58,6 +369,105 @@ OpDesc::OpDesc(const std::string &name, OpType op_type,
 
 OpDesc::~OpDesc() {}
 
+/**
+ * @brief
+ *
+ * @param stream
+ * @return base::Status
+ * @note
+ * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
+ */
+base::Status OpDesc::serialize(std::ostream &stream) const {
+  // 写入算子类型
+  stream << opTypeToString(op_type_) << ",";
+
+  // 写入算子名称
+  stream << name_ << ",";
+
+  // 写入输入个数
+  stream << (int)inputs_.size() << ",";
+
+  // 写入输出个数
+  stream << (int)outputs_.size() << ",";
+
+  // 写入输入名称
+  for (const auto &input : inputs_) {
+    stream << input << ",";
+  }
+
+  // 写入输出名称
+  for (const auto &output : outputs_) {
+    stream << output << ",";
+  }
+
+  // 写入参数
+  if (op_param_ != nullptr) {
+    op_param_->serialize(stream);
+  }
+
+  // 写入换行符
+  // stream << std::endl;
+
+  return base::kStatusCodeOk;
+}
+/**
+ * @brief
+ *
+ * @param stream
+ * @return base::Status
+ * @note
+ * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
+ */
+base::Status OpDesc::deserialize(const std::string &line) {
+  std::istringstream iss(line);
+  std::string token;
+
+  // 读取op类型
+  if (!std::getline(iss, token, ',')) return base::kStatusCodeErrorInvalidValue;
+  op_type_ = stringToOpType(token);
+
+  // 读取op名称
+  if (!std::getline(iss, name_, ',')) return base::kStatusCodeErrorInvalidValue;
+
+  // 读取输入个数
+  if (!std::getline(iss, token, ',')) return base::kStatusCodeErrorInvalidValue;
+  int input_count = std::stoi(token);
+
+  // 读取输出个数
+  if (!std::getline(iss, token, ',')) return base::kStatusCodeErrorInvalidValue;
+  int output_count = std::stoi(token);
+
+  // 读取输入名称
+  inputs_.clear();
+  for (int i = 0; i < input_count; ++i) {
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    inputs_.push_back(token);
+  }
+
+  // 读取输出名称
+  outputs_.clear();
+  for (int i = 0; i < output_count; ++i) {
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    outputs_.push_back(token);
+  }
+
+  // 读取参数
+  op_param_ = createOpParam(op_type_);
+  if (op_param_ != nullptr) {
+    // 最大值或者最小值为默认值
+    std::string str;
+    iss >> str;
+    std::cout << str << std::endl;
+    base::Status status = op_param_->deserialize(str);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, status,
+                                 "op_param_->deserialize(iss) failed!");
+  }
+
+  return base::kStatusCodeOk;
+}
+
 ValueDesc::ValueDesc() {}
 ValueDesc::ValueDesc(const std::string &name) : name_(name) {}
 ValueDesc::ValueDesc(const std::string &name, base::DataType data_type)
@@ -65,6 +475,77 @@ ValueDesc::ValueDesc(const std::string &name, base::DataType data_type)
 ValueDesc::ValueDesc(const std::string &name, base::DataType data_type,
                      base::IntVector shape)
     : name_(name), data_type_(data_type), shape_(shape) {}
+
+ValueDesc::~ValueDesc() {
+  name_.clear();
+  shape_.clear();
+}
+
+/**
+ * @brief
+ *
+ * @param stream
+ * @return base::Status
+ * @note 名称,[数据类型],[形状]
+ */
+base::Status ValueDesc::serialize(std::ostream &stream) const {
+  stream << name_;
+
+  if (data_type_.code_ != base::kDataTypeCodeNotSupport) {
+    stream << "," << base::dataTypeToString(data_type_);
+  }
+  if (!shape_.empty()) {
+    stream << ",[";
+    for (size_t i = 0; i < shape_.size(); ++i) {
+      if (i > 0) {
+        stream << ",";
+      }
+      stream << shape_[i];
+    }
+    stream << "]";
+  }
+
+  return base::kStatusCodeOk;
+}
+/**
+ * @brief
+ *
+ * @param stream
+ * @return base::Status
+ * @note 名称,[数据类型],[形状]
+ */
+base::Status ValueDesc::deserialize(const std::string &str) {
+  std::string line(str);
+  // 解析名称
+  size_t pos = line.find(',');
+  if (pos != std::string::npos) {
+    name_ = line.substr(0, pos);
+    line = line.substr(pos + 1);
+  } else {
+    name_ = line;
+    return base::kStatusCodeOk;
+  }
+
+  // 解析数据类型
+  pos = line.find(',');
+  if (pos != std::string::npos) {
+    std::string data_type_str = line.substr(0, pos);
+    data_type_ = base::stringToDataType(data_type_str);
+    line = line.substr(pos + 1);
+  }
+
+  // 解析形状
+  if (line.front() == '[' && line.back() == ']') {
+    line = line.substr(1, line.length() - 2);
+    std::istringstream iss(line);
+    std::string token;
+    while (std::getline(iss, token, ',')) {
+      shape_.push_back(std::stoi(token));
+    }
+  }
+
+  return base::kStatusCodeOk;
+}
 
 ModelDesc::ModelDesc() {}
 ModelDesc::~ModelDesc() {
@@ -75,158 +556,243 @@ ModelDesc::~ModelDesc() {
   }
 }
 
-// clang-format off
 /**
  * @brief
  *
  * @param oss
  * @return base::Status
- * @note -
+ */
+base::Status ModelDesc::dump(std::ostream &oss) {
+  return serializeStructureToText(oss);
+}
+
+/**
+ * @brief 序列化模型结构为文本
+ *
+ * @param output
+ * @return base::Status
  * 打印模型结构,不包含权重,文件按行分割,行内使用“,”分割,可选项目[]标识,具体结构如下
  * ModelName: 模型名称
  * inputs_num: 输入个数
- * inputs[0]: 第一个输入的名称,[数据类型],[形状]
- * inputs[1]: 第二个输入的名称,[数据类型],[形状]
+ * 名称,[数据类型],[形状]
+ * 名称,[数据类型],[形状]
  * ...
- * inputs[n]: 第n个输入的名称,[数据类型],[形状]
+ * 名称,[数据类型],[形状]
  * outputs_num: 输出个数
- * outputs[0]: 第一个输出的名称,[数据类型],[形状]
- * outputs[1]: 第二个输出的名称,[数据类型],[形状]
+ * 名称,[数据类型],[形状]
+ * 名称,[数据类型],[形状]
  * ...
- * outputs[n]: 第n个输出的名称,[数据类型],[形状]
+ * 名称,[数据类型],[形状]
  * ops_num: op的个数
  * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
  * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
+ * ...
+ * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
+ * weights: weights个数，weight名称0，weight名称1，...,weight名称n
+ * values_num: value的个数（可选项）
+ * 名称,[数据类型],[形状]
+ * 名称,[数据类型],[形状]
+ * ...
+ * 名称,[数据类型],[形状]
+ * blocks_num: block的个数（可选项，递归调用）
  */
-base::Status ModelDesc::dump(std::ostream &oss) {
-  oss << "ModelDesc: " << std::endl;
-  oss << "  name: " << name_ << std::endl;
-  oss << "  inputs: " << std::endl;
-  for (auto iter : inputs_) {
-    oss << "    " << iter->name_;
-    oss << std::endl;
+base::Status ModelDesc::serializeStructureToText(std::ostream &stream) const {
+  // 写入模型名称
+  stream << "ModelName: " << name_ << std::endl;
+
+  // 写入输入信息
+  stream << "inputs_num: " << (int)inputs_.size() << std::endl;
+  for (const auto &input : inputs_) {
+    base::Status status = input->serialize(stream);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to serialize input\n");
+      return status;
+    }
+    stream << std::endl;
   }
-  oss << "  outputs: " << std::endl;
-  for (auto iter : outputs_) {
-    oss << "    " << iter->name_;
-    oss << std::endl;
+
+  // 写入输出信息
+  stream << "outputs_num: " << (int)outputs_.size() << std::endl;
+  for (const auto &output : outputs_) {
+    base::Status status = output->serialize(stream);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to serialize output\n");
+      return status;
+    }
+    stream << std::endl;
   }
-  oss << "  op_descs: " << std::endl;
-  for (auto iter : op_descs_) {
-    oss << "    " << iter->name_ << " : " << iter->op_type_ << std::endl;
+
+  // 写入操作信息
+  stream << "ops_num: " << (int)op_descs_.size() << std::endl;
+  for (const auto &op : op_descs_) {
+    base::Status status = op->serialize(stream);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to serialize operation\n");
+      return status;
+    }
+    stream << std::endl;
   }
-  oss << "  weights: " << std::endl;
-  for (auto iter : weights_) {
-    oss << "    " << iter.first;
-    oss << std::endl;
+
+  // 写入权重信息
+  stream << "weights: " << (int)weights_.size();
+  for (const auto &weight : weights_) {
+    stream << "," << weight.first;
   }
-  if (values_.size() > 0) {
-    oss << "  values_: " << std::endl;
-    for (auto iter : values_) {
-      oss << "    " << iter->name_;
-      oss << std::endl;
+  stream << std::endl;
+
+  // 写入中间值信息（如果有）
+  if (!values_.empty()) {
+    stream << "values_num: " << (int)values_.size() << std::endl;
+    for (const auto &value : values_) {
+      base::Status status = value->serialize(stream);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("Failed to serialize value\n");
+        return status;
+      }
+      stream << std::endl;
     }
   }
-  if (blocks_.size() > 0) {
-    oss << "  blocks_: " << std::endl;
-    for (auto iter : blocks_) {
-      oss << "    " << iter->name_;
-      oss << std::endl;
+
+  // 写入块信息（如果有）
+  if (!blocks_.empty()) {
+    stream << "blocks_num: " << (int)blocks_.size() << std::endl;
+    for (const auto &block : blocks_) {
+      base::Status status = block->serializeStructureToText(stream);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("Failed to serialize block\n");
+        return status;
+      }
     }
   }
 
   return base::kStatusCodeOk;
 }
-// clang-format on
 
-// base::Status ModelDesc::serialize(std::ostream &output) const {
-//   // 序列化模型名称
-//   base::writeString(output, name_);
+/**
+ * @brief
+ * 从文本反序列化为模型结构，不包含weights和values，当input有值时，覆盖inputs_
+ *
+ * @param output
+ * @return base::Status
+ * 打印模型结构,不包含权重,文件按行分割,行内使用“,”分割,可选项目[]标识,具体结构如下
+ * ModelName: 模型名称
+ * inputs_num: 输入个数
+ * 名称,[数据类型],[形状]
+ * 名称,[数据类型],[形状]
+ * ...
+ * 名称,[数据类型],[形状]
+ * outputs_num: 输出个数
+ * 名称,[数据类型],[形状]
+ * 名称,[数据类型],[形状]
+ * ...
+ * 名称,[数据类型],[形状]
+ * ops_num: op的个数
+ * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
+ * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
+ * ...
+ * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
+ * weights: weights个数，weight名称0，weight名称1，...,weight名称n
+ * values_num: value的个数（可选项）
+ * 名称,[数据类型],[形状]
+ * 名称,[数据类型],[形状]
+ * ...
+ * 名称,[数据类型],[形状]
+ * blocks_num: block的个数（可选项，递归调用）
+ */
+base::Status ModelDesc::deserializeStructureFromText(
+    std::istream &stream, const std::vector<ValueDesc> &input) {
+  std::string line;  // 每行信息
+  while (std::getline(stream, line)) {
+    std::istringstream iss(line);
+    std::string key;
+    if (!(iss >> key)) {
+      continue;
+    }
 
-//   // 序列化算子描述列表
-//   base::writeVector(output, op_descs_, [this](std::ostream &os, const
-//   std::shared_ptr<OpDesc> &op_desc) {
-//     return this->serializeOpDesc(op_desc, os);
-//   });
+    if (key == "ModelName:") {
+      iss >> name_;
+    } else if (key == "inputs_num:") {
+      int inputs_num;
+      iss >> inputs_num;
+      inputs_.clear();
+      for (size_t i = 0; i < inputs_num; ++i) {
+        std::getline(stream, line);
+        std::shared_ptr<ValueDesc> input_desc = std::make_shared<ValueDesc>();
+        base::Status status = input_desc->deserialize(line);
+        if (status != base::kStatusCodeOk) {
+          NNDEPLOY_LOGE("Failed to deserialize input\n");
+          return status;
+        }
+        inputs_.emplace_back(input_desc);
+      }
+    } else if (key == "outputs_num:") {
+      int outputs_num;
+      iss >> outputs_num;
+      outputs_.clear();
+      for (size_t i = 0; i < outputs_num; ++i) {
+        std::getline(stream, line);
+        std::shared_ptr<ValueDesc> output_desc = std::make_shared<ValueDesc>();
+        base::Status status = output_desc->deserialize(line);
+        if (status != base::kStatusCodeOk) {
+          NNDEPLOY_LOGE("Failed to deserialize output\n");
+          return status;
+        }
+        outputs_.emplace_back(output_desc);
+      }
+    } else if (key == "ops_num:") {
+      int ops_num;
+      iss >> ops_num;
+      op_descs_.clear();
+      for (size_t i = 0; i < ops_num; ++i) {
+        std::getline(stream, line);
+        std::shared_ptr<OpDesc> op_desc = std::make_shared<OpDesc>();
+        base::Status status = op_desc->deserialize(line);
+        if (status != base::kStatusCodeOk) {
+          NNDEPLOY_LOGE("Failed to deserialize op\n");
+          return status;
+        }
+        op_descs_.emplace_back(op_desc);
+      }
+    } else if (key == "blocks_num:") {
+      int blocks_num;
+      iss >> blocks_num;
+      blocks_.clear();
+      for (size_t i = 0; i < blocks_num; ++i) {
+        std::shared_ptr<ModelDesc> block = std::make_shared<ModelDesc>();
+        base::Status status =
+            block->deserializeStructureFromText(stream, input);
+        if (status != base::kStatusCodeOk) {
+          NNDEPLOY_LOGE("Failed to deserialize block\n");
+          return status;
+        }
+        blocks_.emplace_back(block);
+      }
+    }
+  }
 
-//   // 序列化权重
-//   base::writeMap(output, weights_, [this](std::ostream &os, const
-//   std::pair<std::string, device::Tensor*> &weight) {
-//     base::writeString(os, weight.first);
-//     return this->serializeTensor(weight.second, os);
-//   });
+  if (!input.empty()) {
+    for (auto &new_input : input) {
+      for (auto &existing_input : inputs_) {
+        if (existing_input->name_ == new_input.name_) {
+          existing_input->name_ = new_input.name_;
+          existing_input->data_type_ = new_input.data_type_;
+          existing_input->shape_ = new_input.shape_;
+          break;
+        }
+      }
+    }
+  }
+  return base::kStatusCodeOk;
+}
 
-//   // 序列化输入描述
-//   base::writeVector(output, inputs_, [this](std::ostream &os, const
-//   std::shared_ptr<ValueDesc> &value_desc) {
-//     return this->serializeValueDesc(value_desc, os);
-//   });
-
-//   // 序列化输出描述
-//   base::writeVector(output, outputs_, [this](std::ostream &os, const
-//   std::shared_ptr<ValueDesc> &value_desc) {
-//     return this->serializeValueDesc(value_desc, os);
-//   });
-
-//   // 序列化中间值描述
-//   base::writeVector(output, values_, [this](std::ostream &os, const
-//   std::shared_ptr<ValueDesc> &value_desc) {
-//     return this->serializeValueDesc(value_desc, os);
-//   });
-
-//   // 序列化子模型块
-//   base::writeVector(output, blocks_, [](std::ostream &os, const
-//   std::shared_ptr<ModelDesc> &block) {
-//     return block->serialize(os);
-//   });
-
-//   return base::kStatusCodeOk;
-// }
-
-// base::Status ModelDesc::deserialize(std::istream &input) {
-//   // 反序列化模型名称
-//   base::readString(input, name_);
-
-//   // 反序列化算子描述列表
-//   base::readVector(input, op_descs_, [this](std::istream &is,
-//   std::shared_ptr<OpDesc> &op_desc) {
-//     return this->deserializeOpDesc(is, op_desc);
-//   });
-
-//   // 反序列化权重
-//   base::readMap(input, weights_, [this](std::istream &is,
-//   std::pair<std::string, device::Tensor*> &weight) {
-//     base::readString(is, weight.first);
-//     return this->deserializeTensor(is, weight.second);
-//   });
-
-//   // 反序列化输入描述
-//   base::readVector(input, inputs_, [this](std::istream &is,
-//   std::shared_ptr<ValueDesc> &value_desc) {
-//     return this->deserializeValueDesc(is, value_desc);
-//   });
-
-//   // 反序列化输出描述
-//   base::readVector(input, outputs_, [this](std::istream &is,
-//   std::shared_ptr<ValueDesc> &value_desc) {
-//     return this->deserializeValueDesc(is, value_desc);
-//   });
-
-//   // 反序列化中间值描述
-//   base::readVector(input, values_, [this](std::istream &is,
-//   std::shared_ptr<ValueDesc> &value_desc) {
-//     return this->deserializeValueDesc(is, value_desc);
-//   });
-
-//   // 反序列化子模型块
-//   base::readVector(input, blocks_, [](std::istream &is,
-//   std::shared_ptr<ModelDesc> &block) {
-//     block = std::make_shared<ModelDesc>();
-//     return block->deserialize(is);
-//   });
-
-//   return base::kStatusCodeOk;
-// }
+// 序列化模型权重为二进制文件
+base::Status ModelDesc::serializeWeightsToBinary(std::ostream &stream) const {
+  return base::kStatusCodeOk;
+}
+// 从二进制文件反序列化为模型权重
+base::Status ModelDesc::deserializeWeightsFromBinary(std::istream &stream) {
+  return base::kStatusCodeOk;
+}
 
 std::map<OpType, std::shared_ptr<OpParamCreator>> &
 getGlobalOpParamCreatorMap() {

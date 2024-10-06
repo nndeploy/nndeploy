@@ -46,6 +46,11 @@ class NNDEPLOY_CC_API Param {
   virtual base::Status set(const std::string &key, base::Value &value);
 
   virtual base::Status get(const std::string &key, base::Value &value);
+
+  // 序列化
+  virtual base::Status serialize(std::ostream &stream);
+  // 反序列化
+  virtual base::Status deserialize(const std::string &str);
 };
 
 }  // namespace base

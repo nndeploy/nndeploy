@@ -15,17 +15,13 @@ class Interpret {
    * 创建一个新的Interpret对象，并初始化model_desc_成员。
    * model_desc_被初始化为一个新的ModelDesc对象。
    */
-  Interpret() { model_desc_ = new ModelDesc(); };
+  Interpret();
   /**
    * @brief 虚析构函数
    *
    * 负责清理Interpret对象，释放model_desc_指针指向的内存
    */
-  virtual ~Interpret() {
-    if (model_desc_ != nullptr) {
-      delete model_desc_;
-    }
-  };
+  virtual ~Interpret();
 
   /**
    * @brief 解释模型
@@ -53,12 +49,62 @@ class Interpret {
       const std::vector<ValueDesc> &input = std::vector<ValueDesc>()) = 0;
 
   /**
+   * @brief
+   *
+   */
+  // 打印模型结构
+  base::Status dump(std::ostream &oss = std::cout);
+
+  /**
+   * @brief 存储模型结构以及模型权重
+   *
+   * 该函数负责将模型的结构和权重存储到指定的输出流中。
+   * 这个过程通常包括序列化模型结构、序列化模型权重等步骤。
+   *
+   * @param structure_stream
+   * 输出流，用于存储模型结构的序列化数据。
+   * @param weight_stream
+   * 输出流，用于存储模型权重的序列化数据。
+   *
+   * @return base::Status 返回存储过程的状态。
+   *         - 如果存储成功，返回 base::kStatusCodeOk
+   *         - 如果存储失败，返回对应的错误状态码
+   *
+   * @note 这是一个虚函数，可以在派生类中重载以实现特定的存储逻辑。
+   *
+   * @see base::Status 了解可能的返回状态
+   */
+  base::Status saveModel(std::ostream &structure_stream,
+                         std::ostream &weight_stream);
+  /**
+   * @brief 存储模型结构以及模型权重到指定路径
+   *
+   * 该函数负责将模型的结构和权重存储到指定的输出流中。
+   * 这个过程通常包括序列化模型结构、序列化模型权重等步骤。
+   *
+   * @param structure_file_path
+   * 输出流，用于存储模型结构的序列化数据。
+   * @param weight_file_path
+   * 输出流，用于存储模型权重的序列化数据。
+   *
+   * @return base::Status 返回存储过程的状态。
+   *         - 如果存储成功，返回 base::kStatusCodeOk
+   *         - 如果存储失败，返回对应的错误状态码
+   *
+   * @note 这是一个虚函数，可以在派生类中重载以实现特定的存储逻辑。
+   *
+   * @see base::Status 了解可能的返回状态
+   */
+  base::Status saveModelToFile(const std::string &structure_file_path,
+                               const std::string &weight_file_path);
+
+  /**
    * @brief 获取模型描述
    *
    * 获取模型描述
    * @return 模型描述
    */
-  ModelDesc *getModelDesc() { return model_desc_; };
+  ModelDesc *getModelDesc();
 
  protected:
   /**
@@ -66,7 +112,7 @@ class Interpret {
    *
    * 用于存储模型描述信息
    */
-  ModelDesc *model_desc_;
+  ModelDesc *model_desc_ = nullptr;
 };
 
 }  // namespace ir

@@ -206,6 +206,8 @@ enum OpType : int {
 
 std::string opTypeToString(OpType op_type);
 
+OpType stringToOpType(const std::string &op_type_name);
+
 /**
  * @brief 参照并扩充了onnx的格式，描述算子的基本信息
  * # 1. 算子名称
@@ -236,6 +238,11 @@ class NNDEPLOY_CC_API OpDesc {
 
   virtual ~OpDesc();
 
+  // 序列化
+  base::Status serialize(std::ostream &stream) const;
+  // 反序列化
+  base::Status deserialize(const std::string &line);
+
  public:
   // 算子名称
   std::string name_;
@@ -261,6 +268,13 @@ class ValueDesc {
   ValueDesc(const std::string &name, base::DataType data_type,
             base::IntVector shape);
 
+  virtual ~ValueDesc();
+
+  // 序列化
+  base::Status serialize(std::ostream &stream) const;
+  // 反序列化
+  base::Status deserialize(const std::string &line);
+
  public:
   // 名称
   std::string name_;
@@ -281,27 +295,15 @@ class ModelDesc {
 
   base::Status dump(std::ostream &oss);
 
- public:
-  // 序列化接口
-  // base::Status serialize(std::ostream &output) const;
-  // base::Status deserialize(std::istream &input);
-
-  // // 辅助函数
-  // base::Status serializeOpDesc(const std::shared_ptr<OpDesc> &op_desc,
-  //                              std::ostream &output) const;
-  // base::Status deserializeOpDesc(std::istream &input,
-  //                                std::shared_ptr<OpDesc> &op_desc);
-
-  // base::Status serializeValueDesc(const std::shared_ptr<ValueDesc>
-  // &value_desc,
-  //                                 std::ostream &output) const;
-  // base::Status deserializeValueDesc(std::istream &input,
-  //                                   std::shared_ptr<ValueDesc> &value_desc);
-
-  // base::Status serializeTensor(const device::Tensor *tensor,
-  //                              std::ostream &output) const;
-  // base::Status deserializeTensor(std::istream &input, device::Tensor
-  // *&tensor);
+  // 序列化模型结构为文本
+  base::Status serializeStructureToText(std::ostream &stream) const;
+  // 反序列化文本为模型结构
+  base::Status deserializeStructureFromText(
+      std::istream &stream, const std::vector<ValueDesc> &input);
+  // 序列化模型权重为二进制文件
+  base::Status serializeWeightsToBinary(std::ostream &stream) const;
+  // 从二进制文件反序列化模型权重
+  base::Status deserializeWeightsFromBinary(std::istream &stream);
 
  public:
   // 描述模型的名称
@@ -375,6 +377,13 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
   TypeOpParamRegister<TypeOpParamCreator<op_param_class>>       \
       g_##op_type##_##op_param_class##_register(op_type);
 
+/**
+ * @brief
+ *
+ * @note 按照key,value的形式序列化，每个元素以逗号隔开，具体形式如下
+ *
+ * reserved_param_:{key,value;key,value;},reserved_:value
+ */
 class OpParam : public base::Param {
  public:
   OpParam() : base::Param() {};
@@ -382,6 +391,50 @@ class OpParam : public base::Param {
 
   PARAM_COPY(OpParam)
   PARAM_COPY_TO(OpParam)
+
+  // // 序列化
+  // base::Status serialize(std::ostream &stream) {
+  //   stream << "reserved_param_:";
+  //   stream << "{";
+  //   for (const auto &param : reserved_param_) {
+  //     stream << param.first << "," << "param.second.toString()" << ";";
+  //   }
+  //   stream << "},";
+  //   stream << "reserved_:" << reserved_ << ",";
+  //   return base::kStatusCodeOk;
+  // }
+  // // 反序列化
+  // base::Status deserialize(const std::string &line) {
+  //   std::istringstream iss(line);
+  //   std::string token;
+
+  //   // 读取 reserved_param_
+  //   if (!std::getline(iss, token, ':'))
+  //     return base::kStatusCodeErrorInvalidValue;
+  //   if (token != "reserved_param_") return
+  //   base::kStatusCodeErrorInvalidValue; if (!std::getline(iss, token, '{'))
+  //     return base::kStatusCodeErrorInvalidValue;
+  //   while (std::getline(iss, token, ';')) {
+  //     if (token == "}") break;
+  //     std::istringstream param_iss(token);
+  //     std::string key, value;
+  //     if (!std::getline(param_iss, key, ','))
+  //       return base::kStatusCodeErrorInvalidValue;
+  //     if (!std::getline(param_iss, value, ','))
+  //       return base::kStatusCodeErrorInvalidValue;
+  //     // reserved_param_[key] = base::Value::fromString(value);
+  //   }
+
+  //   // 读取 reserved_
+  //   if (!std::getline(iss, token, ':'))
+  //     return base::kStatusCodeErrorInvalidValue;
+  //   if (token != "reserved_") return base::kStatusCodeErrorInvalidValue;
+  //   if (!std::getline(iss, token, ','))
+  //     return base::kStatusCodeErrorInvalidValue;
+  //   reserved_ = std::stoull(token);
+
+  //   return base::kStatusCodeOk;
+  // }
 
  public:
   // 保留字段,key-value的形式
@@ -397,6 +450,46 @@ class BatchNormalizationParam : public OpParam {
 
   PARAM_COPY(BatchNormalizationParam)
   PARAM_COPY_TO(BatchNormalizationParam)
+
+  base::Status serialize(std::ostream &stream) {
+    stream << "epsilon_:" << epsilon_ << ",";
+    stream << "momentum_:" << momentum_ << ",";
+    stream << "training_mode_:" << training_mode_ << ",";
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(const std::string &line) {
+    std::istringstream iss(line);
+    std::string token;
+
+    // 读取 epsilon_
+    if (std::getline(iss, token, ':')) {
+      if (token == "epsilon_") {
+        if (!std::getline(iss, token, ','))
+          return base::kStatusCodeErrorInvalidValue;
+        epsilon_ = std::stof(token);
+      }
+    }
+
+    // 读取 momentum_
+    if (std::getline(iss, token, ':')) {
+      if (token == "momentum_") {
+        if (!std::getline(iss, token, ','))
+          return base::kStatusCodeErrorInvalidValue;
+        momentum_ = std::stof(token);
+      }
+    }
+
+    // 读取 training_mode_
+    if (std::getline(iss, token, ':')) {
+      if (token != "training_mode_") {
+        if (!std::getline(iss, token, ','))
+          return base::kStatusCodeErrorInvalidValue;
+        training_mode_ = std::stoi(token);
+      }
+    }
+
+    return base::kStatusCodeOk;
+  }
 
  public:
   // The epsilon value to use to avoid division by zero.
@@ -427,6 +520,166 @@ class ConvParam : public OpParam {
 
   PARAM_COPY(ConvParam)
   PARAM_COPY_TO(ConvParam)
+
+  base::Status serialize(std::ostream &stream) {
+    stream << "auto_pad_:" << auto_pad_ << ",";
+    stream << "dilations_:[";
+    for (size_t i = 0; i < dilations_.size(); ++i) {
+      if (i > 0) {
+        stream << ",";
+      }
+      stream << dilations_[i];
+    }
+    stream << "],";
+    stream << "group_:" << group_ << ",";
+    stream << "kernel_shape_:[";
+    for (size_t i = 0; i < kernel_shape_.size(); ++i) {
+      if (i > 0) {
+        stream << ",";
+      }
+      stream << kernel_shape_[i];
+    }
+    stream << "],";
+    stream << "pads_:[";
+    for (size_t i = 0; i < pads_.size(); ++i) {
+      if (i > 0) {
+        stream << ",";
+      }
+      stream << pads_[i];
+    }
+    stream << "],";
+    stream << "strides_:[";
+    for (size_t i = 0; i < strides_.size(); ++i) {
+      if (i > 0) {
+        stream << ",";
+      }
+      stream << strides_[i];
+    }
+    stream << "],";
+    stream << "is_fusion_op_:" << is_fusion_op_ << ",";
+    stream << "activate_op_:" << opTypeToString(activate_op_) << ",";
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(const std::string &line) {
+    std::istringstream iss(line);
+    std::string token;
+
+    // 读取 auto_pad_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "auto_pad_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, auto_pad_, ','))
+      return base::kStatusCodeErrorInvalidValue;
+
+    NNDEPLOY_LOGE("hello world\n");
+
+    // 读取 dilations_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "dilations_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, '['))
+      return base::kStatusCodeErrorInvalidValue;
+    dilations_.clear();
+    while (std::getline(iss, token, ',')) {
+      if (token.find(']') == std::string::npos) {
+        dilations_.push_back(std::stoi(token));
+      } else {
+        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
+        dilations_.push_back(std::stoi(token));
+        break;
+      }
+    }
+
+    NNDEPLOY_LOGE("hello world\n");
+
+    // 读取 group_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "group_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    group_ = std::stoi(token);
+
+    NNDEPLOY_LOGE("hello world\n");
+
+    // 读取 kernel_shape_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "kernel_shape_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, '['))
+      return base::kStatusCodeErrorInvalidValue;
+    kernel_shape_.clear();
+    while (std::getline(iss, token, ',')) {
+      if (token.find(']') == std::string::npos) {
+        kernel_shape_.push_back(std::stoi(token));
+      } else {
+        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
+        kernel_shape_.push_back(std::stoi(token));
+        break;
+      }
+    }
+    NNDEPLOY_LOGE("hello world\n");
+
+    // 读取 pads_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "pads_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, '['))
+      return base::kStatusCodeErrorInvalidValue;
+    pads_.clear();
+    while (std::getline(iss, token, ',')) {
+      if (token.find(']') == std::string::npos) {
+        pads_.push_back(std::stoi(token));
+      } else {
+        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
+        pads_.push_back(std::stoi(token));
+        break;
+      }
+    }
+
+    NNDEPLOY_LOGE("hello world\n");
+
+    // 读取 strides_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "strides_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, '['))
+      return base::kStatusCodeErrorInvalidValue;
+    strides_.clear();
+    while (std::getline(iss, token, ',')) {
+      if (token.find(']') == std::string::npos) {
+        strides_.push_back(std::stoi(token));
+      } else {
+        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
+        strides_.push_back(std::stoi(token));
+        break;
+      }
+    }
+
+    NNDEPLOY_LOGE("hello world\n");
+
+    // 读取 is_fusion_op_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "is_fusion_op_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    is_fusion_op_ = (token == "1");
+
+    NNDEPLOY_LOGE("hello world\n");
+
+    // 读取 activate_op_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "activate_op_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    activate_op_ = stringToOpType(token);
+
+    NNDEPLOY_LOGE("hello world\n");
+
+    return base::kStatusCodeOk;
+  }
 
  public:
   // 自动填充方式
