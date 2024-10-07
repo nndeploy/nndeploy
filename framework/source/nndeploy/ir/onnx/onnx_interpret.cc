@@ -471,7 +471,6 @@ const onnx::TensorProto* OnnxInterpret::getTensorFromConstantNode(
   for (int i = 0; i < constant_node.attribute_size(); ++i) {
     const auto& attribute_proto = constant_node.attribute(i);
     const auto& attribute_name = attribute_proto.name();
-    NNDEPLOY_LOGE("attribute_name = %s.\n", attribute_name.c_str());
     if (attribute_name == "value") {
       return &attribute_proto.t();
     }
@@ -503,36 +502,39 @@ base::Status OnnxInterpret::interpret(
   this->onnx_model_ = std::unique_ptr<onnx::ModelProto>(new onnx::ModelProto());
   bool success = this->onnx_model_->ParseFromCodedStream(&coded_input_stream);
   if (!success) {
-    NNDEPLOY_LOGE("解析ONNX模型失败");
+    NNDEPLOY_LOGE(
+        "this->onnx_model_->ParseFromCodedStream(&coded_input_stream) "
+        "failed.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
   input_stream.close();
 
   // 检查并转换ONNX模型版本
   if (this->onnx_model_->ir_version() != target_version_) {
-    NNDEPLOY_LOGI("当前模型版本: %d, 正在转换到版本 %d.\n",
+    NNDEPLOY_LOGI("current version: %d, target_version_ %d.\n",
                   this->onnx_model_->ir_version(), target_version_);
     try {
       onnx::ModelProto converted_model =
           onnx::version_conversion::ConvertVersion(*(this->onnx_model_),
                                                    target_version_);
-      // 存储ONNX模型
+      // Store the ONNX model
       std::ofstream output_stream("converted_model.onnx",
                                   std::ofstream::out | std::ofstream::binary);
       if (!output_stream.is_open()) {
-        NNDEPLOY_LOGE("无法打开输出文件.\n");
+        NNDEPLOY_LOGE("Failed to open the output file.\n");
         return base::kStatusCodeErrorInvalidParam;
       }
       if (!converted_model.SerializeToOstream(&output_stream)) {
-        NNDEPLOY_LOGE("无法序列化ONNX模型.\n");
+        NNDEPLOY_LOGE("Failed to serialize the ONNX model.\n");
         return base::kStatusCodeErrorInvalidParam;
       }
       output_stream.close();
       *(this->onnx_model_) = std::move(converted_model);
-      NNDEPLOY_LOGI("模型版本成功转换到 %d.\n",
-                    this->onnx_model_->ir_version());
+      NNDEPLOY_LOGI("Model version successfully converted to %d.\n",
+                    target_version_);
     } catch (const std::exception& e) {
-      NNDEPLOY_LOGE("版本转换过程中发生错误: %s.\n", e.what());
+      NNDEPLOY_LOGE("Error occurred during version conversion: %s.\n",
+                    e.what());
       return base::kStatusCodeErrorInvalidParam;
     }
   }

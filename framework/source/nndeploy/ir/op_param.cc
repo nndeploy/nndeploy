@@ -301,7 +301,8 @@ std::string opTypeToString(OpType op_type) {
   if (iter != g_optype_string_map.end()) {
     return iter->second;
   }
-  NNDEPLOY_LOGE("Error: op_type=%d not found in g_optype_string_map.\n", (int)op_type);
+  NNDEPLOY_LOGE("Error: op_type=%d not found in g_optype_string_map.\n",
+                (int)op_type);
   return std::string();
 }
 

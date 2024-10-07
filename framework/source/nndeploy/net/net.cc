@@ -231,34 +231,24 @@ base::Status Net::init() {
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
 
-  NNDEPLOY_LOGE("hello world\n");
-
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
-
-  NNDEPLOY_LOGE("hello world\n");
 
   // 即使是设备相关的图优化，也可以放在优化器中做
   // 经过这一次图优化之后
   status = optimizer();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
-  NNDEPLOY_LOGE("hello world\n");
 
   status = inferDataType();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferDataType failed!");
-  NNDEPLOY_LOGE("hello world\n");
 
   status = inferShape();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferShape failed!");
 
-  NNDEPLOY_LOGE("hello world\n");
-
   status = this->session();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph session failed!");
-
-  NNDEPLOY_LOGE("hello world\n");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");
@@ -283,7 +273,6 @@ base::Status Net::deinit() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session deinit failed!");
   delete session_;
   session_ = nullptr;
-  NNDEPLOY_LOGE("hello world\n");
 
   for (auto op_wrapper : op_repository_) {
     if (!op_wrapper->is_external_) {
@@ -292,7 +281,7 @@ base::Status Net::deinit() {
     delete op_wrapper;
   }
   op_repository_.clear();
-  NNDEPLOY_LOGE("hello world\n");
+
   for (auto tensor_wrapper : tensor_repository_) {
     if (!tensor_wrapper->is_external_) {
       delete tensor_wrapper->tensor_;
@@ -300,7 +289,7 @@ base::Status Net::deinit() {
     delete tensor_wrapper;
   }
   tensor_repository_.clear();
-  NNDEPLOY_LOGE("hello world\n");
+
   return status;
 }
 

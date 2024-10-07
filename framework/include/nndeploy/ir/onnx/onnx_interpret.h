@@ -94,11 +94,12 @@ class OnnxOpConvert {
     std::vector<std::string> inputs;
     for (int i = 0; i < onnx_node.input_size(); ++i) {
       op_desc->inputs_.push_back(onnx_node.input(i));
-      NNDEPLOY_LOGE("op_desc->inputs_ = %s\n", op_desc->inputs_[i].c_str());
+      // NNDEPLOY_LOGE("op_desc->inputs_ = %s\n", op_desc->inputs_[i].c_str());
     }
     for (int i = 0; i < onnx_node.output_size(); ++i) {
       op_desc->outputs_.push_back(onnx_node.output(i));
-      NNDEPLOY_LOGE("op_desc->outputs_ = %s\n", op_desc->outputs_[i].c_str());
+      // NNDEPLOY_LOGE("op_desc->outputs_ = %s\n",
+      // op_desc->outputs_[i].c_str());
     }
     return status;
   };

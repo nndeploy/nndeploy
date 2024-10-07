@@ -279,8 +279,6 @@ class OpParam : public base::Param {
   PARAM_COPY_TO(OpParam)
 
  public:
-  // 保留字段,key-value的形式
-  std::map<std::string, base::Value> reserved_param_;
   // 保留字段,也可以充void *使用
   size_t reserved_;
 };
@@ -429,8 +427,6 @@ class ConvParam : public OpParam {
     if (!std::getline(iss, auto_pad_, ','))
       return base::kStatusCodeErrorInvalidValue;
 
-    NNDEPLOY_LOGE("hello world\n");
-
     // 读取 dilations_
     if (!std::getline(iss, token, ':'))
       return base::kStatusCodeErrorInvalidValue;
@@ -448,8 +444,6 @@ class ConvParam : public OpParam {
       }
     }
 
-    NNDEPLOY_LOGE("hello world\n");
-
     // 读取 group_
     if (!std::getline(iss, token, ':'))
       return base::kStatusCodeErrorInvalidValue;
@@ -457,8 +451,6 @@ class ConvParam : public OpParam {
     if (!std::getline(iss, token, ','))
       return base::kStatusCodeErrorInvalidValue;
     group_ = std::stoi(token);
-
-    NNDEPLOY_LOGE("hello world\n");
 
     // 读取 kernel_shape_
     if (!std::getline(iss, token, ':'))
@@ -476,7 +468,6 @@ class ConvParam : public OpParam {
         break;
       }
     }
-    NNDEPLOY_LOGE("hello world\n");
 
     // 读取 pads_
     if (!std::getline(iss, token, ':'))
@@ -495,8 +486,6 @@ class ConvParam : public OpParam {
       }
     }
 
-    NNDEPLOY_LOGE("hello world\n");
-
     // 读取 strides_
     if (!std::getline(iss, token, ':'))
       return base::kStatusCodeErrorInvalidValue;
@@ -514,8 +503,6 @@ class ConvParam : public OpParam {
       }
     }
 
-    NNDEPLOY_LOGE("hello world\n");
-
     // 读取 is_fusion_op_
     if (!std::getline(iss, token, ':'))
       return base::kStatusCodeErrorInvalidValue;
@@ -524,8 +511,6 @@ class ConvParam : public OpParam {
       return base::kStatusCodeErrorInvalidValue;
     is_fusion_op_ = (token == "1");
 
-    NNDEPLOY_LOGE("hello world\n");
-
     // 读取 activate_op_
     if (!std::getline(iss, token, ':'))
       return base::kStatusCodeErrorInvalidValue;
@@ -533,8 +518,6 @@ class ConvParam : public OpParam {
     if (!std::getline(iss, token, ','))
       return base::kStatusCodeErrorInvalidValue;
     activate_op_ = stringToOpType(token);
-
-    NNDEPLOY_LOGE("hello world\n");
 
     return base::kStatusCodeOk;
   }

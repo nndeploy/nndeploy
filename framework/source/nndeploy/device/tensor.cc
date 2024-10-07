@@ -319,7 +319,7 @@ base::Status Tensor::copyTo(Tensor *dst) {
 
 // 序列化模型权重为二进制文件
 base::Status Tensor::serialize(std::ostream &stream) {
-  size_t name_size = name_.size();
+  uint64_t name_size = name_.size();
   if (!stream.write(reinterpret_cast<const char *>(&name_size),
                     sizeof(name_size))) {
     return base::kStatusCodeErrorIO;
@@ -328,13 +328,12 @@ base::Status Tensor::serialize(std::ostream &stream) {
     return base::kStatusCodeErrorIO;
   }
 
-  NNDEPLOY_LOGE("name_ = %s\n", name_.c_str());
-  desc_.print();
   desc_.serialize(stream);
 
+  // 存在buffer不为空，但是大小为0的情况
   if (buffer_ != nullptr) {
-    size_t buffer_size = buffer_->getSize();
-    NNDEPLOY_LOGE("buffer_size = %d\n", (int)buffer_size);
+    uint64_t buffer_size = buffer_->getRealSize();
+    // NNDEPLOY_LOGE("%s,%ld.\n", name_.c_str(), buffer_size);
     if (!stream.write(reinterpret_cast<const char *>(&buffer_size),
                       sizeof(buffer_size))) {
       return base::kStatusCodeErrorIO;
@@ -349,37 +348,27 @@ base::Status Tensor::serialize(std::ostream &stream) {
 }
 // 从二进制文件反序列化模型权重
 base::Status Tensor::deserialize(std::istream &stream) {
-  size_t name_size;
+  uint64_t name_size = 0;
   if (!stream.read(reinterpret_cast<char *>(&name_size), sizeof(name_size))) {
     return base::kStatusCodeErrorIO;
   }
-  // char *name_data = new char[name_size + 1];
-  // if (!stream.read(name_data, name_size)) {
-  //   delete[] name_data;
-  //   return base::kStatusCodeErrorIO;
-  // }
-  // name_data[name_size] = '\0';
-  // name_ = name_data;
-  // delete[] name_data;
-  char *name_data = new char[name_size];
+  char *name_data = new char[name_size + 1];
   if (!stream.read(name_data, name_size)) {
     delete[] name_data;
     return base::kStatusCodeErrorIO;
   }
-  // name_data[name_size] = '\0';
-  NNDEPLOY_LOGE("name_data = %s\n", name_data);
+  name_data[name_size] = '\0';
   name_ = name_data;
   delete[] name_data;
 
   desc_.deserialize(stream);
-  desc_.print();
 
-  size_t buffer_size = 0;
+  uint64_t buffer_size = 0;
   if (!stream.read(reinterpret_cast<char *>(&buffer_size),
                    sizeof(buffer_size))) {
     return base::kStatusCodeErrorIO;
   }
-  NNDEPLOY_LOGE("buffer_size = %d\n", buffer_size);
+  // NNDEPLOY_LOGE("%s,%ld.\n", name_.c_str(), buffer_size);
   if (buffer_size > 0) {
     Device *device = getDefaultHostDevice();
     buffer_ = new Buffer(device, buffer_size);

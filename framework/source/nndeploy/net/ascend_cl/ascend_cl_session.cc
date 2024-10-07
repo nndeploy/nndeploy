@@ -56,9 +56,9 @@ base::Status AscendCLSession::init(
       NNDEPLOY_LOGE("tensor name = %s.\n", tensor->getName().c_str());
       desc.print();
     }
-    NNDEPLOY_LOGE("hello world\n");
+
     status = tensor_pool_->allocate();
-    NNDEPLOY_LOGE("hello world\n");
+
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("tensor_pool_ allocate failed\n");
       return status;

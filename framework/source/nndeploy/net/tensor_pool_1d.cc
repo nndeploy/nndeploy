@@ -139,7 +139,6 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
     NNDEPLOY_LOGE("initTensorUsageRecord failed\n");
     return status;
   }
-  NNDEPLOY_LOGE("hello world\n");
 
   // 初始化OpBreadth
   status = initOpBreadth();
@@ -147,7 +146,6 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
     NNDEPLOY_LOGE("initOpBreadth failed\n");
     return status;
   }
-  NNDEPLOY_LOGE("hello world\n");
 
   // 初始化PositionalMaximum
   status = initPositionalMaximum();
@@ -155,7 +153,6 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
     NNDEPLOY_LOGE("initPositionalMaximum failed\n");
     return status;
   }
-  NNDEPLOY_LOGE("hello world\n");
 
   // 按照贪心的办法进行内存分配
   for (size_t i = 0; i < tensor_usage_records_.size(); i++) {
@@ -169,7 +166,7 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
         tensor_usage_records_[i]->tensor_wrapper_->tensor_->getName().c_str());
 
     std::shared_ptr<Chunk> chunk = nullptr;
-    NNDEPLOY_LOGE("hello world\n");
+
     // 遍历chunks_
     for (int j = chunks_.size() - 1; j >= 0; j--) {
       size_t chunk_size = chunks_[j]->buffer_->getSize();
@@ -193,10 +190,9 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
         }
       }
     }
-    NNDEPLOY_LOGE("hello world\n");
+
     // 不存在
     if (chunk == nullptr) {
-      NNDEPLOY_LOGE("hello world\n");
       chunk = std::make_shared<Chunk>();
       NNDEPLOY_LOGE("tensor name = %s.\n",
                     tensor_usage_records_[i]

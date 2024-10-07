@@ -202,16 +202,7 @@ bool Buffer::justModify(const BufferDesc &desc) {
 
 // 序列化buffer为二进制文件
 base::Status Buffer::serialize(std::ostream &stream) {
-  // size_t desc_size = sizeof(desc_);
-  // if (!stream.write(reinterpret_cast<const char *>(&desc_size),
-  //                   sizeof(desc_size))) {
-  //   return base::kStatusCodeErrorIO;
-  // }
-  // if (!stream.write(reinterpret_cast<const char *>(&desc_), desc_size)) {
-  //   return base::kStatusCodeErrorIO;
-  // }
-
-  size_t buffer_size = this->getSize();
+  uint64_t buffer_size = this->getRealSize();
   if (!stream.write(reinterpret_cast<const char *>(&buffer_size),
                     sizeof(buffer_size))) {
     return base::kStatusCodeErrorIO;
@@ -240,20 +231,11 @@ base::Status Buffer::serialize(std::ostream &stream) {
 }
 // 从二进制文件反序列化回buffer
 base::Status Buffer::deserialize(std::istream &stream) {
-  // size_t desc_size = 0;
-  // if (!stream.read(reinterpret_cast<char *>(&desc_size), sizeof(desc_size)))
-  // {
-  //   return base::kStatusCodeErrorIO;
-  // }
-  // BufferDesc desc;
-  // if (!stream.read(reinterpret_cast<char *>(&desc), desc_size)) {
-  //   return base::kStatusCodeErrorIO;
-  // }
   device_ = getDefaultHostDevice();
   memory_pool_ = nullptr;
   memory_type_ = base::kMemoryTypeAllocate;
   ref_count_ = new int(1);
-  size_t buffer_size = 0;
+  uint64_t buffer_size = 0;
   if (!stream.read(reinterpret_cast<char *>(&buffer_size),
                    sizeof(buffer_size))) {
     return base::kStatusCodeErrorIO;

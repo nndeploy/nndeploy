@@ -5,9 +5,7 @@
 
 using namespace nndeploy;
 
-void printHelloWorld() {
-  std::cout << "hello world!" << std::endl;
-}
+void printHelloWorld() { std::cout << "hello world!" << std::endl; }
 
 int main(int argc, char const *argv[]) {
   printHelloWorld();
