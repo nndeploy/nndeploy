@@ -392,50 +392,6 @@ class OpParam : public base::Param {
   PARAM_COPY(OpParam)
   PARAM_COPY_TO(OpParam)
 
-  // // 序列化
-  // base::Status serialize(std::ostream &stream) {
-  //   stream << "reserved_param_:";
-  //   stream << "{";
-  //   for (const auto &param : reserved_param_) {
-  //     stream << param.first << "," << "param.second.toString()" << ";";
-  //   }
-  //   stream << "},";
-  //   stream << "reserved_:" << reserved_ << ",";
-  //   return base::kStatusCodeOk;
-  // }
-  // // 反序列化
-  // base::Status deserialize(const std::string &line) {
-  //   std::istringstream iss(line);
-  //   std::string token;
-
-  //   // 读取 reserved_param_
-  //   if (!std::getline(iss, token, ':'))
-  //     return base::kStatusCodeErrorInvalidValue;
-  //   if (token != "reserved_param_") return
-  //   base::kStatusCodeErrorInvalidValue; if (!std::getline(iss, token, '{'))
-  //     return base::kStatusCodeErrorInvalidValue;
-  //   while (std::getline(iss, token, ';')) {
-  //     if (token == "}") break;
-  //     std::istringstream param_iss(token);
-  //     std::string key, value;
-  //     if (!std::getline(param_iss, key, ','))
-  //       return base::kStatusCodeErrorInvalidValue;
-  //     if (!std::getline(param_iss, value, ','))
-  //       return base::kStatusCodeErrorInvalidValue;
-  //     // reserved_param_[key] = base::Value::fromString(value);
-  //   }
-
-  //   // 读取 reserved_
-  //   if (!std::getline(iss, token, ':'))
-  //     return base::kStatusCodeErrorInvalidValue;
-  //   if (token != "reserved_") return base::kStatusCodeErrorInvalidValue;
-  //   if (!std::getline(iss, token, ','))
-  //     return base::kStatusCodeErrorInvalidValue;
-  //   reserved_ = std::stoull(token);
-
-  //   return base::kStatusCodeOk;
-  // }
-
  public:
   // 保留字段,key-value的形式
   std::map<std::string, base::Value> reserved_param_;
@@ -462,31 +418,28 @@ class BatchNormalizationParam : public OpParam {
     std::string token;
 
     // 读取 epsilon_
-    if (std::getline(iss, token, ':')) {
-      if (token == "epsilon_") {
-        if (!std::getline(iss, token, ','))
-          return base::kStatusCodeErrorInvalidValue;
-        epsilon_ = std::stof(token);
-      }
-    }
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "epsilon_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    epsilon_ = std::stof(token);
 
     // 读取 momentum_
-    if (std::getline(iss, token, ':')) {
-      if (token == "momentum_") {
-        if (!std::getline(iss, token, ','))
-          return base::kStatusCodeErrorInvalidValue;
-        momentum_ = std::stof(token);
-      }
-    }
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "momentum_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    momentum_ = std::stof(token);
 
     // 读取 training_mode_
-    if (std::getline(iss, token, ':')) {
-      if (token != "training_mode_") {
-        if (!std::getline(iss, token, ','))
-          return base::kStatusCodeErrorInvalidValue;
-        training_mode_ = std::stoi(token);
-      }
-    }
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "training_mode_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    training_mode_ = std::stoi(token);
 
     return base::kStatusCodeOk;
   }
@@ -507,6 +460,25 @@ class ConcatParam : public OpParam {
 
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
+
+  base::Status serialize(std::ostream &stream) {
+    stream << "axis_:" << axis_ << ",";
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(const std::string &line) {
+    std::istringstream iss(line);
+    std::string token;
+
+    // 读取 axis_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "axis_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    axis_ = std::stoi(token);
+
+    return base::kStatusCodeOk;
+  }
 
  public:
   int axis_ = 1;  // 拼接的维度
@@ -708,6 +680,146 @@ class MaxPoolParam : public OpParam {
   PARAM_COPY(MaxPoolParam)
   PARAM_COPY_TO(MaxPoolParam)
 
+  base::Status serialize(std::ostream &stream) {
+    stream << "auto_pad_:" << auto_pad_ << ",";
+    stream << "ceil_mode_:" << ceil_mode_ << ",";
+    stream << "dilations_:[";
+    for (size_t i = 0; i < dilations_.size(); ++i) {
+      if (i > 0) {
+        stream << ",";
+      }
+      stream << dilations_[i];
+    }
+    stream << "],";
+
+    stream << "kernel_shape_:[";
+    for (size_t i = 0; i < kernel_shape_.size(); ++i) {
+      if (i > 0) {
+        stream << ",";
+      }
+      stream << kernel_shape_[i];
+    }
+    stream << "],";
+
+    stream << "pads_:[";
+    for (size_t i = 0; i < pads_.size(); ++i) {
+      if (i > 0) {
+        stream << ",";
+      }
+      stream << pads_[i];
+    }
+    stream << "],";
+
+    stream << "storage_order_:" << storage_order_ << ",";
+    stream << "strides_:[";
+    for (size_t i = 0; i < strides_.size(); ++i) {
+      if (i > 0) {
+        stream << ",";
+      }
+      stream << strides_[i];
+    }
+    stream << "],";
+
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(const std::string &line) {
+    std::istringstream iss(line);
+    std::string token;
+
+    // 读取 auto_pad_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "auto_pad_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, auto_pad_, ','))
+      return base::kStatusCodeErrorInvalidValue;
+
+    // 读取 ceil_mode_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "ceil_mode_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    ceil_mode_ = std::stoi(token);
+
+    // 读取 dilations_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "dilations_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, '['))
+      return base::kStatusCodeErrorInvalidValue;
+    dilations_.clear();
+    while (std::getline(iss, token, ',')) {
+      if (token.find(']') == std::string::npos) {
+        dilations_.push_back(std::stoi(token));
+      } else {
+        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
+        dilations_.push_back(std::stoi(token));
+        break;
+      }
+    }
+
+    // 读取 kernel_shape_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "kernel_shape_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, '['))
+      return base::kStatusCodeErrorInvalidValue;
+    kernel_shape_.clear();
+    while (std::getline(iss, token, ',')) {
+      if (token.find(']') == std::string::npos) {
+        kernel_shape_.push_back(std::stoi(token));
+      } else {
+        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
+        kernel_shape_.push_back(std::stoi(token));
+        break;
+      }
+    }
+
+    // 读取 pads_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "pads_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, '['))
+      return base::kStatusCodeErrorInvalidValue;
+    pads_.clear();
+    while (std::getline(iss, token, ',')) {
+      if (token.find(']') == std::string::npos) {
+        pads_.push_back(std::stoi(token));
+      } else {
+        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
+        pads_.push_back(std::stoi(token));
+        break;
+      }
+    }
+
+    // 读取 storage_order_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "storage_order_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    storage_order_ = std::stoi(token);
+
+    // 读取 strides_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "strides_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, '['))
+      return base::kStatusCodeErrorInvalidValue;
+    strides_.clear();
+    while (std::getline(iss, token, ',')) {
+      if (token.find(']') == std::string::npos) {
+        strides_.push_back(std::stoi(token));
+      } else {
+        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
+        strides_.push_back(std::stoi(token));
+        break;
+      }
+    }
+
+    return base::kStatusCodeOk;
+  }
+
  public:
   std::string auto_pad_ = "NOTSET";       // 自动填充方式
   int ceil_mode_ = 0;                     // 是否向上取整
@@ -727,6 +839,25 @@ class ReshapeParam : public OpParam {
   PARAM_COPY(ReshapeParam)
   PARAM_COPY_TO(ReshapeParam)
 
+  base::Status serialize(std::ostream &stream) {
+    stream << "allowzero_:" << allowzero_ << ",";
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(const std::string &line) {
+    std::istringstream iss(line);
+    std::string token;
+
+    // 读取 allowzero_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "allowzero_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    allowzero_ = std::stoi(token);
+
+    return base::kStatusCodeOk;
+  }
+
  public:
   int allowzero_ = 0;  // 是否允许0
 };
@@ -739,6 +870,101 @@ class ResizeParam : public OpParam {
 
   PARAM_COPY(ResizeParam)
   PARAM_COPY_TO(ResizeParam)
+
+  base::Status serialize(std::ostream &stream) {
+    stream << "antialias_:" << antialias_ << ",";
+    stream << "axes_:" << axes_ << ",";
+    stream << "coordinate_transformation_mode_:"
+           << coordinate_transformation_mode_ << ",";
+    stream << "cubic_coeff_a_:" << cubic_coeff_a_ << ",";
+    stream << "exclude_outside_:" << exclude_outside_ << ",";
+    stream << "extrapolation_value_:" << extrapolation_value_ << ",";
+    stream << "keep_aspect_ratio_policy_:" << keep_aspect_ratio_policy_ << ",";
+    stream << "mode_:" << mode_ << ",";
+    stream << "nearest_mode_:" << nearest_mode_ << ",";
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(const std::string &line) {
+    std::istringstream iss(line);
+    std::string token;
+
+    // 读取 antialias_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "antialias_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    antialias_ = std::stoi(token);
+
+    // 读取 axes_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "axes_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    axes_ = std::stoi(token);
+
+    // 读取 coordinate_transformation_mode_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "coordinate_transformation_mode_")
+      return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    coordinate_transformation_mode_ = token;
+
+    // 读取 cubic_coeff_a_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "cubic_coeff_a_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    cubic_coeff_a_ = std::stof(token);
+
+    // 读取 exclude_outside_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "exclude_outside_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    exclude_outside_ = std::stoi(token);
+
+    // 读取 extrapolation_value_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "extrapolation_value_")
+      return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    extrapolation_value_ = std::stof(token);
+
+    // 读取 keep_aspect_ratio_policy_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "keep_aspect_ratio_policy_")
+      return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    keep_aspect_ratio_policy_ = token;
+
+    // 读取 mode_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "mode_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    mode_ = token;
+
+    // 读取 nearest_mode_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "nearest_mode_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    nearest_mode_ = token;
+
+    return base::kStatusCodeOk;
+  }
 
  public:
   int antialias_ = 0;
@@ -761,6 +987,25 @@ class SoftmaxParam : public OpParam {
   PARAM_COPY(SoftmaxParam)
   PARAM_COPY_TO(SoftmaxParam)
 
+  base::Status serialize(std::ostream &stream) {
+    stream << "axis_:" << axis_ << ",";
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(const std::string &line) {
+    std::istringstream iss(line);
+    std::string token;
+
+    // 读取 axis_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "axis_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    axis_ = std::stoi(token);
+
+    return base::kStatusCodeOk;
+  }
+
  public:
   int axis_ = -1;  // 应用 Softmax 的轴
 };
@@ -773,6 +1018,34 @@ class SplitParam : public OpParam {
 
   PARAM_COPY(SplitParam)
   PARAM_COPY_TO(SplitParam)
+
+  base::Status serialize(std::ostream &stream) {
+    stream << "axis_:" << axis_ << ",";
+    stream << "num_outputs_:" << num_outputs_ << ",";
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(const std::string &line) {
+    std::istringstream iss(line);
+    std::string token;
+
+    // 读取 axis_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "axis_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    axis_ = std::stoi(token);
+
+    // 读取 num_outputs_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "num_outputs_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    num_outputs_ = std::stoi(token);
+
+    return base::kStatusCodeOk;
+  }
 
  public:
   int axis_ = 0;               // 分割轴
@@ -788,6 +1061,41 @@ class TransposeParam : public OpParam {
   PARAM_COPY(TransposeParam)
   PARAM_COPY_TO(TransposeParam)
 
+  base::Status serialize(std::ostream &stream) {
+    stream << "perm_:[";
+    for (size_t i = 0; i < perm_.size(); ++i) {
+      if (i > 0) {
+        stream << ",";
+      }
+      stream << perm_[i];
+    }
+    stream << "],";
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(const std::string &line) {
+    std::istringstream iss(line);
+    std::string token;
+
+    // 读取 perm_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "perm_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, '['))
+      return base::kStatusCodeErrorInvalidValue;
+    perm_.clear();
+    while (std::getline(iss, token, ',')) {
+      if (token.find(']') == std::string::npos) {
+        perm_.push_back(std::stoi(token));
+      } else {
+        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
+        perm_.push_back(std::stoi(token));
+        break;
+      }
+    }
+
+    return base::kStatusCodeOk;
+  }
+
  public:
   std::vector<int> perm_;
 };
@@ -802,6 +1110,34 @@ class RMSNormParam : public OpParam {
 
   PARAM_COPY(RMSNormParam)
   PARAM_COPY_TO(RMSNormParam)
+
+  base::Status serialize(std::ostream &stream) {
+    stream << "eps_:" << eps_ << ",";
+    stream << "is_last_:" << is_last_ << ",";
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(const std::string &line) {
+    std::istringstream iss(line);
+    std::string token;
+
+    // 读取 eps_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "eps_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    eps_ = std::stof(token);
+
+    // 读取 is_last_
+    if (!std::getline(iss, token, ':'))
+      return base::kStatusCodeErrorInvalidValue;
+    if (token != "is_last_") return base::kStatusCodeErrorInvalidValue;
+    if (!std::getline(iss, token, ','))
+      return base::kStatusCodeErrorInvalidValue;
+    is_last_ = (token == "1");
+
+    return base::kStatusCodeOk;
+  }
 
  public:
   float eps_ = 1e-6;
