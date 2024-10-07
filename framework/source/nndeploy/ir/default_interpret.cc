@@ -30,7 +30,9 @@ base::Status DefaultInterpret::interpret(
     NNDEPLOY_LOGE("model_value[%s] is error.\n", model_value[0].c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
+  NNDEPLOY_LOGE("hello world\n");
   status = model_desc_->deserializeWeightsFromBinary(weight_stream);
+  NNDEPLOY_LOGE("hello world\n");
   NNDEPLOY_RETURN_VALUE_ON_NEQ(
       status, base::kStatusCodeOk, status,
       "model_desc_->deserializeWeightsFromBinary failed!");

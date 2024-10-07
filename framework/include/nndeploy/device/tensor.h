@@ -98,6 +98,11 @@ class NNDEPLOY_CC_API Tensor {
   // dst必须预先分配内存
   base::Status copyTo(Tensor *dst);
 
+  // 序列化模型权重为二进制文件
+  base::Status serialize(std::ostream &stream);
+  // 从二进制文件反序列化模型权重
+  base::Status deserialize(std::istream &stream);
+
   // print
   void print();
 
@@ -150,6 +155,9 @@ class NNDEPLOY_CC_API Tensor {
   bool is_external_ = false;  // is external
   int *ref_count_ = nullptr;  // 引用计数
   Buffer *buffer_ = nullptr;  // buffer
+  // bool is_quant_ = false;
+  // Buffer *scale_ = nullptr;
+  // Buffer *zero_point_ = nullptr;
 };
 
 class TensorCreator {

@@ -189,6 +189,36 @@ std::string dataFormatToString(DataFormat data_format) {
   return dst;
 }
 
+DataFormat stringToDataFormat(const std::string &str) {
+  DataFormat data_format;
+  if (str == "kDataFormatN") {
+    data_format = kDataFormatN;
+  } else if (str == "kDataFormatNC") {
+    data_format = kDataFormatNC;
+  } else if (str == "kDataFormatNCL") {
+    data_format = kDataFormatNCL;
+  } else if (str == "kDataFormatNCHW") {
+    data_format = kDataFormatNCHW;
+  } else if (str == "kDataFormatNHWC") {
+    data_format = kDataFormatNHWC;
+  } else if (str == "kDataFormatOIHW") {
+    data_format = kDataFormatOIHW;
+  } else if (str == "kDataFormatNC4HW") {
+    data_format = kDataFormatNC4HW;
+  } else if (str == "kDataFormatNC8HW") {
+    data_format = kDataFormatNC8HW;
+  } else if (str == "kDataFormatNCDHW") {
+    data_format = kDataFormatNCDHW;
+  } else if (str == "kDataFormatNDHWC") {
+    data_format = kDataFormatNDHWC;
+  } else if (str == "kDataFormatAuto") {
+    data_format = kDataFormatAuto;
+  } else {
+    data_format = kDataFormatNotSupport;
+  }
+  return data_format;
+}
+
 DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {
   if (src == "kDeviceTypeCodeCpu") {
     return kDeviceTypeCodeCpu;

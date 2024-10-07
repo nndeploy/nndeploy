@@ -75,6 +75,11 @@ class NNDEPLOY_CC_API Buffer {
   Buffer *clone();
   base::Status copyTo(Buffer *dst);
 
+  // 序列化buffer为二进制文件
+  base::Status serialize(std::ostream &stream);
+  // 从二进制文件反序列化回buffer
+  base::Status deserialize(std::istream &stream);
+
   void print();
 
   bool justModify(const size_t &size);

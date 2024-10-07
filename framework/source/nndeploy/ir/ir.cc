@@ -476,10 +476,58 @@ base::Status ModelDesc::deserializeStructureFromText(
 
 // 序列化模型权重为二进制文件
 base::Status ModelDesc::serializeWeightsToBinary(std::ostream &stream) const {
+  size_t weights_size = weights_.size();
+  NNDEPLOY_LOGE("weights_size = %d\n", (int)weights_size);
+  if (!stream.write(reinterpret_cast<const char *>(&weights_size),
+                    sizeof(weights_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  for (auto &weight : weights_) {
+    NNDEPLOY_LOGE("weight->getName() = %s\n", weight.second->getName().c_str());
+    base::Status status = weight.second->serialize(stream);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, status,
+                                 "weight.second->serialize(stream) failed!\n");
+  }
+  for (auto &block : blocks_) {
+    base::Status status = block->serializeWeightsToBinary(stream);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(
+        status, base::kStatusCodeOk, status,
+        "block->serializeWeightsToBinary(stream) failed!\n");
+  }
   return base::kStatusCodeOk;
 }
 // 从二进制文件反序列化为模型权重
 base::Status ModelDesc::deserializeWeightsFromBinary(std::istream &stream) {
+  NNDEPLOY_LOGE("hello world\n");
+  size_t weights_size;
+  NNDEPLOY_LOGE("hello world\n");
+  if (!stream.read(reinterpret_cast<char *>(&weights_size),
+                   sizeof(weights_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  NNDEPLOY_LOGE("weights_size = %d\n", (int)weights_size);
+  NNDEPLOY_LOGE("hello world\n");
+  weights_.clear();
+  for (size_t i = 0; i < weights_size; ++i) {
+    device::Tensor *weight = new device::Tensor();
+    NNDEPLOY_LOGE("hello world\n");
+    base::Status status = weight->deserialize(stream);
+    if (status != base::kStatusCodeOk) {
+      delete weight;
+      NNDEPLOY_LOGE("weight->deserialize(stream) failed!\n");
+      return status;
+    }
+    NNDEPLOY_LOGE("weight->getName() = %s\n", weight->getName().c_str());
+    weights_[weight->getName()] = weight;
+    NNDEPLOY_LOGE("hello world\n");
+  }
+  for (auto &block : blocks_) {
+    base::Status status = block->deserializeWeightsFromBinary(stream);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("block->deserializeWeightsFromBinary(stream) failed!\n");
+      return status;
+    }
+  }
   return base::kStatusCodeOk;
 }
 
