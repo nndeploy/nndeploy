@@ -58,7 +58,7 @@ set(ENABLE_NNDEPLOY_IR_ONNX OFF) # 是否编译ir目录中文件，默认为OFF
 set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
 
 # # net
-set(ENABLE_NNDEPLOY_NET ON) # 是否编译forward目录中文件，默认为OFF
+set(ENABLE_NNDEPLOY_NET OFF) # 是否编译forward目录中文件，默认为OFF
 
 # # inference
 set(ENABLE_NNDEPLOY_INFERENCE ON) # 是否编译inference目录中文件，默认为ON
@@ -77,7 +77,7 @@ set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 OFF) # 是否使能INFERENCE RKNN_T
 set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL ON) # 是否使能INFERENCE ASCEND_CL，默认为OFF
 
 # # dag
-set(ENABLE_NNDEPLOY_DAG ON) # 是否编译dag目录中文件，默认为ON
+set(ENABLE_NNDEPLOY_DAG OFF) # 是否编译dag目录中文件，默认为ON
 
 # plugin
 set(ENABLE_NNDEPLOY_PLUGIN OFF) # 是否编译plugin目录中文件，默认为ON
@@ -86,25 +86,25 @@ set(ENABLE_NNDEPLOY_PLUGIN OFF) # 是否编译plugin目录中文件，默认为O
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
 
 # demo
-set(ENABLE_NNDEPLOY_DEMO OFF) # 是否使能可执行程序demo，默认为OFF
+set(ENABLE_NNDEPLOY_DEMO ON) # 是否使能可执行程序demo，默认为OFF
 
 # enable python api
 set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口
 
 # plugin
 # # preprocess
-set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON) # 是否编译plugin目录中文件，默认为ON
+set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS OFF) # 是否编译plugin目录中文件，默认为ON
 
 # # infer
-set(ENABLE_NNDEPLOY_PLUGIN_INFER ON) # 是否编译plugin目录中文件，默认为ON
+set(ENABLE_NNDEPLOY_PLUGIN_INFER OFF) # 是否编译plugin目录中文件，默认为ON
 
 # # codec
-set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON) # 是否编译plugin目录中文件，默认为ON
+set(ENABLE_NNDEPLOY_PLUGIN_CODEC OFF) # 是否编译plugin目录中文件，默认为ON
 
 # # detect
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT ON)
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT OFF)
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR OFF)
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO ON)
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO OFF)
 
 # # segment
 set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT OFF)

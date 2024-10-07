@@ -19,9 +19,9 @@ else()
 
   file(GLOB_RECURSE INSTALL_LIBS "${LIB_PATH}/*")
 
-  foreach(INSTALL_LIB ${INSTALL_LIBS})
-    install(FILES ${INSTALL_LIB} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
-  endforeach()
+  # foreach(INSTALL_LIB ${INSTALL_LIBS})
+  #   install(FILES ${INSTALL_LIB} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
+  # endforeach()
 
   if(SYSTEM.Windows)
     set(BIN_PATH ${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/bin)
