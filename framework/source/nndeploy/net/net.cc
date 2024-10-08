@@ -426,11 +426,11 @@ base::Status Net::construct() {
     std::vector<std::string> output_names;
     for (auto input_name : op_desc_->inputs_) {
       insertUnique(input_names, input_name);
-      NNDEPLOY_LOGE("op_desc->inputs_ = %s\n", input_name.c_str());
+      // NNDEPLOY_LOGE("op_desc->inputs_ = %s\n", input_name.c_str());
     }
     for (auto output_name : op_desc_->outputs_) {
       insertUnique(output_names, output_name);
-      NNDEPLOY_LOGE("op_desc->outputs_ = %s\n", output_name.c_str());
+      // NNDEPLOY_LOGE("op_desc->outputs_ = %s\n", output_name.c_str());
     }
 
     // createOp内部包含了CreateTensor的步骤，且是Unique的

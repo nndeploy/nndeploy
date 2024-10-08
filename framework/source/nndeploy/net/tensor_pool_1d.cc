@@ -42,9 +42,9 @@ base::Status TensorPool1DSharedObject::initTensorUsageRecord() {
     tensor_usage_record->interval_[1] = max;
     tensor_usage_records_.push_back(tensor_usage_record);
 
-    NNDEPLOY_LOGE("tensor name = %s.\n",
-                  tensor_repository_[i]->tensor_->getName().c_str());
-    NNDEPLOY_LOGE("min=%d, max=%d.\n", min, max);
+    // NNDEPLOY_LOGE("tensor name = %s.\n",
+    //               tensor_repository_[i]->tensor_->getName().c_str());
+    // NNDEPLOY_LOGE("min=%d, max=%d.\n", min, max);
   }
   std::sort(tensor_usage_records_.begin(), tensor_usage_records_.end(),
             [](const std::shared_ptr<TensorUsageRecord> &a,
