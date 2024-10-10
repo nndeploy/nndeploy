@@ -110,14 +110,15 @@ enum DataFormat : int {
   kDataFormatNC,
 
   // 3D
-  kDataFormatNHW,
-  kDataFormatNWC,
-  kDataFormatNCW,
+  // kDataFormatNHW,
+  // kDataFormatNWC,
+  // kDataFormatNCW,
+  kDataFormatNCL,
 
   // 4D
-  kDataFormatNCHW,
+  kDataFormatNCHW,  // 为主
   kDataFormatNHWC,
-  // # 4D 延伸
+  // # 4D 延伸 - NCHW的权重
   kDataFormatOIHW,
   // # 4D 变种
   kDataFormatNC4HW,

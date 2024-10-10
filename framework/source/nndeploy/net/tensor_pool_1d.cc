@@ -175,13 +175,22 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
       size_t chunk_size = chunks_[j]->buffer_->getSize();
       size_t tensor_size = tensor_usage_records_[i]->size_;
       if (chunk_size >= tensor_size) {
+        for (const auto &interval : chunks_[j]->intervals_) {
+          NNDEPLOY_LOGE("Chunk interval: [%d, %d]\n", interval[0], interval[1]);
+        }
+        NNDEPLOY_LOGE("TensorUsageRecord interval: [%d, %d]\n",
+                      tensor_usage_records_[i]->interval_[0],
+                      tensor_usage_records_[i]->interval_[1]);
         bool flag = isInterval(tensor_usage_records_[i]->interval_,
                                chunks_[j]->intervals_);
         if (!flag) {
+          NNDEPLOY_LOGE("TensorUsageRecord interval: [%d, %d]\n",
+                        tensor_usage_records_[i]->interval_[0],
+                        tensor_usage_records_[i]->interval_[1]);
           chunk = chunks_[j];
           chunks_[j]->intervals_.push_back(tensor_usage_records_[i]->interval_);
+          break;
         }
-        break;
       }
     }
     NNDEPLOY_LOGE("hello world\n");
@@ -194,6 +203,7 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
                         ->tensor_wrapper_->tensor_->getName()
                         .c_str());
       NNDEPLOY_LOGE("size_=%ld.\n", tensor_usage_records_[i]->size_);
+      tensor_usage_records_[i]->tensor_wrapper_->tensor_->getDesc().print();
       size_t size = tensor_usage_records_[i]->size_;
       chunk->buffer_ = new device::Buffer(device_, size);
       if (chunk->buffer_ == nullptr) {
@@ -210,6 +220,28 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
     tensor_usage_records_[i]->tensor_wrapper_->tensor_->justModify(
         chunk->buffer_);
   }
+
+  // 统计tensor的个数，并累加大小
+  // size_t total_tensor_count = 0;
+  // size_t total_memory_size = 0;
+  // for (const auto &tensor_usage_record : tensor_usage_records_) {
+  //   total_tensor_count++;
+  //   total_memory_size += tensor_usage_record->size_;
+  // }
+  // NNDEPLOY_LOGE("Total tensor count: %zu\n", total_tensor_count);
+  // NNDEPLOY_LOGE("Total memory size: %zu\n", total_memory_size);
+  tensorUsageRecordPrint(tensor_usage_records_);
+
+  // 统计chunk的个数，并累加大小
+  // size_t total_chunk_count = 0;
+  // size_t total_chunk_size = 0;
+  // for (const auto &chunk : chunks_) {
+  //   total_chunk_count++;
+  //   total_chunk_size += chunk->buffer_->getSize();
+  // }
+  // NNDEPLOY_LOGE("Total chunk count: %zu\n", total_chunk_count);
+  // NNDEPLOY_LOGE("Total chunk size: %zu\n", total_chunk_size);
+  chunkPrint(chunks_);
 
   return status;
 }
@@ -272,7 +304,7 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
   for (const auto &task : op_breadths_) {
     // 遍历当前task的所有tensor usuage
     for (auto &tensor_usuage : task->breadth_) {
-      if (tensor_usuage->is_allocated_) {
+      if (assigned_tensors_.count(tensor_usuage) != 0) {
         continue;
       }
 
@@ -324,12 +356,13 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
         chunk_sizes_[best_chunk] =
             std::max(chunk_sizes_[best_chunk], tensor_usuage->size_);  // 扩容
       }
-      chunk_schedules[best_chunk].insert(tensor_usuage);
+      chunk_schedules_[best_chunk].insert(tensor_usuage);
+      assigned_tensors_.insert(tensor_usuage);
     }
   }
 
   // 开辟内存
-  for (auto kv : chunk_schedules) {
+  for (auto kv : chunk_schedules_) {
     auto chunk = kv.first;
     auto tensors = kv.second;
     chunk->buffer_ = new device::Buffer(device_, chunk_sizes_[chunk]);
@@ -375,7 +408,7 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::deallocate() {
   }
 
   chunk_sizes_.clear();
-  chunk_schedules.clear();
+  chunk_schedules_.clear();
 
   return status;
 }

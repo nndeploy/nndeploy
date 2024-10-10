@@ -64,6 +64,12 @@ std::vector<int> getOpOrderIndex(std::vector<OpWrapper *> &producers,
 bool isInterval(std::array<int, 2> &interval,
                 std::vector<std::array<int, 2>> &intervals);
 
+void tensorUsageRecordPrint(
+    const std::vector<std::shared_ptr<TensorUsageRecord>>
+        &tensor_usage_records);
+
+void chunkPrint(const std::vector<std::shared_ptr<Chunk>> &chunks);
+
 }  // namespace net
 }  // namespace nndeploy
 

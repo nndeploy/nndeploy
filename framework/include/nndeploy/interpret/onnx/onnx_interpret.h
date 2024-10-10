@@ -11,6 +11,7 @@
 #include "onnx/common/platform_helpers.h"
 #include "onnx/onnx_pb.h"
 #include "onnx/proto_utils.h"
+#include "onnx/version_converter/convert.h"
 
 namespace nndeploy {
 namespace interpret {
@@ -38,6 +39,8 @@ class OnnxInterpret : public Interpret {
   static std::shared_ptr<op::OpDesc> convertToOpDesc(
       const onnx::NodeProto &src);
   static device::Tensor *convertToTensor(const onnx::TensorProto &src);
+  static device::Tensor *convertToTensor(const onnx::TensorProto &src,
+                                         const std::string &name);
   static std::shared_ptr<op::ValueDesc> convertToValueDesc(
       const onnx::ValueInfoProto &src);
 
@@ -75,6 +78,7 @@ class OnnxInterpret : public Interpret {
       const std::vector<op::ValueDesc> &input = std::vector<op::ValueDesc>());
 
  private:
+  int target_version_ = 20;
   std::unique_ptr<onnx::ModelProto> onnx_model_;
 };
 
@@ -93,9 +97,11 @@ class OnnxOpConvert {
     std::vector<std::string> inputs;
     for (int i = 0; i < onnx_node.input_size(); ++i) {
       op_desc->inputs_.push_back(onnx_node.input(i));
+      NNDEPLOY_LOGE("op_desc->inputs_ = %s\n", op_desc->inputs_[i].c_str());
     }
     for (int i = 0; i < onnx_node.output_size(); ++i) {
       op_desc->outputs_.push_back(onnx_node.output(i));
+      NNDEPLOY_LOGE("op_desc->outputs_ = %s\n", op_desc->outputs_[i].c_str());
     }
     return status;
   };
@@ -107,7 +113,7 @@ class OnnxOpConvert {
  */
 class OnnxOpConvertCreator {
  public:
-  virtual ~OnnxOpConvertCreator(){};
+  virtual ~OnnxOpConvertCreator() {};
   virtual std::shared_ptr<OnnxOpConvert> createOnnxOpConvert(
       const std::string &type) = 0;
 };
@@ -130,8 +136,8 @@ class TypeOnnxOpConvertCreator : public OnnxOpConvertCreator {
  *
  * @return std::map<op::OpType, std::shared_ptr<OnnxOpConvertCreator>>&
  */
-std::map<std::string, std::shared_ptr<OnnxOpConvertCreator>>
-    &getGlobalOnnxOpConvertCreatorMap();
+std::map<std::string, std::shared_ptr<OnnxOpConvertCreator>> &
+getGlobalOnnxOpConvertCreatorMap();
 
 /**
  * @brief 算子参数的创建类的注册类模板

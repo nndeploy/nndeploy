@@ -23,9 +23,9 @@ class AscendCLOpDiv : public OpBinary {
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_0_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    inner_input_1_ = AclOpConvert::convertFromTensor(inputs_[1]);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_input_0_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_input_1_ = AclOpConvert::convertFromTensor(inputs_[1], ACL_FORMAT_ND);
+    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status =
@@ -50,12 +50,10 @@ class AscendCLOpDiv : public OpBinary {
     aclDestroyTensor(inner_input_0_);
     aclDestroyTensor(inner_input_1_);
     aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 
  private:
-  // TODO: 待完善
   std::string inner_op_type_ = "Div";
 
   aclTensor* inner_input_0_ = nullptr;

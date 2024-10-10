@@ -51,7 +51,15 @@ bool CheckResult(float* CPUoutput, float* GPUoutput, int output_size) {
              CPUoutput[i], fp32GPUoutput);
       return false;
       
+<<<<<<< HEAD
     }
+=======
+    } 
+    /* else {
+      printf("the %dth res is true, CPUoutput = %f, GPUoutput = %f\n", i,
+             CPUoutput[i], fp32GPUoutput);
+    }*/
+>>>>>>> main
   }
   return true;
 }
@@ -66,8 +74,13 @@ int main(int argc, char* argv[]) {
   device::Device* cuda_device = device::getDevice(cuda_device_type);
   device::Device* cpu_device = device::getDevice(cpu_device_type);
   device::TensorDesc desc;
+<<<<<<< HEAD
   const int num_tokens = 1;
   const int hidden_units = 1024;
+=======
+  const int num_tokens = 32;
+  const int hidden_units = 4096;
+>>>>>>> main
   const int total_size = num_tokens * hidden_units;
   float eps = 1e-6;
   desc.data_type_ = base::dataTypeOf<float>();

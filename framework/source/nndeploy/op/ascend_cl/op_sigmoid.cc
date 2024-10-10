@@ -23,8 +23,8 @@ class AscendCLOpSigmoid : public OpUnary {
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnSigmoidGetWorkspaceSize(
@@ -47,7 +47,6 @@ class AscendCLOpSigmoid : public OpUnary {
   virtual base::Status postRun() {
     aclDestroyTensor(inner_input_);
     aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 

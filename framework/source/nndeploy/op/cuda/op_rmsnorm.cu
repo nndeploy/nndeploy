@@ -41,9 +41,20 @@ static __global__ void RMSNormKernel(float* decoder_out,
                                      int hidden_units) {
   int vec_size = 4;
   float thread_sum = 0.0f;
+<<<<<<< HEAD
   float4* dout = (float4*)(decoder_out + blockIdx.x * hidden_units / vec_size);
   float4* nout = (float4*)(normalized_out + blockIdx.x * hidden_units / vec_size);
   float4* rsd = (float4*)(decoder_residual + blockIdx.x * hidden_units / vec_size);
+=======
+  float4* dout = (float4*)(decoder_out + blockIdx.x * hidden_units);
+  float4* nout = (float4*)(normalized_out + blockIdx.x * hidden_units);
+  float4* rsd = (float4*)(decoder_residual + blockIdx.x * hidden_units);
+  //float4* dout = (float4*)(decoder_out + blockIdx.x * hidden_units / vec_size);
+  //float4* nout =
+      //(float4*)(normalized_out + blockIdx.x * hidden_units / vec_size);
+  //float4* rsd =
+      //(float4*)(decoder_residual + blockIdx.x * hidden_units / vec_size);
+>>>>>>> main
   for (int idx = threadIdx.x; idx < hidden_units / vec_size;
        idx += blockDim.x) {
     float4 vec = dout[idx];
@@ -99,7 +110,10 @@ class CudaOpRMSNorm : public OpRMSNorm {
     void* output_data = outputs_[0]->getData();
 
     // base::DataType data_type = inputs_[0]->getDataType();
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     dim3 grid(num_tokens);
     dim3 block(num_threads);
     RMSNormKernel<<<grid, block>>>((float*)input_data, (float*)output_data,

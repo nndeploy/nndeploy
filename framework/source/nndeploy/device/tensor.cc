@@ -10,9 +10,9 @@ static TypeTensorRegister<TypeTensorCreator<Tensor>> g_defalut_tensor_register(
     base::kTensorTypeDefault);
 
 Tensor::Tensor() {}
-Tensor::Tensor(const std::string &name) : name_(name){};
+Tensor::Tensor(const std::string &name) : name_(name) {};
 Tensor::Tensor(const TensorDesc &desc, const std::string &name)
-    : name_(name), desc_(desc){};
+    : name_(name), desc_(desc) {};
 Tensor::Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name)
     : name_(name), desc_(desc), is_external_(true), buffer_(buffer) {
   ref_count_ = new int(1);
@@ -470,12 +470,7 @@ int Tensor::getChannel() const {
     case base::kDataFormatNC:
       ret = desc_.shape_[1];
       break;
-    case base::kDataFormatNHW:
-      break;
-    case base::kDataFormatNWC:
-      ret = desc_.shape_[2];
-      break;
-    case base::kDataFormatNCW:
+    case base::kDataFormatNCL:
       ret = desc_.shape_[1];
       break;
     case base::kDataFormatNCHW:
@@ -524,12 +519,8 @@ int Tensor::getHeight() const {
       break;
     case base::kDataFormatNC:
       break;
-    case base::kDataFormatNHW:
+    case base::kDataFormatNCL:
       ret = desc_.shape_[1];
-      break;
-    case base::kDataFormatNWC:
-      break;
-    case base::kDataFormatNCW:
       break;
     case base::kDataFormatNCHW:
       ret = desc_.shape_[2];
@@ -564,14 +555,8 @@ int Tensor::getWidth() const {
       break;
     case base::kDataFormatNC:
       break;
-    case base::kDataFormatNHW:
+    case base::kDataFormatNCL:
       ret = desc_.shape_[2];
-      break;
-    case base::kDataFormatNWC:
-      ret = desc_.shape_[1];
-      break;
-    case base::kDataFormatNCW:
-      ret = desc_.shape_[1];
       break;
     case base::kDataFormatNCHW:
       ret = desc_.shape_[3];
@@ -693,8 +678,8 @@ base::MemoryType Tensor::getMemoryType() const {
   }
 }
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>>
-    &getGlobalTensorCreatorMap() {
+std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
+getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorType, std::shared_ptr<TensorCreator>>>

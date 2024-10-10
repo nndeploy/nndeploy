@@ -1,4 +1,3 @@
-
 #include "nndeploy/op/op_rmsnorm.h"
 
 #include "nndeploy/base/common.h"
@@ -27,14 +26,22 @@ base::Status OpRMSNorm::inferShape() {
   return base::kStatusCodeOk;
 }
 
+<<<<<<< HEAD
 base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2, device::Tensor *input3,
                  device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
   if (input1 == nullptr || input2 == nullptr || input3 == nullptr || output == nullptr) {
+=======
+base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
+                     device::Tensor *input3, device::Tensor *output) {
+  base::Status status = base::kStatusCodeOk;
+  if (input1 == nullptr || input2 == nullptr || input3 == nullptr ||
+      output == nullptr) {
+>>>>>>> main
     NNDEPLOY_LOGE("input1 or input2 or output is nullptr");
     return base::kStatusCodeErrorNullParam;
   }
-  Op *op = createOp(output->getDeviceType(), "", kOpTypeRMSNorm);
+  Op *op = createOp(input1->getDeviceType(), "", kOpTypeRMSNorm);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -58,6 +65,9 @@ base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2, device::Ten
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   status = op->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
+  status = op->checkOrAllocOutput();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "checkOrAllocOutput failed");
   status = op->preRun();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->run();

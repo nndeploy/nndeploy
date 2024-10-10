@@ -103,7 +103,7 @@ base::Status AscendCLInference::init() {
     input_tensors_.insert({input_name, current_input_tensor});
 
     aclDataBuffer *input_data = aclCreateDataBuffer(
-        max_input_buffer->getData(), max_input_buffer->getDesc().size_[0]);
+        max_input_buffer->getData(), max_input_buffer->getSize());
     ret = aclmdlAddDatasetBuffer(input_dataset_, input_data);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE(
@@ -161,7 +161,7 @@ base::Status AscendCLInference::init() {
     }
 
     aclDataBuffer *output_data = aclCreateDataBuffer(
-        max_output_buffer->getData(), max_output_buffer->getDesc().size_[0]);
+        max_output_buffer->getData(), max_output_buffer->getSize());
     ret = aclmdlAddDatasetBuffer(output_dataset_, output_data);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE(

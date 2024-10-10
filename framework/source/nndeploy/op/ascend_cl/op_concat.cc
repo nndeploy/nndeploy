@@ -28,8 +28,8 @@ class AscendCLOpConcat : public OpConcat {
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    inner_inputs_ = AclOpConvert::convertFromTensor(inputs_);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0]);
+    inner_inputs_ = AclOpConvert::convertFromTensor(inputs_, ACL_FORMAT_ND);
+    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnCatGetWorkspaceSize(
@@ -52,12 +52,10 @@ class AscendCLOpConcat : public OpConcat {
   virtual base::Status postRun() {
     aclDestroyTensorList(inner_inputs_);
     aclDestroyTensor(inner_output_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 
  private:
-  // TODO: 待完善
   std::string inner_op_type_ = "Concat";
 
   aclTensorList* inner_inputs_ = nullptr;

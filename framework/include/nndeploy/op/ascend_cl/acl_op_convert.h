@@ -22,8 +22,10 @@ class AclOpConvert {
   static base::DataType convertToDataType(const aclDataType &src);
   static aclDataType convertFromDataType(const base::DataType &src);
 
+  static aclFormat convertFromDataFormat(base::IntVector shape);
   static aclFormat convertFromDataFormat(const base::DataFormat &src);
-  static base::IntVector inferShape(const aclFormat &format,
+  static base::IntVector inferShape(const aclFormat &dst_format,
+                                    const aclFormat &src_format,
                                     base::IntVector shape);
 
   static std::vector<int64_t> convertFromShape(base::IntVector &src);
@@ -46,9 +48,11 @@ class AclOpConvert {
   // &src); aclBf16Array *convertFromBfp16Vector(const
   // std::vector<base::bfp16_t> &src);
 
-  static aclTensor *convertFromTensor(const device::Tensor *src);
+  static aclTensor *convertFromTensor(
+      const device::Tensor *src, aclFormat dst_data_format = ACL_FORMAT_ND);
   static aclTensorList *convertFromTensor(
-      const std::vector<device::Tensor *> &src);
+      const std::vector<device::Tensor *> &src,
+      aclFormat dst_data_format = ACL_FORMAT_ND);
 };
 
 }  // namespace op

@@ -78,9 +78,8 @@ device::TensorDesc CoremlInference::getInputTensorAlignDesc(const std::string &n
         desc.data_format_ = base::kDataFormatNCHW;
       }
     } else if (desc.shape_.size() == 3) {
-      if (desc.data_format_ != base::kDataFormatNHW && desc.data_format_ != base::kDataFormatNWC &&
-          desc.data_format_ != base::kDataFormatNCW) {
-        desc.data_format_ = base::kDataFormatNCW;
+      if (desc.data_format_ != base::kDataFormatNCL ) {
+        desc.data_format_ = base::kDataFormatNCL;
       }
     } else if (desc.shape_.size() == 2) {
       if (desc.data_format_ != base::kDataFormatNC) {
@@ -113,9 +112,8 @@ device::TensorDesc CoremlInference::getOutputTensorAlignDesc(const std::string &
         desc.data_format_ = base::kDataFormatNCHW;
       }
     } else if (desc.shape_.size() == 3) {
-      if (desc.data_format_ != base::kDataFormatNHW && desc.data_format_ != base::kDataFormatNWC &&
-          desc.data_format_ != base::kDataFormatNCW) {
-        desc.data_format_ = base::kDataFormatNCW;
+      if (desc.data_format_ != base::kDataFormatNCL) {
+        desc.data_format_ = base::kDataFormatNCL;
       }
     } else if (desc.shape_.size() == 2) {
       if (desc.data_format_ != base::kDataFormatNC) {

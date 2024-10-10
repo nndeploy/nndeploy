@@ -24,6 +24,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   device::Tensor *getTensor(const std::string &name);
 
   bool isWeight(const std::string &name);
+  // 有转移所有权属性
   device::Tensor *getWeight(const std::string &weight);
 
   op::Op *createOp(base::DeviceType device_type, const std::string &name,

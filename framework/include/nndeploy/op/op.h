@@ -104,6 +104,9 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status run() = 0;
   virtual base::Status postRun();
 
+// 检查输出tensor的
+  virtual base::Status checkOrAllocOutput();
+
  protected:
   OpDesc op_desc_;
 

@@ -16,8 +16,8 @@ TypeSessionRegister<TypeSessionCreator<AscendCLSession>>
         base::ParallelType::kParallelTypeNone);
 
 AscendCLSession::AscendCLSession(const base::DeviceType &device_type)
-    : Session(device_type){};
-AscendCLSession::~AscendCLSession(){};
+    : Session(device_type) {};
+AscendCLSession::~AscendCLSession() {};
 
 base::Status AscendCLSession::init(
     std::vector<TensorWrapper *> &tensor_repository,
@@ -46,7 +46,7 @@ base::Status AscendCLSession::init(
           tensor->setDataFormat(base::DataFormat::kDataFormatNCHW);
         }
       } else if (shape_size == 3) {
-        tensor->setDataFormat(base::DataFormat::kDataFormatNCW);
+        tensor->setDataFormat(base::DataFormat::kDataFormatNCL);
       } else if (shape_size == 2) {
         tensor->setDataFormat(base::DataFormat::kDataFormatNC);
       } else if (shape_size == 1) {
@@ -157,6 +157,7 @@ base::Status AscendCLSession::reshape(base::ShapeMap &shape_map) {
 base::Status AscendCLSession::preRun() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
+    NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->preRun();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s preRun failed\n", iter->op_->getName().c_str());
@@ -186,6 +187,7 @@ base::Status AscendCLSession::run() {
     iter->op_->setWorkspace(workspace);
   }
   for (auto iter : op_repository_) {
+    NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s run failed\n", iter->op_->getName().c_str());
@@ -200,6 +202,7 @@ base::Status AscendCLSession::run() {
 base::Status AscendCLSession::postRun() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
+    NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->postRun();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s postRun failed\n", iter->op_->getName().c_str());

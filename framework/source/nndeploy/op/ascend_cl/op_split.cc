@@ -17,7 +17,9 @@ class AscendCLOpSplit : public OpSplit {
   virtual base::Status init() {
     // 参数
     SplitParam* param = (SplitParam*)op_desc_.op_param_.get();
+    // 这个会有值吗？
     split_sections_ = (uint64_t)param->num_outputs_;
+    NNDEPLOY_LOGE("split_sections_ = %d\n", split_sections_);
     dim_ = (int64_t)param->axis_;
 
     // 流
@@ -29,8 +31,8 @@ class AscendCLOpSplit : public OpSplit {
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0]);
-    inner_outputs_ = AclOpConvert::convertFromTensor(outputs_);
+    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_outputs_ = AclOpConvert::convertFromTensor(outputs_, ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnSplitTensorGetWorkspaceSize(
@@ -54,7 +56,6 @@ class AscendCLOpSplit : public OpSplit {
   virtual base::Status postRun() {
     aclDestroyTensor(inner_input_);
     aclDestroyTensorList(inner_outputs_);
-    // aclDestroyExecutor(executor_);
     return base::kStatusCodeOk;
   }
 

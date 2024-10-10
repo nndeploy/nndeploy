@@ -225,3 +225,7 @@ Finish! Here is the difference:
 + 更换git submodule
 
   git submodule add https://github.com/mlc-ai/tokenizers-cpp.git third_party/tokenizers-cpp
+
+
+## 2024.09.17
++ atc --model=./yolov8n.onnx --output=./yolov8n.onnx.om --framework=5 --soc_version=Ascend310B
