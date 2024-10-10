@@ -1,9 +1,9 @@
 #include "nndeploy/op/op_maxpool.h"
 
 #include "aclnnop/aclnn_max_pool.h"
-#include "nndeploy/op/ascend_cl/acl_op_convert.h"
-#include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
+#include "nndeploy/op/ascend_cl/op_convert.h"
+#include "nndeploy/op/ascend_cl/op_include.h"
+#include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -16,17 +16,18 @@ class AscendCLOpMaxPool : public OpMaxPool {
 
   virtual base::Status init() {
     // 参数
-    MaxPoolParam *param = (MaxPoolParam *)op_desc_.op_param_.get();
-    kernel_shape_ = AclOpConvert::convertFromIntVector(param->kernel_shape_);
-    stride_ = AclOpConvert::convertFromIntVector(param->strides_);
+    ir::MaxPoolParam *param = (ir::MaxPoolParam *)op_desc_.op_param_.get();
+    kernel_shape_ =
+        AscendCLOpConvert::convertFromIntVector(param->kernel_shape_);
+    stride_ = AscendCLOpConvert::convertFromIntVector(param->strides_);
     auto_pad_ = 0;
     if (param->auto_pad_ == "NOTSET") {
       auto_pad_ = 0;
     } else {
       NNDEPLOY_LOGE("Unsupported auto_pad: %s", param->auto_pad_.c_str());
     }
-    padding_ = AclOpConvert::convertFromIntVector(param->pads_);
-    dilation_ = AclOpConvert::convertFromIntVector(param->dilations_);
+    padding_ = AscendCLOpConvert::convertFromIntVector(param->pads_);
+    dilation_ = AscendCLOpConvert::convertFromIntVector(param->dilations_);
     ceil_mode_ = (int64_t)param->ceil_mode_;
 
     if (param->kernel_shape_.size() == 1) {
@@ -34,7 +35,7 @@ class AscendCLOpMaxPool : public OpMaxPool {
     } else if (param->kernel_shape_.size() == 2) {
       dst_data_format_ = ACL_FORMAT_NCHW;
     } else {
-      NNDEPLOY_LOGE("not support shape size: %d", weight_->getShape().size());
+      NNDEPLOY_LOGE("not support shape size: %d", param->kernel_shape_.size());
       return base::kStatusCodeErrorOpAscendCL;
     }
 
@@ -54,9 +55,9 @@ class AscendCLOpMaxPool : public OpMaxPool {
   virtual base::Status preRun() {
     // 输入输出
     inner_input_ =
-        AclOpConvert::convertFromTensor(inputs_[0], dst_data_format_);
+        AscendCLOpConvert::convertFromTensor(inputs_[0], dst_data_format_);
     inner_output_ =
-        AclOpConvert::convertFromTensor(outputs_[0], dst_data_format_);
+        AscendCLOpConvert::convertFromTensor(outputs_[0], dst_data_format_);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnMaxPoolGetWorkspaceSize(
@@ -101,7 +102,7 @@ class AscendCLOpMaxPool : public OpMaxPool {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeMaxPool, AscendCLOpMaxPool)
+                         ir::kOpTypeMaxPool, AscendCLOpMaxPool)
 
 }  // namespace op
 }  // namespace nndeploy

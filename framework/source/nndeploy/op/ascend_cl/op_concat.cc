@@ -1,9 +1,9 @@
 #include "nndeploy/op/op_concat.h"
 
 #include "aclnnop/aclnn_cat.h"
-#include "nndeploy/op/ascend_cl/acl_op_convert.h"
-#include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
+#include "nndeploy/op/ascend_cl/op_convert.h"
+#include "nndeploy/op/ascend_cl/op_include.h"
+#include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -16,7 +16,7 @@ class AscendCLOpConcat : public OpConcat {
 
   virtual base::Status init() {
     // 参数
-    auto param = dynamic_cast<ConcatParam*>(op_desc_.op_param_.get());
+    auto param = dynamic_cast<ir::ConcatParam*>(op_desc_.op_param_.get());
     dim_ = static_cast<int64_t>(param->axis_);
 
     // 流
@@ -28,8 +28,10 @@ class AscendCLOpConcat : public OpConcat {
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    inner_inputs_ = AclOpConvert::convertFromTensor(inputs_, ACL_FORMAT_ND);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    inner_inputs_ =
+        AscendCLOpConvert::convertFromTensor(inputs_, ACL_FORMAT_ND);
+    inner_output_ =
+        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnCatGetWorkspaceSize(
@@ -68,7 +70,7 @@ class AscendCLOpConcat : public OpConcat {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeConcat, AscendCLOpConcat)
+                         ir::kOpTypeConcat, AscendCLOpConcat)
 
 }  // namespace op
 }  // namespace nndeploy

@@ -13,6 +13,7 @@ endif()
 # ################### common ####################
 # # OpenCV
 include("${ROOT_PATH}/cmake/opencv.cmake")
+
 # ################### common ####################
 
 # ################### base ####################
@@ -27,6 +28,10 @@ include("${ROOT_PATH}/cmake/opencv.cmake")
 # ################### device ####################
 # # CUDA & CUDNN
 include("${ROOT_PATH}/cmake/cuda.cmake")
+
+# # ascend_cl
+include("${ROOT_PATH}/cmake/ascend_cl.cmake")
+
 # ################### device ####################
 
 # ################### op ####################
@@ -35,6 +40,7 @@ include("${ROOT_PATH}/cmake/cuda.cmake")
 # ################### net ####################
 include("${ROOT_PATH}/cmake/protobuf.cmake")
 include("${ROOT_PATH}/cmake/onnx.cmake")
+
 # ################### net ####################
 
 # ################### inference ####################
@@ -65,14 +71,12 @@ include("${ROOT_PATH}/cmake/paddlelite.cmake")
 # # rknn
 include("${ROOT_PATH}/cmake/rknn.cmake")
 
-# # ascend_cl
-include("${ROOT_PATH}/cmake/ascend_cl.cmake")
-
 # # snpe
 include("${ROOT_PATH}/cmake/snpe.cmake")
 
 # # tvm
 include("${ROOT_PATH}/cmake/tvm.cmake")
+
 # ################### inference ####################
 
 # ################### dag ####################
@@ -80,6 +84,7 @@ include("${ROOT_PATH}/cmake/tvm.cmake")
 
 # ################### model ####################
 include("${ROOT_PATH}/cmake/tokenizer_cpp.cmake")
+
 # ################### model ####################
 
 # ################### plugin ####################
@@ -88,11 +93,13 @@ include("${ROOT_PATH}/cmake/tokenizer_cpp.cmake")
 # ################### test ####################
 if(ENABLE_NNDEPLOY_TEST STREQUAL "ON")
   set(NNDEPLOY_TEST_THIRD_PARTY_LIBRARY ${NNDEPLOY_TEST_THIRD_PARTY_LIBRARY} gflags)
-endif()    
+endif()
+
 # ################### test ####################
 
 # ################### demo ####################
 if(ENABLE_NNDEPLOY_DEMO STREQUAL "ON")
   set(NNDEPLOY_DEMO_THIRD_PARTY_LIBRARY ${NNDEPLOY_DEMO_THIRD_PARTY_LIBRARY} gflags)
-endif()    
+endif()
+
 # ################### demo ####################

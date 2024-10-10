@@ -200,6 +200,55 @@ bool Buffer::justModify(const BufferDesc &desc) {
   return desc_.justModify(desc);
 }
 
+// 序列化buffer为二进制文件
+base::Status Buffer::serialize(std::ostream &stream) {
+  uint64_t buffer_size = this->getRealSize();
+  if (!stream.write(reinterpret_cast<const char *>(&buffer_size),
+                    sizeof(buffer_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  if (!isHostDeviceType(this->getDeviceType())) {
+    Device *host_device = getDefaultHostDevice();
+    Buffer *host_buffer = new Buffer(host_device, this->getDesc());
+    base::Status status = this->copyTo(host_buffer);
+    if (status != base::kStatusCodeOk) {
+      delete host_buffer;
+      return status;
+    }
+    const char *data = static_cast<const char *>(host_buffer->getData());
+    if (!stream.write(data, buffer_size)) {
+      return base::kStatusCodeErrorIO;
+    }
+    delete host_buffer;
+    return status;
+  } else {
+    const char *data = static_cast<const char *>(data_);
+    if (!stream.write(data, buffer_size)) {
+      return base::kStatusCodeErrorIO;
+    }
+    return base::kStatusCodeOk;
+  }
+}
+// 从二进制文件反序列化回buffer
+base::Status Buffer::deserialize(std::istream &stream) {
+  device_ = getDefaultHostDevice();
+  memory_pool_ = nullptr;
+  memory_type_ = base::kMemoryTypeAllocate;
+  ref_count_ = new int(1);
+  uint64_t buffer_size = 0;
+  if (!stream.read(reinterpret_cast<char *>(&buffer_size),
+                   sizeof(buffer_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  desc_ = buffer_size;
+  data_ = device_->allocate(buffer_size);
+  if (!stream.read(reinterpret_cast<char *>(data_), buffer_size)) {
+    return base::kStatusCodeErrorIO;
+  } else {
+    return base::kStatusCodeOk;
+  }
+}
+
 void Buffer::print() {
   std::cout << "Buffer: " << std::endl;
   std::cout << "device type: "

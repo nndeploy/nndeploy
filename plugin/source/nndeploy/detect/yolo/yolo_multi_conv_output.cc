@@ -11,9 +11,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/basic/cvtcolor_resize.h"
-#include "nndeploy/basic/cvtcolor_resize_pad.h"
-#include "nndeploy/basic/warpaffine_preprocess.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/detect/util.h"
@@ -22,6 +19,9 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
+#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvtcolor_resize_pad.h"
+#include "nndeploy/preprocess/warpaffine_preprocess.h"
 
 namespace nndeploy {
 namespace detect {
@@ -206,7 +206,7 @@ dag::Graph *createYoloV5MultiConvOutputGraph(
   dag::Edge *edge_stride_16 = graph->createEdge("output1");  // [1, 40, 40, 255]
   dag::Edge *edge_stride_32 = graph->createEdge("output2");  // [1, 20, 20, 255]
 
-  dag::Node *pre = graph->createNode<basic::WarpaffinePreprocess>(
+  dag::Node *pre = graph->createNode<preprocess::WarpaffinePreprocess>(
       "preprocess", input, infer_input);
 
   dag::Node *infer = graph->createInfer<infer::Infer>(
@@ -217,8 +217,8 @@ dag::Graph *createYoloV5MultiConvOutputGraph(
       "postprocess", {input, edge_stride_8, edge_stride_16, edge_stride_32},
       {output});
 
-  basic::WarpAffineParam *pre_param =
-      dynamic_cast<basic::WarpAffineParam *>(pre->getParam());
+  preprocess::WarpAffineParam *pre_param =
+      dynamic_cast<preprocess::WarpAffineParam *>(pre->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;

@@ -1,9 +1,9 @@
 #include "nndeploy/op/op_split.h"
 
 #include "aclnnop/aclnn_split_tensor.h"
-#include "nndeploy/op/ascend_cl/acl_op_convert.h"
-#include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
+#include "nndeploy/op/ascend_cl/op_convert.h"
+#include "nndeploy/op/ascend_cl/op_include.h"
+#include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -16,7 +16,7 @@ class AscendCLOpSplit : public OpSplit {
 
   virtual base::Status init() {
     // 参数
-    SplitParam* param = (SplitParam*)op_desc_.op_param_.get();
+    ir::SplitParam* param = (ir::SplitParam*)op_desc_.op_param_.get();
     // 这个会有值吗？
     split_sections_ = (uint64_t)param->num_outputs_;
     NNDEPLOY_LOGE("split_sections_ = %d\n", split_sections_);
@@ -31,8 +31,10 @@ class AscendCLOpSplit : public OpSplit {
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
-    inner_outputs_ = AclOpConvert::convertFromTensor(outputs_, ACL_FORMAT_ND);
+    inner_input_ =
+        AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_outputs_ =
+        AscendCLOpConvert::convertFromTensor(outputs_, ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnSplitTensorGetWorkspaceSize(
@@ -73,7 +75,7 @@ class AscendCLOpSplit : public OpSplit {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeSplit, AscendCLOpSplit)
+                         ir::kOpTypeSplit, AscendCLOpSplit)
 
 }  // namespace op
 }  // namespace nndeploy

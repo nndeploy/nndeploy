@@ -4,6 +4,7 @@
 
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/macro.h"
+#include "nndeploy/base/status.h"
 
 namespace nndeploy {
 namespace base {

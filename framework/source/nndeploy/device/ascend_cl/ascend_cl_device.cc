@@ -15,7 +15,7 @@ TypeArchitectureRegister<AscendCLArchitecture> ascend_cl_architecture_register(
 
 AscendCLArchitecture::AscendCLArchitecture(
     base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code){};
+    : Architecture(device_type_code) {};
 
 AscendCLArchitecture::~AscendCLArchitecture() {
   for (auto iter : devices_) {

@@ -144,7 +144,7 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
    * @brief Destroy the Cuda Device object
    *
    */
-  virtual ~CudaDevice(){};
+  virtual ~CudaDevice() {};
 
   /**
    * @brief init

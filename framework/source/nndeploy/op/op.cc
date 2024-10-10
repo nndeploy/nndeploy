@@ -1,7 +1,7 @@
 
 #include "nndeploy/op/op.h"
 
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 
 namespace nndeploy {
 namespace op {
@@ -24,12 +24,12 @@ base::Status Op::setName(std::string name) {
 }
 std::string Op::getName() { return op_desc_.name_; }
 
-base::Status Op::setOpType(OpType op_type) {
+base::Status Op::setOpType(ir::OpType op_type) {
   op_desc_.op_type_ = op_type;
-  op_desc_.op_param_ = createOpParam(op_type);
+  op_desc_.op_param_ = ir::createOpParam(op_type);
   return base::kStatusCodeOk;
 }
-OpType Op::getOpType() { return op_desc_.op_type_; }
+ir::OpType Op::getOpType() { return op_desc_.op_type_; }
 
 base::Status Op::setParam(std::shared_ptr<base::Param> param) {
   base::Status status = base::kStatusCodeOk;
@@ -239,7 +239,7 @@ base::Status Op::checkOrAllocOutput() {
     } else {
       // TODO: 如何进行检查： 直接检查Buffer的size 和
       // 形状推理后Tensor的size大小吗
-      
+
       status = base::kStatusCodeErrorOutOfMemory;
 
       break;
@@ -249,21 +249,23 @@ base::Status Op::checkOrAllocOutput() {
   return status;
 }
 
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>> &
+std::map<base::DeviceTypeCode,
+         std::map<ir::OpType, std::shared_ptr<OpCreator>>> &
 getGlobalOpCreatorMap() {
   static std::once_flag once;
-  static std::shared_ptr<std::map<base::DeviceTypeCode,
-                                  std::map<OpType, std::shared_ptr<OpCreator>>>>
+  static std::shared_ptr<std::map<
+      base::DeviceTypeCode, std::map<ir::OpType, std::shared_ptr<OpCreator>>>>
       creators;
   std::call_once(once, []() {
-    creators.reset(new std::map<base::DeviceTypeCode,
-                                std::map<OpType, std::shared_ptr<OpCreator>>>);
+    creators.reset(
+        new std::map<base::DeviceTypeCode,
+                     std::map<ir::OpType, std::shared_ptr<OpCreator>>>);
   });
   return *creators;
 }
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
-             OpType op_type) {
+             ir::OpType op_type) {
   auto &creater_map = getGlobalOpCreatorMap();
   auto device_map = creater_map.find(device_type.code_);
   if (device_map != creater_map.end()) {
@@ -277,7 +279,7 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
 }
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
-             OpType op_type, std::initializer_list<std::string> inputs,
+             ir::OpType op_type, std::initializer_list<std::string> inputs,
              std::initializer_list<std::string> outputs) {
   auto &creater_map = getGlobalOpCreatorMap();
   auto device_map = creater_map.find(device_type.code_);
@@ -293,7 +295,7 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
 }
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
-             OpType op_type, std::vector<std::string> &inputs,
+             ir::OpType op_type, std::vector<std::string> &inputs,
              std::vector<std::string> &outputs) {
   auto &creater_map = getGlobalOpCreatorMap();
   auto device_map = creater_map.find(device_type.code_);

@@ -15,7 +15,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/util.h"
 
@@ -95,7 +95,7 @@ void resizeShapeInferenceHelper(const base::IntVector& input_shape,
 base::Status OpResize::inferShape() {
   base::Status status = base::kStatusCodeOk;
   // 参数
-  auto param = dynamic_cast<ResizeParam*>(op_desc_.op_param_.get());
+  auto param = dynamic_cast<ir::ResizeParam*>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
 
   const auto& input_shape = inputs_[0]->getShape();

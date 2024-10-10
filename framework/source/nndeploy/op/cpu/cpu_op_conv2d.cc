@@ -13,7 +13,7 @@ class CpuOpConv : public OpConv {
   }
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu, kOpTypeConv,
-                         CpuOpConv)
+REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+                         ir::kOpTypeConv, CpuOpConv)
 }  // namespace op
 }  // namespace nndeploy

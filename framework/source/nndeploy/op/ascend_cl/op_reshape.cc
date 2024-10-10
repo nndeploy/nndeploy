@@ -1,8 +1,8 @@
 #include "nndeploy/op/op_reshape.h"
 
-#include "nndeploy/op/ascend_cl/acl_op_convert.h"
-#include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
+#include "nndeploy/op/ascend_cl/op_convert.h"
+#include "nndeploy/op/ascend_cl/op_include.h"
+#include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -15,7 +15,7 @@ class AscendCLOpReshape : public OpReshape {
 
   virtual base::Status init() {
     // 参数
-    auto param = dynamic_cast<ReshapeParam*>(op_desc_.op_param_.get());
+    auto param = dynamic_cast<ir::ReshapeParam*>(op_desc_.op_param_.get());
     allowzero_ = static_cast<int64_t>(param->allowzero_);
 
     // 流
@@ -51,7 +51,7 @@ class AscendCLOpReshape : public OpReshape {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeReshape, AscendCLOpReshape)
+                         ir::kOpTypeReshape, AscendCLOpReshape)
 
 }  // namespace op
 }  // namespace nndeploy

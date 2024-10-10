@@ -15,7 +15,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -32,7 +32,7 @@ base::Status OpMaxPool::inferShape() {
   // first dim is the batch axis and the next is the number of channels.
   size_t n_input_dims = static_cast<size_t>(input_shape.size() - 2);
   // 参数
-  auto param = dynamic_cast<MaxPoolParam *>(op_desc_.op_param_.get());
+  auto param = dynamic_cast<ir::MaxPoolParam *>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   std::vector<int> dilations = param->dilations_;
   if (dilations.size() == 0) {
@@ -132,7 +132,8 @@ base::Status OpMaxPool::inferShape() {
 }
 
 base::Status maxpool(device::Tensor *input, device::Tensor *weight,
-                     device::Tensor *bias, std::shared_ptr<MaxPoolParam> param,
+                     device::Tensor *bias,
+                     std::shared_ptr<ir::MaxPoolParam> param,
                      device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
   return status;

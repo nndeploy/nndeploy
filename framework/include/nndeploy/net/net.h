@@ -2,9 +2,9 @@
 #ifndef _NNDEPLOY_NET_NET_H_
 #define _NNDEPLOY_NET_NET_H_
 
+#include "nndeploy/ir/ir.h"
 #include "nndeploy/net/session.h"
 #include "nndeploy/net/util.h"
-#include "nndeploy/op/ir.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -16,7 +16,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   virtual ~Net();
 
   // 在这个函数之前调用setDeviceType
-  base::Status setModelDesc(op::ModelDesc *model_desc);
+  base::Status setModelDesc(ir::ModelDesc *model_desc);
 
   TensorWrapper *createTensor(const std::string &name, bool is_weight = false);
   TensorWrapper *addTensor(device::Tensor *tensor, bool is_external = true,
@@ -28,11 +28,11 @@ class NNDEPLOY_CC_API Net : public op::Op {
   device::Tensor *getWeight(const std::string &weight);
 
   op::Op *createOp(base::DeviceType device_type, const std::string &name,
-                   op::OpType op_type,
+                   ir::OpType op_type,
                    std::initializer_list<std::string> inputs,
                    std::initializer_list<std::string> outputs);
   op::Op *createOp(base::DeviceType device_type, const std::string &name,
-                   op::OpType op_type, std::vector<std::string> &inputs,
+                   ir::OpType op_type, std::vector<std::string> &inputs,
                    std::vector<std::string> &outputs);
   base::Status addNet(Net *net, bool is_external);
 
@@ -66,7 +66,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   virtual base::Status session();
 
  protected:
-  op::ModelDesc *model_desc_;
+  ir::ModelDesc *model_desc_;
 
   std::vector<TensorWrapper *> tensor_repository_;
   std::vector<OpWrapper *> op_repository_;
@@ -79,7 +79,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   Session *session_;
 };
 
-Net *createNet(op::ModelDesc *model_desc, base::DeviceType device_type,
+Net *createNet(ir::ModelDesc *model_desc, base::DeviceType device_type,
                base::PrecisionType precision_type);
 
 }  // namespace net

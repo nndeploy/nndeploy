@@ -1,9 +1,9 @@
 #include "nndeploy/op/op_softmax.h"
 
 #include "aclnnop/aclnn_softmax.h"
-#include "nndeploy/op/ascend_cl/acl_op_convert.h"
-#include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
+#include "nndeploy/op/ascend_cl/op_convert.h"
+#include "nndeploy/op/ascend_cl/op_include.h"
+#include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -16,7 +16,7 @@ class AscendCLOpSoftmax : public OpSoftmax {
 
   virtual base::Status init() {
     // 参数
-    SoftmaxParam* param = (SoftmaxParam*)op_desc_.op_param_.get();
+    ir::SoftmaxParam* param = (ir::SoftmaxParam*)op_desc_.op_param_.get();
     dim_ = (int64_t)param->axis_;
 
     // 流
@@ -28,8 +28,10 @@ class AscendCLOpSoftmax : public OpSoftmax {
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    inner_input_ =
+        AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_output_ =
+        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status = aclnnSoftmaxGetWorkspaceSize(
@@ -68,7 +70,7 @@ class AscendCLOpSoftmax : public OpSoftmax {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeSoftmax, AscendCLOpSoftmax)
+                         ir::kOpTypeSoftmax, AscendCLOpSoftmax)
 
 }  // namespace op
 }  // namespace nndeploy

@@ -1,7 +1,7 @@
 #include "aclnnop/aclnn_mul.h"
-#include "nndeploy/op/ascend_cl/acl_op_convert.h"
-#include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
+#include "nndeploy/op/ascend_cl/op_convert.h"
+#include "nndeploy/op/ascend_cl/op_include.h"
+#include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/op_binary.h"
 
@@ -23,9 +23,12 @@ class AscendCLOpMul : public OpBinary {
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_0_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
-    inner_input_1_ = AclOpConvert::convertFromTensor(inputs_[1], ACL_FORMAT_ND);
-    inner_output_ = AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    inner_input_0_ =
+        AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    inner_input_1_ =
+        AscendCLOpConvert::convertFromTensor(inputs_[1], ACL_FORMAT_ND);
+    inner_output_ =
+        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
 
     // 创建算子
     aclnnStatus aclnn_status =
@@ -66,7 +69,7 @@ class AscendCLOpMul : public OpBinary {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeMul, AscendCLOpMul)
+                         ir::kOpTypeMul, AscendCLOpMul)
 
 }  // namespace op
 }  // namespace nndeploy

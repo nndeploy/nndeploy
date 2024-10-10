@@ -9,7 +9,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/basic/cvtcolor_resize.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/detect/util.h"
@@ -18,6 +17,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
+#include "nndeploy/preprocess/cvtcolor_resize.h"
 
 namespace nndeploy {
 namespace detect {
@@ -196,8 +196,8 @@ dag::Graph *createYoloV5Graph(const std::string &name,
   dag::Edge *infer_input = graph->createEdge("images");
   dag::Edge *infer_output = graph->createEdge("output0");
 
-  dag::Node *pre = graph->createNode<basic::CvtColorResize>("preprocess", input,
-                                                            infer_input);
+  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+      "preprocess", input, infer_input);
 
   dag::Node *infer = graph->createInfer<infer::Infer>(
       "infer", inference_type, infer_input, infer_output);
@@ -205,8 +205,8 @@ dag::Graph *createYoloV5Graph(const std::string &name,
   dag::Node *post =
       graph->createNode<YoloPostProcess>("postprocess", infer_output, output);
 
-  basic::CvtclorResizeParam *pre_param =
-      dynamic_cast<basic::CvtclorResizeParam *>(pre->getParam());
+  preprocess::CvtclorResizeParam *pre_param =
+      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -242,8 +242,8 @@ dag::Graph *createYoloV6Graph(const std::string &name,
   dag::Edge *infer_input = graph->createEdge("images");
   dag::Edge *infer_output = graph->createEdge("outputs");
 
-  dag::Node *pre = graph->createNode<basic::CvtColorResize>("preprocess", input,
-                                                            infer_input);
+  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+      "preprocess", input, infer_input);
 
   dag::Node *infer = graph->createInfer<infer::Infer>(
       "infer", inference_type, infer_input, infer_output);
@@ -251,8 +251,8 @@ dag::Graph *createYoloV6Graph(const std::string &name,
   dag::Node *post =
       graph->createNode<YoloPostProcess>("postprocess", infer_output, output);
 
-  basic::CvtclorResizeParam *pre_param =
-      dynamic_cast<basic::CvtclorResizeParam *>(pre->getParam());
+  preprocess::CvtclorResizeParam *pre_param =
+      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -288,8 +288,8 @@ dag::Graph *createYoloV8Graph(const std::string &name,
   dag::Edge *infer_input = graph->createEdge("images");
   dag::Edge *infer_output = graph->createEdge("output0");
 
-  dag::Node *pre = graph->createNode<basic::CvtColorResize>("preprocess", input,
-                                                            infer_input);
+  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+      "preprocess", input, infer_input);
 
   dag::Node *infer = graph->createInfer<infer::Infer>(
       "infer", inference_type, infer_input, infer_output);
@@ -297,8 +297,8 @@ dag::Graph *createYoloV8Graph(const std::string &name,
   dag::Node *post =
       graph->createNode<YoloPostProcess>("postprocess", infer_output, output);
 
-  basic::CvtclorResizeParam *pre_param =
-      dynamic_cast<basic::CvtclorResizeParam *>(pre->getParam());
+  preprocess::CvtclorResizeParam *pre_param =
+      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;

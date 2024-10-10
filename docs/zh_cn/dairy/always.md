@@ -229,3 +229,16 @@ Finish! Here is the difference:
 
 ## 2024.09.17
 + atc --model=./yolov8n.onnx --output=./yolov8n.onnx.om --framework=5 --soc_version=Ascend310B
+
+
+## 2024.10.05
++ 完成目录的修改
+  + interpret -> ir
+  + ir -> ir
+
+
+  [submodule "python/pybind11"]
+	path = python/pybind11
+	url = https://github.com/pybind/pybind11.git
+
+  git submodule add https://github.com/pybind/pybind11.git third_party/pybind11

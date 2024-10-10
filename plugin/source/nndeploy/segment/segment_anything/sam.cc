@@ -1,8 +1,8 @@
 #include "nndeploy/segment/segment_anything/sam.h"
 
 #include "nndeploy/base/opencv_include.h"
-#include "nndeploy/basic/cvtcolor_resize_pad.h"
 #include "nndeploy/infer/infer.h"
+#include "nndeploy/preprocess/cvtcolor_resize_pad.h"
 #include "nndeploy/segment/util.h"
 
 namespace nndeploy {
@@ -133,7 +133,7 @@ dag::Graph *createSamGraph(const std::string &name,
   dag::Edge *mask_input = graph->createEdge("mask_input");
   dag::Edge *orig_im_size = graph->createEdge("orig_im_size");
 
-  dag::Node *preprocess = graph->createNode<basic::CvtColorResizePad>(
+  dag::Node *preprocess = graph->createNode<preprocess::CvtColorResizePad>(
       "preprocess", input, input_image);
   dag::Node *embedding_inference = graph->createInfer<infer::Infer>(
       "embedding_inference", inference_type, input_image, image_embeddings);
@@ -150,8 +150,8 @@ dag::Graph *createSamGraph(const std::string &name,
   dag::Node *postprocess =
       graph->createNode<SamPostProcess>("postprocess", segment_output, output);
 
-  basic::CvtclorResizePadParam *pre_param =
-      dynamic_cast<basic::CvtclorResizePadParam *>(preprocess->getParam());
+  preprocess::CvtclorResizePadParam *pre_param =
+      dynamic_cast<preprocess::CvtclorResizePadParam *>(preprocess->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;

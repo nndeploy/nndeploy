@@ -9,7 +9,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/basic/cvtcolor_resize.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/detect/util.h"
@@ -18,6 +17,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
+#include "nndeploy/preprocess/cvtcolor_resize.h"
 
 namespace nndeploy {
 namespace detect {
@@ -157,8 +157,8 @@ dag::Graph *createYoloV5MultiOutputGraph(const std::string &name,
   dag::Edge *edge_stride_16 = graph->createEdge("376");    // [1, 3, 40, 40, 85]
   dag::Edge *edge_stride_32 = graph->createEdge("401");    // [1, 3, 20, 20, 85]
 
-  dag::Node *pre = graph->createNode<basic::CvtColorResize>("preprocess", input,
-                                                            infer_input);
+  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+      "preprocess", input, infer_input);
 
   dag::Node *infer = graph->createInfer<infer::Infer>(
       "infer", inference_type, {infer_input},
@@ -167,8 +167,8 @@ dag::Graph *createYoloV5MultiOutputGraph(const std::string &name,
   dag::Node *post = graph->createNode<YoloMultiOutputPostProcess>(
       "postprocess", {edge_stride_8, edge_stride_16, edge_stride_32}, {output});
 
-  basic::CvtclorResizeParam *pre_param =
-      dynamic_cast<basic::CvtclorResizeParam *>(pre->getParam());
+  preprocess::CvtclorResizeParam *pre_param =
+      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;

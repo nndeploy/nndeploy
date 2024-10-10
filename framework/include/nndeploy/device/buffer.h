@@ -63,7 +63,7 @@ class NNDEPLOY_CC_API Buffer {
       value_ptr[i] = value;
     }
     if (!isHostDeviceType(device_->getDeviceType())) {
-      device_->upload(data_, value_ptr, size);
+      device_->upload(value_ptr, data_, size);
       Device *host_device = getDefaultHostDevice();
       host_device->deallocate(value_ptr);
     }
@@ -74,6 +74,11 @@ class NNDEPLOY_CC_API Buffer {
   // clone and copy
   Buffer *clone();
   base::Status copyTo(Buffer *dst);
+
+  // 序列化buffer为二进制文件
+  base::Status serialize(std::ostream &stream);
+  // 从二进制文件反序列化回buffer
+  base::Status deserialize(std::istream &stream);
 
   void print();
 

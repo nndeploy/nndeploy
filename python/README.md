@@ -42,3 +42,13 @@ Python接口设计与CPP端保持一致，CPP端命名空间体现为Python的Mo
 
 + 算子接口的导出与测试
 + CUDA设备的支持
+
+## @守夜大佬，在src增加了framework以及plugin的底下的目录
+
+### 讨论
++ 纯c接口
+    + 纯c接口写在include/source中，其中需要对外导出的纯c接口，在include中导出c_xxx.h
+    + 纯c接口的写法为 nndeployBaseGetDevice()
+
++ python接口
+    + 只包含pybind相关

@@ -12,7 +12,7 @@ TypeArchitectureRegister<CudaArchitecture> cuda_architecture_register(
     base::kDeviceTypeCodeCuda);
 
 CudaArchitecture::CudaArchitecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code){};
+    : Architecture(device_type_code) {};
 
 CudaArchitecture::~CudaArchitecture() {
   for (auto iter : devices_) {

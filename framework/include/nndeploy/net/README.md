@@ -1,6 +1,6 @@
 # TODO
 
-// Net *createNet(const std::string &name, op::OpType op_type,
+// Net *createNet(const std::string &name, ir::OpType op_type,
 //                       base::DeviceType device_type,
 //                       interpreter::Interpreter *interpreter,
 //                       std::vector<std::string> &weight_key,
@@ -41,7 +41,7 @@
 //   interpreter::Interpreter *interpreter =
 //       new interpreter::Interpreter(model_value);
 //   const std::string &name;
-//   op::OpType op_type;
+//   ir::OpType op_type;
 //   base::DeviceType device_type;
 //   interpreter::Interpreter *interpreter;
 //   std::vector<std::string> &weight_key;

@@ -25,13 +25,17 @@ set(ENABLE_NNDEPLOY_ADDRESS_SANTIZER OFF) # 内存泄露检测，默认为OFF
 set(ENABLE_NNDEPLOY_TIME_PROFILER ON) # 时间性能Profile，默认为ON
 set(ENABLE_NNDEPLOY_OPENCV "C:/huggingface/nndeploy/third_party/windows_x64/opencv-4.8.0-windows") # 是否链接第三方库opencv，默认为OFF
 set(NNDEPLOY_OPENCV_LIBS opencv_world480) # 链接的具体的opencv库名称，例如opencv_world480，opencv_java4等
-## base
+
+# # base
 set(ENABLE_NNDEPLOY_BASE ON) # 是否编译base目录中文件，默认为ON
-## thread
+
+# # thread
 set(ENABLE_NNDEPLOY_THREAD_POOL ON) # 是否编译thread_pool目录中文件，默认为ON
-## cryption
+
+# # cryption
 set(ENABLE_NNDEPLOY_CRYPTION OFF) # 是否编译crytion目录中文件，默认为ON
-## device
+
+# # device
 set(ENABLE_NNDEPLOY_DEVICE ON) # 是否编译device目录中文件，默认为ON
 set(ENABLE_NNDEPLOY_DEVICE_CPU ON) # 是否使能device cpu，默认为ON
 set(ENABLE_NNDEPLOY_DEVICE_ARM OFF) # 是否使能device arm，默认为OFF
@@ -45,16 +49,21 @@ set(ENABLE_NNDEPLOY_DEVICE_APPLE_NPU OFF) # 是否使能device apple npu，默�
 set(ENABLE_NNDEPLOY_DEVICE_HVX OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL OFF) # 是否使能device apple ascend cl，默认为OFF
-## op
-set(ENABLE_NNDEPLOY_OP OFF) # 是否编译op目录中文件，默认为OFF
-## interpret
-set(ENABLE_NNDEPLOY_INTERPRET OFF)  # 是否编译interpret目录中文件，默认为OFF
-## net
-set(ENABLE_NNDEPLOY_NET OFF)  # 是否编译net目录中文件，默认为OFF
-## inference
+
+# # ir
+set(ENABLE_NNDEPLOY_IR ON) # 是否编译ir目录中文件，默认为OFF
+set(ENABLE_NNDEPLOY_IR_ONNX ON) # 是否编译ir目录中文件，默认为OFF
+
+# # op
+set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
+
+# # net
+set(ENABLE_NNDEPLOY_NET ON) # 是否编译forward目录中文件，默认为OFF
+
+# # inference
 set(ENABLE_NNDEPLOY_INFERENCE ON) # 是否编译inference目录中文件，默认为ON
 set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # 是否使能INFERENCE TENSORRT，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO  "C:/huggingface/nndeploy/third_party/windows_x64/w_openvino_toolkit_windows_2023.0.1/w_openvino_toolkit_windows_2023.0.1.11005.fa1c41994f3_x86_64") # 是否使能INFERENCE OPENVINO，默认为OFF
+set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "C:/huggingface/nndeploy/third_party/windows_x64/w_openvino_toolkit_windows_2023.0.1/w_openvino_toolkit_windows_2023.0.1.11005.fa1c41994f3_x86_64") # 是否使能INFERENCE OPENVINO，默认为OFF
 set(ENABLE_NNDEPLOY_INFERENCE_COREML OFF) # 是否使能INFERENCE COREML，默认为OFF
 set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # 是否使能INFERENCE TFLITE，默认为OFF
 set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "C:/huggingface/nndeploy/third_party/windows_x64/onnxruntime-win-x64-1.15.1") # 是否使能INFERENCE ONNXRUNTIME，默认为OFF
@@ -66,34 +75,43 @@ set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE OFF) # 是否使能INFERENCE PADDLELITE
 set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_1 OFF) # 是否使能INFERENCE RKNN_TOOLKIT_1，默认为OFF
 set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 OFF) # 是否使能INFERENCE RKNN_TOOLKIT_2，默认为OFF
 set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL OFF) # 是否使能INFERENCE ASCEND_CL，默认为OFF
-## dag
+
+# # dag
 set(ENABLE_NNDEPLOY_DAG ON) # 是否编译dag目录中文件，默认为ON
 
 # plugin
 set(ENABLE_NNDEPLOY_PLUGIN ON) # 是否编译plugin目录中文件，默认为ON
+
 # test
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
+
 # demo
-set(ENABLE_NNDEPLOY_DEMO OFF) # 是否使能可执行程序demo，默认为OFF
+set(ENABLE_NNDEPLOY_DEMO ON) # 是否使能可执行程序demo，默认为OFF
+
+# enable python api
+set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口
 
 # plugin
-## basic
-set(ENABLE_NNDEPLOY_PLUGIN_BASIC ON) # 是否编译plugin目录中文件，默认为ON
-## basic
+# # preprocess
+set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON) # 是否编译plugin目录中文件，默认为ON
+
+# # infer
 set(ENABLE_NNDEPLOY_PLUGIN_INFER ON) # 是否编译plugin目录中文件，默认为ON
-## codec
+
+# # codec
 set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON) # 是否编译plugin目录中文件，默认为ON
-## detect
+
+# # detect
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT ON)
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR OFF)
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO ON)
-## segment
+
+# # segment
 set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT OFF)
 set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING OFF)
-## tokenizer
-set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
-## stable_diffusion
-set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)
 
-## enable python api
-set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口
+# # tokenizer
+set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
+
+# # stable_diffusion
+set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)

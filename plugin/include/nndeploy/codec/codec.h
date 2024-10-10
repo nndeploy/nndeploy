@@ -63,8 +63,8 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
 class NNDEPLOY_CC_API EncodeNode : public dag::Node {
  public:
   EncodeNode(base::CodecFlag flag, const std::string &name, dag::Edge *input)
-      : dag::Node(name, input, nullptr), flag_(flag){};
-  virtual ~EncodeNode(){};
+      : dag::Node(name, input, nullptr), flag_(flag) {};
+  virtual ~EncodeNode() {};
 
   base::CodecFlag getCodecFlag() { return flag_; }
   void setPath(const std::string &path) { path_ = path; }
@@ -92,8 +92,8 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
 using createDecodeNodeFunc = std::function<DecodeNode *(
     base::CodecFlag flag, const std::string &name, dag::Edge *output)>;
 
-std::map<base::CodecType, createDecodeNodeFunc>
-    &getGlobaCreatelDecodeNodeFuncMap();
+std::map<base::CodecType, createDecodeNodeFunc> &
+getGlobaCreatelDecodeNodeFuncMap();
 
 class TypeCreatelDecodeNodeRegister {
  public:
@@ -111,8 +111,8 @@ extern NNDEPLOY_CC_API DecodeNode *createDecodeNode(base::CodecType type,
 using createEncodeNodeFunc = std::function<EncodeNode *(
     base::CodecFlag flag, const std::string &name, dag::Edge *input)>;
 
-std::map<base::CodecType, createEncodeNodeFunc>
-    &getGlobaCreatelEncodeNodeFuncMap();
+std::map<base::CodecType, createEncodeNodeFunc> &
+getGlobaCreatelEncodeNodeFuncMap();
 
 class TypeCreatelEncodeNodeRegister {
  public:

@@ -17,7 +17,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 
 namespace nndeploy {
 namespace op {
@@ -31,8 +31,8 @@ class NNDEPLOY_CC_API Op {
   base::Status setName(std::string name);
   std::string getName();
 
-  base::Status setOpType(OpType op_type);
-  OpType getOpType();
+  base::Status setOpType(ir::OpType op_type);
+  ir::OpType getOpType();
 
   virtual base::Status setParam(std::shared_ptr<base::Param> param);
   virtual std::shared_ptr<base::Param> getParam();
@@ -104,11 +104,11 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status run() = 0;
   virtual base::Status postRun();
 
-// 检查输出tensor的
+  // 检查输出tensor的
   virtual base::Status checkOrAllocOutput();
 
  protected:
-  OpDesc op_desc_;
+  ir::OpDesc op_desc_;
 
   base::DeviceType device_type_;
   base::PrecisionType precision_type_ = base::kPrecisionTypeFp32;
@@ -135,18 +135,18 @@ class NNDEPLOY_CC_API Op {
  */
 class OpCreator {
  public:
-  virtual ~OpCreator(){};
+  virtual ~OpCreator() {};
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
-                       OpType op_type) = 0;
+                       ir::OpType op_type) = 0;
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
-                       OpType op_type,
+                       ir::OpType op_type,
                        std::initializer_list<std::string> inputs,
                        std::initializer_list<std::string> outputs) = 0;
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
-                       OpType op_type, std::vector<std::string> &inputs,
+                       ir::OpType op_type, std::vector<std::string> &inputs,
                        std::vector<std::string> &outputs) = 0;
 };
 
@@ -158,7 +158,7 @@ class OpCreator {
 template <typename T>
 class TypeOpCreator : public OpCreator {
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
-                       OpType op_type) {
+                       ir::OpType op_type) {
     auto op = new T();
     op->setDeviceType(device_type);
     op->setName(name);
@@ -167,7 +167,7 @@ class TypeOpCreator : public OpCreator {
   }
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
-                       OpType op_type,
+                       ir::OpType op_type,
                        std::initializer_list<std::string> inputs,
                        std::initializer_list<std::string> outputs) {
     auto op = new T();
@@ -180,7 +180,7 @@ class TypeOpCreator : public OpCreator {
   }
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
-                       OpType op_type, std::vector<std::string> &inputs,
+                       ir::OpType op_type, std::vector<std::string> &inputs,
                        std::vector<std::string> &outputs) {
     auto op = new T();
     op->setDeviceType(device_type);
@@ -198,8 +198,9 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode, std::map<OpType, std::shared_ptr<OpCreator>>>
-    &getGlobalOpCreatorMap();
+std::map<base::DeviceTypeCode,
+         std::map<ir::OpType, std::shared_ptr<OpCreator>>> &
+getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板
@@ -210,21 +211,21 @@ template <typename T>
 class TypeOpRegister {
  public:
   explicit TypeOpRegister(base::DeviceTypeCode device_type_code,
-                          OpType op_type) {
+                          ir::OpType op_type) {
     getGlobalOpCreatorMap()[device_type_code][op_type] =
         std::shared_ptr<T>(new T());
   }
 };
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
-             OpType op_type);
+             ir::OpType op_type);
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
-             OpType op_type, std::initializer_list<std::string> inputs,
+             ir::OpType op_type, std::initializer_list<std::string> inputs,
              std::initializer_list<std::string> outputs);
 
 Op *createOp(base::DeviceType device_type, const std::string &name,
-             OpType op_type, std::vector<std::string> &inputs,
+             ir::OpType op_type, std::vector<std::string> &inputs,
              std::vector<std::string> &outputs);
 
 using SISOOpFunc =

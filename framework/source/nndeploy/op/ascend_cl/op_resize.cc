@@ -1,9 +1,9 @@
 #include "nndeploy/op/op_resize.h"
 
 #include "aclnnop/aclnn_resize.h"
-#include "nndeploy/op/ascend_cl/acl_op_convert.h"
-#include "nndeploy/op/ascend_cl/acl_op_include.h"
-#include "nndeploy/op/ascend_cl/acl_op_util.h"
+#include "nndeploy/op/ascend_cl/op_convert.h"
+#include "nndeploy/op/ascend_cl/op_include.h"
+#include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -16,8 +16,8 @@ class AscendCLOpResize : public OpResize {
 
   virtual base::Status init() {
     // 参数
-    auto param = dynamic_cast<ResizeParam*>(op_desc_.op_param_.get());
-    mode_ = static_cast<int64_t>(param->mode_);
+    auto param = dynamic_cast<ir::ResizeParam*>(op_desc_.op_param_.get());
+    mode_ = param->mode_;
 
     // 流
     device::Device* device = device::getDevice(device_type_);
@@ -27,16 +27,17 @@ class AscendCLOpResize : public OpResize {
   }
   virtual base::Status deinit() {
     if (scales_ != nullptr) {
-      aclDestoryFloatArray(scales_);
+      aclDestroyFloatArray(scales_);
     }
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_ = AclOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_NCHW);
+    inner_input_ =
+        AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_NCHW);
     base::DataType data_type = inputs_[1]->getDataType();
     if (data_type.code_ != base::kDataTypeCodeFp) {
-      NNDEPLOY_LOG_ERROR("Resize only support float data type.");
+      NNDEPLOY_LOGE("Resize only support float data type.");
       return base::kStatusCodeErrorInvalidParam;
     }
     if (scales_ == nullptr) {
@@ -45,12 +46,12 @@ class AscendCLOpResize : public OpResize {
       scales_ = aclCreateFloatArray(data, size);
     }
     inner_output_ =
-        AclOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_NCHW);
+        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_NCHW);
 
     // 创建算子
-    char* mode = mode_.c_str();
+    char* mode = mode_.data();
     aclnnStatus aclnn_status =
-        aclnnResizeGetWorkspaceSize(inner_inputs_, scales_, mode, inner_output_,
+        aclnnResizeGetWorkspaceSize(inner_input_, scales_, mode, inner_output_,
                                     &workspace_size_, &executor_);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                  base::kStatusCodeErrorOpAscendCL,
@@ -86,7 +87,7 @@ class AscendCLOpResize : public OpResize {
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         kOpTypeResize, AscendCLOpResize)
+                         ir::kOpTypeResize, AscendCLOpResize)
 
 }  // namespace op
 }  // namespace nndeploy

@@ -317,6 +317,75 @@ base::Status Tensor::copyTo(Tensor *dst) {
   return status;
 }
 
+// 序列化模型权重为二进制文件
+base::Status Tensor::serialize(std::ostream &stream) {
+  uint64_t name_size = name_.size();
+  if (!stream.write(reinterpret_cast<const char *>(&name_size),
+                    sizeof(name_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  if (!stream.write(name_.c_str(), name_size)) {
+    return base::kStatusCodeErrorIO;
+  }
+
+  desc_.serialize(stream);
+
+  // 存在buffer不为空，但是大小为0的情况
+  if (buffer_ != nullptr) {
+    uint64_t buffer_size = buffer_->getRealSize();
+    // NNDEPLOY_LOGE("%s,%ld.\n", name_.c_str(), buffer_size);
+    if (!stream.write(reinterpret_cast<const char *>(&buffer_size),
+                      sizeof(buffer_size))) {
+      return base::kStatusCodeErrorIO;
+    }
+    if (buffer_size > 0) {
+      base::Status status = buffer_->serialize(stream);
+      NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, status,
+                                   "buffer_->serialize(stream) failed!\n");
+    }
+  }
+  return base::kStatusCodeOk;
+}
+// 从二进制文件反序列化模型权重
+base::Status Tensor::deserialize(std::istream &stream) {
+  uint64_t name_size = 0;
+  if (!stream.read(reinterpret_cast<char *>(&name_size), sizeof(name_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  char *name_data = new char[name_size + 1];
+  if (!stream.read(name_data, name_size)) {
+    delete[] name_data;
+    return base::kStatusCodeErrorIO;
+  }
+  name_data[name_size] = '\0';
+  name_ = name_data;
+  delete[] name_data;
+
+  desc_.deserialize(stream);
+
+  uint64_t buffer_size = 0;
+  if (!stream.read(reinterpret_cast<char *>(&buffer_size),
+                   sizeof(buffer_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  // NNDEPLOY_LOGE("%s,%ld.\n", name_.c_str(), buffer_size);
+  if (buffer_size > 0) {
+    Device *device = getDefaultHostDevice();
+    buffer_ = new Buffer(device, buffer_size);
+    base::Status status = buffer_->deserialize(stream);
+    if (status != base::kStatusCodeOk) {
+      delete buffer_;
+      NNDEPLOY_LOGE("buffer_->deserialize(stream) failed!\n");
+      return base::kStatusCodeErrorIO;
+    }
+  }
+
+  is_external_ = false;
+  ref_count_ = new int(1);
+
+  return base::kStatusCodeOk;
+}
+
 // 类似pytorch的打印函数
 void Tensor::print() {
   std::string name = this->getName();

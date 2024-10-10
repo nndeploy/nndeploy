@@ -49,7 +49,9 @@ BufferDesc &BufferDesc::operator=(const BufferDesc &desc) {
   return *this;
 }
 BufferDesc &BufferDesc::operator=(size_t size) {
+  size_.clear();
   size_.emplace_back(size);
+  real_size_.clear();
   real_size_.emplace_back(size);
   return *this;
 }
@@ -72,7 +74,7 @@ BufferDesc &BufferDesc::operator=(BufferDesc &&desc) noexcept {
   return *this;
 }
 
-BufferDesc::~BufferDesc(){};
+BufferDesc::~BufferDesc() {};
 
 size_t BufferDesc::getSize() const {
   if (size_.empty()) {
@@ -227,11 +229,11 @@ void BufferDesc::clear() {
 }
 
 // TensorDesc
-TensorDesc::TensorDesc(){};
+TensorDesc::TensorDesc() {};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
                        const base::IntVector &shape)
-    : data_type_(data_type), data_format_(format), shape_(shape){};
+    : data_type_(data_type), data_format_(format), shape_(shape) {};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
                        const base::IntVector &shape,
@@ -239,7 +241,7 @@ TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
     : data_type_(data_type),
       data_format_(format),
       shape_(shape),
-      stride_(stride){};
+      stride_(stride) {};
 
 TensorDesc::TensorDesc(const TensorDesc &desc) {
   if (this == &desc) {
@@ -281,7 +283,7 @@ TensorDesc &TensorDesc::operator=(TensorDesc &&desc) noexcept {
   return *this;
 }
 
-TensorDesc::~TensorDesc(){};
+TensorDesc::~TensorDesc() {};
 
 bool TensorDesc::operator==(const TensorDesc &other) const {
   bool flag0 = false;
@@ -310,6 +312,105 @@ bool TensorDesc::operator==(const TensorDesc &other) const {
 }
 bool TensorDesc::operator!=(const TensorDesc &other) const {
   return !(*this == other);
+}
+
+base::Status TensorDesc::serialize(std::ostream &stream) {
+  uint64_t data_type_size = base::dataTypeToString(data_type_).size();
+  if (!stream.write(reinterpret_cast<const char *>(&data_type_size),
+                    sizeof(data_type_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  if (!stream.write(base::dataTypeToString(data_type_).c_str(),
+                    data_type_size)) {
+    return base::kStatusCodeErrorIO;
+  }
+
+  uint64_t data_format_size = base::dataFormatToString(data_format_).size();
+  if (!stream.write(reinterpret_cast<const char *>(&data_format_size),
+                    sizeof(data_format_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  if (!stream.write(base::dataFormatToString(data_format_).c_str(),
+                    data_format_size)) {
+    return base::kStatusCodeErrorIO;
+  }
+
+  uint64_t shape_size = shape_.size();
+  if (!stream.write(reinterpret_cast<const char *>(&shape_size),
+                    sizeof(shape_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  for (auto &dim : shape_) {
+    if (!stream.write(reinterpret_cast<const char *>(&dim), sizeof(dim))) {
+      return base::kStatusCodeErrorIO;
+    }
+  }
+
+  uint64_t stride_size = stride_.size();
+  if (!stream.write(reinterpret_cast<const char *>(&stride_size),
+                    sizeof(stride_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  for (auto &stride : stride_) {
+    uint64_t tmp = stride;
+    if (!stream.write(reinterpret_cast<const char *>(&tmp), sizeof(tmp))) {
+      return base::kStatusCodeErrorIO;
+    }
+  }
+
+  return base::kStatusCodeOk;
+}
+base::Status TensorDesc::deserialize(std::istream &stream) {
+  uint64_t data_type_size;
+  if (!stream.read(reinterpret_cast<char *>(&data_type_size),
+                   sizeof(data_type_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  std::string data_type_str(data_type_size + 1, '\0');
+  if (!stream.read(&data_type_str[0], data_type_size)) {
+    return base::kStatusCodeErrorIO;
+  }
+  data_type_ = base::stringToDataType(data_type_str);
+
+  uint64_t data_format_size;
+  if (!stream.read(reinterpret_cast<char *>(&data_format_size),
+                   sizeof(data_format_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  std::string data_format_str(data_format_size + 1, '\0');
+  if (!stream.read(&data_format_str[0], data_format_size)) {
+    return base::kStatusCodeErrorIO;
+  }
+  data_format_ = base::stringToDataFormat(data_format_str);
+
+  uint64_t shape_size;
+  if (!stream.read(reinterpret_cast<char *>(&shape_size), sizeof(shape_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  shape_.resize(shape_size);
+  for (uint64_t i = 0; i < shape_size; ++i) {
+    int dim;
+    if (!stream.read(reinterpret_cast<char *>(&dim), sizeof(dim))) {
+      return base::kStatusCodeErrorIO;
+    }
+    shape_[i] = dim;
+  }
+
+  uint64_t stride_size;
+  if (!stream.read(reinterpret_cast<char *>(&stride_size),
+                   sizeof(stride_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  stride_.resize(stride_size);
+  for (uint64_t i = 0; i < stride_size; ++i) {
+    uint64_t stride;
+    if (!stream.read(reinterpret_cast<char *>(&stride), sizeof(stride))) {
+      return base::kStatusCodeErrorIO;
+    }
+    stride_[i] = stride;
+  }
+
+  return base::kStatusCodeOk;
 }
 
 void TensorDesc::print() {

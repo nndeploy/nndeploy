@@ -15,7 +15,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/op/ir.h"
+#include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -98,7 +98,7 @@ base::Status add(device::Tensor *input1, device::Tensor *input2,
     return base::kStatusCodeErrorInvalidParam;
   }
 
-  Op *op = createOp(output->getDeviceType(), "", kOpTypeAdd);
+  Op *op = createOp(output->getDeviceType(), "", ir::kOpTypeAdd);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -156,7 +156,7 @@ base::Status sub(device::Tensor *input1, device::Tensor *input2,
     return base::kStatusCodeErrorInvalidParam;
   }
 
-  Op *op = createOp(output->getDeviceType(), "", kOpTypeSub);
+  Op *op = createOp(output->getDeviceType(), "", ir::kOpTypeSub);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -216,7 +216,7 @@ base::Status mul(device::Tensor *input1, device::Tensor *input2,
     return base::kStatusCodeErrorInvalidParam;
   }
 
-  Op *op = createOp(output->getDeviceType(), "", kOpTypeMul);
+  Op *op = createOp(output->getDeviceType(), "", ir::kOpTypeMul);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -274,7 +274,7 @@ base::Status div(device::Tensor *input1, device::Tensor *input2,
     return base::kStatusCodeErrorInvalidParam;
   }
 
-  Op *op = createOp(output->getDeviceType(), "", kOpTypeDiv);
+  Op *op = createOp(output->getDeviceType(), "", ir::kOpTypeDiv);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;

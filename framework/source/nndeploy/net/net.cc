@@ -11,7 +11,7 @@ Net::Net() : op::Op() {}
 
 Net::~Net() {}
 
-base::Status Net::setModelDesc(op::ModelDesc *model_desc) {
+base::Status Net::setModelDesc(ir::ModelDesc *model_desc) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(model_desc, "model_desc is null!");
   model_desc_ = model_desc;
@@ -69,7 +69,7 @@ device::Tensor *Net::getWeight(const std::string &weight) {
 }
 
 op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
-                      op::OpType op_type,
+                      ir::OpType op_type,
                       std::initializer_list<std::string> inputs,
                       std::initializer_list<std::string> outputs) {
   // TODO: 这里命名与namespace op下的createOp冲突
@@ -125,7 +125,7 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
   return op;
 }
 op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
-                      op::OpType op_type, std::vector<std::string> &inputs,
+                      ir::OpType op_type, std::vector<std::string> &inputs,
                       std::vector<std::string> &outputs) {
   op::Op *op = op::createOp(device_type, name, op_type, inputs, outputs);
   if (op == nullptr) {
@@ -231,34 +231,24 @@ base::Status Net::init() {
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
 
-  NNDEPLOY_LOGE("hello world\n");
-
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
-
-  NNDEPLOY_LOGE("hello world\n");
 
   // 即使是设备相关的图优化，也可以放在优化器中做
   // 经过这一次图优化之后
   status = optimizer();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
-  NNDEPLOY_LOGE("hello world\n");
 
   status = inferDataType();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferDataType failed!");
-  NNDEPLOY_LOGE("hello world\n");
 
   status = inferShape();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferShape failed!");
 
-  NNDEPLOY_LOGE("hello world\n");
-
   status = this->session();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph session failed!");
-
-  NNDEPLOY_LOGE("hello world\n");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");
@@ -276,6 +266,14 @@ base::Status Net::deinit() {
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
 
+  // NNDEPLOY_LOGI("#######################\n");
+  // NNDEPLOY_LOGI("Op DeInitialize Phase!\n");
+  // NNDEPLOY_LOGI("#######################\n");
+  status = session_->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session deinit failed!");
+  delete session_;
+  session_ = nullptr;
+
   for (auto op_wrapper : op_repository_) {
     if (!op_wrapper->is_external_) {
       delete op_wrapper->op_;
@@ -283,6 +281,7 @@ base::Status Net::deinit() {
     delete op_wrapper;
   }
   op_repository_.clear();
+
   for (auto tensor_wrapper : tensor_repository_) {
     if (!tensor_wrapper->is_external_) {
       delete tensor_wrapper->tensor_;
@@ -291,13 +290,6 @@ base::Status Net::deinit() {
   }
   tensor_repository_.clear();
 
-  // NNDEPLOY_LOGI("#######################\n");
-  // NNDEPLOY_LOGI("Op DeInitialize Phase!\n");
-  // NNDEPLOY_LOGI("#######################\n");
-  status = session_->deinit();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session deinit failed!");
-  delete session_;
-  session_ = nullptr;
   return status;
 }
 
@@ -606,7 +598,7 @@ base::Status Net::session() {
   return status;
 }
 
-Net *createNet(op::ModelDesc *model_desc, base::DeviceType device_type,
+Net *createNet(ir::ModelDesc *model_desc, base::DeviceType device_type,
                base::PrecisionType precision_type) {
   Net *net = new Net();
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(net, "net is null!");
