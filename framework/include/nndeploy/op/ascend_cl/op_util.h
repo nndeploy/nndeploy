@@ -27,6 +27,9 @@ template <typename T>
 aclDataType aclDataTypeOf() {
   return ACL_FLOAT;
 }
+
+void CalShapeStrides(const std::vector<int64_t>& shape, std::vector<int64_t>& strides);
+
 template <>
 NNDEPLOY_CC_API aclDataType aclDataTypeOf<float>();
 template <>
