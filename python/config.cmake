@@ -21,7 +21,7 @@ include_directories(${ROOT_PATH}/python/src)
 include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
 
 # SOURCE
-file(GLOB PYTHON_SOURCE
+file(GLOB_RECURSE  PYTHON_SOURCE
   "${ROOT_PATH}/python/src/*.h"
   "${ROOT_PATH}/python/src/*.cc"
 )
@@ -66,11 +66,12 @@ target_link_libraries(${BINARY} PUBLIC ${THIRD_PARTY_LIBRARY})
 if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
     add_custom_command(TARGET ${BINARY} POST_BUILD 
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/nndeploy${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION} 
-        ${PROJECT_SOURCE_DIR}/nndeploy/_C/nndeploy${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION})
+        ${PROJECT_SOURCE_DIR}/python/nndeploy/_C/nndeploy${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION})
+        message(STATUS "Copying ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/nndeploy${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION} to ${PROJECT_SOURCE_DIR}/python/nndeploy/_C/nndeploy${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}")
 endif("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
 
-# unkown
-# configure_file(setup.py.i ${PROJECT_SOURCE_DIR}/setup.py)
+# 生成python pip package安装脚本
+configure_file(${ROOT_PATH}/python/setup.py.i ${PROJECT_SOURCE_DIR}/setup.py)
 
 # unset
 unset(SOURCE)
