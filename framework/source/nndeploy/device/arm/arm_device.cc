@@ -148,8 +148,8 @@ base::Status ArmDevice::upload(void *src, void *dst, size_t size, int index) {
 }
 
 base::Status ArmDevice::copy(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     memcpy(dst->getData(), src->getData(), size);
@@ -160,8 +160,8 @@ base::Status ArmDevice::copy(Buffer *src, Buffer *dst, int index) {
   }
 }
 base::Status ArmDevice::download(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     memcpy(dst->getData(), src->getData(), size);
@@ -172,8 +172,8 @@ base::Status ArmDevice::download(Buffer *src, Buffer *dst, int index) {
   }
 }
 base::Status ArmDevice::upload(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     memcpy(dst->getData(), src->getData(), size);

@@ -148,8 +148,8 @@ base::Status X86Device::upload(void *src, void *dst, size_t size, int index) {
 }
 
 base::Status X86Device::copy(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     return base::kStatusCodeOk;
@@ -159,8 +159,8 @@ base::Status X86Device::copy(Buffer *src, Buffer *dst, int index) {
   }
 }
 base::Status X86Device::download(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     return base::kStatusCodeOk;
@@ -170,8 +170,8 @@ base::Status X86Device::download(Buffer *src, Buffer *dst, int index) {
   }
 }
 base::Status X86Device::upload(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     return base::kStatusCodeOk;

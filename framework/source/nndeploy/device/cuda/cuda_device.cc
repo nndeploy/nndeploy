@@ -178,8 +178,8 @@ base::Status CudaDevice::upload(void *src, void *dst, size_t size, int index) {
 
 base::Status CudaDevice::copy(Buffer *src, Buffer *dst, int index) {
   cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     cudaError_t status =
@@ -195,8 +195,8 @@ base::Status CudaDevice::copy(Buffer *src, Buffer *dst, int index) {
 }
 base::Status CudaDevice::download(Buffer *src, Buffer *dst, int index) {
   cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     cudaError_t status =
@@ -212,8 +212,8 @@ base::Status CudaDevice::download(Buffer *src, Buffer *dst, int index) {
 }
 base::Status CudaDevice::upload(Buffer *src, Buffer *dst, int index) {
   cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     cudaError_t status =

@@ -221,14 +221,14 @@ base::Status AscendCLDevice::upload(void *src, void *dst, size_t size,
 }
 
 base::Status AscendCLDevice::copy(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
-    aclError ret =
-        aclrtMemcpyAsync(dst->getData(), src, src->getData(),
-                         src, ACL_MEMCPY_DEVICE_TO_DEVICE, stream);
+    aclError ret = aclrtMemcpyAsync(dst->getData(), size, src->getData(),
+                                    size, ACL_MEMCPY_DEVICE_TO_DEVICE,
+                                    stream);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("copy fuction: aclrtMemcpyAsync failed, errorCode is %d\n",
                     ret);
@@ -247,8 +247,8 @@ base::Status AscendCLDevice::copy(Buffer *src, Buffer *dst, int index) {
   }
 }
 base::Status AscendCLDevice::download(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
@@ -274,8 +274,8 @@ base::Status AscendCLDevice::download(Buffer *src, Buffer *dst, int index) {
   }
 }
 base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getDesc().getSize();
-  size_t src_size = src->getDesc().getSize();
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
     aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
