@@ -1,14 +1,7 @@
-#ifndef _PYBIND11_OP_H_
-#define _PYBIND11_OP_H_
+#include "op/op_func.h"
 
-#include "nndeploy/op/op_rmsnorm.h"
-
-/*
- * op的func层，创建输出Tensor（不分配内存）、输入检查
- */
-
-using namespace nndeploy;
-
+namespace nndeploy {
+    
 device::Tensor* rmsNormFunc(device::Tensor* input1, device::Tensor* input2,
                             device::Tensor* input3) {
   std::stringstream ss;
@@ -27,5 +20,4 @@ device::Tensor* rmsNormFunc(device::Tensor* input1, device::Tensor* input2,
 
   return output;
 }
-
-#endif
+}
