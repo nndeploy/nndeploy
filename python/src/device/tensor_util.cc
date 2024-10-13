@@ -1,17 +1,5 @@
-#ifndef _PYBIND11_TENSOR_H_
-#define _PYBIND11_TENSOR_H_
+#include "device/tensor_util.h"
 
-#include <pybind11/pybind11.h>
-
-#include <string>
-
-#include "nndeploy/device/buffer.h"
-#include "nndeploy/device/tensor.h"
-
-using namespace nndeploy;
-namespace py = pybind11;
-
-// 获取tensor的数值类型 根据元素的bit位宽决定
 std::string getTensorFormat(device::Tensor* tensor) {
   std::string format;
   auto elemsize = tensor->getDataType().bits_ / 8;
@@ -28,8 +16,6 @@ std::string getTensorFormat(device::Tensor* tensor) {
   return format;
 }
 
-// 从tensor的shape推断stride，numpy要求的内存是紧凑的
-// stride按照元素个数计数而非numpy中采用的按照元素Bytes
 std::vector<long> calculateStridesBaseShape(const base::IntVector& shape) {
   std::vector<long> strides(shape.size());
   long total_size = 1;
@@ -43,7 +29,6 @@ std::vector<long> calculateStridesBaseShape(const base::IntVector& shape) {
   return strides;
 }
 
-// 获取nndepoly::device::Tensor 转 numpy array的必要信息
 py::buffer_info tensorToBufferInfo(device::Tensor* tensor) {
   void* data = nullptr;
   auto device_type_code = tensor->getDeviceType().code_;
@@ -85,7 +70,6 @@ py::buffer_info tensorToBufferInfo(device::Tensor* tensor) {
   );
 }
 
-// 从numpy初始化1个Tensor
 device::Tensor* bufferInfoToTensor(py::buffer const b,
                                    base::DeviceTypeCode device_code) {
   device::Tensor* tensor = nullptr;
@@ -155,7 +139,6 @@ device::Tensor* bufferInfoToTensor(py::buffer const b,
   return tensor;
 }
 
-// 将Tensor搬移到其他设备上
 device::Tensor* moveTensorToDevice(device::Tensor* tensor,
                                    base::DeviceTypeCode device_code) {
   auto cur_device = tensor->getDevice();
@@ -178,5 +161,3 @@ device::Tensor* moveTensorToDevice(device::Tensor* tensor,
 
   return tensor;
 }
-
-#endif

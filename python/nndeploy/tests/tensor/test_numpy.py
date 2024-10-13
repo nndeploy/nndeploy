@@ -26,7 +26,7 @@ class TestNumpy(unittest.TestCase):
         for shape, data_type, device in generate_permutations(shape_list, data_types, devices):
             np_array = np.random.random(shape).astype(
                 str_to_np_data_types[data_type])
-            tensor = createTensorFromNumpy(np_array, device)
+            tensor = createTensorFromNumpy(np_array)
             self.assertTrue(np.allclose(np_array, np.array(tensor), rtol=1e-05, atol=1e-08),
                             msg=f"Arrays are not close enough in case: shape={shape}, data_type={data_type}, device={device}")
 
