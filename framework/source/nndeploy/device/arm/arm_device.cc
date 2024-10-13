@@ -1,4 +1,3 @@
-
 #include "nndeploy/device/arm/arm_device.h"
 
 #include "nndeploy/device/buffer.h"
@@ -17,7 +16,7 @@ ArmArchitecture::~ArmArchitecture() {
   for (auto iter : devices_) {
     ArmDevice *tmp_device = dynamic_cast<ArmDevice *>(iter.second);
     if (tmp_device->deinit() != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("device deinit failed");
+      NNDEPLOY_LOGE("device deinit failed\n");
     }
     delete tmp_device;
   }
@@ -36,12 +35,12 @@ base::Status ArmArchitecture::enableDevice(int device_id, void *command_queue,
     base::DeviceType device_type(base::kDeviceTypeCodeArm, device_id);
     ArmDevice *device = new ArmDevice(device_type, command_queue, library_path);
     if (device == nullptr) {
-      NNDEPLOY_LOGE("device is nullptr");
+      NNDEPLOY_LOGE("device is nullptr\n");
       return base::kStatusCodeErrorOutOfMemory;
     }
     if (device->init() != base::kStatusCodeOk) {
       delete device;
-      NNDEPLOY_LOGE("device init failed");
+      NNDEPLOY_LOGE("device init failed\n");
       return base::kStatusCodeErrorDeviceArm;
     } else {
       devices_.insert({device_id, device});
@@ -62,7 +61,7 @@ Device *ArmArchitecture::getDevice(int device_id) {
     if (status == base::kStatusCodeOk) {
       device = devices_[device_id];
     } else {
-      NNDEPLOY_LOGE("enable device failed");
+      NNDEPLOY_LOGE("enable device failed\n");
     }
   }
   return device;
@@ -100,7 +99,7 @@ BufferDesc ArmDevice::toBufferDesc(const TensorDesc &desc,
 void *ArmDevice::allocate(size_t size) {
   void *data = malloc(size);
   if (data == nullptr) {
-    NNDEPLOY_LOGE("allocate buffer failed");
+    NNDEPLOY_LOGE("allocate buffer failed\n");
     return nullptr;
   }
   return data;
@@ -108,7 +107,7 @@ void *ArmDevice::allocate(size_t size) {
 void *ArmDevice::allocate(const BufferDesc &desc) {
   void *data = malloc(desc.getRealSize());
   if (data == nullptr) {
-    NNDEPLOY_LOGE("allocate buffer failed");
+    NNDEPLOY_LOGE("allocate buffer failed\n");
     return nullptr;
   }
   return data;
@@ -125,7 +124,7 @@ base::Status ArmDevice::copy(void *src, void *dst, size_t size, int index) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("copy buffer failed");
+    NNDEPLOY_LOGE("copy buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
@@ -134,7 +133,7 @@ base::Status ArmDevice::download(void *src, void *dst, size_t size, int index) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("copy buffer failed");
+    NNDEPLOY_LOGE("copy buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
@@ -143,35 +142,44 @@ base::Status ArmDevice::upload(void *src, void *dst, size_t size, int index) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("copy buffer failed");
+    NNDEPLOY_LOGE("copy buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
 
 base::Status ArmDevice::copy(Buffer *src, Buffer *dst, int index) {
-  if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
-    memcpy(dst->getData(), src->getData(), src->getSize());
+  size_t dst_size = dst->getDesc().getSize();
+  size_t src_size = src->getDesc().getSize();
+  size_t size = std::min(dst_size, src_size);
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst->getData(), src->getData(), size);
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("copy buffer failed");
+    NNDEPLOY_LOGE("copy buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
 base::Status ArmDevice::download(Buffer *src, Buffer *dst, int index) {
-  if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
-    memcpy(dst->getData(), src->getData(), src->getSize());
+  size_t dst_size = dst->getDesc().getSize();
+  size_t src_size = src->getDesc().getSize();
+  size_t size = std::min(dst_size, src_size);
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst->getData(), src->getData(), size);
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("download buffer failed");
+    NNDEPLOY_LOGE("download buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
 base::Status ArmDevice::upload(Buffer *src, Buffer *dst, int index) {
-  if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
-    memcpy(dst->getData(), src->getData(), src->getSize());
+  size_t dst_size = dst->getDesc().getSize();
+  size_t src_size = src->getDesc().getSize();
+  size_t size = std::min(dst_size, src_size);
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst->getData(), src->getData(), size);
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("upload buffer failed");
+    NNDEPLOY_LOGE("upload buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }

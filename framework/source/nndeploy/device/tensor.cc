@@ -110,7 +110,7 @@ Tensor::~Tensor() { this->clear(); }
 // create
 void Tensor::create(const std::string &name) {
   if (!this->empty()) {
-    NNDEPLOY_LOGI("Tensor is not empty, can not create");
+    NNDEPLOY_LOGI("Tensor is not empty, can not create.\n");
     return;
   }
   name_ = name;
@@ -118,7 +118,7 @@ void Tensor::create(const std::string &name) {
 
 void Tensor::create(const TensorDesc &desc, const std::string &name) {
   if (!this->empty()) {
-    NNDEPLOY_LOGI("Tensor is not empty, can not create");
+    NNDEPLOY_LOGI("Tensor is not empty, can not create.\n");
     return;
   }
   name_ = name;
@@ -127,7 +127,7 @@ void Tensor::create(const TensorDesc &desc, const std::string &name) {
 void Tensor::create(const TensorDesc &desc, Buffer *buffer,
                     const std::string &name) {
   if (!this->empty()) {
-    NNDEPLOY_LOGI("Tensor is not empty, can not create");
+    NNDEPLOY_LOGI("Tensor is not empty, can not create.\n");
     return;
   }
   name_ = name;
@@ -139,7 +139,7 @@ void Tensor::create(const TensorDesc &desc, Buffer *buffer,
 void Tensor::create(Device *device, const TensorDesc &desc,
                     const std::string &name, const base::IntVector &config) {
   if (!this->empty()) {
-    NNDEPLOY_LOGI("Tensor is not empty, can not create");
+    NNDEPLOY_LOGI("Tensor is not empty, can not create.\n");
     return;
   }
   name_ = name;
@@ -153,7 +153,7 @@ void Tensor::create(Device *device, const TensorDesc &desc,
 void Tensor::create(Device *device, const TensorDesc &desc, void *data_ptr,
                     const std::string &name, const base::IntVector &config) {
   if (!this->empty()) {
-    NNDEPLOY_LOGI("Tensor is not empty, can not create");
+    NNDEPLOY_LOGI("Tensor is not empty, can not create.\n");
     return;
   }
   name_ = name;
@@ -167,7 +167,7 @@ void Tensor::create(Device *device, const TensorDesc &desc, void *data_ptr,
 void Tensor::create(MemoryPool *memory_pool, const TensorDesc &desc,
                     const std::string &name, const base::IntVector &config) {
   if (!this->empty()) {
-    NNDEPLOY_LOGI("Tensor is not empty, can not create");
+    NNDEPLOY_LOGI("Tensor is not empty, can not create.\n");
     return;
   }
   name_ = name;
@@ -184,7 +184,7 @@ void Tensor::create(MemoryPool *memory_pool, const TensorDesc &desc,
                     void *data_ptr, const std::string &name,
                     const base::IntVector &config) {
   if (!this->empty()) {
-    NNDEPLOY_LOGI("Tensor is not empty, can not create");
+    NNDEPLOY_LOGI("Tensor is not empty, can not create.\n");
     return;
   }
   name_ = name;
@@ -253,7 +253,7 @@ void Tensor::deallocate() {
 
 base::Status Tensor::reshape(base::IntVector shape) {
   if (shape.empty()) {
-    NNDEPLOY_LOGE("shape is empty");
+    NNDEPLOY_LOGE("shape is empty.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
   if (desc_.shape_ == shape) {
@@ -264,7 +264,7 @@ base::Status Tensor::reshape(base::IntVector shape) {
     return base::kStatusCodeOk;
   }
   if (desc_.shape_.size() != shape.size()) {
-    NNDEPLOY_LOGE("shape size is not equal");
+    NNDEPLOY_LOGE("shape size is not equal.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
   desc_.shape_ = shape;
@@ -311,6 +311,7 @@ base::Status Tensor::copyTo(Tensor *dst) {
   Buffer *src_buffer = this->getBuffer();
   Buffer *dst_buffer = dst->getBuffer();
   if (src_buffer == nullptr || dst_buffer == nullptr) {
+    NNDEPLOY_LOGE("src_buffer or dst_buffer is nullptr.\n");
     return base::kStatusCodeErrorNotImplement;
   }
   base::Status status = src_buffer->copyTo(dst_buffer);

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 
+#if ENABLE_NNDEPLOY_DEVICE_ASCEND_CL
+
 #include "acl/acl.h"
 #include "aclnnop/aclnn_split_tensor.h"
 
@@ -179,3 +181,11 @@ int main() {
 
   return 0;
 }
+
+#else
+
+int main(int argc, char* argv[]) {
+  return 0;
+}
+
+#endif

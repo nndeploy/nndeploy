@@ -4,6 +4,7 @@
 
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/op/op_unary.h"
 
 namespace nndeploy {
 namespace op {

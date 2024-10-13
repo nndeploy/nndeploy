@@ -1,4 +1,3 @@
-
 #include "nndeploy/device/x86/x86_device.h"
 
 #include "nndeploy/device/buffer.h"
@@ -17,7 +16,7 @@ X86Architecture::~X86Architecture() {
   for (auto iter : devices_) {
     X86Device *tmp_device = dynamic_cast<X86Device *>(iter.second);
     if (tmp_device->deinit() != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("device deinit failed");
+      NNDEPLOY_LOGE("device deinit failed\n");
     }
     delete tmp_device;
   }
@@ -36,12 +35,12 @@ base::Status X86Architecture::enableDevice(int device_id, void *command_queue,
     base::DeviceType device_type(base::kDeviceTypeCodeX86, device_id);
     X86Device *device = new X86Device(device_type, command_queue, library_path);
     if (device == nullptr) {
-      NNDEPLOY_LOGE("device is nullptr");
+      NNDEPLOY_LOGE("device is nullptr\n");
       return base::kStatusCodeErrorOutOfMemory;
     }
     if (device->init() != base::kStatusCodeOk) {
       delete device;
-      NNDEPLOY_LOGE("device init failed");
+      NNDEPLOY_LOGE("device init failed\n");
       return base::kStatusCodeErrorDeviceX86;
     } else {
       devices_.insert({device_id, device});
@@ -62,7 +61,7 @@ Device *X86Architecture::getDevice(int device_id) {
     if (status == base::kStatusCodeOk) {
       device = devices_[device_id];
     } else {
-      NNDEPLOY_LOGE("enable device failed");
+      NNDEPLOY_LOGE("enable device failed\n");
     }
   }
   return device;
@@ -100,7 +99,7 @@ BufferDesc X86Device::toBufferDesc(const TensorDesc &desc,
 void *X86Device::allocate(size_t size) {
   void *data = malloc(size);
   if (data == nullptr) {
-    NNDEPLOY_LOGE("allocate buffer failed");
+    NNDEPLOY_LOGE("allocate buffer failed\n");
     return nullptr;
   }
   return data;
@@ -108,7 +107,7 @@ void *X86Device::allocate(size_t size) {
 void *X86Device::allocate(const BufferDesc &desc) {
   void *data = malloc(desc.getRealSize());
   if (data == nullptr) {
-    NNDEPLOY_LOGE("allocate buffer failed");
+    NNDEPLOY_LOGE("allocate buffer failed\n");
     return nullptr;
   }
   return data;
@@ -125,7 +124,7 @@ base::Status X86Device::copy(void *src, void *dst, size_t size, int index) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("copy buffer failed");
+    NNDEPLOY_LOGE("copy buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
@@ -134,7 +133,7 @@ base::Status X86Device::download(void *src, void *dst, size_t size, int index) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("copy buffer failed");
+    NNDEPLOY_LOGE("copy buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
@@ -143,35 +142,41 @@ base::Status X86Device::upload(void *src, void *dst, size_t size, int index) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("copy buffer failed");
+    NNDEPLOY_LOGE("copy buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
 
 base::Status X86Device::copy(Buffer *src, Buffer *dst, int index) {
-  if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
-    memcpy(dst->getData(), src->getData(), src->getSize());
+  size_t dst_size = dst->getDesc().getSize();
+  size_t src_size = src->getDesc().getSize();
+  size_t size = std::min(dst_size, src_size);
+  if (src != nullptr && dst != nullptr) {
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("copy buffer failed");
+    NNDEPLOY_LOGE("copy buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
 base::Status X86Device::download(Buffer *src, Buffer *dst, int index) {
-  if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
-    memcpy(dst->getData(), src->getData(), src->getSize());
+  size_t dst_size = dst->getDesc().getSize();
+  size_t src_size = src->getDesc().getSize();
+  size_t size = std::min(dst_size, src_size);
+  if (src != nullptr && dst != nullptr) {
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("download buffer failed");
+    NNDEPLOY_LOGE("download buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
 base::Status X86Device::upload(Buffer *src, Buffer *dst, int index) {
-  if (src != nullptr && dst != nullptr && dst->getDesc() >= src->getDesc()) {
-    memcpy(dst->getData(), src->getData(), src->getSize());
+  size_t dst_size = dst->getDesc().getSize();
+  size_t src_size = src->getDesc().getSize();
+  size_t size = std::min(dst_size, src_size);
+  if (src != nullptr && dst != nullptr) {
     return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("upload buffer failed");
+    NNDEPLOY_LOGE("upload buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }

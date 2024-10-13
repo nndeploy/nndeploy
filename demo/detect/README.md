@@ -89,3 +89,6 @@ graph->run          1                   796.763             796.763             
 ./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\detect\bus.jpg --output_path C:\huggingface\nndeploy\temp\bus_output.jpg
 
 ./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value test.txt,test.bin --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path bus.jpg --output_path bus_output.jpg
+
+./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeCpu:0 --model_type kModelTypeDefault --is_path --model_value test.txt,test.bin --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path bus.jpg --output_path bus_output.jpg
+

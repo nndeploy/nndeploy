@@ -148,7 +148,12 @@ base::Status DefaultInference::run() {
     }
     device::Tensor *dst_tensor = internal_input_tensor->second;
     if (src_tensor->getData() != dst_tensor->getData()) {
+      NNDEPLOY_LOGI("Source Tensor Device: %s\n", base::deviceTypeToString(src_tensor->getDeviceType()).c_str());
+      NNDEPLOY_LOGI("Destination Tensor Device: %s\n", base::deviceTypeToString(dst_tensor->getDeviceType()).c_str());
       status = src_tensor->copyTo(dst_tensor);
+      src_tensor->getDesc().print();
+      dst_tensor->getDesc().print();
+      
       NNDEPLOY_RETURN_ON_NEQ(
           status, base::kStatusCodeOk,
           "copy external_input_tensor to internal_input_tensor failed!");
@@ -188,6 +193,8 @@ device::Tensor *DefaultInference::getOutputTensorAfterRun(
   if (flag) {
     output_tensor =
         new device::Tensor(device, internal_tensor->getDesc(), name);
+    internal_tensor->getDesc().print();
+    output_tensor->getDesc().print();
     internal_tensor->copyTo(output_tensor);
     return output_tensor;
   } else {

@@ -182,12 +182,18 @@ base::Status Buffer::copyTo(Buffer *dst) {
   if (src_device_type == dst_device_type) {
     return src_device->copy(this, dst);
   } else if (isHostDeviceType(src_device_type) &&
+             isHostDeviceType(dst_device_type)) {
+    return src_device->copy(this, dst);
+  } else if (isHostDeviceType(src_device_type) &&
              !isHostDeviceType(dst_device_type)) {
     return dst_device->upload(this, dst);
   } else if (!isHostDeviceType(src_device_type) &&
              isHostDeviceType(dst_device_type)) {
     return src_device->download(this, dst);
   } else {
+    NNDEPLOY_LOGE("Unsupported device type{%s->%s} for copy operation.",
+                 base::deviceTypeToString(src_device_type).c_str(),
+                 base::deviceTypeToString(dst_device_type).c_str());
     return base::kStatusCodeErrorNotImplement;
   }
 }
