@@ -15,6 +15,13 @@
 namespace nndeploy {
 namespace net {
 
+enum TensorPoolType : int {
+  kTensorPool1DSharedObjectTypeGreedyByBreadth = 0x0000,
+  kTensorPool1DSharedObjectTypeGreedyBySize,
+  kTensorPool1DSharedObjectTypeGreedyBySizeImprove,
+  kTensorPool1DSharedObjectTypeNone,
+};
+
 // 只有激活值
 struct TensorUsageRecord {
   TensorWrapper *tensor_wrapper_;
@@ -50,12 +57,88 @@ class TensorPool {
   virtual base::Status allocate() = 0;
   virtual base::Status deallocate() = 0;
 
+  /**
+   * @brief 获取推理所需的内存大小
+   *
+   * @return int64_t
+   */
+  virtual int64_t getMemorySize();
+  /**
+   * @brief 设置推理所需的内存（推理内存由外部分配）
+   *
+   * @param buffer
+   * @return base::Status
+   */
+  virtual base::Status setMemory(device::Buffer *buffer);
+
  protected:
   device::Device *device_;
   base::IntVector config_ = base::IntVector();
   std::vector<TensorWrapper *> tensor_repository_;
   std::vector<OpWrapper *> op_repository;
 };
+
+
+/**
+ * @brief TensorPool的创建类
+ *
+ */
+class TensorPoolCreator {
+ public:
+  virtual ~TensorPoolCreator() {};
+  virtual TensorPool *createTensorPool(device::Device *device,
+      std::vector<TensorWrapper *> &tensor_repository,
+      std::vector<OpWrapper *> &op_repository) = 0;
+};
+
+/**
+ * @brief TensorPool的创建类模板
+ *
+ * @tparam T
+ */
+template <typename T>
+class TypeTensorPoolCreator : public TensorPoolCreator {
+  virtual TensorPool *createTensorPool(device::Device *device,
+      std::vector<TensorWrapper *> &tensor_repository,
+      std::vector<OpWrapper *> &op_repository) {
+    return new T(device, tensor_repository, op_repository);
+  }
+};
+
+/**
+ * @brief Get the Global TensorPool Creator Map object
+ *
+ * @return std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>&
+ */
+std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>> &
+getGlobalTensorPoolCreatorMap();
+
+/**
+ * @brief TensorPool的创建类的注册类模板
+ *
+ * @tparam T
+ */
+template <typename T>
+class TypeTensorPoolRegister {
+ public:
+  explicit TypeTensorPoolRegister(TensorPoolType type) {
+    getGlobalTensorPoolCreatorMap()[type] = std::shared_ptr<T>(new T());
+  }
+};
+
+/**
+ * @brief Create a TensorPool object  
+ *
+ * @param type
+ * @param device
+ * @param tensor_repository
+ * @param op_repository
+ * @return TensorPool*
+ */
+extern NNDEPLOY_CC_API TensorPool *createTensorPool(
+    TensorPoolType type, device::Device *device,
+    std::vector<TensorWrapper *> &tensor_repository,
+    std::vector<OpWrapper *> &op_repository);
 
 std::vector<int> getOpOrderIndex(std::vector<OpWrapper *> &producers,
                                  std::vector<OpWrapper *> &consumers,

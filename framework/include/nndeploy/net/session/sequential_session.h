@@ -10,36 +10,30 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/device/ascend_cl/ascend_cl_device.h"
+#include "nndeploy/device/device.h"
 #include "nndeploy/net/session.h"
-#include "nndeploy/net/tensor_pool_1d.h"
+#include "nndeploy/net/tensor_pool.h"
 #include "nndeploy/net/util.h"
 
 namespace nndeploy {
 namespace net {
 
-class NNDEPLOY_CC_API AscendCLSession : public Session {
+class NNDEPLOY_CC_API SequentialSession : public Session {
  public:
-  AscendCLSession(const base::DeviceType &device_type);
-  virtual ~AscendCLSession();
+  SequentialSession(const base::DeviceType &device_type);
+  virtual ~SequentialSession();
 
   virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
                             std::vector<OpWrapper *> &op_repository,
-                            bool is_dynamic_shape, base::ShapeMap max_shape);
+                            bool is_dynamic_shape, base::ShapeMap max_shape,
+                            TensorPoolType tensor_pool_type = kTensorPool1DSharedObjectTypeGreedyBySizeImprove);
   virtual base::Status deinit();
 
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual base::Status preRun();
   virtual base::Status run();
-  virtual base::Status postRun();
-
- protected:
-  std::shared_ptr<TensorPool1DSharedObjectGreedyBySizeImprove> tensor_pool_;
-  bool is_dynamic_shape_ = false;                // 是否是动态shape
-  base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
-  std::vector<TensorWrapper *> tensor_repository_;
-  std::vector<OpWrapper *> op_repository_;
+  virtual base::Status postRun();  
 };
 
 }  // namespace net

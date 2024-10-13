@@ -26,28 +26,20 @@ base::Status OpRMSNorm::inferShape() {
   return base::kStatusCodeOk;
 }
 
+base::Status OpRMSNorm::run() {
+  NNDEPLOY_LOGI("not implemented.\n");
+  return base::kStatusCodeOk;
+} 
+
 base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
                      device::Tensor *input3, device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
-  if (input1 == nullptr || input2 == nullptr || input3 == nullptr ||
-      output == nullptr) {
-    NNDEPLOY_LOGE("input1 or input2 or output is nullptr");
-    return base::kStatusCodeErrorNullParam;
-  }
+
   Op *op = createOp(input1->getDeviceType(), "", ir::kOpTypeRMSNorm);
-  if (op == nullptr) {
+  if (op == nullptr) {    
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
-  // if (output->getDataType().code_ == base::kDataTypeCodeFp ||
-  //     output->getDataType().code_ == base::kDataTypeCodeBFp) {
-  //   base::PrecisionType precision_type =
-  //       getPrecisionType(output->getDataType());
-  //   status = op->setPrecisionType(precision_type);
-  //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-  //                          "setPrecisionType failed");
-  // }
-
   status = op->setInput(input1, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setInput(input2, 1);
@@ -58,9 +50,6 @@ base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   status = op->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
-  status = op->checkOrAllocOutput();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "checkOrAllocOutput failed");
   status = op->preRun();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->run();
@@ -74,6 +63,9 @@ base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
 
   return status;
 }
+
+REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+                         ir::kOpTypeRMSNorm, OpRMSNorm)
 
 }  // namespace op
 }  // namespace nndeploy

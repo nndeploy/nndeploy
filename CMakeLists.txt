@@ -69,6 +69,7 @@ nndeploy_option(ENABLE_NNDEPLOY_NET "ENABLE_NNDEPLOY_NET" ON)
 
 # # inference
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE "ENABLE_NNDEPLOY_INFERENCE" ON)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_DEFAULT "ENABLE_NNDEPLOY_INFERENCE_DEFAULT" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TENSORRT "ENABLE_NNDEPLOY_INFERENCE_TENSORRT" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "ENABLE_NNDEPLOY_INFERENCE_OPENVINO" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_COREML "ENABLE_NNDEPLOY_INFERENCE_COREML" OFF)
@@ -387,13 +388,13 @@ if(ENABLE_NNDEPLOY_OP)
     "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/*.cc"
   )
 
-  if(ENABLE_NNDEPLOY_DEVICE_CPU)
-    file(GLOB_RECURSE OP_CPU_SOURCE
-      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/cpu/*.h"
-      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/cpu/*.cc"
-    )
-    set(OP_SOURCE ${OP_SOURCE} ${OP_CPU_SOURCE})
-  endif()
+  # if(ENABLE_NNDEPLOY_DEVICE_CPU)
+  #   file(GLOB_RECURSE OP_CPU_SOURCE
+  #     "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/cpu/*.h"
+  #     "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/cpu/*.cc"
+  #   )
+  #   set(OP_SOURCE ${OP_SOURCE} ${OP_CPU_SOURCE})
+  # endif()
 
   if(ENABLE_NNDEPLOY_DEVICE_X86)
     file(GLOB_RECURSE OP_X86_SOURCE
@@ -449,50 +450,10 @@ if(ENABLE_NNDEPLOY_IR)
 endif()
 
 if(ENABLE_NNDEPLOY_NET)
-  file(GLOB NET_SOURCE
+  file(GLOB_RECURSE NET_SOURCE
     "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/*.h"
     "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/*.cc"
   )
-
-  if(ENABLE_NNDEPLOY_DEVICE_CPU)
-    file(GLOB_RECURSE NET_CPU_SOURCE
-      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/cpu/*.h"
-      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/cpu/*.cc"
-    )
-    set(NET_SOURCE ${NET_SOURCE} ${NET_CPU_SOURCE})
-  endif()
-
-  if(ENABLE_NNDEPLOY_DEVICE_X86)
-    file(GLOB_RECURSE NET_X86_SOURCE
-      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/x86/*.h"
-      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/x86/*.cc"
-    )
-    set(NET_SOURCE ${NET_SOURCE} ${NET_X86_SOURCE})
-  endif()
-
-  if(ENABLE_NNDEPLOY_DEVICE_ARM)
-    file(GLOB_RECURSE NET_ARM_SOURCE
-      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/arm/*.h"
-      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/arm/*.cc"
-    )
-    set(NET_SOURCE ${NET_SOURCE} ${NET_ARM_SOURCE})
-  endif()
-
-  if(ENABLE_NNDEPLOY_DEVICE_CUDA)
-    file(GLOB_RECURSE NET_CUDA_SOURCE
-      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/cuda/*.h"
-      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/cuda/*.cc"
-    )
-    set(NET_SOURCE ${NET_SOURCE} ${NET_CUDA_SOURCE})
-  endif()
-
-  if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
-    file(GLOB_RECURSE NET_ASCEND_CL_SOURCE
-      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/net/ascend_cl/*.h"
-      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/net/ascend_cl/*.cc"
-    )
-    set(NET_SOURCE ${NET_SOURCE} ${NET_ASCEND_CL_SOURCE})
-  endif()
 
   set(NNDEPLOY_FRAMEWORK_SOURCE ${NNDEPLOY_FRAMEWORK_SOURCE} ${NET_SOURCE})
 endif()
@@ -502,6 +463,14 @@ if(ENABLE_NNDEPLOY_INFERENCE)
     "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/*.h"
     "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/*.cc"
   )
+
+  if(ENABLE_NNDEPLOY_INFERENCE_DEFAULT)
+    file(GLOB_RECURSE INFERENCE_DEFAULT_SOURCE
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/inference/default/*.h"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/inference/default/*.cc"
+    )
+    set(INFERENCE_SOURCE ${INFERENCE_SOURCE} ${INFERENCE_DEFAULT_SOURCE})
+  endif()
 
   if(ENABLE_NNDEPLOY_INFERENCE_TENSORRT)
     file(GLOB_RECURSE INFERENCE_TENSORRT_SOURCE

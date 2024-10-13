@@ -15,12 +15,13 @@ class OpMaxPool : public Op {
   virtual ~OpMaxPool() {}
 
   virtual base::Status inferShape();
+
+  virtual base::Status run();
 };
 
-NNDEPLOY_CC_API base::Status MaxPool(device::Tensor *input,
+NNDEPLOY_CC_API base::Status maxPool(device::Tensor *input,
                                      std::shared_ptr<ir::MaxPoolParam> param,
-                                     device::Tensor *output_y,
-                                     device::Tensor *output_ndices);
+                                     device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

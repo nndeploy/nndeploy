@@ -64,12 +64,44 @@ base::Status OpConcat::inferShape() {
   return status;
 }
 
+base::Status OpConcat::run() {
+  NNDEPLOY_LOGI("not implemented.\n");
+  return base::kStatusCodeOk;
+} 
+
 base::Status concat(std::vector<device::Tensor *> input,
                     std::shared_ptr<ir::ConcatParam> param,
                     device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
+
+  Op *op = createOp(input[0]->getDeviceType(), "", ir::kOpTypeConcat);
+  if (op == nullptr) {
+    NNDEPLOY_LOGE("createOp failed");
+    return base::kStatusCodeErrorNotImplement;
+  }
+  for (size_t i = 0; i < input.size(); i++) {
+    status = op->setInput(input[i], i);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  }
+  status = op->setOutput(output, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
+  status = op->init();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
+  status = op->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
+  status = op->postRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "postRun failed");
+  status = op->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
+  delete op;
+
   return status;
 }
+
+REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+                         ir::kOpTypeConcat, OpConcat)
 
 }  // namespace op
 }  // namespace nndeploy

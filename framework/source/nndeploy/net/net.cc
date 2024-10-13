@@ -18,6 +18,21 @@ base::Status Net::setModelDesc(ir::ModelDesc *model_desc) {
   return status;
 }
 
+base::Status Net::setDynamicShape(bool is_dynamic_shape, base::ShapeMap &min_shape, base::ShapeMap &opt_shape, base::ShapeMap &max_shape) {
+  base::Status status = base::kStatusCodeOk;
+  is_dynamic_shape_ = is_dynamic_shape;
+  min_shape_ = min_shape;
+  opt_shape_ = opt_shape;
+  max_shape_ = max_shape;
+  return status;
+}
+
+base::Status Net::setTensorPoolType(TensorPoolType tensor_pool_type) {
+  base::Status status = base::kStatusCodeOk;
+  tensor_pool_type_ = tensor_pool_type;
+  return status;
+}
+
 TensorWrapper *Net::createTensor(const std::string &name, bool is_weight) {
   device::Tensor *tensor = new device::Tensor(name);
   TensorWrapper *tensor_wrapper = new TensorWrapper();
@@ -334,6 +349,11 @@ base::Status Net::reshape(base::ShapeMap &shape_map) {
   return status;
 };
 
+int64_t Net::getMemorySize() { return session_->getMemorySize(); }
+base::Status Net::setMemory(device::Buffer *buffer) {
+  return session_->setMemory(buffer);
+}
+
 base::Status Net::preRun() {
   base::Status status = base::kStatusCodeOk;
 
@@ -592,7 +612,7 @@ base::Status Net::session() {
   // NNDEPLOY_LOGI("#. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
   status = session_->init(tensor_repository_, op_repository_, is_dynamic_shape_,
-                          max_shape_);
+                          max_shape_, tensor_pool_type_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session init failed!");
 
   return status;

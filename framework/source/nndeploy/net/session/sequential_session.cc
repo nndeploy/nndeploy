@@ -1,32 +1,32 @@
 
 
-#include "nndeploy/net/ascend_cl/ascend_cl_session.h"
+#include "nndeploy/net/session/sequential_session.h"
 
 namespace nndeploy {
 namespace net {
 
-TypeSessionRegister<TypeSessionCreator<AscendCLSession>>
-    g_ascend_cl_session_register_seq(
-        base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
+TypeSessionRegister<TypeSessionCreator<SequentialSession>>
+    g_sequential_session_register_seq(
         base::ParallelType::kParallelTypeSequential);
 
-TypeSessionRegister<TypeSessionCreator<AscendCLSession>>
-    g_ascend_cl_session_register_none(
-        base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
+TypeSessionRegister<TypeSessionCreator<SequentialSession>>
+    g_sequential_session_register_none(
         base::ParallelType::kParallelTypeNone);
 
-AscendCLSession::AscendCLSession(const base::DeviceType &device_type)
+SequentialSession::SequentialSession(const base::DeviceType &device_type)
     : Session(device_type) {};
-AscendCLSession::~AscendCLSession() {};
+SequentialSession::~SequentialSession() {};
 
-base::Status AscendCLSession::init(
+base::Status SequentialSession::init(
     std::vector<TensorWrapper *> &tensor_repository,
     std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
-    base::ShapeMap max_shape) {
+    base::ShapeMap max_shape,
+    TensorPoolType tensor_pool_type) {
   base::Status status = base::kStatusCodeOk;
   device::Device *device = device::getDevice(device_type_);
   // # 激活值的tensor分配
-  tensor_pool_ = std::make_shared<TensorPool1DSharedObjectGreedyBySizeImprove>(
+  tensor_pool_type_ = tensor_pool_type;
+  tensor_pool_ = createTensorPool(tensor_pool_type_,
       device, tensor_repository, op_repository);
   /**
    * @brief
@@ -82,7 +82,7 @@ base::Status AscendCLSession::init(
   max_shape_ = max_shape;
   return status;
 }
-base::Status AscendCLSession::deinit() {
+base::Status SequentialSession::deinit() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
     status = iter->op_->deinit();
@@ -97,10 +97,11 @@ base::Status AscendCLSession::deinit() {
     NNDEPLOY_LOGE("tensor_pool_ allocate failed\n");
     return status;
   }
+  delete tensor_pool_;
   return status;
 }
 
-base::Status AscendCLSession::reshape(base::ShapeMap &shape_map) {
+base::Status SequentialSession::reshape(base::ShapeMap &shape_map) {
   base::Status status = base::kStatusCodeOk;
   bool channge_flag = false;
   bool is_reallocate = false;
@@ -154,19 +155,20 @@ base::Status AscendCLSession::reshape(base::ShapeMap &shape_map) {
   return status;
 }
 
-base::Status AscendCLSession::preRun() {
+base::Status SequentialSession::preRun() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
-    NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
+    // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->preRun();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s preRun failed\n", iter->op_->getName().c_str());
       return status;
     }
   }
+  NNDEPLOY_LOGI("preRun ok!\n");
   return status;
 }
-base::Status AscendCLSession::run() {
+base::Status SequentialSession::run() {
   base::Status status = base::kStatusCodeOk;
   // 存在优化空间
   uint64_t max_workspace_size = 0;
@@ -187,7 +189,7 @@ base::Status AscendCLSession::run() {
     iter->op_->setWorkspace(workspace);
   }
   for (auto iter : op_repository_) {
-    NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
+    // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s run failed\n", iter->op_->getName().c_str());
@@ -197,18 +199,20 @@ base::Status AscendCLSession::run() {
   if (workspace != nullptr) {
     device->deallocate(workspace);
   }
+  NNDEPLOY_LOGI("run ok!\n");
   return status;
 }
-base::Status AscendCLSession::postRun() {
+base::Status SequentialSession::postRun() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
-    NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
+    // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->postRun();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s postRun failed\n", iter->op_->getName().c_str());
       return status;
     }
   }
+  NNDEPLOY_LOGI("postRun ok!\n");
   return status;
 }
 

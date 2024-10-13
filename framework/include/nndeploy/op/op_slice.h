@@ -10,11 +10,20 @@ namespace op {
 
 class OpSlice : public Op {
  public:
-  OpSlice() {}
+  OpSlice() : Op() {}
   virtual ~OpSlice() {}
 
   virtual base::Status inferShape();
+
+  virtual base::Status run();
 };
+
+NNDEPLOY_CC_API base::Status slice(device::Tensor *input,
+                                  device::Tensor *starts,
+                                  device::Tensor *ends,
+                                  device::Tensor *axes ,
+                                  device::Tensor *steps,
+                                  device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

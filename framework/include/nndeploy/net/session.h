@@ -11,6 +11,7 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
 #include "nndeploy/net/util.h"
+#include "nndeploy/net/tensor_pool.h"
 
 namespace nndeploy {
 namespace net {
@@ -23,10 +24,25 @@ class NNDEPLOY_CC_API Session : public base::NonCopyable {
   virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
                             std::vector<OpWrapper *> &op_repository,
                             bool is_dynamic_shape,
-                            base::ShapeMap max_shape) = 0;
+                            base::ShapeMap max_shape,
+                            TensorPoolType tensor_pool_type = kTensorPool1DSharedObjectTypeGreedyBySizeImprove) = 0;
   virtual base::Status deinit() = 0;
 
   virtual base::Status reshape(base::ShapeMap &shape_map) = 0;
+
+  /**
+   * @brief 获取推理所需的内存大小
+   *
+   * @return int64_t
+   */
+  virtual int64_t getMemorySize();
+  /**
+   * @brief 设置推理所需的内存（推理内存由外部分配）
+   *
+   * @param buffer
+   * @return base::Status
+   */
+  virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual base::Status preRun() = 0;
   virtual base::Status run() = 0;
@@ -34,6 +50,12 @@ class NNDEPLOY_CC_API Session : public base::NonCopyable {
 
  protected:
   base::DeviceType device_type_;
+  TensorPoolType tensor_pool_type_ = kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
+  TensorPool* tensor_pool_;
+  bool is_dynamic_shape_ = false;                // 是否是动态shape
+  base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
+  std::vector<TensorWrapper *> tensor_repository_;
+  std::vector<OpWrapper *> op_repository_;
 };
 
 /**
@@ -68,8 +90,7 @@ class TypeSessionCreator : public SessionCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<SessionCreator>>>&
  */
-std::map<base::DeviceTypeCode,
-         std::map<base::ParallelType, std::shared_ptr<SessionCreator>>> &
+std::map<base::ParallelType, std::shared_ptr<SessionCreator>> &
 getGlobalSessionCreatorMap();
 
 /**
@@ -80,9 +101,8 @@ getGlobalSessionCreatorMap();
 template <typename T>
 class TypeSessionRegister {
  public:
-  explicit TypeSessionRegister(const base::DeviceType &device_type,
-                               base::ParallelType parallel_type) {
-    getGlobalSessionCreatorMap()[device_type.code_][parallel_type] =
+  explicit TypeSessionRegister(base::ParallelType parallel_type) {
+    getGlobalSessionCreatorMap()[parallel_type] =
         std::shared_ptr<T>(new T());
   }
 };

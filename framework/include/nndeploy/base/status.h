@@ -37,6 +37,7 @@ enum StatusCode : int {
   kStatusCodeErrorOpAscendCL,
 
   // inference
+  kStatusCodeErrorInferenceDefault,
   kStatusCodeErrorInferenceTensorRt,
   kStatusCodeErrorInferenceTnn,
   kStatusCodeErrorInferenceMnn,

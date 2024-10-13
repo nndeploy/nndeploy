@@ -1,9 +1,14 @@
 
 
-#include "nndeploy/net/tensor_pool_1d.h"
+#include "nndeploy/net/tensor_pool/tensor_pool_1d.h"
+#include "nndeploy/net/tensor_pool.h"
 
 namespace nndeploy {
 namespace net {
+
+TypeTensorPoolRegister<TypeTensorPoolCreator<TensorPool1DSharedObjectGreedyBySizeImprove>>
+    g_tensor_pool_1d_shared_object_greedy_by_size_improve_register(
+        kTensorPool1DSharedObjectTypeGreedyBySizeImprove);
 
 TensorPool1DSharedObject::TensorPool1DSharedObject(
     device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
@@ -161,9 +166,9 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
       continue;
     }
 
-    NNDEPLOY_LOGE(
-        "tensor name = %s.\n",
-        tensor_usage_records_[i]->tensor_wrapper_->tensor_->getName().c_str());
+    // NNDEPLOY_LOGE(
+    //     "tensor name = %s.\n",
+    //     tensor_usage_records_[i]->tensor_wrapper_->tensor_->getName().c_str());
 
     std::shared_ptr<Chunk> chunk = nullptr;
 
@@ -172,18 +177,18 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
       size_t chunk_size = chunks_[j]->buffer_->getSize();
       size_t tensor_size = tensor_usage_records_[i]->size_;
       if (chunk_size >= tensor_size) {
-        for (const auto &interval : chunks_[j]->intervals_) {
-          NNDEPLOY_LOGE("Chunk interval: [%d, %d]\n", interval[0], interval[1]);
-        }
-        NNDEPLOY_LOGE("TensorUsageRecord interval: [%d, %d]\n",
-                      tensor_usage_records_[i]->interval_[0],
-                      tensor_usage_records_[i]->interval_[1]);
+        // for (const auto &interval : chunks_[j]->intervals_) {
+        //   NNDEPLOY_LOGE("Chunk interval: [%d, %d]\n", interval[0], interval[1]);
+        // }
+        // NNDEPLOY_LOGE("TensorUsageRecord interval: [%d, %d]\n",
+        //               tensor_usage_records_[i]->interval_[0],
+        //               tensor_usage_records_[i]->interval_[1]);
         bool flag = isInterval(tensor_usage_records_[i]->interval_,
                                chunks_[j]->intervals_);
         if (!flag) {
-          NNDEPLOY_LOGE("TensorUsageRecord interval: [%d, %d]\n",
-                        tensor_usage_records_[i]->interval_[0],
-                        tensor_usage_records_[i]->interval_[1]);
+          // NNDEPLOY_LOGE("TensorUsageRecord interval: [%d, %d]\n",
+          //               tensor_usage_records_[i]->interval_[0],
+          //               tensor_usage_records_[i]->interval_[1]);
           chunk = chunks_[j];
           chunks_[j]->intervals_.push_back(tensor_usage_records_[i]->interval_);
           break;
@@ -194,11 +199,11 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
     // 不存在
     if (chunk == nullptr) {
       chunk = std::make_shared<Chunk>();
-      NNDEPLOY_LOGE("tensor name = %s.\n",
-                    tensor_usage_records_[i]
-                        ->tensor_wrapper_->tensor_->getName()
-                        .c_str());
-      NNDEPLOY_LOGE("size_=%ld.\n", tensor_usage_records_[i]->size_);
+      // NNDEPLOY_LOGE("tensor name = %s.\n",
+      //               tensor_usage_records_[i]
+      //                   ->tensor_wrapper_->tensor_->getName()
+      //                   .c_str());
+      // NNDEPLOY_LOGE("size_=%ld.\n", tensor_usage_records_[i]->size_);
       tensor_usage_records_[i]->tensor_wrapper_->tensor_->getDesc().print();
       size_t size = tensor_usage_records_[i]->size_;
       chunk->buffer_ = new device::Buffer(device_, size);
@@ -270,6 +275,10 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::deallocate() {
 
   return status;
 }
+
+TypeTensorPoolRegister<TypeTensorPoolCreator<TensorPool1DSharedObjectGreedyByBreadth>>
+    g_tensor_pool_1d_shared_object_greedy_by_breadth_register(
+        kTensorPool1DSharedObjectTypeGreedyByBreadth);
 
 TensorPool1DSharedObjectGreedyByBreadth::
     TensorPool1DSharedObjectGreedyByBreadth(

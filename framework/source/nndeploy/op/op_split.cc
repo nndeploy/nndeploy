@@ -71,5 +71,21 @@ base::Status OpSplit::inferShape() {
   return status;
 }
 
+
+base::Status OpSplit::run() {
+  NNDEPLOY_LOGI("not implemented.\n");
+  return base::kStatusCodeOk;
+} 
+
+base::Status split(device::Tensor *input,
+                   std::shared_ptr<ir::SplitParam> param,
+                   device::Tensor *output) {
+  NNDEPLOY_LOGI("not implemented.\n");
+  return base::kStatusCodeOk;
+}   
+
+REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+                         ir::kOpTypeSplit, OpSplit)
+
 }  // namespace op
 }  // namespace nndeploy

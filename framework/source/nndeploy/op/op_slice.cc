@@ -112,5 +112,53 @@ base::Status OpSlice::inferShape() {
   return status;
 }
 
+base::Status OpSlice::run() {
+  NNDEPLOY_LOGI("not implemented.\n");
+  return base::kStatusCodeOk;
+} 
+
+
+base::Status slice(device::Tensor *input, device::Tensor *starts,
+                                  device::Tensor *ends,
+                                  device::Tensor *axes ,
+                                  device::Tensor *steps,
+                                  device::Tensor *output) { 
+  base::Status status = base::kStatusCodeOk;  
+
+    Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeSlice);
+  if (op == nullptr) {    
+    NNDEPLOY_LOGE("createOp failed");
+    return base::kStatusCodeErrorNotImplement;
+  }
+  status = op->setInput(input, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(starts, 1);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(ends, 2);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(axes, 3);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(steps, 4);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setOutput(output, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
+  status = op->init();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
+  status = op->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
+  status = op->postRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "postRun failed");
+  status = op->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
+  delete op;
+
+  return status;
+} 
+
+REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+                         ir::kOpTypeSlice, OpSlice)
+
 }  // namespace op
 }  // namespace nndeploy

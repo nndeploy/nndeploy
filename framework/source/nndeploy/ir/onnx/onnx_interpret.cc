@@ -12,6 +12,9 @@
 namespace nndeploy {
 namespace ir {
 
+TypeInterpretRegister<TypeInterpretCreator<OnnxInterpret>>
+    g_onnx_interpret_register(base::kModelTypeOnnx);
+
 OnnxInterpret::OnnxInterpret() : Interpret() {}
 OnnxInterpret::~OnnxInterpret() {}
 

@@ -41,21 +41,26 @@ class AscendCLOpResize : public OpResize {
       return base::kStatusCodeErrorInvalidParam;
     }
     if (scales_ == nullptr) {
-      float* data = (float*)inputs_[1]->getData();
-      size_t size = inputs_[1]->getSize() / sizeof(float);
+      float* data = (float*)inputs_[2]->getData();
+      size_t size = inputs_[2]->getSize() / sizeof(float);
       scales_ = aclCreateFloatArray(data, size);
+      for (int i = 0; i < size; ++i) {
+        NNDEPLOY_LOGE("%f\n.", data[i]);
+      }
     }
     inner_output_ =
         AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_NCHW);
 
     // 创建算子
     char* mode = mode_.data();
+    NNDEPLOY_LOGE("%s\n.", mode);
     aclnnStatus aclnn_status =
         aclnnResizeGetWorkspaceSize(inner_input_, scales_, mode, inner_output_,
                                     &workspace_size_, &executor_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                 base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnResizeGetWorkspaceSize failed.");
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnResizeGetWorkspaceSize 失败，错误码: %d",
+                    aclnn_status);
+    }
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {

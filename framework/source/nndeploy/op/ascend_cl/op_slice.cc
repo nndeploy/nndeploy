@@ -15,13 +15,7 @@ class AscendCLOpSlice : public OpSlice {
   virtual ~AscendCLOpSlice() {}
 
   virtual base::Status init() {
-    // 流
-    device::Device* device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
 
-    return base::kStatusCodeOk;
-  }
-  virtual base::Status deinit() {
     if (inputs_[1]->getDataType() == base::dataTypeOf<int32_t>()) {
       start_ = *(static_cast<int32_t*>(inputs_[1]->getData()));
     } else {
@@ -46,6 +40,14 @@ class AscendCLOpSlice : public OpSlice {
     } else {
       step_ = 1;
     }
+
+    // 流
+    device::Device* device = device::getDevice(device_type_);
+    inner_stream_ = (aclrtStream)device->getCommandQueue();
+
+    return base::kStatusCodeOk;
+  }
+  virtual base::Status deinit() {
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {

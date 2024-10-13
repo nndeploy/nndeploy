@@ -18,15 +18,35 @@ class AscendCLOpDiv : public OpBinary {
     device::Device* device = device::getDevice(device_type_);
     inner_stream_ = (aclrtStream)device->getCommandQueue();
 
+    if (device::isHostDeviceType(inputs_[0]->getDeviceType())){
+      inputs_0 = new device::Tensor(device, inputs_[0]->getDesc(),
+                                 inputs_[0]->getName());
+      inputs_[0]->copyTo(inputs_0);
+      inner_input_0_ =
+        AscendCLOpConvert::convertFromTensor(inputs_0, ACL_FORMAT_ND);
+    } 
+    if (device::isHostDeviceType(inputs_[1]->getDeviceType())){
+      inputs_1 = new device::Tensor(device, inputs_[1]->getDesc(),
+                                 inputs_[1]->getName());
+      inputs_[1]->copyTo(inputs_1);
+      inner_input_1_ =
+        AscendCLOpConvert::convertFromTensor(inputs_1, ACL_FORMAT_ND);
+    } 
+
+
     return base::kStatusCodeOk;
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    inner_input_0_ =
+    if (inner_input_0_ == nullptr){
+      inner_input_0_ =
         AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    } 
+    if (inner_input_1_ == nullptr){
     inner_input_1_ =
         AscendCLOpConvert::convertFromTensor(inputs_[1], ACL_FORMAT_ND);
+    }
     inner_output_ =
         AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
 
@@ -59,7 +79,9 @@ class AscendCLOpDiv : public OpBinary {
  private:
   std::string inner_op_type_ = "Div";
 
+  device::Tensor *inputs_0 = nullptr;
   aclTensor* inner_input_0_ = nullptr;
+  device::Tensor *inputs_1 = nullptr;
   aclTensor* inner_input_1_ = nullptr;
   aclTensor* inner_output_ = nullptr;
   aclOpExecutor* executor_;

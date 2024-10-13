@@ -90,15 +90,23 @@ class NNDEPLOY_CC_API Op {
   void setRunningFlag(bool flag);
   bool isRunning();
 
+  virtual base::Status inferDataType();
+  virtual base::Status inferShape();
+  virtual base::Status reshape(base::ShapeMap &shape_map);
+
+  /**
+   * @brief 初始化
+   *
+   * @return base::Status
+   * @note 对于output两种情况：
+   * 1. 在图初始化前：outputs内存已分配好
+   * 2. 在图初始化时 ：outputs内存未分配，需要在init()中分配
+   */
   virtual base::Status init();
   virtual base::Status deinit();
 
   virtual uint64_t getWorkspaceSize();
   virtual void setWorkspace(void *workspace);
-
-  virtual base::Status inferDataType();
-  virtual base::Status inferShape();
-  virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual base::Status preRun();
   virtual base::Status run() = 0;
@@ -127,6 +135,9 @@ class NNDEPLOY_CC_API Op {
   bool is_running_ = false;
   bool is_time_profile_ = false;
   bool is_debug_ = false;
+
+  // 是否是inplace op
+  bool is_inplace_ = false;
 };
 
 /**

@@ -14,7 +14,13 @@ class OpSplit : public Op {
   virtual ~OpSplit() {}
 
   virtual base::Status inferShape();
+
+  virtual base::Status run();
 };
+
+NNDEPLOY_CC_API base::Status split(device::Tensor *input,
+                                   std::shared_ptr<ir::SplitParam> param,
+                                   device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

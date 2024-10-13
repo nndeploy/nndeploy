@@ -10,11 +10,19 @@ namespace op {
 
 class OpReshape : public Op {
  public:
-  OpReshape() {}
+  OpReshape() : Op() {
+    is_inplace_ = true;
+  }
   virtual ~OpReshape() {}
 
   virtual base::Status inferShape();
+
+  virtual base::Status run();
 };
+
+NNDEPLOY_CC_API base::Status reshape(device::Tensor *input,
+                                     std::shared_ptr<ir::ReshapeParam> param,
+                                     device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

@@ -658,7 +658,17 @@ aclTensor *AscendCLOpConvert::convertFromTensor(const device::Tensor *src,
   std::vector<int64_t> dst_dim = AscendCLOpConvert::convertFromShape(dim);
 
   base::SizeVector src_stride = src->getStride();
-  std::vector<int64_t> dst_stride(src_stride.begin(), src_stride.end());
+  std::vector<int64_t> dst_stride;
+  if (src_stride.empty()) {
+    dst_stride.resize(dst_dim.size(), 1);
+    for (int64_t i = dst_dim.size() - 2; i >= 0; i--) {
+      dst_stride[i] = dst_dim[i + 1] * dst_stride[i + 1];
+    }
+  } else {
+    for (auto iter :src_stride){
+      dst_stride.push_back((int64_t)iter);
+    }
+  }
 
   int64_t offset = 0;
   void *data = src->getData();
@@ -669,16 +679,31 @@ aclTensor *AscendCLOpConvert::convertFromTensor(const device::Tensor *src,
   if (dst == nullptr) {
     NNDEPLOY_LOGE("aclCreateTensor failed when convertFromTensor.\n");
   }
+
+  std::string name_ = src->getName();
+   if (name_ == "/model.2/cv1/act/Mul_output_0" || name_ == "/model.2/Split_output_0" || name_ == "/model.2/Split_output_1") {
+      NNDEPLOY_LOGI("%s\n", base::dataFormatToString(src_data_format).c_str());
+      NNDEPLOY_LOGI("src_shape: %d, %d, %d, %d\n", src_shape[0], src_shape[1], src_shape[2], src_shape[3]);
+      NNDEPLOY_LOGI("dim: %d, %d, %d, %d\n", dim[0], dim[1], dim[2], dim[3]);
+      NNDEPLOY_LOGI("dst_stride: %d, %d, %d, %d\n", dst_stride[0], dst_stride[1], dst_stride[2], dst_stride[3]);
+      NNDEPLOY_LOGI("data: %p\n", data);
+      src->getDesc().print();  
+    }
   return dst;
 }
 aclTensorList *AscendCLOpConvert::AscendCLOpConvert::convertFromTensor(
     const std::vector<device::Tensor *> &src, aclFormat dst_data_format) {
-  std::vector<const aclTensor *> tensor_list(src.size());
+  static std::vector<aclTensor *> tensor_list;
+  tensor_list.clear();
   for (size_t i = 0; i < src.size(); i++) {
-    tensor_list[i] = convertFromTensor(src[i], dst_data_format);
+    aclTensor *tensor = convertFromTensor(src[i], dst_data_format);
+    tensor_list.push_back(tensor);
   }
-  auto acl_tensor_list =
+  aclTensorList* acl_tensor_list =
       aclCreateTensorList(tensor_list.data(), tensor_list.size());
+  if (acl_tensor_list == nullptr) {
+    NNDEPLOY_LOGE("aclCreateTensorList failed when convertFromTensor.\n");
+  }
   return acl_tensor_list;
 }
 

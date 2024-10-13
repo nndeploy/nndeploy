@@ -62,5 +62,28 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
 
 ModelDesc *Interpret::getModelDesc() { return model_desc_; }
 
+
+std::map<base::ModelType, std::shared_ptr<InterpretCreator>> &
+getGlobalInterpretCreatorMap() {
+  static std::once_flag once;
+  static std::shared_ptr<
+      std::map<base::ModelType, std::shared_ptr<InterpretCreator>>>
+      creators;
+  std::call_once(once, []() {
+    creators.reset(
+        new std::map<base::ModelType, std::shared_ptr<InterpretCreator>>);
+  });
+  return *creators;
+}
+
+Interpret *createInterpret(base::ModelType type) {
+  Interpret *temp = nullptr;
+  auto &creater_map = getGlobalInterpretCreatorMap();
+  if (creater_map.count(type) > 0) {
+    temp = creater_map[type]->createInterpret(type);
+  }
+  return temp;
+}
+
 }  // namespace ir
 }  // namespace nndeploy

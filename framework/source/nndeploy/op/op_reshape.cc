@@ -93,5 +93,43 @@ base::Status OpReshape::inferShape() {
   return status;
 }
 
+base::Status OpReshape::run() {
+  NNDEPLOY_LOGI("not implemented.\n");
+  return base::kStatusCodeOk;
+} 
+
+base::Status reshape(device::Tensor *input,
+                     std::shared_ptr<ir::ReshapeParam> param,
+                     device::Tensor *output) {
+  base::Status status = base::kStatusCodeOk;
+
+  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeReshape);
+  if (op == nullptr) {    
+    NNDEPLOY_LOGE("createOp failed");
+    return base::kStatusCodeErrorNotImplement;
+  }
+  status = op->setParam(param);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
+  status = op->setInput(input, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setOutput(output, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
+  status = op->init();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
+  status = op->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
+  status = op->postRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "postRun failed");
+  status = op->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
+  delete op;
+  return status;
+}
+
+REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+                         ir::kOpTypeReshape, OpReshape)
+
 }  // namespace op
 }  // namespace nndeploy

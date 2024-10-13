@@ -1,7 +1,7 @@
 
 
-#ifndef _NNDEPLOY_NET_TENSOR_POOL_1D_H_
-#define _NNDEPLOY_NET_TENSOR_POOL_1D_H_
+#ifndef _NNDEPLOY_NET_TENSOR_POOL_TENSOR_POOL_1D_H_
+#define _NNDEPLOY_NET_TENSOR_POOL_TENSOR_POOL_1D_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -16,13 +16,6 @@
 
 namespace nndeploy {
 namespace net {
-
-enum TensorPool1DSharedObjectType : int {
-  kTensorPool1DSharedObjectTypeGreedyByBreadth = 0x0000,
-  kTensorPool1DSharedObjectTypeGreedyBySize,
-  kTensorPool1DSharedObjectTypeGreedyBySizeImprove,
-  kTensorPool1DSharedObjectTypeNone,
-};
 
 class TensorPool1DSharedObject : public TensorPool {
  public:
@@ -81,7 +74,7 @@ class TensorPool1DSharedObjectGreedyByBreadth
                      std::set<std::shared_ptr<TensorUsageRecord>>>
       chunk_schedules_;  // 记录Chunk由哪些tensor共享
   std::set<std::shared_ptr<TensorUsageRecord>> assigned_tensors_;
-  ;  // 记录已经处理过的tensor：由于延迟开辟内存，无法根据tensor的allocated属性判断
+   // 记录已经处理过的tensor：由于延迟开辟内存，无法根据tensor的allocated属性判断
 };
 
 }  // namespace net

@@ -3,6 +3,9 @@
 namespace nndeploy {
 namespace ir {
 
+TypeInterpretRegister<TypeInterpretCreator<DefaultInterpret>>
+    g_default_interpret_register(base::kModelTypeDefault);
+
 DefaultInterpret::DefaultInterpret() : Interpret() {}
 DefaultInterpret::~DefaultInterpret() {}
 

@@ -14,6 +14,8 @@ class OpConv : public Op {
   virtual ~OpConv() {}
 
   virtual base::Status inferShape();
+
+  virtual base::Status run();
 };
 
 NNDEPLOY_CC_API base::Status conv(device::Tensor *input, device::Tensor *weight,

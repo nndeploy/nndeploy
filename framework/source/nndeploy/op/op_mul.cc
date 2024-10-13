@@ -1,5 +1,5 @@
 
-#include "nndeploy/op/op_softmax.h"
+#include "nndeploy/op/op_mul.h"
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -21,48 +21,24 @@
 namespace nndeploy {
 namespace op {
 
-base::Status OpSoftmax::inferShape() {
-  base::Status status = base::kStatusCodeOk;
-
-  // 参数
-  auto param = dynamic_cast<ir::SoftmaxParam*>(op_desc_.op_param_.get());
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
-  int axis = param->axis_;
-  int rank = inputs_[0]->getShape().size();
-  if (axis < -rank || axis >= rank) {
-    NNDEPLOY_LOGE("axis is invalid.\n");
-    return base::kStatusCodeErrorInvalidParam;
-  }
-  if (axis < 0) {
-    axis += (int)inputs_[0]->getShape().size();
-    param->axis_ = axis;
-  }
-
-  // infer output shape
-  auto output_shape = inputs_[0]->getShape();
-  outputs_[0]->reshape(output_shape);
-
-  return status;
-}
-
-base::Status OpSoftmax::run() {
+base::Status OpMul::run() {
+  // TODO: 实现除法运算
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
 } 
 
-base::Status softmax(device::Tensor *input, 
-                                     std::shared_ptr<ir::SoftmaxParam> param,
-                                     device::Tensor *output) {
+base::Status mul(device::Tensor *input1, device::Tensor *input2,
+                 device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeSoftmax);  
-  if (op == nullptr) {    
+  Op *op = createOp(input1->getDeviceType(), "", ir::kOpTypeMul);
+  if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
-  status = op->setParam(param);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
-  status = op->setInput(input, 0);
+  status = op->setInput(input1, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(input2, 1);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setOutput(output, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
@@ -77,12 +53,12 @@ base::Status softmax(device::Tensor *input,
   status = op->deinit();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
   delete op;
-  
+
   return status;
-}   
+}
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
-                         ir::kOpTypeSoftmax, OpSoftmax)
+                         ir::kOpTypeMul, OpMul)
 
 }  // namespace op
 }  // namespace nndeploy

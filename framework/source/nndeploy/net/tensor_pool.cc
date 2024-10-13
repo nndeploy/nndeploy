@@ -14,6 +14,40 @@ TensorPool::TensorPool(device::Device *device,
 
 TensorPool::~TensorPool() {}
 
+int64_t TensorPool::getMemorySize() { 
+  NNDEPLOY_LOGE("TensorPool::getMemorySize is not implemented!\n");
+  return 0;
+}
+base::Status TensorPool::setMemory(device::Buffer *buffer) {
+  NNDEPLOY_LOGE("TensorPool::setMemory is not implemented!\n");
+  return base::kStatusCodeErrorNotImplement;
+}
+
+std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>> &
+getGlobalTensorPoolCreatorMap() {
+  static std::once_flag once;
+  static std::shared_ptr<
+      std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>>
+      creators;
+  std::call_once(once, []() {
+    creators.reset(
+        new std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>);
+  });
+  return *creators;
+}
+
+TensorPool *createTensorPool(TensorPoolType type, device::Device *device,
+                             std::vector<TensorWrapper *> &tensor_repository,
+                             std::vector<OpWrapper *> &op_repository) {
+  TensorPool *temp = nullptr;
+  auto &creater_map = getGlobalTensorPoolCreatorMap();
+  if (creater_map.count(type) != 0) {
+    temp = creater_map[type]->createTensorPool(device, tensor_repository,
+                                               op_repository);
+  }
+  return temp;
+}
+
 std::vector<int> getOpOrderIndex(std::vector<OpWrapper *> &producers,
                                  std::vector<OpWrapper *> &consumers,
                                  std::vector<OpWrapper *> &op_repository) {

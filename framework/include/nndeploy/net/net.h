@@ -17,6 +17,8 @@ class NNDEPLOY_CC_API Net : public op::Op {
 
   // 在这个函数之前调用setDeviceType
   base::Status setModelDesc(ir::ModelDesc *model_desc);
+  base::Status setDynamicShape(bool is_dynamic_shape, base::ShapeMap &min_shape, base::ShapeMap &opt_shape, base::ShapeMap &max_shape);
+  base::Status setTensorPoolType(TensorPoolType tensor_pool_type);
 
   TensorWrapper *createTensor(const std::string &name, bool is_weight = false);
   TensorWrapper *addTensor(device::Tensor *tensor, bool is_external = true,
@@ -42,6 +44,20 @@ class NNDEPLOY_CC_API Net : public op::Op {
 
   virtual base::Status init();
   virtual base::Status deinit();
+
+  /**
+   * @brief 获取推理所需的内存大小
+   *
+   * @return int64_t
+   */
+  virtual int64_t getMemorySize();
+  /**
+   * @brief 设置推理所需的内存（推理内存由外部分配）
+   *
+   * @param buffer
+   * @return base::Status
+   */
+  virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual base::Status inferDataType();
   virtual base::Status inferShape();
@@ -75,6 +91,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   base::ShapeMap min_shape_ = base::ShapeMap();  // 当为动态输入时最小shape
   base::ShapeMap opt_shape_ = base::ShapeMap();  // 当为动态输入时最优shape
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
+  TensorPoolType tensor_pool_type_ = kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
 
   Session *session_;
 };

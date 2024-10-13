@@ -2,7 +2,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY demo_nndeploy_dag)
+set(BINARY nndeploy_demo_dag)
 set(DIRECTORY demo)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)

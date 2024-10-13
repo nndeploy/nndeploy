@@ -49,5 +49,21 @@ base::Status OpTranspose::inferShape() {
   return status;
 }
 
+base::Status OpTranspose::run() {
+  NNDEPLOY_LOGI("not implemented.\n");
+  return base::kStatusCodeOk;
+}
+
+
+base::Status transpose(device::Tensor *input,
+                       std::shared_ptr<ir::TransposeParam> param,
+                       device::Tensor *output) {
+  NNDEPLOY_LOGI("not implemented.\n");
+  return base::kStatusCodeOk;
+} 
+
+REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+                         ir::kOpTypeTranspose, OpTranspose)
+
 }  // namespace op
 }  // namespace nndeploy

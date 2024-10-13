@@ -115,6 +115,59 @@ class Interpret {
   ModelDesc *model_desc_ = nullptr;
 };
 
+
+/**
+ * @brief 解释器的创建类
+ *
+ */
+class InterpretCreator {
+ public:
+  virtual ~InterpretCreator() {};
+  virtual Interpret *createInterpret(base::ModelType type) = 0;
+};
+
+/**
+ * @brief 解释器的创建类模板
+ *
+ * @tparam T
+ */
+template <typename T>
+class TypeInterpretCreator : public InterpretCreator {
+  virtual Interpret *createInterpret(base::ModelType type) {
+    return new T();
+  }
+};
+
+/**
+ * @brief Get the Global Interpret Creator Map object
+ *
+ * @return std::map<base::ModelType, std::shared_ptr<InterpretCreator>>&
+ */
+std::map<base::ModelType, std::shared_ptr<InterpretCreator>> &
+getGlobalInterpretCreatorMap();
+
+/**
+ * @brief 解释器的创建类的注册类模板
+ *
+ * @tparam T
+ */
+template <typename T>
+class TypeInterpretRegister {
+ public:
+  explicit TypeInterpretRegister(base::ModelType type) {
+    getGlobalInterpretCreatorMap()[type] = std::shared_ptr<T>(new T());
+  }
+};
+
+/**
+ * @brief Create a Interpret object
+ *
+ * @param type
+ * @return Interpret*
+ */
+extern NNDEPLOY_CC_API Interpret *createInterpret(base::ModelType type);
+
+
 }  // namespace ir
 }  // namespace nndeploy
 

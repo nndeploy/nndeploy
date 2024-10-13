@@ -34,7 +34,6 @@ class AscendCLOpConv : public OpConv {
     // 权重
     weight_ = new device::Tensor(device, inputs_[1]->getDesc(),
                                  inputs_[1]->getName());
-    // weight_->getDesc().print();
     inputs_[1]->copyTo(weight_);
     if (weight_->getShape().size() == 3) {
       dst_data_format_ = ACL_FORMAT_NCL;
@@ -54,10 +53,22 @@ class AscendCLOpConv : public OpConv {
     if (inputs_.size() > 2) {
       bias_ = new device::Tensor(device, inputs_[2]->getDesc(),
                                  inputs_[2]->getName());
-      // bias_->getDesc().print();
+      
       inputs_[2]->copyTo(bias_);
       inner_bias_ =
           AscendCLOpConvert::convertFromTensor(bias_, dst_data_format_);
+    }
+
+    if (op_desc_.name_ == "/model.0/conv/Conv") {
+      NNDEPLOY_LOGI("strides: %d, %d\n", param->strides_[0], param->strides_[1]);
+      NNDEPLOY_LOGI("pads: %d, %d, %d, %d\n", param->pads_[0], param->pads_[1],
+                    param->pads_[2], param->pads_[3]);
+      NNDEPLOY_LOGI("dilations: %d, %d\n", param->dilations_[0],
+                    param->dilations_[1]);
+      NNDEPLOY_LOGI("group: %d\n", param->group_);
+      weight_->getDesc().print();
+      bias_->getDesc().print();
+      // NNDEPLOY_LOGI("%s\n",base::dataFormatToString(dst_data_format_));
     }
 
     return base::kStatusCodeOk;
@@ -91,12 +102,13 @@ class AscendCLOpConv : public OpConv {
     // 输入输出
     inner_input_ =
         AscendCLOpConvert::convertFromTensor(inputs_[0], dst_data_format_);
+    inputs_[0]->getDesc().print();
     inner_output_ =
         AscendCLOpConvert::convertFromTensor(outputs_[0], dst_data_format_);
-
+    outputs_[0]->getDesc().print();
     // 创建算子
     aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSize(
-        inner_input_, inner_weight_, inner_bias_, stride_, padding_, dilation_,
+        inner_input_, inner_weight_, nullptr, stride_, padding_, dilation_,
         transposed_, output_padding_, groups_, inner_output_, cube_math_type_,
         &workspace_size_, &executor_);
     // aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSizeCustom(
