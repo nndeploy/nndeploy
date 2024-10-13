@@ -2,8 +2,8 @@
 #ifndef _NNDEPLOY_INFERENCE_DEFAULT_DEFAULT_INFERENCE_PARAM_H_
 #define _NNDEPLOY_INFERENCE_DEFAULT_DEFAULT_INFERENCE_PARAM_H_
 
-#include "nndeploy/inference/inference_param.h"
 #include "nndeploy/inference/default/default_include.h"
+#include "nndeploy/inference/inference_param.h"
 #include "nndeploy/net/tensor_pool.h"
 
 namespace nndeploy {
@@ -15,7 +15,8 @@ class DefaultInferenceParam : public InferenceParam {
   virtual ~DefaultInferenceParam();
 
   DefaultInferenceParam(const DefaultInferenceParam &param) = default;
-  DefaultInferenceParam &operator=(const DefaultInferenceParam &param) = default;
+  DefaultInferenceParam &operator=(const DefaultInferenceParam &param) =
+      default;
 
   PARAM_COPY(DefaultInferenceParam)
   PARAM_COPY_TO(DefaultInferenceParam)
@@ -25,7 +26,8 @@ class DefaultInferenceParam : public InferenceParam {
   virtual base::Status get(const std::string &key, base::Value &value);
 
   ir::ModelDesc *model_desc_ = nullptr;
-  net::TensorPoolType tensor_pool_type_ = net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
+  net::TensorPoolType tensor_pool_type_ =
+      net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
 };
 
 }  // namespace inference

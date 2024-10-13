@@ -18,7 +18,7 @@ class OpSoftmax : public Op {
   virtual base::Status run();
 };
 
-NNDEPLOY_CC_API base::Status softmax(device::Tensor *input, 
+NNDEPLOY_CC_API base::Status softmax(device::Tensor *input,
                                      std::shared_ptr<ir::SoftmaxParam> param,
                                      device::Tensor *output);
 

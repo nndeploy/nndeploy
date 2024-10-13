@@ -9,7 +9,6 @@
 namespace nndeploy {
 namespace op {
 
-
 class OpDiv : public OpBinary {
  public:
   OpDiv() : OpBinary() {}

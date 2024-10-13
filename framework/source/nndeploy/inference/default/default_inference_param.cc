@@ -6,7 +6,8 @@
 namespace nndeploy {
 namespace inference {
 
-static TypeInferenceParamRegister<TypeInferenceParamCreator<DefaultInferenceParam>>
+static TypeInferenceParamRegister<
+    TypeInferenceParamCreator<DefaultInferenceParam>>
     g_default_inference_param_register(base::kInferenceTypeDefault);
 
 DefaultInferenceParam::DefaultInferenceParam() : InferenceParam() {
@@ -18,7 +19,8 @@ DefaultInferenceParam::DefaultInferenceParam() : InferenceParam() {
 }
 DefaultInferenceParam::~DefaultInferenceParam() {}
 
-base::Status DefaultInferenceParam::parse(const std::string &json, bool is_path) {
+base::Status DefaultInferenceParam::parse(const std::string &json,
+                                          bool is_path) {
   std::string json_content = "";
   base::Status status = InferenceParam::parse(json_content, false);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "parse json failed!");
@@ -27,13 +29,13 @@ base::Status DefaultInferenceParam::parse(const std::string &json, bool is_path)
 }
 
 base::Status DefaultInferenceParam::set(const std::string &key,
-                                    base::Value &value) {
+                                        base::Value &value) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
 
 base::Status DefaultInferenceParam::get(const std::string &key,
-                                    base::Value &value) {
+                                        base::Value &value) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

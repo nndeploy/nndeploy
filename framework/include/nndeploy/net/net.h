@@ -17,7 +17,9 @@ class NNDEPLOY_CC_API Net : public op::Op {
 
   // 在这个函数之前调用setDeviceType
   base::Status setModelDesc(ir::ModelDesc *model_desc);
-  base::Status setDynamicShape(bool is_dynamic_shape, base::ShapeMap &min_shape, base::ShapeMap &opt_shape, base::ShapeMap &max_shape);
+  base::Status setDynamicShape(bool is_dynamic_shape, base::ShapeMap &min_shape,
+                               base::ShapeMap &opt_shape,
+                               base::ShapeMap &max_shape);
   base::Status setTensorPoolType(TensorPoolType tensor_pool_type);
 
   TensorWrapper *createTensor(const std::string &name, bool is_weight = false);
@@ -91,7 +93,8 @@ class NNDEPLOY_CC_API Net : public op::Op {
   base::ShapeMap min_shape_ = base::ShapeMap();  // 当为动态输入时最小shape
   base::ShapeMap opt_shape_ = base::ShapeMap();  // 当为动态输入时最优shape
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
-  TensorPoolType tensor_pool_type_ = kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
+  TensorPoolType tensor_pool_type_ =
+      kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
 
   Session *session_;
 };

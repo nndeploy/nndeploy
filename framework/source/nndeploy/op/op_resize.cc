@@ -257,16 +257,16 @@ base::Status OpResize::inferShape() {
 base::Status OpResize::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
-base::Status resize(device::Tensor *input, device::Tensor *roi,
-                    device::Tensor *scales, device::Tensor *sizes,
+base::Status resize(device::Tensor* input, device::Tensor* roi,
+                    device::Tensor* scales, device::Tensor* sizes,
                     std::shared_ptr<ir::ResizeParam> param,
-                                     device::Tensor *output) {
+                    device::Tensor* output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeResize);
-  if (op == nullptr) {    
+  Op* op = createOp(input->getDeviceType(), "", ir::kOpTypeResize);
+  if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }

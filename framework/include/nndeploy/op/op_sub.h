@@ -17,10 +17,8 @@ class OpSub : public OpBinary {
   virtual base::Status run();
 };
 
-
 NNDEPLOY_CC_API base::Status sub(device::Tensor *input1, device::Tensor *input2,
                                  device::Tensor *output);
-
 
 }  // namespace op
 }  // namespace nndeploy

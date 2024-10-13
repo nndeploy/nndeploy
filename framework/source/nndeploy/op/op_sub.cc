@@ -25,7 +25,7 @@ base::Status OpSub::run() {
   // TODO: 实现除法运算
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
 base::Status sub(device::Tensor *input1, device::Tensor *input2,
                  device::Tensor *output) {

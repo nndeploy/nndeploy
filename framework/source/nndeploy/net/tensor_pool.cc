@@ -14,7 +14,7 @@ TensorPool::TensorPool(device::Device *device,
 
 TensorPool::~TensorPool() {}
 
-int64_t TensorPool::getMemorySize() { 
+int64_t TensorPool::getMemorySize() {
   NNDEPLOY_LOGE("TensorPool::getMemorySize is not implemented!\n");
   return 0;
 }

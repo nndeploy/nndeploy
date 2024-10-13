@@ -1,7 +1,7 @@
 #include "op/op_func.h"
 
 namespace nndeploy {
-    
+
 device::Tensor* rmsNormFunc(device::Tensor* input1, device::Tensor* input2,
                             device::Tensor* input3) {
   std::stringstream ss;
@@ -20,4 +20,4 @@ device::Tensor* rmsNormFunc(device::Tensor* input1, device::Tensor* input2,
 
   return output;
 }
-}
+}  // namespace nndeploy

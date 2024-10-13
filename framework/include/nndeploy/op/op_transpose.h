@@ -18,9 +18,9 @@ class OpTranspose : public Op {
   virtual base::Status run();
 };
 
-NNDEPLOY_CC_API base::Status transpose(device::Tensor *input,
-                                     std::shared_ptr<ir::TransposeParam> param,
-                                     device::Tensor *output);
+NNDEPLOY_CC_API base::Status transpose(
+    device::Tensor *input, std::shared_ptr<ir::TransposeParam> param,
+    device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

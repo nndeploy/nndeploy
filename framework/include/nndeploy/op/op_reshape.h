@@ -10,9 +10,7 @@ namespace op {
 
 class OpReshape : public Op {
  public:
-  OpReshape() : Op() {
-    is_inplace_ = true;
-  }
+  OpReshape() : Op() { is_inplace_ = true; }
   virtual ~OpReshape() {}
 
   virtual base::Status inferShape();

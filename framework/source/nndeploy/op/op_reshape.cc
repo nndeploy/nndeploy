@@ -24,12 +24,12 @@ namespace op {
 base::Status OpReshape::inferShape() {
   base::Status status = base::kStatusCodeOk;
   // 参数
-  auto param = dynamic_cast<ir::ReshapeParam*>(op_desc_.op_param_.get());
+  auto param = dynamic_cast<ir::ReshapeParam *>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int allowzero = param->allowzero_;
 
   int target_shape_size = inputs_[1]->getShapeIndex(0);
-  int64_t* target_shape_data = (int64_t*)inputs_[1]->getData();
+  int64_t *target_shape_data = (int64_t *)inputs_[1]->getData();
   base::IntVector output_shape;
   for (int i = 0; i < target_shape_size; i++) {
     output_shape.push_back((int)target_shape_data[i]);
@@ -96,7 +96,7 @@ base::Status OpReshape::inferShape() {
 base::Status OpReshape::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
 base::Status reshape(device::Tensor *input,
                      std::shared_ptr<ir::ReshapeParam> param,
@@ -104,7 +104,7 @@ base::Status reshape(device::Tensor *input,
   base::Status status = base::kStatusCodeOk;
 
   Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeReshape);
-  if (op == nullptr) {    
+  if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }

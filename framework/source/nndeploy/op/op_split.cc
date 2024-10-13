@@ -24,7 +24,7 @@ namespace op {
 base::Status OpSplit::inferShape() {
   base::Status status = base::kStatusCodeOk;
   // 参数
-  auto param = dynamic_cast<ir::SplitParam*>(op_desc_.op_param_.get());
+  auto param = dynamic_cast<ir::SplitParam *>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int axis = param->axis_;
   int rank = inputs_[0]->getShape().size();
@@ -41,7 +41,7 @@ base::Status OpSplit::inferShape() {
   base::IntVector input_shape = inputs_[0]->getShape();
   int axis_size = input_shape[axis];
   int target_shape_size = inputs_[1]->getShapeIndex(0);
-  int64_t* target_shape_data = (int64_t*)inputs_[1]->getData();
+  int64_t *target_shape_data = (int64_t *)inputs_[1]->getData();
   int axis_split_size = 0;
   for (int i = 0; i < target_shape_size; i++) {
     if (target_shape_data[i] < 0) {
@@ -71,18 +71,16 @@ base::Status OpSplit::inferShape() {
   return status;
 }
 
-
 base::Status OpSplit::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
-base::Status split(device::Tensor *input,
-                   std::shared_ptr<ir::SplitParam> param,
+base::Status split(device::Tensor *input, std::shared_ptr<ir::SplitParam> param,
                    device::Tensor *output) {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-}   
+}
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
                          ir::kOpTypeSplit, OpSplit)

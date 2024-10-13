@@ -7,7 +7,6 @@
 #include <map>
 #include <vector>
 
-
 namespace py = pybind11;
 
 namespace nndeploy {
@@ -29,18 +28,17 @@ class NndeployModuleRegistry {
 
 }  // namespace nndeploy
 
-#define NNDEPLOY_API_PYBIND11_MODULE(module_path, m)                   \
-  static void NndeployApiPythonModule##__LINE__(pybind11::module&);    \
-  namespace {                                                          \
-  struct ApiRegistryInit {                                             \
-    ApiRegistryInit() {                                                \
-      ::nndeploy::NndeployModuleRegistry().Register(                   \
-          module_path, &NndeployApiPythonModule##__LINE__); \
-    }                                                                  \
-  };                                                                   \
-  ApiRegistryInit api_registry_init;                                   \
-  }                                                                    \
+#define NNDEPLOY_API_PYBIND11_MODULE(module_path, m)                \
+  static void NndeployApiPythonModule##__LINE__(pybind11::module&); \
+  namespace {                                                       \
+  struct ApiRegistryInit {                                          \
+    ApiRegistryInit() {                                             \
+      ::nndeploy::NndeployModuleRegistry().Register(                \
+          module_path, &NndeployApiPythonModule##__LINE__);         \
+    }                                                               \
+  };                                                                \
+  ApiRegistryInit api_registry_init;                                \
+  }                                                                 \
   static void NndeployApiPythonModule##__LINE__(pybind11::module& m)
-
 
 #endif

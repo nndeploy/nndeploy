@@ -53,14 +53,15 @@ class AscendCLOpConv : public OpConv {
     if (inputs_.size() > 2) {
       bias_ = new device::Tensor(device, inputs_[2]->getDesc(),
                                  inputs_[2]->getName());
-      
+
       inputs_[2]->copyTo(bias_);
       inner_bias_ =
           AscendCLOpConvert::convertFromTensor(bias_, dst_data_format_);
     }
 
     if (op_desc_.name_ == "/model.0/conv/Conv") {
-      NNDEPLOY_LOGI("strides: %d, %d\n", param->strides_[0], param->strides_[1]);
+      NNDEPLOY_LOGI("strides: %d, %d\n", param->strides_[0],
+                    param->strides_[1]);
       NNDEPLOY_LOGI("pads: %d, %d, %d, %d\n", param->pads_[0], param->pads_[1],
                     param->pads_[2], param->pads_[3]);
       NNDEPLOY_LOGI("dilations: %d, %d\n", param->dilations_[0],

@@ -127,7 +127,7 @@ base::Status OpConv::inferShape() {
 base::Status OpConv::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
 base::Status conv(device::Tensor *input, device::Tensor *weight,
                   device::Tensor *bias, std::shared_ptr<ir::ConvParam> param,
@@ -168,7 +168,6 @@ base::Status conv(device::Tensor *input, device::Tensor *weight,
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
                          ir::kOpTypeConv, OpConv)
-
 
 }  // namespace op
 }  // namespace nndeploy

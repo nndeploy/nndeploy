@@ -115,18 +115,15 @@ base::Status OpSlice::inferShape() {
 base::Status OpSlice::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
+base::Status slice(device::Tensor* input, device::Tensor* starts,
+                   device::Tensor* ends, device::Tensor* axes,
+                   device::Tensor* steps, device::Tensor* output) {
+  base::Status status = base::kStatusCodeOk;
 
-base::Status slice(device::Tensor *input, device::Tensor *starts,
-                                  device::Tensor *ends,
-                                  device::Tensor *axes ,
-                                  device::Tensor *steps,
-                                  device::Tensor *output) { 
-  base::Status status = base::kStatusCodeOk;  
-
-    Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeSlice);
-  if (op == nullptr) {    
+  Op* op = createOp(input->getDeviceType(), "", ir::kOpTypeSlice);
+  if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
@@ -155,7 +152,7 @@ base::Status slice(device::Tensor *input, device::Tensor *starts,
   delete op;
 
   return status;
-} 
+}
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
                          ir::kOpTypeSlice, OpSlice)

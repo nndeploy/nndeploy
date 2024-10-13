@@ -13,7 +13,8 @@ base::Status Session::setMemory(device::Buffer *buffer) {
 std::map<base::ParallelType, std::shared_ptr<SessionCreator>> &
 getGlobalSessionCreatorMap() {
   static std::once_flag once;
-  static std::shared_ptr<std::map<base::ParallelType, std::shared_ptr<SessionCreator>>>
+  static std::shared_ptr<
+      std::map<base::ParallelType, std::shared_ptr<SessionCreator>>>
       creators;
   std::call_once(once, []() {
     creators.reset(

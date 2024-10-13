@@ -78,7 +78,6 @@ class TensorPool {
   std::vector<OpWrapper *> op_repository;
 };
 
-
 /**
  * @brief TensorPool的创建类
  *
@@ -86,8 +85,8 @@ class TensorPool {
 class TensorPoolCreator {
  public:
   virtual ~TensorPoolCreator() {};
-  virtual TensorPool *createTensorPool(device::Device *device,
-      std::vector<TensorWrapper *> &tensor_repository,
+  virtual TensorPool *createTensorPool(
+      device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
       std::vector<OpWrapper *> &op_repository) = 0;
 };
 
@@ -98,8 +97,8 @@ class TensorPoolCreator {
  */
 template <typename T>
 class TypeTensorPoolCreator : public TensorPoolCreator {
-  virtual TensorPool *createTensorPool(device::Device *device,
-      std::vector<TensorWrapper *> &tensor_repository,
+  virtual TensorPool *createTensorPool(
+      device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
       std::vector<OpWrapper *> &op_repository) {
     return new T(device, tensor_repository, op_repository);
   }
@@ -127,7 +126,7 @@ class TypeTensorPoolRegister {
 };
 
 /**
- * @brief Create a TensorPool object  
+ * @brief Create a TensorPool object
  *
  * @param type
  * @param device

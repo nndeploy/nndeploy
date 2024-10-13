@@ -9,7 +9,6 @@
 namespace nndeploy {
 namespace op {
 
-
 class OpMul : public OpBinary {
  public:
   OpMul() : OpBinary() {}

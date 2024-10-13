@@ -62,7 +62,6 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
 
 ModelDesc *Interpret::getModelDesc() { return model_desc_; }
 
-
 std::map<base::ModelType, std::shared_ptr<InterpretCreator>> &
 getGlobalInterpretCreatorMap() {
   static std::once_flag once;

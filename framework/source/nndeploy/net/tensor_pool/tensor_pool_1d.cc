@@ -1,12 +1,14 @@
 
 
 #include "nndeploy/net/tensor_pool/tensor_pool_1d.h"
+
 #include "nndeploy/net/tensor_pool.h"
 
 namespace nndeploy {
 namespace net {
 
-TypeTensorPoolRegister<TypeTensorPoolCreator<TensorPool1DSharedObjectGreedyBySizeImprove>>
+TypeTensorPoolRegister<
+    TypeTensorPoolCreator<TensorPool1DSharedObjectGreedyBySizeImprove>>
     g_tensor_pool_1d_shared_object_greedy_by_size_improve_register(
         kTensorPool1DSharedObjectTypeGreedyBySizeImprove);
 
@@ -178,7 +180,8 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
       size_t tensor_size = tensor_usage_records_[i]->size_;
       if (chunk_size >= tensor_size) {
         // for (const auto &interval : chunks_[j]->intervals_) {
-        //   NNDEPLOY_LOGE("Chunk interval: [%d, %d]\n", interval[0], interval[1]);
+        //   NNDEPLOY_LOGE("Chunk interval: [%d, %d]\n", interval[0],
+        //   interval[1]);
         // }
         // NNDEPLOY_LOGE("TensorUsageRecord interval: [%d, %d]\n",
         //               tensor_usage_records_[i]->interval_[0],
@@ -276,7 +279,8 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::deallocate() {
   return status;
 }
 
-TypeTensorPoolRegister<TypeTensorPoolCreator<TensorPool1DSharedObjectGreedyByBreadth>>
+TypeTensorPoolRegister<
+    TypeTensorPoolCreator<TensorPool1DSharedObjectGreedyByBreadth>>
     g_tensor_pool_1d_shared_object_greedy_by_breadth_register(
         kTensorPool1DSharedObjectTypeGreedyByBreadth);
 

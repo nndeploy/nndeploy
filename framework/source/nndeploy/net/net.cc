@@ -18,7 +18,10 @@ base::Status Net::setModelDesc(ir::ModelDesc *model_desc) {
   return status;
 }
 
-base::Status Net::setDynamicShape(bool is_dynamic_shape, base::ShapeMap &min_shape, base::ShapeMap &opt_shape, base::ShapeMap &max_shape) {
+base::Status Net::setDynamicShape(bool is_dynamic_shape,
+                                  base::ShapeMap &min_shape,
+                                  base::ShapeMap &opt_shape,
+                                  base::ShapeMap &max_shape) {
   base::Status status = base::kStatusCodeOk;
   is_dynamic_shape_ = is_dynamic_shape;
   min_shape_ = min_shape;

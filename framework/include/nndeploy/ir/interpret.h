@@ -115,7 +115,6 @@ class Interpret {
   ModelDesc *model_desc_ = nullptr;
 };
 
-
 /**
  * @brief 解释器的创建类
  *
@@ -133,9 +132,7 @@ class InterpretCreator {
  */
 template <typename T>
 class TypeInterpretCreator : public InterpretCreator {
-  virtual Interpret *createInterpret(base::ModelType type) {
-    return new T();
-  }
+  virtual Interpret *createInterpret(base::ModelType type) { return new T(); }
 };
 
 /**
@@ -166,7 +163,6 @@ class TypeInterpretRegister {
  * @return Interpret*
  */
 extern NNDEPLOY_CC_API Interpret *createInterpret(base::ModelType type);
-
 
 }  // namespace ir
 }  // namespace nndeploy

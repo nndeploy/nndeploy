@@ -10,9 +10,7 @@ namespace op {
 
 class OpBinary : public Op {
  public:
-  OpBinary() : Op() {
-    is_inplace_ = true;
-  }
+  OpBinary() : Op() { is_inplace_ = true; }
   virtual ~OpBinary() {}
 
   virtual base::Status inferShape();

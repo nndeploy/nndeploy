@@ -19,11 +19,9 @@ class OpSlice : public Op {
 };
 
 NNDEPLOY_CC_API base::Status slice(device::Tensor *input,
-                                  device::Tensor *starts,
-                                  device::Tensor *ends,
-                                  device::Tensor *axes ,
-                                  device::Tensor *steps,
-                                  device::Tensor *output);
+                                   device::Tensor *starts, device::Tensor *ends,
+                                   device::Tensor *axes, device::Tensor *steps,
+                                   device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

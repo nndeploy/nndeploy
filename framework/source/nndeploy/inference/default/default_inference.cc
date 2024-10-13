@@ -27,14 +27,16 @@ base::Status DefaultInference::init() {
     return base::kStatusCodeErrorInferenceDefault;
   }
   std::vector<ir::ValueDesc> value_descs;
-  if (!default_inference_param->is_dynamic_shape_ && !default_inference_param->opt_shape_.empty()){ 
-    for (auto iter : default_inference_param->opt_shape_){
-      ir::ValueDesc value_desc(iter.first, base::dataTypeOf<float>(), iter.second);
+  if (!default_inference_param->is_dynamic_shape_ &&
+      !default_inference_param->opt_shape_.empty()) {
+    for (auto iter : default_inference_param->opt_shape_) {
+      ir::ValueDesc value_desc(iter.first, base::dataTypeOf<float>(),
+                               iter.second);
       value_descs.push_back(value_desc);
     }
   }
-  status = interpret_->interpret(
-      default_inference_param->model_value_, value_descs);
+  status =
+      interpret_->interpret(default_inference_param->model_value_, value_descs);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("DEFAULT init failed!\n");
     return base::kStatusCodeErrorInferenceDefault;
@@ -60,8 +62,10 @@ base::Status DefaultInference::init() {
     NNDEPLOY_LOGE("net_->setDeviceType failed!\n");
     return base::kStatusCodeErrorInferenceDefault;
   }
-  status = net_->setDynamicShape(default_inference_param->is_dynamic_shape_, default_inference_param->min_shape_,
-    default_inference_param->opt_shape_,default_inference_param->max_shape_);
+  status = net_->setDynamicShape(default_inference_param->is_dynamic_shape_,
+                                 default_inference_param->min_shape_,
+                                 default_inference_param->opt_shape_,
+                                 default_inference_param->max_shape_);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("net_->setDynamicShape failed!\n");
     return base::kStatusCodeErrorInferenceDefault;
@@ -99,9 +103,7 @@ base::Status DefaultInference::deinit() {
 }
 
 // 获取运行需要的memory大小
-int64_t DefaultInference::getMemorySize() {
-  return net_->getMemorySize();
-}
+int64_t DefaultInference::getMemorySize() { return net_->getMemorySize(); }
 
 // 输入空指针就行，不用自己使用getMemorySize函数
 base::Status DefaultInference::setMemory(device::Buffer *buffer) {
@@ -134,7 +136,7 @@ base::Status DefaultInference::reshape(base::ShapeMap &shape_map) {
 }
 
 base::Status DefaultInference::run() {
-  base::Status status = base::kStatusCodeOk;  
+  base::Status status = base::kStatusCodeOk;
 
   for (auto external_input_tensor : external_input_tensors_) {
     std::string name = external_input_tensor.first;
@@ -147,7 +149,9 @@ base::Status DefaultInference::run() {
     device::Tensor *dst_tensor = internal_input_tensor->second;
     if (src_tensor->getData() != dst_tensor->getData()) {
       status = src_tensor->copyTo(dst_tensor);
-        NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "copy external_input_tensor to internal_input_tensor failed!");
+      NNDEPLOY_RETURN_ON_NEQ(
+          status, base::kStatusCodeOk,
+          "copy external_input_tensor to internal_input_tensor failed!");
     }
   }
   status = net_->preRun();
@@ -182,7 +186,8 @@ device::Tensor *DefaultInference::getOutputTensorAfterRun(
   bool flag = is_copy || (internal_tensor->getDevice() != device);
   device::Tensor *output_tensor = nullptr;
   if (flag) {
-    output_tensor = new device::Tensor(device, internal_tensor->getDesc(), name);
+    output_tensor =
+        new device::Tensor(device, internal_tensor->getDesc(), name);
     internal_tensor->copyTo(output_tensor);
     return output_tensor;
   } else {
@@ -192,7 +197,7 @@ device::Tensor *DefaultInference::getOutputTensorAfterRun(
 }
 
 base::Status DefaultInference::allocateInputOutputTensor() {
-  auto input_tensors  = net_->getAllInput();
+  auto input_tensors = net_->getAllInput();
   auto output_tensors = net_->getAllOutput();
   for (auto input_tensor : input_tensors) {
     input_tensors_.insert({input_tensor->getName(), input_tensor});

@@ -10,8 +10,8 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/value.h"
-#include "nndeploy/net/util.h"
 #include "nndeploy/net/tensor_pool.h"
+#include "nndeploy/net/util.h"
 
 namespace nndeploy {
 namespace net {
@@ -21,11 +21,12 @@ class NNDEPLOY_CC_API Session : public base::NonCopyable {
   Session(const base::DeviceType &device_type) : device_type_(device_type) {};
   virtual ~Session() {};
 
-  virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
-                            std::vector<OpWrapper *> &op_repository,
-                            bool is_dynamic_shape,
-                            base::ShapeMap max_shape,
-                            TensorPoolType tensor_pool_type = kTensorPool1DSharedObjectTypeGreedyBySizeImprove) = 0;
+  virtual base::Status init(
+      std::vector<TensorWrapper *> &tensor_repository,
+      std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
+      base::ShapeMap max_shape,
+      TensorPoolType tensor_pool_type =
+          kTensorPool1DSharedObjectTypeGreedyBySizeImprove) = 0;
   virtual base::Status deinit() = 0;
 
   virtual base::Status reshape(base::ShapeMap &shape_map) = 0;
@@ -50,8 +51,9 @@ class NNDEPLOY_CC_API Session : public base::NonCopyable {
 
  protected:
   base::DeviceType device_type_;
-  TensorPoolType tensor_pool_type_ = kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
-  TensorPool* tensor_pool_;
+  TensorPoolType tensor_pool_type_ =
+      kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
+  TensorPool *tensor_pool_;
   bool is_dynamic_shape_ = false;                // 是否是动态shape
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
   std::vector<TensorWrapper *> tensor_repository_;
@@ -102,8 +104,7 @@ template <typename T>
 class TypeSessionRegister {
  public:
   explicit TypeSessionRegister(base::ParallelType parallel_type) {
-    getGlobalSessionCreatorMap()[parallel_type] =
-        std::shared_ptr<T>(new T());
+    getGlobalSessionCreatorMap()[parallel_type] = std::shared_ptr<T>(new T());
   }
 };
 

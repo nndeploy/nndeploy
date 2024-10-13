@@ -24,7 +24,7 @@ namespace op {
 base::Status OpTranspose::inferShape() {
   base::Status status = base::kStatusCodeOk;
   // 参数
-  auto param = dynamic_cast<ir::TransposeParam*>(op_desc_.op_param_.get());
+  auto param = dynamic_cast<ir::TransposeParam *>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   std::vector<int> perm = param->perm_;
 
@@ -54,13 +54,12 @@ base::Status OpTranspose::run() {
   return base::kStatusCodeOk;
 }
 
-
 base::Status transpose(device::Tensor *input,
                        std::shared_ptr<ir::TransposeParam> param,
                        device::Tensor *output) {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
                          ir::kOpTypeTranspose, OpTranspose)

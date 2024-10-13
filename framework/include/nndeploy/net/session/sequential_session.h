@@ -23,17 +23,19 @@ class NNDEPLOY_CC_API SequentialSession : public Session {
   SequentialSession(const base::DeviceType &device_type);
   virtual ~SequentialSession();
 
-  virtual base::Status init(std::vector<TensorWrapper *> &tensor_repository,
-                            std::vector<OpWrapper *> &op_repository,
-                            bool is_dynamic_shape, base::ShapeMap max_shape,
-                            TensorPoolType tensor_pool_type = kTensorPool1DSharedObjectTypeGreedyBySizeImprove);
+  virtual base::Status init(
+      std::vector<TensorWrapper *> &tensor_repository,
+      std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
+      base::ShapeMap max_shape,
+      TensorPoolType tensor_pool_type =
+          kTensorPool1DSharedObjectTypeGreedyBySizeImprove);
   virtual base::Status deinit();
 
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual base::Status preRun();
   virtual base::Status run();
-  virtual base::Status postRun();  
+  virtual base::Status postRun();
 };
 
 }  // namespace net

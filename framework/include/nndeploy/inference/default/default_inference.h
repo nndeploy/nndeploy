@@ -11,10 +11,10 @@
 #include "nndeploy/base/value.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/inference/inference.h"
-#include "nndeploy/inference/inference_param.h"
 #include "nndeploy/inference/default/default_include.h"
 #include "nndeploy/inference/default/default_inference_param.h"
+#include "nndeploy/inference/inference.h"
+#include "nndeploy/inference/inference_param.h"
 
 namespace nndeploy {
 namespace inference {
@@ -33,7 +33,7 @@ class DefaultInference : public Inference {
   virtual base::Status setMemory(device::Buffer *buffer);
 
   virtual base::Status run();
-  
+
   virtual device::Tensor *getOutputTensorAfterRun(
       const std::string &name, base::DeviceType device_type, bool is_copy,
       base::DataFormat data_format = base::kDataFormatAuto);

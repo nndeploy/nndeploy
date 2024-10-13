@@ -134,7 +134,7 @@ base::Status OpMaxPool::inferShape() {
 base::Status OpMaxPool::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
 base::Status maxPool(device::Tensor *input,
                      std::shared_ptr<ir::MaxPoolParam> param,
@@ -142,7 +142,7 @@ base::Status maxPool(device::Tensor *input,
   base::Status status = base::kStatusCodeOk;
 
   Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeMaxPool);
-  if (op == nullptr) {    
+  if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
@@ -168,7 +168,6 @@ base::Status maxPool(device::Tensor *input,
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
                          ir::kOpTypeMaxPool, OpMaxPool)
-
 
 }  // namespace op
 }  // namespace nndeploy

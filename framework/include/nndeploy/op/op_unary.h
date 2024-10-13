@@ -10,9 +10,7 @@ namespace op {
 
 class OpUnary : public Op {
  public:
-  OpUnary() : Op() {
-    is_inplace_ = true;
-  }
+  OpUnary() : Op() { is_inplace_ = true; }
   virtual ~OpUnary() {}
 
   virtual base::Status inferShape();

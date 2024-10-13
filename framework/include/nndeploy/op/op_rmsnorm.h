@@ -10,9 +10,7 @@ namespace op {
 
 class OpRMSNorm : public Op {
  public:
-  OpRMSNorm() : Op() {
-    is_inplace_ = true;   
-  }
+  OpRMSNorm() : Op() { is_inplace_ = true; }
   virtual ~OpRMSNorm() {}
 
   virtual base::Status inferShape();

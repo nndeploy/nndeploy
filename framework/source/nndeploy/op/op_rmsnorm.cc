@@ -29,14 +29,14 @@ base::Status OpRMSNorm::inferShape() {
 base::Status OpRMSNorm::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
 base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
                      device::Tensor *input3, device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
   Op *op = createOp(input1->getDeviceType(), "", ir::kOpTypeRMSNorm);
-  if (op == nullptr) {    
+  if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }

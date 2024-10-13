@@ -25,7 +25,7 @@ base::Status OpAdd::run() {
   // TODO: 实现加法运算
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
 base::Status add(device::Tensor *input1, device::Tensor *input2,
                  device::Tensor *output) {

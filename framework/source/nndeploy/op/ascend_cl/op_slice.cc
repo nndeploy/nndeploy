@@ -15,7 +15,6 @@ class AscendCLOpSlice : public OpSlice {
   virtual ~AscendCLOpSlice() {}
 
   virtual base::Status init() {
-
     if (inputs_[1]->getDataType() == base::dataTypeOf<int32_t>()) {
       start_ = *(static_cast<int32_t*>(inputs_[1]->getData()));
     } else {
@@ -47,9 +46,7 @@ class AscendCLOpSlice : public OpSlice {
 
     return base::kStatusCodeOk;
   }
-  virtual base::Status deinit() {
-    return base::kStatusCodeOk;
-  }
+  virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
     inner_input_ =

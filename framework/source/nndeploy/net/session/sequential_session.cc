@@ -10,8 +10,7 @@ TypeSessionRegister<TypeSessionCreator<SequentialSession>>
         base::ParallelType::kParallelTypeSequential);
 
 TypeSessionRegister<TypeSessionCreator<SequentialSession>>
-    g_sequential_session_register_none(
-        base::ParallelType::kParallelTypeNone);
+    g_sequential_session_register_none(base::ParallelType::kParallelTypeNone);
 
 SequentialSession::SequentialSession(const base::DeviceType &device_type)
     : Session(device_type) {};
@@ -20,14 +19,13 @@ SequentialSession::~SequentialSession() {};
 base::Status SequentialSession::init(
     std::vector<TensorWrapper *> &tensor_repository,
     std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
-    base::ShapeMap max_shape,
-    TensorPoolType tensor_pool_type) {
+    base::ShapeMap max_shape, TensorPoolType tensor_pool_type) {
   base::Status status = base::kStatusCodeOk;
   device::Device *device = device::getDevice(device_type_);
   // # 激活值的tensor分配
   tensor_pool_type_ = tensor_pool_type;
-  tensor_pool_ = createTensorPool(tensor_pool_type_,
-      device, tensor_repository, op_repository);
+  tensor_pool_ = createTensorPool(tensor_pool_type_, device, tensor_repository,
+                                  op_repository);
   /**
    * @brief
    * 如果是动态shape且max_shape为空时，那么不需要分配tensor

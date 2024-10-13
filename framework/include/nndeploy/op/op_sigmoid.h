@@ -10,9 +10,7 @@ namespace op {
 
 class OpSigmoid : public OpUnary {
  public:
-  OpSigmoid() : OpUnary() {
-    is_inplace_ = true;
-  }
+  OpSigmoid() : OpUnary() { is_inplace_ = true; }
   virtual ~OpSigmoid() {}
 
   virtual base::Status run();

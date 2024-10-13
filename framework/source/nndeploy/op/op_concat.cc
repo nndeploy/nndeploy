@@ -67,7 +67,7 @@ base::Status OpConcat::inferShape() {
 base::Status OpConcat::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
 base::Status concat(std::vector<device::Tensor *> input,
                     std::shared_ptr<ir::ConcatParam> param,

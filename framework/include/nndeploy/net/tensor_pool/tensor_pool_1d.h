@@ -74,7 +74,7 @@ class TensorPool1DSharedObjectGreedyByBreadth
                      std::set<std::shared_ptr<TensorUsageRecord>>>
       chunk_schedules_;  // 记录Chunk由哪些tensor共享
   std::set<std::shared_ptr<TensorUsageRecord>> assigned_tensors_;
-   // 记录已经处理过的tensor：由于延迟开辟内存，无法根据tensor的allocated属性判断
+  // 记录已经处理过的tensor：由于延迟开辟内存，无法根据tensor的allocated属性判断
 };
 
 }  // namespace net

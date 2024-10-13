@@ -25,7 +25,7 @@ base::Status OpMul::run() {
   // TODO: 实现除法运算
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
 base::Status mul(device::Tensor *input1, device::Tensor *input2,
                  device::Tensor *output) {

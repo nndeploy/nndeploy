@@ -25,7 +25,7 @@ base::Status OpSoftmax::inferShape() {
   base::Status status = base::kStatusCodeOk;
 
   // 参数
-  auto param = dynamic_cast<ir::SoftmaxParam*>(op_desc_.op_param_.get());
+  auto param = dynamic_cast<ir::SoftmaxParam *>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int axis = param->axis_;
   int rank = inputs_[0]->getShape().size();
@@ -48,15 +48,15 @@ base::Status OpSoftmax::inferShape() {
 base::Status OpSoftmax::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
-} 
+}
 
-base::Status softmax(device::Tensor *input, 
-                                     std::shared_ptr<ir::SoftmaxParam> param,
-                                     device::Tensor *output) {
+base::Status softmax(device::Tensor *input,
+                     std::shared_ptr<ir::SoftmaxParam> param,
+                     device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeSoftmax);  
-  if (op == nullptr) {    
+  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeSoftmax);
+  if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
@@ -77,9 +77,9 @@ base::Status softmax(device::Tensor *input,
   status = op->deinit();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
   delete op;
-  
+
   return status;
-}   
+}
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
                          ir::kOpTypeSoftmax, OpSoftmax)
