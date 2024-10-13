@@ -26,8 +26,7 @@ base::Status OpSigmoid::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status sigmoid(device::Tensor *input,
-                     device::Tensor *output) {
+base::Status sigmoid(device::Tensor *input, device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
   Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeSigmoid);

@@ -192,8 +192,8 @@ base::Status Buffer::copyTo(Buffer *dst) {
     return src_device->download(this, dst);
   } else {
     NNDEPLOY_LOGE("Unsupported device type{%s->%s} for copy operation.",
-                 base::deviceTypeToString(src_device_type).c_str(),
-                 base::deviceTypeToString(dst_device_type).c_str());
+                  base::deviceTypeToString(src_device_type).c_str(),
+                  base::deviceTypeToString(dst_device_type).c_str());
     return base::kStatusCodeErrorNotImplement;
   }
 }
