@@ -24,7 +24,11 @@ set(SOURCE ${SOURCE} ${DEMO_SOURCE})
 # OBJECT
 # BINARY
 add_executable(${BINARY} ${SOURCE} ${SOURCE})
-set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+if (APPLE)
+  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl")
+else ()
+  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+endif ()
 # DIRECTORY
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 # DEPEND_LIBRARY
