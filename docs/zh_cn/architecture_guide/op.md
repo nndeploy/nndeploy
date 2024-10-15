@@ -2,7 +2,7 @@
 
 ## 添加新算子
 
-1. 算子定义与声明
+### 算子定义与声明
 
 nndeploy算子以类的方式注册和使用。算子的实现与后端强绑定，但不同后端的同一类型算子可以共享某些公共函数，例如形状推导。在nndeploy中算子分为两个层级，第一个父类层级在`nndeploy/framework/include/nndeploy/op`声明，在`nndeploy/framework/source/nndeploy/op`中定义。例如`RMSNorm`:
 
@@ -36,7 +36,7 @@ REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
 
 ```
 
-2. 函数形式算子
+### 函数形式算子
 
 以上实现都为类的形式，有时希望以函数形式来对Tensor直接进行计算，因此封装了函数形式的算子直接调用。该函数接口的声明与定义和父类`Op`在相同的文件中。各个算子基本都是固定的形式，创建`Op`对象，设置输入输出，初始化与运行。例如:
 
@@ -78,7 +78,7 @@ base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
 ```
 
 
-3. Python接口导出
+### Python接口导出
 
 在Python端导出函数形式的算子，可以使用`nndeploy.op.xxop(input)`直接调用。导出接口位于`nndeploy/python/src/op/op.cc`中，例如：
 
@@ -88,7 +88,7 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) { m.def("rms_norm", rmsNormFunc); }
 ```
 表示导出到python的`op`模块，`nndeploy.op.rms_norm`将被定向到`rmsNormFunc`函数中执行。`rmsNormFunc`是Python到Cpp接口的一个中间层，其实现在`nndeploy/python/src/op/op_func.cc`中。在Func层进行输入的合法性检查，如果是非inplace算子，则还要申请输出Tensor。但不对输出Tenso进行内存开辟，因为内存开辟依赖于形状推理，这部分在函数算子内部进行。
 
-4. 测试
+### 测试
 
 算子的测试位于`nndeploy/python/nndeploy/tests/op`, 使用`unittest`框架测试。 数据的构造可以使用numpy，然后转为nndeploy的`Tensor`。标准结果的对比可以使用numpy或PyTorch，将nndeploy的Tensor转换为numpy进行对比。
 
