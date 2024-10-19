@@ -16,11 +16,11 @@ git submodule update --init --recursive
 
 ## config.cmake的编辑规则
 
-+ `nndeploy`使能`X86`设备。`set(ENABLE_NNDEPLOY_DEVICE_X86 ON)`，如果你想使能其他设备（ARM、X86、CUDA …），也可做同样的处理
-+ `nndeploy`通过路径的方式使能并链接推理后端`ONNXRuntime`。`set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "path/onnxruntime")`，如果你想启用并链接其他推理后端（OpenVINO、MNN、TNN …），也可做同样的处理
-+ `nndeploy`通过find_package的方式使能并链接推理后端`TensorRT`。`set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON)`，对于其他可以通过find_package找到的库，也可做同样的处理
-+ `nndeploy`使能模型部署实例。首先将模型类别`set(NABLE_NNDEPLOY_MODEL_XXX ON)`，再将具体的模型`set(NABLE_NNDEPLOY_MODEL_XXX_YYY ON)`
-+ `nndeploy`使能可执行程序，`set(ENABLE_NNDEPLOY_DEMO ON)`
++ `X86`设备。`set(ENABLE_NNDEPLOY_DEVICE_X86 ON)`，如果你想使能其他设备（ARM、X86、CUDA …），也可做同样的处理
++ `nndeploy`通过路径的方式链接推理后端`ONNXRuntime`。`set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "path/onnxruntime")`，如果你想启用并链接其他推理后端（OpenVINO、MNN、TNN …），也可做同样的处理
++ `nndeploy`通过find_package的方式链接推理后端`TensorRT`。`set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON)`，对于其他可以通过find_package找到的库，也可做同样的处理
++ 模型部署实例。首先将模型类别`set(NABLE_NNDEPLOY_MODEL_XXX ON)`，再将具体的模型`set(NABLE_NNDEPLOY_MODEL_XXX_YYY ON)`
++ 可执行程序，`set(ENABLE_NNDEPLOY_DEMO ON)`
 
 ### `使能并链接第三方库的两种方法`
 + `方法一`：路径`path`，头文件以及库的根路径，其形式必须修改为
@@ -90,7 +90,7 @@ git submodule update --init --recursive
   注：将上述所有库打包为一个压缩包ubuntu22.04_x64.tar，存放在huggingface上，使用前请将压缩包ubuntu22.04_x64.tar解压
 
   + 安装opencv
-    + sudo apt install libopencv-dev [参考链接](https://cloud.tencent.com/developer/article/1657529)
+    + `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
   + 安装TensorRT、cudnn、cuda、显卡驱动
   
 + 具体步骤
