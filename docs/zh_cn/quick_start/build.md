@@ -103,17 +103,17 @@ git submodule update --init --recursive
 
   + 编辑`build/config.cmake`自定义编译选项（笔者的自定义编译选项：[path/cmake/config_linux.cmake](../../../cmake/config_linux.cmake)）
       
-  + 开始`cmake`
+  + `cmake`
     ```
     cmake ..
     ```
 
-  + 开始编译
+  + 编译
      ```
-    make -j8
+    make -j
     ```
 
-  + 开始安装, 将nndeploy的库、可执行文件、第三方库安装至build/install/lib
+  + 安装, 将nndeploy的库、可执行文件、第三方库安装至build/install/lib
      ```
     make install
     ```

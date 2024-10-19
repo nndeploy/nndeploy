@@ -8,20 +8,20 @@
 
 ### Windows 下运行 demo_nndeploy_dag
 ```shell
-cd /home/always/huggingface/nndeploy/nndeploy/build/install/bin
+cd /yourpath/nndeploy/build/install/bin
 .\demo_nndeploy_dag.exe
 ```
 
 ### Linux 下运行 demo_nndeploy_dag
 ```shell
-cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
+cd /yourpath/nndeploy/build/install/lib
 export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 ./demo_nndeploy_dag
 ```
 
 ### Andorid 下运行 demo_nndeploy_dag
 ```shell
-cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
+cd /yourpath/nndeploy/build/install/lib
 
 adb push * /data/local/tmp/
 
@@ -35,7 +35,7 @@ export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 
 ### 效果示例
 ```shell
-E/nndeploy_default_str: main [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 273] start!
+E/nndeploy_default_str: main [File //yourpath/nndeploy/demo/dag/demo.cc][Line 273] start!
 digraph serial_graph {
 p0x7ffeec419690[shape=box, label=graph_in]
 p0x7ffeec419690->p0x5614d9427700[label=graph_in]
@@ -95,7 +95,7 @@ E/nndeploy_default_str: main [File /home/always/github/public/nndeploy/demo/dag/
 
 ### Windows 下运行 demo_nndeploy_detect
 ```shell
-cd /home/always/huggingface/nndeploy/nndeploy/build/install/bin
+cd /yourpath/nndeploy/build/install/bin
 .\demo_nndeploy_detect.exe --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\detect\sample.jpg --output_path C:\huggingface\nndeploy\temp\sample_output.jpg
 ```
 
@@ -103,7 +103,7 @@ cd /home/always/huggingface/nndeploy/nndeploy/build/install/bin
 
 ### Linux 下运行 demo_nndeploy_detect
 ```shell
-cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
+cd /yourpath/nndeploy/build/install/lib
 export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 
 // TensorRt 部署
