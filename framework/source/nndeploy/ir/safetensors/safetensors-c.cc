@@ -2,5 +2,4 @@
 
 #define SAFETENSORS_C_IMPLEMENTATION
 //#define SAFETENSORS_CPP_IMPLEMENTATION
-#include "safetensors-c.h"
-
+#include "nndeploy/ir/safetensors/safetensors-c.h"
