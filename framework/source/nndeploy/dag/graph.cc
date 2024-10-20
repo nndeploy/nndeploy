@@ -277,9 +277,9 @@ base::Status Graph::construct() {
   NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
 
   // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("parallel_type!\n");
+  // NNDEPLOY_LOGI("parallel_type_!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  base::ParallelType parallel_type = parallel_type_;
+  // base::ParallelType parallel_type_ = parallel_type_;
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
@@ -302,7 +302,9 @@ base::Status Graph::construct() {
   // NNDEPLOY_LOGI("####################\n");
   for (auto node_wrapper : node_repository_) {
     Node *node = node_wrapper->node_;
-    node->setParallelType(parallel_type);
+    node->setDebugFlag(is_debug_);
+    node->setTimeProfileFlag(is_time_profile_);
+    node->setParallelType(parallel_type_);
     node->setInnerFlag(true);
     std::vector<Edge *> inputs = node->getAllInput();
     for (auto input : inputs) {
@@ -338,7 +340,7 @@ base::Status Graph::construct() {
     for (auto consumer : edge_wrapper->consumers_) {
       consumers.emplace_back(consumer->node_);
     }
-    base::Status status = edge_wrapper->edge_->setParallelType(parallel_type);
+    base::Status status = edge_wrapper->edge_->setParallelType(parallel_type_);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "setParallelType failed!");
     // 必须在abstract_edge管理该字段
@@ -369,23 +371,23 @@ base::Status Graph::executor() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("parallel_type!\n");
+  // NNDEPLOY_LOGI("parallel_type_!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  base::ParallelType parallel_type = parallel_type_;
+  // base::ParallelType parallel_type_ = parallel_type_;
 
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("create executor\n");
   // NNDEPLOY_LOGI("##############\n");
-  if (parallel_type == base::kParallelTypeNone) {
+  if (parallel_type_ == base::kParallelTypeNone) {
     executor_ = std::make_shared<SequentialExecutor>();
-  } else if (parallel_type == base::kParallelTypeSequential) {
+  } else if (parallel_type_ == base::kParallelTypeSequential) {
     executor_ = std::make_shared<SequentialExecutor>();
-  } else if (parallel_type == base::kParallelTypeTask) {
+  } else if (parallel_type_ == base::kParallelTypeTask) {
     executor_ = std::make_shared<ParallelTaskExecutor>();
-  } else if (parallel_type == base::kParallelTypePipeline) {
+  } else if (parallel_type_ == base::kParallelTypePipeline) {
     executor_ = std::make_shared<ParallelPipelineExecutor>();
   } else {
-    NNDEPLOY_LOGE("parallel_type is invalid!\n");
+    NNDEPLOY_LOGE("parallel_type_ is invalid!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");

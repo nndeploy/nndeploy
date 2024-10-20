@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 
+#define ENABLE_NNDEPLOY_DEVICE_ASCEND_CL 0
+
 #if ENABLE_NNDEPLOY_DEVICE_ASCEND_CL
 
 #include "acl/acl.h"

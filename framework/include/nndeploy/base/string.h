@@ -4,6 +4,10 @@
 
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/macro.h"
+#include "nndeploy/base/common.h"
+
+#include <functional>
+
 
 namespace nndeploy {
 namespace base {
@@ -44,12 +48,11 @@ std::string vectorToString(std::vector<T> val) {
 extern NNDEPLOY_CC_API bool isNumeric(const std::string &str);
 
 template <typename T>
-void printData(T *data, size_t size) {
+void printData(T *data, size_t size, std::ostream &stream = std::cout) {
   if (data == nullptr) {
     return;
   }
 
-  std::stringstream stream;
   stream << "[";
   for (int i = 0; i < size; ++i) {
     stream << data[i];
@@ -57,7 +60,44 @@ void printData(T *data, size_t size) {
   }
   stream << "]";
 
-  std::cout << stream.str() << std::endl;
+  stream << std::endl;
+}
+
+template <typename T>
+void printData(T *data, base::IntVector &shape, std::ostream &stream = std::cout) {
+  if (data == nullptr || shape.empty()) {
+    return;
+  }
+
+  size_t total_size = 1;
+  for (int dim : shape) {
+    total_size *= dim;
+  }
+
+  std::function<void(size_t, size_t)> print_recursive = [&](size_t depth, size_t offset) {
+    if (depth == shape.size() - 1) {
+      stream << std::endl;
+      for (int i = 0; i < shape[depth]; ++i) {
+        stream << data[offset + i];
+        if (i != shape[depth] - 1) stream << ",";
+      }
+      stream << std::endl;
+    } else {
+      stream << std::endl;
+      size_t stride = 1;
+      for (size_t i = depth + 1; i < shape.size(); ++i) {
+        stride *= shape[i];
+      }
+      for (int i = 0; i < shape[depth]; ++i) {
+        print_recursive(depth + 1, offset + i * stride);
+        if (i != shape[depth] - 1) stream << ",";
+      }
+      stream << std::endl;
+    }
+  };
+
+  print_recursive(0, 0);
+  stream << std::endl;
 }
 
 }  // namespace base

@@ -104,7 +104,7 @@ class NNDEPLOY_CC_API Tensor {
   base::Status deserialize(std::istream &stream);
 
   // print
-  void print();
+  void print(std::ostream &stream = std::cout);
 
   // bool
   bool isSameDevice(Tensor *tensor) const;
