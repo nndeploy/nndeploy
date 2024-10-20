@@ -1,6 +1,8 @@
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/safetensors/safetensors.hh"
+#include "nndeploy/base/status.h"
+#include "nndeploy/safetensors/safetensors.hh"
 
 namespace nndeploy {
 namespace ir {
@@ -47,7 +49,6 @@ base::Status Interpret::saveModelUseSafetensors(
   }
   std::string warn, err;
   bool ret = safetensors::save_to_file(st, weight_file_path, &warn, &err);
-
   if (warn.size()) {
     NNDEPLOY_LOGI("WARN: %s\n", warn.c_str());
   }
@@ -89,6 +90,49 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
 
   return status;
 }
+base::Status Interpret::saveModelToFileUseSafetensors(
+    const std::string &structure_file_path, std::string &weight_file_path) {
+  // 打开结构文件输出流，覆盖已存在文件
+  std::ofstream structure_stream(
+      structure_file_path,
+      std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+  if (!structure_stream.is_open()) {
+    NNDEPLOY_LOGE("Failed to open structure file: %s\n",
+                  structure_file_path.c_str());
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  // check weight_file_path, to make sure use '.safetensors' as the weight
+  // files'suffix
+  const std::string extension = ".safetensors";
+  size_t pos = weight_file_path.find_last_of('.');
+  if (pos == std::string::npos) {
+    weight_file_path = weight_file_path + extension;
+  } else {
+    std::string fileExtension = weight_file_path.substr(pos);
+
+    if (fileExtension != extension) {
+      NNDEPLOY_LOGE(
+          "wrong weight_file_path, The suffix .tensors is needed, but the "
+          "one given is %s !",
+          extension.c_str());
+    return base::kStatusCodeErrorInvalidParam;
+    }
+  }
+  // store 
+  base::Status status =
+      saveModelUseSafetensors(structure_stream, weight_file_path);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("Failed to save model to files: %s, %s\n",
+                  structure_file_path.c_str(), weight_file_path.c_str());
+  }
+  return status;
+}
+
+// base::Status Interpret::saveModelToSafeTensor(const std::string &save_path) { // NOLINT(*)
+//   base::Status status = base::kStatusCodeOk;
+//   return status;
+// }
 base::Status Interpret::saveModelToFileUseSafetensors(
     const std::string &structure_file_path, std::string &weight_file_path) {
   // 打开结构文件输出流，覆盖已存在文件
