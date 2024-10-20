@@ -182,9 +182,8 @@ base::Status CudaDevice::copy(Buffer *src, Buffer *dst, int index) {
   size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
-    cudaError_t status =
-        cudaMemcpyAsync(dst->getData(), src->getData(), size,
-                        cudaMemcpyDeviceToDevice, stream);
+    cudaError_t status = cudaMemcpyAsync(dst->getData(), src->getData(), size,
+                                         cudaMemcpyDeviceToDevice, stream);
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
     return base::kStatusCodeOk;
@@ -199,9 +198,8 @@ base::Status CudaDevice::download(Buffer *src, Buffer *dst, int index) {
   size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
-    cudaError_t status =
-        cudaMemcpyAsync(dst->getData(), src->getData(), size,
-                        cudaMemcpyDeviceToHost, stream);
+    cudaError_t status = cudaMemcpyAsync(dst->getData(), src->getData(), size,
+                                         cudaMemcpyDeviceToHost, stream);
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
     return base::kStatusCodeOk;
@@ -216,9 +214,8 @@ base::Status CudaDevice::upload(Buffer *src, Buffer *dst, int index) {
   size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
-    cudaError_t status =
-        cudaMemcpyAsync(dst->getData(), src->getData(), size,
-                        cudaMemcpyHostToDevice, stream);
+    cudaError_t status = cudaMemcpyAsync(dst->getData(), src->getData(), size,
+                                         cudaMemcpyHostToDevice, stream);
     NNDEPLOY_CUDA_CHECK(status);
     NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
     return base::kStatusCodeOk;
