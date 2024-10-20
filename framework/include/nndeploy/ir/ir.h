@@ -13,6 +13,7 @@
 #include "nndeploy/base/value.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/ir/op_param.h"
+#include "nndeploy/safetensors/safetensors.hh"
 
 namespace nndeploy {
 namespace ir {
@@ -113,6 +114,9 @@ class ModelDesc {
       std::istream &stream, const std::vector<ValueDesc> &input);
   // 序列化模型权重为二进制文件
   base::Status serializeWeightsToBinary(std::ostream &stream) const;
+  // 序列化模型权重为safetensors
+  base::Status serializeWeightsToSafetensors(safetensors::safetensors_t &safetensors) const;
+  base::Status serializeWeightsToSafetensorsImpl(safetensors::safetensors_t &safetensors, bool serialize_buffer = false) const;
   // 从二进制文件反序列化模型权重
   base::Status deserializeWeightsFromBinary(std::istream &stream);
 

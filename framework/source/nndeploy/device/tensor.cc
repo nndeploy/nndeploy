@@ -10,9 +10,9 @@ static TypeTensorRegister<TypeTensorCreator<Tensor>> g_defalut_tensor_register(
     base::kTensorTypeDefault);
 
 Tensor::Tensor() {}
-Tensor::Tensor(const std::string &name) : name_(name) {};
+Tensor::Tensor(const std::string &name) : name_(name){};
 Tensor::Tensor(const TensorDesc &desc, const std::string &name)
-    : name_(name), desc_(desc) {};
+    : name_(name), desc_(desc){};
 Tensor::Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name)
     : name_(name), desc_(desc), is_external_(true), buffer_(buffer) {
   ref_count_ = new int(1);
@@ -352,6 +352,127 @@ base::Status Tensor::serialize(std::ostream &stream) {
   }
   return base::kStatusCodeOk;
 }
+
+base::Status Tensor::dtype2SafetensorsDtype(
+    base::DataType data_type, safetensors::dtype &safetensors_data_type) {
+  auto status = base::kStatusCodeOk;
+  switch (data_type.code_) {
+    case base::DataTypeCode::kDataTypeCodeUint: {
+      switch (data_type.bits_) {
+        case 8:
+          safetensors_data_type = safetensors::kUINT8;
+          break;
+        case 16:
+          safetensors_data_type = safetensors::kUINT16;
+          break;
+        case 32:
+          safetensors_data_type = safetensors::kUINT32;
+          break;
+        case 64:
+          safetensors_data_type = safetensors::kUINT64;
+          break;
+        default:
+          status = base::kStatusCodeErrorIO;
+      }
+      break;
+    }
+
+    case base::DataTypeCode::kDataTypeCodeInt: {
+      switch (data_type.bits_) {
+        case 8:
+          safetensors_data_type = safetensors::kUINT8;
+          break;
+        case 16:
+          safetensors_data_type = safetensors::kUINT16;
+          break;
+        case 32:
+          safetensors_data_type = safetensors::kUINT32;
+          break;
+        case 64:
+          safetensors_data_type = safetensors::kUINT64;
+          break;
+        default:
+          status = base::kStatusCodeErrorIO;
+      }
+      break;
+    }
+    case base::DataTypeCode::kDataTypeCodeFp: {
+      switch (data_type.bits_) {
+        case 16:
+          safetensors_data_type = safetensors::kFLOAT16;
+          break;
+        case 32:
+          safetensors_data_type = safetensors::kFLOAT32;
+          break;
+        case 64:
+          safetensors_data_type = safetensors::kFLOAT64;
+          break;
+        default:
+          status = base::kStatusCodeErrorIO;
+      }
+      break;
+    }
+    case base::DataTypeCode::kDataTypeCodeBFp: {
+      switch (data_type.bits_) {
+        case 16:
+          safetensors_data_type = safetensors::kBFLOAT16;
+          break;
+        default:
+          status = base::kStatusCodeErrorIO;
+      }
+      break;
+    }
+    case base::DataTypeCode::kDataTypeCodeOpaqueHandle:
+    case base::DataTypeCode::kDataTypeCodeNotSupport:
+    default:
+      status = base::kStatusCodeErrorIO;
+  }
+  return status;
+}
+
+base::Status Tensor::shape2SafetensorsShape(
+    base::IntVector shape, std::vector<size_t> &safetensors_data_shape) {
+  shape.clear();
+  for (const auto &it : shape) {
+    safetensors_data_shape.emplace_back(static_cast<size_t>(it));
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Tensor::serialize_to_safetensors(safetensors::safetensors_t &st,
+                                              bool serialize_buffer) {
+  // NOTE: we should call not serialize_buffer at first time, then we serialize
+  // buffer, so the second time we could say, the storage has already has
+  // allocate the space for data.
+
+  if (not serialize_buffer) {
+    // serialize tensor and it's desc
+    // safetensors::dtype dtype;
+    // std::vector<size_t> shape;
+    // std::array<size_t, 2> data_offsets;
+
+    safetensors::tensor_t t_t;
+    dtype2SafetensorsDtype(desc_.data_type_, t_t.dtype);            // [x]
+    auto status = shape2SafetensorsShape(desc_.shape_, t_t.shape);  // [x]
+    std::string err_msg = std::string(
+                              "data type %s, do not supported to be transfered "
+                              "to safetensors !") +
+                          dataTypeToString(desc_.data_type_).c_str();
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, status,
+                                 err_msg.c_str());
+    st.tensors.insert(name_, std::move(t_t));
+  } else {
+    safetensors::tensor_t t_t;
+    st.tensors.at(name_, &t_t);
+    auto status = buffer_->serialize_to_safetensors(st, t_t);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(
+        status, base::kStatusCodeOk, status,
+        "buffer_->serialize_to_safetensors(st, t_t) failed");
+  }
+
+  return base::kStatusCodeOk;
+}
+
 // 从二进制文件反序列化模型权重
 base::Status Tensor::deserialize(std::istream &stream) {
   uint64_t name_size = 0;

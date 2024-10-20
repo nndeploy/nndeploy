@@ -12,6 +12,8 @@ set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDE
 
 message(STATUS "CMAKE BEIGIN. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(cmake/util.cmake)
 include(cmake/summary.cmake)
 
@@ -594,15 +596,15 @@ if(ENABLE_NNDEPLOY_DAG)
   set(NNDEPLOY_FRAMEWORK_SOURCE ${NNDEPLOY_FRAMEWORK_SOURCE} ${DAG_SOURCE})
 endif()
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# safetensors
 option(SAFETENSORS_CPP_BUILD_C_API "Build C API?" OFF)
 
 # Disable C++ exception by default.
 option(SAFETENSORS_CPP_CXX_EXCEPTIONS "Enable C++ exception(disable by default)" OFF)
 
 set(SAFETENSORS_CPP_SOURCES
-  "${FRAMEWORK_ROOT_PATH}/include/nndeploy/ir/safetensors/safetensors.hh"
-  "${FRAMEWORK_ROOT_PATH}/source/nndeploy/ir/safetensors/safetensors.cc"
+  "${FRAMEWORK_ROOT_PATH}/include/nndeploy/safetensors/safetensors.hh"
+  "${FRAMEWORK_ROOT_PATH}/source/nndeploy/safetensors/safetensors.cc"
 )
 
 
@@ -612,8 +614,8 @@ add_library(safetensors_cpp ${SAFETENSORS_CPP_SOURCES})
 if(SAFETENSORS_CPP_BUILD_C_API)
   # compile with c++ for libsafetensors-c.a
   set(SAFETENSORS_C_SOURCES
-    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/ir/safetensors/safetensors-c.h"
-    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/ir/safetensors/safetensors-c.cc"
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/safetensors/safetensors-c.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/safetensors/safetensors-c.cc"
   )
   add_library(safetensors_c ${SAFETENSORS_C_SOURCES})
 endif()
@@ -626,7 +628,7 @@ if(NOT SAFETENSORS_CPP_CXX_EXCEPTIONS)
     target_compile_options(safetensors_cpp PUBLIC -fno-exceptions)
   endif()
 endif()
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 # nndeploy
 # # TARGET

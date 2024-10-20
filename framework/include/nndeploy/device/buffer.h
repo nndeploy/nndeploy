@@ -10,6 +10,7 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
+#include "nndeploy/safetensors/safetensors.hh"
 
 namespace nndeploy {
 namespace device {
@@ -77,6 +78,8 @@ class NNDEPLOY_CC_API Buffer {
 
   // 序列化buffer为二进制文件
   base::Status serialize(std::ostream &stream);
+
+  base::Status serialize_to_safetensors(safetensors::safetensors_t &st, const safetensors::tensor_t& tensor);
   // 从二进制文件反序列化回buffer
   base::Status deserialize(std::istream &stream);
 

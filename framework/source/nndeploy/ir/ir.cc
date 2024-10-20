@@ -1,5 +1,6 @@
 
 #include "nndeploy/ir/ir.h"
+#include "nndeploy/base/status.h"
 
 namespace nndeploy {
 namespace ir {
@@ -497,6 +498,60 @@ base::Status ModelDesc::serializeWeightsToBinary(std::ostream &stream) const {
   }
   return base::kStatusCodeOk;
 }
+
+// 序列化模型权重为二进制文件
+base::Status ModelDesc::serializeWeightsToSafetensorsImpl(
+    safetensors::safetensors_t &st, bool serialize_buffer) const {
+  for (auto &weight : weights_) {
+    base::Status status =
+        weight.second->serialize_to_safetensors(st, serialize_buffer);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(
+        status, base::kStatusCodeOk, status,
+        "weight.second->serialize_to_safetensors(safetensors::safetensors_t "
+        "&st, bool serialize_buffer)failed!\n");
+  }
+  for (auto &block : blocks_) {
+    // base::Status status = block->serializeWeightsToBinary(stream);
+    base::Status status =
+        block->serializeWeightsToSafetensorsImpl(st, serialize_buffer);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(
+        status, base::kStatusCodeOk, status,
+        "block->serializeWeightsToSafetensorsImpl!\n");
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status ModelDesc::serializeWeightsToSafetensors(
+    safetensors::safetensors_t &st) const {
+  base::Status status = base::kStatusCodeOk;
+  // 1. first record the tensor desc
+  status = serializeWeightsToSafetensorsImpl(st);
+  NNDEPLOY_RETURN_VALUE_ON_NEQ(
+      status, base::kStatusCodeOk, status,
+      "model->serializeWeightsToSafetensorsImpl save param failed!\n");
+  // 2. cacurate the storage size and insert the offsets, then we run second
+  // time for copy or mapping data
+  size_t total_storage_size = 0;
+  safetensors::tensor_t t_t;
+  for (int i = 0; i < st.tensors.size(); ++i) {
+    st.tensors.at(i, &t_t);
+    size_t tensor_size = safetensors::get_shape_size(t_t) *
+                         safetensors::get_dtype_bytes(t_t.dtype);
+    t_t.data_offsets = std::array<size_t, 2>{total_storage_size,
+                                             total_storage_size + tensor_size};
+    total_storage_size += tensor_size;
+  }
+  st.storage.resize(total_storage_size);
+
+  // 3. real store buffer
+  status = serializeWeightsToSafetensorsImpl(st, true);
+
+  NNDEPLOY_RETURN_VALUE_ON_NEQ(
+      status, base::kStatusCodeOk, status,
+      "model->serializeWeightsToSafetensorsImpl save buffer failed!\n");
+  return base::kStatusCodeOk;
+}
+
 // 从二进制文件反序列化为模型权重
 base::Status ModelDesc::deserializeWeightsFromBinary(std::istream &stream) {
   uint64_t weights_size = 0;
