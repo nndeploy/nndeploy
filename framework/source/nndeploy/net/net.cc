@@ -3,6 +3,7 @@
 
 #include "nndeploy/net/session.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/net/optimizer.h"
 
 namespace nndeploy {
 namespace net {
@@ -253,17 +254,17 @@ base::Status Net::init() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
 
-  // 即使是设备相关的图优化，也可以放在优化器中做
-  // 经过这一次图优化之后
-  status = optimizer();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "graph construct failed!");
-
   status = inferDataType();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferDataType failed!");
 
   status = inferShape();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferShape failed!");
+
+  // 即使是设备相关的图优化，也可以放在优化器中做
+  // 经过这一次图优化之后
+  status = optimizer();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "graph optimizer failed!");
 
   status = this->session();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph session failed!");
@@ -414,6 +415,20 @@ base::Status Net::postRun() {
   // NNDEPLOY_LOGI("#######################\n");
   status = session_->postRun();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session run failed!");
+
+  // 输出结果
+#if 0
+  for (size_t i = 0; i < outputs_.size(); ++i) {
+    std::string filename = outputs_[i]->getName() + ".csv";
+    std::ofstream output_file(filename, std::ios::trunc);
+    if (output_file.is_open()) {
+      outputs_[i]->print(output_file);
+      output_file.close();
+    } else {
+      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
+    }
+  }
+#endif
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
@@ -596,6 +611,11 @@ base::Status Net::construct() {
 
 base::Status Net::optimizer() {
   base::Status status = base::kStatusCodeOk;
+  std::unique_ptr<net::Optimizer> optimizer = std::make_unique<net::Optimizer>();
+  status = optimizer->init(device_type_);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "optimizer init failed!");
+  status = optimizer->optimize(tensor_repository_, op_repository_);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "optimizer optimize failed!");
   return status;
 }
 

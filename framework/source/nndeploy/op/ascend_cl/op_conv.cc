@@ -55,8 +55,63 @@ class AscendCLOpConv : public OpConv {
                                  inputs_[2]->getName());
 
       inputs_[2]->copyTo(bias_);
+      // inner_bias_ =
+      //     AscendCLOpConvert::convertFromTensor(bias_, dst_data_format_);
       inner_bias_ =
-          AscendCLOpConvert::convertFromTensor(bias_, dst_data_format_);
+          AscendCLOpConvert::convertFromTensor(bias_, ACL_FORMAT_ND);
+
+      // base::DeviceType device_type = bias_->getDeviceType();
+      // if (device_type.code_ != base::kDeviceTypeCodeAscendCL) {
+      //   NNDEPLOY_LOGE("device type is not Ascend when convertFromTensor.\n");
+      // }
+
+      // base::DataType bias_data_type = bias_->getDataType();
+      // aclDataType dst_data_type =
+      //     AscendCLOpConvert::convertFromDataType(bias_data_type);
+
+      // base::DataFormat bias_data_format = bias_->getDataFormat();
+      // aclFormat acl_data_format =
+      //     AscendCLOpConvert::convertFromDataFormat(bias_data_format);
+      // base::IntVector bias_shape = bias_->getShape();
+      // base::IntVector dim = AscendCLOpConvert::inferShape(
+      //     dst_data_format_, acl_data_format, bias_shape);
+      // // std::vector<int64_t> dst_dim = AscendCLOpConvert::convertFromShape(dim);
+      // std::vector<int64_t> dst_dim ;
+      // // dst_dim.push_back(dim[0]);
+      // dst_dim.push_back(dim[1]);
+      // if (inputs_[2]->getName() == "model.0.conv.bias") {
+      //   NNDEPLOY_LOGI("打印dim和dst_dim:\n ");
+      //  for (size_t i = 0; i < dim.size(); ++i) {
+      //    NNDEPLOY_LOGI("dim[%zu] = %d\n ", i, dim[i]);
+      //  }
+      //  for (size_t i = 0; i < dst_dim.size(); ++i) {
+      //    NNDEPLOY_LOGI("dst_dim[%zu] = %ld\n ", i, dst_dim[i]);
+      //  }
+      // }
+
+      // base::SizeVector bias_stride = bias_->getStride();
+      // std::vector<int64_t> dst_stride;
+      // if (bias_stride.empty()) {
+      //   dst_stride.resize(dst_dim.size(), 1);
+      //   for (int64_t i = dst_dim.size() - 2; i >= 0; i--) {
+      //     dst_stride[i] = dst_dim[i + 1] * dst_stride[i + 1];
+      //   }
+      // } else {
+      //   for (auto iter : bias_stride) {
+      //     dst_stride.push_back((int64_t)iter);
+      //   }
+      // }
+
+      // int64_t offset = 0;
+      // void *data = bias_->getData();
+
+      // aclTensor *dst = aclCreateTensor(
+      //     dst_dim.data(), dst_dim.size(), dst_data_type, dst_stride.data(),
+      //     offset, dst_data_format_, dst_dim.data(), dst_dim.size(), data);
+      // if (dst == nullptr) {
+      //   NNDEPLOY_LOGE("aclCreateTensor failed when convertFromTensor.\n");
+      // }
+      // inner_bias_ = dst;
     }
 
     if (op_desc_.name_ == "/model.0/conv/Conv") {
@@ -108,14 +163,14 @@ class AscendCLOpConv : public OpConv {
         AscendCLOpConvert::convertFromTensor(outputs_[0], dst_data_format_);
     outputs_[0]->getDesc().print();
     // 创建算子
+    // aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSize(
+    //     inner_input_, inner_weight_, nullptr, stride_, padding_, dilation_,
+    //     transposed_, output_padding_, groups_, inner_output_, cube_math_type_,
+    //     &workspace_size_, &executor_);
     aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSize(
-        inner_input_, inner_weight_, nullptr, stride_, padding_, dilation_,
-        transposed_, output_padding_, groups_, inner_output_, cube_math_type_,
-        &workspace_size_, &executor_);
-    // aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSizeCustom(
-    //     inner_input_, inner_weight_, inner_bias_, stride_, padding_,
-    //     dilation_, transposed_, output_padding_, groups_, inner_output_,
-    //     cube_math_type_, &workspace_size_, &executor_);
+        inner_input_, inner_weight_, inner_bias_, stride_, padding_,
+        dilation_, transposed_, output_padding_, groups_, inner_output_,
+        cube_math_type_, &workspace_size_, &executor_);
     if (aclnn_status != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclnnConvolutionGetWorkspaceSize 失败，错误码: %d",
                     aclnn_status);

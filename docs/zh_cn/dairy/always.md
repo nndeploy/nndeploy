@@ -242,3 +242,19 @@ Finish! Here is the difference:
 	url = https://github.com/pybind/pybind11.git
 
   git submodule add https://github.com/pybind/pybind11.git third_party/pybind11
+
+
+## 问题
++ split算子在有些昇腾910上会运行失败(910b4不会)
++ transpose参数写错了
++ 8.0之后的310b的卷积算子运行出错
++ CREATE_EXECUTOR运行出错
+  + 很多头文件出错 
+
+
+## atd
+
++ atc --model=/home/ma-user/work/github/nndeploy/build/yolov8n_debug.onnx --framework=5 --output=/home/ma-user/work/github/nndeploy/build/yolov8n_debug.onnx.om --soc_version=Ascend910B4
+
++ atc --model=/home/ma-user/work/github/nndeploy/build/modified_yolov8n.onnx --framework=5 --output=/home/ma-user/work/github/nndeploy/build/modified_yolov8n.onnx.om --soc_version=Ascend910B4
+
