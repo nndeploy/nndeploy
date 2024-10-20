@@ -84,23 +84,23 @@ class AscendCLOpSplit : public OpSplit {
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
-    NNDEPLOY_LOGE("workspace_ = %p, workspace_size_ = %zu\n", workspace_,
-                  workspace_size_);
-    if (flag_) {
-      // 输入输出
-      aclnnStatus aclnn_status = aclnnSplitTensor(workspace_, workspace_size_,
-                                                  executor_, inner_stream_);
-      if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnSplitTensor 失败，错误码: %d\n", aclnn_status);
-      }
-    } else {
-      // 输入输出
-      aclnnStatus aclnn_status = aclnnSplitWithSize(workspace_, workspace_size_,
-                                                    executor_, inner_stream_);
-      if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnSplitWithSize 失败，错误码: %d\n", aclnn_status);
-      }
-    }
+    // NNDEPLOY_LOGE("workspace_ = %p, workspace_size_ = %zu\n", workspace_,
+    //               workspace_size_);
+    // if (flag_) {
+    //   // 输入输出
+    //   aclnnStatus aclnn_status = aclnnSplitTensor(workspace_, workspace_size_,
+    //                                               executor_, inner_stream_);
+    //   if (aclnn_status != ACL_SUCCESS) {
+    //     NNDEPLOY_LOGE("aclnnSplitTensor 失败，错误码: %d\n", aclnn_status);
+    //   }
+    // } else {
+    //   // 输入输出
+    //   aclnnStatus aclnn_status = aclnnSplitWithSize(workspace_, workspace_size_,
+    //                                                 executor_, inner_stream_);
+    //   if (aclnn_status != ACL_SUCCESS) {
+    //     NNDEPLOY_LOGE("aclnnSplitWithSize 失败，错误码: %d\n", aclnn_status);
+    //   }
+    // }
 
     return base::kStatusCodeOk;
   }

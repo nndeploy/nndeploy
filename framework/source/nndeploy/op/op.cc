@@ -80,20 +80,40 @@ device::Tensor *Op::getOutput(int index) {
 
 base::Status Op::setInput(device::Tensor *input) {
   inputs_.emplace_back(input);
-  return base::kStatusCodeErrorInvalidParam;
+  if (op_desc_.inputs_.size() > inputs_.size() - 1) {
+    op_desc_.inputs_[inputs_.size() - 1] = input->getName();
+  } else {
+    op_desc_.inputs_.emplace_back(input->getName());
+  }
+  return base::kStatusCodeOk;
 }
 base::Status Op::setOutput(device::Tensor *output) {
   outputs_.emplace_back(output);
-  return base::kStatusCodeErrorInvalidParam;
+  if (op_desc_.outputs_.size() > outputs_.size() - 1) {
+    op_desc_.outputs_[outputs_.size() - 1] = output->getName();
+  } else {
+    op_desc_.outputs_.emplace_back(output->getName());
+  }
+  return base::kStatusCodeOk;
 }
 
 base::Status Op::setInput(device::Tensor *input, int index) {
   if (input != nullptr) {
     if (inputs_.size() > index) {
       inputs_[index] = input;
+      if (op_desc_.inputs_.size() > index) {
+        op_desc_.inputs_[index] = input->getName();
+      } else {
+        op_desc_.inputs_.emplace_back(input->getName());
+      }
       return base::kStatusCodeOk;
     } else if (inputs_.size() == index) {
       inputs_.emplace_back(input);
+      if (op_desc_.inputs_.size() > index) {
+        op_desc_.inputs_[index] = input->getName();
+      } else {
+        op_desc_.inputs_.emplace_back(input->getName());
+      }
       return base::kStatusCodeOk;
     }
   }
@@ -104,9 +124,19 @@ base::Status Op::setOutput(device::Tensor *output, int index) {
   if (output != nullptr) {
     if (outputs_.size() > index) {
       outputs_[index] = output;
+      if (op_desc_.outputs_.size() > index) {
+        op_desc_.outputs_[index] = output->getName();
+      } else {
+        op_desc_.outputs_.emplace_back(output->getName());
+      }
       return base::kStatusCodeOk;
     } else if (outputs_.size() == index) {
       outputs_.emplace_back(output);
+      if (op_desc_.outputs_.size() > index) {
+        op_desc_.outputs_[index] = output->getName();
+      } else {
+        op_desc_.outputs_.emplace_back(output->getName());
+      }
       return base::kStatusCodeOk;
     }
   }
@@ -142,10 +172,18 @@ std::vector<device::Tensor *> Op::getAllOutput() { return outputs_; }
 
 base::Status Op::setAllInput(std::vector<device::Tensor *> inputs) {
   inputs_ = inputs;
+  op_desc_.inputs_.clear();
+  for (const auto& input : inputs) {
+    op_desc_.inputs_.push_back(input->getName());
+  }
   return base::kStatusCodeOk;
 }
 base::Status Op::setAllOutput(std::vector<device::Tensor *> outputs) {
   outputs_ = outputs;
+  op_desc_.outputs_.clear();
+  for (const auto& output : outputs) {
+    op_desc_.outputs_.push_back(output->getName());
+  }
   return base::kStatusCodeOk;
 }
 

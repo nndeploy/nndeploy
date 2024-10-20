@@ -32,7 +32,7 @@ git submodule update --init --recursive
 
 ## 主库编译
 
-+ 默认编译产物为：libnndeploy.so、demo_nndeploy_dag
++ 默认编译产物为：libnndeploy_framework.so、nndeploy_demo_dag
   
 
 ## Windows

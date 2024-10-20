@@ -145,23 +145,23 @@ bool BufferDesc::operator!=(const BufferDesc &other) const {
   return !(*this == other);
 }
 
-void BufferDesc::print() {
-  std::cout << "BufferDesc: \n";
-  std::cout << "size: ";
+void BufferDesc::print(std::ostream &stream) {
+  stream << "BufferDesc: \n";
+  stream << "size: ";
   for (int i = 0; i < size_.size(); ++i) {
-    std::cout << size_[i] << " ";
+    stream << size_[i] << " ";
   }
-  std::cout << "real_size: ";
+  stream << "real_size: ";
   for (int i = 0; i < real_size_.size(); ++i) {
-    std::cout << real_size_[i] << " ";
+    stream << real_size_[i] << " ";
   }
-  std::cout << std::endl;
+  stream << std::endl;
   if (!config_.empty()) {
-    std::cout << "config: ";
+    stream << "config: ";
     for (int i = 0; i < config_.size(); ++i) {
-      std::cout << config_[i] << " ";
+      stream << config_[i] << " ";
     }
-    std::cout << std::endl;
+    stream << std::endl;
   }
 }
 
@@ -413,22 +413,22 @@ base::Status TensorDesc::deserialize(std::istream &stream) {
   return base::kStatusCodeOk;
 }
 
-void TensorDesc::print() {
-  std::cout << "TensorDesc: \n";
-  std::cout << "data_type: " << base::dataTypeToString(data_type_) << std::endl;
-  std::cout << "data_format: " << base::dataFormatToString(data_format_)
+void TensorDesc::print(std::ostream &stream) {
+  stream << "TensorDesc: \n";
+  stream << "data_type: " << base::dataTypeToString(data_type_) << std::endl;
+  stream << "data_format: " << base::dataFormatToString(data_format_)
             << std::endl;
-  std::cout << "shape: ";
+  stream << "shape: ";
   for (int i = 0; i < shape_.size(); ++i) {
-    std::cout << shape_[i] << " ";
+    stream << shape_[i] << " ";
   }
-  std::cout << std::endl;
+  stream << std::endl;
   if (!stride_.empty()) {
     std::cout << "stride: ";
     for (int i = 0; i < stride_.size(); ++i) {
-      std::cout << stride_[i] << " ";
+      stream << stride_[i] << " ";
     }
-    std::cout << std::endl;
+    stream << std::endl;
   }
 }
 

@@ -65,6 +65,7 @@ int main(int argc, char *argv[]) {
     NNDEPLOY_LOGE("detect_graph is nullptr");
     return -1;
   }
+  // detect_graph->setTimeProfileFlag(true);
   graph->addNode(detect_graph);
 
   // 解码节点
@@ -97,6 +98,8 @@ int main(int argc, char *argv[]) {
     NNDEPLOY_LOGE("graph setParallelType failed");
     return -1;
   }
+
+  graph->setTimeProfileFlag(true);
 
   // 初始化有向无环图graph
   NNDEPLOY_TIME_POINT_START("graph->init()");
@@ -162,6 +165,8 @@ int main(int argc, char *argv[]) {
   delete graph;
 
   NNDEPLOY_LOGI("hello world!\n");
+
+  device::destoryArchitecture();
 
   return 0;
 }
