@@ -1,11 +1,12 @@
-# 支持架构：
+# ONEDNN调研
+## 支持架构：
 英特尔架构处理器、英特尔处理器显卡和 Xe 架构显卡，实验性支持Arm* 64 （位架构 （AArch64）、OpenPOWER* Power ISA （PPC64）
 - [Intel 64 或 AMD64](https://en.wikipedia.org/wiki/X86-64)，
 - [Arm 64 位架构（AArch64）](https://developer.arm.com/architectures/cpu-architecture/a-profile)。
 - [OpenPOWER](https://openpowerfoundation.org/) / [IBM Power 指令集](https://en.wikipedia.org/wiki/Power_ISA)。
 - [IBMz z/架构（s390x）](https://en.wikipedia.org/wiki/Z/Architecture)。
 - [RISC-V 64 位（RV64）](https://en.wikipedia.org/wiki/RISC-V)。
-## CPU:
+### CPU:
 - Intel 64/AMD64 架构
     - Intel Atom(R) 处理器（至少需要 Intel SSE4.1 支持）
     - Intel Core(TM) 处理器（至少需要 Intel SSE4.1 支持）
@@ -17,7 +18,7 @@
 - AArch64 架构
     - Arm Neoverse(TM) N1 和 V1 处理器
     
-## GPU：
+### GPU：
 该库针对以下 GPU 进行了优化：
 - 适用于第 11 至第 14 代英特尔酷睿处理器的英特尔显卡
 - 适用于英特尔酷睿超处理器（原名 Meteor Lake）的英特尔显卡
@@ -30,7 +31,7 @@
 - NVIDIA CUDA* 驱动程序
 - cuBLAS 10.1 或更高版本
 - cuDNN 7.6 或更高版本
-# 计算支持：
+## 计算支持：
 | CNN 基元（卷积、内积、池化等）                |
 | -------------------------------- |
 | RNN 原语 （LSTM， Vanilla， RNN， GRU） |
@@ -40,9 +41,9 @@
 | 从优化的数据布局重新排序                     |
 | 8 位整数、16 位、32 位和 bfloat16 浮点数据类型 |
 |                                  |
-# 核心概念
+## 核心概念
 oneDNN的主要概念是原语，引擎，流和内存对象。
-![](/docs/image/knownledge_share/ondDNN%20architecture.png)
+![](../../image/knownledge_share/ondDNN_architecture.png)
 **原语：
 	基元（dnnl::primitive**）是一个封装了特定计算诸如前向卷积，向后LSTM计算，或数据变换操作的算符对象。单个原语有时可以表示更复杂的**融合计算**，例如一个前向卷积操作然后紧跟着一个ReLU操作。除其他事项外，融合是通过原语的属性机制来控制的。（原语和纯函数之间最重要的区别是原语可以**存储状态**。）
 		1、基元状态的一部分是不可变的。例如，卷积基元存储参数（如张量形状），并可以预先计算其他相关参数（如缓存阻塞）。这种方法允许 oneDNN 基元预先生成专门针对要执行的操作而定制的代码。oneDNN 编程模型假设执行预计算所需的时间可以通过重复使用同一基元多次执行计算来分摊。
@@ -55,11 +56,11 @@ oneDNN的主要概念是原语，引擎，流和内存对象。
 
 **内存对象（dnnl::memory）** 封装了分配给特定引擎的内存的句柄，张量维，数据类型和内存格式-张量索引映射到线性内存空间中的偏移量的方式。内存对象在执行期间被传递给原语。
 
-# 数据排布支持
+## 数据排布支持
 
 CUDA SYCL：[`NCDHW`, `NDHWC`, `NCHW`, `NHWC`, `NCW`, `NWC`, `NC`](https://github.com/oneapi-src/oneDNN/tree/main/src/gpu/nvidia)
 
-# 数据格式
+## 数据格式
 **块状布局**:
 为了实现更好的矢量化和缓存重用，oneDNN 引入了分块布局，将一个或多个维度拆分为固定大小的块。最流行的 oneDNN 数据格式是 AVX512+ 系统上的 nChw16c 和 SSE4.1+ 系统上的 nChw8c。从名称中可以猜出，唯一被分块的维度是通道，前者块大小为 16，后者块大小为 8。
 
@@ -73,9 +74,9 @@ offset_nChw8c(n, c, h, w) = n * CHW
                           + (c % 8)
 ```
 
-![](/docs/image/knownledge_share/oneDNN%20Dataformat.png)
+![](../../image/knownledge_share/oneDNN_Dataformat.png)
 
-# 一个简单的例子
+## 一个简单的例子
 [Example code：](https://oneapi-src.github.io/oneDNN/example_getting_started.cpp.html#doxid-getting-started-8cpp-example)
 
 此 C++ API 示例演示了 oneDNN 编程模型的基础知识：
@@ -217,7 +218,7 @@ pool.execute(
 s.wait();
 ```
 
-# 支持的原语API：
+## 支持的原语API：
 - [Convolution](https://oneapi-src.github.io/oneDNN/dev_guide_convolution.html)
 - [Inner Product](https://oneapi-src.github.io/oneDNN/dev_guide_inner_product.html)
 - [Matrix Multiplication](https://oneapi-src.github.io/oneDNN/dev_guide_matmul.html)
@@ -237,4 +238,4 @@ s.wait();
 - [Sum](https://oneapi-src.github.io/oneDNN/dev_guide_sum.html)
 - [Reorder](https://oneapi-src.github.io/oneDNN/dev_guide_reorder.html)
 - [Reduction](https://oneapi-src.github.io/oneDNN/dev_guide_reduction.html)
-# 多算子模式[Demo(ocl)](https://github.com/oneapi-src/oneDNN/tree/main/examples/graph)
+## 多算子模式[Demo(ocl)](https://github.com/oneapi-src/oneDNN/tree/main/examples/graph)

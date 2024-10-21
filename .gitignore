@@ -221,3 +221,5 @@ docs/build
 
 # third_party
 # third_party
+
+cmake-build-debug/
