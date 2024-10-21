@@ -10,7 +10,7 @@
 # $ cp cmake/config.cmake build
 # $ cd build
 # $ cmake ..
-# $ make -j8
+# $ make -j
 # --------------------------------------------------------------------
 # common
 set(ENABLE_NNDEPLOY_BUILD_SHARED ON) # 是否编译为动态库，默认ON
@@ -86,7 +86,7 @@ set(ENABLE_NNDEPLOY_PLUGIN OFF) # 是否编译plugin目录中文件，默认为O
 set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
 
 # demo
-set(ENABLE_NNDEPLOY_DEMO OFF) # 是否使能可执行程序demo，默认为OFF
+set(ENABLE_NNDEPLOY_DEMO ON) # 是否使能可执行程序demo，默认为OFF
 
 # enable python api
 set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口

@@ -5,11 +5,11 @@
 
 1.1. 基于DAG部署stable diffusion系列的模型，形成类似[comfyui](https://github.com/comfyanonymous/ComfyUI)的产品。（可以形成产品，直接给CV AIGC的用户用）
 
-1.2. 置底向上理解并实现stable diffusion(算子->框架->算法)，形成类似[ggml](https://github.com/ggerganov/ggml)、[llama.cpp](https://github.com/ggerganov/llama.cpp)、[stable_diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)的产品
+1.2. 自底向上理解并实现stable diffusion(算子->框架->算法)，形成类似[ggml](https://github.com/ggerganov/ggml)、[llama.cpp](https://github.com/ggerganov/llama.cpp)、[stable_diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)的产品
 
 ## 2 why
 
-主要一下三个层面
+主要以下三个层面
 
 ### 2.1 学习层面
 
@@ -21,10 +21,10 @@
 
 ### 2.2 科研层面
 
-从算法、部署、推理角度理解并实现stable diffusion，可以做出一些科研价值的产出，例如
+从算法、部署、推理角度理解并实现stable diffusion，可以做一些科研，例如
 
-2.2.1. 高性能的算子 - 类似flash attension算子、基于triton开发
-   
+2.2.1. 高性能的算子 - 类似flash attention算子、基于triton开发
+
 2.2.2. 推理子模块 - 高效的内存管理、图优化等
 
 2.2.3. stable diffusion的模型量化
@@ -35,8 +35,7 @@
 
 2.3.2. 对于stable diffusion模型部署而言，提供另外一个选择
 
-
-**总结**：AI迅速发展，通过这个开源框架置底向上理解并实现stable diffusion(算子->框架->算法)。或许在下一个AI风口到来的时候，我们可以在AI infra这个方向上，能够跟得上节奏。
+**总结**：通过这个开源框架自底向上理解并实现stable diffusion(算子->框架->算法)。
 
 ## 3 how
 
@@ -46,8 +45,8 @@
 
 1. 经典stable diffusion模型的详细分析
    1. 算法原理 - 达到及格水平
-   2. 训练原理（数据集、loss）- 达到及格水品
-   3. 模型结构的详细分析 - 达到良好的水品
+   2. 训练原理（数据集、loss）- 达到及格水平
+   3. 模型结构的详细分析 - 达到良好的水平
       1. 有几个模型
       2. 模型如何串联起来
       3. 模型的前后处理
