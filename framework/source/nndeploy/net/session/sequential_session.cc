@@ -26,7 +26,7 @@ base::Status SequentialSession::init(
   tensor_pool_type_ = tensor_pool_type;
   tensor_pool_ = createTensorPool(tensor_pool_type_, device, tensor_repository,
                                   op_repository);
-  
+
   /**
    * @brief
    * 如果是动态shape且max_shape为空时，那么不需要分配tensor
@@ -53,16 +53,14 @@ base::Status SequentialSession::init(
       }
     }
 
-    
     status = tensor_pool_->allocate();
-    
 
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("tensor_pool_ allocate failed\n");
       return status;
     }
   }
-  
+
   // # op的初始化
   // ## 权重转换
   for (auto iter : op_repository) {
@@ -74,7 +72,7 @@ base::Status SequentialSession::init(
     }
     iter->op_->setInitializedFlag(true);
   }
-  
+
   tensor_repository_ = tensor_repository;
   op_repository_ = op_repository;
   is_dynamic_shape_ = is_dynamic_shape;

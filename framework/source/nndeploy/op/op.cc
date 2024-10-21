@@ -173,7 +173,7 @@ std::vector<device::Tensor *> Op::getAllOutput() { return outputs_; }
 base::Status Op::setAllInput(std::vector<device::Tensor *> inputs) {
   inputs_ = inputs;
   op_desc_.inputs_.clear();
-  for (const auto& input : inputs) {
+  for (const auto &input : inputs) {
     op_desc_.inputs_.push_back(input->getName());
   }
   return base::kStatusCodeOk;
@@ -181,7 +181,7 @@ base::Status Op::setAllInput(std::vector<device::Tensor *> inputs) {
 base::Status Op::setAllOutput(std::vector<device::Tensor *> outputs) {
   outputs_ = outputs;
   op_desc_.outputs_.clear();
-  for (const auto& output : outputs) {
+  for (const auto &output : outputs) {
     op_desc_.outputs_.push_back(output->getName());
   }
   return base::kStatusCodeOk;

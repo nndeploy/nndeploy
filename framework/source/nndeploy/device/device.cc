@@ -26,8 +26,8 @@ getArchitectureMap() {
 }
 
 void *Device::getContext() {
-  NNDEPLOY_LOGI("this device[%d, %d] no need to get context!\n", device_type_.code_,
-                device_type_.device_id_);
+  NNDEPLOY_LOGI("this device[%d, %d] no need to get context!\n",
+                device_type_.code_, device_type_.device_id_);
   return nullptr;
 }
 
@@ -57,8 +57,8 @@ void *Device::getCommandQueue(int index) {
   return nullptr;
 }
 base::Status Device::synchronize(int index) {
-  NNDEPLOY_LOGI("this device[%d, %d] no need to synchronize!\n", device_type_.code_,
-                device_type_.device_id_);
+  NNDEPLOY_LOGI("this device[%d, %d] no need to synchronize!\n",
+                device_type_.code_, device_type_.device_id_);
   return base::kStatusCodeOk;
 }
 

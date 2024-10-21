@@ -138,7 +138,7 @@ base::Status Infer::run() {
   }
   for (auto tensor : tensors) {
     inference_->setInputTensor(tensor->getName(), tensor);
-    
+
 #if 1
     std::string name = tensor->getName();
     std::string filename = name + ".csv";

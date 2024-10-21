@@ -417,7 +417,7 @@ void TensorDesc::print(std::ostream &stream) {
   stream << "TensorDesc: \n";
   stream << "data_type: " << base::dataTypeToString(data_type_) << std::endl;
   stream << "data_format: " << base::dataFormatToString(data_format_)
-            << std::endl;
+         << std::endl;
   stream << "shape: ";
   for (int i = 0; i < shape_.size(); ++i) {
     stream << shape_[i] << " ";

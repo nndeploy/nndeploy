@@ -2,12 +2,11 @@
 #ifndef _NNDEPLOY_BASE_STRING_H_
 #define _NNDEPLOY_BASE_STRING_H_
 
-#include "nndeploy/base/glic_stl_include.h"
-#include "nndeploy/base/macro.h"
-#include "nndeploy/base/common.h"
-
 #include <functional>
 
+#include "nndeploy/base/common.h"
+#include "nndeploy/base/glic_stl_include.h"
+#include "nndeploy/base/macro.h"
 
 namespace nndeploy {
 namespace base {
@@ -64,7 +63,8 @@ void printData(T *data, size_t size, std::ostream &stream = std::cout) {
 }
 
 template <typename T>
-void printData(T *data, base::IntVector &shape, std::ostream &stream = std::cout) {
+void printData(T *data, base::IntVector &shape,
+               std::ostream &stream = std::cout) {
   if (data == nullptr || shape.empty()) {
     return;
   }
@@ -74,7 +74,8 @@ void printData(T *data, base::IntVector &shape, std::ostream &stream = std::cout
     total_size *= dim;
   }
 
-  std::function<void(size_t, size_t)> print_recursive = [&](size_t depth, size_t offset) {
+  std::function<void(size_t, size_t)> print_recursive = [&](size_t depth,
+                                                            size_t offset) {
     if (depth == shape.size() - 1) {
       stream << std::endl;
       for (int i = 0; i < shape[depth]; ++i) {

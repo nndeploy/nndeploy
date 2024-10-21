@@ -688,12 +688,13 @@ aclTensor *AscendCLOpConvert::convertFromTensor(const device::Tensor *src,
   //   NNDEPLOY_LOGI("src_shape: %d, %d, %d, %d\n", src_shape[0], src_shape[1],
   //                 src_shape[2], src_shape[3]);
   //   NNDEPLOY_LOGI("dim: %d, %d, %d, %d\n", dim[0], dim[1], dim[2], dim[3]);
-  //   NNDEPLOY_LOGI("dst_stride: %d, %d, %d, %d\n", dst_stride[0], dst_stride[1],
+  //   NNDEPLOY_LOGI("dst_stride: %d, %d, %d, %d\n", dst_stride[0],
+  //   dst_stride[1],
   //                 dst_stride[2], dst_stride[3]);
   //   NNDEPLOY_LOGI("data: %p\n", data);
   //   src->getDesc().print();
   // }
-  
+
   return dst;
 }
 aclTensorList *AscendCLOpConvert::AscendCLOpConvert::convertFromTensor(
