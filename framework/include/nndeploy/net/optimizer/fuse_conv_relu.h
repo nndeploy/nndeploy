@@ -8,7 +8,6 @@
 namespace nndeploy {
 namespace net {
 
-
 class FuseConvRelu : public OptPass {
  public:
   FuseConvRelu();
@@ -16,8 +15,8 @@ class FuseConvRelu : public OptPass {
 
   /*
    * @brief 融合Conv和Relu
-   * @param tensor_repository 
-   * @param op_repository 
+   * @param tensor_repository
+   * @param op_repository
    * @return
    * @note
    * 1. 模式匹配：遍历op_repository，找到满足融合的条件：
@@ -35,8 +34,9 @@ class FuseConvRelu : public OptPass {
    *    b. 更新Relu的successors_节点：该节点的前驱节点改为Conv
    *    c. 删除Relu
    */
-  virtual base::Status optimize(std::vector<TensorWrapper *>& tensor_repository,
-                                std::vector<OpWrapper *>& op_repository, int begin_op_index);
+  virtual base::Status optimize(std::vector<TensorWrapper*>& tensor_repository,
+                                std::vector<OpWrapper*>& op_repository,
+                                int begin_op_index);
 };
 
 }  // namespace net

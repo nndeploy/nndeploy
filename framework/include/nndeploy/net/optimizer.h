@@ -9,7 +9,7 @@
 namespace nndeploy {
 namespace net {
 
-enum OptPassType : int  {
+enum OptPassType : int {
   kOptPassTypeFuseConvBias,
   kOptPassTypeFuseConvBatchNorm,
   kOptPassTypeFuseConvRelu,
@@ -22,42 +22,49 @@ class OptPass {
 
   /**
    * @brief 模式匹配
-   * 
-   * @param tensor_repository 
-   * @param op_repository 
-   * @param pass_types 
+   *
+   * @param tensor_repository
+   * @param op_repository
+   * @param pass_types
    * @return op_repository中匹配到的首个op的index，如果未匹配到则返回-1
    * @note 匹配规则：
    * 1. 匹配到的op的类型为pass_types中的第一个，且op的successors_中有且只有一个
-   * 2. 该op的successors_的类型为pass_types中的第二个，且op的successors_的predecessors_中有且只有一个
+   * 2.
+   * 该op的successors_的类型为pass_types中的第二个，且op的successors_的predecessors_中有且只有一个
    * 3. 以此类推，直到pass_types中的最后一个
    */
-  virtual int seqPatternMatch(std::vector<TensorWrapper *>& tensor_repository,
-                  std::vector<OpWrapper *>& op_repository, const std::vector<ir::OpType>& types, int begin_op_index);
+  virtual int seqPatternMatch(std::vector<TensorWrapper*>& tensor_repository,
+                              std::vector<OpWrapper*>& op_repository,
+                              const std::vector<ir::OpType>& types,
+                              int begin_op_index);
 
   /**
    * @brief 模式匹配并更新tensor_repository
-   * 
-   * @param tensor_repository 
-   * @param op_repository 
-   * @param pass_types 
-   * @param begin_op_index 
+   *
+   * @param tensor_repository
+   * @param op_repository
+   * @param pass_types
+   * @param begin_op_index
    * @return 是否成功
    * @note 更新策略
    * 1. 更新tensor_repository：
    *    a. 更新最后一个op的输出：其生产者改为第一个op
    *    b. 删除除开最后一个op以外所有的输出
    */
-  virtual base::Status seqPatternMatchUpateTensorRepository(std::vector<TensorWrapper *>& tensor_repository,
-                                std::vector<OpWrapper *>& op_repository, const std::vector<ir::OpType>& types, int begin_op_index);
+  virtual base::Status seqPatternMatchUpateTensorRepository(
+      std::vector<TensorWrapper*>& tensor_repository,
+      std::vector<OpWrapper*>& op_repository,
+      const std::vector<ir::OpType>& types, int begin_op_index);
 
-  virtual base::Status seqPatternMatchUpateOpRepository(std::vector<TensorWrapper *>& tensor_repository,
-                                std::vector<OpWrapper *>& op_repository, const std::vector<ir::OpType>& types, int begin_op_index);
+  virtual base::Status seqPatternMatchUpateOpRepository(
+      std::vector<TensorWrapper*>& tensor_repository,
+      std::vector<OpWrapper*>& op_repository,
+      const std::vector<ir::OpType>& types, int begin_op_index);
 
-  virtual base::Status optimize(std::vector<TensorWrapper *>& tensor_repository,
-                                std::vector<OpWrapper *>& op_repository, int begin_op_index) = 0;
+  virtual base::Status optimize(std::vector<TensorWrapper*>& tensor_repository,
+                                std::vector<OpWrapper*>& op_repository,
+                                int begin_op_index) = 0;
 };
-
 
 /**
  * @brief OptPass的创建类
@@ -88,7 +95,8 @@ class TypeOptPassCreator : public OptPassCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OptPassCreator>>>&
  */
-std::map<base::DeviceTypeCode, std::map<OptPassType, std::shared_ptr<OptPassCreator>>> &
+std::map<base::DeviceTypeCode,
+         std::map<OptPassType, std::shared_ptr<OptPassCreator>>>&
 getGlobalOptPassCreatorMap();
 
 /**
@@ -99,20 +107,23 @@ getGlobalOptPassCreatorMap();
 template <typename T>
 class TypeOptPassRegister {
  public:
-  explicit TypeOptPassRegister(base::DeviceTypeCode device_type_code, OptPassType type) {
-    auto &creator_map = getGlobalOptPassCreatorMap();
+  explicit TypeOptPassRegister(base::DeviceTypeCode device_type_code,
+                               OptPassType type) {
+    auto& creator_map = getGlobalOptPassCreatorMap();
     auto device_map = creator_map.find(device_type_code);
     if (device_map == creator_map.end()) {
-      creator_map[device_type_code] = std::map<OptPassType, std::shared_ptr<OptPassCreator>>();
+      creator_map[device_type_code] =
+          std::map<OptPassType, std::shared_ptr<OptPassCreator>>();
     }
     auto creator = creator_map[device_type_code].find(type);
-    if (creator == creator_map[device_type_code].end()) { 
+    if (creator == creator_map[device_type_code].end()) {
       creator_map[device_type_code][type] = std::shared_ptr<T>(new T());
     }
   }
 };
 
-std::shared_ptr<OptPass> createOptPass(base::DeviceType device_type, OptPassType type);
+std::shared_ptr<OptPass> createOptPass(base::DeviceType device_type,
+                                       OptPassType type);
 
 class NNDEPLOY_CC_API Optimizer {
  public:
@@ -125,8 +136,8 @@ class NNDEPLOY_CC_API Optimizer {
   base::Status addPass(OptPassType type);
   base::Status removePass(OptPassType type);
 
-  base::Status optimize(std::vector<TensorWrapper *>& tensor_repository,
-                        std::vector<OpWrapper *>& op_repository);
+  base::Status optimize(std::vector<TensorWrapper*>& tensor_repository,
+                        std::vector<OpWrapper*>& op_repository);
 
  protected:
   base::DeviceType device_type_;

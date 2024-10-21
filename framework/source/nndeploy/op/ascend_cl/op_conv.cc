@@ -56,8 +56,7 @@ class AscendCLOpConv : public OpConv {
       inputs_[2]->copyTo(bias_);
       // inner_bias_ =
       //     AscendCLOpConvert::convertFromTensor(bias_, dst_data_format_);
-      inner_bias_ =
-          AscendCLOpConvert::convertFromTensor(bias_, ACL_FORMAT_ND);
+      inner_bias_ = AscendCLOpConvert::convertFromTensor(bias_, ACL_FORMAT_ND);
 
       // base::DeviceType device_type = bias_->getDeviceType();
       // if (device_type.code_ != base::kDeviceTypeCodeAscendCL) {
@@ -74,8 +73,9 @@ class AscendCLOpConv : public OpConv {
       // base::IntVector bias_shape = bias_->getShape();
       // base::IntVector dim = AscendCLOpConvert::inferShape(
       //     dst_data_format_, acl_data_format, bias_shape);
-      // // std::vector<int64_t> dst_dim = AscendCLOpConvert::convertFromShape(dim);
-      // std::vector<int64_t> dst_dim ;
+      // // std::vector<int64_t> dst_dim =
+      // AscendCLOpConvert::convertFromShape(dim); std::vector<int64_t> dst_dim
+      // ;
       // // dst_dim.push_back(dim[0]);
       // dst_dim.push_back(dim[1]);
       // if (inputs_[2]->getName() == "model.0.conv.bias") {
@@ -116,7 +116,8 @@ class AscendCLOpConv : public OpConv {
     // if (op_desc_.name_ == "/model.0/conv/Conv") {
     //   NNDEPLOY_LOGI("strides: %d, %d\n", param->strides_[0],
     //                 param->strides_[1]);
-    //   NNDEPLOY_LOGI("pads: %d, %d, %d, %d\n", param->pads_[0], param->pads_[1],
+    //   NNDEPLOY_LOGI("pads: %d, %d, %d, %d\n", param->pads_[0],
+    //   param->pads_[1],
     //                 param->pads_[2], param->pads_[3]);
     //   NNDEPLOY_LOGI("dilations: %d, %d\n", param->dilations_[0],
     //                 param->dilations_[1]);
@@ -164,12 +165,12 @@ class AscendCLOpConv : public OpConv {
     // 创建算子
     // aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSize(
     //     inner_input_, inner_weight_, nullptr, stride_, padding_, dilation_,
-    //     transposed_, output_padding_, groups_, inner_output_, cube_math_type_,
-    //     &workspace_size_, &executor_);
+    //     transposed_, output_padding_, groups_, inner_output_,
+    //     cube_math_type_, &workspace_size_, &executor_);
     aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSize(
-        inner_input_, inner_weight_, inner_bias_, stride_, padding_,
-        dilation_, transposed_, output_padding_, groups_, inner_output_,
-        cube_math_type_, &workspace_size_, &executor_);
+        inner_input_, inner_weight_, inner_bias_, stride_, padding_, dilation_,
+        transposed_, output_padding_, groups_, inner_output_, cube_math_type_,
+        &workspace_size_, &executor_);
     if (aclnn_status != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclnnConvolutionGetWorkspaceSize 失败，错误码: %d",
                     aclnn_status);

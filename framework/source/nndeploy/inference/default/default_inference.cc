@@ -181,7 +181,8 @@ base::Status DefaultInference::run() {
   // 同步
   DefaultInferenceParam *default_inference_param =
       dynamic_cast<DefaultInferenceParam *>(inference_param_);
-  device::Device *device = device::getDevice(default_inference_param->device_type_);
+  device::Device *device =
+      device::getDevice(default_inference_param->device_type_);
   status = device->synchronize();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("synchronize failed!\n");

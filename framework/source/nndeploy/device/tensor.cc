@@ -392,8 +392,8 @@ void Tensor::print(std::ostream &stream) {
   std::string name = this->getName();
   base::DataType data_type = desc_.data_type_;
   stream << "Tensor: " << name << std::endl;
-  stream << "device type: "
-            << base::deviceTypeToString(this->getDeviceType()) << std::endl;
+  stream << "device type: " << base::deviceTypeToString(this->getDeviceType())
+         << std::endl;
   stream << "ref_count: " << ref_count_[0] << std::endl;
   desc_.print(stream);
   stream << std::endl;
@@ -432,7 +432,7 @@ void Tensor::print(std::ostream &stream) {
     base::printData((uint8_t *)data, shape, stream);
   } else if (data_type.code_ == base::kDataTypeCodeUint &&
              data_type.bits_ == 16 && data_type.lanes_ == 1) {
-      base::printData((uint16_t *)data, shape, stream);
+    base::printData((uint16_t *)data, shape, stream);
   } else if (data_type.code_ == base::kDataTypeCodeUint &&
              data_type.bits_ == 32 && data_type.lanes_ == 1) {
     base::printData((uint32_t *)data, shape, stream);

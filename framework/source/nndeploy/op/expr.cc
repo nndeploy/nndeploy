@@ -171,11 +171,9 @@ std::shared_ptr<Expr> makeAdd(ir::ModelDesc *model_desc,
   return expr;
 }
 
-
 std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
-                                  std::shared_ptr<Expr> input,                
-                                  std::string op_name,
-                                  std::string output_name) {
+                               std::shared_ptr<Expr> input, std::string op_name,
+                               std::string output_name) {
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
@@ -193,8 +191,8 @@ std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
   } else {
     outputs.push_back(name + ".output");
   }
-  auto op_desc = std::make_shared<ir::OpDesc>(name, ir::kOpTypeRelu, inputs,
-                                              outputs);
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeRelu, inputs, outputs);
   if (model_desc != nullptr) {
     model_desc->op_descs_.push_back(op_desc);
   }
@@ -202,8 +200,6 @@ std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
   auto expr = std::make_shared<Expr>(op_desc);
   return expr;
 }
-
-
 
 }  // namespace op
 }  // namespace nndeploy

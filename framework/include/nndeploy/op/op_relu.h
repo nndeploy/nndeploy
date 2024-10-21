@@ -18,7 +18,7 @@ class OpRelu : public OpUnary {
 };
 
 NNDEPLOY_CC_API base::Status relu(device::Tensor *input,
-                                     device::Tensor *output);
+                                  device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy
