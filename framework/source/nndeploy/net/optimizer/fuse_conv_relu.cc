@@ -30,18 +30,21 @@ FuseConvRelu::~FuseConvRelu() {}
    */
 base::Status FuseConvRelu::optimize(std::vector<TensorWrapper *>& tensor_repository,
                                 std::vector<OpWrapper *>& op_repository, int begin_op_index) {
+  
   // 1. 模式匹配
   std::vector<ir::OpType> types = {ir::kOpTypeConv, ir::kOpTypeRelu};
   begin_op_index = seqPatternMatch(tensor_repository, op_repository, types, begin_op_index);
   if (begin_op_index == -1) {
     return base::kStatusCodeOk; // 没有找到匹配的模式，直接返回
   }
+
   // 2. 更新tensor_repository
   base::Status status = seqPatternMatchUpateTensorRepository(tensor_repository, op_repository, types, begin_op_index);
   if (status != base::kStatusCodeOk) {
     return status;
   }
 
+  
   // 3. 更新Conv Op
   OpWrapper* first_op = op_repository[begin_op_index];
   OpWrapper* last_op = first_op->successors_[0];
@@ -52,15 +55,15 @@ base::Status FuseConvRelu::optimize(std::vector<TensorWrapper *>& tensor_reposit
   ConvParam->is_fusion_op_= true;
   ConvParam->activate_op_= ir::kOpTypeRelu;
 
+  
   // 4. 更新op_repository
   status = seqPatternMatchUpateOpRepository(tensor_repository, op_repository, types, begin_op_index);
   if (status != base::kStatusCodeOk) {
     return status;
   }
 
-  this->optimize(tensor_repository, op_repository, begin_op_index);
+  return this->optimize(tensor_repository, op_repository, begin_op_index);
 
-  return base::kStatusCodeOk;
 }
 
 TypeOptPassRegister<TypeOptPassCreator<FuseConvRelu>> g_fuse_conv_relu_register(base::kDeviceTypeCodeCpu, kOptPassTypeFuseConvRelu);

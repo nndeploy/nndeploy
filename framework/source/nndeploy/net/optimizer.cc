@@ -59,7 +59,7 @@ int OptPass::seqPatternMatch(std::vector<TensorWrapper *>& tensor_repository,
    *    a. 更新最后一个op的输出：其生产者改为第一个op
    *    b. 删除除开最后一个op以外所有的输出
    */
-base::Status OptPass::seqPatternMatchUpateOpRepository(std::vector<TensorWrapper *>& tensor_repository,
+base::Status OptPass::seqPatternMatchUpateTensorRepository(std::vector<TensorWrapper *>& tensor_repository,
                                 std::vector<OpWrapper *>& op_repository, const std::vector<ir::OpType>& types, int begin_op_index) {
   if (begin_op_index < 0 || begin_op_index >= op_repository.size()) {
     NNDEPLOY_LOGE("begin_op_index[%d] is invalid!\n", begin_op_index);
@@ -90,7 +90,7 @@ base::Status OptPass::seqPatternMatchUpateOpRepository(std::vector<TensorWrapper
   // 删除除最后一个op以外所有的输出
   OpWrapper* current_op = first_op;
   while (current_op != last_op) {
-    for (auto &tensor : tensor_repository) {
+    for (TensorWrapper*  tensor : tensor_repository) {
       if (tensor->producers_.size() != 1) {
         continue;
       }
@@ -103,6 +103,7 @@ base::Status OptPass::seqPatternMatchUpateOpRepository(std::vector<TensorWrapper
         // 从vector移除该tensor
         auto it = std::find(tensor_repository.begin(), tensor_repository.end(), tensor);
         if (it != tensor_repository.end()) {
+          // NNDEPLOY_LOGE("delete tensor name: %s\n", tensor->name_.c_str());
           tensor_repository.erase(it);
         }
         // tensor_repository.erase(tensor);
@@ -127,7 +128,7 @@ base::Status OptPass::seqPatternMatchUpateOpRepository(std::vector<TensorWrapper
   *    b. 更新最后一个节点的successors_节点：该节点的前驱节点改为第一个节点
   *    c. 删除除第一个节点外的节点
   */
-base::Status OptPass::seqPatternMatchUpateTensorRepository(std::vector<TensorWrapper *>& tensor_repository,
+base::Status OptPass::seqPatternMatchUpateOpRepository(std::vector<TensorWrapper *>& tensor_repository,
                                 std::vector<OpWrapper *>& op_repository, const std::vector<ir::OpType>& types, int begin_op_index) {
   if (begin_op_index >= op_repository.size() || begin_op_index < 0) {
     return base::kStatusCodeErrorInvalidParam;
@@ -144,8 +145,31 @@ base::Status OptPass::seqPatternMatchUpateTensorRepository(std::vector<TensorWra
     last_op = last_op->successors_[0];
   }
 
+  // NNDEPLOY_LOGE("第一个op的name: %s\n", first_op->name_.c_str());
+  // NNDEPLOY_LOGE("最后一个op的name: %s\n", last_op->name_.c_str());
+
+  // c. 删除除第一个节点外的节点
+  OpWrapper* current_op = first_op->successors_[0];
+  while (current_op != last_op) {
+    NNDEPLOY_LOGE("current_op name: %s\n", current_op->name_.c_str());
+    OpWrapper* next_op = current_op->successors_[0];
+    // 从op_repository中删除current_op
+    op_repository.erase(std::remove(op_repository.begin(), op_repository.end(), current_op), op_repository.end());
+    if (current_op->op_ != nullptr) {
+      delete current_op->op_;
+    }
+    delete current_op;
+    current_op = next_op;
+  }
+
+  
+
   // a. 更新第一个节点：OpWrapper的successors_改为最后一个节点的successors_
   first_op->successors_ = last_op->successors_;
+  NNDEPLOY_LOGE("first_op name: %s\n", first_op->name_.c_str());
+  
+
+  
 
   // b. 更新最后一个节点的successors_节点：该节点的前驱节点改为第一个节点
   for (auto successor : last_op->successors_) {
@@ -156,23 +180,17 @@ base::Status OptPass::seqPatternMatchUpateTensorRepository(std::vector<TensorWra
     }
   }
 
-  // c. 删除除第一个节点外的节点
-  OpWrapper* current_op = first_op->successors_[0];
-  while (current_op != last_op) {
-    OpWrapper* next_op = current_op->successors_[0];
-    // 从op_repository中删除current_op
-    op_repository.erase(std::remove(op_repository.begin(), op_repository.end(), current_op), op_repository.end());
-    if (current_op->op_ != nullptr) {
-      delete current_op->op_;
-    }
-    delete current_op;
-    current_op = next_op;
-  }
+  
+
+  // 删除最后一个节点
   op_repository.erase(std::remove(op_repository.begin(), op_repository.end(), last_op), op_repository.end());
   if (last_op->op_ != nullptr) {
       delete last_op->op_;
   }
   delete last_op;
+
+  
+  // 
 
   return base::kStatusCodeOk;
 }
