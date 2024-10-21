@@ -171,29 +171,39 @@ std::shared_ptr<Expr> makeAdd(ir::ModelDesc *model_desc,
   return expr;
 }
 
-// TODO: @Leonisux:
-// 补充llama的算子的手动构图函数
 
-// void testExpr() {
-//   {
-//     auto model_desc = std::make_shared<ir::ModelDesc>();
-//     auto input = makeInput("input", base::dataTypeOf<float>(), {1, 3, 224,
-//     224},
-//                            model_desc);
-//     auto conv1 =
-//         makeConv(input, "weight", "bias", std::make_shared<ir::ConvParam>(),
-//                    "conv1", "conv1.output", model_desc);
-//     auto relu1 = makeRelu(conv1, "relu1", "relu1.output", model_desc);
-//     auto output = makeOutput(relu1, model_desc);
-//   }
-//   {
-//     auto model_desc = std::make_shared<ir::ModelDesc>();
-//     auto input = makeInput(model_desc);
-//     auto conv1 = makeConv(model_desc, input, "weight", "bias");
-//     auto relu1 = makeRelu(model_desc, conv1);
-//     auto output = makeOutput(model_desc, relu1);
-//   }
-// }
+std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
+                                  std::shared_ptr<Expr> input,                
+                                  std::string op_name,
+                                  std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "relu" + std::to_string(index);
+    } else {
+      name = "relu";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  // 节点输出
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc = std::make_shared<ir::OpDesc>(name, ir::kOpTypeRelu, inputs,
+                                              outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+
 
 }  // namespace op
 }  // namespace nndeploy
