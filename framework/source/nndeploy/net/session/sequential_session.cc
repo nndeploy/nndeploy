@@ -50,9 +50,9 @@ base::Status SequentialSession::init(
       } else if (shape_size == 1) {
         tensor->setDataFormat(base::DataFormat::kDataFormatN);
       }
-      auto desc = tensor->getDesc();
-      NNDEPLOY_LOGE("tensor name = %s.\n", tensor->getName().c_str());
-      desc.print();
+      // auto desc = tensor->getDesc();
+      // NNDEPLOY_LOGE("tensor name = %s.\n", tensor->getName().c_str());
+      // desc.print();
     }
 
     status = tensor_pool_->allocate();

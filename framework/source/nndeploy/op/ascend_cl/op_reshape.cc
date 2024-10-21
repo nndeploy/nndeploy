@@ -29,9 +29,12 @@ class AscendCLOpReshape : public OpReshape {
   // inferShape已经把事情做完了，这里只需要把输入数据拷贝到输出即可
   virtual base::Status run() {
     if (outputs_[0]->getData() != inputs_[0]->getData()) {
+      size_t size_output = outputs_[0]->getSize();
+      size_t size_input = inputs_[0]->getSize();
+      size_t size_min = std::min(size_output, size_input);
       aclError ret = aclrtMemcpyAsync(
-          outputs_[0]->getData(), outputs_[0]->getSize(), inputs_[0]->getData(),
-          inputs_[0]->getSize(), ACL_MEMCPY_DEVICE_TO_DEVICE, inner_stream_);
+          outputs_[0]->getData(), size_min, inputs_[0]->getData(), size_min,
+          ACL_MEMCPY_DEVICE_TO_DEVICE, inner_stream_);
       if (ret != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclrtMemcpyAsync failed.");
         return base::kStatusCodeErrorOpAscendCL;

@@ -99,6 +99,7 @@ base::DeviceType getDeviceType() {
 }
 
 base::ModelType getModelType() {
+  printf("FLAGS_model_type = %s\n", FLAGS_model_type.c_str());
   return base::stringToModelType(FLAGS_model_type);
 }
 

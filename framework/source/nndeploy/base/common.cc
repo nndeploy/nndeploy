@@ -292,6 +292,7 @@ std::string deviceTypeToString(DeviceType src) {
 }
 
 ModelType stringToModelType(const std::string &src) {
+  printf("src = %s\n", src.c_str());
   if (src == "kModelTypeDefault") {
     return kModelTypeDefault;
   } else if (src == "kModelTypeOpenVino") {
@@ -304,7 +305,8 @@ ModelType stringToModelType(const std::string &src) {
     return kModelTypeTfLite;
   } else if (src == "kModelTypeOnnx") {
     return kModelTypeOnnx;
-  } else if (src == "KModelTypeAscendCL") {
+  } else if (src == "kModelTypeAscendCL") {
+    printf("kModelTypeAscendCL\n");
     return kModelTypeAscendCL;
   } else if (src == "kModelTypeNcnn") {
     return kModelTypeNcnn;
@@ -323,6 +325,7 @@ ModelType stringToModelType(const std::string &src) {
   } else if (src == "kModelTypeSnpe") {
     return kModelTypeSnpe;
   } else {
+    printf("src = %s\n", src.c_str());
     return kModelTypeNotSupport;
   }
 }

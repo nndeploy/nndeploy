@@ -25,6 +25,13 @@ class NNDEPLOY_CC_API OpWrapper {
   base::NodeColorType color_ = base::kNodeColorWhite;
 };
 
+enum InputOutputType {
+  kInput = 0,
+  kOutput = 1,
+  kBoth = 2,
+  kNone = 3,
+};
+
 class NNDEPLOY_CC_API TensorWrapper {
  public:
   bool is_external_;
@@ -33,6 +40,7 @@ class NNDEPLOY_CC_API TensorWrapper {
   std::string name_;
   std::vector<OpWrapper *> producers_;
   std::vector<OpWrapper *> consumers_;
+  InputOutputType input_output_type_ = kNone;
 };
 
 NNDEPLOY_CC_API device::Tensor *getTensor(

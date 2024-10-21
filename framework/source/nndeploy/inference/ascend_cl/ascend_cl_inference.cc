@@ -276,7 +276,25 @@ base::Status AscendCLInference::run() {
 
     status = device->synchronize();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "synchronize failed");
-
+#if 1
+    for (auto iter : output_tensors_) {
+      device::Tensor *output = iter.second;
+      std::string name = output->getName();
+      std::string filename = name;
+      size_t pos = 0;
+      while ((pos = filename.find('/')) != std::string::npos) {
+        filename.replace(pos, 1, "_");
+      }
+      filename += ".csv";
+      std::ofstream output_file(filename, std::ios::trunc);
+      if (output_file.is_open()) {
+        output->print(output_file);
+        output_file.close();
+      } else {
+        NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
+      }
+    }
+#endif
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());
     status = base::kStatusCodeErrorInferenceAscendCL;

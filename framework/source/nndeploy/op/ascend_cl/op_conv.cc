@@ -8,7 +8,6 @@
 
 namespace nndeploy {
 namespace op {
-// class AscendCLOpConvCallCustomnnop : public OpConv {};
 
 class AscendCLOpConv : public OpConv {
  public:
@@ -114,18 +113,18 @@ class AscendCLOpConv : public OpConv {
       // inner_bias_ = dst;
     }
 
-    if (op_desc_.name_ == "/model.0/conv/Conv") {
-      NNDEPLOY_LOGI("strides: %d, %d\n", param->strides_[0],
-                    param->strides_[1]);
-      NNDEPLOY_LOGI("pads: %d, %d, %d, %d\n", param->pads_[0], param->pads_[1],
-                    param->pads_[2], param->pads_[3]);
-      NNDEPLOY_LOGI("dilations: %d, %d\n", param->dilations_[0],
-                    param->dilations_[1]);
-      NNDEPLOY_LOGI("group: %d\n", param->group_);
-      weight_->getDesc().print();
-      bias_->getDesc().print();
-      // NNDEPLOY_LOGI("%s\n",base::dataFormatToString(dst_data_format_));
-    }
+    // if (op_desc_.name_ == "/model.0/conv/Conv") {
+    //   NNDEPLOY_LOGI("strides: %d, %d\n", param->strides_[0],
+    //                 param->strides_[1]);
+    //   NNDEPLOY_LOGI("pads: %d, %d, %d, %d\n", param->pads_[0], param->pads_[1],
+    //                 param->pads_[2], param->pads_[3]);
+    //   NNDEPLOY_LOGI("dilations: %d, %d\n", param->dilations_[0],
+    //                 param->dilations_[1]);
+    //   NNDEPLOY_LOGI("group: %d\n", param->group_);
+    //   weight_->getDesc().print();
+    //   bias_->getDesc().print();
+    //   // NNDEPLOY_LOGI("%s\n",base::dataFormatToString(dst_data_format_));
+    // }
 
     return base::kStatusCodeOk;
   }
@@ -158,10 +157,10 @@ class AscendCLOpConv : public OpConv {
     // 输入输出
     inner_input_ =
         AscendCLOpConvert::convertFromTensor(inputs_[0], dst_data_format_);
-    inputs_[0]->getDesc().print();
+    // inputs_[0]->getDesc().print();
     inner_output_ =
         AscendCLOpConvert::convertFromTensor(outputs_[0], dst_data_format_);
-    outputs_[0]->getDesc().print();
+    // outputs_[0]->getDesc().print();
     // 创建算子
     // aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSize(
     //     inner_input_, inner_weight_, nullptr, stride_, padding_, dilation_,

@@ -324,7 +324,7 @@ base::Status Net::inferDataType() {
 base::Status Net::inferShape() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
-    NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
+    // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->inferShape();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "inferDataType failed!");
@@ -360,6 +360,26 @@ base::Status Net::setMemory(device::Buffer *buffer) {
 
 base::Status Net::preRun() {
   base::Status status = base::kStatusCodeOk;
+
+#if 1
+  for (size_t i = 0; i < inputs_.size(); ++i) {
+    std::string path = "./net_output/";
+    std::string name = inputs_[i]->getName();
+    std::string filename = name;
+    size_t pos = 0;
+    while ((pos = filename.find('/')) != std::string::npos) {
+      filename.replace(pos, 1, "_");
+    }
+    filename = path + filename + ".csv";
+    std::ofstream output_file(filename, std::ios::trunc);
+    if (output_file.is_open()) {
+      inputs_[i]->print(output_file);
+      output_file.close();
+    } else {
+      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
+    }
+  }
+#endif
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag true!\n");
@@ -417,9 +437,16 @@ base::Status Net::postRun() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session run failed!");
 
   // 输出结果
-#if 0
+#if 1
   for (size_t i = 0; i < outputs_.size(); ++i) {
-    std::string filename = outputs_[i]->getName() + ".csv";
+    std::string path = "./net_output/";
+    std::string name = outputs_[i]->getName();
+    std::string filename = name;
+    size_t pos = 0;
+    while ((pos = filename.find('/')) != std::string::npos) {
+      filename.replace(pos, 1, "_");
+    }
+    filename = path + filename + ".csv";
     std::ofstream output_file(filename, std::ios::trunc);
     if (output_file.is_open()) {
       outputs_[i]->print(output_file);
@@ -491,8 +518,9 @@ base::Status Net::construct() {
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "create tensor failed!");
     }
+    input_wrapper->input_output_type_ = kInput;
     inputs_.emplace_back(input_wrapper->tensor_);
-
+    
     input_wrapper->tensor_->setDataType(input->data_type_);
 
     base::IntVector shape = input->shape_;
@@ -518,6 +546,7 @@ base::Status Net::construct() {
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
                                            "create tensor failed!");
     }
+    output_wrapper->input_output_type_ = kOutput;
     outputs_.emplace_back(output_wrapper->tensor_);
   }
 
@@ -529,7 +558,7 @@ base::Status Net::construct() {
                                          "tensor_repository_ op is null!");
   }
   for (auto tensor_wrapper : tensor_repository_) {
-    NNDEPLOY_LOGI("tensor name = %s\n", tensor_wrapper->name_.c_str());
+    // NNDEPLOY_LOGI("tensor name = %s\n", tensor_wrapper->name_.c_str());
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(tensor_wrapper->tensor_,
                                          "tensor_repository_ tensor is null!");
     if (tensor_wrapper->producers_.empty() &&
