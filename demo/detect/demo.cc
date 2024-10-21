@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
   // 模型类型，例如:
   // kModelTypeOnnx/kModelTypeMnn/...
   base::ModelType model_type = demo::getModelType();
+  printf("model_type = %d\n", model_type);
   // 模型是否是路径
   bool is_path = demo::isPath();
   // 模型路径或者模型字符串
@@ -148,6 +149,8 @@ int main(int argc, char *argv[]) {
     }
   }
   NNDEPLOY_TIME_POINT_END("graph->run");
+
+  NNDEPLOY_LOGI("hello world!\n");
 
   // 有向无环图graph反初始化
   status = graph->deinit();

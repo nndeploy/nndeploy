@@ -75,7 +75,7 @@ class AscendCLOpTranspose : public OpTranspose {
     std::vector<int64_t> perm_;
     for (int64_t i = 0; i < shape[0]; ++i) {
       perm_.push_back((int64_t)param->perm_[i]);
-      NNDEPLOY_LOGE("perm_=%d\n", perm_[i]);
+      // NNDEPLOY_LOGE("perm_=%d\n", perm_[i]);
     }
     CreateAclTensor(perm_, shape, &perm_device_ptr_, ACL_INT64, &perm_tensor_);
 
@@ -108,8 +108,6 @@ class AscendCLOpTranspose : public OpTranspose {
     NNDEPLOY_LOGE("auto executor_ = new UniqueExecutor(l0op::Transpose);\n");
     //  perm_tensor_ = executor_->get()->ConvertToTensor((const aclIntArray
     //  *)perm_array_, ACL_INT64);
-    inputs_[0]->getDesc().print();
-    outputs_[0]->getDesc().print();
     auto param = dynamic_cast<ir::TransposeParam *>(op_desc_.op_param_.get());
     std::vector<int64_t> shape;
     shape.push_back((int64_t)param->perm_.size());

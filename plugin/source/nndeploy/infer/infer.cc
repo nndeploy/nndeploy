@@ -138,6 +138,22 @@ base::Status Infer::run() {
   }
   for (auto tensor : tensors) {
     inference_->setInputTensor(tensor->getName(), tensor);
+    
+#if 1
+    std::string name = tensor->getName();
+    std::string filename = name + ".csv";
+    size_t pos = 0;
+    while ((pos = filename.find('/')) != std::string::npos) {
+      filename.replace(pos, 1, "_");
+    }
+    std::ofstream output_file(filename, std::ios::trunc);
+    if (output_file.is_open()) {
+      tensor->print(output_file);
+      output_file.close();
+    } else {
+      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
+    }
+#endif
   }
   status = inference_->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
@@ -152,6 +168,22 @@ base::Status Infer::run() {
       status = base::kStatusCodeErrorInvalidParam;
       break;
     }
+
+#if 1
+    std::string filename = name + ".csv";
+    size_t pos = 0;
+    while ((pos = filename.find('/')) != std::string::npos) {
+      filename.replace(pos, 1, "_");
+    }
+    std::ofstream output_file(filename, std::ios::trunc);
+    if (output_file.is_open()) {
+      tensor->print(output_file);
+      output_file.close();
+    } else {
+      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
+    }
+#endif
+
     output->set(tensor, index, false);
   }
   // NNDEPLOY_LOGE("infer end!Thread ID: %d.\n", std::this_thread::get_id());

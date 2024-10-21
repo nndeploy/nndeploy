@@ -39,11 +39,8 @@ class AscendCLOpSplit : public OpSplit {
     // 输入输出
     inner_input_ =
         AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
-    inputs_[0]->getDesc().print();
     inner_outputs_ =
         AscendCLOpConvert::convertFromTensor(outputs_, ACL_FORMAT_ND);
-    outputs_[0]->getDesc().print();
-    outputs_[1]->getDesc().print();
 
     split_sections_ = inputs_[0]->getShapeIndex(dim_) / split_sections_;
     NNDEPLOY_LOGE("split_sections_ = %d\n", split_sections_);

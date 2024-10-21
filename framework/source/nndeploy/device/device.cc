@@ -1,4 +1,3 @@
-
 #include "nndeploy/device/device.h"
 
 namespace nndeploy {
@@ -27,38 +26,38 @@ getArchitectureMap() {
 }
 
 void *Device::getContext() {
-  NNDEPLOY_LOGI("this device[%d, %d] can't getContext!\n", device_type_.code_,
+  NNDEPLOY_LOGI("this device[%d, %d] no need to get context!\n", device_type_.code_,
                 device_type_.device_id_);
   return nullptr;
 }
 
 int Device::newCommandQueue() {
-  NNDEPLOY_LOGI("this device[%d, %d] can't newCommandQueue!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] no need to new command queue!\n",
                 device_type_.code_, device_type_.device_id_);
   return -1;
 }
 base::Status Device::deleteCommandQueue(int index) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't deleteCommandQueue!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] no need to delete command queue!\n",
                 device_type_.code_, device_type_.device_id_);
   return base::kStatusCodeOk;
 }
 base::Status Device::deleteCommandQueue(void *command_queue) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't deleteCommandQueue!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] no need to delete command queue!\n",
                 device_type_.code_, device_type_.device_id_);
   return base::kStatusCodeOk;
 }
 int Device::setCommandQueue(void *command_queue, bool is_external) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't setCommandQueue!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] no need to set command queue!\n",
                 device_type_.code_, device_type_.device_id_);
   return -1;
 }
 void *Device::getCommandQueue(int index) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't getCommandQueue!\n",
+  NNDEPLOY_LOGI("this device[%d, %d] no need to get command queue!\n",
                 device_type_.code_, device_type_.device_id_);
   return nullptr;
 }
 base::Status Device::synchronize(int index) {
-  NNDEPLOY_LOGI("this device[%d, %d] can't synchronize!\n", device_type_.code_,
+  NNDEPLOY_LOGI("this device[%d, %d] no need to synchronize!\n", device_type_.code_,
                 device_type_.device_id_);
   return base::kStatusCodeOk;
 }

@@ -26,6 +26,13 @@ base::Status TensorPool1DSharedObject::initTensorUsageRecord() {
     if (tensor_repository_[i]->is_weight_) {
       continue;
     }
+    // if (tensor_repository_[i]->input_output_type_ != kNone) {
+    //   NNDEPLOY_LOGI("tensor name = %s.\n",
+    //                 tensor_repository_[i]->tensor_->getName().c_str());
+    //   if (tensor_repository_[i]->tensor_ != nullptr) {
+    //     continue;
+    //   }
+    // }
     auto tensor_usage_record = std::make_shared<TensorUsageRecord>();
     tensor_usage_record->tensor_wrapper_ = tensor_repository_[i];
     device::TensorDesc tensor_desc = tensor_repository_[i]->tensor_->getDesc();
@@ -44,6 +51,10 @@ base::Status TensorPool1DSharedObject::initTensorUsageRecord() {
       if (order_index[j] > max) {
         max = order_index[j];
       }
+    }
+    if (tensor_repository_[i]->input_output_type_ != kNone) {
+      min = 0;
+      max = op_repository.size() - 1;
     }
     tensor_usage_record->interval_[0] = min;
     tensor_usage_record->interval_[1] = max;
@@ -207,7 +218,7 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
       //                   ->tensor_wrapper_->tensor_->getName()
       //                   .c_str());
       // NNDEPLOY_LOGE("size_=%ld.\n", tensor_usage_records_[i]->size_);
-      tensor_usage_records_[i]->tensor_wrapper_->tensor_->getDesc().print();
+      // tensor_usage_records_[i]->tensor_wrapper_->tensor_->getDesc().print();
       size_t size = tensor_usage_records_[i]->size_;
       chunk->buffer_ = new device::Buffer(device_, size);
       if (chunk->buffer_ == nullptr) {
