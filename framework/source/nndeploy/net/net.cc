@@ -261,12 +261,16 @@ base::Status Net::init() {
 
   // 即使是设备相关的图优化，也可以放在优化器中做
   // 经过这一次图优化之后
+  
   status = optimizer();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph optimizer failed!");
+  
 
   status = this->session();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph session failed!");
+
+  
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");
@@ -646,8 +650,10 @@ base::Status Net::session() {
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("create session\n");
   // NNDEPLOY_LOGI("##############\n");
+  
   session_ = createSession(device_type_, parallel_type_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(session_, "Create session failed!");
+  
 
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("session init\n");
