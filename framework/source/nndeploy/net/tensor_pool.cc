@@ -75,10 +75,16 @@ std::vector<int> getOpOrderIndex(std::vector<OpWrapper *> &producers,
 bool isInterval(std::array<int, 2> &interval,
                 std::vector<std::array<int, 2>> &intervals) {
   for (size_t i = 0; i < intervals.size(); i++) {
+    // 检查interval的起始点是否在intervals[i]内
     if (interval[0] >= intervals[i][0] && interval[0] <= intervals[i][1]) {
       return true;
     }
+    // 检查interval的结束点是否在intervals[i]内
     if (interval[1] >= intervals[i][0] && interval[1] <= intervals[i][1]) {
+      return true;
+    }
+    // 检查interval是否完全包含intervals[i]
+    if (interval[0] <= intervals[i][0] && interval[1] >= intervals[i][1]) {
       return true;
     }
   }

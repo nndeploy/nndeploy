@@ -362,7 +362,7 @@ base::Status Net::setMemory(device::Buffer *buffer) {
 base::Status Net::preRun() {
   base::Status status = base::kStatusCodeOk;
 
-#if 1
+#if 0
   for (size_t i = 0; i < inputs_.size(); ++i) {
     std::string path = "./net_output/";
     std::string name = inputs_[i]->getName();
@@ -438,7 +438,7 @@ base::Status Net::postRun() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session run failed!");
 
   // 输出结果
-#if 1
+#if 0
   for (size_t i = 0; i < outputs_.size(); ++i) {
     std::string path = "./net_output/";
     std::string name = outputs_[i]->getName();
