@@ -49,7 +49,7 @@ int OptPass::seqPatternMatch(std::vector<TensorWrapper*>& tensor_repository,
       for (int k = 0; k < types.size() - 1; ++k) {
         for (TensorWrapper* tensor : tensor_repository) {
           if (tensor->producers_.size() == 1 &&
-            tensor->producers_[0] == middle_op &&
+              tensor->producers_[0] == middle_op &&
               tensor->input_output_type_ == kOutput) {
             match = false;
             break;

@@ -85,18 +85,15 @@ class AscendCLOpSplit : public OpSplit {
                   workspace_size_);
     if (flag_) {
       // 输入输出
-      aclnnStatus aclnn_status = aclnnSplitTensor(workspace_,
-      workspace_size_,
+      aclnnStatus aclnn_status = aclnnSplitTensor(workspace_, workspace_size_,
                                                   executor_, inner_stream_);
       if (aclnn_status != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclnnSplitTensor 失败，错误码: %d\n", aclnn_status);
       }
     } else {
       // 输入输出
-      aclnnStatus aclnn_status = aclnnSplitWithSize(workspace_,
-      workspace_size_,
-                                                    executor_,
-                                                    inner_stream_);
+      aclnnStatus aclnn_status = aclnnSplitWithSize(workspace_, workspace_size_,
+                                                    executor_, inner_stream_);
       if (aclnn_status != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclnnSplitWithSize 失败，错误码: %d\n", aclnn_status);
       }

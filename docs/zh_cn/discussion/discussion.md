@@ -256,3 +256,12 @@ net op tensor
 weights是否作为inputs中的一员传递 (统一接口层)
 
 attrs作为具体计算类的一个属性赋值
+
+
+## 后续规划
++ 推理子模块
++ 框架完善
++ python导出
+
+## safetensors
++ 

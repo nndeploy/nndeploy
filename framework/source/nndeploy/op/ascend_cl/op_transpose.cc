@@ -39,14 +39,14 @@ namespace op {
 //   // 调用aclrtMalloc申请device侧内存
 //   auto ret = aclrtMalloc(deviceAddr, size, ACL_MEM_MALLOC_HUGE_FIRST);
 //   NNDEPLOY_CHECK_RET(ret == ACL_SUCCESS,
-//                      NNDEPLOY_LOG_PRINT("aclrtMalloc failed. ERROR: %d\n", ret);
-//                      return ret);
+//                      NNDEPLOY_LOG_PRINT("aclrtMalloc failed. ERROR: %d\n",
+//                      ret); return ret);
 //   // 调用aclrtMemcpy将host侧数据拷贝到device侧内存上
 //   ret = aclrtMemcpy(*deviceAddr, size, hostData.data(), size,
 //                     ACL_MEMCPY_HOST_TO_DEVICE);
 //   NNDEPLOY_CHECK_RET(ret == ACL_SUCCESS,
-//                      NNDEPLOY_LOG_PRINT("aclrtMemcpy failed. ERROR: %d\n", ret);
-//                      return ret);
+//                      NNDEPLOY_LOG_PRINT("aclrtMemcpy failed. ERROR: %d\n",
+//                      ret); return ret);
 
 //   // 计算连续tensor的strides
 //   std::vector<int64_t> strides(shape.size(), 1);
@@ -90,11 +90,10 @@ class AscendCLOpTranspose : public OpTranspose {
         AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
     // 创建executor
     aclnnStatus aclnn_status = aclnnPermuteGetWorkspaceSize(
-          inner_input_, dims_, inner_output_, &workspace_size_,
-          &executor_);
+        inner_input_, dims_, inner_output_, &workspace_size_, &executor_);
     if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnPermuteGetWorkspaceSize 失败，错误码: %d",
-                      aclnn_status);
+      NNDEPLOY_LOGE("aclnnPermuteGetWorkspaceSize 失败，错误码: %d",
+                    aclnn_status);
     }
 
     return base::kStatusCodeOk;
