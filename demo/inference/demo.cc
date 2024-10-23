@@ -18,10 +18,9 @@ class TestDesc : public ir::ModelDesc {
     auto conv1 = op::makeConv(this, input, conv_param, "weight", "bias");
     auto relu1 = op::makeRelu(this, conv1);
     auto relu2 = op::makeRelu(this, relu1);
-    // auto softmax = op::makeSoftMax(this, relu1,
-    // std::make_shared<ir::SoftmaxParam>()); op::makeOutput(this, softmax);
-    // TODO：除最后一个节点外，中间节点的输出tensor不能为模型的输出节点（该要点还未实现,需完善OptPass::seqPatternMatch）
-    // op::makeOutput(this, relu1);
+    // auto softmax = op::makeSoftMax(this, relu1, std::make_shared<ir::SoftmaxParam>()); 
+    // op::makeOutput(this, softmax);
+    op::makeOutput(this, relu1);
     op::makeOutput(this, relu2);
   }
 };
