@@ -93,6 +93,8 @@ class ValueDesc {
   base::IntVector shape_;
 };
 
+// onnx / 自定义模型 -》ir(interpret)
+
 /**
  * @brief 参照onnx的格式，描述模型的结构
  *
