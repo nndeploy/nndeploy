@@ -139,7 +139,7 @@ base::Status Infer::run() {
   for (auto tensor : tensors) {
     inference_->setInputTensor(tensor->getName(), tensor);
 
-#if 1
+#if 0
     std::string name = tensor->getName();
     std::string filename = name + ".csv";
     size_t pos = 0;
@@ -169,7 +169,7 @@ base::Status Infer::run() {
       break;
     }
 
-#if 1
+#if 0
     std::string filename = name + ".csv";
     size_t pos = 0;
     while ((pos = filename.find('/')) != std::string::npos) {

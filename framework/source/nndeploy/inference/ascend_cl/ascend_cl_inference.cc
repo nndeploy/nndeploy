@@ -276,7 +276,7 @@ base::Status AscendCLInference::run() {
 
     status = device->synchronize();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "synchronize failed");
-#if 1
+#if 0
     for (auto iter : output_tensors_) {
       device::Tensor *output = iter.second;
       std::string name = output->getName();

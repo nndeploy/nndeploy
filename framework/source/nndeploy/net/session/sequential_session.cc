@@ -1,6 +1,7 @@
 
 
 #include "nndeploy/net/session/sequential_session.h"
+#include "nndeploy/base/time_profiler.h"
 
 namespace nndeploy {
 namespace net {
@@ -185,6 +186,7 @@ base::Status SequentialSession::run() {
   for (auto iter : op_repository_) {
     iter->op_->setWorkspace(workspace);
   }
+  NNDEPLOY_TIME_POINT_START("net->run()");
   for (auto iter : op_repository_) {
     // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->run();
@@ -193,6 +195,8 @@ base::Status SequentialSession::run() {
       return status;
     }
   }
+  device->synchronize();
+  NNDEPLOY_TIME_POINT_END("net->run()");
   if (workspace != nullptr) {
     device->deallocate(workspace);
   }

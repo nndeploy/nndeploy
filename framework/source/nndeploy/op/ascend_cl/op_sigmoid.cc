@@ -44,6 +44,28 @@ class AscendCLOpSigmoid : public OpUnary {
                                  base::kStatusCodeErrorOpAscendCL,
                                  "aclnnSigmoid failed.");
 
+    // 同步流
+#if 0
+    std::string name_ = outputs_[0]->getName();
+    if (name_ == "/model.1/act/Sigmoid_output_0") {
+      aclrtSynchronizeStream(inner_stream_);
+      std::string path = "./net_output/";
+      std::string name = outputs_[0]->getName();
+      std::string filename = name;
+      size_t pos = 0;
+      while ((pos = filename.find('/')) != std::string::npos) {
+        filename.replace(pos, 1, "_");
+      }
+      filename = path + filename + "inner.csv";
+      std::ofstream output_file(filename, std::ios::trunc);
+      if (output_file.is_open()) {
+        outputs_[0]->print(output_file);
+        output_file.close();
+      } else {
+        NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
+      }
+    }
+#endif
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {

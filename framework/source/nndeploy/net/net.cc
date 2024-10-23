@@ -362,7 +362,7 @@ base::Status Net::setMemory(device::Buffer *buffer) {
 base::Status Net::preRun() {
   base::Status status = base::kStatusCodeOk;
 
-#if 1
+#if 0
   for (size_t i = 0; i < inputs_.size(); ++i) {
     std::string path = "./net_output/";
     std::string name = inputs_[i]->getName();
