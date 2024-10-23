@@ -246,7 +246,7 @@ Finish! Here is the difference:
 
 ## 问题
 + split算子在有些昇腾910上会运行失败(910b4不会)
-+ transpose参数写错了
++ transpose参数写错了(调用也不起效果)
 + 8.0之后的310b的卷积算子运行出错
 + CREATE_EXECUTOR运行出错
   + 很多头文件出错 
