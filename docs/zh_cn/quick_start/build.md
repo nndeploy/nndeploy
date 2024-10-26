@@ -119,7 +119,7 @@ git submodule update --init --recursive
     make install
     ```
 
-  + 让python 可以识别,参考 nndeploy/python/README.md
+  + 让python 可以识别, 参考 nndeploy/python/README.md
 
 
 ## Android
