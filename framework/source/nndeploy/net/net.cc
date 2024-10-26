@@ -440,7 +440,14 @@ base::Status Net::postRun() {
   // 输出结果
 #if 0
   for (size_t i = 0; i < outputs_.size(); ++i) {
-    std::string filename = outputs_[i]->getName() + ".csv";
+    std::string path = "./net_output/";
+    std::string name = outputs_[i]->getName();
+    std::string filename = name;
+    size_t pos = 0;
+    while ((pos = filename.find('/')) != std::string::npos) {
+      filename.replace(pos, 1, "_");
+    }
+    filename = path + filename + ".csv";
     std::ofstream output_file(filename, std::ios::trunc);
     if (output_file.is_open()) {
       outputs_[i]->print(output_file);
