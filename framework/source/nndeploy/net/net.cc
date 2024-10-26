@@ -3,7 +3,6 @@
 
 #include "nndeploy/net/session.h"
 #include "nndeploy/op/op.h"
-#include "nndeploy/net/optimizer.h"
 
 namespace nndeploy {
 namespace net {
@@ -437,16 +436,9 @@ base::Status Net::postRun() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session run failed!");
 
   // 输出结果
-#if 1
+#if 0
   for (size_t i = 0; i < outputs_.size(); ++i) {
-    std::string path = "./net_output/";
-    std::string name = outputs_[i]->getName();
-    std::string filename = name;
-    size_t pos = 0;
-    while ((pos = filename.find('/')) != std::string::npos) {
-      filename.replace(pos, 1, "_");
-    }
-    filename = path + filename + ".csv";
+    std::string filename = outputs_[i]->getName() + ".csv";
     std::ofstream output_file(filename, std::ios::trunc);
     if (output_file.is_open()) {
       outputs_[i]->print(output_file);
