@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     std::cout << "rmsnorm passed" << std::endl;
   }
   free(data_test);
-
+  device::destoryArchitecture();
   // 新增算子测试
 
   return 0;
