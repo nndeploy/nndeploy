@@ -85,6 +85,7 @@ base::Status Op::setInput(device::Tensor *input) {
   } else {
     op_desc_.inputs_.emplace_back(input->getName());
   }
+  input_change_flag_ = true;
   return base::kStatusCodeOk;
 }
 base::Status Op::setOutput(device::Tensor *output) {
@@ -100,7 +101,10 @@ base::Status Op::setOutput(device::Tensor *output) {
 base::Status Op::setInput(device::Tensor *input, int index) {
   if (input != nullptr) {
     if (inputs_.size() > index) {
-      inputs_[index] = input;
+      if (inputs_[index] != input) {
+        inputs_[index] = input;
+        input_change_flag_ = true;
+      }
       if (op_desc_.inputs_.size() > index) {
         op_desc_.inputs_[index] = input->getName();
       } else {
@@ -114,6 +118,7 @@ base::Status Op::setInput(device::Tensor *input, int index) {
       } else {
         op_desc_.inputs_.emplace_back(input->getName());
       }
+      input_change_flag_ = true;
       return base::kStatusCodeOk;
     }
   }
@@ -171,9 +176,18 @@ std::vector<device::Tensor *> Op::getAllInput() { return inputs_; }
 std::vector<device::Tensor *> Op::getAllOutput() { return outputs_; }
 
 base::Status Op::setAllInput(std::vector<device::Tensor *> inputs) {
-  inputs_ = inputs;
   op_desc_.inputs_.clear();
-  for (const auto &input : inputs) {
+  for (size_t i = 0; i < inputs.size(); ++i) {
+    device::Tensor *input = inputs[i];
+    if (inputs_.size() > i) {
+      if (inputs_[i] != input) {
+        inputs_[i] = input;
+        input_change_flag_ = true;
+      }
+    } else {
+      inputs_.emplace_back(input);
+      input_change_flag_ = true;
+    }
     op_desc_.inputs_.push_back(input->getName());
   }
   return base::kStatusCodeOk;
@@ -228,10 +242,21 @@ void Op::setRunningFlag(bool flag) {
 bool Op::isRunning() { return is_running_; }
 
 base::Status Op::init() { return base::kStatusCodeOk; }
-base::Status Op::deinit() { return base::kStatusCodeOk; }
+base::Status Op::deinit() {
+  if (!workspace_is_external_ && workspace_size_ > 0 && workspace_ != nullptr) {
+    device::Device *device = device::getDevice(device_type_);
+    device->deallocate(workspace_);
+    workspace_is_external_ = false;
+    workspace_size_ = 0U;
+  }
+  return base::kStatusCodeOk;
+}
 
 uint64_t Op::getWorkspaceSize() { return workspace_size_; }
-void Op::setWorkspace(void *workspace) { workspace_ = workspace; }
+void Op::setWorkspace(void *workspace) {
+  workspace_is_external_ = true;
+  workspace_ = workspace;
+}
 
 base::Status Op::inferDataType() {
   auto input_dtype = inputs_[0]->getDataType();
@@ -261,31 +286,43 @@ base::Status Op::reshape(base::ShapeMap &shape_map) {
   return base::kStatusCodeOk;
 }
 
-base::Status Op::preRun() { return base::kStatusCodeOk; }
-base::Status Op::postRun() { return base::kStatusCodeOk; }
-
-// 对所有输出Tensor进行检查，检查其内存是否满足Op运行
-// 或者申请内存
-base::Status Op::checkOrAllocOutput() {
-  base::Status status = base::kStatusCodeOk;
-  inferShape();
+/**
+ * @brief preRun
+ *
+ * @return base::Status
+ */
+base::Status Op::preRun() {
+  bool buffer_empty_flag = false;
   for (auto output : outputs_) {
     if (output->getBuffer() == nullptr) {
-      auto device = device::getDevice(inputs_[0]->getDeviceType());
-      output->allocate(device);
-
-    } else {
-      // TODO: 如何进行检查： 直接检查Buffer的size 和
-      // 形状推理后Tensor的size大小吗
-
-      status = base::kStatusCodeErrorOutOfMemory;
-
+      buffer_empty_flag = true;
       break;
     }
   }
+  if (input_change_flag_ || buffer_empty_flag) {
+    this->inferDataType();
+    this->inferShape();
+    this->inferDataFormat();
 
-  return status;
+    device::Device *device = device::getDevice(device_type_);
+    for (auto &output : outputs_) {
+      auto cur_tensor_desc = output->getDesc();
+      auto cur_buffer_desc =
+          device->toBufferDesc(cur_tensor_desc, base::IntVector());
+      if (!buffer_empty_flag) {
+        auto old_buffer_desc = output->getBuffer()->getDesc();
+        if (old_buffer_desc >= cur_buffer_desc) {
+          continue;
+        }
+      }
+      output->deallocate();
+      output->allocate(device);
+    }
+  }
+
+  return base::kStatusCodeOk;
 }
+base::Status Op::postRun() { return base::kStatusCodeOk; }
 
 std::map<base::DeviceTypeCode,
          std::map<ir::OpType, std::shared_ptr<OpCreator>>> &

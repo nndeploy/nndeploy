@@ -40,7 +40,14 @@ class NNDEPLOY_CC_API Op {
   base::Status setDeviceType(base::DeviceType device_type);
   base::DeviceType getDeviceType();
 
-  // 设置为virtual的原因：精度不同，内存分配不同，计算方式不同
+  /**
+   * @brief 设置精度类型 精度不同，计算方式不同，内存分配不同
+   *
+   * @param precision_type
+   * @return base::Status
+   * @note
+   * 当且仅当data_type为浮点数类型时，precision_type_会与data_type一起，共同决定具体调用的kernel函数
+   */
   virtual base::Status setPrecisionType(base::PrecisionType precision_type);
   base::Status getPrecisionType();
 
@@ -90,54 +97,134 @@ class NNDEPLOY_CC_API Op {
   void setRunningFlag(bool flag);
   bool isRunning();
 
+  /**
+   * @brief 类型推理
+   *
+   * @return base::Status
+   * @note 当输入的data_type确定时，在计算图Net::init中会调用该函数
+   */
   virtual base::Status inferDataType();
+  /**
+   * @brief 形状推理
+   *
+   * @return base::Status
+   * @note 当输入的shape确定时，在计算图Net::init中调用该函数
+   */
   virtual base::Status inferShape();
-  virtual base::Status reshape(base::ShapeMap &shape_map);
+  /**
+   * @brief 数据格式推理
+   *
+   * @return base::Status
+   * @note 当输入的shape数据格式时，在计算图Net::init中调用该函数
+   */
+  virtual base::Status inferDataFormat();
 
   /**
    * @brief 初始化
    *
    * @return base::Status
-   * @note 对于output两种情况：
-   * 1. 在图初始化前：outputs内存已分配好
-   * 2. 在图初始化时 ：outputs内存未分配，需要在init()中分配
+   * @note 功能
+   * 1. 参数
+   * 2. 权重
    */
   virtual base::Status init();
   virtual base::Status deinit();
 
+  /**
+   * @brief 重新推理形状，通常在初始化之后、preRun前调用
+   *
+   * @param shape_map
+   * @return base::Status
+   */
+  virtual base::Status reshape(base::ShapeMap &shape_map);
+
+  /**
+   * @brief 得到op的workspace大小
+   * note: op在运行时的workspace大小，在输入确定后调用
+   * eg：例如Conv，当存在padding时，需要分配额外的内存，存放padding后的内存
+   */
   virtual uint64_t getWorkspaceSize();
   virtual void setWorkspace(void *workspace);
 
+  /**
+   * @brief preRun 确定输入后运行，只运行一次
+   *
+   * @return base::Status
+   * @note
+   * 当输入、参数没修改时，该函数只运行一次。
+   * # 检查输出是否需要重新分配内存
+   * # 确定workspace
+   */
   virtual base::Status preRun();
   virtual base::Status run() = 0;
   virtual base::Status postRun();
 
-  // 检查输出tensor的
-  virtual base::Status checkOrAllocOutput();
-
  protected:
+  /**
+   * @brief op的描述
+   * 包含op的类型、名称、输入名称、输出名称、参数
+   */
   ir::OpDesc op_desc_;
 
+  /**
+   * @brief op的设备类型
+   */
   base::DeviceType device_type_;
+  /**
+   * @brief op的精度类型
+   * note: 精度类型与输入输出tensor的data_type的不同
+   * # data_type大部分时候决定具体调用的kernel函数
+   * #
+   * 当且仅当data_type为浮点数类型时，precision_type_会与data_type一起，共同决定具体调用的kernel函数
+   */
   base::PrecisionType precision_type_ = base::kPrecisionTypeFp32;
 
+  bool input_change_flag_ = false;
+  /**
+   * @brief op的输入tensor
+   * note: 当权重为tensor时，权重tensor也会在这里
+   * eg:
+   * # 当op为Conv时，inputs_[0]为输入数据，inputs_[1]为weight, inputs_[2]为bias
+   * 内存分配
+   * # 权重内存：
+   * ## 在初始化时完成，当权重与推理设备要求的权重一致时，浅拷贝即可
+   * ## 当权重与推理设备要求的权重不一致时，需要进行内存迁移
+   * # op输入
+   * ## 已经完成分配
+   */
   std::vector<device::Tensor *> inputs_;
+  /**
+   * @brief op的输出tensor
+   * note: outputs_的内存分配
+   * 内存分配
+   * #
+   * 当计算图的形状在初始化可以确定时（有最大shape也可以），outputs_的内存分配在net->init()中完成，由tensor_pool分配
+   * #
+   * 当计算图的形状在初始化时无法确定时，outputs_的内存分配在preRun分配，输入内存在preRun已经完成，但是该tensor的所有权始终属于外部调用方
+   */
   std::vector<device::Tensor *> outputs_;
 
-  uint64_t workspace_size_ = 0;
-  void *workspace_ = nullptr;
+  /**
+   * @brief op的workspace大小
+   * note: op在运行时的workspace大小, 在preRun中确定
+   * eg：例如Conv，当存在padding时，需要分配额外的内存，存放padding后的内存
+   */
+  bool workspace_is_external_ = false;  // workspace是否是外部传入
+  uint64_t workspace_size_ = 0;         // workspace大小
+  void *workspace_ = nullptr;           // op的workspace
 
-  bool constructed_ = false;
   // 是否是图中内部节点
   bool is_inner_ = false;
+  // 并行类型
   base::ParallelType parallel_type_ = base::kParallelTypeNone;
+  // 是否 可以是inplace op
+  bool is_inplace_ = false;
+
+  bool constructed_ = false;
   bool initialized_ = false;
   bool is_running_ = false;
   bool is_time_profile_ = false;
   bool is_debug_ = false;
-
-  // 是否是inplace op
-  bool is_inplace_ = false;
 };
 
 /**

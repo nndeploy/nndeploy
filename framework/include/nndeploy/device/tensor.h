@@ -89,6 +89,16 @@ class NNDEPLOY_CC_API Tensor {
   }
 
   // modify
+  /**
+   * @brief 
+   * 
+   * @param shape 
+   * @return base::Status 
+   * @note 三种情况
+   * # buffer为空，直接reshape
+   * # buffer不为空，reshape后的buffer空间小于或当前buffer的空间，reshape并且更新buffer
+   * # buffer不为空，
+   */
   base::Status reshape(base::IntVector shape);
   bool justModify(const TensorDesc &desc);
   bool justModify(Buffer *buffer);
@@ -137,7 +147,7 @@ class NNDEPLOY_CC_API Tensor {
   Device *getDevice() const;
   MemoryPool *getMemoryPool() const;
   bool isMemoryPool() const;
-  BufferDesc toBufferDesc() const;
+  BufferDesc getBufferDesc() const;
   size_t getSize() const;
   base::SizeVector getSizeVector() const;
   size_t getRealSize() const;

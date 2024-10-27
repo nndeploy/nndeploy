@@ -268,6 +268,9 @@ base::Status Tensor::reshape(base::IntVector shape) {
     return base::kStatusCodeErrorInvalidParam;
   }
   desc_.shape_ = shape;
+  auto device = getDevice();
+  auto buffer_desc = device->toBufferDesc(desc_, base::IntVector());
+  buffer_->justModify(buffer_desc);
   return base::kStatusCodeOk;
 }
 bool Tensor::justModify(const TensorDesc &desc) {
@@ -400,7 +403,7 @@ void Tensor::print(std::ostream &stream) {
   Device *host_device = getDefaultHostDevice();
   Buffer *host_buffer = nullptr;
   if (!device::isHostDeviceType(this->getDeviceType())) {
-    host_buffer = new Buffer(host_device, this->toBufferDesc());
+    host_buffer = new Buffer(host_device, this->getBufferDesc());
     if (host_buffer == nullptr) {
       NNDEPLOY_LOGE("host_buffer is empty");
       return;
@@ -693,7 +696,7 @@ bool Tensor::isMemoryPool() const {
     return false;
   }
 }
-BufferDesc Tensor::toBufferDesc() const {
+BufferDesc Tensor::getBufferDesc() const {
   if (buffer_) {
     return buffer_->getDesc();
   } else {
