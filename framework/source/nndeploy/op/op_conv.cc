@@ -125,8 +125,86 @@ base::Status OpConv::inferShape() {
 }
 
 base::Status OpConv::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
-  return base::kStatusCodeOk;
+  base::Status status = base::kStatusCodeOk;
+  // 获取输入和权重张量
+  device::Tensor *input_tensor = inputs_[0];
+  device::Tensor *weight_tensor = inputs_[1];
+  device::Tensor *bias_tensor = inputs_.size() > 2 ? inputs_[2] : nullptr;
+  device::Tensor *output_tensor = outputs_[0];
+
+  // 获取输入和权重的维度信息
+  auto input_shape = input_tensor->getShape();
+  auto weight_shape = weight_tensor->getShape();
+  auto output_shape = output_tensor->getShape();
+
+  // 获取卷积参数
+  auto param = dynamic_cast<ir::ConvParam *>(op_desc_.op_param_.get());
+  std::vector<int> pads = param->pads_;
+  std::vector<int> strides = param->strides_;
+  std::vector<int> dilations = param->dilations_;
+  std::vector<int> kernel_shape = param->kernel_shape_;
+
+  // 执行卷积操作
+  float *input_data = static_cast<float *>(input_tensor->getData());
+  float *weight_data = static_cast<float *>(weight_tensor->getData());
+  float *output_data = static_cast<float *>(output_tensor->getData());
+  float *bias_data =
+      bias_tensor ? static_cast<float *>(bias_tensor->getData()) : nullptr;
+
+  int output_height = output_shape[2];
+  int output_width = output_shape[3];
+
+  for (int n = 0; n < input_shape[0]; ++n) {
+    for (int f = 0; f < weight_shape[0]; ++f) {
+      for (int y = 0; y < output_height; ++y) {
+        for (int x = 0; x < output_width; ++x) {
+          float value = 0.0f;
+          for (int k = 0; k < input_shape[1]; ++k) {
+            for (int i = 0; i < kernel_shape[0]; ++i) {
+              for (int j = 0; j < kernel_shape[1]; ++j) {
+                int input_y = y * strides[0] + i * dilations[0] - pads[0];
+                int input_x = x * strides[1] + j * dilations[1] - pads[1];
+                if (input_y >= 0 && input_y < input_shape[2] && input_x >= 0 &&
+                    input_x < input_shape[3]) {
+                  value += input_data[n * input_shape[1] * input_shape[2] *
+                                          input_shape[3] +
+                                      k * input_shape[2] * input_shape[3] +
+                                      input_y * input_shape[3] + input_x] *
+                           weight_data[f * input_shape[1] * kernel_shape[0] *
+                                           kernel_shape[1] +
+                                       k * kernel_shape[0] * kernel_shape[1] +
+                                       i * kernel_shape[1] + j];
+                }
+              }
+            }
+          }
+
+          // bias  add
+          if (bias_data) {
+            value += bias_data[f];
+          }
+
+          // 融合算子
+          if (param->is_fusion_op_) {
+            switch (param->activate_op_) {
+              case ir::kOpTypeRelu:
+                value = value > 0.0f ? value : 0.0f;
+                break;
+
+              default:
+                NNDEPLOY_LOGI("not implemented.\n");
+                return base::kStatusCodeOk;
+            }
+          }
+          output_data[n * weight_shape[0] * output_height * output_width +
+                      f * output_height * output_width + y * output_width + x] =
+              value;
+        }
+      }
+    }
+  }
+
+  return status;
 }
 
 base::Status conv(device::Tensor *input, device::Tensor *weight,
