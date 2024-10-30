@@ -91,7 +91,8 @@ git submodule update --init --recursive
 
   + 安装opencv
     + `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
-  + 安装TensorRT、cudnn、cuda、显卡驱动
+  + 安装TensorRT cpp sdk [参考链接](https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing-debian)、cudnn、cuda、GPU driver
+
   
 + 具体步骤
   + 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
@@ -117,6 +118,9 @@ git submodule update --init --recursive
      ```
     make install
     ```
+
+  + 让python 可以识别, 参考 nndeploy/python/README.md
+
 
 ## Android
 
@@ -159,8 +163,6 @@ git submodule update --init --recursive
      ```
     make install
     ```
-
-  注：
 
 ## Mac（TODO）
 

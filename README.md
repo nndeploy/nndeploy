@@ -80,7 +80,7 @@
 - 我们已将第三方库、模型仓库和测试数据上传至[HuggingFace](https://huggingface.co/alwaysssss/nndeploy)上，如有需要，欢迎您前往下载使用。
 
 ## 文档
-- 更多信息，访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/)。
+- 编译安装请访问 https://nndeploy-zh.readthedocs.io/zh/latest/quick_start/build.html. 更多信息访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/)。
 
 
 ## 下一步规划
