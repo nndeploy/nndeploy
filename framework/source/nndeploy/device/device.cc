@@ -6,7 +6,24 @@ namespace device {
 Architecture::Architecture(base::DeviceTypeCode device_type_code)
     : device_type_code_(device_type_code) {};
 
-Architecture::~Architecture() {};
+Architecture::~Architecture() {
+  for (auto iter : devices_) {
+    if (iter.second != nullptr) {
+      delete iter.second;
+    }
+  }
+  devices_.clear();
+};
+
+base::Status Architecture::disableDevice() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  for (auto iter : devices_) {
+    if (iter.second != nullptr) {
+      iter.second->deinit();
+    }
+  }
+  return base::kStatusCodeOk;
+}
 
 base::DeviceTypeCode Architecture::getDeviceTypeCode() {
   return device_type_code_;
@@ -130,7 +147,24 @@ std::vector<DeviceInfo> getDeviceInfo(base::DeviceTypeCode type,
   return architecture->getDeviceInfo(library_path);
 }
 
+base::Status disableDevice() {
+  auto &architecture_map = getArchitectureMap();
+  for (auto iter : architecture_map) {
+    base::Status status = iter.second->disableDevice();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("disableDevice failed\n");
+      return status;
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
 base::Status destoryArchitecture() {
+  base::Status status = disableDevice();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("disableDevice failed\n");
+    return status;
+  }
   auto &architecture_map = getArchitectureMap();
   architecture_map.clear();
   return base::kStatusCodeOk;

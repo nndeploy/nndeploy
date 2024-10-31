@@ -116,7 +116,7 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   virtual void *getContext();
 
   virtual int newCommandQueue();
-  virtual base::Status deleteCommandQueue(int index = -1);
+  virtual base::Status deleteCommandQueue(int index);
   virtual base::Status deleteCommandQueue(void *command_queue);
   virtual int setCommandQueue(void *command_queue, bool is_external = true);
 

@@ -13,15 +13,7 @@ TypeArchitectureRegister<CudaArchitecture> cuda_architecture_register(
 CudaArchitecture::CudaArchitecture(base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code) {};
 
-CudaArchitecture::~CudaArchitecture() {
-  for (auto iter : devices_) {
-    CudaDevice *tmp_device = dynamic_cast<CudaDevice *>(iter.second);
-    if (tmp_device->deinit() != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("device deinit failed\n");
-    }
-    delete tmp_device;
-  }
-};
+CudaArchitecture::~CudaArchitecture() {};
 
 base::Status CudaArchitecture::checkDevice(int device_id, void *command_queue,
                                            std::string library_path) {
@@ -247,9 +239,9 @@ int CudaDevice::newCommandQueue() {
   return stream_index_;
 }
 base::Status CudaDevice::deleteCommandQueue(int index) {
-  if (index < 0) {
-    index = stream_index_;
-  }
+  // if (index < 0) {
+  //   index = stream_index_;
+  // }
   if (index <= 0) {
     NNDEPLOY_LOGE("index[%d] is error\n", index);
     return base::kStatusCodeErrorDeviceAscendCL;
@@ -303,9 +295,9 @@ int CudaDevice::setCommandQueue(void *command_queue, bool is_external) {
 }
 
 void *CudaDevice::getCommandQueue(int index) {
-  if (index < 0) {
-    index = stream_index_;
-  }
+  // if (index < 0) {
+  //   index = stream_index_;
+  // }
   if (cuda_stream_wrapper_.find(index) == cuda_stream_wrapper_.end()) {
     NNDEPLOY_LOGE("getCommandQueue failed\n");
     return nullptr;

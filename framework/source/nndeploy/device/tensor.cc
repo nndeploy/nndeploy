@@ -105,7 +105,9 @@ Tensor &Tensor::operator=(Tensor &&tensor) noexcept {
   return *this;
 }
 
-Tensor::~Tensor() { this->clear(); }
+Tensor::~Tensor() { 
+  this->clear();
+}
 
 // create
 void Tensor::create(const std::string &name) {

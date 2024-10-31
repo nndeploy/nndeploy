@@ -12,15 +12,7 @@ TypeArchitectureRegister<ArmArchitecture> arm_architecture_register(
 ArmArchitecture::ArmArchitecture(base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code) {};
 
-ArmArchitecture::~ArmArchitecture() {
-  for (auto iter : devices_) {
-    ArmDevice *tmp_device = dynamic_cast<ArmDevice *>(iter.second);
-    if (tmp_device->deinit() != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("device deinit failed\n");
-    }
-    delete tmp_device;
-  }
-};
+ArmArchitecture::~ArmArchitecture() {};
 
 base::Status ArmArchitecture::checkDevice(int device_id, void *command_queue,
                                           std::string library_path) {

@@ -63,6 +63,8 @@ class NNDEPLOY_CC_API Net : public op::Op {
 
   virtual base::Status inferDataType();
   virtual base::Status inferShape();
+  virtual base::Status inferDataFormat();
+
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual base::Status preRun();

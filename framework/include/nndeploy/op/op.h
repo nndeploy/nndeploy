@@ -22,6 +22,20 @@
 namespace nndeploy {
 namespace op {
 
+/**
+ * @brief Op的基类
+ * @note
+ * # 单算子模式
+ * ## 当输出tensor为空时，内部分配
+ * ## 当输出tensor不为空时，检测当前输出tensor的内存是否足够，如果足够，则直接使用，否则报错
+ * # 计算图Net模式
+ * ## 静态shape，由tensor pool分配
+ * ## 动态shape
+ * ### 指定了max_shape，则由tensor pool按最大shape分配，调用reshape函数时，只是重新调整了tensor逻辑shape的大小
+ * ### 未指定max_shape，每次调用reshape函数时，在计算图层面都会：先释放上一次分配的内存，再重新分配内存
+ * ## 大语言模型
+ * ### kvblock的方式
+ */
 class NNDEPLOY_CC_API Op {
  public:
   Op();
@@ -139,14 +153,6 @@ class NNDEPLOY_CC_API Op {
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
   /**
-   * @brief 得到op的workspace大小
-   * note: op在运行时的workspace大小，在输入确定后调用
-   * eg：例如Conv，当存在padding时，需要分配额外的内存，存放padding后的内存
-   */
-  virtual uint64_t getWorkspaceSize();
-  virtual void setWorkspace(void *workspace);
-
-  /**
    * @brief preRun 确定输入后运行，只运行一次
    *
    * @return base::Status
@@ -156,6 +162,14 @@ class NNDEPLOY_CC_API Op {
    * # 确定workspace
    */
   virtual base::Status preRun();
+  /**
+   * @brief 得到op的workspace大小
+   * note: op在运行时的workspace大小，在输入确定后调用
+   * eg：例如Conv，当存在padding时，需要分配额外的内存，存放padding后的内存
+   */
+  virtual uint64_t getWorkspaceSize();
+  virtual void setWorkspace(void *workspace);
+
   virtual base::Status run() = 0;
   virtual base::Status postRun();
 
@@ -179,7 +193,6 @@ class NNDEPLOY_CC_API Op {
    */
   base::PrecisionType precision_type_ = base::kPrecisionTypeFp32;
 
-  bool input_change_flag_ = false;
   /**
    * @brief op的输入tensor
    * note: 当权重为tensor时，权重tensor也会在这里
@@ -195,12 +208,18 @@ class NNDEPLOY_CC_API Op {
   std::vector<device::Tensor *> inputs_;
   /**
    * @brief op的输出tensor
-   * note: outputs_的内存分配
-   * 内存分配
-   * #
-   * 当计算图的形状在初始化可以确定时（有最大shape也可以），outputs_的内存分配在net->init()中完成，由tensor_pool分配
-   * #
-   * 当计算图的形状在初始化时无法确定时，outputs_的内存分配在preRun分配，输入内存在preRun已经完成，但是该tensor的所有权始终属于外部调用方
+   * 
+   * @note: outputs_的内存分配
+   * # 单算子模式
+   * ## 当输出tensor为空时，内部分配
+   * ## 当输出tensor不为空时，检测当前输出tensor的内存是否足够，如果足够，则直接使用，否则报错
+   * # 计算图Net模式
+   * ## 静态shape，由tensor pool分配
+   * ## 动态shape
+   * ### 指定了max_shape，则由tensor pool按最大shape分配，调用reshape函数时，只是重新调整了tensor逻辑shape的大小
+   * ### 未指定max_shape，每次调用reshape函数时，在计算图层面都会：先释放上一次分配的内存，再重新分配内存
+   * ## 大语言模型
+   * ### kvblock的方式
    */
   std::vector<device::Tensor *> outputs_;
 
@@ -219,7 +238,9 @@ class NNDEPLOY_CC_API Op {
   base::ParallelType parallel_type_ = base::kParallelTypeNone;
   // 是否 可以是inplace op
   bool is_inplace_ = false;
-
+  // 参数&输入是否发生变化
+  bool is_changed_ = false;
+  
   bool constructed_ = false;
   bool initialized_ = false;
   bool is_running_ = false;
@@ -325,6 +346,13 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
 Op *createOp(base::DeviceType device_type, const std::string &name,
              ir::OpType op_type, std::vector<std::string> &inputs,
              std::vector<std::string> &outputs);
+
+Op *createOp(base::DeviceType device_type, const std::string &name,
+             ir::OpType op_type, std::vector<std::string> &inputs,
+             std::vector<std::string> &outputs,
+             std::shared_ptr<base::Param> param);
+
+Op *createOp(base::DeviceType device_type, std::shared_ptr<ir::OpDesc> op_desc);
 
 using SISOOpFunc =
     std::function<base::Status(device::Tensor *input, device::Tensor *output,

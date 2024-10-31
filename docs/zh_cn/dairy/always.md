@@ -148,6 +148,20 @@
 + git submodule add git@github.com:onnx/onnx.git third_party/onnx
 + git submodule add git@github.com:protocolbuffers/protobuf.git third_party/protobuf
 
++ git submodule add https://github.com/Tencent/rapidjson.git third_party/rapidjson
++ git clone --recurse-submodules https://github.com/Tencent/rapidjson.git
+
++ git clone --recurse-submodules https://github.com/gflags/gflags.git
+
++ git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git
+
++ git clone --recurse-submodules https://github.com/onnx/onnx.git
+
++ git clone --recurse-submodules https://github.com/mlc-ai/tokenizers-cpp.git
+
++ git clone --recurse-submodules https://github.com/pybind/pybind11.git
+
+
 CMake Error in third_party/onnx/CMakeLists.txt:
   export called with target "onnx_proto" which requires target "libprotobuf"
   that is not in any export set.

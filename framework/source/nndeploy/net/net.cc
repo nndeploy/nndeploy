@@ -332,6 +332,16 @@ base::Status Net::inferShape() {
   }
   return status;
 };
+base::Status Net::inferDataFormat() {
+  base::Status status = base::kStatusCodeOk;
+  for (auto iter : op_repository_) {
+    // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
+    status = iter->op_->inferDataFormat();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "inferDataFormat failed!");
+  }
+  return status;
+};
 base::Status Net::reshape(base::ShapeMap &shape_map) {
   base::Status status = base::kStatusCodeOk;
 
@@ -362,26 +372,6 @@ base::Status Net::setMemory(device::Buffer *buffer) {
 base::Status Net::preRun() {
   base::Status status = base::kStatusCodeOk;
 
-#if 0
-  for (size_t i = 0; i < inputs_.size(); ++i) {
-    std::string path = "./net_output/";
-    std::string name = inputs_[i]->getName();
-    std::string filename = name;
-    size_t pos = 0;
-    while ((pos = filename.find('/')) != std::string::npos) {
-      filename.replace(pos, 1, "_");
-    }
-    filename = path + filename + ".csv";
-    std::ofstream output_file(filename, std::ios::trunc);
-    if (output_file.is_open()) {
-      inputs_[i]->print(output_file);
-      output_file.close();
-    } else {
-      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
-    }
-  }
-#endif
-
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag true!\n");
   // NNDEPLOY_LOGI("###########################\n");
@@ -409,11 +399,55 @@ base::Status Net::run() {
   // NNDEPLOY_LOGI("###########################\n");
   setRunningFlag(true);
 
+  // 输入
+#if 0
+  for (size_t i = 0; i < inputs_.size(); ++i) {
+    std::string path = "./net/";
+    std::string name = inputs_[i]->getName();
+    std::string filename = name;
+    size_t pos = 0;
+    while ((pos = filename.find('/')) != std::string::npos) {
+      filename.replace(pos, 1, "_");
+    }
+    filename = path + filename + ".csv";
+    std::ofstream output_file(filename, std::ios::trunc);
+    if (output_file.is_open()) {
+      inputs_[i]->print(output_file);
+      output_file.close();
+    } else {
+      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
+    }
+  }
+#endif
+
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
   status = session_->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session run failed!");
+
+  // 输出
+#if 0
+  device::Device *device = device::getDevice(device_type_);
+  device->synchronize();
+  for (size_t i = 0; i < outputs_.size(); ++i) {
+    std::string path = "./net/";
+    std::string name = outputs_[i]->getName();
+    std::string filename = name;
+    size_t pos = 0;
+    while ((pos = filename.find('/')) != std::string::npos) {
+      filename.replace(pos, 1, "_");
+    }
+    filename = path + filename + ".csv";
+    std::ofstream output_file(filename, std::ios::trunc);
+    if (output_file.is_open()) {
+      outputs_[i]->print(output_file);
+      output_file.close();
+    } else {
+      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
+    }
+  }
+#endif
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
@@ -436,27 +470,6 @@ base::Status Net::postRun() {
   // NNDEPLOY_LOGI("#######################\n");
   status = session_->postRun();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session run failed!");
-
-  // 输出结果
-#if 0
-  for (size_t i = 0; i < outputs_.size(); ++i) {
-    std::string path = "./net_output/";
-    std::string name = outputs_[i]->getName();
-    std::string filename = name;
-    size_t pos = 0;
-    while ((pos = filename.find('/')) != std::string::npos) {
-      filename.replace(pos, 1, "_");
-    }
-    filename = path + filename + ".csv";
-    std::ofstream output_file(filename, std::ios::trunc);
-    if (output_file.is_open()) {
-      outputs_[i]->print(output_file);
-      output_file.close();
-    } else {
-      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
-    }
-  }
-#endif
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");

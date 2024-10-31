@@ -40,6 +40,7 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
   virtual base::Status enableDevice(int device_id = 0,
                                     void *command_queue = nullptr,
                                     std::string library_path = "") = 0;
+  virtual base::Status disableDevice();
 
   virtual Device *getDevice(int device_id) = 0;
 
@@ -111,7 +112,7 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   virtual void *getContext();
 
   virtual int newCommandQueue();
-  virtual base::Status deleteCommandQueue(int index = -1);
+  virtual base::Status deleteCommandQueue(int index);
   virtual base::Status deleteCommandQueue(void *command_queue);
   virtual int setCommandQueue(void *command_queue, bool is_external = true);
 
@@ -154,6 +155,8 @@ extern NNDEPLOY_CC_API Device *getDevice(base::DeviceType device_type);
 
 extern NNDEPLOY_CC_API std::vector<DeviceInfo> getDeviceInfo(
     base::DeviceTypeCode type, std::string library_path);
+
+extern NNDEPLOY_CC_API base::Status disableDevice();
 
 extern NNDEPLOY_CC_API base::Status destoryArchitecture();
 

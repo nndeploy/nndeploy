@@ -16,15 +16,7 @@ AscendCLArchitecture::AscendCLArchitecture(
     base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code) {};
 
-AscendCLArchitecture::~AscendCLArchitecture() {
-  for (auto iter : devices_) {
-    AscendCLDevice *tmp_device = dynamic_cast<AscendCLDevice *>(iter.second);
-    if (tmp_device->deinit() != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("device deinit failed\n");
-    }
-    delete tmp_device;
-  }
-};
+AscendCLArchitecture::~AscendCLArchitecture() {};
 
 void AscendCLArchitecture::setAclConfigPath(
     int device_id, const std::string &acl_config_path) {
@@ -322,9 +314,9 @@ int AscendCLDevice::newCommandQueue() {
   return stream_index_;
 }
 base::Status AscendCLDevice::deleteCommandQueue(int index) {
-  if (index < 0) {
-    index = stream_index_;
-  }
+  // if (index < 0) {
+  //   index = stream_index_;
+  // }
   // 0号stream不能删除
   if (index <= 0) {
     NNDEPLOY_LOGE("index[%d] is error\n", index);
@@ -378,9 +370,9 @@ int AscendCLDevice::setCommandQueue(void *command_queue, bool is_external) {
 }
 
 void *AscendCLDevice::getCommandQueue(int index) {
-  if (index < 0) {
-    index = stream_index_;
-  }
+  // if (index < 0) {
+  //   index = stream_index_;
+  // }
   if (acl_stream_wrapper_.find(index) == acl_stream_wrapper_.end()) {
     NNDEPLOY_LOGE("getCommandQueue failed.\n");
     return nullptr;

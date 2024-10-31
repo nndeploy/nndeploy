@@ -12,15 +12,7 @@ TypeArchitectureRegister<X86Architecture> x86_architecture_register(
 X86Architecture::X86Architecture(base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code) {};
 
-X86Architecture::~X86Architecture() {
-  for (auto iter : devices_) {
-    X86Device *tmp_device = dynamic_cast<X86Device *>(iter.second);
-    if (tmp_device->deinit() != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("device deinit failed\n");
-    }
-    delete tmp_device;
-  }
-};
+X86Architecture::~X86Architecture() {};
 
 base::Status X86Architecture::checkDevice(int device_id, void *command_queue,
                                           std::string library_path) {

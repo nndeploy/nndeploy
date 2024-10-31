@@ -205,7 +205,7 @@ base::Status randnTensor(T &generator, float mean, float std, Tensor *tensor,
   Device *host_device = getDefaultHostDevice();
   Buffer *host_buffer = nullptr;
   if (!device::isHostDeviceType(tensor->getDeviceType())) {
-    host_buffer = new Buffer(host_device, tensor->toBufferDesc());
+    host_buffer = new Buffer(host_device, tensor->getBufferDesc());
     if (host_buffer == nullptr) {
       NNDEPLOY_LOGE("host_buffer is empty");
       return base::kStatusCodeErrorNullParam;

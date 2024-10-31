@@ -13,15 +13,7 @@ TypeArchitectureRegister<CpuArchitecture> cpu_architecture_register(
 CpuArchitecture::CpuArchitecture(base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code) {};
 
-CpuArchitecture::~CpuArchitecture() {
-  for (auto iter : devices_) {
-    CpuDevice *tmp_device = dynamic_cast<CpuDevice *>(iter.second);
-    if (tmp_device->deinit() != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("device deinit failed");
-    }
-    delete tmp_device;
-  }
-};
+CpuArchitecture::~CpuArchitecture() {};
 
 base::Status CpuArchitecture::checkDevice(int device_id, void *command_queue,
                                           std::string library_path) {

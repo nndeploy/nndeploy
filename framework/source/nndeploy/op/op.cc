@@ -11,15 +11,11 @@ Op::Op() { constructed_ = true; }
 Op::~Op() {
   inputs_.clear();
   outputs_.clear();
-  constructed_ = false;
-  initialized_ = false;
-  is_running_ = false;
-  is_time_profile_ = false;
-  is_debug_ = false;
 }
 
 base::Status Op::setName(std::string name) {
   op_desc_.name_ = name;
+  is_changed_ = true;
   return base::kStatusCodeOk;
 }
 std::string Op::getName() { return op_desc_.name_; }
@@ -27,6 +23,7 @@ std::string Op::getName() { return op_desc_.name_; }
 base::Status Op::setOpType(ir::OpType op_type) {
   op_desc_.op_type_ = op_type;
   op_desc_.op_param_ = ir::createOpParam(op_type);
+  is_changed_ = true;
   return base::kStatusCodeOk;
 }
 ir::OpType Op::getOpType() { return op_desc_.op_type_; }
@@ -34,6 +31,7 @@ ir::OpType Op::getOpType() { return op_desc_.op_type_; }
 base::Status Op::setParam(std::shared_ptr<base::Param> param) {
   base::Status status = base::kStatusCodeOk;
   if (param != nullptr && op_desc_.op_param_ != nullptr) {
+    is_changed_ = true;
     return param->copyTo(op_desc_.op_param_.get());
   }
   return status;
@@ -42,12 +40,14 @@ std::shared_ptr<base::Param> Op::getParam() { return op_desc_.op_param_; }
 
 base::Status Op::setDeviceType(base::DeviceType device_type) {
   device_type_ = device_type;
+  is_changed_ = true;
   return base::kStatusCodeOk;
 }
 base::DeviceType Op::getDeviceType() { return device_type_; }
 
 base::Status Op::setPrecisionType(base::PrecisionType precision_type) {
   precision_type_ = precision_type;
+  is_changed_ = true;
   return base::kStatusCodeOk;
 }
 base::Status Op::getPrecisionType() { return precision_type_; }
@@ -85,7 +85,7 @@ base::Status Op::setInput(device::Tensor *input) {
   } else {
     op_desc_.inputs_.emplace_back(input->getName());
   }
-  input_change_flag_ = true;
+  is_changed_ = true;
   return base::kStatusCodeOk;
 }
 base::Status Op::setOutput(device::Tensor *output) {
@@ -103,7 +103,7 @@ base::Status Op::setInput(device::Tensor *input, int index) {
     if (inputs_.size() > index) {
       if (inputs_[index] != input) {
         inputs_[index] = input;
-        input_change_flag_ = true;
+        is_changed_ = true;
       }
       if (op_desc_.inputs_.size() > index) {
         op_desc_.inputs_[index] = input->getName();
@@ -118,7 +118,7 @@ base::Status Op::setInput(device::Tensor *input, int index) {
       } else {
         op_desc_.inputs_.emplace_back(input->getName());
       }
-      input_change_flag_ = true;
+      is_changed_ = true;
       return base::kStatusCodeOk;
     }
   }
@@ -151,21 +151,25 @@ base::Status Op::setOutput(device::Tensor *output, int index) {
 
 base::Status Op::setAllInputName(std::initializer_list<std::string> name) {
   op_desc_.inputs_ = name;
+  is_changed_ = true;
   return base::kStatusCodeOk;
 }
 
 base::Status Op::setAllOutputName(std::initializer_list<std::string> name) {
   op_desc_.outputs_ = name;
+  is_changed_ = true;
   return base::kStatusCodeOk;
 }
 
 base::Status Op::setAllInputName(std::vector<std::string> &name) {
   op_desc_.inputs_ = name;
+  is_changed_ = true;
   return base::kStatusCodeOk;
 }
 
 base::Status Op::setAllOutputName(std::vector<std::string> &name) {
   op_desc_.outputs_ = name;
+  is_changed_ = true;
   return base::kStatusCodeOk;
 }
 
@@ -182,11 +186,11 @@ base::Status Op::setAllInput(std::vector<device::Tensor *> inputs) {
     if (inputs_.size() > i) {
       if (inputs_[i] != input) {
         inputs_[i] = input;
-        input_change_flag_ = true;
+        is_changed_ = true;
       }
     } else {
       inputs_.emplace_back(input);
-      input_change_flag_ = true;
+      is_changed_ = true;
     }
     op_desc_.inputs_.push_back(input->getName());
   }
@@ -207,19 +211,32 @@ base::Status Op::setParallelType(const base::ParallelType &paralle_type) {
   if (parallel_type_ == base::kParallelTypeNone) {
     parallel_type_ = paralle_type;
   }
+  is_changed_ = true;
   return base::kStatusCodeOk;
 }
 base::ParallelType Op::getParallelType() { return parallel_type_; }
 
-void Op::setInnerFlag(bool flag) { is_inner_ = flag; }
+void Op::setInnerFlag(bool flag) {
+  is_inner_ = flag;
+  is_changed_ = true;
+}
 
-void Op::setInitializedFlag(bool flag) { initialized_ = flag; }
+void Op::setInitializedFlag(bool flag) {
+  initialized_ = flag;
+  is_changed_ = true;
+}
 bool Op::getInitialized() { return initialized_; }
 
-void Op::setTimeProfileFlag(bool flag) { is_time_profile_ = flag; }
+void Op::setTimeProfileFlag(bool flag) {
+  is_time_profile_ = flag;
+  is_changed_ = true;
+}
 bool Op::getTimeProfileFlag() { return is_time_profile_; }
 
-void Op::setDebugFlag(bool flag) { is_debug_ = flag; }
+void Op::setDebugFlag(bool flag) {
+  is_debug_ = flag;
+  is_changed_ = true;
+}
 bool Op::getDebugFlag() { return is_debug_; }
 
 void Op::setRunningFlag(bool flag) {
@@ -238,10 +255,13 @@ void Op::setRunningFlag(bool flag) {
       NNDEPLOY_LOGE("%s run end.\n", op_desc_.name_.c_str());
     }
   }
+  is_changed_ = true;
 }
 bool Op::isRunning() { return is_running_; }
 
-base::Status Op::init() { return base::kStatusCodeOk; }
+base::Status Op::init() {
+  return base::kStatusCodeOk;
+}
 base::Status Op::deinit() {
   if (!workspace_is_external_ && workspace_size_ > 0 && workspace_ != nullptr) {
     device::Device *device = device::getDevice(device_type_);
@@ -266,6 +286,13 @@ base::Status Op::inferDataType() {
   return base::kStatusCodeOk;
 };
 base::Status Op::inferShape() { return base::kStatusCodeOk; };
+base::Status Op::inferDataFormat() {
+  auto input_data_format = inputs_[0]->getDataFormat();
+  for (int i = 0; i < outputs_.size(); ++i) {
+    outputs_[i]->setDataFormat(input_data_format);
+  }
+  return base::kStatusCodeOk;
+};
 base::Status Op::reshape(base::ShapeMap &shape_map) {
   bool channge_flag = false;
   for (auto input : inputs_) {
@@ -281,6 +308,7 @@ base::Status Op::reshape(base::ShapeMap &shape_map) {
     }
   }
   if (channge_flag) {
+    is_changed_ = true;
     this->inferShape();
   }
   return base::kStatusCodeOk;
@@ -292,34 +320,30 @@ base::Status Op::reshape(base::ShapeMap &shape_map) {
  * @return base::Status
  */
 base::Status Op::preRun() {
-  bool buffer_empty_flag = false;
-  for (auto output : outputs_) {
-    if (output->getBuffer() == nullptr) {
-      buffer_empty_flag = true;
-      break;
+  if (is_changed_) {
+    base::Status status = this->inferDataType();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Data type inference failed");
+      return status;
     }
-  }
-  if (input_change_flag_ || buffer_empty_flag) {
-    this->inferDataType();
-    this->inferShape();
-    this->inferDataFormat();
-
-    device::Device *device = device::getDevice(device_type_);
+    status = this->inferShape();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Shape inference failed");
+      return status;
+    }
+    status = this->inferDataFormat();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Data format inference failed");
+      return status;
+    }
     for (auto &output : outputs_) {
-      auto cur_tensor_desc = output->getDesc();
-      auto cur_buffer_desc =
-          device->toBufferDesc(cur_tensor_desc, base::IntVector());
-      if (!buffer_empty_flag) {
-        auto old_buffer_desc = output->getBuffer()->getDesc();
-        if (old_buffer_desc >= cur_buffer_desc) {
-          continue;
-        }
+      if (output->getBuffer() == nullptr) {
+        device::Device *device = device::getDevice(device_type_);
+        output->allocate(device);
       }
-      output->deallocate();
-      output->allocate(device);
     }
+    is_changed_ = false;
   }
-
   return base::kStatusCodeOk;
 }
 base::Status Op::postRun() { return base::kStatusCodeOk; }
@@ -383,6 +407,45 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
     }
   }
   return nullptr;
+}
+
+Op *createOp(base::DeviceType device_type, const std::string &name,
+             ir::OpType op_type, std::vector<std::string> &inputs,
+             std::vector<std::string> &outputs,
+             std::shared_ptr<base::Param> param) {
+  Op *op = nullptr;
+  auto &creater_map = getGlobalOpCreatorMap();
+  auto device_map = creater_map.find(device_type.code_);
+  if (device_map != creater_map.end()) {
+    auto &op_map = device_map->second;
+    auto creator = op_map.find(op_type);
+    if (creator != op_map.end()) {
+      op = creator->second->createOp(device_type, name, op_type, inputs, outputs);
+      if (op != nullptr) {  
+        op->setParam(param);
+      }
+    }
+  }
+  return op;
+}
+
+Op *createOp(base::DeviceType device_type, std::shared_ptr<ir::OpDesc> op_desc) {
+  Op *op = nullptr;
+  if (op_desc != nullptr) {
+    auto &creater_map = getGlobalOpCreatorMap();
+    auto device_map = creater_map.find(device_type.code_);
+    if (device_map != creater_map.end()) {
+      auto &op_map = device_map->second;
+      auto creator = op_map.find(op_desc->op_type_);
+      if (creator != op_map.end()) {
+        op = creator->second->createOp(device_type, op_desc->name_,
+                                       op_desc->op_type_, op_desc->inputs_,
+                                       op_desc->outputs_);
+        op->setParam(op_desc->op_param_);
+      }
+    }
+  }
+  return op;
 }
 
 }  // namespace op
