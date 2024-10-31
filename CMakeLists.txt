@@ -308,6 +308,11 @@ set(FRAMEWORK_ROOT_PATH ${ROOT_PATH}/framework)
 
 # nndeploy source
 # # attention GLOB or GLOB_RECURSE
+file(GLOB NNDEPLOY_FRAMEWORK_SOURCE
+    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/*.h"
+    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/*.cc"
+    )
+
 if(ENABLE_NNDEPLOY_BASE)
   file(GLOB_RECURSE BASE_SOURCE
     "${FRAMEWORK_ROOT_PATH}/include/nndeploy/base/*.h"

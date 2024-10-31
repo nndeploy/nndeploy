@@ -4,6 +4,7 @@
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/framework.h"
 
 using namespace nndeploy;
 
@@ -23,7 +24,7 @@ int main(int argc, char const *argv[]) {
 
   NNDEPLOY_LOGE("hello world\n");
 
-  device::disableDevice();
+  nndeployFrameworkDeinit();
 
   NNDEPLOY_LOGE("hello world\n");
   return 0;
