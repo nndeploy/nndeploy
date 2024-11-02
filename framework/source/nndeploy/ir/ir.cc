@@ -525,18 +525,11 @@ base::Status ModelDesc::serializeWeightsToSafetensorsImpl(
         "weight.second->serialize_to_safetensors(safetensors::safetensors_t "
         "&st, bool serialize_buffer)failed!\n");
   }
-  // for (auto &block : blocks_) {
-  //   // base::Status status = block->serializeWeightsToBinary(stream);
-  //   base::Status status =
-  //       block->serializeWeightsToSafetensorsImpl(st, serialize_buffer);
-  //   NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, status,
-  //                                "block->serializeWeightsToSafetensorsImpl!\n");
-  // }
   return base::kStatusCodeOk;
 }
 
 base::Status ModelDesc::serializeWeightsToSafetensors(
-    std::shared_ptr<safetensors::safetensors_t>& st_ptr) const {
+    std::shared_ptr<safetensors::safetensors_t> &st_ptr) const {
   base::Status status = base::kStatusCodeOk;
   if (st_ptr_ != nullptr) {
     // assume we do not do trainning
@@ -546,8 +539,6 @@ base::Status ModelDesc::serializeWeightsToSafetensors(
   // not be mmaped, so we create one
   std::shared_ptr<safetensors::safetensors_t> serialize_st_ptr(
       new safetensors::safetensors_t());
-  // safetensors::safetensors_t *serialize_st_ptr =
-  //     new safetensors::safetensors_t();
   serialize_st_ptr->metadata.insert("format", "pt");
 
   // 1. first record the tensor desc
@@ -577,7 +568,6 @@ base::Status ModelDesc::serializeWeightsToSafetensors(
       status, base::kStatusCodeOk, status,
       "model->serializeWeightsToSafetensorsImpl save buffer failed!\n");
 
-  // st_ptr = std::make_shared<const safetensors::safetensors_t>(*serialize_st_ptr);
   serialize_st_ptr->mmaped = false;
   st_ptr = serialize_st_ptr;
 

@@ -175,9 +175,11 @@ int main(int argc, char const *argv[]) {
     std::string line;
     // 使用 std::getline 逐行读取文件内容
     while (std::getline(inFile, line)) {
-      std::cout << line << std::endl;  // 输出每行内容到控制台
+      // std::cout << line << std::endl;  // 输出每行内容到控制台
       new_desc->weights_.insert({line, new device::Tensor(line)});
     }
+    inFile.close();
+
     std::cout << sep << "new_desc deserialize : " << std::endl;
 
     new_desc->deserializeWeightsFromSafetensors(weight_path);
@@ -189,9 +191,7 @@ int main(int argc, char const *argv[]) {
     safetensors::save_to_file(
         *st_ptr, "/Users/realtyxxx_mac/study/gt/rtdetr_out.safetensors", &warn,
         &err);
-
     // 关闭文件
-    inFile.close();
   }
 
   return 0;

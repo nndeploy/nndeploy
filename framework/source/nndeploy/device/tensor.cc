@@ -524,8 +524,8 @@ base::Status Tensor::serialize_to_safetensors(safetensors::safetensors_t &st,
     };
 
     safetensors::tensor_t t_t;
-    dtype2SafetensorsDtype(desc_.data_type_, t_t.dtype);            // [x]
-    auto status = shape2SafetensorsShape(desc_.shape_, t_t.shape);  // [x]
+    dtype2SafetensorsDtype(desc_.data_type_, t_t.dtype);
+    auto status = shape2SafetensorsShape(desc_.shape_, t_t.shape);
     std::string err_msg = std::string(
                               "data type %s, do not supported to be transfered "
                               "to safetensors !") +
@@ -598,6 +598,12 @@ base::Status Tensor::deserialize_from_safetensors(
   st.tensors.at(name_, &t_t);
   safetensorsShape2Shape(t_t.shape, this->desc_.shape_);
   safetensorsDtype2Dtype(t_t.dtype, this->desc_.data_type_);
+  if (this->ref_count_) {
+    delete this->ref_count_;
+  }
+  if (this->buffer_) {
+    delete this->buffer_;
+  }
   this->ref_count_ = new int(1);
   const char *data_ptr = reinterpret_cast<const char *>(st.databuffer_addr); // NOTE: cause it is loaded by mmap
   // const char *data_ptr = reinterpret_cast<const char *>(st.storage.data());
