@@ -241,7 +241,10 @@ base::Status Buffer::serialize_to_safetensors(
   uint64_t buffer_size = this->getRealSize();
   size_t tensor_size = tensor.data_offsets[1] - tensor.data_offsets[0];
   if (buffer_size != tensor_size) {
-    NNDEPLOY_LOGE("unsupported buffers' size is different");
+    NNDEPLOY_LOGE(
+        "unsupported buffers' size is different!! buffersize == %llu, "
+        "tensor_size == %lu",
+        buffer_size, tensor_size);
     return base::kStatusCodeErrorInvalidParam;
   }
   if (!tensor_size) {
@@ -253,6 +256,7 @@ base::Status Buffer::serialize_to_safetensors(
     return base::kStatusCodeErrorIO;
   } else {
     // copy tensor_size data to meta_data place
+    // just copy out
     const void *src = static_cast<const void *>(data_);
     char *dst = reinterpret_cast<char *>(st.storage.data());
     memcpy(dst + tensor.data_offsets[0], src, tensor_size);
@@ -278,6 +282,17 @@ base::Status Buffer::deserialize(std::istream &stream) {
   } else {
     return base::kStatusCodeOk;
   }
+}
+
+base::Status Buffer::deserialize_from_safetensors(const char *storage,
+                                                  const size_t &data_size) {
+  
+  memory_pool_ = nullptr;
+  memory_type_ = base::kMemoryTypeMapped;
+  ref_count_ = new int(1);
+  desc_ = data_size;  // still_need to
+  data_ = (void *)storage;
+  return base::kStatusCodeOk;
 }
 
 void Buffer::print() {

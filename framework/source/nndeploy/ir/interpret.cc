@@ -40,15 +40,16 @@ base::Status Interpret::saveModelUseSafetensors(
     NNDEPLOY_LOGE("model_desc_->serializeStructureToText failed!\n");
     return status;
   }
-  // status = model_desc_->serializeWeightsToBinary(weight_stream);
-  safetensors::safetensors_t st;
-  status = model_desc_->serializeWeightsToSafetensors(st);
+  // NOTE: here collect informations
+  std::shared_ptr<safetensors::safetensors_t> st_ptr;
+  status = model_desc_->serializeWeightsToSafetensors(st_ptr);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("model_desc_->serializeWeightsToBinary failed!\n");
     return status;
   }
   std::string warn, err;
-  bool ret = safetensors::save_to_file(st, weight_file_path, &warn, &err);
+  bool ret =
+      safetensors::save_to_file((*st_ptr), weight_file_path, &warn, &err);
   if (warn.size()) {
     NNDEPLOY_LOGI("WARN: %s\n", warn.c_str());
   }
@@ -90,6 +91,7 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
 
   return status;
 }
+
 base::Status Interpret::saveModelToFileUseSafetensors(
     const std::string &structure_file_path, std::string &weight_file_path) {
   // 打开结构文件输出流，覆盖已存在文件

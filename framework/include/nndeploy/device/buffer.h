@@ -83,6 +83,8 @@ class NNDEPLOY_CC_API Buffer {
   // 从二进制文件反序列化回buffer
   base::Status deserialize(std::istream &stream);
 
+  base::Status deserialize_from_safetensors(const char *storage,
+                                            const size_t &data_size);
   void print();
 
   bool justModify(const size_t &size);

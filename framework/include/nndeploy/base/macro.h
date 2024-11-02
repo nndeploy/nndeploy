@@ -220,4 +220,13 @@ static inline int NNDEPLOY_XADD(int *addr, int delta) {
 #define NNDEPLOY_ARCHITECTURE_ARM 1
 #endif
 
+#if defined(__GNUC__) || defined(__ICL) || defined(__clang__)
+#define NNDEPLOY_LIKELY(expr) (__builtin_expect(static_cast<bool>(expr), 1))
+#define NNDEPLOY_UNLIKELY(expr) (__builtin_expect(static_cast<bool>(expr), 0))
+#else
+#define NNDEPLOY_LIKELY(expr) (expr)
+#define NNDEPLOY_UNLIKELY(expr) (expr)
+#endif
+
+
 #endif  // _NNDEPLOY_BASE_MACRO_H_

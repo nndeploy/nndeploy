@@ -112,13 +112,19 @@ class Interpret {
    */
   ModelDesc *getModelDesc();
 
- protected:
+ public:
   /**
    * @brief 模型描述
    *
    * 用于存储模型描述信息
    */
   ModelDesc *model_desc_ = nullptr;
+
+  // /**
+  //  * @brief safetensors 权重
+  //  * 用于存储safetensors权重
+  //  */
+
 };
 
 /**

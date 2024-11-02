@@ -1,6 +1,10 @@
 
-#include "nndeploy/ir/ir.h"
+#include <memory>
+#include "nndeploy/base/macro.h"
 #include "nndeploy/base/status.h"
+#include "nndeploy/device/tensor.h"
+#include "nndeploy/ir/ir.h"
+#include "nndeploy/safetensors/safetensors.hh"
 
 namespace nndeploy {
 namespace ir {
@@ -457,6 +461,17 @@ base::Status ModelDesc::deserializeStructureFromText(
         }
         blocks_.emplace_back(block);
       }
+    } else if (key == "weights:") {
+      int weights_num;
+      iss >> weights_num;
+      weights_.clear();
+      stream.ignore(1);
+      std::string value_name;
+      while (std::getline(iss, value_name, ',')) {
+        if (!value_name.empty()) {
+          weights_.insert({value_name, new device::Tensor(value_name)});
+        }
+      }
     }
   }
 
@@ -510,22 +525,33 @@ base::Status ModelDesc::serializeWeightsToSafetensorsImpl(
         "weight.second->serialize_to_safetensors(safetensors::safetensors_t "
         "&st, bool serialize_buffer)failed!\n");
   }
-  for (auto &block : blocks_) {
-    // base::Status status = block->serializeWeightsToBinary(stream);
-    base::Status status =
-        block->serializeWeightsToSafetensorsImpl(st, serialize_buffer);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(
-        status, base::kStatusCodeOk, status,
-        "block->serializeWeightsToSafetensorsImpl!\n");
-  }
+  // for (auto &block : blocks_) {
+  //   // base::Status status = block->serializeWeightsToBinary(stream);
+  //   base::Status status =
+  //       block->serializeWeightsToSafetensorsImpl(st, serialize_buffer);
+  //   NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, status,
+  //                                "block->serializeWeightsToSafetensorsImpl!\n");
+  // }
   return base::kStatusCodeOk;
 }
 
 base::Status ModelDesc::serializeWeightsToSafetensors(
-    safetensors::safetensors_t &st) const {
+    std::shared_ptr<safetensors::safetensors_t>& st_ptr) const {
   base::Status status = base::kStatusCodeOk;
+  if (st_ptr_ != nullptr) {
+    // assume we do not do trainning
+    st_ptr = st_ptr_;
+    return status;
+  }
+  // not be mmaped, so we create one
+  std::shared_ptr<safetensors::safetensors_t> serialize_st_ptr(
+      new safetensors::safetensors_t());
+  // safetensors::safetensors_t *serialize_st_ptr =
+  //     new safetensors::safetensors_t();
+  serialize_st_ptr->metadata.insert("format", "pt");
+
   // 1. first record the tensor desc
-  status = serializeWeightsToSafetensorsImpl(st);
+  status = serializeWeightsToSafetensorsImpl(*serialize_st_ptr, false);
   NNDEPLOY_RETURN_VALUE_ON_NEQ(
       status, base::kStatusCodeOk, status,
       "model->serializeWeightsToSafetensorsImpl save param failed!\n");
@@ -533,22 +559,28 @@ base::Status ModelDesc::serializeWeightsToSafetensors(
   // time for copy or mapping data
   size_t total_storage_size = 0;
   safetensors::tensor_t t_t;
-  for (int i = 0; i < st.tensors.size(); ++i) {
-    st.tensors.at(i, &t_t);
+  for (int i = 0; i < serialize_st_ptr->tensors.size(); ++i) {
+    serialize_st_ptr->tensors.at(i, &t_t);
     size_t tensor_size = safetensors::get_shape_size(t_t) *
                          safetensors::get_dtype_bytes(t_t.dtype);
     t_t.data_offsets = std::array<size_t, 2>{total_storage_size,
                                              total_storage_size + tensor_size};
     total_storage_size += tensor_size;
   }
-  st.storage.resize(total_storage_size);
+  serialize_st_ptr->storage.resize(total_storage_size);
 
   // 3. real store buffer
-  status = serializeWeightsToSafetensorsImpl(st, true);
+  status = serializeWeightsToSafetensorsImpl(*serialize_st_ptr, true);
 
+  // 4. store metadata
   NNDEPLOY_RETURN_VALUE_ON_NEQ(
       status, base::kStatusCodeOk, status,
       "model->serializeWeightsToSafetensorsImpl save buffer failed!\n");
+
+  // st_ptr = std::make_shared<const safetensors::safetensors_t>(*serialize_st_ptr);
+  serialize_st_ptr->mmaped = false;
+  st_ptr = serialize_st_ptr;
+
   return base::kStatusCodeOk;
 }
 
@@ -581,6 +613,49 @@ base::Status ModelDesc::deserializeWeightsFromBinary(std::istream &stream) {
   }
   return base::kStatusCodeOk;
 }
+
+// 从safetensors导入成模型文件
+base::Status ModelDesc::deserializeWeightsFromSafetensors(
+    const std::string &weight_path) {
+  std::string warn, err;
+
+  std::shared_ptr<safetensors::safetensors_t> mmap_st_ptr(
+      new safetensors::safetensors_t());
+  // 冒险的需要用愿指针
+  bool ret = safetensors::mmap_from_file(weight_path, &(*mmap_st_ptr), &warn, &err);
+
+  if (st_ptr_ != nullptr) {
+    st_ptr_.reset();
+  }
+  st_ptr_ = mmap_st_ptr;
+
+  if (!ret) {
+    NNDEPLOY_LOGE(
+        "Failed to load: %s\n"
+        "  ERR: %s\n",
+        weight_path.c_str(), err.c_str());
+    return base::kStatusCodeErrorIO;
+  }
+  base::Status status = base::kStatusCodeOk;
+  for (auto &weight : weights_) {
+    if (NNDEPLOY_UNLIKELY(!st_ptr_->tensors.count(weight.first))) {
+      NNDEPLOY_RETURN_VALUE_ON_NEQ(
+          base::kStatusCodeErrorInvalidParam, base::kStatusCodeOk,
+          base::kStatusCodeErrorInvalidParam,
+          "The model file and the weight file do not match. !\n");
+    }
+    weights_[weight.first]->deserialize_from_safetensors(*st_ptr_);
+  }
+  return status;
+}
+
+// // 从safetensors导入成模型文件
+// base::Status ModelDesc::deserializeWeightsFromSafetensorsImpl(
+//     safetensors::safetensors_t &st) {
+//   base::Status status = base::kStatusCodeOk;
+
+//   return status;
+// }
 
 }  // namespace ir
 }  // namespace nndeploy
