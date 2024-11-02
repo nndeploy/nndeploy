@@ -14,7 +14,7 @@
 #include "nndeploy/base/value.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/ir/op_param.h"
-#include "nndeploy/safetensors/safetensors.hh"
+#include "safetensors.hh"
 
 namespace nndeploy {
 namespace ir {

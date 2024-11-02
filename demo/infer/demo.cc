@@ -10,7 +10,7 @@
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
-#include "nndeploy/safetensors/safetensors.hh"
+#include "safetensors.hh"
 #include "onnx/defs/operator_sets.h"
 #include "onnx/defs/schema.h"
 using namespace nndeploy;

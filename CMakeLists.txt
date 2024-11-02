@@ -597,28 +597,14 @@ if(ENABLE_NNDEPLOY_DAG)
 endif()
 
 # safetensors
-option(SAFETENSORS_CPP_BUILD_C_API "Build C API?" OFF)
-
 # Disable C++ exception by default.
 option(SAFETENSORS_CPP_CXX_EXCEPTIONS "Enable C++ exception(disable by default)" OFF)
-
 set(SAFETENSORS_CPP_SOURCES
-  "${FRAMEWORK_ROOT_PATH}/include/nndeploy/safetensors/safetensors.hh"
-  "${FRAMEWORK_ROOT_PATH}/source/nndeploy/safetensors/safetensors.cc"
+  "${ROOT_PATH}/third_party/safetensors-cpp/safetensors.hh"
+  "${ROOT_PATH}/third_party/safetensors-cpp/safetensors.cc"
 )
 
-
-
 add_library(safetensors_cpp ${SAFETENSORS_CPP_SOURCES})
-
-if(SAFETENSORS_CPP_BUILD_C_API)
-  # compile with c++ for libsafetensors-c.a
-  set(SAFETENSORS_C_SOURCES
-    "${FRAMEWORK_ROOT_PATH}/include/nndeploy/safetensors/safetensors-c.h"
-    "${FRAMEWORK_ROOT_PATH}/source/nndeploy/safetensors/safetensors-c.cc"
-  )
-  add_library(safetensors_c ${SAFETENSORS_C_SOURCES})
-endif()
 
 if(NOT SAFETENSORS_CPP_CXX_EXCEPTIONS)
   if(MSVC)
@@ -628,6 +614,8 @@ if(NOT SAFETENSORS_CPP_CXX_EXCEPTIONS)
     target_compile_options(safetensors_cpp PUBLIC -fno-exceptions)
   endif()
 endif()
+# target_include_directories(${NNDEPLOY_FRAMEWORK_BINARY} "${ROOT_PATH}/third_party/safetensors-cpp")
+include_directories("${ROOT_PATH}/third_party/safetensors-cpp")
 
 
 # nndeploy

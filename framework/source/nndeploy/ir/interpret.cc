@@ -1,8 +1,7 @@
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/base/status.h"
-#include "nndeploy/safetensors/safetensors.hh"
 #include "nndeploy/base/status.h"
-#include "nndeploy/safetensors/safetensors.hh"
+#include "safetensors.hh"
 
 namespace nndeploy {
 namespace ir {

@@ -10,7 +10,7 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
-#include "nndeploy/safetensors/safetensors.hh"
+#include "safetensors.hh"
 
 namespace nndeploy {
 namespace device {

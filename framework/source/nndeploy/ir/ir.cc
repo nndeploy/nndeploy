@@ -4,7 +4,7 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/ir/ir.h"
-#include "nndeploy/safetensors/safetensors.hh"
+#include "safetensors.hh"
 
 namespace nndeploy {
 namespace ir {

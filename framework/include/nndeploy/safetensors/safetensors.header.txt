@@ -1,2 +1,0 @@
-f9f7980ed4c360ccb1bd9396fa9561f3  safetensors-c.h
-0692493fe20d75ad7364b3d755eaaffe  safetensors.hh
