@@ -12,8 +12,6 @@ set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDE
 
 message(STATUS "CMAKE BEIGIN. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 include(cmake/util.cmake)
 include(cmake/summary.cmake)
 
@@ -35,6 +33,8 @@ nndeploy_option(ENABLE_NNDEPLOY_DOCS "ENABLE_NNDEPLOY_DOCS" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_TIME_PROFILER "ENABLE_NNDEPLOY_TIME_PROFILER" ON)
 nndeploy_option(ENABLE_NNDEPLOY_OPENCV "ENABLE_NNDEPLOY_OPENCV" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_RAPIDJSON "ENABLE_NNDEPLOY_RAPIDJSON" ON)
+# @Realtyxxx
+nndeploy_option(ENABLE_NNDEPLOY_SAFETENSORS_CPP "ENABLE_NNDEPLOY_SAFETENSORS_CPP" ON)
 
 # # base
 nndeploy_option(ENABLE_NNDEPLOY_BASE "ENABLE_NNDEPLOY_BASE" ON)
@@ -118,6 +118,9 @@ nndeploy_option(ENABLE_NNDEPLOY_PYTHON "ENABLE_NNDEPLOY_PYTHON" OFF)
 
 # print option
 print_summary()
+
+# 生成compile_commands.json文件
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # set
 set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
@@ -619,28 +622,6 @@ if(ENABLE_NNDEPLOY_DAG)
   set(NNDEPLOY_FRAMEWORK_SOURCE ${NNDEPLOY_FRAMEWORK_SOURCE} ${DAG_SOURCE})
 endif()
 
-# safetensors
-# Disable C++ exception by default.
-option(SAFETENSORS_CPP_CXX_EXCEPTIONS "Enable C++ exception(disable by default)" OFF)
-set(SAFETENSORS_CPP_SOURCES
-  "${ROOT_PATH}/third_party/safetensors-cpp/safetensors.hh"
-  "${ROOT_PATH}/third_party/safetensors-cpp/safetensors.cc"
-)
-
-add_library(safetensors_cpp ${SAFETENSORS_CPP_SOURCES})
-
-if(NOT SAFETENSORS_CPP_CXX_EXCEPTIONS)
-  if(MSVC)
-    # TODO: disable exception reliably
-    #target_compile_options(safetensors_cpp PUBLIC /EHs-c-)
-  else()
-    target_compile_options(safetensors_cpp PUBLIC -fno-exceptions)
-  endif()
-endif()
-# target_include_directories(${NNDEPLOY_FRAMEWORK_BINARY} "${ROOT_PATH}/third_party/safetensors-cpp")
-include_directories("${ROOT_PATH}/third_party/safetensors-cpp")
-
-
 # nndeploy
 # # TARGET
 add_library(${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_LIB_TYPE} ${NNDEPLOY_FRAMEWORK_SOURCE} ${NNDEPLOY_FRAMEWORK_OBJECT})
@@ -649,7 +630,6 @@ add_library(${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_LIB_TYPE} ${NNDEPLOY_FRAMEWO
 set_property(TARGET ${NNDEPLOY_FRAMEWORK_BINARY} PROPERTY FOLDER ${NNDEPLOY_FRAMEWORK_DIRECTORY})
 
 # # DEPEND_LIBRARY
-target_link_libraries(${NNDEPLOY_FRAMEWORK_BINARY} safetensors_cpp)
 target_link_libraries(${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_DEPEND_LIBRARY})
 message(STATUS "NNDEPLOY_DEPEND_LIBRARY: ${NNDEPLOY_DEPEND_LIBRARY}")
 
@@ -674,7 +654,7 @@ if(ENABLE_NNDEPLOY_PLUGIN)
 endif()
 
 # GFLAGS
-set(ENABLE_NNDEPLOY_GFLAGS)
+set(ENABLE_NNDEPLOY_GFLAGS OFF)
 
 if(ENABLE_NNDEPLOY_TEST)
   set(ENABLE_NNDEPLOY_GFLAGS ON)
