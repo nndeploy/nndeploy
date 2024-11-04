@@ -365,5 +365,7 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeTranspose, TransposeParam);
 // RMSNorm 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeRMSNorm, RMSNormParam);
 
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeBatchNormalization, BatchNormalizationParam);
+
 }  // namespace ir
 }  // namespace nndeploy

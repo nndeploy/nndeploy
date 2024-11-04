@@ -68,6 +68,14 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftMax(
     std::shared_ptr<ir::SoftmaxParam> param, std::string op_name = "",
     std::string output_name = "");
 
+// batchnorm
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeBatchNorm(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::BatchNormalizationParam> param,
+    const std::string &scale, const std::string &bias, const std::string &mean,
+    const std::string &var, std::string op_name = "",
+    std::string output_name = "");
+
 // add
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeAdd(ir::ModelDesc *model_desc,
                                               std::shared_ptr<Expr> input_0,
