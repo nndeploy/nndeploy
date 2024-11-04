@@ -63,7 +63,7 @@ class Interpret {
    *
    * @param structure_stream
    * 输出流，用于存储模型结构的序列化数据。
-   * @param weight_stream
+   * @param weight_file_path
    * 输出流，用于存储模型权重的序列化数据。
    *
    * @return base::Status 返回存储过程的状态。
@@ -75,7 +75,7 @@ class Interpret {
    * @see base::Status 了解可能的返回状态
    */
   base::Status saveModel(std::ostream &structure_stream,
-                         std::ostream &weight_stream);
+                         const std::string &weight_file_path);
   /**
    * @brief 存储模型结构以及模型权重到指定路径
    *
@@ -96,8 +96,9 @@ class Interpret {
    * @see base::Status 了解可能的返回状态
    */
   base::Status saveModelToFile(const std::string &structure_file_path,
-                               const std::string &weight_file_path);
-
+                               std::string &weight_file_path);
+  base::Status saveModelToFile(const std::string &structure_file_path,
+                               const char *str);
   /**
    * @brief 获取模型描述
    *
@@ -106,13 +107,18 @@ class Interpret {
    */
   ModelDesc *getModelDesc();
 
- protected:
+ public:
   /**
    * @brief 模型描述
    *
    * 用于存储模型描述信息
    */
   ModelDesc *model_desc_ = nullptr;
+
+  // /**
+  //  * @brief safetensors 权重
+  //  * 用于存储safetensors权重
+  //  */
 };
 
 /**

@@ -27,15 +27,7 @@ base::Status DefaultInterpret::interpret(
       "model_desc_->deserializeStructureFromText failed!");
 
   // 读模型结构文件
-  std::ifstream weight_stream(model_value[1],
-                              std::ifstream::in | std::ifstream::binary);
-  if (!weight_stream.is_open()) {
-    NNDEPLOY_LOGE("model_value[%s] is error.\n", model_value[0].c_str());
-    return base::kStatusCodeErrorInvalidParam;
-  }
-
-  status = model_desc_->deserializeWeightsFromBinary(weight_stream);
-
+  status = model_desc_->deserializeWeightsFromSafetensors(model_value[1]);
   NNDEPLOY_RETURN_VALUE_ON_NEQ(
       status, base::kStatusCodeOk, status,
       "model_desc_->deserializeWeightsFromBinary failed!");

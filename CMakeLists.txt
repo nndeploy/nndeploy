@@ -12,6 +12,8 @@ set(NNDEPLOY_VERSION "${NNDEPLOY_MAJOR_VERSION}.${NNDEPLOY_MINOR_VERSION}.${NNDE
 
 message(STATUS "CMAKE BEIGIN. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(cmake/util.cmake)
 include(cmake/summary.cmake)
 
@@ -617,6 +619,28 @@ if(ENABLE_NNDEPLOY_DAG)
   set(NNDEPLOY_FRAMEWORK_SOURCE ${NNDEPLOY_FRAMEWORK_SOURCE} ${DAG_SOURCE})
 endif()
 
+# safetensors
+# Disable C++ exception by default.
+option(SAFETENSORS_CPP_CXX_EXCEPTIONS "Enable C++ exception(disable by default)" OFF)
+set(SAFETENSORS_CPP_SOURCES
+  "${ROOT_PATH}/third_party/safetensors-cpp/safetensors.hh"
+  "${ROOT_PATH}/third_party/safetensors-cpp/safetensors.cc"
+)
+
+add_library(safetensors_cpp ${SAFETENSORS_CPP_SOURCES})
+
+if(NOT SAFETENSORS_CPP_CXX_EXCEPTIONS)
+  if(MSVC)
+    # TODO: disable exception reliably
+    #target_compile_options(safetensors_cpp PUBLIC /EHs-c-)
+  else()
+    target_compile_options(safetensors_cpp PUBLIC -fno-exceptions)
+  endif()
+endif()
+# target_include_directories(${NNDEPLOY_FRAMEWORK_BINARY} "${ROOT_PATH}/third_party/safetensors-cpp")
+include_directories("${ROOT_PATH}/third_party/safetensors-cpp")
+
+
 # nndeploy
 # # TARGET
 add_library(${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_LIB_TYPE} ${NNDEPLOY_FRAMEWORK_SOURCE} ${NNDEPLOY_FRAMEWORK_OBJECT})
@@ -625,6 +649,7 @@ add_library(${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_LIB_TYPE} ${NNDEPLOY_FRAMEWO
 set_property(TARGET ${NNDEPLOY_FRAMEWORK_BINARY} PROPERTY FOLDER ${NNDEPLOY_FRAMEWORK_DIRECTORY})
 
 # # DEPEND_LIBRARY
+target_link_libraries(${NNDEPLOY_FRAMEWORK_BINARY} safetensors_cpp)
 target_link_libraries(${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_DEPEND_LIBRARY})
 message(STATUS "NNDEPLOY_DEPEND_LIBRARY: ${NNDEPLOY_DEPEND_LIBRARY}")
 
@@ -660,9 +685,9 @@ if(ENABLE_NNDEPLOY_DEMO)
 endif()
 
 if(ENABLE_NNDEPLOY_GFLAGS)
-  if (APPLE)
+  if(APPLE)
     find_package(gflags QUIET)
-    if (gflags_FOUND)
+    if(gflags_FOUND)
       message(STATUS "gflags library found:")
       message(STATUS "    version: ${gflags_VERSION}")
       message(STATUS "    include path: ${gflags_INCLUDE_DIRS}")
@@ -673,11 +698,11 @@ if(ENABLE_NNDEPLOY_GFLAGS)
     else()
       message(FATAL_ERROR "gflags not found in system. brew install gflags or source build gflafs")
     endif()
-  else ()
+  else()
     add_subdirectory(third_party/gflags)
     get_target_property(GFLAGS_INCLUDE_DIRS gflags INTERFACE_INCLUDE_DIRECTORIES)
     include_directories(BEFORE "${GFLAGS_INCLUDE_DIRS}")
-  endif ()
+  endif()
 endif()
 
 # test
