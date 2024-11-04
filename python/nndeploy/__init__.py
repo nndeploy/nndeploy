@@ -1,2 +1,7 @@
 
-from ._C.nndeploy  import *
+import nndeploy._C
+import nndeploy.net
+import nndeploy.op
+ 
+
+

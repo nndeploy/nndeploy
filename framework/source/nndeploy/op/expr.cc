@@ -201,5 +201,50 @@ std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
   return expr;
 }
 
+// batchnorm
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeBatchNorm(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::BatchNormalizationParam> param,
+    const std::string &scale, const std::string &bias, const std::string &mean,
+    const std::string &var, std::string op_name, std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "batchnorm" + std::to_string(index);
+    } else {
+      name = "batchnorm";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  if (!scale.empty()) {
+    inputs.push_back(scale);
+  }
+  if (!bias.empty()) {
+    inputs.push_back(bias);
+  }
+  if (!mean.empty()) {
+    inputs.push_back(mean);
+  }
+  if (!bias.empty()) {
+    inputs.push_back(var);
+  }
+
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc = std::make_shared<ir::OpDesc>(
+      name, ir::kOpTypeBatchNormalization, inputs, outputs, param);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
 }  // namespace op
 }  // namespace nndeploy

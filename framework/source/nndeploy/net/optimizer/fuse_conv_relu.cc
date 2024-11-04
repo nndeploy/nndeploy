@@ -50,7 +50,7 @@ base::Status FuseConvRelu::optimize(
   OpWrapper* first_op = op_repository[begin_op_index];
   OpWrapper* last_op = first_op->successors_[0];
   std::vector<device::Tensor*> outputs_tensors = last_op->op_->getAllOutput();
-  first_op->op_->setAllOutput(outputs_tensors);  // 修改Conv的输入为Relu的输出
+  first_op->op_->setAllOutput(outputs_tensors);  // 修改Conv的输出为Relu的输出
   // # 修改op_desc_：输出和参数融合
   ir::ConvParam* ConvParam = (ir::ConvParam*)first_op->op_->getParam().get();
   ConvParam->is_fusion_op_ = true;

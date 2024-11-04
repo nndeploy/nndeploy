@@ -22,14 +22,37 @@ namespace nndeploy {
 namespace op {
 
 base::Status OpRelu::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
-  return base::kStatusCodeOk;
-}
-
-base::Status relu(device::Tensor *input, device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeRelu);
+  // 获取输入和输出张量
+  device::Tensor* input_tensor = inputs_[0];
+  device::Tensor* output_tensor = outputs_[0];
+
+  // 获取输入张量的维度信息
+  auto input_shape = input_tensor->getShape();
+  long input_elements = std::accumulate(input_shape.begin(), input_shape.end(),
+                                        1, std::multiplies<int>());
+
+  // 获取输入和输出张量的数据指针
+  float* input_data = static_cast<float*>(input_tensor->getData());
+  float* output_data = static_cast<float*>(output_tensor->getData());
+
+  // 执行ReLU操作
+  for (long i = 0; i < input_elements; ++i) {
+    if (input_data[i] < 0.0f) {
+      output_data[i] = 0.0f;
+    } else {
+      output_data[i] = input_data[i];
+    }
+  }
+
+  return status;
+}
+
+base::Status relu(device::Tensor* input, device::Tensor* output) {
+  base::Status status = base::kStatusCodeOk;
+
+  Op* op = createOp(input->getDeviceType(), "", ir::kOpTypeRelu);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
