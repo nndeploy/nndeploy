@@ -29,12 +29,12 @@ base::Status OpenVinoInferenceParam::parse(const std::string &json,
 }
 
 base::Status OpenVinoInferenceParam::set(const std::string &key,
-                                         base::Value &value) {
+                                         base::Any &any) {
   return base::kStatusCodeOk;
 }
 
 base::Status OpenVinoInferenceParam::get(const std::string &key,
-                                         base::Value &value) {
+                                         base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

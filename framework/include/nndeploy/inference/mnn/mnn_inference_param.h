@@ -22,9 +22,9 @@ class MnnInferenceParam : public InferenceParam {
 
   base::Status parse(const std::string &json, bool is_path = true);
 
-  virtual base::Status set(const std::string &key, base::Value &value);
+  virtual base::Status set(const std::string &key, base::Any &any);
 
-  virtual base::Status get(const std::string &key, base::Value &value);
+  virtual base::Status get(const std::string &key, base::Any &any);
 
   std::vector<std::string> save_tensors_;
   MNN::ScheduleConfig::Path path_;

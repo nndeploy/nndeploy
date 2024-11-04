@@ -9,15 +9,25 @@ str_to_np_data_types = {
 
 device_name_to_code = {
     'cpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeCpu,
-    'cuda': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeCuda,
     'arm': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeArm,
     'x86': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeX86,
-    'ascendcl': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeAscendCL,
+    'riscv': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeRiscV,
+    'cuda': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeCuda,
+    'rocm': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeRocm,
+    'sycl': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeSyCL,
     'opencl': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeOpenCL,
     'opengl': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeOpenGL,
     'metal': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeMetal,
     'vulkan': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeVulkan,
-    'applenpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeAppleNpu}
+    'hexagon': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeHexagon,
+    'mtkvpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeMtkVpu,
+    'ascendcl': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeAscendCL,
+    'applenpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeAppleNpu,
+    'rknpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeRkNpu,
+    'qualcomnpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeQualcommNpu,
+    'mtknpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeMtkNpu,
+    'sophonnpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeSophonNpu,
+    'notsupport': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeNotSupport}
 
 
 # 从numpy array返回一个Tensor

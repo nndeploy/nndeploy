@@ -11,11 +11,11 @@ base::Status Param::parse(const std::string &json, bool is_path) {
   return base::kStatusCodeOk;
 }
 
-base::Status Param::set(const std::string &key, base::Value &value) {
+base::Status Param::set(const std::string &key, base::Any &any) {
   return base::kStatusCodeOk;
 }
 
-base::Status Param::get(const std::string &key, base::Value &value) {
+base::Status Param::get(const std::string &key, base::Any &any) {
   return base::kStatusCodeOk;
 }
 

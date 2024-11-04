@@ -29,13 +29,13 @@ base::Status DefaultInferenceParam::parse(const std::string &json,
 }
 
 base::Status DefaultInferenceParam::set(const std::string &key,
-                                        base::Value &value) {
+                                        base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
 
 base::Status DefaultInferenceParam::get(const std::string &key,
-                                        base::Value &value) {
+                                        base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
