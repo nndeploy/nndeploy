@@ -28,12 +28,12 @@ base::Status TensorRtInferenceParam::parse(const std::string &json,
 }
 
 base::Status TensorRtInferenceParam::set(const std::string &key,
-                                         base::Value &value) {
+                                         base::Any &any) {
   return base::kStatusCodeOk;
 }
 
 base::Status TensorRtInferenceParam::get(const std::string &key,
-                                         base::Value &value) {
+                                         base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

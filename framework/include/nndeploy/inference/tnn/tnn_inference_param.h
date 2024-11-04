@@ -22,9 +22,9 @@ class TnnInferenceParam : public InferenceParam {
   // zh
   base::Status parse(const std::string &json, bool is_path = true);
   // zh
-  virtual base::Status set(const std::string &key, base::Value &value);
+  virtual base::Status set(const std::string &key, base::Any &any);
   // zh
-  virtual base::Status get(const std::string &key, base::Value &value);
+  virtual base::Status get(const std::string &key, base::Any &any);
 
   // zh:
   // 移除InferenceParam中data_format的配置，tnn的data_format_主要是来选择推理的是tensor的data_format_

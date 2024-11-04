@@ -66,7 +66,7 @@ std::vector<std::string> splitString(const std::string &str,
 
 bool isNumeric(const std::string &str) {
   for (char c : str) {
-    if (!isdigit(c)) {
+    if (!isDigit(c)) {
       return false;
     }
   }

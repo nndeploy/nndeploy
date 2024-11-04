@@ -4,6 +4,8 @@
 
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/macro.h"
+#include "nndeploy/base/half.hpp"
+#include "nndeploy/base/half.h"
 
 namespace nndeploy {
 namespace base {
@@ -13,6 +15,7 @@ enum DataTypeCode : uint8_t {
   kDataTypeCodeInt,
   kDataTypeCodeFp,
   kDataTypeCodeBFp,
+  // opaque handle
   kDataTypeCodeOpaqueHandle,
   // not sopport
   kDataTypeCodeNotSupport,
@@ -50,6 +53,10 @@ NNDEPLOY_CC_API DataType dataTypeOf<float>();
 template <>
 NNDEPLOY_CC_API DataType dataTypeOf<double>();
 template <>
+NNDEPLOY_CC_API DataType dataTypeOf<bfp16_t>();
+template <>
+NNDEPLOY_CC_API DataType dataTypeOf<half_float::half>();
+template <>
 NNDEPLOY_CC_API DataType dataTypeOf<uint8_t>();
 template <>
 NNDEPLOY_CC_API DataType dataTypeOf<uint16_t>();
@@ -70,13 +77,26 @@ enum DeviceTypeCode : int {
   kDeviceTypeCodeCpu = 0x0000,
   kDeviceTypeCodeArm,
   kDeviceTypeCodeX86,
+  kDeviceTypeCodeRiscV,
+
   kDeviceTypeCodeCuda,
-  kDeviceTypeCodeAscendCL,
+  kDeviceTypeCodeRocm,
+  kDeviceTypeCodeSyCL,
   kDeviceTypeCodeOpenCL,
   kDeviceTypeCodeOpenGL,
   kDeviceTypeCodeMetal,
   kDeviceTypeCodeVulkan,
+
+  kDeviceTypeCodeHexagon,
+  kDeviceTypeCodeMtkVpu,
+
+  kDeviceTypeCodeAscendCL,
   kDeviceTypeCodeAppleNpu,
+  kDeviceTypeCodeRkNpu,
+  kDeviceTypeCodeQualcommNpu,
+  kDeviceTypeCodeMtkNpu,
+  kDeviceTypeCodeSophonNpu,
+
   // not sopport
   kDeviceTypeCodeNotSupport,
 };
@@ -185,6 +205,8 @@ enum ForwardOpType : int {
   kForwardOpTypeOneDnn,
   kForwardOpTypeXnnPack,
   kForwardOpTypeQnnPack,
+  kForwardOpTypeCudnn,
+  kForwardOpTypeAclOp,
 
   // not sopport
   kForwardOpTypeNotSupport,
@@ -218,6 +240,23 @@ enum ModelType : int {
   kModelTypeAITemplate,
 
   kModelTypeSnpe,
+  kModelTypeQnn,
+
+  kModelTypeSophon,
+
+  // torch - 结构和权重
+  kModelTypeTorchScript,
+  // torch - 权重
+  kModelTypeTorchPth,
+
+  // tensorflow - hdf5
+  kModelTypeHdf5,
+
+  // safetensors
+  kModelTypeSafetensors,
+
+  // mtk: neuro-pilot
+  kModelTypeNeuroPilot,
 
   // not sopport
   kModelTypeNotSupport,
@@ -243,6 +282,16 @@ enum InferenceType : int {
   kInferenceTypeAITemplate,
 
   kInferenceTypeSnpe,
+  kInferenceTypeQnn,
+
+  kInferenceTypeSophon,
+
+  kInferenceTypeTorch,
+
+  kInferenceTypeTensorFlow,
+
+  // mtk: neuro-pilot
+  kInferenceTypeNeuroPilot,
 
   // not sopport
   kInferenceTypeNotSupport,
@@ -256,6 +305,8 @@ enum EncryptType : int {
 enum CodecType : int {
   kCodecTypeNone = 0x0000,
   kCodecTypeOpenCV,
+  kCodecTypeFFmpeg,
+  kCodecTypeStb,
 };
 
 enum CodecFlag : int {
@@ -330,7 +381,7 @@ extern NNDEPLOY_CC_API CodecFlag stringToCodecFlag(const std::string &src);
 extern NNDEPLOY_CC_API ParallelType
 stringToParallelType(const std::string &src);
 
-PrecisionType getPrecisionType(DataType data_type);
+extern NNDEPLOY_CC_API PrecisionType getPrecisionType(DataType data_type);
 
 }  // namespace base
 }  // namespace nndeploy

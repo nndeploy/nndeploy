@@ -8,16 +8,26 @@ str_to_np_data_types = {
 
 
 device_name_to_code = {
-    'cpu': nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeCpu,
-    'cuda': nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeCuda,
-    'arm': nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeArm,
-    'x86': nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeX86,
-    'ascendcl': nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeAscendCL,
-    'opencl': nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeOpenCL,
-    'opengl': nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeOpenGL,
-    'metal': nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeMetal,
-    'vulkan': nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeVulkan,
-    'applenpu': nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeAppleNpu}
+    'cpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeCpu,
+    'arm': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeArm,
+    'x86': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeX86,
+    'riscv': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeRiscV,
+    'cuda': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeCuda,
+    'rocm': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeRocm,
+    'sycl': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeSyCL,
+    'opencl': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeOpenCL,
+    'opengl': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeOpenGL,
+    'metal': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeMetal,
+    'vulkan': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeVulkan,
+    'hexagon': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeHexagon,
+    'mtkvpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeMtkVpu,
+    'ascendcl': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeAscendCL,
+    'applenpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeAppleNpu,
+    'rknpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeRkNpu,
+    'qualcomnpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeQualcommNpu,
+    'mtknpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeMtkNpu,
+    'sophonnpu': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeSophonNpu,
+    'notsupport': nndeploy.base.DeviceTypeCode.kDeviceTypeCodeNotSupport}
 
 
 # 从numpy array返回一个Tensor

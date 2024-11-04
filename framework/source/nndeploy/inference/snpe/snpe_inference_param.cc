@@ -31,14 +31,14 @@ base::Status SnpeInferenceParam::parse(const std::string &json, bool is_path) {
 }
 
 base::Status SnpeInferenceParam::set(const std::string &key,
-                                     base::Value &value) {
+                                     base::Any &any) {
   base::Status status = base::kStatusCodeOk;
 
   return base::kStatusCodeOk;
 }
 
 base::Status SnpeInferenceParam::get(const std::string &key,
-                                     base::Value &value) {
+                                     base::Any &any) {
   base::Status status = base::kStatusCodeOk;
 
   return base::kStatusCodeOk;

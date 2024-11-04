@@ -32,12 +32,12 @@ base::Status OnnxRuntimeInferenceParam::parse(const std::string &json,
 }
 
 base::Status OnnxRuntimeInferenceParam::set(const std::string &key,
-                                            base::Value &value) {
+                                            base::Any &any) {
   return base::kStatusCodeOk;
 }
 
 base::Status OnnxRuntimeInferenceParam::get(const std::string &key,
-                                            base::Value &value) {
+                                            base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

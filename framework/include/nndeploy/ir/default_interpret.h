@@ -27,6 +27,9 @@ class DefaultInterpret : public Interpret {
   virtual base::Status interpret(
       const std::vector<std::string> &model_value,
       const std::vector<ValueDesc> &input = std::vector<ValueDesc>());
+
+  // virtual base::Status DefaultInterpret::interpret_safetensors(
+  //     const std::string &weights_name);
 };
 
 }  // namespace ir

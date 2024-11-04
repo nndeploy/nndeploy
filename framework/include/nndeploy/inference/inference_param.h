@@ -11,7 +11,7 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/value.h"
+#include "nndeploy/base/any.h"
 
 namespace nndeploy {
 namespace inference {
@@ -45,7 +45,7 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
    * @param value
    * @return base::Status
    */
-  virtual base::Status set(const std::string &key, base::Value &value);
+  virtual base::Status set(const std::string &key, base::Any &any);
   /**
    * @brief 获取参数
    *
@@ -53,7 +53,7 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
    * @param value
    * @return base::Status
    */
-  virtual base::Status get(const std::string &key, base::Value &value);
+  virtual base::Status get(const std::string &key, base::Any &any);
 
   base::ModelType model_type_;            // 模型的类型
   bool is_path_ = true;                   // model_value_是否为路径

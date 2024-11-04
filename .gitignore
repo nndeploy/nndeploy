@@ -223,3 +223,6 @@ docs/build
 # third_party
 
 cmake-build-debug/
+
+tags
+compile_commands.json

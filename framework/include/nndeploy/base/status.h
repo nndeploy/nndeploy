@@ -27,31 +27,47 @@ enum StatusCode : int {
   kStatusCodeErrorDeviceCpu,
   kStatusCodeErrorDeviceArm,
   kStatusCodeErrorDeviceX86,
+  kStatusCodeErrorDeviceRiscV,
   kStatusCodeErrorDeviceCuda,
-  kStatusCodeErrorDeviceAscendCL,
+  kStatusCodeErrorDeviceRocm,
+  kStatusCodeErrorDeviceSyCL,
   kStatusCodeErrorDeviceOpenCL,
   kStatusCodeErrorDeviceOpenGL,
   kStatusCodeErrorDeviceMetal,
+  kStatusCodeErrorDeviceVulkan,
+  kStatusCodeErrorDeviceHexagon,
+  kStatusCodeErrorDeviceMtkVpu,
+  kStatusCodeErrorDeviceAscendCL,
+  kStatusCodeErrorDeviceAppleNpu,
+  kStatusCodeErrorDeviceRkNpu,
+  kStatusCodeErrorDeviceQualcommNpu,
+  kStatusCodeErrorDeviceMtkNpu,
+  kStatusCodeErrorDeviceSophonNpu,
 
   // op
   kStatusCodeErrorOpAscendCL,
 
   // inference
   kStatusCodeErrorInferenceDefault,
+  kStatusCodeErrorInferenceOpenVino,
   kStatusCodeErrorInferenceTensorRt,
-  kStatusCodeErrorInferenceTnn,
-  kStatusCodeErrorInferenceMnn,
+  kStatusCodeErrorInferenceCoreML,
+  kStatusCodeErrorInferenceTfLite,
   kStatusCodeErrorInferenceOnnxRuntime,
   kStatusCodeErrorInferenceAscendCL,
-  kStatusCodeErrorInferenceOpenVino,
-  kStatusCodeErrorInferenceTfLite,
-  kStatusCodeErrorInferenceCoreML,
   kStatusCodeErrorInferenceNcnn,
+  kStatusCodeErrorInferenceTnn,
+  kStatusCodeErrorInferenceMnn,
   kStatusCodeErrorInferencePaddleLite,
   kStatusCodeErrorInferenceRknn,
   kStatusCodeErrorInferenceTvm,
-
+  kStatusCodeErrorInferenceAITemplate,
   kStatusCodeErrorInferenceSnpe,
+  kStatusCodeErrorInferenceQnn,
+  kStatusCodeErrorInferenceSophon,
+  kStatusCodeErrorInferenceTorch,
+  kStatusCodeErrorInferenceTensorFlow,
+  kStatusCodeErrorInferenceNeuroPilot,
 
   //
   kStatusCodeErrorDag,
@@ -107,8 +123,8 @@ std::string statusCodeToString(StatusCode code);
 #undef NNDEPLOY_LOGD
 #define NNDEPLOY_LOGDT(fmt, tag, ...)
 #define NNDEPLOY_LOGD(fmt, ...)
-#undef NNDEPLOY_ASSERT
-#define NNDEPLOY_ASSERT(x)
+// #undef NNDEPLOY_ASSERT
+// #define NNDEPLOY_ASSERT(x)
 #endif  // _DEBUG
 
 #define NNDEPLOY_RETURN_VALUE_ON_NEQ(status, expected, value, str) \

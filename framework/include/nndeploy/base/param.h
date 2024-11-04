@@ -7,7 +7,7 @@
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/value.h"
+#include "nndeploy/base/any.h"
 
 namespace nndeploy {
 namespace base {
@@ -43,9 +43,9 @@ class NNDEPLOY_CC_API Param {
 
   virtual base::Status parse(const std::string &json, bool is_path = true);
 
-  virtual base::Status set(const std::string &key, base::Value &value);
+  virtual base::Status set(const std::string &key, base::Any &any);
 
-  virtual base::Status get(const std::string &key, base::Value &value);
+  virtual base::Status get(const std::string &key, base::Any &any);
 
   // 序列化
   virtual base::Status serialize(std::ostream &stream);

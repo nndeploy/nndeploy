@@ -15,11 +15,11 @@ base::Status InferenceParam::parse(const std::string &json, bool is_path) {
   return base::kStatusCodeOk;
 }
 
-base::Status InferenceParam::set(const std::string &key, base::Value &value) {
+base::Status InferenceParam::set(const std::string &key, base::Any &any) {
   return base::kStatusCodeOk;
 }
 
-base::Status InferenceParam::get(const std::string &key, base::Value &value) {
+base::Status InferenceParam::get(const std::string &key, base::Any &any) {
   return base::kStatusCodeOk;
 }
 

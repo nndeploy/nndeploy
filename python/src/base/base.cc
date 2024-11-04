@@ -25,23 +25,26 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
 
   // nndeploy::base::DeviceTypeCode 导出为base.DeviceTypeCode
   py::enum_<base::DeviceTypeCode>(m, "DeviceTypeCode")
-      .value("kDeviceTypeCodeCpu", base::DeviceTypeCode::kDeviceTypeCodeCpu)
-      .value("kDeviceTypeCodeArm", base::DeviceTypeCode::kDeviceTypeCodeArm)
-      .value("kDeviceTypeCodeX86", base::DeviceTypeCode::kDeviceTypeCodeX86)
-      .value("kDeviceTypeCodeCuda", base::DeviceTypeCode::kDeviceTypeCodeCuda)
-      .value("kDeviceTypeCodeAscendCL",
-             base::DeviceTypeCode::kDeviceTypeCodeAscendCL)
-      .value("kDeviceTypeCodeOpenCL",
-             base::DeviceTypeCode::kDeviceTypeCodeOpenCL)
-      .value("kDeviceTypeCodeOpenGL",
-             base::DeviceTypeCode::kDeviceTypeCodeOpenGL)
-      .value("kDeviceTypeCodeMetal", base::DeviceTypeCode::kDeviceTypeCodeMetal)
-      .value("kDeviceTypeCodeVulkan",
-             base::DeviceTypeCode::kDeviceTypeCodeVulkan)
-      .value("kDeviceTypeCodeAppleNpu",
-             base::DeviceTypeCode::kDeviceTypeCodeAppleNpu)
-      .value("kDeviceTypeCodeNotSupport",
-             base::DeviceTypeCode::kDeviceTypeCodeNotSupport)
+      .value("cpu", base::DeviceTypeCode::kDeviceTypeCodeCpu)
+      .value("arm", base::DeviceTypeCode::kDeviceTypeCodeArm)
+      .value("x86", base::DeviceTypeCode::kDeviceTypeCodeX86)
+      .value("riscv", base::DeviceTypeCode::kDeviceTypeCodeRiscV)
+      .value("cuda", base::DeviceTypeCode::kDeviceTypeCodeCuda)
+      .value("rocm", base::DeviceTypeCode::kDeviceTypeCodeRocm)
+      .value("sycl", base::DeviceTypeCode::kDeviceTypeCodeSyCL)
+      .value("opencl", base::DeviceTypeCode::kDeviceTypeCodeOpenCL)
+      .value("opengl", base::DeviceTypeCode::kDeviceTypeCodeOpenGL)
+      .value("metal", base::DeviceTypeCode::kDeviceTypeCodeMetal)
+      .value("vulkan", base::DeviceTypeCode::kDeviceTypeCodeVulkan)
+      .value("hexagon", base::DeviceTypeCode::kDeviceTypeCodeHexagon)
+      .value("mtkvpu", base::DeviceTypeCode::kDeviceTypeCodeMtkVpu)
+      .value("ascendcl", base::DeviceTypeCode::kDeviceTypeCodeAscendCL)
+      .value("applenpu", base::DeviceTypeCode::kDeviceTypeCodeAppleNpu)
+      .value("rknpu", base::DeviceTypeCode::kDeviceTypeCodeRkNpu)
+      .value("qualcomnpu", base::DeviceTypeCode::kDeviceTypeCodeQualcommNpu)
+      .value("mtknpu", base::DeviceTypeCode::kDeviceTypeCodeMtkNpu)
+      .value("sophonnpu", base::DeviceTypeCode::kDeviceTypeCodeSophonNpu)
+      .value("notsupport", base::DeviceTypeCode::kDeviceTypeCodeNotSupport)
       .export_values();
 
   // 导出 DeviceType
