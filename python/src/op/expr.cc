@@ -13,7 +13,7 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
       .value("kExprTypeModelDesc", kExprTypeModelDesc)
       .export_values();
 
-  py::class_<op::Expr>(m, "Expr")
+  py::class_<op::Expr,std::shared_ptr<op::Expr>>(m, "Expr")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, base::DataType>())
       .def(py::init<const std::string &, base::DataType, base::IntVector>())
@@ -23,13 +23,13 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
       .def("getOutputName", &Expr::getOutputName);
 
   // 一系列创建函数
-  m.def("makeInput", &op::makeInput);
-  m.def("makeOutput", &op::makeOutput);
-  m.def("makeBlock", &op::makeBlock);
-  m.def("makeConv", &op::makeConv);
-  m.def("makeRelu", &op::makeRelu);
-  m.def("makeSoftMax", &op::makeSoftMax);
-  m.def("makeAdd", &op::makeAdd);
+  m.def("makeInput", &op::makeInput,py::return_value_policy::reference);
+  m.def("makeOutput", &op::makeOutput,py::return_value_policy::reference);
+  m.def("makeBlock", &op::makeBlock,py::return_value_policy::reference);
+  m.def("makeConv", &op::makeConv,py::return_value_policy::reference);
+  m.def("makeRelu", &op::makeRelu,py::return_value_policy::reference);
+  m.def("makeSoftMax", &op::makeSoftMax,py::return_value_policy::reference);
+  m.def("makeAdd", &op::makeAdd,py::return_value_policy::reference);
 }
 }  // namespace op
 }  // namespace nndeploy

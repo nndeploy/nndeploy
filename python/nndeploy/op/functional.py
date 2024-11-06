@@ -1,9 +1,17 @@
-'''
+"""
 函数形式Op
-'''
+"""
 
-import nndeploy._C as C
+import nndeploy._nndeploy_internal as _C
 
 
-def rms_norm():
-    return C.op.rms_norm()
+def conv(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
+    assert len(weight.shape) == 4  # 当前仅支持OIHW格式的权重
+    param = _C.ir.ConvParam()
+    param.dilations_ = [dilation, dilation]
+    param.group_ = groups
+    param.kernel_shape_ = [weight.shape[2], weight.shape[3]]
+    param.strides_ = [stride, stride]
+    param.pads_ = [padding, padding, padding, padding]
+
+    return _C.op.conv(input, weight, bias, param)

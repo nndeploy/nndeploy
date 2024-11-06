@@ -1,7 +1,3 @@
-
-import nndeploy._C
-import nndeploy.net
-import nndeploy.op
- 
+import nndeploy._nndeploy_internal as _C
 
 

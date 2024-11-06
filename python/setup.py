@@ -35,7 +35,7 @@ package_data = {"nndeploy": [get_internal_so_path()]}
 
 setup(
     name="nndeploy",
-    version="${PACKAGE_VERSION}",
+    version="2.0.0.0",
     author="nndeploy team",
     classifiers=[
         "Programming Language :: C++",

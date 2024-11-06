@@ -27,6 +27,8 @@ class NNDEPLOY_CC_API Expr {
   Expr(std::shared_ptr<ir::OpDesc> op_desc);
   Expr(std::shared_ptr<ir::ModelDesc> model_desc);
 
+  ~Expr();
+
   std::vector<std::string> getOutputName();
 
  protected:
