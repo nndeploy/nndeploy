@@ -22,9 +22,9 @@ class TensorRtInferenceParam : public InferenceParam {
 
   base::Status parse(const std::string &json, bool is_path = true);
 
-  virtual base::Status set(const std::string &key, base::Value &value);
+  virtual base::Status set(const std::string &key, base::Any &any);
 
-  virtual base::Status get(const std::string &key, base::Value &value);
+  virtual base::Status get(const std::string &key, base::Any &any);
 
   int max_batch_size_ = 1;
   size_t workspace_size_ = 1 << 30;

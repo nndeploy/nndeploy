@@ -23,12 +23,12 @@ base::Status CoremlInferenceParam::parse(const std::string &json, bool is_path) 
   return base::kStatusCodeOk;
 }
 
-base::Status CoremlInferenceParam::set(const std::string &key, base::Value &value) {
+base::Status CoremlInferenceParam::set(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
 
-base::Status CoremlInferenceParam::get(const std::string &key, base::Value &value) {
+base::Status CoremlInferenceParam::get(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

@@ -21,9 +21,9 @@ class RknnInferenceParam : public InferenceParam {
 
   base::Status parse(const std::string &json, bool is_path = true);
 
-  virtual base::Status set(const std::string &key, base::Value &value);
+  virtual base::Status set(const std::string &key, base::Any &any);
 
-  virtual base::Status get(const std::string &key, base::Value &value);
+  virtual base::Status get(const std::string &key, base::Any &any);
 
   rknn_tensor_format input_data_format_;
   rknn_tensor_type input_data_type_;

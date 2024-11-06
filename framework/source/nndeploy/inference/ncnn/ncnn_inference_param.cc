@@ -25,13 +25,13 @@ base::Status NcnnInferenceParam::parse(const std::string &json, bool is_path) {
 }
 
 base::Status NcnnInferenceParam::set(const std::string &key,
-                                     base::Value &value) {
+                                     base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
 
 base::Status NcnnInferenceParam::get(const std::string &key,
-                                     base::Value &value) {
+                                     base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

@@ -28,12 +28,12 @@ base::Status RknnInferenceParam::parse(const std::string &json, bool is_path) {
 }
 
 base::Status RknnInferenceParam::set(const std::string &key,
-                                     base::Value &value) {
+                                     base::Any &any) {
   return base::kStatusCodeOk;
 }
 
 base::Status RknnInferenceParam::get(const std::string &key,
-                                     base::Value &value) {
+                                     base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

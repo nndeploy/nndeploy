@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_IR_IR_H_
 #define _NNDEPLOY_IR_IR_H_
 
+#include <memory>
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -10,9 +11,10 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/value.h"
+#include "nndeploy/base/any.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/ir/op_param.h"
+#include "safetensors.hh"
 
 namespace nndeploy {
 namespace ir {
@@ -113,12 +115,28 @@ class ModelDesc {
       std::istream &stream, const std::vector<ValueDesc> &input);
   // 序列化模型权重为二进制文件
   base::Status serializeWeightsToBinary(std::ostream &stream) const;
+
+  // 序列化模型权重为safetensors
+  base::Status serializeWeightsToSafetensorsImpl(safetensors::safetensors_t &st,
+                                                 bool serialize_buffer = false) const;
+
+  base::Status serializeWeightsToSafetensors(
+      std::shared_ptr<safetensors::safetensors_t>& st_ptr) const;
   // 从二进制文件反序列化模型权重
   base::Status deserializeWeightsFromBinary(std::istream &stream);
+  // 从safetensors中导入成模型文件
+  base::Status deserializeWeightsFromSafetensors(
+      const std::string &weight_path);
+
+  // 从safetensors中导入成模型文件实现
+//   base::Status deserializeWeightsFromSafetensorsImpl(
+//       safetensors::safetensors_t &st);
 
  public:
   // 描述模型的名称
   std::string name_;
+  // 模型的权重
+  std::shared_ptr<safetensors::safetensors_t> st_ptr_;
   // 模型输入
   std::vector<std::shared_ptr<ValueDesc>> inputs_;
   // 模型输出
@@ -131,6 +149,8 @@ class ModelDesc {
   std::vector<std::shared_ptr<ValueDesc>> values_;
   // 模型块
   std::vector<std::shared_ptr<ModelDesc>> blocks_;
+
+  safetensors::ordered_dict<std::string> metadata_;
 };
 
 }  // namespace ir

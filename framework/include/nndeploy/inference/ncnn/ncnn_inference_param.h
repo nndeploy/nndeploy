@@ -22,9 +22,9 @@ class NcnnInferenceParam : public InferenceParam {
   // zh
   base::Status parse(const std::string &json, bool is_path = true);
   // zh
-  virtual base::Status set(const std::string &key, base::Value &value);
+  virtual base::Status set(const std::string &key, base::Any &any);
   // zh
-  virtual base::Status get(const std::string &key, base::Value &value);
+  virtual base::Status get(const std::string &key, base::Any &any);
 
   // light mode
   // intermediate blob will be recycled when enabled

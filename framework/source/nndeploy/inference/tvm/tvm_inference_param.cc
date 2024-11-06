@@ -21,13 +21,13 @@ base::Status TvmInferenceParam::parse(const std::string &json, bool is_path) {
 }
 
 base::Status TvmInferenceParam::set(const std::string &key,
-                                    base::Value &value) {
+                                    base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
 
 base::Status TvmInferenceParam::get(const std::string &key,
-                                    base::Value &value) {
+                                    base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

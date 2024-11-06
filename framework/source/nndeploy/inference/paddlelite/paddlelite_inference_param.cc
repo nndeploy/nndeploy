@@ -27,12 +27,12 @@ base::Status PaddleLiteInferenceParam::parse(const std::string &json,
 }
 
 base::Status PaddleLiteInferenceParam::set(const std::string &key,
-                                           base::Value &value) {
+                                           base::Any &any) {
   return base::kStatusCodeOk;
 }
 
 base::Status PaddleLiteInferenceParam::get(const std::string &key,
-                                           base::Value &value) {
+                                           base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

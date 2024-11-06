@@ -514,7 +514,7 @@ base::Status OnnxInterpret::interpret(
 
   // 检查并转换ONNX模型版本
   if (this->onnx_model_->ir_version() != target_version_) {
-    NNDEPLOY_LOGI("current version: %d, target_version_ %d.\n",
+    NNDEPLOY_LOGI("current version: %lld, target_version_ %d.\n",
                   this->onnx_model_->ir_version(), target_version_);
     try {
       onnx::ModelProto converted_model =
