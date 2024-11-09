@@ -1,36 +1,16 @@
 from nndeploy.ir import ModelDesc
-import nndeploy._C as C
 import nndeploy
 import numpy as np
+import nndeploy._nndeploy_internal as _C
+from nndeploy.base import device_name_to_code
+
+from nndeploy.device import createTensorFromNumpy
 
 """
 该类用于在Python端手动构建计算图
 核心是调用了CPP端的makeConv、makeRelu等一系列手动建图接口
 
 """
-
-str_to_np_data_types = {"float32": np.float32, "float16": np.float16}
-
-
-device_name_to_code = {
-    "cpu": nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeCpu,
-    "cuda": nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeCuda,
-    "arm": nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeArm,
-    "x86": nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeX86,
-    "ascendcl": nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeAscendCL,
-    "opencl": nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeOpenCL,
-    "opengl": nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeOpenGL,
-    "metal": nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeMetal,
-    "vulkan": nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeVulkan,
-    "applenpu": nndeploy._C.base.DeviceTypeCode.kDeviceTypeCodeAppleNpu,
-}
-
-
-# 从numpy array返回一个Tensor
-def createTensorFromNumpy(np_data):
-    tensor = nndeploy._C.device.Tensor(np_data, device_name_to_code["cpu"])
-    return tensor
-
 
 class Module:
     def __init__(self):
@@ -54,7 +34,7 @@ class Conv(Module):
         groups=1,
     ):
         super().__init__()
-        self.param = C.ir.ConvParam()  # TODO: 构造ConvParam 暂时只设置weight Shape相关
+        self.param = _C.ir.ConvParam()  # TODO: 构造ConvParam 暂时只设置weight Shape相关
         self.param.kernel_shape_ = [
             out_channels,
             in_channels,
@@ -73,7 +53,7 @@ class Conv(Module):
     def makeExpr(self, data):
 
         names = [key for dic in self.weight_map for key in dic.keys()]
-        return C.op.makeConv(
+        return _C.op.makeConv(
             self.model_desc,
             data,
             self.param,
@@ -103,4 +83,4 @@ class Relu(Module):
         return self.makeExpr(data)
 
     def makeExpr(self, data):
-        return C.op.makeRelu(self.model_desc, data, "1", "2")
+        return _C.op.makeRelu(self.model_desc, data, "1", "2")

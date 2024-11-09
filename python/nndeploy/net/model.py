@@ -1,7 +1,9 @@
 from nndeploy.op import Module
 from nndeploy.ir import ModelDesc
 
-import nndeploy._C as C
+import nndeploy._nndeploy_internal as _C
+
+
 
 from functools import wraps
 
@@ -41,10 +43,10 @@ def build_model(func):
 
         # 如果返回值是可迭代的，比如列表或元组，对每个元素进行标记
         if isinstance(result, (list, tuple)):
-            result = [C.op.makeOutput(item) for item in result]
+            result = [_C.op.makeOutput(self.model_desc,item) for item in result]
         # 如果返回值是单个值，直接进行标记
         else:
-            result = C.op.makeOutput(result)
+            result = _C.op.makeOutput(self.model_desc,result)
 
         for weight_map in weight_maps:
             for item in weight_map:
