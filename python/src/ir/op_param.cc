@@ -9,23 +9,14 @@
 namespace nndeploy {
 namespace ir {
 
-class MyClass {
- public:
-  std::vector<int> contents;
-};
-
 NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
-  py::class_<MyClass>(m, "MyClass")
-      .def(py::init<>())
-      .def_readwrite("contents", &MyClass::contents);
-
   // 导出 OpParam 类
-  py::class_<OpParam>(m, "OpParam")
-      .def(py::init<>())
-      .def_readwrite("reserved_", &OpParam::reserved_);
+  py::class_<OpParam, std::shared_ptr<OpParam>>(m, "OpParam").def(py::init<>());
 
   // 导出 BatchNormalizationParam 类
-  py::class_<BatchNormalizationParam, OpParam>(m, "BatchNormalizationParam")
+  py::class_<BatchNormalizationParam, OpParam,
+             std::shared_ptr<BatchNormalizationParam>>(
+      m, "BatchNormalizationParam")
       .def(py::init<>())
       .def_readwrite("epsilon_", &BatchNormalizationParam::epsilon_)
       .def_readwrite("momentum_", &BatchNormalizationParam::momentum_)
@@ -33,12 +24,13 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
                      &BatchNormalizationParam::training_mode_);
 
   // 导出 ConcatParam 类
-  py::class_<ConcatParam, OpParam>(m, "ConcatParam")
+  py::class_<ConcatParam, OpParam, std::shared_ptr<ConcatParam>>(m,
+                                                                 "ConcatParam")
       .def(py::init<>())
       .def_readwrite("axis_", &ConcatParam::axis_);
 
   // 导出 ConvParam 类
-  py::class_<ConvParam, OpParam>(m, "ConvParam")
+  py::class_<ConvParam, OpParam, std::shared_ptr<ConvParam>>(m, "ConvParam")
       .def(py::init<>())
       .def_readwrite("auto_pad_", &ConvParam::auto_pad_)
       .def_readwrite("dilations_", &ConvParam::dilations_)
@@ -48,7 +40,8 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       .def_readwrite("strides_", &ConvParam::strides_);
 
   // 导出 MaxPoolParam 类
-  py::class_<MaxPoolParam, OpParam>(m, "MaxPoolParam")
+  py::class_<MaxPoolParam, OpParam, std::shared_ptr<MaxPoolParam>>(
+      m, "MaxPoolParam")
       .def(py::init<>())
       .def_readwrite("auto_pad_", &MaxPoolParam::auto_pad_)
       .def_readwrite("ceil_mode_", &MaxPoolParam::ceil_mode_)
@@ -59,12 +52,14 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       .def_readwrite("strides_", &MaxPoolParam::strides_);
 
   // 导出 ReshapeParam 类
-  py::class_<ReshapeParam, OpParam>(m, "ReshapeParam")
+  py::class_<ReshapeParam, OpParam, std::shared_ptr<ReshapeParam>>(
+      m, "ReshapeParam")
       .def(py::init<>())
       .def_readwrite("allowzero_", &ReshapeParam::allowzero_);
 
   // 导出 ResizeParam 类
-  py::class_<ResizeParam, OpParam>(m, "ResizeParam")
+  py::class_<ResizeParam, OpParam, std::shared_ptr<ResizeParam>>(m,
+                                                                 "ResizeParam")
       .def(py::init<>())
       .def_readwrite("antialias_", &ResizeParam::antialias_)
       .def_readwrite("axes_", &ResizeParam::axes_)
@@ -79,23 +74,26 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       .def_readwrite("nearest_mode_", &ResizeParam::nearest_mode_);
 
   // 导出 SoftmaxParam 类
-  py::class_<SoftmaxParam, OpParam>(m, "SoftmaxParam")
+  py::class_<SoftmaxParam, OpParam, std::shared_ptr<SoftmaxParam>>(
+      m, "SoftmaxParam")
       .def(py::init<>())
       .def_readwrite("axis_", &SoftmaxParam::axis_);
 
   // 导出 SplitParam 类
-  py::class_<SplitParam, OpParam>(m, "SplitParam")
+  py::class_<SplitParam, OpParam, std::shared_ptr<SplitParam>>(m, "SplitParam")
       .def(py::init<>())
       .def_readwrite("axis_", &SplitParam::axis_)
       .def_readwrite("num_outputs_", &SplitParam::num_outputs_);
 
   // 导出 TransposeParam 类
-  py::class_<TransposeParam, OpParam>(m, "TransposeParam")
+  py::class_<TransposeParam, OpParam, std::shared_ptr<TransposeParam>>(
+      m, "TransposeParam")
       .def(py::init<>())
       .def_readwrite("perm_", &TransposeParam::perm_);
 
   // 导出 RMSNormParam 类
-  py::class_<RMSNormParam, OpParam>(m, "RMSNormParam")
+  py::class_<RMSNormParam, OpParam, std::shared_ptr<RMSNormParam>>(
+      m, "RMSNormParam")
       .def(py::init<>())
       .def_readwrite("eps_", &RMSNormParam::eps_)
       .def_readwrite("is_last_", &RMSNormParam::is_last_);

@@ -52,3 +52,23 @@ Python接口设计与CPP端保持一致，CPP端命名空间体现为Python的Mo
 
 + python接口
     + 只包含pybind相关
+
+
+# pybind11的一些注意点
+
+## 智能指针
+
+
+https://github.com/pybind/pybind11/issues/956
+
+pybind11默认的pybind class持有类型是`std::unique_ptr`，不能被转换为`std::shared_ptr`。如果报错:
+
+```
+RuntimeError: Unable to load a custom holder type from a default-holder instance
+```
+
+则可能是将某一返回`std::shared_ptr`的函数，该类没有更改为`std::shared_ptr`，例如`makeExprxx`系列函数，返回`std::shared_ptr<Expr>`，需要将`Expr`的holder显式注册。例如：
+
+```
+py::class_<op::Expr,std::shared_ptr<op::Expr>>(m, "Expr")
+```
