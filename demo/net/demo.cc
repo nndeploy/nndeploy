@@ -41,28 +41,26 @@ int main() {
   // net::TestNet testNet;
   // testNet.init();
 
-  // std::shared_ptr<ir::OnnxInterpret> onnx_interpret =
-  //     std::make_shared<ir::OnnxInterpret>();
-  // std::vector<std::string> model_value;
-  // model_value.push_back("/root/model/yolov8n.onnx");
-  // // model_value.push_back("/root/model/modified_yolov8n.onnx");
+  auto onnx_interpret = std::shared_ptr<ir::Interpret>(ir::createInterpret(base::kModelTypeOnnx));
+  std::vector<std::string> model_value;
+  model_value.push_back("yolov8n.onnx");
+  // model_value.push_back("/root/model/modified_yolov8n.onnx");
 
-  // base::Status status = onnx_interpret->interpret(model_value);
-  // if (status != base::kStatusCodeOk) {
-  //   NNDEPLOY_LOGE("interpret failed\n");
-  //   return -1;
-  // }
+  base::Status status = onnx_interpret->interpret(model_value);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("interpret failed\n");
+    return -1;
+  }
 
-  // // onnx_interpret->dump(std::cout);
-  // onnx_interpret->saveModelToFile("test.txt", "test.bin");
+  // onnx_interpret->dump(std::cout);
+  onnx_interpret->saveModelToFile("test.json", "test.safetensors");
 
-  std::shared_ptr<ir::DefaultInterpret> default_interpret =
-      std::make_shared<ir::DefaultInterpret>();
+  auto default_interpret = std::shared_ptr<ir::Interpret>(ir::createInterpret(base::kModelTypeDefault));
   std::vector<std::string> new_model_value;
-  new_model_value.push_back("test.txt");
-  new_model_value.push_back("test.bin");
+  new_model_value.push_back("test.json");
+  new_model_value.push_back("test.safetensors");
   default_interpret->interpret(new_model_value);
-  default_interpret->saveModelToFile("test_v2.txt", "test_v2.bin");
+  default_interpret->saveModelToFile("test_v2.json", "test_v2.safetensors");
 
   // ir::ModelDesc *md = onnx_interpret->getModelDesc();
   ir::ModelDesc *md = default_interpret->getModelDesc();
