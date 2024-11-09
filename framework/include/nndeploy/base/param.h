@@ -8,6 +8,7 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/any.h"
+#include "nndeploy/base/rapidjson_include.h"
 
 namespace nndeploy {
 namespace base {
@@ -41,16 +42,20 @@ class NNDEPLOY_CC_API Param {
   PARAM_COPY(Param)
   PARAM_COPY_TO(Param)
 
-  virtual base::Status parse(const std::string &json, bool is_path = true);
-
   virtual base::Status set(const std::string &key, base::Any &any);
 
   virtual base::Status get(const std::string &key, base::Any &any);
 
-  // 序列化
+  // 序列化：数据结构->[rapidjson::Value\stream\path\string]
+  // 衍生类只需实现serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator)
+  virtual base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator);
   virtual base::Status serialize(std::ostream &stream);
-  // 反序列化
-  virtual base::Status deserialize(const std::string &str);
+  virtual base::Status serialize(std::string &content, bool is_file);
+  // 反序列化：[rapidjson::Value\stream\path\string]->数据结构
+  // 衍生类只需实现deserialize(rapidjson::Value &json)
+  virtual base::Status deserialize(rapidjson::Value &json);
+  virtual base::Status deserialize(std::istream &stream);
+  virtual base::Status deserialize(const std::string &content, bool is_file);
 };
 
 }  // namespace base

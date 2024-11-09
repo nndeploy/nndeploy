@@ -19,18 +19,18 @@ class AscendCLOpSub : public OpBinary {
     inner_stream_ = (aclrtStream)device->getCommandQueue();
 
     if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
-      inputs_0 = new device::Tensor(device, inputs_[0]->getDesc(),
+      inputs_0_ = new device::Tensor(device, inputs_[0]->getDesc(),
                                     inputs_[0]->getName());
-      inputs_[0]->copyTo(inputs_0);
+      inputs_[0]->copyTo(inputs_0_);
       inner_input_0_ =
-          AscendCLOpConvert::convertFromTensor(inputs_0, ACL_FORMAT_ND);
+          AscendCLOpConvert::convertFromTensor(inputs_0_, ACL_FORMAT_ND);
     }
     if (device::isHostDeviceType(inputs_[1]->getDeviceType())) {
-      inputs_1 = new device::Tensor(device, inputs_[1]->getDesc(),
+      inputs_1_ = new device::Tensor(device, inputs_[1]->getDesc(),
                                     inputs_[1]->getName());
-      inputs_[1]->copyTo(inputs_1);
+      inputs_[1]->copyTo(inputs_1_);
       inner_input_1_ =
-          AscendCLOpConvert::convertFromTensor(inputs_1, ACL_FORMAT_ND);
+          AscendCLOpConvert::convertFromTensor(inputs_1_, ACL_FORMAT_ND);
     }
 
     return base::kStatusCodeOk;
@@ -38,6 +38,22 @@ class AscendCLOpSub : public OpBinary {
   virtual base::Status deinit() {
     if (alpha_ != nullptr) {
       aclDestroyScalar(alpha_);
+    }
+    if (inputs_0_ != nullptr) {
+      if (inner_input_0_ != nullptr) {
+        aclDestroyTensor(inner_input_0_);
+        inner_input_0_ = nullptr;
+      }
+      delete inputs_0_;
+      inputs_0_ = nullptr;
+    }
+    if (inputs_1_ != nullptr) {
+      if (inner_input_1_ != nullptr) {
+        aclDestroyTensor(inner_input_1_);
+        inner_input_1_ = nullptr;
+      }
+      delete inputs_1_;
+      inputs_1_ = nullptr;
     }
     return base::kStatusCodeOk;
   }
@@ -54,51 +70,72 @@ class AscendCLOpSub : public OpBinary {
     if (alpha_ == nullptr) {
       alpha_ =
           AscendCLOpConvert::convertFromScalar(1.0f, inputs_[0]->getDataType());
-      NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(alpha_, "aclCreateScalar failed.");
     }
-    inner_output_ =
-        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
-    NNDEPLOY_LOGE("hello world\n");
+    if (inner_output_ == nullptr) {
+      inner_output_ =
+          AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    }
     // 创建算子
-    aclnnStatus aclnn_status =
-        aclnnSubGetWorkspaceSize(inner_input_0_, inner_input_1_, alpha_,
+    if (executor_ == nullptr) {
+      aclnnStatus aclnn_status =
+          aclnnSubGetWorkspaceSize(inner_input_0_, inner_input_1_, alpha_,
                                  inner_output_, &workspace_size_, &executor_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                 base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSubGetWorkspaceSize failed.");
+      if (aclnn_status != ACL_SUCCESS) {
+        NNDEPLOY_LOGE("aclnnSubGetWorkspaceSize failed, error code: %d.\n",
+                     aclnn_status);
+        return base::kStatusCodeErrorOpAscendCL;
+      }
+    }
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
     // 输入输出
     aclnnStatus aclnn_status =
         aclnnSub(workspace_, workspace_size_, executor_, inner_stream_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                 base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSub failed.");
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnSub failed, error code: %d.\n", aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
 
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    aclDestroyTensor(inner_input_0_);
-    aclDestroyTensor(inner_input_1_);
-    aclDestroyTensor(inner_output_);
+    if (inputs_0_ == nullptr && inner_input_0_ != nullptr) {
+      aclDestroyTensor(inner_input_0_);
+      inner_input_0_ = nullptr;
+    }
+    if (inputs_1_ == nullptr && inner_input_1_ != nullptr) {
+      aclDestroyTensor(inner_input_1_);
+      inner_input_1_ = nullptr;
+    }
+    if (inner_output_ != nullptr) {
+      aclDestroyTensor(inner_output_);
+      inner_output_ = nullptr;
+    }
+    if (executor_ != nullptr) {
+      executor_ = nullptr;
+    }
+    base::Status status = OpBinary::postRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("postRun failed.\n");
+      return status;
+    }
     return base::kStatusCodeOk;
   }
 
  private:
-  // TODO: 待完善
   std::string inner_op_type_ = "Sub";
 
-  device::Tensor* inputs_0 = nullptr;
+  device::Tensor* inputs_0_ = nullptr;
   aclTensor* inner_input_0_ = nullptr;
-  device::Tensor* inputs_1 = nullptr;
+  device::Tensor* inputs_1_ = nullptr;
   aclTensor* inner_input_1_ = nullptr;
   aclScalar* alpha_ = nullptr;
   aclTensor* inner_output_ = nullptr;
-  aclOpExecutor* executor_;
+  aclOpExecutor* executor_ = nullptr;
 
-  aclrtStream inner_stream_;
-  aclopAttr* attr_{nullptr};
+  aclrtStream inner_stream_ = nullptr;
+  aclopAttr* attr_ = nullptr;
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,

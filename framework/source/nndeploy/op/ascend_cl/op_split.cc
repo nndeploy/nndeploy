@@ -18,15 +18,13 @@ class AscendCLOpSplit : public OpSplit {
   virtual base::Status init() {
     // 参数
     ir::SplitParam* param = (ir::SplitParam*)op_desc_.op_param_.get();
-    // 这个会有值吗？
     split_sections_ = (uint64_t)param->num_outputs_;
-    // NNDEPLOY_LOGE("split_sections_ = %d\n", split_sections_);
-
     dim_ = (int64_t)param->axis_;
-    // NNDEPLOY_LOGE("dim_ = %d\n", dim_);
     int64_t* data = (int64_t*)inputs_[1]->getData();
     size_t size = inputs_[1]->getSize() / sizeof(int64_t);
-    split_size_ = aclCreateIntArray(data, size);
+    if (split_size_ == nullptr) {
+      split_size_ = aclCreateIntArray(data, size);
+    }
 
     // 流
     device::Device* device = device::getDevice(device_type_);
@@ -36,46 +34,51 @@ class AscendCLOpSplit : public OpSplit {
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
+    //
+    base::Status status = OpSplit::preRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("preRun failed.\n");
+      return status;
+    }
     // 输入输出
-    inner_input_ =
+    if (inner_input_ == nullptr) {
+      inner_input_ =
         AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
-    inner_outputs_ =
-        AscendCLOpConvert::convertFromTensor(outputs_, ACL_FORMAT_ND);
-
-    split_sections_ = inputs_[0]->getShapeIndex(dim_) / split_sections_;
-    NNDEPLOY_LOGE("split_sections_ = %d\n", split_sections_);
-    NNDEPLOY_LOGE("dim_ = %d\n", dim_);
-
-    int64_t* data = (int64_t*)inputs_[1]->getData();
-    size_t size = inputs_[1]->getSize() / sizeof(int64_t);
-    for (size_t i = 0; i < size; i++) {
-      NNDEPLOY_LOGE("data[%d] = %d\n", i, data[i]);
+    }
+    if (inner_outputs_ == nullptr) {
+      inner_outputs_ =
+          AscendCLOpConvert::convertFromTensor(outputs_, ACL_FORMAT_ND);
     }
 
-    for (size_t i = 0; i < size; i++) {
+    if (executor_ == nullptr) {
+      split_sections_ = inputs_[0]->getShapeIndex(dim_) / split_sections_;
+        int64_t* data = (int64_t*)inputs_[1]->getData();
+      size_t size = inputs_[1]->getSize() / sizeof(int64_t);
+      for (size_t i = 0; i < size; i++) {
       if (data[i] != split_sections_) {
         flag_ = false;
-        break;
+          break;
+        }
       }
-    }
 
-    if (flag_) {
-      // 创建算子
-      aclnnStatus aclnn_status = aclnnSplitTensorGetWorkspaceSize(
+      if (flag_) {
+        // 创建算子
+        aclnnStatus aclnn_status = aclnnSplitTensorGetWorkspaceSize(
           inner_input_, split_sections_, dim_, inner_outputs_, &workspace_size_,
-          &executor_);
-      if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnSplitTensorGetWorkspaceSize 失败，错误码: %d",
-                      aclnn_status);
-      }
-    } else {
-      // 创建算子
-      aclnnStatus aclnn_status = aclnnSplitWithSizeGetWorkspaceSize(
+            &executor_);
+        if (aclnn_status != ACL_SUCCESS) {
+          NNDEPLOY_LOGE("aclnnSplitTensorGetWorkspaceSize failed, error code: %d.\n", aclnn_status);
+          return base::kStatusCodeErrorOpAscendCL;
+        }
+      } else {
+        // 创建算子
+        aclnnStatus aclnn_status = aclnnSplitWithSizeGetWorkspaceSize(
           inner_input_, split_size_, dim_, inner_outputs_, &workspace_size_,
           &executor_);
-      if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnSplitTensorGetWorkspaceSize 失败，错误码: %d",
-                      aclnn_status);
+        if (aclnn_status != ACL_SUCCESS) {
+          NNDEPLOY_LOGE("aclnnSplitWithSizeGetWorkspaceSize failed, error code: %d.\n", aclnn_status);
+          return base::kStatusCodeErrorOpAscendCL;
+        }
       }
     }
     return base::kStatusCodeOk;
@@ -88,22 +91,38 @@ class AscendCLOpSplit : public OpSplit {
       aclnnStatus aclnn_status = aclnnSplitTensor(workspace_, workspace_size_,
                                                   executor_, inner_stream_);
       if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnSplitTensor 失败，错误码: %d\n", aclnn_status);
+        NNDEPLOY_LOGE("aclnnSplitTensor failed, error code: %d.\n", aclnn_status);
+        return base::kStatusCodeErrorOpAscendCL;
       }
     } else {
       // 输入输出
       aclnnStatus aclnn_status = aclnnSplitWithSize(workspace_, workspace_size_,
                                                     executor_, inner_stream_);
       if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnSplitWithSize 失败，错误码: %d\n", aclnn_status);
+        NNDEPLOY_LOGE("aclnnSplitWithSize failed, error code: %d.\n", aclnn_status);
+        return base::kStatusCodeErrorOpAscendCL;
       }
     }
 
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    aclDestroyTensor(inner_input_);
-    aclDestroyTensorList(inner_outputs_);
+    if (inner_input_ != nullptr) {
+      aclDestroyTensor(inner_input_);
+      inner_input_ = nullptr;
+    }
+    if (inner_outputs_ != nullptr) {
+      aclDestroyTensorList(inner_outputs_);
+      inner_outputs_ = nullptr;
+    }
+    if (executor_ != nullptr) {
+      executor_ = nullptr;
+    }
+    base::Status status = OpSplit::postRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("postRun failed.\n");
+      return status;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -112,14 +131,14 @@ class AscendCLOpSplit : public OpSplit {
 
   bool flag_ = true;
   aclTensor* inner_input_ = nullptr;
-  uint64_t split_sections_;
-  aclIntArray* split_size_;
+  uint64_t split_sections_ = 0;
+  aclIntArray* split_size_ = nullptr;
   int64_t dim_ = 0;
   aclTensorList* inner_outputs_ = nullptr;
   aclOpExecutor* executor_ = nullptr;
 
-  aclrtStream inner_stream_;
-  aclopAttr* attr_{nullptr};
+  aclrtStream inner_stream_ = nullptr;
+  aclopAttr* attr_ = nullptr;
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,

@@ -236,7 +236,7 @@ base::Status Buffer::serialize(std::ostream &stream) {
     return base::kStatusCodeOk;
   }
 }
-base::Status Buffer::serialize_to_safetensors(
+base::Status Buffer::serializeToSafetensors(
     safetensors::safetensors_t &st, const safetensors::tensor_t &tensor) {
   uint64_t buffer_size = this->getRealSize();
   size_t tensor_size = tensor.data_offsets[1] - tensor.data_offsets[0];
@@ -284,16 +284,16 @@ base::Status Buffer::deserialize(std::istream &stream) {
   }
 }
 
-base::Status Buffer::deserialize_from_safetensors(const char *storage,
-                                                  const size_t &data_size) {
+// base::Status Buffer::serializeFromSafetensors(const char *storage,
+//                                                   const size_t &data_size) {
   
-  memory_pool_ = nullptr;
-  memory_type_ = base::kMemoryTypeMapped;
-  ref_count_ = new int(1);
-  desc_ = data_size;  // still_need to
-  data_ = (void *)storage;
-  return base::kStatusCodeOk;
-}
+//   memory_pool_ = nullptr;
+//   memory_type_ = base::kMemoryTypeMapped;
+//   ref_count_ = new int(1);
+//   desc_ = data_size;  // still_need to
+//   data_ = (void *)storage;
+//   return base::kStatusCodeOk;
+// }
 
 void Buffer::print() {
   std::cout << "Buffer: " << std::endl;

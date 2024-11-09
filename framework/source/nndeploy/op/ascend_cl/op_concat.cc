@@ -27,33 +27,63 @@ class AscendCLOpConcat : public OpConcat {
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
+    // 父类preRun
+    base::Status status = OpConcat::preRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("preRun failed.\n");
+      return status;
+    }
+
     // 输入输出
-    inner_inputs_ =
-        AscendCLOpConvert::convertFromTensor(inputs_, ACL_FORMAT_ND);
-    inner_output_ =
-        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    if (inner_inputs_ == nullptr) { 
+      inner_inputs_ =
+          AscendCLOpConvert::convertFromTensor(inputs_, ACL_FORMAT_ND);
+    }
+    if (inner_output_ == nullptr) {
+      inner_output_ =
+          AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    }
 
     // 创建算子
-    aclnnStatus aclnn_status = aclnnCatGetWorkspaceSize(
-        inner_inputs_, dim_, inner_output_, &workspace_size_, &executor_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                 base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnConcatGetWorkspaceSize failed.");
+    if (executor_ == nullptr) {
+      aclnnStatus aclnn_status = aclnnCatGetWorkspaceSize(
+          inner_inputs_, dim_, inner_output_, &workspace_size_, &executor_);
+      if (aclnn_status != ACL_SUCCESS) {
+        NNDEPLOY_LOGE("aclnnCatGetWorkspaceSize failed, error code: %d.\n",
+                     aclnn_status);
+        return base::kStatusCodeErrorOpAscendCL;
+      }
+    }
+    
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
     // 输入输出
     aclnnStatus aclnn_status =
         aclnnCat(workspace_, workspace_size_, executor_, inner_stream_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                 base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnCat failed.");
-
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnCat failed, error code: %d.\n", aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    aclDestroyTensorList(inner_inputs_);
-    aclDestroyTensor(inner_output_);
+    if (inner_inputs_ != nullptr) {
+      aclDestroyTensorList(inner_inputs_);
+      inner_inputs_ = nullptr;
+    }
+    if (inner_output_ != nullptr) {
+      aclDestroyTensor(inner_output_);
+      inner_output_ = nullptr;
+    }
+    if (executor_ != nullptr) {
+      executor_ = nullptr;
+    }
+    base::Status status = OpConcat::postRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("postRun failed.\n");
+      return status;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -63,10 +93,10 @@ class AscendCLOpConcat : public OpConcat {
   aclTensorList* inner_inputs_ = nullptr;
   int64_t dim_ = -1;
   aclTensor* inner_output_ = nullptr;
-  aclOpExecutor* executor_;
+  aclOpExecutor* executor_ = nullptr;
 
-  aclrtStream inner_stream_;
-  aclopAttr* attr_{nullptr};
+  aclrtStream inner_stream_ = nullptr;
+  aclopAttr* attr_ = nullptr;
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,

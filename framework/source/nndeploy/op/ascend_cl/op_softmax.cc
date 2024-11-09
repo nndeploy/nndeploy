@@ -27,18 +27,29 @@ class AscendCLOpSoftmax : public OpSoftmax {
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
+    base::Status status = OpSoftmax::preRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("preRun failed.\n");
+      return status;
+    }
     // 输入输出
-    inner_input_ =
-        AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
-    inner_output_ =
-        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    if (inner_input_ == nullptr) {
+      inner_input_ =
+          AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    }
+    if (inner_output_ == nullptr) {
+      inner_output_ =
+          AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    }
 
     // 创建算子
-    aclnnStatus aclnn_status = aclnnSoftmaxGetWorkspaceSize(
-        inner_input_, dim_, inner_output_, &workspace_size_, &executor_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                 base::kStatusCodeErrorOpAscendCL,
+    if (executor_ == nullptr) {
+      aclnnStatus aclnn_status = aclnnSoftmaxGetWorkspaceSize(
+          inner_input_, dim_, inner_output_, &workspace_size_, &executor_);
+      NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
+                                   base::kStatusCodeErrorOpAscendCL,
                                  "aclnnSoftmaxGetWorkspaceSize failed.");
+    }
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
@@ -52,8 +63,22 @@ class AscendCLOpSoftmax : public OpSoftmax {
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    aclDestroyTensor(inner_input_);
-    aclDestroyTensor(inner_output_);
+    if (inner_input_ != nullptr) {
+      aclDestroyTensor(inner_input_);
+      inner_input_ = nullptr;
+    }
+    if (inner_output_ != nullptr) {
+      aclDestroyTensor(inner_output_);
+      inner_output_ = nullptr;
+    }
+    if (executor_ != nullptr) {
+      executor_ = nullptr;
+    }
+    base::Status status = OpSoftmax::postRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("postRun failed.\n");
+      return status;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -63,10 +88,10 @@ class AscendCLOpSoftmax : public OpSoftmax {
   aclTensor* inner_input_ = nullptr;
   int64_t dim_ = 0;
   aclTensor* inner_output_ = nullptr;
-  aclOpExecutor* executor_;
+  aclOpExecutor* executor_ = nullptr;
 
-  aclrtStream inner_stream_;
-  aclopAttr* attr_{nullptr};
+  aclrtStream inner_stream_ = nullptr;
+  aclopAttr* attr_ = nullptr;
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,

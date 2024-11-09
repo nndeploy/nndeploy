@@ -23,7 +23,7 @@ file(GLOB DEMO_SOURCE
 set(SOURCE ${SOURCE} ${DEMO_SOURCE})
 # OBJECT
 # BINARY
-add_executable(${BINARY} ${SOURCE} ${SOURCE})
+add_executable(${BINARY} ${SOURCE} ${OBJECT})
 if (APPLE)
   set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl")
 else ()

@@ -435,7 +435,7 @@ base::IntVector AscendCLOpConvert::inferShape(const aclFormat &dst_format,
     }
   }
   NNDEPLOY_LOGE(
-      "unsupport InferShape with dst_format %d src_format %d with shape %s",
+      "unsupport InferShape with dst_format %d src_format %d with shape %s.\n",
       dst_format, src_format, base::vectorToString(shape).c_str());
   return base::IntVector();
 }
@@ -680,20 +680,22 @@ aclTensor *AscendCLOpConvert::convertFromTensor(const device::Tensor *src,
     NNDEPLOY_LOGE("aclCreateTensor failed when convertFromTensor.\n");
   }
 
-  // std::string name_ = src->getName();
-  // if (name_ == "/model.2/cv1/act/Mul_output_0" ||
-  //     name_ == "/model.2/Split_output_0" ||
-  //     name_ == "/model.2/Split_output_1") {
-  //   NNDEPLOY_LOGI("%s\n", base::dataFormatToString(src_data_format).c_str());
-  //   NNDEPLOY_LOGI("src_shape: %d, %d, %d, %d\n", src_shape[0], src_shape[1],
-  //                 src_shape[2], src_shape[3]);
-  //   NNDEPLOY_LOGI("dim: %d, %d, %d, %d\n", dim[0], dim[1], dim[2], dim[3]);
-  //   NNDEPLOY_LOGI("dst_stride: %d, %d, %d, %d\n", dst_stride[0],
-  //   dst_stride[1],
-  //                 dst_stride[2], dst_stride[3]);
-  //   NNDEPLOY_LOGI("data: %p\n", data);
-  //   src->getDesc().print();
-  // }
+#if 0
+  std::string name_ = src->getName();
+  if (name_ == "/model.2/cv1/act/Mul_output_0" ||
+      name_ == "/model.2/Split_output_0" ||
+      name_ == "/model.2/Split_output_1") {
+    NNDEPLOY_LOGI("%s\n", base::dataFormatToString(src_data_format).c_str());
+    NNDEPLOY_LOGI("src_shape: %d, %d, %d, %d\n", src_shape[0], src_shape[1],
+                  src_shape[2], src_shape[3]);
+    NNDEPLOY_LOGI("dim: %d, %d, %d, %d\n", dim[0], dim[1], dim[2], dim[3]);
+    NNDEPLOY_LOGI("dst_stride: %d, %d, %d, %d\n", dst_stride[0],
+    dst_stride[1],
+                  dst_stride[2], dst_stride[3]);
+    NNDEPLOY_LOGI("data: %p\n", data);
+    src->getDesc().print();
+  }
+#endif
 
   return dst;
 }

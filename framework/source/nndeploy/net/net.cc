@@ -12,6 +12,13 @@ Net::Net() : op::Op() {}
 
 Net::~Net() {}
 
+base::Status Net::setInterpret(ir::Interpret *interpret) {
+  base::Status status = base::kStatusCodeOk;
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(interpret, "interpret is null!");
+  model_desc_ = interpret->getModelDesc();
+  return status;
+}
+
 base::Status Net::setModelDesc(ir::ModelDesc *model_desc) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(model_desc, "model_desc is null!");
@@ -262,7 +269,6 @@ base::Status Net::init() {
 
   // 即使是设备相关的图优化，也可以放在优化器中做
   // 经过这一次图优化之后
-
   status = optimizer();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph optimizer failed!");
@@ -390,6 +396,14 @@ base::Status Net::preRun() {
 
   return status;
 };
+
+uint64_t Net::getFlops() {
+  uint64_t flops = 0;
+  for (auto iter : op_repository_) {
+    flops += iter->op_->getFlops();
+  }
+  return flops;
+}
 
 base::Status Net::run() {
   base::Status status = base::kStatusCodeOk;

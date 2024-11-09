@@ -75,7 +75,7 @@ class Interpret {
    * @see base::Status 了解可能的返回状态
    */
   base::Status saveModel(std::ostream &structure_stream,
-                         const std::string &weight_file_path);
+                         std::shared_ptr<safetensors::safetensors_t> st_ptr);
   /**
    * @brief 存储模型结构以及模型权重到指定路径
    *
@@ -96,9 +96,8 @@ class Interpret {
    * @see base::Status 了解可能的返回状态
    */
   base::Status saveModelToFile(const std::string &structure_file_path,
-                               std::string &weight_file_path);
-  base::Status saveModelToFile(const std::string &structure_file_path,
-                               const char *str);
+                               const std::string &weight_file_path);
+                               
   /**
    * @brief 获取模型描述
    *
@@ -114,11 +113,6 @@ class Interpret {
    * 用于存储模型描述信息
    */
   ModelDesc *model_desc_ = nullptr;
-
-  // /**
-  //  * @brief safetensors 权重
-  //  * 用于存储safetensors权重
-  //  */
 };
 
 /**

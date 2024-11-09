@@ -177,8 +177,8 @@ base::Status SequentialSession::run() {
       max_workspace_size = workspace_size;
     }
   }
-  NNDEPLOY_LOGE("max_workspace_size is %d.\n",
-                static_cast<int32_t>(max_workspace_size));
+  // NNDEPLOY_LOGE("max_workspace_size is %d.\n",
+  //               static_cast<int32_t>(max_workspace_size));
   device::Device *device = device::getDevice(device_type_);
   void *workspace = nullptr;
   if (max_workspace_size > 0) {

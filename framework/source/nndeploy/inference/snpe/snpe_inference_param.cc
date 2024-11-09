@@ -22,14 +22,6 @@ SnpeInferenceParam::SnpeInferenceParam() : InferenceParam() {
 
 SnpeInferenceParam::~SnpeInferenceParam() {}
 
-base::Status SnpeInferenceParam::parse(const std::string &json, bool is_path) {
-  std::string json_content = "";
-  base::Status status = InferenceParam::parse(json_content, false);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "parse json failed!");
-
-  return base::kStatusCodeOk;
-}
-
 base::Status SnpeInferenceParam::set(const std::string &key,
                                      base::Any &any) {
   base::Status status = base::kStatusCodeOk;

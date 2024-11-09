@@ -501,7 +501,7 @@ base::Status Tensor::shape2SafetensorsShape(
   return base::kStatusCodeOk;
 }
 
-base::Status Tensor::serialize_to_safetensors(safetensors::safetensors_t &st,
+base::Status Tensor::serializeToSafetensors(safetensors::safetensors_t &st,
                                               bool serialize_buffer) {
   // NOTE: we should call not serialize_buffer at first time, then we serialize
   // buffer, so the second time we could say, the storage has already has
@@ -542,10 +542,10 @@ base::Status Tensor::serialize_to_safetensors(safetensors::safetensors_t &st,
   } else {
     safetensors::tensor_t t_t;
     st.tensors.at(name_, &t_t);
-    auto status = buffer_->serialize_to_safetensors(st, t_t);
+    auto status = buffer_->serializeToSafetensors(st, t_t);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(
         status, base::kStatusCodeOk, status,
-        "buffer_->serialize_to_safetensors(st, t_t) failed");
+        "buffer_->serializeToSafetensors(st, t_t) failed");
   }
 
   return base::kStatusCodeOk;
@@ -591,7 +591,7 @@ base::Status Tensor::deserialize(std::istream &stream) {
   return base::kStatusCodeOk;
 }
 
-base::Status Tensor::deserialize_from_safetensors(
+base::Status Tensor::serializeFromSafetensors(
     const safetensors::safetensors_t &st) {
   auto status = base::kStatusCodeOk;
   safetensors::tensor_t t_t;
@@ -607,10 +607,11 @@ base::Status Tensor::deserialize_from_safetensors(
   this->ref_count_ = new int(1);
   const char *data_ptr = reinterpret_cast<const char *>(st.databuffer_addr); // NOTE: cause it is loaded by mmap
   // const char *data_ptr = reinterpret_cast<const char *>(st.storage.data());
-  this->buffer_ = new Buffer(getDefaultHostDevice(), t_t.data_offsets[1] - t_t.data_offsets[0]);
-  this->buffer_->deserialize_from_safetensors(
-      data_ptr + t_t.data_offsets[0],
-      t_t.data_offsets[1] - t_t.data_offsets[0]);
+  // @Realtyxxx
+  this->buffer_ = new Buffer(getDefaultHostDevice(), t_t.data_offsets[1] - t_t.data_offsets[0], (void *)(data_ptr + t_t.data_offsets[0]), base::kMemoryTypeExternal);
+  // this->buffer_->serializeFromSafetensors(
+  //     data_ptr + t_t.data_offsets[0],
+  //     t_t.data_offsets[1] - t_t.data_offsets[0]);
   return status;
 }
 

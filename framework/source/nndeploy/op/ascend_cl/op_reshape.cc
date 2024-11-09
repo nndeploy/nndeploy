@@ -25,7 +25,14 @@ class AscendCLOpReshape : public OpReshape {
     return base::kStatusCodeOk;
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
-  virtual base::Status preRun() { return base::kStatusCodeOk; }
+  virtual base::Status preRun() { 
+    base::Status status = OpReshape::preRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("preRun failed.\n");
+      return status;
+    }
+    return base::kStatusCodeOk;
+  }
   // inferShape已经把事情做完了，这里只需要把输入数据拷贝到输出即可
   virtual base::Status run() {
     if (outputs_[0]->getData() != inputs_[0]->getData()) {
@@ -36,21 +43,28 @@ class AscendCLOpReshape : public OpReshape {
           outputs_[0]->getData(), size_min, inputs_[0]->getData(), size_min,
           ACL_MEMCPY_DEVICE_TO_DEVICE, inner_stream_);
       if (ret != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclrtMemcpyAsync failed.");
+        NNDEPLOY_LOGE("aclrtMemcpyAsync failed.\n");
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
     return base::kStatusCodeOk;
   }
-  virtual base::Status postRun() { return base::kStatusCodeOk; }
+  virtual base::Status postRun() { 
+    base::Status status = OpReshape::postRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("postRun failed.\n");
+      return status;
+    }
+    return base::kStatusCodeOk;
+  }
 
  private:
   std::string inner_op_type_ = "Reshape";
 
   int allowzero_ = 0;
 
-  aclrtStream inner_stream_;
-  aclopAttr* attr_{nullptr};
+  aclrtStream inner_stream_ = nullptr;
+  aclopAttr* attr_ = nullptr;
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,

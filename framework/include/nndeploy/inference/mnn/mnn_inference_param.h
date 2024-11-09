@@ -20,8 +20,6 @@ class MnnInferenceParam : public InferenceParam {
   PARAM_COPY(MnnInferenceParam)
   PARAM_COPY_TO(MnnInferenceParam)
 
-  base::Status parse(const std::string &json, bool is_path = true);
-
   virtual base::Status set(const std::string &key, base::Any &any);
 
   virtual base::Status get(const std::string &key, base::Any &any);

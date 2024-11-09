@@ -69,38 +69,44 @@ OpDesc::~OpDesc() {}
  * @param stream
  * @return base::Status
  * @note
- * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
+ * name_: model.0.conv
+ * op_type_: kOpTypeConv
+ * inputs_: [images, model.0.conv.weight, model.0.conv.bias]
+ * outputs_: [model.0.conv_output_0]
+ * op_param_: {
+ *   "auto_pad_": "NOTSET"
+ *   "dilations_": [1,1]
+ *   "group_": 1
+ *   "kernel_shape_": [3,3]
+ *   "pads_": [1,1,1,1]
+ *   "strides_": [2,2]
+ *   "is_fusion_op_": 0
+ *   "activate_op_": "kOpTypeRelu"
+ * }
  */
-base::Status OpDesc::serialize(std::ostream &stream) const {
-  // 写入算子类型
-  stream << opTypeToString(op_type_) << ",";
-
+base::Status OpDesc::serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) const {
   // 写入算子名称
-  stream << name_ << ",";
-
-  // 写入输入个数
-  stream << (int)inputs_.size() << ",";
-
-  // 写入输出个数
-  stream << (int)outputs_.size() << ",";
-
-  // 写入输入名称
+  json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator), allocator);
+  // 写入算子类型
+  json.AddMember("op_type_", rapidjson::Value(opTypeToString(op_type_).c_str(), allocator), allocator);
+  // 写入输入
+  rapidjson::Value inputs(rapidjson::kArrayType);
   for (const auto &input : inputs_) {
-    stream << input << ",";
+    inputs.PushBack(rapidjson::Value(input.c_str(), allocator), allocator);
   }
-
-  // 写入输出名称
+  json.AddMember("inputs_", inputs, allocator);
+  // 写入输出
+  rapidjson::Value outputs(rapidjson::kArrayType);
   for (const auto &output : outputs_) {
-    stream << output << ",";
+    outputs.PushBack(rapidjson::Value(output.c_str(), allocator), allocator);
   }
-
+  json.AddMember("outputs_", outputs, allocator);
   // 写入参数
   if (op_param_ != nullptr) {
-    op_param_->serialize(stream);
+    rapidjson::Value param_json(rapidjson::kObjectType);
+    op_param_->serialize(param_json, allocator);
+    json.AddMember("op_param_", param_json, allocator);
   }
-
-  // 写入换行符
-  // stream << std::endl;
 
   return base::kStatusCodeOk;
 }
@@ -110,53 +116,69 @@ base::Status OpDesc::serialize(std::ostream &stream) const {
  * @param stream
  * @return base::Status
  * @note
- * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
+ * name_: model.0.conv
+ * op_type_: kOpTypeConv
+ * inputs_: [images, model.0.conv.weight, model.0.conv.bias]
+ * outputs_: [model.0.conv_output_0]
+ * op_param_: {
+ *   "auto_pad_": "NOTSET"
+ *   "dilations_": [1,1]
+ *   "group_": 1
+ *   "kernel_shape_": [3,3]
+ *   "pads_": [1,1,1,1]
+ *   "strides_": [2,2]
+ *   "is_fusion_op_": 0
+ *   "activate_op_": "kOpTypeRelu"
+ * }
  */
-base::Status OpDesc::deserialize(const std::string &line) {
-  std::istringstream iss(line);
-  std::string token;
+base::Status OpDesc::deserialize(rapidjson::Value &json) {
+  // 读取算子名称
+  if (!json.HasMember("name_") || !json["name_"].IsString()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  name_ = json["name_"].GetString();
 
-  // 读取op类型
-  if (!std::getline(iss, token, ',')) return base::kStatusCodeErrorInvalidValue;
-  op_type_ = stringToOpType(token);
+  // 读取算子类型
+  if (!json.HasMember("op_type_") || !json["op_type_"].IsString()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  op_type_ = stringToOpType(json["op_type_"].GetString());
 
-  // 读取op名称
-  if (!std::getline(iss, name_, ',')) return base::kStatusCodeErrorInvalidValue;
-
-  // 读取输入个数
-  if (!std::getline(iss, token, ',')) return base::kStatusCodeErrorInvalidValue;
-  int input_count = std::stoi(token);
-
-  // 读取输出个数
-  if (!std::getline(iss, token, ',')) return base::kStatusCodeErrorInvalidValue;
-  int output_count = std::stoi(token);
-
-  // 读取输入名称
+  // 读取输入
+  if (!json.HasMember("inputs_") || !json["inputs_"].IsArray()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
   inputs_.clear();
-  for (int i = 0; i < input_count; ++i) {
-    if (!std::getline(iss, token, ','))
+  const rapidjson::Value& inputs = json["inputs_"];
+  for (rapidjson::SizeType i = 0; i < inputs.Size(); i++) {
+    if (!inputs[i].IsString()) {
       return base::kStatusCodeErrorInvalidValue;
-    inputs_.push_back(token);
+    }
+    inputs_.push_back(inputs[i].GetString());
   }
 
-  // 读取输出名称
+  // 读取输出
+  if (!json.HasMember("outputs_") || !json["outputs_"].IsArray()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
   outputs_.clear();
-  for (int i = 0; i < output_count; ++i) {
-    if (!std::getline(iss, token, ','))
+  const rapidjson::Value& outputs = json["outputs_"];
+  for (rapidjson::SizeType i = 0; i < outputs.Size(); i++) {
+    if (!outputs[i].IsString()) {
       return base::kStatusCodeErrorInvalidValue;
-    outputs_.push_back(token);
+    }
+    outputs_.push_back(outputs[i].GetString());
   }
 
   // 读取参数
-  op_param_ = createOpParam(op_type_);
-  if (op_param_ != nullptr) {
-    // 最大值或者最小值为默认值
-    std::string str;
-    iss >> str;
-    // std::cout << str << std::endl;
-    base::Status status = op_param_->deserialize(str);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, status,
-                                 "op_param_->deserialize(iss) failed!");
+  if (json.HasMember("op_param_") && json["op_param_"].IsObject()) {
+    op_param_ = createOpParam(op_type_);
+    if (op_param_ != nullptr) {
+      rapidjson::Value& param_json = json["op_param_"];
+      base::Status status = op_param_->deserialize(param_json);
+      NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, status,
+                                   "op_param_->deserialize failed!\n");
+    }
   }
 
   return base::kStatusCodeOk;
@@ -180,23 +202,30 @@ ValueDesc::~ValueDesc() {
  *
  * @param stream
  * @return base::Status
- * @note 名称,[数据类型],[形状]
+ * @note
+ * name_: model.0.conv_output_0
+ * data_type_: dataTypeToString(data_type_)
+ * shape_: [1, 32, 16, 16]
  */
-base::Status ValueDesc::serialize(std::ostream &stream) const {
-  stream << name_;
+base::Status ValueDesc::serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) const {
+  // 序列化名称
+  json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator), allocator);
 
+  // 序列化数据类型
   if (data_type_.code_ != base::kDataTypeCodeNotSupport) {
-    stream << "," << base::dataTypeToString(data_type_);
+    std::string data_type_str = base::dataTypeToString(data_type_);
+    json.AddMember("data_type_", 
+                   rapidjson::Value(data_type_str.c_str(), allocator), 
+                   allocator);
   }
+
+  // 序列化形状
   if (!shape_.empty()) {
-    stream << ",[";
-    for (size_t i = 0; i < shape_.size(); ++i) {
-      if (i > 0) {
-        stream << ",";
-      }
-      stream << shape_[i];
+    rapidjson::Value shape_array(rapidjson::kArrayType);
+    for (auto dim : shape_) {
+      shape_array.PushBack(dim, allocator);
     }
-    stream << "]";
+    json.AddMember("shape_", shape_array, allocator);
   }
 
   return base::kStatusCodeOk;
@@ -206,35 +235,31 @@ base::Status ValueDesc::serialize(std::ostream &stream) const {
  *
  * @param stream
  * @return base::Status
- * @note 名称,[数据类型],[形状]
+ * @note 
+ * name_: model.0.conv_output_0
+ * data_type_: dataTypeToString(data_type_)
+ * shape_: [1, 32, 16, 16]
  */
-base::Status ValueDesc::deserialize(const std::string &str) {
-  std::string line(str);
+base::Status ValueDesc::deserialize(rapidjson::Value &json) {
   // 解析名称
-  size_t pos = line.find(',');
-  if (pos != std::string::npos) {
-    name_ = line.substr(0, pos);
-    line = line.substr(pos + 1);
-  } else {
-    name_ = line;
-    return base::kStatusCodeOk;
+  if (json.HasMember("name_")) {
+    name_ = json["name_"].GetString();
   }
 
   // 解析数据类型
-  pos = line.find(',');
-  if (pos != std::string::npos) {
-    std::string data_type_str = line.substr(0, pos);
+  if (json.HasMember("data_type_")) {
+    std::string data_type_str = json["data_type_"].GetString();
     data_type_ = base::stringToDataType(data_type_str);
-    line = line.substr(pos + 1);
   }
 
   // 解析形状
-  if (line.front() == '[' && line.back() == ']') {
-    line = line.substr(1, line.length() - 2);
-    std::istringstream iss(line);
-    std::string token;
-    while (std::getline(iss, token, ',')) {
-      shape_.push_back(std::stoi(token));
+  if (json.HasMember("shape_")) {
+    const rapidjson::Value& shape_array = json["shape_"];
+    if (shape_array.IsArray()) {
+      shape_.clear();
+      for (rapidjson::SizeType i = 0; i < shape_array.Size(); i++) {
+        shape_.push_back(shape_array[i].GetInt());
+      }
     }
   }
 
@@ -256,262 +281,254 @@ ModelDesc::~ModelDesc() {
  * @param oss
  * @return base::Status
  */
-base::Status ModelDesc::dump(std::ostream &oss) {
-  return serializeStructureToText(oss);
+base::Status ModelDesc::dump(std::ostream &stream) {
+  return serializeStructureToJson(stream);
 }
 
 /**
  * @brief 序列化模型结构为文本
  *
- * @param output
+ * @param rapidjson::Value &json
  * @return base::Status
- * 打印模型结构,不包含权重,文件按行分割,行内使用“,”分割,可选项目[]标识,具体结构如下
- * ModelName: 模型名称
- * inputs_num: 输入个数
- * 名称,[数据类型],[形状]
- * 名称,[数据类型],[形状]
- * ...
- * 名称,[数据类型],[形状]
- * outputs_num: 输出个数
- * 名称,[数据类型],[形状]
- * 名称,[数据类型],[形状]
- * ...
- * 名称,[数据类型],[形状]
- * ops_num: op的个数
- * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
- * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
- * ...
- * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
- * weights: weights个数，weight名称0，weight名称1，...,weight名称n
- * values_num: value的个数（可选项）
- * 名称,[数据类型],[形状]
- * 名称,[数据类型],[形状]
- * ...
- * 名称,[数据类型],[形状]
- * blocks_num: block的个数（可选项，递归调用）
+ * name_: 模型名称
+ * metadata_: [{key, value}, {key, value}, ...]
+ * inputs_: [ValueDesc0, ValueDesc1, ...]
+ * outputs_: [ValueDesc0, ValueDesc1, ...]
+ * op_descs_: [OpDesc0, OpDesc1, ...]
+ * weights_: [name0, name1, ...]
+ * values_: [ValueDesc0, ValueDesc1, ...]
  */
-base::Status ModelDesc::serializeStructureToText(std::ostream &stream) const {
-  // 写入模型名称
-  stream << "ModelName: " << name_ << std::endl;
+base::Status ModelDesc::serializeStructureToJson(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) const {
+  // 序列化模型名称
+  json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator), allocator);
 
-  // 写入输入信息
-  stream << "inputs_num: " << (int)inputs_.size() << std::endl;
-  for (const auto &input : inputs_) {
-    base::Status status = input->serialize(stream);
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Failed to serialize input\n");
-      return status;
+  // 序列化元数据
+  if (!metadata_.empty()) {
+    rapidjson::Value metadata_array(rapidjson::kArrayType);
+    for (const auto& metadata : metadata_) {
+      rapidjson::Value metadata_obj(rapidjson::kObjectType);
+      metadata_obj.AddMember(rapidjson::Value(metadata.first.c_str(), allocator), rapidjson::Value(metadata.second.c_str(), allocator), allocator);
+      metadata_array.PushBack(metadata_obj, allocator);
     }
-    stream << std::endl;
+    json.AddMember("metadata_", metadata_array, allocator);
   }
 
-  // 写入输出信息
-  stream << "outputs_num: " << (int)outputs_.size() << std::endl;
-  for (const auto &output : outputs_) {
-    base::Status status = output->serialize(stream);
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Failed to serialize output\n");
-      return status;
+  // 序列化输入
+  if (!inputs_.empty()) {
+    rapidjson::Value inputs_array(rapidjson::kArrayType);
+    for (const auto& input : inputs_) {
+      rapidjson::Value input_json(rapidjson::kObjectType);
+      input->serialize(input_json, allocator);
+      inputs_array.PushBack(input_json, allocator);
     }
-    stream << std::endl;
+    json.AddMember("inputs_", inputs_array, allocator);
   }
 
-  // 写入操作信息
-  stream << "ops_num: " << (int)op_descs_.size() << std::endl;
-  for (const auto &op : op_descs_) {
-    base::Status status = op->serialize(stream);
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("Failed to serialize operation\n");
-      return status;
+  // 序列化输出
+  if (!outputs_.empty()) {
+    rapidjson::Value outputs_array(rapidjson::kArrayType);
+    for (const auto& output : outputs_) {
+      rapidjson::Value output_json(rapidjson::kObjectType);
+      output->serialize(output_json, allocator);
+      outputs_array.PushBack(output_json, allocator);
     }
-    stream << std::endl;
+    json.AddMember("outputs_", outputs_array, allocator);
   }
 
-  // 写入权重信息
-  stream << "weights: " << (int)weights_.size();
-  for (const auto &weight : weights_) {
-    stream << "," << weight.first;
+  // 序列化算子描述
+  if (!op_descs_.empty()) {
+    rapidjson::Value op_descs_array(rapidjson::kArrayType);
+    for (const auto& op_desc : op_descs_) {
+      rapidjson::Value op_desc_json(rapidjson::kObjectType);
+      op_desc->serialize(op_desc_json, allocator);
+      op_descs_array.PushBack(op_desc_json, allocator);
+    }
+    json.AddMember("op_descs_", op_descs_array, allocator);
   }
-  stream << std::endl;
 
-  // 写入中间值信息（如果有）
+  // 序列化权重名称
+  if (!weights_.empty()) {
+    rapidjson::Value weights_array(rapidjson::kArrayType);
+    for (const auto& weight : weights_) {
+      weights_array.PushBack(rapidjson::Value(weight.first.c_str(), allocator), allocator);
+    }
+    json.AddMember("weights_", weights_array, allocator);
+  }
+
+  // 序列化中间值
   if (!values_.empty()) {
-    stream << "values_num: " << (int)values_.size() << std::endl;
-    for (const auto &value : values_) {
-      base::Status status = value->serialize(stream);
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("Failed to serialize value\n");
-        return status;
-      }
-      stream << std::endl;
+    rapidjson::Value values_array(rapidjson::kArrayType);
+    for (const auto& value : values_) {
+      rapidjson::Value value_json(rapidjson::kObjectType);
+      value->serialize(value_json, allocator);
+      values_array.PushBack(value_json, allocator);
     }
-  }
-
-  // 写入块信息（如果有）
-  if (!blocks_.empty()) {
-    stream << "blocks_num: " << (int)blocks_.size() << std::endl;
-    for (const auto &block : blocks_) {
-      base::Status status = block->serializeStructureToText(stream);
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("Failed to serialize block\n");
-        return status;
-      }
-    }
+    json.AddMember("values_", values_array, allocator);
   }
 
   return base::kStatusCodeOk;
 }
 
-/**
- * @brief
- * 从文本反序列化为模型结构，不包含weights和values，当input有值时，覆盖inputs_
- *
- * @param output
- * @return base::Status
- * 打印模型结构,不包含权重,文件按行分割,行内使用“,”分割,可选项目[]标识,具体结构如下
- * ModelName: 模型名称
- * inputs_num: 输入个数
- * 名称,[数据类型],[形状]
- * 名称,[数据类型],[形状]
- * ...
- * 名称,[数据类型],[形状]
- * outputs_num: 输出个数
- * 名称,[数据类型],[形状]
- * 名称,[数据类型],[形状]
- * ...
- * 名称,[数据类型],[形状]
- * ops_num: op的个数
- * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
- * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
- * ...
- * op类型,op的名称,输入个数,输出个数,输入名称0,...,输入名称n,输出名称0,...,输出名称n,参数0,参数1,...参数n
- * weights: weights个数，weight名称0，weight名称1，...,weight名称n
- * values_num: value的个数（可选项）
- * 名称,[数据类型],[形状]
- * 名称,[数据类型],[形状]
- * ...
- * 名称,[数据类型],[形状]
- * blocks_num: block的个数（可选项，递归调用）
- */
-base::Status ModelDesc::deserializeStructureFromText(
-    std::istream &stream, const std::vector<ValueDesc> &input) {
-  std::string line;  // 每行信息
-  while (std::getline(stream, line)) {
-    std::istringstream iss(line);
-    std::string key;
-    if (!(iss >> key)) {
-      continue;
-    }
+base::Status ModelDesc::serializeStructureToJson(std::ostream &stream) const {
+  rapidjson::Document doc;
+  rapidjson::Value json(rapidjson::kObjectType);
+  
+  // 调用序列化函数
+  base::Status status = this->serializeStructureToJson(json, doc.GetAllocator());
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serializeStructureToJson failed with status: %d\n", status);
+    return status;
+  }
 
-    if (key == "ModelName:") {
-      iss >> name_;
-    } else if (key == "inputs_num:") {
-      int inputs_num;
-      iss >> inputs_num;
-      inputs_.clear();
-      for (size_t i = 0; i < inputs_num; ++i) {
-        std::getline(stream, line);
-        std::shared_ptr<ValueDesc> input_desc = std::make_shared<ValueDesc>();
-        base::Status status = input_desc->deserialize(line);
-        if (status != base::kStatusCodeOk) {
-          NNDEPLOY_LOGE("Failed to deserialize input\n");
-          return status;
-        }
-        inputs_.emplace_back(input_desc);
-      }
-    } else if (key == "outputs_num:") {
-      int outputs_num;
-      iss >> outputs_num;
-      outputs_.clear();
-      for (size_t i = 0; i < outputs_num; ++i) {
-        std::getline(stream, line);
-        std::shared_ptr<ValueDesc> output_desc = std::make_shared<ValueDesc>();
-        base::Status status = output_desc->deserialize(line);
-        if (status != base::kStatusCodeOk) {
-          NNDEPLOY_LOGE("Failed to deserialize output\n");
-          return status;
-        }
-        outputs_.emplace_back(output_desc);
-      }
-    } else if (key == "ops_num:") {
-      int ops_num;
-      iss >> ops_num;
-      op_descs_.clear();
-      for (size_t i = 0; i < ops_num; ++i) {
-        std::getline(stream, line);
-        std::shared_ptr<OpDesc> op_desc = std::make_shared<OpDesc>();
-        base::Status status = op_desc->deserialize(line);
-        if (status != base::kStatusCodeOk) {
-          NNDEPLOY_LOGE("Failed to deserialize op\n");
-          return status;
-        }
-        op_descs_.emplace_back(op_desc);
-      }
-    } else if (key == "blocks_num:") {
-      int blocks_num;
-      iss >> blocks_num;
-      blocks_.clear();
-      for (size_t i = 0; i < blocks_num; ++i) {
-        std::shared_ptr<ModelDesc> block = std::make_shared<ModelDesc>();
-        base::Status status =
-            block->deserializeStructureFromText(stream, input);
-        if (status != base::kStatusCodeOk) {
-          NNDEPLOY_LOGE("Failed to deserialize block\n");
-          return status;
-        }
-        blocks_.emplace_back(block);
-      }
-    } else if (key == "weights:") {
-      int weights_num;
-      iss >> weights_num;
-      weights_.clear();
-      stream.ignore(1);
-      std::string value_name;
-      while (std::getline(iss, value_name, ',')) {
-        if (!value_name.empty()) {
-          weights_.insert({value_name, new device::Tensor(value_name)});
+  // 检查文档是否为空
+  // if (json.ObjectEmpty()) {
+  //   NNDEPLOY_LOGE("Serialized JSON object is empty\n");
+  //   return base::kStatusCodeErrorInvalidValue;
+  // }
+
+  // 序列化为字符串
+  rapidjson::StringBuffer buffer;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  if (!json.Accept(writer)) {
+    NNDEPLOY_LOGE("Failed to write JSON to buffer\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  // 输出到流
+  stream << buffer.GetString();
+  // if (stream.fail()) {
+  //   NNDEPLOY_LOGE("Failed to write JSON string to stream\n");
+  //   return base::kStatusCodeErrorInvalidParam;
+  // }
+
+  return base::kStatusCodeOk;
+}
+
+base::Status ModelDesc::serializeStructureToJson(const std::string &path) const {
+  std::ofstream ofs(path);   
+  if (!ofs.is_open()) {
+    NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  base::Status status = this->serializeStructureToJson(ofs);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serialize to json failed\n");
+    return status;
+  }
+  ofs.close();
+  return status;
+}
+
+/**
+ * @brief 从文本反序列化为模型结构，不包含weights和values，当input有值时，覆盖inputs_
+ *
+ * @param rapidjson::Value &json
+ * @return base::Status
+ * name_: 模型名称
+ * metadata_: [{key, value}, {key, value}, ...]
+ * inputs_: [ValueDesc0, ValueDesc1, ...]
+ * outputs_: [ValueDesc0, ValueDesc1, ...]
+ * op_descs_: [OpDesc0, OpDesc1, ...]
+ * weights_: [name0, name1, ...](不实现)
+ * values_: [ValueDesc0, ValueDesc1, ...](不实现)
+ */
+base::Status ModelDesc::deserializeStructureFromJson(
+    rapidjson::Value &json, const std::vector<ValueDesc> &input) {
+  // 反序列化模型名称
+  if (json.HasMember("name_") && json["name_"].IsString()) {
+    name_ = json["name_"].GetString();
+  }
+
+  // 反序列化元数据
+  if (json.HasMember("metadata_") && json["metadata_"].IsArray()) {
+    const rapidjson::Value& metadata_array = json["metadata_"];
+    for (rapidjson::SizeType i = 0; i < metadata_array.Size(); i++) {
+      if (metadata_array[i].IsObject()) {
+        for (auto it = metadata_array[i].MemberBegin(); it != metadata_array[i].MemberEnd(); ++it) {
+          metadata_.insert({it->name.GetString(), it->value.GetString()});
         }
       }
     }
   }
 
+  // 反序列化输入
+  inputs_.clear();
+  if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
+    const rapidjson::Value& inputs_array = json["inputs_"];
+    for (rapidjson::SizeType i = 0; i < inputs_array.Size(); i++) {
+      auto value_desc = std::make_shared<ValueDesc>();
+      value_desc->deserialize(const_cast<rapidjson::Value&>(inputs_array[i]));
+      inputs_.push_back(value_desc);
+    }
+  }
   if (!input.empty()) {
-    for (auto &new_input : input) {
+    inputs_.clear();
+    for (const auto& in : input) {
       for (auto &existing_input : inputs_) {
-        if (existing_input->name_ == new_input.name_) {
-          existing_input->name_ = new_input.name_;
-          existing_input->data_type_ = new_input.data_type_;
-          existing_input->shape_ = new_input.shape_;
+        if (existing_input->name_ == in.name_) {
+          existing_input->name_ = in.name_;
+          existing_input->data_type_ = in.data_type_;
+          existing_input->shape_ = in.shape_;
           break;
         }
       }
     }
   }
+
+  // 反序列化输出
+  outputs_.clear();
+  if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
+    const rapidjson::Value& outputs_array = json["outputs_"];
+    for (rapidjson::SizeType i = 0; i < outputs_array.Size(); i++) {
+      auto value_desc = std::make_shared<ValueDesc>();
+      value_desc->deserialize(const_cast<rapidjson::Value&>(outputs_array[i]));
+      outputs_.push_back(value_desc);
+    }
+  }
+
+  // 反序列化算子描述
+  op_descs_.clear();
+  if (json.HasMember("op_descs_") && json["op_descs_"].IsArray()) {
+    const rapidjson::Value& op_descs_array = json["op_descs_"];
+    for (rapidjson::SizeType i = 0; i < op_descs_array.Size(); i++) {
+      auto op_desc = std::make_shared<OpDesc>();
+      op_desc->deserialize(const_cast<rapidjson::Value&>(op_descs_array[i]));
+      op_descs_.push_back(op_desc);
+    }
+  }
+
   return base::kStatusCodeOk;
 }
 
-// 序列化模型权重为二进制文件
-base::Status ModelDesc::serializeWeightsToBinary(std::ostream &stream) const {
-  uint64_t weights_size = weights_.size();
-  // NNDEPLOY_LOGE("weights_size = %d\n", (int)weights_size);
-  if (!stream.write(reinterpret_cast<const char *>(&weights_size),
-                    sizeof(weights_size))) {
-    return base::kStatusCodeErrorIO;
+base::Status ModelDesc::deserializeStructureFromJson(
+      std::istream &stream, const std::vector<ValueDesc> &input){
+  std::string json_str;
+  std::string line;
+  while (std::getline(stream, line)) {
+    json_str += line;
   }
-  for (auto &weight : weights_) {
-    // NNDEPLOY_LOGE("weight->getName() = %s\n",
-    // weight.second->getName().c_str());
-    base::Status status = weight.second->serialize(stream);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, status,
-                                 "weight.second->serialize(stream) failed!\n");
+  rapidjson::Document document;
+  if (document.Parse(json_str.c_str()).HasParseError()) {
+    NNDEPLOY_LOGE("parse json string failed\n");
+    return base::kStatusCodeErrorInvalidParam;
   }
-  for (auto &block : blocks_) {
-    base::Status status = block->serializeWeightsToBinary(stream);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(
-        status, base::kStatusCodeOk, status,
-        "block->serializeWeightsToBinary(stream) failed!\n");
+  rapidjson::Value &json = document;
+  return this->deserializeStructureFromJson(json, input);
+}
+base::Status ModelDesc::deserializeStructureFromJson(
+      const std::string &path, const std::vector<ValueDesc> &input){
+  std::ifstream ifs(path);
+  if (!ifs.is_open()) {
+    NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
+    return base::kStatusCodeErrorInvalidParam;
   }
-  return base::kStatusCodeOk;
+  base::Status status = this->deserializeStructureFromJson(ifs, input);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("deserialize from file %s failed\n", path.c_str());
+    return status;
+  }
+  ifs.close();
+  return status;
 }
 
 // 序列化模型权重为二进制文件
@@ -519,27 +536,29 @@ base::Status ModelDesc::serializeWeightsToSafetensorsImpl(
     safetensors::safetensors_t &st, bool serialize_buffer) const {
   for (auto &weight : weights_) {
     base::Status status =
-        weight.second->serialize_to_safetensors(st, serialize_buffer);
+        weight.second->serializeToSafetensors(st, serialize_buffer);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(
         status, base::kStatusCodeOk, status,
-        "weight.second->serialize_to_safetensors(safetensors::safetensors_t "
+        "weight.second->serializeToSafetensors(safetensors::safetensors_t "
         "&st, bool serialize_buffer)failed!\n");
   }
   return base::kStatusCodeOk;
 }
-
+/**
+ * @brief 序列化模型权重为safetensors
+ *
+ * @param std::shared_ptr<safetensors::safetensors_t> &st_ptr(外部已经分配好了)
+ * @return base::Status
+ */
 base::Status ModelDesc::serializeWeightsToSafetensors(
-    std::shared_ptr<safetensors::safetensors_t> &st_ptr) const {
+    std::shared_ptr<safetensors::safetensors_t> &serialize_st_ptr) const {
   base::Status status = base::kStatusCodeOk;
-  if (st_ptr_ != nullptr) {
-    // assume we do not do trainning
-    st_ptr = st_ptr_;
-    return status;
+
+  if (metadata_.find("format") == metadata_.end()) {
+    serialize_st_ptr->metadata.insert("format", "pt");
+  } else {
+    serialize_st_ptr->metadata.insert("format", metadata_.at("format"));
   }
-  // not be mmaped, so we create one
-  std::shared_ptr<safetensors::safetensors_t> serialize_st_ptr(
-      new safetensors::safetensors_t());
-  serialize_st_ptr->metadata.insert("format", "pt");
 
   // 1. first record the tensor desc
   status = serializeWeightsToSafetensorsImpl(*serialize_st_ptr, false);
@@ -562,90 +581,44 @@ base::Status ModelDesc::serializeWeightsToSafetensors(
 
   // 3. real store buffer
   status = serializeWeightsToSafetensorsImpl(*serialize_st_ptr, true);
-
-  // 4. store metadata
   NNDEPLOY_RETURN_VALUE_ON_NEQ(
       status, base::kStatusCodeOk, status,
       "model->serializeWeightsToSafetensorsImpl save buffer failed!\n");
 
+  // 4. store metadata
   serialize_st_ptr->mmaped = false;
-  st_ptr = serialize_st_ptr;
 
-  return base::kStatusCodeOk;
-}
-
-// 从二进制文件反序列化为模型权重
-base::Status ModelDesc::deserializeWeightsFromBinary(std::istream &stream) {
-  uint64_t weights_size = 0;
-  if (!stream.read(reinterpret_cast<char *>(&weights_size),
-                   sizeof(weights_size))) {
-    return base::kStatusCodeErrorIO;
-  }
-  // NNDEPLOY_LOGE("weights_size = %d\n", (int)weights_size);
-  weights_.clear();
-  for (size_t i = 0; i < weights_size; ++i) {
-    device::Tensor *weight = new device::Tensor();
-
-    base::Status status = weight->deserialize(stream);
-    if (status != base::kStatusCodeOk) {
-      delete weight;
-      NNDEPLOY_LOGE("weight->deserialize(stream) failed!\n");
-      return status;
-    }
-    weights_[weight->getName()] = weight;
-  }
-  for (auto &block : blocks_) {
-    base::Status status = block->deserializeWeightsFromBinary(stream);
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("block->deserializeWeightsFromBinary(stream) failed!\n");
-      return status;
-    }
-  }
   return base::kStatusCodeOk;
 }
 
 // 从safetensors导入成模型文件
 base::Status ModelDesc::deserializeWeightsFromSafetensors(
-    const std::string &weight_path) {
-  std::string warn, err;
-
-  std::shared_ptr<safetensors::safetensors_t> mmap_st_ptr(
-      new safetensors::safetensors_t());
-  // 冒险的需要用愿指针
-  bool ret = safetensors::mmap_from_file(weight_path, &(*mmap_st_ptr), &warn, &err);
-
-  if (st_ptr_ != nullptr) {
-    st_ptr_.reset();
-  }
-  st_ptr_ = mmap_st_ptr;
-
-  if (!ret) {
-    NNDEPLOY_LOGE(
-        "Failed to load: %s\n"
-        "  ERR: %s\n",
-        weight_path.c_str(), err.c_str());
-    return base::kStatusCodeErrorIO;
-  }
+    std::shared_ptr<safetensors::safetensors_t>& st_ptr) {
   base::Status status = base::kStatusCodeOk;
+  // 释放之前权重
   for (auto &weight : weights_) {
-    if (NNDEPLOY_UNLIKELY(!st_ptr_->tensors.count(weight.first))) {
-      NNDEPLOY_RETURN_VALUE_ON_NEQ(
-          base::kStatusCodeErrorInvalidParam, base::kStatusCodeOk,
-          base::kStatusCodeErrorInvalidParam,
-          "The model file and the weight file do not match. !\n");
+    if (weight.second != nullptr) {
+      delete weight.second;
     }
-    weights_[weight.first]->deserialize_from_safetensors(*st_ptr_);
+  }
+  weights_.clear();
+  // 导入权重
+  size_t tensor_size = st_ptr->tensors.size();
+  const std::vector<std::string> &keys = st_ptr->tensors.keys();
+  for (size_t i = 0; i < tensor_size; ++i) {
+    std::string tensor_name = keys[i];  
+    weights_[tensor_name] = new device::Tensor(tensor_name);
+    if (weights_[tensor_name] == nullptr) {
+      NNDEPLOY_LOGE("new device::Tensor failed\n");
+      return base::kStatusCodeErrorOutOfMemory;
+    }
+    status = weights_[tensor_name]->serializeFromSafetensors(*st_ptr);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(
+        status, base::kStatusCodeOk, status,
+        "The model file and the weight file do not match. !\n");
   }
   return status;
 }
-
-// // 从safetensors导入成模型文件
-// base::Status ModelDesc::deserializeWeightsFromSafetensorsImpl(
-//     safetensors::safetensors_t &st) {
-//   base::Status status = base::kStatusCodeOk;
-
-//   return status;
-// }
 
 }  // namespace ir
 }  // namespace nndeploy

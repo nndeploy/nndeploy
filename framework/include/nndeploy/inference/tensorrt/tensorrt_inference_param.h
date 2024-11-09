@@ -20,8 +20,6 @@ class TensorRtInferenceParam : public InferenceParam {
   PARAM_COPY(TensorRtInferenceParam)
   PARAM_COPY_TO(TensorRtInferenceParam)
 
-  base::Status parse(const std::string &json, bool is_path = true);
-
   virtual base::Status set(const std::string &key, base::Any &any);
 
   virtual base::Status get(const std::string &key, base::Any &any);

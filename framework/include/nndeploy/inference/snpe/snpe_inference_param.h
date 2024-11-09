@@ -18,8 +18,6 @@ class SnpeInferenceParam : public InferenceParam {
   PARAM_COPY(SnpeInferenceParam)
   PARAM_COPY_TO(SnpeInferenceParam)
 
-  base::Status parse(const std::string &json, bool is_path = true);
-
   virtual base::Status set(const std::string &key, base::Any &any);
 
   virtual base::Status get(const std::string &key, base::Any &any);

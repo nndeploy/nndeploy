@@ -61,11 +61,26 @@ void makeOutput(ir::ModelDesc *model_desc, std::shared_ptr<Expr> expr) {
 }
 std::shared_ptr<Expr> makeBlock(ir::ModelDesc *model_desc,
                                 std::shared_ptr<ir::ModelDesc> model_block) {
-  if (model_desc != nullptr) {
-    model_desc->blocks_.push_back(model_block);
+  if (model_desc != nullptr && model_block != nullptr) {
+    // 添加元数据
+    for (auto &metadata : model_block->metadata_) {
+      model_desc->metadata_[metadata.first] = metadata.second;
+    }
+    // 添加权重 - 采用拷贝方式
+    for (auto &weight : model_block->weights_) {
+      device::Tensor* tensor = weight.second->clone();
+      model_desc->weights_[weight.first] = tensor;
+    }
+    // 添加算子
+    for (auto &op : model_block->op_descs_) {
+      model_desc->op_descs_.push_back(op);
+    }
+    // 添加中间值
+    for (auto &value : model_block->values_) {
+      model_desc->values_.push_back(value); 
+    }
   }
   auto expr = std::make_shared<Expr>(model_block);
-  return expr;
 }
 std::shared_ptr<Expr> makeConv(ir::ModelDesc *model_desc,
                                std::shared_ptr<Expr> input,

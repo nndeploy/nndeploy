@@ -1,4 +1,4 @@
-message(STATUS "model/detect")
+message(STATUS "plugin/detect")
 
 # set
 set(PLUGIN_SOURCE)

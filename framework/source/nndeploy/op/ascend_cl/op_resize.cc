@@ -28,14 +28,22 @@ class AscendCLOpResize : public OpResize {
   virtual base::Status deinit() {
     if (scales_ != nullptr) {
       aclDestroyFloatArray(scales_);
+      scales_ = nullptr;
     }
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {
+    base::Status status = OpResize::preRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("preRun failed.\n");
+      return status;
+    }
     // 输入输出
+    if (inner_input_ == nullptr) {
     inner_input_ =
         AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_NCHW);
-    base::DataType data_type = inputs_[1]->getDataType();
+    }
+    base::DataType data_type = inputs_[2]->getDataType();
     if (data_type.code_ != base::kDataTypeCodeFp) {
       NNDEPLOY_LOGE("Resize only support float data type.");
       return base::kStatusCodeErrorInvalidParam;
@@ -48,18 +56,22 @@ class AscendCLOpResize : public OpResize {
         NNDEPLOY_LOGE("%f\n.", data[i]);
       }
     }
-    inner_output_ =
+    if (inner_output_ == nullptr) {
+      inner_output_ =
         AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_NCHW);
+    }
 
     // 创建算子
     char* mode = mode_.data();
-    NNDEPLOY_LOGE("%s\n.", mode);
-    aclnnStatus aclnn_status =
-        aclnnResizeGetWorkspaceSize(inner_input_, scales_, mode, inner_output_,
+    if (executor_ == nullptr) {
+      aclnnStatus aclnn_status =
+          aclnnResizeGetWorkspaceSize(inner_input_, scales_, mode, inner_output_,
                                     &workspace_size_, &executor_);
-    if (aclnn_status != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclnnResizeGetWorkspaceSize 失败，错误码: %d",
-                    aclnn_status);
+      if (aclnn_status != ACL_SUCCESS) {
+        NNDEPLOY_LOGE("aclnnResizeGetWorkspaceSize failed, error code: %d.\n",
+                     aclnn_status);
+        return base::kStatusCodeErrorOpAscendCL;
+      }
     }
     return base::kStatusCodeOk;
   }
@@ -67,14 +79,29 @@ class AscendCLOpResize : public OpResize {
     // 输入输出
     aclnnStatus aclnn_status =
         aclnnResize(workspace_, workspace_size_, executor_, inner_stream_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                 base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnCat failed.");
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnResize failed, error code: %d.\n", aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    aclDestroyTensor(inner_input_);
-    aclDestroyTensor(inner_output_);
+    if (inner_input_ != nullptr) {
+      aclDestroyTensor(inner_input_);
+      inner_input_ = nullptr;
+    }
+    if (inner_output_ != nullptr) {
+      aclDestroyTensor(inner_output_);
+      inner_output_ = nullptr;
+    }
+    if (executor_ != nullptr) {
+      executor_ = nullptr;
+    }
+    base::Status status = OpResize::postRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("postRun failed.\n");
+      return status;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -85,10 +112,10 @@ class AscendCLOpResize : public OpResize {
   aclFloatArray* scales_ = nullptr;
   std::string mode_ = "nearest";
   aclTensor* inner_output_ = nullptr;
-  aclOpExecutor* executor_;
+  aclOpExecutor* executor_ = nullptr;
 
-  aclrtStream inner_stream_;
-  aclopAttr* attr_{nullptr};
+  aclrtStream inner_stream_ = nullptr;
+  aclopAttr* attr_ = nullptr;
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,

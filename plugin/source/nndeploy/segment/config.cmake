@@ -1,5 +1,5 @@
 
-message(STATUS "model/segment")
+message(STATUS "plugin/segment")
 
 # set
 set(PLUGIN_SOURCE)

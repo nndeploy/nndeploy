@@ -15,22 +15,45 @@ base::Status DefaultInterpret::interpret(
   base::Status status = base::kStatusCodeOk;
 
   // 读模型结构文件
-  std::ifstream structure_stream(model_value[0],
+  if (!model_value[0].empty()) {
+    std::ifstream structure_stream(model_value[0],
                                  std::ifstream::in | std::ifstream::binary);
-  if (!structure_stream.is_open()) {
-    NNDEPLOY_LOGE("model_value[%s] is error.\n", model_value[0].c_str());
-    return base::kStatusCodeErrorInvalidParam;
+    if (!structure_stream.is_open()) {
+      NNDEPLOY_LOGE("model_value[%s] is error.\n", model_value[0].c_str());
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    status = model_desc_->deserializeStructureFromJson(structure_stream, input);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(
+        status, base::kStatusCodeOk, status,
+        "model_desc_->deserializeStructureFromJson failed!");
   }
-  status = model_desc_->deserializeStructureFromText(structure_stream, input);
-  NNDEPLOY_RETURN_VALUE_ON_NEQ(
-      status, base::kStatusCodeOk, status,
-      "model_desc_->deserializeStructureFromText failed!");
 
-  // 读模型结构文件
-  status = model_desc_->deserializeWeightsFromSafetensors(model_value[1]);
-  NNDEPLOY_RETURN_VALUE_ON_NEQ(
-      status, base::kStatusCodeOk, status,
-      "model_desc_->deserializeWeightsFromBinary failed!");
+  // 读模型权重文件
+  if (model_value.size() > 1 && !model_value[1].empty()) {
+    std::string warn, err;
+
+    std::shared_ptr<safetensors::safetensors_t> mmap_st_ptr(
+        new safetensors::safetensors_t());
+    // 冒险的需要用愿指针
+    bool ret = safetensors::mmap_from_file(model_value[1], &(*mmap_st_ptr), &warn, &err);
+    if (!ret) {
+      NNDEPLOY_LOGE(
+        "Failed to load: %s\n"
+          "  ERR: %s\n",
+            model_value[1].c_str(), err.c_str());
+      return base::kStatusCodeErrorIO;
+    }
+
+    if (st_ptr_ != nullptr) {
+      st_ptr_.reset();
+    }
+    st_ptr_ = mmap_st_ptr;
+
+    status = model_desc_->deserializeWeightsFromSafetensors(st_ptr_);
+    NNDEPLOY_RETURN_VALUE_ON_NEQ(
+        status, base::kStatusCodeOk, status,
+        "model_desc_->deserializeWeightsFromSafetensors failed!");
+  }
 
   return status;
 }

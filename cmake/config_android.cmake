@@ -22,9 +22,12 @@ set(ENABLE_NNDEPLOY_CXX17_ABI OFF) # C++的版本，选择为C++17，默认为OF
 set(ENABLE_NNDEPLOY_CXX20_ABI OFF) # C++的版本，选择为C++20，默认为OFF
 set(ENABLE_NNDEPLOY_OPENMP ON) # 否使用OpenMP，该选项在Mac/iOS平台无效，默认为ON
 set(ENABLE_NNDEPLOY_ADDRESS_SANTIZER OFF) # 内存泄露检测，默认为OFF
+set(ENABLE_NNDEPLOY_DOCS OFF)
 set(ENABLE_NNDEPLOY_TIME_PROFILER ON) # 时间性能Profile，默认为ON
 set(ENABLE_NNDEPLOY_OPENCV "/home/always/huggingface/nndeploy/third_party/android/opencv-4.8.0-android-sdk") # 是否链接第三方库opencv，默认为OFF
 set(NNDEPLOY_OPENCV_LIBS opencv_java4) # 链接的具体的opencv库名称，例如opencv_world480，opencv_java4等
+set(ENABLE_NNDEPLOY_RAPIDJSON ON)
+set(ENABLE_NNDEPLOY_SAFETENSORS_CPP ON)
 
 # # base
 set(ENABLE_NNDEPLOY_BASE ON) # 是否编译base目录中文件，默认为ON

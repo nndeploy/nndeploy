@@ -20,8 +20,6 @@ class TnnInferenceParam : public InferenceParam {
   PARAM_COPY_TO(TnnInferenceParam)
 
   // zh
-  base::Status parse(const std::string &json, bool is_path = true);
-  // zh
   virtual base::Status set(const std::string &key, base::Any &any);
   // zh
   virtual base::Status get(const std::string &key, base::Any &any);

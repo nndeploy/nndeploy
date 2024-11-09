@@ -169,6 +169,12 @@ class NNDEPLOY_CC_API Op {
    */
   virtual uint64_t getWorkspaceSize();
   virtual void setWorkspace(void *workspace);
+  /**
+   * @brief 得到op的flops
+   *
+   * @return uint64_t
+   */
+  virtual uint64_t getFlops();
 
   virtual base::Status run() = 0;
   virtual base::Status postRun();
@@ -231,6 +237,7 @@ class NNDEPLOY_CC_API Op {
   bool workspace_is_external_ = false;  // workspace是否是外部传入
   uint64_t workspace_size_ = 0;         // workspace大小
   void *workspace_ = nullptr;           // op的workspace
+  uint64_t flops_ = 0;                  // op的flops
 
   // 是否是图中内部节点
   bool is_inner_ = false;

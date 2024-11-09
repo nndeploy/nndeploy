@@ -4,6 +4,7 @@
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
+#include "nndeploy/base/rapidjson_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
@@ -291,39 +292,30 @@ class BatchNormalizationParam : public OpParam {
   PARAM_COPY(BatchNormalizationParam)
   PARAM_COPY_TO(BatchNormalizationParam)
 
-  base::Status serialize(std::ostream &stream) {
-    stream << "epsilon_:" << epsilon_ << ",";
-    stream << "momentum_:" << momentum_ << ",";
-    stream << "training_mode_:" << training_mode_ << ",";
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+    json.AddMember("epsilon_", epsilon_, allocator);
+    json.AddMember("momentum_", momentum_, allocator);
+    json.AddMember("training_mode_", training_mode_, allocator);
     return base::kStatusCodeOk;
   }
-  base::Status deserialize(const std::string &line) {
-    std::istringstream iss(line);
-    std::string token;
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("epsilon_")) {
+      epsilon_ = json["epsilon_"].GetFloat();
+    } else {
+      epsilon_ = 1e-05; // 默认值
+    }
 
-    // 读取 epsilon_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "epsilon_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    epsilon_ = std::stof(token);
+    if (json.HasMember("momentum_")) {
+      momentum_ = json["momentum_"].GetFloat();
+    } else {
+      momentum_ = 0.9; // 默认值
+    }
 
-    // 读取 momentum_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "momentum_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    momentum_ = std::stof(token);
-
-    // 读取 training_mode_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "training_mode_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    training_mode_ = std::stoi(token);
+    if (json.HasMember("training_mode_")) {
+      training_mode_ = json["training_mode_"].GetInt();
+    } else {
+      training_mode_ = 0; // 默认值
+    }
 
     return base::kStatusCodeOk;
   }
@@ -345,21 +337,16 @@ class ConcatParam : public OpParam {
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
 
-  base::Status serialize(std::ostream &stream) {
-    stream << "axis_:" << axis_ << ",";
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+    json.AddMember("axis_", axis_, allocator);
     return base::kStatusCodeOk;
   }
-  base::Status deserialize(const std::string &line) {
-    std::istringstream iss(line);
-    std::string token;
-
-    // 读取 axis_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "axis_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    axis_ = std::stoi(token);
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("axis_")) {
+      axis_ = json["axis_"].GetInt();
+    } else {
+      axis_ = 1;
+    }
 
     return base::kStatusCodeOk;
   }
@@ -377,147 +364,85 @@ class ConvParam : public OpParam {
   PARAM_COPY(ConvParam)
   PARAM_COPY_TO(ConvParam)
 
-  base::Status serialize(std::ostream &stream) {
-    stream << "auto_pad_:" << auto_pad_ << ",";
-    stream << "dilations_:[";
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+    json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator), allocator);
+    json.AddMember("dilations_", rapidjson::Value(rapidjson::kArrayType), allocator);
     for (size_t i = 0; i < dilations_.size(); ++i) {
-      if (i > 0) {
-        stream << ",";
-      }
-      stream << dilations_[i];
+      json["dilations_"].PushBack(dilations_[i], allocator);
     }
-    stream << "],";
-    stream << "group_:" << group_ << ",";
-    stream << "kernel_shape_:[";
+    json.AddMember("group_", group_, allocator);
+    json.AddMember("kernel_shape_", rapidjson::Value(rapidjson::kArrayType), allocator);
     for (size_t i = 0; i < kernel_shape_.size(); ++i) {
-      if (i > 0) {
-        stream << ",";
-      }
-      stream << kernel_shape_[i];
+      json["kernel_shape_"].PushBack(kernel_shape_[i], allocator);
     }
-    stream << "],";
-    stream << "pads_:[";
+    json.AddMember("pads_", rapidjson::Value(rapidjson::kArrayType), allocator);
     for (size_t i = 0; i < pads_.size(); ++i) {
-      if (i > 0) {
-        stream << ",";
-      }
-      stream << pads_[i];
+      json["pads_"].PushBack(pads_[i], allocator);
     }
-    stream << "],";
-    stream << "strides_:[";
+    json.AddMember("strides_", rapidjson::Value(rapidjson::kArrayType), allocator);
     for (size_t i = 0; i < strides_.size(); ++i) {
-      if (i > 0) {
-        stream << ",";
-      }
-      stream << strides_[i];
+      json["strides_"].PushBack(strides_[i], allocator);
     }
-    stream << "],";
-    stream << "is_fusion_op_:" << is_fusion_op_ << ",";
-    stream << "activate_op_:" << opTypeToString(activate_op_) << ",";
+    json.AddMember("is_fusion_op_", is_fusion_op_, allocator);
+    json.AddMember("activate_op_", rapidjson::Value(opTypeToString(activate_op_).c_str(), allocator), allocator);
     return base::kStatusCodeOk;
   }
-  base::Status deserialize(const std::string &line) {
-    std::istringstream iss(line);
-    std::string token;
-
-    // 读取 auto_pad_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "auto_pad_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, auto_pad_, ','))
-      return base::kStatusCodeErrorInvalidValue;
-
-    // 读取 dilations_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "dilations_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, '['))
-      return base::kStatusCodeErrorInvalidValue;
-    dilations_.clear();
-    while (std::getline(iss, token, ',')) {
-      if (token.find(']') == std::string::npos) {
-        dilations_.push_back(std::stoi(token));
-      } else {
-        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
-        dilations_.push_back(std::stoi(token));
-        break;
-      }
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("auto_pad_")) {
+      auto_pad_ = json["auto_pad_"].GetString();
+    } else {
+      auto_pad_ = "NOTSET";
     }
 
-    // 读取 group_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "group_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    group_ = std::stoi(token);
-
-    // 读取 kernel_shape_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "kernel_shape_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, '['))
-      return base::kStatusCodeErrorInvalidValue;
-    kernel_shape_.clear();
-    while (std::getline(iss, token, ',')) {
-      if (token.find(']') == std::string::npos) {
-        kernel_shape_.push_back(std::stoi(token));
-      } else {
-        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
-        kernel_shape_.push_back(std::stoi(token));
-        break;
+    if (json.HasMember("dilations_")) {
+      for (size_t i = 0; i < json["dilations_"].Size(); ++i) {
+        dilations_.push_back(json["dilations_"][i].GetInt());
       }
+    } else {
+      dilations_ = {1, 1};
     }
 
-    // 读取 pads_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "pads_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, '['))
-      return base::kStatusCodeErrorInvalidValue;
-    pads_.clear();
-    while (std::getline(iss, token, ',')) {
-      if (token.find(']') == std::string::npos) {
-        pads_.push_back(std::stoi(token));
-      } else {
-        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
-        pads_.push_back(std::stoi(token));
-        break;
-      }
+    if (json.HasMember("group_")) {
+      group_ = json["group_"].GetInt();
+    } else {
+      group_ = 1;
     }
 
-    // 读取 strides_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "strides_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, '['))
-      return base::kStatusCodeErrorInvalidValue;
-    strides_.clear();
-    while (std::getline(iss, token, ',')) {
-      if (token.find(']') == std::string::npos) {
-        strides_.push_back(std::stoi(token));
-      } else {
-        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
-        strides_.push_back(std::stoi(token));
-        break;
+    if (json.HasMember("kernel_shape_")) {
+      for (size_t i = 0; i < json["kernel_shape_"].Size(); ++i) {
+        kernel_shape_.push_back(json["kernel_shape_"][i].GetInt());
       }
+    } else {
+      kernel_shape_.clear();
     }
 
-    // 读取 is_fusion_op_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "is_fusion_op_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    is_fusion_op_ = (token == "1");
+    if (json.HasMember("pads_")) {
+      for (size_t i = 0; i < json["pads_"].Size(); ++i) {
+        pads_.push_back(json["pads_"][i].GetInt());
+      }
+    } else {
+      pads_ = {0, 0, 0, 0};
+    }
 
-    // 读取 activate_op_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "activate_op_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    activate_op_ = stringToOpType(token);
+    if (json.HasMember("strides_")) {
+      for (size_t i = 0; i < json["strides_"].Size(); ++i) {
+        strides_.push_back(json["strides_"][i].GetInt());
+      }
+    } else {
+      strides_ = {1, 1};
+    }
+
+    if (json.HasMember("is_fusion_op_")) {
+      is_fusion_op_ = json["is_fusion_op_"].GetBool();
+    } else {
+      is_fusion_op_ = false;
+    }
+
+    if (json.HasMember("activate_op_")) {
+      activate_op_ = stringToOpType(json["activate_op_"].GetString());
+    } else {
+      activate_op_ = kOpTypeRelu;
+    }
 
     return base::kStatusCodeOk;
   }
@@ -549,141 +474,86 @@ class MaxPoolParam : public OpParam {
   PARAM_COPY(MaxPoolParam)
   PARAM_COPY_TO(MaxPoolParam)
 
-  base::Status serialize(std::ostream &stream) {
-    stream << "auto_pad_:" << auto_pad_ << ",";
-    stream << "ceil_mode_:" << ceil_mode_ << ",";
-    stream << "dilations_:[";
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+    json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator), allocator);
+    json.AddMember("ceil_mode_", ceil_mode_, allocator);
+    rapidjson::Value dilations_array(rapidjson::kArrayType);
     for (size_t i = 0; i < dilations_.size(); ++i) {
-      if (i > 0) {
-        stream << ",";
-      }
-      stream << dilations_[i];
+      dilations_array.PushBack(dilations_[i], allocator);
     }
-    stream << "],";
+    json.AddMember("dilations_", dilations_array, allocator);
 
-    stream << "kernel_shape_:[";
+    rapidjson::Value kernel_shape_array(rapidjson::kArrayType);
     for (size_t i = 0; i < kernel_shape_.size(); ++i) {
-      if (i > 0) {
-        stream << ",";
-      }
-      stream << kernel_shape_[i];
+      kernel_shape_array.PushBack(kernel_shape_[i], allocator);
     }
-    stream << "],";
+    json.AddMember("kernel_shape_", kernel_shape_array, allocator);
 
-    stream << "pads_:[";
+    rapidjson::Value pads_array(rapidjson::kArrayType);
     for (size_t i = 0; i < pads_.size(); ++i) {
-      if (i > 0) {
-        stream << ",";
-      }
-      stream << pads_[i];
+      pads_array.PushBack(pads_[i], allocator);
     }
-    stream << "],";
+    json.AddMember("pads_", pads_array, allocator);
 
-    stream << "storage_order_:" << storage_order_ << ",";
-    stream << "strides_:[";
+    json.AddMember("storage_order_", storage_order_, allocator);
+
+    rapidjson::Value strides_array(rapidjson::kArrayType);
     for (size_t i = 0; i < strides_.size(); ++i) {
-      if (i > 0) {
-        stream << ",";
-      }
-      stream << strides_[i];
+      strides_array.PushBack(strides_[i], allocator);
     }
-    stream << "],";
+    json.AddMember("strides_", strides_array, allocator);
 
     return base::kStatusCodeOk;
   }
-  base::Status deserialize(const std::string &line) {
-    std::istringstream iss(line);
-    std::string token;
-
-    // 读取 auto_pad_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "auto_pad_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, auto_pad_, ','))
-      return base::kStatusCodeErrorInvalidValue;
-
-    // 读取 ceil_mode_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "ceil_mode_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    ceil_mode_ = std::stoi(token);
-
-    // 读取 dilations_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "dilations_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, '['))
-      return base::kStatusCodeErrorInvalidValue;
-    dilations_.clear();
-    while (std::getline(iss, token, ',')) {
-      if (token.find(']') == std::string::npos) {
-        dilations_.push_back(std::stoi(token));
-      } else {
-        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
-        dilations_.push_back(std::stoi(token));
-        break;
-      }
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("auto_pad_")) {
+      auto_pad_ = json["auto_pad_"].GetString();
+    } else {
+      auto_pad_ = "NOTSET";
     }
 
-    // 读取 kernel_shape_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "kernel_shape_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, '['))
-      return base::kStatusCodeErrorInvalidValue;
-    kernel_shape_.clear();
-    while (std::getline(iss, token, ',')) {
-      if (token.find(']') == std::string::npos) {
-        kernel_shape_.push_back(std::stoi(token));
-      } else {
-        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
-        kernel_shape_.push_back(std::stoi(token));
-        break;
-      }
+    if (json.HasMember("ceil_mode_")) {
+      ceil_mode_ = json["ceil_mode_"].GetInt();
+    } else {
+      ceil_mode_ = 0;
     }
 
-    // 读取 pads_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "pads_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, '['))
-      return base::kStatusCodeErrorInvalidValue;
-    pads_.clear();
-    while (std::getline(iss, token, ',')) {
-      if (token.find(']') == std::string::npos) {
-        pads_.push_back(std::stoi(token));
-      } else {
-        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
-        pads_.push_back(std::stoi(token));
-        break;
+    if (json.HasMember("dilations_")) {
+      for (size_t i = 0; i < json["dilations_"].Size(); ++i) {
+        dilations_.push_back(json["dilations_"][i].GetInt());
       }
+    } else {
+      dilations_ = {1, 1};
     }
 
-    // 读取 storage_order_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "storage_order_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    storage_order_ = std::stoi(token);
-
-    // 读取 strides_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "strides_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, '['))
-      return base::kStatusCodeErrorInvalidValue;
-    strides_.clear();
-    while (std::getline(iss, token, ',')) {
-      if (token.find(']') == std::string::npos) {
-        strides_.push_back(std::stoi(token));
-      } else {
-        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
-        strides_.push_back(std::stoi(token));
-        break;
+    if (json.HasMember("kernel_shape_")) {
+      for (size_t i = 0; i < json["kernel_shape_"].Size(); ++i) {
+        kernel_shape_.push_back(json["kernel_shape_"][i].GetInt());
       }
+    } else {
+      kernel_shape_.clear();
+    }
+
+    if (json.HasMember("pads_")) {
+      for (size_t i = 0; i < json["pads_"].Size(); ++i) {
+        pads_.push_back(json["pads_"][i].GetInt());
+      }
+    } else {
+      pads_ = {0, 0, 0, 0};
+    }
+
+    if (json.HasMember("storage_order_")) {
+      storage_order_ = json["storage_order_"].GetInt();
+    } else {
+      storage_order_ = 0;
+    }
+
+    if (json.HasMember("strides_")) {
+      for (size_t i = 0; i < json["strides_"].Size(); ++i) {
+        strides_.push_back(json["strides_"][i].GetInt());
+      }
+    } else {
+      strides_ = {1, 1};
     }
 
     return base::kStatusCodeOk;
@@ -708,21 +578,16 @@ class ReshapeParam : public OpParam {
   PARAM_COPY(ReshapeParam)
   PARAM_COPY_TO(ReshapeParam)
 
-  base::Status serialize(std::ostream &stream) {
-    stream << "allowzero_:" << allowzero_ << ",";
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+    json.AddMember("allowzero_", allowzero_, allocator);
     return base::kStatusCodeOk;
   }
-  base::Status deserialize(const std::string &line) {
-    std::istringstream iss(line);
-    std::string token;
-
-    // 读取 allowzero_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "allowzero_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    allowzero_ = std::stoi(token);
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("allowzero_")) {
+      allowzero_ = json["allowzero_"].GetInt();
+    } else {
+      allowzero_ = 0; // 默认值
+    }
 
     return base::kStatusCodeOk;
   }
@@ -740,97 +605,72 @@ class ResizeParam : public OpParam {
   PARAM_COPY(ResizeParam)
   PARAM_COPY_TO(ResizeParam)
 
-  base::Status serialize(std::ostream &stream) {
-    stream << "antialias_:" << antialias_ << ",";
-    stream << "axes_:" << axes_ << ",";
-    stream << "coordinate_transformation_mode_:"
-           << coordinate_transformation_mode_ << ",";
-    stream << "cubic_coeff_a_:" << cubic_coeff_a_ << ",";
-    stream << "exclude_outside_:" << exclude_outside_ << ",";
-    stream << "extrapolation_value_:" << extrapolation_value_ << ",";
-    stream << "keep_aspect_ratio_policy_:" << keep_aspect_ratio_policy_ << ",";
-    stream << "mode_:" << mode_ << ",";
-    stream << "nearest_mode_:" << nearest_mode_ << ",";
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+    json.AddMember("antialias_", antialias_, allocator);
+    json.AddMember("axes_", axes_, allocator);
+    json.AddMember("coordinate_transformation_mode_", rapidjson::Value(coordinate_transformation_mode_.c_str(), allocator), allocator);
+    json.AddMember("cubic_coeff_a_", cubic_coeff_a_, allocator);
+    json.AddMember("exclude_outside_", exclude_outside_, allocator);
+    json.AddMember("extrapolation_value_", extrapolation_value_, allocator);
+    json.AddMember("keep_aspect_ratio_policy_", rapidjson::Value(keep_aspect_ratio_policy_.c_str(), allocator), allocator);
+    json.AddMember("mode_", rapidjson::Value(mode_.c_str(), allocator), allocator);
+    json.AddMember("nearest_mode_", rapidjson::Value(nearest_mode_.c_str(), allocator), allocator);
     return base::kStatusCodeOk;
   }
-  base::Status deserialize(const std::string &line) {
-    std::istringstream iss(line);
-    std::string token;
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("antialias_")) {
+      antialias_ = json["antialias_"].GetInt();
+    } else {
+      antialias_ = 0; // 默认值
+    }
 
-    // 读取 antialias_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "antialias_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    antialias_ = std::stoi(token);
+    if (json.HasMember("axes_")) {
+      axes_ = json["axes_"].GetInt();
+    } else {
+      axes_ = INT_MAX; // 默认值
+    }
 
-    // 读取 axes_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "axes_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    axes_ = std::stoi(token);
+    if (json.HasMember("coordinate_transformation_mode_")) {
+      coordinate_transformation_mode_ = json["coordinate_transformation_mode_"].GetString();
+    } else {
+      coordinate_transformation_mode_ = "half_pixel"; // 默认值
+    }
 
-    // 读取 coordinate_transformation_mode_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "coordinate_transformation_mode_")
-      return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    coordinate_transformation_mode_ = token;
+    if (json.HasMember("cubic_coeff_a_")) {
+      cubic_coeff_a_ = json["cubic_coeff_a_"].GetFloat();
+    } else {
+      cubic_coeff_a_ = -0.75; // 默认值
+    }
 
-    // 读取 cubic_coeff_a_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "cubic_coeff_a_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    cubic_coeff_a_ = std::stof(token);
+    if (json.HasMember("exclude_outside_")) {
+      exclude_outside_ = json["exclude_outside_"].GetInt();
+    } else {
+      exclude_outside_ = 0; // 默认值
+    }
 
-    // 读取 exclude_outside_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "exclude_outside_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    exclude_outside_ = std::stoi(token);
+    if (json.HasMember("extrapolation_value_")) {
+      extrapolation_value_ = json["extrapolation_value_"].GetFloat();
+    } else {
+      extrapolation_value_ = -0.0; // 默认值
+    }
 
-    // 读取 extrapolation_value_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "extrapolation_value_")
-      return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    extrapolation_value_ = std::stof(token);
+    if (json.HasMember("keep_aspect_ratio_policy_")) {
+      keep_aspect_ratio_policy_ = json["keep_aspect_ratio_policy_"].GetString();
+    } else {
+      keep_aspect_ratio_policy_ = "stretch"; // 默认值
+    }
 
-    // 读取 keep_aspect_ratio_policy_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "keep_aspect_ratio_policy_")
-      return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    keep_aspect_ratio_policy_ = token;
+    if (json.HasMember("mode_")) {
+      mode_ = json["mode_"].GetString();
+    } else {
+      mode_ = "nearest"; // 默认值
+    }
 
-    // 读取 mode_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "mode_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    mode_ = token;
-
-    // 读取 nearest_mode_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "nearest_mode_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    nearest_mode_ = token;
+    if (json.HasMember("nearest_mode_")) {
+      nearest_mode_ = json["nearest_mode_"].GetString();
+    } else {
+      nearest_mode_ = "round_prefer_floor"; // 默认值
+    }
 
     return base::kStatusCodeOk;
   }
@@ -856,21 +696,16 @@ class SoftmaxParam : public OpParam {
   PARAM_COPY(SoftmaxParam)
   PARAM_COPY_TO(SoftmaxParam)
 
-  base::Status serialize(std::ostream &stream) {
-    stream << "axis_:" << axis_ << ",";
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+    json.AddMember("axis_", axis_, allocator);
     return base::kStatusCodeOk;
   }
-  base::Status deserialize(const std::string &line) {
-    std::istringstream iss(line);
-    std::string token;
-
-    // 读取 axis_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "axis_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    axis_ = std::stoi(token);
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("axis_")) {
+      axis_ = json["axis_"].GetInt();
+    } else {
+      axis_ = -1;
+    }
 
     return base::kStatusCodeOk;
   }
@@ -888,30 +723,23 @@ class SplitParam : public OpParam {
   PARAM_COPY(SplitParam)
   PARAM_COPY_TO(SplitParam)
 
-  base::Status serialize(std::ostream &stream) {
-    stream << "axis_:" << axis_ << ",";
-    stream << "num_outputs_:" << num_outputs_ << ",";
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+    json.AddMember("axis_", axis_, allocator);
+    json.AddMember("num_outputs_", num_outputs_, allocator);
     return base::kStatusCodeOk;
   }
-  base::Status deserialize(const std::string &line) {
-    std::istringstream iss(line);
-    std::string token;
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("axis_")) {
+      axis_ = json["axis_"].GetInt();
+    } else {
+      axis_ = 0; // 默认值
+    }
 
-    // 读取 axis_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "axis_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    axis_ = std::stoi(token);
-
-    // 读取 num_outputs_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "num_outputs_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    num_outputs_ = std::stoi(token);
+    if (json.HasMember("num_outputs_")) {
+      num_outputs_ = json["num_outputs_"].GetInt();
+    } else {
+      num_outputs_ = INT_MAX; // 默认值
+    }
 
     return base::kStatusCodeOk;
   }
@@ -930,36 +758,21 @@ class TransposeParam : public OpParam {
   PARAM_COPY(TransposeParam)
   PARAM_COPY_TO(TransposeParam)
 
-  base::Status serialize(std::ostream &stream) {
-    stream << "perm_:[";
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+    rapidjson::Value permArray(rapidjson::kArrayType);
     for (size_t i = 0; i < perm_.size(); ++i) {
-      if (i > 0) {
-        stream << ",";
-      }
-      stream << perm_[i];
+      permArray.PushBack(perm_[i], allocator);
     }
-    stream << "],";
+    json.AddMember("perm_", permArray, allocator);
     return base::kStatusCodeOk;
   }
-  base::Status deserialize(const std::string &line) {
-    std::istringstream iss(line);
-    std::string token;
-
-    // 读取 perm_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "perm_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, '['))
-      return base::kStatusCodeErrorInvalidValue;
-    perm_.clear();
-    while (std::getline(iss, token, ',')) {
-      if (token.find(']') == std::string::npos) {
-        perm_.push_back(std::stoi(token));
-      } else {
-        token.erase(std::remove(token.begin(), token.end(), ']'), token.end());
-        perm_.push_back(std::stoi(token));
-        break;
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("perm_")) {
+      for (size_t i = 0; i < json["perm_"].Size(); ++i) {
+        perm_.push_back(json["perm_"][i].GetInt());
       }
+    } else {
+      perm_.clear(); // 默认值
     }
 
     return base::kStatusCodeOk;
@@ -980,30 +793,23 @@ class RMSNormParam : public OpParam {
   PARAM_COPY(RMSNormParam)
   PARAM_COPY_TO(RMSNormParam)
 
-  base::Status serialize(std::ostream &stream) {
-    stream << "eps_:" << eps_ << ",";
-    stream << "is_last_:" << is_last_ << ",";
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+    json.AddMember("eps_", eps_, allocator);
+    json.AddMember("is_last_", is_last_, allocator);
     return base::kStatusCodeOk;
   }
-  base::Status deserialize(const std::string &line) {
-    std::istringstream iss(line);
-    std::string token;
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("eps_")) {
+      eps_ = json["eps_"].GetFloat();
+    } else {
+      eps_ = 1e-6; // 默认值
+    }
 
-    // 读取 eps_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "eps_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    eps_ = std::stof(token);
-
-    // 读取 is_last_
-    if (!std::getline(iss, token, ':'))
-      return base::kStatusCodeErrorInvalidValue;
-    if (token != "is_last_") return base::kStatusCodeErrorInvalidValue;
-    if (!std::getline(iss, token, ','))
-      return base::kStatusCodeErrorInvalidValue;
-    is_last_ = (token == "1");
+    if (json.HasMember("is_last_")) {
+      is_last_ = json["is_last_"].GetBool();
+    } else {
+      is_last_ = false; // 默认值
+    }
 
     return base::kStatusCodeOk;
   }

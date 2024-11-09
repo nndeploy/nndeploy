@@ -28,8 +28,13 @@ class DefaultInterpret : public Interpret {
       const std::vector<std::string> &model_value,
       const std::vector<ValueDesc> &input = std::vector<ValueDesc>());
 
-  // virtual base::Status DefaultInterpret::interpret_safetensors(
-  //     const std::string &weights_name);
+ private:
+  /**
+   * @brief 模型权重
+   *
+   * 用于存储模型权重信息
+   */
+  std::shared_ptr<safetensors::safetensors_t> st_ptr_;
 };
 
 }  // namespace ir

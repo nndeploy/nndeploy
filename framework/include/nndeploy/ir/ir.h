@@ -50,9 +50,9 @@ class NNDEPLOY_CC_API OpDesc {
   virtual ~OpDesc();
 
   // 序列化
-  base::Status serialize(std::ostream &stream) const;
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) const;
   // 反序列化
-  base::Status deserialize(const std::string &line);
+  base::Status deserialize(rapidjson::Value &json);
 
  public:
   // 算子名称
@@ -82,9 +82,9 @@ class ValueDesc {
   virtual ~ValueDesc();
 
   // 序列化
-  base::Status serialize(std::ostream &stream) const;
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) const;
   // 反序列化
-  base::Status deserialize(const std::string &line);
+  base::Status deserialize(rapidjson::Value &json);
 
  public:
   // 名称
@@ -95,8 +95,6 @@ class ValueDesc {
   base::IntVector shape_;
 };
 
-// onnx / 自定义模型 -》ir(interpret)
-
 /**
  * @brief 参照onnx的格式，描述模型的结构
  *
@@ -106,37 +104,34 @@ class ModelDesc {
   ModelDesc();
   virtual ~ModelDesc();
 
-  base::Status dump(std::ostream &oss);
+  base::Status dump(std::ostream &stream);
 
   // 序列化模型结构为文本
-  base::Status serializeStructureToText(std::ostream &stream) const;
+  base::Status serializeStructureToJson(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) const;
+  base::Status serializeStructureToJson(std::ostream &stream) const;
+  base::Status serializeStructureToJson(const std::string &path) const;
   // 反序列化文本为模型结构
-  base::Status deserializeStructureFromText(
+  base::Status deserializeStructureFromJson(
+      rapidjson::Value &json, const std::vector<ValueDesc> &input);
+  base::Status deserializeStructureFromJson(
       std::istream &stream, const std::vector<ValueDesc> &input);
-  // 序列化模型权重为二进制文件
-  base::Status serializeWeightsToBinary(std::ostream &stream) const;
+  base::Status deserializeStructureFromJson(
+      const std::string &path, const std::vector<ValueDesc> &input);
 
   // 序列化模型权重为safetensors
   base::Status serializeWeightsToSafetensorsImpl(safetensors::safetensors_t &st,
                                                  bool serialize_buffer = false) const;
-
   base::Status serializeWeightsToSafetensors(
-      std::shared_ptr<safetensors::safetensors_t>& st_ptr) const;
-  // 从二进制文件反序列化模型权重
-  base::Status deserializeWeightsFromBinary(std::istream &stream);
+      std::shared_ptr<safetensors::safetensors_t>& serialize_st_ptr) const;
   // 从safetensors中导入成模型文件
   base::Status deserializeWeightsFromSafetensors(
-      const std::string &weight_path);
-
-  // 从safetensors中导入成模型文件实现
-//   base::Status deserializeWeightsFromSafetensorsImpl(
-//       safetensors::safetensors_t &st);
+      std::shared_ptr<safetensors::safetensors_t>& st_ptr);
 
  public:
   // 描述模型的名称
   std::string name_;
-  // 模型的权重
-  std::shared_ptr<safetensors::safetensors_t> st_ptr_;
+  // 模型元数据
+  std::unordered_map<std::string, std::string> metadata_;
   // 模型输入
   std::vector<std::shared_ptr<ValueDesc>> inputs_;
   // 模型输出
@@ -147,10 +142,6 @@ class ModelDesc {
   std::map<std::string, device::Tensor *> weights_;
   // 模型中间值，一般通常为空，多用于调试
   std::vector<std::shared_ptr<ValueDesc>> values_;
-  // 模型块
-  std::vector<std::shared_ptr<ModelDesc>> blocks_;
-
-  safetensors::ordered_dict<std::string> metadata_;
 };
 
 }  // namespace ir

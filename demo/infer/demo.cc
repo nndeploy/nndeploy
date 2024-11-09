@@ -5,14 +5,14 @@
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
-#include "nndeploy/ir/onnx/onnx_interpret.h"
+// #include "nndeploy/ir/onnx/onnx_interpret.h"
 #include "nndeploy/ir/op_param.h"
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
 #include "safetensors.hh"
-#include "onnx/defs/operator_sets.h"
-#include "onnx/defs/schema.h"
+// #include "onnx/defs/operator_sets.h"
+// #include "onnx/defs/schema.h"
 using namespace nndeploy;
 
 // std::shared_ptr<Expr> makeBlock(ir::ModelDesc *model_desc,
@@ -62,27 +62,27 @@ class TestDesc : public ir::ModelDesc {
 void printHelloWorld() { std::cout << "hello world!" << std::endl; }
 
 void test_onnx_schemas() {
-  std::cout << (onnx::OpSchemaRegistry::Instance()->GetLoadedSchemaVersion() ==
-                0)
-            << std::endl;
+  // std::cout << (onnx::OpSchemaRegistry::Instance()->GetLoadedSchemaVersion() ==
+  //               0)
+  //           << std::endl;
 
-  // onnx::RegisterOnnxOperatorSetSchema();
-  auto schema = ONNX_NAMESPACE::OpSchemaRegistry::Schema("Conv");
-  std::cout << schema << std::endl;
-  std::cout << schema->Name() << std::endl;
-  for (const auto it : schema->attributes()) {
-    std::cout << it.first << " " /* << it.second.description << " " */
-              << static_cast<int>(it.second.type) << std::endl;
-  }
+  // // onnx::RegisterOnnxOperatorSetSchema();
+  // auto schema = ONNX_NAMESPACE::OpSchemaRegistry::Schema("Conv");
+  // std::cout << schema << std::endl;
+  // std::cout << schema->Name() << std::endl;
+  // for (const auto it : schema->attributes()) {
+  //   std::cout << it.first << " " /* << it.second.description << " " */
+  //             << static_cast<int>(it.second.type) << std::endl;
+  // }
 }
 
 void testOnnxImport() {
-  std::shared_ptr<ir::OnnxInterpret> onnx_int =
-      std::make_shared<ir::OnnxInterpret>();
-  onnx_int->interpret(
-      {"/Users/realtyxxx_mac/study/gt/conv_relu.onnx"},
-      // onnx_int->interpret({"/Users/realtyxxx_mac/study/gt/resnet18-v1-7.onnx"},
-      {nndeploy::ir::ValueDesc("input")});
+  // std::shared_ptr<ir::OnnxInterpret> onnx_int =
+  //     std::make_shared<ir::OnnxInterpret>();
+  // onnx_int->interpret(
+  //     {"/Users/realtyxxx_mac/study/gt/conv_relu.onnx"},
+  //     // onnx_int->interpret({"/Users/realtyxxx_mac/study/gt/resnet18-v1-7.onnx"},
+  //     {nndeploy::ir::ValueDesc("input")});
 }
 
 int main(int argc, char const *argv[]) {
@@ -162,36 +162,44 @@ int main(int argc, char const *argv[]) {
     // "/Users/realtyxxx_mac/.cache/huggingface/hub/"
     // "models--PekingU--rtdetr_r18vd/snapshots/"
     // "ac77a11ff0170a41b771c03264987f8ce2b0d753/model.safetensors";
-    auto new_desc = new ir::ModelDesc();
+    // auto new_desc = new ir::ModelDesc();
 
-    std::ifstream inFile("/Users/realtyxxx_mac/study/gt/rtdetr.txt");
+    // @Realtyxxx: 从safetensors中导入模型名称
+    // std::ifstream inFile("/Users/realtyxxx_mac/study/gt/rtdetr.txt");
 
-    // 检查文件是否成功打开
-    if (!inFile) {
-      std::cerr << "无法打开文件！" << std::endl;
-      return 1;
-    }
+    // // 检查文件是否成功打开
+    // if (!inFile) {
+    //   std::cerr << "无法打开文件！" << std::endl;
+    //   return 1;
+    // }
 
-    std::string line;
-    // 使用 std::getline 逐行读取文件内容
-    while (std::getline(inFile, line)) {
-      // std::cout << line << std::endl;  // 输出每行内容到控制台
-      new_desc->weights_.insert({line, new device::Tensor(line)});
-    }
-    inFile.close();
+    // std::string line;
+    // // 使用 std::getline 逐行读取文件内容
+    // while (std::getline(inFile, line)) {
+    //   // std::cout << line << std::endl;  // 输出每行内容到控制台
+    //   new_desc->weights_.insert({line, new device::Tensor(line)});
+    // }
+    // inFile.close();
 
-    std::cout << sep << "new_desc deserialize : " << std::endl;
+    // std::cout << sep << "new_desc deserialize : " << std::endl;
 
-    new_desc->deserializeWeightsFromSafetensors(weight_path);
+    // new_desc->deserializeWeightsFromSafetensors(weight_path);
 
-    std::cout << sep << "new_desc serialize : " << std::endl;
-    std::shared_ptr<safetensors::safetensors_t> st_ptr;
-    new_desc->serializeWeightsToSafetensors(st_ptr);
-    std::string err, warn;
-    safetensors::save_to_file(
-        *st_ptr, "/Users/realtyxxx_mac/study/gt/rtdetr_out.safetensors", &warn,
-        &err);
+    // std::cout << sep << "new_desc serialize : " << std::endl;
+    // std::shared_ptr<safetensors::safetensors_t> st_ptr(new safetensors::safetensors_t());
+    // new_desc->serializeWeightsToSafetensors(st_ptr);
+    // std::string err, warn;
+    // safetensors::save_to_file(
+    //     *st_ptr, "/Users/realtyxxx_mac/study/gt/rtdetr_out.safetensors", &warn,
+    //     &err);
     // 关闭文件
+
+    ir::Interpret *interpret = ir::createInterpret(base::kModelTypeDefault);
+    interpret->interpret({"", weight_path});
+
+    interpret->saveModelToFile("", "/Users/realtyxxx_mac/study/gt/rtdetr_out.safetensors");
+
+    delete interpret;
   }
 
   return 0;

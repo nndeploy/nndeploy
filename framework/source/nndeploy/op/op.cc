@@ -277,6 +277,12 @@ void Op::setWorkspace(void *workspace) {
   workspace_is_external_ = true;
   workspace_ = workspace;
 }
+uint64_t Op::getFlops() { 
+  if (flops_ == 0) {
+    NNDEPLOY_LOGE("Op %s flops is not set.\n", op_desc_.name_.c_str());
+  }
+  return flops_; 
+}
 
 base::Status Op::inferDataType() {
   auto input_dtype = inputs_[0]->getDataType();

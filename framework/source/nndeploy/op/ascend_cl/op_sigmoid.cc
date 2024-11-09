@@ -22,55 +22,61 @@ class AscendCLOpSigmoid : public OpUnary {
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
+    base::Status status = OpUnary::preRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("preRun failed.\n");
+      return status;
+    }
+
     // 输入输出
-    inner_input_ =
-        AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
-    inner_output_ =
-        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    if (inner_input_ == nullptr) {
+      inner_input_ =
+          AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+    }
+    if (inner_output_ == nullptr) {
+      inner_output_ =
+          AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
+    }
 
     // 创建算子
-    aclnnStatus aclnn_status = aclnnSigmoidGetWorkspaceSize(
-        inner_input_, inner_output_, &workspace_size_, &executor_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                 base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSigmoidGetWorkspaceSize failed.");
+    if (executor_ == nullptr) {
+      aclnnStatus aclnn_status = aclnnSigmoidGetWorkspaceSize(
+          inner_input_, inner_output_, &workspace_size_, &executor_);
+      if (aclnn_status != ACL_SUCCESS) {
+        NNDEPLOY_LOGE("aclnnSigmoidGetWorkspaceSize failed, error code: %d.\n",
+                     aclnn_status);
+        return base::kStatusCodeErrorOpAscendCL;
+      }
+    }
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
     // 输入输出
     aclnnStatus aclnn_status =
         aclnnSigmoid(workspace_, workspace_size_, executor_, inner_stream_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                 base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSigmoid failed.");
-
-    // 同步流
-#if 0
-    std::string name_ = outputs_[0]->getName();
-    if (name_ == "/model.1/act/Sigmoid_output_0") {
-      aclrtSynchronizeStream(inner_stream_);
-      std::string path = "./net_output/";
-      std::string name = outputs_[0]->getName();
-      std::string filename = name;
-      size_t pos = 0;
-      while ((pos = filename.find('/')) != std::string::npos) {
-        filename.replace(pos, 1, "_");
-      }
-      filename = path + filename + "inner.csv";
-      std::ofstream output_file(filename, std::ios::trunc);
-      if (output_file.is_open()) {
-        outputs_[0]->print(output_file);
-        output_file.close();
-      } else {
-        NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
-      }
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnSigmoid failed, error code: %d.\n", aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
     }
-#endif
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    aclDestroyTensor(inner_input_);
-    aclDestroyTensor(inner_output_);
+    if (inner_input_ != nullptr) {
+      aclDestroyTensor(inner_input_); 
+      inner_input_ = nullptr;
+    }
+    if (inner_output_ != nullptr) {
+      aclDestroyTensor(inner_output_);
+      inner_output_ = nullptr;
+    }
+    if (executor_ != nullptr) {
+      executor_ = nullptr;
+    }
+    base::Status status = OpUnary::postRun();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("postRun failed.\n");
+      return status;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -79,10 +85,10 @@ class AscendCLOpSigmoid : public OpUnary {
 
   aclTensor* inner_input_ = nullptr;
   aclTensor* inner_output_ = nullptr;
-  aclOpExecutor* executor_;
+  aclOpExecutor* executor_ = nullptr;
 
-  aclrtStream inner_stream_;
-  aclopAttr* attr_{nullptr};
+  aclrtStream inner_stream_ = nullptr;
+  aclopAttr* attr_ = nullptr;
 };
 
 REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,

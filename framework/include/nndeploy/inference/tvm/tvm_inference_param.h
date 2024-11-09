@@ -19,8 +19,6 @@ class TvmInferenceParam : public InferenceParam {
   PARAM_COPY(TvmInferenceParam)
   PARAM_COPY_TO(TvmInferenceParam)
 
-  base::Status parse(const std::string &json, bool is_path = true);
-
   virtual base::Status set(const std::string &key, base::Any &any);
 
   virtual base::Status get(const std::string &key, base::Any &any);

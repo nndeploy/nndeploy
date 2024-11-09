@@ -3,6 +3,7 @@
 #define _NNDEPLOY_NET_NET_H_
 
 #include "nndeploy/ir/ir.h"
+#include "nndeploy/ir/interpret.h"
 #include "nndeploy/net/session.h"
 #include "nndeploy/net/util.h"
 #include "nndeploy/op/op.h"
@@ -16,6 +17,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   virtual ~Net();
 
   // 在这个函数之前调用setDeviceType
+  base::Status setInterpret(ir::Interpret *interpret);
   base::Status setModelDesc(ir::ModelDesc *model_desc);
   base::Status setDynamicShape(bool is_dynamic_shape, base::ShapeMap &min_shape,
                                base::ShapeMap &opt_shape,
@@ -68,6 +70,8 @@ class NNDEPLOY_CC_API Net : public op::Op {
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
   virtual base::Status preRun();
+  virtual uint64_t getFlops();
+
   virtual base::Status run();
   virtual base::Status postRun();
 

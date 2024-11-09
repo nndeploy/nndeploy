@@ -24,7 +24,6 @@ include(ExternalProject)
 
 if (ENABLE_NNDEPLOY_SAFETENSORS_CPP STREQUAL "OFF")
 elseif (ENABLE_NNDEPLOY_SAFETENSORS_CPP STREQUAL "ON")
-  message("safetensors_cpp is ON")
   set(SAFETENSORS_CPP_CXX_EXCEPTIONS ON)
   set(SAFETENSORS_CPP_PATH ${PROJECT_SOURCE_DIR}/third_party/safetensors-cpp)
   add_subdirectory(${SAFETENSORS_CPP_PATH} safetensors_cpp)

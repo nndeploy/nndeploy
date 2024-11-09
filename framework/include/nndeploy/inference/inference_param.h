@@ -31,14 +31,6 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
   PARAM_COPY_TO(InferenceParam)
 
   /**
-   * @brief 从json文件或者json字符串中解析参数
-   *
-   * @param json
-   * @param is_path
-   * @return base::Status
-   */
-  virtual base::Status parse(const std::string &json, bool is_path = true);
-  /**
    * @brief 设置参数
    *
    * @param key
