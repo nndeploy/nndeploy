@@ -1,5 +1,6 @@
 
 #include "nndeploy/base/common.h"
+#include "nndeploy/base/status.h"
 #include "nndeploy_api_registry.h"
 
 namespace nndeploy {
@@ -53,6 +54,9 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .def(py::init<base::DeviceTypeCode, int>())
       .def_readwrite("code_", &base::DeviceType::code_)
       .def_readwrite("device_id_", &base::DeviceType::device_id_);
+
+  //导出Status
+  py::class_<base::Status>(m, "Status").def(py::init<>());
 }
 
 }  // namespace nndeploy
