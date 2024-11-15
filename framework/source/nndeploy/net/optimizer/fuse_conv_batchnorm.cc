@@ -65,6 +65,7 @@ base::Status FuseConvBatchNorm::optimize(
 
     conv_bias =
         new device::Tensor(conv_weight->getDevice(), conv_bias_desc, name);
+    conv_bias->set<float>(0);
   }
 
   for (int out_channel = 0; out_channel < out_channels; out_channel++) {

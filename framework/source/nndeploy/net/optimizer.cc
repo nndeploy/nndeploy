@@ -261,12 +261,26 @@ Optimizer::Optimizer() {}
 
 Optimizer::~Optimizer() {}
 
-base::Status Optimizer::init(base::DeviceType device_type) {
+base::Status Optimizer::init(base::DeviceType device_type,
+                             std::set<OptPassType> enable_pass,
+                             std::set<OptPassType> disable_pass) {
   device_type_ = device_type;
   auto& creator_map = getGlobalOptPassCreatorMap();
   auto device_map = creator_map.find(device_type.code_);
   if (device_map != creator_map.end()) {
     for (auto& pass_creator : device_map->second) {
+      // 设置了仅启用某些pass，当前pass不在的话则跳过
+      if (!enable_pass.empty() &&
+          enable_pass.find(pass_creator.first) == enable_pass.end()) {
+        continue;
+      }
+
+      // 设置了禁用某些pass，当前pass在的话则跳过
+      if (enable_pass.empty() && !disable_pass.empty() &&
+          disable_pass.find(pass_creator.first) != disable_pass.end()) {
+        continue;
+      }
+
       opt_passes_[pass_creator.first] = pass_creator.second->createOptPass();
     }
   }

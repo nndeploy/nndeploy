@@ -32,47 +32,39 @@ class Conv(Module):
         padding=0,
         dilation=[1, 1],
         groups=1,
+        bias=True,
+        weight_name="conv.weight",
+        bias_name="conv.bias",
     ):
         super().__init__()
         self.param = _C.ir.ConvParam()  # TODO: 构造ConvParam 暂时只设置weight Shape相关
-        self.param.kernel_shape_ = [
-            out_channels,
-            in_channels,
-            kernel_size[0],
-            kernel_size[1],
-        ]
-        self.param.group_ = groups
+        self.param.kernel_shape_ = [kernel_size[0], kernel_size[1]]
+        # self.param.group_ = groups
 
-        self.param.dilations_ = dilation
+        # self.param.dilations_ = dilation
 
-        self.weight_map = [{"weight": None}, {"bias": None}]
+        self.weight_name = weight_name
+        self.bias_name = bias_name
 
-    def __call__(self, data):
+        self.weight_map = {weight_name: None, bias_name: None}
+
+    def __call__(
+        self,
+        data,
+    ):
         return self.makeExpr(data)
 
     def makeExpr(self, data):
 
-        names = [key for dic in self.weight_map for key in dic.keys()]
         return _C.op.makeConv(
             self.model_desc,
             data,
             self.param,
-            names[0],
-            names[1],
-            names[0],
-            names[1],
+            self.weight_name,
+            self.bias_name,
+            "",
+            "",
         )
-
-    def generateWeight(self):
-        weight = createTensorFromNumpy(
-            np.random.random(self.param.kernel_shape_).astype(np.float32)
-        )
-        bias = createTensorFromNumpy(
-            np.random.random(self.param.kernel_shape_[0]).astype(dtype=np.float32)
-        )
-        self.weight_map[0]["weight"] = weight
-        self.weight_map[1]["bias"] = bias
-        return self.weight_map
 
 
 class Relu(Module):
@@ -83,4 +75,38 @@ class Relu(Module):
         return self.makeExpr(data)
 
     def makeExpr(self, data):
-        return _C.op.makeRelu(self.model_desc, data, "1", "2")
+        return _C.op.makeRelu(self.model_desc, data, "", "")
+
+
+class BatchNorm(Module):
+    def __init__(self, scale_name, bias_name, mean_name, var_name):
+        super().__init__()
+
+        self.param = _C.ir.BatchNormalizationParam()
+        self.scale_name = scale_name
+        self.bias_name = bias_name
+        self.mean_name = mean_name
+        self.var_name = var_name
+
+        self.weight_map = {
+            self.scale_name: None,
+            self.bias_name: None,
+            self.mean_name: None,
+            self.var_name: None,
+        }
+
+    def __call__(self, data):
+        return self.makeExpr(data)
+
+    def makeExpr(self, data):
+        return _C.op.makeBatchNorm(
+            self.model_desc,
+            data,
+            self.param,
+            self.scale_name,
+            self.bias_name,
+            self.mean_name,
+            self.var_name,
+            "",
+            ""
+        )

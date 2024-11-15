@@ -262,11 +262,11 @@ base::Status Net::init() {
 
   // 即使是设备相关的图优化，也可以放在优化器中做
   // 经过这一次图优化之后
-
-  status = optimizer();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "graph optimizer failed!");
-
+  if (net_opt_flag_) {
+    status = optimizer();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "graph optimizer failed!");
+  }
   status = this->session();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph session failed!");
 
@@ -309,6 +309,9 @@ base::Status Net::deinit() {
     delete tensor_wrapper;
   }
   tensor_repository_.clear();
+
+  enable_pass_.clear();
+  disable_pass_.clear();
 
   return status;
 }
@@ -656,7 +659,7 @@ base::Status Net::optimizer() {
   base::Status status = base::kStatusCodeOk;
   std::unique_ptr<net::Optimizer> optimizer =
       std::make_unique<net::Optimizer>();
-  status = optimizer->init(device_type_);
+  status = optimizer->init(device_type_, enable_pass_, disable_pass_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "optimizer init failed!");
   status = optimizer->optimize(tensor_repository_, op_repository_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -685,6 +688,21 @@ base::Status Net::session() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session init failed!");
 
   return status;
+}
+
+base::Status Net::enableOpt(bool flag) {
+  net_opt_flag_ = flag;
+  return base::kStatusCodeOk;
+}
+
+base::Status Net::setEnablePass(std::set<OptPassType> enable_pass) {
+  enable_pass_ = enable_pass;
+  return base::kStatusCodeOk;
+}
+
+base::Status Net::setDisablePass(std::set<OptPassType> disable_pass) {
+  disable_pass_ = disable_pass;
+  return base::kStatusCodeOk;
 }
 
 Net *createNet(ir::ModelDesc *model_desc, base::DeviceType device_type,

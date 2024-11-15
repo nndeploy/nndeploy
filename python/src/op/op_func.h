@@ -4,9 +4,10 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "nndeploy/op/op_rmsnorm.h"
-#include "nndeploy/op/op_conv.h"
 #include "nndeploy/op/op_batchnorm.h"
+#include "nndeploy/op/op_conv.h"
+#include "nndeploy/op/op_rmsnorm.h"
+#include "nndeploy/op/op_relu.h"
 
 /**
  * @brief Op的func层，在该层进行Op的输入检查、输出Tensor构造、调用Op计算;
@@ -19,8 +20,16 @@ device::Tensor* rmsNormFunc(device::Tensor* input1, device::Tensor* input2,
                             device::Tensor* input3);
 
 device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
-                     device::Tensor* bias,
-                     std::shared_ptr<ir::ConvParam> param);
+                         device::Tensor* bias,
+                         std::shared_ptr<ir::ConvParam> param);
+
+device::Tensor* batchNormFunc(
+    device::Tensor* input, device::Tensor* scale, device::Tensor* bias,
+    device::Tensor* mean, device::Tensor* var,
+    std::shared_ptr<ir::BatchNormalizationParam> param);
+
+device::Tensor* reluFunc(device::Tensor* input);
+
 }  // namespace nndeploy
 
 #endif

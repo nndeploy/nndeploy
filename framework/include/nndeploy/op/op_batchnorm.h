@@ -21,7 +21,8 @@ class OpBatchNorm : public Op {
 
 NNDEPLOY_CC_API base::Status batchNorm(
     device::Tensor *input1, device::Tensor *scale, device::Tensor *bias,
-    device::Tensor *mean, device::Tensor *var, device::Tensor *output);
+    device::Tensor *mean, device::Tensor *var,
+    std::shared_ptr<ir::BatchNormalizationParam> param, device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

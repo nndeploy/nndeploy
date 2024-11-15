@@ -15,3 +15,15 @@ def conv(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
     param.pads_ = [padding, padding, padding, padding]
 
     return _C.op.conv(input, weight, bias, param)
+
+
+def batch_norm(input, scale, bias, mean, var, epsilon=1e-5):
+    param = _C.ir.BatchNormalizationParam()
+    param.epsilon_ = epsilon
+
+    return _C.op.batch_norm(input, scale, bias, mean, var, param)
+
+
+def relu(input):
+
+    return _C.op.relu(input)
