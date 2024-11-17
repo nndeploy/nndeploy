@@ -7,6 +7,7 @@
 #include "nndeploy/net/runtime.h"
 #include "nndeploy/net/util.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/net/optimizer.h"
 
 namespace nndeploy {
 namespace net {
@@ -77,6 +78,22 @@ class NNDEPLOY_CC_API Net : public op::Op {
 
   base::Status dump(std::ostream &oss);
 
+  /**
+   * @brief 设置开启图优化的开关
+   * flag: true 启用图优化  false：关闭图优化
+   */
+  base::Status enableOpt(bool flag);
+
+  /**
+   * @brief 在图优化时仅启用这些pass，如果为空则启用全部pass
+   */
+  base::Status setEnablePass(std::set<OptPassType>);
+
+  /**
+   * @brief 在图优化时禁用这些pass，如果为空则启用全部pass
+   */
+  base::Status setDisablePass(std::set<OptPassType>);
+
  protected:
   virtual base::Status construct();
   // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
@@ -103,6 +120,12 @@ class NNDEPLOY_CC_API Net : public op::Op {
       kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
 
   Runtime *runtime_;
+
+  bool net_opt_flag_ = true;  //默认开启图优化
+  std::set<OptPassType> enable_pass_;  //仅使用这些pass，如果为空则启用全部pass
+  std::set<OptPassType>
+      disable_pass_;  //禁用这些pass，如果为空则启用全部pass;
+                      //如果同时设置了enable_pass_，则只有enable_pass_生效
 };
 
 Net *createNet(ir::ModelDesc *model_desc, base::DeviceType device_type,

@@ -4,7 +4,8 @@
 namespace nndeploy {
 NNDEPLOY_API_PYBIND11_MODULE("op", m) {
   m.def("rms_norm", rmsNormFunc);
-  // m.def("batch_norm",batchNormFunc);
+  m.def("batch_norm", batchNormFunc);
+  m.def("relu", reluFunc);
   m.def("conv", convFunc);
 }
 

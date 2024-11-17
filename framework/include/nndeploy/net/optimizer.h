@@ -72,7 +72,7 @@ class OptPass {
  */
 class OptPassCreator {
  public:
-  virtual ~OptPassCreator() {};
+  virtual ~OptPassCreator(){};
 
   virtual std::shared_ptr<OptPass> createOptPass() = 0;
 };
@@ -130,7 +130,9 @@ class NNDEPLOY_CC_API Optimizer {
   Optimizer();
   ~Optimizer();
 
-  base::Status init(base::DeviceType device_type);
+  base::Status init(base::DeviceType device_type,
+                    std::set<OptPassType> enable_pass,
+                    std::set<OptPassType> disable_pass);
   base::Status deinit();
 
   base::Status addPass(OptPassType type);

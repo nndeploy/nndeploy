@@ -37,12 +37,8 @@ base::Status OpBatchNorm::run() {
   device::Tensor *var_tensor = inputs_[4];
   device::Tensor *output_tensor = outputs_[0];
 
-  // 获取输入和权重的维度信息
+  // 获取输入的维度信息
   auto input_shape = input_tensor->getShape();
-  auto scale_shape = scale_tensor->getShape();
-  auto bias_shape = bias_tensor->getShape();
-  auto mean_shape = mean_tensor->getShape();
-  auto var_shape = var_tensor->getShape();
 
   // 获取批量归一化参数
   auto param =
@@ -81,7 +77,9 @@ base::Status OpBatchNorm::run() {
 
 base::Status batchNorm(device::Tensor *input, device::Tensor *scale,
                        device::Tensor *bias, device::Tensor *mean,
-                       device::Tensor *var, device::Tensor *output) {
+                       device::Tensor *var,
+                       std::shared_ptr<ir::BatchNormalizationParam> param,
+                       device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
   Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeBatchNormalization);
@@ -89,6 +87,8 @@ base::Status batchNorm(device::Tensor *input, device::Tensor *scale,
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
+  status = op->setParam(param);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
   status = op->setInput(input, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setInput(scale, 1);

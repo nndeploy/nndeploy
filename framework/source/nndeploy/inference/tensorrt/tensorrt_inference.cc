@@ -65,6 +65,8 @@ base::Status TensorRtInference::init() {
   base::Status status = base::kStatusCodeOk;
 
   is_share_command_queue_ = true;
+  forward_memory_size_ = 0;
+  inner_forward_buffer_ = nullptr;
 
   std::string model_buffer;
   TensorRtInferenceParam *tensorrt_inference_param =
@@ -189,7 +191,7 @@ base::Status TensorRtInference::deinit() {
   max_output_tensors_.clear();
   device::Device *device = device::getDevice(inference_param_->device_type_);
   if (inner_forward_buffer_ != nullptr) {
-    device->deallocate(inner_forward_buffer_);
+    delete inner_forward_buffer_;
   }
   return status;
 }
