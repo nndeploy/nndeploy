@@ -17,7 +17,6 @@
 #include "nndeploy/ir/op_param.h"
 #include "safetensors.hh"
 
-
 namespace nndeploy {
 namespace ir {
 
@@ -74,7 +73,7 @@ class NNDEPLOY_CC_API OpDesc {
  * @brief 参照onnx的格式，描述模型或者算子输入输出
  *
  */
-class ValueDesc {
+class NNDEPLOY_CC_API ValueDesc {
  public:
   ValueDesc();
   ValueDesc(const std::string &name);
@@ -103,7 +102,7 @@ class ValueDesc {
  * @brief 参照onnx的格式，描述模型的结构
  *
  */
-class ModelDesc {
+class NNDEPLOY_CC_API ModelDesc {
  public:
   ModelDesc();
   virtual ~ModelDesc();

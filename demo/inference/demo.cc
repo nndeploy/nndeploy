@@ -1,3 +1,4 @@
+#include "nndeploy/framework.h"
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
@@ -5,6 +6,7 @@
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
+
 
 using namespace nndeploy;
 
@@ -26,6 +28,12 @@ class TestDesc : public ir::ModelDesc {
 };
 
 int main() {
+  int ret = nndeployFrameworkInit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
+
   auto test_desc = new TestDesc();
   test_desc->init();
 
@@ -69,5 +77,10 @@ int main() {
   NNDEPLOY_LOGE("delete test_desc\n");
   delete test_desc;
 
+  ret = nndeployFrameworkDeinit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
   return 0;
 }

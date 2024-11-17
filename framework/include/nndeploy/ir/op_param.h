@@ -205,9 +205,9 @@ enum OpType : int {
   kOpTypeNone,
 };
 
-std::string opTypeToString(OpType op_type);
+NNDEPLOY_CC_API std::string opTypeToString(OpType op_type);
 
-OpType stringToOpType(const std::string &op_type_name);
+NNDEPLOY_CC_API OpType stringToOpType(const std::string &op_type_name);
 
 /**
  * @brief 算子参数的创建类
@@ -271,7 +271,7 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
  *
  * reserved_param_:{key,value;key,value;},reserved_:value
  */
-class OpParam : public base::Param {
+class NNDEPLOY_CC_API OpParam : public base::Param {
  public:
   OpParam() : base::Param() {};
   virtual ~OpParam() {};
@@ -284,7 +284,7 @@ class OpParam : public base::Param {
   size_t reserved_;
 };
 
-class BatchNormalizationParam : public OpParam {
+class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
  public:
   BatchNormalizationParam() : OpParam() {};
   virtual ~BatchNormalizationParam() {};
@@ -357,7 +357,7 @@ class ConcatParam : public OpParam {
   int axis_ = 1;  // 拼接的维度
 };
 
-class ConvParam : public OpParam {
+class NNDEPLOY_CC_API ConvParam : public OpParam {
  public:
   // 构造函数
   ConvParam() : OpParam() {}
@@ -480,7 +480,7 @@ class ConvParam : public OpParam {
   OpType activate_op_ = kOpTypeRelu;
 };
 // MaxPool 参数类
-class MaxPoolParam : public OpParam {
+class NNDEPLOY_CC_API MaxPoolParam : public OpParam {
  public:
   MaxPoolParam() : OpParam() {}
   virtual ~MaxPoolParam() {}
@@ -590,7 +590,7 @@ class MaxPoolParam : public OpParam {
 };
 
 // Reshape 参数类
-class ReshapeParam : public OpParam {
+class NNDEPLOY_CC_API ReshapeParam : public OpParam {
  public:
   ReshapeParam() : OpParam() {}
   virtual ~ReshapeParam() {}
@@ -618,7 +618,7 @@ class ReshapeParam : public OpParam {
 };
 
 // Resize 参数类 - opset 18~19
-class ResizeParam : public OpParam {
+class NNDEPLOY_CC_API ResizeParam : public OpParam {
  public:
   ResizeParam() : OpParam() {}
   virtual ~ResizeParam() {}
@@ -720,7 +720,7 @@ class ResizeParam : public OpParam {
 };
 
 // Softmax 参数类
-class SoftmaxParam : public OpParam {
+class NNDEPLOY_CC_API SoftmaxParam : public OpParam {
  public:
   SoftmaxParam() : OpParam() {}
   virtual ~SoftmaxParam() {}
@@ -748,7 +748,7 @@ class SoftmaxParam : public OpParam {
 };
 
 // Split 参数类
-class SplitParam : public OpParam {
+class NNDEPLOY_CC_API SplitParam : public OpParam {
  public:
   SplitParam() : OpParam() {}  // 默认轴为0，分割数为1
   virtual ~SplitParam() {}
@@ -784,7 +784,7 @@ class SplitParam : public OpParam {
 };
 
 // Transpose 参数类
-class TransposeParam : public OpParam {
+class NNDEPLOY_CC_API TransposeParam : public OpParam {
  public:
   TransposeParam() : OpParam() {}  // 默认轴为0，分割数为1
   virtual ~TransposeParam() {}
@@ -821,7 +821,7 @@ class TransposeParam : public OpParam {
 // TODO: @Leonisux:
 // 补充llama的算子的参数
 // RMSNorm 参数类
-class RMSNormParam : public OpParam {
+class NNDEPLOY_CC_API RMSNormParam : public OpParam {
  public:
   RMSNormParam() : OpParam() {}  // 默认轴为0，分割数为1
   virtual ~RMSNormParam() {}

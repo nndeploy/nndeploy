@@ -65,3 +65,8 @@ endif()
 if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
   include(${ROOT_PATH}/demo/stable_diffusion/config.cmake)
 endif()
+
+nndeploy_option(ENABLE_NNDEPLOY_DEMO_LLAMA "ENABLE_NNDEPLOY_DEMO_LLAMA" OFF)
+if(ENABLE_NNDEPLOY_DEMO_LLAMA)
+  include(${ROOT_PATH}/demo/llama/config.cmake)
+endif()

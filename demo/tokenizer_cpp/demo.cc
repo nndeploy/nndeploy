@@ -135,6 +135,12 @@ void RWKVWorldTokenizerExample() {
 }
 
 int main(int argc, char* argv[]) {
+  int ret = nndeployFrameworkInit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
+
   SentencePieceTokenizerExample();
   HuggingFaceTokenizerExample();
   RWKVWorldTokenizerExample();
@@ -253,5 +259,10 @@ int main(int argc, char* argv[]) {
     r_tensor->print();
   }
 
+  ret = nndeployFrameworkDeinit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
   return 0;
 }

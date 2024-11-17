@@ -13,6 +13,9 @@
 #include "safetensors.hh"
 // #include "onnx/defs/operator_sets.h"
 // #include "onnx/defs/schema.h"
+#include "nndeploy/framework.h"
+
+
 using namespace nndeploy;
 
 // std::shared_ptr<Expr> makeBlock(ir::ModelDesc *model_desc,
@@ -62,7 +65,8 @@ class TestDesc : public ir::ModelDesc {
 void printHelloWorld() { std::cout << "hello world!" << std::endl; }
 
 void test_onnx_schemas() {
-  // std::cout << (onnx::OpSchemaRegistry::Instance()->GetLoadedSchemaVersion() ==
+  // std::cout << (onnx::OpSchemaRegistry::Instance()->GetLoadedSchemaVersion()
+  // ==
   //               0)
   //           << std::endl;
 
@@ -81,11 +85,18 @@ void testOnnxImport() {
   //     std::make_shared<ir::OnnxInterpret>();
   // onnx_int->interpret(
   //     {"/Users/realtyxxx_mac/study/gt/conv_relu.onnx"},
-  //     // onnx_int->interpret({"/Users/realtyxxx_mac/study/gt/resnet18-v1-7.onnx"},
+  //     //
+  //     onnx_int->interpret({"/Users/realtyxxx_mac/study/gt/resnet18-v1-7.onnx"},
   //     {nndeploy::ir::ValueDesc("input")});
 }
 
 int main(int argc, char const *argv[]) {
+  int ret = nndeployFrameworkInit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
+
   // printHelloWorld();
   // test_onnx_schemas();
   // testOnnxImport();
@@ -186,21 +197,28 @@ int main(int argc, char const *argv[]) {
     // new_desc->deserializeWeightsFromSafetensors(weight_path);
 
     // std::cout << sep << "new_desc serialize : " << std::endl;
-    // std::shared_ptr<safetensors::safetensors_t> st_ptr(new safetensors::safetensors_t());
+    // std::shared_ptr<safetensors::safetensors_t> st_ptr(new
+    // safetensors::safetensors_t());
     // new_desc->serializeWeightsToSafetensors(st_ptr);
     // std::string err, warn;
     // safetensors::save_to_file(
-    //     *st_ptr, "/Users/realtyxxx_mac/study/gt/rtdetr_out.safetensors", &warn,
-    //     &err);
+    //     *st_ptr, "/Users/realtyxxx_mac/study/gt/rtdetr_out.safetensors",
+    //     &warn, &err);
     // 关闭文件
 
     ir::Interpret *interpret = ir::createInterpret(base::kModelTypeDefault);
     interpret->interpret({"", weight_path});
 
-    interpret->saveModelToFile("", "/Users/realtyxxx_mac/study/gt/rtdetr_out.safetensors");
+    interpret->saveModelToFile(
+        "", "/Users/realtyxxx_mac/study/gt/rtdetr_out.safetensors");
 
     delete interpret;
   }
 
+  ret = nndeployFrameworkDeinit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
   return 0;
 }

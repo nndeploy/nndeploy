@@ -4,6 +4,7 @@
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
+#include "nndeploy/framework.h"
 #include "nndeploy/segment/result.h"
 #include "nndeploy/segment/segment_anything/sam.h"
 
@@ -38,6 +39,11 @@ int main(int argc, char *argv[]) {
   if (demo::FLAGS_usage) {
     demo::showUsage();
     return -1;
+  }
+  int ret = nndeployFrameworkInit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
   }
 
   // 检测模型的有向无环图graph名称
@@ -156,5 +162,10 @@ int main(int argc, char *argv[]) {
 
   NNDEPLOY_LOGE("hello world!\n");
 
+  ret = nndeployFrameworkDeinit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
   return 0;
 }

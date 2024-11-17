@@ -9,6 +9,12 @@
 using namespace nndeploy;
 
 int main(int argc, char const *argv[]) {
+  int ret = nndeployFrameworkInit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
+
   base::DeviceType device_type = base::kDeviceTypeCodeCuda;
   device_type.device_id_ = 0;
   auto device = device::getDevice(device_type);
@@ -24,8 +30,10 @@ int main(int argc, char const *argv[]) {
 
   NNDEPLOY_LOGE("hello world\n");
 
-  nndeployFrameworkDeinit();
-
-  NNDEPLOY_LOGE("hello world\n");
+  ret = nndeployFrameworkDeinit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
   return 0;
 }

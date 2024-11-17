@@ -9,6 +9,7 @@
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/thread_pool/thread_pool.h"
+#include "nndeploy/framework.h"
 
 using namespace nndeploy;
 
@@ -533,7 +534,11 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
 
 int main(int argc, char *argv[]) {
   NNDEPLOY_LOGE("start!\n");
-  int ret = 0;
+  int ret = nndeployFrameworkInit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
 
   int count = 1;
   for (int i = 0; i < count; i++) {
@@ -617,5 +622,10 @@ int main(int argc, char *argv[]) {
 
   NNDEPLOY_LOGE("end!\n");
 
-  return ret;
+  ret = nndeployFrameworkDeinit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
+  return 0;
 }

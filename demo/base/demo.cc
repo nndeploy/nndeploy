@@ -4,8 +4,15 @@
 #include <vector>
 
 #include "nndeploy/base/any.h"
+#include "nndeploy/framework.h"
 
-int main(int argc, char* argv[]) { 
+int main(int argc, char* argv[]) {
+  int ret = nndeployFrameworkInit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
+
   nndeploy::base::Any a;
   a.construct<int>(1);
   int b = nndeploy::base::get<int>(a);
@@ -19,5 +26,10 @@ int main(int argc, char* argv[]) {
   // int e = nndeploy::base::unsafeGet<int>(c);
   // std::cout << e << std::endl;
 
+  ret = nndeployFrameworkDeinit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
   return 0;
 }

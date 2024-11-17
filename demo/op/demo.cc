@@ -7,6 +7,7 @@
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/framework.h"
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/op_rmsnorm.h"
@@ -60,6 +61,12 @@ bool CheckResult(float* CPUoutput, float* GPUoutput, int output_size) {
 }
 
 int main(int argc, char* argv[]) {
+  int ret = nndeployFrameworkInit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
+
   base::DeviceType cuda_device_type;
   base::DeviceType cpu_device_type;
   // cuda_device_type.code_ = base::kDeviceTypeCodeX86;
@@ -116,8 +123,11 @@ int main(int argc, char* argv[]) {
     std::cout << "rmsnorm passed" << std::endl;
   }
   free(data_test);
-  device::destoryArchitecture();
-  // 新增算子测试
 
+  ret = nndeployFrameworkDeinit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
   return 0;
 }
