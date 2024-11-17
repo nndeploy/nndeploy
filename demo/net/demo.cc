@@ -43,7 +43,7 @@ int main() {
 
   auto onnx_interpret = std::shared_ptr<ir::Interpret>(ir::createInterpret(base::kModelTypeOnnx));
   std::vector<std::string> model_value;
-  model_value.push_back("yolov8n.onnx");
+  model_value.push_back("D:\\github\\nndeploy\\build\\yolov8n.onnx");
   // model_value.push_back("/root/model/modified_yolov8n.onnx");
 
   base::Status status = onnx_interpret->interpret(model_value);
@@ -59,10 +59,14 @@ int main() {
   std::vector<std::string> new_model_value;
   new_model_value.push_back("test.json");
   new_model_value.push_back("test.safetensors");
-  default_interpret->interpret(new_model_value);
+  status = default_interpret->interpret(new_model_value);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("interpret failed\n");
+    return -1;
+  }
   default_interpret->saveModelToFile("test_v2.json", "test_v2.safetensors");
 
-  // ir::ModelDesc *md = onnx_interpret->getModelDesc();
+  //ir::ModelDesc *md = onnx_interpret->getModelDesc();
   ir::ModelDesc *md = default_interpret->getModelDesc();
   if (md == nullptr) {
     NNDEPLOY_LOGE("get model desc failed\n");
@@ -78,7 +82,7 @@ int main() {
   cann_net->setModelDesc(md);
 
   base::DeviceType device_type;
-  device_type.code_ = base::kDeviceTypeCodeAscendCL;
+  device_type.code_ = base::kDeviceTypeCodeCpu;
   device_type.device_id_ = 0;
   cann_net->setDeviceType(device_type);
 

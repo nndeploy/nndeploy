@@ -42,6 +42,22 @@ getArchitectureMap() {
   return *architecture_map;
 }
 
+base::DataFormat Device::getDataFormatByShape(const base::IntVector &shape) {
+  auto shape_size = shape.size();
+  if (shape_size == 5) {
+    return base::DataFormat::kDataFormatNCDHW;
+  } else if (shape_size == 4) {
+    return base::DataFormat::kDataFormatNCHW;
+  } else if (shape_size == 3) {
+    return base::DataFormat::kDataFormatNCL;
+  } else if (shape_size == 2) {
+    return base::DataFormat::kDataFormatNC;
+  } else if (shape_size == 1) {
+    return base::DataFormat::kDataFormatN;
+  }
+  return base::DataFormat::kDataFormatNotSupport;
+}
+
 void *Device::getContext() {
   NNDEPLOY_LOGI("this device[%d, %d] no need to get context!\n",
                 device_type_.code_, device_type_.device_id_);

@@ -91,18 +91,19 @@ class NNDEPLOY_CC_API Tensor {
 
   // modify
   /**
-   * @brief 
-   * 
-   * @param shape 
-   * @return base::Status 
+   * @brief
+   *
+   * @param shape
+   * @return base::Status
    * @note 三种情况
    * # buffer为空，直接reshape
-   * # buffer不为空，reshape后的buffer空间小于或当前buffer的空间，reshape并且更新buffer
+   * #
+   * buffer不为空，reshape后的buffer空间小于或当前buffer的空间，reshape并且更新buffer
    * # buffer不为空，
    */
   base::Status reshape(base::IntVector shape);
   bool justModify(const TensorDesc &desc);
-  bool justModify(Buffer *buffer);
+  bool justModify(Buffer *buffer, bool is_external = true);
 
   // clone and copy
   Tensor *clone();
@@ -113,7 +114,7 @@ class NNDEPLOY_CC_API Tensor {
   base::Status serialize(std::ostream &stream);
 
   base::Status serializeToSafetensors(safetensors::safetensors_t &st,
-                                        bool serialize_buffer = false);
+                                      bool serialize_buffer = false);
 
   // 从二进制文件反序列化模型权重
   base::Status deserialize(std::istream &stream);

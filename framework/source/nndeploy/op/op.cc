@@ -259,9 +259,7 @@ void Op::setRunningFlag(bool flag) {
 }
 bool Op::isRunning() { return is_running_; }
 
-base::Status Op::init() {
-  return base::kStatusCodeOk;
-}
+base::Status Op::init() { return base::kStatusCodeOk; }
 base::Status Op::deinit() {
   if (!workspace_is_external_ && workspace_size_ > 0 && workspace_ != nullptr) {
     device::Device *device = device::getDevice(device_type_);
@@ -277,11 +275,11 @@ void Op::setWorkspace(void *workspace) {
   workspace_is_external_ = true;
   workspace_ = workspace;
 }
-uint64_t Op::getFlops() { 
+uint64_t Op::getFlops() {
   if (flops_ == 0) {
     NNDEPLOY_LOGE("Op %s flops is not set.\n", op_desc_.name_.c_str());
   }
-  return flops_; 
+  return flops_;
 }
 
 base::Status Op::inferDataType() {
@@ -325,7 +323,8 @@ base::Status Op::reshape(base::ShapeMap &shape_map) {
  *
  * @return base::Status
  */
-base::Status Op::preRun() {
+base::Status Op::preRun() { return base::kStatusCodeOk; }
+base::Status Op::checkOrAllocOutput() {
   if (is_changed_) {
     base::Status status = this->inferDataType();
     if (status != base::kStatusCodeOk) {
@@ -352,6 +351,7 @@ base::Status Op::preRun() {
   }
   return base::kStatusCodeOk;
 }
+
 base::Status Op::postRun() { return base::kStatusCodeOk; }
 
 std::map<base::DeviceTypeCode,
@@ -426,8 +426,9 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
     auto &op_map = device_map->second;
     auto creator = op_map.find(op_type);
     if (creator != op_map.end()) {
-      op = creator->second->createOp(device_type, name, op_type, inputs, outputs);
-      if (op != nullptr) {  
+      op = creator->second->createOp(device_type, name, op_type, inputs,
+                                     outputs);
+      if (op != nullptr) {
         op->setParam(param);
       }
     }
@@ -435,7 +436,8 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
   return op;
 }
 
-Op *createOp(base::DeviceType device_type, std::shared_ptr<ir::OpDesc> op_desc) {
+Op *createOp(base::DeviceType device_type,
+             std::shared_ptr<ir::OpDesc> op_desc) {
   Op *op = nullptr;
   if (op_desc != nullptr) {
     auto &creater_map = getGlobalOpCreatorMap();

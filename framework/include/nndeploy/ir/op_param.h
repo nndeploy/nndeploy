@@ -2,16 +2,16 @@
 #ifndef _NNDEPLOY_IR_OP_PARAM_H_
 #define _NNDEPLOY_IR_OP_PARAM_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
-#include "nndeploy/base/rapidjson_include.h"
 #include "nndeploy/base/log.h"
 #include "nndeploy/base/macro.h"
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/param.h"
+#include "nndeploy/base/rapidjson_include.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/device/tensor.h"
 
 namespace nndeploy {
@@ -292,7 +292,8 @@ class BatchNormalizationParam : public OpParam {
   PARAM_COPY(BatchNormalizationParam)
   PARAM_COPY_TO(BatchNormalizationParam)
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("epsilon_", epsilon_, allocator);
     json.AddMember("momentum_", momentum_, allocator);
     json.AddMember("training_mode_", training_mode_, allocator);
@@ -302,19 +303,19 @@ class BatchNormalizationParam : public OpParam {
     if (json.HasMember("epsilon_")) {
       epsilon_ = json["epsilon_"].GetFloat();
     } else {
-      epsilon_ = 1e-05; // 默认值
+      epsilon_ = 1e-05;  // 默认值
     }
 
     if (json.HasMember("momentum_")) {
       momentum_ = json["momentum_"].GetFloat();
     } else {
-      momentum_ = 0.9; // 默认值
+      momentum_ = 0.9;  // 默认值
     }
 
     if (json.HasMember("training_mode_")) {
       training_mode_ = json["training_mode_"].GetInt();
     } else {
-      training_mode_ = 0; // 默认值
+      training_mode_ = 0;  // 默认值
     }
 
     return base::kStatusCodeOk;
@@ -337,7 +338,8 @@ class ConcatParam : public OpParam {
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axis_", axis_, allocator);
     return base::kStatusCodeOk;
   }
@@ -364,14 +366,18 @@ class ConvParam : public OpParam {
   PARAM_COPY(ConvParam)
   PARAM_COPY_TO(ConvParam)
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
-    json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator), allocator);
-    json.AddMember("dilations_", rapidjson::Value(rapidjson::kArrayType), allocator);
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator),
+                   allocator);
+    json.AddMember("dilations_", rapidjson::Value(rapidjson::kArrayType),
+                   allocator);
     for (size_t i = 0; i < dilations_.size(); ++i) {
       json["dilations_"].PushBack(dilations_[i], allocator);
     }
     json.AddMember("group_", group_, allocator);
-    json.AddMember("kernel_shape_", rapidjson::Value(rapidjson::kArrayType), allocator);
+    json.AddMember("kernel_shape_", rapidjson::Value(rapidjson::kArrayType),
+                   allocator);
     for (size_t i = 0; i < kernel_shape_.size(); ++i) {
       json["kernel_shape_"].PushBack(kernel_shape_[i], allocator);
     }
@@ -379,12 +385,16 @@ class ConvParam : public OpParam {
     for (size_t i = 0; i < pads_.size(); ++i) {
       json["pads_"].PushBack(pads_[i], allocator);
     }
-    json.AddMember("strides_", rapidjson::Value(rapidjson::kArrayType), allocator);
+    json.AddMember("strides_", rapidjson::Value(rapidjson::kArrayType),
+                   allocator);
     for (size_t i = 0; i < strides_.size(); ++i) {
       json["strides_"].PushBack(strides_[i], allocator);
     }
     json.AddMember("is_fusion_op_", is_fusion_op_, allocator);
-    json.AddMember("activate_op_", rapidjson::Value(opTypeToString(activate_op_).c_str(), allocator), allocator);
+    json.AddMember(
+        "activate_op_",
+        rapidjson::Value(opTypeToString(activate_op_).c_str(), allocator),
+        allocator);
     return base::kStatusCodeOk;
   }
   base::Status deserialize(rapidjson::Value &json) {
@@ -395,6 +405,7 @@ class ConvParam : public OpParam {
     }
 
     if (json.HasMember("dilations_")) {
+      dilations_.clear();
       for (size_t i = 0; i < json["dilations_"].Size(); ++i) {
         dilations_.push_back(json["dilations_"][i].GetInt());
       }
@@ -409,6 +420,7 @@ class ConvParam : public OpParam {
     }
 
     if (json.HasMember("kernel_shape_")) {
+      kernel_shape_.clear();
       for (size_t i = 0; i < json["kernel_shape_"].Size(); ++i) {
         kernel_shape_.push_back(json["kernel_shape_"][i].GetInt());
       }
@@ -417,6 +429,7 @@ class ConvParam : public OpParam {
     }
 
     if (json.HasMember("pads_")) {
+      pads_.clear();
       for (size_t i = 0; i < json["pads_"].Size(); ++i) {
         pads_.push_back(json["pads_"][i].GetInt());
       }
@@ -425,6 +438,7 @@ class ConvParam : public OpParam {
     }
 
     if (json.HasMember("strides_")) {
+      strides_.clear();
       for (size_t i = 0; i < json["strides_"].Size(); ++i) {
         strides_.push_back(json["strides_"][i].GetInt());
       }
@@ -474,8 +488,10 @@ class MaxPoolParam : public OpParam {
   PARAM_COPY(MaxPoolParam)
   PARAM_COPY_TO(MaxPoolParam)
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
-    json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator), allocator);
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator),
+                   allocator);
     json.AddMember("ceil_mode_", ceil_mode_, allocator);
     rapidjson::Value dilations_array(rapidjson::kArrayType);
     for (size_t i = 0; i < dilations_.size(); ++i) {
@@ -519,6 +535,7 @@ class MaxPoolParam : public OpParam {
     }
 
     if (json.HasMember("dilations_")) {
+      dilations_.clear();
       for (size_t i = 0; i < json["dilations_"].Size(); ++i) {
         dilations_.push_back(json["dilations_"][i].GetInt());
       }
@@ -527,6 +544,7 @@ class MaxPoolParam : public OpParam {
     }
 
     if (json.HasMember("kernel_shape_")) {
+      kernel_shape_.clear();
       for (size_t i = 0; i < json["kernel_shape_"].Size(); ++i) {
         kernel_shape_.push_back(json["kernel_shape_"][i].GetInt());
       }
@@ -535,6 +553,7 @@ class MaxPoolParam : public OpParam {
     }
 
     if (json.HasMember("pads_")) {
+      pads_.clear();
       for (size_t i = 0; i < json["pads_"].Size(); ++i) {
         pads_.push_back(json["pads_"][i].GetInt());
       }
@@ -549,6 +568,7 @@ class MaxPoolParam : public OpParam {
     }
 
     if (json.HasMember("strides_")) {
+      strides_.clear();
       for (size_t i = 0; i < json["strides_"].Size(); ++i) {
         strides_.push_back(json["strides_"][i].GetInt());
       }
@@ -578,7 +598,8 @@ class ReshapeParam : public OpParam {
   PARAM_COPY(ReshapeParam)
   PARAM_COPY_TO(ReshapeParam)
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("allowzero_", allowzero_, allocator);
     return base::kStatusCodeOk;
   }
@@ -586,7 +607,7 @@ class ReshapeParam : public OpParam {
     if (json.HasMember("allowzero_")) {
       allowzero_ = json["allowzero_"].GetInt();
     } else {
-      allowzero_ = 0; // 默认值
+      allowzero_ = 0;  // 默认值
     }
 
     return base::kStatusCodeOk;
@@ -605,71 +626,82 @@ class ResizeParam : public OpParam {
   PARAM_COPY(ResizeParam)
   PARAM_COPY_TO(ResizeParam)
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("antialias_", antialias_, allocator);
     json.AddMember("axes_", axes_, allocator);
-    json.AddMember("coordinate_transformation_mode_", rapidjson::Value(coordinate_transformation_mode_.c_str(), allocator), allocator);
+    json.AddMember(
+        "coordinate_transformation_mode_",
+        rapidjson::Value(coordinate_transformation_mode_.c_str(), allocator),
+        allocator);
     json.AddMember("cubic_coeff_a_", cubic_coeff_a_, allocator);
     json.AddMember("exclude_outside_", exclude_outside_, allocator);
     json.AddMember("extrapolation_value_", extrapolation_value_, allocator);
-    json.AddMember("keep_aspect_ratio_policy_", rapidjson::Value(keep_aspect_ratio_policy_.c_str(), allocator), allocator);
-    json.AddMember("mode_", rapidjson::Value(mode_.c_str(), allocator), allocator);
-    json.AddMember("nearest_mode_", rapidjson::Value(nearest_mode_.c_str(), allocator), allocator);
+    json.AddMember(
+        "keep_aspect_ratio_policy_",
+        rapidjson::Value(keep_aspect_ratio_policy_.c_str(), allocator),
+        allocator);
+    json.AddMember("mode_", rapidjson::Value(mode_.c_str(), allocator),
+                   allocator);
+    json.AddMember("nearest_mode_",
+                   rapidjson::Value(nearest_mode_.c_str(), allocator),
+                   allocator);
     return base::kStatusCodeOk;
   }
   base::Status deserialize(rapidjson::Value &json) {
     if (json.HasMember("antialias_")) {
       antialias_ = json["antialias_"].GetInt();
     } else {
-      antialias_ = 0; // 默认值
+      antialias_ = 0;  // 默认值
     }
 
     if (json.HasMember("axes_")) {
       axes_ = json["axes_"].GetInt();
     } else {
-      axes_ = INT_MAX; // 默认值
+      axes_ = INT_MAX;  // 默认值
     }
 
     if (json.HasMember("coordinate_transformation_mode_")) {
-      coordinate_transformation_mode_ = json["coordinate_transformation_mode_"].GetString();
+      coordinate_transformation_mode_ =
+          json["coordinate_transformation_mode_"].GetString();
     } else {
-      coordinate_transformation_mode_ = "half_pixel"; // 默认值
+      coordinate_transformation_mode_ = "half_pixel";  // 默认值
     }
 
     if (json.HasMember("cubic_coeff_a_")) {
       cubic_coeff_a_ = json["cubic_coeff_a_"].GetFloat();
     } else {
-      cubic_coeff_a_ = -0.75; // 默认值
+      cubic_coeff_a_ = -0.75;  // 默认值
     }
 
     if (json.HasMember("exclude_outside_")) {
       exclude_outside_ = json["exclude_outside_"].GetInt();
     } else {
-      exclude_outside_ = 0; // 默认值
+      exclude_outside_ = 0;  // 默认值
     }
 
     if (json.HasMember("extrapolation_value_")) {
       extrapolation_value_ = json["extrapolation_value_"].GetFloat();
     } else {
-      extrapolation_value_ = -0.0; // 默认值
+      extrapolation_value_ = -0.0;  // 默认值
     }
 
     if (json.HasMember("keep_aspect_ratio_policy_")) {
       keep_aspect_ratio_policy_ = json["keep_aspect_ratio_policy_"].GetString();
     } else {
-      keep_aspect_ratio_policy_ = "stretch"; // 默认值
+      keep_aspect_ratio_policy_ = "stretch";  // 默认值
     }
 
     if (json.HasMember("mode_")) {
       mode_ = json["mode_"].GetString();
     } else {
-      mode_ = "nearest"; // 默认值
+      mode_ = "nearest";  // 默认值
     }
 
     if (json.HasMember("nearest_mode_")) {
       nearest_mode_ = json["nearest_mode_"].GetString();
     } else {
-      nearest_mode_ = "round_prefer_floor"; // 默认值
+      nearest_mode_ = "round_prefer_floor";  // 默认值
     }
 
     return base::kStatusCodeOk;
@@ -696,7 +728,8 @@ class SoftmaxParam : public OpParam {
   PARAM_COPY(SoftmaxParam)
   PARAM_COPY_TO(SoftmaxParam)
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axis_", axis_, allocator);
     return base::kStatusCodeOk;
   }
@@ -723,7 +756,8 @@ class SplitParam : public OpParam {
   PARAM_COPY(SplitParam)
   PARAM_COPY_TO(SplitParam)
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axis_", axis_, allocator);
     json.AddMember("num_outputs_", num_outputs_, allocator);
     return base::kStatusCodeOk;
@@ -732,13 +766,13 @@ class SplitParam : public OpParam {
     if (json.HasMember("axis_")) {
       axis_ = json["axis_"].GetInt();
     } else {
-      axis_ = 0; // 默认值
+      axis_ = 0;  // 默认值
     }
 
     if (json.HasMember("num_outputs_")) {
       num_outputs_ = json["num_outputs_"].GetInt();
     } else {
-      num_outputs_ = INT_MAX; // 默认值
+      num_outputs_ = INT_MAX;  // 默认值
     }
 
     return base::kStatusCodeOk;
@@ -758,7 +792,8 @@ class TransposeParam : public OpParam {
   PARAM_COPY(TransposeParam)
   PARAM_COPY_TO(TransposeParam)
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
     rapidjson::Value permArray(rapidjson::kArrayType);
     for (size_t i = 0; i < perm_.size(); ++i) {
       permArray.PushBack(perm_[i], allocator);
@@ -768,11 +803,12 @@ class TransposeParam : public OpParam {
   }
   base::Status deserialize(rapidjson::Value &json) {
     if (json.HasMember("perm_")) {
+      perm_.clear();
       for (size_t i = 0; i < json["perm_"].Size(); ++i) {
         perm_.push_back(json["perm_"][i].GetInt());
       }
     } else {
-      perm_.clear(); // 默认值
+      perm_.clear();  // 默认值
     }
 
     return base::kStatusCodeOk;
@@ -793,7 +829,8 @@ class RMSNormParam : public OpParam {
   PARAM_COPY(RMSNormParam)
   PARAM_COPY_TO(RMSNormParam)
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("eps_", eps_, allocator);
     json.AddMember("is_last_", is_last_, allocator);
     return base::kStatusCodeOk;
@@ -802,13 +839,13 @@ class RMSNormParam : public OpParam {
     if (json.HasMember("eps_")) {
       eps_ = json["eps_"].GetFloat();
     } else {
-      eps_ = 1e-6; // 默认值
+      eps_ = 1e-6;  // 默认值
     }
 
     if (json.HasMember("is_last_")) {
       is_last_ = json["is_last_"].GetBool();
     } else {
-      is_last_ = false; // 默认值
+      is_last_ = false;  // 默认值
     }
 
     return base::kStatusCodeOk;

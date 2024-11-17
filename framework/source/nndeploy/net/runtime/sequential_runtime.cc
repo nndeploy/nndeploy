@@ -1,24 +1,24 @@
 
 
-#include "nndeploy/net/session/sequential_session.h"
+#include "nndeploy/net/runtime/sequential_runtime.h"
 
 #include "nndeploy/base/time_profiler.h"
 
 namespace nndeploy {
 namespace net {
 
-TypeSessionRegister<TypeSessionCreator<SequentialSession>>
-    g_sequential_session_register_seq(
+TypeRuntimeRegister<TypeRuntimeCreator<SequentialRuntime>>
+    g_sequential_runtime_register_seq(
         base::ParallelType::kParallelTypeSequential);
 
-TypeSessionRegister<TypeSessionCreator<SequentialSession>>
-    g_sequential_session_register_none(base::ParallelType::kParallelTypeNone);
+TypeRuntimeRegister<TypeRuntimeCreator<SequentialRuntime>>
+    g_sequential_runtime_register_none(base::ParallelType::kParallelTypeNone);
 
-SequentialSession::SequentialSession(const base::DeviceType &device_type)
-    : Session(device_type) {};
-SequentialSession::~SequentialSession() {};
+SequentialRuntime::SequentialRuntime(const base::DeviceType &device_type)
+    : Runtime(device_type) {};
+SequentialRuntime::~SequentialRuntime() {};
 
-base::Status SequentialSession::init(
+base::Status SequentialRuntime::init(
     std::vector<TensorWrapper *> &tensor_repository,
     std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
     base::ShapeMap max_shape, TensorPoolType tensor_pool_type) {
@@ -28,35 +28,13 @@ base::Status SequentialSession::init(
   tensor_pool_type_ = tensor_pool_type;
   tensor_pool_ = createTensorPool(tensor_pool_type_, device, tensor_repository,
                                   op_repository);
-
   /**
    * @brief
    * 如果是动态shape且max_shape为空时，那么不需要分配tensor
    */
   bool flag = is_dynamic_shape && max_shape.empty();
   if (!flag) {
-    for (auto tensor_wrapper : tensor_repository) {
-      auto shape_size = tensor_wrapper->tensor_->getShape().size();
-      auto tensor = tensor_wrapper->tensor_;
-      if (shape_size == 5) {
-        tensor->setDataFormat(base::DataFormat::kDataFormatNCDHW);
-      } else if (shape_size == 4) {
-        if (tensor_wrapper->is_weight_) {
-          tensor->setDataFormat(base::DataFormat::kDataFormatOIHW);
-        } else {
-          tensor->setDataFormat(base::DataFormat::kDataFormatNCHW);
-        }
-      } else if (shape_size == 3) {
-        tensor->setDataFormat(base::DataFormat::kDataFormatNCL);
-      } else if (shape_size == 2) {
-        tensor->setDataFormat(base::DataFormat::kDataFormatNC);
-      } else if (shape_size == 1) {
-        tensor->setDataFormat(base::DataFormat::kDataFormatN);
-      }
-    }
-
     status = tensor_pool_->allocate();
-
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("tensor_pool_ allocate failed\n");
       return status;
@@ -81,7 +59,7 @@ base::Status SequentialSession::init(
   max_shape_ = max_shape;
   return status;
 }
-base::Status SequentialSession::deinit() {
+base::Status SequentialRuntime::deinit() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
     status = iter->op_->deinit();
@@ -91,17 +69,25 @@ base::Status SequentialSession::deinit() {
     }
     iter->op_->setInitializedFlag(false);
   }
-  status = tensor_pool_->deallocate();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("tensor_pool_ allocate failed\n");
-    return status;
+  bool flag = is_dynamic_shape_ && max_shape_.empty();
+  if (!flag) {
+    status = tensor_pool_->deallocate();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("tensor_pool_ allocate failed\n");
+      return status;
+    }
   }
   delete tensor_pool_;
   return status;
 }
 
-base::Status SequentialSession::reshape(base::ShapeMap &shape_map) {
+// 可以性能优化
+base::Status SequentialRuntime::reshape(base::ShapeMap &shape_map) {
   base::Status status = base::kStatusCodeOk;
+  if (!is_dynamic_shape_) {
+    NNDEPLOY_LOGE("reshape is not supported in static shape\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
   bool channge_flag = false;
   bool is_reallocate = false;
   for (auto iter : shape_map) {
@@ -114,17 +100,20 @@ base::Status SequentialSession::reshape(base::ShapeMap &shape_map) {
         if (base::shapeEqual(old_shape, shape, 0, -1)) {
           continue;
         }
-        tensor->reshape(shape);
         channge_flag = true;
-        if (max_shape_.find(name) != max_shape_.end()) {
-          base::IntVector max_shape = max_shape_[name];
-          for (int i = 0; i < shape.size(); ++i) {
-            if (shape[i] > max_shape[i]) {
-              is_reallocate = true;
-              break;
+        if (!max_shape_.empty()) {
+          if (max_shape_.find(name) != max_shape_.end()) {
+            base::IntVector max_shape = max_shape_[name];
+            for (int i = 0; i < shape.size(); ++i) {
+              if (shape[i] > max_shape[i]) {
+                is_reallocate = true;
+                break;
+              }
             }
           }
         }
+      } else {
+        is_reallocate = true;
       }
     }
   }
@@ -134,6 +123,16 @@ base::Status SequentialSession::reshape(base::ShapeMap &shape_map) {
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("tensor_pool_ allocate failed\n");
         return status;
+      }
+    }
+    for (auto iter : shape_map) {
+      std::string name = iter.first;
+      base::IntVector shape = iter.second;
+      for (auto tensor_wrapper : tensor_repository_) {
+        auto tensor = tensor_wrapper->tensor_;
+        if (tensor->getName() == name) {
+          tensor->reshape(shape);
+        }
       }
     }
     for (auto iter : op_repository_) {
@@ -154,10 +153,9 @@ base::Status SequentialSession::reshape(base::ShapeMap &shape_map) {
   return status;
 }
 
-base::Status SequentialSession::preRun() {
+base::Status SequentialRuntime::preRun() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
-    // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->preRun();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s preRun failed\n", iter->op_->getName().c_str());
@@ -167,47 +165,47 @@ base::Status SequentialSession::preRun() {
   NNDEPLOY_LOGI("preRun ok!\n");
   return status;
 }
-base::Status SequentialSession::run() {
+base::Status SequentialRuntime::run() {
   base::Status status = base::kStatusCodeOk;
-  // 存在优化空间
-  uint64_t max_workspace_size = 0;
-  for (auto iter : op_repository_) {
-    uint64_t workspace_size = iter->op_->getWorkspaceSize();
-    if (workspace_size > max_workspace_size) {
-      max_workspace_size = workspace_size;
+  device::Device *device = device::getDevice(device_type_);
+  if (workspace_size_ == 0 || is_dynamic_shape_) {
+    if (workspace_ != nullptr) {
+      device->deallocate(workspace_);
+    }
+    workspace_size_ = 0;
+    for (auto iter : op_repository_) {
+      uint64_t workspace_size = iter->op_->getWorkspaceSize();
+      if (workspace_size > workspace_size_) {
+        workspace_size_ = workspace_size;
+      }
+    }
+    if (workspace_size_ > 0) {
+      workspace_ = device->allocate(workspace_size_);
+    } else {
+      workspace_size_ = -1;  // 所有算子不需要额外内存空间
+    }
+    for (auto iter : op_repository_) {
+      iter->op_->setWorkspace(workspace_);
     }
   }
-  // NNDEPLOY_LOGE("max_workspace_size is %d.\n",
-  //               static_cast<int32_t>(max_workspace_size));
-  device::Device *device = device::getDevice(device_type_);
-  void *workspace = nullptr;
-  if (max_workspace_size > 0) {
-    workspace = device->allocate(max_workspace_size);
-  }
-  for (auto iter : op_repository_) {
-    iter->op_->setWorkspace(workspace);
-  }
+
   NNDEPLOY_TIME_POINT_START("net->run()");
   for (auto iter : op_repository_) {
-    // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s run failed\n", iter->op_->getName().c_str());
       return status;
     }
   }
-  device->synchronize();
   NNDEPLOY_TIME_POINT_END("net->run()");
-  if (workspace != nullptr) {
-    device->deallocate(workspace);
-  }
+
   NNDEPLOY_LOGI("run ok!\n");
+
   return status;
 }
-base::Status SequentialSession::postRun() {
+base::Status SequentialRuntime::postRun() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : op_repository_) {
-    // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
     status = iter->op_->postRun();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s postRun failed\n", iter->op_->getName().c_str());

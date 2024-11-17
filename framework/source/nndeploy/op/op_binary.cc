@@ -1,6 +1,7 @@
 
 #include "nndeploy/op/op_binary.h"
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -10,7 +11,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
@@ -62,7 +62,7 @@ base::Status OpBinary::inferShape() {
         } else if (larger_shape[i] == smaller_shape[smaller_idx]) {
           output_shape[i] = larger_shape[i];
         } else {
-          NNDEPLOY_LOGE("无法进行广播,形状不兼容");
+          NNDEPLOY_LOGE("broadcast failed.\n");
           return base::kStatusCodeErrorInvalidParam;
         }
       } else {
@@ -73,6 +73,21 @@ base::Status OpBinary::inferShape() {
 
   outputs_[0]->reshape(output_shape);
   return status;
+}
+
+base::Status OpBinary::inferDataFormat() {
+  auto data_format_0 = inputs_[0]->getDataFormat();
+  auto data_format_1 = inputs_[1]->getDataFormat();
+  auto data_format_output = data_format_0;
+  if (data_format_0 != data_format_1) {
+    if (data_format_0 > data_format_1) {
+      data_format_output = data_format_1;
+    } else {
+      data_format_output = data_format_0;
+    }
+  }
+  outputs_[0]->setDataFormat(data_format_output);
+  return base::kStatusCodeOk;
 }
 
 }  // namespace op

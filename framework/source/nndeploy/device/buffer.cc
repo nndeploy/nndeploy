@@ -1,6 +1,8 @@
 
 #include "nndeploy/device/buffer.h"
+
 #include "nndeploy/base/status.h"
+
 
 namespace nndeploy {
 namespace device {
@@ -286,7 +288,7 @@ base::Status Buffer::deserialize(std::istream &stream) {
 
 // base::Status Buffer::serializeFromSafetensors(const char *storage,
 //                                                   const size_t &data_size) {
-  
+
 //   memory_pool_ = nullptr;
 //   memory_type_ = base::kMemoryTypeMapped;
 //   ref_count_ = new int(1);

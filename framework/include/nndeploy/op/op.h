@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_OP_OP_H_
 #define _NNDEPLOY_OP_OP_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -12,7 +13,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
@@ -27,12 +27,15 @@ namespace op {
  * @note
  * # 单算子模式
  * ## 当输出tensor为空时，内部分配
- * ## 当输出tensor不为空时，检测当前输出tensor的内存是否足够，如果足够，则直接使用，否则报错
+ * ##
+ * 当输出tensor不为空时，检测当前输出tensor的内存是否足够，如果足够，则直接使用，否则报错
  * # 计算图Net模式
  * ## 静态shape，由tensor pool分配
  * ## 动态shape
- * ### 指定了max_shape，则由tensor pool按最大shape分配，调用reshape函数时，只是重新调整了tensor逻辑shape的大小
- * ### 未指定max_shape，每次调用reshape函数时，在计算图层面都会：先释放上一次分配的内存，再重新分配内存
+ * ### 指定了max_shape，则由tensor
+ * pool按最大shape分配，调用reshape函数时，只是重新调整了tensor逻辑shape的大小
+ * ###
+ * 未指定max_shape，每次调用reshape函数时，在计算图层面都会：先释放上一次分配的内存，再重新分配内存
  * ## 大语言模型
  * ### kvblock的方式
  */
@@ -152,15 +155,6 @@ class NNDEPLOY_CC_API Op {
    */
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
-  /**
-   * @brief preRun 确定输入后运行，只运行一次
-   *
-   * @return base::Status
-   * @note
-   * 当输入、参数没修改时，该函数只运行一次。
-   * # 检查输出是否需要重新分配内存
-   * # 确定workspace
-   */
   virtual base::Status preRun();
   /**
    * @brief 得到op的workspace大小
@@ -175,6 +169,15 @@ class NNDEPLOY_CC_API Op {
    * @return uint64_t
    */
   virtual uint64_t getFlops();
+
+  /**
+   * @brief 检查输出tensor
+   * # 内存足够
+   * # 内存不足 - 报错
+   * # 内存为空 - 分配内存
+   * @return base::Status
+   */
+  virtual base::Status checkOrAllocOutput();
 
   virtual base::Status run() = 0;
   virtual base::Status postRun();
@@ -214,16 +217,19 @@ class NNDEPLOY_CC_API Op {
   std::vector<device::Tensor *> inputs_;
   /**
    * @brief op的输出tensor
-   * 
+   *
    * @note: outputs_的内存分配
    * # 单算子模式
    * ## 当输出tensor为空时，内部分配
-   * ## 当输出tensor不为空时，检测当前输出tensor的内存是否足够，如果足够，则直接使用，否则报错
+   * ##
+   * 当输出tensor不为空时，检测当前输出tensor的内存是否足够，如果足够，则直接使用，否则报错
    * # 计算图Net模式
    * ## 静态shape，由tensor pool分配
    * ## 动态shape
-   * ### 指定了max_shape，则由tensor pool按最大shape分配，调用reshape函数时，只是重新调整了tensor逻辑shape的大小
-   * ### 未指定max_shape，每次调用reshape函数时，在计算图层面都会：先释放上一次分配的内存，再重新分配内存
+   * ### 指定了max_shape，则由tensor
+   * pool按最大shape分配，调用reshape函数时，只是重新调整了tensor逻辑shape的大小
+   * ###
+   * 未指定max_shape，每次调用reshape函数时，在计算图层面都会：先释放上一次分配的内存，再重新分配内存
    * ## 大语言模型
    * ### kvblock的方式
    */
@@ -247,7 +253,7 @@ class NNDEPLOY_CC_API Op {
   bool is_inplace_ = false;
   // 参数&输入是否发生变化
   bool is_changed_ = false;
-  
+
   bool constructed_ = false;
   bool initialized_ = false;
   bool is_running_ = false;

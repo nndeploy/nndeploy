@@ -3,9 +3,10 @@
 #define _NNDEPLOY_BASE_COMMON_H_
 
 #include "nndeploy/base/glic_stl_include.h"
-#include "nndeploy/base/macro.h"
-#include "nndeploy/base/half.hpp"
 #include "nndeploy/base/half.h"
+#include "nndeploy/base/half.hpp"
+#include "nndeploy/base/macro.h"
+
 
 namespace nndeploy {
 namespace base {

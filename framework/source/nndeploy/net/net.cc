@@ -2,7 +2,7 @@
 #include "nndeploy/net/net.h"
 
 #include "nndeploy/net/optimizer.h"
-#include "nndeploy/net/session.h"
+#include "nndeploy/net/runtime.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -267,14 +267,18 @@ base::Status Net::init() {
   status = inferShape();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferShape failed!");
 
+  status = inferDataFormat();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "inferDataFormat failed!");
+
   // 即使是设备相关的图优化，也可以放在优化器中做
   // 经过这一次图优化之后
   status = optimizer();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph optimizer failed!");
 
-  status = this->session();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph session failed!");
+  status = this->runtime();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph runtime failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag true!\n");
@@ -295,10 +299,10 @@ base::Status Net::deinit() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = session_->deinit();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session deinit failed!");
-  delete session_;
-  session_ = nullptr;
+  status = runtime_->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime deinit failed!");
+  delete runtime_;
+  runtime_ = nullptr;
 
   for (auto op_wrapper : op_repository_) {
     if (!op_wrapper->is_external_) {
@@ -328,23 +332,54 @@ base::Status Net::inferDataType() {
   }
   return status;
 };
+/*
+ * 静态输入shape：
+ * # input的shape不为空
+ * # input的shape为空，opt_shape_中存在该input的shape
+ * 动态shape：
+ * # is_dynamic_shape_位true，max_shape_中存在该input的max shape
+ * # is_dynamic_shape_位true，max_shape_中不存在该input的max shape
+ * ## 大语言模型
+ * ## 无法得知input的shape的cv模型
+ */
 base::Status Net::inferShape() {
   base::Status status = base::kStatusCodeOk;
-  for (auto iter : op_repository_) {
-    // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
-    status = iter->op_->inferShape();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "inferDataType failed!");
+  bool is_infer_shape = true;
+  for (auto input : inputs_) {
+    if (input->getShape().empty()) {
+      is_infer_shape = false;
+      break;
+    }
+  }
+  if (is_infer_shape) {
+    for (auto iter : op_repository_) {
+      // NNDEPLOY_LOGI("Op inferShape: %s\n", iter->op_->getName().c_str());
+      status = iter->op_->inferShape();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferShape failed!");
+    }
   }
   return status;
 };
 base::Status Net::inferDataFormat() {
   base::Status status = base::kStatusCodeOk;
-  for (auto iter : op_repository_) {
-    // NNDEPLOY_LOGI("Op Name: %s\n", iter->op_->getName().c_str());
-    status = iter->op_->inferDataFormat();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "inferDataFormat failed!");
+  auto device = device::getDevice(device_type_);
+  bool is_infer_data_format = true;
+  for (auto input : inputs_) {
+    if (input->getShape().empty()) {
+      is_infer_data_format = false;
+      break;
+    } else {
+      base::DataFormat data_format =
+          device->getDataFormatByShape(input->getShape());
+      input->setDataFormat(data_format);
+    }
+  }
+  if (is_infer_data_format) {
+    for (auto iter : op_repository_) {
+      status = iter->op_->inferDataFormat();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "inferDataFormat failed!");
+    }
   }
   return status;
 };
@@ -359,8 +394,8 @@ base::Status Net::reshape(base::ShapeMap &shape_map) {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = session_->reshape(shape_map);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session preRun failed!");
+  status = runtime_->reshape(shape_map);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime preRun failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
@@ -370,9 +405,9 @@ base::Status Net::reshape(base::ShapeMap &shape_map) {
   return status;
 };
 
-int64_t Net::getMemorySize() { return session_->getMemorySize(); }
+int64_t Net::getMemorySize() { return runtime_->getMemorySize(); }
 base::Status Net::setMemory(device::Buffer *buffer) {
-  return session_->setMemory(buffer);
+  return runtime_->setMemory(buffer);
 }
 
 base::Status Net::preRun() {
@@ -386,8 +421,8 @@ base::Status Net::preRun() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = session_->preRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session preRun failed!");
+  status = runtime_->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime preRun failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
@@ -437,8 +472,8 @@ base::Status Net::run() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = session_->run();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session run failed!");
+  status = runtime_->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime run failed!");
 
   // 输出
 #if 0
@@ -482,8 +517,8 @@ base::Status Net::postRun() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Op run Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = session_->postRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session run failed!");
+  status = runtime_->postRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime run failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setRunningFlag false!\n");
@@ -551,6 +586,16 @@ base::Status Net::construct() {
 
     input_wrapper->tensor_->setDataType(input->data_type_);
 
+    /*
+     * 静态输入shape：
+     * # input的shape不为空
+     * # input的shape为空，opt_shape_中存在该input的shape
+     * 动态shape：
+     * # is_dynamic_shape_位true，max_shape_中存在该input的max shape
+     * # is_dynamic_shape_位true，max_shape_中不存在该input的max shape
+     * ## 大语言模型
+     * ## 无法得知input的shape的cv模型
+     */
     base::IntVector shape = input->shape_;
     if (shape.empty()) {
       if (opt_shape_.find(input->name_) != opt_shape_.end()) {
@@ -678,25 +723,25 @@ base::Status Net::optimizer() {
   return status;
 }
 
-base::Status Net::session() {
+base::Status Net::runtime() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("create session\n");
+  // NNDEPLOY_LOGI("create runtime\n");
   // NNDEPLOY_LOGI("##############\n");
 
-  session_ = createSession(device_type_, parallel_type_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(session_, "Create session failed!");
+  runtime_ = createRuntime(device_type_, parallel_type_);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(runtime_, "Create runtime failed!");
 
   // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("session init\n");
+  // NNDEPLOY_LOGI("runtime init\n");
   // NNDEPLOY_LOGI("#. Optimizer Graph V2!\n");
   // NNDEPLOY_LOGI("#. Memory Allocation Phase!\n");
   // NNDEPLOY_LOGI("#. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
-  status = session_->init(tensor_repository_, op_repository_, is_dynamic_shape_,
+  status = runtime_->init(tensor_repository_, op_repository_, is_dynamic_shape_,
                           max_shape_, tensor_pool_type_);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "session init failed!");
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime init failed!");
 
   return status;
 }

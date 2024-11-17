@@ -228,5 +228,4 @@ static inline int NNDEPLOY_XADD(int *addr, int delta) {
 #define NNDEPLOY_UNLIKELY(expr) (expr)
 #endif
 
-
 #endif  // _NNDEPLOY_BASE_MACRO_H_

@@ -1,7 +1,8 @@
 
-#ifndef _NNDEPLOY_NET_SESSION_H_
-#define _NNDEPLOY_NET_SESSION_H_
+#ifndef _NNDEPLOY_NET_RUNTIME_H_
+#define _NNDEPLOY_NET_RUNTIME_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -9,17 +10,16 @@
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/net/tensor_pool.h"
 #include "nndeploy/net/util.h"
 
 namespace nndeploy {
 namespace net {
 
-class NNDEPLOY_CC_API Session : public base::NonCopyable {
+class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
  public:
-  Session(const base::DeviceType &device_type) : device_type_(device_type) {};
-  virtual ~Session() {};
+  Runtime(const base::DeviceType &device_type) : device_type_(device_type) {};
+  virtual ~Runtime() {};
 
   virtual base::Status init(
       std::vector<TensorWrapper *> &tensor_repository,
@@ -61,54 +61,54 @@ class NNDEPLOY_CC_API Session : public base::NonCopyable {
 };
 
 /**
- * @brief Session的创建类
+ * @brief Runtime的创建类
  *
  */
-class SessionCreator {
+class RuntimeCreator {
  public:
-  virtual ~SessionCreator() {};
+  virtual ~RuntimeCreator() {};
 
-  virtual Session *createSession(const base::DeviceType &device_type,
+  virtual Runtime *createRuntime(const base::DeviceType &device_type,
                                  base::ParallelType parallel_type) = 0;
 };
 
 /**
- * @brief Session的创建类模板
+ * @brief Runtime的创建类模板
  *
  * @tparam T
  */
 template <typename T>
-class TypeSessionCreator : public SessionCreator {
-  virtual Session *createSession(const base::DeviceType &device_type,
+class TypeRuntimeCreator : public RuntimeCreator {
+  virtual Runtime *createRuntime(const base::DeviceType &device_type,
                                  base::ParallelType parallel_type) {
-    auto Session = new T(device_type);
-    return Session;
+    auto Runtime = new T(device_type);
+    return Runtime;
   }
 };
 
 /**
- * @brief Get the Global Session Creator Map object
+ * @brief Get the Global Runtime Creator Map object
  *
  * @return std::map<ExecutorType, std::map<const std::string &,
- * std::shared_ptr<SessionCreator>>>&
+ * std::shared_ptr<RuntimeCreator>>>&
  */
-std::map<base::ParallelType, std::shared_ptr<SessionCreator>> &
-getGlobalSessionCreatorMap();
+std::map<base::ParallelType, std::shared_ptr<RuntimeCreator>> &
+getGlobalRuntimeCreatorMap();
 
 /**
- * @brief Session的创建类的注册类模板
+ * @brief Runtime的创建类的注册类模板
  *
  * @tparam T
  */
 template <typename T>
-class TypeSessionRegister {
+class TypeRuntimeRegister {
  public:
-  explicit TypeSessionRegister(base::ParallelType parallel_type) {
-    getGlobalSessionCreatorMap()[parallel_type] = std::shared_ptr<T>(new T());
+  explicit TypeRuntimeRegister(base::ParallelType parallel_type) {
+    getGlobalRuntimeCreatorMap()[parallel_type] = std::shared_ptr<T>(new T());
   }
 };
 
-Session *createSession(const base::DeviceType &device_type,
+Runtime *createRuntime(const base::DeviceType &device_type,
                        base::ParallelType parallel_type);
 
 }  // namespace net

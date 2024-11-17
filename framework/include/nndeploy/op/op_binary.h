@@ -14,6 +14,8 @@ class OpBinary : public Op {
   virtual ~OpBinary() {}
 
   virtual base::Status inferShape();
+
+  virtual base::Status inferDataFormat();
 };
 
 }  // namespace op

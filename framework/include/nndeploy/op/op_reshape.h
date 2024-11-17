@@ -15,6 +15,8 @@ class OpReshape : public Op {
 
   virtual base::Status inferShape();
 
+  virtual base::Status inferDataFormat();
+
   virtual base::Status run();
 };
 

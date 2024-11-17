@@ -2,9 +2,9 @@
 #ifndef _NNDEPLOY_NET_NET_H_
 #define _NNDEPLOY_NET_NET_H_
 
-#include "nndeploy/ir/ir.h"
 #include "nndeploy/ir/interpret.h"
-#include "nndeploy/net/session.h"
+#include "nndeploy/ir/ir.h"
+#include "nndeploy/net/runtime.h"
 #include "nndeploy/net/util.h"
 #include "nndeploy/op/op.h"
 
@@ -82,12 +82,12 @@ class NNDEPLOY_CC_API Net : public op::Op {
   // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
   base::Status optimizer();
   // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("session init\n");
+  // NNDEPLOY_LOGI("runtime init\n");
   // NNDEPLOY_LOGI("#. Optimizer Graph V2!\n");
   // NNDEPLOY_LOGI("#. Memory Allocation Phase!\n");
   // NNDEPLOY_LOGI("#. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
-  virtual base::Status session();
+  virtual base::Status runtime();
 
  protected:
   ir::ModelDesc *model_desc_;
@@ -102,7 +102,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   TensorPoolType tensor_pool_type_ =
       kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
 
-  Session *session_;
+  Runtime *runtime_;
 };
 
 Net *createNet(ir::ModelDesc *model_desc, base::DeviceType device_type,

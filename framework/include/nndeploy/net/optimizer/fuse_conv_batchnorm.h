@@ -5,9 +5,7 @@
 
 namespace nndeploy {
 
-namespace net
-
-{
+namespace net {
 
 // TODO:当前仅支持float类型 和 OIHW格式得的卷积
 // 卷积公式抽象为 z = weight * x + conv_bias
@@ -29,7 +27,6 @@ class FuseConvBatchNorm : public OptPass {
 };
 
 }  // namespace net
-
 }  // namespace nndeploy
 
 #endif

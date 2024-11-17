@@ -1,6 +1,8 @@
 
-#include "nndeploy/base/string.h"
 #include "nndeploy/device/tensor.h"
+
+#include "nndeploy/base/shape.h"
+#include "nndeploy/base/string.h"
 
 namespace nndeploy {
 namespace device {
@@ -9,9 +11,9 @@ static TypeTensorRegister<TypeTensorCreator<Tensor>> g_defalut_tensor_register(
     base::kTensorTypeDefault);
 
 Tensor::Tensor() {}
-Tensor::Tensor(const std::string &name) : name_(name){};
+Tensor::Tensor(const std::string &name) : name_(name) {};
 Tensor::Tensor(const TensorDesc &desc, const std::string &name)
-    : name_(name), desc_(desc){};
+    : name_(name), desc_(desc) {};
 Tensor::Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name)
     : name_(name), desc_(desc), is_external_(true), buffer_(buffer) {
   ref_count_ = new int(1);
@@ -104,9 +106,7 @@ Tensor &Tensor::operator=(Tensor &&tensor) noexcept {
   return *this;
 }
 
-Tensor::~Tensor() { 
-  this->clear();
-}
+Tensor::~Tensor() { this->clear(); }
 
 // create
 void Tensor::create(const std::string &name) {
@@ -257,7 +257,7 @@ base::Status Tensor::reshape(base::IntVector shape) {
     NNDEPLOY_LOGE("shape is empty.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  if (desc_.shape_ == shape) {
+  if (base::shapeEqual(desc_.shape_, shape, 0, -1)) {
     return base::kStatusCodeOk;
   }
   if (buffer_ == nullptr) {
@@ -268,10 +268,33 @@ base::Status Tensor::reshape(base::IntVector shape) {
     NNDEPLOY_LOGE("shape size is not equal.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  desc_.shape_ = shape;
+  // bool max_flag = true;
+  // for (int i = 0; i < desc_.shape_.size(); ++i) {
+  //   if (desc_.shape_[i] < shape[i]) {
+  //     max_flag = false;
+  //     break;
+  //   }
+  // }
+  // if (max_flag) {
+  //   auto device = getDevice();
+  //   auto buffer_desc = device->toBufferDesc(desc_, base::IntVector());
+  //   if (!buffer_->justModify(buffer_desc)) {
+  //     NNDEPLOY_LOGE("buffer_->justModify(buffer_desc) failed.\n");
+  //     return base::kStatusCodeErrorInvalidParam;
+  //   }
+  //   desc_.shape_ = shape;
+  //   return base::kStatusCodeOk;
+  // } else {
+  //   NNDEPLOY_LOGE("new shape is greater than old shape.\n");
+  //   return base::kStatusCodeErrorInvalidParam;
+  // }
   auto device = getDevice();
   auto buffer_desc = device->toBufferDesc(desc_, base::IntVector());
-  buffer_->justModify(buffer_desc);
+  if (!buffer_->justModify(buffer_desc)) {
+    NNDEPLOY_LOGE("buffer_->justModify(buffer_desc) failed.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  desc_.shape_ = shape;
   return base::kStatusCodeOk;
 }
 bool Tensor::justModify(const TensorDesc &desc) {
@@ -293,10 +316,10 @@ bool Tensor::justModify(const TensorDesc &desc) {
   }
 }
 
-bool Tensor::justModify(Buffer *buffer) {
+bool Tensor::justModify(Buffer *buffer, bool is_external) {
   // TODO, 做到可以安全修改
   deallocate();
-  is_external_ = true;
+  is_external_ = is_external;
   buffer_ = buffer;
   ref_count_ = new int(1);
   return true;
@@ -502,12 +525,12 @@ base::Status Tensor::shape2SafetensorsShape(
 }
 
 base::Status Tensor::serializeToSafetensors(safetensors::safetensors_t &st,
-                                              bool serialize_buffer) {
+                                            bool serialize_buffer) {
   // NOTE: we should call not serialize_buffer at first time, then we serialize
   // buffer, so the second time we could say, the storage has already has
   // allocate the space for data.
 
-  if (not serialize_buffer) {
+  if (!serialize_buffer) {
     // serialize tensor and it's desc
     // safetensors::dtype dtype;
     // std::vector<size_t> shape;
@@ -605,10 +628,13 @@ base::Status Tensor::serializeFromSafetensors(
     delete this->buffer_;
   }
   this->ref_count_ = new int(1);
-  const char *data_ptr = reinterpret_cast<const char *>(st.databuffer_addr); // NOTE: cause it is loaded by mmap
+  const char *data_ptr = reinterpret_cast<const char *>(
+      st.databuffer_addr);  // NOTE: cause it is loaded by mmap
   // const char *data_ptr = reinterpret_cast<const char *>(st.storage.data());
   // @Realtyxxx
-  this->buffer_ = new Buffer(getDefaultHostDevice(), t_t.data_offsets[1] - t_t.data_offsets[0], (void *)(data_ptr + t_t.data_offsets[0]), base::kMemoryTypeExternal);
+  this->buffer_ = new Buffer(
+      getDefaultHostDevice(), t_t.data_offsets[1] - t_t.data_offsets[0],
+      (void *)(data_ptr + t_t.data_offsets[0]), base::kMemoryTypeExternal);
   // this->buffer_->serializeFromSafetensors(
   //     data_ptr + t_t.data_offsets[0],
   //     t_t.data_offsets[1] - t_t.data_offsets[0]);
@@ -978,8 +1004,8 @@ base::MemoryType Tensor::getMemoryType() const {
   }
 }
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>>
-    &getGlobalTensorCreatorMap() {
+std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
+getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorType, std::shared_ptr<TensorCreator>>>

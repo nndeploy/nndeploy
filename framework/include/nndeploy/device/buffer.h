@@ -79,7 +79,8 @@ class NNDEPLOY_CC_API Buffer {
   // 序列化buffer为二进制文件
   base::Status serialize(std::ostream &stream);
 
-  base::Status serializeToSafetensors(safetensors::safetensors_t &st, const safetensors::tensor_t& tensor);
+  base::Status serializeToSafetensors(safetensors::safetensors_t &st,
+                                      const safetensors::tensor_t &tensor);
   // 从二进制文件反序列化回buffer
   base::Status deserialize(std::istream &stream);
 

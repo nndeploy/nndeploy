@@ -59,6 +59,7 @@
 #include <algorithm>
 #include <functional>
 #include <iterator>
+#include <numeric>
 
 /**
  * @brief thread

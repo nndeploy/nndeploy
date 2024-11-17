@@ -83,6 +83,8 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   friend class Architecture;
 
  public:
+  virtual base::DataFormat getDataFormatByShape(const base::IntVector &shape);
+
   virtual BufferDesc toBufferDesc(const TensorDesc &desc,
                                   const base::IntVector &config) = 0;
 

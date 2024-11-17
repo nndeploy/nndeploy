@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_NET_TENSOR_POOL_H_
 #define _NNDEPLOY_NET_TENSOR_POOL_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -9,7 +10,6 @@
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/net/util.h"
 
 namespace nndeploy {
@@ -43,6 +43,7 @@ struct OpBreadth {
 };
 
 struct Chunk {
+  // 共享指针 buffer->getData()
   device::Buffer *buffer_;
   std::vector<std::array<int, 2>> intervals_;
 };
@@ -75,7 +76,7 @@ class TensorPool {
   device::Device *device_;
   base::IntVector config_ = base::IntVector();
   std::vector<TensorWrapper *> tensor_repository_;
-  std::vector<OpWrapper *> op_repository;
+  std::vector<OpWrapper *> op_repository_;
 };
 
 /**

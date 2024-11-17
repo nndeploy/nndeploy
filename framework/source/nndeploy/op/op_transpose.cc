@@ -49,6 +49,14 @@ base::Status OpTranspose::inferShape() {
   return status;
 }
 
+base::Status OpTranspose::inferDataFormat() {
+  base::Status status = base::kStatusCodeOk;
+  /*auto output_shape = outputs_[0]->getShape();
+  auto input_shape = inputs_[0]->getShape();*/
+  outputs_[0]->setDataFormat(base::kDataFormatAuto);
+  return status;
+}
+
 base::Status OpTranspose::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;

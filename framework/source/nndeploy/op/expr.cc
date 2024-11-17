@@ -3,7 +3,7 @@
 namespace nndeploy {
 namespace op {
 
-Expr::~Expr(){};
+Expr::~Expr() {};
 
 Expr::Expr(const std::string &name) : expr_type_(kExprTypeValueDesc) {
   value_desc_ = std::make_shared<ir::ValueDesc>(name);
@@ -70,7 +70,7 @@ std::shared_ptr<Expr> makeBlock(ir::ModelDesc *model_desc,
     }
     // 添加权重 - 采用拷贝方式
     for (auto &weight : model_block->weights_) {
-      device::Tensor* tensor = weight.second->clone();
+      device::Tensor *tensor = weight.second->clone();
       model_desc->weights_[weight.first] = tensor;
     }
     // 添加算子
@@ -79,10 +79,11 @@ std::shared_ptr<Expr> makeBlock(ir::ModelDesc *model_desc,
     }
     // 添加中间值
     for (auto &value : model_block->values_) {
-      model_desc->values_.push_back(value); 
+      model_desc->values_.push_back(value);
     }
   }
   auto expr = std::make_shared<Expr>(model_block);
+  return expr;
 }
 std::shared_ptr<Expr> makeConv(ir::ModelDesc *model_desc,
                                std::shared_ptr<Expr> input,

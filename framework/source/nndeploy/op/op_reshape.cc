@@ -1,6 +1,7 @@
 
 #include "nndeploy/op/op_reshape.h"
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -10,7 +11,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
@@ -93,6 +93,31 @@ base::Status OpReshape::inferShape() {
   return status;
 }
 
+base::Status OpReshape::inferDataFormat() {
+  base::Status status = base::kStatusCodeOk;
+  auto output_shape = outputs_[0]->getShape();
+  auto input_shape = inputs_[0]->getShape();
+  if (output_shape.size() != input_shape.size()) {
+    outputs_[0]->setDataFormat(inputs_[0]->getDataFormat());
+  } else {
+    // if (output_shape.size() == 1) {
+    //   outputs_[0]->setDataFormat(base::kDataFormatN);
+    // } else if (output_shape.size() == 2) {
+    //   outputs_[0]->setDataFormat(base::kDataFormatNC);
+    // } else if (output_shape.size() == 3) {
+    //   outputs_[0]->setDataFormat(base::kDataFormatNCL);
+    // } else if (output_shape.size() == 4) {
+    //   outputs_[0]->setDataFormat(base::kDataFormatNCHW);
+    // } else if (output_shape.size() == 5) {
+    //   outputs_[0]->setDataFormat(base::kDataFormatNCDHW);
+    // } else {
+    //   outputs_[0]->setDataFormat(base::kDataFormatAuto);
+    // }
+    outputs_[0]->setDataFormat(base::kDataFormatAuto);
+  }
+  return status;
+}
+
 base::Status OpReshape::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
@@ -118,6 +143,9 @@ base::Status reshape(device::Tensor *input,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
   status = op->preRun();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
+  status = op->checkOrAllocOutput();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "checkOrAllocOutput failed");
   status = op->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   status = op->postRun();

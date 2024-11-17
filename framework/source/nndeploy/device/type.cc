@@ -198,10 +198,14 @@ bool BufferDesc::justModify(const base::SizeVector &size) {
 }
 bool BufferDesc::justModify(const BufferDesc &desc) {
   if (config_.size() != desc.config_.size()) {
+    NNDEPLOY_LOGE("config_.size[%ld] not equal desc.config_.size[%ld].\n",
+                  config_.size(), desc.config_.size());
     return false;
   }
   for (size_t i = 0; i < config_.size(); ++i) {
     if (config_[i] != desc.config_[i]) {
+      NNDEPLOY_LOGE("config_[%ld]=%ld not equal desc.config_[%ld]=%ld.\n", i,
+                    config_[i], i, desc.config_[i]);
       return false;
     }
   }

@@ -39,11 +39,11 @@ base::Status TensorPool1DSharedObject::initTensorUsageRecord() {
     device::BufferDesc buffer_desc =
         device_->toBufferDesc(tensor_desc, config_);
     tensor_usage_record->size_ = buffer_desc.getSize();
-    int min = op_repository.size() - 1;
+    int min = op_repository_.size() - 1;
     int max = 0;
     std::vector<int> order_index =
         getOpOrderIndex(tensor_repository_[i]->producers_,
-                        tensor_repository_[i]->consumers_, op_repository);
+                        tensor_repository_[i]->consumers_, op_repository_);
     for (size_t j = 0; j < order_index.size(); j++) {
       if (order_index[j] < min) {
         min = order_index[j];
@@ -54,10 +54,10 @@ base::Status TensorPool1DSharedObject::initTensorUsageRecord() {
     }
     if (tensor_repository_[i]->input_output_type_ != kNone) {
       // 打印tensor_repository_的名字
-      NNDEPLOY_LOGE("Tensor名称: %s\n",
+      NNDEPLOY_LOGE("Tensor name: %s\n",
                     tensor_repository_[i]->tensor_->getName().c_str());
       min = 0;
-      max = op_repository.size() - 1;
+      max = op_repository_.size() - 1;
     }
     tensor_usage_record->interval_[0] = min;
     tensor_usage_record->interval_[1] = max;
@@ -87,9 +87,9 @@ base::Status TensorPool1DSharedObject::deinitTensorUsageRecord() {
 base::Status TensorPool1DSharedObject::initOpBreadth() {
   base::Status status = base::kStatusCodeOk;
 
-  for (size_t i = 0; i < op_repository.size(); i++) {
+  for (size_t i = 0; i < op_repository_.size(); i++) {
     auto op_breadth = std::make_shared<OpBreadth>();
-    op_breadth->op_wrapper_ = op_repository[i];
+    op_breadth->op_wrapper_ = op_repository_[i];
     for (size_t j = 0; j < tensor_usage_records_.size(); j++) {
       if (tensor_usage_records_[j]->interval_[0] <= i &&
           tensor_usage_records_[j]->interval_[1] >= i) {
@@ -119,7 +119,7 @@ base::Status TensorPool1DSharedObject::initPositionalMaximum() {
   base::Status status = base::kStatusCodeOk;
 
   size_t max = 0;
-  for (size_t i = 0; i < op_repository.size(); i++) {
+  for (size_t i = 0; i < op_repository_.size(); i++) {
     max = std::max(max, op_breadths_[i]->breadth_.size());
   }
   positional_maximum_.resize(max, 0);
@@ -238,8 +238,19 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
 
     // 与tensor关联
     tensor_usage_records_[i]->is_allocated_ = true;
-    tensor_usage_records_[i]->tensor_wrapper_->tensor_->justModify(
-        chunk->buffer_);
+    device::Buffer *buffer = new device::Buffer(*chunk->buffer_);
+    device::TensorDesc tensor_desc =
+        tensor_usage_records_[i]->tensor_wrapper_->tensor_->getDesc();
+    device::BufferDesc buffer_desc =
+        device_->toBufferDesc(tensor_desc, base::IntVector());
+    if (!buffer->justModify(buffer_desc)) {
+      NNDEPLOY_LOGE("tensor name = %s.\n",
+                    tensor_usage_records_[i]->tensor_wrapper_->name_.c_str());
+      NNDEPLOY_LOGE("buffer->justModify failed\n");
+      return base::kStatusCodeErrorInvalidValue;
+    }
+    tensor_usage_records_[i]->tensor_wrapper_->tensor_->justModify(buffer,
+                                                                   false);
   }
 
   // 统计tensor的个数，并累加大小
@@ -268,6 +279,11 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
 }
 base::Status TensorPool1DSharedObjectGreedyBySizeImprove::deallocate() {
   base::Status status = base::kStatusCodeOk;
+
+  for (auto tensor_wrapper : tensor_repository_) {
+    auto tensor = tensor_wrapper->tensor_;
+    tensor->deallocate();
+  }
 
   for (size_t i = 0; i < chunks_.size(); i++) {
     if (chunks_[i]->buffer_ != nullptr) {
@@ -408,6 +424,11 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
 }
 base::Status TensorPool1DSharedObjectGreedyByBreadth::deallocate() {
   base::Status status = base::kStatusCodeOk;
+
+  for (auto tensor_wrapper : tensor_repository_) {
+    auto tensor = tensor_wrapper->tensor_;
+    tensor->deallocate();
+  }
 
   for (size_t i = 0; i < chunks_.size(); i++) {
     if (chunks_[i]->buffer_ != nullptr) {

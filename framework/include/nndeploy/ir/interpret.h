@@ -7,7 +7,7 @@
 namespace nndeploy {
 namespace ir {
 
-class Interpret {
+class NNDEPLOY_CC_API Interpret {
  public:
   /**
    * @brief Interpret类的默认构造函数
@@ -97,7 +97,7 @@ class Interpret {
    */
   base::Status saveModelToFile(const std::string &structure_file_path,
                                const std::string &weight_file_path);
-                               
+
   /**
    * @brief 获取模型描述
    *

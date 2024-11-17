@@ -10,7 +10,7 @@ TensorPool::TensorPool(device::Device *device,
                        std::vector<OpWrapper *> &op_repository)
     : device_(device),
       tensor_repository_(tensor_repository),
-      op_repository(op_repository) {}
+      op_repository_(op_repository) {}
 
 TensorPool::~TensorPool() {}
 
