@@ -203,12 +203,12 @@ base::Status TensorPool1DSharedObjectGreedyBySizeImprove::allocate() {
         bool flag = isInterval(tensor_usage_records_[i]->interval_,
                                chunks_[j]->intervals_);
         if (!flag) {
-          NNDEPLOY_LOGE(
-              "Tensor名称: %s\n",
-              tensor_usage_records_[i]->tensor_wrapper_->name_.c_str());
-          NNDEPLOY_LOGE("TensorUsageRecord interval: [%d, %d]\n",
-                        tensor_usage_records_[i]->interval_[0],
-                        tensor_usage_records_[i]->interval_[1]);
+          // NNDEPLOY_LOGE(
+          //     "Tensor name: %s\n",
+          //     tensor_usage_records_[i]->tensor_wrapper_->name_.c_str());
+          // NNDEPLOY_LOGE("TensorUsageRecord interval: [%d, %d]\n",
+          //               tensor_usage_records_[i]->interval_[0],
+          //               tensor_usage_records_[i]->interval_[1]);
           chunk = chunks_[j];
           chunks_[j]->intervals_.push_back(tensor_usage_records_[i]->interval_);
           break;
