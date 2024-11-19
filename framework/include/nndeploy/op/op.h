@@ -66,7 +66,7 @@ class NNDEPLOY_CC_API Op {
    * 当且仅当data_type为浮点数类型时，precision_type_会与data_type一起，共同决定具体调用的kernel函数
    */
   virtual base::Status setPrecisionType(base::PrecisionType precision_type);
-  base::Status getPrecisionType();
+  base::PrecisionType getPrecisionType();
 
   std::string getInputName(int index = 0);
   std::string getOutputName(int index = 0);
@@ -267,7 +267,7 @@ class NNDEPLOY_CC_API Op {
  */
 class OpCreator {
  public:
-  virtual ~OpCreator() {};
+  virtual ~OpCreator(){};
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        ir::OpType op_type) = 0;
@@ -330,9 +330,8 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode,
-         std::map<ir::OpType, std::shared_ptr<OpCreator>>> &
-getGlobalOpCreatorMap();
+std::map<base::DeviceTypeCode, std::map<ir::OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板
