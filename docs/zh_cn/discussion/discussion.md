@@ -263,5 +263,27 @@ attrs作为具体计算类的一个属性赋值
 + 框架完善
 + python导出
 
-## safetensors
-+ 
+## 模型文件
++ text -> json (rapidjson)
++ bin -> safetensors ()
+
+## llama
+### 构图
++ 模型文件 - llama.safetensors
++ 模型结构
+  + llama.json
+  + expr机制
++ 注：onnx会把模型结构切的很散
+### 增加llama ir（rmsnorm\attention\matmul\...）
++ D:\github\nndeploy\framework\include\nndeploy\ir\op_param.h
+ + OpType
+ + NNDEPLOY_CC_API std::string opTypeToString(OpType op_type);
+ + NNDEPLOY_CC_API OpType stringToOpType(const std::string &op_type_name);
+ + OpParam - onnx/pytorch/mindspore
+ + REGISTER_OP_PARAM_IMPLEMENTION
+### op - data_type[fp32(优先这个为主),fp16,int8]/data_format[kDataFormatAuto]
++ cpu op
++ cuda op
++ ascend op
+### 内存管理
++ kv block
