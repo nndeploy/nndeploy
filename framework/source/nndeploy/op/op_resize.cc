@@ -105,9 +105,15 @@ base::Status OpResize::inferShape() {
   bool hasScalesInput = inputs_.size() > 2;
   bool hasSizesInput = inputs_.size() > 3;
 
-  const float* scales =
-      2 < inputs_.size() ? (const float*)inputs_[2]->getData() : nullptr;
-  std::vector<int> sizes_data;
+  // NNDEPLOY_LOGE("input.size = %lld\n", inputs_.size());
+
+  float* scales =
+      (2 < inputs_.size() ? (float*)inputs_[2]->getData() : nullptr);
+  if (inputs_[2]->getSize() == 0) {
+    scales = nullptr;
+    hasScalesInput = false;
+  }
+  std::vector<int32_t> sizes_data;
   if (3 < inputs_.size()) {
     bool found_sizes = false;
     const auto sizes_shape = inputs_[3]->getShape();
@@ -116,21 +122,32 @@ base::Status OpResize::inferShape() {
     }
     // If sizes is an empty shape, assume it's not provided
     if (found_sizes) {
-      if (sizes_shape.size() == 0) {
+      if (sizes_shape[0] == 0) {
         hasSizesInput = false;
       } else {
-        for (int i = 0; i < sizes_shape.size(); ++i) {
-          sizes_data.push_back(sizes_shape[i]);
+        if (inputs_[3]->getDataType() == base::dataTypeOf<int64_t>()) {
+          int64_t *sizes_shape_data = (int64_t*)inputs_[3]->getData();
+          for (int i = 0; i < sizes_shape[0]; ++i) {
+            sizes_data.push_back((int32_t)sizes_shape_data[i]);
+          }
+        } else if (inputs_[3]->getDataType() == base::dataTypeOf<int32_t>()) {
+          int32_t *sizes_shape_data = (int32_t*)inputs_[3]->getData();
+          for (int i = 0; i < sizes_shape[0]; ++i) {
+            sizes_data.push_back((int32_t)sizes_shape_data[i]);
+          }
         }
+        output_shape = sizes_data;
+        scales = nullptr;
+        hasScalesInput = false;
       }
     }
   }
 
   // If scales is an empty constant, assume it's not provided
-  if (scales && scales == nullptr) {
-    hasScalesInput = false;
-    scales = nullptr;
-  }
+  // if (scales && scales == nullptr) {
+  //   hasScalesInput = false;
+  //   scales = nullptr;
+  // }
 
   int opset_version = 21;
   if (opset_version >= 13) {
@@ -241,12 +258,12 @@ base::Status OpResize::inferShape() {
         if (scales_data.size() != static_cast<size_t>(input_shape.size())) {
           NNDEPLOY_LOGE(
               "Number of elements of input 'scales' must be same as rank of "
-              "input 'X'");
+              "input 'X'\n");
         }
       }
       resizeShapeInferenceHelper(input_shape, scales_data, output_shape);
     } else {
-      NNDEPLOY_LOGE("Input 'scales' must have float element type.");
+      NNDEPLOY_LOGE("Input 'scales' must have float element type.\n");
     }
   }  // nullptr != scales
 

@@ -29,8 +29,10 @@ base::Status OpConcat::inferShape() {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int axis = param->axis_;
   int rank = inputs_[0]->getShape().size();
+  NNDEPLOY_LOGE("rank = %d\n", rank);
+  inputs_[0]->getDesc().print();
   if (axis < -rank || axis >= rank) {
-    NNDEPLOY_LOGE("axis is invalid.\n");
+    NNDEPLOY_LOGE("axis[%d] is invalid.\n", axis);
     return base::kStatusCodeErrorInvalidParam;
   }
   if (axis < 0) {

@@ -358,9 +358,15 @@ base::Status Net::inferShape() {
   }
   if (is_infer_shape) {
     for (auto iter : op_repository_) {
-      // NNDEPLOY_LOGI("Op inferShape: %s\n", iter->op_->getName().c_str());
+      NNDEPLOY_LOGI("Op inferShape: %s\n", iter->op_->getName().c_str());
       status = iter->op_->inferShape();
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferShape failed!");
+      // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferShape failed!");
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("Op inferShape failed: %s\n", iter->op_->getName().c_str());
+        return status;
+      }
+      auto output = iter->op_->getOutput();
+      output->print();
     }
   }
   return status;
@@ -558,7 +564,8 @@ base::Status Net::construct() {
     std::vector<std::string> input_names;
     std::vector<std::string> output_names;
     for (auto input_name : op_desc_->inputs_) {
-      insertUnique(input_names, input_name);
+      // insertUnique(input_names, input_name);
+      input_names.push_back(input_name);
       // NNDEPLOY_LOGE("op_desc->inputs_ = %s\n", input_name.c_str());
     }
     for (auto output_name : op_desc_->outputs_) {

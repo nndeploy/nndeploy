@@ -17,6 +17,7 @@ class OnnxResizeConvert : public OnnxOpConvert {
 
   virtual std::shared_ptr<OpDesc> convert(const onnx::NodeProto &onnx_node) {
     std::shared_ptr<OpDesc> op_desc = std::make_shared<OpDesc>(kOpTypeResize);
+    // NNDEPLOY_LOGE("onnx_node.size = %lld\n", onnx_node.input_size());
     OnnxOpConvert::convert(onnx_node, op_desc);
     ResizeParam *param = (ResizeParam *)(op_desc->op_param_.get());
     param->antialias_ =

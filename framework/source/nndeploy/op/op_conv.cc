@@ -121,6 +121,7 @@ base::Status OpConv::inferShape() {
   }
 
   outputs_[0]->reshape(output_shape);
+  // outputs_[0]->print();
 
   return status;
 }

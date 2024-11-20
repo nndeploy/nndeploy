@@ -648,9 +648,11 @@ void Tensor::print(std::ostream &stream) {
   stream << "Tensor: " << name << std::endl;
   stream << "device type: " << base::deviceTypeToString(this->getDeviceType())
          << std::endl;
-  stream << "ref_count: " << ref_count_[0] << std::endl;
   desc_.print(stream);
   stream << std::endl;
+
+  if (ref_count_ != nullptr && buffer_ != nullptr) {
+  stream << "ref_count: " << ref_count_[0] << std::endl;
   Device *host_device = getDefaultHostDevice();
   Buffer *host_buffer = nullptr;
   if (!device::isHostDeviceType(this->getDeviceType())) {
@@ -717,6 +719,7 @@ void Tensor::print(std::ostream &stream) {
 
   if (!device::isHostDeviceType(this->getDeviceType())) {
     delete host_buffer;
+  }
   }
 
   return;
