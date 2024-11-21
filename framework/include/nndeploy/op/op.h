@@ -267,7 +267,7 @@ class NNDEPLOY_CC_API Op {
  */
 class OpCreator {
  public:
-  virtual ~OpCreator(){};
+  virtual ~OpCreator() {};
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        ir::OpType op_type) = 0;
