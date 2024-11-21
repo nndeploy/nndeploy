@@ -13,7 +13,6 @@ base::Status EliminateDeadOp::optimize(
   int index = op_repository.size() - begin_op_index - 1;
 
   if (index < 0 || index >= op_repository.size()) {
-
     return base::kStatusCodeOk;
   }
 
@@ -42,7 +41,7 @@ base::Status EliminateDeadOp::optimize(
 
   // 消除这个无用节点
   if (!use_flag) {
-    std::vector<TensorWrapper*> to_delete_tensors;
+    std::set<TensorWrapper*> to_delete_tensors;
 
     // 将其从前驱节点的后继节点中删除
     for (auto predecessor : op_wrapper->predecessors_) {
@@ -53,30 +52,30 @@ base::Status EliminateDeadOp::optimize(
       }
     }
 
-    // 处理被删除节点的输入Tensor
-    // 若该Tensor仅有这一个消费者Op，则删除该Tensor
-    // 若该Tensor其中一个消费者Op是该Op，则从其消费者Op中删除该Op
+    // 处理被删除节点的输出Tensor
+    // 若该Tensor仅有这一个生产者Op，则删除该Tensor
+    // 若该Tensor其中一个生产者Op是该Op，则从其生产者Op中删除该Op
     for (auto tensor_wrapper : tensor_repository) {
       auto prod_it = std::find(tensor_wrapper->producers_.begin(),
                                tensor_wrapper->producers_.end(), op_wrapper);
       if (prod_it != tensor_wrapper->producers_.end()) {
         if (tensor_wrapper->producers_.size() == 1) {
-          to_delete_tensors.push_back(tensor_wrapper);
+          to_delete_tensors.insert(tensor_wrapper);
         } else {
           tensor_wrapper->producers_.erase(prod_it);
         }
       }
     }
 
-    // 处理被删除节点的输出Tensor
-    // 若该Tensor仅有这一个生产者Op，则删除该Tensor
-    // 若该Tensor其中一个生产者Op是该Op，则从其生产者Op中删除该Op
+    // 处理被删除节点的输入Tensor
+    // 若该Tensor仅有这一个消费者Op，则删除该Tensor
+    // 若该Tensor其中一个消费者Op是该Op，则从其消费者Op中删除该Op
     for (auto tensor_wrapper : tensor_repository) {
       auto cons_it = std::find(tensor_wrapper->consumers_.begin(),
                                tensor_wrapper->consumers_.end(), op_wrapper);
       if (cons_it != tensor_wrapper->consumers_.end()) {
         if (tensor_wrapper->consumers_.size() == 1) {
-          to_delete_tensors.push_back(tensor_wrapper);
+          to_delete_tensors.insert(tensor_wrapper);
         } else {
           tensor_wrapper->consumers_.erase(cons_it);
         }
