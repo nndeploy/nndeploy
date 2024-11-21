@@ -135,6 +135,7 @@ class NNDEPLOY_CC_API Tensor {
   bool isExternalBuffer() const;
 
   std::string getName() const;
+  base::Status setName(const std::string &);
   TensorDesc getDesc() const;
   base::DataType getDataType() const;
   void setDataType(base::DataType data_type);

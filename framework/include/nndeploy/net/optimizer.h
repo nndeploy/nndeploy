@@ -10,9 +10,14 @@ namespace nndeploy {
 namespace net {
 
 enum OptPassType : int {
+  // Operator fusion
   kOptPassTypeFuseConvBias,
   kOptPassTypeFuseConvBatchNorm,
   kOptPassTypeFuseConvRelu,
+
+  // Eliminate useless op
+  kOptPassTypeEliminateCommonSubexpression,
+  kOptPassTypeEliminateDeadOp
 };
 
 class OptPass {

@@ -39,7 +39,7 @@ NNDEPLOY_API_PYBIND11_MODULE("net", m) {
       .def("setInputs",
            [](Net& self,
               const py::dict&
-                  inputs_map) {  // TODO: 这里使用了copy，是否有更高效的操作
+                  inputs_map) {  // 使用深拷贝
              std::vector<device::Tensor*> inputs = self.getAllInput();
              for (device::Tensor* input : inputs) {
                // 获取输入张量的名称
