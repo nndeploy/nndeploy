@@ -9,10 +9,10 @@ from nndeploy.net import EliminateDeadOp
 
 
 input_shape = [1, 3, 32, 32]
-conv1_weight_shape = [8, 3, 3, 3]
-conv1_bias_shape = [8]
-conv2_weight_shape = [8, 3, 3, 3]
-conv2_bias_shape = [8]
+conv1_weight_shape = [32, 3, 3, 3]
+conv1_bias_shape = [32]
+conv2_weight_shape = [32, 3, 3, 3]
+conv2_bias_shape = [32]
 
 
 np_input = np.random.random(input_shape).astype(np.float32)
@@ -111,8 +111,8 @@ def compare(model, file_path):
     assert np.allclose(
         torch_result.detach().numpy(),
         createNumpyFromTensor(nndeploy_result),
-        rtol=1e-02,
-        atol=1e-02,
+        rtol=1e-03,
+        atol=1e-03,
     )
 
 
