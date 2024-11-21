@@ -41,7 +41,7 @@ base::Status EliminateDeadOp::optimize(
 
   // 消除这个无用节点
   if (!use_flag) {
-    std::vector<TensorWrapper*> to_delete_tensors;
+    std::set<TensorWrapper*> to_delete_tensors;
 
     // 将其从前驱节点的后继节点中删除
     for (auto predecessor : op_wrapper->predecessors_) {
@@ -60,7 +60,7 @@ base::Status EliminateDeadOp::optimize(
                                tensor_wrapper->producers_.end(), op_wrapper);
       if (prod_it != tensor_wrapper->producers_.end()) {
         if (tensor_wrapper->producers_.size() == 1) {
-          to_delete_tensors.push_back(tensor_wrapper);
+          to_delete_tensors.insert(tensor_wrapper);
         } else {
           tensor_wrapper->producers_.erase(prod_it);
         }
@@ -75,7 +75,7 @@ base::Status EliminateDeadOp::optimize(
                                tensor_wrapper->consumers_.end(), op_wrapper);
       if (cons_it != tensor_wrapper->consumers_.end()) {
         if (tensor_wrapper->consumers_.size() == 1) {
-          to_delete_tensors.push_back(tensor_wrapper);
+          to_delete_tensors.insert(tensor_wrapper);
         } else {
           tensor_wrapper->consumers_.erase(cons_it);
         }
