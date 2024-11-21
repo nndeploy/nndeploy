@@ -763,6 +763,10 @@ bool Tensor::isContinue() const {
 }
 bool Tensor::isExternalBuffer() const { return is_external_; }
 std::string Tensor::getName() const { return name_; }
+base::Status Tensor::setName(const std::string &name) {
+  name_ = name;
+  return base::kStatusCodeOk;
+}
 
 TensorDesc Tensor::getDesc() const { return desc_; }
 base::DataType Tensor::getDataType() const { return desc_.data_type_; }

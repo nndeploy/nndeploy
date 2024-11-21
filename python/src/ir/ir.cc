@@ -24,6 +24,7 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
           device::Tensor* tensor = kv.second.cast<device::Tensor*>();
 
           self.weights_[key] = tensor->clone();
+          self.weights_[key]->setName(key);
         }
       });
 }
