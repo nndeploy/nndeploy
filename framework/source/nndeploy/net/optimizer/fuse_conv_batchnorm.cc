@@ -90,32 +90,7 @@ base::Status FuseConvBatchNorm::optimize(
   }
 
   // 删除原batchnorm的权重
-  std::set<TensorWrapper*> to_delete_tensors;
-  for (auto tensor_wrapper : tensor_repository) {
-    auto cons_it = std::find(tensor_wrapper->consumers_.begin(),
-                             tensor_wrapper->consumers_.end(), last_op);
-    if (cons_it != tensor_wrapper->consumers_.end()) {
-      if (tensor_wrapper->consumers_.size() == 1) {
-        to_delete_tensors.insert(tensor_wrapper);
-      } else {
-        tensor_wrapper->consumers_.erase(cons_it);
-      }
-    }
-  }
-  // 删除标记的TensorWrapper
-  for (auto tensor_wrapper : to_delete_tensors) {
-    if (tensor_wrapper->tensor_ != nullptr) {
-      delete tensor_wrapper->tensor_;
-      tensor_wrapper->tensor_ = nullptr;
-    }
-    NNDEPLOY_LOGE("delete tensor name: %s\n", tensor_wrapper->name_.c_str());
-    auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
-                        tensor_wrapper);
-    if (it != tensor_repository.end()) {
-      tensor_repository.erase(it);
-    }
-    delete tensor_wrapper;
-  }
+  rmInputTensorAndMaybeDelete(last_op, tensor_repository);
 
   // 更新op_repository
   status = seqPatternMatchUpateOpRepository(tensor_repository, op_repository,
