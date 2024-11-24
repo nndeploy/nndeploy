@@ -226,6 +226,93 @@ base::Status OptPass::seqPatternMatchUpateOpRepository(
   return base::kStatusCodeOk;
 }
 
+base::Status OptPass::rmOpFromPredecessor(OpWrapper* op_wrapper) {
+  for (auto predecessor : op_wrapper->predecessors_) {
+    auto it = std::find(predecessor->successors_.begin(),
+                        predecessor->successors_.end(), op_wrapper);
+    if (it != predecessor->successors_.end()) {
+      predecessor->successors_.erase(it);
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status OptPass::rmOpFromSuccessors(OpWrapper* op_wrapper) {
+  for (auto successor : op_wrapper->successors_) {
+    auto it = std::find(successor->predecessors_.begin(),
+                        successor->predecessors_.end(), op_wrapper);
+    if (it != successor->predecessors_.end()) {
+      successor->predecessors_.erase(it);
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status OptPass::rmOutputTensorAndMaybeDelete(
+    OpWrapper* op_wrapper, std::vector<TensorWrapper*>& tensor_repository) {
+  std::set<TensorWrapper*> to_delete_tensors;
+
+  for (auto tensor_wrapper : tensor_repository) {
+    auto prod_it = std::find(tensor_wrapper->producers_.begin(),
+                             tensor_wrapper->producers_.end(), op_wrapper);
+    if (prod_it != tensor_wrapper->producers_.end()) {
+      if (tensor_wrapper->producers_.size() == 1) {
+        // 仅有这一个生产者Op，则直接释放这个Op
+        to_delete_tensors.insert(tensor_wrapper);
+      } else {
+        tensor_wrapper->producers_.erase(prod_it);
+      }
+    }
+  }
+
+  for (auto tensor_wrapper : to_delete_tensors) {
+    if (tensor_wrapper->tensor_ != nullptr) {
+      delete tensor_wrapper->tensor_;
+      tensor_wrapper->tensor_ = nullptr;
+    }
+    NNDEPLOY_LOGE("delete tensor name: %s\n", tensor_wrapper->name_.c_str());
+    auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
+                        tensor_wrapper);
+    if (it != tensor_repository.end()) {
+      tensor_repository.erase(it);
+    }
+    delete tensor_wrapper;
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status OptPass::rmInputTensorAndMaybeDelete(
+    OpWrapper* op_wrapper, std::vector<TensorWrapper*>& tensor_repository) {
+  std::set<TensorWrapper*> to_delete_tensors;
+  for (auto tensor_wrapper : tensor_repository) {
+    auto cons_it = std::find(tensor_wrapper->consumers_.begin(),
+                             tensor_wrapper->consumers_.end(), op_wrapper);
+    if (cons_it != tensor_wrapper->consumers_.end()) {
+      if (tensor_wrapper->consumers_.size() == 1) {
+        // 仅有这一个消费者Op，则直接释放这个Op
+        to_delete_tensors.insert(tensor_wrapper);
+      } else {
+        tensor_wrapper->consumers_.erase(cons_it);
+      }
+    }
+  }
+
+  for (auto tensor_wrapper : to_delete_tensors) {
+    if (tensor_wrapper->tensor_ != nullptr) {
+      delete tensor_wrapper->tensor_;
+      tensor_wrapper->tensor_ = nullptr;
+    }
+    NNDEPLOY_LOGE("delete tensor name: %s\n", tensor_wrapper->name_.c_str());
+    auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
+                        tensor_wrapper);
+    if (it != tensor_repository.end()) {
+      tensor_repository.erase(it);
+    }
+    delete tensor_wrapper;
+  }
+  return base::kStatusCodeOk;
+}
+
 // 工厂模式
 std::map<base::DeviceTypeCode,
          std::map<OptPassType, std::shared_ptr<OptPassCreator>>>&
