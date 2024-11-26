@@ -55,12 +55,6 @@ class AscendCLOpDiv : public OpBinary {
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {
-    // 父类preRun
-    base::Status status = OpBinary::preRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("preRun failed.\n");
-      return status;
-    }
     // 输入输出
     if (inner_input_0_ == nullptr) {
       inner_input_0_ =
@@ -114,11 +108,6 @@ class AscendCLOpDiv : public OpBinary {
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }
-    base::Status status = OpBinary::postRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("postRun failed.\n");
-      return status;
-    }
     return base::kStatusCodeOk;
   }
 
@@ -136,7 +125,7 @@ class AscendCLOpDiv : public OpBinary {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
                          ir::kOpTypeDiv, AscendCLOpDiv)
 
 }  // namespace op

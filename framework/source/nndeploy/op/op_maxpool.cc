@@ -170,7 +170,7 @@ base::Status maxPool(device::Tensor *input,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
                          ir::kOpTypeMaxPool, OpMaxPool)
 
 }  // namespace op

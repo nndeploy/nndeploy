@@ -33,11 +33,6 @@ class AscendCLOpResize : public OpResize {
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {
-    base::Status status = OpResize::preRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("preRun failed.\n");
-      return status;
-    }
     // 输入输出
     if (inner_input_ == nullptr) {
     inner_input_ =
@@ -49,21 +44,41 @@ class AscendCLOpResize : public OpResize {
       return base::kStatusCodeErrorInvalidParam;
     }
     if (scales_ == nullptr) {
-      float* data = (float*)inputs_[2]->getData();
-      size_t size = inputs_[2]->getSize() / sizeof(float);
-      scales_ = aclCreateFloatArray(data, size);
-      for (int i = 0; i < size; ++i) {
-        NNDEPLOY_LOGE("%f\n.", data[i]);
+      // inputs_[2]->print();
+      // inputs_[3]->print();
+      if (inputs_.size() > 2 && inputs_[2]->getSize() != 0) {
+        NNDEPLOY_LOGE("scale = %ld\n", inputs_[2]->getSize());
+        float* data = (float*)inputs_[2]->getData();
+        size_t size = inputs_[2]->getSize() / sizeof(float);
+        scales_ = aclCreateFloatArray(data, size);
+      } else if (inputs_.size() > 3 && inputs_[3]->getSize() != 0) {
+        int64_t* data = (int64_t*)inputs_[3]->getData();
+        size_t size = inputs_[3]->getSize() / sizeof(int64_t);
+        base::IntVector inputs_0 = inputs_[0]->getShape();
+        scales_vec_.clear();
+        for (int i = 0; i < size; ++i) {
+          float scale = (float)data[i] / (float)inputs_0[i];
+          // NNDEPLOY_LOGE("scale = %f\n", scale);
+          scales_vec_.emplace_back(scale);
+        }
+        scales_ = aclCreateFloatArray((float *)scales_vec_.data(), size);
       }
     }
+    // inputs_[0]->getDesc().print();
+    // outputs_[0]->getDesc().print();
     if (inner_output_ == nullptr) {
       inner_output_ =
         AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_NCHW);
     }
 
     // 创建算子
-    char* mode = mode_.data();
     if (executor_ == nullptr) {
+      char* mode=nullptr;
+      if (mode_ == "nearest" || mode_ == "bilinear") {
+        mode = mode_.data();
+      } else {
+        mode = "nearest";
+      }
       aclnnStatus aclnn_status =
           aclnnResizeGetWorkspaceSize(inner_input_, scales_, mode, inner_output_,
                                     &workspace_size_, &executor_);
@@ -97,11 +112,6 @@ class AscendCLOpResize : public OpResize {
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }
-    base::Status status = OpResize::postRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("postRun failed.\n");
-      return status;
-    }
     return base::kStatusCodeOk;
   }
 
@@ -109,6 +119,7 @@ class AscendCLOpResize : public OpResize {
   std::string inner_op_type_ = "Resize";
 
   aclTensor* inner_input_ = nullptr;
+  std::vector<float> scales_vec_;
   aclFloatArray* scales_ = nullptr;
   std::string mode_ = "nearest";
   aclTensor* inner_output_ = nullptr;
@@ -118,7 +129,7 @@ class AscendCLOpResize : public OpResize {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
                          ir::kOpTypeResize, AscendCLOpResize)
 
 }  // namespace op

@@ -27,12 +27,17 @@ namespace detect {
 class NNDEPLOY_CC_API DetectBBoxResult : public base::Param {
  public:
   DetectBBoxResult() {};
-  virtual ~DetectBBoxResult() {};
+  virtual ~DetectBBoxResult() {
+    if (mask_ != nullptr) {
+      delete mask_;
+      mask_ = nullptr;
+    }
+  };
   int index_;
   int label_id_;
   float score_;
   std::array<float, 4> bbox_;  // xmin, ymin, xmax, ymax
-  device::Tensor mask_;
+  device::Tensor *mask_ = nullptr;
 };
 
 class NNDEPLOY_CC_API DetectResult : public base::Param {

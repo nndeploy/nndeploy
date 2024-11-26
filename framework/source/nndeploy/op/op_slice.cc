@@ -158,7 +158,7 @@ base::Status slice(device::Tensor* input, device::Tensor* starts,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
                          ir::kOpTypeSlice, OpSlice)
 
 }  // namespace op

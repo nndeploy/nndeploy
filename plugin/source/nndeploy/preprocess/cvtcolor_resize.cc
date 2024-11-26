@@ -57,6 +57,7 @@ base::Status CvtColorResize::run() {
                                  tmp_param->std_);
 
   // 通知Edge，数据已经完成写入
+  // dst->print();
   outputs_[0]->notifyWritten(dst);
   return base::kStatusCodeOk;
 }

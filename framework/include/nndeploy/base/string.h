@@ -137,7 +137,10 @@ void printData(T *data, base::IntVector &shape,
     if (depth == shape.size() - 1) {
       // stream << std::endl;
       for (int i = 0; i < shape[depth]; ++i) {
-        stream << data[offset + i];
+        // std::cout << (float)data[offset + i] << ",";
+        // 当为uint8类型时，数据为0时，无法打印数据
+        stream << (float)data[offset + i];
+        // stream << data[offset + i];
         if (i != shape[depth] - 1) stream << ",";
       }
       stream << std::endl;

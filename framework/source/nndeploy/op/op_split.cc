@@ -82,7 +82,7 @@ base::Status split(device::Tensor *input, std::shared_ptr<ir::SplitParam> param,
   return base::kStatusCodeOk;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
                          ir::kOpTypeSplit, OpSplit)
 
 }  // namespace op

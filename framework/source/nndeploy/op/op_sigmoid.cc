@@ -57,7 +57,7 @@ base::Status sigmoid(device::Tensor *input, device::Tensor *output) {
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
                          ir::kOpTypeSigmoid, OpSigmoid)
 
 }  // namespace op

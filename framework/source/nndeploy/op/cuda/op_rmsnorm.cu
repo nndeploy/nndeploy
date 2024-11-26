@@ -116,7 +116,7 @@ class CudaOpRMSNorm : public OpRMSNorm {
   }
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCuda,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCuda,
                          ir::kOpTypeRMSNorm, CudaOpRMSNorm)
 
 }  // namespace op

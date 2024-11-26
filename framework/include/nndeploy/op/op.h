@@ -384,8 +384,11 @@ using MIMOOpFunc =
                                std::initializer_list<device::Tensor *> outputs,
                                std::shared_ptr<base::Param> op_param)>;
 
+
+using namespace base;
+using namespace ir;
 #define REGISTER_OP_IMPLEMENTION(device_type_code, op_type, op_class) \
-  TypeOpRegister<TypeOpCreator<op_class>> g_##op_class##_register(    \
+  TypeOpRegister<TypeOpCreator<op_class>> g_##device_type_code##op_class##_register(    \
       device_type_code, op_type);
 
 }  // namespace op

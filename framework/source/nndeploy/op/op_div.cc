@@ -61,7 +61,7 @@ base::Status div(device::Tensor *input1, device::Tensor *input2,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
                          ir::kOpTypeDiv, OpDiv)
 
 }  // namespace op

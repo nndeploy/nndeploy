@@ -249,7 +249,7 @@ base::Status conv(device::Tensor *input, device::Tensor *weight,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
                          ir::kOpTypeConv, OpConv)
 
 }  // namespace op

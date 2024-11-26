@@ -115,11 +115,6 @@ class AscendCLOpSub : public OpBinary {
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }
-    base::Status status = OpBinary::postRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("postRun failed.\n");
-      return status;
-    }
     return base::kStatusCodeOk;
   }
 
@@ -138,7 +133,7 @@ class AscendCLOpSub : public OpBinary {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
                          ir::kOpTypeSub, AscendCLOpSub)
 
 }  // namespace op

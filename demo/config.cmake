@@ -50,6 +50,10 @@ if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
   include(${ROOT_PATH}/demo/codec/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
+  include(${ROOT_PATH}/demo/classification/config.cmake)
+endif()
+
 if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
   include(${ROOT_PATH}/demo/detect/config.cmake)
 endif()

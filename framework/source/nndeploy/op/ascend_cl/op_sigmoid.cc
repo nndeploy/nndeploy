@@ -22,12 +22,6 @@ class AscendCLOpSigmoid : public OpUnary {
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
-    base::Status status = OpUnary::preRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("preRun failed.\n");
-      return status;
-    }
-
     // 输入输出
     if (inner_input_ == nullptr) {
       inner_input_ =
@@ -72,11 +66,6 @@ class AscendCLOpSigmoid : public OpUnary {
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }
-    base::Status status = OpUnary::postRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("postRun failed.\n");
-      return status;
-    }
     return base::kStatusCodeOk;
   }
 
@@ -91,7 +80,7 @@ class AscendCLOpSigmoid : public OpUnary {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
                          ir::kOpTypeSigmoid, AscendCLOpSigmoid)
 
 }  // namespace op

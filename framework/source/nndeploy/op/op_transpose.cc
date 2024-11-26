@@ -69,7 +69,7 @@ base::Status transpose(device::Tensor *input,
   return base::kStatusCodeOk;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
                          ir::kOpTypeTranspose, OpTranspose)
 
 }  // namespace op

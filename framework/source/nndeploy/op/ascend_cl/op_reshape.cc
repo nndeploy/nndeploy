@@ -26,11 +26,6 @@ class AscendCLOpReshape : public OpReshape {
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() { 
-    base::Status status = OpReshape::preRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("preRun failed.\n");
-      return status;
-    }
     return base::kStatusCodeOk;
   }
   // inferShape已经把事情做完了，这里只需要把输入数据拷贝到输出即可
@@ -50,11 +45,6 @@ class AscendCLOpReshape : public OpReshape {
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() { 
-    base::Status status = OpReshape::postRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("postRun failed.\n");
-      return status;
-    }
     return base::kStatusCodeOk;
   }
 
@@ -67,7 +57,7 @@ class AscendCLOpReshape : public OpReshape {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
                          ir::kOpTypeReshape, AscendCLOpReshape)
 
 }  // namespace op

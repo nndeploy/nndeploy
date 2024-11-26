@@ -264,6 +264,7 @@ Finish! Here is the difference:
 + 8.0之后的310b的卷积算子运行出错
 + CREATE_EXECUTOR运行出错
   + 很多头文件出错 
++ upload fuction: aclrtSynchronizeStream failed, errorCode is 507001
 
 
 ## atd

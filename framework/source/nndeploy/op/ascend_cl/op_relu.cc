@@ -1,71 +1,62 @@
-#include "nndeploy/op/op_transpose.h"
-
-#include "aclnnop/aclnn_permute.h"
+#include "aclnnop/aclnn_relu.h"
 #include "nndeploy/op/ascend_cl/op_convert.h"
 #include "nndeploy/op/ascend_cl/op_include.h"
 #include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/op/op_unary.h"
 
 namespace nndeploy {
 namespace op {
 
-class AscendCLOpTranspose : public OpTranspose {
+class AscendCLOpRelu : public OpUnary {
  public:
-  AscendCLOpTranspose() {}
-  virtual ~AscendCLOpTranspose() {}
+  AscendCLOpRelu() {}
+  virtual ~AscendCLOpRelu() {}
 
   virtual base::Status init() {
-    // 参数
-    auto param = dynamic_cast<ir::TransposeParam *>(op_desc_.op_param_.get());
-    dims_ = AscendCLOpConvert::convertFromIntVector(param->perm_);
     // 流
-    device::Device *device = device::getDevice(device_type_);
+    device::Device* device = device::getDevice(device_type_);
     inner_stream_ = (aclrtStream)device->getCommandQueue();
 
     return base::kStatusCodeOk;
   }
-  virtual base::Status deinit() {
-    if (dims_ != nullptr) {
-      aclDestroyIntArray(dims_);
-    }
-    return base::kStatusCodeOk;
-  }
+  virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    if (inputs_[0] != nullptr) {  
+    if (inner_input_ == nullptr) {
       inner_input_ =
           AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
     }
-    if (outputs_[0] != nullptr) {
+    if (inner_output_ == nullptr) {
       inner_output_ =
           AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_ND);
     }
-    // 创建executor
+
+    // 创建算子
     if (executor_ == nullptr) {
-      aclnnStatus aclnn_status = aclnnPermuteGetWorkspaceSize(
-          inner_input_, dims_, inner_output_, &workspace_size_, &executor_);
+      aclnnStatus aclnn_status = aclnnReluGetWorkspaceSize(
+          inner_input_, inner_output_, &workspace_size_, &executor_);
       if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnPermuteGetWorkspaceSize failed, error code: %d.\n",
+        NNDEPLOY_LOGE("aclnnReluGetWorkspaceSize failed, error code: %d.\n",
                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
-
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
     // 输入输出
     aclnnStatus aclnn_status =
-        aclnnPermute(workspace_, workspace_size_, executor_, inner_stream_);
+        aclnnRelu(workspace_, workspace_size_, executor_, inner_stream_);
     if (aclnn_status != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclnnPermute failed, error code: %d.\n", aclnn_status);
+      NNDEPLOY_LOGE("aclnnRelu failed, error code: %d.\n", aclnn_status);
       return base::kStatusCodeErrorOpAscendCL;
     }
     return base::kStatusCodeOk;
   }
-  virtual base::Status postRun() { 
+  virtual base::Status postRun() {
     if (inner_input_ != nullptr) {
-      aclDestroyTensor(inner_input_);
+      aclDestroyTensor(inner_input_); 
       inner_input_ = nullptr;
     }
     if (inner_output_ != nullptr) {
@@ -79,20 +70,18 @@ class AscendCLOpTranspose : public OpTranspose {
   }
 
  private:
-  // TODO: 待完善
-  std::string inner_op_type_ = "Transpose";
+  std::string inner_op_type_ = "Relu";
 
-  aclTensor *inner_input_ = nullptr;
-  aclIntArray *dims_ = nullptr;
-  aclTensor *inner_output_ = nullptr;
-  aclOpExecutor *executor_ = nullptr;
+  aclTensor* inner_input_ = nullptr;
+  aclTensor* inner_output_ = nullptr;
+  aclOpExecutor* executor_ = nullptr;
 
   aclrtStream inner_stream_ = nullptr;
-  aclopAttr *attr_ = nullptr;
+  aclopAttr* attr_ = nullptr;
 };
 
 REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeTranspose, AscendCLOpTranspose)
+                         ir::kOpTypeRelu, AscendCLOpRelu)
 
 }  // namespace op
 }  // namespace nndeploy

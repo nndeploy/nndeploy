@@ -65,13 +65,6 @@ class AscendCLOpMaxPool : public OpMaxPool {
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {
-    // 父类preRun
-    base::Status status = OpMaxPool::preRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("preRun failed.\n");
-      return status;
-    }
-
     // 输入输出
     if (inner_input_ == nullptr) {
       inner_input_ =
@@ -116,11 +109,6 @@ class AscendCLOpMaxPool : public OpMaxPool {
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }
-    base::Status status = OpMaxPool::postRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("postRun failed.\n");
-      return status;
-    }
     return base::kStatusCodeOk;
   }
 
@@ -143,7 +131,7 @@ class AscendCLOpMaxPool : public OpMaxPool {
   aclopAttr *attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
                          ir::kOpTypeMaxPool, AscendCLOpMaxPool)
 
 }  // namespace op

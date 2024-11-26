@@ -5,6 +5,7 @@
 #include "acl/acl.h"
 #include "aclnnop/aclnn_softmax.h"
 #include "nndeploy/framework.h"
+#include "nndeploy/base/log.h"
 
 #define CHECK_RET(cond, return_expr) \
   do {                               \
@@ -73,10 +74,10 @@ int CreateAclTensor(const std::vector<T>& hostData,
 }
 
 int main() {
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
+  int nndp_ret = nndeployFrameworkInit();
+  if (nndp_ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", nndp_ret);
+    return nndp_ret;
   }
 
   // 1. （固定写法）device/stream初始化，参考AscendCL对外接口列表
@@ -163,10 +164,10 @@ int main() {
   aclrtResetDevice(deviceId);
   aclFinalize();
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
+  nndp_ret = nndeployFrameworkDeinit();
+  if (nndp_ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", nndp_ret);
+    return nndp_ret;
   }
   return 0;
 }

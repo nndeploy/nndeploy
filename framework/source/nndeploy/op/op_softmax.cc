@@ -47,8 +47,61 @@ base::Status OpSoftmax::inferShape() {
 }
 
 base::Status OpSoftmax::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
-  return base::kStatusCodeOk;
+  base::Status status = base::kStatusCodeOk;
+  // 获取输入和输出张量
+  device::Tensor *input_tensor = inputs_[0];
+  device::Tensor *output_tensor = outputs_[0];
+
+  // 获取输入和输出的维度信息
+  auto input_shape = input_tensor->getShape();
+  auto output_shape = output_tensor->getShape();
+
+  // 获取softmax参数
+  auto param = dynamic_cast<ir::SoftmaxParam *>(op_desc_.op_param_.get());
+  int axis = param->axis_;
+
+  // 获取输入输出数据
+  float *input_data = static_cast<float *>(input_tensor->getData());
+  float *output_data = static_cast<float *>(output_tensor->getData());
+
+  // 计算每个维度的大小
+  int outer_size = 1;
+  for (int i = 0; i < axis; i++) {
+    outer_size *= input_shape[i];
+  }
+  int axis_size = input_shape[axis];
+  int inner_size = 1;
+  for (int i = axis + 1; i < input_shape.size(); i++) {
+    inner_size *= input_shape[i];
+  }
+
+  // 执行softmax操作
+  for (int i = 0; i < outer_size; i++) {
+    for (int k = 0; k < inner_size; k++) {
+      // 找到最大值
+      float max_val = -std::numeric_limits<float>::infinity();
+      for (int j = 0; j < axis_size; j++) {
+        int index = i * axis_size * inner_size + j * inner_size + k;
+        max_val = std::max(max_val, input_data[index]);
+      }
+
+      // 计算exp和
+      float sum = 0.0f;
+      for (int j = 0; j < axis_size; j++) {
+        int index = i * axis_size * inner_size + j * inner_size + k;
+        output_data[index] = std::exp(input_data[index] - max_val);
+        sum += output_data[index];
+      }
+
+      // 归一化
+      for (int j = 0; j < axis_size; j++) {
+        int index = i * axis_size * inner_size + j * inner_size + k;
+        output_data[index] /= sum;
+      }
+    }
+  }
+
+  return status;
 }
 
 base::Status softmax(device::Tensor *input,
@@ -85,7 +138,13 @@ base::Status softmax(device::Tensor *input,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
+                         ir::kOpTypeSoftmax, OpSoftmax)
+
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeArm,
+                         ir::kOpTypeSoftmax, OpSoftmax)
+
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeX86,
                          ir::kOpTypeSoftmax, OpSoftmax)
 
 }  // namespace op

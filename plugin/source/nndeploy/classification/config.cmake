@@ -1,32 +1,15 @@
-
-message(STATUS "plugin/segment")
+message(STATUS "plugin/classification")
 
 # set
 set(PLUGIN_SOURCE)
 set(PLUGIN_OBJECT)
-set(PLUGIN_BINARY nndeploy_plugin_segment)
+set(PLUGIN_BINARY nndeploy_plugin_classification)
 
 # SOURCE
 file(GLOB PLUGIN_SOURCE
-  "${PLUGIN_ROOT_PATH}/include/nndeploy/segment/*.h"
-  "${PLUGIN_ROOT_PATH}/source/nndeploy/segment/*.cc"
+  "${PLUGIN_ROOT_PATH}/include/nndeploy/classification/*.h"
+  "${PLUGIN_ROOT_PATH}/source/nndeploy/classification/*.cc"
 )
-
-if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING)
-  file(GLOB_RECURSE SEGMENT_ANYTHING_SOURCE
-    "${PLUGIN_ROOT_PATH}/include/nndeploy/segment/segment_anything/*.h"
-    "${PLUGIN_ROOT_PATH}/source/nndeploy/segment/segment_anything/*.cc"
-  )
-  set(PLUGIN_SOURCE ${PLUGIN_SOURCE} ${SEGMENT_ANYTHING_SOURCE})
-endif()
-
-if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG)
-  file(GLOB_RECURSE RMBG_SOURCE
-    "${PLUGIN_ROOT_PATH}/include/nndeploy/segment/rmbg/*.h"
-    "${PLUGIN_ROOT_PATH}/source/nndeploy/segment/rmbg/*.cc"
-  )
-  set(PLUGIN_SOURCE ${PLUGIN_SOURCE} ${RMBG_SOURCE})
-endif()
 
 # # TARGET
 add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJECT})

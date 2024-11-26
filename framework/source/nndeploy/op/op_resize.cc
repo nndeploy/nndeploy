@@ -318,7 +318,7 @@ base::Status resize(device::Tensor* input, device::Tensor* roi,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
                          ir::kOpTypeResize, OpResize)
 
 }  // namespace op

@@ -2,7 +2,6 @@
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
-// #include "nndeploy/ir/onnx/onnx_interpret.h"
 #include "nndeploy/framework.h"
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
@@ -43,41 +42,31 @@ int main() {
     return ret;
   }
 
-  auto onnx_interpret =
-      std::shared_ptr<ir::Interpret>(ir::createInterpret(base::kModelTypeOnnx));
-  std::vector<std::string> model_value;
-  // model_value.push_back("D:\\github\\nndeploy\\build\\yolov8n.onnx");
-  model_value.push_back("yolov8n.onnx");
-
-  base::Status status = onnx_interpret->interpret(model_value);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("interpret failed\n");
-    return -1;
-  }
-
-  // onnx_interpret->dump(std::cout);
-  onnx_interpret->saveModelToFile("yolov8n.json", "yolov8n.safetensors");
+  // auto onnx_interpret =
+  //     std::shared_ptr<ir::Interpret>(ir::createInterpret(base::kModelTypeOnnx));
+  // std::vector<std::string> model_value;
+  // // model_value.push_back("D:\\github\\nndeploy\\build\\yolov8n.onnx");
+  // model_value.push_back("yolov8n.onnx");
 
   auto default_interpret = std::shared_ptr<ir::Interpret>(
       ir::createInterpret(base::kModelTypeDefault));
   std::vector<std::string> new_model_value;
   new_model_value.push_back("yolov8n.json");
   new_model_value.push_back("yolov8n.safetensors");
-  status = default_interpret->interpret(new_model_value);
+  base::Status status = default_interpret->interpret(new_model_value);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("interpret failed\n");
     return -1;
   }
   default_interpret->saveModelToFile("yolov8n_test.json", "yolov8n_test.safetensors");
 
-  // ir::ModelDesc *md = onnx_interpret->getModelDesc();
   ir::ModelDesc *md = default_interpret->getModelDesc();
   if (md == nullptr) {
     NNDEPLOY_LOGE("get model desc failed\n");
     return -1;
   }
 
-  // md->dump(std::cout);
+  md->dump(std::cout);
 
   // auto md = new CannTest();
   // md->init();
@@ -86,13 +75,14 @@ int main() {
   cann_net->setModelDesc(md);
 
   base::DeviceType device_type;
-  device_type.code_ = base::kDeviceTypeCodeCpu;
+  // device_type.code_ = base::kDeviceTypeCodeCpu;
+  device_type.code_ = base::kDeviceTypeCodeAscendCL;
   device_type.device_id_ = 0;
   cann_net->setDeviceType(device_type);
 
   cann_net->init();
 
-  // cann_net->dump(std::cout);
+  cann_net->dump(std::cout);
 
   std::vector<device::Tensor *> inputs = cann_net->getAllInput();
   inputs[0]->set<float>(1.0f);

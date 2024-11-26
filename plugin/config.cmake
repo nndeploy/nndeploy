@@ -32,6 +32,13 @@ if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/codec/config.cmake)
 endif()
 
+# # classification
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION "ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION" ON)
+
+if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/classification/config.cmake)
+endif()
+
 # # detect
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT "ENABLE_NNDEPLOY_PLUGIN_DETECT" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR "ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR" OFF)

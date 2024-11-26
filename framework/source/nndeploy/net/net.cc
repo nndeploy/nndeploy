@@ -358,15 +358,14 @@ base::Status Net::inferShape() {
   }
   if (is_infer_shape) {
     for (auto iter : op_repository_) {
-      NNDEPLOY_LOGI("Op inferShape: %s\n", iter->op_->getName().c_str());
+      // NNDEPLOY_LOGI("Op inferShape: %s\n", iter->op_->getName().c_str());
       status = iter->op_->inferShape();
-      // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "inferShape failed!");
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("Op inferShape failed: %s\n", iter->op_->getName().c_str());
         return status;
       }
-      auto output = iter->op_->getOutput();
-      output->print();
+      // auto output = iter->op_->getOutput();
+      // output->print();
     }
   }
   return status;
