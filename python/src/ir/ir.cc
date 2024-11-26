@@ -19,9 +19,12 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       // 定义如何设置weights_的值
       .def("setWeights", [](ModelDesc& self, const py::dict& weights) {
         for (const auto& kv : weights) {
+          // 深拷贝
           const std::string& key = kv.first.cast<std::string>();
           device::Tensor* tensor = kv.second.cast<device::Tensor*>();
-          self.weights_[key] = tensor;
+
+          self.weights_[key] = tensor->clone();
+          self.weights_[key]->setName(key);
         }
       });
 }

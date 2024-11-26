@@ -89,6 +89,9 @@ base::Status FuseConvBatchNorm::optimize(
         bias_data[out_channel];
   }
 
+  // 删除原batchnorm的权重
+  rmInputTensorAndMaybeDelete(last_op, tensor_repository);
+
   // 更新op_repository
   status = seqPatternMatchUpateOpRepository(tensor_repository, op_repository,
                                             types, begin_op_index);

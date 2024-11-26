@@ -55,8 +55,6 @@ torch_result = torch.nn.functional.batch_norm(
 )
 
 
-
-
 class TestNet(nndeploy.net.Model):
     def __init__(self):
         super().__init__()
@@ -95,21 +93,19 @@ def compare(model, file_path):
     model.net.dump(file_path)
     model.net.setInputs(nndeploy_input_map)
     nndeploy_result = model.run()[0]
-   
-    print( np.allclose(
+
+    assert np.allclose(
         torch_result.detach().numpy(),
         createNumpyFromTensor(nndeploy_result),
         rtol=1e-02,
         atol=1e-02,
-    ))
+    )
 
-
-# 注意不能同时运行多个测试，图优化过程中会改变weight的值（FuseConvBatchNorm），导致后面的测试的数据不对
 
 # 开启图优化
-# test_net0 = TestNet()
-# test_net0.construct()
-# compare(test_net0, "graph_opt.dot")
+test_net0 = TestNet()
+test_net0.construct()
+compare(test_net0, "graph_opt.dot")
 
 # 禁止图优化
 test_net1 = TestNet()
@@ -117,16 +113,16 @@ test_net1.construct(enable_net_opt=False)
 compare(test_net1, "no_opt.dot")
 
 
-# # 仅开启FuseConvRelu
-# test_net2 = TestNet()
-# test_net2.construct(enable_pass=[FuseConvRelu])
-# compare(test_net2, "fuse_conv_relu.dot")
+# 仅开启FuseConvRelu
+test_net2 = TestNet()
+test_net2.construct(enable_pass=[FuseConvRelu])
+compare(test_net2, "fuse_conv_relu.dot")
 
 
-# # 仅开启FuseConvBatchNorm
-# test_net3 = TestNet()
-# test_net3.construct(enable_pass=[FuseConvBatchNorm])
-# compare(test_net3, "fuse_conv_batchnorm.dot")
+# 仅开启FuseConvBatchNorm
+test_net3 = TestNet()
+test_net3.construct(enable_pass=[FuseConvBatchNorm])
+compare(test_net3, "fuse_conv_batchnorm.dot")
 
 
 # # 禁用FuseConvRelu

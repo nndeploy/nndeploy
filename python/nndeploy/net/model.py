@@ -21,24 +21,8 @@ def build_model(func):
 
             if isinstance(submodule, Module):
                 submodule.model_desc = self.model_desc  # 给所有的Op类型设置model_desc
-                # if self.weight_map == None:
-                #     if hasattr(submodule, "generateWeight"):
-                #         generateWeight = getattr(submodule, "generateWeight")
-                #         weight_map = generateWeight()
-                #         # 为每个键添加前缀
-                #         # 遍历列表中的每个字典
-                #         for dic in weight_map:
-                #             # 遍历字典的每个键
-                #             for key in list(dic.keys()):  # 使用list(dic.keys())来避免在遍历时修改字典
-                #                 # 构造新的键名
-                #                 new_key = f"{module_count}_{key}"
-                #                 # 将原键的值赋给新键，并删除原键
-                #                 dic[new_key] = dic.pop(key)
-                #         submodule.weight_map = weight_map
-                #         weight_maps.append(weight_map)
-                #         module_count += 1
-
-                #     # 向ModelDesc设置权重
+                
+                #  向ModelDesc设置权重
                 if hasattr(submodule, "weight_map"):
                     # print(submodule)
                     module_weight_map = getattr(submodule, "weight_map")
@@ -50,8 +34,6 @@ def build_model(func):
                                 )
                             module_weight_map[k] = self.weight_map[k]
 
-        # 对输入执行MakeInput标记
-
         result = func(self, *args, **kwargs)  # 调用原始函数并保存返回值
 
         # 如果返回值是可迭代的，比如列表或元组，对每个元素进行标记
@@ -61,10 +43,7 @@ def build_model(func):
         else:
             result = _C.op.makeOutput(self.model_desc, result)
 
-        # for weight_map in weight_maps:
-        #     for item in weight_map:
-        #         for name, tensor in item.items():
-        #             self.model_desc.weights_[name] = tensor
+
 
         # 初始化Net
         self.net.setModelDesc(self.model_desc)
@@ -105,7 +84,7 @@ class Model:
     def construct(self, enable_net_opt=True, enable_pass=set(), disable_pass=set()):
         raise NotImplementedError()
 
-    def run(self):
+    def run(self) ->list:
         self.net.preRun()
         self.net.run()
         self.net.postRun()

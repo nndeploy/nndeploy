@@ -10,9 +10,17 @@ namespace nndeploy {
 namespace net {
 
 enum OptPassType : int {
+  // Operator fusion
   kOptPassTypeFuseConvBias,
   kOptPassTypeFuseConvBatchNorm,
   kOptPassTypeFuseConvRelu,
+
+  // Eliminate useless op
+  kOptPassTypeEliminateCommonSubexpression,
+  kOptPassTypeEliminateDeadOp,
+
+  // Constant Folding
+  kOptPassTypeFoldConstant,
 };
 
 class OptPass {
@@ -60,6 +68,30 @@ class OptPass {
       std::vector<TensorWrapper*>& tensor_repository,
       std::vector<OpWrapper*>& op_repository,
       const std::vector<ir::OpType>& types, int begin_op_index);
+
+  /**
+   * @brief 将一个Op从它前驱的后继中删除
+   */
+  virtual base::Status rmOpFromPredecessor(OpWrapper* op_wrapper);
+
+  /**
+   * @brief 将一个Op从它后继的前驱中删除
+   */
+  virtual base::Status rmOpFromSuccessors(OpWrapper* op_wrapper);
+
+  /**
+   * @brief 处理一个Op的输入Tensor
+   *  将该Op从Tensor的消费者中删除，如果该Tensor的消费者仅有这一个Op作为消费者，则释放该Tensor
+   */
+  virtual base::Status rmInputTensorAndMaybeDelete(
+      OpWrapper* op_wrapper, std::vector<TensorWrapper*>& tensor_repository);
+
+  /**
+   * @brief 处理一个Op的输出Tensor
+   *  将该Op从Tensor的生产者中删除，如果该Tensor的生产者仅有这一个Op作为生产者，则释放该Tensor
+   */
+  virtual base::Status rmOutputTensorAndMaybeDelete(
+      OpWrapper* op_wrapper, std::vector<TensorWrapper*>& tensor_repository);
 
   virtual base::Status optimize(std::vector<TensorWrapper*>& tensor_repository,
                                 std::vector<OpWrapper*>& op_repository,
