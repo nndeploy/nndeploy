@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_DAG_NODE_H_
 #define _NNDEPLOY_DAG_NODE_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -10,7 +11,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"

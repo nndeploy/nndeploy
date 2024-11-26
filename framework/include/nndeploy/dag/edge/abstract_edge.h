@@ -94,7 +94,7 @@ class AbstractEdge : public base::NonCopyable {
 
 class EdgeCreator {
  public:
-  virtual ~EdgeCreator() {};
+  virtual ~EdgeCreator(){};
   virtual AbstractEdge *createEdge(base::ParallelType paralle_type) = 0;
 };
 
@@ -105,8 +105,8 @@ class TypeEdgeCreator : public EdgeCreator {
   }
 };
 
-std::map<base::EdgeType, std::shared_ptr<EdgeCreator>> &
-getGlobalEdgeCreatorMap();
+std::map<base::EdgeType, std::shared_ptr<EdgeCreator>>
+    &getGlobalEdgeCreatorMap();
 
 template <typename T>
 class TypeEdgeRegister {

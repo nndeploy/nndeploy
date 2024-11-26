@@ -22,15 +22,13 @@ SnpeInferenceParam::SnpeInferenceParam() : InferenceParam() {
 
 SnpeInferenceParam::~SnpeInferenceParam() {}
 
-base::Status SnpeInferenceParam::set(const std::string &key,
-                                     base::Any &any) {
+base::Status SnpeInferenceParam::set(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
 
   return base::kStatusCodeOk;
 }
 
-base::Status SnpeInferenceParam::get(const std::string &key,
-                                     base::Any &any) {
+base::Status SnpeInferenceParam::get(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
 
   return base::kStatusCodeOk;

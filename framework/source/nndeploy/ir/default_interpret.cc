@@ -17,7 +17,7 @@ base::Status DefaultInterpret::interpret(
   // 读模型结构文件
   if (!model_value[0].empty()) {
     std::ifstream structure_stream(model_value[0],
-                                 std::ifstream::in | std::ifstream::binary);
+                                   std::ifstream::in | std::ifstream::binary);
     if (!structure_stream.is_open()) {
       NNDEPLOY_LOGE("model_value[%s] is error.\n", model_value[0].c_str());
       return base::kStatusCodeErrorInvalidParam;
@@ -35,12 +35,13 @@ base::Status DefaultInterpret::interpret(
     std::shared_ptr<safetensors::safetensors_t> mmap_st_ptr(
         new safetensors::safetensors_t());
     // 冒险的需要用愿指针
-    bool ret = safetensors::mmap_from_file(model_value[1], &(*mmap_st_ptr), &warn, &err);
+    bool ret = safetensors::mmap_from_file(model_value[1], &(*mmap_st_ptr),
+                                           &warn, &err);
     if (!ret) {
       NNDEPLOY_LOGE(
-        "Failed to load: %s\n"
+          "Failed to load: %s\n"
           "  ERR: %s\n",
-            model_value[1].c_str(), err.c_str());
+          model_value[1].c_str(), err.c_str());
       return base::kStatusCodeErrorIO;
     }
 

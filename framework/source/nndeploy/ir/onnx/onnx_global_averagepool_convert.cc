@@ -16,13 +16,15 @@ class OnnxOnnxGlobalAveragepoolConvert : public OnnxOpConvert {
   virtual ~OnnxOnnxGlobalAveragepoolConvert() {}
 
   virtual std::shared_ptr<OpDesc> convert(const onnx::NodeProto &onnx_node) {
-    std::shared_ptr<OpDesc> op_desc = std::make_shared<OpDesc>(kOpTypeGlobalAveragePool);
+    std::shared_ptr<OpDesc> op_desc =
+        std::make_shared<OpDesc>(kOpTypeGlobalAveragePool);
     OnnxOpConvert::convert(onnx_node, op_desc);
     return op_desc;
   };
 };
 
-REGISTER_ONNX_OP_CONVERT_IMPLEMENTION("GlobalAveragePool", OnnxOnnxGlobalAveragepoolConvert);
+REGISTER_ONNX_OP_CONVERT_IMPLEMENTION("GlobalAveragePool",
+                                      OnnxOnnxGlobalAveragepoolConvert);
 
 }  // namespace ir
 }  // namespace nndeploy

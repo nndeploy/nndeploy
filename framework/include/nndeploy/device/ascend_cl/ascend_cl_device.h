@@ -93,7 +93,7 @@ class NNDEPLOY_CC_API AscendCLDevice : public Device {
     acl_stream_wrapper.stream_ = (aclrtStream)command_queue;
     insertStream(stream_index_, acl_stream_wrapper_, acl_stream_wrapper);
   };
-  virtual ~AscendCLDevice() {};
+  virtual ~AscendCLDevice(){};
 
   void setAclConfigPath(const std::string &acl_config_path);
 

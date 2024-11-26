@@ -20,7 +20,7 @@ class OpGlobalAveragepool : public Op {
 };
 
 NNDEPLOY_CC_API base::Status globalAveragepool(device::Tensor *input,
-                                     device::Tensor *output);
+                                               device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

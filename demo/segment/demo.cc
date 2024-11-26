@@ -25,7 +25,7 @@ class DrawMaskNode : public dag::Node {
     device::Tensor *mask = result->mask_;
     if (mask->getDataType() == base::dataTypeOf<float>()) {
       cv::Mat mask_output(mask->getHeight(), mask->getWidth(), CV_32FC1,
-                        mask->getData());
+                          mask->getData());
       cv::threshold(mask_output, mask_output, 0.0, 255.0, cv::THRESH_BINARY);
       mask_output.convertTo(mask_output, CV_8U);
       cv::Mat *output_mat = new cv::Mat(mask_output);
@@ -33,18 +33,22 @@ class DrawMaskNode : public dag::Node {
     } else if (mask->getDataType() == base::dataTypeOf<uint8_t>()) {
       // mask->print();
       cv::Mat mask_mat(mask->getHeight(), mask->getWidth(), CV_8UC1,
-                        mask->getData());
+                       mask->getData());
       cv::Mat mask_result;
-      cv::resize(mask_mat, mask_result, input_mat->size(), 0.0, 0.0, cv::INTER_LINEAR);
-      cv::Mat *output_mat = new cv::Mat(input_mat->size(), CV_8UC4, cv::Scalar(0, 0, 0, 0));
+      cv::resize(mask_mat, mask_result, input_mat->size(), 0.0, 0.0,
+                 cv::INTER_LINEAR);
+      cv::Mat *output_mat =
+          new cv::Mat(input_mat->size(), CV_8UC4, cv::Scalar(0, 0, 0, 0));
 
       // 将原始图像粘贴到透明背景图像上，使用结果图像作为掩码
       for (int y = 0; y < input_mat->rows; ++y) {
         for (int x = 0; x < input_mat->cols; ++x) {
-            if (mask_result.at<uchar>(y, x) > 50) { // 假设result_image是单通道掩码
-                cv::Vec3b color =  input_mat->at<cv::Vec3b>(y, x);
-                output_mat->at<cv::Vec4b>(y, x) = cv::Vec4b(color[0], color[1], color[2], 255);
-            }
+          if (mask_result.at<uchar>(y, x) >
+              50) {  // 假设result_image是单通道掩码
+            cv::Vec3b color = input_mat->at<cv::Vec3b>(y, x);
+            output_mat->at<cv::Vec4b>(y, x) =
+                cv::Vec4b(color[0], color[1], color[2], 255);
+          }
         }
       }
 

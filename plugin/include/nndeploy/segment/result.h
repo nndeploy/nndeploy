@@ -14,7 +14,7 @@ namespace segment {
  */
 class NNDEPLOY_CC_API SegmentResult : public base::Param {
  public:
-  SegmentResult() {};
+  SegmentResult(){};
   virtual ~SegmentResult() {
     if (mask_ != nullptr) {
       delete mask_;

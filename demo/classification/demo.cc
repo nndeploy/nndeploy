@@ -1,21 +1,21 @@
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
+#include "nndeploy/classification/classification.h"
+#include "nndeploy/classification/result.h"
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
-#include "nndeploy/classification/result.h"
-#include "nndeploy/classification/classification.h"
 #include "nndeploy/device/device.h"
-#include "nndeploy/thread_pool/thread_pool.h"
 #include "nndeploy/framework.h"
+#include "nndeploy/thread_pool/thread_pool.h"
 
 using namespace nndeploy;
 
 class DrawLableNode : public dag::Node {
  public:
   DrawLableNode(const std::string &name,
-               std::initializer_list<dag::Edge *> inputs,
-               std::initializer_list<dag::Edge *> outputs)
+                std::initializer_list<dag::Edge *> inputs,
+                std::initializer_list<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {}
   virtual ~DrawLableNode() {}
 
@@ -23,19 +23,18 @@ class DrawLableNode : public dag::Node {
     cv::Mat *input_mat = inputs_[0]->getCvMat(this);
     classification::ClassificationResult *result =
         (classification::ClassificationResult *)inputs_[1]->getParam(this);
-    
+
     // 遍历每个分类结果
     for (int i = 0; i < result->labels_.size(); i++) {
       auto label = result->labels_[i];
-      
+
       // 将分类结果和置信度转为字符串
-      std::string text = "class: " + std::to_string(label.label_ids_) + 
-                        " score: " + std::to_string(label.scores_);
-      
+      std::string text = "class: " + std::to_string(label.label_ids_) +
+                         " score: " + std::to_string(label.scores_);
+
       // 在图像左上角绘制文本
-      cv::putText(*input_mat, text, cv::Point(30, 30 + i * 30), 
-                  cv::FONT_HERSHEY_SIMPLEX, 1.0,
-                  cv::Scalar(0, 255, 0), 2);
+      cv::putText(*input_mat, text, cv::Point(30, 30 + i * 30),
+                  cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
     }
 
     outputs_[0]->set(input_mat, inputs_[0]->getIndex(this), true);
@@ -114,7 +113,7 @@ int main(int argc, char *argv[]) {
   // draw box
   dag::Edge *draw_output = graph->createEdge("draw_output");
   dag::Node *draw_label_node = graph->createNode<DrawLableNode>(
-        "DrawLableNode", {&input, &output}, {draw_output});
+      "DrawLableNode", {&input, &output}, {draw_output});
 
   // 解码节点
   codec::EncodeNode *encode_node = codec::createEncodeNode(

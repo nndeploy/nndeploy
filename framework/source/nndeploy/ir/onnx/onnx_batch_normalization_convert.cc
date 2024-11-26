@@ -16,9 +16,11 @@ class OnnxOnnxBatchNormalizationConvert : public OnnxOpConvert {
   virtual ~OnnxOnnxBatchNormalizationConvert() {}
 
   virtual std::shared_ptr<OpDesc> convert(const onnx::NodeProto &onnx_node) {
-    std::shared_ptr<OpDesc> op_desc = std::make_shared<OpDesc>(kOpTypeBatchNormalization);
+    std::shared_ptr<OpDesc> op_desc =
+        std::make_shared<OpDesc>(kOpTypeBatchNormalization);
     OnnxOpConvert::convert(onnx_node, op_desc);
-    BatchNormalizationParam *param = (BatchNormalizationParam *)(op_desc->op_param_.get());
+    BatchNormalizationParam *param =
+        (BatchNormalizationParam *)(op_desc->op_param_.get());
     param->epsilon_ =
         OnnxInterpret::getAttributeFloat(onnx_node, "epsilon", 1e-05f);
     param->momentum_ =
@@ -29,7 +31,8 @@ class OnnxOnnxBatchNormalizationConvert : public OnnxOpConvert {
   };
 };
 
-REGISTER_ONNX_OP_CONVERT_IMPLEMENTION("BatchNormalization", OnnxOnnxBatchNormalizationConvert);
+REGISTER_ONNX_OP_CONVERT_IMPLEMENTION("BatchNormalization",
+                                      OnnxOnnxBatchNormalizationConvert);
 
 }  // namespace ir
 }  // namespace nndeploy

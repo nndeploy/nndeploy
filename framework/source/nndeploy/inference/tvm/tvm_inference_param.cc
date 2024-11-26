@@ -12,14 +12,12 @@ TvmInferenceParam::TvmInferenceParam() : InferenceParam() {
 }
 TvmInferenceParam::~TvmInferenceParam() {}
 
-base::Status TvmInferenceParam::set(const std::string &key,
-                                    base::Any &any) {
+base::Status TvmInferenceParam::set(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
 
-base::Status TvmInferenceParam::get(const std::string &key,
-                                    base::Any &any) {
+base::Status TvmInferenceParam::get(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

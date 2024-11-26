@@ -16,7 +16,8 @@ base::Status Param::get(const std::string &key, base::Any &any) {
 }
 
 // 序列化：数据结构->[rapidjson::Value\stream\path\string]
-base::Status Param::serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType& allocator) {
+base::Status Param::serialize(rapidjson::Value &json,
+                              rapidjson::Document::AllocatorType &allocator) {
   return base::kStatusCodeOk;
 }
 base::Status Param::serialize(std::ostream &stream) {
@@ -35,7 +36,7 @@ base::Status Param::serialize(std::ostream &stream) {
 }
 base::Status Param::serialize(std::string &content, bool is_file) {
   if (is_file) {
-    std::ofstream ofs(content);   
+    std::ofstream ofs(content);
     if (!ofs.is_open()) {
       NNDEPLOY_LOGE("open file %s failed\n", content.c_str());
       return base::kStatusCodeErrorInvalidParam;

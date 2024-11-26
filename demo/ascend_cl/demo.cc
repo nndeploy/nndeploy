@@ -4,8 +4,8 @@
 
 #include "acl/acl.h"
 #include "aclnnop/aclnn_softmax.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/base/log.h"
+#include "nndeploy/framework.h"
 
 #define CHECK_RET(cond, return_expr) \
   do {                               \

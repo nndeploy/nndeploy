@@ -15,14 +15,12 @@ MnnInferenceParam::MnnInferenceParam() : InferenceParam() {
 }
 MnnInferenceParam::~MnnInferenceParam() {}
 
-base::Status MnnInferenceParam::set(const std::string &key,
-                                    base::Any &any) {
+base::Status MnnInferenceParam::set(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
 
-base::Status MnnInferenceParam::get(const std::string &key,
-                                    base::Any &any) {
+base::Status MnnInferenceParam::get(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

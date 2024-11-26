@@ -121,7 +121,7 @@ class NNDEPLOY_CC_API Interpret {
  */
 class InterpretCreator {
  public:
-  virtual ~InterpretCreator() {};
+  virtual ~InterpretCreator(){};
   virtual Interpret *createInterpret(base::ModelType type) = 0;
 };
 
@@ -140,8 +140,8 @@ class TypeInterpretCreator : public InterpretCreator {
  *
  * @return std::map<base::ModelType, std::shared_ptr<InterpretCreator>>&
  */
-std::map<base::ModelType, std::shared_ptr<InterpretCreator>> &
-getGlobalInterpretCreatorMap();
+std::map<base::ModelType, std::shared_ptr<InterpretCreator>>
+    &getGlobalInterpretCreatorMap();
 
 /**
  * @brief 解释器的创建类的注册类模板

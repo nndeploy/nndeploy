@@ -31,7 +31,8 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
   m.def("makeRelu", &op::makeRelu, py::return_value_policy::reference);
   m.def("makeSoftMax", &op::makeSoftMax, py::return_value_policy::reference);
   m.def("makeAdd", &op::makeAdd, py::return_value_policy::reference);
-  m.def("makeBatchNorm", &op::makeBatchNorm, py::return_value_policy::reference);
+  m.def("makeBatchNorm", &op::makeBatchNorm,
+        py::return_value_policy::reference);
 }
 }  // namespace op
 }  // namespace nndeploy

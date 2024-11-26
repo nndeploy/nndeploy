@@ -35,8 +35,8 @@ class AscendCLOpResize : public OpResize {
   virtual base::Status preRun() {
     // 输入输出
     if (inner_input_ == nullptr) {
-    inner_input_ =
-        AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_NCHW);
+      inner_input_ =
+          AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_NCHW);
     }
     base::DataType data_type = inputs_[2]->getDataType();
     if (data_type.code_ != base::kDataTypeCodeFp) {
@@ -61,30 +61,30 @@ class AscendCLOpResize : public OpResize {
           // NNDEPLOY_LOGE("scale = %f\n", scale);
           scales_vec_.emplace_back(scale);
         }
-        scales_ = aclCreateFloatArray((float *)scales_vec_.data(), size);
+        scales_ = aclCreateFloatArray((float*)scales_vec_.data(), size);
       }
     }
     // inputs_[0]->getDesc().print();
     // outputs_[0]->getDesc().print();
     if (inner_output_ == nullptr) {
       inner_output_ =
-        AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_NCHW);
+          AscendCLOpConvert::convertFromTensor(outputs_[0], ACL_FORMAT_NCHW);
     }
 
     // 创建算子
     if (executor_ == nullptr) {
-      char* mode=nullptr;
+      char* mode = nullptr;
       if (mode_ == "nearest" || mode_ == "bilinear") {
         mode = mode_.data();
       } else {
         mode = "nearest";
       }
-      aclnnStatus aclnn_status =
-          aclnnResizeGetWorkspaceSize(inner_input_, scales_, mode, inner_output_,
-                                    &workspace_size_, &executor_);
+      aclnnStatus aclnn_status = aclnnResizeGetWorkspaceSize(
+          inner_input_, scales_, mode, inner_output_, &workspace_size_,
+          &executor_);
       if (aclnn_status != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclnnResizeGetWorkspaceSize failed, error code: %d.\n",
-                     aclnn_status);
+                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
@@ -129,8 +129,8 @@ class AscendCLOpResize : public OpResize {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeResize, AscendCLOpResize)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeResize,
+                         AscendCLOpResize)
 
 }  // namespace op
 }  // namespace nndeploy

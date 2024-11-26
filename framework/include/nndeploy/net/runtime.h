@@ -18,8 +18,8 @@ namespace net {
 
 class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
  public:
-  Runtime(const base::DeviceType &device_type) : device_type_(device_type) {};
-  virtual ~Runtime() {};
+  Runtime(const base::DeviceType &device_type) : device_type_(device_type){};
+  virtual ~Runtime(){};
 
   virtual base::Status init(
       std::vector<TensorWrapper *> &tensor_repository,
@@ -66,7 +66,7 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
  */
 class RuntimeCreator {
  public:
-  virtual ~RuntimeCreator() {};
+  virtual ~RuntimeCreator(){};
 
   virtual Runtime *createRuntime(const base::DeviceType &device_type,
                                  base::ParallelType parallel_type) = 0;
@@ -92,8 +92,8 @@ class TypeRuntimeCreator : public RuntimeCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<RuntimeCreator>>>&
  */
-std::map<base::ParallelType, std::shared_ptr<RuntimeCreator>> &
-getGlobalRuntimeCreatorMap();
+std::map<base::ParallelType, std::shared_ptr<RuntimeCreator>>
+    &getGlobalRuntimeCreatorMap();
 
 /**
  * @brief Runtime的创建类的注册类模板

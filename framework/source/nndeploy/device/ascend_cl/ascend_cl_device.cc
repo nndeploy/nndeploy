@@ -14,9 +14,9 @@ TypeArchitectureRegister<AscendCLArchitecture> ascend_cl_architecture_register(
 
 AscendCLArchitecture::AscendCLArchitecture(
     base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code) {};
+    : Architecture(device_type_code){};
 
-AscendCLArchitecture::~AscendCLArchitecture() {};
+AscendCLArchitecture::~AscendCLArchitecture(){};
 
 void AscendCLArchitecture::setAclConfigPath(
     int device_id, const std::string &acl_config_path) {

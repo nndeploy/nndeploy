@@ -31,7 +31,7 @@ class AscendCLOpConv : public OpConv {
     inner_stream_ = (aclrtStream)device->getCommandQueue();
 
     // 权重
-    if (weight_ == nullptr) { 
+    if (weight_ == nullptr) {
       weight_ = new device::Tensor(device, inputs_[1]->getDesc(),
                                    inputs_[1]->getName());
       inputs_[1]->copyTo(weight_);
@@ -62,7 +62,8 @@ class AscendCLOpConv : public OpConv {
         inputs_[2]->copyTo(bias_);
       }
       if (inner_bias_ == nullptr) {
-        inner_bias_ = AscendCLOpConvert::convertFromTensor(bias_, ACL_FORMAT_ND);
+        inner_bias_ =
+            AscendCLOpConvert::convertFromTensor(bias_, ACL_FORMAT_ND);
       }
     }
 #if 0
@@ -84,7 +85,7 @@ class AscendCLOpConv : public OpConv {
   virtual base::Status deinit() {
     if (stride_ != nullptr) {
       aclDestroyIntArray(stride_);
-      stride_ = nullptr;  
+      stride_ = nullptr;
     }
     if (padding_ != nullptr) {
       aclDestroyIntArray(padding_);
@@ -129,12 +130,13 @@ class AscendCLOpConv : public OpConv {
     // 创建算子
     if (executor_ == nullptr) {
       aclnnStatus aclnn_status = aclnnConvolutionGetWorkspaceSize(
-          inner_input_, inner_weight_, inner_bias_, stride_, padding_, dilation_,
-          transposed_, output_padding_, groups_, inner_output_, cube_math_type_,
-          &workspace_size_, &executor_);
+          inner_input_, inner_weight_, inner_bias_, stride_, padding_,
+          dilation_, transposed_, output_padding_, groups_, inner_output_,
+          cube_math_type_, &workspace_size_, &executor_);
       if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnConvolutionGetWorkspaceSize failed, error code: %d.\n",
-                      aclnn_status);
+        NNDEPLOY_LOGE(
+            "aclnnConvolutionGetWorkspaceSize failed, error code: %d.\n",
+            aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
@@ -149,7 +151,7 @@ class AscendCLOpConv : public OpConv {
     }
     return base::kStatusCodeOk;
   }
-  virtual base::Status postRun() { 
+  virtual base::Status postRun() {
     if (inner_input_ != nullptr) {
       aclDestroyTensor(inner_input_);
       inner_input_ = nullptr;
@@ -190,8 +192,8 @@ class AscendCLOpConv : public OpConv {
   device::Tensor *bias_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeConv, AscendCLOpConv)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeConv,
+                         AscendCLOpConv)
 
 }  // namespace op
 }  // namespace nndeploy

@@ -131,8 +131,8 @@ class AscendCLOpMaxPool : public OpMaxPool {
   aclopAttr *attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeMaxPool, AscendCLOpMaxPool)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeMaxPool,
+                         AscendCLOpMaxPool)
 
 }  // namespace op
 }  // namespace nndeploy

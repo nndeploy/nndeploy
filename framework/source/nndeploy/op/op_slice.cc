@@ -19,7 +19,6 @@
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/util.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -158,8 +157,7 @@ base::Status slice(device::Tensor* input, device::Tensor* starts,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeSlice, OpSlice)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeSlice, OpSlice)
 
 }  // namespace op
 }  // namespace nndeploy

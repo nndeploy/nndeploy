@@ -9,8 +9,8 @@ namespace stable_diffusion {
 
 void Scheduler::setParam(SchedulerParam *param) { scheduler_param_ = param; }
 
-std::map<SchedulerType, std::shared_ptr<SchedulerCreator>> &
-getGlobalSchedulerCreatorMap() {
+std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>
+    &getGlobalSchedulerCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>>

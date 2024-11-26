@@ -55,8 +55,8 @@ class NNDEPLOY_CC_API X86Device : public Device {
  protected:
   X86Device(base::DeviceType device_type, void *command_queue = nullptr,
             std::string library_path = "")
-      : Device(device_type) {};
-  virtual ~X86Device() {};
+      : Device(device_type){};
+  virtual ~X86Device(){};
 
   virtual base::Status init();
   virtual base::Status deinit();

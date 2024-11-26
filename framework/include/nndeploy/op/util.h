@@ -3,6 +3,7 @@
 #ifndef _NNDEPLOY_OP_UTIL_H_
 #define _NNDEPLOY_OP_UTIL_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -12,7 +13,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
@@ -32,7 +32,8 @@ void adjustNegativeAxes(std::vector<int>& axes, int rank);
 bool checkAxesRange(int axes, int rank);
 bool checkAxesRange(std::vector<int>& axes, int rank);
 
-int32_t multiplyDims(const base::IntVector& shape, int from, int upto_exclusive);
+int32_t multiplyDims(const base::IntVector& shape, int from,
+                     int upto_exclusive);
 
 }  // namespace op
 }  // namespace nndeploy

@@ -14,7 +14,7 @@ namespace classification {
  */
 class NNDEPLOY_CC_API ClassificationLableResult : public base::Param {
  public:
-  ClassificationLableResult() {};
+  ClassificationLableResult(){};
   virtual ~ClassificationLableResult() {}
 
   int index_ = 0;
@@ -25,8 +25,8 @@ class NNDEPLOY_CC_API ClassificationLableResult : public base::Param {
 
 class NNDEPLOY_CC_API ClassificationResult : public base::Param {
  public:
-  ClassificationResult() {};
-  virtual ~ClassificationResult() {};
+  ClassificationResult(){};
+  virtual ~ClassificationResult(){};
   std::vector<ClassificationLableResult> labels_;
 };
 

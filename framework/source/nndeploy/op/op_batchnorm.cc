@@ -120,8 +120,8 @@ base::Status batchNorm(device::Tensor *input, device::Tensor *scale,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeBatchNormalization, OpBatchNorm)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeBatchNormalization,
+                         OpBatchNorm)
 
 }  // namespace op
 

@@ -215,7 +215,7 @@ NNDEPLOY_CC_API OpType stringToOpType(const std::string &op_type_name);
  */
 class OpParamCreator {
  public:
-  virtual ~OpParamCreator() {};
+  virtual ~OpParamCreator(){};
   virtual std::shared_ptr<base::Param> createOpParam(OpType type) = 0;
 };
 
@@ -273,8 +273,8 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
  */
 class NNDEPLOY_CC_API OpParam : public base::Param {
  public:
-  OpParam() : base::Param() {};
-  virtual ~OpParam() {};
+  OpParam() : base::Param(){};
+  virtual ~OpParam(){};
 
   PARAM_COPY(OpParam)
   PARAM_COPY_TO(OpParam)
@@ -286,8 +286,8 @@ class NNDEPLOY_CC_API OpParam : public base::Param {
 
 class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
  public:
-  BatchNormalizationParam() : OpParam() {};
-  virtual ~BatchNormalizationParam() {};
+  BatchNormalizationParam() : OpParam(){};
+  virtual ~BatchNormalizationParam(){};
 
   PARAM_COPY(BatchNormalizationParam)
   PARAM_COPY_TO(BatchNormalizationParam)
@@ -332,8 +332,8 @@ class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
 
 class ConcatParam : public OpParam {
  public:
-  ConcatParam() : OpParam() {};
-  virtual ~ConcatParam() {};
+  ConcatParam() : OpParam(){};
+  virtual ~ConcatParam(){};
 
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
@@ -858,8 +858,8 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
 
 class FlattenParam : public OpParam {
  public:
-  FlattenParam() : OpParam() {};
-  virtual ~FlattenParam() {};
+  FlattenParam() : OpParam(){};
+  virtual ~FlattenParam(){};
 
   PARAM_COPY(FlattenParam)
   PARAM_COPY_TO(FlattenParam)
@@ -880,13 +880,13 @@ class FlattenParam : public OpParam {
   }
 
  public:
-  int axis_ = 1;  
+  int axis_ = 1;
 };
 
 class GemmParam : public OpParam {
  public:
-  GemmParam() : OpParam() {};
-  virtual ~GemmParam() {};
+  GemmParam() : OpParam(){};
+  virtual ~GemmParam(){};
 
   PARAM_COPY(GemmParam)
   PARAM_COPY_TO(GemmParam)
@@ -929,9 +929,9 @@ class GemmParam : public OpParam {
 
  public:
   float alpha_ = 1.0;  // 默认值为1.0
-  float beta_ = 1.0;  // 默认值为1.0
-  int trans_a_ = 0;  // 默认值为0
-  int trans_b_ = 0;  // 默认值为0
+  float beta_ = 1.0;   // 默认值为1.0
+  int trans_a_ = 0;    // 默认值为0
+  int trans_b_ = 0;    // 默认值为0
 };
 
 }  // namespace ir

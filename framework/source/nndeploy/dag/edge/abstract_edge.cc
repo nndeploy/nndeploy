@@ -56,8 +56,8 @@ bool AbstractEdge::checkNode(const Node *node) {
   }
 }
 
-std::map<base::EdgeType, std::shared_ptr<EdgeCreator>> &
-getGlobalEdgeCreatorMap() {
+std::map<base::EdgeType, std::shared_ptr<EdgeCreator>>
+    &getGlobalEdgeCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::EdgeType, std::shared_ptr<EdgeCreator>>>
       creators;

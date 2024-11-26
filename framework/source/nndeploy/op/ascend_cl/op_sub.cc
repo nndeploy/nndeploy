@@ -20,14 +20,14 @@ class AscendCLOpSub : public OpBinary {
 
     if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
       inputs_0_ = new device::Tensor(device, inputs_[0]->getDesc(),
-                                    inputs_[0]->getName());
+                                     inputs_[0]->getName());
       inputs_[0]->copyTo(inputs_0_);
       inner_input_0_ =
           AscendCLOpConvert::convertFromTensor(inputs_0_, ACL_FORMAT_ND);
     }
     if (device::isHostDeviceType(inputs_[1]->getDeviceType())) {
       inputs_1_ = new device::Tensor(device, inputs_[1]->getDesc(),
-                                    inputs_[1]->getName());
+                                     inputs_[1]->getName());
       inputs_[1]->copyTo(inputs_1_);
       inner_input_1_ =
           AscendCLOpConvert::convertFromTensor(inputs_1_, ACL_FORMAT_ND);
@@ -79,10 +79,10 @@ class AscendCLOpSub : public OpBinary {
     if (executor_ == nullptr) {
       aclnnStatus aclnn_status =
           aclnnSubGetWorkspaceSize(inner_input_0_, inner_input_1_, alpha_,
-                                 inner_output_, &workspace_size_, &executor_);
+                                   inner_output_, &workspace_size_, &executor_);
       if (aclnn_status != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclnnSubGetWorkspaceSize failed, error code: %d.\n",
-                     aclnn_status);
+                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
@@ -133,8 +133,7 @@ class AscendCLOpSub : public OpBinary {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeSub, AscendCLOpSub)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeSub, AscendCLOpSub)
 
 }  // namespace op
 }  // namespace nndeploy

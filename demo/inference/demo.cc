@@ -7,7 +7,6 @@
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
 
-
 using namespace nndeploy;
 
 class TestDesc : public ir::ModelDesc {

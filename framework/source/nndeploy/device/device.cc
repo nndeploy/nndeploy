@@ -4,7 +4,7 @@ namespace nndeploy {
 namespace device {
 
 Architecture::Architecture(base::DeviceTypeCode device_type_code)
-    : device_type_code_(device_type_code) {};
+    : device_type_code_(device_type_code){};
 
 Architecture::~Architecture() {
   for (auto iter : devices_) {
@@ -29,8 +29,8 @@ base::DeviceTypeCode Architecture::getDeviceTypeCode() {
   return device_type_code_;
 }
 
-std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>> &
-getArchitectureMap() {
+std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>
+    &getArchitectureMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>>

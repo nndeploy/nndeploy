@@ -1,8 +1,8 @@
 // #include <experimental/filesystem>
+#include "nndeploy/framework.h"
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
@@ -12,8 +12,8 @@ using namespace nndeploy;
 
 class CannTest : public ir::ModelDesc {
  public:
-  CannTest() {};
-  ~CannTest() {};
+  CannTest(){};
+  ~CannTest(){};
   void init() {
     auto input =
         op::makeInput(this, "input", base::dataTypeOf<float>(), {1, 1, 8, 8});
@@ -58,7 +58,8 @@ int main() {
     NNDEPLOY_LOGE("interpret failed\n");
     return -1;
   }
-  status = onnx_interpret->saveModelToFile("yolo11s.sim.onnx.json", "yolo11s.sim.onnx.safetensors");
+  status = onnx_interpret->saveModelToFile("yolo11s.sim.onnx.json",
+                                           "yolo11s.sim.onnx.safetensors");
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("saveModelToFile failed\n");
     return -1;
@@ -74,7 +75,8 @@ int main() {
     NNDEPLOY_LOGE("interpret failed\n");
     return -1;
   }
-  default_interpret->saveModelToFile("yolo11s.sim.onnx_test.json", "yolo11s.sim.onnx_test.safetensors");
+  default_interpret->saveModelToFile("yolo11s.sim.onnx_test.json",
+                                     "yolo11s.sim.onnx_test.safetensors");
 
   ir::ModelDesc *md = default_interpret->getModelDesc();
   if (md == nullptr) {

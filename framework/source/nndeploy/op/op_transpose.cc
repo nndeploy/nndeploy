@@ -1,6 +1,7 @@
 
 #include "nndeploy/op/op_transpose.h"
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -10,7 +11,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
@@ -69,8 +69,7 @@ base::Status transpose(device::Tensor *input,
   return base::kStatusCodeOk;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeTranspose, OpTranspose)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeTranspose, OpTranspose)
 
 }  // namespace op
 }  // namespace nndeploy

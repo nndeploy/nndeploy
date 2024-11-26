@@ -18,7 +18,6 @@
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -138,14 +137,11 @@ base::Status softmax(device::Tensor *input,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeSoftmax, OpSoftmax)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeSoftmax, OpSoftmax)
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeArm,
-                         ir::kOpTypeSoftmax, OpSoftmax)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeArm, ir::kOpTypeSoftmax, OpSoftmax)
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeX86,
-                         ir::kOpTypeSoftmax, OpSoftmax)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeX86, ir::kOpTypeSoftmax, OpSoftmax)
 
 }  // namespace op
 }  // namespace nndeploy

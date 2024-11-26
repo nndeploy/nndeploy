@@ -1,6 +1,7 @@
 
 #include "nndeploy/segment/rmbg/rmbg.h"
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -9,7 +10,6 @@
 #include "nndeploy/base/opencv_include.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/detect/util.h"
@@ -23,10 +23,9 @@
 namespace nndeploy {
 namespace segment {
 
-dag::TypeGraphRegister g_register_rmbg_graph(NNDEPLOY_RMBGV5,
-                                               createRMBGGraph);
+dag::TypeGraphRegister g_register_rmbg_graph(NNDEPLOY_RMBGV5, createRMBGGraph);
 
-base::Status RMBGPostProcess::run(){
+base::Status RMBGPostProcess::run() {
   cv::Mat *input_mat = inputs_[0]->getCvMat(this);
   int dst_height = input_mat->rows;
   int dst_width = input_mat->cols;
@@ -52,7 +51,7 @@ base::Status RMBGPostProcess::run(){
   desc.data_type_ = base::dataTypeOf<uint8_t>();
   desc.data_format_ = base::kDataFormatNHWC;
   desc.shape_ = {1, dst_height, dst_width, 1};
-  device::Device *device = tensor->getDevice(); 
+  device::Device *device = tensor->getDevice();
   device::Tensor *dst = new device::Tensor(device, desc);
   results->mask_ = dst;
   results->score_ = nullptr;
@@ -71,11 +70,12 @@ base::Status RMBGPostProcess::run(){
   return base::kStatusCodeOk;
 }
 
-dag::Graph *createRMBGGraph(
-    const std::string &name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
-    base::ModelType model_type, bool is_path,
-    std::vector<std::string> model_value){
+dag::Graph *createRMBGGraph(const std::string &name,
+                            base::InferenceType inference_type,
+                            base::DeviceType device_type, dag::Edge *input,
+                            dag::Edge *output, base::ModelType model_type,
+                            bool is_path,
+                            std::vector<std::string> model_value) {
   dag::Graph *graph = new dag::Graph(name, input, output);
   dag::Edge *infer_input = graph->createEdge("input");
   dag::Edge *infer_output = graph->createEdge("output");
@@ -86,8 +86,8 @@ dag::Graph *createRMBGGraph(
   dag::Node *infer = graph->createInfer<infer::Infer>(
       "infer", inference_type, infer_input, infer_output);
 
-  dag::Node *post =
-      graph->createNode<RMBGPostProcess>("postprocess", {input, infer_output}, {output});
+  dag::Node *post = graph->createNode<RMBGPostProcess>(
+      "postprocess", {input, infer_output}, {output});
 
   preprocess::CvtclorResizeParam *pre_param =
       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());

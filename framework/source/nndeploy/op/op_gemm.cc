@@ -19,7 +19,6 @@
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/util.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -61,11 +60,10 @@ base::Status OpGemm::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status gemm(device::Tensor * inputs_a,
-device::Tensor * inputs_b,
-device::Tensor * inputs_c,
-                                    std::shared_ptr<ir::GemmParam> param,
-                                    device::Tensor *output) {
+base::Status gemm(device::Tensor *inputs_a, device::Tensor *inputs_b,
+                  device::Tensor *inputs_c,
+                  std::shared_ptr<ir::GemmParam> param,
+                  device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
   Op *op = createOp(inputs_a->getDeviceType(), "", ir::kOpTypeMaxPool);
@@ -100,8 +98,7 @@ device::Tensor * inputs_c,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeGemm, OpGemm)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeGemm, OpGemm)
 
 }  // namespace op
 }  // namespace nndeploy

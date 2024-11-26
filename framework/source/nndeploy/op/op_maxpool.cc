@@ -18,7 +18,6 @@
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -170,8 +169,7 @@ base::Status maxPool(device::Tensor *input,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeMaxPool, OpMaxPool)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeMaxPool, OpMaxPool)
 
 }  // namespace op
 }  // namespace nndeploy

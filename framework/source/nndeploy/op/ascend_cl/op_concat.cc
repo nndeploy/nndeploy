@@ -28,7 +28,7 @@ class AscendCLOpConcat : public OpConcat {
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
     // 输入输出
-    if (inner_inputs_ == nullptr) { 
+    if (inner_inputs_ == nullptr) {
       inner_inputs_ =
           AscendCLOpConvert::convertFromTensor(inputs_, ACL_FORMAT_ND);
     }
@@ -43,11 +43,11 @@ class AscendCLOpConcat : public OpConcat {
           inner_inputs_, dim_, inner_output_, &workspace_size_, &executor_);
       if (aclnn_status != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclnnCatGetWorkspaceSize failed, error code: %d.\n",
-                     aclnn_status);
+                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
-    
+
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
@@ -87,8 +87,8 @@ class AscendCLOpConcat : public OpConcat {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeConcat, AscendCLOpConcat)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeConcat,
+                         AscendCLOpConcat)
 
 }  // namespace op
 }  // namespace nndeploy

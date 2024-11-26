@@ -3,7 +3,7 @@
 namespace nndeploy {
 namespace op {
 
-Expr::~Expr() {};
+Expr::~Expr(){};
 
 Expr::Expr(const std::string &name) : expr_type_(kExprTypeValueDesc) {
   value_desc_ = std::make_shared<ir::ValueDesc>(name);

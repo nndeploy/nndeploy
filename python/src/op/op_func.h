@@ -6,8 +6,8 @@
 
 #include "nndeploy/op/op_batchnorm.h"
 #include "nndeploy/op/op_conv.h"
-#include "nndeploy/op/op_rmsnorm.h"
 #include "nndeploy/op/op_relu.h"
+#include "nndeploy/op/op_rmsnorm.h"
 
 /**
  * @brief Op的func层，在该层进行Op的输入检查、输出Tensor构造、调用Op计算;

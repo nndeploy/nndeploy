@@ -43,7 +43,7 @@ class AscendCLOpSoftmax : public OpSoftmax {
           inner_input_, dim_, inner_output_, &workspace_size_, &executor_);
       NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
                                    base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSoftmaxGetWorkspaceSize failed.");
+                                   "aclnnSoftmaxGetWorkspaceSize failed.");
     }
     return base::kStatusCodeOk;
   }
@@ -84,8 +84,8 @@ class AscendCLOpSoftmax : public OpSoftmax {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeSoftmax, AscendCLOpSoftmax)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeSoftmax,
+                         AscendCLOpSoftmax)
 
 }  // namespace op
 }  // namespace nndeploy

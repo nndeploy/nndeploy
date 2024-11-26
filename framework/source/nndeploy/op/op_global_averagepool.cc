@@ -18,7 +18,6 @@
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -38,7 +37,7 @@ base::Status OpGlobalAveragepool::inferShape() {
   for (size_t i = 0; i < n_input_dims; ++i) {
     output_shape.emplace_back(1);
   }
-  
+
   outputs_[0]->reshape(output_shape);
 
   return status;
@@ -49,8 +48,7 @@ base::Status OpGlobalAveragepool::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status globalAveragepool(device::Tensor *input,
-                     device::Tensor *output) {
+base::Status globalAveragepool(device::Tensor *input, device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
   Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeMaxPool);
@@ -79,8 +77,8 @@ base::Status globalAveragepool(device::Tensor *input,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeGlobalAveragePool, OpGlobalAveragepool)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeGlobalAveragePool,
+                         OpGlobalAveragepool)
 
 }  // namespace op
 }  // namespace nndeploy

@@ -7,11 +7,11 @@
 #define _NNDEPLOY_BASE_Any_H_
 
 // This code need c++11 to compile
-#include <typeinfo>
-#include <type_traits>
-#include <utility>
 #include <algorithm>
 #include <cstring>
+#include <type_traits>
+#include <typeinfo>
+#include <utility>
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -34,7 +34,7 @@ class Any;
  * \return The reference of content
  * \tparam T The type of the value to be fetched.
  */
-template<typename T>
+template <typename T>
 inline T& get(Any& src);  // NOLINT(*)
 
 /*!
@@ -47,7 +47,7 @@ inline T& get(Any& src);  // NOLINT(*)
  * \return The reference of content
  * \tparam T The type of the value to be fetched.
  */
-template<typename T>
+template <typename T>
 inline const T& get(const Any& src);
 
 /*!
@@ -60,7 +60,7 @@ inline const T& get(const Any& src);
  * \return The reference of content
  * \tparam T The type of the value to be fetched.
  */
-template<typename T>
+template <typename T>
 inline T& unsafeGet(Any& src);  // NOLINT(*)
 
 /*!
@@ -73,7 +73,7 @@ inline T& unsafeGet(Any& src);  // NOLINT(*)
  * \return The reference of content
  * \tparam T The type of the value to be fetched.
  */
-template<typename T>
+template <typename T>
 inline const T& unsafeGet(const Any& src);
 
 /*!
@@ -112,7 +112,7 @@ class Any {
    * \param other The other types to be constructed into Any.
    * \tparam T The value type of other.
    */
-  template<typename T>
+  template <typename T>
   inline Any(T&& other);  // NOLINT(*)
 
   /*! \brief destructor */
@@ -138,7 +138,7 @@ class Any {
    * \tparam T The value type of other.
    * \return self
    */
-  template<typename T>
+  template <typename T>
   inline Any& operator=(T&& other);
 
   /*!
@@ -155,7 +155,7 @@ class Any {
    * swap current content with other
    * \param other The other data to be swapped.
    */
-  inline void swap(Any& other); // NOLINT(*)
+  inline void swap(Any& other);  // NOLINT(*)
 
   /*!
    * \return The type_info about the stored type.
@@ -163,19 +163,19 @@ class Any {
   inline const std::type_info& type() const;
 
   /*! \brief Construct value of type T inplace */
-  template<typename T, typename... Args>
+  template <typename T, typename... Args>
   inline void construct(Args&&... args);
 
  private:
   //! \cond Doxygen_Suppress
   // declare of helper class
-  template<typename T>
+  template <typename T>
   class TypeOnHeap;
 
-  template<typename T>
+  template <typename T>
   class TypeOnStack;
 
-  template<typename T>
+  template <typename T>
   class TypeInfo;
 
   // size of stack space, it takes 32 bytes for one Any type.
@@ -201,22 +201,22 @@ class Any {
   };
 
   // constant to check if data can be stored on heap.
-  template<typename T>
+  template <typename T>
   struct data_on_stack {
     static const bool value = alignof(T) <= kAlign && sizeof(T) <= kStack;
   };
 
   // declare friend with
-  template<typename T>
+  template <typename T>
   friend T& get(Any& src);  // NOLINT(*)
 
-  template<typename T>
+  template <typename T>
   friend const T& get(const Any& src);
 
-  template<typename T>
+  template <typename T>
   friend T& unsafeGet(Any& src);  // NOLINT(*)
 
-  template<typename T>
+  template <typename T>
   friend const T& unsafeGet(const Any& src);
 
   // internal construct function
@@ -226,10 +226,10 @@ class Any {
   inline void construct(const Any& other);
 
   // internal function to check if type is correct.
-  template<typename T>
+  template <typename T>
   inline void checkType() const;
 
-  template<typename T>
+  template <typename T>
   inline void checkTypeByName() const;
 
   // internal type specific information
@@ -239,9 +239,9 @@ class Any {
   Data data_;
 };
 
-template<typename T>
+template <typename T>
 inline Any::Any(T&& other) {
-   // 将 T 转换为其基础类型，去掉引用和常量修饰符
+  // 将 T 转换为其基础类型，去掉引用和常量修饰符
   typedef typename std::decay<T>::type DT;
   // 检查 T 是否为 Any 类型
   if (std::is_same<DT, Any>::value) {
@@ -251,7 +251,7 @@ inline Any::Any(T&& other) {
     // 确保 T 是可拷贝构造的
     static_assert(std::is_copy_constructible<DT>::value,
                   "Any can only hold value that is copy constructable");
-     // 获取类型信息并存储
+    // 获取类型信息并存储
     type_ = TypeInfo<DT>::getType();
     // 检查是否可以在栈上存储
     if (data_on_stack<DT>::value) {
@@ -259,21 +259,17 @@ inline Any::Any(T&& other) {
 #if 6 <= __GNUC__
 #pragma GCC diagnostic ignored "-Wplacement-new"
 #endif
-      new (&(data_.stack)) DT(std::forward<T>(other));// 在栈上构造对象
+      new (&(data_.stack)) DT(std::forward<T>(other));  // 在栈上构造对象
 #pragma GCC diagnostic pop
     } else {
-      data_.pheap = new DT(std::forward<T>(other));// 否则在堆上构造对象
+      data_.pheap = new DT(std::forward<T>(other));  // 否则在堆上构造对象
     }
   }
 }
 
-inline Any::Any(Any&& other) {
-  this->construct(std::move(other));
-}
+inline Any::Any(Any&& other) { this->construct(std::move(other)); }
 
-inline Any::Any(const Any& other) {
-  this->construct(other);
-}
+inline Any::Any(const Any& other) { this->construct(other); }
 
 inline void Any::construct(Any&& other) {
   type_ = other.type_;
@@ -288,7 +284,7 @@ inline void Any::construct(const Any& other) {
   }
 }
 
-template<typename T, typename... Args>
+template <typename T, typename... Args>
 inline void Any::construct(Args&&... args) {
   clear();
   typedef typename std::decay<T>::type DT;
@@ -305,9 +301,7 @@ inline void Any::construct(Args&&... args) {
   }
 }
 
-inline Any::~Any() {
-  this->clear();
-}
+inline Any::~Any() { this->clear(); }
 
 inline Any& Any::operator=(Any&& other) {
   Any(std::move(other)).swap(*this);
@@ -319,13 +313,13 @@ inline Any& Any::operator=(const Any& other) {
   return *this;
 }
 
-template<typename T>
+template <typename T>
 inline Any& Any::operator=(T&& other) {
   Any(std::forward<T>(other)).swap(*this);
   return *this;
 }
 
-inline void Any::swap(Any& other) { // NOLINT(*)
+inline void Any::swap(Any& other) {  // NOLINT(*)
   std::swap(type_, other.type_);
   std::swap(data_, other.data_);
 }
@@ -339,9 +333,7 @@ inline void Any::clear() {
   }
 }
 
-inline bool Any::empty() const {
-  return type_ == nullptr;
-}
+inline bool Any::empty() const { return type_ == nullptr; }
 
 inline const std::type_info& Any::type() const {
   if (type_ != nullptr) {
@@ -351,62 +343,61 @@ inline const std::type_info& Any::type() const {
   }
 }
 
-template<typename T>
+template <typename T>
 inline void Any::checkType() const {
   if (type_ == nullptr) {
     NNDEPLOY_LOGE("The Any container is empty\n");
     NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-    assert(false);  
+    assert(false);
   }
   if (*(type_->ptype_info) != typeid(T)) {
     NNDEPLOY_LOGE("The stored type mismatch\n");
     NNDEPLOY_LOGE(" stored=%s\n", type_->ptype_info->name());
     NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-    assert(false);  
+    assert(false);
   }
 }
 
-template<typename T>
+template <typename T>
 inline void Any::checkTypeByName() const {
   if (type_ == nullptr) {
     NNDEPLOY_LOGE("The Any container is empty\n");
     NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-    assert(false);  
+    assert(false);
   }
   if (strcmp(type_->ptype_info->name(), typeid(T).name()) != 0) {
     NNDEPLOY_LOGE("The stored type name mismatch\n");
     NNDEPLOY_LOGE(" stored=%s\n", type_->ptype_info->name());
     NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-    assert(false);  
+    assert(false);
   }
 }
 
-
-template<typename T>
+template <typename T>
 inline const T& get(const Any& src) {
   src.checkType<T>();
   return *Any::TypeInfo<T>::getPtr(&(src.data_));
 }
 
-template<typename T>
-inline T& get(Any& src) { // NOLINT(*)
+template <typename T>
+inline T& get(Any& src) {  // NOLINT(*)
   src.checkType<T>();
   return *Any::TypeInfo<T>::getPtr(&(src.data_));
 }
 
-template<typename T>
+template <typename T>
 inline const T& unsafeGet(const Any& src) {
   src.checkTypeByName<T>();
   return *Any::TypeInfo<T>::getPtr(&(src.data_));
 }
 
-template<typename T>
-inline T& unsafeGet(Any& src) { // NOLINT(*)
+template <typename T>
+inline T& unsafeGet(Any& src) {  // NOLINT(*)
   src.checkTypeByName<T>();
   return *Any::TypeInfo<T>::getPtr(&(src.data_));
 }
 
-template<typename T>
+template <typename T>
 class Any::TypeOnHeap {
  public:
   inline static T* getPtr(Any::Data* data) {
@@ -423,7 +414,7 @@ class Any::TypeOnHeap {
   }
 };
 
-template<typename T>
+template <typename T>
 class Any::TypeOnStack {
  public:
   inline static T* getPtr(Any::Data* data) {
@@ -441,10 +432,9 @@ class Any::TypeOnStack {
   }
 };
 
-template<typename T>
+template <typename T>
 class Any::TypeInfo
-    : public std::conditional<Any::data_on_stack<T>::value,
-                              Any::TypeOnStack<T>,
+    : public std::conditional<Any::data_on_stack<T>::value, Any::TypeOnStack<T>,
                               Any::TypeOnHeap<T> >::type {
  public:
   inline static const Type* getType() {

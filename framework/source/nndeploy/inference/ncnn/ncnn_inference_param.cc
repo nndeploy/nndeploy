@@ -16,14 +16,12 @@ NcnnInferenceParam::NcnnInferenceParam() : InferenceParam() {
 }
 NcnnInferenceParam::~NcnnInferenceParam() {}
 
-base::Status NcnnInferenceParam::set(const std::string &key,
-                                     base::Any &any) {
+base::Status NcnnInferenceParam::set(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
 
-base::Status NcnnInferenceParam::get(const std::string &key,
-                                     base::Any &any) {
+base::Status NcnnInferenceParam::get(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

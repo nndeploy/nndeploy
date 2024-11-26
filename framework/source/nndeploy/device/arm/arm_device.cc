@@ -10,9 +10,9 @@ TypeArchitectureRegister<ArmArchitecture> arm_architecture_register(
     base::kDeviceTypeCodeArm);
 
 ArmArchitecture::ArmArchitecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code) {};
+    : Architecture(device_type_code){};
 
-ArmArchitecture::~ArmArchitecture() {};
+ArmArchitecture::~ArmArchitecture(){};
 
 base::Status ArmArchitecture::checkDevice(int device_id, void *command_queue,
                                           std::string library_path) {

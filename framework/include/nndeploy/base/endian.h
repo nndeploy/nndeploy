@@ -7,33 +7,33 @@
 #define _NNDEPLOY_BASE_ENDIAN_H_
 
 #ifdef NNDEPLOY_CMAKE_LITTLE_ENDIAN
-  // If compiled with CMake, use CMake's endian detection logic
-  #define NNDEPLOY_LITTLE_ENDIAN NNDEPLOY_CMAKE_LITTLE_ENDIAN
+// If compiled with CMake, use CMake's endian detection logic
+#define NNDEPLOY_LITTLE_ENDIAN NNDEPLOY_CMAKE_LITTLE_ENDIAN
 #else
-  #if defined(__APPLE__) || defined(_WIN32)
-    #define NNDEPLOY_LITTLE_ENDIAN 1
-  #elif defined(__GLIBC__) || defined(__GNU_LIBRARY__) \
-        || defined(__ANDROID__) || defined(__RISCV__)
-    #include <endian.h>
-    #define NNDEPLOY_LITTLE_ENDIAN (__BYTE_ORDER == __LITTLE_ENDIAN)
-  #elif defined(__FreeBSD__) || defined(__OpenBSD__)
-    #include <sys/endian.h>
-    #define NNDEPLOY_LITTLE_ENDIAN (_BYTE_ORDER == _LITTLE_ENDIAN)
-  #elif defined(__QNX__)
-    #include <sys/param.h>
-    #define NNDEPLOY_LITTLE_ENDIAN (BYTE_ORDER == LITTLE_ENDIAN)
-  #elif defined(__EMSCRIPTEN__) || defined(__hexagon__)
-    #define NNDEPLOY_LITTLE_ENDIAN 1
-  #elif defined(__sun) || defined(sun)
-    #include <sys/isa_defs.h>
-    #if defined(_LITTLE_ENDIAN)
-      #define NNDEPLOY_LITTLE_ENDIAN 1
-    #else
-      #define NNDEPLOY_LITTLE_ENDIAN 0
-    #endif
-  #else
-    #error "Unable to determine endianness of your machine; use CMake to compile"
-  #endif
+#if defined(__APPLE__) || defined(_WIN32)
+#define NNDEPLOY_LITTLE_ENDIAN 1
+#elif defined(__GLIBC__) || defined(__GNU_LIBRARY__) || \
+    defined(__ANDROID__) || defined(__RISCV__)
+#include <endian.h>
+#define NNDEPLOY_LITTLE_ENDIAN (__BYTE_ORDER == __LITTLE_ENDIAN)
+#elif defined(__FreeBSD__) || defined(__OpenBSD__)
+#include <sys/endian.h>
+#define NNDEPLOY_LITTLE_ENDIAN (_BYTE_ORDER == _LITTLE_ENDIAN)
+#elif defined(__QNX__)
+#include <sys/param.h>
+#define NNDEPLOY_LITTLE_ENDIAN (BYTE_ORDER == LITTLE_ENDIAN)
+#elif defined(__EMSCRIPTEN__) || defined(__hexagon__)
+#define NNDEPLOY_LITTLE_ENDIAN 1
+#elif defined(__sun) || defined(sun)
+#include <sys/isa_defs.h>
+#if defined(_LITTLE_ENDIAN)
+#define NNDEPLOY_LITTLE_ENDIAN 1
+#else
+#define NNDEPLOY_LITTLE_ENDIAN 0
+#endif
+#else
+#error "Unable to determine endianness of your machine; use CMake to compile"
+#endif
 #endif
 
 /*!
@@ -45,7 +45,8 @@
 #endif
 
 /*! \brief whether serialize using little endian */
-#define NNDEPLOY_IO_NO_ENDIAN_SWAP (NNDEPLOY_LITTLE_ENDIAN == NNDEPLOY_IO_USE_LITTLE_ENDIAN)
+#define NNDEPLOY_IO_NO_ENDIAN_SWAP \
+  (NNDEPLOY_LITTLE_ENDIAN == NNDEPLOY_IO_USE_LITTLE_ENDIAN)
 
 namespace nndeploy {
 namespace base {

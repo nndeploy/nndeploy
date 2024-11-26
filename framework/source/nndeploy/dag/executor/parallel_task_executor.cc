@@ -2,9 +2,9 @@
 namespace nndeploy {
 namespace dag {
 
-ParallelTaskExecutor::ParallelTaskExecutor() : Executor() {};
+ParallelTaskExecutor::ParallelTaskExecutor() : Executor(){};
 
-ParallelTaskExecutor::~ParallelTaskExecutor() {};
+ParallelTaskExecutor::~ParallelTaskExecutor(){};
 
 base::Status ParallelTaskExecutor::init(
     std::vector<EdgeWrapper*>& edge_repository,

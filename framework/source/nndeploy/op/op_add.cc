@@ -18,7 +18,6 @@
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -61,8 +60,7 @@ base::Status add(device::Tensor *input1, device::Tensor *input2,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeAdd, OpAdd)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeAdd, OpAdd)
 
 }  // namespace op
 }  // namespace nndeploy

@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_SEGMENT_SEGMENT_RMBG_RMBG_H_
 #define _NNDEPLOY_SEGMENT_SEGMENT_RMBG_RMBG_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -11,15 +12,14 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
-#include "nndeploy/segment/result.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/segment/result.h"
 
 namespace nndeploy {
 namespace segment {
@@ -33,8 +33,9 @@ class NNDEPLOY_CC_API RMBGPostParam : public base::Param {
 
 class NNDEPLOY_CC_API RMBGPostProcess : public dag::Node {
  public:
-  RMBGPostProcess(const std::string &name, std::initializer_list<dag::Edge *> inputs,
-       std::initializer_list<dag::Edge *> outputs)
+  RMBGPostProcess(const std::string &name,
+                  std::initializer_list<dag::Edge *> inputs,
+                  std::initializer_list<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {
     param_ = std::make_shared<RMBGPostParam>();
   }

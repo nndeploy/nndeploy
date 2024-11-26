@@ -19,7 +19,6 @@
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/util.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -48,7 +47,7 @@ base::Status OpFlatten::inferShape() {
   base::IntVector output_shape;
   output_shape.emplace_back(multiplyDims(input_shape, 0, axis));
   output_shape.emplace_back(multiplyDims(input_shape, axis, rank));
-  
+
   outputs_[0]->reshape(output_shape);
 
   return status;
@@ -92,8 +91,7 @@ base::Status flatten(device::Tensor *input,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeFlatten, OpFlatten)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeFlatten, OpFlatten)
 
 }  // namespace op
 }  // namespace nndeploy

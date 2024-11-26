@@ -111,7 +111,7 @@ class OnnxOpConvert {
  */
 class OnnxOpConvertCreator {
  public:
-  virtual ~OnnxOpConvertCreator() {};
+  virtual ~OnnxOpConvertCreator(){};
   virtual std::shared_ptr<OnnxOpConvert> createOnnxOpConvert(
       const std::string &type) = 0;
 };
@@ -134,8 +134,8 @@ class TypeOnnxOpConvertCreator : public OnnxOpConvertCreator {
  *
  * @return std::map<OpType, std::shared_ptr<OnnxOpConvertCreator>>&
  */
-std::map<std::string, std::shared_ptr<OnnxOpConvertCreator>> &
-getGlobalOnnxOpConvertCreatorMap();
+std::map<std::string, std::shared_ptr<OnnxOpConvertCreator>>
+    &getGlobalOnnxOpConvertCreatorMap();
 
 /**
  * @brief 算子参数的创建类的注册类模板

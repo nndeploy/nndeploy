@@ -19,8 +19,8 @@ class OpFlatten : public Op {
 };
 
 NNDEPLOY_CC_API base::Status flatten(device::Tensor* inputs,
-                                    std::shared_ptr<ir::FlattenParam> param,
-                                    device::Tensor *output);
+                                     std::shared_ptr<ir::FlattenParam> param,
+                                     device::Tensor* output);
 
 }  // namespace op
 }  // namespace nndeploy

@@ -37,7 +37,6 @@ class NNDEPLOY_CC_API SequentialRuntime : public Runtime {
   virtual base::Status run();
   virtual base::Status postRun();
 
-
  private:
   bool workspace_is_external_ = false;  // workspace是否是外部传入
   uint64_t workspace_size_ = 0;         // workspace大小

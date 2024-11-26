@@ -1,9 +1,10 @@
 #include "nndeploy/device/tensor.h"
 
+#include <pybind11/stl.h>
+
 #include "device/tensor_util.h"
 #include "nndeploy/device/type.h"
 #include "nndeploy_api_registry.h"
-#include <pybind11/stl.h>
 namespace nndeploy {
 
 namespace device {
@@ -32,7 +33,7 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
           "to",
           [](py::object self, base::DeviceTypeCode device_code) {
             device::Tensor *tensor = self.cast<device::Tensor *>();
-            return moveTensorToDevice(tensor, device_code); 
+            return moveTensorToDevice(tensor, device_code);
           },
           py::return_value_policy::reference)
       .def_property_readonly("shape", &Tensor::getShape);

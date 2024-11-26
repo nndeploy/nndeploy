@@ -156,8 +156,7 @@ base::Status reshape(device::Tensor *input,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeReshape, OpReshape)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeReshape, OpReshape)
 
 }  // namespace op
 }  // namespace nndeploy

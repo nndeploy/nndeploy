@@ -7,7 +7,6 @@
 #include "nndeploy/base/half.hpp"
 #include "nndeploy/base/macro.h"
 
-
 namespace nndeploy {
 namespace base {
 

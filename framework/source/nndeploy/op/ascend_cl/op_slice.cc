@@ -60,12 +60,12 @@ class AscendCLOpSlice : public OpSlice {
 
     // 创建算子
     if (executor_ == nullptr) {
-      aclnnStatus aclnn_status =
-          aclnnSliceGetWorkspaceSize(inner_input_, dim_, start_, end_, step_,
-                                   inner_output_, &workspace_size_, &executor_);
+      aclnnStatus aclnn_status = aclnnSliceGetWorkspaceSize(
+          inner_input_, dim_, start_, end_, step_, inner_output_,
+          &workspace_size_, &executor_);
       if (aclnn_status != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclnnSliceGetWorkspaceSize failed, error code: %d.\n",
-                     aclnn_status);
+                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
@@ -108,11 +108,11 @@ class AscendCLOpSlice : public OpSlice {
   aclOpExecutor* executor_ = nullptr;
 
   aclrtStream inner_stream_ = nullptr;
-  aclopAttr* attr_ = nullptr; 
+  aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeSlice, AscendCLOpSlice)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeSlice,
+                         AscendCLOpSlice)
 
 }  // namespace op
 }  // namespace nndeploy

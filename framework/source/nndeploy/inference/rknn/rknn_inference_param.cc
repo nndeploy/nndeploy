@@ -17,13 +17,11 @@ RknnInferenceParam::RknnInferenceParam() : InferenceParam() {
 }
 RknnInferenceParam::~RknnInferenceParam() {}
 
-base::Status RknnInferenceParam::set(const std::string &key,
-                                     base::Any &any) {
+base::Status RknnInferenceParam::set(const std::string &key, base::Any &any) {
   return base::kStatusCodeOk;
 }
 
-base::Status RknnInferenceParam::get(const std::string &key,
-                                     base::Any &any) {
+base::Status RknnInferenceParam::get(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

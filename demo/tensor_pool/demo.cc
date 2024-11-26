@@ -13,8 +13,8 @@ using namespace nndeploy;
 
 class CannTest : public ir::ModelDesc {
  public:
-  CannTest() {};
-  ~CannTest() {};
+  CannTest(){};
+  ~CannTest(){};
   void init() {
     auto input =
         op::makeInput(this, "input", base::dataTypeOf<float>(), {1, 1, 8, 8});
@@ -68,7 +68,8 @@ int main() {
     NNDEPLOY_LOGE("interpret failed\n");
     return -1;
   }
-  default_interpret->saveModelToFile("yolov8n_test.json", "yolov8n_test.safetensors");
+  default_interpret->saveModelToFile("yolov8n_test.json",
+                                     "yolov8n_test.safetensors");
 
   // ir::ModelDesc *md = onnx_interpret->getModelDesc();
   ir::ModelDesc *md = default_interpret->getModelDesc();

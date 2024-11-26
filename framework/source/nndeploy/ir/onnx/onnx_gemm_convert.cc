@@ -19,10 +19,8 @@ class OnnxOnnxGemmConvert : public OnnxOpConvert {
     std::shared_ptr<OpDesc> op_desc = std::make_shared<OpDesc>(kOpTypeGemm);
     OnnxOpConvert::convert(onnx_node, op_desc);
     GemmParam *param = (GemmParam *)(op_desc->op_param_.get());
-    param->alpha_ =
-        OnnxInterpret::getAttributeFloat(onnx_node, "alpha", 1.0f);
-    param->beta_ =
-        OnnxInterpret::getAttributeFloat(onnx_node, "beta", 1.0f);
+    param->alpha_ = OnnxInterpret::getAttributeFloat(onnx_node, "alpha", 1.0f);
+    param->beta_ = OnnxInterpret::getAttributeFloat(onnx_node, "beta", 1.0f);
     param->trans_a_ =
         OnnxInterpret::getAttributeInt(onnx_node, "transA", (int32_t)0);
     param->trans_b_ =

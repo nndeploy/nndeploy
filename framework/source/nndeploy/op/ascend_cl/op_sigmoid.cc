@@ -38,7 +38,7 @@ class AscendCLOpSigmoid : public OpUnary {
           inner_input_, inner_output_, &workspace_size_, &executor_);
       if (aclnn_status != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclnnSigmoidGetWorkspaceSize failed, error code: %d.\n",
-                     aclnn_status);
+                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
@@ -56,7 +56,7 @@ class AscendCLOpSigmoid : public OpUnary {
   }
   virtual base::Status postRun() {
     if (inner_input_ != nullptr) {
-      aclDestroyTensor(inner_input_); 
+      aclDestroyTensor(inner_input_);
       inner_input_ = nullptr;
     }
     if (inner_output_ != nullptr) {
@@ -80,8 +80,8 @@ class AscendCLOpSigmoid : public OpUnary {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeSigmoid, AscendCLOpSigmoid)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeSigmoid,
+                         AscendCLOpSigmoid)
 
 }  // namespace op
 }  // namespace nndeploy

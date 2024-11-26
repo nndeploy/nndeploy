@@ -14,7 +14,6 @@
 #include "nndeploy/net/tensor_pool.h"
 #include "nndeploy/net/util.h"
 
-
 namespace nndeploy {
 namespace net {
 

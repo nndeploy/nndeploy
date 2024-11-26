@@ -18,11 +18,11 @@ class OpGemm : public Op {
   virtual base::Status run();
 };
 
-NNDEPLOY_CC_API base::Status gemm(device::Tensor * inputs_a,
-device::Tensor * inputs_b,
-device::Tensor * inputs_c,
-                                    std::shared_ptr<ir::GemmParam> param,
-                                    device::Tensor *output);
+NNDEPLOY_CC_API base::Status gemm(device::Tensor *inputs_a,
+                                  device::Tensor *inputs_b,
+                                  device::Tensor *inputs_c,
+                                  std::shared_ptr<ir::GemmParam> param,
+                                  device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy
