@@ -1,5 +1,5 @@
 
-#include "nndeploy/op/op_concat.h"
+#include "nndeploy/op/op_gemm.h"
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -17,79 +17,70 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/op/util.h"
 
 
 namespace nndeploy {
 namespace op {
 
-base::Status OpConcat::inferShape() {
+base::Status OpGemm::inferShape() {
   base::Status status = base::kStatusCodeOk;
-  // 参数
-  auto param = dynamic_cast<ir::ConcatParam *>(op_desc_.op_param_.get());
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
-  int axis = param->axis_;
-  int rank = inputs_[0]->getShape().size();
-  // NNDEPLOY_LOGE("rank = %d\n", rank);
-  // inputs_[0]->getDesc().print();
-  if (axis < -rank || axis >= rank) {
-    NNDEPLOY_LOGE("axis[%d] is invalid.\n", axis);
+  if (inputs_.size() < 2) {
+    NNDEPLOY_LOGE("inputs_.size() < 2.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  if (axis < 0) {
-    axis += (int)inputs_[0]->getShape().size();
-    param->axis_ = axis;
+  auto param = dynamic_cast<ir::GemmParam *>(op_desc_.op_param_.get());
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
+
+  bool trans_a = param->trans_a_ != 0;
+  bool trans_b = param->trans_b_ != 0;
+  auto first_input_shape = inputs_[0]->getShape();
+  auto second_input_shape = inputs_[1]->getShape();
+  if (first_input_shape.size() != 2) {
+    NNDEPLOY_LOGE("First input does not have rank 2");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  if (second_input_shape.size() != 2) {
+    NNDEPLOY_LOGE("First input does not have rank 2");
+    return base::kStatusCodeErrorInvalidParam;
   }
 
-  // check input shape
-  for (size_t i = 1; i < inputs_.size(); i++) {
-    if (inputs_[i]->getShape().size() != inputs_[0]->getShape().size()) {
-      NNDEPLOY_LOGE("input shape is not equal.\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    for (size_t j = 0; j < inputs_[0]->getShape().size(); j++) {
-      if (j == (size_t)axis) {
-        continue;
-      }
-      if (inputs_[i]->getShape()[j] != inputs_[0]->getShape()[j]) {
-        NNDEPLOY_LOGE("op name = %s.\n", op_desc_.name_.c_str());
-        NNDEPLOY_LOGE("input shape[dim = %d] is not equal.[%d] != [%d]\n", i,
-                      inputs_[i]->getShape()[j], inputs_[0]->getShape()[j]);
-        return base::kStatusCodeErrorInvalidParam;
-      }
-    }
-  }
+  base::IntVector output_shape;
+  int32_t dim_0 = trans_a ? first_input_shape[1] : first_input_shape[0];
+  int32_t dim_1 = trans_b ? second_input_shape[0] : second_input_shape[1];
+  output_shape.emplace_back(dim_0);
+  output_shape.emplace_back(dim_1);
 
-  // infer output shape
-  auto output_shape = inputs_[0]->getShape();
-  for (size_t i = 1; i < inputs_.size(); i++) {
-    output_shape[axis] += inputs_[i]->getShape()[axis];
-  }
   outputs_[0]->reshape(output_shape);
 
   return status;
 }
 
-base::Status OpConcat::run() {
+base::Status OpGemm::run() {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
 }
 
-base::Status concat(std::vector<device::Tensor *> input,
-                    std::shared_ptr<ir::ConcatParam> param,
-                    device::Tensor *output) {
+base::Status gemm(device::Tensor * inputs_a,
+device::Tensor * inputs_b,
+device::Tensor * inputs_c,
+                                    std::shared_ptr<ir::GemmParam> param,
+                                    device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input[0]->getDeviceType(), "", ir::kOpTypeConcat);
+  Op *op = createOp(inputs_a->getDeviceType(), "", ir::kOpTypeMaxPool);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
   status = op->setParam(param);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
-  for (size_t i = 0; i < input.size(); i++) {
-    status = op->setInput(input[i], i);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
-  }
+  status = op->setInput(inputs_a, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(inputs_b, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(inputs_c, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setOutput(output, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   status = op->init();
@@ -106,12 +97,11 @@ base::Status concat(std::vector<device::Tensor *> input,
   status = op->deinit();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
   delete op;
-
   return status;
 }
 
 REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu,
-                         ir::kOpTypeConcat, OpConcat)
+                         ir::kOpTypeGemm, OpGemm)
 
 }  // namespace op
 }  // namespace nndeploy

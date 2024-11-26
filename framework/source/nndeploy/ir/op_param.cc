@@ -367,5 +367,9 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeRMSNorm, RMSNormParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeBatchNormalization, BatchNormalizationParam);
 
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeFlatten, FlattenParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeGemm, GemmParam);
+
 }  // namespace ir
 }  // namespace nndeploy

@@ -323,10 +323,10 @@ class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
 
  public:
   // The epsilon value to use to avoid division by zero.
-  float epsilon_ = 1e-05;
+  float epsilon_ = 1e-05f;
   // Factor used in computing the running mean and variance.e.g., running_mean =
   // running_mean * momentum + mean * (1 - momentum).
-  float momentum_ = 0.9;
+  float momentum_ = 0.9f;
   int training_mode_ = 0;
 };
 
@@ -854,6 +854,84 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
  public:
   float eps_ = 1e-6;
   bool is_last_ = false;
+};
+
+class FlattenParam : public OpParam {
+ public:
+  FlattenParam() : OpParam() {};
+  virtual ~FlattenParam() {};
+
+  PARAM_COPY(FlattenParam)
+  PARAM_COPY_TO(FlattenParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("axis_", axis_, allocator);
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("axis_")) {
+      axis_ = json["axis_"].GetInt();
+    } else {
+      axis_ = 1;
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int axis_ = 1;  
+};
+
+class GemmParam : public OpParam {
+ public:
+  GemmParam() : OpParam() {};
+  virtual ~GemmParam() {};
+
+  PARAM_COPY(GemmParam)
+  PARAM_COPY_TO(GemmParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("alpha_", alpha_, allocator);
+    json.AddMember("beta_", beta_, allocator);
+    json.AddMember("trans_a_", trans_a_, allocator);
+    json.AddMember("trans_b_", trans_b_, allocator);
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("alpha_")) {
+      alpha_ = json["alpha_"].GetFloat();
+    } else {
+      alpha_ = 1.0;  // 默认值
+    }
+
+    if (json.HasMember("beta_")) {
+      beta_ = json["beta_"].GetFloat();
+    } else {
+      beta_ = 1.0;  // 默认值
+    }
+
+    if (json.HasMember("trans_a_")) {
+      trans_a_ = json["trans_a_"].GetInt();
+    } else {
+      trans_a_ = 0;  // 默认值
+    }
+
+    if (json.HasMember("trans_b_")) {
+      trans_b_ = json["trans_b_"].GetInt();
+    } else {
+      trans_b_ = 0;  // 默认值
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  float alpha_ = 1.0;  // 默认值为1.0
+  float beta_ = 1.0;  // 默认值为1.0
+  int trans_a_ = 0;  // 默认值为0
+  int trans_b_ = 0;  // 默认值为0
 };
 
 }  // namespace ir
