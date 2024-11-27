@@ -79,3 +79,8 @@ nndeploy_option(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL "ENABLE_NNDEPLOY_DEMO_TENSOR_PO
 if(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL)
   include(${ROOT_PATH}/demo/tensor_pool/config.cmake)
 endif()
+
+nndeploy_option(ENABLE_NNDEPLOY_DEMO_RESNET "ENABLE_NNDEPLOY_DEMO_RESNET" ON)
+if(ENABLE_NNDEPLOY_DEMO_RESNET)
+  include(${ROOT_PATH}/demo/resnet/config.cmake)
+endif()
