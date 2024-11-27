@@ -27,7 +27,6 @@ set(ENABLE_NNDEPLOY_TIME_PROFILER ON) # 时间性能Profile，默认为ON
 set(ENABLE_NNDEPLOY_OPENCV "/home/always/huggingface/nndeploy/third_party/android/opencv-4.8.0-android-sdk") # 是否链接第三方库opencv，默认为OFF
 set(NNDEPLOY_OPENCV_LIBS opencv_java4) # 链接的具体的opencv库名称，例如opencv_world480，opencv_java4等
 set(ENABLE_NNDEPLOY_RAPIDJSON ON)
-set(ENABLE_NNDEPLOY_SAFETENSORS_CPP ON)
 
 # # base
 set(ENABLE_NNDEPLOY_BASE ON) # 是否编译base目录中文件，默认为ON
@@ -118,3 +117,10 @@ set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
 
 # # stable_diffusion
 set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)
+
+# demo
+set(ENABLE_NNDEPLOY_DEMO_LLAMA OFF)
+
+set(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL OFF)
+
+set(ENABLE_NNDEPLOY_DEMO_RESNET OFF)

@@ -12,7 +12,9 @@
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 #include "safetensors.hh"
+#endif
 
 namespace nndeploy {
 namespace device {
@@ -113,13 +115,17 @@ class NNDEPLOY_CC_API Tensor {
   // 序列化模型权重为二进制文件
   base::Status serialize(std::ostream &stream);
 
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
   base::Status serializeToSafetensors(safetensors::safetensors_t &st,
                                       bool serialize_buffer = false);
+#endif
 
   // 从二进制文件反序列化模型权重
   base::Status deserialize(std::istream &stream);
 
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
   base::Status serializeFromSafetensors(const safetensors::safetensors_t &st);
+#endif
 
   // print
   void print(std::ostream &stream = std::cout);
@@ -165,6 +171,7 @@ class NNDEPLOY_CC_API Tensor {
   void *getData() const;
   base::MemoryType getMemoryType() const;
 
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
   static base::Status dtype2SafetensorsDtype(
       const base::DataType &data_type,
       safetensors::dtype &safetensors_data_type);
@@ -179,6 +186,7 @@ class NNDEPLOY_CC_API Tensor {
   static base::Status safetensorsShape2Shape(
       const std::vector<size_t> &safetensors_data_shape,
       base::IntVector &shape);
+#endif
 
   inline int addRef() const { return NNDEPLOY_XADD(ref_count_, 1); }
   inline int subRef() const { return NNDEPLOY_XADD(ref_count_, -1); }

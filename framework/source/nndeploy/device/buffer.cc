@@ -237,6 +237,8 @@ base::Status Buffer::serialize(std::ostream &stream) {
     return base::kStatusCodeOk;
   }
 }
+
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Buffer::serializeToSafetensors(
     safetensors::safetensors_t &st, const safetensors::tensor_t &tensor) {
   uint64_t buffer_size = this->getRealSize();
@@ -264,6 +266,7 @@ base::Status Buffer::serializeToSafetensors(
     return base::kStatusCodeOk;
   }
 }
+#endif
 
 // 从二进制文件反序列化回buffer
 base::Status Buffer::deserialize(std::istream &stream) {

@@ -374,6 +374,7 @@ base::Status Tensor::serialize(std::ostream &stream) {
   }
   return base::kStatusCodeOk;
 }
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::safetensorsDtype2Dtype(
     const safetensors::dtype &safetensors_data_type,
     base::DataType &data_type) {
@@ -424,7 +425,8 @@ base::Status Tensor::safetensorsDtype2Dtype(
   }
   return status;
 }
-
+#endif
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::safetensorsShape2Shape(
     const std::vector<size_t> &safetensors_data_shape, base::IntVector &shape) {
   shape.clear();
@@ -436,7 +438,8 @@ base::Status Tensor::safetensorsShape2Shape(
   }
   return base::kStatusCodeOk;
 }
-
+#endif
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::dtype2SafetensorsDtype(
     const base::DataType &data_type,
     safetensors::dtype &safetensors_data_type) {
@@ -514,7 +517,8 @@ base::Status Tensor::dtype2SafetensorsDtype(
   }
   return status;
 }
-
+#endif
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::shape2SafetensorsShape(
     const base::IntVector &shape, std::vector<size_t> &safetensors_data_shape) {
   safetensors_data_shape.clear();
@@ -523,7 +527,8 @@ base::Status Tensor::shape2SafetensorsShape(
   }
   return base::kStatusCodeOk;
 }
-
+#endif
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::serializeToSafetensors(safetensors::safetensors_t &st,
                                             bool serialize_buffer) {
   // NOTE: we should call not serialize_buffer at first time, then we serialize
@@ -573,7 +578,7 @@ base::Status Tensor::serializeToSafetensors(safetensors::safetensors_t &st,
 
   return base::kStatusCodeOk;
 }
-
+#endif
 // 从二进制文件反序列化模型权重
 base::Status Tensor::deserialize(std::istream &stream) {
   uint64_t name_size = 0;
@@ -614,6 +619,7 @@ base::Status Tensor::deserialize(std::istream &stream) {
   return base::kStatusCodeOk;
 }
 
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::serializeFromSafetensors(
     const safetensors::safetensors_t &st) {
   auto status = base::kStatusCodeOk;
@@ -640,6 +646,7 @@ base::Status Tensor::serializeFromSafetensors(
   //     t_t.data_offsets[1] - t_t.data_offsets[0]);
   return status;
 }
+#endif
 
 // 类似pytorch的打印函数
 void Tensor::print(std::ostream &stream) {
