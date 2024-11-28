@@ -40,6 +40,20 @@ base::Status FuseConvBatchNorm::optimize(
   device::Tensor* var = last_op->op_->getInput(4);
 
   device::Tensor* conv_weight = first_op->op_->getInput(1);
+
+  // TODO: 如果使用safetensor的权重加载方式，tensor的数据指针会mmap到文件上,
+  // 导致权重不可修改； 如果修改会报段错误，使用 copy on write的方式进行修改
+  auto previous_conv_weight = conv_weight;
+  conv_weight = previous_conv_weight->clone();
+  for (auto tensor_wrapper : tensor_repository) {
+    if (tensor_wrapper->tensor_ == previous_conv_weight) {
+      tensor_wrapper->tensor_ = conv_weight;
+      break;
+    }
+  }
+  delete previous_conv_weight;
+  first_op->op_->setInput(conv_weight, 1);
+
   device::Tensor* conv_bias = nullptr;
 
   float* scale_data = reinterpret_cast<float*>(scale->getData());
@@ -58,6 +72,17 @@ base::Status FuseConvBatchNorm::optimize(
   // Conv有bias
   if (first_op->op_->getInput(2) != nullptr) {
     conv_bias = first_op->op_->getInput(2);
+    auto previous_conv_bias = conv_bias;
+    conv_bias = previous_conv_bias->clone();
+    for (auto tensor_wrapper : tensor_repository) {
+      if (tensor_wrapper->tensor_ == previous_conv_bias) {
+        tensor_wrapper->tensor_ = conv_bias;
+        break;
+      }
+    }
+    delete previous_conv_bias;
+    first_op->op_->setInput(conv_bias, 2);
+
   } else {  // Conv没有bias则创建一个bias
     device::TensorDesc conv_bias_desc(base::dataTypeOf<float>(),
                                       base::kDataFormatN, {out_channels});
@@ -76,6 +101,9 @@ base::Status FuseConvBatchNorm::optimize(
 
     // 融合卷积权重
     for (int i = 0; i < in_channels * height * width; i++) {
+      // std::cout << conv_weight_data[i] << std::endl;
+      // conv_weight_data[i] = 0;
+      // std::cout << conv_weight_data[i] << std::endl;
       conv_weight_data[i] =
           conv_weight_data[i] * scale_data[out_channel] / var_sqrt;
     }
@@ -98,6 +126,28 @@ base::Status FuseConvBatchNorm::optimize(
   if (status != base::kStatusCodeOk) {
     return status;
   }
+
+  // for (auto op_wrapper : op_repository) {
+  //   std::cout << op_wrapper->name_ << std::endl;
+  //   std::cout << "produce" << std::endl;
+  //   for (auto pre : op_wrapper->predecessors_) {
+  //     std::cout << pre->name_ << std::endl;
+  //   }
+  //   for (auto con : op_wrapper->successors_) {
+  //     std::cout << con->name_ << std::endl;
+  //   }
+  // }
+
+  // for (auto tensor_wrapper : tensor_repository) {
+  //   std::cout << tensor_wrapper->name_ << std::endl;
+  //   std::cout << "produce" << std::endl;
+  //   for (auto pre : tensor_wrapper->producers_) {
+  //     std::cout << pre->name_ << std::endl;
+  //   }
+  //   for (auto con : tensor_wrapper->consumers_) {
+  //     std::cout << con->name_ << std::endl;
+  //   }
+  // }
 
   return this->optimize(tensor_repository, op_repository, begin_op_index);
 }

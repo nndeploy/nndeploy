@@ -108,28 +108,7 @@ base::Status OptPass::seqPatternMatchUpateTensorRepository(
   // 删除除最后一个op以外所有的输出
   OpWrapper* current_op = first_op;
   while (current_op != last_op) {
-    for (TensorWrapper* tensor : tensor_repository) {
-      if (tensor->producers_.size() != 1) {
-        continue;
-      }
-      if (tensor->producers_[0] == current_op) {
-        // 手动删除成员变量tensor_
-        if (tensor->tensor_ != nullptr) {
-          delete tensor->tensor_;
-          tensor->tensor_ = nullptr;
-        }
-        // 从vector移除该tensor
-        auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
-                            tensor);
-        if (it != tensor_repository.end()) {
-          NNDEPLOY_LOGE("delete tensor name: %s\n", tensor->name_.c_str());
-          tensor_repository.erase(it);
-        }
-        // tensor_repository.erase(tensor);
-        // 删除TensorWrapper对象
-        delete tensor;
-      }
-    }
+    rmOutputTensorAndMaybeDelete(current_op, tensor_repository);
     current_op = current_op->successors_[0];
   }
 
