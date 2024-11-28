@@ -23,6 +23,8 @@ enum OptPassType : int {
   kOptPassTypeFoldConstant,
 };
 
+class Net;
+
 class OptPass {
  public:
   OptPass(std::string name);
@@ -94,13 +96,17 @@ class OptPass {
       OpWrapper* op_wrapper, std::vector<TensorWrapper*>& tensor_repository);
 
   std::string getName();
+  base::Status setNet(Net* net);
 
   virtual base::Status optimize(std::vector<TensorWrapper*>& tensor_repository,
                                 std::vector<OpWrapper*>& op_repository,
                                 int begin_op_index) = 0;
 
- private:
+ protected:
   std::string name_;  // pass名称
+
+  Net* net_ =
+      nullptr;  //该pass所属的Net，可能要修改Net内部的数据，例如释放某些tensor
 };
 
 /**
@@ -186,7 +192,7 @@ class NNDEPLOY_CC_API Optimizer {
   base::Status removePass(OptPassType type);
 
   base::Status optimize(std::vector<TensorWrapper*>& tensor_repository,
-                        std::vector<OpWrapper*>& op_repository);
+                        std::vector<OpWrapper*>& op_repository, Net* net);
 
  protected:
   base::DeviceType device_type_;

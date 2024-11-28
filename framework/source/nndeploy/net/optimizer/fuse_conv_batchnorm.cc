@@ -1,6 +1,7 @@
 
 #include "nndeploy/net/optimizer/fuse_conv_batchnorm.h"
 
+#include "nndeploy/net/net.h"
 namespace nndeploy {
 namespace net {
 FuseConvBatchNorm::FuseConvBatchNorm() : OptPass("FuseConvBatchNorm"){};
@@ -45,6 +46,14 @@ base::Status FuseConvBatchNorm::optimize(
   // 导致权重不可修改； 如果修改会报段错误，使用 copy on write的方式进行修改
   auto previous_conv_weight = conv_weight;
   conv_weight = previous_conv_weight->clone();
+
+  auto net_inputs = this->net_->getAllInput();
+  auto it =
+      std::find(net_inputs.begin(), net_inputs.end(), previous_conv_weight);
+  if (it != net_inputs.end()) {
+    net_->setInput(conv_weight, it - net_inputs.begin());
+  }
+
   for (auto tensor_wrapper : tensor_repository) {
     if (tensor_wrapper->tensor_ == previous_conv_weight) {
       tensor_wrapper->tensor_ = conv_weight;
@@ -74,6 +83,13 @@ base::Status FuseConvBatchNorm::optimize(
     conv_bias = first_op->op_->getInput(2);
     auto previous_conv_bias = conv_bias;
     conv_bias = previous_conv_bias->clone();
+    auto net_inputs = this->net_->getAllInput();
+    auto it =
+        std::find(net_inputs.begin(), net_inputs.end(), previous_conv_bias);
+    if (it != net_inputs.end()) {
+      net_->setInput(conv_bias, it - net_inputs.begin());
+    }
+
     for (auto tensor_wrapper : tensor_repository) {
       if (tensor_wrapper->tensor_ == previous_conv_bias) {
         tensor_wrapper->tensor_ = conv_bias;
@@ -101,9 +117,6 @@ base::Status FuseConvBatchNorm::optimize(
 
     // 融合卷积权重
     for (int i = 0; i < in_channels * height * width; i++) {
-      // std::cout << conv_weight_data[i] << std::endl;
-      // conv_weight_data[i] = 0;
-      // std::cout << conv_weight_data[i] << std::endl;
       conv_weight_data[i] =
           conv_weight_data[i] * scale_data[out_channel] / var_sqrt;
     }
@@ -126,7 +139,6 @@ base::Status FuseConvBatchNorm::optimize(
   if (status != base::kStatusCodeOk) {
     return status;
   }
-
 
   return this->optimize(tensor_repository, op_repository, begin_op_index);
 }

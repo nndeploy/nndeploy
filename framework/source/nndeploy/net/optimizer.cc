@@ -1,5 +1,6 @@
 #include "nndeploy/net/optimizer.h"
 
+#include "nndeploy/net/net.h"
 namespace nndeploy {
 namespace net {
 
@@ -9,6 +10,11 @@ OptPass::OptPass(std::string name) { name_ = name; }
 OptPass::~OptPass() {}
 
 std::string OptPass::getName() { return name_; }
+
+base::Status OptPass::setNet(Net* net) {
+  this->net_ = net;
+  return base::kStatusCodeOk;
+}
 
 /**
  * @brief 模式匹配
@@ -248,6 +254,9 @@ base::Status OptPass::rmOutputTensorAndMaybeDelete(
 
   for (auto tensor_wrapper : to_delete_tensors) {
     if (tensor_wrapper->tensor_ != nullptr) {
+      // 删除 Net中的输入tensor
+      // 在图优化时，部分Tensor被释放，需要删除Net中的对应tensor
+      net_->rmInput(tensor_wrapper->tensor_);
       delete tensor_wrapper->tensor_;
       tensor_wrapper->tensor_ = nullptr;
     }
@@ -280,6 +289,9 @@ base::Status OptPass::rmInputTensorAndMaybeDelete(
 
   for (auto tensor_wrapper : to_delete_tensors) {
     if (tensor_wrapper->tensor_ != nullptr) {
+      // 删除 Net中的输入tensor
+      // 在图优化时，部分Tensor被释放，需要删除Net中的对应tensor
+      net_->rmInput(tensor_wrapper->tensor_);
       delete tensor_wrapper->tensor_;
       tensor_wrapper->tensor_ = nullptr;
     }
@@ -397,11 +409,13 @@ base::Status Optimizer::removePass(OptPassType type) {
   return base::kStatusCodeOk;
 }
 base::Status Optimizer::optimize(std::vector<TensorWrapper*>& tensor_repository,
-                                 std::vector<OpWrapper*>& op_repository) {
+                                 std::vector<OpWrapper*>& op_repository,
+                                 Net* net) {
   base::Status status = base::kStatusCodeOk;
   for (auto& level_map : opt_passes_) {
     for (auto& pass : level_map.second) {
       NNDEPLOY_LOGE("Execute pass: %s\n", pass.second->getName().c_str());
+      pass.second->setNet(net);
       status = pass.second->optimize(tensor_repository, op_repository, 0);
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("optimize failed!\n");
