@@ -125,7 +125,8 @@ struct CSEOpEqual {
   }
 };
 
-EliminateCommonSubexpression::EliminateCommonSubexpression() {}
+EliminateCommonSubexpression::EliminateCommonSubexpression()
+    : OptPass("EliminateCommonSubexpression") {}
 
 EliminateCommonSubexpression::~EliminateCommonSubexpression() {}
 
@@ -208,7 +209,7 @@ base::Status EliminateCommonSubexpression::optimize(
 
 TypeOptPassRegister<TypeOptPassCreator<EliminateCommonSubexpression>>
     g_eliminate_common_subexpression_register(
-        base::kDeviceTypeCodeCpu, kOptPassTypeEliminateCommonSubexpression);
+        base::kDeviceTypeCodeCpu, kOptPassTypeEliminateCommonSubexpression, 3);
 
 }  // namespace net
 

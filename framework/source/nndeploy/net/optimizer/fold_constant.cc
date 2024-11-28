@@ -93,7 +93,7 @@ base::Status runOp(const OpWrapper* op_wrapper) {
   return status;
 }
 
-FoldConstant::FoldConstant(){};
+FoldConstant::FoldConstant() : OptPass("FoldConstant"){};
 FoldConstant::~FoldConstant(){};
 
 base::Status FoldConstant::optimize(
@@ -161,7 +161,7 @@ base::Status FoldConstant::optimize(
 }
 
 TypeOptPassRegister<TypeOptPassCreator<FoldConstant>> g_fold_constant_register(
-    base::kDeviceTypeCodeCpu, kOptPassTypeFoldConstant);
+    base::kDeviceTypeCodeCpu, kOptPassTypeFoldConstant, 5);
 
 }  // namespace net
 

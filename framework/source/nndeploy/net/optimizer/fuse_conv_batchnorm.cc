@@ -3,7 +3,7 @@
 
 namespace nndeploy {
 namespace net {
-FuseConvBatchNorm::FuseConvBatchNorm(){};
+FuseConvBatchNorm::FuseConvBatchNorm() : OptPass("FuseConvBatchNorm"){};
 FuseConvBatchNorm::~FuseConvBatchNorm(){};
 
 base::Status FuseConvBatchNorm::optimize(
@@ -127,34 +127,14 @@ base::Status FuseConvBatchNorm::optimize(
     return status;
   }
 
-  // for (auto op_wrapper : op_repository) {
-  //   std::cout << op_wrapper->name_ << std::endl;
-  //   std::cout << "produce" << std::endl;
-  //   for (auto pre : op_wrapper->predecessors_) {
-  //     std::cout << pre->name_ << std::endl;
-  //   }
-  //   for (auto con : op_wrapper->successors_) {
-  //     std::cout << con->name_ << std::endl;
-  //   }
-  // }
-
-  // for (auto tensor_wrapper : tensor_repository) {
-  //   std::cout << tensor_wrapper->name_ << std::endl;
-  //   std::cout << "produce" << std::endl;
-  //   for (auto pre : tensor_wrapper->producers_) {
-  //     std::cout << pre->name_ << std::endl;
-  //   }
-  //   for (auto con : tensor_wrapper->consumers_) {
-  //     std::cout << con->name_ << std::endl;
-  //   }
-  // }
 
   return this->optimize(tensor_repository, op_repository, begin_op_index);
 }
 
 TypeOptPassRegister<TypeOptPassCreator<FuseConvBatchNorm>>
     g_fuse_conv_batchnorm_register(base::kDeviceTypeCodeCpu,
-                                   kOptPassTypeFuseConvBatchNorm);
+                                   kOptPassTypeFuseConvBatchNorm,
+                                   /*优化等级*/ 1);
 
 }  // namespace net
 }  // namespace nndeploy
