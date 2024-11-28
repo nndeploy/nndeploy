@@ -23,9 +23,11 @@ enum OptPassType : int {
   kOptPassTypeFoldConstant,
 };
 
+class Net;
+
 class OptPass {
  public:
-  OptPass();
+  OptPass(std::string name);
   virtual ~OptPass();
 
   /**
@@ -93,9 +95,18 @@ class OptPass {
   virtual base::Status rmOutputTensorAndMaybeDelete(
       OpWrapper* op_wrapper, std::vector<TensorWrapper*>& tensor_repository);
 
+  std::string getName();
+  base::Status setNet(Net* net);
+
   virtual base::Status optimize(std::vector<TensorWrapper*>& tensor_repository,
                                 std::vector<OpWrapper*>& op_repository,
                                 int begin_op_index) = 0;
+
+ protected:
+  std::string name_;  // pass名称
+
+  Net* net_ =
+      nullptr;  //该pass所属的Net，可能要修改Net内部的数据，例如释放某些tensor
 };
 
 /**
@@ -124,11 +135,10 @@ class TypeOptPassCreator : public OptPassCreator {
 /**
  * @brief Get the Global OptPass Creator Map object
  *
- * @return std::map<ExecutorType, std::map<const std::string &,
- * std::shared_ptr<OptPassCreator>>>&
+ *  设备类型  ->  优化等级  -> Pass类型
  */
 std::map<base::DeviceTypeCode,
-         std::map<OptPassType, std::shared_ptr<OptPassCreator>>>&
+         std::map<int, std::map<OptPassType, std::shared_ptr<OptPassCreator>>>>&
 getGlobalOptPassCreatorMap();
 
 /**
@@ -139,22 +149,33 @@ getGlobalOptPassCreatorMap();
 template <typename T>
 class TypeOptPassRegister {
  public:
+  /**
+   * level表示优先级，数字越小，优先级越高，在图优化时先执行，最高优先级
+   * level=1； 例如FuseConvBatchNorm在FuseConvRelu之前运行
+   */
   explicit TypeOptPassRegister(base::DeviceTypeCode device_type_code,
-                               OptPassType type) {
+                               OptPassType type, int level) {
     auto& creator_map = getGlobalOptPassCreatorMap();
     auto device_map = creator_map.find(device_type_code);
     if (device_map == creator_map.end()) {
       creator_map[device_type_code] =
+          std::map<int,
+                   std::map<OptPassType, std::shared_ptr<OptPassCreator>>>();
+    }
+    auto level_map = creator_map[device_type_code].find(level);
+    if (level_map == creator_map[device_type_code].end()) {
+      creator_map[device_type_code][level] =
           std::map<OptPassType, std::shared_ptr<OptPassCreator>>();
     }
-    auto creator = creator_map[device_type_code].find(type);
-    if (creator == creator_map[device_type_code].end()) {
-      creator_map[device_type_code][type] = std::shared_ptr<T>(new T());
+
+    auto creator = creator_map[device_type_code][level].find(type);
+    if (creator == creator_map[device_type_code][level].end()) {
+      creator_map[device_type_code][level][type] = std::shared_ptr<T>(new T());
     }
   }
 };
 
-std::shared_ptr<OptPass> createOptPass(base::DeviceType device_type,
+std::shared_ptr<OptPass> createOptPass(base::DeviceType device_type, int level,
                                        OptPassType type);
 
 class NNDEPLOY_CC_API Optimizer {
@@ -167,15 +188,17 @@ class NNDEPLOY_CC_API Optimizer {
                     std::set<OptPassType> disable_pass);
   base::Status deinit();
 
-  base::Status addPass(OptPassType type);
+  base::Status addPass(OptPassType type, int level);
   base::Status removePass(OptPassType type);
 
   base::Status optimize(std::vector<TensorWrapper*>& tensor_repository,
-                        std::vector<OpWrapper*>& op_repository);
+                        std::vector<OpWrapper*>& op_repository, Net* net);
 
  protected:
   base::DeviceType device_type_;
-  std::map<OptPassType, std::shared_ptr<OptPass>> opt_passes_;
+  std::map<int, std::map<OptPassType, std::shared_ptr<OptPass>>>
+      opt_passes_;  // 第一个key是优先级，数字越小， 优先级越高，
+                    // 在图优化时首先执行这个pass
 };
 
 }  // namespace net

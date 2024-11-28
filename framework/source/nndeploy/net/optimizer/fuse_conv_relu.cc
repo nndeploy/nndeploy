@@ -4,7 +4,7 @@
 namespace nndeploy {
 namespace net {
 
-FuseConvRelu::FuseConvRelu() {}
+FuseConvRelu::FuseConvRelu() : OptPass("FuseConvRelu") {}
 
 FuseConvRelu::~FuseConvRelu() {}
 
@@ -67,7 +67,7 @@ base::Status FuseConvRelu::optimize(
 }
 
 TypeOptPassRegister<TypeOptPassCreator<FuseConvRelu>> g_fuse_conv_relu_register(
-    base::kDeviceTypeCodeCpu, kOptPassTypeFuseConvRelu);
+    base::kDeviceTypeCodeCpu, kOptPassTypeFuseConvRelu, /*优化等级 */ 2);
 
 }  // namespace net
 }  // namespace nndeploy

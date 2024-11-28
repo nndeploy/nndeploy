@@ -179,6 +179,14 @@ std::vector<std::string> Op::getAllOutputName() { return op_desc_.outputs_; }
 std::vector<device::Tensor *> Op::getAllInput() { return inputs_; }
 std::vector<device::Tensor *> Op::getAllOutput() { return outputs_; }
 
+base::Status Op::rmInput(device::Tensor *input) {
+  auto it = std::find(inputs_.begin(), inputs_.end(), input);
+  if (it != inputs_.end()) {
+    inputs_.erase(it);
+  }
+  return base::kStatusCodeOk;
+}
+
 base::Status Op::setAllInput(std::vector<device::Tensor *> inputs) {
   op_desc_.inputs_.clear();
   for (size_t i = 0; i < inputs.size(); ++i) {

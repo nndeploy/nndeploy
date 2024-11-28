@@ -3,7 +3,7 @@
 namespace nndeploy {
 
 namespace net {
-EliminateDeadOp::EliminateDeadOp(){};
+EliminateDeadOp::EliminateDeadOp() : OptPass("EliminateDeadOp"){};
 EliminateDeadOp::~EliminateDeadOp(){};
 
 base::Status EliminateDeadOp::optimize(
@@ -78,7 +78,7 @@ base::Status EliminateDeadOp::optimize(
 
 TypeOptPassRegister<TypeOptPassCreator<EliminateDeadOp>>
     g_eliminate_dead_op_register(base::kDeviceTypeCodeCpu,
-                                 kOptPassTypeEliminateDeadOp);
+                                 kOptPassTypeEliminateDeadOp, 3);
 
 }  // namespace net
 

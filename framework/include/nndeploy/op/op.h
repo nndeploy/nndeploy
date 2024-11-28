@@ -92,6 +92,8 @@ class NNDEPLOY_CC_API Op {
   std::vector<device::Tensor *> getAllInput();
   std::vector<device::Tensor *> getAllOutput();
 
+  base::Status rmInput(device::Tensor *tensor);
+
   base::Status setAllInput(std::vector<device::Tensor *> inputs);
   base::Status setAllOutput(std::vector<device::Tensor *> outputs);
 

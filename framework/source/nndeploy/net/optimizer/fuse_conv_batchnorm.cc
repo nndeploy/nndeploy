@@ -1,9 +1,10 @@
 
 #include "nndeploy/net/optimizer/fuse_conv_batchnorm.h"
 
+#include "nndeploy/net/net.h"
 namespace nndeploy {
 namespace net {
-FuseConvBatchNorm::FuseConvBatchNorm(){};
+FuseConvBatchNorm::FuseConvBatchNorm() : OptPass("FuseConvBatchNorm"){};
 FuseConvBatchNorm::~FuseConvBatchNorm(){};
 
 base::Status FuseConvBatchNorm::optimize(
@@ -40,6 +41,28 @@ base::Status FuseConvBatchNorm::optimize(
   device::Tensor* var = last_op->op_->getInput(4);
 
   device::Tensor* conv_weight = first_op->op_->getInput(1);
+
+  // TODO: 如果使用safetensor的权重加载方式，tensor的数据指针会mmap到文件上,
+  // 导致权重不可修改； 如果修改会报段错误，使用 copy on write的方式进行修改
+  auto previous_conv_weight = conv_weight;
+  conv_weight = previous_conv_weight->clone();
+
+  auto net_inputs = this->net_->getAllInput();
+  auto it =
+      std::find(net_inputs.begin(), net_inputs.end(), previous_conv_weight);
+  if (it != net_inputs.end()) {
+    net_->setInput(conv_weight, it - net_inputs.begin());
+  }
+
+  for (auto tensor_wrapper : tensor_repository) {
+    if (tensor_wrapper->tensor_ == previous_conv_weight) {
+      tensor_wrapper->tensor_ = conv_weight;
+      break;
+    }
+  }
+  delete previous_conv_weight;
+  first_op->op_->setInput(conv_weight, 1);
+
   device::Tensor* conv_bias = nullptr;
 
   float* scale_data = reinterpret_cast<float*>(scale->getData());
@@ -58,6 +81,24 @@ base::Status FuseConvBatchNorm::optimize(
   // Conv有bias
   if (first_op->op_->getInput(2) != nullptr) {
     conv_bias = first_op->op_->getInput(2);
+    auto previous_conv_bias = conv_bias;
+    conv_bias = previous_conv_bias->clone();
+    auto net_inputs = this->net_->getAllInput();
+    auto it =
+        std::find(net_inputs.begin(), net_inputs.end(), previous_conv_bias);
+    if (it != net_inputs.end()) {
+      net_->setInput(conv_bias, it - net_inputs.begin());
+    }
+
+    for (auto tensor_wrapper : tensor_repository) {
+      if (tensor_wrapper->tensor_ == previous_conv_bias) {
+        tensor_wrapper->tensor_ = conv_bias;
+        break;
+      }
+    }
+    delete previous_conv_bias;
+    first_op->op_->setInput(conv_bias, 2);
+
   } else {  // Conv没有bias则创建一个bias
     device::TensorDesc conv_bias_desc(base::dataTypeOf<float>(),
                                       base::kDataFormatN, {out_channels});
@@ -104,7 +145,8 @@ base::Status FuseConvBatchNorm::optimize(
 
 TypeOptPassRegister<TypeOptPassCreator<FuseConvBatchNorm>>
     g_fuse_conv_batchnorm_register(base::kDeviceTypeCodeCpu,
-                                   kOptPassTypeFuseConvBatchNorm);
+                                   kOptPassTypeFuseConvBatchNorm,
+                                   /*优化等级*/ 1);
 
 }  // namespace net
 }  // namespace nndeploy
