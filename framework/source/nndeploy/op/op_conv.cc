@@ -186,16 +186,28 @@ base::Status OpConv::run() {
           }
 
           // 融合算子
-          if (param->is_fusion_op_) {
-            switch (param->activate_op_) {
-              case ir::kOpTypeRelu:
-                value = value > 0.0f ? value : 0.0f;
-                break;
+          switch (param->activate_op_) {
+            // NOT FUSE
+            case ir::kOpTypeNone:
+              break;
 
-              default:
-                NNDEPLOY_LOGI("not implemented.\n");
-                return base::kStatusCodeOk;
-            }
+            case ir::kOpTypeRelu:
+              value = value > 0.0f ? value : 0.0f;
+              break;
+            case ir::kOpTypeSigmoid:
+              value = 1.0 / (1.0 + exp(-value));
+              break;
+            case ir::kOpTypeTanh:
+              value = tanh(value);
+              break;
+
+              // case ir::kOpTypeRelu6:
+              //   value = value > 0.0f ? (value < 6.0f ? value : 6.0f) : 0.0f;
+              //   break;
+
+            default:
+              NNDEPLOY_LOGI("not implemented.\n");
+              return base::kStatusCodeOk;
           }
           output_data[n * weight_shape[0] * output_height * output_width +
                       f * output_height * output_width + y * output_width + x] =
