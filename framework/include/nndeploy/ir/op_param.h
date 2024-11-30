@@ -856,7 +856,7 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
   bool is_last_ = false;
 };
 
-class FlattenParam : public OpParam {
+class NNDEPLOY_CC_API FlattenParam : public OpParam {
  public:
   FlattenParam() : OpParam(){};
   virtual ~FlattenParam(){};
@@ -883,7 +883,7 @@ class FlattenParam : public OpParam {
   int axis_ = 1;
 };
 
-class GemmParam : public OpParam {
+class NNDEPLOY_CC_API GemmParam : public OpParam {
  public:
   GemmParam() : OpParam(){};
   virtual ~GemmParam(){};

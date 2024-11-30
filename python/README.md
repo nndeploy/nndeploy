@@ -72,3 +72,8 @@ RuntimeError: Unable to load a custom holder type from a default-holder instance
 ```
 py::class_<op::Expr,std::shared_ptr<op::Expr>>(m, "Expr")
 ```
+
+如果修改了还报错，将所有返回std::shared_ptr的函数的返回值管理策略改为` py::return_value_policy::reference`
+
+如何查看是哪个class的问题？
+使用python和cpp联合调试，看代码崩溃的栈调用，会显示死在哪个class的析构上

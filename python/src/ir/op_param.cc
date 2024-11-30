@@ -97,6 +97,18 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       .def(py::init<>())
       .def_readwrite("eps_", &RMSNormParam::eps_)
       .def_readwrite("is_last_", &RMSNormParam::is_last_);
+
+  py::class_<FlattenParam, OpParam, std::shared_ptr<FlattenParam>>(
+      m, "FlattenParam")
+      .def(py::init<>())
+      .def_readwrite("axis_", &FlattenParam::axis_);
+
+  py::class_<GemmParam, OpParam, std::shared_ptr<GemmParam>>(m, "GemmParam")
+      .def(py::init<>())
+      .def_readwrite("alpha_", &GemmParam::alpha_)
+      .def_readwrite("beta_", &GemmParam::beta_)
+      .def_readwrite("trans_a_", &GemmParam::trans_a_)
+      .def_readwrite("trans_b_", &GemmParam::trans_b_);
 }
 }  // namespace ir
 }  // namespace nndeploy

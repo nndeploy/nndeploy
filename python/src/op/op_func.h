@@ -4,8 +4,14 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "nndeploy/ir/op_param.h"
+#include "nndeploy/op/op_add.h"
 #include "nndeploy/op/op_batchnorm.h"
 #include "nndeploy/op/op_conv.h"
+#include "nndeploy/op/op_flatten.h"
+#include "nndeploy/op/op_gemm.h"
+#include "nndeploy/op/op_global_averagepool.h"
+#include "nndeploy/op/op_maxpool.h"
 #include "nndeploy/op/op_relu.h"
 #include "nndeploy/op/op_rmsnorm.h"
 
@@ -29,6 +35,20 @@ device::Tensor* batchNormFunc(
     std::shared_ptr<ir::BatchNormalizationParam> param);
 
 device::Tensor* reluFunc(device::Tensor* input);
+
+device::Tensor* addFunc(device::Tensor* input1, device::Tensor* input2);
+
+device::Tensor* flattenFunc(device::Tensor* input,
+                            std::shared_ptr<ir::FlattenParam> param);
+
+device::Tensor* gemmFunc(device::Tensor* inputs_a, device::Tensor* inputs_b,
+                         device::Tensor* inputs_c,
+                         std::shared_ptr<ir::GemmParam> param);
+
+device::Tensor* globalAveragepoolFunc(device::Tensor* input);
+
+device::Tensor* maxPoolFunc(device::Tensor* input,
+                            std::shared_ptr<ir::MaxPoolParam> param);
 
 }  // namespace nndeploy
 
