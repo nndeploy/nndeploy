@@ -5,15 +5,20 @@
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/net/util.h"
 #include "nndeploy/op/op.h"
+#include <unordered_map>
+#include <unordered_set>
 
 namespace nndeploy {
 namespace net {
+  // help types
+using OpSet = std::unordered_set<ir::OpType>;
 
 enum OptPassType : int {
   // Operator fusion
   kOptPassTypeFuseConvBias,
   kOptPassTypeFuseConvBatchNorm,
   kOptPassTypeFuseConvRelu,
+  kOptPassTypeFuseConvAct,
 
   // Eliminate useless op
   kOptPassTypeEliminateCommonSubexpression,

@@ -53,7 +53,7 @@ base::Status FuseConvRelu::optimize(
   first_op->op_->setAllOutput(outputs_tensors);  // 修改Conv的输出为Relu的输出
   // # 修改op_desc_：输出和参数融合
   ir::ConvParam* ConvParam = (ir::ConvParam*)first_op->op_->getParam().get();
-  ConvParam->is_fusion_op_ = true;
+  // ConvParam->is_fusion_op_ = true;
   ConvParam->activate_op_ = ir::kOpTypeRelu;
 
   // 4. 更新op_repository
