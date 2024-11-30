@@ -63,6 +63,11 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
                                                std::shared_ptr<Expr> input,
                                                std::string op_name = "",
                                                std::string output_name = "");
+// relu
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeSigmoid(ir::ModelDesc *model_desc,
+                                                  std::shared_ptr<Expr> input,
+                                                  std::string op_name = "",
+                                                  std::string output_name = "");
 
 // softmax
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftMax(

@@ -219,6 +219,38 @@ std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
   return expr;
 }
 
+// sigmoid
+std::shared_ptr<Expr> makeSigmoid(ir::ModelDesc *model_desc,
+                                  std::shared_ptr<Expr> input,
+                                  std::string op_name,
+                                  std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "sigmoid" + std::to_string(index);
+    } else {
+      name = "sigmoid";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  // 节点输出
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeSigmoid, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
 // batchnorm
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeBatchNorm(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
