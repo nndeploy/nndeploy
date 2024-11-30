@@ -28,7 +28,7 @@ base::Status OpGemm::inferShape() {
     NNDEPLOY_LOGE("inputs_.size() < 2.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  auto param = dynamic_cast<ir::GemmParam *>(op_desc_.op_param_.get());
+  auto param = dynamic_cast<ir::GemmParam*>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
 
   bool trans_a = param->trans_a_ != 0;
@@ -56,17 +56,79 @@ base::Status OpGemm::inferShape() {
 }
 
 base::Status OpGemm::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
+  // 获取输入和输出张量
+  device::Tensor* input_a = inputs_[0];
+  device::Tensor* input_b = inputs_[1];
+  device::Tensor* input_c =
+      inputs_.size() > 2 ? inputs_[2] : nullptr;  // 可选的偏置矩阵
+  device::Tensor* output = outputs_[0];
+
+  // 获取输入张量的形状
+  base::IntVector shape_a = input_a->getShape();
+  base::IntVector shape_b = input_b->getShape();
+  base::IntVector shape_c = input_c ? input_c->getShape() : base::IntVector();
+
+  // 获取参数
+  auto param = dynamic_cast<ir::GemmParam*>(op_desc_.op_param_.get());
+  if (!param) {
+    NNDEPLOY_LOGE("Failed to cast op param to GemmParam\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  // 确定矩阵乘法的维度
+  size_t M = param->trans_a_ ? shape_a[1] : shape_a[0];
+  size_t N = param->trans_b_ ? shape_b[0] : shape_b[1];
+  size_t K = param->trans_a_ ? shape_a[0] : shape_a[1];
+
+  // 确保输入张量的形状与参数一致
+  if ((param->trans_b_ ? shape_b[1] : shape_b[0]) != K) {
+    NNDEPLOY_LOGE(
+        "Input shapes are not compatible for matrix multiplication.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  // 确保偏置矩阵的形状与输出张量的形状一致（如果存在）
+  if (input_c && shape_c.size() > 0 &&
+      (shape_c.size() != 2 || shape_c[0] != M || shape_c[1] != N)) {
+    NNDEPLOY_LOGE("Bias matrix shape does not match output shape.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  // 获取输入和输出张量的数据指针
+  float* data_a = reinterpret_cast<float*>(input_a->getData());
+  float* data_b = reinterpret_cast<float*>(input_b->getData());
+  float* data_c =
+      input_c ? reinterpret_cast<float*>(input_c->getData()) : nullptr;
+  float* data_output = reinterpret_cast<float*>(output->getData());
+
+  // 执行矩阵乘法
+  for (size_t m = 0; m < M; ++m) {
+    for (size_t n = 0; n < N; ++n) {
+      float sum = 0.0f;
+      for (size_t k = 0; k < K; ++k) {
+        size_t a_index = param->trans_a_ ? (k * M + m) : (m * K + k);
+        size_t b_index = param->trans_b_ ? (n * K + k) : (k * N + n);
+        sum += data_a[a_index] * data_b[b_index];
+      }
+      if (data_c) {
+        sum += param->beta_ * data_c[m * N + n];
+      }
+      data_output[m * N + n] = param->alpha_ * sum;
+    }
+  }
+
+  return base::kStatusCodeOk;
+
   return base::kStatusCodeOk;
 }
 
-base::Status gemm(device::Tensor *inputs_a, device::Tensor *inputs_b,
-                  device::Tensor *inputs_c,
+base::Status gemm(device::Tensor* inputs_a, device::Tensor* inputs_b,
+                  device::Tensor* inputs_c,
                   std::shared_ptr<ir::GemmParam> param,
-                  device::Tensor *output) {
+                  device::Tensor* output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(inputs_a->getDeviceType(), "", ir::kOpTypeMaxPool);
+  Op* op = createOp(inputs_a->getDeviceType(), "", ir::kOpTypeGemm);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -75,10 +137,12 @@ base::Status gemm(device::Tensor *inputs_a, device::Tensor *inputs_b,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
   status = op->setInput(inputs_a, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
-  status = op->setInput(inputs_b, 0);
+  status = op->setInput(inputs_b, 1);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
-  status = op->setInput(inputs_c, 0);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  if (inputs_c != nullptr) {
+    status = op->setInput(inputs_c, 2);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  }
   status = op->setOutput(output, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   status = op->init();

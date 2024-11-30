@@ -44,14 +44,46 @@ base::Status OpGlobalAveragepool::inferShape() {
 }
 
 base::Status OpGlobalAveragepool::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
+  // 获取输入和输出张量
+  device::Tensor* input_tensor = inputs_[0];
+  device::Tensor* output_tensor = outputs_[0];
+
+  // 获取输入张量的形状
+  base::IntVector input_shape = input_tensor->getShape();
+
+  // 获取输入和输出张量的数据指针
+  float* input_data = reinterpret_cast<float*>(input_tensor->getData());
+  float* output_data = reinterpret_cast<float*>(output_tensor->getData());
+
+  // 计算输入张量的总元素数量（不包括 batch 和 channels）
+  size_t total_elements = std::accumulate(
+      input_shape.begin() + 2, input_shape.end(), 1, std::multiplies<size_t>());
+
+  // 计算全局平均池化
+  for (size_t b = 0; b < input_shape[0]; ++b) {    // batch dimension
+    for (size_t c = 0; c < input_shape[1]; ++c) {  // channel dimension
+      float sum = 0.0f;
+      // size_t total_elements = 1;
+      // for (size_t i = 2; i < input_shape.size(); ++i) {
+      //   total_elements *= input_shape[i];
+      // }
+      size_t input_index =
+          b * input_shape[1] * total_elements + c * total_elements;
+      for (size_t e = 0; e < total_elements; ++e) {
+        sum += input_data[input_index++];
+      }
+      output_data[b * input_shape[1] + c] =
+          sum / static_cast<float>(total_elements);
+    }
+  }
+
   return base::kStatusCodeOk;
 }
 
-base::Status globalAveragepool(device::Tensor *input, device::Tensor *output) {
+base::Status globalAveragepool(device::Tensor* input, device::Tensor* output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeMaxPool);
+  Op* op = createOp(input->getDeviceType(), "", ir::kOpTypeGlobalAveragePool);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;

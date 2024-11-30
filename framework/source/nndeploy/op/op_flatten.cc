@@ -31,7 +31,7 @@ base::Status OpFlatten::inferShape() {
     return base::kStatusCodeErrorInvalidParam;
   }
   // 参数
-  auto param = dynamic_cast<ir::FlattenParam *>(op_desc_.op_param_.get());
+  auto param = dynamic_cast<ir::FlattenParam*>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int axis = param->axis_;
   int rank = inputs_[0]->getShape().size();
@@ -54,16 +54,51 @@ base::Status OpFlatten::inferShape() {
 }
 
 base::Status OpFlatten::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
+  // 获取输入和输出张量
+  device::Tensor* input_tensor = inputs_[0];
+  device::Tensor* output_tensor = outputs_[0];
+
+  // 获取输入张量的形状
+  base::IntVector input_shape = input_tensor->getShape();
+
+  // 获取参数
+  auto param = dynamic_cast<ir::FlattenParam*>(op_desc_.op_param_.get());
+  if (!param) {
+    NNDEPLOY_LOGE("Failed to cast op param to FlattenParam\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  // 计算展平的轴
+  int axis = param->axis_;
+  int rank = input_shape.size();
+  if (axis < 0) {
+    axis += rank;
+  }
+  if (axis < 0 || axis >= rank) {
+    NNDEPLOY_LOGE("Axis is out of range\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  // 获取输入和输出张量的数据指针
+  float* input_data = reinterpret_cast<float*>(input_tensor->getData());
+  float* output_data = reinterpret_cast<float*>(output_tensor->getData());
+
+  size_t elem_cnt = std::accumulate(input_shape.begin(), input_shape.end(), 1,
+                                    std::multiplies<size_t>());
+
+  // 直接拷贝数据
+  std::memcpy(output_data, input_data,
+              elem_cnt * (input_tensor->getDataType().bits_ / 8));
+
   return base::kStatusCodeOk;
 }
 
-base::Status flatten(device::Tensor *input,
+base::Status flatten(device::Tensor* input,
                      std::shared_ptr<ir::FlattenParam> param,
-                     device::Tensor *output) {
+                     device::Tensor* output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeMaxPool);
+  Op* op = createOp(input->getDeviceType(), "", ir::kOpTypeFlatten);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
