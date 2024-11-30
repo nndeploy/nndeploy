@@ -10,6 +10,10 @@
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/rapidjson_include.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/device/tensor.h"
@@ -390,11 +394,15 @@ class NNDEPLOY_CC_API ConvParam : public OpParam {
     for (size_t i = 0; i < strides_.size(); ++i) {
       json["strides_"].PushBack(strides_[i], allocator);
     }
-    json.AddMember("is_fusion_op_", is_fusion_op_, allocator);
     json.AddMember(
         "activate_op_",
         rapidjson::Value(opTypeToString(activate_op_).c_str(), allocator),
         allocator);
+    if (activate_op_ != kOpTypeNone && fused_op_param_ != nullptr) {
+      rapidjson::Value op_desc_json(rapidjson::kObjectType);
+      fused_op_param_->serialize(op_desc_json, allocator);
+      json.AddMember("fused_op_param_", op_desc_json, allocator);
+    }
     return base::kStatusCodeOk;
   }
   base::Status deserialize(rapidjson::Value &json) {
@@ -446,16 +454,13 @@ class NNDEPLOY_CC_API ConvParam : public OpParam {
       strides_ = {1, 1};
     }
 
-    if (json.HasMember("is_fusion_op_")) {
-      is_fusion_op_ = json["is_fusion_op_"].GetBool();
-    } else {
-      is_fusion_op_ = false;
-    }
-
     if (json.HasMember("activate_op_")) {
       activate_op_ = stringToOpType(json["activate_op_"].GetString());
     } else {
       activate_op_ = kOpTypeRelu;
+    }
+    if (json.HasMember("fused_op_param_")) {
+      fused_op_param_->deserialize(json["fused_op_param_"]);
     }
 
     return base::kStatusCodeOk;
@@ -476,8 +481,8 @@ class NNDEPLOY_CC_API ConvParam : public OpParam {
   std::vector<int> strides_ = {1, 1};
 
   // 基于onnx扩展的参数
-  bool is_fusion_op_ = false;
-  OpType activate_op_ = kOpTypeRelu;
+  OpType activate_op_ = kOpTypeNone;
+  OpParam* fused_op_param_ = nullptr;
 };
 // MaxPool 参数类
 class NNDEPLOY_CC_API MaxPoolParam : public OpParam {
