@@ -456,11 +456,12 @@ class NNDEPLOY_CC_API ConvParam : public OpParam {
 
     if (json.HasMember("activate_op_")) {
       activate_op_ = stringToOpType(json["activate_op_"].GetString());
+      fused_op_param_ = createOpParam(activate_op_);
+      if (json.HasMember("fused_op_param_")) {
+        fused_op_param_->deserialize(json["fused_op_param_"]);
+      }
     } else {
-      activate_op_ = kOpTypeRelu;
-    }
-    if (json.HasMember("fused_op_param_")) {
-      fused_op_param_->deserialize(json["fused_op_param_"]);
+      activate_op_ = kOpTypeNone;
     }
 
     return base::kStatusCodeOk;
@@ -482,7 +483,8 @@ class NNDEPLOY_CC_API ConvParam : public OpParam {
 
   // 基于onnx扩展的参数
   OpType activate_op_ = kOpTypeNone;
-  OpParam* fused_op_param_ = nullptr;
+  // OpParam* fused_op_param_ = nullptr;
+  std::shared_ptr<base::Param> fused_op_param_ = nullptr;
 };
 // MaxPool 参数类
 class NNDEPLOY_CC_API MaxPoolParam : public OpParam {

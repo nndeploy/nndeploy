@@ -29,17 +29,22 @@ int64_t GetShapeSize(const std::vector<int64_t>& shape) {
 
 int Init(int32_t deviceId, aclrtStream* stream) {
   // 固定写法，AscendCL初始化
+  NNDEPLOY_LOGE("BK.\n");
   auto ret = aclInit(nullptr);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclInit failed. ERROR: %d\n", ret);
             return ret);
+  NNDEPLOY_LOGE("BK.\n");
   ret = aclrtSetDevice(deviceId);
   CHECK_RET(ret == ACL_SUCCESS,
             LOG_PRINT("aclrtSetDevice failed. ERROR: %d\n", ret);
             return ret);
+
+  NNDEPLOY_LOGE("BK.\n");
   ret = aclrtCreateStream(stream);
   CHECK_RET(ret == ACL_SUCCESS,
             LOG_PRINT("aclrtCreateStream failed. ERROR: %d\n", ret);
             return ret);
+  NNDEPLOY_LOGE("BK.\n");
   return 0;
 }
 
@@ -74,12 +79,14 @@ int CreateAclTensor(const std::vector<T>& hostData,
 }
 
 int main() {
+  NNDEPLOY_LOGE("BK.\n");
   int nndp_ret = nndeployFrameworkInit();
   if (nndp_ret != 0) {
     NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", nndp_ret);
     return nndp_ret;
   }
 
+  NNDEPLOY_LOGE("BK.\n");
   // 1. （固定写法）device/stream初始化，参考AscendCL对外接口列表
   // 根据自己的实际device填写deviceId
   int32_t deviceId = 0;
@@ -105,6 +112,7 @@ int main() {
   ret = CreateAclTensor(outHostData, outShape, &outDeviceAddr,
                         aclDataType::ACL_FLOAT, &out);
   CHECK_RET(ret == ACL_SUCCESS, return ret);
+  NNDEPLOY_LOGE("BK.\n");
 
   // 3. 调用CANN算子库API，需要修改为具体的Api名称
   uint64_t workspaceSize = 0;
@@ -129,6 +137,7 @@ int main() {
             LOG_PRINT("aclnnSoftmax failed. ERROR: %d\n", ret);
             return ret);
 
+  NNDEPLOY_LOGE("BK.\n");
   // 4. （固定写法）同步等待任务执行结束
   ret = aclrtSynchronizeStream(stream);
   CHECK_RET(ret == ACL_SUCCESS,
@@ -150,6 +159,7 @@ int main() {
     LOG_PRINT("result[%ld] is: %f\n", i, resultData[i]);
   }
 
+  NNDEPLOY_LOGE("BK.\n");
   // 6. 释放aclTensor和aclScalar，需要根据具体API的接口定义修改
   aclDestroyTensor(self);
   aclDestroyTensor(out);

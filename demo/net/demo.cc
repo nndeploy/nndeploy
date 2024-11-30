@@ -94,7 +94,7 @@ int main() {
 
   base::DeviceType device_type;
   device_type.code_ = base::kDeviceTypeCodeCpu;
-  // device_type.code_ = base::kDeviceTypeCodeAscendCL;
+  device_type.code_ = base::kDeviceTypeCodeAscendCL;
   device_type.device_id_ = 0;
   cann_net->setDeviceType(device_type);
 

@@ -108,7 +108,7 @@ base::Status FuseConvAct::optimize(
   // # 修改op_desc_：输出和参数融合
   ir::ConvParam* ConvParam = (ir::ConvParam*)first_op->op_->getParam().get();
   ConvParam->activate_op_ = matched_types.back();
-  ConvParam->fused_op_param_ = (ir::OpParam*)last_op->op_->getParam().get();
+  ConvParam->fused_op_param_ = last_op->op_->getParam();
 
   // 更新 tensor_repository
   OpWrapper* current_op = first_op;
