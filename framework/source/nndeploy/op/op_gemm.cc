@@ -53,9 +53,10 @@ base::Status OpGemm::inferShape() {
   outputs_[0]->reshape(output_shape);
 
   // bias shape兼容检查
+  // output_shape的维度为[batch, channel]
   // 1. 完全与output shape大小相等
-  // 2. 为[output_channel ,1 ]
-  // 3. 为 [output_channel]
+  // 2. 为[1, channel]
+  // 3. 为 [channel]
   if (inputs_.size() > 2) {
     auto bias_shape = inputs_[2]->getShape();
     auto output_shape = outputs_[0]->getShape();
@@ -63,14 +64,14 @@ base::Status OpGemm::inferShape() {
     // 检查bias是否与输出形状兼容
     bool is_compatible = false;
     if (bias_shape.size() == 1) {
-      // 规则3: bias形状为[output_channel]
-      is_compatible = bias_shape[0] == output_shape[0];
+      // 规则3: bias形状为[channel]
+      is_compatible = bias_shape[0] == output_shape[1];
     } else if (bias_shape.size() == 2) {
       // 规则1: bias形状完全与输出形状相等
-      // 规则2: bias形状为[output_channel, 1]
+      // 规则2: bias形状为[1, channel]
       is_compatible = (bias_shape[0] == output_shape[0] &&
                        bias_shape[1] == output_shape[1]) ||
-                      (bias_shape[0] == output_shape[0] && bias_shape[1] == 1);
+                      (bias_shape[0] == 1 && bias_shape[1] == output_shape[1]);
     }
 
     if (!is_compatible) {
@@ -134,12 +135,12 @@ base::Status OpGemm::run() {
       if (data_c) {
         // 根据 bias 的形状进行索引计算
         if (shape_c.size() == 1) {
-          // 规则3: bias形状为[output_channel]
-          sum += param->beta_ * data_c[m];  // 沿着列广播
+          // 规则3: bias形状为[channel]
+          sum += param->beta_ * data_c[n];
         } else if (shape_c.size() == 2) {
-          // 规则2: bias形状为[output_channel, 1]
-          if (shape_c[1] == 1) {
-            sum += param->beta_ * data_c[m];
+          // 规则2: bias形状为[1, channel]
+          if (shape_c[0] == 1) {
+            sum += param->beta_ * data_c[n];
           } else {
             // 规则3： bias形状与output一致
             sum += param->beta_ * data_c[m * N + n];

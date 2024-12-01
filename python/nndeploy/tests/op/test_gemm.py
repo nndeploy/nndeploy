@@ -48,7 +48,7 @@ class TestGemmOp(unittest.TestCase):
 
         np_input = np.random.random(input_shape).astype(np.float32)
         np_weight = np.random.random(weight_shape).astype(np.float32)
-        np_bias = np.random.random((input_shape[0], 1)).astype(np.float32)
+        np_bias = np.random.random((1, weight_shape[1])).astype(np.float32)
 
         torch_result = torch.matmul(
             torch.tensor(np_input),

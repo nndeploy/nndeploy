@@ -52,9 +52,6 @@ NNDEPLOY_API_PYBIND11_MODULE("net", m) {
             device::Tensor* py_tensor = py_tensor_obj.cast<device::Tensor*>();
             // 执行复制操作
             py_tensor->copyTo(input);
-          } else {
-            // 如果名称不存在于inputs_map中，抛出异常
-            throw std::runtime_error("Input tensor not found: " + input_name);
           }
         }
       });
