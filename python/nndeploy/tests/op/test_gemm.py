@@ -41,7 +41,36 @@ class TestGemmOp(unittest.TestCase):
                 atol=1e-04,
             )
         )
-        
+
+    def test_gemm_bias_broadcast(self):
+        input_shape = [64, 32]
+        weight_shape = [32, 16]
+
+        np_input = np.random.random(input_shape).astype(np.float32)
+        np_weight = np.random.random(weight_shape).astype(np.float32)
+        np_bias = np.random.random((1, weight_shape[1])).astype(np.float32)
+
+        torch_result = torch.matmul(
+            torch.tensor(np_input),
+            torch.tensor(np_weight),
+        )
+        torch_result = torch.add(torch_result, torch.tensor(np_bias))
+
+        input = createTensorFromNumpy(np_input)
+        weight = createTensorFromNumpy(np_weight)
+        bias = createTensorFromNumpy(np_bias)
+
+        nndeploy_result = F.gemm(input, weight, bias)
+
+        self.assertTrue(
+            np.allclose(
+                torch_result.detach().numpy(),
+                createNumpyFromTensor(nndeploy_result),
+                rtol=1e-03,
+                atol=1e-04,
+            )
+        )
+
     def test_gemm_alpha(self):
         input_shape = [64, 32]
         weight_shape = [32, 16]
@@ -69,6 +98,7 @@ class TestGemmOp(unittest.TestCase):
                 atol=1e-04,
             )
         )
+
     def test_gemm_beta(self):
         input_shape = [64, 32]
         weight_shape = [32, 16]
@@ -150,7 +180,6 @@ class TestGemmOp(unittest.TestCase):
                 atol=1e-04,
             )
         )
-
 
 
 if __name__ == "__main__":
