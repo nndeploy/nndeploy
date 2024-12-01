@@ -52,6 +52,33 @@ base::Status OpGemm::inferShape() {
 
   outputs_[0]->reshape(output_shape);
 
+  // bias shape兼容检查
+  // 1. 完全与output shape大小相等
+  // 2. 为[output_channel ,1 ]
+  // 3. 为 [output_channel]
+  if (inputs_.size() > 2) {
+    auto bias_shape = inputs_[2]->getShape();
+    auto output_shape = outputs_[0]->getShape();
+
+    // 检查bias是否与输出形状兼容
+    bool is_compatible = false;
+    if (bias_shape.size() == 1) {
+      // 规则3: bias形状为[output_channel]
+      is_compatible = bias_shape[0] == output_shape[0];
+    } else if (bias_shape.size() == 2) {
+      // 规则1: bias形状完全与输出形状相等
+      // 规则2: bias形状为[output_channel, 1]
+      is_compatible = (bias_shape[0] == output_shape[0] &&
+                       bias_shape[1] == output_shape[1]) ||
+                      (bias_shape[0] == output_shape[0] && bias_shape[1] == 1);
+    }
+
+    if (!is_compatible) {
+      NNDEPLOY_LOGE(
+          "Bias shape is not compatible with output shape for broadcasting");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+  }
   return status;
 }
 
@@ -87,13 +114,6 @@ base::Status OpGemm::run() {
     return base::kStatusCodeErrorInvalidParam;
   }
 
-  // 确保偏置矩阵的形状与输出张量的形状一致（如果存在）
-  if (input_c && shape_c.size() > 0 &&
-      (shape_c.size() != 2 || shape_c[0] != M || shape_c[1] != N)) {
-    NNDEPLOY_LOGE("Bias matrix shape does not match output shape.\n");
-    return base::kStatusCodeErrorInvalidParam;
-  }
-
   // 获取输入和输出张量的数据指针
   float* data_a = reinterpret_cast<float*>(input_a->getData());
   float* data_b = reinterpret_cast<float*>(input_b->getData());
@@ -110,14 +130,25 @@ base::Status OpGemm::run() {
         size_t b_index = param->trans_b_ ? (n * K + k) : (k * N + n);
         sum += data_a[a_index] * data_b[b_index];
       }
+      // 应用 bias，如果存在，并且支持广播
       if (data_c) {
-        sum += param->beta_ * data_c[m * N + n];
+        // 根据 bias 的形状进行索引计算
+        if (shape_c.size() == 1) {
+          // 规则3: bias形状为[output_channel]
+          sum += param->beta_ * data_c[m];  // 沿着列广播
+        } else if (shape_c.size() == 2) {
+          // 规则2: bias形状为[output_channel, 1]
+          if (shape_c[1] == 1) {
+            sum += param->beta_ * data_c[m];
+          } else {
+            // 规则3： bias形状与output一致
+            sum += param->beta_ * data_c[m * N + n];
+          }
+        }
       }
       data_output[m * N + n] = param->alpha_ * sum;
     }
   }
-
-  return base::kStatusCodeOk;
 
   return base::kStatusCodeOk;
 }
