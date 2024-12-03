@@ -24,14 +24,54 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
       .def("getOutputName", &Expr::getOutputName);
 
   // 一系列创建函数
-  m.def("makeInput", &op::makeInput, py::return_value_policy::reference);
-  m.def("makeOutput", &op::makeOutput, py::return_value_policy::reference);
-  m.def("makeBlock", &op::makeBlock, py::return_value_policy::reference);
-  m.def("makeConv", &op::makeConv, py::return_value_policy::reference);
-  m.def("makeRelu", &op::makeRelu, py::return_value_policy::reference);
-  m.def("makeSoftMax", &op::makeSoftMax, py::return_value_policy::reference);
-  m.def("makeAdd", &op::makeAdd, py::return_value_policy::reference);
-  m.def("makeBatchNorm", &op::makeBatchNorm,
+  m.def("makeInput", &makeInput, py::arg("model_desc"), py::arg("name"),
+        py::arg("data_type") = nndeploy::base::dataTypeOf<float>(),
+        py::arg("shape") = nndeploy::base::IntVector(),
+        py::return_value_policy::reference);
+
+  m.def("makeOutput", &makeOutput, py::arg("model_desc"), py::arg("expr"),
+        py::return_value_policy::reference);
+
+  m.def("makeBlock", &makeBlock, py::arg("model_desc"), py::arg("model_block"),
+        py::return_value_policy::reference);
+
+  m.def("makeConv", &makeConv, py::arg("model_desc"), py::arg("input"),
+        py::arg("param"), py::arg("weight"), py::arg("bias") = "",
+        py::arg("op_name") = "", py::arg("output_name") = "",
+        py::return_value_policy::reference);
+
+  m.def("makeRelu", &makeRelu, py::arg("model_desc"), py::arg("input"),
+        py::arg("op_name") = "", py::arg("output_name") = "",
+        py::return_value_policy::reference);
+
+  m.def("makeSoftMax", &makeSoftMax, py::arg("model_desc"), py::arg("input"),
+        py::arg("param"), py::arg("op_name") = "", py::arg("output_name") = "",
+        py::return_value_policy::reference);
+
+  m.def("makeBatchNorm", &makeBatchNorm, py::arg("model_desc"),
+        py::arg("input"), py::arg("param"), py::arg("scale"), py::arg("bias"),
+        py::arg("mean"), py::arg("var"), py::arg("op_name") = "",
+        py::arg("output_name") = "", py::return_value_policy::reference);
+
+  m.def("makeAdd", &makeAdd, py::arg("model_desc"), py::arg("input_0"),
+        py::arg("input_1"), py::arg("op_name") = "",
+        py::arg("output_name") = "", py::return_value_policy::reference);
+
+  m.def("makeGemm", &makeGemm, py::arg("model_desc"), py::arg("input"),
+        py::arg("param"), py::arg("weight"), py::arg("bias") = "",
+        py::arg("op_name") = "", py::arg("output_name") = "",
+        py::return_value_policy::reference);
+
+  m.def("makeFlatten", &makeFlatten, py::arg("model_desc"), py::arg("input"),
+        py::arg("param"), py::arg("op_name") = "", py::arg("output_name") = "",
+        py::return_value_policy::reference);
+
+  m.def("makeMaxPool", &makeMaxPool, py::arg("model_desc"), py::arg("input"),
+        py::arg("param"), py::arg("op_name") = "", py::arg("output_name") = "",
+        py::return_value_policy::reference);
+
+  m.def("makeGlobalAveragePool", &makeGlobalAveragePool, py::arg("model_desc"),
+        py::arg("input"), py::arg("op_name") = "", py::arg("output_name") = "",
         py::return_value_policy::reference);
 }
 }  // namespace op
