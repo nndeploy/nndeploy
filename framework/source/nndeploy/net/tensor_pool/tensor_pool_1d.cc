@@ -416,7 +416,18 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
     // 与tensor关联
     for (auto tensor : tensors) {
       tensor->is_allocated_ = true;
-      tensor->tensor_wrapper_->tensor_->justModify(chunk->buffer_);
+      device::Buffer *buffer = new device::Buffer(*chunk->buffer_);
+      device::TensorDesc tensor_desc =
+          tensor->tensor_wrapper_->tensor_->getDesc();
+      device::BufferDesc buffer_desc =
+          device_->toBufferDesc(tensor_desc, base::IntVector());
+      if (!buffer->justModify(buffer_desc)) {
+        NNDEPLOY_LOGE("tensor name = %s.\n",
+                      tensor->tensor_wrapper_->name_.c_str());
+        NNDEPLOY_LOGE("buffer->justModify failed\n");
+        return base::kStatusCodeErrorInvalidValue;
+      }
+      tensor->tensor_wrapper_->tensor_->justModify(buffer, false);
     }
   }
 
@@ -456,6 +467,43 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::deallocate() {
 
   chunk_sizes_.clear();
   chunk_schedules_.clear();
+
+  return status;
+}
+
+TypeTensorPoolRegister<TypeTensorPoolCreator<TensorPool1DSharedObjectNone>>
+    g_tensor_pool_1d_shared_object_none_register(
+        kTensorPool1DSharedObjectTypeNone);
+
+TensorPool1DSharedObjectNone::TensorPool1DSharedObjectNone(
+    device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
+    std::vector<OpWrapper *> &op_repository)
+    : TensorPool1DSharedObject(device, tensor_repository, op_repository) {}
+
+TensorPool1DSharedObjectNone::~TensorPool1DSharedObjectNone() {}
+
+base::Status TensorPool1DSharedObjectNone::allocate() {
+  base::Status status = base::kStatusCodeOk;
+
+  for (auto tensor_wrapper : tensor_repository_) {
+    auto tensor = tensor_wrapper->tensor_;
+    // 直接为每个tensor单独分配内存，不进行任何优化
+    if (tensor->getBuffer() == nullptr) {
+      tensor->allocate(device_);
+    }
+  }
+
+  return status;
+}
+
+base::Status TensorPool1DSharedObjectNone::deallocate() {
+  base::Status status = base::kStatusCodeOk;
+
+  for (auto tensor_wrapper : tensor_repository_) {
+    auto tensor = tensor_wrapper->tensor_;
+    // 释放每个tensor的内存
+    tensor->deallocate();
+  }
 
   return status;
 }
