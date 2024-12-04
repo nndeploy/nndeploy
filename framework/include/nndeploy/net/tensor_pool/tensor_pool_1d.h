@@ -77,6 +77,18 @@ class TensorPool1DSharedObjectGreedyByBreadth
   // 记录已经处理过的tensor：由于延迟开辟内存，无法根据tensor的allocated属性判断
 };
 
+class TensorPool1DSharedObjectNone : public TensorPool1DSharedObject {
+ public:
+  TensorPool1DSharedObjectNone(device::Device *device,
+                               std::vector<TensorWrapper *> &tensor_repository,
+                               std::vector<OpWrapper *> &op_repository);
+
+  ~TensorPool1DSharedObjectNone();
+
+  virtual base::Status allocate();
+  virtual base::Status deallocate();
+};
+
 }  // namespace net
 }  // namespace nndeploy
 
