@@ -43,6 +43,12 @@
 
 .. toctree::
    :maxdepth: 1
+   :caption: 开发调试记录
+
+   debug_record/debug_record.md
+
+.. toctree::
+   :maxdepth: 1
    :caption: 版本发行
 
    version_record/v1_0_0_0.md
