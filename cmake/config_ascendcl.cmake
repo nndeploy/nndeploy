@@ -49,7 +49,7 @@ set(ENABLE_NNDEPLOY_DEVICE_METAL OFF) # 是否使能device metal，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_APPLE_NPU OFF) # 是否使能device apple npu，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_HVX OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL "/home/ma-user/Ascend/ascend-toolkit/latest/aarch64-linux") # 是否使能device apple ascend cl，默认为OFF
+set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL "/usr/local/Ascend/ascend-toolkit/latest/aarch64-linux") # 是否使能device apple ascend cl，默认为OFF
 
 # # ir
 set(ENABLE_NNDEPLOY_IR ON) # 是否编译ir目录中文件，默认为OFF
