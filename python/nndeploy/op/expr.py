@@ -32,16 +32,17 @@ class Conv(Module):
         padding=0,
         dilation=[1, 1],
         groups=1,
-        bias=True,
         weight_name="conv.weight",
         bias_name="conv.bias",
     ):
         super().__init__()
         self.param = _C.ir.ConvParam()  # TODO: 构造ConvParam 暂时只设置weight Shape相关
         self.param.kernel_shape_ = [kernel_size[0], kernel_size[1]]
-        # self.param.group_ = groups
+        self.param.group_ = groups
 
-        # self.param.dilations_ = dilation
+        self.param.dilations_ = dilation
+        self.param.pads_ = [padding] * 4
+        self.param.strides_ = [stride] * 2
 
         self.weight_name = weight_name
         self.bias_name = bias_name
@@ -57,13 +58,7 @@ class Conv(Module):
     def makeExpr(self, data):
 
         return _C.op.makeConv(
-            self.model_desc,
-            data,
-            self.param,
-            self.weight_name,
-            self.bias_name,
-            "",
-            "",
+            self.model_desc, data, self.param, self.weight_name, self.bias_name
         )
 
 
@@ -75,7 +70,7 @@ class Relu(Module):
         return self.makeExpr(data)
 
     def makeExpr(self, data):
-        return _C.op.makeRelu(self.model_desc, data, "", "")
+        return _C.op.makeRelu(self.model_desc, data)
 
 
 class BatchNorm(Module):
@@ -107,6 +102,92 @@ class BatchNorm(Module):
             self.bias_name,
             self.mean_name,
             self.var_name,
-            "",
-            ""
         )
+
+
+class SoftMax(Module):
+    def __init__(self, dim=-1):
+        super().__init__()
+        self.param = _C.ir.SoftmaxParam()
+        self.param.axis_ = dim
+
+    def __call__(self, data):
+        return self.makeExpr(data)
+
+    def makeExpr(self, data):
+        return _C.op.makeSoftMax(self.model_desc, data, self.param)
+
+
+class Add(Module):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, data_0, data_1):
+        return self.makeExpr(data_0, data_1)
+
+    def makeExpr(self, data_0, data_1):
+        return _C.op.makeAdd(self.model_desc, data_0, data_1)
+
+
+class Gemm(Module):
+    def __init__(
+        self, weight_name, bias_name=None, alpha=1.0, beta=1.0, trans_a=0, trans_b=0
+    ):
+        super().__init__()
+        self.param = _C.ir.GemmParam()
+        self.param.alpha_ = alpha
+        self.param.beta_ = beta
+        self.param.trans_a_ = trans_a
+        self.param.trans_b_ = trans_b
+
+        self.weight_name = weight_name
+        self.bias_name = bias_name
+
+    def __call__(self, data):
+        return self.makeExpr(data)
+
+    def makeExpr(self, data):
+        return _C.op.makeGemm(
+            self.model_desc, data, self.param, self.weight_name, self.bias_name
+        )
+
+
+class Flatten(Module):
+    def __init__(self, axis):
+        super().__init__()
+        self.param = _C.ir.FlattenParam()
+        self.param.axis_ = axis
+
+    def __call__(self, data):
+        return self.makeExpr(data)
+
+    def makeExpr(self, data):
+        return _C.op.makeFlatten(self.model_desc, data, self.param)
+
+
+class MaxPool(Module):
+    def __init__(self, kernel_size, stride=1, padding=0, dilation=1, ceil_mode=False):
+        super().__init__()
+        self.param = _C.ir.MaxPoolParam()
+        self.param.kernel_shape_ = [kernel_size] * 2
+        self.param.strides_ = [stride] * 2
+        self.param.pads_ = [padding] * 4
+        self.param.dilations_ = [dilation] * 2
+        self.param.ceil_mode_ = ceil_mode
+
+    def __call__(self, data):
+        return self.makeExpr(data)
+
+    def makeExpr(self, data):
+        return _C.op.makeMaxPool(self.model_desc, data, self.param)
+
+
+class GlobalAveragePool(Module):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, data):
+        return self.makeExpr(data)
+
+    def makeExpr(self, data):
+        return _C.op.makeGlobalAveragePool(self.model_desc, data)
