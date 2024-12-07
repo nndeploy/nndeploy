@@ -31,6 +31,10 @@ base::Status ClassificationPostProcess::run() {
   ClassificationPostParam *param = (ClassificationPostParam *)param_.get();
 
   device::Tensor *tensor = inputs_[0]->getTensor(this);
+
+  // tensor->print();
+  // tensor->getDesc().print();
+
   std::shared_ptr<ir::SoftmaxParam> op_param =
       std::make_shared<ir::SoftmaxParam>();
   op_param->axis_ = 1;
@@ -86,7 +90,7 @@ dag::Graph *createClassificationResnetGraph(
   preprocess::CvtclorResizeParam *pre_param =
       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-  pre_param->dst_pixel_type_ = base::kPixelTypeBGR;
+  pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
   pre_param->h_ = 224;
   pre_param->w_ = 224;

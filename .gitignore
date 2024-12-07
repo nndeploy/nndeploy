@@ -226,3 +226,8 @@ cmake-build-debug/
 
 tags
 compile_commands.json
+
+# model
+*.onnx
+*.json
+*.safetensors

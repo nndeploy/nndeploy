@@ -23,7 +23,7 @@
 
 ./nndeploy_demo_segment --name NNDEPLOY_RMBGV1.4 --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeCpu:0 --model_type kModelTypeDefault --is_path --model_value RMBGV14.json,RMBGV1.4.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path bus.jpg --output_path seg_bus_output.jpg
 
-./nndeploy_demo_segment --name NNDEPLOY_RMBGV1.4 --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value RMBGV1.4.json,RMBGV1.4.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path example_input.jpg --output_path seg_example_output.jpg
+./nndeploy_demo_segment --name NNDEPLOY_RMBGV1.4 --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value RMBGV1.4.json,RMBGV1.4.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path example_input.jpg --output_path seg_example_output_default.jpg
 
 atc --model=./RMBGV1.4.onnx --output=./RMBGV1.4.onnx.om --framework=5 --soc_version=Ascend910B4 --input_shape="input:1,3,1024,1024"
 

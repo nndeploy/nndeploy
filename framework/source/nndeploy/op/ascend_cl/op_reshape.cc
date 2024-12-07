@@ -21,7 +21,6 @@ class AscendCLOpReshape : public OpReshape {
     // 流
     device::Device* device = device::getDevice(device_type_);
     inner_stream_ = (aclrtStream)device->getCommandQueue();
-
     return base::kStatusCodeOk;
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }

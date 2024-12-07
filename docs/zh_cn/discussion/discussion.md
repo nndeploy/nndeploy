@@ -154,7 +154,7 @@ base::Status AscendCLInference::run() {
   + 当一个Edge既是整个图的输出也是某个中间节点的输入，这个该如何解决（主要麻烦点在流水线并行模式，待review解决）(yi)
 
 ## dag pipeline edge
-## 图中串图
+### 图中串图
 ### 大图
 + Parameter Validation Phase
 + Mark Predecessors And Successors Phase
@@ -178,29 +178,7 @@ base::Status AscendCLInference::run() {
       + 输出边 也是 中间节点的输入边 - 由消费者 且 是整张图的的输出
   + model
 
-## stable diffusion
-+ sudo docker run --rm -it --runtime=nvidia --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
-+ sudo docker run --rm -it --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
-+ sudo docker run --rm --runtime=nvidia --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
-+ sudo docker run --rm -it --gpus all -v $PWD:/workspace tensorrt-ubuntu20.04-cuda11.8:latest /bin/bash
 
-## export http_proxy=127.0.0.1:7890
-
-export http_proxy="http://127.0.0.1:7890"
-export https_proxy="http://127.0.0.1:7890"
-
-export http_proxy="http://127.0.0.1:7891"
-export https_proxy="http://127.0.0.1:7891"
-
-export PATH=/usr/local/cuda-11.8/bin${PATH:+:${PATH}}
-export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-
-
-export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64
-export PATH=$PATH:/usr/local/cuda-11.8/bin
-
-
-/home/always/Downloads
 
 ## 算子讨论（与守夜大佬讨论）
 
@@ -287,3 +265,13 @@ attrs作为具体计算类的一个属性赋值
 + ascend op
 ### 内存管理
 + kv block
+
+## llama讨论
++ onnx llama 算子很碎
+  + selfattention 十几个算子吗
+  + 图优化
++ 手动构图 - 通过expr构造模型结构
+  + fp32
+  + fp16
+  + int8
+  + 权重就是safetensors
