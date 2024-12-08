@@ -84,3 +84,7 @@ nndeploy_option(ENABLE_NNDEPLOY_DEMO_RESNET "ENABLE_NNDEPLOY_DEMO_RESNET" OFF)
 if(ENABLE_NNDEPLOY_DEMO_RESNET)
   include(${ROOT_PATH}/demo/resnet/config.cmake)
 endif()
+
+if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
+  include(${ROOT_PATH}/demo/acl_op/config.cmake)
+endif()
