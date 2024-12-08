@@ -72,6 +72,7 @@ nndeploy_option(ENABLE_NNDEPLOY_IR_ONNX "ENABLE_NNDEPLOY_IR_ONNX" OFF)
 
 # # op
 nndeploy_option(ENABLE_NNDEPLOY_OP "ENABLE_NNDEPLOY_OP" ON)
+nndeploy_option(ENABLE_NNDEPLOY_OP_ASCEND_C "ENABLE_NNDEPLOY_OP_ASCEND_C" OFF)
 
 # # net
 nndeploy_option(ENABLE_NNDEPLOY_NET "ENABLE_NNDEPLOY_NET" ON)
@@ -456,13 +457,21 @@ if(ENABLE_NNDEPLOY_OP)
   endif()
 
   if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
-    file(GLOB_RECURSE OP_ASCEND_CL_SOURCE
+    file(GLOB OP_ASCEND_CL_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/ascend_cl/*.h"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/ascend_cl/*.cc"
     )
     set(OP_SOURCE ${OP_SOURCE} ${OP_ASCEND_CL_SOURCE})
+    if (ENABLE_NNDEPLOY_OP_ASCEND_C)
+      add_definitions(-DENABLE_NNDEPLOY_OP_ASCEND_C)
+      file(GLOB_RECURSE OP_ASCEND_C_SOURCE
+          "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/ascend_cl/ascend_c/*.h"
+          "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/ascend_cl/ascend_c/*.cc"
+      )
+      ascendc_library(nndeploy_framework_ascend_c_kernels STATIC ${OP_ASCEND_C_SOURCE})
+      set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} nndeploy_framework_ascend_c_kernels)  
+    endif()
   endif()
-
   set(NNDEPLOY_FRAMEWORK_SOURCE ${NNDEPLOY_FRAMEWORK_SOURCE} ${OP_SOURCE})
 endif()
 

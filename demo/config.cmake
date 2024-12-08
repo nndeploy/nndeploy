@@ -85,6 +85,6 @@ if(ENABLE_NNDEPLOY_DEMO_RESNET)
   include(${ROOT_PATH}/demo/resnet/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
+if(ENABLE_NNDEPLOY_OP_ASCEND_C)
   include(${ROOT_PATH}/demo/acl_op/config.cmake)
 endif()

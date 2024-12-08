@@ -11,10 +11,11 @@ set(THIRD_PARTY_LIBRARY)
 include_directories(${ROOT_PATH}/demo)
 
 # SOURCE
-file(GLOB_RECURSE SOURCE
-  "${ROOT_PATH}/demo/acl_op/*.h"
-  "${ROOT_PATH}/demo/acl_op/*.cc"
-)
+# file(GLOB_RECURSE SOURCE
+#   "${ROOT_PATH}/demo/acl_op/*.h"
+#   "${ROOT_PATH}/demo/acl_op/*.cc"
+# )
+set(SOURCE ${ROOT_PATH}/demo/acl_op/demo.cc)
 file(GLOB DEMO_SOURCE
   "${ROOT_PATH}/demo/*.h"
   "${ROOT_PATH}/demo/*.cc"
@@ -45,13 +46,15 @@ set(SOURCE ${SOURCE} ${DEMO_SOURCE})
 
 # OBJECT
 # BINARY
-file(GLOB OP_SOURCE
-  "${ROOT_PATH}/demo/acl_op/*.cpp"
-)
-message("OP_SOURCE: " ${OP_SOURCE})
+# file(GLOB OP_SOURCE
+#   "${ROOT_PATH}/demo/acl_op/*.cpp"
+# )
+set(OP_SOURCE ${ROOT_PATH}/demo/acl_op/op.cc)
+# message("OP_SOURCE: " ${OP_SOURCE})
 ascendc_library(kernels STATIC
     ${OP_SOURCE}
 )
+unset(OP_SOURCE)
 add_executable(${BINARY} ${SOURCE} ${OBJECT})
 target_link_libraries(${BINARY} kernels)
 if (APPLE)
