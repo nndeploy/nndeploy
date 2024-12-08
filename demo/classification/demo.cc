@@ -145,13 +145,13 @@ int main(int argc, char *argv[]) {
 
   NNDEPLOY_TIME_POINT_START("graph->run");
   int size = decode_node->getSize();
-  // size = 2;
-  // decode_node->setSize(size);
+  size = 100;
+  decode_node->setSize(size);
   NNDEPLOY_LOGE("size = %d.\n", size);
   for (int i = 0; i < size; ++i) {
     status = graph->run();
     if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("graph deinit failed");
+      NNDEPLOY_LOGE("graph run failed");
       return -1;
     }
 

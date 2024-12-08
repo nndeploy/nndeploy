@@ -15,8 +15,8 @@ TypeRuntimeRegister<TypeRuntimeCreator<SequentialRuntime>>
     g_sequential_runtime_register_none(base::ParallelType::kParallelTypeNone);
 
 SequentialRuntime::SequentialRuntime(const base::DeviceType &device_type)
-    : Runtime(device_type){};
-SequentialRuntime::~SequentialRuntime(){};
+    : Runtime(device_type) {};
+SequentialRuntime::~SequentialRuntime() {};
 
 base::Status SequentialRuntime::init(
     std::vector<TensorWrapper *> &tensor_repository,
@@ -162,7 +162,7 @@ base::Status SequentialRuntime::preRun() {
       return status;
     }
   }
-  NNDEPLOY_LOGI("preRun ok!\n");
+  // NNDEPLOY_LOGI("preRun ok!\n");
   return status;
 }
 base::Status SequentialRuntime::run() {
@@ -199,7 +199,7 @@ base::Status SequentialRuntime::run() {
   }
   NNDEPLOY_TIME_POINT_END("net->run()");
 
-  NNDEPLOY_LOGI("run ok!\n");
+  // NNDEPLOY_LOGI("run ok!\n");
 
   return status;
 }
@@ -212,7 +212,7 @@ base::Status SequentialRuntime::postRun() {
       return status;
     }
   }
-  NNDEPLOY_LOGI("postRun ok!\n");
+  // NNDEPLOY_LOGI("postRun ok!\n");
   return status;
 }
 

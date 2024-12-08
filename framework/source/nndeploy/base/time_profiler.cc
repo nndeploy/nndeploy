@@ -57,7 +57,8 @@ void TimeProfiler::start(const std::string &key) {
       records_[key]->call_times_++;
       records_[key]->start_ = start;
     } else {
-      NNDEPLOY_LOGE("name %s has started\n", key.c_str());
+      // NNDEPLOY_LOGE("name %s has started\n", key.c_str());
+      ;
     }
   }
 }
@@ -74,7 +75,8 @@ void TimeProfiler::end(const std::string &key) {
       records_[key]->type_ = kEnd;
       records_[key]->cost_time_ += end - records_[key]->start_;
     } else {
-      NNDEPLOY_LOGE("name %s has ended\n", key.c_str());
+      // NNDEPLOY_LOGE("name %s has ended\n", key.c_str());
+      ;
     }
   }
 }

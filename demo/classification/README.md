@@ -88,19 +88,76 @@ graph->run          1                   796.763             796.763             
 
 ./nndeploy_demo_classification --name NNDEPLOY_RESNET --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\classification\yolo\resnet50-v1-7.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\classification\bus.jpg --output_path C:\huggingface\nndeploy\temp\bus_output.jpg
 
-./nndeploy_demo_classification --name NNDEPLOY_RESNET --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value resnet50-v1-7.sim.onnx.json,resnet50-v1-7.sim.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path example_input.jpg --output_path example_output_ascendcl.jpg
-
 ./nndeploy_demo_classification --name NNDEPLOY_RESNET --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeCpu:0 --model_type kModelTypeDefault --is_path --model_value resnet50-v1-7.sim.onnx.json,resnet50-v1-7.sim.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path example_input.jpg --output_path example_output_cpu.jpg
 
 ./nndeploy_demo_classification --name NNDEPLOY_RESNET --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeOnnx --is_path --model_value resnet50-v1-7.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path bus.jpg --output_path bus_output_v2.jpg
 
 ./nndeploy_demo_classification --name NNDEPLOY_RESNET --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeOnnx --is_path --model_value resnet50-v1-7.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path example_input.jpg --output_path example_input_output_onnxruntime.jpg
 
+### ort
+./nndeploy_demo_classification --name NNDEPLOY_RESNET --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeOnnx --is_path --model_value /home/resource/model_zoo/resnet50-v1-7.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path example_input.jpg --output_path example_input_output_onnxruntime.jpg
+
+TimeProfiler: demo
+-------------------------------------------------------------------------------------------
+name                call_times          cost_time(ms)       cost_time/call(ms)  gflops              
+-------------------------------------------------------------------------------------------
+graph->init()       1                   287.246             287.246             0.000               
+graph->run          1                   18728.926           18728.926           0.000               
+demo run()          100                 18728.508           187.285             0.000               
+decode_node run()   100                 1291.935            12.919              0.000               
+NNDEPLOY_RESNET run()100                 15599.549           155.995             0.000               
+preprocess run()    100                 413.164             4.132               0.000               
+infer run()         100                 15176.187           151.762             0.000               
+postprocess run()   100                 6.900               0.069               0.000               
+DrawLableNode run() 100                 19.199              0.192               0.000               
+encode_node run()   100                 1811.754            18.118              0.000               
+-------------------------------------------------------------------------------------------
+
+### 华为昇腾
 ./nndeploy_demo_classification --name NNDEPLOY_RESNET --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value resnet50-v1-7.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path example_input.jpg --output_path example_output_class.jpg
+
+TimeProfiler: demo
+-------------------------------------------------------------------------------------------
+name                call_times          cost_time(ms)       cost_time/call(ms)  gflops              
+-------------------------------------------------------------------------------------------
+graph->init()       1                   1506.977            1506.977            0.000               
+graph->run          1                   3352.449            3352.449            0.000               
+demo run()          100                 3352.204            33.522              0.000               
+decode_node run()   100                 1294.039            12.940              0.000               
+NNDEPLOY_RESNET run()100                 500.452             5.005               0.000               
+preprocess run()    100                 355.212             3.552               0.000               
+infer run()         100                 138.365             1.384               0.000               
+postprocess run()   100                 4.422               0.044               0.000               
+DrawLableNode run() 100                 17.847              0.178               0.000               
+encode_node run()   100                 1536.780            15.368              0.000               
+-------------------------------------------------------------------------------------------
+
+./nndeploy_demo_classification --name NNDEPLOY_RESNET --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/resource/model_zoo/resnet50-v1-7.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path /home/resource/data_set/example_input.jpg --output_path example_output_class.jpg
 
 atc --model=./resnet50-v1-7.onnx --output=./resnet50-v1-7.onnx.om --framework=5 --soc_version=Ascend910B4 --input_shape="data:1,3,224,224"
 
 atc --model=/home/ascenduserdg01/github/nndeploy/build/resnet50-v1-7.onnx --output=/home/ascenduserdg01/github/nndeploy/build/resnet50-v1-7.onnx.om --framework=5 --soc_version=Ascend910B4 --input_shape="data:1,3,224,224"
 
+### acl-default
+./nndeploy_demo_classification --name NNDEPLOY_RESNET --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value resnet50-v1-7.sim.onnx.json,resnet50-v1-7.sim.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path example_input.jpg --output_path example_output_acl_default.jpg
+
+TimeProfiler: demo
+-------------------------------------------------------------------------------------------
+name                call_times          cost_time(ms)       cost_time/call(ms)  gflops              
+-------------------------------------------------------------------------------------------
+graph->init()       1                   1318.976            1318.976            0.000               
+graph->run          1                   4469.760            4469.760            0.000               
+demo run()          100                 4469.550            44.695              0.000               
+decode_node run()   100                 1211.648            12.116              0.000               
+NNDEPLOY_RESNET run()100                 1414.404            14.144              0.000               
+preprocess run()    100                 274.691             2.747               0.000               
+infer run()         100                 1132.478            11.325              0.000               
+net->run()          100                 212.460             2.125               0.000               
+postprocess run()   100                 4.766               0.048               0.000               
+DrawLableNode run() 100                 21.285              0.213               0.000               
+encode_node run()   100                 1819.781            18.198              0.000               
+-------------------------------------------------------------------------------------------
+
+### python
 python test_resnet.py --model_type onnx --model_path /home/ascenduserdg01/github/nndeploy/build/resnet50-v1-7.sim.onnx --device cpu --image_path /home/ascenduserdg01/github/nndeploy/build/example_input.jpg
 

@@ -53,8 +53,6 @@ class DrawMaskNode : public dag::Node {
       }
 
       outputs_[0]->set(output_mat, inputs_[0]->getIndex(this), false);
-      NNDEPLOY_LOGE("hello world\n");
-      cv::imwrite("dst_mat_v2.jpg", *output_mat);
     }
     return base::kStatusCodeOk;
   }
@@ -145,6 +143,9 @@ int main(int argc, char *argv[]) {
     NNDEPLOY_LOGE("graph setParallelType failed");
     return -1;
   }
+
+  graph->setTimeProfileFlag(true);
+
   // 初始化有向无环图graph
   NNDEPLOY_TIME_POINT_START("graph->init()");
   status = graph->init();
@@ -160,8 +161,27 @@ int main(int argc, char *argv[]) {
   // 有向无环图Graphz运行
   NNDEPLOY_TIME_POINT_START("graph->run()");
   int size = decode_node->getSize();
+  // for (int i = 0; i < size; ++i) {
+  //   graph->run();
+  // }
+  size = 100;
+  decode_node->setSize(size);
+  NNDEPLOY_LOGE("size = %d.\n", size);
   for (int i = 0; i < size; ++i) {
-    graph->run();
+    status = graph->run();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("graph run failed");
+      return -1;
+    }
+
+    if (pt != base::kParallelTypePipeline) {
+      segment::SegmentResult *result =
+          (segment::SegmentResult *)output.getGraphOutputParam();
+      if (result == nullptr) {
+        NNDEPLOY_LOGE("result is nullptr");
+        return -1;
+      }
+    }
   }
 
   NNDEPLOY_TIME_POINT_END("graph->run()");

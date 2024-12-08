@@ -274,7 +274,7 @@ base::Status Graph::dump(std::ostream &oss) {
 base::Status Graph::construct() {
   base::Status status = base::kStatusCodeOk;
 
-  NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
+  // NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("parallel_type_!\n");
@@ -361,7 +361,7 @@ base::Status Graph::construct() {
     }
   }
 
-  NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
+  // NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
 
   return status;
 }
