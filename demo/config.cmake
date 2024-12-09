@@ -38,7 +38,7 @@ if(ENABLE_NNDEPLOY_DAG)
 endif()
 
 # plugin
-if(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
   include(${ROOT_PATH}/demo/preprocess/config.cmake)
 endif()
 
@@ -50,7 +50,7 @@ if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
   include(${ROOT_PATH}/demo/codec/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
   include(${ROOT_PATH}/demo/classification/config.cmake)
 endif()
 
