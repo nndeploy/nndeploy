@@ -6,10 +6,11 @@
 #include <iostream>
 #include <string>
 
+#include "nndeploy/framework.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/inference/inference_param.h"
-#include "nndeploy/model/stable_diffusion/clip.h"
-#include "nndeploy/model/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
+#include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
+#include "nndeploy/stable_diffusion/clip.h"
 
 using tokenizers::Tokenizer;
 
@@ -150,13 +151,13 @@ int main(int argc, char* argv[]) {
 
   nndeploy::dag::Graph graph("graph", input_edge, output_edge);
 
-  nndeploy::model::TokenizerCpp* tokenizer_cpp =
-      (nndeploy::model::TokenizerCpp*)
-          graph.createNode<nndeploy::model::TokenizerCpp>("name", input_edge,
+  nndeploy::tokenizer::TokenizerCpp* tokenizer_cpp =
+      (nndeploy::tokenizer::TokenizerCpp*)
+          graph.createNode<nndeploy::tokenizer::TokenizerCpp>("name", input_edge,
                                                           output_edge);
 
-  nndeploy::model::TokenizerPraram* tp =
-      (nndeploy::model::TokenizerPraram*)tokenizer_cpp->getParam();
+  nndeploy::tokenizer::TokenizerPraram* tp =
+      (nndeploy::tokenizer::TokenizerPraram*)tokenizer_cpp->getParam();
   if (tp == nullptr) {
     return -1;
   }
@@ -164,7 +165,7 @@ int main(int argc, char* argv[]) {
   tp->is_encode_ = true;
 
   tp->tokenizer_type_ =
-      nndeploy::model::TokenizerType::kTokenizerTypeSentencePiece;
+      nndeploy::tokenizer::TokenizerType::kTokenizerTypeSentencePiece;
 
   // auto blob = LoadBytesFromFile("./tokenizer.model");
   tp->model_blob_ = "./tokenizer.model";
@@ -176,7 +177,7 @@ int main(int argc, char* argv[]) {
   // std::string prompt = "What is the  capital of Canada?";
   std::string prompt =
       "a beautiful photograph of Mt. Fuji during cherry blossom";
-  nndeploy::model::TokenizerText tt;
+  nndeploy::tokenizer::TokenizerText tt;
   tt.texts_.push_back(prompt);
 
   input_edge->set((nndeploy::base::Param*)(&tt), 0);
@@ -186,16 +187,16 @@ int main(int argc, char* argv[]) {
 
   graph.run();
 
-  nndeploy::model::TokenizerIds* ti =
-      (nndeploy::model::TokenizerIds*)(output_edge->getGraphOutputParam());
+  nndeploy::tokenizer::TokenizerIds* ti =
+      (nndeploy::tokenizer::TokenizerIds*)(output_edge->getGraphOutputParam());
 
   std::vector<int> ids = ti->ids_[0];
   PrintEncodeResult(ids);
 
-  nndeploy::model::TokenizerPraram* tokenizer_concat_param =
-      new nndeploy::model::TokenizerPraram();
+  nndeploy::tokenizer::TokenizerPraram* tokenizer_concat_param =
+      new nndeploy::tokenizer::TokenizerPraram();
   tokenizer_concat_param->tokenizer_type_ =
-      nndeploy::model::TokenizerType::kTokenizerTypeHF;
+      nndeploy::tokenizer::TokenizerType::kTokenizerTypeHF;
   tokenizer_concat_param->json_blob_ = "./clip_tokenizer.json";
 
   // tokenizer_concat_param->tokenizer_type_ =
@@ -220,17 +221,17 @@ int main(int argc, char* argv[]) {
   nndeploy::dag::Edge eprompt;
   nndeploy::dag::Edge negative_prompt;
   nndeploy::dag::Edge output("text_embeddings");
-  nndeploy::dag::Graph* clip_graph = nndeploy::model::createCLIPGraph(
+  nndeploy::dag::Graph* clip_graph = nndeploy::stable_diffusion::createCLIPGraph(
       "clip", &eprompt, &negative_prompt, &output, inference_type, param);
 
   clip_graph->init();
 
-  nndeploy::model::TokenizerText tteprompt;
+  nndeploy::tokenizer::TokenizerText tteprompt;
   tteprompt.texts_.push_back(
       "a beautiful photograph of Mt. Fuji during cherry blossom");
   eprompt.set((nndeploy::base::Param*)(&tteprompt), 0);
 
-  nndeploy::model::TokenizerText tt_neg;
+  nndeploy::tokenizer::TokenizerText tt_neg;
   tt_neg.texts_.push_back("");
   negative_prompt.set((nndeploy::base::Param*)(&tt_neg), 0);
 
