@@ -147,6 +147,8 @@ static const std::map<OpType, std::string> g_optype_string_map = {
     {kOpTypeWhere, "kOpTypeWhere"},
     {kOpTypeXor, "kOpTypeXor"},
     {kOpTypeRMSNorm, "kOpTypeRMSNorm"},
+    {kOpTypeEmbedding, "kOpTypeEmbedding"},
+
     {kOpTypeNone, "kOpTypeNone"},
 };
 
@@ -293,6 +295,8 @@ static const std::map<std::string, OpType> g_string_optype_map = {
     {"kOpTypeWhere", kOpTypeWhere},
     {"kOpTypeXor", kOpTypeXor},
     {"kOpTypeRMSNorm", kOpTypeRMSNorm},
+    {"kOpTypeEmbedding", kOpTypeEmbedding},
+
     {"kOpTypeNone", kOpTypeNone},
 };
 
@@ -371,6 +375,8 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeBatchNormalization,
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeFlatten, FlattenParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeGemm, GemmParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeEmbedding, EmbeddingParam);
 
 }  // namespace ir
 }  // namespace nndeploy
