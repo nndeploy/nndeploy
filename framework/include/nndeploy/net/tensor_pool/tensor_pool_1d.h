@@ -37,7 +37,7 @@ class TensorPool1DSharedObject : public TensorPool {
  protected:
   std::vector<std::shared_ptr<TensorUsageRecord>> tensor_usage_records_;
   std::vector<std::shared_ptr<OpBreadth>> op_breadths_;
-  std::vector<size_t> positional_maximum_;
+  std::vector<size_t> positional_maximum_; // 好像没有用
 };
 
 class TensorPool1DSharedObjectGreedyBySizeImprove
@@ -54,6 +54,23 @@ class TensorPool1DSharedObjectGreedyBySizeImprove
  private:
   std::vector<std::shared_ptr<Chunk>> chunks_;
 };
+
+// class TensorPool1DSharedObjectGreedyBySize
+//     : public TensorPool1DSharedObject {
+//  public:
+//   TensorPool1DSharedObjectGreedyBySize(
+//       device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
+//       std::vector<OpWrapper *> &op_repository);
+//   virtual ~TensorPool1DSharedObjectGreedyBySize();
+
+
+
+//   virtual base::Status allocate();
+//   virtual base::Status deallocate();
+
+//  private:
+//   std::vector<std::shared_ptr<Chunk>> chunks_;
+// };
 
 class TensorPool1DSharedObjectGreedyByBreadth
     : public TensorPool1DSharedObject {
@@ -76,6 +93,39 @@ class TensorPool1DSharedObjectGreedyByBreadth
       chunk_schedules_;  // 记录Chunk由哪些tensor共享
   std::set<std::shared_ptr<TensorUsageRecord>> assigned_tensors_;
   // 记录已经处理过的tensor：由于延迟开辟内存，无法根据tensor的allocated属性判断
+};
+
+class TensorPool1DOffsetCalculateGreedyBySize
+    : public TensorPool1DSharedObject {
+ public:
+  TensorPool1DOffsetCalculateGreedyBySize(
+      device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
+      std::vector<OpWrapper *> &op_repository);
+
+  virtual ~TensorPool1DOffsetCalculateGreedyBySize();
+
+  virtual base::Status allocate();
+  virtual base::Status deallocate();
+
+ private:
+//   std::vector<std::shared_ptr<Chunk>> chunks_;
+  std::vector<std::shared_ptr<TensorUsageRecord>> ordered_allocated_ids_; //已分配tensor
+};
+
+class TensorPool1DOffsetCalculateGreedyByBreadth
+    : public TensorPool1DSharedObject {
+ public:
+  TensorPool1DOffsetCalculateGreedyByBreadth(
+      device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
+      std::vector<OpWrapper *> &op_repository);
+  virtual ~TensorPool1DOffsetCalculateGreedyByBreadth();
+
+  virtual base::Status allocate();
+  virtual base::Status deallocate();
+
+ private:
+//   std::vector<std::shared_ptr<Chunk>> chunks_;
+  std::vector<std::shared_ptr<TensorUsageRecord>> ordered_allocated_ids_; //已分配tensor
 };
 
 }  // namespace net
