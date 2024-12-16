@@ -1,4 +1,6 @@
 
+#include "nndeploy/op/op_embedding.h"
+
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -15,7 +17,6 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
-#include "nndeploy/op/op_embedding.h"
 #include "nndeploy/op/util.h"
 
 namespace nndeploy {
@@ -102,11 +103,11 @@ base::Status embedding(device::Tensor *data, device::Tensor *indices,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput 1 failed");
   status = op->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
-  status = op->preRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->checkOrAllocOutput();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "checkOrAllocOutput failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   status = op->postRun();

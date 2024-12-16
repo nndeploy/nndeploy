@@ -86,11 +86,11 @@ class CudaOpRMSNorm : public OpRMSNorm {
   virtual base::Status run() {
     base::Status status = base::kStatusCodeOk;
 
-    // auto param = dynamic_cast<ir::RMSNormParam*>(op_desc_.op_param_.get());
-    // NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param,
-    //                                      "op_desc_.op_param_ is nullptr");
-    // float eps = param->eps_;
-    float eps = 1e-6;
+    auto param = dynamic_cast<ir::RMSNormParam*>(op_desc_.op_param_.get());
+    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param,
+                                         "op_desc_.op_param_ is nullptr");
+    float eps = param->eps_;
+    // float eps = 1e-6;
 
     int num_tokens = inputs_[0]->getShapeIndex(0);
     int hidden_units = inputs_[0]->getShapeIndex(1);
