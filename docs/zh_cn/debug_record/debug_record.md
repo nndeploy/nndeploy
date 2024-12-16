@@ -40,8 +40,11 @@ Vscode默认打开的终端有残缺，需要手动新建终端，选择Bash
 
 + 三方库资源：`/home/resource/third_party`
 
-  + 本地终端起效：export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
+  + 本地终端起效：
+    + export LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH
+    + export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
   + 始终有效
+    + echo 'export LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH' >> ~/.bashrc
     + echo 'export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
     + source ~/.bashrc
 

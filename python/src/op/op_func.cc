@@ -129,4 +129,16 @@ device::Tensor* maxPoolFunc(device::Tensor* input,
   return result;
 }
 
+device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("mul.output");
+  base::Status status = op::mul(input1, input2, result);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::mul failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
+}
+
 }  // namespace nndeploy
