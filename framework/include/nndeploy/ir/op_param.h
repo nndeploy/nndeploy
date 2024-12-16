@@ -205,6 +205,7 @@ enum OpType : int {
   // TODO: @Leonisux:
   // 1. 增加llama的算子类型
   kOpTypeRMSNorm,
+  kOpTypeEmbedding,
 
   kOpTypeNone,
 };
@@ -888,6 +889,21 @@ class NNDEPLOY_CC_API FlattenParam : public OpParam {
 
  public:
   int axis_ = 1;
+};
+
+class NNDEPLOY_CC_API EmbeddingParam : public OpParam {
+ public:
+  EmbeddingParam() : OpParam(){};
+  virtual ~EmbeddingParam(){};
+
+  PARAM_COPY(EmbeddingParam)
+  PARAM_COPY_TO(EmbeddingParam)
+
+  // base::Status serialize(rapidjson::Value &json,
+  //                        rapidjson::Document::AllocatorType &allocator) {}
+  // base::Status deserialize(rapidjson::Value &json) {
+  //   return base::kStatusCodeOk;
+  // }
 };
 
 class NNDEPLOY_CC_API GemmParam : public OpParam {
