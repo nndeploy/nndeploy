@@ -8,6 +8,69 @@
 namespace nndeploy {
 namespace op {
 
+#ifdef ENABLE_NNDEPLOY_OP_ASCEND_C
+// 外部符号声明
+extern void add_custom_do(uint32_t blockDim, void* stream, uint8_t* x,
+                          uint8_t* y, uint8_t* z);
+
+class AscendCLOpAdd : public OpBinary {
+ public:
+  AscendCLOpAdd() {}
+  virtual ~AscendCLOpAdd() {}
+
+  virtual base::Status init() {
+    // 流
+    device::Device* device = device::getDevice(device_type_);
+    inner_stream_ = (aclrtStream)device->getCommandQueue();
+
+    if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
+      inputs_0_ = new device::Tensor(device, inputs_[0]->getDesc(),
+                                     inputs_[0]->getName());
+      inputs_[0]->copyTo(inputs_0_);
+    } else {
+      inputs_0_ = inputs_[0];
+    }
+    if (device::isHostDeviceType(inputs_[1]->getDeviceType())) {
+      inputs_1_ = new device::Tensor(device, inputs_[1]->getDesc(),
+                                     inputs_[1]->getName());
+      inputs_[1]->copyTo(inputs_1_);
+    } else {
+      inputs_1_ = inputs_[1];
+    }
+
+    return base::kStatusCodeOk;
+  }
+  virtual base::Status deinit() {
+    if (inputs_0_ != nullptr) {
+      delete inputs_0_;
+      inputs_0_ = nullptr;
+    }
+    if (inputs_1_ != nullptr) {
+      delete inputs_1_;
+      inputs_1_ = nullptr;
+    }
+    return base::kStatusCodeOk;
+  }
+  virtual base::Status run() {
+    uint8_t* input_data_0 = (uint8_t*)(inputs_0_->getData());
+    uint8_t* input_data_1 = (uint8_t*)(inputs_1_->getData());
+    uint8_t* output_data = (uint8_t*)(outputs_[0]->getData());
+
+    add_custom_do(8, inner_stream_, input_data_0, input_data_1, output_data);
+    aclrtSynchronizeStream(inner_stream_);
+
+    return base::kStatusCodeOk;
+  }
+
+ private:
+  std::string inner_op_type_ = "Add";
+
+  device::Tensor* inputs_0_ = nullptr;
+  device::Tensor* inputs_1_ = nullptr;
+
+  aclrtStream inner_stream_ = nullptr;
+};
+#else
 class AscendCLOpAdd : public OpBinary {
  public:
   AscendCLOpAdd() {}
@@ -134,6 +197,7 @@ class AscendCLOpAdd : public OpBinary {
   aclrtStream inner_stream_ = nullptr;
   aclopAttr* attr_ = nullptr;
 };
+#endif
 
 REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeAdd, AscendCLOpAdd)
 
