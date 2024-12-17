@@ -2,12 +2,13 @@
 
 namespace nndeploy {
 
-device::Tensor* rmsNormFunc(device::Tensor* input1, device::Tensor* input2,
-                            device::Tensor* input3) {
+device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
+                            device::Tensor* residual,
+                            std::shared_ptr<ir::RMSNormParam> param) {
   std::stringstream ss;
 
   device::Tensor* output = new device::Tensor("rms_norm.output");
-  base::Status status = op::rmsNorm(input1, input2, input3, output);
+  base::Status status = op::rmsNorm(input, weight, residual, param, output);
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::rms_norm failed: error code "
        << base::statusCodeToString(status.getStatusCode());

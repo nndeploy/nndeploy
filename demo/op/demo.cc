@@ -104,7 +104,9 @@ int main(int argc, char* argv[]) {
   h_input->copyTo(d_scale);
 
   std::cout << "before launch kernel" << std::endl;
-  op::rmsNorm(d_input, d_scale, d_decoder_rsd, d_out);
+  std::shared_ptr<base::Param> rmsnorm_param =
+      ir::createOpParam(ir::kOpTypeRMSNorm);
+  op::rmsNorm(d_input, d_scale, d_decoder_rsd, rmsnorm_param, d_out);
   std::cout << "after launch kernel" << std::endl;
   d_out->copyTo(h_out);
   std::cout << "cuda memcpy device to host" << std::endl;
