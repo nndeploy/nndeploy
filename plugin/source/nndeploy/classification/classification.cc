@@ -30,6 +30,35 @@ dag::TypeGraphRegister g_register_resnet_graph(NNDEPLOY_RESNET,
 base::Status ClassificationPostProcess::run() {
   ClassificationPostParam *param = (ClassificationPostParam *)param_.get();
 
+  // 遍历inputs_中的所有Tensor
+  for (size_t i = 0; i < inputs_.size(); ++i) {
+    device::Tensor *tensor = inputs_[i]->getTensor(this);
+    std::string tensor_name =
+        inputs_[i]->getName();  // 假设getName()返回Tensor的名字
+
+    // 打开一个以Tensor名字命名的二进制文件用于写入
+    std::ofstream bin_file(tensor_name + ".bin",
+                           std::ios::out | std::ios::binary);
+
+    // 检查文件是否成功打开
+    if (!bin_file.is_open()) {
+      NNDEPLOY_LOGE("Failed to open bin file for writing: %s\n",
+                    tensor_name.c_str());
+      return base::kStatusCodeOk;
+    }
+
+    // 获取Tensor的数据指针和大小+
+    float *data = static_cast<float *>(tensor->getData());
+    size_t data_size = tensor->getSize();
+
+
+    // 写入Tensor的数据到bin文件
+    bin_file.write(reinterpret_cast<char *>(data), data_size);
+
+    // 关闭文件
+    bin_file.close();
+  }
+
   device::Tensor *tensor = inputs_[0]->getTensor(this);
 
   // tensor->print();
@@ -77,15 +106,20 @@ dag::Graph *createClassificationResnetGraph(
   dag::Graph *graph = new dag::Graph(name, input, output);
   dag::Edge *infer_input = graph->createEdge("data");
   dag::Edge *infer_output = graph->createEdge("resnetv17_dense0_fwd");
+  dag::Edge *infer_output1 = graph->createEdge("data");
+  dag::Edge *infer_output2 = graph->createEdge("resnetv17_conv0_fwd");
+  // dag::Edge *infer_output = graph->createEdge("resnetv17_dense0_fwd");
+  // dag::Edge *infer_output = graph->createEdge("resnetv17_dense0_fwd");
 
   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
       "preprocess", input, infer_input);
 
   dag::Node *infer = graph->createInfer<infer::Infer>(
-      "infer", inference_type, infer_input, infer_output);
+      "infer", inference_type, {infer_input},
+      {infer_output, infer_output1, infer_output2});
 
   dag::Node *post = graph->createNode<ClassificationPostProcess>(
-      "postprocess", infer_output, output);
+      "postprocess", {infer_output, infer_output1, infer_output2}, {output});
 
   preprocess::CvtclorResizeParam *pre_param =
       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());

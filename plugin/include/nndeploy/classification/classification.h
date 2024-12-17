@@ -40,6 +40,12 @@ class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
       : Node(name, input, output) {
     param_ = std::make_shared<ClassificationPostParam>();
   }
+
+  ClassificationPostProcess(const std::string &name, std::vector<dag::Edge *>input,
+                            std::vector<dag::Edge *>output)
+      : Node(name, input, output) {
+    param_ = std::make_shared<ClassificationPostParam>();
+  }
   virtual ~ClassificationPostProcess() {}
 
   virtual base::Status run();

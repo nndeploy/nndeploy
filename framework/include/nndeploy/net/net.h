@@ -117,7 +117,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   base::ShapeMap opt_shape_ = base::ShapeMap();  // 当为动态输入时最优shape
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
   TensorPoolType tensor_pool_type_ =
-      kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
+      kTensorPool1DSharedObjectTypeNone;
 
   Runtime *runtime_;
 

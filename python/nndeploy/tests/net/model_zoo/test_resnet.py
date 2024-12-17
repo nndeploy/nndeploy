@@ -17,8 +17,8 @@ def get_net(args):
         interpret.saveModelToFile("resnet50.json", "resnet50.safetensors")
 
     elif args.model_type == "default":
-        default_interpret = _C.ir.createInterpret(_C.base.ModelType.kModelTypeDefault)
-        assert default_interpret != None
+        interpret = _C.ir.createInterpret(_C.base.ModelType.kModelTypeDefault)
+        assert interpret != None
         interpret.interpret(args.model_path)
 
     md = interpret.getModelDesc()
@@ -29,7 +29,7 @@ def get_net(args):
 
     device = DeviceType(args.device, 0)
     net.setDeviceType(device)
-
+    net.enableOpt(False)
     net.init()
     if args.dump_net_path != None:
         net.dump(args.dump_net_path)
@@ -69,6 +69,8 @@ def clsidx_to_label(idx):
 
 
 def predict(net, img, args):
+    
+    array_ones = np.ones((1, 3, 224, 224)).astype(np.float32)
     input_map = {"data": createTensorFromNumpy(img, args.device)}
     net.setInputs(input_map)
     net.preRun()
@@ -77,8 +79,11 @@ def predict(net, img, args):
 
     output = net.getAllOutput()[0]
     output_array = createNumpyFromTensor(output)
-    print("nndeploy推理结果")
     print(output_array)
+    # print(createNumpyFromTensor(net.getAllOutput()[2]))
+    # print(len(net.getAllOutput()))
+    # print("nndeploy推理结果")
+    # print(output_array)
     top_5_indices = np.argsort(output_array)[0][::-1][:5]
     infer_result = clsidx_to_label(top_5_indices)
     print("top5 classes:")
