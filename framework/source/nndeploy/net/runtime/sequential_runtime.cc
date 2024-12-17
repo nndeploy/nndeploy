@@ -192,6 +192,7 @@ base::Status SequentialRuntime::run() {
   NNDEPLOY_TIME_POINT_START("net->run()");
   for (auto iter : op_repository_) {
     status = iter->op_->run();
+    // NNDEPLOY_LOGE("Node %s run\n", iter->op_->getName().c_str());
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s run failed\n", iter->op_->getName().c_str());
       return status;

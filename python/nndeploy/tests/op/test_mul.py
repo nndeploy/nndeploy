@@ -33,6 +33,10 @@ class TestMulOp(unittest.TestCase):
 
         nndeploy_result = ascend_result.to(device_name_to_code["cpu"])
 
+        ascend_input1_array = createNumpyFromTensor(ascend_input1)
+        diff_input = ascend_input1_array - np_input1
+        print("nndeploy和onnx输入的差异:", diff_input)
+
         self.assertTrue(
             np.allclose(
                 torch_result.detach().numpy(),
