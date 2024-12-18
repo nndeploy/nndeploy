@@ -143,10 +143,13 @@ base::Status FuseConvBatchNorm::optimize(
   return this->optimize(tensor_repository, op_repository, begin_op_index);
 }
 
-TypeOptPassRegister<TypeOptPassCreator<FuseConvBatchNorm>>
-    g_fuse_conv_batchnorm_register(base::kDeviceTypeCodeCpu,
-                                   kOptPassTypeFuseConvBatchNorm,
-                                   /*优化等级*/ 1);
+#define REGISTER_FUSE_CONV_BATCHNORM(str, device_type_code)  \
+  TypeOptPassRegister<TypeOptPassCreator<FuseConvBatchNorm>> \
+      g_fuse_conv_batchnorm_register_##str(                  \
+          device_type_code, kOptPassTypeFuseConvBatchNorm, /*优化等级*/ 1)
+
+REGISTER_FUSE_CONV_BATCHNORM(Cpu, base::kDeviceTypeCodeCpu);
+REGISTER_FUSE_CONV_BATCHNORM(Ascendcl, base::kDeviceTypeCodeAscendCL);
 
 }  // namespace net
 }  // namespace nndeploy
