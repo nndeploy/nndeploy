@@ -273,11 +273,11 @@ base::Status Net::init() {
 
   // 即使是设备相关的图优化，也可以放在优化器中做
   // 经过这一次图优化之后
-  // if (net_opt_flag_) {
-  //   status = optimizer();
-  //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-  //                          "graph optimizer failed!");
-  // }
+  if (net_opt_flag_) {
+    status = optimizer();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "graph optimizer failed!");
+  }
 
   status = this->runtime();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph runtime failed!");
