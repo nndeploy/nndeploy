@@ -52,7 +52,7 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
  protected:
   base::DeviceType device_type_;
   TensorPoolType tensor_pool_type_ =
-      kTensorPool1DSharedObjectTypeNone;
+      kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
   TensorPool *tensor_pool_;
   bool is_dynamic_shape_ = false;                // 是否是动态shape
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape

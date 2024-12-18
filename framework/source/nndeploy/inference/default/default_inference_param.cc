@@ -15,7 +15,7 @@ DefaultInferenceParam::DefaultInferenceParam() : InferenceParam() {
   device_type_ = device::getDefaultHostDeviceType();
   num_thread_ = 4;
   model_desc_ = nullptr;
-  tensor_pool_type_ = net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;;
+  tensor_pool_type_ = net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
 }
 DefaultInferenceParam::~DefaultInferenceParam() {}
 
