@@ -4,8 +4,8 @@
 #include "nndeploy/net/net.h"
 namespace nndeploy {
 namespace net {
-FuseConvBatchNorm::FuseConvBatchNorm() : OptPass("FuseConvBatchNorm"){};
-FuseConvBatchNorm::~FuseConvBatchNorm(){};
+FuseConvBatchNorm::FuseConvBatchNorm() : OptPass("FuseConvBatchNorm") {};
+FuseConvBatchNorm::~FuseConvBatchNorm() {};
 
 base::Status FuseConvBatchNorm::optimize(
     std::vector<TensorWrapper*>& tensor_repository,
@@ -64,7 +64,6 @@ base::Status FuseConvBatchNorm::optimize(
   first_op->op_->setInput(conv_weight, 1);
 
   device::Tensor* conv_bias = nullptr;
-
   float* scale_data = reinterpret_cast<float*>(scale->getData());
   float* bias_data = reinterpret_cast<float*>(bias->getData());
   float* mean_data = reinterpret_cast<float*>(mean->getData());
@@ -107,6 +106,7 @@ base::Status FuseConvBatchNorm::optimize(
     conv_bias =
         new device::Tensor(conv_weight->getDevice(), conv_bias_desc, name);
     conv_bias->set<float>(0);
+    first_op->op_->setInput(conv_bias, 2);
   }
 
   for (int out_channel = 0; out_channel < out_channels; out_channel++) {
@@ -121,7 +121,7 @@ base::Status FuseConvBatchNorm::optimize(
           conv_weight_data[i] * scale_data[out_channel] / var_sqrt;
     }
 
-    //融合进bias中
+    // 融合进bias中
 
     float* conv_bias_data = reinterpret_cast<float*>(conv_bias->getData());
     conv_bias_data[out_channel] =
