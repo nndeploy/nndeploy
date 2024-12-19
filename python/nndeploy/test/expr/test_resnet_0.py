@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 import nndeploy
 
-from nndeploy.test_utils import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
 from nndeploy.net import build_model
 
 input_shape = [1, 2048, 7, 7]

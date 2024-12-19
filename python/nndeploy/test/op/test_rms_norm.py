@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import nndeploy
 
-from nndeploy.test_utils import createTensorFromNumpy, createNumpyFromTensor, device_name_to_code
+from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
 
 
 def rsqrt_cpu(x):

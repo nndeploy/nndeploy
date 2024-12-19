@@ -4,8 +4,8 @@
 #include "nndeploy/net/net.h"
 namespace nndeploy {
 namespace net {
-FuseConvBatchNorm::FuseConvBatchNorm() : OptPass("FuseConvBatchNorm"){};
-FuseConvBatchNorm::~FuseConvBatchNorm(){};
+FuseConvBatchNorm::FuseConvBatchNorm() : OptPass("FuseConvBatchNorm") {};
+FuseConvBatchNorm::~FuseConvBatchNorm() {};
 
 base::Status FuseConvBatchNorm::optimize(
     std::vector<TensorWrapper*>& tensor_repository,
@@ -64,7 +64,6 @@ base::Status FuseConvBatchNorm::optimize(
   first_op->op_->setInput(conv_weight, 1);
 
   device::Tensor* conv_bias = nullptr;
-
   float* scale_data = reinterpret_cast<float*>(scale->getData());
   float* bias_data = reinterpret_cast<float*>(bias->getData());
   float* mean_data = reinterpret_cast<float*>(mean->getData());
@@ -107,6 +106,7 @@ base::Status FuseConvBatchNorm::optimize(
     conv_bias =
         new device::Tensor(conv_weight->getDevice(), conv_bias_desc, name);
     conv_bias->set<float>(0);
+    first_op->op_->setInput(conv_bias, 2);
   }
 
   for (int out_channel = 0; out_channel < out_channels; out_channel++) {
@@ -121,7 +121,7 @@ base::Status FuseConvBatchNorm::optimize(
           conv_weight_data[i] * scale_data[out_channel] / var_sqrt;
     }
 
-    //融合进bias中
+    // 融合进bias中
 
     float* conv_bias_data = reinterpret_cast<float*>(conv_bias->getData());
     conv_bias_data[out_channel] =
@@ -143,10 +143,13 @@ base::Status FuseConvBatchNorm::optimize(
   return this->optimize(tensor_repository, op_repository, begin_op_index);
 }
 
-TypeOptPassRegister<TypeOptPassCreator<FuseConvBatchNorm>>
-    g_fuse_conv_batchnorm_register(base::kDeviceTypeCodeCpu,
-                                   kOptPassTypeFuseConvBatchNorm,
-                                   /*优化等级*/ 1);
+#define REGISTER_FUSE_CONV_BATCHNORM(str, device_type_code)  \
+  TypeOptPassRegister<TypeOptPassCreator<FuseConvBatchNorm>> \
+      g_fuse_conv_batchnorm_register_##str(                  \
+          device_type_code, kOptPassTypeFuseConvBatchNorm, /*优化等级*/ 1)
+
+REGISTER_FUSE_CONV_BATCHNORM(Cpu, base::kDeviceTypeCodeCpu);
+REGISTER_FUSE_CONV_BATCHNORM(Ascendcl, base::kDeviceTypeCodeAscendCL);
 
 }  // namespace net
 }  // namespace nndeploy

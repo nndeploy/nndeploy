@@ -3,12 +3,12 @@ from nndeploy.base import DeviceType
 import argparse
 from PIL import Image
 import numpy as np
-from nndeploy.test_utils import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
 
-import onnxruntime as ort
+
 
 def get_net(args):
-    _C.nndeployFrameworkInit()
+    # 仿照 nndeploy/demo/net/demo.cc
     if args.model_type == "onnx":
         interpret = _C.ir.createInterpret(_C.base.ModelType.kModelTypeOnnx)
         assert interpret != None
@@ -17,9 +17,12 @@ def get_net(args):
         interpret.saveModelToFile("resnet50.json", "resnet50.safetensors")
 
     elif args.model_type == "default":
-        default_interpret = _C.ir.createInterpret(_C.base.ModelType.kModelTypeDefault)
-        assert default_interpret != None
+        interpret = _C.ir.createInterpret(_C.base.ModelType.kModelTypeDefault)
+        assert interpret != None
         interpret.interpret(args.model_path)
+    
+    else:
+        raise NotImplementedError
 
     md = interpret.getModelDesc()
     assert md != None
@@ -29,7 +32,6 @@ def get_net(args):
 
     device = DeviceType(args.device, 0)
     net.setDeviceType(device)
-
     net.init()
     if args.dump_net_path != None:
         net.dump(args.dump_net_path)
@@ -53,8 +55,10 @@ def read_img(img_path):
     
     # 从HWC转换为NCHW
     image_array = np.transpose(image_array, (0, 3, 1, 2))
-    print(image_array.shape)
+    # nndeploy Tensor当前只支持contiguous array
+    image_array = np.ascontiguousarray(image_array)
     image_array = image_array.astype(np.float32)
+    
     return image_array
 
 
@@ -69,6 +73,7 @@ def clsidx_to_label(idx):
 
 
 def predict(net, img, args):
+    
     input_map = {"data": createTensorFromNumpy(img, args.device)}
     net.setInputs(input_map)
     net.preRun()
@@ -77,8 +82,7 @@ def predict(net, img, args):
 
     output = net.getAllOutput()[0]
     output_array = createNumpyFromTensor(output)
-    print("nndeploy推理结果")
-    print(output_array)
+
     top_5_indices = np.argsort(output_array)[0][::-1][:5]
     infer_result = clsidx_to_label(top_5_indices)
     print("top5 classes:")
@@ -89,27 +93,6 @@ def predict(net, img, args):
 def main(args):
     net = get_net(args)
     img = read_img(args.image_path)
-    session = ort.InferenceSession((args.model_path)[0],providers=[ 'CPUExecutionProvider'])
-
-    
-    input_name = session.get_inputs()[0].name
-    output_name = session.get_outputs()[0].name
-
-    input_data = img
-
-    # 4. 运行推理
-    # 将输入数据作为字典传递给 run 方法
-    outputs = session.run(None, {input_name: input_data})
-    
-    top_5_indices = np.argsort(outputs[0])[0][::-1][:5]
-    
-    infer_result = clsidx_to_label(top_5_indices)
-    print("top5 classes:")
-    for i in infer_result:
-        print(i)
-
- 
-    print("onnx推理结果:", outputs[0])
     predict(net, img, args)
 
 
@@ -143,7 +126,7 @@ if __name__ == "__main__":
         "--dump_net_path",
         type=str,
         default="resnet50.dot",
-        help="Running device (cpu or Ascend)",
+         help="File path to dump net struct",
     )
 
     parser.add_argument("--image_path", type=str, help="Image to be classify")
