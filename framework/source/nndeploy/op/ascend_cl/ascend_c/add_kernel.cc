@@ -72,7 +72,13 @@ extern "C" __global__ __aicore__ void add_custom(GM_ADDR x, GM_ADDR y,
   op.Process();
 }
 
+namespace nndeploy {
+namespace op {
+
 void add_custom_do(uint32_t blockDim, void *stream, uint8_t *x, uint8_t *y,
                    uint8_t *z) {
   add_custom<<<blockDim, nullptr, stream>>>(x, y, z);
 }
+
+}  // namespace op
+}  // namespace nndeploy
