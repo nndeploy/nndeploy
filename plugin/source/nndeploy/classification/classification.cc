@@ -57,7 +57,7 @@ base::Status ClassificationPostProcess::run() {
   for (int b = 0; b < batch; ++b) {
     float *iter_data = data + b * num_classes;
     std::vector<int> label_ids_ = topKIndices(iter_data, num_classes, topk);
-    ;
+
     for (int i = 0; i < topk; ++i) {
       results->labels_[i + b * topk].index_ = b;
       results->labels_[i + b * topk].label_ids_ = label_ids_[i];

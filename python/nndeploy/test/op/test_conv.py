@@ -4,11 +4,7 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test_utils import (
-    createTensorFromNumpy,
-    createNumpyFromTensor,
-    device_name_to_code,
-)
+from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
 
 
 class TestConvOp(unittest.TestCase):
@@ -57,6 +53,34 @@ class TestConvOp(unittest.TestCase):
         bias = createTensorFromNumpy(np_bias)
 
         nndeploy_result = F.conv(input, weight, bias)
+        self.assertTrue(
+            np.allclose(
+                torch_result.detach().numpy(),
+                createNumpyFromTensor(nndeploy_result),
+                rtol=1e-05,
+                atol=1e-08,
+            )
+        )
+        
+    def test_conv_with_bias_3(self):
+        input_shape = [1, 3, 224, 224]
+        weight_shape = [64, 3, 7, 7]
+
+        np_input = np.random.random(input_shape).astype(np.float32)
+
+        np_weight = np.random.random(weight_shape).astype(np.float32)
+
+       
+
+        torch_result = torch.nn.functional.conv2d(
+            torch.tensor(np_input), torch.tensor(np_weight), padding = 3, stride = 2
+        )
+
+        input = createTensorFromNumpy(np_input)
+        weight = createTensorFromNumpy(np_weight)
+       
+
+        nndeploy_result = F.conv(input, weight, padding=3, stride=2)
         self.assertTrue(
             np.allclose(
                 torch_result.detach().numpy(),

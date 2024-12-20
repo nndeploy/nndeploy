@@ -4,11 +4,7 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test_utils import (
-    createTensorFromNumpy,
-    createNumpyFromTensor,
-    device_name_to_code,
-)
+from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
 
 
 class TestMaxPoolOp(unittest.TestCase):
