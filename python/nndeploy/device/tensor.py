@@ -6,9 +6,7 @@ from nndeploy.base import device_name_to_code
 # 从numpy array返回一个Tensor
 def createTensorFromNumpy(np_data, device="cpu"):
     tensor = _C.device.Tensor(np_data, device_name_to_code["cpu"])
-    if device != "cpu":
-        device_tensor = tensor.to(device_name_to_code[device])
-        return device_tensor
+    tensor = tensor.to(device_name_to_code[device])
     return tensor
 
 # 从Tensor返回一个numpy array

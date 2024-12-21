@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 import itertools
 
-from nndeploy.test_utils import createTensorFromNumpy, str_to_np_data_types
+from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor, str_to_np_data_types
 
 """
 测试nndeploy.device.Tensor 与  numpy array的互相转换
