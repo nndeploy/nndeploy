@@ -23,8 +23,9 @@
 
 namespace nndeploy {
 
-device::Tensor* rmsNormFunc(device::Tensor* input1, device::Tensor* input2,
-                            device::Tensor* input3);
+device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
+                            device::Tensor* residual,
+                            std::shared_ptr<ir::RMSNormParam> param);
 
 device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
                          device::Tensor* bias,

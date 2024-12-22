@@ -28,6 +28,8 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def(py::init([](py::buffer const b, base::DeviceTypeCode device_code) {
         return bufferInfoToTensor(b, device_code);
       }))
+      .def("copyTo", &Tensor::copyTo)
+      .def("getName", &Tensor::getName)
       // 移动Tensor到其他设备上
       .def(
           "to",

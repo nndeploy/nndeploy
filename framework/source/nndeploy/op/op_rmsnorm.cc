@@ -33,7 +33,7 @@ base::Status OpRMSNorm::run() {
 
 base::Status rmsNorm(device::Tensor *input, device::Tensor *weight,
                      device::Tensor *residual,
-                     std::shared_ptr<ir::RMSNormParam> param,
+                     std::shared_ptr<base::Param> param,
                      device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
