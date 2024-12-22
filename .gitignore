@@ -220,7 +220,7 @@ docs/build
 .vs/
 
 # third_party
-third_party
+# third_party
 
 cmake-build-debug/
 
