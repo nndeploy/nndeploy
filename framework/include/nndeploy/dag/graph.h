@@ -407,7 +407,8 @@ class NNDEPLOY_CC_API Graph : public Node {
  protected:
   std::vector<EdgeWrapper *> edge_repository_;
   std::vector<NodeWrapper *> node_repository_;
-
+  std::set<std::string> used_node_names_;
+  std::set<std::string> used_edge_names_;
   std::shared_ptr<Executor> executor_;
 };
 
