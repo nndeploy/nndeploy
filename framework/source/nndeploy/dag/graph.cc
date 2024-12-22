@@ -88,7 +88,9 @@ Graph::~Graph() {
     delete edge_wrapper;
   }
   node_repository_.clear();
+  used_node_names_.clear();
   edge_repository_.clear();
+  used_edge_names_.clear();
 }
 
 Edge *Graph::createEdge(const std::string &name) {
