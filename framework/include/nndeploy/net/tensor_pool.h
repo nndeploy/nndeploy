@@ -20,7 +20,7 @@ enum TensorPoolType : int {
   kTensorPool1DSharedObjectTypeGreedyBySize,
   kTensorPool1DSharedObjectTypeGreedyBySizeImprove,
   kTensorPool1DSharedObjectTypeNone,
-  kTensorPool1DOffsetCalculateTypeGreedyBySize = 0x0000,
+  kTensorPool1DOffsetCalculateTypeGreedyBySize,
   kTensorPool1DOffsetCalculateTypeGreedyByBreadth,
 };
 
@@ -29,7 +29,7 @@ struct TensorUsageRecord {
   TensorWrapper *tensor_wrapper_;
   size_t size_;
   std::array<int, 2> interval_;
-  int offset = -1; //初始化offset为-1
+  int offset_ = -1; //初始化offset为-1
   bool is_allocated_ = false;
 
   bool operator<(const TensorUsageRecord &other) const {
