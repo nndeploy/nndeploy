@@ -1,4 +1,4 @@
-#include "nndeploy/net/tensor_pool/tensor_pool_shared_object_by_size.h"
+#include "nndeploy/net/tensor_pool/tensor_pool_1d_shared_object_by_size.h"
 
 #include "nndeploy/net/tensor_pool.h"
 

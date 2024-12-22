@@ -1,4 +1,4 @@
-#include "nndeploy/net/tensor_pool/tensor_pool_offset_calculate_by_breadth.h"
+#include "nndeploy/net/tensor_pool/tensor_pool_1d_offset_calculate_by_breadth.h"
 
 #include "nndeploy/net/tensor_pool.h"
 
@@ -41,11 +41,13 @@ base::Status TensorPool1DOffsetCalculateGreedyByBreadth::allocate() {
 
   // 记录内存块大小
   size_t total_consumption = 0;
+  int tensor_num = 0;
   // 遍历每个张量使用记录
   for (auto& task : op_breadths_) { 
     for (auto& t : task->breadth_) {
         auto it = std::find(ordered_allocated_ids_.begin(), ordered_allocated_ids_.end(), t);
         if (it != ordered_allocated_ids_.end()) continue;
+        tensor_num++;
         int prev_offset = 0; // 上一个张量的偏移量
         int best_offset = -1; // 最佳偏移量
         int smallest_gap = INT_MAX; // 最小间隙
@@ -73,8 +75,25 @@ base::Status TensorPool1DOffsetCalculateGreedyByBreadth::allocate() {
         total_consumption = std::max(static_cast<int>(total_consumption), best_offset + static_cast<int>(t->size_));
     }
   }
-  tensorUsageRecordPrint(tensor_usage_records_);
 
+  //分配内存
+  device::Buffer *mem_block = new device::Buffer(device_, total_consumption);
+  for (auto& t : tensor_usage_records_){
+    device::Buffer *buffer = new device::Buffer(device_, t->size_, mem_block->getData() + t->offset_);
+    device::TensorDesc tensor_desc =
+        t->tensor_wrapper_->tensor_->getDesc();
+    device::BufferDesc buffer_desc =
+        device_->toBufferDesc(tensor_desc, base::IntVector());
+    if (!buffer->justModify(buffer_desc)) {
+      NNDEPLOY_LOGE("tensor name = %s.\n",
+                    t->tensor_wrapper_->name_.c_str());
+      NNDEPLOY_LOGE("buffer->justModify failed\n");
+      return base::kStatusCodeErrorInvalidValue;
+    }
+    t->tensor_wrapper_->tensor_->justModify(buffer,false);
+  }
+  tensorUsageRecordPrint(tensor_usage_records_);
+  NNDEPLOY_LOGE("Total tensor num: %d \n", tensor_num);
   NNDEPLOY_LOGE("Total memory size: %zu (OffSetByBreadth)\n", total_consumption);
 
   return status;

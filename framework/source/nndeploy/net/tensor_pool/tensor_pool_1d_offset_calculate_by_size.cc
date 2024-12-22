@@ -1,4 +1,4 @@
-#include "nndeploy/net/tensor_pool/tensor_pool_offset_calculate_by_size.h"
+#include "nndeploy/net/tensor_pool/tensor_pool_1d_offset_calculate_by_size.h"
 
 #include "nndeploy/net/tensor_pool.h"
 
@@ -68,6 +68,22 @@ base::Status TensorPool1DOffsetCalculateGreedyBySize::allocate() {
       // NNDEPLOY_LOGE("size: %d \n", t->size_);
       // NNDEPLOY_LOGE("order size: %d \n", ordered_allocated_ids_.size());
       total_consumption = std::max(static_cast<int>(total_consumption), best_offset + static_cast<int>(t->size_));
+  }
+  //分配内存
+  device::Buffer *mem_block = new device::Buffer(device_, total_consumption);
+  for (auto& t : tensor_usage_records_){
+    device::Buffer *buffer = new device::Buffer(device_, t->size_, mem_block->getData() + t->offset_);
+    device::TensorDesc tensor_desc =
+        t->tensor_wrapper_->tensor_->getDesc();
+    device::BufferDesc buffer_desc =
+        device_->toBufferDesc(tensor_desc, base::IntVector());
+    if (!buffer->justModify(buffer_desc)) {
+      NNDEPLOY_LOGE("tensor name = %s.\n",
+                    t->tensor_wrapper_->name_.c_str());
+      NNDEPLOY_LOGE("buffer->justModify failed\n");
+      return base::kStatusCodeErrorInvalidValue;
+    }
+    t->tensor_wrapper_->tensor_->justModify(buffer,false);
   }
 
   tensorUsageRecordPrint(tensor_usage_records_);

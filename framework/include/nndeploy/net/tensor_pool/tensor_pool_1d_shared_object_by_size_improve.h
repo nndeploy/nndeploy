@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_NET_TENSOR_POOL_TENSOR_POOL_OFFSET_CALCULATE_BY_SIZE_H_
-#define _NNDEPLOY_NET_TENSOR_POOL_TENSOR_POOL_OFFSET_CALCULATE_BY_SIZE_H_
+#ifndef _NNDEPLOY_NET_TENSOR_POOL_TENSOR_POOL_1D_SHARED_OBJECT_BY_SIZE_IMPROVE_H_
+#define _NNDEPLOY_NET_TENSOR_POOL_TENSOR_POOL_1D_SHARED_OBJECT_BY_SIZE_IMPROVE_H_
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -16,23 +16,23 @@
 namespace nndeploy {
 namespace net {
 
-class TensorPool1DOffsetCalculateGreedyBySize
+class TensorPool1DSharedObjectGreedyBySizeImprove
     : public TensorPool1D {
  public:
-  TensorPool1DOffsetCalculateGreedyBySize(
+  TensorPool1DSharedObjectGreedyBySizeImprove(
       device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
       std::vector<OpWrapper *> &op_repository);
-
-  virtual ~TensorPool1DOffsetCalculateGreedyBySize();
+  virtual ~TensorPool1DSharedObjectGreedyBySizeImprove();
 
   virtual base::Status allocate();
   virtual base::Status deallocate();
 
  private:
-  std::vector<std::shared_ptr<TensorUsageRecord>> ordered_allocated_ids_; //已分配tensor
+  std::vector<std::shared_ptr<Chunk>> chunks_;
 };
+
 
 }  // namespace net
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_NET_TENSOR_POOL_OFFSET_CALCULATE_BY_SIZE_H_ */
+#endif /* _NNDEPLOY_NET_TENSOR_POOL_1D_SHARED_OBJECT_BY_SIZE_IMPROVE_H_ */
