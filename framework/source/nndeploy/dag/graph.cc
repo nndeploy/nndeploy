@@ -94,7 +94,7 @@ Graph::~Graph() {
 }
 
 Edge *Graph::createEdge(const std::string &name) {
-  if (used_edge_names_.find(name) != used_node_names_.end()){
+  if (used_edge_names_.find(name) != used_edge_names_.end()){
     NNDEPLOY_LOGE("edge name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
