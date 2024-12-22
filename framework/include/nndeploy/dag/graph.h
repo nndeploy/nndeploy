@@ -416,6 +416,9 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, Edge *input, Edge *output,
                         Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   Node *node = dynamic_cast<Node *>(new T(name, input, output, args...));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
@@ -433,6 +436,7 @@ Node *Graph::createNode(const std::string &name, Edge *input, Edge *output,
   output_wrapper->producers_.emplace_back(node_wrapper);
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -440,6 +444,9 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, const std::string &input_name,
                         const std::string &output_name, Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   Edge *input = getEdge(input_name);
   if (input == nullptr) {
     input = createEdge(input_name);
@@ -465,6 +472,7 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
   output_wrapper->producers_.emplace_back(node_wrapper);
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -472,6 +480,9 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, Edge *input,
                         const std::string &output_name, Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   Edge *output = getEdge(output_name);
   if (output == nullptr) {
     output = createEdge(output_name);
@@ -493,6 +504,7 @@ Node *Graph::createNode(const std::string &name, Edge *input,
   output_wrapper->producers_.emplace_back(node_wrapper);
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -500,6 +512,9 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, const std::string &input_name,
                         Edge *output, Args &...args) {
+    if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   Edge *input = getEdge(input_name);
   if (input == nullptr) {
     input = createEdge(input_name);
@@ -521,6 +536,7 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
   output_wrapper->producers_.emplace_back(node_wrapper);
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -528,6 +544,9 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
                         std::vector<Edge *> outputs, Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, args...));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
@@ -549,6 +568,7 @@ Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
   }
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -557,6 +577,9 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name,
                         std::vector<std::string> input_names,
                         std::vector<std::string> output_names, Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   std::vector<Edge *> inputs;
   for (auto input_name : input_names) {
     Edge *input = getEdge(input_name);
@@ -594,6 +617,7 @@ Node *Graph::createNode(const std::string &name,
   }
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -602,6 +626,9 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name,
                         std::vector<std::string> input_names,
                         std::vector<Edge *> outputs, Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   std::vector<Edge *> inputs;
   for (auto input_name : input_names) {
     Edge *input = getEdge(input_name);
@@ -631,6 +658,7 @@ Node *Graph::createNode(const std::string &name,
   }
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -638,6 +666,9 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
                         std::vector<std::string> output_names, Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   std::vector<Edge *> outputs;
   for (auto output_name : output_names) {
     Edge *output = getEdge(output_name);
@@ -667,6 +698,7 @@ Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
   }
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -675,6 +707,9 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name,
                         std::initializer_list<Edge *> inputs,
                         std::initializer_list<Edge *> outputs, Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, args...));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
@@ -696,6 +731,7 @@ Node *Graph::createNode(const std::string &name,
   }
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -705,6 +741,9 @@ Node *Graph::createNode(const std::string &name,
                         std::initializer_list<std::string> input_names,
                         std::initializer_list<std::string> output_names,
                         Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   std::vector<Edge *> inputs;
   for (auto input_name : input_names) {
     Edge *input = getEdge(input_name);
@@ -742,6 +781,7 @@ Node *Graph::createNode(const std::string &name,
   }
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -751,6 +791,9 @@ Node *Graph::createNode(const std::string &name,
                         std::initializer_list<Edge *> inputs,
                         std::initializer_list<std::string> output_names,
                         Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   std::vector<Edge *> outputs;
   for (auto output_name : output_names) {
     Edge *output = getEdge(output_name);
@@ -780,6 +823,7 @@ Node *Graph::createNode(const std::string &name,
   }
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
@@ -788,6 +832,9 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name,
                         std::initializer_list<std::string> input_names,
                         std::initializer_list<Edge *> outputs, Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()){
+    return nullptr;
+  }
   std::vector<Edge *> inputs;
   for (auto input_name : input_names) {
     Edge *input = getEdge(input_name);
@@ -817,6 +864,7 @@ Node *Graph::createNode(const std::string &name,
   }
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
   return node;
 }
 
