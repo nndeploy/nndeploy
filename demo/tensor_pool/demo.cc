@@ -42,7 +42,7 @@ int main() {
     NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
     return ret;
   }
-/*
+
   auto onnx_interpret =
       std::shared_ptr<ir::Interpret>(ir::createInterpret(base::kModelTypeOnnx));
   std::vector<std::string> model_value;
@@ -57,7 +57,7 @@ int main() {
 
   // onnx_interpret->dump(std::cout);
   onnx_interpret->saveModelToFile("yolov8n.json", "yolov8n.safetensors");
-*/
+
 
   auto default_interpret = std::shared_ptr<ir::Interpret>(
       ir::createInterpret(base::kModelTypeDefault));
