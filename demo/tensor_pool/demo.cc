@@ -58,11 +58,13 @@ int main() {
   // onnx_interpret->dump(std::cout);
   onnx_interpret->saveModelToFile("yolov8n.json", "yolov8n.safetensors");
 
+
   auto default_interpret = std::shared_ptr<ir::Interpret>(
       ir::createInterpret(base::kModelTypeDefault));
   std::vector<std::string> new_model_value;
   new_model_value.push_back("yolov8n.json");
   new_model_value.push_back("yolov8n.safetensors");
+  base::Status status;
   status = default_interpret->interpret(new_model_value);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("interpret failed\n");
