@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_DETECT_DETECT_RESULT_H_
 #define _NNDEPLOY_DETECT_DETECT_RESULT_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -11,7 +12,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/type.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
@@ -26,19 +26,24 @@ namespace detect {
  */
 class NNDEPLOY_CC_API DetectBBoxResult : public base::Param {
  public:
-  DetectBBoxResult() {};
-  virtual ~DetectBBoxResult() {};
+  DetectBBoxResult(){};
+  virtual ~DetectBBoxResult() {
+    if (mask_ != nullptr) {
+      delete mask_;
+      mask_ = nullptr;
+    }
+  };
   int index_;
   int label_id_;
   float score_;
   std::array<float, 4> bbox_;  // xmin, ymin, xmax, ymax
-  device::Tensor mask_;
+  device::Tensor *mask_ = nullptr;
 };
 
 class NNDEPLOY_CC_API DetectResult : public base::Param {
  public:
-  DetectResult() {};
-  virtual ~DetectResult() {};
+  DetectResult(){};
+  virtual ~DetectResult(){};
   std::vector<DetectBBoxResult> bboxs_;
 };
 

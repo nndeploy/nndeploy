@@ -125,7 +125,8 @@ struct CSEOpEqual {
   }
 };
 
-EliminateCommonSubexpression::EliminateCommonSubexpression() {}
+EliminateCommonSubexpression::EliminateCommonSubexpression()
+    : OptPass("EliminateCommonSubexpression") {}
 
 EliminateCommonSubexpression::~EliminateCommonSubexpression() {}
 
@@ -144,19 +145,8 @@ base::Status EliminateCommonSubexpression::optimize(
       op_wrapper_map[op_wrapper] = op_wrapper;
       op_wrapper_it++;
     } else {
-      std::set<TensorWrapper*> to_delete_tensors;
-
       // 要保留的公共Op
       auto reserved_op_wrapper = op_wrapper_map[op_wrapper];
-
-      // 如果某个Tensor的消费者包含当前待删除的Op，则删去
-      for (auto tensor_wrapper : tensor_repository) {
-        auto it = std::find(tensor_wrapper->consumers_.begin(),
-                            tensor_wrapper->consumers_.end(), op_wrapper);
-        if (it != tensor_wrapper->consumers_.end()) {
-          tensor_wrapper->consumers_.erase(it);
-        }
-      }
 
       // 当前待删除的Op的输出Tensor,
       // 如果作为后继Op的输入Tensor，则需要将其替换为被保留的op的输出Tensor
@@ -179,43 +169,14 @@ base::Status EliminateCommonSubexpression::optimize(
         }
       }
 
-      for (auto tensor_wrapper : tensor_repository) {
-        auto prod_it = std::find(tensor_wrapper->producers_.begin(),
-                                 tensor_wrapper->producers_.end(), op_wrapper);
-        // 处理待删除op的输出Tensor
-        // 表明待删除的Op是当前TensorWrapper的生产者，则删去当前TensorWrapper
-        if (prod_it != tensor_wrapper->producers_.end()) {
-          // 该TensorWrapper的生产者只有一个，为被删除的op
-          // 删除该TensorWrapper
-          if (tensor_wrapper->producers_.size() == 1) {
-            to_delete_tensors.insert(tensor_wrapper);
+      // 处理待删除op的输出Tensor
+      rmOutputTensorAndMaybeDelete(op_wrapper, tensor_repository);
 
-          } else {
-            // 该TensorWrapper的生产者有多个
-            // 从生产者中删除 待删除的Opwrapper
-            tensor_wrapper->producers_.erase(prod_it);
-          }
-        }
-
-        // 处理待删除op的输入Tensor  同上
-        auto cons_it = std::find(tensor_wrapper->consumers_.begin(),
-                                 tensor_wrapper->consumers_.end(), op_wrapper);
-        if (cons_it != tensor_wrapper->consumers_.end()) {
-          if (tensor_wrapper->consumers_.size() == 1) {
-            to_delete_tensors.insert(tensor_wrapper);
-          } else {
-            tensor_wrapper->consumers_.erase(cons_it);
-          }
-        }
-      }
+      // 处理待删除op的输入Tensor
+      rmInputTensorAndMaybeDelete(op_wrapper, tensor_repository);
 
       // 从其前驱的后继中删除
-      for (auto predecessor : op_wrapper->predecessors_) {
-        predecessor->successors_.erase(
-            std::remove(predecessor->successors_.begin(),
-                        predecessor->successors_.end(), op_wrapper),
-            predecessor->successors_.end());
-      }
+      rmOpFromPredecessor(op_wrapper);
 
       // 将被删除的Op的后继的前驱改为被保留的Op
       for (auto successor : op_wrapper->successors_) {
@@ -227,24 +188,7 @@ base::Status EliminateCommonSubexpression::optimize(
         reserved_op_wrapper->successors_.emplace_back(successor);
       }
 
-      // 删除标记的TensorWrapper
-      for (auto tensor_wrapper : to_delete_tensors) {
-        if (tensor_wrapper->tensor_ != nullptr) {
-          delete tensor_wrapper->tensor_;
-          tensor_wrapper->tensor_ = nullptr;
-        }
-
-        NNDEPLOY_LOGE("delete tensor name: %s\n",
-                      tensor_wrapper->name_.c_str());
-        auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
-                            tensor_wrapper);
-        if (it != tensor_repository.end()) {
-          tensor_repository.erase(it);
-        }
-
-        delete tensor_wrapper;
-      }
-
+      // 删除该Op
       auto it =
           std::find(op_repository.begin(), op_repository.end(), op_wrapper);
       if (it != op_repository.end()) {
@@ -265,7 +209,7 @@ base::Status EliminateCommonSubexpression::optimize(
 
 TypeOptPassRegister<TypeOptPassCreator<EliminateCommonSubexpression>>
     g_eliminate_common_subexpression_register(
-        base::kDeviceTypeCodeCpu, kOptPassTypeEliminateCommonSubexpression);
+        base::kDeviceTypeCodeCpu, kOptPassTypeEliminateCommonSubexpression, 3);
 
 }  // namespace net
 

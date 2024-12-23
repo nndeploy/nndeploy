@@ -31,13 +31,8 @@ class AscendCLOpTranspose : public OpTranspose {
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {
-    base::Status status = OpTranspose::preRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("preRun failed.\n");
-      return status;
-    }
     // 输入输出
-    if (inputs_[0] != nullptr) {  
+    if (inputs_[0] != nullptr) {
       inner_input_ =
           AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
     }
@@ -51,7 +46,7 @@ class AscendCLOpTranspose : public OpTranspose {
           inner_input_, dims_, inner_output_, &workspace_size_, &executor_);
       if (aclnn_status != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclnnPermuteGetWorkspaceSize failed, error code: %d.\n",
-                     aclnn_status);
+                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
@@ -68,7 +63,7 @@ class AscendCLOpTranspose : public OpTranspose {
     }
     return base::kStatusCodeOk;
   }
-  virtual base::Status postRun() { 
+  virtual base::Status postRun() {
     if (inner_input_ != nullptr) {
       aclDestroyTensor(inner_input_);
       inner_input_ = nullptr;
@@ -79,11 +74,6 @@ class AscendCLOpTranspose : public OpTranspose {
     }
     if (executor_ != nullptr) {
       executor_ = nullptr;
-    }
-    base::Status status = OpTranspose::postRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("postRun failed.\n");
-      return status;
     }
     return base::kStatusCodeOk;
   }
@@ -101,8 +91,8 @@ class AscendCLOpTranspose : public OpTranspose {
   aclopAttr *attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeTranspose, AscendCLOpTranspose)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeTranspose,
+                         AscendCLOpTranspose)
 
 }  // namespace op
 }  // namespace nndeploy

@@ -38,7 +38,7 @@ if(ENABLE_NNDEPLOY_DAG)
 endif()
 
 # plugin
-if(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
   include(${ROOT_PATH}/demo/preprocess/config.cmake)
 endif()
 
@@ -50,11 +50,15 @@ if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
   include(${ROOT_PATH}/demo/codec/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
+  include(${ROOT_PATH}/demo/classification/config.cmake)
+endif()
+
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_DETECT)
   include(${ROOT_PATH}/demo/detect/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
   include(${ROOT_PATH}/demo/segment/config.cmake)
 endif()
 
@@ -62,7 +66,7 @@ if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
   include(${ROOT_PATH}/demo/tokenizer_cpp/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
   include(${ROOT_PATH}/demo/stable_diffusion/config.cmake)
 endif()
 
@@ -71,7 +75,16 @@ if(ENABLE_NNDEPLOY_DEMO_LLAMA)
   include(${ROOT_PATH}/demo/llama/config.cmake)
 endif()
 
-nndeploy_option(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL "ENABLE_NNDEPLOY_DEMO_TENSOR_POOL" ON)
+nndeploy_option(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL "ENABLE_NNDEPLOY_DEMO_TENSOR_POOL" OFF)
 if(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL)
   include(${ROOT_PATH}/demo/tensor_pool/config.cmake)
+endif()
+
+nndeploy_option(ENABLE_NNDEPLOY_DEMO_RESNET "ENABLE_NNDEPLOY_DEMO_RESNET" OFF)
+if(ENABLE_NNDEPLOY_DEMO_RESNET)
+  include(${ROOT_PATH}/demo/resnet/config.cmake)
+endif()
+
+if(ENABLE_NNDEPLOY_OP_ASCEND_C)
+  include(${ROOT_PATH}/demo/acl_op/config.cmake)
 endif()

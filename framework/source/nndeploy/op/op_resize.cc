@@ -19,7 +19,6 @@
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/util.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -126,12 +125,12 @@ base::Status OpResize::inferShape() {
         hasSizesInput = false;
       } else {
         if (inputs_[3]->getDataType() == base::dataTypeOf<int64_t>()) {
-          int64_t *sizes_shape_data = (int64_t*)inputs_[3]->getData();
+          int64_t* sizes_shape_data = (int64_t*)inputs_[3]->getData();
           for (int i = 0; i < sizes_shape[0]; ++i) {
             sizes_data.push_back((int32_t)sizes_shape_data[i]);
           }
         } else if (inputs_[3]->getDataType() == base::dataTypeOf<int32_t>()) {
-          int32_t *sizes_shape_data = (int32_t*)inputs_[3]->getData();
+          int32_t* sizes_shape_data = (int32_t*)inputs_[3]->getData();
           for (int i = 0; i < sizes_shape[0]; ++i) {
             sizes_data.push_back((int32_t)sizes_shape_data[i]);
           }
@@ -302,11 +301,11 @@ base::Status resize(device::Tensor* input, device::Tensor* roi,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   status = op->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
-  status = op->preRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->checkOrAllocOutput();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "checkOrAllocOutput failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   status = op->postRun();
@@ -318,8 +317,7 @@ base::Status resize(device::Tensor* input, device::Tensor* roi,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
-                         ir::kOpTypeResize, OpResize)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeResize, OpResize)
 
 }  // namespace op
 }  // namespace nndeploy

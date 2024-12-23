@@ -641,7 +641,8 @@ aclTensor *AscendCLOpConvert::convertFromTensor(const device::Tensor *src,
                                                 aclFormat dst_data_format) {
   base::DeviceType device_type = src->getDeviceType();
   if (device_type.code_ != base::kDeviceTypeCodeAscendCL) {
-    NNDEPLOY_LOGE("device type is not Ascend when convertFromTensor.\n");
+    NNDEPLOY_LOGE("device type[%d] is not Ascend when convertFromTensor.\n",
+                  device_type.code_);
     return nullptr;
   }
 

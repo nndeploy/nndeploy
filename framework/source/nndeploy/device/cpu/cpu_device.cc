@@ -11,9 +11,9 @@ TypeArchitectureRegister<CpuArchitecture> cpu_architecture_register(
     base::kDeviceTypeCodeCpu);
 
 CpuArchitecture::CpuArchitecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code) {};
+    : Architecture(device_type_code){};
 
-CpuArchitecture::~CpuArchitecture() {};
+CpuArchitecture::~CpuArchitecture(){};
 
 base::Status CpuArchitecture::checkDevice(int device_id, void *command_queue,
                                           std::string library_path) {

@@ -88,7 +88,7 @@ class TensorPool {
  */
 class TensorPoolCreator {
  public:
-  virtual ~TensorPoolCreator() {};
+  virtual ~TensorPoolCreator(){};
   virtual TensorPool *createTensorPool(
       device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
       std::vector<OpWrapper *> &op_repository) = 0;
@@ -113,8 +113,8 @@ class TypeTensorPoolCreator : public TensorPoolCreator {
  *
  * @return std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>&
  */
-std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>> &
-getGlobalTensorPoolCreatorMap();
+std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>
+    &getGlobalTensorPoolCreatorMap();
 
 /**
  * @brief TensorPool的创建类的注册类模板

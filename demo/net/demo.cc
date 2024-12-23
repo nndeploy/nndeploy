@@ -1,9 +1,8 @@
 // #include <experimental/filesystem>
+#include "nndeploy/framework.h"
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
-// #include "nndeploy/ir/onnx/onnx_interpret.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
@@ -13,8 +12,8 @@ using namespace nndeploy;
 
 class CannTest : public ir::ModelDesc {
  public:
-  CannTest() {};
-  ~CannTest() {};
+  CannTest(){};
+  ~CannTest(){};
   void init() {
     auto input =
         op::makeInput(this, "input", base::dataTypeOf<float>(), {1, 1, 8, 8});
@@ -43,41 +42,49 @@ int main() {
     return ret;
   }
 
+  base::Status status = base::kStatusCodeOk;
+
   auto onnx_interpret =
       std::shared_ptr<ir::Interpret>(ir::createInterpret(base::kModelTypeOnnx));
+  if (onnx_interpret == nullptr) {
+    NNDEPLOY_LOGE("ir::createInterpret failed.\n");
+    return -1;
+  }
   std::vector<std::string> model_value;
-  // model_value.push_back("D:\\github\\nndeploy\\build\\yolov8n.onnx");
-  model_value.push_back("yolov8n.onnx");
-
-  base::Status status = onnx_interpret->interpret(model_value);
+  // model_value.push_back("D:\\github\\nndeploy\\build\\yolo11s.sim.onnx.onnx");
+  model_value.push_back("yolo11s.sim.onnx");
+  status = onnx_interpret->interpret(model_value);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("interpret failed\n");
     return -1;
   }
-
-  // onnx_interpret->dump(std::cout);
-  onnx_interpret->saveModelToFile("yolov8n.json", "yolov8n.safetensors");
+  status = onnx_interpret->saveModelToFile("yolo11s.sim.onnx.json",
+                                           "yolo11s.sim.onnx.safetensors");
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("saveModelToFile failed\n");
+    return -1;
+  }
 
   auto default_interpret = std::shared_ptr<ir::Interpret>(
       ir::createInterpret(base::kModelTypeDefault));
   std::vector<std::string> new_model_value;
-  new_model_value.push_back("yolov8n.json");
-  new_model_value.push_back("yolov8n.safetensors");
+  new_model_value.push_back("yolo11s.sim.onnx.json");
+  new_model_value.push_back("yolo11s.sim.onnx.safetensors");
   status = default_interpret->interpret(new_model_value);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("interpret failed\n");
     return -1;
   }
-  default_interpret->saveModelToFile("yolov8n_test.json", "yolov8n_test.safetensors");
+  default_interpret->saveModelToFile("yolo11s.sim.onnx_test.json",
+                                     "yolo11s.sim.onnx_test.safetensors");
 
-  // ir::ModelDesc *md = onnx_interpret->getModelDesc();
   ir::ModelDesc *md = default_interpret->getModelDesc();
   if (md == nullptr) {
     NNDEPLOY_LOGE("get model desc failed\n");
     return -1;
   }
 
-  // md->dump(std::cout);
+  md->dump(std::cout);
 
   // auto md = new CannTest();
   // md->init();
@@ -87,12 +94,13 @@ int main() {
 
   base::DeviceType device_type;
   device_type.code_ = base::kDeviceTypeCodeCpu;
+  device_type.code_ = base::kDeviceTypeCodeAscendCL;
   device_type.device_id_ = 0;
   cann_net->setDeviceType(device_type);
 
   cann_net->init();
 
-  // cann_net->dump(std::cout);
+  cann_net->dump(std::cout);
 
   std::vector<device::Tensor *> inputs = cann_net->getAllInput();
   inputs[0]->set<float>(1.0f);

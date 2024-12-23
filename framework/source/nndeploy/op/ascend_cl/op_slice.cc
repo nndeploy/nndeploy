@@ -48,11 +48,6 @@ class AscendCLOpSlice : public OpSlice {
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
-    base::Status status = OpSlice::preRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("preRun failed.\n");
-      return status;
-    }
     // 输入输出
     if (inner_input_ == nullptr) {
       inner_input_ =
@@ -65,12 +60,12 @@ class AscendCLOpSlice : public OpSlice {
 
     // 创建算子
     if (executor_ == nullptr) {
-      aclnnStatus aclnn_status =
-          aclnnSliceGetWorkspaceSize(inner_input_, dim_, start_, end_, step_,
-                                   inner_output_, &workspace_size_, &executor_);
+      aclnnStatus aclnn_status = aclnnSliceGetWorkspaceSize(
+          inner_input_, dim_, start_, end_, step_, inner_output_,
+          &workspace_size_, &executor_);
       if (aclnn_status != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclnnSliceGetWorkspaceSize failed, error code: %d.\n",
-                     aclnn_status);
+                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
@@ -98,11 +93,6 @@ class AscendCLOpSlice : public OpSlice {
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }
-    base::Status status = OpSlice::postRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("postRun failed.\n");
-      return status;
-    }
     return base::kStatusCodeOk;
   }
 
@@ -118,11 +108,11 @@ class AscendCLOpSlice : public OpSlice {
   aclOpExecutor* executor_ = nullptr;
 
   aclrtStream inner_stream_ = nullptr;
-  aclopAttr* attr_ = nullptr; 
+  aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeSlice, AscendCLOpSlice)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeSlice,
+                         AscendCLOpSlice)
 
 }  // namespace op
 }  // namespace nndeploy

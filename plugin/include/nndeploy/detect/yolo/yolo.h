@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_DETECT_DETECT_YOLO_YOLO_H_
 #define _NNDEPLOY_DETECT_DETECT_YOLO_YOLO_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -11,7 +12,6 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
@@ -27,6 +27,7 @@ namespace detect {
 #define NNDEPLOY_YOLOV5 "NNDEPLOY_YOLOV5"
 #define NNDEPLOY_YOLOV6 "NNDEPLOY_YOLOV6"
 #define NNDEPLOY_YOLOV8 "NNDEPLOY_YOLOV8"
+#define NNDEPLOY_YOLOV11 "NNDEPLOY_YOLOV11"
 
 class NNDEPLOY_CC_API YoloPostParam : public base::Param {
  public:
@@ -66,6 +67,12 @@ extern NNDEPLOY_CC_API dag::Graph *createYoloV6Graph(
     std::vector<std::string> model_value);
 
 extern NNDEPLOY_CC_API dag::Graph *createYoloV8Graph(
+    const std::string &name, base::InferenceType inference_type,
+    base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
+    base::ModelType model_type, bool is_path,
+    std::vector<std::string> model_value);
+
+extern NNDEPLOY_CC_API dag::Graph *createYoloV11Graph(
     const std::string &name, base::InferenceType inference_type,
     base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
     base::ModelType model_type, bool is_path,

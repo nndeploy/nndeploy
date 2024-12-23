@@ -1,4 +1,5 @@
 #include "nndeploy/ir/interpret.h"
+
 #include "nndeploy/base/status.h"
 #include "safetensors.hh"
 
@@ -17,7 +18,8 @@ base::Status Interpret::dump(std::ostream &oss) {
 }
 
 base::Status Interpret::saveModel(
-    std::ostream &structure_stream, std::shared_ptr<safetensors::safetensors_t> st_ptr) {
+    std::ostream &structure_stream,
+    std::shared_ptr<safetensors::safetensors_t> st_ptr) {
   base::Status status = model_desc_->serializeStructureToJson(structure_stream);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("model_desc_->serializeStructureToJson failed!\n");
@@ -36,14 +38,15 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
   // 打开结构文件输出流，覆盖已存在文件
   if (!structure_file_path.empty()) {
     std::ofstream structure_stream(
-      structure_file_path,
-      std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
+        structure_file_path,
+        std::ofstream::out | std::ofstream::trunc | std::ofstream::binary);
     if (!structure_stream.is_open()) {
       NNDEPLOY_LOGE("Failed to open structure file: %s\n",
-                  structure_file_path.c_str());
+                    structure_file_path.c_str());
       return base::kStatusCodeErrorInvalidParam;
     }
-    base::Status status = model_desc_->serializeStructureToJson(structure_stream);
+    base::Status status =
+        model_desc_->serializeStructureToJson(structure_stream);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("model_desc_->serializeStructureToJson failed!\n");
       return status;
@@ -58,7 +61,8 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
     if (pos == std::string::npos || weight_file_path.substr(pos) != extension) {
       path = weight_file_path + extension;
     }
-    std::shared_ptr<safetensors::safetensors_t> st_ptr(new safetensors::safetensors_t());
+    std::shared_ptr<safetensors::safetensors_t> st_ptr(
+        new safetensors::safetensors_t());
 
     base::Status status = model_desc_->serializeWeightsToSafetensors(st_ptr);
     if (status != base::kStatusCodeOk) {
@@ -67,14 +71,12 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
     }
 
     std::string warn, err;
-    bool ret =
-        safetensors::save_to_file((*st_ptr), path, &warn, &err);
+    bool ret = safetensors::save_to_file((*st_ptr), path, &warn, &err);
     if (warn.size()) {
       NNDEPLOY_LOGI("WARN: %s\n", warn.c_str());
     }
     if (!ret) {
-      NNDEPLOY_LOGE("Failed to load: %s\nERR: %s", path.c_str(),
-                    err.c_str());
+      NNDEPLOY_LOGE("Failed to load: %s\nERR: %s", path.c_str(), err.c_str());
       return base::kStatusCodeErrorIO;
     }
   }
@@ -84,8 +86,8 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
 
 ModelDesc *Interpret::getModelDesc() { return model_desc_; }
 
-std::map<base::ModelType, std::shared_ptr<InterpretCreator>> &
-getGlobalInterpretCreatorMap() {
+std::map<base::ModelType, std::shared_ptr<InterpretCreator>>
+    &getGlobalInterpretCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::ModelType, std::shared_ptr<InterpretCreator>>>

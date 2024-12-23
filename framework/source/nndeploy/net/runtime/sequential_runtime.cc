@@ -162,7 +162,7 @@ base::Status SequentialRuntime::preRun() {
       return status;
     }
   }
-  NNDEPLOY_LOGI("preRun ok!\n");
+  // NNDEPLOY_LOGI("preRun ok!\n");
   return status;
 }
 base::Status SequentialRuntime::run() {
@@ -192,6 +192,7 @@ base::Status SequentialRuntime::run() {
   NNDEPLOY_TIME_POINT_START("net->run()");
   for (auto iter : op_repository_) {
     status = iter->op_->run();
+    // NNDEPLOY_LOGE("Node %s run\n", iter->op_->getName().c_str());
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s run failed\n", iter->op_->getName().c_str());
       return status;
@@ -199,7 +200,7 @@ base::Status SequentialRuntime::run() {
   }
   NNDEPLOY_TIME_POINT_END("net->run()");
 
-  NNDEPLOY_LOGI("run ok!\n");
+  // NNDEPLOY_LOGI("run ok!\n");
 
   return status;
 }
@@ -212,7 +213,7 @@ base::Status SequentialRuntime::postRun() {
       return status;
     }
   }
-  NNDEPLOY_LOGI("postRun ok!\n");
+  // NNDEPLOY_LOGI("postRun ok!\n");
   return status;
 }
 

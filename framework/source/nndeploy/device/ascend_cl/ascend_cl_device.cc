@@ -270,15 +270,24 @@ base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst, int index) {
   size_t dst_size = dst->getSize();
   size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
+  // NNDEPLOY_LOGE("size=%lld\n", size);
   if (src != nullptr && dst != nullptr) {
+    // src->print();
+    // dst->print();
     aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
-    aclError ret = aclrtMemcpyAsync(dst->getData(), size, src->getData(), size,
-                                    ACL_MEMCPY_HOST_TO_DEVICE, stream);
+    // aclrtStream stream;
+    // aclError ret = aclrtCreateStream(&stream);
+    aclError ret = aclrtMemcpy(dst->getData(), size, src->getData(), size,
+                               ACL_MEMCPY_HOST_TO_DEVICE);
+    // aclError ret = aclrtMemcpyAsync(dst->getData(), size, src->getData(),
+    // size,
+    //                                 ACL_MEMCPY_HOST_TO_DEVICE, stream);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE(
           "upload fuction: aclrtMemcpyAsync failed, errorCode is %d\n", ret);
       return base::kStatusCodeErrorDeviceAscendCL;
     }
+
     ret = aclrtSynchronizeStream(stream);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE(

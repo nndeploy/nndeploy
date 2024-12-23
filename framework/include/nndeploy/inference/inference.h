@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_INFERENCE_INFERENCE_H_
 #define _NNDEPLOY_INFERENCE_INFERENCE_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -9,7 +10,6 @@
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
@@ -363,7 +363,7 @@ class NNDEPLOY_CC_API Inference {
  */
 class InferenceCreator {
  public:
-  virtual ~InferenceCreator() {};
+  virtual ~InferenceCreator(){};
   virtual Inference *createInference(base::InferenceType type) = 0;
 };
 
@@ -384,8 +384,8 @@ class TypeInferenceCreator : public InferenceCreator {
  *
  * @return std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
-getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
+    &getGlobalInferenceCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板

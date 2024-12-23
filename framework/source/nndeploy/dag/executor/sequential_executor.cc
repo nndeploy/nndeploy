@@ -4,8 +4,8 @@
 namespace nndeploy {
 namespace dag {
 
-SequentialExecutor::SequentialExecutor() : Executor() {};
-SequentialExecutor::~SequentialExecutor() {};
+SequentialExecutor::SequentialExecutor() : Executor(){};
+SequentialExecutor::~SequentialExecutor(){};
 
 base::Status SequentialExecutor::init(
     std::vector<EdgeWrapper *> &edge_repository,

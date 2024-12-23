@@ -7,7 +7,7 @@
 namespace nndeploy {
 namespace ir {
 NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
-  py::class_<ir::ModelDesc>(m, "ModelDesc")
+  py::class_<ir::ModelDesc, std::shared_ptr<ir::ModelDesc>>(m, "ModelDesc")
       .def(py::init<>())
       .def_readwrite("name_", &ir::ModelDesc::name_)
       .def(
@@ -27,6 +27,8 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
           self.weights_[key]->setName(key);
         }
       });
+
+  py::class_<OpDesc, std::shared_ptr<ir::OpDesc>>(m, "OpDesc");
 }
 }  // namespace ir
 }  // namespace nndeploy

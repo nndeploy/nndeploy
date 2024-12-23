@@ -16,7 +16,6 @@
 #include "nndeploy/inference/inference.h"
 #include "nndeploy/inference/inference_param.h"
 
-
 namespace nndeploy {
 namespace inference {
 

@@ -23,8 +23,8 @@ base::Status TensorPool::setMemory(device::Buffer *buffer) {
   return base::kStatusCodeErrorNotImplement;
 }
 
-std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>> &
-getGlobalTensorPoolCreatorMap() {
+std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>
+    &getGlobalTensorPoolCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>>

@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_DAG_NODE_H_
 #define _NNDEPLOY_DAG_NODE_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -10,7 +11,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
@@ -26,6 +26,7 @@ namespace dag {
  */
 class NNDEPLOY_CC_API Node {
  public:
+  Node(const std::string &name) : name_(name) {}
   Node(const std::string &name, Edge *input, Edge *output);
   Node(const std::string &name, std::initializer_list<Edge *> inputs,
        std::initializer_list<Edge *> outputs);

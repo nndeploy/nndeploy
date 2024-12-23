@@ -4,9 +4,9 @@
 namespace nndeploy {
 namespace dag {
 
-ParallelPipelineExecutor::ParallelPipelineExecutor() : Executor() {};
+ParallelPipelineExecutor::ParallelPipelineExecutor() : Executor(){};
 
-ParallelPipelineExecutor::~ParallelPipelineExecutor() {};
+ParallelPipelineExecutor::~ParallelPipelineExecutor(){};
 
 base::Status ParallelPipelineExecutor::init(
     std::vector<EdgeWrapper*>& edge_repository,

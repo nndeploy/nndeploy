@@ -19,7 +19,6 @@
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/util.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -142,11 +141,11 @@ base::Status slice(device::Tensor* input, device::Tensor* starts,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   status = op->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
-  status = op->preRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->checkOrAllocOutput();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "checkOrAllocOutput failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   status = op->postRun();
@@ -158,8 +157,7 @@ base::Status slice(device::Tensor* input, device::Tensor* starts,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
-                         ir::kOpTypeSlice, OpSlice)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeSlice, OpSlice)
 
 }  // namespace op
 }  // namespace nndeploy

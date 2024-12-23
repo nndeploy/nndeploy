@@ -27,3 +27,41 @@ def batch_norm(input, scale, bias, mean, var, epsilon=1e-5):
 def relu(input):
 
     return _C.op.relu(input)
+
+
+def add(input1, input2):
+    return _C.op.add(input1, input2)
+
+
+def flatten(input, axis=1):
+    param = _C.ir.FlattenParam()
+    param.axis_ = axis
+    return _C.op.flatten(input, param)
+
+
+def gemm(input_a, input_b, input_c=None, alpha=1.0, beta=1.0, trans_a=0, trans_b=0):
+    param = _C.ir.GemmParam()
+    param.alpha_ = alpha
+    param.beta_ = beta
+    param.trans_a_ = trans_a
+    param.trans_b_ = trans_b
+    return _C.op.gemm(input_a, input_b, input_c, param)
+
+
+def global_averagepool(input):
+    return _C.op.global_averagepool(input)
+
+
+def maxpool(input, kernel_size, stride=1, padding=0, dilation=1, ceil_mode=False):
+    param = _C.ir.MaxPoolParam()
+    param.kernel_shape_ = [kernel_size] *2
+    param.strides_ = [stride] * 2
+    param.pads_ = [padding] * 4
+    param.dilations_ = [dilation] * 2
+    param.ceil_mode_ = ceil_mode
+    return _C.op.maxpool(input, param)
+
+
+def mul(input1, input2):
+    return _C.op.mul(input1, input2)
+

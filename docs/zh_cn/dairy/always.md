@@ -264,6 +264,7 @@ Finish! Here is the difference:
 + 8.0之后的310b的卷积算子运行出错
 + CREATE_EXECUTOR运行出错
   + 很多头文件出错 
++ upload fuction: aclrtSynchronizeStream failed, errorCode is 507001
 
 
 ## atd
@@ -271,4 +272,27 @@ Finish! Here is the difference:
 + atc --model=/home/ma-user/work/github/nndeploy/build/yolov8n_debug.onnx --framework=5 --output=/home/ma-user/work/github/nndeploy/build/yolov8n_debug.onnx.om --soc_version=Ascend910B4
 
 + atc --model=/home/ma-user/work/github/nndeploy/build/modified_yolov8n.onnx --framework=5 --output=/home/ma-user/work/github/nndeploy/build/modified_yolov8n.onnx.om --soc_version=Ascend910B4
+
+## export http_proxy=127.0.0.1:7890
+
+export http_proxy="http://127.0.0.1:7890"
+export https_proxy="http://127.0.0.1:7890"
+
+export http_proxy="http://127.0.0.1:7891"
+export https_proxy="http://127.0.0.1:7891"
+
+export PATH=/usr/local/cuda-11.8/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+
+export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64
+export PATH=$PATH:/usr/local/cuda-11.8/bin
+
+/home/always/Downloads
+
+## stable diffusion
++ sudo docker run --rm -it --runtime=nvidia --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
++ sudo docker run --rm -it --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
++ sudo docker run --rm --runtime=nvidia --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
++ sudo docker run --rm -it --gpus all -v $PWD:/workspace tensorrt-ubuntu20.04-cuda11.8:latest /bin/bash
 

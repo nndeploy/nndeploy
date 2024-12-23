@@ -16,14 +16,12 @@ TnnInferenceParam::TnnInferenceParam() : InferenceParam() {
 }
 TnnInferenceParam::~TnnInferenceParam() {}
 
-base::Status TnnInferenceParam::set(const std::string &key,
-                                    base::Any &any) {
+base::Status TnnInferenceParam::set(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }
 
-base::Status TnnInferenceParam::get(const std::string &key,
-                                    base::Any &any) {
+base::Status TnnInferenceParam::get(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
   return base::kStatusCodeOk;
 }

@@ -126,15 +126,19 @@ void Node::setRunningFlag(bool flag) {
 }
 bool Node::isRunning() { return is_running_; }
 
-base::Status Node::init() { return base::kStatusCodeOk; }
-base::Status Node::deinit() { return base::kStatusCodeOk; }
+base::Status Node::init() { 
+  return base::kStatusCodeOk; 
+}
+base::Status Node::deinit() { 
+  return base::kStatusCodeOk; 
+}
 
 int64_t Node::getMemorySize() {
-  NNDEPLOY_LOGI("this api is not implemented");
+  NNDEPLOY_LOGI("this api is not implemented.\n");
   return -1;
 }
 base::Status Node::setMemory(device::Buffer *buffer) {
-  NNDEPLOY_LOGI("this api is not implemented");
+  NNDEPLOY_LOGI("this api is not implemented.\n");
   return base::kStatusCodeOk;
 }
 

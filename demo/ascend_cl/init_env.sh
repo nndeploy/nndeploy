@@ -3,10 +3,10 @@
 chmod +x Ascend-cann-toolkit_8.0.RC3.alpha003_linux-aarch64.run
 ./Ascend-cann-toolkit_8.0.RC3.alpha003_linux-aarch64.run --check
 ./Ascend-cann-toolkit_8.0.RC3.alpha003_linux-aarch64.run --install
-# export LD_LIBRARY_PATH=/usr/local/Ascend/ascend-toolkit/latest/aarch64-linux/devlib/:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/Ascend/ascend-toolkit/latest/aarch64-linux/devlib/:$LD_LIBRARY_PATH
 
-source /home/ma-user/Ascend/ascend-toolkit/set_env.sh
-echo "source /home/ma-user/Ascend/ascend-toolkit/set_env.sh" >> ~/.bashrc
+source /usr/local/Ascend/ascend-toolkit/set_env.sh
+echo "source /usr/local/Ascend/ascend-toolkit/set_env.sh" >> ~/.bashrc
 
 chmod +x Ascend-cann-kernels-910b_8.0.RC3.alpha003_linux-aarch64.run
 ./Ascend-cann-kernels-910b_8.0.RC3.alpha003_linux-aarch64.run --check
@@ -22,6 +22,6 @@ else
     wget https://obs-9be7.obs.cn-east-2.myhuaweicloud.com/AscendC/ResourceDependent/cmake-3.28.3-linux-aarch64.tar.gz
     tar xf cmake-3.28.3-linux-aarch64.tar.gz
 fi
-export PATH=/home/ma-user/work/cmake-3.28.3-linux-aarch64/bin:$PATH
-echo 'export PATH=/home/ma-user/work/cmake-3.28.3-linux-aarch64/bin:$PATH' >> ~/.bashrc
+export PATH=/usr/local/work/cmake-3.28.3-linux-aarch64/bin:$PATH
+echo 'export PATH=/usr/local/work/cmake-3.28.3-linux-aarch64/bin:$PATH' >> ~/.bashrc
 

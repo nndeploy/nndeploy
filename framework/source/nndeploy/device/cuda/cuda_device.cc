@@ -11,9 +11,9 @@ TypeArchitectureRegister<CudaArchitecture> cuda_architecture_register(
     base::kDeviceTypeCodeCuda);
 
 CudaArchitecture::CudaArchitecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code) {};
+    : Architecture(device_type_code){};
 
-CudaArchitecture::~CudaArchitecture() {};
+CudaArchitecture::~CudaArchitecture(){};
 
 base::Status CudaArchitecture::checkDevice(int device_id, void *command_queue,
                                            std::string library_path) {

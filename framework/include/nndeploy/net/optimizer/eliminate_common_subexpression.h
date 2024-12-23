@@ -21,7 +21,6 @@ class EliminateCommonSubexpression : public OptPass {
                                 int begin_op_index);
 };
 
-
 }  // namespace net
 
 }  // namespace nndeploy

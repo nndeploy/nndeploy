@@ -92,6 +92,8 @@ class NNDEPLOY_CC_API Op {
   std::vector<device::Tensor *> getAllInput();
   std::vector<device::Tensor *> getAllOutput();
 
+  base::Status rmInput(device::Tensor *tensor);
+
   base::Status setAllInput(std::vector<device::Tensor *> inputs);
   base::Status setAllOutput(std::vector<device::Tensor *> outputs);
 
@@ -267,7 +269,7 @@ class NNDEPLOY_CC_API Op {
  */
 class OpCreator {
  public:
-  virtual ~OpCreator() {};
+  virtual ~OpCreator(){};
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        ir::OpType op_type) = 0;
@@ -383,9 +385,11 @@ using MIMOOpFunc =
                                std::initializer_list<device::Tensor *> outputs,
                                std::shared_ptr<base::Param> op_param)>;
 
+using namespace base;
+using namespace ir;
 #define REGISTER_OP_IMPLEMENTION(device_type_code, op_type, op_class) \
-  TypeOpRegister<TypeOpCreator<op_class>> g_##op_class##_register(    \
-      device_type_code, op_type);
+  TypeOpRegister<TypeOpCreator<op_class>>                             \
+      g_##device_type_code##op_class##_register(device_type_code, op_type);
 
 }  // namespace op
 }  // namespace nndeploy

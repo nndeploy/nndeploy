@@ -2,6 +2,7 @@
 #ifndef _NNDEPLOY_INFERENCE_INFERENCE_PARAM_H_
 #define _NNDEPLOY_INFERENCE_INFERENCE_PARAM_H_
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/file.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -11,7 +12,6 @@
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
-#include "nndeploy/base/any.h"
 
 namespace nndeploy {
 namespace inference {
@@ -85,7 +85,7 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
  */
 class InferenceParamCreator {
  public:
-  virtual ~InferenceParamCreator() {};
+  virtual ~InferenceParamCreator(){};
   virtual InferenceParam *createInferenceParam() = 0;
 };
 
@@ -105,8 +105,8 @@ class TypeInferenceParamCreator : public InferenceParamCreator {
  * @return std::map<base::InferenceType,
  * std::shared_ptr<InferenceParamCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
-getGlobalInferenceParamCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
+    &getGlobalInferenceParamCreatorMap();
 
 /**
  * @brief TypeInferenceParamRegister is the template class of all inference

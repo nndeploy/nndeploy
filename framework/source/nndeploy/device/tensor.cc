@@ -11,9 +11,9 @@ static TypeTensorRegister<TypeTensorCreator<Tensor>> g_defalut_tensor_register(
     base::kTensorTypeDefault);
 
 Tensor::Tensor() {}
-Tensor::Tensor(const std::string &name) : name_(name) {};
+Tensor::Tensor(const std::string &name) : name_(name){};
 Tensor::Tensor(const TensorDesc &desc, const std::string &name)
-    : name_(name), desc_(desc) {};
+    : name_(name), desc_(desc){};
 Tensor::Tensor(const TensorDesc &desc, Buffer *buffer, const std::string &name)
     : name_(name), desc_(desc), is_external_(true), buffer_(buffer) {
   ref_count_ = new int(1);
@@ -374,6 +374,7 @@ base::Status Tensor::serialize(std::ostream &stream) {
   }
   return base::kStatusCodeOk;
 }
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::safetensorsDtype2Dtype(
     const safetensors::dtype &safetensors_data_type,
     base::DataType &data_type) {
@@ -424,7 +425,8 @@ base::Status Tensor::safetensorsDtype2Dtype(
   }
   return status;
 }
-
+#endif
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::safetensorsShape2Shape(
     const std::vector<size_t> &safetensors_data_shape, base::IntVector &shape) {
   shape.clear();
@@ -436,7 +438,8 @@ base::Status Tensor::safetensorsShape2Shape(
   }
   return base::kStatusCodeOk;
 }
-
+#endif
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::dtype2SafetensorsDtype(
     const base::DataType &data_type,
     safetensors::dtype &safetensors_data_type) {
@@ -514,7 +517,8 @@ base::Status Tensor::dtype2SafetensorsDtype(
   }
   return status;
 }
-
+#endif
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::shape2SafetensorsShape(
     const base::IntVector &shape, std::vector<size_t> &safetensors_data_shape) {
   safetensors_data_shape.clear();
@@ -523,7 +527,8 @@ base::Status Tensor::shape2SafetensorsShape(
   }
   return base::kStatusCodeOk;
 }
-
+#endif
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::serializeToSafetensors(safetensors::safetensors_t &st,
                                             bool serialize_buffer) {
   // NOTE: we should call not serialize_buffer at first time, then we serialize
@@ -573,7 +578,7 @@ base::Status Tensor::serializeToSafetensors(safetensors::safetensors_t &st,
 
   return base::kStatusCodeOk;
 }
-
+#endif
 // 从二进制文件反序列化模型权重
 base::Status Tensor::deserialize(std::istream &stream) {
   uint64_t name_size = 0;
@@ -614,6 +619,7 @@ base::Status Tensor::deserialize(std::istream &stream) {
   return base::kStatusCodeOk;
 }
 
+#if ENABLE_NNDEPLOY_SAFETENSORS_CPP
 base::Status Tensor::serializeFromSafetensors(
     const safetensors::safetensors_t &st) {
   auto status = base::kStatusCodeOk;
@@ -640,6 +646,7 @@ base::Status Tensor::serializeFromSafetensors(
   //     t_t.data_offsets[1] - t_t.data_offsets[0]);
   return status;
 }
+#endif
 
 // 类似pytorch的打印函数
 void Tensor::print(std::ostream &stream) {
@@ -652,74 +659,74 @@ void Tensor::print(std::ostream &stream) {
   stream << std::endl;
 
   if (ref_count_ != nullptr && buffer_ != nullptr) {
-  stream << "ref_count: " << ref_count_[0] << std::endl;
-  Device *host_device = getDefaultHostDevice();
-  Buffer *host_buffer = nullptr;
-  if (!device::isHostDeviceType(this->getDeviceType())) {
-    host_buffer = new Buffer(host_device, this->getBufferDesc());
-    if (host_buffer == nullptr) {
-      NNDEPLOY_LOGE("host_buffer is empty");
-      return;
+    stream << "ref_count: " << ref_count_[0] << std::endl;
+    Device *host_device = getDefaultHostDevice();
+    Buffer *host_buffer = nullptr;
+    if (!device::isHostDeviceType(this->getDeviceType())) {
+      host_buffer = new Buffer(host_device, this->getBufferDesc());
+      if (host_buffer == nullptr) {
+        NNDEPLOY_LOGE("host_buffer is empty");
+        return;
+      }
+      buffer_->copyTo(host_buffer);
+    } else {
+      host_buffer = buffer_;
     }
-    buffer_->copyTo(host_buffer);
-  } else {
-    host_buffer = buffer_;
-  }
-  size_t size = host_buffer->getSize();
-  size_t ele_size = data_type.size();
-  size_t ele_count = size / ele_size;
-  base::IntVector shape = desc_.shape_;
-  void *data = host_buffer->getData();
+    size_t size = host_buffer->getSize();
+    size_t ele_size = data_type.size();
+    size_t ele_count = size / ele_size;
+    base::IntVector shape = desc_.shape_;
+    void *data = host_buffer->getData();
 
-  if (data_type.code_ == base::kDataTypeCodeInt && data_type.bits_ == 8 &&
-      data_type.lanes_ == 1) {
-    base::printData((int8_t *)data, shape, stream);
-  } else if (data_type.code_ == base::kDataTypeCodeInt &&
-             data_type.bits_ == 16 && data_type.lanes_ == 1) {
-    base::printData((int16_t *)data, shape, stream);
-  } else if (data_type.code_ == base::kDataTypeCodeInt &&
-             data_type.bits_ == 32 && data_type.lanes_ == 1) {
-    base::printData((int32_t *)data, shape, stream);
-  } else if (data_type.code_ == base::kDataTypeCodeInt &&
-             data_type.bits_ == 64 && data_type.lanes_ == 1) {
-    base::printData((int64_t *)data, shape, stream);
-  } else if (data_type.code_ == base::kDataTypeCodeUint &&
-             data_type.bits_ == 8 && data_type.lanes_ == 1) {
-    base::printData((uint8_t *)data, shape, stream);
-  } else if (data_type.code_ == base::kDataTypeCodeUint &&
-             data_type.bits_ == 16 && data_type.lanes_ == 1) {
-    base::printData((uint16_t *)data, shape, stream);
-  } else if (data_type.code_ == base::kDataTypeCodeUint &&
-             data_type.bits_ == 32 && data_type.lanes_ == 1) {
-    base::printData((uint32_t *)data, shape, stream);
-  } else if (data_type.code_ == base::kDataTypeCodeUint &&
-             data_type.bits_ == 64 && data_type.lanes_ == 1) {
-    base::printData((uint64_t *)data, shape, stream);
-  } else if (data_type.code_ == base::kDataTypeCodeFp &&
-             data_type.bits_ == 32 && data_type.lanes_ == 1) {
-    base::printData((float *)data, shape, stream);
-  } else if (data_type.code_ == base::kDataTypeCodeFp &&
-             data_type.bits_ == 64 && data_type.lanes_ == 1) {
-    base::printData((double *)data, shape, stream);
-  } else if (data_type.code_ == base::kDataTypeCodeBFp &&
-             data_type.bits_ == 16 && data_type.lanes_ == 1) {
-    float *fp32 = (float *)malloc(ele_count * sizeof(float));
-    base::convertFromBfp16ToFloat((void *)data, fp32, ele_count);
-    base::printData((float *)fp32, shape, stream);
-    free(fp32);
-  } else if (data_type.code_ == base::kDataTypeCodeFp &&
-             data_type.bits_ == 16 && data_type.lanes_ == 1) {
-    float *fp32 = (float *)malloc(ele_count * sizeof(float));
-    base::convertFromFp16ToFloat((void *)data, fp32, ele_count);
-    base::printData((float *)fp32, shape, stream);
-    free(fp32);
-  } else {
-    NNDEPLOY_LOGE("data type is not support");
-  }
+    if (data_type.code_ == base::kDataTypeCodeInt && data_type.bits_ == 8 &&
+        data_type.lanes_ == 1) {
+      base::printData((int8_t *)data, shape, stream);
+    } else if (data_type.code_ == base::kDataTypeCodeInt &&
+               data_type.bits_ == 16 && data_type.lanes_ == 1) {
+      base::printData((int16_t *)data, shape, stream);
+    } else if (data_type.code_ == base::kDataTypeCodeInt &&
+               data_type.bits_ == 32 && data_type.lanes_ == 1) {
+      base::printData((int32_t *)data, shape, stream);
+    } else if (data_type.code_ == base::kDataTypeCodeInt &&
+               data_type.bits_ == 64 && data_type.lanes_ == 1) {
+      base::printData((int64_t *)data, shape, stream);
+    } else if (data_type.code_ == base::kDataTypeCodeUint &&
+               data_type.bits_ == 8 && data_type.lanes_ == 1) {
+      base::printData((uint8_t *)data, shape, stream);
+    } else if (data_type.code_ == base::kDataTypeCodeUint &&
+               data_type.bits_ == 16 && data_type.lanes_ == 1) {
+      base::printData((uint16_t *)data, shape, stream);
+    } else if (data_type.code_ == base::kDataTypeCodeUint &&
+               data_type.bits_ == 32 && data_type.lanes_ == 1) {
+      base::printData((uint32_t *)data, shape, stream);
+    } else if (data_type.code_ == base::kDataTypeCodeUint &&
+               data_type.bits_ == 64 && data_type.lanes_ == 1) {
+      base::printData((uint64_t *)data, shape, stream);
+    } else if (data_type.code_ == base::kDataTypeCodeFp &&
+               data_type.bits_ == 32 && data_type.lanes_ == 1) {
+      base::printData((float *)data, shape, stream);
+    } else if (data_type.code_ == base::kDataTypeCodeFp &&
+               data_type.bits_ == 64 && data_type.lanes_ == 1) {
+      base::printData((double *)data, shape, stream);
+    } else if (data_type.code_ == base::kDataTypeCodeBFp &&
+               data_type.bits_ == 16 && data_type.lanes_ == 1) {
+      float *fp32 = (float *)malloc(ele_count * sizeof(float));
+      base::convertFromBfp16ToFloat((void *)data, fp32, ele_count);
+      base::printData((float *)fp32, shape, stream);
+      free(fp32);
+    } else if (data_type.code_ == base::kDataTypeCodeFp &&
+               data_type.bits_ == 16 && data_type.lanes_ == 1) {
+      float *fp32 = (float *)malloc(ele_count * sizeof(float));
+      base::convertFromFp16ToFloat((void *)data, fp32, ele_count);
+      base::printData((float *)fp32, shape, stream);
+      free(fp32);
+    } else {
+      NNDEPLOY_LOGE("data type is not support");
+    }
 
-  if (!device::isHostDeviceType(this->getDeviceType())) {
-    delete host_buffer;
-  }
+    if (!device::isHostDeviceType(this->getDeviceType())) {
+      delete host_buffer;
+    }
   }
 
   return;
@@ -1011,8 +1018,8 @@ base::MemoryType Tensor::getMemoryType() const {
   }
 }
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
-getGlobalTensorCreatorMap() {
+std::map<base::TensorType, std::shared_ptr<TensorCreator>>
+    &getGlobalTensorCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::TensorType, std::shared_ptr<TensorCreator>>>

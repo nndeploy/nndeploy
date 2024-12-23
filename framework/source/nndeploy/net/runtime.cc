@@ -10,8 +10,8 @@ base::Status Runtime::setMemory(device::Buffer *buffer) {
   return tensor_pool_->setMemory(buffer);
 }
 
-std::map<base::ParallelType, std::shared_ptr<RuntimeCreator>> &
-getGlobalRuntimeCreatorMap() {
+std::map<base::ParallelType, std::shared_ptr<RuntimeCreator>>
+    &getGlobalRuntimeCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::ParallelType, std::shared_ptr<RuntimeCreator>>>

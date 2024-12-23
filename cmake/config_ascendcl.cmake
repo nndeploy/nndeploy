@@ -26,7 +26,6 @@ set(ENABLE_NNDEPLOY_TIME_PROFILER ON) # 时间性能Profile，默认为ON
 set(ENABLE_NNDEPLOY_OPENCV OFF) # 是否链接第三方库opencv，默认为OFF
 set(NNDEPLOY_OPENCV_LIBS) # 链接的具体的opencv库名称，例如opencv_world480，opencv_java4等
 set(ENABLE_NNDEPLOY_RAPIDJSON ON)
-set(ENABLE_NNDEPLOY_SAFETENSORS_CPP ON)
 
 # # base
 set(ENABLE_NNDEPLOY_BASE ON) # 是否编译base目录中文件，默认为ON
@@ -50,7 +49,8 @@ set(ENABLE_NNDEPLOY_DEVICE_METAL OFF) # 是否使能device metal，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_APPLE_NPU OFF) # 是否使能device apple npu，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_HVX OFF) # 是否使能device apple hvx，默认为OFF
 set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL "/home/ma-user/Ascend/ascend-toolkit/latest/aarch64-linux") # 是否使能device apple ascend cl，默认为OFF
+# set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL "/usr/local/Ascend/ascend-toolkit/latest/aarch64-linux") # 是否使能device apple ascend cl，默认为OFF
+set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL "/usr/local/Ascend/ascend-toolkit/latest") # 是否使能device apple ascend cl，默认为OFF
 
 # # ir
 set(ENABLE_NNDEPLOY_IR ON) # 是否编译ir目录中文件，默认为OFF
@@ -103,17 +103,28 @@ set(ENABLE_NNDEPLOY_PLUGIN_INFER OFF) # 是否编译plugin目录中文件，默�
 # # codec
 set(ENABLE_NNDEPLOY_PLUGIN_CODEC OFF) # 是否编译plugin目录中文件，默认为ON
 
+# # classification
+set(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION ON)
+
 # # detect
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT OFF)
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT ON)
 set(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR OFF)
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO OFF)
+set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO ON)
 
 # # segment
-set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT OFF)
+set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT ON)
 set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING OFF)
+set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG ON)
 
 # # tokenizer
 set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
 
 # # stable_diffusion
 set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)
+
+# demo
+set(ENABLE_NNDEPLOY_DEMO_LLAMA OFF)
+
+set(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL OFF)
+
+set(ENABLE_NNDEPLOY_DEMO_RESNET OFF)

@@ -98,8 +98,8 @@ class NNDEPLOY_CC_API ArmDevice : public Device {
  protected:
   ArmDevice(base::DeviceType device_type, void *command_queue = nullptr,
             std::string library_path = "")
-      : Device(device_type) {};
-  virtual ~ArmDevice() {};
+      : Device(device_type){};
+  virtual ~ArmDevice(){};
 
   virtual base::Status init();
   virtual base::Status deinit();

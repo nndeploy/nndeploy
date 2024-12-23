@@ -3,7 +3,7 @@
 namespace nndeploy {
 
 namespace net {
-EliminateDeadOp::EliminateDeadOp(){};
+EliminateDeadOp::EliminateDeadOp() : OptPass("EliminateDeadOp"){};
 EliminateDeadOp::~EliminateDeadOp(){};
 
 base::Status EliminateDeadOp::optimize(
@@ -41,61 +41,19 @@ base::Status EliminateDeadOp::optimize(
 
   // 消除这个无用节点
   if (!use_flag) {
-    std::set<TensorWrapper*> to_delete_tensors;
-
     // 将其从前驱节点的后继节点中删除
-    for (auto predecessor : op_wrapper->predecessors_) {
-      auto it = std::find(predecessor->successors_.begin(),
-                          predecessor->successors_.end(), op_wrapper);
-      if (it != predecessor->successors_.end()) {
-        predecessor->successors_.erase(it);
-      }
-    }
+    rmOpFromPredecessor(op_wrapper);
 
     // 处理被删除节点的输出Tensor
     // 若该Tensor仅有这一个生产者Op，则删除该Tensor
     // 若该Tensor其中一个生产者Op是该Op，则从其生产者Op中删除该Op
-    for (auto tensor_wrapper : tensor_repository) {
-      auto prod_it = std::find(tensor_wrapper->producers_.begin(),
-                               tensor_wrapper->producers_.end(), op_wrapper);
-      if (prod_it != tensor_wrapper->producers_.end()) {
-        if (tensor_wrapper->producers_.size() == 1) {
-          to_delete_tensors.insert(tensor_wrapper);
-        } else {
-          tensor_wrapper->producers_.erase(prod_it);
-        }
-      }
-    }
+
+    rmOutputTensorAndMaybeDelete(op_wrapper, tensor_repository);
 
     // 处理被删除节点的输入Tensor
     // 若该Tensor仅有这一个消费者Op，则删除该Tensor
     // 若该Tensor其中一个消费者Op是该Op，则从其消费者Op中删除该Op
-    for (auto tensor_wrapper : tensor_repository) {
-      auto cons_it = std::find(tensor_wrapper->consumers_.begin(),
-                               tensor_wrapper->consumers_.end(), op_wrapper);
-      if (cons_it != tensor_wrapper->consumers_.end()) {
-        if (tensor_wrapper->consumers_.size() == 1) {
-          to_delete_tensors.insert(tensor_wrapper);
-        } else {
-          tensor_wrapper->consumers_.erase(cons_it);
-        }
-      }
-    }
-
-    // 删除标记的TensorWrapper
-    for (auto tensor_wrapper : to_delete_tensors) {
-      if (tensor_wrapper->tensor_ != nullptr) {
-        delete tensor_wrapper->tensor_;
-        tensor_wrapper->tensor_ = nullptr;
-      }
-      NNDEPLOY_LOGE("delete tensor name: %s\n", tensor_wrapper->name_.c_str());
-      auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
-                          tensor_wrapper);
-      if (it != tensor_repository.end()) {
-        tensor_repository.erase(it);
-      }
-      delete tensor_wrapper;
-    }
+    rmInputTensorAndMaybeDelete(op_wrapper, tensor_repository);
 
     //将待删除Op从Op仓库删除
     auto it = std::find(op_repository.begin(), op_repository.end(), op_wrapper);
@@ -120,7 +78,7 @@ base::Status EliminateDeadOp::optimize(
 
 TypeOptPassRegister<TypeOptPassCreator<EliminateDeadOp>>
     g_eliminate_dead_op_register(base::kDeviceTypeCodeCpu,
-                                 kOptPassTypeEliminateDeadOp);
+                                 kOptPassTypeEliminateDeadOp, 3);
 
 }  // namespace net
 

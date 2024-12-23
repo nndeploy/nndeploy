@@ -3,7 +3,6 @@
 
 #include "nndeploy/base/log.h"
 
-
 namespace nndeploy {
 namespace base {
 

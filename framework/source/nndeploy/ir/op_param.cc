@@ -147,6 +147,8 @@ static const std::map<OpType, std::string> g_optype_string_map = {
     {kOpTypeWhere, "kOpTypeWhere"},
     {kOpTypeXor, "kOpTypeXor"},
     {kOpTypeRMSNorm, "kOpTypeRMSNorm"},
+    {kOpTypeEmbedding, "kOpTypeEmbedding"},
+
     {kOpTypeNone, "kOpTypeNone"},
 };
 
@@ -293,6 +295,8 @@ static const std::map<std::string, OpType> g_string_optype_map = {
     {"kOpTypeWhere", kOpTypeWhere},
     {"kOpTypeXor", kOpTypeXor},
     {"kOpTypeRMSNorm", kOpTypeRMSNorm},
+    {"kOpTypeEmbedding", kOpTypeEmbedding},
+
     {"kOpTypeNone", kOpTypeNone},
 };
 
@@ -316,8 +320,8 @@ OpType stringToOpType(const std::string &op_type_name) {
   return kOpTypeNone;
 }
 
-std::map<OpType, std::shared_ptr<OpParamCreator>> &
-getGlobalOpParamCreatorMap() {
+std::map<OpType, std::shared_ptr<OpParamCreator>>
+    &getGlobalOpParamCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<OpType, std::shared_ptr<OpParamCreator>>>
       creators;
@@ -365,7 +369,14 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeTranspose, TransposeParam);
 // RMSNorm 算子参数类的注册函数
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeRMSNorm, RMSNormParam);
 
-REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeBatchNormalization, BatchNormalizationParam);
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeBatchNormalization,
+                               BatchNormalizationParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeFlatten, FlattenParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeGemm, GemmParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeEmbedding, EmbeddingParam);
 
 }  // namespace ir
 }  // namespace nndeploy

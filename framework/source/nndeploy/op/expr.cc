@@ -3,7 +3,7 @@
 namespace nndeploy {
 namespace op {
 
-Expr::~Expr() {};
+Expr::~Expr(){};
 
 Expr::Expr(const std::string &name) : expr_type_(kExprTypeValueDesc) {
   value_desc_ = std::make_shared<ir::ValueDesc>(name);
@@ -219,8 +219,40 @@ std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
   return expr;
 }
 
+// sigmoid
+std::shared_ptr<Expr> makeSigmoid(ir::ModelDesc *model_desc,
+                                  std::shared_ptr<Expr> input,
+                                  std::string op_name,
+                                  std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "sigmoid" + std::to_string(index);
+    } else {
+      name = "sigmoid";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  // 节点输出
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeSigmoid, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
 // batchnorm
-NNDEPLOY_CC_API std::shared_ptr<Expr> makeBatchNorm(
+std::shared_ptr<Expr> makeBatchNorm(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
     std::shared_ptr<ir::BatchNormalizationParam> param,
     const std::string &scale, const std::string &bias, const std::string &mean,
@@ -260,6 +292,161 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeBatchNorm(
     model_desc->op_descs_.push_back(op_desc);
   }
 
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// embedding
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeEmbedding(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> indices,
+    std::string op_name, std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "embedding" + std::to_string(index);
+    } else {
+      name = "embedding";
+    }
+  }
+  std::vector<std::string> inputs = {indices->getOutputName()[0]};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeEmbedding, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// gemm
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeGemm(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::GemmParam> param, const std::string &weight,
+    const std::string &bias, std::string op_name, std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "gemm" + std::to_string(index);
+    } else {
+      name = "gemm";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  if (!weight.empty()) {
+    inputs.push_back(weight);
+  }
+  if (!bias.empty()) {
+    inputs.push_back(bias);
+  }
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc = std::make_shared<ir::OpDesc>(name, ir::kOpTypeGemm, inputs,
+                                              outputs, param);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// flatten
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeFlatten(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::FlattenParam> param, std::string op_name,
+    std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "flatten" + std::to_string(index);
+    } else {
+      name = "flatten";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc = std::make_shared<ir::OpDesc>(name, ir::kOpTypeFlatten, inputs,
+                                              outputs, param);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// MaxPool
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeMaxPool(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::MaxPoolParam> param, std::string op_name,
+    std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "maxpool" + std::to_string(index);
+    } else {
+      name = "maxpool";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc = std::make_shared<ir::OpDesc>(name, ir::kOpTypeMaxPool, inputs,
+                                              outputs, param);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// GlobalAveragePool
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeGlobalAveragePool(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input, std::string op_name,
+    std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "globalaveragepool" + std::to_string(index);
+    } else {
+      name = "globalaveragepool";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc = std::make_shared<ir::OpDesc>(
+      name, ir::kOpTypeGlobalAveragePool, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
   auto expr = std::make_shared<Expr>(op_desc);
   return expr;
 }

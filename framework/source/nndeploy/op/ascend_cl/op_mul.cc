@@ -20,14 +20,14 @@ class AscendCLOpMul : public OpBinary {
 
     if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
       inputs_0_ = new device::Tensor(device, inputs_[0]->getDesc(),
-                                    inputs_[0]->getName());
+                                     inputs_[0]->getName());
       inputs_[0]->copyTo(inputs_0_);
       inner_input_0_ =
           AscendCLOpConvert::convertFromTensor(inputs_0_, ACL_FORMAT_ND);
     }
     if (device::isHostDeviceType(inputs_[1]->getDeviceType())) {
       inputs_1_ = new device::Tensor(device, inputs_[1]->getDesc(),
-                                    inputs_[1]->getName());
+                                     inputs_[1]->getName());
       inputs_[1]->copyTo(inputs_1_);
       inner_input_1_ =
           AscendCLOpConvert::convertFromTensor(inputs_1_, ACL_FORMAT_ND);
@@ -55,17 +55,11 @@ class AscendCLOpMul : public OpBinary {
     return base::kStatusCodeOk;
   }
   virtual base::Status preRun() {
-    // 父类preRun
-    base::Status status = OpBinary::preRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("preRun failed.\n");
-      return status;
-    }
     // 输入输出
     if (inner_input_0_ == nullptr) {
       inner_input_0_ =
           AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
-    } 
+    }
     if (inner_input_1_ == nullptr) {
       inner_input_1_ =
           AscendCLOpConvert::convertFromTensor(inputs_[1], ACL_FORMAT_ND);
@@ -78,11 +72,11 @@ class AscendCLOpMul : public OpBinary {
     // 创建算子
     if (executor_ == nullptr) {
       aclnnStatus aclnn_status =
-          aclnnMulGetWorkspaceSize(inner_input_0_, inner_input_1_, inner_output_,
-                                   &workspace_size_, &executor_);
+          aclnnMulGetWorkspaceSize(inner_input_0_, inner_input_1_,
+                                   inner_output_, &workspace_size_, &executor_);
       if (aclnn_status != ACL_SUCCESS) {
         NNDEPLOY_LOGE("aclnnMulGetWorkspaceSize failed, error code: %d.\n",
-                     aclnn_status);
+                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
@@ -114,11 +108,6 @@ class AscendCLOpMul : public OpBinary {
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }
-    base::Status status = OpBinary::postRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("postRun failed.\n");
-      return status;
-    }
     return base::kStatusCodeOk;
   }
 
@@ -136,8 +125,7 @@ class AscendCLOpMul : public OpBinary {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeMul, AscendCLOpMul)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeMul, AscendCLOpMul)
 
 }  // namespace op
 }  // namespace nndeploy

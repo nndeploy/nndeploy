@@ -4,6 +4,7 @@
 #include "nndeploy_api_registry.h"
 
 namespace nndeploy {
+namespace base {
 
 NNDEPLOY_API_PYBIND11_MODULE("base", m) {
   // nndeploy::base::DataTypeCode 导出为 base.DataTypeCode
@@ -57,6 +58,74 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
 
   //导出Status
   py::class_<base::Status>(m, "Status").def(py::init<>());
+
+  // 导出InferenceType
+  py::enum_<InferenceType>(m, "InferenceType")
+      .value("kInferenceTypeDefault", InferenceType::kInferenceTypeDefault)
+      .value("kInferenceTypeOpenVino", InferenceType::kInferenceTypeOpenVino)
+      .value("kInferenceTypeTensorRt", InferenceType::kInferenceTypeTensorRt)
+      .value("kInferenceTypeCoreML", InferenceType::kInferenceTypeCoreML)
+      .value("kInferenceTypeTfLite", InferenceType::kInferenceTypeTfLite)
+      .value("kInferenceTypeOnnxRuntime",
+             InferenceType::kInferenceTypeOnnxRuntime)
+      .value("kInferenceTypeAscendCL", InferenceType::kInferenceTypeAscendCL)
+      .value("kInferenceTypeNcnn", InferenceType::kInferenceTypeNcnn)
+      .value("kInferenceTypeTnn", InferenceType::kInferenceTypeTnn)
+      .value("kInferenceTypeMnn", InferenceType::kInferenceTypeMnn)
+      .value("kInferenceTypePaddleLite",
+             InferenceType::kInferenceTypePaddleLite)
+      .value("kInferenceTypeRknn", InferenceType::kInferenceTypeRknn)
+      .value("kInferenceTypeTvm", InferenceType::kInferenceTypeTvm)
+      .value("kInferenceTypeAITemplate",
+             InferenceType::kInferenceTypeAITemplate)
+      .value("kInferenceTypeSnpe", InferenceType::kInferenceTypeSnpe)
+      .value("kInferenceTypeQnn", InferenceType::kInferenceTypeQnn)
+      .value("kInferenceTypeSophon", InferenceType::kInferenceTypeSophon)
+      .value("kInferenceTypeTorch", InferenceType::kInferenceTypeTorch)
+      .value("kInferenceTypeTensorFlow",
+             InferenceType::kInferenceTypeTensorFlow)
+      .value("kInferenceTypeNeuroPilot",
+             InferenceType::kInferenceTypeNeuroPilot)
+      .value("kInferenceTypeNotSupport",
+             InferenceType::kInferenceTypeNotSupport)
+      .export_values();
+
+  // 导出ModelType
+  py::enum_<ModelType>(m, "ModelType")
+      .value("kModelTypeDefault", ModelType::kModelTypeDefault)
+      .value("kModelTypeOpenVino", ModelType::kModelTypeOpenVino)
+      .value("kModelTypeTensorRt", ModelType::kModelTypeTensorRt)
+      .value("kModelTypeCoreML", ModelType::kModelTypeCoreML)
+      .value("kModelTypeTfLite", ModelType::kModelTypeTfLite)
+      .value("kModelTypeOnnx", ModelType::kModelTypeOnnx)
+      .value("kModelTypeAscendCL", ModelType::kModelTypeAscendCL)
+      .value("kModelTypeNcnn", ModelType::kModelTypeNcnn)
+      .value("kModelTypeTnn", ModelType::kModelTypeTnn)
+      .value("kModelTypeMnn", ModelType::kModelTypeMnn)
+      .value("kModelTypePaddleLite", ModelType::kModelTypePaddleLite)
+      .value("kModelTypeRknn", ModelType::kModelTypeRknn)
+      .value("kModelTypeTvm", ModelType::kModelTypeTvm)
+      .value("kModelTypeAITemplate", ModelType::kModelTypeAITemplate)
+      .value("kModelTypeSnpe", ModelType::kModelTypeSnpe)
+      .value("kModelTypeQnn", ModelType::kModelTypeQnn)
+      .value("kModelTypeSophon", ModelType::kModelTypeSophon)
+      .value("kModelTypeTorchScript", ModelType::kModelTypeTorchScript)
+      .value("kModelTypeTorchPth", ModelType::kModelTypeTorchPth)
+      .value("kModelTypeHdf5", ModelType::kModelTypeHdf5)
+      .value("kModelTypeSafetensors", ModelType::kModelTypeSafetensors)
+      .value("kModelTypeNeuroPilot", ModelType::kModelTypeNeuroPilot)
+      .value("kModelTypeNotSupport", ModelType::kModelTypeNotSupport)
+      .export_values();
+
+  // 导出ParallelType
+
+  py::enum_<ParallelType>(m, "ParallelType")
+      .value("kParallelTypeNone", ParallelType::kParallelTypeNone)
+      .value("kParallelTypeSequential", ParallelType::kParallelTypeSequential)
+      .value("kParallelTypeTask", ParallelType::kParallelTypeTask)
+      .value("kParallelTypePipeline", ParallelType::kParallelTypePipeline)
+      .export_values();
 }
 
+}  // namespace base
 }  // namespace nndeploy

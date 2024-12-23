@@ -44,7 +44,6 @@ std::string vectorToString(std::vector<T> val) {
   return stream.str();
 }
 
-
 /*!
  * \brief Inline implementation of isSpace(). Tests whether the given character
  *        is a whitespace letter.
@@ -61,9 +60,7 @@ inline bool isSpace(char c) {
  * \param c Character to test
  * \return Result of the test
  */
-inline bool isBlank(char c) {
-  return (c == ' ' || c == '\t');
-}
+inline bool isBlank(char c) { return (c == ' ' || c == '\t'); }
 
 /*!
  * \brief Inline implementation of isDigit(). Tests whether the given character
@@ -71,9 +68,7 @@ inline bool isBlank(char c) {
  * \param c Character to test
  * \return Result of the test
  */
-inline bool isDigit(char c) {
-  return (c >= '0' && c <= '9');
-}
+inline bool isDigit(char c) { return (c >= '0' && c <= '9'); }
 
 /*!
  * \brief Inline implementation of isAlpha(). Tests whether the given character
@@ -83,8 +78,8 @@ inline bool isDigit(char c) {
  */
 inline bool isAlpha(char c) {
   static_assert(
-    static_cast<int>('A') == 65 && static_cast<int>('Z' - 'A') == 25,
-    "Only system with ASCII character set is supported");
+      static_cast<int>('A') == 65 && static_cast<int>('Z' - 'A') == 25,
+      "Only system with ASCII character set is supported");
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
@@ -96,10 +91,8 @@ inline bool isAlpha(char c) {
  * \return Result of the test
  */
 inline bool isDigitchars(char c) {
-  return (c >= '0' && c <= '9')
-    || c == '+' || c == '-'
-    || c == '.'
-    || c == 'e' || c == 'E';
+  return (c >= '0' && c <= '9') || c == '+' || c == '-' || c == '.' ||
+         c == 'e' || c == 'E';
 }
 
 extern NNDEPLOY_CC_API bool isNumeric(const std::string &str);
@@ -137,7 +130,10 @@ void printData(T *data, base::IntVector &shape,
     if (depth == shape.size() - 1) {
       // stream << std::endl;
       for (int i = 0; i < shape[depth]; ++i) {
-        stream << data[offset + i];
+        // std::cout << (float)data[offset + i] << ",";
+        // 当为uint8类型时，数据为0时，无法打印数据
+        stream << (float)data[offset + i];
+        // stream << data[offset + i];
         if (i != shape[depth] - 1) stream << ",";
       }
       stream << std::endl;

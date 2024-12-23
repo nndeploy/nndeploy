@@ -18,7 +18,6 @@
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -29,8 +28,8 @@ base::Status OpConcat::inferShape() {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int axis = param->axis_;
   int rank = inputs_[0]->getShape().size();
-  NNDEPLOY_LOGE("rank = %d\n", rank);
-  inputs_[0]->getDesc().print();
+  // NNDEPLOY_LOGE("rank = %d\n", rank);
+  // inputs_[0]->getDesc().print();
   if (axis < -rank || axis >= rank) {
     NNDEPLOY_LOGE("axis[%d] is invalid.\n", axis);
     return base::kStatusCodeErrorInvalidParam;
@@ -84,6 +83,8 @@ base::Status concat(std::vector<device::Tensor *> input,
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
+  status = op->setParam(param);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
   for (size_t i = 0; i < input.size(); i++) {
     status = op->setInput(input[i], i);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
@@ -92,11 +93,11 @@ base::Status concat(std::vector<device::Tensor *> input,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   status = op->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
-  status = op->preRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->checkOrAllocOutput();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "checkOrAllocOutput failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   status = op->postRun();
@@ -108,8 +109,7 @@ base::Status concat(std::vector<device::Tensor *> input,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeCpu,
-                         ir::kOpTypeConcat, OpConcat)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeConcat, OpConcat)
 
 }  // namespace op
 }  // namespace nndeploy

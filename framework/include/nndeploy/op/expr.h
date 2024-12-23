@@ -55,7 +55,7 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeBlock(
 // conv2d
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeConv(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
-    std::shared_ptr<ir::ConvParam> param, const std::string &weight = "",
+    std::shared_ptr<ir::ConvParam> param, const std::string &weight,
     const std::string &bias = "", std::string op_name = "",
     std::string output_name = "");
 // relu
@@ -63,6 +63,11 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
                                                std::shared_ptr<Expr> input,
                                                std::string op_name = "",
                                                std::string output_name = "");
+// relu
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeSigmoid(ir::ModelDesc *model_desc,
+                                                  std::shared_ptr<Expr> input,
+                                                  std::string op_name = "",
+                                                  std::string output_name = "");
 
 // softmax
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftMax(
@@ -85,8 +90,37 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeAdd(ir::ModelDesc *model_desc,
                                               std::string op_name = "",
                                               std::string output_name = "");
 
+// gemm
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeGemm(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::GemmParam> param, const std::string &weight,
+    const std::string &bias = "", std::string op_name = "",
+    std::string output_name = "");
+
+// flatten
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeFlatten(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::FlattenParam> param, std::string op_name = "",
+    std::string output_name = "");
+
+// MaxPool
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeMaxPool(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::MaxPoolParam> param, std::string op_name = "",
+    std::string output_name = "");
+
+// GlobalAveragePool
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeGlobalAveragePool(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::string op_name = "", std::string output_name = "");
+
 // TODO: @Leonisux:
 // 补充llama的算子的手动构图函数
+// matmul
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeEmbedding(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> indices,
+    std::string op_name, std::string output_name);
+
 
 }  // namespace op
 }  // namespace nndeploy

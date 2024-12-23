@@ -14,11 +14,23 @@ namespace segment {
  */
 class NNDEPLOY_CC_API SegmentResult : public base::Param {
  public:
-  device::Tensor *mask_;
-  device::Tensor *score_;
-  int height_;
-  int width_;
-  int classes_;
+  SegmentResult(){};
+  virtual ~SegmentResult() {
+    if (mask_ != nullptr) {
+      delete mask_;
+      mask_ = nullptr;
+    }
+    if (score_ != nullptr) {
+      delete score_;
+      score_ == nullptr;
+    }
+  };
+
+  device::Tensor *mask_ = nullptr;
+  device::Tensor *score_ = nullptr;
+  int height_ = -1;
+  int width_ = -1;
+  int classes_ = -1;
 };
 
 }  // namespace segment

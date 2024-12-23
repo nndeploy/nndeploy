@@ -5,8 +5,8 @@ namespace nndeploy {
 namespace dag {
 
 ParallelPipelineConditionExecutor::ParallelPipelineConditionExecutor()
-    : ConditionExecutor() {};
-ParallelPipelineConditionExecutor::~ParallelPipelineConditionExecutor() {};
+    : ConditionExecutor(){};
+ParallelPipelineConditionExecutor::~ParallelPipelineConditionExecutor(){};
 
 base::Status ParallelPipelineConditionExecutor::init(
     std::vector<EdgeWrapper *> &edge_repository,

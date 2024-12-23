@@ -34,16 +34,10 @@ class AscendCLOpSplit : public OpSplit {
   }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
   virtual base::Status preRun() {
-    //
-    base::Status status = OpSplit::preRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("preRun failed.\n");
-      return status;
-    }
     // 输入输出
     if (inner_input_ == nullptr) {
       inner_input_ =
-        AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
+          AscendCLOpConvert::convertFromTensor(inputs_[0], ACL_FORMAT_ND);
     }
     if (inner_outputs_ == nullptr) {
       inner_outputs_ =
@@ -52,11 +46,11 @@ class AscendCLOpSplit : public OpSplit {
 
     if (executor_ == nullptr) {
       split_sections_ = inputs_[0]->getShapeIndex(dim_) / split_sections_;
-        int64_t* data = (int64_t*)inputs_[1]->getData();
+      int64_t* data = (int64_t*)inputs_[1]->getData();
       size_t size = inputs_[1]->getSize() / sizeof(int64_t);
       for (size_t i = 0; i < size; i++) {
-      if (data[i] != split_sections_) {
-        flag_ = false;
+        if (data[i] != split_sections_) {
+          flag_ = false;
           break;
         }
       }
@@ -64,19 +58,23 @@ class AscendCLOpSplit : public OpSplit {
       if (flag_) {
         // 创建算子
         aclnnStatus aclnn_status = aclnnSplitTensorGetWorkspaceSize(
-          inner_input_, split_sections_, dim_, inner_outputs_, &workspace_size_,
-            &executor_);
+            inner_input_, split_sections_, dim_, inner_outputs_,
+            &workspace_size_, &executor_);
         if (aclnn_status != ACL_SUCCESS) {
-          NNDEPLOY_LOGE("aclnnSplitTensorGetWorkspaceSize failed, error code: %d.\n", aclnn_status);
+          NNDEPLOY_LOGE(
+              "aclnnSplitTensorGetWorkspaceSize failed, error code: %d.\n",
+              aclnn_status);
           return base::kStatusCodeErrorOpAscendCL;
         }
       } else {
         // 创建算子
         aclnnStatus aclnn_status = aclnnSplitWithSizeGetWorkspaceSize(
-          inner_input_, split_size_, dim_, inner_outputs_, &workspace_size_,
-          &executor_);
+            inner_input_, split_size_, dim_, inner_outputs_, &workspace_size_,
+            &executor_);
         if (aclnn_status != ACL_SUCCESS) {
-          NNDEPLOY_LOGE("aclnnSplitWithSizeGetWorkspaceSize failed, error code: %d.\n", aclnn_status);
+          NNDEPLOY_LOGE(
+              "aclnnSplitWithSizeGetWorkspaceSize failed, error code: %d.\n",
+              aclnn_status);
           return base::kStatusCodeErrorOpAscendCL;
         }
       }
@@ -84,14 +82,13 @@ class AscendCLOpSplit : public OpSplit {
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
-    NNDEPLOY_LOGE("workspace_ = %p, workspace_size_ = %zu\n", workspace_,
-                  workspace_size_);
     if (flag_) {
       // 输入输出
       aclnnStatus aclnn_status = aclnnSplitTensor(workspace_, workspace_size_,
                                                   executor_, inner_stream_);
       if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnSplitTensor failed, error code: %d.\n", aclnn_status);
+        NNDEPLOY_LOGE("aclnnSplitTensor failed, error code: %d.\n",
+                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     } else {
@@ -99,7 +96,8 @@ class AscendCLOpSplit : public OpSplit {
       aclnnStatus aclnn_status = aclnnSplitWithSize(workspace_, workspace_size_,
                                                     executor_, inner_stream_);
       if (aclnn_status != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclnnSplitWithSize failed, error code: %d.\n", aclnn_status);
+        NNDEPLOY_LOGE("aclnnSplitWithSize failed, error code: %d.\n",
+                      aclnn_status);
         return base::kStatusCodeErrorOpAscendCL;
       }
     }
@@ -117,11 +115,6 @@ class AscendCLOpSplit : public OpSplit {
     }
     if (executor_ != nullptr) {
       executor_ = nullptr;
-    }
-    base::Status status = OpSplit::postRun();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("postRun failed.\n");
-      return status;
     }
     return base::kStatusCodeOk;
   }
@@ -141,8 +134,8 @@ class AscendCLOpSplit : public OpSplit {
   aclopAttr* attr_ = nullptr;
 };
 
-REGISTER_OP_IMPLEMENTION(base::DeviceTypeCode::kDeviceTypeCodeAscendCL,
-                         ir::kOpTypeSplit, AscendCLOpSplit)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeSplit,
+                         AscendCLOpSplit)
 
 }  // namespace op
 }  // namespace nndeploy

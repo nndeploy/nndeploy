@@ -1,6 +1,7 @@
 
 #include "nndeploy/dag/graph.h"
 
+#include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -9,7 +10,6 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/base/any.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/executor/parallel_pipeline_executor.h"
 #include "nndeploy/dag/executor/parallel_task_executor.h"
@@ -88,16 +88,23 @@ Graph::~Graph() {
     delete edge_wrapper;
   }
   node_repository_.clear();
+  used_node_names_.clear();
   edge_repository_.clear();
+  used_edge_names_.clear();
 }
 
 Edge *Graph::createEdge(const std::string &name) {
+  if (used_edge_names_.find(name) != used_edge_names_.end()){
+    NNDEPLOY_LOGE("edge name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
   Edge *edge = new Edge(name);
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = false;
   edge_wrapper->edge_ = edge;
   edge_wrapper->name_ = name;
   edge_repository_.emplace_back(edge_wrapper);
+  used_edge_names_.insert(name);
   return edge;
 }
 
@@ -122,13 +129,17 @@ Edge *Graph::getEdge(const std::string &name) {
 // }
 
 EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
-  base::Status status = base::kStatusCodeOk;
+  if(used_edge_names_.find(edge->getName()) != used_edge_names_.end()){
+    NNDEPLOY_LOGE("edge name[%s] is already used!\n", edge->getName().c_str());
+    return nullptr;
+  }
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(edge, "edge is null!");
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = is_external;
   edge_wrapper->edge_ = edge;
   edge_wrapper->name_ = edge->getName();
   edge_repository_.emplace_back(edge_wrapper);
+  used_edge_names_.insert(edge->getName());
   return edge_wrapper;
 }
 
@@ -159,6 +170,10 @@ EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
 // }
 
 base::Status Graph::addNode(Node *node, bool is_external) {
+  if (used_node_names_.find(node->getName()) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", node->getName().c_str());
+    return base::kStatusCodeErrorInvalidValue;
+  }
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
   NodeWrapper *node_wrapper = new NodeWrapper();
@@ -183,6 +198,7 @@ base::Status Graph::addNode(Node *node, bool is_external) {
   }
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(node->getName());
   return status;
 }
 
@@ -274,7 +290,7 @@ base::Status Graph::dump(std::ostream &oss) {
 base::Status Graph::construct() {
   base::Status status = base::kStatusCodeOk;
 
-  NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
+  // NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("parallel_type_!\n");
@@ -361,7 +377,7 @@ base::Status Graph::construct() {
     }
   }
 
-  NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
+  // NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
 
   return status;
 }

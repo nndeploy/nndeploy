@@ -226,3 +226,11 @@ cmake-build-debug/
 
 tags
 compile_commands.json
+
+# model
+*.onnx
+*.json
+*.safetensors
+
+# setup.py
+python/setup.py

@@ -18,7 +18,6 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/ir/ir.h"
 
-
 namespace nndeploy {
 namespace op {
 
@@ -52,6 +51,15 @@ bool checkAxesRange(std::vector<int>& axes, int rank) {
     }
   }
   return flag;
+}
+
+int32_t multiplyDims(const base::IntVector& shape, int from,
+                     int upto_exclusive) {
+  int32_t dim = 1;
+  for (int i = from; i < upto_exclusive; ++i) {
+    dim = dim * shape[i];
+  }
+  return dim;
 }
 
 }  // namespace op

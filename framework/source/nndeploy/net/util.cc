@@ -124,7 +124,8 @@ base::Status dumpNet(std::vector<TensorWrapper *> &tensor_repository,
   }
   for (auto input : graph_inputs) {
     if (input->getName().empty()) {
-      oss << "p" << (void *)input << "[shape=box, label=\"" << "input"
+      oss << "p" << (void *)input << "[shape=box, label=\""
+          << "input"
           << "\"]\n";
     } else {
       oss << "p" << (void *)input << "[shape=box, label=\"" << input->getName()
@@ -150,7 +151,9 @@ base::Status dumpNet(std::vector<TensorWrapper *> &tensor_repository,
   for (auto op_wrapper : op_repository) {
     op::Op *op = op_wrapper->op_;
     if (op->getName().empty()) {
-      oss << "p" << (void *)op << "[label=\"" << "op" << "\"]\n";
+      oss << "p" << (void *)op << "[label=\""
+          << "op"
+          << "\"]\n";
     } else {
       oss << "p" << (void *)op << "[label=\"" << op->getName() << "\"]\n";
     }
@@ -184,7 +187,8 @@ base::Status dumpNet(std::vector<TensorWrapper *> &tensor_repository,
   }
   for (auto output : graph_outputs) {
     if (output->getName().empty()) {
-      oss << "p" << (void *)output << "[shape=box, label=\"" << "output"
+      oss << "p" << (void *)output << "[shape=box, label=\""
+          << "output"
           << "\"]\n";
     } else {
       oss << "p" << (void *)output << "[shape=box, label=\""

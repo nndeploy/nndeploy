@@ -1,12 +1,20 @@
 #include "nndeploy/net/optimizer.h"
 
+#include "nndeploy/net/net.h"
 namespace nndeploy {
 namespace net {
 
 // OptPass
-OptPass::OptPass() {}
+OptPass::OptPass(std::string name) { name_ = name; }
 
 OptPass::~OptPass() {}
+
+std::string OptPass::getName() { return name_; }
+
+base::Status OptPass::setNet(Net* net) {
+  this->net_ = net;
+  return base::kStatusCodeOk;
+}
 
 /**
  * @brief 模式匹配
@@ -108,28 +116,7 @@ base::Status OptPass::seqPatternMatchUpateTensorRepository(
   // 删除除最后一个op以外所有的输出
   OpWrapper* current_op = first_op;
   while (current_op != last_op) {
-    for (TensorWrapper* tensor : tensor_repository) {
-      if (tensor->producers_.size() != 1) {
-        continue;
-      }
-      if (tensor->producers_[0] == current_op) {
-        // 手动删除成员变量tensor_
-        if (tensor->tensor_ != nullptr) {
-          delete tensor->tensor_;
-          tensor->tensor_ = nullptr;
-        }
-        // 从vector移除该tensor
-        auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
-                            tensor);
-        if (it != tensor_repository.end()) {
-          NNDEPLOY_LOGE("delete tensor name: %s\n", tensor->name_.c_str());
-          tensor_repository.erase(it);
-        }
-        // tensor_repository.erase(tensor);
-        // 删除TensorWrapper对象
-        delete tensor;
-      }
-    }
+    rmOutputTensorAndMaybeDelete(current_op, tensor_repository);
     current_op = current_op->successors_[0];
   }
 
@@ -226,31 +213,129 @@ base::Status OptPass::seqPatternMatchUpateOpRepository(
   return base::kStatusCodeOk;
 }
 
+base::Status OptPass::rmOpFromPredecessor(OpWrapper* op_wrapper) {
+  for (auto predecessor : op_wrapper->predecessors_) {
+    auto it = std::find(predecessor->successors_.begin(),
+                        predecessor->successors_.end(), op_wrapper);
+    if (it != predecessor->successors_.end()) {
+      predecessor->successors_.erase(it);
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status OptPass::rmOpFromSuccessors(OpWrapper* op_wrapper) {
+  for (auto successor : op_wrapper->successors_) {
+    auto it = std::find(successor->predecessors_.begin(),
+                        successor->predecessors_.end(), op_wrapper);
+    if (it != successor->predecessors_.end()) {
+      successor->predecessors_.erase(it);
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status OptPass::rmOutputTensorAndMaybeDelete(
+    OpWrapper* op_wrapper, std::vector<TensorWrapper*>& tensor_repository) {
+  std::set<TensorWrapper*> to_delete_tensors;
+
+  for (auto tensor_wrapper : tensor_repository) {
+    auto prod_it = std::find(tensor_wrapper->producers_.begin(),
+                             tensor_wrapper->producers_.end(), op_wrapper);
+    if (prod_it != tensor_wrapper->producers_.end()) {
+      if (tensor_wrapper->producers_.size() == 1) {
+        // 仅有这一个生产者Op，则直接释放这个Op
+        to_delete_tensors.insert(tensor_wrapper);
+      } else {
+        tensor_wrapper->producers_.erase(prod_it);
+      }
+    }
+  }
+
+  for (auto tensor_wrapper : to_delete_tensors) {
+    if (tensor_wrapper->tensor_ != nullptr) {
+      // 删除 Net中的输入tensor
+      // 在图优化时，部分Tensor被释放，需要删除Net中的对应tensor
+      net_->rmInput(tensor_wrapper->tensor_);
+      delete tensor_wrapper->tensor_;
+      tensor_wrapper->tensor_ = nullptr;
+    }
+    NNDEPLOY_LOGE("delete tensor name: %s\n", tensor_wrapper->name_.c_str());
+    auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
+                        tensor_wrapper);
+    if (it != tensor_repository.end()) {
+      tensor_repository.erase(it);
+    }
+    delete tensor_wrapper;
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status OptPass::rmInputTensorAndMaybeDelete(
+    OpWrapper* op_wrapper, std::vector<TensorWrapper*>& tensor_repository) {
+  std::set<TensorWrapper*> to_delete_tensors;
+  for (auto tensor_wrapper : tensor_repository) {
+    auto cons_it = std::find(tensor_wrapper->consumers_.begin(),
+                             tensor_wrapper->consumers_.end(), op_wrapper);
+    if (cons_it != tensor_wrapper->consumers_.end()) {
+      if (tensor_wrapper->consumers_.size() == 1) {
+        // 仅有这一个消费者Op，则直接释放这个Op
+        to_delete_tensors.insert(tensor_wrapper);
+      } else {
+        tensor_wrapper->consumers_.erase(cons_it);
+      }
+    }
+  }
+
+  for (auto tensor_wrapper : to_delete_tensors) {
+    if (tensor_wrapper->tensor_ != nullptr) {
+      // 删除 Net中的输入tensor
+      // 在图优化时，部分Tensor被释放，需要删除Net中的对应tensor
+      net_->rmInput(tensor_wrapper->tensor_);
+      delete tensor_wrapper->tensor_;
+      tensor_wrapper->tensor_ = nullptr;
+    }
+    NNDEPLOY_LOGE("delete tensor name: %s\n", tensor_wrapper->name_.c_str());
+    auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
+                        tensor_wrapper);
+    if (it != tensor_repository.end()) {
+      tensor_repository.erase(it);
+    }
+    delete tensor_wrapper;
+  }
+  return base::kStatusCodeOk;
+}
+
 // 工厂模式
+// 设备类型  ->  优化等级  -> Pass类型
 std::map<base::DeviceTypeCode,
-         std::map<OptPassType, std::shared_ptr<OptPassCreator>>>&
+         std::map<int, std::map<OptPassType, std::shared_ptr<OptPassCreator>>>>&
 getGlobalOptPassCreatorMap() {
   static std::once_flag once;
-  static std::shared_ptr<
-      std::map<base::DeviceTypeCode,
-               std::map<OptPassType, std::shared_ptr<OptPassCreator>>>>
+  static std::shared_ptr<std::map<
+      base::DeviceTypeCode,
+      std::map<int, std::map<OptPassType, std::shared_ptr<OptPassCreator>>>>>
       creators;
   std::call_once(once, []() {
     creators.reset(
         new std::map<base::DeviceTypeCode,
-                     std::map<OptPassType, std::shared_ptr<OptPassCreator>>>);
+                     std::map<int, std::map<OptPassType,
+                                            std::shared_ptr<OptPassCreator>>>>);
   });
   return *creators;
 }
 
-std::shared_ptr<OptPass> createOptPass(base::DeviceType device_type,
+std::shared_ptr<OptPass> createOptPass(base::DeviceType device_type, int level,
                                        OptPassType type) {
   auto& creator_map = getGlobalOptPassCreatorMap();
   auto device_map = creator_map.find(device_type.code_);
   if (device_map != creator_map.end()) {
-    auto pass_creator = device_map->second.find(type);
-    if (pass_creator != device_map->second.end()) {
-      return pass_creator->second->createOptPass();
+    auto level_map = device_map->second.find(level);
+    if (level_map != device_map->second.end()) {
+      auto pass_creator = level_map->second.find(type);
+      if (pass_creator != level_map->second.end()) {
+        return pass_creator->second->createOptPass();
+      }
     }
   }
   return nullptr;
@@ -268,20 +353,27 @@ base::Status Optimizer::init(base::DeviceType device_type,
   auto& creator_map = getGlobalOptPassCreatorMap();
   auto device_map = creator_map.find(device_type.code_);
   if (device_map != creator_map.end()) {
-    for (auto& pass_creator : device_map->second) {
-      // 设置了仅启用某些pass，当前pass不在的话则跳过
-      if (!enable_pass.empty() &&
-          enable_pass.find(pass_creator.first) == enable_pass.end()) {
-        continue;
-      }
+    //根据Pass优先级进行图优化
+    for (auto level_map : device_map->second) {
+      for (auto& pass_creator : level_map.second) {
+        // 设置了仅启用某些pass，当前pass不在的话则跳过
+        if (!enable_pass.empty() &&
+            enable_pass.find(pass_creator.first) == enable_pass.end()) {
+          continue;
+        }
 
-      // 设置了禁用某些pass，当前pass在的话则跳过
-      if (enable_pass.empty() && !disable_pass.empty() &&
-          disable_pass.find(pass_creator.first) != disable_pass.end()) {
-        continue;
+        // 设置了禁用某些pass，当前pass在的话则跳过
+        if (enable_pass.empty() && !disable_pass.empty() &&
+            disable_pass.find(pass_creator.first) != disable_pass.end()) {
+          continue;
+        }
+        if (opt_passes_.find(level_map.first) == opt_passes_.end()) {
+          opt_passes_[level_map.first] =
+              std::map<OptPassType, std::shared_ptr<OptPass>>();
+        }
+        opt_passes_[level_map.first][pass_creator.first] =
+            pass_creator.second->createOptPass();
       }
-
-      opt_passes_[pass_creator.first] = pass_creator.second->createOptPass();
     }
   }
   return base::kStatusCodeOk;
@@ -290,26 +382,45 @@ base::Status Optimizer::deinit() {
   opt_passes_.clear();
   return base::kStatusCodeOk;
 }
-base::Status Optimizer::addPass(OptPassType type) {
+base::Status Optimizer::addPass(OptPassType type, int level) {
   if (opt_passes_.find(type) == opt_passes_.end()) {
-    opt_passes_[type] = createOptPass(device_type_, type);
+    if (opt_passes_.find(level) == opt_passes_.end()) {
+      opt_passes_[level] = std::map<OptPassType, std::shared_ptr<OptPass>>();
+    }
+    opt_passes_[level][type] = createOptPass(device_type_, level, type);
   }
   return base::kStatusCodeOk;
 }
 base::Status Optimizer::removePass(OptPassType type) {
-  if (opt_passes_.find(type) != opt_passes_.end()) {
-    opt_passes_.erase(type);
+  // 遍历外层 map
+  for (auto& outer_pair : opt_passes_) {
+    // 在内层 map 中找到对应的 OptPassType
+    auto& inner_map = outer_pair.second;
+    auto it = inner_map.find(type);
+    if (it != inner_map.end()) {
+      // 找到了，从内层 map 中删除
+      inner_map.erase(it);
+      // 如果内层 map 为空，从外层 map 删除这个元素
+      if (inner_map.empty()) {
+        opt_passes_.erase(outer_pair.first);
+      }
+    }
   }
   return base::kStatusCodeOk;
 }
 base::Status Optimizer::optimize(std::vector<TensorWrapper*>& tensor_repository,
-                                 std::vector<OpWrapper*>& op_repository) {
+                                 std::vector<OpWrapper*>& op_repository,
+                                 Net* net) {
   base::Status status = base::kStatusCodeOk;
-  for (auto& pass : opt_passes_) {
-    status = pass.second->optimize(tensor_repository, op_repository, 0);
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("optimize failed!\n");
-      return status;
+  for (auto& level_map : opt_passes_) {
+    for (auto& pass : level_map.second) {
+      NNDEPLOY_LOGE("Execute pass: %s\n", pass.second->getName().c_str());
+      pass.second->setNet(net);
+      status = pass.second->optimize(tensor_repository, op_repository, 0);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("optimize failed!\n");
+        return status;
+      }
     }
   }
   return base::kStatusCodeOk;

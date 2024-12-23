@@ -2,12 +2,13 @@
 
 namespace nndeploy {
 
-device::Tensor* rmsNormFunc(device::Tensor* input1, device::Tensor* input2,
-                            device::Tensor* input3) {
+device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
+                            device::Tensor* residual,
+                            std::shared_ptr<ir::RMSNormParam> param) {
   std::stringstream ss;
 
   device::Tensor* output = new device::Tensor("rms_norm.output");
-  base::Status status = op::rmsNorm(input1, input2, input3, output);
+  base::Status status = op::rmsNorm(input, weight, residual, param, output);
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::rms_norm failed: error code "
        << base::statusCodeToString(status.getStatusCode());
@@ -63,6 +64,82 @@ device::Tensor* reluFunc(device::Tensor* input) {
   }
 
   return output;
+}
+
+device::Tensor* addFunc(device::Tensor* input1, device::Tensor* input2) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("add.output");
+  base::Status status = op::add(input1, input2, result);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::add failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
+}
+
+device::Tensor* flattenFunc(device::Tensor* input,
+                            std::shared_ptr<ir::FlattenParam> param) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("flatten.output");
+  base::Status status = op::flatten(input, param, result);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::flatten failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
+}
+
+device::Tensor* gemmFunc(device::Tensor* inputs_a, device::Tensor* inputs_b,
+                         device::Tensor* inputs_c,
+                         std::shared_ptr<ir::GemmParam> param) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("gemm.output");
+  base::Status status = op::gemm(inputs_a, inputs_b, inputs_c, param, result);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::gemm failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
+}
+
+device::Tensor* globalAveragepoolFunc(device::Tensor* input) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("global_averagepool.output");
+  base::Status status = op::globalAveragepool(input, result);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::globalAveragepool failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
+}
+
+device::Tensor* maxPoolFunc(device::Tensor* input,
+                            std::shared_ptr<ir::MaxPoolParam> param) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("maxpool.output");
+  base::Status status = op::maxPool(input, param, result);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::maxPool failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
+}
+
+device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("mul.output");
+  base::Status status = op::mul(input1, input2, result);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::mul failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
 }
 
 }  // namespace nndeploy

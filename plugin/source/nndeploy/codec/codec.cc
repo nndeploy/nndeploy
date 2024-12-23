@@ -4,8 +4,8 @@
 namespace nndeploy {
 namespace codec {
 
-std::map<base::CodecType, createDecodeNodeFunc> &
-getGlobaCreatelDecodeNodeFuncMap() {
+std::map<base::CodecType, createDecodeNodeFunc>
+    &getGlobaCreatelDecodeNodeFuncMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::CodecType, createDecodeNodeFunc>>
       creators;
@@ -25,8 +25,8 @@ DecodeNode *createDecodeNode(base::CodecType type, base::CodecFlag flag,
   return temp;
 }
 
-std::map<base::CodecType, createEncodeNodeFunc> &
-getGlobaCreatelEncodeNodeFuncMap() {
+std::map<base::CodecType, createEncodeNodeFunc>
+    &getGlobaCreatelEncodeNodeFuncMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::CodecType, createEncodeNodeFunc>>
       creators;

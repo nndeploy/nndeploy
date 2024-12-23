@@ -10,6 +10,10 @@
 #include "nndeploy/base/object.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/rapidjson_include.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/device/tensor.h"
@@ -201,6 +205,7 @@ enum OpType : int {
   // TODO: @Leonisux:
   // 1. 增加llama的算子类型
   kOpTypeRMSNorm,
+  kOpTypeEmbedding,
 
   kOpTypeNone,
 };
@@ -215,7 +220,7 @@ NNDEPLOY_CC_API OpType stringToOpType(const std::string &op_type_name);
  */
 class OpParamCreator {
  public:
-  virtual ~OpParamCreator() {};
+  virtual ~OpParamCreator(){};
   virtual std::shared_ptr<base::Param> createOpParam(OpType type) = 0;
 };
 
@@ -273,8 +278,8 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
  */
 class NNDEPLOY_CC_API OpParam : public base::Param {
  public:
-  OpParam() : base::Param() {};
-  virtual ~OpParam() {};
+  OpParam() : base::Param(){};
+  virtual ~OpParam(){};
 
   PARAM_COPY(OpParam)
   PARAM_COPY_TO(OpParam)
@@ -286,8 +291,8 @@ class NNDEPLOY_CC_API OpParam : public base::Param {
 
 class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
  public:
-  BatchNormalizationParam() : OpParam() {};
-  virtual ~BatchNormalizationParam() {};
+  BatchNormalizationParam() : OpParam(){};
+  virtual ~BatchNormalizationParam(){};
 
   PARAM_COPY(BatchNormalizationParam)
   PARAM_COPY_TO(BatchNormalizationParam)
@@ -323,17 +328,17 @@ class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
 
  public:
   // The epsilon value to use to avoid division by zero.
-  float epsilon_ = 1e-05;
+  float epsilon_ = 1e-05f;
   // Factor used in computing the running mean and variance.e.g., running_mean =
   // running_mean * momentum + mean * (1 - momentum).
-  float momentum_ = 0.9;
+  float momentum_ = 0.9f;
   int training_mode_ = 0;
 };
 
 class ConcatParam : public OpParam {
  public:
-  ConcatParam() : OpParam() {};
-  virtual ~ConcatParam() {};
+  ConcatParam() : OpParam(){};
+  virtual ~ConcatParam(){};
 
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
@@ -390,11 +395,15 @@ class NNDEPLOY_CC_API ConvParam : public OpParam {
     for (size_t i = 0; i < strides_.size(); ++i) {
       json["strides_"].PushBack(strides_[i], allocator);
     }
-    json.AddMember("is_fusion_op_", is_fusion_op_, allocator);
     json.AddMember(
         "activate_op_",
         rapidjson::Value(opTypeToString(activate_op_).c_str(), allocator),
         allocator);
+    if (activate_op_ != kOpTypeNone && fused_op_param_ != nullptr) {
+      rapidjson::Value op_desc_json(rapidjson::kObjectType);
+      fused_op_param_->serialize(op_desc_json, allocator);
+      json.AddMember("fused_op_param_", op_desc_json, allocator);
+    }
     return base::kStatusCodeOk;
   }
   base::Status deserialize(rapidjson::Value &json) {
@@ -446,16 +455,14 @@ class NNDEPLOY_CC_API ConvParam : public OpParam {
       strides_ = {1, 1};
     }
 
-    if (json.HasMember("is_fusion_op_")) {
-      is_fusion_op_ = json["is_fusion_op_"].GetBool();
-    } else {
-      is_fusion_op_ = false;
-    }
-
     if (json.HasMember("activate_op_")) {
       activate_op_ = stringToOpType(json["activate_op_"].GetString());
+      fused_op_param_ = createOpParam(activate_op_);
+      if (json.HasMember("fused_op_param_")) {
+        fused_op_param_->deserialize(json["fused_op_param_"]);
+      }
     } else {
-      activate_op_ = kOpTypeRelu;
+      activate_op_ = kOpTypeNone;
     }
 
     return base::kStatusCodeOk;
@@ -476,8 +483,9 @@ class NNDEPLOY_CC_API ConvParam : public OpParam {
   std::vector<int> strides_ = {1, 1};
 
   // 基于onnx扩展的参数
-  bool is_fusion_op_ = false;
-  OpType activate_op_ = kOpTypeRelu;
+  OpType activate_op_ = kOpTypeNone;
+  // OpParam* fused_op_param_ = nullptr;
+  std::shared_ptr<base::Param> fused_op_param_ = nullptr;
 };
 // MaxPool 参数类
 class NNDEPLOY_CC_API MaxPoolParam : public OpParam {
@@ -854,6 +862,99 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
  public:
   float eps_ = 1e-6;
   bool is_last_ = false;
+};
+
+class NNDEPLOY_CC_API FlattenParam : public OpParam {
+ public:
+  FlattenParam() : OpParam(){};
+  virtual ~FlattenParam(){};
+
+  PARAM_COPY(FlattenParam)
+  PARAM_COPY_TO(FlattenParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("axis_", axis_, allocator);
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("axis_")) {
+      axis_ = json["axis_"].GetInt();
+    } else {
+      axis_ = 1;
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int axis_ = 1;
+};
+
+class NNDEPLOY_CC_API EmbeddingParam : public OpParam {
+ public:
+  EmbeddingParam() : OpParam(){};
+  virtual ~EmbeddingParam(){};
+
+  PARAM_COPY(EmbeddingParam)
+  PARAM_COPY_TO(EmbeddingParam)
+
+  // base::Status serialize(rapidjson::Value &json,
+  //                        rapidjson::Document::AllocatorType &allocator) {}
+  // base::Status deserialize(rapidjson::Value &json) {
+  //   return base::kStatusCodeOk;
+  // }
+};
+
+class NNDEPLOY_CC_API GemmParam : public OpParam {
+ public:
+  GemmParam() : OpParam(){};
+  virtual ~GemmParam(){};
+
+  PARAM_COPY(GemmParam)
+  PARAM_COPY_TO(GemmParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("alpha_", alpha_, allocator);
+    json.AddMember("beta_", beta_, allocator);
+    json.AddMember("trans_a_", trans_a_, allocator);
+    json.AddMember("trans_b_", trans_b_, allocator);
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("alpha_")) {
+      alpha_ = json["alpha_"].GetFloat();
+    } else {
+      alpha_ = 1.0;  // 默认值
+    }
+
+    if (json.HasMember("beta_")) {
+      beta_ = json["beta_"].GetFloat();
+    } else {
+      beta_ = 1.0;  // 默认值
+    }
+
+    if (json.HasMember("trans_a_")) {
+      trans_a_ = json["trans_a_"].GetInt();
+    } else {
+      trans_a_ = 0;  // 默认值
+    }
+
+    if (json.HasMember("trans_b_")) {
+      trans_b_ = json["trans_b_"].GetInt();
+    } else {
+      trans_b_ = 0;  // 默认值
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  float alpha_ = 1.0;  // 默认值为1.0
+  float beta_ = 1.0;   // 默认值为1.0
+  int trans_a_ = 0;    // 默认值为0
+  int trans_b_ = 0;    // 默认值为0
 };
 
 }  // namespace ir
