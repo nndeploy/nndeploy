@@ -417,6 +417,7 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name, Edge *input, Edge *output,
                         Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   Node *node = dynamic_cast<Node *>(new T(name, input, output, args...));
@@ -445,6 +446,7 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name, const std::string &input_name,
                         const std::string &output_name, Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   Edge *input = getEdge(input_name);
@@ -481,6 +483,7 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name, Edge *input,
                         const std::string &output_name, Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   Edge *output = getEdge(output_name);
@@ -513,6 +516,7 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name, const std::string &input_name,
                         Edge *output, Args &...args) {
     if (used_node_names_.find(name) != used_node_names_.end()){
+      NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   Edge *input = getEdge(input_name);
@@ -545,6 +549,7 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
                         std::vector<Edge *> outputs, Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, args...));
@@ -578,6 +583,7 @@ Node *Graph::createNode(const std::string &name,
                         std::vector<std::string> input_names,
                         std::vector<std::string> output_names, Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   std::vector<Edge *> inputs;
@@ -627,6 +633,7 @@ Node *Graph::createNode(const std::string &name,
                         std::vector<std::string> input_names,
                         std::vector<Edge *> outputs, Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   std::vector<Edge *> inputs;
@@ -667,6 +674,7 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
                         std::vector<std::string> output_names, Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   std::vector<Edge *> outputs;
@@ -708,6 +716,7 @@ Node *Graph::createNode(const std::string &name,
                         std::initializer_list<Edge *> inputs,
                         std::initializer_list<Edge *> outputs, Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, args...));
@@ -742,6 +751,7 @@ Node *Graph::createNode(const std::string &name,
                         std::initializer_list<std::string> output_names,
                         Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   std::vector<Edge *> inputs;
@@ -792,6 +802,7 @@ Node *Graph::createNode(const std::string &name,
                         std::initializer_list<std::string> output_names,
                         Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   std::vector<Edge *> outputs;
@@ -833,6 +844,7 @@ Node *Graph::createNode(const std::string &name,
                         std::initializer_list<std::string> input_names,
                         std::initializer_list<Edge *> outputs, Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()){
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   std::vector<Edge *> inputs;
