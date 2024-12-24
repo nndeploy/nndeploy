@@ -10,14 +10,13 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/net/tensor_pool.h"
-#include "nndeploy/net/util.h"
 #include "nndeploy/net/tensor_pool/tensor_pool_1d_base.h"
+#include "nndeploy/net/util.h"
 
 namespace nndeploy {
 namespace net {
 
-class TensorPool1DSharedObjectGreedyByBreadth
-    : public TensorPool1D {
+class TensorPool1DSharedObjectGreedyByBreadth : public TensorPool1D {
  public:
   TensorPool1DSharedObjectGreedyByBreadth(
       device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
@@ -38,7 +37,6 @@ class TensorPool1DSharedObjectGreedyByBreadth
   std::set<std::shared_ptr<TensorUsageRecord>> assigned_tensors_;
   // 记录已经处理过的tensor：由于延迟开辟内存，无法根据tensor的allocated属性判断
 };
-
 
 }  // namespace net
 }  // namespace nndeploy

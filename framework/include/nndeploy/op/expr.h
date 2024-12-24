@@ -121,7 +121,6 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeEmbedding(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> indices,
     std::string op_name, std::string output_name);
 
-
 }  // namespace op
 }  // namespace nndeploy
 

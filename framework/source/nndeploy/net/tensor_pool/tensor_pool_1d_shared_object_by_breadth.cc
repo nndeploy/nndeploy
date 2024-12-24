@@ -110,8 +110,21 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
 
     // 与tensor关联
     for (auto tensor : tensors) {
+      // tensor->is_allocated_ = true;
+      // tensor->tensor_wrapper_->tensor_->justModify(chunk->buffer_);
       tensor->is_allocated_ = true;
-      tensor->tensor_wrapper_->tensor_->justModify(chunk->buffer_);
+      device::Buffer *buffer = new device::Buffer(*chunk->buffer_);
+      device::TensorDesc tensor_desc =
+          tensor->tensor_wrapper_->tensor_->getDesc();
+      device::BufferDesc buffer_desc =
+          device_->toBufferDesc(tensor_desc, base::IntVector());
+      if (!buffer->justModify(buffer_desc)) {
+        NNDEPLOY_LOGE("tensor name = %s.\n",
+                      tensor->tensor_wrapper_->name_.c_str());
+        NNDEPLOY_LOGE("buffer->justModify failed\n");
+        return base::kStatusCodeErrorInvalidValue;
+      }
+      tensor->tensor_wrapper_->tensor_->justModify(buffer, false);
     }
   }
 
@@ -154,7 +167,6 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::deallocate() {
 
   return status;
 }
-
 
 }  // namespace net
 }  // namespace nndeploy

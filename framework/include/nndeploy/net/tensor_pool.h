@@ -16,12 +16,12 @@ namespace nndeploy {
 namespace net {
 
 enum TensorPoolType : int {
-  kTensorPool1DSharedObjectTypeGreedyByBreadth,
-  kTensorPool1DSharedObjectTypeGreedyBySize,
-  kTensorPool1DSharedObjectTypeGreedyBySizeImprove,
-  kTensorPool1DSharedObjectTypeNone,
-  kTensorPool1DOffsetCalculateTypeGreedyBySize,
-  kTensorPool1DOffsetCalculateTypeGreedyByBreadth,
+  kTensorPool1DSharedObjectTypeGreedyByBreadth,      // 不正确
+  kTensorPool1DSharedObjectTypeGreedyBySize,         // 正确
+  kTensorPool1DSharedObjectTypeGreedyBySizeImprove,  // 正确
+  kTensorPool1DOffsetCalculateTypeGreedyBySize,      // 正确
+  kTensorPool1DOffsetCalculateTypeGreedyByBreadth,   // 不正确
+  kTensorPool1DNone,
 };
 
 // 只有激活值
@@ -29,7 +29,7 @@ struct TensorUsageRecord {
   TensorWrapper *tensor_wrapper_;
   size_t size_;
   std::array<int, 2> interval_;
-  int offset_ = -1; //初始化offset为-1
+  int offset_ = -1;  // 初始化offset为-1
   bool is_allocated_ = false;
 
   bool operator<(const TensorUsageRecord &other) const {

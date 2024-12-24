@@ -10,21 +10,18 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/net/tensor_pool.h"
-#include "nndeploy/net/util.h"
 #include "nndeploy/net/tensor_pool/tensor_pool_1d_base.h"
+#include "nndeploy/net/util.h"
 
 namespace nndeploy {
 namespace net {
 
-class TensorPool1DSharedObjectGreedyBySize
-    : public TensorPool1D {
+class TensorPool1DSharedObjectGreedyBySize : public TensorPool1D {
  public:
   TensorPool1DSharedObjectGreedyBySize(
       device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
       std::vector<OpWrapper *> &op_repository);
   virtual ~TensorPool1DSharedObjectGreedyBySize();
-
-
 
   virtual base::Status allocate();
   virtual base::Status deallocate();
@@ -32,7 +29,6 @@ class TensorPool1DSharedObjectGreedyBySize
  private:
   std::vector<std::shared_ptr<Chunk>> chunks_;
 };
-
 
 }  // namespace net
 }  // namespace nndeploy

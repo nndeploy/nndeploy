@@ -18,8 +18,8 @@ namespace net {
 class TensorPool1D : public TensorPool {
  public:
   TensorPool1D(device::Device *device,
-                           std::vector<TensorWrapper *> &tensor_repository,
-                           std::vector<OpWrapper *> &op_repository);
+               std::vector<TensorWrapper *> &tensor_repository,
+               std::vector<OpWrapper *> &op_repository);
   virtual ~TensorPool1D();
 
   base::Status initTensorUsageRecord();
@@ -34,9 +34,8 @@ class TensorPool1D : public TensorPool {
  protected:
   std::vector<std::shared_ptr<TensorUsageRecord>> tensor_usage_records_;
   std::vector<std::shared_ptr<OpBreadth>> op_breadths_;
-  std::vector<size_t> positional_maximum_; 
+  std::vector<size_t> positional_maximum_;
 };
-
 
 }  // namespace net
 }  // namespace nndeploy

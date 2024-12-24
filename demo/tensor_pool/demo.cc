@@ -58,13 +58,12 @@ int main() {
   // onnx_interpret->dump(std::cout);
   onnx_interpret->saveModelToFile("yolov8n.json", "yolov8n.safetensors");
 
-
   auto default_interpret = std::shared_ptr<ir::Interpret>(
       ir::createInterpret(base::kModelTypeDefault));
   std::vector<std::string> new_model_value;
   new_model_value.push_back("yolov8n.json");
   new_model_value.push_back("yolov8n.safetensors");
-  base::Status status;
+  // base::Status status;
   status = default_interpret->interpret(new_model_value);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("interpret failed\n");
@@ -89,9 +88,12 @@ int main() {
   cann_net->setModelDesc(md);
 
   base::DeviceType device_type;
-  device_type.code_ = base::kDeviceTypeCodeCpu;
+  device_type.code_ = base::kDeviceTypeCodeAscendCL;
   device_type.device_id_ = 0;
   cann_net->setDeviceType(device_type);
+  net::TensorPoolType tensor_pool_type =
+      net::kTensorPool1DSharedObjectTypeGreedyBySize;
+  cann_net->setTensorPoolType(tensor_pool_type);
 
   cann_net->init();
 
@@ -114,10 +116,10 @@ int main() {
 
   cann_net->deinit();
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
+  // ret = nndeployFrameworkDeinit();
+  // if (ret != 0) {
+  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+  //   return ret;
+  // }
   return 0;
 }

@@ -6,9 +6,9 @@ namespace nndeploy {
 namespace net {
 
 // tensorpool 基类实现
-TensorPool1D::TensorPool1D(
-    device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
-    std::vector<OpWrapper *> &op_repository)
+TensorPool1D::TensorPool1D(device::Device *device,
+                           std::vector<TensorWrapper *> &tensor_repository,
+                           std::vector<OpWrapper *> &op_repository)
     : TensorPool(device, tensor_repository, op_repository) {}
 
 TensorPool1D::~TensorPool1D() {}

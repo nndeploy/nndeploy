@@ -10,14 +10,13 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/net/tensor_pool.h"
-#include "nndeploy/net/util.h"
 #include "nndeploy/net/tensor_pool/tensor_pool_1d_base.h"
+#include "nndeploy/net/util.h"
 
 namespace nndeploy {
 namespace net {
 
-class TensorPool1DSharedObjectGreedyBySizeImprove
-    : public TensorPool1D {
+class TensorPool1DSharedObjectGreedyBySizeImprove : public TensorPool1D {
  public:
   TensorPool1DSharedObjectGreedyBySizeImprove(
       device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
@@ -30,7 +29,6 @@ class TensorPool1DSharedObjectGreedyBySizeImprove
  private:
   std::vector<std::shared_ptr<Chunk>> chunks_;
 };
-
 
 }  // namespace net
 }  // namespace nndeploy

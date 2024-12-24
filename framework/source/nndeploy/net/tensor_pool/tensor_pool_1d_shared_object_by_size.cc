@@ -11,15 +11,12 @@ TypeTensorPoolRegister<
     g_tensor_pool_1d_shared_object_greedy_by_size_register(
         kTensorPool1DSharedObjectTypeGreedyBySize);
 
-
-TensorPool1DSharedObjectGreedyBySize::
-    TensorPool1DSharedObjectGreedyBySize(
-        device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
-        std::vector<OpWrapper *> &op_repository)
+TensorPool1DSharedObjectGreedyBySize::TensorPool1DSharedObjectGreedyBySize(
+    device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
+    std::vector<OpWrapper *> &op_repository)
     : TensorPool1D(device, tensor_repository, op_repository) {}
 
-TensorPool1DSharedObjectGreedyBySize::
-    ~TensorPool1DSharedObjectGreedyBySize() {}
+TensorPool1DSharedObjectGreedyBySize::~TensorPool1DSharedObjectGreedyBySize() {}
 
 base::Status TensorPool1DSharedObjectGreedyBySize::allocate() {
   base::Status status = base::kStatusCodeOk;
@@ -122,7 +119,7 @@ base::Status TensorPool1DSharedObjectGreedyBySize::allocate() {
     tensor_usage_records_[i]->tensor_wrapper_->tensor_->justModify(buffer,
                                                                    false);
   }
-  
+
   tensorUsageRecordPrint(tensor_usage_records_);
   chunkPrint(chunks_);
 
@@ -162,7 +159,6 @@ base::Status TensorPool1DSharedObjectGreedyBySize::deallocate() {
 
   return status;
 }
-
 
 }  // namespace net
 }  // namespace nndeploy

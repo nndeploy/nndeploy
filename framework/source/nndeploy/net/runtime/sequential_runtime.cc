@@ -15,8 +15,8 @@ TypeRuntimeRegister<TypeRuntimeCreator<SequentialRuntime>>
     g_sequential_runtime_register_none(base::ParallelType::kParallelTypeNone);
 
 SequentialRuntime::SequentialRuntime(const base::DeviceType &device_type)
-    : Runtime(device_type) {};
-SequentialRuntime::~SequentialRuntime() {};
+    : Runtime(device_type){};
+SequentialRuntime::~SequentialRuntime(){};
 
 base::Status SequentialRuntime::init(
     std::vector<TensorWrapper *> &tensor_repository,

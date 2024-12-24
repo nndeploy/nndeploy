@@ -19,8 +19,8 @@ class OpEmbedding : public Op {
 };
 
 NNDEPLOY_CC_API base::Status embedding(device::Tensor* input,
-                                    device::Tensor* indice,
-                                    device::Tensor* output);
+                                       device::Tensor* indice,
+                                       device::Tensor* output);
 
 }  // namespace op
 }  // namespace nndeploy

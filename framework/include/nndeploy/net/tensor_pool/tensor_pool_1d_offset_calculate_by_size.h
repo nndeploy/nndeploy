@@ -10,14 +10,13 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/net/tensor_pool.h"
-#include "nndeploy/net/util.h"
 #include "nndeploy/net/tensor_pool/tensor_pool_1d_base.h"
+#include "nndeploy/net/util.h"
 
 namespace nndeploy {
 namespace net {
 
-class TensorPool1DOffsetCalculateGreedyBySize
-    : public TensorPool1D {
+class TensorPool1DOffsetCalculateGreedyBySize : public TensorPool1D {
  public:
   TensorPool1DOffsetCalculateGreedyBySize(
       device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
@@ -28,11 +27,30 @@ class TensorPool1DOffsetCalculateGreedyBySize
   virtual base::Status allocate();
   virtual base::Status deallocate();
 
+  /**
+   * @brief 获取推理所需的内存大小
+   *
+   * @return int64_t
+   */
+  virtual int64_t getMemorySize();
+  /**
+   * @brief 设置推理所需的内存（推理内存由外部分配）
+   *
+   * @param buffer
+   * @return base::Status
+   */
+  virtual base::Status setMemory(device::Buffer *buffer);
+
  private:
-  std::vector<std::shared_ptr<TensorUsageRecord>> ordered_allocated_ids_; //已分配tensor
+  std::vector<std::shared_ptr<TensorUsageRecord>>
+      ordered_allocated_ids_;  // 已分配tensor
+  int64_t total_consumption_ = -1;
+  bool is_external_ = false;
+  device::Buffer *mem_block_ = nullptr;
 };
 
 }  // namespace net
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_NET_TENSOR_POOL_1D_OFFSET_CALCULATE_BY_SIZE_H_ */
+#endif /* _NNDEPLOY_NET_TENSOR_POOL_TENSOR_POOL_1D_OFFSET_CALCULATE_BY_SIZE_H_ \
+        */
