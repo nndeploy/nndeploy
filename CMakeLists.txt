@@ -697,6 +697,8 @@ endif()
 
 # test
 if(ENABLE_NNDEPLOY_TEST)
+  message("This is a log")
+  add_subdirectory(third_party/googletest)
   include(${ROOT_PATH}/test/config.cmake)
 endif()
 
