@@ -1,39 +1,29 @@
-/*
-    Analysis: nndeploy::dag::Edge
-
-    happy path tests:
-                valid_edge: constructs an edge with a name 
-
-
-    sad path tests:
-                none
-
-    evil path test:
-                none
-*/
 #include <gtest/gtest.h>
+#include <memory>
+#include "nndeploy/dag/edge.h"
 
-#include "nndeploy/dag/graph.h"
-
-#include<string>
 using nndeploy::dag::Edge;
 
-Edge* construct_edge(const std::string &name)
-{
-    Edge* edge_ = new Edge(name);
-    return edge_; 
+class EdgeTest : public testing::Test {
+    protected:
+    std::unique_ptr<Edge> ConstructEdge(const std::string &name) {
+        return  std::make_unique<Edge>(name);
+    }
+};
+
+TEST_F(EdgeTest, CreateEdgeWithValidName) {
+    std::string name = "edge!@#$%^&*()";
+    auto edge = ConstructEdge(name);
+    EXPECT_EQ(edge->getName(), name);
 }
 
-TEST(edge_test, valid_edge) {
-    std::string name = "test_edge";
-    Edge* edge_ = construct_edge(name);
-    EXPECT_EQ(edge_->getName(), name);
-    delete(edge_);
-}
-
-TEST(edge_test, invalid_edge) {
+TEST_F(EdgeTest, CreateEdgeWithNullName) {
     std::string name;
-    Edge* edge_ = construct_edge(name);
-    EXPECT_EQ(edge_->getName(), ""); //should we do something about this?
-    delete(edge_);
+    auto edge = ConstructEdge(name);
+    EXPECT_EQ(edge->getName(), ""); //should we do something about this?
+}
+
+TEST_F(EdgeTest, CreateEdgeWithEmptyName) {
+    auto edge = ConstructEdge("");
+    EXPECT_TRUE(edge->getName().empty()); //should we do something about this?
 }
