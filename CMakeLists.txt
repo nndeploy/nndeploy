@@ -697,8 +697,7 @@ endif()
 
 # test
 if(ENABLE_NNDEPLOY_TEST)
-  message("This is a log")
-  add_subdirectory(third_party/googletest)
+  add_subdirectory(third_party/googletest) # this does make the build slow. I wonder if there is a way to avoid this. 
   include(${ROOT_PATH}/test/config.cmake)
 endif()
 
