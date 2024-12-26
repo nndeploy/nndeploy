@@ -11,19 +11,19 @@ class EdgeTest : public testing::Test {
     }
 };
 
-TEST_F(EdgeTest, CreateEdgeWithValidName) {
+TEST_F(EdgeTest, EdgeWithValidName) {
     std::string name = "edge!@#$%^&*()";
     auto edge = ConstructEdge(name);
     EXPECT_EQ(edge->getName(), name);
 }
 
-TEST_F(EdgeTest, CreateEdgeWithNullName) {
+TEST_F(EdgeTest, EdgeWithNullName) {
     std::string name;
     auto edge = ConstructEdge(name);
     EXPECT_EQ(edge->getName(), ""); //should we do something about this?
 }
 
-TEST_F(EdgeTest, CreateEdgeWithEmptyName) {
+TEST_F(EdgeTest, EdgeWithEmptyName) {
     auto edge = ConstructEdge("");
     EXPECT_TRUE(edge->getName().empty()); //should we do something about this?
 }
