@@ -35,3 +35,13 @@ TEST_F(GraphTest, GraphWithOneInputOutputEdge) {
     EXPECT_TRUE(graph->getEdge("edge_in") == edge_in.get());
     EXPECT_TRUE(graph->getEdge("edge_out") == edge_out.get());
 }
+
+//This test fails, there may be chance of potential optimizations
+TEST_F(GraphTest, GraphWithDuplicateOutputEdge) {
+    auto edge_in =  std::make_unique<Edge>("edge_in");
+    auto graph = ConstructGraph("@@!!##$$", edge_in.get(), edge_in.get());
+    EXPECT_FALSE(graph->getConstructed());
+    EXPECT_FALSE(graph->getAllOutput()[0] == edge_in.get()); // this should false
+    EXPECT_TRUE(graph->getAllInput()[0] == edge_in.get()); //this should be fine 
+}
+
