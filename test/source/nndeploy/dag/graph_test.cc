@@ -26,3 +26,12 @@ class GraphTest : public testing::Test {
         return std::make_unique<Graph>(name, inputs, outputs);
     }
 };
+
+TEST_F(GraphTest, GraphWithOneInputOutputEdge) {
+    auto edge_in =  std::make_unique<Edge>("edge_in");
+    auto edge_out = std::make_unique<Edge>("edge_out");
+    auto graph = ConstructGraph("@@!!##$$", edge_in.get(), edge_out.get());
+    EXPECT_TRUE(graph->getName() == "@@!!##$$");
+    EXPECT_TRUE(graph->getEdge("edge_in") == edge_in.get());
+    EXPECT_TRUE(graph->getEdge("edge_out") == edge_out.get());
+}
