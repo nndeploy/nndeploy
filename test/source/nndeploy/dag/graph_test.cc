@@ -6,6 +6,7 @@
 #include "nndeploy/dag/node.h"
 #include "nndeploy/dag/graph.h"
 using namespace nndeploy::dag;
+using namespace nndeploy::base;
 
 class GraphTest : public testing::Test {
     protected:
@@ -43,7 +44,7 @@ TEST_F(GraphTest, GraphWithDuplicateOutputEdge) {
     auto edge_in =  std::make_unique<Edge>("edge_in");
     auto graph = ConstructGraph("3.141@@!!", edge_in.get(), edge_in.get());
     EXPECT_FALSE(graph->getConstructed()); //is false
-    EXPECT_FALSE(graph->getAllOutput()[0] == edge_in.get()); // this should false
+    EXPECT_FALSE(graph->getAllOutput()[0] == edge_in.get()); // this should false; somehow getAllOutput().size() != 0
     EXPECT_TRUE(graph->getAllInput()[0] == edge_in.get()); //is true 
 }
 
@@ -58,7 +59,7 @@ TEST_F(GraphTest, GraphWithVectorInputOutputEdge) {
     outputs.emplace_back(new Edge("out_2"));
     outputs.emplace_back(new Edge("out_3"));
     outputs.emplace_back(new Edge("out_4"));
-    auto graph = ConstructGraphWithVecArgs("@@!!##$$", inputs, outputs);
+    auto graph = ConstructGraphWithVecArgs("@@\n\t!!##$$", inputs, outputs);
     ASSERT_TRUE(graph->getConstructed());
     ASSERT_EQ(graph->getAllInput().size(), 4);
     ASSERT_EQ(graph->getAllOutput().size(), 4);
@@ -66,4 +67,16 @@ TEST_F(GraphTest, GraphWithVectorInputOutputEdge) {
     //TODO: do this in ~GraphTest()
     for(auto in_edge: inputs) {delete in_edge;}
     for(auto out_edge: outputs) {delete out_edge;}
+}
+
+//this test fails. A Graph should not be able to add itself as Node
+TEST_F(GraphTest, GraphWithNodeAsItself) {
+    auto inputs = std::vector<Edge *>();
+    auto outputs = std::vector<Edge *>();
+    auto edge_in =  std::make_unique<Edge>("edge_in");
+    auto edge_out =  std::make_unique<Edge>("edge_out");
+    inputs.emplace_back(edge_in.get());
+    outputs.emplace_back(edge_out.get());
+    auto graph = ConstructGraphWithVecArgs("@@!!##$$", inputs, outputs);
+    ASSERT_TRUE(graph->addNode(graph.get()) != kStatusCodeOk);
 }
