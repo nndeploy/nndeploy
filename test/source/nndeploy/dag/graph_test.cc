@@ -44,8 +44,8 @@ TEST_F(GraphTest, GraphWithDuplicateOutputEdge) {
     auto edge_in =  std::make_unique<Edge>("edge_in");
     auto graph = ConstructGraph("3.141@@!!", edge_in.get(), edge_in.get());
     EXPECT_FALSE(graph->getConstructed()); //is false
-    EXPECT_FALSE(graph->getAllOutput()[0] == edge_in.get()); // this should false; somehow getAllOutput().size() != 0
-    EXPECT_TRUE(graph->getAllInput()[0] == edge_in.get()); //is true 
+    EXPECT_TRUE(graph->getAllOutput().size() == 0); // this should true
+    EXPECT_TRUE(graph->getAllInput().size() == 0); // this should true 
 }
 
 TEST_F(GraphTest, GraphWithVectorInputOutputEdge) {

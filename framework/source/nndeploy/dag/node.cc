@@ -5,6 +5,9 @@ namespace nndeploy {
 namespace dag {
 
 Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
+  // if(input == output) {
+  //   return;
+  // }
   device_type_ = device::getDefaultHostDeviceType();
   if (input != nullptr) {
     inputs_.emplace_back(input);

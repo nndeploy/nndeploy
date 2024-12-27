@@ -170,6 +170,10 @@ EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
 // }
 
 base::Status Graph::addNode(Node *node, bool is_external) {
+  // if (this == node) {
+  //    NNDEPLOY_LOGE("Graph cannot add itself as node");
+  //   return base::kStatusCodeErrorInvalidValue;
+  // }
   if (used_node_names_.find(node->getName()) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", node->getName().c_str());
     return base::kStatusCodeErrorInvalidValue;
