@@ -416,7 +416,7 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, Edge *input, Edge *output,
                         Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -445,7 +445,7 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, const std::string &input_name,
                         const std::string &output_name, Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -482,7 +482,7 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, Edge *input,
                         const std::string &output_name, Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -515,8 +515,8 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, const std::string &input_name,
                         Edge *output, Args &...args) {
-    if (used_node_names_.find(name) != used_node_names_.end()){
-      NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+  if (used_node_names_.find(name) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   Edge *input = getEdge(input_name);
@@ -548,7 +548,7 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
                         std::vector<Edge *> outputs, Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -582,7 +582,7 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name,
                         std::vector<std::string> input_names,
                         std::vector<std::string> output_names, Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -632,7 +632,7 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name,
                         std::vector<std::string> input_names,
                         std::vector<Edge *> outputs, Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -673,7 +673,7 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
                         std::vector<std::string> output_names, Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -715,7 +715,7 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name,
                         std::initializer_list<Edge *> inputs,
                         std::initializer_list<Edge *> outputs, Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -750,7 +750,7 @@ Node *Graph::createNode(const std::string &name,
                         std::initializer_list<std::string> input_names,
                         std::initializer_list<std::string> output_names,
                         Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -801,7 +801,7 @@ Node *Graph::createNode(const std::string &name,
                         std::initializer_list<Edge *> inputs,
                         std::initializer_list<std::string> output_names,
                         Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -843,7 +843,7 @@ template <typename T, typename... Args,
 Node *Graph::createNode(const std::string &name,
                         std::initializer_list<std::string> input_names,
                         std::initializer_list<Edge *> outputs, Args &...args) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -884,7 +884,7 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          Edge *input, Edge *output) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -914,7 +914,7 @@ template <typename T, typename... Args,
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          const std::string &input_name,
                          const std::string &output_name) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -951,7 +951,7 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          Edge *input, const std::string &output_name) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -984,7 +984,7 @@ template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          const std::string &input_name, Edge *output) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -1018,10 +1018,10 @@ template <typename T, typename... Args,
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::vector<Edge *> inputs,
                          std::vector<Edge *> outputs) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
-  }  
+  }
   Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
@@ -1052,7 +1052,7 @@ template <typename T, typename... Args,
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::vector<std::string> input_names,
                          std::vector<std::string> output_names) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -1102,7 +1102,7 @@ template <typename T, typename... Args,
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::vector<Edge *> inputs,
                          std::vector<std::string> output_names) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -1144,7 +1144,7 @@ template <typename T, typename... Args,
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::vector<std::string> input_names,
                          std::vector<Edge *> outputs) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -1186,7 +1186,7 @@ template <typename T, typename... Args,
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::initializer_list<Edge *> inputs,
                          std::initializer_list<Edge *> outputs) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -1220,7 +1220,7 @@ template <typename T, typename... Args,
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::initializer_list<std::string> input_names,
                          std::initializer_list<std::string> output_names) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -1270,7 +1270,7 @@ template <typename T, typename... Args,
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::initializer_list<Edge *> inputs,
                          std::initializer_list<std::string> output_names) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -1312,10 +1312,10 @@ template <typename T, typename... Args,
 Node *Graph::createInfer(const std::string &name, base::InferenceType type,
                          std::initializer_list<std::string> input_names,
                          std::initializer_list<Edge *> outputs) {
-  if (used_node_names_.find(name) != used_node_names_.end()){
+  if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
-  }  
+  }
   std::vector<Edge *> inputs;
   for (auto input_name : input_names) {
     Edge *input = getEdge(input_name);

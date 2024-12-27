@@ -4,8 +4,8 @@
 #include "nndeploy/net/net.h"
 namespace nndeploy {
 namespace net {
-FuseConvBatchNorm::FuseConvBatchNorm() : OptPass("FuseConvBatchNorm") {};
-FuseConvBatchNorm::~FuseConvBatchNorm() {};
+FuseConvBatchNorm::FuseConvBatchNorm() : OptPass("FuseConvBatchNorm"){};
+FuseConvBatchNorm::~FuseConvBatchNorm(){};
 
 base::Status FuseConvBatchNorm::optimize(
     std::vector<TensorWrapper*>& tensor_repository,

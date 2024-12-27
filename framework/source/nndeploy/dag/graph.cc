@@ -94,7 +94,7 @@ Graph::~Graph() {
 }
 
 Edge *Graph::createEdge(const std::string &name) {
-  if (used_edge_names_.find(name) != used_edge_names_.end()){
+  if (used_edge_names_.find(name) != used_edge_names_.end()) {
     NNDEPLOY_LOGE("edge name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
@@ -129,7 +129,7 @@ Edge *Graph::getEdge(const std::string &name) {
 // }
 
 EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
-  if(used_edge_names_.find(edge->getName()) != used_edge_names_.end()){
+  if (used_edge_names_.find(edge->getName()) != used_edge_names_.end()) {
     NNDEPLOY_LOGE("edge name[%s] is already used!\n", edge->getName().c_str());
     return nullptr;
   }

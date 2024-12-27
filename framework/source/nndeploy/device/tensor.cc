@@ -341,8 +341,36 @@ base::Status Tensor::copyTo(Tensor *dst) {
     NNDEPLOY_LOGE("src_buffer or dst_buffer is nullptr.\n");
     return base::kStatusCodeErrorNotImplement;
   }
-  base::Status status = src_buffer->copyTo(dst_buffer);
-  return status;
+  // base::Status status = src_buffer->copyTo(dst_buffer);
+  // return status;
+  Device *src_device = src_buffer->getDevice();
+  base::DeviceType src_device_type = src_device->getDeviceType();
+  Device *dst_device = dst_buffer->getDevice();
+  base::DeviceType dst_device_type = dst_device->getDeviceType();
+  void *src_data_ptr = src_buffer->getData();
+  void *dst_data_ptr = dst_buffer->getData();
+  BufferDesc src_buffer_desc = src_buffer->getDesc();
+  BufferDesc dst_buffer_desc = dst_buffer->getDesc();
+  size_t src_size = src_buffer_desc.getSize();
+  size_t dst_size = dst_buffer_desc.getSize();
+  size_t copy_size = std::min(src_size, dst_size);
+  if (src_device_type == dst_device_type) {
+    return src_device->copy(src_data_ptr, dst_data_ptr, copy_size);
+  } else if (isHostDeviceType(src_device_type) &&
+             isHostDeviceType(dst_device_type)) {
+    return src_device->copy(src_data_ptr, dst_data_ptr, copy_size);
+  } else if (isHostDeviceType(src_device_type) &&
+             !isHostDeviceType(dst_device_type)) {
+    return dst_device->upload(src_data_ptr, dst_data_ptr, copy_size);
+  } else if (!isHostDeviceType(src_device_type) &&
+             isHostDeviceType(dst_device_type)) {
+    return src_device->download(src_data_ptr, dst_data_ptr, copy_size);
+  } else {
+    NNDEPLOY_LOGE("Unsupported device type{%s->%s} for copy operation.",
+                  base::deviceTypeToString(src_device_type).c_str(),
+                  base::deviceTypeToString(dst_device_type).c_str());
+    return base::kStatusCodeErrorNotImplement;
+  }
 }
 
 // 序列化模型权重为二进制文件
@@ -969,15 +997,17 @@ BufferDesc Tensor::getBufferDesc() const {
   }
 }
 size_t Tensor::getSize() const {
+  BufferDesc buffer_desc = getBufferDesc();
   if (buffer_) {
-    return buffer_->getSize();
+    return buffer_desc.getSize();
   } else {
     return 0;
   }
 }
 base::SizeVector Tensor::getSizeVector() const {
+  BufferDesc buffer_desc = getBufferDesc();
   if (buffer_) {
-    return buffer_->getSizeVector();
+    return buffer_desc.getSizeVector();
   } else {
     return base::SizeVector();
   }
