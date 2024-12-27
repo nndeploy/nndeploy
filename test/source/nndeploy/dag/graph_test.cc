@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
+
 #include <memory>
 #include <vector>
 
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/dag/graph.h"
+
 using namespace nndeploy::dag;
 using namespace nndeploy::base;
 
@@ -27,9 +29,22 @@ class GraphTest : public testing::Test {
         return std::make_unique<Graph>(name, inputs, outputs);
     }
 };
+class ProcessNode : public Node {
+ public:
+  ProcessNode(const std::string &name, std::vector<Edge *> inputs, std::vector<Edge *> outputs)
+      : Node(name, inputs, outputs) {}
+  ProcessNode(const std::string &name, Edge* input, Edge* output)
+      : Node(name, input, output) {}
+  
+  virtual ~ProcessNode() {}
+
+  virtual Status run() {
+    return kStatusCodeOk;
+  }
+};
 
 TEST_F(GraphTest, GraphWithOneInputOutputEdge) {
-    auto edge_in =  std::make_unique<Edge>("edge_in");
+    auto edge_in = std::make_unique<Edge>("edge_in");
     auto edge_out = std::make_unique<Edge>("edge_out");
     auto graph = ConstructGraph("@@!!##$$", edge_in.get(), edge_out.get());
     ASSERT_TRUE(graph->getConstructed());
@@ -70,13 +85,43 @@ TEST_F(GraphTest, GraphWithVectorInputOutputEdge) {
 }
 
 //this test fails. A Graph should not be able to add itself as Node
-TEST_F(GraphTest, GraphWithNodeAsItself) {
+TEST_F(GraphTest, GraphAddItselfAsNode) {
     auto inputs = std::vector<Edge *>();
     auto outputs = std::vector<Edge *>();
     auto edge_in =  std::make_unique<Edge>("edge_in");
     auto edge_out =  std::make_unique<Edge>("edge_out");
     inputs.emplace_back(edge_in.get());
     outputs.emplace_back(edge_out.get());
-    auto graph = ConstructGraphWithVecArgs("@@!!##$$", inputs, outputs);
+    auto graph = ConstructGraphWithVecArgs("AddItselfAsNode", inputs, outputs);
     ASSERT_TRUE(graph->addNode(graph.get()) != kStatusCodeOk);
+}
+
+TEST_F(GraphTest, GraphCreateNode) {
+    auto inputs = std::vector<Edge *>();
+    auto outputs = std::vector<Edge *>();
+    auto edge_in =  std::make_unique<Edge>("edge_in");
+    auto edge_out =  std::make_unique<Edge>("edge_out");
+    auto node_edge_in =  std::make_unique<Edge>("node_edge_in");
+    auto node_edge_out =  std::make_unique<Edge>("node_edge_out");
+    inputs.emplace_back(edge_in.get());
+    outputs.emplace_back(edge_out.get());
+    auto graph = ConstructGraphWithVecArgs("CreateNode", inputs, outputs);
+    auto node = graph->createNode<ProcessNode>("test_node", node_edge_in.get(), node_edge_out.get());
+    ASSERT_EQ(node->getName(), "test_node");
+    ASSERT_EQ(node->getAllInput().size(), 1);
+    ASSERT_EQ(node->getAllOutput().size(), 1);
+    ASSERT_EQ(node->getInput(), node_edge_in.get());
+    ASSERT_EQ(node->getOutput(), node_edge_out.get());
+}
+
+TEST_F(GraphTest, GraphCreateNodeWithSameEdges) {
+    auto inputs = std::vector<Edge *>();
+    auto outputs = std::vector<Edge *>();
+    auto edge_in =  std::make_unique<Edge>("edge_in");
+    auto edge_out =  std::make_unique<Edge>("edge_out");
+    inputs.emplace_back(edge_in.get());
+    outputs.emplace_back(edge_out.get());
+    auto graph = ConstructGraphWithVecArgs("CreateNodeWithSameEdges", inputs, outputs);
+    auto node = graph->createNode<ProcessNode>("test_node", inputs, outputs);
+    ASSERT_TRUE(node == nullptr);
 }
