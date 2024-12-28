@@ -54,13 +54,12 @@ TEST_F(GraphTest, GraphWithOneInputOutputEdge) {
 }
 
 
-//This test fails, there may be chance of potential optimizations
 TEST_F(GraphTest, GraphWithDuplicateOutputEdge) {
     auto edge_in =  std::make_unique<Edge>("edge_in");
     auto graph = ConstructGraph("3.141@@!!", edge_in.get(), edge_in.get());
-    EXPECT_FALSE(graph->getConstructed()); //is false
-    EXPECT_TRUE(graph->getAllOutput().size() == 0); // this should true
-    EXPECT_TRUE(graph->getAllInput().size() == 0); // this should true 
+    EXPECT_FALSE(graph->getConstructed());
+    EXPECT_TRUE(graph->getAllOutput().size() == 0);
+    EXPECT_TRUE(graph->getAllInput().size() == 0);
 }
 
 TEST_F(GraphTest, GraphWithVectorInputOutputEdge) {
@@ -84,7 +83,6 @@ TEST_F(GraphTest, GraphWithVectorInputOutputEdge) {
     for(auto out_edge: outputs) {delete out_edge;}
 }
 
-//this test fails. A Graph should not be able to add itself as Node
 TEST_F(GraphTest, GraphAddItselfAsNode) {
     auto inputs = std::vector<Edge *>();
     auto outputs = std::vector<Edge *>();
@@ -114,6 +112,7 @@ TEST_F(GraphTest, GraphCreateNode) {
     ASSERT_EQ(node->getOutput(), node_edge_out.get());
 }
 
+//failing test
 TEST_F(GraphTest, GraphCreateNodeWithSameEdges) {
     auto inputs = std::vector<Edge *>();
     auto outputs = std::vector<Edge *>();
@@ -122,6 +121,28 @@ TEST_F(GraphTest, GraphCreateNodeWithSameEdges) {
     inputs.emplace_back(edge_in.get());
     outputs.emplace_back(edge_out.get());
     auto graph = ConstructGraphWithVecArgs("CreateNodeWithSameEdges", inputs, outputs);
-    auto node = graph->createNode<ProcessNode>("test_node", inputs, outputs);
+    auto node = graph->createNode<ProcessNode>("test_node", inputs, outputs); //this may be a problem
     ASSERT_TRUE(node == nullptr);
+}
+
+TEST_F(GraphTest, GraphAddEdge) {
+    auto edge_in =  std::make_unique<Edge>("edge_in");
+    auto edge_out =  std::make_unique<Edge>("edge_out");
+    auto graph = ConstructGraph("GraphAddEdge", edge_in.get(), edge_out.get());
+    auto new_edge =  std::make_unique<Edge>("new_edge");
+    auto edge_wrapper = graph->addEdge(new_edge.get()); 
+    ASSERT_EQ(edge_wrapper->consumers_.size(), 0);
+    ASSERT_EQ(edge_wrapper->producers_.size(), 0);
+    ASSERT_EQ(edge_wrapper->edge_, new_edge.get());
+    ASSERT_EQ(edge_wrapper->edge_->getName(), new_edge.get()->getName());
+}
+
+TEST_F(GraphTest, GraphDuplicateAddEdge) {
+    auto edge_in =  std::make_unique<Edge>("edge_in");
+    auto edge_out =  std::make_unique<Edge>("edge_out");
+    auto graph = ConstructGraph("GraphAddEdge", edge_in.get(), edge_out.get());
+    auto edge_wrapper_in = graph->addEdge(edge_in.get());
+    auto edge_wrapper_out = graph->addEdge(edge_out.get());
+    ASSERT_EQ(edge_wrapper_in, nullptr);
+    ASSERT_EQ(edge_wrapper_out, nullptr);
 }
