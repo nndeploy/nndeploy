@@ -8,9 +8,6 @@
 #include "nndeploy/dag/graph.h"
 #include "nndeploy/base/param.h"
 
-// using namespace nndeploy::dag;
-// using namespace nndeploy::base;
-
 class GraphTest : public testing::Test {
     protected:
     std::unique_ptr<nndeploy::dag::Graph> ConstructGraph(const std::string &name, 
