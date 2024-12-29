@@ -10,19 +10,19 @@
 
 class GraphTest : public testing::Test {
     protected:
-    std::unique_ptr<nndeploy::dag::Graph> ConstructGraph(const std::string &name, 
+    std::unique_ptr<nndeploy::dag::Graph> constructGraph(const std::string &name, 
                                                          nndeploy::dag::Edge *input, 
                                                          nndeploy::dag::Edge *output) {
         return std::make_unique<nndeploy::dag::Graph>(name, input, output);
     }
 
-    std::unique_ptr<nndeploy::dag::Graph> ConstructGraphWithVecArgs(const std::string &name, 
+    std::unique_ptr<nndeploy::dag::Graph> constructGraphWithVecArgs(const std::string &name, 
                                                                     std::vector<nndeploy::dag::Edge *> inputs,
                                                                     std::vector<nndeploy::dag::Edge *> outputs) {
         return std::make_unique<nndeploy::dag::Graph>(name, inputs, outputs);
     }
 
-    std::unique_ptr<nndeploy::dag::Graph> ConstructGraphWithInitLsArgs(const std::string &name, 
+    std::unique_ptr<nndeploy::dag::Graph> constructGraphWithInitLsArgs(const std::string &name, 
                                                                        std::initializer_list<nndeploy::dag::Edge *> inputs,
                                                                        std::initializer_list<nndeploy::dag::Edge *> outputs) {
         return std::make_unique<nndeploy::dag::Graph>(name, inputs, outputs);
@@ -52,7 +52,7 @@ TEST_F(GraphTest, GraphWithOneInputOutputEdge) {
     
     auto edge_in = std::make_unique<Edge>("edge_in");
     auto edge_out = std::make_unique<Edge>("edge_out");
-    auto graph = ConstructGraph("@@!!##$$", edge_in.get(), edge_out.get());
+    auto graph = constructGraph("@@!!##$$", edge_in.get(), edge_out.get());
     ASSERT_TRUE(graph->getConstructed());
     EXPECT_TRUE(graph->getName() == "@@!!##$$");
     EXPECT_TRUE(graph->getEdge("edge_in") == edge_in.get());
@@ -64,7 +64,7 @@ TEST_F(GraphTest, GraphWithDuplicateOutputEdge) {
     using namespace nndeploy::dag;
     
     auto edge_in =  std::make_unique<Edge>("edge_in");
-    auto graph = ConstructGraph("3.141@@!!", edge_in.get(), edge_in.get());
+    auto graph = constructGraph("3.141@@!!", edge_in.get(), edge_in.get());
     EXPECT_FALSE(graph->getConstructed());
     EXPECT_TRUE(graph->getAllOutput().size() == 0);
     EXPECT_TRUE(graph->getAllInput().size() == 0);
@@ -83,7 +83,7 @@ TEST_F(GraphTest, GraphWithVectorInputOutputEdge) {
     outputs.emplace_back(new Edge("out_2"));
     outputs.emplace_back(new Edge("out_3"));
     outputs.emplace_back(new Edge("out_4"));
-    auto graph = ConstructGraphWithVecArgs("@@\n\t!!##$$", inputs, outputs);
+    auto graph = constructGraphWithVecArgs("@@\n\t!!##$$", inputs, outputs);
     ASSERT_TRUE(graph->getConstructed());
     ASSERT_EQ(graph->getAllInput().size(), 4);
     ASSERT_EQ(graph->getAllOutput().size(), 4);
@@ -103,7 +103,7 @@ TEST_F(GraphTest, GraphAddItselfAsNode) {
     auto edge_out =  std::make_unique<Edge>("edge_out");
     inputs.emplace_back(edge_in.get());
     outputs.emplace_back(edge_out.get());
-    auto graph = ConstructGraphWithVecArgs("AddItselfAsNode", inputs, outputs);
+    auto graph = constructGraphWithVecArgs("AddItselfAsNode", inputs, outputs);
     ASSERT_TRUE(graph->addNode(graph.get()) != kStatusCodeOk);
 }
 
@@ -118,7 +118,7 @@ TEST_F(GraphTest, GraphCreateNode) {
     auto node_edge_out =  std::make_unique<Edge>("node_edge_out");
     inputs.emplace_back(edge_in.get());
     outputs.emplace_back(edge_out.get());
-    auto graph = ConstructGraphWithVecArgs("CreateNode", inputs, outputs);
+    auto graph = constructGraphWithVecArgs("CreateNode", inputs, outputs);
     auto node = graph->createNode<ProcessNode>("test_node", node_edge_in.get(), node_edge_out.get());
     ASSERT_EQ(node->getName(), "test_node");
     ASSERT_EQ(node->getAllInput().size(), 1);
@@ -137,7 +137,7 @@ TEST_F(GraphTest, GraphCreateNodeWithSameEdges) {
     auto edge_out =  std::make_unique<Edge>("edge_out");
     inputs.emplace_back(edge_in.get());
     outputs.emplace_back(edge_out.get());
-    auto graph = ConstructGraphWithVecArgs("CreateNodeWithSameEdges", inputs, outputs);
+    auto graph = constructGraphWithVecArgs("CreateNodeWithSameEdges", inputs, outputs);
     auto node = graph->createNode<ProcessNode>("test_node", inputs, outputs); //this may be a problem
     ASSERT_TRUE(node == nullptr);
 }
@@ -147,7 +147,7 @@ TEST_F(GraphTest, GraphAddEdge) {
 
     auto edge_in =  std::make_unique<Edge>("edge_in");
     auto edge_out =  std::make_unique<Edge>("edge_out");
-    auto graph = ConstructGraph("GraphAddEdge", edge_in.get(), edge_out.get());
+    auto graph = constructGraph("GraphAddEdge", edge_in.get(), edge_out.get());
     auto new_edge =  std::make_unique<Edge>("new_edge");
     auto edge_wrapper = graph->addEdge(new_edge.get()); 
     ASSERT_EQ(edge_wrapper->consumers_.size(), 0);
@@ -161,7 +161,7 @@ TEST_F(GraphTest, GraphDuplicateAddEdge) {
 
     auto edge_in =  std::make_unique<Edge>("edge_in");
     auto edge_out =  std::make_unique<Edge>("edge_out");
-    auto graph = ConstructGraph("GraphDuplicateAddEdge", edge_in.get(), edge_out.get());
+    auto graph = constructGraph("GraphDuplicateAddEdge", edge_in.get(), edge_out.get());
     auto edge_wrapper_in = graph->addEdge(edge_in.get());
     auto edge_wrapper_out = graph->addEdge(edge_out.get());
     ASSERT_EQ(edge_wrapper_in, nullptr);
@@ -175,7 +175,7 @@ TEST_F(GraphTest, GraphSetNodeParamNullParam) {
 
     auto edge_in =  std::make_unique<Edge>("edge_in");
     auto edge_out =  std::make_unique<Edge>("edge_out");
-    auto graph = ConstructGraph("GraphNullSetNodeParam", edge_in.get(), edge_out.get());
+    auto graph = constructGraph("GraphNullSetNodeParam", edge_in.get(), edge_out.get());
     Param *param = nullptr;
     ASSERT_EQ(graph->setNodeParam("GraphNullSetNodeParam", param), kStatusCodeErrorNullParam);
 }
@@ -183,7 +183,7 @@ TEST_F(GraphTest, GraphSetNodeParamNullParam) {
 // TEST_F(GraphTest, GraphSetNodeParamNullNode) {
 //     auto edge_in =  std::make_unique<Edge>("edge_in");
 //     auto edge_out =  std::make_unique<Edge>("edge_out");
-//     auto graph = ConstructGraph("GraphNullSetNodeParam", edge_in.get(), edge_out.get());
+//     auto graph = constructGraph("GraphNullSetNodeParam", edge_in.get(), edge_out.get());
 //     Param *param = std::make_unique<Param>().get();
 //     ASSERT_EQ(graph->setNodeParam("GraphNullSetNodeParam", param), kStatusCodeErrorNullParam);
 // }
