@@ -1,46 +1,45 @@
-enable_testing() # should I call this in root cmakelists.txt
+enable_testing() # should I call this in root CMakeLists.txt?
+
+set(TEST_BUILD_DIR ${CMAKE_BINARY_DIR}/test)
+
+#DAG tests
 set(DAG_TEST_PATH ${ROOT_PATH}/test/source/nndeploy/dag)
-
-# TODO: assign the *.cc files to a variable or find a cleaner way to handle this
-
-# edge_test
-add_executable(
-  edge_test
-  ${ROOT_PATH}/framework/source/nndeploy/base/status.cc
-  ${ROOT_PATH}/framework/source/nndeploy/base/common.cc
-  ${ROOT_PATH}/framework/source/nndeploy/base/time_profiler.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/edge.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/node.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/edge/abstract_edge.cc
-  ${ROOT_PATH}/framework/source/nndeploy/device/device.cc
-  ${DAG_TEST_PATH}/edge_test.cc
+set(DAG_TEST_COMMON_SOURCES
+    ${ROOT_PATH}/framework/source/nndeploy/base/status.cc
+    ${ROOT_PATH}/framework/source/nndeploy/base/common.cc
+    ${ROOT_PATH}/framework/source/nndeploy/base/time_profiler.cc
+    ${ROOT_PATH}/framework/source/nndeploy/dag/edge.cc
+    ${ROOT_PATH}/framework/source/nndeploy/dag/node.cc
+    ${ROOT_PATH}/framework/source/nndeploy/dag/edge/abstract_edge.cc
+    ${ROOT_PATH}/framework/source/nndeploy/device/device.cc
 )
-target_link_libraries(
-  edge_test
-  GTest::gtest_main
+set(DAG_GRAPH_TEST_SOURCES
+    ${ROOT_PATH}/framework/source/nndeploy/dag/graph.cc
+    ${ROOT_PATH}/framework/source/nndeploy/dag/util.cc
+    ${ROOT_PATH}/framework/source/nndeploy/dag/executor/sequential_executor.cc
+    ${ROOT_PATH}/framework/source/nndeploy/dag/executor/parallel_task_executor.cc
+    ${ROOT_PATH}/framework/source/nndeploy/dag/executor/parallel_pipeline_executor.cc
 )
 
-# graph_test
-add_executable(
-  graph_test
-  ${ROOT_PATH}/framework/source/nndeploy/base/status.cc
-  ${ROOT_PATH}/framework/source/nndeploy/base/common.cc
-  ${ROOT_PATH}/framework/source/nndeploy/base/time_profiler.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/edge.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/node.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/graph.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/util.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/executor/sequential_executor.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/executor/parallel_task_executor.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/executor/parallel_pipeline_executor.cc
-  ${ROOT_PATH}/framework/source/nndeploy/dag/edge/abstract_edge.cc
-  ${ROOT_PATH}/framework/source/nndeploy/device/device.cc
-  ${DAG_TEST_PATH}/graph_test.cc
-)
+function(add_test TEST_NAME TEST_SOURCES)
+  if(TEST_NAME MATCHES "^DAG")
+    add_executable(${TEST_NAME}
+      ${DAG_TEST_COMMON_SOURCES}
+      ${TEST_SOURCES}
+      ${DAG_TEST_PATH}/${TEST_NAME}.cc
+    )
+  elseif(TEST_NAME MATCHES "^OP")
+  endif()
+  target_link_libraries(${TEST_NAME}
+    GTest::gtest_main
+  )
+  set_target_properties(${TEST_NAME}
+    PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${TEST_BUILD_DIR}
+    )
+endfunction()
 
-target_link_libraries(
-  graph_test
-  GTest::gtest_main
-)
+add_test(DAG_edge_test "")
+add_test(DAG_graph_test "${DAG_GRAPH_TEST_SOURCES}")
 
 include(GoogleTest)

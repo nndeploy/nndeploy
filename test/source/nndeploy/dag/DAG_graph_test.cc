@@ -6,6 +6,7 @@
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/dag/graph.h"
+#include "nndeploy/base/param.h"
 
 using namespace nndeploy::dag;
 using namespace nndeploy::base;
@@ -140,9 +141,33 @@ TEST_F(GraphTest, GraphAddEdge) {
 TEST_F(GraphTest, GraphDuplicateAddEdge) {
     auto edge_in =  std::make_unique<Edge>("edge_in");
     auto edge_out =  std::make_unique<Edge>("edge_out");
-    auto graph = ConstructGraph("GraphAddEdge", edge_in.get(), edge_out.get());
+    auto graph = ConstructGraph("GraphDuplicateAddEdge", edge_in.get(), edge_out.get());
     auto edge_wrapper_in = graph->addEdge(edge_in.get());
     auto edge_wrapper_out = graph->addEdge(edge_out.get());
     ASSERT_EQ(edge_wrapper_in, nullptr);
     ASSERT_EQ(edge_wrapper_out, nullptr);
 }
+
+
+TEST_F(GraphTest, GraphSetNodeParamNullParam) {
+    auto edge_in =  std::make_unique<Edge>("edge_in");
+    auto edge_out =  std::make_unique<Edge>("edge_out");
+    auto graph = ConstructGraph("GraphNullSetNodeParam", edge_in.get(), edge_out.get());
+    Param *param = nullptr;
+    ASSERT_EQ(graph->setNodeParam("GraphNullSetNodeParam", param), kStatusCodeErrorNullParam);
+}
+
+// TEST_F(GraphTest, GraphSetNodeParamNullNode) {
+//     auto edge_in =  std::make_unique<Edge>("edge_in");
+//     auto edge_out =  std::make_unique<Edge>("edge_out");
+//     auto graph = ConstructGraph("GraphNullSetNodeParam", edge_in.get(), edge_out.get());
+//     Param *param = std::make_unique<Param>().get();
+//     ASSERT_EQ(graph->setNodeParam("GraphNullSetNodeParam", param), kStatusCodeErrorNullParam);
+// }
+    // int i = 1;
+    // while(i < 51) {
+    //     auto edge_in =  std::make_unique<Edge>(std::to_string(i));
+    //     auto edge_out =  std::make_unique<Edge>(std::to_string(i*2));
+    //     inputs.emplace_back(edge_in.get());
+    //     outputs.emplace_back(edge_out.get());
+    // }
