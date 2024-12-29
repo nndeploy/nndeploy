@@ -22,13 +22,13 @@ set(DAG_GRAPH_TEST_SOURCES
 )
 
 function(add_test TEST_NAME TEST_SOURCES)
-  if(TEST_NAME MATCHES "^DAG")
+  if(TEST_NAME MATCHES "^dag")
     add_executable(${TEST_NAME}
       ${DAG_TEST_COMMON_SOURCES}
       ${TEST_SOURCES}
       ${DAG_TEST_PATH}/${TEST_NAME}.cc
     )
-  elseif(TEST_NAME MATCHES "^OP")
+  elseif(TEST_NAME MATCHES "^op")
   endif()
   target_link_libraries(${TEST_NAME}
     GTest::gtest_main
@@ -39,7 +39,7 @@ function(add_test TEST_NAME TEST_SOURCES)
     )
 endfunction()
 
-add_test(DAG_edge_test "")
-add_test(DAG_graph_test "${DAG_GRAPH_TEST_SOURCES}")
+add_test(dag_edge_test "")
+add_test(dag_graph_test "${DAG_GRAPH_TEST_SOURCES}")
 
 include(GoogleTest)
