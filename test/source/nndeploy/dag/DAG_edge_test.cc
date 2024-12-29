@@ -2,12 +2,11 @@
 #include <memory>
 #include "nndeploy/dag/edge.h"
 
-using nndeploy::dag::Edge;
-
 class EdgeTest : public testing::Test {
+    
     protected:
-    std::unique_ptr<Edge> ConstructEdge(const std::string &name) {
-        return  std::make_unique<Edge>(name);
+    std::unique_ptr<nndeploy::dag::Edge> ConstructEdge(const std::string &name) {
+        return  std::make_unique<nndeploy::dag::Edge>(name);
     }
 };
 
