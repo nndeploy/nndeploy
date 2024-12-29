@@ -5,6 +5,9 @@ namespace nndeploy {
 namespace dag {
 
 Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
+  if(input == output) {
+    return;
+  }
   device_type_ = device::getDefaultHostDeviceType();
   if (input != nullptr) {
     inputs_.emplace_back(input);
@@ -17,6 +20,10 @@ Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
 Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
            std::initializer_list<Edge *> outputs)
     : name_(name) {
+  if (inputs.size() == outputs.size() && std::equal(
+      inputs.begin(), inputs.end(), outputs.begin())) {
+    return;
+  }
   device_type_ = device::getDefaultHostDeviceType();
   inputs_ = inputs;
   outputs_ = outputs;
@@ -25,6 +32,9 @@ Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
 Node::Node(const std::string &name, std::vector<Edge *> inputs,
            std::vector<Edge *> outputs)
     : name_(name) {
+    if (inputs.size() == outputs.size() && inputs == outputs) {
+    return;
+  }
   device_type_ = device::getDefaultHostDeviceType();
   inputs_ = inputs;
   outputs_ = outputs;
