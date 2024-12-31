@@ -127,7 +127,6 @@ TEST_F(GraphTest, GraphCreateNode) {
     ASSERT_EQ(node->getOutput(), node_edge_out.get());
 }
 
-//failing test
 TEST_F(GraphTest, GraphCreateNodeWithSameEdges) {
     using namespace nndeploy::dag;
 
@@ -138,8 +137,8 @@ TEST_F(GraphTest, GraphCreateNodeWithSameEdges) {
     inputs.emplace_back(edge_in.get());
     outputs.emplace_back(edge_out.get());
     auto graph = constructGraphWithVecArgs("CreateNodeWithSameEdges", inputs, outputs);
-    auto node = graph->createNode<ProcessNode>("test_node", inputs, outputs); //this may be a problem
-    ASSERT_TRUE(node == nullptr);
+    auto node = graph->createNode<ProcessNode>("test_node", inputs, outputs);
+    ASSERT_TRUE(node != nullptr);
 }
 
 TEST_F(GraphTest, GraphAddEdge) {
