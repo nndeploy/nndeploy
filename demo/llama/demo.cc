@@ -11,38 +11,6 @@
 
 using namespace nndeploy;
 
-class InferTokenNode : public dag::Node {
- public:
-  InferTokenNode(const std::string &name,
-                std::initializer_list<dag::Edge *> inputs,
-                std::initializer_list<dag::Edge *> outputs)
-      : Node(name, inputs, outputs) {}
-  virtual ~InferTokenNode() {}
-
-  virtual base::Status run() {
-    cv::Mat *input_mat = inputs_[0]->getCvMat(this);
-    llm::LlmResult *result =
-        (llm::LlmResult *)inputs_[1]->getParam(this);
-
-    // 遍历每个分类结果
-    for (int i = 0; i < result->labels_.size(); i++) {
-      auto label = result->labels_[i];
-
-      // 将分类结果和置信度转为字符串
-      std::string text = "class: " + std::to_string(label.label_ids_) +
-                         " score: " + std::to_string(label.scores_);
-
-      // 在图像左上角绘制文本
-      cv::putText(*input_mat, text, cv::Point(30, 30 + i * 30),
-                  cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
-    }
-
-    outputs_[0]->set(input_mat, inputs_[0]->getIndex(this), true);
-    return base::kStatusCodeOk;
-  }
-};
-
-void printHelloWorld() { std::cout << "hello world!" << std::endl; }
 
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
@@ -61,10 +29,8 @@ int main(int argc, char *argv[]) {
   // name of LLM DAG: NNDEPLOY_LLAMA2
   std::string name = demo::getName();
   // 推理后端类型，例如:
-  // kInferenceTypeOpenVino / kInferenceTypeTensorRt / kInferenceTypeOnnxRuntime
   base::InferenceType inference_type = demo::getInferenceType();
   // 推理设备类型，例如:
-  // kDeviceTypeCodeX86:0/kDeviceTypeCodeArm:0/kDeviceTypeCodeCuda:0/...
   base::DeviceType device_type = demo::getDeviceType();
   // 模型类型，例如:
   // kModelTypeOnnx/kModelTypeMnn/...
@@ -105,23 +71,11 @@ int main(int argc, char *argv[]) {
   // classification_graph->setTimeProfileFlag(true);
   graph->addNode(llm_graph);
 
-  // 解码节点
-  codec::DecodeNode *decode_node = codec::createDecodeNode(
-      base::kCodecTypeOpenCV, codec_flag, "decode_node", &input);
-  decode_node->setPath(input_path);
-  graph->addNode(decode_node);
-
   // infer output 
   dag::Edge *infer_output = graph->createEdge("infer_output");
   dag::Node *infer_token_node = graph->createNode<InferTokenNode>(
       "InferTokenNode", {&input, &output}, {infer_output});
 
-  // 解码节点
-  codec::EncodeNode *encode_node = codec::createEncodeNode(
-      base::kCodecTypeOpenCV, codec_flag, "encode_node", infer_output);
-  encode_node->setRefPath(input_path);
-  encode_node->setPath(ouput_path);
-  graph->addNode(encode_node);
 
   // 设置pipeline并行
   base::Status status = graph->setParallelType(pt);
