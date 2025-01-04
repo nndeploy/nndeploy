@@ -4,8 +4,11 @@
 namespace nndeploy {
 namespace dag {
 
+Node::Node(const std::string &name) : name_(name) {}
 Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
-  if(input == output) {
+  if (input == output) {
+    NNDEPLOY_LOGE("Input edge %s cannot be the same as output edge.\n",
+                  input->getName().c_str());
     return;
   }
   device_type_ = device::getDefaultHostDeviceType();
@@ -20,9 +23,14 @@ Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
 Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
            std::initializer_list<Edge *> outputs)
     : name_(name) {
-  if (inputs.size() == outputs.size() && std::equal(
-      inputs.begin(), inputs.end(), outputs.begin())) {
-    return;
+  for (auto input : inputs) {
+    for (auto output : outputs) {
+      if (input == output) {
+        NNDEPLOY_LOGE("Input edge %s cannot be the same as output edge.\n",
+                      input->getName().c_str());
+        return;
+      }
+    }
   }
   device_type_ = device::getDefaultHostDeviceType();
   inputs_ = inputs;
@@ -32,8 +40,14 @@ Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
 Node::Node(const std::string &name, std::vector<Edge *> inputs,
            std::vector<Edge *> outputs)
     : name_(name) {
-    if (inputs.size() == outputs.size() && inputs == outputs) {
-    return;
+  for (auto input : inputs) {
+    for (auto output : outputs) {
+      if (input == output) {
+        NNDEPLOY_LOGE("Input edge %s cannot be the same as output edge.\n",
+                      input->getName().c_str());
+        return;
+      }
+    }
   }
   device_type_ = device::getDefaultHostDeviceType();
   inputs_ = inputs;
@@ -68,6 +82,49 @@ base::Status Node::setParam(base::Param *param) {
 base::Param *Node::getParam() { return param_.get(); }
 base::Status Node::setExternalParam(base::Param *external_param) {
   external_param_.emplace_back(external_param);
+  return base::kStatusCodeOk;
+}
+
+base::Status Node::setInput(Edge *input) {
+  if (input == nullptr) {
+    NNDEPLOY_LOGE("input is nullptr.\n");
+    return base::kStatusCodeErrorNullParam;
+  }
+  inputs_.clear();
+  inputs_.emplace_back(input);
+  return base::kStatusCodeOk;
+}
+base::Status Node::setOutput(Edge *output) {
+  if (output == nullptr) {
+    NNDEPLOY_LOGE("output is nullptr.\n");
+    return base::kStatusCodeErrorNullParam;
+  }
+  outputs_.emplace_back(output);
+  return base::kStatusCodeOk;
+}
+
+base::Status Node::setInputs(std::vector<Edge *> inputs) {
+  if (inputs.empty()) {
+    NNDEPLOY_LOGE("inputs is empty.\n");
+    return base::kStatusCodeErrorNullParam;
+  }
+  if (!inputs_.empty()) {
+    NNDEPLOY_LOGE("inputs_ must be empty.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  inputs_ = inputs;
+  return base::kStatusCodeOk;
+}
+base::Status Node::setOutputs(std::vector<Edge *> outputs) {
+  if (outputs.empty()) {
+    NNDEPLOY_LOGE("outputs is empty.\n");
+    return base::kStatusCodeErrorNullParam;
+  }
+  if (!outputs_.empty()) {
+    NNDEPLOY_LOGE("outputs_ must be empty.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  outputs_ = outputs;
   return base::kStatusCodeOk;
 }
 

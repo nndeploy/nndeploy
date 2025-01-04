@@ -116,5 +116,20 @@ dag::Graph *createClassificationResnetGraph(
   return graph;
 }
 
+// dag::Graph *createClassificationResnetGraphOptInterface(
+//     const std::string &name, dag::Edge *input, dag::Edge *output,
+//     base::Param *pre_param, base::Param *infer_param, base::Param
+//     *post_param) {
+//   dag::Graph *graph = new dag::Graph(name, input, output);
+//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//       "preprocess", input, pre_param);
+//   dag::Node *infer =
+//       graph->createInfer<infer::Infer>("infer", pre, infer_param);
+//   dag::Node *post = graph->createNode<ClassificationPostProcess>(
+//       "postprocess", infer, output, post_param);
+
+//   return graph;
+// }
+
 }  // namespace classification
 }  // namespace nndeploy

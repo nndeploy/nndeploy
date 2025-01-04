@@ -24,6 +24,7 @@
 namespace nndeploy {
 namespace dag {
 
+Graph::Graph(const std::string &name) : Node(name) {}
 Graph::Graph(const std::string &name, Edge *input, Edge *output)
     : Node(name, input, output) {
   if (input != nullptr) {
@@ -172,7 +173,8 @@ EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
 base::Status Graph::addNode(Node *node, bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
   if (this == node) {
-    NNDEPLOY_LOGE("Graph[%s] cannot add itself as node\n", this->getName().c_str());
+    NNDEPLOY_LOGE("Graph[%s] cannot add itself as node\n",
+                  this->getName().c_str());
     return base::kStatusCodeErrorInvalidValue;
   }
   if (used_node_names_.find(node->getName()) != used_node_names_.end()) {

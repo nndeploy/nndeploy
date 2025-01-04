@@ -30,11 +30,13 @@ namespace dag {
  */
 class NNDEPLOY_CC_API Graph : public Node {
  public:
+  Graph(const std::string &name);
   Graph(const std::string &name, Edge *input, Edge *output);
   Graph(const std::string &name, std::initializer_list<Edge *> inputs,
         std::initializer_list<Edge *> outputs);
   Graph(const std::string &name, std::vector<Edge *> inputs,
         std::vector<Edge *> outputs);
+
   virtual ~Graph();
 
   /**
