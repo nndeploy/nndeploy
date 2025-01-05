@@ -190,6 +190,24 @@ TEST_F(GraphTest, GraphSetNodeParamNullParam) {
     ASSERT_EQ(graph->setNodeParam("GraphNullSetNodeParam", param), kStatusCodeErrorNullParam);
 }
 
+TEST_F(GraphTest, GraphInit) {
+    using namespace nndeploy::dag;
+    using namespace nndeploy::base;
+
+    auto edge_in = std::make_unique<Edge>("edge_in");
+    auto edge_out = std::make_unique<Edge>("edge_out");
+    auto graph = constructGraph("GraphInit", edge_in.get(), edge_out.get());
+    graph->setParallelType(kParallelTypeSequential);
+    Edge *preprocess_out = graph->createEdge("_preprocess_out");
+    Edge *infer_out = graph->createEdge("_infer_out");
+    Node *preprocess = graph->createNode<ProcessNode>("_preprocess", edge_in.get(), preprocess_out);
+    Node *infer = graph->createNode<ProcessNode>("_infer", preprocess_out, infer_out);
+    Node *postprocess = graph->createNode<ProcessNode>("_postprocess", infer_out, edge_out.get());
+    Status initStatus = graph->init();
+    ASSERT_EQ(initStatus, kStatusCodeOk);
+
+}
+
 // TEST_F(GraphTest, GraphSetNodeParamNullNode) {
 //     auto edge_in =  std::make_unique<Edge>("edge_in");
 //     auto edge_out =  std::make_unique<Edge>("edge_out");
