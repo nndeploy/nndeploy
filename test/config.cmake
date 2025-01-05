@@ -35,6 +35,7 @@ function(add_test TEST_NAME TEST_SOURCES)
   )
   set_target_properties(${TEST_NAME}
     PROPERTIES
+    LINK_FLAGS "-Wl,--no-as-needed"
     RUNTIME_OUTPUT_DIRECTORY ${TEST_BUILD_DIR}
     )
 endfunction()
