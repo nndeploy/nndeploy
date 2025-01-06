@@ -38,7 +38,7 @@ class ClassificationResnetDemoGraph(dag.Graph):
   def __init__(self, name, input, output):
     super().__init__(name, input, output)
     self.decode = self.createNode(codec.Decode)
-    self.deploy = self.createNode(ClassificationResnetGraph("classification_deploy"))
+    self.deploy = ClassificationResnetGraph("classification_deploy")
     self.encode = self.createNode(codec.Encode)
 
   def forward(self, input, decodec_param, pre_param, infer_param, post_param, encode_param):
@@ -57,3 +57,5 @@ def test_classification_resnet_demo_graph():
   input.set("test.jpg")
   output1, output2 = graph.forward(input, decodec_param, pre_param, infer_param, post_param, encode_param)
   print(output1, output2)
+  import nndeploy.ui as ui
+  ui.show(graph)

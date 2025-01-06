@@ -121,15 +121,49 @@ dag::Graph *createClassificationResnetGraph(
 //     base::Param *pre_param, base::Param *infer_param, base::Param
 //     *post_param) {
 //   dag::Graph *graph = new dag::Graph(name, input, output);
-//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-//       "preprocess", input, pre_param);
-//   dag::Node *infer =
-//       graph->createInfer<infer::Infer>("infer", pre, infer_param);
-//   dag::Node *post = graph->createNode<ClassificationPostProcess>(
-//       "postprocess", infer, output, post_param);
+//   dag::Node *pre =
+//   graph->createNode<preprocess::CvtColorResize>("preprocess"); dag::Node
+//   *infer = graph->createInfer<infer::Infer>("infer"); dag::Node *post =
+//   graph->createNode<ClassificationPostProcess>("postprocess");
+
+//   input = pre(input);
+//   input = infer(input);
+//   output = post(input);
+
+//   return output;
 
 //   return graph;
 // }
+
+// class ClassificationResnetGraph : public dag::Graph {
+//  public:
+//   ClassificationResnetGraph(const std::string &name, dag::Edge *input,
+//                             dag::Edge *output)
+//       : dag::Graph(name, input, output) {
+//     dag::Node *pre =
+//         graph->createNode<preprocess::CvtColorResize>("preprocess");
+//     dag::Node *infer = graph->createInfer<infer::Infer>("infer");
+//     dag::Node *post =
+//         graph->createNode<ClassificationPostProcess>("postprocess");
+
+//     input = pre(input);
+//     input = infer(input);
+//     output = post(input);
+//   }
+
+//   dag::Edge *forward(dag::Edge *input) {
+
+//     static std::once_flag flag;
+//     std::call_once(flag, [this]() {
+//       this->init();
+//     });
+
+//     input = pre(input);
+//     input = infer(input);
+//     output = post(input);
+//     return output;
+//   }
+// };
 
 }  // namespace classification
 }  // namespace nndeploy

@@ -1,4 +1,4 @@
-enable_testing() # should I call this in root CMakeLists.txt?
+enable_testing() # should I call this in root CMakeLists.txt? - it depends on you
 
 set(TEST_BUILD_DIR ${CMAKE_BINARY_DIR}/test)
 
