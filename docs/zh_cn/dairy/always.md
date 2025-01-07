@@ -296,3 +296,8 @@ export PATH=$PATH:/usr/local/cuda-11.8/bin
 + sudo docker run --rm --runtime=nvidia --gpus all -v $PWD:/workspace nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash
 + sudo docker run --rm -it --gpus all -v $PWD:/workspace tensorrt-ubuntu20.04-cuda11.8:latest /bin/bash
 
+graph { i- sub1 -> sub2 -> o1}
+             |-02
+
+             {i -> n0 -> n1 - > n2 - 02}
+                          |-> (inner_sub1)(output)-> sub2

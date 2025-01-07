@@ -22,16 +22,49 @@ namespace nndeploy {
 namespace op {
 
 base::Status OpMul::run() {
-  // TODO: 实现除法运算
-  NNDEPLOY_LOGI("not implemented.\n");
+  // 实现乘法运算
+  device::Tensor* input1 = inputs_[0];
+  device::Tensor* input2 = inputs_[1];
+  device::Tensor* output = outputs_[0];
+
+  // 获取输入张量的形状
+  base::IntVector input1_shape = input1->getShape();
+  base::IntVector input2_shape = input2->getShape();
+
+  // 检查输入形状是否相同
+  if (input1_shape.size() != input2_shape.size()) {
+    NNDEPLOY_LOGE("Input tensors do not have the same number of dimensions.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  for (size_t i = 0; i < input1_shape.size(); ++i) {
+    if (input1_shape[i] != input2_shape[i]) {
+      NNDEPLOY_LOGE("Input tensors do not have the same shape.\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+  }
+
+  // 获取输入和输出张量的数据指针
+  float* input1_data = reinterpret_cast<float*>(input1->getData());
+  float* input2_data = reinterpret_cast<float*>(input2->getData());
+  float* output_data = reinterpret_cast<float*>(output->getData());
+
+  // 计算总元素数量
+  size_t total_elements = std::accumulate(
+      input1_shape.begin(), input1_shape.end(), 1, std::multiplies<size_t>());
+
+  // 执行逐元素乘法运算
+  for (size_t i = 0; i < total_elements; ++i) {
+    output_data[i] = input1_data[i] * input2_data[i];
+  }
   return base::kStatusCodeOk;
 }
 
-base::Status mul(device::Tensor *input1, device::Tensor *input2,
-                 device::Tensor *output) {
+base::Status mul(device::Tensor* input1, device::Tensor* input2,
+                 device::Tensor* output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input1->getDeviceType(), "", ir::kOpTypeMul);
+  Op* op = createOp(input1->getDeviceType(), "", ir::kOpTypeMul);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -44,11 +77,11 @@ base::Status mul(device::Tensor *input1, device::Tensor *input2,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   status = op->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
-  status = op->preRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->checkOrAllocOutput();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "checkOrAllocOutput failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   status = op->postRun();

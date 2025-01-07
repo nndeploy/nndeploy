@@ -24,6 +24,7 @@
 namespace nndeploy {
 namespace dag {
 
+Graph::Graph(const std::string &name) : Node(name) {}
 Graph::Graph(const std::string &name, Edge *input, Edge *output)
     : Node(name, input, output) {
   if (input != nullptr) {
@@ -88,16 +89,23 @@ Graph::~Graph() {
     delete edge_wrapper;
   }
   node_repository_.clear();
+  used_node_names_.clear();
   edge_repository_.clear();
+  used_edge_names_.clear();
 }
 
 Edge *Graph::createEdge(const std::string &name) {
+  if (used_edge_names_.find(name) != used_edge_names_.end()) {
+    NNDEPLOY_LOGE("edge name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
   Edge *edge = new Edge(name);
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = false;
   edge_wrapper->edge_ = edge;
   edge_wrapper->name_ = name;
   edge_repository_.emplace_back(edge_wrapper);
+  used_edge_names_.insert(name);
   return edge;
 }
 
@@ -122,13 +130,17 @@ Edge *Graph::getEdge(const std::string &name) {
 // }
 
 EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
-  base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(edge, "edge is null!");
+  if (used_edge_names_.find(edge->getName()) != used_edge_names_.end()) {
+    NNDEPLOY_LOGE("edge name[%s] is already used!\n", edge->getName().c_str());
+    return nullptr;
+  }
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = is_external;
   edge_wrapper->edge_ = edge;
   edge_wrapper->name_ = edge->getName();
   edge_repository_.emplace_back(edge_wrapper);
+  used_edge_names_.insert(edge->getName());
   return edge_wrapper;
 }
 
@@ -159,8 +171,17 @@ EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
 // }
 
 base::Status Graph::addNode(Node *node, bool is_external) {
-  base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
+  if (this == node) {
+    NNDEPLOY_LOGE("Graph[%s] cannot add itself as node\n",
+                  this->getName().c_str());
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  if (used_node_names_.find(node->getName()) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", node->getName().c_str());
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  base::Status status = base::kStatusCodeOk;
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = is_external;
   node_wrapper->node_ = node;
@@ -183,6 +204,7 @@ base::Status Graph::addNode(Node *node, bool is_external) {
   }
 
   node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(node->getName());
   return status;
 }
 

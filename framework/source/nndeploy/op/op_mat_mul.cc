@@ -28,13 +28,13 @@ base::Status OpMatMul::inferShape() {
     NNDEPLOY_LOGE("inputs_.size() < 2.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  
+
   auto first_input_shape = inputs_[0]->getShape();
   auto second_input_shape = inputs_[1]->getShape();
   int shape_size = second_input_shape.size();
 
   base::IntVector output_shape = first_input_shape;
-  output_shape[shape_size-1] = second_input_shape[shape_size-1];
+  output_shape[shape_size - 1] = second_input_shape[shape_size - 1];
 
   outputs_[0]->reshape(output_shape);
 
@@ -47,7 +47,7 @@ base::Status OpMatMul::run() {
 }
 
 base::Status matmul(device::Tensor *inputs_a, device::Tensor *inputs_b,
-                  device::Tensor *output) {
+                    device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
   Op *op = createOp(inputs_a->getDeviceType(), "", ir::kOpTypeMaxPool);
@@ -63,11 +63,11 @@ base::Status matmul(device::Tensor *inputs_a, device::Tensor *inputs_b,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   status = op->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
-  status = op->preRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->checkOrAllocOutput();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "checkOrAllocOutput failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   status = op->postRun();

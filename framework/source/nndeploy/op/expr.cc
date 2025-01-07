@@ -296,6 +296,36 @@ std::shared_ptr<Expr> makeBatchNorm(
   return expr;
 }
 
+// embedding
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeEmbedding(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> indices,
+    std::string op_name, std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "embedding" + std::to_string(index);
+    } else {
+      name = "embedding";
+    }
+  }
+  std::vector<std::string> inputs = {indices->getOutputName()[0]};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeEmbedding, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
 // gemm
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeGemm(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,

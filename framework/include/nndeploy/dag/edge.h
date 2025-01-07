@@ -21,7 +21,11 @@ namespace dag {
 
 /**
  * @brief The names of Edge, Mat, and Tensor need to be consistent.
- *
+ * @goal
+ * 1. Similar to std::any functionality, can store data of any type
+ * 2. Supports memory management, creates specific data structures,
+ * automatically releases those structures
+ * 3. How to better support Python
  */
 class NNDEPLOY_CC_API Edge : public base::NonCopyable {
  public:

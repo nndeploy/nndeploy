@@ -12,6 +12,7 @@
 #include "nndeploy/op/op_gemm.h"
 #include "nndeploy/op/op_global_averagepool.h"
 #include "nndeploy/op/op_maxpool.h"
+#include "nndeploy/op/op_mul.h"
 #include "nndeploy/op/op_relu.h"
 #include "nndeploy/op/op_rmsnorm.h"
 
@@ -22,8 +23,9 @@
 
 namespace nndeploy {
 
-device::Tensor* rmsNormFunc(device::Tensor* input1, device::Tensor* input2,
-                            device::Tensor* input3);
+device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
+                            device::Tensor* residual,
+                            std::shared_ptr<ir::RMSNormParam> param);
 
 device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
                          device::Tensor* bias,
@@ -49,6 +51,8 @@ device::Tensor* globalAveragepoolFunc(device::Tensor* input);
 
 device::Tensor* maxPoolFunc(device::Tensor* input,
                             std::shared_ptr<ir::MaxPoolParam> param);
+
+device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2);
 
 }  // namespace nndeploy
 

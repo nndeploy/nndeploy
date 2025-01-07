@@ -31,30 +31,34 @@ base::Status OpRMSNorm::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status rmsNorm(device::Tensor *input1, device::Tensor *input2,
-                     device::Tensor *input3, device::Tensor *output) {
+base::Status rmsNorm(device::Tensor *input, device::Tensor *weight,
+                     device::Tensor *residual,
+                     std::shared_ptr<base::Param> param,
+                     device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input1->getDeviceType(), "", ir::kOpTypeRMSNorm);
+  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeRMSNorm);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
-  status = op->setInput(input1, 0);
+  status = op->setParam(param);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
+  status = op->setInput(input, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
-  status = op->setInput(input2, 1);
+  status = op->setInput(weight, 1);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
-  status = op->setInput(input3, 2);
+  status = op->setInput(residual, 2);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setOutput(output, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   status = op->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
-  status = op->preRun();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->checkOrAllocOutput();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "checkOrAllocOutput failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
   status = op->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   status = op->postRun();
