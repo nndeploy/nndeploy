@@ -1,4 +1,4 @@
-enable_testing() # should I call this in root CMakeLists.txt? - it depends on you
+enable_testing()
 
 function(add_test TEST_NAME TEST_SOURCES)
   add_executable(${TEST_NAME}
@@ -53,8 +53,8 @@ set(TEST_BUILD_DIR ${CMAKE_BINARY_DIR}/test)
 #DAG tests
 set(DAG_TEST_PATH ${ROOT_PATH}/test/source/nndeploy/dag)
 
-add_test(dag_edge_test "")
-add_test(dag_graph_test "")
+add_test(edge_test "")
+add_test(graph_test "")
 
 include(GoogleTest)
 
