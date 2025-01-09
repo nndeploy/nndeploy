@@ -96,8 +96,10 @@ TEST_F(GraphTest, GraphWithVectorInputOutputEdges) {
 TEST_F(GraphTest, GraphWithInitListInputOutputEdges) {
     using namespace nndeploy::dag;
 
-    auto inputs = std::initializer_list<Edge *>{new Edge("edge_in")};
-    auto outputs = std::initializer_list<Edge *>{new Edge("edge_out")};
+    auto edge_in = std::make_unique<Edge>("edge_in");
+    auto edge_out = std::make_unique<Edge>("edge_out");
+    auto inputs = std::initializer_list<Edge *>{edge_in.get()};
+    auto outputs = std::initializer_list<Edge *>{edge_out.get()};
     auto graph = constructGraphWithInitLsArgs("@@\n\t!!##$$", inputs, outputs);
     ASSERT_TRUE(graph->getConstructed());
     ASSERT_EQ(graph->getAllInput().size(), 1);
