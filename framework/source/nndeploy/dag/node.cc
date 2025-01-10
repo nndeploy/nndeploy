@@ -1,6 +1,8 @@
 
 #include "nndeploy/dag/node.h"
 
+#include "nndeploy/dag/graph.h"
+
 namespace nndeploy {
 namespace dag {
 
@@ -214,6 +216,188 @@ base::EdgeUpdateFlag Node::updataInput() {
     }
   }
   return flag;
+}
+
+// 动态图 > 静态图，还有很大的优化空间
+std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
+                                     std::vector<std::string> outputs_name) {
+  // input -
+  if (inputs_.empty()) {
+    if (graph_ != nullptr) {
+      for (auto input : inputs) {
+        graph_->addEdge(input);
+      }
+    }
+    inputs_ = inputs;
+  } else {
+    // Check if inputs and inputs_ are consistent
+    bool same_input = true;
+    if (inputs.size() != inputs_.size()) {
+      same_input = false;
+    }
+    if (same_input) {  // not support disorder
+      for (size_t i = 0; i < inputs.size(); i++) {
+        if (inputs[i] != inputs_[i]) {
+          same_input = false;
+          break;
+        }
+      }
+    }
+    if (!same_input) {
+      if (graph_ != nullptr) {
+        for (auto input : inputs_) {
+          graph_->removeEdge(input);
+        }
+        for (auto input : inputs) {
+          graph_->addEdge(input);
+        }
+      }
+      inputs_ = inputs;
+    }
+  }
+  // outputs_
+  if (outputs_.empty()) {
+    std::vector<dag::Edge *> outputs;
+    if (graph_ != nullptr) {
+      for (auto output_name : outputs_name) {
+        outputs.push_back(graph_->createEdge(output_name));
+      }
+    } else {
+      for (auto output_name : outputs_name) {
+        outputs.push_back(new Edge(output_name));
+      }
+    }
+    outputs_ = outputs;
+  } else {
+    // Check if outputs_name and outputs_ are consistent
+    bool same_output = true;
+    if (outputs_name.size() != outputs_.size()) {
+      same_output = false;
+    }
+    if (same_output) {  // not support disorder
+      for (size_t i = 0; i < outputs_name.size(); i++) {
+        if (outputs_name[i] != outputs_[i]->getName()) {
+          same_output = false;
+          break;
+        }
+      }
+    }
+    if (!same_output) {
+      if (graph_ != nullptr) {
+        for (auto output : outputs_) {
+          graph_->removeEdge(output);
+        }
+        std::vector<dag::Edge *> outputs;
+        for (auto output_name : outputs_name) {
+          outputs.push_back(graph_->createEdge(output_name));
+        }
+        outputs_ = outputs;
+      } else {
+        // for (auto output : outputs_) {
+        //   delete output;
+        // }
+        outputs_.clear();
+        std::vector<dag::Edge *> outputs;
+        for (auto output_name : outputs_name) {
+          outputs.push_back(new Edge(output_name));
+        }
+        outputs_ = outputs;
+      }
+    }
+  }
+  base::Status status = this->run();
+  return outputs_;
+}
+
+// 动态图 > 静态图，还有很大的优化空间
+std::vector<Edge *> Node::operator()(std::initializer_list<Edge *> inputs,
+      std::initializer_list<std::string> outputs_name outputs_name) {
+  // input -
+  if (inputs_.empty()) {
+    if (graph_ != nullptr) {
+      for (auto input : inputs) {
+        graph_->addEdge(input);
+      }
+    }
+    inputs_ = inputs;
+  } else {
+    // Check if inputs and inputs_ are consistent
+    bool same_input = true;
+    if (inputs.size() != inputs_.size()) {
+      same_input = false;
+    }
+    if (same_input) {  // not support disorder
+      for (size_t i = 0; i < inputs.size(); i++) {
+        if (inputs[i] != inputs_[i]) {
+          same_input = false;
+          break;
+        }
+      }
+    }
+    if (!same_input) {
+      if (graph_ != nullptr) {
+        for (auto input : inputs_) {
+          graph_->removeEdge(input);
+        }
+        for (auto input : inputs) {
+          graph_->addEdge(input);
+        }
+      }
+      inputs_ = inputs;
+    }
+  }
+  // outputs_
+  if (outputs_.empty()) {
+    std::vector<dag::Edge *> outputs;
+    if (graph_ != nullptr) {
+      for (auto output_name : outputs_name) {
+        outputs.push_back(graph_->createEdge(output_name));
+      }
+    } else {
+      for (auto output_name : outputs_name) {
+        outputs.push_back(new Edge(output_name));
+      }
+    }
+    outputs_ = outputs;
+  } else {
+    // Check if outputs_name and outputs_ are consistent
+    bool same_output = true;
+    if (outputs_name.size() != outputs_.size()) {
+      same_output = false;
+    }
+    if (same_output) {  // not support disorder
+      for (size_t i = 0; i < outputs_name.size(); i++) {
+        if (outputs_name[i] != outputs_[i]->getName()) {
+          same_output = false;
+          break;
+        }
+      }
+    }
+    if (!same_output) {
+      if (graph_ != nullptr) {
+        for (auto output : outputs_) {
+          graph_->removeEdge(output);
+        }
+        std::vector<dag::Edge *> outputs;
+        for (auto output_name : outputs_name) {
+          outputs.push_back(graph_->createEdge(output_name));
+        }
+        outputs_ = outputs;
+      } else {
+        // for (auto output : outputs_) {
+        //   delete output;
+        // }
+        outputs_.clear();
+        std::vector<dag::Edge *> outputs;
+        for (auto output_name : outputs_name) {
+          outputs.push_back(new Edge(output_name));
+        }
+        outputs_ = outputs;
+      }
+    }
+  }
+  base::Status status = this->run();
+  return outputs_;
 }
 
 }  // namespace dag
