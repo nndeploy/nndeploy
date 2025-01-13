@@ -37,6 +37,9 @@
 #define NNDEPLOY_LOGET(fmt, tag, ...)                                      \
   fprintf(stderr, ("E/%s: %s [File %s][Line %d] " fmt), tag, __FUNCTION__, \
           __FILE__, __LINE__, ##__VA_ARGS__)
+#define NNDEPLOY_LOGWT(fmt, tag, ...)                                      \
+  fprintf(stderr, ("W/%s: %s [File %s][Line %d] " fmt), tag, __FUNCTION__, \
+          __FILE__, __LINE__, ##__VA_ARGS__)
 #endif  //__ANDROID__
 
 #define NNDEPLOY_LOGD(fmt, ...) \
@@ -45,6 +48,8 @@
   NNDEPLOY_LOGIT(fmt, NNDEPLOY_DEFAULT_STR, ##__VA_ARGS__)
 #define NNDEPLOY_LOGE(fmt, ...) \
   NNDEPLOY_LOGET(fmt, NNDEPLOY_DEFAULT_STR, ##__VA_ARGS__)
+#define NNDEPLOY_LOGW(fmt, ...) \
+  NNDEPLOY_LOGWT(fmt, NNDEPLOY_DEFAULT_STR, ##__VA_ARGS__)
 
 #define NNDEPLOY_LOGE_IF(cond, fmt, ...)                      \
   if (cond) {                                                 \
