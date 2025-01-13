@@ -96,8 +96,9 @@ Graph::~Graph() {
 
 Edge *Graph::createEdge(const std::string &name) {
   if (used_edge_names_.find(name) != used_edge_names_.end()) {
-    NNDEPLOY_LOGE("Warning: edge name[%s] is already used!\n", 
-                   name.c_str());
+    NNDEPLOY_LOGE("edge name[%s] is already used!\n", 
+                  name.c_str());
+    return nullptr;
   }
   Edge *edge = new Edge(name);
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
@@ -132,8 +133,8 @@ Edge *Graph::getEdge(const std::string &name) {
 EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(edge, "edge is null!");
   if (used_edge_names_.find(edge->getName()) != used_edge_names_.end()) {
-    NNDEPLOY_LOGE("Warning: edge name[%s] is already used!\n", 
-                   edge->getName().c_str());
+    NNDEPLOY_LOGW("edge name[%s] is already used!\n", 
+                  edge->getName().c_str());
   }
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = is_external;
@@ -178,7 +179,7 @@ base::Status Graph::addNode(Node *node, bool is_external) {
     return base::kStatusCodeErrorInvalidValue;
   }
   if (used_node_names_.find(node->getName()) != used_node_names_.end()) {
-    NNDEPLOY_LOGE("Warning: node name[%s] is already used!\n", 
+    NNDEPLOY_LOGW("Warning: node name[%s] is already used!\n", 
                    node->getName().c_str());
   }
   base::Status status = base::kStatusCodeOk;
