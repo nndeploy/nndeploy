@@ -218,47 +218,47 @@ int main(int argc, char* argv[]) {
   param.push_back(tokenizer_concat_param);
   param.push_back(inference_param);
 
-  nndeploy::dag::Edge eprompt;
-  nndeploy::dag::Edge negative_prompt;
-  nndeploy::dag::Edge output("text_embeddings");
-  nndeploy::dag::Graph* clip_graph = nndeploy::stable_diffusion::createCLIPGraph(
-      "clip", &eprompt, &negative_prompt, &output, inference_type, param);
+  //nndeploy::dag::Edge eprompt;
+  //nndeploy::dag::Edge negative_prompt;
+  //nndeploy::dag::Edge output("text_embeddings");
+  //nndeploy::dag::Graph* clip_graph = nndeploy::stable_diffusion::createCLIPGraph(
+  //    "clip", &eprompt, &negative_prompt, &output, inference_type, param);
 
-  clip_graph->init();
+  //clip_graph->init();
 
-  nndeploy::tokenizer::TokenizerText tteprompt;
-  tteprompt.texts_.push_back(
-      "a beautiful photograph of Mt. Fuji during cherry blossom");
-  eprompt.set((nndeploy::base::Param*)(&tteprompt), 0);
+  //nndeploy::tokenizer::TokenizerText tteprompt;
+  //tteprompt.texts_.push_back(
+  //    "a beautiful photograph of Mt. Fuji during cherry blossom");
+  //eprompt.set((nndeploy::base::Param*)(&tteprompt), 0);
 
-  nndeploy::tokenizer::TokenizerText tt_neg;
-  tt_neg.texts_.push_back("");
-  negative_prompt.set((nndeploy::base::Param*)(&tt_neg), 0);
+  //nndeploy::tokenizer::TokenizerText tt_neg;
+  //tt_neg.texts_.push_back("");
+  //negative_prompt.set((nndeploy::base::Param*)(&tt_neg), 0);
 
-  clip_graph->run();
+  //clip_graph->run();
 
-  nndeploy::device::Tensor* tensor =
-      (nndeploy::device::Tensor*)(output.getGraphOutputTensor());
-  tensor->print();
+  //nndeploy::device::Tensor* tensor =
+  //    (nndeploy::device::Tensor*)(output.getGraphOutputTensor());
+  //tensor->print();
 
-  // randn tensor test
-  {
-    nndeploy::device::Device* host_device =
-        nndeploy::device::getDefaultHostDevice();
-    nndeploy::device::TensorDesc desc;
-    desc.data_type_ = nndeploy::base::dataTypeOf<float>();
-    desc.data_format_ = nndeploy::base::kDataFormatNCHW;
-    desc.shape_ = {1, 3, 8, 8};
-    nndeploy::device::Tensor* r_tensor =
-        new nndeploy::device ::Tensor(host_device, desc);
-    std::mt19937 generator;
-    nndeploy::device::randnTensor(generator, 1.0f, 100.f, r_tensor);
-    r_tensor->print();
+  //// randn tensor test
+  //{
+  //  nndeploy::device::Device* host_device =
+  //      nndeploy::device::getDefaultHostDevice();
+  //  nndeploy::device::TensorDesc desc;
+  //  desc.data_type_ = nndeploy::base::dataTypeOf<float>();
+  //  desc.data_format_ = nndeploy::base::kDataFormatNCHW;
+  //  desc.shape_ = {1, 3, 8, 8};
+  //  nndeploy::device::Tensor* r_tensor =
+  //      new nndeploy::device ::Tensor(host_device, desc);
+  //  std::mt19937 generator;
+  //  nndeploy::device::randnTensor(generator, 1.0f, 100.f, r_tensor);
+  //  r_tensor->print();
 
-    std::default_random_engine generator_v2;
-    nndeploy::device::randnTensor(generator_v2, 1.0f, 100.f, r_tensor, 1);
-    r_tensor->print();
-  }
+  //  std::default_random_engine generator_v2;
+  //  nndeploy::device::randnTensor(generator_v2, 1.0f, 100.f, r_tensor, 1);
+  //  r_tensor->print();
+  //}
 
   ret = nndeployFrameworkDeinit();
   if (ret != 0) {
