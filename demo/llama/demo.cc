@@ -1,13 +1,12 @@
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/time_profiler.h"
-#include "nndeploy/llm/llama2.h"
 #include "nndeploy/codec/codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/framework.h"
+#include "nndeploy/llm/llama2.h"
 #include "nndeploy/thread_pool/thread_pool.h"
-
 #include "nndeploy/tokenizer/tokenizer.h"
 
 using namespace nndeploy;
@@ -43,8 +42,8 @@ int main(int argc, char *argv[]) {
   base::ParallelType pt = demo::getParallelType();
 
   // 有向无环图graph的输出边packert
-  dag::Edge* input = new dag::Edge("llm_in");
-  dag::Edge* output = new dag::Edge("llm_out");
+  dag::Edge *input = new dag::Edge("llm_in");
+  dag::Edge *output = new dag::Edge("llm_out");
 
   // graph
   dag::Graph *graph = new dag::Graph("demo", nullptr, output);
@@ -57,16 +56,18 @@ int main(int argc, char *argv[]) {
   LlmConfig config = parse_config(config_path);
 
   /* prompt node */
-  dag::Edge* prompt = graph->createEdge("prmompt");
-  dag::Node* prompt_node = graph->createNode<PromptNode>("prompt_node", input, prompt);
+  dag::Edge *prompt = graph->createEdge("prmompt");
+  dag::Node *prompt_node =
+      graph->createNode<PromptNode>("prompt_node", input, prompt);
 
   /* prompt params */
-  PromptParam *prompt_param = dynamic_cast<PromptParam*>(prompt_node->getParam());
+  PromptParam *prompt_param =
+      dynamic_cast<PromptParam *>(prompt_node->getParam());
   prompt_param->prompt_template_ = config.prompt_template_;
 
-  //prompt_param->user_content_ = "Hello";
+  // prompt_param->user_content_ = "Hello";
   prompt_param->user_content_ = "你好，请问你是谁？";
-  //prompt_param->user_content_ = "请问今天的天气如何？";
+  // prompt_param->user_content_ = "请问今天的天气如何？";
 
   // create DAG for LLM
   dag::Graph *llama2_graph =
@@ -96,7 +97,7 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->init()");
 
-  //status = graph->dump();
+  // status = graph->dump();
 
   NNDEPLOY_TIME_POINT_START("graph->run");
   status = graph->run();
@@ -107,7 +108,7 @@ int main(int argc, char *argv[]) {
 
   if (pt != base::kParallelTypePipeline) {
     tokenizer::TokenizerText *result =
-        (tokenizer::TokenizerText*)output->getGraphOutputParam();
+        (tokenizer::TokenizerText *)output->getGraphOutputParam();
     if (result == nullptr) {
       NNDEPLOY_LOGE("result is nullptr");
       return -1;
@@ -118,7 +119,7 @@ int main(int argc, char *argv[]) {
 
   if (pt == base::kParallelTypePipeline) {
     tokenizer::TokenizerText *result =
-        (tokenizer::TokenizerText*)output->getGraphOutputParam();
+        (tokenizer::TokenizerText *)output->getGraphOutputParam();
     if (result == nullptr) {
       NNDEPLOY_LOGE("result is nullptr");
       return -1;
