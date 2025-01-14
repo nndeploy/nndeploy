@@ -47,7 +47,7 @@ void TimeProfiler::start(const std::string &key) {
   uint64_t start = getTime();
   if (records_.find(key) == records_.end()) {
     ++order_;
-    Record *ptr = new Record(key, order_, start);
+    Record *ptr = new Record(key, order_, start, max_size_);
     std::shared_ptr<Record> record;
     record.reset(ptr);
     records_[key] = record;
@@ -73,7 +73,10 @@ void TimeProfiler::end(const std::string &key) {
   } else {
     if (records_[key]->type_ == kStart) {
       records_[key]->type_ = kEnd;
-      records_[key]->cost_time_ += end - records_[key]->start_;
+      uint64_t cost_time = end - records_[key]->start_;
+      records_[key]->cost_time_sum_ += cost_time;
+      int index = records_[key]->call_times_ % max_size_;
+      records_[key]->cost_time_[index] = cost_time;
     } else {
       // NNDEPLOY_LOGE("name %s has ended\n", key.c_str());
       ;
@@ -95,16 +98,101 @@ void TimeProfiler::print(const std::string &title) {
   printf(
       "------------------------------------------------------------------------"
       "-------------------\n");
-  printf("%-20s%-20s%-20s%-20s%-20s\n", "name", "call_times", "cost_time(ms)",
-         "cost_time/call(ms)", "gflops");
+  printf("%-20s%-20s%-20s%-20s%-20s\n", "name", "call_times",
+         "sum cost_time(ms)", "avg cost_time(ms)", "gflops");
   printf(
       "------------------------------------------------------------------------"
       "-------------------\n");
   for (auto &it : records) {
     if (it->type_ == kEnd) {
       printf("%-20s%-20d%-20.3f%-20.3f%-20.3f\n", it->key_.c_str(),
-             it->call_times_, static_cast<float>(it->cost_time_ / 1000.0f),
-             it->cost_time_ / 1000.0f / it->call_times_, it->flops_);
+             it->call_times_, static_cast<float>(it->cost_time_sum_) / 1000.0f,
+             static_cast<float>(it->cost_time_sum_) / 1000.0f / it->call_times_,
+             it->flops_);
+    }
+  }
+  printf(
+      "------------------------------------------------------------------------"
+      "-------------------\n");
+}
+
+void TimeProfiler::printIndex(const std::string &title, uint64_t index) {
+  if (index >= records_.size()) {
+    NNDEPLOY_LOGE("index %d is out of range\n", index);
+    return;
+  }
+  std::vector<std::shared_ptr<Record>> records;
+  for (auto &it : records_) {
+    records.emplace_back(it.second);
+  }
+  std::sort(
+      records.begin(), records.end(),
+      [](const std::shared_ptr<Record> a, const std::shared_ptr<Record> b) {
+        return a->order_ < b->order_;
+      });
+  printf("TimeProfiler: %s\n", title.c_str());
+  printf(
+      "------------------------------------------------------------------------"
+      "-------------------\n");
+  printf("%-20s%-20s%-20s%-20s%-20s\n", "name", "call_times",
+         "%dth cost_time(ms)", "avg cost_time(ms)", "gflops", index);
+  printf(
+      "------------------------------------------------------------------------"
+      "-------------------\n");
+  for (auto &it : records) {
+    if (it->type_ == kEnd) {
+      printf("%-20s%-20d%-20.3f%-20.3f%-20.3f\n", it->key_.c_str(),
+             it->call_times_,
+             static_cast<float>(it->cost_time_[index]) / 1000.0f,
+             static_cast<float>(it->cost_time_sum_) / 1000.0f / it->call_times_,
+             it->flops_);
+    }
+  }
+  printf(
+      "------------------------------------------------------------------------"
+      "-------------------\n");
+}
+
+void TimeProfiler::printRemoveWarmup(const std::string &title,
+                                     uint64_t warmup_times) {
+  std::vector<std::shared_ptr<Record>> records;
+  for (auto &it : records_) {
+    records.emplace_back(it.second);
+  }
+  std::sort(
+      records.begin(), records.end(),
+      [](const std::shared_ptr<Record> a, const std::shared_ptr<Record> b) {
+        return a->order_ < b->order_;
+      });
+  printf("TimeProfiler: %s\n", title.c_str());
+  printf(
+      "------------------------------------------------------------------------"
+      "-------------------\n");
+  printf("%-20s%-20s%-20s%-20s%-20s%-20s\n", "name", "call_times",
+         "cost_time(ms)", "avg cost_time(ms)",
+         "avg cost_time(ms)(remove warmup)", "gflops");
+  printf(
+      "------------------------------------------------------------------------"
+      "-------------------\n");
+  for (auto &it : records) {
+    uint64_t cost_time = 0.0f;
+    int valid_count = 0;
+    if (it->call_times_ >= max_size_) {
+      for (int i = warmup_times; i < max_size_; i++) {
+        cost_time += it->cost_time_[i];
+        valid_count++;
+      }
+    } else {
+      for (int i = warmup_times; i < it->call_times_; i++) {
+        cost_time += it->cost_time_[i];
+        valid_count++;
+      }
+    }
+    if (it->type_ == kEnd) {
+      printf("%-20s%-20d%-20.3f%-20.3f%-20.3f%-20.3f\n", it->key_.c_str(),
+             it->call_times_, static_cast<float>(it->cost_time_sum_) / 1000.0f,
+             static_cast<float>(it->cost_time_sum_) / 1000.0f / it->call_times_,
+             static_cast<float>(cost_time) / 1000.0f / valid_count, it->flops_);
     }
   }
   printf(
@@ -113,6 +201,7 @@ void TimeProfiler::print(const std::string &title) {
 }
 
 TimeProfiler g_time_profiler;
+const int max_size_ = 1024 * 1024;
 
 void timeProfilerReset() { g_time_profiler.reset(); }
 
@@ -122,6 +211,15 @@ void timePointEnd(const std::string &key) { g_time_profiler.end(key); }
 
 void timeProfilerPrint(const std::string &title) {
   g_time_profiler.print(title);
+}
+
+void timeProfilerPrintIndex(const std::string &title, uint64_t index) {
+  g_time_profiler.printIndex(title, index);
+}
+
+void timeProfilerPrintRemoveWarmup(const std::string &title,
+                                   uint64_t warmup_times) {
+  g_time_profiler.printRemoveWarmup(title, warmup_times);
 }
 
 }  // namespace base
