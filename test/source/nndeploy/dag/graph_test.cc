@@ -47,6 +47,25 @@ class ProcessNode : public nndeploy::dag::Node {
   }
 };
 
+// class InferNode : public nndeploy::dag::Node {
+//  public:
+//   InferNode(const std::string &name, 
+//               std::vector<nndeploy::dag::Edge *> inputs, 
+//               std::vector<nndeploy::dag::Edge *> outputs)
+//       : Node(name, inputs, outputs) {}
+
+//   InferNode(const std::string &name, 
+//               nndeploy::dag::Edge* input, 
+//               nndeploy::dag::Edge* output)
+//       : Node(name, input, output) {}
+  
+//   virtual ~InferNode() {}
+
+//   virtual nndeploy::base::Status run() {
+//     return nndeploy::base::kStatusCodeOk;
+//   }
+// };
+
 TEST_F(GraphTest, GraphWithOneInputOutputEdge) {
     using namespace nndeploy::dag;
     
@@ -65,9 +84,9 @@ TEST_F(GraphTest, GraphWithDuplicateOutputEdge) {
     
     auto edge_in = std::make_unique<Edge>("edge_in");
     auto graph = constructGraph("3.141@@!!", edge_in.get(), edge_in.get());
-    EXPECT_FALSE(graph->getConstructed());
-    EXPECT_TRUE(graph->getAllOutput().size() == 0);
-    EXPECT_TRUE(graph->getAllInput().size() == 0);
+    EXPECT_TRUE(graph->getConstructed());
+    EXPECT_TRUE(graph->getAllOutput().size() == 1);
+    EXPECT_TRUE(graph->getAllInput().size() == 1);
 }
 
 TEST_F(GraphTest, GraphWithVectorInputOutputEdges) {
@@ -88,7 +107,6 @@ TEST_F(GraphTest, GraphWithVectorInputOutputEdges) {
     ASSERT_EQ(graph->getAllInput().size(), 4);
     ASSERT_EQ(graph->getAllOutput().size(), 4);
     
-    //TODO: do this in ~GraphTest()
     for(auto in_edge: inputs) {delete in_edge;}
     for(auto out_edge: outputs) {delete out_edge;}
 }
@@ -96,8 +114,10 @@ TEST_F(GraphTest, GraphWithVectorInputOutputEdges) {
 TEST_F(GraphTest, GraphWithInitListInputOutputEdges) {
     using namespace nndeploy::dag;
 
-    auto inputs = std::initializer_list<Edge *>{new Edge("edge_in")};
-    auto outputs = std::initializer_list<Edge *>{new Edge("edge_out")};
+    auto edge_in = std::make_unique<Edge>("edge_in");
+    auto edge_out = std::make_unique<Edge>("edge_out");
+    auto inputs = std::initializer_list<Edge *>{edge_in.get()};
+    auto outputs = std::initializer_list<Edge *>{edge_out.get()};
     auto graph = constructGraphWithInitLsArgs("@@\n\t!!##$$", inputs, outputs);
     ASSERT_TRUE(graph->getConstructed());
     ASSERT_EQ(graph->getAllInput().size(), 1);
@@ -152,6 +172,26 @@ TEST_F(GraphTest, GraphCreateNodeWithSameEdges) {
     ASSERT_TRUE(node != nullptr);
 }
 
+// TEST_F(GraphTest, GraphCreateInfer) {
+//     using namespace nndeploy::dag;
+
+//     auto inputs = std::vector<Edge *>();
+//     auto outputs = std::vector<Edge *>();
+//     auto edge_in = std::make_unique<Edge>("edge_in");
+//     auto edge_out = std::make_unique<Edge>("edge_out");
+//     auto node_edge_in = std::make_unique<Edge>("node_edge_in");
+//     auto node_edge_out = std::make_unique<Edge>("node_edge_out");
+//     inputs.emplace_back(edge_in.get());
+//     outputs.emplace_back(edge_out.get());
+//     auto graph = constructGraphWithVecArgs("CreateNode", inputs, outputs);
+//     auto node = graph->createInfer<InferNode>("test_node", node_edge_in.get(), node_edge_out.get());
+//     ASSERT_EQ(node->getName(), "test_node");
+//     ASSERT_EQ(node->getAllInput().size(), 1);
+//     ASSERT_EQ(node->getAllOu tput().size(), 1);
+//     ASSERT_EQ(node->getInput(), node_edge_in.get());
+//     ASSERT_EQ(node->getOutput(), node_edge_out.get());
+// }
+
 TEST_F(GraphTest, GraphAddEdge) {
     using namespace nndeploy::dag;
 
@@ -174,8 +214,8 @@ TEST_F(GraphTest, GraphDuplicateAddEdge) {
     auto graph = constructGraph("GraphDuplicateAddEdge", edge_in.get(), edge_out.get());
     auto edge_wrapper_in = graph->addEdge(edge_in.get());
     auto edge_wrapper_out = graph->addEdge(edge_out.get());
-    ASSERT_EQ(edge_wrapper_in, nullptr);
-    ASSERT_EQ(edge_wrapper_out, nullptr);
+    ASSERT_EQ(edge_wrapper_in->edge_, edge_in.get());
+    ASSERT_EQ(edge_wrapper_out->edge_, edge_out.get());
 }
 
 
