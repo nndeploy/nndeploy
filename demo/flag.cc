@@ -26,6 +26,8 @@ DEFINE_string(codec_type, "", "codec_type");
 
 DEFINE_string(codec_flag, "", "codec_flag");
 
+DEFINE_string(config_path, "", "config_path");
+
 DEFINE_string(input_path, "", "input_path");
 
 DEFINE_string(output_path, "", "output_path");
@@ -64,6 +66,9 @@ void showUsage() {
             << std::endl;
   std::cout << "  --codec_type: codec_type, eg: kCodecTypeOpenCV" << std::endl;
   std::cout << "  --codec_flag: codec_type, eg: kCodecFlagImage" << std::endl;
+  std::cout << "  --config_path: config_path, eg: "
+               "path/nndeploy_resource/llm/config.jpg"
+            << std::endl;
   std::cout << "  --input_path: input_path, eg: "
                "path/nndeploy_resource/detect/input.jpg"
             << std::endl;
@@ -125,6 +130,8 @@ base::EncryptType getEncryptType() {
 }
 
 std::string getLicense() { return FLAGS_license; }
+
+std::string getConfigPath() { return FLAGS_config_path; }
 
 std::string getInputPath() { return FLAGS_input_path; }
 std::string getOutputPath() { return FLAGS_output_path; }
