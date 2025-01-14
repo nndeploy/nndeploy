@@ -409,11 +409,6 @@ void LlmDecodeGraph::get_stop_tokens(std::string& token_file) {
           specail_line >> stop_tokens_[i];
       }
   }
-
-  printf("stop_tokens=[");
-  for(auto& s: stop_tokens_)
-    printf("%d,",s); 
-  printf("]\n");
 }
 
 void LlmDecodeGraph::create_prefill_nodes_edges() {
@@ -430,8 +425,10 @@ void LlmDecodeGraph::create_prefill_nodes_edges() {
     decode_embedding_node_ = createNode<EmbeddingNode>("embedding_node", embedding_in, embedding_out);
 
     /* decode infer node */
-    decode_logits_ = createEdge("logits");
-    decode_presents_ = createEdge("presents");
+    /* use "new" to create duplicated name edge */
+    decode_logits_ = new dag::Edge("logits");
+    decode_presents_ = new dag::Edge("presents");
+
     std::vector<dag::Edge*> infer_out = {decode_logits_, decode_presents_};
     decode_infer_node_ = createInfer<infer::Infer>("decode_infer", 
                             inference_type_, embedding_out, infer_out);
@@ -484,8 +481,8 @@ void LlmDecodeGraph::set_params(bool is_path,
   token_param->json_blob_ = config.tokenizer_json_;
 }
 
-/* continute: 0; stop: 1 */
 int LlmDecodeGraph::loops() {
+    /* simply return maximum seqence length */
     return max_seq_len_;
 }
 
@@ -512,7 +509,7 @@ base::Status LlmDecodeGraph::run() {
     if(!is_first_) {
         embedding_param->all_seq_len_++;
     } else {
-        /* embedding params */
+        /* first time decode will fetch ids and past_key_values from prefill graph */
         tokenizer::TokenizerIds* prefill_out_token_id = 
             (tokenizer::TokenizerIds*)(decode_embedding_ids_->getParam(decode_embedding_node_));
         embedding_param->past_kv_ = decode_prefill_kv_->getTensor(decode_embedding_node_); 
@@ -587,6 +584,7 @@ dag::Graph *createLlmLlama2Graph(
                                           device_type, model_type, 
                                           is_path, config);
   llama2_graph->addNode(decode_graph);
+
   return llama2_graph;
 }
 

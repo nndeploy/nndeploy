@@ -37,10 +37,7 @@ int main(int argc, char *argv[]) {
   base::ModelType model_type = demo::getModelType();
   // 模型是否是路径
   bool is_path = demo::isPath();
-  // 模型路径或者模型字符串
-  std::vector<std::string> model_value = demo::getModelValue();
-  // input path
-  //std::string config_path = demo::getInputPath();
+  // config path
   std::string config_path = demo::getConfigPath();
   // paralle type
   base::ParallelType pt = demo::getParallelType();
@@ -115,8 +112,8 @@ int main(int argc, char *argv[]) {
       NNDEPLOY_LOGE("result is nullptr");
       return -1;
     }
-    printf("Q: %s\n", prompt_param->user_content_.c_str());
-    printf("A: %s\n", result->texts_[0].c_str());
+    printf("\nQ: %s\n", prompt_param->user_content_.c_str());
+    printf("A: %s\n\n", result->texts_[0].c_str());
   }
 
   if (pt == base::kParallelTypePipeline) {
