@@ -8,7 +8,7 @@ Just refer to [llmexport](https://github.com/wangzhaode/llm-export)
 
 * the following fig is the converted input and output of Qwen2-0.5B onnx model
 
-<img src="/home/raymond/workspace/llama2_model/imgs/Qwen0.5B-onnx.png" alt="Qwen0.5B-onnx" style="zoom:80%;" />
+<img src="./imgs/Qwen0.5B-onnx.png" alt="Qwen0.5B-onnx" style="zoom:80%;" />
 
 * after convert you will get the following files
 
@@ -120,13 +120,13 @@ ${EXE} \
 
 ### Result
 
-<img src="/home/raymond/workspace/llama2_model/imgs/result.png" alt="result" style="zoom:80%;" />
+<img src="./imgs/result.png" alt="result" style="zoom:80%;" />
 
 ### Graph Structrue
 
 the whole graph contains two sub-graphs: prefill and decode as follows:
 
-<img src="/home/raymond/workspace/llama2_model/imgs/llama2-graph.png" alt="llama2-graph" style="zoom:80%;" />
+<img src="./imgs/llama2-graph.png" alt="llama2-graph" style="zoom:80%;" />
 
 
 
