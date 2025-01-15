@@ -2,7 +2,8 @@
 [简体中文](README.md) | English
 
 ## Introduction
-nndeploy is an end-to-end deployment framework for models. Centered around `multi-end inference` and `model deployment based on directed acyclic graph`, it is committed to providing users with a cross-platform, simple, easy-to-use, and high-performance model deployment experience.
+nndeploy is an end-to-end model deployment framework. Based on multi-terminal inference and directed acyclic graph model deployment, it is committed to providing users with a cross-platform, easy-to-use, and high-performance model deployment experience.
+
 
 ## Architecture
 ![Architecture](docs/image/architecture.jpg)
