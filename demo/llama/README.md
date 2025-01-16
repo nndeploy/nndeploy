@@ -34,10 +34,10 @@ Just refer to [llmexport](https://github.com/wangzhaode/llm-export)
     "hidden_size": 896,
     "layer_nums": 24,
     "max_seq_len": 250,
-    "model_path": "/root/workspace/model_zoo/model/onnx/llm.onnx",
-    "embedding_file": "/root/workspace/model_zoo/model/embeddings_bf16.bin",
-    "tokenizer_json": "/root/workspace/llm-export/Qwen2-0.5B-Instruct/tokenizer.json",
-    "tokenizer_txt": "/root/workspace/model_zoo/model/tokenizer.txt",
+    "model_path": "/path/to/your/llm.onnx",
+    "embedding_file": "/path/to/your/embeddings_bf16.bin",
+    "tokenizer_json": "/path/to/your/Qwen2-0.5B-Instruct/tokenizer.json",
+    "tokenizer_txt": "/path/to/your/tokenizer.txt",
     "key_value_shape": [
         2,
         1,
@@ -46,10 +46,11 @@ Just refer to [llmexport](https://github.com/wangzhaode/llm-export)
         64
     ],
     "prompt_template": "<|im_start|>user\n%s<|im_end|>\n<|im_start|>assistant\n",
-    "is_visual": false
+    "prompt": "你好，请问你是谁？"
 }
-```
 
+```
+* there is an example in demo/llama
 
 
 ### build llama2 onnxruntime demo

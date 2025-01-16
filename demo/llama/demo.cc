@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* parse config */
-  LlmConfig config = parse_config(config_path);
+  LlmConfig config = ParseConfig(config_path);
 
   /* prompt node */
   dag::Edge *prompt = graph->createEdge("prmompt");
@@ -65,9 +65,10 @@ int main(int argc, char *argv[]) {
       dynamic_cast<PromptParam *>(prompt_node->getParam());
   prompt_param->prompt_template_ = config.prompt_template_;
 
-  // prompt_param->user_content_ = "Hello";
-  prompt_param->user_content_ = "你好，请问你是谁？";
-  // prompt_param->user_content_ = "请问今天的天气如何？";
+  prompt_param->user_content_ = config.prompt_;
+  //prompt_param->user_content_ = "你好，请问你是谁？";
+  //prompt_param->user_content_ = "Hello";
+  //prompt_param->user_content_ = "请问今天的天气如何？";
 
   // create DAG for LLM
   dag::Graph *llama2_graph =
