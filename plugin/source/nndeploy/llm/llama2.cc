@@ -15,36 +15,57 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/llm/json.h"
 #include "nndeploy/op/op_softmax.h"
 #include "nndeploy/tokenizer/tokenizer.h"
 #include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
+
+#include "rapidjson/document.h"
+#include "rapidjson/filereadstream.h"
+#include <iostream>
+#include <fstream>
 
 namespace nndeploy {
 namespace llm {
 
 /* parse config file */
-LlmConfig parse_config(std::string config_path) {
+LlmConfig parseConfig(const std::string& file_path) {
   LlmConfig config;
-  nlohmann::json llm_config;
-  std::ifstream llm_config_file(config_path);
-  if (llm_config_file.is_open()) {
-    llm_config = nlohmann::json::parse(llm_config_file);
-  } else {
-    std::cerr << "Unable to open llm_config file: " << config_path << std::endl;
+
+  std::ifstream ifs(file_path);
+  if (!ifs.is_open()) {
+    NNDEPLOY_LOGE("Could not open %s:\n", file_path.c_str()); 
+    return config;
   }
 
-  config.layer_nums_ = llm_config.value("layer_nums", 24);
-  config.hidden_size_ = llm_config.value("hidden_size", 4096);
-  config.max_seq_len_ = llm_config.value("max_seq_len", 250);
-  config.model_value_ = llm_config.value("model_path", "llm.onnx");
-  config.embedding_file_ =
-      llm_config.value("embedding_file", "embeddings_bf16.bin");
-  config.tokenizer_json_ = llm_config.value("tokenizer_json", "tokenizer.json");
-  config.tokenizer_txt_ = llm_config.value("tokenizer_txt", "tokenizer.txt");
-  config.prompt_template_ = llm_config.value("prompt_template", "");
-  config.kv_init_shape_ =
-      llm_config.value("key_value_shape", std::vector<int>{});
+  // read json data to content
+  std::string content((std::istreambuf_iterator<char>(ifs)), 
+                       std::istreambuf_iterator<char>());
+  ifs.close();
+
+  rapidjson::Document llm_config;
+  llm_config.Parse(content.c_str());
+  if (llm_config.HasParseError()) {
+    NNDEPLOY_LOGE("Error parsing JSON file%s:\n", file_path.c_str()); 
+    return config;
+  }
+
+  // parse data
+  config.layer_nums_ = llm_config["layer_nums"].GetInt();
+  config.hidden_size_ = llm_config["hidden_size"].GetInt();
+  config.max_seq_len_ = llm_config["max_seq_len"].GetInt();
+
+  config.model_value_ = llm_config["model_path"].GetString();
+  config.embedding_file_ = llm_config["embedding_file"].GetString();
+  config.tokenizer_json_ = llm_config["tokenizer_json"].GetString();
+  config.tokenizer_txt_ = llm_config["tokenizer_txt"].GetString();
+  config.prompt_template_ = llm_config["prompt_template"].GetString();
+  config.prompt_ = llm_config["prompt"].GetString();
+
+  rapidjson::Value& key_value_shape = llm_config["key_value_shape"];
+  for (size_t i = 0; i < key_value_shape.Size(); i++) {
+    config.kv_init_shape_.push_back(key_value_shape[i].GetInt());
+  }
+
   config.kv_init_shape_.insert(config.kv_init_shape_.begin(),
                                config.layer_nums_);
 
@@ -57,14 +78,14 @@ LlmConfig parse_config(std::string config_path) {
   //NNDEPLOY_LOGI("tokenizer_json=%s\n", config.tokenizer_json_.c_str());
   //NNDEPLOY_LOGI("prompt_template=%s\n", config.prompt_template_.c_str());
   //NNDEPLOY_LOGI("kv.shape=[");
-  //for(auto& s: config.kv_init_shape_)
-  //  NNDEPLOY_LOGI("%d,",s);
-  //NNDEPLOY_LOGI("]\n");
+  for(auto& s: config.kv_init_shape_)
+    NNDEPLOY_LOGI("%d,",s);
+  NNDEPLOY_LOGI("]\n");
 
   return config;
 }
 
-std::string PromptNode::apply_template(std::string prompt_template,
+std::string PromptNode::applyTemplate(std::string prompt_template,
                                        const std::string& content,
                                        const std::string& role) {
   if (prompt_template.empty()) return content;
@@ -83,7 +104,7 @@ std::string PromptNode::apply_template(std::string prompt_template,
 
 base::Status PromptNode::run() {
   PromptParam* prompt_params = (PromptParam*)this->getParam();
-  std::string template_prompt = apply_template(prompt_params->prompt_template_,
+  std::string template_prompt = applyTemplate(prompt_params->prompt_template_,
                                                prompt_params->user_content_);
   tokenizer::TokenizerText* prompt = new tokenizer::TokenizerText();
   prompt->texts_.emplace_back(template_prompt);
@@ -91,7 +112,7 @@ base::Status PromptNode::run() {
   return base::kStatusCodeOk;
 }
 
-device::Tensor* EmbeddingNode::gen_position_ids(int seq_len, int all_seq_len,
+device::Tensor* EmbeddingNode::genPositionIds(int seq_len, int all_seq_len,
                                                 base::DataType data_type,
                                                 base::DataFormat data_format) {
   /* create position_ids tensor */
@@ -120,7 +141,7 @@ device::Tensor* EmbeddingNode::gen_position_ids(int seq_len, int all_seq_len,
   return position_ids;
 }
 
-device::Tensor* EmbeddingNode::gen_attention_mask(
+device::Tensor* EmbeddingNode::genAttentionMask(
     int seq_len, int all_seq_len, base::DataType data_type,
     base::DataFormat data_format) {
   int kv_seq_len = all_seq_len + seq_len;
@@ -152,7 +173,7 @@ device::Tensor* EmbeddingNode::gen_attention_mask(
   return attention_mask;
 }
 
-device::Tensor* EmbeddingNode::embedding(const std::vector<int32_t>& input_ids,
+device::Tensor* EmbeddingNode::genEmbedding(const std::vector<int32_t>& input_ids,
                                          int seq_len, int hidden_size,
                                          base::DataType data_type,
                                          base::DataFormat data_format,
@@ -209,15 +230,15 @@ base::Status EmbeddingNode::run() {
   /* considering sample node will update past_kv,
     past_kv has already been set in create_prefill_nodes_edges */
   auto inputs_embeds =
-      embedding(token_ids[0], seq_len, hidden_size, embedding_param->data_type_,
+      genEmbedding(token_ids[0], seq_len, hidden_size, embedding_param->data_type_,
                 embedding_param->data_format_, embedding_file);
 
   auto attention_mask =
-      gen_attention_mask(seq_len, all_seq_len, embedding_param->data_type_,
+      genAttentionMask(seq_len, all_seq_len, embedding_param->data_type_,
                          embedding_param->data_format_);
 
   auto position_ids =
-      gen_position_ids(seq_len, all_seq_len, embedding_param->posid_data_type_,
+      genPositionIds(seq_len, all_seq_len, embedding_param->posid_data_type_,
                        embedding_param->data_format_);
 
   if (is_first_) is_first_ = false;
@@ -306,7 +327,7 @@ base::Status LlmPrefillGraph::run() {
   return status;
 }
 
-void LlmPrefillGraph::gen_past_key_value() {
+void LlmPrefillGraph::genPastKeyValue() {
   device::Device* device = device::getDefaultHostDevice();
   device::TensorDesc past_kv_desc;
   past_kv_desc.data_type_ = base::dataTypeOf<float>();
@@ -315,7 +336,7 @@ void LlmPrefillGraph::gen_past_key_value() {
   past_kv_ = new device::Tensor(device, past_kv_desc, "past_key_values");
 }
 
-void LlmPrefillGraph::create_prefill_nodes_edges() {
+void LlmPrefillGraph::createPrefillNodesEdges() {
   /* token node */
   prefill_token_ids_ = createEdge("prefill_token_ids");
   prefill_token_node_ = createNode<tokenizer::TokenizerCpp>(
@@ -335,7 +356,7 @@ void LlmPrefillGraph::create_prefill_nodes_edges() {
       createNode<EmbeddingNode>("embedding_node", embedding_in, embedding_out);
 
   /* past kv */
-  gen_past_key_value();
+  genPastKeyValue();
 
   /* prefill infer node */
   prefill_logits_ = createEdge("logits");
@@ -348,7 +369,7 @@ void LlmPrefillGraph::create_prefill_nodes_edges() {
       createNode<SampleNode>("sample_node", prefill_logits_, prefill_out_ids_);
 }
 
-void LlmPrefillGraph::set_params(bool is_path, base::ModelType model_type,
+void LlmPrefillGraph::setParams(bool is_path, base::ModelType model_type,
                                  base::DeviceType device_type,
                                  LlmConfig& config) {
   /* embedding params */
@@ -385,7 +406,7 @@ void LlmPrefillGraph::set_params(bool is_path, base::ModelType model_type,
   sample_params->is_prefill_ = true;
 }
 
-void LlmDecodeGraph::get_stop_tokens(std::string& token_file) {
+void LlmDecodeGraph::getStopTokens(std::string& token_file) {
   std::ifstream tok_file(token_file);
   if (!tok_file.good()) {
     printf("Failed: can't load tokenzier from: %s.\n", token_file.c_str());
@@ -421,7 +442,7 @@ void LlmDecodeGraph::get_stop_tokens(std::string& token_file) {
   }
 }
 
-void LlmDecodeGraph::create_prefill_nodes_edges() {
+void LlmDecodeGraph::createPrefillNodesEdges() {
   /* embedding node */
   decode_input_ids_ = createEdge("decode_input_ids");
   decode_attention_mask_ = createEdge("decode_attention_mask");
@@ -455,7 +476,7 @@ void LlmDecodeGraph::create_prefill_nodes_edges() {
       "decode_node", decode_out_ids_, decode_out_words_);
 }
 
-void LlmDecodeGraph::set_params(bool is_path, base::ModelType model_type,
+void LlmDecodeGraph::setParams(bool is_path, base::ModelType model_type,
                                 base::DeviceType device_type,
                                 LlmConfig& config) {
   /* embedding params */
@@ -505,7 +526,7 @@ base::Status LlmDecodeGraph::run() {
 
   int iters = loops();
   for (int i = 0; i < iters; ++i) {
-    if (is_stop()) {
+    if (isStop()) {
       tokenizer::TokenizerText* word =
           (tokenizer::TokenizerText*)(decode_out_words_->getParam(
               decode_node_));
@@ -582,7 +603,7 @@ dag::Graph* createLlmLlama2Graph(const std::string& name,
                                  dag::Edge* prompt, dag::Edge* out,
                                  base::ModelType model_type, bool is_path,
                                  std::vector<std::string> config_path) {
-  LlmConfig config = parse_config(config_path[0]);
+  LlmConfig config = parseConfig(config_path[0]);
   dag::Graph* llama2_graph = new dag::Graph(name, prompt, out);
 
   /* create prefill graph */

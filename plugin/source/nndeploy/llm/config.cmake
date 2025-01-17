@@ -4,7 +4,6 @@ message(STATUS "plugin/llm")
 set(PLUGIN_SOURCE)
 set(PLUGIN_OBJECT)
 set(PLUGIN_BINARY nndeploy_plugin_llm)
-set(TOKENZIER_CPP_PATH /home/raymond/workspace/nndeploy/third_party/tokenizers-cpp) 
 
 # SOURCE
 file(GLOB PLUGIN_SOURCE
@@ -17,9 +16,6 @@ add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJE
 
 # # DIRECTORY
 set_property(TARGET ${PLUGIN_BINARY} PROPERTY FOLDER ${NNDEPLOY_PLUGIN_DIRECTORY})
-
-# # DEPEND_HEADS
-include_directories(${TOKENZIER_CPP_PATH}/include)
 
 # # DEPEND_LIBRARY
 target_link_libraries(${PLUGIN_BINARY} ${NNDEPLOY_DEPEND_LIBRARY})
