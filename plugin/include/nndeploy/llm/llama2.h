@@ -37,8 +37,7 @@ struct LlmConfig {
   std::vector<int32_t> kv_init_shape_;
 };
 
-//LlmConfig ParseConfig(std::string config_path);
-LlmConfig ParseConfig(const std::string& file_path);
+LlmConfig parseConfig(const std::string& file_path);
 
 #define NNDEPLOY_LLAMA2 "NNDEPLOY_LLAMA2"
 #define DELETE_POINTER(ptr) \
@@ -100,16 +99,16 @@ class NNDEPLOY_CC_API EmbeddingNode : public dag::Node {
   device::Tensor* past_kv_ = nullptr;
 
  protected:
-  device::Tensor* GenEmbedding(const std::vector<int32_t>& input_ids, int seq_len,
+  device::Tensor* genEmbedding(const std::vector<int32_t>& input_ids, int seq_len,
                             int hidden_size, base::DataType data_type,
                             base::DataFormat data_format,
                             std::string& embedding_file);
 
-  device::Tensor* GenAttentionMask(int seq_len, int all_seq_len,
+  device::Tensor* genAttentionMask(int seq_len, int all_seq_len,
                                      base::DataType data_type,
                                      base::DataFormat data_format);
 
-  device::Tensor* GenPositionIds(int seq_len, int all_seq_len,
+  device::Tensor* genPositionIds(int seq_len, int all_seq_len,
                                    base::DataType data_type,
                                    base::DataFormat data_format);
 
@@ -127,7 +126,7 @@ class NNDEPLOY_CC_API SampleNode : public dag::Node {
   virtual base::Status run();
 
  protected:
-  int32_t Sample(device::Tensor* logits, const std::vector<int>& pre_ids);
+  int32_t sample(device::Tensor* logits, const std::vector<int>& pre_ids);
 
  protected:
   bool is_first_;
@@ -143,7 +142,7 @@ class NNDEPLOY_CC_API PromptNode : public dag::Node {
   virtual base::Status run();
 
  protected:
-  std::string ApplyTemplate(std::string prompt_template,
+  std::string applyTemplate(std::string prompt_template,
                              const std::string& content,
                              const std::string& role = "");
 };
@@ -167,8 +166,8 @@ class NNDEPLOY_CC_API LlmPrefillGraph : public dag::Graph {
         hidden_size_(config.hidden_size_),
         kv_init_shape_(config.kv_init_shape_) {
     history_ids_ = new tokenizer::TokenizerIds();
-    CreatePrefillNodesEdges();
-    SetParams(is_path, model_type, device_type, config);
+    createPrefillNodesEdges();
+    setParams(is_path, model_type, device_type, config);
   }
 
   virtual ~LlmPrefillGraph() {
@@ -191,9 +190,9 @@ class NNDEPLOY_CC_API LlmPrefillGraph : public dag::Graph {
   virtual base::Status run();
 
  protected:
-  void GenPastKeyValue();
-  void CreatePrefillNodesEdges();
-  void SetParams(bool is_path, base::ModelType model_type,
+  void genPastKeyValue();
+  void createPrefillNodesEdges();
+  void setParams(bool is_path, base::ModelType model_type,
                   base::DeviceType device_type, LlmConfig& model_value);
 
  public:
@@ -235,9 +234,9 @@ class NNDEPLOY_CC_API LlmDecodeGraph : public dag::Loop {
         hidden_size_(config.hidden_size_),
         max_seq_len_(config.max_seq_len_),
         inference_type_(inference_type) {
-    GetStopTokens(config.tokenizer_txt_);
-    CreatePrefillNodesEdges();
-    SetParams(is_path, model_type, device_type, config);
+    getStopTokens(config.tokenizer_txt_);
+    createPrefillNodesEdges();
+    setParams(is_path, model_type, device_type, config);
   }
 
   virtual ~LlmDecodeGraph() {
@@ -262,13 +261,13 @@ class NNDEPLOY_CC_API LlmDecodeGraph : public dag::Loop {
   virtual int loops();
   virtual base::Status run();
 
-  void CreatePrefillNodesEdges();
-  void SetParams(bool is_path, base::ModelType model_type,
+  void createPrefillNodesEdges();
+  void setParams(bool is_path, base::ModelType model_type,
                   base::DeviceType device_type, LlmConfig& config);
 
  protected:
-  void GetStopTokens(std::string& token_file);
-  inline bool IsStop() {
+  void getStopTokens(std::string& token_file);
+  inline bool isStop() {
     /* get decode out id */
     tokenizer::TokenizerIds* token_ids;
     if (is_first_) {

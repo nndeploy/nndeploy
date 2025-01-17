@@ -28,7 +28,7 @@ namespace nndeploy {
 namespace llm {
 
 /* parse config file */
-LlmConfig ParseConfig(const std::string& file_path) {
+LlmConfig parseConfig(const std::string& file_path) {
   LlmConfig config;
 
   std::ifstream ifs(file_path);
@@ -85,7 +85,7 @@ LlmConfig ParseConfig(const std::string& file_path) {
   return config;
 }
 
-std::string PromptNode::ApplyTemplate(std::string prompt_template,
+std::string PromptNode::applyTemplate(std::string prompt_template,
                                        const std::string& content,
                                        const std::string& role) {
   if (prompt_template.empty()) return content;
@@ -104,7 +104,7 @@ std::string PromptNode::ApplyTemplate(std::string prompt_template,
 
 base::Status PromptNode::run() {
   PromptParam* prompt_params = (PromptParam*)this->getParam();
-  std::string template_prompt = ApplyTemplate(prompt_params->prompt_template_,
+  std::string template_prompt = applyTemplate(prompt_params->prompt_template_,
                                                prompt_params->user_content_);
   tokenizer::TokenizerText* prompt = new tokenizer::TokenizerText();
   prompt->texts_.emplace_back(template_prompt);
@@ -112,7 +112,7 @@ base::Status PromptNode::run() {
   return base::kStatusCodeOk;
 }
 
-device::Tensor* EmbeddingNode::GenPositionIds(int seq_len, int all_seq_len,
+device::Tensor* EmbeddingNode::genPositionIds(int seq_len, int all_seq_len,
                                                 base::DataType data_type,
                                                 base::DataFormat data_format) {
   /* create position_ids tensor */
@@ -141,7 +141,7 @@ device::Tensor* EmbeddingNode::GenPositionIds(int seq_len, int all_seq_len,
   return position_ids;
 }
 
-device::Tensor* EmbeddingNode::GenAttentionMask(
+device::Tensor* EmbeddingNode::genAttentionMask(
     int seq_len, int all_seq_len, base::DataType data_type,
     base::DataFormat data_format) {
   int kv_seq_len = all_seq_len + seq_len;
@@ -173,7 +173,7 @@ device::Tensor* EmbeddingNode::GenAttentionMask(
   return attention_mask;
 }
 
-device::Tensor* EmbeddingNode::GenEmbedding(const std::vector<int32_t>& input_ids,
+device::Tensor* EmbeddingNode::genEmbedding(const std::vector<int32_t>& input_ids,
                                          int seq_len, int hidden_size,
                                          base::DataType data_type,
                                          base::DataFormat data_format,
@@ -230,15 +230,15 @@ base::Status EmbeddingNode::run() {
   /* considering sample node will update past_kv,
     past_kv has already been set in create_prefill_nodes_edges */
   auto inputs_embeds =
-      GenEmbedding(token_ids[0], seq_len, hidden_size, embedding_param->data_type_,
+      genEmbedding(token_ids[0], seq_len, hidden_size, embedding_param->data_type_,
                 embedding_param->data_format_, embedding_file);
 
   auto attention_mask =
-      GenAttentionMask(seq_len, all_seq_len, embedding_param->data_type_,
+      genAttentionMask(seq_len, all_seq_len, embedding_param->data_type_,
                          embedding_param->data_format_);
 
   auto position_ids =
-      GenPositionIds(seq_len, all_seq_len, embedding_param->posid_data_type_,
+      genPositionIds(seq_len, all_seq_len, embedding_param->posid_data_type_,
                        embedding_param->data_format_);
 
   if (is_first_) is_first_ = false;
@@ -264,7 +264,7 @@ base::Status SampleNode::run() {
   }
   std::vector<int32_t> history_ids = sample_params->history_ids_.ids_[0];
 
-  int32_t out_token_id = Sample(logits, history_ids);
+  int32_t out_token_id = sample(logits, history_ids);
   tokenizer::TokenizerIds* out_token = new tokenizer::TokenizerIds();
 
   /* when first time decode, append the prefill preditct token */
@@ -282,7 +282,7 @@ base::Status SampleNode::run() {
   return status;
 }
 
-int32_t SampleNode::Sample(device::Tensor* logits,
+int32_t SampleNode::sample(device::Tensor* logits,
                            const std::vector<int>& history_ids) {
   std::unordered_set<int> ids_set(history_ids.begin(), history_ids.end());
   auto scores = (float*)logits->getData();
@@ -327,7 +327,7 @@ base::Status LlmPrefillGraph::run() {
   return status;
 }
 
-void LlmPrefillGraph::GenPastKeyValue() {
+void LlmPrefillGraph::genPastKeyValue() {
   device::Device* device = device::getDefaultHostDevice();
   device::TensorDesc past_kv_desc;
   past_kv_desc.data_type_ = base::dataTypeOf<float>();
@@ -336,7 +336,7 @@ void LlmPrefillGraph::GenPastKeyValue() {
   past_kv_ = new device::Tensor(device, past_kv_desc, "past_key_values");
 }
 
-void LlmPrefillGraph::CreatePrefillNodesEdges() {
+void LlmPrefillGraph::createPrefillNodesEdges() {
   /* token node */
   prefill_token_ids_ = createEdge("prefill_token_ids");
   prefill_token_node_ = createNode<tokenizer::TokenizerCpp>(
@@ -356,7 +356,7 @@ void LlmPrefillGraph::CreatePrefillNodesEdges() {
       createNode<EmbeddingNode>("embedding_node", embedding_in, embedding_out);
 
   /* past kv */
-  GenPastKeyValue();
+  genPastKeyValue();
 
   /* prefill infer node */
   prefill_logits_ = createEdge("logits");
@@ -369,7 +369,7 @@ void LlmPrefillGraph::CreatePrefillNodesEdges() {
       createNode<SampleNode>("sample_node", prefill_logits_, prefill_out_ids_);
 }
 
-void LlmPrefillGraph::SetParams(bool is_path, base::ModelType model_type,
+void LlmPrefillGraph::setParams(bool is_path, base::ModelType model_type,
                                  base::DeviceType device_type,
                                  LlmConfig& config) {
   /* embedding params */
@@ -406,7 +406,7 @@ void LlmPrefillGraph::SetParams(bool is_path, base::ModelType model_type,
   sample_params->is_prefill_ = true;
 }
 
-void LlmDecodeGraph::GetStopTokens(std::string& token_file) {
+void LlmDecodeGraph::getStopTokens(std::string& token_file) {
   std::ifstream tok_file(token_file);
   if (!tok_file.good()) {
     printf("Failed: can't load tokenzier from: %s.\n", token_file.c_str());
@@ -442,7 +442,7 @@ void LlmDecodeGraph::GetStopTokens(std::string& token_file) {
   }
 }
 
-void LlmDecodeGraph::CreatePrefillNodesEdges() {
+void LlmDecodeGraph::createPrefillNodesEdges() {
   /* embedding node */
   decode_input_ids_ = createEdge("decode_input_ids");
   decode_attention_mask_ = createEdge("decode_attention_mask");
@@ -476,7 +476,7 @@ void LlmDecodeGraph::CreatePrefillNodesEdges() {
       "decode_node", decode_out_ids_, decode_out_words_);
 }
 
-void LlmDecodeGraph::SetParams(bool is_path, base::ModelType model_type,
+void LlmDecodeGraph::setParams(bool is_path, base::ModelType model_type,
                                 base::DeviceType device_type,
                                 LlmConfig& config) {
   /* embedding params */
@@ -526,7 +526,7 @@ base::Status LlmDecodeGraph::run() {
 
   int iters = loops();
   for (int i = 0; i < iters; ++i) {
-    if (IsStop()) {
+    if (isStop()) {
       tokenizer::TokenizerText* word =
           (tokenizer::TokenizerText*)(decode_out_words_->getParam(
               decode_node_));
@@ -603,7 +603,7 @@ dag::Graph* createLlmLlama2Graph(const std::string& name,
                                  dag::Edge* prompt, dag::Edge* out,
                                  base::ModelType model_type, bool is_path,
                                  std::vector<std::string> config_path) {
-  LlmConfig config = ParseConfig(config_path[0]);
+  LlmConfig config = parseConfig(config_path[0]);
   dag::Graph* llama2_graph = new dag::Graph(name, prompt, out);
 
   /* create prefill graph */

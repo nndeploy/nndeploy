@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
   }
 
   /* parse config */
-  LlmConfig config = ParseConfig(config_path);
+  LlmConfig config = parseConfig(config_path);
 
   /* prompt node */
   dag::Edge *prompt = graph->createEdge("prmompt");
