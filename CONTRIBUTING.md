@@ -71,7 +71,10 @@ Based on Google style guide, with some differences:
 - Member variable naming: First letter lowercase, words connected by underscore, ends with underscore
   ```
   class MyClass {
-      int my_variable_;
+    int my_variable_;
+  }
+  struct MyStruct {
+    int my_variable_;
   }
   ```
 
@@ -162,7 +165,10 @@ nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是
 - 成员变量命名：首字母小写，单词间下划线连接，以下划线结尾
   ```
   class MyClass {
-      int my_variable_;
+    int my_variable_;
+  }
+  struct MyStruct {
+    int my_variable_;
   }
   ```
 
