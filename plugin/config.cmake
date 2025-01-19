@@ -39,6 +39,13 @@ if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/classification/config.cmake)
 endif()
 
+# # llm 
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_LLM "ENABLE_NNDEPLOY_PLUGIN_LLM" ON)
+
+if(ENABLE_NNDEPLOY_PLUGIN_LLM)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/llm/config.cmake)
+endif()
+
 # # detect
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT "ENABLE_NNDEPLOY_PLUGIN_DETECT" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR "ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR" OFF)
