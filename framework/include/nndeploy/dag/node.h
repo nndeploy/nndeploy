@@ -26,6 +26,7 @@ namespace dag {
  */
 class NNDEPLOY_CC_API Node {
  public:
+  Node(const std::string &name);
   Node(const std::string &name, Edge *input, Edge *output);
   Node(const std::string &name, std::initializer_list<Edge *> inputs,
        std::initializer_list<Edge *> outputs);
@@ -42,6 +43,12 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status setParam(base::Param *param);
   virtual base::Param *getParam();
   virtual base::Status setExternalParam(base::Param *external_param);
+
+  base::Status setInput(Edge *input);
+  base::Status setOutput(Edge *output);
+
+  base::Status setInputs(std::vector<Edge *> inputs);
+  base::Status setOutputs(std::vector<Edge *> outputs);
 
   Edge *getInput(int index = 0);
   Edge *getOutput(int index = 0);

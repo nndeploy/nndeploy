@@ -40,8 +40,11 @@ Vscode默认打开的终端有残缺，需要手动新建终端，选择Bash
 
 + 三方库资源：`/home/resource/third_party`
 
-  + 本地终端起效：export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
+  + 本地终端起效：
+    + export LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH
+    + export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
   + 始终有效
+    + echo 'export LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH' >> ~/.bashrc
     + echo 'export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
     + source ~/.bashrc
 
@@ -166,3 +169,40 @@ endif()
 
 * 对于第二种方式来说存在风险，动态库和静态库都被链接的情况下会优先选择动态库，但依然不确定是否会发生冲突，尤其是在动态库和静态库版本不一致的情况下
 
+## 代理失效，github连接问题等
+
+### github 连接不稳定问题
+
+当我们在Ascend服务器上搭建开发环境的时候会碰到仓库从github.com上clone或者其他行为卡顿特别严重的问题。对于这个现象当前有两个方法处理：
+
+1. 使用ssh连接的方式clone仓库。
+
+2. 通过将服务器挂上代理的方式，让https上的服务更加方便。
+
+当前我暂且只能通过第一种方式走通服务, 第二种方式貌似遇到了一些限制等待有缘人解决了。
+
+**对于第一种方式**主要可以参考github的这篇文章讲述[connecting-to-github-with-ssh](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)。然后，走通了流程之后将会发现仍旧无法使用ssh的方式连接github，`ssh -T git@github.com`无法获得应得结果; 鉴于这个原因，题主发现默认的20端口被限制了，需要使用443端口。需要在根目录中`$HOME/.ssh/config`中增加代码，然后方可走通。
+
+```bash
+Host github.com
+    Hostname ssh.github.com
+    Port 443
+    User git
+```
+
+除此之外，还需要在`$HOME/.gitconfig`中添加以下代码，以让后面的子模块按照ssh执行
+
+```bash
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
+```
+单独使用ssh方案可以解决卡顿问题。
+
+**对于第二种方式**可以通过两种方式在自己的服务器上布置代理：
+
+1. 按照[该文章方式](https://www.noseeflower.icu/)从下载指定的包（对于Accend来说下载这个[arm版本的clash](https://github.com/doreamon-design/clash/releases/#:~:text=clash_2.0.24_linux_arm64.tar.gz)即可。按照文章中讲的方式去进行即可，但是可能会遇到MMDB文件缺失问题，需要自行解决，我解决的方式是把第二种方式中的Country.MMDB文件拷贝过来（MMDB文件中包含了常见的网址到ip的键值对）。
+2. 下载[clash-for-linux](https://github.com/wnlen/clash-for-linux)仓库，并根据README开启代理；
+   注意：这两种都是题主测试时候使用的方式，是用的linux的clash方法，需要自行购买订阅。到目前为止，题主走通了流程，但是貌似遇到了一些约束（该方法在多个服务器上已验证使用过）：![alt text](../../image/debug_record//proxy_fail.png)
+
+题主怀疑是否是服务器只有443的端口和一些必要端口可以使用，其他端口则不行，因为如图proxy使用的52984的端口，而第一种方法中，ssh默认使用的20端口。
+另题主已经尝试了网络上大部份方法得到一上结果，包括不限于手动编译git等等...

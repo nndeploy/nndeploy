@@ -38,7 +38,7 @@ if(ENABLE_NNDEPLOY_DAG)
 endif()
 
 # plugin
-if(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
   include(${ROOT_PATH}/demo/preprocess/config.cmake)
 endif()
 
@@ -50,15 +50,15 @@ if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
   include(${ROOT_PATH}/demo/codec/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
   include(${ROOT_PATH}/demo/classification/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_DETECT)
   include(${ROOT_PATH}/demo/detect/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
   include(${ROOT_PATH}/demo/segment/config.cmake)
 endif()
 
@@ -66,7 +66,7 @@ if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
   include(${ROOT_PATH}/demo/tokenizer_cpp/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
   include(${ROOT_PATH}/demo/stable_diffusion/config.cmake)
 endif()
 

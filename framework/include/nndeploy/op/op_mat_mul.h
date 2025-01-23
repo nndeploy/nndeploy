@@ -19,8 +19,8 @@ class OpMatMul : public Op {
 };
 
 NNDEPLOY_CC_API base::Status matmul(device::Tensor *inputs_a,
-                                  device::Tensor *inputs_b,
-                                  device::Tensor *output);
+                                    device::Tensor *inputs_b,
+                                    device::Tensor *output);
 
 }  // namespace op
 }  // namespace nndeploy

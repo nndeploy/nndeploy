@@ -223,6 +223,7 @@ base::EncryptType getEncryptType();
 std::string getLicense();
 base::CodecType getCodecType();
 base::CodecFlag getCodecFlag();
+std::string getConfigPath();
 std::string getInputPath();
 std::string getOutputPath();
 int getNumThread();

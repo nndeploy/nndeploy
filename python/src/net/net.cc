@@ -38,10 +38,12 @@ NNDEPLOY_API_PYBIND11_MODULE("net", m) {
       .def("setDisablePass", &Net::setDisablePass)
       .def("setInputs", [](Net& self,
                            const py::dict& inputs_map) {  // 使用深拷贝
+        NNDEPLOY_LOGE("setInputs python\n");
         std::vector<device::Tensor*> inputs = self.getAllInput();
         for (device::Tensor* input : inputs) {
           // 获取输入张量的名称
           std::string input_name = input->getName();
+          NNDEPLOY_LOGE("input_name: %s\n", input_name.c_str());
           // 检查输入名称是否存在于inputs_map中
           if (inputs_map.contains(input_name)) {
             // 将std::string键转换为py::object
@@ -51,6 +53,10 @@ NNDEPLOY_API_PYBIND11_MODULE("net", m) {
             // 将py::object转换为device::Tensor*类型
             device::Tensor* py_tensor = py_tensor_obj.cast<device::Tensor*>();
             // 执行复制操作
+            input->getDesc().print();
+            input->getBuffer()->getDesc().print();
+            py_tensor->getDesc().print();
+            py_tensor->getBuffer()->getDesc().print();
             py_tensor->copyTo(input);
           }
         }

@@ -30,7 +30,7 @@ namespace tokenizer {
  * @brief Tokenizer
  *
  */
-class NNDEPLOY_CC_API TokenizerCpp : public nndeploy::model::Tokenizer {
+class NNDEPLOY_CC_API TokenizerCpp : public nndeploy::tokenizer::Tokenizer {
  public:
   TokenizerCpp(const std::string& name, dag::Edge* input, dag::Edge* output);
   virtual ~TokenizerCpp();

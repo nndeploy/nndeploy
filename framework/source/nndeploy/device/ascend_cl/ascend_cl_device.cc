@@ -14,9 +14,9 @@ TypeArchitectureRegister<AscendCLArchitecture> ascend_cl_architecture_register(
 
 AscendCLArchitecture::AscendCLArchitecture(
     base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code) {};
+    : Architecture(device_type_code){};
 
-AscendCLArchitecture::~AscendCLArchitecture() {};
+AscendCLArchitecture::~AscendCLArchitecture(){};
 
 void AscendCLArchitecture::setAclConfigPath(
     int device_id, const std::string &acl_config_path) {
@@ -193,20 +193,21 @@ base::Status AscendCLDevice::upload(void *src, void *dst, size_t size,
                                     int index) {
   aclrtStream stream = (aclrtStream)(this->getCommandQueue(index));
   if (src != nullptr && dst != nullptr) {
-    aclError ret = aclrtMemcpyAsync(dst, size, src, size,
-                                    ACL_MEMCPY_HOST_TO_DEVICE, stream);
+    // aclError ret = aclrtMemcpyAsync(dst, size, src, size,
+    //                                 ACL_MEMCPY_HOST_TO_DEVICE, stream);
+    aclError ret = aclrtMemcpy(dst, size, src, size, ACL_MEMCPY_HOST_TO_DEVICE);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE(
           "upload fuction: aclrtMemcpyAsync failed, errorCode is %d\n", ret);
       return base::kStatusCodeErrorDeviceAscendCL;
     }
-    ret = aclrtSynchronizeStream(stream);
-    if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE(
-          "upload fuction: aclrtSynchronizeStream failed, errorCode is %d\n",
-          ret);
-      return base::kStatusCodeErrorDeviceAscendCL;
-    }
+    // ret = aclrtSynchronizeStream(stream);
+    // if (ret != ACL_SUCCESS) {
+    //   NNDEPLOY_LOGE(
+    //       "upload fuction: aclrtSynchronizeStream failed, errorCode is %d\n",
+    //       ret);
+    //   return base::kStatusCodeErrorDeviceAscendCL;
+    // }
     return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("copy buffer failed\n");

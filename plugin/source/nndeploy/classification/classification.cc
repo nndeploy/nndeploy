@@ -57,7 +57,7 @@ base::Status ClassificationPostProcess::run() {
   for (int b = 0; b < batch; ++b) {
     float *iter_data = data + b * num_classes;
     std::vector<int> label_ids_ = topKIndices(iter_data, num_classes, topk);
-    ;
+
     for (int i = 0; i < topk; ++i) {
       results->labels_[i + b * topk].index_ = b;
       results->labels_[i + b * topk].label_ids_ = label_ids_[i];
@@ -115,6 +115,55 @@ dag::Graph *createClassificationResnetGraph(
 
   return graph;
 }
+
+// dag::Graph *createClassificationResnetGraphOptInterface(
+//     const std::string &name, dag::Edge *input, dag::Edge *output,
+//     base::Param *pre_param, base::Param *infer_param, base::Param
+//     *post_param) {
+//   dag::Graph *graph = new dag::Graph(name, input, output);
+//   dag::Node *pre =
+//   graph->createNode<preprocess::CvtColorResize>("preprocess"); dag::Node
+//   *infer = graph->createInfer<infer::Infer>("infer"); dag::Node *post =
+//   graph->createNode<ClassificationPostProcess>("postprocess");
+
+//   input = pre(input);
+//   input = infer(input);
+//   output = post(input);
+
+//   return output;
+
+//   return graph;
+// }
+
+// class ClassificationResnetGraph : public dag::Graph {
+//  public:
+//   ClassificationResnetGraph(const std::string &name, dag::Edge *input,
+//                             dag::Edge *output)
+//       : dag::Graph(name, input, output) {
+//     dag::Node *pre =
+//         graph->createNode<preprocess::CvtColorResize>("preprocess");
+//     dag::Node *infer = graph->createInfer<infer::Infer>("infer");
+//     dag::Node *post =
+//         graph->createNode<ClassificationPostProcess>("postprocess");
+
+//     input = pre(input);
+//     input = infer(input);
+//     output = post(input);
+//   }
+
+//   dag::Edge *forward(dag::Edge *input) {
+
+//     static std::once_flag flag;
+//     std::call_once(flag, [this]() {
+//       this->init();
+//     });
+
+//     input = pre(input);
+//     input = infer(input);
+//     output = post(input);
+//     return output;
+//   }
+// };
 
 }  // namespace classification
 }  // namespace nndeploy

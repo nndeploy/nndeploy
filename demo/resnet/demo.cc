@@ -57,8 +57,8 @@ int main() {
     NNDEPLOY_LOGE("interpret failed\n");
     return -1;
   }
-  status = onnx_interpret->saveModelToFile("resnet50-v1-7.sim.onnx.json",
-                                           "resnet50-v1-7.sim.onnx.safetensors");
+  status = onnx_interpret->saveModelToFile(
+      "resnet50-v1-7.sim.onnx.json", "resnet50-v1-7.sim.onnx.safetensors");
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("saveModelToFile failed\n");
     return -1;

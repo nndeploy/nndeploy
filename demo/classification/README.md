@@ -158,6 +158,10 @@ DrawLableNode run() 100                 21.285              0.213               
 encode_node run()   100                 1819.781            18.198              0.000               
 -------------------------------------------------------------------------------------------
 
+## cpu-default
+
+./nndeploy_demo_classification --name NNDEPLOY_RESNET --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeCpu:0 --model_type kModelTypeDefault --is_path --model_value resnet50-v1-7.sim.onnx.json,resnet50-v1-7.sim.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path example_input.jpg --output_path example_output_cpu_default.jpg
+
 ### python
 python test_resnet.py --model_type onnx --model_path /home/ascenduserdg01/github/nndeploy/build/resnet50-v1-7.sim.onnx --device cpu --image_path /home/ascenduserdg01/github/nndeploy/build/example_input.jpg
 

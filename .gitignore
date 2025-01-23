@@ -231,3 +231,6 @@ compile_commands.json
 *.onnx
 *.json
 *.safetensors
+
+# setup.py
+python/setup.py
