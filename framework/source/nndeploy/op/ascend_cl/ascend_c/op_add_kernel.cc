@@ -8,11 +8,10 @@ class KernelAdd {
  public:
   __aicore__ inline KernelAdd() {}
 
-  __aicore__ inline void Init(GM_ADDR x, GM_ADDR y, GM_ADDR z,
-                              AddCustomTilingData data) {
-    this->blockLength = data.totalLength / AscendC::GetBlockNum();
-    this->tileNum = data.tileNum;
-    this->tileLength = this->blockLength / data.tileNum / BUFFER_NUM;
+  __aicore__ inline void Init(GM_ADDR x, GM_ADDR y, GM_ADDR z) {
+    this->blockLength = 64;
+    this->tileNum = 8;
+    this->tileLength = this->blockLength / BUFFER_NUM;
 
     xGm.SetGlobalBuffer(
         (__gm__ half *)x + this->blockLength * AscendC::GetBlockIdx(),
@@ -78,10 +77,9 @@ class KernelAdd {
 };
 
 extern "C" __global__ __aicore__ void add_custom(GM_ADDR x, GM_ADDR y,
-                                                 GM_ADDR z,
-                                                 AddCustomTilingData data) {
+                                                 GM_ADDR z) {
   KernelAdd op;
-  op.Init(x, y, z, data);
+  op.Init(x, y, z);
   op.Process();
 }
 
@@ -90,7 +88,7 @@ namespace op {
 
 void add_custom_do(uint32_t blockDim, void *stream, uint8_t *x, uint8_t *y,
                    uint8_t *z, AddCustomTilingData data) {
-  add_custom<<<blockDim, nullptr, stream>>>(x, y, z, data);
+  add_custom<<<blockDim, nullptr, stream>>>(x, y, z);
 }
 
 }  // namespace op

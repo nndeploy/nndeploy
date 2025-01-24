@@ -44,14 +44,14 @@ class AscendCLOpAdd : public OpBinary {
     base::IntVector input1_shape = inputs_1_->getShape();
 
     // 检查输入形状是否相同
-    if (input1_shape.size() != input2_shape.size()) {
+    if (input0_shape.size() != input1_shape.size()) {
       NNDEPLOY_LOGE(
           "Input tensors do not have the same number of dimensions.\n");
       return base::kStatusCodeErrorInvalidParam;
     }
 
     for (size_t i = 0; i < input1_shape.size(); ++i) {
-      if (input1_shape[i] != input2_shape[i]) {
+      if (input0_shape[i] != input1_shape[i]) {
         NNDEPLOY_LOGE("Input tensors do not have the same shape.\n");
         return base::kStatusCodeErrorInvalidParam;
       }
@@ -97,7 +97,7 @@ class AscendCLOpAdd : public OpBinary {
 
   aclrtStream inner_stream_ = nullptr;
 
-  AddCustomTilingData data_ = nullptr;
+  AddCustomTilingData data_;
 };
 #else
 class AscendCLOpAdd : public OpBinary {
