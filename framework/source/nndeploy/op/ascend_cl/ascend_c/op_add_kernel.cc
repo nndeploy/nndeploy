@@ -1,30 +1,35 @@
+#include "op_add_kernel.h"
+
 #include "kernel_operator.h"
 
-constexpr int32_t TOTAL_LENGTH = 8 * 2048;
-constexpr int32_t USE_CORE_NUM = 8;
-constexpr int32_t BLOCK_LENGTH = TOTAL_LENGTH / USE_CORE_NUM;
-constexpr int32_t TILE_NUM = 8;
 constexpr int32_t BUFFER_NUM = 2;
-constexpr int32_t TILE_LENGTH = BLOCK_LENGTH / TILE_NUM / BUFFER_NUM;
 
 class KernelAdd {
  public:
   __aicore__ inline KernelAdd() {}
 
-  __aicore__ inline void Init(GM_ADDR x, GM_ADDR y, GM_ADDR z) {
+  __aicore__ inline void Init(GM_ADDR x, GM_ADDR y, GM_ADDR z,
+                              AddCustomTilingData data) {
+    this->blockLength = data.totalLength / AscendC::GetBlockNum();
+    this->tileNum = data.tileNum;
+    this->tileLength = this->blockLength / data.tileNum / BUFFER_NUM;
+
     xGm.SetGlobalBuffer(
-        (__gm__ half *)x + BLOCK_LENGTH * AscendC::GetBlockIdx(), BLOCK_LENGTH);
+        (__gm__ half *)x + this->blockLength * AscendC::GetBlockIdx(),
+        this->blockLength);
     yGm.SetGlobalBuffer(
-        (__gm__ half *)y + BLOCK_LENGTH * AscendC::GetBlockIdx(), BLOCK_LENGTH);
+        (__gm__ half *)y + this->blockLength * AscendC::GetBlockIdx(),
+        this->blockLength);
     zGm.SetGlobalBuffer(
-        (__gm__ half *)z + BLOCK_LENGTH * AscendC::GetBlockIdx(), BLOCK_LENGTH);
-    pipe.InitBuffer(inQueueX, BUFFER_NUM, TILE_LENGTH * sizeof(half));
-    pipe.InitBuffer(inQueueY, BUFFER_NUM, TILE_LENGTH * sizeof(half));
-    pipe.InitBuffer(outQueueZ, BUFFER_NUM, TILE_LENGTH * sizeof(half));
+        (__gm__ half *)z + this->blockLength * AscendC::GetBlockIdx(),
+        this->blockLength);
+    pipe.InitBuffer(inQueueX, BUFFER_NUM, this->tileLength * sizeof(half));
+    pipe.InitBuffer(inQueueY, BUFFER_NUM, this->tileLength * sizeof(half));
+    pipe.InitBuffer(outQueueZ, BUFFER_NUM, this->tileLength * sizeof(half));
   }
 
   __aicore__ inline void Process() {
-    int32_t loopCount = TILE_NUM * BUFFER_NUM;
+    int32_t loopCount = this->tileNum * BUFFER_NUM;
     for (int32_t i = 0; i < loopCount; i++) {
       CopyIn(i);
       Compute(i);
@@ -36,8 +41,10 @@ class KernelAdd {
   __aicore__ inline void CopyIn(int32_t progress) {
     AscendC::LocalTensor<half> xLocal = inQueueX.AllocTensor<half>();
     AscendC::LocalTensor<half> yLocal = inQueueY.AllocTensor<half>();
-    AscendC::DataCopy(xLocal, xGm[progress * TILE_LENGTH], TILE_LENGTH);
-    AscendC::DataCopy(yLocal, yGm[progress * TILE_LENGTH], TILE_LENGTH);
+    AscendC::DataCopy(xLocal, xGm[progress * this->tileLength],
+                      this->tileLength);
+    AscendC::DataCopy(yLocal, yGm[progress * this->tileLength],
+                      this->tileLength);
     inQueueX.EnQue(xLocal);
     inQueueY.EnQue(yLocal);
   }
@@ -45,14 +52,15 @@ class KernelAdd {
     AscendC::LocalTensor<half> xLocal = inQueueX.DeQue<half>();
     AscendC::LocalTensor<half> yLocal = inQueueY.DeQue<half>();
     AscendC::LocalTensor<half> zLocal = outQueueZ.AllocTensor<half>();
-    AscendC::Add(zLocal, xLocal, yLocal, TILE_LENGTH);
+    AscendC::Add(zLocal, xLocal, yLocal, this->tileLength);
     outQueueZ.EnQue<half>(zLocal);
     inQueueX.FreeTensor(xLocal);
     inQueueY.FreeTensor(yLocal);
   }
   __aicore__ inline void CopyOut(int32_t progress) {
     AscendC::LocalTensor<half> zLocal = outQueueZ.DeQue<half>();
-    AscendC::DataCopy(zGm[progress * TILE_LENGTH], zLocal, TILE_LENGTH);
+    AscendC::DataCopy(zGm[progress * this->tileLength], zLocal,
+                      this->tileLength);
     outQueueZ.FreeTensor(zLocal);
   }
 
@@ -63,12 +71,17 @@ class KernelAdd {
   AscendC::GlobalTensor<half> xGm;
   AscendC::GlobalTensor<half> yGm;
   AscendC::GlobalTensor<half> zGm;
+
+  uint32_t blockLength;
+  uint32_t tileNum;
+  uint32_t tileLength;
 };
 
 extern "C" __global__ __aicore__ void add_custom(GM_ADDR x, GM_ADDR y,
-                                                 GM_ADDR z) {
+                                                 GM_ADDR z,
+                                                 AddCustomTilingData data) {
   KernelAdd op;
-  op.Init(x, y, z);
+  op.Init(x, y, z, data);
   op.Process();
 }
 
@@ -76,8 +89,8 @@ namespace nndeploy {
 namespace op {
 
 void add_custom_do(uint32_t blockDim, void *stream, uint8_t *x, uint8_t *y,
-                   uint8_t *z) {
-  add_custom<<<blockDim, nullptr, stream>>>(x, y, z);
+                   uint8_t *z, AddCustomTilingData data) {
+  add_custom<<<blockDim, nullptr, stream>>>(x, y, z, data);
 }
 
 }  // namespace op

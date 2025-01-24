@@ -1,4 +1,5 @@
 #include "aclnnop/aclnn_add.h"
+#include "ascend_c/op_add_kernel.h"
 #include "nndeploy/op/ascend_cl/op_convert.h"
 #include "nndeploy/op/ascend_cl/op_include.h"
 #include "nndeploy/op/ascend_cl/op_util.h"
@@ -11,7 +12,7 @@ namespace op {
 #ifdef ENABLE_NNDEPLOY_OP_ASCEND_C
 // 外部符号声明
 extern void add_custom_do(uint32_t blockDim, void* stream, uint8_t* x,
-                          uint8_t* y, uint8_t* z);
+                          uint8_t* y, uint8_t* z, AddCustomTilingData data);
 
 class AscendCLOpAdd : public OpBinary {
  public:
@@ -38,6 +39,31 @@ class AscendCLOpAdd : public OpBinary {
       inputs_1_ = inputs_[1];
     }
 
+    // 获取输入张量的形状
+    base::IntVector input0_shape = inputs_0_->getShape();
+    base::IntVector input1_shape = inputs_1_->getShape();
+
+    // 检查输入形状是否相同
+    if (input1_shape.size() != input2_shape.size()) {
+      NNDEPLOY_LOGE(
+          "Input tensors do not have the same number of dimensions.\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+
+    for (size_t i = 0; i < input1_shape.size(); ++i) {
+      if (input1_shape[i] != input2_shape[i]) {
+        NNDEPLOY_LOGE("Input tensors do not have the same shape.\n");
+        return base::kStatusCodeErrorInvalidParam;
+      }
+    }
+
+    // 计算总元素数量
+    size_t total_elements = std::accumulate(
+        input1_shape.begin(), input1_shape.end(), 1, std::multiplies<size_t>());
+
+    data_.totalLength = total_elements;
+    data_.tileNum = 8;
+
     return base::kStatusCodeOk;
   }
   virtual base::Status deinit() {
@@ -56,7 +82,8 @@ class AscendCLOpAdd : public OpBinary {
     uint8_t* input_data_1 = (uint8_t*)(inputs_1_->getData());
     uint8_t* output_data = (uint8_t*)(outputs_[0]->getData());
 
-    add_custom_do(8, inner_stream_, input_data_0, input_data_1, output_data);
+    add_custom_do(8, inner_stream_, input_data_0, input_data_1, output_data,
+                  data_);
     aclrtSynchronizeStream(inner_stream_);
 
     return base::kStatusCodeOk;
@@ -69,6 +96,8 @@ class AscendCLOpAdd : public OpBinary {
   device::Tensor* inputs_1_ = nullptr;
 
   aclrtStream inner_stream_ = nullptr;
+
+  AddCustomTilingData data_ = nullptr;
 };
 #else
 class AscendCLOpAdd : public OpBinary {
