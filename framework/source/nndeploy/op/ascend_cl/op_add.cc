@@ -10,17 +10,19 @@ namespace nndeploy {
 namespace op {
 
 #ifdef ENABLE_NNDEPLOY_OP_ASCEND_C
-// 外部符号声明
-extern void add_custom_do(uint32_t blockDim, void* stream, uint8_t* x,
-                          uint8_t* y, uint8_t* z, AddCustomTilingData data);
-
+#include "acl/acl.h"
+#include "aclrtlaunch_add_custom.h"
+// extern symbol
+// extern "C" __global__ __aicore__ void add_custom(GM_ADDR x, GM_ADDR y,
+//                                                  GM_ADDR z,
+//                                                  AddCustomTilingData tiling);
 class AscendCLOpAdd : public OpBinary {
  public:
   AscendCLOpAdd() {}
   virtual ~AscendCLOpAdd() {}
 
   virtual base::Status init() {
-    // 流
+    // inner stream
     device::Device* device = device::getDevice(device_type_);
     inner_stream_ = (aclrtStream)device->getCommandQueue();
 
@@ -39,11 +41,10 @@ class AscendCLOpAdd : public OpBinary {
       inputs_1_ = inputs_[1];
     }
 
-    // 获取输入张量的形状
+    // get input shape
     base::IntVector input0_shape = inputs_0_->getShape();
     base::IntVector input1_shape = inputs_1_->getShape();
-
-    // 检查输入形状是否相同
+    // check input shape
     if (input0_shape.size() != input1_shape.size()) {
       NNDEPLOY_LOGE(
           "Input tensors do not have the same number of dimensions.\n");
@@ -57,12 +58,21 @@ class AscendCLOpAdd : public OpBinary {
       }
     }
 
-    // 计算总元素数量
+    // calculate total elements
     size_t total_elements = std::accumulate(
         input1_shape.begin(), input1_shape.end(), 1, std::multiplies<size_t>());
 
-    data_.totalLength = total_elements;
-    data_.tileNum = 8;
+    // copy tiling data to device
+    add_custom_tiling_data_.totalLength = total_elements;
+    add_custom_tiling_data_.tileNum = 8;
+
+    AddCustomTilingData* buf = &add_custom_tiling_data_;
+    size_t tiling_size = sizeof(AddCustomTilingData);
+
+    aclrtMalloc((void**)&tiling_device, tiling_size, ACL_MEM_MALLOC_HUGE_FIRST);
+    aclrtMemcpyAsync(tiling_device, tiling_size, (void*)buf, tiling_size,
+                     ACL_MEMCPY_HOST_TO_DEVICE, inner_stream_);
+    aclrtSynchronizeStream(inner_stream_);
 
     return base::kStatusCodeOk;
   }
@@ -75,6 +85,10 @@ class AscendCLOpAdd : public OpBinary {
       delete inputs_1_;
       inputs_1_ = nullptr;
     }
+    if (tiling_device != nullptr) {
+      aclrtFree(tiling_device);
+      tiling_device = nullptr;
+    }
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
@@ -82,8 +96,11 @@ class AscendCLOpAdd : public OpBinary {
     uint8_t* input_data_1 = (uint8_t*)(inputs_1_->getData());
     uint8_t* output_data = (uint8_t*)(outputs_[0]->getData());
 
-    add_custom_do(8, inner_stream_, input_data_0, input_data_1, output_data,
-                  data_);
+    // add_custom_do(8, inner_stream_, input_data_0, input_data_1, output_data,
+    //               &data_);
+    ACLRT_LAUNCH_KERNEL(add_custom)
+    (8, inner_stream_, input_data_0, input_data_1, output_data,
+     reinterpret_cast<uint8_t*>(tiling_device));
     aclrtSynchronizeStream(inner_stream_);
 
     return base::kStatusCodeOk;
@@ -97,7 +114,8 @@ class AscendCLOpAdd : public OpBinary {
 
   aclrtStream inner_stream_ = nullptr;
 
-  AddCustomTilingData data_;
+  void* tiling_device = nullptr;
+  AddCustomTilingData add_custom_tiling_data_;
 };
 #else
 class AscendCLOpAdd : public OpBinary {

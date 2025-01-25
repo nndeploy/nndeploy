@@ -4,13 +4,28 @@
 
 constexpr int32_t BUFFER_NUM = 2;
 
+__aicore__ inline void CopyTiling(nndeploy::op::AddCustomTilingData *tiling,
+                                  GM_ADDR tiling_gm) {
+  uint32_t *tiling_ptr = reinterpret_cast<uint32_t *>(tiling);
+  __gm__ uint32_t *tiling_gm_ptr =
+      reinterpret_cast<__gm__ uint32_t *>(tiling_gm);
+
+  for (int i = 0;
+       i < sizeof(nndeploy::op::AddCustomTilingData) / sizeof(uint32_t);
+       i++, tiling_ptr++) {
+    *tiling_ptr = *(tiling_gm_ptr + i);
+  }
+}
+
 class KernelAdd {
  public:
   __aicore__ inline KernelAdd() {}
 
-  __aicore__ inline void Init(GM_ADDR x, GM_ADDR y, GM_ADDR z) {
-    this->blockLength = 64;
-    this->tileNum = 8;
+  __aicore__ inline void Init(GM_ADDR x, GM_ADDR y, GM_ADDR z,
+                              GM_ADDR tiling_gm) {
+    CopyTiling(&tiling_, tiling_gm);
+    this->blockLength = tiling_.totalLength;
+    this->tileNum = tiling_.tileNum;
     this->tileLength = this->blockLength / BUFFER_NUM;
 
     xGm.SetGlobalBuffer(
@@ -74,12 +89,14 @@ class KernelAdd {
   uint32_t blockLength;
   uint32_t tileNum;
   uint32_t tileLength;
+
+  nndeploy::op::AddCustomTilingData tiling_;
 };
 
 extern "C" __global__ __aicore__ void add_custom(GM_ADDR x, GM_ADDR y,
-                                                 GM_ADDR z) {
+                                                 GM_ADDR z, GM_ADDR tiling_gm) {
   KernelAdd op;
-  op.Init(x, y, z);
+  op.Init(x, y, z, tiling_gm);
   op.Process();
 }
 
@@ -87,8 +104,8 @@ namespace nndeploy {
 namespace op {
 
 void add_custom_do(uint32_t blockDim, void *stream, uint8_t *x, uint8_t *y,
-                   uint8_t *z, AddCustomTilingData data) {
-  add_custom<<<blockDim, nullptr, stream>>>(x, y, z);
+                   uint8_t *z, AddCustomTilingData *data) {
+  // add_custom<<<blockDim, nullptr, stream>>>(x, y, z);
 }
 
 }  // namespace op
