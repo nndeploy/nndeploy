@@ -64,7 +64,6 @@ class AscendCLOpAdd : public OpBinary {
 
     // copy tiling data to device
     add_custom_tiling_data_.totalLength = total_elements;
-    add_custom_tiling_data_.tileNum = 8;
 
     AddCustomTilingData* buf = &add_custom_tiling_data_;
     size_t tiling_size = sizeof(AddCustomTilingData);

@@ -3,6 +3,7 @@
 #include "kernel_operator.h"
 
 constexpr int32_t BUFFER_NUM = 2;
+constexpr int32_t ALIGN_NUM = 16;
 
 __aicore__ inline void CopyTiling(nndeploy::op::AddCustomTilingData *tiling,
                                   GM_ADDR tiling_gm) {
@@ -24,45 +25,60 @@ class KernelAdd {
   __aicore__ inline void Init(GM_ADDR x, GM_ADDR y, GM_ADDR z,
                               GM_ADDR tiling_gm) {
     CopyTiling(&tiling_, tiling_gm);
-    this->blockLength = tiling_.totalLength;
-    this->tileNum = tiling_.tileNum;
-    this->tileLength = this->blockLength / BUFFER_NUM;
+    uint32_t totalLength = tiling_.totalLength;
 
-    xGm.SetGlobalBuffer(
-        (__gm__ half *)x + this->blockLength * AscendC::GetBlockIdx(),
-        this->blockLength);
-    yGm.SetGlobalBuffer(
-        (__gm__ half *)y + this->blockLength * AscendC::GetBlockIdx(),
-        this->blockLength);
-    zGm.SetGlobalBuffer(
-        (__gm__ half *)z + this->blockLength * AscendC::GetBlockIdx(),
-        this->blockLength);
+    uint32_t blockDim = AscendC::GetBlockNum();
+    uint32_t totalLengthAligned =
+        ((totalLength + ALIGN_NUM - 1) / ALIGN_NUM) * ALIGN_NUM;
+    uint32_t bodyLength =
+        (totalLengthAligned / blockDim + ALIGN_NUM - 1) / ALIGN_NUM * ALIGN_NUM;
+    uint32_t tailLength =
+        (totalLengthAligned / blockDim) / ALIGN_NUM * ALIGN_NUM;
+    uint32_t bodyNum = (totalLengthAligned / ALIGN_NUM) % blockDim;
+    uint32_t tailNum = blockDim - bodyNum;
+
+    if (AscendC::GetBlockIdx() < bodyNum) {
+      this->tileLength = bodyLength;
+      xGm.SetGlobalBuffer(
+          (__gm__ half *)x + bodyLength * AscendC::GetBlockIdx(), bodyLength);
+      yGm.SetGlobalBuffer(
+          (__gm__ half *)y + bodyLength * AscendC::GetBlockIdx(), bodyLength);
+      zGm.SetGlobalBuffer(
+          (__gm__ half *)z + bodyLength * AscendC::GetBlockIdx(), bodyLength);
+    } else {
+      this->tileLength = tailLength;
+      xGm.SetGlobalBuffer((__gm__ half *)x + bodyLength * bodyNum +
+                              tailLength * (AscendC::GetBlockIdx() - bodyNum),
+                          tailLength);
+      yGm.SetGlobalBuffer((__gm__ half *)y + bodyLength * bodyNum +
+                              tailLength * (AscendC::GetBlockIdx() - bodyNum),
+                          tailLength);
+      zGm.SetGlobalBuffer((__gm__ half *)z + bodyLength * bodyNum +
+                              tailLength * (AscendC::GetBlockIdx() - bodyNum),
+                          tailLength);
+    }
+
     pipe.InitBuffer(inQueueX, BUFFER_NUM, this->tileLength * sizeof(half));
     pipe.InitBuffer(inQueueY, BUFFER_NUM, this->tileLength * sizeof(half));
     pipe.InitBuffer(outQueueZ, BUFFER_NUM, this->tileLength * sizeof(half));
   }
 
   __aicore__ inline void Process() {
-    int32_t loopCount = this->tileNum * BUFFER_NUM;
-    for (int32_t i = 0; i < loopCount; i++) {
-      CopyIn(i);
-      Compute(i);
-      CopyOut(i);
-    }
+    CopyIn();
+    Compute();
+    CopyOut();
   }
 
  private:
-  __aicore__ inline void CopyIn(int32_t progress) {
+  __aicore__ inline void CopyIn() {
     AscendC::LocalTensor<half> xLocal = inQueueX.AllocTensor<half>();
     AscendC::LocalTensor<half> yLocal = inQueueY.AllocTensor<half>();
-    AscendC::DataCopy(xLocal, xGm[progress * this->tileLength],
-                      this->tileLength);
-    AscendC::DataCopy(yLocal, yGm[progress * this->tileLength],
-                      this->tileLength);
+    AscendC::DataCopy(xLocal, xGm, this->tileLength);
+    AscendC::DataCopy(yLocal, yGm, this->tileLength);
     inQueueX.EnQue(xLocal);
     inQueueY.EnQue(yLocal);
   }
-  __aicore__ inline void Compute(int32_t progress) {
+  __aicore__ inline void Compute() {
     AscendC::LocalTensor<half> xLocal = inQueueX.DeQue<half>();
     AscendC::LocalTensor<half> yLocal = inQueueY.DeQue<half>();
     AscendC::LocalTensor<half> zLocal = outQueueZ.AllocTensor<half>();
@@ -71,10 +87,9 @@ class KernelAdd {
     inQueueX.FreeTensor(xLocal);
     inQueueY.FreeTensor(yLocal);
   }
-  __aicore__ inline void CopyOut(int32_t progress) {
+  __aicore__ inline void CopyOut() {
     AscendC::LocalTensor<half> zLocal = outQueueZ.DeQue<half>();
-    AscendC::DataCopy(zGm[progress * this->tileLength], zLocal,
-                      this->tileLength);
+    AscendC::DataCopy(zGm, zLocal, this->tileLength);
     outQueueZ.FreeTensor(zLocal);
   }
 
@@ -86,10 +101,7 @@ class KernelAdd {
   AscendC::GlobalTensor<half> yGm;
   AscendC::GlobalTensor<half> zGm;
 
-  uint32_t blockLength;
-  uint32_t tileNum;
   uint32_t tileLength;
-
   nndeploy::op::AddCustomTilingData tiling_;
 };
 
