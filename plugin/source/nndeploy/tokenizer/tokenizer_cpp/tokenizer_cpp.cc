@@ -13,6 +13,21 @@ TokenizerCpp::TokenizerCpp(const std::string& name, dag::Edge* input,
 }
 TokenizerCpp::~TokenizerCpp() {}
 
+std::string LoadBytesFromFile(const std::string& path) {
+  std::ifstream fs(path, std::ios::in | std::ios::binary);
+  if (fs.fail()) {
+    std::cerr << "Cannot open " << path << std::endl;
+    exit(1);
+  }
+  std::string data;
+  fs.seekg(0, std::ios::end);
+  size_t size = static_cast<size_t>(fs.tellg());
+  fs.seekg(0, std::ios::beg);
+  data.resize(size);
+  fs.read(data.data(), size);
+  return data;
+}
+
 base::Status TokenizerCpp::init() {
   base::Status status = base::kStatusCodeOk;
 
@@ -31,6 +46,8 @@ base::Status TokenizerCpp::init() {
     } else {
       blob = tokenizer_param->json_blob_;
     }
+
+    blob = LoadBytesFromFile(blob);
     tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
   } else if (tokenizer_param->tokenizer_type_ ==
              TokenizerType::kTokenizerTypeBPE) {

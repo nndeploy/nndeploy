@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
 
   NNDEPLOY_TIME_POINT_START("graph->run");
   int size = decode_node->getSize();
-  size = 1;
+  size = 100;
   decode_node->setSize(size);
   NNDEPLOY_LOGE("size = %d.\n", size);
   for (int i = 0; i < size; ++i) {
@@ -189,6 +189,12 @@ int main(int argc, char *argv[]) {
   }
 
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
+  NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 0);
+  NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 1);
+  NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 2);
+  NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 50);
+  NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 99);
+  NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
 
   // 有向无环图graph销毁
   delete encode_node;
@@ -203,7 +209,5 @@ int main(int argc, char *argv[]) {
     NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
     return ret;
   }
-  return 0;
-
   return 0;
 }
