@@ -500,7 +500,7 @@ class ClassificationResnetGraph : public dag::Graph {
     inputs = pre_(inputs, {"data"});
     // Inference output "resnetv17_dense0_fwd"
     // is the final FC layer output
-    inputs = infer(inputs, {"resnetv17_dense0_fwd"});
+    inputs = infer_(inputs, {"resnetv17_dense0_fwd"});
     // Postprocessing outputs specified by output_names,
     // typically class results and confidence
     outputs = post_(inputs, output_names);

@@ -1,4 +1,7 @@
 
+# from pydantic import Tag
+
+
 class ClassificationResnetGraphV0(dag.Graph):
   def __init__(self, name, pre_param, infer_param, post_param):
     super().__init__(name)
@@ -85,4 +88,3 @@ def test_classification_resnet_demo_graph():
   output1, output2 = graph.forward(input)
   print(output1)
   print(output2)
-
