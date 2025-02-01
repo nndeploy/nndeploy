@@ -7,6 +7,15 @@
 namespace nndeploy {
 namespace ir {
 NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
+  py::class_<ir::ValueDesc, std::shared_ptr<ir::ValueDesc>>(m, "ValueDesc")
+      .def(py::init<>())
+      .def(py::init<const std::string&>())
+      .def(py::init<const std::string&, base::DataType>())
+      .def(py::init<const std::string&, base::DataType, base::IntVector>())
+      .def_readwrite("name_", &ir::ValueDesc::name_)
+      .def_readwrite("type_", &ir::ValueDesc::data_type_)
+      .def_readwrite("shape_", &ir::ValueDesc::shape_);
+
   py::class_<ir::ModelDesc, std::shared_ptr<ir::ModelDesc>>(m, "ModelDesc")
       .def(py::init<>())
       .def_readwrite("name_", &ir::ModelDesc::name_)

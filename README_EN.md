@@ -2,10 +2,11 @@
 [简体中文](README.md) | English
 
 ## Introduction
-nndeploy is an end-to-end model deployment framework. Based on multi-terminal inference and directed acyclic graph model deployment, it is committed to providing users with a cross-platform, easy-to-use, and high-performance model deployment experience.
 
+nndeploy is an end-to-end model inference and deployment framework. It aims to provide users with a powerful, easy-to-use, high-performance, and mainstream framework compatible model inference and deployment experience.
 
 ## Architecture
+
 ![Architecture](docs/image/architecture.jpg)
 
 ## Fetures
@@ -122,7 +123,7 @@ The current supported inference framework is as follows:
 
 
 ## Contact Us
-- nndeploy is still in its infancy, welcome to join us.
-- Wechat：titian5566(mention: nndeploy+name) 
+- nndeploy is currently in its development stage. If you are passionate about open source and enjoy tinkering, whether for learning purposes or if you have better ideas, you are welcome to join us.
+- WeChat: titian5566 (Please briefly introduce yourself when adding WeChat to join the AI Inference Deployment communication group)
 
   <img align="left" src="docs/image/wechat.jpg" width="225px">

@@ -211,7 +211,7 @@ git submodule update --init --recursive
 
 ## 具体平台的编译步骤
 
-- nndeploy的华为昇腾推理框架后端编译步骤
+- nndeploy的基于华为昇腾推理框架后端编译步骤
   - 编译选项配置可参考[nndeploy\cmake\config_ascendcl_inference.cmake](../../../cmake/config_ascendcl_inference.cmake)
   - 具体步骤: 
     - 安装cann_toolkit等开发环境

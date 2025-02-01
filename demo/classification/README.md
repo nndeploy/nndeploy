@@ -115,4 +115,4 @@ encode_node run()   100                 1536.780            15.368              
 
 ### 效果示例
 
-![sample](../../image/demo/sample.jpg) ![sample_output](../../image/demo/sample_output.jpg)
+![sample](../../image/demo/detect/sample.jpg) ![sample_output](../../image/demo/detect/sample_output.jpg)

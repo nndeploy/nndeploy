@@ -13,7 +13,9 @@ endif()
 # ################### common ####################
 # # OpenCV
 include("${ROOT_PATH}/cmake/opencv.cmake")
+# # rapidjson
 include("${ROOT_PATH}/cmake/rapidjson.cmake")
+# # safetensos_cpp
 include("${ROOT_PATH}/cmake/safetensos_cpp.cmake")
 
 # ################### common ####################

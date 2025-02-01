@@ -135,7 +135,7 @@ enum DataFormat : int {
   // kDataFormatNCW,
   kDataFormatNCL,
 
-  kDataFormatS1D, // [seq_len, 1, dim]
+  kDataFormatS1D,  // [seq_len, 1, dim]
 
   // 4D
   kDataFormatNCHW,  // 为主

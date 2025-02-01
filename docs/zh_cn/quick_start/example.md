@@ -140,4 +140,4 @@ adb pull /data/local/tmp/sample_output.jpg ./
 ```
 
 ### 效果示例
-![sample](../../image/demo/sample.jpg) ![sample_output](../../image/demo/sample_output.jpg)
+![sample](../../image/demo/detect/sample.jpg) ![sample_output](../../image/demo/detect/sample_output.jpg)

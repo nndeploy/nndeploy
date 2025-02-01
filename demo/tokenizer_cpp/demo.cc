@@ -6,11 +6,11 @@
 #include <iostream>
 #include <string>
 
-#include "nndeploy/framework.h"
 #include "nndeploy/base/glic_stl_include.h"
+#include "nndeploy/framework.h"
 #include "nndeploy/inference/inference_param.h"
-#include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 #include "nndeploy/stable_diffusion/clip.h"
+#include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 
 using tokenizers::Tokenizer;
 
@@ -153,8 +153,8 @@ int main(int argc, char* argv[]) {
 
   nndeploy::tokenizer::TokenizerCpp* tokenizer_cpp =
       (nndeploy::tokenizer::TokenizerCpp*)
-          graph.createNode<nndeploy::tokenizer::TokenizerCpp>("name", input_edge,
-                                                          output_edge);
+          graph.createNode<nndeploy::tokenizer::TokenizerCpp>(
+              "name", input_edge, output_edge);
 
   nndeploy::tokenizer::TokenizerPraram* tp =
       (nndeploy::tokenizer::TokenizerPraram*)tokenizer_cpp->getParam();
@@ -218,28 +218,29 @@ int main(int argc, char* argv[]) {
   param.push_back(tokenizer_concat_param);
   param.push_back(inference_param);
 
-  //nndeploy::dag::Edge eprompt;
-  //nndeploy::dag::Edge negative_prompt;
-  //nndeploy::dag::Edge output("text_embeddings");
-  //nndeploy::dag::Graph* clip_graph = nndeploy::stable_diffusion::createCLIPGraph(
-  //    "clip", &eprompt, &negative_prompt, &output, inference_type, param);
+  // nndeploy::dag::Edge eprompt;
+  // nndeploy::dag::Edge negative_prompt;
+  // nndeploy::dag::Edge output("text_embeddings");
+  // nndeploy::dag::Graph* clip_graph =
+  // nndeploy::stable_diffusion::createCLIPGraph(
+  //     "clip", &eprompt, &negative_prompt, &output, inference_type, param);
 
-  //clip_graph->init();
+  // clip_graph->init();
 
-  //nndeploy::tokenizer::TokenizerText tteprompt;
-  //tteprompt.texts_.push_back(
-  //    "a beautiful photograph of Mt. Fuji during cherry blossom");
-  //eprompt.set((nndeploy::base::Param*)(&tteprompt), 0);
+  // nndeploy::tokenizer::TokenizerText tteprompt;
+  // tteprompt.texts_.push_back(
+  //     "a beautiful photograph of Mt. Fuji during cherry blossom");
+  // eprompt.set((nndeploy::base::Param*)(&tteprompt), 0);
 
-  //nndeploy::tokenizer::TokenizerText tt_neg;
-  //tt_neg.texts_.push_back("");
-  //negative_prompt.set((nndeploy::base::Param*)(&tt_neg), 0);
+  // nndeploy::tokenizer::TokenizerText tt_neg;
+  // tt_neg.texts_.push_back("");
+  // negative_prompt.set((nndeploy::base::Param*)(&tt_neg), 0);
 
-  //clip_graph->run();
+  // clip_graph->run();
 
-  //nndeploy::device::Tensor* tensor =
-  //    (nndeploy::device::Tensor*)(output.getGraphOutputTensor());
-  //tensor->print();
+  // nndeploy::device::Tensor* tensor =
+  //     (nndeploy::device::Tensor*)(output.getGraphOutputTensor());
+  // tensor->print();
 
   //// randn tensor test
   //{
