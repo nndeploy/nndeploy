@@ -215,7 +215,7 @@ git submodule update --init --recursive
   - 编译选项配置可参考[nndeploy\cmake\config_ascendcl_inference.cmake](../../../cmake/config_ascendcl_inference.cmake)
   - 具体步骤: 
     - 安装cann_toolkit等开发环境
-    - 安装opencv(建议：通过apt install安装，通过指定ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME的路径来开启编译选项)
+    - 安装opencv(建议：通过apt install安装，通过指定ENABLE_NNDEPLOY_OPENCV为ON，从而开启该编译选项)
     - 安装onnxruntime(建议：手动下载动态库，通过指定ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME为具体路径，从而开启该编译选项)
     - 在根目录创建`build`目录，将[nndeploy\cmake\config_ascendcl_inference.cmake](../../../cmake/config_ascendcl_inference.cmake)复制到该目录，并修改为config.cmake, 根据需求修改config.cmake
       ```
