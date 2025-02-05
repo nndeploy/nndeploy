@@ -13,6 +13,14 @@ PaddleLiteInferenceParam::PaddleLiteInferenceParam() : InferenceParam() {
   device_type_ = device::getDefaultHostDeviceType();
   num_thread_ = 4;
 }
+
+PaddleLiteInferenceParam::PaddleLiteInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypePaddleLite;
+  device_type_ = device::getDefaultHostDeviceType();
+  num_thread_ = 4;
+}
+
 PaddleLiteInferenceParam::~PaddleLiteInferenceParam() {}
 
 base::Status PaddleLiteInferenceParam::set(const std::string &key,

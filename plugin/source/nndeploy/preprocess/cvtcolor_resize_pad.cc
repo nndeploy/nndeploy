@@ -85,5 +85,7 @@ base::Status CvtColorResizePad::run() {
   return base::kStatusCodeOk;
 }
 
+REGISTER_NODE("nndeploy::preprocess::CvtColorResizePad", CvtColorResizePad);
+
 }  // namespace preprocess
 }  // namespace nndeploy

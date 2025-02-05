@@ -14,6 +14,15 @@ TensorRtInferenceParam::TensorRtInferenceParam() : InferenceParam() {
   device_type_.device_id_ = 0;
   gpu_tune_kernel_ = 1;
 }
+
+TensorRtInferenceParam::TensorRtInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeOnnx;
+  device_type_.code_ = base::kDeviceTypeCodeCuda;
+  device_type_.device_id_ = 0;
+  gpu_tune_kernel_ = 1;
+}
+
 TensorRtInferenceParam::~TensorRtInferenceParam() {}
 
 base::Status TensorRtInferenceParam::set(const std::string &key,

@@ -265,7 +265,9 @@ enum ModelType : int {
 };
 
 enum InferenceType : int {
-  kInferenceTypeDefault = 0x0000,
+  kInferenceTypeNone = 0x0000,
+
+  kInferenceTypeDefault,
 
   kInferenceTypeOpenVino,
   kInferenceTypeTensorRt,

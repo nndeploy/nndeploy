@@ -13,6 +13,15 @@ MnnInferenceParam::MnnInferenceParam() : InferenceParam() {
   num_thread_ = 4;
   backup_device_type_ = device::getDefaultHostDeviceType();
 }
+
+MnnInferenceParam::MnnInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeMnn;
+  device_type_ = device::getDefaultHostDeviceType();
+  num_thread_ = 4;
+  backup_device_type_ = device::getDefaultHostDeviceType();
+}
+
 MnnInferenceParam::~MnnInferenceParam() {}
 
 base::Status MnnInferenceParam::set(const std::string &key, base::Any &any) {

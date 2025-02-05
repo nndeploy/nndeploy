@@ -25,22 +25,22 @@ namespace nndeploy {
 namespace dag {
 
 Graph::Graph(const std::string &name) : Node(name) {}
-Graph::Graph(const std::string &name, Edge *input, Edge *output)
-    : Node(name, input, output) {
-  if (input != nullptr) {
-    if (nullptr == addEdge(input)) {
-      constructed_ = false;
-      return;
-    }
-  }
-  if (output != nullptr) {
-    if (nullptr == addEdge(output)) {
-      constructed_ = false;
-      return;
-    }
-  }
-  constructed_ = true;
-}
+// Graph::Graph(const std::string &name, Edge *input, Edge *output)
+//     : Node(name, input, output) {
+//   if (input != nullptr) {
+//     if (nullptr == addEdge(input)) {
+//       constructed_ = false;
+//       return;
+//     }
+//   }
+//   if (output != nullptr) {
+//     if (nullptr == addEdge(output)) {
+//       constructed_ = false;
+//       return;
+//     }
+//   }
+//   constructed_ = true;
+// }
 Graph::Graph(const std::string &name, std::initializer_list<Edge *> inputs,
              std::initializer_list<Edge *> outputs)
     : Node(name, inputs, outputs) {
@@ -141,6 +141,39 @@ EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
   edge_repository_.emplace_back(edge_wrapper);
   used_edge_names_.insert(edge->getName());
   return edge_wrapper;
+}
+
+Node *Graph::createNodeByKey(const NodeDesc &desc) {
+  const std::string &name = desc.getName();
+  const std::string &node_key = desc.getKey();
+  std::vector<std::string> input_names = desc.getInputs();
+  std::vector<std::string> output_names = desc.getOutputs();
+  if (used_node_names_.find(name) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
+  if (node == nullptr) {
+    NNDEPLOY_LOGE("create infer node[%s] failed!\n", desc.getName().c_str());
+    return node;
+  }
+  return node;
 }
 
 // base::Status Graph::addNode(Node *node) {
@@ -427,6 +460,8 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
   return status;
 }
+
+REGISTER_NODE("nndeploy::dag::Graph", Graph);
 
 std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap() {
   static std::once_flag once;

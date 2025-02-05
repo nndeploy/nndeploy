@@ -16,6 +16,15 @@ AscendCLInferenceParam::AscendCLInferenceParam() : InferenceParam() {
   device_type_.device_id_ = 0;
   num_thread_ = 4;
 }
+
+AscendCLInferenceParam::AscendCLInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeAscendCL;
+  device_type_.code_ = base::kDeviceTypeCodeAscendCL;
+  device_type_.device_id_ = 0;
+  num_thread_ = 4;
+}
+
 AscendCLInferenceParam::~AscendCLInferenceParam() {}
 
 base::Status AscendCLInferenceParam::set(const std::string &key,

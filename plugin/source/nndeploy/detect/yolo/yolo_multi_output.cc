@@ -22,9 +22,6 @@
 namespace nndeploy {
 namespace detect {
 
-dag::TypeGraphRegister g_register_yolov5_multi_output_graph(
-    NNDEPLOY_YOLOV5_MULTI_OUTPUT, createYoloV5MultiOutputGraph);
-
 static inline float sigmoid(float x) {
   return static_cast<float>(1.f / (1.f + exp(-x)));
 }
@@ -151,18 +148,20 @@ dag::Graph *createYoloV5MultiOutputGraph(const std::string &name,
                                          base::ModelType model_type,
                                          bool is_path,
                                          std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Graph *graph = new dag::Graph(name, {input}, {output});
   dag::Edge *infer_input = graph->createEdge("infer_input");
   dag::Edge *edge_stride_8 = graph->createEdge("output");  // [1, 3, 80, 80, 85]
   dag::Edge *edge_stride_16 = graph->createEdge("376");    // [1, 3, 40, 40, 85]
   dag::Edge *edge_stride_32 = graph->createEdge("401");    // [1, 3, 20, 20, 85]
 
   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", input, infer_input);
+      "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createInfer<infer::Infer>(
-      "infer", inference_type, {infer_input},
-      {edge_stride_8, edge_stride_16, edge_stride_32});
+  infer::Infer *infer =
+      dynamic_cast<infer::Infer *>(graph->createNode<infer::Infer>(
+          "infer", {infer_input},
+          {edge_stride_8, edge_stride_16, edge_stride_32}));
+  infer->setInferenceType(inference_type);
 
   dag::Node *post = graph->createNode<YoloMultiOutputPostProcess>(
       "postprocess", {edge_stride_8, edge_stride_16, edge_stride_32}, {output});
@@ -193,6 +192,11 @@ dag::Graph *createYoloV5MultiOutputGraph(const std::string &name,
 
   return graph;
 }
+
+REGISTER_NODE("nndeploy::detect::yolo::YoloMultiOutputPostProcess",
+              YoloMultiOutputPostProcess);
+REGISTER_NODE("nndeploy::detect::yolo::YoloMultiOutputGraph",
+              YoloMultiOutputGraph);
 
 }  // namespace detect
 }  // namespace nndeploy

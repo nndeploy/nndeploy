@@ -17,6 +17,16 @@ DefaultInferenceParam::DefaultInferenceParam() : InferenceParam() {
   model_desc_ = nullptr;
   tensor_pool_type_ = net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
 }
+
+DefaultInferenceParam::DefaultInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeDefault;
+  device_type_ = device::getDefaultHostDeviceType();
+  num_thread_ = 4;
+  model_desc_ = nullptr;
+  tensor_pool_type_ = net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
+}
+
 DefaultInferenceParam::~DefaultInferenceParam() {}
 
 base::Status DefaultInferenceParam::set(const std::string &key,

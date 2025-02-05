@@ -18,6 +18,16 @@ OnnxRuntimeInferenceParam::OnnxRuntimeInferenceParam() : InferenceParam() {
   inter_op_num_threads_ = -1;
   execution_mode_ = 0;
 }
+
+OnnxRuntimeInferenceParam::OnnxRuntimeInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeOnnx;
+  device_type_ = device::getDefaultHostDeviceType();
+  num_thread_ = 4;
+  graph_optimization_level_ = 1;
+  inter_op_num_threads_ = -1;
+  execution_mode_ = 0;
+}
 OnnxRuntimeInferenceParam::~OnnxRuntimeInferenceParam() {}
 
 base::Status OnnxRuntimeInferenceParam::set(const std::string &key,

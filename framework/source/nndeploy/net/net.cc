@@ -155,7 +155,9 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
                       std::vector<std::string> &outputs) {
   op::Op *op = op::createOp(device_type, name, op_type, inputs, outputs);
   if (op == nullptr) {
-    NNDEPLOY_LOGE("Failed to create Op: %s\n", name.c_str());
+    NNDEPLOY_LOGE("Failed to create Op[name:%s, type:%s, device_type:%s]\n",
+                  name.c_str(), ir::opTypeToString(op_type).c_str(),
+                  base::deviceTypeToString(device_type).c_str());
     return nullptr;
   }
   OpWrapper *op_wrapper = new OpWrapper();

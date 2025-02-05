@@ -11,6 +11,7 @@ namespace inference {
 class PaddleLiteInferenceParam : public InferenceParam {
  public:
   PaddleLiteInferenceParam();
+  PaddleLiteInferenceParam(base::InferenceType type);
   virtual ~PaddleLiteInferenceParam();
 
   PaddleLiteInferenceParam(const PaddleLiteInferenceParam &param) = default;

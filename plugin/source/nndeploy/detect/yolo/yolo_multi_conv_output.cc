@@ -26,9 +26,6 @@
 namespace nndeploy {
 namespace detect {
 
-dag::TypeGraphRegister g_register_yolov5_multi_conv_output_graph(
-    NNDEPLOY_YOLOV5_MULTI_CONV_OUTPUT, createYoloV5MultiConvOutputGraph);
-
 static inline float sigmoid(float x) {
   return static_cast<float>(1.f / (1.f + exp(-x)));
 }
@@ -200,18 +197,20 @@ dag::Graph *createYoloV5MultiConvOutputGraph(
     base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Graph *graph = new dag::Graph(name, {input}, {output});
   dag::Edge *infer_input = graph->createEdge("images");
   dag::Edge *edge_stride_8 = graph->createEdge("output0");   // [1, 80, 80, 255]
   dag::Edge *edge_stride_16 = graph->createEdge("output1");  // [1, 40, 40, 255]
   dag::Edge *edge_stride_32 = graph->createEdge("output2");  // [1, 20, 20, 255]
 
   dag::Node *pre = graph->createNode<preprocess::WarpaffinePreprocess>(
-      "preprocess", input, infer_input);
+      "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createInfer<infer::Infer>(
-      "infer", inference_type, {infer_input},
-      {edge_stride_8, edge_stride_16, edge_stride_32});
+  infer::Infer *infer =
+      dynamic_cast<infer::Infer *>(graph->createNode<infer::Infer>(
+          "infer", {infer_input},
+          {edge_stride_8, edge_stride_16, edge_stride_32}));
+  infer->setInferenceType(inference_type);
 
   dag::Node *post = graph->createNode<YoloMultiConvOutputPostProcess>(
       "postprocess", {input, edge_stride_8, edge_stride_16, edge_stride_32},
@@ -262,6 +261,11 @@ dag::Graph *createYoloV5MultiConvOutputGraph(
 
   return graph;
 }
+
+REGISTER_NODE("nndeploy::detect::yolo::YoloMultiConvOutputPostProcess",
+              YoloMultiConvOutputPostProcess);
+REGISTER_NODE("nndeploy::detect::yolo::YoloMultiConvOutputGraph",
+              YoloMultiConvOutputGraph);
 
 }  // namespace detect
 }  // namespace nndeploy

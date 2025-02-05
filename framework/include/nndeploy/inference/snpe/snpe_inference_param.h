@@ -10,6 +10,7 @@ namespace inference {
 class SnpeInferenceParam : public InferenceParam {
  public:
   SnpeInferenceParam();
+  SnpeInferenceParam(base::InferenceType type);
   virtual ~SnpeInferenceParam();
 
   SnpeInferenceParam(const SnpeInferenceParam &param) = default;

@@ -82,5 +82,8 @@ base::Status WarpaffinePreprocess::run() {
   return base::kStatusCodeOk;
 }
 
+REGISTER_NODE("nndeploy::preprocess::WarpaffinePreprocess",
+              WarpaffinePreprocess);
+
 }  // namespace preprocess
 }  // namespace nndeploy

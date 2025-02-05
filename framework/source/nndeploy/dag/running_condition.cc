@@ -20,12 +20,17 @@
 namespace nndeploy {
 namespace dag {
 
-RunningCondition::RunningCondition(const std::string &name, Edge *input,
-                                   Edge *output)
-    : Condition(name, input, output) {}
+RunningCondition::RunningCondition(const std::string &name) : Condition(name) {}
+// RunningCondition::RunningCondition(const std::string &name, Edge *input,
+//                                    Edge *output)
+//     : Condition(name, input, output) {}
 RunningCondition::RunningCondition(const std::string &name,
                                    std::initializer_list<Edge *> inputs,
                                    std::initializer_list<Edge *> outputs)
+    : Condition(name, inputs, outputs) {}
+RunningCondition::RunningCondition(const std::string &name,
+                                   std::vector<Edge *> inputs,
+                                   std::vector<Edge *> outputs)
     : Condition(name, inputs, outputs) {}
 RunningCondition::~RunningCondition() {}
 
@@ -46,6 +51,8 @@ int RunningCondition::choose() {
   }
   return ret;
 }
+
+REGISTER_NODE("nndeploy::dag::RunningCondition", RunningCondition);
 
 }  // namespace dag
 }  // namespace nndeploy

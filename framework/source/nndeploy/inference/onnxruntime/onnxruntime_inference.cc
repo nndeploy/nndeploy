@@ -11,6 +11,8 @@ namespace inference {
 TypeInferenceRegister<TypeInferenceCreator<OnnxRuntimeInference>>
     g_onnxruntime_inference_register(base::kInferenceTypeOnnxRuntime);
 
+// OnnxRuntimeInference::OnnxRuntimeInference() : Inference() {}
+
 OnnxRuntimeInference::OnnxRuntimeInference(base::InferenceType type)
     : Inference(type) {}
 

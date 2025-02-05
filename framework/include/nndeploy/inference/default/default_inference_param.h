@@ -12,6 +12,7 @@ namespace inference {
 class DefaultInferenceParam : public InferenceParam {
  public:
   DefaultInferenceParam();
+  DefaultInferenceParam(base::InferenceType type);
   virtual ~DefaultInferenceParam();
 
   DefaultInferenceParam(const DefaultInferenceParam &param) = default;

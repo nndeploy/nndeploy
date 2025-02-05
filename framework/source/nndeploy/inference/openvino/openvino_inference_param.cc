@@ -15,6 +15,14 @@ OpenVinoInferenceParam::OpenVinoInferenceParam() : InferenceParam() {
   device_type_ = device::getDefaultHostDeviceType();
   num_thread_ = 4;
 }
+
+OpenVinoInferenceParam::OpenVinoInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeOnnx;
+  device_type_ = device::getDefaultHostDeviceType();
+  num_thread_ = 4;
+}
+
 OpenVinoInferenceParam::~OpenVinoInferenceParam() {}
 
 base::Status OpenVinoInferenceParam::set(const std::string &key,

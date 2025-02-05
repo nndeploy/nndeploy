@@ -11,6 +11,7 @@ namespace inference {
 class AscendCLInferenceParam : public InferenceParam {
  public:
   AscendCLInferenceParam();
+  AscendCLInferenceParam(base::InferenceType type);
   virtual ~AscendCLInferenceParam();
 
   AscendCLInferenceParam(const AscendCLInferenceParam &param) = default;

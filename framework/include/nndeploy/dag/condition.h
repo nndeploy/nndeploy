@@ -23,9 +23,12 @@ namespace dag {
 
 class NNDEPLOY_CC_API Condition : public Graph {
  public:
-  Condition(const std::string &name, Edge *input, Edge *output);
+  Condition(const std::string &name);
+  // Condition(const std::string &name, Edge *input, Edge *output);
   Condition(const std::string &name, std::initializer_list<Edge *> inputs,
             std::initializer_list<Edge *> outputs);
+  Condition(const std::string &name, std::vector<Edge *> inputs,
+           std::vector<Edge *> outputs);
   virtual ~Condition();
 
   virtual base::Status init();

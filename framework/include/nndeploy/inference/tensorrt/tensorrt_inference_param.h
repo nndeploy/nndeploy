@@ -11,6 +11,7 @@ namespace inference {
 class TensorRtInferenceParam : public InferenceParam {
  public:
   TensorRtInferenceParam();
+  TensorRtInferenceParam(base::InferenceType type);
   virtual ~TensorRtInferenceParam();
 
   TensorRtInferenceParam(const TensorRtInferenceParam &param) = default;

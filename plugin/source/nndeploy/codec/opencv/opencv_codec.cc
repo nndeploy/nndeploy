@@ -7,17 +7,25 @@ namespace nndeploy {
 namespace codec {
 
 base::Status OpenCvImageDecodeNode::init() {
-  if (base::exists(path_)) {
-    size_ = 1;
-    return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGE("path[%s] is not exists!\n", path_.c_str());
-    return base::kStatusCodeErrorInvalidParam;
-  }
+  // if (base::exists(path_)) {
+  //   size_ = 1;
+  //   return base::kStatusCodeOk;
+  // } else {
+  //   NNDEPLOY_LOGE("path[%s] is not exists!\n", path_.c_str());
+  //   return base::kStatusCodeErrorInvalidParam;
+  // }
+  return base::kStatusCodeOk;
 }
 base::Status OpenCvImageDecodeNode::deinit() { return base::kStatusCodeOk; }
 
 base::Status OpenCvImageDecodeNode::run() {
+  if (path_changed_) {
+    if (!base::exists(path_)) {
+      NNDEPLOY_LOGE("path[%s] is not exists!\n", path_.c_str());
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    path_changed_ = false;
+  }
   cv::Mat *mat = new cv::Mat(cv::imread(path_));
   width_ = mat->cols;
   height_ = mat->rows;
@@ -26,43 +34,45 @@ base::Status OpenCvImageDecodeNode::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvImagesDecodeNode::init() {
-  index_ = 0;
-  if (base::isDirectory(path_)) {
-    base::Status status = base::kStatusCodeOk;
-    std::vector<std::string> jpg_result;
-    base::glob(path_, "*.jpg", jpg_result);
-    images_.insert(images_.end(), jpg_result.begin(), jpg_result.end());
-
-    std::vector<std::string> png_result;
-    base::glob(path_, "*.png", png_result);
-    images_.insert(images_.end(), png_result.begin(), png_result.end());
-
-    std::vector<std::string> jpeg_result;
-    base::glob(path_, "*.jpeg", jpeg_result);
-    images_.insert(images_.end(), jpeg_result.begin(), jpeg_result.end());
-
-    std::vector<std::string> bmp_result;
-    base::glob(path_, ".bmp", bmp_result);
-    images_.insert(images_.end(), bmp_result.begin(), bmp_result.end());
-
-    size_ = (int)images_.size();
-    if (size_ == 0) {
-      NNDEPLOY_LOGE("path[%s] not exist pic!\n", path_.c_str());
-      status = base::kStatusCodeErrorInvalidParam;
-    }
-    return status;
-  } else {
-    NNDEPLOY_LOGE("path[%s] is not Directory!\n", path_.c_str());
-    return base::kStatusCodeErrorInvalidParam;
-  }
-}
+base::Status OpenCvImagesDecodeNode::init() { return base::kStatusCodeOk; }
 base::Status OpenCvImagesDecodeNode::deinit() {
   images_.clear();
   return base::kStatusCodeOk;
 }
 
 base::Status OpenCvImagesDecodeNode::run() {
+  if (path_changed_) {
+    index_ = 0;
+    if (base::isDirectory(path_)) {
+      base::Status status = base::kStatusCodeOk;
+      std::vector<std::string> jpg_result;
+      base::glob(path_, "*.jpg", jpg_result);
+      images_.insert(images_.end(), jpg_result.begin(), jpg_result.end());
+
+      std::vector<std::string> png_result;
+      base::glob(path_, "*.png", png_result);
+      images_.insert(images_.end(), png_result.begin(), png_result.end());
+
+      std::vector<std::string> jpeg_result;
+      base::glob(path_, "*.jpeg", jpeg_result);
+      images_.insert(images_.end(), jpeg_result.begin(), jpeg_result.end());
+
+      std::vector<std::string> bmp_result;
+      base::glob(path_, ".bmp", bmp_result);
+      images_.insert(images_.end(), bmp_result.begin(), bmp_result.end());
+
+      size_ = (int)images_.size();
+      if (size_ == 0) {
+        NNDEPLOY_LOGE("path[%s] not exist pic!\n", path_.c_str());
+        status = base::kStatusCodeErrorInvalidParam;
+      }
+      return status;
+    } else {
+      NNDEPLOY_LOGE("path[%s] is not Directory!\n", path_.c_str());
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    path_changed_ = false;
+  }
   if (index_ < size_) {
     std::string image_path = images_[index_];
     cv::Mat *mat = new cv::Mat(cv::imread(image_path));

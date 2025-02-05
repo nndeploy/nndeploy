@@ -20,10 +20,13 @@ namespace dag {
 
 class NNDEPLOY_CC_API RunningCondition : public Condition {
  public:
-  RunningCondition(const std::string &name, Edge *input, Edge *output);
+  RunningCondition(const std::string &name);
+  // RunningCondition(const std::string &name, Edge *input, Edge *output);
   RunningCondition(const std::string &name,
                    std::initializer_list<Edge *> inputs,
                    std::initializer_list<Edge *> outputs);
+  RunningCondition(const std::string &name, std::vector<Edge *> inputs,
+                   std::vector<Edge *> outputs);
   virtual ~RunningCondition();
 
   virtual int choose();

@@ -19,11 +19,13 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/infer/infer.h"
+#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvtcolor_resize_pad.h"
+#include "nndeploy/preprocess/warpaffine_preprocess.h"
 
 namespace nndeploy {
 namespace detect {
-
-#define NNDEPLOY_YOLOV5_MULTI_CONV_OUTPUT "NNDEPLOY_YOLOV5_MULTI_CONV_OUTPUT"
 
 static float i2d[6];
 static float d2i[6];
@@ -53,9 +55,18 @@ class NNDEPLOY_CC_API YoloMultiConvOutputPostParam : public base::Param {
 
 class NNDEPLOY_CC_API YoloMultiConvOutputPostProcess : public dag::Node {
  public:
+  YoloMultiConvOutputPostProcess(const std::string &name) : dag::Node(name) {
+    param_ = std::make_shared<YoloMultiConvOutputPostParam>();
+  }
   YoloMultiConvOutputPostProcess(const std::string &name,
                                  std::initializer_list<dag::Edge *> inputs,
                                  std::initializer_list<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
+    param_ = std::make_shared<YoloMultiConvOutputPostParam>();
+  }
+  YoloMultiConvOutputPostProcess(const std::string &name,
+                                 std::vector<dag::Edge *> inputs,
+                                 std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<YoloMultiConvOutputPostParam>();
   }
@@ -64,11 +75,149 @@ class NNDEPLOY_CC_API YoloMultiConvOutputPostProcess : public dag::Node {
   virtual base::Status run();
 };
 
-extern NNDEPLOY_CC_API dag::Graph *createYoloV5MultiConvOutputGraph(
-    const std::string &name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
-    base::ModelType model_type, bool is_path,
-    std::vector<std::string> model_value);
+class NNDEPLOY_CC_API YoloMultiConvOutputGraph : public dag::Graph {
+ public:
+  YoloMultiConvOutputGraph(const std::string &name) : dag::Graph(name) {}
+  YoloMultiConvOutputGraph(const std::string &name,
+                           std::initializer_list<dag::Edge *> inputs,
+                           std::initializer_list<dag::Edge *> outputs)
+      : dag::Graph(name, inputs, outputs) {}
+  YoloMultiConvOutputGraph(const std::string &name,
+                           std::vector<dag::Edge *> inputs,
+                           std::vector<dag::Edge *> outputs)
+      : dag::Graph(name, inputs, outputs) {}
+
+  virtual ~YoloMultiConvOutputGraph() {}
+
+  base::Status make(const dag::NodeDesc &pre_desc,
+                    const dag::NodeDesc &infer_desc,
+                    base::InferenceType inference_type,
+                    const dag::NodeDesc &post_desc) {
+    // Create preprocessing node for image preprocessing
+    pre_ = this->createNode<preprocess::WarpaffinePreprocess>(pre_desc);
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create preprocessing node");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    preprocess::WarpAffineParam *pre_param =
+        dynamic_cast<preprocess::WarpAffineParam *>(pre_->getParam());
+    pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+    pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+    pre_param->interp_type_ = base::kInterpTypeLinear;
+    pre_param->data_format_ = base::kDataFormatNHWC;
+    pre_param->h_ = 640;
+    pre_param->w_ = 640;
+    pre_param->scale_[1] = 1.0f;
+    pre_param->scale_[2] = 1.0f;
+    pre_param->scale_[3] = 1.0f;
+    pre_param->mean_[1] = 0.0f;
+    pre_param->mean_[2] = 0.0f;
+    pre_param->mean_[3] = 0.0f;
+    pre_param->std_[1] = 255.0f;
+    pre_param->std_[2] = 255.0f;
+    pre_param->std_[3] = 255.0f;
+    pre_param->const_value_ = 114;
+
+    // Create inference node for ResNet model execution
+    infer_ = dynamic_cast<infer::Infer *>(
+        this->createNode<infer::Infer>(infer_desc));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    infer_->setInferenceType(inference_type);
+    inference::InferenceParam *inference_param =
+        (inference::InferenceParam *)(infer_->getParam());
+    inference_param->runtime_ = "dsp";
+    inference_param->perf_mode_ = 5;
+    inference_param->profiling_level_ = 0;
+    inference_param->buffer_type_ = 0;
+    inference_param->input_names_ = {"images"};
+    inference_param->output_tensor_names_ = {"output0", "output1", "output2"};
+    inference_param->output_layer_names_ = {"Conv_199", "Conv_200", "Conv_201"};
+
+    // Create postprocessing node for classification results
+    post_ = this->createNode<YoloMultiConvOutputPostProcess>(post_desc);
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    YoloMultiConvOutputPostParam *post_param =
+        dynamic_cast<YoloMultiConvOutputPostParam *>(post_->getParam());
+    post_param->score_threshold_ = 0.5;
+    post_param->nms_threshold_ = 0.5;
+    post_param->num_classes_ = 80;
+    post_param->model_h_ = 640;
+    post_param->model_w_ = 640;
+    post_param->version_ = 5;
+
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setInferParam(base::DeviceType device_type,
+                             base::ModelType model_type, bool is_path,
+                             std::vector<std::string> &model_value) {
+    auto param = dynamic_cast<inference::InferenceParam *>(infer_->getParam());
+    param->device_type_ = device_type;
+    param->model_type_ = model_type;
+    param->is_path_ = is_path;
+    param->model_value_ = model_value;
+    return base::kStatusCodeOk;
+  }
+
+  /**
+   * @brief Set preprocessing parameters
+   * @param pixel_type Input image pixel format (e.g. RGB, BGR)
+   * @return kStatusCodeOk on success
+   */
+  base::Status setSrcPixelType(base::PixelType pixel_type) {
+    preprocess::CvtclorResizeParam *param =
+        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    param->src_pixel_type_ = pixel_type;
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setScoreThreshold(float score_threshold) {
+    YoloMultiConvOutputPostParam *param =
+        dynamic_cast<YoloMultiConvOutputPostParam *>(post_->getParam());
+    param->score_threshold_ = score_threshold;
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setNmsThreshold(float nms_threshold) {
+    YoloMultiConvOutputPostParam *param =
+        dynamic_cast<YoloMultiConvOutputPostParam *>(post_->getParam());
+    param->nms_threshold_ = nms_threshold;
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setNumClasses(int num_classes) {
+    YoloMultiConvOutputPostParam *param =
+        dynamic_cast<YoloMultiConvOutputPostParam *>(post_->getParam());
+    param->num_classes_ = num_classes;
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setModelHW(int model_h, int model_w) {
+    YoloMultiConvOutputPostParam *param =
+        dynamic_cast<YoloMultiConvOutputPostParam *>(post_->getParam());
+    param->model_h_ = model_h;
+    param->model_w_ = model_w;
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setVersion(int version) {
+    YoloMultiConvOutputPostParam *param =
+        dynamic_cast<YoloMultiConvOutputPostParam *>(post_->getParam());
+    param->version_ = version;
+    return base::kStatusCodeOk;
+  }
+
+ private:
+  dag::Node *pre_ = nullptr;       ///< Preprocessing node pointer
+  infer::Infer *infer_ = nullptr;  ///< Inference node pointer
+  dag::Node *post_ = nullptr;      ///< Postprocessing node pointer
+};
 
 }  // namespace detect
 }  // namespace nndeploy

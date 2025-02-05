@@ -31,7 +31,7 @@ namespace detect {
 //   virtual base::Status run();
 // };
 
-class DrawBoxNode : public dag::Node {
+class NNDEPLOY_CC_API DrawBoxNode : public dag::Node {
  public:
   DrawBoxNode(const std::string &name,
               std::initializer_list<dag::Edge *> inputs,
@@ -79,7 +79,7 @@ class DrawBoxNode : public dag::Node {
   }
 };
 
-class YoloMultiConvDrawBoxNode : public dag::Node {
+class NNDEPLOY_CC_API YoloMultiConvDrawBoxNode : public dag::Node {
  public:
   YoloMultiConvDrawBoxNode(const std::string &name,
                            std::initializer_list<dag::Edge *> inputs,

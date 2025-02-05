@@ -211,6 +211,22 @@ DECLARE_string(cache_path);
  */
 DECLARE_string(library_path);
 
+/**
+ * @brief Construct a new declare string object
+ * @note
+ * --model_inputs
+ *  "input_0,input_1"
+ */
+DECLARE_string(model_inputs);
+
+/**
+ * @brief Construct a new declare string object
+ * @note
+ * --model_outputs
+ *  "output_0,output_1"
+ */
+DECLARE_string(model_outputs);
+
 void showUsage();
 
 std::string getName();
@@ -235,6 +251,9 @@ base::ParallelType getParallelType();
 std::vector<std::string> getCachePath();
 std::vector<std::string> getLibraryPath();
 std::vector<std::string> getAllFileFromDir(std::string dir_path);
+
+std::vector<std::string> getModelInputs();
+std::vector<std::string> getModelOutputs();
 
 }  // namespace demo
 }  // namespace nndeploy

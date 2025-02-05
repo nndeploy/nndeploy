@@ -14,6 +14,14 @@ NcnnInferenceParam::NcnnInferenceParam() : InferenceParam() {
   device_type_ = device::getDefaultHostDeviceType();
   num_thread_ = ncnn::get_physical_big_cpu_count();
 }
+
+NcnnInferenceParam::NcnnInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeNcnn;
+  device_type_ = device::getDefaultHostDeviceType();
+  num_thread_ = ncnn::get_physical_big_cpu_count();
+}
+
 NcnnInferenceParam::~NcnnInferenceParam() {}
 
 base::Status NcnnInferenceParam::set(const std::string &key, base::Any &any) {
