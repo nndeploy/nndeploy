@@ -24,7 +24,7 @@ namespace dag {
 class NNDEPLOY_CC_API Loop : public Graph {
  public:
   Loop(const std::string &name);
-  // Loop(const std::string &name, Edge *input, Edge *output);
+  Loop(const std::string &name, Edge *input, Edge *output);
   Loop(const std::string &name, std::initializer_list<Edge *> inputs,
        std::initializer_list<Edge *> outputs);
   Loop(const std::string &name, std::vector<dag::Edge *> &inputs,

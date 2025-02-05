@@ -74,7 +74,10 @@ class NNDEPLOY_CC_API NodeDesc {
 class NNDEPLOY_CC_API Node {
  public:
   Node(const std::string &name);
-  // Node(const std::string &name, Edge *input, Edge *output);
+
+  // NNDEPLOY_DEPRECATED("deprecated api")
+  Node(const std::string &name, Edge *input, Edge *output);
+
   Node(const std::string &name, std::initializer_list<Edge *> inputs,
        std::initializer_list<Edge *> outputs);
   Node(const std::string &name, std::vector<Edge *> inputs,

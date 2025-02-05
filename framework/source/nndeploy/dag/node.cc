@@ -7,21 +7,20 @@ namespace nndeploy {
 namespace dag {
 
 Node::Node(const std::string &name) : name_(name) {}
-// Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name)
-// {
-//   if (input == output) {
-//     NNDEPLOY_LOGW("Input edge[%s] is same as output edge[%s].\n",
-//                   input->getName().c_str(), output->getName().c_str());
-//   }
-//   device_type_ = device::getDefaultHostDeviceType();
-//   if (input != nullptr) {
-//     inputs_.emplace_back(input);
-//   }
-//   if (output != nullptr) {
-//     outputs_.emplace_back(output);
-//   }
-//   constructed_ = true;
-// }
+Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
+  if (input == output) {
+    NNDEPLOY_LOGW("Input edge[%s] is same as output edge[%s].\n",
+                  input->getName().c_str(), output->getName().c_str());
+  }
+  device_type_ = device::getDefaultHostDeviceType();
+  if (input != nullptr) {
+    inputs_.emplace_back(input);
+  }
+  if (output != nullptr) {
+    outputs_.emplace_back(output);
+  }
+  constructed_ = true;
+}
 Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
            std::initializer_list<Edge *> outputs)
     : name_(name) {
