@@ -311,6 +311,10 @@ if(ENABLE_NNDEPLOY_IR)
   endif()
 endif()
 
+if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
+  # set(ENABLE_NNDEPLOY_PROTOBUF ON)
+endif()
+
 # include
 include_directories(${ROOT_PATH}/framework/include)
 include_directories(${ROOT_PATH}/framework/source)
