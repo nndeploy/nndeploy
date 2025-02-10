@@ -33,6 +33,11 @@ class NNDEPLOY_CC_API MemoryPool {
 
   virtual void deallocate(void *ptr) = 0;
 
+  virtual void *allocatePinned(size_t size) = 0;
+  virtual void *allocatePinned(const BufferDesc &desc) = 0;
+
+  virtual void deallocatePinned(void *ptr) = 0;
+
   Device *getDevice();
   base::MemoryPoolType getMemoryPoolType();
 

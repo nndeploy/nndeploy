@@ -18,9 +18,13 @@ class AscendCLOpTranspose : public OpTranspose {
     // 参数
     auto param = dynamic_cast<ir::TransposeParam *>(op_desc_.op_param_.get());
     dims_ = AscendCLOpConvert::convertFromIntVector(param->perm_);
-    // 流
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     device::Device *device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
+    inner_stream_ =
+        (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
     return base::kStatusCodeOk;
   }
@@ -28,7 +32,7 @@ class AscendCLOpTranspose : public OpTranspose {
     if (dims_ != nullptr) {
       aclDestroyIntArray(dims_);
     }
-    return base::kStatusCodeOk;
+    return Op::deinit();
   }
   virtual base::Status preRun() {
     // 输入输出

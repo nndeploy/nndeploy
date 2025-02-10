@@ -415,6 +415,13 @@ base::Status Graph::construct() {
     }
   }
 
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+  for (auto node_wrapper : node_repository_) {
+    node_wrapper->node_->setStream(stream_);
+  }
+
   // NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
 
   return status;
@@ -445,6 +452,8 @@ base::Status Graph::executor() {
     return base::kStatusCodeErrorInvalidValue;
   }
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
+
+  executor_->setStream(stream_);
 
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("executor init\n");

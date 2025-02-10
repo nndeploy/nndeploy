@@ -64,9 +64,13 @@ TensorRtInference::~TensorRtInference() {}
 base::Status TensorRtInference::init() {
   base::Status status = base::kStatusCodeOk;
 
-  is_share_command_queue_ = true;
+  is_external_stream_ = true;
   forward_memory_size_ = 0;
   inner_forward_buffer_ = nullptr;
+
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
 
   std::string model_buffer;
   TensorRtInferenceParam *tensorrt_inference_param =
@@ -304,7 +308,7 @@ base::Status TensorRtInference::run() {
     return base::kStatusCodeErrorInferenceTensorRt;
   }
 #endif
-  status = device->synchronize();
+  status = stream_->synchronize();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "synchronize failed");
   // outputs
   // for (auto iter : external_output_tensors_) {

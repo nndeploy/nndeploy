@@ -192,6 +192,12 @@ void Node::setRunningFlag(bool flag) {
 }
 bool Node::isRunning() { return is_running_; }
 
+void Node::setStream(device::Stream *stream) {
+  stream_ = stream;
+  is_external_stream_ = true;
+}
+device::Stream *Node::getStream() { return stream_; }
+
 base::Status Node::init() { return base::kStatusCodeOk; }
 base::Status Node::deinit() { return base::kStatusCodeOk; }
 

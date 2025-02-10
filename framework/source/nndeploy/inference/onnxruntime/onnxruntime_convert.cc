@@ -205,10 +205,11 @@ base::Status OnnxRuntimeConvert::convertFromInferenceParam(
       OrtCUDAProviderOptions cuda_srcs;
       cuda_srcs.device_id = src.device_type_.device_id_;
       device::Device *device = device::getDevice(src.device_type_);
-      if (device) {
-        cuda_srcs.has_user_compute_stream = 1;
-        cuda_srcs.user_compute_stream = device->getCommandQueue();
-      }
+      // TODO:always set user_compute_stream
+      // if (device) {
+      //   cuda_srcs.has_user_compute_stream = 1;
+      //   cuda_srcs.user_compute_stream = device->getCommandQueue();
+      // }
       dst.AppendExecutionProvider_CUDA(cuda_srcs);
     }
   }

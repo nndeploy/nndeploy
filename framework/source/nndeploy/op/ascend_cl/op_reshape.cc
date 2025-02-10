@@ -18,12 +18,17 @@ class AscendCLOpReshape : public OpReshape {
     auto param = dynamic_cast<ir::ReshapeParam*>(op_desc_.op_param_.get());
     allowzero_ = static_cast<int64_t>(param->allowzero_);
 
-    // 流
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     device::Device* device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
+    inner_stream_ =
+        (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
+
     return base::kStatusCodeOk;
   }
-  virtual base::Status deinit() { return base::kStatusCodeOk; }
+  virtual base::Status deinit() { return Op::deinit(); }
   virtual base::Status preRun() { return base::kStatusCodeOk; }
   // inferShape已经把事情做完了，这里只需要把输入数据拷贝到输出即可
   virtual base::Status run() {

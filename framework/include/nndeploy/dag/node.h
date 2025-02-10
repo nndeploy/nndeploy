@@ -131,6 +131,9 @@ class NNDEPLOY_CC_API Node {
   void setRunningFlag(bool flag);
   bool isRunning();
 
+  void setStream(device::Stream *stream);
+  device::Stream *getStream();
+
   virtual base::Status init();
   virtual base::Status deinit();
 
@@ -152,6 +155,13 @@ class NNDEPLOY_CC_API Node {
  protected:
   std::string name_;
   base::DeviceType device_type_;
+  /**
+   * @brief 是否为外部stream
+   * @details
+   * 在初始化时，如果第三方推理框架与nndeploy共用一个stream，需要设置为true，否则设置为false
+   */
+  bool is_external_stream_ = false;
+  device::Stream *stream_ = nullptr;
   std::shared_ptr<base::Param> param_;
   std::vector<base::Param *> external_param_;
   std::vector<Edge *> inputs_;

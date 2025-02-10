@@ -15,8 +15,8 @@ TypeRuntimeRegister<TypeRuntimeCreator<SequentialRuntime>>
     g_sequential_runtime_register_none(base::ParallelType::kParallelTypeNone);
 
 SequentialRuntime::SequentialRuntime(const base::DeviceType &device_type)
-    : Runtime(device_type){};
-SequentialRuntime::~SequentialRuntime(){};
+    : Runtime(device_type) {};
+SequentialRuntime::~SequentialRuntime() {};
 
 base::Status SequentialRuntime::init(
     std::vector<TensorWrapper *> &tensor_repository,
@@ -24,6 +24,12 @@ base::Status SequentialRuntime::init(
     base::ShapeMap max_shape, TensorPoolType tensor_pool_type) {
   base::Status status = base::kStatusCodeOk;
   device::Device *device = device::getDevice(device_type_);
+
+  // 默认流
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+
   // # 激活值的tensor分配
   tensor_pool_type_ = tensor_pool_type;
   tensor_pool_ = createTensorPool(tensor_pool_type_, device, tensor_repository,

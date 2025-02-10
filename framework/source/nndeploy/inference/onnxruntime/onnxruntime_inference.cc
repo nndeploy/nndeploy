@@ -23,7 +23,7 @@ OnnxRuntimeInference::~OnnxRuntimeInference() {
 base::Status OnnxRuntimeInference::init() {
   base::Status status = base::kStatusCodeOk;
 
-  is_share_command_queue_ = true;
+  is_external_stream_ = true;
 
   std::string model_buffer;
   OnnxRuntimeInferenceParam *onnxruntime_inference_param =

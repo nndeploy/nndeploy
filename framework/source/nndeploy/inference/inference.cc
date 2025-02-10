@@ -23,6 +23,13 @@ base::Param *Inference::getParam() {
   return dynamic_cast<base::Param *>(inference_param_);
 }
 
+base::Status Inference::setStream(device::Stream *stream) {
+  stream_ = stream;
+  is_external_stream_ = true;
+  return base::kStatusCodeOk;
+}
+device::Stream *Inference::getStream() { return stream_; }
+
 base::ShapeMap Inference::getMinShape() { return inference_param_->min_shape_; }
 base::ShapeMap Inference::getOptShape() { return inference_param_->opt_shape_; }
 base::ShapeMap Inference::getMaxShape() { return inference_param_->max_shape_; }
@@ -52,7 +59,7 @@ bool Inference::isBatch() {
   }
   return is_batch;
 }
-bool Inference::isShareCommanQueue() { return is_share_command_queue_; }
+bool Inference::isShareStream() { return is_external_stream_; }
 bool Inference::isInputDynamic() {
   bool is_input_dynamic = false;
   for (auto iter : input_tensors_) {
@@ -83,7 +90,7 @@ bool Inference::isOutputDynamic() {
 }
 bool Inference::canOpInput() {
   bool can_op_input_ = true;
-  if (is_share_command_queue_) {
+  if (is_external_stream_) {
     for (auto iter : input_tensors_) {
       device::Tensor *input_tensor = iter.second;
       if (input_tensor->empty()) {
@@ -98,7 +105,7 @@ bool Inference::canOpInput() {
 }
 bool Inference::canOpOutput() {
   bool can_op_output = true;
-  if (is_share_command_queue_) {
+  if (is_external_stream_) {
     for (auto iter : output_tensors_) {
       device::Tensor *output_tensor = iter.second;
       if (output_tensor->empty()) {
@@ -330,8 +337,8 @@ base::Status Inference::setInputTensor(const std::string &name,
 //   return status;
 // }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>>

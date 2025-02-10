@@ -20,9 +20,9 @@ base::Status PaddleLiteInference::init() {
   base::Status status = base::kStatusCodeOk;
 
   if (device::isHostDeviceType(inference_param_->device_type_)) {
-    is_share_command_queue_ = true;
+    is_external_stream_ = true;
   } else {
-    is_share_command_queue_ = false;
+    is_external_stream_ = false;
   }
 
   PaddleLiteInferenceParam *paddlelite_inference_param =
@@ -117,7 +117,7 @@ device::Tensor *PaddleLiteInference::getOutputTensorAfterRun(
     return nullptr;
   }
   bool can_op_flag = true;
-  can_op_flag = can_op_flag && is_share_command_queue_;
+  can_op_flag = can_op_flag && is_external_stream_;
   device::Device *device = device::getDefaultHostDevice();
   device::Tensor *internal_tensor =
       PaddleLiteConvert::convertToTensor(pd_tensor);

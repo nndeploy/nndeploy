@@ -11,11 +11,11 @@ TypeArchitectureRegister<CudaArchitecture> cuda_architecture_register(
     base::kDeviceTypeCodeCuda);
 
 CudaArchitecture::CudaArchitecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code){};
+    : Architecture(device_type_code) {};
 
-CudaArchitecture::~CudaArchitecture(){};
+CudaArchitecture::~CudaArchitecture() {};
 
-base::Status CudaArchitecture::checkDevice(int device_id, void *command_queue,
+base::Status CudaArchitecture::checkDevice(int device_id,
                                            std::string library_path) {
   int device_count = cudaGetNumDevices();
   if (device_id > -1 && device_id < device_count) {
@@ -27,13 +27,12 @@ base::Status CudaArchitecture::checkDevice(int device_id, void *command_queue,
   }
 }
 
-base::Status CudaArchitecture::enableDevice(int device_id, void *command_queue,
+base::Status CudaArchitecture::enableDevice(int device_id,
                                             std::string library_path) {
   base::DeviceType device_type(base::kDeviceTypeCodeCuda, device_id);
   std::lock_guard<std::mutex> lock(mutex_);
   if (devices_.find(device_id) == devices_.end()) {
-    CudaDevice *device =
-        new CudaDevice(device_type, command_queue, library_path);
+    CudaDevice *device = new CudaDevice(device_type, library_path);
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr\n");
       return base::kStatusCodeErrorOutOfMemory;
@@ -57,7 +56,7 @@ Device *CudaArchitecture::getDevice(int device_id) {
   if (devices_.find(device_id) != devices_.end()) {
     return devices_[device_id];
   } else {
-    base::Status status = this->enableDevice(device_id, nullptr, "");
+    base::Status status = this->enableDevice(device_id, "");
     if (status == base::kStatusCodeOk) {
       device = devices_[device_id];
     } else {
@@ -127,94 +126,58 @@ void CudaDevice::deallocate(void *ptr) {
   NNDEPLOY_CUDA_CHECK(cudaFree(ptr));
 }
 
-base::Status CudaDevice::copy(void *src, void *dst, size_t size, int index) {
-  cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
-  if (src != nullptr && dst != nullptr) {
-    cudaError_t status =
-        cudaMemcpyAsync(dst, src, size, cudaMemcpyDeviceToDevice, stream);
-    NNDEPLOY_CUDA_CHECK(status);
-    NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
-    return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGE("copy buffer failed\n");
-    return base::kStatusCodeErrorOutOfMemory;
+base::Status CudaDevice::copy(void *src, void *dst, size_t size,
+                              Stream *stream) {
+  cudaStream_t cuda_stream = nullptr;
+  if (stream != nullptr) {
+    cuda_stream = (cudaStream_t)stream->as<CudaStream>()->getStream();
   }
-}
-base::Status CudaDevice::download(void *src, void *dst, size_t size,
-                                  int index) {
-  cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
-  if (src != nullptr && dst != nullptr) {
-    cudaError_t status =
-        cudaMemcpyAsync(dst, src, size, cudaMemcpyDeviceToHost, stream);
-    NNDEPLOY_CUDA_CHECK(status);
-    NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
-    return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGE("copy buffer failed\n");
-    return base::kStatusCodeErrorOutOfMemory;
-  }
-}
-base::Status CudaDevice::upload(void *src, void *dst, size_t size, int index) {
-  cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
-  if (src != nullptr && dst != nullptr) {
-    cudaError_t status =
-        cudaMemcpyAsync(dst, src, size, cudaMemcpyHostToDevice, stream);
-    NNDEPLOY_CUDA_CHECK(status);
-    NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
-    return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGE("copy buffer failed\n");
-    return base::kStatusCodeErrorOutOfMemory;
-  }
+  NNDEPLOY_CUDA_CHECK(
+      cudaMemcpyAsync(dst, src, size, cudaMemcpyDeviceToDevice, cuda_stream));
+  return base::kStatusCodeOk;
 }
 
-base::Status CudaDevice::copy(Buffer *src, Buffer *dst, int index) {
-  cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
-  size_t dst_size = dst->getSize();
-  size_t src_size = src->getSize();
-  size_t size = std::min(dst_size, src_size);
-  if (src != nullptr && dst != nullptr) {
-    cudaError_t status = cudaMemcpyAsync(dst->getData(), src->getData(), size,
-                                         cudaMemcpyDeviceToDevice, stream);
-    NNDEPLOY_CUDA_CHECK(status);
-    NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
-    return base::kStatusCodeOk;
-  } else {
-    // TODO: add log
-    return base::kStatusCodeErrorOutOfMemory;
+base::Status CudaDevice::download(void *src, void *dst, size_t size,
+                                  Stream *stream) {
+  cudaStream_t cuda_stream = nullptr;
+  if (stream != nullptr) {
+    cuda_stream = (cudaStream_t)stream->as<CudaStream>()->getStream();
   }
+  NNDEPLOY_CUDA_CHECK(
+      cudaMemcpyAsync(dst, src, size, cudaMemcpyDeviceToHost, cuda_stream));
+  return base::kStatusCodeOk;
 }
-base::Status CudaDevice::download(Buffer *src, Buffer *dst, int index) {
-  cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
-  size_t dst_size = dst->getSize();
-  size_t src_size = src->getSize();
-  size_t size = std::min(dst_size, src_size);
-  if (src != nullptr && dst != nullptr) {
-    cudaError_t status = cudaMemcpyAsync(dst->getData(), src->getData(), size,
-                                         cudaMemcpyDeviceToHost, stream);
-    NNDEPLOY_CUDA_CHECK(status);
-    NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
-    return base::kStatusCodeOk;
-  } else {
-    // TODO: add log
-    return base::kStatusCodeErrorOutOfMemory;
+
+base::Status CudaDevice::upload(void *src, void *dst, size_t size,
+                                Stream *stream) {
+  cudaStream_t cuda_stream = nullptr;
+  if (stream != nullptr) {
+    cuda_stream = (cudaStream_t)stream->as<CudaStream>()->getStream();
   }
+  NNDEPLOY_CUDA_CHECK(
+      cudaMemcpyAsync(dst, src, size, cudaMemcpyHostToDevice, cuda_stream));
+  return base::kStatusCodeOk;
 }
-base::Status CudaDevice::upload(Buffer *src, Buffer *dst, int index) {
-  cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
+
+base::Status CudaDevice::copy(Buffer *src, Buffer *dst, Stream *stream) {
   size_t dst_size = dst->getSize();
   size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
-  if (src != nullptr && dst != nullptr) {
-    cudaError_t status = cudaMemcpyAsync(dst->getData(), src->getData(), size,
-                                         cudaMemcpyHostToDevice, stream);
-    NNDEPLOY_CUDA_CHECK(status);
-    NNDEPLOY_CUDA_CHECK(cudaStreamSynchronize(stream));
-    return base::kStatusCodeOk;
-  } else {
-    // TODO: add log
-    return base::kStatusCodeErrorOutOfMemory;
-  }
+  return this->copy(src->getData(), dst->getData(), size, stream);
+}
+
+base::Status CudaDevice::download(Buffer *src, Buffer *dst, Stream *stream) {
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
+  size_t size = std::min(dst_size, src_size);
+  return this->download(src->getData(), dst->getData(), size, stream);
+}
+
+base::Status CudaDevice::upload(Buffer *src, Buffer *dst, Stream *stream) {
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
+  size_t size = std::min(dst_size, src_size);
+  return this->upload(src->getData(), dst->getData(), size, stream);
 }
 
 void *CudaDevice::getContext() { return nullptr; }
@@ -266,27 +229,27 @@ base::Status CudaDevice::deleteCommandQueue(int index) {
     return base::kStatusCodeErrorDeviceCuda;
   }
 }
-base::Status CudaDevice::deleteCommandQueue(void *command_queue) {
+base::Status CudaDevice::deleteCommandQueue(void *stream) {
   for (auto iter : cuda_stream_wrapper_) {
-    if (command_queue == (void *)(iter.second.stream_)) {
+    if (stream == (void *)(iter.second.stream_)) {
       return this->deleteCommandQueue(iter.first);
     }
   }
   NNDEPLOY_LOGE("command queue is not found\n");
   return base::kStatusCodeOk;
 }
-int CudaDevice::setCommandQueue(void *command_queue, bool is_external) {
-  if (command_queue == nullptr) {
+int CudaDevice::setCommandQueue(void *stream, bool is_external) {
+  if (stream == nullptr) {
     NNDEPLOY_LOGE("command queue is nullptr\n");
     return base::kStatusCodeErrorDeviceCuda;
   }
   CudaStreamWrapper cuda_stream_wrapper;
   if (is_external) {
-    cuda_stream_wrapper.external_command_queue_ = command_queue;
+    cuda_stream_wrapper.external_command_queue_ = stream;
   } else {
     cuda_stream_wrapper.external_command_queue_ = nullptr;
   }
-  cuda_stream_wrapper.stream_ = (cudaStream_t)command_queue;
+  cuda_stream_wrapper.stream_ = (cudaStream_t)stream;
   base::Status status =
       insertStream(stream_index_, cuda_stream_wrapper_, cuda_stream_wrapper);
   NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, -1,
@@ -335,6 +298,28 @@ base::Status CudaDevice::deinit() {
       NNDEPLOY_CUDA_CHECK(cudaStreamDestroy(iter.second.stream_));
     }
   }
+  return base::kStatusCodeOk;
+}
+
+Stream *CudaDevice::createStream() {
+  cudaStream_t stream;
+  NNDEPLOY_CUDA_CHECK(cudaStreamCreate(&stream));
+  return new CudaStream(this, stream);
+}
+
+Stream *CudaDevice::createStream(void *stream) {
+  return new CudaStream(this, stream);
+}
+
+base::Status CudaDevice::deleteStream(Stream *stream) {
+  if (stream == nullptr) {
+    return base::kStatusCodeOk;
+  }
+  if (!stream->isExternal()) {
+    NNDEPLOY_CUDA_CHECK(
+        cudaStreamDestroy((cudaStream_t)stream->as<CudaStream>()->getStream()));
+  }
+  delete stream;
   return base::kStatusCodeOk;
 }
 

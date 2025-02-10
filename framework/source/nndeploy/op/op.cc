@@ -9,6 +9,9 @@ namespace op {
 Op::Op() { constructed_ = true; }
 
 Op::~Op() {
+  if (!is_external_stream_ && stream_ != nullptr) {
+    deleteStream(stream_);
+  }
   inputs_.clear();
   outputs_.clear();
 }
@@ -44,6 +47,13 @@ base::Status Op::setDeviceType(base::DeviceType device_type) {
   return base::kStatusCodeOk;
 }
 base::DeviceType Op::getDeviceType() { return device_type_; }
+
+base::Status Op::setStream(device::Stream *stream) {
+  stream_ = stream;
+  is_external_stream_ = true;
+  return base::kStatusCodeOk;
+}
+device::Stream *Op::getStream() { return stream_; }
 
 base::Status Op::setPrecisionType(base::PrecisionType precision_type) {
   precision_type_ = precision_type;
@@ -267,7 +277,12 @@ void Op::setRunningFlag(bool flag) {
 }
 bool Op::isRunning() { return is_running_; }
 
-base::Status Op::init() { return base::kStatusCodeOk; }
+base::Status Op::init() {
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+  return base::kStatusCodeOk;
+}
 base::Status Op::deinit() {
   if (!workspace_is_external_ && workspace_size_ > 0 && workspace_ != nullptr) {
     device::Device *device = device::getDevice(device_type_);
@@ -362,8 +377,9 @@ base::Status Op::checkOrAllocOutput() {
 
 base::Status Op::postRun() { return base::kStatusCodeOk; }
 
-std::map<base::DeviceTypeCode, std::map<ir::OpType, std::shared_ptr<OpCreator>>>
-    &getGlobalOpCreatorMap() {
+std::map<base::DeviceTypeCode,
+         std::map<ir::OpType, std::shared_ptr<OpCreator>>> &
+getGlobalOpCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<
       base::DeviceTypeCode, std::map<ir::OpType, std::shared_ptr<OpCreator>>>>

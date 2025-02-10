@@ -10,22 +10,22 @@ TypeArchitectureRegister<X86Architecture> x86_architecture_register(
     base::kDeviceTypeCodeX86);
 
 X86Architecture::X86Architecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code){};
+    : Architecture(device_type_code) {};
 
-X86Architecture::~X86Architecture(){};
+X86Architecture::~X86Architecture() {};
 
-base::Status X86Architecture::checkDevice(int device_id, void *command_queue,
+base::Status X86Architecture::checkDevice(int device_id,
                                           std::string library_path) {
   return base::kStatusCodeOk;
 }
 
-base::Status X86Architecture::enableDevice(int device_id, void *command_queue,
+base::Status X86Architecture::enableDevice(int device_id,
                                            std::string library_path) {
-  device_id = 0;
+  // device_id = 0;
   std::lock_guard<std::mutex> lock(mutex_);
   if (devices_.find(device_id) == devices_.end()) {
     base::DeviceType device_type(base::kDeviceTypeCodeX86, device_id);
-    X86Device *device = new X86Device(device_type, command_queue, library_path);
+    X86Device *device = new X86Device(device_type, library_path);
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr\n");
       return base::kStatusCodeErrorOutOfMemory;
@@ -44,12 +44,12 @@ base::Status X86Architecture::enableDevice(int device_id, void *command_queue,
 }
 
 Device *X86Architecture::getDevice(int device_id) {
-  device_id = 0;
+  // device_id = 0;
   Device *device = nullptr;
   if (devices_.find(device_id) != devices_.end()) {
     device = devices_[device_id];
   } else {
-    base::Status status = this->enableDevice(device_id, nullptr, "");
+    base::Status status = this->enableDevice(device_id, "");
     if (status == base::kStatusCodeOk) {
       device = devices_[device_id];
     } else {
@@ -111,25 +111,8 @@ void X86Device::deallocate(void *ptr) {
   free(ptr);
 }
 
-base::Status X86Device::copy(void *src, void *dst, size_t size, int index) {
-  if (src != nullptr && dst != nullptr) {
-    memcpy(dst, src, size);
-    return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGE("copy buffer failed\n");
-    return base::kStatusCodeErrorOutOfMemory;
-  }
-}
-base::Status X86Device::download(void *src, void *dst, size_t size, int index) {
-  if (src != nullptr && dst != nullptr) {
-    memcpy(dst, src, size);
-    return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGE("copy buffer failed\n");
-    return base::kStatusCodeErrorOutOfMemory;
-  }
-}
-base::Status X86Device::upload(void *src, void *dst, size_t size, int index) {
+base::Status X86Device::copy(void *src, void *dst, size_t size,
+                             Stream *stream) {
   if (src != nullptr && dst != nullptr) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
@@ -139,33 +122,60 @@ base::Status X86Device::upload(void *src, void *dst, size_t size, int index) {
   }
 }
 
-base::Status X86Device::copy(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getSize();
-  size_t src_size = src->getSize();
-  size_t size = std::min(dst_size, src_size);
+base::Status X86Device::download(void *src, void *dst, size_t size,
+                                 Stream *stream) {
   if (src != nullptr && dst != nullptr) {
-    return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGE("copy buffer failed\n");
-    return base::kStatusCodeErrorOutOfMemory;
-  }
-}
-base::Status X86Device::download(Buffer *src, Buffer *dst, int index) {
-  size_t dst_size = dst->getSize();
-  size_t src_size = src->getSize();
-  size_t size = std::min(dst_size, src_size);
-  if (src != nullptr && dst != nullptr) {
+    memcpy(dst, src, size);
     return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("download buffer failed\n");
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status X86Device::upload(Buffer *src, Buffer *dst, int index) {
+
+base::Status X86Device::upload(void *src, void *dst, size_t size,
+                               Stream *stream) {
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst, src, size);
+    return base::kStatusCodeOk;
+  } else {
+    NNDEPLOY_LOGE("upload buffer failed\n");
+    return base::kStatusCodeErrorOutOfMemory;
+  }
+}
+
+base::Status X86Device::copy(Buffer *src, Buffer *dst, Stream *stream) {
   size_t dst_size = dst->getSize();
   size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
   if (src != nullptr && dst != nullptr) {
+    memcpy(dst->getData(), src->getData(), size);
+    return base::kStatusCodeOk;
+  } else {
+    NNDEPLOY_LOGE("copy buffer failed\n");
+    return base::kStatusCodeErrorOutOfMemory;
+  }
+}
+
+base::Status X86Device::download(Buffer *src, Buffer *dst, Stream *stream) {
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
+  size_t size = std::min(dst_size, src_size);
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst->getData(), src->getData(), size);
+    return base::kStatusCodeOk;
+  } else {
+    NNDEPLOY_LOGE("download buffer failed\n");
+    return base::kStatusCodeErrorOutOfMemory;
+  }
+}
+
+base::Status X86Device::upload(Buffer *src, Buffer *dst, Stream *stream) {
+  size_t dst_size = dst->getSize();
+  size_t src_size = src->getSize();
+  size_t size = std::min(dst_size, src_size);
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst->getData(), src->getData(), size);
     return base::kStatusCodeOk;
   } else {
     NNDEPLOY_LOGE("upload buffer failed\n");

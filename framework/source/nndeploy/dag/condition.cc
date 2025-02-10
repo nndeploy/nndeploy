@@ -126,6 +126,8 @@ base::Status Condition::executor() {
   }
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
 
+  executor_->setStream(stream_);
+
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("executor init\n");
   // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");

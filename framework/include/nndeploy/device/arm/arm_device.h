@@ -1,4 +1,3 @@
-
 #ifndef _NNDEPLOY_DEVICE_ARM_DEVICE_H_
 #define _NNDEPLOY_DEVICE_ARM_DEVICE_H_
 
@@ -27,14 +26,11 @@ class ArmArchitecture : public Architecture {
    * exists, mainly serving GPU devices
    *
    * @param device_id - device id
-   * @param command_queue - command_queue (corresponding to stream under CUDA,
-   * corresponding to cl::command_queue under OpenCL)
    * @param library_path - Mainly serving OpenCL, using the OpenCL dynamic
    * library provided by the user
    * @return base::Status
    */
   virtual base::Status checkDevice(int device_id = 0,
-                                   void *command_queue = nullptr,
                                    std::string library_path = "") override;
 
   /**
@@ -42,14 +38,11 @@ class ArmArchitecture : public Architecture {
    * serving GPU devices
    *
    * @param device_id - device id
-   * @param command_queue - command_queue (corresponding to stream under CUDA,
-   * corresponding to cl::command_queue under OpenCL)
    * @param library_path - Mainly serving OpenCL, using the OpenCL dynamic
    * library provided by the user
    * @return base::Status
    */
   virtual base::Status enableDevice(int device_id = 0,
-                                    void *command_queue = nullptr,
                                     std::string library_path = "") override;
 
   /**
@@ -86,20 +79,24 @@ class NNDEPLOY_CC_API ArmDevice : public Device {
 
   virtual void deallocate(void *ptr);
 
-  virtual base::Status copy(void *src, void *dst, size_t size, int index = 0);
+  virtual base::Status copy(void *src, void *dst, size_t size,
+                            Stream *stream = nullptr) override;
   virtual base::Status download(void *src, void *dst, size_t size,
-                                int index = 0);
-  virtual base::Status upload(void *src, void *dst, size_t size, int index = 0);
+                                Stream *stream = nullptr) override;
+  virtual base::Status upload(void *src, void *dst, size_t size,
+                              Stream *stream = nullptr) override;
 
-  virtual base::Status copy(Buffer *src, Buffer *dst, int index = 0);
-  virtual base::Status download(Buffer *src, Buffer *dst, int index = 0);
-  virtual base::Status upload(Buffer *src, Buffer *dst, int index = 0);
+  virtual base::Status copy(Buffer *src, Buffer *dst,
+                            Stream *stream = nullptr) override;
+  virtual base::Status download(Buffer *src, Buffer *dst,
+                                Stream *stream = nullptr) override;
+  virtual base::Status upload(Buffer *src, Buffer *dst,
+                              Stream *stream = nullptr) override;
 
- protected:
-  ArmDevice(base::DeviceType device_type, void *command_queue = nullptr,
-            std::string library_path = "")
-      : Device(device_type){};
-  virtual ~ArmDevice(){};
+ public:
+  ArmDevice(base::DeviceType device_type, std::string library_path = "")
+      : Device(device_type) {};
+  virtual ~ArmDevice() {};
 
   virtual base::Status init();
   virtual base::Status deinit();

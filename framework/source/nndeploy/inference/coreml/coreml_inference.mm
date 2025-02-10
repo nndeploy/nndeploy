@@ -14,9 +14,9 @@ base::Status CoremlInference::init() {
   base::Status status = base::kStatusCodeOk;
 
   if (device::isHostDeviceType(inference_param_->device_type_)) {
-    is_share_command_queue_ = true;
+    is_external_stream_ = true;
   } else {
-    is_share_command_queue_ = false;
+    is_external_stream_ = false;
   }
 
   CoremlInferenceParam *coreml_inference_param =

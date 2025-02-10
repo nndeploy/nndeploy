@@ -259,6 +259,11 @@ base::Status Net::init() {
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
 
+  // 设置默认流
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
@@ -491,7 +496,7 @@ base::Status Net::run() {
   // 输出
 #if 0
   device::Device *device = device::getDevice(device_type_);
-  device->synchronize();
+  stream_->synchronize();
   for (size_t i = 0; i < outputs_.size(); ++i) {
     std::string path = "./net/";
     std::string name = outputs_[i]->getName();
@@ -688,6 +693,14 @@ base::Status Net::construct() {
   }
 
   // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("set stream\n");
+  // NNDEPLOY_LOGI("##############\n");
+  for (auto op_wrapper : op_repository_) {
+    base::Status status = op_wrapper->op_->setStream(stream_);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "op setStream failed!");
+  }
+
+  // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("construct tensor\n");
   // NNDEPLOY_LOGI("##############\n");
   for (auto tensor_wrapper : tensor_repository_) {
@@ -743,9 +756,13 @@ base::Status Net::runtime() {
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("create runtime\n");
   // NNDEPLOY_LOGI("##############\n");
-
   runtime_ = createRuntime(device_type_, parallel_type_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(runtime_, "Create runtime failed!");
+
+  // 设置流
+  status = runtime_->setStream(stream_);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "runtime setStream failed!");
 
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("runtime init\n");

@@ -108,7 +108,7 @@ export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20
 atc --model=path/to/resnet50-v1-7.staticshape.onnx --output=path/to/resnet50-v1-7.onnx.om --framework=5 --soc_version=Ascend910B4
 
 # 执行
-./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_ort_arm_sample_output.jpg
+./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_acl_acl_sample_output.jpg
 
 # 耗时
 TimeProfiler: demo, remove warmup 10

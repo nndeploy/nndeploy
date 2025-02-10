@@ -14,9 +14,13 @@ class AscendCLOpDiv : public OpBinary {
   virtual ~AscendCLOpDiv() {}
 
   virtual base::Status init() {
-    // 流
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     device::Device* device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
+    inner_stream_ =
+        (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
     if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
       inputs_0_ = new device::Tensor(device, inputs_[0]->getDesc(),
@@ -52,7 +56,7 @@ class AscendCLOpDiv : public OpBinary {
       delete inputs_1_;
       inputs_1_ = nullptr;
     }
-    return base::kStatusCodeOk;
+    return Op::deinit();
   }
   virtual base::Status preRun() {
     // 输入输出

@@ -76,6 +76,14 @@ base::Param *Infer::getParam() { return inference_->getParam(); }
 
 base::Status Infer::init() {
   base::Status status = base::kStatusCodeOk;
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+
+  if (device_type_ == inference_->getDeviceType()) {
+    inference_->setStream(stream_);
+  }
+
   status = inference_->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "abstract_inference init failed");

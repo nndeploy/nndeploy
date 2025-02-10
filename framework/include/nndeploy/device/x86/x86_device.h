@@ -1,4 +1,3 @@
-
 #ifndef _NNDEPLOY_DEVICE_X86_DEVICE_H_
 #define _NNDEPLOY_DEVICE_X86_DEVICE_H_
 
@@ -14,11 +13,9 @@ class X86Architecture : public Architecture {
   virtual ~X86Architecture();
 
   virtual base::Status checkDevice(int device_id = 0,
-                                   void *command_queue = nullptr,
                                    std::string library_path = "") override;
 
   virtual base::Status enableDevice(int device_id = 0,
-                                    void *command_queue = nullptr,
                                     std::string library_path = "") override;
 
   virtual Device *getDevice(int device_id) override;
@@ -43,20 +40,24 @@ class NNDEPLOY_CC_API X86Device : public Device {
 
   virtual void deallocate(void *ptr);
 
-  virtual base::Status copy(void *src, void *dst, size_t size, int index = 0);
+  virtual base::Status copy(void *src, void *dst, size_t size,
+                            Stream *stream = nullptr) override;
   virtual base::Status download(void *src, void *dst, size_t size,
-                                int index = 0);
-  virtual base::Status upload(void *src, void *dst, size_t size, int index = 0);
+                                Stream *stream = nullptr) override;
+  virtual base::Status upload(void *src, void *dst, size_t size,
+                              Stream *stream = nullptr) override;
 
-  virtual base::Status copy(Buffer *src, Buffer *dst, int index = 0);
-  virtual base::Status download(Buffer *src, Buffer *dst, int index = 0);
-  virtual base::Status upload(Buffer *src, Buffer *dst, int index = 0);
+  virtual base::Status copy(Buffer *src, Buffer *dst,
+                            Stream *stream = nullptr) override;
+  virtual base::Status download(Buffer *src, Buffer *dst,
+                                Stream *stream = nullptr) override;
+  virtual base::Status upload(Buffer *src, Buffer *dst,
+                              Stream *stream = nullptr) override;
 
- protected:
-  X86Device(base::DeviceType device_type, void *command_queue = nullptr,
-            std::string library_path = "")
-      : Device(device_type){};
-  virtual ~X86Device(){};
+ public:
+  X86Device(base::DeviceType device_type, std::string library_path = "")
+      : Device(device_type) {};
+  virtual ~X86Device() {};
 
   virtual base::Status init();
   virtual base::Status deinit();

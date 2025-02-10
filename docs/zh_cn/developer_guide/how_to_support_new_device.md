@@ -65,30 +65,24 @@
      * exists, mainly serving GPU devices
      *
      * @param device_id - device id
-     * @param command_queue - command_queue (corresponding to stream under CUDA,
-     * corresponding to cl::command_queue under OpenCL)
      * @param library_path - Mainly serving OpenCL, using the OpenCL dynamic
      * library provided by the user
      * @return base::Status
      */
     virtual base::Status checkDevice(int device_id = 0,
-                                     void *command_queue = nullptr,
-                                     std::string library_path = "") override;
+                                   std::string library_path = "") override;
 
     /**
      * @brief Enable the device corresponding to the current device id，mainly
      * serving GPU devices
      *
      * @param device_id - device id
-     * @param command_queue - command_queue (corresponding to stream under CUDA,
-     * corresponding to cl::command_queue under OpenCL)
      * @param library_path - Mainly serving OpenCL, using the OpenCL dynamic
      * library provided by the user
      * @return base::Status
      */
     virtual base::Status enableDevice(int device_id = 0,
-                                      void *command_queue = nullptr,
-                                      std::string library_path = "") override;
+                                    std::string library_path = "") override;
 
     /**
      * @brief Get the Device object
