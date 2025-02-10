@@ -2,9 +2,9 @@
 #include "nndeploy/inference/tensorrt/tensorrt_inference.h"
 
 #include "nndeploy/base/shape.h"
+#include "nndeploy/device/cuda/cuda_device.h"
 #include "nndeploy/inference/tensorrt/tensorrt_convert.h"
 #include "nndeploy/inference/tensorrt/tensorrt_inference_param.h"
-
 namespace nndeploy {
 namespace inference {
 
@@ -69,7 +69,7 @@ base::Status TensorRtInference::init() {
   inner_forward_buffer_ = nullptr;
 
   if (!is_external_stream_ && stream_ == nullptr) {
-    stream_ = device::createStream(device_type_);
+    stream_ = device::getDevice(inference_param_->device_type_)->createStream();
   }
 
   std::string model_buffer;
@@ -270,7 +270,8 @@ base::Status TensorRtInference::run() {
     }
   }
   // forward
-  cudaStream_t stream_ = (cudaStream_t)device->getCommandQueue();
+  cudaStream_t stream =
+      (cudaStream_t)(stream_->as<device::CudaStream>()->getStream());
 #ifdef TENSORRT_MAJOR_8_MINOR_5
   for (auto iter : max_input_tensors_) {
     void *data = iter.second->getBuffer()->getData();
@@ -286,7 +287,7 @@ base::Status TensorRtInference::run() {
       return base::kStatusCodeErrorInferenceTensorRt;
     }
   }
-  if (!context_->enqueueV3(stream_)) {
+  if (!context_->enqueueV3(stream)) {
     NNDEPLOY_LOGE("Fail to enqueueV3!\n");
     return base::kStatusCodeErrorInferenceTensorRt;
   }
@@ -303,7 +304,7 @@ base::Status TensorRtInference::run() {
       bindings_[i] = max_output_buffer->getData();
     }
   }
-  if (!context_->enqueueV2(bindings_.data(), stream_, nullptr)) {
+  if (!context_->enqueueV2(bindings_.data(), stream, nullptr)) {
     NNDEPLOY_LOGE("Fail to enqueueV2!\n");
     return base::kStatusCodeErrorInferenceTensorRt;
   }

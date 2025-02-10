@@ -128,34 +128,43 @@ void CudaDevice::deallocate(void *ptr) {
 
 base::Status CudaDevice::copy(void *src, void *dst, size_t size,
                               Stream *stream) {
-  cudaStream_t cuda_stream = nullptr;
-  if (stream != nullptr) {
-    cuda_stream = (cudaStream_t)stream->as<CudaStream>()->getStream();
+  if (stream == nullptr) {
+    NNDEPLOY_CUDA_CHECK(cudaMemcpy(dst, src, size, cudaMemcpyDeviceToDevice));
+  } else {
+    cudaStream_t cuda_stream =
+        (cudaStream_t)stream->as<CudaStream>()->getStream();
+    NNDEPLOY_CUDA_CHECK(
+        cudaMemcpyAsync(dst, src, size, cudaMemcpyDeviceToDevice, cuda_stream));
   }
-  NNDEPLOY_CUDA_CHECK(
-      cudaMemcpyAsync(dst, src, size, cudaMemcpyDeviceToDevice, cuda_stream));
+
   return base::kStatusCodeOk;
 }
 
 base::Status CudaDevice::download(void *src, void *dst, size_t size,
                                   Stream *stream) {
-  cudaStream_t cuda_stream = nullptr;
-  if (stream != nullptr) {
-    cuda_stream = (cudaStream_t)stream->as<CudaStream>()->getStream();
+  if (stream == nullptr) {
+    NNDEPLOY_CUDA_CHECK(cudaMemcpy(dst, src, size, cudaMemcpyDeviceToHost));
+  } else {
+    cudaStream_t cuda_stream =
+        (cudaStream_t)stream->as<CudaStream>()->getStream();
+    NNDEPLOY_CUDA_CHECK(
+        cudaMemcpyAsync(dst, src, size, cudaMemcpyDeviceToHost, cuda_stream));
   }
-  NNDEPLOY_CUDA_CHECK(
-      cudaMemcpyAsync(dst, src, size, cudaMemcpyDeviceToHost, cuda_stream));
+
   return base::kStatusCodeOk;
 }
 
 base::Status CudaDevice::upload(void *src, void *dst, size_t size,
                                 Stream *stream) {
   cudaStream_t cuda_stream = nullptr;
-  if (stream != nullptr) {
+  if (stream == nullptr) {
+    NNDEPLOY_CUDA_CHECK(cudaMemcpy(dst, src, size, cudaMemcpyHostToDevice));
+  } else {
     cuda_stream = (cudaStream_t)stream->as<CudaStream>()->getStream();
+    NNDEPLOY_CUDA_CHECK(
+        cudaMemcpyAsync(dst, src, size, cudaMemcpyHostToDevice, cuda_stream));
   }
-  NNDEPLOY_CUDA_CHECK(
-      cudaMemcpyAsync(dst, src, size, cudaMemcpyHostToDevice, cuda_stream));
+
   return base::kStatusCodeOk;
 }
 
@@ -182,130 +191,10 @@ base::Status CudaDevice::upload(Buffer *src, Buffer *dst, Stream *stream) {
 
 void *CudaDevice::getContext() { return nullptr; }
 
-int CudaDevice::newCommandQueue() {
-  if (cuda_stream_wrapper_.size() == INT_MAX) {
-    NNDEPLOY_LOGE("stream index is out of range\n");
-    return -1;
-  }
-  CudaStreamWrapper cuda_stream_wrapper;
-  cuda_stream_wrapper.external_command_queue_ = nullptr;
-  cudaError_t status = cudaStreamCreate(&cuda_stream_wrapper.stream_);
-  if (cudaSuccess != status) {
-    NNDEPLOY_CUDA_CHECK(status);
-    NNDEPLOY_LOGE("cuda stream create failed\n");
-    return base::kStatusCodeErrorDeviceCuda;
-  }
-  base::Status nndp_status =
-      insertStream(stream_index_, cuda_stream_wrapper_, cuda_stream_wrapper);
-  NNDEPLOY_RETURN_VALUE_ON_NEQ(nndp_status, base::kStatusCodeOk, -1,
-                               "insertStream failed\n");
-  return stream_index_;
-}
-base::Status CudaDevice::deleteCommandQueue(int index) {
-  // if (index < 0) {
-  //   index = stream_index_;
-  // }
-  if (index <= 0) {
-    NNDEPLOY_LOGE("index[%d] is error\n", index);
-    return base::kStatusCodeErrorDeviceAscendCL;
-  }
-  // 更新stream_index_
-  stream_index_ = updateStreamIndex(cuda_stream_wrapper_);
-  if (cuda_stream_wrapper_.find(index) != cuda_stream_wrapper_.end()) {
-    base::Status status = synchronize(index);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "synchronize failed");
-    if (cuda_stream_wrapper_[index].external_command_queue_ == nullptr) {
-      cudaError_t status =
-          cudaStreamDestroy(cuda_stream_wrapper_[index].stream_);
-      if (cudaSuccess != status) {
-        NNDEPLOY_LOGE("cuda stream destroy failed\n");
-        return base::kStatusCodeErrorDeviceCuda;
-      }
-    }
-    cuda_stream_wrapper_.erase(index);
-    return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGE("index[%d] is error\n", index);
-    return base::kStatusCodeErrorDeviceCuda;
-  }
-}
-base::Status CudaDevice::deleteCommandQueue(void *stream) {
-  for (auto iter : cuda_stream_wrapper_) {
-    if (stream == (void *)(iter.second.stream_)) {
-      return this->deleteCommandQueue(iter.first);
-    }
-  }
-  NNDEPLOY_LOGE("command queue is not found\n");
-  return base::kStatusCodeOk;
-}
-int CudaDevice::setCommandQueue(void *stream, bool is_external) {
-  if (stream == nullptr) {
-    NNDEPLOY_LOGE("command queue is nullptr\n");
-    return base::kStatusCodeErrorDeviceCuda;
-  }
-  CudaStreamWrapper cuda_stream_wrapper;
-  if (is_external) {
-    cuda_stream_wrapper.external_command_queue_ = stream;
-  } else {
-    cuda_stream_wrapper.external_command_queue_ = nullptr;
-  }
-  cuda_stream_wrapper.stream_ = (cudaStream_t)stream;
-  base::Status status =
-      insertStream(stream_index_, cuda_stream_wrapper_, cuda_stream_wrapper);
-  NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, -1,
-                               "insertStream failed\n");
-  return stream_index_;
-}
+base::Status CudaDevice::init() { return base::kStatusCodeOk; }
+base::Status CudaDevice::deinit() { return base::kStatusCodeOk; }
 
-void *CudaDevice::getCommandQueue(int index) {
-  // if (index < 0) {
-  //   index = stream_index_;
-  // }
-  if (cuda_stream_wrapper_.find(index) == cuda_stream_wrapper_.end()) {
-    NNDEPLOY_LOGE("getCommandQueue failed\n");
-    return nullptr;
-  } else {
-    return (void *)cuda_stream_wrapper_[index].stream_;
-  }
-}
-
-base::Status CudaDevice::synchronize(int index) {
-  cudaStream_t stream = (cudaStream_t)(this->getCommandQueue(index));
-  cudaError_t status = cudaStreamSynchronize(stream);
-  if (cudaSuccess != status) {
-    NNDEPLOY_LOGE("cuda stream synchronize failed\n");
-    return base::kStatusCodeErrorDeviceCuda;
-  }
-  return base::kStatusCodeOk;
-}
-
-base::Status CudaDevice::init() {
-  if (cuda_stream_wrapper_[0].external_command_queue_ == nullptr) {
-    NNDEPLOY_CUDA_CHECK(cudaSetDevice(device_type_.device_id_));
-    NNDEPLOY_CUDA_CHECK(cudaStreamCreate(&cuda_stream_wrapper_[0].stream_));
-  }
-  return base::kStatusCodeOk;
-}
-base::Status CudaDevice::deinit() {
-  for (auto iter : cuda_stream_wrapper_) {
-    cudaError_t status = cudaStreamSynchronize(iter.second.stream_);
-    if (cudaSuccess != status) {
-      NNDEPLOY_CUDA_CHECK(status);
-      NNDEPLOY_LOGE("cuda stream synchronize failed\n");
-      return base::kStatusCodeErrorDeviceCuda;
-    }
-    if (iter.second.external_command_queue_ == nullptr) {
-      NNDEPLOY_CUDA_CHECK(cudaStreamDestroy(iter.second.stream_));
-    }
-  }
-  return base::kStatusCodeOk;
-}
-
-Stream *CudaDevice::createStream() {
-  cudaStream_t stream;
-  NNDEPLOY_CUDA_CHECK(cudaStreamCreate(&stream));
-  return new CudaStream(this, stream);
-}
+Stream *CudaDevice::createStream() { return new CudaStream(this); }
 
 Stream *CudaDevice::createStream(void *stream) {
   return new CudaStream(this, stream);
@@ -313,15 +202,126 @@ Stream *CudaDevice::createStream(void *stream) {
 
 base::Status CudaDevice::deleteStream(Stream *stream) {
   if (stream == nullptr) {
+    NNDEPLOY_LOGE("stream is nullptr\n");
     return base::kStatusCodeOk;
   }
-  if (!stream->isExternal()) {
-    NNDEPLOY_CUDA_CHECK(
-        cudaStreamDestroy((cudaStream_t)stream->as<CudaStream>()->getStream()));
-  }
   delete stream;
+  stream = nullptr;
   return base::kStatusCodeOk;
 }
+
+Event *CudaDevice::createEvent() { return new CudaEvent(this); }
+base::Status CudaDevice::destroyEvent(Event *event) {
+  if (event == nullptr) {
+    NNDEPLOY_LOGE("event is nullptr\n");
+    return base::kStatusCodeErrorDeviceCuda;
+  }
+  delete event;
+  event = nullptr;
+  return base::kStatusCodeOk;
+}
+base::Status CudaDevice::createEvents(Event **events, size_t count) {
+  for (size_t i = 0; i < count; ++i) {
+    Event *event = this->createEvent();
+    if (event == nullptr) {
+      return base::kStatusCodeErrorDeviceCuda;
+    }
+  }
+  return base::kStatusCodeOk;
+}
+base::Status CudaDevice::destroyEvents(Event **events, size_t count) {
+  for (size_t i = 0; i < count; ++i) {
+    this->destroyEvent(events[i]);
+  }
+  return base::kStatusCodeOk;
+}
+
+CudaStream::CudaStream(Device *device) : Stream(device) {
+  cudaStream_t stream;
+  cudaError_t ret = cudaStreamCreate(&stream);
+  if (ret != cudaSuccess) {
+    NNDEPLOY_LOGE("cudaStreamCreate failed, errorCode is %d", ret);
+  }
+  stream_ = stream;
+}
+CudaStream::CudaStream(Device *device, void *stream)
+    : Stream(device, stream), stream_((cudaStream_t)stream) {}
+CudaStream::~CudaStream() {
+  if (is_external_) {
+    return;
+  }
+  cudaError_t ret = cudaStreamDestroy(stream_);
+  if (ret != cudaSuccess) {
+    NNDEPLOY_LOGE("cudaStreamDestroy failed, errorCode is %d", ret);
+  }
+}
+
+base::Status CudaStream::synchronize() {
+  cudaError_t ret = cudaStreamSynchronize(stream_);
+  if (ret != cudaSuccess) {
+    NNDEPLOY_LOGE("cudaStreamSynchronize failed, errorCode is %d", ret);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status CudaStream::recordEvent(Event *event) {
+  if (event == nullptr) {
+    NNDEPLOY_LOGE("event is nullptr\n");
+    return base::kStatusCodeErrorDeviceCuda;
+  }
+  cudaError_t ret =
+      cudaEventRecord(event->as<CudaEvent>()->getEvent(), stream_);
+  if (ret != cudaSuccess) {
+    NNDEPLOY_LOGE("cudaRecordStream failed, errorCode is %d", ret);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status CudaStream::waitEvent(Event *event) {
+  if (event == nullptr) {
+    NNDEPLOY_LOGE("event is nullptr\n");
+    return base::kStatusCodeErrorDeviceCuda;
+  }
+  cudaError_t ret =
+      cudaStreamWaitEvent(stream_, event->as<CudaEvent>()->getEvent(), 0);
+  if (ret != cudaSuccess) {
+    NNDEPLOY_LOGE("cudaStreamWaitEvent failed, errorCode is %d", ret);
+  }
+  return base::kStatusCodeOk;
+}
+
+cudaStream_t CudaStream::getStream() { return stream_; }
+
+// event
+CudaEvent::CudaEvent(Device *device) : Event(device) {
+  cudaError_t ret = cudaEventCreate(&event_);
+  if (ret != cudaSuccess) {
+    NNDEPLOY_LOGE("cudaEventCreate failed, errorCode is %d", ret);
+  }
+}
+CudaEvent::~CudaEvent() {
+  cudaError_t ret = cudaEventDestroy(event_);
+  if (ret != cudaSuccess) {
+    NNDEPLOY_LOGE("cudaEventDestroy failed, errorCode is %d", ret);
+  }
+}
+
+bool CudaEvent::queryDone() {
+  cudaError_t ret = cudaEventQuery(event_);
+  if (ret != cudaSuccess) {
+    NNDEPLOY_LOGE("cudaEventQuery failed, errorCode is %d", ret);
+    return false;
+  } else {
+    return true;
+  }
+}
+base::Status CudaEvent::synchronize() {
+  cudaError_t ret = cudaEventSynchronize(event_);
+  if (ret != cudaSuccess) {
+    NNDEPLOY_LOGE("cudaEventSynchronize failed, errorCode is %d", ret);
+  }
+  return base::kStatusCodeOk;
+}
+
+cudaEvent_t CudaEvent::getEvent() { return event_; }
 
 }  // namespace device
 }  // namespace nndeploy

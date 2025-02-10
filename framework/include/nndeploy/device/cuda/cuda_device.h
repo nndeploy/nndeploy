@@ -64,12 +64,6 @@ class CudaArchitecture : public Architecture {
       std::string library_path = "") override;
 };
 
-class CudaStreamWrapper {
- public:
-  void *external_command_queue_ = nullptr;
-  cudaStream_t stream_;
-};
-
 /**
  * @brief
  *
@@ -113,14 +107,16 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
 
   virtual void *getContext();
 
-  virtual int newCommandQueue();
-  virtual base::Status deleteCommandQueue(int index);
-  virtual base::Status deleteCommandQueue(void *stream);
-  virtual int setCommandQueue(void *stream, bool is_external = true);
+  // stream
+  virtual Stream *createStream();
+  virtual Stream *createStream(void *stream);
+  virtual base::Status deleteStream(Stream *stream);
 
-  virtual void *getCommandQueue(int index = 0);
-
-  virtual base::Status synchronize(int index = 0);
+  // event
+  virtual Event *createEvent();
+  virtual base::Status destroyEvent(Event *event);
+  virtual base::Status createEvents(Event **events, size_t count);
+  virtual base::Status destroyEvents(Event **events, size_t count);
 
  public:
   /**
@@ -131,12 +127,7 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
    * @param library_path
    */
   CudaDevice(base::DeviceType device_type, std::string library_path = "")
-      : Device(device_type) {
-    CudaStreamWrapper cuda_stream_wrapper;
-    cuda_stream_wrapper.external_command_queue_ = nullptr;
-    cuda_stream_wrapper.stream_ = nullptr;
-    insertStream(stream_index_, cuda_stream_wrapper);
-  };
+      : Device(device_type) {};
   /**
    * @brief Destroy the Cuda Device object
    *
@@ -155,22 +146,36 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
    * @return base::Status
    */
   virtual base::Status deinit();
-
- private:
-  int stream_index_ = 0;
-  std::map<int, CudaStreamWrapper> cuda_stream_wrapper_;
 };
 
 class CudaStream : public Stream {
  public:
-  CudaStream(Device *device, void *stream = nullptr)
-      : Stream(device, stream), stream_((cudaStream_t)stream) {}
-  virtual ~CudaStream() {}
+  CudaStream(Device *device);
+  CudaStream(Device *device, void *stream);
+  virtual ~CudaStream();
 
-  cudaStream_t getStream() { return stream_; }
+  virtual base::Status synchronize();
+  virtual base::Status recordEvent(Event *event);
+  virtual base::Status waitEvent(Event *event);
+
+  cudaStream_t getStream();
 
  private:
   cudaStream_t stream_;
+};
+
+class CudaEvent : public Event {
+ public:
+  CudaEvent(Device *device);
+  virtual ~CudaEvent();
+
+  virtual bool queryDone();
+  virtual base::Status synchronize();
+
+  cudaEvent_t getEvent();
+
+ protected:
+  cudaEvent_t event_;
 };
 
 }  // namespace device
