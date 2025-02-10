@@ -22,7 +22,18 @@ namespace nndeploy {
 namespace op {
 
 base::Status OpSigmoid::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
+  device::Tensor *input_tensor = inputs_[0];
+  device::Tensor *output_tensor = outputs_[0];
+  // TODO : check input and output shape equal
+  float *input = static_cast<float *>(input_tensor->getData());
+  float *output = static_cast<float *>(output_tensor->getData());
+
+  int total_elements = std::accumulate(input_tensor->getShape().begin(),
+                                       input_tensor->getShape().end(), 1,
+                                       std::multiplies<int>());
+  for (int i = 0; i < total_elements; i++) {
+    output[i] = 1.0 / (1.0 + exp(-input[i]));
+  }
   return base::kStatusCodeOk;
 }
 

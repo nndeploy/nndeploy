@@ -21,6 +21,7 @@ class OpReshape : public Op {
 };
 
 NNDEPLOY_CC_API base::Status reshape(device::Tensor *input,
+                                     device::Tensor *newshape,
                                      std::shared_ptr<ir::ReshapeParam> param,
                                      device::Tensor *output);
 

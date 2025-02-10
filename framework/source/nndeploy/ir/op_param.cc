@@ -296,6 +296,7 @@ static const std::map<std::string, OpType> g_string_optype_map = {
     {"kOpTypeXor", kOpTypeXor},
     {"kOpTypeRMSNorm", kOpTypeRMSNorm},
     {"kOpTypeEmbedding", kOpTypeEmbedding},
+    {"kOpTypeCos", kOpTypeCos},
 
     {"kOpTypeNone", kOpTypeNone},
 };
@@ -376,7 +377,8 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeFlatten, FlattenParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeGemm, GemmParam);
 
-REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeEmbedding, EmbeddingParam);
+// REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeEmbedding, EmbeddingParam);
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeCast, CastParam);
 
 }  // namespace ir
 }  // namespace nndeploy

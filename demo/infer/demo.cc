@@ -166,50 +166,23 @@ int main(int argc, char const *argv[]) {
   }
 #endif
   {
-    std::string weight_path =
-        "/Users/realtyxxx_mac/study/gt/"
-        "rtdetr_save_out.safetensors";
-    // "/Users/realtyxxx_mac/.cache/huggingface/hub/"
-    // "models--PekingU--rtdetr_r18vd/snapshots/"
-    // "ac77a11ff0170a41b771c03264987f8ce2b0d753/model.safetensors";
-    // auto new_desc = new ir::ModelDesc();
-
-    // @Realtyxxx: 从safetensors中导入模型名称
-    // std::ifstream inFile("/Users/realtyxxx_mac/study/gt/rtdetr.txt");
-
-    // // 检查文件是否成功打开
-    // if (!inFile) {
-    //   std::cerr << "无法打开文件！" << std::endl;
-    //   return 1;
-    // }
-
-    // std::string line;
-    // // 使用 std::getline 逐行读取文件内容
-    // while (std::getline(inFile, line)) {
-    //   // std::cout << line << std::endl;  // 输出每行内容到控制台
-    //   new_desc->weights_.insert({line, new device::Tensor(line)});
-    // }
-    // inFile.close();
-
-    // std::cout << sep << "new_desc deserialize : " << std::endl;
-
-    // new_desc->deserializeWeightsFromSafetensors(weight_path);
-
-    // std::cout << sep << "new_desc serialize : " << std::endl;
-    // std::shared_ptr<safetensors::safetensors_t> st_ptr(new
-    // safetensors::safetensors_t());
-    // new_desc->serializeWeightsToSafetensors(st_ptr);
-    // std::string err, warn;
-    // safetensors::save_to_file(
-    //     *st_ptr, "/Users/realtyxxx_mac/study/gt/rtdetr_out.safetensors",
-    //     &warn, &err);
-    // 关闭文件
+    std::string weight_path_1 =
+        "/home/samsung_1tb/realtyxxx/.cache/huggingface/hub/"
+        "models--NousResearch--Llama-2-7b-chat-hf/snapshots/"
+        "351844e75ed0bcbbe3f10671b3c808d2b83894ee/"
+        "model-00001-of-00002.safetensors";
+    std::string weight_path_2 =
+        "/home/samsung_1tb/realtyxxx/.cache/huggingface/hub/"
+        "models--NousResearch--Llama-2-7b-chat-hf/snapshots/"
+        "351844e75ed0bcbbe3f10671b3c808d2b83894ee/"
+        "model-00002-of-00002.safetensors";
 
     ir::Interpret *interpret = ir::createInterpret(base::kModelTypeDefault);
-    interpret->interpret({"", weight_path});
+    interpret->interpret({"", weight_path_1});
+    interpret->interpret({"", weight_path_2});
 
     interpret->saveModelToFile(
-        "", "/Users/realtyxxx_mac/study/gt/rtdetr_out.safetensors");
+        "", "/home/samsung_1tb/realtyxxx/github/total.safetensors");
 
     delete interpret;
   }

@@ -205,6 +205,7 @@ enum OpType : int {
   // 1. 增加llama的算子类型
   kOpTypeRMSNorm,
   kOpTypeEmbedding,
+  kOpTypeBroadcast,
 
   kOpTypeNone,
 };
@@ -219,7 +220,7 @@ NNDEPLOY_CC_API OpType stringToOpType(const std::string &op_type_name);
  */
 class OpParamCreator {
  public:
-  virtual ~OpParamCreator(){};
+  virtual ~OpParamCreator() {};
   virtual std::shared_ptr<base::Param> createOpParam(OpType type) = 0;
 };
 
@@ -277,8 +278,8 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
  */
 class NNDEPLOY_CC_API OpParam : public base::Param {
  public:
-  OpParam() : base::Param(){};
-  virtual ~OpParam(){};
+  OpParam() : base::Param() {};
+  virtual ~OpParam() {};
 
   PARAM_COPY(OpParam)
   PARAM_COPY_TO(OpParam)
@@ -290,8 +291,8 @@ class NNDEPLOY_CC_API OpParam : public base::Param {
 
 class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
  public:
-  BatchNormalizationParam() : OpParam(){};
-  virtual ~BatchNormalizationParam(){};
+  BatchNormalizationParam() : OpParam() {};
+  virtual ~BatchNormalizationParam() {};
 
   PARAM_COPY(BatchNormalizationParam)
   PARAM_COPY_TO(BatchNormalizationParam)
@@ -336,8 +337,8 @@ class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
 
 class ConcatParam : public OpParam {
  public:
-  ConcatParam() : OpParam(){};
-  virtual ~ConcatParam(){};
+  ConcatParam() : OpParam() {};
+  virtual ~ConcatParam() {};
 
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
@@ -831,6 +832,8 @@ class NNDEPLOY_CC_API TransposeParam : public OpParam {
 class NNDEPLOY_CC_API RMSNormParam : public OpParam {
  public:
   RMSNormParam() : OpParam() {}  // 默认轴为0，分割数为1
+  RMSNormParam(base::IntVector normalized_shape, float eps = 1e-6)
+      : normalized_shape_(normalized_shape), eps_(eps), OpParam() {}
   virtual ~RMSNormParam() {}
 
   PARAM_COPY(RMSNormParam)
@@ -839,7 +842,11 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
   base::Status serialize(rapidjson::Value &json,
                          rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("eps_", eps_, allocator);
-    json.AddMember("is_last_", is_last_, allocator);
+    rapidjson::Value normalized_shape_array(rapidjson::kArrayType);
+    for (size_t i = 0; i < normalized_shape_.size(); ++i) {
+      normalized_shape_array.PushBack(normalized_shape_[i], allocator);
+    }
+    json.AddMember("normalized_shape_", normalized_shape_array, allocator);
     return base::kStatusCodeOk;
   }
   base::Status deserialize(rapidjson::Value &json) {
@@ -849,10 +856,13 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
       eps_ = 1e-6;  // 默认值
     }
 
-    if (json.HasMember("is_last_")) {
-      is_last_ = json["is_last_"].GetBool();
+    if (json.HasMember("normalized_shape_")) {
+      normalized_shape_.clear();
+      for (int i = 0; i < json["normalized_shape_"].Size(); ++i) {
+        normalized_shape_.push_back(json["normalized_shape_"][i].GetInt());
+      }
     } else {
-      is_last_ = false;  // 默认值
+      normalized_shape_.clear();  // 默认值
     }
 
     return base::kStatusCodeOk;
@@ -860,13 +870,13 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
 
  public:
   float eps_ = 1e-6;
-  bool is_last_ = false;
+  base::IntVector normalized_shape_;
 };
 
 class NNDEPLOY_CC_API FlattenParam : public OpParam {
  public:
-  FlattenParam() : OpParam(){};
-  virtual ~FlattenParam(){};
+  FlattenParam() : OpParam() {};
+  virtual ~FlattenParam() {};
 
   PARAM_COPY(FlattenParam)
   PARAM_COPY_TO(FlattenParam)
@@ -890,25 +900,25 @@ class NNDEPLOY_CC_API FlattenParam : public OpParam {
   int axis_ = 1;
 };
 
-class NNDEPLOY_CC_API EmbeddingParam : public OpParam {
- public:
-  EmbeddingParam() : OpParam(){};
-  virtual ~EmbeddingParam(){};
+// class NNDEPLOY_CC_API EmbeddingParam : public OpParam {
+//  public:
+//   EmbeddingParam() : OpParam() {};
+//   virtual ~EmbeddingParam() {};
 
-  PARAM_COPY(EmbeddingParam)
-  PARAM_COPY_TO(EmbeddingParam)
+//   PARAM_COPY(EmbeddingParam)
+//   PARAM_COPY_TO(EmbeddingParam)
 
-  // base::Status serialize(rapidjson::Value &json,
-  //                        rapidjson::Document::AllocatorType &allocator) {}
-  // base::Status deserialize(rapidjson::Value &json) {
-  //   return base::kStatusCodeOk;
-  // }
-};
+//   // base::Status serialize(rapidjson::Value &json,
+//   //                        rapidjson::Document::AllocatorType &allocator) {}
+//   // base::Status deserialize(rapidjson::Value &json) {
+//   //   return base::kStatusCodeOk;
+//   // }
+// };
 
 class NNDEPLOY_CC_API GemmParam : public OpParam {
  public:
-  GemmParam() : OpParam(){};
-  virtual ~GemmParam(){};
+  GemmParam() : OpParam() {};
+  virtual ~GemmParam() {};
 
   PARAM_COPY(GemmParam)
   PARAM_COPY_TO(GemmParam)
@@ -954,6 +964,40 @@ class NNDEPLOY_CC_API GemmParam : public OpParam {
   float beta_ = 1.0;   // 默认值为1.0
   int trans_a_ = 0;    // 默认值为0
   int trans_b_ = 0;    // 默认值为0
+};
+
+class NNDEPLOY_CC_API CastParam : public OpParam {
+ public:
+  CastParam()
+      : OpParam(),
+        cast_type(base::DataType(base::kDataTypeCodeOpaqueHandle, 0)) {};
+  CastParam(const base::DataType &dtype) : OpParam(), cast_type(dtype) {};
+  virtual ~CastParam() {};
+
+  PARAM_COPY(CastParam)
+  PARAM_COPY_TO(CastParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember(
+        "cast_type",
+        rapidjson::Value(base::dataTypeToString(cast_type).c_str(), allocator),
+        allocator);
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("cast_type")) {
+      cast_type = base::stringToDataType(json["cast_type"].GetString());
+    } else {
+      cast_type = base::DataType(base::kDataTypeCodeOpaqueHandle, 0);  // 默认值
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  base::DataType cast_type =
+      base::DataType(base::kDataTypeCodeOpaqueHandle, 0);  // 默认值为0
 };
 
 }  // namespace ir

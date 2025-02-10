@@ -172,6 +172,7 @@ class NNDEPLOY_CC_API Op {
    */
   virtual uint64_t getFlops();
 
+  // virtual uint64_t setFlops(uint64_t flops, bool compute = false);
   /**
    * @brief 检查输出tensor
    * # 内存足够

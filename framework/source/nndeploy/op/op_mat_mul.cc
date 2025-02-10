@@ -42,7 +42,28 @@ base::Status OpMatMul::inferShape() {
 }
 
 base::Status OpMatMul::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
+  // NNDEPLOY_LOGI("not implemented.\n");
+  device::Tensor *input_a = inputs_[0];
+  device::Tensor *input_b = inputs_[1];
+  device::Tensor *output = outputs_[0];
+  auto input_a_shape = input_a->getShape();
+  auto input_b_shape = input_b->getShape();
+  auto output_shape = output->getShape();
+  int m = input_a_shape[0];
+  int n = input_b_shape[1];
+  int k = input_a_shape[1];
+  float *input_a_data = static_cast<float *>(input_a->getData());
+  float *input_b_data = static_cast<float *>(input_b->getData());
+  float *output_data = static_cast<float *>(output->getData());
+  memset(output_data, 0, m * n * sizeof(float));
+  for (int i = 0; i < m; i++) {
+    for (int j = 0; j < n; j++) {
+      for (int l = 0; l < k; l++) {
+        output_data[i * n + j] +=
+            input_a_data[i * k + l] * input_b_data[l * n + j];
+      }
+    }
+  }
   return base::kStatusCodeOk;
 }
 
@@ -50,7 +71,7 @@ base::Status matmul(device::Tensor *inputs_a, device::Tensor *inputs_b,
                     device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(inputs_a->getDeviceType(), "", ir::kOpTypeMaxPool);
+  Op *op = createOp(inputs_a->getDeviceType(), "", ir::kOpTypeMatMul);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
