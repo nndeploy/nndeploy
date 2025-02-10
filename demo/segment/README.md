@@ -115,6 +115,9 @@ cd /yourpath/nndeploy/build
 export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
 
+# 模型转换
+atc --model=path/to/RMBGV1.4.sim.onnx --output=path/to/RMBGV1.4.onnx.om --framework=5 --soc_version=Ascend910B4
+
 # 执行
 ./nndeploy_demo_segment --name NNDEPLOY_RMBGV1.4 --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/segment/RMBGV1.4.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential  --model_inputs input --model_outputs output --input_path ../docs/image/demo/segment/sample.jpg --output_path rbmg_acl_acl_sample_output.jpg
 

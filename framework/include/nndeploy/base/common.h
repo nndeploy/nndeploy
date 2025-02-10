@@ -23,7 +23,10 @@ enum DataTypeCode : uint8_t {
 
 struct NNDEPLOY_CC_API DataType {
   DataType();
+  DataType(DataTypeCode code, uint8_t bits, uint16_t lanes = (uint16_t)1);
   DataType(uint8_t code, uint8_t bits, uint16_t lanes = (uint16_t)1);
+
+  ~DataType();
 
   DataType(const DataType &other);
   DataType &operator=(const DataType &other);

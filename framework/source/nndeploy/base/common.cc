@@ -7,8 +7,14 @@ namespace nndeploy {
 namespace base {
 
 DataType::DataType() : code_(kDataTypeCodeFp), bits_(32), lanes_(1) {}
+
+DataType::DataType(DataTypeCode code, uint8_t bits, uint16_t lanes)
+    : code_(code), bits_(bits), lanes_(lanes) {}
+
 DataType::DataType(uint8_t code, uint8_t bits, uint16_t lanes)
     : code_(code), bits_(bits), lanes_(lanes) {}
+
+DataType::~DataType() {}
 
 DataType::DataType(const DataType &other) = default;
 DataType &DataType::operator=(const DataType &other) = default;

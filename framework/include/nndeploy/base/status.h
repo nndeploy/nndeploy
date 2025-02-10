@@ -75,7 +75,9 @@ enum StatusCode : int {
 
 class NNDEPLOY_CC_API Status {
  public:
-  Status(int code = kStatusCodeOk);
+  Status();
+  Status(int code);
+  Status(StatusCode code);
   ~Status();
 
   Status(const Status &other);
@@ -99,7 +101,7 @@ class NNDEPLOY_CC_API Status {
 
   std::string desc() const;
 
-  StatusCode getStatusCode();
+  StatusCode getStatusCode() const;
 
   Status operator+(const Status &other);
 

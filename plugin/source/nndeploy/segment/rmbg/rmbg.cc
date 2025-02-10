@@ -96,7 +96,7 @@ dag::Graph *createRMBGGraph(const std::string &name,
 
   preprocess::CvtclorResizeParam *pre_param =
       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
-  pre_param->src_pixel_type_ = base::kPixelTypeRGB;
+  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
   pre_param->h_ = 1024;

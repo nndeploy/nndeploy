@@ -231,6 +231,13 @@ compile_commands.json
 *.onnx
 *.json
 *.safetensors
+*.pth
+*.pt
+*.torchscript
+*.pkl
+*.bin
+*.pbtxt
+*.pb
 
 # setup.py
 python/setup.py

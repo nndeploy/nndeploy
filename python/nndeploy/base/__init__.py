@@ -1,2 +1,2 @@
-from .common import device_name_to_code
+from .common import name_to_device_type_code
 from .common import DeviceType

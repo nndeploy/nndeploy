@@ -4,16 +4,26 @@
 namespace nndeploy {
 namespace base {
 
+Status::Status() : code_(kStatusCodeOk) {}
 Status::Status(int code) : code_(code) {}
+Status::Status(StatusCode code) : code_(code) {}
 Status::~Status() {}
 
-Status::Status(const Status &other) = default;
-Status &Status::operator=(const Status &other) = default;
+Status::Status(const Status &other) { code_ = other.code_; }
+Status &Status::operator=(const Status &other) {
+  NNDEPLOY_LOGE("Status &Status::operator=(const Status &other) code: %d\n",
+                other.code_);
+  code_ = other.code_;
+  return *this;
+};
 Status &Status::operator=(const StatusCode &other) {
+  NNDEPLOY_LOGE("Status &Status::operator=(const StatusCode &other) code: %d\n",
+                other);
   code_ = other;
   return *this;
 };
 Status &Status::operator=(int other) {
+  NNDEPLOY_LOGE("Status &Status::operator=(int other) code: %d\n", other);
   code_ = other;
   return *this;
 };
@@ -22,6 +32,9 @@ Status::Status(Status &&other) = default;
 Status &Status::operator=(Status &&other) = default;
 
 bool Status::operator==(const Status &other) const {
+  NNDEPLOY_LOGE(
+      "Status::operator==(const Status &other) code: %d, other.code_: %d\n",
+      code_, other.code_);
   if (code_ == other.code_) {
     return true;
   } else {
@@ -30,6 +43,9 @@ bool Status::operator==(const Status &other) const {
 };
 
 bool Status::operator==(const StatusCode &other) const {
+  NNDEPLOY_LOGE(
+      "Status::operator==(const StatusCode &other) code: %d, other: %d\n",
+      code_, other);
   if (code_ == other) {
     return true;
   } else {
@@ -38,6 +54,8 @@ bool Status::operator==(const StatusCode &other) const {
 };
 
 bool Status::operator==(int other) const {
+  NNDEPLOY_LOGE("Status::operator==(int other) code: %d, other: %d\n", code_,
+                other);
   if (code_ == other) {
     return true;
   } else {
@@ -81,16 +99,18 @@ Status Status::operator+(const Status &other) {
 }
 
 std::string Status::desc() const {
-  std::string str;
-  switch (code_) {
-    default:
-      str = std::to_string(static_cast<int>(code_));
-      break;
-  }
+  std::string str = statusCodeToString(static_cast<StatusCode>(code_));
+  // switch (code_) {
+  //   default:
+  //     str = std::to_string(static_cast<int>(code_));
+  //     break;
+  // }
   return str;
 };
 
-StatusCode Status::getStatusCode() { return static_cast<StatusCode>(code_); }
+StatusCode Status::getStatusCode() const {
+  return static_cast<StatusCode>(code_);
+}
 
 std::string statusCodeToString(StatusCode code) {
   switch (code) {
