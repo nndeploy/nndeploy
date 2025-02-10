@@ -25,7 +25,7 @@ set(SOURCE ${SOURCE} ${DEMO_SOURCE})
 # BINARY
 add_executable(${BINARY} ${SOURCE} ${OBJECT})
 if (APPLE)
-  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl")
+  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "")
 else ()
   set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
 endif ()
