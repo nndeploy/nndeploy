@@ -57,34 +57,10 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def(py::init<const TensorDesc &>(), py::arg("desc"))
       .def("__eq__", &TensorDesc::operator==, py::arg("other"))
       .def("__ne__", &TensorDesc::operator!=, py::arg("other"))
-      .def(
-          "serialize",
-          [](TensorDesc &self, py::object &stream) {
-            py::gil_scoped_acquire acquire;
-            auto buffer = py::reinterpret_steal<py::object>(
-                PyObject_CallMethod(stream.ptr(), "getvalue", nullptr));
-            py::gil_scoped_release release;
-
-            std::string str = py::str(buffer);
-            std::istringstream iss(str);
-            std::ostringstream oss;
-            oss << iss.rdbuf();
-            return self.serialize(oss);
-          },
-          py::arg("stream"), "Serialize the tensor desc to a binary stream")
-      .def(
-          "deserialize",
-          [](TensorDesc &self, py::object &stream) {
-            py::gil_scoped_acquire acquire;
-            auto buffer = py::reinterpret_steal<py::object>(
-                PyObject_CallMethod(stream.ptr(), "getvalue", nullptr));
-            py::gil_scoped_release release;
-
-            std::string str = py::str(buffer);
-            std::istringstream iss(str);
-            return self.deserialize(iss);
-          },
-          py::arg("stream"), "Deserialize the tensor desc from a binary stream")
+      // .def("serialize",
+      //      [](TensorDesc &self, std::ostream &os) { self.serialize(os); })
+      // .def("deserialize",
+      //      [](TensorDesc &self, std::istream &is) { self.deserialize(is); })
       .def("print", &TensorDesc::print, py::arg("stream"))
       .def_readwrite("data_type_", &TensorDesc::data_type_)
       .def_readwrite("data_format_", &TensorDesc::data_format_)

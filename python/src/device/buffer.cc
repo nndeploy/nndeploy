@@ -41,40 +41,10 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def("clone", &Buffer::clone, "Clone the buffer")
       .def("copyTo", &Buffer::copyTo, py::arg("dst"),
            "Copy the buffer to the destination buffer")
-      .def(
-          "serialize",
-          [](Buffer &self, py::object &stream) {
-            // 将 Python 对象转换为 C++ 的 std::ostream
-            py::gil_scoped_acquire acquire;
-            auto buffer = py::reinterpret_steal<py::object>(
-                PyObject_CallMethod(stream.ptr(), "getvalue", nullptr));
-            py::gil_scoped_release release;
-
-            std::string str = py::str(buffer);
-            std::istringstream iss(str);
-            std::ostringstream oss;
-            oss << iss.rdbuf();
-
-            // 调用 C++ 的 serialize 方法
-            return self.serialize(oss);
-          },
-          py::arg("stream"), "Serialize the buffer to a binary stream")
-      .def(
-          "deserialize",
-          [](Buffer &self, py::object &stream) {
-            // 将 Python 对象转换为 C++ 的 std::istream
-            py::gil_scoped_acquire acquire;
-            auto buffer = py::reinterpret_steal<py::object>(
-                PyObject_CallMethod(stream.ptr(), "getvalue", nullptr));
-            py::gil_scoped_release release;
-
-            std::string str = py::str(buffer);
-            std::istringstream iss(str);
-
-            // 调用 C++ 的 deserialize 方法
-            return self.deserialize(iss);
-          },
-          py::arg("stream"), "Deserialize the buffer from a binary stream")
+      // .def("serialize", &Buffer::serialize, py::arg("stream"),
+      //      "Serialize the buffer to a binary stream")
+      // .def("deserialize", &Buffer::deserialize, py::arg("stream"),
+      //      "Deserialize the buffer from a binary stream")
       .def("print",
            [](const Buffer &self) {
              std::ostringstream os;
@@ -123,6 +93,49 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
         self.print(os);
         return os.str();
       });
+  // .def_buffer([](Buffer &self) {
+  //   // 获取buffer的描述信息
+  //   BufferDesc desc = self.getDesc();
+  //   // 获取buffer的数据指针
+  //   void *ptr = self.getData();
+  //   // 获取数据类型
+  //   py::dtype dt = py::dtype(py::format_descriptor<uint8_t>::format());
+  //   switch (desc.getConfig().getDataType()) {
+  //     case base::DataType::kInt8:
+  //       dt = py::dtype::of<int8_t>();
+  //       break;
+  //     case base::DataType::kUInt8:
+  //       dt = py::dtype::of<uint8_t>();
+  //       break;
+  //     case base::DataType::kInt32:
+  //       dt = py::dtype::of<int32_t>();
+  //       break;
+  //     case base::DataType::kInt64:
+  //       dt = py::dtype::of<int64_t>();
+  //       break;
+  //     case base::DataType::kFloat16:
+  //       dt = py::dtype("e");  // float16
+  //       break;
+  //     case base::DataType::kFloat32:
+  //       dt = py::dtype::of<float>();
+  //       break;
+  //     case base::DataType::kFloat64:
+  //       dt = py::dtype::of<double>();
+  //       break;
+  //     default:
+  //       NNDEPLOY_THROW("Unsupported data type");
+  //   }
+  //   // 根据buffer的描述信息构造numpy array所需的buffer_info
+  //   py::buffer_info info(
+  //       ptr,                                    // 数据指针
+  //       dt.itemsize(),                          // 元素字节数
+  //       dt.format(),                            // 元素格式
+  //       desc.getSizeVector().size(),            // 维度数
+  //       desc.getSizeVector(),                   // 各维度大小
+  //       calculateStridesBaseShape(desc.getSizeVector())  // 各维度步长
+  //   );
+  //   return info;
+  // });
 }
 
 }  // namespace device

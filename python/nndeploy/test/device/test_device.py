@@ -290,17 +290,17 @@ def test_buffer():
 
     buffer.copyTo(clone_buffer)
 
-    import io
-    stream = io.BytesIO()
-    buffer.serialize(stream)
-    stream.seek(0)
-    buffer.deserialize(stream)
+    # import io
+    # stream = io.BytesIO()
+    # buffer.serialize(stream)
+    # stream.seek(0)
+    # buffer.deserialize(stream)
 
     buffer.print()
 
-    # buffer.justModify(2048)
-    # buffer.justModify([1, 3, 448, 448])
-    # buffer.justModify(buffer_desc)
+    buffer.justModify(2048)
+    buffer.justModify([1, 3, 448, 448])
+    buffer.justModify(buffer_desc)
 
     print(buffer.empty())  # 预期输出: False
     print(buffer.getDeviceType())  # 预期输出: 0
