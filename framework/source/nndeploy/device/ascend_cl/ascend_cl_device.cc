@@ -261,7 +261,7 @@ Stream *AscendCLDevice::createStream(void *stream) {
   return new AscendCLStream(this, stream);
 }
 
-base::Status AscendCLDevice::deleteStream(Stream *stream) {
+base::Status AscendCLDevice::destroyStream(Stream *stream) {
   if (stream == nullptr) {
     NNDEPLOY_LOGE("stream is nullptr\n");
     return base::kStatusCodeOk;

@@ -10,7 +10,7 @@ Op::Op() { constructed_ = true; }
 
 Op::~Op() {
   if (!is_external_stream_ && stream_ != nullptr) {
-    device::deleteStream(stream_);
+    device::destroyStream(stream_);
     stream_ = nullptr;
   }
   inputs_.clear();
@@ -51,7 +51,7 @@ base::DeviceType Op::getDeviceType() { return device_type_; }
 
 void Op::setStream(device::Stream *stream) {
   if (stream_ != nullptr) {
-    device::deleteStream(stream_);
+    device::destroyStream(stream_);
   }
   stream_ = stream;
   is_external_stream_ = true;

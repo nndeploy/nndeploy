@@ -67,7 +67,7 @@ void *Device::getContext() { return nullptr; }
 
 Stream *Device::createStream() { return nullptr; }
 Stream *Device::createStream(void *stream) { return nullptr; }
-base::Status Device::deleteStream(Stream *stream) {
+base::Status Device::destroyStream(Stream *stream) {
   return base::kStatusCodeOk;
 }
 
@@ -213,7 +213,7 @@ Stream *createStream(base::DeviceType device_type, void *stream) {
   return device->createStream(stream);
 }
 
-base::Status deleteStream(Stream *stream) {
+base::Status destroyStream(Stream *stream) {
   if (stream == nullptr) {
     NNDEPLOY_LOGE("Stream is nullptr\n");
     return base::kStatusCodeErrorInvalidValue;
@@ -224,7 +224,7 @@ base::Status deleteStream(Stream *stream) {
                   stream->getDeviceType().code_);
     return base::kStatusCodeErrorInvalidValue;
   }
-  return device->deleteStream(stream);
+  return device->destroyStream(stream);
 }
 
 Event *createEvent(base::DeviceType device_type) {

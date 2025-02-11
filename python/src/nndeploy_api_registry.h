@@ -1,6 +1,8 @@
 #ifndef _NNDEPLOY_PYTHON_SRC_NNDEPLOY_API_REGISTRY_h_
 #define _NNDEPLOY_PYTHON_SRC_NNDEPLOY_API_REGISTRY_h_
 
+#include <pybind11/functional.h>
+// ----
 #include <pybind11/pybind11.h>
 
 #include <functional>

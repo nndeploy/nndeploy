@@ -62,7 +62,7 @@ Node::~Node() {
   initialized_ = false;
   is_running_ = false;
   if (!is_external_stream_ && stream_ != nullptr) {
-    device::deleteStream(stream_);
+    device::destroyStream(stream_);
     stream_ = nullptr;
   }
 }
@@ -197,7 +197,7 @@ bool Node::isRunning() { return is_running_; }
 
 void Node::setStream(device::Stream *stream) {
   if (stream_ != nullptr) {
-    device::deleteStream(stream_);
+    device::destroyStream(stream_);
   }
   stream_ = stream;
   is_external_stream_ = true;

@@ -494,7 +494,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
         "title");
 
   // export as base.Param
-  py::class_<Param, std::shared_ptr<Param>>(m, "Param")
+  py::class_<Param, std::shared_ptr<Param>>(m, "Param", py::dynamic_attr())
       .def(py::init<>())
       .def("copy", &Param::copy)
       .def("copy_to", &Param::copyTo)

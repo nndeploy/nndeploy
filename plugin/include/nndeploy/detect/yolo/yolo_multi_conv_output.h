@@ -128,13 +128,31 @@ class NNDEPLOY_CC_API YoloMultiConvOutputGraph : public dag::Graph {
     infer_->setInferenceType(inference_type);
     inference::InferenceParam *inference_param =
         (inference::InferenceParam *)(infer_->getParam());
-    inference_param->runtime_ = "dsp";
-    inference_param->perf_mode_ = 5;
-    inference_param->profiling_level_ = 0;
-    inference_param->buffer_type_ = 0;
-    inference_param->input_names_ = {"images"};
-    inference_param->output_tensor_names_ = {"output0", "output1", "output2"};
-    inference_param->output_layer_names_ = {"Conv_199", "Conv_200", "Conv_201"};
+    // inference_param->runtime_ = "dsp";
+    base::Any runtime = "dsp";
+    inference_param->set("runtime", runtime);
+    // inference_param->perf_mode_ = 5;
+    base::Any perf_mode = 5;
+    inference_param->set("perf_mode", perf_mode);
+    // inference_param->profiling_level_ = 0;
+    base::Any profiling_level = 0;
+    inference_param->set("profiling_level", profiling_level);
+    // inference_param->buffer_type_ = 0;
+    base::Any buffer_type = 0;
+    inference_param->set("buffer_type", buffer_type);
+    // inference_param->input_names_ = {"images"};
+    base::Any input_names = std::vector<std::string>{"images"};
+    inference_param->set("input_names", input_names);
+    // inference_param->output_tensor_names_ = {"output0", "output1",
+    // "output2"};
+    base::Any output_tensor_names =
+        std::vector<std::string>{"output0", "output1", "output2"};
+    inference_param->set("output_tensor_names", output_tensor_names);
+    // inference_param->output_layer_names_ = {"Conv_199", "Conv_200",
+    // "Conv_201"};
+    base::Any output_layer_names =
+        std::vector<std::string>{"Conv_199", "Conv_200", "Conv_201"};
+    inference_param->set("output_layer_names", output_layer_names);
 
     // Create postprocessing node for classification results
     post_ = this->createNode<YoloMultiConvOutputPostProcess>(post_desc);

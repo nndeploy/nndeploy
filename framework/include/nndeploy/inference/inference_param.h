@@ -69,15 +69,6 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
   std::vector<std::string> cache_path_;          // 缓存路径
   std::vector<std::string> library_path_;  // 第三方推理框架的动态库路径
-
-  // new feature
-  std::string runtime_;
-  int32_t perf_mode_;
-  int32_t profiling_level_;
-  int32_t buffer_type_;
-  std::vector<std::string> input_names_;
-  std::vector<std::string> output_tensor_names_;
-  std::vector<std::string> output_layer_names_;
 };
 
 /**

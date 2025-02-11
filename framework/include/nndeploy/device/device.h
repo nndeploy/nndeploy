@@ -126,7 +126,7 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   // stream
   virtual Stream *createStream();
   virtual Stream *createStream(void *stream);
-  virtual base::Status deleteStream(Stream *stream);
+  virtual base::Status destroyStream(Stream *stream);
 
   // event
   virtual Event *createEvent();
@@ -216,7 +216,7 @@ extern NNDEPLOY_CC_API Device *getDevice(base::DeviceType device_type);
 extern NNDEPLOY_CC_API Stream *createStream(base::DeviceType device_type);
 extern NNDEPLOY_CC_API Stream *createStream(base::DeviceType device_type,
                                             void *stream);
-extern NNDEPLOY_CC_API base::Status deleteStream(Stream *stream);
+extern NNDEPLOY_CC_API base::Status destroyStream(Stream *stream);
 
 extern NNDEPLOY_CC_API Event *createEvent(base::DeviceType device_type);
 extern NNDEPLOY_CC_API base::Status destroyEvent(Event *event);

@@ -9,6 +9,16 @@ namespace nndeploy {
 namespace inference {
 class SnpeInferenceParam : public InferenceParam {
  public:
+  // new feature
+  std::string runtime_;
+  int32_t perf_mode_;
+  int32_t profiling_level_;
+  int32_t buffer_type_;
+  std::vector<std::string> input_names_;
+  std::vector<std::string> output_tensor_names_;
+  std::vector<std::string> output_layer_names_;
+
+ public:
   SnpeInferenceParam();
   SnpeInferenceParam(base::InferenceType type);
   virtual ~SnpeInferenceParam();

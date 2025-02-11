@@ -200,7 +200,7 @@ Stream *CudaDevice::createStream(void *stream) {
   return new CudaStream(this, stream);
 }
 
-base::Status CudaDevice::deleteStream(Stream *stream) {
+base::Status CudaDevice::destroyStream(Stream *stream) {
   if (stream == nullptr) {
     NNDEPLOY_LOGE("stream is nullptr\n");
     return base::kStatusCodeOk;

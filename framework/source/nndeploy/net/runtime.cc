@@ -7,7 +7,7 @@ namespace net {
 
 void Runtime::setStream(device::Stream *stream) {
   if (stream_ != nullptr) {
-    device::deleteStream(stream_);
+    device::destroyStream(stream_);
   }
   stream_ = stream;
   is_external_stream_ = true;

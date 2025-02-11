@@ -21,7 +21,7 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
   Runtime(const base::DeviceType &device_type) : device_type_(device_type) {};
   virtual ~Runtime() {
     if (!is_external_stream_ && stream_ != nullptr) {
-      device::deleteStream(stream_);
+      device::destroyStream(stream_);
       stream_ = nullptr;
     }
   };

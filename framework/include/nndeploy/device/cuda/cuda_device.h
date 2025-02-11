@@ -110,7 +110,7 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
   // stream
   virtual Stream *createStream();
   virtual Stream *createStream(void *stream);
-  virtual base::Status deleteStream(Stream *stream);
+  virtual base::Status destroyStream(Stream *stream);
 
   // event
   virtual Event *createEvent();

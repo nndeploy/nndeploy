@@ -15,7 +15,7 @@ Inference::~Inference() {
   delete inference_param_;
   inference_param_ = nullptr;
   if (!is_external_stream_ && stream_ != nullptr) {
-    device::deleteStream(stream_);
+    device::destroyStream(stream_);
     stream_ = nullptr;
   }
 }
@@ -32,7 +32,7 @@ base::Param *Inference::getParam() {
 
 void Inference::setStream(device::Stream *stream) {
   if (stream_ != nullptr) {
-    device::deleteStream(stream_);
+    device::destroyStream(stream_);
   }
   stream_ = stream;
   is_external_stream_ = true;
