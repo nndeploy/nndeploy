@@ -299,12 +299,12 @@ base::Status Buffer::deserialize(std::istream &stream) {
 //   return base::kStatusCodeOk;
 // }
 
-void Buffer::print() {
-  std::cout << "Buffer: " << std::endl;
-  std::cout << "device type: "
-            << base::deviceTypeToString(this->getDeviceType()) << std::endl;
-  std::cout << "ref_count: " << ref_count_[0] << std::endl;
-  desc_.print();
+void Buffer::print(std::ostream &stream) const {
+  stream << "Buffer: " << std::endl;
+  stream << "device type: " << base::deviceTypeToString(this->getDeviceType())
+         << std::endl;
+  stream << "ref_count: " << ref_count_[0] << std::endl;
+  desc_.print(stream);
 }
 
 // get

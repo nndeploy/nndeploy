@@ -91,7 +91,7 @@ class NNDEPLOY_CC_API Buffer {
 
   // base::Status serializeFromSafetensors(const char *storage,
   //                                           const size_t &data_size);
-  void print();
+  void print(std::ostream &stream = std::cout) const;
 
   bool justModify(const size_t &size);
   bool justModify(const base::SizeVector &size);
