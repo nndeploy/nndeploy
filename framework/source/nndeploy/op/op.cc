@@ -10,7 +10,8 @@ Op::Op() { constructed_ = true; }
 
 Op::~Op() {
   if (!is_external_stream_ && stream_ != nullptr) {
-    deleteStream(stream_);
+    device::deleteStream(stream_);
+    stream_ = nullptr;
   }
   inputs_.clear();
   outputs_.clear();
@@ -48,10 +49,12 @@ base::Status Op::setDeviceType(base::DeviceType device_type) {
 }
 base::DeviceType Op::getDeviceType() { return device_type_; }
 
-base::Status Op::setStream(device::Stream *stream) {
+void Op::setStream(device::Stream *stream) {
+  if (stream_ != nullptr) {
+    device::deleteStream(stream_);
+  }
   stream_ = stream;
   is_external_stream_ = true;
-  return base::kStatusCodeOk;
 }
 device::Stream *Op::getStream() { return stream_; }
 

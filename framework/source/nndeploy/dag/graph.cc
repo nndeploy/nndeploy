@@ -256,6 +256,12 @@ base::Param *Graph::getNodeParam(const std::string &node_name) {
   return node_wrapper->node_->getParam();
 }
 
+void Graph::setGraphNodeShareStream(bool flag) {
+  is_graph_node_share_stream_ = flag;
+}
+
+bool Graph::getGraphNodeShareStream() { return is_graph_node_share_stream_; }
+
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
@@ -418,8 +424,12 @@ base::Status Graph::construct() {
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
   }
-  for (auto node_wrapper : node_repository_) {
-    node_wrapper->node_->setStream(stream_);
+  // TODO: 是否需要延迟到executor阶段？
+  if (is_graph_node_share_stream_ &&
+      parallel_type_ != base::kParallelTypePipeline) {
+    for (auto node_wrapper : node_repository_) {
+      node_wrapper->node_->setStream(stream_);
+    }
   }
 
   // NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());

@@ -259,11 +259,6 @@ base::Status Net::init() {
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
 
-  // 设置默认流
-  if (!is_external_stream_ && stream_ == nullptr) {
-    stream_ = device::createStream(device_type_);
-  }
-
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
@@ -695,12 +690,16 @@ base::Status Net::construct() {
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("set stream\n");
   // NNDEPLOY_LOGI("##############\n");
-  for (auto op_wrapper : op_repository_) {
-    base::Status status = op_wrapper->op_->setStream(stream_);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "op setStream failed!");
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+  if (parallel_type_ != base::kParallelTypePipeline) {
+    for (auto op_wrapper : op_repository_) {
+      op_wrapper->op_->setStream(stream_);
+    }
   }
 
-  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("##############\n"); 
   // NNDEPLOY_LOGI("construct tensor\n");
   // NNDEPLOY_LOGI("##############\n");
   for (auto tensor_wrapper : tensor_repository_) {
@@ -760,7 +759,7 @@ base::Status Net::runtime() {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(runtime_, "Create runtime failed!");
 
   // 设置流
-  status = runtime_->setStream(stream_);
+  runtime_->setStream(stream_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "runtime setStream failed!");
 

@@ -17,6 +17,11 @@ RknnInference::~RknnInference() {}
 
 base::Status RknnInference::init() {
   base::Status status = base::kStatusCodeOk;
+  if (device::isHostDeviceType(inference_param_->device_type_)) {
+    is_share_context_ = true;
+  } else {
+    is_share_context_ = false;
+  }
   std::string model_buffer;
   RknnInferenceParam *rknn_inference_param =
       dynamic_cast<RknnInferenceParam *>(inference_param_);

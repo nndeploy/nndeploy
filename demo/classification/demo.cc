@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  // NNDEPLOY_TIME_PROFILER_PRINT("demo");
+  NNDEPLOY_TIME_PROFILER_PRINT("demo");
   // NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 0);
   // NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 1);
   // NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 2);

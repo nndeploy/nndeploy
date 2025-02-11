@@ -349,6 +349,7 @@ base::Status AscendCLStream::waitEvent(Event *event) {
   return base::kStatusCodeOk;
 }
 
+void *AscendCLStream::getCommandQueue() { return (void *)stream_; }
 aclrtStream AscendCLStream::getStream() { return stream_; }
 
 // event

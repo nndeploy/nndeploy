@@ -288,6 +288,7 @@ base::Status CudaStream::waitEvent(Event *event) {
   return base::kStatusCodeOk;
 }
 
+void *CudaStream::getCommandQueue() { return (void *)stream_; }
 cudaStream_t CudaStream::getStream() { return stream_; }
 
 // event

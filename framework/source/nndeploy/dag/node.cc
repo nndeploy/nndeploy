@@ -55,13 +55,16 @@ Node::Node(const std::string &name, std::vector<Edge *> inputs,
 }
 
 Node::~Node() {
-  // NNDEPLOY_LOGI("Node::~Node() name:%s.\n", name_.c_str());
   external_param_.clear();
   inputs_.clear();
   outputs_.clear();
   constructed_ = false;
   initialized_ = false;
   is_running_ = false;
+  if (!is_external_stream_ && stream_ != nullptr) {
+    device::deleteStream(stream_);
+    stream_ = nullptr;
+  }
 }
 
 std::string Node::getName() { return name_; }
@@ -193,12 +196,20 @@ void Node::setRunningFlag(bool flag) {
 bool Node::isRunning() { return is_running_; }
 
 void Node::setStream(device::Stream *stream) {
+  if (stream_ != nullptr) {
+    device::deleteStream(stream_);
+  }
   stream_ = stream;
   is_external_stream_ = true;
 }
 device::Stream *Node::getStream() { return stream_; }
 
-base::Status Node::init() { return base::kStatusCodeOk; }
+base::Status Node::init() {
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+  return base::kStatusCodeOk;
+}
 base::Status Node::deinit() { return base::kStatusCodeOk; }
 
 int64_t Node::getMemorySize() {

@@ -19,9 +19,14 @@ namespace net {
 class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
  public:
   Runtime(const base::DeviceType &device_type) : device_type_(device_type) {};
-  virtual ~Runtime() {};
+  virtual ~Runtime() {
+    if (!is_external_stream_ && stream_ != nullptr) {
+      device::deleteStream(stream_);
+      stream_ = nullptr;
+    }
+  };
 
-  base::Status setStream(device::Stream *stream);
+  void setStream(device::Stream *stream);
   device::Stream *getStream();
 
   virtual base::Status init(

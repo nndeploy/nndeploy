@@ -11,19 +11,14 @@ Status::~Status() {}
 
 Status::Status(const Status &other) { code_ = other.code_; }
 Status &Status::operator=(const Status &other) {
-  NNDEPLOY_LOGE("Status &Status::operator=(const Status &other) code: %d\n",
-                other.code_);
   code_ = other.code_;
   return *this;
 };
 Status &Status::operator=(const StatusCode &other) {
-  NNDEPLOY_LOGE("Status &Status::operator=(const StatusCode &other) code: %d\n",
-                other);
   code_ = other;
   return *this;
 };
 Status &Status::operator=(int other) {
-  NNDEPLOY_LOGE("Status &Status::operator=(int other) code: %d\n", other);
   code_ = other;
   return *this;
 };
@@ -32,9 +27,6 @@ Status::Status(Status &&other) = default;
 Status &Status::operator=(Status &&other) = default;
 
 bool Status::operator==(const Status &other) const {
-  NNDEPLOY_LOGE(
-      "Status::operator==(const Status &other) code: %d, other.code_: %d\n",
-      code_, other.code_);
   if (code_ == other.code_) {
     return true;
   } else {
@@ -43,9 +35,6 @@ bool Status::operator==(const Status &other) const {
 };
 
 bool Status::operator==(const StatusCode &other) const {
-  NNDEPLOY_LOGE(
-      "Status::operator==(const StatusCode &other) code: %d, other: %d\n",
-      code_, other);
   if (code_ == other) {
     return true;
   } else {
@@ -54,8 +43,6 @@ bool Status::operator==(const StatusCode &other) const {
 };
 
 bool Status::operator==(int other) const {
-  NNDEPLOY_LOGE("Status::operator==(int other) code: %d, other: %d\n", code_,
-                other);
   if (code_ == other) {
     return true;
   } else {

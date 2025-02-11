@@ -43,9 +43,9 @@ base::Status TvmInference::init() {
       dynamic_cast<TvmInferenceParam *>(inference_param_);
 
   if (device::isHostDeviceType(tvm_inference_param->device_type_)) {
-    is_external_stream_ = true;
+    is_share_context_ = true;
   } else {
-    is_external_stream_ = false;
+    is_share_context_ = false;
   }
 
   std::string module_file = tvm_inference_param->model_value_[0];

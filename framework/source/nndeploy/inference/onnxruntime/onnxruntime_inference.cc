@@ -23,7 +23,10 @@ OnnxRuntimeInference::~OnnxRuntimeInference() {
 base::Status OnnxRuntimeInference::init() {
   base::Status status = base::kStatusCodeOk;
 
-  is_external_stream_ = true;
+  is_share_context_ = true;
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(inference_param_->device_type_);
+  }
 
   std::string model_buffer;
   OnnxRuntimeInferenceParam *onnxruntime_inference_param =
@@ -35,7 +38,7 @@ base::Status OnnxRuntimeInference::init() {
   }
 
   OnnxRuntimeConvert::convertFromInferenceParam(*onnxruntime_inference_param,
-                                                session_options_);
+                                                session_options_, stream_);
   session_ = {env_, model_buffer.data(), model_buffer.size(), session_options_};
 
   binding_ = std::make_shared<Ort::IoBinding>(session_);

@@ -19,12 +19,12 @@ AscendCLInference::~AscendCLInference() {}
 base::Status AscendCLInference::init() {
   aclError ret;
   base::Status status = base::kStatusCodeOk;
-  // is_external_stream_ = true;
   AscendCLInferenceParam *ascend_cl_inference_param =
       dynamic_cast<AscendCLInferenceParam *>(inference_param_);
 
   device::Device *device = device::getDevice(inference_param_->device_type_);
   context_ = (aclrtContext)device->getContext();
+  is_share_context_ = true;
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(inference_param_->device_type_);
   }

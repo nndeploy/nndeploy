@@ -64,12 +64,12 @@ TensorRtInference::~TensorRtInference() {}
 base::Status TensorRtInference::init() {
   base::Status status = base::kStatusCodeOk;
 
-  is_external_stream_ = true;
+  is_share_context_ = true;
   forward_memory_size_ = 0;
   inner_forward_buffer_ = nullptr;
 
   if (!is_external_stream_ && stream_ == nullptr) {
-    stream_ = device::getDevice(inference_param_->device_type_)->createStream();
+    stream_ = device::createStream(inference_param_->device_type_);
   }
 
   std::string model_buffer;
@@ -252,6 +252,7 @@ base::Status TensorRtInference::setMemory(device::Buffer *buffer) {
 
 base::Status TensorRtInference::run() {
   base::Status status = base::kStatusCodeOk;
+
   device::Device *device = device::getDevice(inference_param_->device_type_);
   // inputs
   for (auto iter : external_input_tensors_) {
@@ -272,6 +273,7 @@ base::Status TensorRtInference::run() {
   // forward
   cudaStream_t stream =
       (cudaStream_t)(stream_->as<device::CudaStream>()->getStream());
+
 #ifdef TENSORRT_MAJOR_8_MINOR_5
   for (auto iter : max_input_tensors_) {
     void *data = iter.second->getBuffer()->getData();
@@ -309,8 +311,10 @@ base::Status TensorRtInference::run() {
     return base::kStatusCodeErrorInferenceTensorRt;
   }
 #endif
+
   status = stream_->synchronize();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "synchronize failed");
+
   // outputs
   // for (auto iter : external_output_tensors_) {
   //   device::Tensor *external_tensor = iter.second;

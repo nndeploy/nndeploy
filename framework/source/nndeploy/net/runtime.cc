@@ -5,10 +5,12 @@
 namespace nndeploy {
 namespace net {
 
-base::Status Runtime::setStream(device::Stream *stream) {
+void Runtime::setStream(device::Stream *stream) {
+  if (stream_ != nullptr) {
+    device::deleteStream(stream_);
+  }
   stream_ = stream;
   is_external_stream_ = true;
-  return base::kStatusCodeOk;
 }
 device::Stream *Runtime::getStream() { return stream_; }
 

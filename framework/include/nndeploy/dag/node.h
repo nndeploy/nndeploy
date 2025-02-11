@@ -156,9 +156,8 @@ class NNDEPLOY_CC_API Node {
   std::string name_;
   base::DeviceType device_type_;
   /**
-   * @brief 是否为外部stream
+   * @brief Whether it is an external stream
    * @details
-   * 在初始化时，如果第三方推理框架与nndeploy共用一个stream，需要设置为true，否则设置为false
    */
   bool is_external_stream_ = false;
   device::Stream *stream_ = nullptr;

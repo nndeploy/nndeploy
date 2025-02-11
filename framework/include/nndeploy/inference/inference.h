@@ -60,7 +60,7 @@ class NNDEPLOY_CC_API Inference {
 
   base::DeviceType getDeviceType() { return inference_param_->device_type_; }
 
-  base::Status setStream(device::Stream *stream);
+  void setStream(device::Stream *stream);
   device::Stream *getStream();
 
   /**
@@ -128,8 +128,15 @@ class NNDEPLOY_CC_API Inference {
    * @return bool
    */
   virtual bool isBatch();
+
   /**
-   * @brief 该推理实例是否与nndeploy共享一个command queue
+   * @brief 该推理实例是否与nndeploy共享一个context
+   *
+   * @return bool
+   */
+  virtual bool isShareContext();
+  /**
+   * @brief 该推理实例是否与nndeploy共享一个stream
    *
    * @return bool
    */
@@ -332,9 +339,14 @@ class NNDEPLOY_CC_API Inference {
   InferenceParam *inference_param_;
 
   /**
-   * @brief 第三方推理框架是否与nndeploy共用一个stream
+   * @brief 第三方推理框架是否与应用层共用一个context
    * @details
-   * 在初始化时，如果第三方推理框架与nndeploy共用一个stream，需要设置为true，否则设置为false
+   */
+  bool is_share_context_ = true;
+
+  /**
+   * @brief 第三方推理框架是否与应用层共用一个stream
+   * @details
    */
   bool is_external_stream_ = false;
   device::Stream *stream_ = nullptr;

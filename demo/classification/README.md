@@ -126,6 +126,40 @@ encode_node run()                                          100         1513.292 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
+#### 推理后端为TensorRT，执行设备为CUDA
+
+```shell
+# 进入目录
+cd /yourpath/nndeploy/build
+
+# 链接
+export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
+
+
+# 模型转换
+trtexec --onnx=resnet50-v1-7.sim.onnx --saveEngine=resnet50-v1-7.sim.onnx.trt --fp16
+
+# 执行
+./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value resnet50-v1-7.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_pipe_tensorrt_cuda_sample_output.jpg
+./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value resnet50-v1-7.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_tensorrt_cuda_sample_output.jpg
+
+# 耗时
+TimeProfiler: demo, remove warmup 10
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+name                                                       call_times  cost_time(ms)      avg cost_time(ms)  avg cost_time(ms)(remove warmup)  gflops
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+demo run()                                                 100         3269.599           32.696             32.454                            0.000 
+decode_node run()                                          100         1254.217           12.542             12.477                            0.000 
+nndeploy::classification::ClassificationResnetGraph run()  100         484.636            4.846              4.715                             0.000 
+preprocess run()                                           100         349.860            3.499              3.371                             0.000 
+infer run()                                                100         129.331            1.293              1.291                             0.000 
+postprocess run()                                          100         4.661              0.047              0.045                             0.000 
+DrawLableNode run()                                        100         16.514             0.165              0.164                             0.000 
+encode_node run()                                          100         1513.292           15.133             15.089                            0.000 
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+```
+
 
 ### 效果示例
 

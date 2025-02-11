@@ -19,8 +19,10 @@ base::Status DefaultInference::init() {
 
   DefaultInferenceParam *default_inference_param =
       dynamic_cast<DefaultInferenceParam *>(inference_param_);
-  is_external_stream_ = true;
-  stream_ = device::createStream(default_inference_param->device_type_);
+  is_share_context_ = true;
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(default_inference_param->device_type_);
+  }
 
   interpret_ = ir::createInterpret(default_inference_param->model_type_);
   if (interpret_ == nullptr) {

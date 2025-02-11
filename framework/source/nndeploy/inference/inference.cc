@@ -11,7 +11,14 @@ Inference::Inference(base::InferenceType type) {
   inference_param_ = createInferenceParam(type);
 }
 
-Inference::~Inference() { delete inference_param_; }
+Inference::~Inference() {
+  delete inference_param_;
+  inference_param_ = nullptr;
+  if (!is_external_stream_ && stream_ != nullptr) {
+    device::deleteStream(stream_);
+    stream_ = nullptr;
+  }
+}
 
 base::InferenceType Inference::getInferenceType() { return type_; }
 
@@ -23,11 +30,14 @@ base::Param *Inference::getParam() {
   return dynamic_cast<base::Param *>(inference_param_);
 }
 
-base::Status Inference::setStream(device::Stream *stream) {
+void Inference::setStream(device::Stream *stream) {
+  if (stream_ != nullptr) {
+    device::deleteStream(stream_);
+  }
   stream_ = stream;
   is_external_stream_ = true;
-  return base::kStatusCodeOk;
 }
+
 device::Stream *Inference::getStream() { return stream_; }
 
 base::ShapeMap Inference::getMinShape() { return inference_param_->min_shape_; }
@@ -59,6 +69,7 @@ bool Inference::isBatch() {
   }
   return is_batch;
 }
+bool Inference::isShareContext() { return is_share_context_; }
 bool Inference::isShareStream() { return is_external_stream_; }
 bool Inference::isInputDynamic() {
   bool is_input_dynamic = false;
@@ -90,7 +101,7 @@ bool Inference::isOutputDynamic() {
 }
 bool Inference::canOpInput() {
   bool can_op_input_ = true;
-  if (is_external_stream_) {
+  if (is_share_context_) {
     for (auto iter : input_tensors_) {
       device::Tensor *input_tensor = iter.second;
       if (input_tensor->empty()) {
@@ -105,7 +116,7 @@ bool Inference::canOpInput() {
 }
 bool Inference::canOpOutput() {
   bool can_op_output = true;
-  if (is_external_stream_) {
+  if (is_share_context_) {
     for (auto iter : output_tensors_) {
       device::Tensor *output_tensor = iter.second;
       if (output_tensor->empty()) {

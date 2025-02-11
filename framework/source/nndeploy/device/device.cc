@@ -58,52 +58,25 @@ base::DataFormat Device::getDataFormatByShape(const base::IntVector &shape) {
   return base::DataFormat::kDataFormatNotSupport;
 }
 
-void *Device::allocatePinned(size_t size) {
-  NNDEPLOY_LOGI("no implement allocatePinned!\n");
-  return nullptr;
-}
-void *Device::allocatePinned(const BufferDesc &desc) {
-  NNDEPLOY_LOGI("no implement allocatePinned!\n");
-  return nullptr;
-}
+void *Device::allocatePinned(size_t size) { return nullptr; }
+void *Device::allocatePinned(const BufferDesc &desc) { return nullptr; }
 
-void Device::deallocatePinned(void *ptr) {
-  NNDEPLOY_LOGI("no implement deallocatePinned!\n");
-}
+void Device::deallocatePinned(void *ptr) { return; }
 
-void *Device::getContext() {
-  NNDEPLOY_LOGI("this device[%d, %d] no need to get context!\n",
-                device_type_.code_, device_type_.device_id_);
-  return nullptr;
-}
+void *Device::getContext() { return nullptr; }
 
-Stream *Device::createStream() {
-  NNDEPLOY_LOGI("no implement createStream!\n");
-  return nullptr;
-}
-Stream *Device::createStream(void *stream) {
-  NNDEPLOY_LOGI("no implement createStream!\n");
-  return nullptr;
-}
+Stream *Device::createStream() { return nullptr; }
+Stream *Device::createStream(void *stream) { return nullptr; }
 base::Status Device::deleteStream(Stream *stream) {
-  NNDEPLOY_LOGI("no implement deleteStream!\n");
   return base::kStatusCodeOk;
 }
 
-Event *Device::createEvent() {
-  NNDEPLOY_LOGI("no implement createEvent!\n");
-  return nullptr;
-}
-base::Status Device::destroyEvent(Event *event) {
-  NNDEPLOY_LOGI("no implement destroyEvent!\n");
-  return base::kStatusCodeOk;
-}
+Event *Device::createEvent() { return nullptr; }
+base::Status Device::destroyEvent(Event *event) { return base::kStatusCodeOk; }
 base::Status Device::createEvents(Event **events, size_t count) {
-  NNDEPLOY_LOGI("no implement createEvents!\n");
   return base::kStatusCodeOk;
 }
 base::Status Device::destroyEvents(Event **events, size_t count) {
-  NNDEPLOY_LOGI("no implement destroyEvents!\n");
   return base::kStatusCodeOk;
 }
 
@@ -123,30 +96,19 @@ base::DeviceType Stream::getDeviceType() const {
 
 Device *Stream::getDevice() const { return device_; }
 
-base::Status Stream::synchronize() {
-  NNDEPLOY_LOGI("no implement synchronize!\n");
-  return base::kStatusCodeOk;
-}
+base::Status Stream::synchronize() { return base::kStatusCodeOk; }
 
-base::Status Stream::recordEvent(Event *event) {
-  NNDEPLOY_LOGI("no implement recordEvent!\n");
-  return base::kStatusCodeOk;
-}
+base::Status Stream::recordEvent(Event *event) { return base::kStatusCodeOk; }
 
-base::Status Stream::waitEvent(Event *event) {
-  NNDEPLOY_LOGI("no implement waitEvent!\n");
-  return base::kStatusCodeOk;
-}
+base::Status Stream::waitEvent(Event *event) { return base::kStatusCodeOk; }
 
-base::Status Stream::onExecutionContextSetup() {
-  NNDEPLOY_LOGI("no implement onExecutionContextSetup!\n");
-  return base::kStatusCodeOk;
-}
+base::Status Stream::onExecutionContextSetup() { return base::kStatusCodeOk; }
 
 base::Status Stream::onExecutionContextTeardown() {
-  NNDEPLOY_LOGI("no implement onExecutionContextTeardown!\n");
   return base::kStatusCodeOk;
 }
+
+void *Stream::getCommandQueue() { return nullptr; }
 
 // Event
 Event::Event(Device *device) : device_(device) {}
@@ -159,15 +121,9 @@ base::DeviceType Event::getDeviceType() const {
 
 Device *Event::getDevice() const { return device_; }
 
-bool Event::queryDone() {
-  NNDEPLOY_LOGI("no implement query!\n");
-  return true;
-}
+bool Event::queryDone() { return true; }
 
-base::Status Event::synchronize() {
-  NNDEPLOY_LOGI("no implement synchronize!\n");
-  return base::kStatusCodeOk;
-}
+base::Status Event::synchronize() { return base::kStatusCodeOk; }
 
 Architecture *getArchitecture(base::DeviceTypeCode type) {
   auto arch_map = getArchitectureMap();

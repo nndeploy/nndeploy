@@ -402,6 +402,9 @@ class NNDEPLOY_CC_API Graph : public Node {
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);
 
+  void setGraphNodeShareStream(bool flag);
+  bool getGraphNodeShareStream();
+
   virtual base::Status init();
   virtual base::Status deinit();
 
@@ -414,6 +417,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status executor();
 
  protected:
+  bool is_graph_node_share_stream_ = true;
   std::vector<EdgeWrapper *> edge_repository_;
   std::vector<NodeWrapper *> node_repository_;
   std::set<std::string> used_node_names_;

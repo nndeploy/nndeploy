@@ -165,6 +165,8 @@ class NNDEPLOY_CC_API Stream : public base::NonCopyable {
   virtual base::Status onExecutionContextSetup();
   virtual base::Status onExecutionContextTeardown();
 
+  virtual void *getCommandQueue();
+
   template <typename T>
   T *as() {
     return static_cast<T *>(this);
