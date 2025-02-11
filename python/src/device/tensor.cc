@@ -11,11 +11,13 @@ namespace device {
 
 NNDEPLOY_API_PYBIND11_MODULE("device", m) {
   // nndeploy::device::TensorDesc 导出为 device.TensorDesc
-  py::class_<device::TensorDesc>(m, "TensorDesc")
-      .def(
-          py::init<base::DataType, base::DataFormat, const base::IntVector &>())
-      .def(py::init<base::DataType, base::DataFormat, const base::IntVector &,
-                    const base::SizeVector &>());
+  // py::class_<device::TensorDesc>(m, "TensorDesc")
+  //     .def(
+  //         py::init<base::DataType, base::DataFormat, const base::IntVector
+  //         &>())
+  //     .def(py::init<base::DataType, base::DataFormat, const base::IntVector
+  //     &,
+  //                   const base::SizeVector &>());
 
   py::class_<device::Tensor>(m, "Tensor", py::buffer_protocol())
       .def(py::init<>())

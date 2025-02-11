@@ -48,7 +48,7 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") = 0;
 
-  base::DeviceTypeCode getDeviceTypeCode();
+  base::DeviceTypeCode getDeviceTypeCode() const;
 
  protected:
   std::mutex mutex_;
@@ -134,7 +134,7 @@ class NNDEPLOY_CC_API Device : public base::NonCopyable {
   virtual base::Status createEvents(Event **events, size_t count);
   virtual base::Status destroyEvents(Event **events, size_t count);
 
-  base::DeviceType getDeviceType();
+  base::DeviceType getDeviceType() const;
 
  public:
   Device(base::DeviceType device_type, std::string library_path = "")

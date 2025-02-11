@@ -355,6 +355,9 @@ using IntVector = std::vector<int>;
 using SizeVector = std::vector<size_t>;
 using ShapeMap = std::map<std::string, std::vector<int>>;
 
+extern NNDEPLOY_CC_API std::string dataTypeCodeToString(DataTypeCode src);
+extern NNDEPLOY_CC_API DataTypeCode
+stringToDataTypeCode(const std::string &src);
 extern NNDEPLOY_CC_API std::string dataTypeToString(DataType data_type);
 extern NNDEPLOY_CC_API DataType stringToDataType(const std::string &str);
 
@@ -363,6 +366,7 @@ extern NNDEPLOY_CC_API DataFormat stringToDataFormat(const std::string &str);
 
 extern NNDEPLOY_CC_API DeviceTypeCode
 stringToDeviceTypeCode(const std::string &src);
+extern NNDEPLOY_CC_API std::string deviceTypeCodeToString(DeviceTypeCode src);
 extern NNDEPLOY_CC_API DeviceType stringToDeviceType(const std::string &src);
 extern NNDEPLOY_CC_API std::string deviceTypeToString(DeviceType src);
 

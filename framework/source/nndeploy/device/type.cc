@@ -15,6 +15,8 @@ BufferDesc::BufferDesc(size_t *size, size_t len) {
     real_size_.emplace_back(size[i]);
   }
 }
+BufferDesc::BufferDesc(const base::SizeVector &size)
+    : size_(size), real_size_(size) {}
 BufferDesc::BufferDesc(size_t size, const base::IntVector &config)
     : config_(config) {
   size_.emplace_back(size);
@@ -74,7 +76,7 @@ BufferDesc &BufferDesc::operator=(BufferDesc &&desc) noexcept {
   return *this;
 }
 
-BufferDesc::~BufferDesc(){};
+BufferDesc::~BufferDesc() {};
 
 size_t BufferDesc::getSize() const {
   if (size_.empty()) {
@@ -123,6 +125,11 @@ bool BufferDesc::is1D() const { return size_.size() == 1; }
 
 bool BufferDesc::operator>=(const BufferDesc &other) const {
   bool flag = true;
+  if (size_.size() != other.size_.size()) {
+    NNDEPLOY_LOGE("size_.size[%ld] not equal other.size_.size[%ld].\n",
+                  size_.size(), other.size_.size());
+    return false;
+  }
   for (int i = 0; i < size_.size(); ++i) {
     if (size_[i] < other.size_[i]) {
       flag = false;
@@ -133,6 +140,11 @@ bool BufferDesc::operator>=(const BufferDesc &other) const {
 }
 bool BufferDesc::operator==(const BufferDesc &other) const {
   bool flag = true;
+  if (size_.size() != other.size_.size()) {
+    NNDEPLOY_LOGE("size_.size[%ld] not equal other.size_.size[%ld].\n",
+                  size_.size(), other.size_.size());
+    return false;
+  }
   for (int i = 0; i < size_.size(); ++i) {
     if (size_[i] != other.size_[i]) {
       flag = false;
@@ -142,10 +154,14 @@ bool BufferDesc::operator==(const BufferDesc &other) const {
   return flag;
 }
 bool BufferDesc::operator!=(const BufferDesc &other) const {
-  return !(*this == other);
+  // 如果size_和real_size_不相等，则返回true
+  if (size_ != other.size_ || real_size_ != other.real_size_) {
+    return true;
+  }
+  return false;
 }
 
-void BufferDesc::print(std::ostream &stream) {
+void BufferDesc::print(std::ostream &stream) const {
   stream << "BufferDesc: \n";
   stream << "size: ";
   for (int i = 0; i < size_.size(); ++i) {
@@ -233,11 +249,11 @@ void BufferDesc::clear() {
 }
 
 // TensorDesc
-TensorDesc::TensorDesc(){};
+TensorDesc::TensorDesc() {};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
                        const base::IntVector &shape)
-    : data_type_(data_type), data_format_(format), shape_(shape){};
+    : data_type_(data_type), data_format_(format), shape_(shape) {};
 
 TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
                        const base::IntVector &shape,
@@ -245,7 +261,7 @@ TensorDesc::TensorDesc(base::DataType data_type, base::DataFormat format,
     : data_type_(data_type),
       data_format_(format),
       shape_(shape),
-      stride_(stride){};
+      stride_(stride) {};
 
 TensorDesc::TensorDesc(const TensorDesc &desc) {
   if (this == &desc) {
@@ -287,7 +303,7 @@ TensorDesc &TensorDesc::operator=(TensorDesc &&desc) noexcept {
   return *this;
 }
 
-TensorDesc::~TensorDesc(){};
+TensorDesc::~TensorDesc() {};
 
 bool TensorDesc::operator==(const TensorDesc &other) const {
   bool flag0 = false;
@@ -417,7 +433,7 @@ base::Status TensorDesc::deserialize(std::istream &stream) {
   return base::kStatusCodeOk;
 }
 
-void TensorDesc::print(std::ostream &stream) {
+void TensorDesc::print(std::ostream &stream) const {
   stream << "TensorDesc: \n";
   stream << "data_type: " << base::dataTypeToString(data_type_) << std::endl;
   stream << "data_format: " << base::dataFormatToString(data_format_)

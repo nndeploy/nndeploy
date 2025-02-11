@@ -25,7 +25,7 @@ base::Status Architecture::disableDevice() {
   return base::kStatusCodeOk;
 }
 
-base::DeviceTypeCode Architecture::getDeviceTypeCode() {
+base::DeviceTypeCode Architecture::getDeviceTypeCode() const {
   return device_type_code_;
 }
 
@@ -80,7 +80,7 @@ base::Status Device::destroyEvents(Event **events, size_t count) {
   return base::kStatusCodeOk;
 }
 
-base::DeviceType Device::getDeviceType() { return device_type_; }
+base::DeviceType Device::getDeviceType() const { return device_type_; }
 
 // Stream
 Stream::Stream(Device *device) : device_(device) {}

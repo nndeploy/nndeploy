@@ -127,6 +127,39 @@ bool DeviceType::operator!=(const DeviceTypeCode &other) const {
   return !(*this == other);
 }
 
+std::string dataTypeCodeToString(DataTypeCode src) {
+  switch (src) {
+    case kDataTypeCodeUint:
+      return "kDataTypeCodeUint";
+    case kDataTypeCodeInt:
+      return "kDataTypeCodeInt";
+    case kDataTypeCodeFp:
+      return "kDataTypeCodeFp";
+    case kDataTypeCodeBFp:
+      return "kDataTypeCodeBFp";
+    case kDataTypeCodeOpaqueHandle:
+      return "kDataTypeCodeOpaqueHandle";
+    default:
+      return "kDataTypeCodeNotSupport";
+  }
+}
+
+DataTypeCode stringToDataTypeCode(const std::string &src) {
+  if (src == "kDataTypeCodeUint") {
+    return kDataTypeCodeUint;
+  } else if (src == "kDataTypeCodeInt") {
+    return kDataTypeCodeInt;
+  } else if (src == "kDataTypeCodeFp") {
+    return kDataTypeCodeFp;
+  } else if (src == "kDataTypeCodeBFp") {
+    return kDataTypeCodeBFp;
+  } else if (src == "kDataTypeCodeOpaqueHandle") {
+    return kDataTypeCodeOpaqueHandle;
+  } else {
+    return kDataTypeCodeNotSupport;
+  }
+}
+
 std::string dataTypeToString(DataType data_type) {
   std::string dst;
   if (data_type.code_ == kDataTypeCodeUint) {
@@ -285,6 +318,52 @@ DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {
     return kDeviceTypeCodeNotSupport;
   }
 }
+
+std::string deviceTypeCodeToString(DeviceTypeCode src) {
+  switch (src) {
+    case kDeviceTypeCodeCpu:
+      return "kDeviceTypeCodeCpu";
+    case kDeviceTypeCodeArm:
+      return "kDeviceTypeCodeArm";
+    case kDeviceTypeCodeX86:
+      return "kDeviceTypeCodeX86";
+    case kDeviceTypeCodeRiscV:
+      return "kDeviceTypeCodeRiscV";
+    case kDeviceTypeCodeCuda:
+      return "kDeviceTypeCodeCuda";
+    case kDeviceTypeCodeRocm:
+      return "kDeviceTypeCodeRocm";
+    case kDeviceTypeCodeSyCL:
+      return "kDeviceTypeCodeSyCL";
+    case kDeviceTypeCodeOpenCL:
+      return "kDeviceTypeCodeOpenCL";
+    case kDeviceTypeCodeOpenGL:
+      return "kDeviceTypeCodeOpenGL";
+    case kDeviceTypeCodeMetal:
+      return "kDeviceTypeCodeMetal";
+    case kDeviceTypeCodeVulkan:
+      return "kDeviceTypeCodeVulkan";
+    case kDeviceTypeCodeHexagon:
+      return "kDeviceTypeCodeHexagon";
+    case kDeviceTypeCodeMtkVpu:
+      return "kDeviceTypeCodeMtkVpu";
+    case kDeviceTypeCodeAscendCL:
+      return "kDeviceTypeCodeAscendCL";
+    case kDeviceTypeCodeAppleNpu:
+      return "kDeviceTypeCodeAppleNpu";
+    case kDeviceTypeCodeRkNpu:
+      return "kDeviceTypeCodeRkNpu";
+    case kDeviceTypeCodeQualcommNpu:
+      return "kDeviceTypeCodeQualcommNpu";
+    case kDeviceTypeCodeMtkNpu:
+      return "kDeviceTypeCodeMtkNpu";
+    case kDeviceTypeCodeSophonNpu:
+      return "kDeviceTypeCodeSophonNpu";
+    default:
+      return "kDeviceTypeCodeNotSupport";
+  }
+}
+
 
 DeviceType stringToDeviceType(const std::string &src) {
   DeviceType dst;
