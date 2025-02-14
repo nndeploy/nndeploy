@@ -83,33 +83,6 @@ The current supported inference framework is as follows:
 - We have uploaded third-party libraries, model repositories, and test data to [HuggingFace](https://huggingface.co/alwaysssss/nndeploy). If you need them, feel free to download them.
 
 
-## Roadmap
-
-- **Inference Backend**
-  - Improve the existing inference framework CoreML
-  - Enhance the existing inference framework Paddle-Lite
-  - Integrate the new inference framework TFLite
-
-- **Device Management**
-  - Add a device management module for OpenCL
-  - Add a device management module for ROCM
-  - Add a device management module for OpenGL
-
-- **Memory Optimization**
-  - **Host-Device Memory Copy Optimization**: For unified memory architectures, replace host-device memory copying with methods such as host-device memory mapping and host-device memory address sharing.
-  - **Memory Pool**: For nndeploy's internal data containers such as Buffer, Mat, and Tensor, establish a heterogeneous device memory pool to achieve high-performance memory allocation and release.
-  - **Multi-Node Shared Memory Mechanism**: In scenarios where multiple models are connected in series, based on the directed acyclic graph used for model deployment, support a shared memory mechanism for multiple inference nodes under a serial execution mode.
-  - **Edge's Ring Queue Memory Reuse Mechanism**: Based on the directed acyclic graph used for model deployment, support a shared memory mechanism for the edge's ring queue under a pipeline parallel execution mode.
-
-- **Stable Diffusion Model**
-  - Deploy the Stable Diffusion Model
-  - Build stable_diffusion.cpp for the Stable Diffusion Model (inference submodule, manually constructing the computational graph)
-  - High-Performance OP
-  - **Distributed Computing**
-    - In scenarios where multiple models collaboratively complete a single task, dispatch multiple models to multiple machines for distributed execution.
-    - In scenarios involving large models, the method of partitioning a large model into several sub-models, and subsequently dispatching these sub-models for distributed execution across various machines, is a viable strategy.
-
-
 # Reference
 - [TNN](https://github.com/Tencent/TNN)
 - [FastDeploy](https://github.com/PaddlePaddle/FastDeploy)

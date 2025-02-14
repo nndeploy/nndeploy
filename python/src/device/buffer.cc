@@ -1,6 +1,7 @@
 
 #include "nndeploy/device/buffer.h"
 
+#include "device/tensor_util.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
@@ -10,6 +11,106 @@
 
 namespace nndeploy {
 namespace device {
+
+std::string getPyBufferFormat(base::DataType data_type) {
+  std::string format;
+  if (data_type.code_ == base::DataTypeCode::kDataTypeCodeUint) {
+    if (data_type.bits_ == 8) {
+      format = "B";
+    } else if (data_type.bits_ == 16) {
+      format = "H";
+    } else if (data_type.bits_ == 32) {
+      format = "I";
+    } else if (data_type.bits_ == 64) {
+      format = "Q";
+    }
+  } else if (data_type.code_ == base::DataTypeCode::kDataTypeCodeInt) {
+    if (data_type.bits_ == 8) {
+      format = "b";
+    } else if (data_type.bits_ == 16) {
+      format = "h";
+    } else if (data_type.bits_ == 32) {
+      format = "i";
+    } else if (data_type.bits_ == 64) {
+      format = "q";
+    }
+  } else if (data_type.code_ == base::DataTypeCode::kDataTypeCodeFp) {
+    if (data_type.bits_ == 16) {
+      format = "e";
+    } else if (data_type.bits_ == 32) {
+      format = "f";
+    } else if (data_type.bits_ == 64) {
+      format = "d";
+    }
+  } else {
+    format = "";
+  }
+  return format;
+}
+
+py::buffer_info bufferToBufferInfo(device::Buffer *buffer,
+                                   const py::dtype &dt) {
+  void *data = nullptr;
+  if (device::isHostDeviceType(
+          buffer->getDeviceType())) {  // 如果是host，则直接将其传递给numpy
+                                       // array
+    data = buffer->getData();
+  } else {
+    std::stringstream ss;
+    ss << "convert nndeploy.device.Buffer to numpy array only support device "
+          ":host but get device_code:"
+       << base::deviceTypeToString(buffer->getDeviceType().code_);
+
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  if (data == nullptr) {
+    std::ostringstream ss;
+    ss << "Convert nndeploy Buffer to numpy.ndarray. Get data_ptr==nullptr";
+
+    py::pybind11_fail(ss.str());
+  }
+  auto elemsize = dt.itemsize();
+  //   std::string format = dt.char_() + std::to_string(dt.itemsize());
+  std::string format(1, dt.char_());
+
+  auto size_vector = buffer->getSizeVector();
+  base::IntVector shape;
+  for (auto i = 0; i < size_vector.size(); i++) {
+    int32_t size_int = (int32_t)size_vector[i];
+    if (i == size_vector.size() - 1) {
+      size_int /= elemsize;
+    }
+    shape.push_back(size_int);
+  }
+  auto dims = shape.size();
+  auto strides = calculateStridesBaseShape(
+      shape);  // nndeploy中的strides可能为空，根据shape重新计算
+  for (int i = 0; i < strides.size(); i++) {
+    strides[i] = strides[i] * elemsize;
+  }
+
+  // https://pybind11.readthedocs.io/en/stable/advanced/pycpp/numpy.html#buffer-protocol
+  return py::buffer_info(data,     /* Pointer to buffer */
+                         elemsize, /* Size of one scalar */
+                         format,   /* Python struct-style format descriptor */
+                         dims,     /* Number of dimensions */
+                         shape,    /* Buffer dimensions */
+                         strides   /* Strides (in bytes) for each index */
+
+  );
+}
+
+Buffer bufferFromNumpy(const py::array &array) {
+  auto shape = array.shape();
+  auto dtype = array.dtype();
+  auto size = array.size();
+  auto strides = array.strides();
+  auto data = array.data();
+  BufferDesc desc(size);
+  Device *device = getDefaultHostDevice();
+  return Buffer(device, desc, const_cast<void *>(data));
+}
 
 NNDEPLOY_API_PYBIND11_MODULE("device", m) {
   py::class_<Buffer>(m, "Buffer", py::buffer_protocol())
@@ -86,56 +187,33 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            "Increase the reference count of the buffer")
       .def("subRef", &Buffer::subRef,
            "Decrease the reference count of the buffer")
-      .def("__str__", [](const Buffer &self) {
-        std::ostringstream os;
-        os << "<nndeploy._nndeploy_internal.device.Buffer object at "
-           << static_cast<const void *>(&self) << ">";
-        self.print(os);
-        return os.str();
+      .def("__str__",
+           [](const Buffer &self) {
+             std::ostringstream os;
+             os << "<nndeploy._nndeploy_internal.device.Buffer object at "
+                << static_cast<const void *>(&self) << ">";
+             self.print(os);
+             return os.str();
+           })
+      .def_buffer([](Buffer &self) {
+        return bufferToBufferInfo(&self, py::dtype::of<uint8_t>());
+      })
+      .def("__array__",
+           [](Buffer &self) {
+             return bufferToBufferInfo(&self, py::dtype::of<uint8_t>());
+           })
+      .def("to_numpy", [](Buffer &self, const py::dtype &dtype) {
+        py::buffer_info buffer_info = bufferToBufferInfo(&self, dtype);
+        return py::array(buffer_info);
       });
-  // .def_buffer([](Buffer &self) {
-  //   // 获取buffer的描述信息
-  //   BufferDesc desc = self.getDesc();
-  //   // 获取buffer的数据指针
-  //   void *ptr = self.getData();
-  //   // 获取数据类型
-  //   py::dtype dt = py::dtype(py::format_descriptor<uint8_t>::format());
-  //   switch (desc.getConfig().getDataType()) {
-  //     case base::DataType::kInt8:
-  //       dt = py::dtype::of<int8_t>();
-  //       break;
-  //     case base::DataType::kUInt8:
-  //       dt = py::dtype::of<uint8_t>();
-  //       break;
-  //     case base::DataType::kInt32:
-  //       dt = py::dtype::of<int32_t>();
-  //       break;
-  //     case base::DataType::kInt64:
-  //       dt = py::dtype::of<int64_t>();
-  //       break;
-  //     case base::DataType::kFloat16:
-  //       dt = py::dtype("e");  // float16
-  //       break;
-  //     case base::DataType::kFloat32:
-  //       dt = py::dtype::of<float>();
-  //       break;
-  //     case base::DataType::kFloat64:
-  //       dt = py::dtype::of<double>();
-  //       break;
-  //     default:
-  //       NNDEPLOY_THROW("Unsupported data type");
-  //   }
-  //   // 根据buffer的描述信息构造numpy array所需的buffer_info
-  //   py::buffer_info info(
-  //       ptr,                                    // 数据指针
-  //       dt.itemsize(),                          // 元素字节数
-  //       dt.format(),                            // 元素格式
-  //       desc.getSizeVector().size(),            // 维度数
-  //       desc.getSizeVector(),                   // 各维度大小
-  //       calculateStridesBaseShape(desc.getSizeVector())  // 各维度步长
-  //   );
-  //   return info;
-  // });
+
+  m.def("buffer_to_numpy", [](Buffer &self, const py::dtype &dtype) {
+    py::buffer_info buffer_info = bufferToBufferInfo(&self, dtype);
+    return py::array(buffer_info);
+  });
+
+  m.def("buffer_from_numpy",
+        [](const py::array &array) { return bufferFromNumpy(array); });
 }
 
 }  // namespace device

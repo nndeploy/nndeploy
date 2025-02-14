@@ -13,10 +13,11 @@ import time
 ## cd nndeploy/test/device python3 test_device.py
 ## python3 nndeploy/test/device/test_device.py
 
-
+# 继承导致函数怪异
 class VulkanArchitecture(_C.device.Architecture):
-    def __init__(self):
-        super().__init__(common.DeviceTypeCode.vulkan.value)        
+    def __init__(self, device_type_code):
+        # super().__init__(common.DeviceTypeCode.vulkan.value)
+        super().__init__(device_type_code.value)          
         
     def checkDevice(self, device_id=0, library_path=""):
         print("checkDevice")
@@ -33,12 +34,14 @@ class VulkanArchitecture(_C.device.Architecture):
         print("getDeviceInfo")
         return []
 
-_C.device.registerArchitecture(common.DeviceTypeCode.vulkan.value, VulkanArchitecture())
+# _C.device.registerArchitecture(common.DeviceTypeCode.vulkan.value, VulkanArchitecture())
+_C.device.registerArchitecture(common.DeviceTypeCode.NewEnum.value, VulkanArchitecture(common.DeviceTypeCode.NewEnum.value))
 
 class VulkanDevice(_C.device.Device):
     def __init__(self):
         super().__init__(common.DeviceType.vulkan)
 
+    # 重点函数
     def toBufferDesc(self, desc, config):
         print("toBufferDesc")
         return _C.device.BufferDesc()
@@ -72,30 +75,33 @@ class VulkanDevice(_C.device.Device):
 
 
 def test_device():
-    architecture = _C.device.getArchitecture(common.DeviceTypeCode.vulkan.value)
+    architecture = _C.device.getArchitecture(common.DeviceTypeCode.NewEnum.value)
     print(architecture.getDeviceTypeCode())
-    architecture = _C.device.getArchitecture(common.DeviceTypeCode.cpu.value)
-    print(architecture.getDeviceTypeCode())
-    device = architecture.getDevice(0)
-    stream = device.createStream()
-    print(stream)
-    event = device.createEvent()
-    print(event)
-    print(device)
+    architecture = _C.device.getArchitecture(common.DeviceTypeCode.cpu)
 
-    device_type = common.DeviceType("cpu", 0)
-    print(device_type)
-    device = _C.device.getDevice(device_type)
-    print(device)
-    stream = device.createStream()
-    print(stream)
-    event = device.createEvent()
-    print(event)
+    _C.device.printArchitectureMap()
+    # print(architecture.getDeviceTypeCode())
+    # device = architecture.getDevice(0)
+    # stream = device.createStream()
+    # print(stream)
+    # event = device.createEvent()
+    # print(event)
+    # print(device)
 
-    device = _C.device.getDevice(common.DeviceType("cuda", 0))
-    stream = _C.device.createStream(common.DeviceType("cuda", 0))
+    # device_type = common.DeviceType("cpu", 0)
+    # print(device_type)
+    # device = _C.device.getDevice(device_type)
+    # print(device)
+    # stream = device.createStream()
+    # print(stream)
+    # event = device.createEvent()
+    # print(event)
+
+    device = _C.device.getDevice(common.DeviceType("ascendcl", 0))
+    print(device)
+    stream = _C.device.createStream(common.DeviceType("ascendcl", 0))
     print(stream)
-    event = _C.device.createEvent(common.DeviceType("cuda", 0))
+    event = _C.device.createEvent(common.DeviceType("ascendcl", 0))
     print(event)
 
 
@@ -260,7 +266,7 @@ def test_buffer():
     buffer = _C.device.Buffer(device, size)
     print(buffer)  # 预期输出: <nndeploy._nndeploy_internal.device.Buffer object at 0x...>
 
-    buffer_desc = _C.device.BufferDesc([1, 3, 224, 224])
+    buffer_desc = _C.device.BufferDesc([1, 3, 448, 448])
     buffer = _C.device.Buffer(device, buffer_desc)
     print(buffer)  # 预期输出: <nndeploy._nndeploy_internal.device.Buffer object at 0x...>
 
@@ -302,6 +308,8 @@ def test_buffer():
     buffer.justModify([1, 3, 448, 448])
     buffer.justModify(buffer_desc)
 
+    buffer = _C.device.Buffer(clone_buffer)
+
     print(buffer.empty())  # 预期输出: False
     print(buffer.getDeviceType())  # 预期输出: 0
     print(buffer.getDevice())  # 预期输出: <nndeploy._nndeploy_internal.device.Device object at 0x...>
@@ -319,18 +327,93 @@ def test_buffer():
     # buffer.addRef()
     # buffer.subRef()
 
+    numpy_array = np.asarray(buffer)
+    print(numpy_array.data) 
+    # shape = list(numpy_array.shape)
+    # shape[-1] //= 4
+    # numpy_array = numpy_array.reshape(shape)
+    print(numpy_array.shape) 
+    print(numpy_array.strides)
+    print(numpy_array.dtype)
+    print(numpy_array.data) 
+
+    # 测试 Buffer 的 __array__ 接口
+    numpy_array = np.array(buffer)
+    print(numpy_array.shape)  # 预期输出: [1, 3, 448, 448]
+    print(numpy_array.dtype)  # 预期输出: uint8
+
+    # 测试 Buffer 的 to_numpy 接口
+    numpy_array = buffer.to_numpy(np.dtype(np.float32))
+    print(numpy_array.shape)  # 预期输出: [1, 3, 448, 112]
+    print(numpy_array.dtype)  # 预期输出: float32
+
+    # 测试 buffer_to_numpy 接口
+    numpy_array = _C.device.buffer_to_numpy(buffer, np.dtype(np.float32))
+    print(numpy_array.shape)  # 预期输出: [1, 3, 448, 112]
+    print(numpy_array.dtype)  # 预期输出: float32
+
+    # 测试 buffer_from_numpy 接口
+    numpy_array = np.random.rand(1, 3, 224, 224).astype(np.float32)
+    buffer = _C.device.buffer_from_numpy(numpy_array)
+    print(buffer.getSizeVector())  # 预期输出: [1, 3, 224, 224]
+    print(buffer.getSize())  # 预期输出: 602112
+    print(buffer.getMemoryType())  # 预期输出: 0
 
 # test tensor
 def test_tensor():
+    # 测试默认构造函数
     tensor = _C.device.Tensor()
-    print(tensor)
+    print(tensor)  # 预期输出: <nndeploy._nndeploy_internal.device.Tensor object at 0x...>
+
+    # 测试带名称的构造函数 
+    tensor = _C.device.Tensor("test_tensor")
+    print(tensor.getName())  # 预期输出: test_tensor
+
+    # 测试带TensorDesc的构造函数
+    desc = _C.device.TensorDesc(common.DataType.from_name("float64"), common.DataFormat.NCHW.value, [1, 3, 640, 640])
+    device = _C.device.getDevice(common.DeviceType("cpu", 0))
+    tensor = _C.device.Tensor(device, desc, "test_tensor")
+    print(tensor.getDesc())  # 预期输出: <nndeploy._nndeploy_internal.device.TensorDesc object at 0x...>
+
+    # 测试clone方法
+    cloned_tensor = tensor.clone()
+    print(cloned_tensor)  # 预期输出: <nndeploy._nndeploy_internal.device.Tensor object at 0x...>
+
+    # 测试reshape方法
+    tensor.reshape([1, 3, 224, 224])
+    print(tensor.getShape())  # 预期输出: [1, 3, 224, 224]
+
+    # 测试empty方法
+    print(tensor.empty())  # 预期输出: False
+
+    # 测试getDataType方法
+    print(tensor.getDataType())  # 预期输出: <nndeploy._nndeploy_internal.base.DataType object at 0x...>
+
+    # 测试getDataFormat方法  
+    print(tensor.getDataFormat())  # 预期输出: 0
+
+    # 测试getShape方法
+    print(tensor.getShape())  # 预期输出: [1, 3, 224, 224]
+
+    # 测试getDeviceType方法
+    print(tensor.getDeviceType())  # 预期输出: 0
+
+    # 测试getDevice方法
+    print(tensor.getDevice())  # 预期输出: <nndeploy._nndeploy_internal.device.Device object at 0x...>
+
+    # 测试getData方法
+    print(tensor.getData())  # 预期输出: <capsule object NULL at 0x...>
+
+    # 测试to方法
+    cpu_tensor = tensor.to(common.DeviceType("cpu", 0))
+    print(cpu_tensor.getDeviceType())  # 预期输出: 0
 
 if __name__ == "__main__":
     print("test_device start")
-    # test_device()
+    test_device()
     # test_buffer_desc()
     # test_tensor_desc()
     # test_memory_pool()
-    test_buffer()
+    # test_buffer()
     # test_tensor()
     print("test_device end")

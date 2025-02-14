@@ -39,7 +39,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
                                                         py::const_))
       .def("__ne__", py::overload_cast<const DataTypeCode&>(
                          &DataType::operator!=, py::const_))
-      .def("get_size", &DataType::size)
+      .def("size", &DataType::size)
       .def_readwrite("code_", &base::DataType::code_)
       .def_readwrite("bits_", &base::DataType::bits_)
       .def_readwrite("lanes_", &base::DataType::lanes_)

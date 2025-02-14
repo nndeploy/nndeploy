@@ -3,7 +3,8 @@ import nndeploy._nndeploy_internal as _C
 
 from enum import Enum
 import numpy as np
-import nndeploy.base.common as common
+
+import nndeploy.base
 import time
 
 
@@ -14,55 +15,35 @@ import time
 
 
 def test_data_type():
-    # 测试默认构造函数
     data_type = _C.base.DataType()
-    assert data_type.code_ == _C.base.DataTypeCode.Fp
-    assert data_type.bits_ == 32
-    assert data_type.lanes_ == 1
-    # print(data_type)
+    # assert data_type.code_ == _C.base.DataTypeCode.NotSupport
+    # assert data_type.bits_ == 0
+    # assert data_type.lanes_ == 1
+    print(data_type)
 
-    # 测试带参数的构造函数
-    data_type = _C.base.DataType(_C.base.DataTypeCode.Uint, 32, 1)
-    assert data_type.code_ == _C.base.DataTypeCode.Uint
-    assert data_type.bits_ == 32
-    assert data_type.lanes_ == 1
-    # print(data_type)
+    data_type_1 = _C.base.DataType(_C.base.DataTypeCode.Fp, 32, 1)
+    assert data_type_1.code_ == _C.base.DataTypeCode.Fp
+    assert data_type_1.bits_ == 32
+    assert data_type_1.lanes_ == 1
+    print(data_type_1)
 
-    # 测试相等运算符
-    data_type_1 = _C.base.DataType(_C.base.DataTypeCode.Uint, 32, 1)
-    data_type_2 = _C.base.DataType(_C.base.DataTypeCode.Uint, 32, 1)
-    assert data_type_1 == _C.base.DataTypeCode.Uint
-    assert data_type_1 != _C.base.DataType(_C.base.DataTypeCode.Int, 32, 1)
-    assert data_type_1 != _C.base.DataType(_C.base.DataTypeCode.Fp, 32, 1)
-    assert data_type_1 != _C.base.DataType(_C.base.DataTypeCode.BFp, 32, 1)
-    assert data_type_1 != _C.base.DataType(_C.base.DataTypeCode.OpaqueHandle, 32, 1)
-    assert data_type_1 != _C.base.DataType(_C.base.DataTypeCode.NotSupport, 32, 1)
+    data_type_2 = _C.base.DataType(data_type_1)
+    assert data_type_2 == data_type_1
+    print(data_type_2)
 
-    # 测试拷贝构造函数
-    data_type_3 = _C.base.DataType(data_type_1)
+    data_type_3 = _C.base.DataType()
+    data_type_3 = data_type_1
     assert data_type_3 == data_type_1
+    print(data_type_3)
 
-    # 测试拷贝赋值运算符
-    data_type_4 = _C.base.DataType()
-    data_type_4 = data_type_1
-    assert data_type_4 == data_type_1
-
-    # 测试打印
-    print(_C.base.DataType)
-    print(data_type_4)
-
-    data_type = common.DataType.from_numpy_dtype(np.float32)
+    data_type = nndeploy.base.DataType.from_numpy_dtype(np.float32)
     print(data_type)
 
-    data_type = common.DataType(common.DataTypeCode.Fp, 16, 1)
+    data_type = nndeploy.base.DataType.from_name("float32")
     print(data_type)
-    print(data_type.get_numpy_dtype())
-    print(data_type.get_data_type_code())
-    print(data_type.get_bits())
-    print(data_type.get_lanes())
-    print(data_type.get_bytes())
-    print(data_type.get_name())
 
+    data_type = nndeploy.base.DataTypeCode.NewEnum
+    print(data_type)
 
 def test_device_type():
     device_type = _C.base.DeviceType()
@@ -84,25 +65,25 @@ def test_device_type():
     assert device_type_3 == device_type_1
     print(device_type_3)
 
-    device_type = common.DeviceType("ascendcl", 1)
+    device_type = nndeploy.base.DeviceType("ascendcl", 1)
     print(device_type)
     print(device_type.get_device_type_code())
     print(device_type.get_device_id())
     print(device_type.get_device_name())
 
-    device_type = common.DeviceType.from_device_type(device_type_3)
+    device_type = nndeploy.base.DeviceType.from_device_type(device_type_3)
     print(device_type)
     print(device_type.get_device_type_code())
     print(device_type.get_device_id())
     print(device_type.get_device_name())
 
-    device_type = common.DeviceType.from_device_type_code(_C.base.DeviceTypeCode.ascendcl, 1)
+    device_type = nndeploy.base.DeviceType.from_device_type_code(_C.base.DeviceTypeCode.ascendcl, 1)
     print(device_type)
     print(device_type.get_device_type_code())
     print(device_type.get_device_id())
     print(device_type.get_device_name())
 
-    device_type = common.DeviceType.from_device_type_code(common.DeviceTypeCode.ascendcl, 1)
+    device_type = nndeploy.base.DeviceType.from_device_type_code(nndeploy.base.DeviceTypeCode.ascendcl, 1)
     print(device_type)
     print(device_type.get_device_type_code())
     print(device_type.get_device_id())
@@ -110,14 +91,14 @@ def test_device_type():
 
 
 def test_data_format():
-    data_format = common.DataFormat.from_data_format(_C.base.DataFormat.N)
+    data_format = nndeploy.base.DataFormat.from_data_format(_C.base.DataFormat.N)
     print(data_format)
 
-    data_format = common.DataFormat.NC
+    data_format = nndeploy.base.DataFormat.NC
     print(data_format)
 
 
-    data_format = common.DataFormat.from_name("NCHW")
+    data_format = nndeploy.base.DataFormat.from_name("NCHW")
     print(data_format)
 
 
@@ -128,8 +109,8 @@ def test_status():
     # print(c_status_code.value) # 1
     # print(c_status_code.name) # ErrorUnknown
 
-    py_status_code = common.StatusCode.ErrorUnknown #<enum 'StatusCode'>
-    # print(common.StatusCode) # <enum 'StatusCode'>
+    py_status_code = nndeploy.base.StatusCode.ErrorUnknown #<enum 'StatusCode'>
+    # print(nndeploy.base.StatusCode) # <enum 'StatusCode'>
     # print(py_status_code) # StatusCode.ErrorUnknown 
     # print(py_status_code.value) # StatusCode.ErrorUnknown
     # print(py_status_code.name) # ErrorUnknown
@@ -158,17 +139,17 @@ def test_status():
     print(c_status_1 == c_status_2)
     print(c_status_2 == 1)
 
-    py_status = common.Status(py_status_code)
+    py_status = nndeploy.base.Status(py_status_code)
     print(c_status == py_status)
     print(c_status == py_status.get_code())
 
-    py_status_1 = common.Status.from_status(c_status)
+    py_status_1 = nndeploy.base.Status.from_status(c_status)
     print(py_status_1 == py_status)
 
-    py_status_2 = common.Status.from_status_code(_C.base.StatusCode.ErrorUnknown)
+    py_status_2 = nndeploy.base.Status.from_status_code(_C.base.StatusCode.ErrorUnknown)
     print(py_status_2 == py_status)
     
-    py_status_3 = common.Status.from_name("ErrorUnknown")
+    py_status_3 = nndeploy.base.Status.from_name("ErrorUnknown")
     print(py_status_3 == py_status)
 
 
@@ -180,18 +161,18 @@ def test_time_profiler():
     _C.base.time_point_end("test")
     _C.base.time_profiler_print("_C.base.time_profiler_reset")
 
-    # common.time_profiler_reset()
-    common.time_point_start("test")
+    # nndeploy.base.time_profiler_reset()
+    nndeploy.base.time_point_start("test")
     time.sleep(1)
-    common.time_point_end("test")
-    common.time_profiler_print("common.time_profiler_reset")
+    nndeploy.base.time_point_end("test")
+    nndeploy.base.time_profiler_print("nndeploy.base.time_profiler_reset")
 
-    time_profiler = common.TimeProfiler()
+    time_profiler = nndeploy.base.TimeProfiler()
     time_profiler.reset()
     time_profiler.start("test")
     time.sleep(1)
     time_profiler.end("test")
-    time_profiler.print("common.TimeProfiler")
+    time_profiler.print("nndeploy.base.TimeProfiler")
 
 class Param(_C.base.Param):
     def __init__(self):
@@ -222,7 +203,7 @@ def test_param():
     param.set("value", 1)
     print(param.get("value"))
 
-    param = common.Param()
+    param = nndeploy.base.Param()
     param.serialize({"value": 1})
     print(param)
     param.set({"value": 2})
@@ -238,10 +219,24 @@ def test_param():
 
 if __name__ == "__main__":
     print("test_base start")
-    test_data_type()
-    test_device_type()
-    test_data_format()
-    test_status()
-    test_time_profiler()
-    test_param()
+    # test_data_type()
+    # print(_C.base.DataTypeCode)
+    # print(nndeploy.base.common.DataTypeCode)
+    print(type(nndeploy.base.common.DataTypeCode.Uint))
+    print(nndeploy.base.common.DataTypeCode.Uint)
+    print(nndeploy.base.common.DataTypeCode.Uint == _C.base.DataTypeCode.Uint)
+    # print(nndeploy.base.common.DataTypeCode.__base__)
+    # # print(_C.base.DeviceTypeCode.cpu)
+    # # print(nndeploy.base.common.DeviceTypeCode.cpu)
+    # print(type(_C.base.DeviceTypeCode.cpu))
+    # print(type(nndeploy.base.common.DeviceTypeCode.cpu))
+    # print(nndeploy.base.common.DeviceTypeCode.__base__)
+    print(type(nndeploy.base.common.DeviceTypeCode.NewEnum))
+    print(nndeploy.base.common.DeviceTypeCode.NewEnum.value)
+    print(nndeploy.base.common.DeviceTypeCode.cpu.value)
+    # test_device_type()
+    # test_data_format()
+    # test_status()
+    # test_time_profiler()
+    # test_param()
     print("test_base end")

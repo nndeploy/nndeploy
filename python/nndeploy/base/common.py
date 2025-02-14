@@ -20,24 +20,20 @@ name_to_data_type_code = {
 data_type_code_to_name = {v: k for k, v in name_to_data_type_code.items()}
 
 
-class DataTypeCode(Enum):
+class DataTypeCode(_C.base.DataTypeCode):
     Uint = _C.base.DataTypeCode.Uint
     Int = _C.base.DataTypeCode.Int
     Fp = _C.base.DataTypeCode.Fp
     BFp = _C.base.DataTypeCode.BFp
     OpaqueHandle = _C.base.DataTypeCode.OpaqueHandle
     NotSupport = _C.base.DataTypeCode.NotSupport
-
-    @classmethod
-    def from_data_type_code(cls, data_type_code: _C.base.DataTypeCode) -> _C.base.DataTypeCode:
-        return cls(data_type_code)
     
     @classmethod
     def from_name(cls, name: str) -> _C.base.DataTypeCode:
         if name not in name_to_data_type_code:
             raise ValueError(f"Unsupported data type code: {name}")
         else:
-            return cls(name_to_data_type_code[name])   
+            return cls(name_to_data_type_code[name])
 
 
 class DataType(_C.base.DataType):
@@ -214,7 +210,7 @@ name_to_device_type_code = {
 device_type_code_to_name = {v: k for k, v in name_to_device_type_code.items()}
 
 
-class DeviceTypeCode(Enum):
+class DeviceTypeCode(_C.base.DeviceTypeCode):
     cpu = _C.base.DeviceTypeCode.cpu
     cuda = _C.base.DeviceTypeCode.cuda
     arm = _C.base.DeviceTypeCode.arm
@@ -235,6 +231,7 @@ class DeviceTypeCode(Enum):
     sophonnpu = _C.base.DeviceTypeCode.sophonnpu
     riscv = _C.base.DeviceTypeCode.riscv
     notsupport = _C.base.DeviceTypeCode.notsupport
+    NewEnum = 10000
 
     @classmethod
     def from_device_type_code(cls, device_type_code: _C.base.DeviceTypeCode):

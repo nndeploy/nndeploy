@@ -239,6 +239,15 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
           getArchitectureMap()[device_type_code] = architecture;
         });
 
+  m.def("printArchitectureMap", []() {
+    for (const auto &item : getArchitectureMap()) {
+      std::cout << base::deviceTypeCodeToString(item.first) << " : "
+                << (static_cast<Architecture *>(item.second.get()))
+                       ->getDeviceTypeCode()
+                << std::endl;
+    }
+  });
+
   // export as device.getArchitecture
   m.def("getArchitecture", &getArchitecture, py::return_value_policy::reference,
         "Get the Architecture of the specified type",

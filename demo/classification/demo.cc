@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
       "DrawLableNode", {&classification_in, &classification_out},
       {draw_output});
 
-  // 解码节点
+  // 编码节点
   codec::EncodeNode *encode_node = codec::createEncodeNode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
   graph->addNode(encode_node);

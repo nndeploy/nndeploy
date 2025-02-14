@@ -82,3 +82,52 @@ py::class_<op::Expr,std::shared_ptr<op::Expr>>(m, "Expr")
 
 如何查看是哪个class的问题？
 使用python和cpp联合调试，看代码崩溃的栈调用，会显示死在哪个class的析构上
+
+## python/src - cpp通过pybind导出
+
+- 从pybind11导出那层开始 - 遵循python的风格（拿捏不准的可以问gpt，google的python的风格。pytorch也是google风格）
+    - 当保持跟cpp一致时，有些类的继承会十分怪异 
+    - 例如：
+    ```python
+    class VulkanArchitecture(_C.device.Architecture):
+    def __init__(self):
+        super().__init__(common.DeviceTypeCode.vulkan.value)        
+        
+    def checkDevice(self, device_id=0, library_path=""):
+        print("checkDevice")
+        return common.Status(common.StatusCode.Ok)
+
+    def enableDevice(self, device_id=0, library_path=""):
+        print("enableDevice")
+        return common.Status(common.StatusCode.Ok)
+    
+    def getDevice(self, device_id):
+        return VulkanDevice()
+    
+    def getDeviceInfo(self, library_path=""):
+        print("getDeviceInfo")
+        return []
+    ```
+
+- pybind导出的代码，默认不给外部用户使用吗
+    - 故所有需要对外导出的代码，都需要增加一批python的接口
+
+- pybind下的文件保持跟cpp一致
+    - 主目录和子目录下的文件（通过cmake来确定那些文件参与编译导出）
+
+- pybind与cpp保持一致的namespace
+
+## python/nndeploy - 纯python代码
+
+- 可以依赖pybind11导出的代码，但是只能nndeploy/xx 依赖对应src/xx 目录下的代码，例如nndeploy/device 依赖对应src/device 目录下的代码，不能依赖 src/base，假如要依赖的化通过依赖nndeploy/base，跟cpp一个逻辑，单向依赖，其中依赖关系如下：
+    - framework->plugin
+    - framework == base->thread_pool->device->ir->op->net->inference->dag
+    - plugin（基本都是独立模块）
+
+- 纯python代码的命名空间与cpp保持一致，便于开发\调试\理解
+    - 例如：nndeploy::base::DeviceTypeCode  -> nndeploy.base.DeviceTypeCode
+    - 例如：nndeploy::device::Tensor  -> nndeploy.device.Tensor
+
+- cpp的枚举导出，python侧继承，传参更方便
+
+- python侧对于大类，继承+门面模式

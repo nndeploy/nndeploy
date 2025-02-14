@@ -128,7 +128,7 @@ class NNDEPLOY_CC_API Tensor {
 #endif
 
   // print
-  void print(std::ostream &stream = std::cout);
+  void print(std::ostream &stream = std::cout) const;
 
   // bool
   bool isSameDevice(Tensor *tensor) const;
@@ -204,7 +204,7 @@ class NNDEPLOY_CC_API Tensor {
 
 class TensorCreator {
  public:
-  virtual ~TensorCreator(){};
+  virtual ~TensorCreator() {};
   virtual Tensor *createTensor() = 0;
 };
 
@@ -213,8 +213,8 @@ class TypeTensorCreator : public TensorCreator {
   virtual Tensor *createTensor() { return new T(); }
 };
 
-std::map<base::TensorType, std::shared_ptr<TensorCreator>>
-    &getGlobalTensorCreatorMap();
+std::map<base::TensorType, std::shared_ptr<TensorCreator>> &
+getGlobalTensorCreatorMap();
 
 template <typename T>
 class TypeTensorRegister {
