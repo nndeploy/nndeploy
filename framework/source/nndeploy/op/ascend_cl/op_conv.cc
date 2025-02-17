@@ -1,6 +1,7 @@
 #include "nndeploy/op/op_conv.h"
 
 #include "aclnnop/aclnn_convolution.h"
+#include "nndeploy/op/ascend_cl/ascend_c/op_conv_kernel.h"
 #include "nndeploy/op/ascend_cl/op_convert.h"
 #include "nndeploy/op/ascend_cl/op_include.h"
 #include "nndeploy/op/ascend_cl/op_util.h"
@@ -9,6 +10,178 @@
 namespace nndeploy {
 namespace op {
 
+#ifdef ENABLE_NNDEPLOY_OP_ASCEND_C
+#include "acl/acl.h"
+#include "aclrtlaunch_conv2d.h"
+class AscendCLOpConv : public OpConv {
+ public:
+  AscendCLOpConv() {}
+  virtual ~AscendCLOpConv() {}
+
+  /**
+   * @brief Initialize the convolution operator
+   * @details Performs the following initialization steps:
+   *   1. Get and validate convolution parameters
+   *   2. Set up computation stream
+   *   3. Process input and weight tensors
+   *   4. Calculate tiling data
+   *   5. Validate kernel shape(3x3), dilation(1x1) and padding(0, 0, 0, 0)
+   * @return base::Status Initialization status
+   */
+  virtual base::Status init() {
+    // Get convolution parameters
+    ir::ConvParam *param = (ir::ConvParam *)op_desc_.op_param_.get();
+
+    // Get device stream
+    device::Device *device = device::getDevice(device_type_);
+    inner_stream_ = (aclrtStream)device->getCommandQueue();
+
+    // Process input feature map tensor
+    if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
+      inner_fm_input_ = new device::Tensor(device, inputs_[0]->getDesc(),
+                                           inputs_[0]->getName());
+      inputs_[0]->copyTo(inner_fm_input_);
+    } else {
+      inner_fm_input_ = inputs_[0];
+    }
+
+    if (device::isHostDeviceType(inputs_[1]->getDeviceType())) {
+      inner_we_input_ = new device::Tensor(device, inputs_[1]->getDesc(),
+                                           inputs_[1]->getName());
+      inputs_[1]->copyTo(inner_we_input_);
+    } else {
+      inner_we_input_ = inputs_[1];
+    }
+
+    base::IntVector input_shape = inner_fm_input_->getShape();
+    base::IntVector weight_shape = inner_we_input_->getShape();
+    tiling_data_.batchSize = input_shape[0];
+    tiling_data_.inHeight = input_shape[1];
+    tiling_data_.inWidth = input_shape[2];
+    tiling_data_.inChannel = input_shape[3];
+    tiling_data_.outChannel = weight_shape[0];
+    tiling_data_.stride = param->strides_[0];
+    tiling_data_.kernelSize = param->kernel_shape_[0];
+    tiling_data_.outHeight =
+        (tiling_data_.inHeight + param->pads_[0] + param->pads_[1] -
+         param->dilations_[0] * (param->kernel_shape_[0] - 1) - 1) /
+            param->strides_[0] +
+        1;
+    tiling_data_.outWidth =
+        (tiling_data_.inWidth + param->pads_[2] + param->pads_[3] -
+         param->dilations_[1] * (param->kernel_shape_[1] - 1) - 1) /
+            param->strides_[1] +
+        1;
+    tiling_data_.coreNum = tiling_data_.outHeight % 8;
+
+    // support attr
+    if (param->kernel_shape_.size() == 2) {
+      if (param->kernel_shape_[0] != 3 || param->kernel_shape_[1] != 3) {
+        NNDEPLOY_LOGE("not support kernel shape: %d, %d",
+                      param->kernel_shape_[0], param->kernel_shape_[1]);
+        return base::kStatusCodeErrorOpAscendCL;
+      }
+    } else {
+      NNDEPLOY_LOGE("not support shape size: %d", param->kernel_shape_.size());
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+
+    if (param->dilations_[0] != 1 || param->dilations_[1] != 1) {
+      NNDEPLOY_LOGE("not support dilation: %d, %d", param->dilations_[0],
+                    param->dilations_[1]);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+
+    if (param->pads_[0] != 0 || param->pads_[1] != 0 || param->pads_[2] != 0 ||
+        param->pads_[3] != 0) {
+      NNDEPLOY_LOGE("not support padding: %d, %d, %d, %d", param->pads_[0],
+                    param->pads_[1], param->pads_[2], param->pads_[3]);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+  /**
+   * @brief Release operator resources
+   * @details Free internally allocated tensors and resources
+   * @return base::Status Deinitialization status
+   */
+  virtual base::Status deinit() {
+    if (inner_fm_input_ != nullptr) {
+      delete inner_fm_input_;
+      inner_fm_input_ = nullptr;
+    }
+    if (inner_we_input_ != nullptr) {
+      delete inner_we_input_;
+      inner_we_input_ = nullptr;
+    }
+    return base::kStatusCodeOk;
+  }
+
+  /**
+   * @brief Prepare for execution
+   * @details Allocate device memory for tiling data and perform data transfer
+   * @return base::Status Preparation status
+   */
+  virtual base::Status preRun() {
+    size_t tiling_size = sizeof(Conv2dTilingData);
+    Conv2dTilingData *buf = &tiling_data_;
+    aclrtMalloc((void **)&tiling_device_, tiling_size,
+                ACL_MEM_MALLOC_HUGE_FIRST);
+    aclrtMemcpyAsync(tiling_device_, tiling_size, (void *)buf, tiling_size,
+                     ACL_MEMCPY_HOST_TO_DEVICE, inner_stream_);
+    aclrtSynchronizeStream(inner_stream_);
+
+    return base::kStatusCodeOk;
+  }
+
+  /**
+   * @brief Execute convolution computation
+   * @details Call Ascend CL convolution kernel to perform computation
+   * @return base::Status Execution status
+   */
+  virtual base::Status run() {
+    uint8_t *fm_data = (uint8_t *)(inner_fm_input_->getData());
+    uint8_t *we_data = (uint8_t *)(inner_we_input_->getData());
+    uint8_t *output_data = (uint8_t *)(outputs_[0]->getData());
+
+    ACLRT_LAUNCH_KERNEL(conv2d)
+    (tiling_data_.coreNum, inner_stream_, fm_data, we_data, output_data,
+     reinterpret_cast<uint8_t *>(tiling_device_));
+    aclrtSynchronizeStream(inner_stream_);
+    return base::kStatusCodeOk;
+  }
+
+  /**
+   * @brief Post-execution cleanup
+   * @details Release device memory used for tiling data
+   * @return base::Status Cleanup status
+   */
+  virtual base::Status postRun() {
+    if (tiling_device_ != nullptr) {
+      aclrtFree(tiling_device_);
+      tiling_device_ = nullptr;
+    }
+    return base::kStatusCodeOk;
+  }
+
+ private:
+  // Operator type identifier
+  std::string inner_op_type_ = "Conv2d";
+
+  // Ascend CL computation stream
+  aclrtStream inner_stream_ = nullptr;
+
+  // Internal tensors for input feature map and weights
+  device::Tensor *inner_fm_input_ = nullptr;
+  device::Tensor *inner_we_input_ = nullptr;
+
+  // Tiling related data
+  void *tiling_device_ = nullptr;  // Device-side tiling data
+  Conv2dTilingData tiling_data_;   // Host-side tiling data
+};
+#else
 class AscendCLOpConv : public OpConv {
  public:
   AscendCLOpConv() {}
@@ -191,6 +364,7 @@ class AscendCLOpConv : public OpConv {
   device::Tensor *weight_ = nullptr;
   device::Tensor *bias_ = nullptr;
 };
+#endif
 
 REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeAscendCL, ir::kOpTypeConv,
                          AscendCLOpConv)

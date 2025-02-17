@@ -12,10 +12,6 @@ namespace op {
 #ifdef ENABLE_NNDEPLOY_OP_ASCEND_C
 #include "acl/acl.h"
 #include "aclrtlaunch_add_custom.h"
-// extern symbol
-// extern "C" __global__ __aicore__ void add_custom(GM_ADDR x, GM_ADDR y,
-//                                                  GM_ADDR z,
-//                                                  AddCustomTilingData tiling);
 class AscendCLOpAdd : public OpBinary {
  public:
   AscendCLOpAdd() {}
@@ -95,8 +91,6 @@ class AscendCLOpAdd : public OpBinary {
     uint8_t* input_data_1 = (uint8_t*)(inputs_1_->getData());
     uint8_t* output_data = (uint8_t*)(outputs_[0]->getData());
 
-    // add_custom_do(8, inner_stream_, input_data_0, input_data_1, output_data,
-    //               &data_);
     ACLRT_LAUNCH_KERNEL(add_custom)
     (8, inner_stream_, input_data_0, input_data_1, output_data,
      reinterpret_cast<uint8_t*>(tiling_device));
