@@ -24,7 +24,8 @@ class AscendCLOpMaxPool : public OpMaxPool {
 
     // Get command queue stream from device
     device::Device *device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)getStream();
+    inner_stream_ =
+        (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
     // Handle input tensor - copy to device if input is from host
     if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
