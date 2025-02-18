@@ -84,6 +84,15 @@ void TimeProfiler::end(const std::string &key) {
   }
 }
 
+float TimeProfiler::getCostTime(const std::string &key) const {
+  if (records_.find(key) == records_.end()) {
+    return -1.0f;
+  }
+  std::shared_ptr<Record> record = records_.find(key)->second;
+  int index = (record->call_times_ - 1) % max_size_;
+  return record->cost_time_[index];
+}
+
 void TimeProfiler::print(const std::string &title) {
   std::vector<std::shared_ptr<Record>> records;
   for (auto &it : records_) {
@@ -354,6 +363,10 @@ void timeProfilerReset() { g_time_profiler.reset(); }
 void timePointStart(const std::string &key) { g_time_profiler.start(key); }
 
 void timePointEnd(const std::string &key) { g_time_profiler.end(key); }
+
+float timeProfilerGetCostTime(const std::string &key) {
+  return g_time_profiler.getCostTime(key);
+}
 
 void timeProfilerPrint(const std::string &title) {
   g_time_profiler.print(title);

@@ -1367,7 +1367,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 // template <typename T, typename... Args,
-//           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+//           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 // Node *Graph::createNodeSiso(const NodeDesc &desc) {
 //   Node *node = nullptr;
 //   std::vector<std::string> inputs = desc.getInputs();
@@ -1388,7 +1388,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 //   return node;
 // }
 // template <typename T, typename... Args,
-//           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+//           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 // Node *Graph::createNodeMimo(const NodeDesc &desc) {
 //   Node *node = nullptr;
 //   std::vector<std::string> inputs = desc.getInputs();
@@ -1406,7 +1406,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 // }
 
 template <typename T, typename... Args,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const NodeDesc &desc, Args &...args) {
   Node *node = this->createNode<T>(desc.getName(), desc.getInputs(),
                                    desc.getOutputs(), args...);

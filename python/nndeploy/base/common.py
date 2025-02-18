@@ -1,8 +1,8 @@
 
-import json
 import nndeploy._nndeploy_internal as _C
 
 from enum import Enum
+from typing import Union
 import numpy as np
 import json
 
@@ -20,37 +20,77 @@ name_to_data_type_code = {
 data_type_code_to_name = {v: k for k, v in name_to_data_type_code.items()}
 
 
-class DataTypeCode(Enum):
+class DataTypeCode(_C.base.DataTypeCode):
     Uint = _C.base.DataTypeCode.Uint
     Int = _C.base.DataTypeCode.Int
     Fp = _C.base.DataTypeCode.Fp
     BFp = _C.base.DataTypeCode.BFp
     OpaqueHandle = _C.base.DataTypeCode.OpaqueHandle
     NotSupport = _C.base.DataTypeCode.NotSupport
-
-    @classmethod
-    def from_data_type_code(cls, data_type_code: _C.base.DataTypeCode) -> _C.base.DataTypeCode:
-        return cls(data_type_code)
     
     @classmethod
-    def from_name(cls, name: str) -> _C.base.DataTypeCode:
+    def from_name(cls, name: str):
         if name not in name_to_data_type_code:
             raise ValueError(f"Unsupported data type code: {name}")
-        else:
-            return cls(name_to_data_type_code[name])   
+        else:   
+            return cls(name_to_data_type_code[name])         
 
 
 class DataType(_C.base.DataType):
-    def __init__(self, data_type_code: DataTypeCode, bits: int, lanes: int = 1):
-        super().__init__(data_type_code.value, bits, lanes)
+    def __init__(self, *args, **kwargs):
+        """
+        Constructs a DataType object.
 
-    @classmethod
-    def from_data_type(cls, data_type: _C.base.DataType):
-        return cls(DataTypeCode.from_data_type_code(data_type.code_), data_type.bits_, data_type.lanes_)
-    
-    @classmethod
-    def from_data_type_code(cls, data_type_code: _C.base.DataTypeCode, bits: int, lanes: int = 1):
-        return cls(DataTypeCode.from_data_type_code(data_type_code), bits, lanes)
+        The constructor can be called in the following ways:
+        1. DataType(numpy_dtype): Constructs a DataType from a numpy dtype.
+        2. DataType(name): Constructs a DataType from a string name (e.g., "float32").
+        3. DataType(data_type_code, bits=32, lanes=1): Constructs a DataType from a DataTypeCode enum value, with optional bits and lanes.
+        4. DataType(data_type_code, bits, lanes=1): Constructs a DataType from a DataTypeCode enum value and bits, with optional lanes.
+        5. DataType(data_type_code, bits, lanes): Constructs a DataType from a DataTypeCode enum value, bits, and lanes.
+        6. DataType(type): Constructs a DataType from a Python type (e.g., np.float32).
+        """
+        if len(args) == 1 and isinstance(args[0], np.dtype):
+            data_type = DataType.from_numpy_dtype(args[0])
+            data_type_code = data_type.get_data_type_code()
+            bits = data_type.get_bits()
+            lanes = data_type.get_lanes()
+        elif len(args) == 1 and isinstance(args[0], str):
+            data_type = DataType.from_name(args[0])
+            data_type_code = data_type.get_data_type_code()
+            bits = data_type.get_bits()
+            lanes = data_type.get_lanes()
+        elif len(args) == 1 and isinstance(args[0], _C.base.DataTypeCode):
+            data_type_code = args[0]
+            bits = kwargs.get("bits", 32)
+            lanes = kwargs.get("lanes", 1)
+        elif len(args) == 2 and isinstance(args[0], _C.base.DataTypeCode) and isinstance(args[1], int):
+            data_type_code = args[0]
+            bits = args[1]
+            lanes = kwargs.get("lanes", 1)
+        elif len(args) == 3 and isinstance(args[0], _C.base.DataTypeCode) and isinstance(args[1], int) and isinstance(args[2], int):
+            data_type_code = args[0]
+            bits = args[1]
+            lanes = args[2]
+        elif len(args) == 1 and isinstance(args[0], DataTypeCode):
+            data_type_code = args[0]
+            bits = kwargs.get("bits", 32)
+            lanes = kwargs.get("lanes", 1)
+        elif len(args) == 2 and isinstance(args[0], DataTypeCode) and isinstance(args[1], int):
+            data_type_code = args[0]
+            bits = args[1]
+            lanes = kwargs.get("lanes", 1)
+        elif len(args) == 3 and isinstance(args[0], DataTypeCode) and isinstance(args[1], int) and isinstance(args[2], int):
+            data_type_code = args[0]
+            bits = args[1]
+            lanes = args[2]
+        elif len(args) == 1 and isinstance(args[0], type):
+            data_type = DataType.from_numpy_dtype(args[0])
+            data_type_code = data_type.get_data_type_code()
+            bits = data_type.get_bits()
+            lanes = data_type.get_lanes()
+        else:
+            raise ValueError("Invalid arguments for DataType constructor")
+        super().__init__(data_type_code, bits, lanes)
     
     @classmethod
     def from_numpy_dtype(cls, numpy_dtype: np.dtype):
@@ -152,7 +192,7 @@ class DataType(_C.base.DataType):
         return self.lanes_
 
     def get_bytes(self):
-        return self.get_size()
+        return self.size()
     
     def get_name(self):
         if self.code_ == _C.base.DataTypeCode.Uint:
@@ -214,7 +254,7 @@ name_to_device_type_code = {
 device_type_code_to_name = {v: k for k, v in name_to_device_type_code.items()}
 
 
-class DeviceTypeCode(Enum):
+class DeviceTypeCode(_C.base.DeviceTypeCode):
     cpu = _C.base.DeviceTypeCode.cpu
     cuda = _C.base.DeviceTypeCode.cuda
     arm = _C.base.DeviceTypeCode.arm
@@ -235,48 +275,67 @@ class DeviceTypeCode(Enum):
     sophonnpu = _C.base.DeviceTypeCode.sophonnpu
     riscv = _C.base.DeviceTypeCode.riscv
     notsupport = _C.base.DeviceTypeCode.notsupport
-
-    @classmethod
-    def from_device_type_code(cls, device_type_code: _C.base.DeviceTypeCode):
-        return cls(device_type_code)
     
     @classmethod
     def from_name(cls, device_name: str):
+        if device_name not in name_to_device_type_code:
+            raise ValueError(f"Unsupported device type code: {device_name}")
         return cls(name_to_device_type_code[device_name])
 
 
 class DeviceType(_C.base.DeviceType):
-    def __init__(self, device_name = "cpu", device_id =0):
-        code = name_to_device_type_code[device_name]
-        super().__init__(code, device_id)
+    def __init__(self, *args, **kwargs):
+        """
+        Constructs a DeviceType object.
 
-    @classmethod
-    def from_device_type(cls, device_type: _C.base.DeviceType):
-        if device_type.code_ not in device_type_code_to_name:
-            raise ValueError(f"Unsupported device type code: {device_type.code_}")
-        device_name = device_type_code_to_name[device_type.code_]
-        return cls(device_name, device_type.device_id_)
-    
-    @classmethod  
-    def from_device_type_code(cls, device_type_code: DeviceTypeCode, device_id: int = 0):
-        if device_type_code.value not in device_type_code_to_name:
-            raise ValueError(f"Unsupported device type code: {device_type_code}")
-        device_name = device_type_code_to_name[device_type_code.value]
-        return cls(device_name, device_id)
-    
-    @classmethod  
-    def from_device_type_code_v0(cls, device_type_code: _C.base.DeviceTypeCode, device_id: int = 0):
-        if device_type_code not in device_type_code_to_name:
-            raise ValueError(f"Unsupported device type code: {device_type_code}")
-        device_name = device_type_code_to_name[device_type_code]
-        return cls(device_name, device_id)
+        The constructor can be called in the following ways:
+        1. DeviceType(device_name_and_id): Constructs a DeviceType from a string in the format "device_name:device_id(optional)" (e.g., "cuda:0").
+        2. DeviceType(device_name, device_id): Constructs a DeviceType from a device_name and an integer device ID.
+        3. DeviceType(device_type_code): Constructs a DeviceType from a DeviceTypeCode enum value. The device ID defaults to 0.
+        3. DeviceType(device_type_code, device_id): Constructs a DeviceType from a DeviceTypeCode enum value and an integer device ID.
+        """
+        if len(args) == 1 and isinstance(args[0], str):
+            device_name_and_id = args[0].split(":")
+            device_name = device_name_and_id[0]
+            if len(device_name_and_id) == 1:
+                device_id = 0
+            else:
+                device_id = int(device_name_and_id[1])
+            if device_name not in name_to_device_type_code:
+                raise ValueError(f"Unsupported device type code: {device_name}")
+            code = name_to_device_type_code[device_name]
+            super().__init__(code, device_id)
+        elif len(args) == 2 and isinstance(args[0], str) and isinstance(args[1], int):
+            device_name = args[0]
+            if device_name not in name_to_device_type_code:
+                raise ValueError(f"Unsupported device type code: {device_name}")
+            code = name_to_device_type_code[device_name]
+            device_id = args[1]
+            super().__init__(code, device_id)
+        elif len(args) == 1 and isinstance(args[0], _C.base.DeviceTypeCode):
+            device_type_code = args[0]
+            device_id = 0
+            super().__init__(device_type_code, device_id)
+        elif len(args) == 2 and isinstance(args[0], _C.base.DeviceTypeCode) and isinstance(args[1], int):
+            device_type_code = args[0]
+            device_id = args[1] 
+            super().__init__(device_type_code, device_id)
+        elif len(args) == 1 and isinstance(args[0], DeviceTypeCode):
+            device_type_code = args[0]
+            device_id = 0
+            super().__init__(device_type_code, device_id)
+        elif len(args) == 2 and isinstance(args[0], DeviceTypeCode) and isinstance(args[1], int):
+            device_type_code = args[0]
+            device_id = args[1] 
+            super().__init__(device_type_code, device_id)
+        elif len(args) == 0:
+            super().__init__()
+        else:
+            raise ValueError("Invalid arguments for DeviceType constructor")
     
     def get_device_type_code(self):
-        return DeviceTypeCode.from_device_type_code(self.code_)
-    
-    def get_device_type_code_v0(self):
         return self.code_
-    
+
     def get_device_id(self):
         return self.device_id_
     
@@ -304,7 +363,7 @@ name_to_data_format = {
 data_format_to_name = {v: k for k, v in name_to_data_format.items()}
 
 
-class DataFormat(Enum):
+class DataFormat(_C.base.DataFormat):
     N = _C.base.DataFormat.N
     NC = _C.base.DataFormat.NC
     NCL = _C.base.DataFormat.NCL
@@ -318,11 +377,7 @@ class DataFormat(Enum):
     NDHWC = _C.base.DataFormat.NDHWC
     Auto = _C.base.DataFormat.Auto
     NotSupport = _C.base.DataFormat.NotSupport
-
-    @classmethod
-    def from_data_format(cls, data_format: _C.base.DataFormat):
-        return cls(data_format)
-    
+   
     @classmethod
     def from_name(cls, data_format_name: str):
         if data_format_name not in name_to_data_format:
@@ -342,17 +397,13 @@ name_to_precision_type = {
 precision_type_to_name = {v: k for k, v in name_to_precision_type.items()}
 
 
-class PrecisionType(Enum):
+class PrecisionType(_C.base.PrecisionType):
     BFp16 = _C.base.PrecisionType.BFp16
     Fp16 = _C.base.PrecisionType.Fp16
     Fp32 = _C.base.PrecisionType.Fp32
     Fp64 = _C.base.PrecisionType.Fp64
     NotSupport = _C.base.PrecisionType.NotSupport
 
-    @classmethod
-    def from_precision_type(cls, precision_type: _C.base.PrecisionType):
-        return cls(precision_type)
-    
     @classmethod
     def from_name(cls, precision_type_name: str):
         if precision_type_name not in name_to_precision_type:
@@ -371,15 +422,11 @@ name_to_power_type = {
 power_type_to_name = {v: k for k, v in name_to_power_type.items()}
 
 
-class PowerType(Enum):
+class PowerType(_C.base.PowerType):
     High = _C.base.PowerType.High
     Normal = _C.base.PowerType.Normal
     Low = _C.base.PowerType.Low
     NotSupport = _C.base.PowerType.NotSupport
-
-    @classmethod
-    def from_power_type(cls, power_type: _C.base.PowerType):
-        return cls(power_type)
     
     @classmethod
     def from_name(cls, power_type_name: str):
@@ -398,14 +445,10 @@ name_to_share_memory_type = {
 share_memory_type_to_name = {v: k for k, v in name_to_share_memory_type.items()}
 
 
-class ShareMemoryType(Enum):
+class ShareMemoryType(_C.base.ShareMemoryType):
     NoShare = _C.base.ShareMemoryType.NoShare
     ShareFromExternal = _C.base.ShareMemoryType.ShareFromExternal
     NotSupport = _C.base.ShareMemoryType.NotSupport
-
-    @classmethod
-    def from_share_memory_type(cls, share_memory_type: _C.base.ShareMemoryType):
-        return cls(share_memory_type)
     
     @classmethod
     def from_name(cls, share_memory_type_name: str):
@@ -415,7 +458,7 @@ class ShareMemoryType(Enum):
 
 
 name_to_memory_type = {
-    "None": _C.base.MemoryType.kMemoryTypeNone,
+    "kMemoryTypeNone": _C.base.MemoryType.kMemoryTypeNone,
     "Allocate": _C.base.MemoryType.Allocate,
     "External": _C.base.MemoryType.External,
     "Mapped": _C.base.MemoryType.Mapped,
@@ -425,15 +468,11 @@ name_to_memory_type = {
 memory_type_to_name = {v: k for k, v in name_to_memory_type.items()}
 
 
-class MemoryType(Enum):
+class MemoryType(_C.base.MemoryType):
     kMemoryTypeNone = _C.base.MemoryType.kMemoryTypeNone
     Allocate = _C.base.MemoryType.Allocate
     External = _C.base.MemoryType.External
     Mapped = _C.base.MemoryType.Mapped
-
-    @classmethod
-    def from_memory_type(cls, memory_type: _C.base.MemoryType):
-        return cls(memory_type)
     
     @classmethod
     def from_name(cls, memory_type_name: str):
@@ -452,14 +491,10 @@ name_to_memory_pool_type = {
 memory_pool_type_to_name = {v: k for k, v in name_to_memory_pool_type.items()}
 
 
-class MemoryPoolType(Enum):
+class MemoryPoolType(_C.base.MemoryPoolType):
     Embed = _C.base.MemoryPoolType.Embed
     Unity = _C.base.MemoryPoolType.Unity
     ChunkIndepend = _C.base.MemoryPoolType.ChunkIndepend
-
-    @classmethod
-    def from_memory_pool_type(cls, memory_pool_type: _C.base.MemoryPoolType):
-        return cls(memory_pool_type)
     
     @classmethod
     def from_name(cls, memory_pool_type_name: str):
@@ -470,19 +505,17 @@ class MemoryPoolType(Enum):
 
 name_to_tensor_type = {
     "Default": _C.base.TensorType.Default,
+    "Pipeline": _C.base.TensorType.Pipeline,
 }
 
 
 tensor_type_to_name = {v: k for k, v in name_to_tensor_type.items()}
 
 
-class TensorType(Enum):
+class TensorType(_C.base.TensorType):
     Default = _C.base.TensorType.Default
+    Pipeline = _C.base.TensorType.Pipeline
 
-    @classmethod
-    def from_tensor_type(cls, tensor_type: _C.base.TensorType):
-        return cls(tensor_type)
-    
     @classmethod
     def from_name(cls, tensor_type_name: str):
         if tensor_type_name not in name_to_tensor_type:
@@ -504,7 +537,7 @@ name_to_forward_op_type = {
 forward_op_type_to_name = {v: k for k, v in name_to_forward_op_type.items()}
 
 
-class ForwardOpType(Enum):
+class ForwardOpType(_C.base.ForwardOpType):
     Default = _C.base.ForwardOpType.Default
     OneDnn = _C.base.ForwardOpType.OneDnn
     XnnPack = _C.base.ForwardOpType.XnnPack
@@ -512,10 +545,6 @@ class ForwardOpType(Enum):
     Cudnn = _C.base.ForwardOpType.Cudnn
     AclOp = _C.base.ForwardOpType.AclOp
     NotSupport = _C.base.ForwardOpType.NotSupport
-
-    @classmethod
-    def from_forward_op_type(cls, forward_op_type: _C.base.ForwardOpType):
-        return cls(forward_op_type)
     
     @classmethod
     def from_name(cls, forward_op_type_name: str):
@@ -525,8 +554,8 @@ class ForwardOpType(Enum):
     
 
 name_to_inference_opt_level = {
-    "Zero": _C.base.InferenceOpt.Level0,
-    "One": _C.base.InferenceOpt.Level1,
+    "Level0": _C.base.InferenceOpt.Level0,
+    "Level1": _C.base.InferenceOpt.Level1,
     "Auto": _C.base.InferenceOpt.LevelAuto,
 }
 
@@ -534,14 +563,10 @@ name_to_inference_opt_level = {
 inference_opt_level_to_name = {v: k for k, v in name_to_inference_opt_level.items()}
 
 
-class InferenceOptLevel(Enum):
+class InferenceOptLevel(_C.base.InferenceOpt):
     Level0 = _C.base.InferenceOpt.Level0
     Level1 = _C.base.InferenceOpt.Level1
     LevelAuto = _C.base.InferenceOpt.LevelAuto
-
-    @classmethod
-    def from_inference_opt(cls, inference_opt_level: _C.base.InferenceOpt):
-        return cls(inference_opt_level)
     
     @classmethod
     def from_name(cls, inference_opt_level_name: str):
@@ -580,7 +605,7 @@ name_to_model_type = {
 model_type_to_name = {v: k for k, v in name_to_model_type.items()}
 
 
-class ModelType(Enum):
+class ModelType(_C.base.ModelType):
     Default = _C.base.ModelType.Default
     OpenVino = _C.base.ModelType.OpenVino
     TensorRt = _C.base.ModelType.TensorRt
@@ -604,10 +629,6 @@ class ModelType(Enum):
     Safetensors = _C.base.ModelType.Safetensors
     NeuroPilot = _C.base.ModelType.NeuroPilot
     NotSupport = _C.base.ModelType.NotSupport
-
-    @classmethod
-    def from_model_type(cls, model_type: _C.base.ModelType):
-        return cls(model_type)
     
     @classmethod
     def from_name(cls, model_type_name: str):
@@ -644,7 +665,7 @@ name_to_inference_type = {
 inference_type_to_name = {v: k for k, v in name_to_inference_type.items()}
 
 
-class InferenceType(Enum):
+class InferenceType(_C.base.InferenceType):
     Default = _C.base.InferenceType.Default
     OpenVino = _C.base.InferenceType.OpenVino
     TensorRt = _C.base.InferenceType.TensorRt
@@ -666,10 +687,6 @@ class InferenceType(Enum):
     TensorFlow = _C.base.InferenceType.TensorFlow
     NeuroPilot = _C.base.InferenceType.NeuroPilot
     NotSupport = _C.base.InferenceType.NotSupport
-
-    @classmethod
-    def from_inference_type(cls, inference_type: _C.base.InferenceType):
-        return cls(inference_type)
     
     @classmethod
     def from_name(cls, inference_type_name: str):
@@ -687,13 +704,9 @@ name_to_encrypt_type = {
 encrypt_type_to_name = {v: k for k, v in name_to_encrypt_type.items()}
 
 
-class EncryptType(Enum):
+class EncryptType(_C.base.EncryptType):
     kEncryptTypeNone = _C.base.EncryptType.kEncryptTypeNone
     Base64 = _C.base.EncryptType.Base64
-
-    @classmethod
-    def from_encrypt_type(cls, encrypt_type: _C.base.EncryptType):
-        return cls(encrypt_type)
     
     @classmethod
     def from_name(cls, encrypt_type_name: str):
@@ -713,15 +726,11 @@ name_to_codec_type = {
 codec_type_to_name = {v: k for k, v in name_to_codec_type.items()}
 
 
-class CodecType(Enum):
+class CodecType(_C.base.CodecType):
     kCodecTypeNone = _C.base.CodecType.kCodecTypeNone
     OpenCV = _C.base.CodecType.OpenCV
     FFmpeg = _C.base.CodecType.FFmpeg
     Stb = _C.base.CodecType.Stb
-
-    @classmethod
-    def from_codec_type(cls, codec_type: _C.base.CodecType):
-        return cls(codec_type)
     
     @classmethod
     def from_name(cls, codec_type_name: str):
@@ -742,16 +751,12 @@ name_to_codec_flag = {
 codec_flag_to_name = {v: k for k, v in name_to_codec_flag.items()}
 
 
-class CodecFlag(Enum):
+class CodecFlag(_C.base.CodecFlag):
     Image = _C.base.CodecFlag.Image
     Images = _C.base.CodecFlag.Images
     Video = _C.base.CodecFlag.Video  
     Camera = _C.base.CodecFlag.Camera
     Other = _C.base.CodecFlag.Other
-
-    @classmethod
-    def from_codec_flag(cls, codec_flag: _C.base.CodecFlag):
-        return cls(codec_flag)
     
     @classmethod 
     def from_name(cls, codec_flag_name: str):
@@ -770,15 +775,11 @@ name_to_parallel_type = {
 parallel_type_to_name = {v: k for k, v in name_to_parallel_type.items()}
 
 
-class ParallelType(Enum):
+class ParallelType(_C.base.ParallelType):
     kParallelTypeNone = _C.base.ParallelType.kParallelTypeNone
     Sequential = _C.base.ParallelType.Sequential
     Task = _C.base.ParallelType.Task
     Pipeline = _C.base.ParallelType.Pipeline
-
-    @classmethod
-    def from_parallel_type(cls, parallel_type: _C.base.ParallelType):
-        return cls(parallel_type)
     
     @classmethod
     def from_name(cls, parallel_type_name: str):
@@ -796,13 +797,9 @@ name_to_edge_type = {
 edge_type_to_name = {v: k for k, v in name_to_edge_type.items()}
 
 
-class EdgeType(Enum):
+class EdgeType(_C.base.EdgeType):
     Fixed = _C.base.EdgeType.Fixed
     Pipeline = _C.base.EdgeType.Pipeline
-
-    @classmethod
-    def from_edge_type(cls, edge_type: _C.base.EdgeType):
-        return cls(edge_type)
     
     @classmethod
     def from_name(cls, edge_type_name: str):
@@ -820,14 +817,11 @@ name_to_edge_update_flag = {
 
 edge_update_flag_to_name = {v: k for k, v in name_to_edge_update_flag.items()}
 
-class EdgeUpdateFlag(Enum):
+
+class EdgeUpdateFlag(_C.base.EdgeUpdateFlag):
     Complete = _C.base.EdgeUpdateFlag.Complete
     Terminate = _C.base.EdgeUpdateFlag.Terminate
     Error = _C.base.EdgeUpdateFlag.Error
-
-    @classmethod
-    def from_edge_update_flag(cls, edge_update_flag: _C.base.EdgeUpdateFlag):
-        return cls(edge_update_flag)
     
     @classmethod
     def from_name(cls, edge_update_flag_name: str):
@@ -846,15 +840,11 @@ name_to_node_color_type = {
 node_color_type_to_name = {v: k for k, v in name_to_node_color_type.items()}
 
 
-class NodeColorType(Enum):
+class NodeColorType(_C.base.NodeColorType):
     White = _C.base.NodeColorType.White
     Gray = _C.base.NodeColorType.Gray
     Black = _C.base.NodeColorType.Black
 
-    @classmethod
-    def from_node_color_type(cls, node_color_type: _C.base.NodeColorType):
-        return cls(node_color_type)
-    
     @classmethod
     def from_name(cls, node_color_type_name: str):
         if node_color_type_name not in name_to_node_color_type:
@@ -871,13 +861,9 @@ name_to_topo_sort_type = {
 topo_sort_type_to_name = {v: k for k, v in name_to_topo_sort_type.items()}
 
 
-class TopoSortType(Enum):
+class TopoSortType(_C.base.TopoSortType):
     BFS = _C.base.TopoSortType.BFS
     DFS = _C.base.TopoSortType.DFS
-
-    @classmethod
-    def from_topo_sort_type(cls, topo_sort_type: _C.base.TopoSortType):
-        return cls(topo_sort_type)
     
     @classmethod
     def from_name(cls, topo_sort_type_name: str):
@@ -944,12 +930,7 @@ name_to_status_code =  {
 status_code_to_name = {v: k for k, v in name_to_status_code.items()}
 
 
-class StatusCode(Enum):
-    """
-    default member:
-        value: _C.base.StatusCode
-        name: str
-    """ 
+class StatusCode(_C.base.StatusCode):
     Ok = _C.base.StatusCode.Ok
     ErrorUnknown = _C.base.StatusCode.ErrorUnknown
     ErrorOutOfMemory = _C.base.StatusCode.ErrorOutOfMemory
@@ -1001,10 +982,6 @@ class StatusCode(Enum):
     ErrorInferenceTensorFlow = _C.base.StatusCode.ErrorInferenceTensorFlow
     ErrorInferenceNeuroPilot = _C.base.StatusCode.ErrorInferenceNeuroPilot
     ErrorDag = _C.base.StatusCode.ErrorDag
-
-    @classmethod
-    def from_status_code(cls, status_code: _C.base.StatusCode):
-        return cls(status_code)
     
     @classmethod
     def from_name(cls, status_code_name: str):
@@ -1014,24 +991,17 @@ class StatusCode(Enum):
             return cls(name_to_status_code[status_code_name])
     
 class Status(_C.base.Status):
-    def __init__(self, status_code: StatusCode):
-        super().__init__(status_code.value)
-
-    @classmethod
-    def from_status(cls, status: _C.base.Status):
-        return cls(status.get_code())
+    def __init__(self, status_code: Union[str, StatusCode]):
+        if isinstance(status_code, str):
+            if status_code in name_to_status_code:
+                status_code = StatusCode.from_name(status_code)
+            else:
+                status_code = StatusCode.ErrorUnknown
+        super().__init__(status_code)
     
-    @classmethod
-    def from_status_code(cls, status_code: _C.base.StatusCode):
-        return cls(status_code)
+    def get_code(self):
+        return super().get_code()
     
-    @classmethod
-    def from_name(cls, status_name: str):
-        if status_name not in name_to_status_code:
-            return cls(StatusCode.ErrorUnknown)
-        else:
-            return cls(name_to_status_code[status_name])
-
     def get_code_name(self):
         return status_code_to_name[self.get_code()]
     
@@ -1047,17 +1017,13 @@ name_to_pixel_type = {
 
 pixel_type_to_name = {v: k for k, v in name_to_pixel_type.items()}
 
-class PixelType(Enum):
+class PixelType(_C.base.PixelType):
     GRAY = _C.base.PixelType.GRAY
     RGB = _C.base.PixelType.RGB
     BGR = _C.base.PixelType.BGR
     RGBA = _C.base.PixelType.RGBA
     BGRA = _C.base.PixelType.BGRA
     NotSupport = _C.base.PixelType.NotSupport
-
-    @classmethod
-    def from_pixel_type(cls, pixel_type: _C.base.PixelType):
-        return cls(pixel_type)
     
     @classmethod
     def from_name(cls, pixel_type_name: str):
@@ -1092,7 +1058,7 @@ name_to_cvt_color_type = {
 
 cvt_color_type_to_name = {v: k for k, v in name_to_cvt_color_type.items()}
 
-class CvtColorType(Enum):
+class CvtColorType(_C.base.CvtColorType):
     RGB2GRAY = _C.base.CvtColorType.RGB2GRAY
     BGR2GRAY = _C.base.CvtColorType.BGR2GRAY
     RGBA2GRAY = _C.base.CvtColorType.RGBA2GRAY
@@ -1114,10 +1080,6 @@ class CvtColorType(Enum):
     BGR2BGRA = _C.base.CvtColorType.BGR2BGRA
     RGBA2BGRA = _C.base.CvtColorType.RGBA2BGRA
     NotSupport = _C.base.CvtColorType.NotSupport
-
-    @classmethod
-    def from_cvt_color_type(cls, cvt_color_type: _C.base.CvtColorType):
-        return cls(cvt_color_type)
     
     @classmethod
     def from_name(cls, cvt_color_type_name: str):
@@ -1135,16 +1097,12 @@ name_to_interp_type = {
 
 interp_type_to_name = {v: k for k, v in name_to_interp_type.items()}
 
-class InterpType(Enum):
+class InterpType(_C.base.InterpType):
     Nearst = _C.base.InterpType.Nearst
     Linear = _C.base.InterpType.Linear
     Cubic = _C.base.InterpType.Cubic
     Arer = _C.base.InterpType.Arer
     NotSupport = _C.base.InterpType.NotSupport
-
-    @classmethod
-    def from_interp_type(cls, interp_type: _C.base.InterpType):
-        return cls(interp_type)
     
     @classmethod
     def from_name(cls, interp_type_name: str):
@@ -1162,15 +1120,11 @@ name_to_border_type = {
 
 border_type_to_name = {v: k for k, v in name_to_border_type.items()}
 
-class BorderType(Enum):
+class BorderType(_C.base.BorderType):
     Constant = _C.base.BorderType.Constant
     Reflect = _C.base.BorderType.Reflect
     Edge = _C.base.BorderType.Edge
     NotSupport = _C.base.BorderType.NotSupport
-
-    @classmethod
-    def from_border_type(cls, border_type: _C.base.BorderType):
-        return cls(border_type)
     
     @classmethod
     def from_name(cls, border_type_name: str):
@@ -1191,6 +1145,9 @@ class TimeProfiler:
     
     def end(self, key: str):
         self._profiler.end(key)
+
+    def get_cost_time(self, key: str):
+        return self._profiler.get_cost_time(key)
     
     def print(self, title: str = ""):
         self._profiler.print(title)
@@ -1210,6 +1167,9 @@ def time_point_start(key: str):
 
 def time_point_end(key: str):
     _C.base.time_point_end(key)
+
+def time_profiler_get_cost_time(key: str):
+    return _C.base.time_profiler_get_cost_time(key)
 
 def time_profiler_print(title: str = ""):
     _C.base.time_profiler_print(title)

@@ -37,12 +37,13 @@ nndeploy是一款端到端的模型推理和部署框架。它旨在为用户提
 | [TNN](https://github.com/Tencent/TNN)                                            |   √   |    √    |    √    |   -   |   -   | [02200059Z](https://github.com/02200059Z)                                          |         |
 | [ncnn](https://github.com/Tencent/ncnn)                                          |   -   |    -    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
 | [coreML](https://github.com/apple/coremltools)                                   |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)、[jaywlinux](https://github.com/jaywlinux) |         |
-| [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite)                       |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang)                                          |         |
 | [AscendCL](https://www.hiascend.com/zh/)                                         |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)                                                  |         |
 | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) |   √   |    -    |    -    |   -   |   -   | [100312dog](https://github.com/100312dog)                                          |         |
+| **[default](https://github.com/nndeploy/nndeploy)**                              |   √   |    -    |    -    |   -   |   -   | [nndeploy](https://github.com/nndeploy)                                            |**nndeploy内部推理子模块**         |
 
-
-**Notice:** TFLite, TVM, OpenPPL, sophgo, Horizon正在开发中，我们正在努力覆盖绝大部分的主流推理框架
+**Notice:** 
+- TFLite, TVM, OpenPPL, sophgo, Horizon正在开发中，我们正在努力覆盖绝大部分的主流推理框架
+- **default: nndeploy内部开发的推理子模块，已支持分类(resnet50)、检测(YOLOV11)、分割(RMBG1.4)等模型。[README_INFERENCE.md](README_INFERENCE.md)**
 
 ### 3. 简单易用
 
@@ -73,7 +74,6 @@ nndeploy是一款端到端的模型推理和部署框架。它旨在为用户提
 - **任务并行**：在多模型以及多硬件设备的的复杂场景下，基于有向无环图的模型部署方式，可充分挖掘模型部署中的并行性，缩短单次算法全流程运行耗时
 
 - **上述模式的组合并行**：在多模型、多硬件设备以及处理多帧的复杂场景下，nndeploy的有向无环图支持图中嵌入图的功能，每个图都可以有独立的并行模式，故用户可以任意组合模型部署任务的并行模式，可充分发挥硬件性能。
-    
 
 ## 资源仓库
 
@@ -81,31 +81,6 @@ nndeploy是一款端到端的模型推理和部署框架。它旨在为用户提
 
 ## 文档
 - 编译安装请访问 https://nndeploy-zh.readthedocs.io/zh/latest/quick_start/build.html. 更多信息访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/)。
-
-
-## 下一步规划
-
-- 推理后端
-  - 完善已接入的推理框架coreml
-  - 完善已接入的推理框架paddle-lite
-  - 接入新的推理框架TFLite
-- 设备管理模块
-  - 新增OpenCL的设备管理模块
-  - 新增ROCM的设备管理模块
-  - 新增OpenGL的设备管理模块
-- 内存优化
-  - `主从内存拷贝优化`：针对统一内存的架构，通过主从内存映射、主从内存地址共享等方式替代主从内存拷贝
-  - `内存池`：针对nndeploy的内部的数据容器Buffer、Mat、Tensor，建立异构设备的内存池，实现高性能的内存分配与释放
-  - `多节点共享内存机制`：针对多模型串联场景下，基于模型部署的有向无环图，在串行执行的模式下，支持多推理节点共享内存机制
-  - `边的环形队列内存复用机制`：基于模型部署的有向无环图，在流水线并行执行的模式下，支持边的环形队列共享内存机制
-- stable diffusion model
-  - 部署stable diffusion model
-  - 针对stable diffusion model搭建stable_diffusion.cpp（推理子模块，手动构建计算图的方式）
-  - 高性能op
-  - 分布式
-    - 在多模型共同完成一个任务的场景里，将多个模型调度到多个机器上分布式执行
-    - 在大模型的场景下，通过切割大模型为多个子模型的方式，将多个子模型调度到多个机器上分布式执行
-
 
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)
@@ -116,7 +91,7 @@ nndeploy是一款端到端的模型推理和部署框架。它旨在为用户提
 - [tvm](https://github.com/apache/tvm)
 - [mmdeploy](https://github.com/open-mmlab/mmdeploy)
 - [FlyCV](https://github.com/PaddlePaddle/FlyCV)
-- [torchpipe](https://github.com/torchpipe/torchpipe)
+- [oneflow](https://github.com/Oneflow-Inc/oneflow)
 
 
 ## 联系我们

@@ -16,11 +16,19 @@ AscendCLArchitecture::AscendCLArchitecture(
     base::DeviceTypeCode device_type_code)
     : Architecture(device_type_code) {};
 
-AscendCLArchitecture::~AscendCLArchitecture() {};
+AscendCLArchitecture::~AscendCLArchitecture() {
+  std::once_flag once;
+  std::call_once(once, [this]() {
+    aclError ret = ret = aclFinalize();
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
+    }
+  });
+};
 
 void AscendCLArchitecture::setAclConfigPath(
-    int device_id, const std::string &acl_config_path) {
-  acl_config_path_map_[device_id] = acl_config_path;
+    const std::string &acl_config_path) {
+  acl_config_path_ = acl_config_path;
 }
 
 base::Status AscendCLArchitecture::checkDevice(int device_id,
@@ -46,10 +54,6 @@ base::Status AscendCLArchitecture::enableDevice(int device_id,
       return base::kStatusCodeErrorOutOfMemory;
     }
 
-    if (acl_config_path_map_.find(device_id) != acl_config_path_map_.end()) {
-      device->setAclConfigPath(acl_config_path_map_[device_id]);
-    }
-
     if (device->init() != base::kStatusCodeOk) {
       delete device;
       NNDEPLOY_LOGE("device init failed\n");
@@ -64,6 +68,13 @@ base::Status AscendCLArchitecture::enableDevice(int device_id,
 }
 
 Device *AscendCLArchitecture::getDevice(int device_id) {
+  static std::once_flag once;
+  std::call_once(once, [this]() {
+    aclError ret = aclInit(acl_config_path_.c_str());
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclInit failed, errorCode is %d\n", ret);
+    };
+  });
   Device *device = nullptr;
   if (devices_.find(device_id) != devices_.end()) {
     return devices_[device_id];
@@ -206,18 +217,14 @@ base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst, Stream *stream) {
 
 void *AscendCLDevice::getContext() { return (void *)context_; }
 
-void AscendCLDevice::setAclConfigPath(const std::string &acl_config_path) {
-  acl_config_path_ = acl_config_path;
-}
-
 base::Status AscendCLDevice::init() {
   // 初始化
-  aclError ret = aclInit(acl_config_path_.c_str());
-  if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclInit failed, errorCode is %d\n", ret);
-  }
+  // aclError ret = aclInit(acl_config_path_.c_str());
+  // if (ret != ACL_SUCCESS) {
+  //   NNDEPLOY_LOGE("aclInit failed, errorCode is %d\n", ret);
+  // }
   // 选择设备
-  ret = aclrtSetDevice(device_type_.device_id_);
+  aclError ret = aclrtSetDevice(device_type_.device_id_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtSetDevice failed, errorCode is %d\n", ret);
     return base::kStatusCodeErrorDeviceAscendCL;
@@ -246,11 +253,11 @@ base::Status AscendCLDevice::deinit() {
       return base::kStatusCodeErrorDeviceAscendCL;
     }
 
-    ret = aclFinalize();
-    if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
-      return base::kStatusCodeErrorDeviceAscendCL;
-    }
+    // ret = aclFinalize();
+    // if (ret != ACL_SUCCESS) {
+    //   NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
+    //   return base::kStatusCodeErrorDeviceAscendCL;
+    // }
   }
   return base::kStatusCodeOk;
 }
@@ -349,7 +356,7 @@ base::Status AscendCLStream::waitEvent(Event *event) {
   return base::kStatusCodeOk;
 }
 
-void *AscendCLStream::getCommandQueue() { return (void *)stream_; }
+void *AscendCLStream::getNativeStream() { return (void *)stream_; }
 aclrtStream AscendCLStream::getStream() { return stream_; }
 
 // event

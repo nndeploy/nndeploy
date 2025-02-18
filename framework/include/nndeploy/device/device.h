@@ -50,6 +50,9 @@ class NNDEPLOY_CC_API Architecture : public base::NonCopyable {
 
   base::DeviceTypeCode getDeviceTypeCode() const;
 
+  // for python
+  base::Status insertDevice(int device_id, Device *device);
+
  protected:
   std::mutex mutex_;
   /**
@@ -165,7 +168,7 @@ class NNDEPLOY_CC_API Stream : public base::NonCopyable {
   virtual base::Status onExecutionContextSetup();
   virtual base::Status onExecutionContextTeardown();
 
-  virtual void *getCommandQueue();
+  virtual void *getNativeStream();
 
   template <typename T>
   T *as() {
@@ -187,6 +190,8 @@ class NNDEPLOY_CC_API Event : public base::NonCopyable {
 
   virtual bool queryDone();
   virtual base::Status synchronize();
+
+  virtual void *getNativeEvent();
 
   template <typename T>
   T *as() {

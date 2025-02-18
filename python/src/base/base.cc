@@ -39,7 +39,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
                                                         py::const_))
       .def("__ne__", py::overload_cast<const DataTypeCode&>(
                          &DataType::operator!=, py::const_))
-      .def("get_size", &DataType::size)
+      .def("size", &DataType::size)
       .def_readwrite("code_", &base::DataType::code_)
       .def_readwrite("bits_", &base::DataType::bits_)
       .def_readwrite("lanes_", &base::DataType::lanes_)
@@ -163,6 +163,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
   // export as base.TensorType
   py::enum_<TensorType>(m, "TensorType")
       .value("Default", TensorType::kTensorTypeDefault)
+      .value("Pipeline", TensorType::kTensorTypePipeline)
       .export_values();
 
   // export as base.ForwardOpType
@@ -461,6 +462,8 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
            "Start timing, key is the name of the timer")
       .def("end", &TimeProfiler::end, py::arg("key"),
            "End timing, key is the name of the timer")
+      .def("get_cost_time", &TimeProfiler::getCostTime, py::arg("key"),
+           "Get the cost time of the given key")
       .def("print", py::overload_cast<const std::string&>(&TimeProfiler::print),
            py::arg("title") = "")
       .def("print_index", &TimeProfiler::printIndex)
@@ -477,6 +480,10 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
   // export as base.time_point_end
   m.def("time_point_end", &timePointEnd, py::arg("key"),
         "End a time point with the given key");
+
+  // export as base.time_profiler_get_cost_time
+  m.def("time_profiler_get_cost_time", &timeProfilerGetCostTime, py::arg("key"),
+        "Get the cost time of the given key");
 
   // export as base.time_profiler_print
   m.def("time_profiler_print", &timeProfilerPrint, py::arg("title") = "",

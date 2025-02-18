@@ -219,7 +219,7 @@ NNDEPLOY_CC_API OpType stringToOpType(const std::string &op_type_name);
  */
 class OpParamCreator {
  public:
-  virtual ~OpParamCreator(){};
+  virtual ~OpParamCreator() {};
   virtual std::shared_ptr<base::Param> createOpParam(OpType type) = 0;
 };
 
@@ -277,8 +277,8 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
  */
 class NNDEPLOY_CC_API OpParam : public base::Param {
  public:
-  OpParam() : base::Param(){};
-  virtual ~OpParam(){};
+  OpParam() : base::Param() {};
+  virtual ~OpParam() {};
 
   PARAM_COPY(OpParam)
   PARAM_COPY_TO(OpParam)
@@ -290,8 +290,8 @@ class NNDEPLOY_CC_API OpParam : public base::Param {
 
 class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
  public:
-  BatchNormalizationParam() : OpParam(){};
-  virtual ~BatchNormalizationParam(){};
+  BatchNormalizationParam() : OpParam() {};
+  virtual ~BatchNormalizationParam() {};
 
   PARAM_COPY(BatchNormalizationParam)
   PARAM_COPY_TO(BatchNormalizationParam)
@@ -336,8 +336,8 @@ class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
 
 class ConcatParam : public OpParam {
  public:
-  ConcatParam() : OpParam(){};
-  virtual ~ConcatParam(){};
+  ConcatParam() : OpParam() {};
+  virtual ~ConcatParam() {};
 
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
@@ -481,7 +481,7 @@ class NNDEPLOY_CC_API ConvParam : public OpParam {
   // 卷积步长
   std::vector<int> strides_ = {1, 1};
 
-  // 基于onnx扩展的参数
+  // 服务与算子融合
   OpType activate_op_ = kOpTypeNone;
   // OpParam* fused_op_param_ = nullptr;
   std::shared_ptr<base::Param> fused_op_param_ = nullptr;
@@ -865,8 +865,8 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
 
 class NNDEPLOY_CC_API FlattenParam : public OpParam {
  public:
-  FlattenParam() : OpParam(){};
-  virtual ~FlattenParam(){};
+  FlattenParam() : OpParam() {};
+  virtual ~FlattenParam() {};
 
   PARAM_COPY(FlattenParam)
   PARAM_COPY_TO(FlattenParam)
@@ -892,8 +892,8 @@ class NNDEPLOY_CC_API FlattenParam : public OpParam {
 
 class NNDEPLOY_CC_API EmbeddingParam : public OpParam {
  public:
-  EmbeddingParam() : OpParam(){};
-  virtual ~EmbeddingParam(){};
+  EmbeddingParam() : OpParam() {};
+  virtual ~EmbeddingParam() {};
 
   PARAM_COPY(EmbeddingParam)
   PARAM_COPY_TO(EmbeddingParam)
@@ -907,8 +907,8 @@ class NNDEPLOY_CC_API EmbeddingParam : public OpParam {
 
 class NNDEPLOY_CC_API GemmParam : public OpParam {
  public:
-  GemmParam() : OpParam(){};
-  virtual ~GemmParam(){};
+  GemmParam() : OpParam() {};
+  virtual ~GemmParam() {};
 
   PARAM_COPY(GemmParam)
   PARAM_COPY_TO(GemmParam)
