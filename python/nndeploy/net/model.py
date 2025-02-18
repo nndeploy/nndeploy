@@ -64,7 +64,7 @@ def build_model(func):
         self.net.setEnablePass(enable_pass)
         self.net.setDisablePass(disable_pass)
 
-        self.model_desc.setWeights(self.weight_map)
+        self.model_desc.set_weights(self.weight_map)
         self.net.init()
 
         return result

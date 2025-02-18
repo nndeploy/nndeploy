@@ -14,14 +14,14 @@ def get_net(args):
         assert interpret != None
 
         interpret.interpret(args.model_path)
-        interpret.saveModelToFile("resnet50.json", "resnet50.safetensors")
+        interpret.save_model_to_file("resnet50.json", "resnet50.safetensors")
 
     elif args.model_type == "default":
         default_interpret = _C.ir.createInterpret(_C.base.ModelType.kModelTypeDefault)
         assert default_interpret != None
         interpret.interpret(args.model_path)
 
-    md = interpret.getModelDesc()
+    md = interpret.get_model_desc()
     assert md != None
 
     net = _C.net.Net()

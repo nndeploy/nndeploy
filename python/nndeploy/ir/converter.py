@@ -11,7 +11,7 @@ class Convert():
 
     def convert(self, model_value: List[str], structure_file_path: str, weight_file_path: str, input: List[nndeploy._C.ir.ValueDesc] = []) -> None:
         self.interpret.interpret(model_value, input)
-        self.interpret.saveModelToFile(structure_file_path, weight_file_path)
+        self.interpret.save_model_to_file(structure_file_path, weight_file_path)
 
 
 def parse_args():

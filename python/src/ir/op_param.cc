@@ -9,9 +9,182 @@
 namespace nndeploy {
 namespace ir {
 
+class PyOpParamCreator : public OpParamCreator {
+ public:
+  using OpParamCreator::OpParamCreator;
+
+  std::shared_ptr<base::Param> createOpParam(OpType type) override {
+    PYBIND11_OVERLOAD_PURE(std::shared_ptr<base::Param>, OpParamCreator,
+                           createOpParam, type);
+  }
+};
+
 NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
+  // export as ir.OpType
+  py::enum_<OpType>(m, "OpType")
+      .value("Net", kOpTypeNet)
+      .value("Abs", kOpTypeAbs)
+      .value("Add", kOpTypeAdd)
+      .value("Acos", kOpTypeAcos)
+      .value("Adam", kOpTypeAdam)
+      .value("And", kOpTypeAnd)
+      .value("ArgMax", kOpTypeArgMax)
+      .value("ArgMin", kOpTypeArgMin)
+      .value("Asin", kOpTypeAsin)
+      .value("Atan", kOpTypeAtan)
+      .value("AveragePool", kOpTypeAveragePool)
+      .value("BatchNormalization", kOpTypeBatchNormalization)
+      .value("Cast", kOpTypeCast)
+      .value("Ceil", kOpTypeCeil)
+      .value("Clip", kOpTypeClip)
+      .value("Concat", kOpTypeConcat)
+      .value("Constant", kOpTypeConstant)
+      .value("Conv", kOpTypeConv)
+      .value("Cos", kOpTypeCos)
+      .value("Cosh", kOpTypeCosh)
+      .value("DepthToSpace", kOpTypeDepthToSpace)
+      .value("DequantizeLinear", kOpTypeDequantizeLinear)
+      .value("Det", kOpTypeDet)
+      .value("Div", kOpTypeDiv)
+      .value("Dropout", kOpTypeDropout)
+      .value("Einsum", kOpTypeEinsum)
+      .value("Elu", kOpTypeElu)
+      .value("Equal", kOpTypeEqual)
+      .value("Erf", kOpTypeErf)
+      .value("Exp", kOpTypeExp)
+      .value("Flatten", kOpTypeFlatten)
+      .value("Floor", kOpTypeFloor)
+      .value("Gather", kOpTypeGather)
+      .value("Gemm", kOpTypeGemm)
+      .value("GlobalAveragePool", kOpTypeGlobalAveragePool)
+      .value("GlobalLpPool", kOpTypeGlobalLpPool)
+      .value("GlobalMaxPool", kOpTypeGlobalMaxPool)
+      .value("Greater", kOpTypeGreater)
+      .value("HardSigmoid", kOpTypeHardSigmoid)
+      .value("Identity", kOpTypeIdentity)
+      .value("If", kOpTypeIf)
+      .value("ImageScaler", kOpTypeImageScaler)
+      .value("InstanceNormalization", kOpTypeInstanceNormalization)
+      .value("IsInf", kOpTypeIsInf)
+      .value("IsNaN", kOpTypeIsNaN)
+      .value("LRN", kOpTypeLRN)
+      .value("LSTM", kOpTypeLSTM)
+      .value("LeakyRelu", kOpTypeLeakyRelu)
+      .value("Less", kOpTypeLess)
+      .value("Log", kOpTypeLog)
+      .value("LogSoftmax", kOpTypeLogSoftmax)
+      .value("Loop", kOpTypeLoop)
+      .value("LpNormalization", kOpTypeLpNormalization)
+      .value("LpPool", kOpTypeLpPool)
+      .value("MatMul", kOpTypeMatMul)
+      .value("MatMulInteger", kOpTypeMatMulInteger)
+      .value("Max", kOpTypeMax)
+      .value("MaxPool", kOpTypeMaxPool)
+      .value("MaxRoiPool", kOpTypeMaxRoiPool)
+      .value("MaxUnpool", kOpTypeMaxUnpool)
+      .value("Mean", kOpTypeMean)
+      .value("Min", kOpTypeMin)
+      .value("Mod", kOpTypeMod)
+      .value("Momentum", kOpTypeMomentum)
+      .value("Mul", kOpTypeMul)
+      .value("Multinomial", kOpTypeMultinomial)
+      .value("Neg", kOpTypeNeg)
+      .value("NegLogSoftmax", kOpTypeNegLogSoftmax)
+      .value("NonMaxSuppression", kOpTypeNonMaxSuppression)
+      .value("NonZero", kOpTypeNonZero)
+      .value("Not", kOpTypeNot)
+      .value("OneHot", kOpTypeOneHot)
+      .value("OnesLike", kOpTypeOnesLike)
+      .value("Or", kOpTypeOr)
+      .value("Pad", kOpTypePad)
+      .value("Pow", kOpTypePow)
+      .value("PRelu", kOpTypePRelu)
+      .value("QLinearConv", kOpTypeQLinearConv)
+      .value("QLinearMatMul", kOpTypeQLinearMatMul)
+      .value("QuantizeLinear", kOpTypeQuantizeLinear)
+      .value("RNN", kOpTypeRNN)
+      .value("RandomNormal", kOpTypeRandomNormal)
+      .value("RandomNormalLike", kOpTypeRandomNormalLike)
+      .value("RandomUniform", kOpTypeRandomUniform)
+      .value("RandomUniformLike", kOpTypeRandomUniformLike)
+      .value("Range", kOpTypeRange)
+      .value("Reciprocal", kOpTypeReciprocal)
+      .value("ReduceL1", kOpTypeReduceL1)
+      .value("ReduceL2", kOpTypeReduceL2)
+      .value("ReduceLogSum", kOpTypeReduceLogSum)
+      .value("ReduceLogSumExp", kOpTypeReduceLogSumExp)
+      .value("ReduceMax", kOpTypeReduceMax)
+      .value("ReduceMean", kOpTypeReduceMean)
+      .value("ReduceMin", kOpTypeReduceMin)
+      .value("ReduceProd", kOpTypeReduceProd)
+      .value("ReduceSum", kOpTypeReduceSum)
+      .value("ReduceSumSquare", kOpTypeReduceSumSquare)
+      .value("Relu", kOpTypeRelu)
+      .value("Reshape", kOpTypeReshape)
+      .value("Resize", kOpTypeResize)
+      .value("ReverseSequence", kOpTypeReverseSequence)
+      .value("RoiAlign", kOpTypeRoiAlign)
+      .value("Round", kOpTypeRound)
+      .value("Scale", kOpTypeScale)
+      .value("Scan", kOpTypeScan)
+      .value("Scatter", kOpTypeScatter)
+      .value("Selu", kOpTypeSelu)
+      .value("SequenceAt", kOpTypeSequenceAt)
+      .value("SequenceConstruct", kOpTypeSequenceConstruct)
+      .value("SequenceEmpty", kOpTypeSequenceEmpty)
+      .value("SequenceErase", kOpTypeSequenceErase)
+      .value("SequenceInsert", kOpTypeSequenceInsert)
+      .value("SequenceLength", kOpTypeSequenceLength)
+      .value("Shape", kOpTypeShape)
+      .value("Shrink", kOpTypeShrink)
+      .value("Sigmoid", kOpTypeSigmoid)
+      .value("Sign", kOpTypeSign)
+      .value("Sin", kOpTypeSin)
+      .value("Sinh", kOpTypeSinh)
+      .value("Size", kOpTypeSize)
+      .value("Slice", kOpTypeSlice)
+      .value("Softmax", kOpTypeSoftmax)
+      .value("Softplus", kOpTypeSoftplus)
+      .value("Softsign", kOpTypeSoftsign)
+      .value("SpaceToDepth", kOpTypeSpaceToDepth)
+      .value("Split", kOpTypeSplit)
+      .value("Sqrt", kOpTypeSqrt)
+      .value("Squeeze", kOpTypeSqueeze)
+      .value("Sub", kOpTypeSub)
+      .value("Sum", kOpTypeSum)
+      .value("Tan", kOpTypeTan)
+      .value("Tanh", kOpTypeTanh)
+      .value("TfIdf", kOpTypeTfIdf)
+      .value("ThresholdedRelu", kOpTypeThresholdedRelu)
+      .value("Tile", kOpTypeTile)
+      .value("TopK", kOpTypeTopK)
+      .value("Transpose", kOpTypeTranspose)
+      .value("Unsqueeze", kOpTypeUnsqueeze)
+      .value("Upsample", kOpTypeUpsample)
+      .value("Where", kOpTypeWhere)
+      .value("Xor", kOpTypeXor)
+      .value("RMSNorm", kOpTypeRMSNorm)
+      .value("Embedding", kOpTypeEmbedding)
+      .value("kOpTypeNone", kOpTypeNone);
+
+  m.def("op_type_to_string", &opTypeToString);
+  m.def("string_to_op_type", &stringToOpType);
+
+  // 导出 OpParamCreator 类
+  py::class_<OpParamCreator, PyOpParamCreator, std::shared_ptr<OpParamCreator>>(
+      m, "OpParamCreator")
+      .def(py::init<>())
+      .def("create_op_param", &OpParamCreator::createOpParam);
+
+  // export register_op_param_creator
+  m.def("register_op_param_creator",
+        [](OpType type, std::shared_ptr<OpParamCreator> creator) {
+          getGlobalOpParamCreatorMap()[type] = creator;
+        });
+
   // 导出 OpParam 类
-  py::class_<OpParam, std::shared_ptr<OpParam>>(m, "OpParam").def(py::init<>());
+  py::class_<OpParam, base::Param, std::shared_ptr<OpParam>>(m, "OpParam")
+      .def(py::init<>());
 
   // 导出 BatchNormalizationParam 类
   py::class_<BatchNormalizationParam, OpParam,
