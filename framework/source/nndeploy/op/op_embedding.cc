@@ -84,7 +84,7 @@ base::Status OpEmbedding::run() {
 }
 
 base::Status embedding(device::Tensor *data, device::Tensor *indices,
-                       std::shared_ptr<ir::EmbeddingParam> param,
+                      //  std::shared_ptr<ir::EmbeddingParam> param,
                        device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
@@ -93,7 +93,7 @@ base::Status embedding(device::Tensor *data, device::Tensor *indices,
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
-  status = op->setParam(param);
+  // status = op->setParam(param);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
   status = op->setInput(indices, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput 0 failed");

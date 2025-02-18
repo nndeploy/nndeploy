@@ -75,6 +75,12 @@ if(ENABLE_NNDEPLOY_DEMO_LLAMA)
   include(${ROOT_PATH}/demo/llama/config.cmake)
 endif()
 
+nndeploy_option(ENABLE_NNDEPLOY_DEMO_LLAMA_V2 "ENABLE_NNDEPLOY_DEMO_LLAMA_V2" OFF)
+if(ENABLE_NNDEPLOY_DEMO_LLAMA_V2)
+  include(${ROOT_PATH}/demo/llama-v2/config.cmake)
+endif()
+
+
 nndeploy_option(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL "ENABLE_NNDEPLOY_DEMO_TENSOR_POOL" OFF)
 if(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL)
   include(${ROOT_PATH}/demo/tensor_pool/config.cmake)

@@ -46,7 +46,8 @@ struct NNDEPLOY_CC_API DataType {
 
 template <typename T>
 DataType dataTypeOf() {
-  return DataType(kDataTypeCodeOpaqueHandle, sizeof(T) << 3);
+  static auto dtype =  DataType(kDataTypeCodeOpaqueHandle, sizeof(T) << 3);
+  return dtype;
 }
 template <>
 NNDEPLOY_CC_API DataType dataTypeOf<float>();

@@ -2,8 +2,13 @@
 #include "nndeploy/stable_diffusion/ddim_scheduler.h"
 
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/op/op_binary.h"
+// #include "nndeploy/op/op_binary.h"
 #include "nndeploy/stable_diffusion/scheduler.h"
+#include "nndeploy/ir/ir.h"
+#include "nndeploy/op/op_mul.h"
+#include "nndeploy/op/op_div.h"
+#include "nndeploy/op/op_add.h"
+#include "nndeploy/op/op_sub.h"
 
 namespace nndeploy {
 namespace stable_diffusion {

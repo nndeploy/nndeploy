@@ -10,6 +10,7 @@
 #include "nndeploy/framework.h"
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/op/op_cast.h"
 #include "nndeploy/op/op_rmsnorm.h"
 
 using namespace nndeploy;
@@ -67,69 +68,98 @@ int main(int argc, char* argv[]) {
     return ret;
   }
 
-  base::DeviceType cuda_device_type;
-  base::DeviceType cpu_device_type;
-  // cuda_device_type.code_ = base::kDeviceTypeCodeX86;
-  cuda_device_type.code_ = base::kDeviceTypeCodeCuda;
-  cpu_device_type.code_ = base::kDeviceTypeCodeCpu;
-  cuda_device_type.device_id_ = 0;
-  device::Device* cuda_device = device::getDevice(cuda_device_type);
-  device::Device* cpu_device = device::getDevice(cpu_device_type);
-  device::TensorDesc desc;
-  const int num_tokens = 32;
-  const int hidden_units = 4096;
-  const int total_size = num_tokens * hidden_units;
-  float eps = 1e-6;
-  desc.data_type_ = base::dataTypeOf<float>();
-  desc.data_format_ = base::kDataFormatNC;
-  desc.shape_ = {num_tokens, hidden_units};
+#if 0
+  {
+    base::DeviceType cuda_device_type;
+    base::DeviceType cpu_device_type;
+    // cuda_device_type.code_ = base::kDeviceTypeCodeX86;
+    cuda_device_type.code_ = base::kDeviceTypeCodeCuda;
+    cpu_device_type.code_ = base::kDeviceTypeCodeCpu;
+    cuda_device_type.device_id_ = 0;
+    device::Device* cuda_device = device::getDevice(cuda_device_type);
+    device::Device* cpu_device = device::getDevice(cpu_device_type);
+    device::TensorDesc desc;
+    const int num_tokens = 32;
+    const int hidden_units = 4096;
+    const int total_size = num_tokens * hidden_units;
+    float eps = 1e-6;
+    desc.data_type_ = base::dataTypeOf<float>();
+    desc.data_format_ = base::kDataFormatNC;
+    desc.shape_ = {num_tokens, hidden_units};
 
-  device::Tensor* d_out = new device::Tensor(cuda_device, desc);
-  device::Tensor* h_out = new device::Tensor(cpu_device, desc);
-  device::Tensor* d_input = new device::Tensor(cuda_device, desc);
-  // test data prepare
-  float* data_test = (float*)malloc(sizeof(float) * total_size);
-  for (int i = 0; i < total_size; i++) {
-    data_test[i] = (float)(i % 2 + 1);
+    device::Tensor* d_out = new device::Tensor(cuda_device, desc);
+    device::Tensor* h_out = new device::Tensor(cpu_device, desc);
+    device::Tensor* d_input = new device::Tensor(cuda_device, desc);
+    // test data prepare
+    float* data_test = (float*)malloc(sizeof(float) * total_size);
+    for (int i = 0; i < total_size; i++) {
+      data_test[i] = (float)(i % 2 + 1);
+    }
+    device::Tensor* h_input =
+        new device::Tensor(cpu_device, desc, (void*)data_test);
+    h_input->copyTo(d_input);
+
+    // to save residual
+    device::Tensor* d_decoder_rsd = new device::Tensor(cuda_device, desc);
+    // rmsnorm weights
+    device::Tensor* d_scale = new device::Tensor(cuda_device, desc);
+    // weight copy
+    h_input->copyTo(d_scale);
+
+    std::cout << "before launch kernel" << std::endl;
+    std::shared_ptr<base::Param> rmsnorm_param =
+        ir::createOpParam(ir::kOpTypeRMSNorm);
+    op::rmsNorm(d_input, d_scale, d_decoder_rsd, rmsnorm_param, d_out);
+    std::cout << "after launch kernel" << std::endl;
+    d_out->copyTo(h_out);
+    std::cout << "cuda memcpy device to host" << std::endl;
+
+    float* CPUout = (float*)malloc(sizeof(float) * total_size);
+    for (int i = 0; i < total_size; i++) {
+      CPUout[i] = (float)(i % 2 + 1);
+    }
+    float* cpu_scale = (float*)malloc(sizeof(float) * hidden_units);
+    for (int i = 0; i < hidden_units; i++) {
+      cpu_scale[i] = (float)(i % 2 + 1);
+    }
+    CPUfusedresidandRMSNorm(CPUout, cpu_scale, eps, hidden_units, num_tokens);
+    bool is_right = CheckResult(CPUout, (float*)h_out->getData(), total_size);
+    if (is_right) {
+      std::cout << "rmsnorm passed" << std::endl;
+    }
+    free(data_test);
+
+    ret = nndeployFrameworkDeinit();
+    if (ret != 0) {
+      NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+      return ret;
+    }
   }
-  device::Tensor* h_input =
-      new device::Tensor(cpu_device, desc, (void*)data_test);
-  h_input->copyTo(d_input);
+#endif
+  {
+    base::DeviceType cpu_device_type;
+    // cuda_device_type.code_ = base::kDeviceTypeCodeX86;
+    cpu_device_type.code_ = base::kDeviceTypeCodeCpu;
+    device::Device* cpu_device = device::getDevice(cpu_device_type);
+    device::TensorDesc desc;
+    const int num_tokens = 32;
+    const int hidden_units = 4096;
+    const int total_size = num_tokens * hidden_units;
+    // float eps = 1e-6;
+    desc.data_type_ = base::dataTypeOf<float>();
+    desc.data_format_ = base::kDataFormatNC;
+    desc.shape_ = {num_tokens, hidden_units};
 
-  // to save residual
-  device::Tensor* d_decoder_rsd = new device::Tensor(cuda_device, desc);
-  // rmsnorm weights
-  device::Tensor* d_scale = new device::Tensor(cuda_device, desc);
-  // weight copy
-  h_input->copyTo(d_scale);
-
-  std::cout << "before launch kernel" << std::endl;
-  std::shared_ptr<base::Param> rmsnorm_param =
-      ir::createOpParam(ir::kOpTypeRMSNorm);
-  op::rmsNorm(d_input, d_scale, d_decoder_rsd, rmsnorm_param, d_out);
-  std::cout << "after launch kernel" << std::endl;
-  d_out->copyTo(h_out);
-  std::cout << "cuda memcpy device to host" << std::endl;
-
-  float* CPUout = (float*)malloc(sizeof(float) * total_size);
-  for (int i = 0; i < total_size; i++) {
-    CPUout[i] = (float)(i % 2 + 1);
-  }
-  float* cpu_scale = (float*)malloc(sizeof(float) * hidden_units);
-  for (int i = 0; i < hidden_units; i++) {
-    cpu_scale[i] = (float)(i % 2 + 1);
-  }
-  CPUfusedresidandRMSNorm(CPUout, cpu_scale, eps, hidden_units, num_tokens);
-  bool is_right = CheckResult(CPUout, (float*)h_out->getData(), total_size);
-  if (is_right) {
-    std::cout << "rmsnorm passed" << std::endl;
-  }
-  free(data_test);
-
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
+    device::Tensor* h_out = new device::Tensor(cpu_device, desc);
+    float* data_test = (float*)malloc(sizeof(float) * total_size);
+    for (int i = 0; i < total_size; i++) {
+      data_test[i] = (float)(i % 2 + 1);
+    }
+    device::Tensor* h_input =
+        new device::Tensor(cpu_device, desc, (void*)data_test);
+    auto param = std::make_shared<ir::CastParam>(base::dataTypeOf<bool>());
+    // op::cast(h_input, h_out, ir::createOpParam(ir::kOpTypeCast));
+    op::cast(h_input, h_out, param);
   }
   return 0;
 }

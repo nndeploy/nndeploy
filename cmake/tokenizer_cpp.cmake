@@ -7,7 +7,7 @@ elseif (ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP STREQUAL "ON")
   include_directories(${TOKENZIER_CPP_PATH}/include)
   set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} tokenizers_cpp)   
 
-  find_library(PROTOBUF_LITE_LIB protobuf-lite REQUIRED)
+  find_library(PROTOBUF_LITE_LIB protobuf-lite)
   if (PROTOBUF_LITE_LIB)
     message(STATUS "Found protobuf-lite: ${PROTOBUF_LITE_LIB}")
     set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${PROTOBUF_LITE_LIB})   

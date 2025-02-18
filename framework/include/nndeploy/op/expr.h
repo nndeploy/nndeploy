@@ -90,6 +90,13 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeAdd(ir::ModelDesc *model_desc,
                                               std::string op_name = "",
                                               std::string output_name = "");
 
+// mul
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeMul(ir::ModelDesc *model_desc,
+                                              std::shared_ptr<Expr> input_0,
+                                              std::shared_ptr<Expr> input_1,
+                                              std::string op_name = "",
+                                              std::string output_name = "");
+
 // gemm
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeGemm(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
@@ -116,11 +123,86 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeGlobalAveragePool(
 
 // TODO: @Leonisux:
 // 补充llama的算子的手动构图函数
-// matmul
+// embedding
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeEmbedding(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> indices,
-    std::string op_name, std::string output_name);
+    std::string op_name = "", std::string output_name = "");
 
+// silu
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeSilu(ir::ModelDesc *model_desc,
+                                               std::shared_ptr<Expr> input,
+                                               std::string op_name = "",
+                                               std::string output_name = "");
+
+// matmul
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeMatmul(ir::ModelDesc *model_desc,
+                                                 std::shared_ptr<Expr> input,
+                                                 const std::string &weight,
+                                                 const std::string &bias,
+                                                 std::string op_name = "",
+                                                 std::string output_name = "");
+// matmul
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeMatmul(ir::ModelDesc *model_desc,
+                                                 std::shared_ptr<Expr> input,
+                                                 std::shared_ptr<Expr> weight,
+                                                 const std::string &bias,
+                                                 std::string op_name = "",
+                                                 std::string output_name = "");
+
+// rmsnorm
+std::shared_ptr<Expr> makeRMSNorm(ir::ModelDesc *model_desc,
+                                  std::shared_ptr<Expr> input,
+                                  std::shared_ptr<ir::RMSNormParam> param,
+                                  const std::string &weight,
+                                  const std::string &residual,
+                                  std::string op_name = "",
+                                  std::string output_name = "");
+
+// cast
+std::shared_ptr<Expr> makeCast(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::CastParam> param =
+        std::make_shared<ir::CastParam>(base::dataTypeOf<float>()),
+    std::string op_name = "", std::string output_name = "");
+
+// reshape
+std::shared_ptr<Expr> makeReshape(ir::ModelDesc *model_desc,
+                                  std::shared_ptr<Expr> input,
+                                  std::shared_ptr<Expr> new_shape,
+                                  std::shared_ptr<ir::ReshapeParam> param,
+                                  std::string op_name = "",
+                                  std::string output_name = "");
+
+std::shared_ptr<Expr> makeReshape(ir::ModelDesc *model_desc,
+                                  std::shared_ptr<Expr> input,
+                                  std::string weight_new_shape,
+                                  std::shared_ptr<ir::ReshapeParam> param,
+                                  std::string op_name = "",
+                                  std::string output_name = "");
+// broadcast
+std::shared_ptr<Expr> makeBroadcast(ir::ModelDesc *model_desc,
+                                    std::shared_ptr<Expr> input,
+                                    std::shared_ptr<Expr> broadcast_shape,
+                                    std::string op_name = "",
+                                    std::string output_name = "");
+// transpose
+std::shared_ptr<Expr> makeTranspose(ir::ModelDesc *model_desc,
+                                    std::shared_ptr<Expr> input,
+                                    std::shared_ptr<Expr> indices,
+                                    std::string op_name = "",
+                                    std::string output_name = "");
+
+std::shared_ptr<Expr> makeTranspose(ir::ModelDesc *model_desc,
+                                    std::shared_ptr<Expr> input,
+                                    const std::string &indices,
+                                    std::string op_name = "",
+                                    std::string output_name = "");
+
+// rotate embedding
+std::shared_ptr<Expr> makeRotateEmbedding(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::string inv_freq, std::string op_name = "",
+    std::vector<std::string> output_names = {});
 }  // namespace op
 }  // namespace nndeploy
 

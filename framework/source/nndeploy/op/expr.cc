@@ -1,9 +1,10 @@
+#include "nndeploy/ir/op_param.h"
 #include "nndeploy/op/expr.h"
 
 namespace nndeploy {
 namespace op {
 
-Expr::~Expr(){};
+Expr::~Expr() {};
 
 Expr::Expr(const std::string &name) : expr_type_(kExprTypeValueDesc) {
   value_desc_ = std::make_shared<ir::ValueDesc>(name);
@@ -189,6 +190,39 @@ std::shared_ptr<Expr> makeAdd(ir::ModelDesc *model_desc,
   return expr;
 }
 
+std::shared_ptr<Expr> makeMul(ir::ModelDesc *model_desc,
+                              std::shared_ptr<Expr> input_0,
+                              std::shared_ptr<Expr> input_1,
+                              std::string op_name, std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "mul" + std::to_string(index);
+    } else {
+      name = "mul";
+    }
+  }
+  std::vector<std::string> inputs;
+  inputs.emplace_back(input_0->getOutputName()[0]);
+  inputs.emplace_back(input_1->getOutputName()[0]);
+  // 节点输出
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeMul, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
 std::shared_ptr<Expr> makeRelu(ir::ModelDesc *model_desc,
                                std::shared_ptr<Expr> input, std::string op_name,
                                std::string output_name) {
@@ -251,6 +285,15 @@ std::shared_ptr<Expr> makeSigmoid(ir::ModelDesc *model_desc,
   return expr;
 }
 
+// silu
+std::shared_ptr<Expr> makeSilu(ir::ModelDesc *model_desc,
+                               std::shared_ptr<Expr> input, std::string op_name,
+                               std::string output_name) {
+  auto sigmoid = makeSigmoid(model_desc, input);
+  auto mul = makeMul(model_desc, input, sigmoid);
+  return mul;
+}
+
 // batchnorm
 std::shared_ptr<Expr> makeBatchNorm(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
@@ -299,7 +342,8 @@ std::shared_ptr<Expr> makeBatchNorm(
 // embedding
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeEmbedding(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> indices,
-    std::string op_name, std::string output_name) {
+    std::string data_weight_name, std::string op_name,
+    std::string output_name) {
   std::string name = op_name;
   if (name.empty()) {
     if (model_desc != nullptr) {
@@ -310,6 +354,9 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeEmbedding(
     }
   }
   std::vector<std::string> inputs = {indices->getOutputName()[0]};
+  if (!data_weight_name.empty()) {
+    inputs.push_back(data_weight_name);
+  }
   std::vector<std::string> outputs;
   if (!output_name.empty()) {
     outputs.push_back(output_name);
@@ -355,6 +402,78 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeGemm(
   }
   auto op_desc = std::make_shared<ir::OpDesc>(name, ir::kOpTypeGemm, inputs,
                                               outputs, param);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// matmul
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeMatmul(ir::ModelDesc *model_desc,
+                                                 std::shared_ptr<Expr> input,
+                                                 const std::string &weight,
+                                                 const std::string &bias,
+                                                 std::string op_name,
+                                                 std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "matmul" + std::to_string(index);
+    } else {
+      name = "matmul";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(weight.size(), "weight is null");
+  inputs.push_back(weight);
+  if (!bias.empty()) {
+    inputs.push_back(bias);
+  }
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeMatMul, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeMatmul(ir::ModelDesc *model_desc,
+                                                 std::shared_ptr<Expr> input,
+                                                 std::shared_ptr<Expr> weight,
+                                                 const std::string &bias,
+                                                 std::string op_name,
+                                                 std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "matmul" + std::to_string(index);
+    } else {
+      name = "matmul";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0],
+                                     weight->getOutputName()[0]};
+  if (!bias.empty()) {
+    inputs.push_back(bias);
+  }
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeMatMul, inputs, outputs);
   if (model_desc != nullptr) {
     model_desc->op_descs_.push_back(op_desc);
   }
@@ -451,5 +570,272 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeGlobalAveragePool(
   return expr;
 }
 
+std::shared_ptr<Expr> makeRMSNorm(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::shared_ptr<ir::RMSNormParam> param, const std::string &weight,
+    const std::string &residual, std::string op_name, std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "rmsnorm" + std::to_string(index);
+    } else {
+      name = "rmsnorm";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  if (!weight.empty()) {
+    inputs.push_back(weight);
+  }
+  if (!residual.empty()) {
+    inputs.push_back(residual);
+  }
+
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc = std::make_shared<ir::OpDesc>(name, ir::kOpTypeRMSNorm, inputs,
+                                              outputs, param);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// cast
+std::shared_ptr<Expr> makeCast(ir::ModelDesc *model_desc,
+                               std::shared_ptr<Expr> input,
+                               std::shared_ptr<ir::CastParam> param,
+                               std::string op_name, std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "cast" + std::to_string(index);
+    } else {
+      name = "cast";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc = std::make_shared<ir::OpDesc>(name, ir::kOpTypeCast, inputs,
+                                              outputs, param);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// reshape
+std::shared_ptr<Expr> makeReshape(ir::ModelDesc *model_desc,
+                                  std::shared_ptr<Expr> input,
+                                  std::shared_ptr<Expr> new_shape,
+                                  std::shared_ptr<ir::ReshapeParam> param,
+                                  std::string op_name,
+                                  std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "reshape" + std::to_string(index);
+    } else {
+      name = "reshape";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0],
+                                     new_shape->getOutputName()[0]};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc = std::make_shared<ir::OpDesc>(name, ir::kOpTypeReshape, inputs,
+                                              outputs, param);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+std::shared_ptr<Expr> makeReshape(ir::ModelDesc *model_desc,
+                                  std::shared_ptr<Expr> input,
+                                  std::string weight_new_shape,
+                                  std::shared_ptr<ir::ReshapeParam> param,
+                                  std::string op_name,
+                                  std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "reshape" + std::to_string(index);
+    } else {
+      name = "reshape";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0],
+                                     weight_new_shape};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc = std::make_shared<ir::OpDesc>(name, ir::kOpTypeReshape, inputs,
+                                              outputs, param);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// broadcast
+std::shared_ptr<Expr> makeBroadcast(ir::ModelDesc *model_desc,
+                                    std::shared_ptr<Expr> input,
+                                    std::shared_ptr<Expr> broadcast_shape,
+                                    std::string op_name,
+                                    std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "broadcast" + std::to_string(index);
+    } else {
+      name = "broadcast";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeBroadcast, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// transpose
+std::shared_ptr<Expr> makeTranspose(ir::ModelDesc *model_desc,
+                                    std::shared_ptr<Expr> input,
+                                    std::shared_ptr<Expr> indices,
+                                    std::string op_name,
+                                    std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "transpose" + std::to_string(index);
+    } else {
+      name = "transpose";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0],
+                                     indices->getOutputName()[0]};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeTranspose, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+std::shared_ptr<Expr> makeTranspose(ir::ModelDesc *model_desc,
+                                    std::shared_ptr<Expr> input,
+                                    const std::string &indices,
+                                    std::string op_name,
+                                    std::string output_name) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "transpose" + std::to_string(index);
+    } else {
+      name = "transpose";
+    }
+  }
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(indices.size(), "indices is null");
+  std::vector<std::string> inputs = {input->getOutputName()[0], indices};
+  std::vector<std::string> outputs;
+  if (!output_name.empty()) {
+    outputs.push_back(output_name);
+  } else {
+    outputs.push_back(name + ".output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeTranspose, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
+
+// rotate_embedding
+std::shared_ptr<Expr> makeRotateEmbedding(
+    ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
+    std::string inv_freq, std::string op_name,
+    std::vector<std::string> output_names) {
+  std::string name = op_name;
+  if (name.empty()) {
+    if (model_desc != nullptr) {
+      int index = model_desc->op_descs_.size();
+      name = "rotate_embedding" + std::to_string(index);
+    } else {
+      name = "rotate_embedding";
+    }
+  }
+  std::vector<std::string> inputs = {input->getOutputName()[0]};
+  inputs.emplace_back(inv_freq);
+  std::vector<std::string> outputs;
+  if (!output_names.empty()) {
+    NNDEPLOY_ASSERT(output_names.size() == 2);
+    for (auto name : output_names) {
+      outputs.push_back(name);
+    }
+  } else {
+    outputs.push_back(name + ".cos.output");
+    outputs.push_back(name + ".sin.output");
+  }
+  auto op_desc =
+      std::make_shared<ir::OpDesc>(name, ir::kOpTypeTranspose, inputs, outputs);
+  if (model_desc != nullptr) {
+    model_desc->op_descs_.push_back(op_desc);
+  }
+
+  auto expr = std::make_shared<Expr>(op_desc);
+  return expr;
+}
 }  // namespace op
 }  // namespace nndeploy

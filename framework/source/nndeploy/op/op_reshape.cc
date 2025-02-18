@@ -1,6 +1,4 @@
 
-#include "nndeploy/op/op_reshape.h"
-
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -17,6 +15,7 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/ir/ir.h"
 #include "nndeploy/op/op.h"
+#include "nndeploy/op/op_reshape.h"
 
 namespace nndeploy {
 namespace op {
@@ -119,11 +118,12 @@ base::Status OpReshape::inferDataFormat() {
 }
 
 base::Status OpReshape::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
+  // NNDEPLOY_LOGI("not implemented.\n");
+  // I think it is implemented with infer_shape
   return base::kStatusCodeOk;
 }
 
-base::Status reshape(device::Tensor *input,
+base::Status reshape(device::Tensor *input, device::Tensor *newshape,
                      std::shared_ptr<ir::ReshapeParam> param,
                      device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
@@ -136,6 +136,8 @@ base::Status reshape(device::Tensor *input,
   status = op->setParam(param);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
   status = op->setInput(input, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setInput(newshape, 1);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setOutput(output, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");

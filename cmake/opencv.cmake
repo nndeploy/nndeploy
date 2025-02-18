@@ -3,6 +3,7 @@ include(ExternalProject)
 
 if (ENABLE_NNDEPLOY_OPENCV STREQUAL "OFF")
 elseif (ENABLE_NNDEPLOY_OPENCV STREQUAL "ON")
+  # set(OpenCV_DIR "/usr/lib/x86_64-linux-gnu/cmake/opencv4")
   find_package(OpenCV REQUIRED)
   # If the package has been found, several variables will
   # be set, you can find the full list with descriptions

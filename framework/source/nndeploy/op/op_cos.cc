@@ -1,5 +1,5 @@
 
-#include "nndeploy/op/op_sigmoid.h"
+#include "nndeploy/op/op_cos.h"
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -21,7 +21,7 @@
 namespace nndeploy {
 namespace op {
 
-base::Status OpSigmoid::run() {
+base::Status OpCos::run() {
   device::Tensor *input_tensor = inputs_[0];
   device::Tensor *output_tensor = outputs_[0];
   // TODO : check input and output shape equal
@@ -32,15 +32,15 @@ base::Status OpSigmoid::run() {
                                        input_tensor->getShape().end(), 1,
                                        std::multiplies<int>());
   for (int i = 0; i < total_elements; i++) {
-    output[i] = 1.0 / (1.0 + exp(-input[i]));
+    output[i] = std::cos(input[i]);
   }
   return base::kStatusCodeOk;
 }
 
-base::Status sigmoid(device::Tensor *input, device::Tensor *output) {
+base::Status cos(device::Tensor *input, device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeSigmoid);
+  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeCos);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -67,7 +67,7 @@ base::Status sigmoid(device::Tensor *input, device::Tensor *output) {
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeSigmoid, OpSigmoid)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeCos, OpCos)
 
 }  // namespace op
 }  // namespace nndeploy
