@@ -158,7 +158,7 @@ class CudaStream : public Stream {
   virtual base::Status recordEvent(Event *event);
   virtual base::Status waitEvent(Event *event);
 
-  virtual void *getCommandQueue();
+  virtual void *getNativeStream();
 
   cudaStream_t getStream();
 

@@ -70,21 +70,21 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            "Allocate memory with specified BufferDesc from the MemoryPool")
       .def("deallocate", &MemoryPool::deallocate, py::arg("ptr"),
            "Deallocate memory allocated from the MemoryPool")
-      .def("allocatePinned",
+      .def("allocate_pinned",
            py::overload_cast<size_t>(&MemoryPool::allocatePinned),
            py::return_value_policy::reference, py::arg("size"),
            "Allocate pinned memory with specified size from the MemoryPool")
-      .def("allocatePinned",
+      .def("allocate_pinned",
            py::overload_cast<const BufferDesc &>(&MemoryPool::allocatePinned),
            py::return_value_policy::reference, py::arg("desc"),
            "Allocate pinned memory with specified BufferDesc from the "
            "MemoryPool")
-      .def("deallocatePinned", &MemoryPool::deallocatePinned, py::arg("ptr"),
+      .def("deallocate_pinned", &MemoryPool::deallocatePinned, py::arg("ptr"),
            "Deallocate pinned memory allocated from the MemoryPool")
-      .def("getDevice", &MemoryPool::getDevice,
+      .def("get_device", &MemoryPool::getDevice,
            py::return_value_policy::reference,
            "Get the Device object associated with the MemoryPool")
-      .def("getMemoryPoolType", &MemoryPool::getMemoryPoolType,
+      .def("get_memory_pool_type", &MemoryPool::getMemoryPoolType,
            "Get the type of the MemoryPool");
 }
 

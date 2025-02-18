@@ -202,7 +202,7 @@
      *
      * @return void*
      */
-    virtual void *getCommandQueue();  
+    virtual void *getNativeStream();  
 
    protected:
     /**

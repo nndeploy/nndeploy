@@ -17,32 +17,31 @@ import time
 class VulkanArchitecture(_C.device.Architecture):
     def __init__(self, device_type_code):
         # super().__init__(common.DeviceTypeCode.vulkan.value)
-        super().__init__(device_type_code.value)          
+        super().__init__(device_type_code)          
         
-    def checkDevice(self, device_id=0, library_path=""):
+    def check_device(self, device_id=0, library_path=""):
         print("checkDevice")
         return common.Status(common.StatusCode.Ok)
 
-    def enableDevice(self, device_id=0, library_path=""):
+    def enable_device(self, device_id=0, library_path=""):
         print("enableDevice")
         return common.Status(common.StatusCode.Ok)
     
-    def getDevice(self, device_id):
+    def get_device(self, device_id):
         return VulkanDevice()
     
-    def getDeviceInfo(self, library_path=""):
+    def get_device_info(self, library_path=""):
         print("getDeviceInfo")
         return []
 
-# _C.device.registerArchitecture(common.DeviceTypeCode.vulkan.value, VulkanArchitecture())
-_C.device.registerArchitecture(common.DeviceTypeCode.NewEnum.value, VulkanArchitecture(common.DeviceTypeCode.NewEnum.value))
+_C.device.register_architecture(common.DeviceTypeCode.vulkan, VulkanArchitecture(common.DeviceTypeCode.vulkan))
 
 class VulkanDevice(_C.device.Device):
     def __init__(self):
         super().__init__(common.DeviceType.vulkan)
 
     # 重点函数
-    def toBufferDesc(self, desc, config):
+    def to_buffer_desc(self, desc, config):
         print("toBufferDesc")
         return _C.device.BufferDesc()
 
@@ -52,7 +51,7 @@ class VulkanDevice(_C.device.Device):
 
     def deallocate(self, ptr):
         print("deallocate")
-
+        
     def copy(self, src, dst, size, stream=None):
         print("copy")
         return common.Status(common.StatusCode.Ok)
@@ -75,33 +74,33 @@ class VulkanDevice(_C.device.Device):
 
 
 def test_device():
-    architecture = _C.device.getArchitecture(common.DeviceTypeCode.NewEnum.value)
-    print(architecture.getDeviceTypeCode())
-    architecture = _C.device.getArchitecture(common.DeviceTypeCode.cpu)
+    architecture = _C.device.get_architecture(common.DeviceTypeCode.vulkan)
+    print(architecture.get_device_type_code())
+    architecture = _C.device.get_architecture(common.DeviceTypeCode.cpu)
 
-    _C.device.printArchitectureMap()
-    # print(architecture.getDeviceTypeCode())
-    # device = architecture.getDevice(0)
-    # stream = device.createStream()
-    # print(stream)
-    # event = device.createEvent()
-    # print(event)
-    # print(device)
-
-    # device_type = common.DeviceType("cpu", 0)
-    # print(device_type)
-    # device = _C.device.getDevice(device_type)
-    # print(device)
-    # stream = device.createStream()
-    # print(stream)
-    # event = device.createEvent()
-    # print(event)
-
-    device = _C.device.getDevice(common.DeviceType("ascendcl", 0))
-    print(device)
-    stream = _C.device.createStream(common.DeviceType("ascendcl", 0))
+    _C.device.print_architecture_map()
+    print(architecture.get_device_type_code())
+    device = architecture.get_device(0)
+    stream = device.create_stream()
     print(stream)
-    event = _C.device.createEvent(common.DeviceType("ascendcl", 0))
+    event = device.create_event()
+    print(event)
+    print(device)
+
+    device_type = common.DeviceType("cpu", 0)
+    print(device_type)
+    device = _C.device.get_device(device_type)
+    print(device)
+    stream = device.create_stream()
+    print(stream)
+    event = device.create_event()
+    print(event)
+
+    device = _C.device.get_device(common.DeviceType("ascendcl", 0))
+    print(device)
+    stream = _C.device.create_stream(common.DeviceType("ascendcl", 0))
+    print(stream)
+    event = _C.device.create_event(common.DeviceType("ascendcl", 0))
     print(event)
 
 

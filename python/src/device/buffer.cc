@@ -107,6 +107,8 @@ Buffer bufferFromNumpy(const py::array &array) {
   auto size = array.size();
   auto strides = array.strides();
   auto data = array.data();
+  size_t elemsize = dtype.itemsize();
+  size = size * elemsize;
   BufferDesc desc(size);
   Device *device = getDefaultHostDevice();
   return Buffer(device, desc, const_cast<void *>(data));
@@ -140,7 +142,7 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            py::arg("memory_type"))
       .def(py::init<const Buffer &>(), py::arg("buffer"))
       .def("clone", &Buffer::clone, "Clone the buffer")
-      .def("copyTo", &Buffer::copyTo, py::arg("dst"),
+      .def("copy_to", &Buffer::copyTo, py::arg("dst"),
            "Copy the buffer to the destination buffer")
       // .def("serialize", &Buffer::serialize, py::arg("stream"),
       //      "Serialize the buffer to a binary stream")
@@ -151,41 +153,42 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
              std::ostringstream os;
              self.print(os);
            })
-      .def("justModify", py::overload_cast<const size_t &>(&Buffer::justModify),
+      .def("just_modify",
+           py::overload_cast<const size_t &>(&Buffer::justModify),
            py::arg("size"), "Modify the buffer size")
-      .def("justModify",
+      .def("just_modify",
            py::overload_cast<const base::SizeVector &>(&Buffer::justModify),
            py::arg("size"), "Modify the buffer size")
-      .def("justModify",
+      .def("just_modify",
            py::overload_cast<const BufferDesc &>(&Buffer::justModify),
            py::arg("desc"), "Modify the buffer descriptor")
       .def("empty", &Buffer::empty, "Check if the buffer is empty")
-      .def("getDeviceType", &Buffer::getDeviceType,
+      .def("get_device_type", &Buffer::getDeviceType,
            "Get the device type of the buffer")
-      .def("getDevice", &Buffer::getDevice, py::return_value_policy::reference,
+      .def("get_device", &Buffer::getDevice, py::return_value_policy::reference,
            "Get the device of the buffer")
-      .def("getMemoryPool", &Buffer::getMemoryPool,
+      .def("get_memory_pool", &Buffer::getMemoryPool,
            py::return_value_policy::reference,
            "Get the memory pool of the buffer")
-      .def("isMemoryPool", &Buffer::isMemoryPool,
+      .def("is_memory_pool", &Buffer::isMemoryPool,
            "Check if the buffer is from a memory pool")
-      .def("getDesc", &Buffer::getDesc, "Get the buffer descriptor")
-      .def("getSize", &Buffer::getSize, "Get the size of the buffer")
-      .def("getSizeVector", &Buffer::getSizeVector,
+      .def("get_desc", &Buffer::getDesc, "Get the buffer descriptor")
+      .def("get_size", &Buffer::getSize, "Get the size of the buffer")
+      .def("get_size_vector", &Buffer::getSizeVector,
            "Get the size vector of the buffer")
-      .def("getRealSize", &Buffer::getRealSize,
+      .def("get_real_size", &Buffer::getRealSize,
            "Get the real size of the buffer")
-      .def("getRealSizeVector", &Buffer::getRealSizeVector,
+      .def("get_real_size_vector", &Buffer::getRealSizeVector,
            "Get the real size vector of the buffer")
-      .def("getConfig", &Buffer::getConfig,
+      .def("get_config", &Buffer::getConfig,
            "Get the configuration of the buffer")
-      .def("getData", &Buffer::getData, py::return_value_policy::reference,
+      .def("get_data", &Buffer::getData, py::return_value_policy::reference,
            "Get the data pointer of the buffer")
-      .def("getMemoryType", &Buffer::getMemoryType,
+      .def("get_memory_type", &Buffer::getMemoryType,
            "Get the memory type of the buffer")
-      .def("addRef", &Buffer::addRef,
+      .def("add_ref", &Buffer::addRef,
            "Increase the reference count of the buffer")
-      .def("subRef", &Buffer::subRef,
+      .def("sub_ref", &Buffer::subRef,
            "Decrease the reference count of the buffer")
       .def("__str__",
            [](const Buffer &self) {
@@ -202,18 +205,25 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            [](Buffer &self) {
              return bufferToBufferInfo(&self, py::dtype::of<uint8_t>());
            })
-      .def("to_numpy", [](Buffer &self, const py::dtype &dtype) {
-        py::buffer_info buffer_info = bufferToBufferInfo(&self, dtype);
-        return py::array(buffer_info);
+      .def(
+          "to_numpy_v0",
+          [](Buffer &self, const py::dtype &dtype) {
+            py::buffer_info buffer_info = bufferToBufferInfo(&self, dtype);
+            return py::array(buffer_info);
+          },
+          py::arg("dtype"),
+          "Convert buffer to numpy array with specified dtype")
+      .def(
+          "to_numpy_v1",
+          [](Buffer &self, py::object dtype_obj) {
+            py::dtype dtype = py::dtype::from_args(dtype_obj);
+            py::buffer_info buffer_info = bufferToBufferInfo(&self, dtype);
+            return py::array(buffer_info);
+          },
+          py::arg("dtype"), "Convert buffer to numpy array with dtype object")
+      .def_static("from_numpy", [](const py::array &array) {
+        return bufferFromNumpy(array);
       });
-
-  m.def("buffer_to_numpy", [](Buffer &self, const py::dtype &dtype) {
-    py::buffer_info buffer_info = bufferToBufferInfo(&self, dtype);
-    return py::array(buffer_info);
-  });
-
-  m.def("buffer_from_numpy",
-        [](const py::array &array) { return bufferFromNumpy(array); });
 }
 
 }  // namespace device

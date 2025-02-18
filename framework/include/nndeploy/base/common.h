@@ -202,6 +202,7 @@ enum MemoryPoolType : int {
 
 enum TensorType : int {
   kTensorTypeDefault = 0x0000,
+  kTensorTypePipeline,
 };
 
 enum ForwardOpType : int {

@@ -29,6 +29,12 @@ base::DeviceTypeCode Architecture::getDeviceTypeCode() const {
   return device_type_code_;
 }
 
+base::Status Architecture::insertDevice(int device_id, Device *device) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  devices_[device_id] = device;
+  return base::kStatusCodeOk;
+}
+
 std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>> &
 getArchitectureMap() {
   static std::once_flag once;
@@ -108,7 +114,7 @@ base::Status Stream::onExecutionContextTeardown() {
   return base::kStatusCodeOk;
 }
 
-void *Stream::getCommandQueue() { return nullptr; }
+void *Stream::getNativeStream() { return nullptr; }
 
 // Event
 Event::Event(Device *device) : device_(device) {}
@@ -124,6 +130,8 @@ Device *Event::getDevice() const { return device_; }
 bool Event::queryDone() { return true; }
 
 base::Status Event::synchronize() { return base::kStatusCodeOk; }
+
+void *Event::getNativeEvent() { return nullptr; }
 
 Architecture *getArchitecture(base::DeviceTypeCode type) {
   auto arch_map = getArchitectureMap();

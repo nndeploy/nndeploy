@@ -209,7 +209,7 @@ base::Status OnnxRuntimeConvert::convertFromInferenceParam(
       // TODO:always set user_compute_stream
       if (stream != nullptr) {
         cuda_srcs.has_user_compute_stream = 1;
-        cuda_srcs.user_compute_stream = stream->getCommandQueue();
+        cuda_srcs.user_compute_stream = stream->getNativeStream();
       }
       dst.AppendExecutionProvider_CUDA(cuda_srcs);
     }

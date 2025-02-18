@@ -109,18 +109,21 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
 
   // nndeploy::device::Architecture export as device.Architecture
   py::class_<device::Architecture, PyArchitecture,
-             std::shared_ptr<device::Architecture>>(m, "Architecture")
+             std::shared_ptr<device::Architecture>>(m, "Architecture",
+                                                    py::dynamic_attr())
       .def(py::init<base::DeviceTypeCode>())
-      .def("checkDevice", &device::Architecture::checkDevice,
+      .def("check_device", &device::Architecture::checkDevice,
            py::arg("device_id") = 0, py::arg("library_path") = "")
-      .def("enableDevice", &device::Architecture::enableDevice,
+      .def("enable_device", &device::Architecture::enableDevice,
            py::arg("device_id") = 0, py::arg("library_path") = "")
-      .def("disableDevice", &device::Architecture::disableDevice)
-      .def("getDevice", &device::Architecture::getDevice, py::arg("device_id"),
+      .def("disable_device", &device::Architecture::disableDevice)
+      .def("get_device", &device::Architecture::getDevice, py::arg("device_id"),
            py::return_value_policy::reference)
-      .def("getDeviceInfo", &device::Architecture::getDeviceInfo,
+      .def("get_device_info", &device::Architecture::getDeviceInfo,
            py::arg("library_path") = "")
-      .def("getDeviceTypeCode", &device::Architecture::getDeviceTypeCode)
+      .def("get_device_type_code", &device::Architecture::getDeviceTypeCode)
+      .def("insert_device", &device::Architecture::insertDevice,
+           py::arg("device_id"), py::arg("device"))
       .def("__str__", [](const Architecture &self) {
         std::ostringstream os;
         os << "<nndeploy._nndeploy_internal.device.Architecture object at "
@@ -130,13 +133,12 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       });
 
   // nndeploy::device::Device export as device.Device
-  py::class_<device::Device, PyDevice, std::shared_ptr<device::Device>>(
-      m, "Device", py::dynamic_attr())
+  py::class_<device::Device, PyDevice>(m, "Device", py::dynamic_attr())
       .def(py::init<base::DeviceType, std::string>(), py::arg("device_type"),
            py::arg("library_path") = "")
-      .def("getDataFormatByShape", &device::Device::getDataFormatByShape,
+      .def("get_data_format_by_shape", &device::Device::getDataFormatByShape,
            py::arg("shape"))
-      .def("toBufferDesc", &device::Device::toBufferDesc, py::arg("desc"),
+      .def("to_buffer_desc", &device::Device::toBufferDesc, py::arg("desc"),
            py::arg("config"))
       .def("allocate", py::overload_cast<size_t>(&device::Device::allocate),
            py::arg("size"), py::return_value_policy::reference)
@@ -144,14 +146,14 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            py::overload_cast<const BufferDesc &>(&device::Device::allocate),
            py::arg("desc"), py::return_value_policy::reference)
       .def("deallocate", &device::Device::deallocate, py::arg("ptr"))
-      .def("allocatePinned",
+      .def("allocate_pinned",
            py::overload_cast<size_t>(&device::Device::allocatePinned),
            py::arg("size"), py::return_value_policy::reference)
-      .def("allocatePinned",
+      .def("allocate_pinned",
            py::overload_cast<const BufferDesc &>(
                &device::Device::allocatePinned),
            py::arg("desc"), py::return_value_policy::reference)
-      .def("deallocatePinned", &device::Device::deallocatePinned,
+      .def("deallocate_pinned", &device::Device::deallocatePinned,
            py::arg("ptr"))
       .def("copy",
            py::overload_cast<void *, void *, size_t, Stream *>(
@@ -180,57 +182,81 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            py::overload_cast<Buffer *, Buffer *, Stream *>(
                &device::Device::upload),
            py::arg("src"), py::arg("dst"), py::arg("stream") = nullptr)
-      .def("getContext", &device::Device::getContext,
+      .def("get_context", &device::Device::getContext,
            py::return_value_policy::reference)
-      .def("createStream", py::overload_cast<>(&device::Device::createStream))
-      .def("createStream",
+      .def("create_stream", py::overload_cast<>(&device::Device::createStream))
+      .def("create_stream",
            py::overload_cast<void *>(&device::Device::createStream),
            py::arg("stream"))
-      // .def("destroyStream", &device::Device::destroyStream,
+      // .def("destroy_stream", &device::Device::destroyStream,
       // py::arg("stream"))
-      .def("createEvent", &device::Device::createEvent)
-      // .def("destroyEvent", &device::Device::destroyEvent, py::arg("event"))
+      .def("create_event", &device::Device::createEvent)
+      // .def("destroy_event", &device::Device::destroyEvent, py::arg("event"))
       .def(
-          "createEvents",
+          "create_events",
           [](device::Device &self, std::vector<Event *> &events) {
             return self.createEvents(events.data(), events.size());
           },
           py::arg("events"))
       // .def(
-      //     "destroyEvents",
+      //     "destroy_events",
       //     [](device::Device &self, std::vector<Event *> &events) {
       //       return self.destroyEvents(events.data(), events.size());
       //     },
       //     py::arg("events"))
-      .def("getDeviceType", &device::Device::getDeviceType)
+      .def("get_device_type", &device::Device::getDeviceType)
       .def("init", &device::Device::init)
-      .def("deinit", &device::Device::deinit);
+      .def("deinit", &device::Device::deinit)
+      .def("__str__", [](const Device &self) {
+        std::ostringstream os;
+        os << "<nndeploy._nndeploy_internal.device.Device object at "
+           << static_cast<const void *>(&self)
+           << "> : " << base::deviceTypeToString(self.getDeviceType());
+        return os.str();
+      });
 
   py::class_<device::Stream>(m, "Stream", py::dynamic_attr())
       .def(py::init<device::Device *>())
       .def(py::init<device::Device *, void *>())
-      .def("getDeviceType", &device::Stream::getDeviceType)
-      .def("getDevice", &device::Stream::getDevice,
+      .def("get_device_type", &device::Stream::getDeviceType)
+      .def("get_device", &device::Stream::getDevice,
            py::return_value_policy::reference)
       .def("synchronize", &device::Stream::synchronize)
-      .def("recordEvent", &device::Stream::recordEvent)
-      .def("waitEvent", &device::Stream::waitEvent)
-      .def("onExecutionContextSetup", &device::Stream::onExecutionContextSetup)
-      .def("onExecutionContextTeardown",
+      .def("record_event", &device::Stream::recordEvent)
+      .def("wait_event", &device::Stream::waitEvent)
+      .def("on_execution_context_setup",
+           &device::Stream::onExecutionContextSetup)
+      .def("on_execution_context_teardown",
            &device::Stream::onExecutionContextTeardown)
-      .def("getCommandQueue", &device::Stream::getCommandQueue,
-           py::return_value_policy::reference);
+      .def("get_native_stream", &device::Stream::getNativeStream,
+           py::return_value_policy::reference)
+      .def("__str__", [](const Stream &self) {
+        std::ostringstream os;
+        os << "<nndeploy._nndeploy_internal.device.Stream object at "
+           << static_cast<const void *>(&self)
+           << "> : " << base::deviceTypeToString(self.getDeviceType());
+        return os.str();
+      });
 
   py::class_<device::Event>(m, "Event")
       .def(py::init<device::Device *>())
-      .def("getDeviceType", &device::Event::getDeviceType)
-      .def("getDevice", &device::Event::getDevice,
+      .def("get_device_type", &device::Event::getDeviceType)
+      .def("get_device", &device::Event::getDevice,
            py::return_value_policy::reference)
-      .def("queryDone", &device::Event::queryDone)
-      .def("synchronize", &device::Event::synchronize);
+      .def("query_done", &device::Event::queryDone)
+      .def("synchronize", &device::Event::synchronize)
+      .def("get_native_event", &device::Event::getNativeEvent,
+           py::return_value_policy::reference)
+      .def("__str__", [](const Event &self) {
+        std::ostringstream os;
+        os << "<nndeploy._nndeploy_internal.device.Stream object at "
+           << static_cast<const void *>(&self)
+           << "> : " << base::deviceTypeToString(self.getDeviceType());
+        return os.str();
+      });
 
   // 定义注册函数
-  m.def("registerArchitecture",
+  m.def("register_architecture",
         [](base::DeviceTypeCode device_type_code, py::object py_architecture) {
           // 获取 Architecture 的 shared_ptr
           std::shared_ptr<device::Architecture> architecture =
@@ -239,7 +265,7 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
           getArchitectureMap()[device_type_code] = architecture;
         });
 
-  m.def("printArchitectureMap", []() {
+  m.def("print_architecture_map", []() {
     for (const auto &item : getArchitectureMap()) {
       std::cout << base::deviceTypeCodeToString(item.first) << " : "
                 << (static_cast<Architecture *>(item.second.get()))
@@ -248,74 +274,76 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
     }
   });
 
-  // export as device.getArchitecture
-  m.def("getArchitecture", &getArchitecture, py::return_value_policy::reference,
+  // export as device.get_architecture
+  m.def("get_architecture", &getArchitecture,
+        py::return_value_policy::reference,
         "Get the Architecture of the specified type",
         py::arg("device_type_code"));
 
-  // export as device.getDefaultHostDevice
-  m.def("getDefaultHostDevice", &getDefaultHostDevice,
+  // export as device.get_default_host_device
+  m.def("get_default_host_device", &getDefaultHostDevice,
         py::return_value_policy::reference, "Get the default host device");
 
-  // export as device.isHostDeviceType
-  m.def("isHostDeviceType", &isHostDeviceType,
+  // export as device.is_host_device_type
+  m.def("is_host_device_type", &isHostDeviceType,
         "Check if a device type is a host device type", py::arg("device_type"));
 
-  // export as device.checkDevice
-  m.def("checkDevice", &checkDevice, "Check if a device is available",
+  // export as device.check_device
+  m.def("check_device", &checkDevice, "Check if a device is available",
         py::arg("device_type"), py::arg("library_path") = "");
 
-  // export as device.enableDevice
-  m.def("enableDevice", &enableDevice, "Enable a device",
+  // export as device.enable_device
+  m.def("enable_device", &enableDevice, "Enable a device",
         py::arg("device_type"), py::arg("library_path") = "");
 
-  // export as device.getDevice
-  m.def("getDevice", &getDevice, "A function which gets a device by type",
+  // export as device.get_device
+  m.def("get_device", &getDevice, "A function which gets a device by type",
         py::arg("device_type"), py::return_value_policy::reference,
         "Get a device by type");
 
-  // export as device.createStream
-  m.def("createStream", py::overload_cast<base::DeviceType>(&createStream),
+  // export as device.create_stream
+  m.def("create_stream", py::overload_cast<base::DeviceType>(&createStream),
         "Create a stream for a device type", py::arg("device_type"));
-  m.def("createStream",
+  m.def("create_stream",
         py::overload_cast<base::DeviceType, void *>(&createStream),
         "Create a stream for a device type with an existing stream",
         py::arg("device_type"), py::arg("stream"));
 
-  // export as device.destroyStream
-  // m.def("destroyStream", &destroyStream, "Destroy a stream",
+  // export as device.destroy_stream
+  // m.def("destroy_stream", &destroyStream, "Destroy a stream",
   // py::arg("stream"));
 
-  // export as device.createEvent
-  m.def("createEvent", &createEvent, "Create an event for a device type",
+  // export as device.create_event
+  m.def("create_event", &createEvent, "Create an event for a device type",
         py::arg("device_type"));
 
-  // export as device.destroyEvent
-  // m.def("destroyEvent", &destroyEvent, "Destroy an event", py::arg("event"));
+  // export as device.destroy_event
+  // m.def("destroy_event", &destroyEvent, "Destroy an event",
+  // py::arg("event"));
 
-  // export as device.createEvents
+  // export as device.create_events
   m.def(
-      "createEvents",
+      "create_events",
       [](base::DeviceType device_type, std::vector<Event *> &events) {
         return createEvents(device_type, events.data(), events.size());
       },
       py::arg("device_type"), py::arg("events"));
 
-  // export as device.destroyEvents
-  // m.def("destroyEvents", &destroyEvents,
+  // export as device.destroy_events
+  // m.def("destroy_events", &destroyEvents,
   //       "Destroy multiple events for a device type", py::arg("device_type"),
   //       py::arg("events"), py::arg("count"));
 
-  // export as device.getDeviceInfo
-  m.def("getDeviceInfo", &getDeviceInfo,
+  // export as device.get_device_info
+  m.def("get_device_info", &getDeviceInfo,
         "Get device info for a device type code", py::arg("device_type_code"),
         py::arg("library_path") = "");
 
-  // // export as device.disableDevice
-  // m.def("disableDevice", &disableDevice, "Disable current device");
+  // // export as device.disable_device
+  // m.def("disable_device", &disableDevice, "Disable current device");
 
-  // // export as device.destoryArchitecture
-  // m.def("destoryArchitecture", &destoryArchitecture,
+  // // export as device.destory_architecture
+  // m.def("destory_architecture", &destoryArchitecture,
   //       "Destroy device architecture");
 }
 

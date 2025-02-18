@@ -16,7 +16,7 @@ class AscendCLArchitecture : public Architecture {
 
   virtual ~AscendCLArchitecture();
 
-  void setAclConfigPath(int device_id, const std::string &acl_config_path);
+  void setAclConfigPath(const std::string &acl_config_path);
 
   virtual base::Status checkDevice(int device_id = 0,
                                    std::string library_path = "") override;
@@ -31,7 +31,7 @@ class AscendCLArchitecture : public Architecture {
 
  private:
   // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看ascend_cl文档
-  std::map<int, std::string> acl_config_path_map_;
+  std::string acl_config_path_;
 };
 
 /**
@@ -90,15 +90,11 @@ class NNDEPLOY_CC_API AscendCLDevice : public Device {
       : Device(device_type) {};
   virtual ~AscendCLDevice() {};
 
-  void setAclConfigPath(const std::string &acl_config_path);
-
   virtual base::Status init();
   virtual base::Status deinit();
 
  private:
   aclrtContext context_ = nullptr;
-  // json文件，如果要使用msprof工具分析模型各算子执行时间时需要指定，格式看ascend_cl文档
-  std::string acl_config_path_ = "";
 };
 
 class AscendCLStream : public Stream {
@@ -111,7 +107,7 @@ class AscendCLStream : public Stream {
   virtual base::Status recordEvent(Event *event);
   virtual base::Status waitEvent(Event *event);
 
-  virtual void *getCommandQueue();
+  virtual void *getNativeStream();
 
   aclrtStream getStream();
 

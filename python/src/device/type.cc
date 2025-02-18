@@ -20,20 +20,20 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def("__eq__", &BufferDesc::operator==)
       .def("__ne__", &BufferDesc::operator!=)
       .def("__ge__", &BufferDesc::operator>=)
-      .def("getSize", &BufferDesc::getSize)
-      .def("getSizeVector", &BufferDesc::getSizeVector)
-      .def("getRealSize", &BufferDesc::getRealSize)
-      .def("getRealSizeVector", &BufferDesc::getRealSizeVector)
-      .def("getConfig", &BufferDesc::getConfig)
-      .def("isSameConfig", &BufferDesc::isSameConfig)
-      .def("isSameDim", &BufferDesc::isSameDim)
-      .def("is1D", &BufferDesc::is1D)
+      .def("get_size", &BufferDesc::getSize)
+      .def("get_size_vector", &BufferDesc::getSizeVector)
+      .def("get_real_size", &BufferDesc::getRealSize)
+      .def("get_real_size_vector", &BufferDesc::getRealSizeVector)
+      .def("get_config", &BufferDesc::getConfig)
+      .def("is_same_config", &BufferDesc::isSameConfig)
+      .def("is_same_dim", &BufferDesc::isSameDim)
+      .def("is_1d", &BufferDesc::is1D)
       .def("print", &BufferDesc::print)
-      .def("justModify",
+      .def("just_modify",
            py::overload_cast<const size_t &>(&BufferDesc::justModify))
-      .def("justModify",
+      .def("just_modify",
            py::overload_cast<const base::SizeVector &>(&BufferDesc::justModify))
-      .def("justModify",
+      .def("just_modify",
            py::overload_cast<const BufferDesc &>(&BufferDesc::justModify))
       .def("clear", &BufferDesc::clear)
       .def("__str__", [](const BufferDesc &self) {
