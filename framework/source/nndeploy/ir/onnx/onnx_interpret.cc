@@ -15,7 +15,8 @@ namespace ir {
 TypeInterpretRegister<TypeInterpretCreator<OnnxInterpret>>
     g_onnx_interpret_register(base::kModelTypeOnnx);
 
-OnnxInterpret::OnnxInterpret() : Interpret() {}
+OnnxInterpret::OnnxInterpret(ModelDesc* model_desc, bool is_external)
+    : Interpret(model_desc, is_external) {}
 OnnxInterpret::~OnnxInterpret() {}
 
 // convert

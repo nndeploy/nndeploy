@@ -22,7 +22,8 @@ namespace ir {
  */
 class OnnxInterpret : public Interpret {
  public:
-  OnnxInterpret();
+  explicit OnnxInterpret(ModelDesc *model_desc = nullptr,
+                         bool is_external = false);
   virtual ~OnnxInterpret();
 
   // convert

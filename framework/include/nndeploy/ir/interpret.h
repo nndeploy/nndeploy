@@ -15,7 +15,15 @@ class NNDEPLOY_CC_API Interpret {
    * 创建一个新的Interpret对象，并初始化model_desc_成员。
    * model_desc_被初始化为一个新的ModelDesc对象。
    */
-  Interpret();
+  // Interpret();
+
+  /**
+   * @brief Interpret类的带参构造函数
+   *
+   * 使用已有的model_desc创建一个新的Interpret对象。
+   */
+  explicit Interpret(ModelDesc *model_desc = nullptr, bool is_external = false);
+
   /**
    * @brief 虚析构函数
    *
@@ -113,6 +121,11 @@ class NNDEPLOY_CC_API Interpret {
    * 用于存储模型描述信息
    */
   ModelDesc *model_desc_ = nullptr;
+
+  /**
+   * @brief 是否是外部模型
+   */
+  bool is_external_ = false;
 };
 
 /**
@@ -121,8 +134,10 @@ class NNDEPLOY_CC_API Interpret {
  */
 class InterpretCreator {
  public:
-  virtual ~InterpretCreator(){};
-  virtual Interpret *createInterpret(base::ModelType type) = 0;
+  virtual ~InterpretCreator() {};
+  // virtual Interpret *createInterpret(base::ModelType type) = 0;
+  virtual Interpret *createInterpret(base::ModelType type,
+                                     ir::ModelDesc *model_desc = nullptr) = 0;
 };
 
 /**
@@ -132,7 +147,10 @@ class InterpretCreator {
  */
 template <typename T>
 class TypeInterpretCreator : public InterpretCreator {
-  virtual Interpret *createInterpret(base::ModelType type) { return new T(); }
+  virtual Interpret *createInterpret(base::ModelType type,
+                                     ir::ModelDesc *model_desc = nullptr) {
+    return new T(model_desc);
+  }
 };
 
 /**
@@ -140,8 +158,8 @@ class TypeInterpretCreator : public InterpretCreator {
  *
  * @return std::map<base::ModelType, std::shared_ptr<InterpretCreator>>&
  */
-std::map<base::ModelType, std::shared_ptr<InterpretCreator>>
-    &getGlobalInterpretCreatorMap();
+std::map<base::ModelType, std::shared_ptr<InterpretCreator>> &
+getGlobalInterpretCreatorMap();
 
 /**
  * @brief 解释器的创建类的注册类模板
@@ -162,7 +180,8 @@ class TypeInterpretRegister {
  * @param type
  * @return Interpret*
  */
-extern NNDEPLOY_CC_API Interpret *createInterpret(base::ModelType type);
+extern NNDEPLOY_CC_API Interpret *createInterpret(
+    base::ModelType type, ir::ModelDesc *model_desc = nullptr);
 
 }  // namespace ir
 }  // namespace nndeploy
