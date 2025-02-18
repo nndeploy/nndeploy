@@ -58,80 +58,129 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            py::arg("memory_pool"), py::arg("desc"), py::arg("data_ptr"),
            py::arg("name") = "", py::arg("config") = base::IntVector())
       .def(py::init<const Tensor &>(), py::arg("tensor"))
-      .def("clone", &Tensor::clone, "Clone the tensor")
-      .def("copyTo", &Tensor::copyTo, py::arg("dst"),
-           "Copy the tensor to the destination tensor")
-      .def("print",
-           [](const Tensor &self) {
-             std::ostringstream os;
-             self.print(os);
-           })
-      .def("reshape", &Tensor::reshape, py::arg("shape"), "Reshape the tensor")
-      .def("justModify",
+      .def("create", py::overload_cast<const std::string &>(&Tensor::create),
+           py::arg("name"))
+      .def("create",
+           py::overload_cast<const TensorDesc &, const std::string &>(
+               &Tensor::create),
+           py::arg("desc"), py::arg("name") = "")
+      .def("create",
+           py::overload_cast<const TensorDesc &, Buffer *, const std::string &>(
+               &Tensor::create),
+           py::arg("desc"), py::arg("buffer"), py::arg("name") = "")
+      .def("create",
+           py::overload_cast<Device *, const TensorDesc &, const std::string &,
+                             const base::IntVector &>(&Tensor::create),
+           py::arg("device"), py::arg("desc"), py::arg("name") = "",
+           py::arg("config") = base::IntVector())
+      .def("create",
+           py::overload_cast<Device *, const TensorDesc &, void *,
+                             const std::string &, const base::IntVector &>(
+               &Tensor::create),
+           py::arg("device"), py::arg("desc"), py::arg("data_ptr"),
+           py::arg("name") = "", py::arg("config") = base::IntVector())
+      .def("create",
+           py::overload_cast<MemoryPool *, const TensorDesc &,
+                             const std::string &, const base::IntVector &>(
+               &Tensor::create),
+           py::arg("memory_pool"), py::arg("desc"), py::arg("name") = "",
+           py::arg("config") = base::IntVector())
+      .def("create",
+           py::overload_cast<MemoryPool *, const TensorDesc &, void *,
+                             const std::string &, const base::IntVector &>(
+               &Tensor::create),
+           py::arg("memory_pool"), py::arg("desc"), py::arg("data_ptr"),
+           py::arg("name") = "", py::arg("config") = base::IntVector())
+      .def("clear", &Tensor::clear)
+      .def("allocate",
+           py::overload_cast<Device *, const base::IntVector &>(
+               &Tensor::allocate),
+           py::arg("device"), py::arg("config") = base::IntVector())
+      .def("allocate",
+           py::overload_cast<MemoryPool *, const base::IntVector &>(
+               &Tensor::allocate),
+           py::arg("memory_pool"), py::arg("config") = base::IntVector())
+      .def("deallocate", &Tensor::deallocate)
+      .def(
+          "set",
+          [](Tensor &self, py::object value) {
+            if (py::isinstance<py::int_>(value)) {
+              return self.set(value.cast<int>());
+            } else if (py::isinstance<py::float_>(value)) {
+              return self.set(value.cast<float>());
+            } else {
+              throw py::type_error("Unsupported type for Tensor::set");
+            }
+          },
+          py::arg("value"))
+      .def("reshape", &Tensor::reshape, py::arg("shape"))
+      .def("just_modify",
            py::overload_cast<const TensorDesc &>(&Tensor::justModify),
-           py::arg("desc"), "Modify the tensor descriptor")
-      .def("justModify", py::overload_cast<Buffer *, bool>(&Tensor::justModify),
-           py::arg("buffer"), py::arg("is_external") = true,
-           "Modify the tensor buffer")
-      .def("empty", &Tensor::empty, "Check if the tensor is empty")
-      .def("isContinue", &Tensor::isContinue,
-           "Check if the tensor data is continuous")
-      .def("isExternalBuffer", &Tensor::isExternalBuffer,
-           "Check if the tensor buffer is external")
-      .def("getName", &Tensor::getName, "Get the name of the tensor")
-      .def("setName", &Tensor::setName, py::arg("name"),
-           "Set the name of the tensor")
-      .def("getDesc", &Tensor::getDesc, "Get the tensor descriptor")
-      .def("getDataType", &Tensor::getDataType,
-           "Get the data type of the tensor")
-      .def("setDataType", &Tensor::setDataType, py::arg("data_type"),
-           "Set the data type of the tensor")
-      .def("getDataFormat", &Tensor::getDataFormat,
-           "Get the data format of the tensor")
-      .def("setDataFormat", &Tensor::setDataFormat, py::arg("data_format"),
-           "Set the data format of the tensor")
-      .def("getShape", &Tensor::getShape, "Get the shape of the tensor")
-      .def("getShapeIndex", &Tensor::getShapeIndex, py::arg("index"),
-           "Get the shape value at the given index")
-      .def("getBatch", &Tensor::getBatch, "Get the batch size of the tensor")
-      .def("getChannel", &Tensor::getChannel,
-           "Get the channel size of the tensor")
-      .def("getDepth", &Tensor::getDepth, "Get the depth of the tensor")
-      .def("getHeight", &Tensor::getHeight, "Get the height of the tensor")
-      .def("getWidth", &Tensor::getWidth, "Get the width of the tensor")
-      .def("getStride", &Tensor::getStride, "Get the stride of the tensor")
-      .def("getStrideIndex", &Tensor::getStrideIndex, py::arg("index"),
-           "Get the stride value at the given index")
-      .def("getBuffer", &Tensor::getBuffer, py::return_value_policy::reference,
-           "Get the buffer of the tensor")
-      .def("getDeviceType", &Tensor::getDeviceType,
-           "Get the device type of the tensor")
-      .def("getDevice", &Tensor::getDevice, py::return_value_policy::reference,
-           "Get the device of the tensor")
-      .def("getMemoryPool", &Tensor::getMemoryPool,
-           py::return_value_policy::reference,
-           "Get the memory pool of the tensor")
-      .def("isMemoryPool", &Tensor::isMemoryPool,
-           "Check if the tensor is from a memory pool")
-      .def("getBufferDesc", &Tensor::getBufferDesc,
-           "Get the buffer descriptor of the tensor")
-      .def("getSize", &Tensor::getSize, "Get the size of the tensor")
-      .def("getSizeVector", &Tensor::getSizeVector,
-           "Get the size vector of the tensor")
-      .def("getRealSize", &Tensor::getRealSize,
-           "Get the real size of the tensor")
-      .def("getRealSizeVector", &Tensor::getRealSizeVector,
-           "Get the real size vector of the tensor")
-      .def("getConfig", &Tensor::getConfig,
-           "Get the configuration of the tensor")
-      .def("getData", &Tensor::getData, py::return_value_policy::reference,
-           "Get the data pointer of the tensor")
-      .def("getMemoryType", &Tensor::getMemoryType,
-           "Get the memory type of the tensor")
-      .def("addRef", &Tensor::addRef,
-           "Increase the reference count of the tensor")
-      .def("subRef", &Tensor::subRef,
-           "Decrease the reference count of the tensor")
+           py::arg("desc"))
+      .def("just_modify",
+           py::overload_cast<Buffer *, bool>(&Tensor::justModify),
+           py::arg("buffer"), py::arg("is_external") = true)
+      .def("clone", &Tensor::clone)
+      .def("copy_to", &Tensor::copyTo, py::arg("dst"))
+      .def(
+          "serialize",
+          [](Tensor &self, py::object &stream) {
+            std::ostream os(stream.cast<std::streambuf *>());
+            return self.serialize(os);
+          },
+          py::arg("stream"))
+      .def(
+          "deserialize",
+          [](Tensor &self, py::object &stream) {
+            std::istream is(stream.cast<std::streambuf *>());
+            return self.deserialize(is);
+          },
+          py::arg("stream"))
+      .def(
+          "print",
+          [](const Tensor &self, py::object &stream) {
+            std::ostream os(stream.cast<std::streambuf *>());
+            self.print(os);
+          },
+          py::arg("stream") = py::none())
+      .def("is_same_device", &Tensor::isSameDevice, py::arg("tensor"))
+      .def("is_same_memory_pool", &Tensor::isSameMemoryPool, py::arg("tensor"))
+      .def("is_same_desc", &Tensor::isSameDesc, py::arg("tensor"))
+      .def("empty", &Tensor::empty)
+      .def("is_continue", &Tensor::isContinue)
+      .def("is_external_buffer", &Tensor::isExternalBuffer)
+      .def("get_name", &Tensor::getName)
+      .def("set_name", &Tensor::setName, py::arg("name"))
+      .def("get_desc", &Tensor::getDesc)
+      .def("get_data_type", &Tensor::getDataType)
+      .def("set_data_type", &Tensor::setDataType, py::arg("data_type"))
+      .def("get_data_format", &Tensor::getDataFormat)
+      .def("set_data_format", &Tensor::setDataFormat, py::arg("data_format"))
+      .def("get_shape", &Tensor::getShape)
+      .def("get_shape_index", &Tensor::getShapeIndex, py::arg("index"))
+      .def("get_batch", &Tensor::getBatch)
+      .def("get_channel", &Tensor::getChannel)
+      .def("get_depth", &Tensor::getDepth)
+      .def("get_height", &Tensor::getHeight)
+      .def("get_width", &Tensor::getWidth)
+      .def("get_stride", &Tensor::getStride)
+      .def("get_stride_index", &Tensor::getStrideIndex, py::arg("index"))
+      .def("get_buffer", &Tensor::getBuffer, py::return_value_policy::reference)
+      .def("get_device_type", &Tensor::getDeviceType)
+      .def("get_device", &Tensor::getDevice, py::return_value_policy::reference)
+      .def("get_memory_pool", &Tensor::getMemoryPool,
+           py::return_value_policy::reference)
+      .def("is_memory_pool", &Tensor::isMemoryPool)
+      .def("get_buffer_desc", &Tensor::getBufferDesc)
+      .def("get_size", &Tensor::getSize)
+      .def("get_size_vector", &Tensor::getSizeVector)
+      .def("get_real_size", &Tensor::getRealSize)
+      .def("get_real_size_vector", &Tensor::getRealSizeVector)
+      .def("get_config", &Tensor::getConfig)
+      .def("get_data", &Tensor::getData, py::return_value_policy::reference)
+      .def("get_memory_type", &Tensor::getMemoryType)
+      .def("add_ref", &Tensor::addRef)
+      .def("sub_ref", &Tensor::subRef)
       .def("__str__",
            [](const Tensor &self) {
              std::ostringstream os;
@@ -142,19 +191,19 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            })
       .def_buffer([](Tensor &self) { return tensorToBufferInfo(&self); })
       .def("__array__", [](Tensor &self) { return tensorToBufferInfo(&self); })
-      .def("to", [](Tensor &self, const base::DeviceType &device_type) {
-        return moveTensorToDevice(&self, device_type.code_);
+      .def("to",
+           [](Tensor &self, const base::DeviceType &device_type) {
+             return moveTensorToDevice(&self, device_type);
+           })
+      .def("to_numpy",
+           [](Tensor &self) {
+             py::buffer_info buffer_info = tensorToBufferInfo(&self);
+             return py::array(buffer_info);
+           })
+      .def_static("from_numpy", [](const py::buffer &buffer,
+                                   const base::DeviceType &device_type) {
+        return bufferInfoToTensor(buffer, device_type);
       });
-
-  m.def("tensor_to_numpy", [](Tensor &self) {
-    py::buffer_info buffer_info = tensorToBufferInfo(&self);
-    return py::array(buffer_info);
-  });
-
-  m.def("tensor_from_numpy",
-        [](const py::buffer &buffer, const base::DeviceType &device_type) {
-          return bufferInfoToTensor(buffer, device_type);
-        });
 }
 
 }  // namespace device
