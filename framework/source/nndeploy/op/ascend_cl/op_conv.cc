@@ -34,7 +34,7 @@ class AscendCLOpConv : public OpConv {
 
     // Get device stream
     device::Device *device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
+    inner_stream_ = (aclrtStream)getStream();
 
     // Process input feature map tensor
     if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {

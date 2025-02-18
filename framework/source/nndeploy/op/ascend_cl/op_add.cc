@@ -20,7 +20,7 @@ class AscendCLOpAdd : public OpBinary {
   virtual base::Status init() {
     // inner stream
     device::Device* device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
+    inner_stream_ = (aclrtStream)getStream();
 
     if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
       inputs_0_ = new device::Tensor(device, inputs_[0]->getDesc(),
