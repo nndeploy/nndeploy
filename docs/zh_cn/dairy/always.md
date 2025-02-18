@@ -260,11 +260,12 @@ Finish! Here is the difference:
 
 ## 问题
 + split算子在有些昇腾910上会运行失败(910b4不会)
-+ transpose参数写错了(调用也不起效果)
++ transpose运行出错，最后发现是官网上参数写错了
 + 8.0之后的310b的卷积算子运行出错
++ 偶发性出现aclrtSynchronizeStream failed, errorCode is 507001
++ 在device0和device1上，通过ascend c编写的算子执行结果不一致
 + CREATE_EXECUTOR运行出错
   + 很多头文件出错 
-+ upload fuction: aclrtSynchronizeStream failed, errorCode is 507001
 
 
 ## atd
@@ -283,6 +284,8 @@ export https_proxy="http://127.0.0.1:7891"
 
 export PATH=/usr/local/cuda-11.8/bin${PATH:+:${PATH}}
 export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 
 
 export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64

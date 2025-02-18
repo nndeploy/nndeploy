@@ -24,9 +24,23 @@ namespace preprocess {
 
 class NNDEPLOY_CC_API WarpaffinePreprocess : public dag::Node {
  public:
-  WarpaffinePreprocess(const std::string &name, dag::Edge *input,
-                       dag::Edge *output)
-      : Node(name, input, output) {
+  // WarpaffinePreprocess(const std::string &name, dag::Edge *input,
+  //                      dag::Edge *output)
+  //     : dag::Node(name, {input}, {output}) {
+  //   param_ = std::make_shared<WarpAffineParam>();
+  // }
+  WarpaffinePreprocess(const std::string &name) : dag::Node(name) {
+    param_ = std::make_shared<WarpAffineParam>();
+  }
+  WarpaffinePreprocess(const std::string &name,
+                       std::initializer_list<dag::Edge *> inputs,
+                       std::initializer_list<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
+    param_ = std::make_shared<WarpAffineParam>();
+  }
+  WarpaffinePreprocess(const std::string &name, std::vector<dag::Edge *> inputs,
+                       std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<WarpAffineParam>();
   }
   virtual ~WarpaffinePreprocess() {}

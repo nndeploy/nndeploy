@@ -11,8 +11,8 @@ class NNDEPLOY_CC_API OpenCvImageDecodeNode : public DecodeNode {
  public:
   OpenCvImageDecodeNode(base::CodecFlag flag, const std::string &name,
                         dag::Edge *output)
-      : DecodeNode(flag, name, output){};
-  virtual ~OpenCvImageDecodeNode(){};
+      : DecodeNode(flag, name, output) {};
+  virtual ~OpenCvImageDecodeNode() {};
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -31,6 +31,9 @@ class NNDEPLOY_CC_API OpenCvImagesDecodeNode : public DecodeNode {
   virtual base::Status deinit();
 
   virtual base::Status run();
+
+ private:
+  base::Status callOnce();
 
  private:
   std::vector<std::string> images_;

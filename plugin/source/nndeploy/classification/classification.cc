@@ -24,9 +24,6 @@
 namespace nndeploy {
 namespace classification {
 
-dag::TypeGraphRegister g_register_resnet_graph(NNDEPLOY_RESNET,
-                                               createClassificationResnetGraph);
-
 base::Status ClassificationPostProcess::run() {
   ClassificationPostParam *param = (ClassificationPostParam *)param_.get();
 
@@ -69,101 +66,10 @@ base::Status ClassificationPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-dag::Graph *createClassificationResnetGraph(
-    const std::string &name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
-    base::ModelType model_type, bool is_path,
-    std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
-  dag::Edge *infer_input = graph->createEdge("data");
-  dag::Edge *infer_output = graph->createEdge("resnetv17_dense0_fwd");
-
-  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", input, infer_input);
-
-  dag::Node *infer = graph->createInfer<infer::Infer>(
-      "infer", inference_type, infer_input, infer_output);
-
-  dag::Node *post = graph->createNode<ClassificationPostProcess>(
-      "postprocess", infer_output, output);
-
-  preprocess::CvtclorResizeParam *pre_param =
-      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
-  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-  pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-  pre_param->interp_type_ = base::kInterpTypeLinear;
-  pre_param->h_ = 224;
-  pre_param->w_ = 224;
-  pre_param->mean_[0] = 0.485;
-  pre_param->mean_[1] = 0.456;
-  pre_param->mean_[2] = 0.406;
-  pre_param->std_[0] = 0.229;
-  pre_param->std_[1] = 0.224;
-  pre_param->std_[2] = 0.225;
-
-  inference::InferenceParam *inference_param =
-      (inference::InferenceParam *)(infer->getParam());
-  inference_param->is_path_ = is_path;
-  inference_param->model_value_ = model_value;
-  inference_param->device_type_ = device_type;
-  inference_param->model_type_ = model_type;
-
-  // TODO: 很多信息可以从 preprocess 和 infer 中获取
-  ClassificationPostParam *post_param =
-      dynamic_cast<ClassificationPostParam *>(post->getParam());
-  post_param->topk_ = 1;
-
-  return graph;
-}
-
-// dag::Graph *createClassificationResnetGraphOptInterface(
-//     const std::string &name, dag::Edge *input, dag::Edge *output,
-//     base::Param *pre_param, base::Param *infer_param, base::Param
-//     *post_param) {
-//   dag::Graph *graph = new dag::Graph(name, input, output);
-//   dag::Node *pre =
-//   graph->createNode<preprocess::CvtColorResize>("preprocess"); dag::Node
-//   *infer = graph->createInfer<infer::Infer>("infer"); dag::Node *post =
-//   graph->createNode<ClassificationPostProcess>("postprocess");
-
-//   input = pre(input);
-//   input = infer(input);
-//   output = post(input);
-
-//   return output;
-
-//   return graph;
-// }
-
-// class ClassificationResnetGraph : public dag::Graph {
-//  public:
-//   ClassificationResnetGraph(const std::string &name, dag::Edge *input,
-//                             dag::Edge *output)
-//       : dag::Graph(name, input, output) {
-//     dag::Node *pre =
-//         graph->createNode<preprocess::CvtColorResize>("preprocess");
-//     dag::Node *infer = graph->createInfer<infer::Infer>("infer");
-//     dag::Node *post =
-//         graph->createNode<ClassificationPostProcess>("postprocess");
-
-//     input = pre(input);
-//     input = infer(input);
-//     output = post(input);
-//   }
-
-//   dag::Edge *forward(dag::Edge *input) {
-
-//     static std::once_flag flag;
-//     std::call_once(flag, [this]() {
-//       this->init();
-//     });
-
-//     input = pre(input);
-//     input = infer(input);
-//     output = post(input);
-//     return output;
-//   }
-// };
+REGISTER_NODE("nndeploy::classification::ClassificationPostProcess",
+              ClassificationPostProcess);
+REGISTER_NODE("nndeploy::classification::ClassificationResnetGraph",
+              ClassificationResnetGraph);
 
 }  // namespace classification
 }  // namespace nndeploy

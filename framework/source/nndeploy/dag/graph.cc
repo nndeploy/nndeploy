@@ -96,8 +96,7 @@ Graph::~Graph() {
 
 Edge *Graph::createEdge(const std::string &name) {
   if (used_edge_names_.find(name) != used_edge_names_.end()) {
-    NNDEPLOY_LOGE("edge name[%s] is already used!\n", 
-                  name.c_str());
+    NNDEPLOY_LOGE("edge name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
   Edge *edge = new Edge(name);
@@ -133,8 +132,7 @@ Edge *Graph::getEdge(const std::string &name) {
 EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(edge, "edge is null!");
   if (used_edge_names_.find(edge->getName()) != used_edge_names_.end()) {
-    NNDEPLOY_LOGW("edge name[%s] is already used!\n", 
-                  edge->getName().c_str());
+    NNDEPLOY_LOGW("edge name[%s] is already used!\n", edge->getName().c_str());
   }
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
   edge_wrapper->is_external_ = is_external;
@@ -143,6 +141,39 @@ EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
   edge_repository_.emplace_back(edge_wrapper);
   used_edge_names_.insert(edge->getName());
   return edge_wrapper;
+}
+
+Node *Graph::createNodeByKey(const NodeDesc &desc) {
+  const std::string &name = desc.getName();
+  const std::string &node_key = desc.getKey();
+  std::vector<std::string> input_names = desc.getInputs();
+  std::vector<std::string> output_names = desc.getOutputs();
+  if (used_node_names_.find(name) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
+  if (node == nullptr) {
+    NNDEPLOY_LOGE("create infer node[%s] failed!\n", desc.getName().c_str());
+    return node;
+  }
+  return node;
 }
 
 // base::Status Graph::addNode(Node *node) {
@@ -175,12 +206,12 @@ base::Status Graph::addNode(Node *node, bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
   if (this == node) {
     NNDEPLOY_LOGE("Graph[%s] cannot add itself as node\n",
-                   this->getName().c_str());
+                  this->getName().c_str());
     return base::kStatusCodeErrorInvalidValue;
   }
   if (used_node_names_.find(node->getName()) != used_node_names_.end()) {
-    NNDEPLOY_LOGW("Warning: node name[%s] is already used!\n", 
-                   node->getName().c_str());
+    NNDEPLOY_LOGW("Warning: node name[%s] is already used!\n",
+                  node->getName().c_str());
   }
   base::Status status = base::kStatusCodeOk;
   NodeWrapper *node_wrapper = new NodeWrapper();
@@ -224,6 +255,12 @@ base::Param *Graph::getNodeParam(const std::string &node_name) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(node_wrapper, "node_wrapper is null!");
   return node_wrapper->node_->getParam();
 }
+
+void Graph::setGraphNodeShareStream(bool flag) {
+  is_graph_node_share_stream_ = flag;
+}
+
+bool Graph::getGraphNodeShareStream() { return is_graph_node_share_stream_; }
 
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
@@ -384,6 +421,17 @@ base::Status Graph::construct() {
     }
   }
 
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+  // TODO: 是否需要延迟到executor阶段？
+  if (is_graph_node_share_stream_ &&
+      parallel_type_ != base::kParallelTypePipeline) {
+    for (auto node_wrapper : node_repository_) {
+      node_wrapper->node_->setStream(stream_);
+    }
+  }
+
   // NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
 
   return status;
@@ -415,6 +463,8 @@ base::Status Graph::executor() {
   }
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
 
+  executor_->setStream(stream_);
+
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("executor init\n");
   // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
@@ -429,6 +479,8 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
   return status;
 }
+
+REGISTER_NODE("nndeploy::dag::Graph", Graph);
 
 std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap() {
   static std::once_flag once;

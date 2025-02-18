@@ -11,7 +11,14 @@ Inference::Inference(base::InferenceType type) {
   inference_param_ = createInferenceParam(type);
 }
 
-Inference::~Inference() { delete inference_param_; }
+Inference::~Inference() {
+  delete inference_param_;
+  inference_param_ = nullptr;
+  if (!is_external_stream_ && stream_ != nullptr) {
+    device::destroyStream(stream_);
+    stream_ = nullptr;
+  }
+}
 
 base::InferenceType Inference::getInferenceType() { return type_; }
 
@@ -22,6 +29,16 @@ base::Status Inference::setParam(base::Param *param) {
 base::Param *Inference::getParam() {
   return dynamic_cast<base::Param *>(inference_param_);
 }
+
+void Inference::setStream(device::Stream *stream) {
+  if (stream_ != nullptr) {
+    device::destroyStream(stream_);
+  }
+  stream_ = stream;
+  is_external_stream_ = true;
+}
+
+device::Stream *Inference::getStream() { return stream_; }
 
 base::ShapeMap Inference::getMinShape() { return inference_param_->min_shape_; }
 base::ShapeMap Inference::getOptShape() { return inference_param_->opt_shape_; }
@@ -52,7 +69,8 @@ bool Inference::isBatch() {
   }
   return is_batch;
 }
-bool Inference::isShareCommanQueue() { return is_share_command_queue_; }
+bool Inference::isShareContext() { return is_share_context_; }
+bool Inference::isShareStream() { return is_external_stream_; }
 bool Inference::isInputDynamic() {
   bool is_input_dynamic = false;
   for (auto iter : input_tensors_) {
@@ -83,7 +101,7 @@ bool Inference::isOutputDynamic() {
 }
 bool Inference::canOpInput() {
   bool can_op_input_ = true;
-  if (is_share_command_queue_) {
+  if (is_share_context_) {
     for (auto iter : input_tensors_) {
       device::Tensor *input_tensor = iter.second;
       if (input_tensor->empty()) {
@@ -98,7 +116,7 @@ bool Inference::canOpInput() {
 }
 bool Inference::canOpOutput() {
   bool can_op_output = true;
-  if (is_share_command_queue_) {
+  if (is_share_context_) {
     for (auto iter : output_tensors_) {
       device::Tensor *output_tensor = iter.second;
       if (output_tensor->empty()) {
@@ -330,8 +348,8 @@ base::Status Inference::setInputTensor(const std::string &name,
 //   return status;
 // }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>>

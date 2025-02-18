@@ -12,6 +12,12 @@ SnpeInference::~SnpeInference() {}
 base::Status SnpeInference::init() {
   base::Status status = base::kStatusCodeOk;
 
+  // if (device::isHostDeviceType(inference_param_->device_type_)) {
+  //   is_share_context_ = true;
+  // } else {
+  //   is_share_context_ = false;
+  // }
+
   SnpeInferenceParam* snpe_inference_param =
       dynamic_cast<SnpeInferenceParam*>(inference_param_);
 

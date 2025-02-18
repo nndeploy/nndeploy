@@ -11,6 +11,7 @@ namespace inference {
 class TvmInferenceParam : public InferenceParam {
  public:
   TvmInferenceParam();
+  TvmInferenceParam(base::InferenceType type);
   virtual ~TvmInferenceParam();
 
   TvmInferenceParam(const TvmInferenceParam &param) = default;

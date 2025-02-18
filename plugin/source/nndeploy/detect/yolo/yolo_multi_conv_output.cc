@@ -26,9 +26,6 @@
 namespace nndeploy {
 namespace detect {
 
-dag::TypeGraphRegister g_register_yolov5_multi_conv_output_graph(
-    NNDEPLOY_YOLOV5_MULTI_CONV_OUTPUT, createYoloV5MultiConvOutputGraph);
-
 static inline float sigmoid(float x) {
   return static_cast<float>(1.f / (1.f + exp(-x)));
 }
@@ -200,18 +197,20 @@ dag::Graph *createYoloV5MultiConvOutputGraph(
     base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
     base::ModelType model_type, bool is_path,
     std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Graph *graph = new dag::Graph(name, {input}, {output});
   dag::Edge *infer_input = graph->createEdge("images");
   dag::Edge *edge_stride_8 = graph->createEdge("output0");   // [1, 80, 80, 255]
   dag::Edge *edge_stride_16 = graph->createEdge("output1");  // [1, 40, 40, 255]
   dag::Edge *edge_stride_32 = graph->createEdge("output2");  // [1, 20, 20, 255]
 
   dag::Node *pre = graph->createNode<preprocess::WarpaffinePreprocess>(
-      "preprocess", input, infer_input);
+      "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createInfer<infer::Infer>(
-      "infer", inference_type, {infer_input},
-      {edge_stride_8, edge_stride_16, edge_stride_32});
+  infer::Infer *infer =
+      dynamic_cast<infer::Infer *>(graph->createNode<infer::Infer>(
+          "infer", {infer_input},
+          {edge_stride_8, edge_stride_16, edge_stride_32}));
+  infer->setInferenceType(inference_type);
 
   dag::Node *post = graph->createNode<YoloMultiConvOutputPostProcess>(
       "postprocess", {input, edge_stride_8, edge_stride_16, edge_stride_32},
@@ -242,13 +241,30 @@ dag::Graph *createYoloV5MultiConvOutputGraph(
   inference_param->model_value_ = model_value;
   inference_param->device_type_ = device_type;
 
-  inference_param->runtime_ = "dsp";
-  inference_param->perf_mode_ = 5;
-  inference_param->profiling_level_ = 0;
-  inference_param->buffer_type_ = 0;
-  inference_param->input_names_ = {"images"};
-  inference_param->output_tensor_names_ = {"output0", "output1", "output2"};
-  inference_param->output_layer_names_ = {"Conv_199", "Conv_200", "Conv_201"};
+  // inference_param->runtime_ = "dsp";
+  base::Any runtime = "dsp";
+  inference_param->set("runtime", runtime);
+  // inference_param->perf_mode_ = 5;
+  base::Any perf_mode = 5;
+  inference_param->set("perf_mode", perf_mode);
+  // inference_param->profiling_level_ = 0;
+  base::Any profiling_level = 0;
+  inference_param->set("profiling_level", profiling_level);
+  // inference_param->buffer_type_ = 0;
+  base::Any buffer_type = 0;
+  inference_param->set("buffer_type", buffer_type);
+  // inference_param->input_names_ = {"images"};
+  base::Any input_names = std::vector<std::string>{"images"};
+  inference_param->set("input_names", input_names);
+  // inference_param->output_tensor_names_ = {"output0", "output1", "output2"};
+  base::Any output_tensor_names =
+      std::vector<std::string>{"output0", "output1", "output2"};
+  inference_param->set("output_tensor_names", output_tensor_names);
+  // inference_param->output_layer_names_ = {"Conv_199", "Conv_200",
+  // "Conv_201"};
+  base::Any output_layer_names =
+      std::vector<std::string>{"Conv_199", "Conv_200", "Conv_201"};
+  inference_param->set("output_layer_names", output_layer_names);
 
   // TODO: 很多信息可以从 preprocess 和 infer 中获取
   YoloMultiConvOutputPostParam *post_param =
@@ -262,6 +278,11 @@ dag::Graph *createYoloV5MultiConvOutputGraph(
 
   return graph;
 }
+
+REGISTER_NODE("nndeploy::detect::yolo::YoloMultiConvOutputPostProcess",
+              YoloMultiConvOutputPostProcess);
+REGISTER_NODE("nndeploy::detect::yolo::YoloMultiConvOutputGraph",
+              YoloMultiConvOutputGraph);
 
 }  // namespace detect
 }  // namespace nndeploy

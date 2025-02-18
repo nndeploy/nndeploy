@@ -6,6 +6,9 @@ namespace inference {
 
 InferenceParam::InferenceParam() : base::Param() {}
 
+InferenceParam::InferenceParam(base::InferenceType type)
+    : base::Param(), inference_type_(type) {}
+
 // InferenceParam::InferenceParam(const InferenceParam &param) {}
 // InferenceParam::InferenceParam &operator=(const InferenceParam &param) {}
 
@@ -19,8 +22,8 @@ base::Status InferenceParam::get(const std::string &key, base::Any &any) {
   return base::kStatusCodeOk;
 }
 
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
-    &getGlobalInferenceParamCreatorMap() {
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
+getGlobalInferenceParamCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>>
@@ -36,7 +39,7 @@ InferenceParam *createInferenceParam(base::InferenceType type) {
   InferenceParam *temp = nullptr;
   auto &creater_map = getGlobalInferenceParamCreatorMap();
   if (creater_map.count(type) > 0) {
-    temp = creater_map[type]->createInferenceParam();
+    temp = creater_map[type]->createInferenceParam(type);
   }
   return temp;
 }

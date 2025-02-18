@@ -19,9 +19,13 @@ class AscendCLOpResize : public OpResize {
     auto param = dynamic_cast<ir::ResizeParam*>(op_desc_.op_param_.get());
     mode_ = param->mode_;
 
-    // 流
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     device::Device* device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
+    inner_stream_ =
+        (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
     return base::kStatusCodeOk;
   }
@@ -30,7 +34,7 @@ class AscendCLOpResize : public OpResize {
       aclDestroyFloatArray(scales_);
       scales_ = nullptr;
     }
-    return base::kStatusCodeOk;
+    return Op::deinit();
   }
   virtual base::Status preRun() {
     // 输入输出

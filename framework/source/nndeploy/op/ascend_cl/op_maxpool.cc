@@ -173,9 +173,13 @@ class AscendCLOpMaxPool : public OpMaxPool {
       return base::kStatusCodeErrorOpAscendCL;
     }
 
-    // 流
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     device::Device *device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
+    inner_stream_ =
+        (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
     return base::kStatusCodeOk;
   }
@@ -196,7 +200,7 @@ class AscendCLOpMaxPool : public OpMaxPool {
       aclDestroyIntArray(dilation_);
       dilation_ = nullptr;
     }
-    return base::kStatusCodeOk;
+    return Op::deinit();
   }
   virtual base::Status preRun() {
     // 输入输出

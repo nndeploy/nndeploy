@@ -10,22 +10,22 @@ TypeArchitectureRegister<ArmArchitecture> arm_architecture_register(
     base::kDeviceTypeCodeArm);
 
 ArmArchitecture::ArmArchitecture(base::DeviceTypeCode device_type_code)
-    : Architecture(device_type_code){};
+    : Architecture(device_type_code) {};
 
-ArmArchitecture::~ArmArchitecture(){};
+ArmArchitecture::~ArmArchitecture() {};
 
-base::Status ArmArchitecture::checkDevice(int device_id, void *command_queue,
+base::Status ArmArchitecture::checkDevice(int device_id,
                                           std::string library_path) {
   return base::kStatusCodeOk;
 }
 
-base::Status ArmArchitecture::enableDevice(int device_id, void *command_queue,
+base::Status ArmArchitecture::enableDevice(int device_id,
                                            std::string library_path) {
-  device_id = 0;
+  // device_id = 0;
   std::lock_guard<std::mutex> lock(mutex_);
   if (devices_.find(device_id) == devices_.end()) {
     base::DeviceType device_type(base::kDeviceTypeCodeArm, device_id);
-    ArmDevice *device = new ArmDevice(device_type, command_queue, library_path);
+    ArmDevice *device = new ArmDevice(device_type, library_path);
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr\n");
       return base::kStatusCodeErrorOutOfMemory;
@@ -44,12 +44,12 @@ base::Status ArmArchitecture::enableDevice(int device_id, void *command_queue,
 }
 
 Device *ArmArchitecture::getDevice(int device_id) {
-  device_id = 0;
+  // device_id = 0;
   Device *device = nullptr;
   if (devices_.find(device_id) != devices_.end()) {
     return devices_[device_id];
   } else {
-    base::Status status = this->enableDevice(device_id, nullptr, "");
+    base::Status status = this->enableDevice(device_id, "");
     if (status == base::kStatusCodeOk) {
       device = devices_[device_id];
     } else {
@@ -111,25 +111,8 @@ void ArmDevice::deallocate(void *ptr) {
   free(ptr);
 }
 
-base::Status ArmDevice::copy(void *src, void *dst, size_t size, int index) {
-  if (src != nullptr && dst != nullptr) {
-    memcpy(dst, src, size);
-    return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGE("copy buffer failed\n");
-    return base::kStatusCodeErrorOutOfMemory;
-  }
-}
-base::Status ArmDevice::download(void *src, void *dst, size_t size, int index) {
-  if (src != nullptr && dst != nullptr) {
-    memcpy(dst, src, size);
-    return base::kStatusCodeOk;
-  } else {
-    NNDEPLOY_LOGE("copy buffer failed\n");
-    return base::kStatusCodeErrorOutOfMemory;
-  }
-}
-base::Status ArmDevice::upload(void *src, void *dst, size_t size, int index) {
+base::Status ArmDevice::copy(void *src, void *dst, size_t size,
+                             Stream *stream) {
   if (src != nullptr && dst != nullptr) {
     memcpy(dst, src, size);
     return base::kStatusCodeOk;
@@ -139,7 +122,29 @@ base::Status ArmDevice::upload(void *src, void *dst, size_t size, int index) {
   }
 }
 
-base::Status ArmDevice::copy(Buffer *src, Buffer *dst, int index) {
+base::Status ArmDevice::download(void *src, void *dst, size_t size,
+                                 Stream *stream) {
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst, src, size);
+    return base::kStatusCodeOk;
+  } else {
+    NNDEPLOY_LOGE("download buffer failed\n");
+    return base::kStatusCodeErrorOutOfMemory;
+  }
+}
+
+base::Status ArmDevice::upload(void *src, void *dst, size_t size,
+                               Stream *stream) {
+  if (src != nullptr && dst != nullptr) {
+    memcpy(dst, src, size);
+    return base::kStatusCodeOk;
+  } else {
+    NNDEPLOY_LOGE("upload buffer failed\n");
+    return base::kStatusCodeErrorOutOfMemory;
+  }
+}
+
+base::Status ArmDevice::copy(Buffer *src, Buffer *dst, Stream *stream) {
   size_t dst_size = dst->getSize();
   size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
@@ -151,7 +156,8 @@ base::Status ArmDevice::copy(Buffer *src, Buffer *dst, int index) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status ArmDevice::download(Buffer *src, Buffer *dst, int index) {
+
+base::Status ArmDevice::download(Buffer *src, Buffer *dst, Stream *stream) {
   size_t dst_size = dst->getSize();
   size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);
@@ -163,7 +169,8 @@ base::Status ArmDevice::download(Buffer *src, Buffer *dst, int index) {
     return base::kStatusCodeErrorOutOfMemory;
   }
 }
-base::Status ArmDevice::upload(Buffer *src, Buffer *dst, int index) {
+
+base::Status ArmDevice::upload(Buffer *src, Buffer *dst, Stream *stream) {
   size_t dst_size = dst->getSize();
   size_t src_size = src->getSize();
   size_t size = std::min(dst_size, src_size);

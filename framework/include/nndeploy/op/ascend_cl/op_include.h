@@ -9,6 +9,7 @@
 #include "acl/acl_op_compiler.h"
 #include "aclnn/acl_meta.h"
 #include "aclnnop/aclnn_all.h"
+#include "nndeploy/device/ascend_cl/ascend_cl_device.h"
 #include "nndeploy/device/ascend_cl/ascend_cl_include.h"
 
 #endif /* _NNDEPLOY_OP_ASCEND_CL_OP_INCLUDE_H_ */

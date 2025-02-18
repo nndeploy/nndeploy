@@ -19,13 +19,17 @@ class AscendCLOpSoftmax : public OpSoftmax {
     ir::SoftmaxParam* param = (ir::SoftmaxParam*)op_desc_.op_param_.get();
     dim_ = (int64_t)param->axis_;
 
-    // 流
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     device::Device* device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
+    inner_stream_ =
+        (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
     return base::kStatusCodeOk;
   }
-  virtual base::Status deinit() { return base::kStatusCodeOk; }
+  virtual base::Status deinit() { return Op::deinit(); }
   virtual base::Status preRun() {
     // 输入输出
     if (inner_input_ == nullptr) {
@@ -41,9 +45,11 @@ class AscendCLOpSoftmax : public OpSoftmax {
     if (executor_ == nullptr) {
       aclnnStatus aclnn_status = aclnnSoftmaxGetWorkspaceSize(
           inner_input_, dim_, inner_output_, &workspace_size_, &executor_);
-      NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                   base::kStatusCodeErrorOpAscendCL,
-                                   "aclnnSoftmaxGetWorkspaceSize failed.");
+      if (aclnn_status != ACL_SUCCESS) {
+        NNDEPLOY_LOGE("aclnnSoftmaxGetWorkspaceSize failed, error code: %d.\n",
+                      aclnn_status);
+        return base::kStatusCodeErrorOpAscendCL;
+      }
     }
     return base::kStatusCodeOk;
   }
@@ -51,9 +57,10 @@ class AscendCLOpSoftmax : public OpSoftmax {
     // 输入输出
     aclnnStatus aclnn_status =
         aclnnSoftmax(workspace_, workspace_size_, executor_, inner_stream_);
-    NNDEPLOY_RETURN_VALUE_ON_NEQ(aclnn_status, ACL_SUCCESS,
-                                 base::kStatusCodeErrorOpAscendCL,
-                                 "aclnnSoftmax failed.");
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnSoftmax failed, error code: %d.\n", aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
 
     return base::kStatusCodeOk;
   }

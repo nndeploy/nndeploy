@@ -63,5 +63,7 @@ base::Status CvtColorResize::run() {
   return base::kStatusCodeOk;
 }
 
+REGISTER_NODE("nndeploy::preprocess::CvtColorResize", CvtColorResize);
+
 }  // namespace preprocess
 }  // namespace nndeploy

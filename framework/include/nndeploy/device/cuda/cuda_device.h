@@ -1,5 +1,3 @@
-
-
 #ifndef _NNDEPLOY_DEVICE_CUDA_DEVICE_H_
 #define _NNDEPLOY_DEVICE_CUDA_DEVICE_H_
 
@@ -29,13 +27,11 @@ class CudaArchitecture : public Architecture {
    * exists, mainly serving GPU devices
    *
    * @param device_id - device id
-   * @param command_queue - command_queue (corresponding to stream under CUDA,
-   * corresponding to cl::command_queue under OpenCL)
    * @param library_path - Mainly serving OpenCL, using the OpenCL dynamic
    * library provided by the user
    * @return base::Status
    */
-  virtual base::Status checkDevice(int device_id, void *command_queue = nullptr,
+  virtual base::Status checkDevice(int device_id = 0,
                                    std::string library_path = "") override;
 
   /**
@@ -43,14 +39,11 @@ class CudaArchitecture : public Architecture {
    * serving GPU devices
    *
    * @param device_id - device id
-   * @param command_queue - command_queue (corresponding to stream under CUDA,
-   * corresponding to cl::command_queue under OpenCL)
    * @param library_path - Mainly serving OpenCL, using the OpenCL dynamic
    * library provided by the user
    * @return base::Status
    */
-  virtual base::Status enableDevice(int device_id,
-                                    void *command_queue = nullptr,
+  virtual base::Status enableDevice(int device_id = 0,
                                     std::string library_path = "") override;
 
   /**
@@ -69,12 +62,6 @@ class CudaArchitecture : public Architecture {
    */
   virtual std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") override;
-};
-
-class CudaStreamWrapper {
- public:
-  void *external_command_queue_ = nullptr;
-  cudaStream_t stream_;
 };
 
 /**
@@ -97,14 +84,19 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
 
   virtual void deallocate(void *ptr);
 
-  virtual base::Status copy(void *src, void *dst, size_t size, int index = 0);
+  virtual base::Status copy(void *src, void *dst, size_t size,
+                            Stream *stream = nullptr) override;
   virtual base::Status download(void *src, void *dst, size_t size,
-                                int index = 0);
-  virtual base::Status upload(void *src, void *dst, size_t size, int index = 0);
+                                Stream *stream = nullptr) override;
+  virtual base::Status upload(void *src, void *dst, size_t size,
+                              Stream *stream = nullptr) override;
 
-  virtual base::Status copy(Buffer *src, Buffer *dst, int index = 0);
-  virtual base::Status download(Buffer *src, Buffer *dst, int index = 0);
-  virtual base::Status upload(Buffer *src, Buffer *dst, int index = 0);
+  virtual base::Status copy(Buffer *src, Buffer *dst,
+                            Stream *stream = nullptr) override;
+  virtual base::Status download(Buffer *src, Buffer *dst,
+                                Stream *stream = nullptr) override;
+  virtual base::Status upload(Buffer *src, Buffer *dst,
+                              Stream *stream = nullptr) override;
 
   // TODO: map/unmap
   // virtual Buffer* map(Buffer* src);
@@ -115,36 +107,32 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
 
   virtual void *getContext();
 
-  virtual int newCommandQueue();
-  virtual base::Status deleteCommandQueue(int index);
-  virtual base::Status deleteCommandQueue(void *command_queue);
-  virtual int setCommandQueue(void *command_queue, bool is_external = true);
+  // stream
+  virtual Stream *createStream();
+  virtual Stream *createStream(void *stream);
+  virtual base::Status destroyStream(Stream *stream);
 
-  virtual void *getCommandQueue(int index = 0);
+  // event
+  virtual Event *createEvent();
+  virtual base::Status destroyEvent(Event *event);
+  virtual base::Status createEvents(Event **events, size_t count);
+  virtual base::Status destroyEvents(Event **events, size_t count);
 
-  virtual base::Status synchronize(int index = 0);
-
- protected:
+ public:
   /**
    * @brief Construct a new Cuda Device object
    *
    * @param device_type
-   * @param command_queue
+   * @param stream
    * @param library_path
    */
-  CudaDevice(base::DeviceType device_type, void *command_queue = nullptr,
-             std::string library_path = "")
-      : Device(device_type) {
-    CudaStreamWrapper cuda_stream_wrapper;
-    cuda_stream_wrapper.external_command_queue_ = command_queue;
-    cuda_stream_wrapper.stream_ = (cudaStream_t)command_queue;
-    insertStream(stream_index_, cuda_stream_wrapper_, cuda_stream_wrapper);
-  };
+  CudaDevice(base::DeviceType device_type, std::string library_path = "")
+      : Device(device_type) {};
   /**
    * @brief Destroy the Cuda Device object
    *
    */
-  virtual ~CudaDevice(){};
+  virtual ~CudaDevice() {};
 
   /**
    * @brief init
@@ -158,10 +146,38 @@ class NNDEPLOY_CC_API CudaDevice : public Device {
    * @return base::Status
    */
   virtual base::Status deinit();
+};
+
+class CudaStream : public Stream {
+ public:
+  CudaStream(Device *device);
+  CudaStream(Device *device, void *stream);
+  virtual ~CudaStream();
+
+  virtual base::Status synchronize();
+  virtual base::Status recordEvent(Event *event);
+  virtual base::Status waitEvent(Event *event);
+
+  virtual void *getCommandQueue();
+
+  cudaStream_t getStream();
 
  private:
-  int stream_index_ = 0;
-  std::map<int, CudaStreamWrapper> cuda_stream_wrapper_;
+  cudaStream_t stream_;
+};
+
+class CudaEvent : public Event {
+ public:
+  CudaEvent(Device *device);
+  virtual ~CudaEvent();
+
+  virtual bool queryDone();
+  virtual base::Status synchronize();
+
+  cudaEvent_t getEvent();
+
+ protected:
+  cudaEvent_t event_;
 };
 
 }  // namespace device

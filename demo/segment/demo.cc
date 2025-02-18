@@ -6,7 +6,8 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/framework.h"
 #include "nndeploy/segment/result.h"
-#include "nndeploy/segment/segment_anything/sam.h"
+// #include "nndeploy/segment/segment_anything/sam.h"
+#include "nndeploy/segment/rmbg/rmbg.h"
 
 using namespace nndeploy;
 
@@ -96,35 +97,41 @@ int main(int argc, char *argv[]) {
   // base::kParallelTypePipeline
   // base::ParallelType pt = base::kParallelTypePipeline;
   base::ParallelType pt = base::kParallelTypeSequential;
-
-  // graph
-  dag::Graph *graph = new dag::Graph("demo", nullptr, nullptr);
-  if (graph == nullptr) {
-    NNDEPLOY_LOGE("graph is nullptr");
-    return -1;
-  }
+  std::vector<std::string> model_inputs = demo::getModelInputs();
+  NNDEPLOY_LOGE("model_inputs = %s.\n", model_inputs[0].c_str());
+  std::vector<std::string> model_outputs = demo::getModelOutputs();
+  NNDEPLOY_LOGE("model_outputs = %s.\n", model_outputs[0].c_str());
 
   // 有向无环图graph的输入边packert
   dag::Edge input("segment_in");
   // 有向无环图graph的输出边packert
   dag::Edge output("segment_out");
 
-  // 创建检测模型有向无环图graph
-  dag::Graph *segment_graph =
-      dag::createGraph(name, inference_type, device_type, &input, &output,
-                       model_type, is_path, model_value);
-  if (segment_graph == nullptr) {
-    NNDEPLOY_LOGE("segment_graph is nullptr");
+  // graph
+  dag::Graph *graph = new dag::Graph("demo", {}, {&output});
+  if (graph == nullptr) {
+    NNDEPLOY_LOGE("graph is nullptr");
     return -1;
   }
-
+  segment::SegmentRMBGGraph *segment_graph =
+      new segment::SegmentRMBGGraph(name, {&input}, {&output});
+  dag::NodeDesc pre_desc("preprocess", {"segment_in"}, model_inputs);
+  dag::NodeDesc infer_desc("infer", model_inputs, model_outputs);
+  std::vector<std::string> post_inputs;
+  post_inputs.push_back("segment_in");
+  for (const auto &output : model_outputs) {
+    post_inputs.push_back(output);
+  }
+  dag::NodeDesc post_desc("postprocess", post_inputs, {"segment_out"});
+  segment_graph->make(pre_desc, infer_desc, inference_type, post_desc);
+  segment_graph->setInferParam(device_type, model_type, is_path, model_value);
+  // segment_graph->setVersion(version);
+  // segment_graph->setTimeProfileFlag(true);
   graph->addNode(segment_graph);
 
   // 解码节点
   codec::DecodeNode *decode_node = codec::createDecodeNode(
       base::kCodecTypeOpenCV, codec_flag, "decode_node", &input);
-
-  decode_node->setPath(input_path);
   graph->addNode(decode_node);
 
   // draw mask
@@ -135,7 +142,6 @@ int main(int argc, char *argv[]) {
   // 编码节点
   codec::EncodeNode *encode_node = codec::createEncodeNode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_mask);
-  encode_node->setPath(ouput_path);
   graph->addNode(encode_node);
 
   base::Status status = graph->setParallelType(pt);
@@ -145,6 +151,7 @@ int main(int argc, char *argv[]) {
   }
 
   graph->setTimeProfileFlag(true);
+  // graph->setDebugFlag(true);
 
   // 初始化有向无环图graph
   NNDEPLOY_TIME_POINT_START("graph->init()");
@@ -160,10 +167,10 @@ int main(int argc, char *argv[]) {
 
   // 有向无环图Graphz运行
   NNDEPLOY_TIME_POINT_START("graph->run()");
+  decode_node->setPath(input_path);
+  encode_node->setRefPath(input_path);
+  encode_node->setPath(ouput_path);
   int size = decode_node->getSize();
-  // for (int i = 0; i < size; ++i) {
-  //   graph->run();
-  // }
   size = 100;
   decode_node->setSize(size);
   NNDEPLOY_LOGE("size = %d.\n", size);
@@ -202,11 +209,11 @@ int main(int argc, char *argv[]) {
 
   NNDEPLOY_TIME_PROFILER_PRINT("segment time profiler");
 
-  // 有向无环图graphz销毁
-  delete graph;
+  // 有向无环图graph销毁
+  delete encode_node;
+  delete decode_node;
   delete segment_graph;
-
-  NNDEPLOY_LOGE("hello world!\n");
+  delete graph;
 
   ret = nndeployFrameworkDeinit();
   if (ret != 0) {

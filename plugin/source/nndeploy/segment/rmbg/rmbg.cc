@@ -76,22 +76,27 @@ dag::Graph *createRMBGGraph(const std::string &name,
                             dag::Edge *output, base::ModelType model_type,
                             bool is_path,
                             std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Graph *graph = new dag::Graph(name, {input}, {output});
   dag::Edge *infer_input = graph->createEdge("input");
   dag::Edge *infer_output = graph->createEdge("output");
 
   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", input, infer_input);
+      "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createInfer<infer::Infer>(
-      "infer", inference_type, infer_input, infer_output);
+  infer::Infer *infer = dynamic_cast<infer::Infer *>(
+      graph->createNode<infer::Infer>("infer", {infer_input}, {infer_output}));
+  if (infer == nullptr) {
+    NNDEPLOY_LOGE("Failed to create inference node");
+    return nullptr;
+  }
+  infer->setInferenceType(inference_type);
 
   dag::Node *post = graph->createNode<RMBGPostProcess>(
       "postprocess", {input, infer_output}, {output});
 
   preprocess::CvtclorResizeParam *pre_param =
       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
-  pre_param->src_pixel_type_ = base::kPixelTypeRGB;
+  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
   pre_param->h_ = 1024;
@@ -114,6 +119,9 @@ dag::Graph *createRMBGGraph(const std::string &name,
 
   return graph;
 }
+
+REGISTER_NODE("nndeploy::segment::RMBGPostProcess", RMBGPostProcess);
+REGISTER_NODE("nndeploy::segment::SegmentRMBGGraph", SegmentRMBGGraph);
 
 }  // namespace segment
 }  // namespace nndeploy

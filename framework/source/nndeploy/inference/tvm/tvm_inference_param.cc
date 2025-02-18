@@ -10,6 +10,14 @@ TvmInferenceParam::TvmInferenceParam() : InferenceParam() {
   device_type_ = device::getDefaultHostDeviceType();
   num_thread_ = 4;
 }
+
+TvmInferenceParam::TvmInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeTvm;
+  device_type_ = device::getDefaultHostDeviceType();
+  num_thread_ = 4;
+}
+
 TvmInferenceParam::~TvmInferenceParam() {}
 
 base::Status TvmInferenceParam::set(const std::string &key, base::Any &any) {

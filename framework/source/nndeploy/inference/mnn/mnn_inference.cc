@@ -18,9 +18,9 @@ base::Status MnnInference::init() {
   base::Status status = base::kStatusCodeOk;
 
   if (device::isHostDeviceType(inference_param_->device_type_)) {
-    is_share_command_queue_ = true;
+    is_share_context_ = true;
   } else {
-    is_share_command_queue_ = false;
+    is_share_context_ = false;
   }
 
   if (inference_param_->is_path_) {
@@ -264,7 +264,7 @@ device::Tensor *MnnInference::getOutputTensorAfterRun(
   }
   bool can_op_flag = internal_tensor->getDimensionType() !=
                      MNN::Tensor::DimensionType::CAFFE_C4;
-  can_op_flag = can_op_flag && is_share_command_queue_;
+  can_op_flag = can_op_flag && is_share_context_;
   device::Device *device = device::getDefaultHostDevice();
   if (is_copy || !can_op_flag) {
     device::TensorDesc desc = this->getInputTensorAlignDesc(name);

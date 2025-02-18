@@ -19,9 +19,9 @@ base::Status TnnInference::init() {
   TnnInferenceParam *tnn_inference_param =
       dynamic_cast<TnnInferenceParam *>(inference_param_);
   if (device::isHostDeviceType(inference_param_->device_type_)) {
-    is_share_command_queue_ = true;
+    is_share_context_ = true;
   } else {
-    is_share_command_queue_ = false;
+    is_share_context_ = false;
   }
 
   status = TnnConvert::convertFromInferenceParam(

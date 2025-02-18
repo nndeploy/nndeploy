@@ -22,6 +22,7 @@ namespace inference {
 class NNDEPLOY_CC_API InferenceParam : public base::Param {
  public:
   InferenceParam();
+  InferenceParam(base::InferenceType type);
   virtual ~InferenceParam();
 
   InferenceParam(const InferenceParam &param) = default;
@@ -47,6 +48,7 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
    */
   virtual base::Status get(const std::string &key, base::Any &any);
 
+  base::InferenceType inference_type_ = base::kInferenceTypeNone;
   base::ModelType model_type_;            // 模型的类型
   bool is_path_ = true;                   // model_value_是否为路径
   std::vector<std::string> model_value_;  // 模型的路径或者内容
@@ -67,15 +69,6 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
   std::vector<std::string> cache_path_;          // 缓存路径
   std::vector<std::string> library_path_;  // 第三方推理框架的动态库路径
-
-  // new feature
-  std::string runtime_;
-  int32_t perf_mode_;
-  int32_t profiling_level_;
-  int32_t buffer_type_;
-  std::vector<std::string> input_names_;
-  std::vector<std::string> output_tensor_names_;
-  std::vector<std::string> output_layer_names_;
 };
 
 /**
@@ -85,8 +78,8 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
  */
 class InferenceParamCreator {
  public:
-  virtual ~InferenceParamCreator(){};
-  virtual InferenceParam *createInferenceParam() = 0;
+  virtual ~InferenceParamCreator() {};
+  virtual InferenceParam *createInferenceParam(base::InferenceType type) = 0;
 };
 
 /**
@@ -96,7 +89,9 @@ class InferenceParamCreator {
  */
 template <typename T>
 class TypeInferenceParamCreator : public InferenceParamCreator {
-  virtual InferenceParam *createInferenceParam() { return new T(); }
+  virtual InferenceParam *createInferenceParam(base::InferenceType type) {
+    return new T(type);
+  }
 };
 
 /**
@@ -105,8 +100,8 @@ class TypeInferenceParamCreator : public InferenceParamCreator {
  * @return std::map<base::InferenceType,
  * std::shared_ptr<InferenceParamCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>>
-    &getGlobalInferenceParamCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceParamCreator>> &
+getGlobalInferenceParamCreatorMap();
 
 /**
  * @brief TypeInferenceParamRegister is the template class of all inference

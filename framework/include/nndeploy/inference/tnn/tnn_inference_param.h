@@ -11,6 +11,7 @@ namespace inference {
 class TnnInferenceParam : public InferenceParam {
  public:
   TnnInferenceParam();
+  TnnInferenceParam(base::InferenceType type);
   virtual ~TnnInferenceParam();
 
   TnnInferenceParam(const TnnInferenceParam &param) = default;

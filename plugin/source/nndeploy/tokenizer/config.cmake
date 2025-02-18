@@ -6,10 +6,18 @@ set(PLUGIN_OBJECT)
 set(PLUGIN_BINARY nndeploy_plugin_tokenizer)
 
 # SOURCE
-file(GLOB_RECURSE PLUGIN_SOURCE
+file(GLOB PLUGIN_SOURCE
   "${PLUGIN_ROOT_PATH}/include/nndeploy/tokenizer/*.h"
   "${PLUGIN_ROOT_PATH}/source/nndeploy/tokenizer/*.cc"
 )
+
+if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
+  file(GLOB_RECURSE TOKENIZER_CPP_SOURCE
+    "${PLUGIN_ROOT_PATH}/include/nndeploy/tokenizer/tokenizer_cpp/*.h"
+    "${PLUGIN_ROOT_PATH}/source/nndeploy/tokenizer/tokenizer_cpp/*.cc"
+  )
+  set(PLUGIN_SOURCE ${PLUGIN_SOURCE} ${TOKENIZER_CPP_SOURCE})
+endif()
 
 ## TARGET
 add_library(${PLUGIN_BINARY} ${NNDEPLOY_LIB_TYPE} ${PLUGIN_SOURCE} ${PLUGIN_OBJECT})

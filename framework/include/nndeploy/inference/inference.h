@@ -58,6 +58,11 @@ class NNDEPLOY_CC_API Inference {
    */
   base::Param *getParam();
 
+  base::DeviceType getDeviceType() { return inference_param_->device_type_; }
+
+  void setStream(device::Stream *stream);
+  device::Stream *getStream();
+
   /**
    * @brief 初始化推理
    *
@@ -123,12 +128,19 @@ class NNDEPLOY_CC_API Inference {
    * @return bool
    */
   virtual bool isBatch();
+
   /**
-   * @brief 该推理实例是否与nndeploy共享一个command queue
+   * @brief 该推理实例是否与nndeploy共享一个context
    *
    * @return bool
    */
-  virtual bool isShareCommanQueue();
+  virtual bool isShareContext();
+  /**
+   * @brief 该推理实例是否与nndeploy共享一个stream
+   *
+   * @return bool
+   */
+  virtual bool isShareStream();
   /**
    * @brief 是否为动态输入
    *
@@ -327,12 +339,17 @@ class NNDEPLOY_CC_API Inference {
   InferenceParam *inference_param_;
 
   /**
-   * @brief 第三方推理框架是否与nndeploy共用一个command queue
+   * @brief 第三方推理框架是否与应用层共用一个context
    * @details
-   * 在初始化时，如果第三方推理框架与nndeploy共用一个command
-   * queue，需要设置为true，否则设置为false
    */
-  bool is_share_command_queue_ = false;
+  bool is_share_context_ = true;
+
+  /**
+   * @brief 第三方推理框架是否与应用层共用一个stream
+   * @details
+   */
+  bool is_external_stream_ = false;
+  device::Stream *stream_ = nullptr;
 
   /**
    * @brief 输入tensor的map
@@ -363,7 +380,7 @@ class NNDEPLOY_CC_API Inference {
  */
 class InferenceCreator {
  public:
-  virtual ~InferenceCreator(){};
+  virtual ~InferenceCreator() {};
   virtual Inference *createInference(base::InferenceType type) = 0;
 };
 
@@ -384,8 +401,8 @@ class TypeInferenceCreator : public InferenceCreator {
  *
  * @return std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>
-    &getGlobalInferenceCreatorMap();
+std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+getGlobalInferenceCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板

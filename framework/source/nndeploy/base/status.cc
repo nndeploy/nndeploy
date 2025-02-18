@@ -4,11 +4,16 @@
 namespace nndeploy {
 namespace base {
 
+Status::Status() : code_(kStatusCodeOk) {}
 Status::Status(int code) : code_(code) {}
+Status::Status(StatusCode code) : code_(code) {}
 Status::~Status() {}
 
-Status::Status(const Status &other) = default;
-Status &Status::operator=(const Status &other) = default;
+Status::Status(const Status &other) { code_ = other.code_; }
+Status &Status::operator=(const Status &other) {
+  code_ = other.code_;
+  return *this;
+};
 Status &Status::operator=(const StatusCode &other) {
   code_ = other;
   return *this;
@@ -81,16 +86,18 @@ Status Status::operator+(const Status &other) {
 }
 
 std::string Status::desc() const {
-  std::string str;
-  switch (code_) {
-    default:
-      str = std::to_string(static_cast<int>(code_));
-      break;
-  }
+  std::string str = statusCodeToString(static_cast<StatusCode>(code_));
+  // switch (code_) {
+  //   default:
+  //     str = std::to_string(static_cast<int>(code_));
+  //     break;
+  // }
   return str;
 };
 
-StatusCode Status::getStatusCode() { return static_cast<StatusCode>(code_); }
+StatusCode Status::getStatusCode() const {
+  return static_cast<StatusCode>(code_);
+}
 
 std::string statusCodeToString(StatusCode code) {
   switch (code) {

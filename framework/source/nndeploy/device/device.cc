@@ -4,7 +4,7 @@ namespace nndeploy {
 namespace device {
 
 Architecture::Architecture(base::DeviceTypeCode device_type_code)
-    : device_type_code_(device_type_code){};
+    : device_type_code_(device_type_code) {};
 
 Architecture::~Architecture() {
   for (auto iter : devices_) {
@@ -25,12 +25,12 @@ base::Status Architecture::disableDevice() {
   return base::kStatusCodeOk;
 }
 
-base::DeviceTypeCode Architecture::getDeviceTypeCode() {
+base::DeviceTypeCode Architecture::getDeviceTypeCode() const {
   return device_type_code_;
 }
 
-std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>
-    &getArchitectureMap() {
+std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>> &
+getArchitectureMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::DeviceTypeCode, std::shared_ptr<Architecture>>>
@@ -58,49 +58,78 @@ base::DataFormat Device::getDataFormatByShape(const base::IntVector &shape) {
   return base::DataFormat::kDataFormatNotSupport;
 }
 
-void *Device::getContext() {
-  NNDEPLOY_LOGI("this device[%d, %d] no need to get context!\n",
-                device_type_.code_, device_type_.device_id_);
-  return nullptr;
-}
+void *Device::allocatePinned(size_t size) { return nullptr; }
+void *Device::allocatePinned(const BufferDesc &desc) { return nullptr; }
 
-int Device::newCommandQueue() {
-  NNDEPLOY_LOGI("this device[%d, %d] no need to new command queue!\n",
-                device_type_.code_, device_type_.device_id_);
-  return -1;
-}
-base::Status Device::deleteCommandQueue(int index) {
-  NNDEPLOY_LOGI("this device[%d, %d] no need to delete command queue!\n",
-                device_type_.code_, device_type_.device_id_);
-  return base::kStatusCodeOk;
-}
-base::Status Device::deleteCommandQueue(void *command_queue) {
-  NNDEPLOY_LOGI("this device[%d, %d] no need to delete command queue!\n",
-                device_type_.code_, device_type_.device_id_);
-  return base::kStatusCodeOk;
-}
-int Device::setCommandQueue(void *command_queue, bool is_external) {
-  NNDEPLOY_LOGI("this device[%d, %d] no need to set command queue!\n",
-                device_type_.code_, device_type_.device_id_);
-  return -1;
-}
-void *Device::getCommandQueue(int index) {
-  NNDEPLOY_LOGI("this device[%d, %d] no need to get command queue!\n",
-                device_type_.code_, device_type_.device_id_);
-  return nullptr;
-}
-base::Status Device::synchronize(int index) {
-  NNDEPLOY_LOGI("this device[%d, %d] no need to synchronize!\n",
-                device_type_.code_, device_type_.device_id_);
+void Device::deallocatePinned(void *ptr) { return; }
+
+void *Device::getContext() { return nullptr; }
+
+Stream *Device::createStream() { return nullptr; }
+Stream *Device::createStream(void *stream) { return nullptr; }
+base::Status Device::destroyStream(Stream *stream) {
   return base::kStatusCodeOk;
 }
 
-base::DeviceType Device::getDeviceType() { return device_type_; }
+Event *Device::createEvent() { return nullptr; }
+base::Status Device::destroyEvent(Event *event) { return base::kStatusCodeOk; }
+base::Status Device::createEvents(Event **events, size_t count) {
+  return base::kStatusCodeOk;
+}
+base::Status Device::destroyEvents(Event **events, size_t count) {
+  return base::kStatusCodeOk;
+}
+
+base::DeviceType Device::getDeviceType() const { return device_type_; }
+
+// Stream
+Stream::Stream(Device *device) : device_(device) {}
+
+Stream::Stream(Device *device, void *stream)
+    : device_(device), is_external_(true) {}
+
+Stream::~Stream() {}
+
+base::DeviceType Stream::getDeviceType() const {
+  return device_->getDeviceType();
+}
+
+Device *Stream::getDevice() const { return device_; }
+
+base::Status Stream::synchronize() { return base::kStatusCodeOk; }
+
+base::Status Stream::recordEvent(Event *event) { return base::kStatusCodeOk; }
+
+base::Status Stream::waitEvent(Event *event) { return base::kStatusCodeOk; }
+
+base::Status Stream::onExecutionContextSetup() { return base::kStatusCodeOk; }
+
+base::Status Stream::onExecutionContextTeardown() {
+  return base::kStatusCodeOk;
+}
+
+void *Stream::getCommandQueue() { return nullptr; }
+
+// Event
+Event::Event(Device *device) : device_(device) {}
+
+Event::~Event() {}
+
+base::DeviceType Event::getDeviceType() const {
+  return device_->getDeviceType();
+}
+
+Device *Event::getDevice() const { return device_; }
+
+bool Event::queryDone() { return true; }
+
+base::Status Event::synchronize() { return base::kStatusCodeOk; }
 
 Architecture *getArchitecture(base::DeviceTypeCode type) {
   auto arch_map = getArchitectureMap();
   auto arch = arch_map.find(type);
   if (arch == arch_map.end()) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n", type);
     return nullptr;
   } else {
     return arch->second.get();
@@ -133,18 +162,26 @@ bool isHostDeviceType(base::DeviceType device_type) {
          device_type.code_ == base::kDeviceTypeCodeArm;
 }
 
-base::Status checkDevice(base::DeviceType device_type, void *command_queue,
+base::Status checkDevice(base::DeviceType device_type,
                          std::string library_path) {
   Architecture *architecture = getArchitecture(device_type.code_);
-  return architecture->checkDevice(device_type.device_id_, command_queue,
-                                   library_path);
+  if (architecture == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
+                  device_type.code_);
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  return architecture->checkDevice(device_type.device_id_, library_path);
 }
 
-base::Status enableDevice(base::DeviceType device_type, void *command_queue,
+base::Status enableDevice(base::DeviceType device_type,
                           std::string library_path) {
   Architecture *architecture = getArchitecture(device_type.code_);
-  return architecture->enableDevice(device_type.device_id_, command_queue,
-                                    library_path);
+  if (architecture == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
+                  device_type.code_);
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  return architecture->enableDevice(device_type.device_id_, library_path);
 }
 
 Device *getDevice(base::DeviceType device_type) {
@@ -157,9 +194,96 @@ Device *getDevice(base::DeviceType device_type) {
   return architecture->getDevice(device_type.device_id_);
 }
 
+Stream *createStream(base::DeviceType device_type) {
+  Device *device = getDevice(device_type);
+  if (device == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
+                  device_type.code_);
+    return nullptr;
+  }
+  return device->createStream();
+}
+Stream *createStream(base::DeviceType device_type, void *stream) {
+  Device *device = getDevice(device_type);
+  if (device == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
+                  device_type.code_);
+    return nullptr;
+  }
+  return device->createStream(stream);
+}
+
+base::Status destroyStream(Stream *stream) {
+  if (stream == nullptr) {
+    NNDEPLOY_LOGE("Stream is nullptr\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  Device *device = stream->getDevice();
+  if (device == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
+                  stream->getDeviceType().code_);
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  return device->destroyStream(stream);
+}
+
+Event *createEvent(base::DeviceType device_type) {
+  Device *device = getDevice(device_type);
+  if (device == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
+                  device_type.code_);
+    return nullptr;
+  }
+  return device->createEvent();
+}
+
+base::Status destroyEvent(Event *event) {
+  if (event == nullptr) {
+    NNDEPLOY_LOGE("Event is nullptr\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  Device *device = event->getDevice();
+  if (device == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
+                  event->getDeviceType().code_);
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  return device->destroyEvent(event);
+}
+
+base::Status createEvents(base::DeviceType device_type, Event **events,
+                          size_t count) {
+  Device *device = getDevice(device_type);
+  if (device == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
+                  device_type.code_);
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  return device->createEvents(events, count);
+}
+
+base::Status destroyEvents(base::DeviceType device_type, Event **events,
+                           size_t count) {
+  if (events == nullptr || count == 0) {
+    NNDEPLOY_LOGE("Events is nullptr or count is 0\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  Device *device = getDevice(device_type);
+  if (device == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n",
+                  device_type.code_);
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  return device->destroyEvents(events, count);
+}
+
 std::vector<DeviceInfo> getDeviceInfo(base::DeviceTypeCode type,
                                       std::string library_path) {
   Architecture *architecture = getArchitecture(type);
+  if (architecture == nullptr) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n", type);
+    return std::vector<DeviceInfo>();
+  }
   return architecture->getDeviceInfo(library_path);
 }
 

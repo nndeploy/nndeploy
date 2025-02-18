@@ -12,6 +12,7 @@ namespace inference {
 class CoremlInferenceParam : public InferenceParam {
  public:
   CoremlInferenceParam();
+  CoremlInferenceParam(base::InferenceType type);
   virtual ~CoremlInferenceParam();
 
   CoremlInferenceParam(const CoremlInferenceParam &param) = default;

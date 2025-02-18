@@ -48,6 +48,10 @@ DEFINE_string(cache_path, "", "cache_path");
 
 DEFINE_string(library_path, "", "library_path");
 
+DEFINE_string(model_inputs, "", "model_inputs");
+
+DEFINE_string(model_outputs, "", "model_outputs");
+
 void showUsage() {
   std::cout << "Usage: " << std::endl;
   std::cout << "  --name: graph name, eg: yolo_v5_v6_v8" << std::endl;
@@ -91,6 +95,12 @@ void showUsage() {
   std::cout << "  --library_path: library_path, eg: "
                "path/to/opencl.so"
             << std::endl;
+  std::cout << "  --model_inputs: model_inputs, eg: "
+               "input_0,input_1"
+            << std::endl;
+  std::cout << "  --model_outputs: model_outputs, eg: "
+               "output_0,output_1"
+            << std::endl;
 }
 
 std::string getName() { return FLAGS_name; }
@@ -104,7 +114,6 @@ base::DeviceType getDeviceType() {
 }
 
 base::ModelType getModelType() {
-  printf("FLAGS_model_type = %s\n", FLAGS_model_type.c_str());
   return base::stringToModelType(FLAGS_model_type);
 }
 
@@ -191,6 +200,36 @@ std::vector<std::string> getAllFileFromDir(std::string dir_path) {
     nndeploy::base::glob(dir_path, "", allFile);
   }
   return allFile;
+}
+
+std::vector<std::string> getModelInputs() {
+  std::vector<std::string> model_inputs;
+  std::string model_inputs_str = FLAGS_model_inputs;
+  std::string::size_type pos1, pos2;
+  pos2 = model_inputs_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_inputs.emplace_back(model_inputs_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_inputs_str.find(",", pos1);
+  }
+  model_inputs.emplace_back(model_inputs_str.substr(pos1));
+  return model_inputs;
+}
+
+std::vector<std::string> getModelOutputs() {
+  std::vector<std::string> model_outputs;
+  std::string model_outputs_str = FLAGS_model_outputs;
+  std::string::size_type pos1, pos2;
+  pos2 = model_outputs_str.find(",");
+  pos1 = 0;
+  while (std::string::npos != pos2) {
+    model_outputs.emplace_back(model_outputs_str.substr(pos1, pos2 - pos1));
+    pos1 = pos2 + 1;
+    pos2 = model_outputs_str.find(",", pos1);
+  }
+  model_outputs.emplace_back(model_outputs_str.substr(pos1));
+  return model_outputs;
 }
 
 }  // namespace demo

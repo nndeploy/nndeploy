@@ -19,14 +19,33 @@ namespace dag {
 
 class NNDEPLOY_CC_API Executor : public base::NonCopyable {
  public:
-  Executor(){};
-  virtual ~Executor(){};
+  Executor() {};
+  virtual ~Executor() {
+    if (!is_external_stream_ && stream_ != nullptr) {
+      device::destroyStream(stream_);
+      stream_ = nullptr;
+    }
+  };
+
+  void setStream(device::Stream *stream) {
+    if (stream_ != nullptr) {
+      device::destroyStream(stream_);
+    }
+    stream_ = stream;
+    is_external_stream_ = true;
+  }
+  device::Stream *getStream() { return stream_; }
 
   virtual base::Status init(std::vector<EdgeWrapper *> &edge_repository,
                             std::vector<NodeWrapper *> &node_repository) = 0;
   virtual base::Status deinit() = 0;
 
   virtual base::Status run() = 0;
+
+ protected:
+  // must be set by user
+  bool is_external_stream_ = false;
+  device::Stream *stream_ = nullptr;
 };
 
 }  // namespace dag

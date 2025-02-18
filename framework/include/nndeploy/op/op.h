@@ -57,6 +57,9 @@ class NNDEPLOY_CC_API Op {
   base::Status setDeviceType(base::DeviceType device_type);
   base::DeviceType getDeviceType();
 
+  void setStream(device::Stream *stream);
+  device::Stream *getStream();
+
   /**
    * @brief 设置精度类型 精度不同，计算方式不同，内存分配不同
    *
@@ -196,6 +199,13 @@ class NNDEPLOY_CC_API Op {
    */
   base::DeviceType device_type_;
   /**
+   * @brief op的stream
+   * note: 当stream为外部传入时，is_external_stream_为true
+   */
+  bool is_external_stream_ = false;
+  device::Stream *stream_ = nullptr;
+
+  /**
    * @brief op的精度类型
    * note: 精度类型与输入输出tensor的data_type的不同
    * # data_type大部分时候决定具体调用的kernel函数
@@ -269,7 +279,7 @@ class NNDEPLOY_CC_API Op {
  */
 class OpCreator {
  public:
-  virtual ~OpCreator(){};
+  virtual ~OpCreator() {};
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        ir::OpType op_type) = 0;
@@ -332,8 +342,9 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode, std::map<ir::OpType, std::shared_ptr<OpCreator>>>
-    &getGlobalOpCreatorMap();
+std::map<base::DeviceTypeCode,
+         std::map<ir::OpType, std::shared_ptr<OpCreator>>> &
+getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板

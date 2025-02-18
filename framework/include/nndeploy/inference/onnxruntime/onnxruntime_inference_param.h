@@ -11,6 +11,7 @@ namespace inference {
 class OnnxRuntimeInferenceParam : public InferenceParam {
  public:
   OnnxRuntimeInferenceParam();
+  OnnxRuntimeInferenceParam(base::InferenceType type);
   virtual ~OnnxRuntimeInferenceParam();
 
   OnnxRuntimeInferenceParam(const OnnxRuntimeInferenceParam &param) = default;

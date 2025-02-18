@@ -11,8 +11,9 @@
 
 using namespace nndeploy;
 
-// dag::TypeGraphRegister g_register_yolov8_graph("test",
-//                                                detect::createYoloV8Graph);
+DEFINE_int32(yolo_version, 11, "yolo_version");
+
+int getVersion() { return FLAGS_yolo_version; }
 
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
@@ -39,7 +40,6 @@ int main(int argc, char *argv[]) {
   // 模型类型，例如:
   // kModelTypeOnnx/kModelTypeMnn/...
   base::ModelType model_type = demo::getModelType();
-  printf("model_type = %d\n", model_type);
   // 模型是否是路径
   bool is_path = demo::isPath();
   // 模型路径或者模型字符串
@@ -52,6 +52,11 @@ int main(int argc, char *argv[]) {
   std::string ouput_path = demo::getOutputPath();
   // base::kParallelTypePipeline / base::kParallelTypeSequential
   base::ParallelType pt = demo::getParallelType();
+  int version = getVersion();
+  std::vector<std::string> model_inputs = demo::getModelInputs();
+  NNDEPLOY_LOGE("model_inputs = %s.\n", model_inputs[0].c_str());
+  std::vector<std::string> model_outputs = demo::getModelOutputs();
+  NNDEPLOY_LOGE("model_outputs = %s.\n", model_outputs[0].c_str());
 
   // 有向无环图graph的输入边packert
   dag::Edge input("detect_in");
@@ -59,33 +64,32 @@ int main(int argc, char *argv[]) {
   dag::Edge output("detect_out");
 
   // graph
-  dag::Graph *graph = new dag::Graph("demo", nullptr, &output);
+  dag::Graph *graph = new dag::Graph("demo", {}, {&output});
   if (graph == nullptr) {
     NNDEPLOY_LOGE("graph is nullptr");
     return -1;
   }
-
   // 创建检测模型有向无环图graph
-  dag::Graph *detect_graph =
-      dag::createGraph(name, inference_type, device_type, &input, &output,
-                       model_type, is_path, model_value);
-  if (detect_graph == nullptr) {
-    NNDEPLOY_LOGE("detect_graph is nullptr");
-    return -1;
-  }
+  detect::YoloGraph *detect_graph =
+      new detect::YoloGraph(name, {&input}, {&output});
+  dag::NodeDesc pre_desc("preprocess", {"detect_in"}, model_inputs);
+  dag::NodeDesc infer_desc("infer", model_inputs, model_outputs);
+  dag::NodeDesc post_desc("postprocess", model_outputs, {"detect_out"});
+  detect_graph->make(pre_desc, infer_desc, inference_type, post_desc);
+  detect_graph->setInferParam(device_type, model_type, is_path, model_value);
+  detect_graph->setVersion(version);
   // detect_graph->setTimeProfileFlag(true);
   graph->addNode(detect_graph);
 
   // 解码节点
   codec::DecodeNode *decode_node = codec::createDecodeNode(
       base::kCodecTypeOpenCV, codec_flag, "decode_node", &input);
-  decode_node->setPath(input_path);
   graph->addNode(decode_node);
 
   // draw box
   dag::Edge *draw_output = graph->createEdge("draw_output");
   dag::Node *draw_box_node;
-  if (name == "NNDEPLOY_YOLOV5_MULTI_CONV_OUTPUT") {
+  if (name == "nndeploy::detect::yolo::YoloMultiConvOutputGraph") {
     draw_box_node = graph->createNode<detect::YoloMultiConvDrawBoxNode>(
         "DrawBoxNode", {&input, &output}, {draw_output});
   } else {
@@ -96,8 +100,6 @@ int main(int argc, char *argv[]) {
   // 解码节点
   codec::EncodeNode *encode_node = codec::createEncodeNode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
-  encode_node->setRefPath(input_path);
-  encode_node->setPath(ouput_path);
   graph->addNode(encode_node);
 
   // 设置pipeline并行
@@ -122,10 +124,12 @@ int main(int argc, char *argv[]) {
   status = detect_graph->dump();
 
   NNDEPLOY_TIME_POINT_START("graph->run");
+  decode_node->setPath(input_path);
+  encode_node->setRefPath(input_path);
+  encode_node->setPath(ouput_path);
   int size = decode_node->getSize();
   size = 100;
   decode_node->setSize(size);
-  NNDEPLOY_LOGE("size = %d.\n", size);
   for (int i = 0; i < size; ++i) {
     status = graph->run();
     if (status != base::kStatusCodeOk) {
@@ -157,8 +161,6 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->run");
 
-  NNDEPLOY_LOGI("hello world!\n");
-
   // 有向无环图graph反初始化
   status = graph->deinit();
   if (status != base::kStatusCodeOk) {
@@ -166,7 +168,13 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  NNDEPLOY_TIME_PROFILER_PRINT("demo");
+  // NNDEPLOY_TIME_PROFILER_PRINT("demo");
+  // NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 0);
+  // NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 1);
+  // NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 2);
+  // NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 50);
+  // NNDEPLOY_TIME_PROFILER_PRINT_INDEX("demo", 99);
+  NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
 
   // 有向无环图graph销毁
   delete encode_node;
@@ -174,14 +182,11 @@ int main(int argc, char *argv[]) {
   delete detect_graph;
   delete graph;
 
-  NNDEPLOY_LOGI("hello world!\n");
-
   ret = nndeployFrameworkDeinit();
   if (ret != 0) {
     NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
     return ret;
   }
-  return 0;
 
   return 0;
 }

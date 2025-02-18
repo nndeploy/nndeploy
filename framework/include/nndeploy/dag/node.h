@@ -20,6 +20,53 @@
 namespace nndeploy {
 namespace dag {
 
+class Node;
+class Graph;
+
+class NNDEPLOY_CC_API NodeDesc {
+ public:
+  NodeDesc(const std::string &node_name,
+           std::initializer_list<std::string> inputs,
+           std::initializer_list<std::string> outputs)
+      : node_name_(node_name), inputs_(inputs), outputs_(outputs) {}
+  NodeDesc(const std::string &node_name, std::vector<std::string> inputs,
+           std::vector<std::string> outputs)
+      : node_name_(node_name), inputs_(inputs), outputs_(outputs) {}
+  NodeDesc(const std::string &node_key, const std::string &node_name,
+           std::initializer_list<std::string> inputs,
+           std::initializer_list<std::string> outputs)
+      : node_key_(node_key),
+        node_name_(node_name),
+        inputs_(inputs),
+        outputs_(outputs) {}
+  NodeDesc(const std::string &node_key, const std::string &node_name,
+           std::vector<std::string> inputs, std::vector<std::string> outputs)
+      : node_key_(node_key),
+        node_name_(node_name),
+        inputs_(inputs),
+        outputs_(outputs) {}
+
+  virtual ~NodeDesc() = default;
+
+  std::string getKey() const { return node_key_; }
+
+  std::string getName() const { return node_name_; }
+
+  std::vector<std::string> getInputs() const { return inputs_; }
+
+  std::vector<std::string> getOutputs() const { return outputs_; }
+
+ private:
+  // Node key
+  std::string node_key_;
+  // Node name
+  std::string node_name_;
+  // Node inputs
+  std::vector<std::string> inputs_;
+  // Node outputs
+  std::vector<std::string> outputs_;
+};
+
 /**
  * @brief
  * @note Each node is responsible for allocating memory for it's output edges.
@@ -27,7 +74,10 @@ namespace dag {
 class NNDEPLOY_CC_API Node {
  public:
   Node(const std::string &name);
+
+  // NNDEPLOY_DEPRECATED("deprecated api")
   Node(const std::string &name, Edge *input, Edge *output);
+
   Node(const std::string &name, std::initializer_list<Edge *> inputs,
        std::initializer_list<Edge *> outputs);
   Node(const std::string &name, std::vector<Edge *> inputs,
@@ -37,8 +87,14 @@ class NNDEPLOY_CC_API Node {
 
   std::string getName();
 
-  base::Status setDeviceType(base::DeviceType device_type);
-  base::DeviceType getDeviceType();
+  base::Status setGraph(Graph *graph) {
+    graph_ = graph;
+    return base::kStatusCodeOk;
+  }
+  Graph *getGraph() { return graph_; }
+
+  virtual base::Status setDeviceType(base::DeviceType device_type);
+  virtual base::DeviceType getDeviceType();
 
   virtual base::Status setParam(base::Param *param);
   virtual base::Param *getParam();
@@ -75,6 +131,9 @@ class NNDEPLOY_CC_API Node {
   void setRunningFlag(bool flag);
   bool isRunning();
 
+  void setStream(device::Stream *stream);
+  device::Stream *getStream();
+
   virtual base::Status init();
   virtual base::Status deinit();
 
@@ -85,13 +144,29 @@ class NNDEPLOY_CC_API Node {
 
   virtual base::Status run() = 0;
 
+  virtual std::vector<Edge *> operator()(
+      std::vector<Edge *> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>());
+
+  virtual std::vector<Edge *> operator()(
+      std::initializer_list<Edge *> inputs,
+      std::initializer_list<std::string> outputs_name = {});
+
  protected:
   std::string name_;
   base::DeviceType device_type_;
+  /**
+   * @brief Whether it is an external stream
+   * @details
+   */
+  bool is_external_stream_ = false;
+  device::Stream *stream_ = nullptr;
   std::shared_ptr<base::Param> param_;
   std::vector<base::Param *> external_param_;
   std::vector<Edge *> inputs_;
   std::vector<Edge *> outputs_;
+
+  Graph *graph_ = nullptr;
 
   bool constructed_ = false;
   // 是否是图中内部节点
@@ -103,18 +178,98 @@ class NNDEPLOY_CC_API Node {
   bool is_debug_ = false;
 };
 
-using SISONodeFunc =
-    std::function<base::Status(Edge *input, Edge *output, base::Param *param)>;
+/**
+ * @brief 节点注册机制相关类和函数
+ */
+class NodeCreator {
+ public:
+  virtual Node *createNode(const std::string &node_name) = 0;
+  virtual Node *createNode(const std::string &node_name,
+                           std::initializer_list<Edge *> inputs,
+                           std::initializer_list<Edge *> outputs) = 0;
+  virtual Node *createNode(const std::string &node_name,
+                           std::vector<Edge *> inputs,
+                           std::vector<Edge *> outputs) = 0;
+  virtual ~NodeCreator() = default;
+};
 
-using SIMONodeFunc = std::function<base::Status(
-    Edge *input, std::initializer_list<Edge *> outputs, base::Param *param)>;
+template <typename T>
+class NodeCreatorRegister : public NodeCreator {
+ public:
+  virtual Node *createNode(const std::string &node_name) override {
+    return new T(node_name);
+  }
+  virtual Node *createNode(const std::string &node_name,
+                           std::initializer_list<Edge *> inputs,
+                           std::initializer_list<Edge *> outputs) override {
+    return new T(node_name, inputs, outputs);
+  }
+  virtual Node *createNode(const std::string &node_name,
+                           std::vector<Edge *> inputs,
+                           std::vector<Edge *> outputs) override {
+    return new T(node_name, inputs, outputs);
+  }
+};
 
-using MISONodeFunc = std::function<base::Status(
-    std::initializer_list<Edge *> inputs, Edge *output, base::Param *param)>;
+class NodeFactory {
+ public:
+  static NodeFactory *getInstance() {
+    static NodeFactory instance;
+    return &instance;
+  }
 
-using MIMONodeFunc = std::function<base::Status(
+  void registerNode(const std::string &node_key, NodeCreator *creator) {
+    auto it = creators_.find(node_key);
+    if (it != creators_.end()) {
+      NNDEPLOY_LOGE("Node name %s already exists!\n", node_key.c_str());
+      return;
+    }
+    creators_[node_key] = creator;
+  }
+
+  NodeCreator *getCreator(const std::string &node_key) {
+    auto it = creators_.find(node_key);
+    if (it != creators_.end()) {
+      return it->second;
+    }
+    return nullptr;
+  }
+
+ private:
+  NodeFactory() = default;
+  ~NodeFactory() {
+    for (auto &creator : creators_) {
+      delete creator.second;
+    }
+  }
+  std::map<std::string, NodeCreator *> creators_;
+};
+
+#define REGISTER_NODE(node_key, node_class)                              \
+  static auto node_creator_##node_class = []() {                         \
+    nndeploy::dag::NodeFactory::getInstance()->registerNode(             \
+        node_key, new nndeploy::dag::NodeCreatorRegister<node_class>()); \
+    return 0;                                                            \
+  }();
+
+NNDEPLOY_CC_API Node *createNode(const std::string &node_key,
+                                 const std::string &node_name);
+NNDEPLOY_CC_API Node *createNode(const std::string &node_key,
+                                 const std::string &node_name,
+                                 std::initializer_list<Edge *> inputs,
+                                 std::initializer_list<Edge *> outputs);
+NNDEPLOY_CC_API Node *createNode(const std::string &node_key,
+                                 const std::string &node_name,
+                                 std::vector<Edge *> inputs,
+                                 std::vector<Edge *> outputs);
+
+using NodeFuncV1 = std::function<base::Status(
     std::initializer_list<Edge *> inputs, std::initializer_list<Edge *> outputs,
     base::Param *param)>;
+
+using NodeFuncV2 = std::function<base::Status(std::vector<Edge *> inputs,
+                                              std::vector<Edge *> outputs,
+                                              base::Param *param)>;
 
 }  // namespace dag
 }  // namespace nndeploy

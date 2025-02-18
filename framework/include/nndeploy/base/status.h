@@ -75,7 +75,9 @@ enum StatusCode : int {
 
 class NNDEPLOY_CC_API Status {
  public:
-  Status(int code = kStatusCodeOk);
+  Status();
+  Status(int code);
+  Status(StatusCode code);
   ~Status();
 
   Status(const Status &other);
@@ -99,7 +101,7 @@ class NNDEPLOY_CC_API Status {
 
   std::string desc() const;
 
-  StatusCode getStatusCode();
+  StatusCode getStatusCode() const;
 
   Status operator+(const Status &other);
 
@@ -108,6 +110,28 @@ class NNDEPLOY_CC_API Status {
 };
 
 std::string statusCodeToString(StatusCode code);
+
+template <typename T>
+class NNDEPLOY_CC_API Maybe {
+ public:
+  Maybe(const T &value, const Status &status)
+      : has_value_(true), value_(value), status_(status) {}
+  Maybe(const Status &status) : has_value_(false), status_(status) {}
+
+  virtual ~Maybe() {};
+
+  Maybe(const Maybe &other) = default;
+  Maybe &operator=(const Maybe &other) = default;
+
+  bool hasValue() const { return has_value_; }
+  T value() const { return value_; }
+  Status status() const { return status_; }
+
+ private:
+  bool has_value_ = false;
+  T value_;
+  Status status_;
+};
 
 #define NNDEPLOY_ASSERT(x)                     \
   {                                            \

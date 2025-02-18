@@ -15,13 +15,17 @@ class AscendCLOpGlobalAveragepool : public OpGlobalAveragepool {
   virtual ~AscendCLOpGlobalAveragepool() {}
 
   virtual base::Status init() {
-    // 流
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     device::Device *device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
+    inner_stream_ =
+        (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
     return base::kStatusCodeOk;
   }
-  virtual base::Status deinit() { return base::kStatusCodeOk; }
+  virtual base::Status deinit() { return Op::deinit(); }
   virtual base::Status preRun() {
     // 输入输出
     if (inner_input_ == nullptr) {

@@ -19,7 +19,10 @@ base::Status DefaultInference::init() {
 
   DefaultInferenceParam *default_inference_param =
       dynamic_cast<DefaultInferenceParam *>(inference_param_);
-  is_share_command_queue_ = true;
+  is_share_context_ = true;
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(default_inference_param->device_type_);
+  }
 
   interpret_ = ir::createInterpret(default_inference_param->model_type_);
   if (interpret_ == nullptr) {
@@ -62,6 +65,7 @@ base::Status DefaultInference::init() {
     NNDEPLOY_LOGE("net_->setDeviceType failed!\n");
     return base::kStatusCodeErrorInferenceDefault;
   }
+  net_->setStream(stream_);
   status = net_->setDynamicShape(default_inference_param->is_dynamic_shape_,
                                  default_inference_param->min_shape_,
                                  default_inference_param->opt_shape_,
@@ -183,7 +187,7 @@ base::Status DefaultInference::run() {
       dynamic_cast<DefaultInferenceParam *>(inference_param_);
   device::Device *device =
       device::getDevice(default_inference_param->device_type_);
-  status = device->synchronize();
+  status = stream_->synchronize();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("synchronize failed!\n");
     return base::kStatusCodeErrorInferenceDefault;

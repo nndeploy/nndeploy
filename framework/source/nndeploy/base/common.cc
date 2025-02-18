@@ -7,8 +7,14 @@ namespace nndeploy {
 namespace base {
 
 DataType::DataType() : code_(kDataTypeCodeFp), bits_(32), lanes_(1) {}
+
+DataType::DataType(DataTypeCode code, uint8_t bits, uint16_t lanes)
+    : code_(code), bits_(bits), lanes_(lanes) {}
+
 DataType::DataType(uint8_t code, uint8_t bits, uint16_t lanes)
     : code_(code), bits_(bits), lanes_(lanes) {}
+
+DataType::~DataType() {}
 
 DataType::DataType(const DataType &other) = default;
 DataType &DataType::operator=(const DataType &other) = default;
@@ -119,6 +125,39 @@ bool DeviceType::operator!=(const DeviceType &other) const {
 }
 bool DeviceType::operator!=(const DeviceTypeCode &other) const {
   return !(*this == other);
+}
+
+std::string dataTypeCodeToString(DataTypeCode src) {
+  switch (src) {
+    case kDataTypeCodeUint:
+      return "kDataTypeCodeUint";
+    case kDataTypeCodeInt:
+      return "kDataTypeCodeInt";
+    case kDataTypeCodeFp:
+      return "kDataTypeCodeFp";
+    case kDataTypeCodeBFp:
+      return "kDataTypeCodeBFp";
+    case kDataTypeCodeOpaqueHandle:
+      return "kDataTypeCodeOpaqueHandle";
+    default:
+      return "kDataTypeCodeNotSupport";
+  }
+}
+
+DataTypeCode stringToDataTypeCode(const std::string &src) {
+  if (src == "kDataTypeCodeUint") {
+    return kDataTypeCodeUint;
+  } else if (src == "kDataTypeCodeInt") {
+    return kDataTypeCodeInt;
+  } else if (src == "kDataTypeCodeFp") {
+    return kDataTypeCodeFp;
+  } else if (src == "kDataTypeCodeBFp") {
+    return kDataTypeCodeBFp;
+  } else if (src == "kDataTypeCodeOpaqueHandle") {
+    return kDataTypeCodeOpaqueHandle;
+  } else {
+    return kDataTypeCodeNotSupport;
+  }
 }
 
 std::string dataTypeToString(DataType data_type) {
@@ -279,6 +318,52 @@ DeviceTypeCode stringToDeviceTypeCode(const std::string &src) {
     return kDeviceTypeCodeNotSupport;
   }
 }
+
+std::string deviceTypeCodeToString(DeviceTypeCode src) {
+  switch (src) {
+    case kDeviceTypeCodeCpu:
+      return "kDeviceTypeCodeCpu";
+    case kDeviceTypeCodeArm:
+      return "kDeviceTypeCodeArm";
+    case kDeviceTypeCodeX86:
+      return "kDeviceTypeCodeX86";
+    case kDeviceTypeCodeRiscV:
+      return "kDeviceTypeCodeRiscV";
+    case kDeviceTypeCodeCuda:
+      return "kDeviceTypeCodeCuda";
+    case kDeviceTypeCodeRocm:
+      return "kDeviceTypeCodeRocm";
+    case kDeviceTypeCodeSyCL:
+      return "kDeviceTypeCodeSyCL";
+    case kDeviceTypeCodeOpenCL:
+      return "kDeviceTypeCodeOpenCL";
+    case kDeviceTypeCodeOpenGL:
+      return "kDeviceTypeCodeOpenGL";
+    case kDeviceTypeCodeMetal:
+      return "kDeviceTypeCodeMetal";
+    case kDeviceTypeCodeVulkan:
+      return "kDeviceTypeCodeVulkan";
+    case kDeviceTypeCodeHexagon:
+      return "kDeviceTypeCodeHexagon";
+    case kDeviceTypeCodeMtkVpu:
+      return "kDeviceTypeCodeMtkVpu";
+    case kDeviceTypeCodeAscendCL:
+      return "kDeviceTypeCodeAscendCL";
+    case kDeviceTypeCodeAppleNpu:
+      return "kDeviceTypeCodeAppleNpu";
+    case kDeviceTypeCodeRkNpu:
+      return "kDeviceTypeCodeRkNpu";
+    case kDeviceTypeCodeQualcommNpu:
+      return "kDeviceTypeCodeQualcommNpu";
+    case kDeviceTypeCodeMtkNpu:
+      return "kDeviceTypeCodeMtkNpu";
+    case kDeviceTypeCodeSophonNpu:
+      return "kDeviceTypeCodeSophonNpu";
+    default:
+      return "kDeviceTypeCodeNotSupport";
+  }
+}
+
 
 DeviceType stringToDeviceType(const std::string &src) {
   DeviceType dst;

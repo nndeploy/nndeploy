@@ -1,160 +1,138 @@
-# YOLOv8
 
-```
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\detect\sample.jpg --output_path C:\huggingface\nndeploy\temp\sample_output.jpg
-```
+# detect
 
-```
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagImages --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\detect --output_path C:\huggingface\nndeploy\temp
-```
+## 基于YOLOv11的检测
 
-```
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagImages --parallel_type kParallelTypePipeline --input_path C:\huggingface\nndeploy\test_data\detect --output_path C:\huggingface\nndeploy\temp
-```
+### 下载模型
 
-```
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagVideo --parallel_type kParallelTypePipeline --input_path C:\huggingface\nndeploy\test_data\detect\test_video.mp4 --output_path C:\huggingface\nndeploy\temp\test_video_output.avi
-```
+- [detect/yolov11s.onnx](./detect/yolov11s.onnx): YOLOv11s, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov11s.onnx)
+- [detect/yolov11s.sim.onnx](./detect/yolov11s.sim.onnx): onnx sim model of YOLOv11s, Model Type: onnx, input size: 1x640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov11s.sim.onnx)
+- [detect/yolov11s.slim.onnx](./detect/yolov11s.slim.onnx): onnx slim model of YOLOv11s, Model Type: onnx, input size: 1x640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov11s.slim.onnx)
+- [detect/yolov11s.sim.onnx.json](./detect/yolov11s.sim.onnx.json)/[detect/yolov11s.sim.onnx.safetensor](./detect/yolov11s.sim.onnx.safetensor): YOLOv11s, Model Type: nndeploy, input size: 1x640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov11s.sim.onnx.json)
+- [detect/yolov11s.onnx.om](./detect/yolov11s.onnx.om): YOLOv11s, Model Type: AscendCL(Ascend910B4), input size: 1x640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov11s.onnx.om)
 
-```
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagVideo --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\detect\test_video.mp4 --output_path C:\huggingface\nndeploy\temp\test_video_output.avi
-```
+- [detect/yolov8n.onnx](./detect/yolov8n.onnx): YOLOv8n, Model Type: onnx, input size: Nx640x640x3, classes: 80, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/detect/yolov8n.onnx)
 
-```
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\detect\sample.jpg --output_path C:\huggingface\nndeploy\temp\sample_output.jpg
-```
+### 获取测试图片
 
-```
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\detect\sample.jpg --output_path C:\huggingface\nndeploy\temp\sample_output.jpg
-```
+- [/nndeploy/docs/image/demo/detect/sample.jpg](../../docs/image/demo/detect/sample.jpg)
 
-```
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImages --parallel_type kParallelTypeSequential --input_path /home/always/huggingface/nndeploy/test_data/detect --output_path /home/always/huggingface/nndeploy/temp
-E/nndeploy_default_str: main [File /home/always/github/public/nndeploy/demo/detect/demo.cc][Line 153] size = 24.
-TimeProfiler: demo
--------------------------------------------------------------------------------------------
-name                call_times          cost_time(ms)       cost_time/call(ms)  gflops              
--------------------------------------------------------------------------------------------
-graph->init()       1                   78661.320           78661.320           0.000               
-graph->run          1                   327.416             327.416             0.000               
--------------------------------------------------------------------------------------------
-```
+### 运行demo
 
-```
-// OnnxRuntime 部署
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImages --parallel_type kParallelTypeSequential --input_path /home/always/huggingface/nndeploy/test_data/detect --output_path /home/always/huggingface/nndeploy/temp
+***`注：请将PATH更换为自己对应的目录`***
 
-E/nndeploy_default_str: main [File /home/always/github/public/nndeploy/demo/detect/demo.cc][Line 153] size = 24.
-TimeProfiler: demo
--------------------------------------------------------------------------------------------
-name                call_times          cost_time(ms)       cost_time/call(ms)  gflops              
--------------------------------------------------------------------------------------------
-graph->init()       1                   30.493              30.493              0.000               
-graph->run          1                   936.359             936.359             0.000               
--------------------------------------------------------------------------------------------
-```
+#### 运行flag介绍
 
-```
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImages --parallel_type kParallelTypePipeline --input_path /home/always/huggingface/nndeploy/test_data/detect --output_path /home/always/huggingface/nndeploy/temp
-E/nndeploy_default_str: main [File /home/always/github/public/nndeploy/demo/detect/demo.cc][Line 153] size = 24.
-TimeProfiler: demo
--------------------------------------------------------------------------------------------
-name                call_times          cost_time(ms)       cost_time/call(ms)  gflops              
--------------------------------------------------------------------------------------------
-graph->init()       1                   78678.562           78678.562           0.000               
-graph->run          1                   120.463             120.463             0.000               
--------------------------------------------------------------------------------------------
-```
+- --name: 模型名称
+- --inference_type: 推理后端类型
+- --device_type: 推理后端的执行设备类型
+- --model_type: 模型类型
+- --is_path: 模型是否为路径
+- --model_value: 模型路径或模型文件
+- --codec_flag: 编解码类型
+- --parallel_type: 并行类型
+- --input_path: 输入图片路径
+- --output_path: 输出图片路径
+- --yolo_version: yolo版本
+- --model_inputs: 模型输入
+- --model_outputs: 模型输出
 
-```
-// OnnxRuntime 部署
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImages --parallel_type kParallelTypePipeline --input_path /home/always/huggingface/nndeploy/test_data/detect --output_path /home/always/huggingface/nndeploy/temp
+#### 推理后端为nndeploy推理框架，推理执行设备为AscendCL
 
-E/nndeploy_default_str: main [File /home/always/github/public/nndeploy/demo/detect/demo.cc][Line 153] size = 24.
-TimeProfiler: demo
--------------------------------------------------------------------------------------------
-name                call_times          cost_time(ms)       cost_time/call(ms)  gflops              
--------------------------------------------------------------------------------------------
-graph->init()       1                   30.162              30.162              0.000               
-graph->run          1                   796.763             796.763             0.000               
--------------------------------------------------------------------------------------------
+```shell
+# 进入目录
+cd /yourpath/nndeploy/build
+
+# 链接
+export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
+
+# 执行
+./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx.json,/home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_nndeploy_acl_sample_output.jpg
+
+# 耗时
+-------------------------------------------------------------------------------------------------------------------------------
+name                               call_times  cost_time(ms)      avg cost_time(ms)  avg cost_time(ms)(remove warmup)  gflops
+-------------------------------------------------------------------------------------------------------------------------------
+demo run()                         100         4503.206           45.032             40.587                            0.000 
+decode_node run()                  100         511.839            5.118              5.041                             0.000 
+nndeploy::detect::YoloGraph run()  100         3132.221           31.322             27.100                            0.000 
+preprocess run()                   100         840.897            8.409              8.060                             0.000 
+infer run()                        100         1944.306           19.443             15.557                            0.000 
+net->run()                         100         343.300            3.433              2.090                             0.000 
+postprocess run()                  100         345.608            3.456              3.470                             0.000 
+DrawBoxNode run()                  100         30.719             0.307              0.298                             0.000 
+encode_node run()                  100         826.849            8.268              8.132                             0.000 
+-------------------------------------------------------------------------------------------------------------------------------
 ```
 
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
+#### 推理后端为onnxruntime，推理执行设备为Arm
 
+```shell
+# 进入目录
+cd /yourpath/nndeploy/build
 
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path /home/always/huggingface/nndeploy/temp/sample_output.jpg
+# 链接
+export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
 
+# 执行
+./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeOnnx --is_path --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_ort_acl_sample_output.jpg
 
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\detect\bus.jpg --output_path C:\huggingface\nndeploy\temp\bus_output.jpg
+# 耗时
+TimeProfiler: demo, remove warmup 10
+-------------------------------------------------------------------------------------------------------------------------------
+name                               call_times  cost_time(ms)      avg cost_time(ms)  avg cost_time(ms)(remove warmup)  gflops
+-------------------------------------------------------------------------------------------------------------------------------
+demo run()                         100         45139.496          451.395            449.683                           0.000 
+decode_node run()                  100         458.912            4.589              4.532                             0.000 
+nndeploy::detect::YoloGraph run()  100         44107.352          441.074            439.438                           0.000 
+preprocess run()                   100         1042.045           10.420             10.333                            0.000 
+infer run()                        100         42842.543          428.425            426.929                           0.000 
+postprocess run()                  100         221.274            2.213              2.161                             0.000 
+DrawBoxNode run()                  100         18.435             0.184              0.178                             0.000 
+encode_node run()                  100         553.166            5.532              5.518                             0.000 
+-------------------------------------------------------------------------------------------------------------------------------
+```
 
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value yolov8n.json,yolov8n.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path bus.jpg --output_path bus_output.jpg
+#### 推理后端为Ascend CL，执行设备为AscendCL
 
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeCpu:0 --model_type kModelTypeDefault --is_path --model_value yolov8n.json,yolov8n.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path bus.jpg --output_path bus_output.jpg
+```shell
 
+# 进入目录
+cd /yourpath/nndeploy/build
 
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value modified_yolov8n.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path bus.jpg --output_path bus_output.jpg
+# 链接
+export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
 
-
-## YOLOv11
-
-### 模型转换
-atc --model=./yolo11s.sim.onnx --output=./yolo11s.sim.onnx.om --framework=5 --soc_version=Ascend910B4
+# 模型转换
+atc --model=path/to/yolo11s.sim.onnx --output=path/to/yolo11s.sim.onnx.om --framework=5 --soc_version=Ascend910B4
 
 ### 华为昇腾运行
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV11 --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value yolo11s.sim.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path bus.jpg --output_path bus_output_yolov11_acl.jpg
+./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_acl_acl_sample_output.jpg
 
-TimeProfiler: demo
--------------------------------------------------------------------------------------------
-name                call_times          cost_time(ms)       cost_time/call(ms)  gflops              
--------------------------------------------------------------------------------------------
-graph->init()       1                   1492.463            1492.463            0.000               
-graph->run          1                   3125.189            3125.189            0.000               
-demo run()          100                 3124.917            31.249              0.000               
-decode_node run()   100                 679.706             6.797               0.000               
-NNDEPLOY_YOLOV11 run()100                 1386.085            13.861              0.000               
-preprocess run()    100                 783.577             7.836               0.000               
-infer run()         100                 384.937             3.849               0.000               
-postprocess run()   100                 214.652             2.147               0.000               
-DrawBoxNode run()   100                 38.457              0.385               0.000               
-encode_node run()   100                 1016.735            10.167              0.000               
--------------------------------------------------------------------------------------------
+TimeProfiler: demo, remove warmup 10
+-------------------------------------------------------------------------------------------------------------------------------
+name                               call_times  cost_time(ms)      avg cost_time(ms)  avg cost_time(ms)(remove warmup)  gflops
+-------------------------------------------------------------------------------------------------------------------------------
+demo run()                         100         2698.968           26.990             26.741                            0.000 
+decode_node run()                  100         571.140            5.711              5.573                             0.000 
+nndeploy::detect::YoloGraph run()  100         1490.381           14.904             14.858                            0.000 
+preprocess run()                   100         892.627            8.926              8.880                             0.000 
+infer run()                        100         378.039            3.780              3.763                             0.000 
+postprocess run()                  100         218.831            2.188              2.207                             0.000 
+DrawBoxNode run()                  100         17.070             0.171              0.171                             0.000 
+encode_node run()                  100         619.262            6.193              6.128                             0.000 
+-------------------------------------------------------------------------------------------------------------------------------
+```
 
-### onnxruntime运行
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV11 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeOnnx --is_path --model_value yolo11s.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path bus.jpg --output_path bus_output_yolov11_ort.jpg
+### 效果示例
 
-TimeProfiler: demo
--------------------------------------------------------------------------------------------
-name                call_times          cost_time(ms)       cost_time/call(ms)  gflops              
--------------------------------------------------------------------------------------------
-graph->init()       1                   106.282             106.282             0.000               
-graph->run          1                   44688.391           44688.391           0.000               
-demo run()          100                 44687.449           446.874             0.000               
-decode_node run()   100                 610.943             6.109               0.000               
-NNDEPLOY_YOLOV11 run()100                 43166.535           431.665             0.000               
-preprocess run()    100                 1337.429            13.374              0.000               
-infer run()         100                 41586.547           415.865             0.000               
-postprocess run()   100                 239.298             2.393               0.000               
-DrawBoxNode run()   100                 43.321              0.433               0.000               
-encode_node run()   100                 860.145             8.601               0.000               
--------------------------------------------------------------------------------------------
+#### 输入图片
 
-### default 推理框架 - 昇腾设备运行
-./nndeploy_demo_detect --name NNDEPLOY_YOLOV11 --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value yolo11s.sim.onnx.json,yolo11s.sim.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path bus.jpg --output_path bus_output_acl_default.jpg
+![sample](../../docs/image/demo/detect/sample.jpg) 
 
-TimeProfiler: demo
--------------------------------------------------------------------------------------------
-name                call_times          cost_time(ms)       cost_time/call(ms)  gflops              
--------------------------------------------------------------------------------------------
-graph->init()       1                   1287.975            1287.975            0.000               
-graph->run          1                   5248.064            5248.064            0.000               
-demo run()          100                 5247.820            52.478              0.000               
-decode_node run()   100                 629.034             6.290               0.000               
-NNDEPLOY_YOLOV11 run()100                 3380.582            33.806              0.000               
-preprocess run()    100                 956.536             9.565               0.000               
-infer run()         100                 2041.385            20.414              0.000               
-net->run()          100                 363.048             3.630               0.000               
-postprocess run()   100                 379.579             3.796               0.000               
-DrawBoxNode run()   100                 69.113              0.691               0.000               
-encode_node run()   100                 1164.019            11.640              0.000               
--------------------------------------------------------------------------------------------
+#### 输出图片
+
+![sample_output](../../docs/image/demo/detect/sample_output.jpg)

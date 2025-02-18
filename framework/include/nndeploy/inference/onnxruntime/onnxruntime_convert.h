@@ -28,8 +28,9 @@ class OnnxRuntimeConvert {
   static std::vector<int64_t> convertFromShape(const base::IntVector &src);
 
   // 会衍生出其他需要进行转换的类型
-  static base::Status convertFromInferenceParam(OnnxRuntimeInferenceParam &src,
-                                                Ort::SessionOptions &dst);
+  static base::Status convertFromInferenceParam(
+      OnnxRuntimeInferenceParam &src, Ort::SessionOptions &dst,
+      device::Stream *stream = nullptr);
 
   static base::Status convertToTensor(Ort::Value &src, const std::string &name,
                                       device::Device *device,

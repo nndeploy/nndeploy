@@ -1,6 +1,8 @@
 
 #include "nndeploy/dag/node.h"
 
+#include "nndeploy/dag/graph.h"
+
 namespace nndeploy {
 namespace dag {
 
@@ -53,13 +55,16 @@ Node::Node(const std::string &name, std::vector<Edge *> inputs,
 }
 
 Node::~Node() {
-  // NNDEPLOY_LOGI("Node::~Node() name:%s.\n", name_.c_str());
   external_param_.clear();
   inputs_.clear();
   outputs_.clear();
   constructed_ = false;
   initialized_ = false;
   is_running_ = false;
+  if (!is_external_stream_ && stream_ != nullptr) {
+    device::destroyStream(stream_);
+    stream_ = nullptr;
+  }
 }
 
 std::string Node::getName() { return name_; }
@@ -190,7 +195,21 @@ void Node::setRunningFlag(bool flag) {
 }
 bool Node::isRunning() { return is_running_; }
 
-base::Status Node::init() { return base::kStatusCodeOk; }
+void Node::setStream(device::Stream *stream) {
+  if (stream_ != nullptr) {
+    device::destroyStream(stream_);
+  }
+  stream_ = stream;
+  is_external_stream_ = true;
+}
+device::Stream *Node::getStream() { return stream_; }
+
+base::Status Node::init() {
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+  return base::kStatusCodeOk;
+}
 base::Status Node::deinit() { return base::kStatusCodeOk; }
 
 int64_t Node::getMemorySize() {
@@ -211,6 +230,224 @@ base::EdgeUpdateFlag Node::updataInput() {
     }
   }
   return flag;
+}
+
+// 动态图 > 静态图，还有很大的优化空间
+std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
+                                     std::vector<std::string> outputs_name) {
+  // // input -
+  // if (inputs_.empty()) {
+  //   if (graph_ != nullptr) {
+  //     for (auto input : inputs) {
+  //       graph_->addEdge(input);
+  //     }
+  //   }
+  //   inputs_ = inputs;
+  // } else {
+  //   // Check if inputs and inputs_ are consistent
+  //   bool same_input = true;
+  //   if (inputs.size() != inputs_.size()) {
+  //     same_input = false;
+  //   }
+  //   if (same_input) {  // not support disorder
+  //     for (size_t i = 0; i < inputs.size(); i++) {
+  //       if (inputs[i] != inputs_[i]) {
+  //         same_input = false;
+  //         break;
+  //       }
+  //     }
+  //   }
+  //   if (!same_input) {
+  //     if (graph_ != nullptr) {
+  //       for (auto input : inputs_) {
+  //         graph_->removeEdge(input);
+  //       }
+  //       for (auto input : inputs) {
+  //         graph_->addEdge(input);
+  //       }
+  //     }
+  //     inputs_ = inputs;
+  //   }
+  // }
+  // // outputs_
+  // if (outputs_.empty()) {
+  //   std::vector<dag::Edge *> outputs;
+  //   if (graph_ != nullptr) {
+  //     for (auto output_name : outputs_name) {
+  //       outputs.push_back(graph_->createEdge(output_name));
+  //     }
+  //   } else {
+  //     for (auto output_name : outputs_name) {
+  //       outputs.push_back(new Edge(output_name));
+  //     }
+  //   }
+  //   outputs_ = outputs;
+  // } else {
+  //   // Check if outputs_name and outputs_ are consistent
+  //   bool same_output = true;
+  //   if (outputs_name.size() != outputs_.size()) {
+  //     same_output = false;
+  //   }
+  //   if (same_output) {  // not support disorder
+  //     for (size_t i = 0; i < outputs_name.size(); i++) {
+  //       if (outputs_name[i] != outputs_[i]->getName()) {
+  //         same_output = false;
+  //         break;
+  //       }
+  //     }
+  //   }
+  //   if (!same_output) {
+  //     if (graph_ != nullptr) {
+  //       for (auto output : outputs_) {
+  //         graph_->removeEdge(output);
+  //       }
+  //       std::vector<dag::Edge *> outputs;
+  //       for (auto output_name : outputs_name) {
+  //         outputs.push_back(graph_->createEdge(output_name));
+  //       }
+  //       outputs_ = outputs;
+  //     } else {
+  //       // for (auto output : outputs_) {
+  //       //   delete output;
+  //       // }
+  //       outputs_.clear();
+  //       std::vector<dag::Edge *> outputs;
+  //       for (auto output_name : outputs_name) {
+  //         outputs.push_back(new Edge(output_name));
+  //       }
+  //       outputs_ = outputs;
+  //     }
+  //   }
+  // }
+  // base::Status status = this->run();
+  // return outputs_;
+  return std::vector<Edge *>();
+}
+
+// 动态图 > 静态图，还有很大的优化空间
+std::vector<Edge *> Node::operator()(
+    std::initializer_list<Edge *> inputs,
+    std::initializer_list<std::string> outputs_name) {
+  // input -
+  // if (inputs_.empty()) {
+  //   if (graph_ != nullptr) {
+  //     for (auto input : inputs) {
+  //       graph_->addEdge(input);
+  //     }
+  //   }
+  //   inputs_ = inputs;
+  // } else {
+  //   // Check if inputs and inputs_ are consistent
+  //   bool same_input = true;
+  //   if (inputs.size() != inputs_.size()) {
+  //     same_input = false;
+  //   }
+  //   if (same_input) {  // not support disorder
+  //     for (size_t i = 0; i < inputs.size(); i++) {
+  //       if (inputs[i] != inputs_[i]) {
+  //         same_input = false;
+  //         break;
+  //       }
+  //     }
+  //   }
+  //   if (!same_input) {
+  //     if (graph_ != nullptr) {
+  //       for (auto input : inputs_) {
+  //         graph_->removeEdge(input);
+  //       }
+  //       for (auto input : inputs) {
+  //         graph_->addEdge(input);
+  //       }
+  //     }
+  //     inputs_ = inputs;
+  //   }
+  // }
+  // // outputs_
+  // if (outputs_.empty()) {
+  //   std::vector<dag::Edge *> outputs;
+  //   if (graph_ != nullptr) {
+  //     for (auto output_name : outputs_name) {
+  //       outputs.push_back(graph_->createEdge(output_name));
+  //     }
+  //   } else {
+  //     for (auto output_name : outputs_name) {
+  //       outputs.push_back(new Edge(output_name));
+  //     }
+  //   }
+  //   outputs_ = outputs;
+  // } else {
+  //   // Check if outputs_name and outputs_ are consistent
+  //   bool same_output = true;
+  //   if (outputs_name.size() != outputs_.size()) {
+  //     same_output = false;
+  //   }
+  //   if (same_output) {  // not support disorder
+  //     for (size_t i = 0; i < outputs_name.size(); i++) {
+  //       if (outputs_name[i] != outputs_[i]->getName()) {
+  //         same_output = false;
+  //         break;
+  //       }
+  //     }
+  //   }
+  //   if (!same_output) {
+  //     if (graph_ != nullptr) {
+  //       for (auto output : outputs_) {
+  //         graph_->removeEdge(output);
+  //       }
+  //       std::vector<dag::Edge *> outputs;
+  //       for (auto output_name : outputs_name) {
+  //         outputs.push_back(graph_->createEdge(output_name));
+  //       }
+  //       outputs_ = outputs;
+  //     } else {
+  //       // for (auto output : outputs_) {
+  //       //   delete output;
+  //       // }
+  //       outputs_.clear();
+  //       std::vector<dag::Edge *> outputs;
+  //       for (auto output_name : outputs_name) {
+  //         outputs.push_back(new Edge(output_name));
+  //       }
+  //       outputs_ = outputs;
+  //     }
+  //   }
+  // }
+  // base::Status status = this->run();
+  // return outputs_;
+  return std::vector<Edge *>();
+}
+
+Node *createNode(const std::string &node_key, const std::string &node_name) {
+  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  if (creator != nullptr) {
+    return creator->createNode(node_name);
+  }
+  return nullptr;
+}
+// Node *createNode(const std::string &node_key, const std::string &node_name,
+//                  Edge *input, Edge *output) {
+//   NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+//   if (creator != nullptr) {
+//     return creator->createNode(node_name, input, output);
+//   }
+//   return nullptr;
+// }
+Node *createNode(const std::string &node_key, const std::string &node_name,
+                 std::initializer_list<Edge *> inputs,
+                 std::initializer_list<Edge *> outputs) {
+  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  if (creator != nullptr) {
+    return creator->createNode(node_name, inputs, outputs);
+  }
+  return nullptr;
+}
+Node *createNode(const std::string &node_key, const std::string &node_name,
+                 std::vector<Edge *> inputs, std::vector<Edge *> outputs) {
+  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  if (creator != nullptr) {
+    return creator->createNode(node_name, inputs, outputs);
+  }
+  return nullptr;
 }
 
 }  // namespace dag

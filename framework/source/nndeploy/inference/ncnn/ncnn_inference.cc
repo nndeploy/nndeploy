@@ -16,9 +16,9 @@ base::Status NcnnInference::init() {
   NcnnInferenceParam *ncnn_inference_param =
       dynamic_cast<NcnnInferenceParam *>(inference_param_);
   if (device::isHostDeviceType(inference_param_->device_type_)) {
-    is_share_command_queue_ = true;
+    is_share_context_ = true;
   } else {
-    is_share_command_queue_ = false;
+    is_share_context_ = false;
   }
 
   status =

@@ -42,7 +42,30 @@ Infer::Infer(const std::string &name, base::InferenceType type,
   }
 }
 
+Infer::Infer(const std::string &name) : dag::Node(name) {}
+Infer::Infer(const std::string &name, std::initializer_list<dag::Edge *> inputs,
+             std::initializer_list<dag::Edge *> outputs)
+    : dag::Node(name, inputs, outputs) {}
+Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
+             std::vector<dag::Edge *> outputs)
+    : dag::Node(name, inputs, outputs) {}
+
 Infer::~Infer() { delete inference_; }
+
+base::Status Infer::setInferenceType(base::InferenceType inference_type) {
+  if (inference_ == nullptr) {
+    type_ = inference_type;
+    inference_ = inference::createInference(type_);
+    if (inference_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    return base::kStatusCodeOk;
+  } else {
+    NNDEPLOY_LOGW("inference is not nullptr");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+}
 
 base::Status Infer::setParam(base::Param *param) {
   base::Status status = base::kStatusCodeOk;
@@ -53,6 +76,15 @@ base::Param *Infer::getParam() { return inference_->getParam(); }
 
 base::Status Infer::init() {
   base::Status status = base::kStatusCodeOk;
+
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+  if (device_type_ == inference_->getDeviceType() ||
+      (device::isHostDeviceType(device_type_) &&
+       device::isHostDeviceType(inference_->getDeviceType()))) {
+    inference_->setStream(stream_);
+  }
   status = inference_->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "abstract_inference init failed");
@@ -191,6 +223,8 @@ base::Status Infer::run() {
 }
 
 inference::Inference *Infer::getInference() { return inference_; }
+
+REGISTER_NODE("nndeploy::infer::Infer", Infer);
 
 }  // namespace infer
 }  // namespace nndeploy

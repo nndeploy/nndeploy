@@ -21,9 +21,9 @@ OpenVinoInference::~OpenVinoInference() {}
 base::Status OpenVinoInference::init() {
   base::Status status = base::kStatusCodeOk;
   if (device::isHostDeviceType(inference_param_->device_type_)) {
-    is_share_command_queue_ = true;
+    is_share_context_ = true;
   } else {
-    is_share_command_queue_ = false;
+    is_share_context_ = false;
   }
   status = reshape(inference_param_->max_shape_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed!\n");

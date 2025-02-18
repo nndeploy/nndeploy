@@ -19,6 +19,7 @@ struct NNDEPLOY_CC_API BufferDesc {
   BufferDesc();
   explicit BufferDesc(size_t size);
   explicit BufferDesc(size_t *size, size_t len);
+  explicit BufferDesc(const base::SizeVector &size);
   explicit BufferDesc(size_t size, const base::IntVector &config);
   explicit BufferDesc(const base::SizeVector &size,
                       const base::IntVector &config);
@@ -51,7 +52,7 @@ struct NNDEPLOY_CC_API BufferDesc {
   // base::Status serialize(std::ostream &stream);
   // base::Status deserialize(std::istream &stream);
 
-  void print(std::ostream &stream = std::cout);
+  void print(std::ostream &stream = std::cout) const;
 
   bool justModify(const size_t &size);
   bool justModify(const base::SizeVector &size);
@@ -105,7 +106,7 @@ struct NNDEPLOY_CC_API TensorDesc {
   base::Status serialize(std::ostream &stream);
   base::Status deserialize(std::istream &stream);
 
-  void print(std::ostream &stream = std::cout);
+  void print(std::ostream &stream = std::cout) const;
 
   base::DataType data_type_ = base::dataTypeOf<float>();        // 数据类型
   base::DataFormat data_format_ = base::kDataFormatNotSupport;  // 数据格式

@@ -22,11 +22,15 @@
 namespace nndeploy {
 namespace dag {
 
+Condition::Condition(const std::string &name) : Graph(name) {}
 Condition::Condition(const std::string &name, Edge *input, Edge *output)
     : Graph(name, input, output) {}
 Condition::Condition(const std::string &name,
                      std::initializer_list<Edge *> inputs,
                      std::initializer_list<Edge *> outputs)
+    : Graph(name, inputs, outputs) {}
+Condition::Condition(const std::string &name, std::vector<Edge *> inputs,
+                     std::vector<Edge *> outputs)
     : Graph(name, inputs, outputs) {}
 Condition::~Condition() {}
 
@@ -121,6 +125,8 @@ base::Status Condition::executor() {
     return base::kStatusCodeErrorInvalidValue;
   }
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
+
+  executor_->setStream(stream_);
 
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("executor init\n");

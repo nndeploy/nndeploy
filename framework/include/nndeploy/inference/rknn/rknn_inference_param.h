@@ -11,6 +11,7 @@ namespace inference {
 class RknnInferenceParam : public InferenceParam {
  public:
   RknnInferenceParam();
+  RknnInferenceParam(base::InferenceType type);
   virtual ~RknnInferenceParam();
 
   RknnInferenceParam(const RknnInferenceParam &param) = default;

@@ -1,4 +1,3 @@
-
 #ifndef _NNDEPLOY_PREPROCESS_CONVERT_TO_H_
 #define _NNDEPLOY_PREPROCESS_CONVERT_TO_H_
 
@@ -27,8 +26,21 @@ class NNDEPLOY_CC_API ConvertToParam : public base::Param {
 
 class NNDEPLOY_CC_API ConvertTo : public dag::Node {
  public:
-  ConvertTo(const std::string &name, dag::Edge *input, dag::Edge *output)
-      : Node(name, input, output) {
+  // ConvertTo(const std::string &name, dag::Edge *input, dag::Edge *output)
+  //     : Node(name, {input}, {output}) {
+  //   param_ = std::make_shared<ConvertToParam>();
+  // }
+  ConvertTo(const std::string &name) : dag::Node(name) {
+    param_ = std::make_shared<ConvertToParam>();
+  }
+  ConvertTo(const std::string &name, std::initializer_list<dag::Edge *> inputs,
+            std::initializer_list<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
+    param_ = std::make_shared<ConvertToParam>();
+  }
+  ConvertTo(const std::string &name, std::vector<dag::Edge *> inputs,
+            std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<ConvertToParam>();
   }
   virtual ~ConvertTo() {}

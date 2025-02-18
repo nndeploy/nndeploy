@@ -18,6 +18,7 @@
 
    quick_start/build.md
    quick_start/example.md
+   quick_start/model.md
 
 .. toctree::
    :maxdepth: 1

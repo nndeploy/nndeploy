@@ -22,15 +22,6 @@
 namespace nndeploy {
 namespace detect {
 
-dag::TypeGraphRegister g_register_yolov5_graph(NNDEPLOY_YOLOV5,
-                                               createYoloV5Graph);
-dag::TypeGraphRegister g_register_yolov6_graph(NNDEPLOY_YOLOV6,
-                                               createYoloV6Graph);
-dag::TypeGraphRegister g_register_yolov8_graph(NNDEPLOY_YOLOV8,
-                                               createYoloV8Graph);
-dag::TypeGraphRegister g_register_yolov11_graph(NNDEPLOY_YOLOV11,
-                                                createYoloV11Graph);
-
 base::Status YoloPostProcess::run() {
   // NNDEPLOY_LOGE("YoloPostProcess::run!Thread ID: %d.\n",
   //               std::this_thread::get_id());
@@ -194,18 +185,18 @@ dag::Graph *createYoloV5Graph(const std::string &name,
                               dag::Edge *output, base::ModelType model_type,
                               bool is_path,
                               std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Graph *graph = new dag::Graph(name, {input}, {output});
   dag::Edge *infer_input = graph->createEdge("images");
   dag::Edge *infer_output = graph->createEdge("output0");
 
   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", input, infer_input);
+      "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createInfer<infer::Infer>(
-      "infer", inference_type, infer_input, infer_output);
+  dag::Node *infer = graph->createNode<infer::Infer>(
+      "infer", {infer_input}, {infer_output});
 
   dag::Node *post =
-      graph->createNode<YoloPostProcess>("postprocess", infer_output, output);
+      graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
 
   preprocess::CvtclorResizeParam *pre_param =
       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
@@ -240,18 +231,18 @@ dag::Graph *createYoloV6Graph(const std::string &name,
                               dag::Edge *output, base::ModelType model_type,
                               bool is_path,
                               std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Graph *graph = new dag::Graph(name, {input}, {output});
   dag::Edge *infer_input = graph->createEdge("images");
   dag::Edge *infer_output = graph->createEdge("outputs");
 
   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", input, infer_input);
+      "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createInfer<infer::Infer>(
-      "infer", inference_type, infer_input, infer_output);
+  dag::Node *infer = graph->createNode<infer::Infer>(
+      "infer", {infer_input}, {infer_output});
 
   dag::Node *post =
-      graph->createNode<YoloPostProcess>("postprocess", infer_output, output);
+      graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
 
   preprocess::CvtclorResizeParam *pre_param =
       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
@@ -286,18 +277,18 @@ dag::Graph *createYoloV8Graph(const std::string &name,
                               dag::Edge *output, base::ModelType model_type,
                               bool is_path,
                               std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Graph *graph = new dag::Graph(name, {input}, {output});
   dag::Edge *infer_input = graph->createEdge("images");
   dag::Edge *infer_output = graph->createEdge("output0");
 
   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", input, infer_input);
+      "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createInfer<infer::Infer>(
-      "infer", inference_type, infer_input, infer_output);
+  dag::Node *infer = graph->createNode<infer::Infer>(
+      "infer", {infer_input}, {infer_output});
 
   dag::Node *post =
-      graph->createNode<YoloPostProcess>("postprocess", infer_output, output);
+      graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
 
   preprocess::CvtclorResizeParam *pre_param =
       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
@@ -332,18 +323,18 @@ dag::Graph *createYoloV11Graph(const std::string &name,
                                dag::Edge *output, base::ModelType model_type,
                                bool is_path,
                                std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Graph *graph = new dag::Graph(name, {input}, {output});
   dag::Edge *infer_input = graph->createEdge("images");
   dag::Edge *infer_output = graph->createEdge("output0");
 
   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", input, infer_input);
+      "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createInfer<infer::Infer>(
-      "infer", inference_type, infer_input, infer_output);
+  dag::Node *infer = graph->createNode<infer::Infer>(
+      "infer", {infer_input}, {infer_output});
 
   dag::Node *post =
-      graph->createNode<YoloPostProcess>("postprocess", infer_output, output);
+      graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
 
   preprocess::CvtclorResizeParam *pre_param =
       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
@@ -371,6 +362,9 @@ dag::Graph *createYoloV11Graph(const std::string &name,
 
   return graph;
 }
+
+REGISTER_NODE("nndeploy::detect::YoloPostProcess", YoloPostProcess);
+REGISTER_NODE("nndeploy::detect::YoloGraph", YoloGraph);
 
 }  // namespace detect
 }  // namespace nndeploy

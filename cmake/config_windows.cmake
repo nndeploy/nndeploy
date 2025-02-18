@@ -27,7 +27,6 @@ set(ENABLE_NNDEPLOY_OPENCV "C:/huggingface/nndeploy/third_party/windows_x64/open
 set(NNDEPLOY_OPENCV_LIBS opencv_world480) # 链接的具体的opencv库名称，例如opencv_world480，opencv_java4等
 set(ENABLE_NNDEPLOY_RAPIDJSON ON)
 
-
 # # base
 set(ENABLE_NNDEPLOY_BASE ON) # 是否编译base目录中文件，默认为ON
 
@@ -118,6 +117,7 @@ set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG ON)
 
 # # tokenizer
 set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
+set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP OFF)
 
 # # stable_diffusion
 set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)

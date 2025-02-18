@@ -19,15 +19,17 @@ AscendCLInference::~AscendCLInference() {}
 base::Status AscendCLInference::init() {
   aclError ret;
   base::Status status = base::kStatusCodeOk;
-  // is_share_command_queue_ = true;
   AscendCLInferenceParam *ascend_cl_inference_param =
       dynamic_cast<AscendCLInferenceParam *>(inference_param_);
 
-  device::Device *device = nullptr;
+  device::Device *device = device::getDevice(inference_param_->device_type_);
+  context_ = (aclrtContext)device->getContext();
+  is_share_context_ = true;
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(inference_param_->device_type_);
+  }
 
   if (ascend_cl_inference_param->model_type_ == base::kModelTypeAscendCL) {
-    device = device::getDevice(inference_param_->device_type_);
-    context_ = (aclrtContext)device->getContext();
     ret = aclrtSetCurrentContext(context_);
     if (ret != ACL_SUCCESS) {
       NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d", ret);
@@ -274,7 +276,7 @@ base::Status AscendCLInference::run() {
       return base::kStatusCodeErrorInferenceAscendCL;
     }
 
-    status = device->synchronize();
+    status = stream_->synchronize();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "synchronize failed");
 #if 0
     for (auto iter : output_tensors_) {

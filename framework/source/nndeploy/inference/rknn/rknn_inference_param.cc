@@ -15,6 +15,17 @@ RknnInferenceParam::RknnInferenceParam() : InferenceParam() {
   num_thread_ = 4;
   device_type_ = device::getDefaultHostDeviceType();
 }
+
+RknnInferenceParam::RknnInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeRknn;
+  input_data_format_ = RKNN_TENSOR_NHWC;
+  input_data_type_ = RKNN_TENSOR_UINT8;
+  input_pass_through_ = false;
+  num_thread_ = 4;
+  device_type_ = device::getDefaultHostDeviceType();
+}
+
 RknnInferenceParam::~RknnInferenceParam() {}
 
 base::Status RknnInferenceParam::set(const std::string &key, base::Any &any) {

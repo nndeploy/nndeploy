@@ -14,6 +14,14 @@ TnnInferenceParam::TnnInferenceParam() : InferenceParam() {
   device_type_ = device::getDefaultHostDeviceType();
   num_thread_ = 4;
 }
+
+TnnInferenceParam::TnnInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeTnn;
+  device_type_ = device::getDefaultHostDeviceType();
+  num_thread_ = 4;
+}
+
 TnnInferenceParam::~TnnInferenceParam() {}
 
 base::Status TnnInferenceParam::set(const std::string &key, base::Any &any) {

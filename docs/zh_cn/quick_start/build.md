@@ -32,7 +32,7 @@ git submodule update --init --recursive
 
 ## 主库编译
 
-+ 默认编译产物为：libnndeploy_framework.so、nndeploy_demo_dag
++ 默认编译产物为：libnndeploy_framework.so
   
 
 ## Windows
@@ -208,3 +208,22 @@ git submodule update --init --recursive
   export called with target "onnx_proto" which requires target "libprotobuf"
   that is not in any export set.
   ```
+
+## 具体平台的编译步骤
+
+- nndeploy的基于华为昇腾推理框架后端编译步骤
+  - 编译选项配置可参考[nndeploy\cmake\config_ascendcl_inference.cmake](../../../cmake/config_ascendcl_inference.cmake)
+  - 具体步骤: 
+    - 安装cann_toolkit等开发环境
+    - 安装opencv(建议：通过apt install安装，通过指定ENABLE_NNDEPLOY_OPENCV为ON，从而开启该编译选项)
+    - 安装onnxruntime(建议：手动下载动态库，通过指定ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME为具体路径，从而开启该编译选项)
+    - 在根目录创建`build`目录，将[nndeploy\cmake\config_ascendcl_inference.cmake](../../../cmake/config_ascendcl_inference.cmake)复制到该目录，并修改为config.cmake, 根据需求修改config.cmake
+      ```
+      mkdir build
+      cp cmake\config_ascendcl_inference.cmake build
+      cd build
+      mv config_ascendcl_inference.cmake config.cmake
+      cmake ..
+      make -j
+      ```
+

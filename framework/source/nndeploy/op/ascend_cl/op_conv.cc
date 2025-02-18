@@ -199,9 +199,13 @@ class AscendCLOpConv : public OpConv {
     groups_ = param->group_;
     cube_math_type_ = 0;
 
-    // 流
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     device::Device *device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)device->getCommandQueue();
+    inner_stream_ =
+        (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
     // 权重
     if (weight_ == nullptr) {
@@ -288,7 +292,7 @@ class AscendCLOpConv : public OpConv {
       delete bias_;
       bias_ = nullptr;
     }
-    return base::kStatusCodeOk;
+    return Op::deinit();
   }
   virtual base::Status preRun() {
     // 输入输出

@@ -155,7 +155,9 @@ op::Op *Net::createOp(base::DeviceType device_type, const std::string &name,
                       std::vector<std::string> &outputs) {
   op::Op *op = op::createOp(device_type, name, op_type, inputs, outputs);
   if (op == nullptr) {
-    NNDEPLOY_LOGE("Failed to create Op: %s\n", name.c_str());
+    NNDEPLOY_LOGE("Failed to create Op[name:%s, type:%s, device_type:%s]\n",
+                  name.c_str(), ir::opTypeToString(op_type).c_str(),
+                  base::deviceTypeToString(device_type).c_str());
     return nullptr;
   }
   OpWrapper *op_wrapper = new OpWrapper();
@@ -489,7 +491,7 @@ base::Status Net::run() {
   // 输出
 #if 0
   device::Device *device = device::getDevice(device_type_);
-  device->synchronize();
+  stream_->synchronize();
   for (size_t i = 0; i < outputs_.size(); ++i) {
     std::string path = "./net/";
     std::string name = outputs_[i]->getName();
@@ -686,6 +688,18 @@ base::Status Net::construct() {
   }
 
   // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("set stream\n");
+  // NNDEPLOY_LOGI("##############\n");
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+  if (parallel_type_ != base::kParallelTypePipeline) {
+    for (auto op_wrapper : op_repository_) {
+      op_wrapper->op_->setStream(stream_);
+    }
+  }
+
+  // NNDEPLOY_LOGI("##############\n"); 
   // NNDEPLOY_LOGI("construct tensor\n");
   // NNDEPLOY_LOGI("##############\n");
   for (auto tensor_wrapper : tensor_repository_) {
@@ -741,9 +755,13 @@ base::Status Net::runtime() {
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("create runtime\n");
   // NNDEPLOY_LOGI("##############\n");
-
   runtime_ = createRuntime(device_type_, parallel_type_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(runtime_, "Create runtime failed!");
+
+  // 设置流
+  runtime_->setStream(stream_);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "runtime setStream failed!");
 
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("runtime init\n");

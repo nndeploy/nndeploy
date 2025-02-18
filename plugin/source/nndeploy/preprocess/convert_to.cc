@@ -31,5 +31,7 @@ base::Status ConvertTo::run() {
   return status;
 }
 
+REGISTER_NODE("nndeploy::preprocess::ConvertTo", ConvertTo);
+
 }  // namespace preprocess
 }  // namespace nndeploy

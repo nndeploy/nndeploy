@@ -23,6 +23,7 @@
 namespace nndeploy {
 namespace dag {
 
+Loop::Loop(const std::string &name) : Graph(name) {}
 Loop::Loop(const std::string &name, Edge *input, Edge *output)
     : Graph(name, input, output) {}
 Loop::Loop(const std::string &name, std::initializer_list<Edge *> inputs,
@@ -78,12 +79,12 @@ base::Status Loop::run() {
 
   setRunningFlag(true);
 
-  int size = loops();
-  if (size < 1) {
-    NNDEPLOY_LOGE("loops size is invalid!\n");
-    return base::kStatusCodeErrorInvalidValue;
-  }
-  for (int i = 0; i < size; i++) {
+  // int size = loops();
+  // if (size < 1) {
+  //   NNDEPLOY_LOGE("loops size is invalid!\n");
+  //   return base::kStatusCodeErrorInvalidValue;
+  // }
+  for (int i = 0; i < loops(); i++) {
     status = executor_->run();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");
   }
@@ -117,6 +118,8 @@ base::Status Loop::executor() {
     return base::kStatusCodeErrorInvalidValue;
   }
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(executor_, "Create executor failed!");
+
+  executor_->setStream(stream_);
 
   // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("executor init\n");

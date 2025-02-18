@@ -11,6 +11,7 @@ namespace inference {
 class OpenVinoInferenceParam : public InferenceParam {
  public:
   OpenVinoInferenceParam();
+  OpenVinoInferenceParam(base::InferenceType type);
   virtual ~OpenVinoInferenceParam();
 
   OpenVinoInferenceParam(const OpenVinoInferenceParam &param) = default;

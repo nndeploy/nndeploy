@@ -17,7 +17,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-
+#include "nndeploy/inference/inference_param.h"
 /**
  * @brief 有向无环图
  */
@@ -31,7 +31,10 @@ namespace dag {
 class NNDEPLOY_CC_API Graph : public Node {
  public:
   Graph(const std::string &name);
+
+  // NNDEPLOY_DEPRECATED("deprecated api")
   Graph(const std::string &name, Edge *input, Edge *output);
+
   Graph(const std::string &name, std::initializer_list<Edge *> inputs,
         std::initializer_list<Edge *> outputs);
   Graph(const std::string &name, std::vector<Edge *> inputs,
@@ -383,7 +386,11 @@ class NNDEPLOY_CC_API Graph : public Node {
                     std::initializer_list<std::string> input_names,
                     std::initializer_list<Edge *> outputs);
 
-  // base::Status addNode(Node *node);
+  template <typename T, typename... Args,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const NodeDesc &desc, Args &...args);
+
+  Node *createNodeByKey(const NodeDesc &desc);
 
   /**
    * @brief 将一个已有的Node加入Graph
@@ -394,6 +401,9 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);
+
+  void setGraphNodeShareStream(bool flag);
+  bool getGraphNodeShareStream();
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -407,6 +417,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status executor();
 
  protected:
+  bool is_graph_node_share_stream_ = true;
   std::vector<EdgeWrapper *> edge_repository_;
   std::vector<NodeWrapper *> node_repository_;
   std::set<std::string> used_node_names_;
@@ -422,7 +433,7 @@ Node *Graph::createNode(const std::string &name, Edge *input, Edge *output,
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  Node *node = dynamic_cast<Node *>(new T(name, input, output, args...));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, args...));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -459,7 +470,7 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
   if (output == nullptr) {
     output = createEdge(output_name);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, input, output, args...));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, args...));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -492,7 +503,7 @@ Node *Graph::createNode(const std::string &name, Edge *input,
   if (output == nullptr) {
     output = createEdge(output_name);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, input, output, args...));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, args...));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -525,7 +536,7 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
   if (input == nullptr) {
     input = createEdge(input_name);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, input, output, args...));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, args...));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1352,6 +1363,57 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  return node;
+}
+
+// template <typename T, typename... Args,
+//           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+// Node *Graph::createNodeSiso(const NodeDesc &desc) {
+//   Node *node = nullptr;
+//   std::vector<std::string> inputs = desc.getInputs();
+//   std::vector<std::string> outputs = desc.getOutputs();
+//   if (inputs.size() != 1 || outputs.size() != 1) {
+//     NNDEPLOY_LOGE("node desc is invalid!\n");
+//     return node;
+//   }
+//   node = this->createNode<T>(desc.getName(), inputs[0], outputs[0]);
+//   if (node == nullptr) {
+//     NNDEPLOY_LOGE("create node[%s] failed!\n", desc.getName().c_str());
+//     return node;
+//   }
+//   std::shared_ptr<base::Param> param = desc.getParam();
+//   if (param != nullptr) {
+//     node->setParam(param.get());
+//   }
+//   return node;
+// }
+// template <typename T, typename... Args,
+//           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+// Node *Graph::createNodeMimo(const NodeDesc &desc) {
+//   Node *node = nullptr;
+//   std::vector<std::string> inputs = desc.getInputs();
+//   std::vector<std::string> outputs = desc.getOutputs();
+//   node = this->createNode<T>(desc.getName(), inputs, outputs);
+//   if (node == nullptr) {
+//     NNDEPLOY_LOGE("create node[%s] failed!\n", desc.getName().c_str());
+//     return node;
+//   }
+//   std::shared_ptr<base::Param> param = desc.getParam();
+//   if (param != nullptr) {
+//     node->setParam(param.get());
+//   }
+//   return node;
+// }
+
+template <typename T, typename... Args,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createNode(const NodeDesc &desc, Args &...args) {
+  Node *node = this->createNode<T>(desc.getName(), desc.getInputs(),
+                                   desc.getOutputs(), args...);
+  if (node == nullptr) {
+    NNDEPLOY_LOGE("create infer node[%s] failed!\n", desc.getName().c_str());
+    return node;
+  }
   return node;
 }
 

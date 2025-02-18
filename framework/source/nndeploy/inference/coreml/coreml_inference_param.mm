@@ -13,6 +13,13 @@ CoremlInferenceParam::CoremlInferenceParam() : InferenceParam() {
   // num_thread_ = 4;
 }
 
+CoremlInferenceParam::CoremlInferenceParam(base::InferenceType type)
+    : InferenceParam(type) {
+  model_type_ = base::kModelTypeCoreML;
+  // device_type_ = device::getDefaultHostDeviceType();
+  // num_thread_ = 4;
+}
+
 CoremlInferenceParam::~CoremlInferenceParam() {}
 
 base::Status CoremlInferenceParam::set(const std::string &key, base::Any &any) {

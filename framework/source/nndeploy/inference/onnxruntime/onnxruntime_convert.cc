@@ -174,7 +174,8 @@ std::vector<int64_t> OnnxRuntimeConvert::convertFromShape(
 }
 
 base::Status OnnxRuntimeConvert::convertFromInferenceParam(
-    OnnxRuntimeInferenceParam &src, Ort::SessionOptions &dst) {
+    OnnxRuntimeInferenceParam &src, Ort::SessionOptions &dst,
+    device::Stream *stream) {
   base::Status status = base::kStatusCodeOk;
   if (src.graph_optimization_level_ >= 0) {
     dst.SetGraphOptimizationLevel(
@@ -205,9 +206,10 @@ base::Status OnnxRuntimeConvert::convertFromInferenceParam(
       OrtCUDAProviderOptions cuda_srcs;
       cuda_srcs.device_id = src.device_type_.device_id_;
       device::Device *device = device::getDevice(src.device_type_);
-      if (device) {
+      // TODO:always set user_compute_stream
+      if (stream != nullptr) {
         cuda_srcs.has_user_compute_stream = 1;
-        cuda_srcs.user_compute_stream = device->getCommandQueue();
+        cuda_srcs.user_compute_stream = stream->getCommandQueue();
       }
       dst.AppendExecutionProvider_CUDA(cuda_srcs);
     }

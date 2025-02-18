@@ -23,7 +23,10 @@ enum DataTypeCode : uint8_t {
 
 struct NNDEPLOY_CC_API DataType {
   DataType();
+  DataType(DataTypeCode code, uint8_t bits, uint16_t lanes = (uint16_t)1);
   DataType(uint8_t code, uint8_t bits, uint16_t lanes = (uint16_t)1);
+
+  ~DataType();
 
   DataType(const DataType &other);
   DataType &operator=(const DataType &other);
@@ -135,7 +138,7 @@ enum DataFormat : int {
   // kDataFormatNCW,
   kDataFormatNCL,
 
-  kDataFormatS1D, // [seq_len, 1, dim]
+  kDataFormatS1D,  // [seq_len, 1, dim]
 
   // 4D
   kDataFormatNCHW,  // 为主
@@ -265,7 +268,9 @@ enum ModelType : int {
 };
 
 enum InferenceType : int {
-  kInferenceTypeDefault = 0x0000,
+  kInferenceTypeNone = 0x0000,
+
+  kInferenceTypeDefault,
 
   kInferenceTypeOpenVino,
   kInferenceTypeTensorRt,
@@ -350,6 +355,9 @@ using IntVector = std::vector<int>;
 using SizeVector = std::vector<size_t>;
 using ShapeMap = std::map<std::string, std::vector<int>>;
 
+extern NNDEPLOY_CC_API std::string dataTypeCodeToString(DataTypeCode src);
+extern NNDEPLOY_CC_API DataTypeCode
+stringToDataTypeCode(const std::string &src);
 extern NNDEPLOY_CC_API std::string dataTypeToString(DataType data_type);
 extern NNDEPLOY_CC_API DataType stringToDataType(const std::string &str);
 
@@ -358,6 +366,7 @@ extern NNDEPLOY_CC_API DataFormat stringToDataFormat(const std::string &str);
 
 extern NNDEPLOY_CC_API DeviceTypeCode
 stringToDeviceTypeCode(const std::string &src);
+extern NNDEPLOY_CC_API std::string deviceTypeCodeToString(DeviceTypeCode src);
 extern NNDEPLOY_CC_API DeviceType stringToDeviceType(const std::string &src);
 extern NNDEPLOY_CC_API std::string deviceTypeToString(DeviceType src);
 
