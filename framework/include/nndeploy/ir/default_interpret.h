@@ -43,7 +43,7 @@ class DefaultInterpret : public Interpret {
    *
    * 用于存储模型权重信息
    */
-  std::shared_ptr<safetensors::safetensors_t> st_ptr_;
+  std::vector<std::shared_ptr<safetensors::safetensors_t>> st_ptr_;
 };
 
 }  // namespace ir

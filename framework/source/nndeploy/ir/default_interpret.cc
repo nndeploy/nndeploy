@@ -48,12 +48,11 @@ base::Status DefaultInterpret::interpret(
       return base::kStatusCodeErrorIO;
     }
 
-    if (st_ptr_ != nullptr) {
-      st_ptr_.reset();
-    }
-    st_ptr_ = mmap_st_ptr;
-
-    status = model_desc_->deserializeWeightsFromSafetensors(st_ptr_);
+    // if (st_ptr_ != nullptr) {
+    //   st_ptr_.reset();
+    // }
+    st_ptr_.emplace_back(mmap_st_ptr);
+    status = model_desc_->deserializeWeightsFromSafetensors(mmap_st_ptr);
     NNDEPLOY_RETURN_VALUE_ON_NEQ(
         status, base::kStatusCodeOk, status,
         "model_desc_->deserializeWeightsFromSafetensors failed!");
