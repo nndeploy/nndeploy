@@ -51,7 +51,7 @@ class PyOpCreator : public OpCreator {
   Op *createOp(base::DeviceType device_type, const std::string &name,
                ir::OpType op_type, std::vector<std::string> &inputs,
                std::vector<std::string> &outputs) override {
-    PYBIND11_OVERRIDE_PURE(Op *, OpCreator, createOp, device_type, name,
+    PYBIND11_OVERRIDE_PURE(Op *, OpCreator, create_op_cpp, device_type, name,
                            op_type, inputs, outputs);
   }
 
@@ -59,7 +59,7 @@ class PyOpCreator : public OpCreator {
       base::DeviceType device_type, const std::string &name, ir::OpType op_type,
       std::vector<std::string> &inputs,
       std::vector<std::string> &outputs) override {
-    PYBIND11_OVERRIDE_PURE(std::shared_ptr<Op>, OpCreator, createOpSharedPtr,
+    PYBIND11_OVERRIDE_PURE(std::shared_ptr<Op>, OpCreator, create_op,
                            device_type, name, op_type, inputs, outputs);
   }
 };
@@ -135,8 +135,8 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
 
   py::class_<OpCreator, PyOpCreator, std::shared_ptr<OpCreator>>(m, "OpCreator")
       .def(py::init<>())
-      .def("createOp", &OpCreator::createOp)
-      .def("createOpSharedPtr", &OpCreator::createOpSharedPtr);
+      .def("create_op_cpp", &OpCreator::createOp)
+      .def("create_op", &OpCreator::createOpSharedPtr);
 
   m.def("register_op_creator",
         [](base::DeviceTypeCode device_type_code, ir::OpType op_type,
@@ -145,20 +145,12 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
         });
 
   m.def(
-      "createOpSharedPtr",
+      "create_op",
       py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
                         std::vector<std::string> &, std::vector<std::string> &>(
           &createOpSharedPtr),
       py::arg("device_type"), py::arg("name"), py::arg("op_type"),
       py::arg("inputs"), py::arg("outputs"));
-
-  m.def(
-      "createOpSharedPtr",
-      py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
-                        std::vector<std::string> &, std::vector<std::string> &,
-                        std::shared_ptr<base::Param>>(&createOpSharedPtr),
-      py::arg("device_type"), py::arg("name"), py::arg("op_type"),
-      py::arg("inputs"), py::arg("outputs"), py::arg("param"));
 
   m.def("rms_norm", &rmsNormFunc, py::return_value_policy::take_ownership);
   m.def("batch_norm", &batchNormFunc, py::return_value_policy::take_ownership);

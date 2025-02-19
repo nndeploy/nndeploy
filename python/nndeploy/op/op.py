@@ -175,22 +175,22 @@ class OpCreator(_C.op.OpCreator):
     def __init__(self):
         super().__init__()
 
+    def create_op_cpp(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
+        return None
+
     def create_op(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
         raise NotImplementedError("Subclass must implement the run function")
-
-
-
-def create_op(device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
-    return _C.op.create_op(device_type, name, op_type, inputs, outputs)
-
 
 
 def register_op_creator(device_type_code: nndeploy.base.DeviceTypeCode, op_type: nndeploy.ir.OpType, creator: OpCreator):
     return _C.op.register_op_creator(device_type_code, op_type, creator)
 
 
-def create_op_shared_ptr_simple(device_type: nndeploy.base.DeviceType, op_type: nndeploy.ir.OpType):
-    return _C.op.create_op_shared_ptr_simple(device_type, op_type)
+def create_op(device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str] = [], outputs: list[str] = [], param: nndeploy.base.Param = None):
+    op = _C.op.create_op(device_type, name, op_type, inputs, outputs)
+    if op is not None:
+        op.set_param(param)
+    return op
 
 
 
@@ -211,27 +211,17 @@ class MyOpCreator(_C.op.OpCreator):
     def __init__(self):
         super().__init__()
 
-    def createOp(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
-        op = MyOp()
-        op.set_device_type(device_type)
-        op.set_name(name)
-        op.set_op_type(op_type)
-        op.set_all_input_name(inputs)
-        op.set_all_output_name(outputs)
-        return op
-
-    def createOpSharedPtr(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
-        op = MyOp()
-        op.set_device_type(device_type)
-        op.set_name(name) 
-        op.set_op_type(op_type)
-        op.set_all_input_name(inputs)
-        op.set_all_output_name(outputs)
-        print("createOpSharedPtr")
-        print(op)
-        print("--------------------------------")
-        return op
-
+    def create_op(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
+        if op_type == nndeploy.ir.OpType.kOpTypeNone and device_type.code_ == nndeploy.base.DeviceTypeCode.cpu:
+            op = MyOp()
+            op.set_device_type(device_type)
+            op.set_name(name) 
+            op.set_op_type(op_type)
+            op.set_all_input_name(inputs)
+            op.set_all_output_name(outputs)
+            return op
+        else:
+            return None
 
 
 if __name__ == "__main__":
@@ -240,7 +230,7 @@ if __name__ == "__main__":
     print(op)
     print("--------------------------------")
     creator = MyOpCreator()
-    _C.op.register_op_creator(nndeploy.base.DeviceTypeCode.cpu, nndeploy.ir.OpType.kOpTypeNone, creator)
-    op = _C.op.createOpSharedPtr(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cpu), "kOpTypeNone", nndeploy.ir.OpType.kOpTypeNone, [], [])
+    register_op_creator(nndeploy.base.DeviceTypeCode.cpu, nndeploy.ir.OpType.kOpTypeNone, creator)
+    op = create_op(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cpu), "kOpTypeNone", nndeploy.ir.OpType.kOpTypeNone, [], [], None)
     print(op)
     print("--------------------------------")
