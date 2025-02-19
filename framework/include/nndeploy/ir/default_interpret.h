@@ -16,7 +16,16 @@ class DefaultInterpret : public Interpret {
    * 创建一个新的DefaultInterpret对象，并初始化model_desc_成员。
    * model_desc_被初始化为一个新的ModelDesc对象。
    */
-  DefaultInterpret();
+  // DefaultInterpret();
+
+  /**
+   * @brief DefaultInterpret类的带参构造函数
+   *
+   * 使用已有的model_desc创建一个新的 DefaultInterpret对象。
+   */
+  explicit DefaultInterpret(ModelDesc *model_desc = nullptr,
+                            bool is_external = false);
+
   /**
    * @brief 虚析构函数
    *
@@ -34,7 +43,7 @@ class DefaultInterpret : public Interpret {
    *
    * 用于存储模型权重信息
    */
-  std::shared_ptr<safetensors::safetensors_t> st_ptr_;
+  std::vector<std::shared_ptr<safetensors::safetensors_t>> st_ptr_;
 };
 
 }  // namespace ir
