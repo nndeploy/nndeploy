@@ -154,12 +154,14 @@ name_to_op_type = {
 
 op_type_to_name = {v: k for k, v in name_to_op_type.items()}
 
+
 def op_type_to_string(op_type):
     return op_type_to_name[op_type]
 
 
 def string_to_op_type(op_type_name):
     return name_to_op_type[op_type_name]
+    
 
 class OpType(_C.ir.OpType):
     Net = _C.ir.OpType.Net

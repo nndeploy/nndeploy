@@ -1,10 +1,9 @@
 
 import nndeploy._nndeploy_internal as _C
 
-import numpy as np
 import nndeploy.base
-import op_param
 # import nndeploy.device
+# import op_param
 
 
 # python3 nndeploy/ir/ir.py
@@ -168,7 +167,7 @@ if __name__ == "__main__":
     model.inputs = [ValueDesc("input", nndeploy.base.DataType(nndeploy.base.DataTypeCode.Fp, 32, 1), [1, 3, 224, 224])]
     model.outputs = [ValueDesc("output", nndeploy.base.DataType(nndeploy.base.DataTypeCode.Fp, 32, 1), [1, 64, 112, 112])]
     
-    conv1 = OpDesc("Conv", op_param.OpType.Conv )
+    conv1 = OpDesc("Conv", op_param.OpType.Conv)
     conv1.inputs = ["input"]
     conv1.outputs = ["conv1_out"]
     model.op_descs.append(conv1)

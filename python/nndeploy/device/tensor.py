@@ -584,7 +584,7 @@ class Tensor(_C.device.Tensor):
 if __name__ == "__main__":
     tensor = Tensor(Device("cpu"), TensorDesc(nndeploy.base.DataType("float32"), nndeploy.base.DataFormat.NCHW, [1, 3, 224, 224]), "test")
     print(tensor)
-    import numpy as np
+    import numpy as np  
     numpy_array = np.asarray(tensor)
     print(numpy_array)
     numpy_array = tensor.to_numpy()

@@ -1,5 +1,6 @@
-#include "nndeploy/base/status.h"
 #include "nndeploy/ir/interpret.h"
+
+#include "nndeploy/base/status.h"
 #include "safetensors.hh"
 
 namespace nndeploy {
@@ -109,11 +110,24 @@ getGlobalInterpretCreatorMap() {
   return *creators;
 }
 
-Interpret *createInterpret(base::ModelType type, ir::ModelDesc *model_desc) {
+Interpret *createInterpret(base::ModelType type, ir::ModelDesc *model_desc,
+                           bool is_external) {
   Interpret *temp = nullptr;
   auto &creater_map = getGlobalInterpretCreatorMap();
   if (creater_map.count(type) > 0) {
-    temp = creater_map[type]->createInterpret(type, model_desc);
+    temp = creater_map[type]->createInterpret(type, model_desc, is_external);
+  }
+  return temp;
+}
+
+std::shared_ptr<Interpret> createInterpretSharedPtr(base::ModelType type,
+                                                    ir::ModelDesc *model_desc,
+                                                    bool is_external) {
+  std::shared_ptr<Interpret> temp = nullptr;
+  auto &creater_map = getGlobalInterpretCreatorMap();
+  if (creater_map.count(type) > 0) {
+    temp = creater_map[type]->createInterpretSharedPtr(type, model_desc,
+                                                       is_external);
   }
   return temp;
 }

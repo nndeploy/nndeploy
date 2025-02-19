@@ -482,5 +482,109 @@ Op *createOp(base::DeviceType device_type,
   return op;
 }
 
+std::shared_ptr<Op> create_op(base::DeviceType device_type,
+                              const std::string &name, ir::OpType op_type) {
+  std::shared_ptr<Op> op = nullptr;
+  auto &creater_map = getGlobalOpCreatorMap();
+  std::vector<std::string> inputs;
+  std::vector<std::string> outputs;
+  auto device_map = creater_map.find(device_type.code_);
+  if (device_map != creater_map.end()) {
+    auto &op_map = device_map->second;
+    auto creator = op_map.find(op_type);
+    if (creator != op_map.end()) {
+      op = creator->second->create_op(device_type, name, op_type, inputs,
+                                      outputs);
+    }
+  }
+  return op;
+}
+
+std::shared_ptr<Op> create_op(base::DeviceType device_type,
+                              const std::string &name, ir::OpType op_type,
+                              std::initializer_list<std::string> inputs,
+                              std::initializer_list<std::string> outputs) {
+  std::shared_ptr<Op> op = nullptr;
+  auto &creater_map = getGlobalOpCreatorMap();
+  std::vector<std::string> inputs_vec;
+  std::vector<std::string> outputs_vec;
+  for (auto input : inputs) {
+    inputs_vec.push_back(input);
+  }
+  for (auto output : outputs) {
+    outputs_vec.push_back(output);
+  }
+  auto device_map = creater_map.find(device_type.code_);
+  if (device_map != creater_map.end()) {
+    auto &op_map = device_map->second;
+    auto creator = op_map.find(op_type);
+    if (creator != op_map.end()) {
+      op = creator->second->create_op(device_type, name, op_type, inputs_vec,
+                                      outputs_vec);
+    }
+  }
+  return op;
+}
+
+std::shared_ptr<Op> create_op(base::DeviceType device_type,
+                              const std::string &name, ir::OpType op_type,
+                              std::vector<std::string> &inputs,
+                              std::vector<std::string> &outputs) {
+  std::shared_ptr<Op> op = nullptr;
+  auto &creater_map = getGlobalOpCreatorMap();
+  auto device_map = creater_map.find(device_type.code_);
+  if (device_map != creater_map.end()) {
+    auto &op_map = device_map->second;
+    auto creator = op_map.find(op_type);
+    if (creator != op_map.end()) {
+      op = creator->second->create_op(device_type, name, op_type, inputs,
+                                      outputs);
+    }
+  }
+  return op;
+}
+
+std::shared_ptr<Op> create_op(base::DeviceType device_type,
+                              const std::string &name, ir::OpType op_type,
+                              std::vector<std::string> &inputs,
+                              std::vector<std::string> &outputs,
+                              std::shared_ptr<base::Param> param) {
+  std::shared_ptr<Op> op = nullptr;
+  auto &creater_map = getGlobalOpCreatorMap();
+  auto device_map = creater_map.find(device_type.code_);
+  if (device_map != creater_map.end()) {
+    auto &op_map = device_map->second;
+    auto creator = op_map.find(op_type);
+    if (creator != op_map.end()) {
+      op = creator->second->create_op(device_type, name, op_type, inputs,
+                                      outputs);
+      if (op != nullptr) {
+        op->setParam(param);
+      }
+    }
+  }
+  return op;
+}
+
+std::shared_ptr<Op> create_op(base::DeviceType device_type,
+                              std::shared_ptr<ir::OpDesc> op_desc) {
+  std::shared_ptr<Op> op = nullptr;
+  if (op_desc != nullptr) {
+    auto &creater_map = getGlobalOpCreatorMap();
+    auto device_map = creater_map.find(device_type.code_);
+    if (device_map != creater_map.end()) {
+      auto &op_map = device_map->second;
+      auto creator = op_map.find(op_desc->op_type_);
+      if (creator != op_map.end()) {
+        op = creator->second->create_op(device_type, op_desc->name_,
+                                        op_desc->op_type_, op_desc->inputs_,
+                                        op_desc->outputs_);
+        op->setParam(op_desc->op_param_);
+      }
+    }
+  }
+  return op;
+}
+
 }  // namespace op
 }  // namespace nndeploy

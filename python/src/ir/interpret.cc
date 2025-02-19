@@ -24,20 +24,23 @@ class PyInterpretCreator : public InterpretCreator {
  public:
   using InterpretCreator::InterpretCreator;
 
-  Interpret *createInterpret(base::ModelType type) override {
-    PYBIND11_OVERRIDE_PURE(Interpret *, InterpretCreator, createInterpret,
-                           type);
+  Interpret *createInterpret(base::ModelType type,
+                             ir::ModelDesc *model_desc = nullptr,
+                             bool is_external = false) override {
+    PYBIND11_OVERRIDE_PURE(Interpret *, InterpretCreator, create_interpret_cpp,
+                           type, model_desc, is_external);
+  }
+
+  std::shared_ptr<Interpret> createInterpretSharedPtr(
+      base::ModelType type, ir::ModelDesc *model_desc = nullptr,
+      bool is_external = false) override {
+    PYBIND11_OVERRIDE_PURE(std::shared_ptr<Interpret>, InterpretCreator,
+                           create_interpret, type, model_desc, is_external);
   }
 };
 
-Interpret *convertToInterpretPtr(py::object obj) {
-  // 将Python对象转换为Interpret *指针
-  Interpret *ptr = obj.cast<Interpret *>();
-  return ptr;
-}
-
 NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
-  py::class_<Interpret, PyInterpret, std::unique_ptr<Interpret>>(m, "Interpret")
+  py::class_<Interpret, PyInterpret, std::shared_ptr<Interpret>>(m, "Interpret")
       .def(py::init<>())
       .def("interpret", &Interpret::interpret)
       .def("dump",
@@ -59,9 +62,11 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
   py::class_<InterpretCreator, PyInterpretCreator,
              std::shared_ptr<InterpretCreator>>(m, "InterpretCreator")
       .def(py::init<>())
-      .def("createInterpret", &InterpretCreator::createInterpret);
+      .def("create_interpret_cpp", &InterpretCreator::createInterpret)
+      .def("create_interpret", &InterpretCreator::createInterpretSharedPtr);
 
-  py::class_<DefaultInterpret, Interpret>(m, "DefaultInterpret")
+  py::class_<DefaultInterpret, Interpret, std::shared_ptr<DefaultInterpret>>(
+      m, "DefaultInterpret")
       .def(py::init<>())
       .def("interpret", &DefaultInterpret::interpret);
 
@@ -73,10 +78,10 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
           }
         });
 
-  m.def("createInterpret", &createInterpret, py::arg("type"),
-        py::return_value_policy::reference);
-
-  m.def("convert_to_interpret_ptr", &convertToInterpretPtr);
+  m.def("create_interpret_cpp", &createInterpret, py::arg("type"),
+        py::arg("model_desc") = nullptr, py::arg("is_external") = false);
+  m.def("create_interpret", &createInterpretSharedPtr, py::arg("type"),
+        py::arg("model_desc") = nullptr, py::arg("is_external") = false);
 }
 
 }  // namespace ir

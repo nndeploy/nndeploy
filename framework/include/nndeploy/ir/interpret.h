@@ -137,7 +137,11 @@ class InterpretCreator {
   virtual ~InterpretCreator() {};
   // virtual Interpret *createInterpret(base::ModelType type) = 0;
   virtual Interpret *createInterpret(base::ModelType type,
-                                     ir::ModelDesc *model_desc = nullptr) = 0;
+                                     ir::ModelDesc *model_desc = nullptr,
+                                     bool is_external = false) = 0;
+  virtual std::shared_ptr<Interpret> createInterpretSharedPtr(
+      base::ModelType type, ir::ModelDesc *model_desc = nullptr,
+      bool is_external = false) = 0;
 };
 
 /**
@@ -148,8 +152,14 @@ class InterpretCreator {
 template <typename T>
 class TypeInterpretCreator : public InterpretCreator {
   virtual Interpret *createInterpret(base::ModelType type,
-                                     ir::ModelDesc *model_desc = nullptr) {
-    return new T(model_desc);
+                                     ir::ModelDesc *model_desc = nullptr,
+                                     bool is_external = false) {
+    return new T(model_desc, is_external);
+  }
+  virtual std::shared_ptr<Interpret> createInterpretSharedPtr(
+      base::ModelType type, ir::ModelDesc *model_desc = nullptr,
+      bool is_external = false) {
+    return std::make_shared<T>(model_desc, is_external);
   }
 };
 
@@ -181,7 +191,12 @@ class TypeInterpretRegister {
  * @return Interpret*
  */
 extern NNDEPLOY_CC_API Interpret *createInterpret(
-    base::ModelType type, ir::ModelDesc *model_desc = nullptr);
+    base::ModelType type, ir::ModelDesc *model_desc = nullptr,
+    bool is_external = false);
+
+extern NNDEPLOY_CC_API std::shared_ptr<Interpret> createInterpretSharedPtr(
+    base::ModelType type, ir::ModelDesc *model_desc = nullptr,
+    bool is_external = false);
 
 }  // namespace ir
 }  // namespace nndeploy
