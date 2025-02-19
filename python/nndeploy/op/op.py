@@ -189,32 +189,58 @@ def register_op_creator(device_type_code: nndeploy.base.DeviceTypeCode, op_type:
     return _C.op.register_op_creator(device_type_code, op_type, creator)
 
 
+def create_op_shared_ptr_simple(device_type: nndeploy.base.DeviceType, op_type: nndeploy.ir.OpType):
+    return _C.op.create_op_shared_ptr_simple(device_type, op_type)
+
+
+
+class MyOp(_C.op.Op):
+    def __init__(self):
+        super().__init__()
+        self.test = "test"
+
+    def run(self):
+        print("MyOp run")
+        return nndeploy.base.Status()
+
+    def __str__(self):
+        return f"name: {self.get_name()}, op_type: {self.get_op_type()}, device_type: {self.get_device_type()}, test: {self.test}"
+
+
+class MyOpCreator(_C.op.OpCreator):
+    def __init__(self):
+        super().__init__()
+
+    def createOp(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
+        op = MyOp()
+        op.set_device_type(device_type)
+        op.set_name(name)
+        op.set_op_type(op_type)
+        op.set_all_input_name(inputs)
+        op.set_all_output_name(outputs)
+        return op
+
+    def createOpSharedPtr(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
+        op = MyOp()
+        op.set_device_type(device_type)
+        op.set_name(name) 
+        op.set_op_type(op_type)
+        op.set_all_input_name(inputs)
+        op.set_all_output_name(outputs)
+        print("createOpSharedPtr")
+        print(op)
+        print("--------------------------------")
+        return op
+
+
 
 if __name__ == "__main__":
-    print(nndeploy.base.DeviceTypeCode.cpu)
-    print(nndeploy.ir.OpType.Conv)
-    print(OpCreator())
-    op = create_op(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cpu), "conv", nndeploy.ir.OpType.Conv, ["input"], ["output"])
+    print("Op")
+    op = Op()
     print(op)
-   
-
-    class MyOp(_C.op.Op):
-        def __init__(self):
-            super().__init__()
-        def run(self):
-            print("MyOp run")
-
-    class MyOpCreator(_C.op.OpCreator):
-        def __init__(self):
-            super().__init__()
-
-        def create_op_cpp(self, device_type, name, op_type, inputs, outputs):
-            return MyOp()
-
-        def create_op(self, device_type, name, op_type, inputs, outputs):
-            return MyOp()
-    
-    register_op_creator(nndeploy.base.DeviceTypeCode.cpu, nndeploy.ir.OpType.kOpTypeNone, MyOpCreator())
-    op = _C.op.create_op(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cpu), "kOpTypeNone", nndeploy.ir.OpType.kOpTypeNone, ["input"], ["output"])
+    print("--------------------------------")
+    creator = MyOpCreator()
+    _C.op.register_op_creator(nndeploy.base.DeviceTypeCode.cpu, nndeploy.ir.OpType.kOpTypeNone, creator)
+    op = _C.op.createOpSharedPtr(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cpu), "kOpTypeNone", nndeploy.ir.OpType.kOpTypeNone, [], [])
     print(op)
-    op.run()
+    print("--------------------------------")
