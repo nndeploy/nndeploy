@@ -17,24 +17,24 @@ class PyArchitecture : public Architecture {
 
   base::Status checkDevice(int device_id = 0,
                            std::string library_path = "") override {
-    PYBIND11_OVERRIDE_PURE(base::Status, Architecture, checkDevice, device_id,
+    PYBIND11_OVERRIDE_PURE(base::Status, Architecture, check_device, device_id,
                            library_path);
   }
 
   base::Status enableDevice(int device_id = 0,
                             std::string library_path = "") override {
-    PYBIND11_OVERRIDE_PURE(base::Status, Architecture, enableDevice, device_id,
+    PYBIND11_OVERRIDE_PURE(base::Status, Architecture, enable_device, device_id,
                            library_path);
   }
 
   Device *getDevice(int device_id) override {
-    PYBIND11_OVERRIDE_PURE(Device *, Architecture, getDevice, device_id);
+    PYBIND11_OVERRIDE_PURE(Device *, Architecture, get_device, device_id);
   }
 
   std::vector<DeviceInfo> getDeviceInfo(
       std::string library_path = "") override {
-    PYBIND11_OVERRIDE_PURE(std::vector<DeviceInfo>, Architecture, getDeviceInfo,
-                           library_path);
+    PYBIND11_OVERRIDE_PURE(std::vector<DeviceInfo>, Architecture,
+                           get_device_info, library_path);
   }
 };
 
@@ -44,7 +44,7 @@ class PyDevice : public Device {
 
   BufferDesc toBufferDesc(const TensorDesc &desc,
                           const base::IntVector &config) override {
-    PYBIND11_OVERRIDE_PURE(BufferDesc, Device, toBufferDesc, desc, config);
+    PYBIND11_OVERRIDE_PURE(BufferDesc, Device, to_buffer_desc, desc, config);
   }
 
   void *allocate(size_t size) override {

@@ -395,7 +395,7 @@ base::Status ModelDesc::serializeStructureToJson(std::ostream &stream) const {
   base::Status status =
       this->serializeStructureToJson(json, doc.GetAllocator());
   if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("serializeStructureToJson failed with status: %d\n", status);
+    NNDEPLOY_LOGE("serializeStructureToJson failed with status: %d\n", int(status));
     return status;
   }
 
@@ -648,18 +648,23 @@ base::Status ModelDesc::serializeWeightsToSafetensors(
 base::Status ModelDesc::deserializeWeightsFromSafetensors(
     std::shared_ptr<safetensors::safetensors_t> &st_ptr) {
   base::Status status = base::kStatusCodeOk;
-  // 释放之前权重
-  for (auto &weight : weights_) {
-    if (weight.second != nullptr) {
-      delete weight.second;
-    }
-  }
-  weights_.clear();
+  // 有些网络会有多个权重文件，所以这里不清空权重
+  // // 释放之前权重
+  // for (auto &weight : weights_) {
+  //   if (weight.second != nullptr) {
+  //     delete weight.second;
+  //   }
+  // }
+  // weights_.clear();
   // 导入权重
   size_t tensor_size = st_ptr->tensors.size();
   const std::vector<std::string> &keys = st_ptr->tensors.keys();
   for (size_t i = 0; i < tensor_size; ++i) {
     std::string tensor_name = keys[i];
+    if (weights_.find(tensor_name) != weights_.end()) {
+      NNDEPLOY_LOGE("The weight name %s is repeated\n", tensor_name.c_str());
+      return base::kStatusCodeErrorInvalidParam;
+    }
     weights_[tensor_name] = new device::Tensor(tensor_name);
     if (weights_[tensor_name] == nullptr) {
       NNDEPLOY_LOGE("new device::Tensor failed\n");

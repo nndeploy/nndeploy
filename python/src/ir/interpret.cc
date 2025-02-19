@@ -3,45 +3,46 @@
 #include <pybind11/stl.h>
 
 #include "nndeploy/ir/default_interpret.h"
-#include "nndeploy/ir/onnx/onnx_interpret.h"
 #include "nndeploy_api_registry.h"
 
 namespace nndeploy {
-
 namespace ir {
 
-template <class Base = Interpret>
-class PyInterpret : public Base {
+class PyInterpret : public Interpret {
  public:
-  using Base ::Base;
+  using Interpret::Interpret;
 
   base::Status interpret(
       const std::vector<std::string> &model_value,
       const std::vector<ValueDesc> &input = std::vector<ValueDesc>()) {
-    PYBIND11_OVERRIDE_PURE(base::Status, Base, interpret, model_value, input);
+    PYBIND11_OVERRIDE_PURE(base::Status, Interpret, interpret, model_value,
+                           input);
   }
 };
 
-template <class Other>
-class PyInterpretOther : public PyInterpret<Other> {
+class PyInterpretCreator : public InterpretCreator {
  public:
-  using PyInterpret<Other>::PyInterpret;
+  using InterpretCreator::InterpretCreator;
 
-  base::Status interpret(
-      const std::vector<std::string> &model_value,
-      const std::vector<ValueDesc> &input = std::vector<ValueDesc>()) {
-    PYBIND11_OVERRIDE(base::Status, Other, interpret, model_value, input);
+  Interpret *createInterpret(base::ModelType type,
+                             ir::ModelDesc *model_desc = nullptr,
+                             bool is_external = false) override {
+    PYBIND11_OVERRIDE_PURE(Interpret *, InterpretCreator, create_interpret_cpp,
+                           type, model_desc, is_external);
+  }
+
+  std::shared_ptr<Interpret> createInterpretSharedPtr(
+      base::ModelType type, ir::ModelDesc *model_desc = nullptr,
+      bool is_external = false) override {
+    PYBIND11_OVERRIDE_PURE(std::shared_ptr<Interpret>, InterpretCreator,
+                           create_interpret, type, model_desc, is_external);
   }
 };
 
 NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
-  m.def("createInterpret", &createInterpret, py::arg("type"),
-        py::return_value_policy::reference);
-
-  py::class_<Interpret, PyInterpret<>, std::shared_ptr<Interpret>>(m,
-                                                                   "Interpret")
-      .def("saveModelToFile", &Interpret::saveModelToFile,
-           py::arg("structure_file_path"), py::arg("weight_file_path"))
+  py::class_<Interpret, PyInterpret, std::shared_ptr<Interpret>>(m, "Interpret")
+      .def(py::init<>())
+      .def("interpret", &Interpret::interpret)
       .def("dump",
            [](Interpret &self, const std::string &file_path) {
              std::ofstream oss(file_path);
@@ -51,22 +52,37 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
 
              self.dump(oss);
            })
-      .def("getModelDesc", &Interpret::getModelDesc,
+      .def("save_model", &Interpret::saveModel, py::arg("structure_stream"),
+           py::arg("st_ptr"))
+      .def("save_model_to_file", &Interpret::saveModelToFile,
+           py::arg("structure_file_path"), py::arg("weight_file_path"))
+      .def("get_model_desc", &Interpret::getModelDesc,
            py::return_value_policy::reference);
 
-  py::class_<DefaultInterpret, Interpret, PyInterpretOther<DefaultInterpret>,
-             std::shared_ptr<DefaultInterpret>>(m, "DefaultInterpret")
+  py::class_<InterpretCreator, PyInterpretCreator,
+             std::shared_ptr<InterpretCreator>>(m, "InterpretCreator")
       .def(py::init<>())
-      .def("interpret", &DefaultInterpret::interpret, py::arg("model_value"),
-           py::arg("input") = std::vector<ValueDesc>());
+      .def("create_interpret_cpp", &InterpretCreator::createInterpret)
+      .def("create_interpret", &InterpretCreator::createInterpretSharedPtr);
 
-  py::class_<OnnxInterpret, Interpret, PyInterpretOther<OnnxInterpret>,
-             std::shared_ptr<OnnxInterpret>>(m, "OnnxInterpret")
+  py::class_<DefaultInterpret, Interpret, std::shared_ptr<DefaultInterpret>>(
+      m, "DefaultInterpret")
       .def(py::init<>())
-      .def("interpret", &OnnxInterpret::interpret, py::arg("model_value"),
-           py::arg("input") = std::vector<ValueDesc>());
+      .def("interpret", &DefaultInterpret::interpret);
+
+  m.def("register_interpret_creator",
+        [](base::ModelType type, std::shared_ptr<InterpretCreator> creator) {
+          getGlobalInterpretCreatorMap()[type] = creator;
+          for (auto &iter : getGlobalInterpretCreatorMap()) {
+            std::cout << "type: " << iter.first << std::endl;
+          }
+        });
+
+  m.def("create_interpret_cpp", &createInterpret, py::arg("type"),
+        py::arg("model_desc") = nullptr, py::arg("is_external") = false);
+  m.def("create_interpret", &createInterpretSharedPtr, py::arg("type"),
+        py::arg("model_desc") = nullptr, py::arg("is_external") = false);
 }
 
 }  // namespace ir
-
 }  // namespace nndeploy

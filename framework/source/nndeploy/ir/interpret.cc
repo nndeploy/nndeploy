@@ -6,7 +6,18 @@
 namespace nndeploy {
 namespace ir {
 
-Interpret::Interpret() { model_desc_ = new ModelDesc(); }
+// Interpret::Interpret() { model_desc_ = new ModelDesc(); }
+
+Interpret::Interpret(ModelDesc *model_desc, bool is_external) {
+  if (nullptr != model_desc) {
+    model_desc_ = model_desc;
+    is_external_ = is_external;
+  } else {
+    model_desc_ = new ModelDesc();
+    is_external_ = false;
+  }
+}
+
 Interpret::~Interpret() {
   if (model_desc_ != nullptr) {
     delete model_desc_;
@@ -86,8 +97,8 @@ base::Status Interpret::saveModelToFile(const std::string &structure_file_path,
 
 ModelDesc *Interpret::getModelDesc() { return model_desc_; }
 
-std::map<base::ModelType, std::shared_ptr<InterpretCreator>>
-    &getGlobalInterpretCreatorMap() {
+std::map<base::ModelType, std::shared_ptr<InterpretCreator>> &
+getGlobalInterpretCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::ModelType, std::shared_ptr<InterpretCreator>>>
@@ -99,11 +110,24 @@ std::map<base::ModelType, std::shared_ptr<InterpretCreator>>
   return *creators;
 }
 
-Interpret *createInterpret(base::ModelType type) {
+Interpret *createInterpret(base::ModelType type, ir::ModelDesc *model_desc,
+                           bool is_external) {
   Interpret *temp = nullptr;
   auto &creater_map = getGlobalInterpretCreatorMap();
   if (creater_map.count(type) > 0) {
-    temp = creater_map[type]->createInterpret(type);
+    temp = creater_map[type]->createInterpret(type, model_desc, is_external);
+  }
+  return temp;
+}
+
+std::shared_ptr<Interpret> createInterpretSharedPtr(base::ModelType type,
+                                                    ir::ModelDesc *model_desc,
+                                                    bool is_external) {
+  std::shared_ptr<Interpret> temp = nullptr;
+  auto &creater_map = getGlobalInterpretCreatorMap();
+  if (creater_map.count(type) > 0) {
+    temp = creater_map[type]->createInterpretSharedPtr(type, model_desc,
+                                                       is_external);
   }
   return temp;
 }

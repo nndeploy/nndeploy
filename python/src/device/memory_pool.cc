@@ -32,15 +32,15 @@ class PyMemoryPool : public MemoryPool {
   }
 
   void *allocatePinned(size_t size) override {
-    PYBIND11_OVERRIDE_PURE(void *, MemoryPool, allocatePinned, size);
+    PYBIND11_OVERRIDE_PURE(void *, MemoryPool, allocate_pinned, size);
   }
 
   void *allocatePinned(const BufferDesc &desc) override {
-    PYBIND11_OVERRIDE_PURE(void *, MemoryPool, allocatePinned, desc);
+    PYBIND11_OVERRIDE_PURE(void *, MemoryPool, allocate_pinned, desc);
   }
 
   void deallocatePinned(void *ptr) override {
-    PYBIND11_OVERRIDE_PURE(void, MemoryPool, deallocatePinned, ptr);
+    PYBIND11_OVERRIDE_PURE(void, MemoryPool, deallocate_pinned, ptr);
   }
 };
 

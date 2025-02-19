@@ -1,17 +1,27 @@
 
 import argparse
 from typing import List
+
 import nndeploy
-from nndeploy.base.common import model_type_from_name
+import nndeploy.base
 import nndeploy._nndeploy_internal as _C
+
+
+import op_param
+import ir
+import interpret
+
+
+# python3 nndeploy/ir/converter.py
+
 
 class Convert():
     def __init__(self, type: str) -> None:
-        self.interpret = _C.ir.createInterpret(model_type_from_name(type))
+        self.interpret = interpret.create_interpret(nndeploy.base.name_to_model_type(type))
 
     def convert(self, model_value: List[str], structure_file_path: str, weight_file_path: str, input: List[nndeploy._C.ir.ValueDesc] = []) -> None:
         self.interpret.interpret(model_value, input)
-        self.interpret.saveModelToFile(structure_file_path, weight_file_path)
+        self.interpret.save_model_to_file(structure_file_path, weight_file_path)
 
 
 def parse_args():
