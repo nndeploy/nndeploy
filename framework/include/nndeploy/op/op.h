@@ -281,28 +281,28 @@ class OpCreator {
  public:
   virtual ~OpCreator() {};
 
-  virtual Op *createOp(base::DeviceType device_type, const std::string &name,
-                       ir::OpType op_type) = 0;
+  // virtual Op *createOp(base::DeviceType device_type, const std::string &name,
+  //                      ir::OpType op_type) = 0;
 
-  virtual Op *createOp(base::DeviceType device_type, const std::string &name,
-                       ir::OpType op_type,
-                       std::initializer_list<std::string> inputs,
-                       std::initializer_list<std::string> outputs) = 0;
+  // virtual Op *createOp(base::DeviceType device_type, const std::string &name,
+  //                      ir::OpType op_type,
+  //                      std::initializer_list<std::string> inputs,
+  //                      std::initializer_list<std::string> outputs) = 0;
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        ir::OpType op_type, std::vector<std::string> &inputs,
                        std::vector<std::string> &outputs) = 0;
 
-  // virtual std::shared_ptr<Op> create_op(base::DeviceType device_type,
+  // virtual std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
   //                                       const std::string &name,
   //                                       ir::OpType op_type) = 0;
 
-  // virtual std::shared_ptr<Op> create_op(
+  // virtual std::shared_ptr<Op> createOpSharedPtr(
   //     base::DeviceType device_type, const std::string &name, ir::OpType op_type,
   //     std::initializer_list<std::string> inputs,
   //     std::initializer_list<std::string> outputs) = 0;
 
-  virtual std::shared_ptr<Op> create_op(base::DeviceType device_type,
+  virtual std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                                         const std::string &name,
                                         ir::OpType op_type,
                                         std::vector<std::string> &inputs,
@@ -316,27 +316,27 @@ class OpCreator {
  */
 template <typename T>
 class TypeOpCreator : public OpCreator {
-  virtual Op *createOp(base::DeviceType device_type, const std::string &name,
-                       ir::OpType op_type) {
-    auto op = new T();
-    op->setDeviceType(device_type);
-    op->setName(name);
-    op->setOpType(op_type);
-    return op;
-  }
+  // virtual Op *createOp(base::DeviceType device_type, const std::string &name,
+  //                      ir::OpType op_type) {
+  //   auto op = new T();
+  //   op->setDeviceType(device_type);
+  //   op->setName(name);
+  //   op->setOpType(op_type);
+  //   return op;
+  // }
 
-  virtual Op *createOp(base::DeviceType device_type, const std::string &name,
-                       ir::OpType op_type,
-                       std::initializer_list<std::string> inputs,
-                       std::initializer_list<std::string> outputs) {
-    auto op = new T();
-    op->setDeviceType(device_type);
-    op->setName(name);
-    op->setOpType(op_type);
-    op->setAllInputName(inputs);
-    op->setAllOutputName(outputs);
-    return op;
-  }
+  // virtual Op *createOp(base::DeviceType device_type, const std::string &name,
+  //                      ir::OpType op_type,
+  //                      std::initializer_list<std::string> inputs,
+  //                      std::initializer_list<std::string> outputs) {
+  //   auto op = new T();
+  //   op->setDeviceType(device_type);
+  //   op->setName(name);
+  //   op->setOpType(op_type);
+  //   op->setAllInputName(inputs);
+  //   op->setAllOutputName(outputs);
+  //   return op;
+  // }
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        ir::OpType op_type, std::vector<std::string> &inputs,
@@ -350,7 +350,7 @@ class TypeOpCreator : public OpCreator {
     return op;
   }
 
-  // virtual std::shared_ptr<Op> create_op(base::DeviceType device_type,
+  // virtual std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
   //                                       const std::string &name,
   //                                       ir::OpType op_type) {
   //   auto op = std::make_shared<T>();
@@ -360,7 +360,7 @@ class TypeOpCreator : public OpCreator {
   //   return op;
   // }
 
-  // virtual std::shared_ptr<Op> create_op(
+  // virtual std::shared_ptr<Op> createOpSharedPtr(
   //     base::DeviceType device_type, const std::string &name, ir::OpType op_type,
   //     std::initializer_list<std::string> inputs,
   //     std::initializer_list<std::string> outputs) {
@@ -373,7 +373,7 @@ class TypeOpCreator : public OpCreator {
   //   return op;
   // }
 
-  virtual std::shared_ptr<Op> create_op(base::DeviceType device_type,
+  virtual std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                                         const std::string &name,
                                         ir::OpType op_type,
                                         std::vector<std::string> &inputs,
@@ -431,26 +431,26 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
 
 Op *createOp(base::DeviceType device_type, std::shared_ptr<ir::OpDesc> op_desc);
 
-std::shared_ptr<Op> create_op(base::DeviceType device_type,
+std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                               const std::string &name, ir::OpType op_type);
 
-std::shared_ptr<Op> create_op(base::DeviceType device_type,
+std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                               const std::string &name, ir::OpType op_type,
                               std::initializer_list<std::string> inputs,
                               std::initializer_list<std::string> outputs);
 
-std::shared_ptr<Op> create_op(base::DeviceType device_type,
+std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                               const std::string &name, ir::OpType op_type,
                               std::vector<std::string> &inputs,
                               std::vector<std::string> &outputs);
 
-std::shared_ptr<Op> create_op(base::DeviceType device_type,
+std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                               const std::string &name, ir::OpType op_type,
                               std::vector<std::string> &inputs,
                               std::vector<std::string> &outputs,
                               std::shared_ptr<base::Param> param);
 
-std::shared_ptr<Op> create_op(base::DeviceType device_type,
+std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                               std::shared_ptr<ir::OpDesc> op_desc);
 
 using SISOOpFunc =
