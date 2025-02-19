@@ -1,7 +1,9 @@
-#include "nndeploy/inference/inference_param.h"
+
+#include "nndeploy/inference/inference.h"
 
 #include <pybind11/stl.h>
 
+#include "nndeploy/inference/inference_param.h"
 #include "nndeploy_api_registry.h"
 
 namespace nndeploy {
@@ -12,13 +14,14 @@ class PyInferenceParamCreator : public InferenceParamCreator {
   using InferenceParamCreator::InferenceParamCreator;
 
   InferenceParam* createInferenceParam(base::InferenceType type) override {
-    PYBIND11_OVERRIDE_PURE(InferenceParam*, InferenceParamCreator, create_create_inference_param_cpp, type);
+    PYBIND11_OVERRIDE_PURE(InferenceParam*, InferenceParamCreator,
+                           create_create_inference_param_cpp, type);
   }
 
   std::shared_ptr<InferenceParam> createInferenceParamSharedPtr(
       base::InferenceType type) override {
-    PYBIND11_OVERRIDE_PURE(std::shared_ptr<InferenceParam>, InferenceParamCreator,
-                           create_inference_param, type);
+    PYBIND11_OVERRIDE_PURE(std::shared_ptr<InferenceParam>,
+                           InferenceParamCreator, create_inference_param, type);
   }
 };
 
@@ -50,12 +53,14 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
   py::class_<InferenceParamCreator, PyInferenceParamCreator,
              std::shared_ptr<InferenceParamCreator>>(m, "InferenceParamCreator")
       .def(py::init<>())
-      .def("create_inference_param_cpp", &InferenceParamCreator::createInferenceParam)
+      .def("create_inference_param_cpp",
+           &InferenceParamCreator::createInferenceParam)
       .def("create_inference_param",
            &InferenceParamCreator::createInferenceParamSharedPtr);
 
   m.def("register_inference_param_creator",
-        [](base::InferenceType type, std::shared_ptr<InferenceParamCreator> creator) {
+        [](base::InferenceType type,
+           std::shared_ptr<InferenceParamCreator> creator) {
           getGlobalInferenceParamCreatorMap()[type] = creator;
         });
 
