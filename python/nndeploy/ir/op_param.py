@@ -1,10 +1,4 @@
-
 import nndeploy._nndeploy_internal as _C
-
-import numpy as np
-import nndeploy.base
-import nndeploy.device
-from torch import classes
 
 
 # python3 nndeploy/ir/op_param.py
@@ -319,3 +313,52 @@ class OpType(_C.ir.OpType):
             raise ValueError(f"not supported op type name: {op_type_name}")
         return cls(name_to_op_type[op_type_name])
 
+
+class OpParamCreator(_C.ir.OpParamCreator):
+    def __init__(self):
+        super().__init__()
+
+    def create_op_param(self, op_type: OpType):
+        raise NotImplementedError("base class OpParamCreator does not implement create_op_param method")
+
+
+def register_op_param_creator(op_type: OpType, creator: OpParamCreator):
+    _C.ir.register_op_param_creator(op_type, creator)
+
+
+def create_op_param(op_type: OpType):
+    return _C.ir.create_op_param(op_type)
+
+
+class OpParam(_C.ir.OpParam):
+    def __init__(self):
+        super().__init__()
+
+        
+
+if __name__ == "__main__":
+    print(OpType.from_name("Net"))
+    print(OpType.from_name("Add"))
+    print(OpType.from_name("Mul"))
+    
+    try:
+        print(OpType.from_name("InvalidOpType"))
+    except ValueError as e:
+        print(f"catch error: {e}")
+
+    class MyOpParamCreator(_C.ir.OpParamCreator):
+        def __init__(self):
+            super().__init__()
+
+        def create_op_param(self, op_type: _C.ir.OpType):
+            if op_type == _C.ir.OpType.BatchNormalization:
+                return _C.base.Param()
+            elif op_type == _C.ir.OpType.Net:
+                return _C.ir.BatchNormalizationParam()
+            else:
+                raise ValueError(f"not supported op type: {op_type}")
+    
+    creator = MyOpParamCreator()
+    register_op_param_creator(OpType.Net, creator)
+    bn_param = create_op_param(OpType.Net)
+    print(type(bn_param))

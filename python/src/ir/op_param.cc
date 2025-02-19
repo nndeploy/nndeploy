@@ -13,9 +13,13 @@ class PyOpParamCreator : public OpParamCreator {
  public:
   using OpParamCreator::OpParamCreator;
 
+  // 重写纯虚函数
   std::shared_ptr<base::Param> createOpParam(OpType type) override {
-    PYBIND11_OVERLOAD_PURE(std::shared_ptr<base::Param>, OpParamCreator,
-                           createOpParam, type);
+    PYBIND11_OVERLOAD_PURE(std::shared_ptr<base::Param>,  // 返回类型
+                           OpParamCreator,                // 父类
+                           create_op_param,               // 函数名
+                           type                           // 参数
+    );
   }
 };
 
@@ -180,10 +184,25 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
   m.def("register_op_param_creator",
         [](OpType type, std::shared_ptr<OpParamCreator> creator) {
           getGlobalOpParamCreatorMap()[type] = creator;
+          // for (auto &item : getGlobalOpParamCreatorMap()) {
+          //   std::cout << opTypeToString(item.first) << std::endl;
+          // }
         });
 
+  // export create_op_param
+  m.def("create_op_param", [](OpType type) {
+    auto creator = getGlobalOpParamCreatorMap()[type];
+    if (creator) {
+      return creator->createOpParam(type);
+    } else {
+      throw std::runtime_error("No OpParamCreator registered for OpType " +
+                               opTypeToString(type));
+    }
+  });
+
   // 导出 OpParam 类
-  py::class_<OpParam, base::Param, std::shared_ptr<OpParam>>(m, "OpParam")
+  py::class_<OpParam, base::Param, std::shared_ptr<OpParam>>(m, "OpParam",
+                                                             py::dynamic_attr())
       .def(py::init<>());
 
   // 导出 BatchNormalizationParam 类

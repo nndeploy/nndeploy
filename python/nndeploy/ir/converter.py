@@ -2,12 +2,12 @@
 import argparse
 from typing import List
 import nndeploy
-from nndeploy.base.common import model_type_from_name
+import nndeploy.base
 import nndeploy._nndeploy_internal as _C
 
 class Convert():
     def __init__(self, type: str) -> None:
-        self.interpret = _C.ir.createInterpret(model_type_from_name(type))
+        self.interpret = _C.ir.createInterpret(nndeploy.base.name_to_model_type(type))
 
     def convert(self, model_value: List[str], structure_file_path: str, weight_file_path: str, input: List[nndeploy._C.ir.ValueDesc] = []) -> None:
         self.interpret.interpret(model_value, input)
