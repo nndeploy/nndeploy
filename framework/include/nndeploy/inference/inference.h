@@ -60,6 +60,7 @@ class NNDEPLOY_CC_API Inference {
    */
   base::Param *getParam();
   std::shared_ptr<base::Param> getParamSharedPtr();
+  
   base::DeviceType getDeviceType() { return inference_param_->device_type_; }
 
   void setStream(device::Stream *stream);

@@ -3,11 +3,11 @@ import numpy as np
 import torch
 import nndeploy
 from nndeploy.op import functional as F
-from nndeploy.base import device_name_to_code
+from nndeploy.base import name_to_device_type_code
 from nndeploy.test.test_util import (
     createTensorFromNumpy,
     createNumpyFromTensor,
-    device_name_to_code,
+    name_to_device_type_code,
 )
 
 class TestMulOp(unittest.TestCase):
@@ -26,12 +26,12 @@ class TestMulOp(unittest.TestCase):
         input1 = createTensorFromNumpy(np_input1)
         input2 = createTensorFromNumpy(np_input2)
 
-        ascend_input1 = input1.to(device_name_to_code["ascendcl"]) 
-        ascend_input2 = input2.to(device_name_to_code["ascendcl"])
+        ascend_input1 = input1.to(name_to_device_type_code["ascendcl"]) 
+        ascend_input2 = input2.to(name_to_device_type_code["ascendcl"])
 
         ascend_result = F.mul(ascend_input1, ascend_input2)
 
-        nndeploy_result = ascend_result.to(device_name_to_code["cpu"])
+        nndeploy_result = ascend_result.to(name_to_device_type_code["cpu"])
 
         # ascend_input1_array = createNumpyFromTensor(ascend_input1)
         # diff_input = ascend_input1_array - np_input1

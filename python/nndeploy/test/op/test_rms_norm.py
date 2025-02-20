@@ -35,9 +35,9 @@ class TestRmsNormOp(unittest.TestCase):
         CPU_fused_resid_and_RMSNorm(
             np_out, np_in2, 1e-6, hidden_units, num_tokens)
 
-        tensor1 = createTensorFromNumpy(np_in1).to(device_name_to_code['cuda'])
-        tensor2 = createTensorFromNumpy(np_in2).to(device_name_to_code['cuda'])
-        tensor3 = createTensorFromNumpy(np_in3).to(device_name_to_code['cuda'])
+        tensor1 = createTensorFromNumpy(np_in1).to(name_to_device_type_code['cuda'])
+        tensor2 = createTensorFromNumpy(np_in2).to(name_to_device_type_code['cuda'])
+        tensor3 = createTensorFromNumpy(np_in3).to(name_to_device_type_code['cuda'])
 
         nndeploy_result = nndeploy.op.rms_norm(tensor1, tensor2, tensor3)
 
