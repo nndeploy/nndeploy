@@ -48,6 +48,51 @@ std::string getPyBufferFormat(base::DataType data_type) {
   return format;
 }
 
+base::DataType getDataTypeFromNumpy(char kind, int itemsize) {
+  base::DataType data_type;
+  int bits = itemsize * 8;
+  switch (kind) {
+    case 'B':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint, bits);
+      break;
+    case 'H':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint, bits);
+      break;
+    case 'I':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint, bits);
+    case 'Q':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint, bits);
+      break;
+    case 'b':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
+      break;
+    case 'h':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
+      break;
+    case 'i':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
+      break;
+    case 'q':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
+      break;
+    case 'e':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
+      break;
+    case 'f':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
+      break;
+    case 'd':
+      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
+      break;
+    default:
+      std::stringstream ss;
+      ss << "convert numpy.ndarray to nndeploy Tensor only support kind = "
+            "f, i, u now, but given " << kind;
+      pybind11::pybind11_fail(ss.str());
+  }
+  return data_type;
+}
+
 py::buffer_info bufferToBufferInfo(device::Buffer *buffer,
                                    const py::dtype &dt) {
   void *data = nullptr;

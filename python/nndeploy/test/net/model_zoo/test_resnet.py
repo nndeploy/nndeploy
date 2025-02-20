@@ -3,7 +3,7 @@ from nndeploy.base import DeviceType
 import argparse
 from PIL import Image
 import numpy as np
-from nndeploy.test_utils import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test_utils import create_tensor_from_numpy, createNumpyFromTensor
 
 import onnxruntime as ort
 
@@ -69,7 +69,7 @@ def clsidx_to_label(idx):
 
 
 def predict(net, img, args):
-    input_map = {"data": createTensorFromNumpy(img, args.device)}
+    input_map = {"data": create_tensor_from_numpy(img, args.device)}
     net.setInputs(input_map)
     net.preRun()
     net.run()

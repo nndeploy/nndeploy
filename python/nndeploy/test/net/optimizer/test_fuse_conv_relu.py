@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import nndeploy
 
-from nndeploy.test_utils import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test_utils import create_tensor_from_numpy, createNumpyFromTensor
 from nndeploy.net import build_model
 from nndeploy.net import FuseConvRelu, FuseConvBatchNorm
 
@@ -26,17 +26,17 @@ np_batch_norm4_var = np.random.random(conv1_bias_shape).astype(np.float32)
 
 
 nndeploy_weight_map = {
-    "conv1_weight": createTensorFromNumpy(np_conv1_weight),
-    "conv1_bias": createTensorFromNumpy(np_conv1_bias),
-    "conv3_weight": createTensorFromNumpy(np_conv3_weight),
-    "conv3_bias": createTensorFromNumpy(np_conv3_bias),
-    "norm4_scale": createTensorFromNumpy(np_batch_norm4_scale),
-    "norm4_bias": createTensorFromNumpy(np_batch_norm4_bias),
-    "norm4_mean": createTensorFromNumpy(np_batch_norm4_mean),
-    "norm4_var": createTensorFromNumpy(np_batch_norm4_var),
+    "conv1_weight": create_tensor_from_numpy(np_conv1_weight),
+    "conv1_bias": create_tensor_from_numpy(np_conv1_bias),
+    "conv3_weight": create_tensor_from_numpy(np_conv3_weight),
+    "conv3_bias": create_tensor_from_numpy(np_conv3_bias),
+    "norm4_scale": create_tensor_from_numpy(np_batch_norm4_scale),
+    "norm4_bias": create_tensor_from_numpy(np_batch_norm4_bias),
+    "norm4_mean": create_tensor_from_numpy(np_batch_norm4_mean),
+    "norm4_var": create_tensor_from_numpy(np_batch_norm4_var),
 }
 
-nndeploy_input_map = {"input": createTensorFromNumpy(np_input)}
+nndeploy_input_map = {"input": create_tensor_from_numpy(np_input)}
 
 # 计算pytorch结果
 torch_result = torch.nn.functional.conv2d(

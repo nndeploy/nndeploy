@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import nndeploy
 
-from nndeploy.test_utils import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test_utils import create_tensor_from_numpy, createNumpyFromTensor
 from nndeploy.net import build_model
 
 from nndeploy.net import EliminateCommonSubexpression, FuseConvBatchNorm
@@ -96,33 +96,33 @@ np_batch_norm4_var = np.random.random(conv4_bias_shape).astype(np.float32)
 
 # 创建权重映射字典
 nndeploy_weight_map = {
-    "conv1_weight": createTensorFromNumpy(np_conv1_weight),
-    "conv1_bias": createTensorFromNumpy(np_conv1_bias),
-    "norm1_scale": createTensorFromNumpy(np_batch_norm1_scale),
-    "norm1_bias": createTensorFromNumpy(np_batch_norm1_bias),
-    "norm1_mean": createTensorFromNumpy(np_batch_norm1_mean),
-    "norm1_var": createTensorFromNumpy(np_batch_norm1_var),
-    # "conv2_weight": createTensorFromNumpy(np_conv2_weight),
-    # "conv2_bias": createTensorFromNumpy(np_conv2_bias),
-    # "norm2_scale": createTensorFromNumpy(np_batch_norm2_scale),
-    # "norm2_bias": createTensorFromNumpy(np_batch_norm2_bias),
-    # "norm2_mean": createTensorFromNumpy(np_batch_norm2_mean),
-    # "norm2_var": createTensorFromNumpy(np_batch_norm2_var),
-    "conv3_weight": createTensorFromNumpy(np_conv3_weight),
-    "conv3_bias": createTensorFromNumpy(np_conv3_bias),
-    "norm3_scale": createTensorFromNumpy(np_batch_norm3_scale),
-    "norm3_bias": createTensorFromNumpy(np_batch_norm3_bias),
-    "norm3_mean": createTensorFromNumpy(np_batch_norm3_mean),
-    "norm3_var": createTensorFromNumpy(np_batch_norm3_var),
-    "conv4_weight": createTensorFromNumpy(np_conv4_weight),
-    "conv4_bias": createTensorFromNumpy(np_conv4_bias),
-    "norm4_scale": createTensorFromNumpy(np_batch_norm4_scale),
-    "norm4_bias": createTensorFromNumpy(np_batch_norm4_bias),
-    "norm4_mean": createTensorFromNumpy(np_batch_norm4_mean),
-    "norm4_var": createTensorFromNumpy(np_batch_norm4_var),
+    "conv1_weight": create_tensor_from_numpy(np_conv1_weight),
+    "conv1_bias": create_tensor_from_numpy(np_conv1_bias),
+    "norm1_scale": create_tensor_from_numpy(np_batch_norm1_scale),
+    "norm1_bias": create_tensor_from_numpy(np_batch_norm1_bias),
+    "norm1_mean": create_tensor_from_numpy(np_batch_norm1_mean),
+    "norm1_var": create_tensor_from_numpy(np_batch_norm1_var),
+    # "conv2_weight": create_tensor_from_numpy(np_conv2_weight),
+    # "conv2_bias": create_tensor_from_numpy(np_conv2_bias),
+    # "norm2_scale": create_tensor_from_numpy(np_batch_norm2_scale),
+    # "norm2_bias": create_tensor_from_numpy(np_batch_norm2_bias),
+    # "norm2_mean": create_tensor_from_numpy(np_batch_norm2_mean),
+    # "norm2_var": create_tensor_from_numpy(np_batch_norm2_var),
+    "conv3_weight": create_tensor_from_numpy(np_conv3_weight),
+    "conv3_bias": create_tensor_from_numpy(np_conv3_bias),
+    "norm3_scale": create_tensor_from_numpy(np_batch_norm3_scale),
+    "norm3_bias": create_tensor_from_numpy(np_batch_norm3_bias),
+    "norm3_mean": create_tensor_from_numpy(np_batch_norm3_mean),
+    "norm3_var": create_tensor_from_numpy(np_batch_norm3_var),
+    "conv4_weight": create_tensor_from_numpy(np_conv4_weight),
+    "conv4_bias": create_tensor_from_numpy(np_conv4_bias),
+    "norm4_scale": create_tensor_from_numpy(np_batch_norm4_scale),
+    "norm4_bias": create_tensor_from_numpy(np_batch_norm4_bias),
+    "norm4_mean": create_tensor_from_numpy(np_batch_norm4_mean),
+    "norm4_var": create_tensor_from_numpy(np_batch_norm4_var),
 }
 
-nndeploy_input_map = {"input": createTensorFromNumpy(np_input)}
+nndeploy_input_map = {"input": create_tensor_from_numpy(np_input)}
 
 
 # 计算pytorch结果

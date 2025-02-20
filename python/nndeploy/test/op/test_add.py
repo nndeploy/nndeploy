@@ -4,7 +4,7 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
 
 class TestAddOp(unittest.TestCase):
 
@@ -19,15 +19,15 @@ class TestAddOp(unittest.TestCase):
             torch.tensor(np_input2),
         )
 
-        input1 = createTensorFromNumpy(np_input1)
-        input2 = createTensorFromNumpy(np_input2)
+        input1 = create_tensor_from_numpy(np_input1)
+        input2 = create_tensor_from_numpy(np_input2)
 
         nndeploy_result = F.add(input1, input2)
 
         self.assertTrue(
             np.allclose(
                 torch_result.detach().numpy(),
-                createNumpyFromTensor(nndeploy_result),
+                create_numpy_from_tensor(nndeploy_result),
                 rtol=1e-03,
                 atol=1e-04,
             )

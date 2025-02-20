@@ -4,7 +4,7 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, createNumpyFromTensor
 
 
 class TestBatchNormOp(unittest.TestCase):
@@ -27,11 +27,11 @@ class TestBatchNormOp(unittest.TestCase):
             torch.tensor(np_bias),
         )
 
-        input = createTensorFromNumpy(np_input)
-        scale = createTensorFromNumpy(np_scale)
-        bias = createTensorFromNumpy(np_bias)
-        mean = createTensorFromNumpy(np_mean)
-        var = createTensorFromNumpy(np_var)
+        input = create_tensor_from_numpy(np_input)
+        scale = create_tensor_from_numpy(np_scale)
+        bias = create_tensor_from_numpy(np_bias)
+        mean = create_tensor_from_numpy(np_mean)
+        var = create_tensor_from_numpy(np_var)
 
         nndeploy_result = F.batch_norm(input, scale, bias, mean, var)
 

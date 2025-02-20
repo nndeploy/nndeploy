@@ -406,7 +406,15 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
     auto creator = op_map.find(op_type);
     if (creator != op_map.end()) {
       return creator->second->createOp(device_type, name, op_type, inputs, outputs);
+    } else {
+      NNDEPLOY_LOGE("createOp failed: device_type: %s, op_type: %s\n",
+                    base::deviceTypeToString(device_type).c_str(),
+                    ir::opTypeToString(op_type).c_str());
     }
+  } else {
+    NNDEPLOY_LOGE("createOp failed: device_type: %s, op_type: %s\n",
+                  base::deviceTypeToString(device_type).c_str(),
+                  ir::opTypeToString(op_type).c_str());
   }
   return nullptr;
 }

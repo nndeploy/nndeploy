@@ -4,7 +4,7 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, createNumpyFromTensor
 
 
 class TestActivation(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestActivation(unittest.TestCase):
             torch.tensor(np_input)
         )
 
-        input = createTensorFromNumpy(np_input)
+        input = create_tensor_from_numpy(np_input)
 
         nndeploy_result = F.relu(input)
 

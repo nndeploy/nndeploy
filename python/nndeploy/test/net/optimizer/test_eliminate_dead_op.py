@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import nndeploy
 
-from nndeploy.test_utils import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test_utils import create_tensor_from_numpy, createNumpyFromTensor
 from nndeploy.net import build_model
 from nndeploy.net import EliminateDeadOp
 
@@ -31,21 +31,21 @@ np_batch_norm2_mean = np.random.random(conv2_bias_shape).astype(np.float32)
 np_batch_norm2_var = np.random.random(conv2_bias_shape).astype(np.float32)
 
 nndeploy_weight_map = {
-    "conv1_weight": createTensorFromNumpy(np_conv1_weight),
-    "conv1_bias": createTensorFromNumpy(np_conv1_bias),
-    "norm1_scale": createTensorFromNumpy(np_batch_norm1_scale),
-    "norm1_bias": createTensorFromNumpy(np_batch_norm1_bias),
-    "norm1_mean": createTensorFromNumpy(np_batch_norm1_mean),
-    "norm1_var": createTensorFromNumpy(np_batch_norm1_var),
-    "conv2_weight": createTensorFromNumpy(np_conv2_weight),
-    "conv2_bias": createTensorFromNumpy(np_conv2_bias),
-    "norm2_scale": createTensorFromNumpy(np_batch_norm2_scale),
-    "norm2_bias": createTensorFromNumpy(np_batch_norm2_bias),
-    "norm2_mean": createTensorFromNumpy(np_batch_norm2_mean),
-    "norm2_var": createTensorFromNumpy(np_batch_norm2_var),
+    "conv1_weight": create_tensor_from_numpy(np_conv1_weight),
+    "conv1_bias": create_tensor_from_numpy(np_conv1_bias),
+    "norm1_scale": create_tensor_from_numpy(np_batch_norm1_scale),
+    "norm1_bias": create_tensor_from_numpy(np_batch_norm1_bias),
+    "norm1_mean": create_tensor_from_numpy(np_batch_norm1_mean),
+    "norm1_var": create_tensor_from_numpy(np_batch_norm1_var),
+    "conv2_weight": create_tensor_from_numpy(np_conv2_weight),
+    "conv2_bias": create_tensor_from_numpy(np_conv2_bias),
+    "norm2_scale": create_tensor_from_numpy(np_batch_norm2_scale),
+    "norm2_bias": create_tensor_from_numpy(np_batch_norm2_bias),
+    "norm2_mean": create_tensor_from_numpy(np_batch_norm2_mean),
+    "norm2_var": create_tensor_from_numpy(np_batch_norm2_var),
 }
 
-nndeploy_input_map = {"input": createTensorFromNumpy(np_input)}
+nndeploy_input_map = {"input": create_tensor_from_numpy(np_input)}
 
 
 # 计算pytorch结果

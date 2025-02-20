@@ -8,15 +8,18 @@ from .type import BufferDesc, TensorDesc
 from .memory_pool import MemoryPool
 from .buffer import Buffer
 
-# # 从numpy array返回一个Tensor
-# def createTensorFromNumpy(np_data, device="cpu"):
-#     tensor = _C.device.Tensor(np_data, nndeploy.base.name_to_device_type_code["cpu"])
-#     tensor = tensor.to(nndeploy.base.name_to_device_type_code[device])
-#     return tensor
+# 从numpy array返回一个Tensor
+def create_tensor_from_numpy(np_data, device="cpu"):
+    # tensor = _C.device.Tensor(np_data, nndeploy.base.name_to_device_type_code["cpu"])
+    # tensor = tensor.to(nndeploy.base.name_to_device_type_code[device])
+    device_type = nndeploy.base.DeviceType(device)
+    tensor = _C.device.Tensor.from_numpy(np_data, device_type)
+    return tensor
 
-# # 从Tensor返回一个numpy array
-# def createNumpyFromTensor(tensor):
-#     return np.array(tensor.to(nndeploy.base.name_to_device_type_code["cpu"]))
+# 从Tensor返回一个numpy array
+def create_numpy_from_tensor(tensor):
+    # return np.array(tensor.to(nndeploy.base.name_to_device_type_code["cpu"]))
+    return np.array(tensor.to(nndeploy.base.DeviceType("cpu")))
 
 
 class Tensor(_C.device.Tensor):
