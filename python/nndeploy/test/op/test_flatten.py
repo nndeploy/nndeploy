@@ -4,7 +4,7 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, createNumpyFromTensor
 
 
 class TestFlattenOp(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestFlattenOp(unittest.TestCase):
 
         torch_result = torch.flatten(torch.tensor(np_input), start_dim=axis)
 
-        input = createTensorFromNumpy(np_input)
+        input = create_tensor_from_numpy(np_input)
 
         nndeploy_result = F.flatten(input, axis)
 
@@ -41,7 +41,7 @@ class TestFlattenOp(unittest.TestCase):
             torch.tensor(np_input), start_dim=0, end_dim=axis - 1
         )
         torch_result = torch.flatten(torch_result, start_dim=1)
-        input = createTensorFromNumpy(np_input)
+        input = create_tensor_from_numpy(np_input)
 
         nndeploy_result = F.flatten(input, axis)
 

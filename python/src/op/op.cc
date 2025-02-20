@@ -9,6 +9,39 @@ class PyOp : public Op {
   using Op::Op;
 
   base::Status run() override { PYBIND11_OVERRIDE_PURE(base::Status, Op, run); }
+
+  base::Status inferDataType() override {
+    PYBIND11_OVERRIDE(base::Status, Op, inferDataType);
+  }
+  base::Status inferShape() override {
+    PYBIND11_OVERRIDE(base::Status, Op, inferShape);
+  }
+  base::Status inferDataFormat() override {
+    PYBIND11_OVERRIDE(base::Status, Op, inferDataFormat);
+  }
+  base::Status init() override { PYBIND11_OVERRIDE(base::Status, Op, init); }
+  base::Status deinit() override {
+    PYBIND11_OVERRIDE(base::Status, Op, deinit);
+  }
+  base::Status reshape(base::ShapeMap &shape_map) override {
+    PYBIND11_OVERRIDE(base::Status, Op, reshape, shape_map);
+  }
+  base::Status preRun() override {
+    PYBIND11_OVERRIDE(base::Status, Op, preRun);
+  }
+  uint64_t getWorkspaceSize() override {
+    PYBIND11_OVERRIDE(uint64_t, Op, getWorkspaceSize);
+  }
+  void setWorkspace(void *workspace) override {
+    PYBIND11_OVERRIDE(void, Op, setWorkspace, workspace);
+  }
+  uint64_t getFlops() override { PYBIND11_OVERRIDE(uint64_t, Op, getFlops); }
+  base::Status checkOrAllocOutput() override {
+    PYBIND11_OVERRIDE(base::Status, Op, checkOrAllocOutput);
+  }
+  base::Status postRun() override {
+    PYBIND11_OVERRIDE(base::Status, Op, postRun);
+  }
 };
 
 class PyOpCreator : public OpCreator {
@@ -16,44 +49,16 @@ class PyOpCreator : public OpCreator {
   using OpCreator::OpCreator;
 
   Op *createOp(base::DeviceType device_type, const std::string &name,
-               ir::OpType op_type) override {
-    PYBIND11_OVERRIDE_PURE(Op *, OpCreator, createOp, device_type, name,
-                           op_type);
-  }
-
-  Op *createOp(base::DeviceType device_type, const std::string &name,
-               ir::OpType op_type, std::initializer_list<std::string> inputs,
-               std::initializer_list<std::string> outputs) override {
-    PYBIND11_OVERRIDE_PURE(Op *, OpCreator, createOp, device_type, name,
-                           op_type, inputs, outputs);
-  }
-
-  Op *createOp(base::DeviceType device_type, const std::string &name,
                ir::OpType op_type, std::vector<std::string> &inputs,
                std::vector<std::string> &outputs) override {
-    PYBIND11_OVERRIDE_PURE(Op *, OpCreator, createOp, device_type, name,
+    PYBIND11_OVERRIDE_PURE(Op *, OpCreator, create_op_cpp, device_type, name,
                            op_type, inputs, outputs);
   }
 
-  //   std::shared_ptr<Op> create_op(base::DeviceType device_type,
-  //                                 const std::string &name,
-  //                                 ir::OpType op_type) override {
-  //     PYBIND11_OVERRIDE_PURE(std::shared_ptr<Op>, OpCreator, create_op,
-  //                            device_type, name, op_type);
-  //   }
-
-  //   std::shared_ptr<Op> create_op(
-  //       base::DeviceType device_type, const std::string &name, ir::OpType
-  //       op_type, std::initializer_list<std::string> inputs,
-  //       std::initializer_list<std::string> outputs) override {
-  //     PYBIND11_OVERRIDE_PURE(std::shared_ptr<Op>, OpCreator, create_op,
-  //                            device_type, name, op_type, inputs, outputs);
-  //   }
-
-  std::shared_ptr<Op> create_op(base::DeviceType device_type,
-                                const std::string &name, ir::OpType op_type,
-                                std::vector<std::string> &inputs,
-                                std::vector<std::string> &outputs) override {
+  std::shared_ptr<Op> createOpSharedPtr(
+      base::DeviceType device_type, const std::string &name, ir::OpType op_type,
+      std::vector<std::string> &inputs,
+      std::vector<std::string> &outputs) override {
     PYBIND11_OVERRIDE_PURE(std::shared_ptr<Op>, OpCreator, create_op,
                            device_type, name, op_type, inputs, outputs);
   }
@@ -128,128 +133,24 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
       .def("run", &Op::run)
       .def("post_run", &Op::postRun);
 
-  // 注册Op
-  // 导出 OpCreator 类
   py::class_<OpCreator, PyOpCreator, std::shared_ptr<OpCreator>>(m, "OpCreator")
       .def(py::init<>())
-      .def("createOp",
-           py::overload_cast<base::DeviceType, const std::string &, ir::OpType>(
-               &OpCreator::createOp),
-           py::return_value_policy::take_ownership)
-      .def("createOp",
-           py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
-                             std::initializer_list<std::string>,
-                             std::initializer_list<std::string>>(
-               &OpCreator::createOp),
-           py::return_value_policy::take_ownership)
-      .def("createOp",
-           py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
-                             std::vector<std::string> &,
-                             std::vector<std::string> &>(&OpCreator::createOp),
-           py::return_value_policy::take_ownership)
-      //   .def("create_op",
-      //        py::overload_cast<base::DeviceType, const std::string &,
-      //        ir::OpType>(
-      //            &OpCreator::create_op),
-      //        py::return_value_policy::take_ownership)
-      //   .def("create_op",
-      //        py::overload_cast<base::DeviceType, const std::string &,
-      //        ir::OpType,
-      //                          std::initializer_list<std::string>,
-      //                          std::initializer_list<std::string>>(
-      //            &OpCreator::create_op),
-      //        py::return_value_policy::take_ownership)
-      // .def("create_op",
-      //      py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
-      //                        std::vector<std::string> &,
-      //                        std::vector<std::string> &>(&OpCreator::create_op),
-      //      py::return_value_policy::take_ownership);
-      .def("create_op", &OpCreator::create_op,
-           py::return_value_policy::take_ownership);
-
+      .def("create_op_cpp", &OpCreator::createOp)
+      .def("create_op", &OpCreator::createOpSharedPtr);
 
   m.def("register_op_creator",
         [](base::DeviceTypeCode device_type_code, ir::OpType op_type,
            std::shared_ptr<OpCreator> creator) {
-          // 打印信息
-          std::cout << "register_op_creator" << std::endl;
-          std::cout << "device_type_code: " << device_type_code << std::endl;
-          std::cout << "op_type: " << op_type << std::endl;
-          std::cout << "creator: " << creator << std::endl;
-
-          auto &global_op_creator_map = getGlobalOpCreatorMap();
-          std::cout << "getGlobalOpCreatorMap():" << std::endl;
-          for (const auto &device_type_pair : global_op_creator_map) {
-            std::cout << "  device_type_code: " << device_type_pair.first
-                      << std::endl;
-            for (const auto &op_type_pair : device_type_pair.second) {
-              std::cout << "    op_type: " << op_type_pair.first << std::endl;
-              std::cout << "    creator: " << op_type_pair.second << std::endl;
-            }
-          }
           getGlobalOpCreatorMap()[device_type_code][op_type] = creator;
-          std::cout << "getGlobalOpCreatorMap():" << std::endl;
-          for (const auto &device_type_pair : global_op_creator_map) {
-            std::cout << "  device_type_code: " << device_type_pair.first
-                      << std::endl;
-            for (const auto &op_type_pair : device_type_pair.second) {
-              std::cout << "    op_type: " << op_type_pair.first << std::endl;
-              std::cout << "    creator: " << op_type_pair.second << std::endl;
-            }
-          }
         });
 
-  m.def("createOp",
-        py::overload_cast<base::DeviceType, const std::string &, ir::OpType>(
-            &createOp),
-        py::return_value_policy::take_ownership);
-  m.def("createOp",
-        py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
-                          std::initializer_list<std::string>,
-                          std::initializer_list<std::string>>(&createOp),
-        py::return_value_policy::take_ownership);
-  m.def(
-      "createOp",
-      py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
-                        std::vector<std::string> &, std::vector<std::string> &>(
-          &createOp),
-      py::return_value_policy::take_ownership);
-  m.def(
-      "createOp",
-      py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
-                        std::vector<std::string> &, std::vector<std::string> &,
-                        std::shared_ptr<base::Param>>(&createOp),
-      py::return_value_policy::take_ownership);
-  m.def("createOp",
-        py::overload_cast<base::DeviceType, std::shared_ptr<ir::OpDesc>>(
-            &createOp),
-        py::return_value_policy::take_ownership);
-
-  m.def("create_op",
-        py::overload_cast<base::DeviceType, const std::string &, ir::OpType>(
-            &create_op),
-        py::return_value_policy::take_ownership);
-  m.def("create_op",
-        py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
-                          std::initializer_list<std::string>,
-                          std::initializer_list<std::string>>(&create_op),
-        py::return_value_policy::take_ownership);
   m.def(
       "create_op",
       py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
                         std::vector<std::string> &, std::vector<std::string> &>(
-          &create_op),
-      py::return_value_policy::take_ownership);
-  m.def(
-      "create_op",
-      py::overload_cast<base::DeviceType, const std::string &, ir::OpType,
-                        std::vector<std::string> &, std::vector<std::string> &,
-                        std::shared_ptr<base::Param>>(&create_op),
-      py::return_value_policy::take_ownership);
-  m.def("create_op",
-        py::overload_cast<base::DeviceType, std::shared_ptr<ir::OpDesc>>(
-            &create_op),
-        py::return_value_policy::take_ownership);
+          &createOpSharedPtr),
+      py::arg("device_type"), py::arg("name"), py::arg("op_type"),
+      py::arg("inputs"), py::arg("outputs"));
 
   m.def("rms_norm", &rmsNormFunc, py::return_value_policy::take_ownership);
   m.def("batch_norm", &batchNormFunc, py::return_value_policy::take_ownership);

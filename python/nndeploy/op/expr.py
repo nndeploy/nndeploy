@@ -2,9 +2,9 @@ from nndeploy.ir import ModelDesc
 import nndeploy
 import numpy as np
 import nndeploy._nndeploy_internal as _C
-from nndeploy.base import device_name_to_code
+from nndeploy.base import name_to_device_type_code
 
-from nndeploy.device import createTensorFromNumpy
+from nndeploy.device import Tensor
 
 """
 该类用于在Python端手动构建计算图

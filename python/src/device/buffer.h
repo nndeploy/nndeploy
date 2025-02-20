@@ -15,6 +15,8 @@ namespace device {
 
 std::string getPyBufferFormat(base::DataType data_type);
 
+base::DataType getDataTypeFromNumpy(char kind, int itemsize);
+
 py::buffer_info bufferToBufferInfo(device::Buffer *buffer, const py::dtype &dt);
 
 Buffer bufferFromNumpy(const py::array &array);

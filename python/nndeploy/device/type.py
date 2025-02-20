@@ -4,9 +4,6 @@ import nndeploy._nndeploy_internal as _C
 import nndeploy.base
 
 
-# python3 nndeploy/device/type.py
-
-
 class BufferDesc(_C.device.BufferDesc):
     def __init__(self, *args, **kwargs):
         """
@@ -126,49 +123,6 @@ class TensorDesc(_C.device.TensorDesc):
         return super().__str__()
   
     
-import numpy as np
 
-
-if __name__ == "__main__":
-    # 测试BufferDesc类
-    print("\nBufferDesc测试:")
-    # 测试不同构造方式
-    buf1 = BufferDesc()
-    buf2 = BufferDesc(1024)
-    buf3 = BufferDesc([1, 224, 224, 3])  # 使用size_vector构造
     
-    # 测试比较操作
-    print("buf1 == buf2?", buf1 == buf2)
-    print("buf1 != buf3?", buf1 != buf3)
-    
-    # 测试方法调用
-    print("buf2 size:", buf2.get_size())
-    buf2.just_modify(2048)
-    print("修改后buf2 size:", buf2.get_size())
-    
-    # 测试TensorDesc类
-    print("\nTensorDesc测试:")
-    # 创建不同格式的TensorDesc
-    desc1 = TensorDesc()
-    desc2 = TensorDesc(nndeploy.base.DataType("float32"), 
-                      nndeploy.base.DataFormat.NCHW,
-                      [1, 3, 224, 224])
-    desc3 = TensorDesc(nndeploy.base.DataType(np.int8),
-                      nndeploy.base.DataFormat.NHWC,
-                      [1, 224, 224, 3],
-                      [224*224*3, 224*3, 3, 1])
-    
-    # 测试属性访问和修改
-    desc2.data_format = nndeploy.base.DataFormat.NHWC
-    desc3.shape = [2, 128, 128, 3]
-    
-    # 测试比较操作
-    print("desc1 == desc2?", desc1 == desc2)
-    print("desc2 != desc3?", desc2 != desc3)
-    
-    # 测试打印输出
-    print("\nTensorDesc输出测试:")
-    print("desc1:", desc1)
-    print("desc2:", desc2)
-    print("desc3:", desc3)
     

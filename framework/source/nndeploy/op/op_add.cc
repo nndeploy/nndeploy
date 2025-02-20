@@ -64,10 +64,12 @@ base::Status OpAdd::run() {
 base::Status add(device::Tensor* input1, device::Tensor* input2,
                  device::Tensor* output) {
   base::Status status = base::kStatusCodeOk;
-
+  // NNDEPLOY_LOGE("add op input1: %s, input2: %s, output: %s",
+  //               input1->getName().c_str(), input2->getName().c_str(),
+  //               output->getName().c_str());
   Op* op = createOp(input1->getDeviceType(), "", ir::kOpTypeAdd);
   if (op == nullptr) {
-    NNDEPLOY_LOGE("createOp failed");
+    NNDEPLOY_LOGE("createOp failed\n");
     return base::kStatusCodeErrorNotImplement;
   }
   status = op->setInput(input1, 0);

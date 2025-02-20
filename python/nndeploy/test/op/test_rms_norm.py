@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import nndeploy
 
-from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
 
 
 def rsqrt_cpu(x):
@@ -35,13 +35,13 @@ class TestRmsNormOp(unittest.TestCase):
         CPU_fused_resid_and_RMSNorm(
             np_out, np_in2, 1e-6, hidden_units, num_tokens)
 
-        tensor1 = createTensorFromNumpy(np_in1).to(device_name_to_code['cuda'])
-        tensor2 = createTensorFromNumpy(np_in2).to(device_name_to_code['cuda'])
-        tensor3 = createTensorFromNumpy(np_in3).to(device_name_to_code['cuda'])
+        tensor1 = create_tensor_from_numpy(np_in1).to(nndeploy.base.DeviceType("cuda"))
+        tensor2 = create_tensor_from_numpy(np_in2).to(nndeploy.base.DeviceType("cuda"))
+        tensor3 = create_tensor_from_numpy(np_in3).to(nndeploy.base.DeviceType("cuda"))
 
         nndeploy_result = nndeploy.op.rms_norm(tensor1, tensor2, tensor3)
 
-        self.assertTrue(np.allclose(np_out, createNumpyFromTensor(nndeploy_result), rtol=1e-05, atol=1e-08))
+        self.assertTrue(np.allclose(np_out, create_numpy_from_tensor(nndeploy_result), rtol=1e-05, atol=1e-08))
 
 
 if __name__ == '__main__':

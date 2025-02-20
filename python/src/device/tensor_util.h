@@ -21,8 +21,16 @@ std::vector<long> calculateStridesBaseShape(const base::IntVector& shape);
 py::buffer_info tensorToBufferInfo(device::Tensor* tensor);
 
 // 从numpy初始化Tensor
+device::Tensor* bufferInfoToTensorByDeviceTypeCode(const py::buffer& buffer,
+                                   const base::DeviceTypeCode& device_type_code);
+
+// 从numpy初始化Tensor
 device::Tensor* bufferInfoToTensor(const py::buffer& buffer,
                                    const base::DeviceType& device_type);
+
+// 将Tensor搬移到其他设备上
+device::Tensor* moveTensorToDeviceByDeviceTypeCode(device::Tensor* tensor,
+                                   const base::DeviceTypeCode& device_type_code);
 
 // 将Tensor搬移到其他设备上
 device::Tensor* moveTensorToDevice(device::Tensor* tensor,

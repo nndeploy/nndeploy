@@ -4,7 +4,7 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, createNumpyFromTensor
 
 
 class TestGlobalAveragePoolOp(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestGlobalAveragePoolOp(unittest.TestCase):
             output_size=(1, 1),
         )
 
-        input = createTensorFromNumpy(np_input)
+        input = create_tensor_from_numpy(np_input)
 
         nndeploy_result = F.global_averagepool(input)
 

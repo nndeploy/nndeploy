@@ -69,6 +69,12 @@ py::buffer_info tensorToBufferInfo(device::Tensor* tensor) {
   );
 }
 
+device::Tensor* bufferInfoToTensorByDeviceTypeCode(
+    const py::buffer& buffer, const base::DeviceTypeCode& device_type_code) {
+  base::DeviceType device_type = device_type_code;
+  return bufferInfoToTensor(buffer, device_type);
+}
+
 device::Tensor* bufferInfoToTensor(const py::buffer& buffer,
                                    const base::DeviceType& device_type) {
   device::Tensor* tensor = nullptr;
@@ -85,29 +91,29 @@ device::Tensor* bufferInfoToTensor(const py::buffer& buffer,
   device::TensorDesc desc;
 
   // 根据numpy中元素的空间大小，赋值一个默认数值类型
-  base::DataType data_type;
+  // base::DataType data_type;
   char kind = info.format.front();
-  int bits = info.itemsize * 8;
-  switch (kind) {
-    case 'f':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
-      break;
-    case 'i':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
-      break;
-    case 'u':
-      data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint, bits);
-      break;
-    default:
-      std::stringstream ss;
-      ss << "convert numpy.ndarray to nndeploy Tensor only support kind = "
-            "f, i, u "
-            "now, "
-            "but given "
-         << kind;
-      pybind11::pybind11_fail(ss.str());
-  }
-  desc.data_type_ = data_type;
+  // int bits = info.itemsize * 8;
+  // switch (kind) {
+  //   case 'f':
+  //     data_type = base::DataType(base::DataTypeCode::kDataTypeCodeFp, bits);
+  //     break;
+  //   case 'i':
+  //     data_type = base::DataType(base::DataTypeCode::kDataTypeCodeInt, bits);
+  //     break;
+  //   case 'u':
+  //     data_type = base::DataType(base::DataTypeCode::kDataTypeCodeUint,
+  //     bits); break;
+  //   default:
+  //     std::stringstream ss;
+  //     ss << "convert numpy.ndarray to nndeploy Tensor only support kind = "
+  //           "f, i, u "
+  //           "now, "
+  //           "but given "
+  //        << kind;
+  //     pybind11::pybind11_fail(ss.str());
+  // }
+  desc.data_type_ = getDataTypeFromNumpy(kind, info.itemsize);
 
   // 根据numpy中维度的大小，赋值一个默认格式
   switch (info.ndim) {
@@ -134,15 +140,22 @@ device::Tensor* bufferInfoToTensor(const py::buffer& buffer,
   desc.shape_ = std::vector<int>(info.shape.begin(), info.shape.end());
   void* data_ptr = info.ptr;
 
-  auto host_device = device::getDefaultHostDevice();
-  device::Tensor* host_tensor = new device::Tensor(host_device, desc, data_ptr);
-  if (host_tensor == nullptr) {
-    return nullptr;
-  }
   if (device::isHostDeviceType(device_type)) {
+    auto host_device = device::getDevice(device_type);
+    device::Tensor* host_tensor =
+        new device::Tensor(host_device, desc, data_ptr);
+    if (host_tensor == nullptr) {
+      return nullptr;
+    }
     auto dst_tensor = host_tensor;
     return dst_tensor;
   } else {
+    auto host_device = device::getDefaultHostDevice();
+    device::Tensor* host_tensor =
+        new device::Tensor(host_device, desc, data_ptr);
+    if (host_tensor == nullptr) {
+      return nullptr;
+    }
     auto dst_device = device::getDevice(device_type);
     auto cur_buffer = host_tensor->getBuffer();
 
@@ -161,6 +174,12 @@ device::Tensor* bufferInfoToTensor(const py::buffer& buffer,
 
     return dst_tensor;
   }
+}
+
+device::Tensor* moveTensorToDeviceByDeviceTypeCode(
+    device::Tensor* tensor, const base::DeviceTypeCode& device_type_code) {
+  base::DeviceType device_type = device_type_code;
+  return moveTensorToDevice(tensor, device_type);
 }
 
 device::Tensor* moveTensorToDevice(device::Tensor* tensor,

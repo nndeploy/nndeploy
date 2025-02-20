@@ -241,3 +241,6 @@ compile_commands.json
 
 # setup.py
 python/setup.py
+
+#ui
+*.DS_Store

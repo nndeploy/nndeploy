@@ -4,9 +4,6 @@ import nndeploy._nndeploy_internal as _C
 import nndeploy.base
 
 
-# python3 nndeploy/device/device.py
-
-
 class DeviceInfo(_C.device.DeviceInfo):
     def __init__(self):
         super().__init__()
@@ -34,7 +31,9 @@ class Architecture():
         Constructs an Architecture object.
 
         The constructor can be called in the following ways:
-        1. Architecture(device_type_code): Constructs an Architecture from a DeviceTypeCode enum value.
+        1. str: Constructs an Architecture from a string. eg: "cpu", "ascendcl", etc.
+        2. DeviceTypeCode: Constructs an Architecture from a DeviceTypeCode enum value.
+        3. _C.base.DeviceTypeCode: Constructs an Architecture from a DeviceTypeCode enum value.
         """
         if len(args) == 1 and isinstance(args[0], str):
             device_type_code = nndeploy.base.DeviceTypeCode.from_name(args[0])
@@ -230,18 +229,4 @@ class Event():
     
     def __str__(self):
         return self._event.__str__()
-
-
-if __name__ == "__main__":
-    architecture = Architecture(nndeploy.base.DeviceTypeCode.cpu)
-    print(architecture.get_device(0))
-    architecture = Architecture("ascendcl")
-    print(architecture.get_device(0))
-    print(architecture.get_device(1))
-    print(architecture.get_device(2))
-    device = Device("ascendcl:3")
-    print(device)
-    stream = Stream(device)
-    print(stream)
-    event = Event(device)
-    print(event)
+    

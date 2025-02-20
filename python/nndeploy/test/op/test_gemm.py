@@ -4,7 +4,7 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, createNumpyFromTensor
 
 
 class TestGemmOp(unittest.TestCase):
@@ -23,9 +23,9 @@ class TestGemmOp(unittest.TestCase):
         )
         torch_result = torch.add(torch_result, torch.tensor(np_bias))
 
-        input = createTensorFromNumpy(np_input)
-        weight = createTensorFromNumpy(np_weight)
-        bias = createTensorFromNumpy(np_bias)
+        input = create_tensor_from_numpy(np_input)
+        weight = create_tensor_from_numpy(np_weight)
+        bias = create_tensor_from_numpy(np_bias)
 
         nndeploy_result = F.gemm(input, weight, bias)
 
@@ -52,9 +52,9 @@ class TestGemmOp(unittest.TestCase):
         )
         torch_result = torch.add(torch_result, torch.tensor(np_bias))
 
-        input = createTensorFromNumpy(np_input)
-        weight = createTensorFromNumpy(np_weight)
-        bias = createTensorFromNumpy(np_bias)
+        input = create_tensor_from_numpy(np_input)
+        weight = create_tensor_from_numpy(np_weight)
+        bias = create_tensor_from_numpy(np_bias)
 
         nndeploy_result = F.gemm(input, weight, bias)
 
@@ -81,8 +81,8 @@ class TestGemmOp(unittest.TestCase):
         )
         torch_result = alpha * torch_result
 
-        input = createTensorFromNumpy(np_input)
-        weight = createTensorFromNumpy(np_weight)
+        input = create_tensor_from_numpy(np_input)
+        weight = create_tensor_from_numpy(np_weight)
 
         nndeploy_result = F.gemm(input, weight, alpha=alpha)
 
@@ -110,9 +110,9 @@ class TestGemmOp(unittest.TestCase):
         )
         torch_result = torch.add(torch_result, beta * torch.tensor(np_bias))
 
-        input = createTensorFromNumpy(np_input)
-        weight = createTensorFromNumpy(np_weight)
-        bias = createTensorFromNumpy(np_bias)
+        input = create_tensor_from_numpy(np_input)
+        weight = create_tensor_from_numpy(np_weight)
+        bias = create_tensor_from_numpy(np_bias)
 
         nndeploy_result = F.gemm(input, weight, bias, beta=beta)
 
@@ -137,8 +137,8 @@ class TestGemmOp(unittest.TestCase):
             torch.tensor(np_weight),
         )
 
-        input = createTensorFromNumpy(np_input)
-        weight = createTensorFromNumpy(np_weight)
+        input = create_tensor_from_numpy(np_input)
+        weight = create_tensor_from_numpy(np_weight)
 
         nndeploy_result = F.gemm(input, weight, trans_a=1)
 
@@ -163,8 +163,8 @@ class TestGemmOp(unittest.TestCase):
             torch.tensor(np_weight).T,  # Transpose weight
         )
 
-        input = createTensorFromNumpy(np_input)
-        weight = createTensorFromNumpy(np_weight)
+        input = create_tensor_from_numpy(np_input)
+        weight = create_tensor_from_numpy(np_weight)
 
         nndeploy_result = F.gemm(input, weight, trans_b=1)
 

@@ -3,8 +3,12 @@
 import nndeploy._nndeploy_internal as _C
 
 import nndeploy.base
-# import nndeploy.device
+import nndeploy.device
 import nndeploy.ir
+
+
+# python3 nndeploy/op/op.py
+
 
 class Op(_C.op.Op):
     def __init__(self):
@@ -171,41 +175,21 @@ class OpCreator(_C.op.OpCreator):
     def __init__(self):
         super().__init__()
 
+    def create_op_cpp(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
+        return None
+
     def create_op(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
         raise NotImplementedError("Subclass must implement the run function")
 
 
-def create_op(device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
-    return _C.op.create_op(device_type, name, op_type, inputs, outputs)
+def register_op_creator(device_type_code: nndeploy.base.DeviceTypeCode, op_type: nndeploy.ir.OpType, creator: OpCreator):
+    return _C.op.register_op_creator(device_type_code, op_type, creator)
 
 
+def create_op(device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str] = [], outputs: list[str] = [], param: nndeploy.base.Param = None):
+    op = _C.op.create_op(device_type, name, op_type, inputs, outputs)
+    if op is not None:
+        op.set_param(param)
+    return op
 
-def register_op_creator(device_type: nndeploy.base.DeviceType, op_type: nndeploy.ir.OpType, creator: OpCreator):
-    return _C.op.register_op_creator(device_type, op_type, creator)
 
-
-
-if __name__ == "__main__":
-    print(nndeploy.base.DeviceTypeCode.cpu)
-    print(nndeploy.ir.OpType.Conv)
-    print(OpCreator())
-    op = create_op(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cpu), "conv", nndeploy.ir.OpType.Conv, ["input"], ["output"])
-    print(op)
-   
-
-    class MyOp(Op):
-        def __init__(self):
-            super().__init__()
-        def run(self):
-            print("MyOp run")
-
-    class MyOpCreator(_C.op.OpCreator):
-        def __init__(self):
-            super().__init__()
-        def create_op(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
-            return MyOp()
-    
-    print(register_op_creator(nndeploy.base.DeviceTypeCode.cpu, nndeploy.ir.OpType.kOpTypeNone, MyOpCreator()))
-    op = create_op(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cpu), "kOpTypeNone", nndeploy.ir.OpType.kOpTypeNone, ["input"], ["output"])
-    print(op)
-    op.run()

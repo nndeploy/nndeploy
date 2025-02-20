@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 import nndeploy
 
-from nndeploy.test.test_util import createTensorFromNumpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, createNumpyFromTensor
 from nndeploy.net import build_model
 
 input_shape = [1, 2048, 7, 7]
@@ -48,29 +48,29 @@ gemm_bias = np.random.random(gemm_bias_shape).astype(np.float32)
 
 
 nndeploy_weight_map = {
-    "conv1_weight": createTensorFromNumpy(np_conv1_weight),
-    "conv1_bias": createTensorFromNumpy(np_conv1_bias),
-    "bn1_scale": createTensorFromNumpy(np_bn1_scale),
-    "bn1_bias": createTensorFromNumpy(np_bn1_bias),
-    "bn1_mean": createTensorFromNumpy(np_bn1_mean),
-    "bn1_var": createTensorFromNumpy(np_bn1_var),
-    "conv2_weight": createTensorFromNumpy(np_conv2_weight),
-    "conv2_bias": createTensorFromNumpy(np_conv2_bias),
-    "bn2_scale": createTensorFromNumpy(np_bn2_scale),
-    "bn2_bias": createTensorFromNumpy(np_bn2_bias),
-    "bn2_mean": createTensorFromNumpy(np_bn2_mean),
-    "bn2_var": createTensorFromNumpy(np_bn2_var),
-    "conv3_weight": createTensorFromNumpy(np_conv3_weight),
-    "conv3_bias": createTensorFromNumpy(np_conv3_bias),
-    "bn3_scale": createTensorFromNumpy(np_bn3_scale),
-    "bn3_bias": createTensorFromNumpy(np_bn3_bias),
-    "bn3_mean": createTensorFromNumpy(np_bn3_mean),
-    "bn3_var": createTensorFromNumpy(np_bn3_var),
-    "gemm_weight": createTensorFromNumpy(gemm_weight),
-    "gemm_bias": createTensorFromNumpy(gemm_bias),
+    "conv1_weight": create_tensor_from_numpy(np_conv1_weight),
+    "conv1_bias": create_tensor_from_numpy(np_conv1_bias),
+    "bn1_scale": create_tensor_from_numpy(np_bn1_scale),
+    "bn1_bias": create_tensor_from_numpy(np_bn1_bias),
+    "bn1_mean": create_tensor_from_numpy(np_bn1_mean),
+    "bn1_var": create_tensor_from_numpy(np_bn1_var),
+    "conv2_weight": create_tensor_from_numpy(np_conv2_weight),
+    "conv2_bias": create_tensor_from_numpy(np_conv2_bias),
+    "bn2_scale": create_tensor_from_numpy(np_bn2_scale),
+    "bn2_bias": create_tensor_from_numpy(np_bn2_bias),
+    "bn2_mean": create_tensor_from_numpy(np_bn2_mean),
+    "bn2_var": create_tensor_from_numpy(np_bn2_var),
+    "conv3_weight": create_tensor_from_numpy(np_conv3_weight),
+    "conv3_bias": create_tensor_from_numpy(np_conv3_bias),
+    "bn3_scale": create_tensor_from_numpy(np_bn3_scale),
+    "bn3_bias": create_tensor_from_numpy(np_bn3_bias),
+    "bn3_mean": create_tensor_from_numpy(np_bn3_mean),
+    "bn3_var": create_tensor_from_numpy(np_bn3_var),
+    "gemm_weight": create_tensor_from_numpy(gemm_weight),
+    "gemm_bias": create_tensor_from_numpy(gemm_bias),
 }
 
-nndeploy_input_map = {"input": createTensorFromNumpy(np_input)}
+nndeploy_input_map = {"input": create_tensor_from_numpy(np_input)}
 
 
 # 计算pytorch结果

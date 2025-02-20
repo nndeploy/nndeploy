@@ -51,13 +51,16 @@ class NNDEPLOY_CC_API Inference {
    * @return base::Status
    */
   base::Status setParam(base::Param *param);
+  base::Status setParamSharedPtr(std::shared_ptr<base::Param> param);
+  
   /**
    * @brief Get the Inference Param（这里使用基类指针）
    *
    * @return base::Param*
    */
   base::Param *getParam();
-
+  std::shared_ptr<base::Param> getParamSharedPtr();
+  
   base::DeviceType getDeviceType() { return inference_param_->device_type_; }
 
   void setStream(device::Stream *stream);
@@ -382,6 +385,7 @@ class InferenceCreator {
  public:
   virtual ~InferenceCreator() {};
   virtual Inference *createInference(base::InferenceType type) = 0;
+  virtual std::shared_ptr<Inference> createInferenceSharedPtr(base::InferenceType type) = 0;
 };
 
 /**
@@ -393,6 +397,9 @@ template <typename T>
 class TypeInferenceCreator : public InferenceCreator {
   virtual Inference *createInference(base::InferenceType type) {
     return new T(type);
+  }
+  virtual std::shared_ptr<Inference> createInferenceSharedPtr(base::InferenceType type) {
+    return std::make_shared<T>(type);
   }
 };
 
@@ -424,6 +431,8 @@ class TypeInferenceRegister {
  * @return Inference*
  */
 extern NNDEPLOY_CC_API Inference *createInference(base::InferenceType type);
+
+extern NNDEPLOY_CC_API std::shared_ptr<Inference> createInferenceSharedPtr(base::InferenceType type);
 
 }  // namespace inference
 }  // namespace nndeploy

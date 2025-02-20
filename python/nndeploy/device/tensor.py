@@ -1,24 +1,26 @@
 import nndeploy._nndeploy_internal as _C
 
 import numpy as np
+
 import nndeploy.base
-from device import Device
-from type import BufferDesc, TensorDesc
-from memory_pool import MemoryPool
+from .device import Device
+from .type import BufferDesc, TensorDesc
+from .memory_pool import MemoryPool
+from .buffer import Buffer
 
+# 从numpy array返回一个Tensor
+def create_tensor_from_numpy(np_data, device="cpu"):
+    # tensor = _C.device.Tensor(np_data, nndeploy.base.name_to_device_type_code["cpu"])
+    # tensor = tensor.to(nndeploy.base.name_to_device_type_code[device])
+    device_type = nndeploy.base.DeviceType(device)
+    tensor = _C.device.Tensor.from_numpy(np_data, device_type)
+    return tensor
 
-# python3 nndeploy/device/tensor.py
+# 从Tensor返回一个numpy array
+def create_numpy_from_tensor(tensor):
+    # return np.array(tensor.to(nndeploy.base.name_to_device_type_code["cpu"]))
+    return np.array(tensor.to(nndeploy.base.DeviceType("cpu")))
 
-
-# # 从numpy array返回一个Tensor
-# def createTensorFromNumpy(np_data, device="cpu"):
-#     tensor = _C.device.Tensor(np_data, nndeploy.base.name_to_device_type_code["cpu"])
-#     tensor = tensor.to(nndeploy.base.name_to_device_type_code[device])
-#     return tensor
-
-# # 从Tensor返回一个numpy array
-# def createNumpyFromTensor(tensor):
-#     return np.array(tensor.to(nndeploy.base.name_to_device_type_code["cpu"]))
 
 class Tensor(_C.device.Tensor):
     def __init__(self, *args, **kwargs):
@@ -579,18 +581,4 @@ class Tensor(_C.device.Tensor):
             Tensor: 创建的Tensor。
         """
         return _C.device.Tensor.from_numpy(array, device_type)
-
-
-if __name__ == "__main__":
-    tensor = Tensor(Device("cpu"), TensorDesc(nndeploy.base.DataType("float32"), nndeploy.base.DataFormat.NCHW, [1, 3, 224, 224]), "test")
-    print(tensor)
-    import numpy as np  
-    numpy_array = np.asarray(tensor)
-    print(numpy_array)
-    numpy_array = tensor.to_numpy()
-    print(numpy_array)
-
-    print(type(numpy_array))
-    tensor_from_numpy = Tensor.from_numpy(numpy_array)
-    print(numpy_array)
-    print(tensor_from_numpy)
+    

@@ -44,5 +44,15 @@ InferenceParam *createInferenceParam(base::InferenceType type) {
   return temp;
 }
 
+std::shared_ptr<InferenceParam> createInferenceParamSharedPtr(
+    base::InferenceType type) {
+  std::shared_ptr<InferenceParam> temp = nullptr;
+  auto &creater_map = getGlobalInferenceParamCreatorMap();
+  if (creater_map.count(type) > 0) {
+    temp = creater_map[type]->createInferenceParamSharedPtr(type);
+  }
+  return temp;
+}
+
 }  // namespace inference
 }  // namespace nndeploy
