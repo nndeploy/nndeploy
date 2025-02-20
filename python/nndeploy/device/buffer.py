@@ -1,12 +1,11 @@
 import nndeploy._nndeploy_internal as _C
 
+import numpy as np
+
 import nndeploy.base
-from device import Device
-from type import BufferDesc
-from memory_pool import MemoryPool
-
-
-# python3 nndeploy/device/buffer.py
+from .device import Device
+from .type import BufferDesc
+from .memory_pool import MemoryPool
 
 
 class Buffer(_C.device.Buffer):
@@ -109,22 +108,5 @@ class Buffer(_C.device.Buffer):
     @staticmethod
     def from_numpy(array):
         """Convert numpy array to buffer"""
-        return _C.device.Buffer.from_numpy(array)
-
-
-if __name__ == "__main__":
-    buffer = Buffer(Device("ascendcl"), 8)
-    print(buffer)
-    import numpy as np
-    numpy_array = np.asarray(buffer)
-    print(numpy_array)
-    numpy_array = buffer.to_numpy(np.dtype(np.float32))
-    print(numpy_array)
-    numpy_array = buffer.to_numpy(np.float32)
-    print(numpy_array)
-
-    print(type(numpy_array))
-    buffer_from_numpy = Buffer.from_numpy(numpy_array)
-    print(numpy_array)
-    print(buffer_from_numpy)
+        return _C.device.Buffer.from_numpy(array)   
 

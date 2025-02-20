@@ -1,8 +1,10 @@
 
 import nndeploy._nndeploy_internal as _C
 
-
 import nndeploy.base
+import nndeploy.device
+import nndeploy.ir
+import nndeploy.op
 
 
 # python3 nndeploy/inference/inference_param.py

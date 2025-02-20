@@ -1,11 +1,8 @@
 import nndeploy._nndeploy_internal as _C
 
 import nndeploy.base
-from device import Device
-from type import BufferDesc
-
-
-# python3 nndeploy/device/memory_pool.py
+from .device import Device
+from .type import BufferDesc
 
 
 class MemoryPool():
@@ -49,10 +46,3 @@ class MemoryPool():
     
     def get_memory_pool_type(self):
         return self._memory_pool.get_memory_pool_type()
-
-
-if __name__ == "__main__":
-    device = Device("cpu")
-    memory_pool = MemoryPool(device, nndeploy.base.MemoryPoolType.Embed)
-    print(memory_pool.get_device())
-    print(memory_pool.get_memory_pool_type())

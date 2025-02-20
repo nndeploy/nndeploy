@@ -2,11 +2,8 @@
 import nndeploy._nndeploy_internal as _C
 
 import nndeploy.base
-# import nndeploy.device
-# import op_param
-
-
-# python3 nndeploy/ir/ir.py
+import nndeploy.device
+from .op_param import OpType, register_op_param_creator, create_op_param
 
 
 class OpDesc(_C.ir.OpDesc):
@@ -160,21 +157,3 @@ class ModelDesc(_C.ir.ModelDesc):
     def deserialize_weights_from_safetensors(self, *args):
         return super().deserialize_weights_from_safetensors(*args)
 
-
-if __name__ == "__main__":
-    model = ModelDesc()
-    model.name = "test_conv"
-    model.inputs = [ValueDesc("input", nndeploy.base.DataType(nndeploy.base.DataTypeCode.Fp, 32, 1), [1, 3, 224, 224])]
-    model.outputs = [ValueDesc("output", nndeploy.base.DataType(nndeploy.base.DataTypeCode.Fp, 32, 1), [1, 64, 112, 112])]
-    
-    conv1 = OpDesc("Conv", op_param.OpType.Conv)
-    conv1.inputs = ["input"]
-    conv1.outputs = ["conv1_out"]
-    model.op_descs.append(conv1)
-    
-    conv2 = OpDesc("Conv", op_param.OpType.Conv) 
-    conv2.inputs = ["conv1_out"]
-    conv2.outputs = ["output"]
-    model.op_descs.append(conv2)
-    
-    print(model)

@@ -292,7 +292,8 @@ class DeviceType(_C.base.DeviceType):
         1. DeviceType(device_name_and_id): Constructs a DeviceType from a string in the format "device_name:device_id(optional)" (e.g., "cuda:0").
         2. DeviceType(device_name, device_id): Constructs a DeviceType from a device_name and an integer device ID.
         3. DeviceType(device_type_code): Constructs a DeviceType from a DeviceTypeCode enum value. The device ID defaults to 0.
-        3. DeviceType(device_type_code, device_id): Constructs a DeviceType from a DeviceTypeCode enum value and an integer device ID.
+        4. DeviceType(device_type_code, device_id): Constructs a DeviceType from a DeviceTypeCode enum value and an integer device ID.
+        5. DeviceType(): Constructs a DeviceType object with default values(cpu:0).
         """
         if len(args) == 1 and isinstance(args[0], str):
             device_name_and_id = args[0].split(":")
