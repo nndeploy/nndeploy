@@ -109,14 +109,14 @@ class AscendCLOpSplit : public OpSplit {
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    if (inner_input_ != nullptr) {
-      aclDestroyTensor(inner_input_);
-      inner_input_ = nullptr;
-    }
-    if (inner_outputs_ != nullptr) {
-      aclDestroyTensorList(inner_outputs_);
-      inner_outputs_ = nullptr;
-    }
+    // if (inner_input_ != nullptr) {
+    //   aclDestroyTensor(inner_input_);
+    //   inner_input_ = nullptr;
+    // }
+    // if (inner_outputs_ != nullptr) {
+    //   aclDestroyTensorList(inner_outputs_);
+    //   inner_outputs_ = nullptr;
+    // }
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }

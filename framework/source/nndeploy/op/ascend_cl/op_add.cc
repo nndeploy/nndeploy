@@ -106,18 +106,18 @@ class AscendCLOpAdd : public OpBinary {
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    if (inputs_0_ == nullptr && inner_input_0_ != nullptr) {
-      aclDestroyTensor(inner_input_0_);
-      inner_input_0_ = nullptr;
-    }
-    if (inputs_1_ == nullptr && inner_input_1_ != nullptr) {
-      aclDestroyTensor(inner_input_1_);
-      inner_input_1_ = nullptr;
-    }
-    if (inner_output_ != nullptr) {
-      aclDestroyTensor(inner_output_);
-      inner_output_ = nullptr;
-    }
+    // if (inputs_0_ == nullptr && inner_input_0_ != nullptr) {
+    //   aclDestroyTensor(inner_input_0_);
+    //   inner_input_0_ = nullptr;
+    // }
+    // if (inputs_1_ == nullptr && inner_input_1_ != nullptr) {
+    //   aclDestroyTensor(inner_input_1_);
+    //   inner_input_1_ = nullptr;
+    // }
+    // if (inner_output_ != nullptr) {
+    //   aclDestroyTensor(inner_output_);
+    //   inner_output_ = nullptr;
+    // }
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }

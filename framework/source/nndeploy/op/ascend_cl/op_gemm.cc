@@ -130,22 +130,22 @@ class AscendCLOpGemm : public OpGemm {
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    if (input_a_ == nullptr && inner_input_a_ != nullptr) {
-      aclDestroyTensor(inner_input_a_);
-      inner_input_a_ = nullptr;
-    }
-    if (input_b_ == nullptr && inner_input_b_ != nullptr) {
-      aclDestroyTensor(inner_input_b_);
-      inner_input_b_ = nullptr;
-    }
-    if (input_c_ == nullptr && inner_input_c_ != nullptr) {
-      aclDestroyTensor(inner_input_c_);
-      inner_input_c_ = nullptr;
-    }
-    if (inner_output_ != nullptr) {
-      aclDestroyTensor(inner_output_);
-      inner_output_ = nullptr;
-    }
+    // if (input_a_ == nullptr && inner_input_a_ != nullptr) {
+    //   aclDestroyTensor(inner_input_a_);
+    //   inner_input_a_ = nullptr;
+    // }
+    // if (input_b_ == nullptr && inner_input_b_ != nullptr) {
+    //   aclDestroyTensor(inner_input_b_);
+    //   inner_input_b_ = nullptr;
+    // }
+    // if (input_c_ == nullptr && inner_input_c_ != nullptr) {
+    //   aclDestroyTensor(inner_input_c_);
+    //   inner_input_c_ = nullptr;
+    // }
+    // if (inner_output_ != nullptr) {
+    //   aclDestroyTensor(inner_output_);
+    //   inner_output_ = nullptr;
+    // }
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }

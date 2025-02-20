@@ -65,14 +65,14 @@ class AscendCLOpConcat : public OpConcat {
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    if (inner_inputs_ != nullptr) {
-      aclDestroyTensorList(inner_inputs_);
-      inner_inputs_ = nullptr;
-    }
-    if (inner_output_ != nullptr) {
-      aclDestroyTensor(inner_output_);
-      inner_output_ = nullptr;
-    }
+    // if (inner_inputs_ != nullptr) {
+    //   aclDestroyTensorList(inner_inputs_);
+    //   inner_inputs_ = nullptr;
+    // }
+    // if (inner_output_ != nullptr) {
+    //   aclDestroyTensor(inner_output_);
+    //   inner_output_ = nullptr;
+    // }
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }

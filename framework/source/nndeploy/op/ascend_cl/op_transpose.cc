@@ -68,14 +68,14 @@ class AscendCLOpTranspose : public OpTranspose {
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    if (inner_input_ != nullptr) {
-      aclDestroyTensor(inner_input_);
-      inner_input_ = nullptr;
-    }
-    if (inner_output_ != nullptr) {
-      aclDestroyTensor(inner_output_);
-      inner_output_ = nullptr;
-    }
+    // if (inner_input_ != nullptr) {
+    //   aclDestroyTensor(inner_input_);
+    //   inner_input_ = nullptr;
+    // }
+    // if (inner_output_ != nullptr) {
+    //   aclDestroyTensor(inner_output_);
+    //   inner_output_ = nullptr;
+    // }
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }

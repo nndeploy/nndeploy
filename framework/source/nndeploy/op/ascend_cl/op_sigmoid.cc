@@ -14,12 +14,13 @@ class AscendCLOpSigmoid : public OpUnary {
   virtual ~AscendCLOpSigmoid() {}
 
   virtual base::Status init() {
-     base::Status status = Op::init();
+    base::Status status = Op::init();
     if (status != base::kStatusCodeOk) {
       return status;
     }
     device::Device* device = device::getDevice(device_type_);
-    inner_stream_ = (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
+    inner_stream_ =
+        (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
     return base::kStatusCodeOk;
   }
@@ -58,14 +59,14 @@ class AscendCLOpSigmoid : public OpUnary {
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    if (inner_input_ != nullptr) {
-      aclDestroyTensor(inner_input_);
-      inner_input_ = nullptr;
-    }
-    if (inner_output_ != nullptr) {
-      aclDestroyTensor(inner_output_);
-      inner_output_ = nullptr;
-    }
+    // if (inner_input_ != nullptr) {
+    //   aclDestroyTensor(inner_input_);
+    //   inner_input_ = nullptr;
+    // }
+    // if (inner_output_ != nullptr) {
+    //   aclDestroyTensor(inner_output_);
+    //   inner_output_ = nullptr;
+    // }
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }

@@ -699,7 +699,7 @@ base::Status Net::construct() {
     }
   }
 
-  // NNDEPLOY_LOGI("##############\n"); 
+  // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("construct tensor\n");
   // NNDEPLOY_LOGI("##############\n");
   for (auto tensor_wrapper : tensor_repository_) {

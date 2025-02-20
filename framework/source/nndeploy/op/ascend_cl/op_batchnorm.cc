@@ -158,22 +158,22 @@ class AscendCLOpBatchNorm : public OpBatchNorm {
     return base::kStatusCodeOk;
   }
   virtual base::Status postRun() {
-    if (inner_input_ != nullptr) {
-      aclDestroyTensor(inner_input_);
-      inner_input_ = nullptr;
-    }
-    if (inner_output_ != nullptr) {
-      aclDestroyTensor(inner_output_);
-      inner_output_ = nullptr;
-    }
-    if (inner_save_mean_ != nullptr) {
-      aclDestroyTensor(inner_save_mean_);
-      inner_save_mean_ = nullptr;
-    }
-    if (inner_save_invstd_ != nullptr) {
-      aclDestroyTensor(inner_save_invstd_);
-      inner_save_invstd_ = nullptr;
-    }
+    // if (inner_input_ != nullptr) {
+    //   aclDestroyTensor(inner_input_);
+    //   inner_input_ = nullptr;
+    // }
+    // if (inner_output_ != nullptr) {
+    //   aclDestroyTensor(inner_output_);
+    //   inner_output_ = nullptr;
+    // }
+    // if (inner_save_mean_ != nullptr) {
+    //   aclDestroyTensor(inner_save_mean_);
+    //   inner_save_mean_ = nullptr;
+    // }
+    // if (inner_save_invstd_ != nullptr) {
+    //   aclDestroyTensor(inner_save_invstd_);
+    //   inner_save_invstd_ = nullptr;
+    // }
     if (executor_ != nullptr) {
       executor_ = nullptr;
     }

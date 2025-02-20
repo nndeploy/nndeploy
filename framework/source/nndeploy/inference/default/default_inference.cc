@@ -166,11 +166,13 @@ base::Status DefaultInference::run() {
           "copy external_input_tensor to internal_input_tensor failed!");
     }
   }
+  NNDEPLOY_TIME_POINT_START("net_->preRun");
   status = net_->preRun();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("net_->preRun failed!\n");
     return base::kStatusCodeErrorInferenceDefault;
   }
+  NNDEPLOY_TIME_POINT_END("net_->preRun");
   status = net_->run();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("DEFAULT forward failed!\n");
