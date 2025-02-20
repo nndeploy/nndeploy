@@ -7,6 +7,8 @@ import nndeploy.device
 import nndeploy.ir
 import nndeploy.op
 
+from .inference_param import InferenceParam, InferenceParamCreator, register_inference_param_creator, create_inference_param
+
 
 # python3 nndeploy/inference/inference.py
 
