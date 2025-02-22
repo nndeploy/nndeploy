@@ -29,6 +29,10 @@ class AscendCLOpConv : public OpConv {
    * @return base::Status Initialization status
    */
   virtual base::Status init() {
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     // Get convolution parameters
     ir::ConvParam *param = (ir::ConvParam *)op_desc_.op_param_.get();
 
@@ -117,7 +121,7 @@ class AscendCLOpConv : public OpConv {
       delete inner_we_input_;
       inner_we_input_ = nullptr;
     }
-    return base::kStatusCodeOk;
+    return Op::deinit();
   }
 
   /**

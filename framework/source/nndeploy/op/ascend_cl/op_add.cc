@@ -18,6 +18,10 @@ class AscendCLOpAdd : public OpBinary {
   virtual ~AscendCLOpAdd() {}
 
   virtual base::Status init() {
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     // inner stream
     device::Device* device = device::getDevice(device_type_);
     inner_stream_ =
@@ -85,7 +89,7 @@ class AscendCLOpAdd : public OpBinary {
       aclrtFree(tiling_device);
       tiling_device = nullptr;
     }
-    return base::kStatusCodeOk;
+    return Op::deinit();
   }
   virtual base::Status run() {
     uint8_t* input_data_0 = (uint8_t*)(inputs_0_->getData());

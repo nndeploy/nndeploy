@@ -19,6 +19,10 @@ class AscendCLOpMaxPool : public OpMaxPool {
   virtual ~AscendCLOpMaxPool() {}
 
   virtual base::Status init() {
+    base::Status status = Op::init();
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
     // Get maxpool parameters from operation description
     ir::MaxPoolParam *param = (ir::MaxPoolParam *)op_desc_.op_param_.get();
 
@@ -97,7 +101,7 @@ class AscendCLOpMaxPool : public OpMaxPool {
       delete inner_input_;
       inner_input_ = nullptr;
     }
-    return base::kStatusCodeOk;
+    return Op::deinit();
   }
 
   virtual base::Status preRun() {
