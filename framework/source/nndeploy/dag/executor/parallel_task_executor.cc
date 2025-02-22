@@ -62,7 +62,9 @@ base::Status ParallelTaskExecutor::run() {
     if (iter->color_ != base::kNodeColorBlack) {
       std::string info{"exist node not finish!\n"};
       info.append(iter->name_);
-      NNDEPLOY_RETURN_ON_NEQ(iter->color_, base::kNodeColorBlack, info.c_str());
+      // NNDEPLOY_RETURN_ON_NEQ(iter->color_, base::kNodeColorBlack, info.c_str());
+      NNDEPLOY_LOGE("%s\n", info.c_str());
+      return base::kStatusCodeErrorDag;
     }
   }
 
@@ -76,6 +78,8 @@ void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
     base::EdgeUpdateFlag edge_update_flag = node_wrapper->node_->updataInput();
     if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
       node_wrapper->node_->setRunningFlag(true);
+      // NNDEPLOY_LOGE("node[%s] execute start.\n",
+      //                 node_wrapper->node_->getName().c_str());
       base::Status status = node_wrapper->node_->run();
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("node[%s] execute failed!.\n",
@@ -84,6 +88,8 @@ void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
       }
       node_wrapper->node_->setRunningFlag(false);
       afterNodeRun(node_wrapper);
+      // NNDEPLOY_LOGE("node[%s] execute end.\n",
+      //               node_wrapper->node_->getName().c_str());
     } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
       return;
     } else {
@@ -96,7 +102,10 @@ void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
 }
 
 void ParallelTaskExecutor::afterNodeRun(NodeWrapper* node_wrapper) {
-  completed_task_count_++;
+  {
+    std::lock_guard<std::mutex> lock(main_lock_);
+    completed_task_count_++;
+  }
   node_wrapper->color_ = base::kNodeColorBlack;
   for (auto successor : node_wrapper->successors_) {
     bool all_pre_done = true;
@@ -117,10 +126,12 @@ void ParallelTaskExecutor::afterNodeRun(NodeWrapper* node_wrapper) {
     return;
   }
 
-  std::lock_guard<std::mutex> lock(main_lock_);
+  {
+    std::lock_guard<std::mutex> lock(main_lock_);
 
-  if (completed_task_count_ >= all_task_count_) {
-    cv_.notify_one();
+    if (completed_task_count_ >= all_task_count_) {
+      cv_.notify_one();
+    }
   }
 }
 

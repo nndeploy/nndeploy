@@ -19,7 +19,7 @@ class ProcessParam : public base::Param {
   base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
   base::IntVector shape_ = {1, 3, 512, 512};
 
-  size_t execute_time_ = 10;
+  size_t execute_time_ = 1;
 };
 
 class NNDEPLOY_CC_API ProcessNode : public dag::Node {
@@ -45,8 +45,8 @@ class NNDEPLOY_CC_API ProcessNode : public dag::Node {
         outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
 
     // execute time
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(tmp_param->execute_time_));
+    // std::this_thread::sleep_for(
+    //     std::chrono::milliseconds(tmp_param->execute_time_));
     // NNDEPLOY_LOGI("running node = [%s]!\n", name_.c_str());
 
     outputs_[0]->notifyWritten(dst);
@@ -80,8 +80,8 @@ class NNDEPLOY_CC_API MIMOProcessNode : public dag::Node {
     }
 
     // execute time
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(tmp_param->execute_time_));
+    // std::this_thread::sleep_for(
+    //     std::chrono::milliseconds(tmp_param->execute_time_));
     // NNDEPLOY_LOGI("running node = [%s]!\n", name_.c_str());
 
     for (int i = 0; i < outputs_.size(); ++i) {
@@ -290,6 +290,8 @@ int parallelGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   dag::Node *mode_post_1 =
       graph->createNode<ProcessNode>("mode_post_1", &graph_out_2, &graph_out_3);
   status = graph->setParallelType(pt);
+
+  // graph->setDebugFlag(true);
 
   // init
   status = graph->init();
@@ -540,14 +542,14 @@ int main(int argc, char *argv[]) {
     return ret;
   }
 
-  int count = 1;
+  int count = 500;
   for (int i = 0; i < count; i++) {
-    ret = photosRepairGraph(base::kParallelTypeSequential,
-                            base::kParallelTypeSequential,
-                            base::kParallelTypeSequential, 1);
-    if (ret != 0) {
-      return ret;
-    }
+    // ret = photosRepairGraph(base::kParallelTypeSequential,
+    //                         base::kParallelTypeSequential,
+    //                         base::kParallelTypeSequential, 1);
+    // if (ret != 0) {
+    //   return ret;
+    // }
     // ret = serialGraph(base::kParallelTypeSequential,
     //                   base::kParallelTypeSequential,
     //                   base::kParallelTypeSequential, 1);
@@ -566,17 +568,21 @@ int main(int argc, char *argv[]) {
     // if (ret != 0) {
     //   return ret;
     // }
-    //  // parallel task grah
+    // parallel task grah
+    //  NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask start.\n");
     //  ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
     //                    base::kParallelTypeTask);
     //  if (ret != 0) {
     //    return ret;
     //  }
-    //  ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-    //                      base::kParallelTypeTask);
-    //  if (ret != 0) {
-    //    return ret;
-    //  }
+    //  NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask end.\n");
+     NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask start.\n");
+     ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+                         base::kParallelTypeTask);
+     if (ret != 0) {
+       return ret;
+     }
+     NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask end.\n");
     //  // parallel pipepline graph
     // ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
     //                  base::kParallelTypePipeline, 100);

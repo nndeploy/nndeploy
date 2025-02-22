@@ -21,12 +21,12 @@ class NNDEPLOY_CC_API ThreadPool {
     for (int i = 0; i < max_thread_size_; i++) {
       auto ptr = new LocalThread();  // 创建核心线程数
       ptr->setThreadPoolInfo(i, &threads_);
-      // ptr->init();
+      ptr->init();
       threads_.emplace_back(ptr);
     }
-    for (int i = 0; i < max_thread_size_; i++) {
-      threads_[i]->init();
-    }
+    // for (int i = 0; i < max_thread_size_; i++) {
+    //   threads_[i]->init();
+    // }
 
     return base::Status();
   }
