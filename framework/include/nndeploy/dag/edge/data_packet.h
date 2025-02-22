@@ -17,6 +17,51 @@
 namespace nndeploy {
 namespace dag {
 
+// class NNDEPLOY_CC_API Any {
+//  public:
+//   Any() : data_(nullptr), type_info_(nullptr), is_external_(false) {}
+
+//   template <typename T>
+//   Any(T* data, bool is_external = false) 
+//       : data_(data), 
+//         deleter_([](void* d) { delete static_cast<T*>(d); }),
+//         type_info_(&typeid(T)),
+//         is_external_(is_external) {}
+
+//   ~Any() {
+//     if (data_ && !is_external_) {
+//       deleter_(data_);
+//     }
+//   }
+
+//   template <typename T>
+//   void set(T* data, bool is_external = false) {
+//     data_ = data;
+//     deleter_ = [](void* d) { delete static_cast<T*>(d); };
+//     type_info_ = &typeid(T);
+//     is_external_ = is_external;
+//   }
+  
+//   template <typename T>
+//   T* get() {
+//     if (typeid(T) == *type_info_) {
+//       return static_cast<T*>(data_);
+//     } else {
+//       return nullptr;
+//     }
+//   }
+
+//   bool isExternal() const {
+//     return is_external_;
+//   }
+
+//  private:
+//   void* data_;
+//   std::function<void(void*)> deleter_;
+//   std::type_info* type_info_;
+//   bool is_external_;
+// };
+
 /**
  * @brief
  * 数据包的状态
@@ -55,6 +100,9 @@ class DataPacket : public base::NonCopyable {
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
   virtual base::Status set(cv::Mat &cv_mat, int index);
+  cv::Mat *create(int rows, int cols, int type, const cv::Vec3b& value,
+                  int index);
+  virtual bool notifyWritten(cv::Mat *cv_mat);
   virtual cv::Mat *getCvMat();
 #endif
 
@@ -67,10 +115,92 @@ class DataPacket : public base::NonCopyable {
 
   virtual base::Status set(base::Param *param, int index, bool is_external);
   virtual base::Status set(base::Param &param, int index);
+  template <typename T, typename... Args, typename std::enable_if<std::is_base_of<base::Param, T>::value, int>::type = 0>
+  base::Param *create(int index, Args &&...args){
+    base::Status status = base::kStatusCodeOk;
+    T *param = nullptr;
+    if (anything_ == nullptr) {
+      param = new T(std::forward<Args>(args)...);
+    } else {
+      destory();
+      param = new T(std::forward<Args>(args)...);
+    }
+    if (param == nullptr) {
+      NNDEPLOY_LOGE("Failed to create param.\n");
+      return nullptr;
+    }
+    is_external_ = false;
+    index_ = index;
+    flag_ = kFlagParam;
+    written_ = false;
+    anything_ = (void *)(param);
+    type_info_ = &typeid(T);
+    deleter_ = [](void* d) { delete static_cast<T*>(d); };
+    return param;
+  }
+  virtual bool notifyWritten(base::Param *param);
   virtual base::Param *getParam();
 
-  virtual base::Status set(void *anything, int index, bool is_external);
-  virtual void *getAnything();
+  template <typename T>
+  base::Status setAny(T *t, int index, bool is_external = true){
+    base::Status status = base::kStatusCodeOk;
+    if (anything_ == nullptr) {
+      anything_ = (void *)(t);
+    } else {
+      destory();
+      anything_ = (void *)(t);
+    }
+    is_external_ = is_external;
+    index_ = index;
+    flag_ = kFlagVoid;
+    written_ = false;
+    deleter_ = [](void* d) { delete static_cast<T*>(d); };
+    type_info_ = &typeid(T);
+    return status;
+  }
+  template <typename T, typename... Args>
+  T *createAny(int index, Args &&...args){
+    base::Status status = base::kStatusCodeOk;
+    T *t = nullptr;
+    if (anything_ == nullptr) {
+      t = new T(std::forward<Args>(args)...);
+    } else {
+      destory();
+      t = new T(std::forward<Args>(args)...);
+    }
+    if (t == nullptr) {
+      NNDEPLOY_LOGE("Failed to create param.\n");
+      return nullptr;
+    }
+    is_external_ = false;
+    index_ = index;
+    flag_ = kFlagVoid;
+    written_ = false;
+    anything_ = (void *)(t);
+    type_info_ = &typeid(T);
+    deleter_ = [](void* d) { delete static_cast<T*>(d); };
+    return t;
+  }
+  bool notifyAnyWritten(void *anything){
+    if (anything == anything_) {
+      written_ = true;
+      return true;
+    } else {
+      return false;
+    }
+  }
+  template <typename T>
+  T *getAny(){
+    if (flag_ != kFlagVoid) {
+      return nullptr;
+    }
+    if (typeid(T) != *type_info_) {
+      return nullptr;
+    }
+    return static_cast<T*>(anything_);
+  }
+
+  base::Status takeDataPacket(DataPacket *packet);
 
   int getIndex();
 
@@ -83,6 +213,8 @@ class DataPacket : public base::NonCopyable {
   Flag flag_ = kFlagNone;
   bool written_ = false;
   void *anything_ = nullptr;
+  std::function<void(void*)> deleter_;
+  std::type_info* type_info_;
 };
 
 class PipelineDataPacket : public DataPacket {
@@ -98,6 +230,7 @@ class PipelineDataPacket : public DataPacket {
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
   virtual base::Status set(cv::Mat &cv_mat, int index);
+  virtual bool notifyWritten(cv::Mat *cv_mat);
   virtual cv::Mat *getCvMat();
 #endif
 
@@ -108,10 +241,32 @@ class PipelineDataPacket : public DataPacket {
 
   virtual base::Status set(base::Param *param, int index, bool is_external);
   virtual base::Status set(base::Param &param, int index);
+  virtual bool notifyWritten(base::Param *param);
   virtual base::Param *getParam();
 
-  virtual base::Status set(void *anything, int index, bool is_external);
-  virtual void *getAnything();
+  template <typename T>
+  base::Status setAny(T *t, int index, bool is_external = true){
+    std::unique_lock<std::mutex> lock(mutex_);
+    base::Status status = DataPacket::setAny(t, index, is_external);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "DataPacket::setAny failed!\n");
+    cv_.notify_all();
+    return status;
+  }
+  bool notifyAnyWritten(void *anything){
+    std::unique_lock<std::mutex> lock(mutex_);
+    bool status = DataPacket::notifyAnyWritten(anything);
+    if (status) {
+      cv_.notify_all();
+    }
+    return status;
+  }
+  template <typename T>
+  T *getAny(){
+    std::unique_lock<std::mutex> lock(mutex_);
+    cv_.wait(lock, [this] { return written_; });
+    return DataPacket::getAny<T>();
+  }
 
   void increaseConsumersSize();
   void increaseConsumersCount();

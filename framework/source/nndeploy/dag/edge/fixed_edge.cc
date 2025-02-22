@@ -45,6 +45,13 @@ base::Status FixedEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
 base::Status FixedEdge::set(cv::Mat &cv_mat, int index) {
   return data_packet_->set(cv_mat, index);
 }
+cv::Mat *FixedEdge::create(int rows, int cols, int type, const cv::Vec3b& value,
+                           int index) {
+  return data_packet_->create(rows, cols, type, value, index);
+}
+bool FixedEdge::notifyWritten(cv::Mat *cv_mat) {
+  return data_packet_->notifyWritten(cv_mat);
+}
 cv::Mat *FixedEdge::getCvMat(const Node *node) {
   return data_packet_->getCvMat();
 }
@@ -73,27 +80,35 @@ device::Tensor *FixedEdge::getGraphOutputTensor() {
   return data_packet_->getTensor();
 }
 
+base::Status FixedEdge::takeDataPacket(DataPacket *data_packet) {
+  data_packet_ = data_packet;
+  data_packet_ = nullptr;
+  return base::kStatusCodeOk;
+}
+bool FixedEdge::notifyAnyWritten(void *anything) {
+  return data_packet_->notifyAnyWritten(anything);
+}
+DataPacket *FixedEdge::getDataPacket(const Node *node) {
+  return data_packet_;
+}
+DataPacket *FixedEdge::getGraphOutputDataPacket() {
+  return data_packet_;
+}
+
 base::Status FixedEdge::set(base::Param *param, int index, bool is_external) {
   return data_packet_->set(param, index, is_external);
 }
 base::Status FixedEdge::set(base::Param &param, int index) {
   return data_packet_->set(param, index);
 }
+bool FixedEdge::notifyWritten(base::Param *param) {
+  return data_packet_->notifyWritten(param);
+}
 base::Param *FixedEdge::getParam(const Node *node) {
   return data_packet_->getParam();
 }
 base::Param *FixedEdge::getGraphOutputParam() {
   return data_packet_->getParam();
-}
-
-base::Status FixedEdge::set(void *anything, int index, bool is_external) {
-  return data_packet_->set(anything, index, is_external);
-}
-void *FixedEdge::getAnything(const Node *node) {
-  return data_packet_->getAnything();
-}
-void *FixedEdge::getGraphOutputAnything() {
-  return data_packet_->getAnything();
 }
 
 int FixedEdge::getIndex(const Node *node) { return data_packet_->getIndex(); }
