@@ -81,7 +81,14 @@ base::Status Node::setParam(base::Param *param) {
   }
   return base::kStatusCodeErrorNullParam;
 }
+base::Status Node::setParamSharedPtr(std::shared_ptr<base::Param> param) {
+  if (param_ != nullptr) {
+    return param->copyTo(param_.get());
+  }
+  return base::kStatusCodeOk;
+}
 base::Param *Node::getParam() { return param_.get(); }
+std::shared_ptr<base::Param> Node::getParamSharedPtr() { return param_; }
 base::Status Node::setExternalParam(base::Param *external_param) {
   external_param_.emplace_back(external_param);
   return base::kStatusCodeOk;
@@ -233,17 +240,55 @@ base::EdgeUpdateFlag Node::updataInput() {
 }
 
 // 动态图 > 静态图，还有很大的优化空间
-std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
-                                     std::vector<std::string> outputs_name) {
-  // // input -
+std::vector<std::shared_ptr<Edge>> Node::operator()(
+    std::vector<Edge *> inputs, std::vector<std::string> outputs_name,
+    std::shared_ptr<base::Param> param) {
+  // param
+  if (param != nullptr) {
+    this->setParamSharedPtr(param);
+  }
+  // check
+  std::vector<std::shared_ptr<Edge>> outputs;
+  if (input_type_info_.size() != inputs.size()) {
+    NNDEPLOY_LOGE("inputs.size() != input_type_info_.size()\n");
+    return outputs;
+  }
+  if (output_type_info_.size() != outputs_name.size()) {
+    NNDEPLOY_LOGE("outputs_name.size() != outputs_name.size()\n");
+    return outputs;
+  }
+  // graph is empty
+  if (graph_ == nullptr) {
+    // input
+    this->setInputs(inputs);
+    // output
+    if (outputs_name.empty()) {
+      for (auto output_type_info : output_type_info_) {
+        outputs.push_back(std::make_shared<Edge>(output_type_info.type_info_));
+      }
+    } else {
+      for (size_t i = 0; i < outputs_name.size(); i++) {
+        outputs.push_back(std::make_shared<Edge>(outputs_name[i]));
+      }
+    }
+    std::vector<Edge *> outputs_vector;
+    for (auto output : outputs) {
+      outputs_vector.push_back(output.get());
+    }
+    this->setOutputs(outputs_vector);
+  } else {
+    // inputs
+    for (auto input : inputs) {
+      graph_->addEdge(input);
+    }
+    this->setInputs(inputs);
+  }
+  // // Node inputs_ is empty
   // if (inputs_.empty()) {
   //   if (graph_ != nullptr) {
-  //     for (auto input : inputs) {
-  //       graph_->addEdge(input);
-  //     }
   //   }
   //   inputs_ = inputs;
-  // } else {
+  // } else {  // Node inputs_ not empty
   //   // Check if inputs and inputs_ are consistent
   //   bool same_input = true;
   //   if (inputs.size() != inputs_.size()) {
@@ -269,12 +314,13 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
   //     inputs_ = inputs;
   //   }
   // }
-  // // outputs_
+  // // outputs_ is empty
   // if (outputs_.empty()) {
   //   std::vector<dag::Edge *> outputs;
   //   if (graph_ != nullptr) {
   //     for (auto output_name : outputs_name) {
-  //       outputs.push_back(graph_->createEdge(output_name));
+  //       dag::Edge *edge =
+  //           graph_->createEdge(output_name) outputs.push_back(edge);
   //     }
   //   } else {
   //     for (auto output_name : outputs_name) {
@@ -319,109 +365,29 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
   //     }
   //   }
   // }
-  // base::Status status = this->run();
-  // return outputs_;
-  return std::vector<Edge *>();
+  base::Status status = this->run();
+  return outputs;
 }
 
 // 动态图 > 静态图，还有很大的优化空间
-std::vector<Edge *> Node::operator()(
+std::vector<std::shared_ptr<Edge>> Node::operator()(
     std::initializer_list<Edge *> inputs,
     std::initializer_list<std::string> outputs_name) {
-  // input -
-  // if (inputs_.empty()) {
-  //   if (graph_ != nullptr) {
-  //     for (auto input : inputs) {
-  //       graph_->addEdge(input);
-  //     }
-  //   }
-  //   inputs_ = inputs;
-  // } else {
-  //   // Check if inputs and inputs_ are consistent
-  //   bool same_input = true;
-  //   if (inputs.size() != inputs_.size()) {
-  //     same_input = false;
-  //   }
-  //   if (same_input) {  // not support disorder
-  //     for (size_t i = 0; i < inputs.size(); i++) {
-  //       if (inputs[i] != inputs_[i]) {
-  //         same_input = false;
-  //         break;
-  //       }
-  //     }
-  //   }
-  //   if (!same_input) {
-  //     if (graph_ != nullptr) {
-  //       for (auto input : inputs_) {
-  //         graph_->removeEdge(input);
-  //       }
-  //       for (auto input : inputs) {
-  //         graph_->addEdge(input);
-  //       }
-  //     }
-  //     inputs_ = inputs;
-  //   }
-  // }
-  // // outputs_
-  // if (outputs_.empty()) {
-  //   std::vector<dag::Edge *> outputs;
-  //   if (graph_ != nullptr) {
-  //     for (auto output_name : outputs_name) {
-  //       outputs.push_back(graph_->createEdge(output_name));
-  //     }
-  //   } else {
-  //     for (auto output_name : outputs_name) {
-  //       outputs.push_back(new Edge(output_name));
-  //     }
-  //   }
-  //   outputs_ = outputs;
-  // } else {
-  //   // Check if outputs_name and outputs_ are consistent
-  //   bool same_output = true;
-  //   if (outputs_name.size() != outputs_.size()) {
-  //     same_output = false;
-  //   }
-  //   if (same_output) {  // not support disorder
-  //     for (size_t i = 0; i < outputs_name.size(); i++) {
-  //       if (outputs_name[i] != outputs_[i]->getName()) {
-  //         same_output = false;
-  //         break;
-  //       }
-  //     }
-  //   }
-  //   if (!same_output) {
-  //     if (graph_ != nullptr) {
-  //       for (auto output : outputs_) {
-  //         graph_->removeEdge(output);
-  //       }
-  //       std::vector<dag::Edge *> outputs;
-  //       for (auto output_name : outputs_name) {
-  //         outputs.push_back(graph_->createEdge(output_name));
-  //       }
-  //       outputs_ = outputs;
-  //     } else {
-  //       // for (auto output : outputs_) {
-  //       //   delete output;
-  //       // }
-  //       outputs_.clear();
-  //       std::vector<dag::Edge *> outputs;
-  //       for (auto output_name : outputs_name) {
-  //         outputs.push_back(new Edge(output_name));
-  //       }
-  //       outputs_ = outputs;
-  //     }
-  //   }
-  // }
-  // base::Status status = this->run();
-  // return outputs_;
-  return std::vector<Edge *>();
+  std::vector<std::string> outputs;
+  for (auto output_name : outputs_name) {
+    outputs.push_back(output_name);
+  }
+  return this->operator()(inputs, outputs);
 }
 
 Node *createNode(const std::string &node_key, const std::string &node_name) {
   NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::vector<Edge *> inputs;
+  std::vector<Edge *> outputs;
   if (creator != nullptr) {
-    return creator->createNode(node_name);
+    return creator->createNode(node_name, inputs, outputs);
   }
+  NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
   return nullptr;
 }
 // Node *createNode(const std::string &node_key, const std::string &node_name,
@@ -436,9 +402,18 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::initializer_list<Edge *> inputs,
                  std::initializer_list<Edge *> outputs) {
   NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
-  if (creator != nullptr) {
-    return creator->createNode(node_name, inputs, outputs);
+  std::vector<Edge *> inputs_vector;
+  std::vector<Edge *> outputs_vector;
+  for (auto input : inputs) {
+    inputs_vector.emplace_back(input);
   }
+  for (auto output : outputs) {
+    outputs_vector.emplace_back(output);
+  }
+  if (creator != nullptr) {
+    return creator->createNode(node_name, inputs_vector, outputs_vector);
+  }
+  NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
   return nullptr;
 }
 Node *createNode(const std::string &node_key, const std::string &node_name,
@@ -447,6 +422,50 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
+  NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
+  return nullptr;
+}
+
+std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
+                                          const std::string &node_name) {
+  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::vector<Edge *> inputs;
+  std::vector<Edge *> outputs;
+  if (creator != nullptr) {
+    return creator->createNodeSharedPtr(node_name, inputs, outputs);
+  }
+  NNDEPLOY_LOGE("Failed to createNodeSharedPtr %s\n", node_name.c_str());
+  return nullptr;
+}
+std::shared_ptr<Node> createNodeSharedPtr(
+    const std::string &node_key, const std::string &node_name,
+    std::initializer_list<Edge *> inputs,
+    std::initializer_list<Edge *> outputs) {
+  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::vector<Edge *> inputs_vector;
+  std::vector<Edge *> outputs_vector;
+  for (auto input : inputs) {
+    inputs_vector.emplace_back(input);
+  }
+  for (auto output : outputs) {
+    outputs_vector.emplace_back(output);
+  }
+  if (creator != nullptr) {
+    return creator->createNodeSharedPtr(node_name, inputs_vector,
+                                        outputs_vector);
+  }
+  NNDEPLOY_LOGE("Failed to createNodeSharedPtr %s\n", node_name.c_str());
+  return nullptr;
+}
+std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
+                                          const std::string &node_name,
+                                          std::vector<Edge *> inputs,
+                                          std::vector<Edge *> outputs) {
+  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  if (creator != nullptr) {
+    return creator->createNodeSharedPtr(node_name, inputs, outputs);
+  }
+  NNDEPLOY_LOGE("Failed to createNodeSharedPtr %s\n", node_name.c_str());
   return nullptr;
 }
 

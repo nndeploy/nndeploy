@@ -6,6 +6,35 @@
 namespace nndeploy {
 namespace dag {
 
+// Buffer类型特化
+template <>
+void EdgeTypeInfo::setType<device::Buffer>(device::Buffer* t) {
+  type_ = TypeFlag::kBuffer;
+  type_info_ = getTypeName<device::Buffer>();
+  type_ptr_ = &typeid(device::Buffer);
+  type_holder_ = std::make_shared<TypeHolder<device::Buffer>>();
+}
+
+#ifdef ENABLE_NNDEPLOY_OPENCV
+// cv::Mat类型特化
+template <>
+void EdgeTypeInfo::setType<cv::Mat>(cv::Mat* t) {
+  type_ = TypeFlag::kCvMat;
+  type_info_ = getTypeName<cv::Mat>();
+  type_ptr_ = &typeid(cv::Mat);
+  type_holder_ = std::make_shared<TypeHolder<cv::Mat>>();
+}
+#endif
+
+// Tensor类型特化
+template <>
+void EdgeTypeInfo::setType<device::Tensor>(device::Tensor* t) {
+  type_ = TypeFlag::kTensor;
+  type_info_ = getTypeName<device::Tensor>();
+  type_ptr_ = &typeid(device::Tensor);
+  type_holder_ = std::make_shared<TypeHolder<device::Tensor>>();
+}
+
 Edge::Edge() : name_(""), abstact_edge_(nullptr) {}
 Edge::Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
 Edge::~Edge() { delete abstact_edge_; }
@@ -41,7 +70,7 @@ base::Status Edge::set(cv::Mat *cv_mat, int index, bool is_external) {
 base::Status Edge::set(cv::Mat &cv_mat, int index) {
   return abstact_edge_->set(cv_mat, index);
 }
-cv::Mat *Edge::create(int rows, int cols, int type, const cv::Vec3b& value,
+cv::Mat *Edge::create(int rows, int cols, int type, const cv::Vec3b &value,
                       int index) {
   return abstact_edge_->create(rows, cols, type, value, index);
 }

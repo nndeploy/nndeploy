@@ -49,6 +49,8 @@ class NNDEPLOY_CC_API Graph : public Node {
    */
   Edge *createEdge(const std::string &name);
 
+  std::shared_ptr<Edge> createEdgeSharedPtr(const std::string &name);
+
   /**
    * @brief 将一条已有的Edge加入Graph中
    * @param  edge             已有的Edge
@@ -62,6 +64,7 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @return EdgeWrapper*
    */
   EdgeWrapper *addEdge(Edge *edge, bool is_external = true);
+  EdgeWrapper *addEdge(std::shared_ptr<Edge> edge);
 
   /**
    * @brief 获取Graph中的Edge
@@ -398,6 +401,7 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @return base::Status
    */
   base::Status addNode(Node *node, bool is_external = true);
+  base::Status addNode(std::shared_ptr<Node> node);
 
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);
@@ -420,6 +424,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   bool is_graph_node_share_stream_ = true;
   std::vector<EdgeWrapper *> edge_repository_;
   std::vector<NodeWrapper *> node_repository_;
+  std::vector<std::shared_ptr<Edge>> shared_edge_repository_;
+  std::vector<std::shared_ptr<Node>> shared_node_repository_;
   std::set<std::string> used_node_names_;
   std::set<std::string> used_edge_names_;
   std::shared_ptr<Executor> executor_;

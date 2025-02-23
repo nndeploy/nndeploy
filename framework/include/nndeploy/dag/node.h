@@ -97,7 +97,9 @@ class NNDEPLOY_CC_API Node {
   virtual base::DeviceType getDeviceType();
 
   virtual base::Status setParam(base::Param *param);
+  virtual base::Status setParamSharedPtr(std::shared_ptr<base::Param> param);
   virtual base::Param *getParam();
+  virtual std::shared_ptr<base::Param> getParamSharedPtr();
   virtual base::Status setExternalParam(base::Param *external_param);
 
   base::Status setInput(Edge *input);
@@ -144,11 +146,12 @@ class NNDEPLOY_CC_API Node {
 
   virtual base::Status run() = 0;
 
-  virtual std::vector<Edge *> operator()(
+  virtual std::vector<std::shared_ptr<Edge>> operator()(
       std::vector<Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>());
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr);
 
-  virtual std::vector<Edge *> operator()(
+  virtual std::vector<std::shared_ptr<Edge>> operator()(
       std::initializer_list<Edge *> inputs,
       std::initializer_list<std::string> outputs_name = {});
 
@@ -163,6 +166,8 @@ class NNDEPLOY_CC_API Node {
   device::Stream *stream_ = nullptr;
   std::shared_ptr<base::Param> param_;
   std::vector<base::Param *> external_param_;
+  std::vector<EdgeTypeInfo> input_type_info_;
+  std::vector<EdgeTypeInfo> output_type_info_;
   std::vector<Edge *> inputs_;
   std::vector<Edge *> outputs_;
 
@@ -183,31 +188,39 @@ class NNDEPLOY_CC_API Node {
  */
 class NodeCreator {
  public:
-  virtual Node *createNode(const std::string &node_name) = 0;
-  virtual Node *createNode(const std::string &node_name,
-                           std::initializer_list<Edge *> inputs,
-                           std::initializer_list<Edge *> outputs) = 0;
+  // virtual Node *createNode(const std::string &node_name) = 0;
+  // virtual Node *createNode(const std::string &node_name,
+  //                          std::initializer_list<Edge *> inputs,
+  //                          std::initializer_list<Edge *> outputs) = 0;
   virtual Node *createNode(const std::string &node_name,
                            std::vector<Edge *> inputs,
                            std::vector<Edge *> outputs) = 0;
+  virtual std::shared_ptr<Node> createNodeSharedPtr(
+      const std::string &node_name, std::vector<Edge *> inputs,
+      std::vector<Edge *> outputs) = 0;
   virtual ~NodeCreator() = default;
 };
 
 template <typename T>
-class NodeCreatorRegister : public NodeCreator {
+class TypeNodeCreator : public NodeCreator {
  public:
-  virtual Node *createNode(const std::string &node_name) override {
-    return new T(node_name);
-  }
-  virtual Node *createNode(const std::string &node_name,
-                           std::initializer_list<Edge *> inputs,
-                           std::initializer_list<Edge *> outputs) override {
-    return new T(node_name, inputs, outputs);
-  }
+  // virtual Node *createNode(const std::string &node_name) override {
+  //   return new T(node_name);
+  // }
+  // virtual Node *createNode(const std::string &node_name,
+  //                          std::initializer_list<Edge *> inputs,
+  //                          std::initializer_list<Edge *> outputs) override {
+  //   return new T(node_name, inputs, outputs);
+  // }
   virtual Node *createNode(const std::string &node_name,
                            std::vector<Edge *> inputs,
                            std::vector<Edge *> outputs) override {
     return new T(node_name, inputs, outputs);
+  }
+  virtual std::shared_ptr<Node> createNodeSharedPtr(
+      const std::string &node_name, std::vector<Edge *> inputs,
+      std::vector<Edge *> outputs) override {
+    return std::make_shared<T>(node_name, inputs, outputs);
   }
 };
 
@@ -245,11 +258,11 @@ class NodeFactory {
   std::map<std::string, NodeCreator *> creators_;
 };
 
-#define REGISTER_NODE(node_key, node_class)                              \
-  static auto node_creator_##node_class = []() {                         \
-    nndeploy::dag::NodeFactory::getInstance()->registerNode(             \
-        node_key, new nndeploy::dag::NodeCreatorRegister<node_class>()); \
-    return 0;                                                            \
+#define REGISTER_NODE(node_key, node_class)                          \
+  static auto register_node_creator_##node_class = []() {            \
+    nndeploy::dag::NodeFactory::getInstance()->registerNode(         \
+        node_key, new nndeploy::dag::TypeNodeCreator<node_class>()); \
+    return 0;                                                        \
   }();
 
 NNDEPLOY_CC_API Node *createNode(const std::string &node_key,
@@ -262,6 +275,16 @@ NNDEPLOY_CC_API Node *createNode(const std::string &node_key,
                                  const std::string &node_name,
                                  std::vector<Edge *> inputs,
                                  std::vector<Edge *> outputs);
+
+NNDEPLOY_CC_API std::shared_ptr<Node> createNodeSharedPtr(
+    const std::string &node_key, const std::string &node_name);
+NNDEPLOY_CC_API std::shared_ptr<Node> createNodeSharedPtr(
+    const std::string &node_key, const std::string &node_name,
+    std::initializer_list<Edge *> inputs,
+    std::initializer_list<Edge *> outputs);
+NNDEPLOY_CC_API std::shared_ptr<Node> createNodeSharedPtr(
+    const std::string &node_key, const std::string &node_name,
+    std::vector<Edge *> inputs, std::vector<Edge *> outputs);
 
 using NodeFuncV1 = std::function<base::Status(
     std::initializer_list<Edge *> inputs, std::initializer_list<Edge *> outputs,

@@ -109,6 +109,25 @@ Edge *Graph::createEdge(const std::string &name) {
   return edge;
 }
 
+std::shared_ptr<Edge> Graph::createEdgeSharedPtr(const std::string &name) {
+  if (used_edge_names_.find(name) != used_edge_names_.end()) {
+    NNDEPLOY_LOGE("edge name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
+  Edge *edge = new Edge(name);
+  EdgeWrapper *edge_wrapper = new EdgeWrapper();
+  // 创建shared edge
+  edge_wrapper->is_external_ = true;
+  edge_wrapper->edge_ = edge;
+  edge_wrapper->name_ = name;
+  edge_repository_.emplace_back(edge_wrapper);
+  used_edge_names_.insert(name);
+
+  std::shared_ptr<Edge> edge_ptr = std::shared_ptr<Edge>(edge);
+  shared_edge_repository_.emplace_back(edge_ptr);
+  return edge_ptr;
+}
+
 Edge *Graph::getEdge(const std::string &name) {
   for (EdgeWrapper *edge_wrapper : edge_repository_) {
     if (edge_wrapper->name_ == name) {
@@ -140,6 +159,20 @@ EdgeWrapper *Graph::addEdge(Edge *edge, bool is_external) {
   edge_wrapper->name_ = edge->getName();
   edge_repository_.emplace_back(edge_wrapper);
   used_edge_names_.insert(edge->getName());
+  return edge_wrapper;
+}
+
+EdgeWrapper *Graph::addEdge(std::shared_ptr<Edge> edge) {
+  if (edge == nullptr) {
+    NNDEPLOY_LOGE("edge is null!");
+    return nullptr;
+  }
+  EdgeWrapper *edge_wrapper = this->addEdge(edge.get(), true);
+  if (edge_wrapper == nullptr) {
+    NNDEPLOY_LOGE("addEdge failed!");
+    return nullptr;
+  }
+  shared_edge_repository_.emplace_back(edge);
   return edge_wrapper;
 }
 
@@ -237,6 +270,16 @@ base::Status Graph::addNode(Node *node, bool is_external) {
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(node->getName());
+  return status;
+}
+base::Status Graph::addNode(std::shared_ptr<Node> node) {
+  if (node == nullptr) {
+    NNDEPLOY_LOGE("node is null!");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  base::Status status = addNode(node.get(), true);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "addNode failed!");
+  shared_node_repository_.emplace_back(node);
   return status;
 }
 

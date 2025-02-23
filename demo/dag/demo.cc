@@ -10,6 +10,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/framework.h"
 #include "nndeploy/thread_pool/thread_pool.h"
+#include <random>
 
 using namespace nndeploy;
 
@@ -45,8 +46,8 @@ class NNDEPLOY_CC_API ProcessNode : public dag::Node {
         outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
 
     // execute time
-    // std::this_thread::sleep_for(
-    //     std::chrono::milliseconds(tmp_param->execute_time_));
+    int sleep_time = rand() % 10;
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
     // NNDEPLOY_LOGI("running node = [%s]!\n", name_.c_str());
 
     outputs_[0]->notifyWritten(dst);
@@ -80,8 +81,8 @@ class NNDEPLOY_CC_API MIMOProcessNode : public dag::Node {
     }
 
     // execute time
-    // std::this_thread::sleep_for(
-    //     std::chrono::milliseconds(tmp_param->execute_time_));
+    int sleep_time = rand() % 10;
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time));
     // NNDEPLOY_LOGI("running node = [%s]!\n", name_.c_str());
 
     for (int i = 0; i < outputs_.size(); ++i) {
@@ -542,7 +543,7 @@ int main(int argc, char *argv[]) {
     return ret;
   }
 
-  int count = 500;
+  int count = 2000;
   for (int i = 0; i < count; i++) {
     // ret = photosRepairGraph(base::kParallelTypeSequential,
     //                         base::kParallelTypeSequential,
@@ -576,38 +577,38 @@ int main(int argc, char *argv[]) {
     //    return ret;
     //  }
     //  NNDEPLOY_LOGE("serialGraph base::kParallelTypeTask end.\n");
-     NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask start.\n");
-     ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                         base::kParallelTypeTask);
+    //  NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask start.\n");
+    //  ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                      base::kParallelTypeTask);
+    //  if (ret != 0) {
+    //    return ret;
+    //  }
+    //  NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask end.\n");
+     // parallel pipepline graph
+    ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
+                     base::kParallelTypePipeline, 100);
+    if (ret != 0) {
+     return ret;
+    }
+    ret = parallelGraph(base::kParallelTypeNone, base::kParallelTypeNone,
+                       base::kParallelTypePipeline, 100);
+    if (ret != 0) {
+     return ret;
+    }
+     // parallel pipepline graph / sugraph sequential
+     ret =
+         serialGraph(base::kParallelTypeSequential,
+                     base::kParallelTypeSequential,
+                     base::kParallelTypePipeline);
      if (ret != 0) {
        return ret;
      }
-     NNDEPLOY_LOGE("parallelGraph base::kParallelTypeTask end.\n");
-    //  // parallel pipepline graph
-    // ret = serialGraph(base::kParallelTypeNone, base::kParallelTypeNone,
-    //                  base::kParallelTypePipeline, 100);
-    // if (ret != 0) {
-    //  return ret;
-    //}
-    // ret = parallelGraph(base::kParallelTypeNone, base::kParallelTypeNone,
-    //                    base::kParallelTypePipeline, 100);
-    // if (ret != 0) {
-    //  return ret;
-    //}
-    //  // parallel pipepline graph / sugraph sequential
-    //  ret =
-    //      serialGraph(base::kParallelTypeSequential,
-    //                  base::kParallelTypeSequential,
-    //                  base::kParallelTypePipeline);
-    //  if (ret != 0) {
-    //    return ret;
-    //  }
-    //  ret = parallelGraph(base::kParallelTypeSequential,
-    //                      base::kParallelTypeSequential,
-    //                      base::kParallelTypePipeline);
-    //  if (ret != 0) {
-    //    return ret;
-    //  }
+     ret = parallelGraph(base::kParallelTypeSequential,
+                         base::kParallelTypeSequential,
+                         base::kParallelTypePipeline);
+     if (ret != 0) {
+       return ret;
+     }
     //  // parallel pipepline graph / sugraph task
     //  ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
     //                    base::kParallelTypePipeline);
