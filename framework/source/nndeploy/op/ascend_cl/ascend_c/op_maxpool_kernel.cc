@@ -1,4 +1,5 @@
 #include "op_maxpool_kernel.h"
+
 #include "kernel_operator.h"
 
 constexpr int32_t ALIGN_NUM = 16;
@@ -18,7 +19,7 @@ __aicore__ inline void CopyTiling(nndeploy::op::MaxPool2dTilingData *tiling,
 
 template <typename x_T, typename y_T>
 class KernelMaxPool2d {
-public:
+ public:
   __aicore__ inline KernelMaxPool2d() {}
   __aicore__ inline void Init(GM_ADDR x_trans, GM_ADDR y_trans,
                               GM_ADDR tiling_gm, AscendC::TPipe *tmpPipe) {
@@ -49,9 +50,6 @@ public:
     widthRounds = outWidth / widthBlock;
     widthTail = outWidth % widthBlock;
 
-    AscendC::printf("widthBlock=%d widthRound=%d widthTail=%d\n", widthBlock,
-                    widthRounds, widthTail);
-
     blockLen = channel * sizeof(x_T);
     padWidth = inChannelAlign - channel;
     blockCount = widthBlock * stride + (kernelSize - stride);
@@ -71,29 +69,29 @@ public:
   }
   __aicore__ inline void Process() { ComputeNH(); }
 
-private:
+ private:
   __aicore__ inline void MainPart() {
     for (uint32_t idx1 = 0; idx1 < widthRounds; idx1++) {
       inOffset = baseOffset + (idx1 * widthBlock) * stride;
       AscendC::DataCopyExtParams copyParams{blockCount, blockLen, 0, 0, 0};
       AscendC::DataCopyPadExtParams<x_T> padParams{true, 0, padWidth, 0};
       AscendC::DataCopyPad(xBatchLt1, xTransGm[inOffset * channel], copyParams,
-                           padParams); // 从GM->VECCALC搬运data
+                           padParams);  // 从GM->VECCALC搬运data
       AscendC::DataCopyPad(xBatchLt2, xTransGm[(inOffset + inWidth) * channel],
                            copyParams,
-                           padParams); // 从GM->VECCALC搬运data
+                           padParams);  // 从GM->VECCALC搬运data
       AscendC::DataCopyPad(
           xBatchLt3, xTransGm[(inOffset + inWidth * 2) * channel], copyParams,
-          padParams); // 从GM->VECCALC搬运data
+          padParams);  // 从GM->VECCALC搬运data
 
       pipe_barrier(PIPE_ALL);
 
-      AscendC::Max(xBatchLt1, xBatchLt1, xBatchLt2,
-                   (widthBlock * stride + (kernelSize - stride)) *
-                       inChannelAlign);
-      AscendC::Max(xBatchLt1, xBatchLt1, xBatchLt3,
-                   (widthBlock * stride + (kernelSize - stride)) *
-                       inChannelAlign);
+      AscendC::Max(
+          xBatchLt1, xBatchLt1, xBatchLt2,
+          (widthBlock * stride + (kernelSize - stride)) * inChannelAlign);
+      AscendC::Max(
+          xBatchLt1, xBatchLt1, xBatchLt3,
+          (widthBlock * stride + (kernelSize - stride)) * inChannelAlign);
 
       for (uint32_t idx2 = 0; idx2 < widthBlock; idx2++) {
         AscendC::Max(xBatchLt4[idx2 * inChannelAlign],
@@ -118,13 +116,13 @@ private:
       AscendC::DataCopyExtParams copyParams{tailBlockCount, blockLen, 0, 0, 0};
       AscendC::DataCopyPadExtParams<x_T> padParams{true, 0, padWidth, 0};
       AscendC::DataCopyPad(xBatchLt1, xTransGm[inOffset * channel], copyParams,
-                           padParams); // 从GM->VECCALC搬运data
+                           padParams);  // 从GM->VECCALC搬运data
       AscendC::DataCopyPad(xBatchLt2, xTransGm[(inOffset + inWidth) * channel],
                            copyParams,
-                           padParams); // 从GM->VECCALC搬运data
+                           padParams);  // 从GM->VECCALC搬运data
       AscendC::DataCopyPad(
           xBatchLt3, xTransGm[(inOffset + inWidth * 2) * channel], copyParams,
-          padParams); // 从GM->VECCALC搬运data
+          padParams);  // 从GM->VECCALC搬运data
 
       // AscendC::DumpTensor(xBatchLt1, 1, 32);
       // AscendC::DumpTensor(xBatchLt2, 2, 32);
@@ -132,12 +130,12 @@ private:
 
       pipe_barrier(PIPE_ALL);
 
-      AscendC::Max(xBatchLt1, xBatchLt1, xBatchLt2,
-                   (widthTail * stride + (kernelSize - stride)) *
-                       inChannelAlign);
-      AscendC::Max(xBatchLt1, xBatchLt1, xBatchLt3,
-                   (widthTail * stride + (kernelSize - stride)) *
-                       inChannelAlign);
+      AscendC::Max(
+          xBatchLt1, xBatchLt1, xBatchLt2,
+          (widthTail * stride + (kernelSize - stride)) * inChannelAlign);
+      AscendC::Max(
+          xBatchLt1, xBatchLt1, xBatchLt3,
+          (widthTail * stride + (kernelSize - stride)) * inChannelAlign);
 
       for (uint32_t idx2 = 0; idx2 < widthTail; idx2++) {
         AscendC::Max(xBatchLt4[idx2 * inChannelAlign],
@@ -182,7 +180,7 @@ private:
     }
   }
 
-private:
+ private:
   AscendC::TPipe *pipe;
 
   uint32_t batchSize;
@@ -231,8 +229,9 @@ private:
   nndeploy::op::MaxPool2dTilingData tiling_data;
 };
 
-extern "C" __global__ __aicore__ void
-max_pool2d(GM_ADDR x_trans, GM_ADDR y_trans, GM_ADDR tiling) {
+extern "C" __global__ __aicore__ void max_pool2d(GM_ADDR x_trans,
+                                                 GM_ADDR y_trans,
+                                                 GM_ADDR tiling) {
   AscendC::TPipe pipe;
   KernelMaxPool2d<half, half> op;
   op.Init(x_trans, y_trans, tiling, &pipe);

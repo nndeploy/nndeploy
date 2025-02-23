@@ -78,12 +78,16 @@ class AscendCLOpMul : public OpBinary {
   }
   virtual base::Status deinit() {
     if (inputs_0_ != nullptr) {
-      delete inputs_0_;
-      inputs_0_ = nullptr;
+      if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
+        delete inputs_0_;
+        inputs_0_ = nullptr;
+      }
     }
     if (inputs_1_ != nullptr) {
-      delete inputs_1_;
-      inputs_1_ = nullptr;
+      if (device::isHostDeviceType(inputs_[1]->getDeviceType())) {
+        delete inputs_1_;
+        inputs_1_ = nullptr;
+      }
     }
     if (tiling_device != nullptr) {
       aclrtFree(tiling_device);

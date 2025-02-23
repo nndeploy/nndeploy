@@ -31,6 +31,8 @@ class AscendCLOpMaxPool : public OpMaxPool {
     inner_stream_ =
         (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
+    // executor_ = CREATE_EXECUTOR();
+
     // Handle input tensor - copy to device if input is from host
     if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
       inner_input_ = new device::Tensor(device, inputs_[0]->getDesc(),
@@ -43,9 +45,9 @@ class AscendCLOpMaxPool : public OpMaxPool {
     // Calculate tiling data parameters for maxpool operation
     base::IntVector input_shape = inner_input_->getShape();
     tiling_data_.batchSize = input_shape[0];  // N - batch size
-    tiling_data_.inHeight = input_shape[1];   // H - input height
-    tiling_data_.inWidth = input_shape[2];    // W - input width
-    tiling_data_.channel = input_shape[3];    // C - number of channels
+    tiling_data_.inHeight = input_shape[2];   // H - input height
+    tiling_data_.inWidth = input_shape[3];    // W - input width
+    tiling_data_.channel = input_shape[1];    // C - number of channels
     tiling_data_.stride = param->strides_[0];
     tiling_data_.kernelSize = param->kernel_shape_[0];
 
@@ -98,8 +100,10 @@ class AscendCLOpMaxPool : public OpMaxPool {
 
   virtual base::Status deinit() {
     if (inner_input_ != nullptr) {
-      delete inner_input_;
-      inner_input_ = nullptr;
+      if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
+        delete inner_input_;
+        inner_input_ = nullptr;
+      }
     }
     return Op::deinit();
   }
@@ -143,6 +147,8 @@ class AscendCLOpMaxPool : public OpMaxPool {
 
   aclrtStream inner_stream_ = nullptr;
   device::Tensor *inner_input_ = nullptr;
+
+  aclOpExecutor *executor_ = nullptr;
 
   void *tiling_device_ = nullptr;
   MaxPool2dTilingData tiling_data_;
@@ -232,6 +238,9 @@ class AscendCLOpMaxPool : public OpMaxPool {
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
+    if (workspace_ == nullptr) {
+      workspace_ = device::getDevice(device_type_)->allocate(workspace_size_);
+    }
     aclnnStatus aclnn_status =
         aclnnMaxPool(workspace_, workspace_size_, executor_, inner_stream_);
     if (aclnn_status != ACL_SUCCESS) {

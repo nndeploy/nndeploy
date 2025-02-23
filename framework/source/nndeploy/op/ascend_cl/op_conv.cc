@@ -114,12 +114,16 @@ class AscendCLOpConv : public OpConv {
    */
   virtual base::Status deinit() {
     if (inner_fm_input_ != nullptr) {
-      delete inner_fm_input_;
-      inner_fm_input_ = nullptr;
+      if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
+        delete inner_fm_input_;
+        inner_fm_input_ = nullptr;
+      }
     }
     if (inner_we_input_ != nullptr) {
-      delete inner_we_input_;
-      inner_we_input_ = nullptr;
+      if (device::isHostDeviceType(inputs_[1]->getDeviceType())) {
+        delete inner_we_input_;
+        inner_we_input_ = nullptr;
+      }
     }
     return Op::deinit();
   }
