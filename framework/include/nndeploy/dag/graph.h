@@ -64,7 +64,9 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @return EdgeWrapper*
    */
   EdgeWrapper *addEdge(Edge *edge, bool is_external = true);
-  EdgeWrapper *addEdge(std::shared_ptr<Edge> edge);
+  EdgeWrapper *addEdgeSharedPtr(std::shared_ptr<Edge> edge);
+
+  base::Status removeEdge(Edge *edge);
 
   /**
    * @brief 获取Graph中的Edge
@@ -72,6 +74,7 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @return Edge*
    */
   Edge *getEdge(const std::string &name);
+  std::shared_ptr<Edge> getEdgeSharedPtr(const std::string &name);
 
   /**
    * @brief 在Graph中创建一个Node，并关联input、output的Edge
@@ -408,6 +411,10 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   void setGraphNodeShareStream(bool flag);
   bool getGraphNodeShareStream();
+
+  std::vector<std::shared_ptr<Edge>> updateNodeIO(
+      Node *node, std::vector<std::shared_ptr<Edge>> inputs,
+      std::vector<std::string> outputs_name);
 
   virtual base::Status init();
   virtual base::Status deinit();

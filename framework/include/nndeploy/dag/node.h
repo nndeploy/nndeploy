@@ -11,6 +11,7 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/time_profiler.h"
+#include "nndeploy/dag/base.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
@@ -108,6 +109,12 @@ class NNDEPLOY_CC_API Node {
   base::Status setInputs(std::vector<Edge *> inputs);
   base::Status setOutputs(std::vector<Edge *> outputs);
 
+  base::Status setInputSharedPtr(std::shared_ptr<Edge> input);
+  base::Status setOutputSharedPtr(std::shared_ptr<Edge> output);
+
+  base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs);
+  base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs);
+
   Edge *getInput(int index = 0);
   Edge *getOutput(int index = 0);
 
@@ -146,14 +153,49 @@ class NNDEPLOY_CC_API Node {
 
   virtual base::Status run() = 0;
 
+  /**
+   * @brief 节点调用接口
+   * @details 节点调用接口，用于节点之间的调用
+   * @param inputs 输入的边
+   * @param outputs_name 输出的边名
+   * @param param 参数
+   * @return 返回的边
+   * @note
+   * # 不在graph中
+   * ## init在函数内部调用吗
+   * ### 需要
+   * ### 不需要
+   * # 在graph中
+   * ## 静态图
+   * ## 半静态版动态
+   * ## 动态图
+   * ### 在graph中建立edge与node的关联
+   * ### 第一次执行
+   * ### 第二次~第n次执行
+   * ### 输入edge是否更行
+   */
   virtual std::vector<std::shared_ptr<Edge>> operator()(
-      std::vector<Edge *> inputs,
+      std::vector<std::shared_ptr<Edge>> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
-  virtual std::vector<std::shared_ptr<Edge>> operator()(
-      std::initializer_list<Edge *> inputs,
-      std::initializer_list<std::string> outputs_name = {});
+  virtual std::vector<std::shared_ptr<Edge>> functorWithoutGraph(
+      std::vector<std::shared_ptr<Edge>> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr);
+
+  virtual std::vector<std::shared_ptr<Edge>> functorWithGraph(
+      std::vector<std::shared_ptr<Edge>> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr);
+
+  virtual std::vector<std::shared_ptr<Edge>> functorDynamic(
+      std::vector<std::shared_ptr<Edge>> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr);
+
+  bool checkInputs(std::vector<std::shared_ptr<Edge>> &inputs);
+  bool checkOutputs(std::vector<std::string> &outputs_name);
 
  protected:
   std::string name_;
@@ -173,6 +215,7 @@ class NNDEPLOY_CC_API Node {
 
   Graph *graph_ = nullptr;
 
+ protected:
   bool constructed_ = false;
   // 是否是图中内部节点
   bool is_inner_ = false;
@@ -181,6 +224,7 @@ class NNDEPLOY_CC_API Node {
   bool is_running_ = false;
   bool is_time_profile_ = false;
   bool is_debug_ = false;
+  bool is_compiled_ = false;
 };
 
 /**

@@ -6,35 +6,6 @@
 namespace nndeploy {
 namespace dag {
 
-// Buffer类型特化
-template <>
-void EdgeTypeInfo::setType<device::Buffer>(device::Buffer* t) {
-  type_ = TypeFlag::kBuffer;
-  type_info_ = getTypeName<device::Buffer>();
-  type_ptr_ = &typeid(device::Buffer);
-  type_holder_ = std::make_shared<TypeHolder<device::Buffer>>();
-}
-
-#ifdef ENABLE_NNDEPLOY_OPENCV
-// cv::Mat类型特化
-template <>
-void EdgeTypeInfo::setType<cv::Mat>(cv::Mat* t) {
-  type_ = TypeFlag::kCvMat;
-  type_info_ = getTypeName<cv::Mat>();
-  type_ptr_ = &typeid(cv::Mat);
-  type_holder_ = std::make_shared<TypeHolder<cv::Mat>>();
-}
-#endif
-
-// Tensor类型特化
-template <>
-void EdgeTypeInfo::setType<device::Tensor>(device::Tensor* t) {
-  type_ = TypeFlag::kTensor;
-  type_info_ = getTypeName<device::Tensor>();
-  type_ptr_ = &typeid(device::Tensor);
-  type_holder_ = std::make_shared<TypeHolder<device::Tensor>>();
-}
-
 Edge::Edge() : name_(""), abstact_edge_(nullptr) {}
 Edge::Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
 Edge::~Edge() { delete abstact_edge_; }
@@ -47,7 +18,7 @@ base::Status Edge::set(device::Buffer *buffer, int index, bool is_external) {
   return abstact_edge_->set(buffer, index, is_external);
 }
 base::Status Edge::set(device::Buffer &buffer, int index) {
-  return abstact_edge_->set(buffer, index);
+  return this->set(&buffer, index, true);
 }
 device::Buffer *Edge::create(device::Device *device,
                              const device::BufferDesc &desc, int index) {
@@ -68,7 +39,7 @@ base::Status Edge::set(cv::Mat *cv_mat, int index, bool is_external) {
   return abstact_edge_->set(cv_mat, index, is_external);
 }
 base::Status Edge::set(cv::Mat &cv_mat, int index) {
-  return abstact_edge_->set(cv_mat, index);
+  return this->set(&cv_mat, index, true);
 }
 cv::Mat *Edge::create(int rows, int cols, int type, const cv::Vec3b &value,
                       int index) {
@@ -89,7 +60,7 @@ base::Status Edge::set(device::Tensor *tensor, int index, bool is_external) {
   return abstact_edge_->set(tensor, index, is_external);
 }
 base::Status Edge::set(device::Tensor &tensor, int index) {
-  return abstact_edge_->set(tensor, index);
+  return this->set(&tensor, index, true);
 }
 device::Tensor *Edge::create(device::Device *device,
                              const device::TensorDesc &desc, int index) {
@@ -109,7 +80,7 @@ base::Status Edge::set(base::Param *param, int index, bool is_external) {
   return abstact_edge_->set(param, index, is_external);
 }
 base::Status Edge::set(base::Param &param, int index) {
-  return abstact_edge_->set(param, index);
+  return this->set(&param, index, true);
 }
 bool Edge::notifyWritten(base::Param *param) {
   return abstact_edge_->notifyWritten(param);

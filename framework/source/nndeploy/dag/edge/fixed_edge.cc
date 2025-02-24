@@ -21,9 +21,6 @@ base::Status FixedEdge::set(device::Buffer *buffer, int index,
                             bool is_external) {
   return data_packet_->set(buffer, index, is_external);
 }
-base::Status FixedEdge::set(device::Buffer &buffer, int index) {
-  return data_packet_->set(buffer, index);
-}
 device::Buffer *FixedEdge::create(device::Device *device,
                                   const device::BufferDesc &desc, int index) {
   return data_packet_->create(device, desc, index);
@@ -42,9 +39,6 @@ device::Buffer *FixedEdge::getGraphOutputBuffer() {
 base::Status FixedEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
   return data_packet_->set(cv_mat, index, is_external);
 }
-base::Status FixedEdge::set(cv::Mat &cv_mat, int index) {
-  return data_packet_->set(cv_mat, index);
-}
 cv::Mat *FixedEdge::create(int rows, int cols, int type, const cv::Vec3b& value,
                            int index) {
   return data_packet_->create(rows, cols, type, value, index);
@@ -61,9 +55,6 @@ cv::Mat *FixedEdge::getGraphOutputCvMat() { return data_packet_->getCvMat(); }
 base::Status FixedEdge::set(device::Tensor *tensor, int index,
                             bool is_external) {
   return data_packet_->set(tensor, index, is_external);
-}
-base::Status FixedEdge::set(device::Tensor &tensor, int index) {
-  return data_packet_->set(tensor, index);
 }
 device::Tensor *FixedEdge::create(device::Device *device,
                                   const device::TensorDesc &desc, int index,
@@ -97,9 +88,6 @@ DataPacket *FixedEdge::getGraphOutputDataPacket() {
 
 base::Status FixedEdge::set(base::Param *param, int index, bool is_external) {
   return data_packet_->set(param, index, is_external);
-}
-base::Status FixedEdge::set(base::Param &param, int index) {
-  return data_packet_->set(param, index);
 }
 bool FixedEdge::notifyWritten(base::Param *param) {
   return data_packet_->notifyWritten(param);

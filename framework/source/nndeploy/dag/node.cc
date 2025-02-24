@@ -1,4 +1,3 @@
-
 #include "nndeploy/dag/node.h"
 
 #include "nndeploy/dag/graph.h"
@@ -55,6 +54,9 @@ Node::Node(const std::string &name, std::vector<Edge *> inputs,
 }
 
 Node::~Node() {
+  if (initialized_ == true) {
+    this->deinit();
+  }
   external_param_.clear();
   inputs_.clear();
   outputs_.clear();
@@ -134,6 +136,39 @@ base::Status Node::setOutputs(std::vector<Edge *> outputs) {
     return base::kStatusCodeErrorInvalidParam;
   }
   outputs_ = outputs;
+  return base::kStatusCodeOk;
+}
+
+base::Status Node::setInputSharedPtr(std::shared_ptr<Edge> input) {
+  if (input == nullptr) {
+    NNDEPLOY_LOGE("input is nullptr.\n");
+    return base::kStatusCodeErrorNullParam;
+  }
+  inputs_.emplace_back(input.get());
+  return base::kStatusCodeOk;
+}
+base::Status Node::setOutputSharedPtr(std::shared_ptr<Edge> output) {
+  if (output == nullptr) {
+    NNDEPLOY_LOGE("output is nullptr.\n");
+    return base::kStatusCodeErrorNullParam;
+  }
+  outputs_.emplace_back(output.get());
+  return base::kStatusCodeOk;
+}
+base::Status Node::setInputsSharedPtr(
+    std::vector<std::shared_ptr<Edge>> inputs) {
+  inputs_.clear();
+  for (auto input : inputs) {
+    inputs_.emplace_back(input.get());
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::setOutputsSharedPtr(
+    std::vector<std::shared_ptr<Edge>> outputs) {
+  outputs_.clear();
+  for (auto output : outputs) {
+    outputs_.emplace_back(output.get());
+  }
   return base::kStatusCodeOk;
 }
 
@@ -239,145 +274,159 @@ base::EdgeUpdateFlag Node::updataInput() {
   return flag;
 }
 
-// 动态图 > 静态图，还有很大的优化空间
 std::vector<std::shared_ptr<Edge>> Node::operator()(
-    std::vector<Edge *> inputs, std::vector<std::string> outputs_name,
-    std::shared_ptr<base::Param> param) {
-  // param
-  if (param != nullptr) {
+    std::vector<std::shared_ptr<Edge>> inputs,
+    std::vector<std::string> outputs_name, std::shared_ptr<base::Param> param) {
+  if (graph_ == nullptr) {
+    return functorWithoutGraph(inputs, outputs_name, param);
+  } else {
+    return functorWithGraph(inputs, outputs_name, param);
+  }
+}
+
+std::vector<std::shared_ptr<Edge>> Node::functorWithoutGraph(
+    std::vector<std::shared_ptr<Edge>> inputs,
+    std::vector<std::string> outputs_name, std::shared_ptr<base::Param> param) {
+  // check
+  if (!checkInputs(inputs)) {
+    return std::vector<std::shared_ptr<Edge>>();
+  }
+  if (!checkOutputs(outputs_name)) {
+    return std::vector<std::shared_ptr<Edge>>();
+  }
+  if (initialized_ == false) {
+    this->init();
+    this->setInitializedFlag(true);
+  }
+  if (param_ == nullptr) {
     this->setParamSharedPtr(param);
   }
-  // check
+  if (!inputs.empty()) {
+    this->setInputsSharedPtr(inputs);
+  }
   std::vector<std::shared_ptr<Edge>> outputs;
-  if (input_type_info_.size() != inputs.size()) {
-    NNDEPLOY_LOGE("inputs.size() != input_type_info_.size()\n");
-    return outputs;
-  }
-  if (output_type_info_.size() != outputs_name.size()) {
-    NNDEPLOY_LOGE("outputs_name.size() != outputs_name.size()\n");
-    return outputs;
-  }
-  // graph is empty
-  if (graph_ == nullptr) {
-    // input
-    this->setInputs(inputs);
-    // output
-    if (outputs_name.empty()) {
-      for (auto output_type_info : output_type_info_) {
-        outputs.push_back(std::make_shared<Edge>(output_type_info.type_info_));
-      }
-    } else {
-      for (size_t i = 0; i < outputs_name.size(); i++) {
-        outputs.push_back(std::make_shared<Edge>(outputs_name[i]));
-      }
+  if (!outputs_name.empty()) {
+    for (size_t i = 0; i < outputs_name.size(); i++) {
+      outputs.push_back(std::make_shared<Edge>(outputs_name[i]));
     }
-    std::vector<Edge *> outputs_vector;
-    for (auto output : outputs) {
-      outputs_vector.push_back(output.get());
+  } else if (!outputs_.empty()) {
+    for (auto output : outputs_) {
+      outputs.push_back(std::make_shared<Edge>(output->getName()));
     }
-    this->setOutputs(outputs_vector);
   } else {
-    // inputs
-    for (auto input : inputs) {
-      graph_->addEdge(input);
+    for (size_t i = 0; i < output_type_info_.size(); i++) {
+      std::string output_name = name_ + "_" + std::to_string(i);
+      outputs.push_back(std::make_shared<Edge>(output_name));
     }
-    this->setInputs(inputs);
   }
-  // // Node inputs_ is empty
-  // if (inputs_.empty()) {
-  //   if (graph_ != nullptr) {
-  //   }
-  //   inputs_ = inputs;
-  // } else {  // Node inputs_ not empty
-  //   // Check if inputs and inputs_ are consistent
-  //   bool same_input = true;
-  //   if (inputs.size() != inputs_.size()) {
-  //     same_input = false;
-  //   }
-  //   if (same_input) {  // not support disorder
-  //     for (size_t i = 0; i < inputs.size(); i++) {
-  //       if (inputs[i] != inputs_[i]) {
-  //         same_input = false;
-  //         break;
-  //       }
-  //     }
-  //   }
-  //   if (!same_input) {
-  //     if (graph_ != nullptr) {
-  //       for (auto input : inputs_) {
-  //         graph_->removeEdge(input);
-  //       }
-  //       for (auto input : inputs) {
-  //         graph_->addEdge(input);
-  //       }
-  //     }
-  //     inputs_ = inputs;
-  //   }
-  // }
-  // // outputs_ is empty
-  // if (outputs_.empty()) {
-  //   std::vector<dag::Edge *> outputs;
-  //   if (graph_ != nullptr) {
-  //     for (auto output_name : outputs_name) {
-  //       dag::Edge *edge =
-  //           graph_->createEdge(output_name) outputs.push_back(edge);
-  //     }
-  //   } else {
-  //     for (auto output_name : outputs_name) {
-  //       outputs.push_back(new Edge(output_name));
-  //     }
-  //   }
-  //   outputs_ = outputs;
-  // } else {
-  //   // Check if outputs_name and outputs_ are consistent
-  //   bool same_output = true;
-  //   if (outputs_name.size() != outputs_.size()) {
-  //     same_output = false;
-  //   }
-  //   if (same_output) {  // not support disorder
-  //     for (size_t i = 0; i < outputs_name.size(); i++) {
-  //       if (outputs_name[i] != outputs_[i]->getName()) {
-  //         same_output = false;
-  //         break;
-  //       }
-  //     }
-  //   }
-  //   if (!same_output) {
-  //     if (graph_ != nullptr) {
-  //       for (auto output : outputs_) {
-  //         graph_->removeEdge(output);
-  //       }
-  //       std::vector<dag::Edge *> outputs;
-  //       for (auto output_name : outputs_name) {
-  //         outputs.push_back(graph_->createEdge(output_name));
-  //       }
-  //       outputs_ = outputs;
-  //     } else {
-  //       // for (auto output : outputs_) {
-  //       //   delete output;
-  //       // }
-  //       outputs_.clear();
-  //       std::vector<dag::Edge *> outputs;
-  //       for (auto output_name : outputs_name) {
-  //         outputs.push_back(new Edge(output_name));
-  //       }
-  //       outputs_ = outputs;
-  //     }
-  //   }
-  // }
+  if (!outputs.empty()) {
+    this->setOutputsSharedPtr(outputs);
+  }
   base::Status status = this->run();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("Node %s run failed.\n", name_.c_str());
+    return std::vector<std::shared_ptr<Edge>>();
+  }
+  // if (initialized_ == false) {
+  //   this->deinit();
+  // }
   return outputs;
 }
 
-// 动态图 > 静态图，还有很大的优化空间
-std::vector<std::shared_ptr<Edge>> Node::operator()(
-    std::initializer_list<Edge *> inputs,
-    std::initializer_list<std::string> outputs_name) {
-  std::vector<std::string> outputs;
-  for (auto output_name : outputs_name) {
-    outputs.push_back(output_name);
+std::vector<std::shared_ptr<Edge>> Node::functorWithGraph(
+    std::vector<std::shared_ptr<Edge>> inputs,
+    std::vector<std::string> outputs_name, std::shared_ptr<base::Param> param) {
+  // check
+  if (inputs_.empty()) {
+    return functorDynamic(inputs, outputs_name, param);
+  } else {
+    if (is_compiled_) {
+      std::vector<std::shared_ptr<Edge>> outputs;
+      std::vector<std::string> real_outputs_name;
+      if (!outputs_name.empty()) {
+        real_outputs_name = outputs_name;
+      } else {
+        for (auto output : outputs_) {
+          real_outputs_name.push_back(output->getName());
+        }
+      }
+      for (auto name : real_outputs_name) {
+        std::shared_ptr<Edge> output = graph_->getEdgeSharedPtr(name);
+        outputs.push_back(output);
+      }
+      return outputs;
+    } else {
+      return functorDynamic(inputs, outputs_name, param);
+    }
   }
-  return this->operator()(inputs, outputs);
+}
+
+std::vector<std::shared_ptr<Edge>> Node::functorDynamic(
+    std::vector<std::shared_ptr<Edge>> inputs,
+    std::vector<std::string> outputs_name, std::shared_ptr<base::Param> param) {
+  std::vector<std::string> real_outputs_name;
+  if (!outputs_name.empty()) {
+    for (size_t i = 0; i < outputs_name.size(); i++) {
+      real_outputs_name.push_back(outputs_name[i]);
+    }
+  } else if (!outputs_.empty()) {
+    for (auto output : outputs_) {
+      real_outputs_name.push_back(output->getName());
+    }
+  } else {
+    for (size_t i = 0; i < output_type_info_.size(); i++) {
+      real_outputs_name.push_back(name_ + "_" + std::to_string(i));
+    }
+  }
+  std::vector<std::shared_ptr<Edge>> outputs =
+      graph_->updateNodeIO(this, inputs, real_outputs_name);
+  if (!outputs.empty()) {
+    this->setOutputsSharedPtr(outputs);
+  }
+  if (param_ == nullptr) {
+    this->setParamSharedPtr(param);
+  }
+  if (!inputs.empty()) {
+    this->setInputsSharedPtr(inputs);
+  }
+  if (initialized_ == false) {
+    this->init();
+    this->setInitializedFlag(true);
+  }
+  base::Status status = this->run();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("Node %s run failed.\n", name_.c_str());
+    return std::vector<std::shared_ptr<Edge>>();
+  }
+  // if (initialized_ == false) {
+  //   this->deinit();
+  // }
+  return outputs;
+}
+
+bool Node::checkInputs(std::vector<std::shared_ptr<Edge>> &inputs) {
+#if 0
+  if (inputs.size() != input_type_info_.size()) {
+    NNDEPLOY_LOGE("inputs.size() != input_type_info_.size()\n");
+    return false;
+  }
+#endif
+  // for (size_t i = 0; i < inputs.size(); i++) {
+  //   if (inputs[i]->getTypeInfo() != input_type_info_[i].type_info_) {
+  //     NNDEPLOY_LOGE("inputs[%zu].getTypeInfo() !=
+  //     input_type_info_[%zu].type_info_\n", i, i); return false;
+  //   }
+  // }
+  return true;
+}
+bool Node::checkOutputs(std::vector<std::string> &outputs_name) {
+#if 0
+  if (outputs_name.size() != output_type_info_.size()) {
+    NNDEPLOY_LOGE("outputs_name.size() != output_type_info_.size()\n");
+    return false;
+  }
+#endif
+  return true;
 }
 
 Node *createNode(const std::string &node_key, const std::string &node_name) {

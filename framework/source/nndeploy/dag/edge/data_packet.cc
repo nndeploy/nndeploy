@@ -15,21 +15,11 @@ base::Status DataPacket::set(device::Buffer *buffer, int index,
   }
   is_external_ = is_external;
   index_ = index;
-  flag_ = kFlagBuffer;
+  flag_ = EdgeTypeFlag::kBuffer;
   written_ = true;
   anything_ = (void *)buffer;
-  return status;
-}
-base::Status DataPacket::set(device::Buffer &buffer, int index) {
-  base::Status status = base::kStatusCodeOk;
-  if (&buffer != anything_) {
-    destory();
-  }
-  is_external_ = true;
-  index_ = index;
-  flag_ = kFlagBuffer;
-  written_ = true;
-  anything_ = (void *)(&buffer);
+  deleter_ = [](void *d) { delete static_cast<device::Buffer *>(d); };
+  type_info_ = const_cast<std::type_info *>(&typeid(device::Buffer));
   return status;
 }
 device::Buffer *DataPacket::create(device::Device *device,
@@ -40,7 +30,7 @@ device::Buffer *DataPacket::create(device::Device *device,
     void *data = device->allocate(desc);
     buffer = new device::Buffer(device, desc, data);
   } else {
-    if (flag_ != kFlagBuffer) {
+    if (flag_ != EdgeTypeFlag::kBuffer) {
       destory();
       void *data = device->allocate(desc);
       buffer = new device::Buffer(device, desc, data);
@@ -55,9 +45,11 @@ device::Buffer *DataPacket::create(device::Device *device,
   }
   is_external_ = false;
   index_ = index;
-  flag_ = kFlagBuffer;
+  flag_ = EdgeTypeFlag::kBuffer;
   written_ = false;
   anything_ = (void *)(buffer);
+  deleter_ = [](void *d) { delete static_cast<device::Buffer *>(d); };
+  type_info_ = const_cast<std::type_info *>(&typeid(device::Buffer));
   return buffer;
 }
 bool DataPacket::notifyWritten(device::Buffer *buffer) {
@@ -69,7 +61,7 @@ bool DataPacket::notifyWritten(device::Buffer *buffer) {
   }
 }
 device::Buffer *DataPacket::getBuffer() {
-  if (flag_ != kFlagBuffer) {
+  if (flag_ != EdgeTypeFlag::kBuffer) {
     return nullptr;
   } else {
     return (device::Buffer *)(anything_);
@@ -84,36 +76,27 @@ base::Status DataPacket::set(cv::Mat *cv_mat, int index, bool is_external) {
   }
   is_external_ = is_external;
   index_ = index;
-  flag_ = kFlagCvMat;
+  flag_ = EdgeTypeFlag::kCvMat;
   written_ = true;
   anything_ = (void *)cv_mat;
+  deleter_ = [](void *d) { delete static_cast<cv::Mat *>(d); };
+  type_info_ = const_cast<std::type_info *>(&typeid(cv::Mat));
   return status;
 }
-base::Status DataPacket::set(cv::Mat &cv_mat, int index) {
-  base::Status status = base::kStatusCodeOk;
-  if (&cv_mat != anything_) {
-    destory();
-  }
-  is_external_ = true;
-  index_ = index;
-  flag_ = kFlagCvMat;
-  written_ = true;
-  anything_ = (void *)(&cv_mat);
-  return status;
-}
-cv::Mat *DataPacket::create(int rows, int cols, int type, const cv::Vec3b& value,
-                            int index) {
+cv::Mat *DataPacket::create(int rows, int cols, int type,
+                            const cv::Vec3b &value, int index) {
   base::Status status = base::kStatusCodeOk;
   cv::Mat *cv_mat = nullptr;
   if (anything_ == nullptr) {
     cv_mat = new cv::Mat(rows, cols, type, value);
   } else {
-    if (flag_ != kFlagCvMat) {
+    if (flag_ != EdgeTypeFlag::kCvMat) {
       destory();
       cv_mat = new cv::Mat(rows, cols, type, value);
-    } else {  
+    } else {
       cv_mat = (cv::Mat *)(anything_);
-      if (cv_mat->rows != rows || cv_mat->cols != cols || cv_mat->type() != type) {
+      if (cv_mat->rows != rows || cv_mat->cols != cols ||
+          cv_mat->type() != type) {
         destory();
         cv_mat = new cv::Mat(rows, cols, type, value);
       }
@@ -121,9 +104,11 @@ cv::Mat *DataPacket::create(int rows, int cols, int type, const cv::Vec3b& value
   }
   is_external_ = false;
   index_ = index;
-  flag_ = kFlagCvMat;
+  flag_ = EdgeTypeFlag::kCvMat;
   written_ = false;
   anything_ = (void *)(cv_mat);
+  deleter_ = [](void *d) { delete static_cast<cv::Mat *>(d); };
+  type_info_ = const_cast<std::type_info *>(&typeid(cv::Mat));
   return cv_mat;
 }
 bool DataPacket::notifyWritten(cv::Mat *cv_mat) {
@@ -135,7 +120,7 @@ bool DataPacket::notifyWritten(cv::Mat *cv_mat) {
   }
 }
 cv::Mat *DataPacket::getCvMat() {
-  if (flag_ != kFlagCvMat) {
+  if (flag_ != EdgeTypeFlag::kCvMat) {
     return nullptr;
   } else {
     return (cv::Mat *)(anything_);
@@ -151,21 +136,11 @@ base::Status DataPacket::set(device::Tensor *tensor, int index,
   }
   is_external_ = is_external;
   index_ = index;
-  flag_ = kFlagTensor;
+  flag_ = EdgeTypeFlag::kTensor;
   written_ = true;
   anything_ = (void *)tensor;
-  return status;
-}
-base::Status DataPacket::set(device::Tensor &tensor, int index) {
-  base::Status status = base::kStatusCodeOk;
-  if (&tensor != anything_) {
-    destory();
-  }
-  is_external_ = true;
-  index_ = index;
-  flag_ = kFlagTensor;
-  written_ = true;
-  anything_ = (void *)(&tensor);
+  deleter_ = [](void *d) { delete static_cast<device::Tensor *>(d); };
+  type_info_ = const_cast<std::type_info *>(&typeid(device::Tensor));
   return status;
 }
 device::Tensor *DataPacket::create(device::Device *device,
@@ -176,7 +151,7 @@ device::Tensor *DataPacket::create(device::Device *device,
   if (anything_ == nullptr) {
     tensor = new device::Tensor(device, desc, name);
   } else {
-    if (flag_ != kFlagTensor) {
+    if (flag_ != EdgeTypeFlag::kTensor) {
       destory();
       tensor = new device::Tensor(device, desc, name);
     } else {
@@ -189,9 +164,11 @@ device::Tensor *DataPacket::create(device::Device *device,
   }
   is_external_ = false;
   index_ = index;
-  flag_ = kFlagTensor;
+  flag_ = EdgeTypeFlag::kTensor;
   written_ = false;
   anything_ = (void *)(tensor);
+  deleter_ = [](void *d) { delete static_cast<device::Tensor *>(d); };
+  type_info_ = const_cast<std::type_info *>(&typeid(device::Tensor));
   return tensor;
 }
 bool DataPacket::notifyWritten(device::Tensor *tensor) {
@@ -203,7 +180,7 @@ bool DataPacket::notifyWritten(device::Tensor *tensor) {
   }
 }
 device::Tensor *DataPacket::getTensor() {
-  if (flag_ != kFlagTensor) {
+  if (flag_ != EdgeTypeFlag::kTensor) {
     return nullptr;
   } else {
     return (device::Tensor *)(anything_);
@@ -217,25 +194,15 @@ base::Status DataPacket::set(base::Param *param, int index, bool is_external) {
   }
   is_external_ = is_external;
   index_ = index;
-  flag_ = kFlagParam;
+  flag_ = EdgeTypeFlag::kParam;
   written_ = true;
   anything_ = (void *)param;
-  return status;
-}
-base::Status DataPacket::set(base::Param &param, int index) {
-  base::Status status = base::kStatusCodeOk;
-  if (&param != anything_) {
-    destory();
-  }
-  is_external_ = true;
-  index_ = index;
-  flag_ = kFlagParam;
-  written_ = true;
-  anything_ = (void *)(&param);
+  deleter_ = [](void *d) { delete static_cast<base::Param *>(d); };
+  type_info_ = const_cast<std::type_info *>(&typeid(base::Param));
   return status;
 }
 base::Param *DataPacket::getParam() {
-  if (flag_ != kFlagParam) {
+  if (flag_ != EdgeTypeFlag::kParam) {
     return nullptr;
   } else {
     return (base::Param *)(anything_);
@@ -268,7 +235,7 @@ base::Status DataPacket::takeDataPacket(DataPacket *packet) {
 
   packet->is_external_ = true;
   packet->index_ = -1;
-  packet->flag_ = kFlagNone;
+  packet->flag_ = EdgeTypeFlag::kNone;
   packet->written_ = false;
   packet->anything_ = nullptr;
   packet->type_info_ = nullptr;
@@ -283,30 +250,34 @@ int DataPacket::getIndex() { return index_; }
 
 void DataPacket::destory() {
   if (!is_external_ && anything_ != nullptr) {
-    if (flag_ == kFlagBuffer) {
+#if 1
+    if (flag_ == EdgeTypeFlag::kBuffer) {
       device::Buffer *tmp = (device::Buffer *)(anything_);
       delete tmp;
     }
 #ifdef ENABLE_NNDEPLOY_OPENCV
-    else if (flag_ == kFlagCvMat) {
+    else if (flag_ == EdgeTypeFlag::kCvMat) {
       cv::Mat *tmp = (cv::Mat *)(anything_);
       delete tmp;
     }
 #endif
-    else if (flag_ == kFlagTensor) {
+    else if (flag_ == EdgeTypeFlag::kTensor) {
       device::Tensor *tmp = (device::Tensor *)(anything_);
       delete tmp;
-    } else if (flag_ == kFlagParam) {
+    } else if (flag_ == EdgeTypeFlag::kParam) {
       base::Param *tmp = (base::Param *)(anything_);
       delete tmp;
-    } else if (flag_ == kFlagVoid) {
+    } else if (flag_ == EdgeTypeFlag::kAny) {
       deleter_(anything_);
     }
+#else
+    deleter_(anything_);
+#endif
   }
 
   is_external_ = true;
   index_ = -1;
-  flag_ = kFlagNone;
+  flag_ = EdgeTypeFlag::kNone;
   written_ = false;
   anything_ = nullptr;
   type_info_ = nullptr;
@@ -325,14 +296,6 @@ base::Status PipelineDataPacket::set(device::Buffer *buffer, int index,
                                      bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(buffer, index, is_external);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "DataPacket::set failed!\n");
-  cv_.notify_all();
-  return status;
-}
-base::Status PipelineDataPacket::set(device::Buffer &buffer, int index) {
-  std::unique_lock<std::mutex> lock(mutex_);
-  base::Status status = DataPacket::set(buffer, index);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
   cv_.notify_all();
@@ -363,14 +326,6 @@ base::Status PipelineDataPacket::set(cv::Mat *cv_mat, int index,
   cv_.notify_all();
   return status;
 }
-base::Status PipelineDataPacket::set(cv::Mat &cv_mat, int index) {
-  std::unique_lock<std::mutex> lock(mutex_);
-  base::Status status = DataPacket::set(cv_mat, index);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "DataPacket::set failed!\n");
-  cv_.notify_all();
-  return status;
-}
 bool PipelineDataPacket::notifyWritten(cv::Mat *cv_mat) {
   std::unique_lock<std::mutex> lock(mutex_);
   bool status = DataPacket::notifyWritten(cv_mat);
@@ -396,14 +351,6 @@ base::Status PipelineDataPacket::set(device::Tensor *tensor, int index,
   cv_.notify_all();
   return status;
 }
-base::Status PipelineDataPacket::set(device::Tensor &tensor, int index) {
-  std::unique_lock<std::mutex> lock(mutex_);
-  base::Status status = DataPacket::set(tensor, index);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "DataPacket::set failed!\n");
-  cv_.notify_all();
-  return status;
-}
 bool PipelineDataPacket::notifyWritten(device::Tensor *tensor) {
   std::unique_lock<std::mutex> lock(mutex_);
   bool status = DataPacket::notifyWritten(tensor);
@@ -422,14 +369,6 @@ base::Status PipelineDataPacket::set(base::Param *param, int index,
                                      bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
   base::Status status = DataPacket::set(param, index, is_external);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "DataPacket::set failed!\n");
-  cv_.notify_all();
-  return status;
-}
-base::Status PipelineDataPacket::set(base::Param &param, int index) {
-  std::unique_lock<std::mutex> lock(mutex_);
-  base::Status status = DataPacket::set(param, index);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
   cv_.notify_all();

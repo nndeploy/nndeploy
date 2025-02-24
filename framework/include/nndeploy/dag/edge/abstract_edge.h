@@ -29,7 +29,6 @@ class AbstractEdge : public base::NonCopyable {
 
   virtual base::Status set(device::Buffer *buffer, int index,
                            bool is_external) = 0;
-  virtual base::Status set(device::Buffer &buffer, int index) = 0;
   virtual device::Buffer *create(device::Device *device,
                                  const device::BufferDesc &desc, int index) = 0;
   virtual bool notifyWritten(device::Buffer *buffer) = 0;
@@ -38,9 +37,8 @@ class AbstractEdge : public base::NonCopyable {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external) = 0;
-  virtual base::Status set(cv::Mat &cv_mat, int index) = 0;
-  virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b& value,
-                           int index) = 0;
+  virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value,
+                          int index) = 0;
   virtual bool notifyWritten(cv::Mat *cv_mat) = 0;
   virtual cv::Mat *getCvMat(const Node *node) = 0;
   virtual cv::Mat *getGraphOutputCvMat() = 0;
@@ -48,7 +46,6 @@ class AbstractEdge : public base::NonCopyable {
 
   virtual base::Status set(device::Tensor *tensor, int index,
                            bool is_external) = 0;
-  virtual base::Status set(device::Tensor &tensor, int index) = 0;
   virtual device::Tensor *create(device::Device *device,
                                  const device::TensorDesc &desc, int index,
                                  const std::string &name) = 0;
@@ -62,15 +59,17 @@ class AbstractEdge : public base::NonCopyable {
   virtual DataPacket *getGraphOutputDataPacket() = 0;
 
   virtual base::Status set(base::Param *param, int index, bool is_external) = 0;
-  virtual base::Status set(base::Param &param, int index) = 0;
-  template <typename T, typename... Args, typename std::enable_if<std::is_base_of<base::Param, T>::value, int>::type = 0>
-  base::Param *create(int index, Args &&...args){
+  template <typename T, typename... Args,
+            typename std::enable_if<std::is_base_of<base::Param, T>::value,
+                                    int>::type = 0>
+  base::Param *create(int index, Args &&...args) {
     DataPacket *data_packet = new DataPacket();
     if (data_packet == nullptr) {
       NNDEPLOY_LOGE("Failed to create param.\n");
       return nullptr;
     }
-    base::Param *param = data_packet->create<T>(index, std::forward<Args>(args)...);
+    base::Param *param =
+        data_packet->create<T>(index, std::forward<Args>(args)...);
     if (param == nullptr) {
       NNDEPLOY_LOGE("Failed to create param.\n");
       return nullptr;
@@ -88,7 +87,7 @@ class AbstractEdge : public base::NonCopyable {
   virtual base::Param *getGraphOutputParam() = 0;
 
   template <typename T>
-  base::Status setAny(T *t, int index, bool is_external = true){
+  base::Status setAny(T *t, int index, bool is_external = true) {
     DataPacket *data_packet = new DataPacket();
     if (data_packet == nullptr) {
       NNDEPLOY_LOGE("Failed to create any.\n");
@@ -108,12 +107,8 @@ class AbstractEdge : public base::NonCopyable {
     }
     return base::kStatusCodeOk;
   }
-  template <typename T>
-  base::Status setAny(T &t, int index){
-    return this->setAny(&t, index);
-  }
   template <typename T, typename... Args>
-  T *createAny(int index, Args &&...args){
+  T *createAny(int index, Args &&...args) {
     DataPacket *data_packet = new DataPacket();
     if (data_packet == nullptr) {
       NNDEPLOY_LOGE("Failed to create any.\n");
@@ -133,11 +128,11 @@ class AbstractEdge : public base::NonCopyable {
     return t;
   }
   template <typename T>
-  bool notifyAnyWritten(T *t){
+  bool notifyAnyWritten(T *t) {
     return this->notifyAnyWritten((void *)t);
   }
   template <typename T>
-  T *getAny(const Node *node){
+  T *getAny(const Node *node) {
     DataPacket *data_packet = this->getDataPacket(node);
     if (data_packet == nullptr) {
       NNDEPLOY_LOGE("Failed to get data packet.\n");
@@ -151,7 +146,7 @@ class AbstractEdge : public base::NonCopyable {
     return t;
   }
   template <typename T>
-  T *getGraphOutputAny(){
+  T *getGraphOutputAny() {
     DataPacket *data_packet = this->getGraphOutputDataPacket();
     if (data_packet == nullptr) {
       NNDEPLOY_LOGE("Failed to get data packet.\n");
@@ -199,7 +194,7 @@ class AbstractEdge : public base::NonCopyable {
 
 class EdgeCreator {
  public:
-  virtual ~EdgeCreator(){};
+  virtual ~EdgeCreator() {};
   virtual AbstractEdge *createEdge(base::ParallelType paralle_type) = 0;
 };
 
@@ -210,8 +205,8 @@ class TypeEdgeCreator : public EdgeCreator {
   }
 };
 
-std::map<base::EdgeType, std::shared_ptr<EdgeCreator>>
-    &getGlobalEdgeCreatorMap();
+std::map<base::EdgeType, std::shared_ptr<EdgeCreator>> &
+getGlobalEdgeCreatorMap();
 
 template <typename T>
 class TypeEdgeRegister {

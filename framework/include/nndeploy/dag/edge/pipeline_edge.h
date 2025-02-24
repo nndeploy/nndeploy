@@ -36,7 +36,6 @@ class PipelineEdge : public AbstractEdge {
   virtual base::Status construct();
 
   virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
-  virtual base::Status set(device::Buffer &buffer, int index);
   virtual device::Buffer *create(device::Device *device,
                                  const device::BufferDesc &desc, int index);
   virtual bool notifyWritten(device::Buffer *buffer);
@@ -45,7 +44,6 @@ class PipelineEdge : public AbstractEdge {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
   virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
-  virtual base::Status set(cv::Mat &cv_mat, int index);
   virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b& value,
                            int index);
   virtual bool notifyWritten(cv::Mat *cv_mat);
@@ -54,7 +52,6 @@ class PipelineEdge : public AbstractEdge {
 #endif
 
   virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
-  virtual base::Status set(device::Tensor &tensor, int index);
   virtual device::Tensor *create(device::Device *device,
                                  const device::TensorDesc &desc, int index,
                                  const std::string &name);
@@ -68,7 +65,6 @@ class PipelineEdge : public AbstractEdge {
   virtual DataPacket *getGraphOutputDataPacket();
 
   virtual base::Status set(base::Param *param, int index, bool is_external);
-  virtual base::Status set(base::Param &param, int index);
   virtual bool notifyWritten(base::Param *param);
   virtual base::Param *getParam(const Node *node);
   virtual base::Param *getGraphOutputParam();

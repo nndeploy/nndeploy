@@ -15,120 +15,10 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/dag/base.h"
 
 namespace nndeploy {
 namespace dag {
-
-  
-/**
- * @brief 输入输出类型信息
- * @note 用于描述输入输出类型信息
- */
-class NNDEPLOY_CC_API EdgeTypeInfo {
- public:
-  enum class TypeFlag {
-    kBuffer = 0,
-    kCvMat = 1, 
-    kTensor = 2,
-    kParam = 3,
-    kAny = 4,
-  };
-
-  EdgeTypeInfo() : type_(TypeFlag::kBuffer), type_info_("") {}
-  ~EdgeTypeInfo() = default;
-
-  // 通用类型
-  template <typename T>
-  void setType(T* t = nullptr) {
-    typedef typename std::decay<T>::type DT;
-    if constexpr (std::is_base_of<base::Param, DT>::value) {
-      type_ = TypeFlag::kParam;
-    } else {
-      type_ = TypeFlag::kAny;
-    }
-    type_info_ = getTypeName<DT>();
-    type_ptr_ = &typeid(DT);
-    type_holder_ = std::make_shared<TypeHolder<DT>>();
-  }
-
-  // Buffer类型特化
-  void setType(device::Buffer* t = nullptr) ;
-
-#ifdef ENABLE_NNDEPLOY_OPENCV
-  // cv::Mat类型特化
-  void setType(cv::Mat* t = nullptr) ;
-#endif
-
-  // Tensor类型特化
-  void setType(device::Tensor* t = nullptr) ;
-
-  TypeFlag getType() const { return type_; }
-
-  std::string getTypeInfo() const { return type_info_; }
-
-  const std::type_info *getTypePtr() const { return type_ptr_; }
-
-  template <typename T>
-  bool isType() const {
-    return (type_ptr_ != nullptr) && (*type_ptr_ == typeid(T));
-  }
-
-  template <typename T, typename... Args>
-  T *createType(Args&&... args) {
-    if (!isType<T>()) {
-      NNDEPLOY_LOGE("Type mismatch in createType\n");
-      NNDEPLOY_LOGE(" stored=%s\n", type_ptr_->name());
-      NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-      return nullptr;
-    }
-    return new T(std::forward<Args>(args)...);
-  }
-
-  // 获取类型名称的辅助函数
-  template <typename T>
-  static std::string getTypeName() {
-    std::string name = typeid(T).name();
-    // 移除编译器相关的前缀和修饰
-    size_t pos = name.find_last_of("::");
-    if (pos != std::string::npos) {
-      name = name.substr(pos + 1);
-    }
-    return name;
-  }
-
-  template <typename T>
-  bool checkType() const {
-    if (type_ptr_ == nullptr) {
-      NNDEPLOY_LOGE("The type info is empty\n");
-      NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-      return false;
-    }
-    if (*type_ptr_ != typeid(T)) {
-      NNDEPLOY_LOGE("The stored type mismatch\n");
-      NNDEPLOY_LOGE(" stored=%s\n", type_ptr_->name());
-      NNDEPLOY_LOGE(" requested=%s\n", typeid(T).name());
-      return false;
-    }
-    return true;
-  }
-
- public:
-  // Type holder base class
-  struct TypeHolderBase {
-    virtual ~TypeHolderBase() = default;
-  };
-
-  // Type holder for specific type
-  template <typename T>
-  struct TypeHolder : TypeHolderBase {
-    using Type = T;
-  };
-
-  TypeFlag type_;
-  std::string type_info_;
-  const std::type_info *type_ptr_{nullptr};
-  std::shared_ptr<TypeHolderBase> type_holder_;
-};
 
 /**
  * @brief The names of Edge, Mat, and Tensor need to be consistent.
@@ -199,8 +89,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
     return abstact_edge_->setAny<T>(t, index, is_external);
   }
   template <typename T>
-  base::Status setAny(T &t, int index, bool is_external = true){
-    return abstact_edge_->setAny<T>(&t, index, is_external);
+  base::Status setAny(T &t, int index){
+    return this->setAny(&t, index, true);
   }
   template <typename T, typename... Args>
   T *createAny(int index, Args &&...args){

@@ -52,20 +52,6 @@ base::Status PipelineEdge::set(device::Buffer *buffer, int index,
 
   return status;
 }
-base::Status PipelineEdge::set(device::Buffer &buffer, int index) {
-  // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-
-  data_packets_.push_back(dp);
-  cv_.notify_all();
-  // set
-  base::Status status = dp->set(buffer, index);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "PipelineDataPacket set error.\n");
-  return status;
-}
 device::Buffer *PipelineEdge::create(device::Device *device,
                                      const device::BufferDesc &desc,
                                      int index) {
@@ -135,20 +121,6 @@ base::Status PipelineEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
                          "PipelineDataPacket set error.\n");
   return status;
 }
-base::Status PipelineEdge::set(cv::Mat &cv_mat, int index) {
-  // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-
-  data_packets_.push_back(dp);
-  cv_.notify_all();
-  // set
-  base::Status status = dp->set(cv_mat, index);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "PipelineDataPacket set error.\n");
-  return status;
-}
 cv::Mat *PipelineEdge::create(int rows, int cols, int type, const cv::Vec3b& value,
                               int index) {
   // 上锁
@@ -214,20 +186,6 @@ base::Status PipelineEdge::set(device::Tensor *tensor, int index,
   cv_.notify_all();
   // set
   base::Status status = dp->set(tensor, index, is_external);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "PipelineDataPacket set error.\n");
-  return status;
-}
-base::Status PipelineEdge::set(device::Tensor &tensor, int index) {
-  // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-
-  data_packets_.push_back(dp);
-  cv_.notify_all();
-  // set
-  base::Status status = dp->set(tensor, index);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
   return status;
@@ -348,20 +306,6 @@ base::Status PipelineEdge::set(base::Param *param, int index,
   cv_.notify_all();
   // set
   base::Status status = dp->set(param, index, is_external);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "PipelineDataPacket set error.\n");
-  return status;
-}
-base::Status PipelineEdge::set(base::Param &param, int index) {
-  // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
-  PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
-  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
-
-  data_packets_.push_back(dp);
-  cv_.notify_all();
-  // set
-  base::Status status = dp->set(param, index);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
   return status;
