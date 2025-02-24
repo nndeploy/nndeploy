@@ -1,7 +1,8 @@
 #include "nndeploy/op/op_conv.h"
 
 #include "aclnnop/aclnn_convolution.h"
-#include "nndeploy/op/ascend_cl/ascend_c/op_conv_kernel.h"
+#include "aclnnop/aclnn_permute.h"
+#include "ascend_c/op_conv_kernel.h"
 #include "nndeploy/op/ascend_cl/op_convert.h"
 #include "nndeploy/op/ascend_cl/op_include.h"
 #include "nndeploy/op/ascend_cl/op_util.h"
@@ -46,8 +47,10 @@ class AscendCLOpConv : public OpConv {
       inner_fm_input_ = new device::Tensor(device, inputs_[0]->getDesc(),
                                            inputs_[0]->getName());
       inputs_[0]->copyTo(inner_fm_input_);
+      inner_output_ = outputs_[0];
     } else {
       inner_fm_input_ = inputs_[0];
+      inner_output_ = outputs_[0];
     }
 
     if (device::isHostDeviceType(inputs_[1]->getDeviceType())) {
@@ -61,9 +64,9 @@ class AscendCLOpConv : public OpConv {
     base::IntVector input_shape = inner_fm_input_->getShape();
     base::IntVector weight_shape = inner_we_input_->getShape();
     tiling_data_.batchSize = input_shape[0];
-    tiling_data_.inHeight = input_shape[1];
-    tiling_data_.inWidth = input_shape[2];
-    tiling_data_.inChannel = input_shape[3];
+    tiling_data_.inChannel = input_shape[1];
+    tiling_data_.inHeight = input_shape[2];
+    tiling_data_.inWidth = input_shape[3];
     tiling_data_.outChannel = weight_shape[0];
     tiling_data_.stride = param->strides_[0];
     tiling_data_.kernelSize = param->kernel_shape_[0];
@@ -77,7 +80,7 @@ class AscendCLOpConv : public OpConv {
          param->dilations_[1] * (param->kernel_shape_[1] - 1) - 1) /
             param->strides_[1] +
         1;
-    tiling_data_.coreNum = tiling_data_.outHeight % 8;
+    tiling_data_.coreNum = 1;
 
     // support attr
     if (param->kernel_shape_.size() == 2) {
@@ -136,11 +139,70 @@ class AscendCLOpConv : public OpConv {
   virtual base::Status preRun() {
     size_t tiling_size = sizeof(Conv2dTilingData);
     Conv2dTilingData *buf = &tiling_data_;
-    aclrtMalloc((void **)&tiling_device_, tiling_size,
-                ACL_MEM_MALLOC_HUGE_FIRST);
-    aclrtMemcpyAsync(tiling_device_, tiling_size, (void *)buf, tiling_size,
-                     ACL_MEMCPY_HOST_TO_DEVICE, inner_stream_);
-    aclrtSynchronizeStream(inner_stream_);
+    CHECK_ACLNN_STATUS(aclrtMalloc((void **)&tiling_device_, tiling_size,
+                                   ACL_MEM_MALLOC_HUGE_FIRST));
+    CHECK_ACLNN_STATUS(
+        aclrtMemcpyAsync(tiling_device_, tiling_size, (void *)buf, tiling_size,
+                         ACL_MEMCPY_HOST_TO_DEVICE, inner_stream_));
+    CHECK_ACLNN_STATUS(aclrtSynchronizeStream(inner_stream_));
+
+    device::Device *device = device::getDevice(device_type_);
+    if (acl_inner_fm_input_ == nullptr) {
+      acl_inner_fm_input_ =
+          AscendCLOpConvert::convertFromTensor(inner_fm_input_, ACL_FORMAT_ND);
+    }
+
+    if (acl_inner_we_input_ == nullptr) {
+      acl_inner_we_input_ =
+          AscendCLOpConvert::convertFromTensor(inner_we_input_, ACL_FORMAT_ND);
+    }
+
+    if (acl_inner_buf_0_ == nullptr) {
+      std::vector<int64_t> shape = {tiling_data_.batchSize,
+                                    tiling_data_.inHeight, tiling_data_.inWidth,
+                                    tiling_data_.inChannel};
+      int64_t input_size = getAclOpShapeSize(shape);
+      std::vector<int64_t> strides = getAclOpStrides(shape);
+      CHECK_ACLNN_STATUS(aclrtMalloc((void **)&inner_buf_0_,
+                                     input_size * sizeof(int16_t),
+                                     ACL_MEM_MALLOC_HUGE_FIRST));
+      acl_inner_buf_0_ = aclCreateTensor(
+          shape.data(), shape.size(), ACL_FLOAT16, strides.data(), 0,
+          ACL_FORMAT_ND, shape.data(), shape.size(), inner_buf_0_);
+    }
+
+    if (acl_inner_buf_1_ == nullptr) {
+      std::vector<int64_t> shape = {
+          tiling_data_.outChannel, tiling_data_.kernelSize,
+          tiling_data_.kernelSize, tiling_data_.inChannel};
+      int64_t input_size = getAclOpShapeSize(shape);
+      std::vector<int64_t> strides = getAclOpStrides(shape);
+      CHECK_ACLNN_STATUS(aclrtMalloc((void **)&inner_buf_1_,
+                                     input_size * sizeof(int16_t),
+                                     ACL_MEM_MALLOC_HUGE_FIRST));
+      acl_inner_buf_1_ = aclCreateTensor(
+          shape.data(), shape.size(), ACL_FLOAT16, strides.data(), 0,
+          ACL_FORMAT_ND, shape.data(), shape.size(), inner_buf_1_);
+    }
+
+    if (acl_inner_buf_2_ == nullptr) {
+      std::vector<int64_t> shape = {
+          tiling_data_.batchSize, tiling_data_.outHeight, tiling_data_.outWidth,
+          tiling_data_.outChannel};
+      int64_t output_size = getAclOpShapeSize(shape);
+      std::vector<int64_t> strides = getAclOpStrides(shape);
+      CHECK_ACLNN_STATUS(aclrtMalloc((void **)&inner_buf_2_,
+                                     output_size * sizeof(int16_t),
+                                     ACL_MEM_MALLOC_HUGE_FIRST));
+      acl_inner_buf_2_ = aclCreateTensor(
+          shape.data(), shape.size(), ACL_FLOAT16, strides.data(), 0,
+          ACL_FORMAT_ND, shape.data(), shape.size(), inner_buf_2_);
+    }
+
+    if (acl_inner_output_ == nullptr) {
+      acl_inner_output_ =
+          AscendCLOpConvert::convertFromTensor(inner_output_, ACL_FORMAT_ND);
+    }
 
     return base::kStatusCodeOk;
   }
@@ -151,14 +213,77 @@ class AscendCLOpConv : public OpConv {
    * @return base::Status Execution status
    */
   virtual base::Status run() {
-    uint8_t *fm_data = (uint8_t *)(inner_fm_input_->getData());
-    uint8_t *we_data = (uint8_t *)(inner_we_input_->getData());
-    uint8_t *output_data = (uint8_t *)(outputs_[0]->getData());
+    // transpose input data to NHWC format
+    std::vector<int64_t> input_dims_data = {0, 2, 3, 1};
+    input_dims =
+        aclCreateIntArray(input_dims_data.data(), input_dims_data.size());
+    CHECK_ACLNN_STATUS(aclnnPermuteGetWorkspaceSize(
+        acl_inner_fm_input_, input_dims, acl_inner_buf_0_, &workspace_size_,
+        &executor_));
+
+    void *input_workspace = nullptr;
+    if (workspace_size_ > 0) {
+      input_workspace =
+          device::getDevice(device_type_)->allocate(workspace_size_);
+    }
+    CHECK_ACLNN_STATUS(aclnnPermute(input_workspace, workspace_size_, executor_,
+                                    inner_stream_));
+    CHECK_ACLNN_STATUS(aclrtSynchronizeStream(inner_stream_));
+
+    if (workspace_size_ > 0 && input_workspace != nullptr) {
+      aclrtFree(input_workspace);
+      input_workspace = nullptr;
+    }
+
+    // transpose kernel data to NHWC format
+    std::vector<int64_t> kernel_dims_data = {0, 2, 3, 1};
+    kernel_dims =
+        aclCreateIntArray(kernel_dims_data.data(), kernel_dims_data.size());
+    CHECK_ACLNN_STATUS(aclnnPermuteGetWorkspaceSize(
+        acl_inner_we_input_, kernel_dims, acl_inner_buf_1_, &workspace_size_,
+        &executor_));
+
+    void *kernel_workspace = nullptr;
+    if (workspace_size_ > 0) {
+      kernel_workspace =
+          device::getDevice(device_type_)->allocate(workspace_size_);
+    }
+    CHECK_ACLNN_STATUS(aclnnPermute(kernel_workspace, workspace_size_,
+                                    executor_, inner_stream_));
+    CHECK_ACLNN_STATUS(aclrtSynchronizeStream(inner_stream_));
+
+    if (workspace_size_ > 0 && kernel_workspace != nullptr) {
+      aclrtFree(kernel_workspace);
+      kernel_workspace = nullptr;
+    }
 
     ACLRT_LAUNCH_KERNEL(conv2d)
-    (tiling_data_.coreNum, inner_stream_, fm_data, we_data, output_data,
+    (tiling_data_.coreNum, inner_stream_, (uint8_t *)inner_buf_0_,
+     (uint8_t *)inner_buf_1_, (uint8_t *)inner_buf_2_,
      reinterpret_cast<uint8_t *>(tiling_device_));
-    aclrtSynchronizeStream(inner_stream_);
+    CHECK_ACLNN_STATUS(aclrtSynchronizeStream(inner_stream_));
+
+    // transpose output data to NCHW format
+    std::vector<int64_t> output_dims_data = {0, 3, 1, 2};
+    output_dims =
+        aclCreateIntArray(output_dims_data.data(), output_dims_data.size());
+    CHECK_ACLNN_STATUS(aclnnPermuteGetWorkspaceSize(
+        acl_inner_buf_2_, output_dims, acl_inner_output_, &workspace_size_,
+        &executor_));
+
+    void *output_workspace = nullptr;
+    if (workspace_size_ > 0) {
+      output_workspace =
+          device::getDevice(device_type_)->allocate(workspace_size_);
+    }
+    CHECK_ACLNN_STATUS(aclnnPermute(output_workspace, workspace_size_,
+                                    executor_, inner_stream_));
+    CHECK_ACLNN_STATUS(aclrtSynchronizeStream(inner_stream_));
+
+    if (workspace_size_ > 0 && output_workspace != nullptr) {
+      aclrtFree(output_workspace);
+      output_workspace = nullptr;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -171,6 +296,57 @@ class AscendCLOpConv : public OpConv {
     if (tiling_device_ != nullptr) {
       aclrtFree(tiling_device_);
       tiling_device_ = nullptr;
+    }
+    if (input_dims != nullptr) {
+      aclDestroyIntArray(input_dims);
+      input_dims = nullptr;
+    }
+    if (kernel_dims != nullptr) {
+      aclDestroyIntArray(kernel_dims);
+      kernel_dims = nullptr;
+    }
+    if (output_dims != nullptr) {
+      aclDestroyIntArray(output_dims);
+      output_dims = nullptr;
+    }
+    if (acl_inner_fm_input_ != nullptr) {
+      aclDestroyTensor(acl_inner_fm_input_);
+      acl_inner_fm_input_ = nullptr;
+    }
+    if (acl_inner_we_input_ != nullptr) {
+      aclDestroyTensor(acl_inner_we_input_);
+      acl_inner_we_input_ = nullptr;
+    }
+    if (acl_inner_output_ != nullptr) {
+      aclDestroyTensor(acl_inner_output_);
+      acl_inner_output_ = nullptr;
+    }
+    if (inner_buf_0_ != nullptr) {
+      if (acl_inner_buf_0_ != nullptr) {
+        aclDestroyTensor(acl_inner_buf_0_);
+        acl_inner_buf_0_ = nullptr;
+      }
+      aclrtFree(inner_buf_0_);
+      inner_buf_0_ = nullptr;
+    }
+    if (inner_buf_1_ != nullptr) {
+      if (acl_inner_buf_1_ != nullptr) {
+        aclDestroyTensor(acl_inner_buf_1_);
+        acl_inner_buf_1_ = nullptr;
+      }
+      aclrtFree(inner_buf_1_);
+      inner_buf_1_ = nullptr;
+    }
+    if (inner_buf_2_ != nullptr) {
+      if (acl_inner_buf_2_ != nullptr) {
+        aclDestroyTensor(acl_inner_buf_2_);
+        acl_inner_buf_2_ = nullptr;
+      }
+      aclrtFree(inner_buf_2_);
+      inner_buf_2_ = nullptr;
+    }
+    if (executor_ != nullptr) {
+      executor_ = nullptr;
     }
     return base::kStatusCodeOk;
   }
@@ -185,6 +361,24 @@ class AscendCLOpConv : public OpConv {
   // Internal tensors for input feature map and weights
   device::Tensor *inner_fm_input_ = nullptr;
   device::Tensor *inner_we_input_ = nullptr;
+  device::Tensor *inner_output_ = nullptr;
+
+  void *inner_buf_0_ = nullptr;
+  void *inner_buf_1_ = nullptr;
+  void *inner_buf_2_ = nullptr;
+
+  aclTensor *acl_inner_fm_input_ = nullptr;
+  aclTensor *acl_inner_we_input_ = nullptr;
+  aclTensor *acl_inner_output_ = nullptr;
+  aclTensor *acl_inner_buf_0_ = nullptr;
+  aclTensor *acl_inner_buf_1_ = nullptr;
+  aclTensor *acl_inner_buf_2_ = nullptr;
+
+  aclIntArray *input_dims = nullptr;
+  aclIntArray *kernel_dims = nullptr;
+  aclIntArray *output_dims = nullptr;
+
+  aclOpExecutor *executor_ = nullptr;
 
   // Tiling related data
   void *tiling_device_ = nullptr;  // Device-side tiling data

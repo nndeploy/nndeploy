@@ -75,6 +75,24 @@ std::string getOpInfoString(std::vector<aclTensorDesc*> descs,
   return ss.str();
 }
 
+int64_t getAclOpShapeSize(const std::vector<int64_t>& shape) {
+  int64_t shapeSize = 1;
+  for (auto i : shape) {
+    shapeSize *= i;
+  }
+  return shapeSize;
+}
+
+std::vector<int64_t> getAclOpStrides(const std::vector<int64_t>& shape) {
+  std::vector<int64_t> strides(shape.size(), 1);
+
+  for (int64_t i = shape.size() - 2; i >= 0; i--) {
+    strides[i] = shape[i + 1] * strides[i + 1];
+  }
+
+  return strides;
+}
+
 template <>
 aclDataType aclDataTypeOf<float>() {
   return ACL_FLOAT;

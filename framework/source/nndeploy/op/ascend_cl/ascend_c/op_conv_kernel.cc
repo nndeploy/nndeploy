@@ -1,4 +1,5 @@
 #include "op_conv_kernel.h"
+
 #include "kernel_operator.h"
 
 constexpr int32_t ALIGN_NUM = 16;
@@ -17,8 +18,7 @@ __aicore__ inline void CopyTiling(nndeploy::op::Conv2dTilingData *tiling,
 
 template <typename dst_T, typename fm_T, typename we_T>
 class KernelConv2d {
-
-public:
+ public:
   __aicore__ inline KernelConv2d() {}
   __aicore__ inline void Init(GM_ADDR fmGm, GM_ADDR weGm, GM_ADDR dstGm,
                               GM_ADDR tiling_gm, AscendC::TPipe *tmpPipe) {
@@ -92,14 +92,13 @@ public:
   }
   __aicore__ inline void Process() { ComputeNH(); }
 
-private:
+ private:
   __aicore__ inline void TailPart() {}
   __aicore__ inline void MainPart() {
-
     AscendC::DataCopyExtParams weCopyParams{weBlockCount, weBlockLen, 0, 0, 0};
     AscendC::DataCopyPadExtParams<we_T> wePadParams{true, 0, fmPadWidth, 0};
     AscendC::DataCopyPad(weBatchLt1, weGlobal, weCopyParams,
-                         wePadParams); // 从GM->VECCALC搬运data
+                         wePadParams);  // 从GM->VECCALC搬运data
     // AscendC::DumpTensor(weBatchLt1, 1, 128);
 
     for (uint32_t idx1 = 0; idx1 < fmWidthRounds; idx1++) {
@@ -109,14 +108,14 @@ private:
       AscendC::DataCopyPadExtParams<fm_T> fmPadParams{true, 0, fmPadWidth, 0};
       AscendC::DataCopyPad(fmBatchLt1, fmGlobal[inOffset * inChannel],
                            fmCopyParams,
-                           fmPadParams); // 从GM->VECCALC搬运data
+                           fmPadParams);  // 从GM->VECCALC搬运data
       AscendC::DataCopyPad(
           fmBatchLt2, fmGlobal[(inOffset + inWidth) * inChannel], fmCopyParams,
-          fmPadParams); // 从GM->VECCALC搬运data
+          fmPadParams);  // 从GM->VECCALC搬运data
       AscendC::DataCopyPad(fmBatchLt3,
                            fmGlobal[(inOffset + inWidth * 2) * inChannel],
                            fmCopyParams,
-                           fmPadParams); // 从GM->VECCALC搬运data
+                           fmPadParams);  // 从GM->VECCALC搬运data
       pipe_barrier(PIPE_ALL);
 
       for (uint32_t idx2 = 0; idx2 < fmWidthBlock; idx2++) {
@@ -164,14 +163,14 @@ private:
       AscendC::DataCopyPadExtParams<fm_T> fmPadParams{true, 0, fmPadWidth, 0};
       AscendC::DataCopyPad(fmBatchLt1, fmGlobal[inOffset * inChannel],
                            fmCopyParams,
-                           fmPadParams); // 从GM->VECCALC搬运data
+                           fmPadParams);  // 从GM->VECCALC搬运data
       AscendC::DataCopyPad(
           fmBatchLt2, fmGlobal[(inOffset + inWidth) * inChannel], fmCopyParams,
-          fmPadParams); // 从GM->VECCALC搬运data
+          fmPadParams);  // 从GM->VECCALC搬运data
       AscendC::DataCopyPad(fmBatchLt3,
                            fmGlobal[(inOffset + inWidth * 2) * inChannel],
                            fmCopyParams,
-                           fmPadParams); // 从GM->VECCALC搬运data
+                           fmPadParams);  // 从GM->VECCALC搬运data
       pipe_barrier(PIPE_ALL);
       // AscendC::DumpTensor(fmBatchLt1, 2, 128);
       // AscendC::DumpTensor(fmBatchLt2, 3, 128);
@@ -247,7 +246,7 @@ private:
     // AscendC::DumpTensor(dstGlobal, 1, 256);
   }
 
-private:
+ private:
   uint16_t batchSize;
   uint16_t inHeight;
   uint16_t inWidth;
@@ -315,6 +314,6 @@ extern "C" __global__ __aicore__ void conv2d(GM_ADDR fmGm, GM_ADDR weGm,
                                              GM_ADDR dstGm, GM_ADDR tiling) {
   AscendC::TPipe pipe;
   KernelConv2d<half, half, half> op;
-  op.Init(fmGm, weGm, dstGm, tiling, &pipe);  
+  op.Init(fmGm, weGm, dstGm, tiling, &pipe);
   op.Process();
 }
