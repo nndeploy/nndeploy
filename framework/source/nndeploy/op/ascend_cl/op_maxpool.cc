@@ -1,6 +1,7 @@
 #include "nndeploy/op/op_maxpool.h"
 
 #include "aclnnop/aclnn_max_pool.h"
+#include "aclnnop/aclnn_permute.h"
 #include "ascend_c/op_maxpool_kernel.h"
 #include "nndeploy/op/ascend_cl/op_convert.h"
 #include "nndeploy/op/ascend_cl/op_include.h"
@@ -38,16 +39,18 @@ class AscendCLOpMaxPool : public OpMaxPool {
       inner_input_ = new device::Tensor(device, inputs_[0]->getDesc(),
                                         inputs_[0]->getName());
       inputs_[0]->copyTo(inner_input_);
+      inner_output_ = outputs_[0];
     } else {
       inner_input_ = inputs_[0];
+      inner_output_ = outputs_[0];
     }
 
     // Calculate tiling data parameters for maxpool operation
     base::IntVector input_shape = inner_input_->getShape();
     tiling_data_.batchSize = input_shape[0];  // N - batch size
+    tiling_data_.channel = input_shape[1];    // C - number of channels
     tiling_data_.inHeight = input_shape[2];   // H - input height
     tiling_data_.inWidth = input_shape[3];    // W - input width
-    tiling_data_.channel = input_shape[1];    // C - number of channels
     tiling_data_.stride = param->strides_[0];
     tiling_data_.kernelSize = param->kernel_shape_[0];
 
@@ -62,7 +65,7 @@ class AscendCLOpMaxPool : public OpMaxPool {
          param->dilations_[1] * (param->kernel_shape_[1] - 1) - 1) /
             param->strides_[1] +
         1;
-    tiling_data_.coreNum = tiling_data_.outHeight % 8;
+    tiling_data_.coreNum = 1;
 
     // Validate parameters and check supported features
     // Currently only supports 3x3 kernel
@@ -98,15 +101,7 @@ class AscendCLOpMaxPool : public OpMaxPool {
     return base::kStatusCodeOk;
   }
 
-  virtual base::Status deinit() {
-    if (inner_input_ != nullptr) {
-      if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
-        delete inner_input_;
-        inner_input_ = nullptr;
-      }
-    }
-    return Op::deinit();
-  }
+  virtual base::Status deinit() { return Op::deinit(); }
 
   virtual base::Status preRun() {
     // Allocate and copy tiling data to device memory
@@ -118,19 +113,143 @@ class AscendCLOpMaxPool : public OpMaxPool {
                      ACL_MEMCPY_HOST_TO_DEVICE, inner_stream_);
     aclrtSynchronizeStream(inner_stream_);
 
+    device::Device *device = device::getDevice(device_type_);
+
+    if (acl_inner_input_ == nullptr) {
+      acl_inner_input_ =
+          AscendCLOpConvert::convertFromTensor(inner_input_, ACL_FORMAT_ND);
+    }
+
+    if (acl_inner_buf_0_ == nullptr) {
+      base::IntVector input_shape = inner_input_->getShape();
+      std::vector<int64_t> shape = {tiling_data_.batchSize,
+                                    tiling_data_.inHeight, tiling_data_.inWidth,
+                                    tiling_data_.channel};
+      int64_t input_size = tiling_data_.batchSize * tiling_data_.channel *
+                           tiling_data_.inHeight * tiling_data_.inWidth;
+      std::vector<int64_t> strides(shape.size(), 1);
+      for (int64_t i = shape.size() - 2; i >= 0; i--) {
+        strides[i] = shape[i + 1] * strides[i + 1];
+      }
+      aclrtMalloc((void **)&inner_buf_0_, input_size * sizeof(int16_t),
+                  ACL_MEM_MALLOC_HUGE_FIRST);
+      acl_inner_buf_0_ = aclCreateTensor(
+          shape.data(), shape.size(), ACL_FLOAT16, strides.data(), 0,
+          ACL_FORMAT_ND, shape.data(), shape.size(), inner_buf_0_);
+    }
+
+    if (acl_inner_buf_1_ == nullptr) {
+      base::IntVector output_shape = inner_output_->getShape();
+      std::vector<int64_t> shape = {
+          tiling_data_.batchSize, tiling_data_.outHeight, tiling_data_.outWidth,
+          tiling_data_.channel};
+      int64_t output_size = tiling_data_.batchSize * tiling_data_.channel *
+                            tiling_data_.outHeight * tiling_data_.outWidth;
+      std::vector<int64_t> strides(shape.size(), 1);
+      for (int64_t i = shape.size() - 2; i >= 0; i--) {
+        strides[i] = shape[i + 1] * strides[i + 1];
+      }
+      aclrtMalloc((void **)&inner_buf_1_, output_size * sizeof(int16_t),
+                  ACL_MEM_MALLOC_HUGE_FIRST);
+      acl_inner_buf_1_ = aclCreateTensor(
+          shape.data(), shape.size(), ACL_FLOAT16, strides.data(), 0,
+          aclFormat::ACL_FORMAT_ND, shape.data(), shape.size(), inner_buf_1_);
+    }
+
+    if (acl_inner_output_ == nullptr) {
+      acl_inner_output_ =
+          AscendCLOpConvert::convertFromTensor(inner_output_, ACL_FORMAT_ND);
+    }
+
     return base::kStatusCodeOk;
   }
 
   virtual base::Status run() {
+    // transpose input data to NHWC format
+    std::vector<int64_t> input_dims_data = {0, 2, 3, 1};
+    input_dims =
+        aclCreateIntArray(input_dims_data.data(), input_dims_data.size());
+    aclnnStatus aclnn_status = aclnnPermuteGetWorkspaceSize(
+        acl_inner_input_, input_dims, acl_inner_buf_0_, &workspace_size_,
+        &executor_);
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnPermuteGetWorkspaceSize failed, error code: %d.\n",
+                    aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+    void *input_workspace = nullptr;
+    if (workspace_size_ > 0) {
+      input_workspace =
+          device::getDevice(device_type_)->allocate(workspace_size_);
+    }
+    aclnn_status = aclnnPermute(input_workspace, workspace_size_, executor_,
+                                inner_stream_);
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnPermute failed, error code: %d.\n", aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+    aclnn_status = aclrtSynchronizeStream(inner_stream_);
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnSynchronizeStream failed, error code: %d.\n",
+                    aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+    if (workspace_size_ > 0 && input_workspace != nullptr) {
+      aclrtFree(input_workspace);
+      input_workspace = nullptr;
+    }
+
     // Get input and output data pointers
-    uint8_t *input_data = (uint8_t *)(inner_input_->getData());
-    uint8_t *output_data = (uint8_t *)(outputs_[0]->getData());
+    uint8_t *inner_input_data = (uint8_t *)(inner_buf_0_);
+    uint8_t *inner_output_data = (uint8_t *)(inner_buf_1_);
 
     // Launch maxpool kernel
     ACLRT_LAUNCH_KERNEL(max_pool2d)
-    (tiling_data_.coreNum, inner_stream_, input_data, output_data,
+    (tiling_data_.coreNum, inner_stream_, inner_input_data, inner_output_data,
      reinterpret_cast<uint8_t *>(tiling_device_));
-    aclrtSynchronizeStream(inner_stream_);
+    aclnn_status = aclrtSynchronizeStream(inner_stream_);
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnSynchronizeStream failed, error code: %d.\n",
+                    aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+
+    // transpose output data to NCHW format
+    std::vector<int64_t> output_dims_data = {0, 3, 1, 2};
+    output_dims =
+        aclCreateIntArray(output_dims_data.data(), output_dims_data.size());
+    aclnn_status = aclnnPermuteGetWorkspaceSize(acl_inner_buf_1_, output_dims,
+                                                acl_inner_output_,
+                                                &workspace_size_, &executor_);
+    if (aclnn_status != ACL_SUCCESS) {
+      std::string error_msg = aclGetRecentErrMsg();
+      NNDEPLOY_LOGI("error_msg: %s\n", error_msg.c_str());
+      NNDEPLOY_LOGE("aclnnPermuteGetWorkspaceSize failed, error code: %d.\n",
+                    aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+    void *output_workspace = nullptr;
+    if (workspace_size_ > 0) {
+      output_workspace =
+          device::getDevice(device_type_)->allocate(workspace_size_);
+    }
+    // NNDEPLOY_LOGI("workspace_size_: %d\n", workspace_size_);
+    aclnn_status = aclnnPermute(output_workspace, workspace_size_, executor_,
+                                inner_stream_);
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnPermute failed, error code: %d.\n", aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+    aclnn_status = aclrtSynchronizeStream(inner_stream_);
+    if (aclnn_status != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclnnSynchronizeStream failed, error code: %d.\n",
+                    aclnn_status);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
+    if (workspace_size_ > 0 && output_workspace != nullptr) {
+      aclrtFree(output_workspace);
+      output_workspace = nullptr;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -138,6 +257,41 @@ class AscendCLOpMaxPool : public OpMaxPool {
     if (tiling_device_ != nullptr) {
       aclrtFree(tiling_device_);
       tiling_device_ = nullptr;
+    }
+    if (input_dims != nullptr) {
+      aclDestroyIntArray(input_dims);
+      input_dims = nullptr;
+    }
+    if (output_dims != nullptr) {
+      aclDestroyIntArray(output_dims);
+      output_dims = nullptr;
+    }
+    if (inner_buf_0_ != nullptr) {
+      if (acl_inner_buf_0_ != nullptr) {
+        aclDestroyTensor(acl_inner_buf_0_);
+        acl_inner_buf_0_ = nullptr;
+      }
+      aclrtFree(inner_buf_0_);
+      inner_buf_0_ = nullptr;
+    }
+    if (inner_buf_1_ != nullptr) {
+      if (acl_inner_buf_1_ != nullptr) {
+        aclDestroyTensor(acl_inner_buf_1_);
+        acl_inner_buf_1_ = nullptr;
+      }
+      aclrtFree(inner_buf_1_);
+      inner_buf_1_ = nullptr;
+    }
+    if (acl_inner_input_ != nullptr) {
+      aclDestroyTensor(acl_inner_input_);
+      acl_inner_input_ = nullptr;
+    }
+    if (acl_inner_output_ != nullptr) {
+      aclDestroyTensor(acl_inner_output_);
+      acl_inner_output_ = nullptr;
+    }
+    if (executor_ != nullptr) {
+      executor_ = nullptr;
     }
     return base::kStatusCodeOk;
   }
@@ -147,6 +301,18 @@ class AscendCLOpMaxPool : public OpMaxPool {
 
   aclrtStream inner_stream_ = nullptr;
   device::Tensor *inner_input_ = nullptr;
+  device::Tensor *inner_output_ = nullptr;
+
+  void *inner_buf_0_ = nullptr;
+  void *inner_buf_1_ = nullptr;
+
+  aclTensor *acl_inner_input_ = nullptr;
+  aclTensor *acl_inner_buf_0_ = nullptr;
+  aclTensor *acl_inner_buf_1_ = nullptr;
+  aclTensor *acl_inner_output_ = nullptr;
+
+  aclIntArray *input_dims;
+  aclIntArray *output_dims;
 
   aclOpExecutor *executor_ = nullptr;
 
@@ -238,8 +404,9 @@ class AscendCLOpMaxPool : public OpMaxPool {
     return base::kStatusCodeOk;
   }
   virtual base::Status run() {
-    if (workspace_ == nullptr) {
+    if (workspace_ == nullptr && workspace_size_ > 0) {
       workspace_ = device::getDevice(device_type_)->allocate(workspace_size_);
+      workspace_is_external_ = false;
     }
     aclnnStatus aclnn_status =
         aclnnMaxPool(workspace_, workspace_size_, executor_, inner_stream_);
@@ -260,6 +427,12 @@ class AscendCLOpMaxPool : public OpMaxPool {
     }
     if (executor_ != nullptr) {
       executor_ = nullptr;
+    }
+    if (!workspace_is_external_) {
+      if (workspace_ != nullptr) {
+        aclrtFree(workspace_);
+        workspace_ = nullptr;
+      }
     }
     return base::kStatusCodeOk;
   }

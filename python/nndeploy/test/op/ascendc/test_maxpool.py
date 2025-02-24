@@ -13,14 +13,14 @@ from nndeploy.test.test_util import (
 class TestMaxPoolOp(unittest.TestCase):
 
     def test_maxpool(self):
-        input_shape = [1, 3, 256, 256]
+        input_shape = [1, 3, 320, 320]
         kernel_size = 3
         stride = 1
         padding = 0
         dilation = 1
         ceil_mode = False
 
-        np_input = np.random.uniform(2, 5, input_shape).astype(np.float16)
+        np_input = np.random.uniform(1, 2, input_shape).astype(np.float16)
 
         torch_result = torch.nn.functional.max_pool2d(
             torch.tensor(np_input),
@@ -32,7 +32,7 @@ class TestMaxPoolOp(unittest.TestCase):
         )
 
         input = create_tensor_from_numpy(np_input)
-        ascend_input = ascend_input.to(nndeploy.base.DeviceType("ascendcl"))
+        ascend_input = input.to(nndeploy.base.DeviceType("ascendcl"))
         
 
         ascend_result = F.maxpool(
@@ -40,14 +40,6 @@ class TestMaxPoolOp(unittest.TestCase):
         )
 
         nndeploy_result = ascend_result.to(nndeploy.base.DeviceType("cpu"))
-
-        nndeploy_result_array = create_numpy_from_tensor(nndeploy_result).transpose(0, 3, 1, 2)
-
-        print("nndeploy_result_array.shape:", nndeploy_result_array.shape)
-
-        # ascend_input1_array = create_numpy_from_tensor(ascend_input1)
-        # diff_input = ascend_input1_array - np_input1
-        # print("nndeploy和onnx输入的差异:", diff_input)
 
         self.assertTrue(
             np.allclose(
