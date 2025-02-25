@@ -32,8 +32,6 @@ class AscendCLOpMaxPool : public OpMaxPool {
     inner_stream_ =
         (aclrtStream)stream_->as<device::AscendCLStream>()->getStream();
 
-    // executor_ = CREATE_EXECUTOR();
-
     // Handle input tensor - copy to device if input is from host
     if (device::isHostDeviceType(inputs_[0]->getDeviceType())) {
       inner_input_ = new device::Tensor(device, inputs_[0]->getDesc(),
