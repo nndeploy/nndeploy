@@ -32,7 +32,7 @@ enum class EdgeTypeFlag {
  */
 class NNDEPLOY_CC_API EdgeTypeInfo {
  public:
-  EdgeTypeInfo() : type_(EdgeTypeFlag::kBuffer), type_info_("") {}
+  EdgeTypeInfo() : type_(EdgeTypeFlag::kBuffer), type_name_("") {}
   ~EdgeTypeInfo() = default;
 
   template <typename T>
@@ -40,23 +40,28 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
     typedef typename std::decay<T>::type DT;
     if constexpr (std::is_same<DT, device::Buffer>::value) {
       type_ = EdgeTypeFlag::kBuffer;
+      type_name_ = "Buffer";
     } else if constexpr (std::is_same<DT, cv::Mat>::value) {
       type_ = EdgeTypeFlag::kCvMat;
+      type_name_ = "CvMat";
     } else if constexpr (std::is_same<DT, device::Tensor>::value) {
       type_ = EdgeTypeFlag::kTensor;
+      type_name_ = "Tensor";
     } else if constexpr (std::is_base_of<base::Param, DT>::value) {
       type_ = EdgeTypeFlag::kParam;
+      type_name_ = "Param";
     } else {
       type_ = EdgeTypeFlag::kAny;
+      type_name_ = getTypeNameRemovePrefix<DT>();
     }
-    type_info_ = getTypeName<DT>();
+    // type_name_ = getTypeNameRemovePrefix<DT>();
     type_ptr_ = &typeid(DT);
     type_holder_ = std::make_shared<TypeHolder<DT>>();
   }
 
   EdgeTypeFlag getType() const { return type_; }
 
-  std::string getTypeInfo() const { return type_info_; }
+  std::string getTypeName() const { return type_name_; }
 
   const std::type_info* getTypePtr() const { return type_ptr_; }
 
@@ -78,13 +83,26 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
 
   // 获取类型名称的辅助函数
   template <typename T>
-  static std::string getTypeName() {
+  static std::string getTypeNameRemovePrefix() {
     std::string name = typeid(T).name();
-    // 移除编译器相关的前缀和修饰
+    // 移除命名空间
     size_t pos = name.find_last_of("::");
     if (pos != std::string::npos) {
       name = name.substr(pos + 1);
     }
+    // 移除编译器生成的前缀数字
+    while (!name.empty() && std::isdigit(name[0])) {
+      name = name.substr(1);
+    }
+    // 移除常见的类型修饰符
+    const std::string modifiers[] = {"class ", "struct ", "enum ", "union "};
+    for (const auto& mod : modifiers) {
+      if (name.substr(0, mod.length()) == mod) {
+        name = name.substr(mod.length());
+      }
+    }
+    // 移除空格
+    name.erase(std::remove_if(name.begin(), name.end(), ::isspace), name.end());
     return name;
   }
 
@@ -117,7 +135,7 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
   };
 
   EdgeTypeFlag type_;
-  std::string type_info_;
+  std::string type_name_;
   const std::type_info* type_ptr_{nullptr};
   std::shared_ptr<TypeHolderBase> type_holder_;
 };

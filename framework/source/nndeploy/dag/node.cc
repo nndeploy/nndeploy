@@ -95,6 +95,10 @@ base::Status Node::setExternalParam(base::Param *external_param) {
   external_param_.emplace_back(external_param);
   return base::kStatusCodeOk;
 }
+base::Status Node::setExternalParamSharedPtr(std::shared_ptr<base::Param> external_param) {
+  external_param_.emplace_back(external_param.get());
+  return base::kStatusCodeOk;
+}
 
 base::Status Node::setInput(Edge *input) {
   if (input == nullptr) {

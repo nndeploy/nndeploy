@@ -102,6 +102,7 @@ class NNDEPLOY_CC_API Node {
   virtual base::Param *getParam();
   virtual std::shared_ptr<base::Param> getParamSharedPtr();
   virtual base::Status setExternalParam(base::Param *external_param);
+  virtual base::Status setExternalParamSharedPtr(std::shared_ptr<base::Param> external_param);
 
   base::Status setInput(Edge *input);
   base::Status setOutput(Edge *output);
