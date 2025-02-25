@@ -18,7 +18,7 @@ base::Status Edge::set(device::Buffer *buffer, int index, bool is_external) {
   return abstact_edge_->set(buffer, index, is_external);
 }
 base::Status Edge::set(device::Buffer &buffer, int index) {
-  return abstact_edge_->set(buffer, index);
+  return this->set(&buffer, index, true);
 }
 device::Buffer *Edge::create(device::Device *device,
                              const device::BufferDesc &desc, int index) {
@@ -39,7 +39,14 @@ base::Status Edge::set(cv::Mat *cv_mat, int index, bool is_external) {
   return abstact_edge_->set(cv_mat, index, is_external);
 }
 base::Status Edge::set(cv::Mat &cv_mat, int index) {
-  return abstact_edge_->set(cv_mat, index);
+  return this->set(&cv_mat, index, true);
+}
+cv::Mat *Edge::create(int rows, int cols, int type, const cv::Vec3b &value,
+                      int index) {
+  return abstact_edge_->create(rows, cols, type, value, index);
+}
+bool Edge::notifyWritten(cv::Mat *cv_mat) {
+  return abstact_edge_->notifyWritten(cv_mat);
 }
 cv::Mat *Edge::getCvMat(const Node *node) {
   return abstact_edge_->getCvMat(node);
@@ -53,7 +60,7 @@ base::Status Edge::set(device::Tensor *tensor, int index, bool is_external) {
   return abstact_edge_->set(tensor, index, is_external);
 }
 base::Status Edge::set(device::Tensor &tensor, int index) {
-  return abstact_edge_->set(tensor, index);
+  return this->set(&tensor, index, true);
 }
 device::Tensor *Edge::create(device::Device *device,
                              const device::TensorDesc &desc, int index) {
@@ -73,23 +80,16 @@ base::Status Edge::set(base::Param *param, int index, bool is_external) {
   return abstact_edge_->set(param, index, is_external);
 }
 base::Status Edge::set(base::Param &param, int index) {
-  return abstact_edge_->set(param, index);
+  return this->set(&param, index, true);
+}
+bool Edge::notifyWritten(base::Param *param) {
+  return abstact_edge_->notifyWritten(param);
 }
 base::Param *Edge::getParam(const Node *node) {
   return abstact_edge_->getParam(node);
 }
 base::Param *Edge::getGraphOutputParam() {
   return abstact_edge_->getGraphOutputParam();
-}
-
-base::Status Edge::set(void *anything, int index, bool is_external) {
-  return abstact_edge_->set(anything, index, is_external);
-}
-void *Edge::getAnything(const Node *node) {
-  return abstact_edge_->getAnything(node);
-}
-void *Edge::getGraphOutputAnything() {
-  return abstact_edge_->getGraphOutputAnything();
 }
 
 int Edge::getIndex(const Node *node) { return abstact_edge_->getIndex(node); }

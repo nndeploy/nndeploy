@@ -157,6 +157,7 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def("get_data_format", &Tensor::getDataFormat)
       .def("set_data_format", &Tensor::setDataFormat, py::arg("data_format"))
       .def("get_shape", &Tensor::getShape)
+      .def_property_readonly("shape", &Tensor::getShape)
       .def("get_shape_index", &Tensor::getShapeIndex, py::arg("index"))
       .def("get_batch", &Tensor::getBatch)
       .def("get_channel", &Tensor::getChannel)

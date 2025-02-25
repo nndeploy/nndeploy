@@ -34,7 +34,7 @@ base::Param *Inference::getParam() {
   return dynamic_cast<base::Param *>(inference_param_);
 }
 std::shared_ptr<base::Param> Inference::getParamSharedPtr() {
-  return std::shared_ptr<base::Param>(inference_param_);
+  return nullptr;
 }
 
 void Inference::setStream(device::Stream *stream) {

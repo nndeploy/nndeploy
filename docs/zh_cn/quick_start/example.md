@@ -6,20 +6,20 @@
 
 ## 基于DAG的模型部署演示示例（采用默认config.cmake即可编译成功）
 
-### Windows 下运行 demo_nndeploy_dag
+### Windows 下运行 nndeploy_demo_dag
 ```shell
 cd /yourpath/nndeploy/build/install/bin
-.\demo_nndeploy_dag.exe
+.\nndeploy_demo_dag.exe
 ```
 
-### Linux 下运行 demo_nndeploy_dag
+### Linux 下运行 nndeploy_demo_dag
 ```shell
 cd /yourpath/nndeploy/build/install/lib
 export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
-./demo_nndeploy_dag
+./nndeploy_demo_dag
 ```
 
-### Andorid 下运行 demo_nndeploy_dag
+### Andorid 下运行 nndeploy_demo_dag
 ```shell
 cd /yourpath/nndeploy/build/install/lib
 
@@ -30,7 +30,7 @@ adb shell
 cd /data/local/tmp/
 
 export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
-./demo_nndeploy_dag
+./nndeploy_demo_dag
 ```
 
 ### 效果示例
@@ -78,66 +78,3 @@ I/nndeploy_default_str: run [File /home/always/github/public/nndeploy/demo/dag/d
 I/nndeploy_default_str: run [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 46] running node = [model_1_graph_postprocess]!
 E/nndeploy_default_str: main [File /home/always/github/public/nndeploy/demo/dag/demo.cc][Line 350] end!
 ```
-
-
-## 基于YOLOV8n的目标的检测
-
-### [下载模型](https://huggingface.co/alwaysssss/nndeploy/blob/main/model_zoo/detect/yolo/yolov8n.onnx)
-  ```shell
-  wget https://huggingface.co/alwaysssss/nndeploy/blob/main/model_zoo/detect/yolo/yolov8n.onnx
-  wget https://huggingface.co/alwaysssss/nndeploy/blob/main/model_zoo/detect/yolo/yolov8n.onnx.mnn
-  ```
-
-### [下载测试数据](https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg)
-  ```shell
-  wget https://huggingface.co/alwaysssss/nndeploy/resolve/main/test_data/detect/sample.jpg
-  ```
-
-### Windows 下运行 demo_nndeploy_detect
-```shell
-cd /yourpath/nndeploy/build/install/bin
-.\demo_nndeploy_detect.exe --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value C:\huggingface\nndeploy\model_zoo\detect\yolo\yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path C:\huggingface\nndeploy\test_data\detect\sample.jpg --output_path C:\huggingface\nndeploy\temp\sample_output.jpg
-```
-
-`注：请将上述PATH更换为自己对应的目录`
-
-### Linux 下运行 demo_nndeploy_detect
-```shell
-cd /yourpath/nndeploy/build/install/lib
-export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
-
-// TensorRt 部署
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path ./sample_output.jpg
-
-// OnnxRuntime 部署
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path ./sample_output.jpg
-
-// OpenVino 部署
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/always/huggingface/nndeploy/model_zoo/detect/yolo/yolov8n.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path /home/always/huggingface/nndeploy/test_data/detect/sample.jpg --output_path ./sample_output.jpg
-```
-
-`注：请将上述PATH更换为自己对应的目录`
-
-
-
-### Andorid 下运行 demo_nndeploy_detect
-```shell
-cd /home/always/huggingface/nndeploy/nndeploy/build/install/lib
-adb push ./* /data/local/tmp
-
-cd /home/always/huggingface/nndeploy/model_zoo/detect/yolo/
-adb push ./yolov8n.onnx.mnn /data/local/tmp
-
-cd /home/always/huggingface/nndeploy/test_data/detect/
-adb push ./sample.jpg /data/local/tmp
-
-cd /data/local/tmp
-export LD_LIBRARY_PATH=/data/local/tmp:$LD_LIBRARY_PATH
-// mnn 推理
-./demo_nndeploy_detect --name NNDEPLOY_YOLOV8 --inference_type kInferenceTypeMnn --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeMnn --is_path --model_value ./yolov8n.onnx.mnn --input_type kInputTypeImage  --input_path ./sample.jpg --output_path ./sample_output.jpg
-
-adb pull /data/local/tmp/sample_output.jpg ./
-```
-
-### 效果示例
-![sample](../../image/demo/detect/sample.jpg) ![sample_output](../../image/demo/detect/sample_output.jpg)

@@ -15,6 +15,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/dag/base.h"
 
 namespace nndeploy {
 namespace dag {
@@ -58,6 +59,9 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 #ifdef ENABLE_NNDEPLOY_OPENCV
   base::Status set(cv::Mat *cv_mat, int index, bool is_external = true);
   base::Status set(cv::Mat &cv_mat, int index);
+  cv::Mat *create(int rows, int cols, int type, const cv::Vec3b& value,
+                  int index);
+  bool notifyWritten(cv::Mat *cv_mat);
   cv::Mat *getCvMat(const Node *node);
   cv::Mat *getGraphOutputCvMat();
 #endif
@@ -72,12 +76,38 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   base::Status set(base::Param *param, int index, bool is_external = true);
   base::Status set(base::Param &param, int index);
+  template <typename T, typename... Args, typename std::enable_if<std::is_base_of<base::Param, T>::value, int>::type = 0>
+  base::Param *create(int index, Args &&...args){
+    return abstact_edge_->create<T>(index, std::forward<Args>(args)...);
+  }
+  bool notifyWritten(base::Param *param);
   base::Param *getParam(const Node *node);
   base::Param *getGraphOutputParam();
-
-  base::Status set(void *anything, int index, bool is_external = true);
-  void *getAnything(const Node *node);
-  void *getGraphOutputAnything();
+  
+  template <typename T>
+  base::Status setAny(T *t, int index, bool is_external = true){
+    return abstact_edge_->setAny<T>(t, index, is_external);
+  }
+  template <typename T>
+  base::Status setAny(T &t, int index){
+    return this->setAny(&t, index, true);
+  }
+  template <typename T, typename... Args>
+  T *createAny(int index, Args &&...args){
+    return abstact_edge_->createAny<T>(index, std::forward<Args>(args)...);
+  }
+  template <typename T>
+  bool notifyAnyWritten(T *t){
+    return abstact_edge_->notifyAnyWritten<T>(t);
+  }
+  template <typename T>
+  T *getAny(const Node *node){
+    return abstact_edge_->getAny<T>(node);
+  }
+  template <typename T>
+  T *getGraphOutputAny(){
+    return abstact_edge_->getGraphOutputAny<T>();
+  }
 
   int getIndex(const Node *node);
   int getGraphOutputIndex();

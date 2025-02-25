@@ -80,7 +80,10 @@ nndeploy是一款端到端的模型推理和部署框架。它旨在为用户提
 - 我们已将第三方库、模型仓库和测试数据上传至[HuggingFace](https://huggingface.co/alwaysssss/nndeploy)上，如有需要，欢迎您前往下载使用。
 
 ## 文档
-- 编译安装请访问 https://nndeploy-zh.readthedocs.io/zh/latest/quick_start/build.html. 更多信息访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/)。
+- 如何编译：https://nndeploy-zh.readthedocs.io/zh/latest/quick_start/build.html
+- 如何执行：https://nndeploy-zh.readthedocs.io/zh/latest/quick_start/example.html
+- 如何获取模型：https://nndeploy-zh.readthedocs.io/zh/latest/quick_start/model.html
+- 更多信息访问[nndeploy文档](https://nndeploy-zh.readthedocs.io/zh/latest/)
 
 ## 参考
 - [TNN](https://github.com/Tencent/TNN)

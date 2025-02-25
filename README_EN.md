@@ -76,7 +76,10 @@ The current supported inference framework is as follows:
 
 
 ## Document
-- For more information, please visit the [nndeploy documentation](https://nndeploy-zh.readthedocs.io/zh/latest/).
+- How to build: https://nndeploy-zh.readthedocs.io/zh/latest/quick_start/build.html
+- How to run: https://nndeploy-zh.readthedocs.io/zh/latest/quick_start/example.html
+- How to get models: https://nndeploy-zh.readthedocs.io/zh/latest/quick_start/model.html
+- For more information, visit [nndeploy documentation](https://nndeploy-zh.readthedocs.io/zh/latest/)
 
 ## resource repository
 
