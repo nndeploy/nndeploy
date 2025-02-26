@@ -54,6 +54,7 @@ Node::Node(const std::string &name, std::vector<Edge *> inputs,
 }
 
 Node::~Node() {
+  NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
   if (initialized_ == true) {
     this->deinit();
   }
@@ -67,6 +68,7 @@ Node::~Node() {
     device::destroyStream(stream_);
     stream_ = nullptr;
   }
+  NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
 }
 
 std::string Node::getName() { return name_; }

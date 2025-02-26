@@ -45,12 +45,15 @@ base::Status SequentialExecutor::run() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : topo_sort_node_) {
     base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
+    
     if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
       iter->node_->setRunningFlag(true);
+      NNDEPLOY_LOGE("node[%s] run start\n", iter->node_->getName().c_str());
       status = iter->node_->run();
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "node execute failed!\n");
       iter->node_->setRunningFlag(false);
+      NNDEPLOY_LOGE("node[%s] run end\n", iter->node_->getName().c_str());
     } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
       ;
     } else {
