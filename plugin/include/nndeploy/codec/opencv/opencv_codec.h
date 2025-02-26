@@ -130,8 +130,14 @@ class NNDEPLOY_CC_API OpenCvCameraEncodeNode : public EncodeNode {
 DecodeNode *createOpenCvDecodeNode(base::CodecFlag flag,
                                    const std::string &name, dag::Edge *output);
 
+std::shared_ptr<DecodeNode> createOpenCvDecodeNodeSharedPtr(
+    base::CodecFlag flag, const std::string &name, dag::Edge *output);
+
 EncodeNode *createOpenCvEncodeNode(base::CodecFlag flag,
                                    const std::string &name, dag::Edge *input);
+
+std::shared_ptr<EncodeNode> createOpenCvEncodeNodeSharedPtr(
+    base::CodecFlag flag, const std::string &name, dag::Edge *input);
 
 }  // namespace codec
 }  // namespace nndeploy

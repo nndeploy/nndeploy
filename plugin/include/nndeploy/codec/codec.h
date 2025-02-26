@@ -95,9 +95,14 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
 
 using createDecodeNodeFunc = std::function<DecodeNode *(
     base::CodecFlag flag, const std::string &name, dag::Edge *output)>;
+using createDecodeNodeSharedPtrFunc = std::function<std::shared_ptr<DecodeNode>(
+    base::CodecFlag flag, const std::string &name, dag::Edge *output)>;
 
 std::map<base::CodecType, createDecodeNodeFunc> &
 getGlobaCreatelDecodeNodeFuncMap();
+
+std::map<base::CodecType, createDecodeNodeSharedPtrFunc> &
+getGlobaCreatelDecodeNodeSharedPtrFuncMap();
 
 class TypeCreatelDecodeNodeRegister {
  public:
@@ -107,16 +112,32 @@ class TypeCreatelDecodeNodeRegister {
   }
 };
 
+class TypeCreatelDecodeNodeSharedPtrRegister {
+ public:
+  explicit TypeCreatelDecodeNodeSharedPtrRegister(
+      base::CodecType type, createDecodeNodeSharedPtrFunc func) {
+    getGlobaCreatelDecodeNodeSharedPtrFuncMap()[type] = func;
+  }
+};
 extern NNDEPLOY_CC_API DecodeNode *createDecodeNode(base::CodecType type,
                                                     base::CodecFlag flag,
                                                     const std::string &name,
                                                     dag::Edge *output);
 
+extern NNDEPLOY_CC_API std::shared_ptr<DecodeNode> createDecodeNodeSharedPtr(
+    base::CodecType type, base::CodecFlag flag, const std::string &name,
+    dag::Edge *output);
+
 using createEncodeNodeFunc = std::function<EncodeNode *(
+    base::CodecFlag flag, const std::string &name, dag::Edge *input)>;
+using createEncodeNodeSharedPtrFunc = std::function<std::shared_ptr<EncodeNode>(
     base::CodecFlag flag, const std::string &name, dag::Edge *input)>;
 
 std::map<base::CodecType, createEncodeNodeFunc> &
 getGlobaCreatelEncodeNodeFuncMap();
+
+std::map<base::CodecType, createEncodeNodeSharedPtrFunc> &
+getGlobaCreatelEncodeNodeSharedPtrFuncMap();
 
 class TypeCreatelEncodeNodeRegister {
  public:
@@ -126,10 +147,22 @@ class TypeCreatelEncodeNodeRegister {
   }
 };
 
+class TypeCreatelEncodeNodeSharedPtrRegister {
+ public:
+  explicit TypeCreatelEncodeNodeSharedPtrRegister(
+      base::CodecType type, createEncodeNodeSharedPtrFunc func) {
+    getGlobaCreatelEncodeNodeSharedPtrFuncMap()[type] = func;
+  }
+};
+
 extern NNDEPLOY_CC_API EncodeNode *createEncodeNode(base::CodecType type,
                                                     base::CodecFlag flag,
                                                     const std::string &name,
                                                     dag::Edge *input);
+
+extern NNDEPLOY_CC_API std::shared_ptr<EncodeNode> createEncodeNodeSharedPtr(
+    base::CodecType type, base::CodecFlag flag, const std::string &name,
+    dag::Edge *input);
 
 }  // namespace codec
 }  // namespace nndeploy

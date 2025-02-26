@@ -151,7 +151,7 @@ class NNDEPLOY_CC_API Node {
   virtual int64_t getMemorySize();
   virtual base::Status setMemory(device::Buffer *buffer);
 
-  virtual base::EdgeUpdateFlag updataInput();
+  virtual base::EdgeUpdateFlag updateInput();
 
   virtual base::Status run() = 0;
 

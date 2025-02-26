@@ -298,6 +298,8 @@ base::Status OpenCvCameraEncodeNode::run() {
 
 TypeCreatelDecodeNodeRegister g_type_create_decode_node_register(
     base::kCodecTypeOpenCV, createOpenCvDecodeNode);
+TypeCreatelDecodeNodeSharedPtrRegister g_type_create_decode_node_shared_ptr_register(
+    base::kCodecTypeOpenCV, createOpenCvDecodeNodeSharedPtr);
 
 DecodeNode *createOpenCvDecodeNode(base::CodecFlag flag,
                                    const std::string &name, dag::Edge *output) {
@@ -315,8 +317,26 @@ DecodeNode *createOpenCvDecodeNode(base::CodecFlag flag,
   return temp;
 }
 
+std::shared_ptr<DecodeNode> createOpenCvDecodeNodeSharedPtr(
+    base::CodecFlag flag, const std::string &name, dag::Edge *output) {
+  std::shared_ptr<DecodeNode> temp = nullptr;
+  if (flag == base::kCodecFlagImage) {
+    temp = std::make_shared<OpenCvImageDecodeNode>(flag, name, output);
+  } else if (flag == base::kCodecFlagImages) {
+    temp = std::make_shared<OpenCvImagesDecodeNode>(flag, name, output);
+  } else if (flag == base::kCodecFlagVideo) {
+    temp = std::make_shared<OpenCvVedioDecodeNode>(flag, name, output);
+  } else if (flag == base::kCodecFlagCamera) {
+    temp = std::make_shared<OpenCvCameraDecodeNode>(flag, name, output);
+  }
+
+  return temp;
+}
+
 TypeCreatelEncodeNodeRegister g_type_create_encode_node_register(
     base::kCodecTypeOpenCV, createOpenCvEncodeNode);
+TypeCreatelEncodeNodeSharedPtrRegister g_type_create_encode_node_shared_ptr_register(
+    base::kCodecTypeOpenCV, createOpenCvEncodeNodeSharedPtr);
 
 EncodeNode *createOpenCvEncodeNode(base::CodecFlag flag,
                                    const std::string &name, dag::Edge *input) {
@@ -329,6 +349,22 @@ EncodeNode *createOpenCvEncodeNode(base::CodecFlag flag,
     temp = new OpenCvVedioEncodeNode(flag, name, input);
   } else if (flag == base::kCodecFlagCamera) {
     temp = new OpenCvCameraEncodeNode(flag, name, input);
+  }
+
+  return temp;
+}
+
+std::shared_ptr<EncodeNode> createOpenCvEncodeNodeSharedPtr(
+    base::CodecFlag flag, const std::string &name, dag::Edge *input) {
+  std::shared_ptr<EncodeNode> temp = nullptr;
+  if (flag == base::kCodecFlagImage) {
+    temp = std::make_shared<OpenCvImageEncodeNode>(flag, name, input);
+  } else if (flag == base::kCodecFlagImages) {
+    temp = std::make_shared<OpenCvImagesEncodeNode>(flag, name, input);
+  } else if (flag == base::kCodecFlagVideo) {
+    temp = std::make_shared<OpenCvVedioEncodeNode>(flag, name, input);
+  } else if (flag == base::kCodecFlagCamera) {
+    temp = std::make_shared<OpenCvCameraEncodeNode>(flag, name, input);
   }
 
   return temp;

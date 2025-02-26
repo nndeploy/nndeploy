@@ -61,8 +61,8 @@ class PyNode : public Node {
     PYBIND11_OVERRIDE(base::Status, Node, setMemory, buffer);
   }
 
-  base::EdgeUpdateFlag updataInput() override {
-    PYBIND11_OVERRIDE(base::EdgeUpdateFlag, Node, updataInput);
+  base::EdgeUpdateFlag updateInput() override {
+    PYBIND11_OVERRIDE(base::EdgeUpdateFlag, Node, updateInput);
   }
 
   base::Status run() override {
@@ -165,7 +165,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("deinit", &Node::deinit)
       .def("get_memory_size", &Node::getMemorySize)
       .def("set_memory", &Node::setMemory, py::arg("buffer"))
-      .def("updata_input", &Node::updataInput)
+      .def("updata_input", &Node::updateInput)
       .def("run", &Node::run)
       .def("__call__", &Node::operator(), py::arg("inputs"),
            py::arg("outputs_name") = std::vector<std::string>(),

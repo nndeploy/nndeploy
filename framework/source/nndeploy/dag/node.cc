@@ -299,7 +299,7 @@ base::Status Node::setMemory(device::Buffer *buffer) {
   return base::kStatusCodeOk;
 }
 
-base::EdgeUpdateFlag Node::updataInput() {
+base::EdgeUpdateFlag Node::updateInput() {
   base::EdgeUpdateFlag flag = base::kEdgeUpdateFlagComplete;
   for (auto input : inputs_) {
     flag = input->update(this);

@@ -8,6 +8,10 @@ namespace nndeploy {
 namespace detect {
 
 NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
+  // 首先导入base模块
+  py::module::import("nndeploy._nndeploy_internal.base");
+
+  // 然后再进行DetectBBoxResult和DetectResult的绑定
   py::class_<DetectBBoxResult, base::Param, std::shared_ptr<DetectBBoxResult>>(
       m, "DetectBBoxResult")
       .def(py::init<>())

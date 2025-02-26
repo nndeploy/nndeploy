@@ -7,7 +7,12 @@ namespace nndeploy {
 namespace detect {
 
 NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
-  // 导出YoloPostParam类
+  // 首先导入base模块
+  py::module::import("nndeploy._nndeploy_internal.base");
+  // 首先导入dag模块
+  py::module::import("nndeploy._nndeploy_internal.dag");
+
+  // 然后再进行YoloPostParam和YoloPostProcess的绑定
   py::class_<YoloPostParam, base::Param, std::shared_ptr<YoloPostParam>>(m, "YoloPostParam")
     .def(py::init<>())
     .def_readwrite("score_threshold_", &YoloPostParam::score_threshold_)

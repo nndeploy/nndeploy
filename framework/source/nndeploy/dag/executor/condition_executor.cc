@@ -74,7 +74,7 @@ base::Status ConditionExecutor::process() {
     } else if (flag == base::kEdgeUpdateFlagTerminate) {
       return base::kStatusCodeOk;
     } else {
-      NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",
+      NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
                     cur_node->getName().c_str());
       return base::kStatusCodeErrorDag;
     }

@@ -69,7 +69,7 @@ void ParallelPipelineExecutor::commitThreadPool() {
     auto func = [iter]() -> base::Status {
       base::Status status = base::kStatusCodeOk;
       while (true) {
-        base::EdgeUpdateFlag edge_update_flag = iter->node_->updataInput();
+        base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
         if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
           iter->node_->setRunningFlag(true);
           status = iter->node_->run();
@@ -79,7 +79,7 @@ void ParallelPipelineExecutor::commitThreadPool() {
         } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
           break;
         } else {
-          NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",
+          NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
                         iter->node_->getName().c_str());
           status = base::kStatusCodeErrorDag;
           break;
