@@ -37,6 +37,9 @@ class NNDEPLOY_CC_API DrawBoxNode : public dag::Node {
               std::initializer_list<dag::Edge *> inputs,
               std::initializer_list<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {}
+  DrawBoxNode(const std::string &name, std::vector<dag::Edge *> inputs,
+              std::vector<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {}
   virtual ~DrawBoxNode() {}
 
   virtual base::Status run() {
@@ -84,6 +87,10 @@ class NNDEPLOY_CC_API YoloMultiConvDrawBoxNode : public dag::Node {
   YoloMultiConvDrawBoxNode(const std::string &name,
                            std::initializer_list<dag::Edge *> inputs,
                            std::initializer_list<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {}
+  YoloMultiConvDrawBoxNode(const std::string &name,
+                           std::vector<dag::Edge *> inputs,
+                           std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {}
   virtual ~YoloMultiConvDrawBoxNode() {}
 

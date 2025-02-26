@@ -1,15 +1,15 @@
 
-// #include "nndeploy/detect/drawbox.h"
+#include "nndeploy/detect/drawbox.h"
 
-// #include "nndeploy/base/glic_stl_include.h"
-// #include "nndeploy/base/time_profiler.h"
-// #include "nndeploy/dag/node.h"
-// #include "nndeploy/detect/result.h"
-// #include "nndeploy/device/device.h"
-// #include "nndeploy/thread_pool/thread_pool.h"
+#include "nndeploy/base/glic_stl_include.h"
+#include "nndeploy/base/time_profiler.h"
+#include "nndeploy/dag/node.h"
+#include "nndeploy/detect/result.h"
+#include "nndeploy/device/device.h"
+#include "nndeploy/thread_pool/thread_pool.h"
 
-// namespace nndeploy {
-// namespace detect {
+namespace nndeploy {
+namespace detect {
 
 // DrawBoxNode::DrawBoxNode(const std::string &name,
 //                          std::initializer_list<dag::Edge *> inputs,
@@ -117,3 +117,9 @@
 
 //   virtual base::Status run();
 // };
+
+REGISTER_NODE("nndeploy::detect::DrawBoxNode", DrawBoxNode);
+REGISTER_NODE("nndeploy::detect::YoloMultiConvDrawBoxNode", YoloMultiConvDrawBoxNode);
+
+}  // namespace detect
+}  // namespace nndeploy
