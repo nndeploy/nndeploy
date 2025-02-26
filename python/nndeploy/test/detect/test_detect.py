@@ -63,6 +63,7 @@ class DetectGraph(nndeploy.dag.Graph):
         
     
 def test_detect():
+    print("test_detect")
     # 创建detect_graph
     outputs = _C.dag.Edge("outputs")
     detect_graph = DetectGraph("detect_graph", outputs)

@@ -48,7 +48,7 @@ if(ENABLE_NNDEPLOY_THREAD_POOL)
 endif()
 
 if(ENABLE_NNDEPLOY_CRYPTION)
-  file(GLOB PYTHON_CRYPTION_SOURCE
+  file(GLOB_RECURSE PYTHON_CRYPTION_SOURCE
     "${ROOT_PATH}/python/src/cryption/*.h"
     "${ROOT_PATH}/python/src/cryption/*.cc"
   )
@@ -56,7 +56,7 @@ if(ENABLE_NNDEPLOY_CRYPTION)
 endif()
 
 if(ENABLE_NNDEPLOY_DEVICE)
-  file(GLOB PYTHON_DEVICE_SOURCE
+  file(GLOB_RECURSE PYTHON_DEVICE_SOURCE
     "${ROOT_PATH}/python/src/device/*.h"
     "${ROOT_PATH}/python/src/device/*.cc"
   )
@@ -64,7 +64,7 @@ if(ENABLE_NNDEPLOY_DEVICE)
 endif()
 
 if(ENABLE_NNDEPLOY_OP)
-  file(GLOB PYTHON_OP_SOURCE
+  file(GLOB_RECURSE PYTHON_OP_SOURCE
     "${ROOT_PATH}/python/src/op/*.h"
     "${ROOT_PATH}/python/src/op/*.cc"
   )
@@ -72,7 +72,7 @@ if(ENABLE_NNDEPLOY_OP)
 endif()
 
 if(ENABLE_NNDEPLOY_IR)
-  file(GLOB PYTHON_IR_SOURCE
+  file(GLOB_RECURSE PYTHON_IR_SOURCE
     "${ROOT_PATH}/python/src/ir/*.h"
     "${ROOT_PATH}/python/src/ir/*.cc"
   )
@@ -88,7 +88,7 @@ if(ENABLE_NNDEPLOY_NET)
 endif()
 
 if(ENABLE_NNDEPLOY_INFERENCE)
-  file(GLOB PYTHON_INFERENCE_SOURCE
+  file(GLOB_RECURSE PYTHON_INFERENCE_SOURCE
     "${ROOT_PATH}/python/src/inference/*.h"
     "${ROOT_PATH}/python/src/inference/*.cc"
   )
@@ -115,7 +115,7 @@ endif()
 
 # plugin
 if(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
-  file(GLOB PYTHON_PREPROCESS_SOURCE
+  file(GLOB_RECURSE PYTHON_PREPROCESS_SOURCE
     "${ROOT_PATH}/python/src/preprocess/*.h"
     "${ROOT_PATH}/python/src/preprocess/*.cc"
   )
@@ -123,7 +123,7 @@ if(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
 endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
-  file(GLOB PYTHON_CODEC_SOURCE
+  file(GLOB_RECURSE PYTHON_CODEC_SOURCE
     "${ROOT_PATH}/python/src/codec/*.h"
     "${ROOT_PATH}/python/src/codec/*.cc"
   )
@@ -132,15 +132,23 @@ if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
 endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_INFER)
-  file(GLOB PYTHON_INFER_SOURCE
+  file(GLOB_RECURSE PYTHON_INFER_SOURCE
     "${ROOT_PATH}/python/src/infer/*.h"
     "${ROOT_PATH}/python/src/infer/*.cc"
   )
   set(SOURCE ${SOURCE} ${PYTHON_INFER_SOURCE})
 endif()
 
+if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
+  file(GLOB_RECURSE PYTHON_TOKENIZER_SOURCE
+    "${ROOT_PATH}/python/src/tokenizer/*.h"
+    "${ROOT_PATH}/python/src/tokenizer/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_TOKENIZER_SOURCE})
+endif()
+
 if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
-  file(GLOB PYTHON_DETECT_SOURCE
+  file(GLOB_RECURSE PYTHON_DETECT_SOURCE
     "${ROOT_PATH}/python/src/detect/*.h"
     "${ROOT_PATH}/python/src/detect/*.cc"
   )
@@ -148,7 +156,7 @@ if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
 endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
-  file(GLOB PYTHON_SEGMENT_SOURCE
+  file(GLOB_RECURSE PYTHON_SEGMENT_SOURCE
     "${ROOT_PATH}/python/src/segment/*.h"
     "${ROOT_PATH}/python/src/segment/*.cc"
   )
@@ -156,7 +164,7 @@ if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
 endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
-  file(GLOB PYTHON_CLASSIFICATION_SOURCE
+  file(GLOB_RECURSE PYTHON_CLASSIFICATION_SOURCE
     "${ROOT_PATH}/python/src/classification/*.h"
     "${ROOT_PATH}/python/src/classification/*.cc"
   )
@@ -164,23 +172,15 @@ if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
 endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_LLM)
-  file(GLOB PYTHON_LLM_SOURCE
+  file(GLOB_RECURSE PYTHON_LLM_SOURCE
     "${ROOT_PATH}/python/src/llm/*.h"
     "${ROOT_PATH}/python/src/llm/*.cc"
   )
   set(SOURCE ${SOURCE} ${PYTHON_LLM_SOURCE})
 endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
-  file(GLOB PYTHON_TOKENIZER_SOURCE
-    "${ROOT_PATH}/python/src/tokenizer/*.h"
-    "${ROOT_PATH}/python/src/tokenizer/*.cc"
-  )
-  set(SOURCE ${SOURCE} ${PYTHON_TOKENIZER_SOURCE})
-endif()
-
 if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
-  file(GLOB PYTHON_STABLE_DIFFUSION_SOURCE
+  file(GLOB_RECURSE PYTHON_STABLE_DIFFUSION_SOURCE
     "${ROOT_PATH}/python/src/stable_diffusion/*.h"
     "${ROOT_PATH}/python/src/stable_diffusion/*.cc"
   )
