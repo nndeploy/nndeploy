@@ -95,26 +95,42 @@ base::Status Node::setExternalParam(base::Param *external_param) {
   external_param_.emplace_back(external_param);
   return base::kStatusCodeOk;
 }
-base::Status Node::setExternalParamSharedPtr(std::shared_ptr<base::Param> external_param) {
+base::Status Node::setExternalParamSharedPtr(
+    std::shared_ptr<base::Param> external_param) {
   external_param_.emplace_back(external_param.get());
   return base::kStatusCodeOk;
 }
 
-base::Status Node::setInput(Edge *input) {
+base::Status Node::setInput(Edge *input, int index) {
   if (input == nullptr) {
     NNDEPLOY_LOGE("input is nullptr.\n");
     return base::kStatusCodeErrorNullParam;
   }
-  inputs_.clear();
-  inputs_.emplace_back(input);
+  if (index == -1) {
+    inputs_.emplace_back(input);
+  } else {
+    if (index >= inputs_.size()) {
+      NNDEPLOY_LOGE("index is out of range.\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    inputs_[index] = input;
+  }
   return base::kStatusCodeOk;
 }
-base::Status Node::setOutput(Edge *output) {
+base::Status Node::setOutput(Edge *output, int index) {
   if (output == nullptr) {
     NNDEPLOY_LOGE("output is nullptr.\n");
     return base::kStatusCodeErrorNullParam;
   }
-  outputs_.emplace_back(output);
+  if (index == -1) {
+    outputs_.emplace_back(output);
+  } else {
+    if (index >= outputs_.size()) {
+      NNDEPLOY_LOGE("index is out of range.\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    outputs_[index] = output;
+  }
   return base::kStatusCodeOk;
 }
 
@@ -123,10 +139,10 @@ base::Status Node::setInputs(std::vector<Edge *> inputs) {
     NNDEPLOY_LOGE("inputs is empty.\n");
     return base::kStatusCodeErrorNullParam;
   }
-  if (!inputs_.empty()) {
-    NNDEPLOY_LOGE("inputs_ must be empty.\n");
-    return base::kStatusCodeErrorInvalidParam;
-  }
+  // if (!inputs_.empty()) {
+  //   NNDEPLOY_LOGE("inputs_ must be empty.\n");
+  //   return base::kStatusCodeErrorInvalidParam;
+  // }
   inputs_ = inputs;
   return base::kStatusCodeOk;
 }
@@ -135,28 +151,44 @@ base::Status Node::setOutputs(std::vector<Edge *> outputs) {
     NNDEPLOY_LOGE("outputs is empty.\n");
     return base::kStatusCodeErrorNullParam;
   }
-  if (!outputs_.empty()) {
-    NNDEPLOY_LOGE("outputs_ must be empty.\n");
-    return base::kStatusCodeErrorInvalidParam;
-  }
+  // if (!outputs_.empty()) {
+  //   NNDEPLOY_LOGE("outputs_ must be empty.\n");
+  //   return base::kStatusCodeErrorInvalidParam;
+  // }
   outputs_ = outputs;
   return base::kStatusCodeOk;
 }
 
-base::Status Node::setInputSharedPtr(std::shared_ptr<Edge> input) {
+base::Status Node::setInputSharedPtr(std::shared_ptr<Edge> input, int index) {
   if (input == nullptr) {
     NNDEPLOY_LOGE("input is nullptr.\n");
     return base::kStatusCodeErrorNullParam;
   }
-  inputs_.emplace_back(input.get());
+  if (index == -1) {
+    inputs_.emplace_back(input.get());
+  } else {
+    if (index >= inputs_.size()) {
+      NNDEPLOY_LOGE("index is out of range.\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    inputs_[index] = input.get();
+  }
   return base::kStatusCodeOk;
 }
-base::Status Node::setOutputSharedPtr(std::shared_ptr<Edge> output) {
+base::Status Node::setOutputSharedPtr(std::shared_ptr<Edge> output, int index) {
   if (output == nullptr) {
     NNDEPLOY_LOGE("output is nullptr.\n");
     return base::kStatusCodeErrorNullParam;
   }
-  outputs_.emplace_back(output.get());
+  if (index == -1) {
+    outputs_.emplace_back(output.get());
+  } else {
+    if (index >= outputs_.size()) {
+      NNDEPLOY_LOGE("index is out of range.\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    outputs_[index] = output.get();
+  }
   return base::kStatusCodeOk;
 }
 base::Status Node::setInputsSharedPtr(
@@ -210,7 +242,7 @@ void Node::setInitializedFlag(bool flag) {
     if (initialized_) {
       NNDEPLOY_LOGE("%s init finish.\n", name_.c_str());
     } else {
-      NNDEPLOY_LOGE("%s not init.\n", name_.c_str());
+      NNDEPLOY_LOGE("%s not init or deinit.\n", name_.c_str());
     }
   }
 }
@@ -286,6 +318,50 @@ std::vector<std::shared_ptr<Edge>> Node::operator()(
   } else {
     return functorWithGraph(inputs, outputs_name, param);
   }
+}
+
+std::vector<Edge *> Node::test(std::vector<Edge *> inputs,
+                               std::vector<std::string> outputs_name) {
+  std::vector<Edge *> outputs;
+  if (initialized_ == false) {
+    this->init();
+    this->setInitializedFlag(true);
+  }
+  // // if (param_ == nullptr) {
+  // //   this->setParamSharedPtr(param);
+  // // }
+  if (!inputs.empty()) {
+    this->setInputs(inputs);
+  }
+  
+  if (!outputs_name.empty()) {
+    for (size_t i = 0; i < outputs_name.size(); i++) {
+      outputs.push_back(new Edge(outputs_name[i]));
+    }
+  } else if (!outputs_.empty()) {
+    for (auto output : outputs_) {
+      outputs.push_back(new Edge(output->getName()));
+    }
+  } else {
+    for (size_t i = 0; i < output_type_info_.size(); i++) {
+      std::string output_name = name_ + "_" + std::to_string(i);
+      outputs.push_back(new Edge(output_name));
+    }
+  }
+  if (!outputs.empty()) {
+    this->setOutputs(outputs);
+  }
+  base::Status status = this->run();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("Node %s run failed.\n", name_.c_str());
+    return std::vector<Edge *>();
+  }
+  if (initialized_ == false) {
+    this->deinit();
+  }
+  return outputs;
+  // return std::vector<Edge *>();
+  // return;
 }
 
 std::vector<std::shared_ptr<Edge>> Node::functorWithoutGraph(

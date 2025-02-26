@@ -43,7 +43,24 @@ class Edge(_C.dag.Edge):
         self.index = index
         self.position = self.index
         self.type_name = type(data).__module__ + "." + type(data).__name__
-        return nndeploy.base.StatusCode.Ok
+        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+      
+    def setV2(self, data: any, index: int = 0):
+        if isinstance(data, (nndeploy.device.Buffer, nndeploy.device.Tensor)):
+            # self.type_name = "nd." + type(data).__name__
+            status = super().set(data, index, True)
+            if status != nndeploy.base.StatusCode.Ok:
+                raise ValueError("Failed to set data")
+        else: # 处理其他类型的数据
+            # self.type_name = type(data).__name__
+            if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
+                self.data = data
+            elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
+                raise ValueError("Parallel type is not supported")
+        self.index = index
+        self.position = self.index
+        self.type_name = type(data).__module__ + "." + type(data).__name__
+        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
         
     def create_buffer(self, device: nndeploy.device.Device, desc: nndeploy.device.BufferDesc, index: int):
         # 创建Buffer时设置正确的类型名称

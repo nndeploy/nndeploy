@@ -404,7 +404,7 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @return base::Status
    */
   base::Status addNode(Node *node, bool is_external = true);
-  base::Status addNode(std::shared_ptr<Node> node);
+  base::Status addNodeSharedPtr(std::shared_ptr<Node> node);
 
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);

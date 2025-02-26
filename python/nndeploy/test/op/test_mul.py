@@ -10,6 +10,10 @@ from nndeploy.test.test_util import (
     name_to_device_type_code,
 )
 
+
+# python3 nndeploy/test/op/test_mul.py
+
+
 class TestMulOp(unittest.TestCase):
 
     def test_mul(self):

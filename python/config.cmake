@@ -13,6 +13,8 @@ set(THIRD_PARTY_LIBRARY)
 set(PACKAGE_VERSION ${NNDEPLOY_VERSION})
 add_definitions(-DVERSION_INFO="${PACKAGE_VERSION}")
 
+add_definitions(-DPYBIND11_DETAILED_ERROR_MESSAGES)
+
 # 添加 pybind11 子目录
 add_subdirectory(${ROOT_PATH}/third_party/pybind11)
 

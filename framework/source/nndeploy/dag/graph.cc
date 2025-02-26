@@ -308,12 +308,13 @@ base::Status Graph::addNode(Node *node, bool is_external) {
   used_node_names_.insert(node->getName());
   return status;
 }
-base::Status Graph::addNode(std::shared_ptr<Node> node) {
+base::Status Graph::addNodeSharedPtr(std::shared_ptr<Node> node) {
   if (node == nullptr) {
     NNDEPLOY_LOGE("node is null!");
     return base::kStatusCodeErrorInvalidValue;
   }
   base::Status status = addNode(node.get(), true);
+  NNDEPLOY_LOGE("addNodeSharedPtr: %s\n", node->getName().c_str());
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "addNode failed!");
   shared_node_repository_.emplace_back(node);
   return status;
@@ -453,21 +454,27 @@ std::vector<std::shared_ptr<Edge>> Graph::updateNodeIO(
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
-  // NNDEPLOY_LOGI("###########################\n");
+  NNDEPLOY_LOGI("###########################\n");
+  NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(false);
 
+  NNDEPLOY_LOGE("###########################\n");
+  NNDEPLOY_LOGE("construct!\n");
+  NNDEPLOY_LOGE("###########################\n");
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "graph construct failed!");
 
+  NNDEPLOY_LOGE("###########################\n");
+  NNDEPLOY_LOGE("executor!\n");
+  NNDEPLOY_LOGE("###########################\n");
   status = this->executor();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph executor failed!");
 
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag true!\n");
-  // NNDEPLOY_LOGI("###########################\n");
+  NNDEPLOY_LOGI("###########################\n");
+  NNDEPLOY_LOGI("setInitializedFlag true!\n");
+  NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(true);
 
   return status;
@@ -522,16 +529,16 @@ base::Status Graph::dump(std::ostream &oss) {
 base::Status Graph::construct() {
   base::Status status = base::kStatusCodeOk;
 
-  // NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
+  NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
 
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("parallel_type_!\n");
-  // NNDEPLOY_LOGI("###########################\n");
+  NNDEPLOY_LOGI("###########################\n");
+  NNDEPLOY_LOGI("parallel_type_!\n");
+  NNDEPLOY_LOGI("###########################\n");
   // base::ParallelType parallel_type_ = parallel_type_;
 
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
-  // NNDEPLOY_LOGI("###########################\n");
+  NNDEPLOY_LOGI("###########################\n");
+  NNDEPLOY_LOGI("Parameter Validation Phase!\n");
+  NNDEPLOY_LOGI("###########################\n");
   for (auto node_wrapper : node_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper->node_,
                                          "edge_repository_ node is null!");
@@ -545,9 +552,9 @@ base::Status Graph::construct() {
     }
   }
 
-  // NNDEPLOY_LOGI("####################\n");
-  // NNDEPLOY_LOGI("Mark Predecessors And Successors Phase!\n");
-  // NNDEPLOY_LOGI("####################\n");
+  NNDEPLOY_LOGI("####################\n");
+  NNDEPLOY_LOGI("Mark Predecessors And Successors Phase!\n");
+  NNDEPLOY_LOGI("####################\n");
   for (auto node_wrapper : node_repository_) {
     Node *node = node_wrapper->node_;
     node->setDebugFlag(is_debug_);
@@ -576,17 +583,20 @@ base::Status Graph::construct() {
     }
   }
 
-  // NNDEPLOY_LOGI("##############\n");
-  // NNDEPLOY_LOGI("construct edge\n");
-  // NNDEPLOY_LOGI("##############\n");
+  NNDEPLOY_LOGI("##############\n");
+  NNDEPLOY_LOGI("construct edge\n");
+  NNDEPLOY_LOGI("##############\n");
   for (auto edge_wrapper : edge_repository_) {
+    NNDEPLOY_LOGE("construct edge: %s\n", edge_wrapper->edge_->getName().c_str());
     std::vector<Node *> producers;
     for (auto producer : edge_wrapper->producers_) {
       producers.emplace_back(producer->node_);
+      NNDEPLOY_LOGE("producer: %s\n", producer->node_->getName().c_str());
     }
     std::vector<Node *> consumers;
     for (auto consumer : edge_wrapper->consumers_) {
       consumers.emplace_back(consumer->node_);
+      NNDEPLOY_LOGE("consumer: %s\n", consumer->node_->getName().c_str());
     }
     base::Status status = edge_wrapper->edge_->setParallelType(parallel_type_);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -620,7 +630,7 @@ base::Status Graph::construct() {
     }
   }
 
-  // NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
+  NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
 
   return status;
 }

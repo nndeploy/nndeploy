@@ -102,16 +102,17 @@ class NNDEPLOY_CC_API Node {
   virtual base::Param *getParam();
   virtual std::shared_ptr<base::Param> getParamSharedPtr();
   virtual base::Status setExternalParam(base::Param *external_param);
-  virtual base::Status setExternalParamSharedPtr(std::shared_ptr<base::Param> external_param);
+  virtual base::Status setExternalParamSharedPtr(
+      std::shared_ptr<base::Param> external_param);
 
-  base::Status setInput(Edge *input);
-  base::Status setOutput(Edge *output);
+  base::Status setInput(Edge *input, int index = -1);
+  base::Status setOutput(Edge *output, int index = -1);
 
   base::Status setInputs(std::vector<Edge *> inputs);
   base::Status setOutputs(std::vector<Edge *> outputs);
 
-  base::Status setInputSharedPtr(std::shared_ptr<Edge> input);
-  base::Status setOutputSharedPtr(std::shared_ptr<Edge> output);
+  base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1);
+  base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index = -1);
 
   base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs);
   base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs);
@@ -175,22 +176,26 @@ class NNDEPLOY_CC_API Node {
    * ### 第二次~第n次执行
    * ### 输入edge是否更行
    */
-  virtual std::vector<std::shared_ptr<Edge>> operator()(
+  std::vector<std::shared_ptr<Edge>> operator()(
       std::vector<std::shared_ptr<Edge>> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
-  virtual std::vector<std::shared_ptr<Edge>> functorWithoutGraph(
+  std::vector<Edge *> test(
+      std::vector<Edge *> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>());
+
+  std::vector<std::shared_ptr<Edge>> functorWithoutGraph(
       std::vector<std::shared_ptr<Edge>> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
-  virtual std::vector<std::shared_ptr<Edge>> functorWithGraph(
+  std::vector<std::shared_ptr<Edge>> functorWithGraph(
       std::vector<std::shared_ptr<Edge>> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
-  virtual std::vector<std::shared_ptr<Edge>> functorDynamic(
+  std::vector<std::shared_ptr<Edge>> functorDynamic(
       std::vector<std::shared_ptr<Edge>> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);

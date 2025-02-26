@@ -1,8 +1,8 @@
-#include "nndeploy/dag/edge.h"
-#include "nndeploy/dag/graph.h"
 #include "nndeploy/dag/node.h"
 
+#include "nndeploy/base/param.h"
 #include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/graph.h"
 #include "nndeploy_api_registry.h"
 
 namespace py = pybind11;
@@ -30,7 +30,7 @@ class PyNode : public Node {
   }
 
   base::Param *getParam() override {
-    PYBIND11_OVERRIDE(base::Param*, Node, getParam);
+    PYBIND11_OVERRIDE(base::Param *, Node, getParam);
   }
 
   std::shared_ptr<base::Param> getParamSharedPtr() override {
@@ -41,13 +41,13 @@ class PyNode : public Node {
     PYBIND11_OVERRIDE(base::Status, Node, setExternalParam, external_param);
   }
 
-  base::Status setExternalParamSharedPtr(std::shared_ptr<base::Param> external_param) override {
-    PYBIND11_OVERRIDE(base::Status, Node, setExternalParamSharedPtr, external_param);
+  base::Status setExternalParamSharedPtr(
+      std::shared_ptr<base::Param> external_param) override {
+    PYBIND11_OVERRIDE(base::Status, Node, setExternalParamSharedPtr,
+                      external_param);
   }
 
-  base::Status init() override {
-    PYBIND11_OVERRIDE(base::Status, Node, init);
-  }
+  base::Status init() override { PYBIND11_OVERRIDE(base::Status, Node, init); }
 
   base::Status deinit() override {
     PYBIND11_OVERRIDE(base::Status, Node, deinit);
@@ -68,118 +68,171 @@ class PyNode : public Node {
   base::Status run() override {
     PYBIND11_OVERRIDE_PURE(base::Status, Node, run);
   }
+};
 
-  std::vector<std::shared_ptr<Edge>> operator()(
-      std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name,
-      std::shared_ptr<base::Param> param) override {
-    PYBIND11_OVERRIDE(std::vector<std::shared_ptr<Edge>>, Node, operator(), inputs, outputs_name, param);
+class PyGraph : public Graph {
+ public:
+  using Graph::Graph;  // 继承构造函数
+
+  virtual base::Status init() override {
+    PYBIND11_OVERRIDE(base::Status, Graph, init);
   }
 
-  std::vector<std::shared_ptr<Edge>> functorWithoutGraph(
-      std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name,
-      std::shared_ptr<base::Param> param) override {
-    PYBIND11_OVERRIDE(std::vector<std::shared_ptr<Edge>>, Node, functorWithoutGraph, inputs, outputs_name, param);
+  virtual base::Status deinit() override {
+    PYBIND11_OVERRIDE(base::Status, Graph, deinit);
   }
 
-  std::vector<std::shared_ptr<Edge>> functorWithGraph(
-      std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name,
-      std::shared_ptr<base::Param> param) override {
-    PYBIND11_OVERRIDE(std::vector<std::shared_ptr<Edge>>, Node, functorWithGraph, inputs, outputs_name, param);
-  }
-
-  std::vector<std::shared_ptr<Edge>> functorDynamic(
-      std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name,
-      std::shared_ptr<base::Param> param) override {
-    PYBIND11_OVERRIDE(std::vector<std::shared_ptr<Edge>>, Node, functorDynamic, inputs, outputs_name, param);
+  virtual base::Status run() override {
+    PYBIND11_OVERRIDE(base::Status, Graph, run);
   }
 };
 
-
 NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
-  py::class_<NodeDesc, std::shared_ptr<NodeDesc>>(m, "NodeDesc", py::dynamic_attr())
-      .def(py::init<const std::string&, std::initializer_list<std::string>, std::initializer_list<std::string>>())
-      .def(py::init<const std::string&, std::vector<std::string>, std::vector<std::string>>())
-      .def(py::init<const std::string&, const std::string&, std::initializer_list<std::string>, std::initializer_list<std::string>>())
-      .def(py::init<const std::string&, const std::string&, std::vector<std::string>, std::vector<std::string>>())
+  py::class_<NodeDesc, std::shared_ptr<NodeDesc>>(m, "NodeDesc",
+                                                  py::dynamic_attr())
+      .def(py::init<const std::string &, std::initializer_list<std::string>,
+                    std::initializer_list<std::string>>())
+      .def(py::init<const std::string &, std::vector<std::string>,
+                    std::vector<std::string>>())
+      .def(py::init<const std::string &, const std::string &,
+                    std::initializer_list<std::string>,
+                    std::initializer_list<std::string>>())
+      .def(py::init<const std::string &, const std::string &,
+                    std::vector<std::string>, std::vector<std::string>>())
       .def("get_key", &NodeDesc::getKey)
       .def("get_name", &NodeDesc::getName)
       .def("get_inputs", &NodeDesc::getInputs)
       .def("get_outputs", &NodeDesc::getOutputs);
 
-  // 定义Node类绑定
   py::class_<Node, PyNode, std::shared_ptr<Node>>(m, "Node", py::dynamic_attr())
-      // 构造函数
-      .def(py::init<const std::string&>())
-      .def(py::init<const std::string&, Edge*, Edge*>())
-      .def(py::init<const std::string&, std::initializer_list<Edge*>,
-                    std::initializer_list<Edge*>>())
-      .def(py::init<const std::string&, std::vector<Edge*>,
-                    std::vector<Edge*>>())
-
-      // 基本属性访问
+      .def(py::init<const std::string &>())
+      .def(py::init<const std::string &, Edge *, Edge *>())
+      .def(py::init<const std::string &, std::initializer_list<Edge *>,
+                    std::initializer_list<Edge *>>())
+      .def(py::init<const std::string &, std::vector<Edge *>,
+                    std::vector<Edge *>>())
       .def("get_name", &Node::getName)
-      .def("set_graph", &Node::setGraph)
-      .def("get_graph", &Node::getGraph)
-      .def("set_device_type", &Node::setDeviceType)
+      .def("set_graph", &Node::setGraph, py::arg("graph"))
+      .def("get_graph", &Node::getGraph, py::return_value_policy::reference)
+      .def("set_device_type", &Node::setDeviceType, py::arg("device_type"))
       .def("get_device_type", &Node::getDeviceType)
-
-      // 参数相关
-      .def("set_param", &Node::setParam)
-      .def("set_param_shared_ptr", &Node::setParamSharedPtr)
-      .def("get_param", &Node::getParam)
-      .def("get_param_shared_ptr", &Node::getParamSharedPtr)
-      .def("set_external_param", &Node::setExternalParam)
-      .def("set_external_param_shared_ptr", &Node::setExternalParamSharedPtr)
-
-      // 输入输出边
-      .def("set_input", &Node::setInput)
-      .def("set_output", &Node::setOutput)
-      .def("set_inputs", &Node::setInputs)
-      .def("set_outputs", &Node::setOutputs)
-      .def("set_input_shared_ptr", &Node::setInputSharedPtr)
-      .def("set_output_shared_ptr", &Node::setOutputSharedPtr)
-      .def("set_inputs_shared_ptr", &Node::setInputsSharedPtr)
-      .def("set_outputs_shared_ptr", &Node::setOutputsSharedPtr)
-      .def("get_input", &Node::getInput)
-      .def("get_output", &Node::getOutput)
-      .def("get_all_input", &Node::getAllInput)
-      .def("get_all_output", &Node::getAllOutput)
-
-      // 状态标志
+      .def("set_param_cpp", &Node::setParam, py::arg("param"))
+      .def("set_param", &Node::setParamSharedPtr, py::arg("param"))
+      .def("get_param_cpp", &Node::getParam, py::return_value_policy::reference)
+      .def("get_param", &Node::getParamSharedPtr)
+      .def("set_external_param_cpp", &Node::setExternalParam,
+           py::arg("external_param"))
+      .def("set_external_param", &Node::setExternalParamSharedPtr,
+           py::arg("external_param"))
+      .def("set_input", &Node::setInput, py::arg("input"),
+           py::arg("index") = -1)
+      .def("set_output", &Node::setOutput, py::arg("output"),
+           py::arg("index") = -1)
+      .def("set_inputs", &Node::setInputs, py::arg("inputs"))
+      .def("set_outputs", &Node::setOutputs, py::arg("outputs"))
+      .def("set_input_shared_ptr", &Node::setInputSharedPtr, py::arg("input"),
+           py::arg("index") = -1)
+      .def("set_output_shared_ptr", &Node::setOutputSharedPtr,
+           py::arg("output"), py::arg("index") = -1)
+      .def("set_inputs_shared_ptr", &Node::setInputsSharedPtr,
+           py::arg("inputs"))
+      .def("set_outputs_shared_ptr", &Node::setOutputsSharedPtr,
+           py::arg("outputs"))
+      .def("get_input", &Node::getInput, py::arg("index") = 0,
+           py::return_value_policy::reference)
+      .def("get_output", &Node::getOutput, py::arg("index") = 0,
+           py::return_value_policy::reference)
+      .def("get_all_input", &Node::getAllInput,
+           py::return_value_policy::reference)
+      .def("get_all_output", &Node::getAllOutput,
+           py::return_value_policy::reference)
       .def("get_constructed", &Node::getConstructed)
-      .def("set_parallel_type", &Node::setParallelType)
+      .def("set_parallel_type", &Node::setParallelType,
+           py::arg("parallel_type"))
       .def("get_parallel_type", &Node::getParallelType)
-      .def("set_inner_flag", &Node::setInnerFlag)
-      .def("set_initialized_flag", &Node::setInitializedFlag)
+      .def("set_inner_flag", &Node::setInnerFlag, py::arg("flag"))
+      .def("set_initialized_flag", &Node::setInitializedFlag, py::arg("flag"))
       .def("get_initialized", &Node::getInitialized)
-      .def("set_time_profile_flag", &Node::setTimeProfileFlag)
+      .def("set_time_profile_flag", &Node::setTimeProfileFlag, py::arg("flag"))
       .def("get_time_profile_flag", &Node::getTimeProfileFlag)
-      .def("set_debug_flag", &Node::setDebugFlag)
+      .def("set_debug_flag", &Node::setDebugFlag, py::arg("flag"))
       .def("get_debug_flag", &Node::getDebugFlag)
-      .def("set_running_flag", &Node::setRunningFlag)
+      .def("set_running_flag", &Node::setRunningFlag, py::arg("flag"))
       .def("is_running", &Node::isRunning)
-
-      // Stream相关
-      .def("set_stream", &Node::setStream)
-      .def("get_stream", &Node::getStream)
-
-      // 核心功能方法
+      .def("set_stream", &Node::setStream, py::arg("stream"))
+      .def("get_stream", &Node::getStream, py::return_value_policy::reference)
       .def("init", &Node::init)
       .def("deinit", &Node::deinit)
       .def("get_memory_size", &Node::getMemorySize)
-      .def("set_memory", &Node::setMemory)
+      .def("set_memory", &Node::setMemory, py::arg("buffer"))
       .def("updata_input", &Node::updataInput)
       .def("run", &Node::run)
-      .def("__call__", &Node::operator())
-      .def("functor_without_graph", &Node::functorWithoutGraph)
-      .def("functor_with_graph", &Node::functorWithGraph)
-      .def("functor_dynamic", &Node::functorDynamic)
-      .def("check_inputs", &Node::checkInputs)
-      .def("check_outputs", &Node::checkOutputs);
+      .def("__call__", &Node::operator(), py::arg("inputs"),
+           py::arg("outputs_name") = std::vector<std::string>(),
+           py::arg("param") = nullptr)
+      .def(
+          "test",
+          [](Node &node, std::vector<Edge *> inputs,
+             std::vector<std::string> outputs_name) {
+            std::vector<Edge *> cpp_outputs;
+            cpp_outputs = node.test(inputs, outputs_name);
+            return cpp_outputs;
+          },
+          py::arg("inputs"),
+          py::arg("outputs_name") = std::vector<std::string>(),
+          py::return_value_policy::reference)
+      .def("functor_without_graph", &Node::functorWithoutGraph,
+           py::arg("inputs"),
+           py::arg("outputs_name") = std::vector<std::string>(),
+           py::arg("param") = nullptr)
+      .def("functor_with_graph", &Node::functorWithGraph, py::arg("inputs"),
+           py::arg("outputs_name") = std::vector<std::string>(),
+           py::arg("param") = nullptr)
+      .def("functor_dynamic", &Node::functorDynamic, py::arg("inputs"),
+           py::arg("outputs_name") = std::vector<std::string>(),
+           py::arg("param") = nullptr)
+      .def("check_inputs", &Node::checkInputs, py::arg("inputs"))
+      .def("check_outputs", &Node::checkOutputs, py::arg("outputs_name"));
+
+  py::class_<Graph, PyGraph, Node, std::shared_ptr<Graph>>(m, "Graph",
+                                                           py::dynamic_attr())
+      .def(py::init<const std::string &>())
+      .def(py::init<const std::string &, Edge *, Edge *>())
+      .def(py::init<const std::string &, std::initializer_list<Edge *>,
+                    std::initializer_list<Edge *>>())
+      .def(py::init<const std::string &, std::vector<Edge *>,
+                    std::vector<Edge *>>())
+      .def("create_edge", &Graph::createEdge, py::arg("name"))
+      .def("create_edge_shared_ptr", &Graph::createEdgeSharedPtr,
+           py::arg("name"))
+      .def(
+          "add_edge",
+          [](Graph &g, Edge *edge, bool is_external) {
+            g.addEdge(edge, is_external);
+          },
+          py::arg("edge"), py::arg("is_external") = true)
+      .def("add_edge_shared_ptr", &Graph::addEdgeSharedPtr, py::arg("edge"))
+      .def("remove_edge", &Graph::removeEdge, py::arg("edge"))
+      .def("get_edge", &Graph::getEdge, py::arg("name"))
+      .def("get_edge_shared_ptr", &Graph::getEdgeSharedPtr, py::arg("name"))
+      .def("create_node", &Graph::createNodeByKey, py::arg("desc"))
+      .def("add_node", &Graph::addNode, py::arg("node"),
+           py::arg("is_external") = true)
+      .def("add_node_shared_ptr", &Graph::addNodeSharedPtr, py::arg("node"))
+      .def("set_node_param", &Graph::setNodeParam, py::arg("node_name"),
+           py::arg("param"))
+      .def("get_node_param", &Graph::getNodeParam, py::arg("node_name"))
+      .def("set_graph_node_share_stream", &Graph::setGraphNodeShareStream,
+           py::arg("flag"))
+      .def("get_graph_node_share_stream", &Graph::getGraphNodeShareStream)
+      .def("update_node_io", &Graph::updateNodeIO, py::arg("node"),
+           py::arg("inputs"), py::arg("outputs_name"))
+      .def("init", &Graph::init)
+      .def("deinit", &Graph::deinit)
+      .def("run", &Graph::run)
+      .def("dump", [](Graph &g) {
+          g.dump(std::cout);
+      });
 }
 
 }  // namespace dag
