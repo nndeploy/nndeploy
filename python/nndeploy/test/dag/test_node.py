@@ -14,6 +14,46 @@ import torch
 # python3 nndeploy/test/dag/test_node.py
 
 
+# class CustomNode(nndeploy.dag.Node):
+#     def __init__(self, name, inputs: list[_C.dag.Edge] = None, outputs: list[_C.dag.Edge] = None):
+#         super().__init__(name, inputs, outputs)
+#         self.inputs_type = [torch.Tensor for _ in inputs] if inputs else []
+#         self.outputs_type = [torch.Tensor for _ in outputs] if outputs else []
+    
+#     def init(self):
+#         print("CustomNode init")
+#         # return super().init()
+#         return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+
+#     def deinit(self):
+#         print("CustomNode deinit") 
+#         # return super().deinit()
+#         return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        
+#     def run(self):
+#         # 实现自定义的run方法
+#         import torch
+#         print("CustomNode run start")
+#         input_edge_1 = self.get_input(0)
+#         input_edge_2 = self.get_input(1)
+#         # print(input_edge_1.get())
+#         # print(input_edge_2.get())
+#         add_result = input_edge_1.get() + input_edge_2.get()
+#         output_edge = self.get_output(0)
+#         # 确保输出边是nndeploy.dag.Edge类型
+#         # output_edge = nndeploy.dag.Edge.from_internal_edge(output_edge)
+#         if isinstance(output_edge, nndeploy.dag.Edge):
+#             print("output_edge is nndeploy.dag.Edge")
+#         elif isinstance(output_edge, _C.dag.Edge):
+#             print("output_edge is _C.dag.Edge")
+#         else:
+#             print("output_edge is not nndeploy.dag.Edge")
+#         output_edge.setV2(add_result)
+#         print("CustomNode run end")
+#         return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+
+
+
 class CustomNode(nndeploy.dag.Node):
     def __init__(self, name, inputs: list[_C.dag.Edge] = None, outputs: list[_C.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
@@ -36,12 +76,8 @@ class CustomNode(nndeploy.dag.Node):
         print("CustomNode run start")
         input_edge_1 = self.get_input(0)
         input_edge_2 = self.get_input(1)
-        # print(input_edge_1.get())
-        # print(input_edge_2.get())
         add_result = input_edge_1.get() + input_edge_2.get()
         output_edge = self.get_output(0)
-        # 确保输出边是nndeploy.dag.Edge类型
-        # output_edge = nndeploy.dag.Edge.from_internal_edge(output_edge)
         if isinstance(output_edge, nndeploy.dag.Edge):
             print("output_edge is nndeploy.dag.Edge")
         elif isinstance(output_edge, _C.dag.Edge):
@@ -71,9 +107,11 @@ def test_node():
     # print(output_edge.get_type_name())    
     # node.deinit()
     
-    edge_list = node.get_all_input()
-    print(edge_list)
+    edge_list = node.get_all_output()
+    print(edge_list[0].get_type_name())
+    print(edge_list[0].get())
     
+    # TODO:该函数在内部创建了_C.dag.Edge, 他不是nndeploy.dag.Edge，所以他会报错
     output_edge_v2 = node.test([input_edge_1, input_edge_2], ["output"])
     print("end!!!")
     print(output_edge_v2)
