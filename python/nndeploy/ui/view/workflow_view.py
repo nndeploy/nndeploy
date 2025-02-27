@@ -2,6 +2,8 @@ from flet import View, Container, Text
 import flet
 from .base_view import BaseView
 
+# from view.workflow.flow_stack import FlowStack
+
 class WorkflowView(BaseView):
     def build(self) -> View:
         return View(
@@ -17,12 +19,16 @@ class WorkflowView(BaseView):
             content=flet.ListView(
                 controls=[
                     Container(
-                        content=Text(
+                        content=flet.Row( 
+                            controls=[
+                            Text(
                             "Workflow Builder",
                             size=30,
                             weight=flet.FontWeight.BOLD,
                             text_align=flet.TextAlign.CENTER,
-                        ),
+                            ),
+                            # FlowStack(),
+                        ]),
                         margin=flet.margin.only(top=20, bottom=20),
                         alignment=flet.alignment.center,
                     ),
