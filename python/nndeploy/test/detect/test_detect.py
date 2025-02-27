@@ -83,6 +83,12 @@ def test_detect():
     _C.base.time_point_end("py_run")
     print("run end")  
     
+    result = outputs.get_graph_output_param()
+    print(result.bboxs_[0].index_)
+    print(result.bboxs_[0].label_id_)
+    print(result.bboxs_[0].score_)
+    print(result.bboxs_[0].bbox_)
+    print(result.bboxs_[0].mask_)
     detect_graph.deinit()
     
     _C.base.time_profiler_print("py_run")
