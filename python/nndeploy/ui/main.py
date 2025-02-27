@@ -12,14 +12,14 @@ import settings
 def main(page: Page):
     # 设置主题
     page.theme_mode = ThemeMode.LIGHT
-    page.theme = Theme(color_scheme_seed=colors.BLUE)
+    page.theme = Theme(color_scheme_seed=flet.Colors.BLUE)
     
     # 设置窗口大小
     page.window_width = 1200
     page.window_height = 800
     page.padding = 0
     page.scroll = None
-    page.bgcolor = flet.colors.WHITE
+    page.bgcolor = flet.Colors.WHITE
     
     # 视图映射
     views = {
