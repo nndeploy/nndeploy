@@ -10,10 +10,10 @@ import torch
 
 
 # python3 nndeploy/test/detect/test_detect.py
-      
+    
       
 class DetectGraph(nndeploy.dag.Graph):
-    def __init__(self, name, outputs: _C.dag.Edge):
+    def __init__(self, name, outputs: _C.dag.Edge, codec_flag: nndeploy.base.CodecFlag = nndeploy.base.CodecFlag.Image):
         super().__init__(name, [], [outputs])
         self.model_inputs = ["images"]
         self.model_outputs = ["output0"]
@@ -24,7 +24,8 @@ class DetectGraph(nndeploy.dag.Graph):
         self.is_path = True
         self.model_value = ["/home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx"]
         
-        self.input_edge = self.create_edge("input_edge")
+        # self.input_edge = self.create_edge_shared_ptr("input_edge")
+        self.input_edge = nndeploy.dag.Edge("input_edge")
         self.yolo_graph = _C.detect.YoloGraph("yolo_graph", [self.input_edge], [outputs])
         print(type(self.yolo_graph))
         print(type(self.yolo_graph).__bases__)
@@ -36,14 +37,15 @@ class DetectGraph(nndeploy.dag.Graph):
         self.yolo_graph.set_version(self.version)
         self.add_node_shared_ptr(self.yolo_graph)
         
-        self.decode_node = _C.codec.create_decode_node_shared_ptr(nndeploy.base.CodecType.OpenCV, nndeploy.base.CodecFlag.Image, "decode_node", self.input_edge)
+        self.decode_node = _C.codec.create_decode_node_shared_ptr(nndeploy.base.CodecType.OpenCV, codec_flag, "decode_node", self.input_edge)
         self.add_node_shared_ptr(self.decode_node)
         
-        self.draw_output = self.create_edge("draw_output")
+        # self.draw_output = self.create_edge("draw_output")
+        self.draw_output = nndeploy.dag.Edge("draw_output")
         self.draw_box_node = _C.detect.DrawBoxNode("draw_box_node", [self.input_edge, outputs], [self.draw_output])
         self.add_node_shared_ptr(self.draw_box_node)
         
-        self.encode_node = _C.codec.create_encode_node_shared_ptr(nndeploy.base.CodecType.OpenCV, nndeploy.base.CodecFlag.Image, "encode_node", self.draw_output)
+        self.encode_node = _C.codec.create_encode_node_shared_ptr(nndeploy.base.CodecType.OpenCV, codec_flag, "encode_node", self.draw_output)
         self.add_node_shared_ptr(self.encode_node)
     
     def set_input_path(self, path):
@@ -76,7 +78,7 @@ def test_detect():
     
     # 设置输入路径
     detect_graph.set_input_path("/home/ascenduserdg01/github/nndeploy/docs/image/demo/detect/sample.jpg")
-    # 设置输出路径
+    # # 设置输出路径
     detect_graph.set_output_path("/home/ascenduserdg01/github/nndeploy/build/aaa.jpg")
     _C.base.time_point_start("py_run")
     detect_graph.run() 
