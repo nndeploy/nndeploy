@@ -16,11 +16,11 @@ include_directories(${ROOT_PATH}/demo)
 #   "${ROOT_PATH}/demo/acl_op/*.cc"
 # )
 set(SOURCE ${ROOT_PATH}/demo/acl_op/demo.cc)
-file(GLOB DEMO_SOURCE
-  "${ROOT_PATH}/demo/*.h"
-  "${ROOT_PATH}/demo/*.cc"
-)
-set(SOURCE ${SOURCE} ${DEMO_SOURCE})
+# file(GLOB DEMO_SOURCE
+#   "${ROOT_PATH}/demo/*.h"
+#   "${ROOT_PATH}/demo/*.cc"
+# )
+# set(SOURCE ${SOURCE} ${DEMO_SOURCE})
 
 # ascend c
 # set(SOC_VERSION "Ascend910B4" CACHE STRING "system on chip type")

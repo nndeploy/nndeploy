@@ -80,11 +80,11 @@ int CreateAclTensor(const std::vector<T>& hostData,
 
 int main() {
   NNDEPLOY_LOGE("BK.\n");
-  int nndp_ret = nndeployFrameworkInit();
-  if (nndp_ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", nndp_ret);
-    return nndp_ret;
-  }
+  // int nndp_ret = nndeployFrameworkInit();
+  // if (nndp_ret != 0) {
+  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", nndp_ret);
+  //   return nndp_ret;
+  // }
 
   NNDEPLOY_LOGE("BK.\n");
   // 1. （固定写法）device/stream初始化，参考AscendCL对外接口列表
@@ -175,10 +175,10 @@ int main() {
   aclrtResetDevice(deviceId);
   aclFinalize();
 
-  nndp_ret = nndeployFrameworkDeinit();
-  if (nndp_ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", nndp_ret);
-    return nndp_ret;
-  }
+  // nndp_ret = nndeployFrameworkDeinit();
+  // if (nndp_ret != 0) {
+  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", nndp_ret);
+  //   return nndp_ret;
+  // }
   return 0;
 }

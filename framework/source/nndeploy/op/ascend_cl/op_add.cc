@@ -5,13 +5,15 @@
 #include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
 #include "nndeploy/op/op_binary.h"
+#include "tiling/platform/platform_ascendc.h"
+#include "tiling/tiling_api.h"
 
 namespace nndeploy {
 namespace op {
 
 #ifdef ENABLE_NNDEPLOY_OP_ASCEND_C
 #include "acl/acl.h"
-#include "aclrtlaunch_add_custom.h"
+#include "aclrtlaunch_add.h"
 class AscendCLOpAdd : public OpBinary {
  public:
   AscendCLOpAdd() {}
@@ -59,16 +61,9 @@ class AscendCLOpAdd : public OpBinary {
       }
     }
 
-    // calculate total elements
-    size_t total_elements = std::accumulate(
-        input1_shape.begin(), input1_shape.end(), 1, std::multiplies<size_t>());
-
-    // copy tiling data to device
-    add_custom_tiling_data_.totalLength = total_elements;
-
-    AddCustomTilingData* buf = &add_custom_tiling_data_;
-    size_t tiling_size = sizeof(AddCustomTilingData);
-
+    getTilingData();
+    AddTilingData* buf = &add_tiling_data_;
+    size_t tiling_size = sizeof(AddTilingData);
     aclrtMalloc((void**)&tiling_device, tiling_size, ACL_MEM_MALLOC_HUGE_FIRST);
     aclrtMemcpyAsync(tiling_device, tiling_size, (void*)buf, tiling_size,
                      ACL_MEMCPY_HOST_TO_DEVICE, inner_stream_);
@@ -100,11 +95,158 @@ class AscendCLOpAdd : public OpBinary {
     uint8_t* input_data_1 = (uint8_t*)(inputs_1_->getData());
     uint8_t* output_data = (uint8_t*)(outputs_[0]->getData());
 
-    ACLRT_LAUNCH_KERNEL(add_custom)
-    (8, inner_stream_, input_data_0, input_data_1, output_data,
+    ACLRT_LAUNCH_KERNEL(add)
+    (block_num_, inner_stream_, input_data_0, input_data_1, output_data,
      reinterpret_cast<uint8_t*>(tiling_device));
     aclrtSynchronizeStream(inner_stream_);
 
+    return base::kStatusCodeOk;
+  }
+
+  base::Status getTilingData() {
+    auto platform = platform_ascendc::PlatformAscendCManager::GetInstance();
+    auto aiv_num = platform->GetCoreNumAiv();
+
+    base::IntVector input_shape = inputs_0_->getShape();
+    auto total_elements = std::accumulate(
+        input_shape.begin(), input_shape.end(), 1, std::multiplies<size_t>());
+
+    const uint32_t block_size = 32;
+    uint32_t align_num = block_size / sizeof(uint16_t);
+    uint32_t ub_block_num = 64;
+    uint32_t tile_num;
+    uint32_t total_elements_align =
+        (total_elements + align_num - 1) / align_num * align_num;
+    uint32_t total_block_num = total_elements_align / align_num;
+
+    if (total_elements_align <= ub_block_num * align_num) {
+      // 如果input可以放在一个ub里，使用单核
+      block_num_ = 1;
+    } else {
+      if (total_block_num % ub_block_num == 0) {
+        // 如果input可以被ub_block_num整除
+        if (total_block_num / ub_block_num <= aiv_num) {
+          block_num_ = total_block_num / ub_block_num;
+        } else {
+          block_num_ = aiv_num;
+        }
+      } else {
+        // 如果input不能被ub_block_num整除
+        if (total_block_num / ub_block_num + 1 <= aiv_num) {
+          block_num_ = total_block_num / ub_block_num + 1;
+        } else {
+          block_num_ = aiv_num;
+        }
+      }
+    }
+
+    // NNDEPLOY_LOGI("block_num_: %d\n", block_num_);
+
+    uint32_t block_length;
+    uint32_t tile_length;
+    uint32_t last_tile_length;
+    if (total_block_num % block_num_ == 0) {
+      // 如果input可以被核数整除
+      block_length = total_elements_align / block_num_;
+      tile_num = block_length / align_num / ub_block_num;
+      if ((block_length / align_num) % ub_block_num == 0 || tile_num == 0) {
+        // 如果核内可以均分
+        if (tile_num == 0) {
+          tile_num = 1;
+        }
+        if (block_length < ub_block_num * align_num) {
+          tile_length = (block_length / align_num + 1) / 2 * 2 * align_num;
+          last_tile_length = tile_length;
+        } else {
+          tile_length = ub_block_num * align_num;
+          last_tile_length = tile_length;
+        }
+      } else {
+        // 如果核内不能均分
+        tile_num = tile_num + 1;
+        tile_length = ub_block_num * align_num;
+        last_tile_length = block_length - (tile_num - 1) * tile_length;
+      }
+      add_tiling_data_.blockLength = block_length;
+      add_tiling_data_.tileNum = tile_num;
+      add_tiling_data_.tileLength = tile_length;
+      add_tiling_data_.lastTileLength = last_tile_length;
+      add_tiling_data_.tilingKey = 1;
+    } else {
+      // 如果input不能被核数整除
+      uint32_t head_num = total_block_num % block_num_;
+      uint32_t tail_num = block_num_ - head_num;
+
+      // 计算大块和小块的数量
+      uint32_t head_block_length =
+          ((total_elements_align + block_num_ - 1) / block_num_ * block_num_ +
+           align_num - 1) /
+          align_num * align_num;
+      uint32_t tail_block_length =
+          (total_elements_align / block_num_ / align_num) * align_num;
+
+      uint32_t head_tile_num = head_block_length / align_num / ub_block_num;
+      uint32_t head_tile_length;
+      uint32_t head_last_tile_length;
+      if ((head_block_length / align_num) % ub_block_num == 0 ||
+          head_tile_num == 0) {
+        // 如果核内可以均分
+        if (head_tile_num == 0) {
+          head_tile_num = 1;
+        }
+        if (head_block_length < ub_block_num * align_num) {
+          head_tile_length =
+              (head_block_length / align_num + 1) / 2 * 2 * align_num;
+          last_tile_length = head_tile_length;
+        } else {
+          head_tile_length = ub_block_num * align_num;
+          last_tile_length = head_tile_length;
+        }
+      } else {
+        // 如果核内不能均分
+        head_tile_num = head_tile_num + 1;
+        head_tile_length = ub_block_num * align_num;
+        last_tile_length =
+            head_block_length - (head_tile_num - 1) * head_tile_length;
+      }
+
+      uint32_t tail_tile_num = tail_block_length / align_num / ub_block_num;
+      uint32_t tail_tile_length;
+      uint32_t tail_last_tile_length;
+      if ((tail_block_length / align_num) % ub_block_num == 0 ||
+          tail_tile_num == 0) {
+        // 如果核内可以均分
+        if (tail_tile_num == 0) {
+          tail_tile_num = 1;
+        }
+        if (tail_block_length < ub_block_num * align_num) {
+          tail_tile_length =
+              (tail_block_length / align_num + 1) / 2 * 2 * align_num;
+          tail_last_tile_length = tail_tile_length;
+        } else {
+          tail_tile_length = ub_block_num * align_num;
+          tail_last_tile_length = tail_tile_length;
+        }
+      } else {
+        // 如果核内不能均分
+        tail_tile_num = tail_tile_num + 1;
+        tail_tile_length = ub_block_num * align_num;
+        tail_last_tile_length =
+            tail_block_length - (tail_tile_num - 1) * tail_tile_length;
+      }
+
+      add_tiling_data_.headNum = head_num;
+      add_tiling_data_.tailNum = tail_num;
+      add_tiling_data_.headBlockLength = head_block_length;
+      add_tiling_data_.tailBlockLength = tail_block_length;
+      add_tiling_data_.headTileNum = head_tile_num;
+      add_tiling_data_.tailTileNum = tail_tile_num;
+      add_tiling_data_.headTileLength = head_tile_length;
+      add_tiling_data_.tailTileLength = tail_tile_length;
+      add_tiling_data_.headLastTileLength = head_last_tile_length;
+      add_tiling_data_.tailLastTileLength = tail_last_tile_length;
+      add_tiling_data_.tilingKey = 2;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -117,7 +259,9 @@ class AscendCLOpAdd : public OpBinary {
   aclrtStream inner_stream_ = nullptr;
 
   void* tiling_device = nullptr;
-  AddCustomTilingData add_custom_tiling_data_;
+  AddTilingData add_tiling_data_;
+
+  uint8_t block_num_ = 0;
 };
 #else
 class AscendCLOpAdd : public OpBinary {

@@ -9,7 +9,7 @@ from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_
 class TestAddOp(unittest.TestCase):
 
     def test_add(self):
-        input_shape = [32, 4, 16, 16]
+        input_shape = [32, 32, 64, 64]
 
         np_input1 = np.random.random(input_shape).astype(np.float32)
         np_input2 = np.random.random(input_shape).astype(np.float32)

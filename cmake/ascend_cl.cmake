@@ -9,12 +9,13 @@ else()
 
   # include_directories(${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/include/experiment/platform)
   set(LIB_PATH ${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/lib64)
-  set(LIBS "ascendcl" "nnopbase" "opapi")
+  set(LIBS "ascendcl" "nnopbase" "opapi" "tiling")
 
   foreach(LIB ${LIBS})
     set(LIB_NAME ${NNDEPLOY_LIB_PREFIX}${LIB}${NNDEPLOY_LIB_SUFFIX})
     set(FULL_LIB_NAME ${LIB_PATH}/${LIB_NAME})
     set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${FULL_LIB_NAME})
+    set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${LIB_PATH}/libtiling_api.a)
   endforeach()
 
   # ascend c

@@ -7,6 +7,8 @@
 #include "nndeploy/op/ascend_cl/op_include.h"
 #include "nndeploy/op/ascend_cl/op_util.h"
 #include "nndeploy/op/op.h"
+#include "tiling/platform/platform_ascendc.h"
+#include "tiling/tiling_api.h"
 
 namespace nndeploy {
 namespace op {
@@ -63,7 +65,9 @@ class AscendCLOpMaxPool : public OpMaxPool {
          param->dilations_[1] * (param->kernel_shape_[1] - 1) - 1) /
             param->strides_[1] +
         1;
-    tiling_data_.coreNum = 1;
+    auto ascendcPlatform =
+        platform_ascendc::PlatformAscendCManager::GetInstance();
+    tiling_data_.coreNum = ascendcPlatform->GetCoreNumAiv();
 
     // Validate parameters and check supported features
     // Currently only supports 3x3 kernel
