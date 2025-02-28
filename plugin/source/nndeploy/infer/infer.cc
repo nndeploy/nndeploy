@@ -50,7 +50,7 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
     : dag::Node(name, inputs, outputs) {}
 
-Infer::~Infer() { delete inference_; }
+Infer::~Infer() {}
 
 base::Status Infer::setInferenceType(base::InferenceType inference_type) {
   if (inference_ == nullptr) {
@@ -73,6 +73,15 @@ base::Status Infer::setParam(base::Param *param) {
   return status;
 }
 base::Param *Infer::getParam() { return inference_->getParam(); }
+
+base::Status Infer::setParamSharedPtr(std::shared_ptr<base::Param> param) {
+  base::Status status = base::kStatusCodeOk;
+  status = inference_->setParamSharedPtr(param);
+  return status;
+}
+std::shared_ptr<base::Param> Infer::getParamSharedPtr() {
+  return inference_->getParamSharedPtr();
+}
 
 base::Status Infer::init() {
   base::Status status = base::kStatusCodeOk;
@@ -212,7 +221,7 @@ base::Status Infer::run() {
       tensor->print(output_file);
       output_file.close();
     } else {
-      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
+      NNDEPLOY_LOGE("can't open file: %s", filename.c_str());
     }
 #endif
 
@@ -222,7 +231,7 @@ base::Status Infer::run() {
   return status;
 }
 
-inference::Inference *Infer::getInference() { return inference_; }
+std::shared_ptr<inference::Inference> Infer::getInference() { return inference_; }
 
 REGISTER_NODE("nndeploy::infer::Infer", Infer);
 

@@ -15,13 +15,13 @@ class PyInferenceCreator : public InferenceCreator {
 
   Inference* createInference(base::InferenceType type) override {
     PYBIND11_OVERRIDE_PURE_NAME(Inference*, InferenceCreator,
-                           create_inference_cpp, type);
+                           create_inference, type);
   }
 
   std::shared_ptr<Inference> createInferenceSharedPtr(
       base::InferenceType type) override {
     PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Inference>,
-                           InferenceCreator, create_inference, type);
+                           InferenceCreator, create_inference_shared_ptr, type);
   }
 };
 
@@ -134,9 +134,9 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
   py::class_<InferenceCreator, PyInferenceCreator,
              std::shared_ptr<InferenceCreator>>(m, "InferenceCreator")
       .def(py::init<>())
-      .def("create_inference_cpp",
-           &InferenceCreator::createInference)
       .def("create_inference",
+           &InferenceCreator::createInference)
+      .def("create_inference_shared_ptr",
            &InferenceCreator::createInferenceSharedPtr);
 
   m.def("register_inference_creator",
@@ -145,8 +145,8 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
           getGlobalInferenceCreatorMap()[type] = creator;
         });
 
-  // m.def("create_inference_cpp", &createInference, py::arg("type"));
-  m.def("create_inference", &createInferenceSharedPtr,
+  // m.def("create_inference", &createInference, py::arg("type"));
+  m.def("create_inference_shared_ptr", &createInferenceSharedPtr,
         py::arg("type"));
 }
 

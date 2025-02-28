@@ -115,9 +115,9 @@ Interpret *createInterpret(base::ModelType type, ir::ModelDesc *model_desc,
   Interpret *temp = nullptr;
   auto &creater_map = getGlobalInterpretCreatorMap();
   if (creater_map.count(type) > 0) {
-    NNDEPLOY_LOGE("createInterpret: %d\n", type);
+    // NNDEPLOY_LOGE("createInterpret: %d\n", type);
     temp = creater_map[type]->createInterpret(type, model_desc, is_external);
-    NNDEPLOY_LOGE("createInterpret: %p\n", temp);
+    // NNDEPLOY_LOGE("createInterpret: %p\n", temp);
   }
   return temp;
 }

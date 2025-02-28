@@ -74,7 +74,7 @@ base::Status TensorRtInference::init() {
 
   std::string model_buffer;
   TensorRtInferenceParam *tensorrt_inference_param =
-      dynamic_cast<TensorRtInferenceParam *>(inference_param_);
+      dynamic_cast<TensorRtInferenceParam *>(inference_param_.get());
   if (tensorrt_inference_param->is_path_) {
     model_buffer = base::openFile(tensorrt_inference_param->model_value_[0]);
   } else {

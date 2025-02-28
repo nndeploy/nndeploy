@@ -87,13 +87,13 @@ endif()
 #   set(SOURCE ${SOURCE} ${PYTHON_NET_SOURCE})
 # endif()
 
-# if(ENABLE_NNDEPLOY_INFERENCE)
-#   file(GLOB_RECURSE PYTHON_INFERENCE_SOURCE
-#     "${ROOT_PATH}/python/src/inference/*.h"
-#     "${ROOT_PATH}/python/src/inference/*.cc"
-#   )
-#   set(SOURCE ${SOURCE} ${PYTHON_INFERENCE_SOURCE})
-# endif()
+if(ENABLE_NNDEPLOY_INFERENCE)
+  file(GLOB_RECURSE PYTHON_INFERENCE_SOURCE
+    "${ROOT_PATH}/python/src/inference/*.h"
+    "${ROOT_PATH}/python/src/inference/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_INFERENCE_SOURCE})
+endif()
 
 # if(ENABLE_NNDEPLOY_DAG)
 #   file(GLOB_RECURSE PYTHON_DAG_SOURCE

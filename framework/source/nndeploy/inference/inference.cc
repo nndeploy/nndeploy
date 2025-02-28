@@ -12,7 +12,7 @@ Inference::Inference(base::InferenceType type) {
 }
 
 Inference::~Inference() {
-  delete inference_param_;
+  // delete inference_param_;
   inference_param_ = nullptr;
   if (!is_external_stream_ && stream_ != nullptr) {
     device::destroyStream(stream_);
@@ -24,17 +24,17 @@ base::InferenceType Inference::getInferenceType() { return type_; }
 
 base::Status Inference::setParam(base::Param *param) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is nullptr");
-  return param->copyTo(inference_param_);
+  return param->copyTo(inference_param_.get());
 }
 base::Status Inference::setParamSharedPtr(std::shared_ptr<base::Param> param) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is nullptr");
-  return param->copyTo(inference_param_);
+  return param->copyTo(inference_param_.get());
 }
 base::Param *Inference::getParam() {
-  return dynamic_cast<base::Param *>(inference_param_);
+  return dynamic_cast<base::Param *>(inference_param_.get());
 }
 std::shared_ptr<base::Param> Inference::getParamSharedPtr() {
-  return nullptr;
+  return inference_param_;
 }
 
 void Inference::setStream(device::Stream *stream) {
@@ -368,20 +368,20 @@ getGlobalInferenceCreatorMap() {
   return *creators;
 }
 
-Inference *createInference(base::InferenceType type) {
-  Inference *temp = nullptr;
-  auto &creater_map = getGlobalInferenceCreatorMap();
-  if (creater_map.count(type) > 0) {
-    temp = creater_map[type]->createInference(type);
-  }
-  return temp;
-}
+// Inference *createInference(base::InferenceType type) {
+//   Inference *temp = nullptr;
+//   auto &creater_map = getGlobalInferenceCreatorMap();
+//   if (creater_map.count(type) > 0) {
+//     temp = creater_map[type]->createInference(type);
+//   }
+//   return temp;
+// }
 
-std::shared_ptr<Inference> createInferenceSharedPtr(base::InferenceType type) {
+std::shared_ptr<Inference> createInference(base::InferenceType type) {
   std::shared_ptr<Inference> temp = nullptr;
   auto &creater_map = getGlobalInferenceCreatorMap();
   if (creater_map.count(type) > 0) {
-    temp = creater_map[type]->createInferenceSharedPtr(type);
+    temp = creater_map[type]->createInference(type);
   }
   return temp;
 }

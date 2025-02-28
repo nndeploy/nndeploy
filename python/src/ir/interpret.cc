@@ -80,17 +80,16 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
   m.def("register_interpret_creator",
         [](base::ModelType type, std::shared_ptr<InterpretCreator> creator) {
           getGlobalInterpretCreatorMap()[type] = creator;
-          for (auto &iter : getGlobalInterpretCreatorMap()) {
-            std::cout << "type: " << iter.first << std::endl;
-          }
+          // for (auto &iter : getGlobalInterpretCreatorMap()) {
+          //   std::cout << "type: " << iter.first << std::endl;
+          // }
         });
 
   m.def(
       "create_interpret",
       [](base::ModelType type, ir::ModelDesc *model_desc, bool is_external) {
         Interpret *interpret = createInterpret(type, model_desc, is_external);
-        std::cout << "create_interpret: " << interpret << std::endl;
-        return (interpret);
+        return interpret;
       },
       py::arg("type"), py::arg("model_desc") = nullptr,
       py::arg("is_external") = false, py::return_value_policy::take_ownership);

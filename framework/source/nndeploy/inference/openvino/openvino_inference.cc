@@ -75,7 +75,7 @@ base::Status OpenVinoInference::reshape(base::ShapeMap &shape_map) {
   output_index_map_.clear();
 
   OpenVinoInferenceParam *openvino_inference_param =
-      dynamic_cast<OpenVinoInferenceParam *>(inference_param_);
+      dynamic_cast<OpenVinoInferenceParam *>(inference_param_.get());
 
   std::shared_ptr<ov::Model> model;
   if (openvino_inference_param->is_path_) {

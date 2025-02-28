@@ -36,7 +36,7 @@ base::Status MnnInference::init() {
   }
 
   MnnInferenceParam *mnn_inference_param =
-      dynamic_cast<MnnInferenceParam *>(inference_param_);
+      dynamic_cast<MnnInferenceParam *>(inference_param_.get());
   schedule_config_ = new MNN::ScheduleConfig();
   status = MnnConvert::convertFromInferenceParam(mnn_inference_param,
                                                  schedule_config_);

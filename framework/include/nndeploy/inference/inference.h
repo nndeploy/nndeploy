@@ -339,7 +339,7 @@ class NNDEPLOY_CC_API Inference {
    * @details
    * 构造推理类时，也会构造一个默认的配置，可尽量减少用户需要配置的参数
    */
-  InferenceParam *inference_param_;
+  std::shared_ptr<InferenceParam> inference_param_;
 
   /**
    * @brief 第三方推理框架是否与应用层共用一个context
@@ -384,8 +384,8 @@ class NNDEPLOY_CC_API Inference {
 class InferenceCreator {
  public:
   virtual ~InferenceCreator() {};
-  virtual Inference *createInference(base::InferenceType type) = 0;
-  virtual std::shared_ptr<Inference> createInferenceSharedPtr(base::InferenceType type) = 0;
+  // virtual Inference *createInference(base::InferenceType type) = 0;
+  virtual std::shared_ptr<Inference> createInference(base::InferenceType type) = 0;
 };
 
 /**
@@ -395,10 +395,10 @@ class InferenceCreator {
  */
 template <typename T>
 class TypeInferenceCreator : public InferenceCreator {
-  virtual Inference *createInference(base::InferenceType type) {
-    return new T(type);
-  }
-  virtual std::shared_ptr<Inference> createInferenceSharedPtr(base::InferenceType type) {
+  // virtual Inference *createInference(base::InferenceType type) {
+  //   return new T(type);
+  // }
+  virtual std::shared_ptr<Inference> createInference(base::InferenceType type) {
     return std::make_shared<T>(type);
   }
 };
@@ -430,9 +430,9 @@ class TypeInferenceRegister {
  * @param type
  * @return Inference*
  */
-extern NNDEPLOY_CC_API Inference *createInference(base::InferenceType type);
+// extern NNDEPLOY_CC_API Inference *createInference(base::InferenceType type);
 
-extern NNDEPLOY_CC_API std::shared_ptr<Inference> createInferenceSharedPtr(base::InferenceType type);
+extern NNDEPLOY_CC_API std::shared_ptr<Inference> createInference(base::InferenceType type);
 
 }  // namespace inference
 }  // namespace nndeploy

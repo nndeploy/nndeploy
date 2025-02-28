@@ -20,7 +20,7 @@ base::Status AscendCLInference::init() {
   aclError ret;
   base::Status status = base::kStatusCodeOk;
   AscendCLInferenceParam *ascend_cl_inference_param =
-      dynamic_cast<AscendCLInferenceParam *>(inference_param_);
+      dynamic_cast<AscendCLInferenceParam *>(inference_param_.get());
 
   device::Device *device = device::getDevice(inference_param_->device_type_);
   context_ = (aclrtContext)device->getContext();
