@@ -145,65 +145,24 @@ class Slot:
     
     def get_center_position(self) -> tuple:
         """获取插槽中心点的绝对坐标（相对于画布）"""
-        # 从 slot_dot 开始计算
-        total_x = self.slot_dot.width / 2  # slot_dot 的中心点
-        total_y = self.slot_dot.height / 2
-        current = self.slot_dot
+        # 获取 slot_dot 的绝对位置
+        # offset = self.slot_dot.get_offset()
+        # print(f"Slot '{self.name}' dot absolute position - left: {offset.x}, top: {offset.y}")
+        # print(f"Slot '{self.name}' dot relative position - left: {self.slot_dot.left}, top: {self.slot_dot.top}")
+        # local_center = (self.slot_dot.width / 2, self.slot_dot.height / 2)
+        # return CoordinateMapper.map_to_canvas(self.slot_dot, local_center)
+
+              # 获取父容器的位置
+        parent_left = self.container.left or 0
+        parent_top = self.container.top or 0
         
-        # 记录是否找到了 Column 容器（用于垂直排列的容器）
-        found_column = False
+        # 计算 slot_dot 的中心点位置
+        dot_center_x = parent_left + (self.slot_dot.width / 2)
+        dot_center_y = parent_top + (self.slot_dot.height / 2)
         
-        # 向上遍历所有父容器，直到找到 Canvas
-        while current and not isinstance(current, Canvas):
-            # 累加容器自身的位置
-            if hasattr(current, 'left') and current.left is not None:
-                total_x += current.left
-            if hasattr(current, 'top') and current.top is not None:
-                total_y += current.top
-            
-            # 处理垂直布局
-            if isinstance(current, ft.Column) and not found_column:
-                found_column = True
-                # 获取当前 slot_dot 在 Column 中的索引
-                if hasattr(current, 'controls'):
-                    for i, control in enumerate(current.controls):
-                        if self.slot_dot in control.content.controls:
-                            # 根据索引计算垂直偏移
-                            total_y += i * (self.slot_dot.height + 5)  # 5 是垂直间距
-                            break
-            
-            # 处理水平布局
-            if isinstance(current, ft.Row):
-                if self.type == "output":
-                    # 对于输出插槽，需要加上父容器的宽度
-                    parent = current.parent
-                    if parent and hasattr(parent, 'width') and parent.width is not None:
-                        total_x += parent.width - self.slot_dot.width - 10  # 10 是右边距
-                elif self.type == "input":
-                    # 对于输入插槽，只需要加上左边距
-                    total_x += 10  # 10 是左边距
-            
-            # 累加容器的外边距
-            if hasattr(current, 'margin') and current.margin is not None:
-                margin = current.margin
-                if hasattr(margin, 'left') and margin.left is not None:
-                    total_x += margin.left
-                if hasattr(margin, 'top') and margin.top is not None:
-                    total_y += margin.top
-            
-            # 累加父容器的内边距
-            parent = current.parent
-            if parent and hasattr(parent, 'padding') and parent.padding is not None:
-                padding = parent.padding
-                if hasattr(padding, 'left') and padding.left is not None:
-                    total_x += padding.left
-                if hasattr(padding, 'top') and padding.top is not None:
-                    total_y += padding.top
-            
-            current = parent
-        
-        local_center = (self.slot_dot.width / 2, self.slot_dot.height / 2)
-        return CoordinateMapper.map_to_canvas(self.slot_dot, local_center)
+        print(f"Slot '{self.name}' center position - x: {dot_center_x}, y: {dot_center_y}")
+        # return (dot_center_x, dot_center_y)
+        return CoordinateMapper.map_to_canvas(self.draggable, (dot_center_x, dot_center_y))
     
     def update_position(self, x: float, y: float):
         """更新插槽位置"""

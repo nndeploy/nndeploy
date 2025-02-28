@@ -97,4 +97,5 @@ def main(page: Page):
     page.update()
 
 if __name__ == "__main__":
+    #view=flet.WEB_BROWSER
     flet.app(target=main)
