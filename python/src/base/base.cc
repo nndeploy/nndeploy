@@ -9,6 +9,52 @@
 namespace nndeploy {
 namespace base {
 
+class PyParam : public Param {
+ public:
+  using Param::Param;
+
+  std::shared_ptr<nndeploy::base::Param> copy() override {
+    PYBIND11_OVERRIDE_NAME(std::shared_ptr<nndeploy::base::Param>, Param, "copy", copy);
+  }
+
+  base::Status copyTo(nndeploy::base::Param *param) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Param, "copy_to", copyTo, param);
+  }
+
+  base::Status set(const std::string &key, base::Any &any) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Param, "set", set, key, any);
+  }
+
+  base::Status get(const std::string &key, base::Any &any) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Param, "get", get, key, any);
+  }
+
+  base::Status serialize(rapidjson::Value &json,
+                        rapidjson::Document::AllocatorType &allocator) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize, json, allocator);
+  }
+
+  base::Status serialize(std::ostream &stream) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize, stream);
+  }
+
+  base::Status serialize(std::string &content, bool is_file) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize, content, is_file);
+  }
+
+  base::Status deserialize(rapidjson::Value &json) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize, json);
+  }
+
+  base::Status deserialize(std::istream &stream) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize, stream);
+  }
+
+  base::Status deserialize(const std::string &content, bool is_file) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize, content, is_file);
+  }
+};
+
 NNDEPLOY_API_PYBIND11_MODULE("base", m) {
   // nndeploy::base::DataTypeCode export as base.DataTypeCode
   py::enum_<base::DataTypeCode>(m, "DataTypeCode")
@@ -501,7 +547,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
         "title");
 
   // export as base.Param
-  py::class_<Param, std::shared_ptr<Param>>(m, "Param", py::dynamic_attr())
+  py::class_<Param, PyParam, std::shared_ptr<Param>>(m, "Param", py::dynamic_attr())
       .def(py::init<>())
       .def("copy", &Param::copy)
       .def("copy_to", &Param::copyTo)

@@ -14,13 +14,13 @@ class PyInferenceCreator : public InferenceCreator {
   using InferenceCreator::InferenceCreator;
 
   Inference* createInference(base::InferenceType type) override {
-    PYBIND11_OVERRIDE_PURE(Inference*, InferenceCreator,
+    PYBIND11_OVERRIDE_PURE_NAME(Inference*, InferenceCreator,
                            create_inference_cpp, type);
   }
 
   std::shared_ptr<Inference> createInferenceSharedPtr(
       base::InferenceType type) override {
-    PYBIND11_OVERRIDE_PURE(std::shared_ptr<Inference>,
+    PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Inference>,
                            InferenceCreator, create_inference, type);
   }
 };
@@ -30,15 +30,15 @@ class PyInference : public Inference {
   using Inference::Inference;
 
   base::Status init() override {
-    PYBIND11_OVERRIDE_PURE(base::Status, Inference, init);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Inference, init);
   }
 
   base::Status deinit() override {
-    PYBIND11_OVERRIDE_PURE(base::Status, Inference, deinit);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Inference, deinit);
   }
 
   base::Status reshape(base::ShapeMap &shape_map) override {
-    PYBIND11_OVERRIDE_PURE(base::Status, Inference, reshape, shape_map);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Inference, reshape, shape_map);
   }
 
   bool isBatch() override {
@@ -70,13 +70,13 @@ class PyInference : public Inference {
   }
 
   base::Status run() override {
-    PYBIND11_OVERRIDE_PURE(base::Status, Inference, run);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Inference, run);
   }
 
   device::Tensor *getOutputTensorAfterRun(
       const std::string &name, base::DeviceType device_type, bool is_copy,
       base::DataFormat data_format = base::kDataFormatAuto) override {
-    PYBIND11_OVERRIDE_PURE(device::Tensor *, Inference, getOutputTensorAfterRun,
+    PYBIND11_OVERRIDE_PURE_NAME(device::Tensor *, Inference, getOutputTensorAfterRun,
                            name, device_type, is_copy, data_format);
   }
 };

@@ -63,7 +63,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_edge", &Graph::getEdge, py::arg("name"))
       .def("get_edge_shared_ptr", &Graph::getEdgeSharedPtr, py::arg("name"))
       .def("create_node", &Graph::createNodeByKey, py::arg("desc"))
-      .def("add_node", &Graph::addNode, py::arg("node"),
+      .def("add_node", &Graph::addNode, py::keep_alive<1, 2>(), py::arg("node"),
            py::arg("is_external") = true)
       .def("add_node_shared_ptr", &Graph::addNodeSharedPtr, py::arg("node"))
       .def("set_node_param", &Graph::setNodeParam, py::arg("node_name"),

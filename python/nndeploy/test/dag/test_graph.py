@@ -57,8 +57,8 @@ class CustomGraph(nndeploy.dag.Graph):
         print("edge_1: ", self.edge_1)
         print("edge_2: ", self.edge_2)
         
-        self.node_1 = CustomNode("node_1", inputs, [self.edge_1])
-        self.add_node_shared_ptr(self.node_1)
+        node_1 = CustomNode("node_1", inputs, [self.edge_1])
+        self.add_node(node_1)
         print("node_1: ", self.node_1)
         
         self.node_2 = CustomNode("node_2", inputs, [self.edge_2])

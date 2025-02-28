@@ -13,7 +13,7 @@ class PyDecodeNode : public DecodeNode {
   using DecodeNode::DecodeNode;  // 继承构造函数
 
   base::Status run() override {
-    PYBIND11_OVERRIDE_PURE(base::Status, DecodeNode, run);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, DecodeNode, run);
   }
 };
 
@@ -23,7 +23,7 @@ class PyEncodeNode : public EncodeNode {
   using EncodeNode::EncodeNode;  // 继承构造函数
 
   base::Status run() override {
-    PYBIND11_OVERRIDE_PURE(base::Status, EncodeNode, run);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, run);
   }
 };
 

@@ -144,6 +144,17 @@ Architecture *getArchitecture(base::DeviceTypeCode type) {
   }
 }
 
+std::shared_ptr<Architecture> getArchitectureSharedPtr(base::DeviceTypeCode type) {
+  auto arch_map = getArchitectureMap();
+  auto arch = arch_map.find(type);
+  if (arch == arch_map.end()) {
+    NNDEPLOY_LOGE("Architecture is not registered for device type: %d\n", type);
+    return nullptr;
+  } else {
+    return arch->second;
+  }
+}
+
 base::DeviceType getDefaultHostDeviceType() {
   base::DeviceType dst(base::kDeviceTypeCodeCpu);
 #if NNDEPLOY_ARCHITECTURE_X86

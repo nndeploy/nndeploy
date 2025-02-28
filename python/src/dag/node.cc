@@ -66,7 +66,7 @@ class PyNode : public Node {
   }
 
   base::Status run() override {
-    PYBIND11_OVERRIDE_PURE(base::Status, Node, run);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Node, run);
   }
 };
 

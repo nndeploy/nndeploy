@@ -15,7 +15,7 @@ class PyInterpret : public Interpret {
   base::Status interpret(
       const std::vector<std::string> &model_value,
       const std::vector<ValueDesc> &input = std::vector<ValueDesc>()) {
-    PYBIND11_OVERRIDE_PURE(base::Status, Interpret, interpret, model_value,
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Interpret, interpret, model_value,
                            input);
   }
 };
@@ -27,14 +27,14 @@ class PyInterpretCreator : public InterpretCreator {
   Interpret *createInterpret(base::ModelType type,
                              ir::ModelDesc *model_desc = nullptr,
                              bool is_external = false) override {
-    PYBIND11_OVERRIDE_PURE(Interpret *, InterpretCreator, create_interpret_cpp,
+    PYBIND11_OVERRIDE_PURE_NAME(Interpret *, InterpretCreator, create_interpret_cpp,
                            type, model_desc, is_external);
   }
 
   std::shared_ptr<Interpret> createInterpretSharedPtr(
       base::ModelType type, ir::ModelDesc *model_desc = nullptr,
       bool is_external = false) override {
-    PYBIND11_OVERRIDE_PURE(std::shared_ptr<Interpret>, InterpretCreator,
+    PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Interpret>, InterpretCreator,
                            create_interpret, type, model_desc, is_external);
   }
 };

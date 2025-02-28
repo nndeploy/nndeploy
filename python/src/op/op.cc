@@ -8,7 +8,7 @@ class PyOp : public Op {
  public:
   using Op::Op;
 
-  base::Status run() override { PYBIND11_OVERRIDE_PURE(base::Status, Op, run); }
+  base::Status run() override { PYBIND11_OVERRIDE_PURE_NAME(base::Status, Op, run); }
 
   base::Status inferDataType() override {
     PYBIND11_OVERRIDE(base::Status, Op, inferDataType);
@@ -51,7 +51,7 @@ class PyOpCreator : public OpCreator {
   Op *createOp(base::DeviceType device_type, const std::string &name,
                ir::OpType op_type, std::vector<std::string> &inputs,
                std::vector<std::string> &outputs) override {
-    PYBIND11_OVERRIDE_PURE(Op *, OpCreator, create_op_cpp, device_type, name,
+    PYBIND11_OVERRIDE_PURE_NAME(Op *, OpCreator, create_op_cpp, device_type, name,
                            op_type, inputs, outputs);
   }
 
@@ -59,7 +59,7 @@ class PyOpCreator : public OpCreator {
       base::DeviceType device_type, const std::string &name, ir::OpType op_type,
       std::vector<std::string> &inputs,
       std::vector<std::string> &outputs) override {
-    PYBIND11_OVERRIDE_PURE(std::shared_ptr<Op>, OpCreator, create_op,
+    PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Op>, OpCreator, create_op,
                            device_type, name, op_type, inputs, outputs);
   }
 };

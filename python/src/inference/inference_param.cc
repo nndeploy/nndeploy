@@ -12,12 +12,12 @@ class PyInferenceParamCreator : public InferenceParamCreator {
   using InferenceParamCreator::InferenceParamCreator;
 
   InferenceParam* createInferenceParam(base::InferenceType type) override {
-    PYBIND11_OVERRIDE_PURE(InferenceParam*, InferenceParamCreator, create_create_inference_param_cpp, type);
+    PYBIND11_OVERRIDE_PURE_NAME(InferenceParam*, InferenceParamCreator, create_create_inference_param_cpp, type);
   }
 
   std::shared_ptr<InferenceParam> createInferenceParamSharedPtr(
       base::InferenceType type) override {
-    PYBIND11_OVERRIDE_PURE(std::shared_ptr<InferenceParam>, InferenceParamCreator,
+    PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<InferenceParam>, InferenceParamCreator,
                            create_inference_param, type);
   }
 };

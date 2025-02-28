@@ -15,38 +15,57 @@ class PyMemoryPool : public MemoryPool {
  public:
   using MemoryPool::MemoryPool;
 
+  base::Status init() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, MemoryPool, "init", init);
+  }
+
+  base::Status init(size_t size) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, MemoryPool, "init", init, size);
+  }
+
+  base::Status init(void *ptr, size_t size) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, MemoryPool, "init", init, ptr, size);
+  }
+
+  base::Status init(Buffer *buffer) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, MemoryPool, "init", init, buffer);
+  }
+
   base::Status deinit() override {
-    PYBIND11_OVERRIDE_PURE(base::Status, MemoryPool, deinit);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, MemoryPool, "deinit", deinit);
   }
 
   void *allocate(size_t size) override {
-    PYBIND11_OVERRIDE_PURE(void *, MemoryPool, allocate, size);
+    PYBIND11_OVERRIDE_PURE_NAME(void *, MemoryPool, "allocate", allocate, size);
   }
 
   void *allocate(const BufferDesc &desc) override {
-    PYBIND11_OVERRIDE_PURE(void *, MemoryPool, allocate, desc);
+    PYBIND11_OVERRIDE_PURE_NAME(void *, MemoryPool, "allocate", allocate, desc);
   }
 
   void deallocate(void *ptr) override {
-    PYBIND11_OVERRIDE_PURE(void, MemoryPool, deallocate, ptr);
+    PYBIND11_OVERRIDE_PURE_NAME(void, MemoryPool, "deallocate", deallocate,
+                                ptr);
   }
 
   void *allocatePinned(size_t size) override {
-    PYBIND11_OVERRIDE_PURE(void *, MemoryPool, allocate_pinned, size);
+    PYBIND11_OVERRIDE_PURE_NAME(void *, MemoryPool, "allocate_pinned",
+                                allocatePinned, size);
   }
 
   void *allocatePinned(const BufferDesc &desc) override {
-    PYBIND11_OVERRIDE_PURE(void *, MemoryPool, allocate_pinned, desc);
+    PYBIND11_OVERRIDE_PURE_NAME(void *, MemoryPool, "allocate_pinned",
+                                allocatePinned, desc);
   }
 
   void deallocatePinned(void *ptr) override {
-    PYBIND11_OVERRIDE_PURE(void, MemoryPool, deallocate_pinned, ptr);
+    PYBIND11_OVERRIDE_PURE_NAME(void, MemoryPool, "deallocate_pinned",
+                                deallocatePinned, ptr);
   }
 };
 
 NNDEPLOY_API_PYBIND11_MODULE("device", m) {
-  py::class_<MemoryPool, PyMemoryPool, std::shared_ptr<MemoryPool>>(
-      m, "MemoryPool", py::dynamic_attr())
+  py::class_<MemoryPool, PyMemoryPool>(m, "MemoryPool", py::dynamic_attr())
       .def(py::init<Device *, base::MemoryPoolType>(), py::arg("device"),
            py::arg("memory_pool_type"),
            "Constructor, create a MemoryPool object")

@@ -28,8 +28,25 @@ class Tensor(_C.device.Tensor):
         Tensor构造函数。
 
         Args:
-            *args: 传递给父类构造函数的位置参数。
-            **kwargs: 传递给父类构造函数的关键字参数。
+            name (str, optional): Tensor的名称。
+            desc (TensorDesc, optional): Tensor的描述信息，包含数据类型、形状等。
+            buffer (Buffer, optional): 已存在的Buffer对象，用于直接构造Tensor。
+            device (Device, optional): 设备对象，指定Tensor所在的设备。
+            data_ptr (void*, optional): 外部数据指针，用于直接使用已有内存构造Tensor。
+            memory_pool (MemoryPool, optional): 内存池对象，用于从内存池中分配内存。
+            config (List[int], optional): 配置参数，用于指定内存对齐等配置。
+            *args: 其他位置参数。
+            **kwargs: 其他关键字参数。
+
+        Note:
+            构造函数有以下几种形式:
+            1. Tensor(name) - 仅指定名称创建空Tensor
+            2. Tensor(desc, name="") - 使用TensorDesc创建Tensor
+            3. Tensor(desc, buffer, name="") - 使用已有Buffer创建Tensor
+            4. Tensor(device, desc, name="", config=[]) - 在指定设备上创建Tensor
+            5. Tensor(device, desc, data_ptr, name="", config=[]) - 使用已有内存在设备上创建Tensor
+            6. Tensor(memory_pool, desc, name="", config=[]) - 从内存池创建Tensor
+            7. Tensor(memory_pool, desc, data_ptr, name="", config=[]) - 使用已有内存从内存池创建Tensor
 
         Notes:
             - 如果第一个参数是Device对象，它将被转换为_C.device.Device对象。
@@ -437,7 +454,8 @@ class Tensor(_C.device.Tensor):
         Returns:
             Device: Tensor设备。
         """
-        return super().get_device()
+        c_device = super().get_device()
+        return Device(c_device)
 
     def get_memory_pool(self):
         """
@@ -446,7 +464,8 @@ class Tensor(_C.device.Tensor):
         Returns:
             MemoryPool: Tensor内存池。
         """
-        return super().get_memory_pool()
+        c_memory_pool = super().get_memory_pool()
+        return MemoryPool(c_memory_pool)
 
     def is_memory_pool(self):
         """

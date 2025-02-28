@@ -1,10 +1,11 @@
 
-
+# get by name
 from .common import name_to_data_type_code
 from .common import data_type_code_to_name
 from .common import DataTypeCode
 from .common import DataType
 
+# get by name
 from .common import name_to_device_type_code
 from .common import device_type_code_to_name
 from .common import DeviceTypeCode
@@ -86,6 +87,7 @@ from .common import name_to_topo_sort_type
 from .common import topo_sort_type_to_name
 from .common import TopoSortType
 
+# get by name
 from .common import name_to_status_code
 from .common import status_code_to_name
 from .common import StatusCode
