@@ -50,8 +50,8 @@ class CustomNode(nndeploy.dag.Node):
 class CustomGraph(nndeploy.dag.Graph):
     def __init__(self, name, inputs: list[_C.dag.Edge] = None, outputs: list[_C.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
-        self.edge_1 = nndeploy.dag.Edge("edge_1", nndeploy.base.ParallelType.kParallelTypeNone)
-        self.edge_2 = nndeploy.dag.Edge("edge_2", nndeploy.base.ParallelType.kParallelTypeNone)
+        self.edge_1 = nndeploy.dag.Edge("edge_1")
+        self.edge_2 = nndeploy.dag.Edge("edge_2")
         self.add_edge(self.edge_1)
         self.add_edge(self.edge_2)
         print("edge_1: ", self.edge_1)
@@ -59,31 +59,31 @@ class CustomGraph(nndeploy.dag.Graph):
         
         node_1 = CustomNode("node_1", inputs, [self.edge_1])
         self.add_node(node_1)
-        print("node_1: ", self.node_1)
+        print("node_1: ", node_1)
         
         self.node_2 = CustomNode("node_2", inputs, [self.edge_2])
-        self.add_node_shared_ptr(self.node_2)
+        self.add_node(self.node_2)
         print("node_2: ", self.node_2)
         
-        self.edge_3 = nndeploy.dag.Edge("edge_3", nndeploy.base.ParallelType.kParallelTypeNone)
+        self.edge_3 = nndeploy.dag.Edge("edge_3")
         self.node_3 = CustomNode("node_3", [self.edge_1, self.edge_2], [self.edge_3])
-        self.add_node_shared_ptr(self.node_3)
+        self.add_node(self.node_3)
         print("node_3: ", self.node_3)
         
-        self.edge_4 = nndeploy.dag.Edge("edge_4", nndeploy.base.ParallelType.kParallelTypeNone)
+        self.edge_4 = nndeploy.dag.Edge("edge_4")
         self.node_4 = CustomNode("node_4", [self.edge_1, self.edge_2], [self.edge_4])
-        self.add_node_shared_ptr(self.node_4)
+        self.add_node(self.node_4)
         print("node_4: ", self.node_4)
         
         self.node_5 = CustomNode("node_5", [self.edge_3, self.edge_4], outputs)
-        self.add_node_shared_ptr(self.node_5)
+        self.add_node(self.node_5)
         print("node_5: ", self.node_5)
         
     
 def test_graph():
-    edge_1 = nndeploy.dag.Edge("test_edge_1", nndeploy.base.ParallelType.kParallelTypeNone)
-    edge_2 = nndeploy.dag.Edge("test_edge_2", nndeploy.base.ParallelType.kParallelTypeNone)
-    edge_3 = nndeploy.dag.Edge("test_edge_3", nndeploy.base.ParallelType.kParallelTypeNone)
+    edge_1 = nndeploy.dag.Edge("test_edge_1")
+    edge_2 = nndeploy.dag.Edge("test_edge_2")
+    edge_3 = nndeploy.dag.Edge("test_edge_3")
     graph = CustomGraph("test_graph", [edge_1, edge_2], [edge_3])
     # graph.set_debug_flag(True)
     
@@ -97,19 +97,19 @@ def test_graph():
     
     # graph.deinit()
     
-    edge_00 = nndeploy.dag.Edge("edge_00", nndeploy.base.ParallelType.kParallelTypeNone)
-    edge_01 = nndeploy.dag.Edge("edge_01", nndeploy.base.ParallelType.kParallelTypeNone)
-    edge_10 = nndeploy.dag.Edge("edge_10", nndeploy.base.ParallelType.kParallelTypeNone)
-    edge_11 = nndeploy.dag.Edge("edge_11", nndeploy.base.ParallelType.kParallelTypeNone)
+    edge_00 = nndeploy.dag.Edge("edge_00")
+    edge_01 = nndeploy.dag.Edge("edge_01")
+    edge_10 = nndeploy.dag.Edge("edge_10")
+    edge_11 = nndeploy.dag.Edge("edge_11")
     big_graph = nndeploy.dag.Graph("big_graph", [edge_00, edge_01], [edge_3])
     
     node_0 = CustomNode("node_0", [edge_00, edge_01], [edge_1])
-    big_graph.add_node_shared_ptr(node_0)
+    big_graph.add_node(node_0)
     
     node_1 = CustomNode("node_1", [edge_00, edge_01], [edge_2])
-    big_graph.add_node_shared_ptr(node_1)
+    big_graph.add_node(node_1)
     
-    big_graph.add_node_shared_ptr(graph)
+    big_graph.add_node(graph)
     
     big_graph.set_debug_flag(True)
     

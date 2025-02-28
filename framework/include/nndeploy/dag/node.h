@@ -101,9 +101,10 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status setParamSharedPtr(std::shared_ptr<base::Param> param);
   virtual base::Param *getParam();
   virtual std::shared_ptr<base::Param> getParamSharedPtr();
-  virtual base::Status setExternalParam(base::Param *external_param);
-  virtual base::Status setExternalParamSharedPtr(
-      std::shared_ptr<base::Param> external_param);
+  virtual base::Status setExternalParam(
+      const std::string &key, std::shared_ptr<base::Param> external_param);
+  virtual std::shared_ptr<base::Param> getExternalParam(
+      const std::string &key);
 
   base::Status setInput(Edge *input, int index = -1);
   base::Status setOutput(Edge *output, int index = -1);
@@ -181,9 +182,10 @@ class NNDEPLOY_CC_API Node {
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
-  std::vector<Edge *> test(
+  std::vector<Edge *> operator()(
       std::vector<Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>());
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr);
 
   std::vector<std::shared_ptr<Edge>> functorWithoutGraph(
       std::vector<std::shared_ptr<Edge>> inputs,
@@ -213,7 +215,7 @@ class NNDEPLOY_CC_API Node {
   bool is_external_stream_ = false;
   device::Stream *stream_ = nullptr;
   std::shared_ptr<base::Param> param_;
-  std::vector<base::Param *> external_param_;
+  std::map<std::string, std::shared_ptr<base::Param>> external_param_;
   std::vector<EdgeTypeInfo> input_type_info_;
   std::vector<EdgeTypeInfo> output_type_info_;
   std::vector<Edge *> inputs_;

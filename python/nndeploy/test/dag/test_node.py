@@ -112,11 +112,11 @@ def test_node():
     print(edge_list[0].get())
     
     # TODO:该函数在内部创建了_C.dag.Edge, 他不是nndeploy.dag.Edge，所以他会报错
-    output_edge_v2 = node.test([input_edge_1, input_edge_2], ["output"])
-    print("end!!!")
-    print(output_edge_v2)
-    print(output_edge_v2[0].get_type_name())
-    print(output_edge_v2[0].get())
+    # output_edge_v2 = node([input_edge_1, input_edge_2], ["output"])
+    # print("end!!!")
+    # print(output_edge_v2)
+    # print(output_edge_v2[0].get_type_name())
+    # print(output_edge_v2[0].get())
     
     # input_edge_3 = nndeploy.dag.Edge("input_1")
     # input_edge_4 = nndeploy.dag.Edge("input_2")
@@ -128,7 +128,7 @@ def test_node():
     # node.set_inputs([input_edge_3, input_edge_4])
     # node.set_outputs([output_edge_1])
     
-    # node.run()
+    node.run()
     
     # print(output_edge_1.get_type_name())
     # print(output_edge_1.get())

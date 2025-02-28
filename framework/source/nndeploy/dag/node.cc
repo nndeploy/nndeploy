@@ -93,14 +93,14 @@ base::Status Node::setParamSharedPtr(std::shared_ptr<base::Param> param) {
 }
 base::Param *Node::getParam() { return param_.get(); }
 std::shared_ptr<base::Param> Node::getParamSharedPtr() { return param_; }
-base::Status Node::setExternalParam(base::Param *external_param) {
-  external_param_.emplace_back(external_param);
+base::Status Node::setExternalParam(const std::string &key,
+                                     std::shared_ptr<base::Param> external_param) {
+  external_param_[key] = external_param;
   return base::kStatusCodeOk;
 }
-base::Status Node::setExternalParamSharedPtr(
-    std::shared_ptr<base::Param> external_param) {
-  external_param_.emplace_back(external_param.get());
-  return base::kStatusCodeOk;
+std::shared_ptr<base::Param> Node::getExternalParam(
+    const std::string &key) {
+  return external_param_[key];
 }
 
 base::Status Node::setInput(Edge *input, int index) {
@@ -322,8 +322,9 @@ std::vector<std::shared_ptr<Edge>> Node::operator()(
   }
 }
 
-std::vector<Edge *> Node::test(std::vector<Edge *> inputs,
-                               std::vector<std::string> outputs_name) {
+std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
+                                     std::vector<std::string> outputs_name,
+                                     std::shared_ptr<base::Param> param) {
   std::vector<Edge *> outputs;
   if (initialized_ == false) {
     this->init();
@@ -335,7 +336,7 @@ std::vector<Edge *> Node::test(std::vector<Edge *> inputs,
   if (!inputs.empty()) {
     this->setInputs(inputs);
   }
-  
+
   if (!outputs_name.empty()) {
     for (size_t i = 0; i < outputs_name.size(); i++) {
       outputs.push_back(new Edge(outputs_name[i]));

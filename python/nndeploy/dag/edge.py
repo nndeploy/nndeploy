@@ -9,12 +9,9 @@ import nndeploy.base
 import nndeploy.device
 
 class Edge(_C.dag.Edge):
-    def __init__(self, name: str = "", parallel_type: nndeploy.base.ParallelType = nndeploy.base.ParallelType.Sequential):
+    def __init__(self, name: str = ""):
         super().__init__(name)
-        if parallel_type is not None:
-            self.set_parallel_type(parallel_type)
-            self.construct()
-            self.parallel_type = parallel_type
+        self.parallel_type = nndeploy.base.ParallelType.kParallelTypeNone
 
     def get_name(self) -> str:
         return super().get_name()
@@ -29,23 +26,6 @@ class Edge(_C.dag.Edge):
         return super().construct()
         
     def set(self, data: any, index: int = 0):
-        if isinstance(data, (nndeploy.device.Buffer, nndeploy.device.Tensor)):
-            # self.type_name = "nd." + type(data).__name__
-            status = super().set(data, index, True)
-            if status != nndeploy.base.StatusCode.Ok:
-                raise ValueError("Failed to set data")
-        else: # 处理其他类型的数据
-            # self.type_name = type(data).__name__
-            if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
-                self.data = data
-            elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-                raise ValueError("Parallel type is not supported")
-        self.index = index
-        self.position = self.index
-        self.type_name = type(data).__module__ + "." + type(data).__name__
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
-      
-    def setV2(self, data: any, index: int = 0):
         if isinstance(data, (nndeploy.device.Buffer, nndeploy.device.Tensor)):
             # self.type_name = "nd." + type(data).__name__
             status = super().set(data, index, True)

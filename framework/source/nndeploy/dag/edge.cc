@@ -6,8 +6,24 @@
 namespace nndeploy {
 namespace dag {
 
-Edge::Edge() : name_(""), abstact_edge_(nullptr) {}
-Edge::Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
+// Edge::Edge() : name_(""), abstact_edge_(nullptr) {}
+// Edge::Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
+Edge::Edge() : name_("") {
+  abstact_edge_ = createEdge(base::kParallelTypeNone);
+  if (abstact_edge_ == nullptr) {
+    NNDEPLOY_LOGE("out of memory!\n");
+    return;
+  }
+  // this->construct();
+}
+Edge::Edge(const std::string &name) : name_(name) {
+  abstact_edge_ = createEdge(base::kParallelTypeNone);
+  if (abstact_edge_ == nullptr) {
+    NNDEPLOY_LOGE("out of memory!\n");
+    return;
+  }
+  // this->construct();
+}
 Edge::~Edge() { 
   NNDEPLOY_LOGI("Edge[%s]::~Edge() START\n", name_.c_str());
   if (abstact_edge_ != nullptr) {

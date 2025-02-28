@@ -9,7 +9,6 @@ def test_edge():
     edge = nndeploy.dag.Edge("test_edge")
     assert edge is not None
     print(edge.get_name())
-    print(edge.get_parallel_type() == nndeploy.base.ParallelType.Sequential)
     print(edge.get_buffer(None) is None)
     # print(edge.get_cv_mat(None) is None)
     print(edge.get_tensor(None) is None)

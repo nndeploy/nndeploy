@@ -11,11 +11,11 @@ class PyInferenceParam : public InferenceParam {
  public:
   using InferenceParam::InferenceParam;
 
-  std::shared_ptr<InferenceParam> copy() override {
-    PYBIND11_OVERRIDE_NAME(std::shared_ptr<InferenceParam>, InferenceParam, "copy", copy);
+  std::shared_ptr<base::Param> copy() override {
+    PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, InferenceParam, "copy", copy);
   }
 
-  base::Status copyTo(InferenceParam *param) override {
+  base::Status copyTo(base::Param *param) override {
     PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "copy_to", copyTo, param);
   }
 

@@ -8,12 +8,12 @@ from .node import Node
 class Graph(_C.dag.Graph):
     def __init__(self, name: str, inputs: Union[Edge, List[Edge]] = None, outputs: Union[Edge, List[Edge]] = None):
         """
-        初始化Graph对象
+        Initialize Graph object
         
-        参数:
-            name: 图名称
-            inputs: 输入边或输入边列表
-            outputs: 输出边或输出边列表
+        Args:
+            name: Graph name
+            inputs: Input edge or list of input edges
+            outputs: Output edge or list of output edges
         """
         if inputs is None and outputs is None:
             super().__init__(name)
@@ -26,151 +26,132 @@ class Graph(_C.dag.Graph):
 
     def create_edge(self, name: str) -> Edge:
         """
-        创建边
+        Create an edge
         
-        参数:
-            name: 边名称
+        Args:
+            name: Edge name
+        Returns:
+            Edge object with reference policy
         """
         return super().create_edge(name)
 
-    def create_edge_shared_ptr(self, name: str) -> Edge:
+    def add_edge(self, edge: Edge):
         """
-        创建边共享指针
+        Add an edge with keep_alive policy
         
-        参数:
-            name: 边名称
+        Args:
+            edge: Edge object
         """
-        return super().create_edge_shared_ptr(name)
-
-    def add_edge(self, edge: Edge, is_external: bool = True):
-        """
-        添加边
-        
-        参数:
-            edge: 边对象
-            is_external: 是否为外部边
-        """
-        return super().add_edge(edge, is_external)
-
-    def add_edge_shared_ptr(self, edge: Edge):
-        """
-        添加边共享指针
-        
-        参数:
-            edge: 边对象
-        """
-        return super().add_edge_shared_ptr(edge)
+        return super().add_edge(edge)
 
     def remove_edge(self, edge: Edge):
         """
-        移除边
+        Remove an edge
         
-        参数:
-            edge: 边对象
+        Args:
+            edge: Edge object
         """
         return super().remove_edge(edge)
 
     def get_edge(self, name: str) -> Edge:
         """
-        获取边
+        Get an edge by name with reference policy
         
-        参数:
-            name: 边名称
+        Args:
+            name: Edge name
+        Returns:
+            Edge object
         """
         return super().get_edge(name)
 
-    def get_edge_shared_ptr(self, name: str) -> Edge:
-        """
-        获取边共享指针
-        
-        参数:
-            name: 边名称
-        """
-        return super().get_edge_shared_ptr(name)
-
     def create_node(self, desc: dict) -> Node:
         """
-        创建节点
+        Create a node by key with reference policy
         
-        参数:
-            desc: 节点描述字典
+        Args:
+            desc: Node description dictionary
+        Returns:
+            Node object
         """
         return super().create_node(desc)
 
-    def add_node(self, node: Node, is_external: bool = True):
+    def add_node(self, node: Node):
         """
-        添加节点
+        Add a node with keep_alive policy
         
-        参数:
-            node: 节点对象
-            is_external: 是否为外部节点
+        Args:
+            node: Node object
         """
-        return super().add_node(node, is_external)
-
-    def add_node_shared_ptr(self, node: Node):
-        """
-        添加节点共享指针
-        
-        参数:
-            node: 节点对象
-        """
-        return super().add_node_shared_ptr(node)
+        return super().add_node(node)
 
     def set_node_param(self, node_name: str, param: nndeploy.base.Param):
         """
-        设置节点参数
+        Set node shared pointer parameters
         
-        参数:
-            node_name: 节点名称
-            param: 参数对象
+        Args:
+            node_name: Node name
+            param: Parameter object
         """
         return super().set_node_param(node_name, param)
 
     def get_node_param(self, node_name: str) -> nndeploy.base.Param:
         """
-        获取节点参数
+        Get node shared pointer parameters
         
-        参数:
-            node_name: 节点名称
+        Args:
+            node_name: Node name
+        Returns:
+            Parameter object
         """
         return super().get_node_param(node_name)
 
     def set_graph_node_share_stream(self, flag: bool):
         """
-        设置图节点共享流标志
+        Set graph node stream sharing flag
         
-        参数:
-            flag: 标志值
+        Args:
+            flag: Flag value
         """
         return super().set_graph_node_share_stream(flag)
 
     def get_graph_node_share_stream(self) -> bool:
-        """获取图节点共享流标志"""
+        """
+        Get graph node stream sharing flag
+        
+        Returns:
+            bool: Stream sharing flag
+        """
         return super().get_graph_node_share_stream()
 
-    def update_node_io(self, node: Node, inputs: List[Edge], outputs_name: List[str]) -> List[Edge]:
+    def update_node_io(self, node: Node, inputs: List[Edge], outputs_name: List[str], param: Optional[nndeploy.base.Param] = None) -> List[Edge]:
         """
-        更新节点输入输出
+        Update node inputs and outputs with overloaded versions
         
-        参数:
-            node: 节点对象
-            inputs: 输入边列表
-            outputs_name: 输出边名称列表
+        Args:
+            node: Node object
+            inputs: List of input edges
+            outputs_name: List of output edge names
+            param: Optional parameter object
+        Returns:
+            List of Edge objects
         """
-        return super().update_node_io(node, inputs, outputs_name)
+        if param is None:
+            return super().update_node_io(node, inputs, outputs_name)
+        else:
+            return super().update_node_io(node, inputs, outputs_name, param)
 
     def init(self):
-        """初始化图"""
+        """Initialize graph"""
         return super().init()
 
     def deinit(self):
-        """反初始化图"""
+        """Deinitialize graph"""
         return super().deinit()
 
     def run(self):
-        """运行图"""
+        """Run graph"""
         return super().run()
 
     def dump(self):
-        """导出图信息"""
+        """Dump graph information to stdout"""
         return super().dump()

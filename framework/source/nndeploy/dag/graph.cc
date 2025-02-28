@@ -337,6 +337,20 @@ base::Param *Graph::getNodeParam(const std::string &node_name) {
   return node_wrapper->node_->getParam();
 }
 
+base::Status Graph::setNodeParamSharedPtr(const std::string &node_name,
+                                     std::shared_ptr<base::Param> param) {
+  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper, "node_wrapper is null!");
+  base::Status status = node_wrapper->node_->setParamSharedPtr(param);
+  return status;
+}
+std::shared_ptr<base::Param> Graph::getNodeParamSharedPtr(
+      const std::string &node_name) {
+  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(node_wrapper, "node_wrapper is null!");
+  return node_wrapper->node_->getParamSharedPtr();
+}
+
 void Graph::setGraphNodeShareStream(bool flag) {
   is_graph_node_share_stream_ = flag;
 }
@@ -449,6 +463,13 @@ std::vector<std::shared_ptr<Edge>> Graph::updateNodeIO(
     }
     outputs.push_back(edge);
   }
+  return outputs;
+}
+
+std::vector<Edge *> Graph::updateNodeIO(
+      Node *node, std::vector<Edge *> inputs,
+      std::vector<std::string> outputs_name, std::shared_ptr<base::Param> param) {
+  std::vector<Edge *> outputs;
   return outputs;
 }
 

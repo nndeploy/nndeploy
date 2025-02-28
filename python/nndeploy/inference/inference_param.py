@@ -178,10 +178,6 @@ class InferenceParamCreator(_C.inference.InferenceParamCreator):
     def __init__(self):
         super().__init__()
 
-    def create_inference_param_cpp(self, type: nndeploy.base.InferenceType):
-        # 不需要实现
-        raise NotImplementedError("base class InferenceParamCreator does not implement create_inference_param_cpp method")
-
     def create_inference_param(self, type: nndeploy.base.InferenceType):
         # 必须实现
         raise NotImplementedError("base class InferenceParamCreator does not implement create_inference_param method")

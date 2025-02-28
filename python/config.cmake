@@ -95,23 +95,23 @@ if(ENABLE_NNDEPLOY_INFERENCE)
   set(SOURCE ${SOURCE} ${PYTHON_INFERENCE_SOURCE})
 endif()
 
-# if(ENABLE_NNDEPLOY_DAG)
-#   file(GLOB_RECURSE PYTHON_DAG_SOURCE
-#     "${ROOT_PATH}/python/src/dag/*.h"
-#     "${ROOT_PATH}/python/src/dag/*.cc"
-#   )
-#   list(REMOVE_ITEM PYTHON_DAG_SOURCE 
-#     "${ROOT_PATH}/python/src/dag/node.cc"
-#     "${ROOT_PATH}/python/src/dag/graph.cc"
-#   )
-#   set(PYTHON_DAG_SOURCE ${PYTHON_DAG_SOURCE}
-#     # 依赖于node.cc的文件后列出
-#     "${ROOT_PATH}/python/src/dag/node.cc"
-#     "${ROOT_PATH}/python/src/dag/graph.cc"
-#   )
-#   set(SOURCE ${SOURCE} ${PYTHON_DAG_SOURCE})
-#   message(STATUS "PYTHON_DAG_SOURCE: ${PYTHON_DAG_SOURCE}")
-# endif()
+if(ENABLE_NNDEPLOY_DAG)
+  file(GLOB_RECURSE PYTHON_DAG_SOURCE
+    "${ROOT_PATH}/python/src/dag/*.h"
+    "${ROOT_PATH}/python/src/dag/*.cc"
+  )
+  list(REMOVE_ITEM PYTHON_DAG_SOURCE 
+    "${ROOT_PATH}/python/src/dag/node.cc"
+    "${ROOT_PATH}/python/src/dag/graph.cc"
+  )
+  set(PYTHON_DAG_SOURCE ${PYTHON_DAG_SOURCE}
+    # 依赖于node.cc的文件后列出
+    "${ROOT_PATH}/python/src/dag/node.cc"
+    "${ROOT_PATH}/python/src/dag/graph.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_DAG_SOURCE})
+  message(STATUS "PYTHON_DAG_SOURCE: ${PYTHON_DAG_SOURCE}")
+endif()
 
 # # plugin
 # if(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
