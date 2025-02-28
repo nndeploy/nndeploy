@@ -114,7 +114,8 @@ std::shared_ptr<Edge> Graph::createEdgeSharedPtr(const std::string &name) {
     NNDEPLOY_LOGE("edge name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  Edge *edge = new Edge(name);
+  std::shared_ptr<Edge> edge_ptr = std::make_shared<Edge>(name);
+  Edge *edge = edge_ptr.get();
   EdgeWrapper *edge_wrapper = new EdgeWrapper();
   // 创建shared edge
   edge_wrapper->is_external_ = true;
@@ -123,7 +124,7 @@ std::shared_ptr<Edge> Graph::createEdgeSharedPtr(const std::string &name) {
   edge_repository_.emplace_back(edge_wrapper);
   used_edge_names_.insert(name);
 
-  std::shared_ptr<Edge> edge_ptr = std::shared_ptr<Edge>(edge);
+  // std::shared_ptr<Edge> edge_ptr = std::shared_ptr<Edge>(edge);
   shared_edge_repository_.emplace_back(edge_ptr);
   return edge_ptr;
 }

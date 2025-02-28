@@ -8,7 +8,14 @@ namespace dag {
 
 Edge::Edge() : name_(""), abstact_edge_(nullptr) {}
 Edge::Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
-Edge::~Edge() { delete abstact_edge_; }
+Edge::~Edge() { 
+  NNDEPLOY_LOGI("Edge[%s]::~Edge() START\n", name_.c_str());
+  if (abstact_edge_ != nullptr) {
+    delete abstact_edge_;
+    abstact_edge_ = nullptr;
+  }
+  NNDEPLOY_LOGI("Edge[%s]::~Edge() END\n", name_.c_str());
+}
 
 std::string Edge::getName() { return name_; }
 

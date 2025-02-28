@@ -60,7 +60,7 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
 
   // 导出创建节点的函数
   m.def("create_decode_node", &createDecodeNode, py::arg("type"),
-        py::arg("flag"), py::arg("name"), py::arg("output"));
+        py::arg("flag"), py::arg("name"), py::arg("output"), py::return_value_policy::take_ownership);
   m.def("create_decode_node_shared_ptr", &createDecodeNodeSharedPtr,
         py::arg("type"), py::arg("flag"), py::arg("name"), py::arg("output"));
   m.def("create_encode_node", &createEncodeNode, py::arg("type"),

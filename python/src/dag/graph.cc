@@ -49,9 +49,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                     std::initializer_list<Edge *>>())
       .def(py::init<const std::string &, std::vector<Edge *>,
                     std::vector<Edge *>>())
-      .def("create_edge", &Graph::createEdge, py::arg("name"))
+      .def("create_edge", &Graph::createEdge, py::arg("name"), py::return_value_policy::reference)
       .def("create_edge_shared_ptr", &Graph::createEdgeSharedPtr,
-           py::arg("name"))
+           py::arg("name"), py::return_value_policy::take_ownership)
       .def(
           "add_edge",
           [](Graph &g, Edge *edge, bool is_external) {

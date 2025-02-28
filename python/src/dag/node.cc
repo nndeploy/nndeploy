@@ -88,6 +88,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_outputs", &NodeDesc::getOutputs);
 
   py::class_<Node, PyNode, std::shared_ptr<Node>>(m, "Node", py::dynamic_attr())
+//   py::class_<Node, PyNode>(m, "Node", py::dynamic_attr())
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, Edge *, Edge *>())
       .def(py::init<const std::string &, std::initializer_list<Edge *>,
