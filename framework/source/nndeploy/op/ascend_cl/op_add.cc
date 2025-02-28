@@ -64,10 +64,12 @@ class AscendCLOpAdd : public OpBinary {
     getTilingData();
     AddTilingData* buf = &add_tiling_data_;
     size_t tiling_size = sizeof(AddTilingData);
-    aclrtMalloc((void**)&tiling_device, tiling_size, ACL_MEM_MALLOC_HUGE_FIRST);
-    aclrtMemcpyAsync(tiling_device, tiling_size, (void*)buf, tiling_size,
-                     ACL_MEMCPY_HOST_TO_DEVICE, inner_stream_);
-    aclrtSynchronizeStream(inner_stream_);
+    CHECK_ACL_STATUS(aclrtMalloc((void**)&tiling_device, tiling_size,
+                                 ACL_MEM_MALLOC_HUGE_FIRST));
+    CHECK_ACL_STATUS(aclrtMemcpyAsync(tiling_device, tiling_size, (void*)buf,
+                                      tiling_size, ACL_MEMCPY_HOST_TO_DEVICE,
+                                      inner_stream_));
+    CHECK_ACL_STATUS(aclrtSynchronizeStream(inner_stream_));
 
     return base::kStatusCodeOk;
   }
@@ -98,7 +100,7 @@ class AscendCLOpAdd : public OpBinary {
     ACLRT_LAUNCH_KERNEL(add)
     (block_num_, inner_stream_, input_data_0, input_data_1, output_data,
      reinterpret_cast<uint8_t*>(tiling_device));
-    aclrtSynchronizeStream(inner_stream_);
+    CHECK_ACL_STATUS(aclrtSynchronizeStream(inner_stream_));
 
     return base::kStatusCodeOk;
   }
@@ -179,8 +181,8 @@ class AscendCLOpAdd : public OpBinary {
 
       // 计算大块和小块的数量
       uint32_t head_block_length =
-          ((total_elements_align + block_num_ - 1) / block_num_ * block_num_ +
-           align_num - 1) /
+          ((total_elements_align + block_num_ - 1) / block_num_ + align_num -
+           1) /
           align_num * align_num;
       uint32_t tail_block_length =
           (total_elements_align / block_num_ / align_num) * align_num;
@@ -197,16 +199,16 @@ class AscendCLOpAdd : public OpBinary {
         if (head_block_length < ub_block_num * align_num) {
           head_tile_length =
               (head_block_length / align_num + 1) / 2 * 2 * align_num;
-          last_tile_length = head_tile_length;
+          head_last_tile_length = head_tile_length;
         } else {
           head_tile_length = ub_block_num * align_num;
-          last_tile_length = head_tile_length;
+          head_last_tile_length = head_tile_length;
         }
       } else {
         // 如果核内不能均分
         head_tile_num = head_tile_num + 1;
         head_tile_length = ub_block_num * align_num;
-        last_tile_length =
+        head_last_tile_length =
             head_block_length - (head_tile_num - 1) * head_tile_length;
       }
 

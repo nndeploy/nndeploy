@@ -1,7 +1,7 @@
 # set
 set(SOURCE)
 set(OBJECT)
-set(BINARY nndeploy_demo_acl_op)
+set(BINARY nndeploy_demo_ascendc_op)
 set(DIRECTORY demo)
 set(DEPEND_LIBRARY)
 set(SYSTEM_LIBRARY)
@@ -9,13 +9,14 @@ set(THIRD_PARTY_LIBRARY)
 
 # include
 include_directories(${ROOT_PATH}/demo)
+include_directories(${ROOT_PATH}/framework/source/nndeploy/op/ascend_cl/ascend_c)
 
 # SOURCE
 # file(GLOB_RECURSE SOURCE
 #   "${ROOT_PATH}/demo/acl_op/*.h"
 #   "${ROOT_PATH}/demo/acl_op/*.cc"
 # )
-set(SOURCE ${ROOT_PATH}/demo/acl_op/demo.cc)
+set(SOURCE ${ROOT_PATH}/demo/ascendc_dev/demo.cc)
 # file(GLOB DEMO_SOURCE
 #   "${ROOT_PATH}/demo/*.h"
 #   "${ROOT_PATH}/demo/*.cc"
@@ -49,7 +50,7 @@ set(SOURCE ${ROOT_PATH}/demo/acl_op/demo.cc)
 # file(GLOB OP_SOURCE
 #   "${ROOT_PATH}/demo/acl_op/*.cpp"
 # )
-set(OP_SOURCE ${ROOT_PATH}/demo/acl_op/op.cc)
+set(OP_SOURCE ${ROOT_PATH}/framework/source/nndeploy/op/ascend_cl/ascend_c/op_add_kernel.cc)
 # message("OP_SOURCE: " ${OP_SOURCE})
 ascendc_library(kernels STATIC
     ${OP_SOURCE}

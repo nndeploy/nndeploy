@@ -2,7 +2,7 @@
 
 #include "kernel_operator.h"
 
-constexpr int32_t BUFFER_NUM = 2;
+constexpr int32_t BUFFER_NUM = 1;
 
 __aicore__ inline void CopyTiling(nndeploy::op::AddTilingData *tiling,
                                   GM_ADDR tiling_gm) {
@@ -31,6 +31,11 @@ class KernelAdd {
       this->tileNum = tiling_.tileNum;
       this->tileLength = tiling_.tileLength / BUFFER_NUM;
       this->lastTileLength = tiling_.lastTileLength;
+
+      // AscendC::printf("this->blockLength: %d\n", this->blockLength);
+      // AscendC::printf("this->tileNum: %d\n", this->tileNum);
+      // AscendC::printf("this->tileLength: %d\n", this->tileLength);
+      // AscendC::printf("this->lastTileLength: %d\n", this->lastTileLength);
 
       xGm.SetGlobalBuffer(
           (__gm__ x_T *)x + this->blockLength * AscendC::GetBlockIdx(),

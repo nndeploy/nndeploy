@@ -58,6 +58,14 @@ NNDEPLOY_CC_API aclDataType aclDataTypeOf<int64_t>();
     }                                                                 \
   } while (0)
 
+#define CHECK_ACL_STATUS(func_call)                                   \
+  do {                                                                \
+    aclError status = (func_call);                                    \
+    if (status != ACL_ERROR_NONE) {                                   \
+      NNDEPLOY_LOGE(#func_call " failed, error code: %d.\n", status); \
+    }                                                                 \
+  } while (0)
+
 int64_t getAclOpShapeSize(const std::vector<int64_t>& shape);
 
 std::vector<int64_t> getAclOpStrides(const std::vector<int64_t>& shape);
