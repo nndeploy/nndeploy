@@ -63,21 +63,21 @@ if(ENABLE_NNDEPLOY_DEVICE)
   set(SOURCE ${SOURCE} ${PYTHON_DEVICE_SOURCE})
 endif()
 
-# if(ENABLE_NNDEPLOY_OP)
-#   file(GLOB_RECURSE PYTHON_OP_SOURCE
-#     "${ROOT_PATH}/python/src/op/*.h"
-#     "${ROOT_PATH}/python/src/op/*.cc"
-#   )
-#   set(SOURCE ${SOURCE} ${PYTHON_OP_SOURCE})
-# endif()
+if(ENABLE_NNDEPLOY_IR)
+  file(GLOB_RECURSE PYTHON_IR_SOURCE
+    "${ROOT_PATH}/python/src/ir/*.h"
+    "${ROOT_PATH}/python/src/ir/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_IR_SOURCE})
+endif()
 
-# if(ENABLE_NNDEPLOY_IR)
-#   file(GLOB_RECURSE PYTHON_IR_SOURCE
-#     "${ROOT_PATH}/python/src/ir/*.h"
-#     "${ROOT_PATH}/python/src/ir/*.cc"
-#   )
-#   set(SOURCE ${SOURCE} ${PYTHON_IR_SOURCE})
-# endif()
+if(ENABLE_NNDEPLOY_OP)
+  file(GLOB_RECURSE PYTHON_OP_SOURCE
+    "${ROOT_PATH}/python/src/op/*.h"
+    "${ROOT_PATH}/python/src/op/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_OP_SOURCE})
+endif()
 
 # if(ENABLE_NNDEPLOY_NET)
 #   file(GLOB_RECURSE PYTHON_NET_SOURCE

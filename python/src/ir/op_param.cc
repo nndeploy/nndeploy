@@ -15,9 +15,10 @@ class PyOpParamCreator : public OpParamCreator {
 
   // 重写纯虚函数
   std::shared_ptr<base::Param> createOpParam(OpType type) override {
-    PYBIND11_OVERLOAD_PURE(std::shared_ptr<base::Param>,  // 返回类型
+    PYBIND11_OVERLOAD_PURE_NAME(std::shared_ptr<base::Param>,  // 返回类型
                            OpParamCreator,                // 父类
-                           create_op_param,               // 函数名
+                           "create_op_param",               // 函数名
+                           createOpParam,               // 函数名
                            type                           // 参数
     );
   }

@@ -175,11 +175,11 @@ class OpCreator(_C.op.OpCreator):
     def __init__(self):
         super().__init__()
 
-    def create_op_cpp(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
-        return None
-
     def create_op(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
-        raise NotImplementedError("Subclass must implement the run function")
+        raise NotImplementedError("Subclass must implement the create_op function")
+
+    def create_op_shared_ptr(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
+        raise NotImplementedError("Subclass not need implement the create_op_shared_ptr function")
 
 
 def register_op_creator(device_type_code: nndeploy.base.DeviceTypeCode, op_type: nndeploy.ir.OpType, creator: OpCreator):
