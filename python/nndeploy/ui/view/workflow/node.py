@@ -128,7 +128,7 @@ class WorkflowNode:
             height=self.height,
             border_radius=5,
             padding=0,
-            bgcolor=ft.colors.WHITE,
+            bgcolor=None,
             left=self.position[0],
             top=self.position[1],
             shadow=ft.BoxShadow(
@@ -172,7 +172,7 @@ class WorkflowNode:
         """创建标题栏"""
         return ft.Container(
             content=ft.Text(self.title, size=14, weight=ft.FontWeight.BOLD),
-            bgcolor=ft.colors.BLUE_GREY_100,
+            bgcolor=None,
             padding=5,
         )
     
