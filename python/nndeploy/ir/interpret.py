@@ -35,6 +35,7 @@ class InterpretCreator(_C.ir.InterpretCreator):
         super().__init__()
     
     def create_interpret(self, type, model_desc=None, is_external=False):
+        # must be self.op
         raise NotImplementedError("base class Interpret must implement create_interpret method")
     
     def create_interpret_shared_ptr(self, type, model_desc=None, is_external=False):
@@ -45,7 +46,7 @@ def register_interpret_creator(type, creator):
     return _C.ir.register_interpret_creator(type, creator)
 
 
-def create_interpret(type):
-    return _C.ir.create_interpret(type)
+def create_interpret(type, model_desc=None, is_external=False):
+    return _C.ir.create_interpret(type, model_desc, is_external)
 
 

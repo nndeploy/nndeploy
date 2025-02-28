@@ -66,9 +66,12 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
              std::shared_ptr<InterpretCreator>>(m, "InterpretCreator")
       .def(py::init<>())
       .def("create_interpret", &InterpretCreator::createInterpret,
+           py::arg("type"), py::arg("model_desc") = nullptr,
+           py::arg("is_external") = false,
            py::return_value_policy::take_ownership)
       .def("create_interpret_shared_ptr",
-           &InterpretCreator::createInterpretSharedPtr);
+           &InterpretCreator::createInterpretSharedPtr, py::arg("type"),
+           py::arg("model_desc") = nullptr, py::arg("is_external") = false);
 
   py::class_<DefaultInterpret, Interpret>(m, "DefaultInterpret")
       .def(py::init<>())
@@ -77,13 +80,20 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
   m.def("register_interpret_creator",
         [](base::ModelType type, std::shared_ptr<InterpretCreator> creator) {
           getGlobalInterpretCreatorMap()[type] = creator;
-          // for (auto &iter : getGlobalInterpretCreatorMap()) {
-          //   std::cout << "type: " << iter.first << std::endl;
-          // }
+          for (auto &iter : getGlobalInterpretCreatorMap()) {
+            std::cout << "type: " << iter.first << std::endl;
+          }
         });
 
-  m.def("create_interpret", &createInterpret,
-        py::return_value_policy::take_ownership);
+  m.def(
+      "create_interpret",
+      [](base::ModelType type, ir::ModelDesc *model_desc, bool is_external) {
+        Interpret *interpret = createInterpret(type, model_desc, is_external);
+        std::cout << "create_interpret: " << interpret << std::endl;
+        return (interpret);
+      },
+      py::arg("type"), py::arg("model_desc") = nullptr,
+      py::arg("is_external") = false, py::return_value_policy::take_ownership);
   // m.def("create_interpret_shared_ptr", &createInterpretSharedPtr,
   // py::arg("type"),
   //       py::arg("model_desc") = nullptr, py::arg("is_external") = false);

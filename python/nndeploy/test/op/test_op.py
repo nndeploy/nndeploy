@@ -27,13 +27,14 @@ class MyOpCreator(_C.op.OpCreator):
 
     def create_op(self, device_type: nndeploy.base.DeviceType, name: str, op_type: nndeploy.ir.OpType, inputs: list[str], outputs: list[str]):
         if op_type == nndeploy.ir.OpType.kOpTypeNone and device_type.code_ == nndeploy.base.DeviceTypeCode.cpu:
-            op = MyOp()
-            op.set_device_type(device_type)
-            op.set_name(name) 
-            op.set_op_type(op_type)
-            op.set_all_input_name(inputs)
-            op.set_all_output_name(outputs)
-            return op
+            self.op = MyOp()
+            print(id(self.op))
+            self.op.set_device_type(device_type)
+            self.op.set_name(name) 
+            self.op.set_op_type(op_type)
+            self.op.set_all_input_name(inputs)
+            self.op.set_all_output_name(outputs)
+            return self.op
         else:
             return None
 
@@ -46,5 +47,8 @@ if __name__ == "__main__":
     creator = MyOpCreator()
     register_op_creator(nndeploy.base.DeviceTypeCode.cpu, nndeploy.ir.OpType.kOpTypeNone, creator)
     op = create_op(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cpu), "kOpTypeNone", nndeploy.ir.OpType.kOpTypeNone, [], [], None)
-    print(op)
+    print(id(op))
+    op_v2 = create_op(nndeploy.base.DeviceType(nndeploy.base.DeviceTypeCode.cpu), "kOpTypeNone", nndeploy.ir.OpType.kOpTypeNone, [], [], None)
+    del creator
+    print(id(op_v2))
     print("--------------------------------")
