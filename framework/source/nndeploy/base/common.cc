@@ -364,7 +364,6 @@ std::string deviceTypeCodeToString(DeviceTypeCode src) {
   }
 }
 
-
 DeviceType stringToDeviceType(const std::string &src) {
   DeviceType dst;
   std::string::size_type pos1, pos2;
@@ -546,9 +545,92 @@ InferenceType stringToInferenceType(const std::string &src) {
     return kInferenceTypeTensorFlow;
   } else if (src == "kInferenceTypeNeuroPilot") {
     return kInferenceTypeNeuroPilot;
+  } else if (src == "kInferenceTypeVllm") {
+    return kInferenceTypeVllm;
+  } else if (src == "kInferenceTypeSGLang") {
+    return kInferenceTypeSGLang;
+  } else if (src == "kInferenceTypeLmdeploy") {
+    return kInferenceTypeLmdeploy;
+  } else if (src == "kInferenceTypeLLM") {
+    return kInferenceTypeLLM;
+  } else if (src == "kInferenceTypeXDit") {
+    return kInferenceTypeXDit;
+  } else if (src == "kInferenceTypeOneDiff") {
+    return kInferenceTypeOneDiff;
+  } else if (src == "kInferenceTypeDiffusers") {
+    return kInferenceTypeDiffusers;
+  } else if (src == "kInferenceTypeDiff") {
+    return kInferenceTypeDiff;
   } else {
     NNDEPLOY_LOGI("Unsupported inference type: %s.\n", src.c_str());
     return kInferenceTypeNotSupport;
+  }
+}
+
+std::string inferenceTypeToString(InferenceType src) {
+  switch (src) {
+    case kInferenceTypeNone:
+      return "kInferenceTypeNone";
+    case kInferenceTypeDefault:
+      return "kInferenceTypeDefault";
+    case kInferenceTypeOpenVino:
+      return "kInferenceTypeOpenVino";
+    case kInferenceTypeTensorRt:
+      return "kInferenceTypeTensorRt";
+    case kInferenceTypeCoreML:
+      return "kInferenceTypeCoreML";
+    case kInferenceTypeTfLite:
+      return "kInferenceTypeTfLite";
+    case kInferenceTypeOnnxRuntime:
+      return "kInferenceTypeOnnxRuntime";
+    case kInferenceTypeAscendCL:
+      return "kInferenceTypeAscendCL";
+    case kInferenceTypeNcnn:
+      return "kInferenceTypeNcnn";
+    case kInferenceTypeTnn:
+      return "kInferenceTypeTnn";
+    case kInferenceTypeMnn:
+      return "kInferenceTypeMnn";
+    case kInferenceTypePaddleLite:
+      return "kInferenceTypePaddleLite";
+    case kInferenceTypeRknn:
+      return "kInferenceTypeRknn";
+    case kInferenceTypeTvm:
+      return "kInferenceTypeTvm";
+    case kInferenceTypeAITemplate:
+      return "kInferenceTypeAITemplate";
+    case kInferenceTypeSnpe:
+      return "kInferenceTypeSnpe";
+    case kInferenceTypeQnn:
+      return "kInferenceTypeQnn";
+    case kInferenceTypeSophon:
+      return "kInferenceTypeSophon";
+    case kInferenceTypeTorch:
+      return "kInferenceTypeTorch";
+    case kInferenceTypeTensorFlow:
+      return "kInferenceTypeTensorFlow";
+    case kInferenceTypeNeuroPilot:
+      return "kInferenceTypeNeuroPilot";
+    case kInferenceTypeVllm:
+      return "kInferenceTypeVllm";
+    case kInferenceTypeSGLang:
+      return "kInferenceTypeSGLang";
+    case kInferenceTypeLmdeploy:
+      return "kInferenceTypeLmdeploy";
+    case kInferenceTypeLLM:
+      return "kInferenceTypeLLM";
+    case kInferenceTypeXDit:
+      return "kInferenceTypeXDit";
+    case kInferenceTypeOneDiff:
+      return "kInferenceTypeOneDiff";
+    case kInferenceTypeDiffusers:
+      return "kInferenceTypeDiffusers";
+    case kInferenceTypeDiff:
+      return "kInferenceTypeDiff";
+    case kInferenceTypeNotSupport:
+      return "kInferenceTypeNotSupport";
+    default:
+      return "kInferenceTypeNotSupport";
   }
 }
 

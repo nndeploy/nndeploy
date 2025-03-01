@@ -301,6 +301,16 @@ enum InferenceType : int {
   // mtk: neuro-pilot
   kInferenceTypeNeuroPilot,
 
+  kInferenceTypeVllm,
+  kInferenceTypeSGLang,
+  kInferenceTypeLmdeploy,
+  kInferenceTypeLLM,
+
+  kInferenceTypeXDit,
+  kInferenceTypeOneDiff,
+  kInferenceTypeDiffusers,
+  kInferenceTypeDiff,
+
   // not sopport
   kInferenceTypeNotSupport,
 };
@@ -375,7 +385,7 @@ extern NNDEPLOY_CC_API ModelType stringToModelType(const std::string &src);
 
 extern NNDEPLOY_CC_API InferenceType
 stringToInferenceType(const std::string &src);
-
+extern NNDEPLOY_CC_API std::string inferenceTypeToString(InferenceType src);
 extern NNDEPLOY_CC_API EncryptType stringToEncryptType(const std::string &src);
 
 extern NNDEPLOY_CC_API ShareMemoryType
