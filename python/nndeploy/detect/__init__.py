@@ -1,2 +1,2 @@
 
-from .test_detect import DetectGraph
+from .detect import DetectGraph
