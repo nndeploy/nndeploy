@@ -4,81 +4,82 @@
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy_api_registry.h"
+#include "dag/dag.h"
 
 namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
 
-class PyNode : public Node {
- public:
-  using Node::Node;  // 继承构造函数
+// class PyNode : public Node {
+//  public:
+//   using Node::Node;  // 继承构造函数
 
-  base::Status setDeviceType(base::DeviceType device_type) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_device_type", setDeviceType,
-                           device_type);
-  }
+//   base::Status setDeviceType(base::DeviceType device_type) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_device_type", setDeviceType,
+//                            device_type);
+//   }
 
-  base::DeviceType getDeviceType() override {
-    PYBIND11_OVERRIDE_NAME(base::DeviceType, Node, "get_device_type",
-                           getDeviceType);
-  }
+//   base::DeviceType getDeviceType() override {
+//     PYBIND11_OVERRIDE_NAME(base::DeviceType, Node, "get_device_type",
+//                            getDeviceType);
+//   }
 
-  //   base::Status setParam(base::Param *param) override {
-  //     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_param", setParam,
-  //     param);
-  //   }
+//   //   base::Status setParam(base::Param *param) override {
+//   //     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_param", setParam,
+//   //     param);
+//   //   }
 
-  base::Status setParamSharedPtr(std::shared_ptr<base::Param> param) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_param", setParamSharedPtr,
-                           param);
-  }
+//   base::Status setParamSharedPtr(std::shared_ptr<base::Param> param) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_param", setParamSharedPtr,
+//                            param);
+//   }
 
-  //   base::Param *getParam() override {
-  //     PYBIND11_OVERRIDE_NAME(base::Param *, Node, "get_param", getParam);
-  //   }
+//   //   base::Param *getParam() override {
+//   //     PYBIND11_OVERRIDE_NAME(base::Param *, Node, "get_param", getParam);
+//   //   }
 
-  std::shared_ptr<base::Param> getParamSharedPtr() override {
-    PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Node, "get_param",
-                           getParamSharedPtr);
-  }
+//   std::shared_ptr<base::Param> getParamSharedPtr() override {
+//     PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Node, "get_param",
+//                            getParamSharedPtr);
+//   }
 
-  base::Status setExternalParam(
-      const std::string &key, std::shared_ptr<base::Param> external_param) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_external_param",
-                           setExternalParam, key, external_param);
-  }
+//   base::Status setExternalParam(
+//       const std::string &key, std::shared_ptr<base::Param> external_param) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_external_param",
+//                            setExternalParam, key, external_param);
+//   }
 
-  std::shared_ptr<base::Param> getExternalParam(
-      const std::string &key) override {
-    PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Node, "get_external_param",
-                           getExternalParam, key);
-  }
+//   std::shared_ptr<base::Param> getExternalParam(
+//       const std::string &key) override {
+//     PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Node, "get_external_param",
+//                            getExternalParam, key);
+//   }
 
-  base::Status init() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Node, "init", init);
-  }
+//   base::Status init() override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "init", init);
+//   }
 
-  base::Status deinit() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Node, "deinit", deinit);
-  }
+//   base::Status deinit() override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "deinit", deinit);
+//   }
 
-  int64_t getMemorySize() override {
-    PYBIND11_OVERRIDE_NAME(int64_t, Node, "get_memory_size", getMemorySize);
-  }
+//   int64_t getMemorySize() override {
+//     PYBIND11_OVERRIDE_NAME(int64_t, Node, "get_memory_size", getMemorySize);
+//   }
 
-  base::Status setMemory(device::Buffer *buffer) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_memory", setMemory, buffer);
-  }
+//   base::Status setMemory(device::Buffer *buffer) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_memory", setMemory, buffer);
+//   }
 
-  base::EdgeUpdateFlag updateInput() override {
-    PYBIND11_OVERRIDE_NAME(base::EdgeUpdateFlag, Node, "update_input",
-                           updateInput);
-  }
+//   base::EdgeUpdateFlag updateInput() override {
+//     PYBIND11_OVERRIDE_NAME(base::EdgeUpdateFlag, Node, "update_input",
+//                            updateInput);
+//   }
 
-  base::Status run() override {
-    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Node, "run", run);
-  }
-};
+//   base::Status run() override {
+//     PYBIND11_OVERRIDE_PURE_NAME(base::Status, Node, "run", run);
+//   }
+// };
 
 NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
   py::class_<NodeDesc, std::shared_ptr<NodeDesc>>(m, "NodeDesc",
@@ -97,7 +98,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_inputs", &NodeDesc::getInputs)
       .def("get_outputs", &NodeDesc::getOutputs);
 
-  py::class_<Node, PyNode>(m, "Node", py::dynamic_attr())
+  py::class_<Node, PyNode<Node>>(m, "Node", py::dynamic_attr())
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, Edge *, Edge *>())
       .def(py::init<const std::string &, std::initializer_list<Edge *>,

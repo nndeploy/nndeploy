@@ -7,12 +7,6 @@ namespace nndeploy {
 namespace detect {
 
 NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
-  // 首先导入base模块
-  // py::module::import("nndeploy._nndeploy_internal.base");
-  // 首先导入dag模块
-  // py::module::import("nndeploy._nndeploy_internal.dag");
-
-  // 然后再进行YoloPostParam和YoloPostProcess的绑定
   py::class_<YoloPostParam, base::Param, std::shared_ptr<YoloPostParam>>(m, "YoloPostParam")
     .def(py::init<>())
     .def_readwrite("score_threshold_", &YoloPostParam::score_threshold_)
@@ -23,7 +17,7 @@ NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
     .def_readwrite("version_", &YoloPostParam::version_);
 
   // 导出YoloPostProcess类
-  py::class_<YoloPostProcess, dag::Node, std::shared_ptr<YoloPostProcess>>(m, "YoloPostProcess")
+  py::class_<YoloPostProcess, dag::Node>(m, "YoloPostProcess")
     .def(py::init<const std::string&>())
     .def(py::init<const std::string&, std::initializer_list<dag::Edge*>, std::initializer_list<dag::Edge*>>())
     .def(py::init<const std::string&, std::vector<dag::Edge*>, std::vector<dag::Edge*>>())
@@ -32,7 +26,7 @@ NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
     .def("run_v8", &YoloPostProcess::runV8);
 
   // 导出YoloGraph类
-  py::class_<YoloGraph, dag::Graph, std::shared_ptr<YoloGraph>>(m, "YoloGraph")
+  py::class_<YoloGraph, dag::Graph>(m, "YoloGraph")
     .def(py::init<const std::string&>())
     .def(py::init<const std::string&, std::initializer_list<dag::Edge*>, std::initializer_list<dag::Edge*>>())
     .def(py::init<const std::string&, std::vector<dag::Edge*>, std::vector<dag::Edge*>>())

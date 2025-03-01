@@ -4,31 +4,32 @@
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy_api_registry.h"
+#include "dag/dag.h"
 
 namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
 
-class PyGraph : public Graph {
- public:
-  using Graph::Graph;  // 继承构造函数
+// class PyGraph : public Graph {
+//  public:
+//   using Graph::Graph;  // 继承构造函数
 
-  virtual base::Status init() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Graph, "init", init);
-  }
+//   virtual base::Status init() override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Graph, "init", init);
+//   }
 
-  virtual base::Status deinit() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Graph, "deinit", deinit);
-  }
+//   virtual base::Status deinit() override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Graph, "deinit", deinit);
+//   }
 
-  virtual base::Status run() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Graph, "run", run);
-  }
-};
+//   virtual base::Status run() override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Graph, "run", run);
+//   }
+// };
 
 NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
   // 定义Graph类
-  py::class_<Graph, PyGraph, Node>(m, "Graph", py::dynamic_attr())
+  py::class_<Graph, Node, PyGraph<Graph>>(m, "Graph", py::dynamic_attr())
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, Edge *, Edge *>())
       .def(py::init<const std::string &, std::initializer_list<Edge *>,

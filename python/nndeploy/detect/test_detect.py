@@ -24,7 +24,7 @@ class DetectGraph(nndeploy.dag.Graph):
         self.is_path = True
         self.model_value = ["/home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx"]
         
-        # self.input_edge = self.create_edge_shared_ptr("input_edge")
+        # self.input_edge = self.create_edge("input_edge")
         self.input_edge = nndeploy.dag.Edge("input_edge")
         self.yolo_graph = _C.detect.YoloGraph("yolo_graph", [self.input_edge], [outputs])
         print(type(self.yolo_graph))
@@ -35,18 +35,18 @@ class DetectGraph(nndeploy.dag.Graph):
         self.yolo_graph.make(pre_desc, infer_desc, self.inference_type, post_desc)
         self.yolo_graph.set_infer_param(self.device_type, self.model_type, self.is_path, self.model_value)
         self.yolo_graph.set_version(self.version)
-        self.add_node_shared_ptr(self.yolo_graph)
+        self.add_node(self.yolo_graph)
         
-        self.decode_node = _C.codec.create_decode_node_shared_ptr(nndeploy.base.CodecType.OpenCV, codec_flag, "decode_node", self.input_edge)
-        self.add_node_shared_ptr(self.decode_node)
+        self.decode_node = _C.codec.create_decode_node(nndeploy.base.CodecType.OpenCV, codec_flag, "decode_node", self.input_edge)
+        self.add_node(self.decode_node)
         
         # self.draw_output = self.create_edge("draw_output")
         self.draw_output = nndeploy.dag.Edge("draw_output")
         self.draw_box_node = _C.detect.DrawBoxNode("draw_box_node", [self.input_edge, outputs], [self.draw_output])
-        self.add_node_shared_ptr(self.draw_box_node)
+        self.add_node(self.draw_box_node)
         
-        self.encode_node = _C.codec.create_encode_node_shared_ptr(nndeploy.base.CodecType.OpenCV, codec_flag, "encode_node", self.draw_output)
-        self.add_node_shared_ptr(self.encode_node)
+        self.encode_node = _C.codec.create_encode_node(nndeploy.base.CodecType.OpenCV, codec_flag, "encode_node", self.draw_output)
+        self.add_node(self.encode_node)
     
     def set_input_path(self, path):
         self.decode_node.set_path(path)

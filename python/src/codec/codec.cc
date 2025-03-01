@@ -13,7 +13,7 @@ class PyDecodeNode : public DecodeNode {
   using DecodeNode::DecodeNode;  // 继承构造函数
 
   base::Status run() override {
-    PYBIND11_OVERRIDE_PURE_NAME(base::Status, DecodeNode, run);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, DecodeNode, "run", run);
   }
 };
 
@@ -23,16 +23,12 @@ class PyEncodeNode : public EncodeNode {
   using EncodeNode::EncodeNode;  // 继承构造函数
 
   base::Status run() override {
-    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, run);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "run", run);
   }
 };
 
 NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
-  // 首先导入dag模块
-  // py::module::import("nndeploy._nndeploy_internal.dag");
-
-  // 然后再进行DecodeNode和EncodeNode的绑定
-  py::class_<DecodeNode, PyDecodeNode, dag::Node, std::shared_ptr<DecodeNode>>(
+  py::class_<DecodeNode, PyDecodeNode, dag::Node>(
       m, "DecodeNode")
       .def(py::init<base::CodecFlag, const std::string&, dag::Edge*>())
       .def("get_codec_flag", &DecodeNode::getCodecFlag)
@@ -45,7 +41,7 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
       .def("update_input", &DecodeNode::updataInput)
       .def("run", &DecodeNode::run);
 
-  py::class_<EncodeNode, PyEncodeNode, dag::Node, std::shared_ptr<EncodeNode>>(
+  py::class_<EncodeNode, PyEncodeNode, dag::Node>(
       m, "EncodeNode")
       .def(py::init<base::CodecFlag, const std::string&, dag::Edge*>())
       .def("get_codec_flag", &EncodeNode::getCodecFlag)
@@ -61,12 +57,8 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   // 导出创建节点的函数
   m.def("create_decode_node", &createDecodeNode, py::arg("type"),
         py::arg("flag"), py::arg("name"), py::arg("output"), py::return_value_policy::take_ownership);
-  m.def("create_decode_node_shared_ptr", &createDecodeNodeSharedPtr,
-        py::arg("type"), py::arg("flag"), py::arg("name"), py::arg("output"));
   m.def("create_encode_node", &createEncodeNode, py::arg("type"),
-        py::arg("flag"), py::arg("name"), py::arg("input"));
-  m.def("create_encode_node_shared_ptr", &createEncodeNodeSharedPtr,
-        py::arg("type"), py::arg("flag"), py::arg("name"), py::arg("input"));
+        py::arg("flag"), py::arg("name"), py::arg("input"), py::return_value_policy::take_ownership);
 }
 
 }  // namespace codec
