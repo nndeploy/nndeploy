@@ -76,6 +76,7 @@ base::Param *Infer::getParam() { return inference_->getParam(); }
 
 base::Status Infer::setParamSharedPtr(std::shared_ptr<base::Param> param) {
   base::Status status = base::kStatusCodeOk;
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is nullptr");
   status = inference_->setParamSharedPtr(param);
   return status;
 }
@@ -231,7 +232,9 @@ base::Status Infer::run() {
   return status;
 }
 
-std::shared_ptr<inference::Inference> Infer::getInference() { return inference_; }
+std::shared_ptr<inference::Inference> Infer::getInference() {
+  return inference_;
+}
 
 REGISTER_NODE("nndeploy::infer::Infer", Infer);
 

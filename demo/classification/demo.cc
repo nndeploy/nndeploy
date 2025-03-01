@@ -42,6 +42,8 @@ class DrawLableNode : public dag::Node {
   }
 };
 
+#if 0
+
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
   if (demo::FLAGS_usage) {
@@ -208,4 +210,76 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-// int main() { return 0; }
+#else
+
+int main(int argc, char *argv[]) {
+  gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
+  if (demo::FLAGS_usage) {
+    demo::showUsage();
+    return -1;
+  }
+
+  int ret = nndeployFrameworkInit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
+
+  // 检测模型的有向无环图graph名称，例如:nndeploy::classification::ClassificationResnetGraph
+  std::string name = demo::getName();
+  // 推理后端类型，例如:
+  // kInferenceTypeOpenVino / kInferenceTypeTensorRt /
+  base::InferenceType inference_type = demo::getInferenceType();
+  // 推理设备类型，例如:
+  // kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
+  base::DeviceType device_type = demo::getDeviceType();
+  // 模型类型，例如:
+  // kModelTypeOnnx/kModelTypeMnn/...
+  base::ModelType model_type = demo::getModelType();
+  // 模型是否是路径
+  bool is_path = demo::isPath();
+  // 模型路径或者模型字符串
+  std::vector<std::string> model_value = demo::getModelValue();
+  // input path
+  std::string input_path = demo::getInputPath();
+  base::CodecFlag codec_flag = demo::getCodecFlag();
+  // output path
+  std::string ouput_path = demo::getOutputPath();
+  // base::kParallelTypePipeline / base::kParallelTypeSequential
+  base::ParallelType pt = demo::getParallelType();
+
+  // 创建分类图
+  classification::ClassificationResnetGraph graph("resnet");
+  graph.make(inference_type);
+  graph.setInferParam(device_type, model_type, is_path, model_value);
+
+  // 调用forward函数进行推理
+  for (int i = 0; i < 10; i++) {
+    std::shared_ptr<dag::Edge> input_image =
+        std::make_shared<dag::Edge>("input_image");
+    cv::Mat image = cv::imread(input_path);
+    input_image->set(image, i);
+    NNDEPLOY_LOGE("input_image: %p.\n", input_image.get());
+    std::vector<std::shared_ptr<dag::Edge>> outputs =
+        graph.forward({input_image}, {"classification_result"}, nullptr);
+    NNDEPLOY_LOGE("outputs: %p.\n", outputs[0].get());
+    classification::ClassificationResult *result =
+        (classification::ClassificationResult *)outputs[0]
+            ->getGraphOutputParam();
+    NNDEPLOY_LOGE("result: %p.\n", result);
+    for (int i = 0; i < result->labels_.size(); i++) {
+      auto label = result->labels_[i];
+      // 将分类结果和置信度转为字符串
+      std::string text = "class: " + std::to_string(label.label_ids_) +
+                         " score: " + std::to_string(label.scores_);
+
+      // 在图像左上角绘制文本
+      cv::putText(image, text, cv::Point(30, 30 + i * 30),
+                  cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
+    }
+    cv::imwrite(ouput_path, image);
+  }
+  return 0;
+}
+
+#endif

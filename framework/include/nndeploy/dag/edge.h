@@ -69,7 +69,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   base::Status set(device::Tensor *tensor, int index, bool is_external = true);
   base::Status set(device::Tensor &tensor, int index);
   device::Tensor *create(device::Device *device, const device::TensorDesc &desc,
-                         int index);
+                         int index, std::string tensor_name = "");
   bool notifyWritten(device::Tensor *tensor);
   device::Tensor *getTensor(const Node *node);
   device::Tensor *getGraphOutputTensor();

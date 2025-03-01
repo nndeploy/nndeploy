@@ -77,6 +77,16 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::shared_ptr<Edge> getEdgeSharedPtr(const std::string &name);
 
   /**
+   * @brief 在Graph中创建一个Node
+   * @param  name             Node名称
+   * @param  args             Node的参数
+   * @return Node*
+   */
+  template <typename T, typename... Args,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name, Args &...args);
+
+  /**
    * @brief 在Graph中创建一个Node，并关联input、output的Edge
    * @param  name             Node名称
    * @param  input            输入Edge
@@ -420,9 +430,9 @@ class NNDEPLOY_CC_API Graph : public Node {
       Node *node, std::vector<std::shared_ptr<Edge>> inputs,
       std::vector<std::string> outputs_name);
 
-  std::vector<Edge *> updateNodeIO(
-      Node *node, std::vector<Edge *> inputs,
-      std::vector<std::string> outputs_name, std::shared_ptr<base::Param> param);
+  std::vector<Edge *> updateNodeIO(Node *node, std::vector<Edge *> inputs,
+                                   std::vector<std::string> outputs_name,
+                                   std::shared_ptr<base::Param> param);
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -445,6 +455,24 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::set<std::string> used_edge_names_;
   std::shared_ptr<Executor> executor_;
 };
+
+template <typename T, typename... Args,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
+Node *Graph::createNode(const std::string &name,
+                        Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
+  Node *node = dynamic_cast<Node *>(new T(name, args...));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
+  return node;
+}
 
 template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>

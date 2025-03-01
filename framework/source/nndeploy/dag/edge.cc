@@ -8,7 +8,8 @@ namespace dag {
 
 // Edge::Edge() : name_(""), abstact_edge_(nullptr) {}
 // Edge::Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
-Edge::Edge() : name_("") {
+Edge::Edge() {
+  name_ = "edge_" + base::getUniqueString();
   abstact_edge_ = createEdge(base::kParallelTypeNone);
   if (abstact_edge_ == nullptr) {
     NNDEPLOY_LOGE("out of memory!\n");
@@ -17,6 +18,9 @@ Edge::Edge() : name_("") {
   // this->construct();
 }
 Edge::Edge(const std::string &name) : name_(name) {
+  if (name.empty()) {
+    name_ = "edge_" + base::getUniqueString();
+  }
   abstact_edge_ = createEdge(base::kParallelTypeNone);
   if (abstact_edge_ == nullptr) {
     NNDEPLOY_LOGE("out of memory!\n");
@@ -24,7 +28,7 @@ Edge::Edge(const std::string &name) : name_(name) {
   }
   // this->construct();
 }
-Edge::~Edge() { 
+Edge::~Edge() {
   NNDEPLOY_LOGI("Edge[%s]::~Edge() START\n", name_.c_str());
   if (abstact_edge_ != nullptr) {
     delete abstact_edge_;
@@ -86,8 +90,15 @@ base::Status Edge::set(device::Tensor &tensor, int index) {
   return this->set(&tensor, index, true);
 }
 device::Tensor *Edge::create(device::Device *device,
-                             const device::TensorDesc &desc, int index) {
-  return abstact_edge_->create(device, desc, index, name_);
+                             const device::TensorDesc &desc, int index,
+                             std::string tensor_name) {
+  if (tensor_name.empty()) {
+    tensor_name = name_;
+  }
+  if (tensor_name.empty()) {
+    tensor_name = "tensor_" + base::getUniqueString();
+  }
+  return abstact_edge_->create(device, desc, index, tensor_name);
 }
 bool Edge::notifyWritten(device::Tensor *tensor) {
   return abstact_edge_->notifyWritten(tensor);

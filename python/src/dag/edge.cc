@@ -69,9 +69,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("tensor"), py::arg("index"))
       .def("create",
            static_cast<device::Tensor* (
-               Edge::*)(device::Device*, const device::TensorDesc&, int)>(
+               Edge::*)(device::Device*, const device::TensorDesc&, int, std::string)>(
                &Edge::create),
-           py::arg("device"), py::arg("desc"), py::arg("index"),
+           py::arg("device"), py::arg("desc"), py::arg("index"), py::arg("tensor_name") = "",
            py::return_value_policy::reference)
       .def("notify_written",
            py::overload_cast<device::Tensor*>(&Edge::notifyWritten),
@@ -110,7 +110,6 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
 
       // 终止请求
       .def("request_terminate", &Edge::requestTerminate);
-
 }
 
 }  // namespace dag

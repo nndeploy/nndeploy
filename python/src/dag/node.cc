@@ -1,10 +1,10 @@
 #include "nndeploy/dag/node.h"
 
+#include "dag/dag.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
 #include "nndeploy_api_registry.h"
-#include "dag/dag.h"
 
 namespace py = pybind11;
 namespace nndeploy {
@@ -15,7 +15,8 @@ namespace dag {
 //   using Node::Node;  // 继承构造函数
 
 //   base::Status setDeviceType(base::DeviceType device_type) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_device_type", setDeviceType,
+//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_device_type",
+//     setDeviceType,
 //                            device_type);
 //   }
 
@@ -29,8 +30,10 @@ namespace dag {
 //   //     param);
 //   //   }
 
-//   base::Status setParamSharedPtr(std::shared_ptr<base::Param> param) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_param", setParamSharedPtr,
+//   base::Status setParamSharedPtr(std::shared_ptr<base::Param> param) override
+//   {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_param",
+//     setParamSharedPtr,
 //                            param);
 //   }
 
@@ -44,14 +47,16 @@ namespace dag {
 //   }
 
 //   base::Status setExternalParam(
-//       const std::string &key, std::shared_ptr<base::Param> external_param) override {
+//       const std::string &key, std::shared_ptr<base::Param> external_param)
+//       override {
 //     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_external_param",
 //                            setExternalParam, key, external_param);
 //   }
 
 //   std::shared_ptr<base::Param> getExternalParam(
 //       const std::string &key) override {
-//     PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Node, "get_external_param",
+//     PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Node,
+//     "get_external_param",
 //                            getExternalParam, key);
 //   }
 
@@ -68,7 +73,8 @@ namespace dag {
 //   }
 
 //   base::Status setMemory(device::Buffer *buffer) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_memory", setMemory, buffer);
+//     PYBIND11_OVERRIDE_NAME(base::Status, Node, "set_memory", setMemory,
+//     buffer);
 //   }
 
 //   base::EdgeUpdateFlag updateInput() override {
@@ -112,8 +118,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_device_type", &Node::getDeviceType)
       .def("set_param", &Node::setParamSharedPtr, py::arg("param"))
       .def("get_param", &Node::getParamSharedPtr)
-      .def("set_external_param", &Node::setExternalParam,
-           py::arg("key"), py::arg("external_param"))
+      .def("set_external_param", &Node::setExternalParam, py::arg("key"),
+           py::arg("external_param"))
       .def("get_external_param", &Node::getExternalParam, py::arg("key"))
       .def("set_input", &Node::setInput, py::arg("input"),
            py::arg("index") = -1)
@@ -121,14 +127,15 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("index") = -1)
       .def("set_inputs", &Node::setInputs, py::arg("inputs"))
       .def("set_outputs", &Node::setOutputs, py::arg("outputs"))
-     //  .def("set_input_shared_ptr", &Node::setInputSharedPtr, py::arg("input"),
-     //       py::arg("index") = -1)
-     //  .def("set_output_shared_ptr", &Node::setOutputSharedPtr,
-     //       py::arg("output"), py::arg("index") = -1)
-     //  .def("set_inputs_shared_ptr", &Node::setInputsSharedPtr,
-     //       py::arg("inputs"))
-     //  .def("set_outputs_shared_ptr", &Node::setOutputsSharedPtr,
-     //       py::arg("outputs"))
+      //  .def("set_input_shared_ptr", &Node::setInputSharedPtr,
+      //  py::arg("input"),
+      //       py::arg("index") = -1)
+      //  .def("set_output_shared_ptr", &Node::setOutputSharedPtr,
+      //       py::arg("output"), py::arg("index") = -1)
+      //  .def("set_inputs_shared_ptr", &Node::setInputsSharedPtr,
+      //       py::arg("inputs"))
+      //  .def("set_outputs_shared_ptr", &Node::setOutputsSharedPtr,
+      //       py::arg("outputs"))
       .def("get_input", &Node::getInput, py::arg("index") = 0,
            py::return_value_policy::reference)
       .def("get_output", &Node::getOutput, py::arg("index") = 0,
@@ -158,13 +165,16 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_memory", &Node::setMemory, py::arg("buffer"))
       .def("updata_input", &Node::updateInput)
       .def("run", &Node::run)
-      .def("__call__", py::overload_cast<std::vector<std::shared_ptr<Edge>>, 
-           std::vector<std::string>, std::shared_ptr<base::Param>>(&Node::operator()),
+      .def("__call__",
+           py::overload_cast<std::vector<std::shared_ptr<Edge>>,
+                             std::vector<std::string>,
+                             std::shared_ptr<base::Param>>(&Node::operator()),
            py::arg("inputs"),
            py::arg("outputs_name") = std::vector<std::string>(),
            py::arg("param") = nullptr)
-      .def("__call__", py::overload_cast<std::vector<Edge*>,
-           std::vector<std::string>, std::shared_ptr<base::Param>>(&Node::operator()),
+      .def("__call__",
+           py::overload_cast<std::vector<Edge *>, std::vector<std::string>,
+                             std::shared_ptr<base::Param>>(&Node::operator()),
            py::arg("inputs"),
            py::arg("outputs_name") = std::vector<std::string>(),
            py::arg("param") = nullptr)

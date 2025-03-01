@@ -5,8 +5,15 @@
 namespace nndeploy {
 namespace dag {
 
-Node::Node(const std::string &name) : name_(name) {}
-Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
+Node::Node(const std::string &name) {
+  if (name.empty()) {
+    name_ = "node_" + base::getUniqueString();
+  }
+}
+Node::Node(const std::string &name, Edge *input, Edge *output) {
+  if (name.empty()) {
+    name_ = "node_" + base::getUniqueString();
+  }
   if (input == output) {
     NNDEPLOY_LOGW("Input edge[%s] is same as output edge[%s].\n",
                   input->getName().c_str(), output->getName().c_str());
@@ -21,8 +28,10 @@ Node::Node(const std::string &name, Edge *input, Edge *output) : name_(name) {
   constructed_ = true;
 }
 Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
-           std::initializer_list<Edge *> outputs)
-    : name_(name) {
+           std::initializer_list<Edge *> outputs) {
+  if (name.empty()) {
+    name_ = "node_" + base::getUniqueString();
+  }
   for (auto input : inputs) {
     for (auto output : outputs) {
       if (input == output) {
@@ -37,8 +46,10 @@ Node::Node(const std::string &name, std::initializer_list<Edge *> inputs,
   constructed_ = true;
 }
 Node::Node(const std::string &name, std::vector<Edge *> inputs,
-           std::vector<Edge *> outputs)
-    : name_(name) {
+           std::vector<Edge *> outputs) {
+  if (name.empty()) {
+    name_ = "node_" + base::getUniqueString();
+  }
   for (auto input : inputs) {
     for (auto output : outputs) {
       if (input == output) {
@@ -93,13 +104,12 @@ base::Status Node::setParamSharedPtr(std::shared_ptr<base::Param> param) {
 }
 base::Param *Node::getParam() { return param_.get(); }
 std::shared_ptr<base::Param> Node::getParamSharedPtr() { return param_; }
-base::Status Node::setExternalParam(const std::string &key,
-                                     std::shared_ptr<base::Param> external_param) {
+base::Status Node::setExternalParam(
+    const std::string &key, std::shared_ptr<base::Param> external_param) {
   external_param_[key] = external_param;
   return base::kStatusCodeOk;
 }
-std::shared_ptr<base::Param> Node::getExternalParam(
-    const std::string &key) {
+std::shared_ptr<base::Param> Node::getExternalParam(const std::string &key) {
   return external_param_[key];
 }
 
@@ -316,8 +326,10 @@ std::vector<std::shared_ptr<Edge>> Node::operator()(
     std::vector<std::shared_ptr<Edge>> inputs,
     std::vector<std::string> outputs_name, std::shared_ptr<base::Param> param) {
   if (graph_ == nullptr) {
+    NNDEPLOY_LOGE("graph_ is nullptr.\n");
     return functorWithoutGraph(inputs, outputs_name, param);
   } else {
+    NNDEPLOY_LOGE("graph_ is not nullptr.\n");
     return functorWithGraph(inputs, outputs_name, param);
   }
 }
@@ -330,7 +342,7 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
     this->init();
     this->setInitializedFlag(true);
   }
-  // // if (param_ == nullptr) {
+  // // if (param_ != nullptr) {
   // //   this->setParamSharedPtr(param);
   // // }
   if (!inputs.empty()) {
@@ -371,19 +383,24 @@ std::vector<std::shared_ptr<Edge>> Node::functorWithoutGraph(
     std::vector<std::shared_ptr<Edge>> inputs,
     std::vector<std::string> outputs_name, std::shared_ptr<base::Param> param) {
   // check
-  if (!checkInputs(inputs)) {
-    return std::vector<std::shared_ptr<Edge>>();
-  }
-  if (!checkOutputs(outputs_name)) {
-    return std::vector<std::shared_ptr<Edge>>();
-  }
+  // if (!checkInputs(inputs)) {
+  //   return std::vector<std::shared_ptr<Edge>>();
+  // }
+  // if (!checkOutputs(outputs_name)) {
+  //   return std::vector<std::shared_ptr<Edge>>();
+  // }
+  NNDEPLOY_LOGE("functorWithoutGraph: %p.\n", inputs[0].get());
   if (initialized_ == false) {
     this->init();
     this->setInitializedFlag(true);
   }
+  NNDEPLOY_LOGE("functorWithoutGraph: %p.\n", param_.get());
   if (param_ == nullptr) {
+    NNDEPLOY_LOGE("functorWithoutGraph: %p.\n", param.get());
     this->setParamSharedPtr(param);
+    NNDEPLOY_LOGE("functorWithoutGraph: %p.\n", param_.get());
   }
+  NNDEPLOY_LOGE("functorWithoutGraph: %p.\n", param_.get());
   if (!inputs.empty()) {
     this->setInputsSharedPtr(inputs);
   }
@@ -404,8 +421,11 @@ std::vector<std::shared_ptr<Edge>> Node::functorWithoutGraph(
   }
   if (!outputs.empty()) {
     this->setOutputsSharedPtr(outputs);
+    NNDEPLOY_LOGE("functorWithoutGraph: %p.\n", outputs[0].get());
   }
+  NNDEPLOY_LOGE("functorWithoutGraph: %p.\n", this);
   base::Status status = this->run();
+  NNDEPLOY_LOGE("functorWithoutGraph: %p.\n", status);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("Node %s run failed.\n", name_.c_str());
     return std::vector<std::shared_ptr<Edge>>();
@@ -421,9 +441,11 @@ std::vector<std::shared_ptr<Edge>> Node::functorWithGraph(
     std::vector<std::string> outputs_name, std::shared_ptr<base::Param> param) {
   // check
   if (inputs_.empty()) {
+    NNDEPLOY_LOGE("inputs_ is empty.\n");
     return functorDynamic(inputs, outputs_name, param);
   } else {
     if (is_compiled_) {
+      NNDEPLOY_LOGE("is_compiled_ is true.\n");
       std::vector<std::shared_ptr<Edge>> outputs;
       std::vector<std::string> real_outputs_name;
       if (!outputs_name.empty()) {
@@ -447,6 +469,7 @@ std::vector<std::shared_ptr<Edge>> Node::functorWithGraph(
 std::vector<std::shared_ptr<Edge>> Node::functorDynamic(
     std::vector<std::shared_ptr<Edge>> inputs,
     std::vector<std::string> outputs_name, std::shared_ptr<base::Param> param) {
+  NNDEPLOY_LOGE("functorDynamic: %p.\n", inputs[0].get());
   std::vector<std::string> real_outputs_name;
   if (!outputs_name.empty()) {
     for (size_t i = 0; i < outputs_name.size(); i++) {
@@ -461,14 +484,17 @@ std::vector<std::shared_ptr<Edge>> Node::functorDynamic(
       real_outputs_name.push_back(name_ + "_" + std::to_string(i));
     }
   }
+  NNDEPLOY_LOGE("functorDynamic: %p.\n", graph_);
   std::vector<std::shared_ptr<Edge>> outputs =
       graph_->updateNodeIO(this, inputs, real_outputs_name);
   if (!outputs.empty()) {
     this->setOutputsSharedPtr(outputs);
   }
+  NNDEPLOY_LOGE("functorDynamic: %p.\n", param.get());
   if (param_ == nullptr) {
     this->setParamSharedPtr(param);
   }
+  NNDEPLOY_LOGE("functorDynamic: %p.\n", param_.get());
   if (!inputs.empty()) {
     this->setInputsSharedPtr(inputs);
   }

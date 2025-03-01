@@ -33,7 +33,7 @@ class Edge(_C.dag.Edge):
                 raise ValueError("Failed to set data")
         else: # 处理其他类型的数据
             # self.type_name = type(data).__name__
-            if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
+            if self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.Task:
                 self.data = data
             elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
                 raise ValueError("Parallel type is not supported")

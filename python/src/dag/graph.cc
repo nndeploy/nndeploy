@@ -1,10 +1,10 @@
 #include "nndeploy/dag/graph.h"
 
+#include "dag/dag.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy_api_registry.h"
-#include "dag/dag.h"
 
 namespace py = pybind11;
 namespace nndeploy {
@@ -57,9 +57,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             g.addNode(node, is_external);
           },
           py::keep_alive<1, 2>(), py::arg("node"))
-      .def("set_node_param", &Graph::setNodeParamSharedPtr, py::arg("node_name"),
-           py::arg("param"))
-      .def("get_node_param", &Graph::getNodeParamSharedPtr, py::arg("node_name"))
+      .def("set_node_param", &Graph::setNodeParamSharedPtr,
+           py::arg("node_name"), py::arg("param"))
+      .def("get_node_param", &Graph::getNodeParamSharedPtr,
+           py::arg("node_name"))
       .def("set_graph_node_share_stream", &Graph::setGraphNodeShareStream,
            py::arg("flag"))
       .def("get_graph_node_share_stream", &Graph::getGraphNodeShareStream)
