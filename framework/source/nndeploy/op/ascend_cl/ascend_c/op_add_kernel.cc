@@ -2,7 +2,7 @@
 
 #include "kernel_operator.h"
 
-constexpr int32_t BUFFER_NUM = 1;
+constexpr int32_t BUFFER_NUM = 2;
 
 __aicore__ inline void CopyTiling(nndeploy::op::AddTilingData *tiling,
                                   GM_ADDR tiling_gm) {
@@ -256,13 +256,13 @@ extern "C" __global__ __aicore__ void add(GM_ADDR x, GM_ADDR y, GM_ADDR z,
   op.Process();
 }
 
-namespace nndeploy {
-namespace op {
+// namespace nndeploy {
+// namespace op {
 
-void add_custom_do(uint32_t blockDim, void *stream, uint8_t *x, uint8_t *y,
-                   uint8_t *z, AddTilingData *data) {
-  // add_custom<<<blockDim, nullptr, stream>>>(x, y, z);
-}
+// void add_custom_do(uint32_t blockDim, void *stream, uint8_t *x, uint8_t *y,
+//                    uint8_t *z, AddTilingData *data) {
+//   // add_custom<<<blockDim, nullptr, stream>>>(x, y, z);
+// }
 
-}  // namespace op
-}  // namespace nndeploy
+// }  // namespace op
+// }  // namespace nndeploy

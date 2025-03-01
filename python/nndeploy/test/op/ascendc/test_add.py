@@ -13,7 +13,7 @@ from nndeploy.test.test_util import (
 class TestAddOp(unittest.TestCase):
 
     def test_add(self):
-        input_shape = [32, 32, 64, 64]
+        input_shape = [1, 3, 256, 256]
 
         np_input1 = np.random.random(input_shape).astype(np.float16)
         np_input2 = np.random.random(input_shape).astype(np.float16)

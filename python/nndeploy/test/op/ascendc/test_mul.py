@@ -18,7 +18,7 @@ class TestMulOp(unittest.TestCase):
         np_input1 = np.random.random(input_shape).astype(np.float16)
         np_input2 = np.random.random(input_shape).astype(np.float16)
 
-        torch_result = torch.add(
+        torch_result = torch.mul(
             torch.tensor(np_input1),
             torch.tensor(np_input2),
         )
@@ -29,7 +29,7 @@ class TestMulOp(unittest.TestCase):
         ascend_input1 = input1.to(nndeploy.base.DeviceType("ascendcl")) 
         ascend_input2 = input2.to(nndeploy.base.DeviceType("ascendcl"))
 
-        ascend_result = F.add(ascend_input1, ascend_input2)
+        ascend_result = F.mul(ascend_input1, ascend_input2)
 
         nndeploy_result = ascend_result.to(nndeploy.base.DeviceType("cpu"))
 
