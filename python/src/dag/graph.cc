@@ -64,17 +64,6 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_graph_node_share_stream", &Graph::setGraphNodeShareStream,
            py::arg("flag"))
       .def("get_graph_node_share_stream", &Graph::getGraphNodeShareStream)
-      .def("update_node_io",
-           py::overload_cast<Node *, std::vector<std::shared_ptr<Edge>>,
-                             std::vector<std::string>>(&Graph::updateNodeIO),
-           py::arg("node"), py::arg("inputs"), py::arg("outputs_name"))
-      .def(
-          "update_node_io",
-          py::overload_cast<Node *, std::vector<Edge *>,
-                            std::vector<std::string>,
-                            std::shared_ptr<base::Param>>(&Graph::updateNodeIO),
-          py::arg("node"), py::arg("inputs"), py::arg("outputs_name"),
-          py::arg("param"))
       .def("init", &Graph::init)
       .def("deinit", &Graph::deinit)
       .def("run", &Graph::run)

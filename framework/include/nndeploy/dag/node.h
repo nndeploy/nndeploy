@@ -103,8 +103,7 @@ class NNDEPLOY_CC_API Node {
   virtual std::shared_ptr<base::Param> getParamSharedPtr();
   virtual base::Status setExternalParam(
       const std::string &key, std::shared_ptr<base::Param> external_param);
-  virtual std::shared_ptr<base::Param> getExternalParam(
-      const std::string &key);
+  virtual std::shared_ptr<base::Param> getExternalParam(const std::string &key);
 
   base::Status setInput(Edge *input, int index = -1);
   base::Status setOutput(Edge *output, int index = -1);
@@ -142,6 +141,9 @@ class NNDEPLOY_CC_API Node {
 
   void setRunningFlag(bool flag);
   bool isRunning();
+
+  void setCompiledFlag(bool flag);
+  bool getCompiledFlag();
 
   void setStream(device::Stream *stream);
   device::Stream *getStream();
@@ -182,6 +184,7 @@ class NNDEPLOY_CC_API Node {
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
+  // 返回内存外部管理
   std::vector<Edge *> operator()(
       std::vector<Edge *> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
@@ -192,8 +195,20 @@ class NNDEPLOY_CC_API Node {
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
+  // 返回内存外部管理
+  std::vector<Edge *> functorWithoutGraph(
+      std::vector<Edge *> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr);
+
   std::vector<std::shared_ptr<Edge>> functorWithGraph(
       std::vector<std::shared_ptr<Edge>> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr);
+
+  // 返回内存外部管理
+  std::vector<Edge *> functorWithGraph(
+      std::vector<Edge *> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
@@ -202,8 +217,18 @@ class NNDEPLOY_CC_API Node {
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
+  // 返回内存外部管理
+  std::vector<Edge *> functorDynamic(
+      std::vector<Edge *> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr);
+
   bool checkInputs(std::vector<std::shared_ptr<Edge>> &inputs);
+  bool checkInputs(std::vector<Edge *> &inputs);
   bool checkOutputs(std::vector<std::string> &outputs_name);
+
+  std::vector<std::string> getRealOutputsName(
+      std::vector<std::string> outputs_name);
 
  protected:
   std::string name_;

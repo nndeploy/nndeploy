@@ -12,7 +12,10 @@ base::Status SequentialExecutor::init(
     std::vector<NodeWrapper *> &node_repository) {
   base::Status status = topoSortDFS(node_repository, topo_sort_node_);
   for (auto iter : topo_sort_node_) {
-    iter->node_->setInitializedFlag(false);
+    if (iter->node_->getInitialized()) {
+      continue;
+    }
+    // iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s init failed\n", iter->node_->getName().c_str());

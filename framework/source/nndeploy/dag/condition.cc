@@ -40,7 +40,7 @@ base::Status Condition::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
+  // setInitializedFlag(false);
 
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -60,17 +60,18 @@ base::Status Condition::init() {
 base::Status Condition::deinit() {
   base::Status status = base::kStatusCodeOk;
 
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
-  // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
-
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
   status = executor_->deinit();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "executor deinit failed!");
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(false);
+  
   return status;
 }
 

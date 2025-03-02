@@ -20,6 +20,8 @@ Edge::Edge() {
 Edge::Edge(const std::string &name) : name_(name) {
   if (name.empty()) {
     name_ = "edge_" + base::getUniqueString();
+  } else {
+    name_ = name;
   }
   abstact_edge_ = createEdge(base::kParallelTypeNone);
   if (abstact_edge_ == nullptr) {
@@ -92,12 +94,12 @@ base::Status Edge::set(device::Tensor &tensor, int index) {
 device::Tensor *Edge::create(device::Device *device,
                              const device::TensorDesc &desc, int index,
                              std::string tensor_name) {
-  if (tensor_name.empty()) {
-    tensor_name = name_;
-  }
-  if (tensor_name.empty()) {
-    tensor_name = "tensor_" + base::getUniqueString();
-  }
+  // if (tensor_name.empty()) {
+  //   tensor_name = name_;
+  // }
+  // if (tensor_name.empty()) {
+  //   tensor_name = "tensor_" + base::getUniqueString();
+  // }
   return abstact_edge_->create(device, desc, index, tensor_name);
 }
 bool Edge::notifyWritten(device::Tensor *tensor) {

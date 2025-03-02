@@ -23,7 +23,9 @@ base::Status ParallelTaskExecutor::init(
 
   for (auto iter : topo_sort_node_) {
     iter->color_ = base::kNodeColorWhite;
-    iter->node_->setInitializedFlag(false);
+    if (iter->node_->getInitialized()) {
+      continue;
+    }
     status = iter->node_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node init failure");
     iter->node_->setInitializedFlag(true);

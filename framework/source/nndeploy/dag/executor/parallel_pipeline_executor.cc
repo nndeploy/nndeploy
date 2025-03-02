@@ -14,7 +14,9 @@ base::Status ParallelPipelineExecutor::init(
   base::Status status = topoSortDFS(node_repository, topo_sort_node_);
   for (auto iter : topo_sort_node_) {
     iter->color_ = base::kNodeColorWhite;
-    iter->node_->setInitializedFlag(false);
+    if (iter->node_->getInitialized()) {
+      continue;
+    }
     status = iter->node_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "failed iter->node_->init()");

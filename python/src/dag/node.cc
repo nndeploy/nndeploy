@@ -178,17 +178,17 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("inputs"),
            py::arg("outputs_name") = std::vector<std::string>(),
            py::arg("param") = nullptr)
-      .def("functor_without_graph", &Node::functorWithoutGraph,
-           py::arg("inputs"),
-           py::arg("outputs_name") = std::vector<std::string>(),
-           py::arg("param") = nullptr)
-      .def("functor_with_graph", &Node::functorWithGraph, py::arg("inputs"),
-           py::arg("outputs_name") = std::vector<std::string>(),
-           py::arg("param") = nullptr)
-      .def("functor_dynamic", &Node::functorDynamic, py::arg("inputs"),
-           py::arg("outputs_name") = std::vector<std::string>(),
-           py::arg("param") = nullptr)
-      .def("check_inputs", &Node::checkInputs, py::arg("inputs"))
+     //  .def("functor_without_graph", &Node::functorWithoutGraph,
+     //       py::arg("inputs"),
+     //       py::arg("outputs_name") = std::vector<std::string>(),
+     //       py::arg("param") = nullptr)
+     //  .def("functor_with_graph", &Node::functorWithGraph, py::arg("inputs"),
+     //       py::arg("outputs_name") = std::vector<std::string>(),
+     //       py::arg("param") = nullptr)
+     //  .def("functor_dynamic", &Node::functorDynamic, py::arg("inputs"),
+     //       py::arg("outputs_name") = std::vector<std::string>(),
+     //       py::arg("param") = nullptr)
+     //  .def("check_inputs", &Node::checkInputs, py::arg("inputs"))
       .def("check_outputs", &Node::checkOutputs, py::arg("outputs_name"));
 }
 

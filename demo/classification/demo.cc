@@ -254,19 +254,19 @@ int main(int argc, char *argv[]) {
   graph.setInferParam(device_type, model_type, is_path, model_value);
 
   // 调用forward函数进行推理
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < 1; i++) {
     std::shared_ptr<dag::Edge> input_image =
         std::make_shared<dag::Edge>("input_image");
     cv::Mat image = cv::imread(input_path);
     input_image->set(image, i);
-    NNDEPLOY_LOGE("input_image: %p.\n", input_image.get());
+    // NNDEPLOY_LOGE("input_image: %p.\n", input_image.get());
     std::vector<std::shared_ptr<dag::Edge>> outputs =
         graph.forward({input_image}, {"classification_result"}, nullptr);
-    NNDEPLOY_LOGE("outputs: %p.\n", outputs[0].get());
+    // NNDEPLOY_LOGE("outputs: %p.\n", outputs[0].get());
     classification::ClassificationResult *result =
         (classification::ClassificationResult *)outputs[0]
             ->getGraphOutputParam();
-    NNDEPLOY_LOGE("result: %p.\n", result);
+    // NNDEPLOY_LOGE("result: %p.\n", result);
     for (int i = 0; i < result->labels_.size(); i++) {
       auto label = result->labels_[i];
       // 将分类结果和置信度转为字符串
@@ -279,6 +279,11 @@ int main(int argc, char *argv[]) {
     }
     cv::imwrite(ouput_path, image);
   }
+
+  graph.init();
+
+  graph.dump();
+
   return 0;
 }
 

@@ -431,8 +431,7 @@ class NNDEPLOY_CC_API Graph : public Node {
       std::vector<std::string> outputs_name);
 
   std::vector<Edge *> updateNodeIO(Node *node, std::vector<Edge *> inputs,
-                                   std::vector<std::string> outputs_name,
-                                   std::shared_ptr<base::Param> param);
+                                   std::vector<std::string> outputs_name);
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -458,8 +457,7 @@ class NNDEPLOY_CC_API Graph : public Node {
 
 template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
-Node *Graph::createNode(const std::string &name,
-                        Args &...args) {
+Node *Graph::createNode(const std::string &name, Args &...args) {
   if (used_node_names_.find(name) != used_node_names_.end()) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
@@ -471,6 +469,7 @@ Node *Graph::createNode(const std::string &name,
   node_wrapper->name_ = name;
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -500,6 +499,7 @@ Node *Graph::createNode(const std::string &name, Edge *input, Edge *output,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -537,6 +537,7 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -570,6 +571,7 @@ Node *Graph::createNode(const std::string &name, Edge *input,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -603,6 +605,7 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -636,6 +639,7 @@ Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -686,6 +690,7 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -728,6 +733,7 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -769,6 +775,7 @@ Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -803,6 +810,7 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -854,6 +862,7 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -897,6 +906,7 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -939,6 +949,7 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -968,6 +979,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1006,6 +1018,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1039,6 +1052,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1072,6 +1086,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1106,6 +1121,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_edge_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1156,6 +1172,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1198,6 +1215,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1240,6 +1258,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1274,6 +1293,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1324,6 +1344,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1366,6 +1387,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1412,6 +1434,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);;
   return node;
 }
 
@@ -1463,6 +1486,7 @@ Node *Graph::createNode(const NodeDesc &desc, Args &...args) {
     NNDEPLOY_LOGE("create infer node[%s] failed!\n", desc.getName().c_str());
     return node;
   }
+  node->setGraph(this);
   return node;
 }
 
