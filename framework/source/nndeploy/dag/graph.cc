@@ -776,7 +776,8 @@ base::Status Graph::construct() {
   // 没有消费者的为输出边
   for (auto edge_wrapper : edge_repository_) {
     if (edge_wrapper->consumers_.empty()) {
-      auto it = std::find(outputs_.begin(), outputs_.end(), edge_wrapper->edge_);
+      auto it =
+          std::find(outputs_.begin(), outputs_.end(), edge_wrapper->edge_);
       if (it == outputs_.end()) {
         outputs_.emplace_back(edge_wrapper->edge_);
       }
@@ -829,6 +830,67 @@ base::Status Graph::executor() {
 
   // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
   return status;
+}
+
+std::vector<std::shared_ptr<Edge>> Graph::forward(
+    std::vector<std::shared_ptr<Edge>> inputs,
+    std::vector<std::string> outputs_name,
+    std::shared_ptr<base::Param> param) {
+  bool flag = true;
+  if (inputs.size() == inputs_.size()) {
+    for (size_t i = 0; i < inputs.size(); i++) {
+      if (inputs[i].get() != inputs_[i]) {
+        flag = false;
+        break;
+      }
+    }
+  }
+  if (is_compiled_ && flag) {
+    if (!this->getInitialized()) {
+      this->init();
+    }
+    this->run();
+    std::vector<std::shared_ptr<Edge>> outputs;
+    std::vector<std::string> real_outputs_name =
+        this->getRealOutputsName(outputs_name);
+    for (auto name : real_outputs_name) {
+      std::shared_ptr<Edge> output = graph_->getEdgeSharedPtr(name);
+      outputs.push_back(output);
+    }
+    return outputs;
+  }
+  return std::vector<std::shared_ptr<Edge>>();
+}
+
+// 返回内存外部管理
+std::vector<Edge *> Graph::forward(
+    std::vector<Edge *> inputs,
+    std::vector<std::string> outputs_name,
+    std::shared_ptr<base::Param> param) {
+  bool flag = true;
+  if (inputs.size() == inputs_.size()) {
+    for (size_t i = 0; i < inputs.size(); i++) {
+      if (inputs[i] != inputs_[i]) {
+        flag = false;
+        break;
+      }
+    }
+  }
+  if (is_compiled_ && flag) {
+    if (!this->getInitialized()) {
+      this->init();
+    }
+    this->run();
+    std::vector<Edge *> outputs;
+    std::vector<std::string> real_outputs_name =
+        this->getRealOutputsName(outputs_name);
+    for (auto name : real_outputs_name) {
+      Edge *output = graph_->getEdge(name);
+      outputs.push_back(output);
+    }
+    return outputs;
+  }
+  return std::vector<Edge*>();
 }
 
 REGISTER_NODE("nndeploy::dag::Graph", Graph);

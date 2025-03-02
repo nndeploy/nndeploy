@@ -3,7 +3,8 @@ import nndeploy.base
 import nndeploy.device
 from typing import List, Union, Optional
 from .edge import Edge
-from .node import Node
+from .node import Node, NodeDesc
+
 
 class Graph(_C.dag.Graph):
     def __init__(self, name: str, inputs: Union[Edge, List[Edge]] = None, outputs: Union[Edge, List[Edge]] = None):
@@ -64,7 +65,7 @@ class Graph(_C.dag.Graph):
         """
         return super().get_edge(name)
 
-    def create_node(self, desc: dict) -> Node:
+    def create_node(self, desc: NodeDesc) -> Node:
         """
         Create a node by key with reference policy
         
@@ -123,7 +124,7 @@ class Graph(_C.dag.Graph):
         """
         return super().get_graph_node_share_stream()
 
-    def update_node_io(self, node: Node, inputs: List[Edge], outputs_name: List[str], param: Optional[nndeploy.base.Param] = None) -> List[Edge]:
+    def update_node_io(self, node: Node, inputs: List[Edge], outputs_name: List[str]) -> List[Edge]:
         """
         Update node inputs and outputs with overloaded versions
         
@@ -131,14 +132,10 @@ class Graph(_C.dag.Graph):
             node: Node object
             inputs: List of input edges
             outputs_name: List of output edge names
-            param: Optional parameter object
         Returns:
             List of Edge objects
         """
-        if param is None:
-            return super().update_node_io(node, inputs, outputs_name)
-        else:
-            return super().update_node_io(node, inputs, outputs_name, param)
+        return super().update_node_io(node, inputs, outputs_name)
 
     def init(self):
         """Initialize graph"""
@@ -155,3 +152,7 @@ class Graph(_C.dag.Graph):
     def dump(self):
         """Dump graph information to stdout"""
         return super().dump()
+    
+    def forward(self, inputs: List[Edge], outputs_name: List[str], param: Optional[nndeploy.base.Param] = None) -> List[Edge]:
+        """Forward graph"""
+        return super().forward(inputs, outputs_name, param)

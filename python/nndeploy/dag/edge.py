@@ -49,11 +49,11 @@ class Edge(_C.dag.Edge):
         self.type_name = buffer_type.__module__ + "." + buffer_type.__name__
         return super().create(device, desc, index)
 
-    def create_tensor(self, device: nndeploy.device.Device, desc: nndeploy.device.TensorDesc, index: int):
+    def create_tensor(self, device: nndeploy.device.Device, desc: nndeploy.device.TensorDesc, index: int, tensor_name: str = ""):
         # self.type_name = "nd.Tensor"
         tensor_type = nndeploy.device.Tensor
         self.type_name = tensor_type.__module__ + "." + tensor_type.__name__
-        return super().create(device, desc, index)
+        return super().create(device, desc, index, tensor_name)
         
     def notify_written(self, data: Union[nndeploy.device.Buffer, nndeploy.device.Tensor]):
         return super().notify_written(data)

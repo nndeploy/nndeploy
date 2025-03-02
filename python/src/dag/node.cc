@@ -127,15 +127,14 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("index") = -1)
       .def("set_inputs", &Node::setInputs, py::arg("inputs"))
       .def("set_outputs", &Node::setOutputs, py::arg("outputs"))
-      //  .def("set_input_shared_ptr", &Node::setInputSharedPtr,
-      //  py::arg("input"),
-      //       py::arg("index") = -1)
-      //  .def("set_output_shared_ptr", &Node::setOutputSharedPtr,
-      //       py::arg("output"), py::arg("index") = -1)
-      //  .def("set_inputs_shared_ptr", &Node::setInputsSharedPtr,
-      //       py::arg("inputs"))
-      //  .def("set_outputs_shared_ptr", &Node::setOutputsSharedPtr,
-      //       py::arg("outputs"))
+      .def("set_input_shared_ptr", &Node::setInputSharedPtr, py::arg("input"),
+           py::arg("index") = -1)
+      .def("set_output_shared_ptr", &Node::setOutputSharedPtr,
+           py::arg("output"), py::arg("index") = -1)
+      .def("set_inputs_shared_ptr", &Node::setInputsSharedPtr,
+           py::arg("inputs"))
+      .def("set_outputs_shared_ptr", &Node::setOutputsSharedPtr,
+           py::arg("outputs"))
       .def("get_input", &Node::getInput, py::arg("index") = 0,
            py::return_value_policy::reference)
       .def("get_output", &Node::getOutput, py::arg("index") = 0,
@@ -157,13 +156,15 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_debug_flag", &Node::getDebugFlag)
       .def("set_running_flag", &Node::setRunningFlag, py::arg("flag"))
       .def("is_running", &Node::isRunning)
+      .def("set_compiled_flag", &Node::setCompiledFlag, py::arg("flag"))
+      .def("get_compiled_flag", &Node::getCompiledFlag)
       .def("set_stream", &Node::setStream, py::arg("stream"))
       .def("get_stream", &Node::getStream, py::return_value_policy::reference)
       .def("init", &Node::init)
       .def("deinit", &Node::deinit)
       .def("get_memory_size", &Node::getMemorySize)
       .def("set_memory", &Node::setMemory, py::arg("buffer"))
-      .def("updata_input", &Node::updateInput)
+      .def("update_input", &Node::updateInput)
       .def("run", &Node::run)
       .def("__call__",
            py::overload_cast<std::vector<std::shared_ptr<Edge>>,
@@ -172,24 +173,68 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("inputs"),
            py::arg("outputs_name") = std::vector<std::string>(),
            py::arg("param") = nullptr)
+      // 需要看看是否需要通过组合的方式实现
       .def("__call__",
            py::overload_cast<std::vector<Edge *>, std::vector<std::string>,
                              std::shared_ptr<base::Param>>(&Node::operator()),
            py::arg("inputs"),
            py::arg("outputs_name") = std::vector<std::string>(),
+           py::arg("param") = nullptr, py::return_value_policy::take_ownership)
+      .def("functor_without_graph",
+           py::overload_cast<std::vector<std::shared_ptr<Edge>>,
+                             std::vector<std::string>,
+                             std::shared_ptr<base::Param>>(
+               &Node::functorWithoutGraph),
+           py::arg("inputs"),
+           py::arg("outputs_name") = std::vector<std::string>(),
            py::arg("param") = nullptr)
-     //  .def("functor_without_graph", &Node::functorWithoutGraph,
-     //       py::arg("inputs"),
-     //       py::arg("outputs_name") = std::vector<std::string>(),
-     //       py::arg("param") = nullptr)
-     //  .def("functor_with_graph", &Node::functorWithGraph, py::arg("inputs"),
-     //       py::arg("outputs_name") = std::vector<std::string>(),
-     //       py::arg("param") = nullptr)
-     //  .def("functor_dynamic", &Node::functorDynamic, py::arg("inputs"),
-     //       py::arg("outputs_name") = std::vector<std::string>(),
-     //       py::arg("param") = nullptr)
-     //  .def("check_inputs", &Node::checkInputs, py::arg("inputs"))
-      .def("check_outputs", &Node::checkOutputs, py::arg("outputs_name"));
+      .def("functor_without_graph",
+           py::overload_cast<std::vector<Edge *>, std::vector<std::string>,
+                             std::shared_ptr<base::Param>>(
+               &Node::functorWithoutGraph),
+           py::arg("inputs"),
+           py::arg("outputs_name") = std::vector<std::string>(),
+           py::arg("param") = nullptr)
+      .def("functor_with_graph",
+           py::overload_cast<std::vector<std::shared_ptr<Edge>>,
+                             std::vector<std::string>,
+                             std::shared_ptr<base::Param>>(
+               &Node::functorWithGraph),
+           py::arg("inputs"),
+           py::arg("outputs_name") = std::vector<std::string>(),
+           py::arg("param") = nullptr)
+      .def("functor_with_graph",
+           py::overload_cast<std::vector<Edge *>, std::vector<std::string>,
+                             std::shared_ptr<base::Param>>(
+               &Node::functorWithGraph),
+           py::arg("inputs"),
+           py::arg("outputs_name") = std::vector<std::string>(),
+           py::arg("param") = nullptr)
+      .def("functor_dynamic",
+           py::overload_cast<std::vector<std::shared_ptr<Edge>>,
+                             std::vector<std::string>,
+                             std::shared_ptr<base::Param>>(
+               &Node::functorDynamic),
+           py::arg("inputs"),
+           py::arg("outputs_name") = std::vector<std::string>(),
+           py::arg("param") = nullptr)
+      .def("functor_dynamic",
+           py::overload_cast<std::vector<Edge *>, std::vector<std::string>,
+                             std::shared_ptr<base::Param>>(
+               &Node::functorDynamic),
+           py::arg("inputs"),
+           py::arg("outputs_name") = std::vector<std::string>(),
+           py::arg("param") = nullptr)
+      .def("check_inputs",
+           py::overload_cast<std::vector<std::shared_ptr<Edge>> &>(
+               &Node::checkInputs),
+           py::arg("inputs"))
+      .def("check_inputs",
+           py::overload_cast<std::vector<Edge *> &>(&Node::checkInputs),
+           py::arg("inputs"))
+      .def("check_outputs", &Node::checkOutputs, py::arg("outputs_name"))
+      .def("get_real_outputs_name", &Node::getRealOutputsName,
+           py::arg("outputs_name"));
 }
 
 }  // namespace dag

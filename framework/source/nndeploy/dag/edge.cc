@@ -94,9 +94,9 @@ base::Status Edge::set(device::Tensor &tensor, int index) {
 device::Tensor *Edge::create(device::Device *device,
                              const device::TensorDesc &desc, int index,
                              std::string tensor_name) {
-  // if (tensor_name.empty()) {
-  //   tensor_name = name_;
-  // }
+  if (tensor_name.empty()) {
+    tensor_name = name_;
+  }
   // if (tensor_name.empty()) {
   //   tensor_name = "tensor_" + base::getUniqueString();
   // }

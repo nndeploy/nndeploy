@@ -438,6 +438,17 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   virtual base::Status run();
 
+  std::vector<std::shared_ptr<Edge>> forward (
+      std::vector<std::shared_ptr<Edge>> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr);
+
+  // 返回内存外部管理
+  std::vector<Edge *> forward(
+      std::vector<Edge *> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr);
+
   base::Status dump(std::ostream &oss = std::cout);
 
  protected:

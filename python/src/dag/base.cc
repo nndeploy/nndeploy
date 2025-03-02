@@ -27,6 +27,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("is_cvmat_type", &EdgeTypeInfo::isType<cv::Mat>)
       .def("is_tensor_type", &EdgeTypeInfo::isType<device::Tensor>)
       .def("is_param_type", &EdgeTypeInfo::isType<base::Param>)
+      .def("__eq__", &EdgeTypeInfo::operator==)
+      .def("__ne__", &EdgeTypeInfo::operator!=)
       .def_readwrite("type_", &EdgeTypeInfo::type_)
       .def_readwrite("type_name_", &EdgeTypeInfo::type_name_)
       .def_readwrite("type_ptr_", &EdgeTypeInfo::type_ptr_)
