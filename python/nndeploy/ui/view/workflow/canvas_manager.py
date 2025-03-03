@@ -226,10 +226,7 @@ class CanvasManager:
             self.connections.remove(connection)
     
     def update_connections(self, moving_node: WorkflowNode = None):
-        """更新连接线
-        Args:
-            moving_node: 正在移动的节点，如果为None则更新所有连接
-        """
+        """更新连接线"""
         self.canvas.shapes.clear()
         
         if moving_node:
@@ -245,6 +242,26 @@ class CanvasManager:
                 
         self.canvas.update()
     
+    def get_node_position(self, control) -> tuple:
+        """获取控件所属节点的位置
+        Args:
+            control: 要查找的控件
+        Returns:
+            tuple: 节点的位置坐标 (x, y)
+        """
+        # 遍历所有节点
+        for node in self.nodes:
+            # 检查控件是否属于该节点
+            if control in [node.container] or \
+               any(slot.drag_target == control or slot.slot_dot == control 
+                   for slot in node.input_slots.values()) or \
+               any(slot.draggable == control or slot.slot_dot == control 
+                   for slot in node.output_slots.values()):
+                return (node.container.left or 0, node.container.top or 0)
+        
+        print(f"Warning: Could not find node for control {control}")
+        return (0, 0)
+
     def start_temp_connection(self, slot: Slot):
         """开始临时连接"""
         self.dragging_slot = slot

@@ -1,141 +1,70 @@
-import random
+import cv2
 import flet as ft
+import base64
+import numpy as np
+import threading
+import time
 
+def update_video(page: ft.Page, image_control: ft.Image):
+    # 打开视频文件
+    cap = cv2.VideoCapture("/Users/tguang/229373720-14d69157-1a56-4a78-a2f4-d7a134d7c3e9.mp4")  # 替换为你的视频文件路径
+    
+    if not cap.isOpened():
+        print("无法打开视频文件")
+        return
+        
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+            
+        # 调整视频帧大小
+        max_width = 800
+        scale = max_width / frame.shape[1]
+        new_width = int(frame.shape[1] * scale)
+        new_height = int(frame.shape[0] * scale)
+        frame = cv2.resize(frame, (new_width, new_height))
+        
+        # 转换为RGB格式
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        # 编码为base64
+        _, buffer = cv2.imencode(".jpg", frame_rgb, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        image_base64 = base64.b64encode(buffer).decode()
+        
+        # 更新图像控件
+        image_control.src_base64 = image_base64
+        page.update()
+        
+        # 控制帧率
+        time.sleep(1/30)  # 约30fps
+        
+    cap.release()
 
 def main(page: ft.Page):
-    page.theme_mode = ft.ThemeMode.LIGHT
-    page.title = "TheEthicalVideo"
-    page.window.always_on_top = True
-    page.spacing = 20
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-
-    def handle_pause(e):
-        video.pause()
-        print("Video.pause()")
-
-    def handle_play_or_pause(e):
-        video.play_or_pause()
-        print("Video.play_or_pause()")
-
-    def handle_play(e):
-        video.play()
-        print("Video.play()")
-
-    def handle_stop(e):
-        video.stop()
-        print("Video.stop()")
-
-    def handle_next(e):
-        video.next()
-        print("Video.next()")
-
-    def handle_previous(e):
-        video.previous()
-        print("Video.previous()")
-
-    def handle_volume_change(e):
-        video.volume = e.control.value
-        page.update()
-        print(f"Video.volume = {e.control.value}")
-
-    def handle_playback_rate_change(e):
-        video.playback_rate = e.control.value
-        page.update()
-        print(f"Video.playback_rate = {e.control.value}")
-
-    def handle_seek(e):
-        video.seek(10000)
-        print(f"Video.seek(10000)")
-
-    def handle_add_media(e):
-        video.playlist_add(random.choice(sample_media))
-        print(f"Video.playlist_add(random.choice(sample_media))")
-
-    def handle_remove_media(e):
-        r = random.randint(0, len(video.playlist) - 1)
-        video.playlist_remove(r)
-        print(f"Popped Item at index: {r} (position {r+1})")
-
-    def handle_jump(e):
-        print(f"Video.jump_to(0)")
-        video.jump_to(0)
-
-    sample_media = [
-        ft.VideoMedia(
-            "https://user-images.githubusercontent.com/28951144/229373720-14d69157-1a56-4a78-a2f4-d7a134d7c3e9.mp4"
-        ),
-        ft.VideoMedia(
-            "https://user-images.githubusercontent.com/28951144/229373718-86ce5e1d-d195-45d5-baa6-ef94041d0b90.mp4"
-        ),
-        ft.VideoMedia(
-            "https://user-images.githubusercontent.com/28951144/229373716-76da0a4e-225a-44e4-9ee7-3e9006dbc3e3.mp4"
-        ),
-        ft.VideoMedia(
-            "https://user-images.githubusercontent.com/28951144/229373695-22f88f13-d18f-4288-9bf1-c3e078d83722.mp4"
-        ),
-        ft.VideoMedia(
-            "https://user-images.githubusercontent.com/28951144/229373709-603a7a89-2105-4e1b-a5a5-a6c3567c9a59.mp4",
-            extras={
-                "artist": "Thousand Foot Krutch",
-                "album": "The End Is Where We Begin",
-            },
-            http_headers={
-                "Foo": "Bar",
-                "Accept": "*/*",
-            },
-        ),
-    ]
-
-    page.add(
-        video := ft.Video(
-            expand=True,
-            playlist=sample_media[0:2],
-            playlist_mode=ft.PlaylistMode.LOOP,
-            fill_color=ft.Colors.BLUE_400,
-            aspect_ratio=16/9,
-            volume=100,
-            autoplay=False,
-            filter_quality=ft.FilterQuality.HIGH,
-            muted=False,
-            on_loaded=lambda e: print("Video loaded successfully!"),
-            on_enter_fullscreen=lambda e: print("Video entered fullscreen!"),
-            on_exit_fullscreen=lambda e: print("Video exited fullscreen!"),
-        ),
-        ft.Row(
-            wrap=True,
-            alignment=ft.MainAxisAlignment.CENTER,
-            controls=[
-                ft.ElevatedButton("Play", on_click=handle_play),
-                ft.ElevatedButton("Pause", on_click=handle_pause),
-                ft.ElevatedButton("Play Or Pause", on_click=handle_play_or_pause),
-                ft.ElevatedButton("Stop", on_click=handle_stop),
-                ft.ElevatedButton("Next", on_click=handle_next),
-                ft.ElevatedButton("Previous", on_click=handle_previous),
-                ft.ElevatedButton("Seek s=10", on_click=handle_seek),
-                ft.ElevatedButton("Jump to first Media", on_click=handle_jump),
-                ft.ElevatedButton("Add Random Media", on_click=handle_add_media),
-                ft.ElevatedButton("Remove Random Media", on_click=handle_remove_media),
-            ],
-        ),
-        ft.Slider(
-            min=0,
-            value=100,
-            max=100,
-            label="Volume = {value}%",
-            divisions=10,
-            width=400,
-            on_change=handle_volume_change,
-        ),
-        ft.Slider(
-            min=1,
-            value=1,
-            max=3,
-            label="PlaybackRate = {value}X",
-            divisions=6,
-            width=400,
-            on_change=handle_playback_rate_change,
-        ),
+    page.title = "Video Player"
+    
+    # 创建图像控件
+    image_control = ft.Image(
+        width=800,
+        height=450,
+        fit=ft.ImageFit.CONTAIN,
     )
+    
+    # 创建容器
+    container = ft.Container(
+        content=image_control,
+        alignment=ft.alignment.center,
+        border=ft.border.all(1, ft.Colors.GREY_400),
+        border_radius=10,
+        padding=10,
+    )
+    
+    # 添加到页面
+    page.add(container)
+    
+    # 在新线程中运行视频更新
+    threading.Thread(target=update_video, args=(page, image_control), daemon=True).start()
 
-
-ft.app(main)
+# 启动应用
+ft.app(target=main)
