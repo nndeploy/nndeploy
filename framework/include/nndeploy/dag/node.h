@@ -184,7 +184,17 @@ class NNDEPLOY_CC_API Node {
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
-  // 返回内存外部管理
+  /**
+   * @brief 节点调用接口
+   * @details 节点调用接口，用于节点之间的调用
+   * @param inputs 输入的边
+   * @param outputs_name 输出的边名
+   * @param param 参数
+   * @return 返回的边
+   * @note
+   * graph模式下，内存graph管理
+   * 无graph模式下，内存外部管理
+   */
   std::vector<Edge *> operator()(
       std::vector<Edge *> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
@@ -206,7 +216,7 @@ class NNDEPLOY_CC_API Node {
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
-  // 返回内存外部管理
+  // 返回内存graph管理
   std::vector<Edge *> functorWithGraph(
       std::vector<Edge *> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
@@ -217,7 +227,7 @@ class NNDEPLOY_CC_API Node {
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
-  // 返回内存外部管理
+  // 返回内存graph管理
   std::vector<Edge *> functorDynamic(
       std::vector<Edge *> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),

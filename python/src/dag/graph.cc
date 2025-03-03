@@ -67,10 +67,15 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("init", &Graph::init)
       .def("deinit", &Graph::deinit)
       .def("run", &Graph::run)
-      .def("forward", py::overload_cast<std::vector<std::shared_ptr<Edge>>, 
-           std::vector<std::string>, std::shared_ptr<base::Param>>(&Graph::forward))
-      .def("forward", py::overload_cast<std::vector<Edge*>, std::vector<std::string>,
-           std::shared_ptr<base::Param>>(&Graph::forward))
+      .def("forward",
+           py::overload_cast<std::vector<std::shared_ptr<Edge>>,
+                             std::vector<std::string>,
+                             std::shared_ptr<base::Param>>(&Graph::forward),
+           py::keep_alive<1, 2>())
+      .def("forward",
+           py::overload_cast<std::vector<Edge *>, std::vector<std::string>,
+                             std::shared_ptr<base::Param>>(&Graph::forward),
+           py::keep_alive<1, 2>(), py::return_value_policy::reference)
       .def("dump", [](Graph &g) { g.dump(std::cout); });
 }
 

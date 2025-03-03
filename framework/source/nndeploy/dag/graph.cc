@@ -443,7 +443,12 @@ std::vector<std::shared_ptr<Edge>> Graph::updateNodeIO(
         NNDEPLOY_LOGE("createEdgeSharedPtr failed!");
         return outputs;
       }
-      edge_wrapper = this->addEdgeSharedPtr(edge);
+      // edge_wrapper = this->addEdgeSharedPtr(edge);
+      edge_wrapper = findEdgeWrapper(edge_repository_, output_name);
+      if (edge_wrapper == nullptr) {
+        NNDEPLOY_LOGE("can't find edge_wrapper!");
+        return outputs;
+      }
       edge_wrapper->producers_.emplace_back(node_wrapper);
     } else {  // 非第一次跑
       // 存在shareptr
@@ -550,7 +555,11 @@ std::vector<Edge *> Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
         NNDEPLOY_LOGE("createEdgeSharedPtr failed!");
         return outputs;
       }
-      edge_wrapper = this->addEdge(edge);
+      edge_wrapper = findEdgeWrapper(edge_repository_, output_name);
+      if (edge_wrapper == nullptr) {
+        NNDEPLOY_LOGE("can't find edge_wrapper!");
+        return outputs;
+      }
       edge_wrapper->producers_.emplace_back(node_wrapper);
     } else {  // 非第一次跑
       // // 存在shareptr

@@ -443,7 +443,7 @@ class NNDEPLOY_CC_API Graph : public Node {
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
-  // 返回内存外部管理
+  // 返回内存由graph内部管理
   std::vector<Edge *> forward(
       std::vector<Edge *> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
