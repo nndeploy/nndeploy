@@ -4,11 +4,15 @@ from .base_app_view import BaseAppView
 import os
 import base64
 
-import nndeploy._nndeploy_internal as _C
-import nndeploy.base
-import nndeploy.device
-import nndeploy.dag
-import nndeploy.detect
+try:
+    import nndeploy._nndeploy_internal as _C
+    import nndeploy.base
+    import nndeploy.device
+    import nndeploy.dag
+    import nndeploy.detect
+except ImportError:
+    nndeploy = None  # 如果导入失败，设置为 None 或其他默认值
+    print("optional_module 未安装，部分功能不可用")
 
 class ObjectDetectionView(BaseAppView):
     def __init__(self, page: flet.Page):
@@ -17,9 +21,12 @@ class ObjectDetectionView(BaseAppView):
         # 初始化显示组件
         self.source_view = None
         self.result_view = None
-        self.current_file = None
+        self.current_file_text = flet.Text(  # 修改变量名并直接创建Text实例
+            "当前文件：未选择",
+            color=flet.colors.GREY_700,
+        )
         self.video_player = None
-        self.current_image = None  # 保存当前图片路径
+        self.current_image = None
 
     def get_route(self) -> str:
         return "/app/object_detection"
@@ -39,11 +46,7 @@ class ObjectDetectionView(BaseAppView):
                         icon=flet.icons.VIDEO_FILE,
                         on_click=lambda _: self._pick_files("video")
                     ),
-                    flet.Text(
-                        "当前文件：未选择",
-                        ref=self.current_file,
-                        color=flet.colors.GREY_700,
-                    ),
+                    self.current_file_text,  # 直接使用Text实例
                 ],
                 alignment=flet.MainAxisAlignment.START,
                 spacing=20,
@@ -156,10 +159,8 @@ class ObjectDetectionView(BaseAppView):
         print(f"文件名称: {file_name}")
         
         # 更新当前文件显示
-        if self.current_file:
-            print("更新当前文件显示")
-            self.current_file.value = f"当前文件：{file_name}"
-            self.current_file.update()
+        self.current_file_text.value = f"当前文件：{file_path}"
+        self.current_file_text.update()
         
         # 处理图片文件
         if file_type == "image":
@@ -265,6 +266,10 @@ class ObjectDetectionView(BaseAppView):
         # def run_detection_click(_):  # 添加点击处理函数
         if not self.current_image:
             print("请先选择图片")
+            return
+
+        if not nndeploy:
+            print("nndeploy 未安装")
             return
             
         try:

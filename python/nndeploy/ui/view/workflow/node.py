@@ -44,12 +44,12 @@ class WorkflowNode:
         """创建输入输出插槽"""
         # 创建输入插槽
         for name in self.inputs:
-            slot = Slot(name, "input", on_position_changed=self.on_position_changed,canvas_manager=self.canvas_manager)
+            slot = Slot(name, "input", node=self, on_position_changed=self.on_position_changed,canvas_manager=self.canvas_manager)
             self.input_slots[name] = slot
         
         # 创建输出插槽
         for name in self.outputs:
-            slot = Slot(name, "output", on_position_changed=self.on_position_changed,canvas_manager=self.canvas_manager)
+            slot = Slot(name, "output", node=self, on_position_changed=self.on_position_changed,canvas_manager=self.canvas_manager)
             self.output_slots[name] = slot
     
     def on_slot_position_changed(self):
@@ -128,7 +128,7 @@ class WorkflowNode:
             height=self.height,
             border_radius=5,
             padding=0,
-            bgcolor=None,
+            bgcolor=ft.colors.WHITE,
             left=self.position[0],
             top=self.position[1],
             shadow=ft.BoxShadow(
