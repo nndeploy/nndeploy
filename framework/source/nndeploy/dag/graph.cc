@@ -156,30 +156,23 @@ EdgeWrapper *Graph::addEdgeSharedPtr(std::shared_ptr<Edge> edge) {
   return edge_wrapper;
 }
 
-base::Status Graph::removeEdge(Edge *edge) {
+base::Status Graph::updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
+                              bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge, "edge is null!");
-  // 从edge_repository_中移除
-  auto it = std::find_if(
-      edge_repository_.begin(), edge_repository_.end(),
-      [edge](EdgeWrapper *wrapper) { return wrapper->edge_ == edge; });
-  if (it != edge_repository_.end()) {
-    EdgeWrapper *wrapper = *it;
-    // 从used_edge_names_中移除名字
-    used_edge_names_.erase(wrapper->name_);
-    edge_repository_.erase(it);
-    delete wrapper;
-  }
-
   // 从shared_edge_repository_中移除
-  auto shared_it = std::find_if(shared_edge_repository_.begin(),
-                                shared_edge_repository_.end(),
-                                [edge](std::shared_ptr<Edge> &shared_edge) {
-                                  return shared_edge.get() == edge;
-                                });
+  auto shared_it = std::find_if(
+      shared_edge_repository_.begin(), shared_edge_repository_.end(),
+      [edge_wrapper](std::shared_ptr<Edge> &shared_edge) {
+        return shared_edge.get() == edge_wrapper->edge_;
+      });
   if (shared_it != shared_edge_repository_.end()) {
     shared_edge_repository_.erase(shared_it);
   }
-
+  if (!edge_wrapper->is_external_) {
+    delete edge_wrapper->edge_;
+  }
+  edge_wrapper->edge_ = edge;
+  edge_wrapper->is_external_ = is_external;
   return base::kStatusCodeOk;
 }
 
@@ -333,11 +326,9 @@ void Graph::setGraphNodeShareStream(bool flag) {
 
 bool Graph::getGraphNodeShareStream() { return is_graph_node_share_stream_; }
 
-std::vector<std::shared_ptr<Edge>> Graph::updateNodeIO(
-    Node *node, std::vector<std::shared_ptr<Edge>> inputs,
-    std::vector<std::string> outputs_name) {
-  std::vector<std::shared_ptr<Edge>> outputs;
-
+base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
+                                 std::vector<Edge *> outputs) {
+  base::Status status = base::kStatusCodeOk;
   // 找到node对应的node_wrapper
   NodeWrapper *node_wrapper = nullptr;
   for (auto wrapper : node_repository_) {
@@ -348,215 +339,49 @@ std::vector<std::shared_ptr<Edge>> Graph::updateNodeIO(
   }
   if (node_wrapper == nullptr) {
     NNDEPLOY_LOGE("can't find node_wrapper!");
-    return outputs;
+    return base::kStatusCodeErrorInvalidValue;
   }
-  std::vector<Edge *> node_inputs = node_wrapper->node_->getAllInput();
-  // check
-  if (!node_inputs.empty() && node_inputs.size() != inputs.size()) {
-    NNDEPLOY_LOGE("node_inputs.size() != inputs.size()!");
-    return outputs;
-  }
-  if (node_inputs.empty()) {  // 第一次跑
-    for (size_t i = 0; i < inputs.size(); i++) {
-      EdgeWrapper *edge_wrapper = this->addEdgeSharedPtr(inputs[i]);
+  for (auto input : inputs) {
+    EdgeWrapper *edge_wrapper =
+        findEdgeWrapper(edge_repository_, input->getName());
+    if (edge_wrapper == nullptr) {
+      edge_wrapper = this->addEdge(input, true);
       if (edge_wrapper == nullptr) {
-        NNDEPLOY_LOGE("addEdgeSharedPtr failed!");
-        return outputs;
+        NNDEPLOY_LOGE("addEdge failed!");
+        return base::kStatusCodeErrorInvalidValue;
       }
-      edge_wrapper->consumers_.emplace_back(node_wrapper);
-    }
-  } else {  // 不是第一次跑
-    for (size_t i = 0; i < node_inputs.size(); i++) {
-      auto tmp_edge = node_inputs[i];
-      // 输入发生变化
-      if (tmp_edge != inputs[i].get()) {
-        // update shared_edge_repository_
-        auto shared_it = std::find_if(
-            shared_edge_repository_.begin(), shared_edge_repository_.end(),
-            [tmp_edge](std::shared_ptr<Edge> &shared_edge) {
-              return shared_edge.get() == tmp_edge;
-            });
-        if (shared_it != shared_edge_repository_.end()) {
-          shared_edge_repository_.erase(shared_it);
-        }
-        shared_edge_repository_.emplace_back(inputs[i]);
-
-        // update used_edge_names_
-        used_edge_names_.erase(node_inputs[i]->getName());
-        used_edge_names_.insert(inputs[i]->getName());
-
-        // update edge_repository_
-        EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, tmp_edge);
-        if (edge_wrapper == nullptr) {
-          NNDEPLOY_LOGE("can't find edge_wrapper!");
-          return outputs;
-        }
-        if (!edge_wrapper->is_external_) {
-          delete edge_wrapper->edge_;
-        }
-        edge_wrapper->edge_ = inputs[i].get();
-        edge_wrapper->name_ = inputs[i]->getName();
-
-        // TODO 跟edge的所有节点都需要更新
+    } else {
+      if (edge_wrapper->edge_ != input) {
+        updteEdge(edge_wrapper, input, true);
       }
     }
+    // 添加消费者
+    insertUnique(edge_wrapper->consumers_, node_wrapper);
+    // 打印edge及其消费者信息
+    NNDEPLOY_LOGI("Edge: %s\n", input->getName().c_str());
+    NNDEPLOY_LOGI("Consumer: %s\n", node_wrapper->node_->getName().c_str());
   }
-
-  for (auto output_name : outputs_name) {
-    EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, output_name);
-    if (edge_wrapper == nullptr) {  // 第一次跑
-      // 创建
-      std::shared_ptr<Edge> edge = this->createEdgeSharedPtr(output_name);
-      if (edge == nullptr) {
-        NNDEPLOY_LOGE("createEdgeSharedPtr failed!");
-        return outputs;
-      }
-      // edge_wrapper = this->addEdgeSharedPtr(edge);
-      edge_wrapper = findEdgeWrapper(edge_repository_, output_name);
+  for (auto output : outputs) {
+    EdgeWrapper *edge_wrapper =
+        findEdgeWrapper(edge_repository_, output->getName());
+    if (edge_wrapper == nullptr) {
+      edge_wrapper = this->addEdge(output, true);
       if (edge_wrapper == nullptr) {
-        NNDEPLOY_LOGE("can't find edge_wrapper!");
-        return outputs;
+        NNDEPLOY_LOGE("addEdge failed!");
+        return base::kStatusCodeErrorInvalidValue;
       }
-      edge_wrapper->producers_.emplace_back(node_wrapper);
-    } else {  // 非第一次跑
-      // 存在shareptr
-      auto shared_it = std::find_if(
-          shared_edge_repository_.begin(), shared_edge_repository_.end(),
-          [edge_wrapper](std::shared_ptr<Edge> &shared_edge) {
-            return shared_edge.get() == edge_wrapper->edge_;
-          });
-      if (shared_it == shared_edge_repository_.end()) {
-        // 存在sharedptr
-        // 更新edge_wrapper
-        edge_wrapper->is_external_ = true;
-        std::shared_ptr<Edge> edge = std::shared_ptr<Edge>(edge_wrapper->edge_);
-        shared_edge_repository_.emplace_back(edge);
+    } else {
+      if (edge_wrapper->edge_ != output) {
+        updteEdge(edge_wrapper, output, true);
       }
     }
+    // 添加生产者
+    insertUnique(edge_wrapper->producers_, node_wrapper);
+    // 打印edge及其生产者信息
+    NNDEPLOY_LOGI("Edge: %s\n", output->getName().c_str());
+    NNDEPLOY_LOGI("Producer: %s\n", node_wrapper->node_->getName().c_str());
   }
-
-  for (auto output : outputs_name) {
-    std::shared_ptr<Edge> edge = this->getEdgeSharedPtr(output);
-    if (edge == nullptr) {
-      NNDEPLOY_LOGE("can't find edge_wrapper!");
-      return outputs;
-    }
-    outputs.push_back(edge);
-  }
-  return outputs;
-}
-
-std::vector<Edge *> Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
-                                        std::vector<std::string> outputs_name) {
-  std::vector<Edge *> outputs;
-
-  // 找到node对应的node_wrapper
-  NodeWrapper *node_wrapper = nullptr;
-  for (auto wrapper : node_repository_) {
-    if (wrapper->node_ == node) {
-      node_wrapper = wrapper;
-      break;
-    }
-  }
-  if (node_wrapper == nullptr) {
-    NNDEPLOY_LOGE("can't find node_wrapper!");
-    return outputs;
-  }
-  std::vector<Edge *> node_inputs = node_wrapper->node_->getAllInput();
-  // check
-  if (!node_inputs.empty() && node_inputs.size() != inputs.size()) {
-    NNDEPLOY_LOGE("node_inputs.size() != inputs.size()!");
-    return outputs;
-  }
-  if (node_inputs.empty()) {  // 第一次跑
-    for (size_t i = 0; i < inputs.size(); i++) {
-      EdgeWrapper *edge_wrapper = this->addEdge(inputs[i]);
-      if (edge_wrapper == nullptr) {
-        NNDEPLOY_LOGE("addEdgeSharedPtr failed!");
-        return outputs;
-      }
-      edge_wrapper->consumers_.emplace_back(node_wrapper);
-    }
-  } else {  // 不是第一次跑
-    for (size_t i = 0; i < node_inputs.size(); i++) {
-      auto tmp_edge = node_inputs[i];
-      // 输入发生变化
-      if (tmp_edge != inputs[i]) {
-        // update shared_edge_repository_
-        // auto shared_it = std::find_if(
-        //     shared_edge_repository_.begin(), shared_edge_repository_.end(),
-        //     [tmp_edge](std::shared_ptr<Edge> &shared_edge) {
-        //       return shared_edge.get() == tmp_edge;
-        //     });
-        // if (shared_it != shared_edge_repository_.end()) {
-        //   shared_edge_repository_.erase(shared_it);
-        // }
-        // shared_edge_repository_.emplace_back(inputs[i]);
-
-        // update used_edge_names_
-        used_edge_names_.erase(node_inputs[i]->getName());
-        used_edge_names_.insert(inputs[i]->getName());
-
-        // update edge_repository_
-        EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, tmp_edge);
-        if (edge_wrapper == nullptr) {
-          NNDEPLOY_LOGE("can't find edge_wrapper!");
-          return outputs;
-        }
-        if (!edge_wrapper->is_external_) {
-          delete edge_wrapper->edge_;
-        }
-        edge_wrapper->edge_ = inputs[i];
-        edge_wrapper->name_ = inputs[i]->getName();
-
-        // TODO 跟edge的所有节点都需要更新
-      }
-    }
-  }
-
-  for (auto output_name : outputs_name) {
-    EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, output_name);
-    if (edge_wrapper == nullptr) {  // 第一次跑
-      // 创建
-      Edge *edge = this->createEdge(output_name);
-      if (edge == nullptr) {
-        NNDEPLOY_LOGE("createEdgeSharedPtr failed!");
-        return outputs;
-      }
-      edge_wrapper = findEdgeWrapper(edge_repository_, output_name);
-      if (edge_wrapper == nullptr) {
-        NNDEPLOY_LOGE("can't find edge_wrapper!");
-        return outputs;
-      }
-      edge_wrapper->producers_.emplace_back(node_wrapper);
-    } else {  // 非第一次跑
-      // // 存在shareptr
-      // auto shared_it = std::find_if(
-      //     shared_edge_repository_.begin(), shared_edge_repository_.end(),
-      //     [edge_wrapper](std::shared_ptr<Edge> &shared_edge) {
-      //       return shared_edge.get() == edge_wrapper->edge_;
-      //     });
-      // if (shared_it == shared_edge_repository_.end()) {
-      //   // 存在sharedptr
-      //   // 更新edge_wrapper
-      //   edge_wrapper->is_external_ = true;
-      //   std::shared_ptr<Edge> edge =
-      //   std::shared_ptr<Edge>(edge_wrapper->edge_);
-      //   shared_edge_repository_.emplace_back(edge);
-      // }
-      ;
-    }
-  }
-
-  for (auto output : outputs_name) {
-    Edge *edge = this->getEdge(output);
-    if (edge == nullptr) {
-      NNDEPLOY_LOGE("can't find edge_wrapper!");
-      return outputs;
-    }
-    outputs.push_back(edge);
-  }
-  return outputs;
+  return status;
 }
 
 base::Status Graph::init() {
@@ -594,9 +419,11 @@ base::Status Graph::deinit() {
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  status = executor_->deinit();
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "executor deinit failed!");
+  if (executor_ != nullptr) {
+    status = executor_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "executor deinit failed!");
+  }
 
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
@@ -671,13 +498,16 @@ base::Status Graph::construct() {
     node->setParallelType(parallel_type_);
     node->setInnerFlag(true);
     std::vector<Edge *> inputs = node->getAllInput();
+    NNDEPLOY_LOGE("NODE: %s.\n", node->getName().c_str());
     for (auto input : inputs) {
       EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "input_wrapper is null!");
-
+      NNDEPLOY_LOGE("input_wrapper: %s.\n",
+                    input_wrapper->edge_->getName().c_str());
       for (auto producer : input_wrapper->producers_) {
         insertUnique(node_wrapper->predecessors_, producer);
+        NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
       }
     }
     std::vector<Edge *> outputs = node->getAllOutput();
@@ -685,9 +515,11 @@ base::Status Graph::construct() {
       EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
                                            "output_wrapper is null!");
-
+      NNDEPLOY_LOGE("output_wrapper: %s.\n",
+                    output_wrapper->edge_->getName().c_str());
       for (auto consumer : output_wrapper->consumers_) {
         insertUnique(node_wrapper->successors_, consumer);
+        NNDEPLOY_LOGE("consumer: %s.\n", consumer->node_->getName().c_str());
       }
     }
   }
@@ -696,17 +528,16 @@ base::Status Graph::construct() {
   // NNDEPLOY_LOGI("construct edge\n");
   // NNDEPLOY_LOGI("##############\n");
   for (auto edge_wrapper : edge_repository_) {
-    NNDEPLOY_LOGE("construct edge: %s\n",
-                  edge_wrapper->edge_->getName().c_str());
+    NNDEPLOY_LOGE("edge: %s.\n", edge_wrapper->edge_->getName().c_str());
     std::vector<Node *> producers;
     for (auto producer : edge_wrapper->producers_) {
       producers.emplace_back(producer->node_);
-      NNDEPLOY_LOGE("producer: %s\n", producer->node_->getName().c_str());
+      NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
     }
     std::vector<Node *> consumers;
     for (auto consumer : edge_wrapper->consumers_) {
       consumers.emplace_back(consumer->node_);
-      NNDEPLOY_LOGE("consumer: %s\n", consumer->node_->getName().c_str());
+      NNDEPLOY_LOGE("consumer: %s.\n", consumer->node_->getName().c_str());
     }
     base::Status status = edge_wrapper->edge_->setParallelType(parallel_type_);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -807,67 +638,6 @@ base::Status Graph::executor() {
 
   // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
   return status;
-}
-
-std::vector<std::shared_ptr<Edge>> Graph::forward(
-    std::vector<std::shared_ptr<Edge>> inputs,
-    std::vector<std::string> outputs_name,
-    std::shared_ptr<base::Param> param) {
-  bool flag = true;
-  if (inputs.size() == inputs_.size()) {
-    for (size_t i = 0; i < inputs.size(); i++) {
-      if (inputs[i].get() != inputs_[i]) {
-        flag = false;
-        break;
-      }
-    }
-  }
-  if (is_compiled_ && flag) {
-    if (!this->getInitialized()) {
-      this->init();
-    }
-    this->run();
-    std::vector<std::shared_ptr<Edge>> outputs;
-    std::vector<std::string> real_outputs_name =
-        this->getRealOutputsName(outputs_name);
-    for (auto name : real_outputs_name) {
-      std::shared_ptr<Edge> output = graph_->getEdgeSharedPtr(name);
-      outputs.push_back(output);
-    }
-    return outputs;
-  }
-  return std::vector<std::shared_ptr<Edge>>();
-}
-
-// 返回内存外部管理
-std::vector<Edge *> Graph::forward(
-    std::vector<Edge *> inputs,
-    std::vector<std::string> outputs_name,
-    std::shared_ptr<base::Param> param) {
-  bool flag = true;
-  if (inputs.size() == inputs_.size()) {
-    for (size_t i = 0; i < inputs.size(); i++) {
-      if (inputs[i] != inputs_[i]) {
-        flag = false;
-        break;
-      }
-    }
-  }
-  if (is_compiled_ && flag) {
-    if (!this->getInitialized()) {
-      this->init();
-    }
-    this->run();
-    std::vector<Edge *> outputs;
-    std::vector<std::string> real_outputs_name =
-        this->getRealOutputsName(outputs_name);
-    for (auto name : real_outputs_name) {
-      Edge *output = graph_->getEdge(name);
-      outputs.push_back(output);
-    }
-    return outputs;
-  }
-  return std::vector<Edge*>();
 }
 
 REGISTER_NODE("nndeploy::dag::Graph", Graph);

@@ -203,11 +203,13 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
-  std::vector<std::shared_ptr<dag::Edge>> forward(
-      std::vector<std::shared_ptr<dag::Edge>> inputs,
-      std::vector<std::string> outputs_name,
-      std::shared_ptr<base::Param> param) {
-    // std::vector<dag::Edge *> outputs = dag::forward(inputs, output_names);
+  std::vector<dag::Edge *> operator()(
+      std::vector<dag::Edge *> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr) {
+    std::vector<dag::Edge *> outputs =
+        dag::Graph::operator()(inputs, outputs_name, param);
+    NNDEPLOY_LOGE("outputs.size: %d.\n", outputs.size());
 
     // Preprocessing output "data" represents processed image
     inputs = (*pre_)(inputs, {"data"});
@@ -216,52 +218,10 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     inputs = (*infer_)(inputs, {"resnetv17_dense0_fwd"});
     // Postprocessing outputs specified by output_names,
     // typically class results and confidence
-    std::vector<std::shared_ptr<dag::Edge>> outputs =
-        (*post_)(inputs, outputs_name);
-
-    // Preprocessing output "data" represents processed image
-    // NNDEPLOY_LOGE("pre_->operator()(inputs, {\"data\"}): %p.\n",
-    // inputs[0].get()); inputs = pre_->operator()(inputs, {"data"});
-    // NNDEPLOY_LOGE("pre_->operator()(inputs, {\"data\"}): %p.\n",
-    // inputs[0].get());
-    // // Inference output "resnetv17_dense0_fwd"
-    // // is the final FC layer output
-    // inputs = infer_->operator()(inputs, {"resnetv17_dense0_fwd"});
-    // NNDEPLOY_LOGE("infer_->operator()(inputs, {\"resnetv17_dense0_fwd\"}):
-    // %p.\n", inputs[0].get());
-    // // Postprocessing outputs specified by output_names,
-    // // typically class results and confidence
-    // std::vector<std::shared_ptr<dag::Edge>> outputs =
-    //     post_->operator()(inputs, outputs_name);
-    // NNDEPLOY_LOGE("post_->operator()(inputs, outputs_name): %p.\n",
-    // outputs[0].get());
+    outputs = (*post_)(inputs, outputs_name);
+    NNDEPLOY_LOGE("outputs.size: %d.\n", outputs.size());
 
     return outputs;
-  }
-
-  virtual std::vector<std::shared_ptr<dag::Edge>> operator()(
-      std::vector<std::shared_ptr<dag::Edge>> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr) override {
-    std::vector<std::string> real_outputs_name =
-        this->getRealOutputsName(outputs_name);
-    std::vector<std::shared_ptr<dag::Edge>> outputs =
-        graph_->updateNodeIO(this, inputs, real_outputs_name);
-    if (!outputs.empty()) {
-      this->setOutputsSharedPtr(outputs);
-    }
-    if (param != nullptr) {
-      this->setParamSharedPtr(param);
-    }
-    if (!inputs.empty()) {
-      this->setInputsSharedPtr(inputs);
-    }
-
-    // if (initialized_ == false) {
-    //   this->init();
-    //   this->setInitializedFlag(true);
-    // }
-    return forward(inputs, outputs_name, param);
   }
 
  private:

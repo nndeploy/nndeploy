@@ -10,12 +10,12 @@
 #include "nndeploy/base/opencv_include.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
+#include "nndeploy/dag/base.h"
 #include "nndeploy/dag/edge/abstract_edge.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/dag/base.h"
 
 namespace nndeploy {
 namespace dag {
@@ -59,7 +59,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 #ifdef ENABLE_NNDEPLOY_OPENCV
   base::Status set(cv::Mat *cv_mat, int index, bool is_external = true);
   base::Status set(cv::Mat &cv_mat, int index);
-  cv::Mat *create(int rows, int cols, int type, const cv::Vec3b& value,
+  cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value,
                   int index);
   bool notifyWritten(cv::Mat *cv_mat);
   cv::Mat *getCvMat(const Node *node);
@@ -76,36 +76,42 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   base::Status set(base::Param *param, int index, bool is_external = true);
   base::Status set(base::Param &param, int index);
-  template <typename T, typename... Args, typename std::enable_if<std::is_base_of<base::Param, T>::value, int>::type = 0>
-  base::Param *create(int index, Args &&...args){
+  template <typename T, typename... Args,
+            typename std::enable_if<std::is_base_of<base::Param, T>::value,
+                                    int>::type = 0>
+  base::Param *create(int index, Args &&...args) {
+    this->setTypeInfo<T>();
     return abstact_edge_->create<T>(index, std::forward<Args>(args)...);
   }
   bool notifyWritten(base::Param *param);
   base::Param *getParam(const Node *node);
   base::Param *getGraphOutputParam();
-  
+
   template <typename T>
-  base::Status setAny(T *t, int index, bool is_external = true){
+  base::Status setAny(T *t, int index, bool is_external = true) {
+    this->setTypeInfo<T>();
     return abstact_edge_->setAny<T>(t, index, is_external);
   }
   template <typename T>
-  base::Status setAny(T &t, int index){
+  base::Status setAny(T &t, int index) {
+    this->setTypeInfo<T>();
     return this->setAny(&t, index, true);
   }
   template <typename T, typename... Args>
-  T *createAny(int index, Args &&...args){
+  T *createAny(int index, Args &&...args) {
+    this->setTypeInfo<T>();
     return abstact_edge_->createAny<T>(index, std::forward<Args>(args)...);
   }
   template <typename T>
-  bool notifyAnyWritten(T *t){
+  bool notifyAnyWritten(T *t) {
     return abstact_edge_->notifyAnyWritten<T>(t);
   }
   template <typename T>
-  T *getAny(const Node *node){
+  T *getAny(const Node *node) {
     return abstact_edge_->getAny<T>(node);
   }
   template <typename T>
-  T *getGraphOutputAny(){
+  T *getGraphOutputAny() {
     return abstact_edge_->getGraphOutputAny<T>();
   }
 
@@ -131,9 +137,31 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   bool requestTerminate();
 
+  template <typename T>
+  base::Status setTypeInfo() {
+    if (type_info_ == nullptr) {
+      type_info_ = std::make_shared<EdgeTypeInfo>();
+      type_info_->setType<T>();
+    } else {
+      type_info_->setType<T>();
+    }
+    return base::kStatusCodeOk;
+  }
+  base::Status setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info);
+  std::shared_ptr<EdgeTypeInfo> getTypeInfo();
+  
+  template <typename T>
+  bool checkTypeInfo() {
+    EdgeTypeInfo other_type_info;
+    other_type_info.setType<T>();
+    return *type_info_ == other_type_info;
+  }
+  bool checkTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info);
+
  private:
   std::string name_;
   AbstractEdge *abstact_edge_ = nullptr;
+  std::shared_ptr<EdgeTypeInfo> type_info_;
 };
 
 }  // namespace dag

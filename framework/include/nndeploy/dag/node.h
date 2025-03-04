@@ -71,6 +71,7 @@ class NNDEPLOY_CC_API NodeDesc {
 /**
  * @brief
  * @note Each node is responsible for allocating memory for it's output edges.
+ * @note 节点一旦初始化后，其输入边和输出边个数就确定
  */
 class NNDEPLOY_CC_API Node {
  public:
@@ -114,6 +115,8 @@ class NNDEPLOY_CC_API Node {
   std::vector<Edge *> getAllInput();
   std::vector<Edge *> getAllOutput();
 
+  Edge *createEdge(const std::string &name);
+
   bool getConstructed();
 
   base::Status setParallelType(const base::ParallelType &paralle_type);
@@ -147,7 +150,8 @@ class NNDEPLOY_CC_API Node {
 
   template <typename T>
   base::Status setInputTypeInfo() {
-    std::shared_ptr<EdgeTypeInfo> edge_type_info = std::make_shared<EdgeTypeInfo>();
+    std::shared_ptr<EdgeTypeInfo> edge_type_info =
+        std::make_shared<EdgeTypeInfo>();
     edge_type_info->setType<T>();
     input_type_info_.push_back(edge_type_info);
     return base::Status::Ok();
@@ -157,12 +161,14 @@ class NNDEPLOY_CC_API Node {
 
   template <typename T>
   base::Status setOutputTypeInfo() {
-    std::shared_ptr<EdgeTypeInfo> edge_type_info = std::make_shared<EdgeTypeInfo>();
+    std::shared_ptr<EdgeTypeInfo> edge_type_info =
+        std::make_shared<EdgeTypeInfo>();
     edge_type_info->setType<T>();
     output_type_info_.push_back(edge_type_info);
     return base::Status::Ok();
   }
-  base::Status setOutputTypeInfo(std::shared_ptr<EdgeTypeInfo> output_type_info);
+  base::Status setOutputTypeInfo(
+      std::shared_ptr<EdgeTypeInfo> output_type_info);
   std::vector<std::shared_ptr<EdgeTypeInfo>> getOutputTypeInfo();
 
   virtual base::Status init();
@@ -183,78 +189,19 @@ class NNDEPLOY_CC_API Node {
    * @param param 参数
    * @return 返回的边
    * @note
-   * # 不在graph中
-   * ## init在函数内部调用吗
-   * ### 需要
-   * ### 不需要
-   * # 在graph中
-   * ## 静态图
-   * ## 半静态版动态
-   * ## 动态图
-   * ### 在graph中建立edge与node的关联
-   * ### 第一次执行
-   * ### 第二次~第n次执行
-   * ### 输入edge是否更行
-   */
-  virtual std::vector<std::shared_ptr<Edge>> operator()(
-      std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr);
-
-  /**
-   * @brief 节点调用接口
-   * @details 节点调用接口，用于节点之间的调用
-   * @param inputs 输入的边
-   * @param outputs_name 输出的边名
-   * @param param 参数
-   * @return 返回的边
-   * @note
-   * graph模式下，内存graph管理
-   * 无graph模式下，内存外部管理
+   * 内存由node管理
    */
   virtual std::vector<Edge *> operator()(
       std::vector<Edge *> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
 
-  std::vector<std::shared_ptr<Edge>> functorWithoutGraph(
-      std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr);
-
-  // 返回内存外部管理
-  std::vector<Edge *> functorWithoutGraph(
-      std::vector<Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr);
-
-  std::vector<std::shared_ptr<Edge>> functorWithGraph(
-      std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr);
-
-  // 返回内存graph管理
-  std::vector<Edge *> functorWithGraph(
-      std::vector<Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr);
-
-  std::vector<std::shared_ptr<Edge>> functorDynamic(
-      std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr);
-
-  // 返回内存graph管理
-  std::vector<Edge *> functorDynamic(
-      std::vector<Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr);
-
-  bool checkInputs(std::vector<std::shared_ptr<Edge>> &inputs);
   bool checkInputs(std::vector<Edge *> &inputs);
   bool checkOutputs(std::vector<std::string> &outputs_name);
+  bool checkOutputs(std::vector<Edge *> &outputs);
+  bool isInputsChanged(std::vector<Edge *> inputs);
 
-  std::vector<std::string> getRealOutputsName(
+  virtual std::vector<std::string> getRealOutputsName(
       std::vector<std::string> outputs_name);
 
  protected:
@@ -268,10 +215,17 @@ class NNDEPLOY_CC_API Node {
   device::Stream *stream_ = nullptr;
   std::shared_ptr<base::Param> param_;
   std::map<std::string, std::shared_ptr<base::Param>> external_param_;
+  /**
+   * @brief 存在节点输入输出动态，无法设置input_type_info_和output_type_info_
+   * eg
+   * tokenizer cpp（类型不确定）
+   * infer（个数不确定）
+   */
   std::vector<std::shared_ptr<EdgeTypeInfo>> input_type_info_;
   std::vector<std::shared_ptr<EdgeTypeInfo>> output_type_info_;
   std::vector<Edge *> inputs_;
   std::vector<Edge *> outputs_;
+  std::map<std::string, Edge *> outputs_edge_is_external_;
 
   Graph *graph_ = nullptr;
 
