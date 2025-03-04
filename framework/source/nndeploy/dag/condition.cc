@@ -23,12 +23,6 @@ namespace nndeploy {
 namespace dag {
 
 Condition::Condition(const std::string &name) : Graph(name) {}
-Condition::Condition(const std::string &name, Edge *input, Edge *output)
-    : Graph(name, input, output) {}
-Condition::Condition(const std::string &name,
-                     std::initializer_list<Edge *> inputs,
-                     std::initializer_list<Edge *> outputs)
-    : Graph(name, inputs, outputs) {}
 Condition::Condition(const std::string &name, std::vector<Edge *> inputs,
                      std::vector<Edge *> outputs)
     : Graph(name, inputs, outputs) {}

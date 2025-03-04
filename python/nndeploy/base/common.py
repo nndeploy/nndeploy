@@ -1022,6 +1022,14 @@ class Status(_C.base.Status):
     def get_code_name(self):
         return status_code_to_name[self.get_code()]
     
+    @staticmethod
+    def ok():
+        return Status(StatusCode.Ok)
+    
+    @staticmethod
+    def error():
+        return Status(StatusCode.ErrorUnknown)
+    
 
 name_to_pixel_type = {
     "GRAY": _C.base.PixelType.GRAY,

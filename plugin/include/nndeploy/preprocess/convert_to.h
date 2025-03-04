@@ -26,22 +26,17 @@ class NNDEPLOY_CC_API ConvertToParam : public base::Param {
 
 class NNDEPLOY_CC_API ConvertTo : public dag::Node {
  public:
-  // ConvertTo(const std::string &name, dag::Edge *input, dag::Edge *output)
-  //     : Node(name, {input}, {output}) {
-  //   param_ = std::make_shared<ConvertToParam>();
-  // }
   ConvertTo(const std::string &name) : dag::Node(name) {
     param_ = std::make_shared<ConvertToParam>();
-  }
-  ConvertTo(const std::string &name, std::initializer_list<dag::Edge *> inputs,
-            std::initializer_list<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {
-    param_ = std::make_shared<ConvertToParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
   }
   ConvertTo(const std::string &name, std::vector<dag::Edge *> inputs,
             std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<ConvertToParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
   }
   virtual ~ConvertTo() {}
 

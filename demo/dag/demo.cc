@@ -25,8 +25,9 @@ class ProcessParam : public base::Param {
 
 class NNDEPLOY_CC_API ProcessNode : public dag::Node {
  public:
-  ProcessNode(const std::string &name, dag::Edge *input, dag::Edge *output)
-      : Node(name, input, output) {
+  ProcessNode(const std::string &name, std::vector<dag::Edge *> inputs,
+              std::vector<dag::Edge *> outputs)
+      : Node(name, inputs, outputs) {
     param_ = std::make_shared<ProcessParam>();
     ProcessParam *op_param = dynamic_cast<ProcessParam *>(param_.get());
   }
@@ -58,18 +59,26 @@ class NNDEPLOY_CC_API ProcessNode : public dag::Node {
 class NNDEPLOY_CC_API MIMOProcessNode : public dag::Node {
  public:
   MIMOProcessNode(const std::string &name,
-                  std::initializer_list<dag::Edge *> inputs,
-                  std::initializer_list<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {
-    param_ = std::make_shared<ProcessParam>();
-    ProcessParam *op_param = dynamic_cast<ProcessParam *>(param_.get());
-  }
-  MIMOProcessNode(const std::string &name, std::vector<dag::Edge *> inputs,
+                  std::vector<dag::Edge *> inputs,
                   std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
+    // for (auto input : inputs) {
+    //   inputs_.emplace_back(input);
+    // }
+    // for (auto output : outputs) {
+    //   outputs_.emplace_back(output);
+    // }
     param_ = std::make_shared<ProcessParam>();
     ProcessParam *op_param = dynamic_cast<ProcessParam *>(param_.get());
   }
+  // MIMOProcessNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  //                 std::vector<dag::Edge *> outputs)
+  //     : dag::Node(name) {
+  //   inputs_ = inputs;
+  //   outputs_ = outputs;
+  //   param_ = std::make_shared<ProcessParam>();
+  //   ProcessParam *op_param = dynamic_cast<ProcessParam *>(param_.get());
+  // }
   virtual ~MIMOProcessNode() {}
 
   virtual base::Status run() {
@@ -102,7 +111,7 @@ class NNDEPLOY_CC_API MIMOProcessNode : public dag::Node {
 
 dag::Graph *createGraph(const std::string &name, dag::Edge *input,
                         dag::Edge *output, base::ParallelType pt) {
-  dag::Graph *graph = new dag::Graph(name, input, output);
+  dag::Graph *graph = new dag::Graph(name, {input}, {output});
   dag::Edge *preprocess_out = graph->createEdge(name + "_preprocess_out");
   dag::Edge *infer_out = graph->createEdge(name + "_infer_out");
   dag::Node *preprocess = graph->createNode<ProcessNode>(name + "_preprocess",
@@ -116,9 +125,10 @@ dag::Graph *createGraph(const std::string &name, dag::Edge *input,
 };
 
 dag::Graph *createGraphMISO(const std::string &name,
-                            std::initializer_list<dag::Edge *> inputs,
-                            dag::Edge *output, base::ParallelType pt) {
-  dag::Graph *graph = new dag::Graph(name, inputs, {output});
+                            std::vector<dag::Edge *> inputs,
+                            std::vector<dag::Edge *> outputs,
+                            base::ParallelType pt) {
+  dag::Graph *graph = new dag::Graph(name, inputs, outputs);
 
   std::vector<dag::Edge *> preprocess_out;
   int i = 0;
@@ -135,18 +145,29 @@ dag::Graph *createGraphMISO(const std::string &name,
   dag::Node *infer = graph->createNode<MIMOProcessNode>(
       name + "_infer", preprocess_out, {infer_out});
   dag::Node *postprocess =
-      graph->createNode<ProcessNode>(name + "_postprocess", infer_out, output);
+      graph->createNode<ProcessNode>(name + "_postprocess", {infer_out}, outputs);
   graph->setParallelType(pt);
   return graph;
 };
 
 class NNDEPLOY_CC_API DemoLoop : public dag::Loop {
  public:
-  DemoLoop(const std::string &name, dag::Edge *input, dag::Edge *output)
-      : dag::Loop(name, input, output) {};
-  DemoLoop(const std::string &name, std::initializer_list<dag::Edge *> inputs,
-           std::initializer_list<dag::Edge *> outputs)
-      : dag::Loop(name, inputs, outputs) {};
+  DemoLoop(const std::string &name, std::vector<dag::Edge *> inputs,
+          std::vector<dag::Edge *> outputs)
+      : dag::Loop(name, inputs, outputs) {
+    // inputs_.emplace_back(input);
+    // outputs_.emplace_back(output);
+  };
+  // DemoLoop(const std::string &name, std::vector<dag::Edge *> inputs,
+  //         std::vector<dag::Edge *> outputs)
+  //     : dag::Loop(name) {
+  //   for (auto input : inputs) {
+  //     inputs_.emplace_back(input);
+  //   }
+  //   for (auto output : outputs) {
+  //     outputs_.emplace_back(output);
+  //   }
+  // };
   virtual ~DemoLoop() {};
 
   virtual int loops() { return 2; };
@@ -161,12 +182,22 @@ dag::Graph *createGraphLoop(const std::string &name,
 
 class NNDEPLOY_CC_API DemoCondition : public dag::Condition {
  public:
-  DemoCondition(const std::string &name, dag::Edge *input, dag::Edge *output)
-      : dag::Condition(name, input, output) {};
+  // DemoCondition(const std::string &name, dag::Edge *input, dag::Edge *output)
+  //     : dag::Condition(name) {
+  //   inputs_.emplace_back(input);
+  //   outputs_.emplace_back(output);
+  // };
   DemoCondition(const std::string &name,
                 std::initializer_list<dag::Edge *> inputs,
                 std::initializer_list<dag::Edge *> outputs)
-      : dag::Condition(name, inputs, outputs) {};
+      : dag::Condition(name) {
+    for (auto input : inputs) {
+      inputs_.emplace_back(input);
+    }
+    for (auto output : outputs) {
+      outputs_.emplace_back(output);
+    }
+  };
   virtual ~DemoCondition() {};
 
   virtual int choose() { return 1; };
@@ -185,7 +216,7 @@ int serialGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   base::Status status = base::kStatusCodeOk;
   dag::Edge graph_in("graph_in");
   dag::Edge graph_out("graph_out");
-  dag::Graph *graph = new dag::Graph("serial_graph", &graph_in, &graph_out);
+  dag::Graph *graph = new dag::Graph("serial_graph", {&graph_in}, {&graph_out});
   dag::Edge *model_0_out = graph->createEdge("model_0_out");
   dag::Edge *op_link_out = graph->createEdge("op_link_out");
 
@@ -400,7 +431,7 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   dag::Edge graph_in("graph_in");
   dag::Edge graph_out("graph_out");
   dag::Graph *graph =
-      new dag::Graph("photosRepairGraph", &graph_in, &graph_out);
+      new dag::Graph("photosRepairGraph", {&graph_in}, {&graph_out});
 
   dag::Edge *scratch_detection_out = graph->createEdge("scratch_detection_out");
   dag::Graph *scratch_detection =
@@ -410,7 +441,7 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   dag::Edge *scratch_repair_out = graph->createEdge("scratch_repair_out");
   dag::Graph *scratch_repair =
       createGraphMISO("scratch_repair", {&graph_in, scratch_detection_out},
-                      scratch_repair_out, pt_0);
+                      {scratch_repair_out}, pt_0);
   graph->addNode(scratch_repair);
 
   dag::Edge *super_resolution_out = graph->createEdge("super_resolution_out");
@@ -449,7 +480,7 @@ int photosRepairGraph(base::ParallelType pt_0, base::ParallelType pt_1,
   loop_multi_face_graph->addNode(face_repair);
 
   dag::Graph *face_back = createGraphMISO(
-      "face_back", {super_resolution_out, face_repair_out}, &graph_out, pt_0);
+      "face_back", {super_resolution_out, face_repair_out}, {&graph_out}, pt_0);
   loop_multi_face_graph->addNode(face_back);
 
   // init

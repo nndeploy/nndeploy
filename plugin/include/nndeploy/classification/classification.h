@@ -38,18 +38,16 @@ class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
  public:
   ClassificationPostProcess(const std::string &name) : dag::Node(name) {
     param_ = std::make_shared<ClassificationPostParam>();
-  }
-  ClassificationPostProcess(const std::string &name,
-                            std::initializer_list<dag::Edge *> inputs,
-                            std::initializer_list<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {
-    param_ = std::make_shared<ClassificationPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<ClassificationResult>();
   }
   ClassificationPostProcess(const std::string &name,
                             std::vector<dag::Edge *> inputs,
                             std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<ClassificationPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<ClassificationResult>();
   }
   virtual ~ClassificationPostProcess() {}
 
@@ -66,15 +64,17 @@ class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
  */
 class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
  public:
-  ClassificationResnetGraph(const std::string &name) : dag::Graph(name) {}
-  ClassificationResnetGraph(const std::string &name,
-                            std::initializer_list<dag::Edge *> inputs,
-                            std::initializer_list<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
+  ClassificationResnetGraph(const std::string &name) : dag::Graph(name) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<ClassificationResult>();
+  }
   ClassificationResnetGraph(const std::string &name,
                             std::vector<dag::Edge *> inputs,
                             std::vector<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
+      : dag::Graph(name, inputs, outputs) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<ClassificationResult>();
+  }
 
   virtual ~ClassificationResnetGraph() {}
 
@@ -126,7 +126,8 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
 
   base::Status make(base::InferenceType inference_type) {
     // Create preprocessing node for image preprocessing
-    pre_ = this->createNode<preprocess::CvtColorResize>("preprocess::CvtColorResize");
+    pre_ = this->createNode<preprocess::CvtColorResize>(
+        "preprocess::CvtColorResize");
     if (pre_ == nullptr) {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
@@ -157,7 +158,8 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     infer_->setInferenceType(inference_type);
 
     // Create postprocessing node for classification results
-    post_ = this->createNode<ClassificationPostProcess>("ClassificationPostProcess");
+    post_ = this->createNode<ClassificationPostProcess>(
+        "ClassificationPostProcess");
     if (post_ == nullptr) {
       NNDEPLOY_LOGE("Failed to create postprocessing node");
       return base::kStatusCodeErrorInvalidParam;
@@ -218,18 +220,21 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
         (*post_)(inputs, outputs_name);
 
     // Preprocessing output "data" represents processed image
-    // NNDEPLOY_LOGE("pre_->operator()(inputs, {\"data\"}): %p.\n", inputs[0].get());
-    // inputs = pre_->operator()(inputs, {"data"});
-    // NNDEPLOY_LOGE("pre_->operator()(inputs, {\"data\"}): %p.\n", inputs[0].get());
+    // NNDEPLOY_LOGE("pre_->operator()(inputs, {\"data\"}): %p.\n",
+    // inputs[0].get()); inputs = pre_->operator()(inputs, {"data"});
+    // NNDEPLOY_LOGE("pre_->operator()(inputs, {\"data\"}): %p.\n",
+    // inputs[0].get());
     // // Inference output "resnetv17_dense0_fwd"
     // // is the final FC layer output
     // inputs = infer_->operator()(inputs, {"resnetv17_dense0_fwd"});
-    // NNDEPLOY_LOGE("infer_->operator()(inputs, {\"resnetv17_dense0_fwd\"}): %p.\n", inputs[0].get());
+    // NNDEPLOY_LOGE("infer_->operator()(inputs, {\"resnetv17_dense0_fwd\"}):
+    // %p.\n", inputs[0].get());
     // // Postprocessing outputs specified by output_names,
     // // typically class results and confidence
     // std::vector<std::shared_ptr<dag::Edge>> outputs =
     //     post_->operator()(inputs, outputs_name);
-    // NNDEPLOY_LOGE("post_->operator()(inputs, outputs_name): %p.\n", outputs[0].get());
+    // NNDEPLOY_LOGE("post_->operator()(inputs, outputs_name): %p.\n",
+    // outputs[0].get());
 
     return outputs;
   }
@@ -238,6 +243,24 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
       std::vector<std::shared_ptr<dag::Edge>> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr) override {
+    std::vector<std::string> real_outputs_name =
+        this->getRealOutputsName(outputs_name);
+    std::vector<std::shared_ptr<dag::Edge>> outputs =
+        graph_->updateNodeIO(this, inputs, real_outputs_name);
+    if (!outputs.empty()) {
+      this->setOutputsSharedPtr(outputs);
+    }
+    if (param != nullptr) {
+      this->setParamSharedPtr(param);
+    }
+    if (!inputs.empty()) {
+      this->setInputsSharedPtr(inputs);
+    }
+
+    // if (initialized_ == false) {
+    //   this->init();
+    //   this->setInitializedFlag(true);
+    // }
     return forward(inputs, outputs_name, param);
   }
 

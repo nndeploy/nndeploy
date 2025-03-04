@@ -75,12 +75,6 @@ class NNDEPLOY_CC_API NodeDesc {
 class NNDEPLOY_CC_API Node {
  public:
   Node(const std::string &name);
-
-  // NNDEPLOY_DEPRECATED("deprecated api")
-  Node(const std::string &name, Edge *input, Edge *output);
-
-  Node(const std::string &name, std::initializer_list<Edge *> inputs,
-       std::initializer_list<Edge *> outputs);
   Node(const std::string &name, std::vector<Edge *> inputs,
        std::vector<Edge *> outputs);
 
@@ -88,11 +82,8 @@ class NNDEPLOY_CC_API Node {
 
   std::string getName();
 
-  base::Status setGraph(Graph *graph) {
-    graph_ = graph;
-    return base::kStatusCodeOk;
-  }
-  Graph *getGraph() { return graph_; }
+  base::Status setGraph(Graph *graph);
+  Graph *getGraph();
 
   virtual base::Status setDeviceType(base::DeviceType device_type);
   virtual base::DeviceType getDeviceType();
@@ -145,8 +136,34 @@ class NNDEPLOY_CC_API Node {
   void setCompiledFlag(bool flag);
   bool getCompiledFlag();
 
+  void setGraphFlag(bool flag);
+  bool getGraphFlag();
+
+  void setNodeType(NodeType node_type);
+  NodeType getNodeType();
+
   void setStream(device::Stream *stream);
   device::Stream *getStream();
+
+  template <typename T>
+  base::Status setInputTypeInfo() {
+    std::shared_ptr<EdgeTypeInfo> edge_type_info = std::make_shared<EdgeTypeInfo>();
+    edge_type_info->setType<T>();
+    input_type_info_.push_back(edge_type_info);
+    return base::Status::Ok();
+  }
+  base::Status setInputTypeInfo(std::shared_ptr<EdgeTypeInfo> input_type_info);
+  std::vector<std::shared_ptr<EdgeTypeInfo>> getInputTypeInfo();
+
+  template <typename T>
+  base::Status setOutputTypeInfo() {
+    std::shared_ptr<EdgeTypeInfo> edge_type_info = std::make_shared<EdgeTypeInfo>();
+    edge_type_info->setType<T>();
+    output_type_info_.push_back(edge_type_info);
+    return base::Status::Ok();
+  }
+  base::Status setOutputTypeInfo(std::shared_ptr<EdgeTypeInfo> output_type_info);
+  std::vector<std::shared_ptr<EdgeTypeInfo>> getOutputTypeInfo();
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -251,8 +268,8 @@ class NNDEPLOY_CC_API Node {
   device::Stream *stream_ = nullptr;
   std::shared_ptr<base::Param> param_;
   std::map<std::string, std::shared_ptr<base::Param>> external_param_;
-  std::vector<EdgeTypeInfo> input_type_info_;
-  std::vector<EdgeTypeInfo> output_type_info_;
+  std::vector<std::shared_ptr<EdgeTypeInfo>> input_type_info_;
+  std::vector<std::shared_ptr<EdgeTypeInfo>> output_type_info_;
   std::vector<Edge *> inputs_;
   std::vector<Edge *> outputs_;
 
@@ -268,6 +285,8 @@ class NNDEPLOY_CC_API Node {
   bool is_time_profile_ = false;
   bool is_debug_ = false;
   bool is_compiled_ = false;
+  bool is_graph_ = false;
+  NodeType node_type_ = NodeType::kNodeTypeIntermediate;
 };
 
 /**
@@ -275,10 +294,6 @@ class NNDEPLOY_CC_API Node {
  */
 class NodeCreator {
  public:
-  // virtual Node *createNode(const std::string &node_name) = 0;
-  // virtual Node *createNode(const std::string &node_name,
-  //                          std::initializer_list<Edge *> inputs,
-  //                          std::initializer_list<Edge *> outputs) = 0;
   virtual Node *createNode(const std::string &node_name,
                            std::vector<Edge *> inputs,
                            std::vector<Edge *> outputs) = 0;
@@ -291,14 +306,6 @@ class NodeCreator {
 template <typename T>
 class TypeNodeCreator : public NodeCreator {
  public:
-  // virtual Node *createNode(const std::string &node_name) override {
-  //   return new T(node_name);
-  // }
-  // virtual Node *createNode(const std::string &node_name,
-  //                          std::initializer_list<Edge *> inputs,
-  //                          std::initializer_list<Edge *> outputs) override {
-  //   return new T(node_name, inputs, outputs);
-  // }
   virtual Node *createNode(const std::string &node_name,
                            std::vector<Edge *> inputs,
                            std::vector<Edge *> outputs) override {
@@ -372,10 +379,6 @@ NNDEPLOY_CC_API std::shared_ptr<Node> createNodeSharedPtr(
 NNDEPLOY_CC_API std::shared_ptr<Node> createNodeSharedPtr(
     const std::string &node_key, const std::string &node_name,
     std::vector<Edge *> inputs, std::vector<Edge *> outputs);
-
-using NodeFuncV1 = std::function<base::Status(
-    std::initializer_list<Edge *> inputs, std::initializer_list<Edge *> outputs,
-    base::Param *param)>;
 
 using NodeFuncV2 = std::function<base::Status(std::vector<Edge *> inputs,
                                               std::vector<Edge *> outputs,

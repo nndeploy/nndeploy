@@ -25,39 +25,6 @@ namespace nndeploy {
 namespace dag {
 
 Graph::Graph(const std::string &name) : Node(name) {}
-Graph::Graph(const std::string &name, Edge *input, Edge *output)
-    : Node(name, input, output) {
-  if (input != nullptr) {
-    if (nullptr == addEdge(input)) {
-      constructed_ = false;
-      return;
-    }
-  }
-  if (output != nullptr) {
-    if (nullptr == addEdge(output)) {
-      constructed_ = false;
-      return;
-    }
-  }
-  constructed_ = true;
-}
-Graph::Graph(const std::string &name, std::initializer_list<Edge *> inputs,
-             std::initializer_list<Edge *> outputs)
-    : Node(name, inputs, outputs) {
-  for (auto input : inputs) {
-    if (nullptr == addEdge(input)) {
-      constructed_ = false;
-      return;
-    }
-  }
-  for (auto output : outputs) {
-    if (nullptr == addEdge(output)) {
-      constructed_ = false;
-      return;
-    }
-  }
-  constructed_ = true;
-}
 Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
              std::vector<Edge *> outputs)
     : Node(name, inputs, outputs) {
@@ -74,6 +41,7 @@ Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
     }
   }
   constructed_ = true;
+  is_graph_ = true;
 }
 Graph::~Graph() {
   for (auto node_wrapper : node_repository_) {

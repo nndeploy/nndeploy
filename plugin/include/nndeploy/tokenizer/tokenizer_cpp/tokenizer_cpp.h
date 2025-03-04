@@ -32,7 +32,14 @@ namespace tokenizer {
  */
 class NNDEPLOY_CC_API TokenizerCpp : public nndeploy::tokenizer::Tokenizer {
  public:
-  TokenizerCpp(const std::string& name, dag::Edge* input, dag::Edge* output);
+  TokenizerCpp(const std::string& name) : Tokenizer(name) {
+    param_ = std::make_shared<TokenizerPraram>();
+  }
+  TokenizerCpp(const std::string& name, std::vector<dag::Edge*> inputs,
+               std::vector<dag::Edge*> outputs)
+      : Tokenizer(name, inputs, outputs) {
+    param_ = std::make_shared<TokenizerPraram>();
+  }
   virtual ~TokenizerCpp();
 
   virtual base::Status init();

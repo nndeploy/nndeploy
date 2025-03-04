@@ -11,19 +11,13 @@ namespace infer {
 
 class NNDEPLOY_CC_API Infer : public dag::Node {
  public:
-  Infer(const std::string &name, base::InferenceType type, dag::Edge *input,
-        dag::Edge *output);
-  Infer(const std::string &name, base::InferenceType type,
-        std::initializer_list<dag::Edge *> inputs,
-        std::initializer_list<dag::Edge *> outputs);
-  Infer(const std::string &name, base::InferenceType type,
-        std::vector<dag::Edge *> inputs, std::vector<dag::Edge *> outputs);
-
   Infer(const std::string &name);
-  Infer(const std::string &name, std::initializer_list<dag::Edge *> inputs,
-        std::initializer_list<dag::Edge *> outputs);
   Infer(const std::string &name, std::vector<dag::Edge *> inputs,
         std::vector<dag::Edge *> outputs);
+
+  Infer(const std::string &name, base::InferenceType type);
+  Infer(const std::string &name, std::vector<dag::Edge *> inputs,
+        std::vector<dag::Edge *> outputs, base::InferenceType type);
 
   virtual ~Infer();
 

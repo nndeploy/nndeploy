@@ -4,51 +4,34 @@
 namespace nndeploy {
 namespace infer {
 
-Infer::Infer(const std::string &name, base::InferenceType type,
-             dag::Edge *input, dag::Edge *output)
-    : dag::Node(name, input, output) {
-  type_ = type;
-  inference_ = inference::createInference(type);
-  if (inference_ == nullptr) {
-    NNDEPLOY_LOGE("Failed to create inference");
-    constructed_ = false;
-  } else {
-    constructed_ = true;
-  }
-}
-Infer::Infer(const std::string &name, base::InferenceType type,
-             std::initializer_list<dag::Edge *> inputs,
-             std::initializer_list<dag::Edge *> outputs)
-    : dag::Node(name, inputs, outputs) {
-  type_ = type;
-  inference_ = inference::createInference(type);
-  if (inference_ == nullptr) {
-    NNDEPLOY_LOGE("Failed to create inference");
-    constructed_ = false;
-  } else {
-    constructed_ = true;
-  }
-}
-Infer::Infer(const std::string &name, base::InferenceType type,
-             std::vector<dag::Edge *> inputs, std::vector<dag::Edge *> outputs)
-    : dag::Node(name, inputs, outputs) {
-  type_ = type;
-  inference_ = inference::createInference(type);
-  if (inference_ == nullptr) {
-    NNDEPLOY_LOGE("Failed to create inference");
-    constructed_ = false;
-  } else {
-    constructed_ = true;
-  }
-}
-
 Infer::Infer(const std::string &name) : dag::Node(name) {}
-Infer::Infer(const std::string &name, std::initializer_list<dag::Edge *> inputs,
-             std::initializer_list<dag::Edge *> outputs)
-    : dag::Node(name, inputs, outputs) {}
 Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
     : dag::Node(name, inputs, outputs) {}
+
+Infer::Infer(const std::string &name, base::InferenceType type)
+    : dag::Node(name) {
+  type_ = type;
+  inference_ = inference::createInference(type);
+  if (inference_ == nullptr) {
+    NNDEPLOY_LOGE("Failed to create inference");
+    constructed_ = false;
+  } else {
+    constructed_ = true;
+  }
+}
+Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
+             std::vector<dag::Edge *> outputs, base::InferenceType type)
+    : dag::Node(name, inputs, outputs) {
+  type_ = type;
+  inference_ = inference::createInference(type);
+  if (inference_ == nullptr) {
+    NNDEPLOY_LOGE("Failed to create inference");
+    constructed_ = false;
+  } else {
+    constructed_ = true;
+  }
+}
 
 Infer::~Infer() {}
 

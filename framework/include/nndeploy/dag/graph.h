@@ -31,12 +31,6 @@ namespace dag {
 class NNDEPLOY_CC_API Graph : public Node {
  public:
   Graph(const std::string &name);
-
-  // NNDEPLOY_DEPRECATED("deprecated api")
-  Graph(const std::string &name, Edge *input, Edge *output);
-
-  Graph(const std::string &name, std::initializer_list<Edge *> inputs,
-        std::initializer_list<Edge *> outputs);
   Graph(const std::string &name, std::vector<Edge *> inputs,
         std::vector<Edge *> outputs);
 
@@ -473,7 +467,9 @@ Node *Graph::createNode(const std::string &name, Args &...args) {
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  Node *node = dynamic_cast<Node *>(new T(name, args...));
+  std::vector<Edge *> inputs;
+  std::vector<Edge *> outputs;
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, args...));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -972,7 +968,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1011,7 +1007,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   if (output == nullptr) {
     output = createEdge(output_name);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1045,7 +1041,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   if (output == nullptr) {
     output = createEdge(output_name);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1079,7 +1075,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   if (input == nullptr) {
     input = createEdge(input_name);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1110,7 +1106,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1161,7 +1157,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     outputs.emplace_back(output);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1204,7 +1200,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     outputs.emplace_back(output);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1247,7 +1243,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     inputs.emplace_back(input);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1282,7 +1278,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1333,7 +1329,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     outputs.emplace_back(output);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1376,7 +1372,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     outputs.emplace_back(output);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1423,7 +1419,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   for (auto output : outputs) {
     outputs_vec.emplace_back(output);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs_vec));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs_vec, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;

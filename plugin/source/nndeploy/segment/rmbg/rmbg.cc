@@ -23,8 +23,6 @@
 namespace nndeploy {
 namespace segment {
 
-dag::TypeGraphRegister g_register_rmbg_graph(NNDEPLOY_RMBGV5, createRMBGGraph);
-
 base::Status RMBGPostProcess::run() {
   cv::Mat *input_mat = inputs_[0]->getCvMat(this);
   int dst_height = input_mat->rows;
@@ -70,55 +68,55 @@ base::Status RMBGPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-dag::Graph *createRMBGGraph(const std::string &name,
-                            base::InferenceType inference_type,
-                            base::DeviceType device_type, dag::Edge *input,
-                            dag::Edge *output, base::ModelType model_type,
-                            bool is_path,
-                            std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, {input}, {output});
-  dag::Edge *infer_input = graph->createEdge("input");
-  dag::Edge *infer_output = graph->createEdge("output");
+// dag::Graph *createRMBGGraph(const std::string &name,
+//                             base::InferenceType inference_type,
+//                             base::DeviceType device_type, dag::Edge *input,
+//                             dag::Edge *output, base::ModelType model_type,
+//                             bool is_path,
+//                             std::vector<std::string> model_value) {
+//   dag::Graph *graph = new dag::Graph(name, {input}, {output});
+//   dag::Edge *infer_input = graph->createEdge("input");
+//   dag::Edge *infer_output = graph->createEdge("output");
 
-  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", {input}, {infer_input});
+//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//       "preprocess", {input}, {infer_input});
 
-  infer::Infer *infer = dynamic_cast<infer::Infer *>(
-      graph->createNode<infer::Infer>("infer", {infer_input}, {infer_output}));
-  if (infer == nullptr) {
-    NNDEPLOY_LOGE("Failed to create inference node");
-    return nullptr;
-  }
-  infer->setInferenceType(inference_type);
+//   infer::Infer *infer = dynamic_cast<infer::Infer *>(
+//       graph->createNode<infer::Infer>("infer", {infer_input}, {infer_output}));
+//   if (infer == nullptr) {
+//     NNDEPLOY_LOGE("Failed to create inference node");
+//     return nullptr;
+//   }
+//   infer->setInferenceType(inference_type);
 
-  dag::Node *post = graph->createNode<RMBGPostProcess>(
-      "postprocess", {input, infer_output}, {output});
+//   dag::Node *post = graph->createNode<RMBGPostProcess>(
+//       "postprocess", {input, infer_output}, {output});
 
-  preprocess::CvtclorResizeParam *pre_param =
-      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
-  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-  pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-  pre_param->interp_type_ = base::kInterpTypeLinear;
-  pre_param->h_ = 1024;
-  pre_param->w_ = 1024;
-  pre_param->mean_[0] = 0.5f;
-  pre_param->mean_[1] = 0.5f;
-  pre_param->mean_[2] = 0.5f;
-  pre_param->mean_[3] = 0.5f;
+//   preprocess::CvtclorResizeParam *pre_param =
+//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+//   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+//   pre_param->interp_type_ = base::kInterpTypeLinear;
+//   pre_param->h_ = 1024;
+//   pre_param->w_ = 1024;
+//   pre_param->mean_[0] = 0.5f;
+//   pre_param->mean_[1] = 0.5f;
+//   pre_param->mean_[2] = 0.5f;
+//   pre_param->mean_[3] = 0.5f;
 
-  inference::InferenceParam *inference_param =
-      (inference::InferenceParam *)(infer->getParam());
-  inference_param->is_path_ = is_path;
-  inference_param->model_value_ = model_value;
-  inference_param->device_type_ = device_type;
-  inference_param->model_type_ = model_type;
+//   inference::InferenceParam *inference_param =
+//       (inference::InferenceParam *)(infer->getParam());
+//   inference_param->is_path_ = is_path;
+//   inference_param->model_value_ = model_value;
+//   inference_param->device_type_ = device_type;
+//   inference_param->model_type_ = model_type;
 
-  // TODO: 很多信息可以从 preprocess 和 infer 中获取
-  RMBGPostParam *post_param = dynamic_cast<RMBGPostParam *>(post->getParam());
-  post_param->version_ = 14;
+//   // TODO: 很多信息可以从 preprocess 和 infer 中获取
+//   RMBGPostParam *post_param = dynamic_cast<RMBGPostParam *>(post->getParam());
+//   post_param->version_ = 14;
 
-  return graph;
-}
+//   return graph;
+// }
 
 REGISTER_NODE("nndeploy::segment::RMBGPostProcess", RMBGPostProcess);
 REGISTER_NODE("nndeploy::segment::SegmentRMBGGraph", SegmentRMBGGraph);

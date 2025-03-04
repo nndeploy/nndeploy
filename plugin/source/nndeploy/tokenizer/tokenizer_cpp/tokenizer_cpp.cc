@@ -6,11 +6,6 @@
 namespace nndeploy {
 namespace tokenizer {
 
-TokenizerCpp::TokenizerCpp(const std::string& name, dag::Edge* input,
-                           dag::Edge* output)
-    : Tokenizer(name, input, output) {
-  param_ = std::make_shared<TokenizerPraram>();
-}
 TokenizerCpp::~TokenizerCpp() {}
 
 std::string LoadBytesFromFile(const std::string& path) {

@@ -37,39 +37,35 @@ class NNDEPLOY_CC_API RMBGPostProcess : public dag::Node {
  public:
   RMBGPostProcess(const std::string &name) : Node(name) {
     param_ = std::make_shared<RMBGPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<SegmentResult>();
   }
-  RMBGPostProcess(const std::string &name,
-                  std::initializer_list<dag::Edge *> inputs,
-                  std::initializer_list<dag::Edge *> outputs)
-      : Node(name, inputs, outputs) {
-    param_ = std::make_shared<RMBGPostParam>();
-  }
+
   RMBGPostProcess(const std::string &name, std::vector<dag::Edge *> inputs,
                   std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {
     param_ = std::make_shared<RMBGPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<SegmentResult>();
   }
   virtual ~RMBGPostProcess() {}
 
   virtual base::Status run();
 };
 
-extern NNDEPLOY_CC_API dag::Graph *createRMBGGraph(
-    const std::string &name, base::InferenceType inference_type,
-    base::DeviceType device_type, dag::Edge *input, dag::Edge *output,
-    base::ModelType model_type, bool is_path,
-    std::vector<std::string> model_value);
-
 class NNDEPLOY_CC_API SegmentRMBGGraph : public dag::Graph {
  public:
-  SegmentRMBGGraph(const std::string &name) : dag::Graph(name) {}
-  SegmentRMBGGraph(const std::string &name,
-                   std::initializer_list<dag::Edge *> inputs,
-                   std::initializer_list<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
+  SegmentRMBGGraph(const std::string &name) : dag::Graph(name) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<SegmentResult>();
+  }
+
   SegmentRMBGGraph(const std::string &name, std::vector<dag::Edge *> inputs,
                    std::vector<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
+      : dag::Graph(name, inputs, outputs) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<SegmentResult>();
+  }
 
   virtual ~SegmentRMBGGraph() {}
 

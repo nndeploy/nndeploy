@@ -179,189 +179,189 @@ base::Status YoloPostProcess::runV8() {
   return base::kStatusCodeOk;
 }
 
-dag::Graph *createYoloV5Graph(const std::string &name,
-                              base::InferenceType inference_type,
-                              base::DeviceType device_type, dag::Edge *input,
-                              dag::Edge *output, base::ModelType model_type,
-                              bool is_path,
-                              std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, {input}, {output});
-  dag::Edge *infer_input = graph->createEdge("images");
-  dag::Edge *infer_output = graph->createEdge("output0");
+// dag::Graph *createYoloV5Graph(const std::string &name,
+//                               base::InferenceType inference_type,
+//                               base::DeviceType device_type, dag::Edge *input,
+//                               dag::Edge *output, base::ModelType model_type,
+//                               bool is_path,
+//                               std::vector<std::string> model_value) {
+//   dag::Graph *graph = new dag::Graph(name, {input}, {output});
+//   dag::Edge *infer_input = graph->createEdge("images");
+//   dag::Edge *infer_output = graph->createEdge("output0");
 
-  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", {input}, {infer_input});
+//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//       "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createNode<infer::Infer>(
-      "infer", {infer_input}, {infer_output});
+//   dag::Node *infer = graph->createNode<infer::Infer>(
+//       "infer", {infer_input}, {infer_output});
 
-  dag::Node *post =
-      graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
+//   dag::Node *post =
+//       graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
 
-  preprocess::CvtclorResizeParam *pre_param =
-      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
-  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-  pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-  pre_param->interp_type_ = base::kInterpTypeLinear;
-  pre_param->h_ = 640;
-  pre_param->w_ = 640;
+//   preprocess::CvtclorResizeParam *pre_param =
+//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+//   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+//   pre_param->interp_type_ = base::kInterpTypeLinear;
+//   pre_param->h_ = 640;
+//   pre_param->w_ = 640;
 
-  inference::InferenceParam *inference_param =
-      (inference::InferenceParam *)(infer->getParam());
-  inference_param->is_path_ = is_path;
-  inference_param->model_value_ = model_value;
-  inference_param->device_type_ = device_type;
-  inference_param->model_type_ = model_type;
+//   inference::InferenceParam *inference_param =
+//       (inference::InferenceParam *)(infer->getParam());
+//   inference_param->is_path_ = is_path;
+//   inference_param->model_value_ = model_value;
+//   inference_param->device_type_ = device_type;
+//   inference_param->model_type_ = model_type;
 
-  // TODO: 很多信息可以从 preprocess 和 infer 中获取
-  YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
-  post_param->score_threshold_ = 0.5;
-  post_param->nms_threshold_ = 0.45;
-  post_param->num_classes_ = 80;
-  post_param->model_h_ = 640;
-  post_param->model_w_ = 640;
-  post_param->version_ = 5;
+//   // TODO: 很多信息可以从 preprocess 和 infer 中获取
+//   YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
+//   post_param->score_threshold_ = 0.5;
+//   post_param->nms_threshold_ = 0.45;
+//   post_param->num_classes_ = 80;
+//   post_param->model_h_ = 640;
+//   post_param->model_w_ = 640;
+//   post_param->version_ = 5;
 
-  return graph;
-}
+//   return graph;
+// }
 
-dag::Graph *createYoloV6Graph(const std::string &name,
-                              base::InferenceType inference_type,
-                              base::DeviceType device_type, dag::Edge *input,
-                              dag::Edge *output, base::ModelType model_type,
-                              bool is_path,
-                              std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, {input}, {output});
-  dag::Edge *infer_input = graph->createEdge("images");
-  dag::Edge *infer_output = graph->createEdge("outputs");
+// dag::Graph *createYoloV6Graph(const std::string &name,
+//                               base::InferenceType inference_type,
+//                               base::DeviceType device_type, dag::Edge *input,
+//                               dag::Edge *output, base::ModelType model_type,
+//                               bool is_path,
+//                               std::vector<std::string> model_value) {
+//   dag::Graph *graph = new dag::Graph(name, {input}, {output});
+//   dag::Edge *infer_input = graph->createEdge("images");
+//   dag::Edge *infer_output = graph->createEdge("outputs");
 
-  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", {input}, {infer_input});
+//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//       "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createNode<infer::Infer>(
-      "infer", {infer_input}, {infer_output});
+//   dag::Node *infer = graph->createNode<infer::Infer>(
+//       "infer", {infer_input}, {infer_output});
 
-  dag::Node *post =
-      graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
+//   dag::Node *post =
+//       graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
 
-  preprocess::CvtclorResizeParam *pre_param =
-      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
-  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-  pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-  pre_param->interp_type_ = base::kInterpTypeLinear;
-  pre_param->h_ = 640;
-  pre_param->w_ = 640;
+//   preprocess::CvtclorResizeParam *pre_param =
+//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+//   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+//   pre_param->interp_type_ = base::kInterpTypeLinear;
+//   pre_param->h_ = 640;
+//   pre_param->w_ = 640;
 
-  inference::InferenceParam *inference_param =
-      (inference::InferenceParam *)(infer->getParam());
-  inference_param->is_path_ = is_path;
-  inference_param->model_value_ = model_value;
-  inference_param->device_type_ = device_type;
-  inference_param->model_type_ = model_type;
+//   inference::InferenceParam *inference_param =
+//       (inference::InferenceParam *)(infer->getParam());
+//   inference_param->is_path_ = is_path;
+//   inference_param->model_value_ = model_value;
+//   inference_param->device_type_ = device_type;
+//   inference_param->model_type_ = model_type;
 
-  // TODO: 很多信息可以从 preprocess 和 infer 中获取
-  YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
-  post_param->score_threshold_ = 0.5;
-  post_param->nms_threshold_ = 0.45;
-  post_param->num_classes_ = 80;
-  post_param->model_h_ = 640;
-  post_param->model_w_ = 640;
-  post_param->version_ = 6;
+//   // TODO: 很多信息可以从 preprocess 和 infer 中获取
+//   YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
+//   post_param->score_threshold_ = 0.5;
+//   post_param->nms_threshold_ = 0.45;
+//   post_param->num_classes_ = 80;
+//   post_param->model_h_ = 640;
+//   post_param->model_w_ = 640;
+//   post_param->version_ = 6;
 
-  return graph;
-}
+//   return graph;
+// }
 
-dag::Graph *createYoloV8Graph(const std::string &name,
-                              base::InferenceType inference_type,
-                              base::DeviceType device_type, dag::Edge *input,
-                              dag::Edge *output, base::ModelType model_type,
-                              bool is_path,
-                              std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, {input}, {output});
-  dag::Edge *infer_input = graph->createEdge("images");
-  dag::Edge *infer_output = graph->createEdge("output0");
+// dag::Graph *createYoloV8Graph(const std::string &name,
+//                               base::InferenceType inference_type,
+//                               base::DeviceType device_type, dag::Edge *input,
+//                               dag::Edge *output, base::ModelType model_type,
+//                               bool is_path,
+//                               std::vector<std::string> model_value) {
+//   dag::Graph *graph = new dag::Graph(name, {input}, {output});
+//   dag::Edge *infer_input = graph->createEdge("images");
+//   dag::Edge *infer_output = graph->createEdge("output0");
 
-  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", {input}, {infer_input});
+//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//       "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createNode<infer::Infer>(
-      "infer", {infer_input}, {infer_output});
+//   dag::Node *infer = graph->createNode<infer::Infer>(
+//       "infer", {infer_input}, {infer_output});
 
-  dag::Node *post =
-      graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
+//   dag::Node *post =
+//       graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
 
-  preprocess::CvtclorResizeParam *pre_param =
-      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
-  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-  pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-  pre_param->interp_type_ = base::kInterpTypeLinear;
-  pre_param->h_ = 640;
-  pre_param->w_ = 640;
+//   preprocess::CvtclorResizeParam *pre_param =
+//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+//   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+//   pre_param->interp_type_ = base::kInterpTypeLinear;
+//   pre_param->h_ = 640;
+//   pre_param->w_ = 640;
 
-  inference::InferenceParam *inference_param =
-      (inference::InferenceParam *)(infer->getParam());
-  inference_param->is_path_ = is_path;
-  inference_param->model_value_ = model_value;
-  inference_param->device_type_ = device_type;
-  inference_param->model_type_ = model_type;
+//   inference::InferenceParam *inference_param =
+//       (inference::InferenceParam *)(infer->getParam());
+//   inference_param->is_path_ = is_path;
+//   inference_param->model_value_ = model_value;
+//   inference_param->device_type_ = device_type;
+//   inference_param->model_type_ = model_type;
 
-  // TODO: 很多信息可以从 preprocess 和 infer 中获取
-  YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
-  post_param->score_threshold_ = 0.5;
-  post_param->nms_threshold_ = 0.45;
-  post_param->num_classes_ = 80;
-  post_param->model_h_ = 640;
-  post_param->model_w_ = 640;
-  post_param->version_ = 8;
+//   // TODO: 很多信息可以从 preprocess 和 infer 中获取
+//   YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
+//   post_param->score_threshold_ = 0.5;
+//   post_param->nms_threshold_ = 0.45;
+//   post_param->num_classes_ = 80;
+//   post_param->model_h_ = 640;
+//   post_param->model_w_ = 640;
+//   post_param->version_ = 8;
 
-  return graph;
-}
+//   return graph;
+// }
 
-dag::Graph *createYoloV11Graph(const std::string &name,
-                               base::InferenceType inference_type,
-                               base::DeviceType device_type, dag::Edge *input,
-                               dag::Edge *output, base::ModelType model_type,
-                               bool is_path,
-                               std::vector<std::string> model_value) {
-  dag::Graph *graph = new dag::Graph(name, {input}, {output});
-  dag::Edge *infer_input = graph->createEdge("images");
-  dag::Edge *infer_output = graph->createEdge("output0");
+// dag::Graph *createYoloV11Graph(const std::string &name,
+//                                base::InferenceType inference_type,
+//                                base::DeviceType device_type, dag::Edge *input,
+//                                dag::Edge *output, base::ModelType model_type,
+//                                bool is_path,
+//                                std::vector<std::string> model_value) {
+//   dag::Graph *graph = new dag::Graph(name, {input}, {output});
+//   dag::Edge *infer_input = graph->createEdge("images");
+//   dag::Edge *infer_output = graph->createEdge("output0");
 
-  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
-      "preprocess", {input}, {infer_input});
+//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//       "preprocess", {input}, {infer_input});
 
-  dag::Node *infer = graph->createNode<infer::Infer>(
-      "infer", {infer_input}, {infer_output});
+//   dag::Node *infer = graph->createNode<infer::Infer>(
+//       "infer", {infer_input}, {infer_output});
 
-  dag::Node *post =
-      graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
+//   dag::Node *post =
+//       graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
 
-  preprocess::CvtclorResizeParam *pre_param =
-      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
-  pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-  pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-  pre_param->interp_type_ = base::kInterpTypeLinear;
-  pre_param->h_ = 640;
-  pre_param->w_ = 640;
+//   preprocess::CvtclorResizeParam *pre_param =
+//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+//   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+//   pre_param->interp_type_ = base::kInterpTypeLinear;
+//   pre_param->h_ = 640;
+//   pre_param->w_ = 640;
 
-  inference::InferenceParam *inference_param =
-      (inference::InferenceParam *)(infer->getParam());
-  inference_param->is_path_ = is_path;
-  inference_param->model_value_ = model_value;
-  inference_param->device_type_ = device_type;
-  inference_param->model_type_ = model_type;
+//   inference::InferenceParam *inference_param =
+//       (inference::InferenceParam *)(infer->getParam());
+//   inference_param->is_path_ = is_path;
+//   inference_param->model_value_ = model_value;
+//   inference_param->device_type_ = device_type;
+//   inference_param->model_type_ = model_type;
 
-  // TODO: 很多信息可以从 preprocess 和 infer 中获取
-  YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
-  post_param->score_threshold_ = 0.5;
-  post_param->nms_threshold_ = 0.45;
-  post_param->num_classes_ = 80;
-  post_param->model_h_ = 640;
-  post_param->model_w_ = 640;
-  post_param->version_ = 8;
+//   // TODO: 很多信息可以从 preprocess 和 infer 中获取
+//   YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
+//   post_param->score_threshold_ = 0.5;
+//   post_param->nms_threshold_ = 0.45;
+//   post_param->num_classes_ = 80;
+//   post_param->model_h_ = 640;
+//   post_param->model_w_ = 640;
+//   post_param->version_ = 8;
 
-  return graph;
-}
+//   return graph;
+// }
 
 REGISTER_NODE("nndeploy::detect::YoloPostProcess", YoloPostProcess);
 REGISTER_NODE("nndeploy::detect::YoloGraph", YoloGraph);
