@@ -13,12 +13,14 @@ class Slot:
         position: tuple = (0, 0),
         on_position_changed: Optional[Callable] = None,
         canvas_manager=None,  # 添加 canvas_manager 参数
+        node=None,  # 添加节点引用
     ):
         self.name = name
         self.type = slot_type
         self.position = position
         self.on_position_changed = on_position_changed
-        self.canvas_manager = canvas_manager  # 保存 canvas_manager 引用
+        self.canvas_manager = canvas_manager
+        self.node = node  # 保存节点引用
         
         # 创建插槽的可视化控件
         self.container = self._create_container()
@@ -145,24 +147,34 @@ class Slot:
     
     def get_center_position(self) -> tuple:
         """获取插槽中心点的绝对坐标（相对于画布）"""
-        # 获取 slot_dot 的绝对位置
-        # offset = self.slot_dot.get_offset()
-        # print(f"Slot '{self.name}' dot absolute position - left: {offset.x}, top: {offset.y}")
-        # print(f"Slot '{self.name}' dot relative position - left: {self.slot_dot.left}, top: {self.slot_dot.top}")
-        # local_center = (self.slot_dot.width / 2, self.slot_dot.height / 2)
-        # return CoordinateMapper.map_to_canvas(self.slot_dot, local_center)
-
-              # 获取父容器的位置
-        parent_left = self.container.left or 0
-        parent_top = self.container.top or 0
+        if self.type == "input":
+            # 对于输入插槽，使用 drag_target
+            control = self.slot_dot
+            parent = self.drag_target
+        else:
+            # 对于输出插槽，使用 draggable 中的 slot_dot
+            control = self.slot_dot
+            parent = self.draggable
+            
+        # 获取父节点的位置
+        node_pos = self.canvas_manager.get_node_position(parent)
         
-        # 计算 slot_dot 的中心点位置
-        dot_center_x = parent_left + (self.slot_dot.width / 2)
-        dot_center_y = parent_top + (self.slot_dot.height / 2)
+        # 计算插槽点的中心坐标（相对于节点）
+        # 对于输入插槽，位于节点左侧
+        # 对于输出插槽，位于节点右侧
+        if self.type == "input":
+            offset_x = 0  # 左侧
+        else:
+            offset_x = self.node.width  # 右侧，根据节点宽度调整
+            
+        offset_y = 43  # 垂直偏移，根据实际布局调整
         
-        print(f"Slot '{self.name}' center position - x: {dot_center_x}, y: {dot_center_y}")
-        # return (dot_center_x, dot_center_y)
-        return CoordinateMapper.map_to_canvas(self.draggable, (dot_center_x, dot_center_y))
+        # 计算绝对坐标
+        abs_x = node_pos[0] + offset_x
+        abs_y = node_pos[1] + offset_y
+        
+        print(f"Slot '{self.name}' absolute position - x: {abs_x}, y: {abs_y}")
+        return (abs_x, abs_y)
     
     def update_position(self, x: float, y: float):
         """更新插槽位置"""

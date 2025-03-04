@@ -23,18 +23,40 @@ class FlowStack:
     def __init__(self, page: Page):
         self.page = page
         
-        # 创建画布管理器
-        self.canvas_manager = CanvasManager(1000, 600)
+        # 创建画布管理器，使用页面尺寸
+        self.canvas_manager = CanvasManager(page.window_width, page.window_height)
         
         self.container = Container(
             content=self.canvas_manager.gesture_detector,
-            width=1000,
-            height=600,
             bgcolor=Colors.BLUE_GREY_50,
             border_radius=10,
             padding=20,
-            expand=True,
+            expand=True,  # 允许容器扩展填充可用空间
         )
+        
+        # 添加窗口大小变化事件处理
+        def on_resize(e):
+            # 更新画布管理器尺寸
+            self.canvas_manager.width = page.window_width
+            self.canvas_manager.height = page.window_height
+            
+            # 更新容器尺寸
+            self.container.width = page.window_width
+            self.container.height = page.window_height
+            
+            # 更新画布和手势检测器的尺寸
+            self.canvas_manager.canvas.width = page.window_width
+            self.canvas_manager.canvas.height = page.window_height
+            self.canvas_manager.gesture_detector.width = page.window_width
+            self.canvas_manager.gesture_detector.height = page.window_height
+            
+            # 重新计算所有连接线
+            self.canvas_manager.update_connections()
+            
+            # 刷新页面
+            self.page.update()
+            
+        page.on_resize = on_resize
         
         # 先将容器添加到页面
         page.add(self.container)
