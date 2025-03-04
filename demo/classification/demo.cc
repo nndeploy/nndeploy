@@ -4,6 +4,7 @@
 #include "nndeploy/classification/classification.h"
 #include "nndeploy/classification/result.h"
 #include "nndeploy/codec/codec.h"
+#include "nndeploy/codec/opencv/opencv_codec.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/framework.h"
@@ -13,9 +14,12 @@ using namespace nndeploy;
 
 class DrawLableNode : public dag::Node {
  public:
-  DrawLableNode(const std::string &name,
-                std::initializer_list<dag::Edge *> inputs,
-                std::initializer_list<dag::Edge *> outputs)
+  // DrawLableNode(const std::string &name,
+  //               std::initializer_list<dag::Edge *> inputs,
+  //               std::initializer_list<dag::Edge *> outputs)
+  //     : Node(name, inputs, outputs) {}
+  DrawLableNode(const std::string &name, std::vector<dag::Edge *> inputs,
+                std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {}
   virtual ~DrawLableNode() {}
 
@@ -212,6 +216,69 @@ int main(int argc, char *argv[]) {
 
 #else
 
+class classificationDemo : public dag::Graph {
+ public:
+  classificationDemo(const std::string &name) : dag::Graph(name) {}
+  virtual ~classificationDemo() {}
+
+  base::Status make(base::InferenceType inference_type,
+                    base::CodecFlag codec_flag) {
+    base::Status status = base::kStatusCodeOk;
+    // 创建分类图
+    decode_node_ = (codec::OpenCvImageDecodeNode *)this->createNode<codec::OpenCvImageDecodeNode>("decode_node_", codec_flag);
+    decode_node_->setGraph(this);
+    graph_ = (classification::ClassificationResnetGraph *)this->createNode<classification::ClassificationResnetGraph>("resnet");
+    graph_->make(inference_type);
+    draw_node_ = (DrawLableNode *)this->createNode<DrawLableNode>("draw_node", std::vector<dag::Edge *>(), std::vector<dag::Edge *>());
+    encode_node_ =
+        (codec::OpenCvImageEncodeNode *)this->createNode<codec::OpenCvImageEncodeNode>("encode_node_", codec_flag);
+    return status;
+  }
+
+  base::Status setInferParam(base::DeviceType device_type,
+                             base::ModelType model_type, bool is_path,
+                             std::vector<std::string> &model_value) {
+    graph_->setInferParam(device_type, model_type, is_path, model_value);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setInputPath(const std::string &input_path) {
+    decode_node_->setPath(input_path);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setOutputPath(const std::string &output_path) {
+    encode_node_->setPath(output_path);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setRefPath(const std::string &ref_path) {
+    encode_node_->setRefPath(ref_path);
+    return base::kStatusCodeOk;
+  }
+
+  virtual std::vector<std::shared_ptr<dag::Edge>> operator()(std::vector<std::shared_ptr<dag::Edge>> &inputs,
+                       std::vector<std::string> &outputs_name,
+                       std::shared_ptr<base::Param> &param) {
+    std::vector<std::shared_ptr<dag::Edge>> decode_node_outputs =
+        (*decode_node_)(inputs, {"decode_node_out"});
+    std::vector<std::shared_ptr<dag::Edge>> graph_outputs =
+        (*graph_)(decode_node_outputs, {"resnet_out"}, nullptr);
+    std::vector<std::shared_ptr<dag::Edge>> draw_node_outputs =
+        (*draw_node_)({decode_node_outputs[0], graph_outputs[0]},
+                      {"draw_node_out"}, nullptr);
+    std::vector<std::shared_ptr<dag::Edge>> encode_node_outputs =
+        (*encode_node_)(draw_node_outputs, outputs_name, nullptr);
+    return graph_outputs;
+  }
+
+ public:
+  codec::OpenCvImageDecodeNode*decode_node_;
+  codec::OpenCvImageEncodeNode*encode_node_;
+  DrawLableNode*draw_node_;
+  classification::ClassificationResnetGraph *graph_;
+};
+
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
   if (demo::FLAGS_usage) {
@@ -249,36 +316,50 @@ int main(int argc, char *argv[]) {
   base::ParallelType pt = demo::getParallelType();
 
   // 创建分类图
-  classification::ClassificationResnetGraph graph("resnet");
-  graph.make(inference_type);
+  // classification::ClassificationResnetGraph graph("resnet");
+  // graph.make(inference_type);
+  // graph.setInferParam(device_type, model_type, is_path, model_value);
+
+  // // 调用forward函数进行推理
+  // for (int i = 0; i < 1; i++) {
+  //   std::shared_ptr<dag::Edge> input_image =
+  //       std::make_shared<dag::Edge>("input_image");
+  //   cv::Mat image = cv::imread(input_path);
+  //   input_image->set(image, i);
+  //   // NNDEPLOY_LOGE("input_image: %p.\n", input_image.get());
+  //   std::vector<std::shared_ptr<dag::Edge>> outputs =
+  //       graph.forward({input_image}, {"classification_result"}, nullptr);
+  //   // NNDEPLOY_LOGE("outputs: %p.\n", outputs[0].get());
+  //   classification::ClassificationResult *result =
+  //       (classification::ClassificationResult *)outputs[0]
+  //           ->getGraphOutputParam();
+  //   // NNDEPLOY_LOGE("result: %p.\n", result);
+  //   for (int i = 0; i < result->labels_.size(); i++) {
+  //     auto label = result->labels_[i];
+  //     // 将分类结果和置信度转为字符串
+  //     std::string text = "class: " + std::to_string(label.label_ids_) +
+  //                        " score: " + std::to_string(label.scores_);
+
+  //     // 在图像左上角绘制文本
+  //     cv::putText(image, text, cv::Point(30, 30 + i * 30),
+  //                 cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
+  //   }
+  //   cv::imwrite(ouput_path, image);
+  // }
+
+  classificationDemo graph("resnet");
+  graph.make(inference_type, codec_flag);
   graph.setInferParam(device_type, model_type, is_path, model_value);
 
-  // 调用forward函数进行推理
-  for (int i = 0; i < 1; i++) {
-    std::shared_ptr<dag::Edge> input_image =
-        std::make_shared<dag::Edge>("input_image");
-    cv::Mat image = cv::imread(input_path);
-    input_image->set(image, i);
-    // NNDEPLOY_LOGE("input_image: %p.\n", input_image.get());
-    std::vector<std::shared_ptr<dag::Edge>> outputs =
-        graph.forward({input_image}, {"classification_result"}, nullptr);
-    // NNDEPLOY_LOGE("outputs: %p.\n", outputs[0].get());
-    classification::ClassificationResult *result =
-        (classification::ClassificationResult *)outputs[0]
-            ->getGraphOutputParam();
-    // NNDEPLOY_LOGE("result: %p.\n", result);
-    for (int i = 0; i < result->labels_.size(); i++) {
-      auto label = result->labels_[i];
-      // 将分类结果和置信度转为字符串
-      std::string text = "class: " + std::to_string(label.label_ids_) +
-                         " score: " + std::to_string(label.scores_);
+  std::vector<std::shared_ptr<dag::Edge>> inputs;
+  std::vector<std::string> outputs_name;
+  std::shared_ptr<base::Param> param;
+  
+  graph.setInputPath(input_path);
+  graph.setOutputPath(ouput_path);
+  graph.setRefPath(input_path);
 
-      // 在图像左上角绘制文本
-      cv::putText(image, text, cv::Point(30, 30 + i * 30),
-                  cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
-    }
-    cv::imwrite(ouput_path, image);
-  }
+  graph(inputs, outputs_name, param);
 
   graph.init();
 

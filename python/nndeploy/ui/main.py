@@ -59,4 +59,5 @@ def main(page: Page):
 if __name__ == "__main__":
     assets_dir = os.path.join(os.path.dirname(__file__), "assets")
     #view=flet.WEB_BROWSER
-    flet.app(target=main, assets_dir=assets_dir)
+    flet.app(target=main, assets_dir=assets_dir, view=flet.WEB_BROWSER, port=9090)
+    # flet.app(target=main, assets_dir=assets_dir)
