@@ -17,6 +17,12 @@
 namespace nndeploy {
 namespace dag {
 
+enum class NodeType {
+  kNodeTypeInput = 1, // 输入节点，无输出
+  kNodeTypeOutput = 2, // 输出节点，无输入
+  kNodeTypeIntermediate = 3, // 中间节点，既有输入也有输出
+};
+
 enum class EdgeTypeFlag {
   kBuffer = 1,
   kCvMat = 2,

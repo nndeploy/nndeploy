@@ -41,17 +41,15 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
  public:
   YoloPostProcess(const std::string &name) : dag::Node(name) {
     param_ = std::make_shared<YoloPostParam>();
-  }
-  YoloPostProcess(const std::string &name,
-                  std::initializer_list<dag::Edge *> inputs,
-                  std::initializer_list<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {
-    param_ = std::make_shared<YoloPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<DetectResult>();
   }
   YoloPostProcess(const std::string &name, std::vector<dag::Edge *> inputs,
                   std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<YoloPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<DetectResult>();
   }
   virtual ~YoloPostProcess() {}
 
@@ -63,13 +61,17 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
 
 class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
  public:
-  YoloGraph(const std::string &name) : dag::Graph(name) {}
-  YoloGraph(const std::string &name, std::initializer_list<dag::Edge *> inputs,
-            std::initializer_list<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
+  YoloGraph(const std::string &name) : dag::Graph(name) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<DetectResult>();
+  }
+
   YoloGraph(const std::string &name, std::vector<dag::Edge *> inputs,
             std::vector<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
+      : dag::Graph(name, inputs, outputs) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<DetectResult>();
+  }
 
   virtual ~YoloGraph() {}
 

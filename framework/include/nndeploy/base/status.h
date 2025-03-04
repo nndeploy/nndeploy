@@ -105,6 +105,9 @@ class NNDEPLOY_CC_API Status {
 
   Status operator+(const Status &other);
 
+  static Status Ok();
+  static Status Error();
+
  private:
   int code_ = kStatusCodeOk;
 };

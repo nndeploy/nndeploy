@@ -445,6 +445,8 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .def("get_desc", &Status::desc)
       .def("get_code", &Status::getStatusCode)
       .def("__add__", &Status::operator+)
+      .def_static("ok", &Status::Ok)
+      .def_static("error", &Status::Error)
       .def("__str__", [](const Status& self) {
         std::ostringstream os;
         os << "<nndeploy._nndeploy_internal.base.Status object at "

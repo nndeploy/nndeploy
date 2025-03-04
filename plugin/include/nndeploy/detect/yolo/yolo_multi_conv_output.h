@@ -57,18 +57,16 @@ class NNDEPLOY_CC_API YoloMultiConvOutputPostProcess : public dag::Node {
  public:
   YoloMultiConvOutputPostProcess(const std::string &name) : dag::Node(name) {
     param_ = std::make_shared<YoloMultiConvOutputPostParam>();
-  }
-  YoloMultiConvOutputPostProcess(const std::string &name,
-                                 std::initializer_list<dag::Edge *> inputs,
-                                 std::initializer_list<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {
-    param_ = std::make_shared<YoloMultiConvOutputPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<DetectResult>();
   }
   YoloMultiConvOutputPostProcess(const std::string &name,
                                  std::vector<dag::Edge *> inputs,
                                  std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<YoloMultiConvOutputPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<DetectResult>();
   }
   virtual ~YoloMultiConvOutputPostProcess() {}
 
@@ -77,15 +75,17 @@ class NNDEPLOY_CC_API YoloMultiConvOutputPostProcess : public dag::Node {
 
 class NNDEPLOY_CC_API YoloMultiConvOutputGraph : public dag::Graph {
  public:
-  YoloMultiConvOutputGraph(const std::string &name) : dag::Graph(name) {}
-  YoloMultiConvOutputGraph(const std::string &name,
-                           std::initializer_list<dag::Edge *> inputs,
-                           std::initializer_list<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
+  YoloMultiConvOutputGraph(const std::string &name) : dag::Graph(name) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<DetectResult>();
+  }
   YoloMultiConvOutputGraph(const std::string &name,
                            std::vector<dag::Edge *> inputs,
                            std::vector<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
+      : dag::Graph(name, inputs, outputs) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<DetectResult>();
+  }
 
   virtual ~YoloMultiConvOutputGraph() {}
 
