@@ -461,7 +461,6 @@ class NNDEPLOY_CC_API Graph : public Node {
           outputs.push_back(edge);
         }
       }
-      NNDEPLOY_LOGE("edge: %s.\n", name.c_str());
       if (edge == nullptr) {
         edge = this->createEdge(name);
         if (edge != nullptr) {
