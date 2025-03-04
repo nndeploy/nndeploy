@@ -19,7 +19,6 @@ NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
   // 导出YoloPostProcess类
   py::class_<YoloPostProcess, dag::Node>(m, "YoloPostProcess")
     .def(py::init<const std::string&>())
-    .def(py::init<const std::string&, std::initializer_list<dag::Edge*>, std::initializer_list<dag::Edge*>>())
     .def(py::init<const std::string&, std::vector<dag::Edge*>, std::vector<dag::Edge*>>())
     .def("run", &YoloPostProcess::run)
     .def("run_v5v6", &YoloPostProcess::runV5V6)
@@ -28,7 +27,6 @@ NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
   // 导出YoloGraph类
   py::class_<YoloGraph, dag::Graph>(m, "YoloGraph")
     .def(py::init<const std::string&>())
-    .def(py::init<const std::string&, std::initializer_list<dag::Edge*>, std::initializer_list<dag::Edge*>>())
     .def(py::init<const std::string&, std::vector<dag::Edge*>, std::vector<dag::Edge*>>())
     .def("make", &YoloGraph::make)
     .def("set_infer_param", &YoloGraph::setInferParam)

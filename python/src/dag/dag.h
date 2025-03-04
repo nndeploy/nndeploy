@@ -79,6 +79,20 @@ class PyNode : public Base {
   base::Status run() override {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, Base, "run", run);
   }
+  
+  std::vector<Edge *> operator()(
+      std::vector<Edge *> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(),
+                          inputs, outputs_name, param);
+  }
+   
+  std::vector<std::string> getRealOutputsName(
+      std::vector<std::string> outputs_name) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<std::string>, Base, "get_real_outputs_name",
+                          getRealOutputsName, outputs_name);
+  }
 };
 
 template<typename Base = Graph>
@@ -96,6 +110,14 @@ class PyGraph : public Base {
 
   virtual base::Status run() override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "run", run);
+  }
+
+  std::vector<Edge *> operator()(
+      std::vector<Edge *> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(),
+                          inputs, outputs_name, param);
   }
 };
 
