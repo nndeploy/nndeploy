@@ -209,18 +209,9 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
       std::shared_ptr<base::Param> param = nullptr) {
     std::vector<dag::Edge *> outputs =
         dag::Graph::operator()(inputs, outputs_name, param);
-    NNDEPLOY_LOGE("outputs.size: %d.\n", outputs.size());
-
-    // Preprocessing output "data" represents processed image
     inputs = (*pre_)(inputs, {"data"});
-    // Inference output "resnetv17_dense0_fwd"
-    // is the final FC layer output
     inputs = (*infer_)(inputs, {"resnetv17_dense0_fwd"});
-    // Postprocessing outputs specified by output_names,
-    // typically class results and confidence
     outputs = (*post_)(inputs, outputs_name);
-    NNDEPLOY_LOGE("outputs.size: %d.\n", outputs.size());
-
     return outputs;
   }
 

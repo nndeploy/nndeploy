@@ -358,7 +358,6 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
   if (!inputs.empty()) {
     this->setInputs(inputs);
   }
-  NNDEPLOY_LOGE("node: %s.\n", this->getName().c_str());
   std::vector<std::string> real_outputs_name =
       this->getRealOutputsName(outputs_name);
   std::vector<Edge *> outputs;
@@ -370,7 +369,6 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
         outputs.push_back(edge);
       } 
     }
-    NNDEPLOY_LOGE("edge: %s.\n", name.c_str());
     if (edge == nullptr) {
       edge = this->createEdge(name);
       if (edge != nullptr) {
@@ -384,7 +382,6 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
   if (!outputs.empty()) {
     this->setOutputs(outputs);
   }
-  NNDEPLOY_LOGE("node: %s.\n", this->getName().c_str());
   if (graph_ != nullptr) {
     base::Status status = graph_->updateNodeIO(this, inputs, outputs);
     if (status != base::kStatusCodeOk) {

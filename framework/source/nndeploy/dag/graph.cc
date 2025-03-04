@@ -358,8 +358,8 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
     // 添加消费者
     insertUnique(edge_wrapper->consumers_, node_wrapper);
     // 打印edge及其消费者信息
-    NNDEPLOY_LOGI("Edge: %s\n", input->getName().c_str());
-    NNDEPLOY_LOGI("Consumer: %s\n", node_wrapper->node_->getName().c_str());
+    // NNDEPLOY_LOGI("Edge: %s\n", input->getName().c_str());
+    // NNDEPLOY_LOGI("Consumer: %s\n", node_wrapper->node_->getName().c_str());
   }
   for (auto output : outputs) {
     EdgeWrapper *edge_wrapper =
@@ -378,8 +378,8 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
     // 添加生产者
     insertUnique(edge_wrapper->producers_, node_wrapper);
     // 打印edge及其生产者信息
-    NNDEPLOY_LOGI("Edge: %s\n", output->getName().c_str());
-    NNDEPLOY_LOGI("Producer: %s\n", node_wrapper->node_->getName().c_str());
+    // NNDEPLOY_LOGI("Edge: %s\n", output->getName().c_str());
+    // NNDEPLOY_LOGI("Producer: %s\n", node_wrapper->node_->getName().c_str());
   }
   return status;
 }
@@ -498,16 +498,16 @@ base::Status Graph::construct() {
     node->setParallelType(parallel_type_);
     node->setInnerFlag(true);
     std::vector<Edge *> inputs = node->getAllInput();
-    NNDEPLOY_LOGE("NODE: %s.\n", node->getName().c_str());
+    // NNDEPLOY_LOGE("NODE: %s.\n", node->getName().c_str());
     for (auto input : inputs) {
       EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "input_wrapper is null!");
-      NNDEPLOY_LOGE("input_wrapper: %s.\n",
-                    input_wrapper->edge_->getName().c_str());
+      // NNDEPLOY_LOGE("input_wrapper: %s.\n",
+      //               input_wrapper->edge_->getName().c_str());
       for (auto producer : input_wrapper->producers_) {
         insertUnique(node_wrapper->predecessors_, producer);
-        NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
+        // NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
       }
     }
     std::vector<Edge *> outputs = node->getAllOutput();
@@ -515,11 +515,11 @@ base::Status Graph::construct() {
       EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
                                            "output_wrapper is null!");
-      NNDEPLOY_LOGE("output_wrapper: %s.\n",
-                    output_wrapper->edge_->getName().c_str());
+      // NNDEPLOY_LOGE("output_wrapper: %s.\n",
+      //               output_wrapper->edge_->getName().c_str());
       for (auto consumer : output_wrapper->consumers_) {
         insertUnique(node_wrapper->successors_, consumer);
-        NNDEPLOY_LOGE("consumer: %s.\n", consumer->node_->getName().c_str());
+        // NNDEPLOY_LOGE("consumer: %s.\n", consumer->node_->getName().c_str());
       }
     }
   }
@@ -528,16 +528,16 @@ base::Status Graph::construct() {
   // NNDEPLOY_LOGI("construct edge\n");
   // NNDEPLOY_LOGI("##############\n");
   for (auto edge_wrapper : edge_repository_) {
-    NNDEPLOY_LOGE("edge: %s.\n", edge_wrapper->edge_->getName().c_str());
+    // NNDEPLOY_LOGE("edge: %s.\n", edge_wrapper->edge_->getName().c_str());
     std::vector<Node *> producers;
     for (auto producer : edge_wrapper->producers_) {
       producers.emplace_back(producer->node_);
-      NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
+      // NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
     }
     std::vector<Node *> consumers;
     for (auto consumer : edge_wrapper->consumers_) {
       consumers.emplace_back(consumer->node_);
-      NNDEPLOY_LOGE("consumer: %s.\n", consumer->node_->getName().c_str());
+      // NNDEPLOY_LOGE("consumer: %s.\n", consumer->node_->getName().c_str());
     }
     base::Status status = edge_wrapper->edge_->setParallelType(parallel_type_);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
