@@ -8,6 +8,7 @@ import json
 import nndeploy.base
 import nndeploy.device
 
+from .base import EdgeTypeInfo
 
 class NodeDesc(_C.dag.NodeDesc):
     def __init__(self, name: str, inputs: list[str] = None, outputs: list[str] = None, key: str = None):
@@ -152,6 +153,18 @@ class Node(_C.dag.Node):
         
     def get_stream(self):
         return super().get_stream()
+    
+    def set_input_type_info(self, input_type_info: EdgeTypeInfo):
+        return super().set_input_type_info(input_type_info)
+        
+    def get_input_type_info(self) -> EdgeTypeInfo:
+        return super().get_input_type_info()
+    
+    def set_output_type_info(self, output_type_info: EdgeTypeInfo):
+        return super().set_output_type_info(output_type_info)
+        
+    def get_output_type_info(self) -> EdgeTypeInfo:
+        return super().get_output_type_info()
         
     def init(self):
         return super().init()
@@ -175,22 +188,7 @@ class Node(_C.dag.Node):
         if outputs_name is None:
             outputs_name = []
         return super().__call__(inputs, outputs_name, param)
-        
-    def functor_without_graph(self, inputs, outputs_name=None, param=None):
-        if outputs_name is None:
-            outputs_name = []
-        return super().functor_without_graph(inputs, outputs_name, param)
-        
-    def functor_with_graph(self, inputs, outputs_name=None, param=None):
-        if outputs_name is None:
-            outputs_name = []
-        return super().functor_with_graph(inputs, outputs_name, param)
-        
-    def functor_dynamic(self, inputs, outputs_name=None, param=None):
-        if outputs_name is None:
-            outputs_name = []
-        return super().functor_dynamic(inputs, outputs_name, param)
-        
+    
     def check_inputs(self, inputs) -> bool:
         return super().check_inputs(inputs)
         

@@ -9,150 +9,157 @@ from .node import Node, NodeDesc
 class Graph(_C.dag.Graph):
     def __init__(self, name: str, inputs: Union[Edge, List[Edge]] = None, outputs: Union[Edge, List[Edge]] = None):
         """
-        Initialize Graph object
+        初始化 Graph 对象
         
-        Args:
-            name: Graph name
-            inputs: Input edge or list of input edges
-            outputs: Output edge or list of output edges
+        参数:
+            name: 图名称
+            inputs: 输入边或输入边列表
+            outputs: 输出边或输出边列表
         """
         if inputs is None and outputs is None:
             super().__init__(name)
-        elif isinstance(inputs, Edge) and isinstance(outputs, Edge):
-            super().__init__(name, inputs, outputs)
         elif isinstance(inputs, list) and isinstance(outputs, list):
             super().__init__(name, inputs, outputs)
         else:
-            raise ValueError("Invalid inputs or outputs type")
+            raise ValueError("无效的输入或输出类型")
 
     def create_edge(self, name: str) -> Edge:
         """
-        Create an edge
+        创建一个边
         
-        Args:
-            name: Edge name
-        Returns:
-            Edge object with reference policy
+        参数:
+            name: 边名称
+        返回:
+            Edge 对象
         """
         return super().create_edge(name)
 
     def add_edge(self, edge: Edge):
         """
-        Add an edge with keep_alive policy
+        添加一个边
         
-        Args:
-            edge: Edge object
+        参数:
+            edge: Edge 对象
         """
         return super().add_edge(edge)
 
-    def remove_edge(self, edge: Edge):
+    def update_edge(self, edge_wrapper: Edge, edge: Edge, is_external: bool = True):
         """
-        Remove an edge
+        更新边
         
-        Args:
-            edge: Edge object
+        参数:
+            edge_wrapper: 边包装器
+            edge: 边对象
+            is_external: 是否为外部边
         """
-        return super().remove_edge(edge)
+        return super().update_edge(edge_wrapper, edge, is_external)
 
     def get_edge(self, name: str) -> Edge:
         """
-        Get an edge by name with reference policy
+        通过名称获取边
         
-        Args:
-            name: Edge name
-        Returns:
-            Edge object
+        参数:
+            name: 边名称
+        返回:
+            Edge 对象
         """
         return super().get_edge(name)
 
     def create_node(self, desc: NodeDesc) -> Node:
         """
-        Create a node by key with reference policy
+        通过描述创建节点
         
-        Args:
-            desc: Node description dictionary
-        Returns:
-            Node object
+        参数:
+            desc: 节点描述
+        返回:
+            Node 对象
         """
         return super().create_node(desc)
 
     def add_node(self, node: Node):
         """
-        Add a node with keep_alive policy
+        添加节点
         
-        Args:
-            node: Node object
+        参数:
+            node: Node 对象
         """
         return super().add_node(node)
 
     def set_node_param(self, node_name: str, param: nndeploy.base.Param):
         """
-        Set node shared pointer parameters
+        设置节点参数
         
-        Args:
-            node_name: Node name
-            param: Parameter object
+        参数:
+            node_name: 节点名称
+            param: 参数对象
         """
         return super().set_node_param(node_name, param)
 
     def get_node_param(self, node_name: str) -> nndeploy.base.Param:
         """
-        Get node shared pointer parameters
+        获取节点参数
         
-        Args:
-            node_name: Node name
-        Returns:
-            Parameter object
+        参数:
+            node_name: 节点名称
+        返回:
+            参数对象
         """
         return super().get_node_param(node_name)
 
     def set_graph_node_share_stream(self, flag: bool):
         """
-        Set graph node stream sharing flag
+        设置图节点流共享标志
         
-        Args:
-            flag: Flag value
+        参数:
+            flag: 标志值
         """
         return super().set_graph_node_share_stream(flag)
 
     def get_graph_node_share_stream(self) -> bool:
         """
-        Get graph node stream sharing flag
+        获取图节点流共享标志
         
-        Returns:
-            bool: Stream sharing flag
+        返回:
+            流共享标志
         """
         return super().get_graph_node_share_stream()
 
-    def update_node_io(self, node: Node, inputs: List[Edge], outputs_name: List[str]) -> List[Edge]:
+    def update_node_io(self, node: Node, inputs: List[Edge], outputs: List[str]):
         """
-        Update node inputs and outputs with overloaded versions
+        更新节点输入和输出
         
-        Args:
-            node: Node object
-            inputs: List of input edges
-            outputs_name: List of output edge names
-        Returns:
-            List of Edge objects
+        参数:
+            node: 节点对象
+            inputs: 输入边列表
+            outputs: 输出边名称列表
         """
-        return super().update_node_io(node, inputs, outputs_name)
+        return super().update_node_io(node, inputs, outputs)
 
     def init(self):
-        """Initialize graph"""
+        """初始化图"""
         return super().init()
 
     def deinit(self):
-        """Deinitialize graph"""
+        """反初始化图"""
         return super().deinit()
 
     def run(self):
-        """Run graph"""
+        """运行图"""
         return super().run()
 
+    def __call__(self, inputs, outputs_name=None, param=None):
+        """
+        调用图
+        
+        参数:
+            inputs: 输入
+            outputs_name: 输出名称列表
+            param: 参数
+        """
+        if outputs_name is None:
+            outputs_name = []
+        return super().__call__(inputs, outputs_name, param)
+
     def dump(self):
-        """Dump graph information to stdout"""
+        """输出图信息到标准输出"""
         return super().dump()
-    
-    def forward(self, inputs: List[Edge], outputs_name: List[str], param: Optional[nndeploy.base.Param] = None) -> List[Edge]:
-        """Forward graph"""
-        return super().forward(inputs, outputs_name, param)

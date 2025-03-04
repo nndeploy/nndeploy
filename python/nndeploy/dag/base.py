@@ -8,6 +8,36 @@ import json
 import nndeploy.base
 import nndeploy.device
 
+
+name_to_node_type = {
+    "kInput": _C.dag.NodeType.kNodeTypeInput,
+    "kOutput": _C.dag.NodeType.kNodeTypeOutput,
+    "kIntermediate": _C.dag.NodeType.kNodeTypeIntermediate,
+}
+
+
+node_type_to_name = {v: k for k, v in name_to_node_type.items()}
+
+
+class NodeType(_C.dag.NodeType):
+    kInput = _C.dag.NodeType.kNodeTypeInput
+    kOutput = _C.dag.NodeType.kNodeTypeOutput
+    kIntermediate = _C.dag.NodeType.kNodeTypeIntermediate
+
+    @classmethod
+    def from_name(cls, name: str):
+        name_to_node_type = {
+            "kNodeTypeInput": cls.kNodeTypeInput,
+            "kNodeTypeOutput": cls.kNodeTypeOutput,
+            "kNodeTypeIntermediate": cls.kNodeTypeIntermediate
+        }
+        if name not in name_to_node_type:
+            raise ValueError(f"不支持的节点类型: {name}")
+        else:
+            return cls(name_to_node_type[name])
+
+
+
 name_to_edge_type_flag = {
     "kBuffer": _C.dag.EdgeTypeFlag.kBuffer,
     "kCvMat": _C.dag.EdgeTypeFlag.kCvMat,
@@ -19,6 +49,7 @@ name_to_edge_type_flag = {
 
 
 edge_type_flag_to_name = {v: k for k, v in name_to_edge_type_flag.items()}
+
 
 class EdgeTypeFlag(_C.dag.EdgeTypeFlag):
     kBuffer = _C.dag.EdgeTypeFlag.kBuffer

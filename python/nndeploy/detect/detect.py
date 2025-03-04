@@ -9,7 +9,7 @@ import nndeploy.dag
 import torch
 
 
-# python3 nndeploy/detect/test_detect.py
+# python3 nndeploy/detect/detect.py
     
       
 class DetectGraph(nndeploy.dag.Graph):

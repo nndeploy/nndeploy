@@ -258,6 +258,12 @@ bool Node::getDebugFlag() { return is_debug_; }
 void Node::setCompiledFlag(bool flag) { is_compiled_ = flag; }
 bool Node::getCompiledFlag() { return is_compiled_; }
 
+void Node::setGraphFlag(bool flag) { is_graph_ = flag; }
+bool Node::getGraphFlag() { return is_graph_; }
+
+void Node::setNodeType(NodeType node_type) { node_type_ = node_type; }
+NodeType Node::getNodeType() { return node_type_; }
+
 void Node::setRunningFlag(bool flag) {
   is_running_ = flag;
   if (is_time_profile_) {

@@ -86,10 +86,18 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_node_type", &Node::getNodeType)
       .def("set_stream", &Node::setStream, py::arg("stream"))
       .def("get_stream", &Node::getStream, py::return_value_policy::reference)
-     //  .def("set_input_type_info", &Node::setInputTypeInfo, py::arg("input_type_info"))
-     //  .def("get_input_type_info", &Node::getInputTypeInfo)
-     //  .def("set_output_type_info", &Node::setOutputTypeInfo, py::arg("output_type_info"))
-     //  .def("get_output_type_info", &Node::getOutputTypeInfo)
+      .def("set_input_type_info", 
+           [](Node& node, std::shared_ptr<EdgeTypeInfo> input_type_info) {
+             return node.setInputTypeInfo(input_type_info);
+           }, 
+           py::arg("input_type_info"))
+      .def("get_input_type_info", &Node::getInputTypeInfo)
+      .def("set_output_type_info", 
+           [](Node& node, std::shared_ptr<EdgeTypeInfo> output_type_info) {
+             return node.setOutputTypeInfo(output_type_info);
+           }, 
+           py::arg("output_type_info"))
+      .def("get_output_type_info", &Node::getOutputTypeInfo)
       .def("init", &Node::init)
       .def("deinit", &Node::deinit)
       .def("get_memory_size", &Node::getMemorySize)

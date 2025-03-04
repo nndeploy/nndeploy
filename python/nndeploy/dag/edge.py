@@ -8,6 +8,8 @@ import json
 import nndeploy.base
 import nndeploy.device
 
+from .base import EdgeTypeInfo
+
 class Edge(_C.dag.Edge):
     def __init__(self, name: str = ""):
         super().__init__(name)
@@ -126,3 +128,12 @@ class Edge(_C.dag.Edge):
       
     def get_type_name(self) -> str:
         return self.type_name
+    
+    def set_type_info(self, type_info: EdgeTypeInfo):
+        return super().set_type_info(type_info)
+    
+    def get_type_info(self) -> EdgeTypeInfo:
+        return super().get_type_info()
+    
+    def check_type_info(self, type_info: EdgeTypeInfo) -> bool:
+        return super().check_type_info(type_info)

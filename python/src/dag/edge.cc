@@ -68,11 +68,11 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set", py::overload_cast<device::Tensor&, int>(&Edge::set),
            py::arg("tensor"), py::arg("index"))
       .def("create",
-           static_cast<device::Tensor* (
-               Edge::*)(device::Device*, const device::TensorDesc&, int, std::string)>(
-               &Edge::create),
-           py::arg("device"), py::arg("desc"), py::arg("index"), py::arg("tensor_name") = "",
-           py::return_value_policy::reference)
+           static_cast<device::Tensor* (Edge::*)(device::Device*,
+                                                 const device::TensorDesc&, int,
+                                                 std::string)>(&Edge::create),
+           py::arg("device"), py::arg("desc"), py::arg("index"),
+           py::arg("tensor_name") = "", py::return_value_policy::reference)
       .def("notify_written",
            py::overload_cast<device::Tensor*>(&Edge::notifyWritten),
            py::arg("tensor"))
@@ -109,7 +109,22 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("increase_consumers", &Edge::increaseConsumers, py::arg("consumers"))
 
       // 终止请求
-      .def("request_terminate", &Edge::requestTerminate);
+      .def("request_terminate", &Edge::requestTerminate)
+
+      // 类型信息相关操作
+      .def(
+          "set_type_info",
+          [](Edge& edge, std::shared_ptr<EdgeTypeInfo> type_info) {
+            return edge.setTypeInfo(type_info);
+          },
+          py::arg("type_info"))
+      .def("get_type_info", &Edge::getTypeInfo)
+      .def(
+          "check_type_info",
+          [](Edge& edge, std::shared_ptr<EdgeTypeInfo> type_info) {
+            return edge.checkTypeInfo(type_info);
+          },
+          py::arg("type_info"));
 }
 
 }  // namespace dag
