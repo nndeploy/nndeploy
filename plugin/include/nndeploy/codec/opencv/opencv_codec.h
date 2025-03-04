@@ -9,9 +9,15 @@ namespace codec {
 
 class NNDEPLOY_CC_API OpenCvImageDecodeNode : public DecodeNode {
  public:
+  OpenCvImageDecodeNode(base::CodecFlag flag, const std::string &name)
+      : DecodeNode(flag, name, {}, {}) {}
   OpenCvImageDecodeNode(base::CodecFlag flag, const std::string &name,
                         dag::Edge *output)
-      : DecodeNode(flag, name, output) {};
+      : DecodeNode(flag, name, {}, {output}) {};
+
+  OpenCvImageDecodeNode(const std::string &name, base::CodecFlag flag)
+      : DecodeNode(flag, name, {}, {}) {}
+
   virtual ~OpenCvImageDecodeNode() {};
 
   virtual base::Status init();
@@ -76,6 +82,8 @@ class NNDEPLOY_CC_API OpenCvImageEncodeNode : public EncodeNode {
   OpenCvImageEncodeNode(base::CodecFlag flag, const std::string &name,
                         dag::Edge *input)
       : EncodeNode(flag, name, input) {}
+  OpenCvImageEncodeNode(const std::string &name, base::CodecFlag flag)
+      : EncodeNode(flag, name, {}) {}
   virtual ~OpenCvImageEncodeNode() {}
 
   virtual base::Status init();

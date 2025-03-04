@@ -583,7 +583,7 @@ base::Status OnnxInterpret::interpret(
 
   // # 节点个数
   const int node_size = onnx_graph.node_size();
-  NNDEPLOY_LOGE("node_size = %d\n", node_size);
+  // NNDEPLOY_LOGE("node_size = %d\n", node_size);
   // ## 解析const节点
   for (int i = 0; i < node_size; ++i) {
     const auto& onnx_node = onnx_graph.node(i);

@@ -22,8 +22,13 @@ namespace codec {
 
 class NNDEPLOY_CC_API DecodeNode : public dag::Node {
  public:
+  DecodeNode(base::CodecFlag flag, const std::string &name)
+      : dag::Node(name, {}, {}), flag_(flag) {}
   DecodeNode(base::CodecFlag flag, const std::string &name, dag::Edge *output)
       : dag::Node(name, {}, {output}), flag_(flag) {}
+  DecodeNode(base::CodecFlag flag, const std::string &name, std::vector<dag::Edge *> inputs,
+       std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs), flag_(flag) {}
   virtual ~DecodeNode() {}
 
   base::CodecFlag getCodecFlag() { return flag_; }

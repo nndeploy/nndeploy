@@ -234,6 +234,13 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     return outputs;
   }
 
+  virtual std::vector<std::shared_ptr<dag::Edge>> operator()(
+      std::vector<std::shared_ptr<dag::Edge>> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr) override {
+    return forward(inputs, outputs_name, param);
+  }
+
  private:
   dag::Node *pre_ = nullptr;       ///< Preprocessing node pointer
   infer::Infer *infer_ = nullptr;  ///< Inference node pointer

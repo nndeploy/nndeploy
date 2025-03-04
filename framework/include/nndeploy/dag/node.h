@@ -179,7 +179,7 @@ class NNDEPLOY_CC_API Node {
    * ### 第二次~第n次执行
    * ### 输入edge是否更行
    */
-  std::vector<std::shared_ptr<Edge>> operator()(
+  virtual std::vector<std::shared_ptr<Edge>> operator()(
       std::vector<std::shared_ptr<Edge>> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
@@ -195,7 +195,7 @@ class NNDEPLOY_CC_API Node {
    * graph模式下，内存graph管理
    * 无graph模式下，内存外部管理
    */
-  std::vector<Edge *> operator()(
+  virtual std::vector<Edge *> operator()(
       std::vector<Edge *> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
       std::shared_ptr<base::Param> param = nullptr);
