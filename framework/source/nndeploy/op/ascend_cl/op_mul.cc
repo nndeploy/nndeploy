@@ -116,7 +116,7 @@ class AscendCLOpMul : public OpBinary {
 
     const uint32_t block_size = 32;
     uint32_t align_num = block_size / sizeof(uint16_t);
-    uint32_t ub_block_num = 64;
+    uint32_t ub_block_num = 256;
     uint32_t tile_num;
     uint32_t total_elements_align =
         (total_elements + align_num - 1) / align_num * align_num;

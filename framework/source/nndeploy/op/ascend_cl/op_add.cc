@@ -109,13 +109,36 @@ class AscendCLOpAdd : public OpBinary {
     auto platform = platform_ascendc::PlatformAscendCManager::GetInstance();
     auto aiv_num = platform->GetCoreNumAiv();
 
+    // platform profiling data
+    // auto version = platform->GetSocVersion();
+    // auto core_num = platform->GetCoreNum();
+    // auto aic_num = platform->GetCoreNumAic();
+    // uint64_t L0A, L0B, L0C, L1, L2, UB, HBM;
+    // platform->GetCoreMemSize(platform_ascendc::CoreMemType::L0_A, L0A);
+    // platform->GetCoreMemSize(platform_ascendc::CoreMemType::L0_B, L0B);
+    // platform->GetCoreMemSize(platform_ascendc::CoreMemType::L0_C, L0C);
+    // platform->GetCoreMemSize(platform_ascendc::CoreMemType::L1, L1);
+    // platform->GetCoreMemSize(platform_ascendc::CoreMemType::L2, L2);
+    // platform->GetCoreMemSize(platform_ascendc::CoreMemType::UB, UB);
+    // platform->GetCoreMemSize(platform_ascendc::CoreMemType::HBM, HBM);
+
+    // NNDEPLOY_LOGI("core_num: %d\n", core_num);
+    // NNDEPLOY_LOGI("aic_num: %d\n", aic_num);
+    // NNDEPLOY_LOGI("L0A: %lu\n", L0A);
+    // NNDEPLOY_LOGI("L0B: %lu\n", L0B);
+    // NNDEPLOY_LOGI("L0C: %lu\n", L0C);
+    // NNDEPLOY_LOGI("L1: %lu\n", L1);
+    // NNDEPLOY_LOGI("L2: %lu\n", L2);
+    // NNDEPLOY_LOGI("UB: %lu\n", UB);
+    // NNDEPLOY_LOGI("HBM: %lu\n", HBM);
+
     base::IntVector input_shape = inputs_0_->getShape();
     auto total_elements = std::accumulate(
         input_shape.begin(), input_shape.end(), 1, std::multiplies<size_t>());
 
     const uint32_t block_size = 32;
     uint32_t align_num = block_size / sizeof(uint16_t);
-    uint32_t ub_block_num = 64;
+    uint32_t ub_block_num = 256;
     uint32_t tile_num;
     uint32_t total_elements_align =
         (total_elements + align_num - 1) / align_num * align_num;

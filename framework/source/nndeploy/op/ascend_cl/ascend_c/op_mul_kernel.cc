@@ -22,9 +22,11 @@ class KernelMul {
   __aicore__ inline KernelMul() {}
 
   __aicore__ inline void Init(GM_ADDR x, GM_ADDR y, GM_ADDR z,
-                              GM_ADDR tiling_gm) {
+                              GM_ADDR tiling_gm, AscendC::TPipe *pipe_in) {
     CopyTiling(&tiling_, tiling_gm);
     uint32_t tilingKey = tiling_.tilingKey;
+
+    pipe = pipe_in;
 
     if (tilingKey == 1) {
       this->blockLength = tiling_.blockLength;
@@ -104,9 +106,9 @@ class KernelMul {
             this->tailLength);
       }
     }
-    pipe.InitBuffer(inQueueX, BUFFER_NUM, this->tileLength * sizeof(x_T));
-    pipe.InitBuffer(inQueueY, BUFFER_NUM, this->tileLength * sizeof(y_T));
-    pipe.InitBuffer(outQueueZ, BUFFER_NUM, this->tileLength * sizeof(z_T));
+    pipe->InitBuffer(inQueueX, BUFFER_NUM, this->tileLength * sizeof(x_T));
+    pipe->InitBuffer(inQueueY, BUFFER_NUM, this->tileLength * sizeof(y_T));
+    pipe->InitBuffer(outQueueZ, BUFFER_NUM, this->tileLength * sizeof(z_T));
   }
 
   __aicore__ inline void Process() {
@@ -224,7 +226,7 @@ class KernelMul {
   }
 
  private:
-  AscendC::TPipe pipe;
+  AscendC::TPipe *pipe;
   AscendC::TQue<AscendC::QuePosition::VECIN, BUFFER_NUM> inQueueX, inQueueY;
   AscendC::TQue<AscendC::QuePosition::VECOUT, BUFFER_NUM> outQueueZ;
   AscendC::GlobalTensor<x_T> xGm;
@@ -251,8 +253,9 @@ class KernelMul {
 
 extern "C" __global__ __aicore__ void mul(GM_ADDR x, GM_ADDR y, GM_ADDR z,
                                           GM_ADDR tiling_gm) {
+  AscendC::TPipe pipe;
   KernelMul<half, half, half> op;
-  op.Init(x, y, z, tiling_gm);
+  op.Init(x, y, z, tiling_gm, &pipe);
   op.Process();
 }
 
