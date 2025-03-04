@@ -262,24 +262,25 @@ class classificationDemo : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
-  virtual std::vector<std::shared_ptr<dag::Edge>> operator()(
-      std::vector<std::shared_ptr<dag::Edge>> &inputs,
-      std::vector<std::string> &outputs_name,
-      std::shared_ptr<base::Param> &param) {
-    NNDEPLOY_LOGE("bk.\n");
-    std::vector<std::shared_ptr<dag::Edge>> decode_node_outputs =
+  virtual std::vector<dag::Edge *> operator()(
+      std::vector<dag::Edge *> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr) {
+    dag::Graph::operator()(inputs, outputs_name, param);
+    std::vector<dag::Edge *> decode_node_outputs =
         (*decode_node_)(inputs, {"decode_node_out"});
     NNDEPLOY_LOGE("bk.\n");
-    std::vector<std::shared_ptr<dag::Edge>> graph_outputs =
+    std::vector<dag::Edge *> graph_outputs =
         (*graph_)(decode_node_outputs, {"resnet_out"}, nullptr);
+    NNDEPLOY_LOGE("bk SIZE: %d.\n", graph_outputs.size());
+    std::vector<dag::Edge *> draw_node_inputs = {decode_node_outputs[0],
+                                                 graph_outputs[0]};
     NNDEPLOY_LOGE("bk.\n");
-    std::vector<std::shared_ptr<dag::Edge>> draw_node_inputs = {
-        decode_node_outputs[0], graph_outputs[0]};
-    std::vector<std::shared_ptr<dag::Edge>> draw_node_outputs =
+    std::vector<dag::Edge *> draw_node_outputs =
         (*draw_node_)(draw_node_inputs, {"draw_node_out"}, nullptr);
     NNDEPLOY_LOGE("bk.\n");
-    // std::vector<std::shared_ptr<dag::Edge>> encode_node_outputs =
-    // (*encode_node_)(draw_node_outputs, {}, nullptr);
+    std::vector<dag::Edge *> encode_node_outputs =
+        (*encode_node_)(draw_node_outputs, {}, nullptr);
     NNDEPLOY_LOGE("bk.\n");
     return graph_outputs;
   }
@@ -337,31 +338,31 @@ int main(int argc, char *argv[]) {
   NNDEPLOY_LOGE("bk.\n");
 
   // 调用forward函数进行推理
-  for (int i = 0; i < 1; i++) {
-    std::shared_ptr<dag::Edge> input_image =
-        std::make_shared<dag::Edge>("input_image");
-    cv::Mat image = cv::imread(input_path);
-    input_image->set(image, i);
-    // NNDEPLOY_LOGE("input_image: %p.\n", input_image.get());
-    std::vector<std::shared_ptr<dag::Edge>> outputs =
-        graph.forward({input_image}, {"classification_result"}, nullptr);
-    // NNDEPLOY_LOGE("outputs: %p.\n", outputs[0].get());
-    classification::ClassificationResult *result =
-        (classification::ClassificationResult *)outputs[0]
-            ->getGraphOutputParam();
-    // NNDEPLOY_LOGE("result: %p.\n", result);
-    for (int i = 0; i < result->labels_.size(); i++) {
-      auto label = result->labels_[i];
-      // 将分类结果和置信度转为字符串
-      std::string text = "class: " + std::to_string(label.label_ids_) +
-                         " score: " + std::to_string(label.scores_);
+  // for (int i = 0; i < 1; i++) {
+  //   std::shared_ptr<dag::Edge> input_image =
+  //       std::make_shared<dag::Edge>("input_image");
+  //   cv::Mat image = cv::imread(input_path);
+  //   input_image->set(image, i);
+  //   // NNDEPLOY_LOGE("input_image: %p.\n", input_image.get());
+  //   std::vector<std::shared_ptr<dag::Edge>> outputs =
+  //       graph({input_image}, {"classification_result"}, nullptr);
+  //   // NNDEPLOY_LOGE("outputs: %p.\n", outputs[0].get());
+  //   classification::ClassificationResult *result =
+  //       (classification::ClassificationResult *)outputs[0]
+  //           ->getGraphOutputParam();
+  //   // NNDEPLOY_LOGE("result: %p.\n", result);
+  //   for (int i = 0; i < result->labels_.size(); i++) {
+  //     auto label = result->labels_[i];
+  //     // 将分类结果和置信度转为字符串
+  //     std::string text = "class: " + std::to_string(label.label_ids_) +
+  //                        " score: " + std::to_string(label.scores_);
 
-      // 在图像左上角绘制文本
-      cv::putText(image, text, cv::Point(30, 30 + i * 30),
-                  cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
-    }
-    cv::imwrite(ouput_path, image);
-  }
+  //     // 在图像左上角绘制文本
+  //     cv::putText(image, text, cv::Point(30, 30 + i * 30),
+  //                 cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
+  //   }
+  //   cv::imwrite(ouput_path, image);
+  // }
 
   NNDEPLOY_LOGE("bk.\n");
 
@@ -370,7 +371,7 @@ int main(int argc, char *argv[]) {
   NNDEPLOY_LOGE("bk.\n");
   graph_demo.setInferParam(device_type, model_type, is_path, model_value);
   NNDEPLOY_LOGE("bk.\n");
-  std::vector<std::shared_ptr<dag::Edge>> inputs;
+  std::vector<dag::Edge *> inputs;
   std::vector<std::string> outputs_name;
   std::shared_ptr<base::Param> param;
   NNDEPLOY_LOGE("bk.\n");

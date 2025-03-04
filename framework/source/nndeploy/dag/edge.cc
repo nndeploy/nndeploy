@@ -44,13 +44,16 @@ std::string Edge::getName() { return name_; }
 base::Status Edge::construct() { return abstact_edge_->construct(); }
 
 base::Status Edge::set(device::Buffer *buffer, int index, bool is_external) {
+  this->setTypeInfo<device::Buffer>();
   return abstact_edge_->set(buffer, index, is_external);
 }
 base::Status Edge::set(device::Buffer &buffer, int index) {
+  this->setTypeInfo<device::Buffer>();
   return this->set(&buffer, index, true);
 }
 device::Buffer *Edge::create(device::Device *device,
                              const device::BufferDesc &desc, int index) {
+  this->setTypeInfo<device::Buffer>();
   return abstact_edge_->create(device, desc, index);
 }
 bool Edge::notifyWritten(device::Buffer *buffer) {
@@ -65,13 +68,16 @@ device::Buffer *Edge::getGraphOutputBuffer() {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status Edge::set(cv::Mat *cv_mat, int index, bool is_external) {
+  this->setTypeInfo<cv::Mat>();
   return abstact_edge_->set(cv_mat, index, is_external);
 }
 base::Status Edge::set(cv::Mat &cv_mat, int index) {
+  this->setTypeInfo<cv::Mat>();
   return this->set(&cv_mat, index, true);
 }
 cv::Mat *Edge::create(int rows, int cols, int type, const cv::Vec3b &value,
                       int index) {
+  this->setTypeInfo<cv::Mat>();
   return abstact_edge_->create(rows, cols, type, value, index);
 }
 bool Edge::notifyWritten(cv::Mat *cv_mat) {
@@ -86,14 +92,17 @@ cv::Mat *Edge::getGraphOutputCvMat() {
 #endif
 
 base::Status Edge::set(device::Tensor *tensor, int index, bool is_external) {
+  this->setTypeInfo<device::Tensor>();
   return abstact_edge_->set(tensor, index, is_external);
 }
 base::Status Edge::set(device::Tensor &tensor, int index) {
+  this->setTypeInfo<device::Tensor>();
   return this->set(&tensor, index, true);
 }
 device::Tensor *Edge::create(device::Device *device,
                              const device::TensorDesc &desc, int index,
                              std::string tensor_name) {
+  this->setTypeInfo<device::Tensor>();
   if (tensor_name.empty()) {
     tensor_name = name_;
   }
@@ -113,9 +122,11 @@ device::Tensor *Edge::getGraphOutputTensor() {
 }
 
 base::Status Edge::set(base::Param *param, int index, bool is_external) {
+  this->setTypeInfo<base::Param>();
   return abstact_edge_->set(param, index, is_external);
 }
 base::Status Edge::set(base::Param &param, int index) {
+  this->setTypeInfo<base::Param>();
   return this->set(&param, index, true);
 }
 bool Edge::notifyWritten(base::Param *param) {
@@ -172,6 +183,16 @@ base::Status Edge::increaseConsumers(std::vector<Node *> &consumers) {
 }
 
 bool Edge::requestTerminate() { return abstact_edge_->requestTerminate(); }
+
+base::Status Edge::setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
+  type_info_ = type_info;
+  return base::kStatusCodeOk;
+}
+std::shared_ptr<EdgeTypeInfo> Edge::getTypeInfo() { return type_info_; }
+
+bool Edge::checkTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
+  return *type_info_ == *type_info;
+}
 
 }  // namespace dag
 }  // namespace nndeploy

@@ -60,7 +60,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   EdgeWrapper *addEdge(Edge *edge, bool is_external = true);
   EdgeWrapper *addEdgeSharedPtr(std::shared_ptr<Edge> edge);
 
-  base::Status removeEdge(Edge *edge);
+  base::Status updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
+                         bool is_external = true);
 
   /**
    * @brief 获取Graph中的Edge
@@ -420,28 +421,80 @@ class NNDEPLOY_CC_API Graph : public Node {
   void setGraphNodeShareStream(bool flag);
   bool getGraphNodeShareStream();
 
-  std::vector<std::shared_ptr<Edge>> updateNodeIO(
-      Node *node, std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name);
-
-  std::vector<Edge *> updateNodeIO(Node *node, std::vector<Edge *> inputs,
-                                   std::vector<std::string> outputs_name);
+  base::Status updateNodeIO(Node *node, std::vector<Edge *> inputs,
+                            std::vector<Edge *> outputs);
 
   virtual base::Status init();
   virtual base::Status deinit();
 
   virtual base::Status run();
 
-  std::vector<std::shared_ptr<Edge>> forward (
-      std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr);
-
-  // 返回内存由graph内部管理
-  std::vector<Edge *> forward(
+  // This method must be implemented by subclasses
+  // Subclasses should override this method to define their own operator()
+  // implementation
+  virtual std::vector<Edge *> operator()(
       std::vector<Edge *> inputs,
       std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr);
+      std::shared_ptr<base::Param> param = nullptr) {
+    // check
+    if (!checkInputs(inputs)) {
+      return std::vector<Edge *>();
+    }
+    if (!checkOutputs(outputs_name)) {
+      return std::vector<Edge *>();
+    }
+    if (param != nullptr) {
+      this->setParamSharedPtr(param);
+    }
+    bool is_inputs_changed = isInputsChanged(inputs);
+    if (!inputs.empty()) {
+      this->setInputs(inputs);
+    }
+    std::vector<std::string> real_outputs_name =
+        this->getRealOutputsName(outputs_name);
+    std::vector<Edge *> outputs;
+    for (auto name : real_outputs_name) {
+      Edge *edge = nullptr;
+      if (graph_ != nullptr) {
+        edge = graph_->getEdge(name);
+        if (edge != nullptr) {
+          outputs.push_back(edge);
+        }
+      }
+      NNDEPLOY_LOGE("edge: %s.\n", name.c_str());
+      if (edge == nullptr) {
+        edge = this->createEdge(name);
+        if (edge != nullptr) {
+          outputs.push_back(edge);
+        } else {
+          NNDEPLOY_LOGE("createEdge failed.\n");
+          return std::vector<Edge *>();
+        }
+      }
+    }
+    if (!outputs.empty()) {
+      this->setOutputs(outputs);
+    }
+    if (graph_ != nullptr) {
+      base::Status status = graph_->updateNodeIO(this, inputs, outputs);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+        return std::vector<Edge *>();
+      }
+    }
+    if (!is_inputs_changed && is_compiled_) {
+      if (initialized_ == false) {
+        this->init();
+        this->setInitializedFlag(true);
+      }
+      base::Status status = this->run();
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("this->run() failed.\n");
+        return std::vector<Edge *>();
+      }
+    }
+    return outputs;
+  };
 
   base::Status dump(std::ostream &oss = std::cout);
 
@@ -476,7 +529,8 @@ Node *Graph::createNode(const std::string &name, Args &...args) {
   node_wrapper->name_ = name;
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -506,7 +560,8 @@ Node *Graph::createNode(const std::string &name, Edge *input, Edge *output,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -544,7 +599,8 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -578,7 +634,8 @@ Node *Graph::createNode(const std::string &name, Edge *input,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -612,7 +669,8 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -646,7 +704,8 @@ Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -697,7 +756,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -740,7 +800,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -782,7 +843,8 @@ Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -817,7 +879,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -869,7 +932,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -913,7 +977,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -956,7 +1021,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -986,7 +1052,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1025,7 +1092,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1059,7 +1127,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1093,7 +1162,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1128,7 +1198,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_edge_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1179,7 +1250,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1222,7 +1294,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1265,7 +1338,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1300,7 +1374,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1351,7 +1426,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1394,7 +1470,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1441,7 +1518,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
-  node->setGraph(this);;
+  node->setGraph(this);
+  ;
   return node;
 }
 
