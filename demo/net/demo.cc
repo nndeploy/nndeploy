@@ -52,9 +52,7 @@ int main() {
   }
   std::vector<std::string> model_value;
   // model_value.push_back("D:\\github\\nndeploy\\build\\yolo11s.sim.onnx.onnx");
-  model_value.push_back(
-      "/data/sjx/code/nndeploy_resource/nndeploy/model_zoo/classfication/"
-      "resnet50-v1-7.sim.onnx");
+  model_value.push_back("yolo11s.sim.onnx");
   status = onnx_interpret->interpret(model_value);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("interpret failed\n");
@@ -101,7 +99,7 @@ int main() {
   cann_net->setDeviceType(device_type);
 
   cann_net->init();
-  std::ofstream oss("resnet.dot");
+
   cann_net->dump(std::cout);
 
   std::vector<device::Tensor *> inputs = cann_net->getAllInput();
