@@ -9,7 +9,7 @@ else()
 
   # include_directories(${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/include/experiment/platform)
   set(LIB_PATH ${ENABLE_NNDEPLOY_DEVICE_ASCEND_CL}/lib64)
-  set(LIBS "ascendcl" "nnopbase" "opapi" "tiling")
+  set(LIBS "ascendcl" "nnopbase" "opapi" "tiling" "platform")
 
   foreach(LIB ${LIBS})
     set(LIB_NAME ${NNDEPLOY_LIB_PREFIX}${LIB}${NNDEPLOY_LIB_SUFFIX})
