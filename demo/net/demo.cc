@@ -7,7 +7,6 @@
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
 #include "test.h"
-#include "nndeploy/net/optimizer.h"
 
 using namespace nndeploy;
 
@@ -53,7 +52,9 @@ int main() {
   }
   std::vector<std::string> model_value;
   // model_value.push_back("D:\\github\\nndeploy\\build\\yolo11s.sim.onnx.onnx");
-  model_value.push_back("yolo11s.sim.onnx");
+  model_value.push_back(
+      "/data/sjx/code/nndeploy_resource/nndeploy/model_zoo/classfication/"
+      "resnet50-v1-7.sim.onnx");
   status = onnx_interpret->interpret(model_value);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("interpret failed\n");
@@ -99,10 +100,8 @@ int main() {
   device_type.device_id_ = 0;
   cann_net->setDeviceType(device_type);
 
-  // cann_net->enableOpt(false);
-  // cann_net->setEnablePass({net::kOptPassTypeFuseConvBatchNorm}); //net::, net::kOptPassTypeFuseConvRelu
   cann_net->init();
-
+  std::ofstream oss("resnet.dot");
   cann_net->dump(std::cout);
 
   std::vector<device::Tensor *> inputs = cann_net->getAllInput();
