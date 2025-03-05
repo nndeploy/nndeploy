@@ -395,14 +395,16 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
       return std::vector<Edge *>();
     }
   }
-  if (!is_inputs_changed && !is_compiled_) {
+  if (!is_inputs_changed && is_compiled_) {
+    return outputs;
+  } else {
     base::Status status = this->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("this->run() failed.\n");
       return std::vector<Edge *>();
     }
+    return outputs;
   }
-  return outputs;
 }
 
 bool Node::checkInputs(std::vector<Edge *> &inputs) {
