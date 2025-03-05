@@ -67,15 +67,15 @@ int main() {
   auto default_interpret = std::shared_ptr<ir::Interpret>(
       ir::createInterpret(base::kModelTypeDefault));
   std::vector<std::string> new_model_value;
-  new_model_value.push_back("resnet50-v1-7.sim.onnx.json");
-  new_model_value.push_back("resnet50-v1-7.sim.onnx.safetensors");
+  new_model_value.push_back("/home/sjx/nndeploy/python/nndeploy/tests/net/model_zoo/resnet50.json");
+  new_model_value.push_back("/home/sjx/nndeploy/python/nndeploy/tests/net/model_zoo/resnet50.safetensors");
   status = default_interpret->interpret(new_model_value);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("interpret failed\n");
     return -1;
   }
-  default_interpret->saveModelToFile("resnet50-v1-7.sim.onnx_test.json",
-                                     "resnet50-v1-7.sim.onnx_test.safetensors");
+  // default_interpret->saveModelToFile("resnet50-v1-7.sim.onnx_test.json",
+  //                                    "resnet50-v1-7.sim.onnx_test.safetensors");
 
   ir::ModelDesc *md = default_interpret->getModelDesc();
   if (md == nullptr) {
@@ -99,7 +99,7 @@ int main() {
 
   cann_net->init();
 
-  cann_net->dump(std::cout);
+  // cann_net->dump(std::cout);
 
   std::vector<device::Tensor *> inputs = cann_net->getAllInput();
   inputs[0]->set<float>(1.0f);
@@ -114,7 +114,7 @@ int main() {
   // std::vector<device::Tensor *>inputs = cann_net->getAllInput();
 
   std::vector<device::Tensor *> outputs = cann_net->getAllOutput();
-  // outputs[0]->print();
+  outputs[0]->print(std::cout);
 
   cann_net->deinit();
 

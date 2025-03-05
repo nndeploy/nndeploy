@@ -78,9 +78,9 @@ int main(int argc, char *argv[]) {
   // base::kParallelTypePipeline / base::kParallelTypeSequential
   base::ParallelType pt = demo::getParallelType();
 
-  // 有向无环图graph的输入边packert
+  // 有向无环图graph的输入边packet
   dag::Edge classification_in("classification_in");
-  // 有向无环图graph的输出边packert
+  // 有向无环图graph的输出边packet
   dag::Edge classification_out("classification_out");
   // graph
   dag::Graph *graph = new dag::Graph("demo", {}, {&classification_out});
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
   encode_node->setRefPath(input_path);
   encode_node->setPath(ouput_path);
   int size = decode_node->getSize();
-  size = 100;
+  size = 1;
   decode_node->setSize(size);
   for (int i = 0; i < size; ++i) {
     status = graph->run();

@@ -7,6 +7,7 @@
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
 #include "test.h"
+#include "nndeploy/net/optimizer.h"
 
 using namespace nndeploy;
 
@@ -98,6 +99,8 @@ int main() {
   device_type.device_id_ = 0;
   cann_net->setDeviceType(device_type);
 
+  // cann_net->enableOpt(false);
+  // cann_net->setEnablePass({net::kOptPassTypeFuseConvBatchNorm}); //net::, net::kOptPassTypeFuseConvRelu
   cann_net->init();
 
   cann_net->dump(std::cout);
