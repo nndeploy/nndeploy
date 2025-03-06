@@ -10,21 +10,22 @@
 
 using namespace nndeploy;
 
-class CannTest : public ir::ModelDesc {
+class ExprDemo : public ir::ModelDesc {
  public:
-  CannTest(){};
-  ~CannTest(){};
+  ExprDemo(){};
+  ~ExprDemo(){};
   void init() {
     auto input =
-        op::makeInput(this, "input", base::dataTypeOf<float>(), {1, 1, 8, 8});
-    // auto conv1 =
-    //     makeConv(this, input, std::make_shared<ConvParam>(), "weight",
-    //     "bias");
-    // auto relu1 = makeRelu(this, conv1);
+        op::makeInput(this, "input", base::dataTypeOf<float>(), {1, 3, 640, 640});
+    auto pool_param = std::make_shared<ir::MaxPoolParam>();
+    pool_param->kernel_shape_ = {2, 2};
+    pool_param->strides_ = {2, 2};
+    auto pool1 = op::makeMaxPool(this, input, pool_param);
+    auto relu1 = op::makeRelu(this, pool1);
     auto softmax_0 =
-        op::makeSoftMax(this, input, std::make_shared<ir::SoftmaxParam>());
+        op::makeSoftMax(this, relu1, std::make_shared<ir::SoftmaxParam>());
     auto softmax_1 =
-        op::makeSoftMax(this, input, std::make_shared<ir::SoftmaxParam>());
+        op::makeSoftMax(this, relu1, std::make_shared<ir::SoftmaxParam>());
 
     auto add = op::makeAdd(this, softmax_0, softmax_1);
 
@@ -86,7 +87,7 @@ int main() {
 
   md->dump(std::cout);
 
-  // auto md = new CannTest();
+  // auto md = new ExprDemo();
   // md->init();
   auto cann_net = std::make_shared<net::Net>();
   // cann_net->setModelDesc(cann_model.get());
@@ -94,28 +95,30 @@ int main() {
 
   base::DeviceType device_type;
   device_type.code_ = base::kDeviceTypeCodeCpu;
-  device_type.code_ = base::kDeviceTypeCodeAscendCL;
+  // device_type.code_ = base::kDeviceTypeCodeAscendCL;
   device_type.device_id_ = 0;
   cann_net->setDeviceType(device_type);
+
+  cann_net->enableOpt(false);
 
   cann_net->init();
 
   cann_net->dump(std::cout);
 
-  std::vector<device::Tensor *> inputs = cann_net->getAllInput();
-  inputs[0]->set<float>(1.0f);
-  // inputs[0]->print();
+  // std::vector<device::Tensor *> inputs = cann_net->getAllInput();
+  // inputs[0]->set<float>(1.0f);
+  // // inputs[0]->print();
 
-  cann_net->preRun();
+  // cann_net->preRun();
 
-  cann_net->run();
+  // cann_net->run();
 
-  cann_net->postRun();
+  // cann_net->postRun();
 
-  // std::vector<device::Tensor *>inputs = cann_net->getAllInput();
+  // // std::vector<device::Tensor *>inputs = cann_net->getAllInput();
 
-  std::vector<device::Tensor *> outputs = cann_net->getAllOutput();
-  // outputs[0]->print();
+  // std::vector<device::Tensor *> outputs = cann_net->getAllOutput();
+  // // outputs[0]->print();
 
   cann_net->deinit();
 
