@@ -14,7 +14,7 @@ class GraphTest : public testing::Test {
   std::unique_ptr<nndeploy::dag::Graph> constructGraph(
       const std::string &name, nndeploy::dag::Edge *input,
       nndeploy::dag::Edge *output) {
-    return std::make_unique<nndeploy::dag::Graph>(name, input, output);
+    return std::make_unique<nndeploy::dag::Graph>(name, std::vector<nndeploy::dag::Edge *>{input}, std::vector<nndeploy::dag::Edge *>{output});
   }
 
   std::unique_ptr<nndeploy::dag::Graph> constructGraphWithVecArgs(
@@ -39,7 +39,7 @@ class ProcessNode : public nndeploy::dag::Node {
 
   ProcessNode(const std::string &name, nndeploy::dag::Edge *input,
               nndeploy::dag::Edge *output)
-      : Node(name, input, output) {}
+      : Node(name, {input}, {output}) {}
 
   virtual ~ProcessNode() {}
 

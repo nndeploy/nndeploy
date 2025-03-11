@@ -11,6 +11,7 @@ class ThemeManager:
                 "border": colors.BLUE_GREY_300,
                 "node_header": colors.BLUE_GREY_100,
                 "toolbar": "#cccccc",
+                "divider": colors.BLUE_GREY_200,
             },
             "dark": {
                 "background": "#292e3b",
@@ -23,6 +24,7 @@ class ThemeManager:
                     end=alignment.center_right,
                     colors=["#56647b", "#b4c2dc"]
                 ),
+                "divider": "#3a4254",
             }
         }
 
