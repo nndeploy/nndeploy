@@ -94,7 +94,7 @@ base::Status SequentialRuntime::reshape(base::ShapeMap &shape_map) {
     NNDEPLOY_LOGE("reshape is not supported in static shape\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  bool channge_flag = false;
+  bool change_flag = false;
   bool is_reallocate = false;
   for (auto iter : shape_map) {
     std::string name = iter.first;
@@ -106,7 +106,7 @@ base::Status SequentialRuntime::reshape(base::ShapeMap &shape_map) {
         if (base::shapeEqual(old_shape, shape, 0, -1)) {
           continue;
         }
-        channge_flag = true;
+        change_flag = true;
         if (!max_shape_.empty()) {
           if (max_shape_.find(name) != max_shape_.end()) {
             base::IntVector max_shape = max_shape_[name];
@@ -123,7 +123,7 @@ base::Status SequentialRuntime::reshape(base::ShapeMap &shape_map) {
       }
     }
   }
-  if (channge_flag) {
+  if (change_flag) {
     if (is_reallocate) {
       status = tensor_pool_->deallocate();
       if (status != base::kStatusCodeOk) {

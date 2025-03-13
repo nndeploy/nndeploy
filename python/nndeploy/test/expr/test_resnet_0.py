@@ -6,8 +6,10 @@ import torch
 import torch.nn.functional as F
 import nndeploy
 
-from nndeploy.test.test_util import create_tensor_from_numpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
 from nndeploy.net import build_model
+
+import nndeploy._nndeploy_internal as _C
 
 input_shape = [1, 2048, 7, 7]
 conv1_weight_shape = [512, 2048, 1, 1]
@@ -170,11 +172,9 @@ class TestResnet(nndeploy.net.Model):
 
     @build_model
     def construct(self, enable_net_opt=True, enable_pass=set(), disable_pass=set()):
-        data_type = nndeploy._C.base.DataType()
-        data_type.code_ = nndeploy._C.base.DataTypeCode.kDataTypeCodeFp
-        data = nndeploy._C.op.makeInput(
-            self.model_desc, "input", data_type, [1, 2048, 7, 7]
-        )
+        data_type = _C.base.DataType()
+        data_type.code_ = _C.base.DataTypeCode.Fp
+        data = _C.op.makeInput(self.model_desc, "input", data_type, [1, 2048, 7, 7])
 
         result = self.conv1(data)
         result = self.bn1(result)
@@ -201,7 +201,7 @@ def compare(model, file_path):
 
     assert np.allclose(
         torch_result.detach().numpy(),
-        createNumpyFromTensor(nndeploy_result),
+        create_numpy_from_tensor(nndeploy_result),
         rtol=1e-05,
         atol=1e-05,
     )
