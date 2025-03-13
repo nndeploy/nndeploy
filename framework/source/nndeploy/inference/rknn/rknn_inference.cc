@@ -24,7 +24,7 @@ base::Status RknnInference::init() {
   }
   std::string model_buffer;
   RknnInferenceParam *rknn_inference_param =
-      dynamic_cast<RknnInferenceParam *>(inference_param_);
+      dynamic_cast<RknnInferenceParam *>(inference_param_.get());
   if (rknn_inference_param->is_path_) {
     model_buffer = base::openFile(rknn_inference_param->model_value_[0]);
   } else {

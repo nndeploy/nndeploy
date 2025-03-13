@@ -22,10 +22,35 @@ namespace codec {
 
 class NNDEPLOY_CC_API DecodeNode : public dag::Node {
  public:
-  DecodeNode(base::CodecFlag flag, const std::string &name, dag::Edge *output)
-      : dag::Node(name, {}, {output}), flag_(flag) {}
+  DecodeNode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
+    flag_ = flag;
+    node_type_ = dag::NodeType::kNodeTypeInput;
+    // this->setOutputTypeInfo<cv::Mat>();
+  }
+  DecodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+             std::vector<dag::Edge *> outputs, base::CodecFlag flag)
+      : dag::Node(name) {
+    flag_ = flag;
+    node_type_ = dag::NodeType::kNodeTypeInput;
+    // this->setOutputTypeInfo<cv::Mat>();
+    if (inputs.size() > 0) {
+      NNDEPLOY_LOGE("DecodeNode not support inputs");
+      constructed_ = false;
+      return;
+    }
+    if (outputs.size() > 1) {
+      NNDEPLOY_LOGE("DecodeNode only support one output");
+      constructed_ = false;
+      return;
+    }
+    outputs_ = outputs;
+  }
   virtual ~DecodeNode() {}
 
+  base::Status setCodecFlag(base::CodecFlag flag) {
+    flag_ = flag;
+    return base::kStatusCodeOk;
+  }
   base::CodecFlag getCodecFlag() { return flag_; }
   void setPath(const std::string &path) {
     path_ = path;
@@ -66,10 +91,35 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
 
 class NNDEPLOY_CC_API EncodeNode : public dag::Node {
  public:
-  EncodeNode(base::CodecFlag flag, const std::string &name, dag::Edge *input)
-      : dag::Node(name, {input}, {}), flag_(flag) {};
+  EncodeNode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
+    flag_ = flag;
+    node_type_ = dag::NodeType::kNodeTypeOutput;
+    // this->setInputTypeInfo<cv::Mat>();
+  }
+  EncodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+             std::vector<dag::Edge *> outputs, base::CodecFlag flag)
+      : dag::Node(name) {
+    flag_ = flag;
+    // this->setInputTypeInfo<cv::Mat>();
+    node_type_ = dag::NodeType::kNodeTypeOutput;
+    if (inputs.size() > 1) {
+      NNDEPLOY_LOGE("EncodeNode only support one input");
+      constructed_ = false;
+      return;
+    }
+    inputs_ = inputs;
+    if (outputs.size() > 0) {
+      NNDEPLOY_LOGE("EncodeNode not support outputs");
+      constructed_ = false;
+      return;
+    }
+  }
   virtual ~EncodeNode() {};
 
+  base::Status setCodecFlag(base::CodecFlag flag) {
+    flag_ = flag;
+    return base::kStatusCodeOk;
+  }
   base::CodecFlag getCodecFlag() { return flag_; }
   void setPath(const std::string &path) { path_ = path; }
   void setRefPath(const std::string &ref_path) { ref_path_ = ref_path; }
@@ -95,9 +145,14 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
 
 using createDecodeNodeFunc = std::function<DecodeNode *(
     base::CodecFlag flag, const std::string &name, dag::Edge *output)>;
+using createDecodeNodeSharedPtrFunc = std::function<std::shared_ptr<DecodeNode>(
+    base::CodecFlag flag, const std::string &name, dag::Edge *output)>;
 
 std::map<base::CodecType, createDecodeNodeFunc> &
 getGlobaCreatelDecodeNodeFuncMap();
+
+std::map<base::CodecType, createDecodeNodeSharedPtrFunc> &
+getGlobaCreatelDecodeNodeSharedPtrFuncMap();
 
 class TypeCreatelDecodeNodeRegister {
  public:
@@ -107,16 +162,32 @@ class TypeCreatelDecodeNodeRegister {
   }
 };
 
+class TypeCreatelDecodeNodeSharedPtrRegister {
+ public:
+  explicit TypeCreatelDecodeNodeSharedPtrRegister(
+      base::CodecType type, createDecodeNodeSharedPtrFunc func) {
+    getGlobaCreatelDecodeNodeSharedPtrFuncMap()[type] = func;
+  }
+};
 extern NNDEPLOY_CC_API DecodeNode *createDecodeNode(base::CodecType type,
                                                     base::CodecFlag flag,
                                                     const std::string &name,
                                                     dag::Edge *output);
 
+extern NNDEPLOY_CC_API std::shared_ptr<DecodeNode> createDecodeNodeSharedPtr(
+    base::CodecType type, base::CodecFlag flag, const std::string &name,
+    dag::Edge *output);
+
 using createEncodeNodeFunc = std::function<EncodeNode *(
+    base::CodecFlag flag, const std::string &name, dag::Edge *input)>;
+using createEncodeNodeSharedPtrFunc = std::function<std::shared_ptr<EncodeNode>(
     base::CodecFlag flag, const std::string &name, dag::Edge *input)>;
 
 std::map<base::CodecType, createEncodeNodeFunc> &
 getGlobaCreatelEncodeNodeFuncMap();
+
+std::map<base::CodecType, createEncodeNodeSharedPtrFunc> &
+getGlobaCreatelEncodeNodeSharedPtrFuncMap();
 
 class TypeCreatelEncodeNodeRegister {
  public:
@@ -126,10 +197,22 @@ class TypeCreatelEncodeNodeRegister {
   }
 };
 
+class TypeCreatelEncodeNodeSharedPtrRegister {
+ public:
+  explicit TypeCreatelEncodeNodeSharedPtrRegister(
+      base::CodecType type, createEncodeNodeSharedPtrFunc func) {
+    getGlobaCreatelEncodeNodeSharedPtrFuncMap()[type] = func;
+  }
+};
+
 extern NNDEPLOY_CC_API EncodeNode *createEncodeNode(base::CodecType type,
                                                     base::CodecFlag flag,
                                                     const std::string &name,
                                                     dag::Edge *input);
+
+extern NNDEPLOY_CC_API std::shared_ptr<EncodeNode> createEncodeNodeSharedPtr(
+    base::CodecType type, base::CodecFlag flag, const std::string &name,
+    dag::Edge *input);
 
 }  // namespace codec
 }  // namespace nndeploy

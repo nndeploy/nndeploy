@@ -47,18 +47,16 @@ class NNDEPLOY_CC_API YoloMultiOutputPostProcess : public dag::Node {
  public:
   YoloMultiOutputPostProcess(const std::string &name) : dag::Node(name) {
     param_ = std::make_shared<YoloMultiOutputPostParam>();
-  }
-  YoloMultiOutputPostProcess(const std::string &name,
-                             std::initializer_list<dag::Edge *> inputs,
-                             std::initializer_list<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {
-    param_ = std::make_shared<YoloMultiOutputPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<DetectResult>();
   }
   YoloMultiOutputPostProcess(const std::string &name,
                              std::vector<dag::Edge *> inputs,
                              std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<YoloMultiOutputPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<DetectResult>();
   }
   virtual ~YoloMultiOutputPostProcess() {}
 
@@ -67,14 +65,17 @@ class NNDEPLOY_CC_API YoloMultiOutputPostProcess : public dag::Node {
 
 class NNDEPLOY_CC_API YoloMultiOutputGraph : public dag::Graph {
  public:
-  YoloMultiOutputGraph(const std::string &name) : dag::Graph(name) {}
+  YoloMultiOutputGraph(const std::string &name) : dag::Graph(name) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<DetectResult>();
+  }
   YoloMultiOutputGraph(const std::string &name,
-                       std::initializer_list<dag::Edge *> inputs,
-                       std::initializer_list<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
-  YoloMultiOutputGraph(const std::string &name, std::vector<dag::Edge *> inputs,
+                       std::vector<dag::Edge *> inputs,
                        std::vector<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
+      : dag::Graph(name, inputs, outputs) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<DetectResult>();
+  }
 
   virtual ~YoloMultiOutputGraph() {}
 

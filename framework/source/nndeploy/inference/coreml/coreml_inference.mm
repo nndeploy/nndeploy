@@ -20,7 +20,7 @@ base::Status CoremlInference::init() {
   }
 
   CoremlInferenceParam *coreml_inference_param =
-      dynamic_cast<CoremlInferenceParam *>(inference_param_);
+      dynamic_cast<CoremlInferenceParam *>(inference_param_.get());
   config_ = [MLModelConfiguration alloc];
 
   CoremlConvert::convertFromInferenceParam(coreml_inference_param, config_);

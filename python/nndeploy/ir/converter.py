@@ -17,7 +17,7 @@ class Convert():
     def __init__(self, type: str) -> None:
         self.interpret = create_interpret(nndeploy.base.name_to_model_type(type))
 
-    def convert(self, model_value: List[str], structure_file_path: str, weight_file_path: str, input: List[nndeploy._C.ir.ValueDesc] = []) -> None:
+    def convert(self, model_value: List[str], structure_file_path: str, weight_file_path: str, input: List[_C.ir.ValueDesc] = []) -> None:
         self.interpret.interpret(model_value, input)
         self.interpret.save_model_to_file(structure_file_path, weight_file_path)
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     if args.input != "":
         input_list = args.input.split(";")
         input_list = [input.split(",") for input in input_list]
-        input_list = [nndeploy._C.ir.ValueDesc(name=input[0], type=input[1], shape=input[2]) for input in input_list]
+        input_list = [_C.ir.ValueDesc(name=input[0], type=input[1], shape=input[2]) for input in input_list]
     else:
         input_list = []
 

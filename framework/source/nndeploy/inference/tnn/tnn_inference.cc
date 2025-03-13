@@ -17,7 +17,7 @@ base::Status TnnInference::init() {
   base::Status status = base::kStatusCodeOk;
 
   TnnInferenceParam *tnn_inference_param =
-      dynamic_cast<TnnInferenceParam *>(inference_param_);
+      dynamic_cast<TnnInferenceParam *>(inference_param_.get());
   if (device::isHostDeviceType(inference_param_->device_type_)) {
     is_share_context_ = true;
   } else {

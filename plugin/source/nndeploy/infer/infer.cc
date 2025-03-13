@@ -4,53 +4,36 @@
 namespace nndeploy {
 namespace infer {
 
-Infer::Infer(const std::string &name, base::InferenceType type,
-             dag::Edge *input, dag::Edge *output)
-    : dag::Node(name, input, output) {
-  type_ = type;
-  inference_ = inference::createInference(type);
-  if (inference_ == nullptr) {
-    NNDEPLOY_LOGE("Failed to create inference");
-    constructed_ = false;
-  } else {
-    constructed_ = true;
-  }
-}
-Infer::Infer(const std::string &name, base::InferenceType type,
-             std::initializer_list<dag::Edge *> inputs,
-             std::initializer_list<dag::Edge *> outputs)
-    : dag::Node(name, inputs, outputs) {
-  type_ = type;
-  inference_ = inference::createInference(type);
-  if (inference_ == nullptr) {
-    NNDEPLOY_LOGE("Failed to create inference");
-    constructed_ = false;
-  } else {
-    constructed_ = true;
-  }
-}
-Infer::Infer(const std::string &name, base::InferenceType type,
-             std::vector<dag::Edge *> inputs, std::vector<dag::Edge *> outputs)
-    : dag::Node(name, inputs, outputs) {
-  type_ = type;
-  inference_ = inference::createInference(type);
-  if (inference_ == nullptr) {
-    NNDEPLOY_LOGE("Failed to create inference");
-    constructed_ = false;
-  } else {
-    constructed_ = true;
-  }
-}
-
 Infer::Infer(const std::string &name) : dag::Node(name) {}
-Infer::Infer(const std::string &name, std::initializer_list<dag::Edge *> inputs,
-             std::initializer_list<dag::Edge *> outputs)
-    : dag::Node(name, inputs, outputs) {}
 Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
     : dag::Node(name, inputs, outputs) {}
 
-Infer::~Infer() { delete inference_; }
+Infer::Infer(const std::string &name, base::InferenceType type)
+    : dag::Node(name) {
+  type_ = type;
+  inference_ = inference::createInference(type);
+  if (inference_ == nullptr) {
+    NNDEPLOY_LOGE("Failed to create inference");
+    constructed_ = false;
+  } else {
+    constructed_ = true;
+  }
+}
+Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
+             std::vector<dag::Edge *> outputs, base::InferenceType type)
+    : dag::Node(name, inputs, outputs) {
+  type_ = type;
+  inference_ = inference::createInference(type);
+  if (inference_ == nullptr) {
+    NNDEPLOY_LOGE("Failed to create inference");
+    constructed_ = false;
+  } else {
+    constructed_ = true;
+  }
+}
+
+Infer::~Infer() {}
 
 base::Status Infer::setInferenceType(base::InferenceType inference_type) {
   if (inference_ == nullptr) {
@@ -73,6 +56,16 @@ base::Status Infer::setParam(base::Param *param) {
   return status;
 }
 base::Param *Infer::getParam() { return inference_->getParam(); }
+
+base::Status Infer::setParamSharedPtr(std::shared_ptr<base::Param> param) {
+  base::Status status = base::kStatusCodeOk;
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is nullptr");
+  status = inference_->setParamSharedPtr(param);
+  return status;
+}
+std::shared_ptr<base::Param> Infer::getParamSharedPtr() {
+  return inference_->getParamSharedPtr();
+}
 
 base::Status Infer::init() {
   base::Status status = base::kStatusCodeOk;
@@ -212,7 +205,7 @@ base::Status Infer::run() {
       tensor->print(output_file);
       output_file.close();
     } else {
-      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
+      NNDEPLOY_LOGE("can't open file: %s", filename.c_str());
     }
 #endif
 
@@ -222,7 +215,9 @@ base::Status Infer::run() {
   return status;
 }
 
-inference::Inference *Infer::getInference() { return inference_; }
+std::shared_ptr<inference::Inference> Infer::getInference() {
+  return inference_;
+}
 
 REGISTER_NODE("nndeploy::infer::Infer", Infer);
 

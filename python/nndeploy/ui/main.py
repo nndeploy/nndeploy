@@ -12,21 +12,25 @@ import settings
 def main(page: Page):
     # 设置主题
     page.theme_mode = ThemeMode.LIGHT
-    page.theme = Theme(color_scheme_seed=colors.BLUE)
+    page.theme = Theme(color_scheme_seed=flet.Colors.BLUE)
     
     # 设置窗口大小
     page.window_width = 1200
     page.window_height = 800
     page.padding = 0
     page.scroll = None
-    page.bgcolor = flet.colors.WHITE
+    page.bgcolor = flet.Colors.WHITE
+    
+    # 初始化 FilePicker 并添加到页面
+    page.file_picker = flet.FilePicker()  # 将 file_picker 作为 page 的属性
+    page.overlay.append(page.file_picker)  # 添加到 overlay
     
     # 视图映射
     views = {
         "/": HomeView(page),
         "/app/object_detection": ObjectDetectionView(page),
         "/workflow": WorkflowView(page),
-        "/about": AboutUsView(page),  # 添加关于页面
+        "/about": AboutUsView(page),
     }
     
     def route_change(route):
@@ -55,4 +59,5 @@ def main(page: Page):
 if __name__ == "__main__":
     assets_dir = os.path.join(os.path.dirname(__file__), "assets")
     #view=flet.WEB_BROWSER
-    flet.app(target=main, assets_dir=assets_dir)
+    flet.app(target=main, assets_dir=assets_dir, view=flet.WEB_BROWSER, port=9090)
+    # flet.app(target=main, assets_dir=assets_dir)

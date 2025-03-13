@@ -24,23 +24,17 @@ namespace preprocess {
 
 class NNDEPLOY_CC_API CvtColorResizePad : public dag::Node {
  public:
-  // CvtColorResizePad(const std::string &name, dag::Edge *input,
-  //                   dag::Edge *output)
-  //     : Node(name, {input}, {output}) {
-  //   param_ = std::make_shared<CvtclorResizePadParam>();
-  // }
   CvtColorResizePad(const std::string &name) : dag::Node(name) {
     param_ = std::make_shared<CvtclorResizePadParam>();
-  }
-  CvtColorResizePad(const std::string &name, std::initializer_list<dag::Edge *> inputs,
-            std::initializer_list<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {
-    param_ = std::make_shared<CvtclorResizePadParam>();
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<device::Tensor>();
   }
   CvtColorResizePad(const std::string &name, std::vector<dag::Edge *> inputs,
             std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     param_ = std::make_shared<CvtclorResizePadParam>();
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<device::Tensor>();
   }
   virtual ~CvtColorResizePad() {}
 

@@ -31,12 +31,6 @@ namespace dag {
 class NNDEPLOY_CC_API Graph : public Node {
  public:
   Graph(const std::string &name);
-
-  // NNDEPLOY_DEPRECATED("deprecated api")
-  Graph(const std::string &name, Edge *input, Edge *output);
-
-  Graph(const std::string &name, std::initializer_list<Edge *> inputs,
-        std::initializer_list<Edge *> outputs);
   Graph(const std::string &name, std::vector<Edge *> inputs,
         std::vector<Edge *> outputs);
 
@@ -66,7 +60,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   EdgeWrapper *addEdge(Edge *edge, bool is_external = true);
   EdgeWrapper *addEdgeSharedPtr(std::shared_ptr<Edge> edge);
 
-  base::Status removeEdge(Edge *edge);
+  base::Status updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
+                         bool is_external = true);
 
   /**
    * @brief 获取Graph中的Edge
@@ -75,6 +70,16 @@ class NNDEPLOY_CC_API Graph : public Node {
    */
   Edge *getEdge(const std::string &name);
   std::shared_ptr<Edge> getEdgeSharedPtr(const std::string &name);
+
+  /**
+   * @brief 在Graph中创建一个Node
+   * @param  name             Node名称
+   * @param  args             Node的参数
+   * @return Node*
+   */
+  template <typename T, typename... Args,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name, Args &...args);
 
   /**
    * @brief 在Graph中创建一个Node，并关联input、output的Edge
@@ -404,22 +409,91 @@ class NNDEPLOY_CC_API Graph : public Node {
    * @return base::Status
    */
   base::Status addNode(Node *node, bool is_external = true);
-  base::Status addNode(std::shared_ptr<Node> node);
+  base::Status addNodeSharedPtr(std::shared_ptr<Node> node);
 
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);
+  base::Status setNodeParamSharedPtr(const std::string &node_name,
+                                     std::shared_ptr<base::Param> param);
+  std::shared_ptr<base::Param> getNodeParamSharedPtr(
+      const std::string &node_name);
 
   void setGraphNodeShareStream(bool flag);
   bool getGraphNodeShareStream();
 
-  std::vector<std::shared_ptr<Edge>> updateNodeIO(
-      Node *node, std::vector<std::shared_ptr<Edge>> inputs,
-      std::vector<std::string> outputs_name);
+  base::Status updateNodeIO(Node *node, std::vector<Edge *> inputs,
+                            std::vector<Edge *> outputs);
 
   virtual base::Status init();
   virtual base::Status deinit();
 
   virtual base::Status run();
+
+  // This method must be implemented by subclasses
+  // Subclasses should override this method to define their own operator()
+  // implementation
+  virtual std::vector<Edge *> operator()(
+      std::vector<Edge *> inputs,
+      std::vector<std::string> outputs_name = std::vector<std::string>(),
+      std::shared_ptr<base::Param> param = nullptr) {
+    // check
+    if (!checkInputs(inputs)) {
+      return std::vector<Edge *>();
+    }
+    if (!checkOutputs(outputs_name)) {
+      return std::vector<Edge *>();
+    }
+    if (param != nullptr) {
+      this->setParamSharedPtr(param);
+    }
+    bool is_inputs_changed = isInputsChanged(inputs);
+    if (!inputs.empty()) {
+      this->setInputs(inputs);
+    }
+    std::vector<std::string> real_outputs_name =
+        this->getRealOutputsName(outputs_name);
+    std::vector<Edge *> outputs;
+    for (auto name : real_outputs_name) {
+      Edge *edge = nullptr;
+      if (graph_ != nullptr) {
+        edge = graph_->getEdge(name);
+        if (edge != nullptr) {
+          outputs.push_back(edge);
+        }
+      }
+      if (edge == nullptr) {
+        edge = this->createEdge(name);
+        if (edge != nullptr) {
+          outputs.push_back(edge);
+        } else {
+          NNDEPLOY_LOGE("createEdge failed.\n");
+          return std::vector<Edge *>();
+        }
+      }
+    }
+    if (!outputs.empty()) {
+      this->setOutputs(outputs);
+    }
+    if (graph_ != nullptr) {
+      base::Status status = graph_->updateNodeIO(this, inputs, outputs);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+        return std::vector<Edge *>();
+      }
+    }
+    if (!is_inputs_changed && is_compiled_) {
+      if (initialized_ == false) {
+        this->init();
+        this->setInitializedFlag(true);
+      }
+      base::Status status = this->run();
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("this->run() failed.\n");
+        return std::vector<Edge *>();
+      }
+    }
+    return outputs;
+  };
 
   base::Status dump(std::ostream &oss = std::cout);
 
@@ -437,6 +511,27 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::set<std::string> used_edge_names_;
   std::shared_ptr<Executor> executor_;
 };
+
+template <typename T, typename... Args,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
+Node *Graph::createNode(const std::string &name, Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
+  std::vector<Edge *> inputs;
+  std::vector<Edge *> outputs;
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, args...));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
+  return node;
+}
 
 template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
@@ -464,6 +559,8 @@ Node *Graph::createNode(const std::string &name, Edge *input, Edge *output,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -501,6 +598,8 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -534,6 +633,8 @@ Node *Graph::createNode(const std::string &name, Edge *input,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -567,6 +668,8 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -600,6 +703,8 @@ Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -650,6 +755,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -692,6 +799,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -733,6 +842,8 @@ Node *Graph::createNode(const std::string &name, std::vector<Edge *> inputs,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -767,6 +878,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -818,6 +931,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -861,6 +976,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -903,6 +1020,8 @@ Node *Graph::createNode(const std::string &name,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -914,7 +1033,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -932,6 +1051,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -952,7 +1073,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   if (output == nullptr) {
     output = createEdge(output_name);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -970,6 +1091,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -985,7 +1108,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   if (output == nullptr) {
     output = createEdge(output_name);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1003,6 +1126,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1018,7 +1143,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   if (input == nullptr) {
     input = createEdge(input_name);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, input, output));
+  Node *node = dynamic_cast<Node *>(new T(name, {input}, {output}, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1036,6 +1161,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1048,7 +1175,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1070,6 +1197,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_edge_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1098,7 +1227,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     outputs.emplace_back(output);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1120,6 +1249,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1140,7 +1271,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     outputs.emplace_back(output);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1162,6 +1293,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1182,7 +1315,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     inputs.emplace_back(input);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1204,6 +1337,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1216,7 +1351,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
     return nullptr;
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1238,6 +1373,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1266,7 +1403,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     outputs.emplace_back(output);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1288,6 +1425,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1308,7 +1447,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
     }
     outputs.emplace_back(output);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1330,6 +1469,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1354,7 +1495,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   for (auto output : outputs) {
     outputs_vec.emplace_back(output);
   }
-  Node *node = dynamic_cast<Node *>(new T(name, type, inputs, outputs_vec));
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs_vec, type));
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -1376,6 +1517,8 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
+  node->setGraph(this);
+  ;
   return node;
 }
 
@@ -1427,6 +1570,7 @@ Node *Graph::createNode(const NodeDesc &desc, Args &...args) {
     NNDEPLOY_LOGE("create infer node[%s] failed!\n", desc.getName().c_str());
     return node;
   }
+  node->setGraph(this);
   return node;
 }
 

@@ -13,6 +13,8 @@ set(THIRD_PARTY_LIBRARY)
 set(PACKAGE_VERSION ${NNDEPLOY_VERSION})
 add_definitions(-DVERSION_INFO="${PACKAGE_VERSION}")
 
+add_definitions(-DPYBIND11_DETAILED_ERROR_MESSAGES)
+
 # 添加 pybind11 子目录
 add_subdirectory(${ROOT_PATH}/third_party/pybind11)
 
@@ -21,11 +23,169 @@ include_directories(${ROOT_PATH}/python/src)
 include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
 
 # TODO:SOURCE 
-file(GLOB_RECURSE  PYTHON_SOURCE
+# nndeploy source
+file(GLOB PYTHON_SOURCE
   "${ROOT_PATH}/python/src/*.h"
   "${ROOT_PATH}/python/src/*.cc"
 )
 set(SOURCE ${SOURCE} ${PYTHON_SOURCE})
+
+# framework
+if(ENABLE_NNDEPLOY_BASE)
+  file(GLOB_RECURSE PYTHON_BASE_SOURCE
+    "${ROOT_PATH}/python/src/base/*.h"
+    "${ROOT_PATH}/python/src/base/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_BASE_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_THREAD_POOL)
+  file(GLOB_RECURSE PYTHON_THREAD_POOL_SOURCE
+    "${ROOT_PATH}/python/src/thread_pool/*.h"
+    "${ROOT_PATH}/python/src/thread_pool/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_THREAD_POOL_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_CRYPTION)
+  file(GLOB_RECURSE PYTHON_CRYPTION_SOURCE
+    "${ROOT_PATH}/python/src/cryption/*.h"
+    "${ROOT_PATH}/python/src/cryption/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_CRYPTION_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_DEVICE)
+  file(GLOB_RECURSE PYTHON_DEVICE_SOURCE
+    "${ROOT_PATH}/python/src/device/*.h"
+    "${ROOT_PATH}/python/src/device/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_DEVICE_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_IR)
+  file(GLOB_RECURSE PYTHON_IR_SOURCE
+    "${ROOT_PATH}/python/src/ir/*.h"
+    "${ROOT_PATH}/python/src/ir/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_IR_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_OP)
+  file(GLOB_RECURSE PYTHON_OP_SOURCE
+    "${ROOT_PATH}/python/src/op/*.h"
+    "${ROOT_PATH}/python/src/op/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_OP_SOURCE})
+endif()
+
+# if(ENABLE_NNDEPLOY_NET)
+#   file(GLOB_RECURSE PYTHON_NET_SOURCE
+#     "${ROOT_PATH}/python/src/net/*.h"
+#     "${ROOT_PATH}/python/src/net/*.cc"
+#   )
+#   set(SOURCE ${SOURCE} ${PYTHON_NET_SOURCE})
+# endif()
+
+if(ENABLE_NNDEPLOY_INFERENCE)
+  file(GLOB_RECURSE PYTHON_INFERENCE_SOURCE
+    "${ROOT_PATH}/python/src/inference/*.h"
+    "${ROOT_PATH}/python/src/inference/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_INFERENCE_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_DAG)
+  file(GLOB_RECURSE PYTHON_DAG_SOURCE
+    "${ROOT_PATH}/python/src/dag/*.h"
+    "${ROOT_PATH}/python/src/dag/*.cc"
+  )
+  list(REMOVE_ITEM PYTHON_DAG_SOURCE 
+    "${ROOT_PATH}/python/src/dag/node.cc"
+    "${ROOT_PATH}/python/src/dag/graph.cc"
+  )
+  set(PYTHON_DAG_SOURCE ${PYTHON_DAG_SOURCE}
+    # 依赖于node.cc的文件后列出
+    "${ROOT_PATH}/python/src/dag/node.cc"
+    "${ROOT_PATH}/python/src/dag/graph.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_DAG_SOURCE})
+  message(STATUS "PYTHON_DAG_SOURCE: ${PYTHON_DAG_SOURCE}")
+endif()
+
+# plugin
+if(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
+  file(GLOB_RECURSE PYTHON_PREPROCESS_SOURCE
+    "${ROOT_PATH}/python/src/preprocess/*.h"
+    "${ROOT_PATH}/python/src/preprocess/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_PREPROCESS_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
+  file(GLOB_RECURSE PYTHON_CODEC_SOURCE
+    "${ROOT_PATH}/python/src/codec/*.h"
+    "${ROOT_PATH}/python/src/codec/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_CODEC_SOURCE})
+  message(STATUS "PYTHON_CODEC_SOURCE: ${PYTHON_CODEC_SOURCE}")
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_INFER)
+  file(GLOB_RECURSE PYTHON_INFER_SOURCE
+    "${ROOT_PATH}/python/src/infer/*.h"
+    "${ROOT_PATH}/python/src/infer/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_INFER_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
+  file(GLOB_RECURSE PYTHON_TOKENIZER_SOURCE
+    "${ROOT_PATH}/python/src/tokenizer/*.h"
+    "${ROOT_PATH}/python/src/tokenizer/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_TOKENIZER_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
+  file(GLOB_RECURSE PYTHON_DETECT_SOURCE
+    "${ROOT_PATH}/python/src/detect/*.h"
+    "${ROOT_PATH}/python/src/detect/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_DETECT_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
+  file(GLOB_RECURSE PYTHON_SEGMENT_SOURCE
+    "${ROOT_PATH}/python/src/segment/*.h"
+    "${ROOT_PATH}/python/src/segment/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_SEGMENT_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
+  file(GLOB_RECURSE PYTHON_CLASSIFICATION_SOURCE
+    "${ROOT_PATH}/python/src/classification/*.h"
+    "${ROOT_PATH}/python/src/classification/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_CLASSIFICATION_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_LLM)
+  file(GLOB_RECURSE PYTHON_LLM_SOURCE
+    "${ROOT_PATH}/python/src/llm/*.h"
+    "${ROOT_PATH}/python/src/llm/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_LLM_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
+  file(GLOB_RECURSE PYTHON_STABLE_DIFFUSION_SOURCE
+    "${ROOT_PATH}/python/src/stable_diffusion/*.h"
+    "${ROOT_PATH}/python/src/stable_diffusion/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_STABLE_DIFFUSION_SOURCE})
+endif()
 
 # 创建 Python 模块
 pybind11_add_module(${BINARY} ${SOURCE})

@@ -73,5 +73,23 @@ bool isNumeric(const std::string &str) {
   return true;
 }
 
+std::string getUniqueString() {
+  // Add timestamp
+  auto now = std::chrono::system_clock::now();
+  auto timestamp = std::chrono::duration_cast<std::chrono::microseconds>(
+      now.time_since_epoch()).count();
+  
+  // Generate random number
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<> dis(0, 999999);
+  int random = dis(gen);
+  
+  // Combine to generate unique string
+  std::stringstream ss;
+  ss << timestamp << "_" << random;
+  return ss.str();
+}
+
 }  // namespace base
 }  // namespace nndeploy

@@ -6,22 +6,54 @@
 namespace nndeploy {
 namespace dag {
 
-Edge::Edge() : name_(""), abstact_edge_(nullptr) {}
-Edge::Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
-Edge::~Edge() { delete abstact_edge_; }
+// Edge::Edge() : name_(""), abstact_edge_(nullptr) {}
+// Edge::Edge(const std::string &name) : name_(name), abstact_edge_(nullptr) {}
+Edge::Edge() {
+  name_ = "edge_" + base::getUniqueString();
+  abstact_edge_ = createEdge(base::kParallelTypeNone);
+  if (abstact_edge_ == nullptr) {
+    NNDEPLOY_LOGE("out of memory!\n");
+    return;
+  }
+  // this->construct();
+}
+Edge::Edge(const std::string &name) : name_(name) {
+  if (name.empty()) {
+    name_ = "edge_" + base::getUniqueString();
+  } else {
+    name_ = name;
+  }
+  abstact_edge_ = createEdge(base::kParallelTypeNone);
+  if (abstact_edge_ == nullptr) {
+    NNDEPLOY_LOGE("out of memory!\n");
+    return;
+  }
+  // this->construct();
+}
+Edge::~Edge() {
+  // NNDEPLOY_LOGI("Edge[%s]::~Edge() START\n", name_.c_str());
+  if (abstact_edge_ != nullptr) {
+    delete abstact_edge_;
+    abstact_edge_ = nullptr;
+  }
+  // NNDEPLOY_LOGI("Edge[%s]::~Edge() END\n", name_.c_str());
+}
 
 std::string Edge::getName() { return name_; }
 
 base::Status Edge::construct() { return abstact_edge_->construct(); }
 
 base::Status Edge::set(device::Buffer *buffer, int index, bool is_external) {
+  this->setTypeInfo<device::Buffer>();
   return abstact_edge_->set(buffer, index, is_external);
 }
 base::Status Edge::set(device::Buffer &buffer, int index) {
+  this->setTypeInfo<device::Buffer>();
   return this->set(&buffer, index, true);
 }
 device::Buffer *Edge::create(device::Device *device,
                              const device::BufferDesc &desc, int index) {
+  this->setTypeInfo<device::Buffer>();
   return abstact_edge_->create(device, desc, index);
 }
 bool Edge::notifyWritten(device::Buffer *buffer) {
@@ -36,13 +68,16 @@ device::Buffer *Edge::getGraphOutputBuffer() {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
 base::Status Edge::set(cv::Mat *cv_mat, int index, bool is_external) {
+  this->setTypeInfo<cv::Mat>();
   return abstact_edge_->set(cv_mat, index, is_external);
 }
 base::Status Edge::set(cv::Mat &cv_mat, int index) {
+  this->setTypeInfo<cv::Mat>();
   return this->set(&cv_mat, index, true);
 }
 cv::Mat *Edge::create(int rows, int cols, int type, const cv::Vec3b &value,
                       int index) {
+  this->setTypeInfo<cv::Mat>();
   return abstact_edge_->create(rows, cols, type, value, index);
 }
 bool Edge::notifyWritten(cv::Mat *cv_mat) {
@@ -57,14 +92,24 @@ cv::Mat *Edge::getGraphOutputCvMat() {
 #endif
 
 base::Status Edge::set(device::Tensor *tensor, int index, bool is_external) {
+  this->setTypeInfo<device::Tensor>();
   return abstact_edge_->set(tensor, index, is_external);
 }
 base::Status Edge::set(device::Tensor &tensor, int index) {
+  this->setTypeInfo<device::Tensor>();
   return this->set(&tensor, index, true);
 }
 device::Tensor *Edge::create(device::Device *device,
-                             const device::TensorDesc &desc, int index) {
-  return abstact_edge_->create(device, desc, index, name_);
+                             const device::TensorDesc &desc, int index,
+                             std::string tensor_name) {
+  this->setTypeInfo<device::Tensor>();
+  if (tensor_name.empty()) {
+    tensor_name = name_;
+  }
+  // if (tensor_name.empty()) {
+  //   tensor_name = "tensor_" + base::getUniqueString();
+  // }
+  return abstact_edge_->create(device, desc, index, tensor_name);
 }
 bool Edge::notifyWritten(device::Tensor *tensor) {
   return abstact_edge_->notifyWritten(tensor);
@@ -77,9 +122,11 @@ device::Tensor *Edge::getGraphOutputTensor() {
 }
 
 base::Status Edge::set(base::Param *param, int index, bool is_external) {
+  this->setTypeInfo<base::Param>();
   return abstact_edge_->set(param, index, is_external);
 }
 base::Status Edge::set(base::Param &param, int index) {
+  this->setTypeInfo<base::Param>();
   return this->set(&param, index, true);
 }
 bool Edge::notifyWritten(base::Param *param) {
@@ -136,6 +183,16 @@ base::Status Edge::increaseConsumers(std::vector<Node *> &consumers) {
 }
 
 bool Edge::requestTerminate() { return abstact_edge_->requestTerminate(); }
+
+base::Status Edge::setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
+  type_info_ = type_info;
+  return base::kStatusCodeOk;
+}
+std::shared_ptr<EdgeTypeInfo> Edge::getTypeInfo() { return type_info_; }
+
+bool Edge::checkTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
+  return *type_info_ == *type_info;
+}
 
 }  // namespace dag
 }  // namespace nndeploy

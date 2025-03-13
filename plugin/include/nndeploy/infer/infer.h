@@ -11,19 +11,13 @@ namespace infer {
 
 class NNDEPLOY_CC_API Infer : public dag::Node {
  public:
-  Infer(const std::string &name, base::InferenceType type, dag::Edge *input,
-        dag::Edge *output);
-  Infer(const std::string &name, base::InferenceType type,
-        std::initializer_list<dag::Edge *> inputs,
-        std::initializer_list<dag::Edge *> outputs);
-  Infer(const std::string &name, base::InferenceType type,
-        std::vector<dag::Edge *> inputs, std::vector<dag::Edge *> outputs);
-
   Infer(const std::string &name);
-  Infer(const std::string &name, std::initializer_list<dag::Edge *> inputs,
-        std::initializer_list<dag::Edge *> outputs);
   Infer(const std::string &name, std::vector<dag::Edge *> inputs,
         std::vector<dag::Edge *> outputs);
+
+  Infer(const std::string &name, base::InferenceType type);
+  Infer(const std::string &name, std::vector<dag::Edge *> inputs,
+        std::vector<dag::Edge *> outputs, base::InferenceType type);
 
   virtual ~Infer();
 
@@ -31,6 +25,9 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
 
   virtual base::Status setParam(base::Param *param);
   virtual base::Param *getParam();
+
+  virtual base::Status setParamSharedPtr(std::shared_ptr<base::Param> param);
+  virtual std::shared_ptr<base::Param> getParamSharedPtr();
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -40,11 +37,11 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
 
   virtual base::Status run();
 
-  virtual inference::Inference *getInference();
+  virtual std::shared_ptr<inference::Inference> getInference();
 
  private:
   base::InferenceType type_;
-  inference::Inference *inference_ = nullptr;
+  std::shared_ptr<inference::Inference> inference_ = nullptr;
 
   bool is_input_dynamic_ = false;
   bool is_output_dynamic_ = false;

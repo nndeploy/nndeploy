@@ -23,7 +23,9 @@ base::Status ParallelTaskExecutor::init(
 
   for (auto iter : topo_sort_node_) {
     iter->color_ = base::kNodeColorWhite;
-    iter->node_->setInitializedFlag(false);
+    if (iter->node_->getInitialized()) {
+      continue;
+    }
     status = iter->node_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node init failure");
     iter->node_->setInitializedFlag(true);
@@ -75,7 +77,7 @@ base::Status ParallelTaskExecutor::run() {
 void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
   node_wrapper->color_ = base::kNodeColorGray;
   const auto& func = [this, node_wrapper] {
-    base::EdgeUpdateFlag edge_update_flag = node_wrapper->node_->updataInput();
+    base::EdgeUpdateFlag edge_update_flag = node_wrapper->node_->updateInput();
     if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
       node_wrapper->node_->setRunningFlag(true);
       // NNDEPLOY_LOGE("node[%s] execute start.\n",
@@ -93,7 +95,7 @@ void ParallelTaskExecutor::process(NodeWrapper* node_wrapper) {
     } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
       return;
     } else {
-      NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",
+      NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
                     node_wrapper->node_->getName().c_str());
       return;
     }

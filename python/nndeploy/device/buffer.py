@@ -44,11 +44,13 @@ class Buffer(_C.device.Buffer):
     
     def get_device(self):
         """Get the device of the buffer"""
-        return super().getDevice()
+        c_device = super().getDevice()
+        return Device(c_device)
     
     def get_memory_pool(self):
         """Get the memory pool of the buffer"""
-        return super().getMemoryPool()
+        c_memory_pool = super().getMemoryPool()
+        return MemoryPool(c_memory_pool)
     
     def is_memory_pool(self):
         """Check if the buffer is from a memory pool"""

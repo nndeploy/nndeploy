@@ -1,161 +1,123 @@
-from typing import Callable
 import flet
-from flet.usercontrol import UserControl
+from flet.canvas import Canvas, Path
+from flet.core.painting import Paint, PaintingStyle
+from flet.core.types import StrokeCap
+import math
+from typing import List
 from flet import (
     Container,
     Stack,
     DragTarget,
     Draggable,
-    alignment,
-    border,
-    colors,
-    Text,
-    Column,
-    Row,
-    IconButton,
-    icons,
+    Colors,
+    Page,
+    GestureDetector,
 )
 
-class NodePort(UserControl):
-    """节点端口类，用于连接节点"""
-    def __init__(self, port_type="input", text=""):
-        super().__init__()
-        self.port_type = port_type
-        self.text = text
-        self.connections = []
-        
-    def build(self):
-        return Container(
-            content=Row([
-                Container(
-                    width=12,
-                    height=12,
-                    border_radius=6,
-                    bgcolor=colors.BLUE if self.port_type == "input" else colors.GREEN,
-                ),
-                Text(self.text, size=12),
-            ]),
-            on_hover=self._on_hover,
-        )
-    
-    def _on_hover(self, e):
-        self.connections
+from custom_nodes import ImageNode, TextNode, VideoNode
+from connection import Connection
+from slot import Slot
+from canvas_manager import CanvasManager
 
-class FlowNode(UserControl):
-    """工作流节点类"""
-    def __init__(self, title, inputs=None, outputs=None):
-        super().__init__()
-        self.title = title
-        self.inputs = inputs or []
-        self.outputs = outputs or []
-        self.position = (0, 0)
+class FlowStack:
+    def __init__(self, page: Page):
+        self.page = page
         
-    def build(self):
-        return DragTarget(
-            content=Draggable(
-                content=Container(
-                    content=Column([
-                        # 节点标题
-                        Container(
-                            content=Row([
-                                Text(self.title, size=14, weight="bold"),
-                                IconButton(
-                                    icon=icons.CLOSE,
-                                    icon_size=14,
-                                    on_click=self._delete_node
-                                ),
-                            ], alignment="spaceBetween"),
-                            bgcolor=colors.BLUE_GREY_100,
-                            padding=5,
-                        ),
-                        # 输入端口
-                        Column([NodePort("input", text=inp) for inp in self.inputs]),
-                        # 输出端口
-                        Column([NodePort("output", text=out) for out in self.outputs]),
-                    ]),
-                    width=200,
-                    bgcolor=colors.WHITE,
-                    border=border.all(1, colors.BLUE_GREY_300),
-                    border_radius=5,
-                    shadow=3,
-                ),
-                group="nodes",
-            ),
-            on_accept=self._on_drop,
-        )
-    
-    def _delete_node(self, e):
-        self.remove()
-    
-    def _on_drop(self, e):
-        self.position = (e.x, e.y)
-        self.update()
-
-class FlowStack(UserControl):
-    """工作流编辑器主类"""
-    def __init__(self):
-        super().__init__()
-        self.nodes = []
-        self.connections = []
+        # 创建画布管理器，使用页面尺寸
+        self.canvas_manager = CanvasManager(page.window_width, page.window_height)
         
-    def build(self):
-        return Container(
-            content=Stack(
-                controls=self.nodes,
-            ),
-            width=1000,
-            height=600,
-            bgcolor=colors.BLUE_GREY_50,
+        self.container = Container(
+            content=self.canvas_manager.gesture_detector,
+            bgcolor=Colors.BLUE_GREY_50,
             border_radius=10,
             padding=20,
+            expand=True,  # 允许容器扩展填充可用空间
         )
-    
-    def add_node(self, node_type, position=(0, 0)):
-        """添加新节点"""
-        node_configs = {
-            "input": FlowNode("输入", outputs=["图片", "参数"]),
-            "process": FlowNode("处理", inputs=["输入"], outputs=["输出"]),
-            "output": FlowNode("输出", inputs=["结果"]),
-        }
         
-        if node_type in node_configs:
-            node = node_configs[node_type]
-            node.position = position
-            self.nodes.append(node)
-            self.update()
+        # 添加窗口大小变化事件处理
+        def on_resize(e):
+            # 更新画布管理器尺寸
+            self.canvas_manager.width = page.window_width
+            self.canvas_manager.height = page.window_height
+            
+            # 更新容器尺寸
+            self.container.width = page.window_width
+            self.container.height = page.window_height
+            
+            # 更新画布和手势检测器的尺寸
+            self.canvas_manager.canvas.width = page.window_width
+            self.canvas_manager.canvas.height = page.window_height
+            self.canvas_manager.gesture_detector.width = page.window_width
+            self.canvas_manager.gesture_detector.height = page.window_height
+            
+            # 重新计算所有连接线
+            self.canvas_manager.update_connections()
+            
+            # 刷新页面
+            self.page.update()
+            
+        page.on_resize = on_resize
+        
+        # 先将容器添加到页面
+        page.add(self.container)
+        
+        # 创建示例节点，添加视频节点
+        video_node = VideoNode("视频播放", position=(100, 100), page=page, canvas_manager=self.canvas_manager)
+        image_node = ImageNode("图像处理", position=(400, 100), page=page, canvas_manager=self.canvas_manager)
+        text_node = TextNode("文本处理", position=(700, 100), page=page, canvas_manager=self.canvas_manager)
+        
+        # 设置节点位置更新回调
+        def on_node_position_changed():
+            self.canvas_manager.update_connections()
+            self.page.update()
+        
+        video_node.on_position_changed = on_node_position_changed
+        image_node.on_position_changed = on_node_position_changed
+        text_node.on_position_changed = on_node_position_changed
+        
+        # 使用 canvas_manager 添加节点
+        self.canvas_manager.add_node(video_node)
+        self.canvas_manager.add_node(image_node)
+        self.canvas_manager.add_node(text_node)
+        
+        # 添加连接
+        if "frame" in video_node.output_slots and "image" in image_node.input_slots:
+            self.connect_slots(
+                video_node.output_slots["frame"],
+                image_node.input_slots["image"]
+            )
+        
+        if "processed" in image_node.output_slots and "text" in text_node.input_slots:
+            self.connect_slots(
+                image_node.output_slots["processed"],
+                text_node.input_slots["text"]
+            )
     
-    def connect_nodes(self, source_port, target_port):
-        """连接节点"""
-        if source_port.port_type == "output" and target_port.port_type == "input":
-            connection = (source_port, target_port)
-            self.connections.append(connection)
-            source_port.connections.append(connection)
-            target_port.connections.append(connection)
-            self.update()
+    def connect_slots(self, from_slot: Slot, to_slot: Slot):
+        """连接两个插槽"""
+        self.canvas_manager.add_connection(from_slot, to_slot)
+        self.page.update()
+    
+    def update_connections(self):
+        """更新所有连接线"""
+        self.canvas_manager.update_connections()
+        self.page.update()
+    
+    def remove_connection(self, connection: Connection):
+        """移除连接"""
+        # 使用 canvas_manager 的 connections 列表
+        self.canvas_manager.remove_connection(connection)
+        self.page.update()
 
-# 使用示例
-def main(page: flet.Page):
-    flow_editor = FlowStack()
+def main(page: Page):
+    page.title = "节点编辑器"
+    page.window_width = 1200
+    page.window_height = 800
+    page.padding = 20
     
-    # 添加工具栏
-    toolbar = Row(
-        controls=[
-            IconButton(
-                icon=icons.ADD,
-                on_click=lambda _: flow_editor.add_node("input", (100, 100))
-            ),
-            IconButton(
-                icon=icons.SETTINGS,
-                on_click=lambda _: flow_editor.add_node("process", (300, 100))
-            ),
-            IconButton(
-                icon=icons.OUTPUT,
-                on_click=lambda _: flow_editor.add_node("output", (500, 100))
-            ),
-        ]
-    )
-    
-    page.add(toolbar, flow_editor)
+    color_blocks = FlowStack(page)
+    page.update()
 
 if __name__ == "__main__":
+    #view=flet.WEB_BROWSER
     flet.app(target=main)

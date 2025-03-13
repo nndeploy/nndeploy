@@ -13,7 +13,10 @@ base::Status ConditionExecutor::init(
   base::Status status = base::kStatusCodeOk;
   node_repository_ = node_repository;
   for (auto iter : node_repository_) {
-    iter->node_->setInitializedFlag(false);
+    if (iter->node_->getInitialized()) {
+      continue;
+    }
+    // iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s init failed\n", iter->node_->getName().c_str());
@@ -74,7 +77,7 @@ base::Status ConditionExecutor::process() {
     } else if (flag == base::kEdgeUpdateFlagTerminate) {
       return base::kStatusCodeOk;
     } else {
-      NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",
+      NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
                     cur_node->getName().c_str());
       return base::kStatusCodeErrorDag;
     }

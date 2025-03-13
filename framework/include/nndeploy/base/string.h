@@ -155,6 +155,8 @@ void printData(T *data, base::IntVector &shape,
   stream << std::endl;
 }
 
+extern NNDEPLOY_CC_API std::string getUniqueString();
+
 }  // namespace base
 }  // namespace nndeploy
 

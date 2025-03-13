@@ -40,7 +40,7 @@ base::Status TvmInference::init() {
   base::Status status = base::kStatusCodeOk;
 
   TvmInferenceParam *tvm_inference_param =
-      dynamic_cast<TvmInferenceParam *>(inference_param_);
+      dynamic_cast<TvmInferenceParam *>(inference_param_.get());
 
   if (device::isHostDeviceType(tvm_inference_param->device_type_)) {
     is_share_context_ = true;

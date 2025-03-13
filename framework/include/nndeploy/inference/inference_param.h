@@ -79,8 +79,8 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
 class InferenceParamCreator {
  public:
   virtual ~InferenceParamCreator() {};
-  virtual InferenceParam *createInferenceParam(base::InferenceType type) = 0;
-  virtual std::shared_ptr<InferenceParam> createInferenceParamSharedPtr(
+  // virtual InferenceParam *createInferenceParam(base::InferenceType type) = 0;
+  virtual std::shared_ptr<InferenceParam> createInferenceParam(
       base::InferenceType type) = 0;
 };
 
@@ -91,10 +91,10 @@ class InferenceParamCreator {
  */
 template <typename T>
 class TypeInferenceParamCreator : public InferenceParamCreator {
-  virtual InferenceParam *createInferenceParam(base::InferenceType type) {
-    return new T(type);
-  }
-  virtual std::shared_ptr<InferenceParam> createInferenceParamSharedPtr(
+  // virtual InferenceParam *createInferenceParam(base::InferenceType type) {
+  //   return new T(type);
+  // }
+  virtual std::shared_ptr<InferenceParam> createInferenceParam(
       base::InferenceType type) {
     return std::make_shared<T>(type);
   }
@@ -128,10 +128,10 @@ class TypeInferenceParamRegister {
  * @param type
  * @return InferenceParam *
  */
-extern NNDEPLOY_CC_API InferenceParam *createInferenceParam(
-    base::InferenceType type);
+// extern NNDEPLOY_CC_API InferenceParam *createInferenceParam(
+//     base::InferenceType type);
 
-extern NNDEPLOY_CC_API std::shared_ptr<InferenceParam> createInferenceParamSharedPtr(
+extern NNDEPLOY_CC_API std::shared_ptr<InferenceParam> createInferenceParam(
     base::InferenceType type);
 
 }  // namespace inference

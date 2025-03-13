@@ -18,7 +18,7 @@ base::Status DefaultInference::init() {
   base::Status status = base::kStatusCodeOk;
 
   DefaultInferenceParam *default_inference_param =
-      dynamic_cast<DefaultInferenceParam *>(inference_param_);
+      dynamic_cast<DefaultInferenceParam *>(inference_param_.get());
   is_share_context_ = true;
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(default_inference_param->device_type_);
@@ -184,7 +184,7 @@ base::Status DefaultInference::run() {
 
   // 同步
   DefaultInferenceParam *default_inference_param =
-      dynamic_cast<DefaultInferenceParam *>(inference_param_);
+      dynamic_cast<DefaultInferenceParam *>(inference_param_.get());
   device::Device *device =
       device::getDevice(default_inference_param->device_type_);
   status = stream_->synchronize();

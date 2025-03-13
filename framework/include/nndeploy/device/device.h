@@ -204,6 +204,8 @@ class NNDEPLOY_CC_API Event : public base::NonCopyable {
 
 extern NNDEPLOY_CC_API Architecture *getArchitecture(base::DeviceTypeCode type);
 
+extern NNDEPLOY_CC_API std::shared_ptr<Architecture> getArchitectureSharedPtr(base::DeviceTypeCode type);
+
 extern NNDEPLOY_CC_API base::DeviceType getDefaultHostDeviceType();
 
 extern NNDEPLOY_CC_API Device *getDefaultHostDevice();

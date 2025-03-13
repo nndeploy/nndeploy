@@ -9,13 +9,19 @@
 #include "nndeploy/base/opencv_include.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
+#include "nndeploy/base/string.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-
 namespace nndeploy {
 namespace dag {
+
+enum class NodeType {
+  kNodeTypeInput = 1, // 输入节点，无输出
+  kNodeTypeOutput = 2, // 输出节点，无输入
+  kNodeTypeIntermediate = 3, // 中间节点，既有输入也有输出
+};
 
 enum class EdgeTypeFlag {
   kBuffer = 1,
@@ -32,8 +38,32 @@ enum class EdgeTypeFlag {
  */
 class NNDEPLOY_CC_API EdgeTypeInfo {
  public:
-  EdgeTypeInfo() : type_(EdgeTypeFlag::kBuffer), type_name_("") {}
+  EdgeTypeInfo() : type_(EdgeTypeFlag::kNone), type_name_("") {}
   ~EdgeTypeInfo() = default;
+
+  EdgeTypeInfo(const EdgeTypeInfo& other) {
+    type_ = other.type_;
+    type_name_ = other.type_name_;
+    type_ptr_ = other.type_ptr_;
+    type_holder_ = other.type_holder_;
+  }
+
+  EdgeTypeInfo& operator=(const EdgeTypeInfo& other) {
+    if (this != &other) {
+      type_ = other.type_;
+      type_name_ = other.type_name_;
+      type_ptr_ = other.type_ptr_;
+      type_holder_ = other.type_holder_;
+    }
+    return *this;
+  }
+
+  bool operator==(const EdgeTypeInfo& other) const {
+    return (type_ == other.type_ && type_name_ == other.type_name_ &&
+            type_ptr_ == other.type_ptr_);
+  }
+
+  bool operator!=(const EdgeTypeInfo& other) const { return !(*this == other); }
 
   template <typename T>
   void setType() {
@@ -62,6 +92,19 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
   EdgeTypeFlag getType() const { return type_; }
 
   std::string getTypeName() const { return type_name_; }
+
+  std::string getUniqueTypeName() {
+    // basic type
+    std::string base_name = type_name_;
+
+    // timestamp
+    std::string timestamp = base::getUniqueString();
+
+    // unique string
+    std::stringstream ss;
+    ss << base_name << "_" << timestamp;
+    return ss.str();
+  }
 
   const std::type_info* getTypePtr() const { return type_ptr_; }
 

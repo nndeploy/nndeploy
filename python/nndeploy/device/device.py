@@ -41,9 +41,11 @@ class Architecture():
             device_type_code = args[0]
         elif len(args) == 1 and isinstance(args[0], _C.base.DeviceTypeCode):
             device_type_code = nndeploy.base.DeviceTypeCode(args[0])
+        elif len(args) == 1 and isinstance(args[0], _C.device.Architecture):
+            device_type_code = args[0].get_device_type_code()
         else:
             raise ValueError("Invalid arguments for Architecture constructor")
-        
+        # shared_ptr
         self._architecture = _C.device.get_architecture(device_type_code)
 
     def check_device(self, device_id: int = 0, library_path: str = ""):
@@ -84,6 +86,12 @@ class Device():
         """
         if len(args) == 1 and isinstance(args[0], str):
             device_type = nndeploy.base.DeviceType(args[0])
+        elif len(args) == 1 and isinstance(args[0], nndeploy.base.DeviceType):
+            device_type = args[0]
+        elif len(args) == 1 and isinstance(args[0], _C.base.DeviceType):
+            device_type = nndeploy.base.DeviceType(args[0])
+        elif len(args) == 1 and isinstance(args[0], _C.device.Device):
+            device_type = args[0].get_device_type()
         elif len(args) == 2 and isinstance(args[0], str) and isinstance(args[1], int):
             device_type = nndeploy.base.DeviceType(args[0], args[1])
         elif len(args) == 1 and isinstance(args[0], nndeploy.base.DeviceTypeCode):
@@ -113,6 +121,13 @@ class Device():
         return self._device.to_buffer_desc(desc, config)
     
     def allocate(self, size_or_desc):
+        """
+        Allocate memory that must be freed using deallocate()
+        Args:
+            size_or_desc: int for allocation size, or BufferDesc for buffer descriptor
+        Returns:
+            Memory pointer that must be freed using deallocate()
+        """
         if isinstance(size_or_desc, int):
             return self._device.allocate(size_or_desc)
         else:
@@ -122,6 +137,13 @@ class Device():
         return self._device.deallocate(ptr)
     
     def allocate_pinned(self, size_or_desc):
+        """
+        Allocate pinned memory that must be freed using deallocate_pinned()
+        Args:
+            size_or_desc: int for allocation size, or BufferDesc for buffer descriptor
+        Returns:
+            Memory pointer that must be freed using deallocate_pinned()
+        """
         if isinstance(size_or_desc, int):
             return self._device.allocate_pinned(size_or_desc)
         else:
@@ -177,8 +199,12 @@ class Device():
     
 
 class Stream():
-    def __init__(self, device: Device, stream=None):
-        self._stream = _C.device.create_stream(device.get_device_type(), stream)
+    def __init__(self, device_or_type, stream=None):
+        if isinstance(device_or_type, Device):
+            device_type = device_or_type.get_device_type()
+        else:
+            device_type = device_or_type
+        self._stream = _C.device.create_stream(device_type, stream)
 
     def get_device_type(self):
         return self._stream.get_device_type()
@@ -209,8 +235,12 @@ class Stream():
 
 
 class Event():
-    def __init__(self, device: Device):
-        self._event = device.create_event()
+    def __init__(self, device_or_type):
+        if isinstance(device_or_type, Device):
+            device_type = device_or_type.get_device_type()
+        else:
+            device_type = device_or_type
+        self._event = _C.device.create_event(device_type)
 
     def get_device_type(self):
         return self._event.get_device_type()

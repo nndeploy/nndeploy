@@ -24,11 +24,6 @@ namespace nndeploy {
 namespace dag {
 
 Loop::Loop(const std::string &name) : Graph(name) {}
-Loop::Loop(const std::string &name, Edge *input, Edge *output)
-    : Graph(name, input, output) {}
-Loop::Loop(const std::string &name, std::initializer_list<Edge *> inputs,
-           std::initializer_list<Edge *> outputs)
-    : Graph(name, inputs, outputs) {}
 Loop::Loop(const std::string &name, std::vector<dag::Edge *> &inputs,
            std::vector<dag::Edge *> &outputs)
     : Graph(name, inputs, outputs) {}
@@ -40,7 +35,7 @@ base::Status Loop::init() {
   // NNDEPLOY_LOGI("###########################\n");
   // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
+  // setInitializedFlag(false);
 
   status = this->construct();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
@@ -60,17 +55,17 @@ base::Status Loop::init() {
 base::Status Loop::deinit() {
   base::Status status = base::kStatusCodeOk;
 
-  // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
-  // NNDEPLOY_LOGI("###########################\n");
-  setInitializedFlag(false);
-
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
   status = executor_->deinit();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "executor deinit failed!");
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  setInitializedFlag(false);
   return status;
 }
 

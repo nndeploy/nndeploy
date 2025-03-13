@@ -659,6 +659,14 @@ name_to_inference_type = {
     "Torch": _C.base.InferenceType.Torch,
     "TensorFlow": _C.base.InferenceType.TensorFlow,
     "NeuroPilot": _C.base.InferenceType.NeuroPilot,
+    "Vllm": _C.base.InferenceType.Vllm,
+    "SGLang": _C.base.InferenceType.SGLang,
+    "Lmdeploy": _C.base.InferenceType.Lmdeploy,
+    "LLM": _C.base.InferenceType.LLM,
+    "XDit": _C.base.InferenceType.XDit,
+    "OneDiff": _C.base.InferenceType.OneDiff,
+    "Diffusers": _C.base.InferenceType.Diffusers,
+    "Diff": _C.base.InferenceType.Diff,
     "NotSupport": _C.base.InferenceType.NotSupport,
 }
 
@@ -687,6 +695,14 @@ class InferenceType(_C.base.InferenceType):
     Torch = _C.base.InferenceType.Torch
     TensorFlow = _C.base.InferenceType.TensorFlow
     NeuroPilot = _C.base.InferenceType.NeuroPilot
+    Vllm = _C.base.InferenceType.Vllm
+    SGLang = _C.base.InferenceType.SGLang
+    Lmdeploy = _C.base.InferenceType.Lmdeploy
+    LLM = _C.base.InferenceType.LLM
+    XDit = _C.base.InferenceType.XDit
+    OneDiff = _C.base.InferenceType.OneDiff
+    Diffusers = _C.base.InferenceType.Diffusers
+    Diff = _C.base.InferenceType.Diff
     NotSupport = _C.base.InferenceType.NotSupport
     
     @classmethod
@@ -1005,6 +1021,14 @@ class Status(_C.base.Status):
     
     def get_code_name(self):
         return status_code_to_name[self.get_code()]
+    
+    @staticmethod
+    def ok():
+        return Status(StatusCode.Ok)
+    
+    @staticmethod
+    def error():
+        return Status(StatusCode.ErrorUnknown)
     
 
 name_to_pixel_type = {

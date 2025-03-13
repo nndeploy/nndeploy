@@ -145,7 +145,12 @@ class NNDEPLOY_CC_API TokenizerIds : public base::Param {
  */
 class NNDEPLOY_CC_API Tokenizer : public dag::Node {
  public:
-  Tokenizer(const std::string &name, dag::Edge *input, dag::Edge *output);
+  Tokenizer(const std::string &name) : dag::Node(name) {
+  }
+  Tokenizer(const std::string &name, std::vector<dag::Edge *> inputs,
+            std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
+  }
 
   virtual ~Tokenizer();
 };

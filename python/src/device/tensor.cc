@@ -120,7 +120,7 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def("just_modify",
            py::overload_cast<Buffer *, bool>(&Tensor::justModify),
            py::arg("buffer"), py::arg("is_external") = true)
-      .def("clone", &Tensor::clone)
+      .def("clone", &Tensor::clone, py::return_value_policy::take_ownership)
       .def("copy_to", &Tensor::copyTo, py::arg("dst"))
       .def(
           "serialize",
@@ -205,6 +205,11 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
                                    const base::DeviceType &device_type) {
         return bufferInfoToTensor(buffer, device_type);
       });
+
+  m.def("create_tensor", [](base::TensorType type = base::kTensorTypeDefault) {
+    return createTensor(type);
+  }, py::return_value_policy::take_ownership);  
+
 }
 
 }  // namespace device

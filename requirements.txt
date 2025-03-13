@@ -26,3 +26,6 @@ onnxruntime
 onnxslim
 scikit-learn<=1.1.2 
 setuptools>=70.0.0 # Snyk vulnerability fix
+
+# ui----------------------------------------
+flet==0.26.0

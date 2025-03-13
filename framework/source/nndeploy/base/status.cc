@@ -99,6 +99,14 @@ StatusCode Status::getStatusCode() const {
   return static_cast<StatusCode>(code_);
 }
 
+Status Status::Ok() {
+  return Status(kStatusCodeOk);
+}
+
+Status Status::Error() {
+  return Status(kStatusCodeErrorUnknown);
+}
+
 std::string statusCodeToString(StatusCode code) {
   switch (code) {
     case kStatusCodeOk:

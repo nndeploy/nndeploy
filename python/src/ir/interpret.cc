@@ -15,8 +15,8 @@ class PyInterpret : public Interpret {
   base::Status interpret(
       const std::vector<std::string> &model_value,
       const std::vector<ValueDesc> &input = std::vector<ValueDesc>()) {
-    PYBIND11_OVERRIDE_PURE(base::Status, Interpret, interpret, model_value,
-                           input);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Interpret, "interpret", interpret,
+                                model_value, input);
   }
 };
 
@@ -27,20 +27,23 @@ class PyInterpretCreator : public InterpretCreator {
   Interpret *createInterpret(base::ModelType type,
                              ir::ModelDesc *model_desc = nullptr,
                              bool is_external = false) override {
-    PYBIND11_OVERRIDE_PURE(Interpret *, InterpretCreator, create_interpret_cpp,
-                           type, model_desc, is_external);
+    PYBIND11_OVERRIDE_PURE_NAME(Interpret *, InterpretCreator,
+                                "create_interpret", createInterpret, type,
+                                model_desc, is_external);
   }
 
   std::shared_ptr<Interpret> createInterpretSharedPtr(
       base::ModelType type, ir::ModelDesc *model_desc = nullptr,
       bool is_external = false) override {
-    PYBIND11_OVERRIDE_PURE(std::shared_ptr<Interpret>, InterpretCreator,
-                           create_interpret, type, model_desc, is_external);
+    PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Interpret>, InterpretCreator,
+                                "create_interpret_shared_ptr",
+                                createInterpretSharedPtr, type, model_desc,
+                                is_external);
   }
 };
 
 NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
-  py::class_<Interpret, PyInterpret, std::shared_ptr<Interpret>>(m, "Interpret")
+  py::class_<Interpret, PyInterpret>(m, "Interpret")
       .def(py::init<>())
       .def("interpret", &Interpret::interpret)
       .def("dump",
@@ -62,26 +65,37 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
   py::class_<InterpretCreator, PyInterpretCreator,
              std::shared_ptr<InterpretCreator>>(m, "InterpretCreator")
       .def(py::init<>())
-      .def("create_interpret_cpp", &InterpretCreator::createInterpret)
-      .def("create_interpret", &InterpretCreator::createInterpretSharedPtr);
+      .def("create_interpret", &InterpretCreator::createInterpret,
+           py::arg("type"), py::arg("model_desc") = nullptr,
+           py::arg("is_external") = false,
+           py::return_value_policy::take_ownership)
+      .def("create_interpret_shared_ptr",
+           &InterpretCreator::createInterpretSharedPtr, py::arg("type"),
+           py::arg("model_desc") = nullptr, py::arg("is_external") = false);
 
-  py::class_<DefaultInterpret, Interpret, std::shared_ptr<DefaultInterpret>>(
-      m, "DefaultInterpret")
+  py::class_<DefaultInterpret, Interpret>(m, "DefaultInterpret")
       .def(py::init<>())
       .def("interpret", &DefaultInterpret::interpret);
 
   m.def("register_interpret_creator",
         [](base::ModelType type, std::shared_ptr<InterpretCreator> creator) {
           getGlobalInterpretCreatorMap()[type] = creator;
-          for (auto &iter : getGlobalInterpretCreatorMap()) {
-            std::cout << "type: " << iter.first << std::endl;
-          }
+          // for (auto &iter : getGlobalInterpretCreatorMap()) {
+          //   std::cout << "type: " << iter.first << std::endl;
+          // }
         });
 
-  m.def("create_interpret_cpp", &createInterpret, py::arg("type"),
-        py::arg("model_desc") = nullptr, py::arg("is_external") = false);
-  m.def("create_interpret", &createInterpretSharedPtr, py::arg("type"),
-        py::arg("model_desc") = nullptr, py::arg("is_external") = false);
+  m.def(
+      "create_interpret",
+      [](base::ModelType type, ir::ModelDesc *model_desc, bool is_external) {
+        Interpret *interpret = createInterpret(type, model_desc, is_external);
+        return interpret;
+      },
+      py::arg("type"), py::arg("model_desc") = nullptr,
+      py::arg("is_external") = false, py::return_value_policy::take_ownership);
+  // m.def("create_interpret_shared_ptr", &createInterpretSharedPtr,
+  // py::arg("type"),
+  //       py::arg("model_desc") = nullptr, py::arg("is_external") = false);
 }
 
 }  // namespace ir

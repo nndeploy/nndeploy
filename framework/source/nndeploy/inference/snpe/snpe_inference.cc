@@ -19,7 +19,7 @@ base::Status SnpeInference::init() {
   // }
 
   SnpeInferenceParam* snpe_inference_param =
-      dynamic_cast<SnpeInferenceParam*>(inference_param_);
+      dynamic_cast<SnpeInferenceParam*>(inference_param_.get());
 
   zdl::DlSystem::Runtime_t runtime;
   std::string snpe_runtime = snpe_inference_param->runtime_;

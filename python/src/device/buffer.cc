@@ -87,7 +87,8 @@ base::DataType getDataTypeFromNumpy(char kind, int itemsize) {
     default:
       std::stringstream ss;
       ss << "convert numpy.ndarray to nndeploy Tensor only support kind = "
-            "f, i, u now, but given " << kind;
+            "f, i, u now, but given "
+         << kind;
       pybind11::pybind11_fail(ss.str());
   }
   return data_type;
@@ -186,7 +187,8 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            py::arg("memory_pool"), py::arg("desc"), py::arg("ptr"),
            py::arg("memory_type"))
       .def(py::init<const Buffer &>(), py::arg("buffer"))
-      .def("clone", &Buffer::clone, "Clone the buffer")
+      .def("clone", &Buffer::clone, py::return_value_policy::take_ownership,
+           "Clone the buffer")
       .def("copy_to", &Buffer::copyTo, py::arg("dst"),
            "Copy the buffer to the destination buffer")
       // .def("serialize", &Buffer::serialize, py::arg("stream"),

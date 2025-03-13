@@ -8,13 +8,12 @@ import json
 import nndeploy.base
 import nndeploy.device
 
+from .base import EdgeTypeInfo
+
 class Edge(_C.dag.Edge):
-    def __init__(self, name: str = "", parallel_type: nndeploy.base.ParallelType = nndeploy.base.ParallelType.Sequential):
+    def __init__(self, name: str = ""):
         super().__init__(name)
-        if parallel_type is not None:
-            self.set_parallel_type(parallel_type)
-            self.construct()
-            self.parallel_type = parallel_type
+        self.parallel_type = nndeploy.base.ParallelType.kParallelTypeNone
 
     def get_name(self) -> str:
         return super().get_name()
@@ -28,27 +27,35 @@ class Edge(_C.dag.Edge):
     def construct(self):
         return super().construct()
         
-    def set(self, data: any, index: int = 0, is_external: bool = True):
+    def set(self, data: any, index: int = 0):
         if isinstance(data, (nndeploy.device.Buffer, nndeploy.device.Tensor)):
-            status = super().set(data, index, is_external)
+            # self.type_name = "nd." + type(data).__name__
+            status = super().set(data, index, True)
             if status != nndeploy.base.StatusCode.Ok:
                 raise ValueError("Failed to set data")
         else: # 处理其他类型的数据
-            if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
+            # self.type_name = type(data).__name__
+            if self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.Task:
                 self.data = data
             elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
                 raise ValueError("Parallel type is not supported")
         self.index = index
-        self.is_external = is_external
-        self.type_name = type(data).__name__
         self.position = self.index
-        return nndeploy.base.StatusCode.Ok
+        self.type_name = type(data).__module__ + "." + type(data).__name__
+        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
         
     def create_buffer(self, device: nndeploy.device.Device, desc: nndeploy.device.BufferDesc, index: int):
+        # 创建Buffer时设置正确的类型名称
+        # self.type_name = "nd.Buffer"
+        buffer_type = nndeploy.device.Buffer
+        self.type_name = buffer_type.__module__ + "." + buffer_type.__name__
         return super().create(device, desc, index)
 
-    def create_tensor(self, device: nndeploy.device.Device, desc: nndeploy.device.TensorDesc, index: int):
-        return super().create(device, desc, index)
+    def create_tensor(self, device: nndeploy.device.Device, desc: nndeploy.device.TensorDesc, index: int, tensor_name: str = ""):
+        # self.type_name = "nd.Tensor"
+        tensor_type = nndeploy.device.Tensor
+        self.type_name = tensor_type.__module__ + "." + tensor_type.__name__
+        return super().create(device, desc, index, tensor_name)
         
     def notify_written(self, data: Union[nndeploy.device.Buffer, nndeploy.device.Tensor]):
         return super().notify_written(data)
@@ -121,3 +128,12 @@ class Edge(_C.dag.Edge):
       
     def get_type_name(self) -> str:
         return self.type_name
+    
+    def set_type_info(self, type_info: EdgeTypeInfo):
+        return super().set_type_info(type_info)
+    
+    def get_type_info(self) -> EdgeTypeInfo:
+        return super().get_type_info()
+    
+    def check_type_info(self, type_info: EdgeTypeInfo) -> bool:
+        return super().check_type_info(type_info)

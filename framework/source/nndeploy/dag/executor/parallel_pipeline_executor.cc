@@ -14,7 +14,9 @@ base::Status ParallelPipelineExecutor::init(
   base::Status status = topoSortDFS(node_repository, topo_sort_node_);
   for (auto iter : topo_sort_node_) {
     iter->color_ = base::kNodeColorWhite;
-    iter->node_->setInitializedFlag(false);
+    if (iter->node_->getInitialized()) {
+      continue;
+    }
     status = iter->node_->init();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "failed iter->node_->init()");
@@ -69,7 +71,7 @@ void ParallelPipelineExecutor::commitThreadPool() {
     auto func = [iter]() -> base::Status {
       base::Status status = base::kStatusCodeOk;
       while (true) {
-        base::EdgeUpdateFlag edge_update_flag = iter->node_->updataInput();
+        base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
         if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
           iter->node_->setRunningFlag(true);
           status = iter->node_->run();
@@ -79,7 +81,7 @@ void ParallelPipelineExecutor::commitThreadPool() {
         } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
           break;
         } else {
-          NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",
+          NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
                         iter->node_->getName().c_str());
           status = base::kStatusCodeErrorDag;
           break;

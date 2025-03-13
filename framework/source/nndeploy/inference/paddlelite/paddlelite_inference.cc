@@ -26,7 +26,7 @@ base::Status PaddleLiteInference::init() {
   }
 
   PaddleLiteInferenceParam *paddlelite_inference_param =
-      dynamic_cast<PaddleLiteInferenceParam *>(inference_param_);
+      dynamic_cast<PaddleLiteInferenceParam *>(inference_param_.get());
   PaddleLiteConvert::convertFromInferenceParam(paddlelite_inference_param,
                                                config_);
   predictor_ =

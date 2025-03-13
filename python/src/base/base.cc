@@ -1,4 +1,5 @@
 
+#include "base/base.h"
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
@@ -8,6 +9,52 @@
 
 namespace nndeploy {
 namespace base {
+
+// class PyParam : public Param {
+//  public:
+//   using Param::Param;
+
+//   std::shared_ptr<nndeploy::base::Param> copy() override {
+//     PYBIND11_OVERRIDE_NAME(std::shared_ptr<nndeploy::base::Param>, Param, "copy", copy);
+//   }
+
+//   base::Status copyTo(nndeploy::base::Param *param) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "copy_to", copyTo, param);
+//   }
+
+//   base::Status set(const std::string &key, base::Any &any) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "set", set, key, any);
+//   }
+
+//   base::Status get(const std::string &key, base::Any &any) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "get", get, key, any);
+//   }
+
+//   base::Status serialize(rapidjson::Value &json,
+//                         rapidjson::Document::AllocatorType &allocator) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize, json, allocator);
+//   }
+
+//   base::Status serialize(std::ostream &stream) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize, stream);
+//   }
+
+//   base::Status serialize(std::string &content, bool is_file) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize, content, is_file);
+//   }
+
+//   base::Status deserialize(rapidjson::Value &json) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize, json);
+//   }
+
+//   base::Status deserialize(std::istream &stream) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize, stream);
+//   }
+
+//   base::Status deserialize(const std::string &content, bool is_file) override {
+//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize, content, is_file);
+//   }
+// };
 
 NNDEPLOY_API_PYBIND11_MODULE("base", m) {
   // nndeploy::base::DataTypeCode export as base.DataTypeCode
@@ -233,6 +280,14 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .value("Torch", InferenceType::kInferenceTypeTorch)
       .value("TensorFlow", InferenceType::kInferenceTypeTensorFlow)
       .value("NeuroPilot", InferenceType::kInferenceTypeNeuroPilot)
+      .value("Vllm", InferenceType::kInferenceTypeVllm)
+      .value("SGLang", InferenceType::kInferenceTypeSGLang)
+      .value("Lmdeploy", InferenceType::kInferenceTypeLmdeploy)
+      .value("LLM", InferenceType::kInferenceTypeLLM)
+      .value("XDit", InferenceType::kInferenceTypeXDit)
+      .value("OneDiff", InferenceType::kInferenceTypeOneDiff)
+      .value("Diffusers", InferenceType::kInferenceTypeDiffusers)
+      .value("Diff", InferenceType::kInferenceTypeDiff)
       .value("NotSupport", InferenceType::kInferenceTypeNotSupport)
       .export_values();
 
@@ -390,6 +445,8 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .def("get_desc", &Status::desc)
       .def("get_code", &Status::getStatusCode)
       .def("__add__", &Status::operator+)
+      .def_static("ok", &Status::Ok)
+      .def_static("error", &Status::Error)
       .def("__str__", [](const Status& self) {
         std::ostringstream os;
         os << "<nndeploy._nndeploy_internal.base.Status object at "
@@ -501,7 +558,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
         "title");
 
   // export as base.Param
-  py::class_<Param, std::shared_ptr<Param>>(m, "Param", py::dynamic_attr())
+  py::class_<Param, PyParam<Param>, std::shared_ptr<Param>>(m, "Param", py::dynamic_attr())
       .def(py::init<>())
       .def("copy", &Param::copy)
       .def("copy_to", &Param::copyTo)

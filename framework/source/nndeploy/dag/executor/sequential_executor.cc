@@ -12,7 +12,10 @@ base::Status SequentialExecutor::init(
     std::vector<NodeWrapper *> &node_repository) {
   base::Status status = topoSortDFS(node_repository, topo_sort_node_);
   for (auto iter : topo_sort_node_) {
-    iter->node_->setInitializedFlag(false);
+    if (iter->node_->getInitialized()) {
+      continue;
+    }
+    // iter->node_->setInitializedFlag(false);
     status = iter->node_->init();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s init failed\n", iter->node_->getName().c_str());
@@ -44,17 +47,20 @@ base::Status SequentialExecutor::deinit() {
 base::Status SequentialExecutor::run() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : topo_sort_node_) {
-    base::EdgeUpdateFlag edge_update_flag = iter->node_->updataInput();
+    base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
+    
     if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
       iter->node_->setRunningFlag(true);
+      NNDEPLOY_LOGE("node[%s] run start\n", iter->node_->getName().c_str());
       status = iter->node_->run();
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "node execute failed!\n");
       iter->node_->setRunningFlag(false);
+      NNDEPLOY_LOGE("node[%s] run end\n", iter->node_->getName().c_str());
     } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
       ;
     } else {
-      NNDEPLOY_LOGE("Failed to node[%s] updataInput();\n",
+      NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
                     iter->node_->getName().c_str());
       return base::kStatusCodeErrorDag;
     }

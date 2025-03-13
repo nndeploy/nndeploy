@@ -256,10 +256,10 @@ def test_param():
 
 if __name__ == "__main__":
     print("test_base start")
-    # test_data_type()
-    # test_device_type()
-    # test_data_format()
-    # test_status()
+    test_data_type()
+    test_device_type()
+    test_data_format()
+    test_status()
     test_time_profiler()
     test_param()
     print("test_base end")
