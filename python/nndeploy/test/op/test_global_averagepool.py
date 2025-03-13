@@ -4,7 +4,7 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test.test_util import create_tensor_from_numpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
 
 
 class TestGlobalAveragePoolOp(unittest.TestCase):
@@ -26,7 +26,7 @@ class TestGlobalAveragePoolOp(unittest.TestCase):
         self.assertTrue(
             np.allclose(
                 torch_result.detach().numpy(),
-                createNumpyFromTensor(nndeploy_result),
+                create_numpy_from_tensor(nndeploy_result),
                 rtol=1e-03,
                 atol=1e-04,
             )
