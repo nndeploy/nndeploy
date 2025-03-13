@@ -17,13 +17,13 @@ AscendCLArchitecture::AscendCLArchitecture(
     : Architecture(device_type_code) {};
 
 AscendCLArchitecture::~AscendCLArchitecture() {
-  std::once_flag once;
-  std::call_once(once, [this]() {
-    aclError ret = ret = aclFinalize();
-    if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
-    }
-  });
+  // std::once_flag once;
+  // std::call_once(once, [this]() {
+  //   aclError ret = aclFinalize();
+  //   if (ret != ACL_SUCCESS) {
+  //     NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
+  //   }
+  // });
 };
 
 void AscendCLArchitecture::setAclConfigPath(
@@ -252,6 +252,14 @@ base::Status AscendCLDevice::deinit() {
       NNDEPLOY_LOGE("aclrtResetDevice failed, errorCode is %d", ret);
       return base::kStatusCodeErrorDeviceAscendCL;
     }
+
+    static std::once_flag once;
+    std::call_once(once, [this]() {
+      aclError ret = aclFinalize();
+      if (ret != ACL_SUCCESS) {
+        NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
+      }
+    });
 
     // ret = aclFinalize();
     // if (ret != ACL_SUCCESS) {

@@ -15,6 +15,10 @@ if(ENABLE_NNDEPLOY_DEVICE)
   if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
     include(${ROOT_PATH}/demo/ascend_cl/config.cmake)
   endif()
+
+  if(ENABLE_NNDEPLOY_OP_ASCEND_C)
+    include(${ROOT_PATH}/demo/ascendc/config.cmake)
+  endif()
 endif()
 
 if(ENABLE_NNDEPLOY_IR)
@@ -86,5 +90,5 @@ if(ENABLE_NNDEPLOY_DEMO_RESNET)
 endif()
 
 if(ENABLE_NNDEPLOY_OP_ASCEND_C)
-  include(${ROOT_PATH}/demo/acl_op/config.cmake)
+  include(${ROOT_PATH}/demo/ascendc_dev/config.cmake)
 endif()
