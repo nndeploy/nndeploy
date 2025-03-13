@@ -18,6 +18,7 @@ Please check the type of change your PR introduces:
 Before submitting your PR, please ensure the following:
 - [ ] I have followed the project's coding guidelines.
 - [ ] I have tested my changes and ensured they work correctly.
+- [ ] I have merged the latest changes from the `main` branch and tested my code accordingly.
 - [ ] I have updated any relevant documentation.
 - [ ] I have provided clear and descriptive commit messages.
 - [ ] My code does not introduce new warnings or errors.
