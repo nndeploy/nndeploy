@@ -21,6 +21,10 @@ if(ENABLE_NNDEPLOY_IR)
   include(${ROOT_PATH}/demo/ir/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_IR)
+  include(${ROOT_PATH}/demo/interpret/config.cmake)
+endif()
+
 if(ENABLE_NNDEPLOY_OP)
   include(${ROOT_PATH}/demo/op/config.cmake)
 endif()
