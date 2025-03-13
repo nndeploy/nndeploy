@@ -1,7 +1,5 @@
 
-# detect
-
-## 基于YOLOv11的检测
+# interpret
 
 ### 下载模型
 
