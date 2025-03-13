@@ -4,7 +4,11 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 
-from nndeploy.test.test_util import create_tensor_from_numpy, createNumpyFromTensor
+from nndeploy.test.test_util import (
+    create_tensor_from_numpy,
+    create_numpy_from_tensor,
+    name_to_device_type_code,
+)
 
 
 class TestBatchNormOp(unittest.TestCase):
@@ -28,17 +32,20 @@ class TestBatchNormOp(unittest.TestCase):
         )
 
         input = create_tensor_from_numpy(np_input)
+        ascend_input = input.to(nndeploy.base.DeviceType("ascendcl"))
         scale = create_tensor_from_numpy(np_scale)
         bias = create_tensor_from_numpy(np_bias)
         mean = create_tensor_from_numpy(np_mean)
         var = create_tensor_from_numpy(np_var)
 
-        nndeploy_result = F.batch_norm(input, scale, bias, mean, var)
+        ascend_result = F.batch_norm(ascend_input, scale, bias, mean, var)
+
+        nndeploy_result = ascend_result.to(nndeploy.base.DeviceType("cpu"))
 
         self.assertTrue(
             np.allclose(
                 torch_result.detach().numpy(),
-                createNumpyFromTensor(nndeploy_result),
+                create_numpy_from_tensor(nndeploy_result),
                 rtol=1e-03,
                 atol=1e-04,
             )
