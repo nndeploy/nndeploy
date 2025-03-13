@@ -6,18 +6,17 @@
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
-#include "test.h"
 
 using namespace nndeploy;
 
 DEFINE_string(model_json, "", "test.json");
 DEFINE_string(model_safetensors, "", "test.safetensors");
 
-int getModelJson() { return FLAGS_model_json; }
+std::string getModelJson() { return FLAGS_model_json; }
 
-int getModelSafetensors() { return FLAGS_model_safetensors; }
+std::string getModelSafetensors() { return FLAGS_model_safetensors; }
 
-int main() {
+int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
   if (demo::FLAGS_usage) {
     demo::showUsage();

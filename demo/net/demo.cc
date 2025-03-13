@@ -6,7 +6,6 @@
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
-#include "test.h"
 
 using namespace nndeploy;
 
