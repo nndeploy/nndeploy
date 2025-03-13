@@ -469,7 +469,6 @@ if(ENABLE_NNDEPLOY_OP)
     if (ENABLE_NNDEPLOY_OP_ASCEND_C)
       add_definitions(-DENABLE_NNDEPLOY_OP_ASCEND_C)
       file(GLOB_RECURSE OP_ASCEND_C_SOURCE
-          "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/ascend_cl/ascend_c/*.h"
           "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/ascend_cl/ascend_c/*.cc"
       )
       ascendc_library(nndeploy_framework_ascend_c_kernels STATIC ${OP_ASCEND_C_SOURCE})

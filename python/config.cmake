@@ -79,13 +79,13 @@ if(ENABLE_NNDEPLOY_OP)
   set(SOURCE ${SOURCE} ${PYTHON_OP_SOURCE})
 endif()
 
-# if(ENABLE_NNDEPLOY_NET)
-#   file(GLOB_RECURSE PYTHON_NET_SOURCE
-#     "${ROOT_PATH}/python/src/net/*.h"
-#     "${ROOT_PATH}/python/src/net/*.cc"
-#   )
-#   set(SOURCE ${SOURCE} ${PYTHON_NET_SOURCE})
-# endif()
+if(ENABLE_NNDEPLOY_NET)
+  file(GLOB_RECURSE PYTHON_NET_SOURCE
+    "${ROOT_PATH}/python/src/net/*.h"
+    "${ROOT_PATH}/python/src/net/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_NET_SOURCE})
+endif()
 
 if(ENABLE_NNDEPLOY_INFERENCE)
   file(GLOB_RECURSE PYTHON_INFERENCE_SOURCE

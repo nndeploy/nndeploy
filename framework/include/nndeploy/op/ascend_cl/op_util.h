@@ -48,6 +48,28 @@ NNDEPLOY_CC_API aclDataType aclDataTypeOf<int32_t>();
 template <>
 NNDEPLOY_CC_API aclDataType aclDataTypeOf<int64_t>();
 
+// 检查aclnnStatus
+#define CHECK_ACLNN_STATUS(func_call)                                 \
+  do {                                                                \
+    aclnnStatus status = (func_call);                                 \
+    if (status != ACL_SUCCESS) {                                      \
+      NNDEPLOY_LOGE(#func_call " failed, error code: %d.\n", status); \
+      return base::kStatusCodeErrorOpAscendCL;                        \
+    }                                                                 \
+  } while (0)
+
+#define CHECK_ACL_STATUS(func_call)                                   \
+  do {                                                                \
+    aclError status = (func_call);                                    \
+    if (status != ACL_ERROR_NONE) {                                   \
+      NNDEPLOY_LOGE(#func_call " failed, error code: %d.\n", status); \
+    }                                                                 \
+  } while (0)
+
+int64_t getAclOpShapeSize(const std::vector<int64_t>& shape);
+
+std::vector<int64_t> getAclOpStrides(const std::vector<int64_t>& shape);
+
 }  // namespace op
 }  // namespace nndeploy
 
