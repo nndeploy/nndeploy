@@ -59,6 +59,9 @@ set(ENABLE_NNDEPLOY_IR_ONNX OFF) # 是否编译ir目录中文件，默认为OFF
 # # op
 set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
 
+# # ascend_c
+set(ENABLE_NNDEPLOY_OP_ASCEND_C OFF) # 是否编译ascend_c目录中文件，默认为OFF
+
 # # net
 set(ENABLE_NNDEPLOY_NET OFF) # 是否编译forward目录中文件，默认为OFF
 
