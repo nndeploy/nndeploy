@@ -33,7 +33,7 @@ class Material:
         self,
         id: str,
         name: str,
-        type: MaterialType,
+        material_type: MaterialType,
         path: str,
         description: str = None,
         tags: Set[str] = None,
@@ -41,7 +41,7 @@ class Material:
     ):
         self.id = id
         self.name = name
-        self.type = type
+        self.type = material_type
         self.path = path
         self.description = description or ""
         self.tags = tags or set()
@@ -82,16 +82,16 @@ class Material:
 class MaterialRepository:
     """素材仓库类"""
     
-    def __init__(self):
+    def __init__(self, materials_dir: Path = None):
         self._materials: Dict[str, Material] = {}
         self._tags: Set[str] = set()
-        self._materials_dir = Path(os.path.dirname(__file__)) / "../assets/materials"
+        self._materials_dir = materials_dir or Path(os.path.dirname(__file__)) / "../assets/materials"
         self._materials_dir.mkdir(parents=True, exist_ok=True)
         self._load_materials()
         
     def _load_materials(self):
         """加载素材配置"""
-        materials_path = Path(os.path.dirname(__file__)) / "../config/materials.json"
+        materials_path = Path(os.path.dirname(__file__)) / "../assets/materials.json"
         
         if materials_path.exists():
             try:
@@ -103,11 +103,15 @@ class MaterialRepository:
                         self._tags.update(material.tags)
             except Exception as e:
                 print(f"加载素材配置失败: {e}")
+        else:
+            self.add_material(Material(id="default", name="默认素材", material_type=MaterialType.TEXT, path=Path(os.path.dirname(__file__)) / "../assets/materials/default.txt"))
                 
     def _save_materials(self):
         """保存素材配置"""
-        materials_path = Path(os.path.dirname(__file__)) / "../config/materials.json"
-        
+        materials_path = Path(os.path.dirname(__file__)) / "../assets/materials.json"
+        if not materials_path.exists():
+            materials_path.parent.mkdir(parents=True, exist_ok=True)
+            materials_path.touch()
         try:
             materials_data = [
                 material.to_dict() for material in self._materials.values()
@@ -121,11 +125,11 @@ class MaterialRepository:
         """获取素材"""
         return self._materials.get(material_id)
         
-    def get_materials_by_type(self, type: MaterialType) -> List[Material]:
+    def get_materials_by_type(self, material_type: MaterialType) -> List[Material]:
         """获取指定类型的所有素材"""
         return [
             material for material in self._materials.values()
-            if material.type == type
+            if material.type == material_type
         ]
         
     def get_materials_by_tag(self, tag: str) -> List[Material]:
@@ -200,3 +204,83 @@ class MaterialRepository:
 
 # 创建全局素材仓库实例
 material_repository = MaterialRepository() 
+
+
+"""
+素材仓库测试代码
+
+用于测试素材仓库的功能，包括：
+- 素材的添加、更新、删除
+- 素材的查询和过滤
+- 标签管理
+- 文件操作
+"""
+
+def test_material_repository():
+    """测试素材仓库的基本功能"""
+    # 测试初始化
+    repo = MaterialRepository()
+    
+    # 测试添加素材
+    import tempfile
+    import os
+    
+    # 创建临时文件作为测试素材
+    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as temp:
+        temp_path = temp.name
+        
+    try:
+        # 创建测试素材
+        material = Material(
+            id="test-material-1",
+            name="测试素材1",
+            material_type=MaterialType.TEXT,
+            tags={"测试", "文本"},
+            description="这是一个测试素材",
+            path=Path(os.path.dirname(__file__)) / "../assets/materials/default.txt"
+        )
+        
+        # 测试添加素材
+        repo.add_material(material, temp_path)
+        # assert "test-material-1" in repo.get_material()
+        assert "测试" in repo.get_all_tags()
+        assert "文本" in repo.get_all_tags()
+        
+        # 测试更新素材
+        repo.update_material("test-material-1", 
+                            name="更新后的素材", 
+                            tags={"测试", "更新"},
+                            description="这是更新后的描述")
+        
+        updated_material = repo.get_material("test-material-1")
+        assert updated_material.name == "更新后的素材"
+        assert updated_material.tags == {"测试", "更新"}
+        assert updated_material.description == "这是更新后的描述"
+        assert "图片" not in repo.get_all_tags()
+        assert "更新" in repo.get_all_tags()
+        
+        # 测试按标签过滤
+        filtered_materials = repo.get_materials_by_tag("测试")
+        assert len(filtered_materials) == 1
+        assert filtered_materials[0].id == "test-material-1"
+        
+        # 测试按类型过滤
+        filtered_materials = repo.get_materials_by_type(MaterialType.TEXT)
+        print(len(filtered_materials))
+        
+        # 测试删除素材
+        repo.remove_material("test-material-1")
+        
+        # 测试标签清理
+        assert "测试" not in repo.get_all_tags()
+        assert "更新" not in repo.get_all_tags()
+        
+    finally:
+        # 清理临时文件
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+        
+    print("素材仓库测试完成")
+
+if __name__ == "__main__":
+    test_material_repository()

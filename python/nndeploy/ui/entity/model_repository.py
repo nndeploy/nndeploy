@@ -20,17 +20,33 @@ from datetime import datetime
 class ModelType(Enum):
     """模型类型"""
     LLM = "llm"              # 大语言模型
-    IMAGE = "image"          # 图像模型
-    AUDIO = "audio"          # 音频模型
-    VIDEO = "video"          # 视频模型
+    CV = "cv"          # 图像模型
     MULTIMODAL = "multimodal"# 多模态模型
 
 class ModelProvider(Enum):
     """模型提供商"""
     LOCAL = "local"          # 本地模型
+    
     OPENAI = "openai"        # OpenAI
     ANTHROPIC = "anthropic"  # Anthropic
     HUGGINGFACE = "huggingface"  # HuggingFace
+    GEMINI = "gemini"        # Gemini
+    QIANFAN = "qianfan"      # 千帆
+    AZURE = "azure"          # Azure
+    COZE = "coze"            # Coze
+    DEEPSEEK = "deepseek"    # DeepSeek
+    QIANWEN = "qianwen"      # 千问
+    XUNFEI = "xunfei"        # 讯飞
+    STABILITY = "stability"  # Stability AI
+    MIDJOURNEY = "midjourney"# Midjourney
+    DALLE = "dalle"          # DALL-E
+    LEONARDO = "leonardo"    # Leonardo.AI
+    COMFYUI = "comfyui"      # ComfyUI
+    SDWEBUI = "sdwebui"      # Stable Diffusion WebUI
+    PIXART = "pixart"        # PixArt-α
+    WANX = "wanx"            # 腾讯万象
+    ZHIPUAI = "zhipuai"      # 智谱AI
+    BAIDU = "baidu"          # 百度文心一格
     CUSTOM = "custom"        # 自定义
 
 class ModelStatus(Enum):
@@ -52,7 +68,9 @@ class Model:
         version: str,
         description: str = None,
         config: Dict = None,
-        status: ModelStatus = ModelStatus.UNAVAILABLE
+        status: ModelStatus = ModelStatus.UNAVAILABLE,
+        tags: List[str] = None,
+        metadata: Dict = None
     ):
         self.id = id
         self.name = name
@@ -62,6 +80,8 @@ class Model:
         self.description = description or ""
         self.config = config or {}
         self.status = status
+        self.tags = tags or []
+        self.metadata = metadata or {}
         self.created_at = datetime.now().isoformat()
         self.updated_at = self.created_at
         
@@ -91,7 +111,9 @@ class Model:
             version=data["version"],
             description=data.get("description"),
             config=data.get("config", {}),
-            status=ModelStatus(data.get("status", "unavailable"))
+            status=ModelStatus(data.get("status", "unavailable")),
+            tags=data.get("tags", []),
+            metadata=data.get("metadata", {})
         )
         model.created_at = data.get("created_at", model.created_at)
         model.updated_at = data.get("updated_at", model.updated_at)
@@ -106,7 +128,7 @@ class ModelRepository:
         
     def _load_models(self):
         """加载模型配置"""
-        models_path = Path(os.path.dirname(__file__)) / "../config/models.json"
+        models_path = Path(os.path.dirname(__file__)) / "../assets/models.json"
         
         if models_path.exists():
             try:
@@ -120,7 +142,7 @@ class ModelRepository:
                 
     def _save_models(self):
         """保存模型配置"""
-        models_path = Path(os.path.dirname(__file__)) / "../config/models.json"
+        models_path = Path(os.path.dirname(__file__)) / "../assets/models.json"
         
         try:
             models_data = [model.to_dict() for model in self._models.values()]
@@ -153,6 +175,21 @@ class ModelRepository:
             raise ValueError(f"模型 {model.id} 已存在")
         self._models[model.id] = model
         self._save_models()
+        
+    def add_model_from_file(self, file_path: str):
+        """从文件json文件添加模型"""
+        with open(file_path, "r", encoding="utf-8") as f:
+            model_data = json.load(f)
+            # 处理单个模型或多个模型的情况
+            if isinstance(model_data, list):
+                # 多个模型的情况
+                for single_model_data in model_data:
+                    model = Model.from_dict(single_model_data)
+                    self.add_model(model)
+            else:
+                # 单个模型的情况
+                model = Model.from_dict(model_data)
+                self.add_model(model)
         
     def update_model(self, model_id: str, **kwargs):
         """更新模型"""

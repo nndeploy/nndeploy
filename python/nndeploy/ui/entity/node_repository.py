@@ -19,24 +19,37 @@ from pathlib import Path
 class NodeCategory(Enum):
     """节点类别"""
     INPUT = "input"           # 输入节点
-    PROCESS = "process"       # 处理节点
-    MODEL = "model"          # 模型节点
     OUTPUT = "output"        # 输出节点
     CONTROL = "control"      # 控制流节点
+    CODEC = "codec"          # 编码解码节点
+    UTIL = "util"            # 工具节点
+    PREPROCESS = "preprocess" # 预处理节点
+    TOKENIZER = "tokenizer"   # 分词器节点
+    POSTPROCESS = "postprocess" # 后处理节点
+    SAMPLER = "sampler"   # 采样器节点
+    INFER = "infer"   # 推理节点
+    DETECT = "detect"   # 检测节点
+    CLASSIFY = "classify"   # 分类节点
+    SEGMENT = "segment"   # 分割节点
+    LLM = "llm"   # 大语言模型节点
+    SD = "sd"   # 稳定扩散节点
+    VAE = "vae"   # 变量自动编码器节点
+    DIFFUSION = "diffusion"   # 扩散模型节点
+    CLIP = "clip"   # CLIP节点
 
 class NodeType:
     """节点类型定义"""
     
     def __init__(
         self,
-        id: str,
+        id: str, # 节点类型
         name: str,
         category: NodeCategory,
         description: str,
         icon: str = None,
-        inputs: List[Dict] = None,
-        outputs: List[Dict] = None,
-        parameters: List[Dict] = None
+        inputs: List[] = None,
+        outputs: List[] = None,
+        parameters: List[] = None
     ):
         self.id = id
         self.name = name
@@ -84,108 +97,13 @@ class NodeRepository:
         
     def _load_builtin_nodes(self):
         """加载内置节点类型"""
-        builtin_nodes = [
-            # 输入节点
-            NodeType(
-                id="text_input",
-                name="文本输入",
-                category=NodeCategory.INPUT,
-                description="接收文本输入",
-                outputs=[{"name": "text", "type": "str"}]
-            ),
-            NodeType(
-                id="image_input",
-                name="图像输入",
-                category=NodeCategory.INPUT,
-                description="接收图像输入",
-                outputs=[{"name": "image", "type": "numpy.ndarray"}]
-            ),
-            
-            # 处理节点
-            NodeType(
-                id="text_process",
-                name="文本处理",
-                category=NodeCategory.PROCESS,
-                description="处理文本数据",
-                inputs=[{"name": "text", "type": "str"}],
-                outputs=[{"name": "processed", "type": "str"}],
-                parameters=[
-                    {"name": "operation", "type": "select", "options": ["大写", "小写", "分词"]}
-                ]
-            ),
-            NodeType(
-                id="image_process",
-                name="图像处理",
-                category=NodeCategory.PROCESS,
-                description="处理图像数据",
-                inputs=[{"name": "image", "type": "numpy.ndarray"}],
-                outputs=[{"name": "processed", "type": "numpy.ndarray"}],
-                parameters=[
-                    {"name": "operation", "type": "select", "options": ["缩放", "旋转", "滤波"]}
-                ]
-            ),
-            
-            # 模型节点
-            NodeType(
-                id="llm_model",
-                name="大语言模型",
-                category=NodeCategory.MODEL,
-                description="调用大语言模型",
-                inputs=[{"name": "prompt", "type": "str"}],
-                outputs=[{"name": "response", "type": "str"}],
-                parameters=[
-                    {"name": "model", "type": "select", "options": ["GPT-3.5", "GPT-4"]},
-                    {"name": "temperature", "type": "float", "min": 0, "max": 1}
-                ]
-            ),
-            
-            # 输出节点
-            NodeType(
-                id="text_output",
-                name="文本输出",
-                category=NodeCategory.OUTPUT,
-                description="显示文本输出",
-                inputs=[{"name": "text", "type": "str"}]
-            ),
-            NodeType(
-                id="image_output",
-                name="图像输出",
-                category=NodeCategory.OUTPUT,
-                description="显示图像输出",
-                inputs=[{"name": "image", "type": "numpy.ndarray"}]
-            ),
-            
-            # 控制流节点
-            NodeType(
-                id="condition",
-                name="条件判断",
-                category=NodeCategory.CONTROL,
-                description="条件分支控制",
-                inputs=[{"name": "condition", "type": "bool"}],
-                outputs=[
-                    {"name": "true", "type": "any"},
-                    {"name": "false", "type": "any"}
-                ]
-            ),
-            NodeType(
-                id="loop",
-                name="循环",
-                category=NodeCategory.CONTROL,
-                description="循环控制",
-                inputs=[{"name": "items", "type": "list"}],
-                outputs=[{"name": "item", "type": "any"}],
-                parameters=[
-                    {"name": "max_iterations", "type": "int", "min": 1}
-                ]
-            )
-        ]
         
         for node in builtin_nodes:
             self._nodes[node.id] = node
             
     def _load_custom_nodes(self):
         """加载自定义节点类型"""
-        custom_nodes_path = Path(os.path.dirname(__file__)) / "../config/custom_nodes.json"
+        custom_nodes_path = Path(os.path.dirname(__file__)) / "../assets/custom_nodes.json"
         
         if custom_nodes_path.exists():
             try:
@@ -217,7 +135,7 @@ class NodeRepository:
         
     def _save_custom_nodes(self):
         """保存自定义节点配置"""
-        custom_nodes_path = Path(os.path.dirname(__file__)) / "../config/custom_nodes.json"
+        custom_nodes_path = Path(os.path.dirname(__file__)) / "../assets/custom_nodes.json"
         
         # 过滤出自定义节点(非内置节点)
         custom_nodes = [

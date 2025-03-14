@@ -391,25 +391,11 @@ class ThemeConfig:
         """获取Flet主题对象"""
         colors = ThemeColors.LIGHT if self._current_theme == ThemeType.LIGHT else ThemeColors.DARK
         
-        return ft.Theme(
+        # 在flet 0.27.0版本中，Theme构造函数不接受colors参数
+        # 创建一个基本的Theme对象
+        theme = ft.Theme(
             # 主题色
             color_scheme_seed=self.get_color("primary"),
-            
-            # 自定义颜色
-            colors=ft.colors.ColorScheme(
-                primary=self.get_color("primary"),
-                primary_container=self.get_color("primary_pressed"),
-                secondary=self.get_color("secondary"),
-                secondary_container=self.get_color("secondary_pressed"),
-                surface=self.get_color("surface"),
-                background=self.get_color("background"),
-                error=self.get_color("error"),
-                on_primary=self.get_color("text"),
-                on_secondary=self.get_color("text"),
-                on_surface=self.get_color("text"),
-                on_background=self.get_color("text"),
-                on_error=self.get_color("text"),
-            ),
             
             # 文本主题
             text_theme=ft.TextTheme(
@@ -454,6 +440,8 @@ class ThemeConfig:
             # 视觉密度
             visual_density=ft.ThemeVisualDensity.COMFORTABLE,
         )
+        
+        return theme
 
 # 创建全局主题配置实例
 theme_config = ThemeConfig()
