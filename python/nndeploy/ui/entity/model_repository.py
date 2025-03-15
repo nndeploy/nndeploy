@@ -69,20 +69,46 @@ class Model:
         description: str = None,
         config: Dict = None,
         status: ModelStatus = ModelStatus.UNAVAILABLE,
-        tags: List[str] = None,
+        tags: Set[str] = None,
         metadata: Dict = None
     ):
+        # id: 模型的唯一标识符，用于在系统中唯一引用该模型
+        # 不同于name，id通常是系统生成的，不会随用户操作而改变
         self.id = id
+        
+        # name: 模型的显示名称，用于在UI界面上展示，可由用户自定义
+        # 与id不同，name可以重复，主要用于用户识别和搜索
         self.name = name
+        
+        # 模型类型（文本生成、图像生成等）
         self.type = type
+        
+        # 模型提供商（OpenAI、本地等）
         self.provider = provider
+        
+        # 模型版本号，用于区分同一模型的不同版本
         self.version = version
+        
+        # 模型的详细描述信息
         self.description = description or ""
+        
+        # 存储模型的配置信息，如API密钥、服务器地址等
         self.config = config or {}
+        
+        # 模型当前状态（可用、不可用、加载中、错误）
         self.status = status
-        self.tags = tags or []
+        
+        # tags: 模型的标签集合，用于分类和筛选
+        # 一个模型可以有多个标签，用于对模型进行分组和快速查找
+        self.tags = tags or set()
+        
+        # 存储模型的额外元数据，如模型大小、参数数量等
         self.metadata = metadata or {}
+        
+        # 记录模型创建时间
         self.created_at = datetime.now().isoformat()
+        
+        # 记录模型最后更新时间，初始与创建时间相同
         self.updated_at = self.created_at
         
     def to_dict(self) -> Dict:
@@ -112,7 +138,7 @@ class Model:
             description=data.get("description"),
             config=data.get("config", {}),
             status=ModelStatus(data.get("status", "unavailable")),
-            tags=data.get("tags", []),
+            tags=data.get("tags", set()),
             metadata=data.get("metadata", {})
         )
         model.created_at = data.get("created_at", model.created_at)

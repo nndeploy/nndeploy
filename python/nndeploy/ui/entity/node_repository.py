@@ -46,18 +46,36 @@ class NodeType:
         name: str,
         category: NodeCategory,
         description: str,
-        icon: str = None,
+        tags: Set[str] = None,
         inputs: List[] = None,
         outputs: List[] = None,
         parameters: List[] = None
     ):
+        # id: 节点类型的唯一标识符，用于在系统中唯一引用该节点类型
+        # 不同于name，id通常是系统生成的，不会随用户操作而改变
         self.id = id
+        
+        # name: 节点类型的显示名称，用于在UI界面上展示，可由用户自定义
+        # 与id不同，name可以重复，主要用于用户识别和搜索
         self.name = name
+        
+        # 节点类别（输入、输出、控制流等）
         self.category = category
+        
+        # 节点类型的详细描述信息
         self.description = description
-        self.icon = icon or "widgets"  # 默认图标
+        
+        # tags: 节点类型的标签集合，用于分类和筛选
+        # 一个节点类型可以有多个标签，用于对节点进行分组和快速查找
+        self.tags = tags or set()
+        
+        # 节点的输入端口定义列表，描述节点可接收的输入类型
         self.inputs = inputs or []
+        
+        # 节点的输出端口定义列表，描述节点可产生的输出类型
         self.outputs = outputs or []
+        
+        # 节点的可配置参数列表，描述节点的可调整属性
         self.parameters = parameters or []
         
     def to_dict(self) -> Dict:
@@ -67,7 +85,7 @@ class NodeType:
             "name": self.name,
             "category": self.category.value,
             "description": self.description,
-            "icon": self.icon,
+            "tags": self.tags,
             "inputs": self.inputs,
             "outputs": self.outputs,
             "parameters": self.parameters
@@ -81,12 +99,48 @@ class NodeType:
             name=data["name"],
             category=NodeCategory(data["category"]),
             description=data["description"],
-            icon=data.get("icon"),
+            tags=data.get("tags", set()),
             inputs=data.get("inputs", []),
             outputs=data.get("outputs", []),
             parameters=data.get("parameters", [])
         )
+        
+    def set_input(self, input, index = -1):
+        """设置输入端口"""
+        if index == -1:
+            self.inputs.append(input)
+        else:
+            # 确保索引在有效范围内
+            if 0 <= index <= len(self.inputs):
+                self.inputs.insert(index, input)
+            else:
+                # 如果索引无效，则追加到末尾
+                self.inputs.append(input)
 
+    def set_output(self, output, index = -1):
+        """设置输出端口"""
+        if index == -1:
+            self.outputs.append(output)
+        else:
+            # 确保索引在有效范围内
+            if 0 <= index <= len(self.outputs):
+                self.outputs.insert(index, output)
+            else:
+                # 如果索引无效，则追加到末尾
+                self.outputs.append(output)
+            
+    def set_parameter(self, parameter, index = -1):
+        """设置参数"""
+        if index == -1:
+            self.parameters.append(parameter)
+        else:
+            # 确保索引在有效范围内
+            if 0 <= index <= len(self.parameters):
+                self.parameters.insert(index, parameter)
+            else:
+                # 如果索引无效，则追加到末尾
+                self.parameters.append(parameter)
+            
 class NodeRepository:
     """节点仓库类"""
     

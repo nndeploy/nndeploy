@@ -39,14 +39,35 @@ class Material:
         tags: Set[str] = None,
         metadata: Dict = None
     ):
+        # id: 素材的唯一标识符，用于在系统中唯一引用该素材
+        # 不同于name，id通常是系统生成的，不会随用户操作而改变
         self.id = id
+        
+        # name: 素材的显示名称，用于在UI界面上展示，可由用户自定义
+        # 与id不同，name可以重复，主要用于用户识别和搜索
         self.name = name
+        
+        # 素材类型（文本、图片、音频等）
         self.type = material_type
+        
+        # 素材文件的相对路径
         self.path = path
+        
+        # 素材的详细描述信息
         self.description = description or ""
+        
+        # tags: 素材的标签集合，用于分类和筛选
+        # 与id和name不同，tags是多值属性，一个素材可以有多个标签
+        # 标签用于对素材进行分组和快速查找
         self.tags = tags or set()
+        
+        # 存储素材的额外元数据
         self.metadata = metadata or {}
+        
+        # 记录素材创建时间
         self.created_at = datetime.now().isoformat()
+        
+        # 记录素材最后更新时间，初始与创建时间相同
         self.updated_at = self.created_at
         
     def to_dict(self) -> Dict:
