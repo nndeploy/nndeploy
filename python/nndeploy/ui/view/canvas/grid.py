@@ -42,8 +42,19 @@ class Grid:
         self.width = width
         self.height = height
         self.cell_size = cell_size
-        self.color = color or get_color("secondary")
+        self.base_color = color or get_color("secondary")
         self.opacity = opacity
+        
+        # 创建带透明度的颜色
+        # 将透明度值(0-1)转换为十六进制(00-FF)
+        alpha_hex = hex(int(opacity * 255))[2:].zfill(2).upper()
+        if self.base_color.startswith('#') and len(self.base_color) == 7:
+            # 如果是#RRGGBB格式，转换为#AARRGGBB格式
+            self.color = f"#{alpha_hex}{self.base_color[1:]}"
+        else:
+            # 如果是其他格式，保持原样并警告opacity可能不生效
+            self.color = self.base_color
+            print(f"Warning: opacity may not work with color format: {self.base_color}")
         
         # 无限画布相关属性
         self.offset_x = 0  # 画布X轴偏移量
@@ -51,6 +62,9 @@ class Grid:
         self.is_dragging = False  # 是否正在拖动画布
         self.drag_start_x = 0  # 拖动起始X坐标
         self.drag_start_y = 0  # 拖动起始Y坐标
+        
+        # 存储内容项
+        self.contents = []
         
         # 创建控件
         self.canvas = ft.canvas.Canvas(
@@ -76,7 +90,7 @@ class Grid:
                     bgcolor=get_color("background")
                 ),
                 # 网格线层
-                self.canvas
+                self.canvas,
             ])
         )
         
@@ -120,7 +134,26 @@ class Grid:
                 )
             )
             x += self.cell_size
+    
+    def _update_content_position(self):
+        """更新内容层中所有元素的位置
         
+        根据画布偏移量，更新所有内容项的位置，使其与画布拖动同步
+        """
+        # 使用stack获取内容层
+        if isinstance(self.container.content, ft.Stack):
+            stack = self.container.content
+            
+            # 更新所有内容项的位置
+            for content_item in self.contents:
+                control = content_item["control"]
+                canvas_x = content_item["canvas_x"]
+                canvas_y = content_item["canvas_y"]
+                
+                # 更新位置
+                control.left = canvas_x + self.offset_x
+                control.top = canvas_y + self.offset_y
+    
     def _on_pan_start(self, e):
         """开始拖动画布
         
@@ -159,8 +192,12 @@ class Grid:
         # 重新绘制网格线
         self._draw_grid()
         
+        # 更新内容层中的元素位置
+        self._update_content_position()
+        
         # 更新显示
-        self.canvas.update()
+        if self.container.page:
+            self.container.update()
     
     def _on_pan_end(self, e):
         """结束画布拖动
@@ -171,6 +208,36 @@ class Grid:
             e: 拖动事件对象
         """
         self.is_dragging = False
+    
+    def add_content(self, control, canvas_x=0, canvas_y=0):
+        """添加内容到画布
+        
+        将控件添加到画布上的指定位置
+        
+        Args:
+            control: 要添加的控件
+            canvas_x: 控件在画布上的X坐标
+            canvas_y: 控件在画布上的Y坐标
+        """
+        # 计算控件在屏幕上的实际位置
+        control.left = canvas_x + self.offset_x
+        control.top = canvas_y + self.offset_y
+        
+        # 存储内容项信息
+        self.contents.append({
+            "control": control,
+            "canvas_x": canvas_x,
+            "canvas_y": canvas_y
+        })
+        
+        # 将控件添加到Stack中
+        if isinstance(self.container.content, ft.Stack):
+            stack = self.container.content
+            stack.controls.append(control)
+            
+            # 只有当container已添加到页面时才调用update
+            if self.container.page:
+                self.container.update()
             
     def resize(self, width: float, height: float):
         """调整网格大小
@@ -200,8 +267,8 @@ class Grid:
         self._draw_grid()
         
         # 更新显示
-        self.canvas.update()
-        self.container.content.update()
+        if self.container.page:
+            self.container.update()
 
 
 if __name__ == "__main__":
@@ -219,6 +286,75 @@ if __name__ == "__main__":
         # 创建满屏网格
         grid = Grid(page, width=page.window_width, height=page.window_height)
         
+        # 创建布局并添加到页面
+        layout = ft.Stack([grid.container])
+        page.add(layout)
+        
+        # 添加一些测试节点 - 模拟Dify图片中的节点
+        start_node = ft.Container(
+            width=100,
+            height=40,
+            border_radius=20,
+            bgcolor="#2563EB",
+            content=ft.Row([
+                ft.Icon(name=ft.icons.HOME, color=ft.colors.WHITE),
+                ft.Text("开始", color=ft.colors.WHITE)
+            ], alignment=ft.MainAxisAlignment.CENTER),
+        )
+        
+        llm_node = ft.Container(
+            width=160,
+            height=80,
+            border_radius=10,
+            bgcolor="#FFFFFF",
+            border=ft.border.all(2, "#2563EB"),
+            content=ft.Column([
+                ft.Row([
+                    ft.Icon(name=ft.icons.SMART_TOY, color="#2563EB"),
+                    ft.Text("LLM", color="#2563EB"),
+                    ft.Container(width=60),  # 占位
+                    ft.Icon(name=ft.icons.ADD_CIRCLE_OUTLINE, color="#2563EB"),
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                ft.Container(
+                    content=ft.Text("gpt-3.5-turbo", size=12),
+                    bgcolor="#F3F4F6",
+                    padding=5,
+                    border_radius=5,
+                )
+            ], alignment=ft.MainAxisAlignment.CENTER, spacing=5)
+        )
+        
+        search_node = ft.Container(
+            width=100,
+            height=40,
+            border_radius=20,
+            bgcolor="#10B981",
+            content=ft.Row([
+                ft.Icon(name=ft.icons.SEARCH, color=ft.colors.WHITE),
+                ft.Text("知识检索", color=ft.colors.WHITE, size=12)
+            ], alignment=ft.MainAxisAlignment.CENTER),
+        )
+        
+        end_node = ft.Container(
+            width=100,
+            height=40,
+            border_radius=20,
+            bgcolor="#F59E0B",
+            content=ft.Row([
+                ft.Icon(name=ft.icons.CHECK_CIRCLE, color=ft.colors.WHITE),
+                ft.Text("结束", color=ft.colors.WHITE)
+            ], alignment=ft.MainAxisAlignment.CENTER),
+        )
+        
+        # 添加节点到画布 - 中心位置为原点
+        center_x = page.window_width / 2
+        center_y = page.window_height / 2
+        
+        grid.add_content(start_node, center_x - 300, center_y)
+        grid.add_content(llm_node, center_x - 50, center_y + 100)
+        grid.add_content(search_node, center_x, center_y - 100)
+        grid.add_content(end_node, center_x + 300, center_y)
+        
         # 添加参考点标记
         center_mark = ft.Container(
             width=10,
@@ -228,6 +364,7 @@ if __name__ == "__main__":
             left=(page.window_width / 2) - 5,
             top=(page.window_height / 2) - 5,
         )
+        layout.controls.append(center_mark)
         
         # 添加坐标信息文本
         coords_text = ft.Text(
@@ -238,6 +375,7 @@ if __name__ == "__main__":
             left=10,
             top=10,
         )
+        layout.controls.append(coords_text)
         
         # 更新坐标信息
         def update_coords():
@@ -251,13 +389,6 @@ if __name__ == "__main__":
             update_coords()
         grid._on_pan_update = on_pan_update_with_coords
         
-        # 创建布局
-        layout = ft.Stack([
-            grid.container,
-            center_mark,
-            coords_text,
-        ])
-        
         # 监听窗口大小变化
         def on_resize(e):
             grid.resize(page.window_width, page.window_height)
@@ -266,6 +397,5 @@ if __name__ == "__main__":
             center_mark.update()
         
         page.on_resize = on_resize
-        page.add(layout)
     
     ft.app(target=main, view=ft.WEB_BROWSER, port=9090)
