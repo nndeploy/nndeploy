@@ -28,12 +28,15 @@ class TestBatchNormOp(unittest.TestCase):
         )
 
         input = create_tensor_from_numpy(np_input)
+        ascend_input = input.to(nndeploy.base.DeviceType("ascendcl"))
         scale = create_tensor_from_numpy(np_scale)
         bias = create_tensor_from_numpy(np_bias)
         mean = create_tensor_from_numpy(np_mean)
         var = create_tensor_from_numpy(np_var)
 
-        nndeploy_result = F.batch_norm(input, scale, bias, mean, var)
+        ascend_result = F.batch_norm(ascend_input, scale, bias, mean, var)
+
+        nndeploy_result = ascend_result.to(nndeploy.base.DeviceType("cpu"))
 
         self.assertTrue(
             np.allclose(
