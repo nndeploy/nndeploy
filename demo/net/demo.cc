@@ -22,9 +22,9 @@ class CannTest : public ir::ModelDesc {
     //     "bias");
     // auto relu1 = makeRelu(this, conv1);
     auto softmax_0 =
-        op::makeSoftMax(this, input, std::make_shared<ir::SoftmaxParam>());
+        op::makeSoftmax(this, input, std::make_shared<ir::SoftmaxParam>());
     auto softmax_1 =
-        op::makeSoftMax(this, input, std::make_shared<ir::SoftmaxParam>());
+        op::makeSoftmax(this, input, std::make_shared<ir::SoftmaxParam>());
 
     auto add = op::makeAdd(this, softmax_0, softmax_1);
 

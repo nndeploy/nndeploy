@@ -54,7 +54,7 @@ def global_averagepool(input):
 
 def maxpool(input, kernel_size, stride=1, padding=0, dilation=1, ceil_mode=False):
     param = _C.ir.MaxPoolParam()
-    param.kernel_shape_ = [kernel_size] *2
+    param.kernel_shape_ = [kernel_size] * 2
     param.strides_ = [stride] * 2
     param.pads_ = [padding] * 4
     param.dilations_ = [dilation] * 2
@@ -65,3 +65,8 @@ def maxpool(input, kernel_size, stride=1, padding=0, dilation=1, ceil_mode=False
 def mul(input1, input2):
     return _C.op.mul(input1, input2)
 
+
+def softmax(input, axis=-1):
+    param = _C.ir.SoftmaxParam()
+    param.axis_ = axis
+    return _C.op.softmax(input, param)

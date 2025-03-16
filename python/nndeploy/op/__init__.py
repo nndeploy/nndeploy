@@ -6,7 +6,7 @@ from .expr import (
     Conv,
     Relu,
     BatchNorm,
-    SoftMax,
+    Softmax,
     Add,
     Flatten,
     Gemm,

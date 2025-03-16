@@ -105,17 +105,17 @@ class BatchNorm(Module):
         )
 
 
-class SoftMax(Module):
-    def __init__(self, dim=-1):
+class Softmax(Module):
+    def __init__(self, axis=-1):
         super().__init__()
         self.param = _C.ir.SoftmaxParam()
-        self.param.axis_ = dim
+        self.param.axis_ = axis
 
     def __call__(self, data):
         return self.makeExpr(data)
 
     def makeExpr(self, data):
-        return _C.op.makeSoftMax(self.model_desc, data, self.param)
+        return _C.op.makeSoftmax(self.model_desc, data, self.param)
 
 
 class Add(Module):

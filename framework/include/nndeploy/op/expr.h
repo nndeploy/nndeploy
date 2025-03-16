@@ -70,7 +70,7 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeSigmoid(ir::ModelDesc *model_desc,
                                                   std::string output_name = "");
 
 // softmax
-NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftMax(
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftmax(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
     std::shared_ptr<ir::SoftmaxParam> param, std::string op_name = "",
     std::string output_name = "");

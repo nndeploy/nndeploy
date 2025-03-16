@@ -15,6 +15,7 @@
 #include "nndeploy/op/op_mul.h"
 #include "nndeploy/op/op_relu.h"
 #include "nndeploy/op/op_rmsnorm.h"
+#include "nndeploy/op/op_softmax.h"
 
 /**
  * @brief Op的func层，在该层进行Op的输入检查、输出Tensor构造、调用Op计算;
@@ -53,6 +54,9 @@ device::Tensor* maxPoolFunc(device::Tensor* input,
                             std::shared_ptr<ir::MaxPoolParam> param);
 
 device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2);
+
+device::Tensor* softmaxFunc(device::Tensor* input1,
+                            std::shared_ptr<ir::SoftmaxParam> param);
 
 }  // namespace nndeploy
 
