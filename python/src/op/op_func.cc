@@ -142,4 +142,17 @@ device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2) {
   return result;
 }
 
+device::Tensor* softmaxFunc(device::Tensor* input1,
+                            std::shared_ptr<ir::SoftmaxParam> param) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("softmax.output");
+  base::Status status = op::softmax(input1, param, result);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::softmax failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
+}
+
 }  // namespace nndeploy
