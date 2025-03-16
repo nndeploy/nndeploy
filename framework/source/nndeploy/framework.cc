@@ -16,7 +16,7 @@ using namespace nndeploy;
 int nndeployFrameworkInit() { return 0; }
 
 int nndeployFrameworkDeinit() {
-  base::Status status = device::disableDevice();
+  base::Status status = device::destoryArchitecture();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("nndeployFrameworkDeinit failed\n");
     return -1;

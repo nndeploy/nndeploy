@@ -1,41 +1,39 @@
-// #include <experimental/filesystem>
+#include "flag.h"
+#include "nndeploy/framework.h"
 #include "nndeploy/ir/default_interpret.h"
 #include "nndeploy/ir/interpret.h"
 #include "nndeploy/ir/ir.h"
-// #include "nndeploy/ir/onnx/onnx_interpret.h"
-#include "nndeploy/framework.h"
 #include "nndeploy/net/net.h"
 #include "nndeploy/op/expr.h"
 #include "nndeploy/op/op.h"
-#include "test.h"
 
 using namespace nndeploy;
 
-class CannTest : public ir::ModelDesc {
- public:
-  CannTest(){};
-  ~CannTest(){};
-  void init() {
-    auto input =
-        op::makeInput(this, "input", base::dataTypeOf<float>(), {1, 1, 8, 8});
-    // auto conv1 =
-    //     makeConv(this, input, std::make_shared<ConvParam>(), "weight",
-    //     "bias");
-    // auto relu1 = makeRelu(this, conv1);
-    auto softmax_0 =
-        op::makeSoftmax(this, input, std::make_shared<ir::SoftmaxParam>());
-    auto softmax_1 =
-        op::makeSoftmax(this, input, std::make_shared<ir::SoftmaxParam>());
+DEFINE_string(tensor_pool_type, "", "tensor pool type");
 
-    auto add = op::makeAdd(this, softmax_0, softmax_1);
-
-    op::makeOutput(this, add);
+net::TensorPoolType getTensorPoolType() {
+  if (FLAGS_tensor_pool_type == "kTensorPool1DSharedObjectTypeGreedyByBreadth") {
+    return net::kTensorPool1DSharedObjectTypeGreedyByBreadth;
+  } else if (FLAGS_tensor_pool_type == "kTensorPool1DSharedObjectTypeGreedyBySize") {
+    return net::kTensorPool1DSharedObjectTypeGreedyBySize;
+  } else if (FLAGS_tensor_pool_type == "kTensorPool1DSharedObjectTypeGreedyBySizeImprove") {
+    return net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
+  } else if (FLAGS_tensor_pool_type == "kTensorPool1DOffsetCalculateTypeGreedyBySize") {
+    return net::kTensorPool1DOffsetCalculateTypeGreedyBySize;
+  } else if (FLAGS_tensor_pool_type == "kTensorPool1DOffsetCalculateTypeGreedyByBreadth") {
+    return net::kTensorPool1DOffsetCalculateTypeGreedyByBreadth;
+  } else if (FLAGS_tensor_pool_type == "kTensorPool1DNone") {
+    return net::kTensorPool1DNone;
   }
-};
+  return net::kTensorPool1DSharedObjectTypeGreedyBySize;  // 默认使用正确的方法
+}
 
-int main() {
-  // net::TestNet testNet;
-  // testNet.init();
+int main(int argc, char *argv[]) {
+  gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
+  if (demo::FLAGS_usage) {
+    demo::showUsage();
+    return -1;
+  }
 
   int ret = nndeployFrameworkInit();
   if (ret != 0) {
@@ -43,78 +41,40 @@ int main() {
     return ret;
   }
 
-  auto onnx_interpret =
-      std::shared_ptr<ir::Interpret>(ir::createInterpret(base::kModelTypeOnnx));
-  std::vector<std::string> model_value;
-  // model_value.push_back("D:\\github\\nndeploy\\build\\yolov8n.onnx");
-  model_value.push_back("yolov8n.onnx");
+  base::ModelType model_type = demo::getModelType();
+  // 模型路径或者模型字符串
+  std::vector<std::string> model_value = demo::getModelValue();
 
-  base::Status status = onnx_interpret->interpret(model_value);
+  base::Status status = base::kStatusCodeOk;
+
+  auto interpret = std::shared_ptr<ir::Interpret>(ir::createInterpret(model_type));
+  if (interpret == nullptr) {
+    NNDEPLOY_LOGE("ir::createInterpret failed.\n");
+    return -1;
+  }
+  status = interpret->interpret(model_value);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("interpret failed\n");
     return -1;
   }
 
-  // onnx_interpret->dump(std::cout);
-  onnx_interpret->saveModelToFile("yolov8n.json", "yolov8n.safetensors");
-
-  auto default_interpret = std::shared_ptr<ir::Interpret>(
-      ir::createInterpret(base::kModelTypeDefault));
-  std::vector<std::string> new_model_value;
-  new_model_value.push_back("yolov8n.json");
-  new_model_value.push_back("yolov8n.safetensors");
-  // base::Status status;
-  status = default_interpret->interpret(new_model_value);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("interpret failed\n");
-    return -1;
-  }
-  default_interpret->saveModelToFile("yolov8n_test.json",
-                                     "yolov8n_test.safetensors");
-
-  // ir::ModelDesc *md = onnx_interpret->getModelDesc();
-  ir::ModelDesc *md = default_interpret->getModelDesc();
-  if (md == nullptr) {
-    NNDEPLOY_LOGE("get model desc failed\n");
-    return -1;
-  }
-
-  // md->dump(std::cout);
-
-  // auto md = new CannTest();
-  // md->init();
-  auto cann_net = std::make_shared<net::Net>();
-  // cann_net->setModelDesc(cann_model.get());
-  cann_net->setModelDesc(md);
+  auto net = std::make_shared<net::Net>();
+  net->setInterpret(interpret.get());
 
   base::DeviceType device_type;
+  // device_type.code_ = base::kDeviceTypeCodeCpu;
   device_type.code_ = base::kDeviceTypeCodeAscendCL;
   device_type.device_id_ = 0;
-  cann_net->setDeviceType(device_type);
-  net::TensorPoolType tensor_pool_type =
-      net::kTensorPool1DSharedObjectTypeGreedyBySize;
-  cann_net->setTensorPoolType(tensor_pool_type);
+  net->setDeviceType(device_type);
 
-  cann_net->init();
+  net::TensorPoolType tensor_pool_type = getTensorPoolType();
+  net->setTensorPoolType(tensor_pool_type);
 
-  // cann_net->dump(std::cout);
+  net->init();
 
-  std::vector<device::Tensor *> inputs = cann_net->getAllInput();
-  inputs[0]->set<float>(1.0f);
-  // inputs[0]->print();
+  net->dump(std::cout);
 
-  cann_net->preRun();
-
-  cann_net->run();
-
-  cann_net->postRun();
-
-  // std::vector<device::Tensor *>inputs = cann_net->getAllInput();
-
-  std::vector<device::Tensor *> outputs = cann_net->getAllOutput();
-  // outputs[0]->print();
-
-  cann_net->deinit();
+  net->deinit();
 
   // ret = nndeployFrameworkDeinit();
   // if (ret != 0) {

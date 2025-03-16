@@ -40,6 +40,9 @@ class NNDEPLOY_CC_API Expr {
 
 /**
  * @brief  一系列创建函数
+ * @note
+ * TODO: 目前pybind11导出ir::ModelDesc，采用shared_ptr作为hold
+ * type，可能需要讲全文的ir::ModelDesc *model_desc改为shared_ptr<ir::ModelDesc>
  */
 // input
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeInput(

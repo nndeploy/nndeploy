@@ -9,6 +9,13 @@
 
 using namespace nndeploy;
 
+DEFINE_string(model_json, "", "test.json");
+DEFINE_string(model_safetensors, "", "test.safetensors");
+
+std::string getModelJson() { return FLAGS_model_json; }
+
+std::string getModelSafetensors() { return FLAGS_model_safetensors; }
+
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
   if (demo::FLAGS_usage) {
@@ -22,12 +29,15 @@ int main(int argc, char *argv[]) {
     return ret;
   }
 
+  // 模型类型，例如:
+  // kModelTypeOnnx/kModelTypeMnn/...
   base::ModelType model_type = demo::getModelType();
   // 模型路径或者模型字符串
   std::vector<std::string> model_value = demo::getModelValue();
+  std::string model_json = getModelJson();
+  std::string model_safetensors = getModelSafetensors();
 
   base::Status status = base::kStatusCodeOk;
-
   auto interpret = std::shared_ptr<ir::Interpret>(ir::createInterpret(model_type));
   if (interpret == nullptr) {
     NNDEPLOY_LOGE("ir::createInterpret failed.\n");
@@ -38,26 +48,16 @@ int main(int argc, char *argv[]) {
     NNDEPLOY_LOGE("interpret failed\n");
     return -1;
   }
+  status = interpret->saveModelToFile(model_json, model_safetensors);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("saveModelToFile failed\n");
+    return -1;
+  }
 
-  auto net = std::make_shared<net::Net>();
-  net->setInterpret(interpret.get());
-
-  base::DeviceType device_type;
-  // device_type.code_ = base::kDeviceTypeCodeCpu;
-  device_type.code_ = base::kDeviceTypeCodeAscendCL;
-  device_type.device_id_ = 0;
-  net->setDeviceType(device_type);
-
-  net->init();
-
-  net->dump(std::cout);
-
-  net->deinit();
-
-  // ret = nndeployFrameworkDeinit();
-  // if (ret != 0) {
-  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-  //   return ret;
-  // }
+  ret = nndeployFrameworkDeinit();
+  if (ret != 0) {
+    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+    return ret;
+  }
   return 0;
 }
