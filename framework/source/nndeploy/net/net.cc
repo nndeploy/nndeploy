@@ -650,7 +650,7 @@ base::Status Net::construct() {
                                          "tensor_repository_ tensor is null!");
     if (tensor_wrapper->producers_.empty() &&
         tensor_wrapper->consumers_.empty()) {
-      NNDEPLOY_LOGI("this tensor[%s] is unuseless!\n",
+      NNDEPLOY_LOGI("this tensor[%s] is useless!\n",
                     tensor_wrapper->tensor_->getName().c_str());
     }
   }
