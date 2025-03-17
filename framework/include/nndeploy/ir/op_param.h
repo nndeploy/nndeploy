@@ -956,6 +956,69 @@ class NNDEPLOY_CC_API GemmParam : public OpParam {
   int trans_b_ = 0;    // 默认值为0
 };
 
+class NNDEPLOY_CC_API QuantizeLinearParam : public OpParam {
+ public:
+  QuantizeLinearParam() : OpParam() {}
+  virtual ~QuantizeLinearParam() {}
+
+  PARAM_COPY(QuantizeLinearParam)
+  PARAM_COPY_TO(QuantizeLinearParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("axis_", axis_, allocator);
+    json.AddMember("saturate_", saturate_, allocator);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("axis_")) {
+      axis_ = json["axis_"].GetInt();
+    } else {
+      axis_ = 1;  // 默认值
+    }
+
+    if (json.HasMember("saturate_")) {
+      saturate_ = json["saturate_"].GetInt();
+    } else {
+      saturate_ = 1;  // 默认值
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int axis_ = 1;      // 量化维度，默认为1
+  int saturate_ = 1;  // 是否饱和，默认为1
+};
+
+class NNDEPLOY_CC_API DequantizeLinearParam : public OpParam {
+ public:
+  DequantizeLinearParam() : OpParam() {}
+  virtual ~DequantizeLinearParam() {}
+
+  PARAM_COPY(DequantizeLinearParam)
+  PARAM_COPY_TO(DequantizeLinearParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("axis_", axis_, allocator);
+    return base::kStatusCodeOk;
+  }
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("axis_")) {
+      axis_ = json["axis_"].GetInt();
+    } else {
+      axis_ = 1;  // 默认值
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int axis_ = 1;  // 反量化维度，默认为1
+};
+
 }  // namespace ir
 }  // namespace nndeploy
 
