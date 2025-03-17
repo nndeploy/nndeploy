@@ -204,6 +204,7 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
         py::return_value_policy::take_ownership);
   m.def("maxpool", &maxPoolFunc, py::return_value_policy::take_ownership);
   m.def("mul", &mulFunc, py::return_value_policy::take_ownership);
+  m.def("softmax", &softmaxFunc, py::return_value_policy::take_ownership);
 }
 
 }  // namespace op
