@@ -483,7 +483,7 @@ base::Status Graph::construct() {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
                                          "edge_repository_ edge is null!");
     if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
-      NNDEPLOY_LOGI("this edge[%s] is unuseless!\n",
+      NNDEPLOY_LOGI("this edge[%s] is useless!\n",
                     edge_wrapper->edge_->getName().c_str());
     }
   }
