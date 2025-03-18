@@ -41,8 +41,8 @@ class FileService:
         self._max_backups = 5
         
         # 启动自动保存任务
-        if self._auto_save_enabled:
-            asyncio.create_task(self._auto_save_loop())
+        # if self._auto_save_enabled:
+        #     asyncio.create_task(self._auto_save_loop())
             
     async def _auto_save_loop(self):
         """自动保存循环"""

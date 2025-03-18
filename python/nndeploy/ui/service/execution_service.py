@@ -18,7 +18,7 @@ import queue
 from enum import Enum
 
 from ..utils.logger import logger
-from ..entity.workflow_repository import WorkflowRepository, Workflow
+# from ..entity.workflow_repository import WorkflowRepository, Workflow
 from ..entity.node_repository import NodeRepository
 
 class ExecutionStatus(Enum):
@@ -81,7 +81,7 @@ class ExecutionService:
     """执行服务类"""
     
     def __init__(self):
-        self.workflow_repo = WorkflowRepository()
+        # self.workflow_repo = WorkflowRepository()
         self.node_repo = NodeRepository()
         self._contexts: Dict[str, ExecutionContext] = {}
         self._running_workflows = set()

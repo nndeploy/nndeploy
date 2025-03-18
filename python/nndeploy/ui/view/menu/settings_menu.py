@@ -12,152 +12,213 @@
 
 from typing import Optional, Callable, List
 import flet as ft
-from ...config.language import get_text
-from ...config.settings import settings
+from nndeploy.ui.config.language import language_config, get_text, Language
+from nndeploy.ui.config.settings import settings
+from nndeploy.ui.config.language import LanguageConfig
+from nndeploy.ui.config.shortcuts import get_shortcut
 
-class SettingsMenu(ft.UserControl):
-    """设置菜单"""
+def SettingsMenu(
+    on_canvas_settings: Optional[Callable[[], None]] = None,
+    on_node_settings: Optional[Callable[[], None]] = None,
+    on_edge_settings: Optional[Callable[[], None]] = None,
+    on_performance_settings: Optional[Callable[[], None]] = None,
+    on_auto_save_settings: Optional[Callable[[], None]] = None,
+    on_language_settings: Optional[Callable[[], None]] = None,
+    on_theme_settings: Optional[Callable[[], None]] = None
+):
+    """创建设置菜单组件
     
-    def __init__(
-        self,
-        on_canvas_settings: Optional[Callable[[], None]] = None,
-        on_node_settings: Optional[Callable[[], None]] = None,
-        on_edge_settings: Optional[Callable[[], None]] = None,
-        on_performance_settings: Optional[Callable[[], None]] = None,
-        on_auto_save_settings: Optional[Callable[[], None]] = None
-    ):
-        super().__init__()
-        self.on_canvas_settings = on_canvas_settings
-        self.on_node_settings = on_node_settings
-        self.on_edge_settings = on_edge_settings
-        self.on_performance_settings = on_performance_settings
-        self.on_auto_save_settings = on_auto_save_settings
-        
-    def build(self):
-        return ft.PopupMenuButton(
-            content=ft.Text(get_text("menu.settings")),
-            items=[
-                # 画布设置
-                ft.PopupMenuItem(
-                    text=get_text("menu.settings.canvas"),
-                    icon=ft.icons.GRID_ON,
-                    on_click=lambda _: (
-                        self.on_canvas_settings and self.on_canvas_settings()
-                    ),
-                    submenu=ft.PopupMenuButton(
-                        items=self._build_canvas_settings()
-                    )
+    使用Flet的SubmenuButton实现的设置菜单，支持多级菜单结构。
+    每个设置项都有对应的图标和回调函数。
+    """
+    
+    def build_canvas_settings():
+        """构建画布设置菜单项"""
+        return ft.SubmenuButton(
+            content=ft.Text("menu.settings.canvas"),
+            leading=ft.Icon(ft.Icons.GRID_ON),
+            # on_click=lambda _: on_canvas_settings and on_canvas_settings(),
+            controls=[
+                # 网格显示设置
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.canvas.grid"),
+                    on_click=lambda e: settings.set(
+                            "canvas", "grid_enabled", e.control.value
+                        )
                 ),
-                
-                # 节点设置
-                ft.PopupMenuItem(
-                    text=get_text("menu.settings.node"),
-                    icon=ft.icons.WIDGETS,
-                    on_click=lambda _: (
-                        self.on_node_settings and self.on_node_settings()
-                    ),
-                    submenu=ft.PopupMenuButton(
-                        items=self._build_node_settings()
-                    )
-                ),
-                
-                # 连线设置
-                ft.PopupMenuItem(
-                    text=get_text("menu.settings.edge"),
-                    icon=ft.icons.TIMELINE,
-                    on_click=lambda _: (
-                        self.on_edge_settings and self.on_edge_settings()
-                    ),
-                    submenu=ft.PopupMenuButton(
-                        items=self._build_edge_settings()
-                    )
-                ),
-                
-                ft.PopupMenuDivider(),
-                
-                # 性能设置
-                ft.PopupMenuItem(
-                    text=get_text("menu.settings.performance"),
-                    icon=ft.icons.SPEED,
-                    on_click=lambda _: (
-                        self.on_performance_settings and 
-                        self.on_performance_settings()
-                    ),
-                    submenu=ft.PopupMenuButton(
-                        items=self._build_performance_settings()
-                    )
-                ),
-                
-                # 自动保存设置
-                ft.PopupMenuItem(
-                    text=get_text("menu.settings.autoSave"),
-                    icon=ft.icons.SAVE,
-                    on_click=lambda _: (
-                        self.on_auto_save_settings and 
-                        self.on_auto_save_settings()
-                    ),
-                    submenu=ft.PopupMenuButton(
-                        items=self._build_auto_save_settings()
-                    )
+                # 网格吸附设置
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.canvas.snap"),
+                    on_click=lambda e: settings.set(
+                            "canvas", "snap_to_grid", e.control.value
+                        )
                 ),
             ]
         )
         
-    def _build_canvas_settings(self) -> List[ft.PopupMenuItem]:
-        """构建画布设置菜单项"""
-        return [
-            ft.PopupMenuItem(
-                text=get_text("menu.settings.canvas.grid"),
-                selected=settings.get("canvas", "grid_enabled"),
-                on_click=lambda _: settings.set(
-                    "canvas", "grid_enabled",
-                    not settings.get("canvas", "grid_enabled")
-                )
-            ),
-            ft.PopupMenuItem(
-                text=get_text("menu.settings.canvas.snap"),
-                selected=settings.get("canvas", "snap_to_grid"),
-                on_click=lambda _: settings.set(
-                    "canvas", "snap_to_grid",
-                    not settings.get("canvas", "snap_to_grid")
-                )
-            ),
-        ]
-        
-    def _build_node_settings(self) -> List[ft.PopupMenuItem]:
+    def build_node_settings():
         """构建节点设置菜单项"""
-        return [
-            # TODO: 添加节点设置项
-        ]
+        return ft.SubmenuButton(
+            content=ft.Text("menu.settings.node"),
+            leading=ft.Icon(ft.Icons.WIDGETS),
+            # on_click=lambda _: on_node_settings and on_node_settings(),
+            controls=[
+                # TODO: 添加节点设置项
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.node.placeholder"),
+                    disabled=True
+                )
+            ]
+        )
         
-    def _build_edge_settings(self) -> List[ft.PopupMenuItem]:
+    def build_edge_settings():
         """构建连线设置菜单项"""
-        return [
-            # TODO: 添加连线设置项
-        ]
+        return ft.SubmenuButton(
+            content=ft.Text("menu.settings.edge"),
+            leading=ft.Icon(ft.Icons.TIMELINE),
+            # on_click=lambda _: on_edge_settings and on_edge_settings(),
+            controls=[
+                # TODO: 添加连线设置项
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.edge.placeholder"),
+                    disabled=True
+                )
+            ]
+        )
         
-    def _build_performance_settings(self) -> List[ft.PopupMenuItem]:
+    def build_performance_settings():
         """构建性能设置菜单项"""
-        return [
-            ft.PopupMenuItem(
-                text=get_text("menu.settings.performance.animation"),
-                selected=settings.get("performance", "animation_enabled"),
-                on_click=lambda _: settings.set(
-                    "performance", "animation_enabled",
-                    not settings.get("performance", "animation_enabled")
-                )
-            ),
-        ]
+        return ft.SubmenuButton(
+            content=ft.Text("menu.settings.performance"),
+            leading=ft.Icon(ft.Icons.SPEED),
+            # on_click=lambda _: on_performance_settings and on_performance_settings(),
+            controls=[
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.performance.animation"),
+                    on_click=lambda e: settings.set(
+                            "performance", "animation_enabled", e.control.value
+                        )
+                ),
+            ]
+        )
         
-    def _build_auto_save_settings(self) -> List[ft.PopupMenuItem]:
+    def build_auto_save_settings():
         """构建自动保存设置菜单项"""
-        return [
-            ft.PopupMenuItem(
-                text=get_text("menu.settings.autoSave.enabled"),
-                selected=settings.get("auto_save", "enabled"),
-                on_click=lambda _: settings.set(
-                    "auto_save", "enabled",
-                    not settings.get("auto_save", "enabled")
-                )
-            ),
-        ] 
+        return ft.SubmenuButton(
+            content=ft.Text("menu.settings.autoSave"),
+            leading=ft.Icon(ft.Icons.SAVE),
+            # on_click=lambda _: on_auto_save_settings and on_auto_save_settings(),
+            controls=[
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.autoSave.enabled"),
+                    on_click=lambda e: settings.set(
+                            "auto_save", "enabled", e.control.value
+                        )
+                ),
+            ]
+        )
+        
+    def build_language_settings():
+        """构建语言设置菜单项"""
+        # language_config = LanguageConfig.get_instance()
+        current_language = language_config.get_current_language()
+        
+        def switch_language(lang_code):
+            """切换语言并更新UI"""
+            if lang_code == "zh":
+                language_config.switch_language(Language.CHINESE)
+            else:
+                language_config.switch_language(Language.ENGLISH)
+                
+        return ft.SubmenuButton(
+            content=ft.Text("menu.settings.language"),
+            leading=ft.Icon(ft.Icons.LANGUAGE),
+            # on_click=lambda _: on_language_settings and on_language_settings(),
+            controls=[
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.language.chinese"),
+                    leading=ft.Icon(
+                        ft.icons.CHECK if current_language == Language.CHINESE else ft.icons.CIRCLE,
+                        color=ft.colors.GREEN if current_language == Language.CHINESE else ft.colors.TRANSPARENT
+                    ),
+                    on_click=lambda _: switch_language("zh")
+                ),
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.language.english"),
+                    leading=ft.Icon(
+                        ft.icons.CHECK if current_language == Language.ENGLISH else ft.icons.CIRCLE,
+                        color=ft.colors.GREEN if current_language == Language.ENGLISH else ft.colors.TRANSPARENT
+                    ),
+                    on_click=lambda _: switch_language("en")
+                ),
+            ]
+        )
+        
+    def build_theme_settings():
+        """构建主题设置菜单项"""
+        return ft.SubmenuButton(
+            content=ft.Text("menu.settings.theme"),
+            leading=ft.Icon(ft.Icons.PALETTE),
+            # on_click=lambda _: on_theme_settings and on_theme_settings(),
+            controls=[
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.theme.light"),
+                    leading=ft.Icon(ft.Icons.LIGHT_MODE),
+                    on_click=lambda _: settings.set("theme", "mode", "light")
+                ),
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.theme.dark"),
+                    leading=ft.Icon(ft.Icons.DARK_MODE),
+                    on_click=lambda _: settings.set("theme", "mode", "dark")
+                ),
+                ft.MenuItemButton(
+                    content=ft.Text("menu.settings.theme.system"),
+                    leading=ft.Icon(ft.Icons.SETTINGS_SUGGEST),
+                    on_click=lambda _: settings.set("theme", "mode", "system")
+                ),
+            ]
+        )
+
+    # 创建主设置菜单
+    return ft.MenuBar(
+        controls=[
+            ft.SubmenuButton(
+                content=ft.Text(get_text("menu.settings")),
+                tooltip=get_text("menu.settings.tooltip"),
+                controls=[
+                    # 画布设置
+                    build_canvas_settings(),
+                    
+                    # 节点设置
+                    build_node_settings(),
+                    
+                    # 连线设置
+                    build_edge_settings(),
+                    
+                    ft.Divider(),
+                    
+                    # 性能设置
+                    build_performance_settings(),
+                    
+                    # 自动保存设置
+                    build_auto_save_settings(),
+                    
+                    ft.Divider(),
+                    
+                    # 语言设置
+                    build_language_settings(),
+                    
+                    # 主题设置
+                    build_theme_settings()
+                ]
+            )
+        ]
+    )
+    
+def main(page: ft.Page):   
+    page.title = "NNDeploy 设置菜单演示"
+    page.add(SettingsMenu())
+    
+    
+if __name__ == "__main__":
+    ft.app(target=main, view=ft.WEB_BROWSER, port=9090)

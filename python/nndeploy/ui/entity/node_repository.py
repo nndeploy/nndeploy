@@ -10,7 +10,7 @@
 以分类树形式展示,支持搜索和收藏常用节点
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 from enum import Enum
 import json
 import os
@@ -47,9 +47,9 @@ class NodeType:
         category: NodeCategory,
         description: str,
         tags: Set[str] = None,
-        inputs: List[] = None,
-        outputs: List[] = None,
-        parameters: List[] = None
+        inputs: List = None,
+        outputs: List = None,
+        parameters: List = None
     ):
         # id: 节点类型的唯一标识符，用于在系统中唯一引用该节点类型
         # 不同于name，id通常是系统生成的，不会随用户操作而改变
@@ -151,6 +151,7 @@ class NodeRepository:
         
     def _load_builtin_nodes(self):
         """加载内置节点类型"""
+        builtin_nodes = []
         
         for node in builtin_nodes:
             self._nodes[node.id] = node

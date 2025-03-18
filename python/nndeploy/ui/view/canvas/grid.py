@@ -11,6 +11,7 @@ from typing import Optional, Tuple, List  # 导入类型提示工具
 import flet as ft  # 导入Flet UI框架
 import flet.canvas  # 导入Flet画布模块
 from nndeploy.ui.config import get_color, get_style, settings  # 导入配置相关函数和设置
+from zoom import ZoomControl
 
 class Grid:
     """画布网格组件
@@ -271,7 +272,6 @@ class Grid:
         if self.container.page:  # 如果容器已添加到页面
             self.container.update()  # 更新容器显示
 
-
 if __name__ == "__main__":  # 如果直接运行此文件
     def main(page: ft.Page):  # 定义主函数
         # 设置页面属性
@@ -289,8 +289,36 @@ if __name__ == "__main__":  # 如果直接运行此文件
         # grid = Grid(page, width=page.width, height=page.height)  # 创建网格对象
         grid = Grid(page, width=page.width, height=page.height)  # 创建网格对象
         
+        # 创建缩放控制器
+        def on_scale_change(scale):
+            # 更新所有内容的缩放
+            for content_item in grid.contents:
+                control = content_item["control"]
+                control.scale = scale
+                # 调整位置以保持中心点不变
+                canvas_x = content_item["canvas_x"]
+                canvas_y = content_item["canvas_y"]
+                control.left = canvas_x * scale + grid.offset_x
+                control.top = canvas_y * scale + grid.offset_y
+                control.update()
+        
+        zoom_control = ZoomControl(
+            min_scale=0.5,
+            max_scale=2.0,
+            step=0.1,
+            on_scale_change=on_scale_change
+        )
+        
         # 创建布局并添加到页面
-        layout = ft.Stack([grid.container])  # 创建堆叠布局并添加网格容器
+        layout = ft.Stack([
+            grid.container,
+            ft.Container(
+                content=zoom_control.control,
+                alignment=ft.alignment.bottom_left,
+                padding=ft.padding.only(left=10, bottom=10)
+            )
+        ])  # 创建堆叠布局并添加网格容器和缩放控制器
+        
         page.add(layout)  # 将布局添加到页面
         
         # 添加一些测试节点 - 模拟Dify图片中的节点
@@ -329,7 +357,7 @@ if __name__ == "__main__":  # 如果直接运行此文件
                 border_radius=20,  # 设置边框圆角
                 bgcolor="#2563EB",  # 设置背景色
                 content=ft.Row([  # 创建行布局作为内容
-                    ft.Icon(name=ft.icons.HOME, color=ft.Colors.WHITE),  # 添加家图标
+                    ft.Icon(name=ft.Icons.HOME, color=ft.Colors.WHITE),  # 添加家图标
                     ft.Text("开始", color=ft.Colors.WHITE)  # 添加文本
                 ], alignment=ft.MainAxisAlignment.CENTER),  # 设置行布局居中对齐
             )
@@ -349,10 +377,10 @@ if __name__ == "__main__":  # 如果直接运行此文件
                 border=ft.border.all(2, "#2563EB"),  # 设置边框
                 content=ft.Column([  # 创建列布局作为内容
                     ft.Row([  # 创建第一行
-                        ft.Icon(name=ft.icons.SMART_TOY, color="#2563EB"),  # 添加机器人图标
+                        ft.Icon(name=ft.Icons.SMART_TOY, color="#2563EB"),  # 添加机器人图标
                         ft.Text("LLM", color="#2563EB"),  # 添加文本
                         ft.Container(width=60),  # 添加占位容器
-                        ft.Icon(name=ft.icons.ADD_CIRCLE_OUTLINE, color="#2563EB"),  # 添加添加图标
+                        ft.Icon(name=ft.Icons.ADD_CIRCLE_OUTLINE, color="#2563EB"),  # 添加添加图标
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),  # 设置行布局两端对齐
                     ft.Container(  # 创建子容器
                         content=ft.Text("gpt-3.5-turbo", size=12),  # 添加文本
@@ -376,7 +404,7 @@ if __name__ == "__main__":  # 如果直接运行此文件
                 border_radius=20,  # 设置边框圆角
                 bgcolor="#10B981",  # 设置背景色
                 content=ft.Row([  # 创建行布局作为内容
-                    ft.Icon(name=ft.icons.SEARCH, color=ft.Colors.WHITE),  # 添加搜索图标
+                    ft.Icon(name=ft.Icons.SEARCH, color=ft.Colors.WHITE),  # 添加搜索图标
                     ft.Text("知识检索", color=ft.Colors.WHITE, size=12)  # 添加文本
                 ], alignment=ft.MainAxisAlignment.CENTER),  # 设置行布局居中对齐
             )
@@ -394,7 +422,7 @@ if __name__ == "__main__":  # 如果直接运行此文件
                 border_radius=20,  # 设置边框圆角
                 bgcolor="#F59E0B",  # 设置背景色
                 content=ft.Row([  # 创建行布局作为内容
-                    ft.Icon(name=ft.icons.CHECK_CIRCLE, color=ft.Colors.WHITE),  # 添加勾选图标
+                    ft.Icon(name=ft.Icons.CHECK_CIRCLE, color=ft.Colors.WHITE),  # 添加勾选图标
                     ft.Text("结束", color=ft.Colors.WHITE)  # 添加文本
                 ], alignment=ft.MainAxisAlignment.CENTER),  # 设置行布局居中对齐
             )
@@ -418,22 +446,25 @@ if __name__ == "__main__":  # 如果直接运行此文件
             left=(page.width / 2) - 5,  # 设置左侧位置
             top=(page.height / 2) - 5,  # 设置顶部位置
         )
-        layout.controls.append(center_mark)  # 将中心标记添加到布局
+        # layout.controls.append(center_mark)  # 将中心标记添加到布局
+        grid.add_content(center_mark, page.width / 2 - 5, page.height / 2 - 5)  # 添加中心标记到画布
         
         # 添加坐标信息文本
         coords_text = ft.Text(  # 创建文本控件
-            f"偏移量: (0, 0)",  # 设置初始文本
+            f"偏移量: (0, 0) 缩放: 100%",  # 设置初始文本
             color=ft.Colors.WHITE,  # 设置文本颜色
             bgcolor=ft.Colors.BLACK54,  # 设置背景色
             size=14,  # 设置文本大小
             left=10,  # 设置左侧位置
             top=10,  # 设置顶部位置
         )
-        layout.controls.append(coords_text)  # 将坐标文本添加到布局
+        # layout.controls.append(coords_text)  # 将坐标文本添加到布局
+        grid.add_content(coords_text, 10, 10)  # 添加坐标文本到画布
         
         # 更新坐标信息
         def update_coords():  # 定义更新坐标的函数
-            coords_text.value = f"偏移量: ({grid.offset_x:.1f}, {grid.offset_y:.1f})"  # 更新文本内容
+            scale = zoom_control._scale
+            coords_text.value = f"偏移量: ({grid.offset_x:.1f}, {grid.offset_y:.1f}) 缩放: {int(scale * 100)}%"  # 更新文本内容
             coords_text.update()  # 更新文本控件
             
         # 监听拖动事件
@@ -442,6 +473,21 @@ if __name__ == "__main__":  # 如果直接运行此文件
             original_on_pan_update(e)  # 调用原始方法
             update_coords()  # 更新坐标信息
         grid._on_pan_update = on_pan_update_with_coords  # 替换拖动更新方法
+        
+        # 更新原始缩放回调以更新坐标信息
+        original_on_scale_change = on_scale_change
+        def on_scale_change_with_coords(scale):
+            original_on_scale_change(scale)
+            update_coords()
+        zoom_control.on_scale_change = on_scale_change_with_coords
+        
+        # 处理鼠标滚轮事件
+        def on_canvas_wheel(e):
+            if zoom_control.on_wheel(e):
+                e.prevent_default = True
+        
+        # 将滚轮事件处理器添加到网格容器
+        grid.container.on_scroll = on_canvas_wheel
         
         # 监听窗口大小变化
         def on_resize(e):  # 定义窗口大小变化处理函数

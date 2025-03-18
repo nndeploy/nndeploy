@@ -10,7 +10,7 @@
 以网格或列表形式展示,支持预览和快速使用
 """
 
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Union
 from enum import Enum
 import json
 import os
@@ -25,6 +25,14 @@ class MaterialType(Enum):
     AUDIO = "audio"      # 音频
     VIDEO = "video"      # 视频
     FILE = "file"        # 文件
+    
+    @classmethod
+    def from_str(cls, type_str: str):
+        """从字符串获取枚举值"""
+        try:
+            return cls(type_str)
+        except ValueError:
+            return cls.FILE  # 默认返回文件类型
 
 class Material:
     """素材定义类"""
@@ -33,8 +41,9 @@ class Material:
         self,
         id: str,
         name: str,
-        material_type: MaterialType,
+        material_type: Union[MaterialType, str],
         path: str,
+        thumbnail: str = None,
         description: str = None,
         tags: Set[str] = None,
         metadata: Dict = None
@@ -48,7 +57,11 @@ class Material:
         self.name = name
         
         # 素材类型（文本、图片、音频等）
-        self.type = material_type
+        if isinstance(material_type, str):
+            m_type = MaterialType.from_str(material_type)
+        else:
+            m_type = material_type
+        self.type = m_type
         
         # 素材文件的相对路径
         self.path = path
@@ -114,18 +127,19 @@ class MaterialRepository:
         """加载素材配置"""
         materials_path = Path(os.path.dirname(__file__)) / "../assets/materials.json"
         
-        if materials_path.exists():
-            try:
-                with open(materials_path, "r", encoding="utf-8") as f:
-                    materials_data = json.load(f)
-                    for material_data in materials_data:
-                        material = Material.from_dict(material_data)
-                        self._materials[material.id] = material
-                        self._tags.update(material.tags)
-            except Exception as e:
-                print(f"加载素材配置失败: {e}")
-        else:
-            self.add_material(Material(id="default", name="默认素材", material_type=MaterialType.TEXT, path=Path(os.path.dirname(__file__)) / "../assets/materials/default.txt"))
+        # if materials_path.exists():
+        #     print(f"加载素材配置: {materials_path}")
+        #     try:
+        #         with open(materials_path, "r", encoding="utf-8") as f:
+        #             materials_data = json.load(f)
+        #             for material_data in materials_data:
+        #                 material = Material.from_dict(material_data)
+        #                 self._materials[material.id] = material
+        #                 self._tags.update(material.tags)
+        #     except Exception as e:
+        #         print(f"加载素材配置失败: {e}")
+        # else:
+        #     self.add_material(Material(id="default", name="默认素材", material_type=MaterialType.TEXT, path=Path(os.path.dirname(__file__)) / "../assets/materials/default.txt"))
                 
     def _save_materials(self):
         """保存素材配置"""

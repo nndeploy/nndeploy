@@ -53,6 +53,7 @@ class App:
     def __init__(self):
         """初始化应用程序"""
         self.page: Optional[ft.Page] = None
+        self.page.adaptive = True
         
         # 组件引用
         self.canvas: Optional[Canvas] = None

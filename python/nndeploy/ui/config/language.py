@@ -25,7 +25,7 @@ class LanguageConfig:
     """语言配置类"""
     
     def __init__(self):
-        self._current_language = Language.CHINESE
+        self._current_language = Language.ENGLISH
         self._translations: Dict[str, Dict[str, str]] = {
             Language.CHINESE.value: {},
             Language.ENGLISH.value: {}
@@ -36,7 +36,9 @@ class LanguageConfig:
     def _load_translations(self):
         """加载翻译文件"""
         base_path = Path(__file__).parent
-        locales_path = base_path / "../assets/locales"
+        # locales_path = base_path / "../assets/locales"
+        locales_path_str = "/home/always/github/public/nndeploy/python/nndeploy/ui/assets/locales"  
+        locales_path = Path(locales_path_str)
         
         for lang in Language:
             file_path = locales_path / f"{lang.value}.json"
@@ -60,13 +62,11 @@ class LanguageConfig:
         translations = self._translations[self._current_language.value]
         
         # 支持多级键值访问
-        keys = key.split(".")
-        text = translations
-        for k in keys:
-            if isinstance(text, dict):
-                text = text.get(k, key)
-            else:
-                return key
+        if key in translations:
+            text = translations[key]
+        else:
+            # print(f"key not found: {key}")
+            text = key
                 
         # 替换文本中的变量
         if isinstance(text, str) and kwargs:

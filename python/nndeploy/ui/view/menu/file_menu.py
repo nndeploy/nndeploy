@@ -14,107 +14,126 @@ from typing import List, Optional, Callable
 import flet as ft
 from nndeploy.ui.config import get_text
 from nndeploy.ui.service import file_service
-from ...config.shortcuts import get_shortcut
+from nndeploy.ui.config.shortcuts import get_shortcut
 
-class FileMenu(ft.UserControl):
-    """文件菜单"""
+def FileMenu(
+    on_new: Optional[Callable[[], None]] = None,
+    on_open: Optional[Callable[[], None]] = None,
+    on_save: Optional[Callable[[], None]] = None,
+    on_save_as: Optional[Callable[[], None]] = None,
+    on_import: Optional[Callable[[], None]] = None,
+    on_export: Optional[Callable[[], None]] = None,
+    recent_files: List[str] = None
+):
+    recent_files = recent_files or []
     
-    def __init__(
-        self,
-        on_new: Optional[Callable[[], None]] = None,
-        on_open: Optional[Callable[[], None]] = None,
-        on_save: Optional[Callable[[], None]] = None,
-        on_save_as: Optional[Callable[[], None]] = None,
-        on_import: Optional[Callable[[], None]] = None,
-        on_export: Optional[Callable[[], None]] = None,
-        recent_files: List[str] = None
-    ):
-        super().__init__()
-        self.on_new = on_new
-        self.on_open = on_open
-        self.on_save = on_save
-        self.on_save_as = on_save_as
-        self.on_import = on_import
-        self.on_export = on_export
-        self._recent_files = recent_files or []
-        
-    def build(self):
-        return ft.PopupMenuButton(
-            content=ft.Text(get_text("menu.file")),
-            items=[
-                # 新建
-                ft.PopupMenuItem(
-                    text=get_text("menu.file.new"),
-                    icon=ft.icons.ADD,
-                    on_click=lambda _: self.on_new and self.on_new(),
-                    shortcut=str(get_shortcut("new_workflow"))
-                ),
-                
-                # 打开
-                ft.PopupMenuItem(
-                    text=get_text("menu.file.open"),
-                    icon=ft.icons.FOLDER_OPEN,
-                    on_click=lambda _: self.on_open and self.on_open(),
-                    shortcut=str(get_shortcut("open_workflow"))
-                ),
-                
-                # 最近文件
-                self._build_recent_files_menu(),
-                
-                ft.PopupMenuDivider(),
-                
-                # 保存
-                ft.PopupMenuItem(
-                    text=get_text("menu.file.save"),
-                    icon=ft.icons.SAVE,
-                    on_click=lambda _: self.on_save and self.on_save(),
-                    shortcut=str(get_shortcut("save_workflow"))
-                ),
-                
-                # 另存为
-                ft.PopupMenuItem(
-                    text=get_text("menu.file.saveAs"),
-                    icon=ft.icons.SAVE_AS,
-                    on_click=lambda _: self.on_save_as and self.on_save_as(),
-                    shortcut=str(get_shortcut("save_workflow_as"))
-                ),
-                
-                ft.PopupMenuDivider(),
-                
-                # 导入
-                ft.PopupMenuItem(
-                    text=get_text("menu.file.import"),
-                    icon=ft.icons.UPLOAD_FILE,
-                    on_click=lambda _: self.on_import and self.on_import()
-                ),
-                
-                # 导出
-                ft.PopupMenuItem(
-                    text=get_text("menu.file.export"),
-                    icon=ft.icons.DOWNLOAD,
-                    on_click=lambda _: self.on_export and self.on_export()
-                ),
-            ]
-        )
-        
-    def _build_recent_files_menu(self) -> ft.PopupMenuItem:
+    def build_recent_files_menu():
         """构建最近文件子菜单"""
+        if len(recent_files) == 0:
+            return ft.PopupMenuItem(
+                text=get_text("menu.file.recent"),
+                icon=ft.Icons.HISTORY,
+                disabled=True
+            )
+        
+        # 创建最近文件菜单项
+        recent_menu_items = [
+            ft.PopupMenuItem(
+                text=path,
+                on_click=lambda _, p=path: on_open and on_open(p)
+            )
+            for path in recent_files
+        ]
+        
+        # 使用content_menu而不是submenu
         return ft.PopupMenuItem(
             text=get_text("menu.file.recent"),
-            icon=ft.icons.HISTORY,
-            disabled=len(self._recent_files) == 0,
-            submenu=ft.PopupMenuButton(
-                items=[
-                    ft.PopupMenuItem(
-                        text=path,
-                        on_click=lambda _, p=path: self.on_open and self.on_open(p)
-                    )
-                    for path in self._recent_files
-                ]
-            ) if self._recent_files else None
+            icon=ft.Icons.HISTORY,
+            # on_click=lambda _, p=path: on_open and on_open(p)
         )
-        
-    def update_recent_files(self, files: List[str]):
-        """更新最近文件列表"""
-        self._recent_files = files
-        self.update() 
+
+    return ft.PopupMenuButton(
+        content=ft.Text(get_text("menu.file")),
+        items=[
+            # 新建
+            ft.PopupMenuItem(
+                text=get_text("menu.file.new"),
+                icon=ft.Icons.ADD,
+                on_click=lambda _: on_new and on_new()
+            ),
+            
+            # 打开
+            ft.PopupMenuItem(
+                text=get_text("menu.file.open"),
+                icon=ft.Icons.FOLDER_OPEN,
+                on_click=lambda _: on_open and on_open()
+            ),
+            
+            # 最近文件
+            build_recent_files_menu(),
+            
+            ft.Divider(),
+            
+            # 保存
+            ft.PopupMenuItem(
+                text=get_text("menu.file.save"),
+                icon=ft.Icons.SAVE,
+                on_click=lambda _: on_save and on_save()
+            ),
+            
+            # 另存为
+            ft.PopupMenuItem(
+                text=get_text("menu.file.saveAs"),
+                icon=ft.Icons.SAVE_AS,
+                on_click=lambda _: on_save_as and on_save_as()
+            ),
+            
+            ft.Divider(),
+            
+            # 导入
+            ft.PopupMenuItem(
+                text=get_text("menu.file.import"),
+                icon=ft.Icons.UPLOAD_FILE,
+                on_click=lambda _: on_import and on_import()
+            ),
+            
+            # 导出
+            ft.PopupMenuItem(
+                text=get_text("menu.file.export"),
+                icon=ft.Icons.DOWNLOAD,
+                on_click=lambda _: on_export and on_export()
+            ),
+        ],
+        menu_position=ft.PopupMenuPosition.UNDER # 设置菜单在按钮下方显示
+    )
+
+def update_recent_files(files: List[str]):
+    """更新最近文件列表"""
+    if not files:
+        return
+    
+    # 更新文件服务中的最近文件列表
+    file_service.get_instance().set_recent_files(files)
+    
+    # 通知UI更新
+    if hasattr(update_recent_files, 'callback'):
+        update_recent_files.callback(files)
+
+def register_recent_files_callback(callback: Callable[[List[str]], None]):
+    """注册最近文件更新回调函数"""
+    update_recent_files.callback = callback
+    
+    
+def main(page: ft.Page):
+    """主函数，接收page参数"""
+    update_recent_files.callback = lambda files: print(f"最近文件更新: {files}")
+    register_recent_files_callback(lambda files: print(f"最近文件更新: {files}"))
+    
+    page.title = "NNDeploy 文件菜单演示"
+    # page.theme = ft.Theme(color_scheme="dark")
+    # page.theme_mode = ft.ThemeMode.DARK
+    page.add(FileMenu())
+    
+    
+if __name__ == "__main__":
+    ft.app(target=main, view=ft.WEB_BROWSER, port=9090)

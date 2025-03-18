@@ -63,7 +63,7 @@ class SelectionTool:
         if self.on_selection_change:
             self.on_selection_change(self._selected_ids)
             
-    def on_pointer_down(self, e: ft.PointerEvent) -> bool:
+    def on_pointer_down(self, e: ft.HoverEvent) -> bool:
         """处理指针按下事件
         
         Returns:
@@ -83,7 +83,7 @@ class SelectionTool:
             
         return False
         
-    def on_pointer_move(self, e: ft.PointerEvent) -> bool:
+    def on_pointer_move(self, e: ft.HoverEvent) -> bool:
         """处理指针移动事件"""
         if not self._selecting or not self._selection_start:
             return False
@@ -97,7 +97,7 @@ class SelectionTool:
         self._selection_rect = (x, y, w, h)
         return True
         
-    def on_pointer_up(self, e: ft.PointerEvent) -> bool:
+    def on_pointer_up(self, e: ft.HoverEvent) -> bool:
         """处理指针抬起事件"""
         if not self._selecting:
             return False
