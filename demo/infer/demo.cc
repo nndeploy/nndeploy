@@ -36,7 +36,7 @@ class TestDesc1 : public ir::ModelDesc {
     auto conv1 = op::makeConv(this, input, conv_param, "weight", "bias");
     auto relu1 = op::makeRelu(this, conv1);
     auto relu2 = op::makeRelu(this, relu1);
-    // auto softmax = op::makeSoftMax(this, relu1,
+    // auto softmax = op::makeSoftmax(this, relu1,
     // std::make_shared<ir::SoftmaxParam>()); op::makeOutput(this, softmax);
     op::makeOutput(this, relu1);
     op::makeOutput(this, relu2);
@@ -53,7 +53,7 @@ class TestDesc : public ir::ModelDesc {
     auto relu1 = op::makeRelu(this, conv1);
     auto relu2 = op::makeRelu(this, relu1);
 
-    // auto softmax = op::makeSoftMax(this, relu1,
+    // auto softmax = op::makeSoftmax(this, relu1,
     // std::make_shared<ir::SoftmaxParam>()); op::makeOutput(this, softmax);
     // auto test_block = new TestDesc1();
 
