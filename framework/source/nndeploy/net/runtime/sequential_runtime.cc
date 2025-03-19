@@ -18,6 +18,11 @@ SequentialRuntime::SequentialRuntime(const base::DeviceType &device_type)
     : Runtime(device_type) {};
 SequentialRuntime::~SequentialRuntime() {};
 
+void SequentialRuntime::setAllocateInputOutputTensor(
+    bool allocate_input_output_tensor) {
+  allocate_input_output_tensor_ = allocate_input_output_tensor;
+}
+
 base::Status SequentialRuntime::init(
     std::vector<TensorWrapper *> &tensor_repository,
     std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
@@ -34,6 +39,8 @@ base::Status SequentialRuntime::init(
   tensor_pool_type_ = tensor_pool_type;
   tensor_pool_ = createTensorPool(tensor_pool_type_, device, tensor_repository,
                                   op_repository);
+  tensor_pool_->setAllocateInputOutputTensor(
+      allocate_input_output_tensor_);
   /**
    * @brief
    * 如果是动态shape且max_shape为空时，那么不需要分配tensor

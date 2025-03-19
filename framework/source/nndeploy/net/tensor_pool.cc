@@ -14,6 +14,11 @@ TensorPool::TensorPool(device::Device *device,
 
 TensorPool::~TensorPool() {}
 
+void TensorPool::setAllocateInputOutputTensor(
+    bool allocate_input_output_tensor) {
+  allocate_input_output_tensor_ = allocate_input_output_tensor;
+}
+
 int64_t TensorPool::getMemorySize() {
   NNDEPLOY_LOGE("TensorPool::getMemorySize is not implemented!\n");
   return 0;

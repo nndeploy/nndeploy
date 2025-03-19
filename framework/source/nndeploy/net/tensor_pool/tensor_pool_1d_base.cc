@@ -20,13 +20,10 @@ base::Status TensorPool1D::initTensorUsageRecord() {
     if (tensor_repository_[i]->is_weight_) {
       continue;
     }
-    // if (tensor_repository_[i]->input_output_type_ != kNone) {
-    //   NNDEPLOY_LOGI("tensor name = %s.\n",
-    //                 tensor_repository_[i]->tensor_->getName().c_str());
-    //   if (tensor_repository_[i]->tensor_ != nullptr) {
-    //     continue;
-    //   }
-    // }
+    if (tensor_repository_[i]->input_output_type_ != kNone &&
+        !allocate_input_output_tensor_) {
+      continue;
+    }
     auto tensor_usage_record = std::make_shared<TensorUsageRecord>();
     tensor_usage_record->tensor_wrapper_ = tensor_repository_[i];
     device::TensorDesc tensor_desc = tensor_repository_[i]->tensor_->getDesc();
@@ -48,8 +45,8 @@ base::Status TensorPool1D::initTensorUsageRecord() {
     }
     if (tensor_repository_[i]->input_output_type_ != kNone) {
       // 打印tensor_repository_的名字
-      NNDEPLOY_LOGE("Tensor name: %s\n",
-                    tensor_repository_[i]->tensor_->getName().c_str());
+      // NNDEPLOY_LOGE("Tensor name: %s\n",
+      //               tensor_repository_[i]->tensor_->getName().c_str());
       min = 0;
       max = op_repository_.size() - 1;
     }

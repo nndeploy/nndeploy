@@ -39,9 +39,9 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
   }
 
   for (const auto &task : op_breadths_) {
-    NNDEPLOY_LOGE("task[%s] = %ld, length = %ld.\n",
-                  task->op_wrapper_->op_->getName().c_str(), task->size_,
-                  task->breadth_.size());
+    // NNDEPLOY_LOGE("task[%s] = %ld, length = %ld.\n",
+    //               task->op_wrapper_->op_->getName().c_str(), task->size_,
+    //               task->breadth_.size());
     // 遍历当前task的所有tensor usuage
     for (auto &tensor_usuage : task->breadth_) {
       if (assigned_tensors_.count(tensor_usuage) != 0) {
@@ -76,9 +76,10 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
         if (isInterval(tensor_usuage->interval_, chunks_[i]->intervals_)) {
           continue;
         }
-        if (chunk_sizes_[best_chunk] >= tensor_usuage->size_) {
-          best_chunk = chunks_[i];
-        }
+        // if (chunk_sizes_[best_chunk] >= tensor_usuage->size_) {
+        //   best_chunk = chunks_[i];
+        // }
+        best_chunk = chunks_[i];
       }
       if (best_chunk ==
           nullptr) {  // 需要创建一个新的，此时延迟开辟，仅记录该Chunk的存在和size

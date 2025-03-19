@@ -51,7 +51,7 @@ class AscendCLOpResize : public OpResize {
       // inputs_[2]->print();
       // inputs_[3]->print();
       if (inputs_.size() > 2 && inputs_[2]->getSize() != 0) {
-        NNDEPLOY_LOGE("scale = %ld\n", inputs_[2]->getSize());
+        // NNDEPLOY_LOGE("scale = %ld\n", inputs_[2]->getSize());
         float* data = (float*)inputs_[2]->getData();
         size_t size = inputs_[2]->getSize() / sizeof(float);
         scales_ = aclCreateFloatArray(data, size);

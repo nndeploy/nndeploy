@@ -23,6 +23,8 @@ class NNDEPLOY_CC_API SequentialRuntime : public Runtime {
   SequentialRuntime(const base::DeviceType &device_type);
   virtual ~SequentialRuntime();
 
+  void setAllocateInputOutputTensor(bool allocate_input_output_tensor);
+
   virtual base::Status init(
       std::vector<TensorWrapper *> &tensor_repository,
       std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
@@ -38,9 +40,10 @@ class NNDEPLOY_CC_API SequentialRuntime : public Runtime {
   virtual base::Status postRun();
 
  private:
-  bool workspace_is_external_ = false;  // workspace是否是外部传入
-  uint64_t workspace_size_ = 0;         // workspace大小
-  void *workspace_ = nullptr;           // op的workspace
+  bool workspace_is_external_ = false;  
+  uint64_t workspace_size_ = 0;         
+  void *workspace_ = nullptr;         
+  bool allocate_input_output_tensor_ = true;
 };
 
 }  // namespace net

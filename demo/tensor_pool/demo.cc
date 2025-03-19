@@ -34,13 +34,7 @@ int main(int argc, char *argv[]) {
     demo::showUsage();
     return -1;
   }
-
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
-
+  
   base::ModelType model_type = demo::getModelType();
   // 模型路径或者模型字符串
   std::vector<std::string> model_value = demo::getModelValue();
@@ -72,14 +66,7 @@ int main(int argc, char *argv[]) {
 
   net->init();
 
-  net->dump(std::cout);
-
   net->deinit();
 
-  // ret = nndeployFrameworkDeinit();
-  // if (ret != 0) {
-  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-  //   return ret;
-  // }
   return 0;
 }
