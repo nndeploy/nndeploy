@@ -382,5 +382,7 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeQuantizeLinear, QuantizeLinearParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeDequantizeLinear, DequantizeLinearParam);
 
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeQLinearConv, QLinearConvParam);
+
 }  // namespace ir
 }  // namespace nndeploy

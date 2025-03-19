@@ -21,12 +21,12 @@ class OpQuantizeLinear : public Op {
 
  private:
   template <typename T>
-  base::Status QuantizeImpl(device::Tensor* input, device::Tensor* scale,
+  base::Status quantizeImpl(device::Tensor* input, device::Tensor* scale,
                             device::Tensor* zero_point, void* output_data,
                             int axis, bool saturate);
 };
 
-NNDEPLOY_CC_API base::Status quantize_linear(
+NNDEPLOY_CC_API base::Status quantizeLinear(
     device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
     std::shared_ptr<ir::QuantizeLinearParam> param, device::Tensor* output);
 
