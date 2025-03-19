@@ -53,7 +53,7 @@ base::Status OpQuantizeLinear::inferDataType() {
 }
 
 template <typename T>
-base::Status OpQuantizeLinear::QuantizeImpl(device::Tensor* input, device::Tensor* scale,
+base::Status OpQuantizeLinear::quantizeImpl(device::Tensor* input, device::Tensor* scale,
                           device::Tensor* zero_point, void* output_data,
                           int axis, bool saturate) {
   T* output_ptr = reinterpret_cast<T*>(output_data);
@@ -126,11 +126,11 @@ base::Status OpQuantizeLinear::QuantizeImpl(device::Tensor* input, device::Tenso
 }
 
 // 显式模板实例化
-template base::Status OpQuantizeLinear::QuantizeImpl<int8_t>(
+template base::Status OpQuantizeLinear::quantizeImpl<int8_t>(
     device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
     void* output_data, int axis, bool saturate);
 
-template base::Status OpQuantizeLinear::QuantizeImpl<uint8_t>(
+template base::Status OpQuantizeLinear::quantizeImpl<uint8_t>(
     device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
     void* output_data, int axis, bool saturate);
 
@@ -165,13 +165,13 @@ base::Status OpQuantizeLinear::run() {  // 获取输入和输出张量
   switch (output_dtype.code_) {
     case base::kDataTypeCodeInt:
       if (output_dtype.bits_ == 8) {
-        return this->QuantizeImpl<int8_t>(input, scale, zero_point, output_data, axis,
+        return this->quantizeImpl<int8_t>(input, scale, zero_point, output_data, axis,
                                     saturate);
       }
       break;
     case base::kDataTypeCodeUint:
       if (output_dtype.bits_ == 8) {
-        return this->QuantizeImpl<uint8_t>(input, scale, zero_point, output_data,
+        return this->quantizeImpl<uint8_t>(input, scale, zero_point, output_data,
                                      axis, saturate);
       }
       break;
@@ -183,7 +183,7 @@ base::Status OpQuantizeLinear::run() {  // 获取输入和输出张量
   return base::kStatusCodeErrorInvalidParam;
 }
 
-base::Status quantize_linear(device::Tensor* input, device::Tensor* scale,
+base::Status quantizeLinear(device::Tensor* input, device::Tensor* scale,
                              device::Tensor* zero_point,
                              std::shared_ptr<ir::QuantizeLinearParam> param,
                              device::Tensor* output) {

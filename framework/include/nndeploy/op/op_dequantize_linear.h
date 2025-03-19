@@ -21,12 +21,12 @@ class OpDequantizeLinear : public Op {
 
  private:
   template <typename T>
-  base::Status DequantizeImpl(device::Tensor* input, device::Tensor* scale,
+  base::Status dequantizeImpl(device::Tensor* input, device::Tensor* scale,
                               device::Tensor* zero_point, void* output_data,
                               int axis);
 };
 
-NNDEPLOY_CC_API base::Status dequantize_linear(
+NNDEPLOY_CC_API base::Status dequantizeLinear(
     device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
     std::shared_ptr<ir::DequantizeLinearParam> param, device::Tensor* output);
 

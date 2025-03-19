@@ -13,7 +13,8 @@ class PyOp : public OpBase {
   }
 
   base::Status inferDataType() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, OpBase, "infer_data_type", inferDataType);
+    PYBIND11_OVERRIDE_NAME(base::Status, OpBase, "infer_data_type",
+                           inferDataType);
   }
 
   base::Status inferShape() override {
@@ -21,7 +22,8 @@ class PyOp : public OpBase {
   }
 
   base::Status inferDataFormat() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, OpBase, "infer_data_format", inferDataFormat);
+    PYBIND11_OVERRIDE_NAME(base::Status, OpBase, "infer_data_format",
+                           inferDataFormat);
   }
 
   base::Status init() override {
@@ -41,11 +43,13 @@ class PyOp : public OpBase {
   }
 
   uint64_t getWorkspaceSize() override {
-    PYBIND11_OVERRIDE_NAME(uint64_t, OpBase, "get_workspace_size", getWorkspaceSize);
+    PYBIND11_OVERRIDE_NAME(uint64_t, OpBase, "get_workspace_size",
+                           getWorkspaceSize);
   }
 
   void setWorkspace(void *workspace) override {
-    PYBIND11_OVERRIDE_NAME(void, OpBase, "set_workspace", setWorkspace, workspace);
+    PYBIND11_OVERRIDE_NAME(void, OpBase, "set_workspace", setWorkspace,
+                           workspace);
   }
 
   uint64_t getFlops() override {
@@ -53,7 +57,8 @@ class PyOp : public OpBase {
   }
 
   base::Status checkOrAllocOutput() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, OpBase, "check_or_alloc_output", checkOrAllocOutput);
+    PYBIND11_OVERRIDE_NAME(base::Status, OpBase, "check_or_alloc_output",
+                           checkOrAllocOutput);
   }
 
   base::Status postRun() override {
@@ -65,11 +70,13 @@ class PyOp : public OpBase {
   }
 
   std::shared_ptr<base::Param> getParam() override {
-    PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, OpBase, "get_param", getParam);
+    PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, OpBase, "get_param",
+                           getParam);
   }
 
   base::Status setPrecisionType(base::PrecisionType precision_type) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, OpBase, "set_precision_type", setPrecisionType, precision_type);
+    PYBIND11_OVERRIDE_NAME(base::Status, OpBase, "set_precision_type",
+                           setPrecisionType, precision_type);
   }
 
   base::Status setInput(device::Tensor *input) override {
@@ -77,7 +84,8 @@ class PyOp : public OpBase {
   }
 
   base::Status setOutput(device::Tensor *output) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, OpBase, "set_output", setOutput, output);
+    PYBIND11_OVERRIDE_NAME(base::Status, OpBase, "set_output", setOutput,
+                           output);
   }
 };
 
@@ -88,8 +96,8 @@ class PyOpCreator : public OpCreator {
   Op *createOp(base::DeviceType device_type, const std::string &name,
                ir::OpType op_type, std::vector<std::string> &inputs,
                std::vector<std::string> &outputs) override {
-    PYBIND11_OVERRIDE_PURE_NAME(Op *, OpCreator, "create_op", createOp, device_type, name,
-                                op_type, inputs, outputs);
+    PYBIND11_OVERRIDE_PURE_NAME(Op *, OpCreator, "create_op", createOp,
+                                device_type, name, op_type, inputs, outputs);
   }
 
   std::shared_ptr<Op> createOpSharedPtr(
@@ -97,8 +105,8 @@ class PyOpCreator : public OpCreator {
       std::vector<std::string> &inputs,
       std::vector<std::string> &outputs) override {
     PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Op>, OpCreator,
-                                "create_op_shared_ptr", createOpSharedPtr, device_type, name,
-                                op_type, inputs, outputs);
+                                "create_op_shared_ptr", createOpSharedPtr,
+                                device_type, name, op_type, inputs, outputs);
   }
 };
 
@@ -140,8 +148,10 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
            py::overload_cast<std::vector<std::string> &>(&Op::setAllOutputName))
       .def("get_all_input_name", &Op::getAllInputName)
       .def("get_all_output_name", &Op::getAllOutputName)
-      .def("get_all_input", &Op::getAllInput, py::return_value_policy::reference)
-      .def("get_all_output", &Op::getAllOutput, py::return_value_policy::reference)
+      .def("get_all_input", &Op::getAllInput,
+           py::return_value_policy::reference)
+      .def("get_all_output", &Op::getAllOutput,
+           py::return_value_policy::reference)
       .def("rm_input", &Op::rmInput)
       .def("set_all_input", &Op::setAllInput)
       .def("set_all_output", &Op::setAllOutput)
@@ -205,6 +215,12 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
   m.def("maxpool", &maxPoolFunc, py::return_value_policy::take_ownership);
   m.def("mul", &mulFunc, py::return_value_policy::take_ownership);
   m.def("softmax", &softmaxFunc, py::return_value_policy::take_ownership);
+  m.def("quantize_linear", &quantizeLinearFunc,
+        py::return_value_policy::take_ownership);
+  m.def("dequantize_linear", &dequantizeLinearFunc,
+        py::return_value_policy::take_ownership);
+  m.def("qlinear_conv", &qlinearConvFunc,
+        py::return_value_policy::take_ownership);
 }
 
 }  // namespace op

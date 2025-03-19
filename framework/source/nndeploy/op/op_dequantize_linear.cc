@@ -47,7 +47,7 @@ base::Status OpDequantizeLinear::inferDataType() {
 }
 
 template <typename T>
-base::Status OpDequantizeLinear::DequantizeImpl(device::Tensor* input, device::Tensor* scale,
+base::Status OpDequantizeLinear::dequantizeImpl(device::Tensor* input, device::Tensor* scale,
                             device::Tensor* zero_point, void* output_data,
                             int axis) {
   const T* input_ptr = reinterpret_cast<T*>(input->getData());
@@ -106,11 +106,11 @@ base::Status OpDequantizeLinear::DequantizeImpl(device::Tensor* input, device::T
 }
 
 // 显式模板实例化
-template base::Status OpDequantizeLinear::DequantizeImpl<int8_t>(
+template base::Status OpDequantizeLinear::dequantizeImpl<int8_t>(
     device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
     void* output_data, int axis);
 
-template base::Status OpDequantizeLinear::DequantizeImpl<uint8_t>(
+template base::Status OpDequantizeLinear::dequantizeImpl<uint8_t>(
     device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
     void* output_data, int axis);
 
@@ -143,13 +143,13 @@ base::Status OpDequantizeLinear::run() {
   switch (input_dtype.code_) {
     case base::kDataTypeCodeInt:
       if (input_dtype.bits_ == 8) {
-        return this->DequantizeImpl<int8_t>(input, scale, zero_point, output_data,
+        return this->dequantizeImpl<int8_t>(input, scale, zero_point, output_data,
                                       axis);
       }
       break;
     case base::kDataTypeCodeUint:
       if (input_dtype.bits_ == 8) {
-        return this->DequantizeImpl<uint8_t>(input, scale, zero_point, output_data,
+        return this->dequantizeImpl<uint8_t>(input, scale, zero_point, output_data,
                                        axis);
       }
       break;
@@ -161,7 +161,7 @@ base::Status OpDequantizeLinear::run() {
   return base::kStatusCodeErrorInvalidParam;
 }
 
-base::Status dequantize_linear(device::Tensor* input, device::Tensor* scale,
+base::Status dequantizeLinear(device::Tensor* input, device::Tensor* scale,
                                device::Tensor* zero_point,
                                std::shared_ptr<ir::DequantizeLinearParam> param,
                                device::Tensor* output) {
