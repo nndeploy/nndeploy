@@ -42,8 +42,7 @@ class TensorPool1DOffsetCalculateGreedyBySize : public TensorPool1D {
   virtual base::Status setMemory(device::Buffer *buffer);
 
  private:
-  std::vector<std::shared_ptr<TensorUsageRecord>>
-      ordered_allocated_ids_;  // 已分配tensor
+  std::vector<std::shared_ptr<Offset>> offsets_;  // 已分配tensor
   int64_t total_consumption_ = -1;
   bool is_external_ = false;
   device::Buffer *mem_block_ = nullptr;

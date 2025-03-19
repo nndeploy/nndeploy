@@ -51,6 +51,12 @@ struct Chunk {
   std::vector<std::array<int, 2>> intervals_;
 };
 
+struct Offset {
+  int offset_;
+  size_t size_;
+  std::vector<std::shared_ptr<TensorUsageRecord>> tensor_usage_records_;
+};
+
 class TensorPool {
  public:
   TensorPool(device::Device *device,

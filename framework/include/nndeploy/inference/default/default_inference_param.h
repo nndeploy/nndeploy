@@ -27,7 +27,7 @@ class DefaultInferenceParam : public InferenceParam {
 
   ir::ModelDesc *model_desc_ = nullptr;
   net::TensorPoolType tensor_pool_type_ =
-      net::kTensorPool1DOffsetCalculateTypeGreedyByBreadth;
+      net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
 };
 
 }  // namespace inference

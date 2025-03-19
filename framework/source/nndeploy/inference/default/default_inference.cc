@@ -75,6 +75,8 @@ base::Status DefaultInference::init() {
     return base::kStatusCodeErrorInferenceDefault;
   }
   status = net_->setTensorPoolType(default_inference_param->tensor_pool_type_);
+  NNDEPLOY_LOGE("tensor_pool_type_ = %d\n",
+                default_inference_param->tensor_pool_type_);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("net_->setTensorPoolType failed!\n");
     return base::kStatusCodeErrorInferenceDefault;

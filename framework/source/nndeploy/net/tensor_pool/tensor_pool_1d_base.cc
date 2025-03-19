@@ -81,6 +81,7 @@ base::Status TensorPool1D::deinitTensorUsageRecord() {
 base::Status TensorPool1D::initOpBreadth() {
   base::Status status = base::kStatusCodeOk;
 
+  int max_breadth_length = 0;
   for (size_t i = 0; i < op_repository_.size(); i++) {
     auto op_breadth = std::make_shared<OpBreadth>();
     op_breadth->op_wrapper_ = op_repository_[i];
@@ -97,7 +98,25 @@ base::Status TensorPool1D::initOpBreadth() {
                 return a->size_ > b->size_;
               });
     op_breadths_.push_back(op_breadth);
+
+    // NNDEPLOY_LOGE("op_breadth[%s, %d] = %ld, length = %ld.\n",
+    //               op_breadth->op_wrapper_->op_->getName().c_str(), i,
+    //               op_breadth->size_, op_breadth->breadth_.size());
+    // for (size_t j = 0; j < op_breadth->breadth_.size(); j++) {
+    //   NNDEPLOY_LOGE("tensor_usage_record[%s, %d] = %ld.\n",
+    //                 op_breadth->breadth_[j]->tensor_wrapper_->tensor_->getName().c_str(),
+    //                 i, op_breadth->breadth_[j]->size_);
+    // }
+    max_breadth_length =
+        std::max(max_breadth_length, static_cast<int>(op_breadth->breadth_.size()));
   }
+
+  std::sort(op_breadths_.begin(), op_breadths_.end(),
+            [](const std::shared_ptr<OpBreadth> &a,
+               const std::shared_ptr<OpBreadth> &b) {
+              return a->size_ > b->size_;
+            });
+  // NNDEPLOY_LOGE("max_breadth_length = %d.\n", max_breadth_length);
 
   return status;
 }
