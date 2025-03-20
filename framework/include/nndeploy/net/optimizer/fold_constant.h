@@ -19,6 +19,19 @@ class FoldConstant : public OptPass {
   virtual base::Status optimize(std::vector<TensorWrapper*>& tensor_repository,
                                 std::vector<OpWrapper*>& op_repository,
                                 int begin_op_index);
+  bool isDeterministic(const OpWrapper* op_wrapper);
+
+  bool isQDQ(const OpWrapper* op_wrapper);
+
+  bool isAllInputConstant(const OpWrapper* op_wrapper,
+                          const std::vector<TensorWrapper*>& tensor_repository);
+
+  bool produceLargeTensor(const OpWrapper* op_wrapper,
+                          const std::vector<TensorWrapper*>& tensor_repository);
+
+  bool isSupportFold(const OpWrapper* op_wrapper);
+
+  base::Status runOp(const OpWrapper* op_wrapper);
 };
 }  // namespace net
 }  // namespace nndeploy
