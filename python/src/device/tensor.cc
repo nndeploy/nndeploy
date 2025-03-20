@@ -204,7 +204,7 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def_static("from_numpy", [](const py::buffer &buffer,
                                    const base::DeviceType &device_type) {
         return bufferInfoToTensor(buffer, device_type);
-      }, py::return_value_policy::take_ownership);
+      }, py::keep_alive<0, 1>(), py::return_value_policy::take_ownership);
 
   m.def("create_tensor", [](base::TensorType type = base::kTensorTypeDefault) {
     return createTensor(type);
