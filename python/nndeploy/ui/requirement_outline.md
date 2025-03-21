@@ -1,4 +1,4 @@
-# 类似dify和comfyui的AI推理部署的节点编辑工具需求文档，采用flet实现
+# 类似dify和comfyui的AI推理部署的节点编辑工具需求文档，
 
 ## 一、菜单栏
 

@@ -220,7 +220,10 @@ docs/build
 .vs/
 
 # third_party
-# third_party
+third_party/
+
+# docs
+docs/
 
 cmake-build-debug/
 
@@ -245,6 +248,3 @@ python/setup.py
 #ui
 *.DS_Store
 ref_repo
-
-# cursor
-.cursor/
