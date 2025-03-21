@@ -464,6 +464,8 @@ void* OnnxInterpret::getDataFromTensor(const onnx::TensorProto& tensor) {
     data_ptr = (void*)tensor.int64_data().data();
   } else if (data_type == onnx::TensorProto_DataType_DOUBLE) {
     data_ptr = (void*)(tensor.double_data().data());
+  } else if (data_type == onnx::TensorProto_DataType_INT8) {
+    data_ptr = (void*)(tensor.int32_data().data());
   } else {
     NNDEPLOY_LOGE("Tensor(%s) do not have valid data\n", tensor.name().c_str());
   }

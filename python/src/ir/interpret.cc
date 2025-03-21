@@ -45,7 +45,8 @@ class PyInterpretCreator : public InterpretCreator {
 NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
   py::class_<Interpret, PyInterpret>(m, "Interpret")
       .def(py::init<>())
-      .def("interpret", &Interpret::interpret)
+      .def("interpret", &Interpret::interpret, py::arg("model_value"),
+           py::arg("input") = std::vector<ValueDesc>())
       .def("dump",
            [](Interpret &self, const std::string &file_path) {
              std::ofstream oss(file_path);

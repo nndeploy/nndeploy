@@ -6,11 +6,14 @@ namespace nndeploy {
 
 namespace net {
 
+FoldConstant::FoldConstant() : OptPass("FoldConstant") {};
+FoldConstant::~FoldConstant() {};
+
 /**
  * 是否是确定性算子
  * 无论执行多少次，节点都会产生相同的输出。如果节点涉及任何非确定性操作（例如随机数生成），则不能进行常量折叠。
  */
-bool isDeterministic(const OpWrapper* op_wrapper) {
+bool FoldConstant::isDeterministic(const OpWrapper* op_wrapper) {
   std::set<ir::OpType> non_deterministic_ops{
       ir::kOpTypeRandomNormal,
       ir::kOpTypeRandomNormalLike,
@@ -27,19 +30,20 @@ bool isDeterministic(const OpWrapper* op_wrapper) {
 /**
  * 是否是量化相关算子
  */
-bool isQDQ(const OpWrapper* op_wrapper) {
+bool FoldConstant::isQDQ(const OpWrapper* op_wrapper) {
   std::set<ir::OpType> quant_ops{ir::kOpTypeQuantizeLinear,
                                  ir::kOpTypeDequantizeLinear};
   auto it = std::find(quant_ops.begin(), quant_ops.end(),
                       op_wrapper->op_->getOpType());
-  return it == quant_ops.end();
+  return it != quant_ops.end();
 }
 
 /**
  * 输入是否都是常量
  */
-bool isAllInputConstant(const OpWrapper* op_wrapper,
-                        const std::vector<TensorWrapper*>& tensor_repository) {
+bool FoldConstant::isAllInputConstant(
+    const OpWrapper* op_wrapper,
+    const std::vector<TensorWrapper*>& tensor_repository) {
   for (auto tensor_wrapper : tensor_repository) {
     auto it = std::find(tensor_wrapper->consumers_.begin(),
                         tensor_wrapper->consumers_.end(), op_wrapper);
@@ -58,8 +62,9 @@ bool isAllInputConstant(const OpWrapper* op_wrapper,
  * 输出张量大小不超过特定阈值：如果节点的输出张量过大，可能会超出内存限制或导致性能问题，因此可能需要避免常量折叠。
  * 当前暂时全部返回false
  */
-bool produceLargeTensor(const OpWrapper* op_wrapper,
-                        const std::vector<TensorWrapper*>& tensor_repository) {
+bool FoldConstant::produceLargeTensor(
+    const OpWrapper* op_wrapper,
+    const std::vector<TensorWrapper*>& tensor_repository) {
   return false;
 }
 
@@ -67,12 +72,12 @@ bool produceLargeTensor(const OpWrapper* op_wrapper,
  * 该算子是否支持常量折叠
  * 有一些需要获取运行时信息的算子不支持折叠
  */
-bool isSupportFold(const OpWrapper* op_wrapper) { return true; }
+bool FoldConstant::isSupportFold(const OpWrapper* op_wrapper) { return true; }
 /**
  * 运行这个可折叠的Op
  * 在Net构建时该op的input、output都已set，但是output没有分配内存
  */
-base::Status runOp(const OpWrapper* op_wrapper) {
+base::Status FoldConstant::runOp(const OpWrapper* op_wrapper) {
   base::Status status = base::kStatusCodeOk;
   op::Op* op = op_wrapper->op_;
 
@@ -92,9 +97,6 @@ base::Status runOp(const OpWrapper* op_wrapper) {
 
   return status;
 }
-
-FoldConstant::FoldConstant() : OptPass("FoldConstant"){};
-FoldConstant::~FoldConstant(){};
 
 base::Status FoldConstant::optimize(
     std::vector<TensorWrapper*>& tensor_repository,
@@ -125,10 +127,10 @@ base::Status FoldConstant::optimize(
         }
       }
 
-      //处理这个Op的输入Tensor
+      // 处理这个Op的输入Tensor
       rmInputTensorAndMaybeDelete(op_wrapper, tensor_repository);
 
-      //处理这个Op的输出Tensor
+      // 处理这个Op的输出Tensor
       rmOutputTensorAndMaybeDelete(op_wrapper, tensor_repository);
 
       // 将其从前驱节点的后继节点中删除
