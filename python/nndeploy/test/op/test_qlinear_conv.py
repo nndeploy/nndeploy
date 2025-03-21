@@ -5,9 +5,12 @@ from onnx.reference.ops.op_qlinear_conv import QLinearConv as OnnxQLinearConv
 import nndeploy
 from nndeploy.op import functional as F
 from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
+
+
 class TestQLinearConvOp(unittest.TestCase):
+    # 该测试用例参考onnx
     def test_qlinear_conv(self):
-        # Load ONNX test data
+
         x = np.array(
             [
                 [255, 174, 162, 25, 203, 168, 58],
@@ -45,40 +48,36 @@ class TestQLinearConvOp(unittest.TestCase):
             dtype=np.uint8,
         ).reshape((1, 1, 7, 7))
 
-        # Convert numpy data to tensors
         x_tensor = create_tensor_from_numpy(x)
         x_scale_tensor = create_tensor_from_numpy(np.array([x_scale], dtype=np.float32))
-        x_zero_point_tensor = create_tensor_from_numpy(np.array([x_zero_point], dtype=np.uint8))
+        x_zero_point_tensor = create_tensor_from_numpy(
+            np.array([x_zero_point], dtype=np.uint8)
+        )
         w_tensor = create_tensor_from_numpy(w)
         w_scale_tensor = create_tensor_from_numpy(np.array([w_scale], dtype=np.float32))
-        w_zero_point_tensor = create_tensor_from_numpy(np.array([w_zero_point], dtype=np.uint8))
-        print(x_zero_point_tensor)
-        print("numpy")
-        print(x_zero_point)
-        print("'3"*100)
-        
+        w_zero_point_tensor = create_tensor_from_numpy(
+            np.array([w_zero_point], dtype=np.uint8)
+        )
         y_scale_tensor = create_tensor_from_numpy(np.array([y_scale], dtype=np.float32))
-        y_zero_point_tensor = create_tensor_from_numpy(np.array([y_zero_point], dtype=np.uint8))
-       
-        print(w_zero_point_tensor)
-        print("numpy")
-        print(w_zero_point)
-        print("'3"*100)
+        y_zero_point_tensor = create_tensor_from_numpy(
+            np.array([y_zero_point], dtype=np.uint8)
+        )
 
-        print(y_zero_point_tensor)
-        print("numpy")
-        print(y_zero_point)
-        print("'3"*100)
-        output_tensor = F.qlinear_conv(x_tensor, x_scale_tensor, x_zero_point_tensor, w_tensor, w_scale_tensor, w_zero_point_tensor, y_scale_tensor, y_zero_point_tensor)
-        # print()
-        # Convert output tensor back to numpy
+        output_tensor = F.qlinear_conv(
+            x_tensor,
+            x_scale_tensor,
+            x_zero_point_tensor,
+            w_tensor,
+            w_scale_tensor,
+            w_zero_point_tensor,
+            y_scale_tensor,
+            y_zero_point_tensor,
+        )
+
         output = create_numpy_from_tensor(output_tensor)
-        print(output)
-        print(expected_output)
-        
-        # Assert that the output matches the expected result
-        self.assertTrue(np.allclose(output, expected_output, rtol=1e-03, atol=1e-04))
 
-        
+        self.assertTrue(np.allclose(output, expected_output, rtol=1e-05, atol=1e-05))
+
+
 if __name__ == "__main__":
     unittest.main()

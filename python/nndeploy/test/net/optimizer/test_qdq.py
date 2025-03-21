@@ -1,7 +1,8 @@
+
 import torch
 import torch.nn as nn
 import torch.onnx
-import onnxruntime as ort
+
 import numpy as np
 from onnxruntime.quantization import QuantType, QuantFormat, quantize_static
 
@@ -90,16 +91,17 @@ def test_qdq_quant():
     net.init()
    
     net.dump("qdq_opt.dot")
+    
+    net.deinit()
 
 
 if __name__ == "__main__":
 
-    # # 导出原始模型
-    # export_model()
+    # 导出原始模型
+    export_model()
 
-    # # 导出ONNX QDQ量化模型
-    # quantize_onnx_model()
+    # 导出ONNX QDQ量化模型
+    quantize_onnx_model()
     
-    
-    
+    # 测试Qdq 融合pass
     test_qdq_quant()

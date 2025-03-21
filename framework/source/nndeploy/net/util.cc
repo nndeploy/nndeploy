@@ -389,5 +389,42 @@ bool checkTensor(const std::vector<device::Tensor *> &src_tensors,
   return true;
 }
 
+void printNetInfo(const std::vector<OpWrapper*>& op_repository,
+                    const std::vector<TensorWrapper*>& tensor_repository) {
+  // 打印每个操作的前驱和后继
+  for (const auto& op : op_repository) {
+    std::cout << "Operation Name: " << op->name_ << std::endl;
+    std::cout << "  Predecessors: ";
+    for (const auto& pred : op->predecessors_) {
+      std::cout << pred->name_ << ", ";
+    }
+    std::cout << (op->predecessors_.empty() ? "None" : "") << std::endl;
+
+    std::cout << "  Successors: ";
+    for (const auto& succ : op->successors_) {
+      std::cout << succ->name_ << ", ";
+    }
+    std::cout << (op->successors_.empty() ? "None" : "") << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+  }
+
+  // 打印每个张量的生产者和消费者
+  for (const auto& tensor : tensor_repository) {
+    std::cout << "Tensor Name: " << tensor->name_ << std::endl;
+    std::cout << "  Producers: ";
+    for (const auto& producer : tensor->producers_) {
+      std::cout << producer->name_ << ", ";
+    }
+    std::cout << (tensor->producers_.empty() ? "None" : "") << std::endl;
+
+    std::cout << "  Consumers: ";
+    for (const auto& consumer : tensor->consumers_) {
+      std::cout << consumer->name_ << ", ";
+    }
+    std::cout << (tensor->consumers_.empty() ? "None" : "") << std::endl;
+    std::cout << "-----------------------------" << std::endl;
+  }
+}
+
 }  // namespace net
 }  // namespace nndeploy

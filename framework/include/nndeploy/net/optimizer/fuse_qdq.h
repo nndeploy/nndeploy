@@ -23,6 +23,11 @@ class FuseQdq : public OptPass {
                                 std::vector<OpWrapper*>& op_repository,
                                 int begin_op_index);
 
+  virtual int seqPatternMatch(std::vector<TensorWrapper*>& tensor_repository,
+                              std::vector<OpWrapper*>& op_repository,
+                              const std::vector<ir::OpType>& types,
+                              int begin_op_index);
+
   bool CheckFuseCondition(OpWrapper* dequant_op, OpWrapper* conv_op,
                           OpWrapper* quant_op,
                           std::vector<TensorWrapper*>& tensor_repository);
@@ -30,9 +35,11 @@ class FuseQdq : public OptPass {
   bool IsShapeMatch(const std::vector<int>& shape1,
                     const std::vector<int>& shape2);
 
-  bool isAllInputConstant(
-      const OpWrapper* op_wrapper,
-      const std::vector<TensorWrapper*>& tensor_repository);
+  bool isAllInputConstant(const OpWrapper* op_wrapper,
+                          const std::vector<TensorWrapper*>& tensor_repository);
+
+ private:
+  int qdq_index_ = 0;
 };
 }  // namespace net
 }  // namespace nndeploy
