@@ -34,14 +34,12 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
   DDIMScheduler(SchedulerType scheduler_type);
   virtual ~DDIMScheduler();
 
-  virtual base::Status init();
+  virtual base::Status init(SchedulerParam *param);
   virtual base::Status deinit();
 
   virtual base::Status setTimesteps();
 
   virtual device::Tensor *scaleModelInput(device::Tensor *sample, int index);
-
-  float getVariance(int64_t timesteps, int64_t prev_timestep);
 
   virtual base::Status configure();
 
@@ -51,15 +49,14 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
                             std::mt19937 generator = std::mt19937(),
                             device::Tensor *variance_noise = nullptr);
 
-  virtual base::Status addNoise(device::Tensor *init_latents,
-                                device::Tensor *noise, int idx,
-                                int latent_timestep);
-
   virtual std::vector<float> &getTimestep();
 
  public:
-  std::vector<float> alphas_cumprod_;  // alpha的累积乘积
   float final_alpha_cumprod_ = 1.0;
+
+  std::vector<double> betas_;
+  std::vector<double> alphas_;
+  std::vector<double> alphas_cumprod_;
 
   std::vector<float> timesteps_;  // 时间步序列
   std::vector<float> variance_;   // 方差

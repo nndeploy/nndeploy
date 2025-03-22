@@ -16,43 +16,60 @@ DDIMScheduler::DDIMScheduler(SchedulerType scheduler_type)
 
 DDIMScheduler::~DDIMScheduler() {}
 
-base::Status DDIMScheduler::init() {
+base::Status DDIMScheduler::init(SchedulerParam *param) {
   base::Status status = base::kStatusCodeOk;
 
-  // # this schedule is very specific to the latent diffusion model.
-  // ##计算betas，它们是方差的平方根，从beta_start的平方根到beta_end的平方根
-  std::vector<float> betas;
-  betas.resize(scheduler_param_->num_train_timesteps_);
-  customLinspace(std::sqrt(scheduler_param_->beta_start_),
-                 std::sqrt(scheduler_param_->beta_end_),
-                 scheduler_param_->num_train_timesteps_, betas);
-  // ## 计算alphas，它们是1减去beta的平方
-  std::vector<float> alphas(scheduler_param_->num_train_timesteps_, 0.0f);
-  for (int i = 0; i < scheduler_param_->num_train_timesteps_; i++) {
-    alphas[i] = 1 - betas[i] * betas[i];
-  }
-  // ## alphas_cumprod_
-  alphas_cumprod_.resize(scheduler_param_->num_train_timesteps_, 0.0f);
-  alphas_cumprod_[0] = alphas[0];
-  for (int i = 1; i < scheduler_param_->num_train_timesteps_; i++) {
-    alphas_cumprod_[i] = alphas_cumprod_[i - 1] * alphas[i];
+  if (param == nullptr) {
+    NNDEPLOY_LOGE("Scheduler param is null!\n");
+    return base::kStatusCodeErrorInvalidValue;
   }
 
-  // # At every step in ddim, we are looking into the previousalphas_cumprod
-  // For the final step, there is no previous alphas_cumprod because we are
-  // already at 0 `set_alpha_to_one` decides whether we set this parameter
-  // simply to one or whether we use the final alpha of the "non-previous"
-  // one.
-  if (scheduler_param_->set_alpha_to_one_) {
-    final_alpha_cumprod_ = 1.0;
+  // init scheduler param
+  scheduler_param_ = dynamic_cast<SchedulerParam *>(param);
+
+  double beta_start = scheduler_param_->beta_start_;
+  double beta_end = scheduler_param_->beta_end_;
+  int num_train_timesteps = scheduler_param_->num_train_timesteps_;
+
+  betas_.resize(num_train_timesteps);
+  if (scheduler_param_->beta_schedule_ == "linear") {
+    for (int i = 0; i < num_train_timesteps; i++) {
+      betas_[i] =
+          beta_start + (beta_end - beta_start) * i / (num_train_timesteps - 1);
+    }
+  } else if (scheduler_param_->beta_schedule_ == "scaled_linear") {
+    double sqrt_beta_start = std::sqrt(beta_start);
+    double sqrt_beta_end = std::sqrt(beta_end);
+    for (int i = 0; i < num_train_timesteps; i++) {
+      double temp = sqrt_beta_start + (sqrt_beta_end - sqrt_beta_start) * i /
+                                          (num_train_timesteps - 1);
+      betas_[i] = temp * temp;
+    }
   } else {
-    final_alpha_cumprod_ = alphas_cumprod_.front();
+    throw std::invalid_argument("不支持的beta调度: " + beta_schedule);
   }
 
-  // timesteps_
-  timesteps_.resize(scheduler_param_->num_train_timesteps_, 0);
-  for (int i = 0; i < scheduler_param_->num_train_timesteps_; i++) {
-    timesteps_[i] = scheduler_param_->num_train_timesteps_ - 1 - i;
+  // 计算 alphas = 1.0 - betas
+  alphas_.resize(num_train_timesteps);
+  for (int i = 0; i < num_train_timesteps; i++) {
+    alphas_[i] = 1.0 - betas_[i];
+  }
+
+  // 计算 alphas 的累积乘积
+  alphas_cumprod_.resize(num_train_timesteps);
+  double cumprod = 1.0;
+  for (int i = 0; i < num_train_timesteps; i++) {
+    cumprod *= alphas_[i];
+    alphas_cumprod_[i] = cumprod;
+  }
+
+  // 记录最后一个时间步的 alpha 累积乘积（在这里即 alphas_cumprod 的第一个元素）
+  final_alpha_cumprod = alphas_cumprod_[0];
+
+  // 初始化时间步数组，降序排列（例如：999, 998, ..., 0）
+  timesteps_.resize(num_train_timesteps);
+  for (int i = 0; i < num_train_timesteps; i++) {
+    timesteps_[i] = num_train_timesteps - 1 - i;
   }
 
   return status;
