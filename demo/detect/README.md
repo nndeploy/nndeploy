@@ -64,6 +64,10 @@ postprocess run()                  100         345.608            3.456         
 DrawBoxNode run()                  100         30.719             0.307              0.298                             0.000 
 encode_node run()                  100         826.849            8.268              8.132                             0.000 
 -------------------------------------------------------------------------------------------------------------------------------
+
+# 流水线执行
+./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx.json,/home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_nndeploy_acl_sample_output.jpg
+
 ```
 
 #### 推理后端为onnxruntime，推理执行设备为Arm
@@ -78,6 +82,8 @@ export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20
 
 # 执行
 ./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeOnnx --is_path --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_ort_acl_sample_output.jpg
+
+./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeOnnx --is_path --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_ort_acl_sample_output.jpg
 
 # 耗时
 TimeProfiler: demo, remove warmup 10
@@ -111,6 +117,8 @@ atc --model=path/to/yolo11s.sim.onnx --output=path/to/yolo11s.sim.onnx.om --fram
 
 ### 华为昇腾运行
 ./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_acl_acl_sample_output.jpg
+
+./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_acl_acl_sample_output.jpg
 
 TimeProfiler: demo, remove warmup 10
 -------------------------------------------------------------------------------------------------------------------------------

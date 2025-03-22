@@ -65,6 +65,7 @@ base::Status DefaultInference::init() {
     NNDEPLOY_LOGE("net_->setDeviceType failed!\n");
     return base::kStatusCodeErrorInferenceDefault;
   }
+  net_->setParallelType(default_inference_param->parallel_type_);
   net_->setStream(stream_);
   status = net_->setDynamicShape(default_inference_param->is_dynamic_shape_,
                                  default_inference_param->min_shape_,
@@ -153,6 +154,8 @@ base::Status DefaultInference::run() {
       continue;
     }
     device::Tensor *dst_tensor = internal_input_tensor->second;
+    // src_tensor->getDesc().print();
+    // dst_tensor->getDesc().print();
     if (src_tensor->getData() != dst_tensor->getData()) {
       status = src_tensor->copyTo(dst_tensor);
       // NNDEPLOY_LOGI(

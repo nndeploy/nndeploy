@@ -498,6 +498,12 @@ class AscendCLOpConv : public OpConv {
     return Op::deinit();
   }
   virtual base::Status preRun() {
+    device::Device *device = device::getDevice(device_type_);
+    aclError ret = aclrtSetCurrentContext((aclrtContext)(device->getContext()));
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+      return base::kStatusCodeErrorOpAscendCL;
+    }
     // 输入输出
     if (inner_input_ == nullptr) {
       inner_input_ =

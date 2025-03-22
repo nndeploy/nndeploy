@@ -118,8 +118,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
   TensorPoolType tensor_pool_type_ =
       kTensorPool1DOffsetCalculateTypeGreedyByBreadth;
-
-  Runtime *runtime_;
+  Runtime *runtime_ = nullptr;
 
   bool net_opt_flag_ = true;  //默认开启图优化
   std::set<OptPassType> enable_pass_;  //仅使用这些pass，如果为空则启用全部pass

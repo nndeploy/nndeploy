@@ -123,6 +123,11 @@ void *AscendCLDevice::allocate(size_t size) {
   return this->allocate(desc);
 }
 void *AscendCLDevice::allocate(const BufferDesc &desc) {
+  aclError ret = aclrtSetCurrentContext(context_);
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return nullptr;
+  }
   void *data = nullptr;
   aclError status =
       aclrtMalloc(&data, desc.getRealSize(), ACL_MEM_MALLOC_NORMAL_ONLY);
@@ -138,10 +143,15 @@ void *AscendCLDevice::allocate(const BufferDesc &desc) {
   return data;
 }
 void AscendCLDevice::deallocate(void *ptr) {
+  aclError ret = aclrtSetCurrentContext(context_);
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return;
+  }
   if (ptr == nullptr) {
     return;
   }
-  aclError ret = aclrtFree(ptr);
+  ret = aclrtFree(ptr);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("deallocate fuction: aclrtFree failed, errorCode is %d\n",
                   ret);
@@ -151,6 +161,11 @@ void AscendCLDevice::deallocate(void *ptr) {
 
 base::Status AscendCLDevice::copy(void *src, void *dst, size_t size,
                                   Stream *stream) {
+  aclError ret = aclrtSetCurrentContext(context_);
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
   if (stream == nullptr) {
     NNDEPLOY_ASCEND_CL_CHECK(
         aclrtMemcpy(dst, size, src, size, ACL_MEMCPY_DEVICE_TO_DEVICE));
@@ -165,6 +180,11 @@ base::Status AscendCLDevice::copy(void *src, void *dst, size_t size,
 
 base::Status AscendCLDevice::download(void *src, void *dst, size_t size,
                                       Stream *stream) {
+  aclError ret = aclrtSetCurrentContext(context_);
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
   if (stream == nullptr) {
     NNDEPLOY_ASCEND_CL_CHECK(
         aclrtMemcpy(dst, size, src, size, ACL_MEMCPY_DEVICE_TO_HOST));
@@ -180,14 +200,26 @@ base::Status AscendCLDevice::download(void *src, void *dst, size_t size,
 
 base::Status AscendCLDevice::upload(void *src, void *dst, size_t size,
                                     Stream *stream) {
+  aclError ret = aclrtSetCurrentContext(context_);
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
   if (stream == nullptr) {
-    NNDEPLOY_ASCEND_CL_CHECK(
-        aclrtMemcpy(dst, size, src, size, ACL_MEMCPY_HOST_TO_DEVICE));
+    aclError ret = aclrtMemcpy(dst, size, src, size, ACL_MEMCPY_HOST_TO_DEVICE);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclrtMemcpy failed, errorCode is %d\n", ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
   } else {
     aclrtStream acl_stream =
         (aclrtStream)stream->as<AscendCLStream>()->getStream();
-    NNDEPLOY_ASCEND_CL_CHECK(aclrtMemcpyAsync(
-        dst, size, src, size, ACL_MEMCPY_HOST_TO_DEVICE, acl_stream));
+    aclError ret = aclrtMemcpyAsync(dst, size, src, size,
+                                    ACL_MEMCPY_HOST_TO_DEVICE, acl_stream);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE("aclrtMemcpyAsync failed, errorCode is %d\n", ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
   }
 
   return base::kStatusCodeOk;
@@ -313,8 +345,13 @@ base::Status AscendCLDevice::destroyEvents(Event **events, size_t count) {
 }
 
 AscendCLStream::AscendCLStream(Device *device) : Stream(device) {
+  aclError ret = aclrtSetCurrentContext((aclrtContext)(device_->getContext()));
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return;
+  }
   aclrtStream stream;
-  aclError ret = aclrtCreateStream(&stream);
+  ret = aclrtCreateStream(&stream);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtCreateStream failed, errorCode is %d", ret);
   }
@@ -323,41 +360,59 @@ AscendCLStream::AscendCLStream(Device *device) : Stream(device) {
 AscendCLStream::AscendCLStream(Device *device, void *stream)
     : Stream(device, stream), stream_((aclrtStream)stream) {}
 AscendCLStream::~AscendCLStream() {
+  aclError ret = aclrtSetCurrentContext((aclrtContext)(device_->getContext()));
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return;
+  }
   if (is_external_) {
     return;
   }
-  aclError ret = aclrtDestroyStream(stream_);
+  ret = aclrtDestroyStream(stream_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtDestroyStream failed, errorCode is %d", ret);
   }
 }
 
 base::Status AscendCLStream::synchronize() {
-  aclError ret = aclrtSynchronizeStream(stream_);
+  aclError ret = aclrtSetCurrentContext((aclrtContext)(device_->getContext()));
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
+  ret = aclrtSynchronizeStream(stream_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtSynchronizeStream failed, errorCode is %d", ret);
   }
   return base::kStatusCodeOk;
 }
 base::Status AscendCLStream::recordEvent(Event *event) {
+  aclError ret = aclrtSetCurrentContext((aclrtContext)(device_->getContext()));
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
   if (event == nullptr) {
     NNDEPLOY_LOGE("event is nullptr\n");
     return base::kStatusCodeErrorDeviceAscendCL;
   }
-  aclError ret =
-      aclrtRecordEvent(event->as<AscendCLEvent>()->getEvent(), stream_);
+  ret = aclrtRecordEvent(event->as<AscendCLEvent>()->getEvent(), stream_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtRecordStream failed, errorCode is %d", ret);
   }
   return base::kStatusCodeOk;
 }
 base::Status AscendCLStream::waitEvent(Event *event) {
+  aclError ret = aclrtSetCurrentContext((aclrtContext)(device_->getContext()));
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
   if (event == nullptr) {
     NNDEPLOY_LOGE("event is nullptr\n");
     return base::kStatusCodeErrorDeviceAscendCL;
   }
-  aclError ret =
-      aclrtStreamWaitEvent(stream_, event->as<AscendCLEvent>()->getEvent());
+  ret = aclrtStreamWaitEvent(stream_, event->as<AscendCLEvent>()->getEvent());
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtStreamWaitEvent failed, errorCode is %d", ret);
   }
@@ -369,21 +424,36 @@ aclrtStream AscendCLStream::getStream() { return stream_; }
 
 // event
 AscendCLEvent::AscendCLEvent(Device *device) : Event(device) {
-  aclError ret = aclrtCreateEvent(&event_);
+  aclError ret = aclrtSetCurrentContext((aclrtContext)(device_->getContext()));
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return;
+  }
+  ret = aclrtCreateEvent(&event_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtCreateEvent failed, errorCode is %d", ret);
   }
 }
 AscendCLEvent::~AscendCLEvent() {
-  aclError ret = aclrtDestroyEvent(event_);
+  aclError ret = aclrtSetCurrentContext((aclrtContext)(device_->getContext()));
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return;
+  }
+  ret = aclrtDestroyEvent(event_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtDestroyEvent failed, errorCode is %d", ret);
   }
 }
 
 bool AscendCLEvent::queryDone() {
+  aclError ret = aclrtSetCurrentContext((aclrtContext)(device_->getContext()));
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return false;
+  }
   aclrtEventRecordedStatus status = ACL_EVENT_RECORDED_STATUS_NOT_READY;
-  aclError ret = aclrtQueryEventStatus(event_, &status);
+  ret = aclrtQueryEventStatus(event_, &status);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtQueryEvent failed, errorCode is %d", ret);
     return false;
@@ -392,7 +462,12 @@ bool AscendCLEvent::queryDone() {
   }
 }
 base::Status AscendCLEvent::synchronize() {
-  aclError ret = aclrtSynchronizeEvent(event_);
+  aclError ret = aclrtSetCurrentContext((aclrtContext)(device_->getContext()));
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
+  ret = aclrtSynchronizeEvent(event_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtSynchronizeEvent failed, errorCode is %d", ret);
   }

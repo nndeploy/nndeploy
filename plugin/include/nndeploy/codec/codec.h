@@ -68,11 +68,15 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
   int getWidth() { return width_; };
   int getHeight() { return height_; };
 
-  virtual base::EdgeUpdateFlag updataInput() {
+  virtual base::EdgeUpdateFlag updateInput() {
     if (index_ < size_) {
       return base::kEdgeUpdateFlagComplete;
     } else {
-      return base::kEdgeUpdateFlagTerminate;
+      if (size_ == 0) {
+        return base::kEdgeUpdateFlagComplete;
+      } else {
+        return base::kEdgeUpdateFlagTerminate;
+      }
     }
   }
 
@@ -114,7 +118,7 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
       return;
     }
   }
-  virtual ~EncodeNode() {};
+  virtual ~EncodeNode(){};
 
   base::Status setCodecFlag(base::CodecFlag flag) {
     flag_ = flag;
@@ -148,11 +152,11 @@ using createDecodeNodeFunc = std::function<DecodeNode *(
 using createDecodeNodeSharedPtrFunc = std::function<std::shared_ptr<DecodeNode>(
     base::CodecFlag flag, const std::string &name, dag::Edge *output)>;
 
-std::map<base::CodecType, createDecodeNodeFunc> &
-getGlobaCreatelDecodeNodeFuncMap();
+std::map<base::CodecType, createDecodeNodeFunc>
+    &getGlobaCreatelDecodeNodeFuncMap();
 
-std::map<base::CodecType, createDecodeNodeSharedPtrFunc> &
-getGlobaCreatelDecodeNodeSharedPtrFuncMap();
+std::map<base::CodecType, createDecodeNodeSharedPtrFunc>
+    &getGlobaCreatelDecodeNodeSharedPtrFuncMap();
 
 class TypeCreatelDecodeNodeRegister {
  public:
@@ -183,11 +187,11 @@ using createEncodeNodeFunc = std::function<EncodeNode *(
 using createEncodeNodeSharedPtrFunc = std::function<std::shared_ptr<EncodeNode>(
     base::CodecFlag flag, const std::string &name, dag::Edge *input)>;
 
-std::map<base::CodecType, createEncodeNodeFunc> &
-getGlobaCreatelEncodeNodeFuncMap();
+std::map<base::CodecType, createEncodeNodeFunc>
+    &getGlobaCreatelEncodeNodeFuncMap();
 
-std::map<base::CodecType, createEncodeNodeSharedPtrFunc> &
-getGlobaCreatelEncodeNodeSharedPtrFuncMap();
+std::map<base::CodecType, createEncodeNodeSharedPtrFunc>
+    &getGlobaCreatelEncodeNodeSharedPtrFuncMap();
 
 class TypeCreatelEncodeNodeRegister {
  public:

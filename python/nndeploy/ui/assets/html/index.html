@@ -322,10 +322,33 @@
           <div
             class="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded">
             <div class="flex items-center">
-              <i class="fas fa-chevron-right mr-2 text-xs"></i>
+              <i class="fas fa-chevron-down mr-2 text-xs"></i>
               <span>推理节点</span>
             </div>
             <span class="text-xs text-gray-500">6</span>
+          </div>
+
+          <div class="ml-4 mt-1 space-y-1">
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-purple-500 rounded-sm mr-2"></div>
+              <span>文本生成</span>
+            </div>
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-purple-500 rounded-sm mr-2"></div>
+              <span>文本嵌入</span>
+            </div>
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-purple-500 rounded-sm mr-2"></div>
+              <span>以文生图</span>
+            </div>
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-purple-500 rounded-sm mr-2"></div>
+              <span>图像分类</span>
+            </div>
           </div>
         </div>
 
@@ -360,66 +383,153 @@
       <!-- 网格背景 -->
       <div class="absolute inset-0 bg-grid"></div>
 
-      <!-- 示例节点 -->
+      <!-- 以文生图工作流节点示例 -->
       <div
         class="node absolute left-64 top-48 w-64 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-input">
         <div class="flex items-center p-3 border-b border-gray-200">
-          <h3 class="text-sm font-medium text-gray-800">文本输入</h3>
+          <h3 class="text-sm font-medium text-gray-800">提示词输入</h3>
           <button class="ml-auto text-gray-400 hover:text-gray-600">
             <i class="fas fa-cog"></i>
           </button>
         </div>
         <div class="p-3">
-          <div class="text-xs text-gray-500 mb-2">输出</div>
-          <div class="text-sm text-gray-700">文本数据 (string)</div>
+          <textarea
+            class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            rows="3" placeholder="输入提示词...">一只可爱的猫咪，坐在窗台上，阳光照射，高清照片风格</textarea>
         </div>
         <div class="flex justify-between p-2 bg-gray-50 rounded-b-md">
           <div></div>
           <div class="flex items-center">
-            <div class="port-output bg-green-500" data-port="output" data-port-type="string"></div>
+            <div class="flex flex-col items-end">
+              <span class="text-xs text-gray-600 mb-1">提示词文本</span>
+              <span class="text-xs text-gray-500">字符串 (str)</span>
+            </div>
+            <div class="port-output bg-green-500 ml-2" data-port="output" data-port-type="string" title="提示词输出"></div>
           </div>
         </div>
       </div>
 
       <div
-        class="node absolute left-400 top-48 w-64 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-inference">
+        class="node absolute left-64 top-200 w-64 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-input">
         <div class="flex items-center p-3 border-b border-gray-200">
-          <h3 class="text-sm font-medium text-gray-800">GPT-4 推理</h3>
+          <h3 class="text-sm font-medium text-gray-800">负面提示词</h3>
           <button class="ml-auto text-gray-400 hover:text-gray-600">
             <i class="fas fa-cog"></i>
           </button>
         </div>
         <div class="p-3">
-          <div class="text-xs text-gray-500 mb-2">输入</div>
-          <div class="text-sm text-gray-700 mb-3">提示文本 (string)</div>
-          <div class="text-xs text-gray-500 mb-2">输出</div>
-          <div class="text-sm text-gray-700">生成文本 (string)</div>
+          <textarea
+            class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            rows="2" placeholder="输入负面提示词...">模糊，扭曲，低质量，像素化，不完整，草图</textarea>
+        </div>
+        <div class="flex justify-between p-2 bg-gray-50 rounded-b-md">
+          <div></div>
+          <div class="flex items-center">
+            <div class="flex flex-col items-end">
+              <span class="text-xs text-gray-600 mb-1">负面提示词</span>
+              <span class="text-xs text-gray-500">字符串 (str)</span>
+            </div>
+            <div class="port-output bg-green-500 ml-2" data-port="output" data-port-type="string" title="负面提示词输出"></div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="node absolute left-400 top-48 w-72 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-inference">
+        <div class="flex items-center p-3 border-b border-gray-200">
+          <h3 class="text-sm font-medium text-gray-800">Stable Diffusion</h3>
+          <button class="ml-auto text-gray-400 hover:text-gray-600">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+        <div class="p-3 text-center">
+          <div class="text-sm text-gray-700 mb-2">以文生图推理节点</div>
+          <div class="text-xs text-gray-500">点击右上角设置按钮调整参数</div>
+        </div>
+        <div class="flex justify-between p-2 bg-gray-50 rounded-b-md">
+          <div class="flex flex-col space-y-4">
+            <div class="flex items-center">
+              <div class="port-input bg-green-500" data-port="prompt" data-port-type="string" title="提示词输入"></div>
+              <div class="flex flex-col ml-2">
+                <span class="text-xs text-gray-600">提示词</span>
+                <span class="text-xs text-gray-500">字符串 (str)</span>
+              </div>
+            </div>
+            <div class="flex items-center">
+              <div class="port-input bg-green-500" data-port="negative_prompt" data-port-type="string" title="负面提示词输入">
+              </div>
+              <div class="flex flex-col ml-2">
+                <span class="text-xs text-gray-600">负面提示词</span>
+                <span class="text-xs text-gray-500">字符串 (str)</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <div class="flex flex-col items-end">
+              <span class="text-xs text-gray-600 mb-1">生成图像</span>
+              <span class="text-xs text-gray-500">图像 (PIL.Image)</span>
+            </div>
+            <div class="port-output bg-blue-500 ml-2" data-port="output" data-port-type="image" title="图像输出"></div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="node absolute left-600 top-48 w-64 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-output">
+        <div class="flex items-center p-3 border-b border-gray-200">
+          <h3 class="text-sm font-medium text-gray-800">图像预览</h3>
+          <button class="ml-auto text-gray-400 hover:text-gray-600">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+        <div class="p-3">
+          <div class="bg-gray-200 rounded-md w-full h-48 flex items-center justify-center">
+            <i class="fas fa-image text-gray-400 text-4xl"></i>
+          </div>
         </div>
         <div class="flex justify-between p-2 bg-gray-50 rounded-b-md">
           <div class="flex items-center">
-            <div class="port-input bg-green-500" data-port="input" data-port-type="string"></div>
+            <div class="port-input bg-blue-500" data-port="input" data-port-type="image" title="图像输入"></div>
+            <div class="flex flex-col ml-2">
+              <span class="text-xs text-gray-600">图像</span>
+              <span class="text-xs text-gray-500">图像 (PIL.Image)</span>
+            </div>
           </div>
-          <div class="flex items-center">
-            <div class="port-output bg-blue-500" data-port="output" data-port-type="string"></div>
-          </div>
+          <div></div>
         </div>
       </div>
 
       <div
         class="node absolute left-600 top-200 w-64 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-output">
         <div class="flex items-center p-3 border-b border-gray-200">
-          <h3 class="text-sm font-medium text-gray-800">文本输出</h3>
+          <h3 class="text-sm font-medium text-gray-800">图像保存</h3>
           <button class="ml-auto text-gray-400 hover:text-gray-600">
             <i class="fas fa-cog"></i>
           </button>
         </div>
         <div class="p-3">
-          <div class="text-xs text-gray-500 mb-2">输入</div>
-          <div class="text-sm text-gray-700">文本数据 (string)</div>
+          <div class="mb-2">
+            <label class="block text-xs text-gray-500 mb-1">文件名</label>
+            <input type="text" value="generated_image"
+              class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          <div class="mb-2">
+            <label class="block text-xs text-gray-500 mb-1">格式</label>
+            <select
+              class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option>PNG</option>
+              <option>JPEG</option>
+              <option>WebP</option>
+            </select>
+          </div>
         </div>
         <div class="flex justify-between p-2 bg-gray-50 rounded-b-md">
           <div class="flex items-center">
-            <div class="port-input bg-blue-500" data-port="input" data-port-type="string"></div>
+            <div class="port-input bg-blue-500" data-port="input" data-port-type="image" title="图像输入"></div>
+            <div class="flex flex-col ml-2">
+              <span class="text-xs text-gray-600">图像</span>
+              <span class="text-xs text-gray-500">图像 (PIL.Image)</span>
+            </div>
           </div>
           <div></div>
         </div>

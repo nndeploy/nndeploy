@@ -21,12 +21,18 @@ namespace net {
 
 class PipelineTensor {
  public:
-  PipelineTensor() {};
-  virtual ~PipelineTensor() {};
+  PipelineTensor(){};
+  virtual ~PipelineTensor(){};
   TensorWrapper *tensor_;
   std::vector<device::Tensor *> tensors_;
   std::vector<SequentialRuntime *> producers_;
   std::vector<SequentialRuntime *> consumers_;
+
+  // 添加互斥锁和条件变量，用于同步不同阶段之间的数据传递
+  std::mutex mutex_;
+  std::condition_variable cv_;
+  bool is_ready_ = false;
+  std::map<SequentialRuntime *, int> current_index_;
 };
 
 class PipelineRuntime : public Runtime {
@@ -52,7 +58,11 @@ class PipelineRuntime : public Runtime {
   virtual base::Status postRun();
 
   void commitThreadPool();
-  base::EdgeUpdateFlag updateInput();
+
+  // 添加新方法用于重置流水线状态
+  void resetPipeline();
+  // 添加方法用于检查流水线是否完成
+  bool isPipelineComplete();
 
  private:
   int pipeline_parallel_num_ = 1;
@@ -60,6 +70,13 @@ class PipelineRuntime : public Runtime {
   std::vector<SequentialRuntime *> sequential_runtimes_;
   std::map<TensorWrapper *, PipelineTensor *> input_output_tensors_;
   thread_pool::ThreadPool *thread_pool_ = nullptr;
+
+  // 添加互斥锁和条件变量，用于同步流水线状态
+  std::mutex pipeline_mutex_;
+  std::condition_variable pipeline_cv_;
+  bool pipeline_complete_ = false;
+  int completed_stages_ = 0;
+  int pipeline_batch_size_ = INT_MAX;
 };
 
 }  // namespace net
