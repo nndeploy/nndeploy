@@ -37,6 +37,7 @@ class NNDEPLOY_CC_API DDIMSchedulerParam : public SchedulerParam {
   float beta_start_ = 0.00085;                   // beta起始值
   float beta_end_ = 0.012;                       // beta结束值
   std::string beta_schedule_ = "scaled_linear";  // beta调度方式
+  float eta_ = 1.0;
   bool set_alpha_to_one_ = false;  // 是否将alpha的累积乘积的最后一个元素设置为1
 };
 
@@ -50,24 +51,23 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
 
   virtual base::Status setTimesteps();
 
-  virtual device::Tensor *scaleModelInput(device::Tensor *sample, int index);
+  virtual std::vector<float> &scaleModelInput(std::vector<float> &sample,
+                                              int index);
 
-  virtual base::Status DDIMScheduler::step(device::Tensor *sample,
-                                           device::Tensor *latents,
-                                           int timestep);
+  virtual base::Status step(std::vector<float> &sample,
+                            std::vector<float> &prev_smaple,
+                            std::vector<float> &latents, int timestep);
 
-  virtual std::vector<float> &getTimestep();
+  virtual std::vector<int> &getTimestep();
 
  public:
   float final_alpha_cumprod_ = 1.0;
 
-  std::vector<double> betas_;
-  std::vector<double> alphas_;
-  std::vector<double> alphas_cumprod_;
+  std::vector<float> betas_;
+  std::vector<float> alphas_;
+  std::vector<float> alphas_cumprod_;
 
-  std::vector<int> timesteps_;   // 时间步序列
-  std::vector<float> variance_;  // 方差
-
+  std::vector<int> timesteps_;  // 时间步序列
   DDIMSchedulerParam *ddim_scheduler_param_ = nullptr;
 };
 

@@ -4,7 +4,6 @@
 #include <algorithm>  // std::reverse
 
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/op/op_binary.h"
 
 namespace nndeploy {
 namespace stable_diffusion {
@@ -33,8 +32,8 @@ base::Status DDIMScheduler::init(SchedulerParam *param) {
   scheduler_param_ = ddim_param->clone();
   ddim_scheduler_param_ = dynamic_cast<DDIMSchedulerParam *>(scheduler_param_);
 
-  double beta_start = ddim_scheduler_param_->beta_start_;
-  double beta_end = ddim_scheduler_param_->beta_end_;
+  float beta_start = ddim_scheduler_param_->beta_start_;
+  float beta_end = ddim_scheduler_param_->beta_end_;
   int num_train_timesteps = ddim_scheduler_param_->num_train_timesteps_;
 
   betas_.resize(num_train_timesteps);
@@ -44,11 +43,11 @@ base::Status DDIMScheduler::init(SchedulerParam *param) {
           beta_start + (beta_end - beta_start) * i / (num_train_timesteps - 1);
     }
   } else if (ddim_scheduler_param_->beta_schedule_ == "scaled_linear") {
-    double sqrt_beta_start = std::sqrt(beta_start);
-    double sqrt_beta_end = std::sqrt(beta_end);
+    float sqrt_beta_start = std::sqrt(beta_start);
+    float sqrt_beta_end = std::sqrt(beta_end);
     for (int i = 0; i < num_train_timesteps; i++) {
-      double temp = sqrt_beta_start + (sqrt_beta_end - sqrt_beta_start) * i /
-                                          (num_train_timesteps - 1);
+      float temp = sqrt_beta_start + (sqrt_beta_end - sqrt_beta_start) * i /
+                                         (num_train_timesteps - 1);
       betas_[i] = temp * temp;
     }
   } else {
@@ -65,14 +64,14 @@ base::Status DDIMScheduler::init(SchedulerParam *param) {
 
   // 计算 alphas 的累积乘积
   alphas_cumprod_.resize(num_train_timesteps);
-  double cumprod = 1.0;
+  float cumprod = 1.0;
   for (int i = 0; i < num_train_timesteps; i++) {
     cumprod *= alphas_[i];
     alphas_cumprod_[i] = cumprod;
   }
 
   // 记录最后一个时间步的 alpha 累积乘积（在这里即 alphas_cumprod 的第一个元素）
-  final_alpha_cumprod = alphas_cumprod_[0];
+  final_alpha_cumprod_ = alphas_cumprod_[0];
 
   // 初始化时间步数组，降序排列（例如：999, 998, ..., 0）
   timesteps_.resize(num_train_timesteps);
@@ -109,13 +108,14 @@ base::Status DDIMScheduler::setTimesteps() {
   return base::kStatusCodeOk;
 }
 
-device::Tensor *DDIMScheduler::scaleModelInput(device::Tensor *sample,
-                                               int timestep) {
+std::vector<float> &DDIMScheduler::scaleModelInput(std::vector<float> &sample,
+                                                   int timestep) {
   return sample;
 }
 
-base::Status DDIMScheduler::step(device::Tensor *sample,
-                                 device::Tensor *latents, int timestep) {
+base::Status DDIMScheduler::step(std::vector<float> &sample,
+                                 std::vector<float> &prev_sample,
+                                 std::vector<float> &latents, int timestep) {
   int step_index = -1;
   for (size_t i = 0; i < timesteps_.size(); i++) {
     if (timesteps_[i] == timestep) {
@@ -129,32 +129,33 @@ base::Status DDIMScheduler::step(device::Tensor *sample,
   }
 
   // 根据采样序列确定前一个训练时间步
-  double alpha_prod_t_prev;
+  float alpha_prod_t_prev;
   if (step_index < static_cast<int>(timesteps_.size()) - 1) {
     int prev_timestep = timesteps_[step_index + 1];
     alpha_prod_t_prev = alphas_cumprod_[prev_timestep];
   } else {
-    alpha_prod_t_prev = final_alpha_cumprod;
+    alpha_prod_t_prev = final_alpha_cumprod_;
   }
 
   // 当前时间步对应的alpha累积乘积, 注意直接用传入的 timestep 作为下标
-  double alpha_prod_t = alphas_cumprod_[timestep];
+  float alpha_prod_t = alphas_cumprod_[timestep];
 
   // 计算方差
-  double variance = (1.0 - alpha_prod_t_prev) / (1.0 - alpha_prod_t) *
-                    (1.0 - alpha_prod_t / alpha_prod_t_prev);
+  float variance = (1.0 - alpha_prod_t_prev) / (1.0 - alpha_prod_t) *
+                   (1.0 - alpha_prod_t / alpha_prod_t_prev);
 
   // 计算噪声尺度 sigma_t
-  double sigma_t = eta * std::sqrt(variance);
+  float eta = ddim_scheduler_param_->eta_;
+  float sigma_t = eta * std::sqrt(variance);
 
   // 计算预测的原始样本
   if (sample.size() != latents.size()) {
     NNDEPLOY_LOGE("sample size is not equal to latents size\n");
     return base::kStatusCodeErrorInvalidValue;
   }
-  std::vector<double> pred_original_sample(sample.size());
-  double sqrt_alpha_prod_t = std::sqrt(alpha_prod_t);
-  double sqrt_one_minus_alpha_prod_t = std::sqrt(1.0 - alpha_prod_t);
+  std::vector<float> pred_original_sample(sample.size());
+  float sqrt_alpha_prod_t = std::sqrt(alpha_prod_t);
+  float sqrt_one_minus_alpha_prod_t = std::sqrt(1.0 - alpha_prod_t);
   for (size_t i = 0; i < sample.size(); ++i) {
     pred_original_sample[i] =
         (sample[i] - sqrt_one_minus_alpha_prod_t * latents[i]) /
@@ -162,15 +163,14 @@ base::Status DDIMScheduler::step(device::Tensor *sample,
   }
 
   // 计算方向项
-  std::vector<double> pred_sample_direction(sample.size());
-  double sqrt_term =
-      std::sqrt(1.0 - alpha_prod_t_prev - (eta * eta) * variance);
+  std::vector<float> pred_sample_direction(sample.size());
+  float sqrt_term = std::sqrt(1.0 - alpha_prod_t_prev - (eta * eta) * variance);
   for (size_t i = 0; i < latents.size(); ++i) {
     pred_sample_direction[i] = sqrt_term * latents[i];
   }
 
   // 根据是否为最后一步生成随机噪声 noise
-  std::vector<double> noise(sample.size(), 0.0);
+  std::vector<float> noise(sample.size(), 0.0);
   if (step_index < static_cast<int>(timesteps_.size()) - 1) {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -181,8 +181,8 @@ base::Status DDIMScheduler::step(device::Tensor *sample,
   }
 
   // 计算前一个样本
-  device::Tensor prev_sample(sample->getDevice(), sample->getDesc());
-  double sqrt_alpha_prod_t_prev = std::sqrt(alpha_prod_t_prev);
+  // device::Tensor prev_sample(sample->getDevice(), sample->getDesc());
+  float sqrt_alpha_prod_t_prev = std::sqrt(alpha_prod_t_prev);
   for (size_t i = 0; i < sample.size(); ++i) {
     prev_sample[i] = sqrt_alpha_prod_t_prev * pred_original_sample[i] +
                      pred_sample_direction[i] + sigma_t * noise[i];
@@ -199,10 +199,10 @@ base::Status DDIMScheduler::step(device::Tensor *sample,
     }
   }
 
-  return stabase::kStatusCodeOk;
+  return base::kStatusCodeOk;
 }
 
-std::vector<float> &DDIMScheduler::getTimestep() { return timesteps_; }
+std::vector<int> &DDIMScheduler::getTimestep() { return timesteps_; }
 
 }  // namespace stable_diffusion
 }  // namespace nndeploy

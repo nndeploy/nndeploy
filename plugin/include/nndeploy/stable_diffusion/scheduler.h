@@ -65,15 +65,15 @@ class NNDEPLOY_CC_API Scheduler {
    * @param index
    * @return device::Tensor*
    */
-  virtual device::Tensor *scaleModelInput(device::Tensor *sample,
-                                          int index) = 0;
+  virtual std::vector<float> &scaleModelInput(std::vector<float> &sample,
+                                              int index) = 0;
 
   /**
    * @brief Get the Timestep object
    *
    * @return std::vector<float>&
    */
-  virtual std::vector<float> &getTimestep() = 0;
+  virtual std::vector<int> &getTimestep() = 0;
 
  protected:
   SchedulerType scheduler_type_ = kSchedulerTypeNotSupport;
