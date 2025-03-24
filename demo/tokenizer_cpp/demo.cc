@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
   nndeploy::dag::Edge* input_edge = new nndeploy::dag::Edge("input_edge");
   nndeploy::dag::Edge* output_edge = new nndeploy::dag::Edge("output_edge");
 
-  nndeploy::dag::Graph graph("graph", input_edge, output_edge);
+  nndeploy::dag::Graph graph("graph", {input_edge}, {output_edge});
 
   nndeploy::tokenizer::TokenizerCpp* tokenizer_cpp =
       (nndeploy::tokenizer::TokenizerCpp*)
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
   nndeploy::base::InferenceType inference_type =
       nndeploy::base::kInferenceTypeOnnxRuntime;
   nndeploy::inference::InferenceParam* inference_param =
-      nndeploy::inference::createInferenceParam(inference_type);
+      (nndeploy::inference::createInferenceParam(inference_type)).get();
   inference_param->model_type_ = nndeploy::base::kModelTypeOnnx;
   inference_param->model_value_.push_back(
       "/home/always/github/TensorRT/demo/DiffusionZH/onnx/clip.onnx");

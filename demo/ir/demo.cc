@@ -17,17 +17,17 @@ class ExprDemo : public ir::ModelDesc {
   ExprDemo(){};
   ~ExprDemo(){};
   void init() {
-    auto input =
-        op::makeInput(this, "input", base::dataTypeOf<float>(), {1, 3, 640, 640});
+    auto input = op::makeInput(this, "input", base::dataTypeOf<float>(),
+                               {1, 3, 640, 640});
     auto pool_param = std::make_shared<ir::MaxPoolParam>();
     pool_param->kernel_shape_ = {2, 2};
     pool_param->strides_ = {2, 2};
     auto pool1 = op::makeMaxPool(this, input, pool_param);
     auto relu1 = op::makeRelu(this, pool1);
     auto softmax_0 =
-        op::makeSoftMax(this, relu1, std::make_shared<ir::SoftmaxParam>());
+        op::makeSoftmax(this, relu1, std::make_shared<ir::SoftmaxParam>());
     auto softmax_1 =
-        op::makeSoftMax(this, relu1, std::make_shared<ir::SoftmaxParam>());
+        op::makeSoftmax(this, relu1, std::make_shared<ir::SoftmaxParam>());
 
     auto add = op::makeAdd(this, softmax_0, softmax_1);
 
