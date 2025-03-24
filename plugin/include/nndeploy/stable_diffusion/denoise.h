@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_MODEL_STABLE_DIFFUSION_CLIP_H_
-#define _NNDEPLOY_MODEL_STABLE_DIFFUSION_CLIP_H_
+#ifndef _NNDEPLOY_MODEL_STABLE_DIFFUSION_DENOISE_H_
+#define _NNDEPLOY_MODEL_STABLE_DIFFUSION_DENOISE_H_
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -18,15 +18,14 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/stable_diffusion/type.h"
 
 namespace nndeploy {
 namespace stable_diffusion {
-
-extern NNDEPLOY_CC_API dag::Graph *createCLIPGraph(
-    const std::string &name, dag::Edge *prompt, dag::Edge *negative_prompt,
-    dag::Edge *output, base::InferenceType inference_type,
+extern NNDEPLOY_CC_API dag::Graph *createDenoiseGraph(
+    const std::string &name, dag::Edge *text_embeddings, dag::Edge *output,
+    SchedulerType scheduler_type, base::InferenceType inference_type,
     std::vector<base::Param *> &param);
-
 }  // namespace stable_diffusion
 }  // namespace nndeploy
 
