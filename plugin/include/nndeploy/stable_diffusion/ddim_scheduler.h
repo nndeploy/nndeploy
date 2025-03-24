@@ -29,6 +29,17 @@
 namespace nndeploy {
 namespace stable_diffusion {
 
+class NNDEPLOY_CC_API DDIMSchedulerParam : public SchedulerParam {
+ public:
+  virtual DDIMSchedulerParam *clone() const;
+
+ public:
+  float beta_start_ = 0.00085;                   // beta起始值
+  float beta_end_ = 0.012;                       // beta结束值
+  std::string beta_schedule_ = "scaled_linear";  // beta调度方式
+  bool set_alpha_to_one_ = false;  // 是否将alpha的累积乘积的最后一个元素设置为1
+};
+
 class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
  public:
   DDIMScheduler(SchedulerType scheduler_type);
@@ -41,13 +52,9 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
 
   virtual device::Tensor *scaleModelInput(device::Tensor *sample, int index);
 
-  virtual base::Status configure();
-
-  virtual base::Status step(device::Tensor *output, device::Tensor *sample,
-                            int idx, float timestep, float eta = 0,
-                            bool use_clipped_model_output = false,
-                            std::mt19937 generator = std::mt19937(),
-                            device::Tensor *variance_noise = nullptr);
+  virtual base::Status DDIMScheduler::step(device::Tensor *sample,
+                                           device::Tensor *latents,
+                                           int timestep);
 
   virtual std::vector<float> &getTimestep();
 
@@ -58,8 +65,10 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
   std::vector<double> alphas_;
   std::vector<double> alphas_cumprod_;
 
-  std::vector<float> timesteps_;  // 时间步序列
-  std::vector<float> variance_;   // 方差
+  std::vector<int> timesteps_;   // 时间步序列
+  std::vector<float> variance_;  // 方差
+
+  DDIMSchedulerParam *ddim_scheduler_param_ = nullptr;
 };
 
 }  // namespace stable_diffusion

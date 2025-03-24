@@ -1,9 +1,10 @@
 
 #include "nndeploy/stable_diffusion/ddim_scheduler.h"
 
+#include <algorithm>  // std::reverse
+
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/op/op_binary.h"
-#include "nndeploy/stable_diffusion/scheduler.h"
 
 namespace nndeploy {
 namespace stable_diffusion {
@@ -16,28 +17,33 @@ DDIMScheduler::DDIMScheduler(SchedulerType scheduler_type)
 
 DDIMScheduler::~DDIMScheduler() {}
 
-base::Status DDIMScheduler::init(SchedulerParam *param) {
-  base::Status status = base::kStatusCodeOk;
+DDIMSchedulerParam *DDIMSchedulerParam::clone() const {
+  return new DDIMSchedulerParam(*this);
+}
 
+base::Status DDIMScheduler::init(SchedulerParam *param) {
   if (param == nullptr) {
     NNDEPLOY_LOGE("Scheduler param is null!\n");
     return base::kStatusCodeErrorInvalidValue;
   }
 
   // init scheduler param
-  scheduler_param_ = dynamic_cast<SchedulerParam *>(param);
+  const DDIMSchedulerParam *ddim_param =
+      dynamic_cast<DDIMSchedulerParam *>(param);
+  scheduler_param_ = ddim_param->clone();
+  ddim_scheduler_param_ = dynamic_cast<DDIMSchedulerParam *>(scheduler_param_);
 
-  double beta_start = scheduler_param_->beta_start_;
-  double beta_end = scheduler_param_->beta_end_;
-  int num_train_timesteps = scheduler_param_->num_train_timesteps_;
+  double beta_start = ddim_scheduler_param_->beta_start_;
+  double beta_end = ddim_scheduler_param_->beta_end_;
+  int num_train_timesteps = ddim_scheduler_param_->num_train_timesteps_;
 
   betas_.resize(num_train_timesteps);
-  if (scheduler_param_->beta_schedule_ == "linear") {
+  if (ddim_scheduler_param_->beta_schedule_ == "linear") {
     for (int i = 0; i < num_train_timesteps; i++) {
       betas_[i] =
           beta_start + (beta_end - beta_start) * i / (num_train_timesteps - 1);
     }
-  } else if (scheduler_param_->beta_schedule_ == "scaled_linear") {
+  } else if (ddim_scheduler_param_->beta_schedule_ == "scaled_linear") {
     double sqrt_beta_start = std::sqrt(beta_start);
     double sqrt_beta_end = std::sqrt(beta_end);
     for (int i = 0; i < num_train_timesteps; i++) {
@@ -46,7 +52,9 @@ base::Status DDIMScheduler::init(SchedulerParam *param) {
       betas_[i] = temp * temp;
     }
   } else {
-    throw std::invalid_argument("不支持的beta调度: " + beta_schedule);
+    NNDEPLOY_LOGI("Unsupported beta scheduler:%s\n",
+                  ddim_scheduler_param_->beta_schedule_);
+    return base::kStatusCodeErrorInvalidValue;
   }
 
   // 计算 alphas = 1.0 - betas
@@ -72,207 +80,126 @@ base::Status DDIMScheduler::init(SchedulerParam *param) {
     timesteps_[i] = num_train_timesteps - 1 - i;
   }
 
-  return status;
+  return base::kStatusCodeOk;
 }
 
 base::Status DDIMScheduler::deinit() {
-  base::Status status = base::kStatusCodeOk;
-  return status;
+  if (scheduler_param_ != nullptr) {
+    delete scheduler_param_;
+    scheduler_param_ = nullptr;
+  }
+  return base::kStatusCodeOk;
 }
 
 base::Status DDIMScheduler::setTimesteps() {
-  base::Status status = base::kStatusCodeOk;
-  int step_ratio = scheduler_param_->num_train_timesteps_ /
-                   scheduler_param_->num_inference_steps_;
-  timesteps_.clear();
-  // creates integer timesteps by multiplying by ratio
-  // casting to int to avoid issues when num_inference_step is power of 3
-  timesteps_.resize(scheduler_param_->num_inference_steps_);
-  for (int i = 0; i < scheduler_param_->num_inference_steps_; i++) {
-    timesteps_[i] = (int64_t)((scheduler_param_->num_inference_steps_ - 1 - i) *
-                                  step_ratio +
-                              scheduler_param_->steps_offset_);
+  int num_train_timesteps = ddim_scheduler_param_->num_train_timesteps_;
+  int num_inference_steps = ddim_scheduler_param_->num_inference_steps_;
+
+  // 整除运算：确定步长
+  int step_ratio = num_train_timesteps / num_inference_steps;
+  // 生成 [0, num_train_timesteps) 间隔为 step_ratio 的序列
+  std::vector<int> ts;
+  for (int i = 0; i < num_train_timesteps; i += step_ratio) {
+    ts.push_back(i);
   }
-  return status;
+  // 反转序列，按降序排列
+  std::reverse(ts.begin(), ts.end());
+  timesteps_ = ts;
+
+  return base::kStatusCodeOk;
 }
 
 device::Tensor *DDIMScheduler::scaleModelInput(device::Tensor *sample,
-                                               int index) {
+                                               int timestep) {
   return sample;
 }
 
-float DDIMScheduler::getVariance(int64_t timesteps, int64_t prev_timestep) {
-  float alpha_prod_t = alphas_cumprod_[timesteps];
-  float alpha_prod_t_prev = (prev_timestep >= 0)
-                                ? alphas_cumprod_[prev_timestep]
-                                : final_alpha_cumprod_;
-  float beta_prod_t = 1.0 - alpha_prod_t;
-  float beta_prod_t_prev = 1.0 - alpha_prod_t_prev;
-
-  float variance = (beta_prod_t_prev / beta_prod_t) *
-                   (1.0 - alpha_prod_t / alpha_prod_t_prev);
-  return variance;
-}
-
-base::Status DDIMScheduler::configure() {
-  base::Status status = base::kStatusCodeOk;
-  variance_.resize(scheduler_param_->num_inference_steps_, 0.0f);
-  int64_t step_ratio = (int64_t)scheduler_param_->num_train_timesteps_ /
-                       (int64_t)scheduler_param_->num_inference_steps_;
-  for (int i = 0; i < scheduler_param_->num_inference_steps_; i++) {
-    int64_t prev_timestep = timesteps_[i] - step_ratio;
-    variance_[i] = getVariance(timesteps_[i], prev_timestep);
+base::Status DDIMScheduler::step(device::Tensor *sample,
+                                 device::Tensor *latents, int timestep) {
+  int step_index = -1;
+  for (size_t i = 0; i < timesteps_.size(); i++) {
+    if (timesteps_[i] == timestep) {
+      step_index = static_cast<int>(i);
+      break;
+    }
   }
-  return status;
-}
-/**
- * @brief
- *
- * @param sample
- * @param latents
- * @param index
- * @param timestep
- * @return base::Status
- * # See formulas (12) and (16) of DDIM paper
- * # https://arxiv.org/pdf/2010.02502.pdf
- * # Ideally, read DDIM paper in-detail understanding
- * # Notation (<variable name> -> <name in paper>
- * # - pred_noise_t -> e_theta(x_t, t)
- * # - pred_original_sample -> f_theta(x_t, t) or x_0
- * # - std_dev_t -> sigma_t
- * # - eta -> η
- * # - pred_sample_direction -> "direction pointing to x_t"
- * # - pred_prev_sample -> "x_t-1"
- */
-base::Status DDIMScheduler::step(
-    device::Tensor *output, device::Tensor *sample, int idx, float timestep,
-    float eta, bool use_clipped_model_output, std::mt19937 generator,
-    device::Tensor *variance_noise) {  // discussion
-  base::Status status = base::kStatusCodeOk;
-  device::Device *host_device = device::getDefaultHostDevice();
-
-  //
-  int prev_idx = idx + 1;
-
-  float alpha_prod_t = alphas_cumprod_[idx];
-  device::TensorDesc alpha_prod_t_desc(base::dataTypeOf<float>(),
-                                       base::kDataFormatN, {1});
-  device::Tensor alpha_prod_t_tensor(host_device, alpha_prod_t_desc);
-  alpha_prod_t_tensor.set(alpha_prod_t);
-  float alpha_prod_t_sqrt = std::sqrt(alpha_prod_t);
-  device::Tensor alpha_prod_t_sqrt_tensor(host_device, alpha_prod_t_desc);
-  alpha_prod_t_sqrt_tensor.set(alpha_prod_t_sqrt);
-
-  float alpha_prod_t_prev = (prev_idx < scheduler_param_->num_train_timesteps_)
-                                ? alphas_cumprod_[prev_idx]
-                                : final_alpha_cumprod_;
-  device::TensorDesc alpha_prod_t_prev_desc(base::dataTypeOf<float>(),
-                                            base::kDataFormatN, {1});
-  device::Tensor alpha_prod_t_prev_tensor(host_device, alpha_prod_t_prev_desc);
-  alpha_prod_t_prev_tensor.set(alpha_prod_t_prev);
-
-  float beta_prod_t = 1.0 - alpha_prod_t;
-  device::TensorDesc beta_prod_t_desc(base::dataTypeOf<float>(),
-                                      base::kDataFormatN, {1});
-  device::Tensor beta_prod_t_tensor(host_device, beta_prod_t_desc);
-  beta_prod_t_tensor.set(beta_prod_t);
-  float beta_prod_t_sqrt = std::sqrt(beta_prod_t);
-  device::Tensor beta_prod_t_sqrt_tensor(host_device, beta_prod_t_desc);
-  beta_prod_t_sqrt_tensor.set(beta_prod_t_sqrt);
-
-  // 3. compute predicted original sample from predicted noise also called
-  // "predicted x_0" of formula(12) from https: //arxiv.org/pdf/2010.02502.pdf
-  device::Tensor pred_original_sample(output->getDevice(), output->getDesc());
-  if (scheduler_param_->prediction_type_ == "epsilon") {
-    device::Tensor tmp1(output->getDevice(), output->getDesc());
-    op::mul(&beta_prod_t_sqrt_tensor, output, &tmp1);
-    device::Tensor tmp2(output->getDevice(), output->getDesc());
-    op::sub(sample, &tmp1, &tmp2);
-    op::div(&tmp2, &tmp1, &alpha_prod_t_sqrt_tensor);
-  } else if (scheduler_param_->prediction_type_ == "sample") {
-    output->copyTo(&pred_original_sample);
-  } else if (scheduler_param_->prediction_type_ == "v_prediction") {
-    device::Tensor sample_tmp(sample->getDevice(), sample->getDesc());
-    op::mul(&alpha_prod_t_sqrt_tensor, sample, &sample_tmp);
-    device::Tensor model_output_tmp(output->getDevice(), output->getDesc());
-    op::mul(&beta_prod_t_sqrt_tensor, output, &model_output_tmp);
-    op::sub(&sample_tmp, &model_output_tmp, &pred_original_sample);
-
-    op::mul(&beta_prod_t_sqrt_tensor, sample, &sample_tmp);
-    op::mul(&alpha_prod_t_sqrt_tensor, output, &model_output_tmp);
-    op::add(&sample_tmp, &model_output_tmp, output);
-  } else {
-    NNDEPLOY_LOGE("Invalid prediction type!\n");
+  if (step_index == -1) {
+    NNDEPLOY_LOGE("The timestep is not in timesteps array.");
     return base::kStatusCodeErrorInvalidValue;
   }
 
-  // # 4. Clip "predicted x_0"
-  if (scheduler_param_->clip_sample_) {
-    op::clamp(&pred_original_sample, -1.0f, 1.0f, &pred_original_sample);
+  // 根据采样序列确定前一个训练时间步
+  double alpha_prod_t_prev;
+  if (step_index < static_cast<int>(timesteps_.size()) - 1) {
+    int prev_timestep = timesteps_[step_index + 1];
+    alpha_prod_t_prev = alphas_cumprod_[prev_timestep];
+  } else {
+    alpha_prod_t_prev = final_alpha_cumprod;
   }
 
-  // # 5. compute variance : "sigma_t(η)"->see formula(16)
-  // σ_t = sqrt((1 − α_t−1) / (1 − α_t)) * sqrt(1 − α_t / α_t−1)
-  float variance = variance_[idx];
-  float std_dev_t = eta * sqrtf(variance);
+  // 当前时间步对应的alpha累积乘积, 注意直接用传入的 timestep 作为下标
+  double alpha_prod_t = alphas_cumprod_[timestep];
 
-  if (use_clipped_model_output) {
-    // the output is always re-derived from the clipped x_0 in Glide
-    device::Tensor pred_original_sample_tmp(pred_original_sample.getDevice(),
-                                            pred_original_sample.getDesc());
-    op::mul(&alpha_prod_t_sqrt_tensor, &pred_original_sample,
-            &pred_original_sample_tmp);
-    device::Tensor sample_tmp(sample->getDevice(), sample->getDesc());
-    op::sub(sample, &pred_original_sample_tmp, &sample_tmp);
-    op::div(&sample_tmp, &beta_prod_t_sqrt_tensor, output);
+  // 计算方差
+  double variance = (1.0 - alpha_prod_t_prev) / (1.0 - alpha_prod_t) *
+                    (1.0 - alpha_prod_t / alpha_prod_t_prev);
+
+  // 计算噪声尺度 sigma_t
+  double sigma_t = eta * std::sqrt(variance);
+
+  // 计算预测的原始样本
+  if (sample.size() != latents.size()) {
+    NNDEPLOY_LOGE("sample size is not equal to latents size\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  std::vector<double> pred_original_sample(sample.size());
+  double sqrt_alpha_prod_t = std::sqrt(alpha_prod_t);
+  double sqrt_one_minus_alpha_prod_t = std::sqrt(1.0 - alpha_prod_t);
+  for (size_t i = 0; i < sample.size(); ++i) {
+    pred_original_sample[i] =
+        (sample[i] - sqrt_one_minus_alpha_prod_t * latents[i]) /
+        sqrt_alpha_prod_t;
   }
 
-  // # 6. compute "direction pointing to x_t" of formula (12) from
-  // https://arxiv.org/pdf/2010.02502.pdf
-  float coff_model_output =
-      std::sqrt(1 - alpha_prod_t_prev - std_dev_t * std_dev_t);
-  device::Tensor coff_model_output_tensor(host_device, beta_prod_t_desc);
-  coff_model_output_tensor.set(coff_model_output);
-  device::Tensor pred_sample_direction(output->getDevice(), output->getDesc());
-  op::mul(&coff_model_output_tensor, output, &pred_sample_direction);
+  // 计算方向项
+  std::vector<double> pred_sample_direction(sample.size());
+  double sqrt_term =
+      std::sqrt(1.0 - alpha_prod_t_prev - (eta * eta) * variance);
+  for (size_t i = 0; i < latents.size(); ++i) {
+    pred_sample_direction[i] = sqrt_term * latents[i];
+  }
 
-  // # 7. compute x_t without "random noise" of formula(12) from https:
-  // //arxiv.org/pdf/2010.02502.pdf
-  float alpha_prod_t_prev_sqrt = std::sqrt(alpha_prod_t_prev);
-  device::Tensor pred_original_sample_temp;
-  // pred_original_sample_temp = alpha_prod_t_prev_sqrt * pred_original_sample;
-  // op::mul
-  device::Tensor prev_sample;
-  // prev_sample = pred_original_sample_temp + pred_sample_direction;
-  // op::add
+  // 根据是否为最后一步生成随机噪声 noise
+  std::vector<double> noise(sample.size(), 0.0);
+  if (step_index < static_cast<int>(timesteps_.size()) - 1) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<> d(0.0, 1.0);
+    for (size_t i = 0; i < noise.size(); ++i) {
+      noise[i] = d(gen);
+    }
+  }
 
-  return status;
-}
+  // 计算前一个样本
+  device::Tensor prev_sample(sample->getDevice(), sample->getDesc());
+  double sqrt_alpha_prod_t_prev = std::sqrt(alpha_prod_t_prev);
+  for (size_t i = 0; i < sample.size(); ++i) {
+    prev_sample[i] = sqrt_alpha_prod_t_prev * pred_original_sample[i] +
+                     pred_sample_direction[i] + sigma_t * noise[i];
+  }
 
-base::Status DDIMScheduler::addNoise(device::Tensor *init_latents,
-                                     device::Tensor *noise, int idx,
-                                     int latent_timestep) {
-  base::Status status = base::kStatusCodeOk;
-  device::Device *host_device = device::getDefaultHostDevice();
+  // 裁剪样本
+  if (ddim_scheduler_param_->clip_sample_) {
+    for (size_t i = 0; i < prev_sample.size(); ++i) {
+      if (prev_sample[i] < -1.0) {
+        prev_sample[i] = -1.0;
+      } else if (prev_sample[i] > 1.0) {
+        prev_sample[i] = 1.0;
+      }
+    }
+  }
 
-  float sqrt_alpha_prod = std::sqrt(alphas_cumprod_[idx]);
-  device::TensorDesc sqrt_alpha_prod_desc(base::dataTypeOf<float>(),
-                                          base::kDataFormatN, {1});
-  device::Tensor sqrt_alpha_prod_tensor(host_device, sqrt_alpha_prod_desc);
-  sqrt_alpha_prod_tensor.set(sqrt_alpha_prod);
-  op::mul(&sqrt_alpha_prod_tensor, init_latents, init_latents);
-
-  float sqrt_one_minus_alpha_prod = std::sqrt(1.0f - alphas_cumprod_[idx]);
-  device::TensorDesc sqrt_one_minus_alpha_prod_desc(base::dataTypeOf<float>(),
-                                                    base::kDataFormatN, {1});
-  device::Tensor sqrt_one_minus_alpha_prod_tensor(host_device,
-                                                  sqrt_alpha_prod_desc);
-  sqrt_one_minus_alpha_prod_tensor.set(sqrt_one_minus_alpha_prod);
-  op::mul(&sqrt_one_minus_alpha_prod_tensor, noise, noise);
-
-  op::add(init_latents, noise, init_latents);
-
-  return status;
+  return stabase::kStatusCodeOk;
 }
 
 std::vector<float> &DDIMScheduler::getTimestep() { return timesteps_; }
