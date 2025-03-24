@@ -44,6 +44,10 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
         py::arg("op_name") = "", py::arg("output_name") = "",
         py::return_value_policy::reference);
 
+  m.def("makeSigmoid", &makeSigmoid, py::arg("model_desc"), py::arg("input"),
+        py::arg("op_name") = "", py::arg("output_name") = "",
+        py::return_value_policy::reference);
+
   m.def("makeSoftmax", &makeSoftmax, py::arg("model_desc"), py::arg("input"),
         py::arg("param"), py::arg("op_name") = "", py::arg("output_name") = "",
         py::return_value_policy::reference);
