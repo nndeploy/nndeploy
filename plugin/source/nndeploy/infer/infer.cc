@@ -53,7 +53,6 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
 
 Infer::~Infer() {}
 
-
 base::Status Infer::setInputName(const std::string &name, int index) {
   if (index < 0) {
     NNDEPLOY_LOGE("index is out of range.\n");
@@ -63,15 +62,15 @@ base::Status Infer::setInputName(const std::string &name, int index) {
     NNDEPLOY_LOGE("name is empty.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  
+
   // 自动扩容
   while (index >= input_type_info_.size()) {
-    std::shared_ptr<dag::EdgeTypeInfo> edge_type_info = 
+    std::shared_ptr<dag::EdgeTypeInfo> edge_type_info =
         std::make_shared<dag::EdgeTypeInfo>();
     edge_type_info->setType<device::Tensor>();
     input_type_info_.push_back(edge_type_info);
   }
-  
+
   input_type_info_[index]->setEdgeName(name);
   return base::kStatusCodeOk;
 }
@@ -84,10 +83,10 @@ base::Status Infer::setOutputName(const std::string &name, int index) {
     NNDEPLOY_LOGE("name is empty.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  
+
   // 自动扩容
   while (index >= output_type_info_.size()) {
-    std::shared_ptr<dag::EdgeTypeInfo> edge_type_info = 
+    std::shared_ptr<dag::EdgeTypeInfo> edge_type_info =
         std::make_shared<dag::EdgeTypeInfo>();
     edge_type_info->setType<device::Tensor>();
     output_type_info_.push_back(edge_type_info);
@@ -101,15 +100,15 @@ base::Status Infer::setInputNames(const std::vector<std::string> &names) {
     NNDEPLOY_LOGE("names is empty.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  
+
   // 自动扩容
   while (names.size() > input_type_info_.size()) {
-    std::shared_ptr<dag::EdgeTypeInfo> edge_type_info = 
+    std::shared_ptr<dag::EdgeTypeInfo> edge_type_info =
         std::make_shared<dag::EdgeTypeInfo>();
     edge_type_info->setType<device::Tensor>();
     input_type_info_.push_back(edge_type_info);
   }
-  
+
   for (int i = 0; i < names.size(); i++) {
     if (names[i].empty()) {
       NNDEPLOY_LOGE("name is empty.\n");
@@ -124,15 +123,15 @@ base::Status Infer::setOutputNames(const std::vector<std::string> &names) {
     NNDEPLOY_LOGE("names is empty.\n");
     return base::kStatusCodeErrorInvalidParam;
   }
-  
+
   // 自动扩容
   while (names.size() > output_type_info_.size()) {
-    std::shared_ptr<dag::EdgeTypeInfo> edge_type_info = 
+    std::shared_ptr<dag::EdgeTypeInfo> edge_type_info =
         std::make_shared<dag::EdgeTypeInfo>();
     edge_type_info->setType<device::Tensor>();
     output_type_info_.push_back(edge_type_info);
   }
-  
+
   for (int i = 0; i < names.size(); i++) {
     if (names[i].empty()) {
       NNDEPLOY_LOGE("name is empty.\n");
@@ -303,21 +302,25 @@ base::Status Infer::run() {
     }
     inference_->setInputTensor(name, tensors[i]);
 
-#if 0
-    std::string filename = name + ".csv";
-    size_t pos = 0;
-    while ((pos = filename.find('/')) != std::string::npos) {
-      filename.replace(pos, 1, "_");
+#if 1
+    static int input_count = 0;
+    if (input_count == 0) {
+      std::string filename = name + ".csv";
+      size_t pos = 0;
+      while ((pos = filename.find('/')) != std::string::npos) {
+        filename.replace(pos, 1, "_");
+      }
+      std::ofstream input_file(filename, std::ios::trunc);
+      if (input_file.is_open()) {
+        tensors[i]->print(input_file);
+        input_file.close();
+      } else {
+        NNDEPLOY_LOGE("can't open file: %s", filename.c_str());
+      }
     }
-    std::ofstream output_file(filename, std::ios::trunc);
-    if (output_file.is_open()) {
-      tensor->print(output_file);
-      output_file.close();
-    } else {
-      NNDEPLOY_LOGE("无法打开文件：%s", filename.c_str());
-    }
-#endif
+    input_count++;
   }
+#endif
   status = inference_->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   for (int i = 0; i < outputs_.size(); i++) {
@@ -335,19 +338,23 @@ base::Status Infer::run() {
       break;
     }
 
-#if 0
-    std::string filename = name + ".csv";
-    size_t pos = 0;
-    while ((pos = filename.find('/')) != std::string::npos) {
-      filename.replace(pos, 1, "_");
+#if 1
+    static int output_count = 0;
+    if (output_count == 0) {
+      std::string filename = name + ".csv";
+      size_t pos = 0;
+      while ((pos = filename.find('/')) != std::string::npos) {
+        filename.replace(pos, 1, "_");
+      }
+      std::ofstream output_file(filename, std::ios::trunc);
+      if (output_file.is_open()) {
+        tensor->print(output_file);
+        output_file.close();
+      } else {
+        NNDEPLOY_LOGE("can't open file: %s", filename.c_str());
+      }
     }
-    std::ofstream output_file(filename, std::ios::trunc);
-    if (output_file.is_open()) {
-      tensor->print(output_file);
-      output_file.close();
-    } else {
-      NNDEPLOY_LOGE("can't open file: %s", filename.c_str());
-    }
+    output_count++;
 #endif
 
     outputs_[i]->set(tensor, index, false);

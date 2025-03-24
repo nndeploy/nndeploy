@@ -249,6 +249,14 @@ base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst, Stream *stream) {
 
 void *AscendCLDevice::getContext() { return (void *)context_; }
 
+base::Status AscendCLDevice::bindThread() {
+  aclError ret = aclrtSetCurrentContext(context_);
+  if (ret != ACL_SUCCESS) {
+    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    return base::kStatusCodeErrorDeviceAscendCL;
+  }
+}
+
 base::Status AscendCLDevice::init() {
   // 初始化
   // aclError ret = aclInit(acl_config_path_.c_str());

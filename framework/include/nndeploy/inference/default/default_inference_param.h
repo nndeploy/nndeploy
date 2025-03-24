@@ -29,6 +29,8 @@ class DefaultInferenceParam : public InferenceParam {
   net::TensorPoolType tensor_pool_type_ =
       net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
   base::ParallelType parallel_type_ = base::kParallelTypePipeline;
+  int worker_num_ = 1;
+  std::vector<base::DeviceType> device_types_;
 };
 
 }  // namespace inference

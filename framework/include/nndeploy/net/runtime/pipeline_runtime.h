@@ -19,30 +19,18 @@
 namespace nndeploy {
 namespace net {
 
-class PipelineTensor {
- public:
-  PipelineTensor(){};
-  virtual ~PipelineTensor(){};
-  TensorWrapper *tensor_;
-  std::vector<device::Tensor *> tensors_;
-  std::vector<SequentialRuntime *> producers_;
-  std::vector<SequentialRuntime *> consumers_;
-
-  // 添加互斥锁和条件变量，用于同步不同阶段之间的数据传递
-  std::mutex mutex_;
-  std::condition_variable cv_;
-  bool is_ready_ = false;
-  std::map<SequentialRuntime *, int> current_index_;
-};
-
 class PipelineRuntime : public Runtime {
  public:
   PipelineRuntime(const base::DeviceType &device_type);
   virtual ~PipelineRuntime();
 
   // 设置流水线并行数量
-  base::Status setWorkers(int num, std::vector<base::DeviceType> device_types =
-                                       std::vector<base::DeviceType>());
+  base::Status setWorkers(int worker_num,
+                          std::vector<base::DeviceType> device_types =
+                              std::vector<base::DeviceType>());
+  base::Status setInputOutputTensors(
+      std::map<device::Tensor *, PipelineTensor *> &input_output_tensors);
+
   virtual base::Status init(
       std::vector<TensorWrapper *> &tensor_repository,
       std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
@@ -68,7 +56,10 @@ class PipelineRuntime : public Runtime {
   int pipeline_parallel_num_ = 1;
   std::vector<base::DeviceType> device_types_;
   std::vector<SequentialRuntime *> sequential_runtimes_;
-  std::map<TensorWrapper *, PipelineTensor *> input_output_tensors_;
+
+  std::map<device::Tensor *, PipelineTensor *> input_output_tensors_;
+  std::set<device::Tensor *> input_output_set_;
+
   thread_pool::ThreadPool *thread_pool_ = nullptr;
 
   // 添加互斥锁和条件变量，用于同步流水线状态

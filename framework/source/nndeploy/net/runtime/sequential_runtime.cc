@@ -34,13 +34,15 @@ base::Status SequentialRuntime::init(
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
   }
+  for (auto iter : op_repository) {
+    iter->op_->setStream(stream_);
+  }
 
   // # 激活值的tensor分配
   tensor_pool_type_ = tensor_pool_type;
   tensor_pool_ = createTensorPool(tensor_pool_type_, device, tensor_repository,
                                   op_repository);
-  tensor_pool_->setAllocateInputOutputTensor(
-      allocate_input_output_tensor_);
+  tensor_pool_->setAllocateInputOutputTensor(allocate_input_output_tensor_);
   /**
    * @brief
    * 如果是动态shape且max_shape为空时，那么不需要分配tensor
@@ -205,7 +207,7 @@ base::Status SequentialRuntime::run() {
   NNDEPLOY_TIME_POINT_START("net->run()");
   for (auto iter : op_repository_) {
     status = iter->op_->run();
-    // NNDEPLOY_LOGE("Node %s run\n", iter->op_->getName().c_str());
+    NNDEPLOY_LOGE("Node %s run\n", iter->op_->getName().c_str());
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s run failed\n", iter->op_->getName().c_str());
       return status;
@@ -214,6 +216,28 @@ base::Status SequentialRuntime::run() {
   NNDEPLOY_TIME_POINT_END("net->run()");
 
   // NNDEPLOY_LOGI("run ok!\n");
+
+#if 1
+  status = stream_->synchronize();
+  for (auto tensor : tensor_repository_) {
+    if (tensor->tensor_->getName() == "images") {
+      std::string filename =
+          "sequential_input_" + tensor->tensor_->getName() + ".csv";
+      std::ofstream file_stream(filename.c_str());
+      tensor->tensor_->print(file_stream);
+      file_stream.close();
+    }
+  }
+  for (auto tensor : tensor_repository_) {
+    if (tensor->tensor_->getName() == "output0") {
+      std::string filename =
+          "sequential_output_" + tensor->tensor_->getName() + ".csv";
+      std::ofstream file_stream(filename.c_str());
+      tensor->tensor_->print(file_stream);
+      file_stream.close();
+    }
+  }
+#endif
 
   return status;
 }

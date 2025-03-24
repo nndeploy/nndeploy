@@ -16,6 +16,38 @@
 namespace nndeploy {
 namespace net {
 
+class Runtime;
+
+class PipelineTensor {
+ public:
+  PipelineTensor() {};
+  virtual ~PipelineTensor() {};
+  std::vector<device::Tensor *> tensors_;
+  std::vector<Runtime *> producers_;
+  std::vector<Runtime *> consumers_;
+
+  // 添加互斥锁和条件变量，用于同步不同阶段之间的数据传递
+  std::mutex mutex_;
+  std::condition_variable cv_;
+  std::map<Runtime *, int> current_index_;
+
+  void push(device::Tensor *tensor) {
+    NNDEPLOY_LOGI("tensor name %s\n", tensor->getName().c_str());
+    std::lock_guard<std::mutex> lock(mutex_);
+    tensors_.push_back(tensor);
+    cv_.notify_one();
+  }
+  device::Tensor *pop(Runtime *runtime) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    cv_.wait(lock, [this, runtime]() {
+      return current_index_[runtime] < tensors_.size();
+    });
+    device::Tensor *tensor = tensors_[current_index_[runtime]];
+    current_index_[runtime]++;
+    return tensor;
+  }
+};
+
 class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
  public:
   Runtime(const base::DeviceType &device_type) : device_type_(device_type) {};

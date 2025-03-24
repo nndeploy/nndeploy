@@ -94,6 +94,38 @@ class NNDEPLOY_CC_API Net : public op::Op {
    */
   base::Status setDisablePass(std::set<OptPassType>);
 
+  /**
+   * @brief 设置服务流水线并行数量
+   *
+   * @param num
+   * @return base::Status
+   */
+  base::Status setWorkers(int worker_num,
+                          std::vector<base::DeviceType> device_types =
+                              std::vector<base::DeviceType>());
+
+  /**
+   * @brief 将输入tensor复制到输入tensor
+   *
+   * @param tensor
+   * @return base::Status
+   */
+  base::Status copyToInputTensor(device::Tensor *tensor);
+
+  /**
+   * @brief 获取推理后的输出tensor
+   *
+   * @param name
+   * @param device_type
+   * @param is_copy
+   * @param data_format
+   * @return device::Tensor*
+   */
+  device::Tensor *getOutputTensorAfterRun(const std::string &name,
+                                          base::DeviceType device_type,
+                                          bool is_copy,
+                                          base::DataFormat data_format);
+
  protected:
   virtual base::Status construct();
   // NNDEPLOY_LOGI("1. Optimizer Graph V1!\n");
@@ -120,11 +152,16 @@ class NNDEPLOY_CC_API Net : public op::Op {
       kTensorPool1DOffsetCalculateTypeGreedyByBreadth;
   Runtime *runtime_ = nullptr;
 
-  bool net_opt_flag_ = true;  //默认开启图优化
-  std::set<OptPassType> enable_pass_;  //仅使用这些pass，如果为空则启用全部pass
+  bool net_opt_flag_ = true;           // 默认开启图优化
+  std::set<OptPassType> enable_pass_;  // 仅使用这些pass，如果为空则启用全部pass
   std::set<OptPassType>
-      disable_pass_;  //禁用这些pass，如果为空则启用全部pass;
-                      //如果同时设置了enable_pass_，则只有enable_pass_生效
+      disable_pass_;  // 禁用这些pass，如果为空则启用全部pass;
+                      // 如果同时设置了enable_pass_，则只有enable_pass_生效
+
+  // 服务流水线并行的输入输出
+  std::map<device::Tensor *, PipelineTensor *> pipeline_input_output_tensors_;
+  int worker_num_ = 1;
+  std::vector<base::DeviceType> device_types_;
 };
 
 Net *createNet(ir::ModelDesc *model_desc, base::DeviceType device_type,

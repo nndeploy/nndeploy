@@ -20,23 +20,32 @@ base::Status PipelineRuntime::setWorkers(
   return status;
 }
 
+base::Status PipelineRuntime::setInputOutputTensors(
+    std::map<device::Tensor *, PipelineTensor *> &input_output_tensors) {
+  input_output_tensors_ = input_output_tensors;
+  for (auto &item : input_output_tensors_) {
+    input_output_set_.insert(item.first);
+  }
+  return base::kStatusCodeOk;
+}
+
 base::Status PipelineRuntime::init(
     std::vector<TensorWrapper *> &tensor_repository,
     std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
     base::ShapeMap max_shape, TensorPoolType tensor_pool_type) {
   base::Status status = base::kStatusCodeOk;
-  NNDEPLOY_LOGI("PipelineRuntime init\n");
 
   // 根据pipeline_parallel_num_切分模型
   if (pipeline_parallel_num_ <= 0) {
     NNDEPLOY_LOGE("pipeline_parallel_num_ <= 0\n");
     return base::kStatusCodeErrorInvalidParam;
   }
+
   if (device_types_.empty()) {
     device_types_.resize(pipeline_parallel_num_, device_type_);
-  }
-  for (int i = 1; i < pipeline_parallel_num_; ++i) {
-    device_types_[i].device_id_ = device_types_[0].device_id_ + i;
+    for (int i = 1; i < pipeline_parallel_num_; ++i) {
+      device_types_[i].device_id_ = device_types_[0].device_id_ + i;
+    }
   }
 
   NNDEPLOY_LOGI("pipeline_parallel_num_ %d\n", pipeline_parallel_num_);
@@ -62,14 +71,9 @@ base::Status PipelineRuntime::init(
       break;  // 如果没有足够的op，提前结束
     }
 
-    NNDEPLOY_LOGI("start_idx %d, end_idx %d\n", start_idx, end_idx);
-
     // 为当前阶段创建op和tensor子集
     std::vector<OpWrapper *> stage_ops;
     std::vector<TensorWrapper *> stage_tensors;
-
-    NNDEPLOY_LOGI("stage_ops.size() %d\n", stage_ops.size());
-    NNDEPLOY_LOGI("stage_tensors.size() %d\n", stage_tensors.size());
 
     // 添加当前阶段的ops
     for (int j = start_idx; j < end_idx; ++j) {
@@ -92,11 +96,20 @@ base::Status PipelineRuntime::init(
     // 创建SequentialRuntime
     SequentialRuntime *sequential_runtime =
         new SequentialRuntime(device_types_[i]);
-    NNDEPLOY_LOGI("sequential_runtime %p\n", sequential_runtime);
+
     // 收集输入输出张量
     for (auto tensor : stage_tensors) {
       bool is_input = false;
       bool is_output = false;
+
+      if (tensor->is_weight_) {
+        continue;
+      }
+      if (tensor->name_.empty()) {
+        continue;
+      }
+
+      NNDEPLOY_LOGI("tensor %s\n", tensor->name_.c_str());
 
       // 找输入tensor，生产者为空 or 生产者不在这个stage_ops种
       if (tensor->producers_.empty()) {
@@ -123,31 +136,32 @@ base::Status PipelineRuntime::init(
 
       // 添加到相应列表
       if (is_input) {
-        if (input_output_tensors_.find(tensor) == input_output_tensors_.end()) {
-          input_output_tensors_[tensor] = new PipelineTensor();
-          input_output_tensors_[tensor]->tensor_ = tensor;
+        NNDEPLOY_LOGI("tensor %s is input\n", tensor->name_.c_str());
+        if (input_output_tensors_.find(tensor->tensor_) ==
+            input_output_tensors_.end()) {
+          input_output_tensors_[tensor->tensor_] = new PipelineTensor();
         }
-        insertUnique(input_output_tensors_[tensor]->producers_,
-                     sequential_runtime);
+        insertUnique(input_output_tensors_[tensor->tensor_]->consumers_,
+                     (Runtime *)sequential_runtime);
+        input_output_tensors_[tensor->tensor_]
+            ->current_index_[sequential_runtime] = 0;
       }
       if (is_output) {
-        if (input_output_tensors_.find(tensor) == input_output_tensors_.end()) {
-          input_output_tensors_[tensor] = new PipelineTensor();
-          input_output_tensors_[tensor]->tensor_ = tensor;
+        NNDEPLOY_LOGI("tensor %s is output\n", tensor->name_.c_str());
+        if (input_output_tensors_.find(tensor->tensor_) ==
+            input_output_tensors_.end()) {
+          input_output_tensors_[tensor->tensor_] = new PipelineTensor();
         }
-        insertUnique(input_output_tensors_[tensor]->consumers_,
-                     sequential_runtime);
-        input_output_tensors_[tensor]->current_index_[sequential_runtime] = 0;
+        insertUnique(input_output_tensors_[tensor->tensor_]->producers_,
+                     (Runtime *)sequential_runtime);
       }
     }
-    NNDEPLOY_LOGI("input_output_tensors_.size() %d\n",
-                  input_output_tensors_.size());
+
     sequential_runtime->setAllocateInputOutputTensor(true);
-    NNDEPLOY_LOGI("sequential_runtime->setAllocateInputOutputTensor(true)");
+
     status =
         sequential_runtime->init(stage_tensors, stage_ops, is_dynamic_shape,
                                  max_shape, tensor_pool_type);
-    NNDEPLOY_LOGI("sequential_runtime->init success");
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("SequentialRuntime init failed at stage %d\n", i);
       return status;
@@ -157,18 +171,15 @@ base::Status PipelineRuntime::init(
     sequential_runtimes_.push_back(sequential_runtime);
   }
 
-  NNDEPLOY_LOGI("sequential_runtimes_.size() %d\n",
-                sequential_runtimes_.size());
-  // 重置流水线状态
-  resetPipeline();
-  NNDEPLOY_LOGI("resetPipeline success");
+  // NNDEPLOY_LOGI("sequential_runtimes_.size() %d\n",
+  //               sequential_runtimes_.size());
+  // // 重置流水线状态
+  // resetPipeline();
 
   thread_pool_ = new thread_pool::ThreadPool(pipeline_parallel_num_);
   status = thread_pool_->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "thread_pool_ init failed");
-
-  NNDEPLOY_LOGI("PipelineRuntime init success\n");
 
   // 将所有节点塞入线程池
   this->commitThreadPool();
@@ -219,32 +230,11 @@ base::Status PipelineRuntime::reshape(base::ShapeMap &shape_map) {
 
 base::Status PipelineRuntime::preRun() {
   base::Status status = base::kStatusCodeOk;
-  // 初始化输入张量的状态，只执行一次
-  static bool initialized = false;
-  if (!initialized) {
-    for (auto &pair : input_output_tensors_) {
-      PipelineTensor *pipeline_tensor = pair.second;
-      if (pipeline_tensor->producers_.empty()) {
-        // 这是网络的输入张量，标记为就绪
-        std::lock_guard<std::mutex> lock(pipeline_tensor->mutex_);
-        pipeline_tensor->is_ready_ = true;
-        for (auto producer : pipeline_tensor->producers_) {
-          pipeline_tensor->current_index_[producer] = 0;
-        }
-        pipeline_tensor->cv_.notify_all();
-      }
-    }
-    initialized = true;
-    NNDEPLOY_LOGI("PipelineRuntime preRun success\n");
-  }
   return status;
 }
 
 base::Status PipelineRuntime::run() {
   base::Status status = base::kStatusCodeOk;
-  // 等待流水线完成
-  std::unique_lock<std::mutex> lock(pipeline_mutex_);
-  pipeline_cv_.wait(lock, [this]() { return this->isPipelineComplete(); });
   return status;
 }
 
@@ -254,21 +244,22 @@ base::Status PipelineRuntime::postRun() {
 }
 
 void PipelineRuntime::resetPipeline() {
-  std::lock_guard<std::mutex> lock(pipeline_mutex_);
-  pipeline_complete_ = false;
-  completed_stages_ = 0;
-  pipeline_batch_size_ = 1;
-  for (auto &pair : input_output_tensors_) {
-    PipelineTensor *pipeline_tensor = pair.second;
-    pipeline_tensor->is_ready_ = false;
-    for (auto &index : pipeline_tensor->current_index_) {
-      index.second = 0;
-    }
-    for (auto tensor : pipeline_tensor->tensors_) {
-      delete tensor;
-    }
-    pipeline_tensor->tensors_.clear();
-  }
+  // std::lock_guard<std::mutex> lock(pipeline_mutex_);
+  // pipeline_complete_ = false;
+  // completed_stages_ = 0;
+  // for (auto &pair : input_output_tensors_) {
+  //   PipelineTensor *pipeline_tensor = pair.second;
+  //   for (auto &index : pipeline_tensor->current_index_) {
+  //     index.second = 0;
+  //   }
+  //   for (auto tensor : pipeline_tensor->tensors_) {
+  //     if (input_output_set_.find(tensor) != input_output_set_.end()) {
+  //       delete tensor;
+  //     }
+  //   }
+  //   pipeline_tensor->tensors_.clear();
+  // }
+  return;
 }
 
 bool PipelineRuntime::isPipelineComplete() { return pipeline_complete_; }
@@ -280,73 +271,97 @@ void PipelineRuntime::commitThreadPool() {
       base::Status status = base::kStatusCodeOk;
 
       while (true) {
-        // 等待输入就绪
-        bool inputs_ready = true;
         for (auto &pair : input_output_tensors_) {
           PipelineTensor *pipeline_tensor = pair.second;
+
+          // NNDEPLOY_LOGI("tensor name %s\n", pair.first->getName().c_str());
 
           // 检查这个张量是否是当前阶段的输入
           if (std::find(pipeline_tensor->consumers_.begin(),
                         pipeline_tensor->consumers_.end(),
                         runtime) != pipeline_tensor->consumers_.end()) {
-            // 等待输入就绪
-            std::unique_lock<std::mutex> lock(pipeline_tensor->mutex_);
-            pipeline_tensor->cv_.wait(lock, [pipeline_tensor]() {
-              return pipeline_tensor->is_ready_;
-            });
-
-            // 将张量数据复制到当前阶段的输入
-            if (pipeline_tensor->tensors_.size() >
-                pipeline_tensor->current_index_[runtime]) {
-              // 这里需要实现张量数据的复制逻辑
-              // 从pipeline_tensor->tensors_[pipeline_tensor->current_index_]
-              // 复制到runtime的输入
-              // pipeline_tensor
-              //     ->tensors_[pipeline_tensor->current_index_[runtime]]
-              //     ->copyTo(pipeline_tensor->tensor_->tensor_);
+            device::Tensor *tensor = pipeline_tensor->pop(runtime);
+            if (tensor == nullptr) {
+              break;
             }
+            device::Tensor *real_tensor = pair.first;
+            if (real_tensor->getDevice() == tensor->getDevice()) {
+              real_tensor->justModify(tensor->getBuffer());
+            } else {
+              tensor->copyTo(real_tensor);
+            }
+            static int count = 0;
+            if (count == 0) {
+              std::string filename =
+                  "pipeline_tensor" + tensor->getName() + ".csv";
+              size_t pos = 0;
+              while ((pos = filename.find('/')) != std::string::npos) {
+                filename.replace(pos, 1, "_");
+              }
+              std::ofstream input_file(filename, std::ios::trunc);
+              if (input_file.is_open()) {
+                tensor->print(input_file);
+                input_file.close();
+              } else {
+                NNDEPLOY_LOGE("can't open file: %s", filename.c_str());
+              }
+            }
+            if (count == 0) {
+              std::string filename =
+                  "real_tensor" + real_tensor->getName() + ".csv";
+              size_t pos = 0;
+              while ((pos = filename.find('/')) != std::string::npos) {
+                filename.replace(pos, 1, "_");
+              }
+              std::ofstream input_file(filename, std::ios::trunc);
+              if (input_file.is_open()) {
+                real_tensor->print(input_file);
+                input_file.close();
+              } else {
+                NNDEPLOY_LOGE("can't open file: %s", filename.c_str());
+              }
+            }
+            count++;
           }
         }
 
         // 执行当前阶段
-        NNDEPLOY_LOGI("runtime->preRun\n");
         status = runtime->preRun();
         if (status != base::kStatusCodeOk) {
           NNDEPLOY_LOGE("sequentialRuntime preRun failed!\n");
           break;
         }
-        NNDEPLOY_LOGI("runtime->run\n");
         status = runtime->run();
         if (status != base::kStatusCodeOk) {
           NNDEPLOY_LOGE("sequentialRuntime run failed!\n");
           break;
         }
-        NNDEPLOY_LOGI("runtime->postRun\n");
         status = runtime->postRun();
         if (status != base::kStatusCodeOk) {
           NNDEPLOY_LOGE("sequentialRuntime postRun failed!\n");
           break;
         }
-        NNDEPLOY_LOGI("runtime->updateOutputTensor\n");
+        status = stream_->synchronize();
+
         // 更新输出张量状态
         for (auto &pair : input_output_tensors_) {
           PipelineTensor *pipeline_tensor = pair.second;
-
+          device::Tensor *output_tensor = pair.first;
           // 检查这个张量是否是当前阶段的输出
           if (std::find(pipeline_tensor->producers_.begin(),
                         pipeline_tensor->producers_.end(),
                         runtime) != pipeline_tensor->producers_.end()) {
-            std::lock_guard<std::mutex> lock(pipeline_tensor->mutex_);
-            // 将当前阶段的输出复制到pipeline_tensor
-            // 这里需要实现张量数据的复制逻辑
-            device::Tensor *tensor = pipeline_tensor->tensor_->tensor_->clone();
-            pipeline_tensor->tensors_.push_back(tensor);
-
-            pipeline_tensor->is_ready_ = true;
-            pipeline_tensor->current_index_[runtime] =
-                (pipeline_tensor->current_index_[runtime] + 1) %
-                std::max(1, (int)pipeline_tensor->tensors_.size());
-            pipeline_tensor->cv_.notify_all();
+            device::Tensor *tensor = output_tensor->clone();
+            static int count = 0;
+            if (count == 0) {
+              std::string path = "./output_tensor";
+              std::string filename = path + std::to_string(count) + ".csv";
+              std::ofstream file_stream(filename.c_str());
+              output_tensor->print(file_stream);
+              file_stream.close();
+            }
+            count++;
+            pipeline_tensor->push(tensor);
           }
         }
 
@@ -369,7 +384,6 @@ void PipelineRuntime::commitThreadPool() {
           }
         }
       }
-
       return status;
     };
 
