@@ -338,8 +338,14 @@ Tensor *Tensor::clone() {
 base::Status Tensor::copyTo(Tensor *dst) {
   Buffer *src_buffer = this->getBuffer();
   Buffer *dst_buffer = dst->getBuffer();
-  if (src_buffer == nullptr || dst_buffer == nullptr) {
-    NNDEPLOY_LOGE("src_buffer or dst_buffer is nullptr.\n");
+  if (src_buffer == nullptr) {
+    NNDEPLOY_LOGE("tensor[%s] copyTo failed, src_buffer is nullptr.\n",
+                  this->getName().c_str());
+    return base::kStatusCodeErrorNotImplement;
+  }
+  if (dst_buffer == nullptr) {
+    NNDEPLOY_LOGE("tensor[%s] copyTo failed, dst_buffer is nullptr.\n",
+                  dst->getName().c_str());
     return base::kStatusCodeErrorNotImplement;
   }
   // base::Status status = src_buffer->copyTo(dst_buffer);

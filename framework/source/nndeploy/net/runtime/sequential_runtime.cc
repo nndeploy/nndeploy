@@ -249,19 +249,19 @@ base::Status SequentialRuntime::run() {
   NNDEPLOY_TIME_POINT_START("net->run()");
   for (auto iter : op_repository_) {
     status = iter->op_->run();
-    NNDEPLOY_LOGE("Node %s run\n", iter->op_->getName().c_str());
+    // NNDEPLOY_LOGE("Node %s run\n", iter->op_->getName().c_str());
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s run failed\n", iter->op_->getName().c_str());
       return status;
     }
-    auto device_type = iter->op_->getDeviceType();
-    NNDEPLOY_LOGI("op device_type %s\n",
-                  base::deviceTypeToString(device_type).c_str());
-    std::vector<device::Tensor *> tensors = iter->op_->getAllInput();
-    for (auto tensor : tensors) {
-      NNDEPLOY_LOGI("tensor device_type %s\n",
-                    base::deviceTypeToString(tensor->getDeviceType()).c_str());
-    }
+    // auto device_type = iter->op_->getDeviceType();
+    // NNDEPLOY_LOGI("op device_type %s\n",
+    //               base::deviceTypeToString(device_type).c_str());
+    // std::vector<device::Tensor *> tensors = iter->op_->getAllInput();
+    // for (auto tensor : tensors) {
+    //   NNDEPLOY_LOGI("tensor device_type %s\n",
+    //                 base::deviceTypeToString(tensor->getDeviceType()).c_str());
+    // }
     status = stream_->synchronize();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("stream_->synchronize() failed\n");

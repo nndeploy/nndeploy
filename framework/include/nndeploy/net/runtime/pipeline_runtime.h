@@ -19,6 +19,13 @@
 namespace nndeploy {
 namespace net {
 
+struct PipelineRuntimeStage {
+  std::vector<OpWrapper *> op_wrappers_;
+  std::vector<TensorWrapper *> tensor_wrappers_;
+  std::vector<device::Tensor *> input_tensors_;
+  std::vector<device::Tensor *> output_tensors_;
+};
+
 class PipelineRuntime : public Runtime {
  public:
   PipelineRuntime(const base::DeviceType &device_type);
@@ -60,6 +67,8 @@ class PipelineRuntime : public Runtime {
 
  private:
   std::vector<SequentialRuntime *> sequential_runtimes_;
+  std::map<SequentialRuntime *, std::shared_ptr<PipelineRuntimeStage>>
+      sequential_runtime_stage_stages_;
 
   std::map<device::Tensor *, PipelineTensor *> input_output_tensors_;
 

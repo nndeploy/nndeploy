@@ -192,6 +192,44 @@ std::vector<std::string> Op::getAllOutputName() { return op_desc_.outputs_; }
 std::vector<device::Tensor *> Op::getAllInput() { return inputs_; }
 std::vector<device::Tensor *> Op::getAllOutput() { return outputs_; }
 
+device::Tensor *Op::getInputTensor(const std::string &name) {
+  for (auto input : inputs_) {
+    if (input->getName() == name) {
+      return input;
+    }
+  }
+  return nullptr;
+}
+
+device::Tensor *Op::getOutputTensor(const std::string &name) {
+  for (auto output : outputs_) {
+    if (output->getName() == name) {
+      return output;
+    }
+  }
+  return nullptr;
+}
+
+base::Status Op::replaceInputTensor(const std::string &name,
+                                    device::Tensor *tensor) {
+  for (int i = 0; i < inputs_.size(); ++i) {
+    if (inputs_[i]->getName() == name) {
+      inputs_[i] = tensor;
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Op::replaceOutputTensor(const std::string &name,
+                                     device::Tensor *tensor) {
+  for (int i = 0; i < outputs_.size(); ++i) {
+    if (outputs_[i]->getName() == name) {
+      outputs_[i] = tensor;
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
 base::Status Op::rmInput(device::Tensor *input) {
   auto it = std::find(inputs_.begin(), inputs_.end(), input);
   if (it != inputs_.end()) {
@@ -405,7 +443,8 @@ Op *createOp(base::DeviceType device_type, const std::string &name,
     auto &op_map = device_map->second;
     auto creator = op_map.find(op_type);
     if (creator != op_map.end()) {
-      return creator->second->createOp(device_type, name, op_type, inputs, outputs);
+      return creator->second->createOp(device_type, name, op_type, inputs,
+                                       outputs);
     } else {
       NNDEPLOY_LOGE("createOp failed: device_type: %s, op_type: %s\n",
                     base::deviceTypeToString(device_type).c_str(),
@@ -501,7 +540,8 @@ Op *createOp(base::DeviceType device_type,
 }
 
 std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
-                              const std::string &name, ir::OpType op_type) {
+                                      const std::string &name,
+                                      ir::OpType op_type) {
   std::shared_ptr<Op> op = nullptr;
   auto &creater_map = getGlobalOpCreatorMap();
   std::vector<std::string> inputs;
@@ -511,17 +551,17 @@ std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
     auto &op_map = device_map->second;
     auto creator = op_map.find(op_type);
     if (creator != op_map.end()) {
-      op = creator->second->createOpSharedPtr(device_type, name, op_type, inputs,
-                                      outputs);
+      op = creator->second->createOpSharedPtr(device_type, name, op_type,
+                                              inputs, outputs);
     }
   }
   return op;
 }
 
-std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
-                              const std::string &name, ir::OpType op_type,
-                              std::initializer_list<std::string> inputs,
-                              std::initializer_list<std::string> outputs) {
+std::shared_ptr<Op> createOpSharedPtr(
+    base::DeviceType device_type, const std::string &name, ir::OpType op_type,
+    std::initializer_list<std::string> inputs,
+    std::initializer_list<std::string> outputs) {
   std::shared_ptr<Op> op = nullptr;
   auto &creater_map = getGlobalOpCreatorMap();
   std::vector<std::string> inputs_vec;
@@ -537,17 +577,18 @@ std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
     auto &op_map = device_map->second;
     auto creator = op_map.find(op_type);
     if (creator != op_map.end()) {
-      op = creator->second->createOpSharedPtr(device_type, name, op_type, inputs_vec,
-                                      outputs_vec);
+      op = creator->second->createOpSharedPtr(device_type, name, op_type,
+                                              inputs_vec, outputs_vec);
     }
   }
   return op;
 }
 
 std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
-                              const std::string &name, ir::OpType op_type,
-                              std::vector<std::string> &inputs,
-                              std::vector<std::string> &outputs) {
+                                      const std::string &name,
+                                      ir::OpType op_type,
+                                      std::vector<std::string> &inputs,
+                                      std::vector<std::string> &outputs) {
   std::shared_ptr<Op> op = nullptr;
   auto &creater_map = getGlobalOpCreatorMap();
   auto device_map = creater_map.find(device_type.code_);
@@ -555,18 +596,19 @@ std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
     auto &op_map = device_map->second;
     auto creator = op_map.find(op_type);
     if (creator != op_map.end()) {
-      op = creator->second->createOpSharedPtr(device_type, name, op_type, inputs,
-                                      outputs);
+      op = creator->second->createOpSharedPtr(device_type, name, op_type,
+                                              inputs, outputs);
     }
   }
   return op;
 }
 
 std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
-                              const std::string &name, ir::OpType op_type,
-                              std::vector<std::string> &inputs,
-                              std::vector<std::string> &outputs,
-                              std::shared_ptr<base::Param> param) {
+                                      const std::string &name,
+                                      ir::OpType op_type,
+                                      std::vector<std::string> &inputs,
+                                      std::vector<std::string> &outputs,
+                                      std::shared_ptr<base::Param> param) {
   std::shared_ptr<Op> op = nullptr;
   auto &creater_map = getGlobalOpCreatorMap();
   auto device_map = creater_map.find(device_type.code_);
@@ -574,8 +616,8 @@ std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
     auto &op_map = device_map->second;
     auto creator = op_map.find(op_type);
     if (creator != op_map.end()) {
-      op = creator->second->createOpSharedPtr(device_type, name, op_type, inputs,
-                                      outputs);
+      op = creator->second->createOpSharedPtr(device_type, name, op_type,
+                                              inputs, outputs);
       if (op != nullptr) {
         op->setParam(param);
       }
@@ -585,7 +627,7 @@ std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
 }
 
 std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
-                              std::shared_ptr<ir::OpDesc> op_desc) {
+                                      std::shared_ptr<ir::OpDesc> op_desc) {
   std::shared_ptr<Op> op = nullptr;
   if (op_desc != nullptr) {
     auto &creater_map = getGlobalOpCreatorMap();
@@ -594,9 +636,9 @@ std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
       auto &op_map = device_map->second;
       auto creator = op_map.find(op_desc->op_type_);
       if (creator != op_map.end()) {
-        op = creator->second->createOpSharedPtr(device_type, op_desc->name_,
-                                        op_desc->op_type_, op_desc->inputs_,
-                                        op_desc->outputs_);
+        op = creator->second->createOpSharedPtr(
+            device_type, op_desc->name_, op_desc->op_type_, op_desc->inputs_,
+            op_desc->outputs_);
         op->setParam(op_desc->op_param_);
       }
     }

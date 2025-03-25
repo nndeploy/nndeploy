@@ -68,36 +68,40 @@ base::Status PipelineRuntime::init(
     }
 
     // 为当前阶段创建op和tensor子集
-    std::vector<OpWrapper *> stage_ops;
-    std::vector<TensorWrapper *> stage_tensors;
+    std::shared_ptr<PipelineRuntimeStage> stage =
+        std::make_shared<PipelineRuntimeStage>();
+    // std::vector<OpWrapper *> stage->op_wrappers_;
+    // std::vector<TensorWrapper *> stage->tensor_wrappers_;
 
     // 添加当前阶段的ops
     for (int j = start_idx; j < end_idx; ++j) {
-      stage_ops.push_back(op_repository[j]);
+      stage->op_wrappers_.push_back(op_repository[j]);
       for (auto tensor : tensor_repository) {
         if (std::find(tensor->producers_.begin(), tensor->producers_.end(),
                       op_repository[j]) != tensor->producers_.end()) {
-          insertUnique(stage_tensors, tensor);
+          insertUnique(stage->tensor_wrappers_, tensor);
         }
         if (std::find(tensor->consumers_.begin(), tensor->consumers_.end(),
                       op_repository[j]) != tensor->consumers_.end()) {
-          insertUnique(stage_tensors, tensor);
+          insertUnique(stage->tensor_wrappers_, tensor);
         }
       }
     }
 
-    NNDEPLOY_LOGI("stage_ops.size() %d\n", stage_ops.size());
-    NNDEPLOY_LOGI("stage_tensors.size() %d\n", stage_tensors.size());
+    NNDEPLOY_LOGI("stage->op_wrappers_.size() %d\n",
+                  stage->op_wrappers_.size());
+    NNDEPLOY_LOGI("stage->tensor_wrappers_.size() %d\n",
+                  stage->tensor_wrappers_.size());
 
     // 创建SequentialRuntime
     SequentialRuntime *sequential_runtime =
         new SequentialRuntime(device_types_[i]);
 
-    std::vector<device::Tensor *> stag_input_tensors;
-    std::vector<device::Tensor *> stag_output_tensors;
+    // std::vector<device::Tensor *> stage->input_tensors_;
+    // std::vector<device::Tensor *> stage->output_tensors_;
 
     // 收集输入输出张量
-    for (auto tensor : stage_tensors) {
+    for (auto tensor : stage->tensor_wrappers_) {
       bool is_input = false;
       bool is_output = false;
 
@@ -112,26 +116,42 @@ base::Status PipelineRuntime::init(
         continue;
       }
 
-      // 找输入tensor，生产者为空 or 生产者不在这个stage_ops种
+      // 找输入tensor，生产者为空 or 生产者不在这个stage->op_wrappers_种
       if (tensor->producers_.empty()) {
         is_input = true;
       } else {
+        bool is_producer_in_stage = false;
         for (auto producer : tensor->producers_) {
-          if (std::find(stage_ops.begin(), stage_ops.end(), producer) ==
-              stage_ops.end()) {
-            is_input = true;
+          if (std::find(stage->op_wrappers_.begin(), stage->op_wrappers_.end(),
+                        producer) == stage->op_wrappers_.end()) {
+            is_producer_in_stage = true;
+          } else {
+            is_producer_in_stage = false;
+            break;
           }
         }
+        if (is_producer_in_stage) {
+          is_input = true;
+          tensor->producers_.clear();
+        }
       }
-      // 找输入tensor，消费者为空 or 消费者不在这个stage_ops种
+      // 找输入tensor，消费者为空 or 消费者不在这个stage->op_wrappers_种
       if (tensor->consumers_.empty()) {
         is_output = true;
       } else {
+        bool is_consumer_in_stage = false;
         for (auto consumer : tensor->consumers_) {
-          if (std::find(stage_ops.begin(), stage_ops.end(), consumer) ==
-              stage_ops.end()) {
-            is_output = true;
+          if (std::find(stage->op_wrappers_.begin(), stage->op_wrappers_.end(),
+                        consumer) == stage->op_wrappers_.end()) {
+            is_consumer_in_stage = true;
+          } else {
+            is_consumer_in_stage = false;
+            break;
           }
+        }
+        if (is_consumer_in_stage) {
+          is_output = true;
+          tensor->consumers_.clear();
         }
       }
 
@@ -146,7 +166,7 @@ base::Status PipelineRuntime::init(
                      (Runtime *)sequential_runtime);
         input_output_tensors_[tensor->tensor_]
             ->current_index_[sequential_runtime] = 0;
-        insertUnique(stag_input_tensors, tensor->tensor_);
+        insertUnique(stage->input_tensors_, tensor->tensor_);
       }
       if (is_output) {
         NNDEPLOY_LOGI("tensor %s is output\n", tensor->name_.c_str());
@@ -162,20 +182,132 @@ base::Status PipelineRuntime::init(
                        (Runtime *)nullptr);
           input_output_tensors_[tensor->tensor_]->current_index_[nullptr] = 0;
         }
-        insertUnique(stag_output_tensors, tensor->tensor_);
+        insertUnique(stage->output_tensors_, tensor->tensor_);
       }
     }
 
+    // // sequential_runtime交互的tensor，分为多个
+    // // 1. 输入tensor
+    // std::vector<device::Tensor *> new_stage->input_tensors_;
+    // for (auto tensor : stage->input_tensors_) {
+    //   device::Tensor *new_tensor =
+    //       new device::Tensor(tensor->getDesc(), tensor->getName());
+    //   insertUnique(new_stage->input_tensors_, new_tensor);
+    //   for (auto op : stage->op_wrappers_) {
+    //     if (op->op_->getInputTensor(tensor->getName()) != nullptr) {
+    //       op->op_->replaceInputTensor(new_tensor->getName(), new_tensor);
+    //     }
+    //     if (op->op_->getOutputTensor(tensor->getName()) != nullptr) {
+    //       op->op_->replaceOutputTensor(new_tensor->getName(), new_tensor);
+    //     }
+    //   }
+    //   for (auto stage_tensor : stage->tensor_wrappers_) {
+    //     if (stage_tensor->name_ == tensor->getName()) {
+    //       stage_tensor->tensor_ = new_tensor;
+    //       break;
+    //     }
+    //   }
+    // }
+    // // 2. 输出tensor
+    // std::vector<device::Tensor *> new_stage->output_tensors_;
+    // for (auto tensor : stage->output_tensors_) {
+    //   device::Tensor *new_tensor =
+    //       new device::Tensor(tensor->getDesc(), tensor->getName());
+    //   insertUnique(new_stage->output_tensors_, new_tensor);
+    //   for (auto op : stage->op_wrappers_) {
+    //     if (op->op_->getInputTensor(tensor->getName()) != nullptr) {
+    //       op->op_->replaceInputTensor(new_tensor->getName(), new_tensor);
+    //     }
+    //     if (op->op_->getOutputTensor(tensor->getName()) != nullptr) {
+    //       op->op_->replaceOutputTensor(new_tensor->getName(), new_tensor);
+    //     }
+    //   }
+    //   for (auto stage_tensor : stage->tensor_wrappers_) {
+    //     if (stage_tensor->name_ == tensor->getName()) {
+    //       stage_tensor->tensor_ = new_tensor;
+    //       break;
+    //     }
+    //   }
+    // }
+    // status = sequential_runtime->init(
+    //     stage->tensor_wrappers_, stage->op_wrappers_,
+    //     new_stage->input_tensors_, new_stage->output_tensors_,
+    //     is_dynamic_shape, max_shape, tensor_pool_type);
+    // if (status != base::kStatusCodeOk) {
+    //   NNDEPLOY_LOGE("SequentialRuntime init failed at stage %d\n", i);
+    //   return status;
+    // }
+    sequential_runtime_stage_stages_[sequential_runtime] = stage;
+
+    // 存储创建的runtime
+    sequential_runtimes_.push_back(sequential_runtime);
+  }
+
+  for (int i = 0; i < sequential_runtimes_.size(); ++i) {
+    SequentialRuntime *sequential_runtime = sequential_runtimes_[i];
+    std::shared_ptr<PipelineRuntimeStage> stage =
+        sequential_runtime_stage_stages_[sequential_runtime];
+    // sequential_runtime交互的tensor，分为多个
+    // 1. 输入tensor
+    std::vector<device::Tensor *> new_stage_input_tensors_;
+    for (auto tensor : stage->input_tensors_) {
+      device::Tensor *new_tensor =
+          new device::Tensor(tensor->getDesc(), tensor->getName());
+      insertUnique(new_stage_input_tensors_, new_tensor);
+      for (auto op : stage->op_wrappers_) {
+        if (op->op_->getInputTensor(tensor->getName()) != nullptr) {
+          op->op_->replaceInputTensor(new_tensor->getName(), new_tensor);
+        }
+        if (op->op_->getOutputTensor(tensor->getName()) != nullptr) {
+          op->op_->replaceOutputTensor(new_tensor->getName(), new_tensor);
+        }
+      }
+      for (auto stage_tensor : stage->tensor_wrappers_) {
+        if (stage_tensor->tensor_->getName() == tensor->getName()) {
+          stage_tensor->tensor_ = new_tensor;
+          break;
+        }
+      }
+    }
+    // 2. 输出tensor
+    std::vector<device::Tensor *> new_stage_output_tensors_;
+    for (auto tensor : stage->output_tensors_) {
+      device::Tensor *new_tensor =
+          new device::Tensor(tensor->getDesc(), tensor->getName());
+      insertUnique(new_stage_output_tensors_, new_tensor);
+      for (auto op : stage->op_wrappers_) {
+        if (op->op_->getInputTensor(tensor->getName()) != nullptr) {
+          op->op_->replaceInputTensor(new_tensor->getName(), new_tensor);
+        }
+        if (op->op_->getOutputTensor(tensor->getName()) != nullptr) {
+          op->op_->replaceOutputTensor(new_tensor->getName(), new_tensor);
+        }
+      }
+      for (auto stage_tensor : stage->tensor_wrappers_) {
+        if (stage_tensor->tensor_->getName() == tensor->getName()) {
+          stage_tensor->tensor_ = new_tensor;
+          break;
+        }
+      }
+    }
+    NNDEPLOY_LOGE("new_stage_input_tensors_.size() %d\n",
+                  new_stage_input_tensors_.size());
+    NNDEPLOY_LOGE("new_stage_output_tensors_.size() %d\n",
+                  new_stage_output_tensors_.size());
     status = sequential_runtime->init(
-        stage_tensors, stage_ops, stag_input_tensors, stag_output_tensors,
-        is_dynamic_shape, max_shape, tensor_pool_type);
+        stage->tensor_wrappers_, stage->op_wrappers_, new_stage_input_tensors_,
+        new_stage_output_tensors_, is_dynamic_shape, max_shape,
+        tensor_pool_type);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("SequentialRuntime init failed at stage %d\n", i);
       return status;
     }
-
-    // 存储创建的runtime
-    sequential_runtimes_.push_back(sequential_runtime);
+    stage->input_tensors_ = new_stage_input_tensors_;
+    stage->output_tensors_ = new_stage_output_tensors_;
+    NNDEPLOY_LOGI("stage->input_tensors_.size() %d\n",
+                  stage->input_tensors_.size());
+    NNDEPLOY_LOGI("stage->output_tensors_.size() %d\n",
+                  stage->output_tensors_.size());
   }
 
   thread_pool_ = new thread_pool::ThreadPool(worker_num_);
@@ -287,6 +419,7 @@ void PipelineRuntime::commitThreadPool() {
       base::Status status = base::kStatusCodeOk;
       device::Device *device = device::getDevice(device_types_[i]);
       device->bindThread();
+      auto stage = sequential_runtime_stage_stages_[runtime];
 
       while (true) {
         bool is_finish = false;
@@ -336,15 +469,41 @@ void PipelineRuntime::commitThreadPool() {
         NNDEPLOY_TIME_POINT_END(name.c_str());
 
         // 更新输出张量状态
+        // for (auto &pair : input_output_tensors_) {
+        //   PipelineTensor *pipeline_tensor = pair.second;
+        //   device::Tensor *output_tensor = pair.first;
+        //   // 检查这个张量是否是当前阶段的输出
+        //   if (std::find(pipeline_tensor->producers_.begin(),
+        //                 pipeline_tensor->producers_.end(),
+        //                 runtime) != pipeline_tensor->producers_.end()) {
+        //     device::Tensor *tensor = output_tensor->clone();
+        //     pipeline_tensor->push(tensor);
+        //   }
+        // }
+        // 测试代码
+        for (auto tensor : stage->input_tensors_) {
+          NNDEPLOY_LOGI("%p, tensor name %s\n", runtime,
+                        tensor->getName().c_str());
+        }
         for (auto &pair : input_output_tensors_) {
           PipelineTensor *pipeline_tensor = pair.second;
-          device::Tensor *output_tensor = pair.first;
-          // 检查这个张量是否是当前阶段的输出
-          if (std::find(pipeline_tensor->producers_.begin(),
-                        pipeline_tensor->producers_.end(),
-                        runtime) != pipeline_tensor->producers_.end()) {
-            device::Tensor *tensor = output_tensor->clone();
-            pipeline_tensor->push(tensor);
+          NNDEPLOY_LOGI("%p, tensor name %s\n", runtime,
+                        pair.first->getName().c_str());
+          // if (std::find(pipeline_tensor->consumers_.begin(),
+          //               pipeline_tensor->consumers_.end(),
+          //               runtime) != pipeline_tensor->consumers_.end()) {
+          //   NNDEPLOY_LOGI("%p, tensor name %s\n", runtime,
+          //                 pair.first->getName().c_str());
+          // }
+        }
+        for (auto tensor : stage->output_tensors_) {
+          for (auto &pair : input_output_tensors_) {
+            PipelineTensor *pipeline_tensor = pair.second;
+            if (tensor->getName() == pair.first->getName()) {
+              NNDEPLOY_LOGI("%p, tensor name %s\n", runtime,
+                            tensor->getName().c_str());
+              pipeline_tensor->push(tensor);
+            }
           }
         }
         NNDEPLOY_LOGI("runtime %p 阶段完成\n", runtime);
