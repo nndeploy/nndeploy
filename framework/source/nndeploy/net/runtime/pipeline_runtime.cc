@@ -194,6 +194,12 @@ base::Status PipelineRuntime::deinit() {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_LOGI("PipelineRuntime deinit\n");
 
+  std::unique_lock<std::mutex> lock(pipeline_mutex_);
+  pipeline_cv_.wait(lock, [this]() {
+    bool flag = completed_size_ == run_size_;
+    return flag;
+  });
+  NNDEPLOY_LOGI("PipelineRuntime deinit\n");
   for (auto &pair : input_output_tensors_) {
     PipelineTensor *pipeline_tensor = pair.second;
     std::lock_guard<std::mutex> lock(pipeline_tensor->mutex_);
@@ -265,6 +271,7 @@ base::Status PipelineRuntime::preRun() {
 
 base::Status PipelineRuntime::run() {
   base::Status status = base::kStatusCodeOk;
+  run_size_++;
   return status;
 }
 
@@ -285,7 +292,7 @@ void PipelineRuntime::commitThreadPool() {
         bool is_finish = false;
         for (auto &pair : input_output_tensors_) {
           PipelineTensor *pipeline_tensor = pair.second;
-          // NNDEPLOY_LOGI("tensor name %s\n", pair.first->getName().c_str());
+          NNDEPLOY_LOGI("tensor name %s\n", pair.first->getName().c_str());
           if (std::find(pipeline_tensor->consumers_.begin(),
                         pipeline_tensor->consumers_.end(),
                         runtime) != pipeline_tensor->consumers_.end()) {
@@ -321,8 +328,12 @@ void PipelineRuntime::commitThreadPool() {
           NNDEPLOY_LOGE("sequentialRuntime postRun failed!\n");
           break;
         }
-
+        std::string name = "synchronize_" + std::to_string((size_t)runtime);
+        NNDEPLOY_TIME_POINT_START(name.c_str());
+        NNDEPLOY_LOGI("name %s\n", name.c_str());
         runtime->synchronize();
+        NNDEPLOY_LOGI("name %s\n", name.c_str());
+        NNDEPLOY_TIME_POINT_END(name.c_str());
 
         // 更新输出张量状态
         for (auto &pair : input_output_tensors_) {
@@ -336,10 +347,22 @@ void PipelineRuntime::commitThreadPool() {
             pipeline_tensor->push(tensor);
           }
         }
+        NNDEPLOY_LOGI("runtime %p 阶段完成\n", runtime);
+
+        // 检查是否所有阶段都已完成
+        // {
+        std::lock_guard<std::mutex> lock(pipeline_mutex_);
+        if (i == sequential_runtimes_.size() - 1) {
+          completed_size_++;
+        }
+        if (completed_size_ == run_size_) {
+          pipeline_cv_.notify_all();
+        }
+        // }
       }
       static int count = 0;
       count++;
-      NNDEPLOY_LOGI("线程执行完成 %d\n", count);
+      NNDEPLOY_LOGI("%p 线程执行完成 %d\n", runtime, count);
       return status;
     };
 

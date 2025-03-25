@@ -3,6 +3,7 @@
 
 #include "nndeploy/base/shape.h"
 #include "nndeploy/base/string.h"
+#include "nndeploy/base/time_profiler.h"
 
 namespace nndeploy {
 namespace device {
@@ -378,6 +379,8 @@ base::Status Tensor::copyTo(Tensor *dst) {
     //               base::deviceTypeToString(dst_device_type).c_str());
     // return base::kStatusCodeErrorNotImplement;
     // For copying between different device types, use Host as an intermediate
+    std::string name = this->getName() + "_copyTo";
+    NNDEPLOY_TIME_POINT_START(name.c_str());
     Device *host_device = getDefaultHostDevice();
     if (!host_device) {
       NNDEPLOY_LOGE("Failed to get Host device for intermediate copy");
@@ -410,7 +413,7 @@ base::Status Tensor::copyTo(Tensor *dst) {
 
     // Clean up temporary resources
     delete host_tensor;
-
+    NNDEPLOY_TIME_POINT_END(name.c_str());
     return status;
   }
 }

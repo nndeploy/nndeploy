@@ -67,9 +67,9 @@ class PipelineRuntime : public Runtime {
 
   // 添加互斥锁和条件变量，用于同步流水线状态
   std::mutex pipeline_mutex_;
-  bool pipeline_complete_ = false;
-  int completed_stages_ = 0;
-  int pipeline_batch_size_ = INT_MAX;
+  std::condition_variable pipeline_cv_;
+  int run_size_ = 0;
+  int completed_size_ = 0;
 };
 
 }  // namespace net

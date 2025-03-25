@@ -31,6 +31,9 @@ base::Status SequentialRuntime::init(
   input_tensors_ = input_tensors;
   output_tensors_ = output_tensors;
 
+  for (auto iter : op_repository) {
+    iter->op_->setDeviceType(device_type_);
+  }
   // 默认流
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
@@ -204,10 +207,10 @@ base::Status SequentialRuntime::deallocateOutput() {
 base::Status SequentialRuntime::preRun() {
   base::Status status = base::kStatusCodeOk;
   // 输出tensor
-  device::Device *device = device::getDevice(device_type_);
-  for (auto iter : output_tensors_) {
-    iter->allocate(device);
-  }
+  // device::Device *device = device::getDevice(device_type_);
+  // for (auto iter : output_tensors_) {
+  //   iter->allocate(device);
+  // }
   for (auto iter : op_repository_) {
     status = iter->op_->preRun();
     if (status != base::kStatusCodeOk) {
@@ -246,9 +249,22 @@ base::Status SequentialRuntime::run() {
   NNDEPLOY_TIME_POINT_START("net->run()");
   for (auto iter : op_repository_) {
     status = iter->op_->run();
-    // NNDEPLOY_LOGE("Node %s run\n", iter->op_->getName().c_str());
+    NNDEPLOY_LOGE("Node %s run\n", iter->op_->getName().c_str());
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Node %s run failed\n", iter->op_->getName().c_str());
+      return status;
+    }
+    auto device_type = iter->op_->getDeviceType();
+    NNDEPLOY_LOGI("op device_type %s\n",
+                  base::deviceTypeToString(device_type).c_str());
+    std::vector<device::Tensor *> tensors = iter->op_->getAllInput();
+    for (auto tensor : tensors) {
+      NNDEPLOY_LOGI("tensor device_type %s\n",
+                    base::deviceTypeToString(tensor->getDeviceType()).c_str());
+    }
+    status = stream_->synchronize();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("stream_->synchronize() failed\n");
       return status;
     }
   }
@@ -320,8 +336,8 @@ base::Status SequentialRuntime::copyToInputTensor(device::Tensor *tensor) {
       shape_map_.clear();
     }
   }
-  device::Device *device = device::getDevice(device_type_);
-  dst_tensor->allocate(device);
+  // device::Device *device = device::getDevice(device_type_);
+  // dst_tensor->allocate(device);
 
   if (src_tensor->getData() != dst_tensor->getData()) {
     base::Status status = src_tensor->copyTo(dst_tensor);

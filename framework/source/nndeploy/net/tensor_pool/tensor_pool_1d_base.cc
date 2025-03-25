@@ -20,9 +20,9 @@ base::Status TensorPool1D::initTensorUsageRecord() {
     if (tensor_repository_[i]->is_weight_) {
       continue;
     }
-    if (tensor_repository_[i]->input_output_type_ == kOutput) {
-      continue;
-    }
+    // if (tensor_repository_[i]->input_output_type_ == kOutput) {
+    //   continue;
+    // }
     auto tensor_usage_record = std::make_shared<TensorUsageRecord>();
     tensor_usage_record->tensor_wrapper_ = tensor_repository_[i];
     device::TensorDesc tensor_desc = tensor_repository_[i]->tensor_->getDesc();

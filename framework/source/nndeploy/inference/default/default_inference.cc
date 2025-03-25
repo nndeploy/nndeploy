@@ -66,7 +66,6 @@ base::Status DefaultInference::init() {
     return base::kStatusCodeErrorInferenceDefault;
   }
   net_->setParallelType(default_inference_param->parallel_type_);
-  NNDEPLOY_LOGI("worker_num_ = %d\n", default_inference_param->worker_num_);
   net_->setWorkers(default_inference_param->worker_num_,
                    default_inference_param->device_types_);
   net_->setStream(stream_);

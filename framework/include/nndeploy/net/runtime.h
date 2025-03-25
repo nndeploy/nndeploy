@@ -31,8 +31,9 @@ class PipelineTensor {
   std::condition_variable cv_;
   std::map<Runtime *, int> current_index_;
   bool is_finish_ = false;
+
   void push(device::Tensor *tensor) {
-    NNDEPLOY_LOGI("tensor name %s\n", tensor->getName().c_str());
+    // NNDEPLOY_LOGI("tensor name %s\n", tensor->getName().c_str());
     std::lock_guard<std::mutex> lock(mutex_);
     tensors_.push_back(tensor);
     cv_.notify_one();

@@ -816,59 +816,6 @@ base::Status Net::setWorkers(int worker_num,
 
 base::Status Net::copyToInputTensor(device::Tensor *tensor) {
   return runtime_->copyToInputTensor(tensor);
-  // device::Tensor *src_tensor = tensor;
-  // device::Tensor *dst_tensor = nullptr;
-  // runtime_->allocateInput();
-  // for (auto input : inputs_) {
-  //   if (input->getName() == src_tensor->getName()) {
-  //     dst_tensor = input;
-  //     break;
-  //   }
-  // }
-  // if (dst_tensor == nullptr) {
-  //   NNDEPLOY_LOGE("copyToInputTensor failed! input tensor not found!\n");
-  //   return base::kStatusCodeErrorInvalidValue;
-  // }
-  // if (parallel_type_ == base::kParallelTypeSequential ||
-  //     parallel_type_ == base::kParallelTypeNone) {
-  //   // src_tensor->getDesc().print();
-  //   // dst_tensor->getDesc().print();
-  //   if (src_tensor->getData() != dst_tensor->getData()) {
-  //     base::Status status = src_tensor->copyTo(dst_tensor);
-  //     NNDEPLOY_RETURN_ON_NEQ(
-  //         status, base::kStatusCodeOk,
-  //         "copy external_input_tensor to internal_input_tensor failed!");
-  //   }
-  // } else if (parallel_type_ == base::kParallelTypePipeline) {
-  //   auto iter = pipeline_input_output_tensors_.find(dst_tensor);
-  //   if (iter == pipeline_input_output_tensors_.end()) {
-  //     NNDEPLOY_LOGE("pipeline_input_output_tensors_ not found
-  //     dst_tensor!\n"); return base::kStatusCodeErrorInvalidValue;
-  //   }
-  //   PipelineTensor *pipeline_tensor = iter->second;
-  //   device::Tensor *vec_dst_tensor = new device::Tensor(*src_tensor);
-  //   static int count = 0;
-  //   if (count == 0) {
-  //     std::string filename = "vec_dst_tensor" + src_tensor->getName() +
-  //     ".csv"; size_t pos = 0; while ((pos = filename.find('/')) !=
-  //     std::string::npos) {
-  //       filename.replace(pos, 1, "_");
-  //     }
-  //     std::ofstream input_file(filename, std::ios::trunc);
-  //     if (input_file.is_open()) {
-  //       vec_dst_tensor->print(input_file);
-  //       input_file.close();
-  //     } else {
-  //       NNDEPLOY_LOGE("can't open file: %s", filename.c_str());
-  //     }
-  //   }
-  //   count++;
-  //   pipeline_tensor->push(vec_dst_tensor);
-  // } else {
-  //   NNDEPLOY_LOGE("parallel_type is not supported!\n");
-  //   return base::kStatusCodeErrorInvalidValue;
-  // }
-  // return base::kStatusCodeOk;
 }
 
 device::Tensor *Net::getOutputTensorAfterRun(const std::string &name,
@@ -877,67 +824,6 @@ device::Tensor *Net::getOutputTensorAfterRun(const std::string &name,
                                              base::DataFormat data_format) {
   return runtime_->getOutputTensorAfterRun(name, device_type, is_copy,
                                            data_format);
-  // device::Device *device = device::getDevice(device_type);
-  // device::Tensor *internal_output_tensor = nullptr;
-  // for (auto output : outputs_) {
-  //   if (output->getName() == name) {
-  //     internal_output_tensor = output;
-  //     break;
-  //   }
-  // }
-  // if (internal_output_tensor == nullptr) {
-  //   NNDEPLOY_LOGE("Not exsit output[%s].\n", name.c_str());
-  //   return nullptr;
-  // }
-  // if (parallel_type_ == base::kParallelTypeSequential ||
-  //     parallel_type_ == base::kParallelTypeNone) {
-  //   bool flag = is_copy || (internal_output_tensor->getDevice() != device);
-  //   device::Tensor *output_tensor = nullptr;
-  //   if (flag) {
-  //     output_tensor =
-  //         new device::Tensor(device, internal_output_tensor->getDesc(),
-  //         name);
-  //     // internal_tensor->getDesc().print();
-  //     // output_tensor->getDesc().print();
-  //     internal_output_tensor->copyTo(output_tensor);
-  //     return output_tensor;
-  //   } else {
-  //     return internal_output_tensor;
-  //   }
-  // } else if (parallel_type_ == base::kParallelTypePipeline) {
-  //   auto iter = pipeline_input_output_tensors_.find(internal_output_tensor);
-  //   if (iter == pipeline_input_output_tensors_.end()) {
-  //     NNDEPLOY_LOGE(
-  //         "pipeline_input_output_tensors_ not found
-  //         internal_output_tensor!\n");
-  //     return nullptr;
-  //   }
-  //   PipelineTensor *pipeline_internal_output_tensor = iter->second;
-  //   NNDEPLOY_LOGI("pipeline_internal_output_tensor->tensors_.size() %d\n",
-  //                 pipeline_internal_output_tensor->tensors_.size());
-  //   device::Tensor *pipeline_output_tensor =
-  //       pipeline_internal_output_tensor->pop(nullptr);
-  //   if (pipeline_output_tensor == nullptr) {
-  //     NNDEPLOY_LOGE("pipeline_output_tensor is nullptr!\n");
-  //     return nullptr;
-  //   }
-  //   NNDEPLOY_LOGI("pipeline_output_tensor NAME %s\n",
-  //                 pipeline_output_tensor->getName().c_str());
-  //   bool flag = is_copy || (pipeline_output_tensor->getDevice() != device);
-  //   device::Tensor *output_tensor = nullptr;
-  //   if (flag) {
-  //     output_tensor =
-  //         new device::Tensor(device, pipeline_output_tensor->getDesc(),
-  //         name);
-  //     pipeline_output_tensor->copyTo(output_tensor);
-  //     return output_tensor;
-  //   } else {
-  //     return pipeline_output_tensor;
-  //   }
-  // } else {
-  //   NNDEPLOY_LOGE("parallel_type is not supported!\n");
-  //   return nullptr;
-  // }
 }
 
 Net *createNet(ir::ModelDesc *model_desc, base::DeviceType device_type,
