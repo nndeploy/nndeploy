@@ -355,7 +355,14 @@ base::Status Tensor::copyTo(Tensor *dst) {
   size_t dst_size = dst_buffer_desc.getSize();
   size_t copy_size = std::min(src_size, dst_size);
   if (src_device_type == dst_device_type) {
-    return src_device->copy(src_data_ptr, dst_data_ptr, copy_size);
+    base::Status status =
+        src_device->copy(src_data_ptr, dst_data_ptr, copy_size);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE(
+          "src_device->copy(src_data_ptr, dst_data_ptr, copy_size) failed\n");
+      return status;
+    }
+    return base::kStatusCodeOk;
   } else if (isHostDeviceType(src_device_type) &&
              isHostDeviceType(dst_device_type)) {
     return src_device->copy(src_data_ptr, dst_data_ptr, copy_size);
@@ -366,10 +373,45 @@ base::Status Tensor::copyTo(Tensor *dst) {
              isHostDeviceType(dst_device_type)) {
     return src_device->download(src_data_ptr, dst_data_ptr, copy_size);
   } else {
-    NNDEPLOY_LOGE("Unsupported device type{%s->%s} for copy operation.",
-                  base::deviceTypeToString(src_device_type).c_str(),
-                  base::deviceTypeToString(dst_device_type).c_str());
-    return base::kStatusCodeErrorNotImplement;
+    // NNDEPLOY_LOGE("Unsupported device type{%s->%s} for copy operation.",
+    //               base::deviceTypeToString(src_device_type).c_str(),
+    //               base::deviceTypeToString(dst_device_type).c_str());
+    // return base::kStatusCodeErrorNotImplement;
+    // For copying between different device types, use Host as an intermediate
+    Device *host_device = getDefaultHostDevice();
+    if (!host_device) {
+      NNDEPLOY_LOGE("Failed to get Host device for intermediate copy");
+      return base::kStatusCodeErrorNotImplement;
+    }
+
+    // Create temporary Host buffer as intermediate
+    Tensor *host_tensor =
+        new Tensor(host_device, this->getDesc(), "temp_host_tensor");
+    if (!host_tensor) {
+      NNDEPLOY_LOGE("Failed to create temporary Host tensor");
+      return base::kStatusCodeErrorOutOfMemory;
+    }
+
+    // First copy from source device to Host
+    base::Status status = this->copyTo(host_tensor);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to copy from source device to Host");
+      delete host_tensor;
+      return status;
+    }
+
+    // Then copy from Host to destination device
+    status = host_tensor->copyTo(dst);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to copy from Host to destination device");
+      delete host_tensor;
+      return status;
+    }
+
+    // Clean up temporary resources
+    delete host_tensor;
+
+    return status;
   }
 }
 

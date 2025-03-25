@@ -21,7 +21,7 @@ AscendCLArchitecture::~AscendCLArchitecture() {
   // std::call_once(once, [this]() {
   //   aclError ret = aclFinalize();
   //   if (ret != ACL_SUCCESS) {
-  //     NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
+  //     NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d\n", ret);
   //   }
   // });
 };
@@ -167,13 +167,24 @@ base::Status AscendCLDevice::copy(void *src, void *dst, size_t size,
     return base::kStatusCodeErrorDeviceAscendCL;
   }
   if (stream == nullptr) {
-    NNDEPLOY_ASCEND_CL_CHECK(
-        aclrtMemcpy(dst, size, src, size, ACL_MEMCPY_DEVICE_TO_DEVICE));
+    aclError ret =
+        aclrtMemcpy(dst, size, src, size, ACL_MEMCPY_DEVICE_TO_DEVICE);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE(
+          "aclrtMemcpy device to device copy failed, error code is %d\n", ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
   } else {
     aclrtStream acl_stream =
         (aclrtStream)stream->as<AscendCLStream>()->getStream();
-    NNDEPLOY_ASCEND_CL_CHECK(aclrtMemcpyAsync(
-        dst, size, src, size, ACL_MEMCPY_DEVICE_TO_DEVICE, acl_stream));
+    aclError ret = aclrtMemcpyAsync(dst, size, src, size,
+                                    ACL_MEMCPY_DEVICE_TO_DEVICE, acl_stream);
+    if (ret != ACL_SUCCESS) {
+      NNDEPLOY_LOGE(
+          "aclrtMemcpyAsync device to device copy failed, error code is %d\n",
+          ret);
+      return base::kStatusCodeErrorDeviceAscendCL;
+    }
   }
   return base::kStatusCodeOk;
 }
@@ -250,11 +261,14 @@ base::Status AscendCLDevice::upload(Buffer *src, Buffer *dst, Stream *stream) {
 void *AscendCLDevice::getContext() { return (void *)context_; }
 
 base::Status AscendCLDevice::bindThread() {
-  aclError ret = aclrtSetCurrentContext(context_);
+  aclError ret = aclrtSetCurrentContext((aclrtContext)context_);
   if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
+    NNDEPLOY_LOGE(
+        "aclrtSetCurrentContext failed, errorCode is %d, ACL_SUCCESS = %d\n",
+        ret, ACL_SUCCESS);
     return base::kStatusCodeErrorDeviceAscendCL;
   }
+  return base::kStatusCodeOk;
 }
 
 base::Status AscendCLDevice::init() {
@@ -264,6 +278,7 @@ base::Status AscendCLDevice::init() {
   //   NNDEPLOY_LOGE("aclInit failed, errorCode is %d\n", ret);
   // }
   // 选择设备
+  NNDEPLOY_LOGI("set device %d\n", device_type_.device_id_);
   aclError ret = aclrtSetDevice(device_type_.device_id_);
   if (ret != ACL_SUCCESS) {
     NNDEPLOY_LOGE("aclrtSetDevice failed, errorCode is %d\n", ret);
@@ -282,14 +297,14 @@ base::Status AscendCLDevice::deinit() {
   if (context_ != nullptr) {
     aclError ret = aclrtDestroyContext(context_);
     if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclrtDestroyContext failed, errorCode is %d", ret);
+      NNDEPLOY_LOGE("aclrtDestroyContext failed, errorCode is %d\n", ret);
       return base::kStatusCodeErrorDeviceAscendCL;
     }
     context_ = nullptr;
 
     ret = aclrtResetDevice(device_type_.device_id_);
     if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclrtResetDevice failed, errorCode is %d", ret);
+      NNDEPLOY_LOGE("aclrtResetDevice failed, errorCode is %d\n", ret);
       return base::kStatusCodeErrorDeviceAscendCL;
     }
 
@@ -297,13 +312,13 @@ base::Status AscendCLDevice::deinit() {
     std::call_once(once, [this]() {
       aclError ret = aclFinalize();
       if (ret != ACL_SUCCESS) {
-        NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
+        NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d\n", ret);
       }
     });
 
     // ret = aclFinalize();
     // if (ret != ACL_SUCCESS) {
-    //   NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d", ret);
+    //   NNDEPLOY_LOGE("aclFinalize failed, errorCode is %d\n", ret);
     //   return base::kStatusCodeErrorDeviceAscendCL;
     // }
   }
@@ -361,7 +376,7 @@ AscendCLStream::AscendCLStream(Device *device) : Stream(device) {
   aclrtStream stream;
   ret = aclrtCreateStream(&stream);
   if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclrtCreateStream failed, errorCode is %d", ret);
+    NNDEPLOY_LOGE("aclrtCreateStream failed, errorCode is %d\n", ret);
   }
   stream_ = stream;
 }
@@ -378,7 +393,7 @@ AscendCLStream::~AscendCLStream() {
   }
   ret = aclrtDestroyStream(stream_);
   if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclrtDestroyStream failed, errorCode is %d", ret);
+    NNDEPLOY_LOGE("aclrtDestroyStream failed, errorCode is %d\n", ret);
   }
 }
 
@@ -390,7 +405,8 @@ base::Status AscendCLStream::synchronize() {
   }
   ret = aclrtSynchronizeStream(stream_);
   if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclrtSynchronizeStream failed, errorCode is %d", ret);
+    NNDEPLOY_LOGE("aclrtSynchronizeStream failed, errorCode is %d\n", ret);
+    return base::kStatusCodeErrorDeviceAscendCL;
   }
   return base::kStatusCodeOk;
 }
@@ -406,7 +422,7 @@ base::Status AscendCLStream::recordEvent(Event *event) {
   }
   ret = aclrtRecordEvent(event->as<AscendCLEvent>()->getEvent(), stream_);
   if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclrtRecordStream failed, errorCode is %d", ret);
+    NNDEPLOY_LOGE("aclrtRecordStream failed, errorCode is %d\n", ret);
   }
   return base::kStatusCodeOk;
 }
@@ -422,7 +438,7 @@ base::Status AscendCLStream::waitEvent(Event *event) {
   }
   ret = aclrtStreamWaitEvent(stream_, event->as<AscendCLEvent>()->getEvent());
   if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclrtStreamWaitEvent failed, errorCode is %d", ret);
+    NNDEPLOY_LOGE("aclrtStreamWaitEvent failed, errorCode is %d\n", ret);
   }
   return base::kStatusCodeOk;
 }
@@ -439,7 +455,7 @@ AscendCLEvent::AscendCLEvent(Device *device) : Event(device) {
   }
   ret = aclrtCreateEvent(&event_);
   if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclrtCreateEvent failed, errorCode is %d", ret);
+    NNDEPLOY_LOGE("aclrtCreateEvent failed, errorCode is %d\n", ret);
   }
 }
 AscendCLEvent::~AscendCLEvent() {
@@ -450,7 +466,7 @@ AscendCLEvent::~AscendCLEvent() {
   }
   ret = aclrtDestroyEvent(event_);
   if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclrtDestroyEvent failed, errorCode is %d", ret);
+    NNDEPLOY_LOGE("aclrtDestroyEvent failed, errorCode is %d\n", ret);
   }
 }
 
@@ -463,7 +479,7 @@ bool AscendCLEvent::queryDone() {
   aclrtEventRecordedStatus status = ACL_EVENT_RECORDED_STATUS_NOT_READY;
   ret = aclrtQueryEventStatus(event_, &status);
   if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclrtQueryEvent failed, errorCode is %d", ret);
+    NNDEPLOY_LOGE("aclrtQueryEvent failed, errorCode is %d\n", ret);
     return false;
   } else {
     return status == ACL_EVENT_RECORDED_STATUS_COMPLETE;
@@ -477,7 +493,7 @@ base::Status AscendCLEvent::synchronize() {
   }
   ret = aclrtSynchronizeEvent(event_);
   if (ret != ACL_SUCCESS) {
-    NNDEPLOY_LOGE("aclrtSynchronizeEvent failed, errorCode is %d", ret);
+    NNDEPLOY_LOGE("aclrtSynchronizeEvent failed, errorCode is %d\n", ret);
   }
   return base::kStatusCodeOk;
 }

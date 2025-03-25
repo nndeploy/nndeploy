@@ -13,14 +13,14 @@
 #include "nndeploy/net/util.h"
 
 /*
-* 内存复用
-* 1. 5种算法的实现
-* 2. 生命周期的优化
-* 3. 多模型共享内存的优化
-* 4. workspace的优化
-* 5. inplace算子的优化（TODO）
-* 6. 更精细的内存优化（基于多生命周期的优化）（TODO）
-*/
+ * 内存复用
+ * 1. 5种算法的实现
+ * 2. 生命周期的优化
+ * 3. 多模型共享内存的优化
+ * 4. workspace的优化
+ * 5. inplace算子的优化（TODO）
+ * 6. 更精细的内存优化（基于多生命周期的优化）（TODO）
+ */
 
 namespace nndeploy {
 namespace net {
@@ -74,8 +74,6 @@ class TensorPool {
              std::vector<OpWrapper *> &op_repository);
   virtual ~TensorPool();
 
-  void setAllocateInputOutputTensor(bool allocate_input_output_tensor);
-
   virtual base::Status allocate() = 0;
   virtual base::Status deallocate() = 0;
 
@@ -96,7 +94,6 @@ class TensorPool {
  protected:
   device::Device *device_;
   base::IntVector config_ = base::IntVector();
-  bool allocate_input_output_tensor_ = true;
   std::vector<TensorWrapper *> tensor_repository_;
   std::vector<OpWrapper *> op_repository_;
 };
@@ -107,7 +104,7 @@ class TensorPool {
  */
 class TensorPoolCreator {
  public:
-  virtual ~TensorPoolCreator(){};
+  virtual ~TensorPoolCreator() {};
   virtual TensorPool *createTensorPool(
       device::Device *device, std::vector<TensorWrapper *> &tensor_repository,
       std::vector<OpWrapper *> &op_repository) = 0;
@@ -132,8 +129,8 @@ class TypeTensorPoolCreator : public TensorPoolCreator {
  *
  * @return std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>&
  */
-std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>
-    &getGlobalTensorPoolCreatorMap();
+std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>> &
+getGlobalTensorPoolCreatorMap();
 
 /**
  * @brief TensorPool的创建类的注册类模板

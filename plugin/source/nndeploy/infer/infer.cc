@@ -302,7 +302,7 @@ base::Status Infer::run() {
     }
     inference_->setInputTensor(name, tensors[i]);
 
-#if 1
+#if 0
     static int input_count = 0;
     if (input_count == 0) {
       std::string filename = name + ".csv";
@@ -319,8 +319,9 @@ base::Status Infer::run() {
       }
     }
     input_count++;
-  }
 #endif
+  }
+
   status = inference_->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
   for (int i = 0; i < outputs_.size(); i++) {
@@ -338,7 +339,7 @@ base::Status Infer::run() {
       break;
     }
 
-#if 1
+#if 0
     static int output_count = 0;
     if (output_count == 0) {
       std::string filename = name + ".csv";

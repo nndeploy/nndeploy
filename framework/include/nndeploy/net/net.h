@@ -95,7 +95,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   base::Status setDisablePass(std::set<OptPassType>);
 
   /**
-   * @brief 设置服务流水线并行数量
+   * @brief 设置推理并行数量
    *
    * @param num
    * @return base::Status
@@ -154,13 +154,13 @@ class NNDEPLOY_CC_API Net : public op::Op {
 
   bool net_opt_flag_ = true;           // 默认开启图优化
   std::set<OptPassType> enable_pass_;  // 仅使用这些pass，如果为空则启用全部pass
-  std::set<OptPassType>
-      disable_pass_;  // 禁用这些pass，如果为空则启用全部pass;
-                      // 如果同时设置了enable_pass_，则只有enable_pass_生效
+  // 禁用这些pass，如果为空则启用全部pass;
+  // 如果同时设置了enable_pass_，则只有enable_pass_生效
+  std::set<OptPassType> disable_pass_;
 
-  // 服务流水线并行的输入输出
-  std::map<device::Tensor *, PipelineTensor *> pipeline_input_output_tensors_;
+  // 推理并行数量
   int worker_num_ = 1;
+  // 推理设备类型
   std::vector<base::DeviceType> device_types_;
 };
 

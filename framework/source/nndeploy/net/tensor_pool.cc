@@ -14,11 +14,6 @@ TensorPool::TensorPool(device::Device *device,
 
 TensorPool::~TensorPool() {}
 
-void TensorPool::setAllocateInputOutputTensor(
-    bool allocate_input_output_tensor) {
-  allocate_input_output_tensor_ = allocate_input_output_tensor;
-}
-
 int64_t TensorPool::getMemorySize() {
   NNDEPLOY_LOGE("TensorPool::getMemorySize is not implemented!\n");
   return 0;
@@ -28,8 +23,8 @@ base::Status TensorPool::setMemory(device::Buffer *buffer) {
   return base::kStatusCodeErrorNotImplement;
 }
 
-std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>
-    &getGlobalTensorPoolCreatorMap() {
+std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>> &
+getGlobalTensorPoolCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<TensorPoolType, std::shared_ptr<TensorPoolCreator>>>

@@ -31,12 +31,6 @@ class AscendCLOpConcat : public OpConcat {
   }
   virtual base::Status deinit() { return Op::deinit(); }
   virtual base::Status preRun() {
-    device::Device* device = device::getDevice(device_type_);
-    aclError ret = aclrtSetCurrentContext((aclrtContext)(device->getContext()));
-    if (ret != ACL_SUCCESS) {
-      NNDEPLOY_LOGE("aclrtSetCurrentContext failed, errorCode is %d\n", ret);
-      return base::kStatusCodeErrorOpAscendCL;
-    }
     // 输入输出
     if (inner_inputs_ == nullptr) {
       inner_inputs_ =
