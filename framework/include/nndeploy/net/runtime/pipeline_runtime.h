@@ -48,11 +48,6 @@ class PipelineRuntime : public Runtime {
 
   virtual base::Status reshape(base::ShapeMap &shape_map);
 
-  virtual base::Status allocateInput();
-  virtual base::Status allocateOutput();
-  virtual base::Status deallocateInput();
-  virtual base::Status deallocateOutput();
-
   virtual base::Status preRun();
   virtual base::Status run();
   virtual base::Status postRun();

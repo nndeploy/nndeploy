@@ -171,39 +171,6 @@ base::Status SequentialRuntime::reshape(base::ShapeMap &shape_map) {
   return status;
 }
 
-base::Status SequentialRuntime::allocateInput() {
-  base::Status status = base::kStatusCodeOk;
-  device::Device *device = device::getDevice(device_type_);
-  for (auto iter : input_tensors_) {
-    iter->allocate(device);
-  }
-  return status;
-}
-base::Status SequentialRuntime::allocateOutput() {
-  base::Status status = base::kStatusCodeOk;
-  device::Device *device = device::getDevice(device_type_);
-  for (auto iter : output_tensors_) {
-    iter->allocate(device);
-  }
-  return status;
-}
-base::Status SequentialRuntime::deallocateInput() {
-  base::Status status = base::kStatusCodeOk;
-  device::Device *device = device::getDevice(device_type_);
-  for (auto iter : input_tensors_) {
-    iter->deallocate();
-  }
-  return status;
-}
-base::Status SequentialRuntime::deallocateOutput() {
-  base::Status status = base::kStatusCodeOk;
-  device::Device *device = device::getDevice(device_type_);
-  for (auto iter : output_tensors_) {
-    iter->deallocate();
-  }
-  return status;
-}
-
 base::Status SequentialRuntime::preRun() {
   base::Status status = base::kStatusCodeOk;
   // 输出tensor
@@ -262,11 +229,11 @@ base::Status SequentialRuntime::run() {
     //   NNDEPLOY_LOGI("tensor device_type %s\n",
     //                 base::deviceTypeToString(tensor->getDeviceType()).c_str());
     // }
-    status = stream_->synchronize();
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("stream_->synchronize() failed\n");
-      return status;
-    }
+    // status = stream_->synchronize();
+    // if (status != base::kStatusCodeOk) {
+    //   NNDEPLOY_LOGE("stream_->synchronize() failed\n");
+    //   return status;
+    // }
   }
   NNDEPLOY_TIME_POINT_END("net->run()");
 

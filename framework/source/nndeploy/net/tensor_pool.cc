@@ -53,19 +53,49 @@ std::vector<int> getOpOrderIndex(std::vector<OpWrapper *> &producers,
                                  std::vector<OpWrapper *> &op_repository) {
   std::vector<int> order_index;
 
-  for (size_t i = 0; i < op_repository.size(); i++) {
-    for (size_t j = 0; j < producers.size(); j++) {
+  // for (size_t i = 0; i < op_repository.size(); i++) {
+  //   for (size_t j = 0; j < producers.size(); j++) {
+  //     if (op_repository[i] == producers[j]) {
+  //       order_index.push_back(i);
+  //       break;
+  //     }
+  //   }
+
+  //   for (size_t j = 0; j < consumers.size(); j++) {
+  //     if (op_repository[i] == consumers[j]) {
+  //       order_index.push_back(i);
+  //       break;
+  //     }
+  //   }
+  // }
+
+  for (size_t j = 0; j < producers.size(); j++) {
+    bool is_found = false;
+    for (size_t i = 0; i < op_repository.size(); i++) {
       if (op_repository[i] == producers[j]) {
         order_index.push_back(i);
+        is_found = true;
         break;
       }
     }
+    if (!is_found) {
+      order_index.push_back(0);
+      order_index.push_back(op_repository.size() - 1);
+    }
+  }
 
-    for (size_t j = 0; j < consumers.size(); j++) {
+  for (size_t j = 0; j < consumers.size(); j++) {
+    bool is_found = false;
+    for (size_t i = 0; i < op_repository.size(); i++) {
       if (op_repository[i] == consumers[j]) {
         order_index.push_back(i);
+        is_found = true;
         break;
       }
+    }
+    if (!is_found) {
+      order_index.push_back(0);
+      order_index.push_back(op_repository.size() - 1);
     }
   }
 

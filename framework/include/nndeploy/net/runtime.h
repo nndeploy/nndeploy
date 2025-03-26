@@ -36,8 +36,15 @@ class PipelineTensor {
     // NNDEPLOY_LOGI("tensor name %s\n", tensor->getName().c_str());
     std::lock_guard<std::mutex> lock(mutex_);
     tensors_.push_back(tensor);
-    cv_.notify_one();
+    cv_.notify_all();
   }
+
+  void setFinish() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    is_finish_ = true;
+    cv_.notify_all();
+  }
+
   device::Tensor *pop(Runtime *runtime) {
     std::unique_lock<std::mutex> lock(mutex_);
     cv_.wait(lock, [this, runtime]() {
@@ -82,11 +89,6 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
   virtual base::Status deinit() = 0;
 
   virtual base::Status reshape(base::ShapeMap &shape_map) = 0;
-
-  virtual base::Status allocateInput() = 0;
-  virtual base::Status allocateOutput() = 0;
-  virtual base::Status deallocateInput() = 0;
-  virtual base::Status deallocateOutput() = 0;
 
   /**
    * @brief 获取推理所需的内存大小
