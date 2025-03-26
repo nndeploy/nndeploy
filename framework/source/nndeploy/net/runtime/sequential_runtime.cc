@@ -286,6 +286,10 @@ base::Status SequentialRuntime::copyToInputTensor(device::Tensor *tensor) {
   device::Tensor *src_tensor = tensor;
   device::Tensor *dst_tensor = nullptr;
   for (auto input : input_tensors_) {
+    // NNDEPLOY_LOGI("copyToInputTensor input[%s].\n",
+    // input->getName().c_str()); NNDEPLOY_LOGI("copyToInputTensor
+    // src_tensor[%s].\n",
+    //               src_tensor->getName().c_str());
     if (input->getName() == src_tensor->getName()) {
       dst_tensor = input;
       break;

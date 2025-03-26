@@ -185,6 +185,11 @@ base::Status Infer::init() {
        device::isHostDeviceType(inference_->getDeviceType()))) {
     inference_->setStream(stream_);
   }
+  inference::InferenceParam *inference_param =
+      dynamic_cast<inference::InferenceParam *>(inference_->getParam());
+  if (inference_param != nullptr) {
+    inference_param->parallel_type_ = parallel_type_;
+  }
   status = inference_->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "abstract_inference init failed");
@@ -300,6 +305,8 @@ base::Status Infer::run() {
     if (inference_input_names_.find(name) == inference_input_names_.end()) {
       name = input_type_info_[i]->getEdgeName();
     }
+    // NNDEPLOY_LOGI("setInputTensor[%s].\n", name.c_str());
+    tensors[i]->setName(name);
     inference_->setInputTensor(name, tensors[i]);
 
 #if 0

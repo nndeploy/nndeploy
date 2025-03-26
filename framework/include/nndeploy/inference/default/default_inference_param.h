@@ -28,8 +28,6 @@ class DefaultInferenceParam : public InferenceParam {
   ir::ModelDesc *model_desc_ = nullptr;
   net::TensorPoolType tensor_pool_type_ =
       net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
-  base::ParallelType parallel_type_ = base::kParallelTypePipeline;
-  int worker_num_ = 4;
   std::vector<base::DeviceType> device_types_;
 };
 

@@ -61,6 +61,9 @@ postprocess run()                                          100         4.728    
 DrawLableNode run()                                        100         20.905             0.209              0.209                             0.000 
 encode_node run()                                          100         1838.244           18.382             18.136                            0.000 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value /home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.staticshape.onnx.json,/home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.staticshape.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_nndeploy_acl_sample_output.jpg
 ```
 
 #### 推理后端为onnxruntime，推理执行设备为Arm
