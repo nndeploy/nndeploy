@@ -51,14 +51,16 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
 
   virtual base::Status setTimesteps();
 
-  virtual std::vector<float> &scaleModelInput(std::vector<float> &sample,
-                                              int index);
+  virtual base::Status scaleModelInput(device::Tensor *sample, int index);
 
-  virtual base::Status step(std::vector<float> &sample,
-                            std::vector<float> &prev_smaple,
-                            std::vector<float> &latents, int timestep);
+  virtual base::Status step(device::Tensor *sample, device::Tensor *timestep,
+                            device::Tensor *latents,
+                            device::Tensor *pre_sample);
 
   virtual std::vector<int> &getTimestep();
+
+  base::Status step(std::vector<float> &sample, std::vector<float> &prev_smaple,
+                    std::vector<float> &latents, int timestep);
 
  public:
   float final_alpha_cumprod_ = 1.0;

@@ -108,14 +108,44 @@ base::Status DDIMScheduler::setTimesteps() {
   return base::kStatusCodeOk;
 }
 
-std::vector<float> &DDIMScheduler::scaleModelInput(std::vector<float> &sample,
-                                                   int timestep) {
-  return sample;
+base::Status DDIMScheduler::scaleModelInput(device::Tensor *sample,
+                                            int timestep) {
+  return base::kStatusCodeOk;
 }
 
-base::Status DDIMScheduler::step(std::vector<float> &sample,
-                                 std::vector<float> &prev_sample,
-                                 std::vector<float> &latents, int timestep) {
+base::Status DDIMScheduler::step(device::Tensor *sample,
+                                 device::Tensor *timestep,
+                                 device::Tensor *latents,
+                                 device::Tensor *pre_sample) {
+  const float *sample_ = sample->getData();
+  size_t sample_size = sample->getSize();
+  std::vector<float> sample_v(sample_, sample_ + sample_size);
+
+  const float *timestep_ = timestep->getData();
+  size_t timestep_size = timestep->getSize();
+  std::vector<float> timestep_v(timestep_, timestep_ + timestep_size);
+
+  const float *latents_ = latents->getData();
+  size_t latents_size = latents->getSize();
+  std::vector<float> latents_v(latents_, latents_ + latents_size);
+
+  const float *pre_sample_ = pre_sample->getData();
+  size_t pre_sample_size = pre_sample->getSize();
+  std::vector<float> pre_sample_v(pre_sample_, pre_sample_ + pre_sample_size);
+
+  base::Status status = step(sample_v, timestep_v[0], latents_v, pre_sample_v);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("ddim scheduler step failed.\n");
+    return status;
+  }
+
+  memcpy(pre_sample_, pre_sample_v.data(), pre_sample_size);
+  return base::kStatusCodeOk;
+}
+
+base::Status DDIMScheduler::step(std::vector<float> &sample, int timestep,
+                                 std::vector<float> &latents,
+                                 std::vector<float> &prev_sample) {
   int step_index = -1;
   for (size_t i = 0; i < timesteps_.size(); i++) {
     if (timesteps_[i] == timestep) {

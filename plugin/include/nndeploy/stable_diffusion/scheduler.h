@@ -65,8 +65,18 @@ class NNDEPLOY_CC_API Scheduler {
    * @param index
    * @return device::Tensor*
    */
-  virtual std::vector<float> &scaleModelInput(std::vector<float> &sample,
-                                              int index) = 0;
+  virtual base::Status scaleModelInput(device::Tensor *sample, int index) = 0;
+  /**
+   * @brief
+   *
+   * @param sample
+   * @param timestep
+   * @param latents
+   * @param pre_sample
+   * @return base::Status
+   */
+  base::Status step(device::Tensor *sample, device::Tensor *timestep,
+                    device::Tensor *latents, device::Tensor *pre_sample) = 0;
 
   /**
    * @brief Get the Timestep object
@@ -128,17 +138,6 @@ class TypeSchedulerRegister {
  * @return Scheduler*
  */
 extern NNDEPLOY_CC_API Scheduler *createScheduler(SchedulerType type);
-
-/**
- * @brief
- *
- * @param start
- * @param end
- * @param steps
- * @param values
- */
-void customLinspace(float start, float end, int steps,
-                    std::vector<float> &values);
 
 /**
  * @brief

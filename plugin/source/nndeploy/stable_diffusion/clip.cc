@@ -14,7 +14,7 @@ class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
                          std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {}
 
-  virtual ~CvtTokenIds2TensorNode(){};
+  virtual ~CvtTokenIds2TensorNode() {}
 
   base::Status init() { return base::kStatusCodeOk; }
 
