@@ -140,7 +140,8 @@ base::Status PipelineRuntime::init(
 
       // 添加到相应列表
       if (is_input) {
-        NNDEPLOY_LOGE("i = %d, tensor %s is input\n", i, tensor->name_.c_str());
+        // NNDEPLOY_LOGE("i = %d, tensor %s is input\n", i,
+        // tensor->name_.c_str());
         if (input_output_tensors_.find(tensor->tensor_) ==
             input_output_tensors_.end()) {
           input_output_tensors_[tensor->tensor_] = new PipelineTensor();
@@ -152,8 +153,8 @@ base::Status PipelineRuntime::init(
         insertUnique(stage->input_tensors_, tensor->tensor_);
       }
       if (!is_input && is_output) {
-        NNDEPLOY_LOGE("i = %d, tensor %s is output\n", i,
-                      tensor->name_.c_str());
+        // NNDEPLOY_LOGE("i = %d, tensor %s is output\n", i,
+        //               tensor->name_.c_str());
         if (input_output_tensors_.find(tensor->tensor_) ==
             input_output_tensors_.end()) {
           input_output_tensors_[tensor->tensor_] = new PipelineTensor();
@@ -260,7 +261,7 @@ base::Status PipelineRuntime::init(
   // 将所有节点塞入线程池
   this->commitThreadPool();
 
-  NNDEPLOY_LOGI("PipelineRuntime commitThreadPool success\n");
+  // NNDEPLOY_LOGI("PipelineRuntime commitThreadPool success\n");
 
   return status;
 }
@@ -272,7 +273,7 @@ base::Status PipelineRuntime::deinit() {
     bool flag = completed_size_ == run_size_;
     return flag;
   });
-  NNDEPLOY_LOGI("Breakpoint\n");
+  // NNDEPLOY_LOGI("Breakpoint\n");
   for (auto &pair : input_output_tensors_) {
     PipelineTensor *pipeline_tensor = pair.second;
     std::lock_guard<std::mutex> lock(pipeline_tensor->mutex_);
