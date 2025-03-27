@@ -3,18 +3,81 @@
 #include "nndeploy/base/shape.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/framework.h"
+#include "nndeploy/stable_diffusion/text2image.h"
+#include "nndeploy/tokenizer/tokenizer.h"
 
 using namespace nndeploy;
 
-void printHelloWorld() { std::cout << "hello world!" << std::endl; }
-
-int main(int argc, char const *argv[]) {
+int main(int argc, char const* argv[]) {
   int ret = nndeployFrameworkInit();
   if (ret != 0) {
     NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
     return ret;
   }
-  printHelloWorld();
+
+  const std::string name = "txt2img_sd";
+  base::InferenceType clip_inference_type =
+      nndeploy::base::kInferenceTypeOnnxRuntime;
+  base::InferenceType unet_inference_type =
+      nndeploy::base::kInferenceTypeOnnxRuntime;
+  base::InferenceType vae_inference_type =
+      nndeploy::base::kInferenceTypeDefault;
+  stable_diffusion::SchedulerType scheduler_type =
+      stable_diffusion::kSchedulerTypeDDIM;
+  std::vector<base::Param*> param;
+
+  dag::Edge* prompt = new dag::Edge("prompt");
+  tokenizer::TokenizerText* prompt_text = new tokenizer::TokenizerText();
+  prompt_text->texts_ = {"a", "cute", "dog"};
+  prompt->set(prompt_text, 0);
+
+  dag::Edge* negative_prompt = new dag::Edge("negative_prompt");
+  tokenizer::TokenizerText* negative_prompt_text =
+      new tokenizer::TokenizerText();
+  negative_prompt_text->texts_ = {};
+  negative_prompt->set(negative_prompt_text, 0);
+
+  dag::Graph* graph = stable_diffusion::createStableDiffusionText2ImageGraph(
+      name, prompt, negative_prompt, clip_inference_type, unet_inference_type,
+      vae_inference_type, scheduler_type, param);
+
+  base::Status status = graph->setParallelType(base::kParallelTypeSequential);
+
+  graph->setTimeProfileFlag(true);
+
+  // 初始化有向无环图graph
+  NNDEPLOY_TIME_POINT_START("graph->init()");
+  status = graph->init();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph init failed");
+    return -1;
+  }
+  NNDEPLOY_TIME_POINT_END("graph->init()");
+
+  NNDEPLOY_TIME_POINT_START("graph->dump()");
+  status = graph->dump();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph dump failed");
+    return -1;
+  }
+  NNDEPLOY_TIME_POINT_END("graph->dump()");
+
+  NNDEPLOY_TIME_POINT_START("graph->run()");
+  status = graph->run();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph run failed");
+    return -1;
+  }
+  NNDEPLOY_TIME_POINT_END("graph->run()");
+
+  NNDEPLOY_TIME_POINT_START("graph->deinit()");
+  status = graph->deinit();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph deinit failed");
+    return -1;
+  }
+  NNDEPLOY_TIME_POINT_END("graph->deinit()");
+
   ret = nndeployFrameworkDeinit();
   if (ret != 0) {
     NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);

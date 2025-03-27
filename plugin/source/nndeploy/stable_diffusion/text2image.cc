@@ -78,11 +78,12 @@ class NNDEPLOY_CC_API SaveImageNode : public dag::Node {
 
 dag::Graph *createStableDiffusionText2ImageGraph(
     const std::string name, dag::Edge *prompt, dag::Edge *negative_prompt,
-    dag::Edge *output, base::InferenceType clip_inference_type,
+    base::InferenceType clip_inference_type,
     base::InferenceType unet_inference_type,
     base::InferenceType vae_inference_type, SchedulerType scheduler_type,
     std::vector<base::Param *> &param) {
-  dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt}, {output});
+  dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt},
+                                     std::vector<dag::Edge *>{});
 
   dag::Edge *text_embeddings = graph->createEdge("text_embeddings");
   dag::Graph *clip_graph =
@@ -96,6 +97,7 @@ dag::Graph *createStableDiffusionText2ImageGraph(
                          scheduler_type, unet_inference_type, param);
   graph->addNode(denoise_graph, false);
 
+  dag::Edge *output = graph->createEdge("output");
   dag::Node *vae_graph =
       createVAEGraph("vae", latents, output, vae_inference_type, param);
   graph->addNode(vae_graph, false);
