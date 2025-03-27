@@ -69,6 +69,31 @@ DrawMaskNode run()                         100         457.380            4.574 
 encode_node run()                          100         1125.285           11.253             0.000 
 graph->deinit()                            1           280.123            280.123            0.000 
 -----------------------------------------------------------------------------------------------------
+
+
+./nndeploy_demo_segment --name  nndeploy::segment::SegmentRMBGGraph --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value /home/ascenduserdg01/model/nndeploy/segment/RMBGV1.4.slim.onnx.json,/home/ascenduserdg01/model/nndeploy/segment/RMBGV1.4.slim.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --model_inputs input --model_outputs output --input_path ../docs/image/demo/segment/sample.jpg --output_path rbmg_nndeploy_acl_sample_output.jpg
+
+TimeProfiler: segment time profiler
+-----------------------------------------------------------------------------------------------------
+name                                       call_times  sum cost_time(ms)  avg cost_time(ms)  gflops
+-----------------------------------------------------------------------------------------------------
+graph->init()                              1           2134.711           2134.711           0.000 
+decode_node run()                          100         1845.830           18.458             0.000 
+graph->run()                               1           11253.403          11253.403          0.000 
+demo run()                                 100         0.038              0.000              0.000 
+nndeploy::segment::SegmentRMBGGraph run()  100         0.259              0.003              0.000 
+preprocess run()                           100         2831.822           28.318             0.000 
+infer run()                                100         11215.484          112.155            0.000 
+net->run()                                 400         484.571            1.211              0.000 
+synchronize_187651200929440                100         863.655            8.637              0.000 
+synchronize_187651203335440                100         865.467            8.655              0.000 
+synchronize_187651203340704                100         1022.689           10.227             0.000 
+synchronize_187651203344624                100         983.885            9.839              0.000 
+postprocess run()                          100         1295.336           12.953             0.000 
+DrawMaskNode run()                         100         678.027            6.780              0.000 
+encode_node run()                          99          1599.734           16.159             0.000 
+graph->deinit()                            1           813.114            813.114            0.000 
+-----------------------------------------------------------------------------------------------------
 ```
 
 #### 推理后端为onnxruntime，推理执行设备为Arm

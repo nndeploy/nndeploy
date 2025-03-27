@@ -21,6 +21,11 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
 
   virtual ~Infer();
 
+  virtual base::Status setInputName(const std::string &name, int index = 0);
+  virtual base::Status setOutputName(const std::string &name, int index = 0);
+  virtual base::Status setInputNames(const std::vector<std::string> &names);
+  virtual base::Status setOutputNames(const std::vector<std::string> &names);
+
   virtual base::Status setInferenceType(base::InferenceType inference_type);
 
   virtual base::Status setParam(base::Param *param);
@@ -42,6 +47,9 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
  private:
   base::InferenceType type_;
   std::shared_ptr<inference::Inference> inference_ = nullptr;
+
+  std::set<std::string> inference_input_names_;
+  std::set<std::string> inference_output_names_;
 
   bool is_input_dynamic_ = false;
   bool is_output_dynamic_ = false;

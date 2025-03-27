@@ -18,6 +18,10 @@ base::Status OpenCvImageDecodeNode::init() {
 base::Status OpenCvImageDecodeNode::deinit() { return base::kStatusCodeOk; }
 
 base::Status OpenCvImageDecodeNode::run() {
+  while (path_.empty() && parallel_type_ == base::kParallelTypePipeline) {
+    // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
+    ;
+  }
   if (path_changed_) {
     if (!base::exists(path_)) {
       NNDEPLOY_LOGE("path[%s] is not exists!\n", path_.c_str());
@@ -40,6 +44,10 @@ base::Status OpenCvImagesDecodeNode::deinit() {
 }
 
 base::Status OpenCvImagesDecodeNode::run() {
+  while (path_.empty() && parallel_type_ == base::kParallelTypePipeline) {
+    // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
+    ;
+  }
   if (path_changed_) {
     index_ = 0;
     if (base::isDirectory(path_)) {
@@ -123,6 +131,10 @@ base::Status OpenCvVedioDecodeNode::deinit() {
 }
 
 base::Status OpenCvVedioDecodeNode::run() {
+  while (path_.empty() && parallel_type_ == base::kParallelTypePipeline) {
+    // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
+    ;
+  }
   if (index_ < size_) {
     cv::Mat *mat = new cv::Mat();
     cap_->read(*mat);

@@ -27,6 +27,9 @@ enum OptPassType : int {
 
   // Constant Folding
   kOptPassTypeFoldConstant,
+
+  // QDQ fuse
+  kOptPassTypeFuseQdq,
 };
 
 class Net;
@@ -52,6 +55,21 @@ class OptPass {
   virtual int seqPatternMatch(std::vector<TensorWrapper*>& tensor_repository,
                               std::vector<OpWrapper*>& op_repository,
                               const std::vector<ir::OpType>& types,
+                              int begin_op_index);
+
+  /**
+   * @brief
+   *
+   * @param tensor_repository
+   * @param op_repository
+   * @param types 重载了上一个函数实现，对于type支持定义多种类型的type；
+   * @param begin_op_index
+   * @return op_repository中匹配到的首个op的index，如果未匹配到则返回-1
+   */
+  virtual int seqPatternMatch(std::vector<TensorWrapper*>& tensor_repository,
+                              std::vector<OpWrapper*>& op_repository,
+                              const std::vector<OpSet>& types,
+                              std::vector<ir::OpType>& matched_types,
                               int begin_op_index);
 
   /**
@@ -112,7 +130,7 @@ class OptPass {
   std::string name_;  // pass名称
 
   Net* net_ =
-      nullptr;  //该pass所属的Net，可能要修改Net内部的数据，例如释放某些tensor
+      nullptr;  // 该pass所属的Net，可能要修改Net内部的数据，例如释放某些tensor
 };
 
 /**
@@ -121,7 +139,7 @@ class OptPass {
  */
 class OptPassCreator {
  public:
-  virtual ~OptPassCreator(){};
+  virtual ~OptPassCreator() {};
 
   virtual std::shared_ptr<OptPass> createOptPass() = 0;
 };

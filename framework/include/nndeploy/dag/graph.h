@@ -423,6 +423,19 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   base::Status updateNodeIO(Node *node, std::vector<Edge *> inputs,
                             std::vector<Edge *> outputs);
+  base::Status markInputEdge(std::vector<Edge *> inputs) {
+    for (auto input : inputs) {
+      insertUnique(inputs_, input);
+    }
+    return base::kStatusCodeOk;
+  };
+  base::Status markOutputEdge(std::vector<Edge *> outputs) {
+    for (auto output : outputs) {
+      // output->markGraphOutput();
+      insertUnique(outputs_, output);
+    }
+    return base::kStatusCodeOk;
+  };
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -432,68 +445,85 @@ class NNDEPLOY_CC_API Graph : public Node {
   // This method must be implemented by subclasses
   // Subclasses should override this method to define their own operator()
   // implementation
-  virtual std::vector<Edge *> operator()(
-      std::vector<Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr) {
+  virtual std::vector<Edge *> forward(std::vector<Edge *> inputs) {
     // check
-    if (!checkInputs(inputs)) {
-      return std::vector<Edge *>();
-    }
-    if (!checkOutputs(outputs_name)) {
-      return std::vector<Edge *>();
-    }
-    if (param != nullptr) {
-      this->setParamSharedPtr(param);
-    }
-    bool is_inputs_changed = isInputsChanged(inputs);
-    if (!inputs.empty()) {
-      this->setInputs(inputs);
-    }
-    std::vector<std::string> real_outputs_name =
-        this->getRealOutputsName(outputs_name);
+    // if (!checkInputs(inputs)) {
+    //   return std::vector<Edge *>();
+    // }
+    // if (!checkOutputs(outputs_name)) {
+    //   return std::vector<Edge *>();
+    // }
+    // if (param != nullptr) {
+    //   this->setParamSharedPtr(param);
+    // }
+    // bool is_inputs_changed = isInputsChanged(inputs);
+    // if (!inputs.empty()) {
+    //   this->setInputs(inputs);
+    // }
+    // std::vector<std::string> real_outputs_name = this->getRealOutputsName();
+    // std::vector<Edge *> outputs;
+    // for (auto name : real_outputs_name) {
+    //   Edge *edge = nullptr;
+    //   if (graph_ != nullptr) {
+    //     edge = graph_->getEdge(name);
+    //     if (edge != nullptr) {
+    //       outputs.push_back(edge);
+    //     }
+    //   }
+    //   if (edge == nullptr) {
+    //     edge = this->createEdge(name);
+    //     if (edge != nullptr) {
+    //       outputs.push_back(edge);
+    //     } else {
+    //       NNDEPLOY_LOGE("createEdge failed.\n");
+    //       return std::vector<Edge *>();
+    //     }
+    //   }
+    // }
+    // if (!outputs.empty()) {
+    //   this->setOutputs(outputs);
+    // }
+    // if (graph_ != nullptr) {
+    //   base::Status status = graph_->updateNodeIO(this, inputs, outputs);
+    //   if (status != base::kStatusCodeOk) {
+    //     NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+    //     return std::vector<Edge *>();
+    //   }
+    // }
+    // if (!is_inputs_changed && is_compiled_) {
+    //   if (initialized_ == false) {
+    //     this->init();
+    //     this->setInitializedFlag(true);
+    //   }
+    //   base::Status status = this->run();
+    //   if (status != base::kStatusCodeOk) {
+    //     NNDEPLOY_LOGE("this->run() failed.\n");
+    //     return std::vector<Edge *>();
+    //   }
+    // }
     std::vector<Edge *> outputs;
-    for (auto name : real_outputs_name) {
-      Edge *edge = nullptr;
-      if (graph_ != nullptr) {
-        edge = graph_->getEdge(name);
-        if (edge != nullptr) {
-          outputs.push_back(edge);
-        }
-      }
-      if (edge == nullptr) {
-        edge = this->createEdge(name);
-        if (edge != nullptr) {
-          outputs.push_back(edge);
-        } else {
-          NNDEPLOY_LOGE("createEdge failed.\n");
-          return std::vector<Edge *>();
-        }
-      }
-    }
-    if (!outputs.empty()) {
-      this->setOutputs(outputs);
-    }
+    return outputs;
+  };
+  virtual std::vector<Edge *> operator()(
+      std::vector<Edge *> inputs) {
+    this->markInputEdge(inputs);
+    std::vector<Edge *> outputs = this->forward(inputs);
     if (graph_ != nullptr) {
       base::Status status = graph_->updateNodeIO(this, inputs, outputs);
+      // for (auto input : inputs) {
+      //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
+      // }
+      // for (auto output : outputs) {
+      //   NNDEPLOY_LOGE("output->getName(): %s.\n", output->getName().c_str());
+      // }
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
         return std::vector<Edge *>();
       }
     }
-    if (!is_inputs_changed && is_compiled_) {
-      if (initialized_ == false) {
-        this->init();
-        this->setInitializedFlag(true);
-      }
-      base::Status status = this->run();
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("this->run() failed.\n");
-        return std::vector<Edge *>();
-      }
-    }
+    this->markOutputEdge(outputs);
     return outputs;
-  };
+  }
 
   base::Status dump(std::ostream &oss = std::cout);
 

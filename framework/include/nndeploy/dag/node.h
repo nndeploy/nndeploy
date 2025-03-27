@@ -82,6 +82,16 @@ class NNDEPLOY_CC_API Node {
   virtual ~Node();
 
   std::string getName();
+  // std::vector<std::string> getKey();
+
+  std::vector<std::string> getInputNames();
+  std::vector<std::string> getOutputNames();
+  std::string getInputName(int index = 0);
+  std::string getOutputName(int index = 0);
+  virtual base::Status setInputName(const std::string &name, int index = 0);
+  virtual base::Status setOutputName(const std::string &name, int index = 0);
+  virtual base::Status setInputNames(const std::vector<std::string> &names);
+  virtual base::Status setOutputNames(const std::vector<std::string> &names);
 
   base::Status setGraph(Graph *graph);
   Graph *getGraph();
@@ -191,18 +201,17 @@ class NNDEPLOY_CC_API Node {
    * @note
    * 内存由node管理
    */
+  virtual std::vector<Edge *> forward(
+      std::vector<Edge *> inputs);
   virtual std::vector<Edge *> operator()(
-      std::vector<Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr);
+      std::vector<Edge *> inputs);
 
   bool checkInputs(std::vector<Edge *> &inputs);
   bool checkOutputs(std::vector<std::string> &outputs_name);
   bool checkOutputs(std::vector<Edge *> &outputs);
   bool isInputsChanged(std::vector<Edge *> inputs);
 
-  virtual std::vector<std::string> getRealOutputsName(
-      std::vector<std::string> outputs_name);
+  virtual std::vector<std::string> getRealOutputsName();
 
  protected:
   std::string name_;
@@ -279,7 +288,7 @@ class NodeFactory {
     return &instance;
   }
 
-  void registerNode(const std::string &node_key, NodeCreator *creator) {
+  void registerNode(const std::string &node_key, std::shared_ptr<NodeCreator> creator) {
     auto it = creators_.find(node_key);
     if (it != creators_.end()) {
       NNDEPLOY_LOGE("Node name %s already exists!\n", node_key.c_str());
@@ -288,7 +297,7 @@ class NodeFactory {
     creators_[node_key] = creator;
   }
 
-  NodeCreator *getCreator(const std::string &node_key) {
+  std::shared_ptr<NodeCreator> getCreator(const std::string &node_key) {
     auto it = creators_.find(node_key);
     if (it != creators_.end()) {
       return it->second;
@@ -298,18 +307,14 @@ class NodeFactory {
 
  private:
   NodeFactory() = default;
-  ~NodeFactory() {
-    for (auto &creator : creators_) {
-      delete creator.second;
-    }
-  }
-  std::map<std::string, NodeCreator *> creators_;
+  ~NodeFactory() = default;
+  std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
 };
 
 #define REGISTER_NODE(node_key, node_class)                          \
   static auto register_node_creator_##node_class = []() {            \
     nndeploy::dag::NodeFactory::getInstance()->registerNode(         \
-        node_key, new nndeploy::dag::TypeNodeCreator<node_class>()); \
+        node_key, std::make_shared<nndeploy::dag::TypeNodeCreator<node_class>>()); \
     return 0;                                                        \
   }();
 

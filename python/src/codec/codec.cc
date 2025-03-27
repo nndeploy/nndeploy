@@ -28,11 +28,10 @@ class PyEncodeNode : public EncodeNode {
 };
 
 NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
-  py::class_<DecodeNode, PyDecodeNode, dag::Node>(
-      m, "DecodeNode")
+  py::class_<DecodeNode, PyDecodeNode, dag::Node>(m, "DecodeNode")
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
-                   std::vector<dag::Edge *>, base::CodecFlag>())
+                    std::vector<dag::Edge *>, base::CodecFlag>())
       .def("set_codec_flag", &DecodeNode::setCodecFlag, py::arg("flag"))
       .def("get_codec_flag", &DecodeNode::getCodecFlag)
       .def("set_path", &DecodeNode::setPath, py::arg("path"))
@@ -41,14 +40,13 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
       .def("get_fps", &DecodeNode::getFps)
       .def("get_width", &DecodeNode::getWidth)
       .def("get_height", &DecodeNode::getHeight)
-      .def("update_input", &DecodeNode::updataInput)
+      .def("update_input", &DecodeNode::updateInput)
       .def("run", &DecodeNode::run);
 
-  py::class_<EncodeNode, PyEncodeNode, dag::Node>(
-      m, "EncodeNode")
+  py::class_<EncodeNode, PyEncodeNode, dag::Node>(m, "EncodeNode")
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
-                   std::vector<dag::Edge *>, base::CodecFlag>())
+                    std::vector<dag::Edge *>, base::CodecFlag>())
       .def("set_codec_flag", &EncodeNode::setCodecFlag, py::arg("flag"))
       .def("get_codec_flag", &EncodeNode::getCodecFlag)
       .def("set_path", &EncodeNode::setPath, py::arg("path"))
@@ -62,16 +60,18 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
 
   // 导出创建节点的函数
   m.def("create_decode_node", &createDecodeNode, py::arg("type"),
-        py::arg("flag"), py::arg("name"), py::arg("output"), 
+        py::arg("flag"), py::arg("name"), py::arg("output"),
         py::return_value_policy::reference);
-  // m.def("create_decode_node_shared_ptr", &createDecodeNodeSharedPtr, py::arg("type"),
-  //       py::arg("flag"), py::arg("name"), py::arg("output"), 
+  // m.def("create_decode_node_shared_ptr", &createDecodeNodeSharedPtr,
+  // py::arg("type"),
+  //       py::arg("flag"), py::arg("name"), py::arg("output"),
   //       py::return_value_policy::reference);
   m.def("create_encode_node", &createEncodeNode, py::arg("type"),
-        py::arg("flag"), py::arg("name"), py::arg("input"), 
+        py::arg("flag"), py::arg("name"), py::arg("input"),
         py::return_value_policy::reference);
-  // m.def("create_encode_node_shared_ptr", &createEncodeNodeSharedPtr, py::arg("type"),
-  //       py::arg("flag"), py::arg("name"), py::arg("input"), 
+  // m.def("create_encode_node_shared_ptr", &createEncodeNodeSharedPtr,
+  // py::arg("type"),
+  //       py::arg("flag"), py::arg("name"), py::arg("input"),
   //       py::return_value_policy::reference);
 }
 

@@ -11,14 +11,14 @@ import onnxruntime as ort
 def get_net(args):
     _C.nndeployFrameworkInit()
     if args.model_type == "onnx":
-        interpret = _C.ir.createInterpret(_C.base.ModelType.kModelTypeOnnx)
+        interpret = _C.ir.create_interpret(_C.base.ModelType.Onnx)
         assert interpret != None
 
         interpret.interpret(args.model_path)
         interpret.save_model_to_file("resnet50.json", "resnet50.safetensors")
 
     elif args.model_type == "default":
-        default_interpret = _C.ir.createInterpret(_C.base.ModelType.kModelTypeDefault)
+        default_interpret = _C.ir.create_interpret(_C.base.ModelType.Default)
         assert default_interpret != None
         interpret.interpret(args.model_path)
 

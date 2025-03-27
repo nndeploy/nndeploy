@@ -124,7 +124,7 @@ std::shared_ptr<Expr> makeConv(ir::ModelDesc *model_desc,
   return expr;
 }
 
-std::shared_ptr<Expr> makeSoftMax(ir::ModelDesc *model_desc,
+std::shared_ptr<Expr> makeSoftmax(ir::ModelDesc *model_desc,
                                   std::shared_ptr<Expr> input,
                                   std::shared_ptr<ir::SoftmaxParam> param,
                                   std::string op_name,

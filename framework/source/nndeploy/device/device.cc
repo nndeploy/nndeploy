@@ -70,6 +70,7 @@ void *Device::allocatePinned(const BufferDesc &desc) { return nullptr; }
 void Device::deallocatePinned(void *ptr) { return; }
 
 void *Device::getContext() { return nullptr; }
+base::Status Device::bindThread() { return base::kStatusCodeOk; }
 
 Stream *Device::createStream() { return nullptr; }
 Stream *Device::createStream(void *stream) { return nullptr; }
@@ -144,7 +145,8 @@ Architecture *getArchitecture(base::DeviceTypeCode type) {
   }
 }
 
-std::shared_ptr<Architecture> getArchitectureSharedPtr(base::DeviceTypeCode type) {
+std::shared_ptr<Architecture> getArchitectureSharedPtr(
+    base::DeviceTypeCode type) {
   auto arch_map = getArchitectureMap();
   auto arch = arch_map.find(type);
   if (arch == arch_map.end()) {

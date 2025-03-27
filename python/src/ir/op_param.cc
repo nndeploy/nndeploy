@@ -16,10 +16,10 @@ class PyOpParamCreator : public OpParamCreator {
   // 重写纯虚函数
   std::shared_ptr<base::Param> createOpParam(OpType type) override {
     PYBIND11_OVERLOAD_PURE_NAME(std::shared_ptr<base::Param>,  // 返回类型
-                           OpParamCreator,                // 父类
-                           "create_op_param",               // 函数名
-                           createOpParam,               // 函数名
-                           type                           // 参数
+                                OpParamCreator,                // 父类
+                                "create_op_param",             // 函数名
+                                createOpParam,                 // 函数名
+                                type                           // 参数
     );
   }
 };
@@ -302,6 +302,27 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       .def_readwrite("beta_", &GemmParam::beta_)
       .def_readwrite("trans_a_", &GemmParam::trans_a_)
       .def_readwrite("trans_b_", &GemmParam::trans_b_);
+
+  py::class_<QuantizeLinearParam, OpParam,
+             std::shared_ptr<QuantizeLinearParam>>(m, "QuantizeLinearParam")
+      .def(py::init<>())
+      .def_readwrite("axis_", &QuantizeLinearParam::axis_)
+      .def_readwrite("saturate_", &QuantizeLinearParam::saturate_);
+
+  py::class_<DequantizeLinearParam, OpParam,
+             std::shared_ptr<DequantizeLinearParam>>(m, "DequantizeLinearParam")
+      .def(py::init<>())
+      .def_readwrite("axis_", &DequantizeLinearParam::axis_);
+
+  py::class_<QLinearConvParam, OpParam, std::shared_ptr<QLinearConvParam>>(
+      m, "QLinearConvParam")
+      .def(py::init<>())
+      .def_readwrite("auto_pad_", &QLinearConvParam::auto_pad_)
+      .def_readwrite("dilations_", &QLinearConvParam::dilations_)
+      .def_readwrite("group_", &QLinearConvParam::group_)
+      .def_readwrite("kernel_shape_", &QLinearConvParam::kernel_shape_)
+      .def_readwrite("pads_", &QLinearConvParam::pads_)
+      .def_readwrite("strides_", &QLinearConvParam::strides_);
 }
 }  // namespace ir
 }  // namespace nndeploy

@@ -54,7 +54,7 @@ def global_averagepool(input):
 
 def maxpool(input, kernel_size, stride=1, padding=0, dilation=1, ceil_mode=False):
     param = _C.ir.MaxPoolParam()
-    param.kernel_shape_ = [kernel_size] *2
+    param.kernel_shape_ = [kernel_size] * 2
     param.strides_ = [stride] * 2
     param.pads_ = [padding] * 4
     param.dilations_ = [dilation] * 2
@@ -65,3 +65,56 @@ def maxpool(input, kernel_size, stride=1, padding=0, dilation=1, ceil_mode=False
 def mul(input1, input2):
     return _C.op.mul(input1, input2)
 
+
+def softmax(input, axis=-1):
+    param = _C.ir.SoftmaxParam()
+    param.axis_ = axis
+    return _C.op.softmax(input, param)
+
+
+def quantize_linear(input, scale, zero_point, axis=1, saturate=True):
+    param = _C.ir.QuantizeLinearParam()
+    param.axis_ = axis
+    param.saturate_ = saturate
+    return _C.op.quantize_linear(input, scale, zero_point, param)
+
+
+def dequantize_linear(input, scale, zero_point, axis=1):
+    param = _C.ir.DequantizeLinearParam()
+    param.axis_ = axis
+    return _C.op.dequantize_linear(input, scale, zero_point, param)
+
+
+def qlinear_conv(
+    x,
+    x_scale,
+    x_zero_point,
+    w,
+    w_scale,
+    w_zero_point,
+    y_scale,
+    y_zero_point,
+    bias=None,
+    stride=1,
+    padding=0,
+    dilation=1,
+    groups=1,
+):
+    param = _C.ir.QLinearConvParam()
+    param.kernel_shape_ = [w.shape[2], w.shape[3]]
+    param.stride_ = [stride, stride]
+    param.padding_ = [padding, padding]
+    param.dilation_ = [dilation, dilation]
+    param.groups_ = groups
+    return _C.op.qlinear_conv(
+        x,
+        x_scale,
+        x_zero_point,
+        w,
+        w_scale,
+        w_zero_point,
+        y_scale,
+        y_zero_point,
+        bias,
+        param,
+    )

@@ -25,9 +25,9 @@ class ExprDemo : public ir::ModelDesc {
     auto pool1 = op::makeMaxPool(this, input, pool_param);
     auto relu1 = op::makeRelu(this, pool1);
     auto softmax_0 =
-        op::makeSoftMax(this, relu1, std::make_shared<ir::SoftmaxParam>());
+        op::makeSoftmax(this, relu1, std::make_shared<ir::SoftmaxParam>());
     auto softmax_1 =
-        op::makeSoftMax(this, relu1, std::make_shared<ir::SoftmaxParam>());
+        op::makeSoftmax(this, relu1, std::make_shared<ir::SoftmaxParam>());
 
     auto add = op::makeAdd(this, softmax_0, softmax_1);
 

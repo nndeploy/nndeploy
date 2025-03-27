@@ -38,11 +38,7 @@ class FuseConvAct : public OptPass {
                                 std::vector<OpWrapper*>& op_repository,
                                 int begin_op_index) final;
 
-  int seqPatternMatch(std::vector<TensorWrapper*>& tensor_repository,
-                      std::vector<OpWrapper*>& op_repository,
-                      const std::vector<OpSet>& types,
-                      std::vector<ir::OpType>& matched_types,
-                      int begin_op_index);
+ private:
   std::vector<OpSet> types{{ir::kOpTypeConv},  // first conv_type
                            {ir::kOpTypeRelu, ir::kOpTypeSigmoid}};
 };
