@@ -121,7 +121,12 @@ class DenoiseGraph : public dag::Loop {
       dag::Edge *unet_outputs = this->getEdge("unet_outputs");
       device::Tensor *unet_output_tensor = unet_outputs->getTensor(this);
       if (do_classifier_free_guidance) {
-        // op::split(unet_output_tensor, 0, noise_pred_uncond, noise_pred);
+        std::vector<device::Tensor *> outputs = {noise_pred_uncond, noise_pred};
+        std::shared_ptr<ir::SplitParam> split_param =
+            std::make_shared<ir::SplitParam>();
+        split_param->axis_ = 0;
+        split_param->num_outputs_ = 2;
+        op::split(unet_output_tensor, split_param, outputs);
         op::sub(noise_sub, noise_pred, noise_pred_uncond);
         op::muls(scalar, noise_muls, noise_sub);
         op::add(noise_pred, noise_muls, noise_pred_uncond);

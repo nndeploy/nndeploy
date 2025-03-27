@@ -72,14 +72,82 @@ base::Status OpSplit::inferShape() {
 }
 
 base::Status OpSplit::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
-  return base::kStatusCodeOk;
+  base::Status status = base::kStatusCodeOk;
+  // 获取输入张量
+  device::Tensor *input_tensor = inputs_[0];
+
+  // 获取softmax参数
+  auto param = dynamic_cast<ir::SplitParam *>(op_desc_.op_param_.get());
+  int axis = param->axis_;
+  int num_outputs = param->num_outputs_;
+
+  // 获取输入的维度信息
+  auto input_shape = input_tensor->getShape();
+  int rank = input_shape.size();
+  if (input_shape[axis] % num_outputs != 0) {
+    NNDEPLOY_LOGE("Axis dimension is not evenly divisible by num_outputs.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  int outer_size = 1, inner_size = 1;
+  for (int i = 0; i < axis; i++) {
+    outer_size *= input_shape[i];
+  }
+  for (int i = axis + 1; i < rank; i++) {
+    inner_size *= input_shape[i];
+  }
+
+  int split_size = input_shape[axis] / num_outputs;
+
+  const float *input_data = (const float *)inputs_[0]->getData();
+  int offset = 0;
+  for (int i = 0; i < num_outputs; ++i) {
+    float *output_data = (float *)outputs_[i]->getData();
+    int copy_size = split_size * inner_size;
+
+    for (int outer = 0; outer < outer_size; ++outer) {
+      memcpy(output_data + outer * copy_size,
+             input_data + offset + outer * input_shape[axis] * inner_size,
+             copy_size * sizeof(float));
+    }
+    offset += copy_size;
+  }
+
+  return status;
 }
 
 base::Status split(device::Tensor *input, std::shared_ptr<ir::SplitParam> param,
                    std::vector<device::Tensor *> outputs) {
-  NNDEPLOY_LOGI("not implemented.\n");
-  return base::kStatusCodeOk;
+  base::Status status = base::kStatusCodeOk;
+
+  Op *op = createOp(input->getDeviceType(), "", ir::kOpTypeSplit);
+  if (op == nullptr) {
+    NNDEPLOY_LOGE("create Split Op failed");
+    return base::kStatusCodeErrorNotImplement;
+  }
+  status = op->setParam(param);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
+  status = op->setInput(input, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  for (size_t i = 0; i < outputs.size(); i++) {
+    status = op->setOutput(outputs[i], i);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
+  }
+  status = op->init();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
+  status = op->checkOrAllocOutput();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "checkOrAllocOutput failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
+  status = op->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
+  status = op->postRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "postRun failed");
+  status = op->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
+  delete op;
+  return status;
 }
 
 REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeSplit, OpSplit)
