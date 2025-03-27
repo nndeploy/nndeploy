@@ -3,11 +3,11 @@ import numpy as np
 import torch
 import nndeploy
 
-from nndeploy.test_utils import create_tensor_from_numpy, createNumpyFromTensor
+from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
 from nndeploy.net import build_model
 
 from nndeploy.net import EliminateCommonSubexpression, FuseConvBatchNorm
-
+import nndeploy._nndeploy_internal as _C
 
 """
 原始模型为：
@@ -211,11 +211,9 @@ class TestNet(nndeploy.net.Model):
 
     @build_model
     def construct(self, enable_net_opt=True, enable_pass=[], disable_pass=[]):
-        data_type = nndeploy._C.base.DataType()
-        data_type.code_ = nndeploy._C.base.DataTypeCode.kDataTypeCodeFp
-        data0 = nndeploy._C.op.makeInput(
-            self.model_desc, "input", data_type, [1, 3, 32, 32]
-        )
+        data_type = _C.base.DataType()
+        data_type.code_ = _C.base.DataTypeCode.Fp
+        data0 = _C.op.makeInput(self.model_desc, "input", data_type, [1, 3, 32, 32])
 
         data1 = self.conv1(data0)
         data1 = self.batch_norm1(data1)
@@ -239,20 +237,19 @@ class TestNet(nndeploy.net.Model):
 
 def compare(model, file_path):
 
-    
     model.net.setInputs(nndeploy_input_map)
     model.net.dump(file_path)
     nndeploy_result = model.run()
 
     assert np.allclose(
         torch_result0.detach().numpy(),
-        createNumpyFromTensor(nndeploy_result[0]),
+        create_numpy_from_tensor(nndeploy_result[0]),
         rtol=1e-03,
         atol=1e-03,
     )
     assert np.allclose(
         torch_result1.detach().numpy(),
-        createNumpyFromTensor(nndeploy_result[1]),
+        create_numpy_from_tensor(nndeploy_result[1]),
         rtol=1e-03,
         atol=1e-03,
     )

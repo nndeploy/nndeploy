@@ -142,4 +142,73 @@ device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2) {
   return result;
 }
 
+device::Tensor* softmaxFunc(device::Tensor* input1,
+                            std::shared_ptr<ir::SoftmaxParam> param) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("softmax.output");
+  base::Status status = op::softmax(input1, param, result);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::softmax failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
+}
+
+device::Tensor* quantizeLinearFunc(
+    device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
+    std::shared_ptr<ir::QuantizeLinearParam> param) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("quantize_linear.output");
+  base::Status status =
+      op::quantizeLinear(input, scale, zero_point, param, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::quantize_linear failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* dequantizeLinearFunc(
+    device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
+    std::shared_ptr<ir::DequantizeLinearParam> param) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("dequantize_linear.output");
+  base::Status status =
+      op::dequantizeLinear(input, scale, zero_point, param, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::dequantize_linear failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
+device::Tensor* qlinearConvFunc(device::Tensor* x, device::Tensor* x_scale,
+                                device::Tensor* x_zero_point, device::Tensor* w,
+                                device::Tensor* w_scale,
+                                device::Tensor* w_zero_point,
+                                device::Tensor* y_scale,
+                                device::Tensor* y_zero_point, device::Tensor* B,
+                                std::shared_ptr<ir::QLinearConvParam> param) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("qlinear_conv.output");
+  base::Status status =
+      op::qLinearConv(x, x_scale, x_zero_point, w, w_scale, w_zero_point,
+                       y_scale, y_zero_point, B, param, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::qLinearConv failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
 }  // namespace nndeploy

@@ -63,8 +63,8 @@ def build_model(func):
             
         self.net.setEnablePass(enable_pass)
         self.net.setDisablePass(disable_pass)
-
-        self.model_desc.set_weights(self.weight_map)
+        if self.weight_map != None:
+            self.model_desc.set_weights(self.weight_map)
         self.net.init()
 
         return result
@@ -78,7 +78,7 @@ class Model:
         self.model_desc = ModelDesc()
         self.net = Net()
         self.device_type = DeviceType("cpu", 0)
-        self.weight_map = None  # 如果判定weight_map是空的，那就随机生成名字和权重数据
+        self.weight_map = None  
 
     @build_model
     def construct(self, enable_net_opt=True, enable_pass=set(), disable_pass=set()):

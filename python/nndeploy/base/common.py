@@ -1216,10 +1216,7 @@ class Param(_C.base.Param):
 
     def set(self, dic : dict):
         for k, v in dic.items():
-            if k in self._default_dic:
-                self._default_dic[k] = v   
-            else:
-                print(f"Unsupported key: {k}")
+            self._default_dic[k] = v 
 
     def get(self, key: str):
         if key in self._default_dic:

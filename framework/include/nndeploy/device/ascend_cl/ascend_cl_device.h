@@ -73,6 +73,7 @@ class NNDEPLOY_CC_API AscendCLDevice : public Device {
 
   // context
   virtual void *getContext();
+  virtual base::Status bindThread();
 
   // stream
   virtual Stream *createStream();

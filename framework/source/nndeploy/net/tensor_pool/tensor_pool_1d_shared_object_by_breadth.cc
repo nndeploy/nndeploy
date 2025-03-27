@@ -39,14 +39,17 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
   }
 
   for (const auto &task : op_breadths_) {
+    // NNDEPLOY_LOGE("task[%s] = %ld, length = %ld.\n",
+    //               task->op_wrapper_->op_->getName().c_str(), task->size_,
+    //               task->breadth_.size());
     // 遍历当前task的所有tensor usuage
     for (auto &tensor_usuage : task->breadth_) {
       if (assigned_tensors_.count(tensor_usuage) != 0) {
         continue;
       }
 
-      NNDEPLOY_LOGE("tensor name = %s.\n",
-                    tensor_usuage->tensor_wrapper_->tensor_->getName().c_str());
+      // NNDEPLOY_LOGE("tensor name = %s.\n",
+      //               tensor_usuage->tensor_wrapper_->tensor_->getName().c_str());
 
       std::shared_ptr<Chunk> best_chunk = nullptr;  // 最佳适配的chunk
 
@@ -73,16 +76,18 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
         if (isInterval(tensor_usuage->interval_, chunks_[i]->intervals_)) {
           continue;
         }
+        // if (chunk_sizes_[best_chunk] >= tensor_usuage->size_) {
+        //   best_chunk = chunks_[i];
+        // }
         best_chunk = chunks_[i];
       }
       if (best_chunk ==
           nullptr) {  // 需要创建一个新的，此时延迟开辟，仅记录该Chunk的存在和size
-        NNDEPLOY_LOGE("Create a new chunk\n");
         best_chunk = std::make_shared<Chunk>();
-        NNDEPLOY_LOGE(
-            "tensor name = %s.\n",
-            tensor_usuage->tensor_wrapper_->tensor_->getName().c_str());
-        NNDEPLOY_LOGE("size_=%ld.\n", tensor_usuage->size_);
+        // NNDEPLOY_LOGE(
+        //     "tensor name[%s] = %ld.\n",
+        //     tensor_usuage->tensor_wrapper_->tensor_->getName().c_str(),
+        //     tensor_usuage->size_);
         size_t size = tensor_usuage->size_;
         chunk_sizes_[best_chunk] = size;
         std::array<int, 2> interval = tensor_usuage->interval_;
@@ -90,6 +95,8 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
         chunks_.push_back(best_chunk);
 
       } else {
+        std::array<int, 2> interval = tensor_usuage->interval_;
+        best_chunk->intervals_.push_back(interval);
         chunk_sizes_[best_chunk] =
             std::max(chunk_sizes_[best_chunk], tensor_usuage->size_);  // 扩容
       }
@@ -127,6 +134,9 @@ base::Status TensorPool1DSharedObjectGreedyByBreadth::allocate() {
       tensor->tensor_wrapper_->tensor_->justModify(buffer, false);
     }
   }
+
+  tensorUsageRecordPrint(tensor_usage_records_);
+  chunkPrint(chunks_);
 
   return status;
 }

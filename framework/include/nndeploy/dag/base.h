@@ -46,6 +46,7 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
     type_name_ = other.type_name_;
     type_ptr_ = other.type_ptr_;
     type_holder_ = other.type_holder_;
+    edge_name_ = other.edge_name_;
   }
 
   EdgeTypeInfo& operator=(const EdgeTypeInfo& other) {
@@ -54,13 +55,14 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
       type_name_ = other.type_name_;
       type_ptr_ = other.type_ptr_;
       type_holder_ = other.type_holder_;
+      edge_name_ = other.edge_name_;
     }
     return *this;
   }
 
   bool operator==(const EdgeTypeInfo& other) const {
     return (type_ == other.type_ && type_name_ == other.type_name_ &&
-            type_ptr_ == other.type_ptr_);
+            type_ptr_ == other.type_ptr_ && edge_name_ == other.edge_name_);
   }
 
   bool operator!=(const EdgeTypeInfo& other) const { return !(*this == other); }
@@ -165,6 +167,9 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
     return true;
   }
 
+  void setEdgeName(const std::string& edge_name) { edge_name_ = edge_name; }
+  std::string getEdgeName() const { return edge_name_; }
+
  public:
   // Type holder base class
   struct TypeHolderBase {
@@ -181,6 +186,7 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
   std::string type_name_;
   const std::type_info* type_ptr_{nullptr};
   std::shared_ptr<TypeHolderBase> type_holder_;
+  std::string edge_name_;
 };
 
 }  // namespace dag

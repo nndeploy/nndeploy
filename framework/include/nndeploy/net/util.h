@@ -94,6 +94,9 @@ base::Status topoSort(std::vector<OpWrapper *> &op_repository,
 bool checkTensor(const std::vector<device::Tensor *> &src_tensors,
                  const std::vector<device::Tensor *> &dst_tensors);
 
+void printNetInfo(const std::vector<OpWrapper *> &op_repository,
+                  const std::vector<TensorWrapper *> &tensor_repository);
+
 /**
  * @brief 对vector插入不在vector中的元素，即类似集合的作用
  * @tparam T

@@ -8,7 +8,6 @@ import nndeploy.base
 from nndeploy.device import BufferDesc, TensorDesc, Architecture, Device, Stream, Event, MemoryPool, Buffer, Tensor
 import time
 
-
 ## cd ../../../
 ## pip install -e .
 ## cd nndeploy/test/device python3 test_device.py
@@ -111,12 +110,40 @@ def test_tensor():
     tensor_from_numpy = Tensor.from_numpy(numpy_array)
     print(numpy_array)
     print(tensor_from_numpy)
+    
+
+def test_tensor_from_numpy():
+    x = np.int32(123)
+    y = np.int32(4)
+    # z = np.int32(79)
+    x_numpy = np.array([1,2,3],dtype=np.int32)
+    # x_tensor = Tensor.from_numpy(x_numpy)
+    x_tensor = Tensor.from_numpy(np.array([1,2,3],dtype=np.int32))
+    print("x_tensor:",x_tensor)
+    y_numpy = np.array([4,5,6],dtype=np.int32)
+    # y_tensor = Tensor.from_numpy(y_numpy)
+    y_tensor = Tensor.from_numpy(np.array([4,5,6],dtype=np.int32))
+    # z_tensor = Tensor.from_numpy(np.array([z],dtype=np.int32))
+
+    # x_a=x_tensor.to_numpy()
+    # y_a=y_tensor.to_numpy()
+    # z_a=z_tensor.to_numpy()
+
+    print("x:",x)
+    print("x_tensor:",x_tensor)
+    # print("x_a:",x_a)
+    print("xxxxxxxx")
+    print("y:",y)
+    print("y_tensor:",y_tensor)
+    # print("y_a:",y_a)
+
 
 if __name__ == "__main__":
     print("test_device start")
-    test_device()
-    test_desc()
-    test_memory_pool()
-    test_buffer()
-    test_tensor()
+    # test_device()
+    # test_desc()
+    # test_memory_pool()
+    # test_buffer()
+    # test_tensor()
+    test_tensor_from_numpy()
     print("test_device end")

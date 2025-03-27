@@ -40,6 +40,9 @@ class NNDEPLOY_CC_API Expr {
 
 /**
  * @brief  一系列创建函数
+ * @note
+ * TODO: 目前pybind11导出ir::ModelDesc，采用shared_ptr作为hold
+ * type，可能需要讲全文的ir::ModelDesc *model_desc改为shared_ptr<ir::ModelDesc>
  */
 // input
 NNDEPLOY_CC_API std::shared_ptr<Expr> makeInput(
@@ -70,7 +73,7 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeSigmoid(ir::ModelDesc *model_desc,
                                                   std::string output_name = "");
 
 // softmax
-NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftMax(
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeSoftmax(
     ir::ModelDesc *model_desc, std::shared_ptr<Expr> input,
     std::shared_ptr<ir::SoftmaxParam> param, std::string op_name = "",
     std::string output_name = "");

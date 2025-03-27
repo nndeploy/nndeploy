@@ -40,6 +40,7 @@ class ProcessNode : public nndeploy::dag::Node {
   ProcessNode(const std::string &name, nndeploy::dag::Edge *input,
               nndeploy::dag::Edge *output)
       : Node(name, {input}, {output}) {}
+      : Node(name, {input}, {output}) {}
 
   virtual ~ProcessNode() {}
 

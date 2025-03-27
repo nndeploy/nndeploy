@@ -95,6 +95,13 @@ class NNDEPLOY_CC_API Op {
   std::vector<device::Tensor *> getAllInput();
   std::vector<device::Tensor *> getAllOutput();
 
+  device::Tensor *getInputTensor(const std::string &name);
+  device::Tensor *getOutputTensor(const std::string &name);
+  base::Status replaceInputTensor(const std::string &name,
+                                  device::Tensor *tensor);
+  base::Status replaceOutputTensor(const std::string &name,
+                                   device::Tensor *tensor);
+
   base::Status rmInput(device::Tensor *tensor);
 
   base::Status setAllInput(std::vector<device::Tensor *> inputs);

@@ -14,6 +14,18 @@ void Runtime::setStream(device::Stream *stream) {
 }
 device::Stream *Runtime::getStream() { return stream_; }
 
+base::Status Runtime::synchronize() {
+  // NNDEPLOY_LOGI("Runtime[%p]::synchronize\n", this);
+  return stream_->synchronize();
+}
+
+base::Status Runtime::setWorkers(int worker_num,
+                                 std::vector<base::DeviceType> device_types) {
+  worker_num_ = worker_num;
+  device_types_ = device_types;
+  return base::kStatusCodeOk;
+}
+
 int64_t Runtime::getMemorySize() { return tensor_pool_->getMemorySize(); }
 base::Status Runtime::setMemory(device::Buffer *buffer) {
   return tensor_pool_->setMemory(buffer);

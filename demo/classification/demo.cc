@@ -20,14 +20,17 @@ class DrawLableNode : public dag::Node {
   //     : Node(name, inputs, outputs) {}
   DrawLableNode(const std::string &name, std::vector<dag::Edge *> inputs,
                 std::vector<dag::Edge *> outputs)
-      : Node(name, inputs, outputs) {}
+      : Node(name, inputs, outputs) {
+    this->setInputTypeInfo<cv::Mat>();
+    this->setInputTypeInfo<classification::ClassificationResult>();
+    this->setOutputTypeInfo<cv::Mat>();
+  }
   virtual ~DrawLableNode() {}
 
   virtual base::Status run() {
     cv::Mat *input_mat = inputs_[0]->getCvMat(this);
     classification::ClassificationResult *result =
         (classification::ClassificationResult *)inputs_[1]->getParam(this);
-
     // 遍历每个分类结果
     for (int i = 0; i < result->labels_.size(); i++) {
       auto label = result->labels_[i];
@@ -40,7 +43,7 @@ class DrawLableNode : public dag::Node {
       cv::putText(*input_mat, text, cv::Point(30, 30 + i * 30),
                   cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
     }
-    cv::imwrite("draw_label_node.jpg", *input_mat);
+    // cv::imwrite("draw_label_node.jpg", *input_mat);
     outputs_[0]->set(input_mat, inputs_[0]->getIndex(this), true);
     return base::kStatusCodeOk;
   }
@@ -92,26 +95,17 @@ class classificationDemo : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
-  virtual std::vector<dag::Edge *> operator()(
-      std::vector<dag::Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr) {
-    dag::Graph::operator()(inputs, outputs_name, param);
-    std::vector<dag::Edge *> decode_node_outputs =
-        (*decode_node_)(inputs, {"decode_node_out"});
-    
-    std::vector<dag::Edge *> graph_outputs =
-        (*graph_)(decode_node_outputs, {"resnet_out"}, nullptr);
-    // NNDEPLOY_LOGE("bk SIZE: %d.\n", graph_outputs.size());
+  virtual std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
+    std::vector<dag::Edge *> decode_node_outputs = (*decode_node_)(inputs);
+
+    std::vector<dag::Edge *> graph_outputs = (*graph_)(decode_node_outputs);
+
     std::vector<dag::Edge *> draw_node_inputs = {decode_node_outputs[0],
                                                  graph_outputs[0]};
-    
     std::vector<dag::Edge *> draw_node_outputs =
-        (*draw_node_)(draw_node_inputs, {"draw_node_out"}, nullptr);
-    
+        (*draw_node_)(draw_node_inputs);
     std::vector<dag::Edge *> encode_node_outputs =
-        (*encode_node_)(draw_node_outputs, {}, nullptr);
-    
+        (*encode_node_)(draw_node_outputs);
     return graph_outputs;
   }
 
@@ -127,12 +121,6 @@ int main(int argc, char *argv[]) {
   if (demo::FLAGS_usage) {
     demo::showUsage();
     return -1;
-  }
-
-  int ret = nndeployFrameworkInit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
   }
 
   // 检测模型的有向无环图graph名称，例如:nndeploy::classification::ClassificationResnetGraph
@@ -159,26 +147,31 @@ int main(int argc, char *argv[]) {
   base::ParallelType pt = demo::getParallelType();
 
   classificationDemo graph_demo("resnet_demo");
+  graph_demo.setTimeProfileFlag(true);
   graph_demo.make(inference_type, codec_flag);
-  
+
   graph_demo.setInferParam(device_type, model_type, is_path, model_value);
-  
+
   std::vector<dag::Edge *> inputs;
-  std::vector<std::string> outputs_name;
-  std::shared_ptr<base::Param> param;
-  
 
   graph_demo.setInputPath(input_path);
   graph_demo.setOutputPath(ouput_path);
   graph_demo.setRefPath(input_path);
-  
 
-  graph_demo(inputs, outputs_name, param);
-  
+  for (int i = 0; i < 100; i++) {
+    NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
+    graph_demo(inputs);
+    NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
+  }
+
   // just for dump
   graph_demo.init();
   graph_demo.dump();
+  graph_demo.graph_->dump();
   graph_demo.deinit();
+
+  NNDEPLOY_TIME_PROFILER_PRINT("demo");
+  NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
 
   return 0;
 }
