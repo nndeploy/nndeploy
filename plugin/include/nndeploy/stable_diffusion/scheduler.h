@@ -75,8 +75,9 @@ class NNDEPLOY_CC_API Scheduler {
    * @param pre_sample
    * @return base::Status
    */
-  base::Status step(device::Tensor *sample, device::Tensor *timestep,
-                    device::Tensor *latents, device::Tensor *pre_sample) = 0;
+  virtual base::Status step(device::Tensor *sample, device::Tensor *timestep,
+                            device::Tensor *latents,
+                            device::Tensor *pre_sample) = 0;
 
   /**
    * @brief Get the Timestep object

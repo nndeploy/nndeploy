@@ -1,4 +1,4 @@
-#include "nndeploy/stable_diffusion/pipeline.h"
+#include "nndeploy/stable_diffusion/text2image.h"
 
 #include <algorithm>
 #include <cmath>
@@ -24,10 +24,10 @@ class NNDEPLOY_CC_API SaveImageNode : public dag::Node {
 
   base::Status deinit() { return base::kStatusCodeOk; }
 
-  vritual base::Status run() {
+  virtual base::Status run() {
     device::Tensor *input =
         (device::Tensor *)(this->getInput(0)->getTensor(this));
-    float *ptr = input->getData();
+    float *ptr = (float *)(input->getData());
     int n = input->getBatch();
     int c = input->getChannel();
     int h = input->getHeight();
@@ -100,8 +100,9 @@ dag::Graph *createStableDiffusionText2ImageGraph(
       createVAEGraph("vae", latents, output, vae_inference_type, param);
   graph->addNode(vae_graph, false);
 
-  dag::Node *save_node =
-      graph->createNode<SaveImageNode>("save_node", {output}, {});
+  dag::Node *save_node = graph->createNode<SaveImageNode>(
+      "save_node", std::vector<dag::Edge *>{output},
+      std::vector<dag::Edge *>{});
 
   return graph;
 }

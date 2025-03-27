@@ -59,8 +59,9 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
 
   virtual std::vector<int> &getTimestep();
 
-  base::Status step(std::vector<float> &sample, std::vector<float> &prev_smaple,
-                    std::vector<float> &latents, int timestep);
+  base::Status step_inner(std::vector<float> &sample, int timestep,
+                          std::vector<float> &latents,
+                          std::vector<float> &prev_sample);
 
  public:
   float final_alpha_cumprod_ = 1.0;

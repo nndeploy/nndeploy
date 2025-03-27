@@ -77,7 +77,7 @@ base::Status OpSplit::run() {
 }
 
 base::Status split(device::Tensor *input, std::shared_ptr<ir::SplitParam> param,
-                   device::Tensor *output) {
+                   std::vector<device::Tensor *> outputs) {
   NNDEPLOY_LOGI("not implemented.\n");
   return base::kStatusCodeOk;
 }

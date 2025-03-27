@@ -1,5 +1,11 @@
 #include "nndeploy/stable_diffusion/denoise.h"
 
+#include "nndeploy/infer/infer.h"
+#include "nndeploy/op/op_add.h"
+#include "nndeploy/op/op_concat.h"
+#include "nndeploy/op/op_muls.h"
+#include "nndeploy/op/op_split.h"
+#include "nndeploy/op/op_sub.h"
 #include "nndeploy/stable_diffusion/ddim_scheduler.h"
 #include "nndeploy/stable_diffusion/scheduler.h"
 
@@ -8,11 +14,11 @@ namespace stable_diffusion {
 
 class DenoiseGraph : public dag::Loop {
  public:
-  DenoiseGraph(const std::string &name, SchedulerType scheduler_type,
-               std::vector<dag::Edge *> &inputs,
-               std::vector<dag::Edge *> &outputs)
+  DenoiseGraph(const std::string name, SchedulerType scheduler_type,
+               std::vector<dag::Edge *> inputs,
+               std::vector<dag::Edge *> outputs)
       : Loop(name, inputs, outputs), scheduler_type_(scheduler_type) {
-    param_ = std::make_shared<SchedulerParam>();
+    param_ = std::make_shared<DDIMSchedulerParam>();
     scheduler_ = createScheduler(scheduler_type_);
   }
 
@@ -91,6 +97,13 @@ class DenoiseGraph : public dag::Loop {
     device::Tensor *noise_sub = new device::Tensor(device, noise_desc);
     device::Tensor *noise_muls = new device::Tensor(device, noise_desc);
 
+    device::TensorDesc scalar_desc;
+    scalar_desc.data_type_ = base::dataTypeOf<float>();
+    scalar_desc.data_format_ = base::kDataFormatNC;
+    scalar_desc.shape_.emplace_back(1);
+    device::Tensor *scalar = new device::Tensor(device, scalar_desc);
+    scalar->set(guidance_);
+
     scheduler_->setTimesteps();
     std::vector<int> timesteps = scheduler_->getTimestep();
     for (const auto &val : timesteps) {
@@ -108,9 +121,9 @@ class DenoiseGraph : public dag::Loop {
       dag::Edge *unet_outputs = this->getEdge("unet_outputs");
       device::Tensor *unet_output_tensor = unet_outputs->getTensor(this);
       if (do_classifier_free_guidance) {
-        op::split(unet_output_tensor, 0, noise_pred_uncond, noise_pred);
+        // op::split(unet_output_tensor, 0, noise_pred_uncond, noise_pred);
         op::sub(noise_sub, noise_pred, noise_pred_uncond);
-        op::muls(noise_muls, guidance_, noise_sub);
+        op::muls(scalar, noise_muls, noise_sub);
         op::add(noise_pred, noise_muls, noise_pred_uncond);
       } else {
         noise_pred = unet_output_tensor;
@@ -141,7 +154,8 @@ dag::Graph *createDenoiseGraph(const std::string &name,
   dag::Edge *timestep = denoise_graph->createEdge("timestep");
   dag::Edge *unet_output = denoise_graph->createEdge("unet_outputs");
   dag::Node *unet = denoise_graph->createInfer<infer::Infer>(
-      "unet", inference_type, {sample, timestep, text_embeddings}, unet_output);
+      "unet", inference_type, {sample, timestep, text_embeddings},
+      {unet_output});
   denoise_graph->addNode(unet, false);
 
   return denoise_graph;
