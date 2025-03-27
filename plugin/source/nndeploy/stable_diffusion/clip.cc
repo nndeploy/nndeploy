@@ -116,37 +116,39 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
   }
   ~EmbeddingGraph(){};
 
-  base::Status init() {
+  base::Status init() { return base::kStatusCodeOk; }
+
+  base::Status deinit() { return base::kStatusCodeOk; }
+
+  base::Status setTokenizerParam(tokenizer::TokenizerPraram *param) {
+    tokenizer_node_->setParam(param);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setInferParam(inference::InferenceParam *param) {
+    clip_infer_node_->setParam(param);
+    return base::kStatusCodeOk;
+  }
+
+  // base::Status setInferParam(base::DeviceType device_type,
+  //                            base::ModelType model_type, bool is_path,
+  //                            std::vector<std::string> &model_value) {
+  //   auto param =
+  //       dynamic_cast<inference::InferenceParam
+  //       *>(clip_infer_node_->getParam());
+  //   param->device_type_ = device_type;
+  //   param->model_type_ = model_type;
+  //   param->is_path_ = is_path;
+  //   param->model_value_ = model_value;
+  //   return base::kStatusCodeOk;
+  // }
+
+  base::Status make(base::InferenceType inference_type) {
     prompt_ = this->getInput(0);
     if (prompt_ == nullptr) {
       NNDEPLOY_LOGE("prompt is nullptr\n");
       return base::kStatusCodeErrorInvalidParam;
     }
-    embedding_ = this->getOutput(0);
-    if (embedding_ == nullptr) {
-      NNDEPLOY_LOGE("embedding is nullptr\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    return base::kStatusCodeOk;
-  }
-
-  base::Status deinit() { return base::kStatusCodeOk; }
-
-  base::Status setTokenizerParam() { return base::kStatusCodeOk; }
-
-  base::Status setInferParam(base::DeviceType device_type,
-                             base::ModelType model_type, bool is_path,
-                             std::vector<std::string> &model_value) {
-    auto param =
-        dynamic_cast<inference::InferenceParam *>(clip_infer_node_->getParam());
-    param->device_type_ = device_type;
-    param->model_type_ = model_type;
-    param->is_path_ = is_path;
-    param->model_value_ = model_value;
-    return base::kStatusCodeOk;
-  }
-
-  base::Status make(base::InferenceType inference_type) {
     token_ids_ = this->createEdge("token_ids_");
     tokenizer_node_ =
         (tokenizer::TokenizerCpp *)this->createNode<tokenizer::TokenizerCpp>(
@@ -157,6 +159,11 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
         (CvtTokenIds2TensorNode *)this->createNode<CvtTokenIds2TensorNode>(
             "cvt_token_ids_2_tensor", {token_ids_}, {infer_ids_});
 
+    embedding_ = this->getOutput(0);
+    if (embedding_ == nullptr) {
+      NNDEPLOY_LOGE("embedding is nullptr\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
     clip_infer_node_ = (infer::Infer *)this->createInfer<infer::Infer>(
         "clip_infer", inference_type, {infer_ids_}, {embedding_});
     return base::kStatusCodeOk;
@@ -179,12 +186,36 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
   dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt}, {output});
 
   dag::Edge *prompt_ids = graph->createEdge("prompt_ids");
-  dag::Node *embedding_graph = graph->createNode<EmbeddingGraph>(
-      "embedding_subgraph", {prompt}, {prompt_ids});
+  EmbeddingGraph *embedding_graph =
+      (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
+          "embedding_subgraph", {prompt}, {prompt_ids}));
+  embedding_graph->make(inference_type);
+
+  tokenizer::TokenizerPraram *tokenizer_param =
+      new tokenizer::TokenizerPraram();
+  tokenizer_param->tokenizer_type_ = tokenizer::TokenizerType::kTokenizerTypeHF;
+  tokenizer_param->is_path_ = true;
+  tokenizer_param->json_blob_ =
+      "/home/lds/stable-diffusion.onnx/models/tokenizer/";
+  embedding_graph->setTokenizerParam(tokenizer_param);
+
+  inference::InferenceParam *infer_param = new inference::InferenceParam();
+  infer_param->device_type_ = base::kDeviceTypeCodeCpu;
+  infer_param->model_type_ = base::kModelTypeOnnx;
+  infer_param->is_path_ = true;
+  std::vector<std::string> onnx_path = {
+      "/home/lds/stable-diffusion.onnx/models/text_encoder/"};
+  infer_param->model_value_ = onnx_path;
+  embedding_graph->setInferParam(infer_param);
 
   dag::Edge *negative_prompt_ids = graph->createEdge("negative_prompt_ids");
-  dag::Node *negative_embedding_graph = graph->createNode<EmbeddingGraph>(
-      "negative_embedding_subgraph", {negative_prompt}, {negative_prompt_ids});
+  EmbeddingGraph *negative_embedding_graph =
+      (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
+          "negative_embedding_subgraph", {negative_prompt},
+          {negative_prompt_ids}));
+  negative_embedding_graph->make(inference_type);
+  negative_embedding_graph->setTokenizerParam(tokenizer_param);
+  negative_embedding_graph->setInferParam(infer_param);
 
   dag::Node *concat_node = graph->createNode<ConCatNode>(
       "concat_node", {prompt_ids, negative_prompt_ids}, {output});

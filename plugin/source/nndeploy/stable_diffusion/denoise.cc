@@ -161,7 +161,14 @@ dag::Graph *createDenoiseGraph(const std::string &name,
   dag::Node *unet = denoise_graph->createInfer<infer::Infer>(
       "unet", inference_type, {sample, timestep, text_embeddings},
       {unet_output});
-  denoise_graph->addNode(unet, false);
+  inference::InferenceParam *infer_param = new inference::InferenceParam();
+  infer_param->device_type_ = base::kDeviceTypeCodeCpu;
+  infer_param->model_type_ = base::kModelTypeOnnx;
+  infer_param->is_path_ = true;
+  std::vector<std::string> onnx_path = {
+      "/home/lds/stable-diffusion.onnx/models/unet/"};
+  infer_param->model_value_ = onnx_path;
+  unet->setParam(infer_param);
 
   return denoise_graph;
 }

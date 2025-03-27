@@ -21,7 +21,7 @@ int main(int argc, char const* argv[]) {
   base::InferenceType unet_inference_type =
       nndeploy::base::kInferenceTypeOnnxRuntime;
   base::InferenceType vae_inference_type =
-      nndeploy::base::kInferenceTypeDefault;
+      nndeploy::base::kInferenceTypeOnnxRuntime;
   stable_diffusion::SchedulerType scheduler_type =
       stable_diffusion::kSchedulerTypeDDIM;
   std::vector<base::Param*> param;
@@ -43,6 +43,7 @@ int main(int argc, char const* argv[]) {
 
   base::Status status = graph->setParallelType(base::kParallelTypeSequential);
 
+  std::cout << "1" << std::endl;
   graph->setTimeProfileFlag(true);
 
   // 初始化有向无环图graph
@@ -53,6 +54,8 @@ int main(int argc, char const* argv[]) {
     return -1;
   }
   NNDEPLOY_TIME_POINT_END("graph->init()");
+
+  std::cout << "2" << std::endl;
 
   NNDEPLOY_TIME_POINT_START("graph->dump()");
   status = graph->dump();
