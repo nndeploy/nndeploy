@@ -29,13 +29,13 @@ int main(int argc, char const* argv[]) {
   dag::Edge* prompt = new dag::Edge("prompt");
   tokenizer::TokenizerText* prompt_text = new tokenizer::TokenizerText();
   prompt_text->texts_ = {"a", "cute", "dog"};
-  prompt->set(prompt_text, 0);
+  prompt->set(prompt_text, 0, false);
 
   dag::Edge* negative_prompt = new dag::Edge("negative_prompt");
   tokenizer::TokenizerText* negative_prompt_text =
       new tokenizer::TokenizerText();
-  negative_prompt_text->texts_ = {};
-  negative_prompt->set(negative_prompt_text, 0);
+  negative_prompt_text->texts_ = {"a"};
+  negative_prompt->set(negative_prompt_text, 0, false);
 
   dag::Graph* graph = stable_diffusion::createStableDiffusionText2ImageGraph(
       name, prompt, negative_prompt, clip_inference_type, unet_inference_type,

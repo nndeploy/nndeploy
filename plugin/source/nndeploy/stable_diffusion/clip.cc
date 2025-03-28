@@ -16,10 +16,6 @@ class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
 
   virtual ~CvtTokenIds2TensorNode() {}
 
-  base::Status init() { return base::kStatusCodeOk; }
-
-  base::Status deinit() { return base::kStatusCodeOk; }
-
   virtual base::Status run() {
     int index = this->getInput(0)->getIndex(this);
     tokenizer::TokenizerIds *input =
@@ -56,10 +52,6 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
       : dag::Node(name, inputs, outputs) {}
 
   virtual ~ConCatNode(){};
-
-  base::Status init() { return base::kStatusCodeOk; }
-
-  base::Status deinit() { return base::kStatusCodeOk; }
 
   base::Status setGuidance(float guidance) {
     guidance_ = guidance;
@@ -116,10 +108,6 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
   }
   ~EmbeddingGraph(){};
 
-  base::Status init() { return base::kStatusCodeOk; }
-
-  base::Status deinit() { return base::kStatusCodeOk; }
-
   base::Status setTokenizerParam(tokenizer::TokenizerPraram *param) {
     tokenizer_node_->setParam(param);
     return base::kStatusCodeOk;
@@ -153,6 +141,10 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
     tokenizer_node_ =
         (tokenizer::TokenizerCpp *)this->createNode<tokenizer::TokenizerCpp>(
             "tokenizer", {prompt_}, {token_ids_});
+    nndeploy::tokenizer::TokenizerText *text_param =
+        (nndeploy::tokenizer::TokenizerText *)(prompt_->getParam(
+            tokenizer_node_));
+    std::cout << "tokenizer text: " << (text_param->texts_)[0] << std::endl;
 
     infer_ids_ = this->createEdge("infer_ids");
     cvt_node_ =
@@ -193,10 +185,16 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
 
   tokenizer::TokenizerPraram *tokenizer_param =
       new tokenizer::TokenizerPraram();
-  tokenizer_param->tokenizer_type_ = tokenizer::TokenizerType::kTokenizerTypeHF;
+  tokenizer_param->tokenizer_type_ =
+      tokenizer::TokenizerType::kTokenizerTypeBPE;
   tokenizer_param->is_path_ = true;
-  tokenizer_param->json_blob_ =
-      "/home/lds/stable-diffusion.onnx/models/tokenizer/";
+  tokenizer_param->vocab_blob_ =
+      "/home/lds/stable-diffusion.onnx/models/tokenizer_fast/vocab.json";
+  tokenizer_param->merges_blob_ =
+      "/home/lds/stable-diffusion.onnx/models/tokenizer_fast/merges.txt";
+  tokenizer_param->added_tokens_ =
+      "/home/lds/stable-diffusion.onnx/models/tokenizer_fast/"
+      "special_tokens_map.json";
   embedding_graph->setTokenizerParam(tokenizer_param);
 
   inference::InferenceParam *infer_param = new inference::InferenceParam();
@@ -204,7 +202,7 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
   infer_param->model_type_ = base::kModelTypeOnnx;
   infer_param->is_path_ = true;
   std::vector<std::string> onnx_path = {
-      "/home/lds/stable-diffusion.onnx/models/text_encoder/"};
+      "/home/lds/stable-diffusion.onnx/models/text_encoder/model.onnx"};
   infer_param->model_value_ = onnx_path;
   embedding_graph->setInferParam(infer_param);
 

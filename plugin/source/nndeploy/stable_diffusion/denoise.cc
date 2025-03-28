@@ -12,34 +12,36 @@
 namespace nndeploy {
 namespace stable_diffusion {
 
-class DenoiseGraph : public dag::Loop {
+class DenoiseGraph : public dag::Graph {
  public:
   DenoiseGraph(const std::string name, SchedulerType scheduler_type,
                std::vector<dag::Edge *> inputs,
                std::vector<dag::Edge *> outputs)
-      : Loop(name, inputs, outputs), scheduler_type_(scheduler_type) {
+      : dag::Graph(name, inputs, outputs), scheduler_type_(scheduler_type) {
     param_ = std::make_shared<DDIMSchedulerParam>();
     scheduler_ = createScheduler(scheduler_type_);
   }
 
   virtual ~DenoiseGraph() {}
 
-  virtual base::Status init() {
-    base::Status status = base::kStatusCodeOk;
-    scheduler_param_ = (SchedulerParam *)(param_.get());
-    status = scheduler_->init(scheduler_param_);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed!");
-    return status;
-  }
+  // virtual base::Status init() {
+  //   base::Status status = base::kStatusCodeOk;
+  //   scheduler_param_ = (SchedulerParam *)(param_.get());
+  //   status = scheduler_->init(scheduler_param_);
+  //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed!");
 
-  virtual base::Status deinit() {
-    base::Status status = base::kStatusCodeOk;
-    status = scheduler_->deinit();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed!");
-    return status;
-  }
+  //   dag::Graph::init();
+  //   return status;
+  // }
 
-  virtual int loops() { return scheduler_param_->num_inference_steps_; }
+  // virtual base::Status deinit() {
+  //   base::Status status = base::kStatusCodeOk;
+  //   status = scheduler_->deinit();
+  //   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed!");
+  //   return status;
+  // }
+
+  // virtual int loops() { return scheduler_param_->num_inference_steps_; }
 
   virtual base::Status run() {
     base::Status status = base::kStatusCodeOk;
@@ -135,6 +137,9 @@ class DenoiseGraph : public dag::Loop {
       }
       scheduler_->step(noise_pred, timestep_tensor, latent, latent_copy);
     }
+
+    this->getOutput(0)->set(latent_copy, 0);
+
     return status;
   }
 
@@ -152,8 +157,9 @@ dag::Graph *createDenoiseGraph(const std::string &name,
                                SchedulerType scheduler_type,
                                base::InferenceType inference_type,
                                std::vector<base::Param *> &param) {
+  dag::Graph *graph = new dag::Graph(name, {text_embeddings}, {latents});
   DenoiseGraph *denoise_graph =
-      new DenoiseGraph(name, scheduler_type, {text_embeddings}, {latents});
+      new DenoiseGraph("denoise", scheduler_type, {text_embeddings}, {latents});
 
   dag::Edge *sample = denoise_graph->createEdge("sample");
   dag::Edge *timestep = denoise_graph->createEdge("timestep");
@@ -166,11 +172,13 @@ dag::Graph *createDenoiseGraph(const std::string &name,
   infer_param->model_type_ = base::kModelTypeOnnx;
   infer_param->is_path_ = true;
   std::vector<std::string> onnx_path = {
-      "/home/lds/stable-diffusion.onnx/models/unet/"};
+      "/home/lds/stable-diffusion.onnx/models/unet/model.onnx"};
   infer_param->model_value_ = onnx_path;
   unet->setParam(infer_param);
 
-  return denoise_graph;
+  graph->addNode(denoise_graph, false);
+
+  return graph;
 }
 
 }  // namespace stable_diffusion

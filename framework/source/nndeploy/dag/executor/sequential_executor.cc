@@ -48,7 +48,7 @@ base::Status SequentialExecutor::run() {
   base::Status status = base::kStatusCodeOk;
   for (auto iter : topo_sort_node_) {
     base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
-    
+
     if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
       iter->node_->setRunningFlag(true);
       NNDEPLOY_LOGE("node[%s] run start\n", iter->node_->getName().c_str());

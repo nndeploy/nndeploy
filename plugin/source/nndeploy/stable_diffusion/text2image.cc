@@ -20,10 +20,6 @@ class NNDEPLOY_CC_API SaveImageNode : public dag::Node {
 
   virtual ~SaveImageNode() {}
 
-  base::Status init() { return base::kStatusCodeOk; }
-
-  base::Status deinit() { return base::kStatusCodeOk; }
-
   virtual base::Status run() {
     device::Tensor *input =
         (device::Tensor *)(this->getInput(0)->getTensor(this));
@@ -98,7 +94,7 @@ dag::Graph *createStableDiffusionText2ImageGraph(
   graph->addNode(denoise_graph, false);
 
   dag::Edge *output = graph->createEdge("output");
-  dag::Node *vae_graph =
+  dag::Graph *vae_graph =
       createVAEGraph("vae", latents, output, vae_inference_type, param);
   graph->addNode(vae_graph, false);
 
