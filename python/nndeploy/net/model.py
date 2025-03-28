@@ -7,6 +7,7 @@ import nndeploy._nndeploy_internal as _C
 from .net import Net
 
 from functools import wraps
+import warnings
 
 
 def build_model(func):
@@ -21,7 +22,7 @@ def build_model(func):
 
             if isinstance(submodule, Module):
                 submodule.model_desc = self.model_desc  # 给所有的Op类型设置model_desc
-                
+
                 #  向ModelDesc设置权重
                 if hasattr(submodule, "weight_map"):
                     # print(submodule)
@@ -43,8 +44,6 @@ def build_model(func):
         else:
             result = _C.op.makeOutput(self.model_desc, result)
 
-
-
         # 初始化Net
         self.net.setModelDesc(self.model_desc)
         self.net.setDeviceType(self.device_type)
@@ -60,11 +59,17 @@ def build_model(func):
             enable_pass = set(enable_pass)
         if not isinstance(disable_pass, set):
             disable_pass = set(disable_pass)
-            
+
         self.net.setEnablePass(enable_pass)
         self.net.setDisablePass(disable_pass)
-        if self.weight_map != None:
+        if self.weight_map is not None:
             self.model_desc.set_weights(self.weight_map)
+        else:
+            warnings.warn(
+                "Warning: weight_map is not set! Model weights are not initialized.",
+                UserWarning,
+                stacklevel=2,
+            )
         self.net.init()
 
         return result
@@ -78,13 +83,13 @@ class Model:
         self.model_desc = ModelDesc()
         self.net = Net()
         self.device_type = DeviceType("cpu", 0)
-        self.weight_map = None  
+        self.weight_map = None
 
     @build_model
     def construct(self, enable_net_opt=True, enable_pass=set(), disable_pass=set()):
         raise NotImplementedError()
 
-    def run(self) ->list:
+    def run(self) -> list:
         self.net.preRun()
         self.net.run()
         self.net.postRun()

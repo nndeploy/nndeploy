@@ -40,7 +40,7 @@ base::Status OpGemm::inferShape() {
     return base::kStatusCodeErrorInvalidParam;
   }
   if (second_input_shape.size() != 2) {
-    NNDEPLOY_LOGE("First input does not have rank 2");
+    NNDEPLOY_LOGE("Second input does not have rank 2");
     return base::kStatusCodeErrorInvalidParam;
   }
 

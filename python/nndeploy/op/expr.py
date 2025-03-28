@@ -73,6 +73,17 @@ class Relu(Module):
         return _C.op.makeRelu(self.model_desc, data)
 
 
+class Sigmoid(Module):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, data):
+        return self.makeExpr(data)
+
+    def makeExpr(self, data):
+        return _C.op.makeSigmoid(self.model_desc, data)
+
+
 class BatchNorm(Module):
     def __init__(self, scale_name, bias_name, mean_name, var_name):
         super().__init__()
