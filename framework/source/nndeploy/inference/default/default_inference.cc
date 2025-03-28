@@ -65,6 +65,9 @@ base::Status DefaultInference::init() {
     NNDEPLOY_LOGE("net_->setDeviceType failed!\n");
     return base::kStatusCodeErrorInferenceDefault;
   }
+  net_->setParallelType(default_inference_param->parallel_type_);
+  net_->setWorkers(default_inference_param->worker_num_,
+                   default_inference_param->device_types_);
   net_->setStream(stream_);
   status = net_->setDynamicShape(default_inference_param->is_dynamic_shape_,
                                  default_inference_param->min_shape_,
@@ -75,6 +78,8 @@ base::Status DefaultInference::init() {
     return base::kStatusCodeErrorInferenceDefault;
   }
   status = net_->setTensorPoolType(default_inference_param->tensor_pool_type_);
+  // NNDEPLOY_LOGE("tensor_pool_type_ = %d\n",
+  //               default_inference_param->tensor_pool_type_);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("net_->setTensorPoolType failed!\n");
     return base::kStatusCodeErrorInferenceDefault;
@@ -150,21 +155,7 @@ base::Status DefaultInference::run() {
       NNDEPLOY_LOGE("Not exsit input[%s].\n", name.c_str());
       continue;
     }
-    device::Tensor *dst_tensor = internal_input_tensor->second;
-    if (src_tensor->getData() != dst_tensor->getData()) {
-      status = src_tensor->copyTo(dst_tensor);
-      // NNDEPLOY_LOGI(
-      //     "Source Tensor Device: %s\n",
-      //     base::deviceTypeToString(src_tensor->getDeviceType()).c_str());
-      // NNDEPLOY_LOGI(
-      //     "Destination Tensor Device: %s\n",
-      //     base::deviceTypeToString(dst_tensor->getDeviceType()).c_str());
-      // src_tensor->getDesc().print();
-      // dst_tensor->getDesc().print();
-      NNDEPLOY_RETURN_ON_NEQ(
-          status, base::kStatusCodeOk,
-          "copy external_input_tensor to internal_input_tensor failed!");
-    }
+    net_->copyToInputTensor(src_tensor);
   }
   status = net_->preRun();
   if (status != base::kStatusCodeOk) {
@@ -199,26 +190,9 @@ base::Status DefaultInference::run() {
 device::Tensor *DefaultInference::getOutputTensorAfterRun(
     const std::string &name, base::DeviceType device_type, bool is_copy,
     base::DataFormat data_format) {
-  device::Device *device = device::getDevice(device_type);
-  auto internal_output_tensor = output_tensors_.find(name);
-  if (internal_output_tensor == output_tensors_.end()) {
-    NNDEPLOY_LOGE("Not exsit output[%s].\n", name.c_str());
-    return nullptr;
-  }
-  device::Tensor *internal_tensor = internal_output_tensor->second;
-  bool flag = is_copy || (internal_tensor->getDevice() != device);
-  device::Tensor *output_tensor = nullptr;
-  if (flag) {
-    output_tensor =
-        new device::Tensor(device, internal_tensor->getDesc(), name);
-    // internal_tensor->getDesc().print();
-    // output_tensor->getDesc().print();
-    internal_tensor->copyTo(output_tensor);
-    return output_tensor;
-  } else {
-    output_tensor = internal_tensor;
-    return output_tensor;
-  }
+  device::Tensor *output_tensor =
+      net_->getOutputTensorAfterRun(name, device_type, is_copy, data_format);
+  return output_tensor;
 }
 
 base::Status DefaultInference::allocateInputOutputTensor() {

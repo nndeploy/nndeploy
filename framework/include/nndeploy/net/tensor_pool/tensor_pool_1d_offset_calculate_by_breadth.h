@@ -41,8 +41,9 @@ class TensorPool1DOffsetCalculateGreedyByBreadth : public TensorPool1D {
   virtual base::Status setMemory(device::Buffer *buffer);
 
  private:
-  std::vector<std::shared_ptr<TensorUsageRecord>>
-      ordered_allocated_ids_;  // 已分配tensor
+  std::vector<std::shared_ptr<Offset>> offsets_;  // 已分配tensor
+  std::set<std::shared_ptr<TensorUsageRecord>> assigned_tensors_;
+  // 记录已经处理过的tensor：由于延迟开辟内存，无法根据tensor的allocated属性判断
   int tensor_num_ = 0;
   int64_t total_consumption_ = -1;
   bool is_external_ = false;

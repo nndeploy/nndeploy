@@ -24,7 +24,7 @@ DefaultInferenceParam::DefaultInferenceParam(base::InferenceType type)
   device_type_ = device::getDefaultHostDeviceType();
   num_thread_ = 4;
   model_desc_ = nullptr;
-  tensor_pool_type_ = net::kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
+  tensor_pool_type_ = net::kTensorPool1DSharedObjectTypeGreedyBySize;
 }
 
 DefaultInferenceParam::~DefaultInferenceParam() {}
@@ -32,6 +32,9 @@ DefaultInferenceParam::~DefaultInferenceParam() {}
 base::Status DefaultInferenceParam::set(const std::string &key,
                                         base::Any &any) {
   base::Status status = base::kStatusCodeOk;
+  if (key == "tensor_pool_type") {
+    tensor_pool_type_ = base::get<net::TensorPoolType>(any);
+  }
   return base::kStatusCodeOk;
 }
 

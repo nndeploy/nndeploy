@@ -4,66 +4,6 @@
 namespace nndeploy {
 namespace net {
 
-/**
- * @brief
- *
- * @param tensor_repository
- * @param op_repository
- * @param types 重载了上一个函数实现，对于type支持定义多种类型的type；
- * @param begin_op_index
- * @return op_repository中匹配到的首个op的index，如果未匹配到则返回-1
- */
-int FuseConvAct::seqPatternMatch(std::vector<TensorWrapper*>& tensor_repository,
-                                 std::vector<OpWrapper*>& op_repository,
-                                 const std::vector<OpSet>& types,
-                                 std::vector<ir::OpType>& matched_types,
-                                 int begin_op_index) {
-  for (int i = begin_op_index; i < op_repository.size(); ++i) {
-    OpWrapper* current_op = op_repository[i];
-    auto current_op_type = current_op->op_->getOpType();
-    if (0 != types[0].count(current_op_type) &&
-        current_op->successors_.size() == 1) {
-      bool match = true;
-      matched_types.emplace_back(current_op_type);
-      OpWrapper* next_op = current_op;
-
-      for (int j = 1; j < types.size(); ++j) {
-        next_op = next_op->successors_[0];
-        auto next_op_type = next_op->op_->getOpType();
-
-        if (0 == types[j].count(next_op_type) ||
-            next_op->predecessors_.size() != 1) {
-          match = false;
-          break;
-        }
-        matched_types.emplace_back(next_op_type);
-      }
-
-      // 除最后一个节点外，中间节点的输出tensor不能为模型的输出节点
-      OpWrapper* middle_op = current_op;
-      for (int k = 0; k < types.size() - 1; ++k) {
-        for (TensorWrapper* tensor : tensor_repository) {
-          if (tensor->producers_.size() == 1 &&
-              tensor->producers_[0] == middle_op &&
-              tensor->input_output_type_ == kOutput) {
-            match = false;
-            break;
-          }
-        }
-        middle_op = middle_op->successors_[0];
-      }
-
-      // 如果匹配，则返回当前op的index
-      if (match) {
-        return i;
-      }
-    }
-    matched_types.clear();
-  }
-
-  return -1;
-}
-
 FuseConvAct::FuseConvAct() : OptPass("FuseConvAct") {}
 
 FuseConvAct::~FuseConvAct() {}

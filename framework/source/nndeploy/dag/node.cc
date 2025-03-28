@@ -57,6 +57,88 @@ Node::~Node() {
 
 std::string Node::getName() { return name_; }
 
+std::vector<std::string> Node::getInputNames() { 
+  std::vector<std::string> input_names;
+  for (auto input_type_info : input_type_info_) {
+    input_names.push_back(input_type_info->getEdgeName());
+  }
+  return input_names;
+}
+std::vector<std::string> Node::getOutputNames() { 
+  std::vector<std::string> output_names;
+  for (auto output_type_info : output_type_info_) {
+    output_names.push_back(output_type_info->getEdgeName());
+  }
+  return output_names;
+ }
+std::string Node::getInputName(int index) { 
+  return input_type_info_[index]->getEdgeName();
+}
+std::string Node::getOutputName(int index) { 
+  return output_type_info_[index]->getEdgeName();
+}
+
+base::Status Node::setInputName(const std::string &name, int index) {
+  if (index < 0 || index >= input_type_info_.size()) {
+    NNDEPLOY_LOGE("index is out of range.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  if (name.empty()) {
+    NNDEPLOY_LOGE("name is empty.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  input_type_info_[index]->setEdgeName(name);
+  return base::kStatusCodeOk;
+}
+base::Status Node::setOutputName(const std::string &name, int index) {
+  if (index < 0 || index >= output_type_info_.size()) {
+    NNDEPLOY_LOGE("index is out of range.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  if (name.empty()) {
+    NNDEPLOY_LOGE("name is empty.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  output_type_info_[index]->setEdgeName(name);
+  return base::kStatusCodeOk;
+}
+base::Status Node::setInputNames(const std::vector<std::string> &names) {
+  if (names.empty()) {
+    NNDEPLOY_LOGE("names is empty.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  if (names.size() > input_type_info_.size()) {
+    NNDEPLOY_LOGE("names size is larger than input_type_info_ size.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  for (int i = 0; i < names.size(); i++) {
+    if (names[i].empty()) {
+      NNDEPLOY_LOGE("name is empty.\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    input_type_info_[i]->setEdgeName(names[i]);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Node::setOutputNames(const std::vector<std::string> &names) {
+  if (names.empty()) {
+    NNDEPLOY_LOGE("names is empty.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  if (names.size() > output_type_info_.size()) {
+    NNDEPLOY_LOGE("names size is larger than output_type_info_ size.\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  for (int i = 0; i < names.size(); i++) {
+    if (names[i].empty()) {
+      NNDEPLOY_LOGE("name is empty.\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    output_type_info_[i]->setEdgeName(names[i]);
+  }
+  return base::kStatusCodeOk;
+}
+
 base::Status Node::setGraph(Graph *graph) {
   graph_ = graph;
   return base::kStatusCodeOk;
@@ -342,19 +424,17 @@ base::EdgeUpdateFlag Node::updateInput() {
   return flag;
 }
 
-std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
-                                     std::vector<std::string> outputs_name,
-                                     std::shared_ptr<base::Param> param) {
+std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   // check
   if (!checkInputs(inputs)) {
     return std::vector<Edge *>();
   }
-  if (!checkOutputs(outputs_name)) {
-    return std::vector<Edge *>();
-  }
-  if (param != nullptr) {
-    this->setParamSharedPtr(param);
-  }
+  // if (!checkOutputs(outputs_name)) {
+  //   return std::vector<Edge *>();
+  // }
+  // if (param != nullptr) {
+  //   this->setParamSharedPtr(param);
+  // }
   // init
   if (initialized_ == false) {
     this->init();
@@ -365,7 +445,7 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
     this->setInputs(inputs);
   }
   std::vector<std::string> real_outputs_name =
-      this->getRealOutputsName(outputs_name);
+      this->getRealOutputsName();
   std::vector<Edge *> outputs;
   for (auto name : real_outputs_name) {
     Edge *edge = nullptr;
@@ -405,6 +485,10 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs,
     }
     return outputs;
   }
+}
+
+std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs) {
+  return this->forward(inputs);
 }
 
 bool Node::checkInputs(std::vector<Edge *> &inputs) {
@@ -472,42 +556,25 @@ bool Node::isInputsChanged(std::vector<Edge *> inputs) {
   return false;
 }
 
-std::vector<std::string> Node::getRealOutputsName(
-    std::vector<std::string> outputs_name) {
+std::vector<std::string> Node::getRealOutputsName() {
   std::vector<std::string> real_outputs_name;
-  if (!outputs_name.empty()) {
-    for (size_t i = 0; i < outputs_name.size(); i++) {
-      real_outputs_name.push_back(outputs_name[i]);
+  for (int i = 0; i < output_type_info_.size(); i++) {
+    std::string output_name = output_type_info_[i]->getEdgeName();
+    if (output_name.empty()) {
+      if (!outputs_.empty()) {
+        output_name = outputs_[i]->getName();
+      } else {
+        output_name = name_ + "_" + "output_" + std::to_string(i) +
+                      "_" + output_type_info_[i]->getTypeName();
+      }
     }
-  } else if (!outputs_.empty()) {
-    for (auto output : outputs_) {
-      real_outputs_name.push_back(output->getName());
-    }
-  } else {
-    // if (output_type_info_.empty() && node_type_ != NodeType::kNodeTypeOutput)
-    // {
-    //   std::string output_name =
-    //       name_ + "_" + "output_0_" + base::getUniqueString();
-    //   real_outputs_name.push_back(output_name);
-    // } else {
-    //   for (size_t i = 0; i < output_type_info_.size(); i++) {
-    //     std::string output_name = name_ + "_" + "output_" + std::to_string(i)
-    //     +
-    //                               "_" + output_type_info_[i]->getTypeName();
-    //     real_outputs_name.push_back(output_name);
-    //   }
-    // }
-    for (size_t i = 0; i < output_type_info_.size(); i++) {
-      std::string output_name = name_ + "_" + "output_" + std::to_string(i) +
-                                "_" + output_type_info_[i]->getTypeName();
-      real_outputs_name.push_back(output_name);
-    }
+    real_outputs_name.push_back(output_name);
   }
   return real_outputs_name;
 }
 
 Node *createNode(const std::string &node_key, const std::string &node_name) {
-  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
@@ -519,7 +586,7 @@ Node *createNode(const std::string &node_key, const std::string &node_name) {
 Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::initializer_list<Edge *> inputs,
                  std::initializer_list<Edge *> outputs) {
-  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs_vector;
   std::vector<Edge *> outputs_vector;
   for (auto input : inputs) {
@@ -536,7 +603,7 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
 }
 Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::vector<Edge *> inputs, std::vector<Edge *> outputs) {
-  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
@@ -546,7 +613,7 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
 
 std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           const std::string &node_name) {
-  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
@@ -559,7 +626,7 @@ std::shared_ptr<Node> createNodeSharedPtr(
     const std::string &node_key, const std::string &node_name,
     std::initializer_list<Edge *> inputs,
     std::initializer_list<Edge *> outputs) {
-  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs_vector;
   std::vector<Edge *> outputs_vector;
   for (auto input : inputs) {
@@ -579,7 +646,7 @@ std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           const std::string &node_name,
                                           std::vector<Edge *> inputs,
                                           std::vector<Edge *> outputs) {
-  NodeCreator *creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
   if (creator != nullptr) {
     return creator->createNodeSharedPtr(node_name, inputs, outputs);
   }

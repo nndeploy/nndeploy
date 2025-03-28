@@ -4,7 +4,9 @@
 namespace nndeploy {
 namespace tokenizer {
 
-Tokenizer::~Tokenizer() {}
+TokenizerDecode::~TokenizerDecode() {}
+
+TokenizerEncode::~TokenizerEncode() {}
 
 }  // namespace tokenizer
 }  // namespace nndeploy

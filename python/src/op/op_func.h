@@ -16,6 +16,9 @@
 #include "nndeploy/op/op_relu.h"
 #include "nndeploy/op/op_rmsnorm.h"
 #include "nndeploy/op/op_softmax.h"
+#include "nndeploy/op/op_quantize_linear.h"
+#include "nndeploy/op/op_dequantize_linear.h"
+#include "nndeploy/op/op_qlinear_conv.h"
 
 /**
  * @brief Op的func层，在该层进行Op的输入检查、输出Tensor构造、调用Op计算;
@@ -58,6 +61,19 @@ device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2);
 device::Tensor* softmaxFunc(device::Tensor* input1,
                             std::shared_ptr<ir::SoftmaxParam> param);
 
+device::Tensor* quantizeLinearFunc(
+    device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
+    std::shared_ptr<ir::QuantizeLinearParam> param);
+
+device::Tensor* dequantizeLinearFunc(
+    device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
+    std::shared_ptr<ir::DequantizeLinearParam> param);
+
+device::Tensor* qlinearConvFunc(
+    device::Tensor* x, device::Tensor* x_scale, device::Tensor* x_zero_point,
+    device::Tensor* w, device::Tensor* w_scale, device::Tensor* w_zero_point,
+    device::Tensor* y_scale, device::Tensor* y_zero_point, device::Tensor* B,
+    std::shared_ptr<ir::QLinearConvParam> param);
 }  // namespace nndeploy
 
 #endif
