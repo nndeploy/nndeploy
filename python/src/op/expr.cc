@@ -29,6 +29,9 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
         py::arg("shape") = nndeploy::base::IntVector(),
         py::return_value_policy::reference);
 
+  m.def("makeConstant", &makeConstant, py::arg("model_desc"), py::arg("name"),
+        py::return_value_policy::reference);
+
   m.def("makeOutput", &makeOutput, py::arg("model_desc"), py::arg("expr"),
         py::return_value_policy::reference);
 
