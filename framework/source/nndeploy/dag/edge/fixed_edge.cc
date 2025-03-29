@@ -39,7 +39,7 @@ device::Buffer *FixedEdge::getGraphOutputBuffer() {
 base::Status FixedEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
   return data_packet_->set(cv_mat, index, is_external);
 }
-cv::Mat *FixedEdge::create(int rows, int cols, int type, const cv::Vec3b& value,
+cv::Mat *FixedEdge::create(int rows, int cols, int type, const cv::Vec3b &value,
                            int index) {
   return data_packet_->create(rows, cols, type, value, index);
 }
@@ -79,12 +79,8 @@ base::Status FixedEdge::takeDataPacket(DataPacket *data_packet) {
 bool FixedEdge::notifyAnyWritten(void *anything) {
   return data_packet_->notifyAnyWritten(anything);
 }
-DataPacket *FixedEdge::getDataPacket(const Node *node) {
-  return data_packet_;
-}
-DataPacket *FixedEdge::getGraphOutputDataPacket() {
-  return data_packet_;
-}
+DataPacket *FixedEdge::getDataPacket(const Node *node) { return data_packet_; }
+DataPacket *FixedEdge::getGraphOutputDataPacket() { return data_packet_; }
 
 base::Status FixedEdge::set(base::Param *param, int index, bool is_external) {
   return data_packet_->set(param, index, is_external);

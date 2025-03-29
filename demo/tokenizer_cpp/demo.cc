@@ -151,9 +151,9 @@ int main(int argc, char* argv[]) {
 
   nndeploy::dag::Graph graph("graph", {input_edge}, {output_edge});
 
-  nndeploy::tokenizer::TokenizerCpp* tokenizer_cpp =
-      (nndeploy::tokenizer::TokenizerCpp*)
-          graph.createNode<nndeploy::tokenizer::TokenizerCpp>(
+  nndeploy::tokenizer::TokenizerEncodeCpp* tokenizer_cpp =
+      (nndeploy::tokenizer::TokenizerEncodeCpp*)
+          graph.createNode<nndeploy::tokenizer::TokenizerEncodeCpp>(
               "name", input_edge, output_edge);
 
   nndeploy::tokenizer::TokenizerPraram* tp =
@@ -161,8 +161,6 @@ int main(int argc, char* argv[]) {
   if (tp == nullptr) {
     return -1;
   }
-
-  tp->is_encode_ = true;
 
   tp->tokenizer_type_ =
       nndeploy::tokenizer::TokenizerType::kTokenizerTypeSentencePiece;

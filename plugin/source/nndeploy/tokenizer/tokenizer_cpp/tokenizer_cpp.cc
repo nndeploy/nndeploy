@@ -36,13 +36,13 @@ base::Status TokenizerEncodeCpp::init() {
     }
     // Read blob from file.
     std::string blob;
-    if (tokenizer_param->is_path_) {
-      blob = base::openFile(tokenizer_param->json_blob_);
-    } else {
-      blob = tokenizer_param->json_blob_;
-    }
+    // if (tokenizer_param->is_path_) {
+    //   blob = base::openFile(tokenizer_param->json_blob_);
+    // } else {
+    //   blob = tokenizer_param->json_blob_;
+    // }
 
-    blob = LoadBytesFromFile(blob);
+    blob = LoadBytesFromFile(tokenizer_param->json_blob_);
     tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
   } else if (tokenizer_param->tokenizer_type_ ==
              TokenizerType::kTokenizerTypeBPE) {
@@ -270,7 +270,6 @@ base::Status TokenizerDecodeCpp::run() {
 
   return status;
 }
-
 
 /*!
  * \brief decode token ids into text.

@@ -69,8 +69,58 @@ base::Status OpConcat::inferShape() {
 }
 
 base::Status OpConcat::run() {
-  NNDEPLOY_LOGI("not implemented.\n");
-  return base::kStatusCodeOk;
+  base::Status status = base::kStatusCodeOk;
+
+  // 获取拼接参数
+  auto param = dynamic_cast<ir::ConcatParam *>(op_desc_.op_param_.get());
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
+  int axis = param->axis_;
+
+  // 输出 Tensor
+  auto output_tensor = outputs_[0];
+  auto output_shape = output_tensor->getShape();
+
+  // 获取数据类型与元素大小
+  size_t elem_size = sizeof(float);
+
+  // 初始化拷贝偏移量
+  size_t axis_offset = 0;
+
+  // 遍历所有输入 Tensor
+  for (size_t i = 0; i < inputs_.size(); ++i) {
+    auto input_tensor = inputs_[i];
+    auto input_shape = input_tensor->getShape();
+
+    // 计算拼接前后stride
+    size_t outer_dim = 1;
+    size_t inner_dim = 1;
+    for (int idx = 0; idx < axis; ++idx) {
+      outer_dim *= input_shape[idx];
+    }
+    for (size_t idx = axis + 1; idx < input_shape.size(); ++idx) {
+      inner_dim *= input_shape[idx];
+    }
+
+    size_t axis_dim = input_shape[axis];
+
+    const char *input_data =
+        reinterpret_cast<const char *>(input_tensor->getData());
+    char *output_data = reinterpret_cast<char *>(output_tensor->getData());
+
+    // 按照outer_dim、axis_dim、inner_dim三个维度拷贝数据
+    for (size_t outer = 0; outer < outer_dim; ++outer) {
+      size_t output_offset =
+          (outer * output_shape[axis] + axis_offset) * inner_dim;
+      size_t input_offset = outer * axis_dim * inner_dim;
+
+      memcpy(output_data + output_offset * elem_size,
+             input_data + input_offset * elem_size,
+             axis_dim * inner_dim * elem_size);
+    }
+
+    axis_offset += axis_dim;
+  }
+  return status;
 }
 
 base::Status concat(std::vector<device::Tensor *> input,

@@ -33,10 +33,19 @@ class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
     output->set(49407);
 
     int32_t *value = (int32_t *)output->getData();
-    for (int i = 0; i < max_length_; i++) {
-      value[i] = ids[0][i];
+    value[0] = 49406;
+    for (int i = 0; i < ids[0].size(); i++) {
+      value[i + 1] = ids[0][i];
     }
     this->getOutput(0)->notifyWritten(output);
+
+    // for (int i = 0; i < 1; i++) {
+    //   for (int j = 0; j < max_length_; j++) {
+    //     std::cout << value[i * max_length_ + j] << " ";
+    //   }
+    //   std::cout << std::endl;
+    // }
+    // std::cout << "=========" << std::endl;
 
     return base::kStatusCodeOk;
   }
@@ -65,6 +74,31 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
     device::Tensor *prompt = this->getInput(0)->getTensor(this);
     device::Tensor *negative_prompt = this->getInput(1)->getTensor(this);
 
+    // test
+    // std::vector<int> prompt_shape = prompt->getShape();
+    // std::cout << prompt_shape.size() << std::endl;
+    // std::cout << "prompt shape: " << prompt_shape[0] << " " <<
+    // prompt_shape[1]
+    //           << " " << prompt_shape[2] << std::endl;
+
+    // float *value = (float *)prompt->getData();
+    // for (int i = 0; i < prompt_shape[1]; i++) {
+    //   for (int j = 0; j < prompt_shape[2]; j++) {
+    //     std::cout << value[i * prompt_shape[2] + j] << " ";
+    //   }
+    //   std::cout << std::endl;
+    // }
+
+    // std::cout << std::endl;
+
+    // float *ne_value = (float *)negative_prompt->getData();
+    // for (int i = 0; i < prompt_shape[1]; i++) {
+    //   for (int j = 0; j < prompt_shape[2]; j++) {
+    //     std::cout << ne_value[i * prompt_shape[2] + j] << " ";
+    //   }
+    //   std::cout << std::endl;
+    // }
+
     device::Device *device = device::getDevice(device_type_);
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr\n");
@@ -82,7 +116,16 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
       std::shared_ptr<ir::ConcatParam> param =
           std::make_shared<ir::ConcatParam>();
       param->axis_ = 0;
-      op::concat({prompt, negative_prompt}, param, output);
+      op::concat({negative_prompt, prompt}, param, output);
+      // float *value = (float *)output->getData();
+      // std::cout << "value[0]: " << value[0] << std::endl;
+      // std::cout << "value[1]: " << value[1] << std::endl;
+      // std::cout << "last value: " << value[shape[0] * shape[1] * shape[2] -
+      // 2]
+      //           << std::endl;
+      // std::cout << "last value: " << value[shape[0] * shape[1] * shape[2] -
+      // 1]
+      //           << std::endl;
     } else {
       device::TensorDesc desc(base::dataTypeOf<float>(), base::kDataFormatNC,
                               shape);
@@ -95,7 +138,7 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
   }
 
  private:
-  float guidance_ = 1.0;
+  float guidance_ = 2.0;
   int32_t max_length_ = 77;
 };
 
@@ -131,20 +174,16 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
   //   return base::kStatusCodeOk;
   // }
 
-  base::Status make(base::InferenceType inference_type) {
+  base::Status make(base::InferenceType inference_type, std::string name) {
     prompt_ = this->getInput(0);
     if (prompt_ == nullptr) {
       NNDEPLOY_LOGE("prompt is nullptr\n");
       return base::kStatusCodeErrorInvalidParam;
     }
     token_ids_ = this->createEdge("token_ids_");
-    tokenizer_node_ =
-        (tokenizer::TokenizerCpp *)this->createNode<tokenizer::TokenizerCpp>(
-            "tokenizer", {prompt_}, {token_ids_});
-    nndeploy::tokenizer::TokenizerText *text_param =
-        (nndeploy::tokenizer::TokenizerText *)(prompt_->getParam(
-            tokenizer_node_));
-    std::cout << "tokenizer text: " << (text_param->texts_)[0] << std::endl;
+    tokenizer_node_ = (tokenizer::TokenizerEncodeCpp *)this
+                          ->createNode<tokenizer::TokenizerEncodeCpp>(
+                              name, {prompt_}, {token_ids_});
 
     infer_ids_ = this->createEdge("infer_ids");
     cvt_node_ =
@@ -181,20 +220,14 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
   EmbeddingGraph *embedding_graph =
       (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
           "embedding_subgraph", {prompt}, {prompt_ids}));
-  embedding_graph->make(inference_type);
+  embedding_graph->make(inference_type, "tokenizer");
 
   tokenizer::TokenizerPraram *tokenizer_param =
       new tokenizer::TokenizerPraram();
-  tokenizer_param->tokenizer_type_ =
-      tokenizer::TokenizerType::kTokenizerTypeBPE;
+  tokenizer_param->tokenizer_type_ = tokenizer::TokenizerType::kTokenizerTypeHF;
   tokenizer_param->is_path_ = true;
-  tokenizer_param->vocab_blob_ =
-      "/home/lds/stable-diffusion.onnx/models/tokenizer_fast/vocab.json";
-  tokenizer_param->merges_blob_ =
-      "/home/lds/stable-diffusion.onnx/models/tokenizer_fast/merges.txt";
-  tokenizer_param->added_tokens_ =
-      "/home/lds/stable-diffusion.onnx/models/tokenizer_fast/"
-      "special_tokens_map.json";
+  tokenizer_param->json_blob_ =
+      "/home/lds/stable-diffusion.onnx/models/tokenizer/tokenizer.json";
   embedding_graph->setTokenizerParam(tokenizer_param);
 
   inference::InferenceParam *infer_param = new inference::InferenceParam();
@@ -211,7 +244,7 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
       (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
           "negative_embedding_subgraph", {negative_prompt},
           {negative_prompt_ids}));
-  negative_embedding_graph->make(inference_type);
+  negative_embedding_graph->make(inference_type, "negative_tokenizer");
   negative_embedding_graph->setTokenizerParam(tokenizer_param);
   negative_embedding_graph->setInferParam(infer_param);
 
