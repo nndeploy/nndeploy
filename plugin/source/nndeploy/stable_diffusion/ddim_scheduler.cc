@@ -113,39 +113,40 @@ base::Status DDIMScheduler::scaleModelInput(device::Tensor *sample,
   return base::kStatusCodeOk;
 }
 
-base::Status DDIMScheduler::step(device::Tensor *sample,
+base::Status DDIMScheduler::step(device::Tensor *model_output,
                                  device::Tensor *timestep,
-                                 device::Tensor *latents,
+                                 device::Tensor *sample,
                                  device::Tensor *pre_sample) {
   float *sample_ = (float *)(sample->getData());
-  size_t sample_size = sample->getSize();
+  size_t sample_size = sample->getSize() / sizeof(float);
   std::vector<float> sample_v(sample_, sample_ + sample_size);
 
   float *timestep_ = (float *)(timestep->getData());
-  size_t timestep_size = timestep->getSize();
+  size_t timestep_size = timestep->getSize() / sizeof(float);
   std::vector<float> timestep_v(timestep_, timestep_ + timestep_size);
 
-  float *latents_ = (float *)(latents->getData());
-  size_t latents_size = latents->getSize();
-  std::vector<float> latents_v(latents_, latents_ + latents_size);
+  float *model_output_ = (float *)(model_output->getData());
+  size_t model_output_size = model_output->getSize() / sizeof(float);
+  std::vector<float> model_output_v(model_output_,
+                                    model_output_ + model_output_size);
 
   float *pre_sample_ = (float *)(pre_sample->getData());
-  size_t pre_sample_size = pre_sample->getSize();
+  size_t pre_sample_size = pre_sample->getSize() / sizeof(float);
   std::vector<float> pre_sample_v(pre_sample_, pre_sample_ + pre_sample_size);
 
   base::Status status =
-      step_inner(sample_v, timestep_v[0], latents_v, pre_sample_v);
+      step_inner(model_output_v, timestep_v[0], sample_v, pre_sample_v);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("ddim scheduler step failed.\n");
     return status;
   }
 
-  memcpy(pre_sample_, pre_sample_v.data(), pre_sample_size);
+  memcpy(pre_sample_, pre_sample_v.data(), pre_sample_size * sizeof(float));
   return base::kStatusCodeOk;
 }
 
-base::Status DDIMScheduler::step_inner(std::vector<float> &sample, int timestep,
-                                       std::vector<float> &latents,
+base::Status DDIMScheduler::step_inner(std::vector<float> &model_output,
+                                       int timestep, std::vector<float> &sample,
                                        std::vector<float> &prev_sample) {
   int step_index = -1;
   for (size_t i = 0; i < timesteps_.size(); i++) {
@@ -180,8 +181,8 @@ base::Status DDIMScheduler::step_inner(std::vector<float> &sample, int timestep,
   float sigma_t = eta * std::sqrt(variance);
 
   // 计算预测的原始样本
-  if (sample.size() != latents.size()) {
-    NNDEPLOY_LOGE("sample size is not equal to latents size\n");
+  if (sample.size() != model_output.size()) {
+    NNDEPLOY_LOGE("sample size is not equal to model_output size\n");
     return base::kStatusCodeErrorInvalidValue;
   }
   std::vector<float> pred_original_sample(sample.size());
@@ -189,15 +190,15 @@ base::Status DDIMScheduler::step_inner(std::vector<float> &sample, int timestep,
   float sqrt_one_minus_alpha_prod_t = std::sqrt(1.0 - alpha_prod_t);
   for (size_t i = 0; i < sample.size(); ++i) {
     pred_original_sample[i] =
-        (sample[i] - sqrt_one_minus_alpha_prod_t * latents[i]) /
+        (sample[i] - sqrt_one_minus_alpha_prod_t * model_output[i]) /
         sqrt_alpha_prod_t;
   }
 
   // 计算方向项
   std::vector<float> pred_sample_direction(sample.size());
   float sqrt_term = std::sqrt(1.0 - alpha_prod_t_prev - (eta * eta) * variance);
-  for (size_t i = 0; i < latents.size(); ++i) {
-    pred_sample_direction[i] = sqrt_term * latents[i];
+  for (size_t i = 0; i < model_output.size(); ++i) {
+    pred_sample_direction[i] = sqrt_term * model_output[i];
   }
 
   // 根据是否为最后一步生成随机噪声 noise

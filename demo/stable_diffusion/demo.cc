@@ -48,7 +48,7 @@ int main(int argc, char const* argv[]) {
   NNDEPLOY_TIME_POINT_END("graph->init()");
 
   tokenizer::TokenizerText* prompt_text = new tokenizer::TokenizerText();
-  prompt_text->texts_ = {"a cute dog"};
+  prompt_text->texts_ = {"a cute cat"};
   prompt->set(prompt_text, 0, true);
 
   tokenizer::TokenizerText* negative_prompt_text =

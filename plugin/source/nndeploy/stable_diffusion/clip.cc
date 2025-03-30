@@ -37,15 +37,7 @@ class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
     for (int i = 0; i < ids[0].size(); i++) {
       value[i + 1] = ids[0][i];
     }
-    this->getOutput(0)->notifyWritten(output);
-
-    // for (int i = 0; i < 1; i++) {
-    //   for (int j = 0; j < max_length_; j++) {
-    //     std::cout << value[i * max_length_ + j] << " ";
-    //   }
-    //   std::cout << std::endl;
-    // }
-    // std::cout << "=========" << std::endl;
+    // this->getOutput(0)->notifyWritten(output);
 
     return base::kStatusCodeOk;
   }
@@ -109,7 +101,7 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
     device::Tensor *output = nullptr;
     if (do_classifier_free_guidance) {
       shape[0] = shape[0] * 2;
-      device::TensorDesc desc(base::dataTypeOf<float>(), base::kDataFormatNC,
+      device::TensorDesc desc(base::dataTypeOf<float>(), base::kDataFormatNCL,
                               shape);
       output = this->getOutput(0)->create(device, desc, index);
 
@@ -117,28 +109,19 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
           std::make_shared<ir::ConcatParam>();
       param->axis_ = 0;
       op::concat({negative_prompt, prompt}, param, output);
-      // float *value = (float *)output->getData();
-      // std::cout << "value[0]: " << value[0] << std::endl;
-      // std::cout << "value[1]: " << value[1] << std::endl;
-      // std::cout << "last value: " << value[shape[0] * shape[1] * shape[2] -
-      // 2]
-      //           << std::endl;
-      // std::cout << "last value: " << value[shape[0] * shape[1] * shape[2] -
-      // 1]
-      //           << std::endl;
     } else {
-      device::TensorDesc desc(base::dataTypeOf<float>(), base::kDataFormatNC,
+      device::TensorDesc desc(base::dataTypeOf<float>(), base::kDataFormatNCL,
                               shape);
       output = this->getOutput(0)->create(device, desc, index);
-      output = prompt->clone();
+      prompt->copyTo(output);
     }
-    this->getOutput(0)->notifyWritten(output);
+    // this->getOutput(0)->notifyWritten(output);
 
     return base::kStatusCodeOk;
   }
 
  private:
-  float guidance_ = 2.0;
+  float guidance_ = 7.5;
   int32_t max_length_ = 77;
 };
 
@@ -231,7 +214,7 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
   embedding_graph->setTokenizerParam(tokenizer_param);
 
   inference::InferenceParam *infer_param = new inference::InferenceParam();
-  infer_param->device_type_ = base::kDeviceTypeCodeCpu;
+  infer_param->device_type_ = base::kDeviceTypeCodeCuda;
   infer_param->model_type_ = base::kModelTypeOnnx;
   infer_param->is_path_ = true;
   std::vector<std::string> onnx_path = {

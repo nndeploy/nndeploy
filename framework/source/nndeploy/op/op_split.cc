@@ -38,7 +38,7 @@ base::Status OpSplit::inferShape() {
   }
 
   //
-  base::IntVector input_shape = inputs_[0]->getShape();
+  /*base::IntVector input_shape = inputs_[0]->getShape();
   int axis_size = input_shape[axis];
   int target_shape_size = inputs_[1]->getShapeIndex(0);
   int64_t *target_shape_data = (int64_t *)inputs_[1]->getData();
@@ -67,6 +67,7 @@ base::Status OpSplit::inferShape() {
     output_shape[axis] = target_shape_data[i];
     outputs_[i]->reshape(output_shape);
   }
+  */
 
   return status;
 }

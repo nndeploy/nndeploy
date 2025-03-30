@@ -37,7 +37,7 @@ class NNDEPLOY_CC_API DDIMSchedulerParam : public SchedulerParam {
   float beta_start_ = 0.00085;                   // beta起始值
   float beta_end_ = 0.012;                       // beta结束值
   std::string beta_schedule_ = "scaled_linear";  // beta调度方式
-  float eta_ = 1.0;
+  float eta_ = 0.0;
   bool set_alpha_to_one_ = false;  // 是否将alpha的累积乘积的最后一个元素设置为1
 };
 
@@ -64,7 +64,7 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
                           std::vector<float> &prev_sample);
 
  public:
-  float final_alpha_cumprod_ = 1.0;
+  float final_alpha_cumprod_ = 0.0;
 
   std::vector<float> betas_;
   std::vector<float> alphas_;
