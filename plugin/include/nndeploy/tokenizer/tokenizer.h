@@ -74,7 +74,6 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
     if (this == &tp) {
       return *this;
     }
-    is_encode_ = tp.is_encode_;
     is_path_ = tp.is_path_;
     tokenizer_type_ = tp.tokenizer_type_;
     json_blob_ = tp.json_blob_;
@@ -87,8 +86,6 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
     return *this;
   }
 
-  //  encode or decode
-  bool is_encode_;
   // is_path
   bool is_path_ = true;
   // The type of tokenizer
@@ -140,19 +137,43 @@ class NNDEPLOY_CC_API TokenizerIds : public base::Param {
 };
 
 /**
- * @brief Tokenizer
+ * @brief TokenizerEncode
  *
  */
-class NNDEPLOY_CC_API Tokenizer : public dag::Node {
+class NNDEPLOY_CC_API TokenizerEncode : public dag::Node {
  public:
-  Tokenizer(const std::string &name) : dag::Node(name) {
+  TokenizerEncode(const std::string &name) : dag::Node(name) {
+    this->setInputTypeInfo<TokenizerText>();
+    this->setOutputTypeInfo<TokenizerIds>();
   }
-  Tokenizer(const std::string &name, std::vector<dag::Edge *> inputs,
-            std::vector<dag::Edge *> outputs)
+  TokenizerEncode(const std::string &name, std::vector<dag::Edge *> inputs,
+                  std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
+    this->setInputTypeInfo<TokenizerText>();
+    this->setOutputTypeInfo<TokenizerIds>();
   }
 
-  virtual ~Tokenizer();
+  virtual ~TokenizerEncode();
+};
+
+/**
+ * @brief TokenizerDecode
+ *
+ */
+class NNDEPLOY_CC_API TokenizerDecode : public dag::Node {
+ public:
+  TokenizerDecode(const std::string &name) : dag::Node(name) {
+    this->setInputTypeInfo<TokenizerIds>();
+    this->setOutputTypeInfo<TokenizerText>();
+  }
+  TokenizerDecode(const std::string &name, std::vector<dag::Edge *> inputs,
+                  std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
+    this->setInputTypeInfo<TokenizerIds>();
+    this->setOutputTypeInfo<TokenizerText>();
+  }
+
+  virtual ~TokenizerDecode();
 };
 
 }  // namespace tokenizer

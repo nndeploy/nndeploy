@@ -320,7 +320,7 @@ base::Status OptPass::rmOutputTensorAndMaybeDelete(
       delete tensor_wrapper->tensor_;
       tensor_wrapper->tensor_ = nullptr;
     }
-    NNDEPLOY_LOGE("delete tensor name: %s\n", tensor_wrapper->name_.c_str());
+    // NNDEPLOY_LOGE("delete tensor name: %s\n", tensor_wrapper->name_.c_str());
     auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
                         tensor_wrapper);
     if (it != tensor_repository.end()) {
@@ -355,7 +355,7 @@ base::Status OptPass::rmInputTensorAndMaybeDelete(
       delete tensor_wrapper->tensor_;
       tensor_wrapper->tensor_ = nullptr;
     }
-    NNDEPLOY_LOGE("delete tensor name: %s\n", tensor_wrapper->name_.c_str());
+    // NNDEPLOY_LOGE("delete tensor name: %s\n", tensor_wrapper->name_.c_str());
     auto it = std::find(tensor_repository.begin(), tensor_repository.end(),
                         tensor_wrapper);
     if (it != tensor_repository.end()) {

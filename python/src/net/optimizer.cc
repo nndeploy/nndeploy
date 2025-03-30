@@ -11,10 +11,13 @@ NNDEPLOY_API_PYBIND11_MODULE("net", m) {
       .value("kOptPassTypeFuseConvBatchNorm",
              OptPassType::kOptPassTypeFuseConvBatchNorm)
       .value("kOptPassTypeFuseConvRelu", OptPassType::kOptPassTypeFuseConvRelu)
+      .value("kOptPassTypeFuseConvAct", OptPassType::kOptPassTypeFuseConvAct)
       .value("kOptPassTypeEliminateCommonSubexpression",
              OptPassType::kOptPassTypeEliminateCommonSubexpression)
       .value("kOptPassTypeEliminateDeadOp",
              OptPassType::kOptPassTypeEliminateDeadOp)
+      .value("kOptPassTypeFoldConstant", OptPassType::kOptPassTypeFoldConstant)
+      .value("kOptPassTypeFuseQdq", OptPassType::kOptPassTypeFuseQdq)
       .export_values();  // 这一步是可选的，它会导出枚举值到Python的命名空间中
 }
 

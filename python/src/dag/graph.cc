@@ -48,13 +48,15 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_graph_node_share_stream", &Graph::getGraphNodeShareStream)
       .def("update_node_io", &Graph::updateNodeIO, py::arg("node"),
            py::arg("inputs"), py::arg("outputs"))
+      .def("mark_input_edge", &Graph::markInputEdge, py::arg("inputs"))
+      .def("mark_output_edge", &Graph::markOutputEdge, py::arg("outputs"))
       .def("init", &Graph::init)
       .def("deinit", &Graph::deinit)
       .def("run", &Graph::run)
+      .def("forward", &Graph::forward, py::arg("inputs"),
+           py::keep_alive<1, 2>(), py::return_value_policy::reference)
       .def("__call__", &Graph::operator(), py::arg("inputs"),
-           py::arg("outputs_name") = std::vector<std::string>(),
-           py::arg("param") = nullptr, py::keep_alive<1, 2>(),
-           py::return_value_policy::reference)
+           py::keep_alive<1, 2>(), py::return_value_policy::reference)
       .def("dump", [](Graph &g) { g.dump(std::cout); });
 }
 

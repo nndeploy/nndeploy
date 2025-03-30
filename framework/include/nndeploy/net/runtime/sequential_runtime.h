@@ -25,7 +25,9 @@ class NNDEPLOY_CC_API SequentialRuntime : public Runtime {
 
   virtual base::Status init(
       std::vector<TensorWrapper *> &tensor_repository,
-      std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
+      std::vector<OpWrapper *> &op_repository,
+      std::vector<device::Tensor *> &input_tensors,
+      std::vector<device::Tensor *> &output_tensors, bool is_dynamic_shape,
       base::ShapeMap max_shape,
       TensorPoolType tensor_pool_type =
           kTensorPool1DSharedObjectTypeGreedyBySizeImprove);
@@ -37,10 +39,17 @@ class NNDEPLOY_CC_API SequentialRuntime : public Runtime {
   virtual base::Status run();
   virtual base::Status postRun();
 
+  virtual base::Status copyToInputTensor(device::Tensor *tensor);
+  virtual device::Tensor *getOutputTensorAfterRun(const std::string &name,
+                                                  base::DeviceType device_type,
+                                                  bool is_copy,
+                                                  base::DataFormat data_format);
+
  private:
-  bool workspace_is_external_ = false;  // workspace是否是外部传入
-  uint64_t workspace_size_ = 0;         // workspace大小
-  void *workspace_ = nullptr;           // op的workspace
+  bool workspace_is_external_ = false;
+  uint64_t workspace_size_ = 0;
+  void *workspace_ = nullptr;
+  base::ShapeMap shape_map_;
 };
 
 }  // namespace net

@@ -41,19 +41,19 @@ base::Status SnpeInferenceParam::set(const std::string &key, base::Any &any) {
   base::Status status = base::kStatusCodeOk;
 
   if (key == "runtime") {
-    runtime_ = any.get<std::string>();
+    runtime_ = base::get<std::string>(any);
   } else if (key == "perf_mode") {
-    perf_mode_ = any.get<int32_t>();
+    perf_mode_ = base::get<int32_t>(any);
   } else if (key == "profiling_level") {
-    profiling_level_ = any.get<int32_t>();
+    profiling_level_ = base::get<int32_t>(any);
   } else if (key == "buffer_type") {
-    buffer_type_ = any.get<int32_t>();
+    buffer_type_ = base::get<int32_t>(any);
   } else if (key == "input_names") {
-    input_names_ = any.get<std::vector<std::string>>();
+    input_names_ = base::get<std::vector<std::string>>(any);
   } else if (key == "output_tensor_names") {
-    output_tensor_names_ = any.get<std::vector<std::string>>();
+    output_tensor_names_ = base::get<std::vector<std::string>>(any);
   } else if (key == "output_layer_names") {
-    output_layer_names_ = any.get<std::vector<std::string>>();
+    output_layer_names_ = base::get<std::vector<std::string>>(any);
   }
 
   return base::kStatusCodeOk;

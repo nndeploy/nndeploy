@@ -203,15 +203,10 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
-  std::vector<dag::Edge *> operator()(
-      std::vector<dag::Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr) {
-    std::vector<dag::Edge *> outputs =
-        dag::Graph::operator()(inputs, outputs_name, param);
-    inputs = (*pre_)(inputs, {"data"});
-    inputs = (*infer_)(inputs, {"resnetv17_dense0_fwd"});
-    outputs = (*post_)(inputs, outputs_name);
+  std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
+    inputs = (*pre_)(inputs);
+    inputs = (*infer_)(inputs);
+    std::vector<dag::Edge *> outputs = (*post_)(inputs);
     return outputs;
   }
 

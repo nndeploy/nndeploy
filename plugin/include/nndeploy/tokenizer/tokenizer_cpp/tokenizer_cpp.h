@@ -27,20 +27,21 @@ namespace nndeploy {
 namespace tokenizer {
 
 /**
- * @brief Tokenizer
+ * @brief TokenizerEncodeCpp
  *
  */
-class NNDEPLOY_CC_API TokenizerCpp : public nndeploy::tokenizer::Tokenizer {
+class NNDEPLOY_CC_API TokenizerEncodeCpp
+    : public nndeploy::tokenizer::TokenizerEncode {
  public:
-  TokenizerCpp(const std::string& name) : Tokenizer(name) {
+  TokenizerEncodeCpp(const std::string& name) : TokenizerEncode(name) {
     param_ = std::make_shared<TokenizerPraram>();
   }
-  TokenizerCpp(const std::string& name, std::vector<dag::Edge*> inputs,
-               std::vector<dag::Edge*> outputs)
-      : Tokenizer(name, inputs, outputs) {
+  TokenizerEncodeCpp(const std::string& name, std::vector<dag::Edge*> inputs,
+                     std::vector<dag::Edge*> outputs)
+      : TokenizerEncode(name, inputs, outputs) {
     param_ = std::make_shared<TokenizerPraram>();
   }
-  virtual ~TokenizerCpp();
+  virtual ~TokenizerEncodeCpp();
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -61,6 +62,43 @@ class NNDEPLOY_CC_API TokenizerCpp : public nndeploy::tokenizer::Tokenizer {
    */
   std::vector<std::vector<int32_t>> encodeBatch(
       const std::vector<std::string>& texts);
+
+  /*!
+   * \brief Returns the vocabulary size. Special tokens are considered.
+   */
+  size_t getVocabSize();
+
+  /*!
+   * \brief Convert the given token to its corresponding id if it exists. If
+   * not, return -1.
+   */
+  int32_t tokenToId(const std::string& token);
+
+ private:
+  std::unique_ptr<tokenizers::Tokenizer> tokenizer_;
+};
+
+/**
+ * @brief TokenizerDecodeCpp
+ *
+ */
+class NNDEPLOY_CC_API TokenizerDecodeCpp
+    : public nndeploy::tokenizer::TokenizerDecode {
+ public:
+  TokenizerDecodeCpp(const std::string& name) : TokenizerDecode(name) {
+    param_ = std::make_shared<TokenizerPraram>();
+  }
+  TokenizerDecodeCpp(const std::string& name, std::vector<dag::Edge*> inputs,
+                     std::vector<dag::Edge*> outputs)
+      : TokenizerDecode(name, inputs, outputs) {
+    param_ = std::make_shared<TokenizerPraram>();
+  }
+  virtual ~TokenizerDecodeCpp();
+
+  virtual base::Status init();
+  virtual base::Status deinit();
+
+  virtual base::Status run();
 
   /*!
    * \brief decode token ids into text.
@@ -87,12 +125,6 @@ class NNDEPLOY_CC_API TokenizerCpp : public nndeploy::tokenizer::Tokenizer {
    * not, return an empty string.
    */
   std::string idToToken(int32_t token_id);
-
-  /*!
-   * \brief Convert the given token to its corresponding id if it exists. If
-   * not, return -1.
-   */
-  int32_t tokenToId(const std::string& token);
 
  private:
   std::unique_ptr<tokenizers::Tokenizer> tokenizer_;

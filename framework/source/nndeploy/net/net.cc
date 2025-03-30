@@ -3,6 +3,8 @@
 
 #include "nndeploy/net/optimizer.h"
 #include "nndeploy/net/runtime.h"
+#include "nndeploy/net/runtime/pipeline_runtime.h"
+#include "nndeploy/net/runtime/sequential_runtime.h"
 #include "nndeploy/op/op.h"
 
 namespace nndeploy {
@@ -693,13 +695,8 @@ base::Status Net::construct() {
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
   }
-  if (parallel_type_ != base::kParallelTypePipeline) {
-    for (auto op_wrapper : op_repository_) {
-      op_wrapper->op_->setStream(stream_);
-    }
-  }
 
-  // NNDEPLOY_LOGI("##############\n"); 
+  // NNDEPLOY_LOGI("##############\n");
   // NNDEPLOY_LOGI("construct tensor\n");
   // NNDEPLOY_LOGI("##############\n");
   for (auto tensor_wrapper : tensor_repository_) {
@@ -757,6 +754,25 @@ base::Status Net::runtime() {
   // NNDEPLOY_LOGI("##############\n");
   runtime_ = createRuntime(device_type_, parallel_type_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(runtime_, "Create runtime failed!");
+  // if (parallel_type_ == base::kParallelTypePipeline) {
+  //   for (auto input : inputs_) {
+  //     PipelineTensor *pipeline_input = new PipelineTensor();
+  //     pipeline_input_output_tensors_[input] = pipeline_input;
+  //   }
+  //   for (auto output : outputs_) {
+  //     PipelineTensor *pipeline_output = new PipelineTensor();
+  //     // 外部消费者
+  //     pipeline_output->consumers_.emplace_back(nullptr);
+  //     pipeline_output->current_index_[nullptr] = 0;
+  //     pipeline_input_output_tensors_[output] = pipeline_output;
+  //   }
+  //   PipelineRuntime *pipeline_runtime =
+  //       dynamic_cast<PipelineRuntime *>(runtime_);
+  //   pipeline_runtime->setInputOutputTensors(pipeline_input_output_tensors_);
+  //   pipeline_runtime->setWorkers(worker_num_, device_types_);
+  // }
+
+  runtime_->setWorkers(worker_num_, device_types_);
 
   // 设置流
   runtime_->setStream(stream_);
@@ -769,8 +785,8 @@ base::Status Net::runtime() {
   // NNDEPLOY_LOGI("#. Memory Allocation Phase!\n");
   // NNDEPLOY_LOGI("#. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
-  status = runtime_->init(tensor_repository_, op_repository_, is_dynamic_shape_,
-                          max_shape_, tensor_pool_type_);
+  status = runtime_->init(tensor_repository_, op_repository_, inputs_, outputs_,
+                          is_dynamic_shape_, max_shape_, tensor_pool_type_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime init failed!");
 
   return status;
@@ -789,6 +805,25 @@ base::Status Net::setEnablePass(std::set<OptPassType> enable_pass) {
 base::Status Net::setDisablePass(std::set<OptPassType> disable_pass) {
   disable_pass_ = disable_pass;
   return base::kStatusCodeOk;
+}
+
+base::Status Net::setWorkers(int worker_num,
+                             std::vector<base::DeviceType> device_types) {
+  worker_num_ = worker_num;
+  device_types_ = device_types;
+  return base::kStatusCodeOk;
+}
+
+base::Status Net::copyToInputTensor(device::Tensor *tensor) {
+  return runtime_->copyToInputTensor(tensor);
+}
+
+device::Tensor *Net::getOutputTensorAfterRun(const std::string &name,
+                                             base::DeviceType device_type,
+                                             bool is_copy,
+                                             base::DataFormat data_format) {
+  return runtime_->getOutputTensorAfterRun(name, device_type, is_copy,
+                                           data_format);
 }
 
 Net *createNet(ir::ModelDesc *model_desc, base::DeviceType device_type,

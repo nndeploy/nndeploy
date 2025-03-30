@@ -176,7 +176,6 @@ base::Status OpQLinearConv::qLinearConvImpl(
   int32_t* w_dequantized = new int32_t[w_size];
 
   for (size_t i = 0; i < x_size; ++i) {
-    std::cout<< static_cast<int32_t>(x_ptr[i])<<" "<<static_cast<int32_t>(x_zp_ptr[0])<<std::endl;
     x_dequantized[i] =
         static_cast<int32_t>(x_ptr[i]) - static_cast<int32_t>(x_zp_ptr[0]);
   }

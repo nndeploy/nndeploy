@@ -16,6 +16,50 @@
 namespace nndeploy {
 namespace net {
 
+class Runtime;
+
+class PipelineTensor {
+ public:
+  PipelineTensor() {};
+  virtual ~PipelineTensor() {};
+  std::vector<device::Tensor *> tensors_;
+  std::vector<Runtime *> producers_;
+  std::vector<Runtime *> consumers_;
+
+  // 添加互斥锁和条件变量，用于同步不同阶段之间的数据传递
+  std::mutex mutex_;
+  std::condition_variable cv_;
+  std::map<Runtime *, int> current_index_;
+  bool is_finish_ = false;
+
+  void push(device::Tensor *tensor) {
+    // NNDEPLOY_LOGI("tensor name %s\n", tensor->getName().c_str());
+    std::lock_guard<std::mutex> lock(mutex_);
+    tensors_.push_back(tensor);
+    cv_.notify_all();
+  }
+
+  void setFinish() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    is_finish_ = true;
+    cv_.notify_all();
+  }
+
+  device::Tensor *pop(Runtime *runtime) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    cv_.wait(lock, [this, runtime]() {
+      bool flag = current_index_[runtime] < tensors_.size();
+      return flag || is_finish_;
+    });
+    if (is_finish_) {
+      return nullptr;
+    }
+    device::Tensor *tensor = tensors_[current_index_[runtime]];
+    current_index_[runtime]++;
+    return tensor;
+  }
+};
+
 class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
  public:
   Runtime(const base::DeviceType &device_type) : device_type_(device_type) {};
@@ -28,10 +72,17 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
 
   void setStream(device::Stream *stream);
   device::Stream *getStream();
+  base::Status synchronize();
+
+  base::Status setWorkers(int worker_num,
+                          std::vector<base::DeviceType> device_types =
+                              std::vector<base::DeviceType>());
 
   virtual base::Status init(
       std::vector<TensorWrapper *> &tensor_repository,
-      std::vector<OpWrapper *> &op_repository, bool is_dynamic_shape,
+      std::vector<OpWrapper *> &op_repository,
+      std::vector<device::Tensor *> &input_tensors,
+      std::vector<device::Tensor *> &output_tensors, bool is_dynamic_shape,
       base::ShapeMap max_shape,
       TensorPoolType tensor_pool_type =
           kTensorPool1DSharedObjectTypeGreedyBySizeImprove) = 0;
@@ -57,6 +108,27 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
   virtual base::Status run() = 0;
   virtual base::Status postRun() = 0;
 
+  /**
+   * @brief 将输入tensor复制到输入tensor
+   *
+   * @param tensor
+   * @return base::Status
+   */
+  virtual base::Status copyToInputTensor(device::Tensor *tensor) = 0;
+
+  /**
+   * @brief 获取推理后的输出tensor
+   *
+   * @param name
+   * @param device_type
+   * @param is_copy
+   * @param data_format
+   * @return device::Tensor*
+   */
+  virtual device::Tensor *getOutputTensorAfterRun(
+      const std::string &name, base::DeviceType device_type, bool is_copy,
+      base::DataFormat data_format) = 0;
+
  protected:
   base::DeviceType device_type_;
   /**
@@ -72,6 +144,10 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
   std::vector<TensorWrapper *> tensor_repository_;
   std::vector<OpWrapper *> op_repository_;
+  std::vector<device::Tensor *> input_tensors_;
+  std::vector<device::Tensor *> output_tensors_;
+  int worker_num_ = 1;
+  std::vector<base::DeviceType> device_types_;
 };
 
 /**

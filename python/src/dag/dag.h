@@ -80,18 +80,41 @@ class PyNode : public Base {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, Base, "run", run);
   }
   
+  std::vector<Edge *> forward(
+      std::vector<Edge *> inputs) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward,
+                          inputs);
+  }
+
   std::vector<Edge *> operator()(
-      std::vector<Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr) override {
+      std::vector<Edge *> inputs) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(),
-                          inputs, outputs_name, param);
+                          inputs);
   }
    
-  std::vector<std::string> getRealOutputsName(
-      std::vector<std::string> outputs_name) override {
+  std::vector<std::string> getRealOutputsName() override {
     PYBIND11_OVERRIDE_NAME(std::vector<std::string>, Base, "get_real_outputs_name",
-                          getRealOutputsName, outputs_name);
+                          getRealOutputsName);
+  }
+};
+
+template<typename Base = NodeCreator>
+class PyNodeCreator : public Base {
+ public:
+  using Base::Base;
+
+  Node *createNode(const std::string &node_name, std::vector<Edge *> inputs,
+                   std::vector<Edge *> outputs) override {
+    PYBIND11_OVERRIDE_PURE_NAME(Node *, NodeCreator, "create_node", createNode,
+                                node_name, inputs, outputs);
+  }
+
+  std::shared_ptr<Node> createNodeSharedPtr(  
+      const std::string &node_name, std::vector<Edge *> inputs,
+      std::vector<Edge *> outputs) override {
+    PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Node>, NodeCreator,
+                                "create_node_shared_ptr", createNodeSharedPtr,
+                                node_name, inputs, outputs);
   }
 };
 
@@ -112,12 +135,16 @@ class PyGraph : public Base {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "run", run);
   }
 
+  std::vector<Edge *> forward(
+        std::vector<Edge *> inputs) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward,
+                          inputs);
+  }
+
   std::vector<Edge *> operator()(
-      std::vector<Edge *> inputs,
-      std::vector<std::string> outputs_name = std::vector<std::string>(),
-      std::shared_ptr<base::Param> param = nullptr) override {
+        std::vector<Edge *> inputs) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(),
-                          inputs, outputs_name, param);
+                          inputs);
   }
 };
 

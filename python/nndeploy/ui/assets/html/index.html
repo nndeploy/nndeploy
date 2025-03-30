@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nndeploy</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* 自定义样式 */
+    .bg-grid {
+      background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .node {
+      transition: all 0.2s ease;
+    }
+
+    .node:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .port-input {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .port-output {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .connector {
+      stroke-width: 2px;
+      fill: none;
+      stroke: #9CA3AF;
+    }
+
+    .connector-active {
+      stroke: #2563EB;
+      stroke-width: 2.5px;
+    }
+
+    .menu-dropdown {
+      display: none;
+      position: absolute;
+      z-index: 50;
+    }
+
+    .menu-trigger:hover .menu-dropdown {
+      display: block;
+    }
+
+    /* 节点类型颜色 */
+    .node-input {
+      border-left: 4px solid #4CAF50;
+    }
+
+    .node-process {
+      border-left: 4px solid #2196F3;
+    }
+
+    .node-inference {
+      border-left: 4px solid #9C27B0;
+    }
+
+    .node-output {
+      border-left: 4px solid #FF9800;
+    }
+
+    .node-control {
+      border-left: 4px solid #607D8B;
+    }
+
+    /* 动画效果 */
+    @keyframes pulse {
+      0% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.6;
+      }
+    }
+
+    .executing {
+      animation: pulse 1.5s infinite;
+      border: 2px solid #2563EB;
+    }
+
+    .execution-success {
+      border: 2px solid #10B981;
+    }
+
+    .execution-error {
+      border: 2px solid #EF4444;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 h-screen flex flex-col overflow-hidden">
+  <!-- 顶部菜单栏 -->
+  <header class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="flex items-center px-4 py-2">
+      <div class="flex items-center mr-4">
+        <i class="fas fa-project-diagram text-blue-600 text-2xl mr-2"></i>
+        <h1 class="text-xl font-semibold text-gray-800">nndeploy</h1>
+      </div>
+
+      <!-- 主菜单 -->
+      <nav class="flex space-x-1">
+        <!-- 文件菜单 -->
+        <div class="relative menu-trigger">
+          <button class="px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-md flex items-center">
+            <span>文件</span>
+            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+          </button>
+          <div class="menu-dropdown left-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10">
+            <div class="py-1">
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-file-plus mr-2"></i>新建工作流
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-folder-open mr-2"></i>打开工作流
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-save mr-2"></i>保存工作流
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-save mr-2"></i>另存为
+              </a>
+              <hr class="my-1 border-gray-200">
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-file-export mr-2"></i>导出工作流
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-file-import mr-2"></i>导入工作流
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 编辑菜单 -->
+        <div class="relative menu-trigger">
+          <button class="px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-md flex items-center">
+            <span>编辑</span>
+            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+          </button>
+          <div class="menu-dropdown left-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10">
+            <div class="py-1">
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-undo mr-2"></i>撤销 <span class="text-gray-500 text-xs">Ctrl+Z</span>
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-redo mr-2"></i>重做 <span class="text-gray-500 text-xs">Ctrl+Y</span>
+              </a>
+              <hr class="my-1 border-gray-200">
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-copy mr-2"></i>复制 <span class="text-gray-500 text-xs">Ctrl+C</span>
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-paste mr-2"></i>粘贴 <span class="text-gray-500 text-xs">Ctrl+V</span>
+              </a>
+              <hr class="my-1 border-gray-200">
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-align-left mr-2"></i>对齐工具
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 设置菜单 -->
+        <div class="relative menu-trigger">
+          <button class="px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-md flex items-center">
+            <span>设置</span>
+            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+          </button>
+          <div class="menu-dropdown left-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10">
+            <div class="py-1">
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-cog mr-2"></i>通用设置
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-palette mr-2"></i>节点样式设置
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-bezier-curve mr-2"></i>连线样式设置
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-tachometer-alt mr-2"></i>性能设置
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 帮助菜单 -->
+        <div class="relative menu-trigger">
+          <button class="px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-md flex items-center">
+            <span>帮助</span>
+            <i class="fas fa-chevron-down ml-1 text-xs"></i>
+          </button>
+          <div class="menu-dropdown left-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10">
+            <div class="py-1">
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-book mr-2"></i>操作文档
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-comment-alt mr-2"></i>反馈与建议
+              </a>
+              <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                <i class="fas fa-info-circle mr-2"></i>版本信息
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- 工具栏 -->
+      <div class="flex items-center space-x-2 ml-auto">
+        <button class="p-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-md" title="运行">
+          <i class="fas fa-play"></i>
+        </button>
+        <button class="p-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-md" title="重置">
+          <i class="fas fa-redo-alt"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要内容区域 -->
+  <div class="flex flex-1 overflow-hidden">
+    <!-- 左侧侧边栏 -->
+    <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
+      <!-- 侧边栏标签页 -->
+      <div class="flex border-b border-gray-200">
+        <button class="flex-1 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600">
+          节点
+        </button>
+        <button class="flex-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-700">
+          模型
+        </button>
+        <button class="flex-1 py-3 text-sm font-medium text-gray-500 hover:text-gray-700">
+          素材
+        </button>
+      </div>
+
+      <!-- 搜索框 -->
+      <div class="p-3 border-b border-gray-200">
+        <div class="relative">
+          <input type="text" placeholder="搜索节点..."
+            class="w-full pl-9 pr-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+        </div>
+      </div>
+
+      <!-- 节点分类列表 -->
+      <div class="flex-1 overflow-y-auto p-2">
+        <!-- 输入节点分类 -->
+        <div class="mb-3">
+          <div
+            class="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded">
+            <div class="flex items-center">
+              <i class="fas fa-chevron-down mr-2 text-xs"></i>
+              <span>输入节点</span>
+            </div>
+            <span class="text-xs text-gray-500">5</span>
+          </div>
+
+          <div class="ml-4 mt-1 space-y-1">
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-green-500 rounded-sm mr-2"></div>
+              <span>文本输入</span>
+            </div>
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-green-500 rounded-sm mr-2"></div>
+              <span>图像输入</span>
+            </div>
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-green-500 rounded-sm mr-2"></div>
+              <span>音频输入</span>
+            </div>
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-green-500 rounded-sm mr-2"></div>
+              <span>视频输入</span>
+            </div>
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-green-500 rounded-sm mr-2"></div>
+              <span>文件输入</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 处理节点分类 -->
+        <div class="mb-3">
+          <div
+            class="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded">
+            <div class="flex items-center">
+              <i class="fas fa-chevron-right mr-2 text-xs"></i>
+              <span>处理节点</span>
+            </div>
+            <span class="text-xs text-gray-500">8</span>
+          </div>
+        </div>
+
+        <!-- 推理节点分类 -->
+        <div class="mb-3">
+          <div
+            class="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded">
+            <div class="flex items-center">
+              <i class="fas fa-chevron-down mr-2 text-xs"></i>
+              <span>推理节点</span>
+            </div>
+            <span class="text-xs text-gray-500">6</span>
+          </div>
+
+          <div class="ml-4 mt-1 space-y-1">
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-purple-500 rounded-sm mr-2"></div>
+              <span>文本生成</span>
+            </div>
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-purple-500 rounded-sm mr-2"></div>
+              <span>文本嵌入</span>
+            </div>
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-purple-500 rounded-sm mr-2"></div>
+              <span>以文生图</span>
+            </div>
+            <div class="flex items-center px-2 py-1 text-sm text-gray-700 cursor-pointer hover:bg-gray-100 rounded"
+              draggable="true">
+              <div class="w-2 h-6 bg-purple-500 rounded-sm mr-2"></div>
+              <span>图像分类</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 输出节点分类 -->
+        <div class="mb-3">
+          <div
+            class="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded">
+            <div class="flex items-center">
+              <i class="fas fa-chevron-right mr-2 text-xs"></i>
+              <span>输出节点</span>
+            </div>
+            <span class="text-xs text-gray-500">5</span>
+          </div>
+        </div>
+
+        <!-- 控制流节点分类 -->
+        <div class="mb-3">
+          <div
+            class="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 rounded">
+            <div class="flex items-center">
+              <i class="fas fa-chevron-right mr-2 text-xs"></i>
+              <span>控制流节点</span>
+            </div>
+            <span class="text-xs text-gray-500">4</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 中间画布区域 -->
+    <div class="flex-1 bg-gray-100 relative overflow-hidden" id="canvas-container">
+      <!-- 网格背景 -->
+      <div class="absolute inset-0 bg-grid"></div>
+
+      <!-- 以文生图工作流节点示例 -->
+      <div
+        class="node absolute left-64 top-48 w-64 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-input">
+        <div class="flex items-center p-3 border-b border-gray-200">
+          <h3 class="text-sm font-medium text-gray-800">提示词输入</h3>
+          <button class="ml-auto text-gray-400 hover:text-gray-600">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+        <div class="p-3">
+          <textarea
+            class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            rows="3" placeholder="输入提示词...">一只可爱的猫咪，坐在窗台上，阳光照射，高清照片风格</textarea>
+        </div>
+        <div class="flex justify-between p-2 bg-gray-50 rounded-b-md">
+          <div></div>
+          <div class="flex items-center">
+            <div class="flex flex-col items-end">
+              <span class="text-xs text-gray-600 mb-1">提示词文本</span>
+              <span class="text-xs text-gray-500">字符串 (str)</span>
+            </div>
+            <div class="port-output bg-green-500 ml-2" data-port="output" data-port-type="string" title="提示词输出"></div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="node absolute left-64 top-200 w-64 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-input">
+        <div class="flex items-center p-3 border-b border-gray-200">
+          <h3 class="text-sm font-medium text-gray-800">负面提示词</h3>
+          <button class="ml-auto text-gray-400 hover:text-gray-600">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+        <div class="p-3">
+          <textarea
+            class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            rows="2" placeholder="输入负面提示词...">模糊，扭曲，低质量，像素化，不完整，草图</textarea>
+        </div>
+        <div class="flex justify-between p-2 bg-gray-50 rounded-b-md">
+          <div></div>
+          <div class="flex items-center">
+            <div class="flex flex-col items-end">
+              <span class="text-xs text-gray-600 mb-1">负面提示词</span>
+              <span class="text-xs text-gray-500">字符串 (str)</span>
+            </div>
+            <div class="port-output bg-green-500 ml-2" data-port="output" data-port-type="string" title="负面提示词输出"></div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="node absolute left-400 top-48 w-72 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-inference">
+        <div class="flex items-center p-3 border-b border-gray-200">
+          <h3 class="text-sm font-medium text-gray-800">Stable Diffusion</h3>
+          <button class="ml-auto text-gray-400 hover:text-gray-600">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+        <div class="p-3 text-center">
+          <div class="text-sm text-gray-700 mb-2">以文生图推理节点</div>
+          <div class="text-xs text-gray-500">点击右上角设置按钮调整参数</div>
+        </div>
+        <div class="flex justify-between p-2 bg-gray-50 rounded-b-md">
+          <div class="flex flex-col space-y-4">
+            <div class="flex items-center">
+              <div class="port-input bg-green-500" data-port="prompt" data-port-type="string" title="提示词输入"></div>
+              <div class="flex flex-col ml-2">
+                <span class="text-xs text-gray-600">提示词</span>
+                <span class="text-xs text-gray-500">字符串 (str)</span>
+              </div>
+            </div>
+            <div class="flex items-center">
+              <div class="port-input bg-green-500" data-port="negative_prompt" data-port-type="string" title="负面提示词输入">
+              </div>
+              <div class="flex flex-col ml-2">
+                <span class="text-xs text-gray-600">负面提示词</span>
+                <span class="text-xs text-gray-500">字符串 (str)</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <div class="flex flex-col items-end">
+              <span class="text-xs text-gray-600 mb-1">生成图像</span>
+              <span class="text-xs text-gray-500">图像 (PIL.Image)</span>
+            </div>
+            <div class="port-output bg-blue-500 ml-2" data-port="output" data-port-type="image" title="图像输出"></div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="node absolute left-600 top-48 w-64 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-output">
+        <div class="flex items-center p-3 border-b border-gray-200">
+          <h3 class="text-sm font-medium text-gray-800">图像预览</h3>
+          <button class="ml-auto text-gray-400 hover:text-gray-600">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+        <div class="p-3">
+          <div class="bg-gray-200 rounded-md w-full h-48 flex items-center justify-center">
+            <i class="fas fa-image text-gray-400 text-4xl"></i>
+          </div>
+        </div>
+        <div class="flex justify-between p-2 bg-gray-50 rounded-b-md">
+          <div class="flex items-center">
+            <div class="port-input bg-blue-500" data-port="input" data-port-type="image" title="图像输入"></div>
+            <div class="flex flex-col ml-2">
+              <span class="text-xs text-gray-600">图像</span>
+              <span class="text-xs text-gray-500">图像 (PIL.Image)</span>
+            </div>
+          </div>
+          <div></div>
+        </div>
+      </div>
+
+      <div
+        class="node absolute left-600 top-200 w-64 bg-white rounded-md shadow-md border border-gray-200 cursor-move node-output">
+        <div class="flex items-center p-3 border-b border-gray-200">
+          <h3 class="text-sm font-medium text-gray-800">图像保存</h3>
+          <button class="ml-auto text-gray-400 hover:text-gray-600">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+        <div class="p-3">
+          <div class="mb-2">
+            <label class="block text-xs text-gray-500 mb-1">文件名</label>
+            <input type="text" value="generated_image"
+              class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          <div class="mb-2">
+            <label class="block text-xs text-gray-500 mb-1">格式</label>
+            <select
+              class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <option>PNG</option>
+              <option>JPEG</option>
+              <option>WebP</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-between p-2 bg-gray-50 rounded-b-md">
+          <div class="flex items-center">
+            <div class="port-input bg-blue-500" data-port="input" data-port-type="image" title="图像输入"></div>
+            <div class="flex flex-col ml-2">
+              <span class="text-xs text-gray-600">图像</span>
+              <span class="text-xs text-gray-500">图像 (PIL.Image)</span>
+            </div>
+          </div>
+          <div></div>
+        </div>
+      </div>
+
+      <!-- 连线示例 -->
+      <svg class="absolute inset-0 pointer-events-none">
+        <path d="M336,64 C400,64 400,64 464,64" class="connector" marker-end="url(#arrowhead)"></path>
+        <path d="M464,80 C528,80 528,216 592,216" class="connector" marker-end="url(#arrowhead)"></path>
+
+        <!-- 箭头标记定义 -->
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#9CA3AF" />
+          </marker>
+        </defs>
+      </svg>
+
+      <!-- 缩放控制 -->
+      <div class="absolute right-4 bottom-4 flex items-center bg-white rounded-md shadow-sm border border-gray-200">
+        <button class="p-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-l-md">
+          <i class="fas fa-minus"></i>
+        </button>
+        <div class="px-3 py-1 text-sm text-gray-700 border-l border-r border-gray-200">100%</div>
+        <button class="p-2 text-gray-700 hover:text-blue-600 hover:bg-gray-100 rounded-r-md">
+          <i class="fas fa-plus"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 右侧属性面板 -->
+    <div id="properties-panel" class="w-72 bg-white border-l border-gray-200 flex flex-col">
+      <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 class="text-lg font-medium text-gray-800">节点属性</h2>
+        <button id="close-properties" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- 节点属性内容 -->
+      <div class="flex-1 overflow-y-auto p-4">
+        <!-- 基本信息 -->
+        <div class="mb-4">
+          <h3 class="text-sm font-medium text-gray-700 mb-2">基本信息</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">节点名称</label>
+              <input type="text" value="GPT-4 推理"
+                class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">节点类型</label>
+              <select
+                class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option>推理节点</option>
+                <option>输入节点</option>
+                <option>处理节点</option>
+                <option>输出节点</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">描述</label>
+              <textarea
+                class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows="2">使用 GPT-4 模型进行文本生成</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- 输入端口 -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-medium text-gray-700">输入端口</h3>
+            <button class="text-xs text-blue-600 hover:text-blue-800">
+              <i class="fas fa-plus mr-1"></i>添加
+            </button>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-md overflow-hidden">
+            <div class="p-3 border-b border-gray-200">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-gray-700">提示文本</span>
+                <div class="flex items-center">
+                  <button class="text-gray-400 hover:text-gray-600 mr-2">
+                    <i class="fas fa-edit text-xs"></i>
+                  </button>
+                  <button class="text-gray-400 hover:text-red-600">
+                    <i class="fas fa-trash text-xs"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-500">数据类型</span>
+                <span class="text-xs text-gray-700">字符串 (str)</span>
+              </div>
+            </div>
+
+            <div class="p-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-gray-700">系统提示</span>
+                <div class="flex items-center">
+                  <button class="text-gray-400 hover:text-gray-600 mr-2">
+                    <i class="fas fa-edit text-xs"></i>
+                  </button>
+                  <button class="text-gray-400 hover:text-red-600">
+                    <i class="fas fa-trash text-xs"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-500">数据类型</span>
+                <span class="text-xs text-gray-700">字符串 (str)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 输出端口 -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-medium text-gray-700">输出端口</h3>
+            <button class="text-xs text-blue-600 hover:text-blue-800">
+              <i class="fas fa-plus mr-1"></i>添加
+            </button>
+          </div>
+
+          <div class="bg-white border border-gray-200 rounded-md overflow-hidden">
+            <div class="p-3">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-medium text-gray-700">生成文本</span>
+                <div class="flex items-center">
+                  <button class="text-gray-400 hover:text-gray-600 mr-2">
+                    <i class="fas fa-edit text-xs"></i>
+                  </button>
+                  <div class="flex items-center justify-between mb-2
+              <div class=" p-3">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs font-medium text-gray-700">系统提示</span>
+                      <div class="flex items-center">
+                        <button class="text-gray-400 hover:text-gray-600 mr-2">
+                          <i class="fas fa-edit text-xs"></i>
+                        </button>
+                        <button class="text-gray-400 hover:text-red-600">
+                          <i class="fas fa-trash text-xs"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-gray-500">数据类型</span>
+                      <span class="text-xs text-gray-700">字符串 (str)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 输出端口 -->
+              <div class="mb-4">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-sm font-medium text-gray-700">输出端口</h3>
+                  <button class="text-xs text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-plus mr-1"></i>添加
+                  </button>
+                </div>
+
+                <div class="bg-white border border-gray-200 rounded-md overflow-hidden">
+                  <div class="p-3">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-xs font-medium text-gray-700">生成文本</span>
+                      <div class="flex items-center">
+                        <button class="text-gray-400 hover:text-gray-600 mr-2">
+                          <i class="fas fa-edit text-xs"></i>
+                        </button>
+                        <button class="text-gray-400 hover:text-red-600">
+                          <i class="fas fa-trash text-xs"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs text-gray-500">数据类型</span>
+                      <span class="text-xs text-gray-700">字符串 (str)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 模型参数 -->
+              <div class="mb-4">
+                <h3 class="text-sm font-medium text-gray-700 mb-2">模型参数</h3>
+                <div class="space-y-3">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">模型</label>
+                    <select
+                      class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <option>GPT-4</option>
+                      <option>GPT-3.5-Turbo</option>
+                      <option>Claude-3-Opus</option>
+                      <option>Claude-3-Sonnet</option>
+                      <option>Llama-3-70B</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Temperature</label>
+                    <div class="flex items-center">
+                      <input type="range" min="0" max="1" step="0.01" value="0.7" class="w-full mr-2">
+                      <span class="text-xs text-gray-700 w-8">0.7</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Max Tokens</label>
+                    <input type="number" value="1024"
+                      class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Top P</label>
+                    <div class="flex items-center">
+                      <input type="range" min="0" max="1" step="0.01" value="0.9" class="w-full mr-2">
+                      <span class="text-xs text-gray-700 w-8">0.9</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">系统提示词</label>
+                    <textarea
+                      class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows="3">你是一个有用的AI助手。</textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 高级设置 -->
+              <div class="mb-4">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-sm font-medium text-gray-700">高级设置</h3>
+                  <button class="text-xs text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-chevron-down"></i>
+                  </button>
+                </div>
+
+                <div class="space-y-3">
+                  <div>
+                    <label class="flex items-center">
+                      <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4">
+                      <span class="text-xs text-gray-700 ml-2">流式输出</span>
+                    </label>
+                  </div>
+                  <div>
+                    <label class="flex items-center">
+                      <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500 h-4 w-4">
+                      <span class="text-xs text-gray-700 ml-2">缓存结果</span>
+                    </label>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">错误处理</label>
+                    <select
+                      class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                      <option>停止执行</option>
+                      <option>继续执行</option>
+                      <option>重试</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">超时设置 (秒)</label>
+                    <input type="number" value="30"
+                      class="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 底部操作按钮 -->
+            <div class="p-4 border-t border-gray-200">
+              <div class="flex space-x-2">
+                <button
+                  class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium">
+                  应用
+                </button>
+                <button
+                  class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-md text-sm font-medium">
+                  取消
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部状态栏 -->
+        <footer class="bg-white border-t border-gray-200 py-2 px-4 flex items-center justify-between">
+          <div class="flex items-center text-sm text-gray-600">
+            <span>就绪</span>
+            <div class="h-4 border-l border-gray-300 mx-3"></div>
+            <span>节点: 3</span>
+            <div class="h-4 border-l border-gray-300 mx-3"></div>
+            <span>连线: 2</span>
+          </div>
+          <div class="flex items-center text-sm text-gray-600">
+            <span>工作流: 未保存</span>
+          </div>
+        </footer>
+
+        <!-- 右键菜单 (默认隐藏) -->
+        <div id="context-menu" class="hidden absolute z-50 w-48 bg-white rounded-md shadow-lg py-1">
+          <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+            <i class="fas fa-edit mr-2"></i>编辑
+          </a>
+          <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+            <i class="fas fa-copy mr-2"></i>复制
+          </a>
+          <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+            <i class="fas fa-trash mr-2"></i>删除
+          </a>
+          <hr class="my-1 border-gray-200">
+          <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+            <i class="fas fa-play mr-2"></i>执行节点
+          </a>
+        </div>
+
+        <!-- 模态对话框 (默认隐藏) -->
+        <div id="modal"
+          class="hidden fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center">
+          <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 class="text-lg font-medium text-gray-900">保存工作流</h3>
+              <button class="text-gray-400 hover:text-gray-500">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="p-4">
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">工作流名称</label>
+                <input type="text"
+                  class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="输入工作流名称">
+              </div>
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">描述 (可选)</label>
+                <textarea
+                  class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows="3" placeholder="输入工作流描述"></textarea>
+              </div>
+            </div>
+            <div class="flex justify-end p-4 border-t border-gray-200">
+              <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-md text-sm font-medium mr-2">
+                取消
+              </button>
+              <button class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium">
+                保存
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 简单的交互脚本 -->
+        <script>
+          // 菜单交互
+          document.addEventListener('DOMContentLoaded', function () {
+            // 节点拖拽功能
+            const nodes = document.querySelectorAll('.node');
+            nodes.forEach(node => {
+              let isDragging = false;
+              let offsetX, offsetY;
+
+              node.addEventListener('mousedown', function (e) {
+                if (e.target.closest('.port-input') || e.target.closest('.port-output')) {
+                  return;
+                }
+
+                isDragging = true;
+                offsetX = e.clientX - node.getBoundingClientRect().left;
+                offsetY = e.clientY - node.getBoundingClientRect().top;
+                node.style.zIndex = 1000;
+              });
+
+              document.addEventListener('mousemove', function (e) {
+                if (!isDragging) return;
+
+                const x = e.clientX - offsetX;
+                const y = e.clientY - offsetY;
+
+                node.style.left = x + 'px';
+                node.style.top = y + 'px';
+
+                // 更新连线 (简化版)
+                updateConnections();
+              });
+
+              document.addEventListener('mouseup', function () {
+                if (isDragging) {
+                  isDragging = false;
+                  node.style.zIndex = '';
+                }
+              });
+            });
+
+            // 简单的连线更新函数
+            function updateConnections() {
+              const svg = document.querySelector('svg');
+              const paths = svg.querySelectorAll('path');
+
+              // 这里只是一个简化的示例，实际应用中需要根据节点位置计算路径
+              paths.forEach(path => {
+                // 在实际应用中，这里需要计算连接点的位置并更新路径
+              });
+            }
+
+            // 节点分类展开/收起
+            const categoryHeaders = document.querySelectorAll('.node-category-header');
+            categoryHeaders.forEach(header => {
+              header.addEventListener('click', function () {
+                const icon = this.querySelector('i');
+                const content = this.nextElementSibling;
+
+                if (icon.classList.contains('fa-chevron-down')) {
+                  icon.classList.replace('fa-chevron-down', 'fa-chevron-right');
+                  content.style.display = 'none';
+                } else {
+                  icon.classList.replace('fa-chevron-right', 'fa-chevron-down');
+                  content.style.display = 'block';
+                }
+              });
+            });
+
+            // 右键菜单
+            const contextMenu = document.getElementById('context-menu');
+            const canvas = document.getElementById('canvas-container');
+
+            canvas.addEventListener('contextmenu', function (e) {
+              e.preventDefault();
+
+              contextMenu.style.display = 'block';
+              contextMenu.style.left = e.pageX + 'px';
+              contextMenu.style.top = e.pageY + 'px';
+            });
+
+            document.addEventListener('click', function () {
+              contextMenu.style.display = 'none';
+            });
+
+            // 模拟执行功能
+            const playButton = document.querySelector('.fa-play').parentElement;
+            playButton.addEventListener('click', function () {
+              const nodes = document.querySelectorAll('.node');
+
+              // 模拟执行过程
+              nodes[0].classList.add('executing');
+
+              setTimeout(() => {
+                nodes[0].classList.remove('executing');
+                nodes[0].classList.add('execution-success');
+                nodes[1].classList.add('executing');
+
+                setTimeout(() => {
+                  nodes[1].classList.remove('executing');
+                  nodes[1].classList.add('execution-success');
+                  nodes[2].classList.add('executing');
+
+                  setTimeout(() => {
+                    nodes[2].classList.remove('executing');
+                    nodes[2].classList.add('execution-success');
+
+                    // 显示结果
+                    const outputNode = nodes[2].querySelector('.p-2.bg-gray-50.border');
+                    outputNode.textContent = "这是一个由GPT-4生成的示例输出文本。根据您的输入，我已经处理并生成了这个回复。您可以在这里看到模型的输出结果。";
+
+                    // 重置状态
+                    setTimeout(() => {
+                      nodes.forEach(node => {
+                        node.classList.remove('execution-success');
+                      });
+                    }, 3000);
+                  }, 1000);
+                }, 1000);
+              }, 1000);
+            });
+          });
+        </script>
+</body>
+
+</html>

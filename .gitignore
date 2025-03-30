@@ -244,3 +244,7 @@ python/setup.py
 
 #ui
 *.DS_Store
+ref_repo
+
+# cursor
+.cursor/

@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
   std::string ouput_path = demo::getOutputPath();
   // base::kParallelTypePipeline
   // base::ParallelType pt = base::kParallelTypePipeline;
-  base::ParallelType pt = base::kParallelTypeSequential;
+  base::ParallelType pt = demo::getParallelType();
   std::vector<std::string> model_inputs = demo::getModelInputs();
   NNDEPLOY_LOGE("model_inputs = %s.\n", model_inputs[0].c_str());
   std::vector<std::string> model_outputs = demo::getModelOutputs();
@@ -191,6 +191,18 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  if (pt == base::kParallelTypePipeline) {
+    // NNDEPLOY_LOGE("size = %d.\n", size);
+    for (int i = 0; i < size; ++i) {
+      segment::SegmentResult *result =
+          (segment::SegmentResult *)output.getGraphOutputParam();
+      // NNDEPLOY_LOGE("%p.\n", result);
+      if (result == nullptr) {
+        NNDEPLOY_LOGE("result is nullptr");
+        return -1;
+      }
+    }
+  }
   NNDEPLOY_TIME_POINT_END("graph->run()");
 
   if (status != base::kStatusCodeOk) {

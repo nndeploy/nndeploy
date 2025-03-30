@@ -32,17 +32,22 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("is_cvmat_type", &EdgeTypeInfo::isType<cv::Mat>)
       .def("is_tensor_type", &EdgeTypeInfo::isType<device::Tensor>)
       .def("is_param_type", &EdgeTypeInfo::isType<base::Param>)
+      .def("set_edge_name", &EdgeTypeInfo::setEdgeName)
+      .def("get_edge_name", &EdgeTypeInfo::getEdgeName)
       .def("__eq__", &EdgeTypeInfo::operator==)
       .def("__ne__", &EdgeTypeInfo::operator!=)
       .def_readwrite("type_", &EdgeTypeInfo::type_)
       .def_readwrite("type_name_", &EdgeTypeInfo::type_name_)
       .def_readwrite("type_ptr_", &EdgeTypeInfo::type_ptr_)
       .def_readwrite("type_holder_", &EdgeTypeInfo::type_holder_)
+      .def_readwrite("edge_name_", &EdgeTypeInfo::edge_name_)
       .def("__str__", [](const EdgeTypeInfo& self) {
         std::string str = "EdgeTypeInfo(type_=";
         str += std::to_string(static_cast<int>(self.type_));
         str += ", type_name_=";
         str += self.type_name_;
+        str += ", edge_name_=";
+        str += self.edge_name_;
         str += ")";
         return str;
       });

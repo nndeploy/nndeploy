@@ -77,7 +77,7 @@ class TestNet(nndeploy.net.Model):
     @build_model
     def construct(self, enable_net_opt=True, enable_pass=set(), disable_pass=set()):
         data_type = _C.base.DataType()
-        data_type.code_ = _C.base.DataTypeCode.kDataTypeCodeFp
+        data_type.code_ = _C.base.DataTypeCode.Fp
         data = _C.op.makeInput(self.model_desc, "input", data_type, [1, 3, 32, 32])
         data = self.conv1(data)
         data = self.relu2(data)
