@@ -7,8 +7,23 @@
 #include <thread>
 #include <vector>
 
+#include "nndeploy/base/param.h"
+
 namespace nndeploy {
 namespace stable_diffusion {
+
+// inference param
+class NNDEPLOY_CC_API Text2ImageParam : public base::Param {
+ public:
+  base::InferenceType inference_type_ =
+      nndeploy::base::kInferenceTypeOnnxRuntime;
+  base::DeviceType device_type_ = nndeploy::base::kDeviceTypeCodeCpu;
+  base::ModelType model_type_ = nndeploy::base::kModelTypeOnnx;
+  bool is_path_ = true;
+  std::vector<std::string> model_value_;
+  std::string output_path_;
+  base::ParallelType pt_ = base::kParallelTypePipeline;
+};
 
 // 美观的进度条插件封装成一个类
 class ProgressBar {

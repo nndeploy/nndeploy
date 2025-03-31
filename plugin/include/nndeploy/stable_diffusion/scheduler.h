@@ -41,6 +41,8 @@ class NNDEPLOY_CC_API SchedulerParam : public base::Param {
   int image_height_ = 512;          // height
   int image_width_ = 512;           // width
   float guidance_scale_ = 7.5;      // 指导比例
+  float vae_scale_factor_ = 0.18215;
+  float init_noise_sigma_ = 1.0f;
 };
 
 class NNDEPLOY_CC_API Scheduler {

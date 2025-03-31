@@ -2,6 +2,8 @@
 
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/op/op_concat.h"
+#include "nndeploy/stable_diffusion/ddim_scheduler.h"
+#include "nndeploy/stable_diffusion/utils.h"
 #include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 
 namespace nndeploy {
@@ -185,6 +187,8 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
                             std::vector<base::Param *> &param) {
   dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt}, {output});
 
+  Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
+
   dag::Edge *prompt_ids = graph->createEdge("prompt_ids");
   EmbeddingGraph *embedding_graph =
       (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
@@ -195,16 +199,18 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
       new tokenizer::TokenizerPraram();
   tokenizer_param->tokenizer_type_ = tokenizer::TokenizerType::kTokenizerTypeHF;
   tokenizer_param->is_path_ = true;
-  tokenizer_param->json_blob_ =
-      "/home/lds/stable-diffusion.onnx/models/tokenizer/tokenizer.json";
+  // tokenizer_param->json_blob_ =
+  //     "/home/lds/stable-diffusion.onnx/models/tokenizer/tokenizer.json";
+  tokenizer_param->json_blob_ = text2image_param->model_value_[0];
   embedding_graph->setTokenizerParam(tokenizer_param);
 
   inference::InferenceParam *infer_param = new inference::InferenceParam();
-  infer_param->device_type_ = base::kDeviceTypeCodeCuda;
-  infer_param->model_type_ = base::kModelTypeOnnx;
-  infer_param->is_path_ = true;
-  std::vector<std::string> onnx_path = {
-      "/home/lds/stable-diffusion.onnx/models/text_encoder/model.onnx"};
+  infer_param->device_type_ = text2image_param->device_type_;
+  infer_param->model_type_ = text2image_param->model_type_;
+  infer_param->is_path_ = text2image_param->is_path_;
+  // std::vector<std::string> onnx_path = {
+  //     "/home/lds/stable-diffusion.onnx/models/text_encoder/model.onnx"};
+  std::vector<std::string> onnx_path = {text2image_param->model_value_[1]};
   infer_param->model_value_ = onnx_path;
   embedding_graph->setInferParam(infer_param);
 
@@ -217,8 +223,10 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
   negative_embedding_graph->setTokenizerParam(tokenizer_param);
   negative_embedding_graph->setInferParam(infer_param);
 
-  dag::Node *concat_node = graph->createNode<ConCatNode>(
+  ConCatNode *concat_node = (ConCatNode *)graph->createNode<ConCatNode>(
       "concat_node", {prompt_ids, negative_prompt_ids}, {output});
+  DDIMSchedulerParam *scheduler_param = (DDIMSchedulerParam *)param[1];
+  concat_node->setGuidance(scheduler_param->guidance_scale_);
 
   return graph;
 }

@@ -31,11 +31,14 @@ class NNDEPLOY_CC_API SaveImageNode : public dag::Node {
     std::vector<cv::Mat> images = ToImages(ptr, n, c, h, w);
 
     for (size_t i = 0; i < images.size(); ++i) {
-      std::string name = "image_" + std::to_string(i) + ".png";
-      cv::imwrite(name, images[i]);
-      NNDEPLOY_LOGI("images has been saved to %s", name.c_str());
+      cv::imwrite(output_path_, images[i]);
+      NNDEPLOY_LOGI("images has been saved to %s\n", output_path_.c_str());
     }
     return base::kStatusCodeOk;
+  }
+
+  void setOutputPath(const std::string &output_path) {
+    output_path_ = output_path;
   }
 
   std::vector<cv::Mat> ToImages(float *images, int N, int C, int H, int W) {
@@ -70,6 +73,9 @@ class NNDEPLOY_CC_API SaveImageNode : public dag::Node {
 
     return result;
   }
+
+ private:
+  std::string output_path_;
 };
 
 dag::Graph *createStableDiffusionText2ImageGraph(
@@ -98,9 +104,13 @@ dag::Graph *createStableDiffusionText2ImageGraph(
       createVAEGraph("vae", latents, output, vae_inference_type, param);
   graph->addNode(vae_graph, false);
 
-  dag::Node *save_node = graph->createNode<SaveImageNode>(
+  SaveImageNode *save_node = (SaveImageNode *)graph->createNode<SaveImageNode>(
       "save_node", std::vector<dag::Edge *>{output},
       std::vector<dag::Edge *>{});
+
+  Text2ImageParam *text2image_param = (Text2ImageParam *)(param[0]);
+  std::string output_path = text2image_param->output_path_;
+  save_node->setOutputPath(output_path);
 
   return graph;
 }

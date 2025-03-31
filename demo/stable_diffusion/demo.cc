@@ -14,18 +14,6 @@ DEFINE_string(prompt, "a small cute dog", "prompt for txt2img");
 
 std::string getPrompt() { return FLAGS_prompt; }
 
-class NNDEPLOY_CC_API Text2ImageParam : public base::Param {
- public:
-  base::InferenceType inference_type_ =
-      nndeploy::base::kInferenceTypeOnnxRuntime;
-  base::DeviceType device_type_ = nndeploy::base::kDeviceTypeCodeCpu;
-  base::ModelType model_type_ = nndeploy::base::kModelTypeOnnx;
-  bool is_path_ = true;
-  std::vector<std::string> model_value_;
-  std::string ouput_path_;
-  base::ParallelType pt_ = base::kParallelTypePipeline;
-};
-
 int main(int argc, char* argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
   if (demo::FLAGS_usage) {
@@ -57,7 +45,7 @@ int main(int argc, char* argv[]) {
   // 模型路径或者模型字符串
   std::vector<std::string> model_value = demo::getModelValue();
   // output path
-  std::string ouput_path = demo::getOutputPath();
+  std::string output_path = demo::getOutputPath();
   // base::kParallelTypePipeline / base::kParallelTypeSequential
   base::ParallelType pt = demo::getParallelType();
   std::string text = getPrompt();
@@ -73,7 +61,7 @@ int main(int argc, char* argv[]) {
   text2image_param->model_type_ = model_type;
   text2image_param->is_path_ = is_path;
   text2image_param->model_value_ = model_value;
-  text2image_param->ouput_path_ = ouput_path;
+  text2image_param->output_path_ = output_path;
   text2image_param->pt_ = pt;
   param.push_back(text2image_param);
 
@@ -86,7 +74,8 @@ int main(int argc, char* argv[]) {
   ddim_param->clip_sample_ = false;
   ddim_param->num_inference_steps_ = 50;
   ddim_param->guidance_scale_ = 7.5;
-
+  ddim_param->vae_scale_factor_ = 0.18215;
+  ddim_param->init_noise_sigma_ = 1.0f;
   ddim_param->beta_start_ = 0.00085;
   ddim_param->beta_end_ = 0.012;
   ddim_param->beta_schedule_ = "scaled_linear";
