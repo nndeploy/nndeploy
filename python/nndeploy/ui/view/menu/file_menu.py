@@ -13,7 +13,6 @@
 from typing import List, Optional, Callable
 import flet as ft
 from nndeploy.ui.config import get_text
-from nndeploy.ui.service import file_service
 from nndeploy.ui.config.shortcuts import get_shortcut
 
 def FileMenu(
@@ -112,12 +111,12 @@ def update_recent_files(files: List[str]):
     if not files:
         return
     
-    # 更新文件服务中的最近文件列表
-    file_service.get_instance().set_recent_files(files)
+    # # 更新文件服务中的最近文件列表
+    # file_service.get_instance().set_recent_files(files)
     
-    # 通知UI更新
-    if hasattr(update_recent_files, 'callback'):
-        update_recent_files.callback(files)
+    # # 通知UI更新
+    # if hasattr(update_recent_files, 'callback'):
+    #     update_recent_files.callback(files)
 
 def register_recent_files_callback(callback: Callable[[List[str]], None]):
     """注册最近文件更新回调函数"""
@@ -136,4 +135,4 @@ def main(page: ft.Page):
     
     
 if __name__ == "__main__":
-    ft.app(target=main, view=ft.WEB_BROWSER, port=9090)
+    ft.app(target=main, view=ft.WEB_BROWSER, port=8080)

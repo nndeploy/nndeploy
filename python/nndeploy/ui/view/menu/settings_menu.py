@@ -18,99 +18,24 @@ from nndeploy.ui.config.language import LanguageConfig
 from nndeploy.ui.config.shortcuts import get_shortcut
 
 def SettingsMenu(
-    on_canvas_settings: Optional[Callable[[], None]] = None,
-    on_node_settings: Optional[Callable[[], None]] = None,
-    on_edge_settings: Optional[Callable[[], None]] = None,
-    on_performance_settings: Optional[Callable[[], None]] = None,
-    on_auto_save_settings: Optional[Callable[[], None]] = None,
     on_language_settings: Optional[Callable[[], None]] = None,
-    on_theme_settings: Optional[Callable[[], None]] = None
+    on_theme_settings: Optional[Callable[[], None]] = None,
+    on_auto_save_settings: Optional[Callable[[], None]] = None,
 ):
     """创建设置菜单组件
     
     使用Flet的SubmenuButton实现的设置菜单，支持多级菜单结构。
     每个设置项都有对应的图标和回调函数。
     """
-    
-    def build_canvas_settings():
-        """构建画布设置菜单项"""
-        return ft.SubmenuButton(
-            content=ft.Text("menu.settings.canvas"),
-            leading=ft.Icon(ft.Icons.GRID_ON),
-            # on_click=lambda _: on_canvas_settings and on_canvas_settings(),
-            controls=[
-                # 网格显示设置
-                ft.MenuItemButton(
-                    content=ft.Text("menu.settings.canvas.grid"),
-                    on_click=lambda e: settings.set(
-                            "canvas", "grid_enabled", e.control.value
-                        )
-                ),
-                # 网格吸附设置
-                ft.MenuItemButton(
-                    content=ft.Text("menu.settings.canvas.snap"),
-                    on_click=lambda e: settings.set(
-                            "canvas", "snap_to_grid", e.control.value
-                        )
-                ),
-            ]
-        )
-        
-    def build_node_settings():
-        """构建节点设置菜单项"""
-        return ft.SubmenuButton(
-            content=ft.Text("menu.settings.node"),
-            leading=ft.Icon(ft.Icons.WIDGETS),
-            # on_click=lambda _: on_node_settings and on_node_settings(),
-            controls=[
-                # TODO: 添加节点设置项
-                ft.MenuItemButton(
-                    content=ft.Text("menu.settings.node.placeholder"),
-                    disabled=True
-                )
-            ]
-        )
-        
-    def build_edge_settings():
-        """构建连线设置菜单项"""
-        return ft.SubmenuButton(
-            content=ft.Text("menu.settings.edge"),
-            leading=ft.Icon(ft.Icons.TIMELINE),
-            # on_click=lambda _: on_edge_settings and on_edge_settings(),
-            controls=[
-                # TODO: 添加连线设置项
-                ft.MenuItemButton(
-                    content=ft.Text("menu.settings.edge.placeholder"),
-                    disabled=True
-                )
-            ]
-        )
-        
-    def build_performance_settings():
-        """构建性能设置菜单项"""
-        return ft.SubmenuButton(
-            content=ft.Text("menu.settings.performance"),
-            leading=ft.Icon(ft.Icons.SPEED),
-            # on_click=lambda _: on_performance_settings and on_performance_settings(),
-            controls=[
-                ft.MenuItemButton(
-                    content=ft.Text("menu.settings.performance.animation"),
-                    on_click=lambda e: settings.set(
-                            "performance", "animation_enabled", e.control.value
-                        )
-                ),
-            ]
-        )
-        
     def build_auto_save_settings():
         """构建自动保存设置菜单项"""
         return ft.SubmenuButton(
-            content=ft.Text("menu.settings.autoSave"),
+            content=ft.Text("menu.settings.auto_save"),
             leading=ft.Icon(ft.Icons.SAVE),
             # on_click=lambda _: on_auto_save_settings and on_auto_save_settings(),
             controls=[
                 ft.MenuItemButton(
-                    content=ft.Text("menu.settings.autoSave.enabled"),
+                    content=ft.Text("menu.settings.auto_save.enabled"),
                     on_click=lambda e: settings.set(
                             "auto_save", "enabled", e.control.value
                         )
@@ -184,26 +109,10 @@ def SettingsMenu(
         controls=[
             ft.SubmenuButton(
                 content=ft.Text(get_text("menu.settings")),
-                tooltip=get_text("menu.settings.tooltip"),
-                controls=[
-                    # 画布设置
-                    build_canvas_settings(),
-                    
-                    # 节点设置
-                    build_node_settings(),
-                    
-                    # 连线设置
-                    build_edge_settings(),
-                    
-                    ft.Divider(),
-                    
-                    # 性能设置
-                    build_performance_settings(),
-                    
+                tooltip=get_text("menu.settings"),
+                controls=[                    
                     # 自动保存设置
                     build_auto_save_settings(),
-                    
-                    ft.Divider(),
                     
                     # 语言设置
                     build_language_settings(),
@@ -221,4 +130,4 @@ def main(page: ft.Page):
     
     
 if __name__ == "__main__":
-    ft.app(target=main, view=ft.WEB_BROWSER, port=9090)
+    ft.app(target=main, view=ft.WEB_BROWSER, port=8080)

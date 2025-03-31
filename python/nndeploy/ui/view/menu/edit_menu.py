@@ -82,13 +82,6 @@ def EditMenu(
                 on_click=lambda _: on_delete and on_delete(),
                 disabled=not has_selection
             ),
-            
-            # 全选
-            ft.PopupMenuItem(
-                text=get_text("menu.edit.selectAll"),
-                icon=ft.icons.SELECT_ALL,
-                on_click=lambda _: on_select_all and on_select_all()
-            ),
         ],
         menu_position=ft.PopupMenuPosition.UNDER # 设置菜单在按钮下方显示
     )
@@ -99,4 +92,4 @@ def main(page: ft.Page):
     
     
 if __name__ == "__main__":
-    ft.app(target=main, view=ft.WEB_BROWSER, port=9090)
+    ft.app(target=main, view=ft.WEB_BROWSER, port=8080)

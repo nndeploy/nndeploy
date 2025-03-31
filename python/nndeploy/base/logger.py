@@ -138,3 +138,47 @@ def critical(msg: str, *args, **kwargs):
 
 def exception(msg: str, *args, **kwargs):
     logger.exception(msg, *args, **kwargs) 
+
+# 测试代码
+if __name__ == "__main__":
+    # 创建测试日志器
+    test_logger = Logger(
+        name="test_logger",
+        level="DEBUG",
+        log_dir="test_logs"
+    )
+    
+    # 测试各级别日志
+    test_logger.debug("这是一条调试日志")
+    test_logger.info("这是一条信息日志")
+    test_logger.warning("这是一条警告日志")
+    test_logger.error("这是一条错误日志")
+    test_logger.critical("这是一条严重错误日志")
+    
+    # 测试异常日志
+    try:
+        1 / 0
+    except Exception as e:
+        test_logger.exception(f"捕获到异常: {e}")
+    
+    # 测试日志级别切换
+    print("\n切换日志级别为WARNING")
+    test_logger.set_level("WARNING")
+    test_logger.debug("这条调试日志不会显示")
+    test_logger.info("这条信息日志不会显示")
+    test_logger.warning("这条警告日志会显示")
+    
+    # 测试全局日志实例
+    print("\n测试全局日志实例")
+    debug("全局调试日志")
+    info("全局信息日志")
+    warning("全局警告日志")
+    error("全局错误日志")
+    
+    # 清理测试日志文件
+    import shutil
+    try:
+        shutil.rmtree("test_logs")
+        print("\n测试完成，日志文件已清理")
+    except:
+        print("\n测试完成，但日志文件清理失败")
