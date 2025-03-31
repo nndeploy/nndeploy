@@ -40,6 +40,7 @@ class NNDEPLOY_CC_API SchedulerParam : public base::Param {
   int unet_channels_ = 4;           // channel
   int image_height_ = 512;          // height
   int image_width_ = 512;           // width
+  float guidance_scale_ = 7.5;      // 指导比例
 };
 
 class NNDEPLOY_CC_API Scheduler {

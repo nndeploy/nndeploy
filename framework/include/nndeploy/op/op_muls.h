@@ -14,6 +14,9 @@ class OpMuls : public OpUnary {
   OpMuls() : OpUnary() {}
   virtual ~OpMuls() {}
 
+  virtual base::Status inferDataType();
+  virtual base::Status inferDataFormat();
+  virtual base::Status inferShape();
   virtual base::Status run();
 };
 

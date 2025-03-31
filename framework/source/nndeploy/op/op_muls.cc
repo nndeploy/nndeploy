@@ -21,6 +21,24 @@
 namespace nndeploy {
 namespace op {
 
+base::Status OpMuls::inferDataType() {
+  auto input_dtype = inputs_[1]->getDataType();
+  for (int i = 0; i < outputs_.size(); ++i) {
+    outputs_[i]->setDataType(input_dtype);
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status OpMuls::inferDataFormat() {
+  auto input_data_format = inputs_[1]->getDataFormat();
+  for (int i = 0; i < outputs_.size(); ++i) {
+    outputs_[i]->setDataFormat(input_data_format);
+  }
+  return base::kStatusCodeOk;
+};
+
+base::Status OpMuls::inferShape() { return base::kStatusCodeOk; };
+
 base::Status OpMuls::run() {
   // 实现乘法运算
   device::Tensor* input1 = inputs_[0];
