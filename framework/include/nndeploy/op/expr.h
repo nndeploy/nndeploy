@@ -49,6 +49,9 @@ NNDEPLOY_CC_API std::shared_ptr<Expr> makeInput(
     ir::ModelDesc *model_desc, std::string name,
     base::DataType data_type = base::dataTypeOf<float>(),
     base::IntVector shape = base::IntVector());
+// constant
+NNDEPLOY_CC_API std::shared_ptr<Expr> makeConstant(ir::ModelDesc *model_desc,
+                                                   std::string name);
 // output
 NNDEPLOY_CC_API void makeOutput(ir::ModelDesc *model_desc,
                                 std::shared_ptr<Expr> expr);

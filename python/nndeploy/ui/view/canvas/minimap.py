@@ -317,4 +317,4 @@ if __name__ == "__main__":
         # 初始化视图区域
         minimap.update_view(0, 0, page.width, page.height, 1.0)
         
-    ft.app(target=main, view=ft.WEB_BROWSER, port=9090)
+    ft.app(target=main, view=ft.WEB_BROWSER, port=8080)

@@ -1,136 +1,152 @@
 """
-Global Settings Module
+全局设置模块
 
-Responsibilities:
-- Manage application-wide configuration parameters
-- Provide interfaces for reading and writing configurations
-- Handle configuration persistence
-- Support configuration import and export
+职责:
+- 管理应用程序范围的配置参数
+- 提供读取和写入配置的接口
+- 处理配置持久化
+- 支持配置导入和导出
 
-Configuration items are defined as dictionaries or classes, with support for loading from config files
+配置项以字典或类的形式定义，支持从配置文件加载
 """
 
 from typing import Any, Dict, Optional, Callable, List, Union
 import json
 import os
 from pathlib import Path
+import flet as ft
 
 class Settings:
     """
-    Global Settings Manager
+    全局设置管理器
     
-    Manages all application configuration parameters, provides unified read/write interfaces,
-    and supports configuration persistence, import/export, and change notification mechanisms.
+    管理所有应用程序配置参数，提供统一的读写接口，
+    支持配置持久化、导入/导出和变更通知机制。
     """
     
-    # Default settings
+    # 默认设置
     DEFAULTS = {
-        # Canvas settings
+        # 画布设置
         "canvas": {
-            "width": 1920,          # Default width
-            "height": 1080,         # Default height
-            "grid_size": 20,        # Grid size
-            "grid_enabled": True,   # Show grid
-            "grid_color": "#E5E5E5",# Grid color
-            "snap_to_grid": True,   # Snap to grid
-            "zoom_min": 0.1,        # Minimum zoom level
-            "zoom_max": 5.0,        # Maximum zoom level
-            "zoom_step": 0.1,       # Zoom step increment
+            "width": "auto",        # 自适应宽度
+            "height": "auto",       # 自适应高度
+            "grid_size": 20,        # 网格大小
+            "grid_enabled": True,   # 显示网格
+            "grid_color": "#E5E5E5",# 网格颜色 (浅灰色，用于在画布上显示网格线，确保可见但不干扰内容)
+            "snap_to_grid": True,   # 对齐网格
+            "zoom_min": 0.1,        # 最小缩放级别
+            "zoom_max": 5.0,        # 最大缩放级别
+            "zoom_step": 0.1,       # 缩放步长
         },
         
-        # Node settings
+        # 节点设置
         "node": {
-            "default_width": 200,   # Default width
-            "default_height": 100,  # Default height
-            "min_width": 100,       # Minimum width
-            "min_height": 50,       # Minimum height
-            "padding": 10,          # Internal padding
-            "border_radius": 6,     # Border radius
-            "font_size": 14,        # Font size
-            "line_height": 1.5,     # Line height
+            "default_width": 200,   # 默认宽度
+            "default_height": 100,  # 默认高度
+            "min_width": 100,       # 最小宽度
+            "min_height": 50,       # 最小高度
+            "padding": 10,          # 内部填充
+            "border_radius": 6,     # 边框圆角
+            "font_size": 14,        # 字体大小
+            "line_height": 1.5,     # 行高
         },
         
-        # Edge settings
+        # 边缘设置
         "edge": {
-            "line_width": 2,        # Line width
-            "line_color": "#666666",# Line color
-            # "arrow_size": 8,        # Arrow size
-            "curve_factor": 0.5,    # Curve factor
-            "snap_distance": 10,    # Snap distance
+            "line_width": 2,        # 线宽
+            "line_color": "#666666",# 线条颜色 (中灰色，用于连接节点的线条，提供足够的对比度但不过于显眼)
+            "curve_factor": 0.5,    # 曲线因子
+            "snap_distance": 10,    # 吸附距离
         },
         
-        # Auto-save settings
+        # 自动保存设置
         "auto_save": {
-            "enabled": True,        # Enable auto-save
-            "interval": 300,        # Interval (seconds)
-            "max_backups": 5,       # Maximum backup count
+            "enabled": True,        # 启用自动保存
+            "interval": 300,        # 间隔（秒）
+            "max_backups": 5,       # 最大备份数
         },
         
-        # Performance settings
+        # 性能设置
         "performance": {
-            "render_quality": "high",    # Render quality (low/medium/high)
-            "animation_enabled": True,    # Enable animations
-            "cache_size": 100,           # Cache size (MB)
-            "max_undo_steps": 50,        # Maximum undo steps
+            "render_quality": "high",    # 渲染质量（低/中/高）
+            "animation_enabled": True,    # 启用动画
+            "cache_size": 100,           # 缓存大小（MB）
+            "max_undo_steps": 50,        # 最大撤销步骤
         },
         
-        # UI settings
+        # UI设置
         "ui": {
-            "sidebar_width": 300,        # Sidebar width
-            "panel_width": 400,          # Panel width
-            "toolbar_position": "top",   # Toolbar position
-            "show_status_bar": True,     # Show status bar
-            "show_minimap": True,        # Show minimap
-            "theme": "light",            # Theme mode (light/dark)
+            "panel_width": 400,          # 侧边栏宽度（像素单位，控制左侧导航栏的宽度，影响工作区可用空间）
+            "node_config_width": 400,    # 节点配置宽度（像素单位，控制右侧属性面板的宽度，过宽会挤压中央画布区域）
+            "toolbar_position": "top",   # 工具栏位置
+            "show_status_bar": True,     # 显示状态栏
+            "theme": "light",            # 主题模式（亮/暗）
+            "language": "zh_CN",         # 语言设置
         }
     }
     
     def __init__(self):
-        """Initialize settings manager, load defaults and update from config file"""
-        self._settings: Dict[str, Dict[str, Any]] = self.DEFAULTS.copy()
+        """初始化设置管理器，加载默认值并从配置文件更新"""
+        self._settings: Dict[str, Dict[str, Any]] = self.DEFAULTS.copy() # 二级map
+        # 观察者列表，用于实现设置变更通知机制
+        # 每个观察者是一个回调函数，当设置发生变化时会被调用
+        # 函数签名为：callback(section, key, value)
+        #   - section: 变更的设置部分（如"ui"、"node"等），为None时表示整个设置都已更新
+        #   - key: 变更的具体设置键，为None时表示整个section都已更新
+        #   - value: 新的设置值，可能是单个值或整个设置字典
+        # 这种设计采用了观察者模式，允许UI组件监听设置变化并实时响应
+        # 比如当主题从"light"变为"dark"时，所有注册的观察者都会收到通知
+        # 观察者列表，每个观察者是一个回调函数
+        # 函数参数中的None有特殊含义：
+        # - 当section为None时，表示整个设置字典都已更新（如导入设置时）
+        # - 当key为None时，表示整个section下的所有设置都已更新
+        # 例如：
+        # - observer(None, None, settings) 表示整个设置都已更新
+        # - observer("ui", None, ui_settings) 表示ui部分的所有设置都已更新
+        # - observer("ui", "theme", "dark") 表示ui.theme设置已更新为"dark"
         self._observers: List[Callable[[Optional[str], Optional[str], Any], None]] = []
         self._load_settings()
         
     def _load_settings(self) -> None:
-        """Load settings from config file, keep defaults if file doesn't exist or has format errors"""
+        """从配置文件加载设置，如果文件不存在或格式错误则保留默认值"""
         config_path = self._get_config_path()
         
         if config_path.exists():
             try:
                 with open(config_path, "r", encoding="utf-8") as f:
                     saved_settings = json.load(f)
-                    # Recursively update settings while preserving default structure
+                    # 递归更新设置，同时保留默认结构
                     self._update_dict(self._settings, saved_settings)
             except json.JSONDecodeError as e:
-                print(f"Config file format error: {e}")
+                print(f"配置文件格式错误: {e}")
             except Exception as e:
-                print(f"Failed to load settings: {e}")
+                print(f"加载设置失败: {e}")
                 
     def _save_settings(self) -> None:
-        """Save settings to config file, ensuring directory exists"""
+        """保存设置到配置文件，确保目录存在"""
         config_path = self._get_config_path()
         
-        # Ensure config directory exists
+        # 确保配置目录存在
         config_path.parent.mkdir(parents=True, exist_ok=True)
         
         try:
             with open(config_path, "w", encoding="utf-8") as f:
                 json.dump(self._settings, f, indent=4, ensure_ascii=False)
         except Exception as e:
-            print(f"Failed to save settings: {e}")
+            print(f"保存设置失败: {e}")
             
     def _get_config_path(self) -> Path:
-        """Get configuration file path"""
-        # Use more reliable path construction
+        """获取配置文件路径"""
+        # 使用更可靠的路径构建
         return Path(os.path.dirname(os.path.abspath(__file__))) / "../config/settings.json"
         
     def _update_dict(self, target: Dict, source: Dict) -> None:
         """
-        Recursively update dictionary while preserving target structure
+        递归更新字典，同时保留目标结构
         
-        Args:
-            target: Target dictionary
-            source: Source dictionary
+        参数:
+            target: 目标字典
+            source: 源字典
         """
         for key, value in source.items():
             if key in target:
@@ -141,15 +157,15 @@ class Settings:
                     
     def get(self, section: str, key: str, default: Any = None) -> Any:
         """
-        Get setting value
+        获取设置值
         
-        Args:
-            section: Setting section
-            key: Setting key
-            default: Default value
+        参数:
+            section: 设置部分
+            key: 设置键
+            default: 默认值
             
-        Returns:
-            Setting value, or default if not found
+        返回:
+            设置值，如果未找到则返回默认值
         """
         try:
             return self._settings[section][key]
@@ -158,16 +174,16 @@ class Settings:
             
     def set(self, section: str, key: str, value: Any, save: bool = True) -> bool:
         """
-        Set setting value
+        设置值
         
-        Args:
-            section: Setting section
-            key: Setting key
-            value: Setting value
-            save: Whether to save to file
+        参数:
+            section: 设置部分
+            key: 设置键
+            value: 设置值
+            save: 是否保存到文件
             
-        Returns:
-            Whether setting was successfully updated
+        返回:
+            设置是否成功更新
         """
         try:
             if section not in self._settings:
@@ -175,10 +191,10 @@ class Settings:
                 
             if self._settings[section].get(key) != value:
                 self._settings[section][key] = value
-                # Notify observers
+                # 通知观察者
                 for observer in self._observers:
                     observer(section, key, value)
-                # Save to file
+                # 保存到文件
                 if save:
                     self._save_settings()
                 return True
@@ -188,33 +204,33 @@ class Settings:
             
     def get_section(self, section: str) -> Dict:
         """
-        Get entire section of settings
+        获取设置的整个部分
         
-        Args:
-            section: Setting section
+        参数:
+            section: 设置部分
             
-        Returns:
-            Copy of section settings dictionary
+        返回:
+            部分设置字典的副本
         """
         return self._settings.get(section, {}).copy()
         
     def reset_section(self, section: str, save: bool = True) -> bool:
         """
-        Reset section settings to defaults
+        将部分设置重置为默认值
         
-        Args:
-            section: Setting section
-            save: Whether to save to file
+        参数:
+            section: 设置部分
+            save: 是否保存到文件
             
-        Returns:
-            Whether reset was successful
+        返回:
+            重置是否成功
         """
         if section in self._settings and section in self.DEFAULTS:
             self._settings[section] = self.DEFAULTS[section].copy()
-            # Notify observers
+            # 通知观察者
             for observer in self._observers:
                 observer(section, None, self._settings[section])
-            # Save to file
+            # 保存到文件
             if save:
                 self._save_settings()
             return True
@@ -222,116 +238,390 @@ class Settings:
                 
     def reset_all(self, save: bool = True) -> None:
         """
-        Reset all settings to defaults
+        将所有设置重置为默认值
         
-        Args:
-            save: Whether to save to file
+        参数:
+            save: 是否保存到文件
         """
         self._settings = self.DEFAULTS.copy()
-        # Notify observers
+        # 通知观察者
         for observer in self._observers:
             observer(None, None, self._settings)
-        # Save to file
+        # 保存到文件
         if save:
             self._save_settings()
             
     def add_observer(self, observer: Callable[[Optional[str], Optional[str], Any], None]) -> None:
         """
-        Add settings change observer
+        添加设置变更观察者
         
-        Args:
-            observer: Observer callback function that receives (section, key, value) parameters
+        参数:
+            observer: 观察者回调函数，接收(section, key, value)参数
         """
         if observer not in self._observers:
             self._observers.append(observer)
             
     def remove_observer(self, observer: Callable[[Optional[str], Optional[str], Any], None]) -> None:
         """
-        Remove settings change observer
+        移除设置变更观察者
         
-        Args:
-            observer: Observer callback function to remove
+        参数:
+            observer: 要移除的观察者回调函数
         """
         if observer in self._observers:
             self._observers.remove(observer)
             
     def export_settings(self, filepath: Union[str, Path]) -> bool:
         """
-        Export settings to file
+        导出设置到文件
         
-        Args:
-            filepath: Export file path
+        参数:
+            filepath: 导出文件路径
             
-        Returns:
-            Whether export was successful
+        返回:
+            导出是否成功
         """
         try:
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(self._settings, f, indent=4, ensure_ascii=False)
             return True
         except Exception as e:
-            print(f"Failed to export settings: {e}")
+            print(f"导出设置失败: {e}")
             return False
             
     def import_settings(self, filepath: Union[str, Path], save: bool = True) -> bool:
         """
-        Import settings from file
+        从文件导入设置
         
-        Args:
-            filepath: Import file path
-            save: Whether to save to config file
+        参数:
+            filepath: 导入文件路径
+            save: 是否保存到配置文件
             
-        Returns:
-            Whether import was successful
+        返回:
+            导入是否成功
         """
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 imported_settings = json.load(f)
-                # Recursively update settings
+                # 递归更新设置
                 self._update_dict(self._settings, imported_settings)
-                # Notify observers
+                # 通知观察者
                 for observer in self._observers:
                     observer(None, None, self._settings)
-                # Save to file
+                # 保存到文件
                 if save:
                     self._save_settings()
                 return True
         except json.JSONDecodeError:
-            print(f"Import file format error: {filepath}")
+            print(f"导入文件格式错误: {filepath}")
             return False
         except Exception as e:
-            print(f"Failed to import settings: {e}")
+            print(f"导入设置失败: {e}")
             return False
 
-# Create global settings instance
+# 创建全局设置实例
 settings = Settings()
 
-# Convenience functions
+# 便捷函数
 def get_setting(section: str, key: str, default: Any = None) -> Any:
     """
-    Convenience function to get setting value
+    获取设置值的便捷函数
     
-    Args:
-        section: Setting section
-        key: Setting key
-        default: Default value
+    参数:
+        section: 设置部分
+        key: 设置键
+        default: 默认值
         
-    Returns:
-        Setting value
+    返回:
+        设置值
     """
     return settings.get(section, key, default)
 
 def set_setting(section: str, key: str, value: Any, save: bool = True) -> bool:
     """
-    Convenience function to set setting value
+    设置值的便捷函数
     
-    Args:
-        section: Setting section
-        key: Setting key
-        value: Setting value
-        save: Whether to save to file
+    参数:
+        section: 设置部分
+        key: 设置键
+        value: 设置值
+        save: 是否保存到文件
         
-    Returns:
-        Whether setting was successfully updated
+    返回:
+        设置是否成功更新
     """
     return settings.set(section, key, value, save)
+
+
+############################## 预览演示 ##############################
+class SettingsPreview:
+    """设置预览演示类"""
+    
+    def __init__(self):
+        self.page = None
+        
+    def _create_setting_row(self, section: str, key: str, value: Any, value_type: str = "text"):
+        """创建设置行"""
+        row = ft.Row([
+            ft.Text(f"{section}.{key}", width=200),
+        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+        
+        # 根据值类型创建不同的控件
+        if value_type == "bool":
+            switch = ft.Switch(value=value)
+            
+            def on_switch_change(e):
+                set_setting(section, key, switch.value)
+                
+            switch.on_change = on_switch_change
+            row.controls.append(switch)
+            
+        elif value_type == "color":
+            color_picker = ft.IconButton(
+                icon=ft.Icons.COLOR_LENS,
+                icon_color=value,
+                tooltip="选择颜色"
+            )
+            
+            def on_color_picked(e: ft.ControlEvent):
+                if e.control.data:
+                    color = e.control.data
+                    set_setting(section, key, color)
+                    color_picker.icon_color = color
+                    self.page.update()
+            
+            color_picker.on_click = lambda _: self.page.launch_color_picker(
+                on_color_picked, color=value
+            )
+            
+            row.controls.append(color_picker)
+            
+        elif value_type == "dropdown":
+            options = []
+            if key == "theme":
+                options = ["light", "dark"]
+            elif key == "render_quality":
+                options = ["low", "medium", "high"]
+            
+            dropdown = ft.Dropdown(
+                value=value,
+                options=[ft.dropdown.Option(opt) for opt in options],
+                width=150
+            )
+            
+            def on_dropdown_change(e):
+                set_setting(section, key, dropdown.value)
+                
+            dropdown.on_change = on_dropdown_change
+            row.controls.append(dropdown)
+            
+        elif value_type == "number":
+            # 获取合适的最大值
+            max_value = 100  # 默认最大值
+            
+            # 根据不同设置项设置合适的最大值
+            if section == "canvas":
+                if key == "grid_size":
+                    max_value = 50
+                elif key == "zoom_max":
+                    max_value = 10.0
+            elif section == "node":
+                if key == "default_width":
+                    max_value = 500
+                elif key == "default_height":
+                    max_value = 300
+                elif key == "border_radius":
+                    max_value = 20
+                elif key == "font_size":
+                    max_value = 30
+            elif section == "performance":
+                if key == "max_undo_steps":
+                    max_value = 100
+            elif section == "ui":
+                if key == "panel_width":
+                    max_value = 800
+            
+            # 确保当前值不超过最大值
+            current_value = min(value, max_value)
+            
+            slider = ft.Slider(
+                min=0,
+                max=max_value,
+                value=current_value,
+                divisions=20,
+                label="{value}"
+            )
+            
+            def on_slider_change(e):
+                set_setting(section, key, int(slider.value))
+                
+            slider.on_change = on_slider_change
+            row.controls.append(slider)
+            
+        else:  # 文本
+            text_field = ft.TextField(value=str(value), width=150)
+            
+            def on_text_change(e):
+                set_setting(section, key, text_field.value)
+                
+            text_field.on_change = on_text_change
+            row.controls.append(text_field)
+            
+        return row
+        
+    def _build_settings_view(self):
+        """构建设置视图"""
+        tabs = []
+        
+        # 画布设置
+        canvas_settings = settings.get_section("canvas")
+        canvas_view = ft.Column([
+            self._create_setting_row("canvas", "grid_size", canvas_settings["grid_size"], "number"),
+            self._create_setting_row("canvas", "grid_enabled", canvas_settings["grid_enabled"], "bool"),
+            self._create_setting_row("canvas", "grid_color", canvas_settings["grid_color"], "color"),
+            self._create_setting_row("canvas", "snap_to_grid", canvas_settings["snap_to_grid"], "bool"),
+        ], spacing=10)
+        
+        tabs.append(ft.Tab(text="画布", content=canvas_view))
+        
+        # 节点设置
+        node_settings = settings.get_section("node")
+        node_view = ft.Column([
+            self._create_setting_row("node", "default_width", node_settings["default_width"], "number"),
+            self._create_setting_row("node", "default_height", node_settings["default_height"], "number"),
+            self._create_setting_row("node", "border_radius", node_settings["border_radius"], "number"),
+            self._create_setting_row("node", "font_size", node_settings["font_size"], "number"),
+        ], spacing=10)
+        
+        tabs.append(ft.Tab(text="节点", content=node_view))
+        
+        # UI设置
+        ui_settings = settings.get_section("ui")
+        ui_view = ft.Column([
+            self._create_setting_row("ui", "theme", ui_settings["theme"], "dropdown"),
+            self._create_setting_row("ui", "show_status_bar", ui_settings["show_status_bar"], "bool"),
+            self._create_setting_row("ui", "panel_width", ui_settings["panel_width"], "number"),
+        ], spacing=10)
+        
+        tabs.append(ft.Tab(text="界面", content=ui_view))
+        
+        # 性能设置
+        perf_settings = settings.get_section("performance")
+        perf_view = ft.Column([
+            self._create_setting_row("performance", "render_quality", perf_settings["render_quality"], "dropdown"),
+            self._create_setting_row("performance", "animation_enabled", perf_settings["animation_enabled"], "bool"),
+            self._create_setting_row("performance", "max_undo_steps", perf_settings["max_undo_steps"], "number"),
+        ], spacing=10)
+        
+        tabs.append(ft.Tab(text="性能", content=perf_view))
+        
+        return ft.Tabs(tabs=tabs, expand=True)
+        
+    def _build_actions(self):
+        """构建操作按钮"""
+        return ft.Row([
+            ft.ElevatedButton(
+                text="重置所有设置",
+                icon=ft.Icons.RESTORE,
+                on_click=lambda _: self._reset_all()
+            ),
+            ft.ElevatedButton(
+                text="导出设置",
+                icon=ft.Icons.DOWNLOAD,
+                on_click=lambda _: self._export_settings()
+            ),
+            ft.ElevatedButton(
+                text="导入设置",
+                icon=ft.Icons.UPLOAD_FILE,
+                on_click=lambda _: self._import_settings()
+            ),
+        ], alignment=ft.MainAxisAlignment.END)
+        
+    def _reset_all(self):
+        """重置所有设置"""
+        settings.reset_all()
+        # 刷新UI
+        self.page.clean()
+        self.page.add(self._build_ui())
+        
+    def _export_settings(self):
+        """导出设置"""
+        def on_save_dialog(e: ft.FilePickerResultEvent):
+            if e.path:
+                if settings.export_settings(e.path):
+                    self.page.show_snack_bar(ft.SnackBar(
+                        content=ft.Text(f"设置已导出到 {e.path}"),
+                        action="确定"
+                    ))
+                else:
+                    self.page.show_snack_bar(ft.SnackBar(
+                        content=ft.Text("导出设置失败"),
+                        action="确定"
+                    ))
+                    
+        save_dialog = ft.FilePicker(on_result=on_save_dialog)
+        self.page.overlay.append(save_dialog)
+        self.page.update()
+        save_dialog.save_file(
+            dialog_title="导出设置",
+            file_name="settings.json",
+            allowed_extensions=["json"]
+        )
+        
+    def _import_settings(self):
+        """导入设置"""
+        def on_open_dialog(e: ft.FilePickerResultEvent):
+            if e.files and len(e.files) > 0:
+                file_path = e.files[0].path
+                if settings.import_settings(file_path):
+                    self.page.show_snack_bar(ft.SnackBar(
+                        content=ft.Text("设置已导入"),
+                        action="确定"
+                    ))
+                    # 刷新UI
+                    self.page.clean()
+                    self.page.add(self._build_ui())
+                else:
+                    self.page.show_snack_bar(ft.SnackBar(
+                        content=ft.Text("导入设置失败"),
+                        action="确定"
+                    ))
+                    
+        open_dialog = ft.FilePicker(on_result=on_open_dialog)
+        self.page.overlay.append(open_dialog)
+        self.page.update()
+        open_dialog.pick_files(
+            dialog_title="导入设置",
+            allowed_extensions=["json"],
+            allow_multiple=False
+        )
+        
+    def _build_ui(self):
+        """构建UI"""
+        return ft.Column([
+            ft.Text("设置管理", size=24, weight=ft.FontWeight.BOLD),
+            ft.Divider(),
+            self._build_settings_view(),
+            ft.Divider(),
+            self._build_actions(),
+        ], spacing=20, expand=True)
+        
+    def main(self, page: ft.Page):
+        """主函数"""
+        self.page = page
+        page.title = "设置管理器演示"
+        page.theme_mode = ft.ThemeMode.LIGHT if get_setting("ui", "theme") == "light" else ft.ThemeMode.DARK
+        
+        # 观察主题变化
+        def theme_observer(section, key, value):
+            if section == "ui" and key == "theme":
+                page.theme_mode = ft.ThemeMode.LIGHT if value == "light" else ft.ThemeMode.DARK
+                page.update()
+                
+        settings.add_observer(theme_observer)
+        
+        page.add(self._build_ui())
+
+# 如果直接运行此文件，则启动演示
+if __name__ == "__main__":
+    ft.app(SettingsPreview().main, view=ft.WEB_BROWSER, port=8080)

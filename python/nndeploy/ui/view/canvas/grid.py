@@ -498,4 +498,4 @@ if __name__ == "__main__":  # 如果直接运行此文件
         
         page.on_resize = on_resize  # 设置窗口大小变化事件处理函数
     
-    ft.app(target=main, view=ft.WEB_BROWSER, port=9090)  # 启动Flet应用，使用Web浏览器视图，端口9090
+    ft.app(target=main, view=ft.WEB_BROWSER, port=8080)  # 启动Flet应用，使用Web浏览器视图，端口9090

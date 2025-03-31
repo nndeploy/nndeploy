@@ -96,7 +96,10 @@ AbstractEdge *recreateEdge(AbstractEdge *abstact_edge,
                            const base::ParallelType &paralle_type) {
   base::ParallelType cur_paralle_type = abstact_edge->getParallelType();
   AbstractEdge *new_abstact_edge = nullptr;
-  if ((int)paralle_type > (int)cur_paralle_type) {
+  if ((int)paralle_type < (int)base::kParallelTypePipeline &&
+      (int)cur_paralle_type < (int)base::kParallelTypePipeline) {
+    new_abstact_edge = abstact_edge;
+  } else if ((int)paralle_type > (int)cur_paralle_type) {
     new_abstact_edge = createEdge(paralle_type);
     if (new_abstact_edge == nullptr) {
       NNDEPLOY_LOGE("out of memory!\n");
