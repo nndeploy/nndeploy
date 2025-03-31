@@ -136,6 +136,16 @@ int main(int argc, char* argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->deinit()");
 
+  NNDEPLOY_TIME_PROFILER_PRINT("demo");
+
+  delete text2image_param;
+  delete prompt_text;
+  delete negative_prompt_text;
+  delete ddim_param;
+  delete prompt;
+  delete negative_prompt;
+  delete graph;
+
   ret = nndeployFrameworkDeinit();
   if (ret != 0) {
     NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);

@@ -39,7 +39,7 @@ class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
     for (int i = 0; i < ids[0].size(); i++) {
       value[i + 1] = ids[0][i];
     }
-    // this->getOutput(0)->notifyWritten(output);
+    this->getOutput(0)->notifyWritten(output);
 
     return base::kStatusCodeOk;
   }
@@ -68,31 +68,6 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
     device::Tensor *prompt = this->getInput(0)->getTensor(this);
     device::Tensor *negative_prompt = this->getInput(1)->getTensor(this);
 
-    // test
-    // std::vector<int> prompt_shape = prompt->getShape();
-    // std::cout << prompt_shape.size() << std::endl;
-    // std::cout << "prompt shape: " << prompt_shape[0] << " " <<
-    // prompt_shape[1]
-    //           << " " << prompt_shape[2] << std::endl;
-
-    // float *value = (float *)prompt->getData();
-    // for (int i = 0; i < prompt_shape[1]; i++) {
-    //   for (int j = 0; j < prompt_shape[2]; j++) {
-    //     std::cout << value[i * prompt_shape[2] + j] << " ";
-    //   }
-    //   std::cout << std::endl;
-    // }
-
-    // std::cout << std::endl;
-
-    // float *ne_value = (float *)negative_prompt->getData();
-    // for (int i = 0; i < prompt_shape[1]; i++) {
-    //   for (int j = 0; j < prompt_shape[2]; j++) {
-    //     std::cout << ne_value[i * prompt_shape[2] + j] << " ";
-    //   }
-    //   std::cout << std::endl;
-    // }
-
     device::Device *device = device::getDevice(device_type_);
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr\n");
@@ -117,7 +92,7 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
       output = this->getOutput(0)->create(device, desc, index);
       prompt->copyTo(output);
     }
-    // this->getOutput(0)->notifyWritten(output);
+    this->getOutput(0)->notifyWritten(output);
 
     return base::kStatusCodeOk;
   }
@@ -130,9 +105,7 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
  public:
   EmbeddingGraph(const std::string &name, std::vector<dag::Edge *> inputs,
                  std::vector<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {
-    param_ = std::make_shared<tokenizer::TokenizerPraram>();
-  }
+      : dag::Graph(name, inputs, outputs) {}
   ~EmbeddingGraph(){};
 
   base::Status setTokenizerParam(tokenizer::TokenizerPraram *param) {
