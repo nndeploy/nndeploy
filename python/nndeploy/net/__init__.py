@@ -6,6 +6,9 @@ from .optimizer import (
     FuseConvBias,
     FuseConvBatchNorm,
     FuseConvRelu,
+    FuseConvAct,
     EliminateCommonSubexpression,
     EliminateDeadOp,
+    FoldConstant,
+    FuseQdq
 )

@@ -52,6 +52,14 @@ std::shared_ptr<Expr> makeInput(ir::ModelDesc *model_desc, std::string name,
   auto expr = std::make_shared<Expr>(value_desc);
   return expr;
 }
+
+std::shared_ptr<Expr> makeConstant(ir::ModelDesc *model_desc,
+                                   std::string name) {
+  auto value_desc = std::make_shared<ir::ValueDesc>(name);
+  auto expr = std::make_shared<Expr>(value_desc);
+  return expr;
+}
+
 void makeOutput(ir::ModelDesc *model_desc, std::shared_ptr<Expr> expr) {
   if (model_desc != nullptr) {
     std::vector<std::string> output = expr->getOutputName();
