@@ -122,7 +122,6 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
 
  private:
   float guidance_ = 7.5;
-  int32_t max_length_ = 77;
 };
 
 class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
@@ -143,19 +142,6 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
     clip_infer_node_->setParam(param);
     return base::kStatusCodeOk;
   }
-
-  // base::Status setInferParam(base::DeviceType device_type,
-  //                            base::ModelType model_type, bool is_path,
-  //                            std::vector<std::string> &model_value) {
-  //   auto param =
-  //       dynamic_cast<inference::InferenceParam
-  //       *>(clip_infer_node_->getParam());
-  //   param->device_type_ = device_type;
-  //   param->model_type_ = model_type;
-  //   param->is_path_ = is_path;
-  //   param->model_value_ = model_value;
-  //   return base::kStatusCodeOk;
-  // }
 
   base::Status make(base::InferenceType inference_type, std::string name) {
     prompt_ = this->getInput(0);

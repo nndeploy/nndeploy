@@ -35,7 +35,6 @@ int main(int argc, char const* argv[]) {
 
   base::Status status = graph->setParallelType(base::kParallelTypeSequential);
 
-  std::cout << "1" << std::endl;
   graph->setTimeProfileFlag(true);
 
   // 初始化有向无环图graph
@@ -55,8 +54,6 @@ int main(int argc, char const* argv[]) {
       new tokenizer::TokenizerText();
   negative_prompt_text->texts_ = {""};
   negative_prompt->set(negative_prompt_text, 0, true);
-
-  std::cout << "2" << std::endl;
 
   NNDEPLOY_TIME_POINT_START("graph->dump()");
   status = graph->dump();

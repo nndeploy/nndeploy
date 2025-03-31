@@ -164,9 +164,6 @@ class NNDEPLOY_CC_API InitLatentsNode : public dag::Node {
     } else {
       latent->copyTo(latents);
     }
-    // DenoiseGraph *graph = (DenoiseGraph *)(this->getGraph());
-    // float timestep = graph->getTimestep();
-    // timestep_t->set(timestep);
 
     return base::kStatusCodeOk;
   }
@@ -174,7 +171,6 @@ class NNDEPLOY_CC_API InitLatentsNode : public dag::Node {
  private:
   float guidance_ = 7.5f;
   bool do_classifier_free_guidance_ = false;
-  // float init_noise_sigma_ = 1.0f;
   device::Tensor *latents = nullptr;
 };
 

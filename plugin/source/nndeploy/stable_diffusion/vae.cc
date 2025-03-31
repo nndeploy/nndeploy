@@ -26,28 +26,7 @@ class NNDEPLOY_CC_API ScaleLatentsNode : public dag::Node {
     device::Tensor *latents_scale =
         new device::Tensor(device, latents->getDesc());
 
-    // auto shape = latents->getShape();
-    // auto value = (float *)(latents->getData());
-    // std::cout << "latents shape: " << shape[0] << ", " << shape[1] << ", "
-    //           << shape[2] << ", " << shape[3] << std::endl;
-    // int shape_size = latents->getSize() / sizeof(float);
-    // for (int i = 0; i < shape_size; i++) {
-    //   std::cout << value[i] << " ";
-    // }
-    // std::cout << std::endl;
-
     op::muls(scalar, latents, latents_scale);
-
-    // shape = latents_scale->getShape();
-    // value = (float *)(latents_scale->getData());
-    // std::cout << "latents_scale shape: " << shape[0] << ", " << shape[1] <<
-    // ", "
-    //           << shape[2] << ", " << shape[3] << std::endl;
-    // shape_size = latents->getSize() / sizeof(float);
-    // for (int i = 0; i < shape_size; i++) {
-    //   std::cout << value[i] << " ";
-    // }
-    // std::cout << std::endl;
 
     this->getOutput(0)->set(latents_scale, 0);
     return base::kStatusCodeOk;
