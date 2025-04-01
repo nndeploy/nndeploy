@@ -147,9 +147,9 @@ base::Status FuseQdq::optimize(std::vector<TensorWrapper*>& tensor_repository,
                      "QLinearConv(FuseQdqPass)" + std::to_string(qdq_index_),
                      ir::kOpTypeQLinearConv, {}, {});
 
-    ir::QLinearConvParam* qlinear_conv_param = new ir::QLinearConvParam();
-    qlinear_conv_op->setParam(std::static_pointer_cast<nndeploy::base::Param>(
-        std::shared_ptr<nndeploy::ir::QLinearConvParam>(qlinear_conv_param)));
+    auto qlinear_conv_param =
+        std::make_shared<ir::QLinearConvParam>();   
+    qlinear_conv_op->setParam(qlinear_conv_param);  
 
     // 设置 QLinearConv 的输入
     // 输入数据
@@ -264,7 +264,7 @@ base::Status FuseQdq::optimize(std::vector<TensorWrapper*>& tensor_repository,
     }
 
     // 查看op_wrapper、tensor_wrapper的前驱后继关系
-    printNetInfo(op_repository, tensor_repository);
+    // printNetInfo(op_repository, tensor_repository);
 
     // 这里继续从0开始，因为中途删过几个Op，导致begin_op_index应该前移；
     // 由于算子出现顺序等原因，不易判断前移几个，因此直接从0开始
