@@ -87,6 +87,7 @@ class LanguageManager:
         """加载翻译文件"""
         base_path = Path(__file__).parent
         locales_path = base_path.parent / "assets/locales"
+        # locales_path = Path("/home/always/github/public/nndeploy/python/nndeploy/ui/assets/locales")
         
         # 确保目录存在
         if not locales_path.exists():

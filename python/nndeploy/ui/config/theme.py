@@ -20,7 +20,7 @@ class ThemeType(Enum):
     """主题类型枚举"""
     LIGHT = "light"
     DARK = "dark"
-
+    SYSTEM = "system"
 # 主题颜色定义 - 全局字典实现
 THEME_COLORS = {
     # 明亮主题

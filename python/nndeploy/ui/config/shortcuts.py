@@ -17,11 +17,12 @@ from enum import Enum
 from typing import Dict, List, Optional, Callable, Any
 import json
 import os
-import flet as ft
 from pathlib import Path
+import flet as ft
 
 # TODO
 from nndeploy.ui.config.language import get_text
+# from .language import get_text
 
 class ModifierKey(Enum):
     """修饰键枚举"""
