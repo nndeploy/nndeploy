@@ -77,7 +77,6 @@ device::Tensor* bufferInfoToTensorByDeviceTypeCode(
 
 device::Tensor* bufferInfoToTensor(const py::buffer& buffer,
                                    const base::DeviceType& device_type) {
-  device::Tensor* tensor = nullptr;
 
   py::buffer_info info = buffer.request();
   if (info.ndim > 5) {
