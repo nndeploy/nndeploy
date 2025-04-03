@@ -112,6 +112,7 @@ def compare(model, file_path):
         rtol=1e-03,
         atol=1e-03,
     )
+    model.net.deinit()
 
 
 # 关闭图优化

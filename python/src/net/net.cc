@@ -31,7 +31,8 @@ NNDEPLOY_API_PYBIND11_MODULE("net", m) {
       .def("run", &Net::run)
       .def("postRun", &Net::postRun)
       .def("deinit", &Net::deinit)
-      .def("getAllOutput", &Net::getAllOutput)
+      .def("getAllOutput", &Net::getAllOutput,
+           py::return_value_policy::reference)
       .def("getAllInput", &Net::getAllInput)
       .def("enableOpt", &Net::enableOpt)
       .def("setEnablePass", &Net::setEnablePass)
