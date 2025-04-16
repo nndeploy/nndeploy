@@ -8,3 +8,4 @@ from .base import EdgeTypeInfo
 from .edge import Edge
 from .node import Node
 from .graph import Graph
+from .util import NodeWrapper, EdgeWrapper

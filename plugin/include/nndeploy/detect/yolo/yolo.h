@@ -26,15 +26,20 @@
 namespace nndeploy {
 namespace detect {
 
+/**
+ * @brief YOLO后处理参数类
+ *
+ * 该类用于定义YOLO模型后处理阶段所需的参数。包括分数阈值、非最大抑制(NMS)阈值、类别数量以及模型输入图像的尺寸。
+ */
 class NNDEPLOY_CC_API YoloPostParam : public base::Param {
  public:
-  float score_threshold_;
-  float nms_threshold_;
-  int num_classes_;
-  int model_h_;
-  int model_w_;
+  float score_threshold_;  // 分数阈值，用于决定哪些检测框被保留
+  float nms_threshold_;    // 非最大抑制(NMS)阈值，用于合并重叠的检测框
+  int num_classes_;        // 模型可以识别的类别数量
+  int model_h_;            // 模型输入图像的高度
+  int model_w_;            // 模型输入图像的宽度
 
-  int version_ = -1;
+  int version_ = -1;  // YOLO模型的版本号，默认为-1表示未指定
 };
 
 class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
@@ -56,7 +61,7 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
   virtual base::Status run();
 
   base::Status runV5V6();
-  base::Status runV8();
+  base::Status runV8V11();
 };
 
 class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
@@ -172,6 +177,13 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     YoloPostParam *param = dynamic_cast<YoloPostParam *>(post_->getParam());
     param->version_ = version;
     return base::kStatusCodeOk;
+  }
+
+  std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
+    std::vector<dag::Edge *> pre_outputs = (*pre_)(inputs);
+    std::vector<dag::Edge *> infer_outputs = (*infer_)(pre_outputs);
+    std::vector<dag::Edge *> post_outputs = (*post_)(infer_outputs);
+    return post_outputs;
   }
 
  private:

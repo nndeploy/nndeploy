@@ -34,7 +34,7 @@
 - --input_path: 输入图片路径
 - --output_path: 输出图片路径
 - --yolo_version: yolo版本
-- --model_inputs: 模型输入
+- --model_inputs: 模型输入 
 - --model_outputs: 模型输出
 
 #### 推理后端为nndeploy推理框架，推理执行设备为AscendCL
@@ -215,7 +215,7 @@ export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20
 atc --model=path/to/yolo11s.sim.onnx --output=path/to/yolo11s.sim.onnx.om --framework=5 --soc_version=Ascend910B4
 
 ### 华为昇腾运行
-./nndeploy_demo_detect --name nndeploy::detect::YoloGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_acl_acl_sample_output.jpg
+./nndeploy_demo_detect --name nndeploy::det ect::YoloGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --yolo_version 11 --model_inputs images --model_outputs output0 --input_path ../docs/image/demo/detect/sample.jpg --output_path yolo_acl_acl_sample_output.jpg
 
 TimeProfiler: demo
 ---------------------------------------------------------------------------------------------

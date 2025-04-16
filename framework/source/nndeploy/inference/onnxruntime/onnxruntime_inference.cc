@@ -58,24 +58,32 @@ base::Status OnnxRuntimeInference::init() {
         type_info.GetTensorTypeAndShapeInfo().GetElementType();
     inputs_desc_.emplace_back(OrtValueInfo{input_name, shape, data_type});
 
-    device::TensorDesc desc;
-    if (onnxruntime_inference_param->max_shape_.find(input_name) !=
-        onnxruntime_inference_param->max_shape_.end()) {
-      desc.shape_ = OnnxRuntimeConvert::convertToShape(
-          shape, onnxruntime_inference_param->max_shape_[input_name]);
-    } else {
-      desc.shape_ = OnnxRuntimeConvert::convertToShape(shape);
-    }
-    desc.data_type_ = OnnxRuntimeConvert::convertToDataType(data_type);
-    desc.data_format_ = OnnxRuntimeConvert::getDataFormatByShape(desc.shape_);
-    device::Tensor *max_input_tensor =
-        new device::Tensor(device, desc, input_name);
-    max_input_tensors_.insert({input_name, max_input_tensor});
+    if (!isDynamic(shape)) {
+      device::TensorDesc desc;
+      if (onnxruntime_inference_param->max_shape_.find(input_name) !=
+          onnxruntime_inference_param->max_shape_.end()) {
+        desc.shape_ = OnnxRuntimeConvert::convertToShape(
+            shape, onnxruntime_inference_param->max_shape_[input_name]);
+      } else {
+        desc.shape_ = OnnxRuntimeConvert::convertToShape(shape);
+      }
+      desc.data_type_ = OnnxRuntimeConvert::convertToDataType(data_type);
+      desc.data_format_ = OnnxRuntimeConvert::getDataFormatByShape(desc.shape_);
+      device::Tensor *max_input_tensor =
+          new device::Tensor(device, desc, input_name);
+      max_input_tensors_.insert({input_name, max_input_tensor});
 
-    device::Buffer *max_input_buffer = max_input_tensor->getBuffer();
-    device::Tensor *current_input_tensor =
-        new device::Tensor(desc, max_input_buffer, input_name);
-    input_tensors_.insert({input_name, current_input_tensor});
+      device::Buffer *max_input_buffer = max_input_tensor->getBuffer();
+      device::Tensor *current_input_tensor =
+          new device::Tensor(desc, max_input_buffer, input_name);
+      input_tensors_.insert({input_name, current_input_tensor});
+    } else {
+      device::Tensor *max_input_tensor = new device::Tensor(input_name);
+      max_input_tensors_.insert({input_name, max_input_tensor});
+
+      device::Tensor *current_input_tensor = new device::Tensor(input_name);
+      input_tensors_.insert({input_name, current_input_tensor});
+    }
   }
 
   for (auto iter : input_tensors_) {

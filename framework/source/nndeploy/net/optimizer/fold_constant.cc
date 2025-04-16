@@ -124,14 +124,12 @@ base::Status FoldConstant::optimize(
                             tensor_wrapper->producers_.end(), op_wrapper);
         if (it != tensor_wrapper->producers_.end()) {
           tensor_wrapper->is_weight_ = true;
+          tensor_wrapper->producers_ = {};  // 该Tensor被标记为常量，没有生产者
         }
       }
 
       // 处理这个Op的输入Tensor
       rmInputTensorAndMaybeDelete(op_wrapper, tensor_repository);
-
-      // 处理这个Op的输出Tensor
-      rmOutputTensorAndMaybeDelete(op_wrapper, tensor_repository);
 
       // 将其从前驱节点的后继节点中删除
       rmOpFromPredecessor(op_wrapper);

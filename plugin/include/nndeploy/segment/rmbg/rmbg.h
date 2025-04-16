@@ -143,6 +143,16 @@ class NNDEPLOY_CC_API SegmentRMBGGraph : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
+  std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
+    std::vector<dag::Edge *> pre_outputs = (*pre_)(inputs);
+    std::vector<dag::Edge *> infer_outputs = (*infer_)(pre_outputs);
+    std::vector<dag::Edge *> post_inputs;
+    post_inputs.push_back(inputs[0]);
+    post_inputs.push_back(infer_outputs[0]);
+    std::vector<dag::Edge *> post_outputs = (*post_)(post_inputs);
+    return post_outputs;
+  }
+
  private:
   dag::Node *pre_ = nullptr;       ///< Preprocessing node pointer
   infer::Infer *infer_ = nullptr;  ///< Inference node pointer

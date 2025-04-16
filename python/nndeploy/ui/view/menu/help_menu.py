@@ -32,17 +32,6 @@ def HelpMenu(
                 )
             ),
             
-            # 教程
-            ft.PopupMenuItem(
-                text=get_text("menu.help.tutorial"),
-                icon=ft.icons.SCHOOL,
-                on_click=lambda _: (
-                    on_tutorial and on_tutorial()
-                )
-            ),
-            
-            ft.Divider(),
-            
             # 反馈
             ft.PopupMenuItem(
                 text=get_text("menu.help.feedback"),
@@ -69,4 +58,4 @@ def main(page: ft.Page):
     page.add(HelpMenu())
 
 if __name__ == "__main__":
-    ft.app(target=main, view=ft.WEB_BROWSER, port=9090)
+    ft.app(target=main, view=ft.WEB_BROWSER, port=8080)
