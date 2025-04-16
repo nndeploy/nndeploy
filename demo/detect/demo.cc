@@ -32,10 +32,11 @@ int main(int argc, char *argv[]) {
   // NNDEPLOY_YOLOV5/NNDEPLOY_YOLOV6/NNDEPLOY_YOLOV8
   std::string name = demo::getName();
   // 推理后端类型，例如:
-  // kInferenceTypeOpenVino / kInferenceTypeTensorRt / kInferenceTypeOnnxRuntime
+  // kInferenceTypeOpenVino / kInferenceTypeAscendCL / kInferenceTypeTensorRt /
+  // kInferenceTypeOnnxRuntime
   base::InferenceType inference_type = demo::getInferenceType();
   // 推理设备类型，例如:
-  // kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
+  // kDeviceTypeCodeAscendCL:0/kDeviceTypeCodeX86:0/kDeviceTypeCodeCuda:0/...
   base::DeviceType device_type = demo::getDeviceType();
   // 模型类型，例如:
   // kModelTypeOnnx/kModelTypeMnn/...

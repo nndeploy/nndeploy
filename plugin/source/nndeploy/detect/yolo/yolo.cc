@@ -30,7 +30,7 @@ base::Status YoloPostProcess::run() {
   if (param->version_ == 5 || param->version_ == 6) {
     return runV5V6();
   } else if (param->version_ == 8 || param->version_ == 11) {
-    return runV8();
+    return runV8V11();
   } else {
     NNDEPLOY_LOGE("Unsupported version: %d", param->version_);
     return base::kStatusCodeErrorInvalidValue;
@@ -106,7 +106,7 @@ base::Status YoloPostProcess::runV5V6() {
   return base::kStatusCodeOk;
 }
 
-base::Status YoloPostProcess::runV8() {
+base::Status YoloPostProcess::runV8V11() {
   YoloPostParam *param = (YoloPostParam *)param_.get();
   float score_threshold = param->score_threshold_;
   int num_classes = param->num_classes_;
@@ -196,7 +196,8 @@ base::Status YoloPostProcess::runV8() {
 //       "infer", {infer_input}, {infer_output});
 
 //   dag::Node *post =
-//       graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
+//       graph->createNode<YoloPostProcess>("postprocess", {infer_output},
+//       {output});
 
 //   preprocess::CvtclorResizeParam *pre_param =
 //       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
@@ -214,8 +215,8 @@ base::Status YoloPostProcess::runV8() {
 //   inference_param->model_type_ = model_type;
 
 //   // TODO: 很多信息可以从 preprocess 和 infer 中获取
-//   YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
-//   post_param->score_threshold_ = 0.5;
+//   YoloPostParam *post_param = dynamic_cast<YoloPostParam
+//   *>(post->getParam()); post_param->score_threshold_ = 0.5;
 //   post_param->nms_threshold_ = 0.45;
 //   post_param->num_classes_ = 80;
 //   post_param->model_h_ = 640;
@@ -242,7 +243,8 @@ base::Status YoloPostProcess::runV8() {
 //       "infer", {infer_input}, {infer_output});
 
 //   dag::Node *post =
-//       graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
+//       graph->createNode<YoloPostProcess>("postprocess", {infer_output},
+//       {output});
 
 //   preprocess::CvtclorResizeParam *pre_param =
 //       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
@@ -260,8 +262,8 @@ base::Status YoloPostProcess::runV8() {
 //   inference_param->model_type_ = model_type;
 
 //   // TODO: 很多信息可以从 preprocess 和 infer 中获取
-//   YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
-//   post_param->score_threshold_ = 0.5;
+//   YoloPostParam *post_param = dynamic_cast<YoloPostParam
+//   *>(post->getParam()); post_param->score_threshold_ = 0.5;
 //   post_param->nms_threshold_ = 0.45;
 //   post_param->num_classes_ = 80;
 //   post_param->model_h_ = 640;
@@ -288,7 +290,8 @@ base::Status YoloPostProcess::runV8() {
 //       "infer", {infer_input}, {infer_output});
 
 //   dag::Node *post =
-//       graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
+//       graph->createNode<YoloPostProcess>("postprocess", {infer_output},
+//       {output});
 
 //   preprocess::CvtclorResizeParam *pre_param =
 //       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
@@ -306,8 +309,8 @@ base::Status YoloPostProcess::runV8() {
 //   inference_param->model_type_ = model_type;
 
 //   // TODO: 很多信息可以从 preprocess 和 infer 中获取
-//   YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
-//   post_param->score_threshold_ = 0.5;
+//   YoloPostParam *post_param = dynamic_cast<YoloPostParam
+//   *>(post->getParam()); post_param->score_threshold_ = 0.5;
 //   post_param->nms_threshold_ = 0.45;
 //   post_param->num_classes_ = 80;
 //   post_param->model_h_ = 640;
@@ -319,9 +322,9 @@ base::Status YoloPostProcess::runV8() {
 
 // dag::Graph *createYoloV11Graph(const std::string &name,
 //                                base::InferenceType inference_type,
-//                                base::DeviceType device_type, dag::Edge *input,
-//                                dag::Edge *output, base::ModelType model_type,
-//                                bool is_path,
+//                                base::DeviceType device_type, dag::Edge
+//                                *input, dag::Edge *output, base::ModelType
+//                                model_type, bool is_path,
 //                                std::vector<std::string> model_value) {
 //   dag::Graph *graph = new dag::Graph(name, {input}, {output});
 //   dag::Edge *infer_input = graph->createEdge("images");
@@ -334,7 +337,8 @@ base::Status YoloPostProcess::runV8() {
 //       "infer", {infer_input}, {infer_output});
 
 //   dag::Node *post =
-//       graph->createNode<YoloPostProcess>("postprocess", {infer_output}, {output});
+//       graph->createNode<YoloPostProcess>("postprocess", {infer_output},
+//       {output});
 
 //   preprocess::CvtclorResizeParam *pre_param =
 //       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
@@ -352,8 +356,8 @@ base::Status YoloPostProcess::runV8() {
 //   inference_param->model_type_ = model_type;
 
 //   // TODO: 很多信息可以从 preprocess 和 infer 中获取
-//   YoloPostParam *post_param = dynamic_cast<YoloPostParam *>(post->getParam());
-//   post_param->score_threshold_ = 0.5;
+//   YoloPostParam *post_param = dynamic_cast<YoloPostParam
+//   *>(post->getParam()); post_param->score_threshold_ = 0.5;
 //   post_param->nms_threshold_ = 0.45;
 //   post_param->num_classes_ = 80;
 //   post_param->model_h_ = 640;
