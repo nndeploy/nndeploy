@@ -384,7 +384,7 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeDequantizeLinear, DequantizeLinearParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeQLinearConv, QLinearConvParam);
 
-REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeAvaragePool, AvaragePoolParam);
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeAveragePool, AvaragePoolParam);
 
 }  // namespace ir
 }  // namespace nndeploy
