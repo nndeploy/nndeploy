@@ -45,27 +45,39 @@ class OnnxInterpret : public Interpret {
 
   // 获取ONNX节点的各种属性值,包括整型、浮点型、字符串等
   // 根据类型名称获取ONNX属性类型
-  static onnx::AttributeProto_AttributeType getAttributeType(const char *type_name);
+  static onnx::AttributeProto_AttributeType getAttributeType(
+      const char *type_name);
   // 获取ONNX节点的整型属性值,如果不存在则返回默认值
-  static int32_t getAttributeInt(const onnx::NodeProto &node, const std::string &name, int default_value);
+  static int32_t getAttributeInt(const onnx::NodeProto &node,
+                                 const std::string &name, int default_value);
   // 获取ONNX节点的整型数组属性值,返回int32_t类型的vector
-  static std::vector<int32_t> getAttributeIntVector(const onnx::NodeProto &node, const std::string &name);
+  static std::vector<int32_t> getAttributeIntVector(const onnx::NodeProto &node,
+                                                    const std::string &name);
   // 获取ONNX节点的64位整型数组属性值,返回int64_t类型的vector
-  static std::vector<int64_t> getAttributeInt64Vector(const onnx::NodeProto &node, const std::string &name);
+  static std::vector<int64_t> getAttributeInt64Vector(
+      const onnx::NodeProto &node, const std::string &name);
   // 获取ONNX节点的浮点型属性值,如果不存在则返回默认值
-  static float getAttributeFloat(const onnx::NodeProto &node, const std::string &name, float default_value);
+  static float getAttributeFloat(const onnx::NodeProto &node,
+                                 const std::string &name, float default_value);
   // 获取ONNX节点的字符串属性值,如果不存在则返回默认字符串
-  static std::string getAttributeString(const onnx::NodeProto &node, const std::string &name, std::string def);
+  static std::string getAttributeString(const onnx::NodeProto &node,
+                                        const std::string &name,
+                                        std::string def);
   // 获取ONNX节点的字符串数组属性值,返回string类型的vector
-  static std::vector<std::string> getAttributeStringVector(const onnx::NodeProto &node, const std::string &name);
+  static std::vector<std::string> getAttributeStringVector(
+      const onnx::NodeProto &node, const std::string &name);
   // 按指定分隔符分割字符串,返回分割后的字符串数组
-  static std::vector<std::string> splitString(std::string &s, const std::string &c);
+  static std::vector<std::string> splitString(std::string &s,
+                                              const std::string &c);
   // 获取ONNX节点的无符号8位整型数组属性值,返回uint8_t类型的vector
-  static std::vector<uint8_t> getAttributeUInt8Vector(const onnx::NodeProto &node, const std::string &name);
+  static std::vector<uint8_t> getAttributeUInt8Vector(
+      const onnx::NodeProto &node, const std::string &name);
   // 将非对称量化的uint8数据转换为对称量化的int8数据,需要指定零点
-  static std::vector<int8_t> asymmetric2Symmetric(std::vector<uint8_t> &raw_value, uint8_t zero_point);
+  static std::vector<int8_t> asymmetric2Symmetric(
+      std::vector<uint8_t> &raw_value, uint8_t zero_point);
   // 获取ONNX节点的张量属性值,返回TensorProto对象
-  static onnx::TensorProto getAttributeTensor(const onnx::NodeProto &node, const char *key);
+  static onnx::TensorProto getAttributeTensor(const onnx::NodeProto &node,
+                                              const char *key);
   // 获取张量数据的总大小(元素个数)
   static int getTensorProtoDataSize(const onnx::TensorProto &tp);
 
@@ -81,7 +93,7 @@ class OnnxInterpret : public Interpret {
       const std::vector<ValueDesc> &input = std::vector<ValueDesc>());
 
  private:
-  int target_version_ = 20;
+  int target_version_ = 19;
   std::unique_ptr<onnx::ModelProto> onnx_model_;
 };
 

@@ -14,11 +14,11 @@ using namespace nndeploy;
 
 class ExprDemo : public ir::ModelDesc {
  public:
-  ExprDemo(){};
-  ~ExprDemo(){};
+  ExprDemo() {};
+  ~ExprDemo() {};
   void init() {
-    auto input =
-        op::makeInput(this, "input", base::dataTypeOf<float>(), {1, 3, 640, 640});
+    auto input = op::makeInput(this, "input", base::dataTypeOf<float>(),
+                               {1, 3, 640, 640});
     auto pool_param = std::make_shared<ir::MaxPoolParam>();
     pool_param->kernel_shape_ = {2, 2};
     pool_param->strides_ = {2, 2};
@@ -35,15 +35,17 @@ class ExprDemo : public ir::ModelDesc {
   }
 };
 
-void printHelloWorld() { std::cout << "hello world!" << std::endl; }
-
 int main(int argc, char const *argv[]) {
   int ret = nndeployFrameworkInit();
   if (ret != 0) {
     NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
     return ret;
   }
-  printHelloWorld();
+
+  ExprDemo expr_demo;
+  expr_demo.init();
+  expr_demo.dump(std::cout);
+
   ret = nndeployFrameworkDeinit();
   if (ret != 0) {
     NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
