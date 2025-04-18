@@ -11,7 +11,6 @@ namespace op {
 
 // 标识Expr的类型
 enum ExprType : int {
-  // TODO：需要细分为输入、输出、权重吗？似乎现在这样更加简单且直观，但是只有这个信息能区分输入与权重吗？（应该可以？）
   kExprTypeValueDesc = 0x0000,
   kExprTypeOpDesc,
   kExprTypeModelDesc,
