@@ -28,7 +28,8 @@ int main(int argc, char *argv[]) {
 
   base::Status status = base::kStatusCodeOk;
 
-  auto interpret = std::shared_ptr<ir::Interpret>(ir::createInterpret(model_type));
+  auto interpret =
+      std::shared_ptr<ir::Interpret>(ir::createInterpret(model_type));
   if (interpret == nullptr) {
     NNDEPLOY_LOGE("ir::createInterpret failed.\n");
     return -1;
@@ -52,12 +53,11 @@ int main(int argc, char *argv[]) {
 
   net->dump(std::cout);
 
+  net->preRun();
+  net->run();
+  net->postRun();
+
   net->deinit();
 
-  // ret = nndeployFrameworkDeinit();
-  // if (ret != 0) {
-  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-  //   return ret;
-  // }
   return 0;
 }
