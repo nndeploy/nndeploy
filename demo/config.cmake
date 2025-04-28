@@ -88,6 +88,11 @@ if(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL)
   include(${ROOT_PATH}/demo/tensor_pool/config.cmake)
 endif()
 
+nndeploy_option(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL_MULTI_NET "ENABLE_NNDEPLOY_DEMO_TENSOR_POOL_MULTI_NET" ON)
+if(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL_MULTI_NET)
+  include(${ROOT_PATH}/demo/tensor_pool_multi_net/config.cmake)
+endif()
+
 nndeploy_option(ENABLE_NNDEPLOY_DEMO_RESNET "ENABLE_NNDEPLOY_DEMO_RESNET" OFF)
 if(ENABLE_NNDEPLOY_DEMO_RESNET)
   include(${ROOT_PATH}/demo/resnet/config.cmake)

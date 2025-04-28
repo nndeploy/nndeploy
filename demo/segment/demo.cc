@@ -9,6 +9,23 @@
 // #include "nndeploy/segment/segment_anything/sam.h"
 #include "nndeploy/segment/rmbg/rmbg.h"
 
+// + 编译/运行/结果分析
+// + 前处理
+// + 后处理
+// + 推理
+//   + infer::Infer
+//   + inference::DefaultInference
+//   + ir::Interpret
+//   + ir::DefaultInterpret
+//   + ir::ModelDesc
+//   + net::Net
+//   + net::OptPass
+//   + net::Runtime
+//   + net::SequentialRuntime
+//   + net::TensorPool
+//   + op::Op
+//   + op::AscendCLOpAdd
+
 using namespace nndeploy;
 
 class DrawMaskNode : public dag::Node {
@@ -240,10 +257,10 @@ int main(int argc, char *argv[]) {
   delete segment_graph;
   delete graph;
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
+  // ret = nndeployFrameworkDeinit();
+  // if (ret != 0) {
+  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+  //   return ret;
+  // }
   return 0;
 }

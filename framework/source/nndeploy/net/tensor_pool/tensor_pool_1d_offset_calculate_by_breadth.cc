@@ -29,12 +29,12 @@ base::Status TensorPool1DOffsetCalculateGreedyByBreadth::allocate() {
   // 分配内存
   if (is_external_ == false) {
     mem_block_ = new device::Buffer(device_, total_consumption_);
-  }
-  uint8_t *data_ptr = (uint8_t *)mem_block_->getData();
-  for (auto &t : tensor_usage_records_) {
-    device::Buffer *buffer =
-        new device::Buffer(device_, t->size_, data_ptr + t->offset_);
-    t->tensor_wrapper_->tensor_->justModify(buffer, false);
+    uint8_t *data_ptr = (uint8_t *)mem_block_->getData();
+    for (auto &t : tensor_usage_records_) {
+      device::Buffer *buffer =
+          new device::Buffer(device_, t->size_, data_ptr + t->offset_);
+      t->tensor_wrapper_->tensor_->justModify(buffer, false);
+    }
   }
   tensorUsageRecordPrint(tensor_usage_records_);
   NNDEPLOY_LOGE("Total memory size: %zu (OffSetByBreadth)\n",
@@ -74,6 +74,10 @@ base::Status TensorPool1DOffsetCalculateGreedyByBreadth::deallocate() {
 
 int64_t TensorPool1DOffsetCalculateGreedyByBreadth::getMemorySize() {
   base::Status status = base::kStatusCodeOk;
+
+  if (total_consumption_ != -1) {
+    return total_consumption_;
+  }
 
   // 初始化TensorUsageRecord, 对tensor大小进行排序
   status = initTensorUsageRecord();
@@ -151,6 +155,12 @@ base::Status TensorPool1DOffsetCalculateGreedyByBreadth::setMemory(
   }
   is_external_ = true;
   mem_block_ = buffer;
+  uint8_t *data_ptr = (uint8_t *)mem_block_->getData();
+  for (auto &t : tensor_usage_records_) {
+    device::Buffer *buffer =
+        new device::Buffer(device_, t->size_, data_ptr + t->offset_);
+    t->tensor_wrapper_->tensor_->justModify(buffer, false);
+  }
   return base::kStatusCodeOk;
 }
 

@@ -14,6 +14,11 @@ TensorPool::TensorPool(device::Device *device,
 
 TensorPool::~TensorPool() {}
 
+base::Status TensorPool::setIsExternal(bool is_external) {
+  is_external_ = is_external;
+  return base::kStatusCodeOk;
+}
+
 int64_t TensorPool::getMemorySize() {
   NNDEPLOY_LOGE("TensorPool::getMemorySize is not implemented!\n");
   return 0;
