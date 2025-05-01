@@ -2,27 +2,16 @@
 
 #include "kernel_operator.h"
 
-constexpr int32_t ALIGN_NUM = 16;
-
-__aicore__ inline void CopyTiling(nndeploy::op::Conv2dTilingData *tiling,
-                                  GM_ADDR tiling_gm) {
-  uint32_t *tiling_ptr = reinterpret_cast<uint32_t *>(tiling);
-  __gm__ uint32_t *tiling_gm_ptr =
-      reinterpret_cast<__gm__ uint32_t *>(tiling_gm);
-
-  for (int i = 0; i < sizeof(nndeploy::op::Conv2dTilingData) / sizeof(uint32_t);
-       i++, tiling_ptr++) {
-    *tiling_ptr = *(tiling_gm_ptr + i);
-  }
-}
+constexpr uint32_t ADD_FLOAT16 = 0;
+constexpr uint32_t ADD_FLOAT32 = 1;
 
 template <typename dst_T, typename fm_T, typename we_T>
 class KernelConv2d {
  public:
   __aicore__ inline KernelConv2d() {}
   __aicore__ inline void Init(GM_ADDR fmGm, GM_ADDR weGm, GM_ADDR dstGm,
-                              GM_ADDR tiling_gm, AscendC::TPipe *tmpPipe) {
-    CopyTiling(&tiling_data, tiling_gm);
+                              Conv2dTilingData tiling_data,
+                              AscendC::TPipe *tmpPipe) {
     pipe = tmpPipe;
     batchSize = tiling_data.batchSize;
     inHeight = tiling_data.inHeight;
@@ -37,8 +26,10 @@ class KernelConv2d {
     padding = tiling_data.padding;
     coreNum = tiling_data.coreNum;
 
-    inChannelAlign = (inChannel + ALIGN_NUM - 1) / ALIGN_NUM * ALIGN_NUM;
-    outChannelAlign = (outChannel + ALIGN_NUM - 1) / ALIGN_NUM * ALIGN_NUM;
+    int32_t align_num = 32 / sizeof(fm_T);
+
+    inChannelAlign = (inChannel + align_num - 1) / align_num * align_num;
+    outChannelAlign = (outChannel + align_num - 1) / align_num * align_num;
     fmWidthBlock =
         (alignBlock / inChannelAlign - (kernelSize - stride)) / stride;
     fmWidthRounds = outWidth / fmWidthBlock;
@@ -142,15 +133,16 @@ class KernelConv2d {
                        dstBatchLt1[idx3 * kernelSize * inChannelAlign],
                        fmBatchLt4, kernelSize * inChannelAlign);
         }
-        int32_t srcStride = kernelSize * inChannelAlign / ALIGN_NUM;
+        int32_t srcStride = kernelSize * inChannelAlign / (32 / sizeof(fm_T));
         AscendC::WholeReduceSum<dst_T, true>(
             dstBatchLt2[idx2 * outChannelAlign], dstBatchLt1,
             kernelSize * inChannelAlign, outChannel, 1, 1, srcStride);
       }
       pipe_barrier(PIPE_ALL);
 
-      AscendC::DataCopyExtParams copyOutParams{dstBlockCount, outChannel * 2, 0,
-                                               0, 0};
+      AscendC::DataCopyExtParams copyOutParams{
+          dstBlockCount, static_cast<uint32_t>(outChannel * sizeof(dst_T)), 0,
+          0, 0};
       AscendC::DataCopyPad(
           dstGlobal[outOffset + (idx1 * fmWidthBlock) * outChannel],
           dstBatchLt2, copyOutParams);
@@ -200,7 +192,7 @@ class KernelConv2d {
                        dstBatchLt1[idx3 * kernelSize * inChannelAlign],
                        fmBatchLt4, kernelSize * inChannelAlign);
         }
-        int32_t srcStride = kernelSize * inChannelAlign / ALIGN_NUM;
+        int32_t srcStride = kernelSize * inChannelAlign / (32 / sizeof(fm_T));
         AscendC::WholeReduceSum<dst_T, true>(
             dstBatchLt2[idx2 * outChannelAlign], dstBatchLt1,
             kernelSize * inChannelAlign, outChannel, 1, 1, srcStride);
@@ -210,8 +202,9 @@ class KernelConv2d {
       }
       pipe_barrier(PIPE_ALL);
 
-      AscendC::DataCopyExtParams copyOutParams{dstTailBlockCount,
-                                               outChannel * 2, 0, 0, 0};
+      AscendC::DataCopyExtParams copyOutParams{
+          dstTailBlockCount, static_cast<uint32_t>(outChannel * sizeof(dst_T)),
+          0, 0, 0};
       AscendC::DataCopyPad(
           dstGlobal[outOffset + (fmWidthRounds * fmWidthBlock) * outChannel],
           dstBatchLt2, copyOutParams);
@@ -258,7 +251,6 @@ class KernelConv2d {
   uint16_t stride;
   uint8_t dilation;
   uint16_t padding;
-  nndeploy::op::Conv2dTilingData tiling_data;
 
   uint16_t outBlockCount;
   uint32_t inChannelAlign;
@@ -311,9 +303,19 @@ class KernelConv2d {
 };
 
 extern "C" __global__ __aicore__ void conv2d(GM_ADDR fmGm, GM_ADDR weGm,
-                                             GM_ADDR dstGm, GM_ADDR tiling) {
-  AscendC::TPipe pipe;
-  KernelConv2d<half, half, half> op;
-  op.Init(fmGm, weGm, dstGm, tiling, &pipe);
-  op.Process();
+                                             GM_ADDR dstGm,
+                                             Conv2dTilingData tiling) {
+  if (tiling.dataType == ADD_FLOAT16) {
+    AscendC::TPipe pipe;
+    KernelConv2d<half, half, half> op;
+    op.Init(fmGm, weGm, dstGm, tiling, &pipe);
+    op.Process();
+  } else if (tiling.dataType == ADD_FLOAT32) {
+    AscendC::TPipe pipe;
+    KernelConv2d<float, float, float> op;
+    op.Init(fmGm, weGm, dstGm, tiling, &pipe);
+    op.Process();
+  } else {
+    return;
+  }
 }
