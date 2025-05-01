@@ -71,7 +71,7 @@ class AscendCLOpMul : public OpBinary {
         mul_tiling_data_.dataType = 1;
       }
     } else {
-      NNDEPLOY_LOGE("Add only support float or half data type.");
+      NNDEPLOY_LOGE("Mul only support float or half data type.");
       return base::kStatusCodeErrorInvalidParam;
     }
 

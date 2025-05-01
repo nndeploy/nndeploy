@@ -79,7 +79,7 @@ class AscendCLOpMaxPool : public OpMaxPool {
         tiling_data_.dataType = 1;
       }
     } else {
-      NNDEPLOY_LOGE("Conv only support float and half data type.");
+      NNDEPLOY_LOGE("Maxpool only support float and half data type.");
       return base::kStatusCodeErrorInvalidParam;
     }
 
