@@ -1,9 +1,6 @@
 #ifndef _NNDEPLOY_OP_ASCEND_CL_ASCEND_C_OP_MAXPOOL_KERNEL_H_
 #define _NNDEPLOY_OP_ASCEND_CL_ASCEND_C_OP_MAXPOOL_KERNEL_H_
 
-namespace nndeploy {
-namespace op {
-
 struct MaxPool2dTilingData {
   uint32_t kernelSize;
   uint32_t stride;
@@ -16,9 +13,8 @@ struct MaxPool2dTilingData {
   uint32_t outHeight;
   uint32_t outWidth;
   uint32_t coreNum;
-};
 
-}  // namespace op
-}  // namespace nndeploy
+  uint32_t dataType;
+};
 
 #endif

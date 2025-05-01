@@ -2,19 +2,10 @@
 
 #include "kernel_operator.h"
 
+constexpr uint32_t MUL_FLOAT16 = 0;
+constexpr uint32_t MUL_FLOAT32 = 1;
+
 constexpr int32_t BUFFER_NUM = 1;
-
-__aicore__ inline void CopyTiling(nndeploy::op::MulTilingData *tiling,
-                                  GM_ADDR tiling_gm) {
-  uint32_t *tiling_ptr = reinterpret_cast<uint32_t *>(tiling);
-  __gm__ uint32_t *tiling_gm_ptr =
-      reinterpret_cast<__gm__ uint32_t *>(tiling_gm);
-
-  for (int i = 0; i < sizeof(nndeploy::op::MulTilingData) / sizeof(uint32_t);
-       i++, tiling_ptr++) {
-    *tiling_ptr = *(tiling_gm_ptr + i);
-  }
-}
 
 template <typename x_T, typename y_T, typename z_T>
 class KernelMul {
@@ -22,8 +13,7 @@ class KernelMul {
   __aicore__ inline KernelMul() {}
 
   __aicore__ inline void Init(GM_ADDR x, GM_ADDR y, GM_ADDR z,
-                              GM_ADDR tiling_gm, AscendC::TPipe *pipe_in) {
-    CopyTiling(&tiling_, tiling_gm);
+                              MulTilingData tiling_, AscendC::TPipe *pipe_in) {
     uint32_t tilingKey = tiling_.tilingKey;
 
     pipe = pipe_in;
@@ -247,25 +237,21 @@ class KernelMul {
   uint32_t tailTileNum;
   uint32_t tailTileLength;
   uint32_t tailLastTileLength;
-
-  nndeploy::op::MulTilingData tiling_;
 };
 
 extern "C" __global__ __aicore__ void mul(GM_ADDR x, GM_ADDR y, GM_ADDR z,
-                                          GM_ADDR tiling_gm) {
-  AscendC::TPipe pipe;
-  KernelMul<half, half, half> op;
-  op.Init(x, y, z, tiling_gm, &pipe);
-  op.Process();
+                                          MulTilingData tiling) {
+  if (tiling.dataType == MUL_FLOAT16) {
+    AscendC::TPipe pipe;
+    KernelMul<half, half, half> op;
+    op.Init(x, y, z, tiling, &pipe);
+    op.Process();
+  } else if (tiling.dataType == MUL_FLOAT32) {
+    AscendC::TPipe pipe;
+    KernelMul<float, float, float> op;
+    op.Init(x, y, z, tiling, &pipe);
+    op.Process();
+  } else {
+    return;
+  }
 }
-
-// namespace nndeploy {
-// namespace op {
-
-// void mul_custom_do(uint32_t blockDim, void *stream, uint8_t *x, uint8_t *y,
-//                    uint8_t *z, MulTilingData *data) {
-//   mul<<<blockDim, nullptr, stream>>>(x, y, z, data);
-// }
-
-// }  // namespace op
-// }  // namespace nndeploy

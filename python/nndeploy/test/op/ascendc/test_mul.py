@@ -15,8 +15,8 @@ class TestMulOp(unittest.TestCase):
     def test_mul(self):
         input_shape = [32, 4, 16, 16]
 
-        np_input1 = np.random.random(input_shape).astype(np.float16)
-        np_input2 = np.random.random(input_shape).astype(np.float16)
+        np_input1 = np.random.random(input_shape).astype(np.float32)
+        np_input2 = np.random.random(input_shape).astype(np.float32)
 
         torch_result = torch.mul(
             torch.tensor(np_input1),

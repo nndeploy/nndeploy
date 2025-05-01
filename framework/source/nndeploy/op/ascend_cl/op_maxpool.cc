@@ -13,7 +13,9 @@
 namespace nndeploy {
 namespace op {
 
-#ifdef ENABLE_NNDEPLOY_OP_ASCEND_C
+#if defined(ENABLE_NNDEPLOY_OP_ASCEND_C) && \
+    defined(ENABLE_NNDEPLOY_OP_ASCEND_C_MAXPOOL)
+
 #include "acl/acl.h"
 #include "aclrtlaunch_max_pool2d.h"
 class AscendCLOpMaxPool : public OpMaxPool {
@@ -69,6 +71,18 @@ class AscendCLOpMaxPool : public OpMaxPool {
         platform_ascendc::PlatformAscendCManager::GetInstance();
     tiling_data_.coreNum = ascendcPlatform->GetCoreNumAiv();
 
+    base::DataType data_type = inner_input_->getDataType();
+    if (data_type.code_ == base::kDataTypeCodeFp) {
+      if (data_type.bits_ == 16) {
+        tiling_data_.dataType = 0;
+      } else {
+        tiling_data_.dataType = 1;
+      }
+    } else {
+      NNDEPLOY_LOGE("Maxpool only support float and half data type.");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+
     // Validate parameters and check supported features
     // Currently only supports 3x3 kernel
     if (param->kernel_shape_.size() == 2) {
@@ -106,21 +120,33 @@ class AscendCLOpMaxPool : public OpMaxPool {
   virtual base::Status deinit() { return Op::deinit(); }
 
   virtual base::Status preRun() {
-    // Allocate and copy tiling data to device memory
-    size_t tiling_size = sizeof(MaxPool2dTilingData);
-    MaxPool2dTilingData *buf = &tiling_data_;
-    CHECK_ACLNN_STATUS(aclrtMalloc((void **)&tiling_device_, tiling_size,
-                                   ACL_MEM_MALLOC_HUGE_FIRST));
-    CHECK_ACLNN_STATUS(
-        aclrtMemcpyAsync(tiling_device_, tiling_size, (void *)buf, tiling_size,
-                         ACL_MEMCPY_HOST_TO_DEVICE, inner_stream_));
-    CHECK_ACLNN_STATUS(aclrtSynchronizeStream(inner_stream_));
+    tiling_ = &tiling_data_;
+    // // Allocate and copy tiling data to device memory
+    // size_t tiling_size = sizeof(MaxPool2dTilingData);
+    // MaxPool2dTilingData *buf = &tiling_data_;
+    // CHECK_ACLNN_STATUS(aclrtMalloc((void **)&tiling_device_, tiling_size,
+    //                                ACL_MEM_MALLOC_HUGE_FIRST));
+    // CHECK_ACLNN_STATUS(
+    //     aclrtMemcpyAsync(tiling_device_, tiling_size, (void *)buf,
+    //     tiling_size,
+    //                      ACL_MEMCPY_HOST_TO_DEVICE, inner_stream_));
+    // CHECK_ACLNN_STATUS(aclrtSynchronizeStream(inner_stream_));
 
     device::Device *device = device::getDevice(device_type_);
 
     if (acl_inner_input_ == nullptr) {
       acl_inner_input_ =
           AscendCLOpConvert::convertFromTensor(inner_input_, ACL_FORMAT_ND);
+    }
+
+    base::DataType data_type = inner_input_->getDataType();
+    aclDataType acl_data_type = ACL_FLOAT16;
+    if (tiling_data_.dataType == 0) {
+      acl_data_type = ACL_FLOAT16;
+    } else if (tiling_data_.dataType == 1) {
+      acl_data_type = ACL_FLOAT;
+    } else {
+      return base::kStatusCodeErrorInvalidParam;
     }
 
     if (acl_inner_buf_0_ == nullptr) {
@@ -130,10 +156,10 @@ class AscendCLOpMaxPool : public OpMaxPool {
       int64_t input_size = getAclOpShapeSize(shape);
       std::vector<int64_t> strides = getAclOpStrides(shape);
       CHECK_ACLNN_STATUS(aclrtMalloc((void **)&inner_buf_0_,
-                                     input_size * sizeof(int16_t),
+                                     input_size * data_type.size(),
                                      ACL_MEM_MALLOC_HUGE_FIRST));
       acl_inner_buf_0_ = aclCreateTensor(
-          shape.data(), shape.size(), ACL_FLOAT16, strides.data(), 0,
+          shape.data(), shape.size(), acl_data_type, strides.data(), 0,
           ACL_FORMAT_ND, shape.data(), shape.size(), inner_buf_0_);
     }
 
@@ -144,10 +170,10 @@ class AscendCLOpMaxPool : public OpMaxPool {
       int64_t output_size = getAclOpShapeSize(shape);
       std::vector<int64_t> strides = getAclOpStrides(shape);
       CHECK_ACLNN_STATUS(aclrtMalloc((void **)&inner_buf_1_,
-                                     output_size * sizeof(int16_t),
+                                     output_size * data_type.size(),
                                      ACL_MEM_MALLOC_HUGE_FIRST));
       acl_inner_buf_1_ = aclCreateTensor(
-          shape.data(), shape.size(), ACL_FLOAT16, strides.data(), 0,
+          shape.data(), shape.size(), acl_data_type, strides.data(), 0,
           ACL_FORMAT_ND, shape.data(), shape.size(), inner_buf_1_);
     }
 
@@ -185,7 +211,8 @@ class AscendCLOpMaxPool : public OpMaxPool {
     // Launch maxpool kernel
     ACLRT_LAUNCH_KERNEL(max_pool2d)
     (tiling_data_.coreNum, inner_stream_, (uint8_t *)(inner_buf_0_),
-     (uint8_t *)(inner_buf_1_), reinterpret_cast<uint8_t *>(tiling_device_));
+     (uint8_t *)(inner_buf_1_),
+     reinterpret_cast<MaxPool2dTilingData *>(tiling_));
     CHECK_ACLNN_STATUS(aclrtSynchronizeStream(inner_stream_));
 
     // transpose output data to NCHW format
@@ -214,10 +241,6 @@ class AscendCLOpMaxPool : public OpMaxPool {
   }
 
   virtual base::Status postRun() {
-    if (tiling_device_ != nullptr) {
-      aclrtFree(tiling_device_);
-      tiling_device_ = nullptr;
-    }
     if (input_dims != nullptr) {
       aclDestroyIntArray(input_dims);
       input_dims = nullptr;
@@ -276,7 +299,7 @@ class AscendCLOpMaxPool : public OpMaxPool {
 
   aclOpExecutor *executor_ = nullptr;
 
-  void *tiling_device_ = nullptr;
+  void *tiling_ = nullptr;
   MaxPool2dTilingData tiling_data_;
 };
 #else
