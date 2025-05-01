@@ -2,28 +2,16 @@
 
 #include "kernel_operator.h"
 
-constexpr int32_t ALIGN_NUM = 16;
-
-__aicore__ inline void CopyTiling(nndeploy::op::MaxPool2dTilingData *tiling,
-                                  GM_ADDR tiling_gm) {
-  uint32_t *tiling_ptr = reinterpret_cast<uint32_t *>(tiling);
-  __gm__ uint32_t *tiling_gm_ptr =
-      reinterpret_cast<__gm__ uint32_t *>(tiling_gm);
-
-  for (int i = 0;
-       i < sizeof(nndeploy::op::MaxPool2dTilingData) / sizeof(uint32_t);
-       i++, tiling_ptr++) {
-    *tiling_ptr = *(tiling_gm_ptr + i);
-  }
-}
+constexpr uint32_t MAXPOOL_FLOAT16 = 0;
+constexpr uint32_t MAXPOOL_FLOAT32 = 1;
 
 template <typename x_T, typename y_T>
 class KernelMaxPool2d {
  public:
   __aicore__ inline KernelMaxPool2d() {}
   __aicore__ inline void Init(GM_ADDR x_trans, GM_ADDR y_trans,
-                              GM_ADDR tiling_gm, AscendC::TPipe *tmpPipe) {
-    CopyTiling(&tiling_data, tiling_gm);
+                              MaxPool2dTilingData tiling_data,
+                              AscendC::TPipe *tmpPipe) {
     pipe = tmpPipe;
     batchSize = tiling_data.batchSize;
     channel = tiling_data.channel;
@@ -45,7 +33,9 @@ class KernelMaxPool2d {
       endOffset = taskNum;
     }
 
-    inChannelAlign = (channel + ALIGN_NUM - 1) / ALIGN_NUM * ALIGN_NUM;
+    int32_t align_num = 32 / sizeof(x_T);
+
+    inChannelAlign = (channel + align_num - 1) / align_num * align_num;
     widthBlock = (alignBlock / inChannelAlign - (kernelSize - stride)) / stride;
     widthRounds = outWidth / widthBlock;
     widthTail = outWidth % widthBlock;
@@ -105,8 +95,8 @@ class KernelMaxPool2d {
       }
       pipe_barrier(PIPE_ALL);
 
-      AscendC::DataCopyExtParams copyOutParams{outBlockCount, channel * 2, 0, 0,
-                                               0};
+      AscendC::DataCopyExtParams copyOutParams{
+          outBlockCount, static_cast<uint32_t>(channel * sizeof(x_T)), 0, 0, 0};
       AscendC::DataCopyPad(yTransGm[outOffset + (idx1 * widthBlock) * channel],
                            xBatchLt4, copyOutParams);
     }
@@ -150,8 +140,9 @@ class KernelMaxPool2d {
 
       pipe_barrier(PIPE_ALL);
 
-      AscendC::DataCopyExtParams copyOutParams{tailOutBlockCount, channel * 2,
-                                               0, 0, 0};
+      AscendC::DataCopyExtParams copyOutParams{
+          tailOutBlockCount, static_cast<uint32_t>(channel * sizeof(x_T)), 0, 0,
+          0};
       AscendC::DataCopyPad(
           yTransGm[outOffset + (widthRounds * widthBlock) * channel], xBatchLt4,
           copyOutParams);
@@ -226,14 +217,22 @@ class KernelMaxPool2d {
   AscendC::TBuf<AscendC::TPosition::VECCALC> xBatchUb1, xBatchUb2, xBatchUb3,
       xBatchUb4;
   AscendC::LocalTensor<x_T> xBatchLt1, xBatchLt2, xBatchLt3, xBatchLt4;
-  nndeploy::op::MaxPool2dTilingData tiling_data;
 };
 
 extern "C" __global__ __aicore__ void max_pool2d(GM_ADDR x_trans,
                                                  GM_ADDR y_trans,
-                                                 GM_ADDR tiling) {
-  AscendC::TPipe pipe;
-  KernelMaxPool2d<half, half> op;
-  op.Init(x_trans, y_trans, tiling, &pipe);
-  op.Process();
+                                                 MaxPool2dTilingData tiling) {
+  if (tiling.dataType == MAXPOOL_FLOAT16) {
+    AscendC::TPipe pipe;
+    KernelMaxPool2d<half, half> op;
+    op.Init(x_trans, y_trans, tiling, &pipe);
+    op.Process();
+  } else if (tiling.dataType == MAXPOOL_FLOAT32) {
+    AscendC::TPipe pipe;
+    KernelMaxPool2d<float, float> op;
+    op.Init(x_trans, y_trans, tiling, &pipe);
+    op.Process();
+  } else {
+    return;
+  }
 }

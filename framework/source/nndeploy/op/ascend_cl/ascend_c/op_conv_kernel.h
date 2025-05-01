@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-namespace nndeploy {
-namespace op {
-
 struct Conv2dTilingData {
   uint32_t batchSize;
   uint32_t inHeight;
@@ -19,9 +16,8 @@ struct Conv2dTilingData {
   uint32_t padding;
   uint32_t dilation;
   uint32_t coreNum;
-};
 
-}  // namespace op
-}  // namespace nndeploy
+  uint32_t dataType;
+};
 
 #endif

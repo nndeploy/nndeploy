@@ -11,7 +11,9 @@
 namespace nndeploy {
 namespace op {
 
-#ifdef ENABLE_NNDEPLOY_OP_ASCEND_C
+#if defined(ENABLE_NNDEPLOY_OP_ASCEND_C) && \
+    defined(ENABLE_NNDEPLOY_OP_ASCEND_C_CONV2D)
+
 #include "acl/acl.h"
 #include "aclrtlaunch_conv2d.h"
 class AscendCLOpConv : public OpConv {
@@ -82,6 +84,18 @@ class AscendCLOpConv : public OpConv {
         1;
     tiling_data_.coreNum = 1;
 
+    base::DataType data_type = inner_fm_input_->getDataType();
+    if (data_type.code_ == base::kDataTypeCodeFp) {
+      if (data_type.bits_ == 16) {
+        tiling_data_.dataType = 0;
+      } else {
+        tiling_data_.dataType = 1;
+      }
+    } else {
+      NNDEPLOY_LOGE("Conv only support half and float32 data type.");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+
     // support attr
     if (param->kernel_shape_.size() == 2) {
       if (param->kernel_shape_[0] != 3 || param->kernel_shape_[1] != 3) {
@@ -137,14 +151,7 @@ class AscendCLOpConv : public OpConv {
    * @return base::Status Preparation status
    */
   virtual base::Status preRun() {
-    size_t tiling_size = sizeof(Conv2dTilingData);
-    Conv2dTilingData *buf = &tiling_data_;
-    CHECK_ACLNN_STATUS(aclrtMalloc((void **)&tiling_device_, tiling_size,
-                                   ACL_MEM_MALLOC_HUGE_FIRST));
-    CHECK_ACLNN_STATUS(
-        aclrtMemcpyAsync(tiling_device_, tiling_size, (void *)buf, tiling_size,
-                         ACL_MEMCPY_HOST_TO_DEVICE, inner_stream_));
-    CHECK_ACLNN_STATUS(aclrtSynchronizeStream(inner_stream_));
+    tiling_ = &tiling_data_;
 
     device::Device *device = device::getDevice(device_type_);
     if (acl_inner_fm_input_ == nullptr) {
@@ -157,6 +164,16 @@ class AscendCLOpConv : public OpConv {
           AscendCLOpConvert::convertFromTensor(inner_we_input_, ACL_FORMAT_ND);
     }
 
+    base::DataType data_type = inner_fm_input_->getDataType();
+    aclDataType acl_data_type = ACL_FLOAT16;
+    if (tiling_data_.dataType == 0) {
+      acl_data_type = ACL_FLOAT16;
+    } else if (tiling_data_.dataType == 1) {
+      acl_data_type = ACL_FLOAT;
+    } else {
+      return base::kStatusCodeErrorInvalidParam;
+    }
+
     if (acl_inner_buf_0_ == nullptr) {
       std::vector<int64_t> shape = {tiling_data_.batchSize,
                                     tiling_data_.inHeight, tiling_data_.inWidth,
@@ -164,10 +181,10 @@ class AscendCLOpConv : public OpConv {
       int64_t input_size = getAclOpShapeSize(shape);
       std::vector<int64_t> strides = getAclOpStrides(shape);
       CHECK_ACLNN_STATUS(aclrtMalloc((void **)&inner_buf_0_,
-                                     input_size * sizeof(int16_t),
+                                     input_size * data_type.size(),
                                      ACL_MEM_MALLOC_HUGE_FIRST));
       acl_inner_buf_0_ = aclCreateTensor(
-          shape.data(), shape.size(), ACL_FLOAT16, strides.data(), 0,
+          shape.data(), shape.size(), acl_data_type, strides.data(), 0,
           ACL_FORMAT_ND, shape.data(), shape.size(), inner_buf_0_);
     }
 
@@ -178,10 +195,10 @@ class AscendCLOpConv : public OpConv {
       int64_t input_size = getAclOpShapeSize(shape);
       std::vector<int64_t> strides = getAclOpStrides(shape);
       CHECK_ACLNN_STATUS(aclrtMalloc((void **)&inner_buf_1_,
-                                     input_size * sizeof(int16_t),
+                                     input_size * data_type.size(),
                                      ACL_MEM_MALLOC_HUGE_FIRST));
       acl_inner_buf_1_ = aclCreateTensor(
-          shape.data(), shape.size(), ACL_FLOAT16, strides.data(), 0,
+          shape.data(), shape.size(), acl_data_type, strides.data(), 0,
           ACL_FORMAT_ND, shape.data(), shape.size(), inner_buf_1_);
     }
 
@@ -192,10 +209,10 @@ class AscendCLOpConv : public OpConv {
       int64_t output_size = getAclOpShapeSize(shape);
       std::vector<int64_t> strides = getAclOpStrides(shape);
       CHECK_ACLNN_STATUS(aclrtMalloc((void **)&inner_buf_2_,
-                                     output_size * sizeof(int16_t),
+                                     output_size * data_type.size(),
                                      ACL_MEM_MALLOC_HUGE_FIRST));
       acl_inner_buf_2_ = aclCreateTensor(
-          shape.data(), shape.size(), ACL_FLOAT16, strides.data(), 0,
+          shape.data(), shape.size(), acl_data_type, strides.data(), 0,
           ACL_FORMAT_ND, shape.data(), shape.size(), inner_buf_2_);
     }
 
@@ -260,7 +277,7 @@ class AscendCLOpConv : public OpConv {
     ACLRT_LAUNCH_KERNEL(conv2d)
     (tiling_data_.coreNum, inner_stream_, (uint8_t *)inner_buf_0_,
      (uint8_t *)inner_buf_1_, (uint8_t *)inner_buf_2_,
-     reinterpret_cast<uint8_t *>(tiling_device_));
+     reinterpret_cast<Conv2dTilingData *>(tiling_));
     CHECK_ACLNN_STATUS(aclrtSynchronizeStream(inner_stream_));
 
     // transpose output data to NCHW format
@@ -293,10 +310,6 @@ class AscendCLOpConv : public OpConv {
    * @return base::Status Cleanup status
    */
   virtual base::Status postRun() {
-    if (tiling_device_ != nullptr) {
-      aclrtFree(tiling_device_);
-      tiling_device_ = nullptr;
-    }
     if (input_dims != nullptr) {
       aclDestroyIntArray(input_dims);
       input_dims = nullptr;
@@ -381,8 +394,8 @@ class AscendCLOpConv : public OpConv {
   aclOpExecutor *executor_ = nullptr;
 
   // Tiling related data
-  void *tiling_device_ = nullptr;  // Device-side tiling data
-  Conv2dTilingData tiling_data_;   // Host-side tiling data
+  void *tiling_ = nullptr;        // Device-side tiling data
+  Conv2dTilingData tiling_data_;  // Host-side tiling data
 };
 #else
 class AscendCLOpConv : public OpConv {

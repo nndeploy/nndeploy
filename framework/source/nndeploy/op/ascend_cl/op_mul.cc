@@ -11,7 +11,9 @@
 namespace nndeploy {
 namespace op {
 
-#ifdef ENABLE_NNDEPLOY_OP_ASCEND_C
+#if defined(ENABLE_NNDEPLOY_OP_ASCEND_C) && \
+    defined(ENABLE_NNDEPLOY_OP_ASCEND_C_MUL)
+
 #include "acl/acl.h"
 #include "aclrtlaunch_mul.h"
 class AscendCLOpMul : public OpBinary {
@@ -61,16 +63,29 @@ class AscendCLOpMul : public OpBinary {
       }
     }
 
-    getTilingData();
-    MulTilingData* buf = &mul_tiling_data_;
-    size_t tiling_size = sizeof(MulTilingData);
+    base::DataType data_type = inputs_0_->getDataType();
+    if (data_type.code_ == base::kDataTypeCodeFp) {
+      if (data_type.bits_ == 16) {
+        mul_tiling_data_.dataType = 0;
+      } else {
+        mul_tiling_data_.dataType = 1;
+      }
+    } else {
+      NNDEPLOY_LOGE("Add only support float or half data type.");
+      return base::kStatusCodeErrorInvalidParam;
+    }
 
-    CHECK_ACL_STATUS(aclrtMalloc((void**)&tiling_device, tiling_size,
-                                 ACL_MEM_MALLOC_HUGE_FIRST));
-    CHECK_ACL_STATUS(aclrtMemcpyAsync(tiling_device, tiling_size, (void*)buf,
-                                      tiling_size, ACL_MEMCPY_HOST_TO_DEVICE,
-                                      inner_stream_));
-    CHECK_ACL_STATUS(aclrtSynchronizeStream(inner_stream_));
+    getTilingData();
+    tiling_ = &mul_tiling_data_;
+    // MulTilingData* buf = &mul_tiling_data_;
+    // size_t tiling_size = sizeof(MulTilingData);
+
+    // CHECK_ACL_STATUS(aclrtMalloc((void**)&tiling_device, tiling_size,
+    //                              ACL_MEM_MALLOC_HUGE_FIRST));
+    // CHECK_ACL_STATUS(aclrtMemcpyAsync(tiling_device, tiling_size, (void*)buf,
+    //                                   tiling_size, ACL_MEMCPY_HOST_TO_DEVICE,
+    //                                   inner_stream_));
+    // CHECK_ACL_STATUS(aclrtSynchronizeStream(inner_stream_));
 
     return base::kStatusCodeOk;
   }
@@ -87,10 +102,6 @@ class AscendCLOpMul : public OpBinary {
         inputs_1_ = nullptr;
       }
     }
-    if (tiling_device != nullptr) {
-      aclrtFree(tiling_device);
-      tiling_device = nullptr;
-    }
     return Op::deinit();
   }
   virtual base::Status run() {
@@ -100,7 +111,7 @@ class AscendCLOpMul : public OpBinary {
 
     ACLRT_LAUNCH_KERNEL(mul)
     (block_num_, inner_stream_, input_data_0, input_data_1, output_data,
-     reinterpret_cast<uint8_t*>(tiling_device));
+     reinterpret_cast<MulTilingData*>(tiling_));
     CHECK_ACL_STATUS(aclrtSynchronizeStream(inner_stream_));
 
     return base::kStatusCodeOk;
@@ -261,7 +272,7 @@ class AscendCLOpMul : public OpBinary {
 
   aclrtStream inner_stream_ = nullptr;
 
-  void* tiling_device = nullptr;
+  void* tiling_ = nullptr;
   MulTilingData mul_tiling_data_;
   uint8_t block_num_ = 0;
 };

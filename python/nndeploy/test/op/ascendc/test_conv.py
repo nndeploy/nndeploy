@@ -16,8 +16,8 @@ class TestConvOp(unittest.TestCase):
         fm_shape = [1, 3, 320, 320]
         we_shape = [3, 3, 3, 3]
 
-        np_fm = np.random.uniform(2, 5, fm_shape).astype(np.float16)
-        np_we = np.random.uniform(2, 5, we_shape).astype(np.float16)
+        np_fm = np.random.uniform(2, 5, fm_shape).astype(np.float32)
+        np_we = np.random.uniform(2, 5, we_shape).astype(np.float32)
 
         # torch_result = torch.nn.functional.conv2d(
         #     torch.tensor(np_fm), torch.tensor(np_we)
