@@ -9,6 +9,41 @@
 #include "nndeploy/framework.h"
 #include "nndeploy/thread_pool/thread_pool.h"
 
+// + 编译/运行/结果分析
+// + 开始->图像解码->前处理->推理->后处理->画框->图像编码->结束
+// + 重点看下推理相关组件
+//   + infer::Infer (推理节点)
+//   + inference::DefaultInference （推理对外的封装接口）
+//   + ir::Interpret （模型解释抽象基类）
+//   + ir::DefaultInterpret （自定义模型解释模型）
+//   + ir::ModelDesc （模型中间表示）
+//   + net::Net （计算图）
+//   + net::OptPass （图优化）
+//   + net::Runtime （运行时）
+//   + net::SequentialRuntime （串行运行时）
+//   + net::TensorPool （基于图的内存池抽象基类）
+//   + net::TensorPool1DOffsetCalculateBySize
+//   （基于图的内存池计算，偏移计算方法，基于大小贪心）
+//   + op::Op （算子抽象基类）
+//   + op::AscendCLOpAdd （封装Ascend Op Library算子实现 + 基于Ascend
+//   C算子实现）
+
+// 对应代码
+#include "nndeploy/infer/infer.h"
+#include "nndeploy/inference/default/default_inference.h"
+#include "nndeploy/ir/default_interpret.h"
+#include "nndeploy/ir/interpret.h"
+#include "nndeploy/ir/ir.h"
+#include "nndeploy/net/net.h"
+#include "nndeploy/net/optimizer.h"
+#include "nndeploy/net/runtime.h"
+#include "nndeploy/net/runtime/sequential_runtime.h"
+#include "nndeploy/net/tensor_pool.h"
+#include "nndeploy/net/tensor_pool/tensor_pool_1d_offset_calculate_by_size.h"
+#include "nndeploy/op/op.h"
+// #include "nndeploy/op/ascend_cl/op_add.cc"
+// #include "nndeploy/op/ascend_cl/ascend_c/op_add_kernel.cc"
+
 using namespace nndeploy;
 
 DEFINE_int32(yolo_version, 11, "yolo_version");
@@ -129,7 +164,7 @@ int main(int argc, char *argv[]) {
   encode_node->setRefPath(input_path);
   encode_node->setPath(ouput_path);
   int size = decode_node->getSize();
-  size = 100;
+  size = 1000;
   decode_node->setSize(size);
   for (int i = 0; i < size; ++i) {
     status = graph->run();

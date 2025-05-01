@@ -146,58 +146,58 @@ int main(int argc, char* argv[]) {
   HuggingFaceTokenizerExample();
   RWKVWorldTokenizerExample();
 
-  nndeploy::dag::Edge* input_edge = new nndeploy::dag::Edge("input_edge");
-  nndeploy::dag::Edge* output_edge = new nndeploy::dag::Edge("output_edge");
+  // nndeploy::dag::Edge* input_edge = new nndeploy::dag::Edge("input_edge");
+  // nndeploy::dag::Edge* output_edge = new nndeploy::dag::Edge("output_edge");
 
-  nndeploy::dag::Graph graph("graph", input_edge, output_edge);
+  // nndeploy::dag::Graph graph("graph", input_edge, output_edge);
 
-  nndeploy::tokenizer::TokenizerCpp* tokenizer_cpp =
-      (nndeploy::tokenizer::TokenizerCpp*)
-          graph.createNode<nndeploy::tokenizer::TokenizerCpp>(
-              "name", input_edge, output_edge);
+  // nndeploy::tokenizer::TokenizerCpp* tokenizer_cpp =
+  //     (nndeploy::tokenizer::TokenizerCpp*)
+  //         graph.createNode<nndeploy::tokenizer::TokenizerCpp>(
+  //             "name", input_edge, output_edge);
 
-  nndeploy::tokenizer::TokenizerPraram* tp =
-      (nndeploy::tokenizer::TokenizerPraram*)tokenizer_cpp->getParam();
-  if (tp == nullptr) {
-    return -1;
-  }
+  // nndeploy::tokenizer::TokenizerPraram* tp =
+  //     (nndeploy::tokenizer::TokenizerPraram*)tokenizer_cpp->getParam();
+  // if (tp == nullptr) {
+  //   return -1;
+  // }
 
-  tp->is_encode_ = true;
+  // tp->is_encode_ = true;
 
-  tp->tokenizer_type_ =
-      nndeploy::tokenizer::TokenizerType::kTokenizerTypeSentencePiece;
+  // tp->tokenizer_type_ =
+  //     nndeploy::tokenizer::TokenizerType::kTokenizerTypeSentencePiece;
 
-  // auto blob = LoadBytesFromFile("./tokenizer.model");
-  tp->model_blob_ = "./tokenizer.model";
+  // // auto blob = LoadBytesFromFile("./tokenizer.model");
+  // tp->model_blob_ = "./tokenizer.model";
 
-  // tokenizer_cpp->setParam((nndeploy::base::Param*)tp);
+  // // tokenizer_cpp->setParam((nndeploy::base::Param*)tp);
 
-  graph.init();
+  // graph.init();
 
-  // std::string prompt = "What is the  capital of Canada?";
-  std::string prompt =
-      "a beautiful photograph of Mt. Fuji during cherry blossom";
-  nndeploy::tokenizer::TokenizerText tt;
-  tt.texts_.push_back(prompt);
+  // // std::string prompt = "What is the  capital of Canada?";
+  // std::string prompt =
+  //     "a beautiful photograph of Mt. Fuji during cherry blossom";
+  // nndeploy::tokenizer::TokenizerText tt;
+  // tt.texts_.push_back(prompt);
 
-  input_edge->set((nndeploy::base::Param*)(&tt), 0);
+  // input_edge->set((nndeploy::base::Param*)(&tt), 0);
 
-  auto vocab_size = tokenizer_cpp->getVocabSize();
-  std::cout << "vocab_size=" << vocab_size << std::endl;
+  // auto vocab_size = tokenizer_cpp->getVocabSize();
+  // std::cout << "vocab_size=" << vocab_size << std::endl;
 
-  graph.run();
+  // graph.run();
 
-  nndeploy::tokenizer::TokenizerIds* ti =
-      (nndeploy::tokenizer::TokenizerIds*)(output_edge->getGraphOutputParam());
+  // nndeploy::tokenizer::TokenizerIds* ti =
+  //     (nndeploy::tokenizer::TokenizerIds*)(output_edge->getGraphOutputParam());
 
-  std::vector<int> ids = ti->ids_[0];
-  PrintEncodeResult(ids);
+  // std::vector<int> ids = ti->ids_[0];
+  // PrintEncodeResult(ids);
 
-  nndeploy::tokenizer::TokenizerPraram* tokenizer_concat_param =
-      new nndeploy::tokenizer::TokenizerPraram();
-  tokenizer_concat_param->tokenizer_type_ =
-      nndeploy::tokenizer::TokenizerType::kTokenizerTypeHF;
-  tokenizer_concat_param->json_blob_ = "./clip_tokenizer.json";
+  // nndeploy::tokenizer::TokenizerPraram* tokenizer_concat_param =
+  //     new nndeploy::tokenizer::TokenizerPraram();
+  // tokenizer_concat_param->tokenizer_type_ =
+  //     nndeploy::tokenizer::TokenizerType::kTokenizerTypeHF;
+  // tokenizer_concat_param->json_blob_ = "./clip_tokenizer.json";
 
   // tokenizer_concat_param->tokenizer_type_ =
   //     nndeploy::model::TokenizerType::kTokenizerTypeBPE;
@@ -206,17 +206,17 @@ int main(int argc, char* argv[]) {
   // tokenizer_concat_param->added_tokens_ =
   // "./tokenizer_special_tokens_map.json";
 
-  nndeploy::base::InferenceType inference_type =
-      nndeploy::base::kInferenceTypeOnnxRuntime;
-  nndeploy::inference::InferenceParam* inference_param =
-      nndeploy::inference::createInferenceParam(inference_type);
-  inference_param->model_type_ = nndeploy::base::kModelTypeOnnx;
-  inference_param->model_value_.push_back(
-      "/home/always/github/TensorRT/demo/DiffusionZH/onnx/clip.onnx");
+  // nndeploy::base::InferenceType inference_type =
+  //     nndeploy::base::kInferenceTypeOnnxRuntime;
+  // nndeploy::inference::InferenceParam* inference_param =
+  //     nndeploy::inference::createInferenceParam(inference_type);
+  // inference_param->model_type_ = nndeploy::base::kModelTypeOnnx;
+  // inference_param->model_value_.push_back(
+  //     "/home/always/github/TensorRT/demo/DiffusionZH/onnx/clip.onnx");
 
-  std::vector<nndeploy::base::Param*> param;
-  param.push_back(tokenizer_concat_param);
-  param.push_back(inference_param);
+  // std::vector<nndeploy::base::Param*> param;
+  // param.push_back(tokenizer_concat_param);
+  // param.push_back(inference_param);
 
   // nndeploy::dag::Edge eprompt;
   // nndeploy::dag::Edge negative_prompt;
@@ -261,10 +261,10 @@ int main(int argc, char* argv[]) {
   //  r_tensor->print();
   //}
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
+  // ret = nndeployFrameworkDeinit();
+  // if (ret != 0) {
+  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+  //   return ret;
+  // }
   return 0;
 }

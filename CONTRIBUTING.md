@@ -38,7 +38,7 @@ To submit a pull request, follow these steps:
 4. Test your changes to verify they work correctly
 5. Document your changes and provide clear commit messages
 6. Push your changes to your fork
-7. Create a pull request to the `new-branch` branch of this repository
+7. Create a pull request to the `main` branch of this repository
 
 We will review your pull request, communicate with you, and work together to merge it into the main repository.
 
@@ -232,7 +232,7 @@ nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是
 4. 测试您的修改以验证其正确性
 5. 记录您的修改并提供清晰的提交信息
 6. 将修改推送到您的fork仓库
-7. 向本仓库的`new-branch`分支创建pull request
+7. 向本仓库的`main`分支创建pull request
 
 我们会审查您的pull request，与您沟通，并一起将其合并到主仓库中。
 

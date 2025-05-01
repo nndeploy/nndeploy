@@ -9,122 +9,64 @@
 # $ mkdir build
 # $ cp cmake/config.cmake build
 # $ cd build
+# $ vim config.cmake
 # $ cmake ..
 # $ make -j
 # --------------------------------------------------------------------
-# common
-set(ENABLE_NNDEPLOY_BUILD_SHARED ON) # 是否编译为动态库，默认ON
-set(ENABLE_NNDEPLOY_SYMBOL_HIDE ON) # 符号表是否隐藏，默认为ON
-set(ENABLE_NNDEPLOY_COVERAGE OFF) # 是否使能代码覆盖率分析，默认为OFF
-set(ENABLE_NNDEPLOY_CXX11_ABI ON) # C++的版本，选择为C++11，默认为ON
-set(ENABLE_NNDEPLOY_CXX14_ABI OFF) # C++的版本，选择为C++14，默认为OFF
-set(ENABLE_NNDEPLOY_CXX17_ABI OFF) # C++的版本，选择为C++17，默认为OFF
-set(ENABLE_NNDEPLOY_CXX20_ABI OFF) # C++的版本，选择为C++20，默认为OFF
-set(ENABLE_NNDEPLOY_OPENMP ON) # 否使用OpenMP，该选项在Mac/iOS平台无效，默认为ON
-set(ENABLE_NNDEPLOY_ADDRESS_SANTIZER OFF) # 内存泄露检测，默认为OFF
-set(ENABLE_NNDEPLOY_TIME_PROFILER ON) # 时间性能Profile，默认为ON
-set(ENABLE_NNDEPLOY_OPENCV OFF) # 是否链接第三方库opencv，默认为OFF
-set(NNDEPLOY_OPENCV_LIBS) # 链接的具体的opencv库名称，例如opencv_world480，opencv_java4等
-set(ENABLE_NNDEPLOY_RAPIDJSON ON)
 
-# # base
-set(ENABLE_NNDEPLOY_BASE ON) # 是否编译base目录中文件，默认为ON
+# Device Backend Options (Enable as Needed, All Disabled by Default, No Device Backend Dependencies)
+set(ENABLE_NNDEPLOY_DEVICE_CUDA OFF) # Whether to enable device CUDA, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_ROCM OFF) # Whether to enable device ROCM, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_SYCL OFF) # Whether to enable device SYCL, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_OPENCL OFF) # Whether to enable device OpenCL, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_OPENGL OFF) # Whether to enable device OpenGL, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_METAL OFF) # Whether to enable device Metal, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_VULKAN OFF) # Whether to enable device Vulkan, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_HEXAGON OFF) # Whether to enable device Hexagon, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # Whether to enable device MTK VPU, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL OFF) # Whether to enable device Ascend CL, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_APPLE_NPU OFF) # Whether to enable device Apple NPU, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_QUALCOMM_NPU OFF) # Whether to enable device Qualcomm NPU, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_MTK_NPU OFF) # Whether to enable device MTK NPU, default is OFF
+set(ENABLE_NNDEPLOY_DEVICE_SOPHON_NPU OFF) # Whether to enable device Sophon NPU, default is OFF
 
-# # thread
-set(ENABLE_NNDEPLOY_THREAD_POOL ON) # 是否编译thread_pool目录中文件，默认为ON
+# Operator Backend Options (Enable as Needed, All Disabled by Default, No Operator Backend Dependencies)
+set(ENABLE_NNDEPLOY_DEVICE_CUDNN OFF) # Whether to enable operator CUDNN, default is OFF
 
-# # cryption
-set(ENABLE_NNDEPLOY_CRYPTION OFF) # 是否编译crytion目录中文件，默认为ON
+# Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)
+set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # Whether to enable INFERENCE TENSORRT, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO OFF) # Whether to enable INFERENCE OPENVINO, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_COREML OFF) # Whether to enable INFERENCE COREML, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # Whether to enable INFERENCE TFLITE, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME OFF) # Whether to enable INFERENCE ONNXRUNTIME, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF) # Whether to enable INFERENCE NCNN, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_TNN OFF) # Whether to enable INFERENCE TNN, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_MNN OFF) # Whether to enable INFERENCE MNN, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_TVM OFF) # Whether to enable INFERENCE TVM, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE OFF) # Whether to enable INFERENCE PADDLELITE, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_1 OFF) # Whether to enable INFERENCE RKNN_TOOLKIT_1, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 OFF) # Whether to enable INFERENCE RKNN_TOOLKIT_2, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL OFF) # Whether to enable INFERENCE ASCEND_CL, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_SNPE OFF) # Whether to enable INFERENCE SNPE, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_QNN OFF) # Whether to enable INFERENCE QNN, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_SOPHON OFF) # Whether to enable INFERENCE SOPHON, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_TORCH OFF) # Whether to enable INFERENCE TORCH, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_TENSORFLOW OFF) # Whether to enable INFERENCE TENSORFLOW, default is OFF
+set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUROPILOT, default is OFF
 
-# # device
-set(ENABLE_NNDEPLOY_DEVICE ON) # 是否编译device目录中文件，默认为ON
-set(ENABLE_NNDEPLOY_DEVICE_CPU ON) # 是否使能device cpu，默认为ON
-set(ENABLE_NNDEPLOY_DEVICE_ARM OFF) # 是否使能device arm，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_X86 OFF) # 是否使能device x86，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_CUDA OFF) # 是否使能device cuda，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_CUDNN OFF) # 是否使能device cudnn，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_OPENCL OFF) # 是否使能device opencl，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_OPENGL OFF) # 是否使能device opengl，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_METAL OFF) # 是否使能device metal，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_APPLE_NPU OFF) # 是否使能device apple npu，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_HVX OFF) # 是否使能device apple hvx，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_MTK_VPU OFF) # 是否使能device apple hvx，默认为OFF
-set(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL OFF) # 是否使能device apple ascend cl，默认为OFF
+# Algorithm Plugin Options (Recommended to use default configuration, traditional CV algorithms enabled, language and text-to-image algorithms disabled by default)
 
-# # ir
-set(ENABLE_NNDEPLOY_IR ON) # 是否编译ir目录中文件，默认为OFF
-set(ENABLE_NNDEPLOY_IR_ONNX OFF) # 是否编译ir目录中文件，默认为OFF
+## OpenCV
+# set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # 通过路径的方式链接OpenCV
+# set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
+set(ENABLE_NNDEPLOY_OPENCV ON) # Whether to link the third-party OpenCV library, default is ON
+set(NNDEPLOY_OPENCV_LIBS) # Link all OpenCV libraries by default
 
-# # op
-set(ENABLE_NNDEPLOY_OP ON) # 是否编译op目录中文件，默认为OFF
+## Tokenizer-cpp
+set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP OFF) # Whether to enable C++ tokenizer plugin, default is OFF
 
-# # net
-set(ENABLE_NNDEPLOY_NET ON) # 是否编译net目录中文件，默认为OFF
+## Language Model
+set(ENABLE_NNDEPLOY_PLUGIN_LLM OFF) # Whether to enable language model plugin, default is OFF
 
-# # inference
-set(ENABLE_NNDEPLOY_INFERENCE ON) # 是否编译inference目录中文件，默认为ON
-set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT OFF) # 是否使能INFERENCE TENSORRT，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_OPENVINO OFF) # 是否使能INFERENCE OPENVINO，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_COREML OFF) # 是否使能INFERENCE COREML，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_TFLITE OFF) # 是否使能INFERENCE TFLITE，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME OFF) # 是否使能INFERENCE ONNXRUNTIME，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_NCNN OFF) # 是否使能INFERENCE NCNN，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_TNN OFF) # 是否使能INFERENCE TNN，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_MNN OFF) # 是否使能INFERENCE MNN，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_TVM OFF) # 是否使能INFERENCE TVM，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE OFF) # 是否使能INFERENCE PADDLELITE，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_1 OFF) # 是否使能INFERENCE RKNN_TOOLKIT_1，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 OFF) # 是否使能INFERENCE RKNN_TOOLKIT_2，默认为OFF
-set(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL OFF) # 是否使能INFERENCE ASCEND_CL，默认为OFF
-
-# # dag
-set(ENABLE_NNDEPLOY_DAG ON) # 是否编译dag目录中文件，默认为ON
-
-# plugin
-set(ENABLE_NNDEPLOY_PLUGIN OFF) # 是否编译plugin目录中文件，默认为ON
-
-# test
-set(ENABLE_NNDEPLOY_TEST OFF) # 是否使能单元测试，默认为OFF
-
-# demo
-set(ENABLE_NNDEPLOY_DEMO ON) # 是否使能可执行程序demo，默认为OFF
-
-# enable python api
-set(ENABLE_NNDEPLOY_PYTHON OFF) # ON 表示构建nndeploy的python接口
-
-# plugin
-# # preprocess
-set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS OFF) # 是否编译plugin目录中文件，默认为ON
-
-# # infer
-set(ENABLE_NNDEPLOY_PLUGIN_INFER OFF) # 是否编译plugin目录中文件，默认为ON
-
-# # codec
-set(ENABLE_NNDEPLOY_PLUGIN_CODEC OFF) # 是否编译plugin目录中文件，默认为ON
-
-# # classificatiOFF
-set(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATIOFF OFF)
-
-# # detect
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT OFF)
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR OFF)
-set(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO OFF)
-
-# # segment
-set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT OFF)
-set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING OFF)
-set(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG OFF)
-
-# # tokenizer
-set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER OFF)
-set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP OFF)
-
-# # stable_diffusion
-set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF)
-
-# demo
-set(ENABLE_NNDEPLOY_DEMO_LLAMA OFF)
-
-set(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL OFF)
-
-set(ENABLE_NNDEPLOY_DEMO_RESNET OFF)
+## Stable Diffusion
+set(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION OFF) # Whether to enable text-to-image plugin, default is OFF

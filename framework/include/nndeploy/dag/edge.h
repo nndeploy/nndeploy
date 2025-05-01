@@ -53,7 +53,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   device::Buffer *create(device::Device *device, const device::BufferDesc &desc,
                          int index);
   bool notifyWritten(device::Buffer *buffer);
-  device::Buffer *getBuffer(const Node *node);
+  device::Buffer *getBuffer(const Node *comsumer);
   device::Buffer *getGraphOutputBuffer();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
@@ -149,7 +149,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   }
   base::Status setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info);
   std::shared_ptr<EdgeTypeInfo> getTypeInfo();
-  
+
   template <typename T>
   bool checkTypeInfo() {
     EdgeTypeInfo other_type_info;

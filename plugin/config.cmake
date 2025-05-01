@@ -1,5 +1,5 @@
-# 注：依赖opencv
 
+# plugin cmake config
 include_directories(${ROOT_PATH}/plugin/include)
 include_directories(${ROOT_PATH}/plugin/source)
 
@@ -10,71 +10,48 @@ set(NNDEPLOY_PLUGIN_LIST)
 # plugin path
 set(PLUGIN_ROOT_PATH ${ROOT_PATH}/plugin)
 
-# plugin
-# # basic
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS "ENABLE_NNDEPLOY_PLUGIN_PREPROCESS" ON)
-
+# plugin includes
+# # preprocess
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_PREPROCESS)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/preprocess/config.cmake)
 endif()
 
 # # infer
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_INFER "ENABLE_NNDEPLOY_PLUGIN_INFER" ON)
-
 if(ENABLE_NNDEPLOY_PLUGIN_INFER)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/infer/config.cmake)
 endif()
 
 # # codec
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_CODEC "ENABLE_NNDEPLOY_PLUGIN_CODEC" ON)
-
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_CODEC)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/codec/config.cmake)
 endif()
 
-# # classification
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION "ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION" OFF)
+# # tokenizer
+if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/tokenizer/config.cmake)
+endif()
 
+# # classification
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/classification/config.cmake)
 endif()
 
 # # llm 
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_LLM "ENABLE_NNDEPLOY_PLUGIN_LLM" OFF)
-
 if(ENABLE_NNDEPLOY_PLUGIN_LLM)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/llm/config.cmake)
 endif()
 
 # # detect
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT "ENABLE_NNDEPLOY_PLUGIN_DETECT" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR "ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO "ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO" OFF)
-
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_DETECT)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/detect/config.cmake)
 endif()
 
 # # segment
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT "ENABLE_NNDEPLOY_PLUGIN_SEGMENT" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING "ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG "ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG" OFF)
-
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/segment/config.cmake)
 endif()
 
-# # tokenizer
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER "ENABLE_NNDEPLOY_PLUGIN_TOKENIZER" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP "ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP" OFF)
-
-if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
-  include(${PLUGIN_ROOT_PATH}/source/nndeploy/tokenizer/config.cmake)
-endif()
-
 # # stable_diffusion
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION "ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION" OFF)
-
 if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/stable_diffusion/config.cmake)
 endif()

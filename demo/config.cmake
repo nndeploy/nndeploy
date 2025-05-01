@@ -33,8 +33,14 @@ if(ENABLE_NNDEPLOY_OP)
   include(${ROOT_PATH}/demo/op/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_OP_ASCEND_C)
+  include(${ROOT_PATH}/demo/ascendc_dev/config.cmake)
+endif()
+
 if(ENABLE_NNDEPLOY_NET)
   include(${ROOT_PATH}/demo/net/config.cmake)
+  include(${ROOT_PATH}/demo/tensor_pool/config.cmake)
+  include(${ROOT_PATH}/demo/tensor_pool_multi_net/config.cmake)
 endif()
 
 if(ENABLE_NNDEPLOY_INFERENCE)
@@ -54,7 +60,7 @@ if(ENABLE_NNDEPLOY_PLUGIN_INFER)
   include(${ROOT_PATH}/demo/infer/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_CODEC)
   include(${ROOT_PATH}/demo/codec/config.cmake)
 endif()
 
@@ -83,21 +89,8 @@ if(ENABLE_NNDEPLOY_DEMO_LLAMA)
   include(${ROOT_PATH}/demo/llama/config.cmake)
 endif()
 
-nndeploy_option(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL "ENABLE_NNDEPLOY_DEMO_TENSOR_POOL" OFF)
-if(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL)
-  include(${ROOT_PATH}/demo/tensor_pool/config.cmake)
-endif()
-
-nndeploy_option(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL_MULTI_NET "ENABLE_NNDEPLOY_DEMO_TENSOR_POOL_MULTI_NET" ON)
-if(ENABLE_NNDEPLOY_DEMO_TENSOR_POOL_MULTI_NET)
-  include(${ROOT_PATH}/demo/tensor_pool_multi_net/config.cmake)
-endif()
-
 nndeploy_option(ENABLE_NNDEPLOY_DEMO_RESNET "ENABLE_NNDEPLOY_DEMO_RESNET" OFF)
 if(ENABLE_NNDEPLOY_DEMO_RESNET)
   include(${ROOT_PATH}/demo/resnet/config.cmake)
 endif()
 
-if(ENABLE_NNDEPLOY_OP_ASCEND_C)
-  include(${ROOT_PATH}/demo/ascendc_dev/config.cmake)
-endif()
