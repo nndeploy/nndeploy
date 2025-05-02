@@ -27,6 +27,10 @@ namespace dag {
  * 2. Supports memory management, creates specific data structures,
  * automatically releases those structures
  * 3. How to better support Python
+ * 4. 队列最大值
+ * 5. 移除index
+ * 6. 随时获取当前的数据，并且不更新队列位置
+ * 7. 跳帧处理
  */
 class NNDEPLOY_CC_API Edge : public base::NonCopyable {
  public:

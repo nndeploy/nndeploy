@@ -58,7 +58,6 @@ set(ENABLE_NNDEPLOY_INFERENCE_TENSORFLOW OFF) # Whether to enable INFERENCE TENS
 set(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT OFF) # Whether to enable INFERENCE NEUROPILOT, default is OFF
 
 # Algorithm Plugin Options (Recommended to use default configuration, traditional CV algorithms enabled, language and text-to-image algorithms disabled by default)
-
 ## OpenCV
 # set(ENABLE_NNDEPLOY_OPENCV "path/to/opencv") # 通过路径的方式链接OpenCV
 # set(NNDEPLOY_OPENCV_LIBS "opencv_world480") # Specific OpenCV library names to link, such as opencv_world480, opencv_java4, etc.
