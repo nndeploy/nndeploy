@@ -63,7 +63,7 @@ else()
 endif()
 # # Intermediate Representation (IR) module
 nndeploy_option(ENABLE_NNDEPLOY_IR "Enable Intermediate Representation module" ON)
-nndeploy_option(ENABLE_NNDEPLOY_IR_ONNX "Enable ONNX format support in IR module" ON)
+nndeploy_option(ENABLE_NNDEPLOY_IR_ONNX "Enable ONNX format support in IR module" OFF)
 # # Operators module
 nndeploy_option(ENABLE_NNDEPLOY_OP "Enable operators module" ON)
 nndeploy_option(ENABLE_NNDEPLOY_OP_ASCEND_C "Enable Ascend C operators" OFF)

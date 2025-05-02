@@ -46,7 +46,7 @@
 | `ENABLE_NNDEPLOY_CRYPTION` | OFF | 启用加密模块进行模型加密/解密（尚未实现） |
 | `ENABLE_NNDEPLOY_DEVICE` | ON | 启用设备模块 |
 | `ENABLE_NNDEPLOY_IR` | ON | 启用中间表示（IR）模块 |
-| `ENABLE_NNDEPLOY_IR_ONNX` | ON | 在IR模块中启用ONNX格式支持 |
+| `ENABLE_NNDEPLOY_IR_ONNX` | OFF | 在IR模块中启用ONNX格式支持，默认关闭 |
 | `ENABLE_NNDEPLOY_OP` | ON | 启用算子模块 |
 | `ENABLE_NNDEPLOY_OP_ASCEND_C` | OFF | 启用Ascend C算子 |
 | `ENABLE_NNDEPLOY_NET` | ON | 启用神经网络图表示 |

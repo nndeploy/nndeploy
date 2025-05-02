@@ -14,6 +14,9 @@
 # $ make -j
 # --------------------------------------------------------------------
 
+# IR ONNX
+set(ENABLE_NNDEPLOY_IR_ONNX OFF) # Support generating IR directly from ONNX models, disabled by default
+
 # Device Backend Options (Enable as Needed, All Disabled by Default, No Device Backend Dependencies)
 set(ENABLE_NNDEPLOY_DEVICE_CUDA OFF) # Whether to enable device CUDA, default is OFF
 set(ENABLE_NNDEPLOY_DEVICE_ROCM OFF) # Whether to enable device ROCM, default is OFF
