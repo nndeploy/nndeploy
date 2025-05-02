@@ -5,7 +5,7 @@ namespace nndeploy {
 namespace codec {
 
 std::map<base::CodecType, createDecodeNodeFunc> &
-getGlobaCreatelDecodeNodeFuncMap() {
+getGlobalCreateDecodeNodeFuncMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::CodecType, createDecodeNodeFunc>>
       creators;
@@ -16,7 +16,7 @@ getGlobaCreatelDecodeNodeFuncMap() {
 }
 
 std::map<base::CodecType, createDecodeNodeSharedPtrFunc> &
-getGlobaCreatelDecodeNodeSharedPtrFuncMap() {
+getGlobalCreateDecodeNodeSharedPtrFuncMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::CodecType, createDecodeNodeSharedPtrFunc>>
@@ -31,7 +31,7 @@ getGlobaCreatelDecodeNodeSharedPtrFuncMap() {
 DecodeNode *createDecodeNode(base::CodecType type, base::CodecFlag flag,
                              const std::string &name, dag::Edge *output) {
   DecodeNode *temp = nullptr;
-  auto &map = getGlobaCreatelDecodeNodeFuncMap();
+  auto &map = getGlobalCreateDecodeNodeFuncMap();
   if (map.count(type) > 0) {
     temp = map[type](flag, name, output);
   }
@@ -42,7 +42,7 @@ std::shared_ptr<DecodeNode> createDecodeNodeSharedPtr(base::CodecType type,
                                                       base::CodecFlag flag,
                                                       const std::string &name,
                                                       dag::Edge *output) {
-  auto &map = getGlobaCreatelDecodeNodeSharedPtrFuncMap();
+  auto &map = getGlobalCreateDecodeNodeSharedPtrFuncMap();
   if (map.count(type) > 0) {
     return map[type](flag, name, output);
   }
@@ -50,7 +50,7 @@ std::shared_ptr<DecodeNode> createDecodeNodeSharedPtr(base::CodecType type,
 }
 
 std::map<base::CodecType, createEncodeNodeFunc> &
-getGlobaCreatelEncodeNodeFuncMap() {
+getGlobalCreateEncodeNodeFuncMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::CodecType, createEncodeNodeFunc>>
       creators;
@@ -61,7 +61,7 @@ getGlobaCreatelEncodeNodeFuncMap() {
 }
 
 std::map<base::CodecType, createEncodeNodeSharedPtrFunc> &
-getGlobaCreatelEncodeNodeSharedPtrFuncMap() {
+getGlobalCreateEncodeNodeSharedPtrFuncMap() {
   static std::once_flag once;
   static std::shared_ptr<
       std::map<base::CodecType, createEncodeNodeSharedPtrFunc>>
@@ -76,7 +76,7 @@ getGlobaCreatelEncodeNodeSharedPtrFuncMap() {
 EncodeNode *createEncodeNode(base::CodecType type, base::CodecFlag flag,
                              const std::string &name, dag::Edge *input) {
   EncodeNode *temp = nullptr;
-  auto &map = getGlobaCreatelEncodeNodeFuncMap();
+  auto &map = getGlobalCreateEncodeNodeFuncMap();
   if (map.count(type) > 0) {
     temp = map[type](flag, name, input);
   }
@@ -87,7 +87,7 @@ std::shared_ptr<EncodeNode> createEncodeNodeSharedPtr(base::CodecType type,
                                                       base::CodecFlag flag,
                                                       const std::string &name,
                                                       dag::Edge *input) {
-  auto &map = getGlobaCreatelEncodeNodeSharedPtrFuncMap();
+  auto &map = getGlobalCreateEncodeNodeSharedPtrFuncMap();
   if (map.count(type) > 0) {
     return map[type](flag, name, input);
   }

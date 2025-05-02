@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> model_value = demo::getModelValue();
   // input path
   std::string input_path = demo::getInputPath();
-  // input path
+  // codec flag
   base::CodecFlag codec_flag = demo::getCodecFlag();
   // output path
   std::string ouput_path = demo::getOutputPath();
@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
         "DrawBoxNode", {&input, &output}, {draw_output});
   }
 
-  // 解码节点
+  // 编码节点
   codec::EncodeNode *encode_node = codec::createEncodeNode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
   graph->addNode(encode_node);
