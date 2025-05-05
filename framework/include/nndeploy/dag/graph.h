@@ -33,384 +33,154 @@ class NNDEPLOY_CC_API Graph : public Node {
   Graph(const std::string &name);
   Graph(const std::string &name, std::vector<Edge *> inputs,
         std::vector<Edge *> outputs);
-
   virtual ~Graph();
 
-  /**
-   * @brief 在Graph中创建一条Edge
-   * @param  name             edge名称
-   * @return Edge*
-   */
+  // create edge
   Edge *createEdge(const std::string &name);
-
   std::shared_ptr<Edge> createEdgeSharedPtr(const std::string &name);
 
-  /**
-   * @brief 将一条已有的Edge加入Graph中
-   * @param  edge             已有的Edge
-   * @return EdgeWrapper*
-   */
-  // EdgeWrapper *addEdge(Edge *edge);
-
-  /**
-   * @brief 将一条已有的Edge加入Graph中
-   * @param  edge             已有的Edge
-   * @return EdgeWrapper*
-   */
+  // add edge
   EdgeWrapper *addEdge(Edge *edge, bool is_external = true);
   EdgeWrapper *addEdgeSharedPtr(std::shared_ptr<Edge> edge);
 
-  base::Status updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
-                         bool is_external = true);
-
-  /**
-   * @brief 获取Graph中的Edge
-   * @param  name             edge名称
-   * @return Edge*
-   */
+  // get edge
   Edge *getEdge(const std::string &name);
   std::shared_ptr<Edge> getEdgeSharedPtr(const std::string &name);
 
-  /**
-   * @brief 在Graph中创建一个Node
-   * @param  name             Node名称
-   * @param  args             Node的参数
-   * @return Node*
-   */
+  // update edge
+  base::Status updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
+                         bool is_external = true);
+
+  // create node
+  // recommended api
+  Node *createNode(const NodeDesc &desc);
+  template <typename... Args>
+  Node *createNode(const NodeDesc &desc, Args &...args);
+  template <typename T, typename... Args,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const NodeDesc &desc, Args &...args);
+  // Not recommended api
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联input、output的Edge
-   * @param  name             Node名称
-   * @param  input            输入Edge
-   * @param  output           输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, Edge *input, Edge *output,
                    Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联input、output的Edge
-   * @param  name             Node名称
-   * @param  input            输入Edge name
-   * @param  output           输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, const std::string &input_name,
                    const std::string &output_name, Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联input、output的Edge
-   * @param  name             Node名称
-   * @param  input            输入Edge
-   * @param  output           输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, Edge *input,
                    const std::string &output_name, Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联input、output的Edge
-   * @param  name             Node名称
-   * @param  input            输入Edge name
-   * @param  output           输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, const std::string &input_name,
                    Edge *output, Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  inputs            多个输入Edge
-   * @param  outputs           多个输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, std::vector<Edge *> inputs,
                    std::vector<Edge *> outputs, Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  inputs            多个输入Edge
-   * @param  outputs           多个输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name,
                    std::vector<std::string> input_names,
                    std::vector<std::string> output_names, Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  inputs            多个输入Edge
-   * @param  outputs           多个输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name,
                    std::vector<std::string> input_names,
                    std::vector<Edge *> outputs, Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  inputs            多个输入Edge
-   * @param  outputs           多个输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, std::vector<Edge *> inputs,
                    std::vector<std::string> output_names, Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  inputs            多个输入Edge
-   * @param  outputs           多个输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name,
                    std::initializer_list<Edge *> inputs,
                    std::initializer_list<Edge *> outputs, Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  inputs            多个输入Edge name
-   * @param  outputs           多个输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name,
                    std::initializer_list<std::string> input_names,
                    std::initializer_list<std::string> output_names,
                    Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  inputs            多个输入Edge
-   * @param  outputs           多个输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name,
                    std::initializer_list<Edge *> inputs,
                    std::initializer_list<std::string> output_names,
                    Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  inputs            多个输入Edge name
-   * @param  outputs           多个输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name,
                    std::initializer_list<std::string> input_names,
                    std::initializer_list<Edge *> outputs, Args &...args);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  input            输入Edge
-   * @param  output           输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     Edge *input, Edge *output);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  input            输入Edge name
-   * @param  output           输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     const std::string &input_name,
                     const std::string &output_name);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  input            输入Edge name
-   * @param  output           输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     Edge *input, const std::string &output_name);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  input            输入Edge name
-   * @param  output           输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     const std::string &input_name, Edge *output);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  inputs            多个输入Edge
-   * @param  outputs           多个输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::vector<Edge *> inputs, std::vector<Edge *> outputs);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  inputs            多个输入Edge name
-   * @param  outputs           多个输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::vector<std::string> input_names,
                     std::vector<std::string> output_names);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  inputs            多个输入Edge
-   * @param  outputs           多个输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::vector<Edge *> inputs,
                     std::vector<std::string> output_names);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  inputs            多个输入Edge name
-   * @param  outputs           多个输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::vector<std::string> input_names,
                     std::vector<Edge *> outputs);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  inputs            多个输入Edge
-   * @param  outputs           多个输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::initializer_list<Edge *> inputs,
                     std::initializer_list<Edge *> outputs);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  inputs            多个输入Edge name
-   * @param  outputs           多个输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::initializer_list<std::string> input_names,
                     std::initializer_list<std::string> output_names);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  inputs            多个输入Edge
-   * @param  outputs           多个输出Edge name
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::initializer_list<Edge *> inputs,
                     std::initializer_list<std::string> output_names);
-
-  /**
-   * @brief 在Graph中创建一个Infer Node，并关联多个input、output的Edge
-   * @param  name             Node名称
-   * @param  type            Infer的引擎类型
-   * @param  inputs            多个输入Edge name
-   * @param  outputs           多个输出Edge
-   * @return Node*
-   */
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::initializer_list<std::string> input_names,
                     std::initializer_list<Edge *> outputs);
 
-  template <typename T, typename... Args,
-            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node *createNode(const NodeDesc &desc, Args &...args);
-
-  Node *createNodeByKey(const NodeDesc &desc);
-
-  /**
-   * @brief 将一个已有的Node加入Graph
-   * @param  node             已有Node
-   * @return base::Status
-   */
+  // add node
   base::Status addNode(Node *node, bool is_external = true);
   base::Status addNodeSharedPtr(std::shared_ptr<Node> node);
 
+  // set node param
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);
   base::Status setNodeParamSharedPtr(const std::string &node_name,
@@ -418,24 +188,15 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::shared_ptr<base::Param> getNodeParamSharedPtr(
       const std::string &node_name);
 
+  // set graph node share stream
   void setGraphNodeShareStream(bool flag);
   bool getGraphNodeShareStream();
 
+  // update node io
   base::Status updateNodeIO(Node *node, std::vector<Edge *> inputs,
                             std::vector<Edge *> outputs);
-  base::Status markInputEdge(std::vector<Edge *> inputs) {
-    for (auto input : inputs) {
-      insertUnique(inputs_, input);
-    }
-    return base::kStatusCodeOk;
-  };
-  base::Status markOutputEdge(std::vector<Edge *> outputs) {
-    for (auto output : outputs) {
-      // output->markGraphOutput();
-      insertUnique(outputs_, output);
-    }
-    return base::kStatusCodeOk;
-  };
+  base::Status markInputEdge(std::vector<Edge *> inputs);
+  base::Status markOutputEdge(std::vector<Edge *> outputs);
 
   virtual base::Status init();
   virtual base::Status deinit();
@@ -445,86 +206,12 @@ class NNDEPLOY_CC_API Graph : public Node {
   // This method must be implemented by subclasses
   // Subclasses should override this method to define their own operator()
   // implementation
-  virtual std::vector<Edge *> forward(std::vector<Edge *> inputs) {
-    // check
-    // if (!checkInputs(inputs)) {
-    //   return std::vector<Edge *>();
-    // }
-    // if (!checkOutputs(outputs_name)) {
-    //   return std::vector<Edge *>();
-    // }
-    // if (param != nullptr) {
-    //   this->setParamSharedPtr(param);
-    // }
-    // bool is_inputs_changed = isInputsChanged(inputs);
-    // if (!inputs.empty()) {
-    //   this->setInputs(inputs);
-    // }
-    // std::vector<std::string> real_outputs_name = this->getRealOutputsName();
-    // std::vector<Edge *> outputs;
-    // for (auto name : real_outputs_name) {
-    //   Edge *edge = nullptr;
-    //   if (graph_ != nullptr) {
-    //     edge = graph_->getEdge(name);
-    //     if (edge != nullptr) {
-    //       outputs.push_back(edge);
-    //     }
-    //   }
-    //   if (edge == nullptr) {
-    //     edge = this->createEdge(name);
-    //     if (edge != nullptr) {
-    //       outputs.push_back(edge);
-    //     } else {
-    //       NNDEPLOY_LOGE("createEdge failed.\n");
-    //       return std::vector<Edge *>();
-    //     }
-    //   }
-    // }
-    // if (!outputs.empty()) {
-    //   this->setOutputs(outputs);
-    // }
-    // if (graph_ != nullptr) {
-    //   base::Status status = graph_->updateNodeIO(this, inputs, outputs);
-    //   if (status != base::kStatusCodeOk) {
-    //     NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
-    //     return std::vector<Edge *>();
-    //   }
-    // }
-    // if (!is_inputs_changed && is_compiled_) {
-    //   if (initialized_ == false) {
-    //     this->init();
-    //     this->setInitializedFlag(true);
-    //   }
-    //   base::Status status = this->run();
-    //   if (status != base::kStatusCodeOk) {
-    //     NNDEPLOY_LOGE("this->run() failed.\n");
-    //     return std::vector<Edge *>();
-    //   }
-    // }
-    std::vector<Edge *> outputs;
-    return outputs;
-  };
-  virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs) {
-    this->markInputEdge(inputs);
-    std::vector<Edge *> outputs = this->forward(inputs);
-    if (graph_ != nullptr) {
-      base::Status status = graph_->updateNodeIO(this, inputs, outputs);
-      // for (auto input : inputs) {
-      //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
-      // }
-      // for (auto output : outputs) {
-      //   NNDEPLOY_LOGE("output->getName(): %s.\n", output->getName().c_str());
-      // }
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
-        return std::vector<Edge *>();
-      }
-    }
-    this->markOutputEdge(outputs);
-    return outputs;
-  }
+  virtual std::vector<Edge *> forward(std::vector<Edge *> inputs);
+  virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs);
 
   base::Status dump(std::ostream &oss = std::cout);
+
+  base::Status trace(std::vector<Edge *> inputs, std::vector<Edge *> outputs);
 
  protected:
   virtual base::Status construct();
@@ -1551,44 +1238,44 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   return node;
 }
 
-// template <typename T, typename... Args,
-//           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
-// Node *Graph::createNodeSiso(const NodeDesc &desc) {
-//   Node *node = nullptr;
-//   std::vector<std::string> inputs = desc.getInputs();
-//   std::vector<std::string> outputs = desc.getOutputs();
-//   if (inputs.size() != 1 || outputs.size() != 1) {
-//     NNDEPLOY_LOGE("node desc is invalid!\n");
-//     return node;
-//   }
-//   node = this->createNode<T>(desc.getName(), inputs[0], outputs[0]);
-//   if (node == nullptr) {
-//     NNDEPLOY_LOGE("create node[%s] failed!\n", desc.getName().c_str());
-//     return node;
-//   }
-//   std::shared_ptr<base::Param> param = desc.getParam();
-//   if (param != nullptr) {
-//     node->setParam(param.get());
-//   }
-//   return node;
-// }
-// template <typename T, typename... Args,
-//           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
-// Node *Graph::createNodeMimo(const NodeDesc &desc) {
-//   Node *node = nullptr;
-//   std::vector<std::string> inputs = desc.getInputs();
-//   std::vector<std::string> outputs = desc.getOutputs();
-//   node = this->createNode<T>(desc.getName(), inputs, outputs);
-//   if (node == nullptr) {
-//     NNDEPLOY_LOGE("create node[%s] failed!\n", desc.getName().c_str());
-//     return node;
-//   }
-//   std::shared_ptr<base::Param> param = desc.getParam();
-//   if (param != nullptr) {
-//     node->setParam(param.get());
-//   }
-//   return node;
-// }
+template <typename... Args>
+Node *Graph::createNode(const NodeDesc &desc, Args &...args) {
+  const std::string &name = desc.getName();
+  const std::string &node_key = desc.getKey();
+  std::vector<std::string> input_names = desc.getInputs();
+  std::vector<std::string> output_names = desc.getOutputs();
+  if (used_node_names_.find(name) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
+  // Node *node =
+  //     nndeploy::dag::createNode(node_key, name, inputs, outputs, args...);
+  if (node == nullptr) {
+    NNDEPLOY_LOGE("create infer node[%s] failed!\n", desc.getName().c_str());
+    return nullptr;
+  }
+
+  node->setGraph(this);
+
+  return node;
+}
 
 template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
@@ -1603,6 +1290,7 @@ Node *Graph::createNode(const NodeDesc &desc, Args &...args) {
   return node;
 }
 
+// Not recommended api
 using createGraphFunc = std::function<Graph *(
     const std::string &name, base::InferenceType inference_type,
     base::DeviceType device_type, Edge *input, Edge *output,

@@ -17,6 +17,9 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 namespace nndeploy {
 namespace dag {
@@ -71,7 +74,6 @@ class NNDEPLOY_CC_API NodeDesc {
 /**
  * @brief
  * @note Each node is responsible for allocating memory for it's output edges.
- * @note 节点一旦初始化后，其输入边和输出边个数就确定
  */
 class NNDEPLOY_CC_API Node {
  public:
@@ -81,8 +83,8 @@ class NNDEPLOY_CC_API Node {
 
   virtual ~Node();
 
+  std::string getKey();
   std::string getName();
-  // std::vector<std::string> getKey();
 
   std::vector<std::string> getInputNames();
   std::vector<std::string> getOutputNames();
@@ -146,8 +148,8 @@ class NNDEPLOY_CC_API Node {
   void setRunningFlag(bool flag);
   bool isRunning();
 
-  void setCompiledFlag(bool flag);
-  bool getCompiledFlag();
+  void setTraceFlag(bool flag);
+  bool getTraceFlag();
 
   void setGraphFlag(bool flag);
   bool getGraphFlag();
@@ -199,7 +201,8 @@ class NNDEPLOY_CC_API Node {
    * @param param 参数
    * @return 返回的边
    * @note
-   * 内存由node管理
+   * 1. 存在graph，返回值有graph管理
+   * 2. 不存在graph，返回值由node管理
    */
   virtual std::vector<Edge *> forward(std::vector<Edge *> inputs);
   virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs);
@@ -211,7 +214,24 @@ class NNDEPLOY_CC_API Node {
 
   virtual std::vector<std::string> getRealOutputsName();
 
+  // to json
+  virtual base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const;
+  virtual base::Status serialize(std::ostream &stream) const;
+  virtual base::Status serialize(const std::string &path) const;
+  // from json
+  virtual base::Status deserialize(rapidjson::Value &json);
+  virtual base::Status deserialize(std::istream &stream);
+  virtual base::Status deserialize(const std::string &path);
+
  protected:
+  /**
+   * @brief 节点key
+   * @details
+   * 节点key，用于节点注册创建，类型的全称，例如nndeploy::dag::Node，构造函数就需要指定
+   */
+  std::string key_;
   std::string name_;
   base::DeviceType device_type_;
   /**
@@ -224,15 +244,14 @@ class NNDEPLOY_CC_API Node {
   std::map<std::string, std::shared_ptr<base::Param>> external_param_;
   /**
    * @brief 存在节点输入输出动态，无法设置input_type_info_和output_type_info_
-   * eg
-   * tokenizer cpp（类型不确定）
-   * infer（个数不确定）
+   * 1. 类型不确定
+   * 2. 个数不确定
    */
   std::vector<std::shared_ptr<EdgeTypeInfo>> input_type_info_;
   std::vector<std::shared_ptr<EdgeTypeInfo>> output_type_info_;
   std::vector<Edge *> inputs_;
   std::vector<Edge *> outputs_;
-  std::map<std::string, Edge *> outputs_edge_is_internal_;
+  std::map<std::string, Edge *> internal_outputs_;
 
   Graph *graph_ = nullptr;
 
@@ -245,7 +264,7 @@ class NNDEPLOY_CC_API Node {
   bool is_running_ = false;
   bool is_time_profile_ = false;
   bool is_debug_ = false;
-  bool is_compiled_ = false;
+  bool is_trace_ = false;
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
 };
@@ -339,9 +358,9 @@ NNDEPLOY_CC_API std::shared_ptr<Node> createNodeSharedPtr(
     const std::string &node_key, const std::string &node_name,
     std::vector<Edge *> inputs, std::vector<Edge *> outputs);
 
-using NodeFuncV2 = std::function<base::Status(std::vector<Edge *> inputs,
-                                              std::vector<Edge *> outputs,
-                                              base::Param *param)>;
+using NodeFunc = std::function<base::Status(std::vector<Edge *> inputs,
+                                            std::vector<Edge *> outputs,
+                                            base::Param *param)>;
 
 }  // namespace dag
 }  // namespace nndeploy

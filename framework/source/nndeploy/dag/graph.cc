@@ -24,10 +24,13 @@
 namespace nndeploy {
 namespace dag {
 
-Graph::Graph(const std::string &name) : Node(name) {}
+Graph::Graph(const std::string &name) : Node(name) {
+  key_ = "nndeploy::dag::Graph";
+}
 Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
              std::vector<Edge *> outputs)
     : Node(name, inputs, outputs) {
+  key_ = "nndeploy::dag::Graph";
   for (auto input : inputs) {
     if (nullptr == addEdge(input)) {
       constructed_ = false;
@@ -176,7 +179,7 @@ base::Status Graph::updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
   return base::kStatusCodeOk;
 }
 
-Node *Graph::createNodeByKey(const NodeDesc &desc) {
+Node *Graph::createNode(const NodeDesc &desc) {
   const std::string &name = desc.getName();
   const std::string &node_key = desc.getKey();
   std::vector<std::string> input_names = desc.getInputs();
@@ -211,32 +214,6 @@ Node *Graph::createNodeByKey(const NodeDesc &desc) {
 
   return node;
 }
-
-// base::Status Graph::addNode(Node *node) {
-//   base::Status status = base::kStatusCodeOk;
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
-//   NodeWrapper *node_wrapper = new NodeWrapper();
-//   node_wrapper->is_external_ = true;
-//   node_wrapper->node_ = node;
-//   node_wrapper->name_ = node->getName();
-//   for (auto input : node->getAllInput()) {
-//     EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
-//     if (input_wrapper == nullptr) {
-//       input_wrapper = this->addEdge(input);
-//     }
-//     input_wrapper->consumers_.emplace_back(node_wrapper);
-//   }
-//   for (auto output : node->getAllOutput()) {
-//     EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
-//     if (output_wrapper == nullptr) {
-//       output_wrapper = this->addEdge(output);
-//     }
-//     output_wrapper->producers_.emplace_back(node_wrapper);
-//   }
-
-//   node_repository_.emplace_back(node_wrapper);
-//   return status;
-// }
 
 base::Status Graph::addNode(Node *node, bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
@@ -384,11 +361,25 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
   return status;
 }
 
+base::Status Graph::markInputEdge(std::vector<Edge *> inputs) {
+  for (auto input : inputs) {
+    insertUnique(inputs_, input);
+  }
+  return base::kStatusCodeOk;
+};
+base::Status Graph::markOutputEdge(std::vector<Edge *> outputs) {
+  for (auto output : outputs) {
+    // output->markGraphOutput();
+    insertUnique(outputs_, output);
+  }
+  return base::kStatusCodeOk;
+};
+
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
   // setInitializedFlag(false);
 
@@ -406,7 +397,7 @@ base::Status Graph::init() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph executor failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag true!\n");
+  NNDEPLOY_LOGI("setInitializedFlag true!\n");
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(true);
 
@@ -455,10 +446,40 @@ base::Status Graph::run() {
   return status;
 }
 
+std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
+  std::vector<Edge *> outputs;
+  return outputs;
+};
+std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
+  this->markInputEdge(inputs);
+  std::vector<Edge *> outputs = this->forward(inputs);
+  if (graph_ != nullptr) {
+    base::Status status = graph_->updateNodeIO(this, inputs, outputs);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+      return std::vector<Edge *>();
+    }
+    // for (auto input : inputs) {
+    //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
+    // }
+    // for (auto output : outputs) {
+    //   NNDEPLOY_LOGE("output->getName(): %s.\n", output->getName().c_str());
+    // }
+  }
+  this->markOutputEdge(outputs);
+  return outputs;
+}
+
 base::Status Graph::dump(std::ostream &oss) {
   base::Status status = dumpDag(edge_repository_, node_repository_, inputs_,
                                 outputs_, name_, oss);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
+  return status;
+}
+
+base::Status Graph::trace(std::vector<Edge *> inputs,
+                          std::vector<Edge *> outputs) {
+  base::Status status = base::kStatusCodeOk;
   return status;
 }
 

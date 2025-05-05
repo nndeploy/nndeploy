@@ -153,6 +153,9 @@ int main(int argc, char *argv[]) {
   graph_demo.setInferParam(device_type, model_type, is_path, model_value);
 
   std::vector<dag::Edge *> inputs;
+  std::vector<dag::Edge *> outputs;
+
+  graph_demo.trace(inputs, outputs);
 
   graph_demo.setInputPath(input_path);
   graph_demo.setOutputPath(ouput_path);
@@ -163,6 +166,10 @@ int main(int argc, char *argv[]) {
     graph_demo(inputs);
     NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
   }
+
+  NNDEPLOY_LOGI("###########################\n");
+  NNDEPLOY_LOGI("graph_demo.dump()\n");
+  NNDEPLOY_LOGI("###########################\n");
 
   // just for dump
   graph_demo.init();
