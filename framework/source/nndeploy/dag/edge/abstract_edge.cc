@@ -15,6 +15,8 @@ AbstractEdge::~AbstractEdge() {
   consumers_.clear();
 }
 
+void AbstractEdge::resetIndex() { index_ = -1; }
+
 base::ParallelType AbstractEdge::getParallelType() { return parallel_type_; }
 
 std::vector<Node *> AbstractEdge::getProducers() { return producers_; }
@@ -56,8 +58,16 @@ bool AbstractEdge::checkNode(const Node *node) {
   }
 }
 
-std::map<base::EdgeType, std::shared_ptr<EdgeCreator>>
-    &getGlobalEdgeCreatorMap() {
+void AbstractEdge::increaseIndex() {
+  if (index_ != INT64_MAX) {
+    index_++;
+  } else {
+    index_ = 0;
+  }
+}
+
+std::map<base::EdgeType, std::shared_ptr<EdgeCreator>> &
+getGlobalEdgeCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<base::EdgeType, std::shared_ptr<EdgeCreator>>>
       creators;

@@ -504,8 +504,7 @@ class NNDEPLOY_CC_API Graph : public Node {
     std::vector<Edge *> outputs;
     return outputs;
   };
-  virtual std::vector<Edge *> operator()(
-      std::vector<Edge *> inputs) {
+  virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs) {
     this->markInputEdge(inputs);
     std::vector<Edge *> outputs = this->forward(inputs);
     if (graph_ != nullptr) {

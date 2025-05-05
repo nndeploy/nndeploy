@@ -44,7 +44,7 @@ class DrawLableNode : public dag::Node {
                   cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
     }
     // cv::imwrite("draw_label_node.jpg", *input_mat);
-    outputs_[0]->set(input_mat, inputs_[0]->getIndex(this), true);
+    outputs_[0]->set(input_mat, true);
     return base::kStatusCodeOk;
   }
 };

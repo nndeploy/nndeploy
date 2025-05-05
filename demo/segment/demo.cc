@@ -75,7 +75,7 @@ class DrawMaskNode : public dag::Node {
       // 创建输出图像矩阵
       cv::Mat *output_mat = new cv::Mat(mask_output);
       // 设置输出边缘的数据
-      outputs_[0]->set(output_mat, inputs_[0]->getIndex(this), false);
+      outputs_[0]->set(output_mat, false);
     } else if (mask->getDataType() == base::dataTypeOf<uint8_t>()) {
       // 创建与掩码张量尺寸相同的8位无符号整数矩阵
       cv::Mat mask_mat(mask->getHeight(), mask->getWidth(), CV_8UC1,
@@ -101,7 +101,7 @@ class DrawMaskNode : public dag::Node {
       }
 
       // 设置输出边缘的数据
-      outputs_[0]->set(output_mat, inputs_[0]->getIndex(this), false);
+      outputs_[0]->set(output_mat, false);
     }
     // 返回操作成功状态
     return base::kStatusCodeOk;

@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
   encode_node->setRefPath(input_path);
   encode_node->setPath(ouput_path);
   int size = decode_node->getSize();
-  size = 1000;
+  size = 100;
   decode_node->setSize(size);
   for (int i = 0; i < size; ++i) {
     status = graph->run();
@@ -184,11 +184,11 @@ int main(int argc, char *argv[]) {
   }
 
   if (pt == base::kParallelTypePipeline) {
-    // NNDEPLOY_LOGE("size = %d.\n", size);
+    NNDEPLOY_LOGE("size = %d.\n", size);
     for (int i = 0; i < size; ++i) {
       detect::DetectResult *result =
           (detect::DetectResult *)output.getGraphOutputParam();
-      // NNDEPLOY_LOGE("%p.\n", result);
+      NNDEPLOY_LOGE("%d %p.\n", i, result);
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;

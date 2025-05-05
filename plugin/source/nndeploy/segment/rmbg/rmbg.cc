@@ -77,7 +77,7 @@ base::Status RMBGPostProcess::run() {
   normalized.convertTo(dst_mat, CV_8UC1, 255.0);
 
   // 将结果设置到输出边缘
-  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
+  outputs_[0]->set(results, false);
 
   // 返回操作成功状态
   return base::kStatusCodeOk;

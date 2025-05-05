@@ -188,7 +188,7 @@ base::Status YoloMultiConvOutputPostProcess::run() {
 
     results->bboxs_.emplace_back(results_batch.bboxs_[n]);
   }
-  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
+  outputs_[0]->set(results, false);
   return base::kStatusCodeOk;
 }
 
@@ -199,9 +199,10 @@ base::Status YoloMultiConvOutputPostProcess::run() {
 //     std::vector<std::string> model_value) {
 //   dag::Graph *graph = new dag::Graph(name, {input}, {output});
 //   dag::Edge *infer_input = graph->createEdge("images");
-//   dag::Edge *edge_stride_8 = graph->createEdge("output0");   // [1, 80, 80, 255]
-//   dag::Edge *edge_stride_16 = graph->createEdge("output1");  // [1, 40, 40, 255]
-//   dag::Edge *edge_stride_32 = graph->createEdge("output2");  // [1, 20, 20, 255]
+//   dag::Edge *edge_stride_8 = graph->createEdge("output0");   // [1, 80, 80,
+//   255] dag::Edge *edge_stride_16 = graph->createEdge("output1");  // [1, 40,
+//   40, 255] dag::Edge *edge_stride_32 = graph->createEdge("output2");  // [1,
+//   20, 20, 255]
 
 //   dag::Node *pre = graph->createNode<preprocess::WarpaffinePreprocess>(
 //       "preprocess", {input}, {infer_input});
@@ -256,8 +257,8 @@ base::Status YoloMultiConvOutputPostProcess::run() {
 //   // inference_param->input_names_ = {"images"};
 //   base::Any input_names = std::vector<std::string>{"images"};
 //   inference_param->set("input_names", input_names);
-//   // inference_param->output_tensor_names_ = {"output0", "output1", "output2"};
-//   base::Any output_tensor_names =
+//   // inference_param->output_tensor_names_ = {"output0", "output1",
+//   "output2"}; base::Any output_tensor_names =
 //       std::vector<std::string>{"output0", "output1", "output2"};
 //   inference_param->set("output_tensor_names", output_tensor_names);
 //   // inference_param->output_layer_names_ = {"Conv_199", "Conv_200",

@@ -41,10 +41,10 @@ Node::~Node() {
   external_param_.clear();
   inputs_.clear();
   outputs_.clear();
-  for (auto output : outputs_edge_is_external_) {
+  for (auto output : outputs_edge_is_internal_) {
     delete output.second;
   }
-  outputs_edge_is_external_.clear();
+  outputs_edge_is_internal_.clear();
   constructed_ = false;
   initialized_ = false;
   is_running_ = false;
@@ -57,24 +57,24 @@ Node::~Node() {
 
 std::string Node::getName() { return name_; }
 
-std::vector<std::string> Node::getInputNames() { 
+std::vector<std::string> Node::getInputNames() {
   std::vector<std::string> input_names;
   for (auto input_type_info : input_type_info_) {
     input_names.push_back(input_type_info->getEdgeName());
   }
   return input_names;
 }
-std::vector<std::string> Node::getOutputNames() { 
+std::vector<std::string> Node::getOutputNames() {
   std::vector<std::string> output_names;
   for (auto output_type_info : output_type_info_) {
     output_names.push_back(output_type_info->getEdgeName());
   }
   return output_names;
- }
-std::string Node::getInputName(int index) { 
+}
+std::string Node::getInputName(int index) {
   return input_type_info_[index]->getEdgeName();
 }
-std::string Node::getOutputName(int index) { 
+std::string Node::getOutputName(int index) {
   return output_type_info_[index]->getEdgeName();
 }
 
@@ -297,12 +297,12 @@ Edge *Node::getOutput(int index) {
 std::vector<Edge *> Node::getAllInput() { return inputs_; }
 std::vector<Edge *> Node::getAllOutput() { return outputs_; }
 
-Edge *Node::createEdge(const std::string &name) {
-  if (outputs_edge_is_external_.find(name) != outputs_edge_is_external_.end()) {
-    return outputs_edge_is_external_[name];
+Edge *Node::createInternalOutputEdge(const std::string &name) {
+  if (outputs_edge_is_internal_.find(name) != outputs_edge_is_internal_.end()) {
+    return outputs_edge_is_internal_[name];
   } else {
     Edge *edge = new Edge(name);
-    outputs_edge_is_external_[name] = edge;
+    outputs_edge_is_internal_[name] = edge;
     return edge;
   }
 }
@@ -444,8 +444,7 @@ std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   if (!inputs.empty()) {
     this->setInputs(inputs);
   }
-  std::vector<std::string> real_outputs_name =
-      this->getRealOutputsName();
+  std::vector<std::string> real_outputs_name = this->getRealOutputsName();
   std::vector<Edge *> outputs;
   for (auto name : real_outputs_name) {
     Edge *edge = nullptr;
@@ -453,17 +452,17 @@ std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
       edge = graph_->getEdge(name);
       if (edge != nullptr) {
         outputs.push_back(edge);
-      } 
+      }
     }
     if (edge == nullptr) {
-      edge = this->createEdge(name);
+      edge = this->createInternalOutputEdge(name);
       if (edge != nullptr) {
         outputs.push_back(edge);
       } else {
-        NNDEPLOY_LOGE("createEdge failed.\n");
+        NNDEPLOY_LOGE("createInternalOutputEdge failed.\n");
         return std::vector<Edge *>();
       }
-    } 
+    }
   }
   if (!outputs.empty()) {
     this->setOutputs(outputs);
@@ -564,8 +563,8 @@ std::vector<std::string> Node::getRealOutputsName() {
       if (!outputs_.empty()) {
         output_name = outputs_[i]->getName();
       } else {
-        output_name = name_ + "_" + "output_" + std::to_string(i) +
-                      "_" + output_type_info_[i]->getTypeName();
+        output_name = name_ + "_" + "output_" + std::to_string(i) + "_" +
+                      output_type_info_[i]->getTypeName();
       }
     }
     real_outputs_name.push_back(output_name);
@@ -574,7 +573,8 @@ std::vector<std::string> Node::getRealOutputsName() {
 }
 
 Node *createNode(const std::string &node_key, const std::string &node_name) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
@@ -586,7 +586,8 @@ Node *createNode(const std::string &node_key, const std::string &node_name) {
 Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::initializer_list<Edge *> inputs,
                  std::initializer_list<Edge *> outputs) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs_vector;
   std::vector<Edge *> outputs_vector;
   for (auto input : inputs) {
@@ -603,7 +604,8 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
 }
 Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::vector<Edge *> inputs, std::vector<Edge *> outputs) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
@@ -613,7 +615,8 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
 
 std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           const std::string &node_name) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
@@ -626,7 +629,8 @@ std::shared_ptr<Node> createNodeSharedPtr(
     const std::string &node_key, const std::string &node_name,
     std::initializer_list<Edge *> inputs,
     std::initializer_list<Edge *> outputs) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs_vector;
   std::vector<Edge *> outputs_vector;
   for (auto input : inputs) {
@@ -646,7 +650,8 @@ std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           const std::string &node_name,
                                           std::vector<Edge *> inputs,
                                           std::vector<Edge *> outputs) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   if (creator != nullptr) {
     return creator->createNodeSharedPtr(node_name, inputs, outputs);
   }

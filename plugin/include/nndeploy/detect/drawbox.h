@@ -82,7 +82,7 @@ class NNDEPLOY_CC_API DrawBoxNode : public dag::Node {
                   randColor[id]);
     }
     cv::Mat *output_mat = new cv::Mat(*input_mat);
-    outputs_[0]->set(output_mat, inputs_[0]->getIndex(this), false);
+    outputs_[0]->set(output_mat, false);
     return base::kStatusCodeOk;
   }
 };
@@ -135,7 +135,7 @@ class NNDEPLOY_CC_API YoloMultiConvDrawBoxNode : public dag::Node {
                   randColor[id]);
     }
     cv::Mat *output_mat = new cv::Mat(*input_mat);
-    outputs_[0]->set(output_mat, inputs_[0]->getIndex(this), false);
+    outputs_[0]->set(output_mat, false);
     return base::kStatusCodeOk;
   }
 };

@@ -125,7 +125,7 @@ class NNDEPLOY_CC_API Node {
   std::vector<Edge *> getAllInput();
   std::vector<Edge *> getAllOutput();
 
-  Edge *createEdge(const std::string &name);
+  virtual Edge *createInternalOutputEdge(const std::string &name);
 
   bool getConstructed();
 
@@ -201,10 +201,8 @@ class NNDEPLOY_CC_API Node {
    * @note
    * 内存由node管理
    */
-  virtual std::vector<Edge *> forward(
-      std::vector<Edge *> inputs);
-  virtual std::vector<Edge *> operator()(
-      std::vector<Edge *> inputs);
+  virtual std::vector<Edge *> forward(std::vector<Edge *> inputs);
+  virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs);
 
   bool checkInputs(std::vector<Edge *> &inputs);
   bool checkOutputs(std::vector<std::string> &outputs_name);
@@ -234,7 +232,7 @@ class NNDEPLOY_CC_API Node {
   std::vector<std::shared_ptr<EdgeTypeInfo>> output_type_info_;
   std::vector<Edge *> inputs_;
   std::vector<Edge *> outputs_;
-  std::map<std::string, Edge *> outputs_edge_is_external_;
+  std::map<std::string, Edge *> outputs_edge_is_internal_;
 
   Graph *graph_ = nullptr;
 
@@ -288,7 +286,8 @@ class NodeFactory {
     return &instance;
   }
 
-  void registerNode(const std::string &node_key, std::shared_ptr<NodeCreator> creator) {
+  void registerNode(const std::string &node_key,
+                    std::shared_ptr<NodeCreator> creator) {
     auto it = creators_.find(node_key);
     if (it != creators_.end()) {
       NNDEPLOY_LOGE("Node name %s already exists!\n", node_key.c_str());
@@ -311,11 +310,12 @@ class NodeFactory {
   std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
 };
 
-#define REGISTER_NODE(node_key, node_class)                          \
-  static auto register_node_creator_##node_class = []() {            \
-    nndeploy::dag::NodeFactory::getInstance()->registerNode(         \
-        node_key, std::make_shared<nndeploy::dag::TypeNodeCreator<node_class>>()); \
-    return 0;                                                        \
+#define REGISTER_NODE(node_key, node_class)                              \
+  static auto register_node_creator_##node_class = []() {                \
+    nndeploy::dag::NodeFactory::getInstance()->registerNode(             \
+        node_key,                                                        \
+        std::make_shared<nndeploy::dag::TypeNodeCreator<node_class>>()); \
+    return 0;                                                            \
   }();
 
 NNDEPLOY_CC_API Node *createNode(const std::string &node_key,

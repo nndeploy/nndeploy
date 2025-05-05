@@ -33,27 +33,28 @@ class PipelineEdge : public AbstractEdge {
   PipelineEdge(base::ParallelType paralle_type);
   virtual ~PipelineEdge();
 
+  virtual base::Status setQueueMaxSize(int queue_max_size);
+
   virtual base::Status construct();
 
-  virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
+  virtual base::Status set(device::Buffer *buffer, bool is_external);
   virtual device::Buffer *create(device::Device *device,
-                                 const device::BufferDesc &desc, int index);
+                                 const device::BufferDesc &desc);
   virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer(const Node *node);
   virtual device::Buffer *getGraphOutputBuffer();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
-  virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b& value,
-                           int index);
+  virtual base::Status set(cv::Mat *cv_mat, bool is_external);
+  virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value);
   virtual bool notifyWritten(cv::Mat *cv_mat);
   virtual cv::Mat *getCvMat(const Node *node);
   virtual cv::Mat *getGraphOutputCvMat();
 #endif
 
-  virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
+  virtual base::Status set(device::Tensor *tensor, bool is_external);
   virtual device::Tensor *create(device::Device *device,
-                                 const device::TensorDesc &desc, int index,
+                                 const device::TensorDesc &desc,
                                  const std::string &name);
   virtual bool notifyWritten(device::Tensor *tensor);
   virtual device::Tensor *getTensor(const Node *node);
@@ -64,13 +65,13 @@ class PipelineEdge : public AbstractEdge {
   virtual DataPacket *getDataPacket(const Node *node);
   virtual DataPacket *getGraphOutputDataPacket();
 
-  virtual base::Status set(base::Param *param, int index, bool is_external);
+  virtual base::Status set(base::Param *param, bool is_external);
   virtual bool notifyWritten(base::Param *param);
   virtual base::Param *getParam(const Node *node);
   virtual base::Param *getGraphOutputParam();
 
-  virtual int getIndex(const Node *node);
-  virtual int getGraphOutputIndex();
+  virtual int64_t getIndex(const Node *node);
+  virtual int64_t getGraphOutputIndex();
 
   virtual int getPosition(const Node *node);
   virtual int getGraphOutputPosition();
@@ -88,6 +89,10 @@ class PipelineEdge : public AbstractEdge {
   std::condition_variable cv_;
   // 有多少个消费者
   int consumers_size_;
+  // 队列最大值
+  // std::mutex queue_mutex_;
+  std::condition_variable queue_cv_;
+  int queue_max_size_;
   // 数据包
   std::list<PipelineDataPacket *> data_packets_;
   // 每个消费者 消费 的数据包最新索引  与下面当前数据包的关系为该索引为其+1

@@ -118,10 +118,9 @@ base::Status TokenizerEncodeCpp::run() {
 
   // run
   TokenizerText* text_param = (TokenizerText*)(inputs_[0]->getParam(this));
-  int index = inputs_[0]->getIndex(this);
   TokenizerIds* ids_param = new TokenizerIds();
   ids_param->ids_ = encodeBatch(text_param->texts_);
-  outputs_[0]->set(ids_param, index, false);
+  outputs_[0]->set(ids_param, false);
 
   return status;
 }
@@ -263,14 +262,12 @@ base::Status TokenizerDecodeCpp::run() {
 
   // run
   TokenizerIds* ids_param = (TokenizerIds*)(inputs_[0]->getParam(this));
-  int index = inputs_[0]->getIndex(this);
   TokenizerText* text_param = new TokenizerText();
   text_param->texts_ = decodeBatch(ids_param->ids_);
-  outputs_[0]->set(text_param, index, false);
+  outputs_[0]->set(text_param, false);
 
   return status;
 }
-
 
 /*!
  * \brief decode token ids into text.
