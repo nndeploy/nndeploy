@@ -483,7 +483,7 @@ std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
 
 base::Status Graph::dump(std::ostream &oss) {
   base::Status status = dumpDag(edge_repository_, node_repository_, inputs_,
-                                outputs_, name_, oss);
+                                outputs_, name_, is_inner_, oss);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
   return status;
 }

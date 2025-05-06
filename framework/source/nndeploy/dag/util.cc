@@ -1,6 +1,8 @@
 
 #include "nndeploy/dag/util.h"
 
+#include "nndeploy/dag/graph.h"
+
 namespace nndeploy {
 namespace dag {
 
@@ -113,86 +115,135 @@ base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
                      std::vector<NodeWrapper *> &node_repository,
                      std::vector<Edge *> &graph_inputs,
                      std::vector<Edge *> &graph_outputs,
-                     const std::string &name, std::ostream &oss) {
+                     const std::string &name, bool is_inner_graph,
+                     std::ostream &oss) {
   base::Status status = base::kStatusCodeOk;
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node dump Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
-  if (name.empty()) {
-    oss << "digraph graph {\n";
-  } else {
-    std::string label = "\"" + name + "\"";
-    oss << "digraph " << label << " {\n";
-  }
-  for (auto input : graph_inputs) {
-    if (input->getName().empty()) {
-      oss << "p" << (void *)input << "[shape=box, label=input]\n";
+  if (is_inner_graph) {
+    if (name.empty()) {
+      oss << "subgraph cluster " << base::getUniqueString() << "{\n";
     } else {
-      std::string label = "\"" + input->getName() + "\"";
-      oss << "p" << (void *)input << "[shape=box, label=" << label << "]\n";
+      std::string label = "\"cluster " + name + "\"";
+      oss << "subgraph " << label << " {\n";
     }
-    EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository, input);
-    for (auto node_wrapper : edge_wrapper->consumers_) {
-      auto node = node_wrapper->node_;
-      oss << "p" << (void *)input << "->"
-          << "p" << (void *)node;
+  } else {
+    if (name.empty()) {
+      oss << "digraph graph {\n";
+    } else {
+      oss << "digraph " << name << " {\n";
+    }
+  }
+  if (!is_inner_graph) {
+    for (auto input : graph_inputs) {
       if (input->getName().empty()) {
-        oss << "\n";
+        oss << "p" << (void *)input << "[shape=box, label=input]\n";
       } else {
         std::string label = "\"" + input->getName() + "\"";
-        oss << "[label=" << label << "]\n";
+        oss << "p" << (void *)input << "[shape=box, label=" << label << "]\n";
+      }
+      EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository, input);
+      for (auto node_wrapper : edge_wrapper->consumers_) {
+        auto node = node_wrapper->node_;
+        oss << "p" << (void *)input << "->"
+            << "p" << (void *)node;
+        if (input->getName().empty()) {
+          oss << "\n";
+        } else {
+          std::string label = "\"" + input->getName() + "\"";
+          oss << "[label=" << label << "]\n";
+        }
       }
     }
   }
   for (auto node_wrapper : node_repository) {
     Node *node = node_wrapper->node_;
-    if (node->getName().empty()) {
-      oss << "p" << (void *)node << "[label=node]\n";
-    } else {
-      std::string label = "\"" + node->getName() + "\"";
-      oss << "p" << (void *)node << "[label=" << label << "]\n";
-    }
-    for (auto successor : node_wrapper->successors_) {
-      auto outputs = node->getAllOutput();
-      auto inputs = successor->node_->getAllInput();
-      // 两Node间可能有多条Edge
-      for (auto output : outputs) {
-        Edge *out_in = nullptr;
-        for (auto input : inputs) {
-          if (output == input) {
-            out_in = output;
+    if (node->getGraphFlag()) {
+      Graph *graph = (Graph *)node;
+      graph->dump(oss);
+      for (auto input : graph->getAllInput()) {
+        EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository, input);
+        if (edge_wrapper->producers_.empty()) {
+          for (auto node_wrapper : edge_wrapper->consumers_) {
+            auto node = node_wrapper->node_;
+            oss << "p" << (void *)input << "->"
+                << "p" << (void *)node;
+            if (input->getName().empty()) {
+              oss << "\n";
+            } else {
+              std::string label = "\"" + input->getName() + "\"";
+              oss << "[label=" << label << "]\n";
+            }
+          }
+        } else {
+          for (auto producer : edge_wrapper->producers_) {
+            auto producer_node = producer->node_;
+            for (auto consumer : edge_wrapper->consumers_) {
+              auto consumer_node = consumer->node_;
+              oss << "p" << (void *)producer_node << "->"
+                  << "p" << (void *)consumer_node;
+              if (input->getName().empty()) {
+                oss << "\n";
+              } else {
+                std::string label = "\"" + input->getName() + "\"";
+                oss << "[label=" << label << "]\n";
+              }
+            }
           }
         }
-        if (out_in != nullptr) {
-          oss << "p" << (void *)node << "->"
-              << "p" << (void *)(successor->node_);
-          if (out_in->getName().empty()) {
-            oss << "\n";
-          } else {
-            std::string label = "\"" + out_in->getName() + "\"";
-            oss << "[label=" << label << "]\n";
+      }
+    } else {
+      if (node->getName().empty()) {
+        oss << "p" << (void *)node << "[label=node]\n";
+      } else {
+        std::string label = "\"" + node->getName() + "\"";
+        oss << "p" << (void *)node << "[label=" << label << "]\n";
+      }
+      for (auto successor : node_wrapper->successors_) {
+        auto outputs = node->getAllOutput();
+        auto inputs = successor->node_->getAllInput();
+        // 两Node间可能有多条Edge
+        for (auto output : outputs) {
+          Edge *out_in = nullptr;
+          for (auto input : inputs) {
+            if (output == input) {
+              out_in = output;
+            }
+          }
+          if (out_in != nullptr) {
+            oss << "p" << (void *)node << "->"
+                << "p" << (void *)(successor->node_);
+            if (out_in->getName().empty()) {
+              oss << "\n";
+            } else {
+              std::string label = "\"" + out_in->getName() + "\"";
+              oss << "[label=" << label << "]\n";
+            }
           }
         }
       }
     }
   }
-  for (auto output : graph_outputs) {
-    if (output->getName().empty()) {
-      oss << "p" << (void *)output << "[shape=box, label=output]\n";
-    } else {
-      std::string label = "\"" + output->getName() + "\"";
-      oss << "p" << (void *)output << "[shape=box, label=" << label << "]\n";
-    }
-    EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository, output);
-    for (auto node_wrapper : edge_wrapper->producers_) {
-      auto node = node_wrapper->node_;
-      oss << "p" << (void *)node << "->"
-          << "p" << (void *)output;
+  if (!is_inner_graph) {
+    for (auto output : graph_outputs) {
       if (output->getName().empty()) {
-        oss << "\n";
+        oss << "p" << (void *)output << "[shape=box, label=output]\n";
       } else {
         std::string label = "\"" + output->getName() + "\"";
-        oss << "[label=" << label << "]\n";
+        oss << "p" << (void *)output << "[shape=box, label=" << label << "]\n";
+      }
+      EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository, output);
+      for (auto node_wrapper : edge_wrapper->producers_) {
+        auto node = node_wrapper->node_;
+        oss << "p" << (void *)node << "->"
+            << "p" << (void *)output;
+        if (output->getName().empty()) {
+          oss << "\n";
+        } else {
+          std::string label = "\"" + output->getName() + "\"";
+          oss << "[label=" << label << "]\n";
+        }
       }
     }
   }
