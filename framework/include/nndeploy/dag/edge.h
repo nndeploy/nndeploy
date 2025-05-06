@@ -27,6 +27,10 @@ namespace dag {
  * 2. Supports memory management, creates specific data structures,
  * automatically releases those structures
  * 3. How to better support Python
+ * 4. 队列最大值
+ * 5. 移除index
+ * 6. 在节点内部，可随时获取当前的输入数据，并且不更新队列位置
+ * 7. 在节点内部，可随时获取当前的输出数据，并且不更新队列位置
  */
 class NNDEPLOY_CC_API Edge : public base::NonCopyable {
  public:
@@ -35,6 +39,22 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   virtual ~Edge();
 
   std::string getName();
+
+  /**
+   * @brief 设置队列最大值，控制边缘缓冲区的最大容量
+   *
+   * @param max_size 队列的最大容量，必须大于0，默认为16
+   * @return base::Status
+   * 成功返回Status::kSuccess，参数无效返回Status::kInvalidParam
+   * @note 必须在construct()调用前设置，否则将返回Status::kUninitialized
+   */
+  base::Status setQueueMaxSize(int queue_max_size);
+  /**
+   * @brief 获取队列最大值
+   *
+   * @return int 当前队列的最大容量，默认值为16
+   */
+  int getQueueMaxSize();
 
   /**
    * @brief Set the Parallel Type object
@@ -48,59 +68,58 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
 
   base::Status construct();
 
-  base::Status set(device::Buffer *buffer, int index, bool is_external = true);
-  base::Status set(device::Buffer &buffer, int index);
-  device::Buffer *create(device::Device *device, const device::BufferDesc &desc,
-                         int index);
+  base::Status set(device::Buffer *buffer, bool is_external = true);
+  base::Status set(device::Buffer &buffer);
+  device::Buffer *create(device::Device *device,
+                         const device::BufferDesc &desc);
   bool notifyWritten(device::Buffer *buffer);
   device::Buffer *getBuffer(const Node *node);
   device::Buffer *getGraphOutputBuffer();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  base::Status set(cv::Mat *cv_mat, int index, bool is_external = true);
-  base::Status set(cv::Mat &cv_mat, int index);
-  cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value,
-                  int index);
+  base::Status set(cv::Mat *cv_mat, bool is_external = true);
+  base::Status set(cv::Mat &cv_mat);
+  cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value);
   bool notifyWritten(cv::Mat *cv_mat);
   cv::Mat *getCvMat(const Node *node);
   cv::Mat *getGraphOutputCvMat();
 #endif
 
-  base::Status set(device::Tensor *tensor, int index, bool is_external = true);
-  base::Status set(device::Tensor &tensor, int index);
+  base::Status set(device::Tensor *tensor, bool is_external = true);
+  base::Status set(device::Tensor &tensor);
   device::Tensor *create(device::Device *device, const device::TensorDesc &desc,
-                         int index, std::string tensor_name = "");
+                         std::string tensor_name = "");
   bool notifyWritten(device::Tensor *tensor);
   device::Tensor *getTensor(const Node *node);
   device::Tensor *getGraphOutputTensor();
 
-  base::Status set(base::Param *param, int index, bool is_external = true);
-  base::Status set(base::Param &param, int index);
+  base::Status set(base::Param *param, bool is_external = true);
+  base::Status set(base::Param &param);
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<base::Param, T>::value,
                                     int>::type = 0>
-  base::Param *create(int index, Args &&...args) {
+  base::Param *create(Args &&...args) {
     this->setTypeInfo<T>();
-    return abstact_edge_->create<T>(index, std::forward<Args>(args)...);
+    return abstact_edge_->create<T>(std::forward<Args>(args)...);
   }
   bool notifyWritten(base::Param *param);
   base::Param *getParam(const Node *node);
   base::Param *getGraphOutputParam();
 
   template <typename T>
-  base::Status setAny(T *t, int index, bool is_external = true) {
+  base::Status setAny(T *t, bool is_external = true) {
     this->setTypeInfo<T>();
-    return abstact_edge_->setAny<T>(t, index, is_external);
+    return abstact_edge_->setAny<T>(t, is_external);
   }
   template <typename T>
-  base::Status setAny(T &t, int index) {
+  base::Status setAny(T &t) {
     this->setTypeInfo<T>();
-    return this->setAny(&t, index, true);
+    return this->setAny(&t, true);
   }
   template <typename T, typename... Args>
-  T *createAny(int index, Args &&...args) {
+  T *createAny(Args &&...args) {
     this->setTypeInfo<T>();
-    return abstact_edge_->createAny<T>(index, std::forward<Args>(args)...);
+    return abstact_edge_->createAny<T>(std::forward<Args>(args)...);
   }
   template <typename T>
   bool notifyAnyWritten(T *t) {
@@ -115,8 +134,9 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
     return abstact_edge_->getGraphOutputAny<T>();
   }
 
-  int getIndex(const Node *node);
-  int getGraphOutputIndex();
+  int64_t getIndex(const Node *node);
+  int64_t getGraphOutputIndex();
+  void resetIndex();
 
   int getPosition(const Node *node);
   int getGraphOutputPosition();
@@ -149,7 +169,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   }
   base::Status setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info);
   std::shared_ptr<EdgeTypeInfo> getTypeInfo();
-  
+
   template <typename T>
   bool checkTypeInfo() {
     EdgeTypeInfo other_type_info;
@@ -162,6 +182,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   std::string name_;
   AbstractEdge *abstact_edge_ = nullptr;
   std::shared_ptr<EdgeTypeInfo> type_info_;
+  int queue_max_size_ = 16;
 };
 
 }  // namespace dag

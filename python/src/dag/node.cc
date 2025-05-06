@@ -36,8 +36,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_output_names", &Node::getOutputNames)
       .def("get_input_name", &Node::getInputName, py::arg("index") = 0)
       .def("get_output_name", &Node::getOutputName, py::arg("index") = 0)
-      .def("set_input_name", &Node::setInputName, py::arg("name"), py::arg("index") = 0)
-      .def("set_output_name", &Node::setOutputName, py::arg("name"), py::arg("index") = 0)
+      .def("set_input_name", &Node::setInputName, py::arg("name"),
+           py::arg("index") = 0)
+      .def("set_output_name", &Node::setOutputName, py::arg("name"),
+           py::arg("index") = 0)
       .def("set_input_names", &Node::setInputNames, py::arg("names"))
       .def("set_output_names", &Node::setOutputNames, py::arg("names"))
       .def("set_graph", &Node::setGraph, py::arg("graph"))
@@ -86,25 +88,27 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_debug_flag", &Node::getDebugFlag)
       .def("set_running_flag", &Node::setRunningFlag, py::arg("flag"))
       .def("is_running", &Node::isRunning)
-      .def("set_compiled_flag", &Node::setCompiledFlag, py::arg("flag"))
-      .def("get_compiled_flag", &Node::getCompiledFlag)
+      .def("set_compiled_flag", &Node::setTraceFlag, py::arg("flag"))
+      .def("get_compiled_flag", &Node::getTraceFlag)
       .def("set_graph_flag", &Node::setGraphFlag, py::arg("flag"))
       .def("get_graph_flag", &Node::getGraphFlag)
       .def("set_node_type", &Node::setNodeType, py::arg("node_type"))
       .def("get_node_type", &Node::getNodeType)
       .def("set_stream", &Node::setStream, py::arg("stream"))
       .def("get_stream", &Node::getStream, py::return_value_policy::reference)
-      .def("set_input_type_info", 
-           [](Node& node, std::shared_ptr<EdgeTypeInfo> input_type_info) {
-             return node.setInputTypeInfo(input_type_info);
-           }, 
-           py::arg("input_type_info"))
+      .def(
+          "set_input_type_info",
+          [](Node &node, std::shared_ptr<EdgeTypeInfo> input_type_info) {
+            return node.setInputTypeInfo(input_type_info);
+          },
+          py::arg("input_type_info"))
       .def("get_input_type_info", &Node::getInputTypeInfo)
-      .def("set_output_type_info", 
-           [](Node& node, std::shared_ptr<EdgeTypeInfo> output_type_info) {
-             return node.setOutputTypeInfo(output_type_info);
-           }, 
-           py::arg("output_type_info"))
+      .def(
+          "set_output_type_info",
+          [](Node &node, std::shared_ptr<EdgeTypeInfo> output_type_info) {
+            return node.setOutputTypeInfo(output_type_info);
+          },
+          py::arg("output_type_info"))
       .def("get_output_type_info", &Node::getOutputTypeInfo)
       .def("init", &Node::init)
       .def("deinit", &Node::deinit)
@@ -114,20 +118,20 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("run", &Node::run)
       .def("forward", &Node::forward, py::arg("inputs"),
            py::return_value_policy::reference)
-      .def("__call__", &Node::operator(),
-           py::arg("inputs"),
+      .def("__call__", &Node::operator(), py::arg("inputs"),
            py::return_value_policy::reference)
       .def("check_inputs", &Node::checkInputs, py::arg("inputs"))
-      .def("check_outputs", 
-           py::overload_cast<std::vector<std::string>&>(&Node::checkOutputs),
+      .def("check_outputs",
+           py::overload_cast<std::vector<std::string> &>(&Node::checkOutputs),
            py::arg("outputs_name"))
-      .def("check_outputs", 
-           py::overload_cast<std::vector<Edge*>&>(&Node::checkOutputs),
+      .def("check_outputs",
+           py::overload_cast<std::vector<Edge *> &>(&Node::checkOutputs),
            py::arg("outputs"))
       .def("is_inputs_changed", &Node::isInputsChanged, py::arg("inputs"))
       .def("get_real_outputs_name", &Node::getRealOutputsName);
 
-  py::class_<NodeCreator, PyNodeCreator<NodeCreator>, std::shared_ptr<NodeCreator>>(m, "NodeCreator")
+  py::class_<NodeCreator, PyNodeCreator<NodeCreator>,
+             std::shared_ptr<NodeCreator>>(m, "NodeCreator")
       .def(py::init<>())
       .def("create_node", &NodeCreator::createNode,
            py::return_value_policy::take_ownership)
@@ -139,23 +143,25 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           NodeFactory::getInstance()->registerNode(node_key, creator);
         });
 
-  m.def("create_node", 
-        py::overload_cast<const std::string&, const std::string&>(&createNode),
-        py::arg("node_key"), py::arg("node_name"),
-        py::return_value_policy::take_ownership);
-        
-  m.def("create_node", 
-        py::overload_cast<const std::string&, const std::string&, 
-                          std::initializer_list<Edge*>, std::initializer_list<Edge*>>(&createNode),
-        py::arg("node_key"), py::arg("node_name"), py::arg("inputs"), py::arg("outputs"),
-        py::return_value_policy::take_ownership);
-        
-  m.def("create_node", 
-        py::overload_cast<const std::string&, const std::string&, 
-                          std::vector<Edge*>, std::vector<Edge*>>(&createNode),
-        py::arg("node_key"), py::arg("node_name"), py::arg("inputs"), py::arg("outputs"),
-        py::return_value_policy::take_ownership);
+  m.def(
+      "create_node",
+      py::overload_cast<const std::string &, const std::string &>(&createNode),
+      py::arg("node_key"), py::arg("node_name"),
+      py::return_value_policy::take_ownership);
 
+  m.def("create_node",
+        py::overload_cast<const std::string &, const std::string &,
+                          std::initializer_list<Edge *>,
+                          std::initializer_list<Edge *>>(&createNode),
+        py::arg("node_key"), py::arg("node_name"), py::arg("inputs"),
+        py::arg("outputs"), py::return_value_policy::take_ownership);
+
+  m.def(
+      "create_node",
+      py::overload_cast<const std::string &, const std::string &,
+                        std::vector<Edge *>, std::vector<Edge *>>(&createNode),
+      py::arg("node_key"), py::arg("node_name"), py::arg("inputs"),
+      py::arg("outputs"), py::return_value_policy::take_ownership);
 }
 
 }  // namespace dag

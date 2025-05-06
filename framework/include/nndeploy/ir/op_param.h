@@ -1122,6 +1122,121 @@ class NNDEPLOY_CC_API QLinearConvParam : public OpParam {
   // 卷积步长
   std::vector<int> strides_ = {1, 1};
 };
+
+class NNDEPLOY_CC_API AvaragePoolParam : public OpParam {
+ public:
+  // 构造函数
+  AvaragePoolParam() : OpParam() {}
+  virtual ~AvaragePoolParam() {}
+
+  PARAM_COPY(AvaragePoolParam)
+  PARAM_COPY_TO(AvaragePoolParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator),
+                   allocator);
+    json.AddMember("ceil_mode_", ceil_mode_, allocator);
+    json.AddMember("count_include_pad_",
+                   rapidjson::Value(count_include_pad_.c_str(), allocator),
+                   allocator);
+    json.AddMember("dilations_", rapidjson::Value(rapidjson::kArrayType),
+                   allocator);
+    for (size_t i = 0; i < dilations_.size(); ++i) {
+      json["dilations_"].PushBack(dilations_[i], allocator);
+    }
+    json.AddMember("kernel_shape_", rapidjson::Value(rapidjson::kArrayType),
+                   allocator);
+    for (size_t i = 0; i < kernel_shape_.size(); ++i) {
+      json["kernel_shape_"].PushBack(kernel_shape_[i], allocator);
+    }
+    json.AddMember("pads_", rapidjson::Value(rapidjson::kArrayType), allocator);
+    for (size_t i = 0; i < pads_.size(); ++i) {
+      json["pads_"].PushBack(pads_[i], allocator);
+    }
+    json.AddMember("strides_", rapidjson::Value(rapidjson::kArrayType),
+                   allocator);
+    for (size_t i = 0; i < strides_.size(); ++i) {
+      json["strides_"].PushBack(strides_[i], allocator);
+    }
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("auto_pad_")) {
+      auto_pad_ = json["auto_pad_"].GetString();
+    } else {
+      auto_pad_ = "NOTSET";
+    }
+
+    if (json.HasMember("ceil_mode_")) {
+      ceil_mode_ = json["ceil_mode_"].GetInt();
+    } else {
+      ceil_mode_ = 0;
+    }
+
+    if (json.HasMember("count_include_pad_")) {
+      count_include_pad_ = json["count_include_pad_"].GetString();
+    } else {
+      count_include_pad_ = "EXCLUDE";
+    }
+
+    if (json.HasMember("dilations_")) {
+      dilations_.clear();
+      for (size_t i = 0; i < json["dilations_"].Size(); ++i) {
+        dilations_.push_back(json["dilations_"][i].GetInt());
+      }
+    } else {
+      dilations_ = {1, 1};
+    }
+
+    if (json.HasMember("kernel_shape_")) {
+      kernel_shape_.clear();
+      for (size_t i = 0; i < json["kernel_shape_"].Size(); ++i) {
+        kernel_shape_.push_back(json["kernel_shape_"][i].GetInt());
+      }
+    } else {
+      kernel_shape_.clear();
+    }
+
+    if (json.HasMember("pads_")) {
+      pads_.clear();
+      for (size_t i = 0; i < json["pads_"].Size(); ++i) {
+        pads_.push_back(json["pads_"][i].GetInt());
+      }
+    } else {
+      pads_ = {0, 0, 0, 0};
+    }
+
+    if (json.HasMember("strides_")) {
+      strides_.clear();
+      for (size_t i = 0; i < json["strides_"].Size(); ++i) {
+        strides_.push_back(json["strides_"][i].GetInt());
+      }
+    } else {
+      strides_ = {1, 1};
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  // 自动填充方式
+  std::string auto_pad_ = "NOTSET";
+  // 是否向上取整
+  int ceil_mode_ = 0;
+  // 计算方式
+  std::string count_include_pad_ = "EXCLUDE";
+  // 扩张系数
+  std::vector<int> dilations_ = {1, 1};
+  // 平均池化的核大小
+  std::vector<int> kernel_shape_;
+  // 填充大小
+  std::vector<int> pads_ = {0, 0, 0, 0};
+  // 平均池化的步长
+  std::vector<int> strides_ = {1, 1};
+};
+
 }  // namespace ir
 }  // namespace nndeploy
 

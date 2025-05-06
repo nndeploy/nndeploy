@@ -74,6 +74,8 @@ class TensorPool {
              std::vector<OpWrapper *> &op_repository);
   virtual ~TensorPool();
 
+  virtual base::Status setIsExternal(bool is_external);
+
   virtual base::Status allocate() = 0;
   virtual base::Status deallocate() = 0;
 
@@ -96,6 +98,7 @@ class TensorPool {
   base::IntVector config_ = base::IntVector();
   std::vector<TensorWrapper *> tensor_repository_;
   std::vector<OpWrapper *> op_repository_;
+  bool is_external_ = false;
 };
 
 /**

@@ -17,8 +17,8 @@
    :caption: 快速开始
 
    quick_start/build.md
-   quick_start/example.md
    quick_start/model.md
+   quick_start/example.md
 
 .. toctree::
    :maxdepth: 1

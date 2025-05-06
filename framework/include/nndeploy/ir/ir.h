@@ -62,6 +62,7 @@ class NNDEPLOY_CC_API OpDesc {
   // 节点类型
   OpType op_type_;
   // 节点输入 : 包含 input、weight等所有参与计算的数据
+  // [conv.input, conv.weight] -> conv -> [conv.output] -> relu -> [relu.output]
   std::vector<std::string> inputs_;
   // 节点输出
   std::vector<std::string> outputs_;

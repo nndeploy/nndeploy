@@ -4,7 +4,7 @@ project(nndeploy)
 
 ENABLE_LANGUAGE(ASM C CXX)
 
-set(NNDEPLOY_MAJOR_VERSION 2)
+set(NNDEPLOY_MAJOR_VERSION 3)
 set(NNDEPLOY_MINOR_VERSION 0)
 set(NNDEPLOY_PATCH_VERSION 0)
 set(NNDEPLOY_BUILD_VERSION 0)
@@ -15,110 +15,238 @@ message(STATUS "CMAKE BEIGIN. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")
 include(cmake/util.cmake)
 include(cmake/summary.cmake)
 
+# If config.cmake file exists, compile according to this configuration file, otherwise use default configuration
 if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config.cmake)
   include(${CMAKE_CURRENT_BINARY_DIR}/config.cmake)
 endif()
 
-# framework
-nndeploy_option(ENABLE_NNDEPLOY_BUILD_SHARED "ENABLE_NNDEPLOY_BUILD_SHARED" ON)
-nndeploy_option(ENABLE_NNDEPLOY_SYMBOL_HIDE "ENABLE_NNDEPLOY_SYMBOL_HIDE" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_COVERAGE "ENABLE_NNDEPLOY_COVERAGE" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_CXX11_ABI "ENABLE_NNDEPLOY_CXX11_ABI" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_CXX14_ABI "ENABLE_NNDEPLOY_CXX14_ABI" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_CXX17_ABI "ENABLE_NNDEPLOY_CXX17_ABI" ON)
-nndeploy_option(ENABLE_NNDEPLOY_CXX20_ABI "ENABLE_NNDEPLOY_CXX20_ABI" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_OPENMP "ENABLE_NNDEPLOY_OPENMP" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_ADDRESS_SANTIZER "ENABLE_NNDEPLOY_ADDRESS_SANTIZER" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DOCS "ENABLE_NNDEPLOY_DOCS" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_TIME_PROFILER "ENABLE_NNDEPLOY_TIME_PROFILER" ON)
-nndeploy_option(ENABLE_NNDEPLOY_OPENCV "ENABLE_NNDEPLOY_OPENCV" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_RAPIDJSON "ENABLE_NNDEPLOY_RAPIDJSON" ON)
+# 1. **Basic Build Options (Default Configuration Recommended)**: Such as whether to build as a shared library, C++ standard used, etc.
+nndeploy_option(ENABLE_NNDEPLOY_BUILD_SHARED "Build as shared library instead of static library" ON)
+nndeploy_option(ENABLE_NNDEPLOY_SYMBOL_HIDE "Hide symbols in the library to reduce binary size" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_COVERAGE "Enable code coverage analysis" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_CXX11_ABI "Use C++11 ABI" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_CXX14_ABI "Use C++14 ABI" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_CXX17_ABI "Use C++17 ABI" ON) ## C++17 ABI is recommended
+nndeploy_option(ENABLE_NNDEPLOY_CXX20_ABI "Use C++20 ABI" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_OPENMP "Enable OpenMP for parallel computing" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_ADDRESS_SANTIZER "Enable Address Sanitizer for memory error detection" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DOCS "Build documentation" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_TIME_PROFILER "Enable time profiling for performance analysis" ON)
+nndeploy_option(ENABLE_NNDEPLOY_RAPIDJSON "Enable RapidJSON for JSON parsing" ON)
 
-# # base
-nndeploy_option(ENABLE_NNDEPLOY_BASE "ENABLE_NNDEPLOY_BASE" ON)
+# 2. **Core Module Options (Default Configuration Recommended)**: Controls enabling of basic modules, thread pool, device modules and other core functionalities
+# # Base module
+nndeploy_option(ENABLE_NNDEPLOY_BASE "Enable base module with fundamental utilities" ON)
+# # Thread pool
+nndeploy_option(ENABLE_NNDEPLOY_THREAD_POOL "Enable thread pool for parallel task execution" ON)
+# # Cryption module - Not yet implemented
+nndeploy_option(ENABLE_NNDEPLOY_CRYPTION "Enable cryption module for model encryption/decryption" OFF)
+# # Device module
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE "Enable device module" ON)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CPU "Enable CPU device" ON)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|aarch64)")
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM "Enable ARM-specific device" ON)
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86 "Enable x86-specific device" OFF)
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_RISC_V "Enable RISC-V device" OFF)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86|x86_64|amd64|AMD64)")
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM "Enable ARM-specific device" OFF)
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86 "Enable x86-specific device" ON)
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_RISC_V "Enable RISC-V device" OFF)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^(riscv)")
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM "Enable ARM-specific device" OFF)
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86 "Enable x86-specific device" OFF)
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_RISC_V "Enable RISC-V device" ON)
+else()
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM "Enable ARM-specific device" OFF)
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86 "Enable x86-specific device" OFF)
+  nndeploy_option(ENABLE_NNDEPLOY_DEVICE_RISC_V "Enable RISC-V device" OFF)
+endif()
+# # Intermediate Representation (IR) module
+nndeploy_option(ENABLE_NNDEPLOY_IR "Enable Intermediate Representation module" ON)
+nndeploy_option(ENABLE_NNDEPLOY_IR_ONNX "Enable ONNX format support in IR module" OFF)
+# # Operators module
+nndeploy_option(ENABLE_NNDEPLOY_OP "Enable operators module" ON)
+nndeploy_option(ENABLE_NNDEPLOY_OP_ASCEND_C "Enable Ascend C operators" OFF)
+# # Net module
+nndeploy_option(ENABLE_NNDEPLOY_NET "Enable neural network graph representation" ON)
+# # Inference module
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE "Enable inference module" ON)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_DEFAULT "Enable default inference backend" ON)
+# # Directed Acyclic Graph (DAG) module
+nndeploy_option(ENABLE_NNDEPLOY_DAG "Enable Directed Acyclic Graph for model pipeline" ON)
+# # Plugin system for Algorithm
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN "Enable plugin for model deployment" ON)
+# # Test cases
+nndeploy_option(ENABLE_NNDEPLOY_TEST "Build test cases" ON)
+# # Demo applications
+nndeploy_option(ENABLE_NNDEPLOY_DEMO "Build demo applications" ON)
+# # Python bindings
+nndeploy_option(ENABLE_NNDEPLOY_PYTHON "Build Python bindings" ON)
 
-# # thread
-nndeploy_option(ENABLE_NNDEPLOY_THREAD_POOL "ENABLE_NNDEPLOY_THREAD_POOL" ON)
+# 3. **Device Backend Options (Enable as Needed, All Disabled by Default, No Device Backend Dependencies)**: Such as CUDA, OpenCL, various NPU hardware acceleration support
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDA "Enable NVIDIA CUDA GPU support" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ROCM "Enable AMD ROCm GPU support" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_SYCL "Enable SYCL cross-platform acceleration" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_OPENCL "Enable OpenCL acceleration" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_OPENGL "Enable OpenGL compute support" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_METAL "Enable Apple Metal GPU acceleration" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_VULKAN "Enable Vulkan compute support" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_HEXAGON "Enable Qualcomm Hexagon DSP support" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_MTK_VPU "Enable MediaTek VPU support" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL "Enable Huawei Ascend Computing Language support" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_APPLE_NPU "Enable Apple Neural Engine support" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_QUALCOMM_NPU "Enable Qualcomm NPU support" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_MTK_NPU "Enable MediaTek NPU support" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_SOPHON_NPU "Enable Sophon NPU support" OFF)
 
-# # cryption
-nndeploy_option(ENABLE_NNDEPLOY_CRYPTION "ENABLE_NNDEPLOY_CRYPTION" OFF)
+# 4. **Operator Backend Options (Enable as Needed, All Disabled by Default, No Operator Backend Dependencies)**: Such as cudnn
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDNN "Enable NVIDIA cuDNN acceleration library" OFF)
 
-# # device
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE "ENABLE_NNDEPLOY_DEVICE" ON)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CPU "ENABLE_NNDEPLOY_DEVICE_CPU" ON)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM "ENABLE_NNDEPLOY_DEVICE_ARM" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86 "ENABLE_NNDEPLOY_DEVICE_X86" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_RISC_V "ENABLE_NNDEPLOY_DEVICE_RISC_V" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDA "ENABLE_NNDEPLOY_DEVICE_CUDA" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDNN "ENABLE_NNDEPLOY_DEVICE_CUDNN" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ROCM "ENABLE_NNDEPLOY_DEVICE_ROCM" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_SYCL "ENABLE_NNDEPLOY_DEVICE_SYCL" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_OPENCL "ENABLE_NNDEPLOY_DEVICE_OPENCL" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_OPENGL "ENABLE_NNDEPLOY_DEVICE_OPENGL" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_METAL "ENABLE_NNDEPLOY_DEVICE_METAL" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_VULKAN "ENABLE_NNDEPLOY_DEVICE_VULKAN" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_HEXAGON "ENABLE_NNDEPLOY_DEVICE_HEXAGON" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_MTK_VPU "ENABLE_NNDEPLOY_DEVICE_MTK_VPU" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL "ENABLE_NNDEPLOY_DEVICE_ASCEND_CL" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_APPLE_NPU "ENABLE_NNDEPLOY_DEVICE_APPLE_NPU" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_RK_NPU "ENABLE_NNDEPLOY_DEVICE_RK_NPU" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_QUALCOMM_NPU "ENABLE_NNDEPLOY_DEVICE_QUALCOMM_NPU" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_MTK_NPU "ENABLE_NNDEPLOY_DEVICE_MTK_NPU" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_SOPHON_NPU "ENABLE_NNDEPLOY_DEVICE_SOPHON_NPU" OFF)
+# 5. **Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)**: Such as TensorRT, OpenVINO, ONNX Runtime and other inference frameworks
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TENSORRT "Enable NVIDIA TensorRT backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "Enable Intel OpenVINO backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_COREML "Enable Apple Core ML backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TFLITE "Enable TensorFlow Lite backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "Enable ONNX Runtime backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_NCNN "Enable Tencent NCNN backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TNN "Enable Tencent TNN backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_MNN "Enable Alibaba MNN backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TVM "Enable Apache TVM backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE "Enable Baidu PaddleLite backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_1 "Enable Rockchip RKNN Toolkit 1.x backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 "Enable Rockchip RKNN Toolkit 2.x backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL "Enable Huawei Ascend CL backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_SNPE "Enable Qualcomm SNPE backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_QNN "Enable Qualcomm Neural Network backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_SOPHON "Enable Sophon backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TORCH "Enable PyTorch/LibTorch backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TENSORFLOW "Enable TensorFlow backend" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT "Enable MediaTek NeuroPilot backend" OFF)
 
-# # ir
-nndeploy_option(ENABLE_NNDEPLOY_IR "ENABLE_NNDEPLOY_IR" ON)
-nndeploy_option(ENABLE_NNDEPLOY_IR_ONNX "ENABLE_NNDEPLOY_IR_ONNX" OFF)
+# 6. **Algorithm Plugin Options (Recommended to use default configuration, traditional CV algorithms enabled, language and text-to-image algorithms disabled by default)**
+## OpenCV[Required options]
+### method 1:
+# nndeploy_option(ENABLE_NNDEPLOY_OPENCV "Enable OpenCV library" "path/to/opencv") 
+# nndeploy_option(NNDEPLOY_OPENCV_LIBS "Link specific OpenCV library" "opencv_world480") 
+### method 2:
+nndeploy_option(ENABLE_NNDEPLOY_OPENCV "Enable OpenCV library" ON)
+nndeploy_option(NNDEPLOY_OPENCV_LIBS "Link specific OpenCV library" "") 
+## preprocessing
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS "ENABLE_NNDEPLOY_PLUGIN_PREPROCESS" ON)
+## infer
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_INFER "ENABLE_NNDEPLOY_PLUGIN_INFER" ON)
+## codec
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_CODEC "ENABLE_NNDEPLOY_PLUGIN_CODEC" ON)
+## tokenizer
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER "ENABLE_NNDEPLOY_PLUGIN_TOKENIZER" ON)
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP "ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP" OFF)
+## classification
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION "ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION" ON)
+## LLM
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_LLM "ENABLE_NNDEPLOY_PLUGIN_LLM" OFF)
+## detection
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT "ENABLE_NNDEPLOY_PLUGIN_DETECT" ON)
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR "ENABLE_NNDEPLOY_PLUGIN_DETECT_DETR" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO "ENABLE_NNDEPLOY_PLUGIN_DETECT_YOLO" ON)
+## segmentation
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT "ENABLE_NNDEPLOY_PLUGIN_SEGMENT" ON)
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING "ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG "ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG" ON)
+## text-to-image
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION "ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION" OFF)
 
-# # op
-nndeploy_option(ENABLE_NNDEPLOY_OP "ENABLE_NNDEPLOY_OP" ON)
-nndeploy_option(ENABLE_NNDEPLOY_OP_ASCEND_C "ENABLE_NNDEPLOY_OP_ASCEND_C" OFF)
+# Handle dependencies between build options
+## plugin
+if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
+  set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
+endif()
 
-# # net
-nndeploy_option(ENABLE_NNDEPLOY_NET "ENABLE_NNDEPLOY_NET" ON)
+if(ENABLE_NNDEPLOY_PLUGIN_DETECT)
+  set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
+endif()
 
-# # inference
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE "ENABLE_NNDEPLOY_INFERENCE" ON)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_DEFAULT "ENABLE_NNDEPLOY_INFERENCE_DEFAULT" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TENSORRT "ENABLE_NNDEPLOY_INFERENCE_TENSORRT" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_OPENVINO "ENABLE_NNDEPLOY_INFERENCE_OPENVINO" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_COREML "ENABLE_NNDEPLOY_INFERENCE_COREML" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TFLITE "ENABLE_NNDEPLOY_INFERENCE_TFLITE" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_NCNN "ENABLE_NNDEPLOY_INFERENCE_NCNN" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TNN "ENABLE_NNDEPLOY_INFERENCE_TNN" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_MNN "ENABLE_NNDEPLOY_INFERENCE_MNN" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TVM "ENABLE_NNDEPLOY_INFERENCE_TVM" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE "ENABLE_NNDEPLOY_INFERENCE_PADDLELITE" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_1 "ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOKIT_1" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOLKIT_2 "ENABLE_NNDEPLOY_INFERENCE_RKNN_TOOKIT_2" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL "ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_SNPE "ENABLE_NNDEPLOY_INFERENCE_SNPE" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_QNN "ENABLE_NNDEPLOY_INFERENCE_QNN" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_SOPHON "ENABLE_NNDEPLOY_INFERENCE_SOPHON" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TORCH "ENABLE_NNDEPLOY_INFERENCE_TORCH" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TENSORFLOW "ENABLE_NNDEPLOY_INFERENCE_TENSORFLOW" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT "ENABLE_NNDEPLOY_INFERENCE_NEUROPILOT" OFF)
+if(ENABLE_NNDEPLOY_PLUGIN_SEGMENT)
+  set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
+endif()
 
-# # dag
-nndeploy_option(ENABLE_NNDEPLOY_DAG "ENABLE_NNDEPLOY_DAG" ON)
+if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
+  set(ENABLE_NNDEPLOY_PLUGIN_PREPROCESS ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_CODEC ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON)
+endif()
 
-# plugin
-nndeploy_option(ENABLE_NNDEPLOY_PLUGIN "ENABLE_NNDEPLOY_PLUGIN" OFF)
+if(ENABLE_NNDEPLOY_PLUGIN_LLM)
+  set(ENABLE_NNDEPLOY_PLUGIN_INFER ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER ON)
+  set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON)
+endif()
 
-# test
-nndeploy_option(ENABLE_NNDEPLOY_TEST "ENABLE_NNDEPLOY_TEST" OFF)
+## framework
+if(ENABLE_NNDEPLOY_PYTHON)
+  set(ENABLE_NNDEPLOY_DAG ON)
+endif()
 
-# demo
-nndeploy_option(ENABLE_NNDEPLOY_DEMO "ENABLE_NNDEPLOY_DEMO" OFF)
+if(ENABLE_NNDEPLOY_DEMO)
+  set(ENABLE_NNDEPLOY_DAG ON)
+endif()
 
-# python
-nndeploy_option(ENABLE_NNDEPLOY_PYTHON "ENABLE_NNDEPLOY_PYTHON" OFF)
+if(ENABLE_NNDEPLOY_PLUGIN)
+  set(ENABLE_NNDEPLOY_DAG ON)
+endif()
+
+if(ENABLE_NNDEPLOY_TEST)
+  set(ENABLE_NNDEPLOY_DAG ON)
+endif()
+
+if(ENABLE_NNDEPLOY_DAG)
+  set(ENABLE_NNDEPLOY_INFERENCE ON)
+  set(ENABLE_NNDEPLOY_OP ON)
+  set(ENABLE_NNDEPLOY_IR ON)
+  set(ENABLE_NNDEPLOY_DEVICE ON)
+  set(ENABLE_NNDEPLOY_DEVICE_CPU ON)
+  set(ENABLE_NNDEPLOY_THREAD_POOL ON)
+  set(ENABLE_NNDEPLOY_BASE ON) 
+endif()
+
+if(ENABLE_NNDEPLOY_INFERENCE_DEFAULT)
+  set(ENABLE_NNDEPLOY_NET ON)
+  set(ENABLE_NNDEPLOY_OP ON)
+  set(ENABLE_NNDEPLOY_IR ON)
+endif()
+
+if(ENABLE_NNDEPLOY_NET)
+  set(ENABLE_NNDEPLOY_OP ON)
+  set(ENABLE_NNDEPLOY_IR ON)
+  set(ENABLE_NNDEPLOY_THREAD_POOL ON)
+endif()
+
+if(ENABLE_NNDEPLOY_OP)
+  set(ENABLE_NNDEPLOY_IR ON)
+endif()
+
+if(ENABLE_NNDEPLOY_IR)
+  set(ENABLE_NNDEPLOY_DEVICE ON)
+  set(ENABLE_NNDEPLOY_DEVICE_CPU ON)
+endif()
+
+if(ENABLE_NNDEPLOY_DEVICE)
+  set(ENABLE_NNDEPLOY_BASE ON)
+endif()
+
+set(ENABLE_NNDEPLOY_BASE ON)
 
 # print option
 print_summary()
 
-# 生成compile_commands.json文件
+# compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # set
@@ -268,7 +396,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(ENABLE_NNDEPLOY_DEVICE_METAL OR ENABLE_NNDEPLOY_DEVICE_APPLE_NPU)
   # compile the file according to file type
-  # add_compile_nndeploy_options(-x objective-c++)
+  # add_compile_options(-x objective-c++)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fobjc-arc -Wno-shorten-64-to-32")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fobjc-arc -Wno-shorten-64-to-32 -Wno-null-character")
   set(CMAKE_OBJCXX_FLAGS "${CMAKE_OBJCXX_FLAGS} -x objective-c++ -fobjc-arc -Wno-shorten-64-to-32 -Wno-null-character")
@@ -681,10 +809,10 @@ if(ENABLE_NNDEPLOY_GFLAGS)
   if(APPLE)
     find_package(gflags QUIET)
     if(gflags_FOUND)
-      message(STATUS "gflags library found:")
-      message(STATUS "    version: ${gflags_VERSION}")
-      message(STATUS "    include path: ${gflags_INCLUDE_DIRS}")
-      message(STATUS "    libraries: ${gflags_LIBRARIES}")
+      # message(STATUS "gflags library found:")
+      # message(STATUS "    version: ${gflags_VERSION}")
+      # message(STATUS "    include path: ${gflags_INCLUDE_DIRS}")
+      # message(STATUS "    libraries: ${gflags_LIBRARIES}")
 
       include_directories(${gflags_INCLUDE_DIRS})
       set(NNDEPLOY_THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY} ${gflags_LIBRARIES})

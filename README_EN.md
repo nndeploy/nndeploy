@@ -3,7 +3,7 @@
 
 ## Introduction
 
-nndeploy is an end-to-end model inference and deployment framework. It aims to provide users with a powerful, easy-to-use, high-performance, and mainstream framework compatible model inference and deployment experience.
+An Easy-to-use、high-performance deploy framework for Diffusion & CV algorithms, supporting multiple inference backends and hardware platforms.
 
 ## Architecture
 

@@ -23,6 +23,11 @@ PipelineEdge::~PipelineEdge() {
   to_consume_index_.clear();
 }
 
+base::Status PipelineEdge::setQueueMaxSize(int queue_max_size) {
+  queue_max_size_ = queue_max_size;
+  return base::kStatusCodeOk;
+}
+
 base::Status PipelineEdge::construct() {
   consumers_size_ = consumers_.size();
   for (auto iter : consumers_) {
@@ -36,33 +41,49 @@ base::Status PipelineEdge::construct() {
   return base::kStatusCodeOk;
 }
 
-base::Status PipelineEdge::set(device::Buffer *buffer, int index,
-                               bool is_external) {
+base::Status PipelineEdge::set(device::Buffer *buffer, bool is_external) {
   // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return data_packets_.size() < queue_max_size_; });
+  }
+
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+  this->increaseIndex();
+  dp->setIndex(index_);
 
   data_packets_.push_back(dp);
   cv_.notify_all();
+
   // set
-  base::Status status = dp->set(buffer, index, is_external);
+  base::Status status = dp->set(buffer, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
 
   return status;
 }
 device::Buffer *PipelineEdge::create(device::Device *device,
-                                     const device::BufferDesc &desc,
-                                     int index) {
+                                     const device::BufferDesc &desc) {
   // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return data_packets_.size() < queue_max_size_; });
+  }
+
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
-
+  this->increaseIndex();
+  dp->setIndex(index_);
   data_packets_.push_back(dp);
   cv_.notify_all();
-  device::Buffer *ret_value = dp->create(device, desc, index);
+
+  // create
+  device::Buffer *ret_value = dp->create(device, desc);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
                                      "PipelineDataPacket create error.\n");
 
@@ -88,7 +109,12 @@ device::Buffer *PipelineEdge::getBuffer(const Node *node) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
       dp, "PipelineDataPacket getPipelineDataPacket error.\n");
 
-  return dp->getBuffer();
+  Node *tmp_node = const_cast<Node *>(node);
+  if (consuming_dp_.find(tmp_node) != consuming_dp_.end()) {
+    return dp->getBuffer();
+  } else {
+    return dp->getBufferDirect();
+  }
 }
 device::Buffer *PipelineEdge::getGraphOutputBuffer() {
   PipelineDataPacket *dp = nullptr;
@@ -101,36 +127,57 @@ device::Buffer *PipelineEdge::getGraphOutputBuffer() {
     dp = getPipelineDataPacket(nullptr);
   }
   if (dp == nullptr) {
+    NNDEPLOY_LOGE(
+        "PipelineDataPacket is null, this edge is not output edge.\n");
     return nullptr;
   }
   return dp->getBuffer();
 }
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-base::Status PipelineEdge::set(cv::Mat *cv_mat, int index, bool is_external) {
+base::Status PipelineEdge::set(cv::Mat *cv_mat, bool is_external) {
   // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return data_packets_.size() < queue_max_size_; });
+  }
+
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+  this->increaseIndex();
+  dp->setIndex(index_);
 
   data_packets_.push_back(dp);
   cv_.notify_all();
+
   // set
-  base::Status status = dp->set(cv_mat, index, is_external);
+  base::Status status = dp->set(cv_mat, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
+
   return status;
 }
-cv::Mat *PipelineEdge::create(int rows, int cols, int type, const cv::Vec3b& value,
-                              int index) {
+cv::Mat *PipelineEdge::create(int rows, int cols, int type,
+                              const cv::Vec3b &value) {
   // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return data_packets_.size() < queue_max_size_; });
+  }
+
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
-
+  this->increaseIndex();
+  dp->setIndex(index_);
   data_packets_.push_back(dp);
   cv_.notify_all();
-  cv::Mat *ret_value = dp->create(rows, cols, type, value, index);
+
+  // create
+  cv::Mat *ret_value = dp->create(rows, cols, type, value);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
                                      "PipelineDataPacket create error.\n");
 
@@ -156,7 +203,12 @@ cv::Mat *PipelineEdge::getCvMat(const Node *node) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
       dp, "PipelineDataPacket getPipelineDataPacket error.\n");
 
-  return dp->getCvMat();
+  Node *tmp_node = const_cast<Node *>(node);
+  if (consuming_dp_.find(tmp_node) != consuming_dp_.end()) {
+    return dp->getCvMat();
+  } else {
+    return dp->getCvMatDirect();
+  }
 }
 cv::Mat *PipelineEdge::getGraphOutputCvMat() {
   PipelineDataPacket *dp = nullptr;
@@ -169,40 +221,61 @@ cv::Mat *PipelineEdge::getGraphOutputCvMat() {
     dp = getPipelineDataPacket(nullptr);
   }
   if (dp == nullptr) {
+    NNDEPLOY_LOGE(
+        "PipelineDataPacket is null, this edge is not output edge.\n");
     return nullptr;
   }
   return dp->getCvMat();
 }
 #endif
 
-base::Status PipelineEdge::set(device::Tensor *tensor, int index,
-                               bool is_external) {
+base::Status PipelineEdge::set(device::Tensor *tensor, bool is_external) {
   // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return data_packets_.size() < queue_max_size_; });
+  }
+
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+  this->increaseIndex();
+  dp->setIndex(index_);
 
   data_packets_.push_back(dp);
   cv_.notify_all();
+
   // set
-  base::Status status = dp->set(tensor, index, is_external);
+  base::Status status = dp->set(tensor, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
-  return status;
+
+  return base::kStatusCodeOk;
 }
 device::Tensor *PipelineEdge::create(device::Device *device,
-                                     const device::TensorDesc &desc, int index,
+                                     const device::TensorDesc &desc,
                                      const std::string &name) {
   // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return data_packets_.size() < queue_max_size_; });
+  }
+
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(dp, "PipelineDataPacket is null.\n");
-
+  this->increaseIndex();
+  dp->setIndex(index_);
   data_packets_.push_back(dp);
   cv_.notify_all();
-  device::Tensor *ret_value = dp->create(device, desc, index, name);
+
+  // create
+  device::Tensor *ret_value = dp->create(device, desc, name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(ret_value,
                                      "PipelineDataPacket create error.\n");
+
   return ret_value;
 }
 bool PipelineEdge::notifyWritten(device::Tensor *tensor) {
@@ -225,7 +298,12 @@ device::Tensor *PipelineEdge::getTensor(const Node *node) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
       dp, "PipelineDataPacket getPipelineDataPacket error.\n");
 
-  return dp->getTensor();
+  Node *tmp_node = const_cast<Node *>(node);
+  if (consuming_dp_.find(tmp_node) != consuming_dp_.end()) {
+    return dp->getTensor();
+  } else {
+    return dp->getTensorDirect();
+  }
 }
 device::Tensor *PipelineEdge::getGraphOutputTensor() {
   PipelineDataPacket *dp = nullptr;
@@ -238,6 +316,8 @@ device::Tensor *PipelineEdge::getGraphOutputTensor() {
     dp = getPipelineDataPacket(nullptr);
   }
   if (dp == nullptr) {
+    NNDEPLOY_LOGE(
+        "PipelineDataPacket is null, this edge is not output edge.\n");
     return nullptr;
   }
   return dp->getTensor();
@@ -245,16 +325,24 @@ device::Tensor *PipelineEdge::getGraphOutputTensor() {
 
 base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
   // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return data_packets_.size() < queue_max_size_; });
+  }
+
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
 
   data_packets_.push_back(dp);
   cv_.notify_all();
-  // set
+
+  // take
   base::Status status = dp->takeDataPacket(data_packet);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                         "PipelineDataPacket set error.\n");
+                         "PipelineDataPacket take error.\n");
+
   return status;
 }
 bool PipelineEdge::notifyAnyWritten(void *anything) {
@@ -290,24 +378,35 @@ DataPacket *PipelineEdge::getGraphOutputDataPacket() {
     dp = getPipelineDataPacket(nullptr);
   }
   if (dp == nullptr) {
+    NNDEPLOY_LOGE(
+        "PipelineDataPacket is null, this edge is not output edge.\n");
     return nullptr;
   }
   return static_cast<DataPacket *>(dp);
 }
 
-base::Status PipelineEdge::set(base::Param *param, int index,
-                               bool is_external) {
+base::Status PipelineEdge::set(base::Param *param, bool is_external) {
   // 上锁
-  std::lock_guard<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_);
+  if (std::find(consumers_.begin(), consumers_.end(), nullptr) ==
+      consumers_.end()) {
+    queue_cv_.wait(lock,
+                   [this]() { return data_packets_.size() < queue_max_size_; });
+  }
+
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+  this->increaseIndex();
+  dp->setIndex(index_);
 
   data_packets_.push_back(dp);
   cv_.notify_all();
+
   // set
-  base::Status status = dp->set(param, index, is_external);
+  base::Status status = dp->set(param, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "PipelineDataPacket set error.\n");
+
   return status;
 }
 bool PipelineEdge::notifyWritten(base::Param *param) {
@@ -330,7 +429,12 @@ base::Param *PipelineEdge::getParam(const Node *node) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(
       dp, "PipelineDataPacket getPipelineDataPacket error.\n");
 
-  return dp->getParam();
+  Node *tmp_node = const_cast<Node *>(node);
+  if (consuming_dp_.find(tmp_node) != consuming_dp_.end()) {
+    return dp->getParam();
+  } else {
+    return dp->getParamDirect();
+  }
 }
 base::Param *PipelineEdge::getGraphOutputParam() {
   PipelineDataPacket *dp = nullptr;
@@ -343,27 +447,29 @@ base::Param *PipelineEdge::getGraphOutputParam() {
     dp = getPipelineDataPacket(nullptr);
   }
   if (dp == nullptr) {
+    NNDEPLOY_LOGE(
+        "PipelineDataPacket is null, this edge is not output edge.\n");
     return nullptr;
   }
   return dp->getParam();
 }
 
-int PipelineEdge::getIndex(const Node *node) {
+int64_t PipelineEdge::getIndex(const Node *node) {
   PipelineDataPacket *dp = getPipelineDataPacket(node);
   if (dp == nullptr) {
     NNDEPLOY_LOGE("PipelineDataPacket getPipelineDataPacket error.\n");
     return -1;
   }
-  int index = dp->getIndex();
+  int64_t index = dp->getIndex();
   return index;
 }
-int PipelineEdge::getGraphOutputIndex() {
+int64_t PipelineEdge::getGraphOutputIndex() {
   PipelineDataPacket *dp = getPipelineDataPacket(nullptr);
   if (dp == nullptr) {
     NNDEPLOY_LOGE("PipelineDataPacket getPipelineDataPacket error.\n");
     return -1;
   }
-  int index = dp->getIndex();
+  int64_t index = dp->getIndex();
   return index;
 }
 
@@ -449,10 +555,18 @@ base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
       break;
     }
   }
+
   // 销毁不会被使用到的数据
-  data_packets_.erase(data_packets_.begin(), iter);
-  for (auto &iter : to_consume_index_) {
-    iter.second -= real_count;
+  if (real_count > 0) {
+    data_packets_.erase(data_packets_.begin(), iter);
+    for (auto &iter : to_consume_index_) {
+      iter.second -= real_count;
+    }
+    if (data_packets_.size() + real_count >= queue_max_size_ &&
+        data_packets_.size() < queue_max_size_) {
+      queue_cv_.notify_all();
+    }
+    // queue_cv_.notify_all();
   }
   // 让下一次数据没有的时候线程一直在等待
   to_consume_index_[tmp_node]++;
@@ -462,17 +576,21 @@ base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
 
 PipelineDataPacket *PipelineEdge::getPipelineDataPacket(const Node *node) {
   Node *tmp_node = const_cast<Node *>(node);
-  auto iter = consuming_dp_.find(tmp_node);
-  if (iter == consuming_dp_.end()) {
+  if (consuming_dp_.find(tmp_node) != consuming_dp_.end()) {
+    auto iter = consuming_dp_.find(tmp_node);
+    if (iter->second == nullptr) {
+      NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
+      NNDEPLOY_LOGE("dp is nullptr!\n");
+      return nullptr;
+    }
+    return iter->second;
+  } else if (std::find(producers_.begin(), producers_.end(), tmp_node) !=
+             producers_.end()) {
+    return data_packets_.back();
+  } else {
     NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
     return nullptr;
   }
-  if (iter->second == nullptr) {
-    NNDEPLOY_LOGE("node[%s] is error!\n", tmp_node->getName().c_str());
-    NNDEPLOY_LOGE("dp is nullptr!\n");
-    return nullptr;
-  }
-  return iter->second;
 }
 
 }  // namespace dag

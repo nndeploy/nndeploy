@@ -30,7 +30,8 @@ class NNDEPLOY_CC_API SequentialRuntime : public Runtime {
       std::vector<device::Tensor *> &output_tensors, bool is_dynamic_shape,
       base::ShapeMap max_shape,
       TensorPoolType tensor_pool_type =
-          kTensorPool1DSharedObjectTypeGreedyBySizeImprove);
+          kTensorPool1DSharedObjectTypeGreedyBySizeImprove,
+      bool is_external_tensor_pool_memory = false);
   virtual base::Status deinit();
 
   virtual base::Status reshape(base::ShapeMap &shape_map);

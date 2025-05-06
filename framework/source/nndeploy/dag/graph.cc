@@ -24,10 +24,13 @@
 namespace nndeploy {
 namespace dag {
 
-Graph::Graph(const std::string &name) : Node(name) {}
+Graph::Graph(const std::string &name) : Node(name) {
+  key_ = "nndeploy::dag::Graph";
+}
 Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
              std::vector<Edge *> outputs)
     : Node(name, inputs, outputs) {
+  key_ = "nndeploy::dag::Graph";
   for (auto input : inputs) {
     if (nullptr == addEdge(input)) {
       constructed_ = false;
@@ -176,7 +179,7 @@ base::Status Graph::updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
   return base::kStatusCodeOk;
 }
 
-Node *Graph::createNodeByKey(const NodeDesc &desc) {
+Node *Graph::createNode(const NodeDesc &desc) {
   const std::string &name = desc.getName();
   const std::string &node_key = desc.getKey();
   std::vector<std::string> input_names = desc.getInputs();
@@ -211,32 +214,6 @@ Node *Graph::createNodeByKey(const NodeDesc &desc) {
 
   return node;
 }
-
-// base::Status Graph::addNode(Node *node) {
-//   base::Status status = base::kStatusCodeOk;
-//   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
-//   NodeWrapper *node_wrapper = new NodeWrapper();
-//   node_wrapper->is_external_ = true;
-//   node_wrapper->node_ = node;
-//   node_wrapper->name_ = node->getName();
-//   for (auto input : node->getAllInput()) {
-//     EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
-//     if (input_wrapper == nullptr) {
-//       input_wrapper = this->addEdge(input);
-//     }
-//     input_wrapper->consumers_.emplace_back(node_wrapper);
-//   }
-//   for (auto output : node->getAllOutput()) {
-//     EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
-//     if (output_wrapper == nullptr) {
-//       output_wrapper = this->addEdge(output);
-//     }
-//     output_wrapper->producers_.emplace_back(node_wrapper);
-//   }
-
-//   node_repository_.emplace_back(node_wrapper);
-//   return status;
-// }
 
 base::Status Graph::addNode(Node *node, bool is_external) {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node, "node is null!");
@@ -384,11 +361,25 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
   return status;
 }
 
+base::Status Graph::markInputEdge(std::vector<Edge *> inputs) {
+  for (auto input : inputs) {
+    insertUnique(inputs_, input);
+  }
+  return base::kStatusCodeOk;
+};
+base::Status Graph::markOutputEdge(std::vector<Edge *> outputs) {
+  for (auto output : outputs) {
+    // output->markGraphOutput();
+    insertUnique(outputs_, output);
+  }
+  return base::kStatusCodeOk;
+};
+
 base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
   // setInitializedFlag(false);
 
@@ -406,7 +397,7 @@ base::Status Graph::init() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph executor failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
-  // NNDEPLOY_LOGI("setInitializedFlag true!\n");
+  NNDEPLOY_LOGI("setInitializedFlag true!\n");
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(true);
 
@@ -455,11 +446,234 @@ base::Status Graph::run() {
   return status;
 }
 
+std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
+  std::vector<Edge *> outputs;
+  return outputs;
+};
+std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
+  if (traced_) {
+    NNDEPLOY_LOGI("graph traced!\n");
+    base::Status status = this->run();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("graph run failed!");
+      return std::vector<Edge *>();
+    }
+    return outputs_;
+  } else {
+    NNDEPLOY_LOGI("graph not traced!\n");
+    this->markInputEdge(inputs);
+    std::vector<Edge *> outputs = this->forward(inputs);
+    if (graph_ != nullptr) {
+      base::Status status = graph_->updateNodeIO(this, inputs, outputs);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+        return std::vector<Edge *>();
+      }
+      // for (auto input : inputs) {
+      //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
+      // }
+      // for (auto output : outputs) {
+      //   NNDEPLOY_LOGE("output->getName(): %s.\n", output->getName().c_str());
+      // }
+    }
+    this->markOutputEdge(outputs);
+    return outputs;
+  }
+}
+
 base::Status Graph::dump(std::ostream &oss) {
-  base::Status status = dumpDag(edge_repository_, node_repository_, inputs_,
-                                outputs_, name_, oss);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
+  base::Status status = base::kStatusCodeOk;
+  // start
+  if (is_inner_) {
+    if (name_.empty()) {
+      oss << "subgraph cluster " << base::getUniqueString() << "{\n";
+    } else {
+      std::string label = "\"cluster " + name_ + "\"";
+      oss << "subgraph " << label << " {\n";
+      oss << "label = \"" + name_ + "\";\n";
+    }
+    oss << "color = blue;\n";
+  } else {
+    if (name_.empty()) {
+      oss << "digraph graph {\n";
+    } else {
+      oss << "digraph " << name_ << " {\n";
+    }
+    for (auto input : inputs_) {
+      if (input->getName().empty()) {
+        oss << "p" << (void *)input << "[shape=diamond, label=input]\n";
+      } else {
+        std::string label = "\"" + input->getName() + "\"";
+        oss << "p" << (void *)input << "[shape=diamond, label=" << label
+            << "]\n";
+      }
+      EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, input);
+      std::vector<Node *> consumers;
+      for (auto consumer : edge_wrapper->consumers_) {
+        auto consumer_node = consumer->node_;
+        if (consumer_node->getGraphFlag()) {
+          Graph *graph = (Graph *)consumer_node;
+          EdgeWrapper *inner_edge_wrapper =
+              graph->getEdgeWrapper(edge_wrapper->edge_);
+          if (inner_edge_wrapper == nullptr) {
+            // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+            //               edge_wrapper->name_.c_str());
+            continue;
+          }
+          for (auto consumer : inner_edge_wrapper->consumers_) {
+            consumers.emplace_back(consumer->node_);
+          }
+        } else {
+          consumers.emplace_back(consumer_node);
+        }
+      }
+      for (auto node : consumers) {
+        oss << "p" << (void *)input << "->"
+            << "p" << (void *)node;
+        if (input->getName().empty()) {
+          oss << "\n";
+        } else {
+          std::string label = "\"" + input->getName() + "\"";
+          oss << "[label=" << label << "]\n";
+        }
+      }
+    }
+    for (auto output : outputs_) {
+      if (output->getName().empty()) {
+        oss << "p" << (void *)output << "[shape=diamond, label=output]\n";
+      } else {
+        std::string label = "\"" + output->getName() + "\"";
+        oss << "p" << (void *)output << "[shape=diamond, label=" << label
+            << "]\n";
+      }
+      EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, output);
+      std::vector<Node *> producers;
+      for (auto producer : edge_wrapper->producers_) {
+        auto producer_node = producer->node_;
+        if (producer_node->getGraphFlag()) {
+          Graph *graph = (Graph *)producer_node;
+          EdgeWrapper *inner_edge_wrapper =
+              graph->getEdgeWrapper(edge_wrapper->edge_);
+          if (inner_edge_wrapper == nullptr) {
+            // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+            //               edge_wrapper->name_.c_str());
+            continue;
+          }
+          for (auto producer : inner_edge_wrapper->producers_) {
+            producers.emplace_back(producer->node_);
+          }
+        } else {
+          producers.emplace_back(producer_node);
+        }
+      }
+      for (auto node : producers) {
+        oss << "p" << (void *)node << "->"
+            << "p" << (void *)output;
+        if (output->getName().empty()) {
+          oss << "\n";
+        } else {
+          std::string label = "\"" + output->getName() + "\"";
+          oss << "[label=" << label << "]\n";
+        }
+      }
+    }
+  }
+  // dump node
+  for (auto node_wrapper : node_repository_) {
+    Node *node = node_wrapper->node_;
+    if (node->getGraphFlag()) {
+      Graph *graph = (Graph *)node;
+      graph->dump(oss);
+    } else {
+      if (node->getName().empty()) {
+        oss << "p" << (void *)node << "[label=node]\n";
+      } else {
+        std::string label = "\"" + node->getName() + "\"";
+        oss << "p" << (void *)node << "[label=" << label << "]\n";
+      }
+    }
+  }
+  // dump edge
+  for (auto edge_wrapper : edge_repository_) {
+    std::vector<Node *> producers;
+    for (auto producer : edge_wrapper->producers_) {
+      auto producer_node = producer->node_;
+      if (producer_node->getGraphFlag()) {
+        Graph *graph = (Graph *)producer_node;
+        EdgeWrapper *inner_edge_wrapper =
+            graph->getEdgeWrapper(edge_wrapper->edge_);
+        if (inner_edge_wrapper == nullptr) {
+          // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+          //               edge_wrapper->name_.c_str());
+          continue;
+        }
+        for (auto producer : inner_edge_wrapper->producers_) {
+          producers.emplace_back(producer->node_);
+        }
+      } else {
+        producers.emplace_back(producer_node);
+      }
+    }
+    std::vector<Node *> consumers;
+    for (auto consumer : edge_wrapper->consumers_) {
+      auto consumer_node = consumer->node_;
+      if (consumer_node->getGraphFlag()) {
+        Graph *graph = (Graph *)consumer_node;
+        EdgeWrapper *inner_edge_wrapper =
+            graph->getEdgeWrapper(edge_wrapper->edge_);
+        if (inner_edge_wrapper == nullptr) {
+          // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+          //               edge_wrapper->name_.c_str());
+          continue;
+        }
+        for (auto consumer : inner_edge_wrapper->consumers_) {
+          consumers.emplace_back(consumer->node_);
+        }
+      } else {
+        consumers.emplace_back(consumer_node);
+      }
+    }
+    for (auto producer : producers) {
+      for (auto consumer : consumers) {
+        oss << "p" << (void *)producer << "->"
+            << "p" << (void *)consumer;
+        if (edge_wrapper->edge_->getName().empty()) {
+          oss << "\n";
+        } else {
+          std::string label = "\"" + edge_wrapper->edge_->getName() + "\"";
+          oss << "[label=" << label << "]\n";
+        }
+      }
+    }
+  }
+
+  // end
+  oss << "}\n";
   return status;
+}
+
+void Graph::setTraceFlag(bool flag) {
+  for (auto node_wrapper : node_repository_) {
+    node_wrapper->node_->setTraceFlag(flag);
+  }
+}
+
+std::vector<Edge *> Graph::trace(std::vector<Edge *> inputs) {
+  base::Status status = base::kStatusCodeOk;
+  this->setTraceFlag(true);
+  std::vector<Edge *> outputs = this->operator()(inputs);
+  status = this->init();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("init failed!");
+    return std::vector<Edge *>();
+  }
+  status = this->dump();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("dump failed!");
+    return std::vector<Edge *>();
+  }
+  traced_ = true;
+  return outputs;
 }
 
 base::Status Graph::construct() {
@@ -638,6 +852,19 @@ base::Status Graph::executor() {
 
   // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
   return status;
+}
+
+EdgeWrapper *Graph::getEdgeWrapper(Edge *edge) {
+  return findEdgeWrapper(edge_repository_, edge);
+}
+
+EdgeWrapper *Graph::getEdgeWrapper(const std::string &name) {
+  for (auto edge_wrapper : edge_repository_) {
+    if (edge_wrapper->name_ == name) {
+      return edge_wrapper;
+    }
+  }
+  return nullptr;
 }
 
 REGISTER_NODE("nndeploy::dag::Graph", Graph);

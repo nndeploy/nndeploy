@@ -1,6 +1,8 @@
 
 #include "nndeploy/dag/util.h"
 
+#include "nndeploy/dag/graph.h"
+
 namespace nndeploy {
 namespace dag {
 

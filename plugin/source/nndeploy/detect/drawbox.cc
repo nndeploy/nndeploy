@@ -51,7 +51,7 @@ namespace detect {
 //     randColor[id]);
 //   }
 //   cv::Mat *output_mat = new cv::Mat(*input_mat);
-//   outputs_[0]->set(output_mat, inputs_[0]->getIndex(this), false);
+//   outputs_[0]->set(output_mat,  false);
 //   return base::kStatusCodeOk;
 // }
 
@@ -91,7 +91,7 @@ namespace detect {
 //     randColor[id]);
 //   }
 //   cv::Mat *output_mat = new cv::Mat(*input_mat);
-//   outputs_[0]->set(output_mat, inputs_[0]->getIndex(this), false);
+//   outputs_[0]->set(output_mat,  false);
 //   return base::kStatusCodeOk;
 // }
 
@@ -119,7 +119,8 @@ namespace detect {
 // };
 
 REGISTER_NODE("nndeploy::detect::DrawBoxNode", DrawBoxNode);
-REGISTER_NODE("nndeploy::detect::YoloMultiConvDrawBoxNode", YoloMultiConvDrawBoxNode);
+REGISTER_NODE("nndeploy::detect::YoloMultiConvDrawBoxNode",
+              YoloMultiConvDrawBoxNode);
 
 }  // namespace detect
 }  // namespace nndeploy

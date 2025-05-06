@@ -19,11 +19,18 @@
 namespace nndeploy {
 namespace net {
 
+/**
+ * @brief 流水线运行时阶段结构体，表示流水线中的一个执行阶段
+ *
+ * 流水线运行时将整个计算图分解为多个顺序执行的阶段，每个阶段包含一组Op和张量。
+ * 这些阶段可以并行执行以提高吞吐量。
+ */
 struct PipelineRuntimeStage {
-  std::vector<OpWrapper *> op_wrappers_;
-  std::vector<TensorWrapper *> tensor_wrappers_;
-  std::vector<device::Tensor *> input_tensors_;
-  std::vector<device::Tensor *> output_tensors_;
+  std::vector<OpWrapper *> op_wrappers_;  ///< 该阶段包含的Op包装器列表
+  std::vector<TensorWrapper *>
+      tensor_wrappers_;                          ///< 该阶段使用的张量包装器列表
+  std::vector<device::Tensor *> input_tensors_;  ///< 该阶段的输入张量列表
+  std::vector<device::Tensor *> output_tensors_;  ///< 该阶段的输出张量列表
 };
 
 class PipelineRuntime : public Runtime {
@@ -43,7 +50,8 @@ class PipelineRuntime : public Runtime {
       std::vector<device::Tensor *> &output_tensors, bool is_dynamic_shape,
       base::ShapeMap max_shape,
       TensorPoolType tensor_pool_type =
-          kTensorPool1DSharedObjectTypeGreedyBySizeImprove);
+          kTensorPool1DSharedObjectTypeGreedyBySizeImprove,
+      bool is_external_tensor_pool_memory = false);
   virtual base::Status deinit();
 
   virtual base::Status reshape(base::ShapeMap &shape_map);
@@ -61,18 +69,62 @@ class PipelineRuntime : public Runtime {
                                                   base::DataFormat data_format);
 
  private:
+  /**
+   * @brief 顺序运行时实例列表，每个实例负责流水线中的一个阶段
+   *
+   * 流水线运行时将计算任务分解为多个顺序执行的阶段，每个阶段由一个SequentialRuntime实例管理
+   */
   std::vector<SequentialRuntime *> sequential_runtimes_;
+
+  /**
+   * @brief 顺序运行时与对应流水线阶段的映射关系
+   *
+   * 将每个SequentialRuntime实例映射到其负责的PipelineRuntimeStage，
+   * 包含该阶段的所有操作和张量信息
+   */
   std::map<SequentialRuntime *, std::shared_ptr<PipelineRuntimeStage>>
       sequential_runtime_stage_stages_;
 
+  /**
+   * @brief 输入输出张量映射表
+   *
+   * 将原始设备张量映射到流水线专用张量，用于管理跨阶段的数据传输和同步
+   */
   std::map<device::Tensor *, PipelineTensor *> input_output_tensors_;
 
+  /**
+   * @brief 线程池实例，用于并行执行各流水线阶段
+   *
+   * 管理工作线程，实现流水线各阶段的并行调度执行
+   */
   thread_pool::ThreadPool *thread_pool_ = nullptr;
 
-  // 添加互斥锁和条件变量，用于同步流水线状态
+  /**
+   * @brief 流水线同步互斥锁
+   *
+   * 保护流水线共享状态，确保线程安全的状态更新
+   */
   std::mutex pipeline_mutex_;
+
+  /**
+   * @brief 流水线同步条件变量
+   *
+   * 用于线程间的同步通知，协调各阶段的执行顺序和依赖关系
+   */
   std::condition_variable pipeline_cv_;
+
+  /**
+   * @brief 当前提交到流水线的任务数量
+   *
+   * 记录已提交但尚未完全处理完的任务总数
+   */
   int run_size_ = 0;
+
+  /**
+   * @brief 已完成处理的任务数量
+   *
+   * 记录已经完成处理的任务数，用于跟踪流水线进度和同步
+   */
   int completed_size_ = 0;
 };
 

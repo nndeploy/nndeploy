@@ -1,9 +1,6 @@
 #ifndef _NNDEPLOY_OP_ASCEND_CL_ASCEND_C_OP_MUL_KERNEL_H_
 #define _NNDEPLOY_OP_ASCEND_CL_ASCEND_C_OP_MUL_KERNEL_H_
 
-namespace nndeploy {
-namespace op {
-
 struct MulTilingData {
   uint32_t blockLength;
   uint32_t tileNum;
@@ -26,9 +23,8 @@ struct MulTilingData {
   uint32_t tailLastTileLength;
 
   uint32_t tilingKey;
-};
 
-}  // namespace op
-}  // namespace nndeploy
+  uint32_t dataType;
+};
 
 #endif

@@ -45,6 +45,11 @@ base::Status Net::setTensorPoolType(TensorPoolType tensor_pool_type) {
   tensor_pool_type_ = tensor_pool_type;
   return status;
 }
+base::Status Net::setTensorPoolMemory(bool is_external) {
+  base::Status status = base::kStatusCodeOk;
+  tensor_pool_memory_is_external_ = is_external;
+  return status;
+}
 
 TensorWrapper *Net::createTensor(const std::string &name, bool is_weight) {
   device::Tensor *tensor = new device::Tensor(name);
@@ -786,7 +791,8 @@ base::Status Net::runtime() {
   // NNDEPLOY_LOGI("#. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
   status = runtime_->init(tensor_repository_, op_repository_, inputs_, outputs_,
-                          is_dynamic_shape_, max_shape_, tensor_pool_type_);
+                          is_dynamic_shape_, max_shape_, tensor_pool_type_,
+                          tensor_pool_memory_is_external_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "runtime init failed!");
 
   return status;

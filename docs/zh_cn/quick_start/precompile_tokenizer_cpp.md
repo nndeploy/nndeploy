@@ -37,3 +37,6 @@ rustc --version
 cargo --version
 ```
 若出现版本信息，则表示安装成功。
+
+### 更近一步的编译参考官方文档
+[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)

@@ -238,6 +238,7 @@ compile_commands.json
 *.bin
 *.pbtxt
 *.pb
+*.om
 
 # setup.py
 python/setup.py

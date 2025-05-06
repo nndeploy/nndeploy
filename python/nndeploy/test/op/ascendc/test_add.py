@@ -15,8 +15,8 @@ class TestAddOp(unittest.TestCase):
     def test_add(self):
         input_shape = [32, 32, 64, 64]
 
-        np_input1 = np.random.random(input_shape).astype(np.float16)
-        np_input2 = np.random.random(input_shape).astype(np.float16)
+        np_input1 = np.random.random(input_shape).astype(np.float32)
+        np_input2 = np.random.random(input_shape).astype(np.float32)
 
         torch_result = torch.add(
             torch.tensor(np_input1),

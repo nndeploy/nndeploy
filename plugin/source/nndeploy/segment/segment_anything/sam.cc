@@ -18,7 +18,7 @@ base::Status SamPostProcess::run() {
   SegmentResult *results = new SegmentResult();
 
   results->mask_ = mask;
-  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
+  outputs_[0]->set(results, false);
   return base::kStatusCodeOk;
 }
 
@@ -58,8 +58,7 @@ base::Status SamBuildInput::run() {
       desc.shape_.emplace_back(1);
       desc.shape_.emplace_back(2);
       desc.shape_.emplace_back(2);
-      device::Tensor *point_coords_tensor =
-          iter->create(cur_device, desc, inputs_[0]->getIndex(this));
+      device::Tensor *point_coords_tensor = iter->create(cur_device, desc);
 
       size_t size = point_coords_tensor->getSize();
       void *data = point_coords_tensor->getData();
@@ -70,8 +69,7 @@ base::Status SamBuildInput::run() {
       desc.data_format_ = base::kDataFormatNCL;
       desc.shape_.emplace_back(1);
       desc.shape_.emplace_back(1);
-      device::Tensor *point_labels_tensor =
-          iter->create(cur_device, desc, inputs_[0]->getIndex(this));
+      device::Tensor *point_labels_tensor = iter->create(cur_device, desc);
       size_t size = point_labels_tensor->getSize();
       void *data = point_labels_tensor->getData();
       std::memcpy(data, (void *)point_labels.data(), size);
@@ -80,8 +78,7 @@ base::Status SamBuildInput::run() {
       desc.data_type_ = base::dataTypeOf<float>();
       desc.data_format_ = base::kDataFormatN;
       desc.shape_.emplace_back(1);
-      device::Tensor *has_mask_input_tensor =
-          iter->create(cur_device, desc, inputs_[0]->getIndex(this));
+      device::Tensor *has_mask_input_tensor = iter->create(cur_device, desc);
       size_t size = has_mask_input_tensor->getSize();
       void *data = has_mask_input_tensor->getData();
       std::memcpy(data, (void *)has_mask_input.data(), size);
@@ -93,8 +90,7 @@ base::Status SamBuildInput::run() {
       desc.shape_.emplace_back(1);
       desc.shape_.emplace_back(256);
       desc.shape_.emplace_back(256);
-      device::Tensor *mask_input_tensor =
-          iter->create(cur_device, desc, inputs_[0]->getIndex(this));
+      device::Tensor *mask_input_tensor = iter->create(cur_device, desc);
       size_t size = mask_input_tensor->getSize();
       void *data = mask_input_tensor->getData();
       std::memcpy(data, (void *)mask_input.data(), size);
@@ -105,8 +101,7 @@ base::Status SamBuildInput::run() {
       desc.data_type_ = base::dataTypeOf<float>();
       desc.data_format_ = base::kDataFormatN;
       desc.shape_.emplace_back(2);
-      device::Tensor *orig_im_size_tensor =
-          iter->create(cur_device, desc, inputs_[0]->getIndex(this));
+      device::Tensor *orig_im_size_tensor = iter->create(cur_device, desc);
       size_t size = orig_im_size_tensor->getSize();
       void *data = orig_im_size_tensor->getData();
       std::memcpy(data, (void *)orig_im_size.data(), size);

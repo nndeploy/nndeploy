@@ -10,8 +10,8 @@ from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_
 class TestConvOp(unittest.TestCase):
 
     def test_conv_without_bias_0(self):
-        input_shape = [1, 3, 64, 64]
-        weight_shape = [64, 3, 3, 3]
+        input_shape = [1, 16, 64, 64]
+        weight_shape = [64, 16, 3, 3]
 
         np_input = np.random.random(input_shape).astype(np.float16)
 

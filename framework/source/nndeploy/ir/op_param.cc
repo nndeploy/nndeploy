@@ -322,8 +322,8 @@ OpType stringToOpType(const std::string &op_type_name) {
   return kOpTypeNone;
 }
 
-std::map<OpType, std::shared_ptr<OpParamCreator>> 
-&getGlobalOpParamCreatorMap() {
+std::map<OpType, std::shared_ptr<OpParamCreator>> &
+getGlobalOpParamCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<OpType, std::shared_ptr<OpParamCreator>>>
       creators;
@@ -385,6 +385,8 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeQuantizeLinear, QuantizeLinearParam);
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeDequantizeLinear, DequantizeLinearParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeQLinearConv, QLinearConvParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeAveragePool, AvaragePoolParam);
 
 }  // namespace ir
 }  // namespace nndeploy

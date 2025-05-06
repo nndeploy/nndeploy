@@ -163,7 +163,46 @@ class NNDEPLOY_CC_API Stream : public base::NonCopyable {
   virtual Device *getDevice() const;
 
   virtual base::Status synchronize();
+  /**
+   * @brief 在流中记录事件
+   * 示例:
+   * ```
+   * Stream *stream = device->createStream();
+   * Event *event = device->createEvent();
+   *
+   * // 执行一些操作
+   * kernel1<<<...>>>(stream->getNativeStream());
+   *
+   * // 在当前位置记录事件
+   * stream->recordEvent(event);
+   *
+   * // 继续执行其他操作
+   * kernel2<<<...>>>(stream->getNativeStream());
+   * ```
+   * @param event 要记录的事件对象指针
+   * @return base::Status 操作状态，成功返回kStatusCodeOk
+   */
   virtual base::Status recordEvent(Event *event);
+
+  /**
+   * @brief 等待事件完成
+   * 示例:
+   * ```
+   * Stream *stream1 = device->createStream();
+   * Stream *stream2 = device->createStream();
+   * Event *event = device->createEvent();
+   *
+   * // 在stream1中执行操作并记录事件
+   * kernel1<<<...>>>(stream1->getNativeStream());
+   * stream1->recordEvent(event);
+   *
+   * // stream2等待stream1中的event完成后才执行
+   * stream2->waitEvent(event);
+   * kernel2<<<...>>>(stream2->getNativeStream());
+   * ```
+   * @param event 要等待的事件对象指针
+   * @return base::Status 操作状态，成功返回kStatusCodeOk
+   */
   virtual base::Status waitEvent(Event *event);
 
   virtual base::Status onExecutionContextSetup();
@@ -189,7 +228,41 @@ class NNDEPLOY_CC_API Event : public base::NonCopyable {
   virtual base::DeviceType getDeviceType() const;
   virtual Device *getDevice() const;
 
+  /**
+   * @brief 查询事件是否已完成
+   *
+   * 非阻塞地检查事件是否已经完成执行。这个方法允许应用程序在不阻塞当前线程的情况下
+   * 检查事件状态。
+   * 示例:
+   * ```
+   * Event *event = device->createEvent();
+   * stream->recordEvent(event);
+   *
+   * // 稍后检查事件是否完成
+   * if (event->queryDone()) {
+   *   // 事件已完成，可以安全地访问相关资源
+   * }
+   * ```
+   * @return bool 如果事件已完成返回true，否则返回false
+   */
   virtual bool queryDone();
+
+  /**
+   * @brief 同步等待事件完成
+   * 阻塞当前线程直到事件完成。这个方法用于确保在继续执行之前，
+   * 与事件相关的所有操作都已完成。
+   * 示例:
+   * ```
+   * Event *event = device->createEvent();
+   * stream->recordEvent(event);
+   *
+   * // 等待事件完成
+   * event->synchronize();
+   *
+   * // 此时可以安全地访问相关资源
+   * ```
+   * @return base::Status 操作状态，成功返回kStatusCodeOk
+   */
   virtual base::Status synchronize();
 
   virtual void *getNativeEvent();

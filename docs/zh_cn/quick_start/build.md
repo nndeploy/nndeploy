@@ -1,7 +1,7 @@
 # 编译
 
 
-## 拉取源代码
+## 1. 拉取源代码
 
 ```shell
 git clone https://github.com/nndeploy/nndeploy.git
@@ -9,33 +9,51 @@ git submodule update --init --recursive
 ```
 
 
-## 编译宏介绍
+## 2. 编译宏介绍
 
-参考[config.cmake](../../../cmake/config.cmake) 详细介绍，该文件详细介绍了所有编译宏含义以及用法。
++ 参考[编译宏文档](./build_macro.md) 的详细介绍
+
+包含了以下几类配置：
+
+1. **基础构建选项（建议采用默认配置）**：如是否构建为共享库、使用的C++标准等
+2. **核心模块选项（建议采用默认配置）**：控制基础模块、线程池、设备模块等核心功能的开启
+3. **设备后端选项（按需打开，默认全部关闭，不依赖任何设备后端）**：如CUDA、OpenCL、各种NPU等硬件加速支持
+4. **算子后端选项（按需打开，默认全部关闭，不依赖任何算子后端）**：如cudnn
+5. **推理后端选项（按需打开，默认全部关闭，不依赖任何推理后端）**：如TensorRT、OpenVINO、ONNX Runtime等推理框架支持
+6. **算法插件选项（建议采用默认配置，传统CV类算法打开，语言类和文生图类算法默认关闭）**：如检测、分割、llm、文生图等算法插件
+    + 其中传统CV类算法依赖`OpenCV`，例如检测、分割、分类等，需要打开`ENABLE_NNDEPLOY_OPENCV`
+    + 其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，打开前参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)
+  
+## 3. 编译方法
+
+[config.cmake](../../../cmake/config.cmake)是nndeploy的编译配置文件，用于控制项目的编译选项。
+
+> 相比于原生cmake -D选项，用户配置好的编译选项文件，可保留下来多次使用，在文件上还可以增加注释，方便后续维护。
+
+> 相比编译脚本，无需为每个平台编写多种类型脚本，也不会遇到脚本环境问题，只需在根目录创建build目录，将[config.cmake](../../../cmake/config.cmake)复制到该目录，然后修改config.cmake文件，即可开始编译。
+
+假设你在根目录下，具体命令行如下：
+
+```shell
+mkdir build                 # 创建build目录
+cp cmake/config.cmake build # 将编译配置模板复制到build目录
+cd build                    # 进入build目录
+vim config.cmake            # 使用编辑器vscode等工具直接修改config.cmake文件
+cmake ..                    # 生成构建文件
+make -j                     # 使用8个线程并行编译
+```
 
 
-## config.cmake的编辑规则
-
-+ `X86`设备。`set(ENABLE_NNDEPLOY_DEVICE_X86 ON)`，如果你想使能其他设备（ARM、X86、CUDA …），也可做同样的处理
-+ `nndeploy`通过路径的方式链接推理后端`ONNXRuntime`。`set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "path/onnxruntime")`，如果你想启用并链接其他推理后端（OpenVINO、MNN、TNN …），也可做同样的处理
-+ `nndeploy`通过find_package的方式链接推理后端`TensorRT`。`set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON)`，对于其他可以通过find_package找到的库，也可做同样的处理
-+ 模型部署实例。首先将模型类别`set(NABLE_NNDEPLOY_MODEL_XXX ON)`，再将具体的模型`set(NABLE_NNDEPLOY_MODEL_XXX_YYY ON)`
-+ 可执行程序，`set(ENABLE_NNDEPLOY_DEMO ON)`
-
-### `使能并链接第三方库的两种方法`
-+ `方法一`：路径`path`，头文件以及库的根路径，其形式必须修改为
-  + 头文件：`path/include`
-  + 库：`path/lib `
-  + windows dll: `path/bin`
-+ `方法二`：开关`ON`，如果你安装了该库，并且可以通过find_package找到该库，可以采用该方式，例如CUDA、CUDNN、OpenCV、TenosrRT
-
-
-## 主库编译
+## 4. 主库编译
 
 + 默认编译产物为：libnndeploy_framework.so
++ 算法插件编译产物为：libnndeploy_plugin_xxx.so
++ 可执行程序编译产物为：nndeploy_demo_xxx
+
+> 注：xxx代表特定算法插件和特定的可执行程序，例如：nndeploy_plugin_detect.so、nndeploy_demo_detect、nndeploy_demo_dag
   
 
-## Windows
+## 5. Windows
 
 + 环境要求
   + cmake >= 3.12
@@ -61,8 +79,6 @@ git submodule update --init --recursive
     cp cmake/config.cmake build
     cd build
     ```
-
-  + 编辑`build/config.cmake`自定义编译选项（笔者的自定义编译选项：[path/cmake/config_windows.cmake](../../../cmake/config_windows.cmake)）
      
   + 开始`cmake`
     ```
@@ -101,8 +117,6 @@ git submodule update --init --recursive
     cp cmake/config.cmake build
     cd build
     ```
-
-  + 编辑`build/config.cmake`自定义编译选项（笔者的自定义编译选项：[path/cmake/config_linux.cmake](../../../cmake/config_linux.cmake)）
       
   + `cmake`
     ```
@@ -118,9 +132,6 @@ git submodule update --init --recursive
      ```
     make install
     ```
-
-  + 让python 可以识别, 参考 nndeploy/python/README.md
-
 
 ## Android
 
@@ -146,8 +157,6 @@ git submodule update --init --recursive
     cp cmake/config.cmake build
     cd build
     ```
-
-  + 编辑`build/config.cmake`自定义编译选项（笔者的自定义编译选项：[path/cmake/config_android.cmake](../../../cmake/config_android.cmake)）
       
   + 开始`cmake`，需要指定ndk
     ```
@@ -178,6 +187,50 @@ git submodule update --init --recursive
   + xcode
 
 
+## Linux + 华为昇腾
+
+
++ 环境要求
+  + cmake >= 3.12
+  + gcc >= 5.1
+
++ nndeploy提供的第三方库
+
+  |                        第三方库                         |  主版本  |                                       Linux下载链接                                       | 备注  |
+  | :-----------------------------------------------------: | :------: | :---------------------------------------------------------------------------------------: | :---: |
+  | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | v1.15.1  | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/ubuntu22.04_x64.tar |       |
+
+  注：将上述所有库打包为一个压缩包ubuntu22.04_arm64.tar，存放在huggingface上，使用前请将压缩包ubuntu22.04_arm64.tar解压
+
+  + 安装opencv
+    + `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
+  + 安装AscendCL sdk [ascend_env.md](./ascend_env.md)
+
+  
++ 具体步骤
+  + 在根目录创建`build`目录，将`cmake/config.cmake`复制到该目录
+    ```
+    mkdir build
+    cp cmake/config.cmake build
+    cd build
+    ```
+      
+  + `cmake`
+    ```
+    cmake ..
+    ```
+
+  + 编译
+     ```
+    make -j
+    ```
+
+  + 安装, 将nndeploy的库、可执行文件、第三方库安装至build/install/lib
+     ```
+    make install
+    ```
+
+
 ## 第三方库官方编译文档以及下载链接
 
 |                        第三方库                         |  主版本  |                                          编译文档                                           |                                                                               官方库下载链接                                                                               |         备注         |
@@ -201,29 +254,4 @@ git submodule update --init --recursive
 
 - 在windows平台下，系统目录自带onnxruntime，故你在运行时或许可能会链接到系统目录下自带的onnxruntime，从而导致运行时出错。解决办法
   - 将你自己的onnxruntime库拷贝至build目录下
-
-- 使能ENABLE_NNDEPLOY_NET，需要链接onnx和protobuf，会出现如下cmake error，实际已经完成了cmake，故可以继续make，make不会报错
-  ```shell
-  CMake Error in third_party/onnx/CMakeLists.txt:
-  export called with target "onnx_proto" which requires target "libprotobuf"
-  that is not in any export set.
-  ```
-
-## 具体平台的编译步骤
-
-- nndeploy的基于华为昇腾推理框架后端编译步骤
-  - 编译选项配置可参考[nndeploy\cmake\config_ascendcl_inference.cmake](../../../cmake/config_ascendcl_inference.cmake)
-  - 具体步骤: 
-    - 安装cann_toolkit等开发环境
-    - 安装opencv(建议：通过apt install安装，通过指定ENABLE_NNDEPLOY_OPENCV为ON，从而开启该编译选项)
-    - 安装onnxruntime(建议：手动下载动态库，通过指定ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME为具体路径，从而开启该编译选项)
-    - 在根目录创建`build`目录，将[nndeploy\cmake\config_ascendcl_inference.cmake](../../../cmake/config_ascendcl_inference.cmake)复制到该目录，并修改为config.cmake, 根据需求修改config.cmake
-      ```
-      mkdir build
-      cp cmake\config_ascendcl_inference.cmake build
-      cd build
-      mv config_ascendcl_inference.cmake config.cmake
-      cmake ..
-      make -j
-      ```
 

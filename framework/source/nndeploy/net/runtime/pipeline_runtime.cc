@@ -25,7 +25,8 @@ base::Status PipelineRuntime::init(
     std::vector<OpWrapper *> &op_repository,
     std::vector<device::Tensor *> &input_tensors,
     std::vector<device::Tensor *> &output_tensors, bool is_dynamic_shape,
-    base::ShapeMap max_shape, TensorPoolType tensor_pool_type) {
+    base::ShapeMap max_shape, TensorPoolType tensor_pool_type,
+    bool is_external_tensor_pool_memory) {
   base::Status status = base::kStatusCodeOk;
 
   input_tensors_ = input_tensors;
@@ -243,10 +244,12 @@ base::Status PipelineRuntime::init(
         }
       }
     }
+    // 不能使用共享内存
+    is_external_tensor_pool_memory_ = is_external_tensor_pool_memory;
     status = sequential_runtime->init(
         stage->tensor_wrappers_, stage->op_wrappers_, new_stage_input_tensors_,
         new_stage_output_tensors_, is_dynamic_shape, max_shape,
-        tensor_pool_type);
+        tensor_pool_type, false);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("SequentialRuntime init failed at stage %d\n", i);
       return status;

@@ -137,7 +137,7 @@ base::Status YoloMultiOutputPostProcess::run() {
     results_batch.bboxs_[n].bbox_[3] /= param->model_h_;
     results->bboxs_.emplace_back(results_batch.bboxs_[n]);
   }
-  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
+  outputs_[0]->set(results, false);
   return base::kStatusCodeOk;
 }
 
@@ -147,12 +147,14 @@ base::Status YoloMultiOutputPostProcess::run() {
 //                                          dag::Edge *input, dag::Edge *output,
 //                                          base::ModelType model_type,
 //                                          bool is_path,
-//                                          std::vector<std::string> model_value) {
+//                                          std::vector<std::string>
+//                                          model_value) {
 //   dag::Graph *graph = new dag::Graph(name, {input}, {output});
 //   dag::Edge *infer_input = graph->createEdge("infer_input");
-//   dag::Edge *edge_stride_8 = graph->createEdge("output");  // [1, 3, 80, 80, 85]
-//   dag::Edge *edge_stride_16 = graph->createEdge("376");    // [1, 3, 40, 40, 85]
-//   dag::Edge *edge_stride_32 = graph->createEdge("401");    // [1, 3, 20, 20, 85]
+//   dag::Edge *edge_stride_8 = graph->createEdge("output");  // [1, 3, 80, 80,
+//   85] dag::Edge *edge_stride_16 = graph->createEdge("376");    // [1, 3, 40,
+//   40, 85] dag::Edge *edge_stride_32 = graph->createEdge("401");    // [1, 3,
+//   20, 20, 85]
 
 //   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
 //       "preprocess", {input}, {infer_input});
@@ -164,7 +166,8 @@ base::Status YoloMultiOutputPostProcess::run() {
 //   infer->setInferenceType(inference_type);
 
 //   dag::Node *post = graph->createNode<YoloMultiOutputPostProcess>(
-//       "postprocess", {edge_stride_8, edge_stride_16, edge_stride_32}, {output});
+//       "postprocess", {edge_stride_8, edge_stride_16, edge_stride_32},
+//       {output});
 
 //   preprocess::CvtclorResizeParam *pre_param =
 //       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());

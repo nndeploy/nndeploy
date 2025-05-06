@@ -46,7 +46,6 @@ class TensorPool1DOffsetCalculateGreedyByBreadth : public TensorPool1D {
   // 记录已经处理过的tensor：由于延迟开辟内存，无法根据tensor的allocated属性判断
   int tensor_num_ = 0;
   int64_t total_consumption_ = -1;
-  bool is_external_ = false;
   device::Buffer *mem_block_ = nullptr;
 };
 
