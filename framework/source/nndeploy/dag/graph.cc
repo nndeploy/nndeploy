@@ -451,23 +451,34 @@ std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
   return outputs;
 };
 std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
-  this->markInputEdge(inputs);
-  std::vector<Edge *> outputs = this->forward(inputs);
-  if (graph_ != nullptr) {
-    base::Status status = graph_->updateNodeIO(this, inputs, outputs);
+  if (traced_) {
+    NNDEPLOY_LOGI("graph traced!\n");
+    base::Status status = this->run();
     if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+      NNDEPLOY_LOGE("graph run failed!");
       return std::vector<Edge *>();
     }
-    // for (auto input : inputs) {
-    //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
-    // }
-    // for (auto output : outputs) {
-    //   NNDEPLOY_LOGE("output->getName(): %s.\n", output->getName().c_str());
-    // }
+    return outputs_;
+  } else {
+    NNDEPLOY_LOGI("graph not traced!\n");
+    this->markInputEdge(inputs);
+    std::vector<Edge *> outputs = this->forward(inputs);
+    if (graph_ != nullptr) {
+      base::Status status = graph_->updateNodeIO(this, inputs, outputs);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+        return std::vector<Edge *>();
+      }
+      // for (auto input : inputs) {
+      //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
+      // }
+      // for (auto output : outputs) {
+      //   NNDEPLOY_LOGE("output->getName(): %s.\n", output->getName().c_str());
+      // }
+    }
+    this->markOutputEdge(outputs);
+    return outputs;
   }
-  this->markOutputEdge(outputs);
-  return outputs;
 }
 
 base::Status Graph::dump(std::ostream &oss) {
@@ -477,10 +488,28 @@ base::Status Graph::dump(std::ostream &oss) {
   return status;
 }
 
-base::Status Graph::trace(std::vector<Edge *> inputs,
-                          std::vector<Edge *> outputs) {
+void Graph::setTraceFlag(bool flag) {
+  for (auto node_wrapper : node_repository_) {
+    node_wrapper->node_->setTraceFlag(flag);
+  }
+}
+
+std::vector<Edge *> Graph::trace(std::vector<Edge *> inputs) {
   base::Status status = base::kStatusCodeOk;
-  return status;
+  this->setTraceFlag(true);
+  std::vector<Edge *> outputs = this->operator()(inputs);
+  status = this->init();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("init failed!");
+    return std::vector<Edge *>();
+  }
+  status = this->dump();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("dump failed!");
+    return std::vector<Edge *>();
+  }
+  traced_ = true;
+  return outputs;
 }
 
 base::Status Graph::construct() {

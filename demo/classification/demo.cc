@@ -152,30 +152,59 @@ int main(int argc, char *argv[]) {
 
   graph_demo.setInferParam(device_type, model_type, is_path, model_value);
 
-  std::vector<dag::Edge *> inputs;
-  std::vector<dag::Edge *> outputs;
+  // 设置pipeline并行
+  base::Status status = graph_demo.setParallelType(pt);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph setParallelType failed");
+    return -1;
+  }
 
-  graph_demo.trace(inputs, outputs);
+  std::vector<dag::Edge *> inputs;
+  // std::vector<dag::Edge *> outputs;
+
+  std::vector<dag::Edge *> outputs = graph_demo.trace(inputs);
 
   graph_demo.setInputPath(input_path);
   graph_demo.setOutputPath(ouput_path);
   graph_demo.setRefPath(input_path);
 
-  for (int i = 0; i < 100; i++) {
-    NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
-    graph_demo(inputs);
-    NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
+  NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
+  int size = 100;
+  for (int i = 0; i < size; i++) {
+    outputs = graph_demo(inputs);
+    if (pt != base::kParallelTypePipeline) {
+      classification::ClassificationResult *result =
+          (classification::ClassificationResult *)outputs[0]
+              ->getGraphOutputParam();
+      if (result == nullptr) {
+        NNDEPLOY_LOGE("result is nullptr");
+        return -1;
+      }
+    }
   }
+  if (pt == base::kParallelTypePipeline) {
+    for (int i = 0; i < size; ++i) {
+      classification::ClassificationResult *result =
+          (classification::ClassificationResult *)outputs[0]
+              ->getGraphOutputParam();
+      NNDEPLOY_LOGE("%d %p.\n", i, result);
+      if (result == nullptr) {
+        NNDEPLOY_LOGE("result is nullptr");
+        return -1;
+      }
+    }
+  }
+  NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
 
   NNDEPLOY_LOGI("###########################\n");
   NNDEPLOY_LOGI("graph_demo.dump()\n");
   NNDEPLOY_LOGI("###########################\n");
 
   // just for dump
-  graph_demo.init();
-  graph_demo.dump();
-  graph_demo.graph_->dump();
-  graph_demo.deinit();
+  // graph_demo.init();
+  // graph_demo.dump();
+  // graph_demo.graph_->dump();
+  // graph_demo.deinit();
 
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
   NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);

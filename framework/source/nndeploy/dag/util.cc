@@ -121,14 +121,15 @@ base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
   if (name.empty()) {
     oss << "digraph graph {\n";
   } else {
-    oss << "digraph " << name << " {\n";
+    std::string label = "\"" + name + "\"";
+    oss << "digraph " << label << " {\n";
   }
   for (auto input : graph_inputs) {
     if (input->getName().empty()) {
       oss << "p" << (void *)input << "[shape=box, label=input]\n";
     } else {
-      oss << "p" << (void *)input << "[shape=box, label=" << input->getName()
-          << "]\n";
+      std::string label = "\"" + input->getName() + "\"";
+      oss << "p" << (void *)input << "[shape=box, label=" << label << "]\n";
     }
     EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository, input);
     for (auto node_wrapper : edge_wrapper->consumers_) {
@@ -138,7 +139,8 @@ base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
       if (input->getName().empty()) {
         oss << "\n";
       } else {
-        oss << "[label=" << input->getName() << "]\n";
+        std::string label = "\"" + input->getName() + "\"";
+        oss << "[label=" << label << "]\n";
       }
     }
   }
@@ -147,7 +149,8 @@ base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
     if (node->getName().empty()) {
       oss << "p" << (void *)node << "[label=node]\n";
     } else {
-      oss << "p" << (void *)node << "[label=" << node->getName() << "]\n";
+      std::string label = "\"" + node->getName() + "\"";
+      oss << "p" << (void *)node << "[label=" << label << "]\n";
     }
     for (auto successor : node_wrapper->successors_) {
       auto outputs = node->getAllOutput();
@@ -166,7 +169,8 @@ base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
           if (out_in->getName().empty()) {
             oss << "\n";
           } else {
-            oss << "[label=" << out_in->getName() << "]\n";
+            std::string label = "\"" + out_in->getName() + "\"";
+            oss << "[label=" << label << "]\n";
           }
         }
       }
@@ -176,8 +180,8 @@ base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
     if (output->getName().empty()) {
       oss << "p" << (void *)output << "[shape=box, label=output]\n";
     } else {
-      oss << "p" << (void *)output << "[shape=box, label=" << output->getName()
-          << "]\n";
+      std::string label = "\"" + output->getName() + "\"";
+      oss << "p" << (void *)output << "[shape=box, label=" << label << "]\n";
     }
     EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository, output);
     for (auto node_wrapper : edge_wrapper->producers_) {
@@ -187,7 +191,8 @@ base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
       if (output->getName().empty()) {
         oss << "\n";
       } else {
-        oss << "[label=" << output->getName() << "]\n";
+        std::string label = "\"" + output->getName() + "\"";
+        oss << "[label=" << label << "]\n";
       }
     }
   }

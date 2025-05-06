@@ -438,14 +438,14 @@ base::EdgeUpdateFlag Node::updateInput() {
 }
 
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
-  // check
-  if (!this->checkInputs(inputs)) {
-    return std::vector<Edge *>();
-  }
   // init
   if (initialized_ == false) {
     this->init();
     this->setInitializedFlag(true);
+  }
+  // check
+  if (!this->checkInputs(inputs)) {
+    return std::vector<Edge *>();
   }
   bool is_inputs_changed = this->isInputsChanged(inputs);
   if (!inputs.empty()) {
@@ -481,11 +481,6 @@ std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
       return std::vector<Edge *>();
     }
   }
-  // init
-  // if (initialized_ == false) {
-  //   this->init();
-  //   this->setInitializedFlag(true);
-  // }
   if (!is_inputs_changed && is_trace_) {
     return outputs;
   } else {

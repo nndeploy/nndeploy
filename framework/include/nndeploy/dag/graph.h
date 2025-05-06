@@ -52,13 +52,52 @@ class NNDEPLOY_CC_API Graph : public Node {
                          bool is_external = true);
 
   // create node
-  // recommended api
   Node *createNode(const NodeDesc &desc);
   template <typename... Args>
   Node *createNode(const NodeDesc &desc, Args &...args);
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const NodeDesc &desc, Args &...args);
+
+  // add node
+  base::Status addNode(Node *node, bool is_external = true);
+  base::Status addNodeSharedPtr(std::shared_ptr<Node> node);
+
+  // set node param
+  base::Status setNodeParam(const std::string &node_name, base::Param *param);
+  base::Param *getNodeParam(const std::string &node_name);
+  base::Status setNodeParamSharedPtr(const std::string &node_name,
+                                     std::shared_ptr<base::Param> param);
+  std::shared_ptr<base::Param> getNodeParamSharedPtr(
+      const std::string &node_name);
+
+  // set graph node share stream
+  void setGraphNodeShareStream(bool flag);
+  bool getGraphNodeShareStream();
+
+  // update node io
+  base::Status updateNodeIO(Node *node, std::vector<Edge *> inputs,
+                            std::vector<Edge *> outputs);
+  base::Status markInputEdge(std::vector<Edge *> inputs);
+  base::Status markOutputEdge(std::vector<Edge *> outputs);
+
+  virtual base::Status init();
+  virtual base::Status deinit();
+
+  virtual base::Status run();
+
+  // This method must be implemented by subclasses
+  // Subclasses should override this method to define their own operator()
+  // implementation
+  virtual std::vector<Edge *> forward(std::vector<Edge *> inputs);
+  virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs);
+
+  base::Status dump(std::ostream &oss = std::cout);
+
+  virtual void setTraceFlag(bool flag);
+  std::vector<Edge *> trace(std::vector<Edge *> inputs);
+
+  // create node
   // Not recommended api
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
@@ -175,43 +214,6 @@ class NNDEPLOY_CC_API Graph : public Node {
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::initializer_list<std::string> input_names,
                     std::initializer_list<Edge *> outputs);
-
-  // add node
-  base::Status addNode(Node *node, bool is_external = true);
-  base::Status addNodeSharedPtr(std::shared_ptr<Node> node);
-
-  // set node param
-  base::Status setNodeParam(const std::string &node_name, base::Param *param);
-  base::Param *getNodeParam(const std::string &node_name);
-  base::Status setNodeParamSharedPtr(const std::string &node_name,
-                                     std::shared_ptr<base::Param> param);
-  std::shared_ptr<base::Param> getNodeParamSharedPtr(
-      const std::string &node_name);
-
-  // set graph node share stream
-  void setGraphNodeShareStream(bool flag);
-  bool getGraphNodeShareStream();
-
-  // update node io
-  base::Status updateNodeIO(Node *node, std::vector<Edge *> inputs,
-                            std::vector<Edge *> outputs);
-  base::Status markInputEdge(std::vector<Edge *> inputs);
-  base::Status markOutputEdge(std::vector<Edge *> outputs);
-
-  virtual base::Status init();
-  virtual base::Status deinit();
-
-  virtual base::Status run();
-
-  // This method must be implemented by subclasses
-  // Subclasses should override this method to define their own operator()
-  // implementation
-  virtual std::vector<Edge *> forward(std::vector<Edge *> inputs);
-  virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs);
-
-  base::Status dump(std::ostream &oss = std::cout);
-
-  base::Status trace(std::vector<Edge *> inputs, std::vector<Edge *> outputs);
 
  protected:
   virtual base::Status construct();

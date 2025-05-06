@@ -148,7 +148,7 @@ class NNDEPLOY_CC_API Node {
   void setRunningFlag(bool flag);
   bool isRunning();
 
-  void setTraceFlag(bool flag);
+  virtual void setTraceFlag(bool flag);
   bool getTraceFlag();
 
   void setGraphFlag(bool flag);
@@ -265,6 +265,7 @@ class NNDEPLOY_CC_API Node {
   bool is_time_profile_ = false;
   bool is_debug_ = false;
   bool is_trace_ = false;
+  bool traced_ = false;
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
 };
