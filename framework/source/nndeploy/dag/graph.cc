@@ -482,9 +482,173 @@ std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
 }
 
 base::Status Graph::dump(std::ostream &oss) {
-  base::Status status = dumpDag(edge_repository_, node_repository_, inputs_,
-                                outputs_, name_, is_inner_, oss);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "dump failed!");
+  base::Status status = base::kStatusCodeOk;
+  // start
+  if (is_inner_) {
+    if (name_.empty()) {
+      oss << "subgraph cluster " << base::getUniqueString() << "{\n";
+    } else {
+      std::string label = "\"cluster " + name_ + "\"";
+      oss << "subgraph " << label << " {\n";
+      oss << "label = \"" + name_ + "\";\n";
+    }
+    oss << "color = blue;\n";
+  } else {
+    if (name_.empty()) {
+      oss << "digraph graph {\n";
+    } else {
+      oss << "digraph " << name_ << " {\n";
+    }
+    for (auto input : inputs_) {
+      if (input->getName().empty()) {
+        oss << "p" << (void *)input << "[shape=diamond, label=input]\n";
+      } else {
+        std::string label = "\"" + input->getName() + "\"";
+        oss << "p" << (void *)input << "[shape=diamond, label=" << label
+            << "]\n";
+      }
+      EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, input);
+      std::vector<Node *> consumers;
+      for (auto consumer : edge_wrapper->consumers_) {
+        auto consumer_node = consumer->node_;
+        if (consumer_node->getGraphFlag()) {
+          Graph *graph = (Graph *)consumer_node;
+          EdgeWrapper *inner_edge_wrapper =
+              graph->getEdgeWrapper(edge_wrapper->edge_);
+          if (inner_edge_wrapper == nullptr) {
+            // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+            //               edge_wrapper->name_.c_str());
+            continue;
+          }
+          for (auto consumer : inner_edge_wrapper->consumers_) {
+            consumers.emplace_back(consumer->node_);
+          }
+        } else {
+          consumers.emplace_back(consumer_node);
+        }
+      }
+      for (auto node : consumers) {
+        oss << "p" << (void *)input << "->"
+            << "p" << (void *)node;
+        if (input->getName().empty()) {
+          oss << "\n";
+        } else {
+          std::string label = "\"" + input->getName() + "\"";
+          oss << "[label=" << label << "]\n";
+        }
+      }
+    }
+    for (auto output : outputs_) {
+      if (output->getName().empty()) {
+        oss << "p" << (void *)output << "[shape=diamond, label=output]\n";
+      } else {
+        std::string label = "\"" + output->getName() + "\"";
+        oss << "p" << (void *)output << "[shape=diamond, label=" << label
+            << "]\n";
+      }
+      EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, output);
+      std::vector<Node *> producers;
+      for (auto producer : edge_wrapper->producers_) {
+        auto producer_node = producer->node_;
+        if (producer_node->getGraphFlag()) {
+          Graph *graph = (Graph *)producer_node;
+          EdgeWrapper *inner_edge_wrapper =
+              graph->getEdgeWrapper(edge_wrapper->edge_);
+          if (inner_edge_wrapper == nullptr) {
+            // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+            //               edge_wrapper->name_.c_str());
+            continue;
+          }
+          for (auto producer : inner_edge_wrapper->producers_) {
+            producers.emplace_back(producer->node_);
+          }
+        } else {
+          producers.emplace_back(producer_node);
+        }
+      }
+      for (auto node : producers) {
+        oss << "p" << (void *)node << "->"
+            << "p" << (void *)output;
+        if (output->getName().empty()) {
+          oss << "\n";
+        } else {
+          std::string label = "\"" + output->getName() + "\"";
+          oss << "[label=" << label << "]\n";
+        }
+      }
+    }
+  }
+  // dump node
+  for (auto node_wrapper : node_repository_) {
+    Node *node = node_wrapper->node_;
+    if (node->getGraphFlag()) {
+      Graph *graph = (Graph *)node;
+      graph->dump(oss);
+    } else {
+      if (node->getName().empty()) {
+        oss << "p" << (void *)node << "[label=node]\n";
+      } else {
+        std::string label = "\"" + node->getName() + "\"";
+        oss << "p" << (void *)node << "[label=" << label << "]\n";
+      }
+    }
+  }
+  // dump edge
+  for (auto edge_wrapper : edge_repository_) {
+    std::vector<Node *> producers;
+    for (auto producer : edge_wrapper->producers_) {
+      auto producer_node = producer->node_;
+      if (producer_node->getGraphFlag()) {
+        Graph *graph = (Graph *)producer_node;
+        EdgeWrapper *inner_edge_wrapper =
+            graph->getEdgeWrapper(edge_wrapper->edge_);
+        if (inner_edge_wrapper == nullptr) {
+          // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+          //               edge_wrapper->name_.c_str());
+          continue;
+        }
+        for (auto producer : inner_edge_wrapper->producers_) {
+          producers.emplace_back(producer->node_);
+        }
+      } else {
+        producers.emplace_back(producer_node);
+      }
+    }
+    std::vector<Node *> consumers;
+    for (auto consumer : edge_wrapper->consumers_) {
+      auto consumer_node = consumer->node_;
+      if (consumer_node->getGraphFlag()) {
+        Graph *graph = (Graph *)consumer_node;
+        EdgeWrapper *inner_edge_wrapper =
+            graph->getEdgeWrapper(edge_wrapper->edge_);
+        if (inner_edge_wrapper == nullptr) {
+          // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+          //               edge_wrapper->name_.c_str());
+          continue;
+        }
+        for (auto consumer : inner_edge_wrapper->consumers_) {
+          consumers.emplace_back(consumer->node_);
+        }
+      } else {
+        consumers.emplace_back(consumer_node);
+      }
+    }
+    for (auto producer : producers) {
+      for (auto consumer : consumers) {
+        oss << "p" << (void *)producer << "->"
+            << "p" << (void *)consumer;
+        if (edge_wrapper->edge_->getName().empty()) {
+          oss << "\n";
+        } else {
+          std::string label = "\"" + edge_wrapper->edge_->getName() + "\"";
+          oss << "[label=" << label << "]\n";
+        }
+      }
+    }
+  }
+
+  // end
+  oss << "}\n";
   return status;
 }
 
@@ -688,6 +852,19 @@ base::Status Graph::executor() {
 
   // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
   return status;
+}
+
+EdgeWrapper *Graph::getEdgeWrapper(Edge *edge) {
+  return findEdgeWrapper(edge_repository_, edge);
+}
+
+EdgeWrapper *Graph::getEdgeWrapper(const std::string &name) {
+  for (auto edge_wrapper : edge_repository_) {
+    if (edge_wrapper->name_ == name) {
+      return edge_wrapper;
+    }
+  }
+  return nullptr;
 }
 
 REGISTER_NODE("nndeploy::dag::Graph", Graph);

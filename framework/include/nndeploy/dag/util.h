@@ -62,8 +62,7 @@ base::Status dumpDag(std::vector<EdgeWrapper *> &edge_repository,
                      std::vector<NodeWrapper *> &node_repository,
                      std::vector<Edge *> &graph_inputs,
                      std::vector<Edge *> &graph_outputs,
-                     const std::string &name, bool is_inner_graph,
-                     std::ostream &oss);
+                     const std::string &name, std::ostream &oss);
 
 std::vector<NodeWrapper *> checkUnuseNode(
     std::vector<NodeWrapper *> &node_repository);

@@ -218,6 +218,8 @@ class NNDEPLOY_CC_API Graph : public Node {
  protected:
   virtual base::Status construct();
   virtual base::Status executor();
+  EdgeWrapper *getEdgeWrapper(Edge *edge);
+  EdgeWrapper *getEdgeWrapper(const std::string &name);
 
  protected:
   bool is_graph_node_share_stream_ = true;
@@ -317,7 +319,6 @@ Node *Graph::createNode(const std::string &name, const std::string &input_name,
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
   node->setGraph(this);
-  ;
   return node;
 }
 
@@ -474,7 +475,6 @@ Node *Graph::createNode(const std::string &name,
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
   node->setGraph(this);
-  ;
   return node;
 }
 
@@ -597,7 +597,6 @@ Node *Graph::createNode(const std::string &name,
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
   node->setGraph(this);
-  ;
   return node;
 }
 
