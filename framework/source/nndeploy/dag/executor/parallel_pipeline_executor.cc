@@ -4,9 +4,9 @@
 namespace nndeploy {
 namespace dag {
 
-ParallelPipelineExecutor::ParallelPipelineExecutor() : Executor(){};
+ParallelPipelineExecutor::ParallelPipelineExecutor() : Executor() {};
 
-ParallelPipelineExecutor::~ParallelPipelineExecutor(){};
+ParallelPipelineExecutor::~ParallelPipelineExecutor() {};
 
 base::Status ParallelPipelineExecutor::init(
     std::vector<EdgeWrapper*>& edge_repository,
@@ -38,6 +38,13 @@ base::Status ParallelPipelineExecutor::init(
 
 base::Status ParallelPipelineExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
+  std::unique_lock<std::mutex> lock(pipeline_mutex_);
+  pipeline_cv_.wait(lock, [this]() {
+    NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
+                  std::this_thread::get_id(), completed_size_, run_size_);
+    bool flag = completed_size_ == run_size_;
+    return flag;
+  });
   for (auto iter : edge_repository_) {
     bool flag = iter->edge_->requestTerminate();
     if (!flag) {
@@ -63,12 +70,15 @@ base::Status ParallelPipelineExecutor::deinit() {
  * @return base::Status
  * @note 线程处于挂起状态基本不会占用资源
  */
-base::Status ParallelPipelineExecutor::run() { return base::kStatusCodeOk; }
+base::Status ParallelPipelineExecutor::run() {
+  run_size_++;
+  return base::kStatusCodeOk;
+}
 
 void ParallelPipelineExecutor::commitThreadPool() {
   // NNDEPLOY_LOGE("ppe run Thread ID: %d.\n", std::this_thread::get_id());
   for (auto iter : topo_sort_node_) {
-    auto func = [iter]() -> base::Status {
+    auto func = [iter, this]() -> base::Status {
       base::Status status = base::kStatusCodeOk;
       while (true) {
         base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
@@ -78,6 +88,13 @@ void ParallelPipelineExecutor::commitThreadPool() {
           NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                                  "node execute failed!\n");
           iter->node_->setRunningFlag(false);
+          if (iter == topo_sort_node_.back()) {
+            std::lock_guard<std::mutex> lock(pipeline_mutex_);
+            completed_size_++;
+            if (completed_size_ == run_size_) {
+              pipeline_cv_.notify_all();
+            }
+          }
         } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
           break;
         } else {

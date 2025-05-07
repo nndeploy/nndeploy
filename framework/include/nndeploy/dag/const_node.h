@@ -20,7 +20,7 @@ class ConstNode : public Node {
       constructed_ = false;
       return;
     }
-    if (outputs.size() > 1) {
+    if (outputs.size() != 1) {
       NNDEPLOY_LOGE("ConstNode only support one output");
       constructed_ = false;
       return;
@@ -29,13 +29,17 @@ class ConstNode : public Node {
   }
   virtual ~ConstNode() {}
 
-  virtual base::Status run() {
-    if (outputs_.size() == 0) {
-      NNDEPLOY_LOGE("ConstNode output is empty");
+  template <typename T>
+  base::Status setOutputType() {
+    if (outputs_.size() != 1) {
+      NNDEPLOY_LOGE("ConstNode only support one output");
+      constructed_ = false;
       return base::kStatusCodeErrorInvalidParam;
     }
-    return base::kStatusCodeOk;
+    return this->setOutputTypeInfo<T>();
   }
+
+  virtual base::Status run() { return base::kStatusCodeOk; }
 };
 
 }  // namespace dag
