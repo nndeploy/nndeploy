@@ -63,6 +63,10 @@ class NNDEPLOY_CC_API Graph : public Node {
   base::Status addNode(Node *node, bool is_external = true);
   base::Status addNodeSharedPtr(std::shared_ptr<Node> node);
 
+  // get node
+  Node *getNode(const std::string &name);
+  std::shared_ptr<Node> getNodeSharedPtr(const std::string &name);
+
   // set node param
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
   base::Param *getNodeParam(const std::string &node_name);
@@ -70,6 +74,8 @@ class NNDEPLOY_CC_API Graph : public Node {
                                      std::shared_ptr<base::Param> param);
   std::shared_ptr<base::Param> getNodeParamSharedPtr(
       const std::string &node_name);
+  base::Status setNodeParallelType(const std::string &node_name,
+                                   base::ParallelType parallel_type);
 
   // set graph node share stream
   void setGraphNodeShareStream(bool flag);
@@ -217,6 +223,9 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   EdgeWrapper *getEdgeWrapper(Edge *edge);
   EdgeWrapper *getEdgeWrapper(const std::string &name);
+
+  NodeWrapper *getNodeWrapper(Node *node);
+  NodeWrapper *getNodeWrapper(const std::string &name);
 
  protected:
   virtual base::Status construct();

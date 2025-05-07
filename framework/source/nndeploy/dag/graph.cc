@@ -267,6 +267,23 @@ base::Status Graph::addNodeSharedPtr(std::shared_ptr<Node> node) {
   return status;
 }
 
+Node *Graph::getNode(const std::string &name) {
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->name_ == name) {
+      return node_wrapper->node_;
+    }
+  }
+}
+
+std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string &name) {
+  for (auto node_ptr : shared_node_repository_) {
+    if (node_ptr->getName() == name) {
+      return node_ptr;
+    }
+  }
+  return nullptr;
+}
+
 base::Status Graph::setNodeParam(const std::string &node_name,
                                  base::Param *param) {
   base::Status status = base::kStatusCodeOk;
@@ -295,6 +312,14 @@ std::shared_ptr<base::Param> Graph::getNodeParamSharedPtr(
   NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_NULL(node_wrapper, "node_wrapper is null!");
   return node_wrapper->node_->getParamSharedPtr();
+}
+
+base::Status Graph::setNodeParallelType(const std::string &node_name,
+                                        base::ParallelType parallel_type) {
+  NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
+  NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper, "node_wrapper is null!");
+  base::Status status = node_wrapper->node_->setParallelType(parallel_type);
+  return status;
 }
 
 void Graph::setGraphNodeShareStream(bool flag) {
@@ -869,6 +894,14 @@ EdgeWrapper *Graph::getEdgeWrapper(const std::string &name) {
     }
   }
   return nullptr;
+}
+
+NodeWrapper *Graph::getNodeWrapper(Node *node) {
+  return findNodeWrapper(node_repository_, node);
+}
+
+NodeWrapper *Graph::getNodeWrapper(const std::string &name) {
+  return findNodeWrapper(node_repository_, name);
 }
 
 REGISTER_NODE("nndeploy::dag::Graph", Graph);

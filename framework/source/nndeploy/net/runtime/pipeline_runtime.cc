@@ -432,12 +432,12 @@ void PipelineRuntime::commitThreadPool() {
         NNDEPLOY_LOGI("runtime %p 阶段完成\n", runtime);
 
         // 检查是否所有阶段都已完成
-        std::lock_guard<std::mutex> lock(pipeline_mutex_);
         if (i == sequential_runtimes_.size() - 1) {
+          std::lock_guard<std::mutex> lock(pipeline_mutex_);
           completed_size_++;
-        }
-        if (completed_size_ == run_size_) {
-          pipeline_cv_.notify_all();
+          if (completed_size_ == run_size_) {
+            pipeline_cv_.notify_all();
+          }
         }
       }
       static int count = 0;
