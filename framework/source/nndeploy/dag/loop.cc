@@ -74,11 +74,15 @@ base::Status Loop::run() {
 
   setRunningFlag(true);
 
-  // int size = loops();
-  // if (size < 1) {
-  //   NNDEPLOY_LOGE("loops size is invalid!\n");
-  //   return base::kStatusCodeErrorInvalidValue;
-  // }
+  /**
+   * LoopGraph + Executor 属于一个线程
+   * A->B->C->D->E
+   *
+   *
+   *
+   *
+   *
+   */
   for (int i = 0; i < loops(); i++) {
     status = executor_->run();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor run failed!");

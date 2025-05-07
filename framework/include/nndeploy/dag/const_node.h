@@ -9,11 +9,13 @@ namespace dag {
 class ConstNode : public Node {
  public:
   ConstNode(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::dag::ConstNode";
     node_type_ = dag::NodeType::kNodeTypeInput;
   }
   ConstNode(const std::string &name, const std::vector<Edge *> &inputs,
             const std::vector<Edge *> &outputs)
       : dag::Node(name) {
+    key_ = "nndeploy::dag::ConstNode";
     node_type_ = dag::NodeType::kNodeTypeInput;
     if (inputs.size() > 0) {
       NNDEPLOY_LOGE("ConstNode not support inputs");
@@ -28,16 +30,6 @@ class ConstNode : public Node {
     outputs_ = outputs;
   }
   virtual ~ConstNode() {}
-
-  template <typename T>
-  base::Status setOutputType() {
-    if (outputs_.size() != 1) {
-      NNDEPLOY_LOGE("ConstNode only support one output");
-      constructed_ = false;
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    return this->setOutputTypeInfo<T>();
-  }
 
   virtual base::Status run() { return base::kStatusCodeOk; }
 };
