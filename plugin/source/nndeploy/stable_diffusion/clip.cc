@@ -19,7 +19,6 @@ class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
   virtual ~CvtTokenIds2TensorNode() {}
 
   virtual base::Status run() {
-    int index = this->getInput(0)->getIndex(this);
     tokenizer::TokenizerIds *input =
         (tokenizer::TokenizerIds *)(this->getInput(0)->getParam(this));
     std::vector<std::vector<int32_t>> ids = input->ids_;
@@ -64,7 +63,6 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
   virtual base::Status run() {
     bool do_classifier_free_guidance = (guidance_ > 1.0) ? true : false;
 
-    int index = this->getInput(0)->getIndex(this);
     device::Tensor *prompt = this->getInput(0)->getTensor(this);
     device::Tensor *negative_prompt = this->getInput(1)->getTensor(this);
 

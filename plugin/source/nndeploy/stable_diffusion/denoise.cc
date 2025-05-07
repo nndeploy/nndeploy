@@ -55,6 +55,9 @@ class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
     status = executor_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "denoise graph executor deinit failed!");
+    status = scheduler_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "scheduler deinit failed!");
     setInitializedFlag(false);
     return status;
   }
@@ -86,7 +89,7 @@ class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
 
     scheduler_->setTimesteps();
     std::vector<int> timesteps = scheduler_->getTimestep();
-    ProgressBar progress(timesteps.size(), 80, "Denoise", "Processing...");
+    ProgressBar progress(timesteps.size(), 100, "Denoise", "Processing...");
     int i = 0;
     for (const auto &val : timesteps) {
       timestep_t->set((float)val);
