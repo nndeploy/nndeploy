@@ -1,5 +1,5 @@
 
-#include "nndeploy/op/op_sub.h"
+#include "nndeploy/op/op_muls.h"
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -21,51 +21,54 @@
 namespace nndeploy {
 namespace op {
 
-base::Status OpSub::run() {
+base::Status OpMuls::inferDataType() {
+  auto input_dtype = inputs_[1]->getDataType();
+  for (int i = 0; i < outputs_.size(); ++i) {
+    outputs_[i]->setDataType(input_dtype);
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status OpMuls::inferDataFormat() {
+  auto input_data_format = inputs_[1]->getDataFormat();
+  for (int i = 0; i < outputs_.size(); ++i) {
+    outputs_[i]->setDataFormat(input_data_format);
+  }
+  return base::kStatusCodeOk;
+};
+
+base::Status OpMuls::inferShape() { return base::kStatusCodeOk; };
+
+base::Status OpMuls::run() {
+  // 实现乘法运算
   device::Tensor* input1 = inputs_[0];
   device::Tensor* input2 = inputs_[1];
   device::Tensor* output = outputs_[0];
 
-  // 获取输入张量的形状
-  base::IntVector input1_shape = input1->getShape();
-  base::IntVector input2_shape = input2->getShape();
-
-  // TODO: 暂时只支持完全相等的shape
-  if (input1_shape.size() != input2_shape.size()) {
-    // 维度数不同，直接返回错误
-    NNDEPLOY_LOGE("Input tensors do not have the same number of dimensions.\n");
-    return base::kStatusCodeErrorInvalidParam;
-  }
-
-  for (size_t i = 0; i < input1_shape.size(); ++i) {
-    if (input1_shape[i] != input2_shape[i]) {
-      // 对应维度大小不同，返回错误
-      NNDEPLOY_LOGE("Input tensors do not have the same shape.\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-  }
+  // 获取输入和输出张量的形状
+  base::IntVector input_shape = input2->getShape();
 
   // 获取输入和输出张量的数据指针
   float* input1_data = reinterpret_cast<float*>(input1->getData());
   float* input2_data = reinterpret_cast<float*>(input2->getData());
   float* output_data = reinterpret_cast<float*>(output->getData());
 
-  // 获取输入张量的总元素数量
+  // 计算总元素数量
   size_t total_elements = std::accumulate(
-      input1_shape.begin(), input1_shape.end(), 1, std::multiplies<size_t>());
+      input_shape.begin(), input_shape.end(), 1, std::multiplies<size_t>());
 
-  // 执行逐元素减法运算
+  // 执行逐元素乘法运算
   for (size_t i = 0; i < total_elements; ++i) {
-    output_data[i] = input1_data[i] - input2_data[i];
+    output_data[i] = input1_data[0] * input2_data[i];
   }
   return base::kStatusCodeOk;
 }
 
-base::Status sub(device::Tensor* input1, device::Tensor* input2,
-                 device::Tensor* output) {
+base::Status muls(device::Tensor* input1, device::Tensor* input2,
+                  device::Tensor* output) {
   base::Status status = base::kStatusCodeOk;
 
-  Op* op = createOp(input1->getDeviceType(), "", ir::kOpTypeSub);
+  Op* op = createOp(input1->getDeviceType(), "", ir::kOpTypeMuls);
   if (op == nullptr) {
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
@@ -94,7 +97,7 @@ base::Status sub(device::Tensor* input1, device::Tensor* input2,
   return status;
 }
 
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeSub, OpSub)
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeMuls, OpMuls)
 
 }  // namespace op
 }  // namespace nndeploy

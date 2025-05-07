@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_MODEL_STABLE_DIFFUSION_CLIP_H_
-#define _NNDEPLOY_MODEL_STABLE_DIFFUSION_CLIP_H_
+#ifndef _NNDEPLOY_MODEL_STABLE_DIFFUSION_PIPELINE_H_
+#define _NNDEPLOY_MODEL_STABLE_DIFFUSION_PIPELINE_H_
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -13,18 +13,24 @@
 #include "nndeploy/base/string.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
+#include "nndeploy/dag/loop.h"
 #include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
+#include "nndeploy/preprocess/convert_to.h"
+#include "nndeploy/stable_diffusion/type.h"
+#include "nndeploy/stable_diffusion/utils.h"
 
 namespace nndeploy {
 namespace stable_diffusion {
 
-extern NNDEPLOY_CC_API dag::Graph *createCLIPGraph(
-    const std::string &name, dag::Edge *prompt, dag::Edge *negative_prompt,
-    dag::Edge *output, base::InferenceType inference_type,
+extern NNDEPLOY_CC_API dag::Graph *createStableDiffusionText2ImageGraph(
+    const std::string name, dag::Edge *prompt, dag::Edge *negative_prompt,
+    base::InferenceType clip_inference_type,
+    base::InferenceType unet_inference_type,
+    base::InferenceType vae_inference_type, SchedulerType scheduler_type,
     std::vector<base::Param *> &param);
 
 }  // namespace stable_diffusion
