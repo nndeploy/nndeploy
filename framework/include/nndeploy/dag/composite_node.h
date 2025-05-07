@@ -8,6 +8,12 @@
 namespace nndeploy {
 namespace dag {
 
+/**
+ * @brief Composite node
+ * Composite node is a special type of node in nndeploy that enhances the
+ * capabilities of one or more existing nodes by wrapping them. This composite
+ * node executes in sequential mode by default internally.
+ */
 class CompositeNode : public Node {
  public:
   CompositeNode(const std::string &name) : dag::Node(name) {
