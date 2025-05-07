@@ -215,11 +215,12 @@ class NNDEPLOY_CC_API Graph : public Node {
                     std::initializer_list<std::string> input_names,
                     std::initializer_list<Edge *> outputs);
 
+  EdgeWrapper *getEdgeWrapper(Edge *edge);
+  EdgeWrapper *getEdgeWrapper(const std::string &name);
+
  protected:
   virtual base::Status construct();
   virtual base::Status executor();
-  EdgeWrapper *getEdgeWrapper(Edge *edge);
-  EdgeWrapper *getEdgeWrapper(const std::string &name);
 
  protected:
   bool is_graph_node_share_stream_ = true;

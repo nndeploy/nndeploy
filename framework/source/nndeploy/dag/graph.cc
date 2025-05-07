@@ -509,24 +509,25 @@ base::Status Graph::dump(std::ostream &oss) {
       }
       EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, input);
       std::vector<Node *> consumers;
-      for (auto consumer : edge_wrapper->consumers_) {
-        auto consumer_node = consumer->node_;
-        if (consumer_node->getGraphFlag()) {
-          Graph *graph = (Graph *)consumer_node;
-          EdgeWrapper *inner_edge_wrapper =
-              graph->getEdgeWrapper(edge_wrapper->edge_);
-          if (inner_edge_wrapper == nullptr) {
-            // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
-            //               edge_wrapper->name_.c_str());
-            continue;
-          }
-          for (auto consumer : inner_edge_wrapper->consumers_) {
-            consumers.emplace_back(consumer->node_);
-          }
-        } else {
-          consumers.emplace_back(consumer_node);
-        }
-      }
+      // for (auto consumer : edge_wrapper->consumers_) {
+      //   auto consumer_node = consumer->node_;
+      //   if (consumer_node->getGraphFlag()) {
+      //     Graph *graph = (Graph *)consumer_node;
+      //     EdgeWrapper *inner_edge_wrapper =
+      //         graph->getEdgeWrapper(edge_wrapper->edge_);
+      //     if (inner_edge_wrapper == nullptr) {
+      //       // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+      //       //               edge_wrapper->name_.c_str());
+      //       continue;
+      //     }
+      //     for (auto consumer : inner_edge_wrapper->consumers_) {
+      //       consumers.emplace_back(consumer->node_);
+      //     }
+      //   } else {
+      //     consumers.emplace_back(consumer_node);
+      //   }
+      // }
+      findConsumerNode(edge_wrapper, consumers);
       for (auto node : consumers) {
         oss << "p" << (void *)input << "->"
             << "p" << (void *)node;
@@ -548,24 +549,25 @@ base::Status Graph::dump(std::ostream &oss) {
       }
       EdgeWrapper *edge_wrapper = findEdgeWrapper(edge_repository_, output);
       std::vector<Node *> producers;
-      for (auto producer : edge_wrapper->producers_) {
-        auto producer_node = producer->node_;
-        if (producer_node->getGraphFlag()) {
-          Graph *graph = (Graph *)producer_node;
-          EdgeWrapper *inner_edge_wrapper =
-              graph->getEdgeWrapper(edge_wrapper->edge_);
-          if (inner_edge_wrapper == nullptr) {
-            // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
-            //               edge_wrapper->name_.c_str());
-            continue;
-          }
-          for (auto producer : inner_edge_wrapper->producers_) {
-            producers.emplace_back(producer->node_);
-          }
-        } else {
-          producers.emplace_back(producer_node);
-        }
-      }
+      // for (auto producer : edge_wrapper->producers_) {
+      //   auto producer_node = producer->node_;
+      //   if (producer_node->getGraphFlag()) {
+      //     Graph *graph = (Graph *)producer_node;
+      //     EdgeWrapper *inner_edge_wrapper =
+      //         graph->getEdgeWrapper(edge_wrapper->edge_);
+      //     if (inner_edge_wrapper == nullptr) {
+      //       // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+      //       //               edge_wrapper->name_.c_str());
+      //       continue;
+      //     }
+      //     for (auto producer : inner_edge_wrapper->producers_) {
+      //       producers.emplace_back(producer->node_);
+      //     }
+      //   } else {
+      //     producers.emplace_back(producer_node);
+      //   }
+      // }
+      findProducerNode(edge_wrapper, producers);
       for (auto node : producers) {
         oss << "p" << (void *)node << "->"
             << "p" << (void *)output;
@@ -596,43 +598,45 @@ base::Status Graph::dump(std::ostream &oss) {
   // dump edge
   for (auto edge_wrapper : edge_repository_) {
     std::vector<Node *> producers;
-    for (auto producer : edge_wrapper->producers_) {
-      auto producer_node = producer->node_;
-      if (producer_node->getGraphFlag()) {
-        Graph *graph = (Graph *)producer_node;
-        EdgeWrapper *inner_edge_wrapper =
-            graph->getEdgeWrapper(edge_wrapper->edge_);
-        if (inner_edge_wrapper == nullptr) {
-          // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
-          //               edge_wrapper->name_.c_str());
-          continue;
-        }
-        for (auto producer : inner_edge_wrapper->producers_) {
-          producers.emplace_back(producer->node_);
-        }
-      } else {
-        producers.emplace_back(producer_node);
-      }
-    }
+    // for (auto producer : edge_wrapper->producers_) {
+    //   auto producer_node = producer->node_;
+    //   if (producer_node->getGraphFlag()) {
+    //     Graph *graph = (Graph *)producer_node;
+    //     EdgeWrapper *inner_edge_wrapper =
+    //         graph->getEdgeWrapper(edge_wrapper->edge_);
+    //     if (inner_edge_wrapper == nullptr) {
+    //       // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+    //       //               edge_wrapper->name_.c_str());
+    //       continue;
+    //     }
+    //     for (auto producer : inner_edge_wrapper->producers_) {
+    //       producers.emplace_back(producer->node_);
+    //     }
+    //   } else {
+    //     producers.emplace_back(producer_node);
+    //   }
+    // }
+    findProducerNode(edge_wrapper, producers);
     std::vector<Node *> consumers;
-    for (auto consumer : edge_wrapper->consumers_) {
-      auto consumer_node = consumer->node_;
-      if (consumer_node->getGraphFlag()) {
-        Graph *graph = (Graph *)consumer_node;
-        EdgeWrapper *inner_edge_wrapper =
-            graph->getEdgeWrapper(edge_wrapper->edge_);
-        if (inner_edge_wrapper == nullptr) {
-          // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
-          //               edge_wrapper->name_.c_str());
-          continue;
-        }
-        for (auto consumer : inner_edge_wrapper->consumers_) {
-          consumers.emplace_back(consumer->node_);
-        }
-      } else {
-        consumers.emplace_back(consumer_node);
-      }
-    }
+    // for (auto consumer : edge_wrapper->consumers_) {
+    //   auto consumer_node = consumer->node_;
+    //   if (consumer_node->getGraphFlag()) {
+    //     Graph *graph = (Graph *)consumer_node;
+    //     EdgeWrapper *inner_edge_wrapper =
+    //         graph->getEdgeWrapper(edge_wrapper->edge_);
+    //     if (inner_edge_wrapper == nullptr) {
+    //       // NNDEPLOY_LOGE("edge_wrapper[%s] is null!\n",
+    //       //               edge_wrapper->name_.c_str());
+    //       continue;
+    //     }
+    //     for (auto consumer : inner_edge_wrapper->consumers_) {
+    //       consumers.emplace_back(consumer->node_);
+    //     }
+    //   } else {
+    //     consumers.emplace_back(consumer_node);
+    //   }
+    // }
+    findConsumerNode(edge_wrapper, consumers);
     for (auto producer : producers) {
       for (auto consumer : consumers) {
         oss << "p" << (void *)producer << "->"
