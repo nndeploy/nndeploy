@@ -773,7 +773,8 @@ base::Status Graph::construct() {
   // NNDEPLOY_LOGI("construct edge\n");
   // NNDEPLOY_LOGI("##############\n");
   for (auto edge_wrapper : edge_repository_) {
-    // NNDEPLOY_LOGE("edge: %s.\n", edge_wrapper->edge_->getName().c_str());
+    // NNDEPLOY_LOGE("edge: %s, %p.\n", edge_wrapper->edge_->getName().c_str(),
+    //               edge_wrapper->edge_);
     std::vector<Node *> producers;
     for (auto producer : edge_wrapper->producers_) {
       producers.emplace_back(producer->node_);

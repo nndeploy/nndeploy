@@ -32,6 +32,8 @@ class DrawLableNode : public dag::Node {
     classification::ClassificationResult *result =
         (classification::ClassificationResult *)inputs_[1]->getParam(this);
     // 遍历每个分类结果
+    cv::Mat *output_mat = new cv::Mat();
+    input_mat->copyTo(*output_mat);
     for (int i = 0; i < result->labels_.size(); i++) {
       auto label = result->labels_[i];
 
@@ -40,11 +42,11 @@ class DrawLableNode : public dag::Node {
                          " score: " + std::to_string(label.scores_);
 
       // 在图像左上角绘制文本
-      cv::putText(*input_mat, text, cv::Point(30, 30 + i * 30),
+      cv::putText(*output_mat, text, cv::Point(30, 30 + i * 30),
                   cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
     }
     // cv::imwrite("draw_label_node.jpg", *input_mat);
-    outputs_[0]->set(input_mat, true);
+    outputs_[0]->set(output_mat, false);
     return base::kStatusCodeOk;
   }
 };
@@ -196,7 +198,6 @@ int main(int argc, char *argv[]) {
     }
   }
   NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
-  NNDEPLOY_TIME_PROFILER_PRINT("demo");
 
   graph_demo.deinit();
 

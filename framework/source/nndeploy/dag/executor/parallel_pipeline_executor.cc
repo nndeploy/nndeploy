@@ -97,10 +97,10 @@ void ParallelPipelineExecutor::commitThreadPool() {
               pipeline_cv_.notify_all();
             }
           }
-          static int count = 0;
-          count++;
-          NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", count,
-                        iter->node_->getName().c_str());
+          // static int count = 0;
+          // count++;
+          // NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", count,
+          //               iter->node_->getName().c_str());
         } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
           break;
         } else {
