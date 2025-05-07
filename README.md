@@ -1,9 +1,22 @@
 
 [English](README_EN.md) | 简体中文
 
-## 介绍
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vllm-project/vllm/main/docs/source/assets/logos/vllm-logo-text-dark.png">
+    <img alt="vLLM" src="https://raw.githubusercontent.com/vllm-project/vllm/main/docs/source/assets/logos/vllm-logo-text-light.png" width=55%>
+  </picture>
+</p>
 
-nndeploy是一款端到端的模型推理和部署框架。它旨在为用户提供功能强大、简单易用、高性能且兼容主流框架的模型推理和部署体验。
+<h3 align="center">
+Easy, fast, and cheap LLM serving for everyone
+</h3>
+
+<p align="center">
+| <a href="https://docs.vllm.ai"><b>Documentation</b></a> | <a href="https://blog.vllm.ai/"><b>Blog</b></a> | <a href="https://arxiv.org/abs/2309.06180"><b>Paper</b></a> | <a href="https://x.com/vllm_project"><b>Twitter/X</b></a> | <a href="https://discuss.vllm.ai"><b>User Forum</b></a> | <a href="https://slack.vllm.ai"><b>Developer Slack</b></a> |
+</p>
+
+---
 
 ## 架构
 

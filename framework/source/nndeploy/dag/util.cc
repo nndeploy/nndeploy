@@ -366,5 +366,53 @@ bool checkEdge(const std::vector<Edge *> &src_edges,
   return true;
 }
 
+void findConsumerNode(EdgeWrapper *edge_wrapper,
+                      std::vector<Node *> &consumers) {
+  for (auto consumer : edge_wrapper->consumers_) {
+    auto consumer_node = consumer->node_;
+    if (consumer_node->getGraphFlag()) {
+      Graph *graph = (Graph *)consumer_node;
+      EdgeWrapper *inner_edge_wrapper =
+          graph->getEdgeWrapper(edge_wrapper->edge_);
+      if (inner_edge_wrapper == nullptr) {
+        continue;
+      }
+      // 递归查找子图中的消费者节点
+      std::vector<Node *> inner_consumers;
+      findConsumerNode(inner_edge_wrapper, inner_consumers);
+      // 将子图中找到的所有消费者节点添加到结果中
+      consumers.insert(consumers.end(), inner_consumers.begin(),
+                       inner_consumers.end());
+    } else {
+      consumers.emplace_back(consumer_node);
+    }
+  }
+  return;
+}
+
+void findProducerNode(EdgeWrapper *edge_wrapper,
+                      std::vector<Node *> &producers) {
+  for (auto producer : edge_wrapper->producers_) {
+    auto producer_node = producer->node_;
+    if (producer_node->getGraphFlag()) {
+      Graph *graph = (Graph *)producer_node;
+      EdgeWrapper *inner_edge_wrapper =
+          graph->getEdgeWrapper(edge_wrapper->edge_);
+      if (inner_edge_wrapper == nullptr) {
+        continue;
+      }
+      // 递归查找子图中的生产者节点
+      std::vector<Node *> inner_producers;
+      findProducerNode(inner_edge_wrapper, inner_producers);
+      // 将子图中找到的所有生产者节点添加到结果中
+      producers.insert(producers.end(), inner_producers.begin(),
+                       inner_producers.end());
+    } else {
+      producers.emplace_back(producer_node);
+    }
+  }
+  return;
+}
+
 }  // namespace dag
 }  // namespace nndeploy
