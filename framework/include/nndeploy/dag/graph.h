@@ -259,7 +259,6 @@ Node *Graph::createNode(const std::string &name, Args &...args) {
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
   node->setGraph(this);
-  ;
   return node;
 }
 

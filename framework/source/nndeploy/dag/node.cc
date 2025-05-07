@@ -439,7 +439,8 @@ base::EdgeUpdateFlag Node::updateInput() {
 
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   // init
-  if (initialized_ == false) {
+  if (initialized_ == false && is_trace_ == false) {
+    NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
     this->init();
     this->setInitializedFlag(true);
   }
@@ -454,6 +455,7 @@ std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   std::vector<std::string> real_outputs_name = this->getRealOutputsName();
   std::vector<Edge *> outputs;
   for (auto name : real_outputs_name) {
+    // NNDEPLOY_LOGI("real_outputs_name: %s\n", name.c_str());
     Edge *edge = nullptr;
     if (graph_ != nullptr) {
       edge = graph_->getEdge(name);

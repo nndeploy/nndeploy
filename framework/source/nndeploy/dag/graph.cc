@@ -354,6 +354,7 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
       }
     } else {
       if (edge_wrapper->edge_ != input) {
+        NNDEPLOY_LOGI("updateEdge: %s\n", input->getName().c_str());
         updteEdge(edge_wrapper, input, true);
       }
     }
@@ -374,6 +375,7 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
       }
     } else {
       if (edge_wrapper->edge_ != output) {
+        NNDEPLOY_LOGI("updateEdge: %s\n", output->getName().c_str());
         updteEdge(edge_wrapper, output, true);
       }
     }
@@ -394,7 +396,6 @@ base::Status Graph::markInputEdge(std::vector<Edge *> inputs) {
 };
 base::Status Graph::markOutputEdge(std::vector<Edge *> outputs) {
   for (auto output : outputs) {
-    // output->markGraphOutput();
     insertUnique(outputs_, output);
   }
   return base::kStatusCodeOk;
@@ -691,6 +692,7 @@ std::vector<Edge *> Graph::trace(std::vector<Edge *> inputs) {
   base::Status status = base::kStatusCodeOk;
   this->setTraceFlag(true);
   std::vector<Edge *> outputs = this->operator()(inputs);
+  NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
   status = this->init();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("init failed!");
@@ -797,11 +799,11 @@ base::Status Graph::construct() {
                            "construct edge failed!");
   }
 
-  if (!is_inner_) {
-    for (auto iter : outputs_) {
-      iter->markGraphOutput();
-    }
-  }
+  // if (!is_inner_) {
+  //   for (auto iter : outputs_) {
+  //     iter->markGraphOutput();
+  //   }
+  // }
 
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
@@ -832,6 +834,13 @@ base::Status Graph::construct() {
       if (it == outputs_.end()) {
         outputs_.emplace_back(edge_wrapper->edge_);
       }
+    }
+  }
+
+  if (!is_inner_) {
+    for (auto iter : outputs_) {
+      // NNDEPLOY_LOGI("markGraphOutput: %s.\n", iter->getName().c_str());
+      iter->markGraphOutput();
     }
   }
 

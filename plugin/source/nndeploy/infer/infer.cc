@@ -7,10 +7,19 @@ namespace infer {
 Infer::Infer(const std::string &name) : dag::Node(name) {
   this->setInputTypeInfo<device::Tensor>();
   this->setOutputTypeInfo<device::Tensor>();
+  // NNDEPLOY_LOGI("Infer constructor: %s", name.c_str());
+  // NNDEPLOY_LOGI("Infer inputs: %d", input_type_info_.size());
+  // NNDEPLOY_LOGI("Infer outputs: %d", output_type_info_.size());
 }
 Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
     : dag::Node(name, inputs, outputs) {
+  if (inputs.size() == 0) {
+    this->setInputTypeInfo<device::Tensor>();
+  }
+  if (outputs.size() == 0) {
+    this->setOutputTypeInfo<device::Tensor>();
+  }
   for (auto input : inputs) {
     this->setInputTypeInfo<device::Tensor>();
   }
@@ -42,6 +51,12 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
     constructed_ = false;
   } else {
     constructed_ = true;
+  }
+  if (inputs.size() == 0) {
+    this->setInputTypeInfo<device::Tensor>();
+  }
+  if (outputs.size() == 0) {
+    this->setOutputTypeInfo<device::Tensor>();
   }
   for (auto input : inputs) {
     this->setInputTypeInfo<device::Tensor>();
