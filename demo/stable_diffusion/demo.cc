@@ -105,12 +105,12 @@ int main(int argc, char* argv[]) {
 
   tokenizer::TokenizerText* prompt_text = new tokenizer::TokenizerText();
   prompt_text->texts_ = {text};
-  prompt->set(prompt_text, 0, true);
+  prompt->set(prompt_text, true);
 
   tokenizer::TokenizerText* negative_prompt_text =
       new tokenizer::TokenizerText();
   negative_prompt_text->texts_ = {""};
-  negative_prompt->set(negative_prompt_text, 0, true);
+  negative_prompt->set(negative_prompt_text, true);
 
   NNDEPLOY_TIME_POINT_START("graph->dump()");
   status = graph->dump();

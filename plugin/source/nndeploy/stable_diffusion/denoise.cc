@@ -71,8 +71,7 @@ class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
     latents_desc.shape_ = {1, scheduler_param_->unet_channels_,
                            scheduler_param_->image_height_ / 8,
                            scheduler_param_->image_width_ / 8};
-    device::Tensor *prev_latents_t =
-        prev_latents->create(device, latents_desc, 0);
+    device::Tensor *prev_latents_t = prev_latents->create(device, latents_desc);
     // prev_latents_t->set(1.0f);
     std::mt19937 generator;
     initializeLatents(generator, scheduler_param_->init_noise_sigma_,
@@ -83,7 +82,7 @@ class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
     timestep_desc.data_type_ = base::dataTypeOf<float>();
     timestep_desc.data_format_ = base::kDataFormatNC;
     timestep_desc.shape_ = {1};
-    device::Tensor *timestep_t = timestep->create(device, timestep_desc, 0);
+    device::Tensor *timestep_t = timestep->create(device, timestep_desc);
 
     scheduler_->setTimesteps();
     std::vector<int> timesteps = scheduler_->getTimestep();
@@ -147,7 +146,7 @@ class NNDEPLOY_CC_API InitLatentsNode : public dag::Node {
       latent_desc.shape_ = {2, ddim_param->unet_channels_,
                             ddim_param->image_height_ / 8,
                             ddim_param->image_width_ / 8};
-      latents = this->getOutput(0)->create(device, latent_desc, 0);
+      latents = this->getOutput(0)->create(device, latent_desc);
     } else {
       device::TensorDesc latent_desc;
       latent_desc.data_type_ = base::dataTypeOf<float>();
@@ -155,7 +154,7 @@ class NNDEPLOY_CC_API InitLatentsNode : public dag::Node {
       latent_desc.shape_ = {1, ddim_param->unet_channels_,
                             ddim_param->image_height_ / 8,
                             ddim_param->image_width_ / 8};
-      latents = this->getOutput(0)->create(device, latent_desc, 0);
+      latents = this->getOutput(0)->create(device, latent_desc);
     }
     return base::kStatusCodeOk;
   }
@@ -205,7 +204,7 @@ class NNDEPLOY_CC_API DDIMScheduleNode : public dag::Node {
     latent_desc.shape_ = {1, ddim_param->unet_channels_,
                           ddim_param->image_height_ / 8,
                           ddim_param->image_width_ / 8};
-    latents = this->getOutput(0)->create(device, latent_desc, 0);
+    latents = this->getOutput(0)->create(device, latent_desc);
 
     device::TensorDesc noise_desc;
     noise_desc.data_type_ = base::dataTypeOf<float>();

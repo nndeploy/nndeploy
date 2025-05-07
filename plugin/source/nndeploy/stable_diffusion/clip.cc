@@ -31,7 +31,7 @@ class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
     }
     device::TensorDesc desc(base::dataTypeOf<int32_t>(), base::kDataFormatNC,
                             {1, max_length_});
-    device::Tensor *output = this->getOutput(0)->create(device, desc, index);
+    device::Tensor *output = this->getOutput(0)->create(device, desc);
     output->set(49407);
 
     int32_t *value = (int32_t *)output->getData();
@@ -80,7 +80,7 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
       shape[0] = shape[0] * 2;
       device::TensorDesc desc(base::dataTypeOf<float>(), base::kDataFormatNCL,
                               shape);
-      output = this->getOutput(0)->create(device, desc, index);
+      output = this->getOutput(0)->create(device, desc);
 
       std::shared_ptr<ir::ConcatParam> param =
           std::make_shared<ir::ConcatParam>();
@@ -89,7 +89,7 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
     } else {
       device::TensorDesc desc(base::dataTypeOf<float>(), base::kDataFormatNCL,
                               shape);
-      output = this->getOutput(0)->create(device, desc, index);
+      output = this->getOutput(0)->create(device, desc);
       prompt->copyTo(output);
     }
     this->getOutput(0)->notifyWritten(output);

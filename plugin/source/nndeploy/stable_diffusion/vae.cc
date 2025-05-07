@@ -26,7 +26,7 @@ class NNDEPLOY_CC_API ScaleLatentsNode : public dag::Node {
 
     device::Tensor *latents = this->getInput(0)->getTensor(this);
     device::Tensor *latents_scale =
-        this->getOutput(0)->create(device, latents->getDesc(), 0);
+        this->getOutput(0)->create(device, latents->getDesc());
 
     op::muls(scalar, latents, latents_scale);
 
