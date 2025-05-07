@@ -318,8 +318,7 @@ dag::Graph *createDenoiseGraph(const std::string &name,
   dag::Edge *model_input = denoise_graph->createEdge("model_input");
   InitLatentsNode *init_latents_node =
       (InitLatentsNode *)denoise_graph->createNode<InitLatentsNode>(
-          "init_latents",
-          std::vector<dag::Edge *>{prev_latents, text_embeddings, timestep},
+          "init_latents", std::vector<dag::Edge *>{prev_latents},
           std::vector<dag::Edge *>{model_input});
   init_latents_node->setGraph(denoise_graph);
   init_latents_node->setSchedulerParam(scheduler_param);
