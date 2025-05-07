@@ -1,7 +1,5 @@
-#ifndef B538C4B2_F74A_4FC4_AD94_04DC4CBBE71E
-#define B538C4B2_F74A_4FC4_AD94_04DC4CBBE71E
-#ifndef _NNDEPLOY_DAG_CONST_NODE_H_
-#define _NNDEPLOY_DAG_CONST_NODE_H_
+#ifndef _NNDEPLOY_DAG_COMPOSITE_NODE_H_
+#define _NNDEPLOY_DAG_COMPOSITE_NODE_H_
 
 #include "nndeploy/dag/node.h"
 
@@ -33,6 +31,4 @@ class CompositeNode : public Node {
 }  // namespace dag
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_DAG_CONST_NODE_H_ */
-
-#endif /* B538C4B2_F74A_4FC4_AD94_04DC4CBBE71E */
+#endif /* _NNDEPLOY_DAG_COMPOSITE_NODE_H_ */

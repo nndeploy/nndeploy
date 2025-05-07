@@ -50,5 +50,4 @@ class TensorPool1DOffsetCalculateGreedyBySize : public TensorPool1D {
 }  // namespace net
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_NET_TENSOR_POOL_TENSOR_POOL_1D_OFFSET_CALCULATE_BY_SIZE_H_ \
-        */
+#endif

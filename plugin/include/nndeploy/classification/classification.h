@@ -37,6 +37,7 @@ class NNDEPLOY_CC_API ClassificationPostParam : public base::Param {
 class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
  public:
   ClassificationPostProcess(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::classification::ClassificationPostProcess";
     param_ = std::make_shared<ClassificationPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<ClassificationResult>();
@@ -45,6 +46,7 @@ class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
                             std::vector<dag::Edge *> inputs,
                             std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::classification::ClassificationPostProcess";
     param_ = std::make_shared<ClassificationPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<ClassificationResult>();
