@@ -67,6 +67,12 @@ Graph::~Graph() {
   shared_node_repository_.clear();
 }
 
+base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {
+  queue_max_size_ = queue_max_size;
+  return base::kStatusCodeOk;
+}
+int Graph::getEdgeQueueMaxSize() { return queue_max_size_; }
+
 Edge *Graph::createEdge(const std::string &name) {
   std::string unique_name = name;
   if (unique_name.empty()) {
@@ -798,6 +804,9 @@ base::Status Graph::construct() {
     status = edge_wrapper->edge_->construct();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "construct edge failed!");
+    status = edge_wrapper->edge_->setQueueMaxSize(queue_max_size_);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "setQueueMaxSize failed!");
   }
 
   // if (!is_inner_) {

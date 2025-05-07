@@ -182,7 +182,7 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   std::string name_;
   AbstractEdge *abstact_edge_ = nullptr;
   std::shared_ptr<EdgeTypeInfo> type_info_;
-  int queue_max_size_ = 1024;
+  int queue_max_size_ = 16;
 };
 
 }  // namespace dag

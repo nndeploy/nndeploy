@@ -158,6 +158,8 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     }
     infer_->setGraph(this);
     infer_->setInferenceType(inference_type);
+    infer_->setInputName("data", 0);
+    infer_->setOutputName("resnetv17_dense0_fwd", 0);
 
     // Create postprocessing node for classification results
     post_ = this->createNode<ClassificationPostProcess>(
