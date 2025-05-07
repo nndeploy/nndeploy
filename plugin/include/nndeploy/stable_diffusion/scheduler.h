@@ -30,29 +30,19 @@ namespace stable_diffusion {
 
 class NNDEPLOY_CC_API SchedulerParam : public base::Param {
  public:
-  std::string version_ = "v2.1";
-  int num_train_timesteps_ = 1000;  // 训练时间步数
-  float beta_start_ = 0.00085;      // beta起始值
-  float beta_end_ = 0.012;          // beta结束值
-  bool clip_sample_ = false;        // 是否裁剪样本
-  bool set_alpha_to_one_ = false;  // 是否将alpha的累积乘积的最后一个元素设置为1
-  int steps_offset_ = 1;  // 时间步偏移
-  std::string prediction_type_ =
-      "v_prediction";  // 预测噪声的方法， v_prediction or epsilon
-  int num_inference_steps_ = 50;  // 推断步数
-  int unet_channels_ = 4;         // channel
-  int image_height_ = 640;        // height
-  int image_width_ = 640;         // width
+  virtual SchedulerParam *clone() const = 0;
 
-  // DPMSchedulerParam
-  int solver_order_ = 2;
-  bool predict_epsilon_ = true;
-  bool thresholding_ = false;
-  float dynamic_thresholding_ratio_ = 0.995;
-  float sample_max_value_ = 1.0f;
-  std::string algorithm_type_ = "dpmsolver++";
-  std::string solver_type_ = "midpoint";
-  bool lower_order_final = true;
+ public:
+  std::string version_ = "v1.5";
+  int num_train_timesteps_ = 1000;  // 训练时间步数
+  bool clip_sample_ = false;        // 是否裁剪样本
+  int num_inference_steps_ = 50;    // 推断步数
+  int unet_channels_ = 4;           // channel
+  int image_height_ = 512;          // height
+  int image_width_ = 512;           // width
+  float guidance_scale_ = 7.5;      // 指导比例
+  float vae_scale_factor_ = 0.18215;
+  float init_noise_sigma_ = 1.0f;
 };
 
 class NNDEPLOY_CC_API Scheduler {
@@ -60,14 +50,7 @@ class NNDEPLOY_CC_API Scheduler {
   Scheduler(SchedulerType type) : scheduler_type_(type) {}
   virtual ~Scheduler() {}
 
-  /**
-   * @brief Set the Param object
-   *
-   * @param param
-   */
-  void setParam(SchedulerParam *param);
-
-  virtual base::Status init() = 0;
+  virtual base::Status init(SchedulerParam *param) = 0;
   virtual base::Status deinit() = 0;
 
   /**
@@ -81,58 +64,30 @@ class NNDEPLOY_CC_API Scheduler {
   /**
    * @brief
    *
-   * @return base::Status
-   * @note 配置调度器，计算推断步骤中的方差
-   */
-  virtual base::Status configure() = 0;
-
-  /**
-   * @brief
-   *
    * @param sample
    * @param index
    * @return device::Tensor*
    */
-  virtual device::Tensor *scaleModelInput(device::Tensor *sample,
-                                          int index) = 0;
-
+  virtual base::Status scaleModelInput(device::Tensor *sample, int index) = 0;
   /**
    * @brief
    *
    * @param sample
-   * @param latents
-   * @param index
    * @param timestep
+   * @param latents
+   * @param pre_sample
    * @return base::Status
-   * @note
-   *  生成过程中的每一步都会调用此方法，它根据当前的时间步计算并更新生成的样本。
    */
-  virtual base::Status step(device::Tensor *output, device::Tensor *sample,
-                            int idx, float timestep, float eta = 0,
-                            bool use_clipped_model_output = false,
-                            std::mt19937 generator = std::mt19937(),
-                            device::Tensor *variance_noise = nullptr) = 0;
-
-  /**
-   * @brief
-   *
-   * @param init_latents 初始的潜在表示
-   * @param noise 要添加的噪声
-   * @param idx 当前的时间步索引
-   * @param latent_timestep 潜在表示的时间步
-   * @return base::Status
-   * @note 此方法用于将噪声添加到初始潜在表示中，生成扩散过程中的一个步骤
-   */
-  virtual base::Status addNoise(device::Tensor *init_latents,
-                                device::Tensor *noise, int idx,
-                                int latent_timestep) = 0;
+  virtual base::Status step(device::Tensor *sample, device::Tensor *timestep,
+                            device::Tensor *latents,
+                            device::Tensor *pre_sample) = 0;
 
   /**
    * @brief Get the Timestep object
    *
    * @return std::vector<float>&
    */
-  virtual std::vector<float> &getTimestep() = 0;
+  virtual std::vector<int> &getTimestep() = 0;
 
  protected:
   SchedulerType scheduler_type_ = kSchedulerTypeNotSupport;
@@ -187,17 +142,6 @@ class TypeSchedulerRegister {
  * @return Scheduler*
  */
 extern NNDEPLOY_CC_API Scheduler *createScheduler(SchedulerType type);
-
-/**
- * @brief
- *
- * @param start
- * @param end
- * @param steps
- * @param values
- */
-void customLinspace(float start, float end, int steps,
-                    std::vector<float> &values);
 
 /**
  * @brief

@@ -418,9 +418,8 @@ base::Status Op::checkOrAllocOutput() {
 
 base::Status Op::postRun() { return base::kStatusCodeOk; }
 
-std::map<base::DeviceTypeCode,
-         std::map<ir::OpType, std::shared_ptr<OpCreator>>> &
-getGlobalOpCreatorMap() {
+std::map<base::DeviceTypeCode, std::map<ir::OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap() {
   static std::once_flag once;
   static std::shared_ptr<std::map<
       base::DeviceTypeCode, std::map<ir::OpType, std::shared_ptr<OpCreator>>>>

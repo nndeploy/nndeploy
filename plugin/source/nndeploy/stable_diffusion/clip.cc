@@ -1,176 +1,155 @@
-
 #include "nndeploy/stable_diffusion/clip.h"
 
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/convert_to.h"
+#include "nndeploy/op/op_concat.h"
+#include "nndeploy/stable_diffusion/ddim_scheduler.h"
+#include "nndeploy/stable_diffusion/utils.h"
 #include "nndeploy/tokenizer/tokenizer_cpp/tokenizer_cpp.h"
 
 namespace nndeploy {
 namespace stable_diffusion {
 
-class NNDEPLOY_CC_API TokenizerConcat : public dag::Node {
+class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
  public:
-  TokenizerConcat(const std::string &name,
-                  std::initializer_list<dag::Edge *> inputs,
-                  std::initializer_list<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {
-    param_ = std::make_shared<tokenizer::TokenizerPraram>();
-  }
-  virtual ~TokenizerConcat() {}
+  CvtTokenIds2TensorNode(const std::string &name,
+                         std::vector<dag::Edge *> inputs,
+                         std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {}
 
-  base::Status init() {
-    base::Status status = base::kStatusCodeOk;
-
-    // param_
-    tokenizer::TokenizerPraram *tokenizer_param =
-        (tokenizer::TokenizerPraram *)(param_.get());
-
-    if (tokenizer_param->tokenizer_type_ ==
-        tokenizer::TokenizerType::kTokenizerTypeHF) {
-      if (tokenizer_param->json_blob_.empty()) {
-        NNDEPLOY_LOGE("json_blob_ is empty\n");
-        return base::kStatusCodeErrorInvalidParam;
-      }
-      // Read blob from file.
-      std::string blob;
-      if (tokenizer_param->is_path_) {
-        blob = base::openFile(tokenizer_param->json_blob_);
-      } else {
-        blob = tokenizer_param->json_blob_;
-      }
-      tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
-    } else if (tokenizer_param->tokenizer_type_ ==
-               tokenizer::TokenizerType::kTokenizerTypeBPE) {
-      if (tokenizer_param->vocab_blob_.empty() ||
-          tokenizer_param->merges_blob_.empty()) {
-        NNDEPLOY_LOGE("vocab_blob_ or  merges_blob_ is empty\n");
-        return base::kStatusCodeErrorInvalidParam;
-      }
-      // Read blob from file.
-      std::string vocab_blob;
-      std::string merges_blob;
-      std::string added_tokens;
-      if (tokenizer_param->is_path_) {
-        vocab_blob = base::openFile(tokenizer_param->vocab_blob_);
-        merges_blob = base::openFile(tokenizer_param->merges_blob_);
-        added_tokens = base::openFile(tokenizer_param->added_tokens_);
-      } else {
-        vocab_blob = tokenizer_param->vocab_blob_;
-        merges_blob = tokenizer_param->merges_blob_;
-        added_tokens = tokenizer_param->added_tokens_;
-      }
-      tokenizer_ = tokenizers::Tokenizer::FromBlobByteLevelBPE(
-          vocab_blob, merges_blob, added_tokens);
-    } else if (tokenizer_param->tokenizer_type_ ==
-               tokenizer::TokenizerType::kTokenizerTypeSentencePiece) {
-      if (tokenizer_param->model_blob_.empty()) {
-        NNDEPLOY_LOGE("model_blob_ is empty\n");
-        return base::kStatusCodeErrorInvalidParam;
-      }
-      // Read blob from file.
-      std::string blob;
-      if (tokenizer_param->is_path_) {
-        blob = base::openFile(tokenizer_param->model_blob_);
-      } else {
-        blob = tokenizer_param->model_blob_;
-      }
-      tokenizer_ = tokenizers::Tokenizer::FromBlobSentencePiece(blob);
-    } else if (tokenizer_param->tokenizer_type_ ==
-               tokenizer::TokenizerType::kTokenizerTypeRWKVWorld) {
-      if (tokenizer_param->model_blob_.empty()) {
-        NNDEPLOY_LOGE("model_blob_ is empty\n");
-        return base::kStatusCodeErrorInvalidParam;
-      }
-      // Read blob from file.
-      std::string blob;
-      if (tokenizer_param->is_path_) {
-        // blob = base::openFile(tokenizer_param->model_blob_);
-        blob = tokenizer_param->model_blob_;
-      } else {
-        NNDEPLOY_LOGE("model_blob_ is in-memory\n");
-        return base::kStatusCodeErrorInvalidParam;
-      }
-      tokenizer_ = tokenizers::Tokenizer::FromBlobRWKVWorld(blob);
-    } else {
-      status = base::kStatusCodeErrorInvalidParam;
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                             "Invalid tokenizer type!");
-    }
-
-    return status;
-  }
-
-  base::Status deinit() {
-    base::Status status = base::kStatusCodeOk;
-    return status;
-  }
+  virtual ~CvtTokenIds2TensorNode() {}
 
   virtual base::Status run() {
-    base::Status status = base::kStatusCodeOk;
-
-    // param_
-    tokenizer::TokenizerPraram *tokenizer_concat_param =
-        (tokenizer::TokenizerPraram *)(param_.get());
-
-    tokenizer::TokenizerText *text_param1 =
-        (tokenizer::TokenizerText *)(inputs_[0]->getParam(this));
-    tokenizer::TokenizerText *text_param2 =
-        (tokenizer::TokenizerText *)(inputs_[1]->getParam(this));
-    int index = inputs_[0]->getIndex(this);
-
-    std::vector<std::string> texts;
-    texts.insert(texts.end(), text_param1->texts_.begin(),
-                 text_param1->texts_.end());
-    texts.insert(texts.end(), text_param2->texts_.begin(),
-                 text_param2->texts_.end());
-
-    std::vector<std::vector<int32_t>> ids;
-    ids.reserve(texts.size());
-    for (const auto &text : texts) {
-      // NNDEPLOY_LOGE("text=%s\n", text.c_str());
-      ids.push_back(tokenizer_->Encode(text));
-    }
-    // for (size_t i = 0; i < ids.size(); ++i) {
-    //   printEncodeResult(ids[i]);
-    // }
+    tokenizer::TokenizerIds *input =
+        (tokenizer::TokenizerIds *)(this->getInput(0)->getParam(this));
+    std::vector<std::vector<int32_t>> ids = input->ids_;
 
     device::Device *device = device::getDevice(device_type_);
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr\n");
       return base::kStatusCodeErrorInvalidParam;
     }
-    int32_t batch = (int32_t)(texts.size());
     device::TensorDesc desc(base::dataTypeOf<int32_t>(), base::kDataFormatNC,
-                            {batch, tokenizer_concat_param->max_length_});
-    device::Tensor *tensor = outputs_[0]->create(device, desc, index);
-    tensor->set(49407);
+                            {1, max_length_});
+    device::Tensor *output = this->getOutput(0)->create(device, desc);
+    output->set(49407);
 
-    int32_t *value = (int32_t *)tensor->getData();
-    for (int j = 0; j < batch; j++) {
-      int len = ids[j].size() > tokenizer_concat_param->max_length_
-                    ? tokenizer_concat_param->max_length_
-                    : ids[j].size();
-      value += j * tokenizer_concat_param->max_length_;
-      for (int i = 0; i < len; i++) {
-        value[i] = ids[j][i];
-      }
+    int32_t *value = (int32_t *)output->getData();
+    value[0] = 49406;
+    for (int i = 0; i < ids[0].size(); i++) {
+      value[i + 1] = ids[0][i];
     }
+    this->getOutput(0)->notifyWritten(output);
 
-    outputs_[0]->notifyWritten(tensor);
-    return status;
-  }
-
-  void printEncodeResult(const std::vector<int> &ids) {
-    std::cout << "tokens=[";
-    for (size_t i = 0; i < ids.size(); ++i) {
-      if (i != 0) std::cout << ", ";
-      std::cout << ids[i];
-    }
-    std::cout << "]" << std::endl;
+    return base::kStatusCodeOk;
   }
 
  private:
-  std::unique_ptr<tokenizers::Tokenizer> tokenizer_;
+  int32_t max_length_ = 77;
+};
+
+class NNDEPLOY_CC_API ConCatNode : public dag::Node {
+ public:
+  ConCatNode(const std::string &name, std::vector<dag::Edge *> inputs,
+             std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {}
+
+  virtual ~ConCatNode(){};
+
+  base::Status setGuidance(float guidance) {
+    guidance_ = guidance;
+    return base::kStatusCodeOk;
+  }
+
+  virtual base::Status run() {
+    bool do_classifier_free_guidance = (guidance_ > 1.0) ? true : false;
+
+    device::Tensor *prompt = this->getInput(0)->getTensor(this);
+    device::Tensor *negative_prompt = this->getInput(1)->getTensor(this);
+
+    device::Device *device = device::getDevice(device_type_);
+    if (device == nullptr) {
+      NNDEPLOY_LOGE("device is nullptr\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    std::vector<int> shape = prompt->getShape();
+
+    device::Tensor *output = nullptr;
+    if (do_classifier_free_guidance) {
+      shape[0] = shape[0] * 2;
+      device::TensorDesc desc(base::dataTypeOf<float>(), base::kDataFormatNCL,
+                              shape);
+      output = this->getOutput(0)->create(device, desc);
+
+      std::shared_ptr<ir::ConcatParam> param =
+          std::make_shared<ir::ConcatParam>();
+      param->axis_ = 0;
+      op::concat({negative_prompt, prompt}, param, output);
+    } else {
+      device::TensorDesc desc(base::dataTypeOf<float>(), base::kDataFormatNCL,
+                              shape);
+      output = this->getOutput(0)->create(device, desc);
+      prompt->copyTo(output);
+    }
+    this->getOutput(0)->notifyWritten(output);
+
+    return base::kStatusCodeOk;
+  }
+
+ private:
+  float guidance_ = 7.5;
+};
+
+class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
+ public:
+  EmbeddingGraph(const std::string &name, std::vector<dag::Edge *> inputs,
+                 std::vector<dag::Edge *> outputs)
+      : dag::Graph(name, inputs, outputs) {}
+  ~EmbeddingGraph(){};
+
+  base::Status setTokenizerParam(tokenizer::TokenizerPraram *param) {
+    tokenizer_node_->setParam(param);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setInferParam(inference::InferenceParam *param) {
+    clip_infer_node_->setParam(param);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status make(base::InferenceType inference_type, std::string name) {
+    prompt_ = this->getInput(0);
+    if (prompt_ == nullptr) {
+      NNDEPLOY_LOGE("prompt is nullptr\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    token_ids_ = this->createEdge("token_ids_");
+    tokenizer_node_ = (tokenizer::TokenizerEncodeCpp *)this
+                          ->createNode<tokenizer::TokenizerEncodeCpp>(
+                              name, {prompt_}, {token_ids_});
+
+    infer_ids_ = this->createEdge("infer_ids");
+    cvt_node_ =
+        (CvtTokenIds2TensorNode *)this->createNode<CvtTokenIds2TensorNode>(
+            "cvt_token_ids_2_tensor", {token_ids_}, {infer_ids_});
+
+    embedding_ = this->getOutput(0);
+    if (embedding_ == nullptr) {
+      NNDEPLOY_LOGE("embedding is nullptr\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    clip_infer_node_ = (infer::Infer *)this->createInfer<infer::Infer>(
+        "clip_infer", inference_type, {infer_ids_}, {embedding_});
+    return base::kStatusCodeOk;
+  }
+
+ private:
+  dag::Edge *prompt_;
+  dag::Node *tokenizer_node_;
+  dag::Edge *token_ids_;
+  dag::Node *cvt_node_;
+  dag::Edge *infer_ids_;
+  dag::Node *clip_infer_node_;
+  dag::Edge *embedding_;
 };
 
 dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
@@ -179,21 +158,46 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
                             std::vector<base::Param *> &param) {
   dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt}, {output});
 
-  /**
-   * @brief tokenizer_concat
-   */
-  dag::Edge *input_ids = graph->createEdge("input_ids");
-  dag::Node *tokenizer_concat = graph->createNode<TokenizerConcat>(
-      "tokenizer_concat", {prompt, negative_prompt}, {input_ids});
-  tokenizer_concat->setParam(param[0]);
+  Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
 
-  /**
-   * @brief createInfer
-   * 多batch的推理
-   */
-  dag::Node *infer = graph->createInfer<infer::Infer>("infer", inference_type,
-                                                      input_ids, output);
-  infer->setParam(param[1]);
+  dag::Edge *prompt_ids = graph->createEdge("prompt_ids");
+  EmbeddingGraph *embedding_graph =
+      (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
+          "embedding_subgraph", {prompt}, {prompt_ids}));
+  embedding_graph->make(inference_type, "tokenizer");
+
+  tokenizer::TokenizerPraram *tokenizer_param =
+      new tokenizer::TokenizerPraram();
+  tokenizer_param->tokenizer_type_ = tokenizer::TokenizerType::kTokenizerTypeHF;
+  tokenizer_param->is_path_ = true;
+  // tokenizer_param->json_blob_ =
+  //     "/home/lds/stable-diffusion.onnx/models/tokenizer/tokenizer.json";
+  tokenizer_param->json_blob_ = text2image_param->model_value_[0];
+  embedding_graph->setTokenizerParam(tokenizer_param);
+
+  inference::InferenceParam *infer_param = new inference::InferenceParam();
+  infer_param->device_type_ = text2image_param->device_type_;
+  infer_param->model_type_ = text2image_param->model_type_;
+  infer_param->is_path_ = text2image_param->is_path_;
+  // std::vector<std::string> onnx_path = {
+  //     "/home/lds/stable-diffusion.onnx/models/text_encoder/model.onnx"};
+  std::vector<std::string> onnx_path = {text2image_param->model_value_[1]};
+  infer_param->model_value_ = onnx_path;
+  embedding_graph->setInferParam(infer_param);
+
+  dag::Edge *negative_prompt_ids = graph->createEdge("negative_prompt_ids");
+  EmbeddingGraph *negative_embedding_graph =
+      (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
+          "negative_embedding_subgraph", {negative_prompt},
+          {negative_prompt_ids}));
+  negative_embedding_graph->make(inference_type, "negative_tokenizer");
+  negative_embedding_graph->setTokenizerParam(tokenizer_param);
+  negative_embedding_graph->setInferParam(infer_param);
+
+  ConCatNode *concat_node = (ConCatNode *)graph->createNode<ConCatNode>(
+      "concat_node", {prompt_ids, negative_prompt_ids}, {output});
+  DDIMSchedulerParam *scheduler_param = (DDIMSchedulerParam *)param[1];
+  concat_node->setGuidance(scheduler_param->guidance_scale_);
 
   return graph;
 }
