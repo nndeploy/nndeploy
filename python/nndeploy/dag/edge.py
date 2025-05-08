@@ -14,6 +14,7 @@ class Edge(_C.dag.Edge):
     def __init__(self, name: str = ""):
         super().__init__(name)
         self.parallel_type = nndeploy.base.ParallelType.kParallelTypeNone
+        self.index = 0
 
     def get_name(self) -> str:
         return super().get_name()
@@ -27,10 +28,10 @@ class Edge(_C.dag.Edge):
     def construct(self):
         return super().construct()
         
-    def set(self, data: any, index: int = 0):
+    def set(self, data: any):
         if isinstance(data, (nndeploy.device.Buffer, nndeploy.device.Tensor)):
             # self.type_name = "nd." + type(data).__name__
-            status = super().set(data, index, True)
+            status = super().set(data, True)
             if status != nndeploy.base.StatusCode.Ok:
                 raise ValueError("Failed to set data")
         else: # 处理其他类型的数据
@@ -39,23 +40,23 @@ class Edge(_C.dag.Edge):
                 self.data = data
             elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
                 raise ValueError("Parallel type is not supported")
-        self.index = index
+        self.index += 1
         self.position = self.index
         self.type_name = type(data).__module__ + "." + type(data).__name__
         return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
         
-    def create_buffer(self, device: nndeploy.device.Device, desc: nndeploy.device.BufferDesc, index: int):
+    def create_buffer(self, device: nndeploy.device.Device, desc: nndeploy.device.BufferDesc):
         # 创建Buffer时设置正确的类型名称
         # self.type_name = "nd.Buffer"
         buffer_type = nndeploy.device.Buffer
         self.type_name = buffer_type.__module__ + "." + buffer_type.__name__
-        return super().create(device, desc, index)
+        return super().create(device, desc)
 
-    def create_tensor(self, device: nndeploy.device.Device, desc: nndeploy.device.TensorDesc, index: int, tensor_name: str = ""):
+    def create_tensor(self, device: nndeploy.device.Device, desc: nndeploy.device.TensorDesc, tensor_name: str = ""):
         # self.type_name = "nd.Tensor"
         tensor_type = nndeploy.device.Tensor
         self.type_name = tensor_type.__module__ + "." + tensor_type.__name__
-        return super().create(device, desc, index, tensor_name)
+        return super().create(device, desc, tensor_name)
         
     def notify_written(self, data: Union[nndeploy.device.Buffer, nndeploy.device.Tensor]):
         return super().notify_written(data)

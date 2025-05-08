@@ -223,6 +223,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::initializer_list<std::string> input_names,
                     std::initializer_list<Edge *> outputs);
+  Node *createNode4Py(const NodeDesc &desc);
 
   EdgeWrapper *getEdgeWrapper(Edge *edge);
   EdgeWrapper *getEdgeWrapper(const std::string &name);

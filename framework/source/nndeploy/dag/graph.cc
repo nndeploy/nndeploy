@@ -902,6 +902,8 @@ base::Status Graph::executor() {
   return status;
 }
 
+Node *Graph::createNode4Py(const NodeDesc &desc) { return createNode(desc); }
+
 EdgeWrapper *Graph::getEdgeWrapper(Edge *edge) {
   return findEdgeWrapper(edge_repository_, edge);
 }

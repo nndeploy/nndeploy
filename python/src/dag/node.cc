@@ -73,8 +73,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::return_value_policy::reference)
       .def("get_all_output", &Node::getAllOutput,
            py::return_value_policy::reference)
-      .def("create_edge", &Node::createEdge, py::arg("name"),
-           py::return_value_policy::reference)
+      .def("create_internal_output_edge", &Node::createInternalOutputEdge,
+           py::arg("name"), py::return_value_policy::reference)
       .def("get_constructed", &Node::getConstructed)
       .def("set_parallel_type", &Node::setParallelType,
            py::arg("parallel_type"))
