@@ -69,67 +69,6 @@ class NNDEPLOY_CC_API InitLatentsNode : public dag::Node {
   }
 };
 
-// class NNDEPLOY_CC_API DDIMGuidanceNode : public dag::Node {
-//  public:
-//   DDIMGuidanceNode(const std::string &name, std::vector<dag::Edge *> inputs,
-//                    std::vector<dag::Edge *> outputs)
-//       : dag::Node(name, inputs, outputs) {}
-
-//   virtual ~DDIMGuidanceNode() {}
-
-//   void setSchedulerParam(DDIMSchedulerParam *param) {
-//     scheduler_param_ = param;
-//   }
-
-//   virtual base::Status init() {
-//     DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)scheduler_param_;
-//     device::Device *device = device::getDefaultHostDevice();
-
-//     do_classifier_free_guidance_ =
-//         (ddim_param->guidance_scale_ > 1.0) ? true : false;
-//     return base::kStatusCodeOk;
-//   }
-
-//   virtual base::Status deinit() { return base::kStatusCodeOk; }
-
-//   virtual base::Status run() {
-//     DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)scheduler_param_;
-//     device::Device *device = device::getDefaultHostDevice();
-
-//     device::Tensor *latent = this->getInput(0)->getTensor(this);
-//     if (do_classifier_free_guidance_) {
-//       device::TensorDesc latent_desc;
-//       latent_desc.data_type_ = base::dataTypeOf<float>();
-//       latent_desc.data_format_ = base::kDataFormatNCHW;
-//       latent_desc.shape_ = {2, ddim_param->unet_channels_,
-//                             ddim_param->image_height_ / 8,
-//                             ddim_param->image_width_ / 8};
-//       latents = this->getOutput(0)->create(device, latent_desc);
-//       std::shared_ptr<ir::ConcatParam> param =
-//           std::make_shared<ir::ConcatParam>();
-//       param->axis_ = 0;
-//       op::concat({latent, latent}, param, latents);
-//     } else {
-//       device::TensorDesc latent_desc;
-//       latent_desc.data_type_ = base::dataTypeOf<float>();
-//       latent_desc.data_format_ = base::kDataFormatNCHW;
-//       latent_desc.shape_ = {1, ddim_param->unet_channels_,
-//                             ddim_param->image_height_ / 8,
-//                             ddim_param->image_width_ / 8};
-//       latents = this->getOutput(0)->create(device, latent_desc);
-//       latent->copyTo(latents);
-//     }
-//     this->getOutput(0)->notifyWritten(latents);
-
-//     return base::kStatusCodeOk;
-//   }
-
-//  private:
-//   bool do_classifier_free_guidance_ = false;
-//   device::Tensor *latents = nullptr;
-//   SchedulerParam *scheduler_param_ = nullptr;
-// };
-
 class NNDEPLOY_CC_API DDIMScheduleNode : public dag::Node {
  public:
   DDIMScheduleNode(const std::string &name, std::vector<dag::Edge *> inputs,
@@ -285,8 +224,6 @@ class NNDEPLOY_CC_API DenoiseNode : public dag::Node {
     do_classifier_free_guidance_ =
         (scheduler_param_->guidance_scale_ > 1.0) ? true : false;
 
-    text_embeddings_edge_ = this->getInput(1);
-
     device_ = device::getDefaultHostDevice();
     int chunk_num = do_classifier_free_guidance_ ? 2 : 1;
 
@@ -309,6 +246,7 @@ class NNDEPLOY_CC_API DenoiseNode : public dag::Node {
     unet_output_edge_ = new dag::Edge("unet_output");
     prev_latents_edge_ = new dag::Edge("prev_latents");
     latents_edge_ = new dag::Edge("latents");
+    text_embeddings_edge_ = new dag::Edge("text_embeddings_copy");
 
     // latents_edge_ = this->getOutput(0);
 
@@ -349,6 +287,12 @@ class NNDEPLOY_CC_API DenoiseNode : public dag::Node {
   }
   virtual base::Status run() {
     base::Status status = base::kStatusCodeOk;
+
+    device::TensorDesc text_embeddings_desc =
+        this->getInput(1)->getTensor(this)->getDesc();
+    device::Tensor *text_embeddings_copy =
+        text_embeddings_edge_->create(device_, text_embeddings_desc);
+    this->getInput(1)->getTensor(this)->copyTo(text_embeddings_copy);
 
     device::Tensor *init_latents = this->getInput(0)->getTensor(this);
 
