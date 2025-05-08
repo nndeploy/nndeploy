@@ -80,7 +80,6 @@ class NNDEPLOY_CC_API DDIMScheduleNode : public dag::Node {
   void setSchedulerParam(DDIMSchedulerParam *param) {
     scheduler_param_ = param;
   }
-
   void setScheduler(Scheduler *scheduler) { scheduler_ = scheduler; }
 
   virtual base::Status init() {
@@ -243,12 +242,10 @@ class NNDEPLOY_CC_API DenoiseNode : public dag::Node {
     timesteps_desc.shape_ = {1};
     timestep_ = timestep_edge_->create(device_, timesteps_desc);
 
+    text_embeddings_edge_ = new dag::Edge("text_embeddings_copy");
     unet_output_edge_ = new dag::Edge("unet_output");
     prev_latents_edge_ = new dag::Edge("prev_latents");
     latents_edge_ = new dag::Edge("latents");
-    text_embeddings_edge_ = new dag::Edge("text_embeddings_copy");
-
-    // latents_edge_ = this->getOutput(0);
 
     infer_node_ = new infer::Infer(
         "infer", {text_embeddings_edge_, cfg_latents_edge_, timestep_edge_},
@@ -261,6 +258,7 @@ class NNDEPLOY_CC_API DenoiseNode : public dag::Node {
     infer_param->model_value_ = onnx_path;
     infer_node_->setParam(infer_param);
     infer_node_->init();
+
     schedule_node_ = new DDIMScheduleNode(
         "schedule", {unet_output_edge_, prev_latents_edge_, timestep_edge_},
         {latents_edge_});
@@ -282,6 +280,30 @@ class NNDEPLOY_CC_API DenoiseNode : public dag::Node {
     if (timestep_ != nullptr) {
       delete timestep_;
       timestep_ = nullptr;
+    }
+    if (text_embeddings_edge_ != nullptr) {
+      delete text_embeddings_edge_;
+      text_embeddings_edge_ = nullptr;
+    }
+    if (unet_output_edge_ != nullptr) {
+      delete unet_output_edge_;
+      unet_output_edge_ = nullptr;
+    }
+    if (prev_latents_edge_ != nullptr) {
+      delete prev_latents_edge_;
+      prev_latents_edge_ = nullptr;
+    }
+    if (latents_edge_ != nullptr) {
+      delete latents_edge_;
+      latents_edge_ = nullptr;
+    }
+    if (infer_node_ != nullptr) {
+      delete infer_node_;
+      infer_node_ = nullptr;
+    }
+    if (schedule_node_ != nullptr) {
+      delete schedule_node_;
+      schedule_node_ = nullptr;
     }
     return status;
   }
