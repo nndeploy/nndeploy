@@ -93,7 +93,7 @@ dag::Graph *createStableDiffusionText2ImageGraph(
                       clip_inference_type, param);
   graph->addNode(clip_graph, false);
 
-  dag::Edge *latents = graph->createEdge("latents");
+  dag::Edge *latents = graph->createEdge("denoise_latents");
   dag::Graph *denoise_graph =
       createDenoiseGraph("denoise_ddim", text_embeddings, latents,
                          scheduler_type, unet_inference_type, param);

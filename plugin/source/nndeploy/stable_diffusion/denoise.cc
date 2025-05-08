@@ -13,176 +13,122 @@
 namespace nndeploy {
 namespace stable_diffusion {
 
-class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
+class NNDEPLOY_CC_API DenoiseParam : public base::Param {
  public:
-  DenoiseGraph(const std::string name, SchedulerType scheduler_type,
-               std::vector<dag::Edge *> inputs,
-               std::vector<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs), scheduler_type_(scheduler_type) {
-    scheduler_ = createScheduler(scheduler_type_);
-  }
-  ~DenoiseGraph() {
-    if (scheduler_ != nullptr) {
-      delete scheduler_;
-      scheduler_ = nullptr;
+  DenoiseParam() = default;
+  virtual ~DenoiseParam() {}
+
+  DenoiseParam(const DDIMSchedulerParam *scheduler,
+               const Text2ImageParam *text2img) {
+    if (scheduler) {
+      scheduler_param_ = *scheduler;
+    }
+    if (text2img) {
+      text2image_param_ = *text2img;
     }
   }
 
-  base::Status init() {
-    base::Status status = base::kStatusCodeOk;
-    status = this->construct();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "denoise graph construct failed.");
+  PARAM_COPY(DenoiseParam);
+  PARAM_COPY_TO(DenoiseParam);
 
-    status = this->executor();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "denoise graph executor failed!");
-
-    if (scheduler_param_ == nullptr) {
-      NNDEPLOY_LOGE("scheduler param is null!");
-      return base::kStatusCodeErrorNullParam;
-    }
-    status = scheduler_->init(scheduler_param_);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "scheduler init failed!");
-    setInitializedFlag(true);
-
-    return status;
-  }
-
-  base::Status deinit() {
-    base::Status status = base::kStatusCodeOk;
-    status = executor_->deinit();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "denoise graph executor deinit failed!");
-    status = scheduler_->deinit();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "scheduler deinit failed!");
-    setInitializedFlag(false);
-    return status;
-  }
-
-  base::Status run() {
-    base::Status status = base::kStatusCodeOk;
-    setRunningFlag(true);
-
-    dag::Edge *prev_latents = this->getEdge("prev_latents");
-    device::Device *device = device::getDefaultHostDevice();
-    device::TensorDesc latents_desc;
-    latents_desc.data_type_ = base::dataTypeOf<float>();
-    latents_desc.data_format_ = base::kDataFormatNCHW;
-    latents_desc.shape_ = {1, scheduler_param_->unet_channels_,
-                           scheduler_param_->image_height_ / 8,
-                           scheduler_param_->image_width_ / 8};
-    device::Tensor *prev_latents_t = prev_latents->create(device, latents_desc);
-    // prev_latents_t->set(1.0f);
-    std::mt19937 generator;
-    initializeLatents(generator, scheduler_param_->init_noise_sigma_,
-                      prev_latents_t);
-
-    dag::Edge *timestep = this->getEdge("denoise_timestep");
-    device::TensorDesc timestep_desc;
-    timestep_desc.data_type_ = base::dataTypeOf<float>();
-    timestep_desc.data_format_ = base::kDataFormatNC;
-    timestep_desc.shape_ = {1};
-    device::Tensor *timestep_t = timestep->create(device, timestep_desc);
-
-    scheduler_->setTimesteps();
-    std::vector<int> timesteps = scheduler_->getTimestep();
-    ProgressBar progress(timesteps.size(), 100, "Denoise", "Processing...");
-    int i = 0;
-    for (const auto &val : timesteps) {
-      timestep_t->set((float)val);
-      status = executor_->run();
-      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                             "executor run failed!");
-
-      device::Tensor *latents = this->getOutput(0)->getTensor(this);
-      latents->copyTo(prev_latents_t);
-      this->getOutput(0)->notifyWritten(prev_latents_t);
-      progress.update(i++);
-    }
-    progress.finish();
-    setRunningFlag(false);
-    return status;
-  }
-
-  float getTimestep() { return timestep_; }
-
-  Scheduler *getScheduler() { return scheduler_; }
-
-  void setSchedulerParam(DDIMSchedulerParam *param) {
-    scheduler_param_ = param;
-  }
-
- private:
-  SchedulerType scheduler_type_ = kSchedulerTypeNotSupport;
-  Scheduler *scheduler_ = nullptr;
-  SchedulerParam *scheduler_param_ = nullptr;
-
-  float timestep_ = 0.0;
+ public:
+  DDIMSchedulerParam scheduler_param_;
+  Text2ImageParam text2image_param_;
 };
 
 class NNDEPLOY_CC_API InitLatentsNode : public dag::Node {
  public:
   InitLatentsNode(const std::string &name, std::vector<dag::Edge *> inputs,
                   std::vector<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {}
-
+      : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::stable_diffusion::InitLatentsNode";
+    param_ = std::make_shared<DDIMSchedulerParam>();
+    this->setOutputTypeInfo<device::Tensor>();
+  }
   virtual ~InitLatentsNode() {}
-
-  void setSchedulerParam(DDIMSchedulerParam *param) {
-    scheduler_param_ = param;
-  }
-
-  virtual base::Status init() {
-    DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)scheduler_param_;
-    device::Device *device = device::getDefaultHostDevice();
-
-    do_classifier_free_guidance_ =
-        (ddim_param->guidance_scale_ > 1.0) ? true : false;
-    return base::kStatusCodeOk;
-  }
-
+  virtual base::Status init() { return base::kStatusCodeOk; }
   virtual base::Status deinit() { return base::kStatusCodeOk; }
-
   virtual base::Status run() {
-    DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)scheduler_param_;
+    std::shared_ptr<DDIMSchedulerParam> scheduler_param =
+        std::dynamic_pointer_cast<DDIMSchedulerParam>(param_);
     device::Device *device = device::getDefaultHostDevice();
+    device::TensorDesc latents_desc;
+    latents_desc.data_type_ = base::dataTypeOf<float>();
+    latents_desc.data_format_ = base::kDataFormatNCHW;
+    latents_desc.shape_ = {1, scheduler_param->unet_channels_,
+                           scheduler_param->image_height_ / 8,
+                           scheduler_param->image_width_ / 8};
+    device::Tensor *latents = this->getOutput(0)->create(device, latents_desc);
 
-    device::Tensor *latent = this->getInput(0)->getTensor(this);
-    if (do_classifier_free_guidance_) {
-      device::TensorDesc latent_desc;
-      latent_desc.data_type_ = base::dataTypeOf<float>();
-      latent_desc.data_format_ = base::kDataFormatNCHW;
-      latent_desc.shape_ = {2, ddim_param->unet_channels_,
-                            ddim_param->image_height_ / 8,
-                            ddim_param->image_width_ / 8};
-      latents = this->getOutput(0)->create(device, latent_desc);
-      std::shared_ptr<ir::ConcatParam> param =
-          std::make_shared<ir::ConcatParam>();
-      param->axis_ = 0;
-      op::concat({latent, latent}, param, latents);
-    } else {
-      device::TensorDesc latent_desc;
-      latent_desc.data_type_ = base::dataTypeOf<float>();
-      latent_desc.data_format_ = base::kDataFormatNCHW;
-      latent_desc.shape_ = {1, ddim_param->unet_channels_,
-                            ddim_param->image_height_ / 8,
-                            ddim_param->image_width_ / 8};
-      latents = this->getOutput(0)->create(device, latent_desc);
-      latent->copyTo(latents);
-    }
+    std::mt19937 generator;
+    initializeLatents(generator, scheduler_param->init_noise_sigma_, latents);
+
     this->getOutput(0)->notifyWritten(latents);
 
     return base::kStatusCodeOk;
   }
-
- private:
-  bool do_classifier_free_guidance_ = false;
-  device::Tensor *latents = nullptr;
-  SchedulerParam *scheduler_param_ = nullptr;
 };
+
+// class NNDEPLOY_CC_API DDIMGuidanceNode : public dag::Node {
+//  public:
+//   DDIMGuidanceNode(const std::string &name, std::vector<dag::Edge *> inputs,
+//                    std::vector<dag::Edge *> outputs)
+//       : dag::Node(name, inputs, outputs) {}
+
+//   virtual ~DDIMGuidanceNode() {}
+
+//   void setSchedulerParam(DDIMSchedulerParam *param) {
+//     scheduler_param_ = param;
+//   }
+
+//   virtual base::Status init() {
+//     DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)scheduler_param_;
+//     device::Device *device = device::getDefaultHostDevice();
+
+//     do_classifier_free_guidance_ =
+//         (ddim_param->guidance_scale_ > 1.0) ? true : false;
+//     return base::kStatusCodeOk;
+//   }
+
+//   virtual base::Status deinit() { return base::kStatusCodeOk; }
+
+//   virtual base::Status run() {
+//     DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)scheduler_param_;
+//     device::Device *device = device::getDefaultHostDevice();
+
+//     device::Tensor *latent = this->getInput(0)->getTensor(this);
+//     if (do_classifier_free_guidance_) {
+//       device::TensorDesc latent_desc;
+//       latent_desc.data_type_ = base::dataTypeOf<float>();
+//       latent_desc.data_format_ = base::kDataFormatNCHW;
+//       latent_desc.shape_ = {2, ddim_param->unet_channels_,
+//                             ddim_param->image_height_ / 8,
+//                             ddim_param->image_width_ / 8};
+//       latents = this->getOutput(0)->create(device, latent_desc);
+//       std::shared_ptr<ir::ConcatParam> param =
+//           std::make_shared<ir::ConcatParam>();
+//       param->axis_ = 0;
+//       op::concat({latent, latent}, param, latents);
+//     } else {
+//       device::TensorDesc latent_desc;
+//       latent_desc.data_type_ = base::dataTypeOf<float>();
+//       latent_desc.data_format_ = base::kDataFormatNCHW;
+//       latent_desc.shape_ = {1, ddim_param->unet_channels_,
+//                             ddim_param->image_height_ / 8,
+//                             ddim_param->image_width_ / 8};
+//       latents = this->getOutput(0)->create(device, latent_desc);
+//       latent->copyTo(latents);
+//     }
+//     this->getOutput(0)->notifyWritten(latents);
+
+//     return base::kStatusCodeOk;
+//   }
+
+//  private:
+//   bool do_classifier_free_guidance_ = false;
+//   device::Tensor *latents = nullptr;
+//   SchedulerParam *scheduler_param_ = nullptr;
+// };
 
 class NNDEPLOY_CC_API DDIMScheduleNode : public dag::Node {
  public:
@@ -192,11 +138,14 @@ class NNDEPLOY_CC_API DDIMScheduleNode : public dag::Node {
 
   virtual ~DDIMScheduleNode() {}
 
+  void setSchedulerParam(DDIMSchedulerParam *param) {
+    scheduler_param_ = param;
+  }
+
+  void setScheduler(Scheduler *scheduler) { scheduler_ = scheduler; }
+
   virtual base::Status init() {
     base::Status status = base::kStatusCodeOk;
-    DenoiseGraph *denoise_graph = (DenoiseGraph *)(this->getGraph());
-    scheduler_ = denoise_graph->getScheduler();
-
     DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)scheduler_param_;
 
     device::Device *device = device::getDefaultHostDevice();
@@ -278,13 +227,9 @@ class NNDEPLOY_CC_API DDIMScheduleNode : public dag::Node {
     device::Tensor *timestep_t = this->getInput(2)->getTensor(this);
     scheduler_->step(noise_pred_, timestep_t, prev_latents, latents);
 
-    this->getOutput(0)->notifyWritten(latents);
+    // this->getOutput(0)->notifyWritten(latents);
 
     return base::kStatusCodeOk;
-  }
-
-  void setSchedulerParam(DDIMSchedulerParam *param) {
-    scheduler_param_ = param;
   }
 
  private:
@@ -293,7 +238,6 @@ class NNDEPLOY_CC_API DDIMScheduleNode : public dag::Node {
 
   bool do_classifier_free_guidance_ = false;
 
-  // intermediate tensors
   device::Tensor *latent = nullptr;
   device::Tensor *latents = nullptr;
   device::Tensor *noise_pred_ = nullptr;
@@ -304,48 +248,234 @@ class NNDEPLOY_CC_API DDIMScheduleNode : public dag::Node {
   device::Tensor *timestep_t = nullptr;
 };
 
+class NNDEPLOY_CC_API DenoiseNode : public dag::Node {
+ public:
+  DenoiseNode(const std::string &name, std::vector<dag::Edge *> inputs,
+              std::vector<dag::Edge *> outputs)
+      : Node(name, inputs, outputs),
+        scheduler_type_(stable_diffusion::kSchedulerTypeDDIM) {
+    key_ = "nndeploy::stable_diffusion::DenoiseNode";
+    param_ = std::make_shared<DenoiseParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+
+    scheduler_ = createScheduler(scheduler_type_);
+  }
+  virtual ~DenoiseNode() {
+    if (scheduler_ != nullptr) {
+      delete scheduler_;
+      scheduler_ = nullptr;
+    }
+  }
+  virtual base::Status init() {
+    base::Status status = base::kStatusCodeOk;
+
+    denoise_param_ = (DenoiseParam *)param_.get();
+    scheduler_param_ = &denoise_param_->scheduler_param_;
+    text2image_param_ = &denoise_param_->text2image_param_;
+
+    if (scheduler_param_ == nullptr) {
+      NNDEPLOY_LOGE("scheduler param is null!");
+      return base::kStatusCodeErrorNullParam;
+    }
+    status = scheduler_->init(scheduler_param_);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "scheduler init failed!");
+
+    do_classifier_free_guidance_ =
+        (scheduler_param_->guidance_scale_ > 1.0) ? true : false;
+
+    text_embeddings_edge_ = this->getInput(1);
+
+    device_ = device::getDefaultHostDevice();
+    int chunk_num = do_classifier_free_guidance_ ? 2 : 1;
+
+    cfg_latents_edge_ = new dag::Edge("cfg_latents");
+    device::TensorDesc latents_desc;
+    latents_desc.data_type_ = base::dataTypeOf<float>();
+    latents_desc.data_format_ = base::kDataFormatNCHW;
+    latents_desc.shape_ = {chunk_num, scheduler_param_->unet_channels_,
+                           scheduler_param_->image_height_ / 8,
+                           scheduler_param_->image_width_ / 8};
+    cfg_latents_ = cfg_latents_edge_->create(device_, latents_desc);
+
+    timestep_edge_ = new dag::Edge("timestep");
+    device::TensorDesc timesteps_desc;
+    timesteps_desc.data_type_ = base::dataTypeOf<float>();
+    timesteps_desc.data_format_ = base::kDataFormatNC;
+    timesteps_desc.shape_ = {1};
+    timestep_ = timestep_edge_->create(device_, timesteps_desc);
+
+    unet_output_edge_ = new dag::Edge("unet_output");
+    prev_latents_edge_ = new dag::Edge("prev_latents");
+    latents_edge_ = new dag::Edge("latents");
+
+    // latents_edge_ = this->getOutput(0);
+
+    infer_node_ = new infer::Infer(
+        "infer", {text_embeddings_edge_, cfg_latents_edge_, timestep_edge_},
+        {unet_output_edge_}, base::kInferenceTypeOnnxRuntime);
+    inference::InferenceParam *infer_param = new inference::InferenceParam();
+    infer_param->device_type_ = text2image_param_->device_type_;
+    infer_param->model_type_ = text2image_param_->model_type_;
+    infer_param->is_path_ = text2image_param_->is_path_;
+    std::vector<std::string> onnx_path = {text2image_param_->model_value_[2]};
+    infer_param->model_value_ = onnx_path;
+    infer_node_->setParam(infer_param);
+    infer_node_->init();
+    schedule_node_ = new DDIMScheduleNode(
+        "schedule", {unet_output_edge_, prev_latents_edge_, timestep_edge_},
+        {latents_edge_});
+    schedule_node_->setSchedulerParam(scheduler_param_);
+    schedule_node_->setScheduler(scheduler_);
+    schedule_node_->init();
+
+    return status;
+  }
+  virtual base::Status deinit() {
+    base::Status status = base::kStatusCodeOk;
+    status = scheduler_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "scheduler deinit failed!");
+    if (cfg_latents_ != nullptr) {
+      delete cfg_latents_;
+      cfg_latents_ = nullptr;
+    }
+    if (timestep_ != nullptr) {
+      delete timestep_;
+      timestep_ = nullptr;
+    }
+    return status;
+  }
+  virtual base::Status run() {
+    base::Status status = base::kStatusCodeOk;
+
+    device::Tensor *init_latents = this->getInput(0)->getTensor(this);
+
+    // void *data_ptr = init_latents->getData();
+    // float *float_data = static_cast<float *>(data_ptr);
+    // std::cout << "init_latents: " << float_data[0] << std::endl;
+
+    device::TensorDesc latents_desc;
+    latents_desc.data_type_ = base::dataTypeOf<float>();
+    latents_desc.data_format_ = base::kDataFormatNCHW;
+    latents_desc.shape_ = {1, scheduler_param_->unet_channels_,
+                           scheduler_param_->image_height_ / 8,
+                           scheduler_param_->image_width_ / 8};
+    device::Tensor *prev_latents =
+        prev_latents_edge_->create(device_, latents_desc);
+    device::Tensor *latents = latents_edge_->create(device_, latents_desc);
+
+    init_latents->copyTo(prev_latents);
+
+    scheduler_->setTimesteps();
+    std::vector<int> timesteps = scheduler_->getTimesteps();
+    ProgressBar progress(timesteps.size(), 100, "Denoise", "Processing...");
+    int i = 0;
+    // NNDEPLOY_LOGE("Denoise node start loop!\n");
+    for (const auto &val : timesteps) {
+      if (do_classifier_free_guidance_) {
+        std::shared_ptr<ir::ConcatParam> param =
+            std::make_shared<ir::ConcatParam>();
+        param->axis_ = 0;
+        op::concat({prev_latents, prev_latents}, param, cfg_latents_);
+      } else {
+        prev_latents->copyTo(cfg_latents_);
+      }
+      timestep_->set((float)val);
+
+      infer_node_->run();
+      schedule_node_->run();
+      latents->copyTo(prev_latents);
+      progress.update(i++);
+    }
+    progress.finish();
+
+    device::Tensor *latents_out =
+        this->getOutput(0)->create(device_, latents_desc);
+    latents->copyTo(latents_out);
+    this->getOutput(0)->notifyWritten(latents_out);
+
+    setRunningFlag(false);
+    return status;
+  }
+
+ private:
+  SchedulerType scheduler_type_;
+  Scheduler *scheduler_ = nullptr;  // 指向 DDIMScheduler
+  DenoiseParam *denoise_param_ = nullptr;
+  DDIMSchedulerParam *scheduler_param_ = nullptr;
+  Text2ImageParam *text2image_param_ = nullptr;
+
+  device::Device *device_ = nullptr;
+
+  device::Tensor *cfg_latents_ = nullptr;
+  device::Tensor *timestep_ = nullptr;
+
+  dag::Edge *text_embeddings_edge_ = nullptr;
+  dag::Edge *cfg_latents_edge_ = nullptr;
+  dag::Edge *timestep_edge_ = nullptr;
+  dag::Edge *unet_output_edge_ = nullptr;
+  dag::Edge *prev_latents_edge_ = nullptr;
+  dag::Edge *latents_edge_ = nullptr;
+
+  bool do_classifier_free_guidance_ = false;
+
+  infer::Infer *infer_node_ = nullptr;
+  DDIMScheduleNode *schedule_node_ = nullptr;
+};
+
 dag::Graph *createDenoiseGraph(const std::string &name,
                                dag::Edge *text_embeddings, dag::Edge *latents,
                                SchedulerType scheduler_type,
                                base::InferenceType inference_type,
                                std::vector<base::Param *> &param) {
-  DenoiseGraph *denoise_graph =
-      new DenoiseGraph(name, scheduler_type, {text_embeddings}, {latents});
+  Text2ImageParam *text2image_param = (Text2ImageParam *)(param[0]);
   DDIMSchedulerParam *scheduler_param = (DDIMSchedulerParam *)(param[1]);
-  denoise_graph->setSchedulerParam(scheduler_param);
 
-  dag::Edge *prev_latents = denoise_graph->createEdge("prev_latents");
-  dag::Edge *timestep = denoise_graph->createEdge("denoise_timestep");
-  dag::Edge *model_input = denoise_graph->createEdge("model_input");
+  dag::Graph *denoise_graph =
+      new dag::Graph(name, {text_embeddings}, {latents});
+
+  // dag::Edge *init_latents = denoise_graph->createEdge("init_latents");
+  // dag::NodeDesc
+  // init_latents_desc("nndeploy::stable_diffusion::InitLatentsNode",
+  //                                 "init_latents", {},
+  //                                 {init_latents->getName()});
+  // InitLatentsNode *init_latents_node =
+  //     (InitLatentsNode *)denoise_graph->createNode(init_latents_desc);
+  // init_latents_node->setParam(scheduler_param);
+
+  // dag::NodeDesc denoise_desc(
+  //     "nndeploy::stable_diffusion::DenoiseNode", "denoise",
+  //     {init_latents->getName(), text_embeddings->getName()},
+  //     {latents->getName()});
+  // DenoiseNode *denoise_node =
+  //     (DenoiseNode *)denoise_graph->createNode(denoise_desc);
+  // auto denoise_param =
+  //     std::make_shared<DenoiseParam>(scheduler_param, text2image_param);
+  // denoise_node->setParam(denoise_param.get());
+
+  dag::Edge *init_latents = denoise_graph->createEdge("init_latents");
   InitLatentsNode *init_latents_node =
       (InitLatentsNode *)denoise_graph->createNode<InitLatentsNode>(
-          "init_latents", std::vector<dag::Edge *>{prev_latents},
-          std::vector<dag::Edge *>{model_input});
-  init_latents_node->setGraph(denoise_graph);
-  init_latents_node->setSchedulerParam(scheduler_param);
+          "init_latents", std::vector<dag::Edge *>{},
+          std::vector<dag::Edge *>{init_latents});
+  init_latents_node->setParam(scheduler_param);
 
-  Text2ImageParam *text2image_param = (Text2ImageParam *)(param[0]);
-  dag::Edge *model_output = denoise_graph->createEdge("unet_output");
-  dag::Node *unet_node = denoise_graph->createInfer<infer::Infer>(
-      "unet", inference_type, {text_embeddings, model_input, timestep},
-      {model_output});
-  inference::InferenceParam *infer_param = new inference::InferenceParam();
-  infer_param->device_type_ = text2image_param->device_type_;
-  infer_param->model_type_ = text2image_param->model_type_;
-  infer_param->is_path_ = text2image_param->is_path_;
-  // std::vector<std::string> onnx_path = {
-  //     "/home/lds/stable-diffusion.onnx/models/unet/model.onnx"};
-  std::vector<std::string> onnx_path = {text2image_param->model_value_[2]};
-  infer_param->model_value_ = onnx_path;
-  unet_node->setParam(infer_param);
-
-  DDIMScheduleNode *ddim_schedule_node =
-      (DDIMScheduleNode *)(denoise_graph->createNode<DDIMScheduleNode>(
-          "ddim_schedule", {model_output, prev_latents, timestep}, {latents}));
-  ddim_schedule_node->setGraph(denoise_graph);
-  ddim_schedule_node->setSchedulerParam(scheduler_param);
+  auto denoise_param =
+      std::make_shared<DenoiseParam>(scheduler_param, text2image_param);
+  DenoiseNode *denoise_node =
+      (DenoiseNode *)denoise_graph->createNode<DenoiseNode>(
+          "denoise", std::vector<dag::Edge *>{init_latents, text_embeddings},
+          std::vector<dag::Edge *>{latents});
+  denoise_node->setParam(denoise_param.get());
 
   return denoise_graph;
 }
+
+// REGISTER_NODE("nndeploy::stable_diffusion::InitLatentsNode",
+// InitLatentsNode); REGISTER_NODE("nndeploy::stable_diffusion::DenoiseNode",
+// DenoiseNode);
+
 }  // namespace stable_diffusion
 }  // namespace nndeploy

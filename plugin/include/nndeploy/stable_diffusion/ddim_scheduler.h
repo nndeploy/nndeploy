@@ -31,7 +31,26 @@ namespace stable_diffusion {
 
 class NNDEPLOY_CC_API DDIMSchedulerParam : public SchedulerParam {
  public:
-  virtual DDIMSchedulerParam *clone() const;
+  DDIMSchedulerParam() : SchedulerParam() {}
+  virtual ~DDIMSchedulerParam() {}
+
+  PARAM_COPY(DDIMSchedulerParam);
+  PARAM_COPY_TO(DDIMSchedulerParam);
+
+  DDIMSchedulerParam &operator=(const DDIMSchedulerParam &other) {
+    if (this == &other) {
+      return *this;
+    }
+    SchedulerParam::operator=(other);
+    beta_start_ = other.beta_start_;
+    beta_end_ = other.beta_end_;
+    beta_schedule_ = other.beta_schedule_;
+    eta_ = other.eta_;
+    set_alpha_to_one_ = other.set_alpha_to_one_;
+    return *this;
+  }
+
+  DDIMSchedulerParam *clone() const;
 
  public:
   float beta_start_ = 0.00085;                   // beta起始值
@@ -57,7 +76,7 @@ class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
                             device::Tensor *latents,
                             device::Tensor *pre_sample);
 
-  virtual std::vector<int> &getTimestep();
+  virtual std::vector<int> &getTimesteps();
 
   base::Status step_inner(std::vector<float> &sample, int timestep,
                           std::vector<float> &latents,

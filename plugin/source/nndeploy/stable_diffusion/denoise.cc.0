@@ -87,7 +87,7 @@ class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
     device::Tensor *timestep_t = timestep->create(device, timestep_desc);
 
     scheduler_->setTimesteps();
-    std::vector<int> timesteps = scheduler_->getTimestep();
+    std::vector<int> timesteps = scheduler_->getTimesteps();
     ProgressBar progress(timesteps.size(), 100, "Denoise", "Processing...");
     int i = 0;
     for (const auto &val : timesteps) {
