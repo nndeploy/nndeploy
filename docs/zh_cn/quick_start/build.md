@@ -87,7 +87,7 @@ make -j                     # 使用8个线程并行编译
 
   + 通过visual studio打开`build/nndeploy.sln`，开始编译、安装、执行
 
-## Linux
+## 6. Linux
 
 + 环境要求
   + cmake >= 3.12
@@ -133,7 +133,7 @@ make -j                     # 使用8个线程并行编译
     make install
     ```
 
-## Android
+## 7. Android
 
 + 环境要求
   + cmake >= 3.12
@@ -173,34 +173,28 @@ make -j                     # 使用8个线程并行编译
     make install
     ```
 
-## Mac（TODO）
+## 8. Mac（TODO）
 
 + 环境要求
   + cmake >= 3.12
   + xcode
 
 
-## iOS（TODO）
+## 9. iOS（TODO）
 
 + 环境要求
   + cmake >= 3.12
   + xcode
 
 
-## Linux + 华为昇腾
+## 10. Linux + 华为昇腾
 
 
 + 环境要求
   + cmake >= 3.12
   + gcc >= 5.1
 
-+ nndeploy提供的第三方库
-
-  |                        第三方库                         |  主版本  |                                       Linux下载链接                                       | 备注  |
-  | :-----------------------------------------------------: | :------: | :---------------------------------------------------------------------------------------: | :---: |
-  | [ONNXRuntime](https://github.com/microsoft/onnxruntime) | v1.15.1  | wget https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party/ubuntu22.04_x64.tar |       |
-
-  注：将上述所有库打包为一个压缩包ubuntu22.04_arm64.tar，存放在huggingface上，使用前请将压缩包ubuntu22.04_arm64.tar解压
++ 三方库
 
   + 安装opencv
     + `sudo apt install libopencv-dev` [参考链接](https://cloud.tencent.com/developer/article/1657529)
@@ -231,7 +225,7 @@ make -j                     # 使用8个线程并行编译
     ```
 
 
-## 第三方库官方编译文档以及下载链接
+## 11. 第三方库官方编译文档以及下载链接
 
 |                        第三方库                         |  主版本  |                                          编译文档                                           |                                                                               官方库下载链接                                                                               |         备注         |
 | :-----------------------------------------------------: | :------: | :-----------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------: |
@@ -244,7 +238,7 @@ make -j                     # 使用8个线程并行编译
 |        [ncnn](https://github.com/Tencent/ncnn/)         |  v0.3.0  |            [链接](https://github.com/Tencent/ncnn/tree/master/docs/how-to-build)            |                                                       [链接](https://github.com/Tencent/ncnn/releases/tag/20230816)                                                        |                      |
 
 
-## 补充说明    
+## 12. 补充说明    
 
 - 我们使用第三方库的上述版本，通常使用其他版本的也没有问题
 

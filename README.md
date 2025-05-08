@@ -4,7 +4,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/image/logo.png">
-    <img alt="nndeploy" src="docs/image/logo.png" width=40%>
+    <img alt="nndeploy" src="docs/image/logo.png" width=55%>
   </picture>
 </p>
 
@@ -16,24 +16,18 @@
 | <a href="https://nndeploy-zh.readthedocs.io/zh/latest/"><b>文档</b></a> | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> | <a href="https://discord.gg/4w2QRgn6"><b>discord</b></a> |
 </p>
 
----
-
-<p align="center">
-  <picture>
-    <img alt="Architecture" src="docs/image/architecture.jpg" width=70%>
-  </picture>
-</p>
+![Architecture](docs/image/architecture.jpg)
 
 ---
 
 ## 支持的算法
 
-- 支持RBMGv1.4，[详情]()
-- 支持ResNet，[详情]()
-- 支持YOLOv5，[详情]()
-- 支持YOLOv6，[详情]()
-- 支持YOLOv8，[详情]()
-- 支持YOLOv11，[详情]()
+- 支持RBMGv1.4，[详情](demo/segment/README.md)
+- 支持ResNet，[详情](demo/classification/README.md)
+- 支持YOLOv5，[详情](demo/detect/README.md)
+- 支持YOLOv6，[详情](demo/detect/README.md)
+- 支持YOLOv8，[详情](demo/detect/README.md)
+- 支持YOLOv11，[详情](demo/detect/README.md)
 - 支持stable diffusion 1.5，完善中，[详情]()
 - 支持QWen，完善中，[详情]()
 - 支持SAM，完善中，[详情]()
@@ -58,11 +52,9 @@
   
 - **一组高性能的算子**：完成后将加速您模型前后处理速度(开发中)
 
-- **推理框架的高性能抽象**：尊重各推理框架特性，保留其性能优势。`nndeploy`支持配置推理框架参数，直接操作内部输入输出，实现零拷贝，提升端到端性能。
-
 ### 3. 支持多端
 
-- 通过切换推理配置，一套代码即可完成模型`多个平台以及多个推理框架`部署
+- **一套代码多端部署**：通过切换推理配置，实现一套代码即可完成模型**跨多个平台以及多个推理框架**部署，性能与原始框架一致，还可直接操作推理框架内部分配的输入输出，实现前后处理的零拷贝，提升模型部署端到端的性能
 
 - 当前支持的推理框架如下：
 
@@ -79,13 +71,9 @@
   | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) |   √   |    -    |    -    |   -   |   -   | [100312dog](https://github.com/100312dog)                                          |         |
   | **[default](https://github.com/nndeploy/nndeploy)**                              |   √   |    -    |    -    |   -   |   -   | [nndeploy](https://github.com/nndeploy)                                            | 内部的推理模块        |
 
-- 内部的推理模块：目前后端算子以华为昇腾NPU和CPU为主，持ResNet50、YOLOv11、RMBG1.4等模型，更多介绍[default_inference.md]()
+- **内部的推理模块**：整体架构如图所示，目前后端算子以华为昇腾NPU和CPU为主，持ResNet50、YOLOv11、RMBG1.4等模型，更多介绍[default_inference.md]()
 
-  - 推理模块架构图
-
-    <img src="docs/image/inference/inference_framework_arch.png" width="600px">
-
-## [Roadmap]()
+  <img src="docs/image/inference/inference_framework_arch.png">
 
 
 ## 快速开始
@@ -93,25 +81,6 @@
 - [如何编译](docs/zh_cn/quick_start/build.md)
 - [如何获取模型](docs/zh_cn/quick_start/model.md)
 - [如何执行](docs/zh_cn/quick_start/example.md)
-
-## 引用
-
-如果您在研究中使用了nndeploy，请引用我们的项目：
-
-```bibtex
-@misc{nndeploy,
-  title={nndeploy: Easy-to-use, high-performance, multi-platform inference deployment framework},
-  author={nndeploy},
-  year={2023},
-  howpublished={https://github.com/nndeploy/nndeploy},
-}
-```
-
-## 联系我们
-- 当前nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。
-- 微信：titian5566 (加微信进AI推理部署交流群，请简单备注个人信息)
-  
-  <img src="docs/image/wechat.jpg" width="225px">
 
 
 ## 贡献者
@@ -121,11 +90,15 @@
 </a>
 
 
-## Star History
+## 联系我们
+- 当前nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。
+- 微信：titian5566 (加微信进AI推理部署交流群，请简单备注个人信息)
+  
+  <img src="docs/image/wechat.jpg" width="225px">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=nndeploy/nndeploy&type=Date)](https://star-history.com/#nndeploy/nndeploy&Date)
 
 ## 致谢
-我们从以下项目中学习了设计理念并复用了部分代码：[TNN](https://github.com/Tencent/TNN)、[FastDeploy](https://github.com/PaddlePaddle/FastDeploy)、[opencv](https://github.com/opencv/opencv)、[CGraph](https://github.com/ChunelFeng/CGraph)、[CThreadPool](https://github.com/ChunelFeng/CThreadPool)、[tvm](https://github.com/apache/tvm)、[mmdeploy](https://github.com/open-mmlab/mmdeploy)、[FlyCV](https://github.com/PaddlePaddle/FlyCV)和[oneflow](https://github.com/Oneflow-Inc/oneflow)。
+
+我们参考了以下项目：[TNN](https://github.com/Tencent/TNN)、[FastDeploy](https://github.com/PaddlePaddle/FastDeploy)、[opencv](https://github.com/opencv/opencv)、[CGraph](https://github.com/ChunelFeng/CGraph)、[CThreadPool](https://github.com/ChunelFeng/CThreadPool)、[tvm](https://github.com/apache/tvm)、[mmdeploy](https://github.com/open-mmlab/mmdeploy)、[FlyCV](https://github.com/PaddlePaddle/FlyCV)和[oneflow](https://github.com/Oneflow-Inc/oneflow)。
 
 
