@@ -213,6 +213,7 @@ class NNDEPLOY_CC_API DenoiseNode : public dag::Node {
     key_ = "nndeploy::stable_diffusion::DenoiseNode";
     param_ = std::make_shared<DenoiseParam>();
     this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
 
     scheduler_ = createScheduler(scheduler_type_);
@@ -420,46 +421,44 @@ dag::Graph *createDenoiseGraph(const std::string &name,
   dag::Graph *denoise_graph =
       new dag::Graph(name, {text_embeddings}, {latents});
 
-  // dag::Edge *init_latents = denoise_graph->createEdge("init_latents");
-  // dag::NodeDesc
-  // init_latents_desc("nndeploy::stable_diffusion::InitLatentsNode",
-  //                                 "init_latents", {},
-  //                                 {init_latents->getName()});
-  // InitLatentsNode *init_latents_node =
-  //     (InitLatentsNode *)denoise_graph->createNode(init_latents_desc);
-  // init_latents_node->setParam(scheduler_param);
-
-  // dag::NodeDesc denoise_desc(
-  //     "nndeploy::stable_diffusion::DenoiseNode", "denoise",
-  //     {init_latents->getName(), text_embeddings->getName()},
-  //     {latents->getName()});
-  // DenoiseNode *denoise_node =
-  //     (DenoiseNode *)denoise_graph->createNode(denoise_desc);
-  // auto denoise_param =
-  //     std::make_shared<DenoiseParam>(scheduler_param, text2image_param);
-  // denoise_node->setParam(denoise_param.get());
-
   dag::Edge *init_latents = denoise_graph->createEdge("init_latents");
+  dag::NodeDesc init_latents_desc("nndeploy::stable_diffusion::InitLatentsNode",
+                                  "init_latents", {},
+                                  {init_latents->getName()});
   InitLatentsNode *init_latents_node =
-      (InitLatentsNode *)denoise_graph->createNode<InitLatentsNode>(
-          "init_latents", std::vector<dag::Edge *>{},
-          std::vector<dag::Edge *>{init_latents});
+      (InitLatentsNode *)denoise_graph->createNode(init_latents_desc);
   init_latents_node->setParam(scheduler_param);
 
+  dag::NodeDesc denoise_desc(
+      "nndeploy::stable_diffusion::DenoiseNode", "denoise",
+      {init_latents->getName(), text_embeddings->getName()},
+      {latents->getName()});
+  DenoiseNode *denoise_node =
+      (DenoiseNode *)denoise_graph->createNode(denoise_desc);
   auto denoise_param =
       std::make_shared<DenoiseParam>(scheduler_param, text2image_param);
-  DenoiseNode *denoise_node =
-      (DenoiseNode *)denoise_graph->createNode<DenoiseNode>(
-          "denoise", std::vector<dag::Edge *>{init_latents, text_embeddings},
-          std::vector<dag::Edge *>{latents});
   denoise_node->setParam(denoise_param.get());
+
+  // dag::Edge *init_latents = denoise_graph->createEdge("init_latents");
+  // InitLatentsNode *init_latents_node =
+  //     (InitLatentsNode *)denoise_graph->createNode<InitLatentsNode>(
+  //         "init_latents", std::vector<dag::Edge *>{},
+  //         std::vector<dag::Edge *>{init_latents});
+  // init_latents_node->setParam(scheduler_param);
+
+  // auto denoise_param =
+  //     std::make_shared<DenoiseParam>(scheduler_param, text2image_param);
+  // DenoiseNode *denoise_node =
+  //     (DenoiseNode *)denoise_graph->createNode<DenoiseNode>(
+  //         "denoise", std::vector<dag::Edge *>{init_latents, text_embeddings},
+  //         std::vector<dag::Edge *>{latents});
+  // denoise_node->setParam(denoise_param.get());
 
   return denoise_graph;
 }
 
-// REGISTER_NODE("nndeploy::stable_diffusion::InitLatentsNode",
-// InitLatentsNode); REGISTER_NODE("nndeploy::stable_diffusion::DenoiseNode",
-// DenoiseNode);
+REGISTER_NODE("nndeploy::stable_diffusion::InitLatentsNode", InitLatentsNode);
+REGISTER_NODE("nndeploy::stable_diffusion::DenoiseNode", DenoiseNode);
 
 }  // namespace stable_diffusion
 }  // namespace nndeploy

@@ -206,9 +206,30 @@ Node *Graph::createNode(const NodeDesc &desc) {
   }
   Node *node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
   if (node == nullptr) {
-    NNDEPLOY_LOGE("create infer node[%s] failed!\n", desc.getName().c_str());
+    NNDEPLOY_LOGE("create node[%s] failed!\n", desc.getName().c_str());
     return nullptr;
   }
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
 
   node->setGraph(this);
 
@@ -726,7 +747,7 @@ base::Status Graph::construct() {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
                                          "edge_repository_ edge is null!");
     if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
-      NNDEPLOY_LOGI("this edge[%s] is useless!\n",
+      NNDEPLOY_LOGI("graph[%s] this edge[%s] is useless!\n", name_.c_str(),
                     edge_wrapper->edge_->getName().c_str());
     }
   }
