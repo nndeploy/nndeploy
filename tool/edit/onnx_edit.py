@@ -24,6 +24,7 @@ def onnx_edit_node_name(src_model_path, old_node_name, new_node_name, dst_model_
     for node in model.graph.node:
         if node.name == old_node_name:
             node.name = new_node_name
+            break
     if dst_model_path == "":
         dst_model_path = src_model_path.replace(".onnx", f"_edit_node_name.onnx") 
     onnx.checker.check_model(model)
