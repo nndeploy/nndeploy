@@ -31,6 +31,15 @@ class ConstNode : public Node {
   }
   virtual ~ConstNode() {}
 
+  /**
+   * 服务流水线并行，该接口必须重写
+   *
+   * @return
+   */
+  virtual base::EdgeUpdateFlag updateInput() {
+    return base::kEdgeUpdateFlagComplete;
+  }
+
   virtual base::Status run() { return base::kStatusCodeOk; }
 };
 
