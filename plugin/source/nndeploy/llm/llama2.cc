@@ -338,8 +338,8 @@ void LlmPrefillGraph::genPastKeyValue() {
 void LlmPrefillGraph::createPrefillNodesEdges() {
   /* token node */
   prefill_token_ids_ = createEdge("prefill_token_ids");
-  prefill_token_node_ = createNode<tokenizer::TokenizerCpp>(
-      "token_node", prompt_, prefill_token_ids_);
+  prefill_token_node_ = createNode<tokenizer::TokenizerEncodeCpp>(
+      "token_node", {prompt_}, {prefill_token_ids_});
 
   /* embedding node */
   prefill_input_ids_ = createEdge("prefill_input_ids");
@@ -364,8 +364,8 @@ void LlmPrefillGraph::createPrefillNodesEdges() {
       "prefill_infer", inference_type_, embedding_out, infer_out);
 
   /* sample node */
-  prefill_sample_node_ =
-      createNode<SampleNode>("sample_node", prefill_logits_, prefill_out_ids_);
+  prefill_sample_node_ = createNode<SampleNode>(
+      "sample_node", {prefill_logits_}, {prefill_out_ids_});
 }
 
 void LlmPrefillGraph::setParams(bool is_path, base::ModelType model_type,
@@ -383,7 +383,6 @@ void LlmPrefillGraph::setParams(bool is_path, base::ModelType model_type,
   tokenizer::TokenizerPraram* token_param =
       dynamic_cast<tokenizer::TokenizerPraram*>(
           prefill_token_node_->getParam());
-  token_param->is_encode_ = true;
   token_param->is_path_ = false;
   token_param->tokenizer_type_ =
       nndeploy::tokenizer::TokenizerType::kTokenizerTypeHF;
@@ -471,8 +470,8 @@ void LlmDecodeGraph::createPrefillNodesEdges() {
       createNode<SampleNode>("sample_node", decode_logits_, decode_out_ids_);
 
   /* decode node */
-  decode_node_ = createNode<tokenizer::TokenizerCpp>(
-      "decode_node", decode_out_ids_, decode_out_words_);
+  decode_node_ = createNode<tokenizer::TokenizerDecodeCpp>(
+      "decode_node", {decode_out_ids_}, {decode_out_words_});
 }
 
 void LlmDecodeGraph::setParams(bool is_path, base::ModelType model_type,
@@ -506,7 +505,6 @@ void LlmDecodeGraph::setParams(bool is_path, base::ModelType model_type,
   /* decode token params */
   tokenizer::TokenizerPraram* token_param =
       dynamic_cast<tokenizer::TokenizerPraram*>(decode_node_->getParam());
-  token_param->is_encode_ = false;
   token_param->is_path_ = false;
   token_param->tokenizer_type_ =
       nndeploy::tokenizer::TokenizerType::kTokenizerTypeHF;
@@ -603,7 +601,7 @@ dag::Graph* createLlmLlama2Graph(const std::string& name,
                                  base::ModelType model_type, bool is_path,
                                  std::vector<std::string> config_path) {
   LlmConfig config = parseConfig(config_path[0]);
-  dag::Graph* llama2_graph = new dag::Graph(name, prompt, out);
+  dag::Graph* llama2_graph = new dag::Graph(name, {prompt}, {out});
 
   /* create prefill graph */
   dag::Edge* prefill_out_ids = new dag::Edge("prefill_out_ids");
