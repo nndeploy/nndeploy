@@ -558,6 +558,10 @@ base::EdgeUpdateFlag PipelineEdge::update(const Node *node) {
 
   // 销毁不会被使用到的数据
   if (real_count > 0) {
+    // if (tmp_node != nullptr && tmp_node->getName() == "encode_node_") {
+    //   NNDEPLOY_LOGE("encode_node_ real_count[%d]: data_packets_.size[%d].\n",
+    //                 real_count, data_packets_.size());
+    // }
     data_packets_.erase(data_packets_.begin(), iter);
     for (auto &iter : to_consume_index_) {
       iter.second -= real_count;

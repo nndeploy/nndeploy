@@ -32,6 +32,8 @@ class DrawLableNode : public dag::Node {
     classification::ClassificationResult *result =
         (classification::ClassificationResult *)inputs_[1]->getParam(this);
     // 遍历每个分类结果
+    cv::Mat *output_mat = new cv::Mat();
+    input_mat->copyTo(*output_mat);
     for (int i = 0; i < result->labels_.size(); i++) {
       auto label = result->labels_[i];
 
@@ -40,11 +42,11 @@ class DrawLableNode : public dag::Node {
                          " score: " + std::to_string(label.scores_);
 
       // 在图像左上角绘制文本
-      cv::putText(*input_mat, text, cv::Point(30, 30 + i * 30),
+      cv::putText(*output_mat, text, cv::Point(30, 30 + i * 30),
                   cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
     }
     // cv::imwrite("draw_label_node.jpg", *input_mat);
-    outputs_[0]->set(input_mat, true);
+    outputs_[0]->set(output_mat, false);
     return base::kStatusCodeOk;
   }
 };
@@ -167,6 +169,7 @@ int main(int argc, char *argv[]) {
   graph_demo.setInputPath(input_path);
   graph_demo.setOutputPath(ouput_path);
   graph_demo.setRefPath(input_path);
+  graph_demo.decode_node_->setSize(100);
 
   NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
   int size = 100;
@@ -187,7 +190,7 @@ int main(int argc, char *argv[]) {
       classification::ClassificationResult *result =
           (classification::ClassificationResult *)outputs[0]
               ->getGraphOutputParam();
-      NNDEPLOY_LOGE("%d %p.\n", i, result);
+      NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
@@ -196,15 +199,7 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
 
-  NNDEPLOY_LOGI("###########################\n");
-  NNDEPLOY_LOGI("graph_demo.dump()\n");
-  NNDEPLOY_LOGI("###########################\n");
-
-  // just for dump
-  // graph_demo.init();
-  // graph_demo.dump();
-  // graph_demo.graph_->dump();
-  // graph_demo.deinit();
+  graph_demo.deinit();
 
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
   NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);

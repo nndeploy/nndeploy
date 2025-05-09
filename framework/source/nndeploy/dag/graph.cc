@@ -67,6 +67,12 @@ Graph::~Graph() {
   shared_node_repository_.clear();
 }
 
+base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {
+  queue_max_size_ = queue_max_size;
+  return base::kStatusCodeOk;
+}
+int Graph::getEdgeQueueMaxSize() { return queue_max_size_; }
+
 Edge *Graph::createEdge(const std::string &name) {
   std::string unique_name = name;
   if (unique_name.empty()) {
@@ -375,6 +381,7 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
       }
     } else {
       if (edge_wrapper->edge_ != input) {
+        NNDEPLOY_LOGI("updateEdge: %s\n", input->getName().c_str());
         updteEdge(edge_wrapper, input, true);
       }
     }
@@ -395,6 +402,7 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
       }
     } else {
       if (edge_wrapper->edge_ != output) {
+        NNDEPLOY_LOGI("updateEdge: %s\n", output->getName().c_str());
         updteEdge(edge_wrapper, output, true);
       }
     }
@@ -415,7 +423,6 @@ base::Status Graph::markInputEdge(std::vector<Edge *> inputs) {
 };
 base::Status Graph::markOutputEdge(std::vector<Edge *> outputs) {
   for (auto output : outputs) {
-    // output->markGraphOutput();
     insertUnique(outputs_, output);
   }
   return base::kStatusCodeOk;
@@ -712,6 +719,7 @@ std::vector<Edge *> Graph::trace(std::vector<Edge *> inputs) {
   base::Status status = base::kStatusCodeOk;
   this->setTraceFlag(true);
   std::vector<Edge *> outputs = this->operator()(inputs);
+  NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
   status = this->init();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("init failed!");
@@ -792,7 +800,8 @@ base::Status Graph::construct() {
   // NNDEPLOY_LOGI("construct edge\n");
   // NNDEPLOY_LOGI("##############\n");
   for (auto edge_wrapper : edge_repository_) {
-    // NNDEPLOY_LOGE("edge: %s.\n", edge_wrapper->edge_->getName().c_str());
+    // NNDEPLOY_LOGE("edge: %s, %p.\n", edge_wrapper->edge_->getName().c_str(),
+    //               edge_wrapper->edge_);
     std::vector<Node *> producers;
     for (auto producer : edge_wrapper->producers_) {
       producers.emplace_back(producer->node_);
@@ -816,13 +825,16 @@ base::Status Graph::construct() {
     status = edge_wrapper->edge_->construct();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "construct edge failed!");
+    status = edge_wrapper->edge_->setQueueMaxSize(queue_max_size_);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "setQueueMaxSize failed!");
   }
 
-  if (!is_inner_) {
-    for (auto iter : outputs_) {
-      iter->markGraphOutput();
-    }
-  }
+  // if (!is_inner_) {
+  //   for (auto iter : outputs_) {
+  //     iter->markGraphOutput();
+  //   }
+  // }
 
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
@@ -853,6 +865,13 @@ base::Status Graph::construct() {
       if (it == outputs_.end()) {
         outputs_.emplace_back(edge_wrapper->edge_);
       }
+    }
+  }
+
+  if (!is_inner_) {
+    for (auto iter : outputs_) {
+      // NNDEPLOY_LOGI("markGraphOutput: %s.\n", iter->getName().c_str());
+      iter->markGraphOutput();
     }
   }
 
@@ -903,6 +922,8 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
   return status;
 }
+
+Node *Graph::createNode4Py(const NodeDesc &desc) { return createNode(desc); }
 
 EdgeWrapper *Graph::getEdgeWrapper(Edge *edge) {
   return findEdgeWrapper(edge_repository_, edge);

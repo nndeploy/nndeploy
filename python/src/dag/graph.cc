@@ -30,7 +30,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("edge"), py::arg("is_external") = true)
       .def("get_edge", &Graph::getEdge, py::arg("name"),
            py::return_value_policy::reference)
-      .def("create_node", &Graph::createNodeByKey, py::arg("desc"),
+      .def("create_node", &Graph::createNode4Py, py::arg("desc"),
            py::return_value_policy::reference)
       .def(
           "add_node",

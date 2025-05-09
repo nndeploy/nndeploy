@@ -35,6 +35,9 @@ class NNDEPLOY_CC_API Graph : public Node {
         std::vector<Edge *> outputs);
   virtual ~Graph();
 
+  base::Status setEdgeQueueMaxSize(int queue_max_size);
+  int getEdgeQueueMaxSize();
+
   // create edge
   Edge *createEdge(const std::string &name);
   std::shared_ptr<Edge> createEdgeSharedPtr(const std::string &name);
@@ -220,6 +223,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::initializer_list<std::string> input_names,
                     std::initializer_list<Edge *> outputs);
+  Node *createNode4Py(const NodeDesc &desc);
 
   EdgeWrapper *getEdgeWrapper(Edge *edge);
   EdgeWrapper *getEdgeWrapper(const std::string &name);
@@ -240,6 +244,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::set<std::string> used_node_names_;
   std::set<std::string> used_edge_names_;
   std::shared_ptr<Executor> executor_;
+  int queue_max_size_ = 16;
 };
 
 template <typename T, typename... Args,
@@ -259,7 +264,6 @@ Node *Graph::createNode(const std::string &name, Args &...args) {
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
   node->setGraph(this);
-  ;
   return node;
 }
 

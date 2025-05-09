@@ -3,7 +3,8 @@
 
 ## Introduction
 
-An Easy-to-use、high-performance deploy framework for Diffusion & CV algorithms, supporting multiple inference backends and hardware platforms.
+Easy-to-use, high-performance, multi-platform inference deployment framework
+
 
 ## Architecture
 

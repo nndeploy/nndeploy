@@ -7,10 +7,19 @@ namespace infer {
 Infer::Infer(const std::string &name) : dag::Node(name) {
   this->setInputTypeInfo<device::Tensor>();
   this->setOutputTypeInfo<device::Tensor>();
+  // NNDEPLOY_LOGI("Infer constructor: %s", name.c_str());
+  // NNDEPLOY_LOGI("Infer inputs: %d", input_type_info_.size());
+  // NNDEPLOY_LOGI("Infer outputs: %d", output_type_info_.size());
 }
 Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
     : dag::Node(name, inputs, outputs) {
+  if (inputs.size() == 0) {
+    this->setInputTypeInfo<device::Tensor>();
+  }
+  if (outputs.size() == 0) {
+    this->setOutputTypeInfo<device::Tensor>();
+  }
   for (auto input : inputs) {
     this->setInputTypeInfo<device::Tensor>();
   }
@@ -42,6 +51,12 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
     constructed_ = false;
   } else {
     constructed_ = true;
+  }
+  if (inputs.size() == 0) {
+    this->setInputTypeInfo<device::Tensor>();
+  }
+  if (outputs.size() == 0) {
+    this->setOutputTypeInfo<device::Tensor>();
   }
   for (auto input : inputs) {
     this->setInputTypeInfo<device::Tensor>();
@@ -206,6 +221,8 @@ base::Status Infer::init() {
     inference_input_names_.insert(input_names[i]);
     // 检查input_type_info_中是否设置改名字
     if (input_type_info_[i]->getEdgeName().empty()) {
+      // NNDEPLOY_LOGE("input_type_info_[%d] is empty, set to %s", i,
+      //               input_names[i].c_str());
       input_type_info_[i]->setEdgeName(input_names[i]);
     }
   }
@@ -217,6 +234,8 @@ base::Status Infer::init() {
     inference_output_names_.insert(output_names[i]);
     // 检查output_type_info_中是否设置改名字
     if (output_type_info_[i]->getEdgeName().empty()) {
+      // NNDEPLOY_LOGE("output_type_info_[%d] is empty, set to %s", i,
+      //               output_names[i].c_str());
       output_type_info_[i]->setEdgeName(output_names[i]);
     }
   }

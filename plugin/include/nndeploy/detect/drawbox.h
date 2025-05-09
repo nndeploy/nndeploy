@@ -134,7 +134,9 @@ class NNDEPLOY_CC_API YoloMultiConvDrawBoxNode : public dag::Node {
       cv::putText(*input_mat, text, p, cv::FONT_HERSHEY_PLAIN, 1,
                   randColor[id]);
     }
-    cv::Mat *output_mat = new cv::Mat(*input_mat);
+    // cv::Mat *output_mat = new cv::Mat(*input_mat);
+    cv::Mat *output_mat = new cv::Mat();
+    input_mat->copyTo(*output_mat);
     outputs_[0]->set(output_mat, false);
     return base::kStatusCodeOk;
   }
