@@ -65,8 +65,26 @@ class NNDEPLOY_CC_API InitLatentsNode : public dag::Node {
 
     this->getOutput(0)->notifyWritten(latents);
 
+    index_++;
+
     return base::kStatusCodeOk;
   }
+
+  virtual base::EdgeUpdateFlag updateInput() {
+    if (index_ < size_) {
+      return base::kEdgeUpdateFlagComplete;
+    } else {
+      if (size_ == 0) {
+        return base::kEdgeUpdateFlagComplete;
+      } else {
+        return base::kEdgeUpdateFlagTerminate;
+      }
+    }
+  }
+
+ private:
+  int index_ = 0;
+  int size_ = 1;
 };
 
 class NNDEPLOY_CC_API DDIMScheduleNode : public dag::Node {
