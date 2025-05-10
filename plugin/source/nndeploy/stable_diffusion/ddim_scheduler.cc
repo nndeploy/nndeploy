@@ -234,7 +234,7 @@ base::Status DDIMScheduler::step_inner(std::vector<float> &model_output,
   return base::kStatusCodeOk;
 }
 
-std::vector<int> &DDIMScheduler::getTimestep() { return timesteps_; }
+std::vector<int> &DDIMScheduler::getTimesteps() { return timesteps_; }
 
 }  // namespace stable_diffusion
 }  // namespace nndeploy

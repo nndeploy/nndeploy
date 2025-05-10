@@ -30,7 +30,26 @@ namespace stable_diffusion {
 
 class NNDEPLOY_CC_API SchedulerParam : public base::Param {
  public:
-  virtual SchedulerParam *clone() const = 0;
+  SchedulerParam() : base::Param() {}
+  virtual ~SchedulerParam() {}
+
+  PARAM_COPY(SchedulerParam);
+  PARAM_COPY_TO(SchedulerParam);
+
+  SchedulerParam &operator=(const SchedulerParam &param) {
+    if (this == &param) return *this;
+    version_ = param.version_;
+    num_train_timesteps_ = param.num_train_timesteps_;
+    clip_sample_ = param.clip_sample_;
+    num_inference_steps_ = param.num_inference_steps_;
+    unet_channels_ = param.unet_channels_;
+    image_height_ = param.image_height_;
+    image_width_ = param.image_width_;
+    guidance_scale_ = param.guidance_scale_;
+    vae_scale_factor_ = param.vae_scale_factor_;
+    init_noise_sigma_ = param.init_noise_sigma_;
+    return *this;
+  }
 
  public:
   std::string version_ = "v1.5";
@@ -87,7 +106,7 @@ class NNDEPLOY_CC_API Scheduler {
    *
    * @return std::vector<float>&
    */
-  virtual std::vector<int> &getTimestep() = 0;
+  virtual std::vector<int> &getTimesteps() = 0;
 
  protected:
   SchedulerType scheduler_type_ = kSchedulerTypeNotSupport;
