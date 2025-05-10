@@ -1,0 +1,381 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../debug_record/debug_record.md:1 137c17c8ed674a9192f5de57058f4f66
+msgid "开发调试问题记录"
+msgstr "Development Debugging Issue Records"
+
+#: ../../debug_record/debug_record.md:3 6ce316c00f424025918e8768dffa85d2
+msgid "Python"
+msgstr "Python"
+
+#: ../../debug_record/debug_record.md:5 7ed783231b6f4b07b1192c4b334d94fd
+msgid "python binding相关，移步python/README.md"
+msgstr "Python binding related, move to python/README.md"
+
+#: ../../debug_record/debug_record.md:7 93fdf71a0a0c4827b2c6b0349a6a4039
+msgid "使用safetensors加载的权重修改报错"
+msgstr "Error report when modifying weights loaded using safetensors"
+
+#: ../../debug_record/debug_record.md:9 f9fc03e0c1ec4f47a827464fef4c7347
+msgid "safetensors方式加载的权重直接mmap到文件，以只读方式打开，无法修改。如果要修改权重，clone一份Tensor修改，并替换。"
+msgstr ""
+"Weights loaded in safetensors mode are directly mmapped to the file, opened "
+"in read-only mode, and cannot be modified. To modify the weights, clone a "
+"Tensor, modify it, and replace."
+
+#: ../../debug_record/debug_record.md:11 ac51242fb10f4272bec9303fd6f1d411
+msgid "Ascend开发环境"
+msgstr "Ascend development environment"
+
+#: ../../debug_record/debug_record.md:13 b8ee33d7165445d4b32aa9baf391167a
+msgid "编译报错，链接错误，undefined reference"
+msgstr "Compilation error, linking error, undefined reference"
+
+#: ../../debug_record/debug_record.md:15 1307c42345d247f699d29aa9b5c6db82
+msgid "需要使用root方式编译"
+msgstr "Compilation requires root privileges"
+
+#: ../../debug_record/debug_record.md:17 d5c88db4f4d64b7b99800e3ff1290d63
+msgid "Vscode终端无路径提示、部分常用命令错误、无法输入等"
+msgstr ""
+"Vscode terminal lacks path prompts, some common command errors, inability to"
+" input, etc."
+
+#: ../../debug_record/debug_record.md:19 037e349bc5f94ef1b27ff4fadfd21eb5
+msgid "Vscode默认打开的终端有残缺，需要手动新建终端，选择Bash"
+msgstr ""
+"The terminal opened by default in Vscode is incomplete, requiring manual "
+"creation of a new terminal, selecting Bash"
+
+#: ../../debug_record/debug_record.md:21 a5d497216931465ba2e6038e7bc04f8c
+msgid "cmake方式"
+msgstr "cmake method"
+
+#: ../../debug_record/debug_record.md:22 e229c514b04b4de9b7dbbcc24c242c2b
+msgid "具体步骤"
+msgstr "Specific steps"
+
+#: ../../debug_record/debug_record.md:23 50e713f2844b4ee88336684cbc206c8a
+msgid "在根目录创建build目录，将cmake/config.cmake复制到该目录"
+msgstr ""
+"Create a build directory in the root directory, copy cmake/config.cmake to "
+"this directory"
+
+#: ../../debug_record/debug_record.md:30 95cfd3bc23f34b47846b818b62771812
+msgid ""
+"编辑build/config.cmake自定义编译选项（笔者的自定义编译选项：path/cmake/config_ascendcl.cmake）"
+msgstr ""
+"Edit build/config.cmake to customize compilation options (the author's "
+"custom compilation options: path/cmake/config_ascendcl.cmake)"
+
+#: ../../debug_record/debug_record.md:32 3e7c3aa44a0a4a0fafcedce22d50ceea
+msgid "cmake"
+msgstr "cmake"
+
+#: ../../debug_record/debug_record.md:37 6da60ae28f7940e78826e516a9b6189e
+msgid "在开发服务器上，模型以及三方库资源放在/home/resource，所有可以登录该服务器的同学都有权限访问该目录"
+msgstr ""
+"On the development server, models and third-party library resources are "
+"placed in /home/resource, all colleagues who can log in to this server have "
+"permission to access this directory"
+
+#: ../../debug_record/debug_record.md:39 6b0859edfe29459985ca464658c67c39
+msgid "模型资源：/home/resource/model_zoo"
+msgstr "Model resources: /home/resource/model_zoo"
+
+#: ../../debug_record/debug_record.md:41 fd2414627e35409dad964f35c24012dd
+msgid "三方库资源：/home/resource/third_party"
+msgstr "Third-party library resources: /home/resource/third_party"
+
+#: ../../debug_record/debug_record.md:43 6a5daf9bc1654be192ebc634cd869794
+msgid "本地终端起效："
+msgstr "Local terminal activation:"
+
+#: ../../debug_record/debug_record.md:44 9856e97b24e04acfb1d8311184f1a4ec
+msgid ""
+"export "
+"LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH"
+msgstr ""
+"export "
+"LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH"
+
+#: ../../debug_record/debug_record.md:45 e9ffe420b5304c61a13c00943c0f49cb
+msgid ""
+"export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-"
+"aarch64-1.20.1/lib:$LD_LIBRARY_PATH"
+msgstr ""
+"export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-"
+"aarch64-1.20.1/lib:$LD_LIBRARY_PATH"
+
+#: ../../debug_record/debug_record.md:46 8acbddab3ff1449e90ba609c11557cfc
+msgid "始终有效"
+msgstr "Always effective"
+
+#: ../../debug_record/debug_record.md:47 cecfe70d10c24ed48d41ed6f1d07b1e3
+msgid ""
+"echo 'export "
+"LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH'"
+" >> ~/.bashrc"
+msgstr ""
+"echo 'export "
+"LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH'"
+" >> ~/.bashrc"
+
+#: ../../debug_record/debug_record.md:48 ecb27299625143769f75bf51679ce327
+msgid ""
+"echo 'export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-"
+"aarch64-1.20.1/lib:$LD_LIBRARY_PATH' >> ~/.bashrc"
+msgstr ""
+"echo 'export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-"
+"aarch64-1.20.1/lib:$LD_LIBRARY_PATH' >> ~/.bashrc"
+
+#: ../../debug_record/debug_record.md:49 cf9ea1b981924990a05f340d6f9ae399
+msgid "source ~/.bashrc"
+msgstr "source ~/.bashrc"
+
+#: ../../debug_record/debug_record.md:51 1ad3264c579e4628a4b9378936b333cc
+msgid "图片资源：/home/resource/data_set"
+msgstr "Image resources: /home/resource/data_set"
+
+#: ../../debug_record/debug_record.md:53 2819c2386231450c9ee21a2dce867712
+msgid "该开发服务器下，所有开发者具备该目录权限，具体执行命令如下："
+msgstr ""
+"Under this development server, all developers have permission to this "
+"directory, specific execution commands are as follows:"
+
+#: ../../debug_record/debug_record.md:59 84cdc9365e5048ca967a6bafe191db44
+msgid "关于第三方 tokenizer 在编译时产生的 protobuf 冲突问题"
+msgstr ""
+"About the protobuf conflict issue caused by third-party tokenizer during "
+"compilation"
+
+#: ../../debug_record/debug_record.md:61 c138bb162ca44086b4fa0330f8e9118f
+msgid "问题描述"
+msgstr "Problem description"
+
+#: ../../debug_record/debug_record.md:63 e0626efef13b4d0695a3dd554d1e1bd5
+msgid "直接编译后，执行相关 demo 的可执行文件会发生 segment fault，gdb 查看结果如下"
+msgstr ""
+"After direct compilation, executing the relevant demo's executable file will"
+" cause a segment fault, gdb inspection results are as follows"
+
+#: ../../debug_record/debug_record.md:85 b1519e83dd2f4463b3f952fbb87f1853
+msgid "原因分析"
+msgstr "Root cause analysis"
+
+#: ../../debug_record/debug_record.md:87 b8fe731ec93e4ea198d07d776b414ebc
+msgid ""
+"问题发生在 /lib/aarch64-linux-gnu/libprotobuf.so.23，于是查看 nndeploy_demo_dag "
+"的动态链接和符号表"
+msgstr ""
+"The issue occurs in /lib/aarch64-linux-gnu/libprotobuf.so.23, so inspect the"
+" dynamic links and symbol table of nndeploy_demo_dag"
+
+#: ../../debug_record/debug_record.md:100 a799b7b3b4544e24a0d4d69c434afbd9
+msgid ""
+"发现 demo 不仅链接了 protobuf 的动态库，因为已经存在 protobuf 中的一些符号定义，应该也链接了protobuf 的静态库；但之前"
+" build 的结果运行并没有任何问题，发生 segment fault 是由于 build 中加入了第三方的 tokenizer，而 "
+"tokenizer 中链接了 sentencepiece 的静态库"
+msgstr ""
+"It was found that the demo not only links to the dynamic library of "
+"protobuf, but because some symbol definitions already exist in protobuf, it "
+"should also link to the static library of protobuf; but the previously built"
+" results ran without any issues, the segment fault occurred after adding the"
+" third-party's tokenizer in the build, and the tokenizer links to the static"
+" library of sentencepiece"
+
+#: ../../debug_record/debug_record.md:106 42e88219b9e84f33896d045b213e68e8
+msgid ""
+"sentencepiece 编译时又使用了 protobuf-lite，所以第三方的 tokenizer 库中包含了 protobuf-"
+"lite，这就导致 protobuf-lite 与 protobuf 产生了冲突"
+msgstr ""
+"sentencepiece uses protobuf-lite during compilation, so the third-party's "
+"tokenizer library contains protobuf-lite, leading to a conflict between "
+"protobuf-lite and protobuf"
+
+#: ../../debug_record/debug_record.md:108 f01fe35a241a49f9bf84be5178ad7314
+msgid "临时解决方案"
+msgstr "Temporary solutions"
+
+#: ../../debug_record/debug_record.md:110 a4fa37dcd14a49c28909d9616b02bd4a
+msgid ""
+"第一种方式：系统安装需要 libprotobuf，直接跳过 third_party 中 protobuf 的编译，demo 的可执行文件只链接 "
+"protobuf 的动态库"
+msgstr ""
+"First method: The system needs to install libprotobuf, directly skip the "
+"compilation of protobuf in third_party, the demo's executable file only "
+"links to the dynamic library of protobuf"
+
+#: ../../debug_record/debug_record.md:111 b1736ab579484b94ab9650ad3fae74ad
+msgid "只修改 protobuf.cmake 如下："
+msgstr "Only modify protobuf.cmake as follows:"
+
+#: ../../debug_record/debug_record.md:139 f1d4a1dedce044d98fcc28ea7e34690f
+msgid ""
+"第二种方式：系统安装 libprotobuf-lite，在编译 tokenizer 的时候链接 libprotobuf-lite.so，demo "
+"的可执行文件既链接 protobuf 的动态库同时也链接 protobuf-lite 的动态库"
+msgstr ""
+"Second method: The system installs libprotobuf-lite, when compiling the "
+"tokenizer, link to libprotobuf-lite.so, the demo's executable file links to "
+"both the dynamic library of protobuf and the dynamic library of protobuf-"
+"lite"
+
+#: ../../debug_record/debug_record.md:140 8fc6460af2c94b23962ee9614140ef35
+msgid "只修改 tokenizer_cpp.cmake 如下："
+msgstr "Only modify tokenizer_cpp.cmake as follows:"
+
+#: ../../debug_record/debug_record.md:164 874dc54f52f348febbf5f7880e8ae125
+msgid "说明"
+msgstr "Explanation"
+
+#: ../../debug_record/debug_record.md:166 f962d53f1dae4dab8429c955983f9c0a
+msgid "这两种解决方案都是 work around 的方式，都需要在系统上安装相关的 protobuf"
+msgstr ""
+"Both solutions are workarounds, requiring the installation of the relevant "
+"protobuf on the system"
+
+#: ../../debug_record/debug_record.md:168 b7553fb10514425a9351f6ee90507aa4
+msgid "对于第一种方式而言，第三方的 protobuf 在编译时被直接跳过，所以第三方的 protobuf 显得没有什么意义了"
+msgstr ""
+"For the first method, the third-party's protobuf is directly skipped during "
+"compilation, so the third-party's protobuf seems meaningless"
+
+#: ../../debug_record/debug_record.md:170 cf34f08ace3545478b12cce0dfb947d1
+msgid ""
+"对于第二种方式来说存在风险，动态库和静态库都被链接的情况下会优先选择动态库，但依然不确定是否会发生冲突，尤其是在动态库和静态库版本不一致的情况下"
+msgstr ""
+"For the second method, there is a risk, in the case where both dynamic and "
+"static libraries are linked, the dynamic library will be preferred, but it's"
+" still uncertain whether conflicts will occur, especially when the versions "
+"of the dynamic and static libraries are inconsistent"
+
+#: ../../debug_record/debug_record.md:172 88907ec86ec140218c8e90fe64cac4c8
+msgid "代理失效，github连接问题等"
+msgstr "Proxy failure, github connection issues, etc."
+
+#: ../../debug_record/debug_record.md:174 4a26776c1ee341da820ec5cb75acb6b6
+msgid "github 连接不稳定问题"
+msgstr "Unstable github connection issues"
+
+#: ../../debug_record/debug_record.md:176 b9e4c01393cf4a0d98e3026aae967d24
+msgid ""
+"当我们在Ascend服务器上搭建开发环境的时候会碰到仓库从github.com上clone或者其他行为卡顿特别严重的问题。对于这个现象当前有两个方法处理："
+msgstr ""
+"When setting up the development environment on the Ascend server, we "
+"encounter issues like repository cloning from github.com or other behaviors "
+"being particularly slow. For this phenomenon, there are currently two "
+"methods to handle:"
+
+#: ../../debug_record/debug_record.md:178 804d334b26b744e89b6cf29c61d3135e
+msgid "使用ssh连接的方式clone仓库。"
+msgstr "Clone the repository using SSH connection."
+
+#: ../../debug_record/debug_record.md:180 f86e133448fd4e36ac7ae134e9c6cae7
+msgid "通过将服务器挂上代理的方式，让https上的服务更加方便。"
+msgstr ""
+"By mounting a proxy on the server, make HTTPS services more convenient."
+
+#: ../../debug_record/debug_record.md:182 ffe444e872b64ff7a9f7e004af1bb73f
+msgid "当前我暂且只能通过第一种方式走通服务, 第二种方式貌似遇到了一些限制等待有缘人解决了。"
+msgstr ""
+"Currently, I can only temporarily use the first method to access the "
+"service, the second method seems to have encountered some restrictions "
+"waiting for someone to solve."
+
+#: ../../debug_record/debug_record.md:184 9511c02b602449959af11f8000e5efac
+msgid ""
+"对于第一种方式主要可以参考github的这篇文章讲述connecting-to-github-with-"
+"ssh。然后，走通了流程之后将会发现仍旧无法使用ssh的方式连接github，ssh -T git@github.com无法获得应得结果; "
+"鉴于这个原因，题主发现默认的20端口被限制了，需要使用443端口。需要在根目录中$HOME/.ssh/config中增加代码，然后方可走通。"
+msgstr ""
+"For the first method, you can mainly refer to GitHub's article titled "
+"'connecting-to-github-with-ssh'. Then, after going through the process, you "
+"will find that you still cannot use SSH to connect to GitHub, 'ssh -T "
+"git@github.com' cannot get the expected result; due to this reason, the "
+"author found that the default port 20 is restricted, and port 443 needs to "
+"be used. You need to add code in the root directory $HOME/.ssh/config, then "
+"you can proceed."
+
+#: ../../debug_record/debug_record.md:193 73fec5e784aa4ea9a02f6839ef603945
+msgid "除此之外，还需要在$HOME/.gitconfig中添加以下代码，以让后面的子模块按照ssh执行"
+msgstr ""
+"In addition, you also need to add the following code in $HOME/.gitconfig to "
+"let the subsequent submodules execute according to SSH."
+
+#: ../../debug_record/debug_record.md:199 f6d93ababd7a411ebf994ace3f7e7618
+msgid "单独使用ssh方案可以解决卡顿问题。"
+msgstr "Using the SSH solution alone can solve the latency issue."
+
+#: ../../debug_record/debug_record.md:201 e246827a8515466597454f5a1fc28c79
+msgid "对于第二种方式可以通过两种方式在自己的服务器上布置代理："
+msgstr ""
+"For the second method, you can configure the proxy on your own server in two"
+" ways:"
+
+#: ../../debug_record/debug_record.md:203 6e6b29993a914b85b2cbc7af2d6f9f40
+msgid ""
+"按照该文章方式从下载指定的包（对于Accend来说下载这个arm版本的clash即可。按照文章中讲的方式去进行即可，但是可能会遇到MMDB文件缺失问题，需要自行解决，我解决的方式是把第二种方式中的Country.MMDB文件拷贝过来（MMDB文件中包含了常见的网址到ip的键值对）。"
+msgstr ""
+"According to the article's method, download the specified package (for "
+"Accend, download this ARM version of clash). Proceed as described in the "
+"article, but you may encounter the issue of missing MMDB files, which needs "
+"to be solved by yourself. The way I solved it was to copy the Country.MMDB "
+"file from the second method (the MMDB file contains common website to IP "
+"key-value pairs)."
+
+#: ../../debug_record/debug_record.md:204 fe2c2691054c4e018aeb7b7831341a43
+msgid ""
+"下载clash-for-linux仓库，并根据README开启代理； "
+"注意：这两种都是题主测试时候使用的方式，是用的linux的clash方法，需要自行购买订阅。到目前为止，题主走通了流程，但是貌似遇到了一些约束（该方法在多个服务器上已验证使用过）：alt"
+" text"
+msgstr ""
+"Download the clash-for-linux repository and start the proxy according to the"
+" README; Note: These two are the methods the author used during testing, "
+"using Linux's clash method, you need to purchase a subscription yourself. So"
+" far, the author has gone through the process, but seems to have encountered"
+" some constraints (this method has been verified on multiple servers): alt "
+"text"
+
+#: ../../debug_record/debug_record.md 81dc4ed7771c4b24a4e710d969402be1
+msgid "alt text"
+msgstr "alt text"
+
+#: ../../debug_record/debug_record.md:207 7f881514f5f04111acc7b06afe5e4f6c
+msgid ""
+"题主怀疑是否是服务器只有443的端口和一些必要端口可以使用，其他端口则不行，因为如图proxy使用的52984的端口，而第一种方法中，ssh默认使用的20端口。"
+" 另题主已经尝试了网络上大部份方法得到一上结果，包括不限于手动编译git等等..."
+msgstr ""
+"The author suspects whether the server only has port 443 and some necessary "
+"ports available, other ports are not, because if the proxy uses port 52984, "
+"while in the first method, SSH uses the default port 20. The author has also"
+" tried most methods online to get a result, including but not limited to "
+"manually compiling git, etc..."
+
+#: ../../debug_record/debug_record.md:211 0cb402e2e7964075b4625eba0bbda6e7
+msgid "进入系统默认shell为sh的解决方法："
+msgstr "Enter the system's default shell as a solution to sh:"
+
+#: ../../debug_record/debug_record.md:213 6ebbbee7afc144e3b30bf91f61447132
+msgid "临时方法： 进入服务器默认进入bash： sudo vim /etc/passwd 修改自己用户民末尾地方为/usr/bin/bash"
+msgstr ""
+"Temporary method: Enter the server's default bash: sudo vim /etc/passwd "
+"Change the end of your user to /usr/bin/bash"

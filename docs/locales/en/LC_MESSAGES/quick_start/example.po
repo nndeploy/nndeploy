@@ -1,0 +1,54 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../quick_start/example.md:1 5e6fbe2d6a1542b0bd6514544b98d746
+msgid "示例工程"
+msgstr "Example Program"
+
+#: ../../quick_start/example.md:3 d59243e3454447169e3c743a511e7a1b
+msgid "从源码编译"
+msgstr "Translate from source code"
+
+#: ../../quick_start/example.md:5 ca101d4db4ea464fbea16caa36fddcf0
+msgid "参考编译文档，编译文档链接"
+msgstr "Refer to translation documentation, documentation link"
+
+#: ../../quick_start/example.md:7 0ff18d39e14e425da791431e6ad927eb
+msgid "基于DAG的模型部署演示示例（采用默认config.cmake即可编译成功）"
+msgstr ""
+"Model deployment demonstration based on DAG (using the default config.cmake "
+"to translate successfully)"
+
+#: ../../quick_start/example.md:9 268a4fc798b2462da3f9026cc26147ee
+msgid "Windows 下运行 nndeploy_demo_dag"
+msgstr "Run nndeploy_demo_dag on Windows"
+
+#: ../../quick_start/example.md:15 4a10a10f77654ceeb4da0a9124f40951
+msgid "Linux 下运行 nndeploy_demo_dag"
+msgstr "Run nndeploy_demo_dag on Linux"
+
+#: ../../quick_start/example.md:22 eada055a80204311980a411ae1496547
+msgid "Andorid 下运行 nndeploy_demo_dag"
+msgstr "Run nndeploy_demo_dag on Android"
+
+#: ../../quick_start/example.md:36 4f077ccfef8147fd95059631ede9c318
+msgid "效果示例"
+msgstr "Result example"

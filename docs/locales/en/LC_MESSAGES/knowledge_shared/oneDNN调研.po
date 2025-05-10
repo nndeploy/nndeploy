@@ -1,0 +1,499 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../knowledge_shared/oneDNN调研.md:1 a4840bad64cf4856ac324a4d4c206968
+msgid "ONEDNN调研"
+msgstr "ONEDNN Research"
+
+#: ../../knowledge_shared/oneDNN调研.md:2 f53bc4eb9e44494a8cd35427809516be
+msgid "支持架构："
+msgstr "Supported Architectures:"
+
+#: ../../knowledge_shared/oneDNN调研.md:3 42f76dfb1b7a426999c5b989879b26b8
+msgid ""
+"英特尔架构处理器、英特尔处理器显卡和 Xe 架构显卡，实验性支持Arm* 64 （位架构 （AArch64）、OpenPOWER* Power ISA "
+"（PPC64）"
+msgstr ""
+"Intel Architecture Processors, Intel Processor Graphics and Xe Architecture "
+"Graphics, Experimental Support for Arm* 64 (AArch64), OpenPOWER* Power ISA "
+"(PPC64)"
+
+#: ../../knowledge_shared/oneDNN调研.md:4 02b1804b9acf4017b8309f6c3719f510
+msgid "Intel 64 或 AMD64，"
+msgstr "Intel 64 or AMD64,"
+
+#: ../../knowledge_shared/oneDNN调研.md:5 b1915c8aad8d4b0b806c716fc2a6985f
+msgid "Arm 64 位架构（AArch64）。"
+msgstr "Arm 64-bit Architecture (AArch64)."
+
+#: ../../knowledge_shared/oneDNN调研.md:6 eea39efbf17b492cb9ecb374f8769c43
+msgid "OpenPOWER / IBM Power 指令集。"
+msgstr "OpenPOWER / IBM Power Instruction Set."
+
+#: ../../knowledge_shared/oneDNN调研.md:7 ae722b90cef847fb86322dce2c3dca43
+msgid "IBMz z/架构（s390x）。"
+msgstr "IBMz z/Architecture (s390x)."
+
+#: ../../knowledge_shared/oneDNN调研.md:8 97478cf71ba3472cba93c83a5191f04f
+msgid "RISC-V 64 位（RV64）。"
+msgstr "RISC-V 64-bit (RV64)."
+
+#: ../../knowledge_shared/oneDNN调研.md:9 00e3879c47a14b319f7e29f2afcf654d
+msgid "CPU:"
+msgstr "CPU:"
+
+#: ../../knowledge_shared/oneDNN调研.md:10 6de014c44f5e464f8238ab6ac5555af0
+msgid "Intel 64/AMD64 架构"
+msgstr "Intel 64/AMD64 Architecture"
+
+#: ../../knowledge_shared/oneDNN调研.md:11 dc671dc4504a475792a0f1b3165117ca
+msgid "Intel Atom(R) 处理器（至少需要 Intel SSE4.1 支持）"
+msgstr "Intel Atom(R) Processor (At least requires Intel SSE4.1 support)"
+
+#: ../../knowledge_shared/oneDNN调研.md:12 a74640a067124deea1148222bd6803c5
+msgid "Intel Core(TM) 处理器（至少需要 Intel SSE4.1 支持）"
+msgstr "Intel Core(TM) Processor (At least requires Intel SSE4.1 support)"
+
+#: ../../knowledge_shared/oneDNN调研.md:13 3803ede8a4df48dba7cb84bd336e14e9
+msgid "英特尔酷睿 Ultra 处理器（原名 Meteor Lake）"
+msgstr "Intel Ultra Core Processor (Originally Meteor Lake)"
+
+#: ../../knowledge_shared/oneDNN调研.md:14 2bc4f5e6d72f412a905d2c72f831babc
+msgid ""
+"Intel Xeon(R) 处理器 E3、E5 和 E7 系列（以前称为 Sandy Bridge、Ivy Bridge、Haswell 和 "
+"Broadwell）"
+msgstr ""
+"Intel Xeon(R) Processor E3, E5 and E7 Series (Previously known as Sandy "
+"Bridge, Ivy Bridge, Haswell and Broadwell)"
+
+#: ../../knowledge_shared/oneDNN调研.md:15 c210a0bfc4014cd698a268af89311f27
+msgid ""
+"Intel Xeon 可扩展处理器（以前称为 Skylake、Cascade Lake、Cooper Lake、Ice Lake、Sapphire "
+"Rapids 和 Emerald Rapids）"
+msgstr ""
+"Intel Xeon Scalable Processors (Previously known as Skylake, Cascade Lake, "
+"Cooper Lake, Ice Lake, Sapphire Rapids and Emerald Rapids)"
+
+#: ../../knowledge_shared/oneDNN调研.md:16 ac45126a6a86481c9a99132ccf1d1383
+msgid "Intel Xeon CPU Max 系列（以前称为 Sapphire Rapids HBM）"
+msgstr "Intel Xeon CPU Max Series (Previously known as Sapphire Rapids HBM)"
+
+#: ../../knowledge_shared/oneDNN调研.md:17 c463ffd6d648480993971b6b1c05a21e
+msgid "未来的英特尔至强可扩展处理器（代号 Sierra Forest 和 Granite Rapids）"
+msgstr ""
+"Future Intel Scalable Processors (Code-named Sierra Forest and Granite "
+"Rapids)"
+
+#: ../../knowledge_shared/oneDNN调研.md:18 f915bdef668f4349b390da7795034a43
+msgid "AArch64 架构"
+msgstr "AArch64 Architecture"
+
+#: ../../knowledge_shared/oneDNN调研.md:19 ff86300020ad41729defe673c8189303
+msgid "Arm Neoverse(TM) N1 和 V1 处理器"
+msgstr "Arm Neoverse(TM) N1 and V1 Processors"
+
+#: ../../knowledge_shared/oneDNN调研.md:21 6276a4d99b6f4dacbb307bededd4b7ad
+msgid "GPU："
+msgstr "GPU:"
+
+#: ../../knowledge_shared/oneDNN调研.md:22 4a1a341d25b9482bbab5f720642effbd
+msgid "该库针对以下 GPU 进行了优化："
+msgstr "The library is optimized for the following GPUs:"
+
+#: ../../knowledge_shared/oneDNN调研.md:23 f6ef50a415c348c497a3909bbfbd7514
+msgid "适用于第 11 至第 14 代英特尔酷睿处理器的英特尔显卡"
+msgstr "Intel Graphics for 11th to 14th Gen Intel Core Processors"
+
+#: ../../knowledge_shared/oneDNN调研.md:24 c798d5d227cf4b688d126b971e106e2a
+msgid "适用于英特尔酷睿超处理器（原名 Meteor Lake）的英特尔显卡"
+msgstr ""
+"Intel Graphics for Intel Ultra Core Processors (Originally Meteor Lake)"
+
+#: ../../knowledge_shared/oneDNN调研.md:25 95930e5e673645e08759559bf3ccb5eb
+msgid "英特尔 Iris Xe MAX 显卡（原 DG1）"
+msgstr "Intel Iris Xe MAX Graphics (Originally DG1)"
+
+#: ../../knowledge_shared/oneDNN调研.md:26 e108e42765da42b78cadd436e898837d
+msgid "英特尔 Arc(TM) 显卡（原 Alchemist）"
+msgstr "Intel Arc(TM) Graphics (Originally Alchemist)"
+
+#: ../../knowledge_shared/oneDNN调研.md:27 8205ba0d7e3745b981acb95c972bc01e
+msgid "英特尔数据中心 GPU Flex 系列（原为 Arctic Sound）"
+msgstr "Intel Data Center GPU Flex Series (Originally Arctic Sound)"
+
+#: ../../knowledge_shared/oneDNN调研.md:28 473f306412be4c28a732cd352a703a7b
+msgid "英特尔数据中心 GPU Max 系列（原 Ponte Vecchio） 其中：对Nvidia的支持是通过SYCL CUDA后端实现的，需要："
+msgstr ""
+"Intel Data Center GPU Max Series (Originally Ponte Vecchio) Among them: "
+"Support for Nvidia is implemented through SYCL CUDA backend, requires:"
+
+#: ../../knowledge_shared/oneDNN调研.md:30 cb80a729eac446e9855151289664de6d
+msgid "支持 CUDA或NVIDIA GPU 的 oneAPI 的oneAPI DPC++ 编译器"
+msgstr "oneAPI DPC++ Compiler supporting CUDA or NVIDIA GPU"
+
+#: ../../knowledge_shared/oneDNN调研.md:31 10d914ed41f347059d289270aa6cae38
+msgid "NVIDIA CUDA* 驱动程序"
+msgstr "NVIDIA CUDA* Driver"
+
+#: ../../knowledge_shared/oneDNN调研.md:32 d048f01e936f49dda47b15854bb152cc
+msgid "cuBLAS 10.1 或更高版本"
+msgstr "cuBLAS 10.1 or higher"
+
+#: ../../knowledge_shared/oneDNN调研.md:33 1cd5657311954f16a3c24a8cca15ea20
+msgid "cuDNN 7.6 或更高版本"
+msgstr "cuDNN 7.6 or higher"
+
+#: ../../knowledge_shared/oneDNN调研.md:34 8c4bbafaacca4371a3f99e6b294db7cf
+msgid "计算支持："
+msgstr "Computational Support:"
+
+#: ../../knowledge_shared/oneDNN调研.md:35 22d115305dba4663a30b4dea852895c9
+msgid ""
+"| CNN 基元（卷积、内积、池化等）                | | -------------------------------- | | "
+"RNN 原语 （LSTM， Vanilla， RNN， GRU） | | 规范化（LRN、批处理、图层）                  | | "
+"元素操作（ReLU，Tanh，ELU，Abs等）         | | Softmax， Sum， Concat， Shuffle    | | "
+"从优化的数据布局重新排序                     | | 8 位整数、16 位、32 位和 bfloat16 浮点数据类型 | |"
+"                                  |"
+msgstr ""
+"| CNN Primitives (Convolution, Inner Product, Pooling, etc.)                "
+"| | -------------------------------- | | RNN Primitives (LSTM, Vanilla, RNN,"
+" GRU) | | Normalization (LRN, Batch Processing, Layer)                  | | "
+"Element-wise Operations (ReLU, Tanh, ELU, Abs, etc.)         | | Softmax, "
+"Sum, Concat, Shuffle    | | Reordering from Optimized Data Layout"
+"                     | | 8-bit Integer, 16-bit, 32-bit and bfloat16 Floating"
+" Point Data Types | |                                  |"
+
+#: ../../knowledge_shared/oneDNN调研.md:44 e91fd8548b5f4a3492880af0e474b157
+msgid "核心概念"
+msgstr "Core Concepts"
+
+#: ../../knowledge_shared/oneDNN调研.md:45 c5b7747e649841a19014127fb224c837
+msgid ""
+"oneDNN的主要概念是原语，引擎，流和内存对象。  原语： "
+"基元（dnnl::primitive）是一个封装了特定计算诸如前向卷积，向后LSTM计算，或数据变换操作的算符对象。单个原语有时可以表示更复杂的融合计算，例如一个前向卷积操作然后紧跟着一个ReLU操作。除其他事项外，融合是通过原语的属性机制来控制的。（原语和纯函数之间最重要的区别是原语可以存储状态。）"
+" 1、基元状态的一部分是不可变的。例如，卷积基元存储参数（如张量形状），并可以预先计算其他相关参数（如缓存阻塞）。这种方法允许 oneDNN "
+"基元预先生成专门针对要执行的操作而定制的代码。oneDNN 编程模型假设执行预计算所需的时间可以通过重复使用同一基元多次执行计算来分摊。 "
+"2、在此基础上可以进行微内核扩展（低级抽象，实现顺序块级操作，允许用户通过组合这些块级计算来实现自定义操作）和图拓展（高级抽象，它允许您使用计算图而不是单个基元）"
+msgstr ""
+"The main concepts of oneDNN are primitives, engine, stream, and memory "
+"objects. Primitive: The primitive (dnnl::primitive) is an object that "
+"encapsulates a specific computation such as forward convolution, backward "
+"LSTM computation, or data transformation operation. A single primitive can "
+"sometimes represent more complex fused computations, such as a forward "
+"convolution operation followed immediately by a ReLU operation. Among other "
+"things, fusion is controlled through the primitive's attribute mechanism. "
+"(The most important difference between primitives and pure functions is that"
+" primitives can store state.) 1. Part of the primitive's state is immutable."
+" For example, the convolution primitive stores parameters (such as tensor "
+"shapes) and can pre-compute other related parameters (such as cache "
+"blocking). This approach allows oneDNN primitives to generate specialized "
+"code tailored to the operations to be executed. The oneDNN programming model"
+" assumes that the time required for pre-computation can be amortized by "
+"reusing the same primitive multiple times for computation. 2. On this basis,"
+" microkernel extensions (low-level abstractions, implementing sequence block"
+" operations, allowing users to combine these block computations to implement"
+" custom operations) and graph extensions (high-level abstractions, which "
+"allow you to use computation graphs rather than individual primitives) can "
+"be performed."
+
+#: ../../knowledge_shared/oneDNN调研.md:53 f86ec7b9ecb04887a9dce8b183f6a41a
+msgid ""
+"引擎（dnnl::engine） "
+"是计算设备的抽象：CPU，系统中的特定GPU卡等。创建大多数原语是为了在一个特定引擎上执行计算。唯一的例外是可在两个不同引擎之间传输数据的重排序原语。"
+msgstr ""
+"Engine (dnnl::engine) is an abstraction of computing devices: CPU, specific "
+"GPU card in the system, etc. Most primitives are created to perform "
+"computations on a specific engine. The only exception is the reorder "
+"primitive, which can transfer data between two different engines."
+
+#: ../../knowledge_shared/oneDNN调研.md:55 49bd167445ff4ecf8baf18cbdf8e00f4
+msgid "流（dnnl::stream） 封装了绑定到特定引擎的执行上下文。例如，它们可以对应于DPC ++命令队列。"
+msgstr ""
+"Stream (dnnl::stream) encapsulates execution contexts bound to specific "
+"engines. For example, they can correspond to DPC++ command queues."
+
+#: ../../knowledge_shared/oneDNN调研.md:57 f9a091dee6894bd99094948b837d63cc
+msgid ""
+"内存对象（dnnl::memory） 封装了分配给特定引擎的内存的句柄，张量维，数据类型和内存格式-"
+"张量索引映射到线性内存空间中的偏移量的方式。内存对象在执行期间被传递给原语。"
+msgstr ""
+"Memory object (dnnl::memory) encapsulates handles to memory allocated to "
+"specific engines, tensor dimensions, data types, and memory formats - the "
+"way tensor indices are mapped to offsets in linear memory space. Memory "
+"objects are passed to primitives during execution."
+
+#: ../../knowledge_shared/oneDNN调研.md:59 d7afa230fc3049ebbbaf6236bb35f8ad
+msgid "数据排布支持"
+msgstr "Data Layout Support"
+
+#: ../../knowledge_shared/oneDNN调研.md:61 6f7350a015d14cf98ff65d6e01920836
+msgid "CUDA SYCL：NCDHW, NDHWC, NCHW, NHWC, NCW, NWC, NC"
+msgstr "CUDA SYCL: NCDHW, NDHWC, NCHW, NHWC, NCW, NWC, NC"
+
+#: ../../knowledge_shared/oneDNN调研.md:63 8871261efa034182b60d3cd268e9a234
+msgid "数据格式"
+msgstr "Data Format"
+
+#: ../../knowledge_shared/oneDNN调研.md:64 1518ef8420c944a1bda3a9f39958323e
+msgid ""
+"块状布局: 为了实现更好的矢量化和缓存重用，oneDNN 引入了分块布局，将一个或多个维度拆分为固定大小的块。最流行的 oneDNN 数据格式是 "
+"AVX512+ 系统上的 nChw16c 和 SSE4.1+ 系统上的 nChw8c。从名称中可以猜出，唯一被分块的维度是通道，前者块大小为 "
+"16，后者块大小为 8。"
+msgstr ""
+"Block Layout: For better vectorization and cache reuse, oneDNN introduces "
+"block layouts, splitting one or more dimensions into fixed-size blocks. The "
+"most popular oneDNN data formats are nChw16c on AVX512+ systems and nChw8c "
+"on SSE4.1+ systems. As the names suggest, the only dimension that is blocked"
+" is the channel, with block sizes of 16 and 8, respectively."
+
+#: ../../knowledge_shared/oneDNN调研.md:67 bab726ee085041479ad171ef36115aa9
+msgid "确切的说，nChw8c 的偏移函数是："
+msgstr "More precisely, the offset function for nChw8c is:"
+
+#: ../../knowledge_shared/oneDNN调研.md:79 c5fecfc360d0454fb15e9b455761e8ca
+msgid "一个简单的例子"
+msgstr "A simple example"
+
+#: ../../knowledge_shared/oneDNN调研.md:80 6770c1d517b64d2bb7ee086a4fec6e30
+msgid "Example code："
+msgstr "Example code:"
+
+#: ../../knowledge_shared/oneDNN调研.md:82 67486ac1b3f24e49a8d75542343521a5
+msgid "此 C++ API 示例演示了 oneDNN 编程模型的基础知识："
+msgstr ""
+"This C++ API example demonstrates the basic knowledge of oneDNN programming "
+"model:"
+
+#: ../../knowledge_shared/oneDNN调研.md:84 cabf3f4a72f14531bd71cb523a655101
+msgid "· 如何创建一个DNN记忆对象。"
+msgstr "· How to create a DNN memory object."
+
+#: ../../knowledge_shared/oneDNN调研.md:86 3fbb716773f9488894edec292c9744fa
+msgid "o  如何将数据从用户缓冲区放入 oneDNN 内存对象中。"
+msgstr "o How to put data from the user buffer into the oneDNN memory object."
+
+#: ../../knowledge_shared/oneDNN调研.md:88 2d7b4a344d59484aa1dc813be98f0891
+msgid "o  张量的逻辑维度和内存对象格式如何关联。"
+msgstr ""
+"o How the tensor's logical dimensions and memory object formats are "
+"associated."
+
+#: ../../knowledge_shared/oneDNN调研.md:90 e65bc00153594a6d842ba0fe45f5e394
+msgid "· 如何创建一个DNN原语。"
+msgstr "· How to create a DNN primitive."
+
+#: ../../knowledge_shared/oneDNN调研.md:92 52de25b1313142248547e26d2da9dceb
+msgid "· 如何执行原语。"
+msgstr "· How to execute a primitive."
+
+#: ../../knowledge_shared/oneDNN调研.md:94 0483f5b39fc84c49a64faaf14ec18770
+msgid "该示例使用ReLU操作，包括以下步骤："
+msgstr "This example uses the ReLU operation, including the following steps:"
+
+#: ../../knowledge_shared/oneDNN调研.md:96 bf7ff69829d04308a35965243340e19f
+msgid "1.     创建引擎和流来执行原语。"
+msgstr "1. Create an engine and stream to execute the primitive."
+
+#: ../../knowledge_shared/oneDNN调研.md:98 ecce4c81c8d44a19988937672102794f
+msgid "2.     执行数据准备（oneDNN 之外的代码）。"
+msgstr "2. Perform data preparation (code outside of oneDNN)."
+
+#: ../../knowledge_shared/oneDNN调研.md:100 11b3d742f90d4022b2860a8c73157a1f
+msgid "3.     将数据包装到 oneDNN 内存对象中"
+msgstr "3. Wrap the data into oneDNN memory objects"
+
+#: ../../knowledge_shared/oneDNN调研.md:102 c8300662c5724808b9a4940d01daee33
+msgid "创建 dnln::memory 包括两个步骤："
+msgstr "Creating dnln::memory involves two steps:"
+
+#: ../../knowledge_shared/oneDNN调研.md:104 334f2f73bd7348459d42e23992fc4aca
+msgid ""
+"1.     初始化 dnnl::memory::desc 结构体（也称为内存描述符），该结构体仅描述张量数据，不包含数据本身。内存描述符用于创建 "
+"dnnl::memory 对象并初始化基元描述符（稍后在示例中显示）。"
+msgstr ""
+"1. Initialize the dnnl::memory::desc structure (also known as memory "
+"descriptor), which only describes the tensor data, not the data itself. The "
+"memory descriptor is used to create the dnnl::memory object and initialize "
+"the basic element descriptor (shown later in the example)."
+
+#: ../../knowledge_shared/oneDNN调研.md:106 176ae2168ecd4c3292b1380fd6a4597f
+msgid ""
+"2.     基于步骤 1 中初始化的内存描述符、引擎以及可选的数据句柄创建 dnnl::memory "
+"对象本身（也称为内存对象）。执行原语时会使用内存对象。"
+msgstr ""
+"2. Create the dnnl::memory object itself (also known as memory object) based"
+" on the memory descriptor initialized in step 1, the engine, and optional "
+"data handle. The memory object will be used when executing the primitive."
+
+#: ../../knowledge_shared/oneDNN调研.md:108 7930cc5443a143778f305c24e088f673
+msgid "内存描述符"
+msgstr "Memory Descriptor"
+
+#: ../../knowledge_shared/oneDNN调研.md:117 c961790a1a4446bcbc80dc14446e520b
+msgid "创建内存对象"
+msgstr "Creating Memory Object"
+
+#: ../../knowledge_shared/oneDNN调研.md:126 0658ad7ce0e64a93bdbbd060ec49ff47
+msgid "4.     创建 ReLU 原语。"
+msgstr "4. Create the ReLU primitive."
+
+#: ../../knowledge_shared/oneDNN调研.md:128 6d9bb91d1a774ded947d27e91bc94e09
+msgid ""
+"1、创建一个操作原语描述符（此处为 "
+"dnnl::eltwise_forward::primitive_desc），它定义操作参数，并且是实现给定操作的实际算法的轻量级描述符。用户可以查询所选实现的不同特征，例如内存消耗以及下一个主题（内存格式传播）中将介绍的其他一些特征。"
+msgstr ""
+"1. Create an operation primitive descriptor (here, "
+"dnnl::eltwise_forward::primitive_desc), which defines the operation "
+"parameters and is a lightweight descriptor of the actual algorithm "
+"implementing the given operation. Users can query different features of the "
+"selected implementation, such as memory consumption and some other features "
+"to be introduced in the next topic (memory format propagation)."
+
+#: ../../knowledge_shared/oneDNN调研.md:130 ac713367c78a44baa9afc8a0f798e010
+msgid "2、创建一个可以在内存对象上执行以计算操作的原语（此处为 dnnl::eltwise_forward）。"
+msgstr ""
+"2. Create a primitive (here, dnnl::eltwise_forward) that can perform the "
+"computational operation on the memory object."
+
+#: ../../knowledge_shared/oneDNN调研.md:149 208ffd2f140b453abde1b1cab6bac4a9
+msgid "5.     执行 ReLU 原语。"
+msgstr "5. Execute the ReLU primitive."
+
+#: ../../knowledge_shared/oneDNN调研.md:151 389278b1d43947b8afdfb0357e7f0101
+msgid "6.     获取结果并验证（检查生成的图像不包含负值）。"
+msgstr ""
+"6. Retrieve the results and verify (check that the generated image contains "
+"no negative values)."
+
+#: ../../knowledge_shared/oneDNN调研.md:153 ce1de7ceaf614f8d87f68b771d4f55cf
+msgid "内存格式传播"
+msgstr "Memory Format Propagation"
+
+#: ../../knowledge_shared/oneDNN调研.md:155 180fa8b9bc1e4a45974c4102a3047dfe
+msgid "该示例围绕由卷积和池化组成的 CNN 构建，并包含以下步骤："
+msgstr ""
+"This example revolves around a CNN constructed from convolution and pooling,"
+" including the following steps:"
+
+#: ../../knowledge_shared/oneDNN调研.md:157 3d2472079dc54b56898e05e73efc860a
+msgid "根据卷积原语选择的内存格式创建池化原语描述符。"
+msgstr ""
+"Create a pooling primitive descriptor based on the memory format selected "
+"for the convolution primitive."
+
+#: ../../knowledge_shared/oneDNN调研.md:158 a179705af9834bf28f8469eae29dc8d2
+msgid "为 NCHW 内存格式的输入和输出数据创建内存描述符。"
+msgstr ""
+"Create memory descriptors for input and output data in NCHW memory format."
+
+#: ../../knowledge_shared/oneDNN调研.md:196 9e432301414c43b1af8ee84383824a42
+msgid "确定输入和输出数据是否需要从优化的内存格式重新排序。"
+msgstr ""
+"Determine whether input and output data need to be reordered from the "
+"optimized memory format."
+
+#: ../../knowledge_shared/oneDNN调研.md:197 d7d61ed18d8247779ffee0248023b39b
+msgid "创建内存对象；以及必要的原语并执行它们。"
+msgstr "Create memory objects; and the necessary primitives and execute them."
+
+#: ../../knowledge_shared/oneDNN调研.md:221 3d7014880ff7403db0401d40a27cba75
+msgid "支持的原语API："
+msgstr "Supported Primitive APIs:"
+
+#: ../../knowledge_shared/oneDNN调研.md:222 aa9045494c904cf9a8a848e5be546041
+msgid "Convolution"
+msgstr "Convolution"
+
+#: ../../knowledge_shared/oneDNN调研.md:223 b12fbb0fde4d4b82b63fcd3cc9d2ac2d
+msgid "Inner Product"
+msgstr "Inner Product"
+
+#: ../../knowledge_shared/oneDNN调研.md:224 04c79dcac5154b64a0c53206ff36a532
+msgid "Matrix Multiplication"
+msgstr "Matrix Multiplication"
+
+#: ../../knowledge_shared/oneDNN调研.md:225 b57f85c8cabb4110ab77cfa48bf27ca0
+msgid "RNN"
+msgstr "RNN"
+
+#: ../../knowledge_shared/oneDNN调研.md:226 48e7bbf1f34948009a9508af7a9c9e53
+msgid "Batch Normalization"
+msgstr "Batch Normalization"
+
+#: ../../knowledge_shared/oneDNN调研.md:227 e6e01645f9e04d37baa1952b1107488b
+msgid "Binary"
+msgstr "Binary"
+
+#: ../../knowledge_shared/oneDNN调研.md:228 24e05d0e69234f2a8f6bc3bc8a99df57
+msgid "Concat"
+msgstr "Concat"
+
+#: ../../knowledge_shared/oneDNN调研.md:229 033a87a000394aa4894aac15495d7e30
+msgid "Eltwise"
+msgstr "Eltwise"
+
+#: ../../knowledge_shared/oneDNN调研.md:230 7e7a29c59b654466b7e59e1c780b637f
+msgid "Group Normalization"
+msgstr "Group Normalization"
+
+#: ../../knowledge_shared/oneDNN调研.md:231 34f777c3f9024aeea07b1d8b2cdb4f34
+msgid "Layer Normalization"
+msgstr "Layer Normalization"
+
+#: ../../knowledge_shared/oneDNN调研.md:232 d53f888201c948bdb048c246abf8ff30
+msgid "Local Response Normalization (LRN)"
+msgstr "Local Response Normalization (LRN)"
+
+#: ../../knowledge_shared/oneDNN调研.md:233 3ee67d816966425993eca9d4da1ac198
+msgid "Pooling"
+msgstr "Pooling"
+
+#: ../../knowledge_shared/oneDNN调研.md:234 0f4326352ab243af850be0e4d6e15342
+msgid "PReLU"
+msgstr "PReLU"
+
+#: ../../knowledge_shared/oneDNN调研.md:235 d3d3ed6050fa4acf9054eda81d8c47cd
+msgid "Resampling"
+msgstr "Resampling"
+
+#: ../../knowledge_shared/oneDNN调研.md:236 05a6f62a3a504c5892346799c13d023f
+msgid "Shuffle"
+msgstr "Shuffle"
+
+#: ../../knowledge_shared/oneDNN调研.md:237 ee5b285fc78641f0a7b9a4488fe2601a
+msgid "Softmax"
+msgstr "Softmax"
+
+#: ../../knowledge_shared/oneDNN调研.md:238 702289c125dd45b5a303f989cd274f25
+msgid "Sum"
+msgstr "Sum"
+
+#: ../../knowledge_shared/oneDNN调研.md:239 89dcd1aa733749068ea85b0d857a0154
+msgid "Reorder"
+msgstr "Reorder"
+
+#: ../../knowledge_shared/oneDNN调研.md:240 b0ac3f0a41104e4da8d3e660346ba819
+msgid "Reduction"
+msgstr "Reduction"
+
+#: ../../knowledge_shared/oneDNN调研.md:241 a9507d9aa0f24b8d9cd57e56cc75ee50
+msgid "多算子模式Demo(ocl)"
+msgstr "Multi-operator Demo (ocl)"

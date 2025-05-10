@@ -1,0 +1,150 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../debug_record/linux_server.md:2 e6debbd4b23a46c0aeee0c8b5ce4c7ac
+msgid ""
+"无法git clone，具体报错fatal: unable to access 'https://github.com/wnlen/clash-for-"
+"linux.git/': gnutls_handshake() failed: Error in the pull function.(开发者无法git"
+" clone，无法在服务器上做开发)"
+msgstr ""
+"Unable to git clone, error details: fatal: unable to access "
+"'https://github.com/wnlen/clash-for-linux.git/': gnutls_handshake() failed: "
+"Error in the pull function. (Developer cannot git clone, cannot perform "
+"development on the server)"
+
+#: ../../debug_record/linux_server.md:5 590d5c28015248a6bc102beb15dabfc8
+msgid ""
+"不安装代理，git clone失败； 安装了代理，依旧失败（安装方式如下：ubuntu服务器(无gui)安装clash，配置代理，使用clash-"
+"for-linux，流程显示成功，但是依旧无法连接外网）"
+msgstr ""
+"Proxy not installed, git clone failed; Installed proxy, failed as before "
+"(Installation method as follows: ubuntu server (no GUI) install clash, "
+"configure proxy, use clash-for-linux, process shows successful, but still "
+"cannot connect to the internet)"
+
+#: ../../debug_record/linux_server.md:8 366528ae203b41f18a2db630747b329a
+msgid "订阅链接没问题"
+msgstr "Subscription link is fine"
+
+#: ../../debug_record/linux_server.md:9 cc08071cb08b4fccaa2a8a2fa586f114
+msgid "在windows上使用clash-for-windows，使用该订阅链接，连接成功，可以连接外网"
+msgstr ""
+"Using clash-for-windows on windows, using this subscription link, connection"
+" successful, can connect to the internet"
+
+#: ../../debug_record/linux_server.md:10 fa6d78303e1544efa1896a6fbe61de17
+msgid "该订阅链接网站显示一台机器链接成功"
+msgstr "The subscription link website shows a device connection successful"
+
+#: ../../debug_record/linux_server.md:12 7def65431a3546efb58fe5642dd8617b
+msgid "7890端口未被占用"
+msgstr "Port 7890 is not in use"
+
+#: ../../debug_record/linux_server.md:13 53e4654f378b44809d7fb630d191bbf8
+msgid ""
+"http_proxy为127.0.0.1:7890，https_proxy为127.0.0.1:7890，no_proxy为127.0.0.1,localhost"
+msgstr ""
+"http_proxy is 127.0.0.1:7890, https_proxy is 127.0.0.1:7890, no_proxy is "
+"127.0.0.1,localhost"
+
+#: ../../debug_record/linux_server.md:15 be39a8f874064528abe319c83cb50582
+msgid "机器没有防火墙"
+msgstr "Machine does not have a firewall"
+
+#: ../../debug_record/linux_server.md:17 ad993995e84d42659545e1a430f9c716
+msgid "当前现象"
+msgstr "Current situation"
+
+#: ../../debug_record/linux_server.md:19 fbc3b79fe55c4a25b9afa9ea51ec8bfb
+msgid "ping 127.0.0.1 成功"
+msgstr "ping 127.0.0.1 successful"
+
+#: ../../debug_record/linux_server.md:20 fe7c928e922f41588ed7e852c0ca171a
+msgid "www.baidu.com"
+msgstr "www.baidu.com"
+
+#: ../../debug_record/linux_server.md:21 b8ae8fd61bdc43a39e2a8176ef6d65d6
+msgid "ping/wget/curl 成功"
+msgstr "ping/wget/curl successful"
+
+#: ../../debug_record/linux_server.md:22 040d95f6eb174b3286190c2b2658e89d
+msgid "www.github.com"
+msgstr "www.github.com"
+
+#: ../../debug_record/linux_server.md:23 53019c9e51d94f02980f9bbe96dd9788
+msgid "ping成功"
+msgstr "ping successful"
+
+#: ../../debug_record/linux_server.md:24 ../../debug_record/linux_server.md:34
+#: 1a69591fb9874ca98fb978f53fb5e439 9d2aa3cda5254b53846128014828e5b3
+msgid "wget失败"
+msgstr "wget failed"
+
+#: ../../debug_record/linux_server.md:25 b371082d73e44e1cb6ec39e1d480def0
+msgid ""
+"错误信息：--2025-01-18 12:53:35--  http://www.github.com/ Connecting to "
+"127.0.0.1:7890... connected. Proxy request sent, awaiting response... 502 "
+"Bad Gateway 2025-01-18 12:53:40 ERROR 502: Bad Gateway"
+msgstr ""
+"Error message: --2025-01-18 12:53:35--  http://www.github.com/ Connecting to"
+" 127.0.0.1:7890... connected. Proxy request sent, awaiting response... 502 "
+"Bad Gateway 2025-01-18 12:53:40 ERROR 502: Bad Gateway"
+
+#: ../../debug_record/linux_server.md:29 ../../debug_record/linux_server.md:35
+#: 8887beb7b01c4c78ae18d0cf2e98fb05 8fa4ba99eaf3472a89b10d69b5d9a37f
+msgid "curl失败，没有任何打印信息"
+msgstr "curl failed, no print information"
+
+#: ../../debug_record/linux_server.md:30 b56c232511ce43b5aa1b961392a2c43b
+msgid "ssh -T git@github.com 成功"
+msgstr "ssh -T git@github.com successful"
+
+#: ../../debug_record/linux_server.md:31 597a00e5e0cb4f19abc9f5e03324890c
+msgid ""
+"Hi Alwaysssssss! You've successfully authenticated, but GitHub does not "
+"provide shell access."
+msgstr ""
+"Hi Alwaysssssss! You've successfully authenticated, but GitHub does not "
+"provide shell access."
+
+#: ../../debug_record/linux_server.md:32 bf1b14da284f4735bf5fdc8a13e4a9d3
+msgid "www.google.com"
+msgstr "www.google.com"
+
+#: ../../debug_record/linux_server.md:33 115f0259d66e4fff9021132f27675213
+msgid "PING www.google.com (31.13.88.169) 56(84) bytes of data.卡死"
+msgstr "PING www.google.com (31.13.88.169) 56(84) bytes of data. Card dead"
+
+#: ../../debug_record/linux_server.md:38 67b2457c77e54f59b68a831a0a6f36ce
+msgid ""
+"解决办法，基于ssh的git clone（git clone --recursive "
+"git@github.com:nndeploy/nndeploy.git）（参照realtyxxx的配置）"
+msgstr ""
+"Solution, based on ssh git clone (git clone --recursive "
+"git@github.com:nndeploy/nndeploy.git) (refer to realtyxxx's configuration)"
+
+#: ../../debug_record/linux_server.md:40 4b918aac0f2c44faa9f30027a0420014
+msgid "在根目录中$HOME/.ssh/config中增加如下代码"
+msgstr "Add the following code in $HOME/.ssh/config in the root directory"
+
+#: ../../debug_record/linux_server.md:49 a2f028360ed54b26896f7aa0008a0b1e
+msgid "在根目录中$HOME/.gitconfig中增加如下代码"
+msgstr "Add the following code in $HOME/.gitconfig in the root directory"

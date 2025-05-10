@@ -1,0 +1,147 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../architecture_guide/architecture.md:1 337283be708349a880276cb9c32c37d7
+msgid "架构"
+msgstr "Architecture"
+
+#: ../../architecture_guide/architecture.md:3 bac3ff68adb9460ba2a8d1cb6ec25891
+msgid "架构简介"
+msgstr "Architecture Introduction"
+
+#: ../../architecture_guide/architecture.md
+#: ../../architecture_guide/architecture.md:5 102a300302cd4c468a1282810d20b240
+#: 76bf46915a274434ac69d636c88839f5
+msgid "Architecture"
+msgstr "Architecture"
+
+#: ../../architecture_guide/architecture.md:7 cd240fdc47fe4cedaca9e5c2ec258761
+msgid "架构详解"
+msgstr "Architecture Details"
+
+#: ../../architecture_guide/architecture.md:9 2077a9d9e0b549e2b8166a437cf70256
+msgid ""
+"Directed Acyclic Graph：有向无环图子模块。模型端到端的部署流程可抽象成 3 "
+"个子块：模型前处理+>模型推理+>模型后处理，这是一个非常典型的有向无环图，对于多模型组合的算法而言，是更加复杂的的有向无环图，直接写业务代码去串联整个过程不仅容易出错，而且还效率低下，采用有向无环图的方式可以极大的缩减业务代码的编写。"
+msgstr ""
+"Directed Acyclic Graph: The model end-to-end deployment flow can be "
+"abstracted into 3 subgraphs: Model Frontend Processing+> Model Inference+> "
+"Model Backend Processing, which is an extremely typical directed acyclic "
+"graph. For multi-model ensemble algorithms, it is a more complex directed "
+"acyclic graph, directly writing business code to connect the entire process "
+"is not only error-prone but also has low efficiency. Using the directed "
+"acyclic graph method can greatly reduce the writing of business code."
+
+#: ../../architecture_guide/architecture.md:11
+#: 101258e883e842a8bfc8d337b3aa9b89
+msgid ""
+"Process "
+"Template：前后处理模板以及推理子模板。我们希望还再可以简化您的部署流程，因此在模型端到端的部署的模型前处理+>模型推理+>模型后处理的三个过程中，我们进一步设计模板。尤其是在推理模板上面花了足够多的心思，针对不同的模型，又有很多差异性，例如单输入、多输出、静态形状输入、动态形状输入、静态形状输出、动态形状输出、是否可操作推理框架内部分配输入输出等等一系列不同，只有具备丰富模型部署经验的工程师才能快速解决上述问题，故我们基于多端推理模块"
+" Inference + 有向无环图节点 Node 再设计功能强大的推理模板Infer，这个推理模板可以帮您在内部处理上述针对模型的不同带来的差异。"
+msgstr ""
+"Process Template: Front and backend processing templates as well as "
+"inference sub-templates. We hope to further simplify your deployment "
+"process, therefore in the model end-to-end deployment of Model Frontend "
+"Processing+> Model Inference+> Model Backend Processing, we take a step to "
+"calculate the template. Particularly, a lot of thought has been put into the"
+" inference template, corresponding to different models, there are many "
+"differences, such as single input, multi-output, static shape input, dynamic"
+" shape input, static shape output, dynamic shape output, whether the "
+"operable inference framework's internal allocation of input and output etc.,"
+" etc., only engineers with rich model deployment experience can quickly "
+"solve the above issues. In the past, we were based on multi-end inference "
+"modules Inference + Directed Acyclic Graph Node we then calculated a "
+"powerful inference template Infer, this template can help you describe the "
+"differences brought by different models internally."
+
+#: ../../architecture_guide/architecture.md:13
+#: cdda80cdedbc47a7969192c15db13c72
+msgid ""
+"Resouce Pool：资源管理子模块。正在开发线程池以及内存池（这块是 nndeploy "
+"正在火热开发的模块，期待大佬一起来搞事情）。线程池可实现有向无环图的流水线并行，内存池可实现高效的内存分配与释放。"
+msgstr ""
+"Resource Pool: Resource management sub-module. Currently developing line "
+"program pool as well as memory pool (this section is a module that nndeploy "
+"is actively developing, looking forward to Dahu together to get things "
+"done). The line program pool can implement directed acyclic graph's water "
+"line and execute, memory pool can achieve efficient memory allocation and "
+"release."
+
+#: ../../architecture_guide/architecture.md:15
+#: 9a1a0ddbedd74d088942e72f6ba4ce22
+msgid "Parallel: 并行模块。基于有向无环图的并行模块，任务并行可缩短单次算法全流程运行耗时，流水线并行可提高算法全流程运吞吐量。"
+msgstr ""
+"Parallel: Parallel module. Based on the directed acyclic graph's parallel "
+"module, task parallel can shorten single algorithm full process execution "
+"time, water line parallel can increase algorithm full process execution "
+"throughput."
+
+#: ../../architecture_guide/architecture.md:17
+#: 753653bebc6448628d28808b33ccd620
+msgid ""
+"Inference：多端推理子模块（ nndeploy "
+"还需要集成更多的推理框架，期待大佬一起来搞事情）。提供统一的推理接口去操作不同的推理后端，在封装每个推理框架时，我们都花了大量时间去理解并研究各个推理框架的特性，例如"
+" TensorRT 可以使用外存推理，OpenVINO 有高吞吐率模式、TNN "
+"可以操作内部分配输入输出等等。我们在抽象的过程中不会丢失推理框架的特性，并做到统一的使用的体验，还保证了性能。"
+msgstr ""
+"Inference: Multi-end inference sub-module (nndeploy still needs to build "
+"more inference framework modules, looking forward to Dahu together to get "
+"things done). Provide a unified inference interface to operate different "
+"inference backends, when packaging each inference framework module, we spent"
+" a lot of time to understand and study the characteristics of each inference"
+" framework module, such as TensorRT can use external memory inference, "
+"OpenVINO has a high throughput model, TNN can operate internal allocation of"
+" input and output etc. etc. In the process of abstraction, we will not lose "
+"the characteristics of the inference framework module, and achieve a unified"
+" usage experience, and also ensure performance."
+
+#: ../../architecture_guide/architecture.md:19
+#: ba2c641b8ad7481188a9e97cc8e5716f
+msgid ""
+"OP：高性能算子模块。我们打算去开发一套高性能的前后处理算子（期待有大佬一起来搞事情），提升模型端到端的性能，也打算开发一套 nn 算子库或者去封装 "
+"oneDNN、QNN 等算子库（说不定在 nndeploy 里面还会做一个推理框架呀）"
+msgstr ""
+"OP: High performance compute sub-module. We plan to develop a high-"
+"performance front and backend compute module (looking forward to Dahu "
+"together to get things done), improve the performance from model end to end,"
+" also plan to develop an nn compute library or package oneDNN, QNN etc. "
+"compute libraries (not sure if there will be an inference framework module "
+"in nndeploy)."
+
+#: ../../architecture_guide/architecture.md:21
+#: 40c1d8934f374a389eedef61416cbe05
+msgid ""
+"Data Container：数据容器子模块。推理框架的封装不仅推理接口的 API 的封装，还需要设计一个 Tensor，用于去与第三方推理框架的 "
+"Tensor 进行数据交互。 nndeploy 还设计图像处理的数据容器 Mat，并设计多设备的统一内存 Buffer。"
+msgstr ""
+"Data Container: Data container sub-module. The packaging of the inference "
+"framework's API interface is not only the packaging, but also needs to "
+"design a Tensor, used to interact data with the third-party inference "
+"framework's Tensor. nndeploy also designs a data container Mat for image "
+"processing, and designs multiple devices' unified memory Buffer."
+
+#: ../../architecture_guide/architecture.md:23
+#: 17edc2b7bd0c49c0ae32a22f95107713
+msgid "Device：设备管理子模块。为不同的设备提供统一的内存分配、内存拷贝、执行流管理等操作。"
+msgstr ""
+"Device: Device management sub-module. Provide unified memory allocation, "
+"memory copy, execution flow management etc. operations for different "
+"devices."

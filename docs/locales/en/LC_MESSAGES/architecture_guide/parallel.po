@@ -1,0 +1,337 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../architecture_guide/parallel.md:1 8b6b09eae54944cca509b52fb618e60e
+msgid "并行方式"
+msgstr "Parallel Mode"
+
+#: ../../architecture_guide/parallel.md:3 054a13c5e4f44f12b4072388ce196595
+msgid "nndeploy当前支持任务级并行和流水线并行两种并行方式。二者面向的场景不同："
+msgstr ""
+"nndeploy currently supports two parallel modes: task-level parallel and "
+"pipeline parallel. The scenarios they are oriented towards are different:"
+
+#: ../../architecture_guide/parallel.md:5 073108a7fa9e49b1a5a63ebd8c7e4807
+msgid "任务级并行：在多模型以及多硬件设备的的复杂场景下，基于有向无环图的模型部署方式，可充分挖掘模型部署中的并行性，缩短单次算法全流程运行耗时。"
+msgstr ""
+"Task-level parallel: In complex scenarios involving multiple models and "
+"multiple hardware devices, based on a directed acyclic graph model "
+"deployment method, it can fully exploit the parallelism in model deployment,"
+" reducing the runtime overhead of a single algorithm's entire process."
+
+#: ../../architecture_guide/parallel.md:6 758cc5bcabf048798b336c4261e90641
+msgid ""
+"流水线并行：在处理多帧的场景下，基于有向无环图的模型部署方式，可将前处理 Node、推理 Node、后处理 "
+"Node绑定三个不同的线程，每个线程又可绑定不同的硬件设备下，从而三个Node可流水线并行处理。在多模型以及多硬件设备的的复杂场景下，更加可以发挥流水线并行的优势，从而可显著提高整体吞吐量。"
+msgstr ""
+"Pipeline parallel: In scenarios involving processing multiple frames, based "
+"on a directed acyclic graph model deployment method, it can bind the pre-"
+"processing Node, inference Node, and post-processing Node to three different"
+" threads, each of which can be bound to different hardware devices, allowing"
+" the three Nodes to process in parallel. In complex scenarios involving "
+"multiple models and multiple hardware devices, it can leverage the "
+"advantages of pipeline parallel more effectively, significantly improving "
+"overall throughput."
+
+#: ../../architecture_guide/parallel.md:8 40e7ebb7fe1848b8b64ddaec46feafb2
+msgid "任务级并行"
+msgstr "Task-level parallel"
+
+#: ../../architecture_guide/parallel.md:10 c5e868e32c8a482a8ee0aed2ea8bc143
+msgid "代码位于nndeploy/include/nndeploy/dag/executor/parallel_task_executor.h"
+msgstr ""
+"Code located at "
+"nndeploy/include/nndeploy/dag/executor/parallel_task_executor.h"
+
+#: ../../architecture_guide/parallel.md:12 a8e5eeb096544fefa3cfd9be9bad1d4d
+msgid ""
+"任务级并行利用模型内部节点的并行性，将多个节点调度在多个线程中同时执行。假设有一个9节点的有向无环图，其拓扑架构如下，边表示数据的流向，用边连接的两个节点具有生产者-"
+"消费者的依赖关系，当生产者节点运行完毕后，消费者节点才能运行。例如E节点需要等C节点和D节点运行完毕后再运行。"
+msgstr ""
+"Task-level parallel utilizes the parallelism within the model's internal "
+"nodes, scheduling multiple nodes to execute simultaneously in multiple "
+"threads. Assuming there is a directed acyclic graph with 9 nodes, its "
+"topological structure is as follows, where edges represent the flow of data,"
+" and the two nodes connected by an edge have a producer-consumer dependency "
+"relationship. The consumer node can only run after the producer node has "
+"finished running. For example, node E needs to wait for nodes C and D to "
+"finish running before it can run."
+
+#: ../../architecture_guide/parallel.md
+#: ../../architecture_guide/parallel.md:14 86605a1437b8461c98e055b7d0f3e48e
+#: b8e479d989ff46ecb403a6315c9e8396
+#, python-brace-format
+msgid "{nodes}"
+msgstr "{nodes}"
+
+#: ../../architecture_guide/parallel.md:16 e67b896b0daf4cd0a7763ba8884aff58
+msgid ""
+"从最初的输入开始。input数据准备好后，A、B节点就可以并行运行，A节点运行完后C节点可以运行，同理B节点运行完后D节点可以运行。从图上看，似乎C、D节点也是并行的。然而在实际运行时，由于A、B节点的运行时间未知，因此C、D节点不一定是并行的，有可能A、C节点都运行结束后，B节点仍在运行。这种运行时间未知带来的问题是无法在编译时就确定哪些节点之间是并行的，因此静态的建立图节点并行计算方式是非常困难的。"
+msgstr ""
+"Starting from the initial input. Once the input data is ready, nodes A and B"
+" can run in parallel. After node A finishes running, node C can run, and "
+"similarly, after node B finishes running, node D can run. From the graph, it"
+" seems that nodes C and D are also parallel. However, in actual operation, "
+"due to the unknown runtime of nodes A and B, nodes C and D may not "
+"necessarily run in parallel. It's possible that after nodes A and C have "
+"finished running, node B is still running. This issue of unknown runtime "
+"makes it impossible to determine at compile time which nodes are parallel, "
+"making it very difficult to statically establish a graph node parallel "
+"computation method."
+
+#: ../../architecture_guide/parallel.md:18 c604ee374f204635bd5868365bc1c1a5
+msgid "nndeploy采用的方式是运行时动态解图，在每个节点计算完毕后再判断其消费者节点是否能执行。主要流程如下："
+msgstr ""
+"The method adopted by nndeploy is dynamic graph solving at runtime, "
+"determining whether its consumer nodes can execute after each node's "
+"computation is completed. The main process is as follows:"
+
+#: ../../architecture_guide/parallel.md:20
+#: ../../architecture_guide/parallel.md:62 50ba1ed45c38474f94ae70ca4b53094d
+#: 5676666c1ac3481aa1719eb3a4c77f4d
+msgid "1.初始化"
+msgstr "1. Initialization"
+
+#: ../../architecture_guide/parallel.md:22 24b12201246249dd9324b546ca1830cb
+msgid "初始化线程池；"
+msgstr "Initialize the thread pool;"
+
+#: ../../architecture_guide/parallel.md:24 c82d4b9b70c94d228460eb2114c91dbd
+msgid "对图进行拓扑排序，返回剔除死节点的排序后图，并记录总任务节点数量；"
+msgstr ""
+"Perform topological sorting on the graph, return the sorted graph after "
+"removing dead nodes, and record the total number of task nodes;"
+
+#: ../../architecture_guide/parallel.md:26
+#: ../../architecture_guide/parallel.md:68 b09411c5271b405b95309131007c2ce8
+#: fdb2896a80e44250ac78f58d86b522e2
+msgid "2.运行"
+msgstr "2. Execution"
+
+#: ../../architecture_guide/parallel.md:28 8bb9b3181a5c49baaf73e3d069c601d8
+msgid "全图运行流程如下："
+msgstr "The full graph execution process is as follows:"
+
+#: ../../architecture_guide/parallel.md
+#: ../../architecture_guide/parallel.md:30 0e85cf283b264a32b919d6d58162376d
+#: 410e91b81c5a40128933bc0fd4dda894
+#, python-brace-format
+msgid "{task_parallel}"
+msgstr "{task_parallel}"
+
+#: ../../architecture_guide/parallel.md:32 f2d0bef9b4264c6ea3d81eb7cdb8f82e
+msgid ""
+"从开始节点（入度为0，即没有依赖的节点）出发。更改节点状态为运行中，然后将节点的运行函数和运行后处理函数提交线程池，以异步的方式开始执行。节点的运行函数为用户自己实现的运行函数，运行后处理函数为nndeploy添加。"
+msgstr ""
+"Starting from the initial node (with an in-degree of 0, i.e., nodes without "
+"dependencies). Change the node state to running, then submit the node's "
+"execution function and post-execution processing function to the thread "
+"pool, starting execution asynchronously. The node's execution function is "
+"implemented by the user, and the post-execution processing function is added"
+" by nndeploy."
+
+#: ../../architecture_guide/parallel.md:34 f9616c309e7a4ace93616aec5849f509
+msgid "运行后处理函数包含节点状态更新、提交后续节点、唤醒主线程三部分。"
+msgstr ""
+"The post-execution processing function includes three parts: node state "
+"update, submission of subsequent nodes, and awakening the main thread."
+
+#: ../../architecture_guide/parallel.md:36 fcc6980999ef4cc788006afeb3f75561
+msgid "节点状态更新将该节点状态更改为运行结束。"
+msgstr "Node state update changes the node's state to finished."
+
+#: ../../architecture_guide/parallel.md:38 f135c9ab12d24490990f484aa4a89d82
+msgid ""
+"提交后续节点将遍历该节点的每一个后续节点，判断该后续节点的所有前驱节点是否都已运行结束，若结束再将该后续节点提交线程池。例如对于上图E节点，其后继节点为G、H。检查G节点的所有前驱即E节点是否运行完毕，运行完毕则加入线程池，检查H节点的所有前驱节点E、F是否执行完毕，运行完毕则加入线程池，若F节点尚未执行完毕，则H节点会在F节点执行后再检查一次是否可以提交执行。这样可以保证所有的节点都能被提交执行。"
+msgstr ""
+"Submission of subsequent nodes will traverse each subsequent node of the "
+"node, check if all predecessor nodes of the subsequent node have finished "
+"running, and if so, submit the subsequent node to the thread pool. For "
+"example, for node E in the above graph, its subsequent nodes are G and H. "
+"Check if all predecessors of node G, i.e., node E, have finished running. If"
+" finished, add to the thread pool. Check if all predecessor nodes of node H,"
+" E and F, have finished running. If finished, add to the thread pool. If "
+"node F has not finished running, node H will check again after node F has "
+"finished running whether it can submit for execution. This ensures all nodes"
+" can be submitted for execution."
+
+#: ../../architecture_guide/parallel.md:40 01cff0d7795d4e58b9c7cead64c4f517
+msgid "若该节点是尾节点（出度为0的节点，即没有后继节点），则检查是否完成节点数量达到所有节点数量，若达到，则唤醒主线程，所有节点均执行完毕。"
+msgstr ""
+"If the node is a tail node (with an out-degree of 0, i.e., nodes without "
+"subsequent nodes), check if the number of completed nodes reaches all nodes."
+" If so, awaken the main thread, and all nodes have finished running."
+
+#: ../../architecture_guide/parallel.md:42 a6a5c59989744c82925fd9c45dfd09ec
+msgid "3.运行后处理"
+msgstr "3. Post-execution processing"
+
+#: ../../architecture_guide/parallel.md:44 5b0c17f0de7f4df9ba18c4a7fbd77d2f
+msgid "将所有节点执行状态恢复为未运行，以便下次的全图运行。"
+msgstr ""
+"Reset all nodes' execution state to not run, ready for the next full graph "
+"execution."
+
+#: ../../architecture_guide/parallel.md:48 1a6900eabe814123a11db16ec3d85377
+msgid "流水线并行"
+msgstr "Pipeline parallel"
+
+#: ../../architecture_guide/parallel.md:50 7f13e6b462f54f36b6cc5a1865197cd0
+msgid ""
+"代码位于nndeploy/include/nndeploy/dag/executor/parallel_pipeline_executor.h"
+msgstr ""
+"Code located at "
+"nndeploy/include/nndeploy/dag/executor/parallel_pipeline_executor.h"
+
+#: ../../architecture_guide/parallel.md:52 0c34692075174712b99b7acd62b91de3
+msgid ""
+"流水线并行是一种基于流水线思想的并行计算模型，主要用于解决计算密集型任务的并行执行问题，例如图像处理、视频编解码、机器学习等领域。其面向的场景为多批输入数据。流水线并行的原理是将一个大型计算任务拆分为若干个小的子任务，然后将这些子任务分配给不同的计算单元同时执行，每个计算单元只负责执行其中的一个子任务，完成后将结果传递给下一个计算单元，以此类推，直到所有子任务都被执行完成并合并为最终结果。其优点为可以充分利用计算资源，提高整体吞吐量。"
+msgstr ""
+"Pipeline parallel is a parallel computing model based on the pipeline "
+"concept, mainly used to solve the parallel execution problems of "
+"computation-intensive tasks, such as image processing, video codec, machine "
+"learning, etc. Its oriented scenario is multi-batch input data. The "
+"principle of pipeline parallel is to break down a large computation task "
+"into several smaller subtasks, then assign these subtasks to different "
+"computation units for simultaneous execution. Each computation unit is only "
+"responsible for executing one subtask, and after completion, passes the "
+"result to the next computation unit, and so on, until all subtasks are "
+"executed and merged into the final result. Its advantage is that it can "
+"fully utilize computational resources and improve overall throughput."
+
+#: ../../architecture_guide/parallel.md:54 5061e5c9f5e7486c9e041e85ac915fd3
+msgid ""
+"在nndeploy中，可以将前处理 Node、推理 Node、后处理 "
+"Node绑定三个不同的线程，每个线程又可绑定不同的硬件设备下，从而三个Node可流水线并行处理。"
+msgstr ""
+"In nndeploy, the pre-processing Node, inference Node, and post-processing "
+"Node can be bound to three different threads, each of which can be bound to "
+"different hardware devices, allowing the three Nodes to process in parallel."
+
+#: ../../architecture_guide/parallel.md:56 5b5941803fd947668abbe18fc1aaf3a2
+msgid ""
+"以下图为例。共有4张图片需要处理，前处理、推理、后处理具有线性的依赖关系。t0时刻前处理节点处理image1的数据，t1时刻前处理节点处理image2的数据，推理节点处理由前处理计算完毕的image1数据。以此类推，每一个节点在下一时刻处理由上一个节点计算完毕的下一份数据。每一个时间片的大小由最耗时的节点时间开销决定，其余节点时间开销被隐藏。假设推理耗时最大，当数据总量足够大时，总的时间开销约等于数据总量x单个图片推理时延。"
+msgstr ""
+"Take the following graph as an example. There are 4 images to process, with "
+"linear dependencies among pre-processing, inference, and post-processing. At"
+" time t0, the pre-processing node processes the data of image1; at time t1, "
+"the pre-processing node processes the data of image2, while the inference "
+"node processes the data of image1 completed by pre-processing computation. "
+"And so on, each node at the next moment processes the next piece of data "
+"completed by the previous node's computation. The size of each time slice is"
+" determined by the node with the longest time consumption, and the time "
+"consumption of other nodes is hidden. Assuming inference takes the longest "
+"time, when the total amount of data is large enough, the total time "
+"consumption approximately equals the total number of images multiplied by "
+"the single image inference delay."
+
+#: ../../architecture_guide/parallel.md
+#: ../../architecture_guide/parallel.md:58
+#: ../../architecture_guide/parallel.md:76 15c2c90895be4ce7b0634e9f91b7c53c
+#: 1fd048fc70a64d85a06f72876c84dd7d 99bb65feb21c481cab81d4c0cfe2ac9e
+#: f4207270998c45d9a51729675c1699ff
+msgid "pipeline_parallel_process"
+msgstr "pipeline_parallel_process"
+
+#: ../../architecture_guide/parallel.md:60 96921ea3d28e45d28e02598fe94817d1
+msgid "nndeploy中流水线并行实现思路如下："
+msgstr ""
+"The implementation idea of pipeline parallel in nndeploy is as follows:"
+
+#: ../../architecture_guide/parallel.md:64 c843c980993940359bdc95e602ab89c6
+msgid "对图进行拓扑排序，返回剔除死节点的排序后图。"
+msgstr ""
+"Perform topological sorting on the graph, return the sorted graph after "
+"removing dead nodes."
+
+#: ../../architecture_guide/parallel.md:66 80b1d95e80494a94ae40dedeac23a1ca
+msgid "初始化线程池，线程数量等于有效节点数量"
+msgstr ""
+"Initialize the thread pool, with the number of threads equal to the number "
+"of effective nodes."
+
+#: ../../architecture_guide/parallel.md:70 cad265d681134c00a2cb68d850ad6725
+msgid "整体流程为每一个节点在其所有前驱节点计算完毕后开始运行，结束本次运行后获取新数据继续运行。"
+msgstr ""
+"The overall process is that each node starts running after all its "
+"predecessor nodes have completed computation, and after finishing this run, "
+"it obtains new data to continue running."
+
+#: ../../architecture_guide/parallel.md:72 6161142832344e56943662f5028596c4
+msgid "这里有两个关键设计，一个是节点何时开始运行，一个是节点何时结束运行。"
+msgstr ""
+"There are two key designs here: one is when a node starts running, and the "
+"other is when a node ends running."
+
+#: ../../architecture_guide/parallel.md:74 9eef28b6ec1547c58926d39c9f70c525
+msgid ""
+"节点何时开始运行：当该节点的运行速度小于其前驱节点时，前驱结点生成数据基本能满足该节点的运行。否则，该节点需要等待前驱结点完成计算。在流水线并行中，节点之间数据流动由PipelineEdge边控制。每条PipelineEdge可能有多个消费者节点，而不同消费者节点消耗数据速度可能不同。因此在PipelineEdge维护了两个关键数据容器。一个数据容器为数据包的list，记录了所有还会被消费者消耗的数据包。另一个为<消费者-"
+"当前消费数据包>的map，记录了每个消费者当前消费数数据包索引。当某一个数据包永远不会被消耗时，其被销毁。当某个消费者需要的数据还没生产出来时，该消费者的运行会阻塞住，直到前驱生产者节点产生数据后，才能继续运行。"
+msgstr ""
+"When a node starts running: When the running speed of the node is less than "
+"that of its predecessor node, the data generated by the predecessor node can"
+" basically satisfy the running of the node. Otherwise, the node needs to "
+"wait for the predecessor node to complete the calculation. In the pipeline "
+"parallelism, the data flow between nodes is controlled by PipelineEdge. Each"
+" PipelineEdge may have multiple consumer nodes, and different consumer nodes"
+" may consume data at different speeds. Therefore, PipelineEdge maintains two"
+" key data containers. One data container is a list of data packets, "
+"recording all data packets that will still be consumed by consumers. The "
+"other is a map of <consumer-current consumption data packet>, recording the "
+"current consumption data packet index for each consumer. When a data packet "
+"will never be consumed, it is destroyed. When the data needed by a consumer "
+"hasn't been produced yet, the operation of the consumer will block until the"
+" predecessor producer node produces the data, then it can continue to run."
+
+#: ../../architecture_guide/parallel.md:78 5793e9d1462e49c893666f85d19d45ca
+msgid "节点何时结束运行："
+msgstr "When a node ends running:"
+
+#: ../../architecture_guide/parallel.md:80 25b59fd33b3448e781586bd55408578a
+msgid ""
+"当所有数据都被消耗结束，且所有结果都已计算得出后，需要结束所有节点线程。主线程与节点线程关系如下图。在主线程获得结果这一步进行同步，保证所有数据的结果都被返回后，进行反初始化操作，给每个节点线程发送停止信号。"
+msgstr ""
+"When all data has been consumed and all results have been calculated, it is "
+"necessary to terminate all node threads. The relationship between the main "
+"thread and the node threads is as shown in the following figure. The main "
+"thread performs synchronization at the step of obtaining results, ensuring "
+"that all data results are returned before performing the deinitialization "
+"operation, sending a stop signal to each node thread."
+
+#: ../../architecture_guide/parallel.md
+#: ../../architecture_guide/parallel.md:82 8247ea581a614ee1a51d7a082acc59e7
+#: b077017dc76f42d695bc4a85957fa7d6
+msgid "线程关系"
+msgstr "Thread relationship"
+
+#: ../../architecture_guide/parallel.md:84 c456120020b541a9a181cd7f747ff8af
+msgid "3.反初始化"
+msgstr "3. Deinitialization"
+
+#: ../../architecture_guide/parallel.md:86 0ae9f996d7b54c73b8dfb30e9592ce72
+msgid "给线程池中所有节点线程发送停止信号，结束运行。"
+msgstr ""
+"Send stop signals to all node threads in the thread pool to terminate the "
+"operation."
+
+#: ../../architecture_guide/parallel.md:88 f67b78f3085d4e38ab62e52a5f58c191
+msgid "销毁线程池。"
+msgstr "Destroy the thread pool."

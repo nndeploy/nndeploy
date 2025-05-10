@@ -1,0 +1,287 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../developer_guide/how_to_support_new_device.md:1
+#: adc3efc4830e48c4903f18681e81b369
+msgid "新增一个设备"
+msgstr "Add a new device"
+
+#: ../../developer_guide/how_to_support_new_device.md:3
+#: e78e5dfe11a1439386007507e4bf21b4
+msgid "介绍"
+msgstr "Introduction"
+
+#: ../../developer_guide/how_to_support_new_device.md:5
+#: 4f239efced8e4b619be06a9f9dd99bc0
+msgid ""
+"设备是nndeploy对硬件设备的抽象，通过对硬件设备的抽象，从而屏蔽不同硬件设备编程模型带来的差异性，nndeploy当前已经支持CPU、X86、ARM、CUDA、AscendCL等设备。主要功能如下"
+msgstr ""
+"Device is an abstraction of nndeploy hardware devices, which abstracts the "
+"differences between various hardware device program models, nndeploy "
+"currently supports devices such as CPU, X86, ARM, CUDA, AscendCL, etc. The "
+"main functions are as follows"
+
+#: ../../developer_guide/how_to_support_new_device.md:7
+#: 99f545c230a440d4ad3424f8d426572a
+msgid "统一的内存分配：为不同设备提供统一的内存分配接口，从而可简化数据容器Buffer、Mat、Tensor的内存分配"
+msgstr ""
+"Unified memory allocation: Provides a unified memory allocation interface "
+"for different devices, thereby simplifying the memory allocation of data "
+"containers Buffer, Mat, Tensor"
+
+#: ../../developer_guide/how_to_support_new_device.md:9
+#: d20aa404cf40484f941d88a3eaf6978d
+msgid ""
+"统一的内存拷贝：为不同设备提供统一的内存拷贝接口（设备间拷贝、主从设备间上传/下载），从而可简化数据容器Buffer、Mat、Tensor的内存拷贝"
+msgstr ""
+"Unified memory copy: Provides a unified memory copy interface for different "
+"devices (device-to-device copy, host-to-device copy), thereby simplifying "
+"the memory copy of data containers Buffer, Mat, Tensor"
+
+#: ../../developer_guide/how_to_support_new_device.md:11
+#: 80aa8b9d968e4a5ea5117bc72ea8c5fb
+msgid "统一的同步操作：为不同设备提供统一的同步操作接口，可简化设备端模型推理、算子等同步操作"
+msgstr ""
+"Unified synchronization operations: Provides a unified synchronization "
+"operation interface for different devices, which can simplify device end "
+"model promotion, calculation, and other synchronization operations"
+
+#: ../../developer_guide/how_to_support_new_device.md:13
+#: 1ab93f05ed26490c80fd4c9e1169260d
+msgid "统一的硬件设备信息查询：为不同设备提供统一的硬件设备信息查询接口，帮助用户更好的选择模型全流程部署的运行设备"
+msgstr ""
+"Unified hardware device information query: Provides a unified hardware "
+"device information query interface for different devices, helping users "
+"better select model full flow deployment execution devices"
+
+#: ../../developer_guide/how_to_support_new_device.md:15
+#: cdea695507a3468e87f383d47d53e053
+msgid "步骤"
+msgstr "Step"
+
+#: ../../developer_guide/how_to_support_new_device.md:17
+#: dbe93e9395864862bec99a0e4b1d5d91
+msgid "新增一个设备主要分为以下三个步骤："
+msgstr "Adding a new device is mainly divided into the following three steps:"
+
+#: ../../developer_guide/how_to_support_new_device.md:19
+#: 0e1bdbfef0294d05b37f9391761ea6b7
+msgid "（1）新增设备类型枚举"
+msgstr "(1) Add new device type hierarchy"
+
+#: ../../developer_guide/how_to_support_new_device.md:21
+#: a56d8878c4a5462c9343a2f032a465b4
+msgid "（2）继承基类Architecture、继承基类Device"
+msgstr "(2) Inherit base class Architecture, inherit base class Device"
+
+#: ../../developer_guide/how_to_support_new_device.md:23
+#: cfa117b30ccd44ad831787a0221dd9df
+msgid "（3）修改cmake"
+msgstr "(3) Modify cmake"
+
+#: ../../developer_guide/how_to_support_new_device.md:25
+#: 0785e1682e8e481f9b88728b75a0bc25
+msgid "步骤一：新增设备类型枚举"
+msgstr "Step one: Add new device type hierarchy"
+
+#: ../../developer_guide/how_to_support_new_device.md:27
+#: dab43b2ac4a64fd1abe2d9f4f27be8b8
+msgid ""
+"（1）修改文件 "
+"<path>\\include\\nndeploy\\base\\common.h，在DeviceTypeCode中添加新设备的枚举，格式为kDeviceTypeCodeXxx"
+msgstr ""
+"(1) Modify the file <path>\\include\\nndeploy\\base\\common.h, add the new "
+"device hierarchy in DeviceTypeCode, format kDeviceTypeCodeXxx"
+
+#: ../../developer_guide/how_to_support_new_device.md:29
+#: ae537c061c4a41669f6a1f5831c9a15f
+msgid ""
+"（2）修改文件 <path>\\source\\nndeploy\\base\\common.cc，在DeviceTypeCode "
+"stringToDeviceTypeCode(const std::string &src)函数中添加字符串转换为新设备的枚举实现"
+msgstr ""
+"(2) Modify the file <path>\\source\\nndeploy\\base\\common.cc, add the "
+"string conversion to the new device hierarchy in the "
+"stringToDeviceTypeCode(const std::string &src) function"
+
+#: ../../developer_guide/how_to_support_new_device.md:31
+#: d15c5af230a644f98acdca65f2492fb2
+msgid ""
+"（3）修改文件 "
+"<path>\\include\\nndeploy\\base\\status.h，在StatusCode中添加新错误的枚举，格式为kStatusCodeErrorDeviceXxx"
+msgstr ""
+"(3) Modify the file <path>\\include\\nndeploy\\base\\status.h, add the new "
+"error hierarchy in StatusCode, format kStatusCodeErrorDeviceXxx"
+
+#: ../../developer_guide/how_to_support_new_device.md:33
+#: 47c79d0fd75b47a39c07c8ed28a90683
+msgid "步骤二： 继承基类Architecture、继承基类Device"
+msgstr "Step two: Inherit base class Architecture, implement XxxArchitecture"
+
+#: ../../developer_guide/how_to_support_new_device.md:35
+#: c91e5d0dac314bdbbcb5262a3e72379f
+msgid "2.1 新增文件"
+msgstr "2.1 Add new files"
+
+#: ../../developer_guide/how_to_support_new_device.md:37
+#: 24b09cef6f0742cfa76570e68eba04a5
+msgid "（1）在<path>\\include\\nndeploy\\device下新增xxx\\xxx_device.h文件"
+msgstr ""
+"(1) Create a new xxx_device.h file under "
+"<path>\\include\\nndeploy\\device\\xxx"
+
+#: ../../developer_guide/how_to_support_new_device.md:39
+#: 3d5a06d93b6f437d95805939801758a9
+msgid "（2）在<path>\\source\\nndeploy\\device下新增xxx\\xxx_device.cc文件"
+msgstr ""
+"(2) Create a new xxx_device.cc file under "
+"<path>\\source\\nndeploy\\device\\xxx"
+
+#: ../../developer_guide/how_to_support_new_device.md:41
+#: 257da6efda684f92b5e6ea6dcb9f0a5f
+msgid "（3）[可选]在<path>\\source\\nndeploy\\device下新增xxx\\xxx_include.h文件，用于包含设备必要的头文件"
+msgstr ""
+"(3) [Optional] Create a new xxx_include.h file under "
+"<path>\\source\\nndeploy\\device\\xxx, used to include the device's "
+"necessary header files"
+
+#: ../../developer_guide/how_to_support_new_device.md:43
+#: 86d7de11f6a540c283a9ec726316dd12
+msgid "2.2 继承基类Architecture，实现XxxArchitecture"
+msgstr "2.2 Inherit base class Architecture, implement XxxArchitecture"
+
+#: ../../developer_guide/how_to_support_new_device.md:45
+#: 7b7f665ad44f4fa7a383302cc8d2ef72
+msgid ""
+"（1）在<path>\\include\\nndeploy\\device\\xxx\\xxx_device.h下声明XxxArchitecture类，类似<path>\\include\\nndeploy\\device\\cuda\\cuda_device.h\\CudaArchitecture"
+msgstr ""
+"(1) Declare the XxxArchitecture class under "
+"<path>\\include\\nndeploy\\device\\xxx\\xxx_device.h, similar to "
+"<path>\\include\\nndeploy\\device\\cuda\\cuda_device.h\\CudaArchitecture"
+
+#: ../../developer_guide/how_to_support_new_device.md:106
+#: 59bf7d25f2ec48818a55e257d6050948
+msgid ""
+"（2）在<path>\\source\\nndeploy\\device\\xxx\\xxx_device.cc中注册注新ArchitectureTypeArchitectureRegister<XxxArchitecture>"
+" "
+"xxx_architecture_register(base::kDeviceTypeCodeXxx);，类似TypeArchitectureRegister<CudaArchitecture>"
+" cuda_architecture_register(base::kDeviceTypeCodeCuda);中的实现"
+msgstr ""
+"(2) Register the new ArchitectureTypeArchitectureRegister<XxxArchitecture> "
+"xxx_architecture_register(base::kDeviceTypeCodeXxx); in "
+"<path>\\source\\nndeploy\\device\\xxx\\xxx_device.cc, similar to "
+"TypeArchitectureRegister<CudaArchitecture> "
+"cuda_architecture_register(base::kDeviceTypeCodeCuda); in"
+
+#: ../../developer_guide/how_to_support_new_device.md:108
+#: 2e905145087f449d9f19326355aefea5
+msgid ""
+"（3）在<path>\\source\\nndeploy\\device\\xxx\\xxx_device.cc下实现XxxArchitecture，类似<path>\\source\\nndeploy\\device\\cuda\\cuda_device.cc\\CudaArchitecture中的实现"
+msgstr ""
+"(3) Implement XxxArchitecture under "
+"<path>\\source\\nndeploy\\device\\xxx\\xxx_device.cc, similar to the "
+"implementation in "
+"<path>\\source\\nndeploy\\device\\cuda\\cuda_device.cc\\CudaArchitecture"
+
+#: ../../developer_guide/how_to_support_new_device.md:110
+#: 5b59d5b841a84457aa1d42f7c55a14c1
+msgid "2.3 继承基类Device，实现XxxDevice"
+msgstr "2.3 Inherit base class Device, implement XxxDevice"
+
+#: ../../developer_guide/how_to_support_new_device.md:112
+#: d534d5656b3e485dafeaf0bc29b3e14b
+msgid ""
+"（1）在<path>\\include\\nndeploy\\device\\xxx\\xxx_device.h下声明XxxDevice类，类似<path>\\include\\nndeploy\\device\\cuda\\cuda_device.h\\CudaDevice"
+msgstr ""
+"(1) Declare the XxxDevice class under "
+"<path>\\include\\nndeploy\\device\\xxx\\xxx_device.h, similar to "
+"<path>\\include\\nndeploy\\device\\cuda\\cuda_device.h\\CudaDevice"
+
+#: ../../developer_guide/how_to_support_new_device.md:243
+#: f8172f0a53a448298c800767755ecc5f
+msgid ""
+"（2） "
+"在<path>\\source\\nndeploy\\device\\xxx\\xxx_device.cc下实现XxxDevice，类似<path>\\source\\nndeploy\\device\\cuda\\cuda_device.cc\\CudaDevice中的实现"
+msgstr ""
+"(2) Implement XxxDevice under "
+"<path>\\source\\nndeploy\\device\\xxx\\xxx_device.cc, similar to the "
+"implementation in "
+"<path>\\source\\nndeploy\\device\\cuda\\cuda_device.cc\\CudaDevice"
+
+#: ../../developer_guide/how_to_support_new_device.md:246
+#: 9cf3fecc9ab04988aae2efe29098b2ae
+msgid "步骤三：修改cmake"
+msgstr "Step three: Modify cmake"
+
+#: ../../developer_guide/how_to_support_new_device.md:248
+#: 9868549a8d2a435ebc789fbb38ce2f7e
+msgid "（1）修改主cmakelist <path>\\CMakeLists.txt，"
+msgstr "(1) Modify the CMakeLists.txt file under <path>\\CMakeLists.txt,"
+
+#: ../../developer_guide/how_to_support_new_device.md:249
+#: c9c8f6a39ee54c73beb9ae9863eda209
+msgid ""
+"新增设备编译选项nndeploy_option(ENABLE_NNDEPLOY_DEVICE_XXX "
+"\"ENABLE_NNDEPLOY_DEVICE_XXX\" OFF)"
+msgstr ""
+"Add device compilation option nndeploy_option(ENABLE_NNDEPLOY_DEVICE_XXX "
+"\"ENABLE_NNDEPLOY_DEVICE_XXX\" OFF)"
+
+#: ../../developer_guide/how_to_support_new_device.md:250
+#: 0a5e713a831b41fd8aaeb57cf34f2e35
+msgid ""
+"由于新设备的增加，增加了源文件和头文件，需将源文件和头文件加入到编译文件中，需在if(ENABLE_NNDEPLOY_DEVICE) "
+"endif()的代码块中增加如下cmake源码"
+msgstr ""
+"Due to the addition of new devices, source files and header files have been "
+"added, it is necessary to incorporate the source files and header files into"
+" the translation files, and it is necessary to add the code block "
+"if(ENABLE_NNDEPLOY_DEVICE) endif() such as CMake source code."
+
+#: ../../developer_guide/how_to_support_new_device.md:261
+#: 0a1ce046de874e81be45334d113ec558
+msgid "（2）[可选]如果需要链接设备相关的三方库"
+msgstr ""
+"(2) [Optional] If there is a need to link the device-related three-party "
+"libraries"
+
+#: ../../developer_guide/how_to_support_new_device.md:262
+#: a01dd19402e54e3280bf15150e5fc7b4
+msgid ""
+"需要在<path>\\cmake目录下新增xxx.cmake，类似<path>\\cmake\\ascend_cl.cmake或<path>\\cmake\\cuda.cmake"
+msgstr ""
+"It is necessary to create a new xxx.cmake under the <path>\\cmake directory,"
+" similar to <path>\\cmake\\ascend_cl.cmake or <path>\\cmake\\cuda.cmake"
+
+#: ../../developer_guide/how_to_support_new_device.md:263
+#: 30cf2b3cf7b14bc5969bf7519f85520c
+#, python-brace-format
+msgid "修改<path>\\cmake\\nndeploy.cmake，新增include(\"${ROOT_PATH}/cmake/xxx.cmake\")"
+msgstr ""
+"Modify <path>\\cmake\\nndeploy.cmake, add "
+"include(\"${ROOT_PATH}/cmake/xxx.cmake\")"
+
+#: ../../developer_guide/how_to_support_new_device.md:265
+#: 2845982b6dcc41f6af7840c25bfddd3f
+msgid ""
+"（3）修改<path>\\build\\config.cmake,新增设备编译选项set(ENABLE_NNDEPLOY_DEVICE_XXX ON)"
+msgstr ""
+"(3) Modify <path>\\build\\config.cmake, add device compilation option "
+"set(ENABLE_NNDEPLOY_DEVICE_XXX ON)"
