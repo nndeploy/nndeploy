@@ -1,0 +1,60 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../index.rst:9
+msgid "介绍"
+msgstr "Introduction"
+
+#: ../../index.rst:15
+msgid "快速开始"
+msgstr "Quick Start"
+
+#: ../../index.rst:23
+msgid "开发者指南"
+msgstr "Developer Guide"
+
+#: ../../index.rst:31
+msgid "架构指南"
+msgstr "Architecture Guide"
+
+#: ../../index.rst:45
+msgid "开发调试记录"
+msgstr "Development and Test Records"
+
+#: ../../index.rst:51
+msgid "版本发行"
+msgstr "Version Release"
+
+#: ../../index.rst:57
+msgid "常见问题"
+msgstr "Common Issues"
+
+#: ../../index.rst:63
+msgid "讨论"
+msgstr "Discussion"
+
+#: ../../index.rst:70
+msgid "知识分享"
+msgstr "Knowledge Sharing"
+
+#: ../../index.rst:7 71ed362cbb4b44cf8cbdbdcb123d7e09
+msgid "欢迎来到 nndeploy 的中文文档！"
+msgstr "Welcome to the nndeploy Chinese documentation!"

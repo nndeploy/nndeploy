@@ -1,0 +1,811 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../knowledge_shared/pybind11.md:1 cdfcb7b8b9f44e9bbc665a4042adc728
+msgid "pybind11"
+msgstr "pybind11"
+
+#: ../../knowledge_shared/pybind11.md:3 24b61f776b2341fca3167a3c4634d7fb
+msgid ""
+"pybind11 是一个用于将 C++ 代码与 Python 代码进行交互的库。它允许我们在 C++ 中定义函数，然后在 Python 中调用这些函数。"
+msgstr ""
+"pybind11 is a library designed for seamless interoperability between C++ and"
+" Python code. It allows us to define functions in C++ and then call these "
+"functions in Python."
+
+#: ../../knowledge_shared/pybind11.md:5 a37e81bcf3304d9598a79dc647120605
+msgid "简介"
+msgstr "Introduction"
+
+#: ../../knowledge_shared/pybind11.md:6 a1db25ef74e042a884a92e7326cbae46
+msgid "单继承和多重继承"
+msgstr "Single and Multiple Inheritance"
+
+#: ../../knowledge_shared/pybind11.md:7 eddf584bb6834307baf082e259ca9a4a
+msgid "dag::Node可以导出为py端Node，然后重写Node"
+msgstr "dag::Node can be exported as pyNode, and then override Node"
+
+#: ../../knowledge_shared/pybind11.md:8 58a14a054f264697b5da51c877d80c47
+msgid "新建一个torch的推理Node与 infer::Node关联起来"
+msgstr "Create a new torch inference Node and associate it with infer::Node"
+
+#: ../../knowledge_shared/pybind11.md:9 450f09475c024c45879d9da33f50756d
+msgid ""
+"通过Python的buffer协议，可以很轻松地获取自定义类型的内存指针。这样，我们可以很方便地在C++矩阵类型（如Eigen）和NumPy之间快速转换，而无需昂贵的拷贝操作"
+msgstr ""
+"Through Python's buffer protocol, it is very easy to obtain memory pointers "
+"of custom types. This way, we can conveniently and quickly convert between "
+"C++ matrix types (such as Eigen) and NumPy without the need for expensive "
+"copy operations."
+
+#: ../../knowledge_shared/pybind11.md:10 bd74b29db05f4cbe8483d49adc7db781
+msgid "numpy与device::Tensor的转换"
+msgstr "Conversion between numpy and device::Tensor"
+
+#: ../../knowledge_shared/pybind11.md:11 f350d89c0d5e4093ba5b1bfd09aa40ae
+msgid "cv::Mat与device::Tensor的转换"
+msgstr "Conversion between cv::Mat and device::Tensor"
+
+#: ../../knowledge_shared/pybind11.md:12 4ae11ce2ec3b460eb4933a189aba4364
+msgid "可以轻松地让C++类型支持Python pickle和unpickle操作"
+msgstr ""
+"It can easily make C++ types support Python pickle and unpickle operations."
+
+#: ../../knowledge_shared/pybind11.md:13 dc57010bba3645f5969d3ce696a8544f
+msgid "torch的pt模型为pickle格式，如何利用这个特性呢？"
+msgstr "torch's pt model is in pickle format, how to utilize this feature?"
+
+#: ../../knowledge_shared/pybind11.md:16 f51ac40c76d446dda6a4a15a5b571907
+msgid "安装链接"
+msgstr "Installation Links"
+
+#: ../../knowledge_shared/pybind11.md:18 c7f6be5b01ac492da81f1b6309e28cf7
+msgid "首次尝试"
+msgstr "First Try"
+
+#: ../../knowledge_shared/pybind11.md:19 00657f86edd44c11a1e436bd6d8fb268
+msgid ""
+"Note：在Visual Studio 2017(MSVC 14.1)上使用C++17时，pybind11需要添加标识/permissive-"
+"来让编译器强制标准一致。在Visual Studio 2019上，不做强制要求，但同样建议添加。"
+msgstr ""
+"Note: When using C++17 on Visual Studio 2017 (MSVC 14.1), pybind11 requires "
+"adding the identifier /permissive- to enforce compiler standard consistency."
+" On Visual Studio 2019, it is not mandatory, but it is equally recommended "
+"to add it."
+
+#: ../../knowledge_shared/pybind11.md:20 c5440f6713b74eaa839cee936d6d64ea
+msgid "原生支持大量数据类型，完美适用于函数参数，参数值通常直接返回或者经过py::cast处理再返回。有关完整概述，请参阅类型转换部分。"
+msgstr ""
+"Native support for a large number of data types, perfectly suitable for "
+"function parameters, parameter values are usually returned directly or "
+"processed via py::cast before returning. For a complete overview, please "
+"refer to the type conversion section."
+
+#: ../../knowledge_shared/pybind11.md:29 e9abb0bb221d4a1dacd04f80fc900272
+msgid "面对对象编程"
+msgstr "Object-Oriented Programming"
+
+#: ../../knowledge_shared/pybind11.md:49 4e172e4873554e14bf1ade51b2116a85
+msgid "See also：静态成员函数需要使用class_::def_static来绑定"
+msgstr ""
+"See also: Static member functions need to use class_::def_static to bind."
+
+#: ../../knowledge_shared/pybind11.md:50 2781650b55cf4c58be47213c49ee5ee3
+msgid "绑定匿名函数"
+msgstr "Binding Anonymous Functions"
+
+#: ../../knowledge_shared/pybind11.md:63 e5ccf22d2c4e4f9ba9bc00ff6c754aa7
+msgid "动态属性:要让C++类也支持动态属性，我们需要在py::class_的构造函数添加py::dynamic_attr标识"
+msgstr ""
+"Dynamic Attributes: To make C++ classes also support dynamic attributes, we "
+"need to add the py::dynamic_attr identifier in the py::class_ constructor "
+"function."
+
+#: ../../knowledge_shared/pybind11.md:75 8448aeeb705242e7ba0a9a1dc0c7bfdf
+msgid ""
+"需要提醒一下，支持动态属性会带来小小的运行时开销。不仅仅因为增加了额外的__dict__属性，还因为处理循环引用时需要花费更多的垃圾收集跟踪花销。但是不必担心这个问题，因为原生Python类也有同样的开销。默认情况下，pybind11导出的类比原生Python类效率更高，使能动态属性也只是让它们处于同等水平而已。"
+msgstr ""
+"It's worth mentioning that supporting dynamic attributes will bring a small "
+"runtime overhead. Not only because of the additional __dict__ attribute, but"
+" also because handling circular references requires more garbage collection "
+"tracking expenses. However, there's no need to worry about this issue, as "
+"native Python classes have the same overhead. By default, classes exported "
+"by pybind11 are more efficient than native Python classes, and enabling "
+"dynamic attributes only brings them to the same level."
+
+#: ../../knowledge_shared/pybind11.md:77 585ab86db28446f888340286ab663fee
+msgid "函数"
+msgstr "Functions"
+
+#: ../../knowledge_shared/pybind11.md:79 83f7965ccf394f15bdc2a2a6964a3931
+msgid "返回值策略\t描述"
+msgstr "Return Value Policy\tDescription"
+
+#: ../../knowledge_shared/pybind11.md:80 3f1a24641d5b4c49b18d690874eba834
+msgid ""
+"return_value_policy::take_ownership\t引用现有对象（不创建一个新对象），并获取所有权。在引用计数为0时，Pyhton将调用析构函数和delete操作销毁对象。"
+msgstr ""
+"return_value_policy::take_ownership\tReferences an existing object (without "
+"creating a new one) and takes ownership. When the reference count is zero, "
+"Python will call the destructor and delete operation to destroy the object."
+
+#: ../../knowledge_shared/pybind11.md:81 8387783f99ba4675a83084c51ee39f32
+msgid ""
+"return_value_policy::copy\t拷贝返回值，这样Python将拥有拷贝的对象。该策略相对来说比较安全，因为两个实例的生命周期是分离的。"
+msgstr ""
+"return_value_policy::copy\tCopies the return value, so Python owns the "
+"copied object. This policy is relatively safer because the life cycles of "
+"the two instances are separate."
+
+#: ../../knowledge_shared/pybind11.md:82 45a9b53bf2eb40c8ac54cf47d6e475ed
+msgid ""
+"return_value_policy::copy要求对象支持拷贝语义（有适当的复制构造函数或复制赋值运算符）。如果对象的复制不正确实现，可能会导致资源管理问题。所以通常是作用与对象，而非指针"
+msgstr ""
+"return_value_policy::copy requires the object to support copy semantics "
+"(with appropriate copy constructors or copy assignment operators). If the "
+"object's copy is not correctly implemented, it may lead to resource "
+"management issues. Therefore, it is usually applied to objects, not "
+"pointers."
+
+#: ../../knowledge_shared/pybind11.md:83 9cdf4639d2df412d925ca5c1292fe422
+msgid ""
+"return_value_policy::move\t使用std::move来移动返回值的内容到新实例，新实例的所有权在Python。该策略相对来说比较安全，因为两个实例的生命周期是分离的。"
+msgstr ""
+"return_value_policy::move\tUses std::move to move the content of the return "
+"value to a new instance, with the new instance's ownership in Python. This "
+"policy is relatively safer because the life cycles of the two instances are "
+"separate."
+
+#: ../../knowledge_shared/pybind11.md:84 4d35daa82fcc41f3a874f44f6437221d
+msgid ""
+"return_value_policy::move要求对象支持移动语义（有适当的移动构造函数或移动赋值运算符）。如果对象的移动不正确实现，可能会导致资源管理问题。所以通常是作用与对象，而非指针"
+msgstr ""
+"return_value_policy::move requires the object to support move semantics "
+"(with appropriate move constructors or move assignment operators). If the "
+"object's move is not correctly implemented, it may lead to resource "
+"management issues. Therefore, it is usually applied to objects, not "
+"pointers."
+
+#: ../../knowledge_shared/pybind11.md:85 0330909680874d59ac19398e69d91f09
+msgid ""
+"return_value_policy::reference\t引用现有对象，但不拥有所有权。C++侧负责该对象的生命周期管理，并在对象不再被使用时负责析构它。注意：当Python侧还在使用引用的对象时，C++侧删除对象将导致未定义行为。"
+msgstr ""
+"return_value_policy::reference\tReferences an existing object but does not "
+"take ownership. The C++ side is responsible for managing the object's "
+"lifecycle and destroying it when the object is no longer in use. Note: "
+"Deleting the object on the C++ side while Python is still using the "
+"referenced object will lead to undefined behavior."
+
+#: ../../knowledge_shared/pybind11.md:86 e69e73f5bfe54e2fa7faa23e9f4b476c
+msgid ""
+"return_value_policy::reference_internal\t返回值的生命周期与父对象的生命周期相绑定，即被调用函数或属性的this或self对象。这种策略与reference策略类似，但附加了keep_alive<0,"
+" "
+"1>调用策略保证返回值还被Python引用时，其父对象就不会被垃圾回收掉。这是由def_property、def_readwrite创建的属性getter方法的默认返回值策略。"
+msgstr ""
+"return_value_policy::reference_internal\tThe return value's lifecycle is "
+"bound to the parent object's lifecycle, i.e., the this or self object of the"
+" called function or property. This strategy is similar to the reference "
+"strategy but adds the keep_alive<0, 1> call policy to ensure that the parent"
+" object is not garbage collected while the return value is still referenced "
+"by Python. This is the default return value policy for property getter "
+"methods created by def_property, def_readwrite."
+
+#: ../../knowledge_shared/pybind11.md:87 01b78c622541409e92f9dcd6d2cb92fd
+msgid ""
+"return_value_policy::automatic\t当返回值是指针时，该策略使用return_value_policy::take_ownership。反之对左值和右值引用使用return_value_policy::copy。请参阅上面的描述，了解所有这些不同的策略的作用。这是py::class_封装类型的默认策略。"
+msgstr ""
+"return_value_policy::automatic\tWhen the return value is a pointer, this "
+"policy uses return_value_policy::take_ownership. Conversely, for lvalue and "
+"rvalue references, it uses return_value_policy::copy. Please refer to the "
+"above descriptions to understand the roles of all these different policies. "
+"This is the default policy for py::class_ encapsulated types."
+
+#: ../../knowledge_shared/pybind11.md:88 52846f5777dc4219b01d257be27bc60f
+msgid ""
+"return_value_policy::automatic_reference\t和上面一样，但是当返回值是指针时，使用return_value_policy::reference策略。这是在C++代码手动调用Python函数和使用pybind11/stl.h中的casters时的默认转换策略。你可能不需要显式地使用该策略。"
+msgstr ""
+"return_value_policy::automatic_reference\tSame as above, but when the return"
+" value is a pointer, it uses the return_value_policy::reference policy. This"
+" is the default conversion policy when manually calling Python functions in "
+"C++ code and using the casters in pybind11/stl.h. You may not need to "
+"explicitly use this policy."
+
+#: ../../knowledge_shared/pybind11.md:90 68fbe3975f9e48c7b263ec7b518eafdd
+msgid "keep_alive<T, N>\t- 不是很理解，需要下次再详细看看"
+msgstr ""
+"keep_alive<T, N>\t- Not very clear, need to look at it in more detail next "
+"time."
+
+#: ../../knowledge_shared/pybind11.md:92 5e8b8e2b9173403a8230af8badeecdf9
+msgid "Call guard - 不是很理解，需要下次再详细看看"
+msgstr ""
+"Call guard - Not quite understood, need to look more closely next time"
+
+#: ../../knowledge_shared/pybind11.md:94 84c6a8082f3944caabe704021565a03b
+msgid "py::args继承自py::tuple，py::kwargs继承自py::dict"
+msgstr "py::args inherits from py::tuple, py::kwargs inherits from py::dict"
+
+#: ../../knowledge_shared/pybind11.md:96 5c558a3e650b465ca0d868640ec372c1
+msgid "Non-converting参数"
+msgstr "Non-converting parameter"
+
+#: ../../knowledge_shared/pybind11.md:98 d34d48ff017949d8aa2dcbca2855a260
+msgid "类"
+msgstr "Class"
+
+#: ../../knowledge_shared/pybind11.md:99 b0c193bf7aba4f19b97fa5d17e337174
+msgid "跳板(trampoline)\"的工具来重定向虚函数调用到Python中"
+msgstr ""
+"The 'trampoline' tool is used to redirect virtual function calls to Python"
+
+#: ../../knowledge_shared/pybind11.md:100 cc6ddc39f3d440088685f4a947849a8d
+msgid "定义纯虚函数时需要使用PYBIND11_OVERRIDE_PURE宏"
+msgstr ""
+"When defining pure virtual functions, the PYBIND11_OVERRIDE_PURE macro must "
+"be used"
+
+#: ../../knowledge_shared/pybind11.md:101 f534100d36114756a23c30e651ba477e
+msgid "而有默认实现的虚函数则使用PYBIND11_OVERRIDE"
+msgstr ""
+"For virtual functions with default implementations, use PYBIND11_OVERRIDE"
+
+#: ../../knowledge_shared/pybind11.md:102 4c113e77eda14269a89fdbf847fad1ea
+msgid ""
+"PYBIND11_OVERRIDE_PURE_NAME 和PYBIND11_OVERRIDE_NAME "
+"宏的功能类似，主要用于C函数名和Python函数名不一致的时候。以__str__为例："
+msgstr ""
+"The PYBIND11_OVERRIDE_PURE_NAME and PYBIND11_OVERRIDE_NAME macros function "
+"similarly, mainly used when C function names and Python function names do "
+"not match. Taking __str__ as an example:"
+
+#: ../../knowledge_shared/pybind11.md:114 f2ba57bff67d4e8fb3714954069540a8
+msgid "异常"
+msgstr "Exception"
+
+#: ../../knowledge_shared/pybind11.md:116 00f53342a425431e93667a7baa19b8fe
+msgid "智能指针"
+msgstr "Smart pointer"
+
+#: ../../knowledge_shared/pybind11.md:118 e57d7cdade7b461b9d54d4662c594ddc
+msgid ""
+"py::class_<Example, std::shared_ptr<Example> /* <- holder type */> obj(m, "
+"\"Example\") 与 py::class_<Example> obj(m, \"Example\") 的异同点详细分析"
+msgstr ""
+"Detailed analysis of the differences between py::class_<Example, "
+"std::shared_ptr<Example> /* <- holder type */> obj(m, \"Example\") and "
+"py::class_<Example> obj(m, \"Example\")"
+
+#: ../../knowledge_shared/pybind11.md:119 ee0cc904ffed41b18a437449989d440e
+msgid "nndeploy的指针问题 - 要不要用的问题 - 性能问题"
+msgstr ""
+"Pointer issues in nndeploy - To use or not to use - Performance issues"
+
+#: ../../knowledge_shared/pybind11.md:120 ae595437e05a4476801899734d9e0f63
+msgid "share_ptr 和 unique_ptr 的性能问题 -"
+msgstr "Performance issues between share_ptr and unique_ptr -"
+
+#: ../../knowledge_shared/pybind11.md:123 65a105af8a0c4b7d8ee92157459cf695
+msgid "类型转换"
+msgstr "Type conversion"
+
+#: ../../knowledge_shared/pybind11.md:125 1167e46ceff946bababa2986a7dc8e28
+msgid "python的C++接口（暂时对我们没什么用）"
+msgstr "Python's C++ interface (currently of little use to us)"
+
+#: ../../knowledge_shared/pybind11.md:127 24d04f5d56bf40c8a3c21bb3f088a31a
+msgid "内嵌解释器（暂时对我们没什么用）"
+msgstr "Embedded interpreter (currently of little use to us)"
+
+#: ../../knowledge_shared/pybind11.md:129 d8938dfd0c5641ddb04b78149d4484f5
+msgid "杂项"
+msgstr "Miscellaneous"
+
+#: ../../knowledge_shared/pybind11.md:131 e1870ce73b08415dadfc7766e131bc72
+msgid "模板问题如何解决"
+msgstr "How to solve template issues"
+
+#: ../../knowledge_shared/pybind11.md:133 a6bfed9b6ed5437abf7d415ec0687c35
+msgid "函数返回的是智能指针还是裸指针。"
+msgstr "Whether the function returns a smart pointer or a raw pointer."
+
+#: ../../knowledge_shared/pybind11.md:135 1c04281ce9c144dc9c06f68fdcc9eaf1
+msgid "首先，我们看一下 create_decode_node 函数的定义："
+msgstr ""
+"First, let's look at the definition of the create_decode_node function:"
+
+#: ../../knowledge_shared/pybind11.md:150 72c3530ffbc3423ebd79e8ba657e0211
+msgid "这个函数的返回类型是 DecodeNode *，这是一个裸指针（raw pointer），而不是智能指针。"
+msgstr ""
+"The return type of this function is DecodeNode *, which is a raw pointer, "
+"not a smart pointer."
+
+#: ../../knowledge_shared/pybind11.md:152 34fd4a9493c84ea7aab12368e26437b5
+msgid "我们再看一下 Python 绑定中此函数的注册方式："
+msgstr "Let's look at how this function is registered in the Python binding:"
+
+#: ../../knowledge_shared/pybind11.md:160 9bcaeada8a95471686228c6443cbeaaf
+msgid ""
+"这里使用了 py::return_value_policy::take_ownership 作为返回值策略。这个策略意味着 Python "
+"端会获取返回的裸指针的所有权，当 Python 对象被销毁时，该指针也会被删除。"
+msgstr ""
+"Here, py::return_value_policy::take_ownership is used as the return value "
+"policy. This policy means that the Python side will take ownership of the "
+"returned raw pointer, and when the Python object is destroyed, the pointer "
+"will also be deleted."
+
+#: ../../knowledge_shared/pybind11.md:162 ee8367efa704424f8507c8e2c7029aa0
+msgid "所以，_C.codec.create_decode_node 返回的是一个裸指针，但 Python 接口会接管这个指针的生命周期管理。"
+msgstr ""
+"Therefore, _C.codec.create_decode_node returns a raw pointer, but the Python"
+" interface will manage the lifecycle of this pointer."
+
+#: ../../knowledge_shared/pybind11.md:164 4b19fdff88644dc29cca4362cf1b3790
+msgid "另一个重要的注意点是，Node 类的绑定使用了 std::shared_ptr<Node> 作为持有者类型："
+msgstr ""
+"Another important note is that the binding of the Node class uses "
+"std::shared_ptr<Node> as the holder type:"
+
+#: ../../knowledge_shared/pybind11.md:170 4809d09055ca47d4850e1d633d105d8a
+msgid ""
+"但是，这不意味着 create_decode_node 函数返回智能指针。它仍然返回裸指针，只是在 Python 绑定中，pybind11 "
+"会将这个裸指针包装成一个带有 std::shared_ptr 持有者类型的 Python 对象。"
+msgstr ""
+"However, this does not mean that the create_decode_node function returns a "
+"smart pointer. It still returns a raw pointer, but in the Python binding, "
+"pybind11 will wrap this raw pointer into a Python object managed by "
+"std::shared_ptr."
+
+#: ../../knowledge_shared/pybind11.md:172 035b572d52da46ad902b60f911cbecb7
+msgid "总结："
+msgstr "Summary:"
+
+#: ../../knowledge_shared/pybind11.md:173 bfece2110da041a8a661596b9904af8c
+msgid "createDecodeNode 函数本身返回的是裸指针 DecodeNode*"
+msgstr ""
+"The createDecodeNode function itself returns a raw pointer DecodeNode*"
+
+#: ../../knowledge_shared/pybind11.md:174 db59146adc5b467b9e6dc519edb6d78c
+msgid "由于使用了 py::return_value_policy::take_ownership，Python 会接管这个指针的生命周期"
+msgstr ""
+"Due to the use of py::return_value_policy::take_ownership, Python will take "
+"over the lifecycle of this pointer"
+
+#: ../../knowledge_shared/pybind11.md:175 33e387e0dc114d4192983a850e808441
+msgid ""
+"绑定 Node 类时使用了 std::shared_ptr<Node> 作为持有者类型，所以在 Python 端，这个裸指针会被包装成一个使用 "
+"std::shared_ptr 管理的对象"
+msgstr ""
+"The binding of the Node class uses std::shared_ptr<Node> as the holder type,"
+" so on the Python side, this raw pointer will be wrapped into an object "
+"managed by std::shared_ptr"
+
+#: ../../knowledge_shared/pybind11.md:177 391f1b31245a4c76856cdc60b39bb493
+msgid "Python函数返回值分析：裸指针还是智能指针"
+msgstr "Python function return value analysis: raw pointer or smart pointer"
+
+#: ../../knowledge_shared/pybind11.md:179 85bcb9db6b0f4b80a40bf0171a6959b8
+msgid "分析 create_decode_node 函数返回的是什么类型的指针："
+msgstr ""
+"Analyzing what type of pointer the create_decode_node function returns:"
+
+#: ../../knowledge_shared/pybind11.md:181 9ce4782eb69b456d9e1976c6cced3ce8
+msgid "函数定义和Python绑定"
+msgstr "Function definition and Python binding"
+
+#: ../../knowledge_shared/pybind11.md:201 c3463a00fc09435d9e0f556d3539a1dc
+msgid "分析结果"
+msgstr "Analysis results"
+
+#: ../../knowledge_shared/pybind11.md:203 7fc66343843f483cbd674b972d364869
+msgid ""
+"函数 self.decode_node = _C.codec.create_decode_node(...) 返回的是裸指针（raw "
+"pointer），而非智能指针，原因如下："
+msgstr ""
+"The function self.decode_node = _C.codec.create_decode_node(...) returns a "
+"raw pointer, not a smart pointer, for the following reasons:"
+
+#: ../../knowledge_shared/pybind11.md:205 7e787edfe8d94bb09ed7ddf2ba1fec06
+msgid "C++函数返回类型：DecodeNode * 是裸指针类型"
+msgstr "C++ function return type: DecodeNode * is a raw pointer type"
+
+#: ../../knowledge_shared/pybind11.md:206 71cbc76a41d6452fbbf8f6abf2fbfb49
+msgid "返回值策略：使用了 py::return_value_policy::take_ownership，这表示Python会接管裸指针的所有权"
+msgstr ""
+"Return value policy: Uses py::return_value_policy::take_ownership, "
+"indicating Python will take ownership of the raw pointer"
+
+#: ../../knowledge_shared/pybind11.md:207 2e77625f170443128894a8a7ba69c432
+msgid "内存管理方式：当Python对象被析构时，会自动删除这个指针指向的对象"
+msgstr ""
+"Memory management: When the Python object is destructed, the object pointed "
+"to by this pointer will be automatically deleted"
+
+#: ../../knowledge_shared/pybind11.md:209 0dcf4c907f924056ae158f086de2e499
+msgid "与Node类绑定方式的差异"
+msgstr "Differences with the Node class binding method"
+
+#: ../../knowledge_shared/pybind11.md:211 de7a2aa08d1b4ef69f5ffcb5c5a9ce09
+msgid "虽然 Node 类的绑定使用了共享指针作为持有者类型："
+msgstr ""
+"Although the binding of the Node class uses a shared pointer as the holder "
+"type:"
+
+#: ../../knowledge_shared/pybind11.md:217 67f6bc20cd334338a9782a1e97d0e861
+msgid "但这并不改变 create_decode_node 函数本身返回裸指针的事实。区别在于："
+msgstr ""
+"This does not change the fact that the create_decode_node function itself "
+"returns a raw pointer. The difference lies in:"
+
+#: ../../knowledge_shared/pybind11.md:219 cb354c95708342ec9a5ef9e04485c6ad
+msgid "Node 类使用 std::shared_ptr 作为持有者类型时，Python和C++会共享对象所有权"
+msgstr ""
+"When the Node class uses std::shared_ptr as the holder type, Python and C++ "
+"share object ownership"
+
+#: ../../knowledge_shared/pybind11.md:220 b4461bcf3178497ea5603a1fb7f5d6a0
+msgid "而 create_decode_node 返回的裸指针通过 take_ownership 策略，所有权转移给了Python"
+msgstr ""
+"Whereas the raw pointer returned by create_decode_node, through the "
+"take_ownership policy, transfers ownership to Python"
+
+#: ../../knowledge_shared/pybind11.md:222 60d501ac4e7b4c0cb78bcf01c392afde
+msgid "可能存在的问题"
+msgstr "Potential issues"
+
+#: ../../knowledge_shared/pybind11.md:224 1be9a92cf2a54c7a85f292e325e01f21
+msgid ""
+"在当前实现中，create_decode_node 返回裸指针并使用 take_ownership 可能与 Node 类使用 "
+"std::shared_ptr 持有者的设计不完全一致，需要注意以下潜在问题："
+msgstr ""
+"In the current implementation, returning a raw pointer from "
+"create_decode_node and using take_ownership may not be entirely consistent "
+"with the design of using std::shared_ptr as the holder for the Node class. "
+"The following potential issues need attention:"
+
+#: ../../knowledge_shared/pybind11.md:226 485208f4d5224b63836165497c6fd061
+msgid "如果 DecodeNode 对象在C++端有共享所有权的需求"
+msgstr "If the DecodeNode object needs shared ownership on the C++ side"
+
+#: ../../knowledge_shared/pybind11.md:227 a19b6f0681d348a99fef8793a3288d87
+msgid "对象的生命周期管理不一致导致的内存问题"
+msgstr "Inconsistent object lifecycle management leading to memory issues"
+
+#: ../../knowledge_shared/pybind11.md:229 1c2b3b5490b4479e9cdf4053b2649e70
+msgid ""
+"建议考虑修改 createDecodeNode 返回 std::shared_ptr<DecodeNode> "
+"以保持一致性，或确保当前设计在您的使用场景中是安全的。"
+msgstr ""
+"It is recommended to consider modifying createDecodeNode to return "
+"std::shared_ptr<DecodeNode> to maintain consistency, or ensure that the "
+"current design is safe in your usage scenario."
+
+#: ../../knowledge_shared/pybind11.md:232 0e83c0d0cd1940ddbe0bb5992869e170
+msgid "好用的功能"
+msgstr "Useful features"
+
+#: ../../knowledge_shared/pybind11.md:234 837a7044f6b943a7a8b50aa087af6494
+msgid ""
+"通过Python的buffer协议，可以很轻松地获取自定义类型的内存指针。这样，我们可以很方便地在C++矩阵类型（如Eigen）和NumPy之间快速转换，而无需昂贵的拷贝操作。"
+msgstr ""
+"Through Python's buffer protocol, it's very easy to obtain memory pointers "
+"of custom types. This way, we can conveniently and quickly convert between "
+"C++ matrix types (such as Eigen) and NumPy without the need for expensive "
+"copy operations."
+
+#: ../../knowledge_shared/pybind11.md:235 bde8384a35a84da2bba47f9e19bfdbc7
+msgid "只需几行代码就可以支持Python基于切片的访问和赋值操作。"
+msgstr ""
+"Just a few lines of code are needed to support Python's slice-based access "
+"and assignment operations."
+
+#: ../../knowledge_shared/pybind11.md:237 ebef665954d4421aac0b0c38492f9c2b
+msgid "虚基类"
+msgstr "Virtual base class"
+
+#: ../../knowledge_shared/pybind11.md:239 4194877c45094dd7ab16881d4d289ee0
+msgid ""
+"pet_store函数返回了一个Dog实例，但由于基类并非多态类型，Python只识别到了Pet。在C++中，一个类至少有一个虚函数才会被视为多态类型。pybind11会自动识别这种多态机制。"
+msgstr ""
+"The pet_store function returns a Dog instance, but since the base class is "
+"not a polymorphic type, Python only recognizes it as Pet. In C++, a class "
+"must have at least one virtual function to be considered a polymorphic type."
+" pybind11 automatically recognizes this polymorphic mechanism."
+
+#: ../../knowledge_shared/pybind11.md:242 4864cae1d26740c3a320827b78c2f529
+msgid ""
+"定义纯虚函数时需要使用PYBIND11_OVERRIDE_PURE宏，而有默认实现的虚函数则使用PYBIND11_OVERRIDE。PYBIND11_OVERRIDE_PURE_NAME"
+" 和PYBIND11_OVERRIDE_NAME 宏的功能类似，主要用于C函数名和Python函数名不一致的时候。以__str__为例："
+msgstr ""
+"When defining pure virtual functions, the PYBIND11_OVERRIDE_PURE macro must "
+"be used, while virtual functions with default implementations use "
+"PYBIND11_OVERRIDE. The PYBIND11_OVERRIDE_PURE_NAME and "
+"PYBIND11_OVERRIDE_NAME macros function similarly, mainly used when C "
+"function names and Python function names do not match. Take __str__ as an "
+"example:"
+
+#: ../../knowledge_shared/pybind11.md:244 97e44c207e0b4c79a05c0338c1841f68
+msgid "note"
+msgstr "note"
+
+#: ../../knowledge_shared/pybind11.md:246 904d0b4533974bbda276be610ac1ee14
+msgid ""
+"如果你在派生的Python类中自定义了一个构造函数，你必须保证显示调用C++构造函数(通过__init__)，不管它是否为默认构造函数。否则，实例属于C++那部分的内存就未初始化，可能导致未定义行为。在pybind11"
+" 2.6版本中，这种错误将会抛出TypeError异常。"
+msgstr ""
+"If you define a constructor in a derived Python class, you must ensure to "
+"explicitly call the C++ constructor (via __init__), regardless of whether "
+"it's the default constructor or not. Otherwise, the memory part of the "
+"instance belonging to C++ will not be initialized, potentially leading to "
+"undefined behavior. In pybind11 version 2.6, this error will raise a "
+"TypeError exception."
+
+#: ../../knowledge_shared/pybind11.md:248 bf260ca9e99e4d35811ffd57795c506a
+msgid ""
+"class Dachshund(Dog): def init(self, name): Dog.init(self)  # Without this, "
+"a TypeError is raised. self.name = name"
+msgstr ""
+"class Dachshund(Dog): def init(self, name): Dog.init(self) # Without this, a"
+" TypeError is raised. self.name = name"
+
+#: ../../knowledge_shared/pybind11.md:255 95c825b64de9475ab4afeb59bd309d0c
+msgid ""
+"注意必须显式地调用__init__，而不应该使用supper()。在一些简单的线性继承中，supper()或许可以正常工作；一旦你混合Python和C++类使用多重继承，由于Python"
+" MRO和C++的机制，一切都将崩溃。"
+msgstr ""
+"Note that you must explicitly call __init__, and should not use super(). In "
+"some simple linear inheritance cases, super() might work normally; once you "
+"mix Python and C++ classes using multiple inheritance, due to Python MRO and"
+" C++'s mechanism, everything will collapse."
+
+#: ../../knowledge_shared/pybind11.md:258 f2cfb378b80b45c5a2c316c9f8d0f733
+msgid "虚函数与继承"
+msgstr "Virtual functions and inheritance"
+
+#: ../../knowledge_shared/pybind11.md:259 01430f281e8840508ea52f19a8161f71
+msgid "综合考虑虚函数与继承时，你需要为每个你允许在Python派生类中重载的方法提供重载方式。下面我们扩展Animal和Dog来举例："
+msgstr ""
+"When comprehensively considering virtual functions and inheritance, you need"
+" to provide an override method for each method you allow to be overloaded in"
+" Python derived classes. Below we extend Animal and Dog as examples:"
+
+#: ../../knowledge_shared/pybind11.md:261 44c3332434fd4db1befbcc226753331b
+#, python-brace-format
+msgid ""
+"class Animal { public: virtual std::string go(int n_times) = 0; virtual "
+"std::string name() { return \"unknown\"; } }; class Dog : public Animal { "
+"public: std::string go(int n_times) override { std::string result; for (int "
+"i=0; i<n_times; ++i) result += bark() + \" \"; return result; } virtual "
+"std::string bark() { return \"woof!\"; } }; "
+"上节涉及到的Animal辅助类仍是必须的，为了让Python代码能够继承Dog类，我们也需要为Dog类增加一个跳板类，来实现bark()和继承自Animal的go()、name()等重载方法（即便Dog类并不直接重载name方法）。"
+msgstr ""
+"class Animal { public: virtual std::string go(int n_times) = 0; virtual "
+"std::string name() { return \"unknown\"; } }; class Dog : public Animal { "
+"public: std::string go(int n_times) override { std::string result; for (int "
+"i=0; i<n_times; ++i) result += bark() + \" \"; return result; } virtual "
+"std::string bark() { return \"woof!\"; } }; The auxiliary class Animal "
+"mentioned in the previous section is still necessary to allow Python code to"
+" inherit the Dog class. We also need to add a trampoline class for the Dog "
+"class to implement bark() and inherit the overloaded methods go(), name() "
+"from Animal (even if the Dog class does not directly overload the name "
+"method)."
+
+#: ../../knowledge_shared/pybind11.md:278 b0ae943f31a14340a8c6b7193f3a84d7
+#, python-brace-format
+msgid ""
+"class PyAnimal : public Animal { public: using Animal::Animal; // Inherit "
+"constructors std::string go(int n_times) override { "
+"PYBIND11_OVERRIDE_PURE(std::string, Animal, go, n_times); } std::string "
+"name() override { PYBIND11_OVERRIDE(std::string, Animal, name, ); } }; class"
+" PyDog : public Dog { public: using Dog::Dog; // Inherit constructors "
+"std::string go(int n_times) override { PYBIND11_OVERRIDE(std::string, Dog, "
+"go, n_times); } std::string name() override { PYBIND11_OVERRIDE(std::string,"
+" Dog, name, ); } std::string bark() override { "
+"PYBIND11_OVERRIDE(std::string, Dog, bark, ); } }; "
+"注意到name()和bark()尾部的逗号，这用来说明辅助类的函数不带任何参数。当函数至少有一个参数时，应该省略尾部的逗号。"
+msgstr ""
+"class PyAnimal : public Animal { public: using Animal::Animal; // Inherit "
+"constructors std::string go(int n_times) override { "
+"PYBIND11_OVERRIDE_PURE(std::string, Animal, go, n_times); } std::string "
+"name() override { PYBIND11_OVERRIDE(std::string, Animal, name, ); } }; class"
+" PyDog : public Dog { public: using Dog::Dog; // Inherit constructors "
+"std::string go(int n_times) override { PYBIND11_OVERRIDE(std::string, Dog, "
+"go, n_times); } std::string name() override { PYBIND11_OVERRIDE(std::string,"
+" Dog, name, ); } std::string bark() override { "
+"PYBIND11_OVERRIDE(std::string, Dog, bark, ); } }; Note the comma at the end "
+"of name() and bark(), which is used to indicate that the auxiliary class's "
+"function does not take any parameters. When the function has at least one "
+"parameter, the trailing comma should be omitted."
+
+#: ../../knowledge_shared/pybind11.md:293 c2ba8c5ab53b42afa974ed7f6e18df4d
+msgid "注册一个继承已经在pybind11中注册的带虚函数的类，同样需要为其添加辅助类，即便它没有定义或重载任何虚函数："
+msgstr ""
+"Registering a class that inherits from a class with virtual functions "
+"already registered in pybind11 also requires adding an auxiliary class, even"
+" if it does not define or override any virtual functions."
+
+#: ../../knowledge_shared/pybind11.md:295 751396b171424f63bd7cc5e4fa3f0329
+#, python-brace-format
+msgid ""
+"class Husky : public Dog {}; class PyHusky : public Husky { public: using "
+"Husky::Husky; // Inherit constructors std::string go(int n_times) override {"
+" PYBIND11_OVERRIDE_PURE(std::string, Husky, go, n_times); } std::string "
+"name() override { PYBIND11_OVERRIDE(std::string, Husky, name, ); } "
+"std::string bark() override { PYBIND11_OVERRIDE(std::string, Husky, bark, );"
+" } }; 我们可以使用模板辅助类将简化这类重复的绑定工作，这对有多个虚函数的基类尤其有用："
+msgstr ""
+"class Husky : public Dog {}; class PyHusky : public Husky { public: using "
+"Husky::Husky; // 继承构造函数 std::string go(int n_times) override { "
+"PYBIND11_OVERRIDE_PURE(std::string, Husky, go, n_times); } std::string "
+"name() override { PYBIND11_OVERRIDE(std::string, Husky, name, ); } "
+"std::string bark() override { PYBIND11_OVERRIDE(std::string, Husky, bark, );"
+" } }; 我们可以使用模板辅助类将简化这类重复的绑定工作，这对有多个虚函数的基类尤其有用："
+
+#: ../../knowledge_shared/pybind11.md:305 2a3d84e0fb2f442c8e4971af2db0e1aa
+#, python-brace-format
+msgid ""
+"template <class AnimalBase = Animal> class PyAnimal : public AnimalBase { "
+"public: using AnimalBase::AnimalBase; // Inherit constructors std::string "
+"go(int n_times) override { PYBIND11_OVERRIDE_PURE(std::string, AnimalBase, "
+"go, n_times); } std::string name() override { PYBIND11_OVERRIDE(std::string,"
+" AnimalBase, name, ); } }; template <class DogBase = Dog> class PyDog : "
+"public PyAnimal<DogBase> { public: using PyAnimal<DogBase>::PyAnimal; // "
+"Inherit constructors // Override PyAnimal's pure virtual go() with a non-"
+"pure one: std::string go(int n_times) override { "
+"PYBIND11_OVERRIDE(std::string, DogBase, go, n_times); } std::string bark() "
+"override { PYBIND11_OVERRIDE(std::string, DogBase, bark, ); } }; "
+"这样，我们只需要一个辅助方法来定义虚函数和纯虚函数的重载了。只是这样编译器就需要生成许多额外的方法和类。"
+msgstr ""
+"template <class AnimalBase = Animal> class PyAnimal : public AnimalBase { "
+"public: using AnimalBase::AnimalBase; // 继承构造函数 std::string go(int n_times) "
+"override { PYBIND11_OVERRIDE_PURE(std::string, AnimalBase, go, n_times); } "
+"std::string name() override { PYBIND11_OVERRIDE(std::string, AnimalBase, "
+"name, ); } }; template <class DogBase = Dog> class PyDog : public "
+"PyAnimal<DogBase> { public: using PyAnimal<DogBase>::PyAnimal; // 继承构造函数 // "
+"用非纯虚函数重写PyAnimal的纯虚go()： std::string go(int n_times) override { "
+"PYBIND11_OVERRIDE(std::string, DogBase, go, n_times); } std::string bark() "
+"override { PYBIND11_OVERRIDE(std::string, DogBase, bark, ); } }; "
+"这样，我们只需要一个辅助方法来定义虚函数和纯虚函数的重载了。只是这样编译器就需要生成许多额外的方法和类。"
+
+#: ../../knowledge_shared/pybind11.md:320 b735b354404a4432a3e9be91c69cc390
+msgid "下面我们在pybind11中注册这些类："
+msgstr "下面我们在pybind11中注册这些类："
+
+#: ../../knowledge_shared/pybind11.md:322 06d7e227a4f1412c9976a82c44289c72
+msgid ""
+"py::class_<Animal, PyAnimal<>> animal(m, \"Animal\"); py::class_<Dog, "
+"Animal, PyDog<>> dog(m, \"Dog\"); py::class_<Husky, Dog, PyDog<Husky>> "
+"husky(m, \"Husky\"); // ... add animal, dog, husky definitions "
+"注意，Husky不需要一个专门的辅助类，因为它没定义任何新的虚函数和纯虚函数的重载。"
+msgstr ""
+"py::class_<Animal, PyAnimal<>> animal(m, \"Animal\"); py::class_<Dog, "
+"Animal, PyDog<>> dog(m, \"Dog\"); py::class_<Husky, Dog, PyDog<Husky>> "
+"husky(m, \"Husky\"); // ... 添加animal, dog, husky定义 "
+"注意，Husky不需要一个专门的辅助类，因为它没定义任何新的虚函数和纯虚函数的重载。"
+
+#: ../../knowledge_shared/pybind11.md:328 ec210187bcf846fb819b04e530fcf72f
+msgid "Python中的使用示例："
+msgstr "Python中的使用示例："
+
+#: ../../knowledge_shared/pybind11.md:330 c0123e92edea46aba4492f7c4d47f48f
+msgid "class ShihTzu(Dog): def bark(self): return \"yip!\""
+msgstr "class ShihTzu(Dog): def bark(self): return \"yip!\""
+
+#: ../../knowledge_shared/pybind11.md:335 3e07fc3f24e9452a9e7aa8c87278ddba
+msgid "std::shared_ptr == 对于智能指针管理的类型，永远不要在函数如参数或返回值中使用原始指针"
+msgstr "std::shared_ptr == 对于智能指针管理的类型，永远不要在函数如参数或返回值中使用原始指针"
+
+#: ../../knowledge_shared/pybind11.md:336 50b6458d606f436fb3efcade3ee65221
+msgid ""
+"class_可以传递一个表示持有者类型的模板类型，它用于管理对象的引用。在不指定的情况下，默认为std::unique_ptr<Type>类型，这意味着当Python的引用计数为0时，将析构对象。该模板类型可以指定为其他的智能指针或引用计数包装类，像下面我们就使用了std::shared_ptr："
+msgstr ""
+"class_可以传递一个表示持有者类型的模板类型，它用于管理对象的引用。在不指定的情况下，默认为std::unique_ptr<Type>类型，这意味着当Python的引用计数为0时，将析构对象。该模板类型可以指定为其他的智能指针或引用计数包装类，像下面我们就使用了std::shared_ptr："
+
+#: ../../knowledge_shared/pybind11.md:338 054626b746f24bf9adadb84668fc8dc1
+msgid ""
+"py::class_<Example, std::shared_ptr<Example> /* <- holder type */> obj(m, "
+"\"Example\"); 注意，每个类仅能与一个持有者类型关联。"
+msgstr ""
+"py::class_<Example, std::shared_ptr<Example> /* <- 持有者类型 */> obj(m, "
+"\"Example\"); 注意，每个类仅能与一个持有者类型关联。"
+
+#: ../../knowledge_shared/pybind11.md:341 d43a4c8b03ea4148a5276a11483c638d
+msgid "使用持有者类型的一个潜在的障碍就是，你需要始终如一的使用它们。猜猜下面的绑定代码有什么问题？"
+msgstr "使用持有者类型的一个潜在的障碍就是，你需要始终如一的使用它们。猜猜下面的绑定代码有什么问题？"
+
+#: ../../knowledge_shared/pybind11.md:343 8a369a0d422f4fc8979761a4a44c4c9d
+#, python-brace-format
+msgid "class Child { };"
+msgstr "class Child { };"
+
+#: ../../knowledge_shared/pybind11.md:345 f02f380949fd4385a6b22656dbc548a3
+#, python-brace-format
+msgid ""
+"class Parent { public: Parent() : child(std::make_shared<Child>()) { } Child"
+" get_child() { return child.get(); }  / Hint: ** DON'T DO THIS ** */ "
+"private: std::shared_ptr<Child> child; };"
+msgstr ""
+"class Parent { public: Parent() : child(std::make_shared<Child>()) { } Child"
+" get_child() { return child.get(); }  /* 提示：**不要这样做** */ private: "
+"std::shared_ptr<Child> child; };"
+
+#: ../../knowledge_shared/pybind11.md:353 86dac3a115784852b47b8e617b1927e4
+msgid ""
+"PYBIND11_MODULE(example, m) { py::class_<Child, std::shared_ptr<Child>>(m, "
+"\"Child\");"
+msgstr ""
+"PYBIND11_MODULE(example, m) { py::class_<Child, std::shared_ptr<Child>>(m, "
+"\"Child\");"
+
+#: ../../knowledge_shared/pybind11.md:359 23737b43f8824b56bc7b3bc941d76f6d
+msgid "} 下面的Python代码将导致未定义行为（类似段错误）。"
+msgstr "} 下面的Python代码将导致未定义行为（类似段错误）。"
+
+#: ../../knowledge_shared/pybind11.md:362 4fee2f36836d4688b1b4ac78e0bbd227
+msgid ""
+"from example import Parent print(Parent().get_child()) "
+"问题在于Parent::get_child()返回类Child实例的指针，但事实上这个经由std::shared_ptr<...>管理的实例，在传递原始指针时就丢失了。这个例子中，pybind11将创建第二个独立的std::shared_ptr<...>声明指针的所有权。最后，对象将被free两次，因为两个shared指针没法知道彼此的存在。"
+msgstr ""
+"from example import Parent print(Parent().get_child()) "
+"问题在于Parent::get_child()返回类Child实例的指针，但事实上这个经由std::shared_ptr<...>管理的实例，在传递原始指针时就丢失了。这个例子中，pybind11将创建第二个独立的std::shared_ptr<...>声明指针的所有权。最后，对象将被free两次，因为两个shared指针无法知道彼此的存在。"
+
+#: ../../knowledge_shared/pybind11.md:366 4551cc16249a41fbb6676e341fdb35a0
+msgid "有两种方法解决这个问题："
+msgstr "有两种方法解决这个问题："
+
+#: ../../knowledge_shared/pybind11.md:368 b174fa20ce764168a808468215b30b23
+msgid ""
+"对于智能指针管理的类型，永远不要在函数如参数或返回值中使用原始指针。换句话说，在任何需要使用该类型指针的地方，使用它们指定的持有者类型代替。这个例子中get_child()可以这样修改："
+msgstr ""
+"对于智能指针管理的类型，永远不要在函数如参数或返回值中使用原始指针。换句话说，在任何需要使用该类型指针的地方，使用它们指定的持有者类型代替。这个例子中get_child()可以这样修改："
+
+#: ../../knowledge_shared/pybind11.md:370 846ff3495ee4458abcc7391b55b9546d
+#, python-brace-format
+msgid ""
+"std::shared_ptr<Child> get_child() { return child; } "
+"定义Child时指定std::enable_shared_from_this<T>作为基类。这将在Child的基础上增加一点信息，让pybind11认识到这里已经存在一个std::shared_ptr<...>，并与之交互。修改示例如下："
+msgstr ""
+"std::shared_ptr<Child> get_child() { return child; } "
+"定义Child时指定std::enable_shared_from_this<T>作为基类。这将在Child的基础上增加一点信息，让pybind11认识到这里已经存在一个std::shared_ptr<...>，并与之交互。修改示例如下："
+
+#: ../../knowledge_shared/pybind11.md:374 1ee1c77e00514a93988d457f69bbb064
+#, python-brace-format
+msgid "class Child : public std::enable_shared_from_this<Child> { };"
+msgstr "class Child : public std::enable_shared_from_this<Child> { };"
+
+#: ../../knowledge_shared/pybind11.md:376 5eca3d992f954c6094a349321e917928
+msgid "隐式转换"
+msgstr "隐式转换"
+
+#: ../../knowledge_shared/pybind11.md:377 d857cc5823e44e01a2ab2ee112394a92
+msgid "py::implicitly_convertible<A, B>();"
+msgstr "py::implicitly_convertible<A, B>();"
+
+#: ../../knowledge_shared/pybind11.md:379 5caf966fcf02440785194be0e3bd84ad
+msgid "参考文档"
+msgstr "参考文档"
+
+#: ../../knowledge_shared/pybind11.md:380 27609acb265e4ab5ab7fa2c4169d3bcc
+msgid "pybind11 官方文档"
+msgstr "pybind11 官方文档"
+
+#: ../../knowledge_shared/pybind11.md:381 4382377ce4614b88991dd199b801093c
+msgid "pybind11 中文文档"
+msgstr "pybind11 中文文档"

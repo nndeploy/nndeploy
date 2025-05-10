@@ -1,0 +1,943 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../discussion/discussion.md:1 f945617665464e569f4d0a0623102f25
+msgid "开发者讨论"
+msgstr "Developer Discussion"
+
+#: ../../discussion/discussion.md:3 e0a1a10e334841e7814405ed3507b708
+msgid "mac"
+msgstr "mac"
+
+#: ../../discussion/discussion.md:4 8c0d16871c7648038955f32f8e02feda
+msgid "不开启任何推理框架编译通过"
+msgstr "Compilation without enabling any inference framework"
+
+#: ../../discussion/discussion.md:5 be8548d38bcb4ba99844cc315921c399
+msgid "完善coreml"
+msgstr "Improve CoreML"
+
+#: ../../discussion/discussion.md:6 8593bf34d9654f07a469091e4702e06c
+msgid "代码"
+msgstr "Code"
+
+#: ../../discussion/discussion.md:7 ../../discussion/discussion.md:10
+#: 10ca86255667486f90b9ca21cfd078cd 977cbc4f0d3a443896200d283c1eb23d
+msgid "编译"
+msgstr "Compile"
+
+#: ../../discussion/discussion.md:8 ../../discussion/discussion.md:11
+#: 5a26e7c9eb794558a1253c5269345339 88c8847abbea4d48b52526f742e3ec29
+msgid "调通yolov5"
+msgstr "Invoke YOLOv5"
+
+#: ../../discussion/discussion.md:9 d241633fce144f83af05fee88cfc6ea0
+msgid "调通mnn"
+msgstr "Invoke MNN"
+
+#: ../../discussion/discussion.md:13 382ef276fd5f415ba10b2cc57eb7c312
+msgid "nndeploy 的 github Actions"
+msgstr "Nndeploy's GitHub Actions"
+
+#: ../../discussion/discussion.md:14 18d0dd3f94d24234996089e51ecb7031
+msgid "nndeploy采用github官网的Actions做编译的ci测试，出现了如下几个问题"
+msgstr ""
+"Nndeploy uses GitHub's official Actions for compilation CI testing, "
+"encountering the following issues"
+
+#: ../../discussion/discussion.md:15 00691a98b82b491a9207b291f87e75bd
+msgid "mac下编译不通过，这个可能是mac下编译有问题"
+msgstr "Compilation fails on Mac, possibly due to Mac compilation issues"
+
+#: ../../discussion/discussion.md:16 0a36b7bdf4944ab196daf89ebaa0aa0f
+msgid "无法每次push都进行一次编译测试"
+msgstr "Unable to perform compilation testing with every push"
+
+#: ../../discussion/discussion.md:18 c4fa1918e4544177b951cf3581af7fe5
+msgid "mdc"
+msgstr "MDC"
+
+#: ../../discussion/discussion.md:19 43485d5f22d141a8b3aad7b1c1d46d14
+msgid "华为的那些芯片可以使用设备mdc和推理mdc呀"
+msgstr "Huawei's chips can use device MDC and inference MDC"
+
+#: ../../discussion/discussion.md:20 85c5b56b9a2b4a4992f5a5b66c9fb498
+msgid "设备Mdc"
+msgstr "Device MDC"
+
+#: ../../discussion/discussion.md:21 36aaf42721724a58a64000a21959d51b
+msgid ""
+"叫mdc是否合理呢？是不是要叫它本身的编程模型Ascend或者acl呢？（类似编程模型cuda、opencl）（这个host端的api跟cuda十分类似，这个是不是就是一种cuda兼容呀，它得设备端得代码和cuda类似吗）"
+msgstr ""
+"Is calling MDC reasonable? Should it be called its own programming model "
+"Ascend or ACL? (Similar to programming models CUDA, OpenCL) (This host-side "
+"API is very similar to CUDA, is this a kind of CUDA compatibility? Does its "
+"device-side code resemble CUDA?)"
+
+#: ../../discussion/discussion.md:22 ../../discussion/discussion.md:25
+#: 51818bdb697a40b0bb69bb261edffd66 8ddb405e147045d8b77f5ba6c00f02e4
+msgid "是否可以在其他芯片上使用吗？（例如昇腾系列的芯片上）"
+msgstr ""
+"Can it be used on other chips? (For example, chips from the Kunpeng series)"
+
+#: ../../discussion/discussion.md:23 f54c2d482e3b4bd682f15248d49b1213
+msgid "推理框架Mdc"
+msgstr "Inference Framework MDC"
+
+#: ../../discussion/discussion.md:24 1ec4002876204238a31e510955a8296f
+msgid "叫mdc是否合理呢？与 CANN 是什么关系呀"
+msgstr "Is calling MDC reasonable? What is its relationship with CANN?"
+
+#: ../../discussion/discussion.md:26 139caf17d2f84dfdbfb841f1b2a21392
+msgid "这个与mindspore-lite是什么关系呀"
+msgstr "What is the relationship between this and MindSpore-Lite?"
+
+#: ../../discussion/discussion.md:27 918e0a8faf6045619446f02b7c02d53d
+msgid "变量名是 全部小写呀？"
+msgstr "Variable names are all lowercase?"
+
+#: ../../discussion/discussion.md:28 76ff9cdb7d93443a8457b7260de8dfe2
+msgid "OrtValueInfo这个是不是改一下比较好呀"
+msgstr "Is OrtValueInfo better to be changed?"
+
+#: ../../discussion/discussion.md:29 d9957e193b514796b1162f9d5c5d73c9
+msgid "在readme中需要备注以下，主要是那个操作系统端运行，可以在那些芯片上上跑起来，是否要把它添加到主页的README上呢"
+msgstr ""
+"The README needs to note the following, mainly which operating systems it "
+"can run on, which chips it can run on, and whether it should be added to the"
+" main page's README"
+
+#: ../../discussion/discussion.md:30 9af752b8e7fc4358a5e6663e7a653084
+msgid "aclrt -> cuda runtime api"
+msgstr "aclrt -> CUDA runtime API"
+
+#: ../../discussion/discussion.md:31 a1e35bfc60b84e93824eb591725a9da2
+msgid "aclmdl -> 这个mdl是指什么含义呀"
+msgstr "aclmdl -> What does this mdl mean?"
+
+#: ../../discussion/discussion.md:33 403490b90c434f9793e96c33ae6fa471
+msgid "v2修改"
+msgstr "V2 modifications"
+
+#: ../../discussion/discussion.md:34 250e42a19c514a1c9727f37f3e576068
+msgid "部分头文件中使用的是_MDC_和mdc"
+msgstr "Some header files use _MDC_ and mdc"
+
+#: ../../discussion/discussion.md:35 a5eae4944a3e4857acef3eb42f66f1fe
+msgid "变量名全部小写"
+msgstr "Variable names are all lowercase"
+
+#: ../../discussion/discussion.md:36 07331262f14c4fc38f9b34430d60b36e
+msgid "代码中ASCENDCL以及AscendCL的字段改为 -> AscendCL，有如下几个原因"
+msgstr ""
+"Fields named ASCENDCL and AscendCL in the code are changed to -> AscendCL, "
+"for the following reasons"
+
+#: ../../discussion/discussion.md:37 8c3bf6c491f2459db6be93814b534cf1
+msgid "AscendCL是官方写法"
+msgstr "AscendCL is the official writing"
+
+#: ../../discussion/discussion.md:38 45e927b39d104e2986d52b34f9d8015c
+msgid "内部的写法比较倾向AscendCL， 例如设备中OpenCL、推理框架中的TensorRt"
+msgstr ""
+"Internal writing tends towards AscendCL, for example, OpenCL in devices, "
+"TensorRT in inference frameworks"
+
+#: ../../discussion/discussion.md:39 e089fce58c7d4fe1bf6831e5beea81b0
+msgid "设备类Device增加void* getContext()接口"
+msgstr "Device class adds void* getContext() interface"
+
+#: ../../discussion/discussion.md:40 7f8858692d184b6482a4fc9989a89a00
+msgid "对于设备而言，通常都有上下文环境以及执行队列的概念"
+msgstr ""
+"For devices, there are usually concepts of context environment and execution"
+" queue"
+
+#: ../../discussion/discussion.md:41 71e2c0fd7e2d4ea29b0970542fc67240
+msgid "在inference/ascend_cl中有获取上下文的需求"
+msgstr "There is a requirement to get context in inference/ascend_cl"
+
+#: ../../discussion/discussion.md:42 84878c4e69f4437db72a2922a7378313
+msgid "在run函数里面，这里每次都重新创建数据集，却没有去销毁，这里有问题吗？"
+msgstr ""
+"In the run function, data sets are recreated each time without destruction, "
+"is there a problem here?"
+
+#: ../../discussion/discussion.md:53 ../../discussion/discussion.md:132
+#: 1873c759d514474e9a59559565bdfc1d 922e7a7d964741819bc90d41c681bdc1
+msgid "流水线并行"
+msgstr "Pipeline Parallelism"
+
+#: ../../discussion/discussion.md:55 f39cd2f9950c412a89a79084f3a47128
+msgid "流水线并行实现细节讨论"
+msgstr "Pipeline Parallelism Implementation Details Discussion"
+
+#: ../../discussion/discussion.md:57 b9af99d178364cd3902dee772dc08a5e
+msgid "nndeploy中的流水线并行是什么"
+msgstr "What is pipeline parallelism in nndeploy"
+
+#: ../../discussion/discussion.md:59 b273672c196a40cd970614c75c4017ef
+msgid "举例说明。某台Linux服务器上， 有n张4090显卡。"
+msgstr ""
+"Example description. On a certain Linux server, there are N 4090 graphics "
+"cards."
+
+#: ../../discussion/discussion.md:61 0f373753fd8047818540cdb64e7507de
+msgid ""
+"相册头像聚类任务：（原始图片Edge）-> 人脸检测Node -> (人脸Edge) -> 人脸关键点Node —> (人脸关键点Edge) -> "
+"人脸比对Node -> (人脸id Edge)"
+msgstr ""
+"Photo album header clustering task: (Original image Edge) -> Face detection "
+"Node -> (Face Edge) -> Face keypoints Node -> (Face keypoints Edge) -> Face "
+"comparison Node -> (Face id Edge)"
+
+#: ../../discussion/discussion.md:63 ba5e403f088847ddbc8b823e1a062521
+msgid "注：假设相册中有1000张图片"
+msgstr "Note: Assume there are 1000 images in the album"
+
+#: ../../discussion/discussion.md:65 541dfd38ef73406b9a9a8dc4c2d9b17f
+msgid "进一步说明："
+msgstr "Further explanation:"
+
+#: ../../discussion/discussion.md:67 0582d40eb1dc46be96cb89be090046f8
+msgid "分配三个线程，每个线程分别处理 人脸检测（Node）、人脸关键点（Node）、人脸比对（Node）"
+msgstr ""
+"Allocate three threads, each thread handles face detection (Node), face "
+"keypoints (Node), face comparison (Node) respectively"
+
+#: ../../discussion/discussion.md:68 642a45a262694da9978695fdbda633de
+msgid "（原始图片） 有个数据仓库 （Edge），当该数据仓库有数据时，人脸检测可以开始处理"
+msgstr ""
+"(Original image) There is a data warehouse (Edge), when the data warehouse "
+"has data, face detection can start processing"
+
+#: ../../discussion/discussion.md:69 bd418a932c144307a5564d6f0f21ee10
+msgid "（人脸） 有个 数据仓库 （Edge），当该数据仓库有数据时，人脸关键点可以开始处理"
+msgstr ""
+"(Face) There is a data warehouse (Edge), when the data warehouse has data, "
+"face keypoints can start processing"
+
+#: ../../discussion/discussion.md:70 962f1cd422c240948478310b3d4bd4b8
+msgid "（人脸关键点） 有个 数据仓库 （Edge），当该数据仓库有数据时，人脸比对可以开始处理"
+msgstr ""
+"(Face keypoints) There is a data warehouse (Edge), when the data warehouse "
+"has data, face comparison can start processing"
+
+#: ../../discussion/discussion.md:71 b80cea2b1d5c4394b46729435a677d66
+msgid "(人脸id) 有个 数据仓库 （Edge），当该数据仓库有数据时，调用方可得到数据"
+msgstr ""
+"(Face id) There is a data warehouse (Edge), when the data warehouse has "
+"data, the caller can get the data"
+
+#: ../../discussion/discussion.md:74 88a4e06aeeb746a49b1781d74efde318
+msgid "初步解决方案"
+msgstr "Preliminary solution"
+
+#: ../../discussion/discussion.md:76 dfad62debd0b4957aa914d9c6b422349
+msgid "开一个三个线程的线程池"
+msgstr "Open a thread pool with three threads"
+
+#: ../../discussion/discussion.md:77 6dce6cea4b34435cadf5d1e80d7a1371
+msgid "将三个节点都放到线程池中"
+msgstr "Put all three nodes into the thread pool"
+
+#: ../../discussion/discussion.md:78 481ef501ddbd4c5da9163f622ec20edf
+msgid "每个线程执行都要分别都要等待（原始图片Edge） (人脸Edge) (人脸关键点Edge) 有数据且数据已经写入成功才能执行"
+msgstr ""
+"Each thread execution must wait for (Original image Edge) (Face Edge) (Face "
+"keypoints Edge) to have data and the data has been successfully written "
+"before it can execute"
+
+#: ../../discussion/discussion.md:79 4ef42dcac3874bd585f87279b8613e93
+msgid "调用方线程(人脸id Edge)有数据且数据已经写入成功"
+msgstr ""
+"Caller thread (Face id Edge) has data and the data has been successfully "
+"written"
+
+#: ../../discussion/discussion.md:81 1cde1324fa4445e8b12de8e2e245a939
+msgid "具体疑难问题"
+msgstr "Specific difficulties and questions"
+
+#: ../../discussion/discussion.md:82 1d8c5f231e854eb9aa2d58e8a0e5105f
+msgid "对于用户而言，流水线并行 和 串行 是一样的执行模式"
+msgstr ""
+"For users, pipeline parallelism and serial execution are the same execution "
+"mode"
+
+#: ../../discussion/discussion.md:83 95e7fc0d086241ab86a44b07505f535b
+msgid "在执行graph->run的时候做到，只要一次将三个节点放到线程池"
+msgstr ""
+"When executing graph->run, just put the three nodes into the thread pool "
+"once"
+
+#: ../../discussion/discussion.md:84 4b05acec18ef45e39a739b8d1421881f
+msgid "主线程如何知道是最后一张图片，然后不在哪里等待呢"
+msgstr ""
+"How does the main thread know it's the last image, and then where to wait"
+
+#: ../../discussion/discussion.md:85 5556ebe9dc314ba5ad4aa6727715cebc
+msgid ""
+"开始节点和中间节点对数据的要求不一致，开始节点输入Edge有数据即可，中间节点输入Edge有数据且该数据已完成写入（即上一个节点已经完成写入输出Edge）。（原始图片）"
+" 有个数据仓库 （Edge）是当该数据仓库有数据时，第一个任务就可以运行"
+msgstr ""
+"The requirements for data between the start node and intermediate nodes are "
+"inconsistent, the start node input Edge has data to proceed, intermediate "
+"node input Edge has data and the data has been written (i.e., the previous "
+"node has completed writing to the output Edge). (Original image) There is a "
+"data warehouse (Edge) when the data warehouse has data, the first task can "
+"run"
+
+#: ../../discussion/discussion.md:86 05992fa2ac774868ae68b46e26dac6b6
+msgid "如何做到数据销毁"
+msgstr "How to achieve data destruction"
+
+#: ../../discussion/discussion.md:88 4c4b23f8295343e3a83b00e707b20639
+msgid "文档的结构讨论"
+msgstr "Document Structure Discussion"
+
+#: ../../discussion/discussion.md:89 1b4ffe8a448d49a594987a17dc76380a
+msgid "要达到一下几个目标"
+msgstr "To achieve the following goals"
+
+#: ../../discussion/discussion.md:90 881b1aaef8654a24a8a59f6b32055a9a
+msgid "适合readthedocs的排版"
+msgstr "Suitable for ReadTheDocs layout"
+
+#: ../../discussion/discussion.md:91 b9b753bd109b4c96b3aa9577e6f4d277
+msgid "区分中文文档和英文文档"
+msgstr "Distinguish between Chinese and English documents"
+
+#: ../../discussion/discussion.md:92 ed41116855b740b8a5d00a9b29d320b7
+msgid "要能够兼容部署类文章的分享（我比较愿意把文章写在这个这个文件夹下面）"
+msgstr ""
+"Be able to share deployment-related articles (I prefer to write articles "
+"under this folder)"
+
+#: ../../discussion/discussion.md:93 2addd441329d43c1adb9c10be9146cc4
+msgid "TODO - API自动导出"
+msgstr "TODO - API auto export"
+
+#: ../../discussion/discussion.md:95 85b28f83387048b4a99be3f1902b8a73
+msgid "文档的结构"
+msgstr "Document structure"
+
+#: ../../discussion/discussion.md:96 b7cc1846de514d17b0ca17fcef6b90f3
+msgid "tvm的格式 - 这个不是readthedocs的格式"
+msgstr "TVM format - This is not ReadTheDocs format"
+
+#: ../../discussion/discussion.md:97 b7a24947ce914373bca529b1a12cffc5
+msgid "mnn的格式"
+msgstr "MNN format"
+
+#: ../../discussion/discussion.md:98 05a476df9453403689d0d773964ef57b
+msgid "mmdeploy的格式"
+msgstr "MMDeploy format"
+
+#: ../../discussion/discussion.md:100 83b8cf60996a40df85909b77c64e6af2
+msgid "基于守夜大佬目录修改"
+msgstr "Based on the directory modification of Shouye Dazuo"
+
+#: ../../discussion/discussion.md:101 d75163acce164ca28bab320d484edf4b
+msgid "开始"
+msgstr "Start"
+
+#: ../../discussion/discussion.md:102 facda3eb865241749f47f4e956d3be1a
+msgid "readme（想把这些都写在readme里面，主要是想要提升开发效率，不想多次反复写同样的文章）"
+msgstr ""
+"README (Want to write all these in the README, mainly to improve development"
+" efficiency, don't want to repeatedly write the same articles)"
+
+#: ../../discussion/discussion.md:103 488378716ea44652b4c52e0b8ccd733d
+msgid "发展与展望（这些算readme吗）"
+msgstr "Development and Prospects (Do these count as README?)"
+
+#: ../../discussion/discussion.md:104 b7b55688a9b842cb8b165624bcefbc68
+msgid "当前支持的硬件、推理框架（这些算readme吗）"
+msgstr ""
+"Currently supported hardware, inference frameworks (Do these count as "
+"README?)"
+
+#: ../../discussion/discussion.md:105 34b0876200ee480cb77467b60493989a
+msgid "当前已经跑通的demo算法（这些算readme吗）"
+msgstr "Currently run-through demo algorithms (Do these count as README?)"
+
+#: ../../discussion/discussion.md:106 59765ec7e5774ce8ad9c010778e130a4
+msgid "当前已有的特性（这些算readme吗）"
+msgstr "Current existing features (Do these count as README?)"
+
+#: ../../discussion/discussion.md:107 2162a861a1884c5a86fb67aae69e289a
+msgid "近期要做的事情（roadmap）（这些算readme吗）"
+msgstr "Things to do in the near future (Roadmap) (Do these count as README?)"
+
+#: ../../discussion/discussion.md:108 4a6666c8f0a247f0bc8e788f2f82f781
+msgid "最终的愿景（这些算readme吗）"
+msgstr "Final vision (Do these count as README?)"
+
+#: ../../discussion/discussion.md:109 d9fac11f5e694597ba3279fa4af235cd
+msgid "编译和安装nndeploy"
+msgstr "Compile and install nndeploy"
+
+#: ../../discussion/discussion.md:110 237077798d1648f48a02b7952b083507
+msgid "如何跑通nndeploy"
+msgstr "How to run nndeploy"
+
+#: ../../discussion/discussion.md:111 f63a6c6dcff84e9cbf04bf74890ea870
+msgid "贡献指南"
+msgstr "Contribution Guide"
+
+#: ../../discussion/discussion.md:112 12067a9ef69e4a3fb99a9c18b664a53f
+msgid "pr规则、代码规范、微信群、可参与贡献的角度等"
+msgstr ""
+"PR rules, code specifications, WeChat group, perspectives from which "
+"contributions can be made, etc."
+
+#: ../../discussion/discussion.md:113 6ee7db77b31c4fabba49fdb366be4645
+msgid "用户指南"
+msgstr "User Guide"
+
+#: ../../discussion/discussion.md:114 aa9485be76ad42d89b336ce130aaec9d
+msgid "部署一个新算法"
+msgstr "Deploy a new algorithm"
+
+#: ../../discussion/discussion.md:115 a88572a5013345d2b21318f3b97be56b
+msgid "导出模型"
+msgstr "Export model"
+
+#: ../../discussion/discussion.md:116 82549de941fa47fa8f04bcf2fb49cc5b
+msgid "构建pipeline"
+msgstr "Construct pipeline"
+
+#: ../../discussion/discussion.md:117 12ffefeaee714a99889fce2981f2e131
+msgid "前处理、后处理"
+msgstr "Pre-processing, post-processing"
+
+#: ../../discussion/discussion.md:118 5d12ae9d7c0a4c42b1bfb59f2a525933
+msgid "增加一个新推理框架（这个算用户指南吗）"
+msgstr "Add a new inference framework (Does this count as a user guide?)"
+
+#: ../../discussion/discussion.md:119 96533ab3fe4c473cafd4f2facadf1a47
+msgid "增加一个新设备（这个算用户指南吗）"
+msgstr "Add a new device (Does this count as a user guide?)"
+
+#: ../../discussion/discussion.md:120 ebd307e211714370b51bc23994242e97
+msgid "增加一个新op（这个算用户指南吗）"
+msgstr "Add a new op (Does this count as a user guide?)"
+
+#: ../../discussion/discussion.md:121 1b0c2ebdb4114c7681621d5fca396d65
+msgid "开发者指南"
+msgstr "Developer Guide"
+
+#: ../../discussion/discussion.md:122 c4b88a69534c4b2a8e8563812a7bdaca
+msgid "整体架构"
+msgstr "Overall architecture"
+
+#: ../../discussion/discussion.md:123 c444e144b1bd4b3fb5e47330729a7c9c
+msgid "几大组件的作用和依赖关系 对应到文件夹"
+msgstr ""
+"The role and dependency relationships of major components corresponding to "
+"folders"
+
+#: ../../discussion/discussion.md:124 dfc54ea5c8994eecbfbe607e3b8c2b46
+msgid "数据容器"
+msgstr "Data container"
+
+#: ../../discussion/discussion.md:125 1ddf4c4695864a7a83549c623f9849f4
+msgid "Tensor、Mat、Buffer"
+msgstr "Tensor, Mat, Buffer"
+
+#: ../../discussion/discussion.md:126 a7e3e908ad58405a8b136186c09f609f
+msgid "有向无环图"
+msgstr "Directed acyclic graph"
+
+#: ../../discussion/discussion.md:127 69b7d37a8ae24d529f2ec6abe77da00d
+msgid "graph、node、edge"
+msgstr "graph, node, edge"
+
+#: ../../discussion/discussion.md:128 2bd990eb02d3426c9c55a9a11677ec71
+msgid "资源池"
+msgstr "Resource pool"
+
+#: ../../discussion/discussion.md:129 7f762037dcd04e409811173e0a8df2c4
+msgid "threadpool设计"
+msgstr "Threadpool design"
+
+#: ../../discussion/discussion.md:130 ba69907393634a2eb92b0daee0dd813e
+msgid "memorypool设计"
+msgstr "Memorypool design"
+
+#: ../../discussion/discussion.md:131 59d243c897df435eb91eafdc8d0f5443
+msgid "并行方式"
+msgstr "Parallel mode"
+
+#: ../../discussion/discussion.md:133 7af5ba6565d34cdc893d1a4db79f6874
+msgid "任务并行"
+msgstr "Task parallelism"
+
+#: ../../discussion/discussion.md:134 4073fe8ea2c04e51a5624a81f6e79816
+msgid "知识分享"
+msgstr "Knowledge sharing"
+
+#: ../../discussion/discussion.md:135 e2fd8e8e65684c43b13a4f5aed13d83d
+msgid "模型导出"
+msgstr "Model export"
+
+#: ../../discussion/discussion.md:136 3a86fbf2d1474e65bfae3d649bc76438
+msgid "量化"
+msgstr "Quantization"
+
+#: ../../discussion/discussion.md:137 7889efd00e424f63a5e3657e102f45a7
+msgid "问题讨论"
+msgstr "Problem discussion"
+
+#: ../../discussion/discussion.md:139 87bd3a2f8eb64d72a0cd19dad45edb9a
+msgid "dag 代码review"
+msgstr "DAG code review"
+
+#: ../../discussion/discussion.md:140 5678e9c84b1c47e18b767dc2a77bde90
+msgid "condition和loop是Graph而不是Node"
+msgstr "Condition and loop are properties of Graph rather than Node"
+
+#: ../../discussion/discussion.md:141 283bf8118cbc4d9c967b4ac554e7a3ea
+msgid "Graph继承Node"
+msgstr "Graph inherits from Node"
+
+#: ../../discussion/discussion.md:142 47f2a13b5f4d4bc5b8223ac2548e082f
+msgid "相比Node，Graph区别主要如下"
+msgstr "Compared to Node, the main differences of Graph are as follows"
+
+#: ../../discussion/discussion.md:143 10a55ceab9534097af73cbb6d5a2c0d4
+msgid "Graph具备管理Node的能力"
+msgstr "Graph has the capability to manage Nodes"
+
+#: ../../discussion/discussion.md:144 5bd63e3c3d0c41c18480354d7bc53327
+msgid "Graph的执行委托executor"
+msgstr "Execution delegation of Graph to executor"
+
+#: ../../discussion/discussion.md:145 6e92707a053f4698b630f49233b0f0cb
+msgid "把executor.h挪到主目录下来"
+msgstr "Move executor.h to the main directory"
+
+#: ../../discussion/discussion.md:146 b0a0f433e74d410bb6dd6e495a602fb0
+msgid "并把executor.h中的帮助函数放到util中来"
+msgstr "And place the helper functions from executor.h into util"
+
+#: ../../discussion/discussion.md:147 ba25319f457a435186317837e2d9e066
+msgid "命名的修改"
+msgstr "Naming modifications"
+
+#: ../../discussion/discussion.md:148 583ccb095d75465a810f719bc014df54
+msgid "condition_is_running -> runnint_condition"
+msgstr "condition_is_running -> runnint_condition"
+
+#: ../../discussion/discussion.md:149 35abca5cf66c41db9c1c1cc73bdea0e6
+msgid "graph目录 -> executor目录"
+msgstr "graph directory -> executor directory"
+
+#: ../../discussion/discussion.md:150 da3fd70dae0542e09abc36284c3b7325
+msgid ""
+"condition_parallel_pipeline_executor -> parallel_pipeline_condition_executor"
+msgstr ""
+"condition_parallel_pipeline_executor -> parallel_pipeline_condition_executor"
+
+#: ../../discussion/discussion.md:151 80a05aac7208470cb43d0468d9a62b88
+msgid "解决Graph嵌入Graph偶发性错误问题"
+msgstr "Resolve the issue of sporadic errors caused by Graph embedding Graph"
+
+#: ../../discussion/discussion.md:152 8ba2bbff11184688a836224e838d25ca
+msgid "功能验证"
+msgstr "Functionality verification"
+
+#: ../../discussion/discussion.md:153 8f273881bc4e4f0f8df8852f3c5637fa
+msgid "一个图中各个子模块都有各自的并行方式（串行、任务并行、流水线并行）"
+msgstr ""
+"Each sub-module in a graph has its own parallel mode (serial, task parallel,"
+" pipeline parallel)"
+
+#: ../../discussion/discussion.md:154 035f36df1d0d4dc7b90c4a6c17b557b1
+msgid "当一个Edge既是整个图的输出也是某个中间节点的输入，这个该如何解决（主要麻烦点在流水线并行模式，待review解决）(yi)"
+msgstr ""
+"When an Edge is both the output of the entire graph and the input of some "
+"intermediate node, how to resolve this (main issue lies in pipeline parallel"
+" mode, to be reviewed and resolved)(yi)"
+
+#: ../../discussion/discussion.md:156 01cd4ff494d8420f8914338b3cf13914
+msgid "dag pipeline edge"
+msgstr "DAG pipeline edge"
+
+#: ../../discussion/discussion.md:157 fbeeca84136848638a50cb9cbd4b685a
+msgid "图中串图"
+msgstr "Sub-graph within a graph"
+
+#: ../../discussion/discussion.md:158 abf500bd24a9444c8638793c7bc7c30a
+msgid "大图"
+msgstr "Main graph"
+
+#: ../../discussion/discussion.md:159 c5b9e403eaf9474b8ee988241dcd00be
+msgid "Parameter Validation Phase"
+msgstr "Parameter Validation Phase"
+
+#: ../../discussion/discussion.md:160 d914513c256a4a578258868dd999d16c
+msgid "Mark Predecessors And Successors Phase"
+msgstr "Mark Predecessors And Successors Phase"
+
+#: ../../discussion/discussion.md:161 ff2f8d9460f8463d8d66287d89d5897b
+msgid "为其每个子节点（节点或者图）修改并行属性"
+msgstr "Modify the parallel attributes for each child node (node or graph)"
+
+#: ../../discussion/discussion.md:162 83c42046b70b44c5b9ef1112d41647e6
+msgid "当其子节点已有并行属性，不修改，否则修改"
+msgstr ""
+"If the child node already has parallel attributes, do not modify; otherwise,"
+" modify"
+
+#: ../../discussion/discussion.md:163 fecc4d36b0084c1ca0a3cafa48b64e1e
+msgid "construct edge"
+msgstr "Construct edge"
+
+#: ../../discussion/discussion.md:165 8b3fc80c303640f1aeb1d825e87ac835
+msgid "发版本前的工作"
+msgstr "Pre-release tasks"
+
+#: ../../discussion/discussion.md:166 b0d3384ae9dc460bb05e8a3c2e1808e4
+msgid "代码review"
+msgstr "Code review"
+
+#: ../../discussion/discussion.md:167 f60e340fdfec4f69b62ceb15c2774f31
+msgid "base - 已完成"
+msgstr "base - completed"
+
+#: ../../discussion/discussion.md:168 a5974d352e3344b2859694fc234be2c3
+msgid "device - 已完成"
+msgstr "device - completed"
+
+#: ../../discussion/discussion.md:169 a5206f9a68a84cdd80bc2519f613305e
+msgid "thread_pool - 已完成"
+msgstr "thread_pool - completed"
+
+#: ../../discussion/discussion.md:170 e48870b56cb34ff3b9a37588b06e2e4c
+msgid "inference - 已完成"
+msgstr "inference - completed"
+
+#: ../../discussion/discussion.md:171 f37d40f294654a258ec0d951465b49db
+msgid "dag"
+msgstr "DAG"
+
+#: ../../discussion/discussion.md:172 257e27ef785c447eb8e32ce2b7357ce3
+msgid "图里面嵌入图，在释放资源会出错吗？"
+msgstr ""
+"Will embedding a graph within another graph cause errors during resource "
+"release?"
+
+#: ../../discussion/discussion.md:173 54621965bcba4f778864dd3cf86b9020
+msgid "应该不会，Node和Edge外面包了一层，带有资源管理的字段"
+msgstr ""
+"It should not, Node and Edge are wrapped with a layer that includes resource"
+" management fields"
+
+#: ../../discussion/discussion.md:174 e32c6ec746414ece980181e52e0aa5ac
+msgid "边里面要不要加一个字段"
+msgstr "Whether to add a field within the edge"
+
+#: ../../discussion/discussion.md:175 354f096df52d413bacfe58503d83a99b
+msgid "输入边 - 没有生产者"
+msgstr "Input edge - no producer"
+
+#: ../../discussion/discussion.md:176 70f8f4aa97f1429ebce7b5f9a3b042a4
+msgid "中间节点的输入边 - 有消费者且不是整张图的输出"
+msgstr ""
+"Input edge of intermediate node - has consumer and is not the output of the "
+"entire graph"
+
+#: ../../discussion/discussion.md:177 8c29ceb2d315479c853db8cac263e806
+msgid "输出边 - 没有消费者，且是整张图的输出"
+msgstr "Output edge - no consumer and is the output of the entire graph"
+
+#: ../../discussion/discussion.md:178 f440abe58ec547f19add4c9401703234
+msgid "输出边 也是 中间节点的输入边 - 由消费者 且 是整张图的的输出"
+msgstr ""
+"Output edge is also the input edge of an intermediate node - has consumer "
+"and is the output of the entire graph"
+
+#: ../../discussion/discussion.md:179 724496368d644e94be59df84dac24ec1
+msgid "model"
+msgstr "Model"
+
+#: ../../discussion/discussion.md:183 a09cc416a68d4a469ac04ca9d2d96744
+msgid "算子讨论（与守夜大佬讨论）"
+msgstr "Operator discussion (discussion with Night Owl)"
+
+#: ../../discussion/discussion.md:185 fdcce8bc4d3e4116b071d378fb41b318
+msgid "Op的分类实现 例如 二元算子、nn类算子、数学类算子、激活函数类算子，可以共享一些诸如类型检查之类的函数"
+msgstr ""
+"Implementation of Op classification, e.g., binary operators, nn class "
+"operators, mathematical class operators, activation function class "
+"operators, can share some functions like type checking"
+
+#: ../../discussion/discussion.md:188 4da5025a7a7441e4ae2a053215d983df
+msgid "unay"
+msgstr "Unary"
+
+#: ../../discussion/discussion.md:189 d43ede7723f6410f999392dbed0485de
+msgid "binary"
+msgstr "Binary"
+
+#: ../../discussion/discussion.md:190 f786616b66374fe899e8b4cd1db3749d
+msgid "elementwise"
+msgstr "Elementwise"
+
+#: ../../discussion/discussion.md:191 2424e5029b6d4cc283115b005ddd94fd
+msgid "nn - compute"
+msgstr "nn - compute"
+
+#: ../../discussion/discussion.md:192 b41a230afc8e4528b00e51cc517f8b33
+msgid "shape - concat"
+msgstr "shape - concat"
+
+#: ../../discussion/discussion.md:194 b7a48471726342cd8dd4eafc9b6d6f03
+msgid "注册机制 根据设备进行op注册"
+msgstr "Registration mechanism: register Op based on device"
+
+#: ../../discussion/discussion.md:196 ee433c43d00f4617b9ee5394bc0d8504
+msgid "op_type + device （只保留这个）"
+msgstr "op_type + device (only keep this)"
+
+#: ../../discussion/discussion.md:198 addcb92f3221409b962646e916ff7251
+msgid "在op内部区别（不是编译、也不是多个子类 - 最传统的函数的方式，if else）"
+msgstr ""
+"Distinguish within Op (not compilation, nor multiple subclasses - the most "
+"traditional way of functions, if else)"
+
+#: ../../discussion/discussion.md:199 07d32a9666f843b0bf521df6b1ad0241
+msgid "data_type + data_format（一两钟实现）"
+msgstr "data_type + data_format (implement in one or two minutes)"
+
+#: ../../discussion/discussion.md:201 d7860b234ed84615b8b0d7de8c29efed
+msgid "opencl - image2d_t buffer"
+msgstr "opencl - image2d_t buffer"
+
+#: ../../discussion/discussion.md:203 4907c7d0d31c4af088f749291aa113ea
+msgid "属性层 为每个Op制定attrs（param），用于统一的参数传递，也便于类型检查（tvm的方式）"
+msgstr ""
+"Attribute layer: define attrs (param) for each Op, for unified parameter "
+"passing, also convenient for type checking (TVM's way)"
+
+#: ../../discussion/discussion.md:206 aa1325e47869481ca0c94124e6afce64
+msgid "类型检查 类型检查包含数据类型的合法性（在某个设备上是否支持） 推导输出的shape大小和维度  relay"
+msgstr ""
+"Type checking includes the legality of data types (whether supported on a "
+"certain device), infer the size and dimensions of the output  relay"
+
+#: ../../discussion/discussion.md:210 dbcbee486a294a2e8b498ea642948609
+msgid "init时调用"
+msgstr "Called during init"
+
+#: ../../discussion/discussion.md:212 3517307401b34d559314a05855743e20
+msgid "计算层（我也觉得） 假设一切输入、属性、内存都是合法的，只专注计算"
+msgstr ""
+"Calculation layer (I also think) assumes all inputs, attributes, memory are "
+"legal, only focus on calculation"
+
+#: ../../discussion/discussion.md:215 1aadd4afe05147349af9de5010d279f4
+msgid "调用方式（） 如何提供一个明确的接口，可以方便的看出需要进行的参数传递和内容、顺序"
+msgstr ""
+"Calling method () how to provide a clear interface, can easily see the "
+"parameters and content, order needed to pass"
+
+#: ../../discussion/discussion.md:218 6c978012457a4bc6a27b7441521d6353
+msgid "relay.nn.conv2d([inputs],kernel,stride)"
+msgstr "relay.nn.conv2d([inputs],kernel,stride)"
+
+#: ../../discussion/discussion.md:220 df4b423df70a43f8bfe67416ddc52f0a
+msgid "映射关系"
+msgstr "Mapping relationship"
+
+#: ../../discussion/discussion.md:221 2dea60197fae4d93a99d9b451ce61baa
+msgid "conv2d_attrs={"
+msgstr "conv2d_attrs={"
+
+#: ../../discussion/discussion.md:223 745d74bbfa4c42c8ac8f6f718a65874f
+msgid "} relay.call(\"conv2d\",conv2d_attrs)"
+msgstr "} relay.call(\"conv2d\",conv2d_attrs)"
+
+#: ../../discussion/discussion.md:226 2c969b1f058f4896b7bde57b91d33f02
+msgid "内存管理 op与edge如何协同  不存在 net op tensor"
+msgstr "Memory management: how Op and Edge collaborate  no net op tensor"
+
+#: ../../discussion/discussion.md:231 b1b2086b0a564d7eb808d1ba91bf0d50
+msgid ""
+"修改：（这个看你设计） 每一个算子都需要一个头文件吗？？ 将参数统一为vector<tensor> inputs, vector<tensor> "
+"outputs weights是否作为inputs中的一员传递 (统一接口层)"
+msgstr ""
+"Modify: (this depends on your design) Does each operator need a header "
+"file?? Unify parameters as vector<tensor> inputs, vector<tensor> outputs, "
+"whether weights are passed as a member of inputs (unified interface layer)"
+
+#: ../../discussion/discussion.md:236 de2553bb312c4d73821c8aadba7a850a
+msgid "attrs作为具体计算类的一个属性赋值"
+msgstr "attrs as an attribute assignment of the specific calculation class"
+
+#: ../../discussion/discussion.md:239 8b6cb05c7e1c4579a98108f95edecb67
+msgid "后续规划"
+msgstr "Future planning"
+
+#: ../../discussion/discussion.md:240 b737f48257a9464f9c45c295ad1b070a
+msgid "推理子模块"
+msgstr "Inference submodule"
+
+#: ../../discussion/discussion.md:241 8c3acbf2601f42c7a14dd981c0623a6b
+msgid "框架完善"
+msgstr "Framework improvement"
+
+#: ../../discussion/discussion.md:242 c80bcdfe67a94160a1bcbddff8b8bae9
+msgid "python导出"
+msgstr "Python export"
+
+#: ../../discussion/discussion.md:244 87724978e289488680d7db1a0751feb7
+msgid "模型文件"
+msgstr "Model file"
+
+#: ../../discussion/discussion.md:245 644aa9e345b34159ba147cdfaf577818
+msgid "text -> json (rapidjson)"
+msgstr "text -> json (rapidjson)"
+
+#: ../../discussion/discussion.md:246 c96bd39f4d49456baa5db78be69423d6
+msgid "bin -> safetensors ()"
+msgstr "bin -> safetensors ()"
+
+#: ../../discussion/discussion.md:248 efea58e27fe94538b0c4f86ea15e9f5b
+msgid "llama"
+msgstr "llama"
+
+#: ../../discussion/discussion.md:249 1c5292d35e064b3fb576562d84a7393d
+msgid "构图"
+msgstr "Graph construction"
+
+#: ../../discussion/discussion.md:250 cc25277ba7a7452d8673e01f943114d6
+msgid "模型文件 - llama.safetensors"
+msgstr "Model file - llama.safetensors"
+
+#: ../../discussion/discussion.md:251 255ef83285bf453d99d0d66cb6daca44
+msgid "模型结构"
+msgstr "Model structure"
+
+#: ../../discussion/discussion.md:252 f6b2c5bce8084a35837d2916b0122742
+msgid "llama.json"
+msgstr "llama.json"
+
+#: ../../discussion/discussion.md:253 0c266b0a3d1b44c2bb419a875b505278
+msgid "expr机制"
+msgstr "Expr mechanism"
+
+#: ../../discussion/discussion.md:254 c65dc0c231ef403cb2726dd11e7f594b
+msgid "注：onnx会把模型结构切的很散"
+msgstr "Note: ONNX will split the model structure very scattered"
+
+#: ../../discussion/discussion.md:255 202b0b69473e4a1c97dbca976eebfc12
+msgid "增加llama ir（rmsnorm\\attention\\matmul...）"
+msgstr "Add llama ir (rmsnorm\\attention\\matmul...)"
+
+#: ../../discussion/discussion.md:256 776661a31fc04d74aa6d4af2ee1706ce
+msgid "D:\\github\\nndeploy\\framework\\include\\nndeploy\\ir\\op_param.h"
+msgstr "D:\\github\\nndeploy\\framework\\include\\nndeploy\\ir\\op_param.h"
+
+#: ../../discussion/discussion.md:257 22852e3e3097414c83652f77cd254330
+msgid "OpType"
+msgstr "OpType"
+
+#: ../../discussion/discussion.md:258 d2061798710f4e848cea7857d10d9613
+msgid "NNDEPLOY_CC_API std::string opTypeToString(OpType op_type);"
+msgstr "NNDEPLOY_CC_API std::string opTypeToString(OpType op_type);"
+
+#: ../../discussion/discussion.md:259 5c32d22129e84e64834f9a3141549a15
+msgid ""
+"NNDEPLOY_CC_API OpType stringToOpType(const std::string &op_type_name);"
+msgstr ""
+"NNDEPLOY_CC_API OpType stringToOpType(const std::string &op_type_name);"
+
+#: ../../discussion/discussion.md:260 ebff644a413248ca9fe35e6ec0ac27fe
+msgid "OpParam - onnx/pytorch/mindspore"
+msgstr "OpParam - onnx/pytorch/mindspore"
+
+#: ../../discussion/discussion.md:261 59fafb0f969040448531c180eaa6a382
+msgid "REGISTER_OP_PARAM_IMPLEMENTION"
+msgstr "REGISTER_OP_PARAM_IMPLEMENTION"
+
+#: ../../discussion/discussion.md:262 9a6479144ede40fb88a6cc6da605fdda
+msgid "op - data_type[fp32(优先这个为主),fp16,int8]/data_format[kDataFormatAuto]"
+msgstr ""
+"op - data_type[fp32(this takes "
+"precedence),fp16,int8]/data_format[kDataFormatAuto]"
+
+#: ../../discussion/discussion.md:263 f24e3401f85d4a0bad15280e5ae87141
+msgid "cpu op"
+msgstr "cpu op"
+
+#: ../../discussion/discussion.md:264 fad8c739252e422580095a4946582605
+msgid "cuda op"
+msgstr "cuda op"
+
+#: ../../discussion/discussion.md:265 8e17e6bf7c4642b490c091f2d3c24f57
+msgid "ascend op"
+msgstr "ascend op"
+
+#: ../../discussion/discussion.md:266 32b87e5449074aea82ef0eae53ba69bf
+msgid "内存管理"
+msgstr "Memory management"
+
+#: ../../discussion/discussion.md:267 18c2b95eda3440e0b1ebbd8a152b6b45
+msgid "kv block"
+msgstr "kv block"
+
+#: ../../discussion/discussion.md:269 a6f4198bdc3d4007a819cde4d4cba580
+msgid "llama讨论"
+msgstr "llama discussion"
+
+#: ../../discussion/discussion.md:270 478174e1820f40f98001ff99fcc87829
+msgid "onnx llama 算子很碎"
+msgstr "onnx llama operators are very fragmented"
+
+#: ../../discussion/discussion.md:271 6c997383c2724764b711ca1dcb913cf0
+msgid "selfattention 十几个算子吗"
+msgstr "selfattention, more than a dozen operators?"
+
+#: ../../discussion/discussion.md:272 a4b977624a554bdeb170b5f1cc681987
+msgid "图优化"
+msgstr "Graph optimization"
+
+#: ../../discussion/discussion.md:273 f893b948ef5f4f3aa94906b0c685e809
+msgid "手动构图 - 通过expr构造模型结构"
+msgstr "Manual graph construction - constructing model structure through expr"
+
+#: ../../discussion/discussion.md:274 0332a7ca590340c78d44e4cb6bbafc64
+msgid "fp32"
+msgstr "fp32"
+
+#: ../../discussion/discussion.md:275 c47cc35950774671924ffc4562b864ca
+msgid "fp16"
+msgstr "fp16"
+
+#: ../../discussion/discussion.md:276 fba9706cbe494896a607c06fc61dfc39
+msgid "int8"
+msgstr "int8"
+
+#: ../../discussion/discussion.md:277 8c2daa20cdea4c338ff44719d0c58c8e
+msgid "权重就是safetensors"
+msgstr "The weights are just safetensors"

@@ -1,0 +1,372 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../faq/faq.md:1 c7e86cf8b58b46238765ef5476743602
+msgid "常见问题"
+msgstr "常见问题"
+
+#: ../../faq/faq.md:3 7b00534945114af4b3300b7ec918f0b9
+msgid "问题一 来自 nndeploy交流群"
+msgstr "问题一 来自 nndeploy交流群"
+
+#: ../../faq/faq.md:4 b3cd8b1e430146f081c89cfc57bdaebf
+msgid ""
+"Q: 我想了解一下：onnx runtime也可以选择不同的execution provider: "
+"https://onnxruntime.ai/docs/execution-providers/ nndeploy与其思路的差别主要在哪里呢？"
+msgstr ""
+"Q: 我想了解一下：onnx runtime也可以选择不同的execution provider: "
+"https://onnxruntime.ai/docs/execution-providers/ nndeploy与其思路的差别主要在哪里呢？"
+
+#: ../../faq/faq.md:5 bb7d2f9afaf140fda6e9b53ff3ed334a
+msgid ""
+"A: "
+"ONNXRuntime与nndeploy最大的区别是：ONNXRuntime首先是一个的推理框架，然后可以接入其他推理框架，nndeploy明确定位就是一个多端部署框架。这个会带来的差异主要是如下两点"
+msgstr ""
+"A: "
+"ONNXRuntime与nndeploy最大的区别是：ONNXRuntime首先是一个的推理框架，然后可以接入其他推理框架，nndeploy明确定位就是一个多端部署框架。这个会带来的差异主要是如下两点"
+
+#: ../../faq/faq.md:6 f4f240bc9da344668901b170e78a3812
+msgid ""
+"ONNXRuntime为了保证其他推理框架兼容其自身，在功能上会对其他推理框架有一定程度的阉割（比如TNN、mnn操作推理框架内部分配的输入输出、OpenVINO"
+" CPU-"
+"GPU异构模式、模型量化等等），导致模型通过EP只是能跑起来，性能应该不好。nndeploy希望类似：你搞了很久的trt，然后你就trt搭建了一个自己的小型框架，可以完全操纵trt;"
+msgstr ""
+"ONNXRuntime为了保证其他推理框架兼容其自身，在功能上会对其他推理框架有一定程度的阉割（比如TNN、mnn操作推理框架内部分配的输入输出、OpenVINO"
+" CPU-"
+"GPU异构模式、模型量化等等），导致模型通过EP只是能跑起来，性能应该不好。nndeploy希望类似：你搞了很久的trt，然后你就trt搭建了自己的一个小型框架，可以完全操纵trt;"
+
+#: ../../faq/faq.md:7 381f96555f874fd4b2546fcaba2594d9
+msgid ""
+"ONNXRuntime强绑定ONNX以及protobuf，会导致包体积变大，尤其是对于移动端不友好，对于不能直接读取onnx模型文件的框架应该也不太友好，还有就是现在很多框架都是pt->自定义模型文件（例如ncnnn\\mnn），以达到极致的性能"
+msgstr ""
+"ONNXRuntime强绑定ONNX以及protobuf，会导致包体积变大，尤其是对于移动端不友好，对于不能直接读取onnx模型文件的框架应该也不太友好，还有就是现在很多框架都是pt->自定义模型文件（比如ncnnn\\mnn），以达到极致的性能"
+
+#: ../../faq/faq.md:9 fbcf3c2d0b794b89a1b65d7eb27f7447
+msgid "总结而言，都是调用第三方推理框架，使用nndeploy功能更全面、性能更好、体验更丝滑。"
+msgstr "总结而言，都是调用第三方推理框架，使用nndeploy功能更全面、性能更好、体验更丝滑。"
+
+#: ../../faq/faq.md:11 73618f84f0924c4f8b7979699a2ff7f3
+msgid "问题二 来自 nndeploy交流群"
+msgstr "问题二 来自 nndeploy交流群"
+
+#: ../../faq/faq.md:12 29f61af45d5c4e2e93d574e2ec39dfdf
+msgid "Q: nndeploy相对于openmmlab的mmdeploy以及paddle的fastdeploy会有什么优势？"
+msgstr "Q: nndeploy相对于openmmlab的mmdeploy以及paddle的fastdeploy会有什么优势？"
+
+#: ../../faq/faq.md:13 d0ea40745d7546349e59749d53e84bf9
+msgid ""
+"A: "
+"非常开心可以和openmmlab的mmdeploy以及paddle的fastdeploy放在一起比较，毫无疑问，openmmlab的mmdeploy以及paddle的fastdeploy都是行业巨擘，有非常大影响力，据我所知都有非常多公司在使用这个两个库。因为我们是nndeploy的开发者，所以我们这里主要谈谈我们的优势。"
+msgstr ""
+"A: "
+"非常开心可以和openmmlab的mmdeploy以及paddle的fastdeploy放在一起比较，毫无疑问，openmmlab的mmdeploy以及paddle的fastdeploy都是行业巨擘，有非常大影响力，据我所知都有非常多公司在使用这两个库。因为我们是nndeploy的开发者，所以我们这里主要谈谈我们的优势。"
+
+#: ../../faq/faq.md:14 0f6bd68a3e414315854203bf1dc8c444
+msgid ""
+"更加开放。目前fd家重点是paddle的模型仓库以及主推自家推理框架，mmdp家主要是openmmlab的模型仓库以及主推自家推理框架，而nndeploy积极集成各家的推理框架，不设限的部署热门的开源模型。nndeploy想跳出这个\"特定优先支持\"，做一个更加通用普适的部署框架"
+msgstr ""
+"更加开放。目前fd家重点是paddle的模型仓库以及主推自家推理框架，mmdp家主要是openmmlab的模型仓库以及主推自家推理框架，而nndeploy积极集成各家的推理框架，不设限的部署热门的开源模型。nndeploy想跳出这个“特定优先支持”，做一个更加通用普适的部署框架"
+
+#: ../../faq/faq.md:15 1217d457703949ffb773ae5b46648675
+msgid ""
+"更加易用，在多端推理的基础功能的基础上nndeploy还做了设备管理，让你可以有统一的方式操作内存以及执行流等；还通过有向无环图来管理模型部署的前处理、推理、后处理"
+msgstr ""
+"更加易用，在多端推理的基础功能的基础上nndeploy还做了设备管理，让你可以有统一的方式操作内存以及执行流等；还通过有向无环图来管理模型部署的前处理、推理、后处理"
+
+#: ../../faq/faq.md:16 5d765296126948a2925340154a09fcc9
+msgid ""
+"更加适合部署多模型，nndeploy以有向无环图的形式来实现多个模型的部署，通过这种方式来部署多模型算法，可以少写大量的业务代码，模块性以及鲁棒性都会更好。"
+msgstr ""
+"更加适合部署多模型，nndeploy以有向无环图的形式来实现多个模型的部署，通过这种方式来部署多模型算法，可以少写大量的业务代码，模块性以及鲁棒性都会更好。"
+
+#: ../../faq/faq.md:17 7d02f7558d744a2f8bdd1137b3941316
+msgid ""
+"推理框架的高性能抽象：每个推理框架也都有其各自的特性，需要足够尊重以及理解这些推理框架，才能在抽象中不丢失推理框架的特性，并做到统一的使用的体验。nndeploy可配置第三方推理框架绝大部分参数，保证了推理性能。可直接操作理框架内部分配的输入输出，实现前后处理的零拷贝，提升模型部署端到端的性能。我们正在实现更多性能方面的优化，比如在图的基础上加上线程池、内存池、高性能算子库等，未来性能方面的功能会逐渐更加完善"
+msgstr ""
+"推理框架的高性能抽象：每个推理框架也都有其各自的特性，需要足够尊重以及理解这些推理框架，才能在抽象中不丢失推理框架的特性，并做到统一的使用体验。nndeploy可配置第三方推理框架绝大部分参数，保证了推理性能。可直接操作理框架内部分配的输入输出，实现前后处理的零拷贝，提升模型部署端到端的性能。我们正在实现更多性能方面的优化，比如在图的基础上加上线程池、内存池、高性能算子库等，未来性能方面的功能会逐渐更加完善"
+
+#: ../../faq/faq.md:18 88c33ed883fd417993260dec406db82d
+msgid "nndeploy更加专注模型c++部署，更轻量化一些"
+msgstr "nndeploy更加专注模型c++部署，更轻量化一些"
+
+#: ../../faq/faq.md:20 4e76296f0abc4c5eb9282d03393e9d64
+msgid "问题三 来自 nndeploy交流群"
+msgstr "问题三 来自 nndeploy交流群"
+
+#: ../../faq/faq.md:21 954e246316c84b5ba4d2612fa9d551d4
+msgid "Q: nndeploy与triton的区别"
+msgstr "Q: nndeploy与triton的区别"
+
+#: ../../faq/faq.md:22 ../../faq/faq.md:30 c614e07a5e74472c954a31ed5b82c527
+#: f2976d63749d44df90a35fd54d3a666e
+msgid "A: 主要有以下四点"
+msgstr "A: 主要有以下四点"
+
+#: ../../faq/faq.md:23 cc02129e93c24f18a12aaeed3f307002
+msgid "triton侧重于对模型推理阶段的统一管理；nndeploy关注模型的端到端（包括前后处理）部署的统一管理；"
+msgstr "triton侧重于对模型推理阶段的统一管理；nndeploy关注模型的端到端（包括前后处理）部署的统一管理；"
+
+#: ../../faq/faq.md:24 d6bf5db5342548d080b38066eb2a380d
+msgid ""
+"triton屏蔽了内部推理框架接口，注重于对用户的推理框架黑盒，假定受众为不了解推理框架使用的普通用户；nndeploy注重于屏蔽不同推理框架的使用差异，但为开发人员保留对推理框架的控制能力，可以服务于高级用户，只是侧重于减少代码开发工作量，关注代码在不同推理框架的兼容性；"
+msgstr ""
+"triton屏蔽了内部推理框架接口，注重于对用户的推理框架黑盒，假定受众为不了解推理框架使用的普通用户；nndeploy注重于屏蔽不同推理框架的使用差异，但为开发人员保留对推理框架的控制能力，可以服务于高级用户，只是侧重于减少代码开发工作量，关注代码在不同推理框架的兼容性；"
+
+#: ../../faq/faq.md:25 1f16761a106545ad99ac84a83c6bc090
+msgid ""
+"triton的优化主要是推理阶段的资源/任务调度，nndeploy的优化来自于全流程，包括资源/任务调度、前后处理与模型推理中的全流程内存优化、模型优化等；"
+msgstr ""
+"triton的优化主要是推理阶段的资源/任务调度，nndeploy的优化来自于全流程，包括资源/任务调度、前后处理与模型推理中的全流程内存优化、模型优化等；"
+
+#: ../../faq/faq.md:26 ed24c6b5ca4d43c5adf7643dcb64e3a3
+msgid "目前triton将所关注的功能封装为server，nndeploy当前版本暂未实现（未来将会有）"
+msgstr "目前triton将所关注的功能封装为server，nndeploy当前版本暂未实现（未来将会有）"
+
+#: ../../faq/faq.md:28 c325020645bb45e38461b69404413378
+msgid "问题四 来自内部讨论"
+msgstr "问题四 来自内部讨论"
+
+#: ../../faq/faq.md:29 b511b6f5947c457ca0611a456692076b
+msgid "Q: 当前模型部署有哪些痛点"
+msgstr "Q: 当前模型部署有哪些痛点"
+
+#: ../../faq/faq.md:31 1f56fcc0f6054139a8edfe3261f6f373
+msgid ""
+"现在业界尚不存在各方面都远超其同类产品的推理框架，不同推理框架在不同平台、硬件下分别具有各自的优势。例如，在 Linux + NVidia "
+"显卡机器推理，TensorRT 是性能最好的推理框架；在 Windows + x86 CPU 机器推理，OpenVINO 是性能最好的推理框架；在 "
+"ARM Android 下，有 ncnn、MNN、TFLite、TNN等一系列选择。"
+msgstr ""
+"现在业界尚不存在各方面都远超其同类产品的推理框架，不同推理框架在不同平台、硬件下分别具有各自的优势。例如，在 Linux + NVidia "
+"显卡机器推理，TensorRT 是性能最好的推理框架；在 Windows + x86 CPU 机器推理，OpenVINO 是性能最好的推理框架；在 "
+"ARM Android 下，有 ncnn、MNN、TFLite、TNN等一系列选择。"
+
+#: ../../faq/faq.md:32 1b22a5849ca64423ab9131ff4787be30
+msgid ""
+"不同的推理框架有不一样的推理接口、推理配置等 API，针对不同推理框架都需要写一套代码，这对模型部署工程师而言，将带来较大学习成本、开发成本、维护成本"
+msgstr ""
+"Different inference frameworks have varying inference interfaces and "
+"configuration APIs, requiring a separate set of code for each framework, "
+"which imposes significant learning, development, and maintenance costs on "
+"model deployment engineers."
+
+#: ../../faq/faq.md:33 528a32af3323411196d98c6a3ac37342
+msgid "模型部署不仅仅只有模型推理，还有前处理、后处理，推理框架往往只提供模型推理的功能"
+msgstr ""
+"Model deployment is not just about model inference; it also includes pre-"
+"processing and post-processing. Inference frameworks often only provide the "
+"functionality for model inference."
+
+#: ../../faq/faq.md:34 333152d2c5db4653a0742ac7625f3199
+msgid ""
+"目前很多场景是需要由多个模型组合解决该业务问题（例如stable "
+"diffusion、老照片修复、人脸识别等等），直接采用推理框架的原生接口，会有大量且低效的业务代码编写"
+msgstr ""
+"Currently, many scenarios require the combination of multiple models to "
+"solve business problems (such as stable diffusion, old photo restoration, "
+"face recognition, etc.). Directly using the native interfaces of inference "
+"frameworks can lead to a large amount of inefficient business code writing."
+
+#: ../../faq/faq.md:36 6e2a4d2292d94b7d90f4e3efd5893cbc
+msgid "与HelloGithub蛋佬讨论交流"
+msgstr "Discussion and exchange with HelloGithub egg yolk"
+
+#: ../../faq/faq.md:38 83512a4d21fe45fdb25d9e0fad5de617
+msgid "1 框架简介"
+msgstr "1 Framework Introduction"
+
+#: ../../faq/faq.md:40 e3762e1d8f48407bb4c49bb47328759d
+msgid "如下是三个开源框架在GitHub主页上的介绍"
+msgstr ""
+"Below are introductions to three open-source frameworks on their GitHub "
+"homepage."
+
+#: ../../faq/faq.md:42 4a85f946191140f2aebd9e089f37244a
+msgid ""
+"1.1 "
+"nndeploy：nndeploy是一款模型端到端部署框架。以多端推理以及基于有向无环图模型部署为基础，致力为用户提供跨平台、简单易用、高性能的模型部署体验。"
+msgstr ""
+"1.1 nndeploy: nndeploy is an end-to-end model deployment framework. Based on"
+" multi-end inference and directed acyclic graph model deployment, it aims to"
+" provide users with a cross-platform, easy-to-use, high-performance model "
+"deployment experience."
+
+#: ../../faq/faq.md:44 9990f790174b4f0d9f7a4721fd1d49a2
+msgid ""
+"1.2 fastdeploy：FastDeploy是一款全场景、易用灵活、极致高效的AI推理部署工具， 支持云边端部署。提供超过 160+ "
+"Text，Vision， Speech和跨模态模型开箱即用的部署体验，并实现端到端的推理性能优化。包括 "
+"物体检测、字符识别（OCR）、人脸、人像扣图、多目标跟踪系统、NLP、Stable Diffusion文图生成、TTS "
+"等几十种任务场景，满足开发者多场景、多硬件、多平台的产业部署需求。"
+msgstr ""
+"1.2 fastdeploy: FastDeploy is an all-scenario, easy-to-use, extremely "
+"efficient AI inference deployment tool, supporting cloud-edge-end "
+"deployment. It offers out-of-the-box deployment experiences for over 160+ "
+"models in Text, Vision, Speech, and cross-modal categories, achieving end-"
+"to-end inference performance optimization. Including object detection, "
+"character recognition (OCR), face, image matting, multi-target tracking "
+"system, NLP, Stable Diffusion text-to-image generation, TTS, and dozens of "
+"other task scenarios, meeting developers' needs for multi-scenario, multi-"
+"hardware, multi-platform industrial deployment."
+
+#: ../../faq/faq.md:46 44a180096c5645f5913d6f25031ddc8e
+msgid ""
+"1.2 mmdeploy：MMDeploy 是 OpenMMLab 模型部署工具箱，为各算法库提供统一的部署体验。基于 "
+"MMDeploy，开发者可以轻松从训练 repo 生成指定硬件所需 SDK，省去大量适配时间。"
+msgstr ""
+"1.2 mmdeploy: MMDeploy is OpenMMLab's model deployment toolbox, providing a "
+"unified deployment experience for various algorithm libraries. Based on "
+"MMDeploy, developers can easily generate the required SDK for specific "
+"hardware from the training repo, saving a significant amount of adaptation "
+"time."
+
+#: ../../faq/faq.md:48 6e8416a0d2f942a598841ee771df0753
+msgid "2 框架对比"
+msgstr "2 Framework Comparison"
+
+#: ../../faq/faq.md:93 0eb814b53bf74169891fc38b8e5f2998
+msgid ""
+"2.1 "
+"易用性：基于有向无环图部署模型，模型部署的全流程（前处理->推理->后处理）简单明了；构建推理模板Infer，可屏蔽模型的复杂性；高效解决多模型的复杂场景，通过支持图中嵌入图灵活且强大的功能，将大问题拆分为小问题，通过组合的方式快速解决多模型的复杂场景问题；可快速构建demo"
+msgstr ""
+"2.1 Ease of Use: Based on directed acyclic graph model deployment, the "
+"entire model deployment process (pre-processing -> inference -> post-"
+"processing) is straightforward; building inference templates Infer can "
+"shield the complexity of models; efficiently solving complex scenarios with "
+"multiple models by supporting graph embedding with flexible and powerful "
+"features, breaking down big problems into small ones, quickly solving "
+"complex multi-model scenario problems through combination; can quickly build"
+" demo"
+
+#: ../../faq/faq.md:95 42db11cdecaf477388b01c38c11ca9e9
+msgid "2.2 性能：对推理框架的高性能抽象；高效的线程池"
+msgstr ""
+"2.2 Performance: Abstracting the high performance of the inference "
+"framework; efficient thread pool"
+
+#: ../../faq/faq.md:97 7bd7bbc8c5124075855410e6ad3e1df9
+msgid "2.3 并行：基于有向无环图部署模型，支持多种并行模式，进一步提升模型部署的性能"
+msgstr ""
+"2.3 Parallelism: Based on directed acyclic graph model deployment, "
+"supporting various parallel modes, further enhancing the performance of "
+"model deployment"
+
+#: ../../faq/faq.md:99 e2c2c8f596554b6b9b9173d554665031
+msgid ""
+"2.4 "
+"开放性：目前fastdeploy重点是paddle的模型仓库以及主推自家推理框架，mmdeploy主要是openmmlab的模型仓库以及主推自家推理框架，而nndeploy积极集成各家的推理框架，不设限的部署热门的开源模型。nndeploy想跳出这个\"特定优先支持\"，做一个更加通用普适的部署框架"
+msgstr ""
+"2.4 Openness: Currently, fastdeploy focuses on paddle's model repository and"
+" mainly promotes its own inference framework, mmdeploy mainly on openmmlab's"
+" model repository and its own inference framework, while nndeploy actively "
+"integrates various inference frameworks, not limiting the deployment of hot "
+"open-source models. nndeploy aims to jump out of this 'specific priority "
+"support', to become a more universal and widely applicable deployment "
+"framework"
+
+#: ../../faq/faq.md:101 1763856099e645eabb891d2352bb9c97
+msgid ""
+"2.5 "
+"模型支持：目前nndeploy支持模型较少；fastdeploy支持paddle的模型仓库中绝大部分模型；mmdeploy支持openmmlab的模型仓库中绝大部分模型"
+msgstr ""
+"2.5 Model Support: Currently, nndeploy supports fewer models; fastdeploy "
+"supports the vast majority of models in paddle's model repository; mmdeploy "
+"supports the vast majority of models in openmmlab's model repository"
+
+#: ../../faq/faq.md:103 329a84ea83914478bef43b54627ac268
+msgid "2.6 扩展性：nndeploy有更加良好的架构，可扩展为推理框架，也可扩展支持分布式的推理部署"
+msgstr ""
+"2.6 Extensibility: nndeploy has a better architecture, can be extended into "
+"an inference framework, and also supports distributed inference deployment"
+
+#: ../../faq/faq.md:106 f2c67216bf8542d5ae450e4e6681585f
+msgid "关于我"
+msgstr "About Me"
+
+#: ../../faq/faq.md:108 effa2f3428de415aa481a13d075db037
+msgid "推理框架：在Android Tee(可信任环境)下，写过一款纯C的推理框架"
+msgstr ""
+"Inference Framework: On Android Tee (Trusted Execution Environment), "
+"developed a pure C inference framework"
+
+#: ../../faq/faq.md:110 8d324c78b9e74975bd7235892eda7378
+msgid "部署框架：从0到1写过一款部署框架，目前已服务数百个模型上线"
+msgstr ""
+"Deployment Framework: From scratch, developed a deployment framework, "
+"currently serving hundreds of models online"
+
+#: ../../faq/faq.md:112 dfd4b68e8c554d29a04ac859e81c608e
+msgid "模型部署：完成过数十个CV类模型的在多端的部署"
+msgstr ""
+"Model Deployment: Completed the deployment of dozens of CV models on "
+"multiple ends"
+
+#: ../../faq/faq.md:114 d472cdb42a364759bcf3fbb38f2e431e
+msgid "检测追踪：对传统检测追踪算法有一定的实战经验"
+msgstr ""
+"Detection Tracking: Have practical experience with traditional detection "
+"tracking algorithms"
+
+#: ../../faq/faq.md:116 a91bfaeab5d84a3a9f2d0af6d7a0e04e
+msgid "开源框架："
+msgstr "Open Source Framework:"
+
+#: ../../faq/faq.md:117 3a676cacf22a4be5bf2b04157996568e
+msgid "详细阅读过tnn、mnn、tengine、nnlib四个知名的的推理框架"
+msgstr ""
+"Have read in detail four well-known inference frameworks: tnn, mnn, tengine,"
+" nnlib"
+
+#: ../../faq/faq.md:118 733a47ff66d044c7bc47ad14e29e9a49
+msgid "用过openvin、tensorrt、onnxruntime等推理框架"
+msgstr "Used inference frameworks like openvin, tensorrt, onnxruntime"
+
+#: ../../faq/faq.md:119 a18b4f05db7e4291af2b065ef5da8947
+msgid "onnx模型优化器: onnxoptimizer、onnxsim"
+msgstr "ONNX model optimizers: onnxoptimizer, onnxsim"
+
+#: ../../faq/faq.md:121 7bae356ae7e444029f6e3667730a8d53
+msgid "开源的目的"
+msgstr "The Purpose of Open Source"
+
+#: ../../faq/faq.md:123 f742904cea9d432e95cb758a6eaff173
+msgid "尝试解决部署的痛点问题：一直在从事模型部署、推理、高性能计算相关领域，发现了模型部署一些痛点问题，想尝试去解决这些问题"
+msgstr ""
+"Attempt to solve deployment pain points: Have been engaged in model "
+"deployment, inference, and high-performance computing related fields, "
+"discovered some pain points in model deployment, and want to try to solve "
+"these problems"
+
+#: ../../faq/faq.md:125 05dbcd34b6c74134b358a89366a1dd1a
+msgid "技术上的追求：基于nndeploy，可以实现在AI Infra上的一些想法，能跟上AI发展的节奏"
+msgstr ""
+"Technical pursuit: Based on nndeploy, can realize some ideas on AI Infra, "
+"keeping pace with the rhythm of AI development"
+
+#: ../../faq/faq.md:127 58b83b70dbb64c63a4db1412239c63d0
+msgid "拓宽知识边界：认识一些朋友，通过交流拓宽知识边界"
+msgstr ""
+"Broaden knowledge boundaries: Meet some friends, broaden knowledge "
+"boundaries through exchange"
+
+#: ../../faq/faq.md:129 4554ef851df044caa71eace008e9afec
+msgid "影响力：或许能对业界产生一些帮助，自己也可以收获一些影响力"
+msgstr ""
+"Influence: Maybe can provide some help to the industry, and also gain some "
+"influence"

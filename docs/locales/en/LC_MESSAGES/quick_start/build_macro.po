@@ -1,0 +1,163 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 17:38+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../quick_start/build_macro.md:3 ceaf622b323f45c3b2468b7c7a37f152
+msgid "编译宏文档"
+msgstr "Translation Script"
+
+#: ../../quick_start/build_macro.md:5 27111202280346dab36a304a945d9527
+msgid "本文档列出了nndeploy项目中可用的编译宏选项，帮助开发者根据需求配置构建过程。"
+msgstr ""
+"This document lists the available translation script options in the nndeploy"
+" project, helping developers configure and build the program according to "
+"their requirements."
+
+#: ../../quick_start/build_macro.md:7 60b9bb9182674c2f9bdcd2d628aef782
+msgid "1. 编译宏编辑规则"
+msgstr "1. Translation Script Editing Rules"
+
+#: ../../quick_start/build_macro.md:9 a164a6290dd04ff58fed8316781a5faa
+msgid "对于绝大部分编译选项，只用ON/OFF即可。"
+msgstr "For most translation options, only ON/OFF is used."
+
+#: ../../quick_start/build_macro.md:11 ab8692fa6b274bff859e7707c90f1d6b
+msgid "但对于外部依赖的三方库，有如下三种使能并链接外部的第三方库的方法"
+msgstr ""
+"However, for external dependencies, there are three methods to enable and "
+"link to external third-party libraries."
+
+#: ../../quick_start/build_macro.md:13 745ce52b262f48bfa37163596cb83fb0
+msgid "方法一：路径path，头文件以及库的根路径，其形式必须修改为"
+msgstr ""
+"Method one: Path, the header file and library's root directory path, which "
+"must be modified to"
+
+#: ../../quick_start/build_macro.md:14 a86773e64a1243dcaedeb93b83fd5553
+msgid "头文件：path/include"
+msgstr "Header file: path/include"
+
+#: ../../quick_start/build_macro.md:15 a791271fc60546e88ca5d7dae2159301
+msgid "库：path/lib"
+msgstr "Library: path/lib"
+
+#: ../../quick_start/build_macro.md:16 5e33816ab96347d0b1aedc91bd06313e
+msgid "windows dll: path/bin"
+msgstr "Windows dll: path/bin"
+
+#: ../../quick_start/build_macro.md:17 87f16ba6148e4d21ba887a313ed0023f
+msgid "相应的库：ONNXRuntime、OpenVINO、TNN、MNN、Window已经编译好的OpenCV的库"
+msgstr ""
+"Corresponding libraries: ONNXRuntime, OpenVINO, TNN, MNN, Windows already "
+"translated OpenCV libraries"
+
+#: ../../quick_start/build_macro.md:18 6d4b830769bc4df7bf4b0d10e07f8575
+msgid "方法二：开关ON，如果你安装了该库，并且可以通过find_package找到该库，可以采用该方式"
+msgstr ""
+"Method two: Turn ON, if you have installed the library, and can find the "
+"library through find_package, you can use this method."
+
+#: ../../quick_start/build_macro.md:19 d0255b06e80d4fd3899a746cfe12010d
+msgid "相应的库：Linux平台下的CUDA、CUDNN、TenosrRT、OpenCV"
+msgstr ""
+"Corresponding libraries: CUDA, CUDNN, TensorRT, OpenCV under Linux platform"
+
+#: ../../quick_start/build_macro.md:20 35941e6ffed848b5a36b114dace90d58
+msgid "方法三：源码ON，使用源码编译该库，对应third_party目录下的库，可以采用该方式"
+msgstr ""
+"Method three: Source code ON, use source code translation for this library, "
+"for libraries under the third_party directory, you can use this method."
+
+#: ../../quick_start/build_macro.md:21 0039169aa7a14609a0f784826aa18f13
+msgid "相应的库：tokenizer-cpp、rapidjson、gflags、ONNX"
+msgstr "Corresponding libraries: tokenizer-cpp, rapidjson, gflags, ONNX"
+
+#: ../../quick_start/build_macro.md:23 b7f6124cfc534b8b95f64732e335709a
+msgid "2.基础构建选项（建议采用默认值）"
+msgstr "2. Basic Structure Build Options (Recommended to use default values)"
+
+#: ../../quick_start/build_macro.md:97 e541b596596f42818ab73ccbc1b732ef
+msgid "3. 核心模块选项（建议采用默认值）"
+msgstr "3. Core Module Options (Recommended to use default values)"
+
+#: ../../quick_start/build_macro.md:191 5db993593815454bb5f6d23e808512f1
+msgid "4. 设备后端选项（可选项，默认全部关闭，可以不依赖任何设备后端）"
+msgstr ""
+"4. Device Backend Options (Optional, default all closed, can be independent "
+"of any device backend)"
+
+#: ../../quick_start/build_macro.md:275 53912aca79864bbc8467f5c812edd39d
+msgid "5. 算子后端选项（可选项，默认关闭，可以不依赖任何算子后端）"
+msgstr ""
+"5. Compute Backend Options (Optional, default closed, can be independent of "
+"any compute backend)"
+
+#: ../../quick_start/build_macro.md:294 bc015d8dec964cffbeeb1c890faf14b4
+msgid "6. 推理后端选项（可选项，默认关闭，可以不依赖任何推理后端）"
+msgstr ""
+"6. Inference Backend Options (Optional, default closed, can be independent "
+"of any inference backend)"
+
+#: ../../quick_start/build_macro.md:403 196095c592a14a4f9b5d967c0e9803cb
+msgid "7. 算法插件选项"
+msgstr "7. Algorithm Plugin Options"
+
+#: ../../quick_start/build_macro.md:492 139e865435304b49987fc1c69bb52597
+msgid "8. 编译选项举例说明"
+msgstr "8. Translation Options Example Explanation"
+
+#: ../../quick_start/build_macro.md:493 a8128f6fb33b4aedb3056a5e6b82605e
+msgid ""
+"nndeploy通过路径的方式链接推理后端ONNXRuntime。set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "
+"\"path/to/onnxruntime\")，如果你想启用并链接其他推理后端（OpenVINO、MNN、TNN …），也可做同样的处理"
+msgstr ""
+"nndeploy connects to the inference backend ONNXRuntime through the path. "
+"set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME \"path/to/onnxruntime\"), if you "
+"want to enable and connect to other inference backends (OpenVINO, MNN, TNN "
+"...), you can do the same processing"
+
+#: ../../quick_start/build_macro.md:494 697a42c8e8c0436b93c9f9bb62d8d56f
+msgid ""
+"nndeploy通过find_package的方式链接推理后端TensorRT。set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT"
+" ON)，对于其他可以通过find_package找到的库，也可做同样的处理"
+msgstr ""
+"nndeploy connects to the inference backend TensorRT through the find_package"
+" method. set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT ON), for other libraries "
+"that can be found through find_package, you can do the same processing"
+
+#: ../../quick_start/build_macro.md:495 711fb818a1ba4d038a56b9af44b2d9e5
+msgid ""
+"nndeploy通过源码的方式链接三方库tokenizer-cpp。set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP "
+"ON)，对于其他可以通过源码编译的库，也做同样的处理（目前所有third_party中的库都是通过源码编译的）"
+msgstr ""
+"nndeploy connects to the third-party library tokenizer-cpp through the "
+"source code. set(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP ON), for other "
+"libraries that can be translated through source code, you can do the same "
+"processing (all libraries in third_party are currently translated through "
+"source code)"
+
+#: ../../quick_start/build_macro.md:496 dd88ac2bd9874589ae3af26c3bd97a15
+msgid ""
+"编译算法的插件。首先将模型类别set(NABLE_NNDEPLOY_PLUGIN_XXX "
+"ON)，再将具体的模型set(NABLE_NNDEPLOY_PLUGIN_XXX_YYY ON)"
+msgstr ""
+"Translation algorithm plugin. First, set the model type "
+"set(ENABLE_NNDEPLOY_PLUGIN_XXX ON), then set the specific model "
+"set(ENABLE_NNDEPLOY_PLUGIN_XXX_YYY ON)"
