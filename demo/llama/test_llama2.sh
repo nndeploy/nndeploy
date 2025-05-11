@@ -20,7 +20,7 @@ echo "Symbolic link created: ${TARGET_LINK} -> current folder"
 # params
 NAME=NNDEPLOY_LLAMA2
 INFER_TYPE=kInferenceTypeOnnxRuntime
-DEVICE=kDeviceTypeCodeCpu:0
+DEVICE=kDeviceTypeCodeCuda:0
 MODEL_T=kModelTypeOnnx
 PARALLEL_TYPE=kParallelTypeSequential
 CONFIG=${MODEL_PATH}/llm_config.json
