@@ -15,8 +15,8 @@ TypeRuntimeRegister<TypeRuntimeCreator<SequentialRuntime>>
     g_sequential_runtime_register_none(base::ParallelType::kParallelTypeNone);
 
 SequentialRuntime::SequentialRuntime(const base::DeviceType &device_type)
-    : Runtime(device_type) {};
-SequentialRuntime::~SequentialRuntime() {};
+    : Runtime(device_type){};
+SequentialRuntime::~SequentialRuntime(){};
 
 base::Status SequentialRuntime::init(
     std::vector<TensorWrapper *> &tensor_repository,
@@ -82,6 +82,12 @@ base::Status SequentialRuntime::init(
 }
 base::Status SequentialRuntime::deinit() {
   base::Status status = base::kStatusCodeOk;
+  if (!workspace_is_external_ && workspace_ != nullptr && workspace_size_ > 0) {
+    device::Device *device = device::getDevice(device_type_);
+    device->deallocate(workspace_);
+    workspace_size_ = 0U;
+    workspace_is_external_ = false;
+  }
   for (auto iter : op_repository_) {
     status = iter->op_->deinit();
     if (status != base::kStatusCodeOk) {
