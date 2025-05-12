@@ -7,14 +7,12 @@ DataPacket::DataPacket() {}
 
 DataPacket::~DataPacket() { destory(); }
 
-base::Status DataPacket::set(device::Buffer *buffer, int index,
-                             bool is_external) {
+base::Status DataPacket::set(device::Buffer *buffer, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   if (buffer != anything_) {
     destory();
   }
   is_external_ = is_external;
-  index_ = index;
   flag_ = EdgeTypeFlag::kBuffer;
   written_ = true;
   anything_ = (void *)buffer;
@@ -23,7 +21,7 @@ base::Status DataPacket::set(device::Buffer *buffer, int index,
   return status;
 }
 device::Buffer *DataPacket::create(device::Device *device,
-                                   const device::BufferDesc &desc, int index) {
+                                   const device::BufferDesc &desc) {
   base::Status status = base::kStatusCodeOk;
   device::Buffer *buffer = nullptr;
   if (anything_ == nullptr) {
@@ -44,7 +42,6 @@ device::Buffer *DataPacket::create(device::Device *device,
     }
   }
   is_external_ = false;
-  index_ = index;
   flag_ = EdgeTypeFlag::kBuffer;
   written_ = false;
   anything_ = (void *)(buffer);
@@ -69,13 +66,12 @@ device::Buffer *DataPacket::getBuffer() {
 }
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-base::Status DataPacket::set(cv::Mat *cv_mat, int index, bool is_external) {
+base::Status DataPacket::set(cv::Mat *cv_mat, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   if (cv_mat != anything_) {
     destory();
   }
   is_external_ = is_external;
-  index_ = index;
   flag_ = EdgeTypeFlag::kCvMat;
   written_ = true;
   anything_ = (void *)cv_mat;
@@ -84,7 +80,7 @@ base::Status DataPacket::set(cv::Mat *cv_mat, int index, bool is_external) {
   return status;
 }
 cv::Mat *DataPacket::create(int rows, int cols, int type,
-                            const cv::Vec3b &value, int index) {
+                            const cv::Vec3b &value) {
   base::Status status = base::kStatusCodeOk;
   cv::Mat *cv_mat = nullptr;
   if (anything_ == nullptr) {
@@ -103,7 +99,6 @@ cv::Mat *DataPacket::create(int rows, int cols, int type,
     }
   }
   is_external_ = false;
-  index_ = index;
   flag_ = EdgeTypeFlag::kCvMat;
   written_ = false;
   anything_ = (void *)(cv_mat);
@@ -128,14 +123,12 @@ cv::Mat *DataPacket::getCvMat() {
 }
 #endif
 
-base::Status DataPacket::set(device::Tensor *tensor, int index,
-                             bool is_external) {
+base::Status DataPacket::set(device::Tensor *tensor, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   if (tensor != anything_) {
     destory();
   }
   is_external_ = is_external;
-  index_ = index;
   flag_ = EdgeTypeFlag::kTensor;
   written_ = true;
   anything_ = (void *)tensor;
@@ -144,7 +137,7 @@ base::Status DataPacket::set(device::Tensor *tensor, int index,
   return status;
 }
 device::Tensor *DataPacket::create(device::Device *device,
-                                   const device::TensorDesc &desc, int index,
+                                   const device::TensorDesc &desc,
                                    const std::string &name) {
   base::Status status = base::kStatusCodeOk;
   device::Tensor *tensor = nullptr;
@@ -163,7 +156,6 @@ device::Tensor *DataPacket::create(device::Device *device,
     }
   }
   is_external_ = false;
-  index_ = index;
   flag_ = EdgeTypeFlag::kTensor;
   written_ = false;
   anything_ = (void *)(tensor);
@@ -187,13 +179,12 @@ device::Tensor *DataPacket::getTensor() {
   }
 }
 
-base::Status DataPacket::set(base::Param *param, int index, bool is_external) {
+base::Status DataPacket::set(base::Param *param, bool is_external) {
   base::Status status = base::kStatusCodeOk;
   if (param != anything_) {
     destory();
   }
   is_external_ = is_external;
-  index_ = index;
   flag_ = EdgeTypeFlag::kParam;
   written_ = true;
   anything_ = (void *)param;
@@ -246,7 +237,8 @@ base::Status DataPacket::takeDataPacket(DataPacket *packet) {
   return status;
 }
 
-int DataPacket::getIndex() { return index_; }
+void DataPacket::setIndex(int64_t index) { index_ = index; }
+int64_t DataPacket::getIndex() { return index_; }
 
 void DataPacket::destory() {
   if (!is_external_ && anything_ != nullptr) {
@@ -292,10 +284,9 @@ PipelineDataPacket::~PipelineDataPacket() {
   consumers_count_ = 0;
 }
 
-base::Status PipelineDataPacket::set(device::Buffer *buffer, int index,
-                                     bool is_external) {
+base::Status PipelineDataPacket::set(device::Buffer *buffer, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
-  base::Status status = DataPacket::set(buffer, index, is_external);
+  base::Status status = DataPacket::set(buffer, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
   cv_.notify_all();
@@ -315,12 +306,14 @@ device::Buffer *PipelineDataPacket::getBuffer() {
   cv_.wait(lock, [this] { return written_; });
   return DataPacket::getBuffer();
 }
+device::Buffer *PipelineDataPacket::getBufferDirect() {
+  return DataPacket::getBuffer();
+}
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-base::Status PipelineDataPacket::set(cv::Mat *cv_mat, int index,
-                                     bool is_external) {
+base::Status PipelineDataPacket::set(cv::Mat *cv_mat, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
-  base::Status status = DataPacket::set(cv_mat, index, is_external);
+  base::Status status = DataPacket::set(cv_mat, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
   cv_.notify_all();
@@ -340,12 +333,12 @@ cv::Mat *PipelineDataPacket::getCvMat() {
   cv_.wait(lock, [this] { return written_; });
   return DataPacket::getCvMat();
 }
+cv::Mat *PipelineDataPacket::getCvMatDirect() { return DataPacket::getCvMat(); }
 #endif
 
-base::Status PipelineDataPacket::set(device::Tensor *tensor, int index,
-                                     bool is_external) {
+base::Status PipelineDataPacket::set(device::Tensor *tensor, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
-  base::Status status = DataPacket::set(tensor, index, is_external);
+  base::Status status = DataPacket::set(tensor, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
   cv_.notify_all();
@@ -364,11 +357,13 @@ device::Tensor *PipelineDataPacket::getTensor() {
   cv_.wait(lock, [this] { return written_; });
   return DataPacket::getTensor();
 }
+device::Tensor *PipelineDataPacket::getTensorDirect() {
+  return DataPacket::getTensor();
+}
 
-base::Status PipelineDataPacket::set(base::Param *param, int index,
-                                     bool is_external) {
+base::Status PipelineDataPacket::set(base::Param *param, bool is_external) {
   std::unique_lock<std::mutex> lock(mutex_);
-  base::Status status = DataPacket::set(param, index, is_external);
+  base::Status status = DataPacket::set(param, is_external);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "DataPacket::set failed!\n");
   cv_.notify_all();
@@ -386,6 +381,22 @@ base::Param *PipelineDataPacket::getParam() {
   std::unique_lock<std::mutex> lock(mutex_);
   cv_.wait(lock, [this] { return written_; });
   return DataPacket::getParam();
+}
+base::Param *PipelineDataPacket::getParamDirect() {
+  return DataPacket::getParam();
+}
+
+base::Status PipelineDataPacket::takeDataPacket(DataPacket *packet) {
+  std::unique_lock<std::mutex> lock(mutex_);
+  base::Status status = DataPacket::takeDataPacket(packet);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("PipelineDataPacket takeDataPacket failed!\n");
+    return status;
+  }
+  if (written_) {
+    cv_.notify_all();
+  }
+  return status;
 }
 
 void PipelineDataPacket::increaseConsumersSize() {

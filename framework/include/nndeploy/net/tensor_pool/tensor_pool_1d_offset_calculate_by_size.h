@@ -44,12 +44,10 @@ class TensorPool1DOffsetCalculateGreedyBySize : public TensorPool1D {
  private:
   std::vector<std::shared_ptr<Offset>> offsets_;  // 已分配tensor
   int64_t total_consumption_ = -1;
-  bool is_external_ = false;
   device::Buffer *mem_block_ = nullptr;
 };
 
 }  // namespace net
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_NET_TENSOR_POOL_TENSOR_POOL_1D_OFFSET_CALCULATE_BY_SIZE_H_ \
-        */
+#endif

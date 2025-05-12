@@ -7,10 +7,19 @@ namespace infer {
 Infer::Infer(const std::string &name) : dag::Node(name) {
   this->setInputTypeInfo<device::Tensor>();
   this->setOutputTypeInfo<device::Tensor>();
+  // NNDEPLOY_LOGI("Infer constructor: %s", name.c_str());
+  // NNDEPLOY_LOGI("Infer inputs: %d", input_type_info_.size());
+  // NNDEPLOY_LOGI("Infer outputs: %d", output_type_info_.size());
 }
 Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
     : dag::Node(name, inputs, outputs) {
+  if (inputs.size() == 0) {
+    this->setInputTypeInfo<device::Tensor>();
+  }
+  if (outputs.size() == 0) {
+    this->setOutputTypeInfo<device::Tensor>();
+  }
   for (auto input : inputs) {
     this->setInputTypeInfo<device::Tensor>();
   }
@@ -42,6 +51,12 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
     constructed_ = false;
   } else {
     constructed_ = true;
+  }
+  if (inputs.size() == 0) {
+    this->setInputTypeInfo<device::Tensor>();
+  }
+  if (outputs.size() == 0) {
+    this->setOutputTypeInfo<device::Tensor>();
   }
   for (auto input : inputs) {
     this->setInputTypeInfo<device::Tensor>();
@@ -206,6 +221,8 @@ base::Status Infer::init() {
     inference_input_names_.insert(input_names[i]);
     // 检查input_type_info_中是否设置改名字
     if (input_type_info_[i]->getEdgeName().empty()) {
+      // NNDEPLOY_LOGE("input_type_info_[%d] is empty, set to %s", i,
+      //               input_names[i].c_str());
       input_type_info_[i]->setEdgeName(input_names[i]);
     }
   }
@@ -217,6 +234,8 @@ base::Status Infer::init() {
     inference_output_names_.insert(output_names[i]);
     // 检查output_type_info_中是否设置改名字
     if (output_type_info_[i]->getEdgeName().empty()) {
+      // NNDEPLOY_LOGE("output_type_info_[%d] is empty, set to %s", i,
+      //               output_names[i].c_str());
       output_type_info_[i]->setEdgeName(output_names[i]);
     }
   }
@@ -234,61 +253,24 @@ base::Status Infer::setMemory(device::Buffer *buffer) {
   return inference_->setMemory(buffer);
 }
 
-// base::Status Infer::run() {
-//   NNDEPLOY_LOGE("Infer::run!Thread ID: %d.\n", std::this_thread::get_id());
-//   base::Status status = base::kStatusCodeOk;
-//   int index = inputs_[0]->getIndex(this);
-//   for (int i = 1; i < inputs_.size(); i++) {
-//     int compare_index = inputs_[i]->getIndex(this);
-//     if (index != compare_index) {
-//       NNDEPLOY_LOGE("index not equal");
-//       return base::kStatusCodeErrorInvalidValue;
-//     }
-//   }
-//   if (is_input_dynamic_) {
-//     base::ShapeMap shape_map;
-//     for (auto input : inputs_) {
-//       device::Tensor *tensor = input->getTensor(this);
-//       shape_map[tensor->getName()] = tensor->getShape();
-//     }
-//     inference_->reshape(shape_map);
-//   }
-//   for (auto input : inputs_) {
-//     device::Tensor *tensor = input->getTensor(this);
-//     inference_->setInputTensor(tensor->getName(), tensor);
-//   }
-//   status = inference_->run();
-//   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
-//   for (auto output : outputs_) {
-//     std::string name = output->getName();
-//     base::ParallelType parallel_type = output->getParallelType();
-//     bool flag = parallel_type == base::kParallelTypePipeline;
-//     device::Tensor *tensor =
-//         inference_->getOutputTensorAfterRun(name, device_type_, flag);
-//     output->set(tensor, index, false);
-//   }
-//   NNDEPLOY_LOGE("infer!\n");
-//   return status;
-// }
-
 base::Status Infer::run() {
   // NNDEPLOY_LOGE("Infer::run!Thread ID: %d.\n", std::this_thread::get_id());
   base::Status status = base::kStatusCodeOk;
   std::vector<device::Tensor *> tensors;
-  std::vector<int> indexs;
+  // std::vector<int> indexs;
   for (auto input : inputs_) {
     device::Tensor *tensor = input->getTensor(this);
     tensors.emplace_back(tensor);
-    int index = input->getIndex(this);
-    indexs.emplace_back(index);
+    // int index = input->getIndex(this);
+    // indexs.emplace_back(index);
   }
-  int index = indexs[0];
-  for (int i = 1; i < indexs.size(); i++) {
-    if (index != indexs[i]) {
-      NNDEPLOY_LOGE("index not equal");
-      return base::kStatusCodeErrorInvalidValue;
-    }
-  }
+  // int index = indexs[0];
+  // for (int i = 1; i < indexs.size(); i++) {
+  //   if (index != indexs[i]) {
+  //     NNDEPLOY_LOGE("index not equal");
+  //     return base::kStatusCodeErrorInvalidValue;
+  //   }
+  // }
   if (is_input_dynamic_) {
     base::ShapeMap shape_map;
     for (int i = 0; i < tensors.size(); i++) {
@@ -365,7 +347,7 @@ base::Status Infer::run() {
     output_count++;
 #endif
 
-    outputs_[i]->set(tensor, index, false);
+    outputs_[i]->set(tensor, false);
   }
   // NNDEPLOY_LOGE("infer end!Thread ID: %d.\n", std::this_thread::get_id());
   return status;

@@ -32,6 +32,8 @@ class DrawLableNode : public dag::Node {
     classification::ClassificationResult *result =
         (classification::ClassificationResult *)inputs_[1]->getParam(this);
     // 遍历每个分类结果
+    cv::Mat *output_mat = new cv::Mat();
+    input_mat->copyTo(*output_mat);
     for (int i = 0; i < result->labels_.size(); i++) {
       auto label = result->labels_[i];
 
@@ -40,11 +42,11 @@ class DrawLableNode : public dag::Node {
                          " score: " + std::to_string(label.scores_);
 
       // 在图像左上角绘制文本
-      cv::putText(*input_mat, text, cv::Point(30, 30 + i * 30),
+      cv::putText(*output_mat, text, cv::Point(30, 30 + i * 30),
                   cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
     }
     // cv::imwrite("draw_label_node.jpg", *input_mat);
-    outputs_[0]->set(input_mat, inputs_[0]->getIndex(this), true);
+    outputs_[0]->set(output_mat, false);
     return base::kStatusCodeOk;
   }
 };
@@ -152,22 +154,51 @@ int main(int argc, char *argv[]) {
 
   graph_demo.setInferParam(device_type, model_type, is_path, model_value);
 
+  // 设置pipeline并行
+  base::Status status = graph_demo.setParallelType(pt);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph setParallelType failed");
+    return -1;
+  }
+
   std::vector<dag::Edge *> inputs;
+  // std::vector<dag::Edge *> outputs;
+
+  std::vector<dag::Edge *> outputs = graph_demo.trace(inputs);
 
   graph_demo.setInputPath(input_path);
   graph_demo.setOutputPath(ouput_path);
   graph_demo.setRefPath(input_path);
+  graph_demo.decode_node_->setSize(100);
 
-  for (int i = 0; i < 100; i++) {
-    NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
-    graph_demo(inputs);
-    NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
+  NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
+  int size = 100;
+  for (int i = 0; i < size; i++) {
+    outputs = graph_demo(inputs);
+    if (pt != base::kParallelTypePipeline) {
+      classification::ClassificationResult *result =
+          (classification::ClassificationResult *)outputs[0]
+              ->getGraphOutputParam();
+      if (result == nullptr) {
+        NNDEPLOY_LOGE("result is nullptr");
+        return -1;
+      }
+    }
   }
+  if (pt == base::kParallelTypePipeline) {
+    for (int i = 0; i < size; ++i) {
+      classification::ClassificationResult *result =
+          (classification::ClassificationResult *)outputs[0]
+              ->getGraphOutputParam();
+      NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
+      if (result == nullptr) {
+        NNDEPLOY_LOGE("result is nullptr");
+        return -1;
+      }
+    }
+  }
+  NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
 
-  // just for dump
-  graph_demo.init();
-  graph_demo.dump();
-  graph_demo.graph_->dump();
   graph_demo.deinit();
 
   NNDEPLOY_TIME_PROFILER_PRINT("demo");

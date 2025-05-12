@@ -1,0 +1,191 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../knowledge_shared/sd_impl.md:2 4efc588731fa4bd3870227b60d48c727
+msgid "Stable diffusion implementation"
+msgstr "稳定扩散实现"
+
+#: ../../knowledge_shared/sd_impl.md:4 ../../knowledge_shared/sd_impl.md:13
+#: 48b42fac25474be5bb949f2cf4bcd777 a17981a4de254ad48e3ef6fcd759d27f
+msgid "Tokenizer"
+msgstr "分词器"
+
+#: ../../knowledge_shared/sd_impl.md:5 ../../knowledge_shared/sd_impl.md:40
+#: 076c5f68e3d1427fb88e6f697944cb0d d44ee4a8340c4a8c9a3199f147ab39e7
+msgid "CLIP"
+msgstr "CLIP"
+
+#: ../../knowledge_shared/sd_impl.md:6 ../../knowledge_shared/sd_impl.md:44
+#: 774bcd7c60534e5faa55f6898c2bcb55 d21d1dafd6124fef91ddf615564f16ce
+msgid "UNET"
+msgstr "UNET"
+
+#: ../../knowledge_shared/sd_impl.md:7 ../../knowledge_shared/sd_impl.md:48
+#: 8bb175de17314021acd6e8f4323182bc c4fdf8c51c15462591e0f5312cf2ae22
+msgid "VAE Decoder"
+msgstr "VAE解码器"
+
+#: ../../knowledge_shared/sd_impl.md:8 ../../knowledge_shared/sd_impl.md:52
+#: 23d57c8a991048bbb90fbd64e4e45f39 50b3275261994e2eb7bdde9e27c3ce12
+msgid "Lora"
+msgstr "Lora"
+
+#: ../../knowledge_shared/sd_impl.md:9 ../../knowledge_shared/sd_impl.md:56
+#: 4c866ab4d67a4b378ba5c754712de019 f2d65f269c3c4c31bb63ed0ae85550af
+msgid "Control Net"
+msgstr "Control Net"
+
+#: ../../knowledge_shared/sd_impl.md:10 ../../knowledge_shared/sd_impl.md:61
+#: 1aa118516ef84d32b4e2f3ea85c8842d 2fbd38ac4618478182d72d5a90bb0e10
+msgid "应用场景"
+msgstr "应用场景"
+
+#: ../../knowledge_shared/sd_impl.md:11 ../../knowledge_shared/sd_impl.md:65
+#: 6b859fe1953247338fa638fe7a240d9d fcb8d7e33123459c83f83673dd66fa3a
+msgid "提示词"
+msgstr "提示词"
+
+#: ../../knowledge_shared/sd_impl.md:15 06a6f778d27e405292e291159016310b
+msgid ""
+"采用的是CLIPTokenizer。 CLIP（Contrastive Language-Image Pre-"
+"training）是一个多模态学习框架，它通过联合学习图像和文本来捕捉视觉内容和语言之间的联系。CLIP模型由OpenAI提出，旨在使机器能够理解图像和文本之间的关系。CLIPTokenizer是用于处理文本数据，将其转换为模型可以处理的格式的工具。"
+msgstr ""
+"采用的是CLIPTokenizer。CLIP（对比语言-"
+"图像预训练）是一个多模式学习框架，它通过联合学习图像和文本来捕捉视觉内容和语言之间的联系。CLIP模型由OpenAI提出，旨在使机器能够理解图像和文本之间的关系。CLIPTokenizer是用于处理文本数据，将其转换为模型可以处理的格式的工具。"
+
+#: ../../knowledge_shared/sd_impl.md:18 63d3412c9e5e4adaac9b04491305fc42
+msgid ""
+"CLIP模型的文本部分通常基于Transformer架构，因此CLIPTokenizer遵循了大多数基于Transformer的模型（如BERT）的文本处理流程。以下是CLIPTokenizer的详解："
+msgstr ""
+"CLIP模型的文本部分通常基于Transformer架构，因此CLIPTokenizer遵循了大多数基于Transformer的模型（如BERT）的文本处理流程。以下是CLIPTokenizer的详解："
+
+#: ../../knowledge_shared/sd_impl.md:20 4a2d175d5ac34d63a553627f9b6030c7
+msgid ""
+"分词（Tokenization）：CLIPTokenizer将输入的文本字符串分割成更小的单元，称为tokens。这通常涉及到将单词分割成子词（subwords）或标记（tokens），以便模型可以更有效地处理。"
+msgstr ""
+"分词（Tokenization）：CLIPTokenizer将输入的文本字符串分割成更小的单元，称为tokens。这通常涉及到将单词分割成子词（subwords）或标记（tokens），以便模型可以更有效地处理。"
+
+#: ../../knowledge_shared/sd_impl.md:22 451facf814714dffab64d51eccde2c91
+msgid ""
+"特殊标记（Special "
+"Tokens）：为了表示序列的开始和结束，CLIPTokenizer会添加特殊的标记，如[CLS]和[SEP]。这些标记对于模型理解序列结构至关重要。"
+msgstr ""
+"特殊标记（Special "
+"Tokens）：为了表示序列的开始和结束，CLIPTokenizer会添加特殊的标记，如[CLS]和[SEP]。这些标记对于模型理解序列结构至关重要。"
+
+#: ../../knowledge_shared/sd_impl.md:24 31d6f8e5bf3d41eb9bbdc8fbabf0cca4
+msgid "填充（Padding）：由于模型通常需要固定长度的输入，CLIPTokenizer会将较短的序列填充到与序列中最长文本相同的长度。"
+msgstr "填充（Padding）：由于模型通常需要固定长度的输入，CLIPTokenizer会将较短的序列填充到与序列中最长文本相同的长度。"
+
+#: ../../knowledge_shared/sd_impl.md:26 abb94755a3bc4d4eba64c30f61aa83d2
+msgid "序列化（Truncation）：如果文本长度超过模型允许的最大长度，CLIPTokenizer会截断序列，以确保它符合模型的输入要求。"
+msgstr "序列化（Truncation）：如果文本长度超过模型允许的最大长度，CLIPTokenizer会截断序列，以确保它符合模型的输入要求。"
+
+#: ../../knowledge_shared/sd_impl.md:28 c7ea59a25faf40509bdc3ffaaa744c9d
+msgid ""
+"建立注意力掩码（Attention "
+"Mask）：CLIPTokenizer生成一个掩码来指示模型应该关注序列中的哪些部分。这通常用于区分实际的文本tokens和填充tokens。"
+msgstr ""
+"建立注意力掩码（Attention "
+"Mask）：CLIPTokenizer生成一个掩码来指示模型应该关注序列中的哪些部分。这通常用于区分实际的文本tokens和填充tokens。"
+
+#: ../../knowledge_shared/sd_impl.md:30 3c53e4ecea244fb4b12425312d003683
+msgid ""
+"建立类型掩码（Type Mask）：在多模态学习中，CLIPTokenizer可能会生成一个类型掩码来区分不同模态的输入，例如区分文本和图像特征。"
+msgstr ""
+"建立类型掩码（Type Mask）：在多模式学习中，CLIPTokenizer可能会生成一个类型掩码来区分不同模式的输入，例如区分文本和图像特征。"
+
+#: ../../knowledge_shared/sd_impl.md:32 901647034bf74d55ba03a45149842b08
+msgid ""
+"转换为ID（Token to ID "
+"conversion）：CLIPTokenizer将tokens转换为模型可以理解的整数ID，这些ID对应于模型词汇表中的特定词汇。"
+msgstr ""
+"转换为ID（Token to ID "
+"conversion）：CLIPTokenizer将tokens转换为模型可以理解的整数ID，这些ID对应于模型词汇表中的特定词汇。"
+
+#: ../../knowledge_shared/sd_impl.md:34 8cd79fabeb244073a49f994a88debf93
+msgid ""
+"输出：最终，CLIPTokenizer输出一个包含tokens ID、注意力掩码、类型掩码和可能的其他信息的字典，这些信息可以直接用于模型的输入。"
+msgstr ""
+"输出：最终，CLIPTokenizer输出一个包含tokens ID、注意力掩码、类型掩码和可能的其他信息的字典，这些信息可以直接用于模型的输入。"
+
+#: ../../knowledge_shared/sd_impl.md:36 c5fbfa84d8514aeba38ea7f99c99569e
+msgid ""
+"CLIPTokenizer的具体实现细节可能会根据所使用的模型版本和库（如Hugging "
+"Face的Transformers库）有所不同。在实际应用中，开发者通常会使用现有的库来处理这些文本预处理任务，因为它们提供了高效的实现和对不同模型的广泛支持。"
+msgstr ""
+"CLIPTokenizer的具体实现细节可能会根据所使用的模型版本和库（如Hugging "
+"Face的Transformers库）有所不同。在实际应用中，开发者通常会使用现有的库来处理这些文本预处理任务，因为它们提供了高效的实现和对不同模型的广泛支持。"
+
+#: ../../knowledge_shared/sd_impl.md:38 e043c66a633b440ab41bddc63d51784f
+msgid ""
+"如果你需要一个具体的代码示例或者想了解如何使用某个特定的库（如Hugging "
+"Face的Transformers）来实现CLIPTokenizer，请提供更多的上下文，我会根据你的需要提供相应的信息。"
+msgstr ""
+"如果你需要一个具体的代码示例或者想了解如何使用某个特定的库（如Hugging "
+"Face的Transformers）来实现CLIPTokenizer，请提供更多的上下文，我会根据你的需求提供相应的信息。"
+
+#: ../../knowledge_shared/sd_impl.md:42 e2ffc82e6b0048c5a37cdc68f0881ee4
+msgid ""
+"CLIP（Contrastive Language-Image Pre-"
+"training）是输入图像和文本，输出它们之间的相似度分数的模型。CLIP模型的核心思想是使用对比学习（contrastive "
+"learning）的方法，通过最大化相关图像和文本对的相似度，最小化不相关对的相似度，来训练一个多模态模型。"
+msgstr ""
+"CLIP（对比语言-图像预训练）是输入图像和文本，输出它们之间的相似度分数的模型。CLIP模型的核心思想是使用对比学习（contrastive "
+"learning）的方法，通过最大化相关图像和文本对的相似度，最小化不相关对的相似度，来训练一个多模式模型。"
+
+#: ../../knowledge_shared/sd_impl.md:46 ec99b7a7ade64269b3416867d6e3674f
+msgid ""
+"UNET是一种用于图像分割的卷积神经网络架构。Unet "
+"有两个部分，编码器和解码器。编码器用于提取图像的特征，解码器用于将特征映射回原始图像空间。UNET的主要特点是它具有跳跃连接（skip "
+"connections），这些连接可以帮助模型更好地捕捉不同尺度的特征。"
+msgstr ""
+"UNET是一种用于图像分割的卷积神经网络架构。Unet有两个部分，编码器和解码器。编码器用于提取图像的特征，解码器用于将特征映射回原始图像空间。UNET的主要特点是它具有跳跃连接（skip"
+" connections），这些连接可以帮助模型更好地捕捉不同尺度的特征。"
+
+#: ../../knowledge_shared/sd_impl.md:50 3a9675150fe949fa84e66735d9fc19e6
+msgid ""
+"VAE（Variational "
+"Autoencoder）是一种生成模型，它通过学习数据的潜在表示来生成新的数据样本。VAE通常由两部分组成：编码器和解码器。编码器将输入数据映射到潜在空间中的分布，解码器则将潜在表示映射回原始数据空间。"
+msgstr ""
+"VAE（变分自编码器）是一种生成模型，它通过学习数据的潜在表示来生成新的数据样本。VAE通常由两部分组成：编码器和解码器。编码器将输入数据映射到潜在空间中的分布，解码器则将潜在表示映射回原始数据空间。"
+
+#: ../../knowledge_shared/sd_impl.md:54 40a3d162725847c4a0885a0f0afc87d9
+msgid "lora是一种微调技术. 微调一些weight, 固定weight, 实现快速fine-tuning."
+msgstr "lora是一种微调技术。微调一些权重，固定权重，实现快速fine-tuning。"
+
+#: ../../knowledge_shared/sd_impl.md:58 c47945e04e704411b7cc724cba0b3f9c
+msgid ""
+"Control Net是一种用于控制生成模型输出的技术。通过Control "
+"Net，用户可以指定生成模型输出的一些属性或特征，例如生成图像的颜色、风格、内容等。 control net组成：encoder, decoder, "
+"control module."
+msgstr ""
+"Control Net是一种用于控制生成模型输出的技术。通过Control "
+"Net，用户可以指定生成模型输出的一些属性或特征，例如生成图像的颜色、风格、内容等。 control net组成：encoder, decoder, "
+"control module."
+
+#: ../../knowledge_shared/sd_impl.md:63 36766712b12a4514b4eb9f5472b2e929
+msgid "stable diffusion 可以应用于图像生成."
+msgstr "stable diffusion 可以应用于图像生成。"
+
+#: ../../knowledge_shared/sd_impl.md:67 da439d52e7094ba9bac5977c2c6fc793
+msgid "例如: \"a photo of a cat\"."
+msgstr "例如: \"一张猫的照片\"."

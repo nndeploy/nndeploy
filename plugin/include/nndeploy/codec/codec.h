@@ -118,7 +118,7 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
       return;
     }
   }
-  virtual ~EncodeNode(){};
+  virtual ~EncodeNode() {};
 
   base::Status setCodecFlag(base::CodecFlag flag) {
     flag_ = flag;
@@ -152,17 +152,17 @@ using createDecodeNodeFunc = std::function<DecodeNode *(
 using createDecodeNodeSharedPtrFunc = std::function<std::shared_ptr<DecodeNode>(
     base::CodecFlag flag, const std::string &name, dag::Edge *output)>;
 
-std::map<base::CodecType, createDecodeNodeFunc>
-    &getGlobaCreatelDecodeNodeFuncMap();
+std::map<base::CodecType, createDecodeNodeFunc> &
+getGlobalCreateDecodeNodeFuncMap();
 
-std::map<base::CodecType, createDecodeNodeSharedPtrFunc>
-    &getGlobaCreatelDecodeNodeSharedPtrFuncMap();
+std::map<base::CodecType, createDecodeNodeSharedPtrFunc> &
+getGlobalCreateDecodeNodeSharedPtrFuncMap();
 
 class TypeCreatelDecodeNodeRegister {
  public:
   explicit TypeCreatelDecodeNodeRegister(base::CodecType type,
                                          createDecodeNodeFunc func) {
-    getGlobaCreatelDecodeNodeFuncMap()[type] = func;
+    getGlobalCreateDecodeNodeFuncMap()[type] = func;
   }
 };
 
@@ -170,7 +170,7 @@ class TypeCreatelDecodeNodeSharedPtrRegister {
  public:
   explicit TypeCreatelDecodeNodeSharedPtrRegister(
       base::CodecType type, createDecodeNodeSharedPtrFunc func) {
-    getGlobaCreatelDecodeNodeSharedPtrFuncMap()[type] = func;
+    getGlobalCreateDecodeNodeSharedPtrFuncMap()[type] = func;
   }
 };
 extern NNDEPLOY_CC_API DecodeNode *createDecodeNode(base::CodecType type,
@@ -187,17 +187,17 @@ using createEncodeNodeFunc = std::function<EncodeNode *(
 using createEncodeNodeSharedPtrFunc = std::function<std::shared_ptr<EncodeNode>(
     base::CodecFlag flag, const std::string &name, dag::Edge *input)>;
 
-std::map<base::CodecType, createEncodeNodeFunc>
-    &getGlobaCreatelEncodeNodeFuncMap();
+std::map<base::CodecType, createEncodeNodeFunc> &
+getGlobalCreateEncodeNodeFuncMap();
 
-std::map<base::CodecType, createEncodeNodeSharedPtrFunc>
-    &getGlobaCreatelEncodeNodeSharedPtrFuncMap();
+std::map<base::CodecType, createEncodeNodeSharedPtrFunc> &
+getGlobalCreateEncodeNodeSharedPtrFuncMap();
 
 class TypeCreatelEncodeNodeRegister {
  public:
   explicit TypeCreatelEncodeNodeRegister(base::CodecType type,
                                          createEncodeNodeFunc func) {
-    getGlobaCreatelEncodeNodeFuncMap()[type] = func;
+    getGlobalCreateEncodeNodeFuncMap()[type] = func;
   }
 };
 
@@ -205,7 +205,7 @@ class TypeCreatelEncodeNodeSharedPtrRegister {
  public:
   explicit TypeCreatelEncodeNodeSharedPtrRegister(
       base::CodecType type, createEncodeNodeSharedPtrFunc func) {
-    getGlobaCreatelEncodeNodeSharedPtrFuncMap()[type] = func;
+    getGlobalCreateEncodeNodeSharedPtrFuncMap()[type] = func;
   }
 };
 

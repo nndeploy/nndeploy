@@ -32,7 +32,7 @@ base::Status OpenCvImageDecodeNode::run() {
   cv::Mat *mat = new cv::Mat(cv::imread(path_));
   width_ = mat->cols;
   height_ = mat->rows;
-  outputs_[0]->set(mat, index_, false);
+  outputs_[0]->set(mat, false);
   index_++;
   return base::kStatusCodeOk;
 }
@@ -83,7 +83,7 @@ base::Status OpenCvImagesDecodeNode::run() {
   if (index_ < size_) {
     std::string image_path = images_[index_];
     cv::Mat *mat = new cv::Mat(cv::imread(image_path));
-    outputs_[0]->set(mat, index_, false);
+    outputs_[0]->set(mat, false);
     index_++;
     return base::kStatusCodeOk;
   } else {
@@ -138,7 +138,7 @@ base::Status OpenCvVedioDecodeNode::run() {
   if (index_ < size_) {
     cv::Mat *mat = new cv::Mat();
     cap_->read(*mat);
-    outputs_[0]->set(mat, index_, false);
+    outputs_[0]->set(mat, false);
     index_++;
     return base::kStatusCodeOk;
   } else {
@@ -191,7 +191,7 @@ base::Status OpenCvCameraDecodeNode::run() {
   if (index_ < size_) {
     cv::Mat *mat = new cv::Mat();
     cap_->read(*mat);
-    outputs_[0]->set(mat, index_, false);
+    outputs_[0]->set(mat, false);
     index_++;
     return base::kStatusCodeOk;
   } else {

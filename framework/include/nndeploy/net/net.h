@@ -24,6 +24,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
                                base::ShapeMap &opt_shape,
                                base::ShapeMap &max_shape);
   base::Status setTensorPoolType(TensorPoolType tensor_pool_type);
+  base::Status setTensorPoolMemory(bool is_external);
 
   TensorWrapper *createTensor(const std::string &name, bool is_weight = false);
   TensorWrapper *addTensor(device::Tensor *tensor, bool is_external = true,
@@ -150,6 +151,7 @@ class NNDEPLOY_CC_API Net : public op::Op {
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape
   TensorPoolType tensor_pool_type_ =
       kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
+  bool tensor_pool_memory_is_external_ = false;
   Runtime *runtime_ = nullptr;
 
   bool net_opt_flag_ = true;           // 默认开启图优化

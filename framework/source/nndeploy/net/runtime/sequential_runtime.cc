@@ -23,7 +23,8 @@ base::Status SequentialRuntime::init(
     std::vector<OpWrapper *> &op_repository,
     std::vector<device::Tensor *> &input_tensors,
     std::vector<device::Tensor *> &output_tensors, bool is_dynamic_shape,
-    base::ShapeMap max_shape, TensorPoolType tensor_pool_type) {
+    base::ShapeMap max_shape, TensorPoolType tensor_pool_type,
+    bool is_external_tensor_pool_memory) {
   base::Status status = base::kStatusCodeOk;
   device::Device *device = device::getDevice(device_type_);
 
@@ -46,6 +47,8 @@ base::Status SequentialRuntime::init(
   tensor_pool_type_ = tensor_pool_type;
   tensor_pool_ = createTensorPool(tensor_pool_type_, device, tensor_repository,
                                   op_repository);
+  is_external_tensor_pool_memory_ = is_external_tensor_pool_memory;
+  tensor_pool_->setIsExternal(is_external_tensor_pool_memory);
   /**
    * @brief
    * 如果是动态shape且max_shape为空时，那么不需要分配tensor

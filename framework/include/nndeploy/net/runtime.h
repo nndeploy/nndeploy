@@ -85,7 +85,8 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
       std::vector<device::Tensor *> &output_tensors, bool is_dynamic_shape,
       base::ShapeMap max_shape,
       TensorPoolType tensor_pool_type =
-          kTensorPool1DSharedObjectTypeGreedyBySizeImprove) = 0;
+          kTensorPool1DSharedObjectTypeGreedyBySizeImprove,
+      bool is_external_tensor_pool_memory = false) = 0;
   virtual base::Status deinit() = 0;
 
   virtual base::Status reshape(base::ShapeMap &shape_map) = 0;
@@ -139,6 +140,7 @@ class NNDEPLOY_CC_API Runtime : public base::NonCopyable {
   device::Stream *stream_ = nullptr;
   TensorPoolType tensor_pool_type_ =
       kTensorPool1DOffsetCalculateTypeGreedyByBreadth;
+  bool is_external_tensor_pool_memory_ = false;
   TensorPool *tensor_pool_;
   bool is_dynamic_shape_ = false;                // 是否是动态shape
   base::ShapeMap max_shape_ = base::ShapeMap();  // 当为动态输入时最大shape

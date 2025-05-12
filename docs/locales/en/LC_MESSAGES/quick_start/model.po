@@ -1,0 +1,254 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../quick_start/model.md:2 e0df8f2cd5434e218662e154cf50d22b
+msgid "model"
+msgstr "model"
+
+#: ../../quick_start/model.md:4 6c50e4ba80d34be9a67be54a9915674e
+msgid "nndeploy官方采用的模型文件放在modelscope社区和huggingface社区。"
+msgstr ""
+"The model files officially adopted by nndeploy are placed in the ModelScope "
+"community and HuggingFace community."
+
+#: ../../quick_start/model.md:6 5580ea845e3247d9b44a5e063af3cdd2
+msgid "nndeploy在modelscope社区的的官方仓库为modelscope/nndeploy"
+msgstr ""
+"The official repository of nndeploy in the ModelScope community is "
+"modelscope/nndeploy."
+
+#: ../../quick_start/model.md:7 36ea8ca317b74c098c0e9d70cf76b219
+msgid "nndeploy在huggingface社区的的官方仓库为huggingface/nndeploy"
+msgstr ""
+"The official repository of nndeploy in the HuggingFace community is "
+"huggingface/nndeploy."
+
+#: ../../quick_start/model.md:9 1bf0d0f3d5814011a7aae7213953466d
+msgid "开发者完成模型部署后，需将对应的模型文件上传到以下平台并更新模型列表"
+msgstr ""
+"After completing the model deployment, developers need to upload the "
+"corresponding model files to the following platforms and update the model "
+"list."
+
+#: ../../quick_start/model.md:11 42a1baef40b1438db9ec55e277347967
+msgid "nndeploy在modelscope社区的的官方仓库modelscope/nndeploy"
+msgstr ""
+"The official repository of nndeploy in the ModelScope community "
+"modelscope/nndeploy."
+
+#: ../../quick_start/model.md:12 cdde705e580e4701813e0885cf3a5d74
+msgid "nndeploy在huggingface社区的的官方仓库huggingface/nndeploy"
+msgstr ""
+"The official repository of nndeploy in the HuggingFace community "
+"huggingface/nndeploy."
+
+#: ../../quick_start/model.md:13 e737ba64073849519de1dc5ef5e23d31
+msgid "开发者自己的modelscope社区仓库"
+msgstr "Developer's own ModelScope community repository."
+
+#: ../../quick_start/model.md:14 808accf3a6244fdda569e0f903c7b5e3
+msgid "开发者自己的huggingface社区仓库"
+msgstr "Developer's own HuggingFace community repository."
+
+#: ../../quick_start/model.md:15 de71184bb1fc446ead7eca7bcef6211b
+msgid "开发者熟悉的开放平台"
+msgstr "Open platforms familiar to developers."
+
+#: ../../quick_start/model.md:17 0e08b04c23c94206aa53d8278b8e74fd
+msgid "使用指南"
+msgstr "Usage guide."
+
+#: ../../quick_start/model.md:19 af5ac8a904b242959d6d19f3ddc814dc
+msgid "modelscope使用指南modelscope使用指南"
+msgstr "ModelScope usage guide ModelScope usage guide."
+
+#: ../../quick_start/model.md:20 8e7932074b7f44c9889451788362f5a5
+msgid "huggingface使用指南huggingface使用指南"
+msgstr "HuggingFace usage guide HuggingFace usage guide."
+
+#: ../../quick_start/model.md:22 cf9b2b0c6d0d41859849bd530e0e51cc
+msgid "支持模型列表和下载链接"
+msgstr "Support model list and download links."
+
+#: ../../quick_start/model.md:24 bf7ad9d7b2ae40819b80d6febe7cc34d
+msgid "classification"
+msgstr "classification"
+
+#: ../../quick_start/model.md:26 d883fb4c5b114c428ac960ab3c624d20
+msgid ""
+"classification/resnet50-v1-7.onnx: ResNet50-v1-7, Model Type: onnx, input "
+"size: Nx3x224x224, classes: 1000, download"
+msgstr ""
+"classification/resnet50-v1-7.onnx: ResNet50-v1-7, Model Type: onnx, input "
+"size: Nx3x224x224, classes: 1000, download."
+
+#: ../../quick_start/model.md:27 3f636aaa9f4d4f3ead73ad2f9530bb9a
+msgid ""
+"classification/resnet50-v1-7.sim.onnx: onnx sim model of ResNet50-v1-7, "
+"Model Type: onnx, input size: Nx3x224x224, classes: 1000, download"
+msgstr ""
+"classification/resnet50-v1-7.sim.onnx: onnx sim model of ResNet50-v1-7, "
+"Model Type: onnx, input size: Nx3x224x224, classes: 1000, download."
+
+#: ../../quick_start/model.md:28 9e6bfc42d30e4e32a9b7ddecedf06400
+msgid ""
+"classification/resnet50-v1-7.slim.onnx: onnx slim model of ResNet50-v1-7, "
+"Model Type: onnx, input size: Nx3x224x224, classes: 1000, download"
+msgstr ""
+"classification/resnet50-v1-7.slim.onnx: onnx slim model of ResNet50-v1-7, "
+"Model Type: onnx, input size: Nx3x224x224, classes: 1000, download."
+
+#: ../../quick_start/model.md:29 ed3bb093f9ca4475b384825e678d2a18
+msgid ""
+"classification/resnet50-v1-7.staticshape.onnx: static shape model of "
+"ResNet50-v1-7, Model Type: onnx, input size: 1x3x224x224, classes: 1000, "
+"download"
+msgstr ""
+"classification/resnet50-v1-7.staticshape.onnx: static shape model of "
+"ResNet50-v1-7, Model Type: onnx, input size: 1x3x224x224, classes: 1000, "
+"download."
+
+#: ../../quick_start/model.md:30 cbb4ce7ef5fc444e9fedb971c7efbc5d
+msgid ""
+"classification/resnet50-v1-7.staticshape.slim.onnx: static shape slim model "
+"of ResNet50-v1-7, Model Type: onnx, input size: 1x3x224x224, classes: 1000, "
+"download"
+msgstr ""
+"classification/resnet50-v1-7.staticshape.slim.onnx: static shape slim model "
+"of ResNet50-v1-7, Model Type: onnx, input size: 1x3x224x224, classes: 1000, "
+"download."
+
+#: ../../quick_start/model.md:31 bc7392dd94104eea99b127ed0985f0a6
+msgid ""
+"classification/resnet50-v1-7.staticshape.onnx.json/classification/resnet50-v1-7.staticshape.onnx.safetensor:"
+" static shape model of ResNet50-v1-7, Model Type: nndeploy, input size: "
+"1x3x224x224, classes: 1000, download"
+msgstr ""
+"classification/resnet50-v1-7.staticshape.onnx.json/classification/resnet50-v1-7.staticshape.onnx.safetensor:"
+" static shape model of ResNet50-v1-7, Model Type: nndeploy, input size: "
+"1x3x224x224, classes: 1000, download."
+
+#: ../../quick_start/model.md:32 68367cca9ab24664a0ce36facf657e9d
+msgid ""
+"classification/resnet50-v1-7.onnx.om: ResNet50-v1-7, Model Type: "
+"AscendCL(Ascend910B4), input size: 1x3x224x224, classes: 1000, download"
+msgstr ""
+"classification/resnet50-v1-7.onnx.om: ResNet50-v1-7, Model Type: "
+"AscendCL(Ascend910B4), input size: 1x3x224x224, classes: 1000, download."
+
+#: ../../quick_start/model.md:34 50382381fea841efb58725acb362ccfe
+msgid "detect"
+msgstr "detect"
+
+#: ../../quick_start/model.md:36 46e57bcebe6b40e08d7540830e3a993a
+msgid ""
+"detect/yolov11s.onnx: YOLOv11s, Model Type: onnx, input size: Nx640x640x3, "
+"classes: 80, download"
+msgstr ""
+"detect/yolov11s.onnx: YOLOv11s, Model Type: onnx, input size: Nx640x640x3, "
+"classes: 80, download."
+
+#: ../../quick_start/model.md:37 0bb5713c35664bbeba2e90870a627022
+msgid ""
+"detect/yolov11s.sim.onnx: onnx sim model of YOLOv11s, Model Type: onnx, "
+"input size: 1x640x640x3, classes: 80, download"
+msgstr ""
+"detect/yolov11s.sim.onnx: onnx sim model of YOLOv11s, Model Type: onnx, "
+"input size: 1x640x640x3, classes: 80, download."
+
+#: ../../quick_start/model.md:38 92ce65b5dbe44e18b4b56fbf18c2d804
+msgid ""
+"detect/yolov11s.slim.onnx: onnx slim model of YOLOv11s, Model Type: onnx, "
+"input size: 1x640x640x3, classes: 80, download"
+msgstr ""
+"detect/yolov11s.slim.onnx: onnx slim model of YOLOv11s, Model Type: onnx, "
+"input size: 1x640x640x3, classes: 80, download."
+
+#: ../../quick_start/model.md:39 0a300171055f42c4b7f7bcbf13c04f31
+msgid ""
+"detect/yolov11s.sim.onnx.json/detect/yolov11s.sim.onnx.safetensor: YOLOv11s,"
+" Model Type: nndeploy, input size: 1x640x640x3, classes: 80, download"
+msgstr ""
+"detect/yolov11s.sim.onnx.json/detect/yolov11s.sim.onnx.safetensor: YOLOv11s,"
+" Model Type: nndeploy, input size: 1x640x640x3, classes: 80, download."
+
+#: ../../quick_start/model.md:40 5559d78469e64fc282523bb8e28adb41
+msgid ""
+"detect/yolov11s.onnx.om: YOLOv11s, Model Type: AscendCL(Ascend910B4), input "
+"size: 1x640x640x3, classes: 80, download"
+msgstr ""
+"检测/yolov11s.onnx.om: YOLOv11s, 模型类型: AscendCL(Ascend910B4), 输入尺寸: "
+"1x640x640x3, 类别: 80, 下载"
+
+#: ../../quick_start/model.md:42 2e6f1fb429b740959739aeb870c671fe
+msgid ""
+"detect/yolov8n.onnx: YOLOv8n, Model Type: onnx, input size: Nx640x640x3, "
+"classes: 80, download"
+msgstr "检测/yolov8n.onnx: YOLOv8n, 模型类型: onnx, 输入尺寸: Nx640x640x3, 类别: 80, 下载"
+
+#: ../../quick_start/model.md:44 74328b0fc4a74f5c82c7fec10f8dd290
+msgid "segment"
+msgstr "分割"
+
+#: ../../quick_start/model.md:46 d485c627c4d34b4f8d675b862641893c
+msgid ""
+"segment/RMBGV1.4.onnx: RMBGV1.4, Model Type: onnx, input size: "
+"Nx1x1024x1024, download"
+msgstr "分割/RMBGV1.4.onnx: RMBGV1.4, 模型类型: onnx, 输入尺寸: Nx1x1024x1024, 下载"
+
+#: ../../quick_start/model.md:47 21c12da7d6d442b19c604e082279aaa3
+msgid ""
+"segment/RMBGV1.4.staticshape.onnx: static shape model of RMBGV1.4, Model "
+"Type: onnx, input size: 1x1x1024x1024, download"
+msgstr ""
+"分割/RMBGV1.4.staticshape.onnx: RMBGV1.4的静态形状模型, 模型类型: onnx, 输入尺寸: "
+"1x1x1024x1024, 下载"
+
+#: ../../quick_start/model.md:48 b8097cab3029499a84a9df6ea168bed3
+msgid ""
+"segment/RMBGV1.4.sim.onnx: onnx sim model of RMBGV1.4, Model Type: onnx, "
+"input size: 1x1x1024x1024, download"
+msgstr ""
+"分割/RMBGV1.4.sim.onnx: RMBGV1.4的onnx简化模型, 模型类型: onnx, 输入尺寸: 1x1x1024x1024, 下载"
+
+#: ../../quick_start/model.md:49 3fe1ac5a523c4bd3b44cf545810f488e
+msgid ""
+"segment/RMBGV1.4.slim.onnx: onnx slim model of RMBGV1.4, Model Type: onnx, "
+"input size: 1x1x1024x1024, download"
+msgstr ""
+"分割/RMBGV1.4.slim.onnx: RMBGV1.4的onnx精简模型, 模型类型: onnx, 输入尺寸: 1x1x1024x1024, "
+"下载"
+
+#: ../../quick_start/model.md:50 5234e25e1a204a72a4be11f078b51462
+msgid ""
+"segment/RMBGV1.4.slim.onnx.json/segment/RMBGV1.4.slim.onnx.safetensor: "
+"RMBGV1.4, Model Type: nndeploy, input size: 1x1x1024x1024, download"
+msgstr ""
+"分割/RMBGV1.4.slim.onnx.json/分割/RMBGV1.4.slim.onnx.safetensor: RMBGV1.4, 模型类型:"
+" nndeploy, 输入尺寸: 1x1x1024x1024, 下载"
+
+#: ../../quick_start/model.md:52 660de6da8754433c894e013a1788c9be
+msgid ""
+"segment/RMBGV1.4.onnx.om: RMBGV1.4, Model Type: AscendCL(Ascend910B4), input"
+" size: 1x1x1024x1024, download"
+msgstr ""
+"分割/RMBGV1.4.onnx.om: RMBGV1.4, 模型类型: AscendCL(Ascend910B4), 输入尺寸: "
+"1x1x1024x1024, 下载"

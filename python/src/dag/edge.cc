@@ -24,15 +24,15 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("construct", &Edge::construct)
 
       // Buffer相关操作
-      .def("set", py::overload_cast<device::Buffer*, int, bool>(&Edge::set),
-           py::arg("buffer"), py::arg("index"), py::arg("is_external") = true)
-      .def("set", py::overload_cast<device::Buffer&, int>(&Edge::set),
-           py::arg("buffer"), py::arg("index"))
+      .def("set", py::overload_cast<device::Buffer*, bool>(&Edge::set),
+           py::arg("buffer"), py::arg("is_external") = true)
+      .def("set", py::overload_cast<device::Buffer&>(&Edge::set),
+           py::arg("buffer"))
       .def("create",
-           static_cast<device::Buffer* (
-               Edge::*)(device::Device*, const device::BufferDesc&, int)>(
+           static_cast<device::Buffer* (Edge::*)(device::Device*,
+                                                 const device::BufferDesc&)>(
                &Edge::create),
-           py::arg("device"), py::arg("desc"), py::arg("index"),
+           py::arg("device"), py::arg("desc"),
            py::return_value_policy::reference)
       .def("notify_written",
            py::overload_cast<device::Buffer*>(&Edge::notifyWritten),
@@ -44,16 +44,14 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
       // OpenCV Mat相关操作
-      .def("set", py::overload_cast<cv::Mat*, int, bool>(&Edge::set),
-           py::arg("cv_mat"), py::arg("index"), py::arg("is_external") = true)
-      .def("set", py::overload_cast<cv::Mat&, int>(&Edge::set),
-           py::arg("cv_mat"), py::arg("index"))
-      .def(
-          "create",
-          static_cast<cv::Mat* (Edge::*)(int, int, int, const cv::Vec3b&, int)>(
-              &Edge::create),
-          py::arg("rows"), py::arg("cols"), py::arg("type"), py::arg("value"),
-          py::arg("index"), py::return_value_policy::reference)
+      .def("set", py::overload_cast<cv::Mat*, bool>(&Edge::set),
+           py::arg("cv_mat"), py::arg("is_external") = true)
+      .def("set", py::overload_cast<cv::Mat&>(&Edge::set), py::arg("cv_mat"))
+      .def("create",
+           static_cast<cv::Mat* (Edge::*)(int, int, int, const cv::Vec3b&)>(
+               &Edge::create),
+           py::arg("rows"), py::arg("cols"), py::arg("type"), py::arg("value"),
+           py::return_value_policy::reference)
       .def("notify_written", py::overload_cast<cv::Mat*>(&Edge::notifyWritten),
            py::arg("cv_mat"))
       .def("get_cv_mat", &Edge::getCvMat, py::arg("node"),
@@ -63,16 +61,16 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
 #endif
 
       // Tensor相关操作
-      .def("set", py::overload_cast<device::Tensor*, int, bool>(&Edge::set),
-           py::arg("tensor"), py::arg("index"), py::arg("is_external") = true)
-      .def("set", py::overload_cast<device::Tensor&, int>(&Edge::set),
-           py::arg("tensor"), py::arg("index"))
+      .def("set", py::overload_cast<device::Tensor*, bool>(&Edge::set),
+           py::arg("tensor"), py::arg("is_external") = true)
+      .def("set", py::overload_cast<device::Tensor&>(&Edge::set),
+           py::arg("tensor"))
       .def("create",
            static_cast<device::Tensor* (Edge::*)(device::Device*,
-                                                 const device::TensorDesc&, int,
+                                                 const device::TensorDesc&,
                                                  std::string)>(&Edge::create),
-           py::arg("device"), py::arg("desc"), py::arg("index"),
-           py::arg("tensor_name") = "", py::return_value_policy::reference)
+           py::arg("device"), py::arg("desc"), py::arg("tensor_name") = "",
+           py::return_value_policy::reference)
       .def("notify_written",
            py::overload_cast<device::Tensor*>(&Edge::notifyWritten),
            py::arg("tensor"))
@@ -82,10 +80,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::return_value_policy::reference)
 
       // Param相关操作
-      .def("set", py::overload_cast<base::Param*, int, bool>(&Edge::set),
-           py::arg("param"), py::arg("index"), py::arg("is_external") = true)
-      .def("set", py::overload_cast<base::Param&, int>(&Edge::set),
-           py::arg("param"), py::arg("index"))
+      .def("set", py::overload_cast<base::Param*, bool>(&Edge::set),
+           py::arg("param"), py::arg("is_external") = true)
+      .def("set", py::overload_cast<base::Param&>(&Edge::set), py::arg("param"))
       .def("notify_written",
            py::overload_cast<base::Param*>(&Edge::notifyWritten),
            py::arg("param"))

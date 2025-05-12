@@ -22,8 +22,7 @@ base::Status CvtColorResizePad::run() {
     desc.shape_ = {1, tmp_param->h_, tmp_param->w_,
                    getChannelByPixelType(tmp_param->dst_pixel_type_)};
   }
-  device::Tensor *dst =
-      outputs_[0]->create(device, desc, inputs_[0]->getIndex(this));
+  device::Tensor *dst = outputs_[0]->create(device, desc);
 
   int c = dst->getChannel();
   int h = dst->getHeight();

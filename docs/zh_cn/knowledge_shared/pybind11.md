@@ -139,7 +139,7 @@ std::string toString() override {
 DecodeNode *createDecodeNode(base::CodecType type, base::CodecFlag flag,
                              const std::string &name, dag::Edge *output) {
   DecodeNode *temp = nullptr;
-  auto &map = getGlobaCreatelDecodeNodeFuncMap();
+  auto &map = getGlobalCreateDecodeNodeFuncMap();
   if (map.count(type) > 0) {
     temp = map[type](flag, name, output);
   }
@@ -185,7 +185,7 @@ py::class_<Node, PyNode, std::shared_ptr<Node>>(m, "Node", py::dynamic_attr())
 DecodeNode *createDecodeNode(base::CodecType type, base::CodecFlag flag,
                              const std::string &name, dag::Edge *output) {
   DecodeNode *temp = nullptr;
-  auto &map = getGlobaCreatelDecodeNodeFuncMap();
+  auto &map = getGlobalCreateDecodeNodeFuncMap();
   if (map.count(type) > 0) {
     temp = map[type](flag, name, output);
   }

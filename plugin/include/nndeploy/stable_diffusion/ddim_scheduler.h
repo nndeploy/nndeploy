@@ -29,40 +29,68 @@
 namespace nndeploy {
 namespace stable_diffusion {
 
+class NNDEPLOY_CC_API DDIMSchedulerParam : public SchedulerParam {
+ public:
+  DDIMSchedulerParam() : SchedulerParam() {}
+  virtual ~DDIMSchedulerParam() {}
+
+  PARAM_COPY(DDIMSchedulerParam);
+  PARAM_COPY_TO(DDIMSchedulerParam);
+
+  DDIMSchedulerParam &operator=(const DDIMSchedulerParam &other) {
+    if (this == &other) {
+      return *this;
+    }
+    SchedulerParam::operator=(other);
+    beta_start_ = other.beta_start_;
+    beta_end_ = other.beta_end_;
+    beta_schedule_ = other.beta_schedule_;
+    eta_ = other.eta_;
+    set_alpha_to_one_ = other.set_alpha_to_one_;
+    return *this;
+  }
+
+  DDIMSchedulerParam *clone() const;
+
+ public:
+  float beta_start_ = 0.00085;                   // beta起始值
+  float beta_end_ = 0.012;                       // beta结束值
+  std::string beta_schedule_ = "scaled_linear";  // beta调度方式
+  float eta_ = 0.0;
+  bool set_alpha_to_one_ = false;  // 是否将alpha的累积乘积的最后一个元素设置为1
+};
+
 class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {
  public:
   DDIMScheduler(SchedulerType scheduler_type);
   virtual ~DDIMScheduler();
 
-  virtual base::Status init();
+  virtual base::Status init(SchedulerParam *param);
   virtual base::Status deinit();
 
   virtual base::Status setTimesteps();
 
-  virtual device::Tensor *scaleModelInput(device::Tensor *sample, int index);
+  virtual base::Status scaleModelInput(device::Tensor *sample, int index);
 
-  float getVariance(int64_t timesteps, int64_t prev_timestep);
+  virtual base::Status step(device::Tensor *sample, device::Tensor *timestep,
+                            device::Tensor *latents,
+                            device::Tensor *pre_sample);
 
-  virtual base::Status configure();
+  virtual std::vector<int> &getTimesteps();
 
-  virtual base::Status step(device::Tensor *output, device::Tensor *sample,
-                            int idx, float timestep, float eta = 0,
-                            bool use_clipped_model_output = false,
-                            std::mt19937 generator = std::mt19937(),
-                            device::Tensor *variance_noise = nullptr);
-
-  virtual base::Status addNoise(device::Tensor *init_latents,
-                                device::Tensor *noise, int idx,
-                                int latent_timestep);
-
-  virtual std::vector<float> &getTimestep();
+  base::Status step_inner(std::vector<float> &sample, int timestep,
+                          std::vector<float> &latents,
+                          std::vector<float> &prev_sample);
 
  public:
-  std::vector<float> alphas_cumprod_;  // alpha的累积乘积
-  float final_alpha_cumprod_ = 1.0;
+  float final_alpha_cumprod_ = 0.0;
 
-  std::vector<float> timesteps_;  // 时间步序列
-  std::vector<float> variance_;   // 方差
+  std::vector<float> betas_;
+  std::vector<float> alphas_;
+  std::vector<float> alphas_cumprod_;
+
+  std::vector<int> timesteps_;  // 时间步序列
+  DDIMSchedulerParam *ddim_scheduler_param_ = nullptr;
 };
 
 }  // namespace stable_diffusion

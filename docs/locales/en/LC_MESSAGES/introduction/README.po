@@ -1,0 +1,400 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../introduction/README.md:2 a54d6ee2c18f4b57bf9122c05633c449
+msgid "English | 简体中文"
+msgstr "English | Simplified Chinese"
+
+#: ../../introduction/README.md:4 c606a5f3710548c3b01f157062e86ec9
+msgid "介绍"
+msgstr "Introduction"
+
+#: ../../introduction/README.md:6 9aa019740fc340b5b73ed76b21193287
+msgid "nndeploy是一款模型端到端部署框架。以多端推理以及基于有向无环图模型部署为基础，致力为用户提供跨平台、简单易用、高性能的模型部署体验。"
+msgstr ""
+"nndeploy is an end-to-end model deployment framework. Based on multi-end "
+"inference and deployment on directed acyclic graph models, it aims to "
+"provide users with a cross-platform, simple-to-use, and high-performance "
+"model deployment experience."
+
+#: ../../introduction/README.md:8 967149cf35f845ddb9fa74e16f2665b7
+msgid "架构"
+msgstr "Architecture"
+
+#: ../../introduction/README.md ../../introduction/README.md:10
+#: 5ab04e1a82d74793a54668f7aa843214 5f76c47455b24b26bc5f9744ff3be5f5
+msgid "Architecture"
+msgstr "Architecture"
+
+#: ../../introduction/README.md:12 05f27be05aaf47a1b23c10336cde6208
+msgid "特性"
+msgstr "Features"
+
+#: ../../introduction/README.md:14 9b748408be6848849d85b7a9b83b6cc8
+msgid "1. 开箱即用的算法"
+msgstr "1. Ready-to-use algorithms"
+
+#: ../../introduction/README.md:16 80214393b0fb4793be56c9f20ccb04de
+msgid "目前已完成 YOLOV5、YOLOV6、YOLOV8 等模型的部署，可供您直接使用，后续我们持续不断去部署其它开源模型，让您开箱即用"
+msgstr ""
+"Currently, deployment for models such as YOLOV5, YOLOV6, YOLOV8 has been "
+"completed and is ready for your direct use. We will continue to deploy other"
+" open-source models, allowing you to use them right out of the box."
+
+#: ../../introduction/README.md:55 9020ec859af64c1d907e323ae4c42fcd
+msgid "2. 支持跨平台和多推理框架"
+msgstr "2. Support for cross-platform and multi-inference frameworks"
+
+#: ../../introduction/README.md:57 2a9249328d724dceb061334531e401a0
+msgid "一套代码多端部署：通过切换推理配置，一套代码即可完成模型跨多个平台以及多个推理框架部署"
+msgstr ""
+"One code for multi-end deployment: By switching inference configurations, "
+"one set of code can complete model deployment across multiple platforms and "
+"multiple inference frameworks."
+
+#: ../../introduction/README.md:59 b256b70037a64330a9129272121dd91a
+msgid "当前支持的推理框架如下："
+msgstr "Currently supported inference frameworks include:"
+
+#: ../../introduction/README.md:179 7eee3c34bc064474978cbcdb3b989bf4
+msgid "Notice:"
+msgstr "Notice:"
+
+#: ../../introduction/README.md:180 1e6640ce67f941519433059c410bd535
+msgid "TFLite, TVM, OpenPPL, sophgo, Horizon正在开发中，我们正在努力覆盖绝大部分的主流推理框架"
+msgstr ""
+"TFLite, TVM, OpenPPL, sophgo, Horizon are under development. We are striving"
+" to cover the vast majority of mainstream inference frameworks."
+
+#: ../../introduction/README.md:181 69cd62fae9ab4ad587aef0fcac5e5802
+msgid "选择对应推理后端时，加载的模型文件仍为该推理后端要求的模型文件格式"
+msgstr ""
+"When selecting the corresponding inference backend, the loaded model file "
+"must still be in the format required by that inference backend."
+
+#: ../../introduction/README.md:183 3a2c6772bd344978804e49cd910b1468
+msgid "3. 简单易用"
+msgstr "3. Simple and easy to use"
+
+#: ../../introduction/README.md:185 b1e0d419678c4d20bd735a108801a866
+msgid ""
+"基于有向无环图部署模型： 将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 Graph，前处理为一个 Node，推理也为一个 "
+"Node，后处理也为一个 Node"
+msgstr ""
+"Based on directed acyclic graph model deployment: The deployment of AI "
+"algorithms end-to-end (pre-processing -> inference -> post-processing) is "
+"abstracted as a directed acyclic graph Graph, with pre-processing as one "
+"Node, inference as another Node, and post-processing as yet another Node."
+
+#: ../../introduction/README.md:187 6add48dc580c4eed9a82aa8009555faa
+msgid ""
+"推理模板Infer： 基于多端推理模块Inference + "
+"有向无环图节点Node再设计功能强大的推理模板Infer，Infer推理模板可以帮您在内部处理不同的模型带来差异，例如单输入、多输入、单输出、多输出、静态形状输入、动态形状输入、静态形状输出、动态形状输出一系列不同"
+msgstr ""
+"Inference template Infer: Based on multi-end inference module Inference + "
+"directed acyclic graph node Node redesign, a powerful inference template "
+"Infer is created. The Infer inference template can help you internally "
+"handle the differences brought by different models, such as single input, "
+"multiple inputs, single output, multiple outputs, static shape input, "
+"dynamic shape input, static shape output, dynamic shape output, and a series"
+" of different scenarios."
+
+#: ../../introduction/README.md:189 adc8c960fb384144b05dd2b94f1d4c19
+msgid ""
+"高效解决多模型的复杂场景：在多模型组合共同完成一个任务的复杂场景下（例如老照片修复），每个模型都可以是独立的Graph，nndeploy的有向无环图支持图中嵌入图灵活且强大的功能，将大问题拆分为小问题，通过组合的方式快速解决多模型的复杂场景问题"
+msgstr ""
+"Efficiently solving complex scenarios of multiple models: In complex "
+"scenarios where multiple models combine to complete a task (e.g., old photo "
+"restoration), each model can be an independent Graph. nndeploy's directed "
+"acyclic graph supports embedding graphs within graphs, offering flexible and"
+" powerful functionality, breaking down big problems into small ones, and "
+"quickly solving complex multi-model scenario problems through combination."
+
+#: ../../introduction/README.md:191 2b140cd6cf5042939cdec341732d9a0e
+msgid ""
+"快速构建demo：对于已部署好的模型，需要编写demo展示效果，而demo需要处理多种格式的输入，例如图片输入输出、文件夹中多张图片的输入输出、视频的输入输出等，通过将上述编解码节点化，可以更通用以及更高效的完成demo的编写，达到快速展示效果的目的（目前主要实现了基于OpneCV的编解码节点化）"
+msgstr ""
+"Quickly build demo: For already deployed models, writing a demo to showcase "
+"the results is necessary. The demo needs to handle multiple formats of "
+"input, such as image input/output, folder with multiple images input/output,"
+" video input/output, etc. By node-izing the above codecs, it can be more "
+"universal and efficient to complete the writing of the demo, achieving the "
+"goal of quickly showcasing results (currently mainly implemented node-"
+"ization based on OpenCV's codecs)."
+
+#: ../../introduction/README.md:193 364f845fb57f47e08609dc4184db53a8
+msgid "4. 高性能"
+msgstr "4. High performance"
+
+#: ../../introduction/README.md:195 44e7b177404b4c769153d63d60d921b1
+msgid ""
+"推理框架的高性能抽象：每个推理框架也都有其各自的特性，需要足够尊重以及理解这些推理框架，才能在抽象中不丢失推理框架的特性，并做到统一的使用的体验。nndeploy"
+" 可配置第三方推理框架绝大部分参数，保证了推理性能。可直接操作推理框架内部分配的输入输出，实现前后处理的零拷贝，提升模型部署端到端的性能。"
+msgstr ""
+"Abstraction of inference framework's high performance: Each inference "
+"framework has its own characteristics. It's essential to respect and "
+"understand these inference frameworks to avoid losing their features during "
+"abstraction and achieve a unified user experience. nndeploy can configure "
+"the vast majority of parameters of third-party inference frameworks, "
+"ensuring inference performance. It can directly operate the internal inputs "
+"and outputs allocated by the inference framework, achieving zero-copy of "
+"pre- and post-processing, thereby improving the end-to-end performance of "
+"model deployment."
+
+#: ../../introduction/README.md:197 098fbf4f7ec94ef0acc232f9e74b5d42
+msgid ""
+"线程池：提高模型部署的并发性能和资源利用率（thread "
+"pool）。此外，还支持CPU端算子自动并行，可提升CPU算子执行性能（parallel_for）。"
+msgstr ""
+"Thread pool: Improves the concurrency performance and resource utilization "
+"of model deployment (thread pool). Additionally, it supports automatic "
+"parallelization of CPU-side operators, which can enhance the execution "
+"performance of CPU operators (parallel_for)."
+
+#: ../../introduction/README.md:199 9bd5b30655d4451fa30495c6a1070946
+msgid "内存池：完成后可实现高效的内存分配与释放(TODO)"
+msgstr ""
+"Memory pool: After completion, it can achieve efficient memory allocation "
+"and release (TODO)."
+
+#: ../../introduction/README.md:201 e040f5792e2f45b68ab84f8c895f5d08
+msgid "一组高性能的算子：完成后将加速您模型前后处理速度(TODO)"
+msgstr ""
+"A set of high-performance operators: After completion, it will accelerate "
+"the speed of your model's pre- and post-processing (TODO)."
+
+#: ../../introduction/README.md:203 9f5af103237a43b699541b5eb6181925
+msgid "5. 并行"
+msgstr "5. Parallel"
+
+#: ../../introduction/README.md:205 7da2f60bad4f4fcd8d522c60b31bf856
+msgid "串行：按照模型部署的有向无环图的拓扑排序，依次执行每个节点。"
+msgstr ""
+"Serial: According to the topological order of the model's deployment "
+"directed acyclic graph, execute each node in sequence."
+
+#: ../../introduction/README.md:207 671dd2214fa3461394baf52fe2de2a5f
+msgid ""
+"流水线并行：在处理多帧的场景下，基于有向无环图的模型部署方式，可将前处理 Node、推理 Node、后处理 "
+"Node绑定三个不同的线程，每个线程又可绑定不同的硬件设备下，从而三个Node可流水线并行处理。在多模型以及多硬件设备的的复杂场景下，更加可以发挥流水线并行的优势，从而可显著提高整体吞吐量。"
+msgstr ""
+"Pipeline parallel: In scenarios processing multiple frames, based on the "
+"model deployment method of directed acyclic graph, the pre-processing Node, "
+"inference Node, and post-processing Node can be bound to three different "
+"threads, with each thread bound to different hardware devices, allowing the "
+"three Nodes to process in pipeline parallel. In complex scenarios with "
+"multiple models and multiple hardware devices, the advantages of pipeline "
+"parallel can be more fully utilized, significantly improving overall "
+"throughput."
+
+#: ../../introduction/README.md:209 83e4ea909d8c419585d4a8401af0c518
+msgid "任务并行：在多模型以及多硬件设备的的复杂场景下，基于有向无环图的模型部署方式，可充分挖掘模型部署中的并行性，缩短单次算法全流程运行耗时"
+msgstr ""
+"Task parallel: In complex scenarios with multiple models and multiple "
+"hardware devices, based on the model deployment method of directed acyclic "
+"graph, the parallelism in model deployment can be fully exploited, reducing "
+"the runtime overhead of a single algorithm's entire process."
+
+#: ../../introduction/README.md:211 842af018d1424bfa92df20a6c87bb670
+msgid ""
+"上述模式的组合并行：在多模型、多硬件设备以及处理多帧的复杂场景下，nndeploy的有向无环图支持图中嵌入图的功能，每个图都可以有独立的并行模式，故用户可以任意组合模型部署任务的并行模式，具备强大的表达能力且可充分发挥硬件性能。"
+msgstr ""
+"Combination of the above parallel modes: In complex scenarios with multiple "
+"models, multiple hardware devices, and processing multiple frames, "
+"nndeploy's directed acyclic graph supports embedding graphs within graphs, "
+"allowing each graph to have its own parallel mode. Thus, users can "
+"arbitrarily combine the parallel modes of model deployment tasks, with "
+"strong expressive power and the ability to fully utilize hardware "
+"performance."
+
+#: ../../introduction/README.md:214 11d63c9ca0dc4b4eb21fa1be8219fb39
+msgid "资源仓库"
+msgstr "Resource repository"
+
+#: ../../introduction/README.md:216 d714c7d497e44070a34f6576ac3544b8
+msgid "我们已将第三方库、模型仓库和测试数据上传至HuggingFace上，如有需要，欢迎您前往下载使用。"
+msgstr ""
+"We have uploaded third-party libraries, model repositories, and test data to"
+" HuggingFace. If needed, you are welcome to download and use them."
+
+#: ../../introduction/README.md:219 737a2510ec3445c8bbe0d0ba1761c730
+msgid "下一步规划"
+msgstr "Next steps"
+
+#: ../../introduction/README.md:221 7f4e666f314b4d268a02d19392af723b
+msgid "推理后端"
+msgstr "Inference backend"
+
+#: ../../introduction/README.md:222 0d0d16996d3a4697a5daa560ddbac895
+msgid "完善已接入的推理框架coreml"
+msgstr "Complete the already integrated inference framework coreml"
+
+#: ../../introduction/README.md:223 906cf59d24964da391e8843857bb7bb4
+msgid "完善已接入的推理框架paddle-lite"
+msgstr "Complete the already integrated inference framework paddle-lite"
+
+#: ../../introduction/README.md:224 d673400156a54585ab0a3cd1b1564ed6
+msgid "接入新的推理框架TFLite"
+msgstr "Integrate the new inference framework TFLite"
+
+#: ../../introduction/README.md:225 6873ecfe027e4610adc60dc7da67b15f
+msgid "设备管理模块"
+msgstr "Device management module"
+
+#: ../../introduction/README.md:226 fbc3f313757249b596613e2b490bee24
+msgid "新增OpenCL的设备管理模块"
+msgstr "Add OpenCL's device management module"
+
+#: ../../introduction/README.md:227 56d037ec374048fd8037203772d31e8e
+msgid "新增ROCM的设备管理模块"
+msgstr "Add ROCM's device management module"
+
+#: ../../introduction/README.md:228 c0a7a02d68c0436cade67265471524fb
+msgid "新增OpenGL的设备管理模块"
+msgstr "Add OpenGL's device management module"
+
+#: ../../introduction/README.md:229 4c404e2be8ae48ca91d9675b2fe2a24d
+msgid "内存优化"
+msgstr "Memory optimization"
+
+#: ../../introduction/README.md:230 822805f49aab41819221be7a9151689a
+msgid "主从内存拷贝优化：针对统一内存的架构，通过主从内存映射、主从内存地址共享等方式替代主从内存拷贝"
+msgstr ""
+"Master-slave memory copy optimization: For architectures with unified "
+"memory, replace master-slave memory copying with methods like master-slave "
+"memory mapping and master-slave memory address sharing."
+
+#: ../../introduction/README.md:231 1eb8c022dbb84f0c964bdf7264019bf0
+msgid "内存池：针对nndeploy的内部的数据容器Buffer、Mat、Tensor，建立异构设备的内存池，实现高性能的内存分配与释放"
+msgstr ""
+"Memory pool: For nndeploy's internal data containers Buffer, Mat, Tensor, "
+"establish a memory pool for heterogeneous devices to achieve high-"
+"performance memory allocation and release."
+
+#: ../../introduction/README.md:232 4ef420f4f95848e6b7bc55b2cd7b29a0
+msgid "多节点共享内存机制：针对多模型串联场景下，基于模型部署的有向无环图，在串行执行的模式下，支持多推理节点共享内存机制"
+msgstr ""
+"Multi-node shared memory mechanism: In scenarios of multiple model series, "
+"based on the directed acyclic graph of model deployment, support a shared "
+"memory mechanism for multiple inference nodes under the serial execution "
+"mode."
+
+#: ../../introduction/README.md:233 9d073926d530416691239ec855292bfa
+msgid "边的环形队列内存复用机制：基于模型部署的有向无环图，在流水线并行执行的模式下，支持边的环形队列共享内存机制"
+msgstr ""
+"Edge circular queue memory reuse mechanism: Based on the directed acyclic "
+"graph of model deployment, support an edge circular queue shared memory "
+"mechanism under the pipeline parallel execution mode."
+
+#: ../../introduction/README.md:234 82e0f1818a6b4ceabfef58f7eeac12dc
+msgid "stable diffusion model"
+msgstr "stable diffusion model"
+
+#: ../../introduction/README.md:235 a97783658a3c44a0ac0f47c3d76f4907
+msgid "部署stable diffusion model"
+msgstr "Deploy stable diffusion model"
+
+#: ../../introduction/README.md:236 bff78c61c3574b75a5f05fb3cba64ac2
+msgid "针对stable diffusion model搭建stable_diffusion.cpp（推理子模块，手动构建计算图的方式）"
+msgstr ""
+"For stable diffusion model with stable_diffusion.cpp (inference module, "
+"manually constructing computation graph approach)"
+
+#: ../../introduction/README.md:237 3ae6c7edea924abbb50f7568b3da541f
+msgid "高性能op"
+msgstr "High-performance op"
+
+#: ../../introduction/README.md:238 7ba0a528e8a44a4aa77d5bde6bfabe1f
+msgid "分布式"
+msgstr "Distributed"
+
+#: ../../introduction/README.md:239 8d9c6b8e7d0743f6bfaafb66f2695a53
+msgid "在多模型共同完成一个任务的场景里，将多个模型调度到多个机器上分布式执行"
+msgstr ""
+"In scenarios where multiple models collaboratively complete a task, "
+"scheduling multiple models to multiple machines for distributed execution"
+
+#: ../../introduction/README.md:240 2e63b422388d4f2d84d37a5bfc2082a0
+msgid "在大模型的场景下，通过切割大模型为多个子模型的方式，将多个子模型调度到多个机器上分布式执行"
+msgstr ""
+"In large model scenarios, by splitting the large model into multiple sub-"
+"models, scheduling multiple sub-models to multiple machines for distributed "
+"execution"
+
+#: ../../introduction/README.md:243 0f1b1573e663428da45675a562120da7
+msgid "参考"
+msgstr "References"
+
+#: ../../introduction/README.md:244 c1098552761e480ab21b96bd70f30668
+msgid "TNN"
+msgstr "TNN"
+
+#: ../../introduction/README.md:245 db618089d0a94fd78ba462f2215238a6
+msgid "FastDeploy"
+msgstr "FastDeploy"
+
+#: ../../introduction/README.md:246 2bce747fa89d45eb8ece8b0e40392a29
+msgid "opencv"
+msgstr "opencv"
+
+#: ../../introduction/README.md:247 72e8569515494b2f913ae7d5a67d2530
+msgid "CGraph"
+msgstr "CGraph"
+
+#: ../../introduction/README.md:248 9d752fe190344f0eb664abad51a218e7
+msgid "CThreadPool"
+msgstr "CThreadPool"
+
+#: ../../introduction/README.md:249 a40dab9e3f0143b68285e588ade544d5
+msgid "tvm"
+msgstr "tvm"
+
+#: ../../introduction/README.md:250 2f8949b80188431fbe28ca93c0fcb9cf
+msgid "mmdeploy"
+msgstr "mmdeploy"
+
+#: ../../introduction/README.md:251 255e7a7f44744552b3d7f40cb6be8562
+msgid "FlyCV"
+msgstr "FlyCV"
+
+#: ../../introduction/README.md:252 093d0cf868d84b10aa6790113cce7e14
+msgid "torchpipe"
+msgstr "torchpipe"
+
+#: ../../introduction/README.md:255 b568676d649648169989f1653202d5c1
+msgid "加入我们"
+msgstr "Join us"
+
+#: ../../introduction/README.md:256 340280edae4a43168077f72864744222
+msgid ""
+"nndeploy是由一群志同道合的网友共同开发以及维护，我们不定时讨论技术，分享行业见解。当前nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。"
+msgstr ""
+"nndeploy is jointly developed and maintained by a group of like-minded "
+"friends. We regularly discuss technology and share industry insights. "
+"Currently, nndeploy is in the development stage. Whether you are passionate "
+"about open source, enjoy tinkering, aiming to learn, or have better ideas, "
+"you are welcome to join us."
+
+#: ../../introduction/README.md:257 9f9cfacc72144141bae38f275cfd09d8
+msgid "微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy+姓名)"
+msgstr ""
+"WeChat: titian5566 (You can add my WeChat to join the nndeploy discussion "
+"group, note: nndeploy + name)"

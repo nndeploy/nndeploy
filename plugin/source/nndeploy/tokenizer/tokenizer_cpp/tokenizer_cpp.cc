@@ -36,13 +36,13 @@ base::Status TokenizerEncodeCpp::init() {
     }
     // Read blob from file.
     std::string blob;
-    if (tokenizer_param->is_path_) {
-      blob = base::openFile(tokenizer_param->json_blob_);
-    } else {
-      blob = tokenizer_param->json_blob_;
-    }
+    // if (tokenizer_param->is_path_) {
+    //   blob = base::openFile(tokenizer_param->json_blob_);
+    // } else {
+    //   blob = tokenizer_param->json_blob_;
+    // }
 
-    blob = LoadBytesFromFile(blob);
+    blob = LoadBytesFromFile(tokenizer_param->json_blob_);
     tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
   } else if (tokenizer_param->tokenizer_type_ ==
              TokenizerType::kTokenizerTypeBPE) {
@@ -118,10 +118,9 @@ base::Status TokenizerEncodeCpp::run() {
 
   // run
   TokenizerText* text_param = (TokenizerText*)(inputs_[0]->getParam(this));
-  int index = inputs_[0]->getIndex(this);
   TokenizerIds* ids_param = new TokenizerIds();
   ids_param->ids_ = encodeBatch(text_param->texts_);
-  outputs_[0]->set(ids_param, index, false);
+  outputs_[0]->set(ids_param, false);
 
   return status;
 }
@@ -263,14 +262,12 @@ base::Status TokenizerDecodeCpp::run() {
 
   // run
   TokenizerIds* ids_param = (TokenizerIds*)(inputs_[0]->getParam(this));
-  int index = inputs_[0]->getIndex(this);
   TokenizerText* text_param = new TokenizerText();
   text_param->texts_ = decodeBatch(ids_param->ids_);
-  outputs_[0]->set(text_param, index, false);
+  outputs_[0]->set(text_param, false);
 
   return status;
 }
-
 
 /*!
  * \brief decode token ids into text.

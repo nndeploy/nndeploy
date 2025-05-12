@@ -1,0 +1,419 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 17:38+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../architecture_guide/tensor.md:3 9b290fba587d4c548397a81b5b24f156
+msgid ""
+"我们先来看一下 Tensor 的具体实现。Tensor 代码在 framework/include/device/tensor.h，它的源文件在对应的 "
+"source 目录下。"
+msgstr ""
+"Let's first take a look at the specific implementation of Tensor. The Tensor"
+" code is located in framework/include/device/tensor.h, and its source file "
+"is in the corresponding source directory."
+
+#: ../../architecture_guide/tensor.md:5 89bba67267184e23a363b9fd58f4f40e
+msgid "我们还是延续我们讲代码的老思路，先看成员变量。再看成员函数。"
+msgstr ""
+"We will continue with our old approach to discussing the code, first looking"
+" at member variables, then member functions."
+
+#: ../../architecture_guide/tensor.md:7 b4396cabd42a4c858d86dfd0d413f3cc
+msgid ""
+"首先是 Tensor 需要名字，在上一节 IR "
+"中知道到，ir中算子的输入输出由唯一标识符name标识，到了模型推理阶段，会编程Tenosr，因此在一个模型内部，不会出现同名的tensor。然后是描述"
+" Tensor 的 TensorDesc，这里会描述 Tensor 具体有多大，是什么类型，是什么格式。然后是这个 Tensor "
+"的数据是外部的还是内部的，当拷贝构造函数的时候，它需要有引用计数，当引用计数为修改为 0 的时候，这个 buffer 就可以销毁了。buffer "
+"是真正持有数据的成员变量。"
+msgstr ""
+"First, a Tensor needs a name. As learned in the previous IR section, the "
+"inputs and outputs of operators in IR are identified by unique name "
+"identifiers. By the model inference stage, they are compiled into Tensors, "
+"so within a model, there won't be Tensors with the same name. Then there's "
+"the TensorDesc that describes the Tensor, which details how large the Tensor"
+" is, its type, and its format. Then, it's about whether the data of this "
+"Tensor is external or internal. When the copy constructor is called, it "
+"needs a reference count. When the reference count is modified to 0, this "
+"buffer can be destroyed. The buffer is the member variable that truly holds "
+"the data."
+
+#: ../../architecture_guide/tensor.md:9 605ceb7b640e4dc38fb747d1da8cc3bf
+msgid ""
+"好的，我们现在跳转到 TensorDesc 再去看一下，具体该如何描述一个 Tensor 还需要哪些信息？我们跳到 TensorDesc "
+"再去看一下这个具体的数据结构。它代码在 framework/include/type 目录下，打开type.h，一样的，先看一下它的成员变量。"
+msgstr ""
+"Alright, now we'll jump to TensorDesc to see what information is needed to "
+"describe a Tensor. We'll look at the specific data structure of TensorDesc. "
+"Its code is in the framework/include/type directory, open type.h, and "
+"similarly, first look at its member variables."
+
+#: ../../architecture_guide/tensor.md:11 319318b911a74b02a22ca5a978dd277f
+msgid ""
+"首先是数据类型（data_type_），它定义了Tensor中存储的数据是什么类型。比如在代码中我们可以看到默认是float类型：base::DataType"
+" data_type_ = "
+"base::dataTypeOf<float>()。当然，Tensor也可以存储其他类型的数据，如int8、uint8、int32、float16等。"
+msgstr ""
+"First is the data type (data_type_), which defines the type of data stored "
+"in the Tensor. For example, in the code, we can see the default is float "
+"type: base::DataType data_type_ = base::dataTypeOf<float>(). Of course, "
+"Tensor can also store data of other types, such as int8, uint8, int32, "
+"float16, etc."
+
+#: ../../architecture_guide/tensor.md:13 22e863600aad47c089c4dcdb13fc4711
+msgid ""
+"然后是数据格式（data_format_），它描述了Tensor中数据的排列方式。默认值是base::kDataFormatNotSupport，表示初始状态下没有指定格式。常见的格式有NCHW和NHWC，其中N表示batch"
+" "
+"size（批次大小），C表示channel（通道数），H和W分别表示height（高度）和width（宽度）。例如，对于一张RGB图像，如果使用NCHW格式，那么数据排列顺序是先按照通道（R、G、B）排列，再按照高度和宽度排列；而如果使用NHWC格式，则是先按照高度和宽度排列，再按照通道排列。不同的深度学习框架可能默认使用不同的格式，如PyTorch常用NCHW，而TensorFlow常用NHWC。"
+msgstr ""
+"Next is the data format (data_format_), which describes the arrangement of "
+"data in the Tensor. The default value is base::kDataFormatNotSupport, "
+"indicating no format is specified in the initial state. Common formats "
+"include NCHW and NHWC, where N represents batch size, C represents channel, "
+"H and W represent height and width, respectively. For example, for an RGB "
+"image, if using the NCHW format, the data is arranged first by channel (R, "
+"G, B), then by height and width; if using the NHWC format, it's arranged "
+"first by height and width, then by channel. Different deep learning "
+"frameworks may default to different formats, such as PyTorch commonly using "
+"NCHW and TensorFlow commonly using NHWC."
+
+#: ../../architecture_guide/tensor.md:15 84fd4333019e4d049af9cf62aa1ab29b
+msgid ""
+"第三个是形状（shape_），它是一个IntVector类型的成员变量，用于描述Tensor的维度大小。例如，对于一个批次大小为1、通道数为3、高度为224、宽度为224的图像Tensor，其shape可以表示为[1,"
+" 3, 224, 224]（NCHW格式）。形状决定了Tensor中包含多少个元素，以及这些元素如何在各个维度上分布。"
+msgstr ""
+"The third is the shape (shape_), which is a member variable of type "
+"IntVector, used to describe the dimension sizes of the Tensor. For example, "
+"for an image Tensor with a batch size of 1, 3 channels, height of 224, and "
+"width of 224, its shape can be represented as [1, 3, 224, 224] (NCHW "
+"format). The shape determines how many elements the Tensor contains and how "
+"these elements are distributed across each dimension."
+
+#: ../../architecture_guide/tensor.md:17 4539230dec304e2bba5564345445ff6f
+msgid ""
+"最后是步长（stride_）。 它是一个SizeVector类型的成员变量。 "
+"当我们需要访问Tensor中的特定元素时，stride告诉我们如何计算内存偏移量。 这对于高效地遍历和操作Tensor数据非常重要。 "
+"例如，对于一个形状为[2, 3, 4]的Tensor，如果它在内存中是连续存储的，那么默认的步长可能是[12, 4, 1]。 "
+"这表示在第一个维度上移动一步需要跳过12个元素。 在第二个维度上移动一步需要跳过4个元素。 在第三个维度上移动一步需要跳过1个元素。 "
+"步长的设计使得我们可以高效地访问Tensor中的元素。"
+msgstr ""
+"Finally, there's the stride (stride_). It's a member variable of type "
+"SizeVector. When we need to access a specific element in the Tensor, stride "
+"tells us how to calculate the memory offset. This is very important for "
+"efficiently traversing and operating Tensor data. For example, for a Tensor "
+"with a shape of [2, 3, 4], if it's stored contiguously in memory, the "
+"default stride might be [12, 4, 1]. This means moving one step in the first "
+"dimension requires skipping 12 elements, moving one step in the second "
+"dimension requires skipping 4 elements, and moving one step in the third "
+"dimension requires skipping 1 element. The design of stride allows us to "
+"efficiently access elements in the Tensor."
+
+#: ../../architecture_guide/tensor.md:27 fbe1aec636f24c23bd2fc6cfb62835a8
+msgid ""
+"好了，我们 TensorDesc 的成员变量讲完了，TensorDesc 是服务于 Tensor 的，我们希望 Tensor 可以构造起来很简单，因此为"
+" TensorDesc 提供了 多 个构造函数，比如说什么都没有的构造函数，传参传 data type、传 format、传 shape "
+"的构造函数。复制构造函数和析构函数。判断两个 TensorDesc 是否相等的帮助函数，Tensor "
+"需要支持权重的序列化和反序列化，那TensorDesc 也需要有序列化和反序列化的函数。"
+msgstr ""
+"Okay, we've covered all the member variables of TensorDesc. TensorDesc "
+"serves Tensor, and we hope Tensor can be constructed very simply. Therefore,"
+" TensorDesc provides multiple constructors, such as a constructor that takes"
+" no parameters, a constructor that takes data type, format, and shape, copy "
+"constructors, and destructors. There are also helper functions to determine "
+"if two TensorDescs are equal. Tensor needs to support weight serialization "
+"and deserialization, so TensorDesc also needs to have serialization and "
+"deserialization functions."
+
+#: ../../architecture_guide/tensor.md:29 509ab0e43c7345bb970b697edaa208ce
+msgid "Tensor作为非常作用的数据结构，经常需要调试它，TensorDesc 提供了一个打印函数，可以把这些信息通过字符串的形式打印出来。"
+msgstr ""
+"As a very commonly used data structure, Tensor often needs to be debugged. "
+"TensorDesc provides a print function that can print out this information in "
+"string form."
+
+#: ../../architecture_guide/tensor.md:31 f98c65f2cd0041be885af53dd259b4b2
+msgid "我们 TensorDesc 就讲完了，我们再回到 Tensor。"
+msgstr "We've finished discussing TensorDesc, and now we return to Tensor."
+
+#: ../../architecture_guide/tensor.md:33 83d5f23111fe451186aee66c1caf022f
+msgid ""
+"再来看下is_external_这个成员变量，它主要是说明buffer是Tensor内部构造的，还是外部传入的，内部构造的很好理解，我们来看看外部构造的场景，在推理框架中，Tensor存在基于图的内存共享机制，多个Tensor就会共享一个buffer，通常做法是，外部统一管理这些buffer，然后把buffer传入给tensor，这个是，成员变量is_external_就是ture."
+msgstr ""
+"Let's look at the is_external_ member variable. It mainly indicates whether "
+"the buffer is constructed internally by the Tensor or passed in from the "
+"outside. The internally constructed one is easy to understand. Let's look at"
+" the scenario of externally constructed ones. In the inference framework, "
+"Tensor has a memory sharing mechanism based on the graph, where multiple "
+"Tensors share a buffer. The usual practice is to manage these buffers "
+"externally and then pass the buffer to the tensor. This is when the "
+"is_external_ member variable is true."
+
+#: ../../architecture_guide/tensor.md:36 fe69a2faa5c24c05a7e4075576437b5b
+msgid ""
+"引用计数（ref_count_）也是与buffer相关的重要机制。当调用拷贝构造函数时，由于Tensor通常持有大量数据，我们希望通过浅拷贝实现以提高效率，这样buffer就会被多个tensor共享。在这种情况下，我们需要引用计数机制来正确管理Tensor的内存释放。每当创建一个新的Tensor副本时，引用计数加一；当Tensor被销毁时，引用计数减一。只有当引用计数降为零时，才真正释放buffer占用的内存资源。这种机制确保了内存管理的安全性和效率。"
+msgstr ""
+"Reference counting (ref_count_) is also an important mechanism related to "
+"buffers. When the copy constructor is called, since Tensors typically hold a"
+" large amount of data, we aim to improve efficiency through shallow copying,"
+" allowing the buffer to be shared among multiple tensors. In such cases, we "
+"need a reference counting mechanism to correctly manage the memory release "
+"of Tensors. Each time a new Tensor copy is created, the reference count "
+"increases by one; when a Tensor is destroyed, the reference count decreases "
+"by one. Only when the reference count drops to zero is the memory resource "
+"occupied by the buffer truly released. This mechanism ensures the safety and"
+" efficiency of memory management."
+
+#: ../../architecture_guide/tensor.md:38 865e4f190b2843499a6011d341633a5a
+msgid "关于is_external_和ref_count_这两个成员变量，虽然它们都与Tensor的内存管理有关，但它们的作用是不同的哈："
+msgstr ""
+"Regarding the two member variables is_external_ and ref_count_, although "
+"both are related to Tensor's memory management, their roles are different:"
+
+#: ../../architecture_guide/tensor.md:40 3dd1d913ec5f4fc4a63eecf38ef44f29
+msgid ""
+"is_external_主要标识buffer的所有权问题。当is_external_为true时，表示buffer是从外部传入的，Tensor不负责创建和销毁这个buffer，只是使用它。这种情况通常出现在以下场景："
+msgstr ""
+"is_external_ primarily identifies the ownership issue of the buffer. When "
+"is_external_ is true, it indicates that the buffer is passed from the "
+"outside, and the Tensor is not responsible for creating or destroying this "
+"buffer, only using it. This situation usually occurs in the following "
+"scenarios:"
+
+#: ../../architecture_guide/tensor.md:41 cf1dfb7f9d134199a9c26ac0182684e9
+msgid "用户直接提供了预分配的内存空间"
+msgstr "The user directly provides pre-allocated memory space"
+
+#: ../../architecture_guide/tensor.md:42 2605d6cd07104dc9abb688779b5ee31f
+msgid "多个Tensor共享同一块内存（如图推理中的内存优化）"
+msgstr ""
+"Multiple Tensors share the same memory (such as memory optimization in graph"
+" inference)"
+
+#: ../../architecture_guide/tensor.md:43 d1daaa22e9714e9783a15280a7dd80f9
+msgid "与其他系统集成时，需要使用外部系统提供的内存"
+msgstr ""
+"When integrating with other systems, memory provided by external systems is "
+"needed"
+
+#: ../../architecture_guide/tensor.md:45 bf01308fcac243239d1ab434b8fc0d9c
+msgid ""
+"而ref_count_则是解决多个Tensor实例共享同一个buffer时的内存管理问题。它通过计数机制确保只有当最后一个引用该buffer的Tensor被销毁时，才真正释放buffer的内存。这主要用于以下场景："
+msgstr ""
+"On the other hand, ref_count_ addresses the memory management issue when "
+"multiple Tensor instances share the same buffer. It ensures through a "
+"counting mechanism that only when the last Tensor referencing this buffer is"
+" destroyed is the buffer's memory truly released. This is mainly used in the"
+" following scenarios:"
+
+#: ../../architecture_guide/tensor.md:46 84b6683810d44a82a57b7dea93636abe
+msgid "Tensor的拷贝构造和赋值操作（浅拷贝）"
+msgstr "Copy construction and assignment operations of Tensor (shallow copy)"
+
+#: ../../architecture_guide/tensor.md:47 e51d837500bd4339a1fd607ada65f4a6
+msgid "函数返回Tensor对象时"
+msgstr "When functions return Tensor objects"
+
+#: ../../architecture_guide/tensor.md:48 03323da5c6ee4ee692b489e054eac63d
+msgid "将Tensor存储在容器中时"
+msgstr "When storing Tensors in containers"
+
+#: ../../architecture_guide/tensor.md:50 2804326cfd304bca88dc4deba2f20d6a
+msgid "两者的主要区别在于："
+msgstr "The main difference between the two lies in:"
+
+#: ../../architecture_guide/tensor.md:51 c42d996d568449bcb806677bc76ab9a8
+msgid "is_external_决定了buffer的生命周期是否由Tensor管理"
+msgstr ""
+"is_external_ determines whether the buffer's lifecycle is managed by the "
+"Tensor"
+
+#: ../../architecture_guide/tensor.md:52 caeac096fd6e4011b4d39235cabfa13a
+msgid "ref_count_决定了何时释放由Tensor管理的buffer"
+msgstr ""
+"ref_count_ determines when to release the buffer managed by the Tensor"
+
+#: ../../architecture_guide/tensor.md:54 6abbb3c7950a4d75bb4ad4562428b125
+msgid ""
+"在实际使用中，当is_external_为true时，无论ref_count_如何变化，Tensor都不会尝试释放buffer；而当is_external_为false时，只有当ref_count_降为0时，Tensor才会释放buffer。这种设计使得Tensor能够灵活地适应各种内存管理场景，既可以自主管理内存，也可以使用外部内存。"
+msgstr ""
+"In practice, when is_external_ is true, regardless of how ref_count_ "
+"changes, the Tensor will not attempt to release the buffer; whereas when "
+"is_external_ is false, only when ref_count_ drops to zero will the Tensor "
+"release the buffer. This design allows Tensors to flexibly adapt to various "
+"memory management scenarios, capable of both managing memory autonomously "
+"and utilizing external memory."
+
+#: ../../architecture_guide/tensor.md:56 995b55dd0f20447a833696d6ef7822a9
+msgid ""
+"最后是buffer_成员变量，它是真正存储Tensor数据的地方。Buffer类封装了底层内存分配和管理的细节，使Tensor能够在不同设备（如CPU、GPU）上高效地存储和访问数据。"
+msgstr ""
+"Finally, there's the buffer_ member variable, which is the actual storage "
+"location for Tensor data. The Buffer class encapsulates the details of "
+"underlying memory allocation and management, enabling Tensors to efficiently"
+" store and access data across different devices (such as CPU, GPU)."
+
+#: ../../architecture_guide/tensor.md:58 d17d43ca989c431b9e0f2b7556aabffb
+msgid "我们来看Tensor的成员函数。"
+msgstr "Let's look at Tensor's member functions."
+
+#: ../../architecture_guide/tensor.md:60 a0e1a36d586945009cbdfcea4a2d99f7
+msgid ""
+"首先看看构造函数，Tensor提供了多种构造方式以适应不同场景。最基本的构造函数包括默认构造函数Tensor()、只指定名称的构造函数Tensor(const"
+" std::string &name)以及指定TensorDesc的构造函数Tensor(const TensorDesc &desc, const "
+"std::string &name)。这些构造函数不会分配实际的内存空间，只是设置Tensor的基本属性。"
+msgstr ""
+"First, consider the constructor functions. Tensor provides multiple "
+"construction methods to adapt to different scenarios. The most basic "
+"constructor functions include the default constructor Tensor(), the "
+"constructor that only specifies a name Tensor(const std::string &name), and "
+"the constructor that specifies TensorDesc Tensor(const TensorDesc &desc, "
+"const std::string &name). These constructor functions do not allocate actual"
+" memory space but only set the basic properties of the Tensor."
+
+#: ../../architecture_guide/tensor.md:62 4e9052925c484d86a1a5e44e711eb761
+msgid ""
+"对于不分配内存的成员函数，除了上述构造函数外，还有Tensor(const TensorDesc &desc, Buffer *buffer, "
+"const std::string &name)，它允许用户直接传入一个已有的Buffer，这在需要共享内存或使用外部预分配内存的场景中非常有用。"
+msgstr ""
+"For member functions that do not allocate memory, besides the aforementioned"
+" constructors, there is also Tensor(const TensorDesc &desc, Buffer *buffer, "
+"const std::string &name), which allows users to directly pass in an existing"
+" Buffer. This is very useful in scenarios requiring shared memory or the use"
+" of externally pre-allocated memory."
+
+#: ../../architecture_guide/tensor.md:64 765ef3bf0c4e4dcbb9c0133d1a2b4138
+msgid ""
+"分配内存的构造函数主要有两类：基于Device和基于MemoryPool的。Device方式直接从设备申请内存，而MemoryPool方式则从内存池中获取内存，后者通常能提供更高效的内存管理。"
+msgstr ""
+"Constructor functions that allocate memory mainly fall into two categories: "
+"those based on Device and those based on MemoryPool. The Device method "
+"directly requests memory from the device, while the MemoryPool method "
+"retrieves memory from a memory pool, the latter typically providing more "
+"efficient memory management."
+
+#: ../../architecture_guide/tensor.md:67 28837fc15c01496aa02f84076407a58f
+msgid ""
+"再来看一下析构函数~Tensor()。当Tensor对象被销毁时，析构函数会被调用。在析构函数中，首先会检查引用计数ref_count_。如果引用计数不为空，则将其减一；当引用计数减为零时，表示没有其他Tensor对象引用该buffer，此时会根据is_external_的值决定是否释放buffer。如果is_external_为false，表示buffer是由Tensor内部创建的，此时会释放buffer占用的内存；如果为true，则不会释放buffer，因为buffer的所有权不属于Tensor。"
+msgstr ""
+"Next, consider the destructor function ~Tensor(). When a Tensor object is "
+"destroyed, the destructor function is called. In the destructor function, "
+"the reference count ref_count_ is first checked. If the reference count is "
+"not empty, it is decremented by one; when the reference count drops to zero,"
+" it indicates that no other Tensor objects reference this buffer, and the "
+"decision to release the buffer is based on the value of is_external_. If "
+"is_external_ is false, indicating the buffer was created internally by the "
+"Tensor, the memory occupied by the buffer is released; if it is true, the "
+"buffer is not released because the ownership of the buffer does not belong "
+"to the Tensor."
+
+#: ../../architecture_guide/tensor.md:69 42e67cb771cb4981a7f319074772740d
+msgid ""
+"接着是对动态形状推理的支持，tensor的reshape函数允许在不改变底层数据的情况下修改Tensor的形状。 "
+"关于reshape函数的实现，它有三种情况需要考虑："
+msgstr ""
+"Following is support for dynamic shape inference. Tensor's reshape function "
+"allows modifying the shape of the Tensor without changing the underlying "
+"data. Regarding the implementation of the reshape function, there are three "
+"scenarios to consider:"
+
+#: ../../architecture_guide/tensor.md:71 eb6f1a69e6ba40bea89cfdc6176dda3a
+msgid "如果buffer为空，直接修改TensorDesc中的shape即可，不需要其他操作。"
+msgstr ""
+"If the buffer is empty, simply modify the shape in TensorDesc without any "
+"other operations."
+
+#: ../../architecture_guide/tensor.md:72 8ba38f873ad747828e83742480140e02
+msgid ""
+"如果buffer不为空，且reshape后的buffer空间小于或等于当前buffer的实际空间空间，则可以直接修改shape并更新buffer的描述信息。"
+msgstr ""
+"If the buffer is not empty, and the space after reshaping is less than or "
+"equal to the current buffer's actual space, then the shape can be directly "
+"modified and the buffer's description information updated."
+
+#: ../../architecture_guide/tensor.md:73 dbf44ba5c3474b0992ee110733e69539
+msgid ""
+"如果buffer不为空，且reshape后需要的空间大于当前buffer的空间，这种情况下就直接报错，为什么选择直接报错，而不是重新分配内存的原因是，假如buffer的实际指针被外部使用，这个时候就会产生严重不可控的后果。"
+msgstr ""
+"If the buffer is not empty, and the space required after reshaping is "
+"greater than the current buffer's space, this situation directly results in "
+"an error. The reason for choosing to directly report an error rather than "
+"reallocating memory is that if the buffer's actual pointer is being used "
+"externally, this could lead to severe uncontrollable consequences."
+
+#: ../../architecture_guide/tensor.md:77 fba4095234404eeebcf4cf16ba682acc
+msgid ""
+"对ir序列化的支持，序列化与反序列化函数允许将Tensor保存到文件或从文件加载。这对于模型权重的保存和加载非常重要。NNDeploy支持多种序列化格式，包括原生格式和与其他框架兼容的格式（如safetensors）。序列化时，会保存Tensor的描述信息（如形状、数据类型）和实际数据；反序列化时，则会根据这些信息重建Tensor。"
+msgstr ""
+"Support for serialization and deserialization functions allows Tensors to be"
+" saved to files or loaded from files. This is crucial for saving and loading"
+" model weights. NNDeploy supports multiple serialization formats, including "
+"native formats and those compatible with other frameworks (such as "
+"safetensors). During serialization, descriptive information of the Tensor "
+"(such as shape, data type) and the actual data are saved; during "
+"deserialization, the Tensor is reconstructed based on this information."
+
+#: ../../architecture_guide/tensor.md:79 3c36539c9ae7421989bc2babaf8b6a10
+msgid ""
+"由于Tensor在深度学习框架中被广泛使用，调试和可视化Tensor的内容非常重要。因此，Tensor类提供了打印函数，可以将Tensor的基本信息（如形状、数据类型）和实际数据值以可读的形式输出，方便开发者进行调试。"
+msgstr ""
+"Since Tensors are widely used in deep learning frameworks, debugging and "
+"visualizing the contents of Tensors are very important. Therefore, the "
+"Tensor class provides print functions that can output the basic information "
+"of the Tensor (such as shape, data type) and the actual data values in a "
+"readable form, facilitating developers in debugging."
+
+#: ../../architecture_guide/tensor.md:81 8cb8fb98cce44c6eac5e0c95dd528d41
+msgid "此外，Tensor类还提供了一系列帮助函数，包括："
+msgstr ""
+"In addition, the Tensor class also provides a series of helper functions, "
+"including:"
+
+#: ../../architecture_guide/tensor.md:82 d1b2accd8a5d4d9fa2520adaaff175ae
+msgid "数据访问函数：如getData()获取底层数据指针"
+msgstr ""
+"Data access functions: such as getData() to get the underlying data pointer"
+
+#: ../../architecture_guide/tensor.md:83 7d4eccc7a5c342f3953599fd717ede7f
+msgid "属性查询函数：如getShape()、getDataType()、getSize()等"
+msgstr ""
+"Property query functions: such as getShape(), getDataType(), getSize(), etc."
+
+#: ../../architecture_guide/tensor.md:84 4bfc24c1903147e6b9aa322d13f255ab
+msgid "设备相关函数：如getDevice()、getDeviceType()等"
+msgstr "Device-related functions: such as getDevice(), getDeviceType(), etc."
+
+#: ../../architecture_guide/tensor.md:85 ff7f00b06d334c2caba57290a218de70
+msgid "内存管理函数：如allocate()、deallocate()等"
+msgstr "Memory management functions: such as allocate(), deallocate(), etc."
+
+#: ../../architecture_guide/tensor.md:86 85af3bef1d2d461c80c29e5cd08f936c
+msgid "数据操作函数：如set()设置所有元素为指定值"
+msgstr ""
+"Data operation functions: such as set() to set all elements to a specified "
+"value"
+
+#: ../../architecture_guide/tensor.md:88 e15825d14e82482c9a7ecc900770af68
+msgid "这些帮助函数使得Tensor的使用更加灵活和方便，能够满足各种深度学习场景的需求。"
+msgstr ""
+"These helper functions make the use of Tensors more flexible and convenient,"
+" able to meet the requirements of various deep learning scenarios."
+
+#: ../../architecture_guide/tensor.md:91 8fb01dcaca06483ea974304ea0ce74a2
+msgid "好了，有关我们 Tensor 的实现，我们就讲到这里了，同学们，拜拜。"
+msgstr ""
+"Alright, that's all about our implementation of Tensor, classmates, goodbye."

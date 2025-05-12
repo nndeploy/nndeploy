@@ -22,6 +22,12 @@ exclude_patterns = []
 
 language = 'zh_CN'
 
+
+locale_dirs = ['../locales/']
+gettext_compact = False  # optional.
+gettext_uuid = True  # optional.
+
+ 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 

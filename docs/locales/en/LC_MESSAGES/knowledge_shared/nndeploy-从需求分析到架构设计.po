@@ -1,0 +1,962 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:1
+#: 6c5091a8b3694888b0caf15376417618
+msgid "开源的AI部署框架nndeploy - 从需求分析到架构设计"
+msgstr ""
+"Open-source AI deployment framework nndeploy - from requirement analysis to "
+"architecture design"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:3
+#: e36052c28ebf4b118ecbb9c95bd2b71a
+msgid "项目地址：https://github.com/nndeploy/nndeploy 欢迎star和PR"
+msgstr ""
+"Project address: https://github.com/nndeploy/nndeploy Welcome star and PR"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:5
+#: b763cb35077447a8985b61bc8f3e54f8
+msgid "1. 模型部署实际案例"
+msgstr "1. Model deployment practical cases"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:7
+#: 961f3f482e9a42ef9dd6e40ffee43ffa
+msgid "通过模型部署的实际案例，来回答一下什么是部署框架。"
+msgstr ""
+"Through practical cases of model deployment, to answer what a deployment "
+"framework is."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:9
+#: 03cd1c8342784b2dbd1b716d9efd2a89
+msgid ""
+"这是一个AI智能抠图模型多端部署实际案例，通过人像分割模型，把蒙娜丽莎图片中抠出来。训练框架负责训练这个算法，通过推理框架在生产环境完成上线。训练框架有pytorch、tf等，各个大厂也推出自己的推理框架，例如NVIDIA的TensorRT，intel的OpenVINO、阿里的mnn等等。从训练框架到推理框架之间也有较多的痛点问题需要解决，而部署框架就是来解决这些痛点问题。从该实际案例中，可发现模型部署的一个明显的痛点问题，该p图软件有ios、android、网页、电脑（win"
+" mac 麒麟）等众多版本，没有部署框架将很难解决这个多端部署的痛点问题。具体痛点的问题会在下一章的需求分析中详细介绍。"
+msgstr ""
+"This is a practical case of multi-end deployment of an AI intelligent "
+"cropping model, extracting from the Mona Lisa image through a portrait "
+"segmentation model. The training framework is responsible for training this "
+"algorithm, and the inference framework completes the online deployment in "
+"the production environment. Training frameworks include pytorch, tf, etc., "
+"and major manufacturers also launch their own inference frameworks, such as "
+"NVIDIA's TensorRT, Intel's OpenVINO, Ali's mnn, etc. There are many pain "
+"points to be solved between the training framework and the inference "
+"framework, and the deployment framework is designed to solve these pain "
+"points. From this practical case, a clear pain point in model deployment can"
+" be identified: this image software has many versions such as iOS, Android, "
+"web, and PC (Win Mac Linux), and without a deployment framework, it will be "
+"difficult to solve the pain point of multi-end deployment. Specific pain "
+"points will be detailed in the next chapter's requirement analysis."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:12
+#: 1c00500ab1e94296ba844ee6ce89068f c8e3cb11fd7f41998b8388190ee68920
+msgid "multi_end_deploy_case"
+msgstr "multi_end_deploy_case"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:14
+#: 5857e3ee78634ae988c074e9f8daaeec
+msgid "1 需求分析"
+msgstr "1 Requirement Analysis"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:16
+#: b3b9df3bf25545fda8632ec72d138269
+msgid "首先是需求分析，也就是为什么要做nndeploy，模型多端部署有什么实际场景，目前模型多端部署以及模型部署有哪些痛点。"
+msgstr ""
+"First is the requirement analysis, which is why we need to do nndeploy, what"
+" are the actual scenarios for multi-end model deployment, and what are the "
+"current pain points in multi-end model deployment and model deployment."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:21
+#: ef14003dd3554320aba3a2805d812d42
+msgid "1.2 模型多端部署以及模型部署痛点"
+msgstr "1.2 Multi-end model deployment and model deployment pain points"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:23
+#: 954db1df739344d1b5cd556ef462e549
+msgid "1.2.1 推理框架的碎片化"
+msgstr "1.2.1 Fragmentation in inference frameworks"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:25
+#: 04499125d8444fe280699111aecda24c
+msgid ""
+"模型多端部署第一个痛点 - "
+"推理框架的碎片化。现在业界尚不存在各方面都远超其同类产品的推理框架，不同推理框架在不同平台、硬件下分别具有各自的优势。例如，在NVidia "
+"显卡机器推理，TensorRT 是性能最好的推理框架；在x86 CPU 机器推理，OpenVINO "
+"是性能最好的推理框架；在苹果生态下，coreml是性能最好的推理框架；在ARM Android 下，有 "
+"ncnn、MNN、TFLite、TNN等一系列选择；在瑞芯微下，RKNN是性能最好的推理框架。总结而言：在具体硬件下，通常就采用硬件公司推出的推理框架。"
+msgstr ""
+"The first pain point in multi-end model deployment - fragmentation in "
+"inference frameworks. Currently, there is no inference framework in the "
+"industry that surpasses its counterparts in all aspects, and different "
+"inference frameworks have their respective advantages on different platforms"
+" and hardware. For example, on NVidia GPU machines, TensorRT is the best "
+"performing inference framework; on x86 CPU machines, OpenVINO is the best "
+"performing inference framework; in the Apple ecosystem, coreml is the best "
+"performing inference framework; on ARM Android, there are choices like ncnn,"
+" MNN, TFLite, TNN, etc.; on Rockchip microcontrollers, RKNN is the best "
+"performing inference framework. In summary: under specific hardware, the "
+"inference framework provided by the hardware company is usually adopted."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:27
+#: 47d3d66c68104d2496bf02baa18613f2 e391a13e2af6429aa95ee4fcb04650cf
+msgid "fragmentation_in_inference_frameworks"
+msgstr "fragmentation_in_inference_frameworks"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:29
+#: eca20b318d6b43eaae6427a4a90451df
+msgid "1.2.2 多个推理框架的学习成本、开发成本、维护成本"
+msgstr ""
+"1.2.2 Learning cost, development cost, maintenance cost of multiple "
+"inference frameworks"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:31
+#: ee979bfacee94d1793edb6e4e520ef21
+msgid ""
+"模型多端部署第二个痛点 - 多个推理框架 的 "
+"学习成本、开发成本、维护成本。不同的推理框架有不一样的推理接口、超参数配置、Tensor等等，假如一个模型需要多端部署，针对不同推理框架都需要写一套代码，这对模型部署工程师而言，将带来较大学习成本、开发成本、维护成本。"
+msgstr ""
+"The second pain point in multi-end model deployment - the learning cost, "
+"development cost, maintenance cost of multiple inference frameworks. "
+"Different inference frameworks have different inference interfaces, "
+"hyperparameter configurations, Tensors, etc. If a model needs to be deployed"
+" on multiple ends, a set of code needs to be written for each different "
+"inference framework, which will bring significant learning cost, development"
+" cost, and maintenance cost to model deployment engineers."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:33
+#: aa488022e68647818c49614577ecac4f f3e50fe4c06e431bb1e01a7d5a20dca2
+msgid "inference_difference"
+msgstr "inference_difference"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:36
+#: e8ad4ad120f54f68afce7fe1460e954a
+msgid "1.2.3 模型的多样性"
+msgstr "1.2.3 Diversity of models"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:38
+#: a20fc95bd5c14c29be105e5d547ab8b1
+msgid ""
+"上述两个痛点都是针对模型多端部署的痛点，第三个痛点是模型部署本身的痛点 - "
+"模型的多样性。从模型部署的角度出发，可以分为单输入、多输入、单输出、多输出、静态形状输入、动态形状输入、静态形状输出、动态形状输出一系列不同，当上述的差异点与内存零拷贝优化结合的时候（直接操作推理框架内部分配输入输出），通常只有具备丰富模型部署经验的工程师才能快速找到最优解"
+msgstr ""
+"The above two pain points are for multi-end model deployment, the third pain"
+" point is the pain point of model deployment itself - the diversity of "
+"models. From the perspective of model deployment, it can be divided into "
+"single input, multiple inputs, single output, multiple outputs, static shape"
+" input, dynamic shape input, static shape output, dynamic shape output, etc."
+" When the above differences are combined with memory zero-copy optimization "
+"(directly operating the internal allocation of input and output of the "
+"inference framework), usually only engineers with rich model deployment "
+"experience can quickly find the optimal solution."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:40
+#: 2f371279c10f46b9bd2f0bdf630e60fd
+msgid "以下是结合了模型特性、描述、TensorRT手动构图以及实际算法例子的表格："
+msgstr ""
+"Below is a table combining model characteristics, descriptions, TensorRT "
+"manual graph construction, and actual algorithm examples:"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:104
+#: a30494ca93064e489ebcd71aa9df8b12
+msgid "1.2.4 模型高性能的前后处理"
+msgstr "1.2.4 High-performance pre and post-processing of models"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:106
+#: 99b88f7716b6416e969ca6a244b961cd
+msgid ""
+"第四个痛点也是模型部署本身的痛点 - "
+"模型的前后处理。模型部署不仅仅只有模型推理，还有前处理、后处理，推理框架往往只提供模型推理的功能。通常需要部署工程师基于对原始算法的理解，通过c++开发该算法前后处理，就cv类算法而言，前处理通常由如下算子（cvtcolor、resize、padding、"
+" "
+"warp_affine、crop、normalize、transpose）组合而成，对于大部分cv类模型而言，前处理有较多共性，对于某一个类别的算法而言，后处理算法又特别相似，故前后处理可以被复用，当某个前后处理被大量复用时，可以考虑重点优化，从而获得进一步加速"
+msgstr ""
+"The fourth pain point is also a pain point of model deployment itself - the "
+"pre and post-processing of models. Model deployment is not just about model "
+"inference, it also includes pre-processing and post-processing, and "
+"inference frameworks often only provide the function of model inference. "
+"Usually, deployment engineers need to understand the original algorithm, "
+"develop the algorithm's pre and post-processing through C++. For CV class "
+"algorithms, pre-processing is usually composed of operators such as "
+"cvtcolor, resize, padding, warp_affine, crop, normalize, transpose. For most"
+" CV models, pre-processing has a lot in common, and for a certain category "
+"of algorithms, post-processing algorithms are particularly similar, so pre "
+"and post-processing can be reused. When a certain pre or post-processing is "
+"heavily reused, it can be considered for key optimization to obtain further "
+"acceleration."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:108
+#: 682ea70043104942840929685297602e d43d2738e33943a2977a6309054616e3
+msgid "model_pre_post"
+msgstr "model_pre_post"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:111
+#: 8e5508aa263548bcbb3fd481d23176b5
+msgid "1.2.5 多模型的复杂场景"
+msgstr "1.2.5 Complex scenarios with multiple models"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:113
+#: d9b7496ff5794e1e92751ef29dce4d2e
+msgid ""
+"第五个也是模型部署的痛点 - 多模型组合复杂的场景。目前很多场景是需要由多个模型组合解决该业务问题，例如老照片修复，该算法有6个模型 + "
+"1个传统算法（老照片->划痕检测->划痕修复->超分辨率->condition(loop(人脸检测->人脸矫正->人脸修复->人脸贴回))->修复后的照片）组合，没有部署框架的支持，会有大量业务代码、模型耦合度高、灵活性差、代码不适合并行等等问题（出bug、可维护性）。"
+msgstr ""
+"The fifth pain point is also a pain point of model deployment - complex "
+"scenarios with multiple model combinations. Currently, many scenarios "
+"require solving business problems with multiple model combinations, such as "
+"old photo restoration, which involves 6 models + 1 traditional algorithm "
+"(old photo->scratch detection->scratch repair->super "
+"resolution->condition(loop(face detection->face correction->face "
+"repair->face paste back))->restored photo). Without the support of a "
+"deployment framework, there will be a lot of business code, high model "
+"coupling, poor flexibility, code not suitable for parallelization, and other"
+" issues (easy to bug, maintainability)."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:115
+#: 2cb72f05898f41a5b24f1e1a1f15a794 a6491480a35b46e49ea9020b85e0a5e3
+msgid "old_photo"
+msgstr "old_photo"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:118
+#: f7845868141b4e10a1864d385bd83a6f
+msgid "2 概述"
+msgstr "2 Overview"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:120
+#: fd827494f7284943aebfacd5b52b3eb4
+msgid ""
+"nndeploy是一款模型端到端部署框架。下图为nndeploy的整体架构，以多端推理以及基于有向无环图模型部署为基础，致力为用户提供跨平台、简单易用、高性能的模型部署体验。"
+msgstr ""
+"nndeploy is an end-to-end model deployment framework. The figure below shows"
+" the overall architecture of nndeploy, based on multi-end inference and "
+"directed acyclic graph model deployment, aiming to provide users with a "
+"cross-platform, simple to use, high-performance model deployment experience."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:122
+#: 311b520c23f84f21a9a89ebba65ecc9f 31e442ba944d440193c00ef5905b3331
+msgid "Architecture"
+msgstr "Architecture"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:124
+#: 9c9d4270cd254bdfb5ad2419d7e5e557
+msgid "2.1 特点"
+msgstr "2.1 Features"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:126
+#: 6688eaea99694dbc944d9e0163ff0a3a
+msgid "2.1.1 开箱即用的算法"
+msgstr "2.1.1 Ready-to-use algorithms out of the box"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:128
+#: dd5f68228e064df9aa2fbcbb94748c37
+msgid "目前已完成 YOLOV5、YOLOV6、YOLOV8 、SAM模型的部署，可供您直接使用，后续我们持续不断去部署其它开源模型，让您开箱即用"
+msgstr ""
+"Currently, the deployment of YOLOV5, YOLOV6, YOLOV8, SAM models has been "
+"completed, available for your direct use. We will continue to deploy other "
+"open-source models, allowing you to use them out of the box."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:167
+#: c9d3b0d9c0154a14a79449cb05258385
+msgid "2.1.2 支持跨平台和多推理框架"
+msgstr "2.1.2 Support for cross-platform and multiple inference frameworks"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:169
+#: ce89cbaaa5ba43e3934d70ce39b33780
+msgid ""
+"一套代码多端部署：通过切换推理配置，一套代码即可完成模型跨多个平台以及多个推理框架部署。主要是针对痛点一（推理框架的碎片化）和痛点二（多个推理框架的学习成本、开发成本、维护成本）"
+msgstr ""
+"One code, multiple deployments: By switching inference configurations, one "
+"set of code can complete model deployment across multiple platforms and "
+"multiple inference frameworks. Mainly targeting pain point one "
+"(fragmentation of inference frameworks) and pain point two (the learning "
+"cost, development cost, and maintenance cost of multiple inference "
+"frameworks)."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:171
+#: c62006356d054a9e97612f610a093340
+msgid "当前支持的推理框架如下："
+msgstr "Currently supported inference frameworks are as follows:"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:291
+#: b243ff33199741ab90b995a7a036cace
+msgid "2.1.3 简单易用"
+msgstr "2.1.3 Easy to use"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:293
+#: ecdea12109524e6698a00ce43ea03501
+msgid ""
+"基于有向无环图部署模型： 将 AI 算法端到端（前处理->推理->后处理）的部署抽象为有向无环图 Graph，前处理为一个 Node，推理也为一个 "
+"Node，后处理也为一个 Node。主要是针对痛点四（复用模型的前后处理）"
+msgstr ""
+"Based on directed acyclic graph deployment model: Deploying AI algorithms "
+"end-to-end (pre-processing -> inference -> post-processing) is abstracted as"
+" a directed acyclic graph Graph, where pre-processing is one Node, inference"
+" is another Node, and post-processing is also a Node. Mainly targeting pain "
+"point four (reuse of model's pre and post processing)."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:295
+#: 61c5ee47e67942a9b70dad420e75a8a1
+msgid ""
+"推理模板Infer： 基于多端推理模块Inference + "
+"有向无环图节点Node再设计功能强大的推理模板Infer，Infer推理模板可以帮您在内部处理不同的模型带来差异，例如单输入、多输入、单输出、多输出、静态形状输入、动态形状输入、静态形状输出、动态形状输出一系列不同。主要是针对痛点三（模型的多样性）"
+msgstr ""
+"Inference template Infer: Based on multi-end inference module Inference + "
+"directed acyclic graph node Node, redesigned to be a powerful inference "
+"template Infer. The Infer inference template can help you internally handle "
+"the differences brought by different models, such as single input, multiple "
+"inputs, single output, multiple outputs, static shape input, dynamic shape "
+"input, static shape output, dynamic shape output, and a series of "
+"differences. Mainly targeting pain point three (diversity of models)."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:297
+#: 8bf5deb436a4479a97630dd31a833144
+msgid ""
+"高效解决多模型的复杂场景：在多模型组合共同完成一个任务的复杂场景下（例如老照片修复），每个模型都可以是独立的Graph，nndeploy的有向无环图支持图中嵌入图灵活且强大的功能，将大问题拆分为小问题，通过组合的方式快速解决多模型的复杂场景问题"
+msgstr ""
+"Efficiently solving complex scenarios with multiple models: In complex "
+"scenarios where multiple models work together to complete a task (such as "
+"old photo restoration), each model can be an independent Graph. nndeploy's "
+"directed acyclic graph supports embedding graphs flexibly and powerfully, "
+"breaking down big problems into small ones, quickly solving complex multi-"
+"model scenario problems through combination."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:299
+#: 397badb5f4b545aca78ce4a811cfd607
+msgid ""
+"快速构建demo：对于已部署好的模型，需要编写demo展示效果，而demo需要处理多种格式的输入，例如图片输入输出、文件夹中多张图片的输入输出、视频的输入输出等，通过将上述编解码节点化，可以更通用以及更高效的完成demo的编写，达到快速展示效果的目的（目前主要实现了基于OpneCV的编解码节点化）"
+msgstr ""
+"Quick demo construction: For models already deployed, writing a demo to "
+"showcase the effect is necessary, and the demo needs to handle inputs in "
+"multiple formats, such as image input output, input output of multiple "
+"images in a folder, video input output, etc. By modularizing the above "
+"encoding and decoding nodes, it can be more universal and efficient to "
+"complete the demo writing, achieving the purpose of quickly showcasing the "
+"effect (currently mainly implemented the encoding and decoding node "
+"modularization based on OpenCV)."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:301
+#: 214c38b70a3448758c811d637fadc156
+msgid "2.1.4 高性能"
+msgstr "2.1.4 High performance"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:303
+#: 5b0283d1a5284fe4a208e72b6f613eeb
+msgid ""
+"推理框架的高性能抽象：每个推理框架也都有其各自的特性，需要足够尊重以及理解这些推理框架，才能在抽象中不丢失推理框架的特性，并做到统一的使用的体验。nndeploy"
+" 可配置第三方推理框架绝大部分参数，保证了推理性能。可直接操作推理框架内部分配的输入输出，实现前后处理的零拷贝，提升模型部署端到端的性能。"
+msgstr ""
+"Abstraction of inference framework's high performance: Each inference "
+"framework also has its own characteristics, which need to be respected and "
+"understood enough to not lose the characteristics of the inference framework"
+" in abstraction, and to achieve a unified user experience. nndeploy can "
+"configure most parameters of third-party inference frameworks, ensuring "
+"inference performance. It can directly operate the input and output "
+"allocated by the inference framework internally, achieving zero copy of pre "
+"and post processing, improving the end-to-end performance of model "
+"deployment."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:305
+#: 472897bfe79e43b883562a1f0d43cfaf
+msgid ""
+"线程池：提高模型部署的并发性能和资源利用率（thread "
+"pool）。此外，还支持CPU端算子自动并行，可提升CPU算子执行性能（parallel_for）。"
+msgstr ""
+"Thread pool: Improve the concurrency performance and resource utilization "
+"rate of model deployment (thread pool). In addition, it also supports "
+"automatic parallelization of CPU operators, which can improve the execution "
+"performance of CPU operators (parallel_for)."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:307
+#: 6722209f112d411a95131589f9651e57
+msgid "内存池：完成后可实现高效的内存分配与释放(TODO)"
+msgstr ""
+"Memory pool: After completion, efficient memory allocation and release can "
+"be achieved (TODO)."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:309
+#: db5e912290f448eba4941e73e32f66c6
+msgid "一组高性能的算子：完成后将加速您模型前后处理速度(TODO)"
+msgstr ""
+"A set of high-performance operators: After completion, it will accelerate "
+"the speed of your model's pre and post processing (TODO)."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:311
+#: 01a6340e7174467c8bc583c8a621fe12
+msgid "2.1.5 并行"
+msgstr "2.1.5 Parallel"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:313
+#: 97b6343d772f4656b1d290bfbd0ff3d8
+msgid "串行：按照模型部署的有向无环图的拓扑排序，依次执行每个节点。"
+msgstr ""
+"Serial: According to the topological sorting of the model deployment's "
+"directed acyclic graph, execute each node in sequence."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:315
+#: 482281a85155492ebcb7baba1dd78373
+msgid ""
+"流水线并行：在处理多帧的场景下，基于有向无环图的模型部署方式，可将前处理 Node、推理 Node、后处理 "
+"Node绑定三个不同的线程，每个线程又可绑定不同的硬件设备下，从而三个Node可流水线并行处理。在多模型以及多硬件设备的的复杂场景下，更加可以发挥流水线并行的优势，从而可显著提高整体吞吐量。"
+msgstr ""
+"Pipeline parallel: In scenarios processing multiple frames, based on the "
+"directed acyclic graph model deployment method, the pre-processing Node, "
+"inference Node, and post-processing Node can be bound to three different "
+"threads, each thread can also be bound to different hardware devices, thus "
+"the three Nodes can process in pipeline parallel. In complex scenarios with "
+"multiple models and multiple hardware devices, the advantages of pipeline "
+"parallel can be more utilized, significantly improving the overall "
+"throughput."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:317
+#: c833beab931740b99e03c7028c513e9f
+msgid "任务并行：在多模型以及多硬件设备的的复杂场景下，基于有向无环图的模型部署方式，可充分挖掘模型部署中的并行性，缩短单次算法全流程运行耗时"
+msgstr ""
+"Task parallel: In complex scenarios with multiple models and multiple "
+"hardware devices, based on the directed acyclic graph model deployment "
+"method, the parallelism in model deployment can be fully exploited to "
+"shorten the runtime of a single algorithm's full process."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:319
+#: 5d538073b35b420cb291c6782fb165df
+msgid ""
+"上述模式的组合并行：在多模型、多硬件设备以及处理多帧的复杂场景下，nndeploy的有向无环图支持图中嵌入图的功能，每个图都可以有独立的并行模式，故用户可以任意组合模型部署任务的并行模式，具备强大的表达能力且可充分发挥硬件性能。"
+msgstr ""
+"Combination of the above modes' parallel: In complex scenarios with multiple"
+" models, multiple hardware devices, and processing multiple frames, "
+"nndeploy's directed acyclic graph supports the function of embedding graphs,"
+" each graph can have an independent parallel mode, so users can freely "
+"combine the parallel modes of model deployment tasks, with powerful "
+"expression ability and can fully exploit hardware performance."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:321
+#: 30adf4b669634346b14f5198218cc59a
+msgid "3 架构简介"
+msgstr "3 Architecture Introduction"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:323
+#: 560561904b454417b295fa27c55d851f
+msgid ""
+"nndeploy是以多端推理以及基于有向无环图模型部署为基础的模型端到端部署框架。故架构简介从多端推理以及基于有向无环图模型部署两个为引子去介绍整体架构。"
+msgstr ""
+"nndeploy is a model end-to-end deployment framework based on multi-end "
+"inference and directed acyclic graph model deployment. The architecture "
+"introduction introduces the overall architecture from two aspects: multi-end"
+" inference and directed acyclic graph model deployment."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:325
+#: d9fff7de17804f1494d308f631fc64f1
+msgid "与多端推理有关的三个模块"
+msgstr "Three modules related to multi-end inference"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:327
+#: 062ae0ee8bab46acb37ccca2d7b2fcf0
+msgid "3.1 多端推理"
+msgstr "3.1 Multi-end inference"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:329
+#: 8d84225d386a4eb0a2deefc57aa0b3f1
+msgid ""
+"多端推理子模块（Inference）。提供统一的模型推理的方法去操作不同的推理后端。下图梳理nndeploy接入一个新推理框架的整体流程，这里以MNN为例。1."
+" 首先是理解MNN；2. 理解Inference子模块（推理超参数配置类InferenceParam，推理基类Inference）；3. "
+"在理解MNN与Inference基类之上，编写推理适配器（继承基类Inference，编写MnnInference；继承基类InferenceParam，编写MnnInferenceParam；编写推理相关数据结构的转换工具类MnnConvert）；4."
+" 基于MNN后端跑通YOLOV5s"
+msgstr ""
+"Multi-end inference sub-module (Inference). Provides a unified method of "
+"model inference to operate different inference backends. The following "
+"figure outlines the overall process of nndeploy accessing a new inference "
+"framework, here taking MNN as an example. 1. First is understanding MNN; 2. "
+"Understanding the Inference sub-module (inference super parameter "
+"configuration class InferenceParam, inference base class Inference); 3. "
+"Based on understanding MNN and the base class Inference, writing the "
+"inference adapter (inheriting the base class Inference, writing "
+"MnnInference; inheriting the base class InferenceParam, writing "
+"MnnInferenceParam; writing the conversion tool class MnnConvert for "
+"inference-related data structures); 4. Running YOLOV5s based on MNN backend."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:331
+#: 6fce77ffeb534b6d8f13c3523cc07429 ce7a223e7263405baac2d80a0c070724
+msgid "how_to_support_new_inference"
+msgstr "how_to_support_new_inference"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:333
+#: d1a0760d05104b20bfdaeb3f118f2865
+msgid "3.1.1 模型推理类Inference"
+msgstr "3.1.1 Model inference class Inference"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:335
+#: d23fcad7af7f49d5ae85a669db81189e
+msgid ""
+"对应文件为<path>\\include\\nndeploy\\inference.h和<path>\\source\\nndeploy\\inference.cc，文件中有较为详细的注释说明，主要功能如图所示"
+msgstr ""
+"The corresponding files are <path>\\include\\nndeploy\\inference.h and "
+"<path>\\source\\nndeploy\\inference.cc, the files have more detailed "
+"annotation instructions, the main functions are as shown in the figure"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:337
+#: 1fa5c2b68a224b599b4cafbc741908cb 628e78d9bcd14aa1b20cd3b7fe57f06e
+msgid "inference"
+msgstr "inference"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:339
+#: 7cc2c3616d894cc3b5d08ab252c6d241
+msgid "3.1.2 InferenceParam 推理超参数配置类"
+msgstr "3.1.2 InferenceParam Inference super parameter configuration class"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:341
+#: 9545e20e377540269780f992b2e5c08b
+msgid ""
+"对应文件为<path>\\include\\nndeploy\\inference_param.h和<path>\\source\\nndeploy\\inference_param.cc，每个推理实例都需要超参数配置，例如模型推理时精度、是否为动态形状等等，详细功能如图所示"
+msgstr ""
+"The corresponding files are <path>\\include\\nndeploy\\inference_param.h and"
+" <path>\\source\\nndeploy\\inference_param.cc. Each inference instance "
+"requires hyperparameter configuration, such as model inference precision, "
+"whether it is dynamic shape, etc. Detailed functions are as shown in the "
+"figure."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:343
+#: 0883bbea1cd64b4a8a9c1b56f2a0215a 7fefe84caf334ebdb934201e5f90733b
+msgid "inference_param"
+msgstr "inference_param"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:345
+#: 59e771bd2a524be9aa6c86f4fc4dcdf1
+msgid "3.1.3 推理相关数据结构的转换工具类"
+msgstr "3.1.3 Inference-related data structure conversion tool class"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:347
+#: 0d9c91b290744cb8958c554cf425d95d
+msgid ""
+"nndeploy提供了统一的Tensor以及推理所需的超参数数据结构，每个推理框架都有自定义Tensor以及超参数数据结构，为了保证统一的接口调用的体验，需编写转化器模块。由于每个推理框架定义都不相同，故该工具类无法定义基类，该工具类的主要也是服务推理框架适配器内部使用，也不需要基类。可参考<path>\\include/nndeploy/inference/mnn/mnn_converter.h和<path>\\source/nndeploy/inference/mnn/mnn_converter.c。具体实现如下图所示"
+msgstr ""
+"nndeploy provides a unified Tensor and the hyperparameter data structure "
+"required for inference. Each inference framework has its own custom Tensor "
+"and hyperparameter data structure. To ensure a unified interface calling "
+"experience, a converter module needs to be written. Since each inference "
+"framework definition is different, this tool class cannot define a base "
+"class. The main purpose of this tool class is also to serve the inference "
+"framework adapter internally, and a base class is not required. Refer to "
+"<path>\\include/nndeploy/inference/mnn/mnn_converter.h and "
+"<path>\\source/nndeploy/inference/mnn/mnn_converter.c. The specific "
+"implementation is as shown in the figure."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:349
+#: 355ebe715a5c40f0b3a202f6bf243ff8 febefa1cc48f4512aa2bcf17a74ffb18
+msgid "mnn_converter"
+msgstr "mnn_converter"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:351
+#: 93d4eb78b3604fc29462fae7fb791946
+msgid "3.2 数据容器 Tensor && Buffer"
+msgstr "3.2 Data container Tensor && Buffer"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:353
+#: a4aa27b9042249c6b183a354a15f50c7
+msgid ""
+"每个推理框架都有不一样的数据交互方式，例如TensorRT为io_binding的方式、OpenVINO为ov::Tensor、TNN的TNN::Blob。不仅需要提供统一推理类以及推理超参数配置类，还需要设计一个通用的Tensor，Tensor的成员变量以及TensorDesc的成员变量如图所示。"
+msgstr ""
+"Each inference framework has different data interaction methods, such as "
+"TensorRT's io_binding method, OpenVINO's ov::Tensor, TNN's TNN::Blob. Not "
+"only is it necessary to provide a unified inference class and inference "
+"hyperparameter configuration class, but also to design a universal Tensor. "
+"The member variables of Tensor and TensorDesc are as shown in the figure."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:355
+#: 4754555d97e147519ddbd7c19ba3fa65 c01f03b8bb3f470087212fc495019b84
+msgid "tensor"
+msgstr "tensor"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:357
+#: fc9daf1b2f53430e8a73e4e7c305fe16
+msgid ""
+"模型推理的输入输出可以是异构设备上的数据，例如TensorRT的输入为CUDA内存。引入Buffer，将Tensor与异构设备解绑。Buffer的成员变量以及BufferDesc的成员变量如图所示。"
+msgstr ""
+"The input/output of model inference can be data on heterogeneous devices, "
+"such as TensorRT's input being CUDA memory. Introducing Buffer to decouple "
+"Tensor from heterogeneous devices. The member variables of Buffer and "
+"BufferDesc are as shown in the figure."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:359
+#: b4846a6e235c4dda97b27fd7ed5529b4 fdff8b8aa8204cf0b10948023c9aca4e
+msgid "buffer"
+msgstr "buffer"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:361
+#: c951f73519a34ba78f1283385cf03d84
+msgid "3.3 设备管理"
+msgstr "3.3 Device management"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:363
+#: 86617ee15c204021ac07ff7087a69281
+msgid ""
+"设备是nndeploy对硬件设备的抽象，通过对硬件设备的抽象，从而屏蔽不同硬件设备编程模型带来的差异性，nndeploy当前已经支持CPU、X86、ARM、CUDA、AscendCL等设备。主要功能如下"
+msgstr ""
+"Device is nndeploy's abstraction of hardware devices. Through the "
+"abstraction of hardware devices, it shields the differences brought by "
+"different hardware programming models. nndeploy currently supports devices "
+"such as CPU, X86, ARM, CUDA, AscendCL, etc. The main functions are as "
+"follows"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:365
+#: a4c66dc7dca4424b98af6c776178a410
+msgid "统一的内存分配：为不同设备提供统一的内存分配接口，从而可简化数据容器Buffer、Mat、Tensor的内存分配"
+msgstr ""
+"Unified memory allocation: Provide a unified memory allocation interface for"
+" different devices, thereby simplifying the memory allocation of data "
+"containers Buffer, Mat, Tensor"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:367
+#: ac9378fa38eb40a6bd0d48e6f0f89087
+msgid ""
+"统一的内存拷贝：为不同设备提供统一的内存拷贝接口（设备间拷贝、主从设备间上传/下载），从而可简化数据容器Buffer、Mat、Tensor的内存拷贝"
+msgstr ""
+"Unified memory copy: Provide a unified memory copy interface for different "
+"devices (copy between devices, upload/download between host and device), "
+"thereby simplifying the memory copy of data containers Buffer, Mat, Tensor"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:369
+#: 10d04dfbacc447d1bdba879fb115e92f
+msgid "统一的同步操作：为不同设备提供统一的同步操作接口，可简化设备端模型推理、算子等同步操作"
+msgstr ""
+"Unified synchronization operation: Provide a unified synchronization "
+"operation interface for different devices, simplifying device-side model "
+"inference, operator synchronization operations, etc."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:371
+#: 1a1e08a41c1d4f0ca067c2cee246adc6
+msgid "统一的硬件设备信息查询：为不同设备提供统一的硬件设备信息查询接口，帮助用户更好的选择模型全流程部署的运行设备"
+msgstr ""
+"Unified hardware device information query: Provide a unified hardware device"
+" information query interface for different devices, helping users better "
+"choose the running device for the entire process deployment of the model"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:373
+#: 3070006dc2634d91b5f93f86dfbece42
+msgid "与基于有向无环图的模型部署有关的三个模块"
+msgstr ""
+"Three modules related to model deployment based on directed acyclic graph"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:375
+#: 273f1a165bb14c27a712fe39a88687ad
+msgid "3.4 基于有向无环图的模型部署"
+msgstr "3.4 Model deployment based on directed acyclic graph"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:377
+#: 70a563f58b0a414ba3bc80878fb44cfe
+msgid "下图是YOLOv8n的实际例子。"
+msgstr "The following figure is an actual example of YOLOv8n."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:379
+#: 4e67899e8a124e5796e9b907174b1152 8392748e352d4b98a28e1a54a90f797a
+msgid "yolov8n"
+msgstr "yolov8n"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:381
+#: 2035df677d444b8a9ac0711e8de7da86
+msgid ""
+"这是一个非常典型的有向无环图，模型前处理->模型推理->模型推理构成NNDEPLOY_YOLOV8 "
+"DAG(可供外部调用的库)，该DAG与编解码节点以及画框节点又可以共同构成一个新的DAG(可执行程序的demo)"
+msgstr ""
+"This is a very typical directed acyclic graph, model preprocessing->model "
+"inference->model inference constitutes NNDEPLOY_YOLOV8 DAG (a library that "
+"can be called externally). This DAG, along with the decoding node and "
+"drawing box node, can form a new DAG (a demo executable program)."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:383
+#: 03c82947b98c414db42da4c59c02eaff cc90a99668e647c7af2d81969428cd22
+msgid "yolov8_dag"
+msgstr "yolov8_dag"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:385
+#: 06a2e67a43b64f768d37e498f5c78f79
+msgid ""
+"注：对于已部署好的模型，需要编写demo展示效果，而demo需要处理多种格式的输入，例如图片输入输出、文件夹中多张图片的输入输出、视频的输入输出等，通过将上述编解码节点化，可以更通用以及更高效的完成demo的编写，达到快速展示效果的目的。"
+msgstr ""
+"Note: For already deployed models, a demo needs to be written to display the"
+" effect. The demo needs to handle multiple formats of input, such as image "
+"input/output, multiple images in a folder input/output, video input/output, "
+"etc. By modularizing the above decoding node, it can be more universal and "
+"efficient to complete the writing of the demo, achieving the purpose of "
+"quickly displaying the effect."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:387
+#: 71dde71b02dd4919b9364d1c5261585b
+msgid "3.5 流水线并行"
+msgstr "3.5 Pipeline parallel"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:389
+#: bf75552b0bce41f6ba4187986b240c0b
+msgid ""
+"在处理多帧的场景下，基于有向无环图的模型部署方式，可将前处理 Node、推理 Node、后处理 "
+"Node绑定三个不同的线程，每个线程又可绑定不同的硬件设备下，从而三个Node可流水线并行处理。在多模型以及多硬件设备的的复杂场景下，更加可以发挥流水线并行的优势，从而可显著提高整体吞吐量。下图为有向无环图"
+" + 流水线并行 优化 YOLOv8n实际例子"
+msgstr ""
+"In scenarios processing multiple frames, based on the model deployment "
+"method of directed acyclic graph, the preprocessing Node, inference Node, "
+"and postprocessing Node can be bound to three different threads. Each thread"
+" can also be bound to different hardware devices, so the three Nodes can "
+"process in pipeline parallel. In complex scenarios with multiple models and "
+"multiple hardware devices, the advantages of pipeline parallel can be more "
+"utilized, significantly improving the overall throughput. The following "
+"figure is an actual example of optimizing YOLOv8n with directed acyclic "
+"graph + pipeline parallel."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:391
+#: 9f87acd5430442909004ab7e82c44dea d5dd84bb11af44c49b4c986fb9a4781d
+msgid "pipeline_parallel"
+msgstr "pipeline_parallel"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:393
+#: d7bdc6a90b0e4ddbba29c615235f630d
+msgid "3.6 多模型的复杂场景"
+msgstr "3.6 Complex scenarios with multiple models"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:395
+#: 7dd73b4fef4f4c3b846690718343d466
+msgid ""
+"下图是老照片修复算法的实际例子，该算法有6个模型 + "
+"1个传统算法（老照片->划痕检测->划痕修复->超分辨率->condition(loop(人脸检测->人脸矫正->人脸修复->人脸贴回))->修复后的照片）组合，基于nndeploy通过dag来部署非常直接且开发的心智负担很小。假如不用dag来部署，实际的代码中每个模型都需要手动串联，会有大量业务代码、模型耦合度高、灵活性差、代码不适合并行等等一些问题"
+msgstr ""
+"The following figure is an actual example of an old photo restoration "
+"algorithm. This algorithm has 6 models + 1 traditional algorithm (old "
+"photo->scratch detection->scratch restoration->super "
+"resolution->condition(loop(face detection->face correction->face "
+"restoration->face paste back))->restored photo) combination. Based on "
+"nndeploy, deploying through dag is very direct and the mental burden of "
+"development is very small. If dag is not used for deployment, in the actual "
+"code, each model needs to be manually concatenated, which will have a lot of"
+" business code, high model coupling, poor flexibility, code not suitable for"
+" parallel and other issues."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:397
+#: 412ad8e4a02a47158485aac72d4d3530 8439be55937847729143447345dde1be
+msgid "complex"
+msgstr "complex"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:399
+#: b11859ec634a432b8a6f949c0ab9dfc0
+msgid "4 下一步规划"
+msgstr "4 Next step planning"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:401
+#: 60e59ea3b7cf4e0d84fe66c0d4ca8f95
+msgid "推理后端"
+msgstr "Inference backend"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:402
+#: f07cb18635d347409f624996e1e24eec
+msgid "完善已接入的推理框架coreml"
+msgstr "Complete the already integrated inference framework coreml"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:403
+#: 96c696d8aecf41f480bf93c426c79aef
+msgid "完善已接入的推理框架paddle-lite"
+msgstr "Complete the already integrated inference framework paddle-lite"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:404
+#: 820e9eb1252a417fabb0ba090b7811e6
+msgid "接入新的推理框架TFLite"
+msgstr "Integrate the new inference framework TFLite"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:405
+#: 3243ca7376ee4b50b033c18c2ac516e7
+msgid "设备管理模块"
+msgstr "Device management module"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:406
+#: 95975f833730496685be535fe494528a
+msgid "新增OpenCL的设备管理模块"
+msgstr "Add a new device management module for OpenCL"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:407
+#: 34b187db1a1343b486099d7e3173d80a
+msgid "新增ROCM的设备管理模块"
+msgstr "Add a new device management module for ROCM"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:408
+#: b88a162899a94a6aa39202bd81283239
+msgid "新增OpenGL的设备管理模块"
+msgstr "Add a new device management module for OpenGL"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:409
+#: ece5a87cd7124512bea1c03488df08e8
+msgid "内存优化"
+msgstr "Memory optimization"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:410
+#: e1b8b4d1ad014355a2a6e3e8b2d8958c
+msgid "主从内存拷贝优化：针对统一内存的架构，通过主从内存映射、主从内存地址共享等方式替代主从内存拷贝"
+msgstr ""
+"Master-slave memory copy optimization: For the unified memory architecture, "
+"through master-slave memory mapping, master-slave memory address sharing and"
+" other methods to replace master-slave memory copy"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:411
+#: d4e01fc2ef2a430eb001c1dc6410542e
+msgid "内存池：针对nndeploy的内部的数据容器Buffer、Mat、Tensor，建立异构设备的内存池，实现高性能的内存分配与释放"
+msgstr ""
+"Memory Pool: For the internal data containers Buffer, Mat, and Tensor of "
+"nndeploy, establish a memory pool for heterogeneous devices to achieve high-"
+"performance memory allocation and deallocation."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:412
+#: 384eb4e0fe094815b08a274b8aca1730
+msgid "多节点共享内存机制：针对多模型串联场景下，基于模型部署的有向无环图，在串行执行的模式下，支持多推理节点共享内存机制"
+msgstr ""
+"Multi-node Shared Memory Mechanism: In scenarios involving multiple model "
+"serial connections, based on the directed acyclic graph of model deployment,"
+" under the mode of serial execution, support the shared memory mechanism "
+"among multiple inference nodes."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:413
+#: 2e45699362c547b691a6986eeb9fc3c3
+msgid "边的环形队列内存复用机制：基于模型部署的有向无环图，在流水线并行执行的模式下，支持边的环形队列共享内存机制"
+msgstr ""
+"Edge Circular Queue Memory Reuse Mechanism: Based on the directed acyclic "
+"graph of model deployment, under the mode of pipeline parallel execution, "
+"support the shared memory mechanism of edge circular queues."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:414
+#: 72fc30a9f4504275bc13b210dbaaf91d
+msgid "stable diffusion model"
+msgstr "stable diffusion model"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:415
+#: 460a21af247245eb87fc503f6f02e6c4
+msgid "部署stable diffusion model"
+msgstr "Deploy stable diffusion model"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:416
+#: 3209d08acfee4f76923868c2b75bc266
+msgid "针对stable diffusion model搭建stable_diffusion.cpp（推理子模块，手动构建计算图的方式）"
+msgstr ""
+"For stable diffusion model, integrate stable_diffusion.cpp (inference "
+"submodule, manually construct the computation graph)"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:417
+#: 1dd55c2ec8ab4967b311a601205e1a0c
+msgid "高性能op"
+msgstr "High-performance op"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:418
+#: 92cf57064ee148deb150c2c7fc891856
+msgid "分布式"
+msgstr "Distributed"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:419
+#: b8bafd4c9a73480281b322a24ca2bb07
+msgid "在多模型共同完成一个任务的场景里，将多个模型调度到多个机器上分布式执行"
+msgstr ""
+"In scenarios where multiple models jointly complete a task, schedule "
+"multiple models to multiple machines for distributed execution."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:420
+#: d79d0ff5fd2e4315b74da111ff6e9b9d
+msgid "在大模型的场景下，通过切割大模型为多个子模型的方式，将多个子模型调度到多个机器上分布式执行"
+msgstr ""
+"In scenarios of large models, by splitting the large model into multiple "
+"sub-models, schedule multiple sub-models to multiple machines for "
+"distributed execution."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:423
+#: de5c0de0c39c4d1dbe5f2a09907476b9
+msgid "5 参考"
+msgstr "5 References"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:425
+#: c1bc7eee2e024e678f12b7a423f18720
+msgid "TNN"
+msgstr "TNN"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:426
+#: 77a179a0a49f4ce1910a485b48138a94
+msgid "FastDeploy"
+msgstr "FastDeploy"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:427
+#: 378394da42ec4d8d8ad68ef0186f13ad
+msgid "opencv"
+msgstr "opencv"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:428
+#: 2cabe267ad8b46fca0261e5d46d49044
+msgid "CGraph"
+msgstr "CGraph"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:429
+#: dacb1a541a314fe6a0ac9dae2b65d2e1
+msgid "CThreadPool"
+msgstr "CThreadPool"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:430
+#: 4d827c131224413aa5b5afcf56239598
+msgid "tvm"
+msgstr "tvm"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:431
+#: 3edc914f9e8f4e0a9fb36926a05ca1e5
+msgid "mmdeploy"
+msgstr "mmdeploy"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:432
+#: 1efb1acb588448089b5b42e28d2073c9
+msgid "FlyCV"
+msgstr "FlyCV"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:433
+#: 1c736672008e4ac4838d74661c1a729e
+msgid "torchpipe"
+msgstr "torchpipe"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:436
+#: 34f12c1e4c804595b665ede55763249b
+msgid "6 加入我们"
+msgstr "6 Join Us"
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:438
+#: 93156df7df964b8b9fdb550fee4d1b5f
+msgid ""
+"nndeploy是由一群志同道合的网友共同开发以及维护，我们不定时讨论技术，分享行业见解。当前nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。"
+msgstr ""
+"nndeploy is jointly developed and maintained by a group of like-minded "
+"netizens. We discuss technology and share industry insights from time to "
+"time. Currently, nndeploy is in the development stage. If you love open "
+"source, enjoy challenges, whether for learning purposes or have better "
+"ideas, you are welcome to join us."
+
+#: ../../knowledge_shared/nndeploy-从需求分析到架构设计.md:439
+#: c642713474c64e6bb2fdb5d7fa25f7b9
+msgid "微信：titian5566 (可加我微信进nndeploy交流群，备注：nndeploy+姓名)"
+msgstr ""
+"WeChat: titian5566 (You can add my WeChat to join the nndeploy exchange "
+"group, note: nndeploy + name)"

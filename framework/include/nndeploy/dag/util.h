@@ -96,6 +96,12 @@ void insertUnique(std::vector<T> &vec, const T &val) {
   }
 }
 
+void findConsumerNode(EdgeWrapper *edge_wrapper,
+                      std::vector<Node *> &consumers);
+
+void findProducerNode(EdgeWrapper *edge_wrapper,
+                      std::vector<Node *> &producers);
+
 // base::Status getValueFromParamVec(const std::vector<base::Param *>
 // &param_vec,
 // const std::string &key, base::Value

@@ -9,11 +9,11 @@
 #include "nndeploy/base/opencv_include.h"
 #include "nndeploy/base/param.h"
 #include "nndeploy/base/status.h"
+#include "nndeploy/dag/base.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
-#include "nndeploy/dag/base.h"
 
 namespace nndeploy {
 namespace dag {
@@ -34,29 +34,30 @@ class DataPacket : public base::NonCopyable {
   DataPacket();
   virtual ~DataPacket();
 
-  virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
-  device::Buffer *create(device::Device *device, const device::BufferDesc &desc,
-                         int index);
+  virtual base::Status set(device::Buffer *buffer, bool is_external);
+  device::Buffer *create(device::Device *device,
+                         const device::BufferDesc &desc);
   virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
-  cv::Mat *create(int rows, int cols, int type, const cv::Vec3b& value,
-                  int index);
+  virtual base::Status set(cv::Mat *cv_mat, bool is_external);
+  cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value);
   virtual bool notifyWritten(cv::Mat *cv_mat);
   virtual cv::Mat *getCvMat();
 #endif
 
-  virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
+  virtual base::Status set(device::Tensor *tensor, bool is_external);
   device::Tensor *create(device::Device *device, const device::TensorDesc &desc,
-                         int index, const std::string &name);
+                         const std::string &name);
   virtual bool notifyWritten(device::Tensor *tensor);
   virtual device::Tensor *getTensor();
 
-  virtual base::Status set(base::Param *param, int index, bool is_external);
-  template <typename T, typename... Args, typename std::enable_if<std::is_base_of<base::Param, T>::value, int>::type = 0>
-  base::Param *create(int index, Args &&...args){
+  virtual base::Status set(base::Param *param, bool is_external);
+  template <typename T, typename... Args,
+            typename std::enable_if<std::is_base_of<base::Param, T>::value,
+                                    int>::type = 0>
+  base::Param *create(Args &&...args) {
     base::Status status = base::kStatusCodeOk;
     T *param = nullptr;
     if (anything_ == nullptr) {
@@ -70,19 +71,18 @@ class DataPacket : public base::NonCopyable {
       return nullptr;
     }
     is_external_ = false;
-    index_ = index;
     flag_ = EdgeTypeFlag::kParam;
     written_ = false;
     anything_ = (void *)(param);
     type_info_ = &typeid(T);
-    deleter_ = [](void* d) { delete static_cast<T*>(d); };
+    deleter_ = [](void *d) { delete static_cast<T *>(d); };
     return param;
   }
   virtual bool notifyWritten(base::Param *param);
   virtual base::Param *getParam();
 
   template <typename T>
-  base::Status setAny(T *t, int index, bool is_external = true){
+  base::Status setAny(T *t, bool is_external = true) {
     base::Status status = base::kStatusCodeOk;
     if (anything_ == nullptr) {
       anything_ = (void *)(t);
@@ -91,15 +91,14 @@ class DataPacket : public base::NonCopyable {
       anything_ = (void *)(t);
     }
     is_external_ = is_external;
-    index_ = index;
     flag_ = EdgeTypeFlag::kAny;
     written_ = false;
-    deleter_ = [](void* d) { delete static_cast<T*>(d); };
+    deleter_ = [](void *d) { delete static_cast<T *>(d); };
     type_info_ = &typeid(T);
     return status;
   }
   template <typename T, typename... Args>
-  T *createAny(int index, Args &&...args){
+  T *createAny(Args &&...args) {
     base::Status status = base::kStatusCodeOk;
     T *t = nullptr;
     if (anything_ == nullptr) {
@@ -113,15 +112,14 @@ class DataPacket : public base::NonCopyable {
       return nullptr;
     }
     is_external_ = false;
-    index_ = index;
     flag_ = EdgeTypeFlag::kAny;
     written_ = false;
     anything_ = (void *)(t);
     type_info_ = &typeid(T);
-    deleter_ = [](void* d) { delete static_cast<T*>(d); };
+    deleter_ = [](void *d) { delete static_cast<T *>(d); };
     return t;
   }
-  bool notifyAnyWritten(void *anything){
+  bool notifyAnyWritten(void *anything) {
     if (anything == anything_) {
       written_ = true;
       return true;
@@ -130,31 +128,32 @@ class DataPacket : public base::NonCopyable {
     }
   }
   template <typename T>
-  T *getAny(){
+  T *getAny() {
     if (flag_ != EdgeTypeFlag::kAny) {
       return nullptr;
     }
     if (typeid(T) != *type_info_) {
       return nullptr;
     }
-    return static_cast<T*>(anything_);
+    return static_cast<T *>(anything_);
   }
 
-  base::Status takeDataPacket(DataPacket *packet);
+  virtual base::Status takeDataPacket(DataPacket *packet);
 
-  int getIndex();
+  void setIndex(int64_t index);
+  int64_t getIndex();
 
  protected:
   void destory();
 
  protected:
   bool is_external_ = true;
-  int index_ = -1;
+  int64_t index_ = -1;
   EdgeTypeFlag flag_ = EdgeTypeFlag::kNone;
   bool written_ = false;
   void *anything_ = nullptr;
-  std::function<void(void*)> deleter_;
-  std::type_info* type_info_;
+  std::function<void(void *)> deleter_;
+  std::type_info *type_info_;
 };
 
 class PipelineDataPacket : public DataPacket {
@@ -162,34 +161,38 @@ class PipelineDataPacket : public DataPacket {
   PipelineDataPacket(int consumers_size);
   virtual ~PipelineDataPacket();
 
-  virtual base::Status set(device::Buffer *buffer, int index, bool is_external);
+  virtual base::Status set(device::Buffer *buffer, bool is_external);
   virtual bool notifyWritten(device::Buffer *buffer);
   virtual device::Buffer *getBuffer();
+  device::Buffer *getBufferDirect();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  virtual base::Status set(cv::Mat *cv_mat, int index, bool is_external);
+  virtual base::Status set(cv::Mat *cv_mat, bool is_external);
   virtual bool notifyWritten(cv::Mat *cv_mat);
   virtual cv::Mat *getCvMat();
+  cv::Mat *getCvMatDirect();
 #endif
 
-  virtual base::Status set(device::Tensor *tensor, int index, bool is_external);
+  virtual base::Status set(device::Tensor *tensor, bool is_external);
   virtual bool notifyWritten(device::Tensor *tensor);
   virtual device::Tensor *getTensor();
+  device::Tensor *getTensorDirect();
 
-  virtual base::Status set(base::Param *param, int index, bool is_external);
+  virtual base::Status set(base::Param *param, bool is_external);
   virtual bool notifyWritten(base::Param *param);
   virtual base::Param *getParam();
+  base::Param *getParamDirect();
 
   template <typename T>
-  base::Status setAny(T *t, int index, bool is_external = true){
+  base::Status setAny(T *t, bool is_external = true) {
     std::unique_lock<std::mutex> lock(mutex_);
-    base::Status status = DataPacket::setAny(t, index, is_external);
+    base::Status status = DataPacket::setAny(t, is_external);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "DataPacket::setAny failed!\n");
     cv_.notify_all();
     return status;
   }
-  bool notifyAnyWritten(void *anything){
+  bool notifyAnyWritten(void *anything) {
     std::unique_lock<std::mutex> lock(mutex_);
     bool status = DataPacket::notifyAnyWritten(anything);
     if (status) {
@@ -198,11 +201,17 @@ class PipelineDataPacket : public DataPacket {
     return status;
   }
   template <typename T>
-  T *getAny(){
+  T *getAny() {
     std::unique_lock<std::mutex> lock(mutex_);
     cv_.wait(lock, [this] { return written_; });
     return DataPacket::getAny<T>();
   }
+  template <typename T>
+  T *getAnyDirect() {
+    return DataPacket::getAny<T>();
+  }
+
+  virtual base::Status takeDataPacket(DataPacket *packet);
 
   void increaseConsumersSize();
   void increaseConsumersCount();

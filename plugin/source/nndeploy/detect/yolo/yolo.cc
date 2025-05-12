@@ -102,7 +102,7 @@ base::Status YoloPostProcess::runV5V6() {
       results->bboxs_.emplace_back(results_batch.bboxs_[n]);
     }
   }
-  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
+  outputs_[0]->set(results, false);
   return base::kStatusCodeOk;
 }
 
@@ -174,7 +174,7 @@ base::Status YoloPostProcess::runV8V11() {
       results->bboxs_.emplace_back(results_batch.bboxs_[n]);
     }
   }
-  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
+  outputs_[0]->set(results, false);
   // NNDEPLOY_LOGE("postprocess!\n");
   return base::kStatusCodeOk;
 }

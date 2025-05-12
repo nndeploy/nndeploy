@@ -41,10 +41,10 @@ Node::~Node() {
   external_param_.clear();
   inputs_.clear();
   outputs_.clear();
-  for (auto output : outputs_edge_is_external_) {
+  for (auto output : internal_outputs_) {
     delete output.second;
   }
-  outputs_edge_is_external_.clear();
+  internal_outputs_.clear();
   constructed_ = false;
   initialized_ = false;
   is_running_ = false;
@@ -55,26 +55,27 @@ Node::~Node() {
   // NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
 }
 
+std::string Node::getKey() { return key_; }
 std::string Node::getName() { return name_; }
 
-std::vector<std::string> Node::getInputNames() { 
+std::vector<std::string> Node::getInputNames() {
   std::vector<std::string> input_names;
   for (auto input_type_info : input_type_info_) {
     input_names.push_back(input_type_info->getEdgeName());
   }
   return input_names;
 }
-std::vector<std::string> Node::getOutputNames() { 
+std::vector<std::string> Node::getOutputNames() {
   std::vector<std::string> output_names;
   for (auto output_type_info : output_type_info_) {
     output_names.push_back(output_type_info->getEdgeName());
   }
   return output_names;
- }
-std::string Node::getInputName(int index) { 
+}
+std::string Node::getInputName(int index) {
   return input_type_info_[index]->getEdgeName();
 }
-std::string Node::getOutputName(int index) { 
+std::string Node::getOutputName(int index) {
   return output_type_info_[index]->getEdgeName();
 }
 
@@ -297,12 +298,24 @@ Edge *Node::getOutput(int index) {
 std::vector<Edge *> Node::getAllInput() { return inputs_; }
 std::vector<Edge *> Node::getAllOutput() { return outputs_; }
 
-Edge *Node::createEdge(const std::string &name) {
-  if (outputs_edge_is_external_.find(name) != outputs_edge_is_external_.end()) {
-    return outputs_edge_is_external_[name];
+// 如果outputs_中存在name相同的edge，则覆盖，否则添加
+Edge *Node::createInternalOutputEdge(const std::string &name) {
+  if (internal_outputs_.find(name) != internal_outputs_.end()) {
+    return internal_outputs_[name];
   } else {
     Edge *edge = new Edge(name);
-    outputs_edge_is_external_[name] = edge;
+    internal_outputs_[name] = edge;
+    bool is_exist = false;
+    for (int i = 0; i < outputs_.size(); i++) {
+      if (outputs_[i]->getName() == name) {
+        is_exist = true;
+        outputs_[i] = edge;
+        break;
+      }
+    }
+    if (!is_exist) {
+      outputs_.emplace_back(edge);
+    }
     return edge;
   }
 }
@@ -337,8 +350,8 @@ bool Node::getTimeProfileFlag() { return is_time_profile_; }
 void Node::setDebugFlag(bool flag) { is_debug_ = flag; }
 bool Node::getDebugFlag() { return is_debug_; }
 
-void Node::setCompiledFlag(bool flag) { is_compiled_ = flag; }
-bool Node::getCompiledFlag() { return is_compiled_; }
+void Node::setTraceFlag(bool flag) { is_trace_ = flag; }
+bool Node::getTraceFlag() { return is_trace_; }
 
 void Node::setGraphFlag(bool flag) { is_graph_ = flag; }
 bool Node::getGraphFlag() { return is_graph_; }
@@ -425,45 +438,40 @@ base::EdgeUpdateFlag Node::updateInput() {
 }
 
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
-  // check
-  if (!checkInputs(inputs)) {
-    return std::vector<Edge *>();
-  }
-  // if (!checkOutputs(outputs_name)) {
-  //   return std::vector<Edge *>();
-  // }
-  // if (param != nullptr) {
-  //   this->setParamSharedPtr(param);
-  // }
   // init
-  if (initialized_ == false) {
+  if (initialized_ == false && is_trace_ == false) {
+    NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
     this->init();
     this->setInitializedFlag(true);
   }
-  bool is_inputs_changed = isInputsChanged(inputs);
+  // check
+  if (!this->checkInputs(inputs)) {
+    return std::vector<Edge *>();
+  }
+  bool is_inputs_changed = this->isInputsChanged(inputs);
   if (!inputs.empty()) {
     this->setInputs(inputs);
   }
-  std::vector<std::string> real_outputs_name =
-      this->getRealOutputsName();
+  std::vector<std::string> real_outputs_name = this->getRealOutputsName();
   std::vector<Edge *> outputs;
   for (auto name : real_outputs_name) {
+    // NNDEPLOY_LOGI("real_outputs_name: %s\n", name.c_str());
     Edge *edge = nullptr;
     if (graph_ != nullptr) {
       edge = graph_->getEdge(name);
       if (edge != nullptr) {
         outputs.push_back(edge);
-      } 
+      }
     }
     if (edge == nullptr) {
-      edge = this->createEdge(name);
+      edge = this->createInternalOutputEdge(name);
       if (edge != nullptr) {
         outputs.push_back(edge);
       } else {
-        NNDEPLOY_LOGE("createEdge failed.\n");
+        NNDEPLOY_LOGE("createInternalOutputEdge failed.\n");
         return std::vector<Edge *>();
       }
-    } 
+    }
   }
   if (!outputs.empty()) {
     this->setOutputs(outputs);
@@ -475,7 +483,7 @@ std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
       return std::vector<Edge *>();
     }
   }
-  if (!is_inputs_changed && is_compiled_) {
+  if (!is_inputs_changed && is_trace_) {
     return outputs;
   } else {
     base::Status status = this->run();
@@ -545,6 +553,9 @@ bool Node::checkOutputs(std::vector<Edge *> &outputs) {
 }
 
 bool Node::isInputsChanged(std::vector<Edge *> inputs) {
+  if (inputs_.empty()) {
+    return false;
+  }
   if (inputs.size() != inputs_.size()) {
     return true;
   }
@@ -558,23 +569,113 @@ bool Node::isInputsChanged(std::vector<Edge *> inputs) {
 
 std::vector<std::string> Node::getRealOutputsName() {
   std::vector<std::string> real_outputs_name;
-  for (int i = 0; i < output_type_info_.size(); i++) {
-    std::string output_name = output_type_info_[i]->getEdgeName();
-    if (output_name.empty()) {
-      if (!outputs_.empty()) {
-        output_name = outputs_[i]->getName();
-      } else {
-        output_name = name_ + "_" + "output_" + std::to_string(i) +
-                      "_" + output_type_info_[i]->getTypeName();
-      }
+  if (!outputs_.empty()) {
+    for (int i = 0; i < outputs_.size(); i++) {
+      real_outputs_name.push_back(outputs_[i]->getName());
     }
-    real_outputs_name.push_back(output_name);
+  } else {
+    for (int i = 0; i < output_type_info_.size(); i++) {
+      std::string output_name = output_type_info_[i]->getEdgeName();
+      if (output_name.empty()) {
+        output_name = name_ + "_" + "output_" + std::to_string(i) + "_" +
+                      output_type_info_[i]->getTypeName();
+      }
+      real_outputs_name.push_back(output_name);
+    }
   }
   return real_outputs_name;
 }
 
+// to json
+base::Status Node::serialize(
+    rapidjson::Value &json,
+    rapidjson::Document::AllocatorType &allocator) const {
+  return base::kStatusCodeOk;
+}
+base::Status Node::serialize(std::ostream &stream) const {
+  rapidjson::Document doc;
+  rapidjson::Value json(rapidjson::kObjectType);
+
+  // 调用序列化函数
+  base::Status status = this->serialize(json, doc.GetAllocator());
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serialize failed with status: %d\n", int(status));
+    return status;
+  }
+
+  // 检查文档是否为空
+  if (json.ObjectEmpty()) {
+    NNDEPLOY_LOGE("Serialized JSON object is empty\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  // 序列化为字符串
+  rapidjson::StringBuffer buffer;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  if (!json.Accept(writer)) {
+    NNDEPLOY_LOGE("Failed to write JSON to buffer\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  // 输出到流
+  stream << buffer.GetString();
+  if (stream.fail()) {
+    NNDEPLOY_LOGE("Failed to write JSON string to stream\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  return base::kStatusCodeOk;
+}
+base::Status Node::serialize(const std::string &path) const {
+  std::ofstream ofs(path);
+  if (!ofs.is_open()) {
+    NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  base::Status status = this->serialize(ofs);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serialize to json failed\n");
+    return status;
+  }
+  ofs.close();
+  return status;
+}
+// from json
+base::Status Node::deserialize(rapidjson::Value &json) {
+  return base::kStatusCodeOk;
+}
+base::Status Node::deserialize(std::istream &stream) {
+  std::string json_str;
+  std::string line;
+  while (std::getline(stream, line)) {
+    json_str += line;
+  }
+  rapidjson::Document document;
+  if (document.Parse(json_str.c_str()).HasParseError()) {
+    NNDEPLOY_LOGE("parse json string failed\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  rapidjson::Value &json = document;
+  return this->deserialize(json);
+}
+base::Status Node::deserialize(const std::string &path) {
+  std::ifstream ifs(path);
+  if (!ifs.is_open()) {
+    NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  base::Status status = this->deserialize(ifs);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("deserialize from file %s failed\n", path.c_str());
+    return status;
+  }
+  ifs.close();
+  return status;
+}
+
 Node *createNode(const std::string &node_key, const std::string &node_name) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
@@ -586,7 +687,8 @@ Node *createNode(const std::string &node_key, const std::string &node_name) {
 Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::initializer_list<Edge *> inputs,
                  std::initializer_list<Edge *> outputs) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs_vector;
   std::vector<Edge *> outputs_vector;
   for (auto input : inputs) {
@@ -603,7 +705,8 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
 }
 Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::vector<Edge *> inputs, std::vector<Edge *> outputs) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
@@ -613,7 +716,8 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
 
 std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           const std::string &node_name) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
@@ -626,7 +730,8 @@ std::shared_ptr<Node> createNodeSharedPtr(
     const std::string &node_key, const std::string &node_name,
     std::initializer_list<Edge *> inputs,
     std::initializer_list<Edge *> outputs) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   std::vector<Edge *> inputs_vector;
   std::vector<Edge *> outputs_vector;
   for (auto input : inputs) {
@@ -646,7 +751,8 @@ std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           const std::string &node_name,
                                           std::vector<Edge *> inputs,
                                           std::vector<Edge *> outputs) {
-  std::shared_ptr<NodeCreator> creator = NodeFactory::getInstance()->getCreator(node_key);
+  std::shared_ptr<NodeCreator> creator =
+      NodeFactory::getInstance()->getCreator(node_key);
   if (creator != nullptr) {
     return creator->createNodeSharedPtr(node_name, inputs, outputs);
   }

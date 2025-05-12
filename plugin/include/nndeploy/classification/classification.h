@@ -37,6 +37,7 @@ class NNDEPLOY_CC_API ClassificationPostParam : public base::Param {
 class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
  public:
   ClassificationPostProcess(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::classification::ClassificationPostProcess";
     param_ = std::make_shared<ClassificationPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<ClassificationResult>();
@@ -45,6 +46,7 @@ class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
                             std::vector<dag::Edge *> inputs,
                             std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::classification::ClassificationPostProcess";
     param_ = std::make_shared<ClassificationPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<ClassificationResult>();
@@ -156,6 +158,8 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     }
     infer_->setGraph(this);
     infer_->setInferenceType(inference_type);
+    infer_->setInputName("data", 0);
+    infer_->setOutputName("resnetv17_dense0_fwd", 0);
 
     // Create postprocessing node for classification results
     post_ = this->createNode<ClassificationPostProcess>(

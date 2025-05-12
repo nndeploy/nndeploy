@@ -1,0 +1,281 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 17:56+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../architecture_guide/buffer.md:1 c9258fd6c84d49958c811155d6e18e03
+msgid "Buffer"
+msgstr "Buffer"
+
+#: ../../architecture_guide/buffer.md:3 643f5117bd24468bb760a566de4e0f54
+msgid ""
+"我们现在来看一下 Buffer 的设计实现。Buffer 所在的目录在 "
+"framework/include/nndeploy/device/buffer.h 里面，源文件在对应 source 目录下。"
+msgstr ""
+"Let's take a look at the design implementation of Buffer. The directory "
+"where Buffer is located is in framework/include/nndeploy/device/buffer.h, "
+"and the source file is in the corresponding source directory."
+
+#: ../../architecture_guide/buffer.md:5 5ec6ea9580e74e26b9dde04e645b043f
+msgid "还是延续我们的原则，先看成员变量，再看成员函数。"
+msgstr ""
+"Continuing with our principle, first look at the member variables, then the "
+"member functions."
+
+#: ../../architecture_guide/buffer.md:7 a04e38b597634be28e51ffb24493e013
+msgid ""
+"首先看最重要的成员变量 data_，这是具体持有的数据，比如说是 malloc 出来的 data，new 出来的 data，这个具体的数据。如果是 "
+"CPU 设备，那就是 CPU data；如果是 GPU 设备，那就是 GPU data。"
+msgstr ""
+"First, look at the most important member variable data_, which is the "
+"specific data held, such as data allocated by malloc, data allocated by new,"
+" this specific data. If it's a CPU device, then it's CPU data; if it's a GPU"
+" device, then it's GPU data."
+
+#: ../../architecture_guide/buffer.md:9 99b1d5f43fb14937989075de61ca1aeb
+msgid ""
+"那怎么来标明这个 data 是什么设备的呢？这里有 device_ 成员变量来指明。比如说通过华为昇腾 NPU 分配出来的 data "
+"是什么样子的，这个就由 device_ 来标识。"
+msgstr ""
+"How to indicate what device this data is for? Here, the device_ member "
+"variable is used to specify. For example, data allocated through Huawei "
+"Ascend NPU is identified by the device_ variable."
+
+#: ../../architecture_guide/buffer.md:11 8e6688e5d73a4fad8dc1b27b97da8703
+msgid "假如配置了 CPU 内存池、NPU 内存池，那我们从这个内存池分配出来的数据，就由 memory_pool_ 这个成员变量来标识。"
+msgstr ""
+"If CPU memory pool, NPU memory pool are configured, then the data allocated "
+"from this memory pool is identified by the memory_pool_ member variable."
+
+#: ../../architecture_guide/buffer.md:13 2a1b0c97374645b4a8b28e0edc330746
+msgid "然后是描述这段内存的信息，比如内存空间有多大？ buffer_desc_ 这个成员变量来描述的。"
+msgstr ""
+"Then there's describing the information of this memory, such as how large "
+"the memory space is? The buffer_desc_ member variable describes this."
+
+#: ../../architecture_guide/buffer.md:15 88be7c5af4354074a3b94c98c00e04d7
+msgid ""
+"这个 Buffer 的数据指针也可以是外部传入的，比如说我现在有一个 Buffer，我可以把外部的指针传给我这个 Buffer 来使用，就像 "
+"OpenCV 的 Mat 可以传入一个外部数据指针一样。"
+msgstr ""
+"This Buffer's data pointer can also be externally passed in. For example, if"
+" I now have a Buffer, I can pass an external pointer to this Buffer for use,"
+" just like OpenCV's Mat can pass an external data pointer."
+
+#: ../../architecture_guide/buffer.md:17 b248ee6c37b24d8786924e305eee5f03
+msgid ""
+"那这个内存就有类型，比如是外部传入的，是内部分配的，对于 OpenCL 这种还有内存映射、共享内存等类型，这是由 memory_type_ "
+"这个成员变量来标识的。"
+msgstr ""
+"Then this memory has types, such as externally passed, internally allocated,"
+" for OpenCL there are also memory mapping, shared memory, etc., which are "
+"identified by the memory_type_ member variable."
+
+#: ../../architecture_guide/buffer.md:19 cd9b08e7e4624c259698c7516e31c283
+msgid ""
+"Buffer 也支持拷贝构造函数和赋值构造函数。同样的，它也需要引用计数 ref_count_，比如说两个 Buffer 共享同一块 "
+"data，当它引用计数等于 0 的时候，这个 data 才可以被释放。"
+msgstr ""
+"Buffer also supports copy constructor and assignment constructor. Similarly,"
+" it also needs a reference count ref_count_. For example, two Buffers share "
+"the same data. When its reference count equals 0, this data can be released."
+
+#: ../../architecture_guide/buffer.md:21 74f1b83332fb40efae0d255496d8621e
+msgid "然后我们跳进去看一下 BufferDesc 是如何描述一个 Buffer 的。"
+msgstr "Then we jump in to see how BufferDesc describes a Buffer."
+
+#: ../../architecture_guide/buffer.md:23 de321ca54a764c0887d97d3a5b3e11e0
+msgid ""
+"uffer 会有大小，size_ 表示它有多大，是一个 SizeVector 类型。为什么是一个 Vector 呢？比如说我们通过 malloc "
+"分配出来的内存是一个一维的大小， 但是对于一些异构设备，比如说 OpenCL，它有一种内存对象叫 "
+"CL_image_2D，这种对象它是有高和宽的，还有通道数，所以它需要多维来描述它的大小，size表示他的逻辑大小"
+msgstr ""
+"Buffer has a size, size_ indicates how large it is, it's a SizeVector type. "
+"Why is it a Vector? For example, the memory allocated by malloc is one-"
+"dimensional in size, but for some heterogeneous devices, like OpenCL, "
+"there's a memory object called CL_image_2D, this object has height and "
+"width, and the number of channels, so it needs multiple dimensions to "
+"describe its size, size represents its logical size."
+
+#: ../../architecture_guide/buffer.md:26 b648c9a61f2941efae9a4221ed6de886
+msgid "还会有一个 real_size_，就是具体分配的真实大小，这个real_size始终都不会发生变化。"
+msgstr ""
+"There's also a real_size_, which is the actual size allocated, this "
+"real_size never changes."
+
+#: ../../architecture_guide/buffer.md:28 bae082f41e43471888049e1b82535135
+msgid ""
+"BUFFER需要支持 Tensor 的 reshape 操作，Tensor 真正持有数据的是靠 Buffer。假如说一开始这个 Tensor 是 "
+"1×1024×1024，然后 reshape 为了 1×512×512，那它的逻辑大小肯定是发生变化的，但真实大小是不会发生变化的。"
+msgstr ""
+"BUFFER needs to support Tensor's reshape operation, Tensor truly holds data "
+"by Buffer. For example, if this Tensor is initially 1×1024×1024, then "
+"reshaped to 1×512×512, its logical size must have changed, but the actual "
+"size does not change."
+
+#: ../../architecture_guide/buffer.md:30 32c69a6536fe4913ba1908cdd0c01e10
+msgid ""
+"然后是 config_，就是有些内存它有特殊的要求，比如说通过 CUDA 的 cudaMalloc "
+"分配内存时有一些特殊参数。例如，在CUDA中我们可能需要分配固定内存（PINNED "
+"MEMORY），这种内存不会被操作系统分页，可以实现更高效的主机和设备之间的数据传输。我们可以通过在config_中设置相应的标志来指定这种内存类型, "
+"这样内存对象就有了具体的属性和要求。"
+msgstr ""
+"Then there's config_, which is some special requirements for memory, such as"
+" when allocating memory through CUDA's cudaMalloc there are some special "
+"parameters. For example, in CUDA we might need to allocate pinned memory "
+"(PINNED MEMORY), this kind of memory is not paged by the operating system, "
+"allowing more efficient data transfer between host and device. We can set "
+"the corresponding flags in config_ to specify this type of memory, so the "
+"memory object has specific properties and requirements."
+
+#: ../../architecture_guide/buffer.md:32 43ade96a48234bb2b80c3d9afc8ea7cd
+msgid "好了，我们看完 BufferDesc 之后，再来看一下buffer。"
+msgstr "Alright, after looking at BufferDesc, let's look at buffer."
+
+#: ../../architecture_guide/buffer.md:42 cddfa217e4b244cc8ecd5a6187f34cd1
+msgid "我们来看Tensor的成员函数。"
+msgstr "Let's look at Tensor's member functions."
+
+#: ../../architecture_guide/buffer.md:44 695442fc9a5a419d99bf98f0a5665587
+msgid "Buffer类提供了丰富的成员函数，以支持各种内存操作和管理需求。"
+msgstr ""
+"The Buffer class provides rich member functions to support various memory "
+"operation and management needs."
+
+#: ../../architecture_guide/buffer.md:46 b3d31d6900e548968e4fc489cc9faf9f
+msgid "构造函数"
+msgstr "Constructor"
+
+#: ../../architecture_guide/buffer.md:48 9aee93e2ef644dd499d453b8a67f83f7
+msgid ""
+"Buffer类提供了多种构造方式，以适应不同的内存分配和管理场景：有基于基于设备的构造、使用外部指针的构造、指定内存类型的构造、基于内存池的构造、拷贝和移动构造"
+msgstr ""
+"The Buffer class provides multiple construction methods to adapt to "
+"different memory allocation and management scenarios: device-based "
+"construction, construction using external pointers, construction specifying "
+"memory type, memory pool-based construction, copy and move construction."
+
+#: ../../architecture_guide/buffer.md:72 b5899ca360204e0d99bd298604972de2
+msgid "这些构造函数使得Buffer能够灵活地适应各种内存分配和管理场景，无论是直接从设备分配内存，还是使用预分配的内存，或者从内存池获取内存。"
+msgstr ""
+"These constructor functions allow Buffer to flexibly adapt to various memory"
+" allocation and management scenarios, whether directly allocating memory "
+"from the device, using pre-allocated memory, or obtaining memory from a "
+"memory pool."
+
+#: ../../architecture_guide/buffer.md:74 bc3ea6270a714cc88e97aff82f8a3353
+msgid "set函数"
+msgstr "set function"
+
+#: ../../architecture_guide/buffer.md:76 6d27fe26764140938d9e96278d9c430d
+msgid "Buffer类提供了模板函数set<T>(T value)，用于将Buffer中的所有元素设置为指定值。"
+msgstr ""
+"The Buffer class provides a template function set<T>(T value), used to set "
+"all elements in the Buffer to the specified value."
+
+#: ../../architecture_guide/buffer.md:88 50545a1f7a1c468484d929b38415d9ce
+msgid "克隆和拷贝函数"
+msgstr "Clone and copy functions"
+
+#: ../../architecture_guide/buffer.md:90 2b987e41801448b9a81678e190b0924e
+msgid "Buffer提供了两个重要的数据复制函数："
+msgstr "Buffer provides two important data copy functions:"
+
+#: ../../architecture_guide/buffer.md:92 7c8a388e92e6454c9520814f87be3400
+msgid "clone()：创建一个完全独立的Buffer副本，包括复制底层数据。这是深拷贝操作，新Buffer与原Buffer完全独立。"
+msgstr ""
+"clone(): Creates a completely independent copy of the Buffer, including "
+"copying the underlying data. This is a deep copy operation, the new Buffer "
+"is completely independent of the original Buffer."
+
+#: ../../architecture_guide/buffer.md:94 87a704351ed64527bc04335eb7e38c60
+msgid ""
+"copyTo(Buffer "
+"*dst)：将当前Buffer的数据复制到目标Buffer。这个函数会处理不同设备间的数据传输，例如从CPU复制到GPU或从一个GPU复制到另一个GPU。"
+msgstr ""
+"copyTo(Buffer *dst): Copies the current Buffer's data to the target Buffer. "
+"This function handles data transfer between different devices, such as "
+"copying from CPU to GPU or from one GPU to another GPU."
+
+#: ../../architecture_guide/buffer.md:96 415740fd4289467c943c26207f7ba897
+msgid "这些函数在需要数据备份或在不同设备间传输数据时非常有用。"
+msgstr ""
+"These functions are very useful when data backup or data transfer between "
+"different devices is needed."
+
+#: ../../architecture_guide/buffer.md:98 bff94b83187c44fbad132a9e61fe231d
+msgid "序列化函数"
+msgstr "Serialization functions"
+
+#: ../../architecture_guide/buffer.md:100 c4ef21ff44104b23b4d0952e2fea99c5
+msgid "Buffer支持序列化和反序列化操作，从而来支持模型权重的序列化和反序列化："
+msgstr ""
+"Buffer supports serialization and deserialization operations, thereby "
+"supporting the serialization and deserialization of model weights:"
+
+#: ../../architecture_guide/buffer.md:110 db853f58ba1d4d83901e60e0c120a4af
+msgid "打印函数"
+msgstr "Print function"
+
+#: ../../architecture_guide/buffer.md:112 5c5091e5e3e04867986a547609506de2
+msgid ""
+"Buffer提供了print(std::ostream &stream)函数，用于将Buffer的信息输出到指定流（默认为标准输出）。这个函数会输出："
+msgstr ""
+"Buffer provides the print(std::ostream &stream) function, used to output "
+"Buffer's information to the specified stream (default is standard output). "
+"This function will output:"
+
+#: ../../architecture_guide/buffer.md:114 e0b5630346ef49dc8ce6f0eb6b4e85ed
+msgid "Buffer的基本信息，如大小、设备类型、内存类型等"
+msgstr ""
+"Basic information of Buffer, such as size, device type, memory type, etc."
+
+#: ../../architecture_guide/buffer.md:115 64dd9f1036914d8fa947b7388f678200
+msgid "对于较小的Buffer，可能还会输出实际数据内容"
+msgstr "For smaller Buffers, it might also output the actual data content."
+
+#: ../../architecture_guide/buffer.md:117 d3509991e48546e1aeef8a8b0a81a686
+msgid "这个函数在调试过程中非常有用，可以帮助开发者检查Buffer的状态和内容。"
+msgstr ""
+"This function is very useful during the debugging process, helping "
+"developers to check the state and content of the Buffer."
+
+#: ../../architecture_guide/buffer.md:119 9e0a54a3bb624bf8ae88524f25542cd6
+msgid "帮助函数"
+msgstr "Helper functions"
+
+#: ../../architecture_guide/buffer.md:121 0161bccc8a3a441c8ad23dcbcbb73c85
+msgid "Buffer类提供了一系列帮助函数，例如描述信息获取、数据方法、打印等等函数， 使得操作和查询Buffer更加方便："
+msgstr ""
+"The Buffer class provides a series of helper functions, such as information "
+"description acquisition, data methods, printing, etc., making the operation "
+"and query of the Buffer more convenient:"
+
+#: ../../architecture_guide/buffer.md:151 c1b96e69b76c414c9e47d1891bee161e
+msgid "这些帮助函数使得Buffer的使用更加灵活和方便，能够满足各种内存管理和数据操作的需求。"
+msgstr ""
+"These helper functions make the use of the Buffer more flexible and "
+"convenient, able to meet various needs of memory management and data "
+"operations."
+
+#: ../../architecture_guide/buffer.md:153 8fb4f22494b645e1898edd8261d1a011
+msgid "好了，有关我们 buffer 的实现，我们就讲到这里了"
+msgstr ""
+"Alright, regarding the implementation of our buffer, we'll stop here for "
+"now."

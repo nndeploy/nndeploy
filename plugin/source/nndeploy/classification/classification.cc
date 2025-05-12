@@ -62,7 +62,7 @@ base::Status ClassificationPostProcess::run() {
     }
   }
 
-  outputs_[0]->set(results, inputs_[0]->getIndex(this), false);
+  outputs_[0]->set(results, false);
   return base::kStatusCodeOk;
 }
 

@@ -1,0 +1,99 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../architecture_guide/resourse_pool.md:1
+#: 52d3ab802e484265aa07498a35d8343f
+msgid "资源池"
+msgstr "Resource Pool"
+
+#: ../../architecture_guide/resourse_pool.md:3
+#: 62ab7fc2a9f941b5b92f715536117890
+msgid "线程池"
+msgstr "Thread Pool"
+
+#: ../../architecture_guide/resourse_pool.md:5
+#: 49640c9f839249c58f0b396ffacb22bc
+msgid "线程池用于管理和复用线程，以提高并发任务的执行效率，是一种常见的并发编程技术。"
+msgstr ""
+"Thread pools are used for managing and reusing threads to improve the "
+"execution efficiency of concurrent tasks, which is a common parallel "
+"programming technique."
+
+#: ../../architecture_guide/resourse_pool.md:7
+#: 07eebf6fa4d242478bb9f94605aea171
+msgid ""
+"线程池主要有三大功能：1）任务调度：线程池可以接受多个任务，并根据可用线程资源和调度策略决定何时执行任务。2）线程复用：线程池中的线程可以被重复使用，不需要每次都创建和销毁线程，从而减少线程创建和销毁的开销。3）异步处理：线程池可以在后台异步执行任务，不会阻塞主线程，提高程序的响应性能。"
+msgstr ""
+"Thread pools have three major functionalities: 1) Task scheduling: Thread "
+"pools can accept multiple tasks and decide when to execute tasks based on "
+"available thread resources and scheduling strategies. 2) Thread reuse: "
+"Threads in the thread pool can be reused without the need to create and "
+"destroy threads each time, thereby reducing the overhead of thread creation "
+"and destruction. 3) Asynchronous processing: Thread pools can execute tasks "
+"asynchronously in the background without blocking the main program, "
+"improving the program's responsiveness."
+
+#: ../../architecture_guide/resourse_pool.md:9
+#: 5ef68f5738884913b4a1adddfec43696
+msgid ""
+"nndeploy的线程池实现参考ChunelFeng/CThreadPool，保留了本项目需要的核心功能，代码位于nndeploy/include/nndeploy/thread_pool/thread_pool.h。线程池的核心函数为commit任务提交函数，可接受普通函数、静态函数、类成员函数等作为任务运行函数，返回一个std::future对象。当通过commit进行任务提交后，该任务即在线程池内部线程中非阻塞式的异步运行。当调用std::future的get()函数时，进行同步操作。"
+msgstr ""
+"The thread pool implementation of nndeploy refers to ChunelFeng/CThreadPool,"
+" retaining the core functionalities required by the project, with the code "
+"located at nndeploy/include/nndeploy/thread_pool/thread_pool.h. The core "
+"function of the thread pool is the commit task submission function, which "
+"can accept general functions, static functions, class member functions, "
+"etc., as task execution functions, returning a std::future object. When the "
+"commit is used for task submission, the task is executed asynchronously "
+"within the thread pool without blocking. When the std::future's get() "
+"function is called, synchronization is performed."
+
+#: ../../architecture_guide/resourse_pool.md:11
+#: e9411918b237494da8caeb2d03c4de5b
+msgid ""
+"如下图所示，线程池的每个线程有属于本线程的任务队列，从主线程提交的任务依次分配给每个线程，以保证线程间的任务负载均衡。当某个线程空闲时，其可以去其他线程尚未执行的任务中窃取一个，减少线程间运行的不平衡。"
+msgstr ""
+"As shown in the figure below, each thread in the thread pool has a task "
+"queue belonging to its own thread, and tasks submitted from the main program"
+" are sequentially distributed to each thread, ensuring the load balancing of"
+" tasks between threads. When a thread is idle, it can steal a task from "
+"another thread that has not yet executed it, reducing the imbalance of "
+"thread execution."
+
+#: ../../architecture_guide/resourse_pool.md
+#: ../../architecture_guide/resourse_pool.md:13
+#: 2c2d72973f234ec4bb138b03e4d4eab8 a2abe8f2debe4987b4c43cf8a26be81b
+msgid "image-20240225150157237"
+msgstr "image-20240225150157237"
+
+#: ../../architecture_guide/resourse_pool.md:15
+#: bfebc861ca1a4f12b1132ad59e8ade77
+msgid ""
+"在线程池中的线程启动后，其会尝试从自己的任务队列弹出任务执行，或者窃取任务执行。若二者都失败，该线程会阻塞一段时间后再次尝试。当有任务添加到该线程的任务队列时，该线程会立即被唤醒，进行执行。在线程池的destroy函数被调用后，设立一个flag，当线程执行完任务后检测到该flag即退出任务执行的循环。"
+msgstr ""
+"After the threads in the thread pool are activated, they will attempt to pop"
+" out tasks from their own task queue for execution, or steal tasks for "
+"execution. If both fail, the thread will block for a period of time before "
+"trying again. When a task is added to the task queue of this thread, the "
+"thread will be immediately awakened to perform the execution. After the "
+"destroy function of the thread pool is called, a flag is set, and when the "
+"thread executes a task and detects this flag, it exits the task execution "
+"loop."

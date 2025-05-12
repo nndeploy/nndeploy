@@ -1,0 +1,159 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 17:38+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../architecture_guide/device_code.md:2 ab177ebb837046748f66a76e9aa930d5
+msgid ""
+"再来看一下设备管理模块的具体实现。打开framework/include/nndeploy/device/device.h文件。这是设备管理模块那四个基类device/stream/envet/architeture的定义的头文件。"
+msgstr ""
+"Let's take a look at the specific implementation of the device management "
+"module. Open the file framework/include/nndeploy/device/device.h. This is "
+"the header file that defines the four base classes of the device management "
+"module: device/stream/event/architecture."
+
+#: ../../architecture_guide/device_code.md:4 924b901ab1b84fefaae4da328b631699
+msgid "首先看一下Device，延续传统,先讲成员变量,再讲成员函数。"
+msgstr ""
+"First, let's look at Device, following tradition, we'll first discuss member"
+" variables, then member functions."
+
+#: ../../architecture_guide/device_code.md:6 8898869d529b4ff9a8ac16d052b55910
+msgid ""
+"这里只有一个表明那类设备、几号卡的device_type,因为这是基类,没有具体设备的上下文成员变量，子类才会有关于设备的上下文的设置，看一下Device的成员函数，看看主要完成哪些功能:"
+msgstr ""
+"Here, there's only a declaration of the type of device, device_type, because"
+" this is a base class, there are no context member variables for specific "
+"devices. Subclasses will have settings related to the device's context. "
+"Let's look at the member functions of Device to see what main "
+"functionalities are completed:"
+
+#: ../../architecture_guide/device_code.md:8 54fc56f7b7074a5180c325a352d7fb37
+msgid ""
+"首先是内存分配,通过allocate可以分配出该设备下的具体内存,返回的是原始指针。分配内存就需要释放内存。对于cuda/华为昇腾这类设备而言，还可以分配锁页内存,"
+" 对应的，就需要释放锁页内存。可以看到这都是虚函数,父类是不实现该函数的,具体的实现需要交给子类去完成。"
+msgstr ""
+"First is memory allocation. Through allocate, specific memory under the "
+"device can be allocated, returning a raw pointer. Allocating memory requires"
+" releasing it. For devices like cuda/Huawei Ascend, it's also possible to "
+"allocate locked page memory, correspondingly, it requires releasing the "
+"locked page memory. It can be seen that these are all virtual functions; the"
+" parent class does not implement these functions; the specific "
+"implementation needs to be completed by the subclass."
+
+#: ../../architecture_guide/device_code.md:10 ad159e39f72c4ed3a929fd01c6183f80
+msgid ""
+"然后是数据传输相关的接口。首先是裸指针的拷贝,通过copy函数将源数据拷贝给目标数据,需要指定源数据指针src、目标数据指针dst、拷贝的大小size,以及可选的stream参数。当把Host数据拷贝给NPU数据的时候,对于NPU而言,它需要通过stream来完成数据拷贝，当不设置stream时，就一定同步拷贝，host需要等待拷贝完成，才能执行后续的操作。"
+msgstr ""
+"Then there are interfaces related to data transfer. First is the copy of raw"
+" pointers, where the copy function copies source data to target data, "
+"requiring the source data pointer src, target data pointer dst, the size of "
+"the copy size, and an optional stream parameter. When copying Host data to "
+"NPU data, for NPU, it needs to complete the data copy through a stream. When"
+" no stream is set, it must be a synchronous copy; the host needs to wait for"
+" the copy to complete before executing subsequent operations."
+
+#: ../../architecture_guide/device_code.md:12 01f874f85f994f438d0f4db888608f00
+msgid ""
+"此外还提供了download和upload函数。download用于从设备端(如NPU)下载数据到主机端(CPU),upload则用于从主机端上传数据到设备端。这些都是针对裸指针的拷贝接口。"
+msgstr ""
+"Additionally, download and upload functions are provided. download is used "
+"to download data from the device end (such as NPU) to the host end (CPU), "
+"while upload is used to upload data from the host end to the device end. "
+"These are all interfaces for copying raw pointers."
+
+#: ../../architecture_guide/device_code.md:14 2bf5228719b84d7e87c42c8ddc60b3cd
+msgid ""
+"为了简化Buffer对象之间的拷贝,Device类还提供了专门的Buffer拷贝接口,包括copy、download和upload。由于Buffer对象本身包含了内存大小等信息,因此这些接口不需要额外指定size参数。这些Buffer拷贝接口在内部实现上,本质还是调用了裸指针的拷贝接口。"
+msgstr ""
+"To simplify copying between Buffer objects, the Device class also provides "
+"specialized Buffer copying interfaces, including copy, download, and upload."
+" Since the Buffer object itself contains information such as memory size, "
+"these interfaces do not require an additional size parameter. These Buffer "
+"copying interfaces internally essentially call the raw pointer copying "
+"interfaces."
+
+#: ../../architecture_guide/device_code.md:16 c5d1906732284277be4288bd4e690b51
+msgid ""
+"然后是获取这个设备的原始的上下文。这是绑定线程,就像在华为昇腾那堂课讲的一样,每个线程有一个主线程,有一个默认的上下文,当切到辅线程的时候,还想继续沿用主线程的上下文,就需要调用binding绑定线程这个接口。"
+msgstr ""
+"Then there's obtaining the original context of this device. This is thread "
+"binding, just like in the Huawei Ascend class, each thread has a main "
+"thread, a default context. When switching to an auxiliary thread and wanting"
+" to continue using the main thread's context, the binding thread interface "
+"needs to be called."
+
+#: ../../architecture_guide/device_code.md:18 b5ac4dc29f3541dc9bf2516cd1616c53
+msgid ""
+"如PPT所讲,device也要提供创建流、销毁流的接口。这是创建事件和管理事件的相关接口。这是返回该device的具体信息是什么,设备是哪一张卡。device的构造函数、析构函数、初始化函数和反初始化函数。对于华为昇腾NPU而言,需要为该设备创建一个自定义的上下文,所以初始化这个动作是在initialize里面做的。有了初始化就会有反初始化。"
+msgstr ""
+"As mentioned in the PPT, the device also needs to provide interfaces for "
+"creating and destroying streams. These are interfaces related to creating "
+"and managing events. This returns what the specific information of this "
+"device is, which card the device is. The constructor function, destructor "
+"function, initialization function, and deinitialization function of the "
+"device. For Huawei Ascend NPU, a custom context needs to be created for this"
+" device, so the initialization action is done in initialize. With "
+"initialization, there will be deinitialization."
+
+#: ../../architecture_guide/device_code.md:20 19fb642870cc4b2f87fe3cfac28403be
+msgid ""
+"通过这里就把Device的基类过了一遍。看一下拷贝接口,把数据上传,把数据拷贝,把主机的数据上传给NPU侧,是需要流的存在的。现在再来看一下Stream。"
+msgstr ""
+"Through this, we've gone through the base class of Device. Looking at the "
+"copying interface, uploading data, copying data, uploading host data to the "
+"NPU side, the existence of a stream is necessary. Now let's look at Stream "
+"again."
+
+#: ../../architecture_guide/device_code.md:22 a8179f5a5a7746448f9dea8a2cbbe19c
+msgid ""
+"Stream的接口,首先是构造函数,还是看一下成员变量。它是通过某个具体的device创建出来的,把创建的device放进来。这个stream可以是外部的流,也可以是内部自己创建的流,所以它会有一个external_的标志,它默认是等于false的,默认是这个stream会创建自己的流。"
+msgstr ""
+"The interface of Stream, first is the constructor function, let's also look "
+"at member variables. It is created through a specific device, the created "
+"device is placed inside. This stream can be an external stream, or it can be"
+" a stream created internally by itself, so it will have an external_ flag, "
+"it defaults to false, meaning this stream will create its own stream by "
+"default."
+
+#: ../../architecture_guide/device_code.md:24 5517999f1ddd45cfba56c22fab678ba1
+msgid ""
+"看一下Stream的具体设计,它会有哪些函数:这是一些获取信息的函数,同步的函数,标记事件的函数,等待该事件完成的函数,获取原始的流的函数。来看一下stream的成员函数:首先是获得device相关的信息,然后是同步,调用了同步函数之后在stream上所有执行的task都会等待该stream上的所有task完成执行。"
+msgstr ""
+"Let's look at the specific design of Stream, what functions it will have: "
+"these are some functions to get information, synchronous functions, "
+"functions to mark events, functions to wait for the event to complete, "
+"functions to get the original stream. Let's look at the member functions of "
+"stream: first is to get device-related information, then is synchronization,"
+" after calling the synchronization function, all tasks executed on the "
+"stream will wait for all tasks on the stream to complete execution."
+
+#: ../../architecture_guide/device_code.md:26 1e30d6e66bb74635a3f089f5aae74383
+msgid ""
+"这里还有record_event,它可以让执行流在stream的某一个位置绑定某一个具体的事件。例如在流中记录事件,它可以在流中记录某一个事件,从而让另外一个流去等待该事件完成才能执行,实现流之间的同步。"
+msgstr ""
+"There's also record_event here, it can make the execution stream bind a "
+"specific event at a certain position in the stream. For example, recording "
+"an event in the stream, it can record a certain event in the stream, "
+"allowing another stream to wait for this event to complete before executing,"
+" achieving synchronization between streams."
+
+#: ../../architecture_guide/device_code.md:28 0818974302664ce8ae38da04126d24d4
+msgid "可以看一下例子:"
+msgstr "You can look at an example:"

@@ -9,6 +9,42 @@
 // #include "nndeploy/segment/segment_anything/sam.h"
 #include "nndeploy/segment/rmbg/rmbg.h"
 
+// + 编译/运行/结果分析
+// + 前处理
+// + 后处理
+// + 推理
+//   + infer::Infer (推理节点)
+//   + inference::DefaultInference （推理对外的封装接口）
+//   + ir::Interpret （模型解释抽象基类）
+//   + ir::DefaultInterpret （自定义模型解释模型）
+//   + ir::ModelDesc （模型中间表示）
+//   + net::Net （计算图）
+//   + net::OptPass （图优化）
+//   + net::Runtime （运行时）
+//   + net::SequentialRuntime （串行运行时）
+//   + net::TensorPool （基于图的内存池抽象基类）
+//   + net::TensorPool1DOffsetCalculateBySize
+//   （基于图的内存池计算，偏移计算方法，基于大小贪心）
+//   + op::Op （算子抽象基类）
+//   + op::AscendCLOpAdd （封装Ascend Op Library算子实现 + 基于Ascend
+//   C算子实现）
+
+// 对应代码
+#include "nndeploy/infer/infer.h"
+#include "nndeploy/inference/default/default_inference.h"
+#include "nndeploy/ir/default_interpret.h"
+#include "nndeploy/ir/interpret.h"
+#include "nndeploy/ir/ir.h"
+#include "nndeploy/net/net.h"
+#include "nndeploy/net/optimizer.h"
+#include "nndeploy/net/runtime.h"
+#include "nndeploy/net/runtime/sequential_runtime.h"
+#include "nndeploy/net/tensor_pool.h"
+#include "nndeploy/net/tensor_pool/tensor_pool_1d_offset_calculate_by_size.h"
+#include "nndeploy/op/op.h"
+// #include "nndeploy/op/ascend_cl/op_add.cc"
+// #include "nndeploy/op/ascend_cl/ascend_c/op_add_kernel.cc"
+
 using namespace nndeploy;
 
 class DrawMaskNode : public dag::Node {
@@ -39,7 +75,7 @@ class DrawMaskNode : public dag::Node {
       // 创建输出图像矩阵
       cv::Mat *output_mat = new cv::Mat(mask_output);
       // 设置输出边缘的数据
-      outputs_[0]->set(output_mat, inputs_[0]->getIndex(this), false);
+      outputs_[0]->set(output_mat, false);
     } else if (mask->getDataType() == base::dataTypeOf<uint8_t>()) {
       // 创建与掩码张量尺寸相同的8位无符号整数矩阵
       cv::Mat mask_mat(mask->getHeight(), mask->getWidth(), CV_8UC1,
@@ -65,7 +101,7 @@ class DrawMaskNode : public dag::Node {
       }
 
       // 设置输出边缘的数据
-      outputs_[0]->set(output_mat, inputs_[0]->getIndex(this), false);
+      outputs_[0]->set(output_mat, false);
     }
     // 返回操作成功状态
     return base::kStatusCodeOk;
@@ -240,10 +276,10 @@ int main(int argc, char *argv[]) {
   delete segment_graph;
   delete graph;
 
-  ret = nndeployFrameworkDeinit();
-  if (ret != 0) {
-    NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
-    return ret;
-  }
+  // ret = nndeployFrameworkDeinit();
+  // if (ret != 0) {
+  //   NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);
+  //   return ret;
+  // }
   return 0;
 }

@@ -41,20 +41,26 @@ Edge::~Edge() {
 
 std::string Edge::getName() { return name_; }
 
+base::Status Edge::setQueueMaxSize(int queue_max_size) {
+  queue_max_size_ = queue_max_size;
+  return base::kStatusCodeOk;
+}
+int Edge::getQueueMaxSize() { return queue_max_size_; }
+
 base::Status Edge::construct() { return abstact_edge_->construct(); }
 
-base::Status Edge::set(device::Buffer *buffer, int index, bool is_external) {
+base::Status Edge::set(device::Buffer *buffer, bool is_external) {
   this->setTypeInfo<device::Buffer>();
-  return abstact_edge_->set(buffer, index, is_external);
+  return abstact_edge_->set(buffer, is_external);
 }
-base::Status Edge::set(device::Buffer &buffer, int index) {
+base::Status Edge::set(device::Buffer &buffer) {
   this->setTypeInfo<device::Buffer>();
-  return this->set(&buffer, index, true);
+  return this->set(&buffer, true);
 }
 device::Buffer *Edge::create(device::Device *device,
-                             const device::BufferDesc &desc, int index) {
+                             const device::BufferDesc &desc) {
   this->setTypeInfo<device::Buffer>();
-  return abstact_edge_->create(device, desc, index);
+  return abstact_edge_->create(device, desc);
 }
 bool Edge::notifyWritten(device::Buffer *buffer) {
   return abstact_edge_->notifyWritten(buffer);
@@ -67,18 +73,17 @@ device::Buffer *Edge::getGraphOutputBuffer() {
 }
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-base::Status Edge::set(cv::Mat *cv_mat, int index, bool is_external) {
+base::Status Edge::set(cv::Mat *cv_mat, bool is_external) {
   this->setTypeInfo<cv::Mat>();
-  return abstact_edge_->set(cv_mat, index, is_external);
+  return abstact_edge_->set(cv_mat, is_external);
 }
-base::Status Edge::set(cv::Mat &cv_mat, int index) {
+base::Status Edge::set(cv::Mat &cv_mat) {
   this->setTypeInfo<cv::Mat>();
-  return this->set(&cv_mat, index, true);
+  return this->set(&cv_mat, true);
 }
-cv::Mat *Edge::create(int rows, int cols, int type, const cv::Vec3b &value,
-                      int index) {
+cv::Mat *Edge::create(int rows, int cols, int type, const cv::Vec3b &value) {
   this->setTypeInfo<cv::Mat>();
-  return abstact_edge_->create(rows, cols, type, value, index);
+  return abstact_edge_->create(rows, cols, type, value);
 }
 bool Edge::notifyWritten(cv::Mat *cv_mat) {
   return abstact_edge_->notifyWritten(cv_mat);
@@ -91,16 +96,16 @@ cv::Mat *Edge::getGraphOutputCvMat() {
 }
 #endif
 
-base::Status Edge::set(device::Tensor *tensor, int index, bool is_external) {
+base::Status Edge::set(device::Tensor *tensor, bool is_external) {
   this->setTypeInfo<device::Tensor>();
-  return abstact_edge_->set(tensor, index, is_external);
+  return abstact_edge_->set(tensor, is_external);
 }
-base::Status Edge::set(device::Tensor &tensor, int index) {
+base::Status Edge::set(device::Tensor &tensor) {
   this->setTypeInfo<device::Tensor>();
-  return this->set(&tensor, index, true);
+  return this->set(&tensor, true);
 }
 device::Tensor *Edge::create(device::Device *device,
-                             const device::TensorDesc &desc, int index,
+                             const device::TensorDesc &desc,
                              std::string tensor_name) {
   this->setTypeInfo<device::Tensor>();
   if (tensor_name.empty()) {
@@ -109,7 +114,7 @@ device::Tensor *Edge::create(device::Device *device,
   // if (tensor_name.empty()) {
   //   tensor_name = "tensor_" + base::getUniqueString();
   // }
-  return abstact_edge_->create(device, desc, index, tensor_name);
+  return abstact_edge_->create(device, desc, tensor_name);
 }
 bool Edge::notifyWritten(device::Tensor *tensor) {
   return abstact_edge_->notifyWritten(tensor);
@@ -121,13 +126,13 @@ device::Tensor *Edge::getGraphOutputTensor() {
   return abstact_edge_->getGraphOutputTensor();
 }
 
-base::Status Edge::set(base::Param *param, int index, bool is_external) {
+base::Status Edge::set(base::Param *param, bool is_external) {
   this->setTypeInfo<base::Param>();
-  return abstact_edge_->set(param, index, is_external);
+  return abstact_edge_->set(param, is_external);
 }
-base::Status Edge::set(base::Param &param, int index) {
+base::Status Edge::set(base::Param &param) {
   this->setTypeInfo<base::Param>();
-  return this->set(&param, index, true);
+  return this->set(&param, true);
 }
 bool Edge::notifyWritten(base::Param *param) {
   return abstact_edge_->notifyWritten(param);
@@ -139,9 +144,13 @@ base::Param *Edge::getGraphOutputParam() {
   return abstact_edge_->getGraphOutputParam();
 }
 
-int Edge::getIndex(const Node *node) { return abstact_edge_->getIndex(node); }
-int Edge::getGraphOutputIndex() { return abstact_edge_->getGraphOutputIndex(); }
-
+int64_t Edge::getIndex(const Node *node) {
+  return abstact_edge_->getIndex(node);
+}
+int64_t Edge::getGraphOutputIndex() {
+  return abstact_edge_->getGraphOutputIndex();
+}
+void Edge::resetIndex() { return abstact_edge_->resetIndex(); }
 int Edge::getPosition(const Node *node) {
   return abstact_edge_->getPosition(node);
 }
@@ -169,6 +178,7 @@ base::Status Edge::setParallelType(const base::ParallelType &paralle_type) {
       return base::kStatusCodeErrorOutOfMemory;
     }
   }
+  abstact_edge_->setQueueMaxSize(queue_max_size_);
   return base::kStatusCodeOk;
 }
 base::ParallelType Edge::getParallelType() {

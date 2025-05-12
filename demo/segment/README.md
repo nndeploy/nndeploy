@@ -163,6 +163,26 @@ DrawMaskNode run()       100         482.957            4.830              0.000
 encode_node run()        100         1176.265           11.763             0.000 
 graph->deinit()          1           41.572             41.572             0.000 
 -----------------------------------------------------------------------------------
+
+
+./nndeploy_demo_segment --name NNDEPLOY_RMBGV1.4 --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/segment/RMBGV1.4.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline  --model_inputs input --model_outputs output --input_path ../docs/image/demo/segment/sample.jpg --output_path rbmg_acl_acl_sample_output.jpg
+
+TimeProfiler: segment time profiler
+-----------------------------------------------------------------------------------
+name                     call_times  sum cost_time(ms)  avg cost_time(ms)  gflops
+-----------------------------------------------------------------------------------
+graph->init()            1           1647.883           1647.883           0.000 
+decode_node run()        100         1425.844           14.258             0.000 
+graph->run()             1           1610.836           1610.836           0.000 
+demo run()               100         0.031              0.000              0.000 
+preprocess run()         100         1564.863           15.649             0.000 
+NNDEPLOY_RMBGV1.4 run()  100         0.315              0.003              0.000 
+infer run()              100         1578.649           15.786             0.000 
+postprocess run()        100         1031.008           10.310             0.000 
+DrawMaskNode run()       100         637.990            6.380              0.000 
+encode_node run()        100         1548.804           15.488             0.000 
+graph->deinit()          1           334.511            334.511            0.000 
+-----------------------------------------------------------------------------------
 ```
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
-MODEL_PATH=/root/workspace/model_zoo/model
-BUILD_PATH=/root/workspace/nndeploy/build
+MODEL_PATH=/home/lds/model
+BUILD_PATH=/home/lds/nndeploy/build
 ONNX_DATA=${MODEL_PATH}/onnx/llm.onnx.data
 TARGET_LINK=${PWD}
 EXE=${BUILD_PATH}/nndeploy_demo_llama
@@ -20,10 +20,10 @@ echo "Symbolic link created: ${TARGET_LINK} -> current folder"
 # params
 NAME=NNDEPLOY_LLAMA2
 INFER_TYPE=kInferenceTypeOnnxRuntime
-DEVICE=kDeviceTypeCodeX86:0
+DEVICE=kDeviceTypeCodeCpu:0
 MODEL_T=kModelTypeOnnx
 PARALLEL_TYPE=kParallelTypeSequential
-CONFIG=${MODEL_PATH}/Qwen-0.5_config.json
+CONFIG=${MODEL_PATH}/llm_config.json
 
 # exactue 
 ${EXE} \

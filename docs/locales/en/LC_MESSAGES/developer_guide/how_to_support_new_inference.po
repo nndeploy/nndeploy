@@ -1,0 +1,295 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../developer_guide/how_to_support_new_inference.md:1
+#: 075573f29a7b4c14b520a55c484c8728
+msgid "新增一个推理框架"
+msgstr "Add a new inference framework"
+
+#: ../../developer_guide/how_to_support_new_inference.md:4
+#: ef24d57098d84fa8b6e91eae68ec718a
+msgid "介绍"
+msgstr "Introduction"
+
+#: ../../developer_guide/how_to_support_new_inference.md:6
+#: 381a19f490d34d6cac1a7fd50561027f
+msgid ""
+"inference是nndeploy的多端推理子模块，通过对第三方推理框架的抽象，屏蔽不同推理框架的差异性，并做到统一的接口调用的体验，nndeploy当前已经支持TensorRT、OpenVINO、ONNXRuntime、MNN、TNN、ncnn、coreML、paddle-"
+"lite、AscendCL、RKNN等多个推理框架。"
+msgstr ""
+"Inference is a multi-framework inference sub-module of nndeploy, which "
+"abstracts the differences among various inference frameworks and provides a "
+"unified interface experience. Currently, nndeploy has already supported "
+"TensorRT, OpenVINO, ONNXRuntime, MNN, TNN, ncnn, coreML, paddle-lite, "
+"AscendCL, RKNN, and other inference frameworks."
+
+#: ../../developer_guide/how_to_support_new_inference.md:9
+#: 6f2c805f7bff41f8afefeb4213244253
+msgid "步骤"
+msgstr "Steps"
+
+#: ../../developer_guide/how_to_support_new_inference.md:11
+#: 0cae2de20a4e4f50a0a82a1f4cbb4949
+msgid "新增一个推理框架主要分为以下五个步骤："
+msgstr ""
+"Adding a new inference framework mainly involves the following five steps:"
+
+#: ../../developer_guide/how_to_support_new_inference.md:13
+#: d6a74ac1a3b84a1cb08b77b505f333a6
+msgid "（1）新增推理框架相关枚举类型"
+msgstr "(1) Add inference framework related class types"
+
+#: ../../developer_guide/how_to_support_new_inference.md:15
+#: ecd47d4f3bd840249c7f61b85e17fd2d
+msgid "（2）继承基类InferenceParam"
+msgstr "(2) Inherit the base class InferenceParam"
+
+#: ../../developer_guide/how_to_support_new_inference.md:17
+#: 9f7395ec1e334bcdaaadf2f1bc9bd29a
+msgid "（3）继承基类Inference"
+msgstr "(3) Inherit the base class Inference"
+
+#: ../../developer_guide/how_to_support_new_inference.md:19
+#: e420f8dfdbec4c1d9166e16e53a074d0
+msgid "（4）编写Converter"
+msgstr "(4) Write Converter"
+
+#: ../../developer_guide/how_to_support_new_inference.md:21
+#: 67265fed449749c198985f7614b37adb
+msgid "（5）修改cmake"
+msgstr "(5) Modify cmake"
+
+#: ../../developer_guide/how_to_support_new_inference.md:24
+#: 35b93c231fdc43a5bd0ff668bb4cd393
+msgid "步骤一：新增设备类型枚举"
+msgstr "Step one: Add new device type class types"
+
+#: ../../developer_guide/how_to_support_new_inference.md:26
+#: 721ef4e7a65e467db2a9d0590d41ada7
+msgid "1.1 新增ModelType枚举"
+msgstr "1.1 Add ModelType class types"
+
+#: ../../developer_guide/how_to_support_new_inference.md:27
+#: 7986e0768f61434e8e62bb9cd7c16311
+msgid ""
+"（1）修改文件 "
+"<path>\\include\\nndeploy\\base\\common.h，在ModelType中添加新模型格式类枚举，格式为kModelTypeXxx"
+msgstr ""
+"(1) Modify the file <path>\\include\\nndeploy\\base\\common.h, add new model"
+" format class types in ModelType, format kModelTypeXxx"
+
+#: ../../developer_guide/how_to_support_new_inference.md:29
+#: 1c66c6bf8dd9495c8796b1e5b6b2529d
+msgid ""
+"（2）修改文件 <path>\\source\\nndeploy\\base\\common.cc，在ModelType "
+"stringToModelType(const std::string &src)函数中添加字符串转换为新模型格式类枚举实现"
+msgstr ""
+"(2) Modify the file <path>\\source\\nndeploy\\base\\common.cc, add string "
+"conversion to new model format class types in the function "
+"stringToModelType(const std::string &src)"
+
+#: ../../developer_guide/how_to_support_new_inference.md:31
+#: 3f0eeb14ba234c7c85fe6d180791061d
+msgid "1.2 新增InferenceType枚举"
+msgstr "1.2 Add InferenceType class types"
+
+#: ../../developer_guide/how_to_support_new_inference.md:32
+#: 2dc498f87a6e42ecb125e1202fcebfb1
+msgid ""
+"（1）修改文件 "
+"<path>\\include\\nndeploy\\base\\common.h，在InferenceType中添加新推理框架格式的枚举，格式为kInferenceTypeXxx"
+msgstr ""
+"(1) Modify the file <path>\\include\\nndeploy\\base\\common.h, add new "
+"inference framework format class types in InferenceType, format "
+"kInferenceTypeXxx"
+
+#: ../../developer_guide/how_to_support_new_inference.md:34
+#: 0c6401a23c0644dabe505a5018441a6d
+msgid ""
+"（2）修改文件 <path>\\source\\nndeploy\\base\\common.cc，在InferenceType "
+"stringToInferenceType(const std::string &src)函数中添加字符串转换为新推理框架格式的枚举实现"
+msgstr ""
+"(2) Modify the file <path>\\source\\nndeploy\\base\\common.cc, add string "
+"conversion to new inference framework format in the function "
+"stringToInferenceType(const std::string &src)"
+
+#: ../../developer_guide/how_to_support_new_inference.md:36
+#: 76b16dcabb43470b9cecdc32f57663c6
+msgid "1.3 新增错误类枚举"
+msgstr "1.3 Add error class types"
+
+#: ../../developer_guide/how_to_support_new_inference.md:37
+#: a7350efa70034862b92290ce7a1a5ea4
+msgid ""
+"（1）修改文件 "
+"<path>\\include\\nndeploy\\base\\status.h，在StatusCode中添加新错误的枚举，格式为kStatusCodeErrorInferenceXxx"
+msgstr ""
+"(1) Modify the file <path>\\include\\nndeploy\\base\\status.h, add new error"
+" class types in StatusCode, format kStatusCodeErrorInferenceXxx"
+
+#: ../../developer_guide/how_to_support_new_inference.md:40
+#: 40419ac76f5747629fde91db14d571e0
+msgid "步骤二： 继承基类InferenceParam"
+msgstr "Step two: Inherit the base class InferenceParam"
+
+#: ../../developer_guide/how_to_support_new_inference.md:42
+#: 2800d9a77e96406badb2627b0a29dbd1
+msgid ""
+"（1）在<path>\\include\\nndeploy\\inference下新增xxx\\xxx_inference_param.h文件，可参考MNN(<path>\\include/nndeploy/inference/mnn/mnn_inference_param.h)或TensorRT(<path>\\include/nndeploy/inference/tensorrt/tensorrt_inference_param.h)"
+msgstr ""
+"(1) In the "
+"<path>\\include\\nndeploy\\inference\\newxxx\\xxx_inference_param.h file, "
+"you can refer to "
+"MNN(<path>\\include/nndeploy/inference/mnn/mnn_inference_param.h) or "
+"TensorRT(<path>\\include/nndeploy/inference/tensorrt/tensorrt_inference_param.h)"
+
+#: ../../developer_guide/how_to_support_new_inference.md:44
+#: 7a042d2bb8ec451f92fa444b67fda84b
+msgid ""
+"（2）在<path>\\source\\nndeploy\\inference下新增xxx\\xxx_inference_param.cc文件，可参考MNN(<path>\\source/nndeploy/inference/mnn/mnn_inference_param.c)或TensorRT(<path>\\include/nndeploy/inference/tensorrt/tensorrt_inference_param.cc)"
+msgstr ""
+"(2) In the "
+"<path>\\source\\nndeploy\\inference\\newxxx\\xxx_inference_param.cc file, "
+"you can refer to "
+"MNN(<path>\\source/nndeploy/inference/mnn/mnn_inference_param.c) or "
+"TensorRT(<path>\\include/nndeploy/inference/tensorrt/tensorrt_inference_param.cc)"
+
+#: ../../developer_guide/how_to_support_new_inference.md:47
+#: 7fbf0e62f54c495f8fe1308bb92f92e7
+msgid "步骤三： 继承基类Inference"
+msgstr "Step three: Inherit the base class Inference"
+
+#: ../../developer_guide/how_to_support_new_inference.md:49
+#: 652717abdb50452aa1be270374ae9afd
+msgid ""
+"（1）在<path>\\include\\nndeploy\\inference下新增xxx\\xxx_inference.h文件，可参考MNN(<path>\\include/nndeploy/inference/mnn/mnn_inference.h)或TensorRT(<path>\\include/nndeploy/inference/tensorrt/tensorrt_inference.h)"
+msgstr ""
+"(1) In the <path>\\include\\nndeploy\\inference\\newxxx\\xxx_inference.h "
+"file, you can refer to "
+"MNN(<path>\\include/nndeploy/inference/mnn/mnn_inference.h) or "
+"TensorRT(<path>\\include/nndeploy/inference/tensorrt/tensorrt_inference.h)"
+
+#: ../../developer_guide/how_to_support_new_inference.md:51
+#: 18a74a67f7374cb789ad40e8edd7e5a0
+msgid ""
+"（2）在<path>\\source\\nndeploy\\inference下新增xxx\\xxx_inference.cc文件，可参考MNN(<path>\\source/nndeploy/inference/mnn/mnn_inference.c)或TensorRT(<path>\\include/nndeploy/inference/tensorrt/tensorrt_inference.cc)"
+msgstr ""
+"(2) In the <path>\\source\\nndeploy\\inference\\newxxx\\xxx_inference.cc "
+"file, you can refer to "
+"MNN(<path>\\source/nndeploy/inference/mnn/mnn_inference.c) or "
+"TensorRT(<path>\\include/nndeploy/inference/tensorrt/tensorrt_inference.cc)"
+
+#: ../../developer_guide/how_to_support_new_inference.md:53
+#: a7f42cdffbb84e3095f200b2ed14f18c
+msgid "步骤四： 编写Converter"
+msgstr "Step four: Write Converter"
+
+#: ../../developer_guide/how_to_support_new_inference.md:55
+#: 9ee5971953d04a058b3a06fe46712bac
+msgid ""
+"nndeploy提供了统一的Tensor以及推理所需的超参数数据结构，每个推理框架都有自定义Tensor以及超参数数据结构，为了保证统一的接口调用的体验，需编写转化器模块。"
+msgstr ""
+"nndeploy provides a unified Tensor and the hyperparameter data structure "
+"required by the inference, each inference framework has its own defined "
+"Tensor and hyperparameter data structure, in order to ensure the unified "
+"interface experience of the call, it is necessary to write the conversion "
+"module."
+
+#: ../../developer_guide/how_to_support_new_inference.md:57
+#: dc29f21062224e82b5b8f6e222f5cac8
+msgid ""
+"（1）在<path>\\include\\nndeploy\\inference下新增xxx\\xxx_converter.h文件，可参考MNN(<path>\\include/nndeploy/inference/mnn/mnn_converter.h)或TensorRT(<path>\\include/nndeploy/inference/tensorrt/tensorrt_converter.h)"
+msgstr ""
+"In the file `<path>\\include\\nndeploy\\inference\\new_xx\\xxx_converter.h`,"
+" you can refer to "
+"MNN(`<path>\\include/nndeploy/inference/mnn/mnn_converter.h`) or "
+"TensorRT(`<path>\\include/nndeploy/inference/tensorrt/tensorrt_converter.h`)."
+
+#: ../../developer_guide/how_to_support_new_inference.md:59
+#: 3bcac5932d0b4903b02b61df9c8f197d
+msgid ""
+"（2）在<path>\\source\\nndeploy\\inference下新增xxx\\xxx_inference.cc文件，可参考MNN(<path>\\source/nndeploy/inference/mnn/mnn_converter.c)或TensorRT(<path>\\include/nndeploy/inference/tensorrt/tensorrt_converter.cc)"
+msgstr ""
+"In the file `<path>\\source\\nndeploy\\inference\\new_xx\\xxx_inference.cc`,"
+" you can refer to "
+"MNN(`<path>\\source/nndeploy/inference/mnn/mnn_converter.c`) or "
+"TensorRT(`<path>\\include/nndeploy/inference/tensorrt/tensorrt_converter.cc`)."
+
+#: ../../developer_guide/how_to_support_new_inference.md:62
+#: aee67024fb024721b7d2e75c5c9366b3
+msgid "步骤五：修改cmake"
+msgstr "Step Five: Modify CMake"
+
+#: ../../developer_guide/how_to_support_new_inference.md:64
+#: 1fd49e32d1b243de90fc0e8314aa6411
+msgid "（1）修改主cmakelist <path>\\CMakeLists.txt，"
+msgstr "Modify the CMakeList file `<path>\\CMakeLists.txt`,"
+
+#: ../../developer_guide/how_to_support_new_inference.md:65
+#: 8899908207e846979ba0eb1ade295596
+msgid ""
+"新增推理框架编译选项nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_XXX "
+"\"ENABLE_NNDEPLOY_INFERENCE_XXX\" OFF)"
+msgstr ""
+"Add the inference framework translation option "
+"nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_XXX "
+"\"ENABLE_NNDEPLOY_INFERENCE_XXX\" OFF)."
+
+#: ../../developer_guide/how_to_support_new_inference.md:66
+#: a275d8f54c9641368dd86a93c1547812
+msgid ""
+"由于新设备的增加，增加了源文件和头文件，需将源文件和头文件加入到编译文件中，需在if(ENABLE_NNDEPLOY_INFERENCE) "
+"endif()的代码块中增加如下cmake源码"
+msgstr ""
+"Due to the addition of the new device, source files and header files have "
+"been added, which need to be included in the translation file. It is "
+"necessary to add the following CMake source code within the "
+"if(ENABLE_NNDEPLOY_INFERENCE) endif() code block."
+
+#: ../../developer_guide/how_to_support_new_inference.md:77
+#: 259421422a6d414aae2105f79c943e91
+msgid "（2）链接推理框架的三方库"
+msgstr "Link the three libraries of the inference framework."
+
+#: ../../developer_guide/how_to_support_new_inference.md:78
+#: 272ae9123355490995db0e0b884d3c4c
+msgid ""
+"需要在<path>\\cmake目录下新增xxx.cmake，类似<path>\\cmake\\mnn.cmake或<path>\\cmake\\xxx.cmake"
+msgstr ""
+"You need to create a new `xxx.cmake` under the `<path>\\cmake` directory, "
+"similar to `<path>\\cmake\\mnn.cmake` or `<path>\\cmake\\xxx.cmake`."
+
+#: ../../developer_guide/how_to_support_new_inference.md:79
+#: 3cf6e0650fa74c138f18a3eee271e0bc
+#, python-brace-format
+msgid "修改<path>\\cmake\\nndeploy.cmake，新增include(\"${ROOT_PATH}/cmake/xxx.cmake\")"
+msgstr ""
+"Modify `<path>\\cmake\\nndeploy.cmake`, add "
+"include(\"${ROOT_PATH}/cmake/xxx.cmake\")."
+
+#: ../../developer_guide/how_to_support_new_inference.md:81
+#: 53b4ff09fdb44088af9c834e3488ef72
+msgid ""
+"（3）修改<path>\\build\\config.cmake,新增设备编译选项set(ENABLE_NNDEPLOY_INFERENCE_XXX "
+"ON)"
+msgstr ""
+"Modify `<path>\\build\\config.cmake`, add the device translation option "
+"set(ENABLE_NNDEPLOY_INFERENCE_XXX ON)."
