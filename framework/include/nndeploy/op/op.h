@@ -175,6 +175,7 @@ class NNDEPLOY_CC_API Op {
    */
   virtual uint64_t getWorkspaceSize();
   virtual void setWorkspace(void *workspace);
+  virtual base::Status allocateWorkspace();
   /**
    * @brief 得到op的flops
    *
@@ -286,7 +287,7 @@ class NNDEPLOY_CC_API Op {
  */
 class OpCreator {
  public:
-  virtual ~OpCreator() {};
+  virtual ~OpCreator(){};
 
   virtual Op *createOp(base::DeviceType device_type, const std::string &name,
                        ir::OpType op_type, std::vector<std::string> &inputs,
@@ -335,9 +336,8 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode,
-         std::map<ir::OpType, std::shared_ptr<OpCreator>>> &
-getGlobalOpCreatorMap();
+std::map<base::DeviceTypeCode, std::map<ir::OpType, std::shared_ptr<OpCreator>>>
+    &getGlobalOpCreatorMap();
 
 /**
  * @brief Op的创建类的注册类模板
