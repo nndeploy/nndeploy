@@ -249,3 +249,6 @@ ref_repo
 
 # cursor
 .cursor/
+
+# translation
+*.mo
