@@ -59,7 +59,7 @@ dag::Graph *createVAEGraph(const std::string &name, dag::Edge *latents,
       "vae_infer", inference_type, {model_input}, {output});
   Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
   inference::InferenceParam *infer_param = new inference::InferenceParam();
-  infer_param->device_type_ = base::kDeviceTypeCodeCpu;
+  infer_param->device_type_ = text2image_param->device_type_;
   infer_param->model_type_ = text2image_param->model_type_;
   infer_param->is_path_ = text2image_param->is_path_;
   //   std::vector<std::string> onnx_path = {
