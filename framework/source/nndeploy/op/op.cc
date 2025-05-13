@@ -331,6 +331,10 @@ base::Status Op::deinit() {
     workspace_is_external_ = false;
     workspace_size_ = 0U;
   }
+  if (!is_external_stream_ && stream_ != nullptr) {
+    device::destroyStream(stream_);
+    stream_ = nullptr;
+  }
   return base::kStatusCodeOk;
 }
 
@@ -339,6 +343,21 @@ void Op::setWorkspace(void *workspace) {
   workspace_is_external_ = true;
   workspace_ = workspace;
 }
+base::Status Op::allocateWorkspace() {
+  base::Status status = base::kStatusCodeOk;
+  device::Device *device = device::getDevice(device_type_);
+  if (workspace_ != nullptr) {
+    device->deallocate(workspace_);
+    workspace_ == nullptr;
+    NNDEPLOY_LOGI("Workspace has beed allocated, now reallocate.\n");
+  }
+  if (workspace_ == nullptr && workspace_size_ > 0) {
+    workspace_ = device->allocate(workspace_size_);
+    workspace_is_external_ = false;
+  }
+  return status;
+}
+
 uint64_t Op::getFlops() {
   if (flops_ == 0) {
     NNDEPLOY_LOGE("Op %s flops is not set.\n", op_desc_.name_.c_str());
