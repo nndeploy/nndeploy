@@ -5,6 +5,7 @@
 
 ```shell
 git clone https://github.com/nndeploy/nndeploy.git
+cd nndeploy
 git submodule update --init --recursive
 ```
 
