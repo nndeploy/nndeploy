@@ -73,7 +73,9 @@ vae_infer run()                    1           20013.252          20013.252     
 save_node run()                    1           10.762             10.762             0.000 
 graph->deinit()                    1           0.024              0.024              0.000 
 ---------------------------------------------------------------------------------------------
+```
 
+```
 ./nndeploy_demo_stable_diffusion --name txt2img --prompt "a great apple" --parallel_type kParallelTypeSequential --output_path apple.png --is_path --model_value /home/lds/stable-diffusion.onnx/models/fp32/tokenizer/tokenizer.json,/home/lds/stable-diffusion.onnx/models/fp32/text_encoder/model.onnx,/home/lds/stable-diffusion.onnx/models/fp32/unet/model.onnx,/home/lds/stable-diffusion.onnx/models/fp32/vae_decoder/model.onnx --device_type kDeviceTypeCodeCuda:0
 
 TimeProfiler: demo
@@ -101,6 +103,7 @@ vae_infer run()                    1           2700.914           2700.914      
 save_node run()                    1           18.065             18.065             0.000 
 graph->deinit()                    1           17.900             17.900             0.000 
 ---------------------------------------------------------------------------------------------
+```
 
 [注] 该实现支持Sequential和Pipeline两种执行模式
 
