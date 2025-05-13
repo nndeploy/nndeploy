@@ -12,8 +12,11 @@
 // #include "tiling/platform/platform_ascendc.h"
 // #include "tiling/tiling_api.h"
 
+// namespace nndeploy {
+// namespace op {
+
 // void getTilingData(uint32_t input_size, uint8_t &block_num,
-//                    nndeploy::op::AddTilingData &tiling_data) {
+//                    AddTilingData &tiling_data) {
 //   auto platform = platform_ascendc::PlatformAscendCManager::GetInstance();
 //   auto aiv_num = platform->GetCoreNumAiv();
 
@@ -198,20 +201,12 @@
 //   AddTilingData tiling_data;
 //   uint8_t block_num = 1;
 //   getTilingData(inputByteSize / sizeof(uint16_t), block_num, tiling_data);
-//   AddTilingData *buf = &tiling_data;
-//   void *tiling_device = nullptr;
-//   size_t tiling_size = sizeof(nndeploy::op::AddTilingData);
-//   std::cout << "block_num: " << static_cast<int>(block_num) << std::endl;
-//   CHECK_ACL_STATUS(aclrtMalloc((void **)&tiling_device, tiling_size,
-//                                ACL_MEM_MALLOC_HUGE_FIRST));
-//   CHECK_ACL_STATUS(aclrtMemcpyAsync(tiling_device, tiling_size, (void *)buf,
-//                                     tiling_size, ACL_MEMCPY_HOST_TO_DEVICE,
-//                                     stream));
-//   CHECK_ACL_STATUS(aclrtSynchronizeStream(stream));
+//   tiling_data.dataType = 0;
+//   void *tiling_ = &tiling_data;
 
 //   ACLRT_LAUNCH_KERNEL(add)
 //   (block_num, stream, xDevice, yDevice, zDevice,
-//    reinterpret_cast<uint8_t *>(tiling_device));
+//    reinterpret_cast<AddTilingData *>(tiling_));
 //   CHECK_ACL_STATUS(aclrtSynchronizeStream(stream));
 
 //   // std::string error_msg = aclGetRecentErrMsg();
@@ -236,7 +231,6 @@
 //   CHECK_ACL_STATUS(aclrtFree(xDevice));
 //   CHECK_ACL_STATUS(aclrtFree(yDevice));
 //   CHECK_ACL_STATUS(aclrtFree(zDevice));
-//   CHECK_ACL_STATUS(aclrtFree(tiling_device));
 //   CHECK_ACL_STATUS(aclrtFreeHost(xHost));
 //   CHECK_ACL_STATUS(aclrtFreeHost(yHost));
 //   CHECK_ACL_STATUS(aclrtFreeHost(zHost));
@@ -248,6 +242,9 @@
 //   return 0;
 // }
 
-// #endif
+// }  // namespace op
+// }  // namespace nndeploy
 
-int main() { return 0; }
+int main(int argc, char** argv) { return 0; }
+
+// #endif

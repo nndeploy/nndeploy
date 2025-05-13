@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  std::cout << "exec ascendc_op" << std::endl;
+  std::cout << "run ascendc_op success" << std::endl;
 
   free(a_data);
   free(b_data);
