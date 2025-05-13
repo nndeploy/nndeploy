@@ -7,7 +7,7 @@
 | CANN   | 8.0.RC3.alpha003      | 昇腾异构计算架构 |
 | 系统镜像   | Ubuntu 22.04.5 LTS | 服务器操作系统  |
 | CPU架构  | aarch64            | CPU架构    |
-| NPU    | Atlas 800 A2               | NPU型号    |
+| NPU    | Atlas 800I A2               | NPU型号    |
 
 ## 安装包准备
 [CANN社区版下载网址](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.0.RC3.alpha003)\
