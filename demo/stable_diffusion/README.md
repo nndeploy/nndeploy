@@ -5,9 +5,9 @@
 
 ### 下载模型
 
-- [stable-diffusion-1.5-fp32](stable-diffusion-1.5-fp32): stable-diffusion-1.5-fp32, Model Type: onnx, output size: 512x512, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/stable_diffusion/fp32)
+- [stable-diffusion-1.5-fp32](stable-diffusion-1.5-fp32): stable-diffusion-1.5-fp32, Model Type: onnx, output size: 512x512, [download](https://www.modelscope.cn/models/nndeploy/nndeploy)
 
-- [stable-diffusion-1.5-fp16](stable-diffusion-1.5-fp16): stable-diffusion-1.5-fp16, Model Type: onnx, output size: 512x512, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/stable_diffusion/fp16)
+- [stable-diffusion-1.5-fp16](stable-diffusion-1.5-fp16): stable-diffusion-1.5-fp16, Model Type: onnx, output size: 512x512, [download](https://www.modelscope.cn/models/nndeploy/nndeploy)
 
 ### 模型简介
 
