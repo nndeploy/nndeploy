@@ -39,6 +39,7 @@ endif()
 
 if(ENABLE_NNDEPLOY_NET)
   include(${ROOT_PATH}/demo/net/config.cmake)
+  include(${ROOT_PATH}/demo/optimizer/config.cmake)
   include(${ROOT_PATH}/demo/tensor_pool/config.cmake)
   include(${ROOT_PATH}/demo/tensor_pool_multi_net/config.cmake)
 endif()
