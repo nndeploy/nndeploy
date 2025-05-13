@@ -62,8 +62,6 @@ dag::Graph *createVAEGraph(const std::string &name, dag::Edge *latents,
   infer_param->device_type_ = text2image_param->device_type_;
   infer_param->model_type_ = text2image_param->model_type_;
   infer_param->is_path_ = text2image_param->is_path_;
-  //   std::vector<std::string> onnx_path = {
-  //       "/home/lds/stable-diffusion.onnx/models/vae_decoder/model.onnx"};
   std::vector<std::string> onnx_path = {text2image_param->model_value_[3]};
   infer_param->model_value_ = onnx_path;
   vae_node->setParam(infer_param);

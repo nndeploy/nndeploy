@@ -31,7 +31,7 @@ extern NNDEPLOY_CC_API dag::Graph *createStableDiffusionText2ImageGraph(
     base::InferenceType clip_inference_type,
     base::InferenceType unet_inference_type,
     base::InferenceType vae_inference_type, SchedulerType scheduler_type,
-    std::vector<base::Param *> &param);
+    std::vector<base::Param *> &param, int iter);
 
 }  // namespace stable_diffusion
 }  // namespace nndeploy

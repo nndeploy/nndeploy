@@ -86,9 +86,10 @@ int main(int argc, char* argv[]) {
   dag::Edge* prompt = new dag::Edge("prompt");
   dag::Edge* negative_prompt = new dag::Edge("negative_prompt");
 
+  int iter = 10;
   dag::Graph* graph = stable_diffusion::createStableDiffusionText2ImageGraph(
       name, prompt, negative_prompt, inference_type, inference_type,
-      inference_type, scheduler_type, param);
+      inference_type, scheduler_type, param, iter);
 
   base::Status status = graph->setParallelType(pt);
 
@@ -105,12 +106,10 @@ int main(int argc, char* argv[]) {
 
   tokenizer::TokenizerText* prompt_text = new tokenizer::TokenizerText();
   prompt_text->texts_ = {text};
-  prompt->set(prompt_text, true);
 
   tokenizer::TokenizerText* negative_prompt_text =
       new tokenizer::TokenizerText();
   negative_prompt_text->texts_ = {""};
-  negative_prompt->set(negative_prompt_text, true);
 
   NNDEPLOY_TIME_POINT_START("graph->dump()");
   status = graph->dump();
@@ -121,10 +120,14 @@ int main(int argc, char* argv[]) {
   NNDEPLOY_TIME_POINT_END("graph->dump()");
 
   NNDEPLOY_TIME_POINT_START("graph->run()");
-  status = graph->run();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("graph run failed");
-    return -1;
+  for (int i = 0; i < iter; i++) {
+    prompt->set(prompt_text, true);
+    negative_prompt->set(negative_prompt_text, true);
+    status = graph->run();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("graph deinit failed");
+      return -1;
+    }
   }
   NNDEPLOY_TIME_POINT_END("graph->run()");
 

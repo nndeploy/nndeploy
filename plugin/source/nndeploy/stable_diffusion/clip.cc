@@ -61,6 +61,7 @@ class NNDEPLOY_CC_API ConCatNode : public dag::Node {
   }
 
   virtual base::Status run() {
+    std::cout << "run Concat node" << std::endl;
     bool do_classifier_free_guidance = (guidance_ > 1.0) ? true : false;
 
     device::Tensor *prompt = this->getInput(0)->getTensor(this);

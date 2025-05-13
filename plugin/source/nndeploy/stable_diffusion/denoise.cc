@@ -82,6 +82,13 @@ class NNDEPLOY_CC_API InitLatentsNode : public dag::Node {
     }
   }
 
+  void setSize(int size) {
+    if (size > 0) {
+      size_ = size;
+    }
+  }
+  int getSize() { return size_; }
+
  private:
   int index_ = 0;
   int size_ = 1;
@@ -414,7 +421,7 @@ dag::Graph *createDenoiseGraph(const std::string &name,
                                dag::Edge *text_embeddings, dag::Edge *latents,
                                SchedulerType scheduler_type,
                                base::InferenceType inference_type,
-                               std::vector<base::Param *> &param) {
+                               std::vector<base::Param *> &param, int iter) {
   Text2ImageParam *text2image_param = (Text2ImageParam *)(param[0]);
   DDIMSchedulerParam *scheduler_param = (DDIMSchedulerParam *)(param[1]);
 
@@ -428,6 +435,7 @@ dag::Graph *createDenoiseGraph(const std::string &name,
   InitLatentsNode *init_latents_node =
       (InitLatentsNode *)denoise_graph->createNode(init_latents_desc);
   init_latents_node->setParam(scheduler_param);
+  init_latents_node->setSize(iter);
 
   dag::NodeDesc denoise_desc(
       "nndeploy::stable_diffusion::DenoiseNode", "denoise",
