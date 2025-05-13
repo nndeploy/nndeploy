@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
   dag::Edge *output = new dag::Edge("llm_out");
 
   // graph
-  dag::Graph *graph = new dag::Graph("demo", nullptr, output);
+  dag::Graph *graph = new dag::Graph("demo", {}, {output});
   if (graph == nullptr) {
     NNDEPLOY_LOGE("graph is nullptr");
     return -1;
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
   /* prompt node */
   dag::Edge *prompt = graph->createEdge("prmompt");
   dag::Node *prompt_node =
-      graph->createNode<PromptNode>("prompt_node", input, prompt);
+      graph->createNode<PromptNode>("prompt_node", {input}, {prompt});
 
   /* prompt params */
   PromptParam *prompt_param =
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->init()");
 
-  // status = graph->dump();
+  status = graph->dump();
 
   NNDEPLOY_TIME_POINT_START("graph->run");
   status = graph->run();
@@ -111,7 +111,7 @@ int main(int argc, char *argv[]) {
     tokenizer::TokenizerText *result =
         (tokenizer::TokenizerText *)output->getGraphOutputParam();
     if (result == nullptr) {
-      NNDEPLOY_LOGE("result is nullptr");
+      NNDEPLOY_LOGE("result is nullptr\n");
       return -1;
     }
     printf("\nQ: %s\n", prompt_param->user_content_.c_str());

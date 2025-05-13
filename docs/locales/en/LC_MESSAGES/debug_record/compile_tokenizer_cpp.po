@@ -1,0 +1,97 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../debug_record/compile_tokenizer_cpp.md:1
+#: 4e72d8c4edf24b6182ea496e07b8e62d
+msgid "在Ubuntu下安装Rust环境主要有以下步骤："
+msgstr ""
+"To install the Rust environment on Ubuntu, the following steps are required:"
+
+#: ../../debug_record/compile_tokenizer_cpp.md:3
+#: d909a853bd73492f9ca8e937099638db
+msgid "安装前准备"
+msgstr "Preparation before installation"
+
+#: ../../debug_record/compile_tokenizer_cpp.md:4
+#: e75262d64a64499ea0c7664dd8eb1d5b
+msgid "更新系统软件包列表，确保系统是最新的："
+msgstr ""
+"Update the system software package list to ensure the system is up-to-date:"
+
+#: ../../debug_record/compile_tokenizer_cpp.md:9
+#: 24d01f03e6e94e08b7f881b36aefc5f6
+msgid "安装必要的编译工具和依赖库："
+msgstr "Install necessary compilation tools and dependency libraries:"
+
+#: ../../debug_record/compile_tokenizer_cpp.md:14
+#: 8513f80561b640f2998d5ab04dfaca08
+msgid "安装Rust"
+msgstr "Install Rust"
+
+#: ../../debug_record/compile_tokenizer_cpp.md:15
+#: ce5b2664c973410099b2839790fd5cb6
+msgid "使用官方脚本安装：执行以下命令下载并运行Rust的安装脚本。"
+msgstr ""
+"Use the official script installation: Execute the following command to "
+"download and run the Rust installation script."
+
+#: ../../debug_record/compile_tokenizer_cpp.md:19
+#: 2b3f583b98114810b58f6b5c304cb6ba
+msgid ""
+"运行该命令后，安装脚本会提示你进行一些选择，通常选择默认选项1即可完成安装。 2. 使用镜像源安装：如果官方安装速度较慢，可以使用国内镜像源来加速安装。"
+msgstr ""
+"After running the command, the installation script will prompt you to make "
+"some choices. Normally, selecting the default option 1 will complete the "
+"installation. 2. Use mirror source installation: If the official "
+"installation speed is relatively slow, you can use domestic mirror sources "
+"to speed up the installation."
+
+#: ../../debug_record/compile_tokenizer_cpp.md:27
+#: 2315ee4fc9a04c40986e808a68891c88
+msgid "配置环境变量"
+msgstr "Configure environment variables"
+
+#: ../../debug_record/compile_tokenizer_cpp.md:28
+#: 7a51359eb7de49cbab31d9add978733b
+msgid "安装完成后，需要将Rust的相关路径添加到环境变量中，以便系统能够找到Rust的工具。可以使用以下命令："
+msgstr ""
+"After the installation is complete, you need to add Rust's related directory"
+" paths to the environment variables so that the system can find Rust's "
+"tools. You can use the following commands:"
+
+#: ../../debug_record/compile_tokenizer_cpp.md:33
+#: 07182050244a4ac8909e10c45f282c5f
+msgid "验证安装"
+msgstr "Verify the installation"
+
+#: ../../debug_record/compile_tokenizer_cpp.md:34
+#: e3c2615156754434827283b07b4d7800
+msgid "可以通过检查Rust编译器（rustc）和包管理器（cargo）的版本来验证是否安装成功："
+msgstr ""
+"You can check the versions of the Rust compiler (rustc) and package manager "
+"(cargo) to verify whether the installation was successful:"
+
+#: ../../debug_record/compile_tokenizer_cpp.md:39
+#: dd16975311d247b58c68e433bed54800
+msgid "若出现版本信息，则表示安装成功。"
+msgstr ""
+"If version information is displayed, it indicates that the installation was "
+"successful."

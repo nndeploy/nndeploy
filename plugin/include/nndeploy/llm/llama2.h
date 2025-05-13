@@ -99,18 +99,19 @@ class NNDEPLOY_CC_API EmbeddingNode : public dag::Node {
   device::Tensor* past_kv_ = nullptr;
 
  protected:
-  device::Tensor* genEmbedding(const std::vector<int32_t>& input_ids, int seq_len,
-                            int hidden_size, base::DataType data_type,
-                            base::DataFormat data_format,
-                            std::string& embedding_file);
+  device::Tensor* genEmbedding(const std::vector<int32_t>& input_ids,
+                               int seq_len, int hidden_size,
+                               base::DataType data_type,
+                               base::DataFormat data_format,
+                               std::string& embedding_file);
 
   device::Tensor* genAttentionMask(int seq_len, int all_seq_len,
-                                     base::DataType data_type,
-                                     base::DataFormat data_format);
-
-  device::Tensor* genPositionIds(int seq_len, int all_seq_len,
                                    base::DataType data_type,
                                    base::DataFormat data_format);
+
+  device::Tensor* genPositionIds(int seq_len, int all_seq_len,
+                                 base::DataType data_type,
+                                 base::DataFormat data_format);
 
  protected:
   bool is_first_;
@@ -118,8 +119,9 @@ class NNDEPLOY_CC_API EmbeddingNode : public dag::Node {
 
 class NNDEPLOY_CC_API SampleNode : public dag::Node {
  public:
-  SampleNode(const std::string& name, dag::Edge*& input, dag::Edge*& output)
-      : Node(name, input, output), is_first_(true) {
+  SampleNode(const std::string& name, std::vector<dag::Edge*> inputs,
+             std::vector<dag::Edge*> outputs)
+      : Node(name, inputs, outputs), is_first_(true) {
     param_ = std::make_shared<SampleParam>();
   }
   virtual ~SampleNode() {}
@@ -134,8 +136,9 @@ class NNDEPLOY_CC_API SampleNode : public dag::Node {
 
 class NNDEPLOY_CC_API PromptNode : public dag::Node {
  public:
-  PromptNode(const std::string& name, dag::Edge* input, dag::Edge* output)
-      : Node(name, input, output) {
+  PromptNode(const std::string& name, std::vector<dag::Edge*> inputs,
+             std::vector<dag::Edge*> outputs)
+      : Node(name, inputs, outputs) {
     param_ = std::make_shared<PromptParam>();
   }
   virtual ~PromptNode() {}
@@ -143,15 +146,16 @@ class NNDEPLOY_CC_API PromptNode : public dag::Node {
 
  protected:
   std::string applyTemplate(std::string prompt_template,
-                             const std::string& content,
-                             const std::string& role = "");
+                            const std::string& content,
+                            const std::string& role = "");
 };
 
 class NNDEPLOY_CC_API LlmPrefillGraph : public dag::Graph {
  public:
-  LlmPrefillGraph(const std::string& name, dag::Edge* input, dag::Edge* output,
+  LlmPrefillGraph(const std::string& name, std::vector<dag::Edge*> inputs,
+                  std::vector<dag::Edge*> outputs,
                   base::InferenceType inference_type)
-      : dag::Graph(name, input, output), inference_type_(inference_type) {}
+      : dag::Graph(name, inputs, outputs), inference_type_(inference_type) {}
 
   LlmPrefillGraph(const std::string& name, std::vector<dag::Edge*>& inputs,
                   std::vector<dag::Edge*>& outputs,
@@ -193,7 +197,7 @@ class NNDEPLOY_CC_API LlmPrefillGraph : public dag::Graph {
   void genPastKeyValue();
   void createPrefillNodesEdges();
   void setParams(bool is_path, base::ModelType model_type,
-                  base::DeviceType device_type, LlmConfig& model_value);
+                 base::DeviceType device_type, LlmConfig& model_value);
 
  public:
   dag::Edge* prompt_;
@@ -263,7 +267,7 @@ class NNDEPLOY_CC_API LlmDecodeGraph : public dag::Loop {
 
   void createPrefillNodesEdges();
   void setParams(bool is_path, base::ModelType model_type,
-                  base::DeviceType device_type, LlmConfig& config);
+                 base::DeviceType device_type, LlmConfig& config);
 
  protected:
   void getStopTokens(std::string& token_file);

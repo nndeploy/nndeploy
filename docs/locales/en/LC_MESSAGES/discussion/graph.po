@@ -1,0 +1,41 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../discussion/graph.md:2 dbf19047a24248f39315a914740a0f7f
+msgid "构图方式的讨论"
+msgstr "Discussion on Graph Structure"
+
+#: ../../discussion/graph.md:4 e5906b8e6b8d4c9c8189f4dc7a552434
+msgid "结论"
+msgstr "Conclusion"
+
+#: ../../discussion/graph.md:5 ed06810011a5486ba1a77b05304d8e83
+msgid "建议使用继承，而非createGraph方法"
+msgstr ""
+"It is recommended to use inheritance, rather than the createGraph method"
+
+#: ../../discussion/graph.md:6 30d301ad034549e6aa0c3ca94d7effaf
+msgid "还需支持动态构图"
+msgstr "Support for dynamic graphs is also needed"
+
+#: ../../discussion/graph.md:8 f6f2c404760248ec857bd8e580c4dbbc
+msgid "代码"
+msgstr "Code"

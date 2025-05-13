@@ -1,0 +1,88 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 17:38+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../quick_start/ascend_env.md:1 b62f174f430a4373b64a7d929fb2c6a7
+msgid "搭建Ascend环境"
+msgstr "Building Ascend Environment"
+
+#: ../../quick_start/ascend_env.md:3 ebc54ea9c35c46968953bd53e582ed20
+msgid "硬件与软件要求"
+msgstr "Hardware and Software Requirements"
+
+#: ../../quick_start/ascend_env.md:4 14fc75c15aef4032a04afdb588334868
+msgid ""
+"| 类别     | 版本                 | 说明       | "
+"|--------|--------------------|----------| | Python | Python3.10         | "
+"面向对象编程语言 | | CANN   | 8.0.RC3.alpha003      | 昇腾异构计算架构 | | 系统镜像   | Ubuntu "
+"22.04.5 LTS | 服务器操作系统  | | CPU架构  | aarch64            | CPU架构    | | NPU"
+"    | Atlas 800 A2               | NPU型号    |"
+msgstr ""
+"| Category     | Version                 | Description       | "
+"|--------|--------------------|----------| | Python | Python3.10         | "
+"Object-oriented programming language | | CANN   | 8.0.RC3.alpha003      | "
+"Dawning heterogeneous computing architecture | | System Image   | Ubuntu "
+"22.04.5 LTS | Server operating system  | | CPU Architecture  | aarch64"
+"            | CPU Architecture    | | NPU    | Atlas 800 A2               | "
+"NPU Model    |"
+
+#: ../../quick_start/ascend_env.md:12 104414cf6a1741d6bd4a16bc1cb6519d
+msgid "安装包准备"
+msgstr "Installation Package Preparation"
+
+#: ../../quick_start/ascend_env.md:13 0ae64f23f8bb4701b91df302545394b6
+msgid ""
+"CANN社区版下载网址<br />下载好以下两个安装包<br />Ascend-cann-toolkit_8.0.RC3.alpha003_linux-"
+"aarch64.run<br />Ascend-cann-kernels-910b_8.0.RC3.alpha003_linux-aarch64.run"
+msgstr ""
+"Download the CANN community version from the following URL<br />Download the"
+" following two installation packages<br />Ascend-cann-"
+"toolkit_8.0.RC3.alpha003_linux-aarch64.run<br />Ascend-cann-"
+"kernels-910b_8.0.RC3.alpha003_linux-aarch64.run"
+
+#: ../../quick_start/ascend_env.md:18 340e792bf3b24ce0a71983db20250c80
+msgid "环境安装"
+msgstr "Environment Installation"
+
+#: ../../quick_start/ascend_env.md:19 671f8ac0caeb4409a0867ad8ae20a19e
+msgid "参考官方文档<br />安装CANN"
+msgstr "Refer to the official document<br />Install CANN"
+
+#: ../../quick_start/ascend_env.md:25 e4b08ce60c32488ba3f4bdc6735b8047
+msgid "安装Kernel"
+msgstr "Install Kernel"
+
+#: ../../quick_start/ascend_env.md:31 7ff98e840e614a20a41c215d999f8a61
+msgid "更新环境 (如若指定了安装路径，请对应的修改此处的path)"
+msgstr ""
+"Update Environment (If an installation path is specified, please modify the "
+"path accordingly)"
+
+#: ../../quick_start/ascend_env.md:37 de86ca5313d548c1bf79f34e6482c674
+msgid "验证环境是否安装成功"
+msgstr "Verify Whether the Environment is Installed Successfully"
+
+#: ../../quick_start/ascend_env.md:43 fa467916b6624b9692d3565824ff52d5
+msgid "若成功则会如下图显示 Alt text"
+msgstr "If successful, the following diagram will display Alt text"
+
+#: ../../quick_start/ascend_env.md c2f319dd90144ccc89ecb458c7063f29
+msgid "Alt text"
+msgstr "Alt text"

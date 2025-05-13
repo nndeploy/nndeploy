@@ -1,0 +1,137 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../architecture_guide/op.md:1 1608825326b443aca69158460b293a76
+msgid "算子"
+msgstr "Operator"
+
+#: ../../architecture_guide/op.md:3 37baa58d7f7244b3bee9be1aae82e2c7
+msgid "添加新算子"
+msgstr "Add new operator"
+
+#: ../../architecture_guide/op.md:5 d5ba335df8944e0db707e01e98011d12
+msgid "算子定义与声明"
+msgstr "Operator definition and declaration"
+
+#: ../../architecture_guide/op.md:7 e085c30ad12942829cd2927cf5a0ed48
+msgid ""
+"nndeploy算子以类的方式注册和使用。算子的实现与后端强绑定，但不同后端的同一类型算子可以共享某些公共函数，例如形状推导。在nndeploy中算子分为两个层级，第一个父类层级在nndeploy/framework/include/nndeploy/op声明，在nndeploy/framework/source/nndeploy/op中定义。例如RMSNorm:"
+msgstr ""
+"nndeploy operator is registered and used in a class-based manner. The "
+"implementation and backend binding of the operator are strongly tied, but "
+"operators of the same type from different backends can share some common "
+"functions, such as shape inference. In nndeploy, operators are divided into "
+"two levels, the first parent class level is in "
+"nndeploy/framework/include/nndeploy/op, defined in "
+"nndeploy/framework/source/nndeploy/op. For example, RMSNorm:"
+
+#: ../../architecture_guide/op.md:23 84c15d89485e4cb5b70f08bf4fb59866
+msgid "父类层级中需要实现两个关键函数："
+msgstr "In the parent class level, two key functions need to be implemented:"
+
+#: ../../architecture_guide/op.md:25 1c2d9c16dc9b48fa890fe07c039a8241
+msgid ""
+"inferShape: "
+"对输出Tensor的形状进行推导，这个过程是沿着网络向后传播的；当网络的input大小确定后，沿着网络不断推导路径上所有Tensor的形状。当形状推导完成后，根据Tensor的形状和生命周期进行后续的内存申请。"
+msgstr ""
+"inferShape: Infer the shape of the output Tensor, this process is based on "
+"the network's forward propagation; when the network's input size is "
+"determined, the shape of all Tensors along the network's continuous "
+"propagation path is inferred. When the shape inference is completed, the "
+"subsequent internal memory request is made based on the shape and life cycle"
+" of the Tensor."
+
+#: ../../architecture_guide/op.md:27 d9eb87bfa9ab4988a3261179915a53ac
+msgid "run: 父类的run函数实现一个不依赖任何特定指令集，在大部分CPU上都能运行的实现函数，作为无优化版本的快速实现。"
+msgstr ""
+"run: The run function of the parent class implements a non-dependent on any "
+"specific instruction set, which can be executed on most CPUs as an "
+"unoptimized version for fast implementation."
+
+#: ../../architecture_guide/op.md:29 ed293b4de3624c63a711f717c39360f4
+msgid ""
+"特定后端的子类Op实现在nndeploy/framework/source/nndeploy/op/xxx下，xxx是后端文件夹。如无特殊需求要重写父类的其他虚函数，则只用实现run。在这一层假设所有输入、输出的内存、形状、数值类型都是正确的，只需关注实现。"
+msgstr ""
+"The implementation of specific backend's operator subclass is under "
+"nndeploy/framework/source/nndeploy/op/xxx, xxx is the backend file folder. "
+"For example, if there are no special requirements to rewrite the parent "
+"class's other virtual functions, only the implementation of run is used. In "
+"this layer, it is assumed that all inputs, outputs, shapes, value types are "
+"correct, only the implementation needs attention."
+
+#: ../../architecture_guide/op.md:31 45554e0c5c1943369236b448e0424949
+msgid "所有的Op必须注册到工厂模式中："
+msgstr "All Ops must be registered into the factory model:"
+
+#: ../../architecture_guide/op.md:39 cdd987f9f1f845eeae4fa5be90418532
+msgid "函数形式算子"
+msgstr "Function form operator"
+
+#: ../../architecture_guide/op.md:41 0c4314c4d9424835b716b238000ccfc8
+msgid ""
+"以上实现都为类的形式，有时希望以函数形式来对Tensor直接进行计算，因此封装了函数形式的算子直接调用。该函数接口的声明与定义和父类Op在相同的文件中。各个算子基本都是固定的形式，创建Op对象，设置输入输出，初始化与运行。例如:"
+msgstr ""
+"The above implementations are all in the form of class, sometimes it is "
+"expected to directly perform calculations on Tensor in the form of a "
+"function, hence the operator in the form of function is directly applied. "
+"The declaration and definition of this function interface are in the same "
+"file as the parent class Op. Each operator is basically in a fixed form, "
+"creating Op objects, setting inputs and outputs, initialization, and "
+"execution. For example:"
+
+#: ../../architecture_guide/op.md:81 bd4325c789bf4c79b4f7de218d1a16da
+msgid "Python接口导出"
+msgstr "Python interface export"
+
+#: ../../architecture_guide/op.md:83 e40978cd488e4fd787aa3bbb6fe38248
+msgid ""
+"在Python端导出函数形式的算子，可以使用nndeploy.op.xxop(input)直接调用。导出接口位于nndeploy/python/src/op/op.cc中，例如："
+msgstr ""
+"Exporting the operator in the form of function at the Python end, can be "
+"directly used by nndeploy.op.xxop(input). The export interface is located in"
+" nndeploy/python/src/op/op.cc, for example:"
+
+#: ../../architecture_guide/op.md:89 3312ce4b36c7499892ca1ed96ae8b81e
+msgid ""
+"表示导出到python的op模块，nndeploy.op.rms_norm将被定向到rmsNormFunc函数中执行。rmsNormFunc是Python到Cpp接口的一个中间层，其实现在nndeploy/python/src/op/op_func.cc中。在Func层进行输入的合法性检查，如果是非inplace算子，则还要申请输出Tensor。但不对输出Tenso进行内存开辟，因为内存开辟依赖于形状推理，这部分在函数算子内部进行。"
+msgstr ""
+"Indicates exporting to the python op module, nndeploy.op.rms_norm will be "
+"directed to execute in the rmsNormFunc function. rmsNormFunc is a middleware"
+" between Python and Cpp, its implementation is in "
+"nndeploy/python/src/op/op_func.cc. In the Func layer, input legality checks "
+"are performed, if it is a non-inplace operator, it also needs to request "
+"output Tensor. But do not perform internal memory allocation for the output "
+"Tensor, because internal memory allocation depends on shape inference, which"
+" is performed inside the function operator."
+
+#: ../../architecture_guide/op.md:91 e617c76086b1461caf247b1d780ff0a2
+msgid "测试"
+msgstr "Test"
+
+#: ../../architecture_guide/op.md:93 c1cfd16bf3cc4164aa975b302f5b48a1
+msgid ""
+"算子的测试位于nndeploy/python/nndeploy/tests/op, 使用unittest框架测试。 "
+"数据的构造可以使用numpy，然后转为nndeploy的Tensor。标准结果的对比可以使用numpy或PyTorch，将nndeploy的Tensor转换为numpy进行对比。"
+msgstr ""
+"The operator's test is located in nndeploy/python/nndeploy/tests/op, using "
+"the unittest framework for testing. Data construction can use numpy, and "
+"then converted to nndeploy's Tensor. Standard result comparison can use "
+"numpy or PyTorch, converting nndeploy's Tensor to numpy for comparison."

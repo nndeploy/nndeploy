@@ -1,0 +1,1024 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../dairy/always.md:2 ea392d7c22064afa9e72ee89540320d8
+msgid "CANN 学习记录、开发记录、调式记录"
+msgstr "CANN Learning Records, Development Records, Debugging Records"
+
+#: ../../dairy/always.md:4 410bafb7d64947e6b87e8a573f02c214
+msgid "2024-07-03"
+msgstr "2024-07-03"
+
+#: ../../dairy/always.md:6 ../../dairy/always.md:59 ../../dairy/always.md:99
+#: 5f192c5ffc4240428d2acdb2a1f9bdfb 8e284fe727e644749921656441a38207
+#: c8864b766c6a4175be65993743f22efe
+msgid "总结 和 问题"
+msgstr "Summary and Issues"
+
+#: ../../dairy/always.md:7 a53ad9b18b814e3fb77ae3e9639c9ab9
+msgid "那里寻找华为晟腾的开发资料？"
+msgstr "Where to find Huawei Ascend development materials?"
+
+#: ../../dairy/always.md:8 6f1b41b550f14174aa0e0cb517cc14b0
+msgid "昇腾社区官网-昇腾万里让智能无所不及"
+msgstr ""
+"Ascend Community Official Website - Ascend AI, Making Intelligence "
+"Ubiquitous"
+
+#: ../../dairy/always.md:10 c77e479d8aa6493b8d36ac5fac6c3666
+msgid "理解其首页，对于开发者而言，最重要的为以下两栏：产品、开发者。"
+msgstr ""
+"Understanding its homepage, for developers, the most important are the "
+"following two columns: Products, Developers."
+
+#: ../../dairy/always.md:12 f538c01c523446269f76a5b04445fa28
+msgid ""
+"其中产品栏中 "
+"从硬件(边缘推理卡、数据中心推理卡、训练卡等等)->异构计算架构(CANN，编程语言为AscendCL，从开发者视角来看，类似CUDA、CUDA "
+"Runtime、cuDNN、cuBlas、TensorRt的集合)->AI框架(接入了torch和tf，原生支持MindSpore，上述都是训练框架，为什么这里还会有一个推理工具链MindIE呢？MindIE和AscendCL中推理部分关联是什么呢?)->应用使能->全流程开发工具链"
+msgstr ""
+"In the Products column, from hardware (edge inference cards, data center "
+"inference cards, training cards, etc.) -> heterogeneous computing "
+"architecture (CANN, programming language is AscendCL, from a developer's "
+"perspective, similar to CUDA, CUDA Runtime, cuDNN, cuBlas, TensorRt "
+"collection) -> AI frameworks (integrated torch and tf, natively supports "
+"MindSpore, the above are all training frameworks, why is there also an "
+"inference toolchain MindIE here? What is the relationship between MindIE and"
+" the inference part in AscendCL?) -> application enablement -> full-process "
+"development toolchain"
+
+#: ../../dairy/always.md:14 4661ad5ad91440ffb29b4a2534f31df6
+msgid "其中开发者栏中 包含 各类驱动以及软件包的下载，还有最重要的是包含视频教程"
+msgstr ""
+"In the Developers column, includes downloads for various drivers and "
+"software packages, and most importantly, includes video tutorials"
+
+#: ../../dairy/always.md:16 f927c4a3b342473b8a0d94cb860e7d7d
+msgid "系列硬件（整理一个脑图较为合适）"
+msgstr "Hardware series (organizing a mind map is more appropriate)"
+
+#: ../../dairy/always.md:18 36209dedd09e4d15a00e384c3f475ed9
+msgid "晟腾AI处理器及CANN软件栈基础"
+msgstr "Ascend AI Processor and CANN Software Stack Basics"
+
+#: ../../dairy/always.md:20 219ed1cd607c4507a884c84a48a595a1
+msgid "通过学习该堂课程，初步了解了"
+msgstr "Through learning this course, initially understood"
+
+#: ../../dairy/always.md:22 5edacea982654c7f85c194c9b5911b6f
+msgid "晟腾 AI core 的基本架构（后续基于文档深入理解）"
+msgstr ""
+"The basic architecture of Ascend AI core (further in-depth understanding "
+"based on documentation)"
+
+#: ../../dairy/always.md:23 d03aa4c4e118481c990be5e19ee8b40e
+msgid "SPMD架构，多个core（具体是多少个AI core？），每个core包含"
+msgstr ""
+"SPMD architecture, multiple cores (specifically how many AI cores?), each "
+"core includes"
+
+#: ../../dairy/always.md:24 ../../dairy/always.md:86
+#: 7532aee7c6a24849b3976be0b3a450e9 cd2fb0df4e27451db55154426b244867
+msgid ""
+"计算单元 - "
+"矩阵运算的cube、向量运算的vector、标量计算的scalar，标量计算单元也充当核内cpu作用，要负责指令接受、调度等等功能（如何区分fp32、fp16、int8？是不同的数据类型都有一套计算单元吗？）"
+msgstr ""
+"Computing units - matrix operation's cube, vector operation's vector, scalar"
+" operation's scalar, scalar computing unit also serves as the in-core CPU "
+"role, responsible for instruction reception, scheduling, etc. (How to "
+"distinguish fp32, fp16, int8? Do different data types have a set of "
+"computing units?)"
+
+#: ../../dairy/always.md:25 94cb02fbe5494e2e96dd99477d89785d
+msgid ""
+"内存单元 - global memory + local memory（这个较为复杂，后续需要单独详细理解）+ "
+"寄存器（这个会类似gpgpu中的寄存器文件吗？）"
+msgstr ""
+"Memory unit - global memory + local memory (this is quite complex, need to "
+"understand in detail separately later) + registers (will this be similar to "
+"the register file in GPGPU?)"
+
+#: ../../dairy/always.md:26 a2a450e1528d40c0a7d2574d64e7e84e
+msgid "DMA 单元 - DMA单元负责数据传输（global memory 与 local memory之间的数据传输）"
+msgstr ""
+"DMA unit - DMA unit is responsible for data transfer (data transfer between "
+"global memory and local memory)"
+
+#: ../../dairy/always.md:27 da2646749654497a8017f3ba922b101c
+msgid "调度模块（名字是这个吗？负责指令的发送、多个运算单元之间的同步）"
+msgstr ""
+"Scheduling module (is this the name? Responsible for instruction dispatch, "
+"synchronization between multiple computing units)"
+
+#: ../../dairy/always.md:28 f0b2c263d0e2480cb3fa8051d4cd5ee6
+msgid "Ascend C编程语言设计的目的（有五条？后续需再认真回顾）（c++->instricic）"
+msgstr ""
+"The purpose of Ascend C programming language design (five points? Need to "
+"review carefully later) (c++->intrinsic)"
+
+#: ../../dairy/always.md:29 60e22ba65f52448285f019c5457ec252
+msgid "高性能"
+msgstr "High performance"
+
+#: ../../dairy/always.md:30 4f78fd6589fc474bb99252204d3c125e
+msgid "表达能力"
+msgstr "Expressiveness"
+
+#: ../../dairy/always.md:31 c7293eaf924c4e68a845aae6fb2cddfd
+msgid "..."
+msgstr "..."
+
+#: ../../dairy/always.md:32 1443c9ba3eab461bb7a16c198740585d
+msgid ""
+"Ascend "
+"C编程语言(初步猜想：像OpenCL和CUDA一样，分为host端和device端，host端负责内存分配、数据传输、调度、控制，device端负责运算)"
+msgstr ""
+"Ascend C programming language (initial guess: like OpenCL and CUDA, divided "
+"into host side and device side, host side responsible for memory allocation,"
+" data transfer, scheduling, control, device side responsible for "
+"computation)"
+
+#: ../../dairy/always.md:33 30167f5c41c04e33861b8c7645dfb2c2
+msgid "虽然叫Ascend C，但是在host端就是AscendCL(C++)"
+msgstr "Although called Ascend C, on the host side it's AscendCL (C++)"
+
+#: ../../dairy/always.md:34 50d51aaea96a4b5c9dcad4df2a74794f
+msgid "cube模块的计算原语粒度很大，到了gemm这个层级了"
+msgstr ""
+"The computational primitive granularity of the cube module is very large, "
+"reaching the level of gemm"
+
+#: ../../dairy/always.md:35 57a428cebecc4e85a254ac423927c52d
+msgid "推理"
+msgstr "Inference"
+
+#: ../../dairy/always.md:36 ../../dairy/always.md:89
+#: 757b999f695a412caa1fb24e2d09712e c37e68a1153d43b593a1ea7ff9c9c8e1
+msgid ""
+"AIR（这个是开源的吗？最好直接使用或者借鉴该IR，目前框架内部有一套IR的上层数据结构，但最最最最麻烦的还是具体算子的IR，以及各种序列以及反序列化）"
+msgstr ""
+"AIR (is this open source? Best to directly use or reference this IR, "
+"currently the framework internally has a set of upper-level data structure "
+"IR, but the most troublesome is still the specific operator's IR, and "
+"various sequences as well as deserialization)"
+
+#: ../../dairy/always.md:37 46fbd22b54f74319909f16100db28ada
+msgid "模型转换"
+msgstr "Model conversion"
+
+#: ../../dairy/always.md:38 ff555e1d85fe4162b4829b386a9f90d5
+msgid "模型压缩（训练后量化、量化感知训练；剪枝、蒸馏、稀疏化等等主要还是偏算法，这里暂时不关注）"
+msgstr ""
+"Model compression (post-training quantization, quantization-aware training; "
+"pruning, distillation, sparsity, etc. mainly still algorithm-oriented, not "
+"focusing here for now)"
+
+#: ../../dairy/always.md:39 61053c8d765d4c508c726ad376f8bf2a
+msgid "图编译（CANN中图编译比我想象中要复杂很多很多）"
+msgstr ""
+"Graph compilation (graph compilation in CANN is much more complex than I "
+"imagined)"
+
+#: ../../dairy/always.md:41 c41aeedb8533403ca4dac01c3e4f9184
+msgid "review nndeploy 中 AscendCL Runtime部分代码"
+msgstr "Review nndeploy's AscendCL Runtime part code"
+
+#: ../../dairy/always.md:42 0253a1c8f1474a03bddf98df9f114e3d
+msgid "include/nndeploy/device/ascend_cl"
+msgstr "include/nndeploy/device/ascend_cl"
+
+#: ../../dairy/always.md:43 bb17b7ecc1d542bb9415b690ce992d92
+msgid "src/nndeploy/device/ascend_cl"
+msgstr "src/nndeploy/device/ascend_cl"
+
+#: ../../dairy/always.md:45 2beef7d5a92445de9959513f068adbe8
+msgid "review nndeploy 中 AscendCL 推理部分代码"
+msgstr "Review nndeploy's AscendCL inference part code"
+
+#: ../../dairy/always.md:46 0228fb3f37e64fa4a9dcc64a60ba24ac
+msgid "include/nndeploy/inference/ascend_cl"
+msgstr "include/nndeploy/inference/ascend_cl"
+
+#: ../../dairy/always.md:47 8526f2c70eeb4c2e81d072ed49d95310
+msgid "source/nndeploy/inference/ascend_cl"
+msgstr "source/nndeploy/inference/ascend_cl"
+
+#: ../../dairy/always.md:49 ../../dairy/always.md:92 ../../dairy/always.md:120
+#: 2e84fabefa2e44f8ab862460db4282ad 4b55d00cc21f4d84bc81d40d807ad676
+#: fd4254b4799f44bbb50c7194770a4cce
+msgid "明日安排"
+msgstr "Tomorrow's plan"
+
+#: ../../dairy/always.md:50 b1244335220141928db4ef1c2bf1650c
+msgid "挑选 华为昇腾边缘推理盒子 和 开发笔记本"
+msgstr "Choose Huawei Ascend edge inference box and development notebook"
+
+#: ../../dairy/always.md:51 6abf340161584abe8979411684c3b6dc
+msgid "CANN文档 - 算子开发部分（尽量解决2024-07-03问题）"
+msgstr ""
+"CANN documentation - operator development part (try to solve 2024-07-03 "
+"issues)"
+
+#: ../../dairy/always.md:52 3be2702899824f06b9162b87e7ee26ab
+msgid "CANN视频（概述、入门、高级）"
+msgstr "CANN videos (overview, introduction, advanced)"
+
+#: ../../dairy/always.md:53 ba590eb74cbc4ef29ce531f828ff68a4
+msgid "目的"
+msgstr "Purpose"
+
+#: ../../dairy/always.md:54 04884ffb3f5d4445bba57a5c7f195dfb
+msgid "硬件体系架构"
+msgstr "Hardware system architecture"
+
+#: ../../dairy/always.md:55 660e112974ff4d0da1bf724a3a87ddc6
+msgid "编程体系架构 与cuda类比"
+msgstr "Programming system architecture compared with cuda"
+
+#: ../../dairy/always.md:56 b10d385fa34548b89da026a6fa88c44e
+msgid "编程粒度"
+msgstr "Programming granularity"
+
+#: ../../dairy/always.md:58 d68600d555364aa78cb4f735ffa6c639
+msgid "2024-07-06"
+msgstr "2024-07-06"
+
+#: ../../dairy/always.md:60 954f2abb962048caa4d1912b662576f5
+msgid "华为昇腾边缘推理盒子"
+msgstr "Huawei Ascend edge inference box"
+
+#: ../../dairy/always.md:61 f6b1f7d34924467cb3945fa82bb8f6a7
+msgid ""
+"对于小公司以及个人开发者而言，开发者套件(Atlas 200I DK A2, 背后的芯片为 加速模块Atlas 200I A2(8TOPS)) "
+"最为方便（开发板卡形式，可以支持摄像头接入、linux桌面），价格合适"
+msgstr ""
+"For small companies and individual developers, the developer kit (Atlas 200I"
+" DK A2, with the chip behind it being the acceleration module Atlas 200I A2 "
+"(8TOPS)) is the most convenient (development board form, can support camera "
+"input, Linux desktop), reasonably priced"
+
+#: ../../dairy/always.md:62 cc08a007ad9947feb3437930f2d80e4a
+msgid "购买链接 - https://www.vmall.com/product/10086362347457.html?cid=207641"
+msgstr ""
+"Purchase link - https://www.vmall.com/product/10086362347457.html?cid=207641"
+
+#: ../../dairy/always.md:63 36e94c3013cd4dbd9daf984cb856576e
+msgid "电脑选购 - 惠普暗夜精灵"
+msgstr "Computer selection - HP Dark Elf"
+
+#: ../../dairy/always.md:64 af3d7fd21d68490bb9c7f725764d8a07
+msgid "达芬奇架构（AI core）"
+msgstr "Da Vinci architecture (AI core)"
+
+#: ../../dairy/always.md:65 5d07c50df1944422891778e9bc11de0c
+msgid "计算单元（scalar（cpu） + vector + cube）（还有很多细节有待展开）"
+msgstr ""
+"Computing units (scalar (cpu) + vector + cube) (many details to expand)"
+
+#: ../../dairy/always.md:66 893d473eb2794607ad420e62afc44c39
+msgid "内存单元（global memory + local memory ）（还有很多细节有待展开）"
+msgstr "Memory unit (global memory + local memory) (many details to expand)"
+
+#: ../../dairy/always.md:67 ae567e47bc9441e2858d2a30b13da6bf
+msgid "数据搬运单元（DMA）（还有很多细节有待展开）"
+msgstr "Data transfer unit (DMA) (many details to expand)"
+
+#: ../../dairy/always.md:68 b9ec4c1e033a4babbd4309dbfa456831
+msgid "数据流 + 同步信号流"
+msgstr "Data flow + synchronization signal flow"
+
+#: ../../dairy/always.md:69 82d3fb49160e47f48de1a0c34ca36c7e
+msgid "计算（标量给scalar， 向量给vector，矩阵给cube，异步指令流）"
+msgstr ""
+"Computation (scalar to scalar, vector to vector, matrix to cube, "
+"asynchronous instruction flow)"
+
+#: ../../dairy/always.md:70 5aae1d9029004d189b9bb6e5e5ae9bae
+msgid "计算会产生依赖，数据依赖（需要同步信号流）、控制依赖（scalar cpu解决吧）"
+msgstr ""
+"Computation will produce dependencies, data dependencies (need "
+"synchronization signal flow), control dependencies (solved by scalar cpu)"
+
+#: ../../dairy/always.md:71 fe5a1381f4fb4305ac93bf887ec6b02b
+msgid "Ascend C"
+msgstr "Ascend C"
+
+#: ../../dairy/always.md:72 3fa613d35dbf4b75b102c003456dd1e6
+msgid "以ADD入门"
+msgstr "Starting with ADD"
+
+#: ../../dairy/always.md:73 77e63a7bbd9e46df8118edad2fb08a6a
+msgid "host api"
+msgstr "host api"
+
+#: ../../dairy/always.md:74 41283cef2e5d49e6bbe0ed63e69a9663
+msgid "device api(多级API)"
+msgstr "device api (multi-level API)"
+
+#: ../../dairy/always.md:75 db613da5020b4398b89def4fb3aa9991
+msgid "优化方法"
+msgstr "Optimization methods"
+
+#: ../../dairy/always.md:76 07a88013478b459d89b3961b2e4836b8
+msgid "double buffer"
+msgstr "double buffer"
+
+#: ../../dairy/always.md:77 2605243b7a3e4e0ab19122bceb89573b
+msgid "2024-07-03遗留问题"
+msgstr "2024-07-03 pending issues"
+
+#: ../../dairy/always.md:78 87c70ac7dfda4be0a41877499b13d8f1
+msgid "CANN已经包含了推理工具链（AscendCL-aclmdl），为什么这里还会有一个推理工具链MindIE呢？"
+msgstr ""
+"CANN already includes the inference toolchain (AscendCL-aclmdl), why is "
+"there also an inference toolchain MindIE here?"
+
+#: ../../dairy/always.md:79 731f2041c01847c1bcfda284abac25bd
+msgid ""
+"官方简介：昇腾推理引擎，基于昇腾硬件的运行加速、调试调优、快速迁移部署的高性能深度学习推理框架，分层开放满足各类需求，统一接口使能极简开发，沉淀能力构筑极致性能"
+msgstr ""
+"Official Introduction: Ascend Inference Engine, a high-performance deep "
+"learning inference framework based on Ascend hardware, featuring operational"
+" acceleration, debugging optimization, and rapid deployment. It is designed "
+"to meet various needs with its layered openness and unified interface for "
+"extremely simplified development, constructing ultimate performance through "
+"accumulated capabilities."
+
+#: ../../dairy/always.md:80 a3bbf4862a904bfb8b8b1219a0f9e448
+msgid "个人理解（较为片面）：基于CANN（AscendCL-aclmdl）"
+msgstr ""
+"Personal Understanding (somewhat fragmented): Based on CANN (AscendCL-"
+"aclmdl)."
+
+#: ../../dairy/always.md:81 99f96c1b60cb4c17966f2ec43fc6e3b8
+msgid "开发MindRT(接口会有点点类似Trt，提高易用性，可以通过onnx直接创建推理示例、也可以手动构图)"
+msgstr ""
+"Developing MindRT (the interface somewhat resembles Trt, improving "
+"usability, allowing direct creation of inference instances via onnx or "
+"manual graph construction)."
+
+#: ../../dairy/always.md:82 f0ce10b056aa40eb981159a5ad4f21cf
+msgid ""
+"针对大模型场景，往往通用的推理接口不好用，所以有了（MindIE-SD和MindIE-LLM，类似英伟达的FasterTransformer）"
+msgstr ""
+"For large model scenarios, general inference interfaces are often not user-"
+"friendly, hence the development of (MindIE-SD and MindIE-LLM, similar to "
+"NVIDIA's FasterTransformer)."
+
+#: ../../dairy/always.md:83 20b59a6d46ad48c8ad656e3c2748054d
+msgid "MindIE-Service: 推理服务化框架（类似英伟达的Inference Triton Server）"
+msgstr ""
+"MindIE-Service: Inference service framework (similar to NVIDIA's Inference "
+"Triton Server)."
+
+#: ../../dairy/always.md:84 6dc42e627bbd4d2f865560819fea2fc7
+msgid "具体是多少个AI core？"
+msgstr "Specifically, how many AI cores are there?"
+
+#: ../../dairy/always.md:85 1a8867fa949b4d93a306c2ca77d27eae
+msgid "每个芯片都包含多个AI core（每个AI core只共享主存），具体依据芯片型号不同而不同（我没有找到具体的资料）"
+msgstr ""
+"Each chip contains multiple AI cores (each AI core shares only the main "
+"memory), the exact number varies depending on the chip model (I haven't "
+"found specific information)."
+
+#: ../../dairy/always.md:87 cdf644be8c9f42d184aaa3f07e3b07a7
+msgid ""
+"由矩阵运算的cube、向量运算的vector、标量计算的scalar内部去区分不同的计算类型，以矩阵运算的cube单元（Atlas 200I A2 "
+"的cube）为例"
+msgstr ""
+"Differentiated by internal computation types: matrix operations (cube), "
+"vector operations (vector), scalar calculations (scalar), with matrix "
+"operation's cube unit (e.g., Atlas 200I A2's cube) as an example."
+
+#: ../../dairy/always.md:88 f8665de667c643468f484e4cae04d3bd
+msgid "内部的一个cube既可以做fp16，也可以做int8，fp16(16x16的fp16矩阵计算、32x16或者16x32的int8矩阵计算)"
+msgstr ""
+"Internally, a cube can handle both fp16 and int8: fp16 (16x16 fp16 matrix "
+"calculations) or 32x16 or 16x32 int8 matrix calculations."
+
+#: ../../dairy/always.md:90 1365e9d0424b4e6385ece4f1f5784b10
+msgid "需要进一步查找资料，我想用这个IR作为nndeploy里面的IR"
+msgstr ""
+"Further information needs to be researched. I want to use this IR as the IR "
+"in nndeploy."
+
+#: ../../dairy/always.md:93 d3862f41fe2d465e8aee93cad736bfd9
+msgid "AIR"
+msgstr "AIR"
+
+#: ../../dairy/always.md:94 8ef8d31647b344e7871e1a0b22a926c7
+msgid "看能不能将nndeploy的IR和AIR进行整合，或者直接使用AIR"
+msgstr ""
+"See if it's possible to integrate nndeploy's IR and AIR, or directly use "
+"AIR."
+
+#: ../../dairy/always.md:95 d9379247c6fd4532862b091fb5a6b0c9
+msgid "完善nndeploy中目前已接入的CANN（aclrt[runtime]和aclmdl[推理]）"
+msgstr ""
+"Complete the currently integrated CANN (aclrt[runtime] and "
+"aclmdl[inference]) in nndeploy."
+
+#: ../../dairy/always.md:98 68a9c87755a1461f83413a05d86b0d0a
+msgid "2024-07-07"
+msgstr "2024-07-07"
+
+#: ../../dairy/always.md:100 e810174406914341914f1e02b4f15ed8
+msgid "alcrt的接口"
+msgstr "alcrt interface"
+
+#: ../../dairy/always.md:101 bfec469af28743fa8b6a5e66b9633c61
+msgid "alcrt初始化"
+msgstr "alcrt initialization"
+
+#: ../../dairy/always.md:102 0eaafeb784794fe9b88187105f318559
+msgid "使能设备"
+msgstr "Enable device"
+
+#: ../../dairy/always.md:103 ea7c5f5a178f4b3d90aeeef8f50d5554
+msgid "创建上下文"
+msgstr "Create context"
+
+#: ../../dairy/always.md:104 7bc8116b208343d386f9b7d073641ff1
+msgid "创建流"
+msgstr "Create stream"
+
+#: ../../dairy/always.md:105 ae837fbc86534436a8d2fd4a4feccd80
+msgid "管理多流"
+msgstr "Manage multiple streams"
+
+#: ../../dairy/always.md:106 b9d070dc466e4d5b9f679929a80e83c5
+msgid "同步"
+msgstr "Synchronize"
+
+#: ../../dairy/always.md:107 b42a5548053143ee90751e17f5afe3ff
+msgid "内存分配"
+msgstr "Memory allocation"
+
+#: ../../dairy/always.md:108 c4c002750c3a40b68ed7d15636cba083
+msgid "内存拷贝"
+msgstr "Memory copy"
+
+#: ../../dairy/always.md:109 6b0d49e412944e95af246fbe5471adc2
+msgid "销毁流"
+msgstr "Destroy stream"
+
+#: ../../dairy/always.md:110 845a7d9a64b4430c88ea6da4dd4b8e54
+msgid "销毁上下文"
+msgstr "Destroy context"
+
+#: ../../dairy/always.md:111 24fff29013f14f91b4d8da152d77234f
+msgid "重置设备"
+msgstr "Reset device"
+
+#: ../../dairy/always.md:112 6fde595baaa04054969ef5520c5a78e3
+msgid "alcrt反初始化"
+msgstr "alcrt deinitialization"
+
+#: ../../dairy/always.md:113 acf1894fc60a4e9fb45ba26b9f61f972
+msgid ""
+"将aclrt与nndeploy-"
+"device模块结合：设备是nndeploy对硬件设备的抽象，通过对硬件设备的抽象，从而屏蔽不同硬件设备编程模型带来的差异性，初步完成对AscendCL设备的接入。主要功能如下"
+msgstr ""
+"Integrating aclrt into the nndeploy-device module: The device is nndeploy's "
+"abstraction of hardware devices. By abstracting hardware devices, it shields"
+" the programming model differences brought by different hardware devices, "
+"initially completing the access to AscendCL devices. Main functions are as "
+"follows:"
+
+#: ../../dairy/always.md:114 141e5796ce01409fb0bfa425dd052a04
+msgid "统一的内存分配：为不同设备提供统一的内存分配接口，从而可简化数据容器Buffer、Tensor的内存分配"
+msgstr ""
+"Unified memory allocation: Provides a unified memory allocation interface "
+"for different devices, simplifying the memory allocation of data containers "
+"Buffer and Tensor."
+
+#: ../../dairy/always.md:115 1ff40d5d07f244be93293fe77dae54a4
+msgid "统一的内存拷贝：为不同设备提供统一的内存拷贝接口（设备间拷贝、主从设备间上传/下载），从而可简化数据容器Buffer、Tensor的内存拷贝"
+msgstr ""
+"Unified memory copy: Provides a unified memory copy interface for different "
+"devices (device-to-device copy, host-to-device upload/download), simplifying"
+" the memory copy of data containers Buffer and Tensor."
+
+#: ../../dairy/always.md:116 d5a3d7548ad941449b7ae23241197189
+msgid "统一的同步操作：为不同设备提供统一的同步操作接口，可简化设备端模型推理、算子等同步操作"
+msgstr ""
+"Unified synchronization operation: Provides a unified synchronization "
+"operation interface for different devices, simplifying device-side model "
+"inference, operator synchronization operations."
+
+#: ../../dairy/always.md:117 571f975fa35f47c58f32df6bca70aa8c
+msgid "统一的硬件设备信息查询：为不同设备提供统一的硬件设备信息查询接口，帮助用户更好的选择模型全流程部署的运行设备"
+msgstr ""
+"Unified hardware device information query: Provides a unified hardware "
+"device information query interface for different devices, helping users "
+"better select devices for full-process model deployment."
+
+#: ../../dairy/always.md:118 67e74e7e59c04e0abc7358043cfdab22
+msgid "aclrt的多流有优化空间，可以让模型推理或者算子加速吗？"
+msgstr ""
+"Does aclrt's multi-stream have optimization space, can it accelerate model "
+"inference or operators?"
+
+#: ../../dairy/always.md:121 68df8f58c4da4739a051bc36a247bca0
+msgid "推理框架构图"
+msgstr "Inference framework architecture"
+
+#: ../../dairy/always.md:122 7843e4407e4d4f94a97ece0c73c9124c
+msgid "onnx构图"
+msgstr "onnx architecture"
+
+#: ../../dairy/always.md:123 aaaebd438fa54285900d9fbeace862e2
+msgid "pytorch构图"
+msgstr "pytorch architecture"
+
+#: ../../dairy/always.md:124 b498775e8d544dee9140bf95fb20c7c9
+msgid "tensorrt api"
+msgstr "tensorrt api"
+
+#: ../../dairy/always.md:125 1d743b30757c45f1ab62773411350e9f
+msgid "ggml 构图"
+msgstr "ggml architecture"
+
+#: ../../dairy/always.md:126 f8b18f5ca4204f61b25fa6f8387d5fef
+msgid "aclge 构图"
+msgstr "aclge architecture"
+
+#: ../../dairy/always.md:127 c8612ac74df449cbafd27f7198bb291c
+msgid "mnn expr构图"
+msgstr "mnn expr architecture"
+
+#: ../../dairy/always.md:129 0f8a5f6cdcd440c695e9f54ec0abffe5
+msgid "2024.07.20"
+msgstr "2024.07.20"
+
+#: ../../dairy/always.md:130 01046fd403624a0297874dcc09fb7e83
+msgid "aclnn - 算子接口（这个肯定可以实现，构图依赖nndeploy本身）"
+msgstr ""
+"aclnn - operator interface (this can definitely be implemented, the "
+"architecture depends on nndeploy itself)."
+
+#: ../../dairy/always.md:131 a901ad6c925a4f9ba73ee3ce5ed73750
+msgid "dataformat"
+msgstr "dataformat"
+
+#: ../../dairy/always.md:132 2697574f914b4ecd9ac51e88a24c3592
+msgid "对外"
+msgstr "External"
+
+#: ../../dairy/always.md:133 5f9848067bee41d2964907f9d5cf1435
+msgid "对内"
+msgstr "Internal"
+
+#: ../../dairy/always.md:134 c84138ce4eca433fb0027c8540f6869d
+msgid "atb - Ascend Transformer Boost(主要是服务语言模型提供的算子库)"
+msgstr ""
+"atb - Ascend Transformer Boost (mainly the operator library provided by the "
+"service language model)."
+
+#: ../../dairy/always.md:135 265fed787d1e422ea00a25a19bfc1731
+msgid "ge - 手动构建图，权重如何加载进来呢？那为什么还要做这件事情呢？"
+msgstr ""
+"ge - manual graph construction, how to load weights? Then why do this thing?"
+
+#: ../../dairy/always.md:137 c5416d2959c649a3bf2f8db8e2469c9b
+msgid "综合来看，针对yolo这类小模型，优先使考虑aclnn，后续要做类似llama.cpp时，再来考虑atb，直接pass ge"
+msgstr ""
+"Overall, for small models like yolo, prioritize considering aclnn, when "
+"moving to something like llama.cpp later, then consider atb, directly pass "
+"ge."
+
+#: ../../dairy/always.md:139 36676dedcbfb4e2db34118d21572dbf1
+msgid "2024.07.21"
+msgstr "2024.07.21"
+
+#: ../../dairy/always.md:140 c0d0d9349dde43b5bc4f222499f3f738
+msgid "写一下头文件，逻辑清晰"
+msgstr "Write a header file, with clear logic."
+
+#: ../../dairy/always.md:141 e9ea1d62855a476c9d8f4156cde70f9d
+msgid "两段接口，有没有性能损失呢？"
+msgstr "Two interfaces, is there any performance loss?"
+
+#: ../../dairy/always.md:142 99c350c08dd447948777d94a5ada70cf
+msgid "每个算子对外和对内的data_format到底是怎样的呢？"
+msgstr ""
+"What exactly is the data_format for each operator's external and internal?"
+
+#: ../../dairy/always.md:143 81cc700d9acb42538d44875e3673714e
+msgid "还有那些帮助函数要写呢？"
+msgstr "What other helper functions need to be written?"
+
+#: ../../dairy/always.md:144 082b7fa88dac4934bd0b0c3ec0fcb6d9
+msgid "各种convert"
+msgstr "Various convert."
+
+#: ../../dairy/always.md:145 cd30b6a10df740259a5e7c91b0f81b18
+msgid "单算子测试，等板卡回来就开始测试"
+msgstr "Single operator testing, start testing once the board is back."
+
+#: ../../dairy/always.md:146 dee0a31466684c21904ae6d578ffa890
+msgid "内存优化的策略可行吗？"
+msgstr "Is the memory optimization strategy feasible?"
+
+#: ../../dairy/always.md:147 4b580f3bac464f338e498f90f38cbe97
+msgid "针对动态shape好搞吗"
+msgstr "Is dynamic shape easy to handle?"
+
+#: ../../dairy/always.md:148 0251972307fc46f9a8e42378b5bd5646
+msgid "git submodule add git@github.com:onnx/onnx.git third_party/onnx"
+msgstr "git submodule add git@github.com:onnx/onnx.git third_party/onnx"
+
+#: ../../dairy/always.md:149 37d821fd46134bc0b8b86f6ee5a7240d
+msgid ""
+"git submodule add git@github.com:protocolbuffers/protobuf.git "
+"third_party/protobuf"
+msgstr ""
+"git submodule add git@github.com:protocolbuffers/protobuf.git "
+"third_party/protobuf"
+
+#: ../../dairy/always.md:151 b768485a58fa4b96b1f64dfc1498d792
+msgid ""
+"git submodule add https://github.com/Tencent/rapidjson.git "
+"third_party/rapidjson"
+msgstr ""
+"git submodule add https://github.com/Tencent/rapidjson.git "
+"third_party/rapidjson"
+
+#: ../../dairy/always.md:152 79bd173464634605818e7225aa73e885
+msgid ""
+"git clone --recurse-submodules https://github.com/Tencent/rapidjson.git"
+msgstr ""
+"git clone --recurse-submodules https://github.com/Tencent/rapidjson.git"
+
+#: ../../dairy/always.md:154 1e3d7b13d0ef4019af13e1f9082c4f22
+msgid "git clone --recurse-submodules https://github.com/gflags/gflags.git"
+msgstr "git clone --recurse-submodules https://github.com/gflags/gflags.git"
+
+#: ../../dairy/always.md:156 38182437a6784db2936807891f4bf202
+msgid ""
+"git clone --recurse-submodules "
+"https://github.com/protocolbuffers/protobuf.git"
+msgstr ""
+"git clone --recurse-submodules "
+"https://github.com/protocolbuffers/protobuf.git"
+
+#: ../../dairy/always.md:158 468f1d6f124748e495b52dd525a519c2
+msgid "git clone --recurse-submodules https://github.com/onnx/onnx.git"
+msgstr "git clone --recurse-submodules https://github.com/onnx/onnx.git"
+
+#: ../../dairy/always.md:160 816288f5e4ac4601907ee49f50f22ce3
+msgid ""
+"git clone --recurse-submodules https://github.com/mlc-ai/tokenizers-cpp.git"
+msgstr ""
+"git clone --recurse-submodules https://github.com/mlc-ai/tokenizers-cpp.git"
+
+#: ../../dairy/always.md:162 e544f27aef6d4cd3b85121fb9ded6622
+msgid "git clone --recurse-submodules https://github.com/pybind/pybind11.git"
+msgstr "git clone --recurse-submodules https://github.com/pybind/pybind11.git"
+
+#: ../../dairy/always.md:165 1f67d243ae214615975b6af62de0cf84
+msgid ""
+"CMake Error in third_party/onnx/CMakeLists.txt: export called with target "
+"\"onnx_proto\" which requires target \"libprotobuf\" that is not in any "
+"export set."
+msgstr ""
+"CMake Error in third_party/onnx/CMakeLists.txt: export called with target "
+"\"onnx_proto\" which requires target \"libprotobuf\" that is not in any "
+"export set."
+
+#: ../../dairy/always.md:170 ../../dairy/always.md:177
+#: d80225c6ef024cef9f0301d99e767e91 e188e143d82e48469b3b5676925ea7de
+msgid "2024.07.27"
+msgstr "2024.07.27"
+
+#: ../../dairy/always.md:171 6d300dc1e66b4ee7b06c64e27f837999
+msgid "从ir开始梳理 - 与onnx对齐"
+msgstr "从IR开始梳理 - 与ONNX对齐"
+
+#: ../../dairy/always.md:172 94e03e90e0d64d2995804abff84bfa4d
+msgid "稍微梳理一下op"
+msgstr "稍微梳理一下op"
+
+#: ../../dairy/always.md:173 06d64bc2e8a44adc831fa6652f0674ec
+msgid "梳理解释器 - 完善onnx解释器"
+msgstr "梳理解释器 - 完善ONNX解释器"
+
+#: ../../dairy/always.md:174 414edb3242104f2e81fc4cf651d22c84
+msgid "增加上层op"
+msgstr "增加上层op"
+
+#: ../../dairy/always.md:178 78c743706eec4300ab29601a33dc0ecc
+msgid "完善上层op"
+msgstr "完善上层op"
+
+#: ../../dairy/always.md:179 698df81783674407ad75cce0fe2936ec
+msgid "增加华为晟腾算子"
+msgstr "增加华为昇腾算子"
+
+#: ../../dairy/always.md:180 a185430a57514ec5a3bce5f6629acc45
+msgid "搭建cann开发环境"
+msgstr "搭建CANN开发环境"
+
+#: ../../dairy/always.md:182 5c69fe7c80f84ce5878530393ecd4e68
+msgid ""
+"Released Versions ONNX version \tIR version \tOpset version ai.onnx \tOpset "
+"version ai.onnx.ml \tOpset version ai.onnx.training 1.0 \t3 \t1 \t1 \t- 1.1 "
+"\t3 \t5 \t1 \t- 1.1.2 \t3 \t6 \t1 \t- 1.2 \t3 \t7 \t1 \t- 1.3 \t3 \t8 \t1 "
+"\t- 1.4.1 \t4 \t9 \t1 \t- 1.5.0 \t5 \t10 \t1 \t- 1.6.0 \t6 \t11 \t2 \t- "
+"1.7.0 \t7 \t12 \t2 \t1 1.8.0 \t7 \t13 \t2 \t1 1.8.1 \t7 \t13 \t2 \t1 1.9.0 "
+"\t7 \t14 \t2 \t1 1.10.0 \t8 \t15 \t2 \t1 1.10.1 \t8 \t15 \t2 \t1 1.10.2 \t8 "
+"\t15 \t2 \t1 1.11.0 \t8 \t16 \t3 \t1 1.12.0 \t8 \t17 \t3 \t1 1.13.0 \t8 \t18"
+" \t3 \t1 1.13.1 \t8 \t18 \t3 \t1 1.14.0 \t9 \t19 \t3 \t1 1.14.1 \t9 \t19 \t3"
+" \t1 1.15.0 \t9 \t20 \t4 \t1 1.16.0 \t10 \t21 \t5 \t1"
+msgstr ""
+"Released Versions ONNX version \tIR version \tOpset version ai.onnx \tOpset "
+"version ai.onnx.ml \tOpset version ai.onnx.training 1.0 \t3 \t1 \t1 \t- 1.1 "
+"\t3 \t5 \t1 \t- 1.1.2 \t3 \t6 \t1 \t- 1.2 \t3 \t7 \t1 \t- 1.3 \t3 \t8 \t1 "
+"\t- 1.4.1 \t4 \t9 \t1 \t- 1.5.0 \t5 \t10 \t1 \t- 1.6.0 \t6 \t11 \t2 \t- "
+"1.7.0 \t7 \t12 \t2 \t1 1.8.0 \t7 \t13 \t2 \t1 1.8.1 \t7 \t13 \t2 \t1 1.9.0 "
+"\t7 \t14 \t2 \t1 1.10.0 \t8 \t15 \t2 \t1 1.10.1 \t8 \t15 \t2 \t1 1.10.2 \t8 "
+"\t15 \t2 \t1 1.11.0 \t8 \t16 \t3 \t1 1.12.0 \t8 \t17 \t3 \t1 1.13.0 \t8 \t18"
+" \t3 \t1 1.13.1 \t8 \t18 \t3 \t1 1.14.0 \t9 \t19 \t3 \t1 1.14.1 \t9 \t19 \t3"
+" \t1 1.15.0 \t9 \t20 \t4 \t1 1.16.0 \t10 \t21 \t5 \t1"
+
+#: ../../dairy/always.md:209 b1dbe19302334c78a76ef76f073fe0c4
+msgid ""
+"Finish! Here is the difference: "
+"┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓ ┃            ┃ Original "
+"Model ┃ Simplified Model ┃ "
+"┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━┩ │ Add        │ 8"
+"              │ 8                │ │ Concat     │ 19             │ 19"
+"               │ │ Constant   │ 139            │ 139              │ │ Conv"
+"       │ 64             │ 64               │ │ Div        │ 1              │"
+" 1                │ │ MaxPool    │ 3              │ 3                │ │ Mul"
+"        │ 58             │ 58               │ │ Reshape    │ 5              "
+"│ 5                │ │ Resize     │ 2              │ 2                │ │ "
+"Sigmoid    │ 58             │ 58               │ │ Slice      │ 2"
+"              │ 2                │ │ Softmax    │ 1              │ 1"
+"                │ │ Split      │ 9              │ 9                │ │ Sub"
+"        │ 2              │ 2                │ │ Transpose  │ 2              "
+"│ 2                │ │ Model Size │ 12.2MiB        │ 12.2MiB          │ "
+"└────────────┴────────────────┴──────────────────┘"
+msgstr ""
+"Finish! Here is the difference: "
+"┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓ ┃            ┃ Original"
+" Model ┃ Simplified Model ┃ "
+"┣━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫ ┃ Add        ┃ 8"
+"              ┃ 8                ┃ ┃ Concat     ┃ 19             ┃ 19"
+"               ┃ ┃ Constant   ┃ 139            ┃ 139              ┃ ┃ Conv"
+"       ┃ 64             ┃ 64               ┃ ┃ Div        ┃ 1              ┃"
+" 1                ┃ ┃ MaxPool    ┃ 3              ┃ 3                ┃ ┃ Mul"
+"        ┃ 58             ┃ 58               ┃ ┃ Reshape    ┃ 5              "
+"┃ 5                ┃ ┃ Resize     ┃ 2              ┃ 2                ┃ ┃ "
+"Sigmoid    ┃ 58             ┃ 58               ┃ ┃ Slice      ┃ 2"
+"              ┃ 2                ┃ ┃ Softmax    ┃ 1              ┃ 1"
+"                ┃ ┃ Split      ┃ 9              ┃ 9                ┃ ┃ Sub"
+"        ┃ 2              ┃ 2                ┃ ┃ Transpose  ┃ 2              "
+"┃ 2                ┃ ┃ Model Size ┃ 12.2MiB        ┃ 12.2MiB          ┃ "
+"┗━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┛"
+
+#: ../../dairy/always.md:231 98ccfca7bd4d4f7980f1c02400fa3b97
+msgid "2024.08.24"
+msgstr "2024.08.24"
+
+#: ../../dairy/always.md:232 f834349be7e1445e9b960757d1210109
+msgid "初步解决的编译和net以及session的运行时问题"
+msgstr "初步解决的编译和net以及session的运行时问题"
+
+#: ../../dairy/always.md:233 f2411f771cb84574b9416050c300b5bc
+msgid "但是单算子调用出现了错误，错误为内部错误，但是模型又可以运行"
+msgstr "但是单算子调用出现了错误，错误为内部错误，但是模型又可以运行"
+
+#: ../../dairy/always.md:234 e142ca1a368b4ec8976cbe5f28c59cb8
+msgid "原因：我买的是华为昇腾310b的推理卡，官网显示不能单算子模式调用，那我这种形式该怎么做呢，去910上搞吗"
+msgstr "原因：我买的是华为昇腾310b的推理卡，官网显示不能单算子模式调用，那我这种形式该怎么做呢，去910上搞吗"
+
+#: ../../dairy/always.md:237 60676324089c4d218b13cbf15bd50774
+msgid "2024.09.05"
+msgstr "2024.09.05"
+
+#: ../../dairy/always.md:239 13a9aaf58e6f4a5f9be19a2644efc558
+msgid "更换git submodule"
+msgstr "更换git submodule"
+
+#: ../../dairy/always.md:241 b4cb5126a858498fa81ff6c9362b286f
+msgid ""
+"git submodule add https://github.com/mlc-ai/tokenizers-cpp.git "
+"third_party/tokenizers-cpp"
+msgstr ""
+"git submodule add https://github.com/mlc-ai/tokenizers-cpp.git "
+"third_party/tokenizers-cpp"
+
+#: ../../dairy/always.md:244 5d11c95296e148649be558173529ee84
+msgid "2024.09.17"
+msgstr "2024.09.17"
+
+#: ../../dairy/always.md:245 6aa90b2506e142b7aad5f8b6aeebeed2
+msgid ""
+"atc --model=./yolov8n.onnx --output=./yolov8n.onnx.om --framework=5 "
+"--soc_version=Ascend310B"
+msgstr ""
+"atc --model=./yolov8n.onnx --output=./yolov8n.onnx.om --framework=5 "
+"--soc_version=Ascend310B"
+
+#: ../../dairy/always.md:248 ec6b54dc3ff541d5aba9ae500de82687
+msgid "2024.10.05"
+msgstr "2024.10.05"
+
+#: ../../dairy/always.md:249 834c3964452a4fa686e980aa2ad780a7
+msgid "完成目录的修改"
+msgstr "完成目录的修改"
+
+#: ../../dairy/always.md:250 d28b8d442d4e4075884a38960c9df766
+msgid "interpret -> ir"
+msgstr "interpret -> ir"
+
+#: ../../dairy/always.md:251 326546f44a0845e884171316eb3ace0e
+msgid "ir -> ir"
+msgstr "ir -> ir"
+
+#: ../../dairy/always.md:254 b53d13b279954d84adee6cafa5f0f1a5
+msgid ""
+"[submodule \"python/pybind11\"] path = python/pybind11 url = "
+"https://github.com/pybind/pybind11.git"
+msgstr ""
+"[submodule \"python/pybind11\"] path = python/pybind11 url = "
+"https://github.com/pybind/pybind11.git"
+
+#: ../../dairy/always.md:258 0990c3a66a4f437a82aaf449751d068f
+msgid ""
+"git submodule add https://github.com/pybind/pybind11.git "
+"third_party/pybind11"
+msgstr ""
+"git submodule add https://github.com/pybind/pybind11.git "
+"third_party/pybind11"
+
+#: ../../dairy/always.md:261 1e4f6faf93524b06ad7c5472a831fd34
+msgid "问题"
+msgstr "问题"
+
+#: ../../dairy/always.md:262 361f655a5693425dac240d30d5c65dfd
+msgid "split算子在有些昇腾910上会运行失败(910b4不会)"
+msgstr "split算子在有些昇腾910上会运行失败(910b4不会)"
+
+#: ../../dairy/always.md:263 168d317f0a824794a6e0888e47e69ec3
+msgid "transpose运行出错，最后发现是官网上参数写错了"
+msgstr "transpose运行出错，最后发现是官网上参数写错了"
+
+#: ../../dairy/always.md:264 9a82145473544981bdd887422de18640
+msgid "8.0之后的310b的卷积算子运行出错"
+msgstr "8.0之后的310b的卷积算子运行出错"
+
+#: ../../dairy/always.md:265 87d5612183a94f4fa0d927f884cec0d7
+msgid "偶发性出现aclrtSynchronizeStream failed, errorCode is 507001"
+msgstr "偶发性出现aclrtSynchronizeStream failed, errorCode is 507001"
+
+#: ../../dairy/always.md:266 44896291e7a046bdaefd5dd6ca2c5c34
+msgid "在device0和device1上，通过ascend c编写的算子执行结果不一致"
+msgstr "在device0和device1上，通过ascend c编写的算子执行结果不一致"
+
+#: ../../dairy/always.md:267 15d778fb56c646fc9561adc05dc46a0a
+msgid "CREATE_EXECUTOR运行出错"
+msgstr "CREATE_EXECUTOR运行出错"
+
+#: ../../dairy/always.md:268 c4f071cd5ee744769a7842456f307fc9
+msgid "很多头文件出错"
+msgstr "很多头文件出错"
+
+#: ../../dairy/always.md:271 fe0fbb3b7650439fbdc7c4310720a71e
+msgid "atd"
+msgstr "atd"
+
+#: ../../dairy/always.md:273 12c9bd661ffc4db9aad7ab9cc7610a55
+msgid ""
+"atc --model=/home/ma-user/work/github/nndeploy/build/yolov8n_debug.onnx "
+"--framework=5 --output=/home/ma-"
+"user/work/github/nndeploy/build/yolov8n_debug.onnx.om "
+"--soc_version=Ascend910B4"
+msgstr ""
+"atc --model=/home/ma-user/work/github/nndeploy/build/yolov8n_debug.onnx "
+"--framework=5 --output=/home/ma-"
+"user/work/github/nndeploy/build/yolov8n_debug.onnx.om "
+"--soc_version=Ascend910B4"
+
+#: ../../dairy/always.md:275 9d9d5a042a2c483197a99c736c3ecfcd
+msgid ""
+"atc --model=/home/ma-user/work/github/nndeploy/build/modified_yolov8n.onnx "
+"--framework=5 --output=/home/ma-"
+"user/work/github/nndeploy/build/modified_yolov8n.onnx.om "
+"--soc_version=Ascend910B4"
+msgstr ""
+"atc --model=/home/ma-user/work/github/nndeploy/build/modified_yolov8n.onnx "
+"--framework=5 --output=/home/ma-"
+"user/work/github/nndeploy/build/modified_yolov8n.onnx.om "
+"--soc_version=Ascend910B4"
+
+#: ../../dairy/always.md:277 a51a5733f71f4c25b4c0970be15e0734
+msgid "export http_proxy=127.0.0.1:7890"
+msgstr "export http_proxy=127.0.0.1:7890"
+
+#: ../../dairy/always.md:279 b5211fc46ece4f1b99149f5d4b414cff
+msgid ""
+"export http_proxy=\"http://127.0.0.1:7890\" export "
+"https_proxy=\"http://127.0.0.1:7890\""
+msgstr ""
+"export http_proxy=\"http://127.0.0.1:7890\" export "
+"https_proxy=\"http://127.0.0.1:7890\""
+
+#: ../../dairy/always.md:282 d7e7a50fbd58416b9118b413b1b4f3c7
+msgid ""
+"export http_proxy=\"http://127.0.0.1:7891\" export "
+"https_proxy=\"http://127.0.0.1:7891\""
+msgstr ""
+"export http_proxy=\"http://127.0.0.1:7891\" export "
+"https_proxy=\"http://127.0.0.1:7891\""
+
+#: ../../dairy/always.md:285 1b428c95c888439b96155159fb78c028
+#, python-brace-format
+msgid ""
+"export PATH=/usr/local/cuda-11.8/bin${PATH:+:${PATH}} export "
+"LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+msgstr ""
+"export PATH=/usr/local/cuda-11.8/bin${PATH:+:${PATH}} export "
+"LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+
+#: ../../dairy/always.md:288 d069dd8b05a343aa90dbfaf3ee701904
+#, python-brace-format
+msgid ""
+"export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-"
+"aarch64-1.20.1${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+msgstr ""
+"export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-"
+"aarch64-1.20.1${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+
+#: ../../dairy/always.md:291 aa8d341916e6452784487564b458712f
+msgid ""
+"export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64 export "
+"PATH=$PATH:/usr/local/cuda-11.8/bin"
+msgstr ""
+"export LD_LIBRARY_PATH=/usr/local/cuda-11.8/lib64 export "
+"PATH=$PATH:/usr/local/cuda-11.8/bin"
+
+#: ../../dairy/always.md:294 f9444c4c7ab1440bad6d63f78a3f8720
+msgid "/home/always/Downloads"
+msgstr "/home/always/Downloads"
+
+#: ../../dairy/always.md:296 2e416c9fef1b4e6db594f1d241226a3d
+msgid "stable diffusion"
+msgstr "稳定扩散"
+
+#: ../../dairy/always.md:297 9d3227b2e0864388b2831e87e3957269
+msgid ""
+"sudo docker run --rm -it --runtime=nvidia --gpus all -v $PWD:/workspace "
+"nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash"
+msgstr ""
+"sudo docker run --rm -it --runtime=nvidia --gpus all -v $PWD:/workspace "
+"nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash"
+
+#: ../../dairy/always.md:298 71d9df198ebb4beb9dc6cb65753bde53
+msgid ""
+"sudo docker run --rm -it --gpus all -v $PWD:/workspace "
+"nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash"
+msgstr ""
+"sudo docker run --rm -it --gpus all -v $PWD:/workspace "
+"nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash"
+
+#: ../../dairy/always.md:299 f26a8869e2ed444288accb5983e42a24
+msgid ""
+"sudo docker run --rm --runtime=nvidia --gpus all -v $PWD:/workspace "
+"nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash"
+msgstr ""
+"sudo docker run --rm --runtime=nvidia --gpus all -v $PWD:/workspace "
+"nvcr.io/nvidia/tensorrt:22.12-py3 /bin/bash"
+
+#: ../../dairy/always.md:300 8f8964b3eb34439db53ab42c0428848f
+msgid ""
+"sudo docker run --rm -it --gpus all -v $PWD:/workspace tensorrt-"
+"ubuntu20.04-cuda11.8:latest /bin/bash"
+msgstr ""
+"sudo docker run --rm -it --gpus all -v $PWD:/workspace tensorrt-"
+"ubuntu20.04-cuda11.8:latest /bin/bash"
+
+#: ../../dairy/always.md:302 2b5c8e9ed9aa4407b15ad9c0f08afc4c
+#, python-brace-format
+msgid "graph { i- sub1 -> sub2 -> o1} |-02"
+msgstr "graph { i- sub1 -> sub2 -> o1} |-02"

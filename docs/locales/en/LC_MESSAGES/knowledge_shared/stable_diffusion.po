@@ -1,0 +1,779 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../knowledge_shared/stable_diffusion.md:2
+#: 29ebda8ef7ab4fa8a3333d5bce3c45a0
+msgid "stable diffusion"
+msgstr "stable diffusion"
+
+#: ../../knowledge_shared/stable_diffusion.md:4
+#: 0505fb598d6943bcbc3e85d7f139c65b
+msgid "1 目标"
+msgstr "1 Goal"
+
+#: ../../knowledge_shared/stable_diffusion.md:6
+#: dbcbbac459c548a9b5e7ece61a827e35
+msgid ""
+"1.1. 基于DAG部署stable diffusion系列的模型，形成类似comfyui的产品。（可以形成产品，直接给CV AIGC的用户用）"
+msgstr ""
+"1.1. Deploy stable diffusion series models based on DAG to form products "
+"similar to comfyui. (Can form products, directly for CV AIGC users)"
+
+#: ../../knowledge_shared/stable_diffusion.md:8
+#: 0138376585b44b05b747b39160f7a79b
+msgid ""
+"1.2. 自底向上理解并实现stable "
+"diffusion(算子->框架->算法)，形成类似ggml、llama.cpp、stable_diffusion.cpp的产品"
+msgstr ""
+"1.2. Understand and implement stable diffusion from the bottom up "
+"(algorithm->framework->algorithm), forming products similar to ggml, "
+"llama.cpp, stable_diffusion.cpp"
+
+#: ../../knowledge_shared/stable_diffusion.md:10
+#: 162b4d6b1fba449e9922f46512260af5
+msgid "2 why"
+msgstr "2 Why"
+
+#: ../../knowledge_shared/stable_diffusion.md:12
+#: 44450fba3e904a208c28ea07f083e243
+msgid "主要以下三个层面"
+msgstr "Mainly from the following three aspects"
+
+#: ../../knowledge_shared/stable_diffusion.md:14
+#: aca2882ab5fc476abd1058ed8ec74e26
+msgid "2.1 学习层面"
+msgstr "2.1 Learning aspect"
+
+#: ../../knowledge_shared/stable_diffusion.md:16
+#: 76fe820fd4514439b15f94dab356c616
+msgid "2.1.1. 从推理部署的角度出发，理解stable diffusion系列模型"
+msgstr ""
+"2.1.1. From the perspective of inference deployment, understand the stable "
+"diffusion series models"
+
+#: ../../knowledge_shared/stable_diffusion.md:18
+#: 33bb79093204443e9a5c04e710e1ebd1
+msgid "2.1.2. 基于stable diffusion，从0到1理解并实现推理子模块"
+msgstr ""
+"2.1.2. Based on stable diffusion, understand and implement the inference "
+"submodule from 0 to 1"
+
+#: ../../knowledge_shared/stable_diffusion.md:20
+#: d3d4e7352b2545138844500b259b8b6b
+msgid "2.1.3. 高性能的op开发（cuda为主）"
+msgstr "2.1.3. High-performance op development (mainly cuda)"
+
+#: ../../knowledge_shared/stable_diffusion.md:22
+#: 0ca298fd87fa4d1d95e35cfa0889144c
+msgid "2.2 科研层面"
+msgstr "2.2 Research aspect"
+
+#: ../../knowledge_shared/stable_diffusion.md:24
+#: 7702327d7b62493fa59a2e783c6cd1e4
+msgid "从算法、部署、推理角度理解并实现stable diffusion，可以做一些科研，例如"
+msgstr ""
+"Understand and implement stable diffusion from the perspectives of "
+"algorithm, deployment, and inference, which can be used for some research, "
+"for example"
+
+#: ../../knowledge_shared/stable_diffusion.md:26
+#: d73461949dd94c0f8ac3cc0a9766c3a3
+msgid "2.2.1. 高性能的算子 - 类似flash attention算子、基于triton开发"
+msgstr ""
+"2.2.1. High-performance operators - similar to flash attention operators, "
+"based on triton development"
+
+#: ../../knowledge_shared/stable_diffusion.md:28
+#: c4805ea27b8e411aa4fabbc24fd72a34
+msgid "2.2.2. 推理子模块 - 高效的内存管理、图优化等"
+msgstr ""
+"2.2.2. Inference submodule - efficient memory management, graph "
+"optimization, etc."
+
+#: ../../knowledge_shared/stable_diffusion.md:30
+#: 6bc5f49625e44af1bd190495dceb4fde
+msgid "2.2.3. stable diffusion的模型量化"
+msgstr "2.2.3. Quantization of stable diffusion models"
+
+#: ../../knowledge_shared/stable_diffusion.md:32
+#: 55a32e4248114592ace9b2be94104d06
+msgid "2.3 产品层面"
+msgstr "2.3 Product aspect"
+
+#: ../../knowledge_shared/stable_diffusion.md:34
+#: 0dbb6ff6854e4dd7a07b758b92fffb38
+msgid "2.3.1. 为用户提供类似comfyui的产品"
+msgstr "2.3.1. Provide users with products similar to comfyui"
+
+#: ../../knowledge_shared/stable_diffusion.md:36
+#: 6877b60800f04410b03a616dcc8ba120
+msgid "2.3.2. 对于stable diffusion模型部署而言，提供另外一个选择"
+msgstr "2.3.2. For stable diffusion model deployment, provide another option"
+
+#: ../../knowledge_shared/stable_diffusion.md:38
+#: 48672893536c45018b267f895c799156
+msgid "总结：通过这个开源框架自底向上理解并实现stable diffusion(算子->框架->算法)。"
+msgstr ""
+"Summary: Through this open-source framework, understand and implement stable"
+" diffusion from the bottom up (algorithm->framework->algorithm)."
+
+#: ../../knowledge_shared/stable_diffusion.md:40
+#: 362806451fcd483ba2b3602346853be7
+msgid "3 how"
+msgstr "3 How"
+
+#: ../../knowledge_shared/stable_diffusion.md:42
+#: 3b5e5bc7f26e4975964d8e371e67fee9
+msgid "3.1 算法侧"
+msgstr "3.1 Algorithm side"
+
+#: ../../knowledge_shared/stable_diffusion.md:44
+#: 7df74b23e36e4875877743d34fabb2f9
+msgid "3.1.1 调研阶段"
+msgstr "3.1.1 Research phase"
+
+#: ../../knowledge_shared/stable_diffusion.md:46
+#: 290250887d464f1ab5ce10b9688bc30b
+msgid "经典stable diffusion模型的详细分析"
+msgstr "Detailed analysis of classic stable diffusion models"
+
+#: ../../knowledge_shared/stable_diffusion.md:47
+#: b547aed497614ee2a5a709c869689b81
+msgid "算法原理 - 达到及格水平"
+msgstr "Algorithm principles - reaching a qualified level"
+
+#: ../../knowledge_shared/stable_diffusion.md:48
+#: 62686e171eca4cee9a2c37be1f52a9f7
+msgid "训练原理（数据集、loss）- 达到及格水平"
+msgstr "Training principles (dataset, loss) - reaching a qualified level"
+
+#: ../../knowledge_shared/stable_diffusion.md:49
+#: 626eb309e97944fca838e1074bdbf595
+msgid "模型结构的详细分析 - 达到良好的水平"
+msgstr "Detailed analysis of model structure - reaching a good level"
+
+#: ../../knowledge_shared/stable_diffusion.md:50
+#: 33d1c5b7a5ae4835b7b1bb1b4715a83c
+msgid "有几个模型"
+msgstr "There are several models"
+
+#: ../../knowledge_shared/stable_diffusion.md:51
+#: 0343db0f3cd44dabac4d08a8e932da2c
+msgid "模型如何串联起来"
+msgstr "How models are concatenated"
+
+#: ../../knowledge_shared/stable_diffusion.md:52
+#: 43d9ea16e3124d21a966d8c60631f40a
+msgid "模型的前后处理"
+msgstr "Pre and post-processing of models"
+
+#: ../../knowledge_shared/stable_diffusion.md:53
+#: db2bb96939394c7fa079bb6502d6548b
+msgid "模型的前后处理、推理的参数"
+msgstr "Pre and post-processing of models, inference parameters"
+
+#: ../../knowledge_shared/stable_diffusion.md:54
+#: c1682f1b35e14aeeb06dbd112d1517f1
+msgid "每个模型的结构"
+msgstr "Structure of each model"
+
+#: ../../knowledge_shared/stable_diffusion.md:56
+#: 995c210389094af7aaae6d2c563d670f
+msgid "3.1.2 开发阶段(可选项)"
+msgstr "3.1.2 Development phase (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:58
+#: 988790bf0aef486d9d3abebf84f0c9b1
+msgid "基于主流的框架，跑通stable diffusion的推理"
+msgstr "Based on mainstream frameworks, run stable diffusion inference"
+
+#: ../../knowledge_shared/stable_diffusion.md:59
+#: 2b158befd51c4ce2834add95a5c42f32
+msgid "pytorch"
+msgstr "pytorch"
+
+#: ../../knowledge_shared/stable_diffusion.md:60
+#: ab42d59167074a6cac55fd27292c4594
+msgid "hugging face"
+msgstr "hugging face"
+
+#: ../../knowledge_shared/stable_diffusion.md:61
+#: 04554da74dd54ffdae07588249b9729f
+msgid "stable_diffusion.cpp"
+msgstr "stable_diffusion.cpp"
+
+#: ../../knowledge_shared/stable_diffusion.md:62
+#: 65a986263c5e483c99f96009ebfd584e
+msgid "stable fast"
+msgstr "stable fast"
+
+#: ../../knowledge_shared/stable_diffusion.md:63
+#: 3f8cb6e3b31148e39a61629318633cf2
+msgid "confyui"
+msgstr "confyui"
+
+#: ../../knowledge_shared/stable_diffusion.md:64
+#: 0e6d2fabe6d3477f8e1c013c3c1145ff
+msgid "sd webui"
+msgstr "sd webui"
+
+#: ../../knowledge_shared/stable_diffusion.md:65
+#: ../../knowledge_shared/stable_diffusion.md:121
+#: ../../knowledge_shared/stable_diffusion.md:178
+#: 61b793b8da614168a7cc54e04ff6855d 7aba22506d2b44c5b14522515c114277
+#: a43475ea3c9942d9bc092c498699b4f8
+msgid "..."
+msgstr "..."
+
+#: ../../knowledge_shared/stable_diffusion.md:67
+#: 2fe153bb34034f4ea864c19fc117ed6c
+msgid "3.1.3 进阶阶段(可选项)"
+msgstr "3.1.3 Advanced phase (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:69
+#: 19ebe018beb843b2b7ab43548a494aeb
+msgid "可以大概知道主流框架实现的基本原理"
+msgstr ""
+"Can roughly understand the basic principles of mainstream framework "
+"implementations"
+
+#: ../../knowledge_shared/stable_diffusion.md:71
+#: ef45a39261504589a543ca7335d8775d
+msgid "3.2 推理子模块 （这一部分我比较熟悉一点，故写的多一些）"
+msgstr ""
+"3.2 Inference submodule (This part I am more familiar with, hence written "
+"more)"
+
+#: ../../knowledge_shared/stable_diffusion.md:73
+#: 3e4ae0bf727440c0aecb038d82f65a24
+msgid ""
+"通过我们对算法原理理解，以一种垂直的方式把stable "
+"diffusion给做出来。完整的推理框架包含以下子模块，我们会省略大部分模块，关注我们认为最不可或缺的部分 - "
+"通过手动搭建计算图的方式实现模型推理（综合ggml+stable_diffusion.cpp+tensorrt api+mnn+tnn）"
+msgstr ""
+"Through our understanding of algorithm principles, implement stable "
+"diffusion in a vertical manner. The complete inference framework includes "
+"the following submodules, we will omit most modules, focusing on the parts "
+"we consider most indispensable - implementing model inference by manually "
+"building computation graphs (comprehensive "
+"ggml+stable_diffusion.cpp+tensorrt api+mnn+tnn)"
+
+#: ../../knowledge_shared/stable_diffusion.md:75
+#: 02907e3441254f848daf6fee1edfc9a4
+msgid "模型转换（将训练框架模型文件转化为权重文件）"
+msgstr ""
+"Model conversion (convert training framework model files into weight files)"
+
+#: ../../knowledge_shared/stable_diffusion.md:76
+#: 4d6ed2c4057b41c3a5e3fb53ecba0faf
+msgid "简介：将训练框架模型文件转换推理框架自定义模型文件"
+msgstr ""
+"Brief: Convert training framework model files into custom model files for "
+"inference framework"
+
+#: ../../knowledge_shared/stable_diffusion.md:77
+#: 29010ecbdb9649e892cab442908f3c77
+msgid "输入：训练框架模型文件"
+msgstr "Input: Training framework model files"
+
+#: ../../knowledge_shared/stable_diffusion.md:78
+#: 067283da17a246249f53101868bbedfe
+msgid "输出：自定义模型文件"
+msgstr "Output: Custom model files"
+
+#: ../../knowledge_shared/stable_diffusion.md:79
+#: 9b3da51969ce46718009daa8522cf5a9
+msgid "模型解释（可选项）"
+msgstr "Model interpretation (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:80
+#: ceab38bfe27b44a49aca2e7c19ab9093
+msgid "简介：读入模型文件，并将模型文件解释为中间表示"
+msgstr ""
+"Brief: Read model files and interpret them into intermediate representations"
+
+#: ../../knowledge_shared/stable_diffusion.md:81
+#: e0bf9e8246e74bfeb3fc39f821699cec
+msgid "输入: 自定义模型文件"
+msgstr "Input: Custom model files"
+
+#: ../../knowledge_shared/stable_diffusion.md:82
+#: aca7dd52277642318ea408cbea1f993a
+msgid "输出：中间表示IR (要做)"
+msgstr "Output: Intermediate representation IR (to do)"
+
+#: ../../knowledge_shared/stable_diffusion.md:83
+#: a72397af69c64ea3ad01000ee353aa55
+msgid "手动搭建计算图（要做）"
+msgstr "Manually build computation graph (to do)"
+
+#: ../../knowledge_shared/stable_diffusion.md:84
+#: 50d9b1ee4d2c44c7aa26b8f11ac58010
+msgid "简介：类似ggml与tensorrt api，通过手动搭建计算图"
+msgstr ""
+"Brief: Similar to ggml and tensorrt api, manually build computation graphs"
+
+#: ../../knowledge_shared/stable_diffusion.md:85
+#: ../../knowledge_shared/stable_diffusion.md:93
+#: 2204d45f7c2e40e5b87902ae9a896bd3 ff9fee84921e4215ba4cf686c2971309
+msgid "输入:"
+msgstr "Input:"
+
+#: ../../knowledge_shared/stable_diffusion.md:86
+#: 7f2b47ebdac74bd0a902652cb9b67d2b
+msgid "对模型的网络结构的理解"
+msgstr "Understanding of the model's network structure"
+
+#: ../../knowledge_shared/stable_diffusion.md:87
+#: 9b35997f75344000a875527ac74ad012
+msgid "权重文件"
+msgstr "Weight files"
+
+#: ../../knowledge_shared/stable_diffusion.md:88
+#: ../../knowledge_shared/stable_diffusion.md:96
+#: 1e8a698bf2cd4bdd8690d422c2aa0572 cadfcd0db9de4bc8b273d83d24d48390
+msgid "输出"
+msgstr "Output"
+
+#: ../../knowledge_shared/stable_diffusion.md:89
+#: 73d8de10e95d41f5b378e7c34f79ec81
+msgid "计算图"
+msgstr "Computation graph"
+
+#: ../../knowledge_shared/stable_diffusion.md:90
+#: 54b20563893540a09648d73e305531c4
+msgid "模型推理初始化(要做)"
+msgstr "Model inference initialization (to do)"
+
+#: ../../knowledge_shared/stable_diffusion.md:91
+#: f3d5413d8cf44b179ca621a0be17c2bf
+msgid "简介：为模型推理做好一切准备"
+msgstr "Brief: Prepare everything for model inference"
+
+#: ../../knowledge_shared/stable_diffusion.md:92
+#: 5ae9fd75ceff416485a982a0873d4615
+msgid "整个推理框架最核心最核心的部分，模型推理依赖该部分，模型离线量化也依赖该部分"
+msgstr ""
+"The most core part of the entire inference framework, model inference "
+"depends on this part, model offline quantization also depends on this part"
+
+#: ../../knowledge_shared/stable_diffusion.md:94
+#: 58442c5feee04a6d8b6a5060fc487801
+msgid "计算图 或者 中间表示IR（Option）"
+msgstr "Computation graph or intermediate representation IR (Option)"
+
+#: ../../knowledge_shared/stable_diffusion.md:95
+#: bd674099f6804b5f910b96173beb59d4
+msgid "推理的超参数"
+msgstr "Inference hyperparameters"
+
+#: ../../knowledge_shared/stable_diffusion.md:97
+#: 493122f023484277b9a9cab1b8417b3d
+msgid "一个可执行推理的计算图"
+msgstr "An executable inference computation graph"
+
+#: ../../knowledge_shared/stable_diffusion.md:98
+#: 6e502af50c534758a87d52f6d0ebcc5a
+msgid "模型推理(要做)"
+msgstr "Model inference (to do)"
+
+#: ../../knowledge_shared/stable_diffusion.md:99
+#: 413a0c8b640840a4a89f4e20670eac94
+msgid "简介：写入输入，得到输出"
+msgstr "Brief: Write input, get output"
+
+#: ../../knowledge_shared/stable_diffusion.md:100
+#: 0e91bfa907aa42908bb5464890f4b576
+msgid "输入：输入的tensor"
+msgstr "Input: Input tensor"
+
+#: ../../knowledge_shared/stable_diffusion.md:101
+#: 16ef111f9e3a4c30a3ba3b80db9cd486
+msgid "输出：推理后的tensor"
+msgstr "Output: Inferred tensor"
+
+#: ../../knowledge_shared/stable_diffusion.md:102
+#: 1c4c662eacd847c192bc0202a951c1b3
+msgid "模型训练后量化（可选项）"
+msgstr "Model post-training quantization (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:103
+#: 0a71f4204635440cb43ba2e60bf86889
+msgid "简介：量化模型文件，使得模型文件更小，期望模型可以跑的更快"
+msgstr ""
+"Brief: Quantize model files to make them smaller, expecting models to run "
+"faster"
+
+#: ../../knowledge_shared/stable_diffusion.md:104
+#: e2ee39327e70459b9358a994f0939c53
+msgid "输入：fp32的模型文件"
+msgstr "Input: fp32 model files"
+
+#: ../../knowledge_shared/stable_diffusion.md:105
+#: 35fdf5232e0d4db082a9b13b9c34f87f
+msgid "输出：int8的模型文件"
+msgstr "Output: int8 model files"
+
+#: ../../knowledge_shared/stable_diffusion.md:106
+#: 0d106bcc298e4121bd2398a3b6de9e22
+msgid "模型训练（暂时不做，可选项）"
+msgstr "Model training (not for now, optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:107
+#: a37d21ae3d244cf68018e0b9ab4b1ff4
+msgid "简介：可实现模型训练"
+msgstr "Brief: Can implement model training"
+
+#: ../../knowledge_shared/stable_diffusion.md:108
+#: 7f49ce6eae004eaf99cc9639473f8b8b
+msgid "输入："
+msgstr "Input:"
+
+#: ../../knowledge_shared/stable_diffusion.md:109
+#: faaa868b892c4c0fa1f2051009006d59
+msgid "通过算子表达式搭建模型文件"
+msgstr "Build model files through operator expressions"
+
+#: ../../knowledge_shared/stable_diffusion.md:110
+#: 01359ae2d77146f0a62b77289f7577b9
+msgid "超参数"
+msgstr "Hyperparameters"
+
+#: ../../knowledge_shared/stable_diffusion.md:111
+#: e2b33d524af34d5bacfee755411a581a
+msgid "输出：可在线训练的模型"
+msgstr "Output: Trainable model online"
+
+#: ../../knowledge_shared/stable_diffusion.md:113
+#: 3f46a0475a6845bf9550e1929e99f492
+msgid "3.2.1 调研阶段"
+msgstr "3.2.1 Research phase"
+
+#: ../../knowledge_shared/stable_diffusion.md:115
+#: 1319ebb6d6154048a49e803fb8e8ad84
+msgid "理解推理框架的实现"
+msgstr "Understand the implementation of inference frameworks"
+
+#: ../../knowledge_shared/stable_diffusion.md:116
+#: 413e905c926842aca4b2a2c65c520d23
+msgid "ggml+stable_diffusion.cpp（初步理解）"
+msgstr "ggml+stable_diffusion.cpp (preliminary understanding)"
+
+#: ../../knowledge_shared/stable_diffusion.md:117
+#: cfc2cbef5cf44706a0171a8d3a397751
+msgid "tensorrt api（初步理解）"
+msgstr "tensorrt api (preliminary understanding)"
+
+#: ../../knowledge_shared/stable_diffusion.md:118
+#: f98fb8485f43494ca166ecaef7a3dd1b
+msgid "mnn（初步理解）"
+msgstr "mnn (preliminary understanding)"
+
+#: ../../knowledge_shared/stable_diffusion.md:119
+#: 96b7f3e87cd1466b8c818075e44f6cf1
+msgid "tnn（初步理解）"
+msgstr "tnn (preliminary understanding)"
+
+#: ../../knowledge_shared/stable_diffusion.md:120
+#: 96e2d34f6a654cd3a5242a8d4c4e4dc9
+msgid "stable fast（可选项）"
+msgstr "stable fast (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:123
+#: 3180ad03d35f427a84ffdd5518dfe5be
+msgid "3.2.2 开发阶段"
+msgstr "3.2.2 Development phase"
+
+#: ../../knowledge_shared/stable_diffusion.md:125
+#: e1a800dc1310462cb7f8acf4f61e8264
+msgid "基础的数据结构 - data_type\\data_format\\pricision等等（nndeploy已完成）"
+msgstr ""
+"Basic data structures - data_type\\data_format\\pricision etc. (nndeploy has"
+" completed)"
+
+#: ../../knowledge_shared/stable_diffusion.md:126
+#: 237edc6234844f6eaec2b8dc21a157b8
+msgid "数据容器 - 已有一个初版的tensor的定义，下一步计划"
+msgstr ""
+"Data container - already have an initial version of tensor definition, next "
+"step planned"
+
+#: ../../knowledge_shared/stable_diffusion.md:127
+#: 5140e570672e448293099fcc73400fbd
+msgid "合并mat和tensor，重新设计"
+msgstr "Merge mat and tensor, redesign"
+
+#: ../../knowledge_shared/stable_diffusion.md:128
+#: 6df52640127a446caa28402091cc207e
+msgid "之前考虑分开的原因是："
+msgstr "The previous reason for considering separation was:"
+
+#: ../../knowledge_shared/stable_diffusion.md:129
+#: e4dfe1bad306482eae111f419da09cf8
+msgid ""
+"Tensor主要是服务模型的输入输出、中间变量。就是他会注重shape、data_format的方面，会注重扩展性（比如服务与量化的Tensor、分布式上Tensor等，基于模型的内存池分配等）；处于Tensor的特性基本不用考虑浅拷贝，深拷贝等"
+msgstr ""
+"Tensor mainly serves the input/output of the model, intermediate variables. "
+"That is, it focuses on aspects like shape, data_format, will focus on "
+"extensibility (such as service and quantization Tensor, distributed Tensor, "
+"etc., based on model's memory pool allocation, etc.); Tensor's properties "
+"basically do not consider shallow copy, deep copy, etc."
+
+#: ../../knowledge_shared/stable_diffusion.md:130
+#: 5e640a39928c494a8a1d6e4fb75ccfb8
+msgid "Mat主要是为了op后续替代opencv提出的结构呀，会注重操作简便性，比如浅拷贝、深拷贝等，也没有data_format的要求。"
+msgstr ""
+"Mat is mainly a structure proposed to replace opencv's op in the future, "
+"will focus on operational simplicity, such as shallow copy, deep copy, etc.,"
+" and there is no requirement for data_format."
+
+#: ../../knowledge_shared/stable_diffusion.md:131
+#: 17b0996c78fd408088691a204ae1962f
+msgid "现在想要合并原因为："
+msgstr "Now considering merging because:"
+
+#: ../../knowledge_shared/stable_diffusion.md:132
+#: 80407ba8bc954f299d9862abe508b5bc
+msgid "cv类的算子可以加入 到 推理子模块 里面一起构图了；"
+msgstr ""
+"CV class operators can be added to the inference submodule to build graphs "
+"together;"
+
+#: ../../knowledge_shared/stable_diffusion.md:133
+#: eb47ac4deaf94dbfa22f6c9dbeb8f20a
+msgid "利用推理子模块，cv类的算子本身也可以自己构图"
+msgstr ""
+"Using the inference submodule, CV class operators themselves can also build "
+"graphs."
+
+#: ../../knowledge_shared/stable_diffusion.md:134
+#: 294297a2d55b4b9197e93eada57e6ce9
+msgid "稍微稍微了解了下cvcuda，它里面的数据结构就是Tensor"
+msgstr "Slightly understanding CUDA, the data structure inside it is Tensor"
+
+#: ../../knowledge_shared/stable_diffusion.md:135
+#: 0c30b64f5eab445abf174016b4ad1ab2
+msgid "考虑tensor的protobuf的序列化（可选项）"
+msgstr "Consider the serialization of tensor's protobuf (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:136
+#: f51bf4836a974d1d96bc446462634893
+msgid "考虑流水线并行（可选项）"
+msgstr "Consider pipeline parallel (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:137
+#: 7f5fcca688774400a90e209481db5df9
+msgid "考虑分布式（可选项）"
+msgstr "Consider distribution (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:138
+#: 535b072f30cb4be49c99d8cc4cb2fcab
+msgid "ir的设计"
+msgstr "Design of IR"
+
+#: ../../knowledge_shared/stable_diffusion.md:139
+#: e9d8568639d6432991af5b876ebdfde8
+msgid "参考onnx已经初步实现一个版本"
+msgstr "Refer to ONNX which has preliminarily implemented a version"
+
+#: ../../knowledge_shared/stable_diffusion.md:140
+#: e3fed6c0b9fd4623bf23eae0956ab912
+msgid "参考MindIr再次优化"
+msgstr "Refer to MindIr for further optimization"
+
+#: ../../knowledge_shared/stable_diffusion.md:141
+#: 8dd26f43422a47e3b0193637a2cbb32f
+msgid "考虑多个权重模型文件（可选项）"
+msgstr "Consider multiple weight model files (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:142
+#: c75765500f74470389a3b0e0a43ab3d6
+msgid "考虑protobuf的序列化"
+msgstr "Consider protobuf serialization"
+
+#: ../../knowledge_shared/stable_diffusion.md:143
+#: de54b92ea3e747199603941f45be6e96
+msgid "手动构图"
+msgstr "Manual graph construction"
+
+#: ../../knowledge_shared/stable_diffusion.md:144
+#: 9d8b3450d10f4b3182d6f5c5ab689d10
+msgid "接口的形式"
+msgstr "Form of interface"
+
+#: ../../knowledge_shared/stable_diffusion.md:145
+#: 54b913157f1a4149a4fb2cac8ceff7a4
+msgid "op"
+msgstr "OP"
+
+#: ../../knowledge_shared/stable_diffusion.md:146
+#: a3516ea7da024cadb4656e86dbc03256
+msgid "forward"
+msgstr "Forward"
+
+#: ../../knowledge_shared/stable_diffusion.md:147
+#: 0c5852fa73a94ec4808e973927ac9287
+msgid "考虑手动构图（基于对推理的理解，参考已有的dag实现）"
+msgstr ""
+"Consider manual graph construction (based on reasoning understanding, refer "
+"to existing DAG implementation)"
+
+#: ../../knowledge_shared/stable_diffusion.md:148
+#: 56437eec980f475caaa566e1c9e2188d
+msgid "考虑之后从ir自动构图（可选项）"
+msgstr "Consider automatic graph construction from IR later (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:149
+#: 4628131abaa14163b2aeb246809fe58e
+msgid "模型推理初始化"
+msgstr "Model reasoning initialization"
+
+#: ../../knowledge_shared/stable_diffusion.md:150
+#: 4ad9db9a13084edfa942f8c32d5d2d28
+msgid "委托给executor"
+msgstr "Delegate to executor"
+
+#: ../../knowledge_shared/stable_diffusion.md:151
+#: 644be3ca8ee6429eb8d3230e7adbfc85
+msgid "内存预分配"
+msgstr "Memory pre-allocation"
+
+#: ../../knowledge_shared/stable_diffusion.md:152
+#: 20ff6f51baf24e2f90fe32559e378ba6
+msgid "图优化（可选项）"
+msgstr "Graph optimization (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:154
+#: f56ec3c5793145688afb13636b52f07d
+msgid "3.2.3 进阶阶段(可选项)"
+msgstr "3.2.3 Advanced stage (optional)"
+
+#: ../../knowledge_shared/stable_diffusion.md:156
+#: 4628eea4e694437eafbf8aed876baaf2
+msgid "分布式"
+msgstr "Distribution"
+
+#: ../../knowledge_shared/stable_diffusion.md:157
+#: ef075943cd7c47e0964cebb7b9f6ffc7
+msgid "自动构图"
+msgstr "Automatic graph construction"
+
+#: ../../knowledge_shared/stable_diffusion.md:160
+#: 3b53641fcbe54e3993df572894d5e855
+msgid "3.3 高性能算子"
+msgstr "3.3 High-performance operators"
+
+#: ../../knowledge_shared/stable_diffusion.md:162
+#: 8349e039f4ac40d4a32f57fb1c23392d
+msgid "支持的平台"
+msgstr "Supported platforms"
+
+#: ../../knowledge_shared/stable_diffusion.md:163
+#: 614026aa8c3b41059effa3f3fa1f687e
+msgid "cuda"
+msgstr "CUDA"
+
+#: ../../knowledge_shared/stable_diffusion.md:164
+#: b6d2ee8fde7847f9b30c72971abb9cef
+msgid "opencl"
+msgstr "OpenCL"
+
+#: ../../knowledge_shared/stable_diffusion.md:165
+#: f03bd0c3bc10413cad245262bd38364e
+msgid "cpu"
+msgstr "CPU"
+
+#: ../../knowledge_shared/stable_diffusion.md:167
+#: 6959c48b7de444d88ed9e660b11b5b0f
+msgid "四个需求"
+msgstr "Four requirements"
+
+#: ../../knowledge_shared/stable_diffusion.md:168
+#: b363faa337bc402584d788670c40c249
+msgid "自动构图（封装即可）"
+msgstr "Automatic graph construction (ready to use after encapsulation)"
+
+#: ../../knowledge_shared/stable_diffusion.md:169
+#: ed12abf1773f43ac93c303f8397e0c09
+msgid "手动构图（封装即可）"
+msgstr "Manual graph construction (ready to use after encapsulation)"
+
+#: ../../knowledge_shared/stable_diffusion.md:170
+#: 9abdfed973bf4dad91abf256206860dd
+msgid "可以导出为类似blas或者opencv的接口调用形式（封装即可）"
+msgstr ""
+"Can be exported as interfaces similar to BLAS or OpenCV for calling (ready "
+"to use after encapsulation)"
+
+#: ../../knowledge_shared/stable_diffusion.md:171
+#: b0e61028f6dc4d08928304366c3f7224
+msgid "如何测试对齐"
+msgstr "How to test alignment"
+
+#: ../../knowledge_shared/stable_diffusion.md:173
+#: d14d979daa304b7bafe8993e3e4bfcf5
+msgid "实现方式"
+msgstr "Implementation method"
+
+#: ../../knowledge_shared/stable_diffusion.md:174
+#: 4bd86d23a89249b4bc323fa80b42741a
+msgid "调库"
+msgstr "Library call"
+
+#: ../../knowledge_shared/stable_diffusion.md:175
+#: 524a477cdf8c496aafdadb61986674be
+msgid "cudnn"
+msgstr "cuDNN"
+
+#: ../../knowledge_shared/stable_diffusion.md:176
+#: ae6775a75e3e4c0faae77a291744c1b0
+msgid "oneAPI"
+msgstr "oneAPI"
+
+#: ../../knowledge_shared/stable_diffusion.md:177
+#: 051caa1b381a4b11bb608f46e8ebd1a6
+msgid "qnnpack"
+msgstr "QNNPACK"
+
+#: ../../knowledge_shared/stable_diffusion.md:179
+#: 9f8d7984f1ff47c781c0afa30d949bc4
+msgid "基于triton实现"
+msgstr "Implementation based on Triton"
+
+#: ../../knowledge_shared/stable_diffusion.md:180
+#: 41c2f2afd81e4d23bb3c21998c73543e
+msgid "手写"
+msgstr "Handwritten"
+
+#: ../../knowledge_shared/stable_diffusion.md:182
+#: e8962f5fbdc4499ca82fb1dbd4b485d0
+msgid "算子的测试方式"
+msgstr "Method of testing operators"
+
+#: ../../knowledge_shared/stable_diffusion.md:183
+#: 556573d9a74042e3a58d3fe0bbc3af9c
+msgid "与谁比较"
+msgstr "Compare with whom"
+
+#: ../../knowledge_shared/stable_diffusion.md:184
+#: 06dc1885e42b4cd0868758374c5c1af6
+msgid "如何比较"
+msgstr "How to compare"

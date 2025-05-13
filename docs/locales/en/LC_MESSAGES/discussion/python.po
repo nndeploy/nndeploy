@@ -1,0 +1,164 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 16:10+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../discussion/python.md:2 1e0a256f5319429497cf464894f2ba04
+msgid "python"
+msgstr "python"
+
+#: ../../discussion/python.md:4 5b15cdc1999f44eab5c15b6f0cd71857
+msgid "纯c接口"
+msgstr "Final Interface"
+
+#: ../../discussion/python.md:6 03df0f6c0f8b476db2c5a219907b240e
+msgid "纯c接口写在include/source中，其中需要对外导出的纯c接口，在include中导出c_xxx.h"
+msgstr ""
+"The final interface is written in include/source, which requires external "
+"guidance for the final interface, in include it exports as _xxx.h"
+
+#: ../../discussion/python.md:8 62d42431753946aa80b2527f39970471
+msgid "纯c接口的写法为"
+msgstr "The writing method for the final interface is"
+
+#: ../../discussion/python.md:10 9bf0e9acb9bd45dfb6a75f3ca537bf12
+msgid "nndeployBaseGetDevice()"
+msgstr "nndeployBaseGetDevice()"
+
+#: ../../discussion/python.md:12 bec4d825df274881bf971dd3f762e789
+msgid "python接口"
+msgstr "python interface"
+
+#: ../../discussion/python.md:14 60ca81e2dcb348e1ac7220b53126711c
+msgid "只包含pybind相关"
+msgstr "Only contains pybind-related"
+
+#: ../../discussion/python.md:16 cb1cd7de2e634f14b0765913463295aa
+msgid "初步完成python模块的导出，review当前实现"
+msgstr ""
+"Initial completion of the python module export, review the current "
+"implementation"
+
+#: ../../discussion/python.md:18 5aff4a46ac5d4266a19d9ad5d2d076d7
+msgid "继承 or 组合"
+msgstr "Inheritance or Composition"
+
+#: ../../discussion/python.md:20 46945982e2e5407d9cb8299f7065790c
+msgid "该类在python侧还要重载，采用继承"
+msgstr "This class on the python side also needs to reload, using inheritance"
+
+#: ../../discussion/python.md:21 ../../discussion/python.md:34
+#: 7489aed9e30140e7961f22c9fb115dff c1bb52da032842a8a95c31da07fe9b63
+msgid "例如Node"
+msgstr "For example, Node"
+
+#: ../../discussion/python.md:23 b99cb1485def43ef8c1d13c9e1628d13
+msgid "pybind那侧全部都是继承"
+msgstr "The python side is all inheritance"
+
+#: ../../discussion/python.md:25 faf55163296d418488419c66d6c96053
+msgid "组合并不会影响继承，可以继承pybind导出的类"
+msgstr ""
+"Composition will not affect inheritance, can inherit from the classes "
+"exported by pybind"
+
+#: ../../discussion/python.md:27 f6ee0b89ab674c7c9a86657dcd180dd5
+msgid "组合导致继承的类还要写相关处理函数"
+msgstr ""
+"Composition leads to inheritance of classes that also need to write related "
+"processing functions"
+
+#: ../../discussion/python.md:28 7fcb9c9382f04d1899201c172033302a
+msgid "例如Node 和 Edge"
+msgstr "For example, Node and Edge"
+
+#: ../../discussion/python.md:30 fdac82c6d2764942a860795b52878c55
+msgid "该类基本为最终类，不会被继承"
+msgstr "This class is the final class, will not be inherited"
+
+#: ../../discussion/python.md:31 723910d53f8d429bb7322eff7aecd776
+msgid "例如Edge"
+msgstr "For example, Edge"
+
+#: ../../discussion/python.md:33 1e49dc5a3d694885bf83457c3ca29d15
+msgid "该类需要被继承"
+msgstr "This class needs to be inherited"
+
+#: ../../discussion/python.md:36 81504ae28df44e2e9ac2ff581ef4735e
+msgid "裸指针 or 智能指针"
+msgstr "Flexible Button or Smart Button"
+
+#: ../../discussion/python.md:38 ca72a0e17c2b4147b8a9ffb87063dc44
+msgid "不影响性能，能改成智能指针的全部改成智能指针（要测试一下呀，去4060上跑一下）"
+msgstr ""
+"Does not affect functionality, can be changed to a smart button entirely "
+"(let's test it, go run on 4060)"
+
+#: ../../discussion/python.md:39 cd6fbc54a5d54702bf7aa4540224f055
+msgid "例如Param"
+msgstr "For example, Param"
+
+#: ../../discussion/python.md:40 d720796ca1744b639cd258cc5a1c4686
+msgid "例如Inference"
+msgstr "For example, Inference"
+
+#: ../../discussion/python.md:42 c9279690785b4de9a462e48371fd7b49
+msgid "类型强转"
+msgstr "Type strong conversion"
+
+#: ../../discussion/python.md:44 952fce46b30046d3a88a0b87dfb176da
+msgid "如何解决模板问题"
+msgstr "How to solve the module problem"
+
+#: ../../discussion/python.md:46 b28d2df4769d4aa7a998626a8c575f0a
+msgid "返回值策略"
+msgstr "Return value strategy"
+
+#: ../../discussion/python.md:48 8885b5e3584c4a09947be67741f0dc62
+msgid "易用性"
+msgstr "Usability"
+
+#: ../../discussion/python.md:50 8586ec2a45a34296a60e2604f5427c8a
+msgid "参考pytorch的接口设计"
+msgstr "Refer to the interface design of pytorch"
+
+#: ../../discussion/python.md:52 9f2ea92b81ba4deda68dd4386c49ef72
+msgid "DataType的易用性（建议用字符串构造）"
+msgstr "DataType's usability (recommended to construct with string)"
+
+#: ../../discussion/python.md:53 c9a0b4435447447aa7f010d197f0600b
+msgid "DeviceType的易用性（建议用字符串构造）"
+msgstr "DeviceType's usability (recommended to construct with string)"
+
+#: ../../discussion/python.md:54 08cd40c99463457c939c4652a78665d3
+msgid "Status的易用性（建议用字符串构造）"
+msgstr "Status's usability (recommended to construct with string)"
+
+#: ../../discussion/python.md:56 0aafb3151eed42368ef9c8599598bb2e
+msgid "对于python端用不到的接口，不导出"
+msgstr "For interfaces not used on the python side, do not export"
+
+#: ../../discussion/python.md:58 bf715d224f1743c5bd55124f78d11b7f
+msgid "对于目前已经导出的接口增加详细的参数列表"
+msgstr ""
+"For interfaces that have already been exported, add detailed parameter lists"
+
+#: ../../discussion/python.md:60 691b1fa2e5c042d2a60a1f593d0daa85
+msgid "解决崩溃问题"
+msgstr "Solve crash issues"

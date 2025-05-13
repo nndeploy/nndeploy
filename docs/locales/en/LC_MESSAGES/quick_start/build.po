@@ -1,0 +1,474 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) nndeploy
+# This file is distributed under the same license as the nndeploy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: nndeploy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-10 17:38+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: en <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: ../../quick_start/build.md:1 ../../quick_start/build.md:201
+#: ../../quick_start/build.md:322 597280e41d3e4da993327583d2a18b56
+#: d378257d7b1e4123bd6357ee5fb3ef28
+msgid "编译"
+msgstr "Compilation"
+
+#: ../../quick_start/build.md:4 37de76bf15544148985a3172ab36a001
+msgid "1. 拉取源代码"
+msgstr "1. Fetch the source code"
+
+#: ../../quick_start/build.md:12 74bf81c8cd0f44e3a915ab03e64d23bd
+msgid "2. 编译宏介绍"
+msgstr "2. Introduction to compilation macros"
+
+#: ../../quick_start/build.md:14 2b12fd0370f4496e869b840b8bebd523
+msgid "参考编译宏文档 的详细介绍"
+msgstr "Refer to the detailed introduction of compilation macro documentation"
+
+#: ../../quick_start/build.md:16 e487dc972ab942829e0a513b2835aefa
+msgid "包含了以下几类配置："
+msgstr "Includes the following types of configurations:"
+
+#: ../../quick_start/build.md:18 9d379d24ad5e464589c185c3a532d3da
+msgid "基础构建选项（建议采用默认配置）：如是否构建为共享库、使用的C++标准等"
+msgstr ""
+"Basic build options (recommended to use default configurations): such as "
+"whether to build as a shared library, the C++ standard used, etc."
+
+#: ../../quick_start/build.md:19 9a5d6c227ebf422282d852f773513870
+msgid "核心模块选项（建议采用默认配置）：控制基础模块、线程池、设备模块等核心功能的开启"
+msgstr ""
+"Core module options (recommended to use default configurations): controls "
+"the enabling of core functionalities such as base modules, thread pools, "
+"device modules, etc."
+
+#: ../../quick_start/build.md:20 8dd06f6027564d2ba59980289fd3590f
+msgid "设备后端选项（按需打开，默认全部关闭，不依赖任何设备后端）：如CUDA、OpenCL、各种NPU等硬件加速支持"
+msgstr ""
+"Device backend options (enable as needed, default all closed, does not "
+"depend on any device backend): such as CUDA, OpenCL, various NPU hardware "
+"acceleration supports"
+
+#: ../../quick_start/build.md:21 c97898c803594d50b442f753fa72f1d3
+msgid "算子后端选项（按需打开，默认全部关闭，不依赖任何算子后端）：如cudnn"
+msgstr ""
+"Operator backend options (enable as needed, default all closed, does not "
+"depend on any operator backend): such as cudnn"
+
+#: ../../quick_start/build.md:22 fc8d22511d35450c8853ea7d420a3075
+msgid "推理后端选项（按需打开，默认全部关闭，不依赖任何推理后端）：如TensorRT、OpenVINO、ONNX Runtime等推理框架支持"
+msgstr ""
+"Inference backend options (enable as needed, default all closed, does not "
+"depend on any inference backend): such as TensorRT, OpenVINO, ONNX Runtime "
+"inference framework support"
+
+#: ../../quick_start/build.md:23 b61252f43e184cf58805f88289e679d9
+msgid "算法插件选项（建议采用默认配置，传统CV类算法打开，语言类和文生图类算法默认关闭）：如检测、分割、llm、文生图等算法插件"
+msgstr ""
+"Algorithm plugin options (recommended to use default configurations, "
+"traditional CV algorithms are enabled by default, language and biomedical "
+"image algorithms are closed by default): such as detection, segmentation, "
+"llm, biomedical image algorithm plugins"
+
+#: ../../quick_start/build.md:24 d1c1221b5e934e80a29f8d0e536f1c1e
+msgid "其中传统CV类算法依赖OpenCV，例如检测、分割、分类等，需要打开ENABLE_NNDEPLOY_OPENCV"
+msgstr ""
+"Among them, traditional CV algorithms depend on OpenCV, such as detection, "
+"segmentation, classification, etc., need to enable ENABLE_NNDEPLOY_OPENCV"
+
+#: ../../quick_start/build.md:25 1bc1f2ccb4224a0484f0d59ca93e6eaa
+msgid ""
+"其中语言类和文生图类模型依赖C++分词器tokenizer-"
+"cpp，所以需要打开ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP，打开前参考precompile_tokenizer_cpp.md"
+msgstr ""
+"Among them, language and biomedical image models depend on C++ tokenizer "
+"tokenizer-cpp, so need to enable ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP, "
+"before enabling refer to precompile_tokenizer_cpp.md"
+
+#: ../../quick_start/build.md:27 c3894f35ce6a4ed4a810928e40f482b3
+msgid "3. 编译方法"
+msgstr "3. Compilation method"
+
+#: ../../quick_start/build.md:29 a04e9fd9cf0f4c3c8d242c3a00a6844f
+msgid "config.cmake是nndeploy的编译配置文件，用于控制项目的编译选项。"
+msgstr ""
+"config.cmake is the compilation configuration file of nndeploy, used to "
+"control the project's compilation options."
+
+#: ../../quick_start/build.md:31 acc52f2deea542f19e3a3247601609da
+msgid "相比于原生cmake -D选项，用户配置好的编译选项文件，可保留下来多次使用，在文件上还可以增加注释，方便后续维护。"
+msgstr ""
+"Compared to native cmake -D options, user-configured compilation option "
+"files can be saved for multiple uses, and comments can be added to the file "
+"for easy future maintenance."
+
+#: ../../quick_start/build.md:33 a77225e018a248ea96e8559e5e6ff0e7
+msgid ""
+"相比编译脚本，无需为每个平台编写多种类型脚本，也不会遇到脚本环境问题，只需在根目录创建build目录，将config.cmake复制到该目录，然后修改config.cmake文件，即可开始编译。"
+msgstr ""
+"Compared to compilation scripts, there is no need to write multiple types of"
+" scripts for each platform, nor will script environment issues be "
+"encountered. Just create a build directory in the root directory, copy "
+"config.cmake to this directory, then modify the config.cmake file, and "
+"compilation can begin."
+
+#: ../../quick_start/build.md:35 e1099c5e26644f0ab416521fd7ac0e36
+msgid "假设你在根目录下，具体命令行如下："
+msgstr ""
+"Assuming you are in the root directory, the specific command line is as "
+"follows:"
+
+#: ../../quick_start/build.md:47 5f91d514f93248b09322b5656d48beee
+msgid "4. 主库编译"
+msgstr "4. Main library compilation"
+
+#: ../../quick_start/build.md:49 d7aaffd46a2d4802b887070f663bd511
+msgid "默认编译产物为：libnndeploy_framework.so"
+msgstr "Default compilation product is: libnndeploy_framework.so"
+
+#: ../../quick_start/build.md:50 d7aaffd46a2d4802b887070f663bd511
+msgid "算法插件编译产物为：libnndeploy_plugin_xxx.so"
+msgstr "Algorithm plugin compilation product is: libnndeploy_plugin_xxx.so"
+
+#: ../../quick_start/build.md:51 d7aaffd46a2d4802b887070f663bd511
+msgid "可执行程序编译产物为：nndeploy_demo_xxx"
+msgstr "Executable program compilation product is: nndeploy_demo_xxx"
+
+#: ../../quick_start/build.md:53 a1353f1ea6b74a9c9e8c9e03f01cf008
+msgid ""
+"注：xxx代表特定算法插件和特定的可执行程序，例如：nndeploy_plugin_detect.so、nndeploy_demo_detect、nndeploy_demo_dag"
+msgstr ""
+"Note: xxx represents specific algorithm plugins and specific executable "
+"programs, for example: nndeploy_plugin_detect.so, nndeploy_demo_detect, "
+"nndeploy_demo_dag"
+
+#: ../../quick_start/build.md:56 bcf508a3bced4ca89c7a97bb18fc7a80
+msgid "5. Windows"
+msgstr "5. Windows"
+
+#: ../../quick_start/build.md:58 ../../quick_start/build.md:132
+#: ../../quick_start/build.md:213 ../../quick_start/build.md:283
+#: ../../quick_start/build.md:290 ../../quick_start/build.md:298
+#: de4ea93bdbbb4b93913a77b07d6764e0
+msgid "环境要求"
+msgstr "Environment requirements"
+
+#: ../../quick_start/build.md:59 ../../quick_start/build.md:133
+#: ../../quick_start/build.md:214 ../../quick_start/build.md:284
+#: ../../quick_start/build.md:291 ../../quick_start/build.md:299
+#: 01b4c2e53637451ba919ffbdd0d88142
+msgid "cmake >= 3.12"
+msgstr "cmake >= 3.12"
+
+#: ../../quick_start/build.md:60 c701ab57a773479c82fa448dce6d879d
+msgid "Microsoft Visual Studio >= 2017"
+msgstr "Microsoft Visual Studio >= 2017"
+
+#: ../../quick_start/build.md:62 ../../quick_start/build.md:136
+#: ../../quick_start/build.md:217 bae33f86cb09401da4e2b1054adc9279
+msgid "nndeploy提供的第三方库"
+msgstr "Third-party libraries provided by nndeploy"
+
+#: ../../quick_start/build.md:113 ca2ad6d537ff40ffaa09cdc6a8e82568
+msgid ""
+"注：将上述所有库打包为一个压缩包windows_x64.7z，存放在huggingface上，使用前请将压缩包windows_x64.7z解压"
+msgstr ""
+"Note: Package all the above libraries into a compressed file windows_x64.7z,"
+" stored on huggingface, please decompress the windows_x64.7z before use"
+
+#: ../../quick_start/build.md:115 ../../quick_start/build.md:188
+#: ../../quick_start/build.md:258 ../../quick_start/build.md:309
+#: 11f8a6904f704a2ebae2f337f298ca09
+msgid "具体步骤"
+msgstr "Specific steps"
+
+#: ../../quick_start/build.md:116 ../../quick_start/build.md:189
+#: ../../quick_start/build.md:259 ../../quick_start/build.md:310
+#: c65501ccf31e4f83835fadb47245f8db
+msgid "在根目录创建build目录，将cmake/config.cmake复制到该目录"
+msgstr ""
+"Create a build directory in the root directory, copy cmake/config.cmake to "
+"this directory"
+
+#: ../../quick_start/build.md:123 32a4ef1f34b94a549f8a74b704b3189c
+msgid "开始cmake"
+msgstr "Start cmake"
+
+#: ../../quick_start/build.md:128 1207182dc4f245e7a02c0a4fa0691524
+msgid "通过visual studio打开build/nndeploy.sln，开始编译、安装、执行"
+msgstr ""
+"Open build/nndeploy.sln through visual studio, start compilation, "
+"installation, execution"
+
+#: ../../quick_start/build.md:130 773e579be247441099e4a5c9a9c43a1c
+msgid "6. Linux"
+msgstr "6. Linux"
+
+#: ../../quick_start/build.md:134 ../../quick_start/build.md:300
+#: 5b1b0d0ddd1b4a5dac41c63835b004d5
+msgid "gcc >= 5.1"
+msgstr "gcc >= 5.1"
+
+#: ../../quick_start/build.md:181 1b1068d335a2449a814342420ac89d72
+msgid ""
+"注：将上述所有库打包为一个压缩包ubuntu22.04_x64.tar，存放在huggingface上，使用前请将压缩包ubuntu22.04_x64.tar解压"
+msgstr ""
+"Note: Package all the above libraries into a compressed file "
+"ubuntu22.04_x64.tar, stored on huggingface, please decompress the "
+"ubuntu22.04_x64.tar before use"
+
+#: ../../quick_start/build.md:183 ../../quick_start/build.md:304
+#: 241341a2be8a430d91a6a8c96cfb9e26
+msgid "安装opencv"
+msgstr "Install opencv"
+
+#: ../../quick_start/build.md:184 ../../quick_start/build.md:305
+#: 58e82c1880ef46e4ab1d2f44f8dc2e46
+msgid "sudo apt install libopencv-dev 参考链接"
+msgstr "sudo apt install libopencv-dev reference link"
+
+#: ../../quick_start/build.md:185 fa06a77e5ced4c58a44f46316d96467f
+msgid "安装TensorRT cpp sdk 参考链接、cudnn、cuda、GPU driver"
+msgstr "Install TensorRT cpp sdk reference link, cudnn, cuda, GPU driver"
+
+#: ../../quick_start/build.md:196 ../../quick_start/build.md:317
+#: 2ba83ac6334d49e6bf8d9a12c6ea4049
+msgid "cmake"
+msgstr "cmake"
+
+#: ../../quick_start/build.md:206 ../../quick_start/build.md:327
+#: beb932aaacd84264b4a677329a903cac
+msgid "安装, 将nndeploy的库、可执行文件、第三方库安装至build/install/lib"
+msgstr ""
+"Install, place nndeploy's libraries, executable files, third-party libraries"
+" into build/install/lib"
+
+#: ../../quick_start/build.md:211 94f59fc47c2949dd89d997a566cef409
+msgid "7. Android"
+msgstr "7. Android"
+
+#: ../../quick_start/build.md:215 b833030bf78c4d1d8294a0bdfe0ae07d
+msgid "ndk"
+msgstr "ndk"
+
+#: ../../quick_start/build.md:256 d5ecdb5dece84c1f938cd96cae626eb5
+msgid "注：将上述所有库打包为一个压缩包android.tar，存放在huggingface上，使用前请将压缩包android.tar解压"
+msgstr ""
+"Note: Package all the above libraries into a compressed file android.tar, "
+"stored on huggingface, please decompress the android.tar before use"
+
+#: ../../quick_start/build.md:266 d7e9bce7f51b40868a33f8c95f0d3bc4
+msgid "开始cmake，需要指定ndk"
+msgstr "Start cmake, need to specify ndk"
+
+#: ../../quick_start/build.md:271 c3e2d96964bf48b0aaad09add4048204
+msgid "开始编译"
+msgstr "Start compilation"
+
+#: ../../quick_start/build.md:276 5ff252e0f1184f92bbf57c5056e2e980
+msgid "开始安装, 将nndeploy相关库可执行文件、第三方库安装至build/install/lib"
+msgstr ""
+"Start installation, place nndeploy related libraries executable files, "
+"third-party libraries into build/install/lib"
+
+#: ../../quick_start/build.md:281 6ad56eb7d4be4945ad55eb1001371c38
+msgid "8. Mac（TODO）"
+msgstr "8. Mac (TODO)"
+
+#: ../../quick_start/build.md:285 ../../quick_start/build.md:292
+#: e89746a12cf0469bac019878206b0d7f
+msgid "xcode"
+msgstr "xcode"
+
+#: ../../quick_start/build.md:288 6e3dcbbfd6704e38abb667ac5aefc6c3
+msgid "9. iOS（TODO）"
+msgstr "9. iOS (TODO)"
+
+#: ../../quick_start/build.md:295 3ed2f52ae31845dc8221b8c3d23b521e
+msgid "10. Linux + 华为昇腾"
+msgstr "10. Linux + Huawei Ascend"
+
+#: ../../quick_start/build.md:302 13c1bb65fb7a40bfb860473d57cbef84
+msgid "三方库"
+msgstr "Third-party libraries"
+
+#: ../../quick_start/build.md:306 7df49ca335d34928907c64c3b5f55efc
+msgid "安装AscendCL sdk ascend_env.md"
+msgstr "Install AscendCL sdk ascend_env.md"
+
+#: ../../quick_start/build.md:333 f24e907248f7405392cee1027618206c
+msgid "11. 第三方库官方编译文档以及下载链接"
+msgstr ""
+"11. Official compilation documentation and download links for third-party "
+"libraries"
+
+#: ../../quick_start/build.md:399 4182a33dc10441efa4136bbd034e9a18
+msgid "12. 补充说明"
+msgstr "12. Supplementary instructions"
+
+#: ../../quick_start/build.md:401 423bcfb1c6284ff3b7932c3b04295e26
+msgid "我们使用第三方库的上述版本，通常使用其他版本的也没有问题"
+msgstr ""
+"We use the above versions of third-party libraries, usually using other "
+"versions is also no problem"
+
+#: ../../quick_start/build.md:403 c231265aea9542eb89651dac0e8400ca
+msgid "TensorRT"
+msgstr "TensorRT"
+
+#: ../../quick_start/build.md:404 d390b82521db486289e996936aefca49
+msgid "Windows链接"
+msgstr "Windows link"
+
+#: ../../quick_start/build.md:405 94219dbebe94492c8904f26be7c47832
+msgid "安装前请确保 显卡驱动、cuda、cudnn均已安装且版本一致"
+msgstr ""
+"Before installation, please ensure the graphics card driver, cuda, cudnn are"
+" all installed and versions are consistent"
+
+#: ../../quick_start/build.md:407 b2776e4bc96b412795730fce3412f0bb
+msgid ""
+"在windows平台下，系统目录自带onnxruntime，故你在运行时或许可能会链接到系统目录下自带的onnxruntime，从而导致运行时出错。解决办法"
+msgstr ""
+"Under the windows platform, the system directory comes with onnxruntime, so "
+"you might link to the system directory's onnxruntime when running, leading "
+"to runtime errors. Solution"
+
+#: ../../quick_start/build.md:408 9b894eb381e84c65a409f12e0135ef47
+msgid "将你自己的onnxruntime库拷贝至build目录下"
+msgstr "Copy your own onnxruntime library to the build directory"
+
+#~ msgid "拉取源代码"
+#~ msgstr ""
+
+#~ msgid "编译宏介绍"
+#~ msgstr ""
+
+#~ msgid "参考config.cmake 详细介绍，该文件详细介绍了所有编译宏含义以及用法。"
+#~ msgstr ""
+
+#~ msgid "config.cmake的编辑规则"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "X86设备。set(ENABLE_NNDEPLOY_DEVICE_X86 ON)，如果你想使能其他设备（ARM、X86、CUDA …），也可做同样的处理"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "nndeploy通过路径的方式链接推理后端ONNXRuntime。set(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME "
+#~ "\"path/onnxruntime\")，如果你想启用并链接其他推理后端（OpenVINO、MNN、TNN …），也可做同样的处理"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "nndeploy通过find_package的方式链接推理后端TensorRT。set(ENABLE_NNDEPLOY_INFERENCE_TENSORRT"
+#~ " ON)，对于其他可以通过find_package找到的库，也可做同样的处理"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "模型部署实例。首先将模型类别set(NABLE_NNDEPLOY_MODEL_XXX "
+#~ "ON)，再将具体的模型set(NABLE_NNDEPLOY_MODEL_XXX_YYY ON)"
+#~ msgstr ""
+
+#~ msgid "可执行程序，set(ENABLE_NNDEPLOY_DEMO ON)"
+#~ msgstr ""
+
+#~ msgid "使能并链接第三方库的两种方法"
+#~ msgstr ""
+
+#~ msgid "方法一：路径path，头文件以及库的根路径，其形式必须修改为"
+#~ msgstr ""
+
+#~ msgid "头文件：path/include"
+#~ msgstr ""
+
+#~ msgid "库：path/lib"
+#~ msgstr ""
+
+#~ msgid "windows dll: path/bin"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "方法二：开关ON，如果你安装了该库，并且可以通过find_package找到该库，可以采用该方式，例如CUDA、CUDNN、OpenCV、TenosrRT"
+#~ msgstr ""
+
+#~ msgid "主库编译"
+#~ msgstr ""
+
+#~ msgid "Windows"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "编辑build/config.cmake自定义编译选项（笔者的自定义编译选项：path/cmake/config_windows.cmake）"
+#~ msgstr ""
+
+#~ msgid "Linux"
+#~ msgstr ""
+
+#~ msgid "编辑build/config.cmake自定义编译选项（笔者的自定义编译选项：path/cmake/config_linux.cmake）"
+#~ msgstr ""
+
+#~ msgid "让python 可以识别, 参考 nndeploy/python/README.md"
+#~ msgstr ""
+
+#~ msgid "Android"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "编辑build/config.cmake自定义编译选项（笔者的自定义编译选项：path/cmake/config_android.cmake）"
+#~ msgstr ""
+
+#~ msgid "Mac（TODO）"
+#~ msgstr ""
+
+#~ msgid "iOS（TODO）"
+#~ msgstr ""
+
+#~ msgid "第三方库官方编译文档以及下载链接"
+#~ msgstr ""
+
+#~ msgid "补充说明"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "使能ENABLE_NNDEPLOY_NET，需要链接onnx和protobuf，会出现如下cmake "
+#~ "error，实际已经完成了cmake，故可以继续make，make不会报错"
+#~ msgstr ""
+
+#~ msgid "具体平台的编译步骤"
+#~ msgstr ""
+
+#~ msgid "nndeploy的基于华为昇腾推理框架后端编译步骤"
+#~ msgstr ""
+
+#~ msgid "编译选项配置可参考nndeploy\\cmake\\config_ascendcl_inference.cmake"
+#~ msgstr ""
+
+#~ msgid "具体步骤:"
+#~ msgstr ""
+
+#~ msgid "安装cann_toolkit等开发环境"
+#~ msgstr ""
+
+#~ msgid "安装opencv(建议：通过apt install安装，通过指定ENABLE_NNDEPLOY_OPENCV为ON，从而开启该编译选项)"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "安装onnxruntime(建议：手动下载动态库，通过指定ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME为具体路径，从而开启该编译选项)"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "在根目录创建build目录，将nndeploy\\cmake\\config_ascendcl_inference.cmake复制到该目录，并修改为config.cmake,"
+#~ " 根据需求修改config.cmake"
+#~ msgstr ""
