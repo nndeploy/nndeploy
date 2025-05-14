@@ -1,5 +1,8 @@
+#include <cuda_runtime.h>
+
 #include "flag.h"
 #include "nndeploy/base/glic_stl_include.h"
+#include "nndeploy/base/mem_tracker.h"
 #include "nndeploy/base/shape.h"
 #include "nndeploy/base/time_profiler.h"
 #include "nndeploy/framework.h"
@@ -119,6 +122,7 @@ int main(int argc, char* argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->dump()");
 
+  NNDEPLOY_MEM_TRACKER_START();
   NNDEPLOY_TIME_POINT_START("graph->run()");
   for (int i = 0; i < iter; i++) {
     prompt->set(prompt_text, true);
@@ -130,6 +134,9 @@ int main(int argc, char* argv[]) {
     }
   }
   NNDEPLOY_TIME_POINT_END("graph->run()");
+  NNDEPLOY_MEM_TRACKER_END();
+
+  NNDEPLOY_MEM_TRACKER_PRINT();
 
   NNDEPLOY_TIME_POINT_START("graph->deinit()");
   status = graph->deinit();
