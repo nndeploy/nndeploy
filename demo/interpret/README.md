@@ -30,6 +30,9 @@ cd /yourpath/nndeploy/build
 export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
 
+# 自定义模型
+./nndeploy_demo_interpret --model_type kModelTypeOnnx --model_value path/custor.onnx --model_json path/custor.onnx.json --model_safetensors path/custor.onnx.safetensors
+
 # 检测模型
 ./nndeploy_demo_interpret --model_type kModelTypeOnnx --model_value /home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx --model_json yolo11s.sim.onnx.json --model_safetensors yolo11s.sim.onnx.safetensors
 
