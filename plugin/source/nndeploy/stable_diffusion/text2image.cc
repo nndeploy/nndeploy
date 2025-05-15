@@ -83,7 +83,7 @@ dag::Graph *createStableDiffusionText2ImageGraph(
     base::InferenceType clip_inference_type,
     base::InferenceType unet_inference_type,
     base::InferenceType vae_inference_type, SchedulerType scheduler_type,
-    std::vector<base::Param *> &param) {
+    std::vector<base::Param *> &param, int iter) {
   dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt},
                                      std::vector<dag::Edge *>{});
 
@@ -96,7 +96,7 @@ dag::Graph *createStableDiffusionText2ImageGraph(
   dag::Edge *latents = graph->createEdge("denoise_latents");
   dag::Graph *denoise_graph =
       createDenoiseGraph("denoise_ddim", text_embeddings, latents,
-                         scheduler_type, unet_inference_type, param);
+                         scheduler_type, unet_inference_type, param, iter);
   graph->addNode(denoise_graph, false);
 
   dag::Edge *output = graph->createEdge("output");

@@ -25,7 +25,7 @@ namespace stable_diffusion {
 extern NNDEPLOY_CC_API dag::Graph *createDenoiseGraph(
     const std::string &name, dag::Edge *text_embeddings, dag::Edge *output,
     SchedulerType scheduler_type, base::InferenceType inference_type,
-    std::vector<base::Param *> &param);
+    std::vector<base::Param *> &param, int iter);
 }  // namespace stable_diffusion
 }  // namespace nndeploy
 

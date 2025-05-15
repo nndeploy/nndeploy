@@ -32,6 +32,7 @@ nndeploy_option(ENABLE_NNDEPLOY_OPENMP "Enable OpenMP for parallel computing" OF
 nndeploy_option(ENABLE_NNDEPLOY_ADDRESS_SANTIZER "Enable Address Sanitizer for memory error detection" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DOCS "Build documentation" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_TIME_PROFILER "Enable time profiling for performance analysis" ON)
+nndeploy_option(ENABLE_NNDEPLOY_GPU_MEM_TRACKER "Enable gpu max memory usage analysis" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_RAPIDJSON "Enable RapidJSON for JSON parsing" ON)
 
 # 2. **Core Module Options (Default Configuration Recommended)**: Controls enabling of basic modules, thread pool, device modules and other core functionalities
@@ -295,6 +296,11 @@ endif()
 if(${ENABLE_NNDEPLOY_TIME_PROFILER} MATCHES "OFF")
 else()
   add_definitions(-DENABLE_NNDEPLOY_TIME_PROFILER)
+endif()
+
+if(${ENABLE_NNDEPLOY_GPU_MEM_TRACKER} MATCHES "OFF")
+else()
+  add_definitions(-DENABLE_NNDEPLOY_GPU_MEM_TRACKER)
 endif()
 
 if(${ENABLE_NNDEPLOY_OPENCV} MATCHES "OFF")
