@@ -1,0 +1,4 @@
+#ifndef _NNDEPLOY_DEVICE_OPENCL_INCLUDE_H_
+#define _NNDEPLOY_DEVICE_OPENCL_INCLUDE_H_
+#include "CL/cl.h"
+#endif

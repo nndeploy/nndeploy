@@ -77,11 +77,11 @@ nndeploy_option(ENABLE_NNDEPLOY_DAG "Enable Directed Acyclic Graph for model pip
 # # Plugin system for Algorithm
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN "Enable plugin for model deployment" ON)
 # # Test cases
-nndeploy_option(ENABLE_NNDEPLOY_TEST "Build test cases" ON)
+nndeploy_option(ENABLE_NNDEPLOY_TEST "Build test cases" OFF)
 # # Demo applications
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "Build demo applications" ON)
 # # Python bindings
-nndeploy_option(ENABLE_NNDEPLOY_PYTHON "Build Python bindings" ON)
+nndeploy_option(ENABLE_NNDEPLOY_PYTHON "Build Python bindings" OFF)
 
 # 3. **Device Backend Options (Enable as Needed, All Disabled by Default, No Device Backend Dependencies)**: Such as CUDA, OpenCL, various NPU hardware acceleration support
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDA "Enable NVIDIA CUDA GPU support" OFF)
@@ -538,6 +538,17 @@ if(ENABLE_NNDEPLOY_DEVICE)
     set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_CUDA_SOURCE})
   endif()
 
+  #################
+  # OPENCL
+  #################
+  # if(ENABLE_NNDEPLOY_DEVICE_OPENCL)
+  #   file(GLOB_RECURSE DEVICE_CUDA_SOURCE
+  #       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/opencl/*.h"
+  #       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/device/opencl/*.cc"
+  #   )
+  #   set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_CUDA_SOURCE})
+  # endif()
+  
   if(ENABLE_NNDEPLOY_DEVICE_ASCEND_CL)
     file(GLOB_RECURSE DEVICE_ASCEND_CL_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/ascend_cl/*.h"
