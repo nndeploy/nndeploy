@@ -50,8 +50,6 @@
 
 #include <CL/cl_egl.h>
 
-#include "CL/cl2.hpp"
-
 #define CHECK_NOTNULL(X)                   \
   NNDEPLOY_ASSERT(X != NULL)               \
   if (X == NULL) {                         \
