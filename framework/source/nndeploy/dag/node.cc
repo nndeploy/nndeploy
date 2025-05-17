@@ -673,6 +673,10 @@ base::Status Node::deserialize(const std::string &path) {
   return status;
 }
 
+std::set<std::string> getNodeKeys() {
+  return NodeFactory::getInstance()->getNodeKeys();
+}
+
 Node *createNode(const std::string &node_key, const std::string &node_name) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);

@@ -36,6 +36,9 @@ include("${ROOT_PATH}/cmake/cuda.cmake")
 # # ascend_cl
 include("${ROOT_PATH}/cmake/ascend_cl.cmake")
 
+# # opencl
+include("${ROOT_PATH}/cmake/opencl.cmake")
+
 # ################### device ####################
 
 # ################### op ####################

@@ -134,8 +134,16 @@ def test_node():
     # print(output_edge_1.get())
 
 
+def get_node_keys():
+    print("get_node_keys")
+    return _C.dag.get_node_keys()
+
+
+
 if __name__ == "__main__":
-    test_node()
+    # test_node()
+    print(get_node_keys())
+    
 
 # 
 # export LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH

@@ -324,11 +324,22 @@ class NodeFactory {
     return nullptr;
   }
 
+  std::set<std::string> getNodeKeys() {
+    std::set<std::string> keys;
+    for (auto &it : creators_) {
+      keys.insert(it.first);
+    }
+    return keys;
+  }
+
  private:
   NodeFactory() = default;
   ~NodeFactory() = default;
   std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
 };
+
+
+std::set<std::string> getNodeKeys();
 
 #define REGISTER_NODE(node_key, node_class)                              \
   static auto register_node_creator_##node_class = []() {                \

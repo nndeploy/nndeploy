@@ -552,6 +552,15 @@ if(ENABLE_NNDEPLOY_DEVICE)
     set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_ASCEND_CL_SOURCE})
   endif()
 
+  if(ENABLE_NNDEPLOY_DEVICE_OPENCL)
+    file(GLOB_RECURSE DEVICE_OPENCL_SOURCE
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/opencl/*.h"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/opencl/*.hpp"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/device/opencl/*.cc"
+    )
+    set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_OPENCL_SOURCE})
+  endif()
+
   set(NNDEPLOY_FRAMEWORK_SOURCE ${NNDEPLOY_FRAMEWORK_SOURCE} ${DEVICE_SOURCE})
 endif()
 
