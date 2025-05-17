@@ -553,6 +553,7 @@ if(ENABLE_NNDEPLOY_DEVICE)
   endif()
 
   if(ENABLE_NNDEPLOY_DEVICE_OPENCL)
+    add_definitions(-DNNDEPLOY_USE_OPENCL_WRAPPER)
     file(GLOB_RECURSE DEVICE_OPENCL_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/opencl/*.h"
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/opencl/*.hpp"

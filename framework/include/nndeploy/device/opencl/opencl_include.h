@@ -1,0 +1,7 @@
+
+#ifndef _NNDEPLOY_DEVICE_OPENCL_OPENCL_INCLUDE_H_
+#define _NNDEPLOY_DEVICE_OPENCL_OPENCL_INCLUDE_H_
+
+#include "nndeploy/device/opencl/cl.hpp"
+
+#endif /* _NNDEPLOY_DEVICE_OPENCL_OPENCL_INCLUDE_H_ */
