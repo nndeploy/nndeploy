@@ -29,18 +29,18 @@
     <td><b>图像分割 (RBMGv1.4)</b></td>
   </tr>
   <tr>
-    <td><img src="docs/image/demo/stable_diffusion/apple.png" alt="Stable Diffusion" width="220"></td>
-    <td><img src="demo/llama/imgs/result.png" alt="QWen" width="220"></td>
-    <td><img src="docs/image/demo/segment/sample_output.jpg" alt="RBMGv1.4" width="220"></td>
+    <td><img src="docs/image/demo/stable_diffusion/apple.png" alt="Stable Diffusion" height="256"></td>
+    <td><img src="demo/llama/imgs/result.png" alt="QWen" height="256"></td>
+    <td><img src="docs/image/demo/segment/sample_output.jpg" alt="RBMGv1.4" height="256"></td>
   </tr>
 </table>
 
 ### 2. 已部署模型列表
 
-<table>
+<table style="table-layout: fixed;">
   <tr>
     <th width="15%">类别</th>
-    <th width="65%">算法</th>
+    <th width="65%">模型</th>
   </tr>
   <tr>
     <td>图像分类</td>
@@ -52,12 +52,7 @@
   </tr>
   <tr>
     <td>目标检测</td>
-    <td>
-      <a href="demo/detect/README.md">YOLOv5</a> | 
-      <a href="demo/detect/README.md">YOLOv6</a> | 
-      <a href="demo/detect/README.md">YOLOv8</a> | 
-      <a href="demo/detect/README.md">YOLOv11</a>
-    </td>
+    <td><a href="demo/detect/README.md">YOLOv5</a> | <a href="demo/detect/README.md">YOLOv6</a> | <a href="demo/detect/README.md">YOLOv8</a> | <a href="demo/detect/README.md">YOLOv11</a></td>
   </tr>
   <tr>
     <td>AI生成</td>
@@ -79,7 +74,7 @@
 ## 特性
 
 ### 架构
-<img src="docs/image/architecture.jpg" alt="Architecture" width="60%">
+<img src="docs/image/architecture.jpg" alt="Architecture" width="80%">
 
 ### 1. 简单易用
 
@@ -120,7 +115,7 @@
 
 - **内部的推理模块**：整体架构如图所示，目前后端算子以华为昇腾NPU和CPU为主，持ResNet50、YOLOv11、RMBG1.4等模型，更多介绍[default_inference.md]()
 
-  <img src="docs/image/inference/inference_framework_arch.png" width="60%">
+  <img src="docs/image/inference/inference_framework_arch.png" width="80%">
 
 
 ## 下一步计划
