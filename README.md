@@ -20,34 +20,54 @@
 
 ## 已部署的模型
 
-### 1.部分模型效果展示
+### 1. 模型效果展示
 
-<div style="overflow-x: auto; white-space: nowrap;">
-  <table>
-    <tr>
-      <td align="center">stable diffusion 1.5</td>
-      <td align="center">QWen</td>
-      <td align="center">分割 (RBMGv1.4)</td>
-      <td align="center">检测 (YOLOv11)</td>
-    </tr>
-    <tr>
-      <td align="center"><img src="docs/image/demo/stable_diffusion/apple.png" alt="stable diffusion 1.5" height="256"></td>
-      <td align="center"><img src="demo/llama/imgs/result.png" alt="QWen" height="256"></td>
-      <td align="center"><img src="docs/image/demo/segment/sample_output.jpg" alt="RBMGv1.4" height="256"></td>
-      <td align="center"><img src="docs/image/demo/detect/sample_output.jpg" alt="YOLOv11" height="256"></td>
-    </tr>
-  </table>
-</div>
+<table>
+  <tr>
+    <td><b>文生图 (Stable Diffusion 1.5)</b></td>
+    <td><b>大语言模型 (QWen)</b></td>
+    <td><b>图像分割 (RBMGv1.4)</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/image/demo/stable_diffusion/apple.png" alt="Stable Diffusion" width="220"></td>
+    <td><img src="demo/llama/imgs/result.png" alt="QWen" width="220"></td>
+    <td><img src="docs/image/demo/segment/sample_output.jpg" alt="RBMGv1.4" width="220"></td>
+  </tr>
+</table>
 
-### 2. 已部署模型详情列表
+### 2. 已部署模型列表
 
-| 类别 | 算法 | 备注 | 
-| :--- | :--- | :--- | 
-| 分类 | ResNet[详情](demo/classification/README.md)                |  |
-| 分割 | RBMGv1.4[详情](demo/segment/README.md)                     |  |
-| 检测 | YOLOv5[详情](demo/detect/README.md)、YOLOv6[详情](demo/detect/README.md)、YOLOv8[详情](demo/detect/README.md)、YOLOv11[详情](demo/detect/README.md) |  |
-| 生成 | stable diffusion 1.5[详情](demo/stable_diffusion/README.md) |  | 
-| 大语言 | QWen[详情](demo/llama/README.md)                           |  | 
+<table>
+  <tr>
+    <th width="15%">类别</th>
+    <th width="65%">算法</th>
+  </tr>
+  <tr>
+    <td>图像分类</td>
+    <td><a href="demo/classification/README.md">ResNet</a></td>
+  </tr>
+  <tr>
+    <td>图像分割</td>
+    <td><a href="demo/segment/README.md">RBMGv1.4</a></td>
+  </tr>
+  <tr>
+    <td>目标检测</td>
+    <td>
+      <a href="demo/detect/README.md">YOLOv5</a> | 
+      <a href="demo/detect/README.md">YOLOv6</a> | 
+      <a href="demo/detect/README.md">YOLOv8</a> | 
+      <a href="demo/detect/README.md">YOLOv11</a>
+    </td>
+  </tr>
+  <tr>
+    <td>AI生成</td>
+    <td><a href="demo/stable_diffusion/README.md">Stable Diffusion 1.5</a></td>
+  </tr>
+  <tr>
+    <td>大语言模型</td>
+    <td><a href="demo/llama/README.md">QWen</a></td>
+  </tr>
+</table>
 
 
 ## 快速开始
@@ -59,7 +79,7 @@
 ## 特性
 
 ### 架构
-![Architecture](docs/image/architecture.jpg)
+<img src="docs/image/architecture.jpg" alt="Architecture" width="60%">
 
 ### 1. 简单易用
 
@@ -100,8 +120,29 @@
 
 - **内部的推理模块**：整体架构如图所示，目前后端算子以华为昇腾NPU和CPU为主，持ResNet50、YOLOv11、RMBG1.4等模型，更多介绍[default_inference.md]()
 
-  <img src="docs/image/inference/inference_framework_arch.png">
+  <img src="docs/image/inference/inference_framework_arch.png" width="60%">
 
+
+## 下一步计划
+
+- 设备管理模块
+  - 新增OpenCL的设备管理模块
+  - 新增ROCM的设备管理模块
+  - 新增OpenGL的设备管理模块
+- 内存优化
+  - `主从内存拷贝优化`：针对统一内存的架构，通过主从内存映射、主从内存地址共享等方式替代主从内存拷贝
+  - `内存池`：针对nndeploy的内部的数据容器Buffer、Mat、Tensor，建立异构设备的内存池，实现高性能的内存分配与释放
+  - `多节点共享内存机制`：针对多模型串联场景下，基于模型部署的有向无环图，在串行执行的模式下，支持多推理节点共享内存机制
+  - `边的环形队列内存复用机制`：基于模型部署的有向无环图，在流水线并行执行的模式下，支持边的环形队列共享内存机制
+- 接入算子库
+  - 接入oneDNN算子库
+  - 接入XNNPACK算子库
+  - 接入QNNPACK算子库
+  - 接入cudnn算子库
+  - 接入cutlass算子库
+- 推理子模块支持大语言模型
+- 推理子模块支持stable diffusion 
+- 推理子模块支持通信原语
 
 ## 贡献者
 
