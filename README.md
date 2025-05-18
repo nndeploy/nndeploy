@@ -22,9 +22,22 @@
 
 ### 1.部分模型效果展示
 
-| stable diffusion 1.5 | QWen | 分割 (RBMGv1.4) | 
-| :---: | :---: | :---: | 
-| <img src="docs/image/demo/stable_diffusion/apple.png" alt="stable diffusion 1.5" height="256"> | <img src="demo/llama/imgs/result.png" alt="QWen" height="256"> | <img src="docs/image/demo/segment/sample_output.jpg" alt="RBMGv1.4" height="256"> | 
+<div style="overflow-x: auto; white-space: nowrap;">
+  <table>
+    <tr>
+      <td align="center">stable diffusion 1.5</td>
+      <td align="center">QWen</td>
+      <td align="center">分割 (RBMGv1.4)</td>
+      <td align="center">检测 (YOLOv11)</td>
+    </tr>
+    <tr>
+      <td align="center"><img src="docs/image/demo/stable_diffusion/apple.png" alt="stable diffusion 1.5" height="256"></td>
+      <td align="center"><img src="demo/llama/imgs/result.png" alt="QWen" height="256"></td>
+      <td align="center"><img src="docs/image/demo/segment/sample_output.jpg" alt="RBMGv1.4" height="256"></td>
+      <td align="center"><img src="docs/image/demo/detect/sample_output.jpg" alt="YOLOv11" height="256"></td>
+    </tr>
+  </table>
+</div>
 
 ### 2. 已部署模型详情列表
 
