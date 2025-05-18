@@ -29,15 +29,15 @@
     <td><b>图像分割 (RBMGv1.4)</b></td>
   </tr>
   <tr>
-    <td><img src="docs/image/demo/stable_diffusion/apple.png" alt="Stable Diffusion" height="256"></td>
-    <td><img src="demo/llama/imgs/result.png" alt="QWen" height="256"></td>
-    <td><img src="docs/image/demo/segment/sample_output.jpg" alt="RBMGv1.4" height="256"></td>
+    <td><img src="docs/image/demo/stable_diffusion/apple.png" alt="Stable Diffusion" width="256"></td>
+    <td><img src="demo/llama/imgs/result.png" alt="QWen" width="256"></td>
+    <td><img src="docs/image/demo/segment/sample_output.jpg" alt="RBMGv1.4" width="256"></td>
   </tr>
 </table>
 
 ### 2. 已部署模型列表
 
-<table style="table-layout: fixed;">
+<table style="table-layout: fixed; width: 100%;">
   <tr>
     <th width="15%">类别</th>
     <th width="65%">模型</th>
