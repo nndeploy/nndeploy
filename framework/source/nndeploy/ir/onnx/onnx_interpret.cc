@@ -288,7 +288,6 @@ onnx::TensorProto_DataType OnnxInterpret::getAttributeTensorProtoDatatype(
   for (const auto& iter : node.attribute()) {
     if (iter.name() == key) {
       assert(iter.type() == onnx::TensorProto_DataType);
-      std::cout<<"11111"<<std::endl;
       // return iter. ; // AttributeProto
     }
   }
