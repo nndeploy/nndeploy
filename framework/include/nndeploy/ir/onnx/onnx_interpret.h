@@ -78,6 +78,11 @@ class OnnxInterpret : public Interpret {
   // 获取ONNX节点的张量属性值,返回TensorProto对象
   static onnx::TensorProto getAttributeTensor(const onnx::NodeProto &node,
                                               const char *key);
+
+  // 从属性获取 TensorProto的数据类型
+  static onnx::TensorProto_DataType getAttributeTensorProtoDatatype(
+      const onnx::NodeProto &node, const char *key);
+
   // 获取张量数据的总大小(元素个数)
   static int getTensorProtoDataSize(const onnx::TensorProto &tp);
 
@@ -93,7 +98,7 @@ class OnnxInterpret : public Interpret {
       const std::vector<ValueDesc> &input = std::vector<ValueDesc>());
 
  private:
-  int target_version_ = 19;
+  int target_version_ = 20;
   std::unique_ptr<onnx::ModelProto> onnx_model_;
 };
 

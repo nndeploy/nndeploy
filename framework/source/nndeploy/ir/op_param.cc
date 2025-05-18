@@ -388,5 +388,22 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeQLinearConv, QLinearConvParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeAveragePool, AvaragePoolParam);
 
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeUnsqueeze, UnsqueezeParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeGather, GatherParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeReduceMean, ReduceMeanParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeReduceMax, ReduceMaxParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeReduceMin, ReduceMinParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeReduceSum, ReduceSumParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeShape, ShapeParam);
+
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeCast, CastParam);
+
+
 }  // namespace ir
 }  // namespace nndeploy
