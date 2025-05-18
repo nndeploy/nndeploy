@@ -20,7 +20,7 @@
 
 ## 已部署的模型
 
-### 1. 模型效果展示
+### 1. 部分模型效果展示
 
 <table>
   <tr>
@@ -35,9 +35,9 @@
   </tr>
 </table>
 
-### 2. 已部署模型列表
+### 2. 已部署模型详情列表
 
-<table style="table-layout: fixed; width: 100%;">
+<table style="table-layout: fixed; width: 100%; white-space: nowrap;">
   <tr>
     <th width="15%">类别</th>
     <th width="65%">模型</th>
@@ -73,8 +73,7 @@
 
 ## 特性
 
-### 架构
-<img src="docs/image/architecture.jpg" alt="Architecture" width="80%">
+<img src="docs/image/architecture.jpg" alt="Architecture">
 
 ### 1. 简单易用
 
@@ -115,7 +114,7 @@
 
 - **内部的推理模块**：整体架构如图所示，目前后端算子以华为昇腾NPU和CPU为主，持ResNet50、YOLOv11、RMBG1.4等模型，更多介绍[default_inference.md]()
 
-  <img src="docs/image/inference/inference_framework_arch.png" width="80%">
+  <img src="docs/image/inference/inference_framework_arch.png">
 
 
 ## 下一步计划
