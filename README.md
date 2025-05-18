@@ -13,26 +13,31 @@
 </h3>
 
 <p align="center">
-| <a href="https://nndeploy-zh.readthedocs.io/zh/latest/"><b>文档</b></a> | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> | <a href="https://discord.gg/4w2QRgn6"><b>discord</b></a> |
+| <a href="https://nndeploy-zh.readthedocs.io/zh/latest/"><b>文档</b></a> | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> | <a href="https://discord.gg/xAWvmZn3"><b>discord</b></a> |
 </p>
-
-![Architecture](docs/image/architecture.jpg)
 
 ---
 
-## 支持的算法
+## 快速开始
 
-- 支持RBMGv1.4，[详情](demo/segment/README.md)
-- 支持ResNet，[详情](demo/classification/README.md)
-- 支持YOLOv5，[详情](demo/detect/README.md)
-- 支持YOLOv6，[详情](demo/detect/README.md)
-- 支持YOLOv8，[详情](demo/detect/README.md)
-- 支持YOLOv11，[详情](demo/detect/README.md)
-- 支持stable diffusion 1.5，完善中，[详情]()
-- 支持QWen，完善中，[详情]()
-- 支持SAM，完善中，[详情]()
+- [如何编译](docs/zh_cn/quick_start/build.md)
+- [如何获取模型](docs/zh_cn/quick_start/model.md)
+- [如何执行](docs/zh_cn/quick_start/example.md)
+
+## 已部署的模型
+
+| 类别 | 算法 | 输入 | 输出 | 
+| :--- | :--- | :--- | :--- | 
+| 分类 | ResNet[详情](demo/classification/README.md)                | 见[详情](demo/classification/README.md)  | 见[详情](demo/classification/README.md)  |
+| 分割 | RBMGv1.4[详情](demo/segment/README.md)                     | 见[详情](demo/classification/README.md)  | 见[详情](demo/classification/README.md)  |
+| 检测 | YOLOv5[详情](demo/detect/README.md)<br>YOLOv6[详情](demo/detect/README.md)<br>YOLOv8[详情](demo/detect/README.md)<br>YOLOv11[详情](demo/detect/README.md) | 见[详情](demo/classification/README.md)  | 见[详情](demo/classification/README.md)  |
+| 生成 | stable diffusion 1.5[详情](demo/stable_diffusion/README.md) | "apple"                                                                              | <img src="docs/image/demo/stable_diffusion/apple.png">       | 
+| 大语言 | QWen[详情](demo/llama/README.md)                           |                                                                                      | <img src="demo/llama/imgs/result.png" width="80%">                       | 
 
 ## 特性
+
+### 架构
+![Architecture](docs/image/architecture.jpg)
 
 ### 1. 简单易用
 
@@ -74,13 +79,6 @@
 - **内部的推理模块**：整体架构如图所示，目前后端算子以华为昇腾NPU和CPU为主，持ResNet50、YOLOv11、RMBG1.4等模型，更多介绍[default_inference.md]()
 
   <img src="docs/image/inference/inference_framework_arch.png">
-
-
-## 快速开始
-
-- [如何编译](docs/zh_cn/quick_start/build.md)
-- [如何获取模型](docs/zh_cn/quick_start/model.md)
-- [如何执行](docs/zh_cn/quick_start/example.md)
 
 
 ## 贡献者
