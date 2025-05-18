@@ -18,21 +18,30 @@
 
 ---
 
+## 已部署的模型
+
+### 1.部分模型效果展示
+
+| stable diffusion 1.5 | QWen | 分割 (RBMGv1.4) | 
+| :---: | :---: | :---: | 
+| <img src="docs/image/demo/stable_diffusion/apple.png" alt="stable diffusion 1.5" height="256"> | <img src="demo/llama/imgs/result.png" alt="QWen" height="256"> | <img src="docs/image/demo/segment/sample_output.jpg" alt="RBMGv1.4" height="256"> | 
+
+### 2. 已部署模型详情列表
+
+| 类别 | 算法 | 备注 | 
+| :--- | :--- | :--- | 
+| 分类 | ResNet[详情](demo/classification/README.md)                |  |
+| 分割 | RBMGv1.4[详情](demo/segment/README.md)                     |  |
+| 检测 | YOLOv5[详情](demo/detect/README.md)、YOLOv6[详情](demo/detect/README.md)、YOLOv8[详情](demo/detect/README.md)、YOLOv11[详情](demo/detect/README.md) |  |
+| 生成 | stable diffusion 1.5[详情](demo/stable_diffusion/README.md) |  | 
+| 大语言 | QWen[详情](demo/llama/README.md)                           |  | 
+
+
 ## 快速开始
 
 - [如何编译](docs/zh_cn/quick_start/build.md)
 - [如何获取模型](docs/zh_cn/quick_start/model.md)
 - [如何执行](docs/zh_cn/quick_start/example.md)
-
-## 已部署的模型
-
-| 类别 | 算法 | 输入 | 输出 | 
-| :--- | :--- | :--- | :--- | 
-| 分类 | ResNet[详情](demo/classification/README.md)                | 见[详情](demo/classification/README.md)  | 见[详情](demo/classification/README.md)  |
-| 分割 | RBMGv1.4[详情](demo/segment/README.md)                     | 见[详情](demo/classification/README.md)  | 见[详情](demo/classification/README.md)  |
-| 检测 | YOLOv5[详情](demo/detect/README.md)<br>YOLOv6[详情](demo/detect/README.md)<br>YOLOv8[详情](demo/detect/README.md)<br>YOLOv11[详情](demo/detect/README.md) | 见[详情](demo/classification/README.md)  | 见[详情](demo/classification/README.md)  |
-| 生成 | stable diffusion 1.5[详情](demo/stable_diffusion/README.md) | "apple"                                                                              | <img src="docs/image/demo/stable_diffusion/apple.png">       | 
-| 大语言 | QWen[详情](demo/llama/README.md)                           |                                                                                      | <img src="demo/llama/imgs/result.png" width="80%">                       | 
 
 ## 特性
 
