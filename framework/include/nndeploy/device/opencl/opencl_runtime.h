@@ -10,7 +10,7 @@ namespace nndeploy
         class OpenCLRuntime
         {
             private:
-            /* data */
+                static bool init_done_;
             public:
                 OpenCLRuntime(/* args */);
                 ~OpenCLRuntime();
@@ -20,7 +20,7 @@ namespace nndeploy
                 uint8_t getPlatforms();
         };
 
-}
+    }
 }
 
 #endif /* _NNDEPLOY_DEVICE_OPENCL_OPENCL_RUNTIME_H_ */
