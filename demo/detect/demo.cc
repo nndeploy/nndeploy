@@ -156,6 +156,12 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->init()");
 
+  status = graph->saveJson("detect_graph.json");
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph serialize failed");
+    return -1;
+  }
+
   status = graph->dump();
   status = detect_graph->dump();
 

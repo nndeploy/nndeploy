@@ -400,6 +400,7 @@ extern NNDEPLOY_CC_API CodecType stringToCodecType(const std::string &src);
 
 extern NNDEPLOY_CC_API CodecFlag stringToCodecFlag(const std::string &src);
 
+extern NNDEPLOY_CC_API std::string parallelTypeToString(ParallelType src);
 extern NNDEPLOY_CC_API ParallelType
 stringToParallelType(const std::string &src);
 

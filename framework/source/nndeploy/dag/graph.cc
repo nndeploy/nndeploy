@@ -946,6 +946,78 @@ NodeWrapper *Graph::getNodeWrapper(const std::string &name) {
   return findNodeWrapper(node_repository_, name);
 }
 
+base::Status Graph::serialize(rapidjson::Value &json,
+                              rapidjson::Document::AllocatorType &allocator) const {
+  base::Status status = base::kStatusCodeOk;
+  status = Node::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  json.AddMember("is_graph_node_share_stream_", is_graph_node_share_stream_, allocator);
+  json.AddMember("queue_max_size_", queue_max_size_, allocator);
+
+  if (!node_repository_.empty()) {
+    rapidjson::Value node_repository_array(rapidjson::kArrayType);
+    for (auto node_wrapper : node_repository_) {
+      rapidjson::Value node_json(rapidjson::kObjectType);
+      node_wrapper->node_->serialize(node_json, allocator);
+      node_repository_array.PushBack(node_json, allocator);
+    }
+    json.AddMember("node_repository_", node_repository_array, allocator);
+  }
+
+  return status;
+}
+base::Status Graph::deserialize(rapidjson::Value &json) {
+  base::Status status = Node::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  
+  if (json.HasMember("is_graph_node_share_stream_") && json["is_graph_node_share_stream_"].IsBool()) {
+    is_graph_node_share_stream_ = json["is_graph_node_share_stream_"].GetBool();
+  }
+  
+  if (json.HasMember("queue_max_size_") && json["queue_max_size_"].IsInt()) {
+    queue_max_size_ = json["queue_max_size_"].GetInt();
+  }
+  
+  if (json.HasMember("node_repository_") && json["node_repository_"].IsArray()) {
+    const rapidjson::Value& nodes = json["node_repository_"];
+    for (rapidjson::SizeType i = 0; i < nodes.Size(); i++) {
+      if (nodes[i].IsObject()) {
+        NodeDesc node_desc;
+        rapidjson::Value &node_json = const_cast<rapidjson::Value &>(nodes[i]);
+        status = node_desc.deserialize(node_json);
+        if (status != base::kStatusCodeOk) {
+          return status;
+        }
+        Node* node = this->createNode(node_desc);
+        if (node == nullptr) {
+          NNDEPLOY_LOGE("create node failed\n");
+          return base::kStatusCodeErrorInvalidValue;
+        }
+        base::Status status = node->deserialize(node_json);
+        if (status != base::kStatusCodeOk) {
+          NNDEPLOY_LOGE("deserialize node failed\n");
+          return status;
+        }
+      }
+    }
+  }
+  
+  return base::kStatusCodeOk;
+}
+
+// to json file
+base::Status Graph::loadJson(const std::string &path) {
+  return Node::deserialize(path);
+}
+// from json file
+base::Status Graph::saveJson(const std::string &path) {
+  return Node::serialize(path);
+}
+
 REGISTER_NODE("nndeploy::dag::Graph", Graph);
 
 std::map<std::string, createGraphFunc> &getGlobalGraphCreatorMap() {

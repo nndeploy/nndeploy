@@ -229,6 +229,18 @@ class NNDEPLOY_CC_API Graph : public Node {
   NodeWrapper *getNodeWrapper(Node *node);
   NodeWrapper *getNodeWrapper(const std::string &name);
 
+  // to json
+  virtual base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const;
+  // from json
+  virtual base::Status deserialize(rapidjson::Value &json);
+
+  // to json file
+  base::Status loadJson(const std::string &path);
+  // from json file
+  base::Status saveJson(const std::string &path);
+
  protected:
   virtual base::Status construct();
   virtual base::Status executor();
