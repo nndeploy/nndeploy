@@ -236,11 +236,29 @@ class NNDEPLOY_CC_API DenoiseNode : public dag::CompositeNode {
   virtual base::Status make() {
     base::Status status = base::kStatusCodeOk;
 
+    denoise_param_ = (DenoiseParam *)param_.get();
+    if (denoise_param_ == nullptr) {
+      NNDEPLOY_LOGE("denoise param is null!");
+      return base::kStatusCodeErrorNullParam;
+    }
+
+    scheduler_param_ = &denoise_param_->scheduler_param_;
+    if (scheduler_param_ == nullptr) {
+      NNDEPLOY_LOGE("scheduler param is null!");
+      return base::kStatusCodeErrorNullParam;
+    }
+
+    text2image_param_ = &denoise_param_->text2image_param_;
+    if (text2image_param_ == nullptr) {
+      NNDEPLOY_LOGE("text2image param is null!");
+      return base::kStatusCodeErrorNullParam;
+    }
+
     dag::NodeDesc infer_desc("nndeploy::infer::Infer", "infer",
                              {"text_embeddings", "cfg_latents", "timestep"},
                              {"unet_output"});
     infer_node_ = (infer::Infer *)this->createInfer<infer::Infer>(
-        infer_desc, base::kInferenceTypeOnnxRuntime);
+        infer_desc, text2image_param_->inference_type_);
 
     dag::NodeDesc schedule_desc(
         "nndeploy::stable_diffusion::DDIMScheduleNode", "schedule",
@@ -252,14 +270,7 @@ class NNDEPLOY_CC_API DenoiseNode : public dag::CompositeNode {
 
   virtual base::Status init() {
     base::Status status = base::kStatusCodeOk;
-    denoise_param_ = (DenoiseParam *)param_.get();
-    scheduler_param_ = &denoise_param_->scheduler_param_;
-    text2image_param_ = &denoise_param_->text2image_param_;
 
-    if (scheduler_param_ == nullptr) {
-      NNDEPLOY_LOGE("scheduler param is null!");
-      return base::kStatusCodeErrorNullParam;
-    }
     status = scheduler_->init(scheduler_param_);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "scheduler init failed!");
@@ -307,6 +318,12 @@ class NNDEPLOY_CC_API DenoiseNode : public dag::CompositeNode {
     status = scheduler_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "scheduler deinit failed!");
+    status = infer_node_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "infer node deinit failed!");
+    status = schedule_node_->deinit();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "schedule node deinit failed!");
     return status;
   }
 
