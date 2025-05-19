@@ -99,7 +99,7 @@ nndeploy是一个简单易用、高性能、支持多端的AI推理部署框架�
   | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) |   √   |    -    |    -    |   -   |   -   | [100312dog](https://github.com/100312dog)                                          | 
   | **[default](https://github.com/nndeploy/nndeploy)**                              |   √   |    -    |    -    |   -   |   -   | [nndeploy team](https://github.com/nndeploy)                                            | 
 
-- **default为nndeploy内部的推理子模块**：整体架构如图所示，目前后端算子以华为昇腾NPU和CPU为主，支持ResNet50、YOLOv11、RMBG1.4等模型，更多介绍[default_inference.md]()
+- **default为nndeploy内部的推理子模块**：整体架构如图所示，目前后端算子以华为昇腾NPU和CPU为主，支持ResNet50、YOLOv11、RMBG1.4等模型，更多[介绍](docs/zh_cn/inference/README_INFERENCE.md)
 
   <img src="docs/image/inference/inference_framework_arch.png">
 
@@ -123,7 +123,7 @@ nndeploy是一个简单易用、高性能、支持多端的AI推理部署框架�
   - 支持大语言模型
   - 支持stable diffusion 
   - 增加通信原语，支持分布式推理
-  - 优化内部的基于图的内存优化策略
+  - 优化内部的基于图的内存优化策略，探索更多的内存优化策略
 - 部署更多的模型
   - OCR
   - 追踪

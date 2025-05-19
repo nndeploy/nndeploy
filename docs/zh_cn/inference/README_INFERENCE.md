@@ -3,26 +3,24 @@
 
 ## 介绍
 
-nndeploy内部推理子模块是一个更加适合模型部署的推理框架。
-
-目前后端算子支持CPU和华为昇腾NPU，未来会逐步扩展支持CUDA、ARM、OpenCL等异构计算平台。
-
-在模型支持方面，现已支持图像分类(如resnet50)、目标检测(如YOLOV11)、图像分割(如RMBG1.4)等主流视觉模型，后续还会扩展支持大语言模型(LLM)、文本图像多模态(如Dit)等热门AI模型。
+nndeploy内部的推理子模块，目前后端算子支持CPU和华为昇腾NPU，未来会逐步扩展支持CUDA、ARM、OpenCL等异构计算平台。在模型支持方面，现已支持图像分类(如resnet50)、目标检测(如YOLOV11)、图像分割(如RMBG1.4)等主流视觉模型，后续还会扩展支持大语言模型(LLM)、文本图像多模态(如Dit)等热门AI模型。
 
 ## 架构
 
-![inference_framework_arch](docs/image/inference/inference_framework_arch.png)
+![inference_framework_arch](../../image/inference/inference_framework_arch.png)
 
 
 ## 为什么要在内部实现一个推理框架
 
 - **从模型部署角度出发，推理框架需支持更多功能，满足实际应用需求**：我们总结了推理框架需支持的关键功能：
 
-  ![inference_need_support](./docs/image/inference/inference_need_support.png)
+  ![inference_need_support](../../image/inference/inference_need_support.png)
 
-- **nndeploy已具备大量推理相关基础组件**：nndeploy在模型部署方面有许多优秀特性。nndeploy背后有大量精心设计和开发工作，为用户提供功能强大、易用、高性能且兼容主流框架的模型推理和部署体验。nndeploy已具备大量推理相关基础组件，因此我们选择先基于华为昇腾生态，开发一个内部推理框架。该框架将从部署角度出发，提供更全面、易用的功能。
+- **nndeploy已具备大量推理相关基础组件**：nndeploy在模型部署方面有许多优秀特性。nndeploy背后有大量精心设计和开发工作，为用户提供功能强大、易用、高性能且兼容主流框架的模型推理和部署体验。nndeploy已具备大量推理相关基础组件，因此我们选择先基于华为昇腾生态，开发一个内部推理框架。该框架将从部署角度出发，提供全面、易用的功能。
 
 - **紧跟大模型时代AI基础设施发展**：大模型在各领域展现强大能力，但也对AI基础设施提出更高要求，如更高效内存管理、更强大分布式推理能力、更深度的算子优化等。开发该内部推理框架，将使我们能紧跟大模型时代步伐。
+
+- **提供一个缺省的推理框架**：nndeploy内部推理框架将作为nndeploy的缺省推理框架，当用户没有编译链接推理框架时，可以使用该缺省推理框架。
 
 ## 特点
 
