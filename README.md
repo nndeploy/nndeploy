@@ -3,8 +3,8 @@
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/image/logo.png">
-    <img alt="nndeploy" src="docs/image/logo.png" width=55%>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/image/kapybara_logo.png">
+    <img alt="nndeploy" src="docs/image/kapybara_logo.png" width=55%>
   </picture>
 </p>
 
