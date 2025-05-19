@@ -51,9 +51,13 @@ class MyCustomNode : public dag::Node {
                std::vector<dag::Edge *> inputs,
                std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
+        // 设置节点key，与注册的节点类型名一致，必须要设置  
         key_ = "nndeploy::example::MyCustomNode";
+        // 节点参数，继承自base::Param，如果该节点需要参数，则必须要设置  
         param_ = std::make_shared<MyParam>();
+        // 设置输入类型，继承自base::TypeInfo，如果该节点有输入，则必须要设置
         this->setInputTypeInfo<device::Tensor>();
+        // 设置输出类型，继承自base::TypeInfo，如果该节点有输出，则必须要设置
         this->setOutputTypeInfo<device::Tensor>();
       }
 
