@@ -22,6 +22,25 @@ namespace codec {
 
 class NNDEPLOY_CC_API DecodeNode : public dag::Node {
  public:
+  DecodeNode(const std::string &name) : dag::Node(name) {
+    node_type_ = dag::NodeType::kNodeTypeInput;
+  }
+  DecodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+             std::vector<dag::Edge *> outputs)
+      : dag::Node(name) {
+    node_type_ = dag::NodeType::kNodeTypeInput;
+    if (inputs.size() > 0) {
+      NNDEPLOY_LOGE("DecodeNode not support inputs");
+      constructed_ = false;
+      return;
+    }
+    if (outputs.size() > 1) {
+      NNDEPLOY_LOGE("DecodeNode only support one output");
+      constructed_ = false;
+      return;
+    }
+    outputs_ = outputs;
+  }
   DecodeNode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
     flag_ = flag;
     node_type_ = dag::NodeType::kNodeTypeInput;
@@ -82,6 +101,30 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
 
   virtual base::Status run() = 0;
 
+  virtual base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const {
+    base::Status status = dag::Node::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    std::string flag_str = base::codecFlagToString(flag_);
+    json.AddMember("flag_", rapidjson::Value(flag_str.c_str(), allocator),
+                   allocator);
+    return status;
+  }
+
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    base::Status status = dag::Node::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    if (json.HasMember("flag_") && json["flag_"].IsString()) {
+      flag_ = base::stringToCodecFlag(json["flag_"].GetString());
+    }
+    return status;
+  }
+
  protected:
   base::CodecFlag flag_ = base::kCodecFlagImage;
   std::string path_ = "";
@@ -95,6 +138,27 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
 
 class NNDEPLOY_CC_API EncodeNode : public dag::Node {
  public:
+  EncodeNode(const std::string &name) : dag::Node(name) {
+    node_type_ = dag::NodeType::kNodeTypeOutput;
+    // this->setInputTypeInfo<cv::Mat>();
+  }
+  EncodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+             std::vector<dag::Edge *> outputs)
+      : dag::Node(name) {
+    // this->setInputTypeInfo<cv::Mat>();
+    node_type_ = dag::NodeType::kNodeTypeOutput;
+    if (inputs.size() > 1) {
+      NNDEPLOY_LOGE("EncodeNode only support one input");
+      constructed_ = false;
+      return;
+    }
+    inputs_ = inputs;
+    if (outputs.size() > 0) {
+      NNDEPLOY_LOGE("EncodeNode not support outputs");
+      constructed_ = false;
+      return;
+    }
+  }
   EncodeNode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
     flag_ = flag;
     node_type_ = dag::NodeType::kNodeTypeOutput;
@@ -135,6 +199,30 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
   int getIndex() { return index_; };
 
   virtual base::Status run() = 0;
+
+  virtual base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const {
+    base::Status status = dag::Node::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    std::string flag_str = base::codecFlagToString(flag_);
+    json.AddMember("flag_", rapidjson::Value(flag_str.c_str(), allocator),
+                   allocator);
+    return status;
+  }
+
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    base::Status status = dag::Node::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    if (json.HasMember("flag_") && json["flag_"].IsString()) {
+      flag_ = base::stringToCodecFlag(json["flag_"].GetString());
+    }
+    return status;
+  }
 
  protected:
   base::CodecFlag flag_ = base::kCodecFlagImage;

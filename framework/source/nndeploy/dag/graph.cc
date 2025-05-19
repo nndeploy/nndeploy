@@ -300,6 +300,7 @@ Node *Graph::getNode(const std::string &name) {
       return node_wrapper->node_;
     }
   }
+  return nullptr;
 }
 
 std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string &name) {
@@ -309,6 +310,26 @@ std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string &name) {
     }
   }
   return nullptr;
+}
+
+
+Node *Graph::getNodeByKey(const std::string &key) {
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getKey() == key) {
+      return node_wrapper->node_;
+    }
+  }
+  return nullptr;
+}
+
+std::vector<Node *> Graph::getNodesByKey(const std::string &key) {
+  std::vector<Node *> nodes;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getKey() == key) {
+      nodes.emplace_back(node_wrapper->node_);
+    }
+  }
+  return nodes;
 }
 
 base::Status Graph::setNodeParam(const std::string &node_name,
@@ -870,7 +891,7 @@ base::Status Graph::construct() {
 
   if (!is_inner_) {
     for (auto iter : outputs_) {
-      // NNDEPLOY_LOGI("markGraphOutput: %s.\n", iter->getName().c_str());
+      NNDEPLOY_LOGI("markGraphOutput: %s.\n", iter->getName().c_str());
       iter->markGraphOutput();
     }
   }
@@ -981,6 +1002,43 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   if (json.HasMember("queue_max_size_") && json["queue_max_size_"].IsInt()) {
     queue_max_size_ = json["queue_max_size_"].GetInt();
   }
+
+  if (!is_inner_) {
+    if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
+      const rapidjson::Value& inputs = json["inputs_"];
+      for (rapidjson::SizeType i = 0; i < inputs.Size(); i++) {
+        if (inputs[i].IsString()) {
+          std::string input_name = inputs[i].GetString();
+          Edge *edge = this->getEdge(input_name);
+          if (edge == nullptr) {
+            edge = this->createEdge(input_name);
+          } 
+          if (edge == nullptr) {
+            NNDEPLOY_LOGE("create edge failed\n");
+            return base::kStatusCodeErrorInvalidValue;
+          }
+          insertUnique(inputs_, edge);
+        }
+      }
+    }
+    if (json.HasMember("outputs_") && json["outputs_"].IsArray()) { 
+      const rapidjson::Value& outputs = json["outputs_"];
+      for (rapidjson::SizeType i = 0; i < outputs.Size(); i++) {
+        if (outputs[i].IsString()) {
+          std::string output_name = outputs[i].GetString();
+          Edge *edge = this->getEdge(output_name);
+          if (edge == nullptr) {
+            edge = this->createEdge(output_name);
+          }
+          if (edge == nullptr) {
+            NNDEPLOY_LOGE("create edge failed\n");
+            return base::kStatusCodeErrorInvalidValue;
+          }
+          insertUnique(outputs_, edge);
+        }
+      }
+    }
+  } 
   
   if (json.HasMember("node_repository_") && json["node_repository_"].IsArray()) {
     const rapidjson::Value& nodes = json["node_repository_"];

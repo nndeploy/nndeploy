@@ -67,6 +67,7 @@ class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
 class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
  public:
   ClassificationResnetGraph(const std::string &name) : dag::Graph(name) {
+    key_ = "nndeploy::classification::ClassificationResnetGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<ClassificationResult>();
   }
@@ -74,6 +75,7 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
                             std::vector<dag::Edge *> inputs,
                             std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
+    key_ = "nndeploy::classification::ClassificationResnetGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<ClassificationResult>();
   }

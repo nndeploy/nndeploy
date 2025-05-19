@@ -467,7 +467,7 @@ REGISTER_NODE("nndeploy::stable_diffusion::DDIMScheduleNode", DDIMScheduleNode);
   // draw box
   dag::Edge *draw_output = graph->createEdge("draw_output");
   dag::Node *draw_box_node;
-  if (name == "nndeploy::detect::yolo::YoloMultiConvOutputGraph") {
+  if (name == "nndeploy::detect::YoloMultiConvOutputGraph") {
     draw_box_node = graph->createNode<detect::YoloMultiConvDrawBoxNode>(
         "DrawBoxNode", {&input, &output}, {draw_output});
   } else {

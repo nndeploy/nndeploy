@@ -716,6 +716,24 @@ CodecFlag stringToCodecFlag(const std::string &src) {
   }
 }
 
+std::string codecFlagToString(CodecFlag src) {
+  switch (src) {
+    case kCodecFlagImage:
+      return "kCodecFlagImage";
+    case kCodecFlagImages:
+      return "kCodecFlagImages";
+    case kCodecFlagVideo:
+      return "kCodecFlagVideo";
+    case kCodecFlagCamera:
+      return "kCodecFlagCamera";
+    case kCodecFlagOther:
+      return "kCodecFlagOther";
+    default:
+      NNDEPLOY_LOGI("Unsupported codec flag: %d.\n", static_cast<int>(src));
+      return "kCodecFlagImage";
+  }
+}
+
 std::string parallelTypeToString(ParallelType src) {
   switch (src) {
     case kParallelTypeNone:

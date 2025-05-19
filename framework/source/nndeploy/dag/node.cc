@@ -795,9 +795,6 @@ base::Status Node::serialize(
   json.AddMember("is_debug_", is_debug_, allocator);
   json.AddMember("is_graph_", is_graph_, allocator);
 
-  // is_external_stream_
-  json.AddMember("is_external_stream_", is_external_stream_, allocator);
-
   // 写入节点类型
   std::string node_type_str = nodeTypeToString(node_type_);
   json.AddMember("node_type_",
@@ -807,7 +804,7 @@ base::Status Node::serialize(
   if (param_ != nullptr) {
     rapidjson::Value param_json(rapidjson::kObjectType);
     param_->serialize(param_json, allocator);
-    json.AddMember("op_param_", param_json, allocator);
+    json.AddMember("param_", param_json, allocator);
   }
 
   return base::kStatusCodeOk;
@@ -910,9 +907,9 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   }
 
   // 读取参数
-  if (json.HasMember("op_param_") && json["op_param_"].IsObject() &&
+  if (json.HasMember("param_") && json["param_"].IsObject() &&
       param_ != nullptr) {
-    param_->deserialize(json["op_param_"]);
+    param_->deserialize(json["param_"]);
   }
 
   return base::kStatusCodeOk;

@@ -90,6 +90,7 @@ class NNDEPLOY_CC_API EmbeddingNode : public dag::Node {
   EmbeddingNode(const std::string& name, std::vector<dag::Edge*>& inputs,
                 std::vector<dag::Edge*>& outputs)
       : Node(name, inputs, outputs), is_first_(true) {
+    key_ = "nndeploy::llm::EmbeddingNode";
     param_ = std::make_shared<EmbeddingParam>();
   }
   virtual ~EmbeddingNode() {}
@@ -122,6 +123,7 @@ class NNDEPLOY_CC_API SampleNode : public dag::Node {
   SampleNode(const std::string& name, std::vector<dag::Edge*> inputs,
              std::vector<dag::Edge*> outputs)
       : Node(name, inputs, outputs), is_first_(true) {
+    key_ = "nndeploy::llm::SampleNode";
     param_ = std::make_shared<SampleParam>();
   }
   virtual ~SampleNode() {}
@@ -139,6 +141,7 @@ class NNDEPLOY_CC_API PromptNode : public dag::Node {
   PromptNode(const std::string& name, std::vector<dag::Edge*> inputs,
              std::vector<dag::Edge*> outputs)
       : Node(name, inputs, outputs) {
+    key_ = "nndeploy::llm::PromptNode";
     param_ = std::make_shared<PromptParam>();
   }
   virtual ~PromptNode() {}
@@ -155,7 +158,9 @@ class NNDEPLOY_CC_API LlmPrefillGraph : public dag::Graph {
   LlmPrefillGraph(const std::string& name, std::vector<dag::Edge*> inputs,
                   std::vector<dag::Edge*> outputs,
                   base::InferenceType inference_type)
-      : dag::Graph(name, inputs, outputs), inference_type_(inference_type) {}
+      : dag::Graph(name, inputs, outputs), inference_type_(inference_type) {
+    key_ = "nndeploy::llm::LlmPrefillGraph";
+  }
 
   LlmPrefillGraph(const std::string& name, std::vector<dag::Edge*>& inputs,
                   std::vector<dag::Edge*>& outputs,
@@ -170,6 +175,7 @@ class NNDEPLOY_CC_API LlmPrefillGraph : public dag::Graph {
         hidden_size_(config.hidden_size_),
         kv_init_shape_(config.kv_init_shape_) {
     history_ids_ = new tokenizer::TokenizerIds();
+    key_ = "nndeploy::llm::LlmPrefillGraph";
     createPrefillNodesEdges();
     setParams(is_path, model_type, device_type, config);
   }
@@ -238,6 +244,7 @@ class NNDEPLOY_CC_API LlmDecodeGraph : public dag::Loop {
         hidden_size_(config.hidden_size_),
         max_seq_len_(config.max_seq_len_),
         inference_type_(inference_type) {
+    key_ = "nndeploy::llm::LlmDecodeGraph";
     getStopTokens(config.tokenizer_txt_);
     createPrefillNodesEdges();
     setParams(is_path, model_type, device_type, config);

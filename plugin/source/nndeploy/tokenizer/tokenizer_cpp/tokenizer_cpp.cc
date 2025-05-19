@@ -307,5 +307,8 @@ std::string TokenizerDecodeCpp::idToToken(int32_t token_id) {
   return tokenizer_->IdToToken(token_id);
 }
 
+REGISTER_NODE("nndeploy::tokenizer::TokenizerEncodeCpp", TokenizerEncodeCpp);
+REGISTER_NODE("nndeploy::tokenizer::TokenizerDecodeCpp", TokenizerDecodeCpp);
+
 }  // namespace tokenizer
 }  // namespace nndeploy

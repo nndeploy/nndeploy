@@ -34,6 +34,7 @@ namespace detect {
 class NNDEPLOY_CC_API DrawBoxNode : public dag::Node {
  public:
   DrawBoxNode(const std::string &name) : Node(name) {
+    key_ = "nndeploy::detect::DrawBoxNode";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<DetectResult>();
     this->setOutputTypeInfo<cv::Mat>();
@@ -41,6 +42,7 @@ class NNDEPLOY_CC_API DrawBoxNode : public dag::Node {
   DrawBoxNode(const std::string &name, std::vector<dag::Edge *> inputs,
               std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {
+    key_ = "nndeploy::detect::DrawBoxNode";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<DetectResult>();
     this->setOutputTypeInfo<cv::Mat>();
@@ -90,6 +92,7 @@ class NNDEPLOY_CC_API DrawBoxNode : public dag::Node {
 class NNDEPLOY_CC_API YoloMultiConvDrawBoxNode : public dag::Node {
  public:
   YoloMultiConvDrawBoxNode(const std::string &name) : Node(name) {
+    key_ = "nndeploy::detect::YoloMultiConvDrawBoxNode";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<DetectResult>();
     this->setOutputTypeInfo<cv::Mat>();
@@ -98,6 +101,7 @@ class NNDEPLOY_CC_API YoloMultiConvDrawBoxNode : public dag::Node {
                            std::vector<dag::Edge *> inputs,
                            std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {
+    key_ = "nndeploy::detect::YoloMultiConvDrawBoxNode";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<DetectResult>();
     this->setOutputTypeInfo<cv::Mat>();
