@@ -384,7 +384,7 @@ REGISTER_NODE("nndeploy::stable_diffusion::DDIMScheduleNode", DDIMScheduleNode);
 - infer_node: 用于对输入图片进行推理，得到检测结果；
 - postprocess_node: 用于对检测结果进行后处理，包括非极大值抑制、置信度阈值过滤等操作；
 - draw_node: 用于将检测结果绘制到输入图片上；
-- save_node: 用于将检测结果保存为图片。
+- encode_node: 用于将检测结果保存为图片。
 
 在该部署案例中，使用nndeploy完成了目标检测推理的图构建与运行，其流程大致如下：
 
