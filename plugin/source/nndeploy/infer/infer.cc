@@ -5,6 +5,7 @@ namespace nndeploy {
 namespace infer {
 
 Infer::Infer(const std::string &name) : dag::Node(name) {
+  key_ = "nndeploy::infer::Infer";
   this->setInputTypeInfo<device::Tensor>();
   this->setOutputTypeInfo<device::Tensor>();
   // NNDEPLOY_LOGI("Infer constructor: %s", name.c_str());
@@ -14,6 +15,7 @@ Infer::Infer(const std::string &name) : dag::Node(name) {
 Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
     : dag::Node(name, inputs, outputs) {
+  key_ = "nndeploy::infer::Infer";
   if (inputs.size() == 0) {
     this->setInputTypeInfo<device::Tensor>();
   }
@@ -30,6 +32,7 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
 
 Infer::Infer(const std::string &name, base::InferenceType type)
     : dag::Node(name) {
+  key_ = "nndeploy::infer::Infer";
   type_ = type;
   inference_ = inference::createInference(type);
   if (inference_ == nullptr) {
@@ -44,6 +47,7 @@ Infer::Infer(const std::string &name, base::InferenceType type)
 Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs, base::InferenceType type)
     : dag::Node(name, inputs, outputs) {
+  key_ = "nndeploy::infer::Infer";
   type_ = type;
   inference_ = inference::createInference(type);
   if (inference_ == nullptr) {
@@ -355,6 +359,59 @@ base::Status Infer::run() {
 
 std::shared_ptr<inference::Inference> Infer::getInference() {
   return inference_;
+}
+
+base::Status Infer::serialize(
+    rapidjson::Value &json,
+    rapidjson::Document::AllocatorType &allocator) const {
+  base::Status status = dag::Node::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  std::string type_str = base::inferenceTypeToString(type_);
+  json.AddMember("type_", rapidjson::Value(type_str.c_str(), allocator),
+                allocator);
+  json.AddMember("is_input_dynamic_", is_input_dynamic_, allocator);
+  json.AddMember("is_output_dynamic_", is_output_dynamic_, allocator);
+  json.AddMember("can_op_input_", can_op_input_, allocator);
+  json.AddMember("can_op_output_", can_op_output_, allocator);
+  base::Param *param = inference_->getParam();
+  if (param != nullptr) {
+    rapidjson::Value param_json(rapidjson::kObjectType);
+    param->serialize(param_json, allocator);
+    json.AddMember("param_", param_json, allocator);
+  }
+  return status;
+}
+base::Status Infer::deserialize(rapidjson::Value &json) {
+  base::Status status = dag::Node::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  if (json.HasMember("type_") && json["type_"].IsString()) {
+    type_ = base::stringToInferenceType(json["type_"].GetString());
+    status = this->setInferenceType(type_);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInferenceType failed");
+  }
+  if (json.HasMember("is_input_dynamic_") && json["is_input_dynamic_"].IsBool()) {
+    is_input_dynamic_ = json["is_input_dynamic_"].GetBool();
+  }
+  if (json.HasMember("is_output_dynamic_") && json["is_output_dynamic_"].IsBool()) {
+    is_output_dynamic_ = json["is_output_dynamic_"].GetBool();
+  }
+  if (json.HasMember("can_op_input_") && json["can_op_input_"].IsBool()) {
+    can_op_input_ = json["can_op_input_"].GetBool();
+  }
+  if (json.HasMember("can_op_output_") && json["can_op_output_"].IsBool()) {
+    can_op_output_ = json["can_op_output_"].GetBool();
+  }
+  if (json.HasMember("param_") && json["param_"].IsObject() && inference_ != nullptr) {
+    base::Param* param = inference_->getParam();
+    if (param != nullptr) {
+      param->deserialize(json["param_"]);
+    }
+  }
+  return status;
 }
 
 REGISTER_NODE("nndeploy::infer::Infer", Infer);

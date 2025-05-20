@@ -622,5 +622,11 @@ dag::Graph* createLlmLlama2Graph(const std::string& name,
   return llama2_graph;
 }
 
+REGISTER_NODE("nndeploy::llm::EmbeddingNode", EmbeddingNode);
+REGISTER_NODE("nndeploy::llm::SampleNode", SampleNode);
+REGISTER_NODE("nndeploy::llm::PromptNode", PromptNode);
+REGISTER_NODE("nndeploy::llm::LlmPrefillGraph", LlmPrefillGraph);
+REGISTER_NODE("nndeploy::llm::LlmDecodeGraph", LlmDecodeGraph);
+
 }  // namespace llm
 }  // namespace nndeploy

@@ -32,6 +32,7 @@ base::Status OpenCvImageDecodeNode::run() {
   cv::Mat *mat = new cv::Mat(cv::imread(path_));
   width_ = mat->cols;
   height_ = mat->rows;
+  // NNDEPLOY_LOGE("OpenCvImageDecodeNode::run() width_[%d] height_[%d]\n", width_, height_);
   outputs_[0]->set(mat, false);
   index_++;
   return base::kStatusCodeOk;
@@ -390,6 +391,19 @@ std::shared_ptr<EncodeNode> createOpenCvEncodeNodeSharedPtr(
 
   return temp;
 }
+
+REGISTER_NODE("nndeploy::codec::OpenCvImageDecodeNode", OpenCvImageDecodeNode);
+REGISTER_NODE("nndeploy::codec::OpenCvImagesDecodeNode",
+              OpenCvImagesDecodeNode);
+REGISTER_NODE("nndeploy::codec::OpenCvVedioDecodeNode", OpenCvVedioDecodeNode);
+REGISTER_NODE("nndeploy::codec::OpenCvCameraDecodeNode",
+              OpenCvCameraDecodeNode);
+REGISTER_NODE("nndeploy::codec::OpenCvImageEncodeNode", OpenCvImageEncodeNode);
+REGISTER_NODE("nndeploy::codec::OpenCvImagesEncodeNode",
+              OpenCvImagesEncodeNode);
+REGISTER_NODE("nndeploy::codec::OpenCvVedioEncodeNode", OpenCvVedioEncodeNode);
+REGISTER_NODE("nndeploy::codec::OpenCvCameraEncodeNode",
+              OpenCvCameraEncodeNode);
 
 }  // namespace codec
 }  // namespace nndeploy

@@ -102,6 +102,9 @@ nndeploy_option(ENABLE_NNDEPLOY_DEVICE_SOPHON_NPU "Enable Sophon NPU support" OF
 
 # 4. **Operator Backend Options (Enable as Needed, All Disabled by Default, No Operator Backend Dependencies)**: Such as cudnn
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDNN "Enable NVIDIA cuDNN acceleration library" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN "Enable Intel oneDNN acceleration library" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK "Enable XNNPACK acceleration library" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK "Enable QNNPACK acceleration library" OFF)
 
 # 5. **Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)**: Such as TensorRT, OpenVINO, ONNX Runtime and other inference frameworks
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TENSORRT "Enable NVIDIA TensorRT backend" OFF)
@@ -579,7 +582,7 @@ if(ENABLE_NNDEPLOY_OP)
   #   set(OP_SOURCE ${OP_SOURCE} ${OP_CPU_SOURCE})
   # endif()
 
-  if(ENABLE_NNDEPLOY_DEVICE_X86)
+  if(ENABLE_NNDEPLOY_DEVICE_X86 AND ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN)
     file(GLOB_RECURSE OP_X86_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/x86/*.h"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/x86/*.cc"
@@ -587,7 +590,7 @@ if(ENABLE_NNDEPLOY_OP)
     set(OP_SOURCE ${OP_SOURCE} ${OP_X86_SOURCE})
   endif()
 
-  if(ENABLE_NNDEPLOY_DEVICE_ARM)
+  if(ENABLE_NNDEPLOY_DEVICE_ARM AND ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK AND ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK)
     file(GLOB_RECURSE OP_ARM_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/arm/*.h"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/arm/*.cc"
@@ -595,7 +598,7 @@ if(ENABLE_NNDEPLOY_OP)
     set(OP_SOURCE ${OP_SOURCE} ${OP_ARM_SOURCE})
   endif()
 
-  if(ENABLE_NNDEPLOY_DEVICE_CUDA)
+  if(ENABLE_NNDEPLOY_DEVICE_CUDA AND ENABLE_NNDEPLOY_DEVICE_CUDNN)
     file(GLOB_RECURSE OP_CUDA_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/cuda/*.h"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/cuda/*.cc"

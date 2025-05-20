@@ -18,9 +18,9 @@ namespace nndeploy {
 namespace dag {
 
 enum class NodeType {
-  kNodeTypeInput = 1, // 输入节点，无输出
-  kNodeTypeOutput = 2, // 输出节点，无输入
-  kNodeTypeIntermediate = 3, // 中间节点，既有输入也有输出
+  kNodeTypeInput = 1,         // 输入节点，无输出
+  kNodeTypeOutput = 2,        // 输出节点，无输入
+  kNodeTypeIntermediate = 3,  // 中间节点，既有输入也有输出
 };
 
 enum class EdgeTypeFlag {
@@ -188,6 +188,12 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
   std::shared_ptr<TypeHolderBase> type_holder_;
   std::string edge_name_;
 };
+
+std::string nodeTypeToString(NodeType node_type);
+NodeType stringToNodeType(const std::string& node_type_str);
+
+std::string edgeTypeToString(EdgeTypeFlag edge_type);
+EdgeTypeFlag stringToEdgeType(const std::string& edge_type_str);
 
 }  // namespace dag
 }  // namespace nndeploy

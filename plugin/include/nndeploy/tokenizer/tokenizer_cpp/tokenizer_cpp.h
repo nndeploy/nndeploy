@@ -34,12 +34,18 @@ class NNDEPLOY_CC_API TokenizerEncodeCpp
     : public nndeploy::tokenizer::TokenizerEncode {
  public:
   TokenizerEncodeCpp(const std::string& name) : TokenizerEncode(name) {
+    key_ = "nndeploy::tokenizer::TokenizerEncodeCpp";
     param_ = std::make_shared<TokenizerPraram>();
+    this->setInputTypeInfo<TokenizerText>();
+    this->setOutputTypeInfo<TokenizerIds>();
   }
   TokenizerEncodeCpp(const std::string& name, std::vector<dag::Edge*> inputs,
                      std::vector<dag::Edge*> outputs)
       : TokenizerEncode(name, inputs, outputs) {
+    key_ = "nndeploy::tokenizer::TokenizerEncodeCpp";
     param_ = std::make_shared<TokenizerPraram>();
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<device::Tensor>();
   }
   virtual ~TokenizerEncodeCpp();
 
@@ -86,12 +92,18 @@ class NNDEPLOY_CC_API TokenizerDecodeCpp
     : public nndeploy::tokenizer::TokenizerDecode {
  public:
   TokenizerDecodeCpp(const std::string& name) : TokenizerDecode(name) {
+    key_ = "nndeploy::tokenizer::TokenizerDecodeCpp";
     param_ = std::make_shared<TokenizerPraram>();
+    this->setInputTypeInfo<TokenizerIds>();
+    this->setOutputTypeInfo<TokenizerText>();
   }
   TokenizerDecodeCpp(const std::string& name, std::vector<dag::Edge*> inputs,
                      std::vector<dag::Edge*> outputs)
       : TokenizerDecode(name, inputs, outputs) {
+    key_ = "nndeploy::tokenizer::TokenizerDecodeCpp";
     param_ = std::make_shared<TokenizerPraram>();
+    this->setInputTypeInfo<TokenizerIds>();
+    this->setOutputTypeInfo<TokenizerText>();
   }
   virtual ~TokenizerDecodeCpp();
 

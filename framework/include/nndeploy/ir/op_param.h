@@ -79,6 +79,7 @@ enum OpType : int {
   kOpTypeConv,
   kOpTypeCos,
   kOpTypeCosh,
+  kOpTypeConstantOfShape,
   kOpTypeDepthToSpace,
   kOpTypeDequantizeLinear,
   kOpTypeDet,
@@ -89,6 +90,7 @@ enum OpType : int {
   kOpTypeEqual,
   kOpTypeErf,
   kOpTypeExp,
+  kOpTypeExpand,
   kOpTypeFlatten,
   kOpTypeFloor,
   kOpTypeGather,
@@ -220,7 +222,7 @@ NNDEPLOY_CC_API OpType stringToOpType(const std::string &op_type_name);
  */
 class OpParamCreator {
  public:
-  virtual ~OpParamCreator(){};
+  virtual ~OpParamCreator() {};
   virtual std::shared_ptr<base::Param> createOpParam(OpType type) = 0;
 };
 
@@ -278,8 +280,8 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
  */
 class NNDEPLOY_CC_API OpParam : public base::Param {
  public:
-  OpParam() : base::Param(){};
-  virtual ~OpParam(){};
+  OpParam() : base::Param() {};
+  virtual ~OpParam() {};
 
   PARAM_COPY(OpParam)
   PARAM_COPY_TO(OpParam)
@@ -291,8 +293,8 @@ class NNDEPLOY_CC_API OpParam : public base::Param {
 
 class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
  public:
-  BatchNormalizationParam() : OpParam(){};
-  virtual ~BatchNormalizationParam(){};
+  BatchNormalizationParam() : OpParam() {};
+  virtual ~BatchNormalizationParam() {};
 
   PARAM_COPY(BatchNormalizationParam)
   PARAM_COPY_TO(BatchNormalizationParam)
@@ -337,8 +339,8 @@ class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
 
 class ConcatParam : public OpParam {
  public:
-  ConcatParam() : OpParam(){};
-  virtual ~ConcatParam(){};
+  ConcatParam() : OpParam() {};
+  virtual ~ConcatParam() {};
 
   PARAM_COPY(ConcatParam)
   PARAM_COPY_TO(ConcatParam)
@@ -866,8 +868,8 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
 
 class NNDEPLOY_CC_API FlattenParam : public OpParam {
  public:
-  FlattenParam() : OpParam(){};
-  virtual ~FlattenParam(){};
+  FlattenParam() : OpParam() {};
+  virtual ~FlattenParam() {};
 
   PARAM_COPY(FlattenParam)
   PARAM_COPY_TO(FlattenParam)
@@ -893,8 +895,8 @@ class NNDEPLOY_CC_API FlattenParam : public OpParam {
 
 class NNDEPLOY_CC_API EmbeddingParam : public OpParam {
  public:
-  EmbeddingParam() : OpParam(){};
-  virtual ~EmbeddingParam(){};
+  EmbeddingParam() : OpParam() {};
+  virtual ~EmbeddingParam() {};
 
   PARAM_COPY(EmbeddingParam)
   PARAM_COPY_TO(EmbeddingParam)
@@ -908,8 +910,8 @@ class NNDEPLOY_CC_API EmbeddingParam : public OpParam {
 
 class NNDEPLOY_CC_API GemmParam : public OpParam {
  public:
-  GemmParam() : OpParam(){};
-  virtual ~GemmParam(){};
+  GemmParam() : OpParam() {};
+  virtual ~GemmParam() {};
 
   PARAM_COPY(GemmParam)
   PARAM_COPY_TO(GemmParam)
@@ -1235,6 +1237,283 @@ class NNDEPLOY_CC_API AvaragePoolParam : public OpParam {
   std::vector<int> pads_ = {0, 0, 0, 0};
   // 平均池化的步长
   std::vector<int> strides_ = {1, 1};
+};
+
+class NNDEPLOY_CC_API CastParam : public OpParam {
+ public:
+  CastParam() : OpParam() {}
+  virtual ~CastParam() {}
+
+  PARAM_COPY(CastParam)
+  PARAM_COPY_TO(CastParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("saturate_", saturate_, allocator);
+    json.AddMember("to_", rapidjson::Value(rapidjson::kArrayType), allocator);
+    json["to_"].PushBack(static_cast<int32_t>(to_.code_), allocator);
+    json["to_"].PushBack(static_cast<int32_t>(to_.bits_), allocator);
+    json["to_"].PushBack(static_cast<int32_t>(to_.lanes_), allocator);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("saturate_")) {
+      saturate_ = json["saturate_"].GetInt();
+    } else {
+      saturate_ = 1;
+    }
+
+    if (json.HasMember("to_")) {
+      to_.code_ = json["to_"][0].GetInt();
+      to_.bits_ = json["to_"][1].GetInt();
+      to_.lanes_ = json["to_"][2].GetInt();
+    } else {
+      to_ = base::dataTypeOf<float>();
+    }
+
+    return base::kStatusCodeOk;
+  };
+
+ public:
+  int saturate_ =
+      1;  // https://onnx.org.cn/onnx/operators/onnx__Cast.html#cast-19
+  base::DataType to_;  // 输入张量元素将被转换为的数据类型。
+};
+
+class NNDEPLOY_CC_API UnsqueezeParam : public OpParam {
+ public:
+  UnsqueezeParam() : OpParam() {}
+  virtual ~UnsqueezeParam() {}
+
+  PARAM_COPY(UnsqueezeParam)
+  PARAM_COPY_TO(UnsqueezeParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("axes_", axes_, allocator);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("axes_")) {
+      axes_ = json["axes_"].GetInt();
+    } else {
+      axes_ = 0;  // 默认值
+    }
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int axes_ = 0;  // 指定在哪些维度上增加维度，默认值为0
+};
+
+class NNDEPLOY_CC_API GatherParam : public OpParam {
+ public:
+  GatherParam() : OpParam() {}  // 默认构造函数
+  virtual ~GatherParam() {}
+
+  PARAM_COPY(GatherParam)
+  PARAM_COPY_TO(GatherParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("axis_", axis_, allocator);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("axis_")) {
+      axis_ = json["axis_"].GetInt();
+    } else {
+      axis_ = 0;  // 默认值
+    }
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int axis_ = 0;  // 用于收集的轴，默认值为0
+};
+
+class NNDEPLOY_CC_API ReduceMeanParam : public OpParam {
+ public:
+  ReduceMeanParam() : OpParam() {}
+  virtual ~ReduceMeanParam() {}
+
+  PARAM_COPY(ReduceMeanParam)
+  PARAM_COPY_TO(ReduceMeanParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("keepdims_", keepdims_, allocator);
+    json.AddMember("noop_with_empty_axes_", noop_with_empty_axes_, allocator);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("keepdims_")) {
+      keepdims_ = json["keepdims_"].GetInt();
+    } else {
+      keepdims_ = 1;  // 默认值
+    }
+
+    if (json.HasMember("noop_with_empty_axes_")) {
+      noop_with_empty_axes_ = json["noop_with_empty_axes_"].GetInt();
+    } else {
+      noop_with_empty_axes_ = 0;  // 默认值
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int keepdims_ = 1;              // 是否保留被约简的维度，默认为1
+  int noop_with_empty_axes_ = 0;  // 当axes为空时的行为，默认为0
+};
+
+class NNDEPLOY_CC_API ReduceMaxParam : public OpParam {
+ public:
+  ReduceMaxParam() : OpParam() {}
+  virtual ~ReduceMaxParam() {}
+
+  PARAM_COPY(ReduceMaxParam)
+  PARAM_COPY_TO(ReduceMaxParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("keepdims_", keepdims_, allocator);
+    json.AddMember("noop_with_empty_axes_", noop_with_empty_axes_, allocator);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("keepdims_")) {
+      keepdims_ = json["keepdims_"].GetInt();
+    } else {
+      keepdims_ = 1;  // 默认值
+    }
+
+    if (json.HasMember("noop_with_empty_axes_")) {
+      noop_with_empty_axes_ = json["noop_with_empty_axes_"].GetInt();
+    } else {
+      noop_with_empty_axes_ = 0;  // 默认值
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int keepdims_ = 1;              // 是否保留被约简的维度，默认为1
+  int noop_with_empty_axes_ = 0;  // 当axes为空时的行为，默认为0
+};
+
+class NNDEPLOY_CC_API ReduceMinParam : public OpParam {
+ public:
+  ReduceMinParam() : OpParam() {}
+  virtual ~ReduceMinParam() {}
+
+  PARAM_COPY(ReduceMinParam)
+  PARAM_COPY_TO(ReduceMinParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("keepdims_", keepdims_, allocator);
+    json.AddMember("noop_with_empty_axes_", noop_with_empty_axes_, allocator);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("keepdims_")) {
+      keepdims_ = json["keepdims_"].GetInt();
+    } else {
+      keepdims_ = 1;  // 默认值
+    }
+
+    if (json.HasMember("noop_with_empty_axes_")) {
+      noop_with_empty_axes_ = json["noop_with_empty_axes_"].GetInt();
+    } else {
+      noop_with_empty_axes_ = 0;  // 默认值
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int keepdims_ = 1;              // 是否保留被约简的维度，默认为1
+  int noop_with_empty_axes_ = 0;  // 当axes为空时的行为，默认为0
+};
+
+class NNDEPLOY_CC_API ReduceSumParam : public OpParam {
+ public:
+  ReduceSumParam() : OpParam() {}
+  virtual ~ReduceSumParam() {}
+
+  PARAM_COPY(ReduceSumParam)
+  PARAM_COPY_TO(ReduceSumParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("keepdims_", keepdims_, allocator);
+    json.AddMember("noop_with_empty_axes_", noop_with_empty_axes_, allocator);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("keepdims_")) {
+      keepdims_ = json["keepdims_"].GetInt();
+    } else {
+      keepdims_ = 1;  // 默认值
+    }
+
+    if (json.HasMember("noop_with_empty_axes_")) {
+      noop_with_empty_axes_ = json["noop_with_empty_axes_"].GetInt();
+    } else {
+      noop_with_empty_axes_ = 0;  // 默认值
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int keepdims_ = 1;              // 是否保留被约简的维度，默认为1
+  int noop_with_empty_axes_ = 0;  // 当axes为空时的行为，默认为0
+};
+
+class NNDEPLOY_CC_API ShapeParam : public OpParam {
+ public:
+  ShapeParam() : OpParam() {}  // 默认构造函数
+  virtual ~ShapeParam() {}
+
+  PARAM_COPY(ShapeParam)
+  PARAM_COPY_TO(ShapeParam)
+
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("start_", start_, allocator);
+    json.AddMember("end_", end_, allocator);
+    return base::kStatusCodeOk;
+  }
+
+  base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("start_")) {
+      start_ = json["start_"].GetInt();
+    } else {
+      start_ = 0;  // 默认值
+    }
+
+    if (json.HasMember("end_")) {
+      end_ = json["end_"].GetInt();
+    } else {
+      end_ = -1;  // 默认值
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  int start_ = 0;  // 用于切片形状的起始轴，默认值为0
+  int end_ =
+      -1;  // 负值表示从后向前计数维度。如果省略，将包含直到（包括）最后一个轴的所有轴的大小。
 };
 
 }  // namespace ir

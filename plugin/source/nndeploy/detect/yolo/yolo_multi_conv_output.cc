@@ -280,9 +280,9 @@ base::Status YoloMultiConvOutputPostProcess::run() {
 //   return graph;
 // }
 
-REGISTER_NODE("nndeploy::detect::yolo::YoloMultiConvOutputPostProcess",
+REGISTER_NODE("nndeploy::detect::YoloMultiConvOutputPostProcess",
               YoloMultiConvOutputPostProcess);
-REGISTER_NODE("nndeploy::detect::yolo::YoloMultiConvOutputGraph",
+REGISTER_NODE("nndeploy::detect::YoloMultiConvOutputGraph",
               YoloMultiConvOutputGraph);
 
 }  // namespace detect

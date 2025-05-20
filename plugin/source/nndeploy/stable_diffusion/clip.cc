@@ -14,7 +14,9 @@ class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
   CvtTokenIds2TensorNode(const std::string &name,
                          std::vector<dag::Edge *> inputs,
                          std::vector<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {}
+      : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::stable_diffusion::CvtTokenIds2TensorNode";
+  }
 
   virtual ~CvtTokenIds2TensorNode() {}
 

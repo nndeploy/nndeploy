@@ -30,18 +30,27 @@ class NNDEPLOY_CC_API WarpaffinePreprocess : public dag::Node {
   //   param_ = std::make_shared<WarpAffineParam>();
   // }
   WarpaffinePreprocess(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::preprocess::WarpaffinePreprocess";
     param_ = std::make_shared<WarpAffineParam>();
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<device::Tensor>();
   }
   WarpaffinePreprocess(const std::string &name,
                        std::initializer_list<dag::Edge *> inputs,
                        std::initializer_list<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::preprocess::WarpaffinePreprocess";
     param_ = std::make_shared<WarpAffineParam>();
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<device::Tensor>();
   }
   WarpaffinePreprocess(const std::string &name, std::vector<dag::Edge *> inputs,
                        std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::preprocess::WarpaffinePreprocess";
     param_ = std::make_shared<WarpAffineParam>();
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<device::Tensor>();
   }
   virtual ~WarpaffinePreprocess() {}
 

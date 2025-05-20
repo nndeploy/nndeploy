@@ -16,14 +16,16 @@ git submodule update --init --recursive
 
 包含了以下几类配置：
 
-1. **基础构建选项（建议采用默认配置）**：如是否构建为共享库、使用的C++标准等
-2. **核心模块选项（建议采用默认配置）**：控制基础模块、线程池、设备模块等核心功能的开启
+1. **基础构建选项（建议采用默认配置）**：如是否构建为共享库、使用的C++标准版本等等
+2. **核心模块选项（建议采用默认配置）**：更细粒度控制需要编译的文件
 3. **设备后端选项（按需打开，默认全部关闭，不依赖任何设备后端）**：如CUDA、OpenCL、各种NPU等硬件加速支持
-4. **算子后端选项（按需打开，默认全部关闭，不依赖任何算子后端）**：如cudnn
+4. **算子后端选项（按需打开，默认全部关闭，不依赖任何算子后端）**：如cudnn、onednn、xnnpack、qnnpack
 5. **推理后端选项（按需打开，默认全部关闭，不依赖任何推理后端）**：如TensorRT、OpenVINO、ONNX Runtime等推理框架支持
 6. **算法插件选项（建议采用默认配置，传统CV类算法打开，语言类和文生图类算法默认关闭）**：如检测、分割、llm、文生图等算法插件
+
     + 其中传统CV类算法依赖`OpenCV`，例如检测、分割、分类等，需要打开`ENABLE_NNDEPLOY_OPENCV`
-    + 其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，打开前参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)
+
+    + **注意**：其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，打开前参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)
   
 ## 3. 编译方法
 
@@ -249,124 +251,6 @@ make -j                     # 使用8个线程并行编译
 
 - 在windows平台下，系统目录自带onnxruntime，故你在运行时或许可能会链接到系统目录下自带的onnxruntime，从而导致运行时出错。解决办法
   - 将你自己的onnxruntime库拷贝至build目录下
-
-- 编译ONNX时，absl库版本需要与onnx版本一致，否则会出现链接错误，解决办法如下：
-  - 最简单的解决方案是更新 Abseil 库到最新版本，因为这可能是一个已知并修复的问题
-    ```
-    git clone https://github.com/abseil/abseil-cpp.git
-    cd abseil-cpp
-    git checkout latest
-    cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local .
-    make
-    sudo make install
-    ```
-
-- 本地无protobuf或者protobuf版本不匹配，编译安装nndeploy/third_party/protobuf
-
-  下面是在 Linux 系统上编译安装最新版本 Protobuf 的详细步骤：
-
-  1. 准备环境
-
-      首先，确保系统已安装必要的开发工具：
-
-      ```bash
-      sudo apt update
-      sudo apt install -y build-essential autoconf automake libtool curl make g++ unzip git cmake
-      ```
-
-  2. 移除现有的 Protobuf 安装
-
-      为避免冲突，先移除系统中已有的 Protobuf：
-
-      ```bash
-      # 移除通过包管理器安装的版本
-      sudo apt remove -y protobuf-compiler libprotobuf-dev
-
-      # 如果之前手动安装过，可能需要删除这些文件
-      sudo rm -rf /usr/local/include/google/protobuf
-      sudo rm -rf /usr/local/bin/protoc*
-      sudo rm -rf /usr/local/lib/libprotobuf*
-      sudo rm -rf /usr/local/lib/libprotoc*
-      sudo rm -rf /usr/local/lib/pkgconfig/protobuf*
-      ```
-
-  3. 使用 CMake 构建和安装
-
-      推荐使用 CMake 构建，这是 Protobuf 现在推荐的方式：
-
-      ```bash
-      # 进入protobuf目录
-      cd path/nndeploy/third_party/protobuf
-
-      # 创建并进入构建目录
-      mkdir build && cd build
-
-      # 配置 CMake
-      cmake .. \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-          -DCMAKE_INSTALL_PREFIX=/usr/local \
-          -Dprotobuf_BUILD_TESTS=OFF \
-          -Dprotobuf_BUILD_SHARED_LIBS=ON
-
-      # 编译
-      make -j$(nproc)
-
-      # 安装
-      sudo make install
-
-      # 更新动态链接库缓存
-      sudo ldconfig
-      ```
-
-  4. 验证安装
-
-      安装完成后，验证 Protobuf 是否正确安装：
-
-      ```bash
-      # 检查 protoc 版本
-      protoc --version
-
-      # 检查库文件是否存在
-      ls -la /usr/local/lib/libprotobuf*
-
-      # 检查头文件是否存在
-      ls -la /usr/local/include/google/protobuf/
-      ```
-
-  5. 配置 pkg-config
-
-      确保 pkg-config 能正确找到 Protobuf：
-
-      ```bash
-      # 检查 pkg-config 是否能找到 protobuf
-      pkg-config --cflags --libs protobuf
-
-      # 如果找不到，可能需要设置 PKG_CONFIG_PATH
-      export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
-      ```
-
-  6. 可能的问题和解决方案
-  
-      如果遇到链接错误，可能需要确保链接器能找到库：  
-
-      ```bash
-      # 将 /usr/local/lib 添加到链接器配置
-      echo "/usr/local/lib" | sudo tee /etc/ld.so.conf.d/protobuf.conf
-      sudo ldconfig
-      ```
-  
-  7. 重新编译nndeploy
-
-      清空build目录，重新编译nndeploy 
-
-      ```bash
-      cd path/nndeploy/build
-      make clean
-      cmake ..
-      make -j
-      make install
-      ```
       
       
       

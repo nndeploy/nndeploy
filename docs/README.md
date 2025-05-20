@@ -32,6 +32,30 @@ sphinx-build -b html -D language=en ./ build/html/en
 
 对于新建的中文.md文件，会生成一个全新的对应的.po文件，可以借助docs目录下的po-translator工具（原仓库：https://github.com/UsenPang/po-translator/）进行翻译。
 
+需要在po-translator文件夹下新建一个.env文件，填写以下内容：
+
+```txt
+# 支持的模型：kimi、deepseek、qwen、glm、openai
+MODEL=deepseek
+# api key
+API_KEY=
+# 按照多少个字符分批翻译
+BATCH_MAX_CHARTS=2000
+# 失败最大重试次数
+MAX_RETRIES=4
+# po文件原目录
+FROM_DIR=
+# 翻译后的目录, 为空的话直接覆盖原文件
+TO_DIR=
+# 目标语言
+TARGET_LANG=英语
+
+# 代理配置，使用openai时请使用代理
+#http_proxy=
+#https_proxy=
+
+```
+
 推荐使用deepseek，需要申请API_KEY，充值10块就能用很久，**注意不要将API_KEY上传到公共平台**
 
 可以将新建的.po文件单独放在一个文件夹，翻译好以后复制回去

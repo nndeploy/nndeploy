@@ -44,6 +44,10 @@ class NNDEPLOY_CC_API Infer : public dag::Node {
 
   virtual std::shared_ptr<inference::Inference> getInference();
 
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator) const;
+  virtual base::Status deserialize(rapidjson::Value &json);
+
  private:
   base::InferenceType type_;
   std::shared_ptr<inference::Inference> inference_ = nullptr;

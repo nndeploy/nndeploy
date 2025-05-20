@@ -67,6 +67,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   // get node
   Node *getNode(const std::string &name);
   std::shared_ptr<Node> getNodeSharedPtr(const std::string &name);
+  Node *getNodeByKey(const std::string &key);
+  std::vector<Node *> getNodesByKey(const std::string &key);
 
   // set node param
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
@@ -228,6 +230,18 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   NodeWrapper *getNodeWrapper(Node *node);
   NodeWrapper *getNodeWrapper(const std::string &name);
+
+  // to json
+  virtual base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const;
+  // from json
+  virtual base::Status deserialize(rapidjson::Value &json);
+
+  // to json file
+  base::Status loadJson(const std::string &path);
+  // from json file
+  base::Status saveJson(const std::string &path);
 
  protected:
   virtual base::Status construct();

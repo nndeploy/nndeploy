@@ -82,6 +82,10 @@
 | 宏 | 默认值 | 描述 |
 |---|---|---|
 | `ENABLE_NNDEPLOY_DEVICE_CUDNN` | OFF | 启用NVIDIA cuDNN加速库 |
+| `ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN` | OFF | 启用X86 ONEDNN加速库 |
+| `ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK` | OFF | 启用ARM XNNPACK加速库 |
+| `ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK` | OFF | 启用ARM QNNPACK加速库 |
+
 
 ## 6. 推理后端选项（可选项，默认关闭，可以不依赖任何推理后端）
 

@@ -44,6 +44,8 @@
 // #include "nndeploy/op/ascend_cl/op_add.cc"
 // #include "nndeploy/op/ascend_cl/ascend_c/op_add_kernel.cc"
 
+#define LOAD_JSON 1
+
 using namespace nndeploy;
 
 DEFINE_int32(yolo_version, 11, "yolo_version");
@@ -94,20 +96,21 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> model_outputs = demo::getModelOutputs();
   NNDEPLOY_LOGE("model_outputs = %s.\n", model_outputs[0].c_str());
 
+#if !LOAD_JSON
   // 有向无环图graph的输入边packert
-  dag::Edge input("detect_in");
+  dag::Edge *input = new dag::Edge("detect_in");
   // 有向无环图graph的输出边packert
-  dag::Edge output("detect_out");
+  dag::Edge *output = new dag::Edge("detect_out");
 
   // graph
-  dag::Graph *graph = new dag::Graph("demo", {}, {&output});
+  dag::Graph *graph = new dag::Graph("demo", {}, {output});
   if (graph == nullptr) {
     NNDEPLOY_LOGE("graph is nullptr");
     return -1;
   }
   // 创建检测模型有向无环图graph
   detect::YoloGraph *detect_graph =
-      new detect::YoloGraph(name, {&input}, {&output});
+      new detect::YoloGraph(name, {input}, {output});
   dag::NodeDesc pre_desc("preprocess", {"detect_in"}, model_inputs);
   dag::NodeDesc infer_desc("infer", model_inputs, model_outputs);
   dag::NodeDesc post_desc("postprocess", model_outputs, {"detect_out"});
@@ -119,24 +122,42 @@ int main(int argc, char *argv[]) {
 
   // 解码节点
   codec::DecodeNode *decode_node = codec::createDecodeNode(
-      base::kCodecTypeOpenCV, codec_flag, "decode_node", &input);
+      base::kCodecTypeOpenCV, codec_flag, "decode_node", input);
   graph->addNode(decode_node);
 
   // draw box
   dag::Edge *draw_output = graph->createEdge("draw_output");
   dag::Node *draw_box_node;
-  if (name == "nndeploy::detect::yolo::YoloMultiConvOutputGraph") {
+  if (name == "nndeploy::detect::YoloMultiConvOutputGraph") {
     draw_box_node = graph->createNode<detect::YoloMultiConvDrawBoxNode>(
-        "DrawBoxNode", {&input, &output}, {draw_output});
+        "DrawBoxNode", {input, output}, {draw_output});
   } else {
     draw_box_node = graph->createNode<detect::DrawBoxNode>(
-        "DrawBoxNode", {&input, &output}, {draw_output});
+        "DrawBoxNode", {input, output}, {draw_output});
   }
 
   // 编码节点
   codec::EncodeNode *encode_node = codec::createEncodeNode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
   graph->addNode(encode_node);
+#else
+  dag::Graph *graph = new dag::Graph("demo");
+  graph->loadJson("detect_graph_v2.json");
+  graph->dump();
+  detect::YoloGraph *detect_graph =
+      (detect::YoloGraph *)graph->getNode("nndeploy::detect::YoloGraph");
+  if (detect_graph == nullptr) {
+    NNDEPLOY_LOGE("detect_graph is nullptr");
+    return -1;
+  }
+  detect_graph->setInferParam(device_type, model_type, is_path, model_value);
+  detect_graph->setVersion(version);
+  codec::DecodeNode *decode_node =
+      (codec::DecodeNode *)graph->getNode("decode_node");
+  codec::EncodeNode *encode_node =
+      (codec::EncodeNode *)graph->getNode("encode_node");
+  dag::Edge *output = graph->getOutput(0);
+#endif
 
   // 设置pipeline并行
   base::Status status = graph->setParallelType(pt);
@@ -156,8 +177,13 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->init()");
 
+  status = graph->saveJson("detect_graph_v3.json");
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph serialize failed");
+    return -1;
+  }
+
   status = graph->dump();
-  status = detect_graph->dump();
 
   NNDEPLOY_TIME_POINT_START("graph->run");
   decode_node->setPath(input_path);
@@ -175,7 +201,7 @@ int main(int argc, char *argv[]) {
 
     if (pt != base::kParallelTypePipeline) {
       detect::DetectResult *result =
-          (detect::DetectResult *)output.getGraphOutputParam();
+          (detect::DetectResult *)output->getGraphOutputParam();
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
@@ -187,7 +213,7 @@ int main(int argc, char *argv[]) {
     NNDEPLOY_LOGE("size = %d.\n", size);
     for (int i = 0; i < size; ++i) {
       detect::DetectResult *result =
-          (detect::DetectResult *)output.getGraphOutputParam();
+          (detect::DetectResult *)output->getGraphOutputParam();
       NNDEPLOY_LOGE("%d %p.\n", i, result);
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
@@ -213,9 +239,12 @@ int main(int argc, char *argv[]) {
   NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
 
   // 有向无环图graph销毁
+
+#if !LOAD_JSON
   delete encode_node;
   delete decode_node;
   delete detect_graph;
+#endif
   delete graph;
 
   ret = nndeployFrameworkDeinit();
