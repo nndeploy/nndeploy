@@ -80,9 +80,9 @@ nndeploy是一个简单易用、高性能、支持多端的AI推理部署框架�
   
 - **一组高性能的算子**：完成后将加速您模型前后处理速度(开发中)
 
-### 3. 支持多端
+### 3. 支持多种推理后端
 
-- **一套代码多端部署**：通过切换推理配置，实现一套代码即可完成模型**跨多个平台以及多个推理框架**部署，性能与原始框架一致，还可直接操作推理框架内部分配的输入输出，实现前后处理的零拷贝，提升模型部署端到端的性能
+- **一套代码多种推理后端部署**：通过切换推理配置，实现一套代码即可完成模型**跨多个平台以及多个推理框架**部署，性能与原始框架一致
 
 - 当前支持的推理框架如下：
 
@@ -97,12 +97,21 @@ nndeploy是一个简单易用、高性能、支持多端的AI推理部署框架�
   | [coreML](https://github.com/apple/coremltools)                                   |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)、[jaywlinux](https://github.com/jaywlinux) | 
   | [AscendCL](https://www.hiascend.com/zh/)                                         |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)                                                  | 
   | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) |   √   |    -    |    -    |   -   |   -   | [100312dog](https://github.com/100312dog)                                          | 
-  | **[default](https://github.com/nndeploy/nndeploy)**                              |   √   |    -    |    -    |   -   |   -   | [nndeploy team](https://github.com/nndeploy)                                            | 
+  | [tvm](https://github.com/apache/tvm)                              |   √   |    -    |    -    |   -   |   -   | [youxiudeshouyeren](https://github.com/youxiudeshouyeren)                                            | 
+  | [snpe](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk) |   √   |    -    |    -    |   -   |   -   | [yhwang-hub](https://github.com/yhwang-hub)                                            | 
 
-- **default为nndeploy内部的推理子模块**：整体架构如图所示，目前后端算子以华为昇腾NPU和CPU为主，支持ResNet50、YOLOv11、RMBG1.4等模型，更多[介绍](docs/zh_cn/inference/README_INFERENCE.md)
 
-  <img src="docs/image/inference/inference_framework_arch.png">
+### 4. 内置推理子模块
 
+框架内部开发的推理子模块，作为缺省推理框架，当用户环境未编译链接其他推理框架时可使用此框架。**在实际应用中，推荐使用芯片厂商提供的对应平台推理框架**。
+
+当前支持华为昇腾NPU和纯CPU算子后端。计划扩展至X86、CUDA、ARM、OpenCL等异构计算平台。
+
+已适配主流视觉模型：图像分类（ResNet50等）、目标检测（YOLOv11等）、图像分割（RMBG1.4等）。未来将支持大语言模型（LLM）和文本图像多模态模型（Dit等）。
+
+> [有关内置推理子模块技术细节](docs/zh_cn/inference/README_INFERENCE.md)
+
+<img src="docs/image/inference/inference_framework_arch.png">
 
 ## 下一步计划
 
