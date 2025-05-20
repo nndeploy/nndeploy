@@ -123,3 +123,7 @@ dist-storybook/
 
 # rush standard files
 .eslintcache
+
+# 不忽略json文件
+!*.json
+
