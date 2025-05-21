@@ -30,14 +30,14 @@
   "dependencies": {
     "@douyinfe/semi-icons": "^2.72.3",
     "@douyinfe/semi-ui": "^2.72.3",
-    "@flowgram.ai/free-layout-editor": "workspace:*",
-    "@flowgram.ai/free-snap-plugin": "workspace:*",
-    "@flowgram.ai/free-lines-plugin": "workspace:*",
-    "@flowgram.ai/free-node-panel-plugin": "workspace:*",
-    "@flowgram.ai/minimap-plugin": "workspace:*",
-    "@flowgram.ai/free-container-plugin": "workspace:*",
-    "@flowgram.ai/free-group-plugin": "workspace:*",
-    "@flowgram.ai/form-materials": "workspace:*",
+    "@flowgram.ai/free-layout-editor": "0.1.28",
+    "@flowgram.ai/free-snap-plugin": "0.1.28",
+    "@flowgram.ai/free-node-panel-plugin": "0.1.28",
+    "@flowgram.ai/free-lines-plugin": "0.1.28",
+    "@flowgram.ai/minimap-plugin": "0.1.28",
+    "@flowgram.ai/free-container-plugin": "0.1.28",
+    "@flowgram.ai/free-group-plugin": "0.1.28",
+    "@flowgram.ai/form-materials": "0.1.28",
     "lodash-es": "^4.17.21",
     "nanoid": "^4.0.2",
     "react": "^18",
@@ -45,8 +45,6 @@
     "styled-components": "^5"
   },
   "devDependencies": {
-    "@flowgram.ai/ts-config": "workspace:*",
-    "@flowgram.ai/eslint-config": "workspace:*",
     "@rsbuild/core": "^1.2.16",
     "@rsbuild/plugin-react": "^1.1.1",
     "@rsbuild/plugin-less": "^1.1.1",
@@ -56,7 +54,9 @@
     "@types/react-dom": "^18",
     "@types/styled-components": "^5",
     "eslint": "^8.54.0",
-    "cross-env": "~7.0.3"
+    "cross-env": "~7.0.3",
+    "@flowgram.ai/eslint-config": "0.1.28",
+    "@flowgram.ai/ts-config": "0.1.28"
   },
   "publishConfig": {
     "access": "public",
