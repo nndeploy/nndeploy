@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_PREPROCESS_CVTCOLOR_BN_H_
-#define _NNDEPLOY_PREPROCESS_CVTCOLOR_BN_H_
+#ifndef _NNDEPLOY_PREPROCESS_BATCH_PREPROCESS_H_
+#define _NNDEPLOY_PREPROCESS_BATCH_PREPROCESS_H_
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -18,32 +18,40 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/preprocess/opencv_convert.h"
 #include "nndeploy/preprocess/params.h"
+#include "nndeploy/dag/composite_node.h"
 
 namespace nndeploy {
 namespace preprocess {
 
-class NNDEPLOY_CC_API CvtColorBn : public dag::Node {
+class NNDEPLOY_CC_API BatchPreprocess : public dag::CompositeNode {
  public:
-  CvtColorBn(const std::string &name) : dag::Node(name) {
-    key_ = "nndeploy::preprocess::CvtColorBn";
-    param_ = std::make_shared<CvtcolorBnParam>();
-    this->setInputTypeInfo<cv::Mat>();
+  BatchPreprocess(const std::string &name) : dag::CompositeNode(name) {
+    key_ = "nndeploy::preprocess::BatchPreprocess";
+    this->setInputTypeInfo<std::vector<cv::Mat>>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  CvtColorBn(const std::string &name, std::vector<dag::Edge *> inputs,
+  BatchPreprocess(const std::string &name, std::vector<dag::Edge *> inputs,
                  std::vector<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::preprocess::CvtColorBn";
-    param_ = std::make_shared<CvtclorResizeParam>();
-    this->setInputTypeInfo<cv::Mat>();
+      : dag::CompositeNode(name, inputs, outputs) {
+    key_ = "nndeploy::preprocess::BatchPreprocess";
+    this->setInputTypeInfo<std::vector<cv::Mat>>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  virtual ~CvtColorBn() {}
+  virtual ~BatchPreprocess() {}
+
+  base::Status setNodeKey(const std::string &key);
+
+  virtual base::Status make();
 
   virtual base::Status run();
+
+ private:
+  base::DataFormat data_format_ = base::kDataFormatNCHW;
+  std::string node_key_ = "";
+  dag::Node *node_ = nullptr;
 };
 
 }  // namespace preprocess
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_PREPROCESS_CVTCOLOR_BN_H_ */
+#endif /* _NNDEPLOY_PREPROCESS_BATCH_PREPROCESS_H_ */

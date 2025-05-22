@@ -95,3 +95,7 @@ if(ENABLE_NNDEPLOY_DEMO_RESNET)
   include(${ROOT_PATH}/demo/resnet/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION)
+  include(${ROOT_PATH}/demo/super_resolution/config.cmake)
+endif()
+
