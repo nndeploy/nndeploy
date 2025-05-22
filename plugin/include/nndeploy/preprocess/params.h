@@ -171,6 +171,33 @@ class NNDEPLOY_CC_API CvtclorResizePadParam : public base::Param {
   base::Scalar2d border_val_ = 0.0;
 };
 
+/**
+ * @brief 组合的预处理
+ *
+ */
+class NNDEPLOY_CC_API CvtColorResizeCropParam : public base::Param {
+ public:
+  base::PixelType src_pixel_type_;
+  base::PixelType dst_pixel_type_;
+  base::InterpType interp_type_;
+  base::DataType data_type_ = base::dataTypeOf<float>();
+  base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
+
+  int resize_h_ = -1;
+  int resize_w_ = -1;
+
+  bool normalize_ = true;
+  float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
+                     1.0f / 255.0f};
+  float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+  int top_left_x_ = 0;
+  int top_left_y_ = 0;
+  int width_ = 0;
+  int height_ = 0;
+};
+
 }  // namespace preprocess
 }  // namespace nndeploy
 

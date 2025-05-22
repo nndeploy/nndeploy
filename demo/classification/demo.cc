@@ -12,6 +12,10 @@
 
 using namespace nndeploy;
 
+DEFINE_bool(is_softmax, false, "is_softmax");
+
+bool isSoftmax() { return FLAGS_is_softmax; }
+
 class DrawLableNode : public dag::Node {
  public:
   // DrawLableNode(const std::string &name,
@@ -97,6 +101,11 @@ class classificationDemo : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
+  base::Status setSoftmax(bool is_softmax) {
+    graph_->setSoftmax(is_softmax);
+    return base::kStatusCodeOk;
+  }
+
   virtual std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
     std::vector<dag::Edge *> decode_node_outputs = (*decode_node_)(inputs);
 
@@ -147,12 +156,16 @@ int main(int argc, char *argv[]) {
   std::string ouput_path = demo::getOutputPath();
   // base::kParallelTypePipeline / base::kParallelTypeSequential
   base::ParallelType pt = demo::getParallelType();
+  // 后处理是否执行softmax
+  bool is_softmax = isSoftmax();
 
-  classificationDemo graph_demo("resnet_demo");
+  classificationDemo graph_demo("classification_demo");
   graph_demo.setTimeProfileFlag(true);
   graph_demo.make(inference_type, codec_flag);
 
   graph_demo.setInferParam(device_type, model_type, is_path, model_value);
+
+  graph_demo.setSoftmax(is_softmax);
 
   // 设置pipeline并行
   base::Status status = graph_demo.setParallelType(pt);
