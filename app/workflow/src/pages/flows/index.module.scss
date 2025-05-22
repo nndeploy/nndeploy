@@ -1,0 +1,17 @@
+.container {
+  padding: 20px;
+
+  .form {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+
+    .semi-form-field {
+      margin-right: 20px;
+    }
+  }
+
+  .addButton {
+    margin-bottom: 20px;
+  }
+}

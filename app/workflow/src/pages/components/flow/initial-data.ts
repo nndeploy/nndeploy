@@ -1,4 +1,4 @@
-import { FlowDocumentJSON } from './typings';
+import { FlowDocumentJSON } from '../../../typings';
 
 export const initialData: FlowDocumentJSON = {
   nodes: [
