@@ -17,20 +17,22 @@ class SuperResolutionDemo : public dag::Graph {
   SuperResolutionDemo(const std::string &name) : dag::Graph(name) {}
   virtual ~SuperResolutionDemo() {}
 
-  base::Status make(base::InferenceType inference_type,
-                    base::CodecFlag codec_flag) {
+  base::Status make(base::InferenceType inference_type, int batch_size) {
     base::Status status = base::kStatusCodeOk;
     // 创建分类图
     decode_node_ = (codec::BatchOpenCvDecode *)this
                        ->createNode<codec::BatchOpenCvDecode>(
                            "decode_node_");
+    decode_node_->setNodeKey("nndeploy::codec::OpenCvVedioDecodeNode");
+    decode_node_->setBatchSize(batch_size);
     graph_ =
         (super_resolution::SuperResolutionGraph *)this
             ->createNode<super_resolution::SuperResolutionGraph>("resnet");
     graph_->make(inference_type);
-    encode_node_ = (codec::OpenCvVedioEncodeNode *)this
-                       ->createNode<codec::OpenCvVedioEncodeNode>(
-                           "encode_node_", codec_flag);
+    encode_node_ = (codec::BatchOpenCvEncode *)this
+                       ->createNode<codec::BatchOpenCvEncode>(
+                           "encode_node_");
+    encode_node_->setNodeKey("nndeploy::codec::BatchOpenCvEncode");
     return status;
   }
 
@@ -96,7 +98,6 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> model_value = demo::getModelValue();
   // input path
   std::string input_path = demo::getInputPath();
-  base::CodecFlag codec_flag = demo::getCodecFlag();
   // output path
   std::string ouput_path = demo::getOutputPath();
   // base::kParallelTypePipeline / base::kParallelTypeSequential
@@ -104,7 +105,8 @@ int main(int argc, char *argv[]) {
 
   SuperResolutionDemo graph_demo("resnet_demo");
   graph_demo.setTimeProfileFlag(true);
-  graph_demo.make(inference_type, codec_flag);
+  int batch_size = 5;
+  graph_demo.make(inference_type, batch_size);
 
   graph_demo.setInferParam(device_type, model_type, is_path, model_value);
 

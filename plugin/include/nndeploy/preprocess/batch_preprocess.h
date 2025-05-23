@@ -39,6 +39,12 @@ class NNDEPLOY_CC_API BatchPreprocess : public dag::CompositeNode {
   }
   virtual ~BatchPreprocess() {}
 
+  base::ParamList getParams() override {
+    base::ParamList params;
+    params.push_back(base::Param("data_format", data_format_));
+    return params;
+  }
+
   base::Status setNodeKey(const std::string &key);
 
   virtual base::Status make();

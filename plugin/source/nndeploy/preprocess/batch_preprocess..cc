@@ -12,22 +12,20 @@ base::Status BatchPreprocess::setNodeKey(const std::string &key) {
 }
 
 base::Status BatchPreprocess::make() {
-  std::vector<std::string> input_names = this->getInputNames();
-  std::vector<std::string> output_names = this->getRealOutputsName();
-  dag::NodeDesc desc(node_key_, "inner_preprocess_node", input_names,
-                     output_names);
+  dag::NodeDesc desc(node_key_, "inner_preprocess_node", {"inner_preprocess_node.input"},
+                     {"inner_preprocess_node.output"});
   node_ = this->createNode(desc);
   if (!node_) {
     NNDEPLOY_LOGE("Node creation failed for node_key: %s\n", node_key_.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  if (node_->getInputTypeInfo() != this->getInputTypeInfo() ||
-      node_->getOutputTypeInfo() != this->getOutputTypeInfo()) {
-    NNDEPLOY_LOGE(
-        "Type mismatch: Node input/output types do not match BatchPreprocess "
-        "types.\n");
-    return base::kStatusCodeErrorInvalidParam;
-  }
+  // if (node_->getInputTypeInfo() != this->getInputTypeInfo() ||
+  //     node_->getOutputTypeInfo() != this->getOutputTypeInfo()) {
+  //   NNDEPLOY_LOGE(
+  //       "Type mismatch: Node input/output types do not match BatchPreprocess "
+  //       "types.\n");
+  //   return base::kStatusCodeErrorInvalidParam;
+  // }
   return base::kStatusCodeOk;
 }
 
@@ -37,6 +35,8 @@ base::Status BatchPreprocess::run() {
   int batch_size = input_data->size();
   device::Tensor *dst_tensor = nullptr;
   for (int i = 0; i < batch_size; i++) {
+    dag::Edge *input = node_->getInput();
+    input->set((*input_data)[i]);
     node_->run();
     dag::Edge *output = node_->getOutput();
     device::Tensor *single_tensor = output->getTensor(node_);
