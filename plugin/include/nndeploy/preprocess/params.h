@@ -117,26 +117,6 @@ class NNDEPLOY_CC_API DynamicShapeParam : public base::Param {
  * @brief 组合的预处理
  *
  */
-
-class NNDEPLOY_CC_API CvtcolorBnParam : public base::Param {
- public:
-  base::PixelType src_pixel_type_;
-  base::PixelType dst_pixel_type_;
-  // 数据类型，默认为浮点型
-  base::DataType data_type_ = base::dataTypeOf<float>();
-  // 数据格式，默认为NCHW（通道数，图像高度，图像宽度）
-  base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
-  // 是否进行归一化处理
-  bool normalize_ = true;
-  // 归一化的比例因子，用于将像素值缩放到0-1范围
-  float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
-                     1.0f / 255.0f};
-  // 归一化处理中的均值，用于数据中心化
-  float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  // 归一化处理中的标准差，用于数据标准化
-  float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-};
-
 class NNDEPLOY_CC_API CvtclorResizeParam : public base::Param {
  public:
   // 源图像的像素类型

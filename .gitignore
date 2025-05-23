@@ -251,6 +251,6 @@ ref_repo
 .cursor/
 
 
-# app/
+app/
 # translation
 *.mo

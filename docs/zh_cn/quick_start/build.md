@@ -6,10 +6,7 @@
 ```shell
 git clone https://github.com/nndeploy/nndeploy.git
 cd nndeploy
-# 拉取子模块
 git submodule update --init --recursive
-# 如果拉取子模块失败，调用克隆子模块脚本
-./clone_submodule.sh
 ```
 
 

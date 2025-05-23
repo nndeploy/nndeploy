@@ -73,8 +73,9 @@
    :maxdepth: 1
    :caption: 知识分享
 
-   knowledge_shared/nndeploy_from_requirement_analysis_to_architecture_design.md
+   knowledge_shared/nndeploy-一款开源的模型端到端部署框架.md
    knowledge_shared/export_onnx.md
+   knowledge_shared/nndeploy-从需求分析到架构设计.md
    knowledge_shared/sd_impl.md
    knowledge_shared/stable_diffusion.md
-   knowledge_shared/onednn_research.md
+   knowledge_shared/oneDNN调研.md
