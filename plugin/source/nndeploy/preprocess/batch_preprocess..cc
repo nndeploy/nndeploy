@@ -24,7 +24,9 @@ base::Status BatchPreprocess::setParamSharedPtr(std::shared_ptr<base::Param> par
   return base::kStatusCodeOk;
 }
 base::Param *BatchPreprocess::getParam() {
+  NNDEPLOY_LOGE("BatchPreprocess::getParam()\n");
   if (node_) {
+    NNDEPLOY_LOGI("node_->getParam()\n");
     return node_->getParam();
   }
   return nullptr;

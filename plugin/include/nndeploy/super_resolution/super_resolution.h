@@ -129,6 +129,10 @@ class NNDEPLOY_CC_API SuperResolutionGraph : public dag::Graph {
     pre_->make();
     preprocess::CvtcolorBnParam *pre_param =
         dynamic_cast<preprocess::CvtcolorBnParam *>(pre_->getParam());
+    if (pre_param == nullptr) {
+      NNDEPLOY_LOGE("Failed to get preprocessing node parameter");
+      return base::kStatusCodeErrorInvalidParam;
+    }
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->mean_[0] = 0.485;
