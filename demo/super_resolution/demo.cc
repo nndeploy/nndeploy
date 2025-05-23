@@ -8,6 +8,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/framework.h"
 #include "nndeploy/thread_pool/thread_pool.h"
+#include "nndeploy/codec/opencv/batch_opencv_codec.h"
 
 using namespace nndeploy;
 
@@ -20,9 +21,9 @@ class SuperResolutionDemo : public dag::Graph {
                     base::CodecFlag codec_flag) {
     base::Status status = base::kStatusCodeOk;
     // 创建分类图
-    decode_node_ = (codec::OpenCvVedioDecodeNode *)this
-                       ->createNode<codec::OpenCvVedioDecodeNode>(
-                           "decode_node_", codec_flag);
+    decode_node_ = (codec::BatchOpenCvDecode *)this
+                       ->createNode<codec::BatchOpenCvDecode>(
+                           "decode_node_");
     graph_ =
         (super_resolution::SuperResolutionGraph *)this
             ->createNode<super_resolution::SuperResolutionGraph>("resnet");
@@ -66,8 +67,8 @@ class SuperResolutionDemo : public dag::Graph {
   }
 
  public:
-  codec::OpenCvVedioDecodeNode *decode_node_;
-  codec::OpenCvVedioEncodeNode *encode_node_;
+  codec::BatchOpenCvDecode *decode_node_;
+  codec::BatchOpenCvEncode *encode_node_;
   super_resolution::SuperResolutionGraph *graph_;
 };
 
