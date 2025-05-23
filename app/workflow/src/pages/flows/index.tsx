@@ -88,7 +88,7 @@ const Flows: React.FC = () => {
     console.log("Delete record:", record);
   };
 
-   const handleDesign = (record: any) => {
+  const handleDesign = (record: any) => {
     setSelectedRecord(record);
     setDesignSideSheetVisible(true);
   };
@@ -187,7 +187,6 @@ const Flows: React.FC = () => {
         onCancel={() => setDesignSideSheetVisible(false)}
         width="100%"
       >
-       
         <Flow />
       </SideSheet>
     </div>

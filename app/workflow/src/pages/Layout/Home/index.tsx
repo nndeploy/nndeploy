@@ -5,6 +5,7 @@ import { IconSemiLogo, IconFeishuLogo, IconHelpCircle, IconBell } from '@douyinf
 import * as Icons  from '@douyinfe/semi-icons-lab';
 
 import styles from './index.module.scss';
+import  './index.scss';
 import menuConfig from './menuConfig.json';
 
 const HomeLayout: React.FC<any> = (props: any) => {
@@ -99,6 +100,9 @@ const HomeLayout: React.FC<any> = (props: any) => {
         >
           {renderMenu()}
         </Nav>
+        <div className="my">
+          <div className="content">content.................</div>
+        </div>
         <div className={styles.mainRight}>
           <Tabs
             tabPosition="top"

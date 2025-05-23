@@ -1,0 +1,68 @@
+.backend-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 16px);
+
+  .topNav {
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .companyName{
+      margin-left: 1em;
+    }
+
+
+    .logo {
+      height: 40px;
+      margin-right: 16px;
+    }
+  }
+
+  .main {
+    display: flex;
+    flex: 1;
+
+    .leftNav {
+      display: flex;
+      flex-direction: row;
+      width: auto;
+      background-color: #fff;
+      border-right: 1px solid #e5e5e5;
+
+      .firstLevelNav {
+        width: auto;
+      }
+      .secondLevelNav {
+        width: 240px;
+      }
+    }
+
+    .rightContent {
+      flex: 1;
+      padding: 16px 0 0 16px;
+
+      & > .top-tabs{
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        & > .semi-tabs-content{
+          height: 100%;
+          flex:1; 
+          min-height: 0;
+
+          & > .semi-tabs-pane{
+             height: 100%;
+             & > .semi-tabs-pane-motion-overlay{
+              height: 100%;
+              & > .tab-content{
+                height: 100%;
+              }
+             }
+          }
+        }
+      }
+    }
+  }
+}

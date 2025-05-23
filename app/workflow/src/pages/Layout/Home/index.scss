@@ -1,3 +1,10 @@
+.my{
+  background: #eee;
+  .content{
+     color: red;
+  }
+}
+
 .frame {
   display: flex;
   flex-direction: column;

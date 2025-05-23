@@ -13,8 +13,9 @@ import { DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
 import { useRef, useState } from "react";
 import { FlowDocumentJSON } from "../../../typings";
+import { FlowElementContext } from "../../../context/flow-element-context";
 
- const Flow = () => {
+const Flow = () => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
@@ -40,6 +41,8 @@ import { FlowDocumentJSON } from "../../../typings";
     setLoading(false);
   };
 
+  const flowRef = useRef<HTMLDivElement | null>(null);
+
   const editorProps = useEditorProps(initialData, nodeRegistries);
   return (
     <div className="doc-free-feature-overview">
@@ -49,15 +52,17 @@ import { FlowDocumentJSON } from "../../../typings";
         ref={ref}
       >
         <SidebarProvider>
-          <div className="demo-container">
+          <div className="demo-container" ref={flowRef}>
             <EditorRenderer className="demo-editor" />
           </div>
           <DemoTools />
-          <SidebarRenderer />
+          <FlowElementContext.Provider value={{ element: flowRef }}>
+            <SidebarRenderer />
+          </FlowElementContext.Provider>
         </SidebarProvider>
       </FreeLayoutEditorProvider>
     </div>
   );
 };
 
-export default Flow
+export default Flow;

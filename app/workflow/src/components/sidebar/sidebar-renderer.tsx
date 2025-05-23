@@ -9,9 +9,13 @@ import { SideSheet } from '@douyinfe/semi-ui';
 
 import { FlowNodeMeta } from '../../typings';
 import { SidebarContext, IsSidebarContext, NodeRenderContext } from '../../context';
+import { FlowElementContext } from '../../context/flow-element-context';
 
 export const SidebarRenderer = () => {
   const { nodeRender, setNodeRender } = useContext(SidebarContext);
+
+  const {element: flowElementRef } = useContext(FlowElementContext);
+
   const { selection, playground } = useClientContext();
   const refresh = useRefresh();
   const handleClose = useCallback(() => {
@@ -76,8 +80,12 @@ export const SidebarRenderer = () => {
     </PlaygroundEntityContext.Provider>
   ) : null;
 
+  function getPopupContainer(){
+    return flowElementRef?.current!!
+  }
+
   return (
-    <SideSheet mask={false} visible={visible} onCancel={handleClose}>
+    <SideSheet mask={false} visible={visible} onCancel={handleClose}  getPopupContainer={getPopupContainer}>
       <IsSidebarContext.Provider value={true}>{content}</IsSidebarContext.Provider>
     </SideSheet>
   );

@@ -9,13 +9,14 @@ import About from "./pages/About";
 import { NoMatch } from "./pages/NoMatch";
 import HomeLayout from "./pages/Layout/Home";
 import Flows from "./pages/flows";
+import Backend from "./pages/Layout/Backend/Backend";
 
 const app = createRoot(document.getElementById("root")!);
 
 app.render(
   <BrowserRouter>
     <Routes>
-      <Route path="/backend" element={<HomeLayout />} />
+      <Route path="/backend" element={<Backend />} />
 
       <Route path="flows" element={<Flows />} />
 
