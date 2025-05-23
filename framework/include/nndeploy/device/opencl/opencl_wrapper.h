@@ -75,7 +75,7 @@ namespace device {
 // OpenCLSymbols is a opencl function wrapper.
 // if device not support opencl or opencl target function,
 // app will not crash and can get error code.
-class OpenCLSymbols {
+class NNDEPLOY_CC_API OpenCLSymbols {
  public:
   static OpenCLSymbols *GetInstance();
 

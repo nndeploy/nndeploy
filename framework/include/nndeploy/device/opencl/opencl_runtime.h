@@ -7,16 +7,16 @@ namespace nndeploy
 {
     namespace device
     {
-        class OpenCLRuntime
+        class NNDEPLOY_CC_API OpenCLRuntime
         {
             private:
-                static bool init_done_;
+                bool init_done_;
             public:
                 OpenCLRuntime(/* args */);
-                ~OpenCLRuntime();
+                //~OpenCLRuntime();
                 base::Status init();
 
-                cl::Context* context();
+                //cl::Context* context();
                 uint8_t getPlatforms();
         };
 
