@@ -11,6 +11,31 @@ base::Status BatchPreprocess::setNodeKey(const std::string &key) {
   return base::kStatusCodeOk;
 }
 
+base::Status BatchPreprocess::setParam(base::Param *param) {
+  if (node_) {
+    node_->setParam(param);
+  }
+  return base::kStatusCodeOk;
+}
+base::Status BatchPreprocess::setParamSharedPtr(std::shared_ptr<base::Param> param) {
+  if (node_) {
+    node_->setParamSharedPtr(param);
+  }
+  return base::kStatusCodeOk;
+}
+base::Param *BatchPreprocess::getParam() {
+  if (node_) {
+    return node_->getParam();
+  }
+  return nullptr;
+}
+std::shared_ptr<base::Param> BatchPreprocess::getParamSharedPtr() {
+  if (node_) {
+    return node_->getParamSharedPtr();
+  }
+  return nullptr;
+}
+
 base::Status BatchPreprocess::make() {
   dag::NodeDesc desc(node_key_, "inner_preprocess_node", {"inner_preprocess_node.input"},
                      {"inner_preprocess_node.output"});

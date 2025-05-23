@@ -18,12 +18,7 @@ wget https://bj.bcebos.com/paddlehub/fastdeploy/vsr_src.mp4
 
 ```shell
 cd EDVR_M_wo_tsa_SRx4
-paddle2onnx --model_dir ./ \
-            --model_filename model.pdmodel \
-            --params_filename model.pdiparams \
-            --save_file model.onnx \
-            --opset_version 20 \
-            --enable_onnx_checker True
+paddle2onnx --model_dir ./ --model_filename model.pdmodel --params_filename model.pdiparams --save_file model.onnx --opset_version 20 --enable_onnx_checker True
 ```
 
 ### 获取测试图片
@@ -58,7 +53,7 @@ export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
 
 # 执行
-./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value /home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.staticshape.onnx.json,/home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.staticshape.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_nndeploy_acl_sample_output.jpg
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value /home/ascenduserdg01/model/nndeploy/super_resolution/resnet50-v1-7.staticshape.onnx.json,/home/ascenduserdg01/model/nndeploy/super_resolution/resnet50-v1-7.staticshape.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_nndeploy_acl_sample_output.jpg
 
 # 耗时
 TimeProfiler: demo, remove warmup 10
@@ -67,7 +62,7 @@ name                                                       call_times  cost_time
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 demo run()                                                 100         4403.241           44.032             41.003                            0.000 
 decode_node run()                                          100         1256.926           12.569             12.416                            0.000 
-nndeploy::classification::ClassificationResnetGraph run()  100         1286.136           12.861             10.232                            0.000 
+nndeploy::super_resolution::SuperResolutionGraph run()  100         1286.136           12.861             10.232                            0.000 
 preprocess run()                                           100         331.755            3.318              3.069                             0.000 
 infer run()                                                100         948.738            9.487              7.108                             0.000 
 net->run()                                                 100         191.132            1.911              1.008                             0.000 
@@ -77,7 +72,7 @@ encode_node run()                                          100         1838.244 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value /home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.staticshape.onnx.json,/home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.staticshape.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_nndeploy_acl_sample_output.jpg
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeDefault --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeDefault --is_path --model_value /home/ascenduserdg01/model/nndeploy/super_resolution/resnet50-v1-7.staticshape.onnx.json,/home/ascenduserdg01/model/nndeploy/super_resolution/resnet50-v1-7.staticshape.onnx.safetensors --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_nndeploy_acl_sample_output.jpg
 ```
 
 #### 推理后端为onnxruntime，推理执行设备为Arm
@@ -92,7 +87,7 @@ export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20
 
 
 # 执行
-./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeOnnx --is_path --model_value /home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.staticshape.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_ort_arm_sample_output.jpg
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeArm:0 --model_type kModelTypeOnnx --is_path --model_value /home/ascenduserdg01/model/nndeploy/super_resolution/resnet50-v1-7.staticshape.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_ort_arm_sample_output.jpg
 
 # 耗时
 TimeProfiler: demo, remove warmup 10
@@ -101,7 +96,7 @@ name                                                       call_times  cost_time
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 demo run()                                                 100         17270.244          172.702            171.768                           0.000 
 decode_node run()                                          100         1260.665           12.607             12.472                            0.000 
-nndeploy::classification::ClassificationResnetGraph run()  100         14394.649          143.946            143.352                           0.000 
+nndeploy::super_resolution::SuperResolutionGraph run()  100         14394.649          143.946            143.352                           0.000 
 preprocess run()                                           100         436.338            4.363              4.218                             0.000 
 infer run()                                                100         13951.517          139.515            139.068                           0.000 
 postprocess run()                                          100         5.522              0.055              0.054                             0.000 
@@ -109,6 +104,8 @@ DrawLableNode run()                                        100         17.593   
 encode_node run()                                          100         1595.634           15.956             15.753                            0.000 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
+
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/for_all_users/model/super_resolution/EDVR_M_wo_tsa_SRx4/model.onnx --parallel_type kParallelTypeSequential --input_path /home/for_all_users/model/super_resolution/vsr_src.mp4 --output_path /home/for_all_users/model/super_resolution/vsr_src_output.mp4
 
 
 #### 推理后端为Ascend CL，执行设备为AscendCL
@@ -125,7 +122,7 @@ export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20
 atc --model=path/to/resnet50-v1-7.staticshape.onnx --output=path/to/resnet50-v1-7.onnx.om --framework=5 --soc_version=Ascend910B4
 
 # 执行
-./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_acl_acl_sample_output.jpg
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/super_resolution/resnet50-v1-7.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_acl_acl_sample_output.jpg
 
 # 耗时
 TimeProfiler: demo, remove warmup 10
@@ -134,7 +131,7 @@ name                                                       call_times  cost_time
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 demo run()                                                 100         3269.599           32.696             32.454                            0.000 
 decode_node run()                                          100         1254.217           12.542             12.477                            0.000 
-nndeploy::classification::ClassificationResnetGraph run()  100         484.636            4.846              4.715                             0.000 
+nndeploy::super_resolution::SuperResolutionGraph run()  100         484.636            4.846              4.715                             0.000 
 preprocess run()                                           100         349.860            3.499              3.371                             0.000 
 infer run()                                                100         129.331            1.293              1.291                             0.000 
 postprocess run()                                          100         4.661              0.047              0.045                             0.000 
@@ -143,7 +140,7 @@ encode_node run()                                          100         1513.292 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/classification/resnet50-v1-7.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_acl_acl_sample_output.jpg
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeAscendCL --device_type kDeviceTypeCodeAscendCL:0 --model_type kModelTypeAscendCL --is_path --model_value /home/ascenduserdg01/model/nndeploy/super_resolution/resnet50-v1-7.onnx.om.om --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_acl_acl_sample_output.jpg
 
 # 耗时
 TimeProfiler: demo, remove warmup 10
@@ -152,7 +149,7 @@ name                                                       call_times  cost_time
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 demo run()                                                 100         3269.599           32.696             32.454                            0.000 
 decode_node run()                                          100         1254.217           12.542             12.477                            0.000 
-nndeploy::classification::ClassificationResnetGraph run()  100         484.636            4.846              4.715                             0.000 
+nndeploy::super_resolution::SuperResolutionGraph run()  100         484.636            4.846              4.715                             0.000 
 preprocess run()                                           100         349.860            3.499              3.371                             0.000 
 infer run()                                                100         129.331            1.293              1.291                             0.000 
 postprocess run()                                          100         4.661              0.047              0.045                             0.000 
@@ -176,8 +173,8 @@ export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20
 trtexec --onnx=resnet50-v1-7.sim.onnx --saveEngine=resnet50-v1-7.sim.onnx.trt --fp16
 
 # 执行
-./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value resnet50-v1-7.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_pipe_tensorrt_cuda_sample_output.jpg
-./nndeploy_demo_classification --name nndeploy::classification::ClassificationResnetGraph --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value resnet50-v1-7.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_tensorrt_cuda_sample_output.jpg
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value resnet50-v1-7.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_pipe_tensorrt_cuda_sample_output.jpg
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value resnet50-v1-7.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --input_path ../docs/image/demo/segment/sample.jpg --output_path resnet_tensorrt_cuda_sample_output.jpg
 
 # 耗时
 TimeProfiler: demo, remove warmup 10
@@ -186,7 +183,7 @@ name                                                       call_times  cost_time
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 demo run()                                                 100         3269.599           32.696             32.454                            0.000 
 decode_node run()                                          100         1254.217           12.542             12.477                            0.000 
-nndeploy::classification::ClassificationResnetGraph run()  100         484.636            4.846              4.715                             0.000 
+nndeploy::super_resolution::SuperResolutionGraph run()  100         484.636            4.846              4.715                             0.000 
 preprocess run()                                           100         349.860            3.499              3.371                             0.000 
 infer run()                                                100         129.331            1.293              1.291                             0.000 
 postprocess run()                                          100         4.661              0.047              0.045                             0.000 
@@ -204,4 +201,4 @@ encode_node run()                                          100         1513.292 
 
 #### 输出图片
 
-![sample_output](../../docs/image/demo/classification/sample_output.jpg)
+![sample_output](../../docs/image/demo/super_resolution/sample_output.jpg)

@@ -79,21 +79,23 @@ class NNDEPLOY_CC_API SuperResolutionGraph : public dag::Graph {
                     base::InferenceType inference_type,
                     const dag::NodeDesc &post_desc) {
     // Create preprocessing node for image preprocessing
-    pre_ = this->createNode<preprocess::BatchPreprocess>(pre_desc);
+    pre_ = (preprocess::BatchPreprocess *)this->createNode<preprocess::BatchPreprocess>(pre_desc);
     if (pre_ == nullptr) {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
+    pre_->setNodeKey("nndeploy::preprocess::CvtColorBn");
+    pre_->make();
     preprocess::CvtcolorBnParam *pre_param =
         dynamic_cast<preprocess::CvtcolorBnParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-    pre_param->mean_[0] = 0.485;
-    pre_param->mean_[1] = 0.456;
-    pre_param->mean_[2] = 0.406;
-    pre_param->std_[0] = 0.229;
-    pre_param->std_[1] = 0.224;
-    pre_param->std_[2] = 0.225;
+    pre_param->mean_[0] = 0.0;
+    pre_param->mean_[1] = 0.0;
+    pre_param->mean_[2] = 0.0;
+    pre_param->std_[0] = 1.0;
+    pre_param->std_[1] = 1.0;
+    pre_param->std_[2] = 1.0;
 
     // Create inference node for ResNet model execution
     infer_ = dynamic_cast<infer::Infer *>(
@@ -116,13 +118,15 @@ class NNDEPLOY_CC_API SuperResolutionGraph : public dag::Graph {
 
   base::Status make(base::InferenceType inference_type) {
     // Create preprocessing node for image preprocessing
-    pre_ = this->createNode<preprocess::BatchPreprocess>(
+    pre_ = (preprocess::BatchPreprocess *)this->createNode<preprocess::BatchPreprocess>(
         "preprocess::BatchPreprocess");
     if (pre_ == nullptr) {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
     pre_->setGraph(this);
+    pre_->setNodeKey("nndeploy::preprocess::CvtColorBn");
+    pre_->make();
     preprocess::CvtcolorBnParam *pre_param =
         dynamic_cast<preprocess::CvtcolorBnParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
@@ -188,7 +192,7 @@ class NNDEPLOY_CC_API SuperResolutionGraph : public dag::Graph {
   }
 
  private:
-  dag::Node *pre_ = nullptr;       ///< Preprocessing node pointer
+  preprocess::BatchPreprocess *pre_ = nullptr;       ///< Preprocessing node pointer
   infer::Infer *infer_ = nullptr;  ///< Inference node pointer
   dag::Node *post_ = nullptr;      ///< Postprocessing node pointer
 };
