@@ -6,6 +6,7 @@ using nndeploy::device::OpenCLRuntime;
 int main()
 {
     OpenCLRuntime* ocl_rt = new OpenCLRuntime();
+    //ocl_rt->init_done_ = false;
     ocl_rt->init();
     delete ocl_rt;
 }

@@ -67,7 +67,7 @@
     return error;                                       \
   }
 
-#ifdef NNDEPLOY_USE_OPENCL_WRAPPER
+// #ifdef NNDEPLOY_USE_OPENCL_WRAPPER
 
 namespace nndeploy {
 namespace device {
@@ -358,4 +358,4 @@ class NNDEPLOY_CC_API OpenCLSymbols {
 }  // namespace device
 }  // namespace nndeploy
 #endif  // NNDEPLOY_USE_OPENCL_WRAPPER
-#endif  // _NNDEPLOY_DEVICE_OPENCL_OPENCL_WRAPPER_H_
+// #endif  // _NNDEPLOY_DEVICE_OPENCL_OPENCL_WRAPPER_H_
