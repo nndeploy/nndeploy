@@ -71,10 +71,7 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
     return base::kStatusCodeOk;
   }
   base::CodecFlag getCodecFlag() { return flag_; }
-  void setPath(const std::string &path) {
-    path_ = path;
-    path_changed_ = true;
-  }
+  virtual base::Status setPath(const std::string &path) = 0;
 
   void setSize(int size) {
     if (size > 0) {
@@ -189,8 +186,18 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
     return base::kStatusCodeOk;
   }
   base::CodecFlag getCodecFlag() { return flag_; }
-  void setPath(const std::string &path) { path_ = path; }
-  void setRefPath(const std::string &ref_path) { ref_path_ = ref_path; }
+  // virtual base::Status setPath(const std::string &path) {
+  //   path_ = path;
+  //   path_changed_ = true;
+  //   return base::kStatusCodeOk;
+  // }
+  // virtual base::Status setRefPath(const std::string &ref_path) {
+  //   ref_path_ = ref_path;
+  //   path_changed_ = true;
+  //   return base::kStatusCodeOk;
+  // }
+  virtual base::Status setPath(const std::string &path) = 0;
+  virtual base::Status setRefPath(const std::string &ref_path) = 0;
   void setFourcc(const std::string &fourcc) { fourcc_ = fourcc; }
   void setFps(double fps) { fps_ = fps; };
   void setWidth(int width) { width_ = width; };
@@ -227,6 +234,7 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
  protected:
   base::CodecFlag flag_ = base::kCodecFlagImage;
   std::string path_ = "";
+  bool path_changed_ = false;
   std::string ref_path_ = "";
   std::string fourcc_ = "MJPG";
   double fps_ = 0.0;

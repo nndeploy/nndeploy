@@ -158,8 +158,12 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
           return base::kStatusCodeErrorInvalidParam;
         }
       }
-      cv::Mat res = single->clone();
-      results->push_back(res);
+      if (single != nullptr && !single->empty()) {
+        NNDEPLOY_LOGE("HW: %d, %d", single->rows, single->cols);
+        cv::Mat res(single->rows, single->cols, single->type());
+        single->copyTo(res);
+        results->push_back(res);
+      }
     }
     outputs_[0]->setAny(results, false);
     index_++;
@@ -253,13 +257,13 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
                     node_key_.c_str());
       return base::kStatusCodeErrorInvalidParam;
     }
-    if (node_->getInputTypeInfo() != this->getInputTypeInfo() ||
-        node_->getOutputTypeInfo() != this->getOutputTypeInfo()) {
-      NNDEPLOY_LOGE(
-          "Type mismatch: Node input/output types do not match BatchPreprocess "
-          "types.\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+    // if (node_->getInputTypeInfo() != this->getInputTypeInfo() ||
+    //     node_->getOutputTypeInfo() != this->getOutputTypeInfo()) {
+    //   NNDEPLOY_LOGE(
+    //       "Type mismatch: Node input/output types do not match BatchPreprocess "
+    //       "types.\n");
+    //   return base::kStatusCodeErrorInvalidParam;
+    // }
     return base::kStatusCodeOk;
   }
 

@@ -1,4 +1,4 @@
-# super_resolution
+19# super_resolution
 
 ## PaddleGAN
 
@@ -18,7 +18,7 @@ wget https://bj.bcebos.com/paddlehub/fastdeploy/vsr_src.mp4
 
 ```shell
 cd EDVR_M_wo_tsa_SRx4
-paddle2onnx --model_dir ./ --model_filename model.pdmodel --params_filename model.pdiparams --save_file model.onnx --opset_version 20 --enable_onnx_checker True
+paddle2onnx --model_dir ./ --model_filename model.pdmodel --params_filename model.pdiparams --save_file model.onnx --opset_version 11 --enable_onnx_checker True
 ```
 
 ### 获取测试图片
@@ -105,7 +105,15 @@ encode_node run()                                          100         1595.634 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/for_all_users/model/super_resolution/EDVR_M_wo_tsa_SRx4/model.onnx --parallel_type kParallelTypeSequential --input_path /home/for_all_users/model/super_resolution/vsr_src.mp4 --output_path /home/for_all_users/model/super_resolution/vsr_src_output.mp4
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value yolo11s.onnx --parallel_type kParallelTypeSequential --input_path /home/for_all_users/model/super_resolution/vsr_src.mp4 --output_path /home/for_all_users/model/super_resolution/vsr_src_output.mp4
+
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value yolo11s.onnx --parallel_type kParallelTypeSequential --input_path vsr_src.mp4 --output_path vsr_src_output.mp4
+
+
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeOpenVino --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value /home/for_all_users/model/super_resolution/EDVR_M_wo_tsa_SRx4/model.sim.onnx --parallel_type kParallelTypeSequential --input_path /home/for_all_users/model/super_resolution/vsr_src.mp4 --output_path /home/for_all_users/model/super_resolution/vsr_src_output.mp4
+
+
+./nndeploy_demo_super_resolution --name nndeploy::super_resolution::SuperResolutionGraph --inference_type kInferenceTypeTensorRt --device_type kDeviceTypeCodeCuda:0 --model_type kModelTypeOnnx --is_path --model_value /home/for_all_users/model/super_resolution/EDVR_M_wo_tsa_SRx4/model.sim.onnx --parallel_type kParallelTypeSequential --input_path /home/for_all_users/model/super_resolution/vsr_src.mp4 --output_path /home/for_all_users/model/super_resolution/vsr_src_output.mp4
 
 
 #### 推理后端为Ascend CL，执行设备为AscendCL

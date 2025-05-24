@@ -13,7 +13,8 @@ class NNDEPLOY_CC_API OpenCvImageDecodeNode : public DecodeNode {
     key_ = "nndeploy::codec::OpenCvImageDecodeNode";
     this->setOutputTypeInfo<cv::Mat>();
   }
-  OpenCvImageDecodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  OpenCvImageDecodeNode(const std::string &name,
+                        std::vector<dag::Edge *> inputs,
                         std::vector<dag::Edge *> outputs)
       : DecodeNode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvImageDecodeNode";
@@ -37,16 +38,18 @@ class NNDEPLOY_CC_API OpenCvImageDecodeNode : public DecodeNode {
   virtual base::Status init();
   virtual base::Status deinit();
 
+  virtual base::Status setPath(const std::string &path) override;
   virtual base::Status run();
 };
 
 class NNDEPLOY_CC_API OpenCvImagesDecodeNode : public DecodeNode {
  public:
-  OpenCvImagesDecodeNode(const std::string &name) : DecodeNode(name) {  
+  OpenCvImagesDecodeNode(const std::string &name) : DecodeNode(name) {
     key_ = "nndeploy::codec::OpenCvImagesDecodeNode";
     this->setOutputTypeInfo<cv::Mat>();
   }
-  OpenCvImagesDecodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  OpenCvImagesDecodeNode(const std::string &name,
+                         std::vector<dag::Edge *> inputs,
                          std::vector<dag::Edge *> outputs)
       : DecodeNode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvImagesDecodeNode";
@@ -69,6 +72,7 @@ class NNDEPLOY_CC_API OpenCvImagesDecodeNode : public DecodeNode {
   virtual base::Status init();
   virtual base::Status deinit();
 
+  virtual base::Status setPath(const std::string &path) override;
   virtual base::Status run();
 
  private:
@@ -80,11 +84,12 @@ class NNDEPLOY_CC_API OpenCvImagesDecodeNode : public DecodeNode {
 
 class NNDEPLOY_CC_API OpenCvVedioDecodeNode : public DecodeNode {
  public:
-  OpenCvVedioDecodeNode(const std::string &name) : DecodeNode(name) { 
+  OpenCvVedioDecodeNode(const std::string &name) : DecodeNode(name) {
     key_ = "nndeploy::codec::OpenCvVedioDecodeNode";
     this->setOutputTypeInfo<cv::Mat>();
   }
-  OpenCvVedioDecodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  OpenCvVedioDecodeNode(const std::string &name,
+                        std::vector<dag::Edge *> inputs,
                         std::vector<dag::Edge *> outputs)
       : DecodeNode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvVedioDecodeNode";
@@ -108,6 +113,7 @@ class NNDEPLOY_CC_API OpenCvVedioDecodeNode : public DecodeNode {
   virtual base::Status init();
   virtual base::Status deinit();
 
+  virtual base::Status setPath(const std::string &path) override;
   virtual base::Status run();
 
  private:
@@ -116,11 +122,12 @@ class NNDEPLOY_CC_API OpenCvVedioDecodeNode : public DecodeNode {
 
 class NNDEPLOY_CC_API OpenCvCameraDecodeNode : public DecodeNode {
  public:
-  OpenCvCameraDecodeNode(const std::string &name) : DecodeNode(name) {    
+  OpenCvCameraDecodeNode(const std::string &name) : DecodeNode(name) {
     key_ = "nndeploy::codec::OpenCvCameraDecodeNode";
     this->setOutputTypeInfo<cv::Mat>();
   }
-  OpenCvCameraDecodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  OpenCvCameraDecodeNode(const std::string &name,
+                         std::vector<dag::Edge *> inputs,
                          std::vector<dag::Edge *> outputs)
       : DecodeNode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvCameraDecodeNode";
@@ -143,6 +150,7 @@ class NNDEPLOY_CC_API OpenCvCameraDecodeNode : public DecodeNode {
   virtual base::Status init();
   virtual base::Status deinit();
 
+  virtual base::Status setPath(const std::string &path) override;
   virtual base::Status run();
 
  private:
@@ -155,10 +163,11 @@ class NNDEPLOY_CC_API OpenCvImageEncodeNode : public EncodeNode {
     key_ = "nndeploy::codec::OpenCvImageEncodeNode";
     this->setInputTypeInfo<cv::Mat>();
   }
-  OpenCvImageEncodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  OpenCvImageEncodeNode(const std::string &name,
+                        std::vector<dag::Edge *> inputs,
                         std::vector<dag::Edge *> outputs)
       : EncodeNode(name, inputs, outputs) {
-    key_ = "nndeploy::codec::OpenCvImageEncodeNode";  
+    key_ = "nndeploy::codec::OpenCvImageEncodeNode";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvImageEncodeNode(const std::string &name, base::CodecFlag flag)
@@ -177,6 +186,9 @@ class NNDEPLOY_CC_API OpenCvImageEncodeNode : public EncodeNode {
 
   virtual base::Status init();
   virtual base::Status deinit();
+
+  virtual base::Status setRefPath(const std::string &ref_path) override;
+  virtual base::Status setPath(const std::string &path) override;
 
   virtual base::Status run();
 };
@@ -212,6 +224,9 @@ class NNDEPLOY_CC_API OpenCvImagesEncodeNode : public EncodeNode {
   virtual base::Status init();
   virtual base::Status deinit();
 
+  virtual base::Status setRefPath(const std::string &ref_path) override;
+  virtual base::Status setPath(const std::string &path) override;
+
   virtual base::Status run();
 };
 
@@ -221,7 +236,8 @@ class NNDEPLOY_CC_API OpenCvVedioEncodeNode : public EncodeNode {
     key_ = "nndeploy::codec::OpenCvVedioEncodeNode";
     this->setInputTypeInfo<cv::Mat>();
   }
-  OpenCvVedioEncodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  OpenCvVedioEncodeNode(const std::string &name,
+                        std::vector<dag::Edge *> inputs,
                         std::vector<dag::Edge *> outputs)
       : EncodeNode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvVedioEncodeNode";
@@ -244,6 +260,9 @@ class NNDEPLOY_CC_API OpenCvVedioEncodeNode : public EncodeNode {
   virtual base::Status init();
   virtual base::Status deinit();
 
+  virtual base::Status setRefPath(const std::string &ref_path) override;
+  virtual base::Status setPath(const std::string &path) override;
+
   virtual base::Status run();
 
  private:
@@ -257,7 +276,8 @@ class NNDEPLOY_CC_API OpenCvCameraEncodeNode : public EncodeNode {
     key_ = "nndeploy::codec::OpenCvCameraEncodeNode";
     this->setInputTypeInfo<cv::Mat>();
   }
-  OpenCvCameraEncodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  OpenCvCameraEncodeNode(const std::string &name,
+                         std::vector<dag::Edge *> inputs,
                          std::vector<dag::Edge *> outputs)
       : EncodeNode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvCameraEncodeNode";
@@ -279,6 +299,9 @@ class NNDEPLOY_CC_API OpenCvCameraEncodeNode : public EncodeNode {
 
   virtual base::Status init();
   virtual base::Status deinit();
+
+  virtual base::Status setRefPath(const std::string &ref_path) override;
+  virtual base::Status setPath(const std::string &path) override;
 
   virtual base::Status run();
 };

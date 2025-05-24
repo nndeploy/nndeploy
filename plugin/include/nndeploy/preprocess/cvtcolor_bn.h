@@ -34,7 +34,7 @@ class NNDEPLOY_CC_API CvtColorBn : public dag::Node {
                  std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::preprocess::CvtColorBn";
-    param_ = std::make_shared<CvtclorResizeParam>();
+    param_ = std::make_shared<CvtcolorBnParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
