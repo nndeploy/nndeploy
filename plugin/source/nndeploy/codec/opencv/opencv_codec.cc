@@ -41,9 +41,6 @@ base::Status OpenCvImagesDecodeNode::deinit() {
 }
 
 base::Status OpenCvImagesDecodeNode::setPath(const std::string &path) {
-  if (path_ == path) {
-    return base::kStatusCodeOk;
-  }
   path_ = path;
   index_ = 0;
   images_.clear();
@@ -89,43 +86,14 @@ base::Status OpenCvImagesDecodeNode::run() {
     cv::Mat *mat = new cv::Mat(cv::imread(image_path));
     outputs_[0]->set(mat, false);
     index_++;
-    return base::kStatusCodeOk;
   } else {
-    NNDEPLOY_LOGE("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
+    NNDEPLOY_LOGW("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
                   index_, size_);
-    return base::kStatusCodeErrorInvalidParam;
   }
-}
-
-base::Status OpenCvVedioDecodeNode::init() {
-  // index_ = 0;
-  // if (base::exists(path_)) {
-  //   base::Status status = base::kStatusCodeOk;
-  //   cap_ = new cv::VideoCapture(path_);
-
-  //   if (!cap_->isOpened()) {
-  //     NNDEPLOY_LOGE("Error: Failed to open video file.\n");
-  //     delete cap_;
-  //     cap_ = nullptr;
-  //     return base::kStatusCodeErrorInvalidParam;
-  //   }
-
-  //   size_ = (int)cap_->get(cv::CAP_PROP_FRAME_COUNT);
-  //   fps_ = cap_->get(cv::CAP_PROP_FPS);
-  //   width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
-  //   height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
-  //   NNDEPLOY_LOGI("Video frame count: %d.\n", size_);
-  //   NNDEPLOY_LOGI("Video FPS: %f.\n", fps_);
-  //   NNDEPLOY_LOGI("Video width_: %d.\n", width_);
-  //   NNDEPLOY_LOGI("Video height_: %d.\n", height_);
-
-  //   return status;
-  // } else {
-  //   NNDEPLOY_LOGE("path[%s] is not Directory!\n", path_.c_str());
-  //   return base::kStatusCodeErrorInvalidParam;
-  // }
   return base::kStatusCodeOk;
 }
+
+base::Status OpenCvVedioDecodeNode::init() { return base::kStatusCodeOk; }
 base::Status OpenCvVedioDecodeNode::deinit() {
   if (cap_ != nullptr) {
     cap_->release();
@@ -136,10 +104,6 @@ base::Status OpenCvVedioDecodeNode::deinit() {
 }
 
 base::Status OpenCvVedioDecodeNode::setPath(const std::string &path) {
-  NNDEPLOY_LOGI("OpenCvVedioDecodeNode::setPath() path_[%s]\n", path.c_str());
-  if (path_ == path) {
-    return base::kStatusCodeOk;
-  }
   path_ = path;
   if (!base::exists(path_)) {
     NNDEPLOY_LOGE("path[%s] is not exists!\n", path_.c_str());
@@ -159,15 +123,14 @@ base::Status OpenCvVedioDecodeNode::setPath(const std::string &path) {
     cap_ = nullptr;
     return base::kStatusCodeErrorInvalidParam;
   }
-
   size_ = (int)cap_->get(cv::CAP_PROP_FRAME_COUNT);
   fps_ = cap_->get(cv::CAP_PROP_FPS);
   width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
   height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
-  NNDEPLOY_LOGE("Video frame count: %d.\n", size_);
-  NNDEPLOY_LOGE("Video FPS: %f.\n", fps_);
-  NNDEPLOY_LOGE("Video width_: %d.\n", width_);
-  NNDEPLOY_LOGE("Video height_: %d.\n", height_);
+  // NNDEPLOY_LOGE("Video frame count: %d.\n", size_);
+  // NNDEPLOY_LOGE("Video FPS: %f.\n", fps_);
+  // NNDEPLOY_LOGE("Video width_: %d.\n", width_);
+  // NNDEPLOY_LOGE("Video height_: %d.\n", height_);
   return base::kStatusCodeOk;
 }
 
@@ -180,47 +143,23 @@ base::Status OpenCvVedioDecodeNode::run() {
     cv::Mat *mat = new cv::Mat();
     cap_->read(*mat);
     outputs_[0]->set(mat, false);
-    std::string name = "input_" + std::to_string(index_) + ".jpg";
-    std::string full_path = base::joinPath("./", name);
-    cv::imwrite(full_path, *mat);
+    // std::string name = "input_" + std::to_string(index_) + ".jpg";
+    // std::string full_path = base::joinPath("./", name);
+    // cv::imwrite(full_path, *mat);
     index_++;
-    return base::kStatusCodeOk;
+    if (index_ == size_) {
+      cap_->release();
+    }
   } else {
-    NNDEPLOY_LOGE("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
+    NNDEPLOY_LOGW("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
                   index_, size_);
-    return base::kStatusCodeErrorInvalidParam;
   }
+
+  return base::kStatusCodeOk;
 }
 
 base::Status OpenCvCameraDecodeNode::init() {
-  // index_ = 0;
-  // base::Status status = base::kStatusCodeOk;
-  // NNDEPLOY_LOGE("OpenCvCameraDecodeNode::init() path_[%s]\n", path_.c_str());
-  // if (path_.empty()) {
-  //   cap_ = new cv::VideoCapture(0);
-  // } else if (base::isNumeric(path_)) {
-  //   int index = std::stoi(path_);
-  //   cap_ = new cv::VideoCapture(index);
-  // } else {
-  //   cap_ = new cv::VideoCapture(path_);
-  // }
-
-  // if (!cap_->isOpened()) {
-  //   NNDEPLOY_LOGE("Error: Failed to open video file.\n");
-  //   delete cap_;
-  //   cap_ = nullptr;
-  //   return base::kStatusCodeErrorInvalidParam;
-  // }
-
-  // fps_ = cap_->get(cv::CAP_PROP_FPS);
-  // size_ = 25 * 10;
-  // width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
-  // height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
-  // NNDEPLOY_LOGI("Video frame count: %d.\n", size_);
-  // NNDEPLOY_LOGI("Video FPS: %f.\n", fps_);
-  // NNDEPLOY_LOGI("Video width_: %d.\n", width_);
-  // NNDEPLOY_LOGI("Video height_: %d.\n", height_);
-  size_ = INT_MAX;
+  size_ = 0;
   return base::kStatusCodeOk;
 }
 base::Status OpenCvCameraDecodeNode::deinit() {
@@ -233,9 +172,6 @@ base::Status OpenCvCameraDecodeNode::deinit() {
 }
 
 base::Status OpenCvCameraDecodeNode::setPath(const std::string &path) {
-  if (path_ == path) {
-    return base::kStatusCodeOk;
-  }
   path_ = path;
   index_ = 0;
   if (cap_ != nullptr) {
@@ -260,45 +196,21 @@ base::Status OpenCvCameraDecodeNode::setPath(const std::string &path) {
   }
 
   fps_ = cap_->get(cv::CAP_PROP_FPS);
-  // size_ = 25 * 10;
+  size_ = INT_MAX;
   width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
   height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
-  NNDEPLOY_LOGI("Video frame count: %d.\n", size_);
-  NNDEPLOY_LOGI("Video FPS: %f.\n", fps_);
-  NNDEPLOY_LOGI("Video width_: %d.\n", width_);
-  NNDEPLOY_LOGI("Video height_: %d.\n", height_);
-  // size_ = INT_MAX;
+  // NNDEPLOY_LOGI("Video frame count: %d.\n", size_);
+  // NNDEPLOY_LOGI("Video FPS: %f.\n", fps_);
+  // NNDEPLOY_LOGI("Video width_: %d.\n", width_);
+  // NNDEPLOY_LOGI("Video height_: %d.\n", height_);
   return base::kStatusCodeOk;
 }
 
 base::Status OpenCvCameraDecodeNode::run() {
   base::Status status = base::kStatusCodeOk;
-  if (cap_ == nullptr) {
-    NNDEPLOY_LOGE("OpenCvCameraDecodeNode::init() path_[%s]\n", path_.c_str());
-    if (path_.empty()) {
-      cap_ = new cv::VideoCapture(0);
-    } else if (base::isNumeric(path_)) {
-      int index = std::stoi(path_);
-      cap_ = new cv::VideoCapture(index);
-    } else {
-      cap_ = new cv::VideoCapture(path_);
-    }
-
-    if (!cap_->isOpened()) {
-      NNDEPLOY_LOGE("Error: Failed to open video file.\n");
-      delete cap_;
-      cap_ = nullptr;
-      return base::kStatusCodeErrorInvalidParam;
-    }
-
-    fps_ = cap_->get(cv::CAP_PROP_FPS);
-    // size_ = 25 * 10;
-    width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
-    height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
-    NNDEPLOY_LOGI("Video frame count: %d.\n", size_);
-    NNDEPLOY_LOGI("Video FPS: %f.\n", fps_);
-    NNDEPLOY_LOGI("Video width_: %d.\n", width_);
-    NNDEPLOY_LOGI("Video height_: %d.\n", height_);
+  while (size_ == 0 && parallel_type_ == base::kParallelTypePipeline) {
+    // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
+    ;
   }
 
   if (index_ < size_) {
@@ -306,32 +218,29 @@ base::Status OpenCvCameraDecodeNode::run() {
     cap_->read(*mat);
     outputs_[0]->set(mat, false);
     index_++;
-    return base::kStatusCodeOk;
+    if (index_ == size_) {
+      cap_->release();
+    }
   } else {
-    NNDEPLOY_LOGE("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
+    NNDEPLOY_LOGW("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
                   index_, size_);
-    return base::kStatusCodeErrorInvalidParam;
   }
+  return base::kStatusCodeOk;
 }
 
 base::Status OpenCvImageEncodeNode::init() { return base::kStatusCodeOk; }
 base::Status OpenCvImageEncodeNode::deinit() { return base::kStatusCodeOk; }
 
 base::Status OpenCvImageEncodeNode::setRefPath(const std::string &path) {
-  if (ref_path_ == path) {
-    return base::kStatusCodeOk;
-  }
   ref_path_ = path;
   path_changed_ = true;
   return base::kStatusCodeOk;
 }
 
 base::Status OpenCvImageEncodeNode::setPath(const std::string &path) {
-  if (path_ == path) {
-    return base::kStatusCodeOk;
-  }
   path_ = path;
   path_changed_ = true;
+  size_ = 1;
   return base::kStatusCodeOk;
 }
 
@@ -341,31 +250,16 @@ base::Status OpenCvImageEncodeNode::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvImagesEncodeNode::init() {
-  // index_ = 0;
-  // if (base::isDirectory(path_)) {
-  //   return base::kStatusCodeOk;
-  // } else {
-  //   NNDEPLOY_LOGE("path[%s] is not Directory!\n", path_.c_str());
-  //   return base::kStatusCodeErrorInvalidParam;
-  // }
-  return base::kStatusCodeOk;
-}
+base::Status OpenCvImagesEncodeNode::init() { return base::kStatusCodeOk; }
 base::Status OpenCvImagesEncodeNode::deinit() { return base::kStatusCodeOk; }
 
 base::Status OpenCvImagesEncodeNode::setRefPath(const std::string &path) {
-  if (ref_path_ == path) {
-    return base::kStatusCodeOk;
-  }
   ref_path_ = path;
   path_changed_ = true;
   return base::kStatusCodeOk;
 }
 
 base::Status OpenCvImagesEncodeNode::setPath(const std::string &path) {
-  if (path_ == path) {
-    return base::kStatusCodeOk;
-  }
   path_ = path;
   index_ = 0;
   if (base::isDirectory(path_)) {
@@ -389,61 +283,22 @@ base::Status OpenCvImagesEncodeNode::run() {
 
 base::Status OpenCvVedioEncodeNode::init() {
   base::Status status = base::kStatusCodeOk;
-  // if (base::exists(ref_path_)) {
-  //   base::Status status = base::kStatusCodeOk;
-  //   cap_ = new cv::VideoCapture(ref_path_);
-
-  //   if (!cap_->isOpened()) {
-  //     NNDEPLOY_LOGE("Error: Failed to open video file.\n");
-  //     delete cap_;
-  //     cap_ = nullptr;
-  //     return base::kStatusCodeErrorInvalidParam;
-  //   }
-
-  //   fps_ = cap_->get(cv::CAP_PROP_FPS);
-  //   width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
-  //   height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
-  //   NNDEPLOY_LOGI("Video FPS: %f.\n", fps_);
-  //   NNDEPLOY_LOGI("Video width_: %d.\n", width_);
-  //   NNDEPLOY_LOGI("Video height_: %d.\n", height_);
-  // }
-
-  // int fourcc =
-  //     cv::VideoWriter::fourcc(fourcc_[0], fourcc_[1], fourcc_[2],
-  //     fourcc_[3]);
-  // cv::Size frame_size(width_, height_);
-  // writer_ = new cv::VideoWriter(path_, fourcc, fps_, frame_size);
-  // // 检查视频写入对象是否成功打开
-  // if (!writer_->isOpened()) {
-  //   NNDEPLOY_LOGE("Error: Failed to open output video file.\n");
-  //   delete writer_;
-  //   writer_ = nullptr;
-  //   return base::kStatusCodeErrorInvalidParam;
-  // }
-
   return status;
 }
 base::Status OpenCvVedioEncodeNode::deinit() {
   base::Status status = base::kStatusCodeOk;
-
   if (writer_) {
-    NNDEPLOY_LOGI("writer_ is nullptr\n");
-    writer_->release();
+    if (writer_->isOpened()) {
+      NNDEPLOY_LOGI("OpenCvVedioEncodeNode::deinit() writer_->release()\n");
+      writer_->release();
+    }
     delete writer_;
     writer_ = nullptr;
-  }
-  if (cap_) {
-    cap_->release();
-    delete cap_;
-    cap_ = nullptr;
   }
   return status;
 }
 
 base::Status OpenCvVedioEncodeNode::setRefPath(const std::string &path) {
-  if (ref_path_ == path) {
-    return base::kStatusCodeOk;
-  }
   ref_path_ = path;
   path_changed_ = true;
   if (cap_ != nullptr) {
@@ -456,40 +311,45 @@ base::Status OpenCvVedioEncodeNode::setRefPath(const std::string &path) {
     cap_ = new cv::VideoCapture(ref_path_);
 
     if (!cap_->isOpened()) {
-      NNDEPLOY_LOGE("Error: Failed to open video file %s.\n", ref_path_.c_str());
+      NNDEPLOY_LOGE("Error: Failed to open video file %s.\n",
+                    ref_path_.c_str());
       delete cap_;
       cap_ = nullptr;
       return base::kStatusCodeErrorInvalidParam;
     }
 
-    // size_ = (int)cap_->get(cv::CAP_PROP_FRAME_COUNT);
+    size_ = (int)cap_->get(cv::CAP_PROP_FRAME_COUNT);
     fps_ = cap_->get(cv::CAP_PROP_FPS);
     width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
     height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
-    NNDEPLOY_LOGI("Video FPS: %f.\n", fps_);
-    NNDEPLOY_LOGI("Video width_: %d.\n", width_);
-    NNDEPLOY_LOGI("Video height_: %d.\n", height_);
+
+    cap_->release();
+    delete cap_;
+    cap_ = nullptr;
   }
   return base::kStatusCodeOk;
 }
 
 base::Status OpenCvVedioEncodeNode::setPath(const std::string &path) {
-  if (path_ == path) {
-    return base::kStatusCodeOk;
-  }
   if (writer_ != nullptr) {
-    writer_->release();
+    if (writer_->isOpened()) {
+      NNDEPLOY_LOGI("OpenCvVedioEncodeNode::deinit() writer_->release()\n");
+      writer_->release();
+    }
     delete writer_;
     writer_ = nullptr;
   }
   path_ = path;
   path_changed_ = true;
-  int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v');
   cv::Size frame_size(width_, height_);
-  writer_ = new cv::VideoWriter(path_, fourcc, fps_, frame_size);
+  int fourcc = cv::VideoWriter::fourcc(fourcc_[0], fourcc_[1], fourcc_[2],
+                                        fourcc_[3]);
+  writer_ = new cv::VideoWriter();
+  writer_->open(path_, fourcc, fps_, frame_size, true);
   // 检查视频写入对象是否成功打开
   if (!writer_->isOpened()) {
-    NNDEPLOY_LOGE("Error: Failed to open output video file %s.\n", path_.c_str());
+    NNDEPLOY_LOGE("Error: Failed to open output video file %s.\n",
+                  path_.c_str());
     writer_->release();
     delete writer_;
     writer_ = nullptr;
@@ -499,12 +359,18 @@ base::Status OpenCvVedioEncodeNode::setPath(const std::string &path) {
 }
 
 base::Status OpenCvVedioEncodeNode::run() {
-  cv::Mat *mat = inputs_[0]->getCvMat(this);
-  writer_->write(*mat);
-  std::string name = "output_" + std::to_string(index_) + ".jpg";
-  std::string full_path = base::joinPath("./", name);
-  cv::imwrite(full_path, *mat);
-  index_++;
+  if (index_ < size_) {
+    cv::Mat *mat = inputs_[0]->getCvMat(this);
+    writer_->write(*mat);
+    index_++;
+    if (index_ == size_) {
+      writer_->release();
+    }
+  } else {
+    NNDEPLOY_LOGW("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
+                  index_, size_);
+  }
+  
   return base::kStatusCodeOk;
 }
 
@@ -538,11 +404,12 @@ base::Status OpenCvCameraEncodeNode::setPath(const std::string &path) {
 base::Status OpenCvCameraEncodeNode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
   if (mat != nullptr) {
-#if NNDEPLOY_OS_WINDOWS
+    // #if NNDEPLOY_OS_WINDOWS
+    //     cv::imshow(path_, *mat);
+    // #else
+    //     ;
+    // #endif
     cv::imshow(path_, *mat);
-#else
-    ;
-#endif
   }
   return base::kStatusCodeOk;
 }

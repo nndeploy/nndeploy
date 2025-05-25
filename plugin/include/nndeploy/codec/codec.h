@@ -202,7 +202,12 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
   void setFps(double fps) { fps_ = fps; };
   void setWidth(int width) { width_ = width; };
   void setHeight(int height) { height_ = height; };
-
+  void setSize(int size) {
+    if (size > 0) {
+      size_ = size;
+    }
+  }
+  int getSize() { return size_; }
   int getIndex() { return index_; };
 
   virtual base::Status run() = 0;
@@ -241,6 +246,7 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
   double fps_ = 0.0;
   int width_ = 0;
   int height_ = 0;
+  int size_ = 0;
   int index_ = 0;
 };
 

@@ -36,11 +36,26 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
     node_type_ = dag::NodeType::kNodeTypeInput;
     this->setOutputTypeInfo<std::vector<cv::Mat>>();
   }
-  virtual ~BatchOpenCvDecode() {}
+  virtual ~BatchOpenCvDecode() {
+    if (this->getInitialized()) {
+      this->deinit();
+      this->setInitializedFlag(false);
+    }
+  }
 
-  void setBatchSize(int batch_size_) { batch_size_ = batch_size_; }
+  void setBatchSize(int batch_size) { batch_size_ = batch_size; }
   base::Status setNodeKey(const std::string &key) {
     node_key_ = key;
+    std::vector<std::string> input_names = this->getInputNames();
+    std::vector<std::string> output_names = this->getRealOutputsName();
+    dag::NodeDesc desc(node_key_, "inner_decode_node", input_names,
+                       output_names);
+    node_ = (DecodeNode *)this->createNode(desc);
+    if (!node_) {
+      NNDEPLOY_LOGE("Node creation failed for node_key: %s\n",
+                    node_key_.c_str());
+      return base::kStatusCodeErrorInvalidParam;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -69,9 +84,9 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
   }
   int getSize() {
     if (node_) {
-      iter_size_ = NNDEPLOY_UP_DIV((int)(node_->getSize()), batch_size_);
+      size_ = NNDEPLOY_UP_DIV((int)(node_->getSize()), batch_size_);
     }
-    return iter_size_;
+    return size_;
   }
 
   double getFps() {
@@ -94,10 +109,10 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
   }
 
   virtual base::EdgeUpdateFlag updateInput() {
-    if (index_ < iter_size_) {
+    if (index_ < size_) {
       return base::kEdgeUpdateFlagComplete;
     } else {
-      if (iter_size_ == 0) {
+      if (size_ == 0) {
         return base::kEdgeUpdateFlagComplete;
       } else {
         return base::kEdgeUpdateFlagTerminate;
@@ -105,26 +120,7 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
     }
   }
 
-  virtual base::Status make() {
-    std::vector<std::string> input_names = this->getInputNames();
-    std::vector<std::string> output_names = this->getRealOutputsName();
-    dag::NodeDesc desc(node_key_, "inner_codec_node", input_names,
-                       output_names);
-    node_ = (DecodeNode *)this->createNode(desc);
-    if (!node_) {
-      NNDEPLOY_LOGE("Node creation failed for node_key: %s\n",
-                    node_key_.c_str());
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    // if (node_->getInputTypeInfo() != this->getInputTypeInfo() ||
-    //     node_->getOutputTypeInfo() != this->getOutputTypeInfo()) {
-    //   NNDEPLOY_LOGE(
-    //       "Type mismatch: Node input/output types do not match
-    //       BatchPreprocess " "types.\n");
-    //   return base::kStatusCodeErrorInvalidParam;
-    // }
-    return base::kStatusCodeOk;
-  }
+  virtual base::Status make() { return base::kStatusCodeOk; }
 
   virtual base::Status init() {
     index_ = 0;
@@ -141,23 +137,26 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
 
   virtual base::Status deinit() {
     if (node_) {
-      base::Status status =  node_->deinit();
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("node deinit failed");
-        return status;
+      if (node_->getInitialized()) {
+        base::Status status = node_->deinit();
+        if (status != base::kStatusCodeOk) {
+          NNDEPLOY_LOGE("node deinit failed");
+          return status;
+        }
+        node_->setInitializedFlag(false);
       }
-      node_->setInitializedFlag(false);
     }
     return base::kStatusCodeErrorNullParam;
   }
 
   virtual base::Status run() {
     auto results = new std::vector<cv::Mat>();
-    if (index_ >= iter_size_) {
+    if (index_ >= size_) {
       outputs_[0]->setAny(results, false);
       return base::kStatusCodeOk;
     }
     for (int i = 0; i < batch_size_; i++) {
+      // NNDEPLOY_LOGI("index_: %d, batch_size_: %d\n", index_, batch_size_);
       cv::Mat *single = nullptr;
       if (index_ * batch_size_ + i < node_->getSize()) {
         node_->run();
@@ -169,7 +168,7 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
         }
       }
       if (single != nullptr && !single->empty()) {
-        NNDEPLOY_LOGE("HW: %d, %d", single->rows, single->cols);
+        // NNDEPLOY_LOGE("HW: %d, %d", single->rows, single->cols);
         cv::Mat res(single->rows, single->cols, single->type());
         single->copyTo(res);
         results->push_back(res);
@@ -183,7 +182,7 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
  private:
   int batch_size_ = 1;
   int index_ = 0;
-  int iter_size_ = 1;
+  int size_ = 0;
   std::string node_key_ = "";
   DecodeNode *node_ = nullptr;
 };
@@ -202,10 +201,23 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
     node_type_ = dag::NodeType::kNodeTypeOutput;
     this->setInputTypeInfo<std::vector<cv::Mat>>();
   }
-  virtual ~BatchOpenCvEncode() {}
+  virtual ~BatchOpenCvEncode() {
+    if (this->getInitialized()) {
+      this->deinit();
+      this->setInitializedFlag(false);
+    }
+  }
 
   base::Status setNodeKey(const std::string &key) {
     node_key_ = key;
+    dag::NodeDesc desc(node_key_, "inner_codec_node",
+                       {"inner_codec_node.input"}, {});
+    node_ = (EncodeNode *)this->createNode(desc);
+    if (!node_) {
+      NNDEPLOY_LOGE("Node creation failed for node_key: %s\n",
+                    node_key_.c_str());
+      return base::kStatusCodeErrorInvalidParam;
+    }
     return base::kStatusCodeOk;
   }
 
@@ -251,6 +263,17 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
       node_->setHeight(height);
     }
   }
+  void setSize(int size) {
+    if (node_) {
+      node_->setSize(size);
+    }
+  }
+  int getSize() {
+    if (node_) {
+      return node_->getSize();
+    }
+    return 0;  // 默认值
+  }
   int getIndex() {
     if (node_) {
       return node_->getIndex();
@@ -258,24 +281,7 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
     return 0;  // 默认值
   }
 
-  virtual base::Status make() {
-    dag::NodeDesc desc(node_key_, "inner_codec_node", {"inner_codec_node.input"},
-                       {});
-    node_ = (EncodeNode *)this->createNode(desc);
-    if (!node_) {
-      NNDEPLOY_LOGE("Node creation failed for node_key: %s\n",
-                    node_key_.c_str());
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    // if (node_->getInputTypeInfo() != this->getInputTypeInfo() ||
-    //     node_->getOutputTypeInfo() != this->getOutputTypeInfo()) {
-    //   NNDEPLOY_LOGE(
-    //       "Type mismatch: Node input/output types do not match BatchPreprocess "
-    //       "types.\n");
-    //   return base::kStatusCodeErrorInvalidParam;
-    // }
-    return base::kStatusCodeOk;
-  }
+  virtual base::Status make() { return base::kStatusCodeOk; }
 
   virtual base::Status init() {
     if (node_) {
@@ -292,8 +298,8 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
   virtual base::Status deinit() {
     if (node_) {
       if (node_->getInitialized()) {
-        NNDEPLOY_LOGE("node[%s] deinit\n", node_->getName().c_str());
-        base::Status status =  node_->deinit();
+        // NNDEPLOY_LOGE("node[%s] deinit\n", node_->getName().c_str());
+        base::Status status = node_->deinit();
         if (status != base::kStatusCodeOk) {
           NNDEPLOY_LOGE("node deinit failed");
           return status;
@@ -305,7 +311,8 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
   }
 
   virtual base::Status run() {
-    std::vector<cv::Mat> *cv_mats = inputs_[0]->getAny<std::vector<cv::Mat>>(this);
+    std::vector<cv::Mat> *cv_mats =
+        inputs_[0]->getAny<std::vector<cv::Mat>>(this);
     if (cv_mats == nullptr) {
       NNDEPLOY_LOGE("cv_mats is nullptr");
       return base::kStatusCodeErrorInvalidParam;

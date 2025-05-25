@@ -533,7 +533,7 @@ std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
 };
 std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
   if (traced_) {
-    NNDEPLOY_LOGI("graph traced!\n");
+    // NNDEPLOY_LOGI("graph traced!\n");
     base::Status status = this->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("graph run failed!");
@@ -541,7 +541,7 @@ std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
     }
     return outputs_;
   } else {
-    NNDEPLOY_LOGI("graph not traced!\n");
+    // NNDEPLOY_LOGI("graph not traced!\n");
     this->markInputEdge(inputs);
     std::vector<Edge *> outputs = this->forward(inputs);
     if (graph_ != nullptr) {

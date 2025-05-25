@@ -566,7 +566,7 @@ base::EdgeUpdateFlag Node::updateInput() {
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   // init
   if (initialized_ == false && is_trace_ == false) {
-    NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
+    // NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
     this->init();
     this->setInitializedFlag(true);
   }
