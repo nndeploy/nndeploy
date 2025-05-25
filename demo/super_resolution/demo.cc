@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
 
   NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
   int size = graph_demo.decode_node_->getSize();
-  NNDEPLOY_LOGI("size: %d", size);
+  NNDEPLOY_LOGI("size: %d\n", size);
   for (int i = 0; i < size; i++) {
     outputs = graph_demo(inputs);
     if (pt != base::kParallelTypePipeline) {

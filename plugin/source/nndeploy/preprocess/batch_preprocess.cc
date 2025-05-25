@@ -8,6 +8,13 @@ namespace preprocess {
 
 base::Status BatchPreprocess::setNodeKey(const std::string &key) {
   node_key_ = key;
+  dag::NodeDesc desc(node_key_, "inner_preprocess_node", {"inner_preprocess_node.input"},
+                     {"inner_preprocess_node.output"});
+  node_ = this->createNode(desc);
+  if (!node_) {
+    NNDEPLOY_LOGE("Node creation failed for node_key: %s\n", node_key_.c_str());
+    return base::kStatusCodeErrorInvalidParam;
+  }
   return base::kStatusCodeOk;
 }
 
@@ -24,9 +31,7 @@ base::Status BatchPreprocess::setParamSharedPtr(std::shared_ptr<base::Param> par
   return base::kStatusCodeOk;
 }
 base::Param *BatchPreprocess::getParam() {
-  NNDEPLOY_LOGE("BatchPreprocess::getParam()\n");
   if (node_) {
-    NNDEPLOY_LOGI("node_->getParam()\n");
     return node_->getParam();
   }
   return nullptr;
@@ -39,20 +44,6 @@ std::shared_ptr<base::Param> BatchPreprocess::getParamSharedPtr() {
 }
 
 base::Status BatchPreprocess::make() {
-  dag::NodeDesc desc(node_key_, "inner_preprocess_node", {"inner_preprocess_node.input"},
-                     {"inner_preprocess_node.output"});
-  node_ = this->createNode(desc);
-  if (!node_) {
-    NNDEPLOY_LOGE("Node creation failed for node_key: %s\n", node_key_.c_str());
-    return base::kStatusCodeErrorInvalidParam;
-  }
-  // if (node_->getInputTypeInfo() != this->getInputTypeInfo() ||
-  //     node_->getOutputTypeInfo() != this->getOutputTypeInfo()) {
-  //   NNDEPLOY_LOGE(
-  //       "Type mismatch: Node input/output types do not match BatchPreprocess "
-  //       "types.\n");
-  //   return base::kStatusCodeErrorInvalidParam;
-  // }
   return base::kStatusCodeOk;
 }
 
