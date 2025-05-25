@@ -129,14 +129,24 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
   virtual base::Status init() {
     index_ = 0;
     if (node_) {
-      return node_->init();
+      base::Status status = node_->init();
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("node init failed");
+        return status;
+      }
+      node_->setInitializedFlag(true);
     }
     return base::kStatusCodeErrorNullParam;
   }
 
   virtual base::Status deinit() {
     if (node_) {
-      return node_->deinit();
+      base::Status status =  node_->deinit();
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("node deinit failed");
+        return status;
+      }
+      node_->setInitializedFlag(false);
     }
     return base::kStatusCodeErrorNullParam;
   }
@@ -152,7 +162,7 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
       if (index_ * batch_size_ + i < node_->getSize()) {
         node_->run();
         dag::Edge *output = node_->getOutput();
-        cv::Mat *single = output->getCvMat(node_);
+        single = output->getCvMat(node_);
         if (single == nullptr) {
           NNDEPLOY_LOGE("single_tensor is nullptr");
           return base::kStatusCodeErrorInvalidParam;
@@ -267,16 +277,42 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
     return base::kStatusCodeOk;
   }
 
+  virtual base::Status init() {
+    if (node_) {
+      base::Status status = node_->init();
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("node init failed");
+        return status;
+      }
+      node_->setInitializedFlag(true);
+    }
+    return base::kStatusCodeErrorNullParam;
+  }
+
+  virtual base::Status deinit() {
+    if (node_) {
+      if (node_->getInitialized()) {
+        NNDEPLOY_LOGE("node[%s] deinit\n", node_->getName().c_str());
+        base::Status status =  node_->deinit();
+        if (status != base::kStatusCodeOk) {
+          NNDEPLOY_LOGE("node deinit failed");
+          return status;
+        }
+        node_->setInitializedFlag(false);
+      }
+    }
+    return base::kStatusCodeErrorNullParam;
+  }
+
   virtual base::Status run() {
-    dag::Edge *output = node_->getOutput();
-    std::vector<cv::Mat> *results = output->getAny<std::vector<cv::Mat>>(node_);
-    if (results == nullptr) {
-      NNDEPLOY_LOGE("results is nullptr");
+    std::vector<cv::Mat> *cv_mats = inputs_[0]->getAny<std::vector<cv::Mat>>(this);
+    if (cv_mats == nullptr) {
+      NNDEPLOY_LOGE("cv_mats is nullptr");
       return base::kStatusCodeErrorInvalidParam;
     }
-    dag::Edge *input = node_->getInput();
-    for (int i = 0; i < results->size(); i++) {
-      input->setAny((*results)[i]);
+    dag::Edge *node_input = node_->getInput();
+    for (int i = 0; i < cv_mats->size(); i++) {
+      node_input->set((*cv_mats)[i]);
       node_->run();
     }
     return base::kStatusCodeOk;

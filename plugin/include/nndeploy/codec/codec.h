@@ -236,7 +236,8 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
   std::string path_ = "";
   bool path_changed_ = false;
   std::string ref_path_ = "";
-  std::string fourcc_ = "MJPG";
+  // std::string fourcc_ = "MJPG";
+  std::string fourcc_ = "mp4v";
   double fps_ = 0.0;
   int width_ = 0;
   int height_ = 0;

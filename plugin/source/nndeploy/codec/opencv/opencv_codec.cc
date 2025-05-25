@@ -136,6 +136,7 @@ base::Status OpenCvVedioDecodeNode::deinit() {
 }
 
 base::Status OpenCvVedioDecodeNode::setPath(const std::string &path) {
+  NNDEPLOY_LOGI("OpenCvVedioDecodeNode::setPath() path_[%s]\n", path.c_str());
   if (path_ == path) {
     return base::kStatusCodeOk;
   }
@@ -153,7 +154,7 @@ base::Status OpenCvVedioDecodeNode::setPath(const std::string &path) {
   path_changed_ = true;
   cap_ = new cv::VideoCapture();
   if (!cap_->open(path_)) {
-    NNDEPLOY_LOGE("无法打开视频文件 %s\n", path_.c_str());
+    NNDEPLOY_LOGE("can not open video file %s\n", path_.c_str());
     delete cap_;
     cap_ = nullptr;
     return base::kStatusCodeErrorInvalidParam;
@@ -163,10 +164,10 @@ base::Status OpenCvVedioDecodeNode::setPath(const std::string &path) {
   fps_ = cap_->get(cv::CAP_PROP_FPS);
   width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
   height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
-  NNDEPLOY_LOGI("Video frame count: %d.\n", size_);
-  NNDEPLOY_LOGI("Video FPS: %f.\n", fps_);
-  NNDEPLOY_LOGI("Video width_: %d.\n", width_);
-  NNDEPLOY_LOGI("Video height_: %d.\n", height_);
+  NNDEPLOY_LOGE("Video frame count: %d.\n", size_);
+  NNDEPLOY_LOGE("Video FPS: %f.\n", fps_);
+  NNDEPLOY_LOGE("Video width_: %d.\n", width_);
+  NNDEPLOY_LOGE("Video height_: %d.\n", height_);
   return base::kStatusCodeOk;
 }
 
@@ -179,6 +180,9 @@ base::Status OpenCvVedioDecodeNode::run() {
     cv::Mat *mat = new cv::Mat();
     cap_->read(*mat);
     outputs_[0]->set(mat, false);
+    std::string name = "input_" + std::to_string(index_) + ".jpg";
+    std::string full_path = base::joinPath("./", name);
+    cv::imwrite(full_path, *mat);
     index_++;
     return base::kStatusCodeOk;
   } else {
@@ -421,15 +425,17 @@ base::Status OpenCvVedioEncodeNode::init() {
 }
 base::Status OpenCvVedioEncodeNode::deinit() {
   base::Status status = base::kStatusCodeOk;
-  if (!cap_) {
-    cap_->release();
-    delete cap_;
-    cap_ = nullptr;
-  }
-  if (!writer_) {
+
+  if (writer_) {
+    NNDEPLOY_LOGI("writer_ is nullptr\n");
     writer_->release();
     delete writer_;
     writer_ = nullptr;
+  }
+  if (cap_) {
+    cap_->release();
+    delete cap_;
+    cap_ = nullptr;
   }
   return status;
 }
@@ -471,15 +477,20 @@ base::Status OpenCvVedioEncodeNode::setPath(const std::string &path) {
   if (path_ == path) {
     return base::kStatusCodeOk;
   }
+  if (writer_ != nullptr) {
+    writer_->release();
+    delete writer_;
+    writer_ = nullptr;
+  }
   path_ = path;
   path_changed_ = true;
-  int fourcc =
-      cv::VideoWriter::fourcc(fourcc_[0], fourcc_[1], fourcc_[2], fourcc_[3]);
+  int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v');
   cv::Size frame_size(width_, height_);
   writer_ = new cv::VideoWriter(path_, fourcc, fps_, frame_size);
   // 检查视频写入对象是否成功打开
   if (!writer_->isOpened()) {
     NNDEPLOY_LOGE("Error: Failed to open output video file %s.\n", path_.c_str());
+    writer_->release();
     delete writer_;
     writer_ = nullptr;
     return base::kStatusCodeErrorInvalidParam;
@@ -490,6 +501,10 @@ base::Status OpenCvVedioEncodeNode::setPath(const std::string &path) {
 base::Status OpenCvVedioEncodeNode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
   writer_->write(*mat);
+  std::string name = "output_" + std::to_string(index_) + ".jpg";
+  std::string full_path = base::joinPath("./", name);
+  cv::imwrite(full_path, *mat);
+  index_++;
   return base::kStatusCodeOk;
 }
 

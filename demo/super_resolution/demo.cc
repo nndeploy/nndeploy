@@ -12,6 +12,66 @@
 
 using namespace nndeploy;
 
+void testCvVideoWriter(const std::string &input_path, const std::string &ouput_path) {
+  // // 读取输入视频
+  auto cap = cv::VideoCapture(input_path);
+  if (!cap.isOpened()) {
+    NNDEPLOY_LOGE("Failed to open video file: %s\n", input_path.c_str());
+    return;
+  }
+  int frame_count = cap.get(cv::CAP_PROP_FRAME_COUNT);
+  NNDEPLOY_LOGI("frame_count: %d\n", frame_count);
+  
+  // 获取视频参数
+  int width = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+  int height = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+  double fps = cap.get(cv::CAP_PROP_FPS);
+  
+  // 创建视频写入对象
+  auto writer = cv::VideoWriter();
+  int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v');
+  // int fourcc = cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
+  // std::string output_path = "vsr_src_output.mp4";
+  // // if (ouput_path != output_path) {
+  // //   NNDEPLOY_LOGI("输出路径不一致:\n");
+  // //   NNDEPLOY_LOGI("  期望路径: %s\n", ouput_path.c_str());
+  // //   NNDEPLOY_LOGI("  实际路径: %s\n", output_path.c_str());
+  // // }
+  // // output_path = ouput_path;
+  // bool success = writer.open(output_path, fourcc, fps, cv::Size(width, height), true);
+  // NNDEPLOY_LOGI("ouput_path:%s,\n", ouput_path.c_str());
+  bool success = writer.open(ouput_path, fourcc, fps, cv::Size(width, height), true);
+  if (!success) {
+    NNDEPLOY_LOGE("Failed to create video writer for: %s\n", ouput_path.c_str());
+    cap.release();
+    return;
+  }
+  NNDEPLOY_LOGI("writer is opened\n");
+
+  // 逐帧读写
+  cv::Mat frame;
+  int index = 0;
+  while (cap.read(frame)) {
+    // cv::imshow("13",frame);
+    // cv::waitKey(30);
+    try {
+        writer.write(frame);
+    } catch (const cv::Exception& e) {
+        NNDEPLOY_LOGE("Error writing frame: %s\n", e.what());
+        break;
+    }
+    // std::string name = "output_temp" + std::to_string(index) + ".jpg";
+    // std::string full_path = base::joinPath("./", name);
+    // cv::imwrite(full_path, frame);
+    index++;
+  }
+
+  // 释放资源
+  writer.release();
+  cap.release();
+  NNDEPLOY_LOGI("writer is released\n");
+}
+
 class SuperResolutionDemo : public dag::Graph {
  public:
   SuperResolutionDemo(const std::string &name) : dag::Graph(name) {}
@@ -24,6 +84,7 @@ class SuperResolutionDemo : public dag::Graph {
                        ->createNode<codec::BatchOpenCvDecode>(
                            "decode_node_");
     decode_node_->setNodeKey("nndeploy::codec::OpenCvVedioDecodeNode");
+    decode_node_->make();
     decode_node_->setBatchSize(batch_size);
     graph_ =
         (super_resolution::SuperResolutionGraph *)this
@@ -32,7 +93,8 @@ class SuperResolutionDemo : public dag::Graph {
     encode_node_ = (codec::BatchOpenCvEncode *)this
                        ->createNode<codec::BatchOpenCvEncode>(
                            "encode_node_");
-    encode_node_->setNodeKey("nndeploy::codec::BatchOpenCvEncode");
+    encode_node_->setNodeKey("nndeploy::codec::OpenCvVedioEncodeNode");
+    encode_node_->make();
     return status;
   }
 
@@ -61,11 +123,15 @@ class SuperResolutionDemo : public dag::Graph {
   virtual std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
     std::vector<dag::Edge *> decode_node_outputs = (*decode_node_)(inputs);
 
-    std::vector<dag::Edge *> graph_outputs = (*graph_)(decode_node_outputs);
+    // std::vector<dag::Edge *> graph_outputs = (*graph_)(decode_node_outputs);
+
+    // std::vector<dag::Edge *> encode_node_outputs =
+    //     (*encode_node_)(graph_outputs);
+    // return graph_outputs;
 
     std::vector<dag::Edge *> encode_node_outputs =
-        (*encode_node_)(graph_outputs);
-    return graph_outputs;
+        (*encode_node_)(decode_node_outputs);
+    return decode_node_outputs;
   }
 
  public:
@@ -118,13 +184,14 @@ int main(int argc, char *argv[]) {
   }
 
   std::vector<dag::Edge *> inputs;
-  // std::vector<dag::Edge *> outputs;
+  std::vector<dag::Edge *> outputs;
 
-  std::vector<dag::Edge *> outputs = graph_demo.trace(inputs);
+  // std::vector<dag::Edge *> outputs = graph_demo.trace(inputs);
 
   graph_demo.setInputPath(input_path);
-  graph_demo.setOutputPath(ouput_path);
   graph_demo.setRefPath(input_path);
+  graph_demo.setOutputPath(ouput_path);
+
 
   NNDEPLOY_TIME_POINT_START("graph_demo(inputs)");
   int size = graph_demo.decode_node_->getSize();

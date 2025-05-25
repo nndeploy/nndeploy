@@ -488,6 +488,13 @@ base::Status Graph::deinit() {
     status = executor_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "executor deinit failed!");
+  } else {
+    for (auto node_wrapper : node_repository_) {
+      if (node_wrapper->node_->getInitialized()) {
+        node_wrapper->node_->deinit();
+        node_wrapper->node_->setInitializedFlag(false);
+      }
+    }
   }
 
   // NNDEPLOY_LOGI("###########################\n");
