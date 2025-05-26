@@ -100,9 +100,9 @@ const HomeLayout: React.FC<any> = (props: any) => {
         >
           {renderMenu()}
         </Nav>
-        <div className="my">
+        {/* <div className="my">
           <div className="content">content.................</div>
-        </div>
+        </div> */}
         <div className={styles.mainRight}>
           <Tabs
             tabPosition="top"

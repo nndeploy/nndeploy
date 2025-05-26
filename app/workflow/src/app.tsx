@@ -10,6 +10,7 @@ import { NoMatch } from "./pages/NoMatch";
 import HomeLayout from "./pages/Layout/Home";
 import Flows from "./pages/flows";
 import Backend from "./pages/Layout/Backend/Backend";
+import './mock'
 
 const app = createRoot(document.getElementById("root")!);
 
