@@ -152,5 +152,42 @@ void chunkPrint(const std::vector<std::shared_ptr<Chunk>> &chunks) {
   NNDEPLOY_LOGE("Total chunk size: %zu\n", total_chunk_size);
 }
 
+std::string tensorPoolTypeToString(TensorPoolType type) {
+  switch (type) {
+    case kTensorPool1DSharedObjectTypeGreedyByBreadth:
+      return "TensorPool1DSharedObjectTypeGreedyByBreadth";
+    case kTensorPool1DSharedObjectTypeGreedyBySize:
+      return "TensorPool1DSharedObjectTypeGreedyBySize";
+    case kTensorPool1DSharedObjectTypeGreedyBySizeImprove:
+      return "TensorPool1DSharedObjectTypeGreedyBySizeImprove";
+    case kTensorPool1DOffsetCalculateTypeGreedyBySize:
+      return "TensorPool1DOffsetCalculateTypeGreedyBySize";
+    case kTensorPool1DOffsetCalculateTypeGreedyByBreadth:
+      return "TensorPool1DOffsetCalculateTypeGreedyByBreadth";
+    case kTensorPool1DNone:
+      return "TensorPool1DNone";
+    default:
+      return "Unknown";
+  }
+}
+
+TensorPoolType stringToTensorPoolType(const std::string &src) {
+  if (src == "TensorPool1DSharedObjectTypeGreedyByBreadth") {
+    return kTensorPool1DSharedObjectTypeGreedyByBreadth;
+  } else if (src == "TensorPool1DSharedObjectTypeGreedyBySize") {
+    return kTensorPool1DSharedObjectTypeGreedyBySize;
+  } else if (src == "TensorPool1DSharedObjectTypeGreedyBySizeImprove") {
+    return kTensorPool1DSharedObjectTypeGreedyBySizeImprove;
+  } else if (src == "TensorPool1DOffsetCalculateTypeGreedyBySize") {
+    return kTensorPool1DOffsetCalculateTypeGreedyBySize;
+  } else if (src == "TensorPool1DOffsetCalculateTypeGreedyByBreadth") {
+    return kTensorPool1DOffsetCalculateTypeGreedyByBreadth;
+  } else if (src == "TensorPool1DNone") {
+    return kTensorPool1DNone;
+  } else {
+    return kTensorPool1DSharedObjectTypeGreedyByBreadth; // 默认返回第一个类型
+  }
+}
+
 }  // namespace net
 }  // namespace nndeploy

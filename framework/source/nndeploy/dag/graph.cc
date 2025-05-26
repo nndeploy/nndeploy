@@ -312,7 +312,6 @@ std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string &name) {
   return nullptr;
 }
 
-
 Node *Graph::getNodeByKey(const std::string &key) {
   for (auto node_wrapper : node_repository_) {
     if (node_wrapper->node_->getKey() == key) {
@@ -974,15 +973,43 @@ NodeWrapper *Graph::getNodeWrapper(const std::string &name) {
   return findNodeWrapper(node_repository_, name);
 }
 
-base::Status Graph::serialize(rapidjson::Value &json,
-                              rapidjson::Document::AllocatorType &allocator) const {
+base::Status Graph::serialize(
+    rapidjson::Value &json,
+    rapidjson::Document::AllocatorType &allocator) const {
   base::Status status = base::kStatusCodeOk;
   status = Node::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     return status;
   }
-  json.AddMember("is_graph_node_share_stream_", is_graph_node_share_stream_, allocator);
-  json.AddMember("queue_max_size_", queue_max_size_, allocator);
+  if (!is_inner_) {
+    // 写入设备类型
+    // std::string device_type_str = base::deviceTypeToString(device_type_);
+    // json.AddMember("device_type_",
+    //                rapidjson::Value(device_type_str.c_str(), allocator),
+    //                allocator);
+    // 写入是否为外部流
+    json.AddMember("is_external_stream_", is_external_stream_, allocator);
+    // 序列化并行类型
+    // std::string parallel_type_str = base::parallelTypeToString(parallel_type_);
+    // json.AddMember("parallel_type_",
+    //                rapidjson::Value(parallel_type_str.c_str(), allocator),
+    //                allocator);
+
+    // 序列化其他布尔标志
+    json.AddMember("is_inner_", is_inner_, allocator);
+    json.AddMember("is_time_profile_", is_time_profile_, allocator);
+    json.AddMember("is_debug_", is_debug_, allocator);
+    // json.AddMember("is_graph_", is_graph_, allocator);
+
+    // 写入节点类型
+    // std::string node_type_str = nodeTypeToString(node_type_);
+    // json.AddMember("node_type_",
+    //                rapidjson::Value(node_type_str.c_str(), allocator),
+    //                allocator);
+    json.AddMember("is_graph_node_share_stream_", is_graph_node_share_stream_,
+                   allocator);
+    json.AddMember("queue_max_size_", queue_max_size_, allocator);
+  }
 
   if (!node_repository_.empty()) {
     rapidjson::Value node_repository_array(rapidjson::kArrayType);
@@ -1001,25 +1028,26 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   if (status != base::kStatusCodeOk) {
     return status;
   }
-  
-  if (json.HasMember("is_graph_node_share_stream_") && json["is_graph_node_share_stream_"].IsBool()) {
+
+  if (json.HasMember("is_graph_node_share_stream_") &&
+      json["is_graph_node_share_stream_"].IsBool()) {
     is_graph_node_share_stream_ = json["is_graph_node_share_stream_"].GetBool();
   }
-  
+
   if (json.HasMember("queue_max_size_") && json["queue_max_size_"].IsInt()) {
     queue_max_size_ = json["queue_max_size_"].GetInt();
   }
 
   if (!is_inner_) {
     if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
-      const rapidjson::Value& inputs = json["inputs_"];
+      const rapidjson::Value &inputs = json["inputs_"];
       for (rapidjson::SizeType i = 0; i < inputs.Size(); i++) {
-        if (inputs[i].IsString()) {
-          std::string input_name = inputs[i].GetString();
+        if (inputs[i].IsObject()) {
+          std::string input_name = inputs[i]["name_"].GetString();
           Edge *edge = this->getEdge(input_name);
           if (edge == nullptr) {
             edge = this->createEdge(input_name);
-          } 
+          }
           if (edge == nullptr) {
             NNDEPLOY_LOGE("create edge failed\n");
             return base::kStatusCodeErrorInvalidValue;
@@ -1028,11 +1056,11 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
         }
       }
     }
-    if (json.HasMember("outputs_") && json["outputs_"].IsArray()) { 
-      const rapidjson::Value& outputs = json["outputs_"];
+    if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
+      const rapidjson::Value &outputs = json["outputs_"];
       for (rapidjson::SizeType i = 0; i < outputs.Size(); i++) {
-        if (outputs[i].IsString()) {
-          std::string output_name = outputs[i].GetString();
+        if (outputs[i].IsObject()) {
+          std::string output_name = outputs[i]["name_"].GetString();
           Edge *edge = this->getEdge(output_name);
           if (edge == nullptr) {
             edge = this->createEdge(output_name);
@@ -1045,10 +1073,11 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
         }
       }
     }
-  } 
-  
-  if (json.HasMember("node_repository_") && json["node_repository_"].IsArray()) {
-    const rapidjson::Value& nodes = json["node_repository_"];
+  }
+
+  if (json.HasMember("node_repository_") &&
+      json["node_repository_"].IsArray()) {
+    const rapidjson::Value &nodes = json["node_repository_"];
     for (rapidjson::SizeType i = 0; i < nodes.Size(); i++) {
       if (nodes[i].IsObject()) {
         NodeDesc node_desc;
@@ -1057,7 +1086,7 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
         if (status != base::kStatusCodeOk) {
           return status;
         }
-        Node* node = this->createNode(node_desc);
+        Node *node = this->createNode(node_desc);
         if (node == nullptr) {
           NNDEPLOY_LOGE("create node failed\n");
           return base::kStatusCodeErrorInvalidValue;
@@ -1070,7 +1099,7 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
       }
     }
   }
-  
+
   return base::kStatusCodeOk;
 }
 

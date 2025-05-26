@@ -741,8 +741,7 @@ base::Status Net::construct() {
 
 base::Status Net::optimizer() {
   base::Status status = base::kStatusCodeOk;
-  std::unique_ptr<net::Optimizer> optimizer =
-      std::make_unique<net::Optimizer>();
+  std::unique_ptr<net::Optimizer> optimizer(new net::Optimizer());
   status = optimizer->init(device_type_, enable_pass_, disable_pass_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "optimizer init failed!");
   status = optimizer->optimize(tensor_repository_, op_repository_, this);

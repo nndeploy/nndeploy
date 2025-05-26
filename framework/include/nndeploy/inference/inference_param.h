@@ -128,6 +128,10 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
   std::vector<std::string> library_path_;        // 第三方推理框架的动态库路径
   base::ParallelType parallel_type_ = base::kParallelTypeSequential;
   int worker_num_ = 4;
+
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 /**

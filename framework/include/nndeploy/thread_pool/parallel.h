@@ -16,6 +16,9 @@ enum ParallelForApiType : int {
   kParallelForApiTypeDefault = 0x0000,
 };
 
+extern NNDEPLOY_CC_API std::string parallelForApiTypeToString(ParallelForApiType type);
+extern NNDEPLOY_CC_API ParallelForApiType stringToParallelForApiType(const std::string &src);
+
 /**
  * @brief Base class for parallel data processors
  */

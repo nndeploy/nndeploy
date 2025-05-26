@@ -162,6 +162,101 @@ class NNDEPLOY_CC_API CvtclorResizeParam : public base::Param {
   float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   // 归一化处理中的标准差，用于数据标准化
   float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator) {
+    base::Status status = base::Param::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+
+    std::string src_pixel_type_str = base::pixelTypeToString(src_pixel_type_);
+    json.AddMember("src_pixel_type_", rapidjson::Value(src_pixel_type_str.c_str(), allocator), allocator);
+    std::string dst_pixel_type_str = base::pixelTypeToString(dst_pixel_type_);
+    json.AddMember("dst_pixel_type_", rapidjson::Value(dst_pixel_type_str.c_str(), allocator), allocator);
+    std::string interp_type_str = base::interpTypeToString(interp_type_);
+    json.AddMember("interp_type_", rapidjson::Value(interp_type_str.c_str(), allocator), allocator);
+    json.AddMember("h_", h_, allocator);
+    json.AddMember("w_", w_, allocator);
+    std::string data_type_str = base::dataTypeToString(data_type_);
+    json.AddMember("data_type_", rapidjson::Value(data_type_str.c_str(), allocator), allocator);
+    std::string data_format_str = base::dataFormatToString(data_format_);
+    json.AddMember("data_format_", rapidjson::Value(data_format_str.c_str(), allocator), allocator);
+    json.AddMember("normalize_", normalize_, allocator);
+
+    rapidjson::Value scale_array(rapidjson::kArrayType);
+    rapidjson::Value mean_array(rapidjson::kArrayType);
+    rapidjson::Value std_array(rapidjson::kArrayType);
+    for (int i = 0; i < 4; i++) {
+      scale_array.PushBack(scale_[i], allocator);
+      mean_array.PushBack(mean_[i], allocator);
+      std_array.PushBack(std_[i], allocator);
+    }
+    json.AddMember("scale_", scale_array, allocator);
+    json.AddMember("mean_", mean_array, allocator);
+    json.AddMember("std_", std_array, allocator);
+
+    return base::kStatusCodeOk;
+  }
+
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    base::Status status = base::Param::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+
+    if (json.HasMember("src_pixel_type_") && json["src_pixel_type_"].IsString()) {
+      src_pixel_type_ = base::stringToPixelType(json["src_pixel_type_"].GetString());
+    }
+    if (json.HasMember("dst_pixel_type_") && json["dst_pixel_type_"].IsString()) {
+      dst_pixel_type_ = base::stringToPixelType(json["dst_pixel_type_"].GetString());
+    }
+    if (json.HasMember("interp_type_") && json["interp_type_"].IsString()) {
+      interp_type_ = base::stringToInterpType(json["interp_type_"].GetString());
+    }
+    if (json.HasMember("h_") && json["h_"].IsInt()) {
+      h_ = json["h_"].GetInt();
+    }
+    if (json.HasMember("w_") && json["w_"].IsInt()) {
+      w_ = json["w_"].GetInt();
+    }
+    if (json.HasMember("data_type_") && json["data_type_"].IsString()) {
+      data_type_ = base::stringToDataType(json["data_type_"].GetString());
+    }
+    if (json.HasMember("data_format_") && json["data_format_"].IsString()) {
+      data_format_ = base::stringToDataFormat(json["data_format_"].GetString());
+    }
+    if (json.HasMember("normalize_") && json["normalize_"].IsBool()) {
+      normalize_ = json["normalize_"].GetBool();
+    }
+
+    if (json.HasMember("scale_") && json["scale_"].IsArray()) {
+      const rapidjson::Value& scale_array = json["scale_"];
+      for (int i = 0; i < 4 && i < scale_array.Size(); i++) {
+        if (scale_array[i].IsFloat()) {
+          scale_[i] = scale_array[i].GetFloat();
+        }
+      }
+    }
+    if (json.HasMember("mean_") && json["mean_"].IsArray()) {
+      const rapidjson::Value& mean_array = json["mean_"];
+      for (int i = 0; i < 4 && i < mean_array.Size(); i++) {
+        if (mean_array[i].IsFloat()) {
+          mean_[i] = mean_array[i].GetFloat();
+        }
+      }
+    }
+    if (json.HasMember("std_") && json["std_"].IsArray()) {
+      const rapidjson::Value& std_array = json["std_"];
+      for (int i = 0; i < 4 && i < std_array.Size(); i++) {
+        if (std_array[i].IsFloat()) {
+          std_[i] = std_array[i].GetFloat();
+        }
+      }
+    }
+
+    return base::kStatusCodeOk;
+  }
 };
 
 /**

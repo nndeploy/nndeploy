@@ -12,6 +12,10 @@ class PyDecodeNode : public DecodeNode {
  public:
   using DecodeNode::DecodeNode;  // 继承构造函数
 
+  base::Status setPath(const std::string &path) {
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, DecodeNode, "set_path", setPath, path);
+  }
+
   base::Status run() override {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, DecodeNode, "run", run);
   }
@@ -21,6 +25,14 @@ class PyDecodeNode : public DecodeNode {
 class PyEncodeNode : public EncodeNode {
  public:
   using EncodeNode::EncodeNode;  // 继承构造函数
+
+  base::Status setRefPath(const std::string &ref_path) {
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "set_ref_path", setRefPath, ref_path);
+  }
+
+  base::Status setPath(const std::string &path) {
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "set_path", setPath, path);
+  }
 
   base::Status run() override {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "run", run);
@@ -51,6 +63,8 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
       .def("get_codec_flag", &EncodeNode::getCodecFlag)
       .def("set_path", &EncodeNode::setPath, py::arg("path"))
       .def("set_ref_path", &EncodeNode::setRefPath, py::arg("ref_path"))
+      .def("set_size", &EncodeNode::setSize, py::arg("size"))
+      .def("get_size", &EncodeNode::getSize)
       .def("set_fourcc", &EncodeNode::setFourcc, py::arg("fourcc"))
       .def("set_fps", &EncodeNode::setFps, py::arg("fps"))
       .def("set_width", &EncodeNode::setWidth, py::arg("width"))

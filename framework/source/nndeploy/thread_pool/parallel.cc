@@ -8,6 +8,20 @@ namespace thread_pool {
 
 static ParallelForApiType g_parallel_for_api_type = kParallelForApiTypeDefault;
 
+std::string parallelForApiTypeToString(ParallelForApiType type) {
+  switch (type) {
+    case kParallelForApiTypeDefault:
+      return "Default";
+  }
+}
+
+ParallelForApiType stringToParallelForApiType(const std::string &src) {
+  if (src == "Default") {
+    return kParallelForApiTypeDefault;
+  }
+  return kParallelForApiTypeDefault;
+}
+
 int defaultNumberOfThreads() { return 4; }
 
 void setThreadNum(int num) {

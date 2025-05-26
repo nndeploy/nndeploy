@@ -197,6 +197,7 @@ endif()
 
 ## framework
 if(ENABLE_NNDEPLOY_PYTHON)
+  set(ENABLE_NNDEPLOY_CXX17_ABI ON)
   set(ENABLE_NNDEPLOY_DAG ON)
 endif()
 

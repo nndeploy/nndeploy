@@ -504,6 +504,58 @@ ModelType stringToModelType(const std::string &src) {
   }
 }
 
+std::string modelTypeToString(ModelType src) {
+  switch (src) {
+    case kModelTypeDefault:
+      return "kModelTypeDefault";
+    case kModelTypeOpenVino:
+      return "kModelTypeOpenVino";
+    case kModelTypeTensorRt:
+      return "kModelTypeTensorRt";
+    case kModelTypeCoreML:
+      return "kModelTypeCoreML";
+    case kModelTypeTfLite:
+      return "kModelTypeTfLite";
+    case kModelTypeOnnx:
+      return "kModelTypeOnnx";
+    case kModelTypeAscendCL:
+      return "kModelTypeAscendCL";
+    case kModelTypeNcnn:
+      return "kModelTypeNcnn";
+    case kModelTypeTnn:
+      return "kModelTypeTnn";
+    case kModelTypeMnn:
+      return "kModelTypeMnn";
+    case kModelTypePaddleLite:
+      return "kModelTypePaddleLite";
+    case kModelTypeRknn:
+      return "kModelTypeRknn";
+    case kModelTypeTvm:
+      return "kModelTypeTvm";
+    case kModelTypeAITemplate:
+      return "kModelTypeAITemplate";
+    case kModelTypeSnpe:
+      return "kModelTypeSnpe";
+    case kModelTypeQnn:
+      return "kModelTypeQnn";
+    case kModelTypeSophon:
+      return "kModelTypeSophon";
+    case kModelTypeTorchScript:
+      return "kModelTypeTorchScript";
+    case kModelTypeTorchPth:
+      return "kModelTypeTorchPth";
+    case kModelTypeHdf5:
+      return "kModelTypeHdf5";
+    case kModelTypeSafetensors:
+      return "kModelTypeSafetensors";
+    case kModelTypeNeuroPilot:
+      return "kModelTypeNeuroPilot";
+    default:
+      NNDEPLOY_LOGI("Unsupported model type.\n");
+      return "kModelTypeNotSupport";
+  }
+}
+
 InferenceType stringToInferenceType(const std::string &src) {
   if (src == "kInferenceTypeDefault") {
     return kInferenceTypeDefault;
@@ -643,6 +695,15 @@ EncryptType stringToEncryptType(const std::string &src) {
   }
 }
 
+std::string encryptTypeToString(EncryptType src) {
+  switch (src) {
+    case kEncryptTypeBase64:
+      return "kEncryptTypeBase64";
+    default:
+      return "kEncryptTypeNone";
+  }
+}
+
 ShareMemoryType stringToShareMemoryType(const std::string &src) {
   if (src == "kShareMemoryTypeNoShare") {
     return kShareMemoryTypeNoShare;
@@ -653,6 +714,168 @@ ShareMemoryType stringToShareMemoryType(const std::string &src) {
   } else {
     NNDEPLOY_LOGI("Unsupported share memory type: %s.\n", src.c_str());
     return kShareMemoryTypeNoShare;
+  }
+}
+
+std::string shareMemoryTypeToString(ShareMemoryType src) {
+  switch (src) {
+    case kShareMemoryTypeNoShare:
+      return "kShareMemoryTypeNoShare";
+    case kShareMemoryTypeShareFromExternal:
+      return "kShareMemoryTypeShareFromExternal";
+    case kShareMemoryTypeNotSupport:
+      return "kShareMemoryTypeNotSupport";
+    default:
+      NNDEPLOY_LOGI("Unsupported share memory type.\n");
+      return "kShareMemoryTypeNotSupport";
+  }
+}
+
+
+MemoryType stringToMemoryType(const std::string &src) {
+  if (src == "kMemoryTypeNone") {
+    return kMemoryTypeNone;
+  } else if (src == "kMemoryTypeAllocate") {
+    return kMemoryTypeAllocate;
+  } else if (src == "kMemoryTypeExternal") {
+    return kMemoryTypeExternal;
+  } else if (src == "kMemoryTypeMapped") {
+    return kMemoryTypeMapped;
+  } else {
+    NNDEPLOY_LOGI("Unsupported memory type: %s.\n", src.c_str());
+    return kMemoryTypeNone;
+  }
+}
+
+std::string memoryTypeToString(MemoryType src) {
+  switch (src) {
+    case kMemoryTypeNone:
+      return "kMemoryTypeNone";
+    case kMemoryTypeAllocate:
+      return "kMemoryTypeAllocate";
+    case kMemoryTypeExternal:
+      return "kMemoryTypeExternal";
+    case kMemoryTypeMapped:
+      return "kMemoryTypeMapped";
+    default:
+      NNDEPLOY_LOGI("Unsupported memory type.\n");
+      return "kMemoryTypeNone";
+  }
+}
+
+MemoryPoolType stringToMemoryPoolType(const std::string &src) {
+  if (src == "kMemoryPoolTypeEmbed") {
+    return kMemoryPoolTypeEmbed;
+  } else if (src == "kMemoryPoolTypeUnity") {
+    return kMemoryPoolTypeUnity;
+  } else if (src == "kMemoryPoolTypeChunkIndepend") {
+    return kMemoryPoolTypeChunkIndepend;
+  } else {
+    NNDEPLOY_LOGI("Unsupported memory pool type: %s.\n", src.c_str());
+    return kMemoryPoolTypeEmbed;
+  }
+}
+
+std::string memoryPoolTypeToString(MemoryPoolType src) {
+  switch (src) {
+    case kMemoryPoolTypeEmbed:
+      return "kMemoryPoolTypeEmbed";
+    case kMemoryPoolTypeUnity:
+      return "kMemoryPoolTypeUnity";
+    case kMemoryPoolTypeChunkIndepend:
+      return "kMemoryPoolTypeChunkIndepend";
+    default:
+      NNDEPLOY_LOGI("Unsupported memory pool type.\n");
+      return "kMemoryPoolTypeEmbed";
+  }
+}
+
+TensorType stringToTensorType(const std::string &src) {
+  if (src == "kTensorTypeDefault") {
+    return kTensorTypeDefault;
+  } else if (src == "kTensorTypePipeline") {
+    return kTensorTypePipeline;
+  } else {
+    NNDEPLOY_LOGI("Unsupported tensor type: %s.\n", src.c_str());
+    return kTensorTypeDefault;
+  }
+}
+
+std::string tensorTypeToString(TensorType src) {
+  switch (src) {
+    case kTensorTypeDefault:
+      return "kTensorTypeDefault";
+    case kTensorTypePipeline:
+      return "kTensorTypePipeline";
+    default:
+      NNDEPLOY_LOGI("Unsupported tensor type.\n");
+      return "kTensorTypeDefault";
+  }
+}
+
+ForwardOpType stringToForwardOpType(const std::string &src) {
+  if (src == "kForwardOpTypeDefault") {
+    return kForwardOpTypeDefault;
+  } else if (src == "kForwardOpTypeOneDnn") {
+    return kForwardOpTypeOneDnn;
+  } else if (src == "kForwardOpTypeXnnPack") {
+    return kForwardOpTypeXnnPack;
+  } else if (src == "kForwardOpTypeQnnPack") {
+    return kForwardOpTypeQnnPack;
+  } else if (src == "kForwardOpTypeCudnn") {
+    return kForwardOpTypeCudnn;
+  } else if (src == "kForwardOpTypeAclOp") {
+    return kForwardOpTypeAclOp;
+  } else {
+    NNDEPLOY_LOGI("Unsupported forward op type: %s.\n", src.c_str());
+    return kForwardOpTypeDefault;
+  }
+}
+
+std::string forwardOpTypeToString(ForwardOpType src) {
+  switch (src) {
+    case kForwardOpTypeDefault:
+      return "kForwardOpTypeDefault";
+    case kForwardOpTypeOneDnn:
+      return "kForwardOpTypeOneDnn";
+    case kForwardOpTypeXnnPack:
+      return "kForwardOpTypeXnnPack";
+    case kForwardOpTypeQnnPack:
+      return "kForwardOpTypeQnnPack";
+    case kForwardOpTypeCudnn:
+      return "kForwardOpTypeCudnn";
+    case kForwardOpTypeAclOp:
+      return "kForwardOpTypeAclOp";
+    default:
+      NNDEPLOY_LOGI("Unsupported forward op type.\n");
+      return "kForwardOpTypeDefault";
+  }
+}
+
+InferenceOptLevel stringToInferenceOptLevel(const std::string &src) {
+  if (src == "kInferenceOptLevel0") {
+    return kInferenceOptLevel0;
+  } else if (src == "kInferenceOptLevel1") {
+    return kInferenceOptLevel1;
+  } else if (src == "kInferenceOptLevelAuto") {
+    return kInferenceOptLevelAuto;
+  } else {
+    NNDEPLOY_LOGI("Unsupported inference opt level: %s.\n", src.c_str());
+    return kInferenceOptLevel0;
+  }
+}
+
+std::string inferenceOptLevelToString(InferenceOptLevel src) {
+  switch (src) {
+    case kInferenceOptLevel0:
+      return "kInferenceOptLevel0";
+    case kInferenceOptLevel1:
+      return "kInferenceOptLevel1";
+    case kInferenceOptLevelAuto:
+      return "kInferenceOptLevelAuto";
+    default:
+      NNDEPLOY_LOGI("Unsupported inference opt level.\n");
+      return "kInferenceOptLevel0";
   }
 }
 
@@ -671,6 +894,22 @@ PrecisionType stringToPrecisionType(const std::string &src) {
   }
 }
 
+std::string precisionTypeToString(PrecisionType src) {
+  switch (src) {
+    case kPrecisionTypeBFp16:
+      return "kPrecisionTypeBFp16";
+    case kPrecisionTypeFp16:
+      return "kPrecisionTypeFp16";
+    case kPrecisionTypeFp32:
+      return "kPrecisionTypeFp32";
+    case kPrecisionTypeFp64:
+      return "kPrecisionTypeFp64";
+    default:
+      NNDEPLOY_LOGI("Unsupported precision type.\n");
+      return "kPrecisionTypeFp32";
+  }
+}
+
 PowerType stringToPowerType(const std::string &src) {
   if (src == "kPowerTypeNormal") {
     return kPowerTypeNormal;
@@ -683,6 +922,23 @@ PowerType stringToPowerType(const std::string &src) {
   } else {
     NNDEPLOY_LOGI("Unsupported power type: %s.\n", src.c_str());
     return kPowerTypeNormal;
+  }
+}
+
+
+std::string powerTypeToString(PowerType src) {
+  switch (src) {
+    case kPowerTypeNormal:
+      return "kPowerTypeNormal";
+    case kPowerTypeLow:
+      return "kPowerTypeLow";
+    case kPowerTypeHigh:
+      return "kPowerTypeHigh";
+    case kPowerTypeNotSupport:
+      return "kPowerTypeNotSupport";
+    default:
+      NNDEPLOY_LOGI("Unsupported power type.\n");
+      return "kPowerTypeNormal";
   }
 }
 
@@ -713,6 +969,22 @@ CodecFlag stringToCodecFlag(const std::string &src) {
   } else {
     NNDEPLOY_LOGI("Unsupported codec flag: %s.\n", src.c_str());
     return kCodecFlagImage;
+  }
+}
+
+std::string codecTypeToString(CodecType src) {
+  switch (src) {
+    case kCodecTypeNone:
+      return "kCodecTypeNone";
+    case kCodecTypeOpenCV:
+      return "kCodecTypeOpenCV";
+    case kCodecTypeFFmpeg:
+      return "kCodecTypeFFmpeg";
+    case kCodecTypeStb:
+      return "kCodecTypeStb";
+    default:
+      NNDEPLOY_LOGI("Unsupported codec type.\n");
+      return "kCodecTypeNone";
   }
 }
 
@@ -763,6 +1035,107 @@ ParallelType stringToParallelType(const std::string &src) {
     return kParallelTypeNone;
   }
 }
+
+EdgeType stringToEdgeType(const std::string &src) {
+  if (src == "kEdgeTypeFixed") {
+    return kEdgeTypeFixed;
+  } else if (src == "kEdgeTypePipeline") {
+    return kEdgeTypePipeline;
+  } else {
+    NNDEPLOY_LOGI("Unsupported edge type: %s.\n", src.c_str());
+    return kEdgeTypeFixed;
+  }
+}
+
+std::string edgeTypeToString(EdgeType src) {
+  switch (src) {
+    case kEdgeTypeFixed:
+      return "kEdgeTypeFixed";
+    case kEdgeTypePipeline:
+      return "kEdgeTypePipeline";
+    default:
+      NNDEPLOY_LOGI("Unsupported edge type.\n");
+      return "kEdgeTypeFixed";
+  }
+}
+
+EdgeUpdateFlag stringToEdgeUpdateFlag(const std::string &src) {
+  if (src == "kEdgeUpdateFlagComplete") {
+    return kEdgeUpdateFlagComplete;
+  } else if (src == "kEdgeUpdateFlagTerminate") {
+    return kEdgeUpdateFlagTerminate;
+  } else if (src == "kEdgeUpdateFlagError") {
+    return kEdgeUpdateFlagError;
+  } else {
+    NNDEPLOY_LOGI("Unsupported edge update flag: %s.\n", src.c_str());
+    return kEdgeUpdateFlagComplete;
+  }
+}
+
+std::string edgeUpdateFlagToString(EdgeUpdateFlag src) {
+  switch (src) {
+    case kEdgeUpdateFlagComplete:
+      return "kEdgeUpdateFlagComplete";
+    case kEdgeUpdateFlagTerminate:
+      return "kEdgeUpdateFlagTerminate";
+    case kEdgeUpdateFlagError:
+      return "kEdgeUpdateFlagError";
+    default:
+      NNDEPLOY_LOGI("Unsupported edge update flag.\n");
+      return "kEdgeUpdateFlagComplete";
+  }
+}
+
+NodeColorType stringToNodeColorType(const std::string &src) {
+  if (src == "kNodeColorWhite") {
+    return kNodeColorWhite;
+  } else if (src == "kNodeColorGray") {
+    return kNodeColorGray;
+  } else if (src == "kNodeColorBlack") {
+    return kNodeColorBlack;
+  } else {
+    NNDEPLOY_LOGI("Unsupported node color type: %s.\n", src.c_str());
+    return kNodeColorWhite;
+  }
+}
+
+std::string nodeColorTypeToString(NodeColorType src) {
+  switch (src) {
+    case kNodeColorWhite:
+      return "kNodeColorWhite";
+    case kNodeColorGray:
+      return "kNodeColorGray";
+    case kNodeColorBlack:
+      return "kNodeColorBlack";
+    default:
+      NNDEPLOY_LOGI("Unsupported node color type.\n");
+      return "kNodeColorWhite";
+  }
+}
+
+TopoSortType stringToTopoSortType(const std::string &src) {
+  if (src == "kTopoSortTypeBFS") {
+    return kTopoSortTypeBFS;
+  } else if (src == "kTopoSortTypeDFS") {
+    return kTopoSortTypeDFS;
+  } else {
+    NNDEPLOY_LOGI("Unsupported topo sort type: %s.\n", src.c_str());
+    return kTopoSortTypeBFS;
+  }
+}
+
+std::string topoSortTypeToString(TopoSortType src) {
+  switch (src) {
+    case kTopoSortTypeBFS:
+      return "kTopoSortTypeBFS";
+    case kTopoSortTypeDFS:
+      return "kTopoSortTypeDFS";
+    default:
+      NNDEPLOY_LOGI("Unsupported topo sort type.\n");
+      return "kTopoSortTypeBFS";
+  }
+}
+
 
 PrecisionType getPrecisionType(DataType data_type) {
   if (data_type.code_ == kDataTypeCodeBFp && data_type.bits_ == 16) {

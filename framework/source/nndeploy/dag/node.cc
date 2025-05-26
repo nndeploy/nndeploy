@@ -17,14 +17,20 @@ base::Status NodeDesc::serialize(
   // 写入输入
   rapidjson::Value inputs(rapidjson::kArrayType);
   for (const auto &input : inputs_) {
-    inputs.PushBack(rapidjson::Value(input.c_str(), allocator), allocator);
+    rapidjson::Value input_obj(rapidjson::kObjectType);
+    input_obj.AddMember("name_", rapidjson::Value(input.c_str(), allocator),
+                        allocator);
+    inputs.PushBack(input_obj, allocator);
   }
   json.AddMember("inputs_", inputs, allocator);
 
   // 写入输出
   rapidjson::Value outputs(rapidjson::kArrayType);
   for (const auto &output : outputs_) {
-    outputs.PushBack(rapidjson::Value(output.c_str(), allocator), allocator);
+    rapidjson::Value output_obj(rapidjson::kObjectType);
+    output_obj.AddMember("name_", rapidjson::Value(output.c_str(), allocator),
+                         allocator);
+    outputs.PushBack(output_obj, allocator);
   }
   json.AddMember("outputs_", outputs, allocator);
   return base::kStatusCodeOk;
@@ -89,14 +95,32 @@ base::Status NodeDesc::deserialize(rapidjson::Value &json) {
   }
 
   if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
-    for (rapidjson::SizeType i = 0; i < json["inputs_"].Size(); i++) {
-      inputs_.push_back(json["inputs_"][i].GetString());
+    const rapidjson::Value &inputs = json["inputs_"];
+    for (rapidjson::SizeType i = 0; i < inputs.Size(); i++) {
+      if (inputs[i].IsObject() && inputs[i].HasMember("name_") &&
+          inputs[i]["name_"].IsString()) {
+        std::string input_name = inputs[i]["name_"].GetString();
+        NNDEPLOY_LOGI("input_name: %s\n", input_name.c_str());
+        inputs_.push_back(input_name);
+      } else {
+        NNDEPLOY_LOGE("Invalid input format at index %d\n", i);
+        return base::kStatusCodeErrorInvalidValue;
+      }
     }
   }
 
   if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
-    for (rapidjson::SizeType i = 0; i < json["outputs_"].Size(); i++) {
-      outputs_.push_back(json["outputs_"][i].GetString());
+    const rapidjson::Value &outputs = json["outputs_"];
+    for (rapidjson::SizeType i = 0; i < outputs.Size(); i++) {
+      if (outputs[i].IsObject() && outputs[i].HasMember("name_") &&
+          outputs[i]["name_"].IsString()) {
+        std::string output_name = outputs[i]["name_"].GetString();
+        NNDEPLOY_LOGI("output_name: %s\n", output_name.c_str());
+        outputs_.push_back(output_name);
+      } else {
+        NNDEPLOY_LOGE("Invalid output format at index %d\n", i);
+        return base::kStatusCodeErrorInvalidValue;
+      }
     }
   }
   return base::kStatusCodeOk;
@@ -766,40 +790,69 @@ base::Status Node::serialize(
                  rapidjson::Value(device_type_str.c_str(), allocator),
                  allocator);
 
-  json.AddMember("is_external_stream_", is_external_stream_, allocator);
+  // json.AddMember("is_external_stream_", is_external_stream_, allocator);
 
   // 写入输入
   rapidjson::Value inputs(rapidjson::kArrayType);
-  for (const auto &input : inputs_) {
-    inputs.PushBack(rapidjson::Value(input->getName().c_str(), allocator),
-                    allocator);
+  for (size_t i = 0; i < inputs_.size(); i++) {
+    rapidjson::Value input_obj(rapidjson::kObjectType);
+    input_obj.AddMember(
+        "name_", rapidjson::Value(inputs_[i]->getName().c_str(), allocator),
+        allocator);
+    if (input_type_info_.size() > i) {
+      input_obj.AddMember(
+          "type_",
+          rapidjson::Value(input_type_info_[i]->getTypeName().c_str(),
+                           allocator),
+          allocator);
+    } else {
+      input_obj.AddMember("type_", rapidjson::Value("kNotSet", allocator),
+                          allocator);
+    }
+    inputs.PushBack(input_obj, allocator);
   }
   json.AddMember("inputs_", inputs, allocator);
 
   // 写入输出
   rapidjson::Value outputs(rapidjson::kArrayType);
-  for (const auto &output : outputs_) {
-    outputs.PushBack(rapidjson::Value(output->getName().c_str(), allocator),
-                     allocator);
+  for (size_t i = 0; i < outputs_.size(); i++) {
+    rapidjson::Value output_obj(rapidjson::kObjectType);
+    output_obj.AddMember(
+        "name_", rapidjson::Value(outputs_[i]->getName().c_str(), allocator),
+        allocator);
+    if (output_type_info_.size() > i) {
+      output_obj.AddMember(
+          "type_",
+          rapidjson::Value(output_type_info_[i]->getTypeName().c_str(),
+                           allocator),
+          allocator);
+    } else {
+      output_obj.AddMember("type_", rapidjson::Value("kNotSet", allocator),
+                           allocator);
+    }
+    outputs.PushBack(output_obj, allocator);
   }
   json.AddMember("outputs_", outputs, allocator);
 
   // 序列化并行类型
-  std::string parallel_type_str = base::parallelTypeToString(parallel_type_);
-  json.AddMember("parallel_type_",
-                 rapidjson::Value(parallel_type_str.c_str(), allocator),
-                 allocator);
+  if (is_graph_) {
+    std::string parallel_type_str = base::parallelTypeToString(parallel_type_);
+    json.AddMember("parallel_type_",
+                   rapidjson::Value(parallel_type_str.c_str(), allocator),
+                   allocator);
+  }
 
   // 序列化其他布尔标志
-  json.AddMember("is_inner_", is_inner_, allocator);
-  json.AddMember("is_time_profile_", is_time_profile_, allocator);
-  json.AddMember("is_debug_", is_debug_, allocator);
-  json.AddMember("is_graph_", is_graph_, allocator);
+  // json.AddMember("is_inner_", is_inner_, allocator);
+  // json.AddMember("is_time_profile_", is_time_profile_, allocator);
+  // json.AddMember("is_debug_", is_debug_, allocator);
+  // json.AddMember("is_graph_", is_graph_, allocator);
 
   // 写入节点类型
-  std::string node_type_str = nodeTypeToString(node_type_);
-  json.AddMember("node_type_",
-                 rapidjson::Value(node_type_str.c_str(), allocator), allocator);
+  // std::string node_type_str = nodeTypeToString(node_type_);
+  // json.AddMember("node_type_",
+  //                rapidjson::Value(node_type_str.c_str(), allocator),
+  //                allocator);
 
   // 写入参数
   if (param_ != nullptr) {
