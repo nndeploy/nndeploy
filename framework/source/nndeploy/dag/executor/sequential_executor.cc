@@ -11,6 +11,10 @@ base::Status SequentialExecutor::init(
     std::vector<EdgeWrapper *> &edge_repository,
     std::vector<NodeWrapper *> &node_repository) {
   base::Status status = topoSortDFS(node_repository, topo_sort_node_);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("topoSortDFS failed!\n");
+    return status;
+  }
   for (auto iter : topo_sort_node_) {
     if (iter->node_->getInitialized()) {
       continue;

@@ -27,7 +27,8 @@ class CompositeNode : public Node {
   }
   virtual ~CompositeNode();
 
-  virtual base::Status make() = 0;
+  virtual base::Status init();
+  virtual base::Status deinit();
 
   virtual base::Status run() = 0;
 
@@ -45,6 +46,10 @@ class CompositeNode : public Node {
                        const std::string &name) const;
   Edge *getEdge(const std::string &name);
   Edge *createEdge(const std::string &name);
+
+ protected:
+  virtual base::Status construct();
+  std::vector<NodeWrapper *> sortDFS();
 
  protected:
   std::vector<EdgeWrapper *> edge_repository_;

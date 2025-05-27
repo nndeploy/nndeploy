@@ -120,34 +120,34 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
     }
   }
 
-  virtual base::Status make() { return base::kStatusCodeOk; }
+  // virtual base::Status make() { return base::kStatusCodeOk; }
 
-  virtual base::Status init() {
-    index_ = 0;
-    if (node_) {
-      base::Status status = node_->init();
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("node init failed");
-        return status;
-      }
-      node_->setInitializedFlag(true);
-    }
-    return base::kStatusCodeErrorNullParam;
-  }
+  // virtual base::Status init() {
+  //   index_ = 0;
+  //   if (node_) {
+  //     base::Status status = node_->init();
+  //     if (status != base::kStatusCodeOk) {
+  //       NNDEPLOY_LOGE("node init failed");
+  //       return status;
+  //     }
+  //     node_->setInitializedFlag(true);
+  //   }
+  //   return base::kStatusCodeErrorNullParam;
+  // }
 
-  virtual base::Status deinit() {
-    if (node_) {
-      if (node_->getInitialized()) {
-        base::Status status = node_->deinit();
-        if (status != base::kStatusCodeOk) {
-          NNDEPLOY_LOGE("node deinit failed");
-          return status;
-        }
-        node_->setInitializedFlag(false);
-      }
-    }
-    return base::kStatusCodeErrorNullParam;
-  }
+  // virtual base::Status deinit() {
+  //   if (node_) {
+  //     if (node_->getInitialized()) {
+  //       base::Status status = node_->deinit();
+  //       if (status != base::kStatusCodeOk) {
+  //         NNDEPLOY_LOGE("node deinit failed");
+  //         return status;
+  //       }
+  //       node_->setInitializedFlag(false);
+  //     }
+  //   }
+  //   return base::kStatusCodeErrorNullParam;
+  // }
 
   virtual base::Status run() {
     auto results = new std::vector<cv::Mat>();
@@ -281,34 +281,34 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
     return 0;  // 默认值
   }
 
-  virtual base::Status make() { return base::kStatusCodeOk; }
+  // virtual base::Status make() { return base::kStatusCodeOk; }
 
-  virtual base::Status init() {
-    if (node_) {
-      base::Status status = node_->init();
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("node init failed");
-        return status;
-      }
-      node_->setInitializedFlag(true);
-    }
-    return base::kStatusCodeErrorNullParam;
-  }
+  // virtual base::Status init() {
+  //   if (node_) {
+  //     base::Status status = node_->init();
+  //     if (status != base::kStatusCodeOk) {
+  //       NNDEPLOY_LOGE("node init failed");
+  //       return status;
+  //     }
+  //     node_->setInitializedFlag(true);
+  //   }
+  //   return base::kStatusCodeErrorNullParam;
+  // }
 
-  virtual base::Status deinit() {
-    if (node_) {
-      if (node_->getInitialized()) {
-        // NNDEPLOY_LOGE("node[%s] deinit\n", node_->getName().c_str());
-        base::Status status = node_->deinit();
-        if (status != base::kStatusCodeOk) {
-          NNDEPLOY_LOGE("node deinit failed");
-          return status;
-        }
-        node_->setInitializedFlag(false);
-      }
-    }
-    return base::kStatusCodeErrorNullParam;
-  }
+  // virtual base::Status deinit() {
+  //   if (node_) {
+  //     if (node_->getInitialized()) {
+  //       // NNDEPLOY_LOGE("node[%s] deinit\n", node_->getName().c_str());
+  //       base::Status status = node_->deinit();
+  //       if (status != base::kStatusCodeOk) {
+  //         NNDEPLOY_LOGE("node deinit failed");
+  //         return status;
+  //       }
+  //       node_->setInitializedFlag(false);
+  //     }
+  //   }
+  //   return base::kStatusCodeErrorNullParam;
+  // }
 
   virtual base::Status run() {
     std::vector<cv::Mat> *cv_mats =

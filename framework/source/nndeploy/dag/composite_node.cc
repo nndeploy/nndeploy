@@ -20,6 +20,36 @@ CompositeNode::~CompositeNode() {
   }
 }
 
+base::Status CompositeNode::init() {
+  base::Status status = base::kStatusCodeOk;
+  status = construct();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGI("construct failed!");
+  }
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getInitialized()) {
+      continue;
+    }
+    status = node_wrapper->node_->init();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node init failed!");
+    node_wrapper->node_->setInitializedFlag(true);
+  }
+  return status;
+}
+
+base::Status CompositeNode::deinit() {
+  base::Status status = base::kStatusCodeOk;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getInitialized()) {
+      status = node_wrapper->node_->deinit();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "node deinit failed!");
+      node_wrapper->node_->setInitializedFlag(false);
+    }
+  }
+  return status;
+}
+
 Edge *CompositeNode::findEdgeByName(const std::vector<Edge *> &edges,
                                     const std::string &name) const {
   for (auto *edge : edges) {
@@ -102,10 +132,151 @@ Node *CompositeNode::createNode(const NodeDesc &desc) {
       edge_wrapper->consumers_.emplace_back(node_wrapper);
     }
   }
+  for (auto output_name : output_names) {
+    Edge *output = findEdgeByName(composite_outputs, output_name);
+    if (output != nullptr) {
+      EdgeWrapper *edge_wrapper = graph->getEdgeWrapper(output);
+      edge_wrapper->producers_.emplace_back(node_wrapper);
+    }
+  }
 
   node_repository_.emplace_back(node_wrapper);
 
   return node;
+}
+
+base::Status CompositeNode::construct() {
+  base::Status status = base::kStatusCodeOk;
+
+  // NNDEPLOY_LOGE("NAME: %s start\n", name_.c_str());
+
+  // NNDEPLOY_LOGI("###########################\n");
+  // NNDEPLOY_LOGI("Parameter Validation Phase!\n");
+  // NNDEPLOY_LOGI("###########################\n");
+  for (auto node_wrapper : node_repository_) {
+    NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper->node_,
+                                         "edge_repository_ node is null!");
+  }
+  // for (auto edge_wrapper : edge_repository_) {
+  //   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
+  //                                        "edge_repository_ edge is null!");
+  //   if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
+  //     NNDEPLOY_LOGI("graph[%s] this edge[%s] is useless!\n", name_.c_str(),
+  //                   edge_wrapper->edge_->getName().c_str());
+  //   }
+  // }
+
+  // NNDEPLOY_LOGI("####################\n");
+  // NNDEPLOY_LOGI("Mark Predecessors And Successors Phase!\n");
+  // NNDEPLOY_LOGI("####################\n");
+  for (auto node_wrapper : node_repository_) {
+    Node *node = node_wrapper->node_;
+    node->setDebugFlag(is_debug_);
+    node->setTimeProfileFlag(is_time_profile_);
+    node->setParallelType(base::kParallelTypeSequential);
+    node->setInnerFlag(true);
+    std::vector<Edge *> inputs = node->getAllInput();
+    // NNDEPLOY_LOGE("NODE: %s.\n", node->getName().c_str());
+    for (auto input : inputs) {
+      EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+      NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
+                                           "input_wrapper is null!");
+      // NNDEPLOY_LOGE("input_wrapper: %s.\n",
+      //               input_wrapper->edge_->getName().c_str());
+      for (auto producer : input_wrapper->producers_) {
+        insertUnique(node_wrapper->predecessors_, producer);
+        // NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
+      }
+    }
+    std::vector<Edge *> outputs = node->getAllOutput();
+    for (auto output : outputs) {
+      EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+      NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(output_wrapper,
+                                           "output_wrapper is null!");
+      // NNDEPLOY_LOGE("output_wrapper: %s.\n",
+      //               output_wrapper->edge_->getName().c_str());
+      for (auto consumer : output_wrapper->consumers_) {
+        insertUnique(node_wrapper->successors_, consumer);
+        // NNDEPLOY_LOGE("consumer: %s.\n", consumer->node_->getName().c_str());
+      }
+    }
+  }
+
+  // NNDEPLOY_LOGI("##############\n");
+  // NNDEPLOY_LOGI("construct edge\n");
+  // NNDEPLOY_LOGI("##############\n");
+  for (auto edge_wrapper : edge_repository_) {
+    // NNDEPLOY_LOGE("edge: %s, %p.\n", edge_wrapper->edge_->getName().c_str(),
+    //               edge_wrapper->edge_);
+    std::vector<Node *> producers;
+    for (auto producer : edge_wrapper->producers_) {
+      producers.emplace_back(producer->node_);
+      // NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
+    }
+    std::vector<Node *> consumers;
+    for (auto consumer : edge_wrapper->consumers_) {
+      consumers.emplace_back(consumer->node_);
+      // NNDEPLOY_LOGE("consumer: %s.\n", consumer->node_->getName().c_str());
+    }
+    base::Status status =
+        edge_wrapper->edge_->setParallelType(base::kParallelTypeSequential);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "setParallelType failed!");
+    // 必须在abstract_edge管理该字段
+    status = edge_wrapper->edge_->increaseProducers(producers);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "increaseProducers failed!");
+    status = edge_wrapper->edge_->increaseConsumers(consumers);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "increaseConsumers failed!");
+    status = edge_wrapper->edge_->construct();
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "construct edge failed!");
+    // status = edge_wrapper->edge_->setQueueMaxSize(queue_max_size_);
+    // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+    //                        "setQueueMaxSize failed!");
+  }
+
+  if (!is_external_stream_ && stream_ == nullptr) {
+    stream_ = device::createStream(device_type_);
+  }
+  // TODO: 是否需要延迟到executor阶段？
+  if (parallel_type_ != base::kParallelTypePipeline) {
+    for (auto node_wrapper : node_repository_) {
+      node_wrapper->node_->setStream(stream_);
+    }
+  }
+
+  // // 没有生产者的为输入边
+  // for (auto edge_wrapper : edge_repository_) {
+  //   if (edge_wrapper->producers_.empty()) {
+  //     auto it = std::find(inputs_.begin(), inputs_.end(),
+  //     edge_wrapper->edge_); if (it == inputs_.end()) {
+  //       inputs_.emplace_back(edge_wrapper->edge_);
+  //     }
+  //   }
+  // }
+
+  // // 没有消费者的为输出边
+  // for (auto edge_wrapper : edge_repository_) {
+  //   if (edge_wrapper->consumers_.empty()) {
+  //     auto it =
+  //         std::find(outputs_.begin(), outputs_.end(), edge_wrapper->edge_);
+  //     if (it == outputs_.end()) {
+  //       outputs_.emplace_back(edge_wrapper->edge_);
+  //     }
+  //   }
+  // }
+
+  // NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
+
+  return status;
+}
+
+std::vector<NodeWrapper *> CompositeNode::sortDFS() {
+  std::vector<NodeWrapper *> topo_sort_node;
+  topoSortDFS(node_repository_, topo_sort_node);
+  return topo_sort_node;
 }
 
 }  // namespace dag

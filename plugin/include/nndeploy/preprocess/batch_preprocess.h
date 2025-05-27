@@ -46,8 +46,6 @@ class NNDEPLOY_CC_API BatchPreprocess : public dag::CompositeNode {
   virtual base::Param *getParam();
   virtual std::shared_ptr<base::Param> getParamSharedPtr();
 
-  virtual base::Status make();
-
   virtual base::Status run();
 
  private:

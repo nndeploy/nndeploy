@@ -43,9 +43,9 @@ std::shared_ptr<base::Param> BatchPreprocess::getParamSharedPtr() {
   return nullptr;
 }
 
-base::Status BatchPreprocess::make() {
-  return base::kStatusCodeOk;
-}
+// base::Status BatchPreprocess::make() {
+//   return base::kStatusCodeOk;
+// }
 
 base::Status BatchPreprocess::run() {
   std::vector<cv::Mat> *input_data =

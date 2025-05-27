@@ -84,7 +84,6 @@ class NNDEPLOY_CC_API SuperResolutionGraph : public dag::Graph {
       return base::kStatusCodeErrorInvalidParam;
     }
     pre_->setNodeKey("nndeploy::preprocess::CvtColorBn");
-    pre_->make();
     preprocess::CvtcolorBnParam *pre_param =
         dynamic_cast<preprocess::CvtcolorBnParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
@@ -125,7 +124,6 @@ class NNDEPLOY_CC_API SuperResolutionGraph : public dag::Graph {
     }
     pre_->setGraph(this);
     pre_->setNodeKey("nndeploy::preprocess::CvtColorBn");
-    pre_->make();
     preprocess::CvtcolorBnParam *pre_param =
         dynamic_cast<preprocess::CvtcolorBnParam *>(pre_->getParam());
     if (pre_param == nullptr) {

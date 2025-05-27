@@ -490,7 +490,9 @@ base::Status Graph::deinit() {
   } else {
     for (auto node_wrapper : node_repository_) {
       if (node_wrapper->node_->getInitialized()) {
-        node_wrapper->node_->deinit();
+        status = node_wrapper->node_->deinit();
+        NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                               "node deinit failed!");
         node_wrapper->node_->setInitializedFlag(false);
       }
     }
