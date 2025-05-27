@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
   graph->addNode(encode_node);
 #else
   dag::Graph *graph = new dag::Graph("demo");
-  graph->loadJson("detect_graph_v5.json");
+  graph->deserialize("detect_graph_v5.json");
   graph->dump();
   detect::YoloGraph *detect_graph =
       (detect::YoloGraph *)graph->getNode("nndeploy::detect::YoloGraph");
@@ -177,7 +177,7 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->init()");
 
-  status = graph->saveJson("detect_graph_v5.json");
+  status = graph->serialize("detect_graph_v5.json");
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("graph serialize failed");
     return -1;

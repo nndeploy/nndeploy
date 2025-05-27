@@ -99,3 +99,7 @@ if(ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION)
   include(${ROOT_PATH}/demo/super_resolution/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_PLUGIN_OCR)
+  include(${ROOT_PATH}/demo/ocr/config.cmake)
+endif()
+

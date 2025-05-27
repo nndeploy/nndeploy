@@ -1,6 +1,6 @@
 
-#ifndef _NNDEPLOY_SuperResolution_SuperResolution_H_
-#define _NNDEPLOY_SuperResolution_SuperResolution_H_
+#ifndef _NNDEPLOY_SUPER_RESOLUTION_SUPER_RESOLUTION_H_
+#define _NNDEPLOY_SUPER_RESOLUTION_SUPER_RESOLUTION_H_
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -26,7 +26,6 @@
 
 namespace nndeploy {
 namespace super_resolution {
-
 
 class NNDEPLOY_CC_API SuperResolutionPostProcess : public dag::Node {
  public:
@@ -204,4 +203,4 @@ class NNDEPLOY_CC_API SuperResolutionGraph : public dag::Graph {
 }  // namespace SuperResolution
 }  // namespace nndeploy
 
-#endif /* _NNDEPLOY_SuperResolution_SuperResolution_H_ */
+#endif /* _NNDEPLOY_SUPER_RESOLUTION_SUPER_RESOLUTION_H_ */
