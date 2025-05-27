@@ -27,7 +27,7 @@ base::Status YoloPostProcess::run() {
   //               std::this_thread::get_id());
   YoloPostParam *param = (YoloPostParam *)param_.get();
 
-  if (param->version_ == 5 || param->version_ == 6) {
+  if (param->version_ == 5 || param->version_ == 6 || param->version_ == 7) {
     return runV5V6();
   } else if (param->version_ == 8 || param->version_ == 11) {
     return runV8V11();

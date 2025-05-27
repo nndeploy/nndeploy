@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
   encode_node->setRefPath(input_path);
   encode_node->setPath(ouput_path);
   int size = decode_node->getSize();
-  size = 100;
+  size = 2;
   decode_node->setSize(size);
   for (int i = 0; i < size; ++i) {
     status = graph->run();
