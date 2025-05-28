@@ -23,6 +23,7 @@
   .main {
     display: flex;
     flex: 1;
+    min-height: 0;
 
     .leftNav {
       display: flex;
@@ -37,18 +38,25 @@
 
       .secondLevelNav {
         width: 240px;
+        overflow: auto;
 
         .tree-node {
           .label {
             flex: 1;
           }
-          .semi-tree-option-label{
-            .semi-button{
-              display: none;
+
+          .semi-tree-option-label {
+            .operate {
+
+              display: flex;
+              visibility: hidden;
+              gap: 5px;
             }
-            &:hover{
-              .semi-button{
-                display: inline-block;
+
+            &:hover {
+              .operate {
+                visibility: visible;
+
               }
             }
           }

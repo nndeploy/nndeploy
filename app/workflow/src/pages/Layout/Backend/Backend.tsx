@@ -37,6 +37,7 @@ import { ItemKey } from "@douyinfe/semi-ui/lib/es/navigation/Item";
 import companyLogo from "../../../assets/kapybara_logo.png";
 import { apiGetFiles } from "./api";
 import NodeTree from "./Node";
+import Resource from "./Resource";
 
 const Backend: React.FC = () => {
   const { Text } = Typography;
@@ -214,6 +215,10 @@ const Backend: React.FC = () => {
             selectedFirstLevel === "nodes" ?  (
               <Nav mode="vertical" className="secondLevelNav">
                 <NodeTree />
+              </Nav>
+            ): selectedFirstLevel === "resources" ?  (
+              <Nav mode="vertical" className="secondLevelNav">
+                <Resource />
               </Nav>
             ): <></>
           }
