@@ -32,6 +32,7 @@ nndeploy_option(ENABLE_NNDEPLOY_OPENMP "Enable OpenMP for parallel computing" OF
 nndeploy_option(ENABLE_NNDEPLOY_ADDRESS_SANTIZER "Enable Address Sanitizer for memory error detection" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DOCS "Build documentation" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_TIME_PROFILER "Enable time profiling for performance analysis" ON)
+nndeploy_option(ENABLE_NNDEPLOY_GPU_MEM_TRACKER "Enable gpu max memory usage analysis" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_RAPIDJSON "Enable RapidJSON for JSON parsing" ON)
 
 # 2. **Core Module Options (Default Configuration Recommended)**: Controls enabling of basic modules, thread pool, device modules and other core functionalities
@@ -101,6 +102,9 @@ nndeploy_option(ENABLE_NNDEPLOY_DEVICE_SOPHON_NPU "Enable Sophon NPU support" OF
 
 # 4. **Operator Backend Options (Enable as Needed, All Disabled by Default, No Operator Backend Dependencies)**: Such as cudnn
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDNN "Enable NVIDIA cuDNN acceleration library" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN "Enable Intel oneDNN acceleration library" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK "Enable XNNPACK acceleration library" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK "Enable QNNPACK acceleration library" OFF)
 
 # 5. **Inference Backend Options (Enable as Needed, All Disabled by Default, No Inference Backend Dependencies)**: Such as TensorRT, OpenVINO, ONNX Runtime and other inference frameworks
 nndeploy_option(ENABLE_NNDEPLOY_INFERENCE_TENSORRT "Enable NVIDIA TensorRT backend" OFF)
@@ -154,6 +158,10 @@ nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_SEGMENT_ANYTHING "ENABLE_NNDEPLOY
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG "ENABLE_NNDEPLOY_PLUGIN_SEGMENT_RMBG" ON)
 ## text-to-image
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION "ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION" OFF)
+## super_resolution
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION "ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION" ON)
+## ocr
+nndeploy_option(ENABLE_NNDEPLOY_PLUGIN_OCR "ENABLE_NNDEPLOY_PLUGIN_OCR" OFF)
 
 # Handle dependencies between build options
 ## plugin
@@ -191,6 +199,7 @@ endif()
 
 ## framework
 if(ENABLE_NNDEPLOY_PYTHON)
+  set(ENABLE_NNDEPLOY_CXX17_ABI ON)
   set(ENABLE_NNDEPLOY_DAG ON)
 endif()
 
@@ -295,6 +304,11 @@ endif()
 if(${ENABLE_NNDEPLOY_TIME_PROFILER} MATCHES "OFF")
 else()
   add_definitions(-DENABLE_NNDEPLOY_TIME_PROFILER)
+endif()
+
+if(${ENABLE_NNDEPLOY_GPU_MEM_TRACKER} MATCHES "OFF")
+else()
+  add_definitions(-DENABLE_NNDEPLOY_GPU_MEM_TRACKER)
 endif()
 
 if(${ENABLE_NNDEPLOY_OPENCV} MATCHES "OFF")
@@ -546,6 +560,16 @@ if(ENABLE_NNDEPLOY_DEVICE)
     set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_ASCEND_CL_SOURCE})
   endif()
 
+  if(ENABLE_NNDEPLOY_DEVICE_OPENCL)
+    add_definitions(-DNNDEPLOY_USE_OPENCL_WRAPPER)
+    file(GLOB_RECURSE DEVICE_OPENCL_SOURCE
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/opencl/*.h"
+      "${FRAMEWORK_ROOT_PATH}/include/nndeploy/device/opencl/*.hpp"
+      "${FRAMEWORK_ROOT_PATH}/source/nndeploy/device/opencl/*.cc"
+    )
+    set(DEVICE_SOURCE ${DEVICE_SOURCE} ${DEVICE_OPENCL_SOURCE})
+  endif()
+
   set(NNDEPLOY_FRAMEWORK_SOURCE ${NNDEPLOY_FRAMEWORK_SOURCE} ${DEVICE_SOURCE})
 endif()
 
@@ -563,7 +587,7 @@ if(ENABLE_NNDEPLOY_OP)
   #   set(OP_SOURCE ${OP_SOURCE} ${OP_CPU_SOURCE})
   # endif()
 
-  if(ENABLE_NNDEPLOY_DEVICE_X86)
+  if(ENABLE_NNDEPLOY_DEVICE_X86 AND ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN)
     file(GLOB_RECURSE OP_X86_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/x86/*.h"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/x86/*.cc"
@@ -571,7 +595,7 @@ if(ENABLE_NNDEPLOY_OP)
     set(OP_SOURCE ${OP_SOURCE} ${OP_X86_SOURCE})
   endif()
 
-  if(ENABLE_NNDEPLOY_DEVICE_ARM)
+  if(ENABLE_NNDEPLOY_DEVICE_ARM AND ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK AND ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK)
     file(GLOB_RECURSE OP_ARM_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/arm/*.h"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/arm/*.cc"
@@ -579,7 +603,7 @@ if(ENABLE_NNDEPLOY_OP)
     set(OP_SOURCE ${OP_SOURCE} ${OP_ARM_SOURCE})
   endif()
 
-  if(ENABLE_NNDEPLOY_DEVICE_CUDA)
+  if(ENABLE_NNDEPLOY_DEVICE_CUDA AND ENABLE_NNDEPLOY_DEVICE_CUDNN)
     file(GLOB_RECURSE OP_CUDA_SOURCE
       "${FRAMEWORK_ROOT_PATH}/include/nndeploy/op/cuda/*.h"
       "${FRAMEWORK_ROOT_PATH}/source/nndeploy/op/cuda/*.cc"

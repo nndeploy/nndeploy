@@ -5,6 +5,155 @@
 namespace nndeploy {
 namespace dag {
 
+// to json
+base::Status NodeDesc::serialize(
+    rapidjson::Value &json,
+    rapidjson::Document::AllocatorType &allocator) const {
+  // 写入节点名称
+  json.AddMember("key_", rapidjson::Value(node_key_.c_str(), allocator),
+                 allocator);
+  json.AddMember("name_", rapidjson::Value(node_name_.c_str(), allocator),
+                 allocator);
+  // 写入输入
+  rapidjson::Value inputs(rapidjson::kArrayType);
+  for (const auto &input : inputs_) {
+    rapidjson::Value input_obj(rapidjson::kObjectType);
+    input_obj.AddMember("name_", rapidjson::Value(input.c_str(), allocator),
+                        allocator);
+    inputs.PushBack(input_obj, allocator);
+  }
+  json.AddMember("inputs_", inputs, allocator);
+
+  // 写入输出
+  rapidjson::Value outputs(rapidjson::kArrayType);
+  for (const auto &output : outputs_) {
+    rapidjson::Value output_obj(rapidjson::kObjectType);
+    output_obj.AddMember("name_", rapidjson::Value(output.c_str(), allocator),
+                         allocator);
+    outputs.PushBack(output_obj, allocator);
+  }
+  json.AddMember("outputs_", outputs, allocator);
+  return base::kStatusCodeOk;
+}
+base::Status NodeDesc::serialize(std::ostream &stream) const {
+  rapidjson::Document doc;
+  rapidjson::Value json(rapidjson::kObjectType);
+
+  // 调用序列化函数
+  base::Status status = this->serialize(json, doc.GetAllocator());
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serialize failed with status: %d\n", int(status));
+    return status;
+  }
+
+  // 检查文档是否为空
+  if (json.ObjectEmpty()) {
+    NNDEPLOY_LOGE("Serialized JSON object is empty\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  // 序列化为字符串
+  rapidjson::StringBuffer buffer;
+  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  if (!json.Accept(writer)) {
+    NNDEPLOY_LOGE("Failed to write JSON to buffer\n");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+
+  // 输出到流
+  stream << buffer.GetString();
+  if (stream.fail()) {
+    NNDEPLOY_LOGE("Failed to write JSON string to stream\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+
+  return base::kStatusCodeOk;
+}
+base::Status NodeDesc::serialize(const std::string &path) const {
+  std::ofstream ofs(path);
+  if (!ofs.is_open()) {
+    NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  base::Status status = this->serialize(ofs);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serialize to json failed\n");
+    return status;
+  }
+  ofs.close();
+  return status;
+}
+// from json
+base::Status NodeDesc::deserialize(rapidjson::Value &json) {
+  // 读取节点名称
+  if (json.HasMember("key_") && json["key_"].IsString()) {
+    node_key_ = json["key_"].GetString();
+  }
+
+  if (json.HasMember("name_") && json["name_"].IsString()) {
+    node_name_ = json["name_"].GetString();
+  }
+
+  if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
+    const rapidjson::Value &inputs = json["inputs_"];
+    for (rapidjson::SizeType i = 0; i < inputs.Size(); i++) {
+      if (inputs[i].IsObject() && inputs[i].HasMember("name_") &&
+          inputs[i]["name_"].IsString()) {
+        std::string input_name = inputs[i]["name_"].GetString();
+        NNDEPLOY_LOGI("input_name: %s\n", input_name.c_str());
+        inputs_.push_back(input_name);
+      } else {
+        NNDEPLOY_LOGE("Invalid input format at index %d\n", i);
+        return base::kStatusCodeErrorInvalidValue;
+      }
+    }
+  }
+
+  if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
+    const rapidjson::Value &outputs = json["outputs_"];
+    for (rapidjson::SizeType i = 0; i < outputs.Size(); i++) {
+      if (outputs[i].IsObject() && outputs[i].HasMember("name_") &&
+          outputs[i]["name_"].IsString()) {
+        std::string output_name = outputs[i]["name_"].GetString();
+        NNDEPLOY_LOGI("output_name: %s\n", output_name.c_str());
+        outputs_.push_back(output_name);
+      } else {
+        NNDEPLOY_LOGE("Invalid output format at index %d\n", i);
+        return base::kStatusCodeErrorInvalidValue;
+      }
+    }
+  }
+  return base::kStatusCodeOk;
+}
+base::Status NodeDesc::deserialize(std::istream &stream) {
+  std::string json_str;
+  std::string line;
+  while (std::getline(stream, line)) {
+    json_str += line;
+  }
+  rapidjson::Document document;
+  if (document.Parse(json_str.c_str()).HasParseError()) {
+    NNDEPLOY_LOGE("parse json string failed\n");
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  rapidjson::Value &json = document;
+  return this->deserialize(json);
+}
+base::Status NodeDesc::deserialize(const std::string &path) {
+  std::ifstream ifs(path);
+  if (!ifs.is_open()) {
+    NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
+    return base::kStatusCodeErrorInvalidParam;
+  }
+  base::Status status = this->deserialize(ifs);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("deserialize from file %s failed\n", path.c_str());
+    return status;
+  }
+  ifs.close();
+  return status;
+}
+
 Node::Node(const std::string &name) {
   if (name.empty()) {
     name_ = "node_" + base::getUniqueString();
@@ -36,6 +185,7 @@ Node::Node(const std::string &name, std::vector<Edge *> inputs,
 Node::~Node() {
   // NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
   if (initialized_ == true) {
+    NNDEPLOY_LOGE("Node[%s] deinit\n", name_.c_str());
     this->deinit();
   }
   external_param_.clear();
@@ -440,7 +590,7 @@ base::EdgeUpdateFlag Node::updateInput() {
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   // init
   if (initialized_ == false && is_trace_ == false) {
-    NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
+    // NNDEPLOY_LOGE("node: %s init.\n", name_.c_str());
     this->init();
     this->setInitializedFlag(true);
   }
@@ -586,10 +736,131 @@ std::vector<std::string> Node::getRealOutputsName() {
   return real_outputs_name;
 }
 
-// to json
+/**
+ * @brief
+ *
+ * @param stream
+ * @return base::Status
+ * @note
+ * key_: nndeploy::infer::Infer
+ * name_: yolo_infer
+ * device_type_: kDeviceTypeCpu:0
+ * is_external_stream_: false
+ * inputs_: [images]
+ * outputs_: [output0]
+ * is_inner_: false
+ * parallel_type_: kParallelTypeSequential
+ * is_time_profile_: false
+ * is_debug_: false
+ * is_graph_: false
+ * node_type_: kNodeTypeIntermediate
+ * op_param_: {
+ *   "inference_type_": "kInferenceTypeNone",
+ *   "model_type_": "kModelTypeOnnx",
+ *   "is_path_": true,
+ *   "model_value_": ["yolo.onnx"],
+ *   "input_num_": 1,
+ *   "input_name_": ["input"],
+ *   "input_shape_": [[1, 3, 224, 224]],
+ *   "output_num_": 1,
+ *   "output_name_": ["output"],
+ *   "encrypt_type_": "kEncryptTypeNone",
+ *   "license_": "",
+ *   "device_type_": "kDeviceTypeCpu",
+ *   "num_thread_": 1,
+ *   "gpu_tune_kernel_": 1,
+ *   "share_memory_mode_": "kShareMemoryTypeNoShare",
+ *   "precision_type_": "kPrecisionTypeFp32",
+ *   "power_type_": "kPowerTypeNormal",
+ *   "is_dynamic_shape_": false,
+ *   "parallel_type_": "kParallelTypeSequential",
+ *   "worker_num_": 4
+ * }
+ */
 base::Status Node::serialize(
     rapidjson::Value &json,
     rapidjson::Document::AllocatorType &allocator) const {
+  // 写入节点名称
+  json.AddMember("key_", rapidjson::Value(key_.c_str(), allocator), allocator);
+  json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator),
+                 allocator);
+  // 写入设备类型
+  std::string device_type_str = base::deviceTypeToString(device_type_);
+  json.AddMember("device_type_",
+                 rapidjson::Value(device_type_str.c_str(), allocator),
+                 allocator);
+
+  // json.AddMember("is_external_stream_", is_external_stream_, allocator);
+
+  // 写入输入
+  rapidjson::Value inputs(rapidjson::kArrayType);
+  for (size_t i = 0; i < inputs_.size(); i++) {
+    rapidjson::Value input_obj(rapidjson::kObjectType);
+    input_obj.AddMember(
+        "name_", rapidjson::Value(inputs_[i]->getName().c_str(), allocator),
+        allocator);
+    if (input_type_info_.size() > i) {
+      input_obj.AddMember(
+          "type_",
+          rapidjson::Value(input_type_info_[i]->getTypeName().c_str(),
+                           allocator),
+          allocator);
+    } else {
+      input_obj.AddMember("type_", rapidjson::Value("kNotSet", allocator),
+                          allocator);
+    }
+    inputs.PushBack(input_obj, allocator);
+  }
+  json.AddMember("inputs_", inputs, allocator);
+
+  // 写入输出
+  rapidjson::Value outputs(rapidjson::kArrayType);
+  for (size_t i = 0; i < outputs_.size(); i++) {
+    rapidjson::Value output_obj(rapidjson::kObjectType);
+    output_obj.AddMember(
+        "name_", rapidjson::Value(outputs_[i]->getName().c_str(), allocator),
+        allocator);
+    if (output_type_info_.size() > i) {
+      output_obj.AddMember(
+          "type_",
+          rapidjson::Value(output_type_info_[i]->getTypeName().c_str(),
+                           allocator),
+          allocator);
+    } else {
+      output_obj.AddMember("type_", rapidjson::Value("kNotSet", allocator),
+                           allocator);
+    }
+    outputs.PushBack(output_obj, allocator);
+  }
+  json.AddMember("outputs_", outputs, allocator);
+
+  // 序列化并行类型
+  if (is_graph_) {
+    std::string parallel_type_str = base::parallelTypeToString(parallel_type_);
+    json.AddMember("parallel_type_",
+                   rapidjson::Value(parallel_type_str.c_str(), allocator),
+                   allocator);
+  }
+
+  // 序列化其他布尔标志
+  // json.AddMember("is_inner_", is_inner_, allocator);
+  // json.AddMember("is_time_profile_", is_time_profile_, allocator);
+  // json.AddMember("is_debug_", is_debug_, allocator);
+  // json.AddMember("is_graph_", is_graph_, allocator);
+
+  // 写入节点类型
+  // std::string node_type_str = nodeTypeToString(node_type_);
+  // json.AddMember("node_type_",
+  //                rapidjson::Value(node_type_str.c_str(), allocator),
+  //                allocator);
+
+  // 写入参数
+  if (param_ != nullptr) {
+    rapidjson::Value param_json(rapidjson::kObjectType);
+    param_->serialize(param_json, allocator);
+    json.AddMember("param_", param_json, allocator);
+  }
+
   return base::kStatusCodeOk;
 }
 base::Status Node::serialize(std::ostream &stream) const {
@@ -642,6 +913,59 @@ base::Status Node::serialize(const std::string &path) const {
 }
 // from json
 base::Status Node::deserialize(rapidjson::Value &json) {
+  // 读取节点名称
+  if (json.HasMember("key_") && json["key_"].IsString()) {
+    key_ = json["key_"].GetString();
+  }
+
+  if (json.HasMember("name_") && json["name_"].IsString()) {
+    name_ = json["name_"].GetString();
+  }
+
+  // 读取设备类型
+  if (json.HasMember("device_type_") && json["device_type_"].IsString()) {
+    device_type_ = base::stringToDeviceType(json["device_type_"].GetString());
+  }
+
+  if (json.HasMember("is_external_stream_") &&
+      json["is_external_stream_"].IsBool()) {
+    is_external_stream_ = json["is_external_stream_"].GetBool();
+  }
+
+  // 读取并行类型
+  if (json.HasMember("parallel_type_") && json["parallel_type_"].IsString()) {
+    parallel_type_ =
+        base::stringToParallelType(json["parallel_type_"].GetString());
+  }
+
+  // 读取布尔标志
+  if (json.HasMember("is_inner_") && json["is_inner_"].IsBool()) {
+    is_inner_ = json["is_inner_"].GetBool();
+  }
+
+  if (json.HasMember("is_time_profile_") && json["is_time_profile_"].IsBool()) {
+    is_time_profile_ = json["is_time_profile_"].GetBool();
+  }
+
+  if (json.HasMember("is_debug_") && json["is_debug_"].IsBool()) {
+    is_debug_ = json["is_debug_"].GetBool();
+  }
+
+  if (json.HasMember("is_graph_") && json["is_graph_"].IsBool()) {
+    is_graph_ = json["is_graph_"].GetBool();
+  }
+
+  // 读取节点类型
+  if (json.HasMember("node_type_") && json["node_type_"].IsString()) {
+    node_type_ = stringToNodeType(json["node_type_"].GetString());
+  }
+
+  // 读取参数
+  if (json.HasMember("param_") && json["param_"].IsObject() &&
+      param_ != nullptr) {
+    param_->deserialize(json["param_"]);
+  }
+
   return base::kStatusCodeOk;
 }
 base::Status Node::deserialize(std::istream &stream) {
@@ -671,6 +995,10 @@ base::Status Node::deserialize(const std::string &path) {
   }
   ifs.close();
   return status;
+}
+
+std::set<std::string> getNodeKeys() {
+  return NodeFactory::getInstance()->getNodeKeys();
 }
 
 Node *createNode(const std::string &node_key, const std::string &node_name) {

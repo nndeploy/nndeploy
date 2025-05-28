@@ -300,6 +300,7 @@ Node *Graph::getNode(const std::string &name) {
       return node_wrapper->node_;
     }
   }
+  return nullptr;
 }
 
 std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string &name) {
@@ -309,6 +310,25 @@ std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string &name) {
     }
   }
   return nullptr;
+}
+
+Node *Graph::getNodeByKey(const std::string &key) {
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getKey() == key) {
+      return node_wrapper->node_;
+    }
+  }
+  return nullptr;
+}
+
+std::vector<Node *> Graph::getNodesByKey(const std::string &key) {
+  std::vector<Node *> nodes;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getKey() == key) {
+      nodes.emplace_back(node_wrapper->node_);
+    }
+  }
+  return nodes;
 }
 
 base::Status Graph::setNodeParam(const std::string &node_name,
@@ -467,6 +487,15 @@ base::Status Graph::deinit() {
     status = executor_->deinit();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "executor deinit failed!");
+  } else {
+    for (auto node_wrapper : node_repository_) {
+      if (node_wrapper->node_->getInitialized()) {
+        status = node_wrapper->node_->deinit();
+        NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                               "node deinit failed!");
+        node_wrapper->node_->setInitializedFlag(false);
+      }
+    }
   }
 
   // NNDEPLOY_LOGI("###########################\n");
@@ -505,7 +534,7 @@ std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
 };
 std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
   if (traced_) {
-    NNDEPLOY_LOGI("graph traced!\n");
+    // NNDEPLOY_LOGI("graph traced!\n");
     base::Status status = this->run();
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("graph run failed!");
@@ -513,7 +542,7 @@ std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
     }
     return outputs_;
   } else {
-    NNDEPLOY_LOGI("graph not traced!\n");
+    // NNDEPLOY_LOGI("graph not traced!\n");
     this->markInputEdge(inputs);
     std::vector<Edge *> outputs = this->forward(inputs);
     if (graph_ != nullptr) {
@@ -870,7 +899,7 @@ base::Status Graph::construct() {
 
   if (!is_inner_) {
     for (auto iter : outputs_) {
-      // NNDEPLOY_LOGI("markGraphOutput: %s.\n", iter->getName().c_str());
+      NNDEPLOY_LOGI("markGraphOutput: %s.\n", iter->getName().c_str());
       iter->markGraphOutput();
     }
   }
@@ -945,6 +974,147 @@ NodeWrapper *Graph::getNodeWrapper(Node *node) {
 NodeWrapper *Graph::getNodeWrapper(const std::string &name) {
   return findNodeWrapper(node_repository_, name);
 }
+
+base::Status Graph::serialize(
+    rapidjson::Value &json,
+    rapidjson::Document::AllocatorType &allocator) const {
+  base::Status status = base::kStatusCodeOk;
+  status = Node::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serialize node failed\n");
+    return status;
+  }
+  if (!is_inner_) {
+    // 写入设备类型
+    // std::string device_type_str = base::deviceTypeToString(device_type_);
+    // json.AddMember("device_type_",
+    //                rapidjson::Value(device_type_str.c_str(), allocator),
+    //                allocator);
+    // 写入是否为外部流
+    json.AddMember("is_external_stream_", is_external_stream_, allocator);
+    // 序列化并行类型
+    // std::string parallel_type_str = base::parallelTypeToString(parallel_type_);
+    // json.AddMember("parallel_type_",
+    //                rapidjson::Value(parallel_type_str.c_str(), allocator),
+    //                allocator);
+
+    // 序列化其他布尔标志
+    json.AddMember("is_inner_", is_inner_, allocator);
+    json.AddMember("is_time_profile_", is_time_profile_, allocator);
+    json.AddMember("is_debug_", is_debug_, allocator);
+    // json.AddMember("is_graph_", is_graph_, allocator);
+
+    // 写入节点类型
+    // std::string node_type_str = nodeTypeToString(node_type_);
+    // json.AddMember("node_type_",
+    //                rapidjson::Value(node_type_str.c_str(), allocator),
+    //                allocator);
+    json.AddMember("is_graph_node_share_stream_", is_graph_node_share_stream_,
+                   allocator);
+    json.AddMember("queue_max_size_", queue_max_size_, allocator);
+  }
+
+  if (!node_repository_.empty()) {
+    rapidjson::Value node_repository_array(rapidjson::kArrayType);
+    for (auto node_wrapper : node_repository_) {
+      rapidjson::Value node_json(rapidjson::kObjectType);
+      node_wrapper->node_->serialize(node_json, allocator);
+      node_repository_array.PushBack(node_json, allocator);
+    }
+    json.AddMember("node_repository_", node_repository_array, allocator);
+  }
+
+  return status;
+}
+base::Status Graph::deserialize(rapidjson::Value &json) {
+  base::Status status = Node::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("deserialize node failed\n");
+    return status;
+  }
+
+  if (json.HasMember("is_graph_node_share_stream_") &&
+      json["is_graph_node_share_stream_"].IsBool()) {
+    is_graph_node_share_stream_ = json["is_graph_node_share_stream_"].GetBool();
+  }
+
+  if (json.HasMember("queue_max_size_") && json["queue_max_size_"].IsInt()) {
+    queue_max_size_ = json["queue_max_size_"].GetInt();
+  }
+
+  if (!is_inner_) {
+    if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
+      const rapidjson::Value &inputs = json["inputs_"];
+      for (rapidjson::SizeType i = 0; i < inputs.Size(); i++) {
+        if (inputs[i].IsObject()) {
+          std::string input_name = inputs[i]["name_"].GetString();
+          Edge *edge = this->getEdge(input_name);
+          if (edge == nullptr) {
+            edge = this->createEdge(input_name);
+          }
+          if (edge == nullptr) {
+            NNDEPLOY_LOGE("create edge failed\n");
+            return base::kStatusCodeErrorInvalidValue;
+          }
+          insertUnique(inputs_, edge);
+        }
+      }
+    }
+    if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
+      const rapidjson::Value &outputs = json["outputs_"];
+      for (rapidjson::SizeType i = 0; i < outputs.Size(); i++) {
+        if (outputs[i].IsObject()) {
+          std::string output_name = outputs[i]["name_"].GetString();
+          Edge *edge = this->getEdge(output_name);
+          if (edge == nullptr) {
+            edge = this->createEdge(output_name);
+          }
+          if (edge == nullptr) {
+            NNDEPLOY_LOGE("create edge failed\n");
+            return base::kStatusCodeErrorInvalidValue;
+          }
+          insertUnique(outputs_, edge);
+        }
+      }
+    }
+  }
+
+  if (json.HasMember("node_repository_") &&
+      json["node_repository_"].IsArray()) {
+    const rapidjson::Value &nodes = json["node_repository_"];
+    for (rapidjson::SizeType i = 0; i < nodes.Size(); i++) {
+      if (nodes[i].IsObject()) {
+        NodeDesc node_desc;
+        rapidjson::Value &node_json = const_cast<rapidjson::Value &>(nodes[i]);
+        status = node_desc.deserialize(node_json);
+        if (status != base::kStatusCodeOk) {
+          return status;
+        }
+        Node *node = this->createNode(node_desc);
+        if (node == nullptr) {
+          NNDEPLOY_LOGE("create node failed\n");
+          return base::kStatusCodeErrorInvalidValue;
+        }
+        base::Status status = node->deserialize(node_json);
+        if (status != base::kStatusCodeOk) {
+          NNDEPLOY_LOGE("deserialize node failed\n");
+          return status;
+        }
+      }
+    }
+  }
+
+  return base::kStatusCodeOk;
+}
+
+// // to json file
+// base::Status Graph::loadJson(const std::string &path) {
+//   return Node::deserialize(path);
+// }
+// // from json file
+// base::Status Graph::saveJson(const std::string &path) {
+//   return Node::serialize(path);
+// }
 
 REGISTER_NODE("nndeploy::dag::Graph", Graph);
 

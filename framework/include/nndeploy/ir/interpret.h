@@ -10,7 +10,7 @@ namespace ir {
 class NNDEPLOY_CC_API Interpret {
  public:
   /**
-   * @brief Interpret类的默认构造函数
+   * @brief 解释器类的默认构造函数
    *
    * 创建一个新的Interpret对象，并初始化model_desc_成员。
    * model_desc_被初始化为一个新的ModelDesc对象。
@@ -18,7 +18,7 @@ class NNDEPLOY_CC_API Interpret {
   // Interpret();
 
   /**
-   * @brief Interpret类的带参构造函数
+   * @brief 解释器类的带参构造函数
    *
    * 使用已有的model_desc创建一个新的Interpret对象。
    */

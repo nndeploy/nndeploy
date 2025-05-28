@@ -5,7 +5,11 @@
 
 ```shell
 git clone https://github.com/nndeploy/nndeploy.git
+cd nndeploy
+# 拉取子模块
 git submodule update --init --recursive
+# 如果拉取子模块失败，调用克隆子模块脚本
+./clone_submodule.sh
 ```
 
 
@@ -15,14 +19,16 @@ git submodule update --init --recursive
 
 包含了以下几类配置：
 
-1. **基础构建选项（建议采用默认配置）**：如是否构建为共享库、使用的C++标准等
-2. **核心模块选项（建议采用默认配置）**：控制基础模块、线程池、设备模块等核心功能的开启
+1. **基础构建选项（建议采用默认配置）**：如是否构建为共享库、使用的C++标准版本等等
+2. **核心模块选项（建议采用默认配置）**：更细粒度控制需要编译的文件
 3. **设备后端选项（按需打开，默认全部关闭，不依赖任何设备后端）**：如CUDA、OpenCL、各种NPU等硬件加速支持
-4. **算子后端选项（按需打开，默认全部关闭，不依赖任何算子后端）**：如cudnn
+4. **算子后端选项（按需打开，默认全部关闭，不依赖任何算子后端）**：如cudnn、onednn、xnnpack、qnnpack
 5. **推理后端选项（按需打开，默认全部关闭，不依赖任何推理后端）**：如TensorRT、OpenVINO、ONNX Runtime等推理框架支持
 6. **算法插件选项（建议采用默认配置，传统CV类算法打开，语言类和文生图类算法默认关闭）**：如检测、分割、llm、文生图等算法插件
+
     + 其中传统CV类算法依赖`OpenCV`，例如检测、分割、分类等，需要打开`ENABLE_NNDEPLOY_OPENCV`
-    + 其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，打开前参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)
+
+    + **注意**：其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，打开前参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)
   
 ## 3. 编译方法
 
@@ -248,4 +254,8 @@ make -j                     # 使用8个线程并行编译
 
 - 在windows平台下，系统目录自带onnxruntime，故你在运行时或许可能会链接到系统目录下自带的onnxruntime，从而导致运行时出错。解决办法
   - 将你自己的onnxruntime库拷贝至build目录下
+      
+      
+      
 
+  

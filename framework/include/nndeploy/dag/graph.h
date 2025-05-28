@@ -56,8 +56,6 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   // create node
   Node *createNode(const NodeDesc &desc);
-  template <typename... Args>
-  Node *createNode(const NodeDesc &desc, Args &...args);
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const NodeDesc &desc, Args &...args);
@@ -69,6 +67,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   // get node
   Node *getNode(const std::string &name);
   std::shared_ptr<Node> getNodeSharedPtr(const std::string &name);
+  Node *getNodeByKey(const std::string &key);
+  std::vector<Node *> getNodesByKey(const std::string &key);
 
   // set node param
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
@@ -230,6 +230,15 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   NodeWrapper *getNodeWrapper(Node *node);
   NodeWrapper *getNodeWrapper(const std::string &name);
+
+  // to json
+  using Node::serialize;
+  virtual base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const;
+  // from json
+  using Node::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json);
 
  protected:
   virtual base::Status construct();
@@ -532,7 +541,6 @@ Node *Graph::createNode(const std::string &name,
   node_repository_.emplace_back(node_wrapper);
   used_node_names_.insert(name);
   node->setGraph(this);
-  ;
   return node;
 }
 
@@ -1253,44 +1261,65 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   return node;
 }
 
-template <typename... Args>
-Node *Graph::createNode(const NodeDesc &desc, Args &...args) {
-  const std::string &name = desc.getName();
-  const std::string &node_key = desc.getKey();
-  std::vector<std::string> input_names = desc.getInputs();
-  std::vector<std::string> output_names = desc.getOutputs();
-  if (used_node_names_.find(name) != used_node_names_.end()) {
-    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
-    return nullptr;
-  }
-  std::vector<Edge *> inputs;
-  for (auto input_name : input_names) {
-    Edge *input = getEdge(input_name);
-    if (input == nullptr) {
-      input = createEdge(input_name);
-    }
-    inputs.emplace_back(input);
-  }
-  std::vector<Edge *> outputs;
-  for (auto output_name : output_names) {
-    Edge *output = getEdge(output_name);
-    if (output == nullptr) {
-      output = createEdge(output_name);
-    }
-    outputs.emplace_back(output);
-  }
-  Node *node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
-  // Node *node =
-  //     nndeploy::dag::createNode(node_key, name, inputs, outputs, args...);
-  if (node == nullptr) {
-    NNDEPLOY_LOGE("create infer node[%s] failed!\n", desc.getName().c_str());
-    return nullptr;
-  }
+// template <typename... Args>
+// Node *Graph::createNode(const NodeDesc &desc, Args &...args) {
+//   const std::string &name = desc.getName();
+//   const std::string &node_key = desc.getKey();
+//   std::vector<std::string> input_names = desc.getInputs();
+//   std::vector<std::string> output_names = desc.getOutputs();
+//   if (used_node_names_.find(name) != used_node_names_.end()) {
+//     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+//     return nullptr;
+//   }
+//   std::vector<Edge *> inputs;
+//   for (auto input_name : input_names) {
+//     Edge *input = getEdge(input_name);
+//     if (input == nullptr) {
+//       input = createEdge(input_name);
+//     }
+//     inputs.emplace_back(input);
+//   }
+//   std::vector<Edge *> outputs;
+//   for (auto output_name : output_names) {
+//     Edge *output = getEdge(output_name);
+//     if (output == nullptr) {
+//       output = createEdge(output_name);
+//     }
+//     outputs.emplace_back(output);
+//   }
+//   Node *node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
+//   // Node *node =
+//   //     nndeploy::dag::createNode(node_key, name, inputs, outputs, args...);
+//   if (node == nullptr) {
+//     NNDEPLOY_LOGE("create infer node[%s] failed!\n", desc.getName().c_str());
+//     return nullptr;
+//   }
+//   NodeWrapper *node_wrapper = new NodeWrapper();
+//   node_wrapper->is_external_ = false;
+//   node_wrapper->node_ = node;
+//   node_wrapper->name_ = name;
+//   for (auto input : inputs) {
+//     EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+//     if (input_wrapper == nullptr) {
+//       input_wrapper = this->addEdge(input);
+//     }
+//     input_wrapper->consumers_.emplace_back(node_wrapper);
+//   }
+//   for (auto output : outputs) {
+//     EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+//     if (output_wrapper == nullptr) {
+//       output_wrapper = this->addEdge(output);
+//     }
+//     output_wrapper->producers_.emplace_back(node_wrapper);
+//   }
 
-  node->setGraph(this);
+//   node_repository_.emplace_back(node_wrapper);
+//   used_node_names_.insert(name);
 
-  return node;
-}
+//   node->setGraph(this);
+
+//   return node;
+// }
 
 template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
@@ -1301,7 +1330,6 @@ Node *Graph::createNode(const NodeDesc &desc, Args &...args) {
     NNDEPLOY_LOGE("create infer node[%s] failed!\n", desc.getName().c_str());
     return node;
   }
-  node->setGraph(this);
   return node;
 }
 

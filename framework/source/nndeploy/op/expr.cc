@@ -3,7 +3,32 @@
 namespace nndeploy {
 namespace op {
 
-Expr::~Expr(){};
+std::string exprTypeToString(ExprType type) {
+  switch (type) {
+    case kExprTypeValueDesc:
+      return "ExprTypeValueDesc";
+    case kExprTypeOpDesc:
+      return "ExprTypeOpDesc";
+    case kExprTypeModelDesc:
+      return "ExprTypeModelDesc";
+    default:
+      return "Unknown";
+  }
+}
+
+ExprType stringToExprType(const std::string &src) {
+  if (src == "ExprTypeValueDesc") {
+    return kExprTypeValueDesc;
+  } else if (src == "ExprTypeOpDesc") {
+    return kExprTypeOpDesc;
+  } else if (src == "ExprTypeModelDesc") {
+    return kExprTypeModelDesc;
+  } else {
+    return kExprTypeValueDesc;  // 默认返回第一个类型
+  }
+}
+
+Expr::~Expr() {};
 
 Expr::Expr(const std::string &name) : expr_type_(kExprTypeValueDesc) {
   value_desc_ = std::make_shared<ir::ValueDesc>(name);

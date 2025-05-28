@@ -29,6 +29,7 @@ class Graph;
 
 class NNDEPLOY_CC_API NodeDesc {
  public:
+  NodeDesc() = default;
   NodeDesc(const std::string &node_name,
            std::initializer_list<std::string> inputs,
            std::initializer_list<std::string> outputs)
@@ -59,6 +60,17 @@ class NNDEPLOY_CC_API NodeDesc {
   std::vector<std::string> getInputs() const { return inputs_; }
 
   std::vector<std::string> getOutputs() const { return outputs_; }
+
+  // to json
+  virtual base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const;
+  virtual base::Status serialize(std::ostream &stream) const;
+  virtual base::Status serialize(const std::string &path) const;
+  // from json
+  virtual base::Status deserialize(rapidjson::Value &json);
+  virtual base::Status deserialize(std::istream &stream);
+  virtual base::Status deserialize(const std::string &path);
 
  private:
   // Node key
@@ -264,7 +276,7 @@ class NNDEPLOY_CC_API Node {
   bool is_running_ = false;
   bool is_time_profile_ = false;
   bool is_debug_ = false;
-  bool is_trace_ = false;
+  bool is_trace_ = false; // 序列为json时，一定是静态图
   bool traced_ = false;
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
@@ -324,11 +336,22 @@ class NodeFactory {
     return nullptr;
   }
 
+  std::set<std::string> getNodeKeys() {
+    std::set<std::string> keys;
+    for (auto &it : creators_) {
+      keys.insert(it.first);
+    }
+    return keys;
+  }
+
  private:
   NodeFactory() = default;
   ~NodeFactory() = default;
   std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
 };
+
+
+std::set<std::string> getNodeKeys();
 
 #define REGISTER_NODE(node_key, node_class)                              \
   static auto register_node_creator_##node_class = []() {                \

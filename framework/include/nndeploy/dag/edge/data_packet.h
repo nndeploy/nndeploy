@@ -74,7 +74,7 @@ class DataPacket : public base::NonCopyable {
     flag_ = EdgeTypeFlag::kParam;
     written_ = false;
     anything_ = (void *)(param);
-    type_info_ = &typeid(T);
+    type_info_ = const_cast<std::type_info *>(&typeid(T));
     deleter_ = [](void *d) { delete static_cast<T *>(d); };
     return param;
   }
@@ -94,7 +94,7 @@ class DataPacket : public base::NonCopyable {
     flag_ = EdgeTypeFlag::kAny;
     written_ = false;
     deleter_ = [](void *d) { delete static_cast<T *>(d); };
-    type_info_ = &typeid(T);
+    type_info_ = const_cast<std::type_info *>(&typeid(T));
     return status;
   }
   template <typename T, typename... Args>
@@ -115,7 +115,7 @@ class DataPacket : public base::NonCopyable {
     flag_ = EdgeTypeFlag::kAny;
     written_ = false;
     anything_ = (void *)(t);
-    type_info_ = &typeid(T);
+    type_info_ = const_cast<std::type_info *>(&typeid(T));
     deleter_ = [](void *d) { delete static_cast<T *>(d); };
     return t;
   }
@@ -130,9 +130,11 @@ class DataPacket : public base::NonCopyable {
   template <typename T>
   T *getAny() {
     if (flag_ != EdgeTypeFlag::kAny) {
+      NNDEPLOY_LOGE("flag_ is not kAny");
       return nullptr;
     }
     if (typeid(T) != *type_info_) {
+      NNDEPLOY_LOGE("typeid(T) is not *type_info_");
       return nullptr;
     }
     return static_cast<T *>(anything_);

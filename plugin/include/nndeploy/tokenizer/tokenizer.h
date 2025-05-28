@@ -62,6 +62,9 @@ enum TokenizerType : int {
   kTokenizerTypeNotSupport,
 };
 
+extern NNDEPLOY_CC_API std::string tokenizerTypeToString(TokenizerType type);
+extern NNDEPLOY_CC_API TokenizerType stringToTokenizerType(const std::string &src);
+
 class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
  public:
   TokenizerPraram() : base::Param() {}

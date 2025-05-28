@@ -36,6 +36,7 @@ class NNDEPLOY_CC_API RMBGPostParam : public base::Param {
 class NNDEPLOY_CC_API RMBGPostProcess : public dag::Node {
  public:
   RMBGPostProcess(const std::string &name) : Node(name) {
+    key_ = "nndeploy::segment::RMBGPostProcess";
     param_ = std::make_shared<RMBGPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<SegmentResult>();
@@ -44,6 +45,7 @@ class NNDEPLOY_CC_API RMBGPostProcess : public dag::Node {
   RMBGPostProcess(const std::string &name, std::vector<dag::Edge *> inputs,
                   std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {
+    key_ = "nndeploy::segment::RMBGPostProcess";
     param_ = std::make_shared<RMBGPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<SegmentResult>();
@@ -56,6 +58,7 @@ class NNDEPLOY_CC_API RMBGPostProcess : public dag::Node {
 class NNDEPLOY_CC_API SegmentRMBGGraph : public dag::Graph {
  public:
   SegmentRMBGGraph(const std::string &name) : dag::Graph(name) {
+    key_ = "nndeploy::segment::SegmentRMBGGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<SegmentResult>();
   }
@@ -63,6 +66,7 @@ class NNDEPLOY_CC_API SegmentRMBGGraph : public dag::Graph {
   SegmentRMBGGraph(const std::string &name, std::vector<dag::Edge *> inputs,
                    std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
+    key_ = "nndeploy::segment::SegmentRMBGGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<SegmentResult>();
   }

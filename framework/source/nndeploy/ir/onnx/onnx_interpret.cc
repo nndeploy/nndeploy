@@ -282,6 +282,18 @@ float OnnxInterpret::getAttributeFloat(const onnx::NodeProto& node,
   }
   return default_value;
 }
+
+onnx::TensorProto_DataType OnnxInterpret::getAttributeTensorProtoDatatype(
+    const onnx::NodeProto& node, const char* key) {
+  for (const auto& iter : node.attribute()) {
+    if (iter.name() == key) {
+      assert(iter.type() == onnx::TensorProto_DataType);
+      // return iter. ; // AttributeProto
+    }
+  }
+  return onnx::TensorProto_DataType::TensorProto_DataType_FLOAT;
+}
+
 std::string OnnxInterpret::getAttributeString(const onnx::NodeProto& node,
                                               const std::string& name,
                                               std::string def) {

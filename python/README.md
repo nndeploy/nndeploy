@@ -17,6 +17,7 @@ cd nndeploy/python
 pip install -e .  # 开发者模式安装
 # 修改为自己的路径
 ## 连接libnndeploy_xxx.so
+export LD_LIBRARY_PATH=/home/always/github/public/nndeploy/build:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH
 ## 连接onnxruntime
 export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH

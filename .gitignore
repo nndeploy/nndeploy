@@ -250,5 +250,7 @@ ref_repo
 # cursor
 .cursor/
 
+
+# app/
 # translation
 *.mo

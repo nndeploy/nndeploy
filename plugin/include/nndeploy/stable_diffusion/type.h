@@ -21,6 +21,13 @@ enum SchedulerType : int {
   kSchedulerTypeNotSupport,
 };
 
+
+// extern NNDEPLOY_CC_API std::string stableDiffusionTypeToString(StableDiffusionType type);
+// extern NNDEPLOY_CC_API StableDiffusionType stringToStableDiffusionType(const std::string &src);
+
+// extern NNDEPLOY_CC_API std::string schedulerTypeToString(SchedulerType type);
+// extern NNDEPLOY_CC_API SchedulerType stringToSchedulerType(const std::string &src);
+
 }  // namespace stable_diffusion
 }  // namespace nndeploy
 

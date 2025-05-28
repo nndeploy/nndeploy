@@ -39,6 +39,7 @@ endif()
 
 if(ENABLE_NNDEPLOY_NET)
   include(${ROOT_PATH}/demo/net/config.cmake)
+  include(${ROOT_PATH}/demo/optimizer/config.cmake)
   include(${ROOT_PATH}/demo/tensor_pool/config.cmake)
   include(${ROOT_PATH}/demo/tensor_pool_multi_net/config.cmake)
 endif()
@@ -92,5 +93,13 @@ endif()
 nndeploy_option(ENABLE_NNDEPLOY_DEMO_RESNET "ENABLE_NNDEPLOY_DEMO_RESNET" OFF)
 if(ENABLE_NNDEPLOY_DEMO_RESNET)
   include(${ROOT_PATH}/demo/resnet/config.cmake)
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION)
+  include(${ROOT_PATH}/demo/super_resolution/config.cmake)
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_OCR)
+  include(${ROOT_PATH}/demo/ocr/config.cmake)
 endif()
 

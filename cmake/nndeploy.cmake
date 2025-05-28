@@ -36,9 +36,15 @@ include("${ROOT_PATH}/cmake/cuda.cmake")
 # # ascend_cl
 include("${ROOT_PATH}/cmake/ascend_cl.cmake")
 
+# # opencl
+include("${ROOT_PATH}/cmake/opencl.cmake")
+
 # ################### device ####################
 
 # ################### op ####################
+include("${ROOT_PATH}/cmake/onednn.cmake")
+include("${ROOT_PATH}/cmake/xnnpack.cmake")
+include("${ROOT_PATH}/cmake/qnnpack.cmake")
 # ################### op ####################
 
 # ################### net ####################

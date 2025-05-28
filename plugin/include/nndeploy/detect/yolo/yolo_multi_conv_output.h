@@ -56,6 +56,7 @@ class NNDEPLOY_CC_API YoloMultiConvOutputPostParam : public base::Param {
 class NNDEPLOY_CC_API YoloMultiConvOutputPostProcess : public dag::Node {
  public:
   YoloMultiConvOutputPostProcess(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::detect::YoloMultiConvOutputPostProcess";
     param_ = std::make_shared<YoloMultiConvOutputPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<DetectResult>();
@@ -64,6 +65,7 @@ class NNDEPLOY_CC_API YoloMultiConvOutputPostProcess : public dag::Node {
                                  std::vector<dag::Edge *> inputs,
                                  std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::detect::YoloMultiConvOutputPostProcess";
     param_ = std::make_shared<YoloMultiConvOutputPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<DetectResult>();
@@ -76,6 +78,7 @@ class NNDEPLOY_CC_API YoloMultiConvOutputPostProcess : public dag::Node {
 class NNDEPLOY_CC_API YoloMultiConvOutputGraph : public dag::Graph {
  public:
   YoloMultiConvOutputGraph(const std::string &name) : dag::Graph(name) {
+    key_ = "nndeploy::detect::YoloMultiConvOutputGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
   }
@@ -83,6 +86,7 @@ class NNDEPLOY_CC_API YoloMultiConvOutputGraph : public dag::Graph {
                            std::vector<dag::Edge *> inputs,
                            std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
+    key_ = "nndeploy::detect::YoloMultiConvOutputGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
   }

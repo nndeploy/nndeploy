@@ -27,6 +27,7 @@ class NNDEPLOY_CC_API ConvertToParam : public base::Param {
 class NNDEPLOY_CC_API ConvertTo : public dag::Node {
  public:
   ConvertTo(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::preprocess::ConvertTo";
     param_ = std::make_shared<ConvertToParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -34,6 +35,7 @@ class NNDEPLOY_CC_API ConvertTo : public dag::Node {
   ConvertTo(const std::string &name, std::vector<dag::Edge *> inputs,
             std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::preprocess::ConvertTo";
     param_ = std::make_shared<ConvertToParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();

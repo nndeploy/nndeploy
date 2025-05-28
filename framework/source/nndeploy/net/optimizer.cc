@@ -486,5 +486,50 @@ base::Status Optimizer::optimize(std::vector<TensorWrapper*>& tensor_repository,
   return base::kStatusCodeOk;
 }
 
+std::string optPassTypeToString(OptPassType type) {
+  switch (type) {
+    case kOptPassTypeFuseConvBias:
+      return "FuseConvBias";
+    case kOptPassTypeFuseConvBatchNorm:
+      return "FuseConvBatchNorm";  
+    case kOptPassTypeFuseConvRelu:
+      return "FuseConvRelu";
+    case kOptPassTypeFuseConvAct:
+      return "FuseConvAct";
+    case kOptPassTypeEliminateCommonSubexpression:
+      return "EliminateCommonSubexpression";
+    case kOptPassTypeEliminateDeadOp:
+      return "EliminateDeadOp";
+    case kOptPassTypeFoldConstant:
+      return "FoldConstant";
+    case kOptPassTypeFuseQdq:
+      return "FuseQdq";
+    default:
+      return "Unknown";
+  }
+}
+
+OptPassType stringToOptPassType(const std::string &src) {
+  if (src == "FuseConvBias") {
+    return kOptPassTypeFuseConvBias;
+  } else if (src == "FuseConvBatchNorm") {
+    return kOptPassTypeFuseConvBatchNorm;
+  } else if (src == "FuseConvRelu") {
+    return kOptPassTypeFuseConvRelu;
+  } else if (src == "FuseConvAct") {
+    return kOptPassTypeFuseConvAct;
+  } else if (src == "EliminateCommonSubexpression") {
+    return kOptPassTypeEliminateCommonSubexpression;
+  } else if (src == "EliminateDeadOp") {
+    return kOptPassTypeEliminateDeadOp;
+  } else if (src == "FoldConstant") {
+    return kOptPassTypeFoldConstant;
+  } else if (src == "FuseQdq") {
+    return kOptPassTypeFuseQdq;
+  } else {
+    return kOptPassTypeFuseConvBias; // 默认返回第一个类型
+  }
+}
+
 }  // namespace net
 }  // namespace nndeploy

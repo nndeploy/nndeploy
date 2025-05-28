@@ -56,5 +56,10 @@ if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
   include(${PLUGIN_ROOT_PATH}/source/nndeploy/stable_diffusion/config.cmake)
 endif()
 
+# # super_resolution
+if(ENABLE_NNDEPLOY_OPENCV AND ENABLE_NNDEPLOY_PLUGIN_SUPER_RESOLUTION)
+  include(${PLUGIN_ROOT_PATH}/source/nndeploy/super_resolution/config.cmake)
+endif()
+
 # appedn list
 message(STATUS "NNDEPLOY_PLUGIN_LIST: ${NNDEPLOY_PLUGIN_LIST}")

@@ -5,7 +5,9 @@
 
 ### 下载模型
 
-- [stable-diffusion-1.5](stable-diffusion-1.5): stable-diffusion-1.5, Model Type: onnx, output size: 512x512, [download](https://www.modelscope.cn/models/nndeploy/nndeploy/resolve/master/stable_diffusion/)
+- [stable-diffusion-1.5-fp32](stable-diffusion-1.5-fp32): stable-diffusion-1.5-fp32, Model Type: onnx, output size: 512x512, [download](https://www.modelscope.cn/models/nndeploy/nndeploy)
+
+- [stable-diffusion-1.5-fp16](stable-diffusion-1.5-fp16): stable-diffusion-1.5-fp16, Model Type: onnx, output size: 512x512, [download](https://www.modelscope.cn/models/nndeploy/nndeploy)
 
 ### 模型简介
 
@@ -43,7 +45,7 @@ export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=$onnxruntime/lib:$LD_LIBRARY_PATH
 
 # 执行
-./nndeploy_demo_stable_diffusion --name txt2img --prompt "a great apple" --parallel_type kParallelTypeSequential --output_path apple.png --is_path --model_value /home/lds/stable-diffusion.onnx/models/tokenizer/tokenizer.json,/home/lds/stable-diffusion.onnx/models/text_encoder/model.onnx,/home/lds/stable-diffusion.onnx/models/unet/model.onnx,/home/lds/stable-diffusion.onnx/models/vae_decoder/model.onnx --device_type kDeviceTypeCodeCuda:0
+./nndeploy_demo_stable_diffusion --name txt2img --prompt "a great apple" --parallel_type kParallelTypeSequential --output_path apple.png --is_path --model_value /home/lds/stable-diffusion.onnx/models/fp32/tokenizer/tokenizer.json,/home/lds/stable-diffusion.onnx/models/fp32/text_encoder/model.onnx,/home/lds/stable-diffusion.onnx/models/fp32/unet/model.onnx,/home/lds/stable-diffusion.onnx/models/fp32/vae_decoder/model.onnx --device_type kDeviceTypeCodeCuda:0
 
 TimeProfiler: demo
 ---------------------------------------------------------------------------------------------
@@ -72,6 +74,38 @@ save_node run()                    1           10.762             10.762        
 graph->deinit()                    1           0.024              0.024              0.000 
 ---------------------------------------------------------------------------------------------
 ```
+
+```
+./nndeploy_demo_stable_diffusion --name txt2img --prompt "a great apple" --parallel_type kParallelTypeSequential --output_path apple.png --is_path --model_value /home/lds/stable-diffusion.onnx/models/fp32/tokenizer/tokenizer.json,/home/lds/stable-diffusion.onnx/models/fp32/text_encoder/model.onnx,/home/lds/stable-diffusion.onnx/models/fp32/unet/model.onnx,/home/lds/stable-diffusion.onnx/models/fp32/vae_decoder/model.onnx --device_type kDeviceTypeCodeCuda:0
+
+TimeProfiler: demo
+---------------------------------------------------------------------------------------------
+name                               call_times  sum cost_time(ms)  avg cost_time(ms)  gflops
+---------------------------------------------------------------------------------------------
+graph->init()                      1           2140.009           2140.009           0.000 
+graph->dump()                      1           0.104              0.104              0.000 
+graph->run()                       1           8890.673           8890.673           0.000 
+txt2img run()                      1           8890.621           8890.621           0.000 
+clip run()                         1           59.058             59.058             0.000 
+negative_embedding_subgraph run()  1           56.408             56.408             0.000 
+negative_tokenizer run()           1           0.085              0.085              0.000 
+cvt_token_ids_2_tensor run()       2           0.022              0.011              0.000 
+clip_infer run()                   2           58.734             29.367             0.000 
+embedding_subgraph run()           1           2.543              2.543              0.000 
+tokenizer run()                    1           0.097              0.097              0.000 
+concat_node run()                  1           0.103              0.103              0.000 
+denoise_ddim run()                 1           6112.537           6112.537           0.000 
+init_latents run()                 1           0.333              0.333              0.000 
+denoise run()                      1           6112.197           6112.197           0.000 
+vae run()                          1           2700.945           2700.945           0.000 
+scale_latents run()                1           0.022              0.022              0.000 
+vae_infer run()                    1           2700.914           2700.914           0.000 
+save_node run()                    1           18.065             18.065             0.000 
+graph->deinit()                    1           17.900             17.900             0.000 
+---------------------------------------------------------------------------------------------
+```
+
+[注] 该实现支持Sequential和Pipeline两种执行模式
 
 ### 效果示例
 

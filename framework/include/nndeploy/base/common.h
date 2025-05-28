@@ -152,6 +152,8 @@ enum DataFormat : int {
   // 5D
   kDataFormatNCDHW,
   kDataFormatNDHWC,
+  // TODO:NEW
+  kDataFormatNDCHW,
 
   // auto
   kDataFormatAuto,
@@ -382,26 +384,63 @@ extern NNDEPLOY_CC_API DeviceType stringToDeviceType(const std::string &src);
 extern NNDEPLOY_CC_API std::string deviceTypeToString(DeviceType src);
 
 extern NNDEPLOY_CC_API ModelType stringToModelType(const std::string &src);
+extern NNDEPLOY_CC_API std::string modelTypeToString(ModelType src);
 
 extern NNDEPLOY_CC_API InferenceType
 stringToInferenceType(const std::string &src);
 extern NNDEPLOY_CC_API std::string inferenceTypeToString(InferenceType src);
+
 extern NNDEPLOY_CC_API EncryptType stringToEncryptType(const std::string &src);
+extern NNDEPLOY_CC_API std::string encryptTypeToString(EncryptType src);
 
 extern NNDEPLOY_CC_API ShareMemoryType
 stringToShareMemoryType(const std::string &src);
+extern NNDEPLOY_CC_API std::string shareMemoryTypeToString(ShareMemoryType src);
+
+extern NNDEPLOY_CC_API MemoryType stringToMemoryType(const std::string &src);
+extern NNDEPLOY_CC_API std::string memoryTypeToString(MemoryType src);
+
+extern NNDEPLOY_CC_API MemoryPoolType stringToMemoryPoolType(const std::string &src);
+extern NNDEPLOY_CC_API std::string memoryPoolTypeToString(MemoryPoolType src);
+
+extern NNDEPLOY_CC_API TensorType stringToTensorType(const std::string &src);
+extern NNDEPLOY_CC_API std::string tensorTypeToString(TensorType src);
+
+extern NNDEPLOY_CC_API ForwardOpType stringToForwardOpType(const std::string &src);
+extern NNDEPLOY_CC_API std::string forwardOpTypeToString(ForwardOpType src);
+
+extern NNDEPLOY_CC_API InferenceOptLevel stringToInferenceOptLevel(const std::string &src);
+extern NNDEPLOY_CC_API std::string inferenceOptLevelToString(InferenceOptLevel src);
 
 extern NNDEPLOY_CC_API PrecisionType
 stringToPrecisionType(const std::string &src);
+extern NNDEPLOY_CC_API std::string precisionTypeToString(PrecisionType src);
 
 extern NNDEPLOY_CC_API PowerType stringToPowerType(const std::string &src);
+extern NNDEPLOY_CC_API std::string powerTypeToString(PowerType src);
 
 extern NNDEPLOY_CC_API CodecType stringToCodecType(const std::string &src);
+extern NNDEPLOY_CC_API std::string codecTypeToString(CodecType src);
 
 extern NNDEPLOY_CC_API CodecFlag stringToCodecFlag(const std::string &src);
+extern NNDEPLOY_CC_API std::string codecFlagToString(CodecFlag src);
 
+extern NNDEPLOY_CC_API std::string parallelTypeToString(ParallelType src);
 extern NNDEPLOY_CC_API ParallelType
 stringToParallelType(const std::string &src);
+
+extern NNDEPLOY_CC_API EdgeType stringToEdgeType(const std::string &src);
+extern NNDEPLOY_CC_API std::string edgeTypeToString(EdgeType src);
+
+extern NNDEPLOY_CC_API EdgeUpdateFlag stringToEdgeUpdateFlag(const std::string &src);
+extern NNDEPLOY_CC_API std::string edgeUpdateFlagToString(EdgeUpdateFlag src);
+
+extern NNDEPLOY_CC_API NodeColorType stringToNodeColorType(const std::string &src);
+extern NNDEPLOY_CC_API std::string nodeColorTypeToString(NodeColorType src);
+
+extern NNDEPLOY_CC_API TopoSortType stringToTopoSortType(const std::string &src);
+extern NNDEPLOY_CC_API std::string topoSortTypeToString(TopoSortType src);
+
 
 extern NNDEPLOY_CC_API PrecisionType getPrecisionType(DataType data_type);
 

@@ -196,9 +196,9 @@ base::Status YoloMultiOutputPostProcess::run() {
 //   return graph;
 // }
 
-REGISTER_NODE("nndeploy::detect::yolo::YoloMultiOutputPostProcess",
+REGISTER_NODE("nndeploy::detect::YoloMultiOutputPostProcess",
               YoloMultiOutputPostProcess);
-REGISTER_NODE("nndeploy::detect::yolo::YoloMultiOutputGraph",
+REGISTER_NODE("nndeploy::detect::YoloMultiOutputGraph",
               YoloMultiOutputGraph);
 
 }  // namespace detect

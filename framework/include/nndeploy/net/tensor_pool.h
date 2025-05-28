@@ -175,6 +175,10 @@ void tensorUsageRecordPrint(
 
 void chunkPrint(const std::vector<std::shared_ptr<Chunk>> &chunks);
 
+extern NNDEPLOY_CC_API std::string tensorPoolTypeToString(TensorPoolType type);
+extern NNDEPLOY_CC_API TensorPoolType stringToTensorPoolType(
+    const std::string &src);
+
 }  // namespace net
 }  // namespace nndeploy
 

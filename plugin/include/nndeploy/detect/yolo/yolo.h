@@ -50,6 +50,7 @@ class NNDEPLOY_CC_API YoloPreParam : public base::Param {
 class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
  public:
   YoloPostProcess(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::detect::YoloPostProcess";
     param_ = std::make_shared<YoloPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<DetectResult>();
@@ -57,6 +58,7 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
   YoloPostProcess(const std::string &name, std::vector<dag::Edge *> inputs,
                   std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::detect::YoloPostProcess";
     param_ = std::make_shared<YoloPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<DetectResult>();
@@ -95,6 +97,7 @@ class NNDEPLOY_CC_API YoloPreProcess : public dag::Node {
 class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
  public:
   YoloGraph(const std::string &name) : dag::Graph(name) {
+    key_ = "nndeploy::detect::YoloGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
   }
@@ -102,6 +105,7 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
   YoloGraph(const std::string &name, std::vector<dag::Edge *> inputs,
             std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
+    key_ = "nndeploy::detect::YoloGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
   }
@@ -212,6 +216,63 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     std::vector<dag::Edge *> infer_outputs = (*infer_)(pre_outputs);
     std::vector<dag::Edge *> post_outputs = (*post_)(infer_outputs);
     return post_outputs;
+  }
+
+  // virtual base::Status serialize(
+  //     rapidjson::Value &json,
+  //     rapidjson::Document::AllocatorType &allocator) const {
+  //   base::Status status = dag::Graph::serialize(json, allocator);
+  //   if (status != base::kStatusCodeOk) {
+  //     return status;
+  //   }
+  //   return base::kStatusCodeOk;
+  // }
+
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    base::Status status = dag::Graph::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    // Create preprocessing node for image preprocessing
+    pre_ = dynamic_cast<dag::Node *>(
+        Graph::getNodeByKey("nndeploy::preprocess::CvtColorResize"));
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create preprocessing node");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    preprocess::CvtclorResizeParam *pre_param =
+        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+    pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+    pre_param->interp_type_ = base::kInterpTypeLinear;
+    pre_param->h_ = 640;
+    pre_param->w_ = 640;
+
+    // Create inference node for ResNet model execution
+    infer_ = dynamic_cast<infer::Infer *>(
+        this->getNodeByKey("nndeploy::infer::Infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+
+    // Create postprocessing node for classification results
+    post_ = dynamic_cast<dag::Node *>(
+        this->getNodeByKey("nndeploy::detect::YoloPostProcess"));
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    YoloPostParam *post_param =
+        dynamic_cast<YoloPostParam *>(post_->getParam());
+    post_param->score_threshold_ = 0.5;
+    post_param->nms_threshold_ = 0.45;
+    post_param->num_classes_ = 80;
+    post_param->model_h_ = 640;
+    post_param->model_w_ = 640;
+    post_param->version_ = 5;
+
+    return base::kStatusCodeOk;
   }
 
  private:
