@@ -160,7 +160,8 @@ base::Status CompositeNode::construct() {
   // for (auto edge_wrapper : edge_repository_) {
   //   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
   //                                        "edge_repository_ edge is null!");
-  //   if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
+  //   if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty())
+  //   {
   //     NNDEPLOY_LOGI("graph[%s] this edge[%s] is useless!\n", name_.c_str(),
   //                   edge_wrapper->edge_->getName().c_str());
   //   }
@@ -277,6 +278,94 @@ std::vector<NodeWrapper *> CompositeNode::sortDFS() {
   std::vector<NodeWrapper *> topo_sort_node;
   topoSortDFS(node_repository_, topo_sort_node);
   return topo_sort_node;
+}
+
+base::Status CompositeNode::serialize(
+    rapidjson::Value &json,
+    rapidjson::Document::AllocatorType &allocator) const {
+  base::Status status = base::kStatusCodeOk;
+  status = Node::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serialize node failed\n");
+    return status;
+  }
+  if (!node_repository_.empty()) {
+    rapidjson::Value node_repository_array(rapidjson::kArrayType);
+    for (auto node_wrapper : node_repository_) {
+      rapidjson::Value node_json(rapidjson::kObjectType);
+      node_wrapper->node_->serialize(node_json, allocator);
+      node_repository_array.PushBack(node_json, allocator);
+    }
+    json.AddMember("node_repository_", node_repository_array, allocator);
+  }
+  return status;
+}
+
+base::Status CompositeNode::deserialize(rapidjson::Value &json) {
+  base::Status status = Node::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("deserialize node failed\n");
+    return status;
+  }
+  // if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
+  //   const rapidjson::Value &inputs = json["inputs_"];
+  //   for (rapidjson::SizeType i = 0; i < inputs.Size(); i++) {
+  //     if (inputs[i].IsObject()) {
+  //       std::string input_name = inputs[i]["name_"].GetString();
+  //       Edge *edge = this->getEdge(input_name);
+  //       if (edge == nullptr) {
+  //         edge = this->createEdge(input_name);
+  //       }
+  //       if (edge == nullptr) {
+  //         NNDEPLOY_LOGE("create edge failed\n");
+  //         return base::kStatusCodeErrorInvalidValue;
+  //       }
+  //       insertUnique(inputs_, edge);
+  //     }
+  //   }
+  // }
+  // if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
+  //   const rapidjson::Value &outputs = json["outputs_"];
+  //   for (rapidjson::SizeType i = 0; i < outputs.Size(); i++) {
+  //     if (outputs[i].IsObject()) {
+  //       std::string output_name = outputs[i]["name_"].GetString();
+  //       Edge *edge = this->getEdge(output_name);
+  //       if (edge == nullptr) {
+  //         edge = this->createEdge(output_name);
+  //       }
+  //       if (edge == nullptr) {
+  //         NNDEPLOY_LOGE("create edge failed\n");
+  //         return base::kStatusCodeErrorInvalidValue;
+  //       }
+  //       insertUnique(outputs_, edge);
+  //     }
+  //   }
+  // }
+  if (json.HasMember("node_repository_") &&
+      json["node_repository_"].IsArray()) {
+    const rapidjson::Value &nodes = json["node_repository_"];
+    for (rapidjson::SizeType i = 0; i < nodes.Size(); i++) {
+      if (nodes[i].IsObject()) {
+        NodeDesc node_desc;
+        rapidjson::Value &node_json = const_cast<rapidjson::Value &>(nodes[i]);
+        status = node_desc.deserialize(node_json);
+        if (status != base::kStatusCodeOk) {
+          return status;
+        }
+        Node *node = this->createNode(node_desc);
+        if (node == nullptr) {
+          NNDEPLOY_LOGE("create node failed\n");
+          return base::kStatusCodeErrorInvalidValue;
+        }
+        base::Status status = node->deserialize(node_json);
+        if (status != base::kStatusCodeOk) {
+          NNDEPLOY_LOGE("deserialize node failed\n");
+          return status;
+        }
+      }
+    }
+  }
+  return status;
 }
 
 }  // namespace dag

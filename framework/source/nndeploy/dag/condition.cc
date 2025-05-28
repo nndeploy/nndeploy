@@ -141,5 +141,24 @@ base::Status Condition::executor() {
   return status;
 }
 
+base::Status Condition::serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const {
+  base::Status status = Graph::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serialize node failed\n");
+    return status;
+  }
+  return status;
+}
+
+base::Status Condition::deserialize(rapidjson::Value &json) {
+  base::Status status = Graph::deserialize(json);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("deserialize node failed\n");
+    return status;
+  }
+}
+
 }  // namespace dag
 }  // namespace nndeploy

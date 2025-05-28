@@ -47,6 +47,15 @@ class CompositeNode : public Node {
   Edge *getEdge(const std::string &name);
   Edge *createEdge(const std::string &name);
 
+  // to json
+  using Node::serialize;
+  virtual base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const;
+  // from json
+  using Node::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json);
+
  protected:
   virtual base::Status construct();
   std::vector<NodeWrapper *> sortDFS();

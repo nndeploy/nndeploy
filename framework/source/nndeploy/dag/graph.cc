@@ -981,6 +981,7 @@ base::Status Graph::serialize(
   base::Status status = base::kStatusCodeOk;
   status = Node::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serialize node failed\n");
     return status;
   }
   if (!is_inner_) {
@@ -1028,6 +1029,7 @@ base::Status Graph::serialize(
 base::Status Graph::deserialize(rapidjson::Value &json) {
   base::Status status = Node::deserialize(json);
   if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("deserialize node failed\n");
     return status;
   }
 
