@@ -42,11 +42,6 @@ class NNDEPLOY_CC_API YoloPostParam : public base::Param {
   int version_ = -1;  // YOLO模型的版本号，默认为-1表示未指定
 };
 
-class NNDEPLOY_CC_API YoloPreParam : public base::Param {
- public:
-  int version_ = -1;  // YOLO模型的版本号，默认为-1表示未指定
-};
-
 class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
  public:
   YoloPostProcess(const std::string &name) : dag::Node(name) {
@@ -64,28 +59,6 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
     this->setOutputTypeInfo<DetectResult>();
   }
   virtual ~YoloPostProcess() {}
-
-  virtual base::Status run();
-
-  base::Status runV5V6();
-  base::Status runV8V11();
-  base::Status runX();
-};
-
-class NNDEPLOY_CC_API YoloPreProcess : public dag::Node {
- public:
-  YoloPreProcess(const std::string &name) : dag::Node(name) {
-    param_ = std::make_shared<YoloPreParam>();
-    this->setInputTypeInfo<cv::Mat>();
-    this->setOutputTypeInfo<device::Tensor>();
-  }
-  YoloPreProcess(const std::string &name, std::vector<dag::Edge *> inputs,
-                 std::vector<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {
-    param_ = std::make_shared<YoloPreParam>();
-    this->setInputTypeInfo<cv::Mat>();
-    this->setOutputTypeInfo<device::Tensor>();
-  }
 
   virtual base::Status run();
 
