@@ -179,12 +179,6 @@ base::Status YoloPostProcess::runV8V11() {
   return base::kStatusCodeOk;
 }
 
-base::Status YoloPostProcess::runX() {
-  YoloPostParam *param = (YoloPostParam *)param_.get();
-  float score_threshold = param->score_threshold_;
-  int num_classes = param->num_classes_;
-}
-
 // dag::Graph *createYoloV5Graph(const std::string &name,
 //                               base::InferenceType inference_type,
 //                               base::DeviceType device_type, dag::Edge *input,
