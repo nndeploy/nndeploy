@@ -5,6 +5,7 @@
 #include "nndeploy/dag/node.h"
 #include "nndeploy/detect/drawbox.h"
 #include "nndeploy/detect/yolo/yolo.h"
+#include "nndeploy/detect/yolo/yolox.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/framework.h"
 #include "nndeploy/thread_pool/thread_pool.h"
@@ -50,7 +51,11 @@ using namespace nndeploy;
 
 DEFINE_int32(yolo_version, 11, "yolo_version");
 
+DEFINE_string(yolo_type, "v", "yolo_type");
+
 int getVersion() { return FLAGS_yolo_version; }
+
+std::string getYoloType() { return FLAGS_yolo_type; }
 
 int main(int argc, char *argv[]) {
   gflags::ParseCommandLineNonHelpFlags(&argc, &argv, true);
@@ -109,16 +114,32 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   // 创建检测模型有向无环图graph
-  detect::YoloGraph *detect_graph =
-      new detect::YoloGraph(name, {input}, {output});
-  dag::NodeDesc pre_desc("preprocess", {"detect_in"}, model_inputs);
-  dag::NodeDesc infer_desc("infer", model_inputs, model_outputs);
-  dag::NodeDesc post_desc("postprocess", model_outputs, {"detect_out"});
-  detect_graph->make(pre_desc, infer_desc, inference_type, post_desc);
-  detect_graph->setInferParam(device_type, model_type, is_path, model_value);
-  detect_graph->setVersion(version);
-  // detect_graph->setTimeProfileFlag(true);
-  graph->addNode(detect_graph);
+  std::string yolo_type = getYoloType();
+  dag::Graph *detect_graph = nullptr;
+  if (yolo_type == "v") {
+    detect_graph = new detect::YoloGraph(name, {input}, {output});
+    auto *v_graph = dynamic_cast<detect::YoloGraph *>(detect_graph);
+    dag::NodeDesc pre_desc("preprocess", {"detect_in"}, model_inputs);
+    dag::NodeDesc infer_desc("infer", model_inputs, model_outputs);
+    dag::NodeDesc post_desc("postprocess", model_outputs, {"detect_out"});
+    v_graph->make(pre_desc, infer_desc, inference_type, post_desc);
+    v_graph->setInferParam(device_type, model_type, is_path, model_value);
+    v_graph->setVersion(version);
+    // v_graph->setTimeProfileFlag(true);
+    graph->addNode(v_graph);
+  } else if (yolo_type == "x") {
+    detect_graph = new detect::YoloXGraph(name, {input}, {output});
+    auto *x_graph = dynamic_cast<detect::YoloXGraph *>(detect_graph);
+    dag::NodeDesc pre_desc("preprocess", {"detect_in"}, model_inputs);
+    dag::NodeDesc infer_desc("infer", model_inputs, model_outputs);
+    dag::NodeDesc post_desc("postprocess", model_outputs, {"detect_out"});
+    x_graph->make(pre_desc, infer_desc, inference_type, post_desc);
+    x_graph->setInferParam(device_type, model_type, is_path, model_value);
+    graph->addNode(x_graph);
+  } else {
+    NNDEPLOY_LOGE("yolo_type is not support\n");
+    return -1;
+  }
 
   // 解码节点
   codec::DecodeNode *decode_node = codec::createDecodeNode(

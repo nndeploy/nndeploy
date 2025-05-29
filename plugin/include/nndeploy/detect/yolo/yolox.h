@@ -20,6 +20,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
+#include "nndeploy/preprocess/cvtcolor_resize.h"
 #include "nndeploy/preprocess/cvtcolor_resize_pad.h"
 
 namespace nndeploy {
@@ -48,8 +49,9 @@ class NNDEPLOY_CC_API YoloXPostProcess : public dag::Node {
     this->setOutputTypeInfo<DetectResult>();
   }
 
-  YoloXPostProcess(const std::string &name, const std::vector<Edge *> &inputs,
-                   const std::vector<Edge *> &outputs)
+  YoloXPostProcess(const std::string &name,
+                   const std::vector<dag::Edge *> &inputs,
+                   const std::vector<dag::Edge *> &outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloXPostProcess";
     param_ = std::make_shared<YoloXPostParam>();
@@ -64,39 +66,39 @@ class NNDEPLOY_CC_API YoloXPostProcess : public dag::Node {
 
 class NNDEPLOY_CC_API YoloXGraph : public dag::Graph {
  public:
-  YoloXGraph(const std::syring &name) : dag::Graph(name) {
+  YoloXGraph(const std::string &name) : dag::Graph(name) {
     key_ = "nndeploy::detect::YoloXGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
   }
 
-  YoloXGraph(const std::string &name, const std::vector<Edge *> &inputs,
-             const std::vector<Edge *> &outputs)
+  YoloXGraph(const std::string &name, const std::vector<dag::Edge *> &inputs,
+             const std::vector<dag::Edge *> &outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloXGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
   }
 
-  virtual ~YoloXGraph();
+  virtual ~YoloXGraph(){};
 
   base::Status make(const dag::NodeDesc &pre_desc,
                     const dag::NodeDesc &infer_desc,
                     base::InferenceType inference_type,
                     const dag::NodeDesc &post_desc) {
-    pre_ = this->createNode<preprocess::CvtColorResizePad>(pre_desc);
+    pre_ = this->createNode<preprocess::CvtColorResize>(pre_desc);
     if (pre_ == nullptr) {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
-
-    preprocess::CvtclorResizePadParam *pre_param =
-        dynamic_cast<preprocess::CvtclorResizePadParam *>(pre_->getParam());
+    preprocess::CvtclorResizeParam *pre_param =
+        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
     pre_param->h_ = 640;
     pre_param->w_ = 640;
+    pre_param->normalize_ = false;
 
     infer_ = dynamic_cast<infer::Infer *>(
         this->createNode<infer::Infer>(infer_desc));
@@ -119,6 +121,17 @@ class NNDEPLOY_CC_API YoloXGraph : public dag::Graph {
     post_param->model_h_ = 640;
     post_param->model_w_ = 640;
 
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setInferParam(base::DeviceType device_type,
+                             base::ModelType model_type, bool is_path,
+                             std::vector<std::string> &model_value) {
+    auto param = dynamic_cast<inference::InferenceParam *>(infer_->getParam());
+    param->device_type_ = device_type;
+    param->model_type_ = model_type;
+    param->is_path_ = is_path;
+    param->model_value_ = model_value;
     return base::kStatusCodeOk;
   }
 
