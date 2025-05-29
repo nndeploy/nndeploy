@@ -13,7 +13,7 @@
 </h3>
 
 <p align="center">
-| <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> | <a href="https://discord.gg/xAWvmZn3"><b>discord</b></a> |
+| <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> | <a href="https://discord.gg/9rUwfAaMbr"><b>discord</b></a> |
 </p>
 
 ---
