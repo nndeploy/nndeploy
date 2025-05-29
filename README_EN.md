@@ -17,6 +17,9 @@ Easy-to-use, high-performance, multi-platform AI inference deployment framework
 
 ---
 
+## News
+- [2025/05/29] 🔥 The open-source team behind nndeploy has officially launched the course "Building an Inference Framework from Scratch" in collaboration with Huawei!
+
 ## Quick Start
 
 * [How to Build](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/build.html)
