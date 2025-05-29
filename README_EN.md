@@ -19,9 +19,9 @@ Easy-to-use, high-performance, multi-platform AI inference deployment framework
 
 ## Quick Start
 
-* [How to Build](docs/zh_cn/quick_start/build.md)
-* [How to Get Models](docs/zh_cn/quick_start/model.md)
-* [How to Run](docs/zh_cn/quick_start/example.md)
+* [How to Build](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/build.html)
+* [How to Get Models](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/model.html)
+* [How to Run](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/example.html)
 
 ## Deployed Models
 
