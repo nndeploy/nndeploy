@@ -1,98 +1,125 @@
 import {
-  Button,
   Dropdown,
+  Popconfirm,
   SideSheet,
+  Tooltip,
   Tree,
   Typography,
 } from "@douyinfe/semi-ui";
 import { useGetTree } from "./effect";
-import { IconMore, IconEyeClosed, IconEyeOpened } from "@douyinfe/semi-icons";
-import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
+import { IconMore, IconPlus } from "@douyinfe/semi-icons";
 import { ReactNode, useState } from "react";
+
 import "./index.scss";
-import Preview from "./Preview";
-import { ResourceTreeNodeData } from "./entity";
-import BranchDrawer, { BranchDrawerProps } from "./Branch";
+import ResourceEditDrawer from "./ResourceEditDrawer";
+import { IResourceEntity, ResourceTreeNodeData } from "./entity";
+import BranchEditDrawer from "./BranchEditDrawer";
+import { apiResourceDelete } from "./api";
 
+const { Text, Paragraph } = Typography;
 const Resource: React.FC = () => {
-  const [treeData, setTreeData] = useGetTree();
+  const { flatData, setFlatData, treeData } = useGetTree();
 
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewItem, setPreviewItem] = useState<ResourceTreeNodeData>();
+  const [resoureEditVisible, setResourceEditVisible] = useState(false);
+  const [resourceEdit, setResourceEdit] = useState<IResourceEntity>();
 
-  function handlePreviewClose() {
-    setPreviewVisible(false);
+  function handleResoureDrawerClose() {
+    setResourceEditVisible(false);
   }
 
   const [branchVisible, setBranchVisible] = useState(false);
-  const [branchDrawerProps, setBranchDrawerProps] =
-    useState<Partial<BranchDrawerProps>>();
+  const [branchEdit, setBranchEdit] = useState<IResourceEntity>();
 
   function handleBranchClose() {
     setBranchVisible(false);
   }
 
-  const addNode = (parentKey: string, newNode: TreeNodeData[]) => {
-    const addNodeRecursively = (nodes: TreeNodeData[]) => {
-      return nodes.map((node) => {
-        if (node.key === parentKey) {
-          if (node.children) {
-            node.children.push(newNode);
-          } else {
-            node.children = [newNode];
-          }
-        } else if (node.children) {
-          node.children = addNodeRecursively(node.children);
-        }
-        return node;
-      });
-    };
-
-    setTreeData(addNodeRecursively(treeData));
+  const addNode = (newNode: IResourceEntity) => {
+    var resultData: IResourceEntity[] = [];
+    const findIndex = flatData.findIndex((item) => item.id == newNode.id);
+    if (findIndex > -1) {
+      resultData = [
+        ...flatData.slice(0, findIndex),
+        newNode,
+        ...flatData.slice(findIndex + 1),
+      ];
+    } else {
+      resultData = [...flatData, newNode];
+    }
+    setFlatData(resultData);
   };
 
-  const deleteNode = (key: string) => {
-    const deleteNodeRecursively = (nodes: TreeNodeData[]) => {
-      return nodes
-        .map((node) => {
-          if (node.key === key) {
-            return null;
-          } else if (node.children) {
-            node.children = deleteNodeRecursively(node.children).filter(
-              (child) => child !== null
-            );
+  async function deleteNode(id: string) {
+    function findDescendantsIncludingSelf(
+      flatData: IResourceEntity[],
+      id: string
+    ): IResourceEntity[] {
+      const descendants: IResourceEntity[] = [];
+
+      function findChildren(parentId: string) {
+        flatData.forEach((node) => {
+          if (node.parentId === parentId) {
+            descendants.push(node);
+            findChildren(node.id);
           }
-          return node;
-        })
-        .filter((node) => node !== null);
-    };
+        });
+      }
 
-    setTreeData(deleteNodeRecursively(treeData));
-  };
+      const self = flatData.find((node) => node.id === id);
+      if (self) {
+        descendants.push(self);
+        findChildren(id);
+      }
 
-  function onEditBranch(node: ResourceTreeNodeData) {
-    setBranchDrawerProps({ currentNode: node });
+      return descendants;
+    }
+
+    const response = await apiResourceDelete(id);
+
+    if (response.flag == "success") {
+      var toDeleteIds = findDescendantsIncludingSelf(flatData, id).map(
+        (item) => item.id
+      );
+      var newFlatData = flatData.filter(
+        (item) => !toDeleteIds.includes(item.id)
+      );
+      setFlatData(newFlatData);
+    }
   }
-  function onAddBranch(parentNode: ResourceTreeNodeData) {
-    setBranchDrawerProps({ parentNode });
+
+  function onBranchEdit(node: IResourceEntity) {
+    setBranchEdit(node);
+    setBranchVisible(true);
+  }
+  function onAddBranch(node: IResourceEntity) {
+    setBranchEdit(node);
+    setBranchVisible(true);
   }
 
-  function onAddBranchClose() {
+  function onBranchEditClose() {
     setBranchVisible(false);
   }
 
-  function onAddBranchSure(node: ResourceTreeNodeData) {
+  function onBranchEditSure(resource: IResourceEntity) {
+    addNode(resource);
     setBranchVisible(false);
   }
 
-    function onEditResource(item: ResourceTreeNodeData) {
-    setPreviewItem(item);
-    setPreviewVisible(true);
+  function onResourceEdit(item: IResourceEntity) {
+    setResourceEdit(item);
+    setResourceEditVisible(true);
   }
 
-  
+  function onResourceEditDrawerSure(resource: IResourceEntity) {
+    addNode(resource);
+    setResourceEditVisible(false);
+  }
 
-  const renderBtn = (node: ResourceTreeNodeData) => {
+  function onResourceEditDrawerClose() {
+    setResourceEditVisible(false);
+  }
+
+  const renderBtn = (resource: IResourceEntity) => {
     return (
       <Dropdown
         closeOnEsc={true}
@@ -100,27 +127,43 @@ const Resource: React.FC = () => {
         position="right"
         render={
           <Dropdown.Menu>
-            {node.type == "branch" && (
-              <Dropdown.Item onClick={() => onEditBranch(node)}>
+            {!resource.isLeaf && (
+              <Dropdown.Item onClick={() => onBranchEdit(resource)}>
                 edit
               </Dropdown.Item>
             )}
-            {node.type == "leaf" && (
-              <Dropdown.Item onClick={() => onEditResource(node)}>
+            {resource.isLeaf && (
+              <Dropdown.Item onClick={() => onResourceEdit(resource)}>
                 edit
               </Dropdown.Item>
             )}
-
-            <Dropdown.Item onClick={() => onAddBranch(node)}>
-              add children branch
-            </Dropdown.Item>
-            {node.type == "branch" && (
-              <Dropdown.Item onClick={() => onEditResource(node)}>
+            {!resource.isLeaf && (
+              <Dropdown.Item
+                onClick={() =>
+                  onAddBranch({ id: "", name: "", parentId: resource.id })
+                }
+              >
+                add children branch
+              </Dropdown.Item>
+            )}
+            {!resource.isLeaf && (
+              <Dropdown.Item
+                onClick={() =>
+                  onResourceEdit({ id: "", name: "", parentId: resource.id })
+                }
+              >
                 add resource
               </Dropdown.Item>
             )}
-            <Dropdown.Item onClick={() => deleteNode(node.key!)}>
-              delete
+            <Dropdown.Item>
+              <Popconfirm
+                title="Are you sure?"
+                content="Are you sure to delete this item?"
+                onConfirm={() => deleteNode(resource.id)}
+                onCancel={() => {}}
+              >
+                delete
+              </Popconfirm>
             </Dropdown.Item>
             <Dropdown.Item></Dropdown.Item>
           </Dropdown.Menu>
@@ -140,14 +183,12 @@ const Resource: React.FC = () => {
     );
   };
 
-
-
   const renderLabel = (label: ReactNode, item: ResourceTreeNodeData) => (
     <div
       style={{ display: "flex", height: "24px" }}
       draggable
       ///@ts-ignore
-      onDragStart={(dragEvent) => onDragStart(item!, dragEvent)}
+      //onDragStart={(dragEvent) => onDragStart(item!, dragEvent)}
     >
       <Typography.Text
         ellipsis={{ showTooltip: true }}
@@ -161,12 +202,22 @@ const Resource: React.FC = () => {
           item.type == 'leaf' && <IconEyeOpened  onClick={()=>onShowPreview(item)}/>
         } */}
 
-        {renderBtn(item!)}
+        {renderBtn(item.entity)}
       </div>
     </div>
   );
   return (
     <div className="tree-resource">
+      <div className="tree-resource-header">
+        <Text>resources</Text>
+        <Tooltip content="add branch" position="top">
+          <Text
+            link
+            icon={<IconPlus />}
+            onClick={() => onBranchEdit({ id: "", name: "", parentId: "" })}
+          ></Text>
+        </Tooltip>
+      </div>
       <Tree
         treeData={treeData}
         ///@ts-ignore
@@ -176,25 +227,27 @@ const Resource: React.FC = () => {
       />
       <SideSheet
         width={"30%"}
-        visible={previewVisible}
-        onCancel={handlePreviewClose}
-        title={previewItem?.label}
+        visible={resoureEditVisible}
+        onCancel={handleResoureDrawerClose}
+        title={resourceEdit?.name ?? "add"}
       >
-        <Preview {...previewItem!} />
+        <ResourceEditDrawer
+          entity={resourceEdit!}
+          onSure={onResourceEditDrawerSure}
+          onClose={onResourceEditDrawerClose}
+        />
       </SideSheet>
 
       <SideSheet
         width={"30%"}
         visible={branchVisible}
         onCancel={handleBranchClose}
-        title={
-          (branchDrawerProps?.parentNode?.label ?? "") + "add children branch"
-        }
+        title={(branchEdit?.name ?? "") + "add children branch"}
       >
-        <BranchDrawer
-          {...branchDrawerProps}
-          onSure={onAddBranchSure}
-          onClose={onAddBranchClose}
+        <BranchEditDrawer
+          entity={branchEdit!}
+          onSure={onBranchEditSure}
+          onClose={onBranchEditClose}
         />
       </SideSheet>
     </div>

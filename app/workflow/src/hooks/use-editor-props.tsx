@@ -236,6 +236,6 @@ export function useEditorProps(
         }),
       ],
     }),
-    []
+    [initialData, nodeRegistries]
   );
 }

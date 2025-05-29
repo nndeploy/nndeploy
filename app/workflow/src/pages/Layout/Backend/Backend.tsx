@@ -23,6 +23,7 @@ import {
   faDiscord,
   faWeixin,
   faZhihu,
+  
 } from "@fortawesome/free-brands-svg-icons";
 
 
@@ -72,61 +73,15 @@ const Backend: React.FC = () => {
     setActiveKey(newKey);
   };
 
-  //  const dropzone = useRef<HTMLElement | null>(null);
-  
-  //   useEffect(() => {
-  //     if (dropzone.current) {
-  
-  //        dropzone.current.addEventListener('dragover', (e) => {
-  //             e.preventDefault();
-  //             //dropzone.classList.add('over'); // 鼠标经过目标区域时强调样式
-  //         });
-  
-  //         // dropzone.current.addEventListener('dragleave', () => {
-  //         //     //dropzone.classList.remove('over'); // 离开时恢复样式
-  //         // });
-  
-  //       dropzone.current.addEventListener("drop", async(e) => {
-  //         e.preventDefault();
-  
-  //       });
-  //     }
-  //   }, [dropzone.current]);
-
-
-  function onDrapOver(e:any){
-    e.preventDefault();
-    var i = 0; 
-  }
-
-  function onDrop(e:any){
-    
-
-     const nodeType = e?.dataTransfer?.getData("text");
-
-     var i = 0; 
-
-
-  }
-
-
   return (
     <div className="container backend-page">
       <Nav mode="horizontal" className="topNav" >
         <Nav.Header>
-          {/* <IconSemiLogo />
-          <span className="companyName">公司名称</span> */}
           <img
             src={companyLogo}
             width="100"
             alt="Logo"
             className="companyLogo" 
-            onDragOver={onDrapOver}
-            onDrop={onDrop}
-            ///@ts-ignore
-            // ref={dropzone
-
-            // }
           />
         </Nav.Header>
         <Nav.Footer>
@@ -173,7 +128,7 @@ const Backend: React.FC = () => {
             }
           >
             <Avatar color="blue" size="small">
-              <IconUser />
+              <IconUser size="small" />
             </Avatar>
           </Dropdown>
         </Nav.Footer>
@@ -189,7 +144,7 @@ const Backend: React.FC = () => {
               <Nav.Item
                 itemKey="resources"
                 icon={<IconFile />}
-                //className={selectedFirstLevel === "resources" ? "selected" : ""}
+
                 onClick={() => handleFirstLevelClick("resources")}
               />
             </Tooltip>
@@ -198,7 +153,7 @@ const Backend: React.FC = () => {
               <Nav.Item
                 itemKey="nodes"
                 icon={<IconBranch />}
-                //className={selectedFirstLevel === "nodes" ? "selected" : ""}
+
                 onClick={() => handleFirstLevelClick("nodes")}
               />
             </Tooltip>
@@ -206,7 +161,7 @@ const Backend: React.FC = () => {
               <Nav.Item
                 itemKey="workflow"
                 icon={<IconApps />}
-                //className={selectedFirstLevel === "workflow" ? "selected" : ""}
+              
                 onClick={() => handleFirstLevelClick("workflow")}
               />
             </Tooltip>

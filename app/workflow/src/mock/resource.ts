@@ -10,8 +10,9 @@ export default [
     response: () => {
 
       return {
-        code: 200,
-        data: {
+        flag: 'sucess',
+        message: '', 
+        result: {
           name: 'file',
           url: Random.image('200x100', '#50B347', '#FFF', 'Mfile')
         }

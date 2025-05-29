@@ -12,35 +12,44 @@ import { useEditorProps } from "../../../hooks";
 import { DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
 import { useEffect, useRef, useState } from "react";
-import { FlowDocumentJSON } from "../../../typings";
 import { FlowElementContext } from "../../../context/flow-element-context";
 import { apiGetNodeType } from "./api";
+
+import { FlowDocumentJSON } from '../../../typings';
 
 const Flow = () => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [flowDocumentJSON, setFlowDocumentJSON] = useState<FlowDocumentJSON>({nodes: [], edges: []});
+
 
   const fetchData = async (params = {}) => {
-    setLoading(true);
+    //setLoading(true);
 
     const response: any = await new Promise((resolve) => {
       setTimeout(() => {
-        resolve(initialData);
-      }, 1000);
+        resolve({...initialData});
+      }, 5000);
     });
 
-    ref?.current?.document.fromJSON(response);
-    setTimeout(() => {
-      // 加载后触发画布的 fitview 让节点自动居中
-      ref?.current?.document.fitView();
-    }, 100);
+    // ref?.current?.document.reload(response);
+    // setTimeout(() => {
+    //   // 加载后触发画布的 fitview 让节点自动居中
+    //   ref?.current?.document.fitView();
+    // }, 100);
+
+    setFlowDocumentJSON(response)
 
     //setFlowData(response);
     setLoading(false);
   };
+  useEffect(()=>{
+    fetchData();
+  }, [])
 
   const flowRef = useRef<HTMLDivElement | null>(null);
 
@@ -84,10 +93,12 @@ const Flow = () => {
     }
   }, [dropzone.current]);
 
-  const editorProps = useEditorProps(initialData, nodeRegistries);
+  const editorProps = useEditorProps(flowDocumentJSON, nodeRegistries);
   return (
     <div className="doc-free-feature-overview" ref={dropzone}>
-      <FreeLayoutEditorProvider
+      {
+        loading ? <></>: 
+         <FreeLayoutEditorProvider
         {...editorProps}
         ///@ts-ignore
         ref={ref}
@@ -102,6 +113,10 @@ const Flow = () => {
           </FlowElementContext.Provider>
         </SidebarProvider>
       </FreeLayoutEditorProvider>
+      
+      }
+      
+     
     </div>
   );
 };

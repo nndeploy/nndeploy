@@ -1,4 +1,5 @@
-import Mock from "mockjs";
+import Mock, { MockjsMock, templateOrFn } from "mockjs";
+import { IResourceEntity } from "../../../../../pages/Layout/Backend/Resource/entity";
 
 // mock方法,详细的可以看官方文档
 const Random = Mock.Random;
@@ -67,229 +68,553 @@ const resoures = {
   },
 };
 
-export default [
+interface MockItem {
+  url: string | RegExp;
+  type: "get" | "post";
+  response: templateOrFn;
+}
+
+export const resourceHandler: MockItem[] = [
+  {
+    url: "/resource/branch/save",
+    type: "post",
+    response: (options) => {
+      const resource: IResourceEntity = JSON.parse(options.body);
+
+      return {
+        flag: "success",
+        message: "",
+        result: {
+          ...resource,
+          id: resource.id ? resource.id : Random.guid(),
+        },
+      };
+    },
+  },
   {
     url: "/resource/tree",
     type: "get",
-    response: (request: any) => {
-      var params = JSON.parse(request.body);
+    response: (options) => {
+      var params = JSON.parse(options.body);
       console.log("/node/tree.............");
+
       return {
         flag: "success",
         message: "成功",
         result: [
-          {
-            key: "image",
-            label: "image",
-            type: "branch",
-            children: [
-              {
-                key: "animal",
-                label: "animal",
-                type: "branch",
-                children: [
-                  {
-                    key: "image-cat",
-                    label: "image",
-                    type: "branch",
-                    children: [
-                      {
-                        key: "image-cat1",
-                        label: "cat1",
-                        type: "leaf",
-                        mime: "image",
-                        url: resoures.image.animal.cat[0],
-                      },
-                      {
-                        key: "image-cat2",
-                        label: "cat2",
-                        type: "leaf",
-                        mime: "image",
-                        url: resoures.image.animal.cat[1],
-                      },
-                    ],
-                  },
-                  {
-                    key: "dog",
-                    label: "dog",
-                    type: "branch",
-                    children: [
-                      {
-                        key: "image-dog1",
-                        label: "dog1",
-                        type: "leaf",
-                        mime: "image",
-                        url: resoures.image.animal.dog[0],
-                      },
-                      {
-                        key: "image-dog",
-                        label: "dog2",
-                        type: "leaf",
-                        mime: "image",
-                        url: resoures.image.animal.dog[1],
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                key: "image-person",
-                label: "person",
-                type: "branch",
-                children: [
-                  {
-                    key: "image-man",
-                    label: "man",
-                    type: "branch",
-                    children: [
-                      {
-                        key: "image-man1",
-                        label: "man1",
-                        type: "leaf",
-                        mime: "image",
-                        url: resoures.image.people.man[0],
-                      },
-                      {
-                        key: "image-man2",
-                        label: "man2",
-                        type: "leaf",
-                        mime: "image",
-                        url: resoures.image.people.man[1],
-                      },
-                    ],
-                  },
-                  {
-                    label: "image-woman",
-                    key: "woman",
-                    type: "branch",
-                    children: [
-                      {
-                        key: "image-woman1",
-                        label: "woman1",
-                        type: "leaf",
-                        mime: "image",
-                        url: resoures.image.people.woman[0],
-                      },
-                      {
-                        key: "image-woman2",
-                        label: "woman2",
-                        type: "leaf",
-                        mime: "image",
-                        url: resoures.image.people.woman[1],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
+          // {
+          //   id: "image",
+          //   parentId: "",
+          //   name: "image",
+          //   isLeaf: false,
 
-           {
-            key: "video",
-            label: "video",
-            type: "branch",
-            children: [
-              {
-                key: "video-animal",
-                label: "animal",
-                type: "branch",
-                children: [
-                  {
-                    key: "video-cat",
-                    label: "cat",
-                    type: "branch",
-                    children: [
-                      {
-                        key: "video-cat1",
-                        label: "cat1",
-                        type: "leaf",
-                        mime: "video",
-                        url: resoures.video.animal.cat[0],
-                      },
-                      {
-                        key: "video-cat2",
-                        label: "cat2",
-                        type: "leaf",
-                        mime: "video",
-                        url: resoures.video.animal.cat[1],
-                      },
-                    ],
-                  },
-                  {
-                    key: "video-dog",
-                    label: "dog",
-                    type: "branch",
-                    children: [
-                      {
-                        key: "video-dog1",
-                        label: "dog1",
-                        type: "leaf",
-                        mime: "video",
-                        url: resoures.video.animal.dog[0],
-                      },
-                      {
-                        key: "video-dog2",
-                        label: "dog2",
-                        type: "leaf",
-                        mime: "video",
-                        url: resoures.video.animal.dog[1],
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                key: "person",
-                label: "person",
-                type: "branch",
-                children: [
-                  {
-                    key: "video-man",
-                    label: "man",
-                    type: "branch",
-                    children: [
-                      {
-                        key: "video-man1",
-                        label: "man1",
-                        type: "leaf",
-                        mime: "video",
-                        url: resoures.video.person.man[0],
-                      },
-                      {
-                        key: "video-man2",
-                        label: "man2",
-                        type: "leaf",
-                        mime: "video",
-                        url: resoures.video.person.man[1],
-                      },
-                    ],
-                  },
-                  {
-                    key: "woman",
-                    label: "woman",
-                    type: "branch",
-                    children: [
-                      {
-                        key: "video-woman1",
-                        label: "woman1",
-                        type: "leaf",
-                        mime: "video",
-                        url: resoures.video.person.woman[0],
-                      },
-                      {
-                        key: "video-woman2",
-                        label: "woman2",
-                        type: "leaf",
-                        mime: "video",
-                        url: resoures.video.person.woman[1],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
+          //   children: [
+          //     {
+          //       id: "animal",
+          //       parentId: "image",
+          //       name: "animal",
+          //       isLeaf: false,
+          //       children: [
+          //         {
+          //           id: "image-cat",
+          //           name: "image",
+          //           isLeaf: false,
+          //           children: [
+          //             {
+          //               id: "image-cat1",
+          //               parentId: "image-cat",
+          //               name: "cat1",
+          //               isLeaf: true,
+          //               mime: "image",
+          //               url: resoures.image.animal.cat[0],
+          //             },
+          //             {
+          //               id: "image-cat2",
+          //               parentId: "image-cat",
+          //               name: "cat2",
+          //               isLeaf: true,
+          //               mime: "image",
+          //               url: resoures.image.animal.cat[1],
+          //             },
+          //           ],
+          //         },
+          //         {
+          //           id: "dog",
+          //           name: "dog",
+          //           isLeaf: false,
+          //           children: [
+          //             {
+          //               id: "image-dog1",
+          //               parentId: "image-dog",
+          //               name: "dog1",
+          //               isLeaf: true,
+          //               mime: "image",
+          //               url: resoures.image.animal.dog[0],
+          //             },
+          //             {
+          //               id: "image-dog",
+          //               parentId: "image-dog",
+          //               name: "dog2",
+          //               isLeaf: true,
+          //               mime: "image",
+          //               url: resoures.image.animal.dog[1],
+          //             },
+          //           ],
+          //         },
+          //       ],
+          //     },
+          //     {
+          //       id: "image-person",
+          //       parentId: "image",
+          //       name: "person",
+          //       isLeaf: false,
+          //       children: [
+          //         {
+          //           id: "image-man",
+          //           parentId: "image-person",
+          //           name: "man",
+          //           isLeaf: false,
+          //           children: [
+          //             {
+          //               id: "image-man1",
+          //               name: "man1",
+          //               isLeaf: true,
+          //               mime: "image",
+          //               url: resoures.image.people.man[0],
+          //             },
+          //             {
+          //               id: "image-man2",
+          //               name: "man2",
+          //               isLeaf: true,
+          //               mime: "image",
+          //               url: resoures.image.people.man[1],
+          //             },
+          //           ],
+          //         },
+          //         {
+
+          //           id: "woman",
+          //           name: "image-woman",
+          //           parentId: "image-person",
+          //           isLeaf: false,
+          //           children: [
+          //             {
+          //               id: "image-woman1",
+          //               parentId: "image-woman",
+          //               name: "woman1",
+          //               isLeaf: true,
+          //               mime: "image",
+          //               url: resoures.image.people.woman[0],
+          //             },
+          //             {
+          //               id: "image-woman2",
+          //               parentId: "image-woman",
+          //               name: "woman2",
+          //               isLeaf: true,
+          //               mime: "image",
+          //               url: resoures.image.people.woman[1],
+          //             },
+          //           ],
+          //         },
+          //       ],
+          //     },
+          //   ],
+          // },
+
+          //  {
+          //   id: "video",
+          //   parentId: "",
+          //   name: "video",
+          //   isLeaf: false,
+          //   children: [
+          //     {
+          //       id: "video-animal",
+          //       parentId: "video",
+          //       name: "animal",
+          //       isLeaf: false,
+          //       children: [
+          //         {
+          //           id: "video-cat",
+          //           parentId: "video-animal",
+          //           name: "cat",
+          //           isLeaf: false,
+          //           children: [
+          //             {
+          //               id: "video-cat1",
+          //               parentId: "video-cat",
+          //               name: "cat1",
+          //               isLeaf: true,
+          //               mime: "video",
+          //               url: resoures.video.animal.cat[0],
+          //             },
+          //             {
+          //               id: "video-cat2",
+          //               parentId: "video-cat",
+          //               name: "cat2",
+          //               isLeaf: true,
+          //               mime: "video",
+          //               url: resoures.video.animal.cat[1],
+          //             },
+          //           ],
+          //         },
+          //         {
+          //           id: "video-dog",
+          //           parentId: "video-animal",
+          //           name: "dog",
+          //           isLeaf: false,
+          //           children: [
+          //             {
+          //               id: "video-dog1",
+          //               parentId: "video-dog",
+          //               name: "dog1",
+          //               isLeaf: true,
+          //               mime: "video",
+          //               url: resoures.video.animal.dog[0],
+          //             },
+          //             {
+          //               id: "video-dog2",
+          //               parentId: "video-dog",
+          //               name: "dog2",
+          //               isLeaf: true,
+          //               mime: "video",
+          //               url: resoures.video.animal.dog[1],
+          //             },
+          //           ],
+          //         },
+          //       ],
+          //     },
+          //     {
+          //       id: "person",
+          //       parentId: "video",
+          //       name: "person",
+          //       isLeaf: false,
+          //       children: [
+          //         {
+          //           id: "video-man",
+          //           parentId: "person",
+          //           name: "man",
+          //           isLeaf: false,
+          //           children: [
+          //             {
+          //               id: "video-man1",
+          //               parentId: "video-man",
+          //               name: "man1",
+          //               isLeaf: true,
+          //               mime: "video",
+          //               url: resoures.video.person.man[0],
+          //             },
+          //             {
+          //               id: "video-man2",
+          //               parentId: "video-man",
+          //               name: "man2",
+          //               isLeaf: true,
+          //               mime: "video",
+          //               url: resoures.video.person.man[1],
+          //             },
+          //           ],
+          //         },
+          //         {
+          //           id: "woman",
+          //           parentId: "video-person",
+          //           name: "woman",
+          //           isLeaf: false,
+          //           children: [
+          //             {
+          //               id: "video-woman1",
+          //               parentId: "video-woman",
+          //               name: "woman1",
+          //               isLeaf: true,
+          //               mime: "video",
+          //               url: resoures.video.person.woman[0],
+          //             },
+          //             {
+          //               id: "video-woman2",
+          //               parentId: "video-woman",
+          //               name: "woman2",
+          //               isLeaf: true,
+          //               mime: "video",
+          //               url: resoures.video.person.woman[1],
+          //             },
+          //           ],
+          //         },
+          //       ],
+          //     },
+          //   ],
+          // },
+          {
+            id: "image",
+            parentId: "",
+            name: "image",
+            isLeaf: false,
+          },
+          {
+            id: "image-animal",
+            parentId: "image",
+            name: "animal",
+            isLeaf: false,
+          },
+          {
+            id: "image-cat",
+            parentId: "image-animal",
+            name: "image",
+            isLeaf: false,
+          },
+          {
+            id: "image-cat1",
+            parentId: "image-cat",
+            name: "cat1",
+            isLeaf: true,
+            mime: "image",
+            url: "https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg",
+          },
+          {
+            id: "image-cat2",
+            parentId: "image-cat",
+            name: "cat2",
+            isLeaf: true,
+            mime: "image",
+            url: "https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg",
+          },
+          {
+            id: "image-dog",
+            parentId: "image-animal",
+            name: "dog",
+            isLeaf: false,
+          },
+          {
+            id: "image-dog1",
+            parentId: "image-dog",
+            name: "dog1",
+            isLeaf: true,
+            mime: "image",
+            url: "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg",
+          },
+          {
+            id: "image-dog2",
+            parentId: "image-dog",
+            name: "dog2",
+            isLeaf: true,
+            mime: "image",
+            url: "https://images.pexels.com/photos/551628/pexels-photo-551628.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+          },
+          {
+            id: "image-person",
+            parentId: "image",
+            name: "person",
+            isLeaf: false,
+          },
+          {
+            id: "image-man",
+            parentId: "image-person",
+            name: "man",
+            isLeaf: false,
+          },
+          {
+            id: "image-man1",
+            parentId: "image-man",
+            name: "man1",
+            isLeaf: true,
+            mime: "image",
+            url: "https://images.pexels.com/photos/874158/pexels-photo-874158.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+          },
+          {
+            id: "image-man2",
+            parentId: "image-man",
+            name: "man2",
+            isLeaf: true,
+            mime: "image",
+            url: "https://images.pexels.com/photos/845434/pexels-photo-845434.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+          },
+          {
+            id: "image-woman",
+            name: "image-woman",
+            parentId: "image-person",
+            isLeaf: false,
+          },
+          {
+            id: "image-woman1",
+            parentId: "image-woman",
+            name: "woman1",
+            isLeaf: true,
+            mime: "image",
+            url: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+          },
+          {
+            id: "image-woman2",
+            parentId: "image-woman",
+            name: "woman2",
+            isLeaf: true,
+            mime: "image",
+            url: "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
+          },
+          {
+            id: "video",
+            parentId: "",
+            name: "video",
+            isLeaf: false,
+          },
+          {
+            id: "video-animal",
+            parentId: "video",
+            name: "animal",
+            isLeaf: false,
+          },
+          {
+            id: "video-cat",
+            parentId: "video-animal",
+            name: "cat",
+            isLeaf: false,
+          },
+          {
+            id: "video-cat1",
+            parentId: "video-cat",
+            name: "cat1",
+            isLeaf: true,
+            mime: "video",
+            url: "https://videos.pexels.com/video-files/1481903/1481903-sd_640_360_25fps.mp4",
+          },
+          {
+            id: "video-cat2",
+            parentId: "video-cat",
+            name: "cat2",
+            isLeaf: true,
+            mime: "video",
+            url: "https://videos.pexels.com/video-files/3116737/3116737-sd_640_360_25fps.mp4",
+          },
+          {
+            id: "video-dog",
+            parentId: "video-animal",
+            name: "dog",
+            isLeaf: false,
+          },
+          {
+            id: "video-dog1",
+            parentId: "video-dog",
+            name: "dog1",
+            isLeaf: true,
+            mime: "video",
+            url: "https://videos.pexels.com/video-files/3042473/3042473-sd_640_360_30fps.mp4",
+          },
+          {
+            id: "video-dog2",
+            parentId: "video-dog",
+            name: "dog2",
+            isLeaf: true,
+            mime: "video",
+            url: "https://videos.pexels.com/video-files/853770/853770-sd_640_360_25fps.mp4",
+          },
+          {
+            id: "video-person",
+            parentId: "video",
+            name: "person",
+            isLeaf: false,
+          },
+          {
+            id: "video-man",
+            parentId: "video-person",
+            name: "man",
+            isLeaf: false,
+          },
+          {
+            id: "video-man1",
+            parentId: "video-man",
+            name: "man1",
+            isLeaf: true,
+            mime: "video",
+            url: "https://videos.pexels.com/video-files/3209176/3209176-sd_640_360_25fps.mp4",
+          },
+          {
+            id: "video-man2",
+            parentId: "video-man",
+            name: "man2",
+            isLeaf: true,
+            mime: "video",
+            url: "https://videos.pexels.com/video-files/3126361/3126361-sd_640_360_25fps.mp4",
+          },
+          {
+            id: "video-woman",
+            parentId: "video-person",
+            name: "woman",
+            isLeaf: false,
+          },
+          {
+            id: "video-woman1",
+            parentId: "video-woman",
+            name: "woman1",
+            isLeaf: true,
+            mime: "video",
+            url: "https://videos.pexels.com/video-files/2795406/2795406-sd_640_360_25fps.mp4",
+          },
+          {
+            id: "video-woman2",
+            parentId: "video-woman",
+            name: "woman2",
+            isLeaf: true,
+            mime: "video",
+            url: "https://videos.pexels.com/video-files/3048162/3048162-sd_640_360_24fps.mp4",
           },
         ],
+      };
+    },
+  },
+  {
+    url: "/resource/upload",
+    type: "post",
+    response: (options) => {
+      const formData = new FormData();
+      formData.append("file", options.body);
+
+      //const file = formData.get("file") as File;
+      const file = JSON.parse(options.body);
+
+      const fileName = file ? file.name : "unknown";
+
+      return {
+        flag: "success",
+        message: "",
+        result: {
+          id: Random.guid(),
+          name: fileName,
+
+          mime: file.type,
+          url: file.type?.includes("image")
+            ? resoures.image.animal.cat[0]
+            : resoures.video.animal.cat[0],
+        },
+      };
+    },
+  },
+  {
+    url: "/resource/save",
+    type: "post",
+    response: (options) => {
+      const resource: IResourceEntity = JSON.parse(options.body);
+
+      return {
+        flag: "success",
+        message: "",
+        result: {
+          ...resource,
+          id: resource.id ? resource.id : Random.guid(),
+          name: resource.name,
+          isLeaf: true,
+          mime: resource.mime,
+          url: resource.url,
+        },
+      };
+    },
+  },
+
+  {
+    url: "/resource/delete",
+    type: "post",
+    response: (options) => {
+      const resource: IResourceEntity = JSON.parse(options.body);
+
+      return {
+        flag: "success",
+        message: "",
+        result: {},
       };
     },
   },

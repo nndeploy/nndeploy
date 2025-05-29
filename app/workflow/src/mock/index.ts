@@ -1,13 +1,13 @@
 import Mock from 'mockjs'
 
 import file from './resource'
-import resource from './pages/Layout/Backend/Resource'
+import {resourceHandler} from './pages/Layout/Backend/Resource'
 import node from './pages/Layout/Backend/Node'
 import nodeType from './nodeType'
 
 const mocks = [
   ...file, 
-  ...resource, 
+  ...resourceHandler, 
   ...node, 
   ...nodeType
 
