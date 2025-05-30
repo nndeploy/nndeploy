@@ -805,8 +805,16 @@ base::Status Node::serialize(
           rapidjson::Value(input_type_info_[i]->getTypeName().c_str(),
                            allocator),
           allocator);
+    } else if (inputs_[i]->getTypeInfo() != nullptr) {
+      // NNDEPLOY_LOGI("inputs_[i]->getTypeInfo()->getTypeName(): %s\n",
+      //              inputs_[i]->getTypeInfo()->getTypeName().c_str());
+      input_obj.AddMember(
+          "type_",
+          rapidjson::Value(inputs_[i]->getTypeInfo()->getTypeName().c_str(),
+                           allocator),
+          allocator);
     } else {
-      input_obj.AddMember("type_", rapidjson::Value("kNotSet", allocator),
+      input_obj.AddMember("type_", rapidjson::Value("NotSet", allocator),
                           allocator);
     }
     inputs.PushBack(input_obj, allocator);
@@ -826,8 +834,16 @@ base::Status Node::serialize(
           rapidjson::Value(output_type_info_[i]->getTypeName().c_str(),
                            allocator),
           allocator);
+    } else if (outputs_[i]->getTypeInfo() != nullptr) {
+      // NNDEPLOY_LOGI("outputs_[i]->getTypeInfo()->getTypeName(): %s\n",
+      //              outputs_[i]->getTypeInfo()->getTypeName().c_str());
+      output_obj.AddMember(
+          "type_",
+          rapidjson::Value(outputs_[i]->getTypeInfo()->getTypeName().c_str(),
+                           allocator),
+          allocator);
     } else {
-      output_obj.AddMember("type_", rapidjson::Value("kNotSet", allocator),
+      output_obj.AddMember("type_", rapidjson::Value("NotSet", allocator),
                            allocator);
     }
     outputs.PushBack(output_obj, allocator);

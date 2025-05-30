@@ -40,6 +40,10 @@ class NNDEPLOY_CC_API YoloPostParam : public base::Param {
   int model_w_;            // 模型输入图像的宽度
 
   int version_ = -1;  // YOLO模型的版本号，默认为-1表示未指定
+
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {

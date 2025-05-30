@@ -162,8 +162,10 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
     if (type_info_ == nullptr) {
       type_info_ = std::make_shared<EdgeTypeInfo>();
       type_info_->setType<T>();
+      // NNDEPLOY_LOGI("setTypeInfo<%s>\n", type_info_->getTypeName().c_str());
     } else {
       type_info_->setType<T>();
+      // NNDEPLOY_LOGI("setTypeInfo<%s>\n", type_info_->getTypeName().c_str());
     }
     return base::kStatusCodeOk;
   }

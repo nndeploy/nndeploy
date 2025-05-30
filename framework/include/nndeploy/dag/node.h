@@ -276,7 +276,7 @@ class NNDEPLOY_CC_API Node {
   bool is_running_ = false;
   bool is_time_profile_ = false;
   bool is_debug_ = false;
-  bool is_trace_ = false; // 序列为json时，一定是静态图
+  bool is_trace_ = false;  // 序列为json时，一定是静态图
   bool traced_ = false;
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
@@ -349,7 +349,6 @@ class NodeFactory {
   ~NodeFactory() = default;
   std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
 };
-
 
 std::set<std::string> getNodeKeys();
 
