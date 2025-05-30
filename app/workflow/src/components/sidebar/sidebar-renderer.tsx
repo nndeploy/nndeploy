@@ -9,12 +9,12 @@ import { SideSheet } from '@douyinfe/semi-ui';
 
 import { FlowNodeMeta } from '../../typings';
 import { SidebarContext, IsSidebarContext, NodeRenderContext } from '../../context';
-import { FlowElementContext } from '../../context/flow-element-context';
+import { FlowEnviromentContext } from '../../context/flow-enviroment-context';
 
 export const SidebarRenderer = () => {
   const { nodeRender, setNodeRender } = useContext(SidebarContext);
 
-  const {element: flowElementRef } = useContext(FlowElementContext);
+  const {element: flowElementRef } = useContext(FlowEnviromentContext);
 
   const { selection, playground } = useClientContext();
   const refresh = useRefresh();

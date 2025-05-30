@@ -1,26 +1,36 @@
-import { useRef, useState } from "react";
-import { IResourceEntity, ResourceTreeNodeData } from "../entity";
-import ImagePreview from "../ImagePreview";
-import VideoPreview from "../VidoPreview";
+import { useRef, useState, useEffect } from "react";
+import { IResourceEntity, IResourceTreeNodeEntity, ResourceTreeNodeData } from "../entity";
 import { Button, Form, Input, Toast, VideoPlayer } from "@douyinfe/semi-ui";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
-import { apiResourceSave, apiResourceUpload } from "../api";
+import { apiGetResource, apiResourceSave, apiResourceUpload } from "../api";
 import "./index.scss";
 
 export interface ResourceEditDrawerProps {
-  onSure: (node: IResourceEntity) => void;
+  onSure: (node: IResourceTreeNodeEntity) => void;
   onClose: () => void;
-  entity: IResourceEntity;
+  entity: IResourceTreeNodeEntity;
 }
 
 const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
-  const [entity, setEntity] = useState(props.entity);
+
+  const [entity, setEntity] = useState<IResourceEntity>({...props.entity,  mime: '', url: ''});
 
   const [file, setFile] = useState<File | null>(null);
 
   const fileRef = useRef<any>()
 
   const formRef = useRef<FormApi<any>>();
+
+   useEffect(() => {
+        if(props.entity.id){
+          apiGetResource(props.entity.id).then((res) => {
+            if(res.flag == "success"){
+              setEntity(res.result);
+            }
+          })
+        }
+      
+    }, [props.entity])
 
   async function onSure() {
     try {
@@ -36,7 +46,7 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
       const response = await apiResourceSave(data);
       if (response.flag == "success") {
-        props.onSure(response.result);
+        props.onSure({...response.result, type: 'leaf'});
       }
 
       //Toast.success("add sucess!");

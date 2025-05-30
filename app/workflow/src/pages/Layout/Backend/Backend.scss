@@ -67,6 +67,18 @@
           }
         }
 
+        .tree-workflow{
+         
+          height: 100%;;
+          .tree-workflow-header{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 5px;
+            background-color: #f5f5f5;
+          }
+        }
+
         .tree-node {
           flex: 1; 
           min-height: 0;

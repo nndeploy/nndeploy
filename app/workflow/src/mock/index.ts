@@ -4,10 +4,12 @@ import file from './resource'
 import {resourceHandler} from './pages/Layout/Backend/Resource'
 import node from './pages/Layout/Backend/Node'
 import nodeType from './nodeType'
+import { workFlowHandler } from './pages/workFlow'
 
 const mocks = [
   ...file, 
   ...resourceHandler, 
+  ...workFlowHandler,
   ...node, 
   ...nodeType
 

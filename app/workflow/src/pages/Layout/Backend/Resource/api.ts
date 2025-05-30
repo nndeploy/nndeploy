@@ -1,16 +1,22 @@
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import request from "../../../../request";
-import { IResourceEntity } from "./entity";
+import { IResourceBranchEntity, IResourceEntity, IResourceTreeNodeEntity } from "./entity";
 
 export async function apiGetResourceTree(){
- var response = await request.get<IResourceEntity[]>('/resource/tree', {});
+ var response = await request.get<IResourceTreeNodeEntity[]>('/resource/tree', {});
+
+  return response;
+}
+
+export async function apiGetResource(id: string){
+ var response = await request.post<IResourceEntity>('/resource/get', {id});
 
   return response;
 }
 
 
-export async function apiResourceBranchSave(entity: IResourceEntity){
- var response = await request.post<IResourceEntity>('/resource/branch/save', entity);
+export async function apiResourceBranchSave(entity: IResourceBranchEntity){
+ var response = await request.post<IResourceBranchEntity>('/resource/branch/save', entity);
 
   return response;
 }

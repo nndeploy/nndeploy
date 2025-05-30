@@ -12,62 +12,101 @@ import { useEditorProps } from "../../../hooks";
 import { DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
 import { useEffect, useRef, useState } from "react";
-import { FlowElementContext } from "../../../context/flow-element-context";
-import { apiGetNodeType } from "./api";
+import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
+import { apiGetNodeType, apiGetWorkFlow } from "./api";
 
-import { FlowDocumentJSON } from '../../../typings';
-
-const Flow = () => {
+import { FlowDocumentJSON } from "../../../typings";
+import { SideSheet } from "@douyinfe/semi-ui";
+import FlowSaveDrawer from "./FlowSaveDrawer";
+import { IWorkFlowEntity } from "../../Layout/Backend/WorkFlow/entity";
+interface FlowProps {
+  id: string;
+  onFlowSave: (flow: IWorkFlowEntity) => void;
+}
+const Flow: React.FC<FlowProps> = (props) => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
 
+  const [entity, setEntity] = useState<IWorkFlowEntity>({
+    id: props.id,
+    name: "",
+    parentId: "",
+    content: {
+      nodes: [],
+      edges: [],
+    },
+  });
+
   const [loading, setLoading] = useState(true);
 
-  const [flowDocumentJSON, setFlowDocumentJSON] = useState<FlowDocumentJSON>({nodes: [], edges: []});
+  const [saveDrawerVisible, setSaveDrawerVisible] = useState(false);
 
+  function handleSaveDrawerClose() {
+    setSaveDrawerVisible(false);
+  }
 
-  const fetchData = async (params = {}) => {
+  const fetchData = async (id: string) => {
     //setLoading(true);
 
-    const response: any = await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({...initialData});
-      }, 5000);
-    });
+    const response = await apiGetWorkFlow(id);
+    if (response.flag == "error") {
+      return;
+    }
 
-    // ref?.current?.document.reload(response);
-    // setTimeout(() => {
-    //   // 加载后触发画布的 fitview 让节点自动居中
-    //   ref?.current?.document.fitView();
-    // }, 100);
+    setEntity(response.result);
 
-    setFlowDocumentJSON(response)
+    ref?.current?.document.reload(initialData);
+
+    //ref?.current?.document.reload(response.result.content);
+
+    //setFlowDocumentJSON()
+
+    setTimeout(() => {
+      // 加载后触发画布的 fitview 让节点自动居中
+      ref?.current?.document.fitView();
+    }, 100);
 
     //setFlowData(response);
     setLoading(false);
   };
-  useEffect(()=>{
-    fetchData();
-  }, [])
+  useEffect(() => {
+    fetchData(props.id);
+  }, [props.id]);
 
   const flowRef = useRef<HTMLDivElement | null>(null);
 
   const dropzone = useRef<HTMLDivElement | null>(null);
 
+  function onSave(flowJson: FlowDocumentJSON) {
+    setEntity({
+      ...entity,
+      content: flowJson,
+    });
+
+    setSaveDrawerVisible(true);
+  }
+
+  function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
+    setSaveDrawerVisible(false);
+    props.onFlowSave(entity);
+  }
+  function onFlowSaveDrawerClose() {
+    setSaveDrawerVisible(false);
+  }
+
   useEffect(() => {
     if (dropzone.current) {
+      dropzone.current.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        //dropzone.classList.add('over'); // 鼠标经过目标区域时强调样式
+      });
 
-       dropzone.current.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            //dropzone.classList.add('over'); // 鼠标经过目标区域时强调样式
-        });
+      // dropzone.current.addEventListener('dragleave', () => {
+      //     //dropzone.classList.remove('over'); // 离开时恢复样式
+      // });
 
-        // dropzone.current.addEventListener('dragleave', () => {
-        //     //dropzone.classList.remove('over'); // 离开时恢复样式
-        // });
-
-      dropzone.current.addEventListener("drop", async(e) => {
+      dropzone.current.addEventListener("drop", async (e) => {
         e.preventDefault();
 
         const position =
@@ -75,11 +114,10 @@ const Flow = () => {
 
         const nodeType = e?.dataTransfer?.getData("text");
 
-        const response = await apiGetNodeType(nodeType!)
-
+        const response = await apiGetNodeType(nodeType!);
 
         ref?.current?.document.createWorkflowNode({
-          ...response.result, 
+          ...response.result,
           id: Math.random().toString(36).substr(2, 9),
           type: nodeType!,
           meta: {
@@ -93,30 +131,43 @@ const Flow = () => {
     }
   }, [dropzone.current]);
 
-  const editorProps = useEditorProps(flowDocumentJSON, nodeRegistries);
+  const editorProps = useEditorProps(entity.content, nodeRegistries);
   return (
     <div className="doc-free-feature-overview" ref={dropzone}>
-      {
-        loading ? <></>: 
-         <FreeLayoutEditorProvider
-        {...editorProps}
-        ///@ts-ignore
-        ref={ref}
+      {loading ? (
+        <></>
+      ) : (
+        <FreeLayoutEditorProvider
+          {...editorProps}
+          ///@ts-ignore
+          ref={ref}
+        >
+          <SidebarProvider>
+            <div className="demo-container" ref={flowRef}>
+              <EditorRenderer className="demo-editor" />
+            </div>
+            <FlowEnviromentContext.Provider
+              value={{ element: flowRef, onSave }}
+            >
+              <DemoTools />
+
+              <SidebarRenderer />
+            </FlowEnviromentContext.Provider>
+          </SidebarProvider>
+        </FreeLayoutEditorProvider>
+      )}
+      <SideSheet
+        width={"30%"}
+        visible={saveDrawerVisible}
+        onCancel={handleSaveDrawerClose}
+        title={"save flow"}
       >
-        <SidebarProvider>
-          <div className="demo-container" ref={flowRef}>
-            <EditorRenderer className="demo-editor" />
-          </div>
-          <DemoTools />
-          <FlowElementContext.Provider value={{ element: flowRef }}>
-            <SidebarRenderer />
-          </FlowElementContext.Provider>
-        </SidebarProvider>
-      </FreeLayoutEditorProvider>
-      
-      }
-      
-     
+        <FlowSaveDrawer
+          entity={entity!}
+          onSure={onflowSaveDrawrSure}
+          onClose={onFlowSaveDrawerClose}
+        />
+      </SideSheet>
     </div>
   );
 };

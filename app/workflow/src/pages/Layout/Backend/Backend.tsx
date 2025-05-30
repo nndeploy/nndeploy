@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useImperativeHandle, useRef, useState } from "react";
 import {
   Nav,
   Tabs,
@@ -33,23 +33,31 @@ import "./FirstLevelNav.scss";
 import "./SecondLevelNav.scss";
 import "./TabContent.scss";
 import Flow from "../../components/flow/Index";
-import { ItemKey } from "@douyinfe/semi-ui/lib/es/navigation/Item";
 
 import companyLogo from "../../../assets/kapybara_logo.png";
-import { apiGetFiles } from "./api";
 import NodeTree from "./Node";
 import Resource from "./Resource";
+import WorkFlow, { WorkFlowComponentHandle } from "./WorkFlow";
+import { IResourceTreeNodeEntity } from "./Resource/entity";
+import { IWorkFlowEntity } from "./WorkFlow/entity";
+
+var tabId  = 1; 
 
 const Backend: React.FC = () => {
   const { Text } = Typography;
 
   const [activeKey, setActiveKey] = useState<string>("1");
-  const [tabs, setTabs] = useState<Array<{ tab: string; key: string }>>([
-    { tab: "Tab 1", key: "1" },
+   
+  const [tabs, setTabs] = useState<Array<{ id: string, tabId:string, name: string; newName:string  }>>([
+    //{ name: "Tab 1", id: "1" },
   ]);
   const [selectedFirstLevel, setSelectedFirstLevel] = useState<string | null>(
     null
   );
+
+   const workFlowTreeRef = useRef<WorkFlowComponentHandle>(null);
+
+
 
   const handleFirstLevelClick = (key: string) => {
     if (selectedFirstLevel === key) {
@@ -60,18 +68,37 @@ const Backend: React.FC = () => {
   };
 
   const handleTabClose = (key: string) => {
-    const newTabs = tabs.filter((tab) => tab.key !== key);
+    const newTabs = tabs.filter((tab) => tab.tabId !== key);
     setTabs(newTabs);
     if (activeKey === key && newTabs.length > 0) {
-      setActiveKey(newTabs[0].key);
+      setActiveKey(newTabs[0].tabId);
     }
   };
 
   const handleAddTab = () => {
-    const newKey = `${tabs.length + 1}`;
-    setTabs([...tabs, { tab: `Tab ${newKey}`, key: newKey }]);
-    setActiveKey(newKey);
+    //const newKey = `${tabs.length + 1}`;
+    const  newTabId = `${tabId++}` 
+    setTabs( [...tabs, {  newName: `Unsaved Workflow ${newTabId}` , name: '' , id: '', tabId: newTabId}]);
+    setActiveKey(newTabId);
   };
+
+  function onShowFlow(node: IResourceTreeNodeEntity){
+    const newTabId = `${tabId++}`
+    setTabs( [...tabs, { name: node.name, id: node.id, tabId: newTabId, newName: ''}]);
+    setActiveKey(newTabId);
+  }
+
+  function onFlowSave(flow: IWorkFlowEntity){
+    const newTabs = tabs.map((tab) => {
+      if(tab.tabId === activeKey){
+        return { ...tab, name: flow.name, newName: ''}
+      }
+      return tab;
+    })
+    setTabs(newTabs);
+    workFlowTreeRef.current?.refresh()
+    //setActiveKey(activeKey);
+  }
 
   return (
     <div className="container backend-page">
@@ -175,6 +202,10 @@ const Backend: React.FC = () => {
               <Nav mode="vertical" className="secondLevelNav">
                 <Resource />
               </Nav>
+            ): selectedFirstLevel === "workflow" ?  (
+              <Nav mode="vertical" className="secondLevelNav">
+                <WorkFlow onShowFlow = {onShowFlow} ref={workFlowTreeRef}/>
+              </Nav>
             ): <></>
           }
          
@@ -199,13 +230,14 @@ const Backend: React.FC = () => {
           >
             {tabs.map((tab) => (
               <TabPane
-                tab={tab.tab}
-                itemKey={tab.key}
-                key={tab.key}
+                tab={tab.name ? tab.name: tab.newName}
+                itemKey={tab.tabId}
+                key={tab.tabId}
                 closable={true}
+               
               >
                 <div className="tab-content">
-                  <Flow />
+                  <Flow id={tab.id}  onFlowSave={onFlowSave}/>
                 </div>
               </TabPane>
             ))}

@@ -6,36 +6,50 @@ import {
   Tree,
   Typography,
 } from "@douyinfe/semi-ui";
-import { useGetTree } from "./effect";
+import { useGetWorkflowTree } from "./effect";
 import { IconMore, IconPlus } from "@douyinfe/semi-icons";
-import { ReactNode, useState } from "react";
+import { forwardRef, ReactNode, useImperativeHandle, useState } from "react";
 
 import "./index.scss";
-import ResourceEditDrawer from "./ResourceEditDrawer";
-import { IResourceEntity, IResourceTreeNodeEntity, ResourceTreeNodeData } from "./entity";
 import BranchEditDrawer from "./BranchEditDrawer";
-import { apiResourceDelete } from "./api";
+import { IWorkFlowTreeNodeEntity, WorkFlowTreeNodeData } from "./entity";
+import { apiWorkFlowDelete } from "./api";
+import WorkFlowEditDrawer from "./WorkFlowEditDrawer";
+import { PopconfirmWithInput } from "../../../components/PopconfirmWithInput";
+import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
+import { IResourceTreeNodeEntity } from "../Resource/entity";
 
+export interface WorkFlowComponentHandle {
+  refresh: () => void;
+}
+
+interface WorkFlowProps {
+  onShowFlow: (node: IResourceTreeNodeEntity) => void;
+}
 const { Text, Paragraph } = Typography;
-const Resource: React.FC = () => {
-  const { flatData, setFlatData, treeData } = useGetTree();
+const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref) => {
+  const { flatData, setFlatData, treeData, getWorkFlowTree } = useGetWorkflowTree();
 
-  const [resoureEditVisible, setResourceEditVisible] = useState(false);
-  const [resourceEdit, setResourceEdit] = useState<IResourceTreeNodeEntity>();
+  const [workFlowEditVisible, setWorkFlowEditVisible] = useState(false);
+  const [workFlowEdit, setWorkFlowEdit] = useState<IWorkFlowTreeNodeEntity>();
+
+   useImperativeHandle(ref, () => ({
+    refresh: getWorkFlowTree,
+  }));
 
   function handleResoureDrawerClose() {
-    setResourceEditVisible(false);
+    setWorkFlowEditVisible(false);
   }
 
   const [branchVisible, setBranchVisible] = useState(false);
-  const [branchEdit, setBranchEdit] = useState<IResourceTreeNodeEntity>();
+  const [branchEdit, setBranchEdit] = useState<IWorkFlowTreeNodeEntity>();
 
   function handleBranchClose() {
     setBranchVisible(false);
   }
 
-  const addNode = (newNode: IResourceTreeNodeEntity) => {
-    var resultData: IResourceTreeNodeEntity[] = [];
+  const addNode = (newNode: IWorkFlowTreeNodeEntity) => {
+    var resultData: IWorkFlowTreeNodeEntity[] = [];
     const findIndex = flatData.findIndex((item) => item.id == newNode.id);
     if (findIndex > -1) {
       resultData = [
@@ -51,10 +65,10 @@ const Resource: React.FC = () => {
 
   async function deleteNode(id: string) {
     function findDescendantsIncludingSelf(
-      flatData: IResourceTreeNodeEntity[],
+      flatData: IWorkFlowTreeNodeEntity[],
       id: string
-    ): IResourceTreeNodeEntity[] {
-      const descendants: IResourceTreeNodeEntity[] = [];
+    ): IWorkFlowTreeNodeEntity[] {
+      const descendants: IWorkFlowTreeNodeEntity[] = [];
 
       function findChildren(parentId: string) {
         flatData.forEach((node) => {
@@ -74,7 +88,7 @@ const Resource: React.FC = () => {
       return descendants;
     }
 
-    const response = await apiResourceDelete(id);
+    const response = await apiWorkFlowDelete(id);
 
     if (response.flag == "success") {
       var toDeleteIds = findDescendantsIncludingSelf(flatData, id).map(
@@ -87,11 +101,11 @@ const Resource: React.FC = () => {
     }
   }
 
-  function onBranchEdit(node: IResourceTreeNodeEntity) {
+  function onBranchEdit(node: IWorkFlowTreeNodeEntity) {
     setBranchEdit(node);
     setBranchVisible(true);
   }
-  function onAddBranch(node: IResourceTreeNodeEntity) {
+  function onAddBranch(node: IWorkFlowTreeNodeEntity) {
     setBranchEdit(node);
     setBranchVisible(true);
   }
@@ -100,26 +114,26 @@ const Resource: React.FC = () => {
     setBranchVisible(false);
   }
 
-  function onBranchEditSure(resource: IResourceTreeNodeEntity) {
-    addNode(resource);
+  function onBranchEditSure(workFlow: IWorkFlowTreeNodeEntity) {
+    addNode(workFlow);
     setBranchVisible(false);
   }
 
-  function onResourceEdit(item: IResourceTreeNodeEntity) {
-    setResourceEdit(item);
-    setResourceEditVisible(true);
+  function onWorkFlowEdit(item: IWorkFlowTreeNodeEntity) {
+    setWorkFlowEdit(item);
+    setWorkFlowEditVisible(true);
   }
 
-  function onResourceEditDrawerSure(resource: IResourceTreeNodeEntity) {
-    addNode(resource);
-    setResourceEditVisible(false);
+  function onWorkFlowEditDrawerSure(workFlow: IWorkFlowTreeNodeEntity) {
+    addNode(workFlow);
+    setWorkFlowEditVisible(false);
   }
 
-  function onResourceEditDrawerClose() {
-    setResourceEditVisible(false);
+  function onWorkFlowEditDrawerClose() {
+    setWorkFlowEditVisible(false);
   }
 
-  const renderBtn = (resource: IResourceTreeNodeEntity) => {
+  const renderBtn = (workFlow: IWorkFlowTreeNodeEntity) => {
     return (
       <Dropdown
         closeOnEsc={true}
@@ -127,39 +141,51 @@ const Resource: React.FC = () => {
         position="right"
         render={
           <Dropdown.Menu>
-            {resource.type == "branch" && (
-              <Dropdown.Item onClick={() => onBranchEdit(resource)}>
+            {workFlow.type == "branch" && (
+              <>
+                <Dropdown.Item onClick={() => onBranchEdit(workFlow)}>
+                  edit
+                </Dropdown.Item>
+              </>
+            )}
+            {workFlow.type == "leaf" && (
+              <Dropdown.Item onClick={() => onWorkFlowEdit(workFlow)}>
                 edit
               </Dropdown.Item>
             )}
-            {resource.type == "leaf" && (
-              <Dropdown.Item onClick={() => onResourceEdit(resource)}>
-                edit
-              </Dropdown.Item>
-            )}
-            {resource.type == "branch" && (
+            {workFlow.type == "branch" && (
               <Dropdown.Item
                 onClick={() =>
-                  onAddBranch({ id: "", name: "", parentId: resource.id,type: "branch" })
+                  onAddBranch({
+                    id: "",
+                    name: "",
+                    parentId: workFlow.id,
+                    type: "branch",
+                  })
                 }
               >
                 add children branch
               </Dropdown.Item>
             )}
-            {resource.type == "branch" && (
+            {workFlow.type == "branch" && (
               <Dropdown.Item
                 onClick={() =>
-                  onResourceEdit({ id: "", name: "", parentId: resource.id, type: "leaf"  })
+                  onWorkFlowEdit({
+                    id: "",
+                    name: "",
+                    parentId: workFlow.id,
+                    type: "leaf",
+                  })
                 }
               >
-                add resource
+                add workFlow
               </Dropdown.Item>
             )}
             <Dropdown.Item>
               <Popconfirm
                 title="Are you sure?"
                 content="Are you sure to delete this item?"
-                onConfirm={() => deleteNode(resource.id)}
+                onConfirm={() => deleteNode(workFlow.id)}
                 onCancel={() => {}}
               >
                 delete
@@ -183,7 +209,7 @@ const Resource: React.FC = () => {
     );
   };
 
-  const renderLabel = (label: ReactNode, item: ResourceTreeNodeData) => (
+  const renderLabel = (label: ReactNode, item: WorkFlowTreeNodeData) => (
     <div
       style={{ display: "flex", height: "24px" }}
       draggable
@@ -206,20 +232,36 @@ const Resource: React.FC = () => {
       </div>
     </div>
   );
+
+  function onSelect(
+    selectedKey: string,
+    selected: boolean,
+    selectedNode: TreeNodeData
+  ) {
+    const node = selectedNode as WorkFlowTreeNodeData;
+    const entity = node.entity;
+    if (entity.type == "branch") {
+      return;
+    }
+    props.onShowFlow(entity);
+  }
   return (
-    <div className="tree-resource">
-      <div className="tree-resource-header">
-        <Text>resources</Text>
+    <div className="tree-workflow">
+      <div className="tree-workflow-header">
+        <Text>workFlows</Text>
         <Tooltip content="add branch" position="top">
           <Text
             link
             icon={<IconPlus />}
-            onClick={() => onBranchEdit({ id: "", name: "", parentId: "", type: "branch"  })}
+            onClick={() =>
+              onBranchEdit({ id: "", name: "", parentId: "", type: "branch" })
+            }
           ></Text>
         </Tooltip>
       </div>
       <Tree
         treeData={treeData}
+        onSelect={onSelect}
         ///@ts-ignore
         renderLabel={renderLabel}
         className="tree-node"
@@ -227,14 +269,14 @@ const Resource: React.FC = () => {
       />
       <SideSheet
         width={"30%"}
-        visible={resoureEditVisible}
+        visible={workFlowEditVisible}
         onCancel={handleResoureDrawerClose}
-        title={resourceEdit?.name ?? "add"}
+        title={workFlowEdit?.name ?? "add"}
       >
-        <ResourceEditDrawer
-          entity={resourceEdit!}
-          onSure={onResourceEditDrawerSure}
-          onClose={onResourceEditDrawerClose}
+        <WorkFlowEditDrawer
+          entity={workFlowEdit!}
+          onSure={onWorkFlowEditDrawerSure}
+          onClose={onWorkFlowEditDrawerClose}
         />
       </SideSheet>
 
@@ -242,7 +284,7 @@ const Resource: React.FC = () => {
         width={"30%"}
         visible={branchVisible}
         onCancel={handleBranchClose}
-        title={(branchEdit?.name ?? "") + "add children branch"}
+        title={branchEdit?.name ? branchEdit?.name : "add children branch"}
       >
         <BranchEditDrawer
           entity={branchEdit!}
@@ -252,6 +294,6 @@ const Resource: React.FC = () => {
       </SideSheet>
     </div>
   );
-};
+});
 
-export default Resource;
+export default WorkFlow;

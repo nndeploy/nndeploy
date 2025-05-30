@@ -1,19 +1,38 @@
 import { Form, Button, Toast } from "@douyinfe/semi-ui";
 const { Input } = Form;
 
-import { apiResourceBranchSave } from "../api";
-import { IResourceBranchEntity, IResourceTreeNodeEntity, ResourceTreeNodeData } from "../entity";
-import { useRef } from "react";
+import { apiGetWorkFlow, apiWorkFlowSave } from "../api";
+import { IWorkFlowEntity, IWorkFlowTreeNodeEntity } from "../entity";
+import { useEffect, useRef, useState } from "react";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 
-export interface BranchEditDrawerProps {
-  onSure: (node: IResourceTreeNodeEntity) => void;
+export interface WorkFlowEditDrawerProps {
+  onSure: (node: IWorkFlowTreeNodeEntity) => void;
   onClose: () => void;
-  entity: IResourceTreeNodeEntity;
+  entity: IWorkFlowTreeNodeEntity;
 }
 
-const BranchEditDrawer: React.FC<BranchEditDrawerProps> = (props) => {
+const WorkFlowEditDrawer: React.FC<WorkFlowEditDrawerProps> = (props) => {
   const formRef = useRef<FormApi<any>>();
+
+  const [entity, setEntity] = useState<IWorkFlowEntity>({
+    ...props.entity,
+    content: {
+      nodes: [],
+      edges: [],
+    },
+  });
+
+  useEffect(() => {
+      if(props.entity.id){
+        apiGetWorkFlow(props.entity.id).then((res) => {
+          if(res.flag == "success"){
+            //setEntity(res.result);
+          }
+        })
+      }
+    
+  }, [props.entity])
 
   async function onSure() {
     try {
@@ -21,15 +40,14 @@ const BranchEditDrawer: React.FC<BranchEditDrawerProps> = (props) => {
       const formData = formRef!.current!.getValues();
       console.log("Form Data:", formData);
 
-      const entity = {
-        ...formData,
-        id: props.entity.id ? props.entity.id: "",
-        parentId: props.entity.parentId ?? "",
+      const data = {
+        ...entity,
+        ...formData
       };
 
-      const response = await apiResourceBranchSave(entity);
+      const response = await apiWorkFlowSave(data);
       if (response.flag == "success") {
-        props.onSure({...response.result, type: 'branch'});
+        props.onSure( {...response.result, type: 'leaf'} );
       }
 
       Toast.success("add sucess!");
@@ -54,7 +72,7 @@ const BranchEditDrawer: React.FC<BranchEditDrawerProps> = (props) => {
         </Form>
       </div>
       <div className="semi-sidesheet-footer">
-        <Button onClick={() => onSure()}>sure</Button>
+        <Button onClick={() => onSure()}>confirm</Button>
         <Button type="tertiary" onClick={() => props.onClose()}>
           close
         </Button>
@@ -63,4 +81,4 @@ const BranchEditDrawer: React.FC<BranchEditDrawerProps> = (props) => {
   );
 };
 
-export default BranchEditDrawer;
+export default WorkFlowEditDrawer;

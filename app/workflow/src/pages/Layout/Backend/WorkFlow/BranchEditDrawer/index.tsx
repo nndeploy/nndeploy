@@ -1,18 +1,18 @@
 import { Form, Button, Toast } from "@douyinfe/semi-ui";
 const { Input } = Form;
 
-import { apiResourceBranchSave } from "../api";
-import { IResourceBranchEntity, IResourceTreeNodeEntity, ResourceTreeNodeData } from "../entity";
+import { apiWorkFlowBranchSave } from "../api";
+import { IWorkFlowTreeNodeEntity, WorkFlowTreeNodeData } from "../entity";
 import { useRef } from "react";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 
-export interface BranchEditDrawerProps {
-  onSure: (node: IResourceTreeNodeEntity) => void;
+export interface WorkFlowEditDrawerProps {
+  onSure: (node: IWorkFlowTreeNodeEntity) => void;
   onClose: () => void;
-  entity: IResourceTreeNodeEntity;
+  entity: IWorkFlowTreeNodeEntity;
 }
 
-const BranchEditDrawer: React.FC<BranchEditDrawerProps> = (props) => {
+const BranchEditDrawer: React.FC<WorkFlowEditDrawerProps> = (props) => {
   const formRef = useRef<FormApi<any>>();
 
   async function onSure() {
@@ -27,9 +27,9 @@ const BranchEditDrawer: React.FC<BranchEditDrawerProps> = (props) => {
         parentId: props.entity.parentId ?? "",
       };
 
-      const response = await apiResourceBranchSave(entity);
+      const response = await apiWorkFlowBranchSave(entity);
       if (response.flag == "success") {
-        props.onSure({...response.result, type: 'branch'});
+        props.onSure(response.result);
       }
 
       Toast.success("add sucess!");
@@ -54,7 +54,7 @@ const BranchEditDrawer: React.FC<BranchEditDrawerProps> = (props) => {
         </Form>
       </div>
       <div className="semi-sidesheet-footer">
-        <Button onClick={() => onSure()}>sure</Button>
+        <Button onClick={() => onSure()}>confirm</Button>
         <Button type="tertiary" onClick={() => props.onClose()}>
           close
         </Button>

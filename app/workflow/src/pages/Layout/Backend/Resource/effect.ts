@@ -1,41 +1,19 @@
 import { useEffect, useState } from "react";
 import { apiGetResourceTree } from "./api";
-import { IResourceEntity, ResourceTreeNodeData } from "./entity";
-
-type NodeProcessFunc = (node: IResourceEntity) => ResourceTreeNodeData;
-
-export function nodeProcess(node: IResourceEntity): ResourceTreeNodeData {
-  return {
-    key: node.id,
-    label: node.name,
-    isLeaf: node.isLeaf,
-    children: node.children ? node.children.map(nodeProcess) : undefined,
-    entity: node,
-  };
-}
-
-export function processTree(
-  tree: IResourceEntity[],
-  nodeProcess: NodeProcessFunc
-): ResourceTreeNodeData[] {
-  return tree.map((item) => {
-    return nodeProcess(item);
-  });
-}
-
+import { IResourceTreeNodeEntity, ResourceTreeNodeData } from "./entity";
 
 export function useGetTree(): {
-  flatData: IResourceEntity[];
-  setFlatData: React.Dispatch<React.SetStateAction<IResourceEntity[]>>;
+  flatData: IResourceTreeNodeEntity[];
+  setFlatData: React.Dispatch<React.SetStateAction<IResourceTreeNodeEntity[]>>;
 
   treeData: ResourceTreeNodeData[];
   setTreeData: React.Dispatch<React.SetStateAction<ResourceTreeNodeData[]>>;
 } {
-  const [flatData, setFlatData] = useState<IResourceEntity[]>([]);
+  const [flatData, setFlatData] = useState<IResourceTreeNodeEntity[]>([]);
   const [treeData, setTreeData] = useState<ResourceTreeNodeData[]>([]);
 
   function buildTreeFromArray(
-    data: IResourceEntity[],
+    data: IResourceTreeNodeEntity[],
     parentId: string = ""
   ): ResourceTreeNodeData[] {
     return data
@@ -51,7 +29,7 @@ export function useGetTree(): {
         return {
           key: item.id,
           label: item.name,
-          isLeaf: item.isLeaf,
+          // isLeaf: item.type,
 
           entity: item,
           children: children.length > 0 ? children : undefined,
@@ -61,9 +39,7 @@ export function useGetTree(): {
 
   useEffect(() => {
     apiGetResourceTree().then((res) => {
- 
       setFlatData(res.result);
-
     });
   }, []);
 
@@ -72,5 +48,5 @@ export function useGetTree(): {
     setTreeData(tree);
   }, [flatData]);
 
-  return {flatData, setFlatData, treeData, setTreeData};
+  return { flatData, setFlatData, treeData, setTreeData };
 }
