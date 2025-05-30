@@ -1,106 +1,166 @@
-
 [简体中文](README.md) | English
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/image/kapybara_logo.png">
+    <img alt="nndeploy" src="docs/image/kapybara_logo.png" width=55%>
+  </picture>
+</p>
+
+<h3 align="center">
+Easy-to-use, high-performance, multi-platform AI inference deployment framework
+</h3>
+
+<p align="center">
+| <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>Docs</b></a> | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>WeChat</b></a> | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>Zhihu</b></a> | <a href="https://discord.gg/9rUwfAaMbr"><b>discord</b></a> |
+</p>
+
+---
+
+## Quick Start
+
+* [How to Build](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/build.html)
+* [How to Get Models](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/model.html)
+* [How to Run](https://nndeploy-zh.readthedocs.io/zh-cn/latest/quick_start/example.html)
+
+## Deployed Models
+
+<table>
+  <tr>
+    <td><b>Text-to-Image (Stable Diffusion 1.5)</b></td>
+    <td><b>Large Language Model (QWen)</b></td>
+    <td><b>Image Segmentation (RBMGv1.4)</b></td>
+    <td><b>More Models</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/image/demo/stable_diffusion/apple.png" alt="Stable Diffusion" width="256"></td>
+    <td><img src="demo/llama/imgs/result.png" alt="QWen" width="256"></td>
+    <td><img src="docs/image/demo/segment/sample_output.jpg" alt="RBMGv1.4" width="256"></td>
+    <td><a href="docs/zh_cn/quick_start/model_list.md">Link</a></td>
+  </tr>
+</table>
 
 ## Introduction
 
-Easy-to-use, high-performance, multi-platform inference deployment framework
+nndeploy is an easy-to-use, high-performance, multi-platform AI inference deployment framework.
 
+It mainly addresses the following pain points in model deployment:
 
-## Architecture
+1. **Fragmentation of inference frameworks**: There is no universally superior inference framework in the industry. Different frameworks excel on different platforms and hardware. For example, TensorRT performs best on NVIDIA GPUs, OpenVINO on x86 CPUs, CoreML in the Apple ecosystem, and ncnn/MNN on ARM Android.
 
-![Architecture](docs/image/architecture.jpg)
+2. **Learning, development, and maintenance cost of multiple inference frameworks**: Each framework has different interfaces, hyperparameter settings, Tensors, etc. Deploying one model to multiple platforms requires separate codebases, increasing the burden on engineers.
 
-## Fetures
+3. **Model diversity**: From a deployment perspective, models can be single-input, multi-input, single-output, multi-output, static input shape, dynamic input shape, etc. Combining these with zero-copy optimization requires experienced engineers to find optimal solutions efficiently.
 
-### 1. Out-of-the-box AI models
+4. **High-performance pre/post-processing**: Model deployment involves not only inference but also preprocessing and postprocessing. Inference frameworks often do not provide these, requiring engineers to reimplement them in C++—a repetitive workload.
 
-[YOLOv5](https://github.com/ultralytics/yolov5), [YOLOv6](https://github.com/meituan/YOLOv6), [YOLOv8](https://github.com/ultralytics) are already supported, and it is believed that the list will soon be expanded. Out-of-the-box AI models are our goal.
+5. **Complex multi-model scenarios**: Many applications require combining multiple models. Without framework support, this leads to tightly coupled code, low flexibility, and poor parallelism.
 
-| model                                                       | Inference                         | developer                                                                                            | remarks |
-| :---------------------------------------------------------- | :-------------------------------- | :--------------------------------------------------------------------------------------------------- | :-----: |
-| [YOLOV5](https://github.com/ultralytics/yolov5)             | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss)                 |         |
-| [YOLOV6](https://github.com/meituan/YOLOv6)                 | TensorRt/OpenVINO/ONNXRuntime     | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss)                 |         |
-| [YOLOV8](https://github.com/ultralytics)                    | TensorRt/OpenVINO/ONNXRuntime/MNN | [02200059Z](https://github.com/02200059Z)、[Always](https://github.com/Alwaysssssss)                 |         |
-| [SAM](https://github.com/facebookresearch/segment-anything) | ONNXRuntime                       | [youxiudeshouyeren](https://github.com/youxiudeshouyeren)、[Always](https://github.com/Alwaysssssss) |         |
+### Architecture and Features
 
-### 2. Supports multiple platforms and multiple inference frameworks
+<img src="docs/image/architecture.jpg" alt="Architecture">
 
-**One Codebase for Multi-Platform Deployment**: By switching inference configurations, a single codebase can accomplish model deployment across multiple platforms and various inference frameworks.
+### 1. Easy to Use
 
-The current supported inference framework is as follows:
+* **Model deployment based on DAG**: Abstract AI deployment as a Directed Acyclic Graph, where preprocessing, inference, and postprocessing are nodes
 
-| Inference/OS                                                                     | Linux | Windows | Android | MacOS |  IOS  | developer                                                                          | remarks |
-| :------------------------------------------------------------------------------- | :---: | :-----: | :-----: | :---: | :---: | :--------------------------------------------------------------------------------- | :-----: |
-| [TensorRT](https://github.com/NVIDIA/TensorRT)                                   |   √   |    -    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
-| [OpenVINO](https://github.com/openvinotoolkit/openvino)                          |   √   |    √    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
-| [ONNXRuntime](https://github.com/microsoft/onnxruntime)                          |   √   |    √    |    -    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
-| [MNN](https://github.com/alibaba/MNN)                                            |   √   |    √    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
-| [TNN](https://github.com/Tencent/TNN)                                            |   √   |    √    |    √    |   -   |   -   | [02200059Z](https://github.com/02200059Z)                                          |         |
-| [ncnn](https://github.com/Tencent/ncnn)                                          |   -   |    -    |    √    |   -   |   -   | [Always](https://github.com/Alwaysssssss)                                          |         |
-| [coreML](https://github.com/apple/coremltools)                                   |   -   |    -    |    -    |   √   |   -   | [JoDio-zd](https://github.com/JoDio-zd)、[jaywlinux](https://github.com/jaywlinux) |         |
-| [paddle-lite](https://github.com/PaddlePaddle/Paddle-Lite)                       |   -   |    -    |    -    |   -   |   -   | [qixuxiang](https://github.com/qixuxiang)                                          |         |
-| [AscendCL](https://www.hiascend.com/zh/)                                         |   √   |    -    |    -    |   -   |   -   | [CYYAI](https://github.com/CYYAI)                                                  |         |
-| [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) |   √   |    -    |    -    |   -   |   -   | [100312dog](https://github.com/100312dog)                                          |         |
+* **Inference template (Infer)**: Supports handling various model differences including input/output formats and shapes
 
+* **Efficient handling of multi-model scenarios**: Supports `graph embedding` to divide complex tasks into subgraphs for flexible multi-model composition
 
-**Notice:** TFLite, TVM, OpenPPL, sophgo, Horizon are also on the agenda as we work to cover mainstream inference frameworks
+* **Quick demo building**: Supports images, folders, videos, etc. as input/output with modular codec nodes for general-purpose demo construction
 
-### 3. Simple and easy to use
+### 2. High Performance
 
-- **Deploying Models Based on Directed Acyclic Graphs (DAG)**: The end-to-end deployment of AI algorithms (preprocessing -> inference -> postprocessing) is abstracted as a directed acyclic graph `Graph`, where preprocessing is one `Node`, inference is another `Node`, and postprocessing is also a `Node`.
+* **Multiple parallel execution modes**: Supports sequential execution (topological order), pipeline parallelism (map nodes to threads/devices), task parallelism (exploit model-level parallelism), and combinations thereof
 
-- **Inference Template**: Based on the `multi-end inference module Inference` combined with the `directed acyclic graph node Node`, a powerful `Inference Template` is designed. The Infer inference template can help you handle differences brought by different models internally, such as **single input, multiple inputs, single output, multiple outputs, static shape input, dynamic shape input, static shape output, dynamic shape output**, and a series of other variations.
+* **Thread pool & memory pool**: Improves concurrency and resource utilization via thread pools, supports `parallel_for` for CPU op parallelism, and provides a memory pool for efficient allocation/release (in development)
 
-- **Efficiently Solving Complex Scenarios with Multiple Models**: In complex scenarios where multiple models are combined to complete a single task (e.g., old photo restoration), each model can be an independent Graph. The directed acyclic graph of nndeploy supports `embedding graphs within graphs`, a flexible and powerful feature that breaks down large problems into smaller ones, enabling the rapid resolution of complex scenarios involving multiple models through a composite approach.
+* **A set of high-performance operators**: Will boost model pre/post-processing speed (in development)
 
-- **Rapid Construction of Demos**: When a model has been deployed, it is necessary to write a demo to showcase its effects. Demos need to handle various formats of input, such as image input and output, multiple images in a folder, video input and output, etc. By node-izing the aforementioned encoding and decoding processes, one can more universally and efficiently complete the writing of demos, achieving the goal of quickly demonstrating effects (currently, mainly node-ized based on OpenCV for encoding and decoding).
+### 3. Supports Multiple Inference Backends
 
-### 4. High Performance
+* **Single codebase for multiple backends**: By switching inference config, one codebase can deploy across platforms and frameworks, matching original framework performance
 
-- **High Performance Abstraction of the Inference Framework**: Each inference framework also has its own unique features. nndeploy deeply understands and preserves as much as possible the features of the inference framework without compromising the computational efficiency of the native inference framework with a consistent code experience. In addition, we realize the efficient connection between the pre/post-processing and the model inference process through the exquisitely designed memory zero copy, which effectively guarantees the end-to-end delay of model inference.
+* Currently supported inference frameworks:
 
-- **Thread Pool**: Enhances the concurrency performance and resource utilization of model deployment. Additionally, it supports automatic parallelism for CPU operators, which can improve the performance of CPU operator execution.
+  | Inference/OS                                                                     | Linux | Windows | Android | MacOS | IOS | Developer                                                                          |
+  | :------------------------------------------------------------------------------- | :---: | :-----: | :-----: | :---: | :-: | :--------------------------------------------------------------------------------- |
+  | [TensorRT](https://github.com/NVIDIA/TensorRT)                                   |   √   |    -    |    -    |   -   |  -  | [Always](https://github.com/Alwaysssssss)                                          |
+  | [OpenVINO](https://github.com/openvinotoolkit/openvino)                          |   √   |    √    |    -    |   -   |  -  | [Always](https://github.com/Alwaysssssss)                                          |
+  | [ONNXRuntime](https://github.com/microsoft/onnxruntime)                          |   √   |    √    |    -    |   -   |  -  | [Always](https://github.com/Alwaysssssss)                                          |
+  | [MNN](https://github.com/alibaba/MNN)                                            |   √   |    √    |    √    |   -   |  -  | [Always](https://github.com/Alwaysssssss)                                          |
+  | [TNN](https://github.com/Tencent/TNN)                                            |   √   |    √    |    √    |   -   |  -  | [02200059Z](https://github.com/02200059Z)                                          |
+  | [ncnn](https://github.com/Tencent/ncnn)                                          |   -   |    -    |    √    |   -   |  -  | [Always](https://github.com/Alwaysssssss)                                          |
+  | [coreML](https://github.com/apple/coremltools)                                   |   -   |    -    |    -    |   √   |  -  | [JoDio-zd](https://github.com/JoDio-zd), [jaywlinux](https://github.com/jaywlinux) |
+  | [AscendCL](https://www.hiascend.com/zh/)                                         |   √   |    -    |    -    |   -   |  -  | [CYYAI](https://github.com/CYYAI)                                                  |
+  | [RKNN](https://www.rock-chips.com/a/cn/downloadcenter/BriefDatasheet/index.html) |   √   |    -    |    -    |   -   |  -  | [100312dog](https://github.com/100312dog)                                          |
+  | [tvm](https://github.com/apache/tvm)                                             |   √   |    -    |    -    |   -   |  -  | [youxiudeshouyeren](https://github.com/youxiudeshouyeren)                          |
+  | [snpe](https://developer.qualcomm.com/software/qualcomm-neural-processing-sdk)   |   √   |    -    |    -    |   -   |  -  | [yhwang-hub](https://github.com/yhwang-hub)                                        |
 
-- **Memory Pool**: More efficient memory allocation and release(TODO)
+### 4. Built-in Inference Submodule
 
-- **HPC Operators**: Optimize pre/post-processing efficiency(TODO)
+The framework includes an internal default inference backend. It can be used if external backends are not compiled/linked. **For actual applications, we recommend using vendor-specific inference frameworks.**
 
-### 5. Parallel
+Currently supports Huawei Ascend NPU and pure CPU ops. Plans to expand to X86, CUDA, ARM, OpenCL, etc.
 
-- **Serial Execution**: Execute each node in the order of the topological sort of the directed acyclic graph (DAG) used for model deployment.
+Supports mainstream vision models: image classification (e.g., ResNet50), object detection (YOLOv11), image segmentation (RMBG1.4). Will support LLM and vision-language models (Dit).
 
-- **Pipeline Parallelism**: In scenarios where multiple frames are processed, the model deployment method based on the directed acyclic graph allows for binding the preprocessing `Node`, inference `Node`, and postprocessing `Node` to three different threads. Each thread can be further bound to different hardware devices, enabling the three `Nodes` to process in a pipelined parallel manner. In complex scenarios with multiple models and hardware devices, pipeline parallelism can be particularly advantageous, significantly improving overall throughput.
+> [Technical details of built-in inference submodule](docs/zh_cn/inference/README_INFERENCE.md)
 
-- **Task Parallelism**: In complex scenarios with multiple models and hardware devices, the model deployment method based on the directed acyclic graph can fully exploit the parallelism within model deployment, reducing the time taken for a single algorithm end-to-end process.
+<img src="docs/image/inference/inference_framework_arch.png">
 
-- **Combination of Parallel Modes**: In complex scenarios involving multiple models, hardware devices, and the processing of multiple frames, nndeploy's directed acyclic graph supports the embedding of graphs within graphs. Each graph can have an independent parallel mode, allowing users to freely combine parallel modes for model deployment tasks, thereby fully leveraging hardware performance.
+## Future Plans
 
+* Device management
 
-## Document
-- How to build: https://nndeploy-zh.readthedocs.io/en/latest/quick_start/build.html
-- How to run: https://nndeploy-zh.readthedocs.io/en/latest/quick_start/example.html
-- How to get models: https://nndeploy-zh.readthedocs.io/en/latest/quick_start/model.html
-- For more information, visit [nndeploy documentation](https://nndeploy-zh.readthedocs.io/en/latest/)
+  * Add OpenCL device management
+  * Add ROCM device management
+  * Add OpenGL device management
 
-## resource repository
+* Memory optimization
 
-- We have uploaded third-party libraries, model repositories, and test data to [HuggingFace](https://huggingface.co/alwaysssss/nndeploy). If you need them, feel free to download them.
+  * `Master-slave memory copy optimization`: Replace memory copy via memory mapping/sharing
+  * `Memory pool`: For Buffer, Mat, Tensor containers across devices
+  * `Multi-node shared memory`: For serial DAG execution in multi-model pipeline
+  * `Ring buffer reuse`: For pipeline DAG execution, enable edge-level ring buffer reuse
 
+* Operator library integration
 
-# Reference
-- [TNN](https://github.com/Tencent/TNN)
-- [FastDeploy](https://github.com/PaddlePaddle/FastDeploy)
-- [opencv](https://github.com/opencv/opencv)
-- [CGraph](https://github.com/ChunelFeng/CGraph)
-- [CThreadPool](https://github.com/ChunelFeng/CThreadPool)
-- [tvm](https://github.com/apache/tvm)
-- [mmdeploy](https://github.com/open-mmlab/mmdeploy)
-- [FlyCV](https://github.com/PaddlePaddle/FlyCV)
-- [torchpipe](https://github.com/torchpipe/torchpipe)
+  * Integrate oneDNN; implement unsupported ops for x86
+  * Integrate cudnn, cutlass; implement unsupported ops for CUDA
+  * Integrate XNNPACK, QNNPACK; implement unsupported ops for ARM
 
+* Inference submodule
+
+  * Support LLM
+  * Support Stable Diffusion
+  * Add communication primitives for distributed inference
+  * Improve graph-based memory optimization; explore more optimization strategies
+
+* Deploy more models
+
+  * OCR
+  * Tracking
+  * ...
 
 ## Contact Us
-- nndeploy is currently in its development stage. If you are passionate about open source and enjoy tinkering, whether for learning purposes or if you have better ideas, you are welcome to join us.
-- WeChat: titian5566 (Please briefly introduce yourself when adding WeChat to join the AI Inference Deployment communication group)
 
-  <img align="left" src="docs/image/wechat.jpg" width="225px">
+* nndeploy is currently under active development. If you're enthusiastic about open source and innovation, whether for learning or contributing ideas, you're welcome to join us.
+* WeChat: titian5566 (Add with brief info to join AI inference deployment discussion group)
+
+  <img src="docs/image/wechat.jpg" width="225px">
+
+## Acknowledgements
+
+* We referenced the following projects: [TNN](https://github.com/Tencent/TNN), [FastDeploy](https://github.com/PaddlePaddle/FastDeploy), [opencv](https://github.com/opencv/opencv), [CGraph](https://github.com/ChunelFeng/CGraph), [CThreadPool](https://github.com/ChunelFeng/CThreadPool), [tvm](https://github.com/apache/tvm), [mmdeploy](https://github.com/open-mmlab/mmdeploy), [FlyCV](https://github.com/PaddlePaddle/FlyCV), and [oneflow](https://github.com/Oneflow-Inc/oneflow).
+
+* Thanks to [HelloGithub](https://hellogithub.com/repository/nndeploy/nndeploy) for featuring us
+
+  <a href="https://hellogithub.com/repository/314bf8e426314dde86a8c62ea5869cb7" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=314bf8e426314dde86a8c62ea5869cb7&claim_uid=mu47rJbh15yQlAs" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
+## Contributors
+
+<a href="https://github.com/nndeploy/nndeploy/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=nndeploy/nndeploy" />
+</a>
