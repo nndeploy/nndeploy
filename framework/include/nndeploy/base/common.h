@@ -266,6 +266,9 @@ enum ModelType : int {
   // mtk: neuro-pilot
   kModelTypeNeuroPilot,
 
+  // gguf
+  kModelTypeGGUF,
+
   // not sopport
   kModelTypeNotSupport,
 };
@@ -306,6 +309,7 @@ enum InferenceType : int {
   kInferenceTypeVllm,
   kInferenceTypeSGLang,
   kInferenceTypeLmdeploy,
+  kInferenceTypeLlamaCpp,
   kInferenceTypeLLM,
 
   kInferenceTypeXDit,

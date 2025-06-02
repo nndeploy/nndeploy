@@ -189,11 +189,11 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
   std::string edge_name_;
 };
 
-std::string nodeTypeToString(NodeType node_type);
-NodeType stringToNodeType(const std::string& node_type_str);
+extern NNDEPLOY_CC_API std::string nodeTypeToString(NodeType node_type);
+extern NNDEPLOY_CC_API NodeType stringToNodeType(const std::string& node_type_str);
 
-std::string edgeTypeToString(EdgeTypeFlag edge_type);
-EdgeTypeFlag stringToEdgeType(const std::string& edge_type_str);
+extern NNDEPLOY_CC_API std::string edgeTypeToString(EdgeTypeFlag edge_type);
+extern NNDEPLOY_CC_API EdgeTypeFlag stringToEdgeType(const std::string& edge_type_str);
 
 }  // namespace dag
 }  // namespace nndeploy

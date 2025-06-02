@@ -79,6 +79,89 @@ class EdgeTypeInfo(_C.dag.EdgeTypeInfo):
     @type_name.setter 
     def type_name(self, type_name: str):
         self.type_name_ = type_name
+        
+    @property
+    def type(self) -> EdgeTypeFlag:
+        return self.type_
+        
+    @type.setter
+    def type(self, type_val: EdgeTypeFlag):
+        self.type_ = type_val
 
-  
+    @property 
+    def edge_name(self) -> str:
+        return self.edge_name_
+        
+    @edge_name.setter
+    def edge_name(self, edge_name: str):
+        self.edge_name_ = edge_name
+
+    def set_buffer_type(self):
+        super().set_buffer_type()
+
+    def set_cvmat_type(self):
+        super().set_cvmat_type()
+
+    def set_tensor_type(self):
+        super().set_tensor_type()
+
+    def set_param_type(self):
+        super().set_param_type()
+
+    def get_type(self) -> EdgeTypeFlag:
+        return super().get_type()
+
+    def get_type_name(self) -> str:
+        return super().get_type_name()
+
+    def get_unique_type_name(self) -> str:
+        return super().get_unique_type_name()
+
+    def get_type_ptr(self):
+        return super().get_type_ptr()
+
+    def is_buffer_type(self) -> bool:
+        return super().is_buffer_type()
+
+    def is_cvmat_type(self) -> bool:
+        return super().is_cvmat_type()
+
+    def is_tensor_type(self) -> bool:
+        return super().is_tensor_type()
+
+    def is_param_type(self) -> bool:
+        return super().is_param_type()
+
+    def check_buffer_type(self) -> bool:
+        return super().check_buffer_type()
+
+    def check_cvmat_type(self) -> bool:
+        return super().check_cvmat_type()
+
+    def check_tensor_type(self) -> bool:
+        return super().check_tensor_type()
+
+    def check_param_type(self) -> bool:
+        return super().check_param_type()
+
+    def set_edge_name(self, edge_name: str):
+        super().set_edge_name(edge_name)
+
+    def get_edge_name(self) -> str:
+        return super().get_edge_name()
+
+
+def node_type_to_string(node_type) -> str:
+    return _C.dag.node_type_to_string(node_type)
+
+def string_to_node_type(node_type_str: str):
+    return _C.dag.string_to_node_type(node_type_str)
+
+def edge_type_to_string(edge_type) -> str:
+    return _C.dag.edge_type_to_string(edge_type)
+
+def string_to_edge_type(edge_type_str: str):
+    return _C.dag.string_to_edge_type(edge_type_str)
+
+
 

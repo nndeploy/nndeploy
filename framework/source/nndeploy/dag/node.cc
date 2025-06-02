@@ -100,7 +100,7 @@ base::Status NodeDesc::deserialize(rapidjson::Value &json) {
       if (inputs[i].IsObject() && inputs[i].HasMember("name_") &&
           inputs[i]["name_"].IsString()) {
         std::string input_name = inputs[i]["name_"].GetString();
-        NNDEPLOY_LOGI("input_name: %s\n", input_name.c_str());
+        // NNDEPLOY_LOGI("input_name: %s\n", input_name.c_str());
         inputs_.push_back(input_name);
       } else {
         NNDEPLOY_LOGE("Invalid input format at index %d\n", i);
@@ -115,7 +115,7 @@ base::Status NodeDesc::deserialize(rapidjson::Value &json) {
       if (outputs[i].IsObject() && outputs[i].HasMember("name_") &&
           outputs[i]["name_"].IsString()) {
         std::string output_name = outputs[i]["name_"].GetString();
-        NNDEPLOY_LOGI("output_name: %s\n", output_name.c_str());
+        // NNDEPLOY_LOGI("output_name: %s\n", output_name.c_str());
         outputs_.push_back(output_name);
       } else {
         NNDEPLOY_LOGE("Invalid output format at index %d\n", i);
