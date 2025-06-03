@@ -28,6 +28,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_tensor_type", &EdgeTypeInfo::setType<device::Tensor>)
       .def("set_param_type", &EdgeTypeInfo::setType<base::Param>)
       .def("get_type", &EdgeTypeInfo::getType)
+      .def("set_type_name", &EdgeTypeInfo::setTypeName)
       .def("get_type_name", &EdgeTypeInfo::getTypeName)
       .def("get_unique_type_name", &EdgeTypeInfo::getUniqueTypeName)
       .def("get_type_ptr", &EdgeTypeInfo::getTypePtr)

@@ -18,6 +18,12 @@ class Edge(_C.dag.Edge):
 
     def get_name(self) -> str:
         return super().get_name()
+    
+    def set_queue_max_size(self, queue_max_size: int):
+        return super().set_queue_max_size(queue_max_size)
+        
+    def get_queue_max_size(self) -> int:
+        return super().get_queue_max_size()
         
     def get_parallel_type(self) -> nndeploy.base.ParallelType:
         return super().get_parallel_type()
@@ -36,10 +42,14 @@ class Edge(_C.dag.Edge):
                 raise ValueError("Failed to set data")
         else: # 处理其他类型的数据
             # self.type_name = type(data).__name__
-            if self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.Task:
-                self.data = data
-            elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-                raise ValueError("Parallel type is not supported")
+            # if self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.Task:
+            #     self.data = data
+            # elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
+            #     raise ValueError("Parallel type is not supported")
+            # print(self.get_type_name())
+            print(data)
+            self.set_any(data)
+            # print(self.get_type_name())
         self.index += 1
         self.position = self.index
         self.type_name = type(data).__module__ + "." + type(data).__name__
@@ -74,22 +84,26 @@ class Edge(_C.dag.Edge):
         return super().get_graph_output_tensor()
         
     def get(self, node: _C.dag.Node = None):
-        if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
-            return self.data
-        elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-            raise ValueError("Parallel type is not supported")
+        # if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
+        #     return self.data
+        # elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
+        #     raise ValueError("Parallel type is not supported")
+        return self.get_any(node)
         
     def get_graph_output(self):
-        if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
-            return self.data
-        elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-            raise ValueError("Parallel type is not supported")
-        
+        # if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
+        #     return self.data
+        # elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
+        #     raise ValueError("Parallel type is not supported")
+        return self.get_graph_output_any()
     def get_index(self, node: _C.dag.Node) -> int:
         if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
             return self.index
         elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
             raise ValueError("Parallel type is not supported")
+        
+    def reset_index(self):
+        return super().reset_index()
         
     def get_graph_output_index(self) -> int:
         if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:

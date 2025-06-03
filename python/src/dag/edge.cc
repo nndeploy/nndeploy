@@ -16,6 +16,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       // 基本信息获取
       .def("get_name", &Edge::getName)
 
+      // 队列最大值设置和获取
+      .def("set_queue_max_size", &Edge::setQueueMaxSize, py::arg("queue_max_size"))
+      .def("get_queue_max_size", &Edge::getQueueMaxSize)
+
       // 并行类型设置和获取
       .def("set_parallel_type", &Edge::setParallelType, py::arg("paralle_type"))
       .def("get_parallel_type", &Edge::getParallelType)
@@ -91,9 +95,109 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_graph_output_param", &Edge::getGraphOutputParam,
            py::return_value_policy::reference)
 
+      // 任意类型相关操作
+      // 任意类型相关操作
+      .def("set_any", [](Edge& edge, py::object obj) {
+          // 创建一个PyObjectWrapper来存储Python对象
+          // PyObjectWrapper 结构体用于包装和管理Python对象的生命周期
+          struct PyObjectWrapper {
+              PyObject* obj;  // 指向Python对象的指针
+              
+              // 构造函数:接收一个Python对象指针,增加引用计数防止对象被销毁
+              PyObjectWrapper(PyObject* o) : obj(o) { Py_INCREF(obj); }
+              
+              // 析构函数:减少引用计数,允许Python回收对象
+              ~PyObjectWrapper() { Py_DECREF(obj); }
+          };
+          
+          // 创建包装器并增加引用计数
+          auto* wrapper = new PyObjectWrapper(obj.ptr());
+          
+          // 设置类型信息
+          auto type_info = std::make_shared<EdgeTypeInfo>();
+          type_info->setType<PyObjectWrapper>();
+          type_info->setTypeName(
+              py::str(obj.get_type().attr("__module__")).cast<std::string>() + "." +
+              py::str(obj.get_type().attr("__name__")).cast<std::string>()
+          );
+          edge.setTypeInfo(type_info);
+          
+          // 将包装器传递给Edge
+          bool is_external = false;
+          return edge.setAny<PyObjectWrapper>(wrapper, is_external);
+      }, py::arg("obj"))
+
+      .def("create_any", [](Edge& edge, py::object type_obj, py::args args, py::kwargs kwargs) {
+          // 使用Python的type对象创建新实例
+          py::object instance = type_obj(*args, **kwargs);
+          
+          // 包装并存储新创建的对象
+          struct PyObjectWrapper {
+              PyObject* obj;
+              PyObjectWrapper(PyObject* o) : obj(o) { Py_INCREF(obj); }
+              ~PyObjectWrapper() { Py_DECREF(obj); }
+          };
+          
+          auto* wrapper = new PyObjectWrapper(instance.ptr());
+          
+          // 设置类型信息
+          auto type_info = std::make_shared<EdgeTypeInfo>();
+          type_info->setType<PyObjectWrapper>();
+          type_info->setTypeName(
+              py::str(type_obj.attr("__module__")).cast<std::string>() + "." +
+              py::str(type_obj.attr("__name__")).cast<std::string>()
+          );
+          edge.setTypeInfo(type_info);
+
+          edge.setAny<PyObjectWrapper>(wrapper, false);
+          
+          return instance;
+      })
+
+      .def("notify_any_written", [](Edge& edge, py::object obj) {
+          struct PyObjectWrapper {
+              PyObject* obj;
+              PyObjectWrapper(PyObject* o) : obj(o) { Py_INCREF(obj); }
+              ~PyObjectWrapper() { Py_DECREF(obj); }
+          };
+          
+          auto* wrapper = new PyObjectWrapper(obj.ptr());
+          return edge.notifyAnyWritten<PyObjectWrapper>(wrapper);
+      }, py::arg("obj"))
+
+      .def("get_any", [](Edge& edge, const Node* node) {
+          struct PyObjectWrapper {
+              PyObject* obj;
+              PyObjectWrapper(PyObject* o) : obj(o) { Py_INCREF(obj); }
+              ~PyObjectWrapper() { Py_DECREF(obj); }
+          };
+          
+          auto* wrapper = edge.getAny<PyObjectWrapper>(node);
+          if (!wrapper) {
+              return py::object(py::none());  // 显式转换为 py::object
+          }
+          return py::reinterpret_borrow<py::object>(wrapper->obj);
+      }, py::arg("node"))
+
+      .def("get_graph_output_any", [](Edge& edge) {
+          struct PyObjectWrapper {
+              PyObject* obj;
+              PyObjectWrapper(PyObject* o) : obj(o) { Py_INCREF(obj); }
+              ~PyObjectWrapper() { Py_DECREF(obj); }
+          };
+          
+          auto* wrapper = edge.getGraphOutputAny<PyObjectWrapper>();
+          if (!wrapper) {
+              return py::object(py::none());  // 显式转换为 py::object
+          }
+          return py::reinterpret_borrow<py::object>(wrapper->obj);
+      })
+
+
       // 索引和位置相关操作
       .def("get_index", &Edge::getIndex, py::arg("node"))
       .def("get_graph_output_index", &Edge::getGraphOutputIndex)
+      .def("reset_index", &Edge::resetIndex)
       .def("get_position", &Edge::getPosition, py::arg("node"))
       .def("get_graph_output_position", &Edge::getGraphOutputPosition)
 

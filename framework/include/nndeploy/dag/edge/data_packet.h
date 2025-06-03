@@ -133,10 +133,10 @@ class DataPacket : public base::NonCopyable {
       NNDEPLOY_LOGE("flag_ is not kAny");
       return nullptr;
     }
-    if (typeid(T) != *type_info_) {
-      NNDEPLOY_LOGE("typeid(T) is not *type_info_");
-      return nullptr;
-    }
+    // if (typeid(T) != *type_info_) {
+    //   NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+    //   return nullptr;
+    // }
     return static_cast<T *>(anything_);
   }
 
