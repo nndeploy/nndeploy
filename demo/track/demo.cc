@@ -37,8 +37,11 @@ int main(int argc, char *argv[]) {
   base::ParallelType pt = demo::getParallelType();
   std::vector<std::string> model_inputs = demo::getModelInputs();
   NNDEPLOY_LOGE("model_inputs = %s.\n", model_inputs[0].c_str());
+  NNDEPLOY_LOGE("model_inputs = %s.\n", model_inputs[1].c_str());
+  NNDEPLOY_LOGE("model_inputs = %s.\n", model_inputs[2].c_str());
   std::vector<std::string> model_outputs = demo::getModelOutputs();
   NNDEPLOY_LOGE("model_outputs = %s.\n", model_outputs[0].c_str());
+  NNDEPLOY_LOGE("model_outputs = %s.\n", model_outputs[1].c_str());
 
   dag::Edge *input = new dag::Edge("track_in");
   dag::Edge *output = new dag::Edge("track_out");
@@ -67,7 +70,7 @@ int main(int argc, char *argv[]) {
   dag::Edge *vismot_img = graph->createEdge("vismot_img");
   dag::Node *vismot_node;
   vismot_node = graph->createNode<track::VisMOTNode>(
-      "VisMOTNode", {input, output}, {vismot_img});
+      "vismot_node", {input, output}, {vismot_img});
 
   // Video encoder
   codec::EncodeNode *encode_node = codec::createEncodeNode(
@@ -99,8 +102,6 @@ int main(int argc, char *argv[]) {
   encode_node->setRefPath(input_path);
   encode_node->setPath(output_path);
   int size = decode_node->getSize();
-  size = 100;
-  decode_node->setSize(size);
   for (int i = 0; i < size; ++i) {
     status = graph->run();
     if (status != base::kStatusCodeOk) {
@@ -140,7 +141,6 @@ int main(int argc, char *argv[]) {
   }
 
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
-  NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 1);
 
   delete encode_node;
   delete decode_node;

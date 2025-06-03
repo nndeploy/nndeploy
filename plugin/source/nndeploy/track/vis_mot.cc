@@ -14,9 +14,11 @@ base::Status VisMOTNode::run() {
   cv::Mat *img = inputs_[0]->getCvMat(this);
   MOTResult *results = (MOTResult *)inputs_[1]->getParam(this);
 
-  float score_threshold = 1.0;
+  float score_threshold = 0.0;
 
-  cv::Mat vis_img = img->clone();
+  cv::Mat *vis_img = new cv::Mat();
+  img->copyTo(*vis_img);
+
   int im_h = img->rows;
   int im_w = img->cols;
   float text_scale = std::max(1, static_cast<int>(im_w / 1600.));
@@ -37,13 +39,13 @@ base::Status VisMOTNode::run() {
         cv::Point(results->boxes[i][0], results->boxes[i][1] + 10);
     cv::Point score_pt =
         cv::Point(results->boxes[i][0], results->boxes[i][1] - 10);
-    cv::rectangle(vis_img, pt1, pt2, color, line_thickness);
+    cv::rectangle(*vis_img, pt1, pt2, color, line_thickness);
     std::ostringstream idoss;
     idoss << std::setiosflags(std::ios::fixed) << std::setprecision(4);
     idoss << obj_id;
     std::string id_text = idoss.str();
 
-    cv::putText(vis_img, id_text, id_pt, cv::FONT_HERSHEY_PLAIN, text_scale,
+    cv::putText(*vis_img, id_text, id_pt, cv::FONT_HERSHEY_PLAIN, text_scale,
                 color, text_thickness);
 
     std::ostringstream soss;
@@ -51,11 +53,11 @@ base::Status VisMOTNode::run() {
     soss << score;
     std::string score_text = soss.str();
 
-    cv::putText(vis_img, score_text, score_pt, cv::FONT_HERSHEY_PLAIN,
+    cv::putText(*vis_img, score_text, score_pt, cv::FONT_HERSHEY_PLAIN,
                 text_scale, color, text_thickness);
   }
 
-  outputs_[0]->set(&vis_img, false);
+  outputs_[0]->set(vis_img, false);
   return base::kStatusCodeOk;
 }
 

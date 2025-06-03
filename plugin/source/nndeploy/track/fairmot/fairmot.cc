@@ -18,9 +18,85 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/util.h"
 
 namespace nndeploy {
 namespace track {
+
+base::Status FairMotPreProcess::run() {
+  FairMotPreParam* tmp_param = dynamic_cast<FairMotPreParam*>(param_.get());
+  cv::Mat* src = inputs_[0]->getCvMat(this);
+  device::Device* device = device::getDefaultHostDevice();
+
+  device::TensorDesc desc;
+  desc.data_type_ = tmp_param->data_type_;
+  desc.data_format_ = tmp_param->data_format_;
+  if (desc.data_format_ == base::kDataFormatNCHW) {
+    desc.shape_ = {
+        1, preprocess::getChannelByPixelType(tmp_param->dst_pixel_type_),
+        tmp_param->h_, tmp_param->w_};
+  } else {
+    desc.shape_ = {
+        1, tmp_param->h_, tmp_param->w_,
+        preprocess::getChannelByPixelType(tmp_param->dst_pixel_type_)};
+  }
+  device::Tensor* dst = outputs_[1]->create(device, desc);
+
+  int c = dst->getChannel();
+  int h = dst->getHeight();
+  int w = dst->getWidth();
+
+  cv::Mat tmp_cvt;
+  if (tmp_param->src_pixel_type_ != tmp_param->dst_pixel_type_) {
+    base::CvtColorType cvt_type = base::calCvtColorType(
+        tmp_param->src_pixel_type_, tmp_param->dst_pixel_type_);
+    if (cvt_type == base::kCvtColorTypeNotSupport) {
+      NNDEPLOY_LOGE("cvtColor type not support");
+      return base::kStatusCodeErrorNotSupport;
+    }
+    int cv_cvt_type =
+        preprocess::OpenCvConvert::convertFromCvtColorType(cvt_type);
+    cv::cvtColor(*src, tmp_cvt, cv_cvt_type);
+  } else {
+    tmp_cvt = *src;
+  }
+
+  cv::Mat tmp_resize;
+  if (tmp_param->interp_type_ != base::kInterpTypeNotSupport) {
+    int interp_type = preprocess::OpenCvConvert::convertFromInterpType(
+        tmp_param->interp_type_);
+    cv::resize(tmp_cvt, tmp_resize, cv::Size(w, h), 0.0, 0.0, interp_type);
+  } else {
+    tmp_resize = tmp_cvt;
+  }
+
+  preprocess::OpenCvConvert::convertToTensor(
+      tmp_resize, dst, tmp_param->normalize_, tmp_param->scale_,
+      tmp_param->mean_, tmp_param->std_);
+  outputs_[1]->notifyWritten(dst);
+
+  device::TensorDesc shape_desc;
+  shape_desc.data_type_ = tmp_param->data_type_;
+  shape_desc.data_format_ = base::kDataFormatNC;
+  shape_desc.shape_ = {1, 2};
+  device::Tensor* shape_tensor = outputs_[0]->create(device, shape_desc);
+  float* shape_data = reinterpret_cast<float*>(shape_tensor->getData());
+  shape_data[0] = (float)h;
+  shape_data[1] = (float)w;
+  outputs_[0]->notifyWritten(shape_tensor);
+
+  device::TensorDesc scale_desc;
+  scale_desc.data_type_ = tmp_param->data_type_;
+  scale_desc.data_format_ = base::kDataFormatNC;
+  scale_desc.shape_ = {1, 2};
+  device::Tensor* scale_tensor = outputs_[2]->create(device, scale_desc);
+  float* scale_data = reinterpret_cast<float*>(scale_tensor->getData());
+  scale_data[0] = h * 1.0 / src->rows;
+  scale_data[1] = w * 1.0 / src->cols;
+  outputs_[2]->notifyWritten(scale_tensor);
+
+  return base::kStatusCodeOk;
+}
 
 void FairMotPostProcess::FilterDets(const float conf_thresh,
                                     const cv::Mat& dets,

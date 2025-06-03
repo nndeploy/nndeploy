@@ -44,6 +44,33 @@ inline void TrailRecorder::Add(int id, const std::array<int, 2>& record) {
   }
 }
 
+class NNDEPLOY_CC_API FairMotPreParam : public base::Param {
+ public:
+  // 源图像的像素类型
+  base::PixelType src_pixel_type_;
+  // 目标图像的像素类型
+  base::PixelType dst_pixel_type_;
+  // 图像缩放时使用的插值类型
+  base::InterpType interp_type_;
+  // 目标输出的高度
+  int h_ = -1;
+  // 目标输出的宽度
+  int w_ = -1;
+  // 数据类型，默认为浮点型
+  base::DataType data_type_ = base::dataTypeOf<float>();
+  // 数据格式，默认为NCHW（通道数，图像高度，图像宽度）
+  base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
+  // 是否进行归一化处理
+  bool normalize_ = true;
+  // 归一化的比例因子，用于将像素值缩放到0-1范围
+  float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
+                     1.0f / 255.0f};
+  // 归一化处理中的均值，用于数据中心化
+  float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+  // 归一化处理中的标准差，用于数据标准化
+  float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+};
+
 class NNDEPLOY_CC_API FairMotPostParam : public base::Param {
  public:
   float conf_thresh_ = 0.3f;
@@ -52,20 +79,47 @@ class NNDEPLOY_CC_API FairMotPostParam : public base::Param {
   bool is_record_trail_ = false;
 };
 
+class NNDEPLOY_CC_API FairMotPreProcess : public dag::Node {
+ public:
+  FairMotPreProcess(const std::string& name) : dag::Node(name) {
+    key_ = "nndeploy::track::FairMotPreProcess";
+    param_ = std::make_shared<FairMotPreParam>();
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+  }
+  FairMotPreProcess(const std::string& name, std::vector<dag::Edge*> inputs,
+                    std::vector<dag::Edge*> outputs)
+      : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::track::FairMotPreProcess";
+    param_ = std::make_shared<FairMotPreParam>();
+    this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+  }
+
+  virtual ~FairMotPreProcess() {}
+
+  virtual base::Status run();
+};
+
 class NNDEPLOY_CC_API FairMotPostProcess : public dag::Node {
  public:
   FairMotPostProcess(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::track::FairMotPostProcess";
-    this->setInputTypeInfo<cv::Mat>();
-    this->setInputTypeInfo<MOTResult>();
+    param_ = std::make_shared<FairMotPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<MOTResult>();
   }
-
   FairMotPostProcess(const std::string& name, std::vector<dag::Edge*> inputs,
                      std::vector<dag::Edge*> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::track::FairMotPostProcess";
-    this->setInputTypeInfo<cv::Mat>();
-    this->setInputTypeInfo<MOTResult>();
+    param_ = std::make_shared<FairMotPostParam>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<MOTResult>();
   }
 
   virtual ~FairMotPostProcess() {}
@@ -89,6 +143,7 @@ class NNDEPLOY_CC_API FairMotGraph : public dag::Graph {
   FairMotGraph(const std::string& name) : dag::Graph(name) {
     key_ = "nndeploy::track::FairMotGraph";
     this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<MOTResult>();
   }
 
   FairMotGraph(const std::string& name, std::vector<dag::Edge*> inputs,
@@ -96,6 +151,7 @@ class NNDEPLOY_CC_API FairMotGraph : public dag::Graph {
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::track::FairMotGraph";
     this->setInputTypeInfo<cv::Mat>();
+    this->setOutputTypeInfo<MOTResult>();
   }
 
   virtual ~FairMotGraph() {}
@@ -104,13 +160,13 @@ class NNDEPLOY_CC_API FairMotGraph : public dag::Graph {
                     const dag::NodeDesc& infer_desc,
                     base::InferenceType inference_type,
                     const dag::NodeDesc& post_desc) {
-    pre_ = this->createNode<preprocess::CvtColorResize>(pre_desc);
+    pre_ = this->createNode<FairMotPreProcess>(pre_desc);
     if (pre_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create preprocessing node\n");
+      NNDEPLOY_LOGE("Failed to create fairmot preprocess node\n");
       return base::kStatusCodeErrorInvalidParam;
     }
-    preprocess::CvtclorResizeParam* pre_param =
-        dynamic_cast<preprocess::CvtclorResizeParam*>(pre_->getParam());
+    FairMotPreParam* pre_param =
+        dynamic_cast<FairMotPreParam*>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
