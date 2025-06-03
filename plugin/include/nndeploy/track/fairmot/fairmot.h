@@ -28,22 +28,6 @@
 namespace nndeploy {
 namespace track {
 
-struct TrailRecorder {
-  std::map<int, std::vector<std::array<int, 2>>> records;
-  void Add(int id, const std::array<int, 2>& record);
-};
-
-inline void TrailRecorder::Add(int id, const std::array<int, 2>& record) {
-  auto iter = records.find(id);
-  if (iter != records.end()) {
-    auto trail = records[id];
-    trail.push_back(record);
-    records[id] = trail;
-  } else {
-    records[id] = {record};
-  }
-}
-
 class NNDEPLOY_CC_API FairMotPreParam : public base::Param {
  public:
   // 源图像的像素类型
@@ -73,10 +57,9 @@ class NNDEPLOY_CC_API FairMotPreParam : public base::Param {
 
 class NNDEPLOY_CC_API FairMotPostParam : public base::Param {
  public:
-  float conf_thresh_ = 0.3f;
-  float tracked_thresh_ = 0.5f;
-  float min_box_area_ = 100.0f;
-  bool is_record_trail_ = false;
+  float conf_thresh_ = 0.4f;
+  float tracked_thresh_ = 0.4f;
+  float min_box_area_ = 200.0f;
 };
 
 class NNDEPLOY_CC_API FairMotPreProcess : public dag::Node {
@@ -135,7 +118,6 @@ class NNDEPLOY_CC_API FairMotPostProcess : public dag::Node {
 
  private:
   std::shared_ptr<JDETracker> jdeTracker_ = nullptr;
-  std::shared_ptr<TrailRecorder> recorder_ = nullptr;
 };
 
 class NNDEPLOY_CC_API FairMotGraph : public dag::Graph {
