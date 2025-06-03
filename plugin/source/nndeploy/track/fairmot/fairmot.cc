@@ -1,4 +1,4 @@
-#include "nndeploy/track/fairmot.h"
+#include "nndeploy/track/fairmot/fairmot.h"
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -20,7 +20,7 @@
 #include "nndeploy/preprocess/cvtcolor_resize.h"
 
 namespace nndeploy {
-namespace detect {
+namespace track {
 
 void FairMotPostProcess::FilterDets(const float conf_thresh,
                                     const cv::Mat& dets,
@@ -32,6 +32,13 @@ void FairMotPostProcess::FilterDets(const float conf_thresh,
     }
   }
 }
+
+base::Status FairMotPostProcess::init() {
+  jdeTracker_ = std::make_shared<JDETracker>();
+  return base::kStatusCodeOk;
+}
+
+base::Status FairMotPostProcess::deinit() { return base::kStatusCodeOk; }
 
 base::Status FairMotPostProcess::run() {
   FairMotPostParam* param = (FairMotPostParam*)param_.get();
@@ -82,7 +89,7 @@ base::Status FairMotPostProcess::run() {
     result->scores.push_back(dets.at<float>(0, 4));
   } else {
     for (auto& track : tracks) {
-      if (track.score < tracked_thresh_) {
+      if (track.score < tracked_thresh) {
         continue;
       }
       float w = track.ltrb[2] - track.ltrb[0];
@@ -103,5 +110,5 @@ base::Status FairMotPostProcess::run() {
   return base::kStatusCodeOk;
 }
 
-}  // namespace detect
+}  // namespace track
 }  // namespace nndeploy

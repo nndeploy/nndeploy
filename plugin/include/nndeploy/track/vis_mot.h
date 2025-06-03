@@ -11,16 +11,18 @@
 #include "nndeploy/base/status.h"
 #include "nndeploy/base/string.h"
 #include "nndeploy/base/type.h"
+#include "nndeploy/dag/edge.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy/device/buffer.h"
 #include "nndeploy/device/device.h"
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/track/result.h"
 
-namespace nndeloy {
+namespace nndeploy {
 namespace track {
 
-class NNDEPLOY_CC_API VisMOTNode : public dag::Node {
+class VisMOTNode : public dag::Node {
  public:
   VisMOTNode(const std::string &name) : Node(name) {
     key_ = "nndeploy::track::VisMOTNode";
@@ -44,6 +46,6 @@ class NNDEPLOY_CC_API VisMOTNode : public dag::Node {
 };
 
 }  // namespace track
-}  // namespace nndeloy
+}  // namespace nndeploy
 
 #endif

@@ -56,19 +56,23 @@ class NNDEPLOY_CC_API FairMotPostProcess : public dag::Node {
  public:
   FairMotPostProcess(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::track::FairMotPostProcess";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setInputTypeInfo<MOTResult>();
   }
 
   FairMotPostProcess(const std::string& name, std::vector<dag::Edge*> inputs,
                      std::vector<dag::Edge*> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::track::FairMotPostProcess";
+    this->setInputTypeInfo<cv::Mat>();
+    this->setInputTypeInfo<MOTResult>();
   }
 
   virtual ~FairMotPostProcess() {}
 
-  virtual base::Status init() {}
+  virtual base::Status init();
 
-  virtual base::Status deinit() {}
+  virtual base::Status deinit();
 
   virtual base::Status run();
 
@@ -98,7 +102,7 @@ class NNDEPLOY_CC_API FairMotGraph : public dag::Graph {
 
   base::Status make(const dag::NodeDesc& pre_desc,
                     const dag::NodeDesc& infer_desc,
-                    const dag::NodeDesc& inference_type,
+                    base::InferenceType inference_type,
                     const dag::NodeDesc& post_desc) {
     pre_ = this->createNode<preprocess::CvtColorResize>(pre_desc);
     if (pre_ == nullptr) {
@@ -133,6 +137,22 @@ class NNDEPLOY_CC_API FairMotGraph : public dag::Graph {
 
     return base::kStatusCodeOk;
   }
+
+  base::Status setInferParam(base::DeviceType device_type,
+                             base::ModelType model_type, bool is_path,
+                             std::vector<std::string>& model_value) {
+    auto param = dynamic_cast<inference::InferenceParam*>(infer_->getParam());
+    param->device_type_ = device_type;
+    param->model_type_ = model_type;
+    param->is_path_ = is_path;
+    param->model_value_ = model_value;
+    return base::kStatusCodeOk;
+  }
+
+ private:
+  dag::Node* pre_ = nullptr;
+  infer::Infer* infer_ = nullptr;
+  dag::Node* post_ = nullptr;
 };
 
 }  // namespace track

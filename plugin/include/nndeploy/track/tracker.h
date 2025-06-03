@@ -43,7 +43,7 @@ struct Track {
   cv::Vec4f ltrb;
 };
 
-class FASTDEPLOY_DECL JDETracker {
+class JDETracker {
  public:
   JDETracker();
 
