@@ -13,13 +13,14 @@
 </h3>
 
 <p align="center">
-| <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> | <a href="https://discord.gg/9rUwfAaMbr"><b>discord</b></a> |
+| <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>文档</b></a> | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>公众号</b></a> | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>知乎</b></a> | <a href="https://discord.gg/9rUwfAaMbr"><b>discord</b></a> | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>哔哩哔哩</b></a> | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>ask deepwiki</b></a> | 
 </p>
 
 ---
 
 ## 新闻
-- [2025/05/29] 🔥 nndeploy开源团队和华为合作的课程[《从零手搓推理框架》](https://www.hiascend.com/developer/courses/detail/1923211251905150977)上线啦
+- [2025/05/29] 🔥 nndeploy开源团队和昇腾官方合作的[推理框架课程](https://www.hiascend.com/developer/courses/detail/1923211251905150977)上线啦
+
 
 ## 快速开始
 
@@ -112,7 +113,9 @@ nndeploy是一个简单易用、高性能、支持多端的AI推理部署框架�
 
 已适配主流视觉模型：图像分类（ResNet50等）、目标检测（YOLOv11等）、图像分割（RMBG1.4等）。未来将支持大语言模型（LLM）和文本图像多模态模型（Dit等）。
 
-> [有关内置推理子模块技术细节](docs/zh_cn/inference/README_INFERENCE.md)
+> 更多技术细节请参考：
+  - [B站课程-AI推理框架最全视频教程](https://www.bilibili.com/video/BV1HU7CznE39?vd_source=c5d7760172919cd367c00bf4e88d6f57&spm_id_from=333.788.videopod.sections)
+  - [知乎专栏](https://www.zhihu.com/column/c_1690464325314240512)
 
 <img src="docs/image/inference/inference_framework_arch.png">
 
@@ -143,7 +146,7 @@ nndeploy是一个简单易用、高性能、支持多端的AI推理部署框架�
 
 ## 联系我们
 - 当前nndeploy正处于发展阶段，如果您热爱开源、喜欢折腾，不论是出于学习目的，抑或是有更好的想法，欢迎加入我们。
-- 微信：titian5566 (加微信进AI推理部署交流群，请简单备注个人信息)
+- 微信：titian5566 (欢迎加好友，进活跃的AI推理部署交流群，请简单备注个人信息)
   
   <img src="docs/image/wechat.jpg" width="225px">
 

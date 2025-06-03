@@ -12,13 +12,13 @@ Easy-to-use, high-performance, multi-platform AI inference deployment framework
 </h3>
 
 <p align="center">
-| <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>Docs</b></a> | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>WeChat</b></a> | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>Zhihu</b></a> | <a href="https://discord.gg/9rUwfAaMbr"><b>discord</b></a> |
+| <a href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"><b>Docs</b></a> | <a href="docs/zh_cn/knowledge_shared/wechat.md"><b>WeChat</b></a> | <a href="https://www.zhihu.com/column/c_1690464325314240512"><b>Zhihu</b></a> | <a href="https://discord.gg/9rUwfAaMbr"><b>discord</b></a> | <a href="https://www.bilibili.com/video/BV1HU7CznE39/?spm_id_from=333.1387.collection.video_card.click&vd_source=c5d7760172919cd367c00bf4e88d6f57"><b>bilibili</b></a> | <a href="https://deepwiki.com/nndeploy/nndeploy"><b>ask deepwiki</b></a> | 
 </p>
 
 ---
 
 ## News
-- [2025/05/29] 🔥 The open-source team behind nndeploy has officially launched the course "Building an Inference Framework from Scratch" in collaboration with Huawei!
+- [2025/05/29] 🔥 The open-source team behind nndeploy has officially launched the course "Building an Inference Framework from Scratch" in collaboration with Ascend!
 
 ## Quick Start
 
@@ -109,7 +109,9 @@ Currently supports Huawei Ascend NPU and pure CPU ops. Plans to expand to X86, C
 
 Supports mainstream vision models: image classification (e.g., ResNet50), object detection (YOLOv11), image segmentation (RMBG1.4). Will support LLM and vision-language models (Dit).
 
-> [Technical details of built-in inference submodule](docs/zh_cn/inference/README_INFERENCE.md)
+> Technical details of built-in inference submodule
+  - [Bilibili Course - Complete AI Inference Framework Video Tutorial](https://www.bilibili.com/video/BV1HU7CznE39?vd_source=c5d7760172919cd367c00bf4e88d6f57&spm_id_from=333.788.videopod.sections)
+  - [Zhihu Column](https://www.zhihu.com/column/c_1690464325314240512)
 
 <img src="docs/image/inference/inference_framework_arch.png">
 
