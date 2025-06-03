@@ -1,33 +1,29 @@
-.my{
-  background: #eee;
-  .content{
-     color: red;
-  }
-}
-
-.frame {
+.backend-page {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: calc(100vh - 16px);
 
-  .nav {
+  .topNav {
     background-color: #f5f5f5;
+    display: flex;
+    height: 35px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px 0 0;
 
-    .dIvxx {
-      display: flex;
-      align-items: center;
+    .semi-avatar-small {
+      width: 16px;
+      height: 16px;
+    }
 
-      .semiIconsSemiLogo {
-        font-size: 24px;
-      }
+    .companyName {
+      margin-left: 1em;
+    }
 
-      .semiIconsFeishuLogo {
-        margin-right: 16px;
-      }
 
-      .avatar {
-        margin-left: 16px;
-      }
+    .logo {
+      height: 40px;
+      margin-right: 16px;
     }
   }
 
@@ -37,7 +33,7 @@
     min-height: 0;
 
     .left {
-      width: 250px;
+      width: 150px;
       background-color: #fff;
       border-right: 1px solid #e5e5e5;
     }

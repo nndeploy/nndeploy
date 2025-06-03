@@ -14,6 +14,65 @@ interface MockItem {
   response: templateOrFn;
 }
 
+const branches: IWorkFlowBranchEntity[] = [
+  {
+    id: "image recognition",
+    name: "image recognition",
+    parentId: "",
+  },
+  {
+    id: "dog recognition",
+    name: "dog recognition",
+    parentId: "image recognition",
+  },
+  {
+    id: "Golden Retriever image",
+    name: "Golden Retriever",
+    parentId: "dog recognition",
+  },
+  {
+    id: "German image shepherd",
+    name: "German shepherd",
+    parentId: "dog recognition",
+  },
+
+  {
+    id: "voice recognition",
+    name: "pattern recognition",
+    parentId: "",
+  },
+  {
+    id: "dog voice recognition",
+    name: "dog recognition",
+    parentId: "voice recognition",
+  },
+  {
+    id: "Golden voice Retriever",
+    name: "Golden Retriever",
+    parentId: "dog voice recognition",
+  },
+  {
+    id: "German voice shepherd",
+    name: "German shepherd",
+    parentId: "dog voice recognition",
+  },
+];
+
+const flows: IWorkFlowEntity[] = [
+  {
+    id: "Golden  Retriever image 1",
+    name: "image 1",
+    parentId: "Golden Retriever image",
+    content: initialData,
+  },
+  {
+    id: "Golden  Retriever image 2",
+    name: "image 2",
+    parentId: "Golden Retriever image",
+    content: initialData,
+  },
+];
+
 export const workFlowHandler: MockItem[] = [
   {
     url: "/workflow/branch/save",
@@ -48,65 +107,6 @@ export const workFlowHandler: MockItem[] = [
     url: "/workflow/tree",
     type: "get",
     response: (options) => {
-      const branches: IWorkFlowBranchEntity[] = [
-        {
-          id: "image recognition",
-          name: "image recognition",
-          parentId: "",
-        },
-        {
-          id: "dog recognition",
-          name: "dog recognition",
-          parentId: "image recognition",
-        },
-        {
-          id: "Golden Retriever image",
-          name: "Golden Retriever",
-          parentId: "dog recognition",
-        },
-        {
-          id: "German image shepherd",
-          name: "German shepherd",
-          parentId: "dog recognition",
-        },
-
-        {
-          id: "voice recognition",
-          name: "pattern recognition",
-          parentId: "",
-        },
-        {
-          id: "dog voice recognition",
-          name: "dog recognition",
-          parentId: "voice recognition",
-        },
-        {
-          id: "Golden voice Retriever",
-          name: "Golden Retriever",
-          parentId: "dog voice recognition",
-        },
-        {
-          id: "German voice shepherd",
-          name: "German shepherd",
-          parentId: "dog voice recognition",
-        },
-      ];
-
-      const flows: IWorkFlowEntity[] = [
-        {
-          id: "Golden  Retriever image 1",
-          name: "image 1",
-          parentId: "Golden Retriever image",
-          content: initialData,
-        },
-        {
-          id: "Golden  Retriever image 2",
-          name: "image 2",
-          parentId: "Golden Retriever image",
-          content: initialData,
-        },
-      ];
-
       const data: IWorkFlowTreeNodeEntity[] = [
         ...branches.map((item) => ({ ...item, type: "branch" as const })),
         ...flows.map((item) => ({ ...item, type: "leaf" as const })),
@@ -185,6 +185,10 @@ export const workFlowHandler: MockItem[] = [
     type: "post",
     response: (options) => {
       const entity: IWorkFlowEntity = JSON.parse(options.body);
+
+      if(!flows.find(item=>item.id == entity.id)){
+        flows.push(entity)
+      }
 
       return {
         flag: "success",

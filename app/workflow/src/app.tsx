@@ -1,15 +1,12 @@
 import { createRoot } from "react-dom/client";
 
-import { Flow } from "./pages/components/flow/Index";
-
 import { BrowserRouter } from "react-router-dom";
 import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
 import About from "./pages/About";
 import { NoMatch } from "./pages/NoMatch";
-import HomeLayout from "./pages/Layout/Home";
-import Flows from "./pages/flows";
-import Backend from "./pages/Layout/Backend/Backend";
+import BackendLayout from "./pages/Layout/Backend";
+import NodePage from "./pages/Node";
+import Design from "./pages/Layout/Design/Design";
 import './assets/css/index.scss'
 import './mock'
 
@@ -18,11 +15,17 @@ const app = createRoot(document.getElementById("root")!);
 app.render(
   <BrowserRouter>
     <Routes>
-      <Route path="/backend" element={<Backend />} />
+      <Route path="/design" element={<Design />} />
 
-      <Route path="flows" element={<Flows />} />
+      
 
-      <Route index element={<Home />} />
+      <Route path="/backend" element={<BackendLayout />} >
+        
+      </Route>
+
+      <Route path="/backendItem" >
+         <Route path="node" element={<NodePage />} />
+      </Route>
       <Route path="about" element={<About />} />
 
       <Route path="*" element={<NoMatch />} />

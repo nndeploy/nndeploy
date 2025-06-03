@@ -1,4 +1,4 @@
-.backend-page {
+.design-page {
   display: flex;
   flex-direction: column;
   height: calc(100vh - 16px);
@@ -9,6 +9,7 @@
     height: 35px;
     align-items: center;
     justify-content: space-between;
+    padding: 0 8px 0 0;
 
     .semi-avatar-small {
       width: 16px;

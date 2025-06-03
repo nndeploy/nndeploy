@@ -28,7 +28,7 @@ import {
 
 
 import { Typography } from "@douyinfe/semi-ui";
-import "./Backend.scss";
+import "./Design.scss";
 import "./FirstLevelNav.scss";
 import "./SecondLevelNav.scss";
 import "./TabContent.scss";
@@ -43,7 +43,7 @@ import { IWorkFlowEntity } from "./WorkFlow/entity";
 
 var tabId  = 1; 
 
-const Backend: React.FC = () => {
+const Design: React.FC = () => {
   const { Text } = Typography;
 
   const [activeKey, setActiveKey] = useState<string>("1");
@@ -101,7 +101,7 @@ const Backend: React.FC = () => {
   }
 
   return (
-    <div className="container backend-page">
+    <div className="container design-page">
       <Nav mode="horizontal" className="topNav" >
         <Nav.Header>
           <img
@@ -113,14 +113,14 @@ const Backend: React.FC = () => {
         </Nav.Header>
         <Nav.Footer>
           <a href="https://github.com/nndeploy/nndeploy" target="_blank">
-            <Button icon={<IconGithubLogo />} theme="borderless" />
+            <Button icon={<IconGithubLogo/>} theme="borderless"  size='large' />
           </a>
 
           <a
             href="https://nndeploy-zh.readthedocs.io/zh-cn/latest/"
             target="_blank"
           >
-            <Button icon={<IconHelpCircle />} theme="borderless" />
+            <Button icon={<IconHelpCircle />} size='large' theme="borderless" />
           </a>
           <a
             href="https://www.zhihu.com/column/c_1690464325314240512"
@@ -128,12 +128,14 @@ const Backend: React.FC = () => {
           >
             <Button
               icon={<FontAwesomeIcon icon={faZhihu} size="1x" />}
+              size='large'
               theme="borderless"
             />
           </a>
           <a href="https://discord.gg/xAWvmZn3" target="_blank">
             <Button
               icon={<FontAwesomeIcon icon={faDiscord} size="1x" />}
+              size='large'
               theme="borderless"
             />
           </a>
@@ -144,6 +146,7 @@ const Backend: React.FC = () => {
             <Button
               icon={<FontAwesomeIcon icon={faWeixin} size="1x" />}
               theme="borderless"
+              size='large'
             />
           </a>
           <Dropdown
@@ -248,4 +251,4 @@ const Backend: React.FC = () => {
   );
 };
 
-export default Backend;
+export default Design;

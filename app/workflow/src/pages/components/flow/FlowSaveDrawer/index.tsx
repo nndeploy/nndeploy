@@ -3,9 +3,9 @@ const { Input, TreeSelect } = Form;
 
 import { useRef } from "react";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
-import { useGetWorkflowBranch, useGetWorkflowTree } from "../../../Layout/Backend/WorkFlow/effect";
-import { IWorkFlowEntity } from "../../../Layout/Backend/WorkFlow/entity";
-import { apiWorkFlowSave } from "../../../Layout/Backend/WorkFlow/api";
+import { useGetWorkflowBranch, useGetWorkflowTree } from "../../../Layout/Design/WorkFlow/effect";
+import { IWorkFlowEntity } from "../../../Layout/Design/WorkFlow/entity";
+import { apiWorkFlowSave } from "../../../Layout/Design/WorkFlow/api";
 
 export interface BranchEditDrawerProps {
   onSure: (node: IWorkFlowEntity) => void;

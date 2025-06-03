@@ -96,6 +96,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   }
 
   useEffect(() => {
+    let handleDrop: any = null;
     if (dropzone.current) {
       dropzone.current.addEventListener("dragover", (e) => {
         e.preventDefault();
@@ -106,7 +107,12 @@ const Flow: React.FC<FlowProps> = (props) => {
       //     //dropzone.classList.remove('over'); // 离开时恢复样式
       // });
 
-      dropzone.current.addEventListener("drop", async (e) => {
+      if(handleDrop){
+         dropzone.current.removeEventListener("drop", handleDrop);
+         handleDrop = null 
+      }
+
+      handleDrop = dropzone.current.addEventListener("drop", async (e) => {
         e.preventDefault();
 
         const position =
@@ -129,7 +135,17 @@ const Flow: React.FC<FlowProps> = (props) => {
         });
       });
     }
-  }, [dropzone.current]);
+    //清理函数
+    return () => {
+      if ( handleDrop) {
+        dropzone?.current?.removeEventListener("dragover", (e) =>
+          e.preventDefault()
+        );
+        dropzone?.current?.removeEventListener("drop", handleDrop);
+        handleDrop = null ; 
+      }
+    };
+  }, [dropzone]);
 
   const editorProps = useEditorProps(entity.content, nodeRegistries);
   return (

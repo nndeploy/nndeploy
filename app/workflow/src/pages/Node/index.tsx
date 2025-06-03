@@ -16,10 +16,11 @@ import {
   IconDelete,
   IconFlowChartStroked,
 } from "@douyinfe/semi-icons";
-import styles from "./index.module.scss";
+import "./index.scss";
 import Flow from "../components/flow/Index";
+import NodeTree from "./Tree";
 
-const Flows: React.FC = () => {
+const NodePage: React.FC = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -123,74 +124,78 @@ const Flows: React.FC = () => {
   ];
 
   return (
-    <div className={styles.container}>
-      <Form
-        layout="horizontal"
-        onSubmit={handleSearch}
-        className={styles.form}
-        labelPosition="inset"
-      >
-        <Form.Input field="name" label="Name" />
-        <Form.Input field="age" label="Age" />
-        <Button icon={<IconSearch />} htmlType="submit">
-          Search
-        </Button>
-      </Form>
-      <Button
-        icon={<IconPlus />}
-        onClick={handleAdd}
-        className={styles.addButton}
-      >
-        Add
-      </Button>
-      <Table
-        columns={columns}
-        dataSource={data.slice(
-          (currentPage - 1) * pageSize,
-          currentPage * pageSize
-        )}
-        loading={loading}
-        pagination={false}
-      />
-      <Pagination
-        total={total}
-        currentPage={currentPage}
-        pageSize={pageSize}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-      />
-      <SideSheet
-        title={sideSheetMode === "add" ? "Add Record" : "Edit Record"}
-        visible={sideSheetVisible}
-        onCancel={() => setSideSheetVisible(false)}
-      >
-        <Form layout="vertical">
-          <Form.Input
-            field="name"
-            label="Name"
-            initValue={selectedRecord?.name}
-          />
-          <Form.Input field="age" label="Age" initValue={selectedRecord?.age} />
-          <Form.Input
-            field="address"
-            label="Address"
-            initValue={selectedRecord?.address}
-          />
-          <Button type="primary" htmlType="submit">
-            Submit
+    <div className="page-node">
+      <NodeTree />
+      <div className="main">
+        <Form
+          ///@ts-ignore
+          layout="horizontal"
+          onSubmit={handleSearch}
+          className={"form"}
+          labelPosition="inset"
+        >
+          <Form.Input field="name" label="Name" />
+          <Form.Input field="age" label="Age" />
+          <Button icon={<IconSearch />} htmlType="submit">
+            Search
           </Button>
         </Form>
-      </SideSheet>
-      <SideSheet
-        title="Design Flow"
-        visible={designSideSheetVisible}
-        onCancel={() => setDesignSideSheetVisible(false)}
-        width="100%"
-      >
-        <Flow />
-      </SideSheet>
+        <Button icon={<IconPlus />} onClick={handleAdd} className={"addButton"}>
+          Add
+        </Button>
+        <Table
+          columns={columns}
+          dataSource={data.slice(
+            (currentPage - 1) * pageSize,
+            currentPage * pageSize
+          )}
+          loading={loading}
+          pagination={false}
+        />
+        <Pagination
+          total={total}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
+        <SideSheet
+          title={sideSheetMode === "add" ? "Add Record" : "Edit Record"}
+          visible={sideSheetVisible}
+          onCancel={() => setSideSheetVisible(false)}
+        >
+          <Form layout="vertical">
+            <Form.Input
+              field="name"
+              label="Name"
+              initValue={selectedRecord?.name}
+            />
+            <Form.Input
+              field="age"
+              label="Age"
+              initValue={selectedRecord?.age}
+            />
+            <Form.Input
+              field="address"
+              label="Address"
+              initValue={selectedRecord?.address}
+            />
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form>
+        </SideSheet>
+        <SideSheet
+          title="Design Flow"
+          visible={designSideSheetVisible}
+          onCancel={() => setDesignSideSheetVisible(false)}
+          width="100%"
+        >
+          {/* <Flow /> */}
+        </SideSheet>
+      </div>
     </div>
   );
 };
 
-export default Flows;
+export default NodePage;
