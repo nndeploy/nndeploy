@@ -13,8 +13,6 @@ from .base import EdgeTypeInfo
 class Edge(_C.dag.Edge):
     def __init__(self, name: str = ""):
         super().__init__(name)
-        self.parallel_type = nndeploy.base.ParallelType.kParallelTypeNone
-        self.index = 0
 
     def get_name(self) -> str:
         return super().get_name()
@@ -35,37 +33,24 @@ class Edge(_C.dag.Edge):
         return super().construct()
         
     def set(self, data: any):
+        # 检查传入的数据是否为nndeploy框架中的Buffer或Tensor类型
+        # isinstance()函数用于判断对象是否为指定类型的实例
+        # 这里使用元组(nndeploy.device.Buffer, nndeploy.device.Tensor)来同时检查两种类型
+        # 如果data是Buffer或Tensor中的任意一种类型，条件为True
         if isinstance(data, (nndeploy.device.Buffer, nndeploy.device.Tensor)):
-            # self.type_name = "nd." + type(data).__name__
             status = super().set(data, True)
-            if status != nndeploy.base.StatusCode.Ok:
-                raise ValueError("Failed to set data")
+        elif issubclass(type(data), nndeploy.base.Param):
+            status = super().set(data, True)
         else: # 处理其他类型的数据
-            # self.type_name = type(data).__name__
-            # if self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.Task:
-            #     self.data = data
-            # elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-            #     raise ValueError("Parallel type is not supported")
-            # print(self.get_type_name())
-            print(data)
-            self.set_any(data)
-            # print(self.get_type_name())
-        self.index += 1
-        self.position = self.index
-        self.type_name = type(data).__module__ + "." + type(data).__name__
+            status = self.set_any(data)
+        if status != nndeploy.base.StatusCode.Ok:
+            raise ValueError("Failed to set data")
         return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
         
     def create_buffer(self, device: nndeploy.device.Device, desc: nndeploy.device.BufferDesc):
-        # 创建Buffer时设置正确的类型名称
-        # self.type_name = "nd.Buffer"
-        buffer_type = nndeploy.device.Buffer
-        self.type_name = buffer_type.__module__ + "." + buffer_type.__name__
         return super().create(device, desc)
 
     def create_tensor(self, device: nndeploy.device.Device, desc: nndeploy.device.TensorDesc, tensor_name: str = ""):
-        # self.type_name = "nd.Tensor"
-        tensor_type = nndeploy.device.Tensor
-        self.type_name = tensor_type.__module__ + "." + tensor_type.__name__
         return super().create(device, desc, tensor_name)
         
     def notify_written(self, data: Union[nndeploy.device.Buffer, nndeploy.device.Tensor]):
@@ -84,50 +69,28 @@ class Edge(_C.dag.Edge):
         return super().get_graph_output_tensor()
         
     def get(self, node: _C.dag.Node = None):
-        # if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
-        #     return self.data
-        # elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-        #     raise ValueError("Parallel type is not supported")
         return self.get_any(node)
         
     def get_graph_output(self):
-        # if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
-        #     return self.data
-        # elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-        #     raise ValueError("Parallel type is not supported")
         return self.get_graph_output_any()
+        
     def get_index(self, node: _C.dag.Node) -> int:
-        if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
-            return self.index
-        elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-            raise ValueError("Parallel type is not supported")
+        return super().get_index(node)
         
     def reset_index(self):
         return super().reset_index()
         
     def get_graph_output_index(self) -> int:
-        if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
-            return self.index
-        elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-            raise ValueError("Parallel type is not supported")
+        return super().get_graph_output_index()
         
     def get_position(self, node: _C.dag.Node) -> int:
-        if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
-            return self.position
-        elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-            raise ValueError("Parallel type is not supported")
+        return super().get_position(node)
         
     def get_graph_output_position(self) -> int:
-        if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
-            return self.position
-        elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-            raise ValueError("Parallel type is not supported")
+        return super().get_graph_output_position()
         
     def update(self, node: _C.dag.Node) -> nndeploy.base.EdgeUpdateFlag:
-        if self.parallel_type == nndeploy.base.ParallelType.Sequential or self.parallel_type == nndeploy.base.ParallelType.kParallelTypeNone or self.parallel_type == nndeploy.base.ParallelType.Task:
-            return super().update(node)
-        elif self.parallel_type == nndeploy.base.ParallelType.Pipeline:
-            raise ValueError("Parallel type is not supported")
+        return super().update(node)
         
     def mark_graph_output(self) -> bool:
         return super().mark_graph_output()
@@ -141,8 +104,11 @@ class Edge(_C.dag.Edge):
     def request_terminate(self) -> bool:
         return super().request_terminate()
       
+    def set_type_name(self, type_name: str):
+        return super().set_type_name(type_name)
+
     def get_type_name(self) -> str:
-        return self.type_name
+        return super().get_type_name()
     
     def set_type_info(self, type_info: EdgeTypeInfo):
         return super().set_type_info(type_info)

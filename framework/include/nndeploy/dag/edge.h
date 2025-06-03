@@ -171,6 +171,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   }
   base::Status setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info);
   std::shared_ptr<EdgeTypeInfo> getTypeInfo();
+  void setTypeName(const std::string &type_name);
+  std::string getTypeName();
 
   template <typename T>
   bool checkTypeInfo() {

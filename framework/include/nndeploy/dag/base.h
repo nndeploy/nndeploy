@@ -93,7 +93,10 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
 
   EdgeTypeFlag getType() const { return type_; }
 
-  void setTypeName(const std::string& type_name) { type_name_ = type_name; }
+  void setTypeName(const std::string& type_name) { 
+    // NNDEPLOY_LOGI("setTypeName: %s\n", type_name.c_str());
+    type_name_ = type_name; 
+  }
   std::string getTypeName() const { return type_name_; }
 
   std::string getUniqueTypeName() {

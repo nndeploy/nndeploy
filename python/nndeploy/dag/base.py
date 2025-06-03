@@ -110,6 +110,9 @@ class EdgeTypeInfo(_C.dag.EdgeTypeInfo):
 
     def get_type(self) -> EdgeTypeFlag:
         return super().get_type()
+    
+    def set_type_name(self, type_name: str):
+        super().set_type_name(type_name)
 
     def get_type_name(self) -> str:
         return super().get_type_name()
