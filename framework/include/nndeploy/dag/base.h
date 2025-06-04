@@ -75,7 +75,7 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
       type_name_ = "Buffer";
     } else if constexpr (std::is_same<DT, cv::Mat>::value) {
       type_ = EdgeTypeFlag::kCvMat;
-      type_name_ = "CvMat";
+      type_name_ = "Mat";
     } else if constexpr (std::is_same<DT, device::Tensor>::value) {
       type_ = EdgeTypeFlag::kTensor;
       type_name_ = "Tensor";

@@ -60,20 +60,169 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
       // OpenCV Mat相关操作
-      .def("set", py::overload_cast<cv::Mat*, bool>(&Edge::set),
-           py::arg("cv_mat"), py::arg("is_external") = true)
-      .def("set", py::overload_cast<cv::Mat&>(&Edge::set), py::arg("cv_mat"))
-      .def("create",
-           static_cast<cv::Mat* (Edge::*)(int, int, int, const cv::Vec3b&)>(
-               &Edge::create),
-           py::arg("rows"), py::arg("cols"), py::arg("type"), py::arg("value"),
-           py::return_value_policy::reference)
-      .def("notify_written", py::overload_cast<cv::Mat*>(&Edge::notifyWritten),
-           py::arg("cv_mat"))
-      .def("get_cv_mat", &Edge::getCvMat, py::arg("node"),
-           py::return_value_policy::reference)
-      .def("get_graph_output_cv_mat", &Edge::getGraphOutputCvMat,
-           py::return_value_policy::reference)
+      .def("set",
+           [](Edge& edge, const py::buffer& buffer) {
+             // 获取numpy数组的维度和形状
+             py::buffer_info info = buffer.request();
+             char kind = info.format.front();
+             int channels = (info.ndim == 3) ? info.shape[2] : 1;
+             int cv_depth;
+             // 根据numpy数组的数据类型和每个元素的大小来确定OpenCV的数据类型
+             switch (kind) {
+               case 'B':
+                 cv_depth = CV_8U;
+                 break;
+               case 'b':
+                 cv_depth = CV_8S;
+                 break;
+               case 'H':
+                 cv_depth = CV_16U;
+                 break;
+               case 'h':
+                 cv_depth = CV_16S;
+                 break;
+               case 'i':
+                 cv_depth = CV_32S;
+                 break;
+               case 'f':
+                 cv_depth = CV_32F;
+                 break;
+               case 'd':
+                 cv_depth = CV_64F;
+                 break;
+               default:
+                 throw std::runtime_error("Unsupported data type kind: " +
+                                          std::string(1, kind));
+             }
+             int type = CV_MAKETYPE(cv_depth, channels);
+             cv::Mat* mat =
+                 new cv::Mat(info.shape[0], info.shape[1], type, info.ptr);
+             return edge.set(mat, false);
+           })
+      .def("get_numpy",
+           [](Edge& edge, const Node* node) {
+             cv::Mat* mat = edge.getCvMat(node);
+             if (mat == nullptr) {
+               return py::array();  // 返回空数组
+             }
+
+             std::string format;
+             switch (mat->depth()) {
+               case CV_8U:
+                 format = "B";
+                 break;
+               case CV_8S:
+                 format = "b";
+                 break;
+               case CV_16U:
+                 format = "H";
+                 break;
+               case CV_16S:
+                 format = "h";
+                 break;
+               case CV_32S:
+                 format = "i";
+                 break;
+               case CV_32F:
+                 format = "f";
+                 break;
+               case CV_64F:
+                 format = "d";
+                 break;
+               default:
+                 throw std::runtime_error("Unsupported cv::Mat data type");
+             }
+
+             std::vector<ssize_t> shape;
+             std::vector<ssize_t> strides;
+
+             if (mat->channels() == 1) {
+               // 单通道图像
+               shape = {static_cast<ssize_t>(mat->rows),
+                        static_cast<ssize_t>(mat->cols)};
+               strides = {static_cast<ssize_t>(mat->step[0]),
+                          static_cast<ssize_t>(mat->elemSize1())};
+             } else {
+               // 多通道图像
+               shape = {static_cast<ssize_t>(mat->rows),
+                        static_cast<ssize_t>(mat->cols),
+                        static_cast<ssize_t>(mat->channels())};
+               strides = {
+                   static_cast<ssize_t>(mat->step[0]),
+                   static_cast<ssize_t>(mat->elemSize1() * mat->channels()),
+                   static_cast<ssize_t>(mat->elemSize1())};
+             }
+
+             return py::array(py::buffer_info(mat->data,         // 数据指针
+                                              mat->elemSize1(),  // 单个元素大小
+                                              format,            // 数据格式
+                                              shape.size(),      // 维度数
+                                              shape,             // 形状
+                                              strides            // 步长
+                                              ));
+           })
+      .def("get_graph_output_numpy",
+           [](Edge& edge) {
+             cv::Mat* mat = edge.getGraphOutputCvMat();
+             if (mat == nullptr) {
+               return py::array();  // 返回空数组
+             }
+
+             std::string format;
+             switch (mat->depth()) {
+               case CV_8U:
+                 format = "B";
+                 break;
+               case CV_8S:
+                 format = "b";
+                 break;
+               case CV_16U:
+                 format = "H";
+                 break;
+               case CV_16S:
+                 format = "h";
+                 break;
+               case CV_32S:
+                 format = "i";
+                 break;
+               case CV_32F:
+                 format = "f";
+                 break;
+               case CV_64F:
+                 format = "d";
+                 break;
+               default:
+                 throw std::runtime_error("Unsupported cv::Mat data type");
+             }
+
+             std::vector<ssize_t> shape;
+             std::vector<ssize_t> strides;
+
+             if (mat->channels() == 1) {
+               // 单通道图像
+               shape = {static_cast<ssize_t>(mat->rows),
+                        static_cast<ssize_t>(mat->cols)};
+               strides = {static_cast<ssize_t>(mat->step[0]),
+                          static_cast<ssize_t>(mat->elemSize1())};
+             } else {
+               // 多通道图像
+               shape = {static_cast<ssize_t>(mat->rows),
+                        static_cast<ssize_t>(mat->cols),
+                        static_cast<ssize_t>(mat->channels())};
+               strides = {
+                   static_cast<ssize_t>(mat->step[0]),
+                   static_cast<ssize_t>(mat->elemSize1() * mat->channels()),
+                   static_cast<ssize_t>(mat->elemSize1())};
+             }
+
+             return py::array(py::buffer_info(mat->data,         // 数据指针
+                                              mat->elemSize1(),  // 单个元素大小
+                                              format,            // 数据格式
+                                              shape.size(),      // 维度数
+                                              shape,             // 形状
+                                              strides            // 步长
+                                              ));
+           })
 #endif
 
       // Tensor相关操作
@@ -116,7 +265,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
 
             // 将包装器传递给Edge
             bool is_external = false;
-            base::Status status = edge.setAny<PyObjectWrapper>(wrapper, is_external);
+            base::Status status =
+                edge.setAny<PyObjectWrapper>(wrapper, is_external);
             if (status != base::StatusCode::kStatusCodeOk) {
               throw std::runtime_error("Failed to set any");
             }

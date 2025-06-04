@@ -39,6 +39,8 @@ class Edge(_C.dag.Edge):
         # 如果data是Buffer或Tensor中的任意一种类型，条件为True
         if isinstance(data, (nndeploy.device.Buffer, nndeploy.device.Tensor)):
             status = super().set(data, True)
+        elif isinstance(data, np.ndarray):
+            status = super().set(data)
         elif issubclass(type(data), nndeploy.base.Param):
             status = super().set(data, True)
         else: # 处理其他类型的数据

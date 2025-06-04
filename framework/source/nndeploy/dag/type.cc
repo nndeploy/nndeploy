@@ -31,7 +31,7 @@ std::string edgeTypeToString(EdgeTypeFlag edge_type) {
     case EdgeTypeFlag::kBuffer:
       return "Buffer";
     case EdgeTypeFlag::kCvMat:
-      return "CvMat";
+      return "Mat";
     case EdgeTypeFlag::kTensor:
       return "Tensor";
     case EdgeTypeFlag::kParam:
@@ -48,7 +48,7 @@ std::string edgeTypeToString(EdgeTypeFlag edge_type) {
 EdgeTypeFlag stringToEdgeType(const std::string& edge_type_str) {
   if (edge_type_str == "Buffer") {
     return EdgeTypeFlag::kBuffer;
-  } else if (edge_type_str == "CvMat") {
+  } else if (edge_type_str == "Mat") {
     return EdgeTypeFlag::kCvMat;
   } else if (edge_type_str == "Tensor") {
     return EdgeTypeFlag::kTensor;
