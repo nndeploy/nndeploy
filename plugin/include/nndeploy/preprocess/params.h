@@ -163,25 +163,35 @@ class NNDEPLOY_CC_API CvtclorResizeParam : public base::Param {
   // 归一化处理中的标准差，用于数据标准化
   float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
-  virtual base::Status serialize(rapidjson::Value &json,
-                                 rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
     base::Status status = base::Param::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       return status;
     }
 
     std::string src_pixel_type_str = base::pixelTypeToString(src_pixel_type_);
-    json.AddMember("src_pixel_type_", rapidjson::Value(src_pixel_type_str.c_str(), allocator), allocator);
+    json.AddMember("src_pixel_type_",
+                   rapidjson::Value(src_pixel_type_str.c_str(), allocator),
+                   allocator);
     std::string dst_pixel_type_str = base::pixelTypeToString(dst_pixel_type_);
-    json.AddMember("dst_pixel_type_", rapidjson::Value(dst_pixel_type_str.c_str(), allocator), allocator);
+    json.AddMember("dst_pixel_type_",
+                   rapidjson::Value(dst_pixel_type_str.c_str(), allocator),
+                   allocator);
     std::string interp_type_str = base::interpTypeToString(interp_type_);
-    json.AddMember("interp_type_", rapidjson::Value(interp_type_str.c_str(), allocator), allocator);
+    json.AddMember("interp_type_",
+                   rapidjson::Value(interp_type_str.c_str(), allocator),
+                   allocator);
     json.AddMember("h_", h_, allocator);
     json.AddMember("w_", w_, allocator);
     std::string data_type_str = base::dataTypeToString(data_type_);
-    json.AddMember("data_type_", rapidjson::Value(data_type_str.c_str(), allocator), allocator);
+    json.AddMember("data_type_",
+                   rapidjson::Value(data_type_str.c_str(), allocator),
+                   allocator);
     std::string data_format_str = base::dataFormatToString(data_format_);
-    json.AddMember("data_format_", rapidjson::Value(data_format_str.c_str(), allocator), allocator);
+    json.AddMember("data_format_",
+                   rapidjson::Value(data_format_str.c_str(), allocator),
+                   allocator);
     json.AddMember("normalize_", normalize_, allocator);
 
     rapidjson::Value scale_array(rapidjson::kArrayType);
@@ -199,17 +209,21 @@ class NNDEPLOY_CC_API CvtclorResizeParam : public base::Param {
     return base::kStatusCodeOk;
   }
 
-  virtual base::Status deserialize(rapidjson::Value &json) {
+  virtual base::Status deserialize(rapidjson::Value& json) {
     base::Status status = base::Param::deserialize(json);
     if (status != base::kStatusCodeOk) {
       return status;
     }
 
-    if (json.HasMember("src_pixel_type_") && json["src_pixel_type_"].IsString()) {
-      src_pixel_type_ = base::stringToPixelType(json["src_pixel_type_"].GetString());
+    if (json.HasMember("src_pixel_type_") &&
+        json["src_pixel_type_"].IsString()) {
+      src_pixel_type_ =
+          base::stringToPixelType(json["src_pixel_type_"].GetString());
     }
-    if (json.HasMember("dst_pixel_type_") && json["dst_pixel_type_"].IsString()) {
-      dst_pixel_type_ = base::stringToPixelType(json["dst_pixel_type_"].GetString());
+    if (json.HasMember("dst_pixel_type_") &&
+        json["dst_pixel_type_"].IsString()) {
+      dst_pixel_type_ =
+          base::stringToPixelType(json["dst_pixel_type_"].GetString());
     }
     if (json.HasMember("interp_type_") && json["interp_type_"].IsString()) {
       interp_type_ = base::stringToInterpType(json["interp_type_"].GetString());
