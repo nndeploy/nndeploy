@@ -3,7 +3,8 @@ import {
   IResourceBranchEntity,
   IResourceEntity,
   IResourceTreeNodeEntity,
-} from "../../../../../pages/Layout/Backend/Resource/entity";
+} from "../../../pages/Layout/Design/Resource/entity";
+import { MockItem } from "../../entity";
 
 // mock方法,详细的可以看官方文档
 const Random = Mock.Random;
@@ -284,12 +285,6 @@ const resourceData = [
   },
 ];
 
-interface MockItem {
-  url: string | RegExp;
-  type: "get" | "post";
-  response: templateOrFn;
-}
-
 export const resourceHandler: MockItem[] = [
   {
     url: "/resource/branch/save",
@@ -328,14 +323,13 @@ export const resourceHandler: MockItem[] = [
     type: "post",
     response: (options) => {
       const requestParams: IResourceEntity = JSON.parse(options.body);
-      let entity =  resourceData.find(item=>item.id == requestParams.id)
-      entity = entity ? entity : resourceData[0]
-
+      let entity = resourceData.find((item) => item.id == requestParams.id);
+      entity = entity ? entity : resourceData[0];
 
       return {
         flag: "success",
         message: "",
-        result: entity
+        result: entity,
       };
     },
   },
@@ -370,19 +364,22 @@ export const resourceHandler: MockItem[] = [
     url: "/resource/save",
     type: "post",
     response: (options) => {
-      const resource: IResourceEntity = JSON.parse(options.body);
+      const entity: IResourceEntity = JSON.parse(options.body);
+
+
+       const findIndex = resourceData.findIndex((item) => item.id == entity.id);
+
+      if (findIndex == -1) {
+        entity.id = Random.guid();
+        resourceData.push(entity);
+      } else {
+        resourceData[findIndex] = entity;
+      }
 
       return {
         flag: "success",
         message: "",
-        result: {
-          ...resource,
-          id: resource.id ? resource.id : Random.guid(),
-          name: resource.name,
-
-          mime: resource.mime,
-          url: resource.url,
-        },
+        result: entity
       };
     },
   },
@@ -391,8 +388,19 @@ export const resourceHandler: MockItem[] = [
     url: "/resource/delete",
     type: "post",
     response: (options) => {
-      const resource: IResourceEntity = JSON.parse(options.body);
+      const entity: IResourceEntity = JSON.parse(options.body);
 
+      const findIndex = resourceData.findIndex((item) => item.id == entity.id);
+
+      if (findIndex == -1) {
+        return {
+          flag: "error",
+          message: "could not find this item",
+          result: {},
+        };
+      } else {
+        resourceData.splice(findIndex, 1);
+      }
       return {
         flag: "success",
         message: "",

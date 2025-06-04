@@ -10,11 +10,11 @@ import { IconMore, IconPlus } from "@douyinfe/semi-icons";
 import { ReactNode, useState } from "react";
 
 import "./index.scss";
-import NodeEditDrawer from "./NodeEditDrawer";
+import NodeEditDrawer from "../NodeEditDrawer";
 
 import BranchEditDrawer from "./BranchEditDrawer";
 import { useGetNoteBranch } from "./effect";
-import { INodeBranchEntity, INodeEntity, NodeBranchTreeNodeData } from "./entity";
+import { INodeBranchEntity, INodeEntity, NodeBranchTreeNodeData } from "../entity";
 import { apiNodeBranchDelete } from "./api";
 
 
@@ -150,7 +150,7 @@ const NodeTree: React.FC = () => {
                   onNodeEdit({ id: "", name: "", parentId: resource.id, config: [] })
                 }
               >
-                add resource
+                add node
               </Dropdown.Item>
           
             <Dropdown.Item>
@@ -224,7 +224,7 @@ const NodeTree: React.FC = () => {
         //draggable
       />
       <SideSheet
-        width={"30%"}
+        width={"calc(100% - 200px - 17px )"}
         visible={nodeEditVisible}
         onCancel={handleResoureDrawerClose}
         title={nodeEdit?.name ?? "add"}

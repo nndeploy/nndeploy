@@ -44,26 +44,35 @@
       flex-direction: column;
 
       flex: 1;
-      padding: 16px;
+      padding: 16 0 0 8px;
 
-      .tabs {
+      &>.tabs {
         margin-bottom: 18px;
 
 
         flex: 1;
+        min-height: 0px;
         display: flex;
         flex-direction: column;
 
-        .semi-tabs-content {
+        &>.semi-tabs-content {
           flex: 1;
+          min-height: 0px;
           margin-right: 10px;
+          &>.semi-tabs-pane{
+            height: 100%;
+            &>.semi-tabs-pane-motion-overlay{
+              height: 100%;
+            }
+          }
         }
 
       }
 
       .iframe {
         width: 100%;
-        height: 600px;
+        height: 100%;
+
         border: none;
       }
     }

@@ -1,8 +1,8 @@
-import { INodeBranchEntity, INodeEntity} from "./entity";
+import { INodeBranchEntity, INodeEntity} from "../entity";
 import request from "../../../request";
 
 export async function apiGetNodeBranch() {
-  var response = await request.get<INodeBranchEntity[]>(
+  var response = await request.post<INodeBranchEntity[]>(
     "/node/branch",
     {}
   );

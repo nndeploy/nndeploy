@@ -19,6 +19,8 @@ import {
 import "./index.scss";
 import Flow from "../components/flow/Index";
 import NodeTree from "./Tree";
+import { INodeEntity } from "./entity";
+import NodeEditDrawer from "./NodeEditDrawer";
 
 const NodePage: React.FC = () => {
   const [data, setData] = useState([]);
@@ -27,13 +29,21 @@ const NodePage: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
 
-  const [sideSheetVisible, setSideSheetVisible] = useState(false);
-  const [designSideSheetVisible, setDesignSideSheetVisible] = useState(false);
+  const [nodeEditVisible, setNodeEditVisible] = useState(false);
+  const [nodeEdit, setNodeEdit] = useState<INodeEntity>();
 
-  const [sideSheetMode, setSideSheetMode] = useState<"add" | "edit" | "design">(
-    "add"
-  );
-  const [selectedRecord, setSelectedRecord] = useState(null);
+  function onNodeEdit(item: INodeEntity) {
+    setNodeEdit(item);
+    setNodeEditVisible(true);
+  }
+
+  function onNodeEditDrawerSure(node: INodeEntity) {
+    setNodeEditVisible(false);
+  }
+
+  function onNodeEditDrawerClose() {
+    setNodeEditVisible(false);
+  }
 
   const fetchData = async (params = {}) => {
     setLoading(true);
@@ -72,27 +82,22 @@ const NodePage: React.FC = () => {
     setPageSize(size);
   };
 
-  const handleAdd = () => {
-    setSideSheetMode("add");
-    setSelectedRecord(null);
-    setSideSheetVisible(true);
-  };
+  function handleAdd() {
+    onNodeEdit({ id: "", name: "", parentId: "", config: [] });
+    setNodeEditVisible(true);
+  }
 
-  const handleEdit = (record: any) => {
-    setSideSheetMode("edit");
-    setSelectedRecord(record);
-    setSideSheetVisible(true);
-  };
+  function handleEdit(entity: INodeEntity) {
+    onNodeEdit(entity);
+    setNodeEditVisible(true);
+  }
 
-  const handleDelete = (record: any) => {
-    // 模拟删除操作
-    console.log("Delete record:", record);
-  };
-
-  const handleDesign = (record: any) => {
-    setSelectedRecord(record);
-    setDesignSideSheetVisible(true);
-  };
+  async function handleDelete(entity: INodeEntity){
+    const response = await apiNodeDelete(entity)
+    if(response.flag == "success"){
+      
+    }
+  }
 
   const columns = [
     { title: "Name", dataIndex: "name", key: "name" },
@@ -113,10 +118,6 @@ const NodePage: React.FC = () => {
           <IconButton
             icon={<IconDelete />}
             onClick={() => handleDelete(record)}
-          />
-          <IconButton
-            icon={<IconFlowChartStroked />}
-            onClick={() => handleDesign(record)}
           />
         </>
       ),
@@ -159,39 +160,18 @@ const NodePage: React.FC = () => {
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
         />
+
         <SideSheet
-          title={sideSheetMode === "add" ? "Add Record" : "Edit Record"}
-          visible={sideSheetVisible}
-          onCancel={() => setSideSheetVisible(false)}
+          width={"calc(100% - 200px - 17px )"}
+          visible={nodeEditVisible}
+          onCancel={onNodeEditDrawerClose}
+          title={nodeEdit?.name ?? "add"}
         >
-          <Form layout="vertical">
-            <Form.Input
-              field="name"
-              label="Name"
-              initValue={selectedRecord?.name}
-            />
-            <Form.Input
-              field="age"
-              label="Age"
-              initValue={selectedRecord?.age}
-            />
-            <Form.Input
-              field="address"
-              label="Address"
-              initValue={selectedRecord?.address}
-            />
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
-          </Form>
-        </SideSheet>
-        <SideSheet
-          title="Design Flow"
-          visible={designSideSheetVisible}
-          onCancel={() => setDesignSideSheetVisible(false)}
-          width="100%"
-        >
-          {/* <Flow /> */}
+          <NodeEditDrawer
+            entity={nodeEdit!}
+            onSure={onNodeEditDrawerSure}
+            onClose={onNodeEditDrawerClose}
+          />
         </SideSheet>
       </div>
     </div>

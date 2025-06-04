@@ -3,7 +3,7 @@ const { Input } = Form;
 import { useRef } from "react";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import { apiNodeBranchSave } from "../api";
-import { INodeBranchEntity } from "../entity";
+import { INodeBranchEntity } from "../../entity";
 
 export interface BranchEditDrawerProps {
   onSure: (node: INodeBranchEntity) => void;

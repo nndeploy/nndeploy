@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { INodeBranchEntity, NodeBranchTreeNodeData } from "./entity";
+import { INodeBranchEntity, NodeBranchTreeNodeData } from "../entity";
 import { apiGetNodeBranch } from "./api";
 
 export function useGetNoteBranch(): {

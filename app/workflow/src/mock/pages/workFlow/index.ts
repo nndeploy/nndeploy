@@ -1,10 +1,7 @@
 import Mock, { templateOrFn } from "mockjs";
-import {
-  IWorkFlowBranchEntity,
-  IWorkFlowEntity,
-  IWorkFlowTreeNodeEntity,
-} from "../../../pages/Layout/Backend/WorkFlow/entity";
+
 import { initialData } from "../../../pages/components/flow/initial-data";
+import { IWorkFlowBranchEntity, IWorkFlowEntity, IWorkFlowTreeNodeEntity } from "../../../pages/Layout/Design/WorkFlow/entity";
 // mock方法,详细的可以看官方文档
 const Random = Mock.Random;
 
@@ -186,18 +183,22 @@ export const workFlowHandler: MockItem[] = [
     response: (options) => {
       const entity: IWorkFlowEntity = JSON.parse(options.body);
 
-      if(!flows.find(item=>item.id == entity.id)){
+      entity.content = entity.content? entity.content : { nodes: [], edges: [] }
+      const findIndex = flows.findIndex(item=>item.id == entity.id)
+
+      if(findIndex == -1){
         flows.push(entity)
+        
+      }else{
+        entity.id = Random.guid()
+        flows[findIndex] = entity
       }
+     
 
       return {
         flag: "success",
         message: "",
-        result: {
-          ...entity,
-          id: entity.id ? entity.id : Random.guid(),
-          content: entity.content ? entity.content : { nodes: [], edges: [] },
-        },
+        result: entity
       };
     },
   },
@@ -223,13 +224,25 @@ export const workFlowHandler: MockItem[] = [
     url: "/workflow/delete",
     type: "post",
     response: (options) => {
-      const resource: IWorkFlowEntity = JSON.parse(options.body);
+      const entity: IWorkFlowEntity = JSON.parse(options.body);
 
+       const findIndex = flows.findIndex((item) => item.id == entity.id);
+
+      if (findIndex == -1) {
+        return {
+          flag: "error",
+          message: "could not find this item",
+          result: {},
+        };
+      } else {
+        flows.splice(findIndex, 1);
+      }
       return {
         flag: "success",
         message: "",
         result: {},
       };
+
     },
   },
 ];

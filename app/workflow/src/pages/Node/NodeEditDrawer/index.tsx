@@ -3,7 +3,7 @@ import { Button, Form, Input, Toast, VideoPlayer } from "@douyinfe/semi-ui";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import "./index.scss";
 import { INodeEntity } from "../entity";
-import { apiGetNodeById, apiNodeSave } from "../api";
+import { apiGetNodeById, apiNodeSave } from "../Tree/api";
 
 export interface NodeEditDrawerProps {
   onSure: (node: INodeEntity) => void;
