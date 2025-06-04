@@ -1,18 +1,37 @@
-#include "nndeploy/dag/node.h"
-
 #include "nndeploy/base/param.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
+#include "nndeploy/dag/node.h"
 #include "nndeploy_api_registry.h"
 
 namespace py = pybind11;
 namespace nndeploy {
 namespace dag {
 
-template<typename Base = Node>
+template <typename Base = Node>
 class PyNode : public Base {
  public:
   using Base::Base;  // 继承构造函数
+
+  base::Status setInputName(const std::string &name, int index) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_input_name", setInputName,
+                           name, index);
+  }
+
+  base::Status setOutputName(const std::string &name, int index) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_output_name", setOutputName,
+                           name, index);
+  }
+
+  base::Status setInputNames(const std::vector<std::string> &names) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_input_names", setInputNames,
+                           names);
+  }
+
+  base::Status setOutputNames(const std::vector<std::string> &names) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_output_names",
+                           setOutputNames, names);
+  }
 
   base::Status setDeviceType(base::DeviceType device_type) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_device_type", setDeviceType,
@@ -44,15 +63,16 @@ class PyNode : public Base {
   }
 
   base::Status setExternalParam(
-      const std::string &key, std::shared_ptr<base::Param> external_param) override {
+      const std::string &key,
+      std::shared_ptr<base::Param> external_param) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_external_param",
                            setExternalParam, key, external_param);
   }
 
   std::shared_ptr<base::Param> getExternalParam(
       const std::string &key) override {
-    PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Base, "get_external_param",
-                           getExternalParam, key);
+    PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Base,
+                           "get_external_param", getExternalParam, key);
   }
 
   base::Status init() override {
@@ -79,26 +99,54 @@ class PyNode : public Base {
   base::Status run() override {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, Base, "run", run);
   }
-  
-  std::vector<Edge *> forward(
-      std::vector<Edge *> inputs) override {
+
+  std::vector<Edge *> forward(std::vector<Edge *> inputs) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward,
-                          inputs);
+                           inputs);
   }
 
-  std::vector<Edge *> operator()(
-      std::vector<Edge *> inputs) override {
+  std::vector<Edge *> operator()(std::vector<Edge *> inputs) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(),
-                          inputs);
+                           inputs);
   }
-   
+
   std::vector<std::string> getRealOutputsName() override {
-    PYBIND11_OVERRIDE_NAME(std::vector<std::string>, Base, "get_real_outputs_name",
-                          getRealOutputsName);
+    PYBIND11_OVERRIDE_NAME(std::vector<std::string>, Base,
+                           "get_real_outputs_name", getRealOutputsName);
+  }
+
+  base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, json,
+                           allocator);
+  }
+
+  base::Status serialize(std::ostream &stream) const override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, stream);
+  }
+
+  base::Status serialize(const std::string &path) const override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, path);
+  }
+
+  base::Status deserialize(rapidjson::Value &json) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
+                           json);
+  }
+
+  base::Status deserialize(std::istream &stream) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
+                           stream);
+  }
+
+  base::Status deserialize(const std::string &path) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
+                           path);
   }
 };
 
-template<typename Base = NodeCreator>
+template <typename Base = NodeCreator>
 class PyNodeCreator : public Base {
  public:
   using Base::Base;
@@ -109,7 +157,7 @@ class PyNodeCreator : public Base {
                                 node_name, inputs, outputs);
   }
 
-  std::shared_ptr<Node> createNodeSharedPtr(  
+  std::shared_ptr<Node> createNodeSharedPtr(
       const std::string &node_name, std::vector<Edge *> inputs,
       std::vector<Edge *> outputs) override {
     PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Node>, NodeCreator,
@@ -118,7 +166,7 @@ class PyNodeCreator : public Base {
   }
 };
 
-template<typename Base = Graph>
+template <typename Base = Graph>
 class PyGraph : public Base {
  public:
   using Base::Base;  // 继承构造函数
@@ -135,16 +183,26 @@ class PyGraph : public Base {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "run", run);
   }
 
-  std::vector<Edge *> forward(
-        std::vector<Edge *> inputs) override {
+  std::vector<Edge *> forward(std::vector<Edge *> inputs) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward,
-                          inputs);
+                           inputs);
   }
 
-  std::vector<Edge *> operator()(
-        std::vector<Edge *> inputs) override {
+  std::vector<Edge *> operator()(std::vector<Edge *> inputs) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(),
-                          inputs);
+                           inputs);
+  }
+
+  virtual base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) const override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, json,
+                           allocator);
+  }
+
+  virtual base::Status deserialize(rapidjson::Value &json) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
+                           json);
   }
 };
 

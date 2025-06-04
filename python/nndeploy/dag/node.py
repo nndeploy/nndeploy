@@ -33,6 +33,18 @@ class NodeDesc(_C.dag.NodeDesc):
         
     def get_outputs(self) -> list[str]:
         return super().get_outputs()
+    
+    def serialize(self, target, is_path: bool = False):
+        if is_path:
+            return super().serialize(target)
+        else:
+            return super().serialize(target, target)
+
+    def deserialize(self, target, is_path: bool = False):
+        if is_path:
+            return super().deserialize(target)
+        else:
+            return super().deserialize(target)
 
 class Node(_C.dag.Node):
     def __init__(self, name: str, inputs=None, outputs=None):
@@ -42,6 +54,9 @@ class Node(_C.dag.Node):
             super().__init__(name, inputs, outputs)
         else:
             super().__init__(name, inputs, outputs)
+            
+    def get_key(self) -> str:
+        return super().get_key()
             
     def get_name(self) -> str:
         return super().get_name()

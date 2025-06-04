@@ -62,15 +62,15 @@ class NNDEPLOY_CC_API NodeDesc {
   std::vector<std::string> getOutputs() const { return outputs_; }
 
   // to json
-  virtual base::Status serialize(
+  base::Status serialize(
       rapidjson::Value &json,
       rapidjson::Document::AllocatorType &allocator) const;
-  virtual base::Status serialize(std::ostream &stream) const;
-  virtual base::Status serialize(const std::string &path) const;
+  base::Status serialize(std::ostream &stream) const;
+  base::Status serialize(const std::string &path) const;
   // from json
-  virtual base::Status deserialize(rapidjson::Value &json);
-  virtual base::Status deserialize(std::istream &stream);
-  virtual base::Status deserialize(const std::string &path);
+  base::Status deserialize(rapidjson::Value &json);
+  base::Status deserialize(std::istream &stream);
+  base::Status deserialize(const std::string &path);
 
  private:
   // Node key
