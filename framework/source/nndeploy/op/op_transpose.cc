@@ -65,8 +65,8 @@ base::Status OpTranspose::run() {
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   std::vector<int> perm = param->perm_;
 
-  auto* input_tensor = inputs_[0]->getTensor(this);
-  auto* output_tensor = outputs_[0]->getTensor(this);
+  auto* input_tensor = inputs_[0];
+  auto* output_tensor = outputs_[0];
   std::vector<int> input_shape = input_tensor->getShape();
   std::vector<int> output_shape = output_tensor->getShape();
   int ndim = input_shape.size();
@@ -118,8 +118,35 @@ base::Status OpTranspose::run() {
 base::Status transpose(device::Tensor* input,
                        std::shared_ptr<ir::TransposeParam> param,
                        device::Tensor* output) {
-  NNDEPLOY_LOGI("not implemented.\n");
-  return base::kStatusCodeOk;
+  base::Status status = base::kStatusCodeOk;
+
+  Op* op = createOp(input->getDeviceType(), "", ir::kOpTypeTranspose);
+  if (op == nullptr) {
+    NNDEPLOY_LOGE("create Split Op failed");
+    return base::kStatusCodeErrorNotImplement;
+  }
+  status = op->setParam(param);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
+  status = op->setInput(input, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
+  status = op->setOutput(output, 0);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
+  status = op->init();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
+  status = op->checkOrAllocOutput();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                         "checkOrAllocOutput failed");
+  status = op->preRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
+  status = op->run();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
+  status = op->postRun();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "postRun failed");
+  status = op->deinit();
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
+  delete op;
+
+  return status;
 }
 
 REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeCpu, ir::kOpTypeTranspose, OpTranspose)

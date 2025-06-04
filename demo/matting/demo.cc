@@ -6,6 +6,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/framework.h"
 #include "nndeploy/infer/infer.h"
+#include "nndeploy/matting/pp_matting/pp_matting.h"
 
 using namespace nndeploy;
 
@@ -49,6 +50,31 @@ int main(int argc, char *argv[]) {
   NNDEPLOY_LOGE("model_inputs = %s.\n", model_inputs[0].c_str());
   std::vector<std::string> model_outputs = demo::getModelOutputs();
   NNDEPLOY_LOGE("model_outputs = %s.\n", model_outputs[0].c_str());
+
+  // 有向无环图graph的输入边packet
+  dag::Edge input("matting_in");
+  // 有向无环图graph的输出边packet
+  dag::Edge output("matting_out");
+
+  dag::Graph *graph = new dag::Graph("demo", {}, {&output});
+  if (graph == nullptr) {
+    NNDEPLOY_LOGE("graph is nullptr");
+    return -1;
+  }
+  matting::PPMattingGraph *matting_graph =
+      new matting::PPMattingGraph(name, {&input}, {&output});
+  dag::NodeDesc pre_desc("preprocess", {"matting_in"}, model_inputs);
+  dag::NodeDesc infer_desc("infer", model_inputs, model_outputs);
+  dag::NodeDesc post_desc("postprocess", model_outputs, {"matting_out"});
+
+  PPMattingGraph->make(pre_desc, infer_desc, inference_type, post_desc);
+  PPMattingGraph->setInferParam(device_type, model_type, is_path, model_value);
+  graph->addNode(segment_graph);
+
+  // 解码节点
+  codec::DecodeNode *decode_node = codec::createDecodeNode(
+      base::kCodecTypeOpenCV, codec_flag, "decode_node", &input);
+  graph->addNode(decode_node);
 
   return 0;
 }

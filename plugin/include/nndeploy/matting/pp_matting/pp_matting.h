@@ -28,16 +28,12 @@ namespace matting {
 
 class NNDEPLOY_CC_API PPMattingPostParam : public base::Param {
  public:
-  base::DataType data_type_ = base::dataTypeOf<float>();
-  base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
-
-  int top_left_x_ = 0;
-  int top_left_y_ = 0;
-  int size_before_pad_h_ = 0;
-  int size_before_pad_w_ = 0;
-
-  int dst_h_ = 0;
-  int dst_w_ = 0;
+  int alpha_h_;
+  int alpha_w_;
+  int input_h_;
+  int input_w_;
+  int output_h_;
+  int output_w_;
 };
 
 class NNDEPLOY_CC_API PPMattingPostProcess : public dag::Node {
@@ -111,6 +107,12 @@ class NNDEPLOY_CC_API PPMattingGraph : public dag::Graph {
     }
     PPMattingPostParam *post_param =
         dynamic_cast<PPMattingPostParam *>(post_->getParam());
+    post_param->alpha_h_ = 512;
+    post_param->alpha_w_ = 512;
+    post_param->input_h_ = 512;
+    post_param->input_w_ = 512;
+    post_param->output_h_ = 512;
+    post_param->output_w_ = 512;
 
     return base::kStatusCodeOk;
   }
