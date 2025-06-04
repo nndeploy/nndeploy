@@ -1,5 +1,4 @@
 #include "nndeploy/op/op_conv.h"
-
 #include "nndeploy/op/x86/op_convert.h"
 #include "nndeploy/op/x86/op_include.h"
 #include "nndeploy/op/x86/op_util.h"
@@ -23,6 +22,9 @@ class X86OpConv : public OpConv {
   }
 
   virtual base::Status preRun() {
+    if (!is_changed_) {
+      return kStatusCodeOk;  //若算子状态未改变，则直接沿用上一次创建memory、算子等
+    }
     dnnl::memory::dims src_dims =
         X86OpConvert::convertFromShape(inputs_[0]->getShape());
     dnnl::memory::dims weights_dims =
@@ -144,6 +146,11 @@ class X86OpConv : public OpConv {
     }
 
     dnnl_stream_.wait();
+    return base::kStatusCodeOk;
+  }
+
+  virtual base::Status postRun() {
+    is_changed_ = false;
     return base::kStatusCodeOk;
   }
 
