@@ -30,8 +30,6 @@ class NNDEPLOY_CC_API PPMattingPostParam : public base::Param {
  public:
   int alpha_h_;
   int alpha_w_;
-  int input_h_;
-  int input_w_;
   int output_h_;
   int output_w_;
 };
@@ -40,6 +38,7 @@ class NNDEPLOY_CC_API PPMattingPostProcess : public dag::Node {
  public:
   PPMattingPostProcess(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::matting::PPMattingPostProcess";
+    param_ = std::make_shared<PPMattingPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<MattingResult>();
   }
@@ -47,6 +46,7 @@ class NNDEPLOY_CC_API PPMattingPostProcess : public dag::Node {
                        std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::matting::PPMattingPostProcess";
+    param_ = std::make_shared<PPMattingPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<MattingResult>();
   }
@@ -87,8 +87,16 @@ class NNDEPLOY_CC_API PPMattingGraph : public dag::Graph {
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
-    pre_param->h_ = 512;
-    pre_param->w_ = 512;
+    pre_param->h_ = 1024;
+    pre_param->w_ = 1024;
+    pre_param->mean_[0] = 0.5f;
+    pre_param->mean_[1] = 0.5f;
+    pre_param->mean_[2] = 0.5f;
+    pre_param->mean_[3] = 0.5f;
+    pre_param->std_[0] = 0.5f;
+    pre_param->std_[1] = 0.5f;
+    pre_param->std_[2] = 0.5f;
+    pre_param->std_[3] = 0.5f;
 
     // Create inference node for ppmatting model execution
     infer_ = dynamic_cast<infer::Infer *>(
@@ -107,12 +115,10 @@ class NNDEPLOY_CC_API PPMattingGraph : public dag::Graph {
     }
     PPMattingPostParam *post_param =
         dynamic_cast<PPMattingPostParam *>(post_->getParam());
-    post_param->alpha_h_ = 512;
-    post_param->alpha_w_ = 512;
-    post_param->input_h_ = 512;
-    post_param->input_w_ = 512;
-    post_param->output_h_ = 512;
-    post_param->output_w_ = 512;
+    post_param->alpha_h_ = 1024;
+    post_param->alpha_w_ = 1024;
+    post_param->output_h_ = 1024;
+    post_param->output_w_ = 1024;
 
     return base::kStatusCodeOk;
   }
@@ -128,6 +134,22 @@ class NNDEPLOY_CC_API PPMattingGraph : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
+  base::Status setModelHW(int model_h, int model_w) {
+    preprocess::CvtclorResizePadParam *pre_param =
+        dynamic_cast<preprocess::CvtclorResizePadParam *>(pre_->getParam());
+    pre_param->h_ = model_h;
+    pre_param->w_ = model_w;
+
+    PPMattingPostParam *post_param =
+        dynamic_cast<PPMattingPostParam *>(post_->getParam());
+    post_param->alpha_h_ = model_h;
+    post_param->alpha_w_ = model_w;
+    post_param->output_h_ = model_h;
+    post_param->output_w_ = model_w;
+
+    return base::kStatusCodeOk;
+  }
+
  private:
   dag::Node *pre_ = nullptr;       ///< Preprocessing node pointer
   infer::Infer *infer_ = nullptr;  ///< Inference node pointer
@@ -137,4 +159,4 @@ class NNDEPLOY_CC_API PPMattingGraph : public dag::Graph {
 }  // namespace matting
 }  // namespace nndeploy
 
-#endifsss
+#endif

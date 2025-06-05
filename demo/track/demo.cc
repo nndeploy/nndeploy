@@ -137,6 +137,8 @@ int main(int argc, char *argv[]) {
 
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
 
+  delete input;
+  delete output;
   delete encode_node;
   delete decode_node;
   delete track_graph;

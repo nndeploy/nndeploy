@@ -23,20 +23,24 @@ namespace nndeploy {
 namespace matting {
 
 base::Status PPMattingPostProcess::run() {
-  PPMattingPostParam *param = (PPMattingPostParam *)param_.get();
-  device::Tensor *tensor = inputs_[0]->getTensor(this);
+  // 从输入边缘获取输入图像矩阵
+  cv::Mat *input_mat = inputs_[0]->getCvMat(this);
+  // 获取输入图像的高度和宽度
+  int input_h = input_mat->rows;
+  int input_w = input_mat->cols;
+
+  device::Tensor *tensor = inputs_[1]->getTensor(this);
   float *data = (float *)tensor->getData();
+
+  PPMattingPostParam *param = (PPMattingPostParam *)param_.get();
 
   int alpha_h = param->alpha_h_;
   int alpha_w = param->alpha_w_;
 
-  int input_h = param->input_h_;
-  int input_w = param->input_w_;
-
   int output_h = param->output_h_;
   int output_w = param->output_w_;
 
-  cv::Mat alpha(alpha_h_, alpha_w_, CV_32FC1, data);
+  cv::Mat alpha(alpha_h, alpha_w, CV_32FC1, data);
   double scale_h = static_cast<double>(output_h) / input_h;
   double scale_w = static_cast<double>(output_w) / input_w;
   double actual_scale = std::min(scale_h, scale_w);
@@ -55,6 +59,7 @@ base::Status PPMattingPostProcess::run() {
   result->shape = {input_h, input_w};
   int numel = input_h * input_w;
   int nbytes = numel * sizeof(float);
+  result->alpha.resize(numel);
   std::memcpy(result->alpha.data(), alpha_resized.data, nbytes);
 
   outputs_[0]->set(result, false);
