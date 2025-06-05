@@ -9,6 +9,7 @@ import NodePage from "./pages/Node";
 import Design from "./pages/Layout/Design/Design";
 import './assets/css/index.scss'
 import './mock'
+import Home from "./pages/Home";
 
 const app = createRoot(document.getElementById("root")!);
 
@@ -27,6 +28,8 @@ app.render(
          <Route path="node" element={<NodePage />} />
       </Route>
       <Route path="about" element={<About />} />
+      <Route path="home" element={<Home />} />
+
 
       <Route path="*" element={<NoMatch />} />
     </Routes>

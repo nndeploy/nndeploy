@@ -14,12 +14,19 @@ import NodeEditDrawer from "../NodeEditDrawer";
 
 import BranchEditDrawer from "./BranchEditDrawer";
 import { useGetNoteBranch } from "./effect";
-import { INodeBranchEntity, INodeEntity, NodeBranchTreeNodeData } from "../entity";
+import {
+  INodeBranchEntity,
+  INodeEntity,
+  NodeBranchTreeNodeData,
+} from "../entity";
 import { apiNodeBranchDelete } from "./api";
+import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 
-
+interface NodeTreeProps {
+  onSelect: (key: string) => void;
+}
 const { Text, Paragraph } = Typography;
-const NodeTree: React.FC = () => {
+const NodeTree: React.FC<NodeTreeProps> = (props) => {
   const { flatData, setFlatData, treeData } = useGetNoteBranch();
 
   const [nodeEditVisible, setNodeEditVisible] = useState(false);
@@ -113,7 +120,6 @@ const NodeTree: React.FC = () => {
   }
 
   function onNodeEditDrawerSure(node: INodeEntity) {
-    
     setNodeEditVisible(false);
   }
 
@@ -129,30 +135,35 @@ const NodeTree: React.FC = () => {
         position="right"
         render={
           <Dropdown.Menu>
-           
-              <Dropdown.Item onClick={() => onBranchEdit(resource)}>
-                edit
-              </Dropdown.Item>
-            
-          
-           
-              <Dropdown.Item
-                onClick={() =>
-                  onAddBranch({ id: "", name: "", parentId: resource.id})
-                }
-              >
-                add children branch
-              </Dropdown.Item>
-            
-            
-              <Dropdown.Item
-                onClick={() =>
-                  onNodeEdit({ id: "", name: "", parentId: resource.id, config: [] })
-                }
-              >
-                add node
-              </Dropdown.Item>
-          
+            <Dropdown.Item onClick={() => onBranchEdit(resource)}>
+              edit
+            </Dropdown.Item>
+
+            <Dropdown.Item
+              onClick={() =>
+                onAddBranch({ id: "", name: "", parentId: resource.id })
+              }
+            >
+              add children branch
+            </Dropdown.Item>
+
+            <Dropdown.Item
+              onClick={() =>
+                onNodeEdit({
+                  id: "",
+                  name: "",
+                  parentId: resource.id,
+                  schema: {
+                    type: "object",
+                    properties: {},
+                    required: [],
+                  },
+                })
+              }
+            >
+              add node
+            </Dropdown.Item>
+
             <Dropdown.Item>
               <Popconfirm
                 title="Are you sure?"
@@ -204,6 +215,12 @@ const NodeTree: React.FC = () => {
       </div>
     </div>
   );
+
+  function onTreeSelect(
+    selectedKey: string,
+    selected: boolean,
+    selectedNode: TreeNodeData
+  ) {}
   return (
     <div className="tree-pane">
       <div className="tree-pane-header">
@@ -221,6 +238,13 @@ const NodeTree: React.FC = () => {
         ///@ts-ignore
         renderLabel={renderLabel}
         className="tree-node"
+        onSelect={(
+          selectedKey: string,
+          selected: boolean,
+          selectedNode: TreeNodeData
+        ) => {
+          props.onSelect(selectedKey);
+        }}
         //draggable
       />
       <SideSheet

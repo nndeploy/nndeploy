@@ -1,5 +1,7 @@
 import { INodeBranchEntity, INodeEntity} from "./entity";
 import request from "../../request";
+import { AnyColor } from "@douyinfe/semi-ui/lib/es/colorPicker";
+import { contentType } from "../../request/types";
 
 export async function apiNodeSave(entity: INodeEntity) {
   var response = await request.post<INodeEntity>(
@@ -11,10 +13,16 @@ export async function apiNodeSave(entity: INodeEntity) {
 }
 
 
-export async function apiGetNodePage() {
-  var response = await request.post<INodeBranchEntity[]>(
+export async function apiGetNodePage(query:any) {
+  query = {...query}
+  var response = await request.getList<INodeEntity>(
     "/node/page",
-    {}
+    query, 
+
+    {
+      method: 'post', 
+      headers: contentType.json
+    }
   );
 
   return response;

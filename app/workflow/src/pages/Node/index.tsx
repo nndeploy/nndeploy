@@ -21,13 +21,16 @@ import Flow from "../components/flow/Index";
 import NodeTree from "./Tree";
 import { INodeEntity } from "./entity";
 import NodeEditDrawer from "./NodeEditDrawer";
+import { apiGetNodePage, apiNodeDelete } from "./api";
 
 const NodePage: React.FC = () => {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<INodeEntity[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
+
+  const [parentId, setParentId] = useState("");
 
   const [nodeEditVisible, setNodeEditVisible] = useState(false);
   const [nodeEdit, setNodeEdit] = useState<INodeEntity>();
@@ -39,39 +42,28 @@ const NodePage: React.FC = () => {
 
   function onNodeEditDrawerSure(node: INodeEntity) {
     setNodeEditVisible(false);
+    getNodePage({ parentId, currentPage, pageSize });
   }
 
   function onNodeEditDrawerClose() {
     setNodeEditVisible(false);
   }
 
-  const fetchData = async (params = {}) => {
+  async function getNodePage(query: any) {
     setLoading(true);
-    // 模拟后台请求数据
-    const response = await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          data: Array.from({ length: 100 }, (_, index) => ({
-            key: index + 1,
-            name: `Name ${index + 1}`,
-            age: 20 + (index % 10),
-            address: `Address ${index + 1}`,
-          })),
-          total: 100,
-        });
-      }, 1000);
-    });
-    setData(response.data);
-    setTotal(response.total);
+
+    const response = await apiGetNodePage(query);
+    setData(response.result.records);
+    setTotal(response.result.total);
     setLoading(false);
-  };
+  }
 
   useEffect(() => {
-    fetchData({ page: currentPage, pageSize });
+    getNodePage({ parentId, currentPage, pageSize });
   }, [currentPage, pageSize]);
 
   const handleSearch = (values: any) => {
-    fetchData({ ...values, page: currentPage, pageSize });
+    getNodePage({ ...values, currentPage, pageSize, parentId });
   };
 
   const handlePageChange = (page: number) => {
@@ -83,7 +75,16 @@ const NodePage: React.FC = () => {
   };
 
   function handleAdd() {
-    onNodeEdit({ id: "", name: "", parentId: "", config: [] });
+    onNodeEdit({
+      id: "",
+      name: "",
+      parentId: "",
+      schema: {
+        type: "object",
+        properties: {},
+        required: [],
+      },
+    });
     setNodeEditVisible(true);
   }
 
@@ -92,17 +93,19 @@ const NodePage: React.FC = () => {
     setNodeEditVisible(true);
   }
 
-  async function handleDelete(entity: INodeEntity){
-    const response = await apiNodeDelete(entity)
-    if(response.flag == "success"){
-      
+  function onTreeSelect(key: string) {
+    setParentId(key);
+  }
+
+  async function handleDelete(entity: INodeEntity) {
+    const response = await apiNodeDelete(entity.id);
+    if (response.flag == "success") {
+      getNodePage({ currentPage, pageSize });
     }
   }
 
   const columns = [
     { title: "Name", dataIndex: "name", key: "name" },
-    { title: "Age", dataIndex: "age", key: "age" },
-    { title: "Address", dataIndex: "address", key: "address" },
     {
       title: "Actions",
       key: "actions",
@@ -126,9 +129,13 @@ const NodePage: React.FC = () => {
 
   return (
     <div className="page-node">
-      <NodeTree />
+      <NodeTree
+        onSelect={function (key: string): void {
+          onTreeSelect(key);
+        }}
+      />
       <div className="main">
-        <Form
+        {/* <Form
           ///@ts-ignore
           layout="horizontal"
           onSubmit={handleSearch}
@@ -143,7 +150,7 @@ const NodePage: React.FC = () => {
         </Form>
         <Button icon={<IconPlus />} onClick={handleAdd} className={"addButton"}>
           Add
-        </Button>
+        </Button> */}
         <Table
           columns={columns}
           dataSource={data.slice(

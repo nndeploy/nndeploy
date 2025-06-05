@@ -1,9 +1,11 @@
 import { useRef, useState, useEffect } from "react";
-import { Button, Form, Input, Toast, VideoPlayer } from "@douyinfe/semi-ui";
+import { Button, Form, Toast, VideoPlayer } from "@douyinfe/semi-ui";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import "./index.scss";
 import { INodeEntity } from "../entity";
 import { apiGetNodeById, apiNodeSave } from "../Tree/api";
+import { JsonSchemaEditor } from "../../components/json-schema-editor";
+import { JsonSchema } from "../../components/type-selector/types";
 
 export interface NodeEditDrawerProps {
   onSure: (node: INodeEntity) => void;
@@ -12,25 +14,23 @@ export interface NodeEditDrawerProps {
 }
 
 const NodeEditDrawer: React.FC<NodeEditDrawerProps> = (props) => {
-
-  const [entity, setEntity] = useState<INodeEntity>({...props.entity});
+  const [entity, setEntity] = useState<INodeEntity>({ ...props.entity });
 
   const [file, setFile] = useState<File | null>(null);
 
-  const fileRef = useRef<any>()
+  const fileRef = useRef<any>();
 
   const formRef = useRef<FormApi<any>>();
 
-   useEffect(() => {
-        if(props.entity.id){
-          apiGetNodeById(props.entity.id).then((res) => {
-            if(res.flag == "success"){
-              setEntity(res.result);
-            }
-          })
+  useEffect(() => {
+    if (props.entity.id) {
+      apiGetNodeById(props.entity.id).then((res) => {
+        if (res.flag == "success") {
+          setEntity(res.result);
         }
-      
-    }, [props.entity])
+      });
+    }
+  }, [props.entity]);
 
   async function onSure() {
     try {
@@ -39,14 +39,14 @@ const NodeEditDrawer: React.FC<NodeEditDrawerProps> = (props) => {
       console.log("Form Data:", formData);
 
       const data = {
-        ...entity, 
+        ...entity,
         ...formData,
         id: props.entity.id ?? "",
       };
 
       const response = await apiNodeSave(data);
       if (response.flag == "success") {
-        props.onSure({...response.result});
+        props.onSure({ ...response.result });
       }
 
       //Toast.success("add sucess!");
@@ -59,20 +59,16 @@ const NodeEditDrawer: React.FC<NodeEditDrawerProps> = (props) => {
     if (file) {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("sex", 'man');
+      formData.append("sex", "man");
 
       var tempFile = {
-        name: file.name, 
-        type: file.type, 
-        
-
-      }
+        name: file.name,
+        type: file.type,
+      };
 
       try {
         // const response = await apiResourceUpload(tempFile);
-
         // if (response.flag == "success") {
-
         //   setEntity({...entity, url: response.result.url, mime: response.result.mime, name: response.result.name})
         //   Toast.success("File uploaded successfully!");
         // } else {
@@ -86,10 +82,14 @@ const NodeEditDrawer: React.FC<NodeEditDrawerProps> = (props) => {
     }
   }
 
-  function onFileChange(event:any){
+  function onFileChange(event: any) {
     var i = 0;
-    var files = fileRef.current.files
-    setFile(files[0])
+    var files = fileRef.current.files;
+    setFile(files[0]);
+  }
+
+  function onSchemeChange(schema: JsonSchema) {
+    setEntity({ ...entity, schema });
   }
 
   return (
@@ -97,14 +97,15 @@ const NodeEditDrawer: React.FC<NodeEditDrawerProps> = (props) => {
       <div className="drawer-content">
         <Form
           getFormApi={(formApi) => (formRef.current = formApi)}
+          initValues = {entity}
           onValueChange={(v) => console.log(v)}
         >
-          {/* <Input
-          field="name"
-          label="name"
-          rules={[{ required: true, message: "please input" }]}
-        /> */}
-          <div style={{ display: "flex", alignItems: "center" }}>
+          <Form.Input
+            field="name"
+            label="name"
+            rules={[{ required: true, message: "please input" }]}
+          />
+          {/* <div style={{ display: "flex", alignItems: "center" }}>
             <Input
               type="file"
               ref={fileRef}
@@ -113,9 +114,12 @@ const NodeEditDrawer: React.FC<NodeEditDrawerProps> = (props) => {
               style={{ marginRight: 10 }}
             />
             <Button onClick={handleFileUpload}>Upload File</Button>
-          </div>
+          </div> */}
+          <JsonSchemaEditor
+            value={entity.schema}
+            onChange={(value) => onSchemeChange(value)}
+          />
         </Form>
-      
       </div>
       <div className="semi-sidesheet-footer">
         <Button onClick={() => onSure()}>confirm</Button>

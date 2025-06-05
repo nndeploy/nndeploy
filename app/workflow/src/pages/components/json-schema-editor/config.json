@@ -1,0 +1,5 @@
+{
+  "name": "json-schema-editor",
+  "depMaterials": ["type-selector"],
+  "depPackages": ["@douyinfe/semi-ui", "@douyinfe/semi-icons", "styled-components"]
+}

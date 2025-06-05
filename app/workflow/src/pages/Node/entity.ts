@@ -1,4 +1,5 @@
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
+import { JsonSchema } from "../components/type-selector/types";
 
 
 export interface INodeBranchEntity{
@@ -27,7 +28,7 @@ export interface INodeEntity{
   id: string;
   name: string;
   parentId: string;
-  config: INodeEntityConfigField[]
+  schema: JsonSchema
 }
 
 

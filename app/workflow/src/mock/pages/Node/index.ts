@@ -1,5 +1,5 @@
 import Mock from "mockjs";
-import { INodeBranchEntity } from "../../../pages/Node/entity";
+import { INodeBranchEntity, INodeEntity } from "../../../pages/Node/entity";
 import { MockItem } from "../../entity";
 
 // mock方法,详细的可以看官方文档
@@ -38,7 +38,9 @@ const nodeBranches: INodeBranchEntity[] = [
   },
 ];
 
-export const nodeHandler: MockItem[] =[
+const nodes: INodeEntity[] = [];
+
+export const nodeHandler: MockItem[] = [
   {
     url: "/node/branch",
     type: "post",
@@ -96,6 +98,87 @@ export const nodeHandler: MockItem[] =[
         flag: "success",
         message: "",
         result: {},
+      };
+    },
+  },
+
+  {
+    url: "/node/save",
+    type: "post",
+    response: (request: any) => {
+      var entity = JSON.parse(request.body);
+
+      const findIndex = nodes.findIndex((item) => item.id == entity.id);
+
+      if (findIndex == -1) {
+        entity.id = Random.guid();
+        nodes.push(entity);
+      } else {
+        nodes[findIndex] = entity;
+      }
+
+      return {
+        flag: "success",
+        message: "成功",
+        result: entity,
+      };
+    },
+  },
+  {
+    url: "/node/delete",
+    type: "post",
+    response: (options) => {
+      const entity: INodeEntity = JSON.parse(options.body);
+
+      const findIndex = nodes.findIndex((item) => item.id == entity.id);
+
+      if (findIndex == -1) {
+        return {
+          flag: "error",
+          message: "could not find this item",
+          result: {},
+        };
+      } else {
+        nodes.splice(findIndex, 1);
+      }
+
+      return {
+        flag: "success",
+        message: "",
+        result: {},
+      };
+    },
+  },
+
+  {
+    url: "/node/page",
+    type: "post",
+    response: (options) => {
+      const {
+        parentId,
+        currentPage,
+        pageSize,
+      }: { parentId: string; currentPage: number; pageSize: number } =
+        JSON.parse(options.body);
+
+      let finds: INodeEntity[] = [];
+      if (parentId) {
+        finds = nodes.filter((item) => item.parentId == parentId);
+      } else {
+        finds = nodes;
+      }
+
+      const offset = (currentPage - 1) * pageSize;
+
+      const records = finds.slice(offset, pageSize);
+
+      return {
+        flag: "success",
+        message: "",
+        result: {
+          records,
+          total: finds.length,
+        },
       };
     },
   },
