@@ -1,26 +1,20 @@
 import { useEffect, useState } from "react";
-import { INodeBranchEntity, NodeTreeNodeData } from "../entity";
-import { apiGetNodeBranch } from "./api";
+import { INodeTreeNodeEntity, NodeTreeNodeData } from "./entity";
+import { apiGetNodeTree } from "./api";
 
-export function useGetNoteBranch(): {
-  flatData: INodeBranchEntity[];
-  setFlatData: React.Dispatch<React.SetStateAction<INodeBranchEntity[]>>;
+export function useGetNodeTree(): {
+  flatData: INodeTreeNodeEntity[];
+  setFlatData: React.Dispatch<React.SetStateAction<INodeTreeNodeEntity[]>>;
 
   treeData: NodeTreeNodeData[];
   setTreeData: React.Dispatch<React.SetStateAction<NodeTreeNodeData[]>>;
-  getNodeBranchTree: () => Promise<void>;
+  getNodeTree: () => Promise<void>;
 } {
-  const [flatData, setFlatData] = useState<INodeBranchEntity[]>([]);
-
+  const [flatData, setFlatData] = useState<INodeTreeNodeEntity[]>([]);
   const [treeData, setTreeData] = useState<NodeTreeNodeData[]>([]);
 
-  async function getNodeBranchTree() {
-    const res = await apiGetNodeBranch();
-    setFlatData(res.result);
-  }
-
   function buildTreeFromArray(
-    data: INodeBranchEntity[],
+    data: INodeTreeNodeEntity[],
     parentId: string = ""
   ): NodeTreeNodeData[] {
     return data
@@ -43,10 +37,13 @@ export function useGetNoteBranch(): {
       });
   }
 
+  async function getNodeTree() {
+    const res = await apiGetNodeTree();
+    setFlatData(res.result);
+  }
+
   useEffect(() => {
-    apiGetNodeBranch().then((res) => {
-      setFlatData(res.result);
-    });
+    getNodeTree()
   }, []);
 
   useEffect(() => {
@@ -54,5 +51,5 @@ export function useGetNoteBranch(): {
     setTreeData(tree);
   }, [flatData]);
 
-  return { flatData, setFlatData, treeData, setTreeData, getNodeBranchTree };
+  return { flatData, setFlatData, treeData, setTreeData, getNodeTree };
 }

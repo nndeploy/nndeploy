@@ -1,185 +1,294 @@
-import React, { useState, useEffect } from "react";
+import React, { ReactNode, useState } from "react";
+
 import {
-  Form,
-  Input,
-  Button,
-  Table,
-  Pagination,
+  Dropdown,
+  Popconfirm,
   SideSheet,
-  IconButton,
+  Tooltip,
+  Tree,
+  Typography,
 } from "@douyinfe/semi-ui";
-import {
-  IconSearch,
-  IconPlus,
-  IconEyeClosed,
-  IconEdit,
-  IconDelete,
-  IconFlowChartStroked,
-} from "@douyinfe/semi-icons";
+
 import "./index.scss";
-import Flow from "../components/flow/Index";
-import NodeTree from "./Tree";
-import { INodeEntity } from "./entity";
+import {
+  INodeBranchEntity,
+  INodeEntity,
+  INodeTreeNodeEntity,
+  NodeTreeNodeData,
+} from "./entity";
+import { apiGetNodeById, apiNodeBranchDelete, apiNodeDelete } from "./api";
+import { IconInherit, IconMore, IconPlus, IconPlusCircle } from "@douyinfe/semi-icons";
+import { useGetNodeTree } from "./effect";
+import { IResponse } from "../../request/types";
+import BranchEditDrawer from "./BranchEditDrawer";
 import NodeEditDrawer from "./NodeEditDrawer";
-import { apiGetNodePage, apiNodeDelete } from "./api";
-
+const { Text, Paragraph } = Typography;
 const NodePage: React.FC = () => {
-  const [data, setData] = useState<INodeEntity[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
+  const { flatData, setFlatData, treeData, getNodeTree } = useGetNodeTree();
 
-  const [parentId, setParentId] = useState("");
+  const [rightType, setRightType] = useState<"branch" | "leaf" | "">();
 
-  const [nodeEditVisible, setNodeEditVisible] = useState(false);
+  const [branchEdit, setBranchEdit] = useState<INodeBranchEntity>();
+
   const [nodeEdit, setNodeEdit] = useState<INodeEntity>();
 
-  function onNodeEdit(item: INodeEntity) {
-    setNodeEdit(item);
-    setNodeEditVisible(true);
+  function onBranchEdit(node: INodeBranchEntity) {
+    setBranchEdit(node);
+    setRightType("branch");
+  }
+  async function onNodeEdit(item: INodeTreeNodeEntity) {
+    //setNodeEdit(item);
+    if (item.id) {
+      const response = await apiGetNodeById(item.id);
+      if (response.flag == "success") {
+        setNodeEdit(response.result);
+      }
+    } else {
+      setNodeEdit({
+        ...item,
+        schema: {
+          type: "object",
+          properties: {},
+          required: [],
+        },
+      });
+    }
+    setRightType("leaf");
   }
 
-  function onNodeEditDrawerSure(node: INodeEntity) {
-    setNodeEditVisible(false);
-    getNodePage({ parentId, currentPage, pageSize });
-  }
+  async function deleteNode(item: INodeTreeNodeEntity) {
+    function findDescendantsIncludingSelf(
+      flatData: INodeTreeNodeEntity[],
+      id: string
+    ): INodeTreeNodeEntity[] {
+      const descendants: INodeTreeNodeEntity[] = [];
 
-  function onNodeEditDrawerClose() {
-    setNodeEditVisible(false);
-  }
+      function findChildren(parentId: string) {
+        flatData.forEach((node) => {
+          if (node.parentId === parentId) {
+            descendants.push(node);
+            findChildren(node.id);
+          }
+        });
+      }
 
-  async function getNodePage(query: any) {
-    setLoading(true);
+      const self = flatData.find((node) => node.id === item.id);
+      if (self) {
+        descendants.push(self);
+        findChildren(id);
+      }
 
-    const response = await apiGetNodePage(query);
-    setData(response.result.records);
-    setTotal(response.result.total);
-    setLoading(false);
-  }
+      return descendants;
+    }
 
-  useEffect(() => {
-    getNodePage({ parentId, currentPage, pageSize });
-  }, [currentPage, pageSize]);
+    let response: IResponse<any>;
 
-  const handleSearch = (values: any) => {
-    getNodePage({ ...values, currentPage, pageSize, parentId });
-  };
+    if (item.type == "branch") {
+      response = await apiNodeBranchDelete(item.id);
+    } else {
+      response = await apiNodeDelete(item.id);
+    }
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size);
-  };
-
-  function handleAdd() {
-    onNodeEdit({
-      id: "",
-      name: "",
-      parentId: "",
-      schema: {
-        type: "object",
-        properties: {},
-        required: [],
-      },
-    });
-    setNodeEditVisible(true);
-  }
-
-  function handleEdit(entity: INodeEntity) {
-    onNodeEdit(entity);
-    setNodeEditVisible(true);
-  }
-
-  function onTreeSelect(key: string) {
-    setParentId(key);
-  }
-
-  async function handleDelete(entity: INodeEntity) {
-    const response = await apiNodeDelete(entity.id);
     if (response.flag == "success") {
-      getNodePage({ currentPage, pageSize });
+      var toDeleteIds = findDescendantsIncludingSelf(flatData, item.id).map(
+        (item) => item.id
+      );
+      var newFlatData = flatData.filter(
+        (item) => !toDeleteIds.includes(item.id)
+      );
+      setFlatData(newFlatData);
     }
   }
 
-  const columns = [
-    { title: "Name", dataIndex: "name", key: "name" },
-    {
-      title: "Actions",
-      key: "actions",
-      width: 160,
-      align: "center" as const,
-      render: (text: any, record: any) => (
-        <>
-          <IconButton
-            icon={<IconEyeClosed />}
-            onClick={() => console.log("View record:", record)}
-          />
-          <IconButton icon={<IconEdit />} onClick={() => handleEdit(record)} />
-          <IconButton
-            icon={<IconDelete />}
-            onClick={() => handleDelete(record)}
-          />
-        </>
-      ),
-    },
-  ];
+  const renderBtn = (resource: INodeTreeNodeEntity) => {
+    return (
+      <Dropdown
+        closeOnEsc={true}
+        trigger={"click"}
+        position="right"
+        render={
+          <Dropdown.Menu>
+            {resource.type == "branch" && (
+              <Dropdown.Item onClick={() => onBranchEdit(resource)}>
+                edit
+              </Dropdown.Item>
+            )}
+            {resource.type == "leaf" && (
+              <Dropdown.Item onClick={() => onNodeEdit(resource)}>
+                edit
+              </Dropdown.Item>
+            )}
+            {resource.type == "branch" && (
+              <Dropdown.Item
+                onClick={() =>
+                  onBranchEdit({
+                    id: "",
+                    name: "",
+                    parentId: resource.id,
+                  })
+                }
+              >
+                add children branch
+              </Dropdown.Item>
+            )}
+            {resource.type == "branch" && (
+              <Dropdown.Item
+                onClick={() =>
+                  onNodeEdit({
+                    id: "",
+                    name: "",
+                    parentId: resource.id,
+                    type: "leaf",
+                  })
+                }
+              >
+                add node
+              </Dropdown.Item>
+            )}
+            <Dropdown.Item>
+              <Popconfirm
+                title="Are you sure?"
+                content="Are you sure to delete this item?"
+                onConfirm={() => deleteNode(resource)}
+                onCancel={() => {}}
+              >
+                delete
+              </Popconfirm>
+            </Dropdown.Item>
+            <Dropdown.Item></Dropdown.Item>
+          </Dropdown.Menu>
+        }
+      >
+        {/* <Button
+          onClick={(e) => {
+            //Toast.info({ content });
+            e.stopPropagation();
+          }}
+          icon={<IconMore />}
+          size="small"
+        /> */}
+
+        <IconMore />
+      </Dropdown>
+    );
+  };
+
+  const renderLabel = (label: ReactNode, item: NodeTreeNodeData) => (
+    <div
+      style={{ display: "flex", height: "24px" }}
+      draggable
+      ///@ts-ignore
+      //onDragStart={(dragEvent) => onDragStart(item!, dragEvent)}
+    >
+      <Typography.Text
+        ellipsis={{ showTooltip: true }}
+        style={{ width: "calc(100% - 48px)" }}
+        className="label"
+      >
+        {label}
+      </Typography.Text>
+      <div className="operate">
+        {/* {
+            item.type == 'leaf' && <IconEyeOpened  onClick={()=>onShowPreview(item)}/>
+          } */}
+
+        {renderBtn(item.entity)}
+      </div>
+    </div>
+  );
+
+  const addNode = (newNode: INodeTreeNodeEntity) => {
+    var resultData: INodeTreeNodeEntity[] = [];
+    const findIndex = flatData.findIndex((item) => item.id == newNode.id);
+    if (findIndex > -1) {
+      resultData = [
+        ...flatData.slice(0, findIndex),
+        newNode,
+        ...flatData.slice(findIndex + 1),
+      ];
+    } else {
+      resultData = [...flatData, newNode];
+    }
+    setFlatData(resultData);
+  };
+
+  function onBranchEditSure(node: INodeBranchEntity) {
+    addNode({ ...node, type: "branch" });
+    setRightType("");
+  }
+  function onBranchEditClose() {
+    setRightType("");
+  }
+
+  function onNodeEditSure(node: INodeBranchEntity) {
+    addNode({ ...node, type: "leaf" });
+    setRightType("");
+  }
+  function onNodeEditClose() {
+    setRightType("");
+  }
 
   return (
     <div className="page-node">
-      <NodeTree
-        onSelect={function (key: string): void {
-          onTreeSelect(key);
-        }}
-      />
-      <div className="main">
-        {/* <Form
-          ///@ts-ignore
-          layout="horizontal"
-          onSubmit={handleSearch}
-          className={"form"}
-          labelPosition="inset"
-        >
-          <Form.Input field="name" label="Name" />
-          <Form.Input field="age" label="Age" />
-          <Button icon={<IconSearch />} htmlType="submit">
-            Search
-          </Button>
-        </Form>
-        <Button icon={<IconPlus />} onClick={handleAdd} className={"addButton"}>
-          Add
-        </Button> */}
-        <Table
-          columns={columns}
-          dataSource={data.slice(
-            (currentPage - 1) * pageSize,
-            currentPage * pageSize
-          )}
-          loading={loading}
-          pagination={false}
-        />
-        <Pagination
-          total={total}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
-        />
+      <div className="tree-pane">
+        <div className="tree-pane-header">
+          <Text>node tree</Text>
 
-        <SideSheet
-          width={"calc(100% - 200px - 17px )"}
-          visible={nodeEditVisible}
-          onCancel={onNodeEditDrawerClose}
-          title={nodeEdit?.name ?? "add"}
-        >
+          <div className="operate">
+            <Tooltip content="add branch" position="top">
+              <Text
+                link
+                icon={<IconPlus />}
+                onClick={() => onBranchEdit({ id: "", name: "", parentId: "" })}
+              ></Text>
+            </Tooltip>
+            <Tooltip content="add node" position="top">
+              <Text
+                link
+                icon={<IconInherit />}
+                onClick={() =>
+                  onNodeEdit({
+                    id: "",
+                    name: "",
+                    parentId: "",
+                    type: "leaf",
+                  })
+                }
+              ></Text>
+            </Tooltip>
+          </div>
+        </div>
+        <Tree
+          treeData={treeData}
+          ///@ts-ignore
+          renderLabel={renderLabel}
+          className="tree-node"
+          // onSelect={(
+          //   selectedKey: string,
+          //   selected: boolean,
+          //   selectedNode: TreeNodeData
+          // ) => {
+          //   props.onSelect(selectedKey);
+          // }}
+          //draggable
+        />
+      </div>
+      <div className="main">
+        {rightType == "branch" ? (
+          <BranchEditDrawer
+            entity={branchEdit!}
+            onSure={onBranchEditSure}
+            onClose={onBranchEditClose}
+          />
+        ) : rightType == "leaf" ? (
           <NodeEditDrawer
             entity={nodeEdit!}
-            onSure={onNodeEditDrawerSure}
-            onClose={onNodeEditDrawerClose}
+            onSure={onNodeEditSure}
+            onClose={onNodeEditClose}
           />
-        </SideSheet>
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );

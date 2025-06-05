@@ -1,11 +1,13 @@
 import React from 'react';
 
 import { CascaderData } from '@douyinfe/semi-ui/lib/es/cascader';
-import Icon from '@douyinfe/semi-icons';
+import Icon, { IconFile } from '@douyinfe/semi-icons';
 
 import { JsonSchema } from './types';
 
 export const VariableTypeIcons: { [key: string]: React.ReactNode } = {
+
+  file: <IconFile size='small' />, 
   custom: (
     <svg
       viewBox="0 0 24 24"
@@ -287,6 +289,15 @@ const baseOptions: CascaderData[] = [
   {
     label: (
       <div style={labelStyle}>
+        <IconFile size='small' />
+        {firstUppercase('file')}
+      </div>
+    ),
+    value: 'file',
+  },
+  {
+    label: (
+      <div style={labelStyle}>
         <Icon size="small" svg={getSchemaIcon({ type: 'string' })} />
         {firstUppercase('string')}
       </div>
@@ -330,6 +341,8 @@ const baseOptions: CascaderData[] = [
     ),
     value: 'object',
   },
+
+  
 ];
 
 export const options: CascaderData[] = [

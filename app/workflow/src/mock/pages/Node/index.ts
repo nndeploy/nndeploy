@@ -1,5 +1,9 @@
 import Mock from "mockjs";
-import { INodeBranchEntity, INodeEntity } from "../../../pages/Node/entity";
+import {
+  INodeBranchEntity,
+  INodeEntity,
+  INodeTreeNodeEntity,
+} from "../../../pages/Node/entity";
 import { MockItem } from "../../entity";
 
 // mock方法,详细的可以看官方文档
@@ -51,6 +55,22 @@ export const nodeHandler: MockItem[] = [
         flag: "success",
         message: "成功",
         result: nodeBranches,
+      };
+    },
+  },
+  {
+    url: "/node/tree",
+    type: "get",
+    response: (options) => {
+      const data: INodeTreeNodeEntity[] = [
+        ...nodeBranches.map((item) => ({ ...item, type: "branch" as const })),
+        ...nodes.map((item) => ({ ...item, type: "leaf" as const })),
+      ];
+
+      return {
+        flag: "success",
+        message: "成功",
+        result: data,
       };
     },
   },

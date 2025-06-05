@@ -12,12 +12,12 @@ import { ReactNode, useState } from "react";
 import "./index.scss";
 import NodeEditDrawer from "../NodeEditDrawer";
 
-import BranchEditDrawer from "./BranchEditDrawer";
+import BranchEditDrawer from "../BranchEditDrawer";
 import { useGetNoteBranch } from "./effect";
 import {
   INodeBranchEntity,
   INodeEntity,
-  NodeBranchTreeNodeData,
+  NodeTreeNodeData,
 } from "../entity";
 import { apiNodeBranchDelete } from "./api";
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
@@ -192,7 +192,7 @@ const NodeTree: React.FC<NodeTreeProps> = (props) => {
     );
   };
 
-  const renderLabel = (label: ReactNode, item: NodeBranchTreeNodeData) => (
+  const renderLabel = (label: ReactNode, item: NodeTreeNodeData) => (
     <div
       style={{ display: "flex", height: "24px" }}
       draggable

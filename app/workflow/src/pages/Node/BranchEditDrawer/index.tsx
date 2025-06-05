@@ -2,8 +2,8 @@ import { Form, Button, Toast } from "@douyinfe/semi-ui";
 const { Input } = Form;
 import { useRef } from "react";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
-import { apiNodeBranchSave } from "../api";
-import { INodeBranchEntity } from "../../entity";
+import { apiNodeBranchSave } from "../Tree/api";
+import { INodeBranchEntity } from "../entity";
 
 export interface BranchEditDrawerProps {
   onSure: (node: INodeBranchEntity) => void;
@@ -38,7 +38,7 @@ const BranchEditDrawer: React.FC<BranchEditDrawerProps> = (props) => {
   }
 
   return (
-    <>
+    <div className="semi-sidesheet-body">
       <div className="drawer-content">
         <Form
           //style={{ padding: 10, width: "100%" }}
@@ -58,7 +58,7 @@ const BranchEditDrawer: React.FC<BranchEditDrawerProps> = (props) => {
           close
         </Button>
       </div>
-    </>
+    </div>
   );
 };
 

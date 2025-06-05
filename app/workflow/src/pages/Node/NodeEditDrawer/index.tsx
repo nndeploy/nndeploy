@@ -93,11 +93,11 @@ const NodeEditDrawer: React.FC<NodeEditDrawerProps> = (props) => {
   }
 
   return (
-    <>
+    <div className="semi-sidesheet-body">
       <div className="drawer-content">
         <Form
           getFormApi={(formApi) => (formRef.current = formApi)}
-          initValues = {entity}
+          initValues={entity}
           onValueChange={(v) => console.log(v)}
         >
           <Form.Input
@@ -127,7 +127,7 @@ const NodeEditDrawer: React.FC<NodeEditDrawerProps> = (props) => {
           close
         </Button>
       </div>
-    </>
+    </div>
   );
 };
 
