@@ -75,6 +75,10 @@ class PyNode : public Base {
                            "get_external_param", getExternalParam, key);
   }
 
+  base::Status defaultParam() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "default_param", defaultParam);
+  }
+
   base::Status init() override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "init", init);
   }
@@ -123,7 +127,7 @@ class PyNode : public Base {
   }
 
   base::Status serialize(std::string &json_str) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, stream);
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, json_str);
   }
 
   base::Status saveFile(const std::string &path) override {
@@ -137,7 +141,7 @@ class PyNode : public Base {
 
   base::Status deserialize(const std::string &json_str) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
-                           stream);
+                           json_str);
   }
 
   base::Status loadFile(const std::string &path) override {
@@ -199,9 +203,18 @@ class PyGraph : public Base {
                            allocator);
   }
 
+  virtual base::Status serialize(std::string &json_str) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, json_str);
+  }
+
   virtual base::Status deserialize(rapidjson::Value &json) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
                            json);
+  }
+
+  virtual base::Status deserialize(const std::string &json_str) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
+                           json_str);
   }
 };
 

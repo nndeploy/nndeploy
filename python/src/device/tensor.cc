@@ -122,20 +122,10 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
            py::arg("buffer"), py::arg("is_external") = true)
       .def("clone", &Tensor::clone, py::return_value_policy::take_ownership)
       .def("copy_to", &Tensor::copyTo, py::arg("dst"))
-      .def(
-          "serialize",
-          [](Tensor &self, py::object &stream) {
-            std::ostream os(stream.cast<std::streambuf *>());
-            return self.serialize(os);
-          },
-          py::arg("stream"))
-      .def(
-          "deserialize",
-          [](Tensor &self, py::object &stream) {
-            std::istream is(stream.cast<std::streambuf *>());
-            return self.deserialize(is);
-          },
-          py::arg("stream"))
+      .def("serialize", py::overload_cast<std::string&>(&Tensor::serialize), py::arg("bin_str"),
+           "Serialize the tensor to a binary string")
+      .def("deserialize", py::overload_cast<const std::string&>(&Tensor::deserialize), py::arg("bin_str"),
+           "Deserialize the tensor from a binary string")
       .def(
           "print",
           [](const Tensor &self, py::object &stream) {
