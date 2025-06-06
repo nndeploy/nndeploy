@@ -44,7 +44,7 @@
 // #include "nndeploy/op/ascend_cl/op_add.cc"
 // #include "nndeploy/op/ascend_cl/ascend_c/op_add_kernel.cc"
 
-#define LOAD_JSON 1
+#define LOAD_JSON 0
 
 using namespace nndeploy;
 
