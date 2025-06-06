@@ -371,10 +371,10 @@ base::Status Infer::serialize(
   std::string type_str = base::inferenceTypeToString(type_);
   json.AddMember("type_", rapidjson::Value(type_str.c_str(), allocator),
                  allocator);
-  json.AddMember("is_input_dynamic_", is_input_dynamic_, allocator);
-  json.AddMember("is_output_dynamic_", is_output_dynamic_, allocator);
-  json.AddMember("can_op_input_", can_op_input_, allocator);
-  json.AddMember("can_op_output_", can_op_output_, allocator);
+  // json.AddMember("is_input_dynamic_", is_input_dynamic_, allocator);
+  // json.AddMember("is_output_dynamic_", is_output_dynamic_, allocator);
+  // json.AddMember("can_op_input_", can_op_input_, allocator);
+  // json.AddMember("can_op_output_", can_op_output_, allocator);
   base::Param *param = inference_->getParam();
   if (param != nullptr) {
     rapidjson::Value param_json(rapidjson::kObjectType);

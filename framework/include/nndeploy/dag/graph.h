@@ -1357,6 +1357,19 @@ extern NNDEPLOY_CC_API Graph *createGraph(const std::string &name,
                                           bool is_path,
                                           std::vector<std::string> model_value);
 
+// to json
+extern NNDEPLOY_CC_API base::Status serialize(
+    Graph *graph, rapidjson::Value &json,
+    rapidjson::Document::AllocatorType &allocator);
+extern NNDEPLOY_CC_API base::Status serialize(Graph *graph,
+                                              std::ostream &stream);
+extern NNDEPLOY_CC_API base::Status serialize(Graph *graph,
+                                              const std::string &path);
+// from json
+extern NNDEPLOY_CC_API Graph *deserialize(rapidjson::Value &json);
+extern NNDEPLOY_CC_API Graph *deserialize(std::istream &stream);
+extern NNDEPLOY_CC_API Graph *deserialize(const std::string &path);
+
 }  // namespace dag
 }  // namespace nndeploy
 

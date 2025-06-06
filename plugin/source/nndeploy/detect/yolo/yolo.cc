@@ -22,6 +22,52 @@
 namespace nndeploy {
 namespace detect {
 
+base::Status YoloPostParam::serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator) {
+  json.AddMember("version_", version_, allocator);
+  json.AddMember("score_threshold_", score_threshold_, allocator);
+  json.AddMember("nms_threshold_", nms_threshold_, allocator);
+  json.AddMember("num_classes_", num_classes_, allocator);
+  json.AddMember("model_h_", model_h_, allocator);
+  json.AddMember("model_w_", model_w_, allocator);
+  return base::kStatusCodeOk;
+}
+
+base::Status YoloPostParam::deserialize(rapidjson::Value &json) {
+  if (!json.HasMember("version_") || !json["version_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  version_ = json["version_"].GetInt();
+
+  if (!json.HasMember("score_threshold_") || !json["score_threshold_"].IsFloat()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  score_threshold_ = json["score_threshold_"].GetFloat();
+
+  if (!json.HasMember("nms_threshold_") || !json["nms_threshold_"].IsFloat()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  nms_threshold_ = json["nms_threshold_"].GetFloat();
+
+  if (!json.HasMember("num_classes_") || !json["num_classes_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  num_classes_ = json["num_classes_"].GetInt();
+
+  if (!json.HasMember("model_h_") || !json["model_h_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  model_h_ = json["model_h_"].GetInt();
+
+  if (!json.HasMember("model_w_") || !json["model_w_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  model_w_ = json["model_w_"].GetInt();
+
+  return base::kStatusCodeOk;
+}
+
+
 base::Status YoloPostProcess::run() {
   // NNDEPLOY_LOGE("YoloPostProcess::run!Thread ID: %d.\n",
   //               std::this_thread::get_id());

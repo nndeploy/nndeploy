@@ -24,11 +24,18 @@ def test_edge():
     tensor = nndeploy.device.Tensor()
     edge.set(tensor)
     print(edge.get_type_name())
-    edge.create_buffer(nndeploy.device.Device("cpu")._device, nndeploy.device.BufferDesc(1024), 0)
+    edge.create_buffer(nndeploy.device.Device("cpu")._device, nndeploy.device.BufferDesc(1024))
     print(edge.get_type_name())
     import torch
     edge.set(torch.randn(1024))
     print(edge.get_type_name())
+    print(edge.get_graph_output_any())
+    
+    import cv2 as cv
+    mat = cv.imread("/home/always/github/public/nndeploy/build/draw_label_node.jpg")
+    edge.set(mat)
+    print(edge.get_type_name())
+    print(edge.get_graph_output_numpy())
 
 
 if __name__ == "__main__":

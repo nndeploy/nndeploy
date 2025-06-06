@@ -984,6 +984,7 @@ base::Status Graph::serialize(
     NNDEPLOY_LOGE("serialize node failed\n");
     return status;
   }
+  json.AddMember("is_graph_", is_graph_, allocator);
   if (!is_inner_) {
     // 写入设备类型
     // std::string device_type_str = base::deviceTypeToString(device_type_);
@@ -993,7 +994,8 @@ base::Status Graph::serialize(
     // 写入是否为外部流
     json.AddMember("is_external_stream_", is_external_stream_, allocator);
     // 序列化并行类型
-    // std::string parallel_type_str = base::parallelTypeToString(parallel_type_);
+    // std::string parallel_type_str =
+    // base::parallelTypeToString(parallel_type_);
     // json.AddMember("parallel_type_",
     //                rapidjson::Value(parallel_type_str.c_str(), allocator),
     //                allocator);
@@ -1138,6 +1140,57 @@ Graph *createGraph(const std::string &name, base::InferenceType inference_type,
                              model_type, is_path, model_value);
   }
   return temp;
+}
+
+base::Status serialize(Graph *graph, rapidjson::Value &json,
+                       rapidjson::Document::AllocatorType &allocator) {
+  return graph->serialize(json, allocator);
+}
+base::Status serialize(Graph *graph, std::ostream &stream) {
+  return graph->serialize(stream);
+}
+base::Status serialize(Graph *graph, const std::string &path) {
+  return graph->serialize(path);
+}
+// from json
+Graph *deserialize(rapidjson::Value &json) {
+  if (json.HasMember("is_graph_") && json["is_graph_"].IsBool()) {
+    std::string key = json["key_"].GetString();
+    Graph *graph = (Graph *)createNode(key, "", {}, {});
+    if (graph == nullptr) {
+      NNDEPLOY_LOGE("create graph failed\n");
+      return nullptr;
+    }
+    base::Status status = graph->deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("deserialize graph failed\n");
+      return nullptr;
+    }
+    return graph;
+  }
+  return nullptr;
+}
+Graph *deserialize(std::istream &stream) {
+  std::string json_str;
+  std::string line;
+  while (std::getline(stream, line)) {
+    json_str += line;
+  }
+  rapidjson::Document document;
+  if (document.Parse(json_str.c_str()).HasParseError()) {
+    NNDEPLOY_LOGE("parse json string failed\n");
+    return nullptr;
+  }
+  rapidjson::Value &json = document;
+  return deserialize(json);
+}
+Graph *deserialize(const std::string &path) {
+  std::ifstream ifs(path);
+  if (!ifs.is_open()) {
+    NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
+    return nullptr;
+  }
+  return deserialize(ifs);
 }
 
 }  // namespace dag

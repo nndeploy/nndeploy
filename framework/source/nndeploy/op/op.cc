@@ -430,7 +430,7 @@ base::Status Op::checkOrAllocOutput() {
         output->allocate(device);
       }
     }
-    is_changed_ = false;
+    // is_changed_ = false;
   }
   return base::kStatusCodeOk;
 }

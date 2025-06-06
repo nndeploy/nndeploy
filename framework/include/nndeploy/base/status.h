@@ -68,6 +68,16 @@ enum StatusCode : int {
   kStatusCodeErrorInferenceTorch,
   kStatusCodeErrorInferenceTensorFlow,
   kStatusCodeErrorInferenceNeuroPilot,
+  kStatusCodeErrorInferenceVllm,
+  kStatusCodeErrorInferenceSGLang,
+  kStatusCodeErrorInferenceLmdeploy,
+  kStatusCodeErrorInferenceLlamaCpp,
+  kStatusCodeErrorInferenceLLM,
+  kStatusCodeErrorInferenceXDit,
+  kStatusCodeErrorInferenceOneDiff,
+  kStatusCodeErrorInferenceDiffusers,
+  kStatusCodeErrorInferenceDiff,
+  kStatusCodeErrorInferenceOther,
 
   //
   kStatusCodeErrorDag,

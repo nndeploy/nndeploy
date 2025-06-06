@@ -22,16 +22,28 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
 
   py::class_<EdgeTypeInfo, std::shared_ptr<EdgeTypeInfo>>(m, "EdgeTypeInfo", py::dynamic_attr())
       .def(py::init<>())
+      .def(py::init<const EdgeTypeInfo&>())
       .def("set_buffer_type", &EdgeTypeInfo::setType<device::Buffer>)
       .def("set_cvmat_type", &EdgeTypeInfo::setType<cv::Mat>)
       .def("set_tensor_type", &EdgeTypeInfo::setType<device::Tensor>)
       .def("set_param_type", &EdgeTypeInfo::setType<base::Param>)
       .def("get_type", &EdgeTypeInfo::getType)
+      .def("set_type_name", &EdgeTypeInfo::setTypeName)
+      .def("get_type_name", &EdgeTypeInfo::getTypeName)
+      .def("get_unique_type_name", &EdgeTypeInfo::getUniqueTypeName)
       .def("get_type_ptr", &EdgeTypeInfo::getTypePtr)
       .def("is_buffer_type", &EdgeTypeInfo::isType<device::Buffer>)
       .def("is_cvmat_type", &EdgeTypeInfo::isType<cv::Mat>)
       .def("is_tensor_type", &EdgeTypeInfo::isType<device::Tensor>)
       .def("is_param_type", &EdgeTypeInfo::isType<base::Param>)
+      // .def("create_buffer", &EdgeTypeInfo::createType<device::Buffer>)
+      // .def("create_cvmat", &EdgeTypeInfo::createType<cv::Mat>)
+      // .def("create_tensor", &EdgeTypeInfo::createType<device::Tensor>)
+      // .def("create_param", &EdgeTypeInfo::createType<base::Param>)
+      .def("check_buffer_type", &EdgeTypeInfo::checkType<device::Buffer>)
+      .def("check_cvmat_type", &EdgeTypeInfo::checkType<cv::Mat>)
+      .def("check_tensor_type", &EdgeTypeInfo::checkType<device::Tensor>)
+      .def("check_param_type", &EdgeTypeInfo::checkType<base::Param>)
       .def("set_edge_name", &EdgeTypeInfo::setEdgeName)
       .def("get_edge_name", &EdgeTypeInfo::getEdgeName)
       .def("__eq__", &EdgeTypeInfo::operator==)
@@ -51,6 +63,15 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
         str += ")";
         return str;
       });
+
+  m.def("node_type_to_string", &nodeTypeToString, py::arg("node_type"), 
+        "Convert NodeType to string representation");
+  m.def("string_to_node_type", &stringToNodeType, py::arg("node_type_str"),
+        "Convert string to NodeType");
+  m.def("edge_type_to_string", &edgeTypeToString, py::arg("edge_type"),
+        "Convert EdgeTypeFlag to string representation");
+  m.def("string_to_edge_type", &stringToEdgeType, py::arg("edge_type_str"),
+        "Convert string to EdgeTypeFlag");
 }
 
 }  // namespace dag

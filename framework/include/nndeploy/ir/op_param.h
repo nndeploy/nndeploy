@@ -1125,14 +1125,14 @@ class NNDEPLOY_CC_API QLinearConvParam : public OpParam {
   std::vector<int> strides_ = {1, 1};
 };
 
-class NNDEPLOY_CC_API AvaragePoolParam : public OpParam {
+class NNDEPLOY_CC_API AveragePoolParam : public OpParam {
  public:
   // 构造函数
-  AvaragePoolParam() : OpParam() {}
-  virtual ~AvaragePoolParam() {}
+  AveragePoolParam() : OpParam() {}
+  virtual ~AveragePoolParam() {}
 
-  PARAM_COPY(AvaragePoolParam)
-  PARAM_COPY_TO(AvaragePoolParam)
+  PARAM_COPY(AveragePoolParam)
+  PARAM_COPY_TO(AveragePoolParam)
 
   base::Status serialize(rapidjson::Value &json,
                          rapidjson::Document::AllocatorType &allocator) {

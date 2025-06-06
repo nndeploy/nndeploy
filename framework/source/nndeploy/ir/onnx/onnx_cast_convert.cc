@@ -21,8 +21,10 @@ class OnnxCastConvert : public OnnxOpConvert {
     CastParam *param = (CastParam *)(op_desc->op_param_.get());
     param->saturate_ = OnnxInterpret::getAttributeInt(onnx_node, "saturate", 1);
 
+    int to_data_type = OnnxInterpret::getAttributeInt(onnx_node, "to", 0);
+    assert(onnx::TensorProto_DataType_IsValid(to_data_type));
     param->to_ = OnnxInterpret::convertToDataType(
-        OnnxInterpret::getAttributeTensorProtoDatatype(onnx_node, "to"));
+        static_cast<onnx::TensorProto_DataType>(to_data_type));
     return op_desc;
   };
 };

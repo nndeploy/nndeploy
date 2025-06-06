@@ -1,5 +1,6 @@
 
 #include "nndeploy/inference/inference_param.h"
+
 #include "nndeploy/base/rapidjson_include.h"
 
 namespace nndeploy {
@@ -28,14 +29,18 @@ base::Status InferenceParam::get(const std::string& key, base::Any& any) {
  *
  * @return base::InferenceType
  */
-base::InferenceType InferenceParam::getInferenceType() const { return inference_type_; }
+base::InferenceType InferenceParam::getInferenceType() const {
+  return inference_type_;
+}
 
 /**
  * @brief 设置推理类型
  *
  * @param type
  */
-void InferenceParam::setInferenceType(base::InferenceType type) { inference_type_ = type; }
+void InferenceParam::setInferenceType(base::InferenceType type) {
+  inference_type_ = type;
+}
 
 /**
  * @brief 获取模型类型
@@ -70,14 +75,17 @@ void InferenceParam::setIsPath(bool is_path) { is_path_ = is_path; }
  *
  * @return const std::vector<std::string>&
  */
-const std::vector<std::string>& InferenceParam::getModelValue() const { return model_value_; }
+const std::vector<std::string>& InferenceParam::getModelValue() const {
+  return model_value_;
+}
 
 /**
  * @brief 设置模型值
  *
  * @param model_value
  */
-void InferenceParam::setModelValue(const std::vector<std::string>& model_value) {
+void InferenceParam::setModelValue(
+    const std::vector<std::string>& model_value) {
   model_value_ = model_value;
 }
 void InferenceParam::setModelValue(const std::string& model_value, int i) {
@@ -109,7 +117,9 @@ void InferenceParam::setInputNum(int input_num) { input_num_ = input_num; }
  *
  * @return const std::vector<std::string>&
  */
-const std::vector<std::string>& InferenceParam::getInputName() const { return input_name_; }
+const std::vector<std::string>& InferenceParam::getInputName() const {
+  return input_name_;
+}
 
 /**
  * @brief 设置输入名称
@@ -118,7 +128,7 @@ const std::vector<std::string>& InferenceParam::getInputName() const { return in
  */
 void InferenceParam::setInputName(const std::vector<std::string>& input_name) {
   input_name_ = input_name;
-  if(input_name_.size() > input_num_) {
+  if (input_name_.size() > input_num_) {
     input_num_ = input_name_.size();
   }
 }
@@ -130,7 +140,7 @@ void InferenceParam::setInputName(const std::string& input_name, int i) {
   } else {
     NNDEPLOY_LOGE("Invalid input name index");
   }
-  if(input_name_.size() > input_num_) {
+  if (input_name_.size() > input_num_) {
     input_num_ = input_name_.size();
   }
 }
@@ -149,9 +159,10 @@ const std::vector<std::vector<int>>& InferenceParam::getInputShape() const {
  *
  * @param input_shape
  */
-void InferenceParam::setInputShape(const std::vector<std::vector<int>>& input_shape) {
+void InferenceParam::setInputShape(
+    const std::vector<std::vector<int>>& input_shape) {
   input_shape_ = input_shape;
-  if(input_shape_.size() > input_num_) {
+  if (input_shape_.size() > input_num_) {
     input_num_ = input_shape_.size();
   }
 }
@@ -163,7 +174,7 @@ void InferenceParam::setInputShape(const std::vector<int>& input_shape, int i) {
   } else {
     NNDEPLOY_LOGE("Invalid input shape index");
   }
-  if(input_shape_.size() > input_num_) {
+  if (input_shape_.size() > input_num_) {
     input_num_ = input_shape_.size();
   }
 }
@@ -187,16 +198,19 @@ void InferenceParam::setOutputNum(int output_num) { output_num_ = output_num; }
  *
  * @return const std::vector<std::string>&
  */
-const std::vector<std::string>& InferenceParam::getOutputName() const { return output_name_; }
+const std::vector<std::string>& InferenceParam::getOutputName() const {
+  return output_name_;
+}
 
 /**
  * @brief 设置输出名称
  *
  * @param output_name
  */
-void InferenceParam::setOutputName(const std::vector<std::string>& output_name) {
+void InferenceParam::setOutputName(
+    const std::vector<std::string>& output_name) {
   output_name_ = output_name;
-  if(output_name_.size() > output_num_) {
+  if (output_name_.size() > output_num_) {
     output_num_ = output_name_.size();
   }
 }
@@ -208,7 +222,7 @@ void InferenceParam::setOutputName(const std::string& output_name, int i) {
   } else {
     NNDEPLOY_LOGE("Invalid output name index");
   }
-  if(output_name_.size() > output_num_) {
+  if (output_name_.size() > output_num_) {
     output_num_ = output_name_.size();
   }
 }
@@ -218,14 +232,18 @@ void InferenceParam::setOutputName(const std::string& output_name, int i) {
  *
  * @return base::EncryptType
  */
-base::EncryptType InferenceParam::getEncryptType() const { return encrypt_type_; }
+base::EncryptType InferenceParam::getEncryptType() const {
+  return encrypt_type_;
+}
 
 /**
  * @brief 设置加密类型
  *
  * @param type
  */
-void InferenceParam::setEncryptType(base::EncryptType type) { encrypt_type_ = type; }
+void InferenceParam::setEncryptType(base::EncryptType type) {
+  encrypt_type_ = type;
+}
 
 /**
  * @brief 获取许可证
@@ -239,7 +257,9 @@ const std::string& InferenceParam::getLicense() const { return license_; }
  *
  * @param license
  */
-void InferenceParam::setLicense(const std::string& license) { license_ = license; }
+void InferenceParam::setLicense(const std::string& license) {
+  license_ = license;
+}
 
 /**
  * @brief 获取设备类型
@@ -253,7 +273,9 @@ base::DeviceType InferenceParam::getDeviceType() const { return device_type_; }
  *
  * @param type
  */
-void InferenceParam::setDeviceType(base::DeviceType type) { device_type_ = type; }
+void InferenceParam::setDeviceType(base::DeviceType type) {
+  device_type_ = type;
+}
 
 /**
  * @brief 获取线程数
@@ -290,7 +312,9 @@ void InferenceParam::setGpuTuneKernel(int gpu_tune_kernel) {
  *
  * @return base::ShareMemoryType
  */
-base::ShareMemoryType InferenceParam::getShareMemoryMode() const { return share_memory_mode_; }
+base::ShareMemoryType InferenceParam::getShareMemoryMode() const {
+  return share_memory_mode_;
+}
 
 /**
  * @brief 设置共享内存模式
@@ -306,14 +330,18 @@ void InferenceParam::setShareMemoryMode(base::ShareMemoryType mode) {
  *
  * @return base::PrecisionType
  */
-base::PrecisionType InferenceParam::getPrecisionType() const { return precision_type_; }
+base::PrecisionType InferenceParam::getPrecisionType() const {
+  return precision_type_;
+}
 
 /**
  * @brief 设置精度类型
  *
  * @param type
  */
-void InferenceParam::setPrecisionType(base::PrecisionType type) { precision_type_ = type; }
+void InferenceParam::setPrecisionType(base::PrecisionType type) {
+  precision_type_ = type;
+}
 
 /**
  * @brief 获取功耗类型
@@ -357,7 +385,9 @@ const base::ShapeMap& InferenceParam::getMinShape() const { return min_shape_; }
  *
  * @param min_shape
  */
-void InferenceParam::setMinShape(const base::ShapeMap& min_shape) { min_shape_ = min_shape; }
+void InferenceParam::setMinShape(const base::ShapeMap& min_shape) {
+  min_shape_ = min_shape;
+}
 
 /**
  * @brief 获取最优形状
@@ -371,7 +401,9 @@ const base::ShapeMap& InferenceParam::getOptShape() const { return opt_shape_; }
  *
  * @param opt_shape
  */
-void InferenceParam::setOptShape(const base::ShapeMap& opt_shape) { opt_shape_ = opt_shape; }
+void InferenceParam::setOptShape(const base::ShapeMap& opt_shape) {
+  opt_shape_ = opt_shape;
+}
 
 /**
  * @brief 获取最大形状
@@ -385,14 +417,18 @@ const base::ShapeMap& InferenceParam::getMaxShape() const { return max_shape_; }
  *
  * @param max_shape
  */
-void InferenceParam::setMaxShape(const base::ShapeMap& max_shape) { max_shape_ = max_shape; }
+void InferenceParam::setMaxShape(const base::ShapeMap& max_shape) {
+  max_shape_ = max_shape;
+}
 
 /**
  * @brief 获取缓存路径
  *
  * @return const std::vector<std::string>&
  */
-const std::vector<std::string>& InferenceParam::getCachePath() const { return cache_path_; }
+const std::vector<std::string>& InferenceParam::getCachePath() const {
+  return cache_path_;
+}
 
 /**
  * @brief 设置缓存路径
@@ -408,14 +444,17 @@ void InferenceParam::setCachePath(const std::vector<std::string>& cache_path) {
  *
  * @return const std::vector<std::string>&
  */
-const std::vector<std::string>& InferenceParam::getLibraryPath() const { return library_path_; }
+const std::vector<std::string>& InferenceParam::getLibraryPath() const {
+  return library_path_;
+}
 
 /**
  * @brief 设置库路径
  *
  * @param library_path
  */
-void InferenceParam::setLibraryPath(const std::vector<std::string>& library_path) {
+void InferenceParam::setLibraryPath(
+    const std::vector<std::string>& library_path) {
   library_path_ = library_path;
 }
 void InferenceParam::setLibraryPath(const std::string& library_path, int i) {
@@ -428,22 +467,31 @@ void InferenceParam::setLibraryPath(const std::string& library_path, int i) {
   }
 }
 
-base::Status InferenceParam::serialize(rapidjson::Value &json,
-                                 rapidjson::Document::AllocatorType &allocator) {
-  json.AddMember("inference_type_", static_cast<int>(inference_type_), allocator);
-  json.AddMember("model_type_", static_cast<int>(model_type_), allocator);
+base::Status InferenceParam::serialize(
+    rapidjson::Value& json, rapidjson::Document::AllocatorType& allocator) {
+  std::string inference_type_str = base::inferenceTypeToString(inference_type_);
+  json.AddMember("inference_type_",
+                 rapidjson::Value(inference_type_str.c_str(),
+                                  inference_type_str.length(), allocator),
+                 allocator);
+  std::string model_type_str = base::modelTypeToString(model_type_);
+  json.AddMember("model_type_",
+                 rapidjson::Value(model_type_str.c_str(),
+                                  model_type_str.length(), allocator),
+                 allocator);
   json.AddMember("is_path_", is_path_, allocator);
-  
-  rapidjson::Value model_value_array(rapidjson::kArrayType);
-  for (const auto& value : model_value_) {
-    rapidjson::Value str;
-    str.SetString(value.c_str(), value.length(), allocator);
-    model_value_array.PushBack(str, allocator);
+
+  if (is_path_) {
+    rapidjson::Value model_value_array(rapidjson::kArrayType);
+    for (const auto& value : model_value_) {
+      rapidjson::Value str;
+      str.SetString(value.c_str(), value.length(), allocator);
+      model_value_array.PushBack(str, allocator);
+    }
+    json.AddMember("model_value_", model_value_array, allocator);
   }
-  json.AddMember("model_value_", model_value_array, allocator);
-  
+
   json.AddMember("input_num_", input_num_, allocator);
-  
   rapidjson::Value input_name_array(rapidjson::kArrayType);
   for (const auto& name : input_name_) {
     rapidjson::Value str;
@@ -451,7 +499,7 @@ base::Status InferenceParam::serialize(rapidjson::Value &json,
     input_name_array.PushBack(str, allocator);
   }
   json.AddMember("input_name_", input_name_array, allocator);
-  
+
   rapidjson::Value input_shape_array(rapidjson::kArrayType);
   for (const auto& shape : input_shape_) {
     rapidjson::Value shape_array(rapidjson::kArrayType);
@@ -461,9 +509,8 @@ base::Status InferenceParam::serialize(rapidjson::Value &json,
     input_shape_array.PushBack(shape_array, allocator);
   }
   json.AddMember("input_shape_", input_shape_array, allocator);
-  
+
   json.AddMember("output_num_", output_num_, allocator);
-  
   rapidjson::Value output_name_array(rapidjson::kArrayType);
   for (const auto& name : output_name_) {
     rapidjson::Value str;
@@ -471,46 +518,112 @@ base::Status InferenceParam::serialize(rapidjson::Value &json,
     output_name_array.PushBack(str, allocator);
   }
   json.AddMember("output_name_", output_name_array, allocator);
-  
-  json.AddMember("encrypt_type_", static_cast<int>(encrypt_type_), allocator);
-  json.AddMember("license_", rapidjson::Value(license_.c_str(), license_.length(), allocator), allocator);
+
+  std::string encrypt_type_str = base::encryptTypeToString(encrypt_type_);
+  json.AddMember("encrypt_type_",
+                 rapidjson::Value(encrypt_type_str.c_str(),
+                                  encrypt_type_str.length(), allocator),
+                 allocator);
+  json.AddMember(
+      "license_",
+      rapidjson::Value(license_.c_str(), license_.length(), allocator),
+      allocator);
   std::string device_type_str = base::deviceTypeToString(device_type_);
-  json.AddMember("device_type_", rapidjson::Value(device_type_str.c_str(), device_type_str.length(), allocator), allocator);
+  json.AddMember("device_type_",
+                 rapidjson::Value(device_type_str.c_str(),
+                                  device_type_str.length(), allocator),
+                 allocator);
   json.AddMember("num_thread_", num_thread_, allocator);
   json.AddMember("gpu_tune_kernel_", gpu_tune_kernel_, allocator);
-  json.AddMember("share_memory_mode_", static_cast<int>(share_memory_mode_), allocator);
-  json.AddMember("precision_type_", static_cast<int>(precision_type_), allocator);
-  json.AddMember("power_type_", static_cast<int>(power_type_), allocator);
+  std::string share_memory_type_str =
+      base::shareMemoryTypeToString(share_memory_mode_);
+  json.AddMember("share_memory_mode_",
+                 rapidjson::Value(share_memory_type_str.c_str(),
+                                  share_memory_type_str.length(), allocator),
+                 allocator);
+  std::string precision_type_str = base::precisionTypeToString(precision_type_);
+  json.AddMember("precision_type_",
+                 rapidjson::Value(precision_type_str.c_str(),
+                                  precision_type_str.length(), allocator),
+                 allocator);
+  std::string power_type_str = base::powerTypeToString(power_type_);
+  json.AddMember("power_type_",
+                 rapidjson::Value(power_type_str.c_str(),
+                                  power_type_str.length(), allocator),
+                 allocator);
   json.AddMember("is_dynamic_shape_", is_dynamic_shape_, allocator);
-  json.AddMember("parallel_type_", static_cast<int>(parallel_type_), allocator);
+  rapidjson::Value min_shape_obj(rapidjson::kObjectType);
+  for (const auto& pair : min_shape_) {
+    rapidjson::Value shape_array(rapidjson::kArrayType);
+    for (int dim : pair.second) {
+      shape_array.PushBack(dim, allocator);
+    }
+    min_shape_obj.AddMember(
+        rapidjson::Value(pair.first.c_str(), pair.first.length(), allocator),
+        shape_array, allocator);
+  }
+  json.AddMember("min_shape_", min_shape_obj, allocator);
+
+  rapidjson::Value opt_shape_obj(rapidjson::kObjectType);
+  for (const auto& pair : opt_shape_) {
+    rapidjson::Value shape_array(rapidjson::kArrayType);
+    for (int dim : pair.second) {
+      shape_array.PushBack(dim, allocator);
+    }
+    opt_shape_obj.AddMember(
+        rapidjson::Value(pair.first.c_str(), pair.first.length(), allocator),
+        shape_array, allocator);
+  }
+  json.AddMember("opt_shape_", opt_shape_obj, allocator);
+
+  rapidjson::Value max_shape_obj(rapidjson::kObjectType);
+  for (const auto& pair : max_shape_) {
+    rapidjson::Value shape_array(rapidjson::kArrayType);
+    for (int dim : pair.second) {
+      shape_array.PushBack(dim, allocator);
+    }
+    max_shape_obj.AddMember(
+        rapidjson::Value(pair.first.c_str(), pair.first.length(), allocator),
+        shape_array, allocator);
+  }
+  json.AddMember("max_shape_", max_shape_obj, allocator);
+  std::string parallel_type_str = base::parallelTypeToString(parallel_type_);
+  json.AddMember("parallel_type_",
+                 rapidjson::Value(parallel_type_str.c_str(),
+                                  parallel_type_str.length(), allocator),
+                 allocator);
   json.AddMember("worker_num_", worker_num_, allocator);
-  
+
   return base::kStatusCodeOk;
 }
 
-base::Status InferenceParam::deserialize(rapidjson::Value &json) {
+base::Status InferenceParam::deserialize(rapidjson::Value& json) {
   if (json.HasMember("inference_type_")) {
-    inference_type_ = static_cast<base::InferenceType>(json["inference_type_"].GetInt());
+    std::string inference_type_str = json["inference_type_"].GetString();
+    inference_type_ = base::stringToInferenceType(inference_type_str);
   }
   if (json.HasMember("model_type_")) {
-    model_type_ = static_cast<base::ModelType>(json["model_type_"].GetInt());
+    std::string model_type_str = json["model_type_"].GetString();
+    model_type_ = base::stringToModelType(model_type_str);
   }
   if (json.HasMember("is_path_")) {
     is_path_ = json["is_path_"].GetBool();
   }
-  
-  if (json.HasMember("model_value_")) {
-    const rapidjson::Value& model_value_array = json["model_value_"];
-    model_value_.clear();
-    for (rapidjson::SizeType i = 0; i < model_value_array.Size(); i++) {
-      model_value_.push_back(model_value_array[i].GetString());
+
+  if (is_path_) {
+    if (json.HasMember("model_value_")) {
+      const rapidjson::Value& model_value_array = json["model_value_"];
+      model_value_.clear();
+      for (rapidjson::SizeType i = 0; i < model_value_array.Size(); i++) {
+        model_value_.push_back(model_value_array[i].GetString());
+      }
     }
   }
-  
+
   if (json.HasMember("input_num_")) {
     input_num_ = json["input_num_"].GetInt();
   }
-  
+
   if (json.HasMember("input_name_")) {
     const rapidjson::Value& input_name_array = json["input_name_"];
     input_name_.clear();
@@ -518,7 +631,7 @@ base::Status InferenceParam::deserialize(rapidjson::Value &json) {
       input_name_.push_back(input_name_array[i].GetString());
     }
   }
-  
+
   if (json.HasMember("input_shape_")) {
     const rapidjson::Value& input_shape_array = json["input_shape_"];
     input_shape_.clear();
@@ -531,11 +644,11 @@ base::Status InferenceParam::deserialize(rapidjson::Value &json) {
       input_shape_.push_back(shape);
     }
   }
-  
+
   if (json.HasMember("output_num_")) {
     output_num_ = json["output_num_"].GetInt();
   }
-  
+
   if (json.HasMember("output_name_")) {
     const rapidjson::Value& output_name_array = json["output_name_"];
     output_name_.clear();
@@ -543,9 +656,10 @@ base::Status InferenceParam::deserialize(rapidjson::Value &json) {
       output_name_.push_back(output_name_array[i].GetString());
     }
   }
-  
+
   if (json.HasMember("encrypt_type_")) {
-    encrypt_type_ = static_cast<base::EncryptType>(json["encrypt_type_"].GetInt());
+    std::string encrypt_type_str = json["encrypt_type_"].GetString();
+    encrypt_type_ = base::stringToEncryptType(encrypt_type_str);
   }
   if (json.HasMember("license_")) {
     license_ = json["license_"].GetString();
@@ -561,24 +675,70 @@ base::Status InferenceParam::deserialize(rapidjson::Value &json) {
     gpu_tune_kernel_ = json["gpu_tune_kernel_"].GetInt();
   }
   if (json.HasMember("share_memory_mode_")) {
-    share_memory_mode_ = static_cast<base::ShareMemoryType>(json["share_memory_mode_"].GetInt());
+    std::string share_memory_type_str = json["share_memory_mode_"].GetString();
+    share_memory_mode_ = base::stringToShareMemoryType(share_memory_type_str);
   }
   if (json.HasMember("precision_type_")) {
-    precision_type_ = static_cast<base::PrecisionType>(json["precision_type_"].GetInt());
+    std::string precision_type_str = json["precision_type_"].GetString();
+    precision_type_ = base::stringToPrecisionType(precision_type_str);
   }
   if (json.HasMember("power_type_")) {
-    power_type_ = static_cast<base::PowerType>(json["power_type_"].GetInt());
+    std::string power_type_str = json["power_type_"].GetString();
+    power_type_ = base::stringToPowerType(power_type_str);
   }
   if (json.HasMember("is_dynamic_shape_")) {
     is_dynamic_shape_ = json["is_dynamic_shape_"].GetBool();
   }
+  if (json.HasMember("min_shape_")) {
+    const rapidjson::Value& min_shape_obj = json["min_shape_"];
+    min_shape_.clear();
+    for (const auto& pair : min_shape_obj.GetObject()) {
+      std::string key = pair.name.GetString();
+      const rapidjson::Value& shape_array = pair.value;
+      std::vector<int> shape;
+      for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
+        shape.push_back(shape_array[j].GetInt());
+      }
+      min_shape_[key] = shape;
+    }
+  }
+
+  if (json.HasMember("opt_shape_")) {
+    const rapidjson::Value& opt_shape_obj = json["opt_shape_"];
+    opt_shape_.clear();
+    for (const auto& pair : opt_shape_obj.GetObject()) {
+      std::string key = pair.name.GetString();
+      const rapidjson::Value& shape_array = pair.value;
+      std::vector<int> shape;
+      for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
+        shape.push_back(shape_array[j].GetInt());
+      }
+      opt_shape_[key] = shape;
+    }
+  }
+
+  if (json.HasMember("max_shape_")) {
+    const rapidjson::Value& max_shape_obj = json["max_shape_"];
+    max_shape_.clear();
+    for (const auto& pair : max_shape_obj.GetObject()) {
+      std::string key = pair.name.GetString();  
+      const rapidjson::Value& shape_array = pair.value;
+      std::vector<int> shape;
+      for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
+        shape.push_back(shape_array[j].GetInt());
+      }
+      max_shape_[key] = shape;
+    }
+  }
+
   if (json.HasMember("parallel_type_")) {
-    parallel_type_ = static_cast<base::ParallelType>(json["parallel_type_"].GetInt());
+    std::string parallel_type_str = json["parallel_type_"].GetString();
+    parallel_type_ = base::stringToParallelType(parallel_type_str);
   }
   if (json.HasMember("worker_num_")) {
     worker_num_ = json["worker_num_"].GetInt();
   }
-  
+
   return base::kStatusCodeOk;
 }
 

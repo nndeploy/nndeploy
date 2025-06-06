@@ -386,7 +386,7 @@ REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeDequantizeLinear, DequantizeLinearParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeQLinearConv, QLinearConvParam);
 
-REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeAveragePool, AvaragePoolParam);
+REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeAveragePool, AveragePoolParam);
 
 REGISTER_OP_PARAM_IMPLEMENTION(kOpTypeUnsqueeze, UnsqueezeParam);
 

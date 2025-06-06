@@ -62,15 +62,15 @@ class NNDEPLOY_CC_API NodeDesc {
   std::vector<std::string> getOutputs() const { return outputs_; }
 
   // to json
-  virtual base::Status serialize(
+  base::Status serialize(
       rapidjson::Value &json,
       rapidjson::Document::AllocatorType &allocator) const;
-  virtual base::Status serialize(std::ostream &stream) const;
-  virtual base::Status serialize(const std::string &path) const;
+  base::Status serialize(std::ostream &stream) const;
+  base::Status serialize(const std::string &path) const;
   // from json
-  virtual base::Status deserialize(rapidjson::Value &json);
-  virtual base::Status deserialize(std::istream &stream);
-  virtual base::Status deserialize(const std::string &path);
+  base::Status deserialize(rapidjson::Value &json);
+  base::Status deserialize(std::istream &stream);
+  base::Status deserialize(const std::string &path);
 
  private:
   // Node key
@@ -276,7 +276,7 @@ class NNDEPLOY_CC_API Node {
   bool is_running_ = false;
   bool is_time_profile_ = false;
   bool is_debug_ = false;
-  bool is_trace_ = false; // 序列为json时，一定是静态图
+  bool is_trace_ = false;  // 序列为json时，一定是静态图
   bool traced_ = false;
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
@@ -349,7 +349,6 @@ class NodeFactory {
   ~NodeFactory() = default;
   std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
 };
-
 
 std::set<std::string> getNodeKeys();
 

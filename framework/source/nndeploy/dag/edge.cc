@@ -199,6 +199,12 @@ base::Status Edge::setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
   return base::kStatusCodeOk;
 }
 std::shared_ptr<EdgeTypeInfo> Edge::getTypeInfo() { return type_info_; }
+void Edge::setTypeName(const std::string &type_name) {
+  if (type_info_ != nullptr) {
+    type_info_->setTypeName(type_name);
+  }
+}
+std::string Edge::getTypeName() { return type_info_->getTypeName(); }
 
 bool Edge::checkTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
   return *type_info_ == *type_info;

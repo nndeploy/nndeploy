@@ -75,7 +75,7 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
       type_name_ = "Buffer";
     } else if constexpr (std::is_same<DT, cv::Mat>::value) {
       type_ = EdgeTypeFlag::kCvMat;
-      type_name_ = "CvMat";
+      type_name_ = "Mat";
     } else if constexpr (std::is_same<DT, device::Tensor>::value) {
       type_ = EdgeTypeFlag::kTensor;
       type_name_ = "Tensor";
@@ -93,6 +93,10 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
 
   EdgeTypeFlag getType() const { return type_; }
 
+  void setTypeName(const std::string& type_name) { 
+    // NNDEPLOY_LOGI("setTypeName: %s\n", type_name.c_str());
+    type_name_ = type_name; 
+  }
   std::string getTypeName() const { return type_name_; }
 
   std::string getUniqueTypeName() {
@@ -189,11 +193,11 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
   std::string edge_name_;
 };
 
-std::string nodeTypeToString(NodeType node_type);
-NodeType stringToNodeType(const std::string& node_type_str);
+extern NNDEPLOY_CC_API std::string nodeTypeToString(NodeType node_type);
+extern NNDEPLOY_CC_API NodeType stringToNodeType(const std::string& node_type_str);
 
-std::string edgeTypeToString(EdgeTypeFlag edge_type);
-EdgeTypeFlag stringToEdgeType(const std::string& edge_type_str);
+extern NNDEPLOY_CC_API std::string edgeTypeToString(EdgeTypeFlag edge_type);
+extern NNDEPLOY_CC_API EdgeTypeFlag stringToEdgeType(const std::string& edge_type_str);
 
 }  // namespace dag
 }  // namespace nndeploy

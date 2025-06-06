@@ -16,13 +16,15 @@ class OnnxConstantOfShapeConvert : public OnnxOpConvert {
   virtual ~OnnxConstantOfShapeConvert() {}
 
   virtual std::shared_ptr<OpDesc> convert(const onnx::NodeProto &onnx_node) {
-    std::shared_ptr<OpDesc> op_desc = std::make_shared<OpDesc>(kOpTypeConstantOfShape);
+    std::shared_ptr<OpDesc> op_desc =
+        std::make_shared<OpDesc>(kOpTypeConstantOfShape);
     OnnxOpConvert::convert(onnx_node, op_desc);
     return op_desc;
   };
 };
 
-REGISTER_ONNX_OP_CONVERT_IMPLEMENTION("ConstantOfShape", OnnxConstantOfShapeConvert);
+REGISTER_ONNX_OP_CONVERT_IMPLEMENTION("ConstantOfShape",
+                                      OnnxConstantOfShapeConvert);
 
 }  // namespace ir
 }  // namespace nndeploy

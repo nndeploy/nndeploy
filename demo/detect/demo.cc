@@ -162,8 +162,12 @@ int main(int argc, char *argv[]) {
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
   graph->addNode(encode_node);
 #else
-  dag::Graph *graph = new dag::Graph("demo");
-  graph->deserialize("detect_graph_v5.json");
+  // dag::Graph *graph = new dag::Graph("demo");
+  dag::Graph *graph = dag::deserialize("detect_graph_v5.json");
+  if (graph == nullptr) {
+    NNDEPLOY_LOGE("graph is nullptr");
+    return -1;
+  }
   graph->dump();
   detect::YoloGraph *detect_graph =
       (detect::YoloGraph *)graph->getNode("nndeploy::detect::YoloGraph");
@@ -243,6 +247,12 @@ int main(int argc, char *argv[]) {
     }
   }
   NNDEPLOY_TIME_POINT_END("graph->run");
+
+  status = dag::serialize(graph, "detect_graph_v5.json");
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("graph serialize failed");
+    return -1;
+  }
 
   // 有向无环图graph反初始化
   status = graph->deinit();

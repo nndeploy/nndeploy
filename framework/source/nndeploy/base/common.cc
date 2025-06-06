@@ -498,6 +498,8 @@ ModelType stringToModelType(const std::string &src) {
     return kModelTypeSafetensors;
   } else if (src == "kModelTypeNeuroPilot") {
     return kModelTypeNeuroPilot;
+  } else if (src == "kModelTypeGGUF") {
+    return kModelTypeGGUF;
   } else {
     NNDEPLOY_LOGI("Unsupported model type: %s.\n", src.c_str());
     return kModelTypeNotSupport;
@@ -550,6 +552,8 @@ std::string modelTypeToString(ModelType src) {
       return "kModelTypeSafetensors";
     case kModelTypeNeuroPilot:
       return "kModelTypeNeuroPilot";
+    case kModelTypeGGUF:
+      return "kModelTypeGGUF";
     default:
       NNDEPLOY_LOGI("Unsupported model type.\n");
       return "kModelTypeNotSupport";
@@ -605,6 +609,8 @@ InferenceType stringToInferenceType(const std::string &src) {
     return kInferenceTypeLmdeploy;
   } else if (src == "kInferenceTypeLLM") {
     return kInferenceTypeLLM;
+  } else if (src == "kInferenceTypeLlamaCpp") {
+    return kInferenceTypeLlamaCpp;
   } else if (src == "kInferenceTypeXDit") {
     return kInferenceTypeXDit;
   } else if (src == "kInferenceTypeOneDiff") {
@@ -669,6 +675,8 @@ std::string inferenceTypeToString(InferenceType src) {
       return "kInferenceTypeSGLang";
     case kInferenceTypeLmdeploy:
       return "kInferenceTypeLmdeploy";
+    case kInferenceTypeLlamaCpp:
+      return "kInferenceTypeLlamaCpp";
     case kInferenceTypeLLM:
       return "kInferenceTypeLLM";
     case kInferenceTypeXDit:
@@ -690,7 +698,7 @@ EncryptType stringToEncryptType(const std::string &src) {
   if (src == "kEncryptTypeBase64") {
     return kEncryptTypeBase64;
   } else {
-    NNDEPLOY_LOGI("Unsupported encrypt type: %s.\n", src.c_str());
+    // NNDEPLOY_LOGI("Unsupported encrypt type: %s.\n", src.c_str());
     return kEncryptTypeNone;
   }
 }

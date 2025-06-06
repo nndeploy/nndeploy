@@ -356,6 +356,7 @@ name_to_data_format = {
     "NC8HW": _C.base.DataFormat.NC8HW,
     "NCDHW": _C.base.DataFormat.NCDHW,
     "NDHWC": _C.base.DataFormat.NDHWC,
+    "NDCHW": _C.base.DataFormat.NDCHW,
     "Auto": _C.base.DataFormat.Auto,
     "NotSupport": _C.base.DataFormat.NotSupport,
 }
@@ -376,6 +377,7 @@ class DataFormat(_C.base.DataFormat):
     NC8HW = _C.base.DataFormat.NC8HW
     NCDHW = _C.base.DataFormat.NCDHW
     NDHWC = _C.base.DataFormat.NDHWC
+    NDCHW = _C.base.DataFormat.NDCHW
     Auto = _C.base.DataFormat.Auto
     NotSupport = _C.base.DataFormat.NotSupport
    
@@ -599,6 +601,7 @@ name_to_model_type = {
     "Hdf5": _C.base.ModelType.Hdf5,
     "Safetensors": _C.base.ModelType.Safetensors,
     "NeuroPilot": _C.base.ModelType.NeuroPilot,
+    "GGUF": _C.base.ModelType.GGUF,
     "NotSupport": _C.base.ModelType.NotSupport,
 }
 
@@ -629,6 +632,7 @@ class ModelType(_C.base.ModelType):
     Hdf5 = _C.base.ModelType.Hdf5
     Safetensors = _C.base.ModelType.Safetensors
     NeuroPilot = _C.base.ModelType.NeuroPilot
+    GGUF = _C.base.ModelType.GGUF
     NotSupport = _C.base.ModelType.NotSupport
     
     @classmethod
@@ -662,6 +666,7 @@ name_to_inference_type = {
     "Vllm": _C.base.InferenceType.Vllm,
     "SGLang": _C.base.InferenceType.SGLang,
     "Lmdeploy": _C.base.InferenceType.Lmdeploy,
+    "LlamaCpp": _C.base.InferenceType.LlamaCpp,
     "LLM": _C.base.InferenceType.LLM,
     "XDit": _C.base.InferenceType.XDit,
     "OneDiff": _C.base.InferenceType.OneDiff,
@@ -698,6 +703,7 @@ class InferenceType(_C.base.InferenceType):
     Vllm = _C.base.InferenceType.Vllm
     SGLang = _C.base.InferenceType.SGLang
     Lmdeploy = _C.base.InferenceType.Lmdeploy
+    LlamaCpp = _C.base.InferenceType.LlamaCpp
     LLM = _C.base.InferenceType.LLM
     XDit = _C.base.InferenceType.XDit
     OneDiff = _C.base.InferenceType.OneDiff
@@ -940,6 +946,15 @@ name_to_status_code =  {
     "ErrorInferenceTorch": _C.base.StatusCode.ErrorInferenceTorch,
     "ErrorInferenceTensorFlow": _C.base.StatusCode.ErrorInferenceTensorFlow,
     "ErrorInferenceNeuroPilot": _C.base.StatusCode.ErrorInferenceNeuroPilot,
+    "ErrorInferenceVllm": _C.base.StatusCode.ErrorInferenceVllm,
+    "ErrorInferenceSGLang": _C.base.StatusCode.ErrorInferenceSGLang,
+    "ErrorInferenceLmdeploy": _C.base.StatusCode.ErrorInferenceLmdeploy,
+    "ErrorInferenceLlamaCpp": _C.base.StatusCode.ErrorInferenceLlamaCpp,
+    "ErrorInferenceXDit": _C.base.StatusCode.ErrorInferenceXDit,
+    "ErrorInferenceOneDiff": _C.base.StatusCode.ErrorInferenceOneDiff,
+    "ErrorInferenceDiffusers": _C.base.StatusCode.ErrorInferenceDiffusers,
+    "ErrorInferenceDiff": _C.base.StatusCode.ErrorInferenceDiff,
+    "ErrorInferenceOther": _C.base.StatusCode.ErrorInferenceOther,
     "ErrorDag": _C.base.StatusCode.ErrorDag,
 }
 
@@ -998,6 +1013,16 @@ class StatusCode(_C.base.StatusCode):
     ErrorInferenceTorch = _C.base.StatusCode.ErrorInferenceTorch
     ErrorInferenceTensorFlow = _C.base.StatusCode.ErrorInferenceTensorFlow
     ErrorInferenceNeuroPilot = _C.base.StatusCode.ErrorInferenceNeuroPilot
+    ErrorInferenceVllm = _C.base.StatusCode.ErrorInferenceVllm
+    ErrorInferenceSGLang = _C.base.StatusCode.ErrorInferenceSGLang
+    ErrorInferenceLmdeploy = _C.base.StatusCode.ErrorInferenceLmdeploy
+    ErrorInferenceLlamaCpp = _C.base.StatusCode.ErrorInferenceLlamaCpp
+    ErrorInferenceLLM = _C.base.StatusCode.ErrorInferenceLLM
+    ErrorInferenceXDit = _C.base.StatusCode.ErrorInferenceXDit
+    ErrorInferenceOneDiff = _C.base.StatusCode.ErrorInferenceOneDiff
+    ErrorInferenceDiffusers = _C.base.StatusCode.ErrorInferenceDiffusers
+    ErrorInferenceDiff = _C.base.StatusCode.ErrorInferenceDiff
+    ErrorInferenceOther = _C.base.StatusCode.ErrorInferenceOther
     ErrorDag = _C.base.StatusCode.ErrorDag
     
     @classmethod
