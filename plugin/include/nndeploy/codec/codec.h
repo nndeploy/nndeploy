@@ -100,7 +100,7 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
 
   virtual base::Status serialize(
       rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) const {
+      rapidjson::Document::AllocatorType &allocator) {
     base::Status status = dag::Node::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       return status;
@@ -214,7 +214,7 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
 
   virtual base::Status serialize(
       rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) const {
+      rapidjson::Document::AllocatorType &allocator) {
     base::Status status = dag::Node::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       return status;

@@ -90,6 +90,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   base::Status markInputEdge(std::vector<Edge *> inputs);
   base::Status markOutputEdge(std::vector<Edge *> outputs);
 
+  virtual base::Status defaultParam();
+
   virtual base::Status init();
   virtual base::Status deinit();
 
@@ -232,13 +234,15 @@ class NNDEPLOY_CC_API Graph : public Node {
   NodeWrapper *getNodeWrapper(const std::string &name);
 
   // to json
-  using Node::serialize;
+  // using Node::serialize;
   virtual base::Status serialize(
       rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) const;
+      rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status serialize(std::string &json_str);
   // from json
-  using Node::deserialize;
+  // using Node::deserialize;
   virtual base::Status deserialize(rapidjson::Value &json);
+  virtual base::Status deserialize(const std::string &json_str);
 
  protected:
   virtual base::Status construct();
@@ -1362,13 +1366,13 @@ extern NNDEPLOY_CC_API base::Status serialize(
     Graph *graph, rapidjson::Value &json,
     rapidjson::Document::AllocatorType &allocator);
 extern NNDEPLOY_CC_API base::Status serialize(Graph *graph,
-                                              std::ostream &stream);
-extern NNDEPLOY_CC_API base::Status serialize(Graph *graph,
-                                              const std::string &path);
+                                              std::string &json_str);
+extern NNDEPLOY_CC_API base::Status saveFile(Graph *graph,
+                                             const std::string &path);
 // from json
 extern NNDEPLOY_CC_API Graph *deserialize(rapidjson::Value &json);
-extern NNDEPLOY_CC_API Graph *deserialize(std::istream &stream);
-extern NNDEPLOY_CC_API Graph *deserialize(const std::string &path);
+extern NNDEPLOY_CC_API Graph *deserialize(const std::string &json_str);
+extern NNDEPLOY_CC_API Graph *loadFile(const std::string &path);
 
 }  // namespace dag
 }  // namespace nndeploy

@@ -117,17 +117,17 @@ class PyNode : public Base {
 
   base::Status serialize(
       rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) const override {
+      rapidjson::Document::AllocatorType &allocator) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, json,
                            allocator);
   }
 
-  base::Status serialize(std::ostream &stream) const override {
+  base::Status serialize(std::string &json_str) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, stream);
   }
 
-  base::Status serialize(const std::string &path) const override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, path);
+  base::Status saveFile(const std::string &path) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "save_file", saveFile, path);
   }
 
   base::Status deserialize(rapidjson::Value &json) override {
@@ -135,14 +135,13 @@ class PyNode : public Base {
                            json);
   }
 
-  base::Status deserialize(std::istream &stream) override {
+  base::Status deserialize(const std::string &json_str) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
                            stream);
   }
 
-  base::Status deserialize(const std::string &path) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
-                           path);
+  base::Status loadFile(const std::string &path) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "load_file", loadFile, path);
   }
 };
 
@@ -195,7 +194,7 @@ class PyGraph : public Base {
 
   virtual base::Status serialize(
       rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) const override {
+      rapidjson::Document::AllocatorType &allocator) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, json,
                            allocator);
   }

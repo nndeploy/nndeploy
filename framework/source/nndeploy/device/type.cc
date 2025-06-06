@@ -334,7 +334,8 @@ bool TensorDesc::operator!=(const TensorDesc &other) const {
   return !(*this == other);
 }
 
-base::Status TensorDesc::serialize(std::ostream &stream) {
+base::Status TensorDesc::serialize(std::string &bin_str) {
+  std::stringstream stream;
   uint64_t data_type_size = base::dataTypeToString(data_type_).size();
   if (!stream.write(reinterpret_cast<const char *>(&data_type_size),
                     sizeof(data_type_size))) {
@@ -378,9 +379,11 @@ base::Status TensorDesc::serialize(std::ostream &stream) {
     }
   }
 
+  bin_str = stream.str();
   return base::kStatusCodeOk;
 }
-base::Status TensorDesc::deserialize(std::istream &stream) {
+base::Status TensorDesc::deserialize(const std::string &bin_str) {
+  std::stringstream stream(bin_str);
   uint64_t data_type_size;
   if (!stream.read(reinterpret_cast<char *>(&data_type_size),
                    sizeof(data_type_size))) {

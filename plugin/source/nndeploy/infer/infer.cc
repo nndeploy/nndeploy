@@ -363,7 +363,7 @@ std::shared_ptr<inference::Inference> Infer::getInference() {
 
 base::Status Infer::serialize(
     rapidjson::Value &json,
-    rapidjson::Document::AllocatorType &allocator) const {
+    rapidjson::Document::AllocatorType &allocator) {
   base::Status status = dag::Node::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     return status;

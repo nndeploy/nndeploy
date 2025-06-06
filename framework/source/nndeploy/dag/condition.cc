@@ -143,7 +143,7 @@ base::Status Condition::executor() {
 
 base::Status Condition::serialize(
       rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) const {
+      rapidjson::Document::AllocatorType &allocator) {
   base::Status status = Graph::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("serialize node failed\n");

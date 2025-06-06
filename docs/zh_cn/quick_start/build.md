@@ -212,6 +212,7 @@ make -j                     # 使用8个线程并行编译
     ```
     mkdir build
     cp cmake/config.cmake build
+    vim config.cmake # 使用编辑器vscode等工具直接修改config.cmake文件，需要打开昇腾的编译宏：setENABLE_NNDEPLOY_DEVICE_ASCEND_CL ON）
     cd build
     ```
       

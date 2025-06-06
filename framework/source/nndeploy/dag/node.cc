@@ -7,8 +7,7 @@ namespace dag {
 
 // to json
 base::Status NodeDesc::serialize(
-    rapidjson::Value &json,
-    rapidjson::Document::AllocatorType &allocator) const {
+    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
   // 写入节点名称
   json.AddMember("key_", rapidjson::Value(node_key_.c_str(), allocator),
                  allocator);
@@ -35,7 +34,7 @@ base::Status NodeDesc::serialize(
   json.AddMember("outputs_", outputs, allocator);
   return base::kStatusCodeOk;
 }
-base::Status NodeDesc::serialize(std::ostream &stream) const {
+base::Status NodeDesc::serialize(std::string &json_str) {
   rapidjson::Document doc;
   rapidjson::Value json(rapidjson::kObjectType);
 
@@ -54,32 +53,36 @@ base::Status NodeDesc::serialize(std::ostream &stream) const {
 
   // 序列化为字符串
   rapidjson::StringBuffer buffer;
-  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   if (!json.Accept(writer)) {
     NNDEPLOY_LOGE("Failed to write JSON to buffer\n");
     return base::kStatusCodeErrorInvalidValue;
   }
 
   // 输出到流
-  stream << buffer.GetString();
-  if (stream.fail()) {
+  json_str = buffer.GetString();
+  if (json_str.empty()) {
     NNDEPLOY_LOGE("Failed to write JSON string to stream\n");
     return base::kStatusCodeErrorInvalidParam;
   }
 
   return base::kStatusCodeOk;
 }
-base::Status NodeDesc::serialize(const std::string &path) const {
+base::Status NodeDesc::saveFile(const std::string &path) {
   std::ofstream ofs(path);
   if (!ofs.is_open()) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  base::Status status = this->serialize(ofs);
+  std::string json_str;
+  base::Status status = this->serialize(json_str);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("serialize to json failed\n");
     return status;
   }
+  // json_str美化
+  std::string beautify_json_str = base::prettyJsonStr(json_str);
+  ofs.write(beautify_json_str.c_str(), beautify_json_str.size());
   ofs.close();
   return status;
 }
@@ -125,12 +128,7 @@ base::Status NodeDesc::deserialize(rapidjson::Value &json) {
   }
   return base::kStatusCodeOk;
 }
-base::Status NodeDesc::deserialize(std::istream &stream) {
-  std::string json_str;
-  std::string line;
-  while (std::getline(stream, line)) {
-    json_str += line;
-  }
+base::Status NodeDesc::deserialize(const std::string &json_str) {
   rapidjson::Document document;
   if (document.Parse(json_str.c_str()).HasParseError()) {
     NNDEPLOY_LOGE("parse json string failed\n");
@@ -139,13 +137,18 @@ base::Status NodeDesc::deserialize(std::istream &stream) {
   rapidjson::Value &json = document;
   return this->deserialize(json);
 }
-base::Status NodeDesc::deserialize(const std::string &path) {
+base::Status NodeDesc::loadFile(const std::string &path) {
   std::ifstream ifs(path);
   if (!ifs.is_open()) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  base::Status status = this->deserialize(ifs);
+  std::string json_str;
+  std::string line;
+  while (std::getline(ifs, line)) {
+    json_str += line;
+  }
+  base::Status status = this->deserialize(json_str);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize from file %s failed\n", path.c_str());
     return status;
@@ -555,6 +558,8 @@ std::vector<std::shared_ptr<EdgeTypeInfo>> Node::getOutputTypeInfo() {
   return output_type_info_;
 }
 
+base::Status Node::defaultParam() { return base::kStatusCodeOk; }
+
 base::Status Node::init() {
   if (!is_external_stream_ && stream_ == nullptr) {
     stream_ = device::createStream(device_type_);
@@ -777,9 +782,8 @@ std::vector<std::string> Node::getRealOutputsName() {
  *   "worker_num_": 4
  * }
  */
-base::Status Node::serialize(
-    rapidjson::Value &json,
-    rapidjson::Document::AllocatorType &allocator) const {
+base::Status Node::serialize(rapidjson::Value &json,
+                             rapidjson::Document::AllocatorType &allocator) {
   // 写入节点名称
   json.AddMember("key_", rapidjson::Value(key_.c_str(), allocator), allocator);
   json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator),
@@ -879,7 +883,7 @@ base::Status Node::serialize(
 
   return base::kStatusCodeOk;
 }
-base::Status Node::serialize(std::ostream &stream) const {
+base::Status Node::serialize(std::string &json_str) {
   rapidjson::Document doc;
   rapidjson::Value json(rapidjson::kObjectType);
 
@@ -898,32 +902,37 @@ base::Status Node::serialize(std::ostream &stream) const {
 
   // 序列化为字符串
   rapidjson::StringBuffer buffer;
-  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   if (!json.Accept(writer)) {
     NNDEPLOY_LOGE("Failed to write JSON to buffer\n");
     return base::kStatusCodeErrorInvalidValue;
   }
 
   // 输出到流
-  stream << buffer.GetString();
-  if (stream.fail()) {
-    NNDEPLOY_LOGE("Failed to write JSON string to stream\n");
-    return base::kStatusCodeErrorInvalidParam;
+  json_str = buffer.GetString();
+  if (json_str.empty()) {
+    NNDEPLOY_LOGE("serialize failed with status: %d\n",
+                  int(base::kStatusCodeErrorInvalidValue));
+    return base::kStatusCodeErrorInvalidValue;
   }
 
   return base::kStatusCodeOk;
 }
-base::Status Node::serialize(const std::string &path) const {
+base::Status Node::saveFile(const std::string &path) {
   std::ofstream ofs(path);
   if (!ofs.is_open()) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  base::Status status = this->serialize(ofs);
+  std::string json_str;
+  base::Status status = this->serialize(json_str);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("serialize to json failed\n");
     return status;
   }
+  // json_str美化
+  std::string beautify_json_str = base::prettyJsonStr(json_str);
+  ofs.write(beautify_json_str.c_str(), beautify_json_str.size());
   ofs.close();
   return status;
 }
@@ -984,12 +993,7 @@ base::Status Node::deserialize(rapidjson::Value &json) {
 
   return base::kStatusCodeOk;
 }
-base::Status Node::deserialize(std::istream &stream) {
-  std::string json_str;
-  std::string line;
-  while (std::getline(stream, line)) {
-    json_str += line;
-  }
+base::Status Node::deserialize(const std::string &json_str) {
   rapidjson::Document document;
   if (document.Parse(json_str.c_str()).HasParseError()) {
     NNDEPLOY_LOGE("parse json string failed\n");
@@ -998,13 +1002,19 @@ base::Status Node::deserialize(std::istream &stream) {
   rapidjson::Value &json = document;
   return this->deserialize(json);
 }
-base::Status Node::deserialize(const std::string &path) {
+base::Status Node::loadFile(const std::string &path) {
   std::ifstream ifs(path);
   if (!ifs.is_open()) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  base::Status status = this->deserialize(ifs);
+  // 创建一个字符串变量用于存储文件内容
+  std::string json_str;
+  std::string line;
+  while (std::getline(ifs, line)) {
+    json_str += line;
+  }
+  base::Status status = this->deserialize(json_str);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize from file %s failed\n", path.c_str());
     return status;

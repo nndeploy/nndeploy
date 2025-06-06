@@ -425,7 +425,8 @@ base::Status Tensor::copyTo(Tensor *dst) {
 }
 
 // 序列化模型权重为二进制文件
-base::Status Tensor::serialize(std::ostream &stream) {
+base::Status Tensor::serialize(std::string &bin_str) {
+  std::stringstream stream;
   uint64_t name_size = name_.size();
   if (!stream.write(reinterpret_cast<const char *>(&name_size),
                     sizeof(name_size))) {
@@ -435,7 +436,17 @@ base::Status Tensor::serialize(std::ostream &stream) {
     return base::kStatusCodeErrorIO;
   }
 
-  desc_.serialize(stream);
+  std::string desc_str;
+  desc_.serialize(desc_str);
+  // 大小
+  uint64_t desc_size = desc_str.size();
+  if (!stream.write(reinterpret_cast<const char *>(&desc_size),
+                    sizeof(desc_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  if (!stream.write(desc_str.c_str(), desc_str.size())) {
+    return base::kStatusCodeErrorIO;
+  }
 
   // 存在buffer不为空，但是大小为0的情况
   if (buffer_ != nullptr) {
@@ -446,11 +457,21 @@ base::Status Tensor::serialize(std::ostream &stream) {
       return base::kStatusCodeErrorIO;
     }
     if (buffer_size > 0) {
-      base::Status status = buffer_->serialize(stream);
+      std::string buffer_str;
+      base::Status status = buffer_->serialize(buffer_str);
       NNDEPLOY_RETURN_VALUE_ON_NEQ(status, base::kStatusCodeOk, status,
                                    "buffer_->serialize(stream) failed!\n");
+      uint64_t buffer_str_size = buffer_str.size();
+      if (!stream.write(reinterpret_cast<const char *>(&buffer_str_size),
+                        sizeof(buffer_str_size))) {
+        return base::kStatusCodeErrorIO;
+      }
+      if (!stream.write(buffer_str.c_str(), buffer_str.size())) {
+        return base::kStatusCodeErrorIO;
+      }
     }
   }
+  bin_str = stream.str();
   return base::kStatusCodeOk;
 }
 #if ENABLE_NNDEPLOY_SAFETENSORS_CPP
@@ -658,8 +679,9 @@ base::Status Tensor::serializeToSafetensors(safetensors::safetensors_t &st,
   return base::kStatusCodeOk;
 }
 #endif
-// 从二进制文件反序列化模型权重
-base::Status Tensor::deserialize(std::istream &stream) {
+// 序列化为字符串
+base::Status Tensor::deserialize(const std::string &bin_str) {
+  std::stringstream stream(bin_str);
   uint64_t name_size = 0;
   if (!stream.read(reinterpret_cast<char *>(&name_size), sizeof(name_size))) {
     return base::kStatusCodeErrorIO;
@@ -673,7 +695,16 @@ base::Status Tensor::deserialize(std::istream &stream) {
   name_ = name_data;
   delete[] name_data;
 
-  desc_.deserialize(stream);
+  uint64_t desc_size = 0;
+  if (!stream.read(reinterpret_cast<char *>(&desc_size),
+                   sizeof(desc_size))) {
+    return base::kStatusCodeErrorIO;
+  }
+  std::string desc_str(desc_size + 1, '\0');
+  if (!stream.read(const_cast<char *>(desc_str.data()), desc_size)) {
+    return base::kStatusCodeErrorIO;
+  }
+  desc_.deserialize(desc_str);
 
   uint64_t buffer_size = 0;
   if (!stream.read(reinterpret_cast<char *>(&buffer_size),
@@ -684,7 +715,17 @@ base::Status Tensor::deserialize(std::istream &stream) {
   if (buffer_size > 0) {
     Device *device = getDefaultHostDevice();
     buffer_ = new Buffer(device, buffer_size);
-    base::Status status = buffer_->deserialize(stream);
+    uint64_t buffer_str_size = 0;
+    if (!stream.read(reinterpret_cast<char *>(&buffer_str_size),
+                     sizeof(buffer_str_size))) {
+      return base::kStatusCodeErrorIO;
+    }
+    std::string buffer_str(buffer_str_size + 1, '\0');
+    if (!stream.read(const_cast<char *>(buffer_str.data()),
+                     buffer_str_size)) {
+      return base::kStatusCodeErrorIO;
+    }
+    base::Status status = buffer_->deserialize(buffer_str);
     if (status != base::kStatusCodeOk) {
       delete buffer_;
       NNDEPLOY_LOGE("buffer_->deserialize(stream) failed!\n");

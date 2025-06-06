@@ -82,7 +82,7 @@ class NNDEPLOY_CC_API Interpret {
    *
    * @see base::Status 了解可能的返回状态
    */
-  base::Status saveModel(std::ostream &structure_stream,
+  base::Status saveModel(std::string &structure_str,
                          std::shared_ptr<safetensors::safetensors_t> st_ptr);
   /**
    * @brief 存储模型结构以及模型权重到指定路径

@@ -44,7 +44,7 @@
 // #include "nndeploy/op/ascend_cl/op_add.cc"
 // #include "nndeploy/op/ascend_cl/ascend_c/op_add_kernel.cc"
 
-#define LOAD_JSON 0
+#define LOAD_JSON 1
 
 using namespace nndeploy;
 
@@ -142,11 +142,12 @@ int main(int argc, char *argv[]) {
   graph->addNode(encode_node);
 #else
   // dag::Graph *graph = new dag::Graph("demo");
-  dag::Graph *graph = dag::deserialize("detect_graph_v5.json");
+  dag::Graph *graph = dag::loadFile("detect_graph_v5.json");
   if (graph == nullptr) {
     NNDEPLOY_LOGE("graph is nullptr");
     return -1;
   }
+  graph->defaultParam();
   graph->dump();
   detect::YoloGraph *detect_graph =
       (detect::YoloGraph *)graph->getNode("nndeploy::detect::YoloGraph");
@@ -221,11 +222,13 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->run");
 
-  status = dag::serialize(graph, "detect_graph_v5.json");
+#if LOAD_JSON
+  status = dag::saveFile(graph, "detect_graph_v6.json");
   if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("graph serialize failed");
+    NNDEPLOY_LOGE("graph saveFile failed");
     return -1;
   }
+#endif
 
   // 有向无环图graph反初始化
   status = graph->deinit();

@@ -194,22 +194,7 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     return post_outputs;
   }
 
-  // virtual base::Status serialize(
-  //     rapidjson::Value &json,
-  //     rapidjson::Document::AllocatorType &allocator) const {
-  //   base::Status status = dag::Graph::serialize(json, allocator);
-  //   if (status != base::kStatusCodeOk) {
-  //     return status;
-  //   }
-  //   return base::kStatusCodeOk;
-  // }
-
-  virtual base::Status deserialize(rapidjson::Value &json) {
-    base::Status status = dag::Graph::deserialize(json);
-    if (status != base::kStatusCodeOk) {
-      return status;
-    }
-    // Create preprocessing node for image preprocessing
+  virtual base::Status defaultParam() {
     pre_ = dynamic_cast<dag::Node *>(
         Graph::getNodeByKey("nndeploy::preprocess::CvtColorResize"));
     if (pre_ == nullptr) {

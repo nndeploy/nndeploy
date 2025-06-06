@@ -99,9 +99,9 @@ Buffer提供了两个重要的数据复制函数：
 
 Buffer支持序列化和反序列化操作，从而来支持模型权重的序列化和反序列化：
 
-<!-- 1. **serialize(std::ostream &stream)**：将Buffer的内容序列化到输出流。这个函数会保存Buffer的描述信息和实际数据。
+<!-- 1. **serialize(std::string &bin_str)**：将Buffer的内容序列化到输出流。这个函数会保存Buffer的描述信息和实际数据。
 
-2. **deserialize(std::istream &stream)**：从输入流反序列化数据到Buffer。这个函数会根据流中的信息重建Buffer。
+2. **serialize(const std::string &bin_str)**：从输入流反序列化数据到Buffer。这个函数会根据流中的信息重建Buffer。
 
 3. **serializeToSafetensors**：当启用SAFETENSORS_CPP支持时，Buffer可以序列化为safetensors格式，这是一种更安全、更高效的张量存储格式。
 

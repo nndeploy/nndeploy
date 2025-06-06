@@ -12,8 +12,8 @@ namespace nndeploy {
 namespace base {
 
 // 辅助函数:将Python dict转换为rapidjson::Value
-rapidjson::Value pyDict2Json(
-    const py::dict& dict, rapidjson::Document::AllocatorType& allocator) {
+rapidjson::Value pyDict2Json(const py::dict& dict,
+                             rapidjson::Document::AllocatorType& allocator) {
   rapidjson::Value json(rapidjson::kObjectType);
 
   for (const auto& item : dict) {
@@ -35,9 +35,9 @@ rapidjson::Value pyDict2Json(
                      allocator);
     } else if (py::isinstance<py::dict>(value)) {
       json.AddMember(rapidjson::StringRef(key.c_str()),
-                     pyDict2Json(value.cast<py::dict>(), allocator),
-                     allocator);
-    } else if (py::isinstance<py::list>(value) || py::isinstance<py::tuple>(value)) {
+                     pyDict2Json(value.cast<py::dict>(), allocator), allocator);
+    } else if (py::isinstance<py::list>(value) ||
+               py::isinstance<py::tuple>(value)) {
       rapidjson::Value array(rapidjson::kArrayType);
       py::sequence seq = value.cast<py::sequence>();
       for (size_t i = 0; i < seq.size(); i++) {
@@ -52,16 +52,20 @@ rapidjson::Value pyDict2Json(
         } else if (py::isinstance<py::bool_>(item)) {
           array.PushBack(item.cast<bool>(), allocator);
         } else if (py::isinstance<py::dict>(item)) {
-          array.PushBack(pyDict2Json(item.cast<py::dict>(), allocator), allocator);
-        } else if (py::isinstance<py::list>(item) || py::isinstance<py::tuple>(item)) {
-          array.PushBack(pyDict2Json(item.cast<py::dict>(), allocator), allocator);
+          array.PushBack(pyDict2Json(item.cast<py::dict>(), allocator),
+                         allocator);
+        } else if (py::isinstance<py::list>(item) ||
+                   py::isinstance<py::tuple>(item)) {
+          array.PushBack(pyDict2Json(item.cast<py::dict>(), allocator),
+                         allocator);
         } else if (item.is_none()) {
           array.PushBack(rapidjson::Value(), allocator);
         }
       }
       json.AddMember(rapidjson::StringRef(key.c_str()), array, allocator);
     } else if (value.is_none()) {
-      json.AddMember(rapidjson::StringRef(key.c_str()), rapidjson::Value(), allocator);
+      json.AddMember(rapidjson::StringRef(key.c_str()), rapidjson::Value(),
+                     allocator);
     }
   }
   return json;
@@ -153,61 +157,6 @@ py::dict json2PyDict(const rapidjson::Value& json) {
   }
   return dict;
 }
-
-// class PyParam : public Param {
-//  public:
-//   using Param::Param;
-
-//   std::shared_ptr<nndeploy::base::Param> copy() override {
-//     PYBIND11_OVERRIDE_NAME(std::shared_ptr<nndeploy::base::Param>, Param,
-//     "copy", copy);
-//   }
-
-//   base::Status copyTo(nndeploy::base::Param *param) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "copy_to", copyTo, param);
-//   }
-
-//   base::Status set(const std::string &key, base::Any &any) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "set", set, key, any);
-//   }
-
-//   base::Status get(const std::string &key, base::Any &any) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "get", get, key, any);
-//   }
-
-//   base::Status serialize(rapidjson::Value &json,
-//                         rapidjson::Document::AllocatorType &allocator)
-//                         override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize, json,
-//     allocator);
-//   }
-
-//   base::Status serialize(std::ostream &stream) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize,
-//     stream);
-//   }
-
-//   base::Status serialize(std::string &content, bool is_file) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "serialize", serialize,
-//     content, is_file);
-//   }
-
-//   base::Status deserialize(rapidjson::Value &json) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize,
-//     json);
-//   }
-
-//   base::Status deserialize(std::istream &stream) override {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize,
-//     stream);
-//   }
-
-//   base::Status deserialize(const std::string &content, bool is_file) override
-//   {
-//     PYBIND11_OVERRIDE_NAME(base::Status, Param, "deserialize", deserialize,
-//     content, is_file);
-//   }
-// };
 
 NNDEPLOY_API_PYBIND11_MODULE("base", m) {
   // nndeploy::base::DataTypeCode export as base.DataTypeCode
@@ -736,17 +685,19 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .def("copy_to", &Param::copyTo)
       .def("set", &Param::set)
       .def("get", &Param::get)
+
       .def("serialize", py::overload_cast<rapidjson::Value&,
                                           rapidjson::Document::AllocatorType&>(
                             &Param::serialize))
-      .def("serialize", py::overload_cast<std::ostream&>(&Param::serialize))
-      .def("serialize",
-           py::overload_cast<std::string&, bool>(&Param::serialize))
+      .def("serialize", py::overload_cast<std::string&>(&Param::serialize))
+      .def("save_file", py::overload_cast<const std::string&>(&Param::saveFile))
+
       .def("deserialize",
            py::overload_cast<rapidjson::Value&>(&Param::deserialize))
-      .def("deserialize", py::overload_cast<std::istream&>(&Param::deserialize))
       .def("deserialize",
-           py::overload_cast<const std::string&, bool>(&Param::deserialize));
+           py::overload_cast<const std::string&>(&Param::deserialize))
+      .def("load_file",
+           py::overload_cast<const std::string&>(&Param::loadFile));
 }
 
 }  // namespace base

@@ -49,8 +49,8 @@ struct NNDEPLOY_CC_API BufferDesc {
   bool operator==(const BufferDesc &other) const;
   bool operator!=(const BufferDesc &other) const;
 
-  // base::Status serialize(std::ostream &stream);
-  // base::Status deserialize(std::istream &stream);
+  // base::Status serialize(std::string &bin_str);
+  // base::Status deserialize(const std::string &bin_str);
 
   void print(std::ostream &stream = std::cout) const;
 
@@ -103,8 +103,8 @@ struct NNDEPLOY_CC_API TensorDesc {
   bool operator==(const TensorDesc &other) const;
   bool operator!=(const TensorDesc &other) const;
 
-  base::Status serialize(std::ostream &stream);
-  base::Status deserialize(std::istream &stream);
+  base::Status serialize(std::string &bin_str);
+  base::Status deserialize(const std::string &bin_str);
 
   void print(std::ostream &stream = std::cout) const;
 
