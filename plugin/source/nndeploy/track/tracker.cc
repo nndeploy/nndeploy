@@ -16,6 +16,9 @@
 // https://github.com/CnybTseng/JDE/blob/master/platforms/common/jdetracker.cpp
 // Ths copyright of CnybTseng/JDE is as follows:
 // MIT License
+// ----------------------------------------------------------------------
+// Modified by nndeploy on 2025-05-30
+// ----------------------------------------------------------------------
 
 #include "nndeploy/track/tracker.h"
 

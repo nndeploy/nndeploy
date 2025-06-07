@@ -121,7 +121,8 @@ int main(int argc, char *argv[]) {
   decode_node->setPath(input_path);
   encode_node->setRefPath(input_path);
   encode_node->setPath(output_path);
-  int size = 1;
+  int size = 100;
+  decode_node->setSize(size);
   for (int i = 0; i < size; ++i) {
     status = graph->run();
     if (status != base::kStatusCodeOk) {
