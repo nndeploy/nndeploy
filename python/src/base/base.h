@@ -35,24 +35,24 @@ class PyParam : public BaseParam {
     PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "serialize", serialize, json, allocator);
   }
 
-  base::Status serialize(std::ostream &stream) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "serialize", serialize, stream);
+  base::Status serialize(std::string &json_str) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "serialize", serialize, json_str);
   }
 
-  base::Status serialize(std::string &content, bool is_file) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "serialize", serialize, content, is_file);
+  base::Status saveFile(const std::string &path) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "save_file", saveFile, path);
   }
 
   base::Status deserialize(rapidjson::Value &json) override {
     PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "deserialize", deserialize, json);
   }
 
-  base::Status deserialize(std::istream &stream) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "deserialize", deserialize, stream);
+  base::Status deserialize(const std::string &json_str) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "deserialize", deserialize, json_str);
   }
 
-  base::Status deserialize(const std::string &content, bool is_file) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "deserialize", deserialize, content, is_file);
+  base::Status loadFile(const std::string &path) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "load_file", loadFile, path);
   }
 };
 

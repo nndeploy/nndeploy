@@ -32,11 +32,11 @@ class PyInferenceParam : public InferenceParam {
   //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize", serialize, json, allocator);
   // }
 
-  // base::Status serialize(std::ostream &stream) override {
+  // base::Status serialize(std::string &json_str) override {
   //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize", serialize, stream);
   // }
 
-  // base::Status serialize(std::string &content, bool is_file) override {
+  // base::Status saveFile(const std::string &path) override {
   //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize", serialize, content, is_file);
   // }
 
@@ -44,11 +44,11 @@ class PyInferenceParam : public InferenceParam {
   //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "deserialize", deserialize, json);
   // }
 
-  // base::Status deserialize(std::istream &stream) override {
+  // base::Status deserialize(const std::string &json_str) override {
   //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "deserialize", deserialize, stream);
   // }
 
-  // base::Status deserialize(const std::string &content, bool is_file) override {
+  // base::Status loadFile(const std::string &path) override {
   //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "deserialize", deserialize, content, is_file);
   // }
 };

@@ -26,6 +26,14 @@ class Buffer(_C.device.Buffer):
         """Copy the buffer to the destination buffer"""
         return super().copyTo(dst)
     
+    def serialize(self, bin_str: str):
+        """Serialize the buffer to a binary string"""
+        return super().serialize(bin_str)
+    
+    def deserialize(self, bin_str: str):
+        """Deserialize the buffer from a binary string"""
+        return super().deserialize(bin_str)
+    
     def print(self):
         """Print buffer information"""
         return super().print()

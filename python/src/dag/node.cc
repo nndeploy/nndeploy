@@ -28,17 +28,17 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_outputs", &NodeDesc::getOutputs)
       .def("serialize", py::overload_cast<rapidjson::Value &,
                                           rapidjson::Document::AllocatorType &>(
-                            &NodeDesc::serialize, py::const_))
+                            &NodeDesc::serialize), py::arg("json"), py::arg("allocator"))
       .def("serialize",
-           py::overload_cast<std::ostream &>(&NodeDesc::serialize, py::const_))
-      .def("serialize", py::overload_cast<const std::string &>(
-                            &NodeDesc::serialize, py::const_))
+           py::overload_cast<std::string &>(&NodeDesc::serialize), py::arg("json_str"))
+      .def("save_file", py::overload_cast<const std::string &>(
+                            &NodeDesc::saveFile), py::arg("path"))
       .def("deserialize",
-           py::overload_cast<rapidjson::Value &>(&NodeDesc::deserialize))
+           py::overload_cast<rapidjson::Value &>(&NodeDesc::deserialize), py::arg("json"))
       .def("deserialize",
-           py::overload_cast<std::istream &>(&NodeDesc::deserialize))
-      .def("deserialize",
-           py::overload_cast<const std::string &>(&NodeDesc::deserialize));
+           py::overload_cast<const std::string &>(&NodeDesc::deserialize), py::arg("json_str"))
+      .def("load_file",
+           py::overload_cast<const std::string &>(&NodeDesc::loadFile), py::arg("path"));
 
   py::class_<Node, PyNode<Node>>(m, "Node", py::dynamic_attr())
       .def(py::init<const std::string &>())
@@ -124,6 +124,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           },
           py::arg("output_type_info"))
       .def("get_output_type_info", &Node::getOutputTypeInfo)
+      .def("default_param", &Node::defaultParam)
       .def("init", &Node::init)
       .def("deinit", &Node::deinit)
       .def("get_memory_size", &Node::getMemorySize)
@@ -143,53 +144,19 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("outputs"))
       .def("is_inputs_changed", &Node::isInputsChanged, py::arg("inputs"))
       .def("get_real_outputs_name", &Node::getRealOutputsName)
+      .def("serialize", py::overload_cast<rapidjson::Value &,
+                                          rapidjson::Document::AllocatorType &>(
+                            &Node::serialize), py::arg("json"), py::arg("allocator"))
       .def("serialize",
-           [](const Node &node) {
-             rapidjson::Document doc;
-             doc.SetObject();
-             rapidjson::Value json(rapidjson::kObjectType);
-             node.serialize(json, doc.GetAllocator());
-             
-             py::dict dict;
-             for (auto it = json.MemberBegin(); it != json.MemberEnd(); ++it) {
-               dict[it->name.GetString()] = it->value.GetString();
-             }
-             return dict;
-           })
-      .def("serialize",
-           [](const Node &node, std::string &target, bool is_path = false) {
-             if (is_path) {
-               return node.serialize(target);
-             } else {
-               std::stringstream ss(target);
-               return node.serialize(ss);
-             }
-           },
-           py::arg("target"), py::arg("is_path") = false)
+           py::overload_cast<std::string &>(&Node::serialize), py::arg("json_str"))
+      .def("save_file", py::overload_cast<const std::string &>(
+                            &Node::saveFile), py::arg("path"))
       .def("deserialize",
-           [](Node &node, py::dict dict) {
-             rapidjson::Document doc;
-             doc.SetObject();
-             rapidjson::Value json(rapidjson::kObjectType);
-             
-             for (auto item : dict) {
-               rapidjson::Value key(item.first.cast<std::string>().c_str(), doc.GetAllocator());
-               rapidjson::Value value(item.second.cast<std::string>().c_str(), doc.GetAllocator());
-               json.AddMember(key, value, doc.GetAllocator());
-             }
-             
-             return node.deserialize(json);
-           })
+           py::overload_cast<rapidjson::Value &>(&Node::deserialize), py::arg("json"))
       .def("deserialize",
-           [](Node &node, std::string &target, bool is_path = false) {
-             if (is_path) {
-               return node.deserialize(target);
-             } else {
-               std::stringstream ss(target);
-               return node.deserialize(ss);
-             }
-           },
-           py::arg("target"), py::arg("is_path") = false);
+           py::overload_cast<const std::string &>(&Node::deserialize), py::arg("json_str"))
+      .def("load_file",
+           py::overload_cast<const std::string &>(&Node::loadFile), py::arg("path"));
 
   py::class_<NodeCreator, PyNodeCreator<NodeCreator>,
              std::shared_ptr<NodeCreator>>(m, "NodeCreator")

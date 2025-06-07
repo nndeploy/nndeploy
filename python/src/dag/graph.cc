@@ -50,6 +50,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("inputs"), py::arg("outputs"))
       .def("mark_input_edge", &Graph::markInputEdge, py::arg("inputs"))
       .def("mark_output_edge", &Graph::markOutputEdge, py::arg("outputs"))
+      .def("default_param", &Graph::defaultParam)
       .def("init", &Graph::init)
       .def("deinit", &Graph::deinit)
       .def("run", &Graph::run)
@@ -57,7 +58,16 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::keep_alive<1, 2>(), py::return_value_policy::reference)
       .def("__call__", &Graph::operator(), py::arg("inputs"),
            py::keep_alive<1, 2>(), py::return_value_policy::reference)
-      .def("dump", [](Graph &g) { g.dump(std::cout); });
+      .def("dump", [](Graph &g) { g.dump(std::cout); })
+      .def("serialize", py::overload_cast<rapidjson::Value &,
+                                          rapidjson::Document::AllocatorType &>(
+                            &Graph::serialize), py::arg("json"), py::arg("allocator"))
+      .def("serialize",
+           py::overload_cast<std::string &>(&Graph::serialize), py::arg("json_str"))
+      .def("deserialize",
+           py::overload_cast<rapidjson::Value &>(&Graph::deserialize), py::arg("json"))
+      .def("deserialize",
+           py::overload_cast<const std::string &>(&Graph::deserialize), py::arg("json_str"));
 }
 
 }  // namespace dag

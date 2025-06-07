@@ -88,7 +88,7 @@ OpDesc::~OpDesc() {}
  */
 base::Status OpDesc::serialize(
     rapidjson::Value &json,
-    rapidjson::Document::AllocatorType &allocator) const {
+    rapidjson::Document::AllocatorType &allocator) {
   // 写入算子名称
   json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator),
                  allocator);
@@ -218,7 +218,7 @@ ValueDesc::~ValueDesc() {
  */
 base::Status ValueDesc::serialize(
     rapidjson::Value &json,
-    rapidjson::Document::AllocatorType &allocator) const {
+    rapidjson::Document::AllocatorType &allocator) {
   // 序列化名称
   json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator),
                  allocator);
@@ -294,7 +294,14 @@ ModelDesc::~ModelDesc() {
  * @return base::Status
  */
 base::Status ModelDesc::dump(std::ostream &stream) {
-  return serializeStructureToJson(stream);
+  std::string json_str;
+  base::Status status = serializeStructureToJson(json_str);
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("serializeStructureToJson failed with status: %d\n", int(status));
+    return status;
+  }
+  stream << json_str;
+  return base::kStatusCodeOk;
 }
 
 /**
@@ -312,7 +319,7 @@ base::Status ModelDesc::dump(std::ostream &stream) {
  */
 base::Status ModelDesc::serializeStructureToJson(
     rapidjson::Value &json,
-    rapidjson::Document::AllocatorType &allocator) const {
+    rapidjson::Document::AllocatorType &allocator) {
   // 序列化模型名称
   json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator),
                  allocator);
@@ -387,7 +394,7 @@ base::Status ModelDesc::serializeStructureToJson(
   return base::kStatusCodeOk;
 }
 
-base::Status ModelDesc::serializeStructureToJson(std::ostream &stream) const {
+base::Status ModelDesc::serializeStructureToJsonStr(std::string &json_str) {
   rapidjson::Document doc;
   rapidjson::Value json(rapidjson::kObjectType);
 
@@ -407,34 +414,36 @@ base::Status ModelDesc::serializeStructureToJson(std::ostream &stream) const {
 
   // 序列化为字符串
   rapidjson::StringBuffer buffer;
-  rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   if (!json.Accept(writer)) {
     NNDEPLOY_LOGE("Failed to write JSON to buffer\n");
     return base::kStatusCodeErrorInvalidValue;
   }
 
   // 输出到流
-  stream << buffer.GetString();
-  // if (stream.fail()) {
-  //   NNDEPLOY_LOGE("Failed to write JSON string to stream\n");
-  //   return base::kStatusCodeErrorInvalidParam;
-  // }
+  json_str = buffer.GetString();
+  if (json_str.empty()) {
+    NNDEPLOY_LOGE("serializeStructureToJson failed with status: %d\n", int(base::kStatusCodeErrorInvalidValue));
+    return base::kStatusCodeErrorInvalidValue;
+  }
 
   return base::kStatusCodeOk;
 }
 
 base::Status ModelDesc::serializeStructureToJson(
-    const std::string &path) const {
+    const std::string &path) {
   std::ofstream ofs(path);
   if (!ofs.is_open()) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  base::Status status = this->serializeStructureToJson(ofs);
+  std::string json_str;
+  base::Status status = this->serializeStructureToJsonStr(json_str);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("serialize to json failed\n");
     return status;
   }
+  ofs.write(json_str.c_str(), json_str.size());
   ofs.close();
   return status;
 }
@@ -522,13 +531,8 @@ base::Status ModelDesc::deserializeStructureFromJson(
   return base::kStatusCodeOk;
 }
 
-base::Status ModelDesc::deserializeStructureFromJson(
-    std::istream &stream, const std::vector<ValueDesc> &input) {
-  std::string json_str;
-  std::string line;
-  while (std::getline(stream, line)) {
-    json_str += line;
-  }
+base::Status ModelDesc::deserializeStructureFromJsonStr(
+    const std::string &json_str, const std::vector<ValueDesc> &input) {
   rapidjson::Document document;
   if (document.Parse(json_str.c_str()).HasParseError()) {
     NNDEPLOY_LOGE("parse json string failed\n");
@@ -544,7 +548,9 @@ base::Status ModelDesc::deserializeStructureFromJson(
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  base::Status status = this->deserializeStructureFromJson(ifs, input);
+  std::string json_str;
+  ifs.read(const_cast<char *>(json_str.data()), json_str.size());
+  base::Status status = this->deserializeStructureFromJsonStr(json_str, input);
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize from file %s failed\n", path.c_str());
     return status;
@@ -555,7 +561,7 @@ base::Status ModelDesc::deserializeStructureFromJson(
 
 // 序列化模型权重为二进制文件
 base::Status ModelDesc::serializeWeightsToSafetensorsImpl(
-    safetensors::safetensors_t &st, bool serialize_buffer) const {
+    safetensors::safetensors_t &st, bool serialize_buffer) {
   for (auto &weight : weights_) {
     base::Status status =
         weight.second->serializeToSafetensors(st, serialize_buffer);
@@ -573,7 +579,7 @@ base::Status ModelDesc::serializeWeightsToSafetensorsImpl(
  * @return base::Status
  */
 base::Status ModelDesc::serializeWeightsToSafetensors(
-    std::shared_ptr<safetensors::safetensors_t> &serialize_st_ptr) const {
+    std::shared_ptr<safetensors::safetensors_t> &serialize_st_ptr) {
   base::Status status = base::kStatusCodeOk;
 
   if (metadata_.find("format") == metadata_.end()) {
@@ -613,7 +619,7 @@ base::Status ModelDesc::serializeWeightsToSafetensors(
   return base::kStatusCodeOk;
 }
 base::Status ModelDesc::serializeWeightsToSafetensors(
-    const std::string &weight_file_path) const {
+    const std::string &weight_file_path) {
   // 检查weight_file_path，确保使用'.safetensors'作为权重文件的后缀
   if (!weight_file_path.empty()) {
     std::string path = weight_file_path;

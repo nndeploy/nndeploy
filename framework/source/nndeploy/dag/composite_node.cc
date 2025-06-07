@@ -282,7 +282,7 @@ std::vector<NodeWrapper *> CompositeNode::sortDFS() {
 
 base::Status CompositeNode::serialize(
     rapidjson::Value &json,
-    rapidjson::Document::AllocatorType &allocator) const {
+    rapidjson::Document::AllocatorType &allocator) {
   base::Status status = base::kStatusCodeOk;
   status = Node::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {

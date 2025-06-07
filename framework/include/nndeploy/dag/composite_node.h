@@ -51,7 +51,7 @@ class CompositeNode : public Node {
   using Node::serialize;
   virtual base::Status serialize(
       rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) const;
+      rapidjson::Document::AllocatorType &allocator);
   // from json
   using Node::deserialize;
   virtual base::Status deserialize(rapidjson::Value &json);

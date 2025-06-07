@@ -209,7 +209,8 @@ bool Buffer::justModify(const BufferDesc &desc) {
 }
 
 // 序列化buffer为二进制文件
-base::Status Buffer::serialize(std::ostream &stream) {
+base::Status Buffer::serialize(std::string &bin_str) {
+  std::stringstream stream;
   uint64_t buffer_size = this->getRealSize();
   if (!stream.write(reinterpret_cast<const char *>(&buffer_size),
                     sizeof(buffer_size))) {
@@ -236,6 +237,8 @@ base::Status Buffer::serialize(std::ostream &stream) {
     }
     return base::kStatusCodeOk;
   }
+  bin_str = stream.str();
+  return base::kStatusCodeOk;
 }
 
 #if ENABLE_NNDEPLOY_SAFETENSORS_CPP
@@ -269,7 +272,8 @@ base::Status Buffer::serializeToSafetensors(
 #endif
 
 // 从二进制文件反序列化回buffer
-base::Status Buffer::deserialize(std::istream &stream) {
+base::Status Buffer::deserialize(const std::string &bin_str) {
+  std::stringstream stream(bin_str);
   device_ = getDefaultHostDevice();
   memory_pool_ = nullptr;
   memory_type_ = base::kMemoryTypeAllocate;

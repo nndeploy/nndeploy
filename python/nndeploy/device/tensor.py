@@ -171,7 +171,7 @@ class Tensor(_C.device.Tensor):
         """
         return super().copy_to(dst)
 
-    def serialize(self, stream):
+    def serialize(self, bin_str: str):
         """
         序列化Tensor到流。
 
@@ -181,9 +181,9 @@ class Tensor(_C.device.Tensor):
         Returns:
             None
         """
-        return super().serialize(stream)
+        return super().serialize(bin_str)
 
-    def deserialize(self, stream):
+    def deserialize(self, bin_str: str):
         """
         从流反序列化Tensor。
 
@@ -193,7 +193,7 @@ class Tensor(_C.device.Tensor):
         Returns:
             None
         """
-        return super().deserialize(stream)
+        return super().deserialize(bin_str)
 
     def print(self, stream=None):
         """

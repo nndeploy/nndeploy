@@ -57,10 +57,8 @@ NNDEPLOY_API_PYBIND11_MODULE("device", m) {
       .def(py::init<const TensorDesc &>(), py::arg("desc"))
       .def("__eq__", &TensorDesc::operator==, py::arg("other"))
       .def("__ne__", &TensorDesc::operator!=, py::arg("other"))
-      // .def("serialize",
-      //      [](TensorDesc &self, std::ostream &os) { self.serialize(os); })
-      // .def("deserialize",
-      //      [](TensorDesc &self, std::istream &is) { self.deserialize(is); })
+      .def("serialize", py::overload_cast<std::string&>(&TensorDesc::serialize))
+      .def("deserialize", py::overload_cast<const std::string&>(&TensorDesc::deserialize))
       .def("print", &TensorDesc::print, py::arg("stream"))
       .def_readwrite("data_type_", &TensorDesc::data_type_)
       .def_readwrite("data_format_", &TensorDesc::data_format_)

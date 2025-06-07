@@ -1234,44 +1234,21 @@ def time_profiler_print_remove_warmup(title: str, warmup_times: int):
 class Param(_C.base.Param):
     def __init__(self):
         super().__init__()
-        self._default_dic = {}
 
-    def __str__(self):
-        return str(self._default_dic)
-
-    def set(self, dic : dict):
-        for k, v in dic.items():
-            self._default_dic[k] = v 
+    def set(self, key: str, value: Any):
+        return super().set(key, value)
 
     def get(self, key: str):
-        if key in self._default_dic:
-            return self._default_dic[key]
-        else:
-            print(f"Unsupported key: {key}")
-            return None
+        return super().get(key)
     
     def serialize(self, value):
-        if isinstance(value, dict):
-            self._default_dic = value
-        elif isinstance(value, str):
-            try:
-                self._default_dic = json.loads(value)
-            except json.JSONDecodeError:
-                print(f"Failed to deserialize string: {value}")
-        else:
-            raise ValueError(f"Unsupported value type: {type(value)}")
+        return super().serialize(value)
+
+    def save_file(self, path: str):
+        return super().save_file(path)
         
     def deserialize(self, value):
-        if isinstance(value, dict):
-            value.update(self._default_dic)
-        elif isinstance(value, str):
-            try:
-                with open(value, 'w') as f:
-                    json.dump(self._default_dic, f, indent=4)
-            except IOError:
-                print(f"Failed to write file: {value}")
-        else:
-            raise ValueError(f"Unsupported value type: {type(value)}")
-        
-    def get_default_dict(self):
-        return self._default_dic
+        return super().deserialize(value)
+    
+    def load_file(self, path: str):
+        return super().load_file(path)

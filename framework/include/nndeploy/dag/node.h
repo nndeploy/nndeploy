@@ -64,13 +64,13 @@ class NNDEPLOY_CC_API NodeDesc {
   // to json
   base::Status serialize(
       rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) const;
-  base::Status serialize(std::ostream &stream) const;
-  base::Status serialize(const std::string &path) const;
+      rapidjson::Document::AllocatorType &allocator);
+  base::Status serialize(std::string &json_str);
+  base::Status saveFile(const std::string &path);
   // from json
   base::Status deserialize(rapidjson::Value &json);
-  base::Status deserialize(std::istream &stream);
-  base::Status deserialize(const std::string &path);
+  base::Status deserialize(const std::string &json_str);
+  base::Status loadFile(const std::string &path);
 
  private:
   // Node key
@@ -195,6 +195,12 @@ class NNDEPLOY_CC_API Node {
       std::shared_ptr<EdgeTypeInfo> output_type_info);
   std::vector<std::shared_ptr<EdgeTypeInfo>> getOutputTypeInfo();
 
+  /**
+   * @brief 配置默认参数
+   * @return base::Status 配置结果状态码
+   */
+  virtual base::Status defaultParam();
+
   virtual base::Status init();
   virtual base::Status deinit();
 
@@ -229,13 +235,13 @@ class NNDEPLOY_CC_API Node {
   // to json
   virtual base::Status serialize(
       rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) const;
-  virtual base::Status serialize(std::ostream &stream) const;
-  virtual base::Status serialize(const std::string &path) const;
+      rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status serialize(std::string &json_str);
+  virtual base::Status saveFile(const std::string &path);
   // from json
   virtual base::Status deserialize(rapidjson::Value &json);
-  virtual base::Status deserialize(std::istream &stream);
-  virtual base::Status deserialize(const std::string &path);
+  virtual base::Status deserialize(const std::string &json_str);
+  virtual base::Status loadFile(const std::string &path);
 
  protected:
   /**
