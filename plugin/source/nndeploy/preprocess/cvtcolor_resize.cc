@@ -51,6 +51,7 @@ base::Status CvtColorResize::run() {
   } else {
     tmp_resize = tmp_cvt;
   }
+
   OpenCvConvert::convertToTensor(tmp_resize, dst, tmp_param->normalize_,
                                  tmp_param->scale_, tmp_param->mean_,
                                  tmp_param->std_);

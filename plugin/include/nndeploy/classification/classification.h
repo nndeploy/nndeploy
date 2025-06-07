@@ -22,6 +22,7 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvtcolor_resize_crop.h"
 #include "nndeploy/preprocess/params.h"
 
 namespace nndeploy {
@@ -30,6 +31,8 @@ namespace classification {
 class NNDEPLOY_CC_API ClassificationPostParam : public base::Param {
  public:
   int topk_ = 1;
+
+  bool is_softmax_ = true;
 
   int version_ = -1;
 };
@@ -87,24 +90,47 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
                     base::InferenceType inference_type,
                     const dag::NodeDesc &post_desc) {
     // Create preprocessing node for image preprocessing
-    pre_ = this->createNode<preprocess::CvtColorResize>(pre_desc);
+    // pre_ = this->createNode<preprocess::CvtColorResize>(pre_desc);
+    // if (pre_ == nullptr) {
+    //   NNDEPLOY_LOGE("Failed to create preprocessing node");
+    //   return base::kStatusCodeErrorInvalidParam;
+    // }
+    // preprocess::CvtclorResizeParam *pre_param =
+    //     dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    // pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+    // pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+    // pre_param->interp_type_ = base::kInterpTypeLinear;
+    // pre_param->h_ = 224;
+    // pre_param->w_ = 224;
+    // pre_param->mean_[0] = 0.485;
+    // pre_param->mean_[1] = 0.456;
+    // pre_param->mean_[2] = 0.406;
+    // pre_param->std_[0] = 0.229;
+    // pre_param->std_[1] = 0.224;
+    // pre_param->std_[2] = 0.225;
+
+    pre_ = this->createNode<preprocess::CvtColorResizeCrop>(
+        "preprocess::CvtColorResizeCrop");
     if (pre_ == nullptr) {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
-    preprocess::CvtclorResizeParam *pre_param =
-        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    pre_->setGraph(this);
+    preprocess::CvtColorResizeCropParam *pre_param =
+        dynamic_cast<preprocess::CvtColorResizeCropParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
-    pre_param->h_ = 224;
-    pre_param->w_ = 224;
+    pre_param->resize_h_ = 256;
+    pre_param->resize_w_ = 256;
     pre_param->mean_[0] = 0.485;
     pre_param->mean_[1] = 0.456;
     pre_param->mean_[2] = 0.406;
     pre_param->std_[0] = 0.229;
     pre_param->std_[1] = 0.224;
     pre_param->std_[2] = 0.225;
+    pre_param->width_ = 224;
+    pre_param->height_ = 224;
 
     // Create inference node for ResNet model execution
     infer_ = dynamic_cast<infer::Infer *>(
@@ -130,26 +156,49 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
 
   base::Status make(base::InferenceType inference_type) {
     // Create preprocessing node for image preprocessing
-    pre_ = this->createNode<preprocess::CvtColorResize>(
-        "preprocess::CvtColorResize");
+    // pre_ = this->createNode<preprocess::CvtColorResize>(
+    //     "preprocess::CvtColorResize");
+    // if (pre_ == nullptr) {
+    //   NNDEPLOY_LOGE("Failed to create preprocessing node");
+    //   return base::kStatusCodeErrorInvalidParam;
+    // }
+    // pre_->setGraph(this);
+    // preprocess::CvtclorResizeParam *pre_param =
+    //     dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    // pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+    // pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+    // pre_param->interp_type_ = base::kInterpTypeLinear;
+    // pre_param->h_ = 224;
+    // pre_param->w_ = 224;
+    // pre_param->mean_[0] = 0.485;
+    // pre_param->mean_[1] = 0.456;
+    // pre_param->mean_[2] = 0.406;
+    // pre_param->std_[0] = 0.229;
+    // pre_param->std_[1] = 0.224;
+    // pre_param->std_[2] = 0.225;
+
+    pre_ = this->createNode<preprocess::CvtColorResizeCrop>(
+        "preprocess::CvtColorResizeCrop");
     if (pre_ == nullptr) {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
     pre_->setGraph(this);
-    preprocess::CvtclorResizeParam *pre_param =
-        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    preprocess::CvtColorResizeCropParam *pre_param =
+        dynamic_cast<preprocess::CvtColorResizeCropParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
-    pre_param->h_ = 224;
-    pre_param->w_ = 224;
+    pre_param->resize_h_ = 256;
+    pre_param->resize_w_ = 256;
     pre_param->mean_[0] = 0.485;
     pre_param->mean_[1] = 0.456;
     pre_param->mean_[2] = 0.406;
     pre_param->std_[0] = 0.229;
     pre_param->std_[1] = 0.224;
     pre_param->std_[2] = 0.225;
+    pre_param->width_ = 224;
+    pre_param->height_ = 224;
 
     // Create inference node for ResNet model execution
     infer_ = dynamic_cast<infer::Infer *>(
@@ -160,8 +209,6 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     }
     infer_->setGraph(this);
     infer_->setInferenceType(inference_type);
-    infer_->setInputName("data", 0);
-    infer_->setOutputName("resnetv17_dense0_fwd", 0);
 
     // Create postprocessing node for classification results
     post_ = this->createNode<ClassificationPostProcess>(
@@ -206,6 +253,13 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     ClassificationPostParam *param =
         dynamic_cast<ClassificationPostParam *>(post_->getParam());
     param->topk_ = topk;
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setSoftmax(bool is_softmax) {
+    ClassificationPostParam *param =
+        dynamic_cast<ClassificationPostParam *>(post_->getParam());
+    param->is_softmax_ = is_softmax;
     return base::kStatusCodeOk;
   }
 

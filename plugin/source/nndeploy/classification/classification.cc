@@ -36,12 +36,19 @@ base::Status ClassificationPostProcess::run() {
       std::make_shared<ir::SoftmaxParam>();
   op_param->axis_ = 1;
   device::Tensor softmax_tensor(tensor->getDevice(), tensor->getDesc());
-  base::Status status = op::softmax(tensor, op_param, &softmax_tensor);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("op::softmax failed!\n");
-    return status;
+
+  float *data = nullptr;
+  if (param->is_softmax_) {
+    base::Status status = op::softmax(tensor, op_param, &softmax_tensor);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("op::softmax failed!\n");
+      return status;
+    }
+    data = (float *)softmax_tensor.getData();
+  } else {
+    data = (float *)tensor->getData();
   }
-  float *data = (float *)softmax_tensor.getData();
+
   int batch = softmax_tensor.getShapeIndex(0);
   int num_classes = softmax_tensor.getShapeIndex(1);
 

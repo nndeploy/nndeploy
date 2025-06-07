@@ -31,7 +31,7 @@ class NNDEPLOY_CC_API CvtColorResizePad : public dag::Node {
     this->setOutputTypeInfo<device::Tensor>();
   }
   CvtColorResizePad(const std::string &name, std::vector<dag::Edge *> inputs,
-            std::vector<dag::Edge *> outputs)
+                    std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::preprocess::CvtColorResizePad";
     param_ = std::make_shared<CvtclorResizePadParam>();

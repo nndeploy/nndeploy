@@ -103,3 +103,11 @@ if(ENABLE_NNDEPLOY_PLUGIN_OCR)
   include(${ROOT_PATH}/demo/ocr/config.cmake)
 endif()
 
+if(ENABLE_NNDEPLOY_PLUGIN_TRACK)
+  include(${ROOT_PATH}/demo/track/config.cmake)
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_MATTING)
+  include(${ROOT_PATH}/demo/matting/config.cmake)
+endif()
+
