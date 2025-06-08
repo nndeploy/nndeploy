@@ -20,19 +20,23 @@ base::Status Param::serialize(rapidjson::Value &json,
                               rapidjson::Document::AllocatorType &allocator) {
   return base::kStatusCodeOk;
 }
-base::Status Param::serialize(std::string &json_str) {
+std::string Param::serialize() {
+  std::string json_str;
   rapidjson::Document doc;
   rapidjson::Value json(rapidjson::kObjectType);
   base::Status status = this->serialize(json, doc.GetAllocator());
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("serialize to json failed\n");
-    return status;
+    return json_str;
   }
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   json.Accept(writer);
   json_str = buffer.GetString();
-  return base::kStatusCodeOk;
+  if (json_str.empty()) {
+    NNDEPLOY_LOGI("serialize to json failed\n");
+  }
+  return json_str;
 }
 base::Status Param::saveFile(const std::string &path) {
   std::ofstream ofs(path);
@@ -40,16 +44,11 @@ base::Status Param::saveFile(const std::string &path) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  std::string json_str;
-  base::Status status = this->serialize(json_str);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("serialize to json failed\n");
-    return status;
-  }
+  std::string json_str = this->serialize();
   std::string beautify_json_str = base::prettyJsonStr(json_str);
   ofs.write(beautify_json_str.c_str(), beautify_json_str.size());
   ofs.close();
-  return status;
+  return base::kStatusCodeOk;
 }
 // 反序列化：[rapidjson::Value\stream\path\string]->数据结构
 base::Status Param::deserialize(rapidjson::Value &json) {

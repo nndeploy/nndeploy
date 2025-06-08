@@ -17,16 +17,7 @@ class ConstNode : public Node {
       : dag::Node(name) {
     key_ = "nndeploy::dag::ConstNode";
     node_type_ = dag::NodeType::kNodeTypeInput;
-    if (inputs.size() > 0) {
-      NNDEPLOY_LOGE("ConstNode not support inputs");
-      constructed_ = false;
-      return;
-    }
-    if (outputs.size() != 1) {
-      NNDEPLOY_LOGE("ConstNode only support one output");
-      constructed_ = false;
-      return;
-    }
+    inputs_ = inputs;
     outputs_ = outputs;
   }
   virtual ~ConstNode() {}

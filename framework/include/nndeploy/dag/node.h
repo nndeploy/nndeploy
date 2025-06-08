@@ -65,7 +65,7 @@ class NNDEPLOY_CC_API NodeDesc {
   base::Status serialize(
       rapidjson::Value &json,
       rapidjson::Document::AllocatorType &allocator);
-  base::Status serialize(std::string &json_str);
+  std::string serialize();
   base::Status saveFile(const std::string &path);
   // from json
   base::Status deserialize(rapidjson::Value &json);
@@ -95,6 +95,7 @@ class NNDEPLOY_CC_API Node {
 
   virtual ~Node();
 
+  void setKey(const std::string &key);
   std::string getKey();
   std::string getName();
 
@@ -236,7 +237,7 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status serialize(
       rapidjson::Value &json,
       rapidjson::Document::AllocatorType &allocator);
-  virtual base::Status serialize(std::string &json_str);
+  virtual std::string serialize();
   virtual base::Status saveFile(const std::string &path);
   // from json
   virtual base::Status deserialize(rapidjson::Value &json);
@@ -317,7 +318,7 @@ class TypeNodeCreator : public NodeCreator {
   }
 };
 
-class NodeFactory {
+class NNDEPLOY_CC_API NodeFactory {
  public:
   static NodeFactory *getInstance() {
     static NodeFactory instance;
@@ -327,11 +328,14 @@ class NodeFactory {
   void registerNode(const std::string &node_key,
                     std::shared_ptr<NodeCreator> creator) {
     auto it = creators_.find(node_key);
+    NNDEPLOY_LOGI("register node: %s\n", node_key.c_str());
     if (it != creators_.end()) {
       NNDEPLOY_LOGE("Node name %s already exists!\n", node_key.c_str());
       return;
     }
+    NNDEPLOY_LOGI("register node: %s\n", node_key.c_str());
     creators_[node_key] = creator;
+    NNDEPLOY_LOGI("register node success: %s\n", node_key.c_str());
   }
 
   std::shared_ptr<NodeCreator> getCreator(const std::string &node_key) {

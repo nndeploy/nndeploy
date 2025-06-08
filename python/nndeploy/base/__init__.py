@@ -119,6 +119,8 @@ from .common import time_profiler_print_index
 from .common import time_profiler_print_remove_warmup
 
 from .common import Param
+from .common import remove_json_brackets
+from .common import pretty_json_str
 
 from .file_utils import FileUtils, file_utils
 from .json_utils import JsonUtils, json_utils

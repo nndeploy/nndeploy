@@ -9,6 +9,7 @@ import nndeploy.base
 import nndeploy.device
 
 from .base import EdgeTypeInfo
+from .edge import Edge
 
 class NodeDesc(_C.dag.NodeDesc):
     def __init__(self, name: str, inputs: list[str] = None, outputs: list[str] = None, key: str = None):
@@ -34,17 +35,11 @@ class NodeDesc(_C.dag.NodeDesc):
     def get_outputs(self) -> list[str]:
         return super().get_outputs()
     
-    def serialize(self, target, is_path: bool = False):
-        if is_path:
-            return super().serialize(target)
-        else:
-            return super().serialize(target, target)
+    def serialize(self, target: str):
+        return super().serialize(target)
 
-    def deserialize(self, target, is_path: bool = False):
-        if is_path:
-            return super().deserialize(target)
-        else:
-            return super().deserialize(target)
+    def deserialize(self, target: str):
+        return super().deserialize(target)
 
 class Node(_C.dag.Node):
     def __init__(self, name: str, inputs=None, outputs=None):
@@ -54,6 +49,9 @@ class Node(_C.dag.Node):
             super().__init__(name, inputs, outputs)
         else:
             super().__init__(name, inputs, outputs)
+            
+    def set_key(self, key: str):
+        return super().set_key(key)
             
     def get_key(self) -> str:
         return super().get_key()
@@ -171,12 +169,30 @@ class Node(_C.dag.Node):
     
     def set_input_type_info(self, input_type_info: EdgeTypeInfo):
         return super().set_input_type_info(input_type_info)
+    
+    def set_input_type(self, input_type: type):
+        """设置输入类型
+        
+        Args:
+            input_type: 输入类型
+            
+        Returns:
+            状态码
+        """
+        edge_type_info = EdgeTypeInfo()
+        edge_type_info.set_type(input_type)
+        return self.set_input_type_info(edge_type_info)
         
     def get_input_type_info(self) -> EdgeTypeInfo:
         return super().get_input_type_info()
     
     def set_output_type_info(self, output_type_info: EdgeTypeInfo):
         return super().set_output_type_info(output_type_info)
+    
+    def set_output_type(self, output_type: type):
+        edge_type_info = EdgeTypeInfo()
+        edge_type_info.set_type(output_type)
+        return self.set_output_type_info(edge_type_info)
         
     def get_output_type_info(self) -> EdgeTypeInfo:
         return super().get_output_type_info()
@@ -212,5 +228,67 @@ class Node(_C.dag.Node):
         
     def get_real_outputs_name(self, outputs_name):
         return super().get_real_outputs_name(outputs_name)
+    
+    def serialize(self) -> str:
+        return super().serialize()
+    
+    def save_file(self, path: str):
+        return super().save_file(path)
+    
+    def deserialize(self, target: str):
+        return super().deserialize(target)
+    
+    def load_file(self, path: str):
+        return super().load_file(path)
 
+
+class NodeCreator(_C.dag.NodeCreator):
+    def __init__(self):
+        super().__init__()
+        
+    def create_node(self, name: str, inputs: list[Edge], outputs: list[Edge]):
+        print("Must be implemented!!!")
+        return None
+        
+    def create_node_shared_ptr(self, name: str, inputs: list[Edge], outputs: list[Edge]):
+        print("No need to implement!!!")
+        return None
+        
+        
+def get_node_keys():
+    return _C.dag.get_node_keys()
+    
+    
+def register_node(node_key: str, node_creator: NodeCreator):
+    return _C.dag.register_node(node_key, node_creator)
+
+
+def create_node(node_key: str, node_name: str, inputs: list[Edge] = None, outputs: list[Edge] = None):
+    if inputs is None and outputs is None:
+        return _C.dag.create_node(node_key, node_name)
+    else:
+        return _C.dag.create_node(node_key, node_name, inputs, outputs)
+
+
+def get_node_json(node_key: str):
+    node = create_node(node_key, node_key)
+    print(node)
+    if node is not None:
+        json_str = node.serialize()
+        return json_str
+
+
+def get_all_node_json():
+    node_keys = get_node_keys()
+    node_json = "{\"nodes\":["
+    for node_key in node_keys:
+        # print(node_key)
+        json = get_node_json(node_key)
+        node_json += json
+        if node_key in list(node_keys)[:-1]:
+            node_json += ","
+    node_json += "]}"
+    # 美化json
+    node_json = nndeploy.base.pretty_json_str(node_json)
+    return node_json
 

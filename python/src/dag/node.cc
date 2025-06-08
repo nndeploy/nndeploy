@@ -26,24 +26,30 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_name", &NodeDesc::getName)
       .def("get_inputs", &NodeDesc::getInputs)
       .def("get_outputs", &NodeDesc::getOutputs)
-      .def("serialize", py::overload_cast<rapidjson::Value &,
-                                          rapidjson::Document::AllocatorType &>(
-                            &NodeDesc::serialize), py::arg("json"), py::arg("allocator"))
       .def("serialize",
-           py::overload_cast<std::string &>(&NodeDesc::serialize), py::arg("json_str"))
-      .def("save_file", py::overload_cast<const std::string &>(
-                            &NodeDesc::saveFile), py::arg("path"))
+           py::overload_cast<rapidjson::Value &,
+                             rapidjson::Document::AllocatorType &>(
+               &NodeDesc::serialize),
+           py::arg("json"), py::arg("allocator"))
+      .def("serialize", py::overload_cast<>(&NodeDesc::serialize))
+      .def("save_file",
+           py::overload_cast<const std::string &>(&NodeDesc::saveFile),
+           py::arg("path"))
       .def("deserialize",
-           py::overload_cast<rapidjson::Value &>(&NodeDesc::deserialize), py::arg("json"))
+           py::overload_cast<rapidjson::Value &>(&NodeDesc::deserialize),
+           py::arg("json"))
       .def("deserialize",
-           py::overload_cast<const std::string &>(&NodeDesc::deserialize), py::arg("json_str"))
+           py::overload_cast<const std::string &>(&NodeDesc::deserialize),
+           py::arg("json_str"))
       .def("load_file",
-           py::overload_cast<const std::string &>(&NodeDesc::loadFile), py::arg("path"));
+           py::overload_cast<const std::string &>(&NodeDesc::loadFile),
+           py::arg("path"));
 
   py::class_<Node, PyNode<Node>>(m, "Node", py::dynamic_attr())
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<Edge *>,
                     std::vector<Edge *>>())
+      .def("set_key", &Node::setKey, py::arg("key"))
       .def("get_key", &Node::getKey)
       .def("get_name", &Node::getName)
       .def("get_input_names", &Node::getInputNames)
@@ -144,19 +150,22 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("outputs"))
       .def("is_inputs_changed", &Node::isInputsChanged, py::arg("inputs"))
       .def("get_real_outputs_name", &Node::getRealOutputsName)
-      .def("serialize", py::overload_cast<rapidjson::Value &,
-                                          rapidjson::Document::AllocatorType &>(
-                            &Node::serialize), py::arg("json"), py::arg("allocator"))
       .def("serialize",
-           py::overload_cast<std::string &>(&Node::serialize), py::arg("json_str"))
-      .def("save_file", py::overload_cast<const std::string &>(
-                            &Node::saveFile), py::arg("path"))
+           py::overload_cast<rapidjson::Value &,
+                             rapidjson::Document::AllocatorType &>(
+               &Node::serialize),
+           py::arg("json"), py::arg("allocator"))
+      .def("serialize", py::overload_cast<>(&Node::serialize))
+      .def("save_file", py::overload_cast<const std::string &>(&Node::saveFile),
+           py::arg("path"))
       .def("deserialize",
-           py::overload_cast<rapidjson::Value &>(&Node::deserialize), py::arg("json"))
+           py::overload_cast<rapidjson::Value &>(&Node::deserialize),
+           py::arg("json"))
       .def("deserialize",
-           py::overload_cast<const std::string &>(&Node::deserialize), py::arg("json_str"))
-      .def("load_file",
-           py::overload_cast<const std::string &>(&Node::loadFile), py::arg("path"));
+           py::overload_cast<const std::string &>(&Node::deserialize),
+           py::arg("json_str"))
+      .def("load_file", py::overload_cast<const std::string &>(&Node::loadFile),
+           py::arg("path"));
 
   py::class_<NodeCreator, PyNodeCreator<NodeCreator>,
              std::shared_ptr<NodeCreator>>(m, "NodeCreator")
@@ -170,7 +179,13 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
 
   m.def("register_node",
         [](const std::string &node_key, std::shared_ptr<NodeCreator> creator) {
-          NodeFactory::getInstance()->registerNode(node_key, creator);
+          NodeFactory *instance = NodeFactory::getInstance();
+          if (instance != nullptr) {
+            instance->registerNode(node_key, creator);
+            //   NNDEPLOY_LOGI("register node success: %s\n", node_key.c_str());
+          } else {
+            NNDEPLOY_LOGE("register node failed: %s\n", node_key.c_str());
+          }
         });
 
   m.def(

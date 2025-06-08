@@ -1038,18 +1038,14 @@ base::Status Graph::serialize(rapidjson::Value &json,
 
   return status;
 }
-base::Status Graph::serialize(std::string &json_str) {
-  base::Status status = base::kStatusCodeOk;
+std::string Graph::serialize() {
+  std::string json_str;
 
   std::string graph_json_str;
-  status = Node::serialize(graph_json_str);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("serialize node failed\n");
-    return status;
-  }
+  graph_json_str = Node::serialize();
   if (node_repository_.empty()) {
     json_str += graph_json_str;
-    return base::kStatusCodeOk;
+    return json_str;
   }
 
   graph_json_str[graph_json_str.length() - 1] = ',';
@@ -1058,8 +1054,7 @@ base::Status Graph::serialize(std::string &json_str) {
   json_str += "\"node_repository_\": [";
   std::string node_repository_str;
   for (auto node_wrapper : node_repository_) {
-    std::string node_json_str;
-    node_wrapper->node_->serialize(node_json_str);
+    std::string node_json_str = node_wrapper->node_->serialize();
     node_repository_str += node_json_str;
     if (node_wrapper == node_repository_.back()) {
       continue;
@@ -1071,7 +1066,7 @@ base::Status Graph::serialize(std::string &json_str) {
 
   json_str += "}";
 
-  return status;
+  return json_str;
 }
 base::Status Graph::deserialize(rapidjson::Value &json) {
   base::Status status = Node::deserialize(json);
@@ -1237,8 +1232,8 @@ base::Status serialize(Graph *graph, rapidjson::Value &json,
                        rapidjson::Document::AllocatorType &allocator) {
   return graph->serialize(json, allocator);
 }
-base::Status serialize(Graph *graph, std::string &json_str) {
-  return graph->serialize(json_str);
+std::string serialize(Graph *graph) {
+  return graph->serialize();
 }
 base::Status saveFile(Graph *graph, const std::string &path) {
   return graph->saveFile(path);

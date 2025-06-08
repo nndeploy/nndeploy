@@ -1235,14 +1235,14 @@ class Param(_C.base.Param):
     def __init__(self):
         super().__init__()
 
-    def set(self, key: str, value: Any):
+    def set(self, key: str, value: any):
         return super().set(key, value)
 
     def get(self, key: str):
         return super().get(key)
     
-    def serialize(self, value):
-        return super().serialize(value)
+    def serialize(self) -> str:
+        return super().serialize()
 
     def save_file(self, path: str):
         return super().save_file(path)
@@ -1252,3 +1252,11 @@ class Param(_C.base.Param):
     
     def load_file(self, path: str):
         return super().load_file(path)
+  
+def remove_json_brackets(json_str: str):
+    return _C.base.remove_json_brackets(json_str) 
+    
+def pretty_json_str(json_str: str):
+    return _C.base.pretty_json_str(json_str) 
+
+

@@ -51,7 +51,7 @@ class NNDEPLOY_CC_API Param {
   // rapidjson::Document::AllocatorType& allocator)
   virtual base::Status serialize(rapidjson::Value &json,
                                  rapidjson::Document::AllocatorType &allocator);
-  virtual base::Status serialize(std::string &json_str);
+  virtual std::string serialize();
   virtual base::Status saveFile(const std::string &path);
   // 反序列化：[rapidjson::Value\string\path]->数据结构
   // 衍生类只需实现deserialize(rapidjson::Value &json)

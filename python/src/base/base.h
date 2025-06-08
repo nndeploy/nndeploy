@@ -35,8 +35,8 @@ class PyParam : public BaseParam {
     PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "serialize", serialize, json, allocator);
   }
 
-  base::Status serialize(std::string &json_str) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, BaseParam, "serialize", serialize, json_str);
+  std::string serialize() override {
+    PYBIND11_OVERRIDE_NAME(std::string, BaseParam, "serialize", serialize);
   }
 
   base::Status saveFile(const std::string &path) override {

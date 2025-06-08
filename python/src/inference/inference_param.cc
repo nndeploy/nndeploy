@@ -32,7 +32,7 @@ class PyInferenceParam : public InferenceParam {
   //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize", serialize, json, allocator);
   // }
 
-  // base::Status serialize(std::string &json_str) override {
+  // std::string serialize() override {
   //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize", serialize, stream);
   // }
 

@@ -238,7 +238,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status serialize(
       rapidjson::Value &json,
       rapidjson::Document::AllocatorType &allocator);
-  virtual base::Status serialize(std::string &json_str);
+  virtual std::string serialize();
   // from json
   // using Node::deserialize;
   virtual base::Status deserialize(rapidjson::Value &json);

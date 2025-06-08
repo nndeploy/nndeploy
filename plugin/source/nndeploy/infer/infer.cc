@@ -361,25 +361,26 @@ std::shared_ptr<inference::Inference> Infer::getInference() {
   return inference_;
 }
 
-base::Status Infer::serialize(
-    rapidjson::Value &json,
-    rapidjson::Document::AllocatorType &allocator) {
+base::Status Infer::serialize(rapidjson::Value &json,
+                              rapidjson::Document::AllocatorType &allocator) {
   base::Status status = dag::Node::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     return status;
   }
   std::string type_str = base::inferenceTypeToString(type_);
   json.AddMember("type_", rapidjson::Value(type_str.c_str(), allocator),
-                allocator);
+                 allocator);
   // json.AddMember("is_input_dynamic_", is_input_dynamic_, allocator);
   // json.AddMember("is_output_dynamic_", is_output_dynamic_, allocator);
   // json.AddMember("can_op_input_", can_op_input_, allocator);
   // json.AddMember("can_op_output_", can_op_output_, allocator);
-  base::Param *param = inference_->getParam();
-  if (param != nullptr) {
-    rapidjson::Value param_json(rapidjson::kObjectType);
-    param->serialize(param_json, allocator);
-    json.AddMember("param_", param_json, allocator);
+  if (inference_ != nullptr) {
+    base::Param *param = inference_->getParam();
+    if (param != nullptr) {
+      rapidjson::Value param_json(rapidjson::kObjectType);
+      param->serialize(param_json, allocator);
+      json.AddMember("param_", param_json, allocator);
+    }
   }
   return status;
 }
@@ -391,12 +392,15 @@ base::Status Infer::deserialize(rapidjson::Value &json) {
   if (json.HasMember("type_") && json["type_"].IsString()) {
     type_ = base::stringToInferenceType(json["type_"].GetString());
     status = this->setInferenceType(type_);
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInferenceType failed");
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "setInferenceType failed");
   }
-  if (json.HasMember("is_input_dynamic_") && json["is_input_dynamic_"].IsBool()) {
+  if (json.HasMember("is_input_dynamic_") &&
+      json["is_input_dynamic_"].IsBool()) {
     is_input_dynamic_ = json["is_input_dynamic_"].GetBool();
   }
-  if (json.HasMember("is_output_dynamic_") && json["is_output_dynamic_"].IsBool()) {
+  if (json.HasMember("is_output_dynamic_") &&
+      json["is_output_dynamic_"].IsBool()) {
     is_output_dynamic_ = json["is_output_dynamic_"].GetBool();
   }
   if (json.HasMember("can_op_input_") && json["can_op_input_"].IsBool()) {
@@ -405,8 +409,9 @@ base::Status Infer::deserialize(rapidjson::Value &json) {
   if (json.HasMember("can_op_output_") && json["can_op_output_"].IsBool()) {
     can_op_output_ = json["can_op_output_"].GetBool();
   }
-  if (json.HasMember("param_") && json["param_"].IsObject() && inference_ != nullptr) {
-    base::Param* param = inference_->getParam();
+  if (json.HasMember("param_") && json["param_"].IsObject() &&
+      inference_ != nullptr) {
+    base::Param *param = inference_->getParam();
     if (param != nullptr) {
       param->deserialize(json["param_"]);
     }

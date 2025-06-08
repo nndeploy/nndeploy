@@ -63,7 +63,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                                           rapidjson::Document::AllocatorType &>(
                             &Graph::serialize), py::arg("json"), py::arg("allocator"))
       .def("serialize",
-           py::overload_cast<std::string &>(&Graph::serialize), py::arg("json_str"))
+           py::overload_cast<>(&Graph::serialize))
       .def("deserialize",
            py::overload_cast<rapidjson::Value &>(&Graph::deserialize), py::arg("json"))
       .def("deserialize",

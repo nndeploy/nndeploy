@@ -34,7 +34,8 @@ base::Status NodeDesc::serialize(
   json.AddMember("outputs_", outputs, allocator);
   return base::kStatusCodeOk;
 }
-base::Status NodeDesc::serialize(std::string &json_str) {
+std::string NodeDesc::serialize() {
+  std::string json_str;
   rapidjson::Document doc;
   rapidjson::Value json(rapidjson::kObjectType);
 
@@ -42,13 +43,13 @@ base::Status NodeDesc::serialize(std::string &json_str) {
   base::Status status = this->serialize(json, doc.GetAllocator());
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("serialize failed with status: %d\n", int(status));
-    return status;
+    return json_str;
   }
 
   // 检查文档是否为空
   if (json.ObjectEmpty()) {
     NNDEPLOY_LOGE("Serialized JSON object is empty\n");
-    return base::kStatusCodeErrorInvalidValue;
+    return json_str;
   }
 
   // 序列化为字符串
@@ -56,17 +57,16 @@ base::Status NodeDesc::serialize(std::string &json_str) {
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   if (!json.Accept(writer)) {
     NNDEPLOY_LOGE("Failed to write JSON to buffer\n");
-    return base::kStatusCodeErrorInvalidValue;
+    return json_str;
   }
 
   // 输出到流
   json_str = buffer.GetString();
   if (json_str.empty()) {
     NNDEPLOY_LOGE("Failed to write JSON string to stream\n");
-    return base::kStatusCodeErrorInvalidParam;
   }
 
-  return base::kStatusCodeOk;
+  return json_str;
 }
 base::Status NodeDesc::saveFile(const std::string &path) {
   std::ofstream ofs(path);
@@ -74,17 +74,12 @@ base::Status NodeDesc::saveFile(const std::string &path) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  std::string json_str;
-  base::Status status = this->serialize(json_str);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("serialize to json failed\n");
-    return status;
-  }
+  std::string json_str = this->serialize();
   // json_str美化
   std::string beautify_json_str = base::prettyJsonStr(json_str);
   ofs.write(beautify_json_str.c_str(), beautify_json_str.size());
   ofs.close();
-  return status;
+  return base::kStatusCodeOk;
 }
 // from json
 base::Status NodeDesc::deserialize(rapidjson::Value &json) {
@@ -208,6 +203,7 @@ Node::~Node() {
   // NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
 }
 
+void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
 std::string Node::getName() { return name_; }
 
@@ -314,8 +310,10 @@ base::Status Node::setParam(base::Param *param) {
 base::Status Node::setParamSharedPtr(std::shared_ptr<base::Param> param) {
   if (param_ != nullptr) {
     return param->copyTo(param_.get());
+  } else {
+    param_ = param;
+    return base::kStatusCodeOk;
   }
-  return base::kStatusCodeOk;
 }
 base::Param *Node::getParam() { return param_.get(); }
 std::shared_ptr<base::Param> Node::getParamSharedPtr() { return param_; }
@@ -798,59 +796,86 @@ base::Status Node::serialize(rapidjson::Value &json,
 
   // 写入输入
   rapidjson::Value inputs(rapidjson::kArrayType);
-  for (size_t i = 0; i < inputs_.size(); i++) {
-    rapidjson::Value input_obj(rapidjson::kObjectType);
-    input_obj.AddMember(
-        "name_", rapidjson::Value(inputs_[i]->getName().c_str(), allocator),
-        allocator);
-    if (input_type_info_.size() > i) {
+  if (inputs_.empty()) {
+    for (size_t i = 0; i < input_type_info_.size(); i++) {
+      rapidjson::Value input_obj(rapidjson::kObjectType);
+      // input_obj.AddMember("name_",
+      // rapidjson::Value(input_type_info_[i]->getEdgeName().c_str(),
+      // allocator), allocator);
       input_obj.AddMember(
           "type_",
           rapidjson::Value(input_type_info_[i]->getTypeName().c_str(),
                            allocator),
           allocator);
-    } else if (inputs_[i]->getTypeInfo() != nullptr) {
-      // NNDEPLOY_LOGI("inputs_[i]->getTypeInfo()->getTypeName(): %s\n",
-      //              inputs_[i]->getTypeInfo()->getTypeName().c_str());
-      input_obj.AddMember(
-          "type_",
-          rapidjson::Value(inputs_[i]->getTypeInfo()->getTypeName().c_str(),
-                           allocator),
-          allocator);
-    } else {
-      input_obj.AddMember("type_", rapidjson::Value("NotSet", allocator),
-                          allocator);
+      inputs.PushBack(input_obj, allocator);
     }
-    inputs.PushBack(input_obj, allocator);
+  } else {
+    for (size_t i = 0; i < inputs_.size(); i++) {
+      rapidjson::Value input_obj(rapidjson::kObjectType);
+      input_obj.AddMember(
+          "name_", rapidjson::Value(inputs_[i]->getName().c_str(), allocator),
+          allocator);
+      if (input_type_info_.size() > i) {
+        input_obj.AddMember(
+            "type_",
+            rapidjson::Value(input_type_info_[i]->getTypeName().c_str(),
+                             allocator),
+            allocator);
+      } else if (inputs_[i]->getTypeInfo() != nullptr) {
+        // NNDEPLOY_LOGI("inputs_[i]->getTypeInfo()->getTypeName(): %s\n",
+        //              inputs_[i]->getTypeInfo()->getTypeName().c_str());
+        input_obj.AddMember(
+            "type_",
+            rapidjson::Value(inputs_[i]->getTypeInfo()->getTypeName().c_str(),
+                             allocator),
+            allocator);
+      } else {
+        input_obj.AddMember("type_", rapidjson::Value("NotSet", allocator),
+                            allocator);
+      }
+      inputs.PushBack(input_obj, allocator);
+    }
   }
   json.AddMember("inputs_", inputs, allocator);
 
   // 写入输出
   rapidjson::Value outputs(rapidjson::kArrayType);
-  for (size_t i = 0; i < outputs_.size(); i++) {
-    rapidjson::Value output_obj(rapidjson::kObjectType);
-    output_obj.AddMember(
-        "name_", rapidjson::Value(outputs_[i]->getName().c_str(), allocator),
-        allocator);
-    if (output_type_info_.size() > i) {
+  if (outputs_.empty()) {
+    for (size_t i = 0; i < output_type_info_.size(); i++) {
+      rapidjson::Value output_obj(rapidjson::kObjectType);
       output_obj.AddMember(
           "type_",
           rapidjson::Value(output_type_info_[i]->getTypeName().c_str(),
                            allocator),
           allocator);
-    } else if (outputs_[i]->getTypeInfo() != nullptr) {
-      // NNDEPLOY_LOGI("outputs_[i]->getTypeInfo()->getTypeName(): %s\n",
-      //              outputs_[i]->getTypeInfo()->getTypeName().c_str());
-      output_obj.AddMember(
-          "type_",
-          rapidjson::Value(outputs_[i]->getTypeInfo()->getTypeName().c_str(),
-                           allocator),
-          allocator);
-    } else {
-      output_obj.AddMember("type_", rapidjson::Value("NotSet", allocator),
-                           allocator);
+      outputs.PushBack(output_obj, allocator);
     }
-    outputs.PushBack(output_obj, allocator);
+  } else {
+    for (size_t i = 0; i < outputs_.size(); i++) {
+      rapidjson::Value output_obj(rapidjson::kObjectType);
+      output_obj.AddMember(
+          "name_", rapidjson::Value(outputs_[i]->getName().c_str(), allocator),
+          allocator);
+      if (output_type_info_.size() > i) {
+        output_obj.AddMember(
+            "type_",
+            rapidjson::Value(output_type_info_[i]->getTypeName().c_str(),
+                             allocator),
+            allocator);
+      } else if (outputs_[i]->getTypeInfo() != nullptr) {
+        // NNDEPLOY_LOGI("outputs_[i]->getTypeInfo()->getTypeName(): %s\n",
+        //              outputs_[i]->getTypeInfo()->getTypeName().c_str());
+        output_obj.AddMember(
+            "type_",
+            rapidjson::Value(outputs_[i]->getTypeInfo()->getTypeName().c_str(),
+                             allocator),
+            allocator);
+      } else {
+        output_obj.AddMember("type_", rapidjson::Value("NotSet", allocator),
+                             allocator);
+      }
+      outputs.PushBack(output_obj, allocator);
+    }
   }
   json.AddMember("outputs_", outputs, allocator);
 
@@ -883,21 +908,23 @@ base::Status Node::serialize(rapidjson::Value &json,
 
   return base::kStatusCodeOk;
 }
-base::Status Node::serialize(std::string &json_str) {
+std::string Node::serialize() {
+  std::string json_str;
   rapidjson::Document doc;
   rapidjson::Value json(rapidjson::kObjectType);
 
+  NNDEPLOY_LOGI("serialize to json: %s\n", json_str.c_str());
   // 调用序列化函数
   base::Status status = this->serialize(json, doc.GetAllocator());
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("serialize failed with status: %d\n", int(status));
-    return status;
+    return json_str;
   }
 
   // 检查文档是否为空
   if (json.ObjectEmpty()) {
     NNDEPLOY_LOGE("Serialized JSON object is empty\n");
-    return base::kStatusCodeErrorInvalidValue;
+    return json_str;
   }
 
   // 序列化为字符串
@@ -905,18 +932,16 @@ base::Status Node::serialize(std::string &json_str) {
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   if (!json.Accept(writer)) {
     NNDEPLOY_LOGE("Failed to write JSON to buffer\n");
-    return base::kStatusCodeErrorInvalidValue;
+    return json_str;
   }
 
   // 输出到流
   json_str = buffer.GetString();
   if (json_str.empty()) {
-    NNDEPLOY_LOGE("serialize failed with status: %d\n",
-                  int(base::kStatusCodeErrorInvalidValue));
-    return base::kStatusCodeErrorInvalidValue;
+    NNDEPLOY_LOGE("Failed to write JSON string to stream\n");
+    return json_str;
   }
-
-  return base::kStatusCodeOk;
+  return json_str;
 }
 base::Status Node::saveFile(const std::string &path) {
   std::ofstream ofs(path);
@@ -924,17 +949,12 @@ base::Status Node::saveFile(const std::string &path) {
     NNDEPLOY_LOGE("open file %s failed\n", path.c_str());
     return base::kStatusCodeErrorInvalidParam;
   }
-  std::string json_str;
-  base::Status status = this->serialize(json_str);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("serialize to json failed\n");
-    return status;
-  }
+  std::string json_str = this->serialize();
   // json_str美化
   std::string beautify_json_str = base::prettyJsonStr(json_str);
   ofs.write(beautify_json_str.c_str(), beautify_json_str.size());
   ofs.close();
-  return status;
+  return base::kStatusCodeOk;
 }
 // from json
 base::Status Node::deserialize(rapidjson::Value &json) {

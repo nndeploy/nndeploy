@@ -126,8 +126,8 @@ class PyNode : public Base {
                            allocator);
   }
 
-  base::Status serialize(std::string &json_str) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, json_str);
+  std::string serialize() override {
+    PYBIND11_OVERRIDE_NAME(std::string, Base, "serialize", serialize);
   }
 
   base::Status saveFile(const std::string &path) override {
@@ -203,8 +203,8 @@ class PyGraph : public Base {
                            allocator);
   }
 
-  virtual base::Status serialize(std::string &json_str) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "serialize", serialize, json_str);
+  virtual std::string serialize() override {
+    PYBIND11_OVERRIDE_NAME(std::string, Base, "serialize", serialize);
   }
 
   virtual base::Status deserialize(rapidjson::Value &json) override {

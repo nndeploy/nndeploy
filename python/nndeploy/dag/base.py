@@ -107,6 +107,18 @@ class EdgeTypeInfo(_C.dag.EdgeTypeInfo):
 
     def set_param_type(self):
         super().set_param_type()
+        
+    def set_type(self, type_val: type):
+        """设置输入输出类型信息
+        
+        Args:
+            type: 类型
+            
+        Returns:
+            None
+        """
+        super().set_type(type_val)
+        
 
     def get_type(self) -> EdgeTypeFlag:
         return super().get_type()

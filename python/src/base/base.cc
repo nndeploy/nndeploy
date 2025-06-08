@@ -689,7 +689,7 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .def("serialize", py::overload_cast<rapidjson::Value&,
                                           rapidjson::Document::AllocatorType&>(
                             &Param::serialize))
-      .def("serialize", py::overload_cast<std::string&>(&Param::serialize))
+      .def("serialize", py::overload_cast<>(&Param::serialize))
       .def("save_file", py::overload_cast<const std::string&>(&Param::saveFile))
 
       .def("deserialize",
@@ -698,6 +698,15 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
            py::overload_cast<const std::string&>(&Param::deserialize))
       .def("load_file",
            py::overload_cast<const std::string&>(&Param::loadFile));
+
+  // export as base.remove_json_brackets
+  m.def("remove_json_brackets", &removeJsonBrackets, py::arg("json_str"),
+        "Remove brackets from a JSON string");
+
+  // export as base.pretty_json_str  
+  m.def("pretty_json_str", &prettyJsonStr, py::arg("json_str"),
+        "Format JSON string to be more readable");
+
 }
 
 }  // namespace base
