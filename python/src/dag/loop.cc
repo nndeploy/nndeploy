@@ -9,7 +9,7 @@ namespace nndeploy {
 namespace dag {
 
 NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
-  py::class_<Loop, PyLoop<Loop>>(m, "Loop", py::dynamic_attr())
+  py::class_<Loop, Graph, PyLoop<Loop>>(m, "Loop", py::dynamic_attr())
       .def(py::init<const std::string &, std::vector<Edge *>,
                     std::vector<Edge *>>())
       .def("init", &Loop::init)

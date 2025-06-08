@@ -9,7 +9,7 @@ namespace nndeploy {
 namespace dag {
 
 NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
-  py::class_<ConstNode, PyConstNode<ConstNode>>(m, "ConstNode",
+  py::class_<ConstNode, Node, PyConstNode<ConstNode>>(m, "ConstNode",
                                                 py::dynamic_attr())
       .def(py::init<const std::string &, std::vector<Edge *>, std::vector<Edge *>>())
       .def("update_input", &ConstNode::updateInput)
