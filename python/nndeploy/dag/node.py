@@ -272,7 +272,7 @@ def create_node(node_key: str, node_name: str, inputs: list[Edge] = None, output
 
 def get_node_json(node_key: str):
     node = create_node(node_key, node_key)
-    print(node)
+    # print(node)
     if node is not None:
         json_str = node.serialize()
         return json_str

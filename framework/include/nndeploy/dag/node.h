@@ -328,14 +328,13 @@ class NNDEPLOY_CC_API NodeFactory {
   void registerNode(const std::string &node_key,
                     std::shared_ptr<NodeCreator> creator) {
     auto it = creators_.find(node_key);
-    NNDEPLOY_LOGI("register node: %s\n", node_key.c_str());
+    // NNDEPLOY_LOGI("register node: %s\n", node_key.c_str());
     if (it != creators_.end()) {
       NNDEPLOY_LOGE("Node name %s already exists!\n", node_key.c_str());
       return;
     }
-    NNDEPLOY_LOGI("register node: %s\n", node_key.c_str());
     creators_[node_key] = creator;
-    NNDEPLOY_LOGI("register node success: %s\n", node_key.c_str());
+    // NNDEPLOY_LOGI("register node success: %s\n", node_key.c_str());
   }
 
   std::shared_ptr<NodeCreator> getCreator(const std::string &node_key) {

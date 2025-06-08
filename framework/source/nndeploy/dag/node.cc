@@ -913,7 +913,6 @@ std::string Node::serialize() {
   rapidjson::Document doc;
   rapidjson::Value json(rapidjson::kObjectType);
 
-  NNDEPLOY_LOGI("serialize to json: %s\n", json_str.c_str());
   // 调用序列化函数
   base::Status status = this->serialize(json, doc.GetAllocator());
   if (status != base::kStatusCodeOk) {

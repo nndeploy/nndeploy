@@ -20,8 +20,7 @@ class CustomNode(nndeploy.dag.Node):
     def __init__(self, name, inputs: list[_C.dag.Edge] = None, outputs: list[_C.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
         super().set_key("CustomNode")
-        # self.inputs_type = [torch.Tensor for _ in inputs] if inputs else []
-        # self.outputs_type = [torch.Tensor for _ in outputs] if outputs else []
+        self.set_input_type(torch.Tensor)
         self.set_input_type(torch.Tensor)
         self.set_output_type(torch.Tensor)
     
@@ -36,13 +35,10 @@ class CustomNode(nndeploy.dag.Node):
         return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
     
     def serialize(self) -> str:
-        print("CustomNode serialize")
         json_str = super().serialize()
-        print(json_str)
         return json_str
     
     def deserialize(self, target: str) -> nndeploy.base.Status:
-        print("CustomNode deserialize")
         return super().deserialize(target)
         
     def run(self):
@@ -69,9 +65,7 @@ class CustomNodeCreator(nndeploy.dag.NodeCreator):
         super().__init__()
 
     def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
-        print("CustomNodeCreator create_node")
         self.node = CustomNode(name, inputs, outputs)
-        print(self.node.get_name())
         return self.node
 
 custom_node_creator = CustomNodeCreator()
@@ -82,7 +76,10 @@ def test_node():
     input_edge_1 = nndeploy.dag.Edge("input_1")
     input_edge_2 = nndeploy.dag.Edge("input_2")
     output_edge = nndeploy.dag.Edge("output")
-    node = CustomNode("test", [input_edge_1, input_edge_2], [output_edge])
+    node = nndeploy.dag.create_node("CustomNode", "test", [input_edge_1, input_edge_2], [output_edge])
+    print(node)
+    print(node.serialize())
+    # node = CustomNode("test", [input_edge_1, input_edge_2], [output_edge])
     print(node.init())
     import torch
     input_edge_1.set(torch.ones(1, 3, 64, 64))
@@ -90,36 +87,14 @@ def test_node():
     input_edge_2.set(torch.ones(1, 3, 64, 64))
     print(input_edge_2.get_type_name())
     node.run()
-    # print(node.check_inputs([input_edge_1, input_edge_2]))
-    # print(output_edge.get())
-    # print(output_edge.get_type_name())    
-    # node.deinit()
+       
+    node2 = nndeploy.dag.create_node("CustomNode", "test", [input_edge_1, input_edge_2], [output_edge])
+    print(node2)
     
     edge_list = node.get_all_output()
     print(edge_list[0].get_type_name())
-    print(edge_list[0].get())
-    
-    # TODO:该函数在内部创建了_C.dag.Edge, 他不是nndeploy.dag.Edge，所以他会报错
-    # output_edge_v2 = node([input_edge_1, input_edge_2], ["output"])
-    # print("end!!!")
-    # print(output_edge_v2)
-    # print(output_edge_v2[0].get_type_name())
-    # print(output_edge_v2[0].get())
-    
-    # input_edge_3 = nndeploy.dag.Edge("input_1")
-    # input_edge_4 = nndeploy.dag.Edge("input_2")
-    # output_edge_1 = nndeploy.dag.Edge("output")
-    # input_edge_3.set(torch.ones(1, 3, 64, 64))
-    # print(input_edge_1.get_type_name())
-    # input_edge_4.set(torch.zeros(1, 3, 64, 64))
-    # print(input_edge_4.get_type_name())
-    # node.set_inputs([input_edge_3, input_edge_4])
-    # node.set_outputs([output_edge_1])
-    
+    print(edge_list[0].get())  
     node.run()
-    
-    # print(output_edge_1.get_type_name())
-    # print(output_edge_1.get())
 
 
 if __name__ == "__main__":

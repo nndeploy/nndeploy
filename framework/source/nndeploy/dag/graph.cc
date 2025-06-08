@@ -463,7 +463,7 @@ base::Status Graph::init() {
   base::Status status = base::kStatusCodeOk;
 
   // NNDEPLOY_LOGI("###########################\n");
-  NNDEPLOY_LOGI("setInitializedFlag false!\n");
+  // NNDEPLOY_LOGI("setInitializedFlag false!\n");
   // NNDEPLOY_LOGI("###########################\n");
   // setInitializedFlag(false);
 
@@ -481,7 +481,7 @@ base::Status Graph::init() {
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "graph executor failed!");
 
   // NNDEPLOY_LOGI("###########################\n");
-  NNDEPLOY_LOGI("setInitializedFlag true!\n");
+  // NNDEPLOY_LOGI("setInitializedFlag true!\n");
   // NNDEPLOY_LOGI("###########################\n");
   setInitializedFlag(true);
 
@@ -910,7 +910,7 @@ base::Status Graph::construct() {
 
   if (!is_inner_) {
     for (auto iter : outputs_) {
-      NNDEPLOY_LOGI("markGraphOutput: %s.\n", iter->getName().c_str());
+      // NNDEPLOY_LOGI("markGraphOutput: %s.\n", iter->getName().c_str());
       iter->markGraphOutput();
     }
   }
