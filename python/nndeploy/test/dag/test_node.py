@@ -99,7 +99,7 @@ def test_node():
 
 if __name__ == "__main__":
     test_node()
-    print(nndeploy.dag.get_node_keys())
+    # print(nndeploy.dag.get_node_keys())s
     all_node_json = nndeploy.dag.get_all_node_json()
     # 将all_node_json写入文件
     with open("all_node_json.json", "w") as f:

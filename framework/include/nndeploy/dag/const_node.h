@@ -27,11 +27,12 @@ class ConstNode : public Node {
    *
    * @return
    */
-  virtual base::EdgeUpdateFlag updateInput() {
-    return base::kEdgeUpdateFlagComplete;
-  }
+  virtual base::EdgeUpdateFlag updateInput() = 0;
 
-  virtual base::Status run() { return base::kStatusCodeOk; }
+  virtual base::Status init();
+  virtual base::Status deinit();
+
+  virtual base::Status run() = 0;
 };
 
 }  // namespace dag

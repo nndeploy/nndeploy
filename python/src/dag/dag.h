@@ -1,7 +1,14 @@
 #include "nndeploy/base/param.h"
+#include "nndeploy/dag/base.h"
+#include "nndeploy/dag/composite_node.h"
+#include "nndeploy/dag/condition.h"
+#include "nndeploy/dag/const_node.h"
 #include "nndeploy/dag/edge.h"
 #include "nndeploy/dag/graph.h"
+#include "nndeploy/dag/loop.h"
 #include "nndeploy/dag/node.h"
+#include "nndeploy/dag/running_condition.h"
+#include "nndeploy/dag/util.h"
 #include "nndeploy_api_registry.h"
 
 namespace py = pybind11;
@@ -73,6 +80,10 @@ class PyNode : public Base {
       const std::string &key) override {
     PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, Base,
                            "get_external_param", getExternalParam, key);
+  }
+
+  virtual void setTraceFlag(bool flag) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_trace_flag", setTraceFlag, flag);
   }
 
   base::Status defaultParam() override {
@@ -174,6 +185,10 @@ class PyGraph : public Base {
  public:
   using Base::Base;  // 继承构造函数
 
+  virtual base::Status defaultParam() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "default_param", defaultParam);
+  }
+
   virtual base::Status init() override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "init", init);
   }
@@ -196,6 +211,10 @@ class PyGraph : public Base {
                            inputs);
   }
 
+  virtual void setTraceFlag(bool flag) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_trace_flag", setTraceFlag, flag);
+  }
+
   virtual base::Status serialize(
       rapidjson::Value &json,
       rapidjson::Document::AllocatorType &allocator) override {
@@ -215,6 +234,101 @@ class PyGraph : public Base {
   virtual base::Status deserialize(const std::string &json_str) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
                            json_str);
+  }
+};
+
+template <typename Base = ConstNode>
+class PyConstNode : public Base {
+ public:
+  using Base::Base;
+
+  base::EdgeUpdateFlag updateInput() override {
+    PYBIND11_OVERRIDE_PURE_NAME(base::EdgeUpdateFlag, ConstNode, "update_input",
+                                updateInput);
+  }
+
+  base::Status init() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, ConstNode, "init", init);
+  }
+
+  base::Status deinit() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, ConstNode, "deinit", deinit);
+  }
+
+  base::Status run() override {
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, ConstNode, "run", run);
+  }
+};
+
+template <typename Base = CompositeNode>
+class PyCompositeNode : public Base {
+ public:
+  using Base::Base;
+
+  base::Status init() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "init", init);
+  }
+
+  base::Status deinit() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "deinit", deinit);
+  }
+
+  base::Status run() override {
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, CompositeNode, "run", run);
+  }
+};
+
+template <typename Base = Condition>
+class PyCondition : public Base {
+ public:
+  using Base::Base;
+
+  base::Status init() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Condition, "init", init);
+  }
+
+  base::Status deinit() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Condition, "deinit", deinit); 
+  }
+
+  int choose() override {
+    PYBIND11_OVERRIDE_PURE_NAME(int, Condition, "choose", choose);
+  }
+
+  base::Status run() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Condition, "run", run);
+  }
+};
+
+template <typename Base = Loop>
+class PyLoop : public Base {
+ public:
+  using Base::Base;
+
+  base::Status init() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Loop, "init", init);
+  }
+
+  base::Status deinit() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Loop, "deinit", deinit);
+  }
+
+  int loops() override {
+    PYBIND11_OVERRIDE_PURE_NAME(int, Loop, "loops", loops);
+  }
+
+  base::Status run() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Loop, "run", run);
+  }
+};
+
+template <typename Base = RunningCondition>
+class PyRunningCondition : public Base {
+ public:
+  using Base::Base;
+
+  int choose() override {
+    PYBIND11_OVERRIDE_PURE_NAME(int, RunningCondition, "choose", choose);
   }
 };
 

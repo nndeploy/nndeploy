@@ -319,6 +319,29 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("request_terminate", &Edge::requestTerminate)
 
       // 类型信息相关操作
+      .def("set_type", [](Edge& edge, py::object type_val) {
+        if (py::isinstance<py::type>(type_val)) {
+          py::type py_type = type_val.cast<py::type>();
+          if (py_type.is(py::type::of<device::Buffer>())) {
+            edge.setTypeInfo<device::Buffer>();
+          } else if (py_type.is(py::type::of<device::Tensor>())) {
+            edge.setTypeInfo<device::Tensor>();
+          } else if (py_type.is(py::type::of<base::Param>())) {
+            edge.setTypeInfo<base::Param>();
+          } else {
+            std::shared_ptr<EdgeTypeInfo> type_info = std::make_shared<EdgeTypeInfo>();
+            type_info->type_ = EdgeTypeFlag::kAny;
+            // 获取类型的完整名称，包括模块路径
+            py::object module = py_type.attr("__module__");
+            std::string module_name = module.cast<std::string>();
+            std::string type_name = py_type.attr("__name__").cast<std::string>();
+            type_info->type_name_ = module_name + "." + type_name;
+            type_info->type_ptr_ = &typeid(py::type);
+            type_info->type_holder_ = std::make_shared<EdgeTypeInfo::TypeHolder<py::type>>();
+            edge.setTypeInfo(type_info);
+          }
+        }
+      }, py::arg("type_val"))
       .def(
           "set_type_info",
           [](Edge& edge, std::shared_ptr<EdgeTypeInfo> type_info) {

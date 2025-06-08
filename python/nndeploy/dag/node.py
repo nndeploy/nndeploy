@@ -155,11 +155,11 @@ class Node(_C.dag.Node):
     def is_running(self) -> bool:
         return super().is_running()
         
-    def set_compiled_flag(self, flag: bool):
-        return super().set_compiled_flag(flag)
+    def set_trace_flag(self, flag: bool):
+        return super().set_trace_flag(flag)
         
-    def get_compiled_flag(self) -> bool:
-        return super().get_compiled_flag()
+    def get_trace_flag(self) -> bool:
+        return super().get_trace_flag()
         
     def set_stream(self, stream):
         return super().set_stream(stream)
@@ -278,14 +278,32 @@ def get_node_json(node_key: str):
         return json_str
 
 
-def get_all_node_json():
-    node_keys = get_node_keys()
-    node_json = "{\"nodes\":["
+remove_node_keys = ["nndeploy::dag::Graph", "nndeploy::dag::RunningCondition"]
+
+
+def add_remove_node_keys(node_keys: list[str]):
+    global remove_node_keys
+    remove_node_keys.extend(node_keys)
+    
+def sub_remove_node_keys(node_keys: list[str]):
+    global remove_node_keys
     for node_key in node_keys:
-        # print(node_key)
+        if node_key in remove_node_keys:
+            remove_node_keys.remove(node_key)
+
+def get_all_node_json():
+    global remove_node_keys
+    node_keys = get_node_keys()
+    real_node_keys = []
+    for node_key in node_keys:
+        if node_key in remove_node_keys:
+            continue
+        real_node_keys.append(node_key)
+    node_json = "{\"nodes\":["
+    for node_key in real_node_keys:
         json = get_node_json(node_key)
         node_json += json
-        if node_key in list(node_keys)[:-1]:
+        if node_key != real_node_keys[-1]:
             node_json += ","
     node_json += "]}"
     # 美化json

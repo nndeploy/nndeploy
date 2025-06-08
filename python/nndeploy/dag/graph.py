@@ -163,3 +163,30 @@ class Graph(_C.dag.Graph):
     def dump(self):
         """输出图信息到标准输出"""
         return super().dump()
+    
+    def set_trace_flag(self, flag: bool):
+        """
+        设置追踪标志
+        
+        参数:
+            flag: 追踪标志
+        """
+        return super().set_trace_flag(flag)
+        
+    def trace(self, inputs: List[Edge]) -> List[Edge]:
+        """
+        追踪图的执行流程
+        
+        参数:
+            inputs: 输入边列表
+            
+        返回:
+            追踪后的边列表
+        """
+        return super().trace(inputs)
+        
+    def serialize(self) -> str:
+        return super().serialize()
+        
+    def deserialize(self, json_str: str):
+        return super().deserialize(json_str)

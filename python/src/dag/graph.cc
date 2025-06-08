@@ -14,9 +14,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
   // 定义Graph类
   py::class_<Graph, Node, PyGraph<Graph>>(m, "Graph", py::dynamic_attr())
       .def(py::init<const std::string &>())
-
       .def(py::init<const std::string &, std::vector<Edge *>,
                     std::vector<Edge *>>())
+      .def("set_edge_queue_max_size", &Graph::setEdgeQueueMaxSize, py::arg("queue_max_size"))
+      .def("get_edge_queue_max_size", &Graph::getEdgeQueueMaxSize)
       .def("create_edge", &Graph::createEdge, py::arg("name"),
            py::return_value_policy::reference)
       .def(
@@ -59,6 +60,18 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("__call__", &Graph::operator(), py::arg("inputs"),
            py::keep_alive<1, 2>(), py::return_value_policy::reference)
       .def("dump", [](Graph &g) { g.dump(std::cout); })
+      .def("set_trace_flag", &Graph::setTraceFlag, py::arg("flag"))
+      // 绑定Graph类的trace方法到Python
+      // 参数:
+      //   inputs: 输入的边列表
+      // 返回:
+      //   返回追踪后的边列表
+      // 说明:
+      //   1. py::keep_alive<1,2>() 确保Graph对象在inputs存在期间不会被销毁
+      //   2. py::return_value_policy::reference 返回引用,由Python管理内存
+      //   3. 该方法用于追踪图的执行流程,帮助调试和性能分析
+      .def("trace", &Graph::trace, py::arg("inputs"),
+           py::keep_alive<1, 2>(), py::return_value_policy::reference)
       .def("serialize", py::overload_cast<rapidjson::Value &,
                                           rapidjson::Document::AllocatorType &>(
                             &Graph::serialize), py::arg("json"), py::arg("allocator"))
