@@ -34,10 +34,10 @@ namespace detect {
 class NNDEPLOY_CC_API YoloPostParam : public base::Param {
  public:
   float score_threshold_;  // 分数阈值，用于决定哪些检测框被保留
-  float nms_threshold_;    // 非最大抑制(NMS)阈值，用于合并重叠的检测框
-  int num_classes_;        // 模型可以识别的类别数量
-  int model_h_;            // 模型输入图像的高度
-  int model_w_;            // 模型输入图像的宽度
+  float nms_threshold_;  // 非最大抑制(NMS)阈值，用于合并重叠的检测框
+  int num_classes_;  // 模型可以识别的类别数量
+  int model_h_;      // 模型输入图像的高度
+  int model_w_;      // 模型输入图像的宽度
 
   int version_ = -1;  // YOLO模型的版本号，默认为-1表示未指定
 
@@ -68,6 +68,7 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
 
   base::Status runV5V6();
   base::Status runV8V11();
+  base::Status runX();
 };
 
 class NNDEPLOY_CC_API YoloGraph : public dag::Graph {

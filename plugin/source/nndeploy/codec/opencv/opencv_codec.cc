@@ -342,8 +342,8 @@ base::Status OpenCvVedioEncodeNode::setPath(const std::string &path) {
   path_ = path;
   path_changed_ = true;
   cv::Size frame_size(width_, height_);
-  int fourcc = cv::VideoWriter::fourcc(fourcc_[0], fourcc_[1], fourcc_[2],
-                                        fourcc_[3]);
+  int fourcc =
+      cv::VideoWriter::fourcc(fourcc_[0], fourcc_[1], fourcc_[2], fourcc_[3]);
   writer_ = new cv::VideoWriter();
   writer_->open(path_, fourcc, fps_, frame_size, true);
   // 检查视频写入对象是否成功打开
@@ -370,7 +370,7 @@ base::Status OpenCvVedioEncodeNode::run() {
     NNDEPLOY_LOGW("Invalid parameter error occurred. index[%d] >=size_[%d].\n ",
                   index_, size_);
   }
-  
+
   return base::kStatusCodeOk;
 }
 
