@@ -14,10 +14,12 @@ base::Status OpenCvImageDecodeNode::setPath(const std::string &path) {
     return base::kStatusCodeErrorInvalidParam;
   }
   if (parallel_type_ == base::kParallelTypePipeline) {
-    std::lock_guard<std::mutex> lock(path_mutex_);
-    path_ = path;
-    path_changed_ = true;
-    path_ready_ = true;     // 设置标志
+    {
+      std::lock_guard<std::mutex> lock(path_mutex_);
+      path_ = path;
+      path_changed_ = true;
+      path_ready_ = true;  // 设置标志
+    }
     path_cv_.notify_one();  // 通知等待的线程
   } else {
     path_ = path;
@@ -35,13 +37,14 @@ base::Status OpenCvImageDecodeNode::run() {
   //   // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
   //   ;
   // }
-  if (parallel_type_ == base::kParallelTypePipeline) {
+  // TODO: 
+  if (index_ == 0 && parallel_type_ == base::kParallelTypePipeline) {
     // NNDEPLOY_LOGI("OpenCvImageDecodeNode::run() path_[%s]\n", path_.c_str());
     std::unique_lock<std::mutex> lock(path_mutex_);
     // 关键：使用lambda检查条件
     path_cv_.wait(lock, [this] { return path_ready_; });
   }
-  NNDEPLOY_LOGI("OpenCvImageDecodeNode::run() path_[%s]\n", path_.c_str());
+  // NNDEPLOY_LOGI("OpenCvImageDecodeNode::run() path_[%s]\n", path_.c_str());
   cv::Mat *mat = new cv::Mat(cv::imread(path_));
   if (mat == nullptr) {
     NNDEPLOY_LOGE("cv::imread failed! path[%s]\n", path_.c_str());
@@ -97,7 +100,7 @@ base::Status OpenCvImagesDecodeNode::setPath(const std::string &path) {
       NNDEPLOY_LOGE("path[%s] is not Directory!\n", path_.c_str());
       return base::kStatusCodeErrorInvalidParam;
     }
-    path_ready_ = true;  // 设置标志
+    path_ready_ = true;     // 设置标志
     path_cv_.notify_one();  // 通知等待的线程
   } else {
     path_ = path;
@@ -142,7 +145,7 @@ base::Status OpenCvImagesDecodeNode::run() {
   //   // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
   //   ;
   // }
-  if (parallel_type_ == base::kParallelTypePipeline) {
+  if (index_ == 0 && parallel_type_ == base::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(path_mutex_);
     // 关键：使用lambda检查条件
     path_cv_.wait(lock, [this] { return path_ready_; });
@@ -235,7 +238,7 @@ base::Status OpenCvVedioDecodeNode::run() {
   //   // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
   //   ;
   // }
-  if (parallel_type_ == base::kParallelTypePipeline) {
+  if (index_ == 0 && parallel_type_ == base::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(path_mutex_);
     // 关键：使用lambda检查条件
     path_cv_.wait(lock, [this] { return path_ready_; });
@@ -302,7 +305,7 @@ base::Status OpenCvCameraDecodeNode::setPath(const std::string &path) {
     size_ = INT_MAX;
     width_ = (int)cap_->get(cv::CAP_PROP_FRAME_WIDTH);
     height_ = (int)cap_->get(cv::CAP_PROP_FRAME_HEIGHT);
-    path_ready_ = true;  // 设置标志
+    path_ready_ = true;     // 设置标志
     path_cv_.notify_one();  // 通知等待的线程
   } else {
     path_ = path;
@@ -347,7 +350,7 @@ base::Status OpenCvCameraDecodeNode::run() {
   //   // NNDEPLOY_LOGE("path[%s] is empty!\n", path_.c_str());
   //   ;
   // }
-  if (parallel_type_ == base::kParallelTypePipeline) {
+  if (index_ == 0 && parallel_type_ == base::kParallelTypePipeline) {
     std::unique_lock<std::mutex> lock(path_mutex_);
     // 关键：使用lambda检查条件
     path_cv_.wait(lock, [this] { return path_ready_; });
