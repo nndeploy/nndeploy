@@ -29,16 +29,17 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
              std::vector<dag::Edge *> outputs)
       : dag::Node(name) {
     node_type_ = dag::NodeType::kNodeTypeInput;
-    if (inputs.size() > 0) {
-      NNDEPLOY_LOGE("DecodeNode not support inputs");
-      constructed_ = false;
-      return;
-    }
-    if (outputs.size() > 1) {
-      NNDEPLOY_LOGE("DecodeNode only support one output");
-      constructed_ = false;
-      return;
-    }
+    // if (inputs.size() > 0) {
+    //   NNDEPLOY_LOGE("DecodeNode not support inputs");
+    //   constructed_ = false;
+    //   return;
+    // }
+    // if (outputs.size() > 1) {
+    //   NNDEPLOY_LOGE("DecodeNode only support one output");
+    //   constructed_ = false;
+    //   return;
+    // }
+    inputs_ = inputs;
     outputs_ = outputs;
   }
   DecodeNode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
@@ -52,16 +53,17 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
     flag_ = flag;
     node_type_ = dag::NodeType::kNodeTypeInput;
     // this->setOutputTypeInfo<cv::Mat>();
-    if (inputs.size() > 0) {
-      NNDEPLOY_LOGE("DecodeNode not support inputs");
-      constructed_ = false;
-      return;
-    }
-    if (outputs.size() > 1) {
-      NNDEPLOY_LOGE("DecodeNode only support one output");
-      constructed_ = false;
-      return;
-    }
+    // if (inputs.size() > 0) {
+    //   NNDEPLOY_LOGE("DecodeNode not support inputs");
+    //   constructed_ = false;
+    //   return;
+    // }
+    // if (outputs.size() > 1) {
+    //   NNDEPLOY_LOGE("DecodeNode only support one output");
+    //   constructed_ = false;
+    //   return;
+    // }
+    inputs_ = inputs;
     outputs_ = outputs;
   }
   virtual ~DecodeNode() {}
@@ -99,8 +101,7 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
   virtual base::Status run() = 0;
 
   virtual base::Status serialize(
-      rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     base::Status status = dag::Node::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       return status;
@@ -108,6 +109,12 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
     std::string flag_str = base::codecFlagToString(flag_);
     json.AddMember("flag_", rapidjson::Value(flag_str.c_str(), allocator),
                    allocator);
+    json.AddMember("path_", rapidjson::Value(path_.c_str(), allocator),
+                   allocator);
+    json.AddMember("size_", size_, allocator);
+    // json.AddMember("fps_", fps_, allocator);
+    // json.AddMember("width_", width_, allocator);
+    // json.AddMember("height_", height_, allocator);
     return status;
   }
 
@@ -117,8 +124,28 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
       return status;
     }
     if (json.HasMember("flag_") && json["flag_"].IsString()) {
-      flag_ = base::stringToCodecFlag(json["flag_"].GetString());
+      base::CodecFlag flag = base::stringToCodecFlag(json["flag_"].GetString());
+      this->setCodecFlag(flag);
     }
+    if (json.HasMember("path_") && json["path_"].IsString()) {
+      std::string path = json["path_"].GetString();
+      this->setPath(path);
+    }
+    if (json.HasMember("size_") && json["size_"].IsInt()) {
+      this->setSize(json["size_"].GetInt());
+    }
+    // if (json.HasMember("fps_") && json["fps_"].IsDouble()) {
+    //   // this->setFps(json["fps_"].GetDouble());
+    //   fps_ = json["fps_"].GetDouble();
+    // }
+    // if (json.HasMember("width_") && json["width_"].IsInt()) {
+    //   // this->setWidth(json["width_"].GetInt());
+    //   width_ = json["width_"].GetInt();
+    // }
+    // if (json.HasMember("height_") && json["height_"].IsInt()) {
+    //   // this->setHeight(json["height_"].GetInt());
+    //   height_ = json["height_"].GetInt();
+    // }
     return status;
   }
 
@@ -131,6 +158,10 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
   int width_ = 0;
   int height_ = 0;
   int index_ = 0;
+  // 
+  std::mutex path_mutex_;
+  std::condition_variable path_cv_;
+  bool path_ready_ = false; 
 };
 
 class NNDEPLOY_CC_API EncodeNode : public dag::Node {
@@ -144,17 +175,18 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
       : dag::Node(name) {
     // this->setInputTypeInfo<cv::Mat>();
     node_type_ = dag::NodeType::kNodeTypeOutput;
-    if (inputs.size() > 1) {
-      NNDEPLOY_LOGE("EncodeNode only support one input");
-      constructed_ = false;
-      return;
-    }
+    // if (inputs.size() > 1) {
+    //   NNDEPLOY_LOGE("EncodeNode only support one input");
+    //   constructed_ = false;
+    //   return;
+    // }
+    // if (outputs.size() > 0) {
+    //   NNDEPLOY_LOGE("EncodeNode not support outputs");
+    //   constructed_ = false;
+    //   return;
+    // }
     inputs_ = inputs;
-    if (outputs.size() > 0) {
-      NNDEPLOY_LOGE("EncodeNode not support outputs");
-      constructed_ = false;
-      return;
-    }
+    outputs_ = outputs;
   }
   EncodeNode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
     flag_ = flag;
@@ -167,17 +199,18 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
     flag_ = flag;
     // this->setInputTypeInfo<cv::Mat>();
     node_type_ = dag::NodeType::kNodeTypeOutput;
-    if (inputs.size() > 1) {
-      NNDEPLOY_LOGE("EncodeNode only support one input");
-      constructed_ = false;
-      return;
-    }
+    // if (inputs.size() > 1) {
+    //   NNDEPLOY_LOGE("EncodeNode only support one input");
+    //   constructed_ = false;
+    //   return;
+    // }
+    // if (outputs.size() > 0) {
+    //   NNDEPLOY_LOGE("EncodeNode not support outputs");
+    //   constructed_ = false;
+    //   return;
+    // }
     inputs_ = inputs;
-    if (outputs.size() > 0) {
-      NNDEPLOY_LOGE("EncodeNode not support outputs");
-      constructed_ = false;
-      return;
-    }
+    outputs_ = outputs;
   }
   virtual ~EncodeNode() {};
 
@@ -213,8 +246,7 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
   virtual base::Status run() = 0;
 
   virtual base::Status serialize(
-      rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator) {
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     base::Status status = dag::Node::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       return status;
@@ -222,6 +254,16 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
     std::string flag_str = base::codecFlagToString(flag_);
     json.AddMember("flag_", rapidjson::Value(flag_str.c_str(), allocator),
                    allocator);
+    json.AddMember("path_", rapidjson::Value(path_.c_str(), allocator),
+                   allocator);
+    json.AddMember("ref_path_", rapidjson::Value(ref_path_.c_str(), allocator),
+                   allocator);
+    json.AddMember("fourcc_", rapidjson::Value(fourcc_.c_str(), allocator),
+                   allocator);
+    json.AddMember("fps_", fps_, allocator);
+    json.AddMember("width_", width_, allocator);
+    json.AddMember("height_", height_, allocator);
+    json.AddMember("size_", size_, allocator);
     return status;
   }
 
@@ -232,6 +274,29 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
     }
     if (json.HasMember("flag_") && json["flag_"].IsString()) {
       flag_ = base::stringToCodecFlag(json["flag_"].GetString());
+    }
+    if (json.HasMember("path_") && json["path_"].IsString()) {
+      status = setPath(json["path_"].GetString());
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setPath failed");
+    }
+    if (json.HasMember("ref_path_") && json["ref_path_"].IsString()) {
+      status = setRefPath(json["ref_path_"].GetString());
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setRefPath failed");
+    }
+    if (json.HasMember("fourcc_") && json["fourcc_"].IsString()) {
+      setFourcc(json["fourcc_"].GetString());
+    }
+    if (json.HasMember("fps_") && json["fps_"].IsNumber()) {
+      setFps(json["fps_"].GetDouble());
+    }
+    if (json.HasMember("width_") && json["width_"].IsInt()) {
+      setWidth(json["width_"].GetInt());
+    }
+    if (json.HasMember("height_") && json["height_"].IsInt()) {
+      setHeight(json["height_"].GetInt());
+    }
+    if (json.HasMember("size_") && json["size_"].IsInt()) {
+      setSize(json["size_"].GetInt());
     }
     return status;
   }

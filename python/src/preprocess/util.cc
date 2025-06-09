@@ -16,5 +16,5 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
         "    int: 通道数");
 }
 
-}  // namespace dag
+}  // namespace preprocess
 }  // namespace nndeploy

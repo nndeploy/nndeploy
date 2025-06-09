@@ -4,6 +4,7 @@ import nndeploy._nndeploy_internal as _C
 import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
+import nndeploy.preprocess
 import torch
 
 # python3 nndeploy/test/preprocess/test_params.py
@@ -59,6 +60,7 @@ def test_warp_affine_param():
     # 打印param的类型
     print(type(param))
     # # 打印param的父类型
+    print(type(param).__base__)
     print(_C.preprocess.WarpAffineParam.__base__)
     print(_C.dag.Graph)
     print(_C.dag.Graph.__base__)
@@ -68,6 +70,25 @@ def test_warp_affine_param():
     print(inference_param.serialize())
 
     print("WarpAffineParam test passed!")
+    
+def test_cvtcolor_param():
+    param = nndeploy.preprocess.CvtcolorParam()
+    print(param.serialize())
+    print(type(param))
+    print(type(param).__base__)
+    print(nndeploy.preprocess.CvtcolorParam.__base__)
+    print("CvtcolorParam test passed!")
+    
+
+def test_convert_to():
+    convert_to = nndeploy.preprocess.ConvertTo("convert_to")
+    print(convert_to.serialize())
+    print(type(convert_to))
+    print(type(convert_to).__base__)
+    print(nndeploy.preprocess.ConvertTo.__base__)
+    print("ConvertTo test passed!")
 
 if __name__ == "__main__":
     test_warp_affine_param()
+    test_cvtcolor_param()
+    test_convert_to()

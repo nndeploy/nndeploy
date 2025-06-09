@@ -395,20 +395,20 @@ base::Status Infer::deserialize(rapidjson::Value &json) {
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "setInferenceType failed");
   }
-  if (json.HasMember("is_input_dynamic_") &&
-      json["is_input_dynamic_"].IsBool()) {
-    is_input_dynamic_ = json["is_input_dynamic_"].GetBool();
-  }
-  if (json.HasMember("is_output_dynamic_") &&
-      json["is_output_dynamic_"].IsBool()) {
-    is_output_dynamic_ = json["is_output_dynamic_"].GetBool();
-  }
-  if (json.HasMember("can_op_input_") && json["can_op_input_"].IsBool()) {
-    can_op_input_ = json["can_op_input_"].GetBool();
-  }
-  if (json.HasMember("can_op_output_") && json["can_op_output_"].IsBool()) {
-    can_op_output_ = json["can_op_output_"].GetBool();
-  }
+  // if (json.HasMember("is_input_dynamic_") &&
+  //     json["is_input_dynamic_"].IsBool()) {
+  //   is_input_dynamic_ = json["is_input_dynamic_"].GetBool();
+  // }
+  // if (json.HasMember("is_output_dynamic_") &&
+  //     json["is_output_dynamic_"].IsBool()) {
+  //   is_output_dynamic_ = json["is_output_dynamic_"].GetBool();
+  // }
+  // if (json.HasMember("can_op_input_") && json["can_op_input_"].IsBool()) {
+  //   can_op_input_ = json["can_op_input_"].GetBool();
+  // }
+  // if (json.HasMember("can_op_output_") && json["can_op_output_"].IsBool()) {
+  //   can_op_output_ = json["can_op_output_"].GetBool();
+  // }
   if (json.HasMember("param_") && json["param_"].IsObject() &&
       inference_ != nullptr) {
     base::Param *param = inference_->getParam();

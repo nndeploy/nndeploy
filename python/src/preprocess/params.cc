@@ -292,6 +292,251 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
               self.border_val_.val_[i] = 0.0;
             }
           });
+
+  py::class_<CvtcolorBnParam, base::Param, std::shared_ptr<CvtcolorBnParam>>(m, "CvtcolorBnParam")
+      .def(py::init<>())
+      .def_readwrite("src_pixel_type_", &CvtcolorBnParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &CvtcolorBnParam::dst_pixel_type_)
+      .def_readwrite("data_type_", &CvtcolorBnParam::data_type_)
+      .def_readwrite("data_format_", &CvtcolorBnParam::data_format_)
+      .def_readwrite("normalize_", &CvtcolorBnParam::normalize_)
+      .def_property(
+          "scale_",
+          [](const CvtcolorBnParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.scale_, py::cast(self));
+          },
+          [](CvtcolorBnParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.scale_[i] = ptr[i];
+            }
+          })
+      .def_property(
+          "mean_",
+          [](const CvtcolorBnParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.mean_, py::cast(self));
+          },
+          [](CvtcolorBnParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.mean_[i] = ptr[i];
+            }
+          })
+      .def_property(
+          "std_",
+          [](const CvtcolorBnParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.std_, py::cast(self));
+          },
+          [](CvtcolorBnParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.std_[i] = ptr[i];
+            }
+          });
+
+  py::class_<CvtclorResizeParam, base::Param, std::shared_ptr<CvtclorResizeParam>>(m, "CvtclorResizeParam")
+      .def(py::init<>())
+      .def_readwrite("src_pixel_type_", &CvtclorResizeParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &CvtclorResizeParam::dst_pixel_type_)
+      .def_readwrite("interp_type_", &CvtclorResizeParam::interp_type_)
+      .def_readwrite("h_", &CvtclorResizeParam::h_)
+      .def_readwrite("w_", &CvtclorResizeParam::w_)
+      .def_readwrite("data_type_", &CvtclorResizeParam::data_type_)
+      .def_readwrite("data_format_", &CvtclorResizeParam::data_format_)
+      .def_readwrite("normalize_", &CvtclorResizeParam::normalize_)
+      .def_property(
+          "scale_",
+          [](const CvtclorResizeParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.scale_, py::cast(self));
+          },
+          [](CvtclorResizeParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.scale_[i] = ptr[i];
+            }
+          })
+      .def_property(
+          "mean_",
+          [](const CvtclorResizeParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.mean_, py::cast(self));
+          },
+          [](CvtclorResizeParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.mean_[i] = ptr[i];
+            }
+          })
+      .def_property(
+          "std_",
+          [](const CvtclorResizeParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.std_, py::cast(self));
+          },
+          [](CvtclorResizeParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.std_[i] = ptr[i];
+            }
+          });
+
+  py::class_<CvtclorResizePadParam, base::Param, std::shared_ptr<CvtclorResizePadParam>>(m, "CvtclorResizePadParam")
+      .def(py::init<>())
+      .def_readwrite("src_pixel_type_", &CvtclorResizePadParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &CvtclorResizePadParam::dst_pixel_type_)
+      .def_readwrite("interp_type_", &CvtclorResizePadParam::interp_type_)
+      .def_readwrite("data_type_", &CvtclorResizePadParam::data_type_)
+      .def_readwrite("data_format_", &CvtclorResizePadParam::data_format_)
+      .def_readwrite("h_", &CvtclorResizePadParam::h_)
+      .def_readwrite("w_", &CvtclorResizePadParam::w_)
+      .def_readwrite("normalize_", &CvtclorResizePadParam::normalize_)
+      .def_readwrite("border_type_", &CvtclorResizePadParam::border_type_)
+      .def_readwrite("top_", &CvtclorResizePadParam::top_)
+      .def_readwrite("bottom_", &CvtclorResizePadParam::bottom_)
+      .def_readwrite("left_", &CvtclorResizePadParam::left_)
+      .def_readwrite("right_", &CvtclorResizePadParam::right_)
+      .def_property(
+          "scale_",
+          [](const CvtclorResizePadParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.scale_, py::cast(self));
+          },
+          [](CvtclorResizePadParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.scale_[i] = ptr[i];
+            }
+          })
+      .def_property(
+          "mean_",
+          [](const CvtclorResizePadParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.mean_, py::cast(self));
+          },
+          [](CvtclorResizePadParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.mean_[i] = ptr[i];
+            }
+          })
+      .def_property(
+          "std_",
+          [](const CvtclorResizePadParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.std_, py::cast(self));
+          },
+          [](CvtclorResizePadParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.std_[i] = ptr[i];
+            }
+          })
+      .def_property(
+          "border_val_",
+          [](const CvtclorResizePadParam& self) {
+            return py::array_t<double>({4}, {sizeof(double)}, self.border_val_.val_, py::cast(self));
+          },
+          [](CvtclorResizePadParam& self, py::array_t<double> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            double* ptr = static_cast<double*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.border_val_.val_[i] = ptr[i];
+            }
+          });
+
+  py::class_<CvtColorResizeCropParam, base::Param, std::shared_ptr<CvtColorResizeCropParam>>(m, "CvtColorResizeCropParam")
+      .def(py::init<>())
+      .def_readwrite("src_pixel_type_", &CvtColorResizeCropParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &CvtColorResizeCropParam::dst_pixel_type_)
+      .def_readwrite("interp_type_", &CvtColorResizeCropParam::interp_type_)
+      .def_readwrite("data_type_", &CvtColorResizeCropParam::data_type_)
+      .def_readwrite("data_format_", &CvtColorResizeCropParam::data_format_)
+      .def_readwrite("resize_h_", &CvtColorResizeCropParam::resize_h_)
+      .def_readwrite("resize_w_", &CvtColorResizeCropParam::resize_w_)
+      .def_readwrite("normalize_", &CvtColorResizeCropParam::normalize_)
+      .def_readwrite("top_left_x_", &CvtColorResizeCropParam::top_left_x_)
+      .def_readwrite("top_left_y_", &CvtColorResizeCropParam::top_left_y_)
+      .def_readwrite("width_", &CvtColorResizeCropParam::width_)
+      .def_readwrite("height_", &CvtColorResizeCropParam::height_)
+      .def_property(
+          "scale_",
+          [](const CvtColorResizeCropParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.scale_, py::cast(self));
+          },
+          [](CvtColorResizeCropParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.scale_[i] = ptr[i];
+            }
+          })
+      .def_property(
+          "mean_",
+          [](const CvtColorResizeCropParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.mean_, py::cast(self));
+          },
+          [](CvtColorResizeCropParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.mean_[i] = ptr[i];
+            }
+          })
+      .def_property(
+          "std_",
+          [](const CvtColorResizeCropParam& self) {
+            return py::array_t<float>({4}, {sizeof(float)}, self.std_, py::cast(self));
+          },
+          [](CvtColorResizeCropParam& self, py::array_t<float> arr) {
+            auto buf = arr.request();
+            if (buf.ndim != 1 || buf.shape[0] > 4) {
+              throw std::runtime_error("Input array must be 1D with 4 elements");
+            }
+            float* ptr = static_cast<float*>(buf.ptr);
+            for (size_t i = 0; i < buf.shape[0]; i++) {
+              self.std_[i] = ptr[i];
+            }
+          });
 }
 
 }  // namespace preprocess

@@ -573,7 +573,6 @@ class NNDEPLOY_CC_API WarpAffineParam : public base::Param {
  * @brief 组合的预处理
  *
  */
-
 class NNDEPLOY_CC_API CvtcolorBnParam : public base::Param {
  public:
   base::PixelType src_pixel_type_;
