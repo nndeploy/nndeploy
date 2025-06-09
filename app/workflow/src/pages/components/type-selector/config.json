@@ -1,0 +1,5 @@
+{
+  "name": "type-selector",
+  "depMaterials": [],
+  "depPackages": ["@douyinfe/semi-ui", "@douyinfe/semi-icons"]
+}

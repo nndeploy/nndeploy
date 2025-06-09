@@ -1,0 +1,17 @@
+.firstLevelNav {
+  .semi-nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #e5e5e5;
+    }
+
+    &.selected {
+      background-color: #d5d5d5;
+    }
+  }
+}
