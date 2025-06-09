@@ -1,31 +1,37 @@
 /* eslint-disable no-console */
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
-import { debounce } from 'lodash-es';
-import { createMinimapPlugin } from '@flowgram.ai/minimap-plugin';
-import { createFreeSnapPlugin } from '@flowgram.ai/free-snap-plugin';
-import { createFreeNodePanelPlugin } from '@flowgram.ai/free-node-panel-plugin';
-import { createFreeLinesPlugin } from '@flowgram.ai/free-lines-plugin';
-import { FreeLayoutProps } from '@flowgram.ai/free-layout-editor';
-import { createFreeGroupPlugin } from '@flowgram.ai/free-group-plugin';
-import { createContainerNodePlugin } from '@flowgram.ai/free-container-plugin';
+import { debounce } from "lodash-es";
+import { createMinimapPlugin } from "@flowgram.ai/minimap-plugin";
+import { createFreeSnapPlugin } from "@flowgram.ai/free-snap-plugin";
+import { createFreeNodePanelPlugin } from "@flowgram.ai/free-node-panel-plugin";
+import { createFreeLinesPlugin } from "@flowgram.ai/free-lines-plugin";
+import { FreeLayoutProps } from "@flowgram.ai/free-layout-editor";
+import { createFreeGroupPlugin } from "@flowgram.ai/free-group-plugin";
+import { createContainerNodePlugin } from "@flowgram.ai/free-container-plugin";
 
-import { onDragLineEnd } from '../utils';
-import { FlowNodeRegistry, FlowDocumentJSON } from '../typings';
-import { shortcuts } from '../shortcuts';
-import { CustomService, RunningService } from '../services';
-import { createSyncVariablePlugin } from '../plugins';
-import { defaultFormMeta } from '../nodes/default-form-meta';
-import { WorkflowNodeType } from '../nodes';
-import { SelectorBoxPopover } from '../components/selector-box-popover';
-import { BaseNode, CommentRender, GroupNodeRender, LineAddButton, NodePanel } from '../components';
+import { onDragLineEnd } from "../utils";
+import { FlowNodeRegistry, FlowDocumentJSON } from "../typings";
+import { shortcuts } from "../shortcuts";
+import { CustomService, RunningService } from "../services";
+import { createSyncVariablePlugin } from "../plugins";
+import { defaultFormMeta } from "../nodes/default-form-meta";
+import { WorkflowNodeType } from "../nodes";
+import { SelectorBoxPopover } from "../components/selector-box-popover";
+import {
+  BaseNode,
+  CommentRender,
+  GroupNodeRender,
+  LineAddButton,
+  NodePanel,
+} from "../components";
 
 export function useEditorProps(
   initialData: FlowDocumentJSON,
   nodeRegistries: FlowNodeRegistry[]
 ): FreeLayoutProps {
-  return useMemo<FreeLayoutProps>(
-    () => ({
+  return useMemo<FreeLayoutProps>(() => {
+    return {
       /**
        * Whether to enable the background
        */
@@ -58,12 +64,12 @@ export function useEditorProps(
         };
       },
       lineColor: {
-        hidden: 'transparent',
-        default: '#4d53e8',
-        drawing: '#5DD6E3',
-        hovered: '#37d0ff',
-        selected: '#37d0ff',
-        error: 'red',
+        hidden: "transparent",
+        default: "#4d53e8",
+        drawing: "#5DD6E3",
+        hovered: "#37d0ff",
+        selected: "#37d0ff",
+        error: "red",
       },
       /*
        * Check whether the line can be added
@@ -133,7 +139,7 @@ export function useEditorProps(
        * Content change
        */
       onContentChange: debounce((ctx, event) => {
-        console.log('Auto Save: ', event, ctx.document.toJSON());
+        console.log("Auto Save: ", event, ctx.document.toJSON());
       }, 1000),
       /**
        * Running line
@@ -154,7 +160,7 @@ export function useEditorProps(
        * Playground init
        */
       onInit() {
-        console.log('--- Playground init ---');
+        console.log("--- Playground init ---");
       },
       /**
        * Playground render
@@ -162,13 +168,13 @@ export function useEditorProps(
       onAllLayersRendered(ctx) {
         //  Fitview
         ctx.document.fitView(false);
-        console.log('--- Playground rendered ---');
+        console.log("--- Playground rendered ---");
       },
       /**
        * Playground dispose
        */
       onDispose() {
-        console.log('---- Playground Dispose ----');
+        console.log("---- Playground Dispose ----");
       },
       plugins: () => [
         /**
@@ -188,18 +194,18 @@ export function useEditorProps(
             canvasWidth: 182,
             canvasHeight: 102,
             canvasPadding: 50,
-            canvasBackground: 'rgba(242, 243, 245, 1)',
+            canvasBackground: "rgba(242, 243, 245, 1)",
             canvasBorderRadius: 10,
-            viewportBackground: 'rgba(255, 255, 255, 1)',
+            viewportBackground: "rgba(255, 255, 255, 1)",
             viewportBorderRadius: 4,
-            viewportBorderColor: 'rgba(6, 7, 9, 0.10)',
+            viewportBorderColor: "rgba(6, 7, 9, 0.10)",
             viewportBorderWidth: 1,
             viewportBorderDashLength: undefined,
-            nodeColor: 'rgba(0, 0, 0, 0.10)',
+            nodeColor: "rgba(0, 0, 0, 0.10)",
             nodeBorderRadius: 2,
             nodeBorderWidth: 0.145,
-            nodeBorderColor: 'rgba(6, 7, 9, 0.10)',
-            overlayColor: 'rgba(255, 255, 255, 0.55)',
+            nodeBorderColor: "rgba(6, 7, 9, 0.10)",
+            overlayColor: "rgba(255, 255, 255, 0.55)",
           },
           inactiveDebounceTime: 1,
         }),
@@ -213,8 +219,8 @@ export function useEditorProps(
          * 自动对齐及辅助线插件
          */
         createFreeSnapPlugin({
-          edgeColor: '#00B2B2',
-          alignColor: '#00B2B2',
+          edgeColor: "#00B2B2",
+          alignColor: "#00B2B2",
           edgeLineWidth: 1,
           alignLineWidth: 1,
           alignCrossWidth: 8,
@@ -235,7 +241,6 @@ export function useEditorProps(
           groupNodeRender: GroupNodeRender,
         }),
       ],
-    }),
-    [initialData, nodeRegistries]
-  );
+    };
+  }, [initialData, nodeRegistries]);
 }

@@ -23,8 +23,8 @@ const NodeEditDrawer: React.FC<NodeEditDrawerProps> = (props) => {
   const formRef = useRef<FormApi<any>>();
 
   useEffect(() => {
-    if (props.entity.id) {
-      apiGetNodeById(props.entity.id).then((res) => {
+    if (props.entity.key_) {
+      apiGetNodeById(props.entity.key_).then((res) => {
         if (res.flag == "success") {
           setEntity(res.result);
         }
@@ -41,7 +41,7 @@ const NodeEditDrawer: React.FC<NodeEditDrawerProps> = (props) => {
       const data = {
         ...entity,
         ...formData,
-        id: props.entity.id ?? "",
+        id: props.entity.key_ ?? "",
       };
 
       const response = await apiNodeSave(data);

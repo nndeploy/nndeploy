@@ -1,8 +1,12 @@
 import request from "../../../request";
-import { IWorkFlowEntity } from "../../Layout/Backend/WorkFlow/entity";
+import { FlowNodeRegistry } from "../../../typings";
+import { apiGetNodeList } from "../../Layout/Design/Node/api";
+import { IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
+import { INodeEntity } from "../../Node/entity";
+import { buildNodeRegistry } from "./nodeRegistry/buildNodeRegistry";
 
-export async function apiGetNodeType  (nodeTypeId: string) {
-   var response = await request.post<any>('/nodeType/get', {id: nodeTypeId});
+export async function apiGetNodeById  (key_: string) {
+   var response = await request.post<INodeEntity>('/node/get', {key_});
 
   return response;
 }
@@ -11,4 +15,17 @@ export async function apiGetWorkFlow(id: string){
  var response = await request.post<IWorkFlowEntity>('/workflow/get', {id});
 
   return response;
+}
+
+export async function getNodeRegistry(){
+  
+      const response = await apiGetNodeList()
+
+      const nodeRegistry : FlowNodeRegistry[]  = response.result.map((item) => {
+          return buildNodeRegistry(item)
+      })
+
+      return nodeRegistry
+         
+      
 }

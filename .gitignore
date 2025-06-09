@@ -254,3 +254,4 @@ ref_repo
 # app/
 # translation
 *.mo
+/app/workflow/package-lock.json

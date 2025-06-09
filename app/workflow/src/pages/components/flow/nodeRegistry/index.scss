@@ -1,0 +1,19 @@
+.connection-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  align-items: flex-start;
+
+  //padding: 5px 5px;
+  .connection-point {
+    position: absolute;
+    &.connection-point-left{
+       left: -12px;
+    }
+   
+    top: 50%;
+    &.connection-point-right{
+      right: -12px;
+    }
+  }
+}

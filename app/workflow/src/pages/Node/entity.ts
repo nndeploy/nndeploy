@@ -33,12 +33,38 @@ export interface NodeTreeNodeData extends TreeNodeData {
 //   children?: INodeEntityConfigField[]
 // }
 
-export interface INodeEntity{
-  id: string;
-  name: string;
-  parentId: string;
-  schema: JsonSchema
+export interface IConnectionPoint{
+  name_: string;
+  type_: string; 
 }
+
+export interface INodeEntity{
+  key_: string;
+  name_: string;
+  device_type_: string; 
+  inputs_: IConnectionPoint[];
+  outputs_: IConnectionPoint[]
+  param_: {
+    [key:string]: any
+  }, 
+   [key:string]: any
+  //schema: JsonSchema
+}
+
+export interface INodeInstance{
+  id: string; 
+  key_: string;
+  name_: string;
+  device_type_: string; 
+  inputs_: IConnectionPoint[];
+  outputs_: IConnectionPoint[]
+  param_: {
+    [key:string]: any
+  }, 
+  [key:string]: any
+  //schema: JsonSchema
+}
+
 
 
 
