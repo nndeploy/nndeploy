@@ -181,7 +181,7 @@ Node::Node(const std::string &name, std::vector<Edge *> inputs,
 }
 
 Node::~Node() {
-  // NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
+  NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
   if (initialized_ == true) {
     NNDEPLOY_LOGE("Node[%s] deinit\n", name_.c_str());
     this->deinit();

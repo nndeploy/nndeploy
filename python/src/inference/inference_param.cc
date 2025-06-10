@@ -4,6 +4,8 @@
 
 #include "nndeploy_api_registry.h"
 
+namespace py = pybind11;
+
 namespace nndeploy {
 namespace inference {
 
@@ -12,11 +14,13 @@ class PyInferenceParam : public InferenceParam {
   using InferenceParam::InferenceParam;
 
   std::shared_ptr<base::Param> copy() override {
-    PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, InferenceParam, "copy", copy);
+    PYBIND11_OVERRIDE_NAME(std::shared_ptr<base::Param>, InferenceParam, "copy",
+                           copy);
   }
 
   base::Status copyTo(base::Param *param) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "copy_to", copyTo, param);
+    PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "copy_to", copyTo,
+                           param);
   }
 
   base::Status set(const std::string &key, base::Any &any) override {
@@ -28,28 +32,35 @@ class PyInferenceParam : public InferenceParam {
   }
 
   // base::Status serialize(rapidjson::Value &json,
-  //                       rapidjson::Document::AllocatorType &allocator) override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize", serialize, json, allocator);
+  //                       rapidjson::Document::AllocatorType &allocator)
+  //                       override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize",
+  //   serialize, json, allocator);
   // }
 
   // std::string serialize() override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize", serialize, stream);
+  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize",
+  //   serialize, stream);
   // }
 
   // base::Status saveFile(const std::string &path) override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize", serialize, content, is_file);
+  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "serialize",
+  //   serialize, content, is_file);
   // }
 
   // base::Status deserialize(rapidjson::Value &json) override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "deserialize", deserialize, json);
+  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "deserialize",
+  //   deserialize, json);
   // }
 
   // base::Status deserialize(const std::string &json_str) override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "deserialize", deserialize, stream);
+  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "deserialize",
+  //   deserialize, stream);
   // }
 
   // base::Status loadFile(const std::string &path) override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "deserialize", deserialize, content, is_file);
+  //   PYBIND11_OVERRIDE_NAME(base::Status, InferenceParam, "deserialize",
+  //   deserialize, content, is_file);
   // }
 };
 
@@ -59,19 +70,32 @@ class PyInferenceParamCreator : public InferenceParamCreator {
 
   std::shared_ptr<InferenceParam> createInferenceParam(
       base::InferenceType type) override {
-    PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<InferenceParam>, InferenceParamCreator,
-                           "create_inference_param", createInferenceParam, type);
+    PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<InferenceParam>,
+                                InferenceParamCreator, "create_inference_param",
+                                createInferenceParam, type);
   }
 };
 
 NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
-  py::class_<InferenceParam, PyInferenceParam, base::Param, std::shared_ptr<InferenceParam>>(
-      m, "InferenceParam", py::dynamic_attr())
+  py::class_<InferenceParam, PyInferenceParam, base::Param,
+             std::shared_ptr<InferenceParam>>(m, "InferenceParam",
+                                              py::dynamic_attr())
       .def(py::init<base::InferenceType>())
       .def_readwrite("inference_type_", &InferenceParam::inference_type_)
       .def_readwrite("model_type_", &InferenceParam::model_type_)
       .def_readwrite("is_path_", &InferenceParam::is_path_)
-      .def_readwrite("model_value_", &InferenceParam::model_value_)
+      .def_property(
+          "model_value_",
+          [](const InferenceParam &self) {
+            return self.model_value_;
+          },
+          [](InferenceParam &self, const std::vector<std::string> &value) {
+            // NNDEPLOY_LOGE("set_model_value: %p", &self);
+            // for (auto &v : value) {
+            //   NNDEPLOY_LOGE("set_model_value: %s", v.c_str());
+            // }
+            self.model_value_ = value;
+          })
       .def_readwrite("input_num_", &InferenceParam::input_num_)
       .def_readwrite("input_name_", &InferenceParam::input_name_)
       .def_readwrite("input_shape_", &InferenceParam::input_shape_)
@@ -100,21 +124,33 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
       .def("get_model_type", &InferenceParam::getModelType)
       .def("set_is_path", &InferenceParam::setIsPath)
       .def("get_is_path", &InferenceParam::getIsPath)
-      .def("set_model_value", py::overload_cast<const std::vector<std::string>&>(&InferenceParam::setModelValue))
-      .def("set_model_value", py::overload_cast<const std::string&, int>(&InferenceParam::setModelValue))
+      .def("set_model_value",
+           py::overload_cast<const std::vector<std::string> &>(
+               &InferenceParam::setModelValue))
+      .def("set_model_value", py::overload_cast<const std::string &, int>(
+                                  &InferenceParam::setModelValue))
       .def("get_model_value", &InferenceParam::getModelValue)
       .def("set_input_num", &InferenceParam::setInputNum)
       .def("get_input_num", &InferenceParam::getInputNum)
-      .def("set_input_name", py::overload_cast<const std::vector<std::string>&>(&InferenceParam::setInputName))
-      .def("set_input_name", py::overload_cast<const std::string&, int>(&InferenceParam::setInputName))
+      .def("set_input_name",
+           py::overload_cast<const std::vector<std::string> &>(
+               &InferenceParam::setInputName))
+      .def("set_input_name", py::overload_cast<const std::string &, int>(
+                                 &InferenceParam::setInputName))
       .def("get_input_name", &InferenceParam::getInputName)
-      .def("set_input_shape", py::overload_cast<const std::vector<std::vector<int>>&>(&InferenceParam::setInputShape))
-      .def("set_input_shape", py::overload_cast<const std::vector<int>&, int>(&InferenceParam::setInputShape))
+      .def("set_input_shape",
+           py::overload_cast<const std::vector<std::vector<int>> &>(
+               &InferenceParam::setInputShape))
+      .def("set_input_shape", py::overload_cast<const std::vector<int> &, int>(
+                                  &InferenceParam::setInputShape))
       .def("get_input_shape", &InferenceParam::getInputShape)
       .def("set_output_num", &InferenceParam::setOutputNum)
       .def("get_output_num", &InferenceParam::getOutputNum)
-      .def("set_output_name", py::overload_cast<const std::vector<std::string>&>(&InferenceParam::setOutputName))
-      .def("set_output_name", py::overload_cast<const std::string&, int>(&InferenceParam::setOutputName))
+      .def("set_output_name",
+           py::overload_cast<const std::vector<std::string> &>(
+               &InferenceParam::setOutputName))
+      .def("set_output_name", py::overload_cast<const std::string &, int>(
+                                  &InferenceParam::setOutputName))
       .def("get_output_name", &InferenceParam::getOutputName)
       .def("set_encrypt_type", &InferenceParam::setEncryptType)
       .def("get_encrypt_type", &InferenceParam::getEncryptType)
@@ -142,8 +178,11 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
       .def("get_max_shape", &InferenceParam::getMaxShape)
       .def("set_cache_path", &InferenceParam::setCachePath)
       .def("get_cache_path", &InferenceParam::getCachePath)
-      .def("set_library_path", py::overload_cast<const std::vector<std::string>&>(&InferenceParam::setLibraryPath))
-      .def("set_library_path", py::overload_cast<const std::string&, int>(&InferenceParam::setLibraryPath))
+      .def("set_library_path",
+           py::overload_cast<const std::vector<std::string> &>(
+               &InferenceParam::setLibraryPath))
+      .def("set_library_path", py::overload_cast<const std::string &, int>(
+                                   &InferenceParam::setLibraryPath))
       .def("get_library_path", &InferenceParam::getLibraryPath)
       .def("copy", &InferenceParam::copy)
       .def("copy_to", &InferenceParam::copyTo);
@@ -155,7 +194,8 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
            &InferenceParamCreator::createInferenceParam);
 
   m.def("register_inference_param_creator",
-        [](base::InferenceType type, std::shared_ptr<InferenceParamCreator> creator) {
+        [](base::InferenceType type,
+           std::shared_ptr<InferenceParamCreator> creator) {
           getGlobalInferenceParamCreatorMap()[type] = creator;
         });
 

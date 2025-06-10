@@ -2,6 +2,8 @@ import nndeploy._nndeploy_internal as _C
 import nndeploy.base
 import nndeploy.device
 from typing import List, Union, Optional
+
+from .base import EdgeTypeInfo
 from .edge import Edge
 from .node import Node, NodeDesc
 
@@ -22,6 +24,24 @@ class Graph(_C.dag.Graph):
             super().__init__(name, inputs, outputs)
         else:
             raise ValueError("无效的输入或输出类型")
+        
+    def set_input_type(self, input_type: type):
+        """设置输入类型
+        
+        Args:
+            input_type: 输入类型
+            
+        Returns:
+            状态码
+        """
+        edge_type_info = EdgeTypeInfo()
+        edge_type_info.set_type(input_type)
+        return self.set_input_type_info(edge_type_info)
+
+    def set_output_type(self, output_type: type):
+        edge_type_info = EdgeTypeInfo()
+        edge_type_info.set_type(output_type)
+        return self.set_output_type_info(edge_type_info)
 
     def create_edge(self, name: str) -> Edge:
         """
@@ -81,6 +101,17 @@ class Graph(_C.dag.Graph):
             return super().create_node(key_or_desc)
         else:
             raise ValueError("无效的节点描述对象")
+        
+    def set_node_desc(self, node: Node, desc: NodeDesc):
+        """
+        设置节点描述
+        
+        参数:
+            node: 节点对象
+            desc: 节点描述对象
+            
+        """
+        return super().set_node_desc(node, desc)
 
     def add_node(self, node: Node):
         """
@@ -153,18 +184,14 @@ class Graph(_C.dag.Graph):
         """运行图"""
         return super().run()
 
-    def __call__(self, inputs, outputs_name=None, param=None):
+    def __call__(self, inputs):
         """
         调用图
         
         参数:
             inputs: 输入
-            outputs_name: 输出名称列表
-            param: 参数
         """
-        if outputs_name is None:
-            outputs_name = []
-        return super().__call__(inputs, outputs_name, param)
+        return super().__call__(inputs)
 
     def dump(self):
         """输出图信息到标准输出"""

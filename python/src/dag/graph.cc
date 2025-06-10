@@ -39,8 +39,14 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("create_node",
            py::overload_cast<const NodeDesc &>(&Graph::createNode4Py),
            py::arg("desc"), py::return_value_policy::reference)
-      .def("set_node_desc", &Graph::setNodeDesc, py::arg("node"),
-           py::arg("desc"))
+      .def(
+          "set_node_desc",
+          [](Graph &g, Node *node, const NodeDesc &desc) {
+            NNDEPLOY_LOGE("set_node_desc[%s, %p] success!\n",
+                          node->getName().c_str(), node);
+            return g.setNodeDesc(node, desc);
+          },
+          py::arg("node"), py::arg("desc"))
       .def(
           "add_node",
           [](Graph &g, Node *node) {

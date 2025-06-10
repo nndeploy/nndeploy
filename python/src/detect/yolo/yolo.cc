@@ -32,7 +32,9 @@ NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
       .def(py::init<const std::string&>())
       .def(py::init<const std::string&, std::vector<dag::Edge*>,
                     std::vector<dag::Edge*>>())
+      .def("default_param", &YoloGraph::defaultParam)
       .def("make", &YoloGraph::make)
+      .def("set_inference_type", &YoloGraph::setInferenceType)
       .def("set_infer_param", &YoloGraph::setInferParam)
       .def("set_src_pixel_type", &YoloGraph::setSrcPixelType)
       .def("set_score_threshold", &YoloGraph::setScoreThreshold)

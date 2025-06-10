@@ -131,7 +131,20 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     this->setNodeDesc(infer_, infer_desc);
     this->setNodeDesc(post_, post_desc);
     this->defaultParam();
-    infer_->setInferenceType(inference_type);
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
+    return base::kStatusCodeOk;
+  }
+
+  base::Status setInferenceType(base::InferenceType inference_type) {
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
     return base::kStatusCodeOk;
   }
 

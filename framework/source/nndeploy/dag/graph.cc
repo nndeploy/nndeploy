@@ -199,6 +199,7 @@ Node *Graph::createNode(const std::string &key, const std::string &name) {
     NNDEPLOY_LOGE("create node[%s] failed!\n", name.c_str());
     return nullptr;
   }
+  // NNDEPLOY_LOGE("create node[%s, %p] success!\n", unique_name.c_str(), node);
   NodeWrapper *node_wrapper = new NodeWrapper();
   node_wrapper->is_external_ = false;
   node_wrapper->node_ = node;
@@ -271,11 +272,15 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
     NNDEPLOY_LOGE("node is null!");
     return base::kStatusCodeErrorInvalidValue;
   }
+  // NNDEPLOY_LOGE("setNodeDesc[%s, %p] success!\n", node->getName().c_str(),
+  //               node);
   if (!desc.getKey().empty() && node->getKey() != desc.getKey()) {
     NNDEPLOY_LOGE("node key[%s] != desc key[%s]!", node->getKey().c_str(),
                   desc.getKey().c_str());
     return base::kStatusCodeErrorInvalidValue;
   }
+  // NNDEPLOY_LOGE("setNodeDesc[%s, %p] success!\n", node->getName().c_str(),
+  //               node);
   // 根据desc的输入判断node
   std::vector<Edge *> inputs = node->getAllInput();
   if (!inputs.empty()) {
@@ -292,6 +297,8 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
                   node->getName().c_str());
     return base::kStatusCodeErrorInvalidValue;
   }
+  // NNDEPLOY_LOGE("setNodeDesc[%s, %p] success!\n", node->getName().c_str(),
+  //               node);
   std::string unique_name = desc.getName();
   if (unique_name.empty()) {
     unique_name = node->getName();
@@ -309,11 +316,15 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
     used_node_names_.erase(node->getName());
     used_node_names_.insert(unique_name);
   }
+  // NNDEPLOY_LOGE("setNodeDesc[%s, %p] success!\n", node->getName().c_str(),
+  //               node);
   auto node_wrapper = findNodeWrapper(node_repository_, node);
   if (node_wrapper == nullptr) {
     NNDEPLOY_LOGE("can't find node_wrapper!");
     return base::kStatusCodeErrorInvalidValue;
   }
+  // NNDEPLOY_LOGE("setNodeDesc[%s, %p] success!\n", node->getName().c_str(),
+  //               node);
   std::vector<std::string> input_names = desc.getInputs();
   for (auto input_name : input_names) {
     Edge *input = getEdge(input_name);

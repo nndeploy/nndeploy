@@ -4,102 +4,110 @@ import nndeploy._nndeploy_internal as _C
 import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
-import torch
+import numpy as np
 
+from .result import DetectResult, DetectBBoxResult
 
 # python3 nndeploy/detect/detect.py
+
+YoloPostParam = _C.detect.YoloPostParam
+YoloPostProcess = _C.detect.YoloPostProcess
+YoloGraph = _C.detect.YoloGraph
     
-class DetectGraph(nndeploy.dag.Graph):
-    def __init__(self, name, outputs: _C.dag.Edge, codec_flag: nndeploy.base.CodecFlag = nndeploy.base.CodecFlag.Image):
-        super().__init__(name, [], [outputs])
-        self.model_inputs = ["images"]
-        self.model_outputs = ["output0"]
-        self.inference_type = nndeploy.base.InferenceType.OnnxRuntime
-        self.version = 11
-        self.device_type = nndeploy.base.DeviceType("x86")
-        self.model_type = nndeploy.base.ModelType.Onnx
-        self.is_path = True
-        self.model_value = ["../build/yolo11s.sim.onnx"]
+
+class YoloPyGraph(nndeploy.dag.Graph):
+    def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
+        super().__init__(name, inputs, outputs)
+        self.set_key("nndeploy::detect::YoloPyGraph")
+        self.set_input_type(np.ndarray)
+        self.set_output_type(nndeploy.detect.DetectResult)
+        self.pre = self.create_node("nndeploy::preprocess::CvtColorResize", "pre")
+        self.infer = self.create_node("nndeploy::infer::Infer", "infer")
+        self.post = self.create_node("nndeploy::detect::YoloPostProcess", "post")
         
-        # self.input_edge = self.create_edge("input_edge")
-        self.input_edge = nndeploy.dag.Edge("input_edge")
-        self.yolo_graph = _C.detect.YoloGraph("yolo_graph", [self.input_edge], [outputs])
-        print(type(self.yolo_graph))
-        print(type(self.yolo_graph).__bases__)
-        pre_desc = _C.dag.NodeDesc("preprocess", ["input_edge"], self.model_inputs)
-        infer_desc = _C.dag.NodeDesc("infer", self.model_inputs, self.model_outputs) 
-        post_desc = _C.dag.NodeDesc("postprocess", self.model_outputs, ["outputs"])
-        self.yolo_graph.make(pre_desc, infer_desc, self.inference_type, post_desc)
-        self.yolo_graph.set_infer_param(self.device_type, self.model_type, self.is_path, self.model_value)
-        self.yolo_graph.set_version(self.version)
-        self.add_node(self.yolo_graph)
-        
-        self.decode_node = _C.codec.create_decode_node(nndeploy.base.CodecType.OpenCV, codec_flag, "decode_node", self.input_edge)
-        self.add_node(self.decode_node)
-        
-        # self.draw_output = self.create_edge("draw_output")
-        self.draw_output = nndeploy.dag.Edge("draw_output")
-        self.draw_box_node = _C.detect.DrawBoxNode("draw_box_node", [self.input_edge, outputs], [self.draw_output])
-        self.add_node(self.draw_box_node)
-        
-        self.encode_node = _C.codec.create_encode_node(nndeploy.base.CodecType.OpenCV, codec_flag, "encode_node", self.draw_output)
-        self.add_node(self.encode_node)
+    def forward(self, inputs: [nndeploy.dag.Edge]):
+        pre_outputs = self.pre(inputs)
+        infer_outputs = self.infer(pre_outputs)
+        post_outputs = self.post(infer_outputs)
+        return post_outputs
     
-    def set_input_path(self, path):
-        self.decode_node.set_path(path)
+    def make(self, pre_desc, infer_desc, post_desc):
+        self.set_node_desc(self.pre, pre_desc)
+        self.set_node_desc(self.infer, infer_desc)
+        self.set_node_desc(self.post, post_desc)
+        return nndeploy.base.StatusCode.Ok
         
-    def set_output_path(self, path):
-        self.encode_node.set_path(path)
+    def default_param(self):
+        pre_param = self.pre.get_param()
+        pre_param.src_pixel_type_ = nndeploy.base.PixelType.BGR
+        pre_param.dst_pixel_type_ = nndeploy.base.PixelType.RGB
+        pre_param.interp_type_ = nndeploy.base.InterpType.Linear
+        pre_param.h_ = 640
+        pre_param.w_ = 640
+
+        post_param = self.post.get_param()
+        post_param.score_threshold_ = 0.5
+        post_param.nms_threshold_ = 0.45
+        post_param.num_classes_ = 80
+        post_param.model_h_ = 640
+        post_param.model_w_ = 640
+        post_param.version_ = 11
+
+        return nndeploy.base.StatusCode.Ok
+    
+    def set_inference_type(self, inference_type):
+        self.infer.set_inference_type(inference_type)
         
-        
-        
-    def set_inference_param(self, device_type, model_type, is_path, model_value):
-        self.yolo_graph.set_infer_param(device_type, model_type, is_path, model_value)
-        
-    def set_version(self, version):
-        self.yolo_graph.set_version(version)
-        
+    def set_infer_param(self, device_type, model_type, is_path, model_value):
+        param = self.infer.get_param()
+        param.device_type_ = device_type
+        param.model_type_ = model_type 
+        param.is_path_ = is_path
+        param.model_value_ = model_value
+        return nndeploy.base.StatusCode.Ok
+
     def set_src_pixel_type(self, pixel_type):
-        self.yolo_graph.set_src_pixel_type(pixel_type)
+        param = self.pre.get_param()
+        param.src_pixel_type_ = pixel_type
+        return nndeploy.base.StatusCode.Ok
+
+    def set_score_threshold(self, score_threshold):
+        param = self.post.get_param()
+        param.score_threshold_ = score_threshold
+        return nndeploy.base.StatusCode.Ok
+
+    def set_nms_threshold(self, nms_threshold):
+        param = self.post.get_param()
+        param.nms_threshold_ = nms_threshold
+        return nndeploy.base.StatusCode.Ok
+
+    def set_num_classes(self, num_classes):
+        param = self.post.get_param()
+        param.num_classes_ = num_classes
+        return nndeploy.base.StatusCode.Ok
+
+    def set_model_hw(self, model_h, model_w):
+        param = self.post.get_param()
+        param.model_h_ = model_h
+        param.model_w_ = model_w
+        return nndeploy.base.StatusCode.Ok
+
+    def set_version(self, version):
+        param = self.post.get_param()
+        param.version_ = version
+        return nndeploy.base.StatusCode.Ok
         
-    def forward(self, inputs):
-        return self.yolo_graph.forward(inputs)
-        
-    
-def test_detect():
-    print("test_detect")
-    # 创建detect_graph
-    outputs = _C.dag.Edge("outputs")
-    detect_graph = DetectGraph("detect_graph", outputs)
-    
-    detect_graph.set_time_profile_flag(True)
-    
-    detect_graph.init()
-    detect_graph.dump()
-    detect_graph.yolo_graph.dump()
-    
-    # 设置输入路径
-    detect_graph.set_input_path("../docs/image/demo/detect/sample.jpg")
-    # # 设置输出路径
-    detect_graph.set_output_path("../build/aaa.jpg")
-    _C.base.time_point_start("py_run")
-    detect_graph.run() 
-    _C.base.time_point_end("py_run")
-    print("run end")  
-    
-    result = outputs.get_graph_output_param()
-    print(result.bboxs_[0].index_)
-    print(result.bboxs_[0].label_id_)
-    print(result.bboxs_[0].score_)
-    print(result.bboxs_[0].bbox_)
-    print(result.bboxs_[0].mask_)
-    detect_graph.deinit()
-    
-    _C.base.time_profiler_print("py_run")
-    
-    
-if __name__ == "__main__":
-    test_detect()
+
+class YoloPyGraphCreator(nndeploy.dag.NodeCreator):
+    def __init__(self):
+        super().__init__()
+
+    def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
+        self.node = YoloPyGraph(name, inputs, outputs)
+        return self.node
+
+yolo_py_graph_creator = YoloPyGraphCreator()
+nndeploy.dag.register_node("nndeploy::detect::YoloPyGraph", yolo_py_graph_creator)
     
     
         
