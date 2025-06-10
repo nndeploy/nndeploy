@@ -205,6 +205,7 @@ Node::~Node() {
 
 void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
+void Node::setName(const std::string &name) { name_ = name; }
 std::string Node::getName() { return name_; }
 
 std::vector<std::string> Node::getInputNames() {

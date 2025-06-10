@@ -56,6 +56,9 @@ class Node(_C.dag.Node):
     def get_key(self) -> str:
         return super().get_key()
             
+    def set_name(self, name: str):
+        return super().set_name(name)
+        
     def get_name(self) -> str:
         return super().get_name()
         

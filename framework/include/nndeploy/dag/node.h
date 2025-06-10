@@ -97,6 +97,7 @@ class NNDEPLOY_CC_API Node {
 
   void setKey(const std::string &key);
   std::string getKey();
+  void setName(const std::string &name);
   std::string getName();
 
   std::vector<std::string> getInputNames();

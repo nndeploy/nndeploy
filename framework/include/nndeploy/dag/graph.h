@@ -55,10 +55,17 @@ class NNDEPLOY_CC_API Graph : public Node {
                          bool is_external = true);
 
   // create node
+  Node *createNode(const std::string &key, const std::string &name = "");
   Node *createNode(const NodeDesc &desc);
+
+  template <typename T, typename... Args,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createNode(const std::string &name = "", Args &...args);
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const NodeDesc &desc, Args &...args);
+
+  base::Status setNodeDesc(Node *node, const NodeDesc &desc);
 
   // add node
   base::Status addNode(Node *node, bool is_external = true);
@@ -110,9 +117,6 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   // create node
   // Not recommended api
-  template <typename T, typename... Args,
-            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
-  Node *createNode(const std::string &name, Args &...args);
   template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, Edge *input, Edge *output,
@@ -225,6 +229,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::initializer_list<std::string> input_names,
                     std::initializer_list<Edge *> outputs);
+  Node *createNode4Py(const std::string &key, const std::string &name = "");
   Node *createNode4Py(const NodeDesc &desc);
 
   EdgeWrapper *getEdgeWrapper(Edge *edge);
@@ -235,9 +240,8 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   // to json
   // using Node::serialize;
-  virtual base::Status serialize(
-      rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
   virtual std::string serialize();
   // from json
   // using Node::deserialize;
@@ -1325,6 +1329,16 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 //   return node;
 // }
 
+// template <typename T, typename... Args,
+//           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+// Node *Graph::createNode(const std::string &name = "", Args &...args) {
+//   Node *node = this->createNode<T>(name, {}, {}, args...);
+//   if (node == nullptr) {
+//     NNDEPLOY_LOGE("create node[%s] failed!\n", name.c_str());
+//     return nullptr;
+//   }
+//   return node;
+// }
 template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createNode(const NodeDesc &desc, Args &...args) {

@@ -185,6 +185,30 @@ base::Status Graph::updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
   return base::kStatusCodeOk;
 }
 
+Node *Graph::createNode(const std::string &key, const std::string &name) {
+  if (used_node_names_.find(name) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
+  std::string unique_name = name;
+  if (unique_name.empty()) {
+    unique_name = "node_" + base::getUniqueString();
+  }
+  Node *node = nndeploy::dag::createNode(key, unique_name);
+  if (node == nullptr) {
+    NNDEPLOY_LOGE("create node[%s] failed!\n", name.c_str());
+    return nullptr;
+  }
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = unique_name;
+  node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(unique_name);
+
+  node->setGraph(this);
+  return node;
+}
 Node *Graph::createNode(const NodeDesc &desc) {
   const std::string &name = desc.getName();
   const std::string &node_key = desc.getKey();
@@ -240,6 +264,90 @@ Node *Graph::createNode(const NodeDesc &desc) {
   node->setGraph(this);
 
   return node;
+}
+
+base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
+  if (node == nullptr) {
+    NNDEPLOY_LOGE("node is null!");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  if (!desc.getKey().empty() && node->getKey() != desc.getKey()) {
+    NNDEPLOY_LOGE("node key[%s] != desc key[%s]!", node->getKey().c_str(),
+                  desc.getKey().c_str());
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  // 根据desc的输入判断node
+  std::vector<Edge *> inputs = node->getAllInput();
+  if (!inputs.empty()) {
+    // 该节点已经设置，不允许二次设置
+    NNDEPLOY_LOGE("node[%s] already set, can't set again!",
+                  node->getName().c_str());
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  std::vector<std::string> output_names = desc.getOutputs();
+  std::vector<Edge *> outputs = node->getAllOutput();
+  if (!outputs.empty()) {
+    // 该节点已经设置，不允许二次设置
+    NNDEPLOY_LOGE("node[%s] already set, can't set again!",
+                  node->getName().c_str());
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  std::string unique_name = desc.getName();
+  if (unique_name.empty()) {
+    unique_name = node->getName();
+  } else if (unique_name != node->getName()) {
+    // 修改node的名字
+    node->setName(unique_name);
+    // 修改node_repository_中node的name
+    for (auto node_wrapper : node_repository_) {
+      if (node_wrapper->node_ == node) {
+        node_wrapper->name_ = unique_name;
+        break;
+      }
+    }
+    // 修改used_node_names_中node的name
+    used_node_names_.erase(node->getName());
+    used_node_names_.insert(unique_name);
+  }
+  auto node_wrapper = findNodeWrapper(node_repository_, node);
+  if (node_wrapper == nullptr) {
+    NNDEPLOY_LOGE("can't find node_wrapper!");
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  std::vector<std::string> input_names = desc.getInputs();
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  base::Status status = node->setInputs(inputs);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node setInput failed!");
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+  status = node->setOutputs(outputs);
+  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node setOutput failed!");
+  return base::kStatusCodeOk;
 }
 
 base::Status Graph::addNode(Node *node, bool is_external) {
@@ -963,6 +1071,9 @@ base::Status Graph::executor() {
   return status;
 }
 
+Node *Graph::createNode4Py(const std::string &key, const std::string &name) {
+  return createNode(key, name);
+}
 Node *Graph::createNode4Py(const NodeDesc &desc) { return createNode(desc); }
 
 EdgeWrapper *Graph::getEdgeWrapper(Edge *edge) {
@@ -1127,9 +1238,9 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   //   for (rapidjson::SizeType i = 0; i < nodes.Size(); i++) {
   //     if (nodes[i].IsObject()) {
   //       NodeDesc node_desc;
-  //       rapidjson::Value &node_json = const_cast<rapidjson::Value &>(nodes[i]);
-  //       status = node_desc.deserialize(node_json);
-  //       if (status != base::kStatusCodeOk) {
+  //       rapidjson::Value &node_json = const_cast<rapidjson::Value
+  //       &>(nodes[i]); status = node_desc.deserialize(node_json); if (status
+  //       != base::kStatusCodeOk) {
   //         return status;
   //       }
   //       Node *node = this->createNode(node_desc);
@@ -1178,10 +1289,21 @@ base::Status Graph::deserialize(const std::string &json_str) {
         if (status != base::kStatusCodeOk) {
           return status;
         }
-        Node *node = this->createNode(node_desc);
-        if (node == nullptr) {
-          NNDEPLOY_LOGE("create node failed\n");
-          return base::kStatusCodeErrorInvalidValue;
+        Node *node = nullptr;
+        // TODO
+        if (node_repository_.size() > i) {
+          node = node_repository_[i]->node_;
+          base::Status status = this->setNodeDesc(node, node_desc);
+          if (status != base::kStatusCodeOk) {
+            NNDEPLOY_LOGE("set node desc failed\n");
+            return status;
+          }
+        } else {
+          node = this->createNode(node_desc);
+          if (node == nullptr) {
+            NNDEPLOY_LOGE("create node failed\n");
+            return base::kStatusCodeErrorInvalidValue;
+          }
         }
         base::Status status = node->deserialize(node_json_str);
         if (status != base::kStatusCodeOk) {
@@ -1191,7 +1313,7 @@ base::Status Graph::deserialize(const std::string &json_str) {
       }
     }
   }
-  
+
   return status;
 }
 
@@ -1232,9 +1354,7 @@ base::Status serialize(Graph *graph, rapidjson::Value &json,
                        rapidjson::Document::AllocatorType &allocator) {
   return graph->serialize(json, allocator);
 }
-std::string serialize(Graph *graph) {
-  return graph->serialize();
-}
+std::string serialize(Graph *graph) { return graph->serialize(); }
 base::Status saveFile(Graph *graph, const std::string &path) {
   return graph->saveFile(path);
 }

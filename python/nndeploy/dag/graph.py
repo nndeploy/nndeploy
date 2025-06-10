@@ -65,16 +65,22 @@ class Graph(_C.dag.Graph):
         """
         return super().get_edge(name)
 
-    def create_node(self, desc: NodeDesc) -> Node:
+    def create_node(self, key_or_desc: Union[str, NodeDesc], name: str = "") -> Node:
         """
-        通过描述创建节点
+        创建节点
         
         参数:
-            desc: 节点描述
+            key_or_desc: 节点key或节点描述对象
+            name: 节点名称,仅当key_or_desc为str时有效,默认为空字符串
         返回:
             Node 对象
         """
-        return super().create_node(desc)
+        if isinstance(key_or_desc, str):
+            return super().create_node(key_or_desc, name)
+        elif isinstance(key_or_desc, NodeDesc):
+            return super().create_node(key_or_desc)
+        else:
+            raise ValueError("无效的节点描述对象")
 
     def add_node(self, node: Node):
         """

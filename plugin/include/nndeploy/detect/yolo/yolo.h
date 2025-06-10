@@ -79,6 +79,12 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     key_ = "nndeploy::detect::YoloGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
+    pre_ = dynamic_cast<preprocess::CvtColorResize *>(
+        this->createNode<preprocess::CvtColorResize>("preprocess"));
+    infer_ = dynamic_cast<infer::Infer *>(
+        this->createNode<infer::Infer>("infer"));
+    post_ = dynamic_cast<YoloPostProcess *>(
+        this->createNode<YoloPostProcess>("postprocess"));
   }
 
   YoloGraph(const std::string &name, std::vector<dag::Edge *> inputs,
@@ -87,9 +93,12 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     key_ = "nndeploy::detect::YoloGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
-    // pre_ = this->createNode<preprocess::CvtColorResize>();
-    // pre_ = this->createNode<preprocess::CvtColorResize>();
-    // post_ = this->createNode<YoloPostProcess>();
+    pre_ = dynamic_cast<preprocess::CvtColorResize *>(
+        this->createNode<preprocess::CvtColorResize>("preprocess"));
+    infer_ = dynamic_cast<infer::Infer *>(
+        this->createNode<infer::Infer>("infer"));
+    post_ = dynamic_cast<YoloPostProcess *>(
+        this->createNode<YoloPostProcess>("postprocess"));
   }
 
   virtual ~YoloGraph() {}
@@ -99,11 +108,12 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
                     base::InferenceType inference_type,
                     const dag::NodeDesc &post_desc) {
     // Create preprocessing node for image preprocessing
-    pre_ = this->createNode<preprocess::CvtColorResize>(pre_desc);
-    if (pre_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create preprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+    // pre_ = this->createNode<preprocess::CvtColorResize>(pre_desc);
+    // if (pre_ == nullptr) {
+    //   NNDEPLOY_LOGE("Failed to create preprocessing node");
+    //   return base::kStatusCodeErrorInvalidParam;
+    // }
+    this->setNodeDesc(pre_, pre_desc);
     preprocess::CvtclorResizeParam *pre_param =
         dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
@@ -113,20 +123,22 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     pre_param->w_ = 640;
 
     // Create inference node for ResNet model execution
-    infer_ = dynamic_cast<infer::Infer *>(
-        this->createNode<infer::Infer>(infer_desc));
-    if (infer_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create inference node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+    // infer_ = dynamic_cast<infer::Infer *>(
+    //     this->createNode<infer::Infer>(infer_desc));
+    // if (infer_ == nullptr) {
+    //   NNDEPLOY_LOGE("Failed to create inference node");
+    //   return base::kStatusCodeErrorInvalidParam;
+    // }
+    this->setNodeDesc(infer_, infer_desc);
     infer_->setInferenceType(inference_type);
 
     // Create postprocessing node for classification results
-    post_ = this->createNode<YoloPostProcess>(post_desc);
-    if (post_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create postprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+    // post_ = this->createNode<YoloPostProcess>(post_desc);
+    // if (post_ == nullptr) {
+    //   NNDEPLOY_LOGE("Failed to create postprocessing node");
+    //   return base::kStatusCodeErrorInvalidParam;
+    // }
+    this->setNodeDesc(post_, post_desc);
     YoloPostParam *post_param =
         dynamic_cast<YoloPostParam *>(post_->getParam());
     post_param->score_threshold_ = 0.5;
