@@ -1,8 +1,6 @@
 
 import nndeploy._nndeploy_internal as _C
 
-# from nndeploy._nndeploy_internal import Node, NodeDesc, Graph
-
 import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
@@ -11,7 +9,6 @@ import torch
 
 # python3 nndeploy/detect/detect.py
     
-      
 class DetectGraph(nndeploy.dag.Graph):
     def __init__(self, name, outputs: _C.dag.Edge, codec_flag: nndeploy.base.CodecFlag = nndeploy.base.CodecFlag.Image):
         super().__init__(name, [], [outputs])
@@ -54,6 +51,8 @@ class DetectGraph(nndeploy.dag.Graph):
     def set_output_path(self, path):
         self.encode_node.set_path(path)
         
+        
+        
     def set_inference_param(self, device_type, model_type, is_path, model_value):
         self.yolo_graph.set_infer_param(device_type, model_type, is_path, model_value)
         
@@ -62,6 +61,9 @@ class DetectGraph(nndeploy.dag.Graph):
         
     def set_src_pixel_type(self, pixel_type):
         self.yolo_graph.set_src_pixel_type(pixel_type)
+        
+    def forward(self, inputs):
+        return self.yolo_graph.forward(inputs)
         
     
 def test_detect():
