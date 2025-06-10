@@ -19,10 +19,10 @@ class DetectGraph(nndeploy.dag.Graph):
         self.model_outputs = ["output0"]
         self.inference_type = nndeploy.base.InferenceType.OnnxRuntime
         self.version = 11
-        self.device_type = nndeploy.base.DeviceType("arm")
+        self.device_type = nndeploy.base.DeviceType("x86")
         self.model_type = nndeploy.base.ModelType.Onnx
         self.is_path = True
-        self.model_value = ["/home/ascenduserdg01/model/nndeploy/detect/yolo11s.sim.onnx"]
+        self.model_value = ["../build/yolo11s.sim.onnx"]
         
         # self.input_edge = self.create_edge("input_edge")
         self.input_edge = nndeploy.dag.Edge("input_edge")
@@ -77,9 +77,9 @@ def test_detect():
     detect_graph.yolo_graph.dump()
     
     # 设置输入路径
-    detect_graph.set_input_path("/home/ascenduserdg01/github/nndeploy/docs/image/demo/detect/sample.jpg")
+    detect_graph.set_input_path("../docs/image/demo/detect/sample.jpg")
     # # 设置输出路径
-    detect_graph.set_output_path("/home/ascenduserdg01/github/nndeploy/build/aaa.jpg")
+    detect_graph.set_output_path("../build/aaa.jpg")
     _C.base.time_point_start("py_run")
     detect_graph.run() 
     _C.base.time_point_end("py_run")
