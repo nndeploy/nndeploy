@@ -41,8 +41,10 @@ class NNDEPLOY_CC_API YoloPostParam : public base::Param {
 
   int version_ = -1;  // YOLO模型的版本号，默认为-1表示未指定
 
+  using base::Param::serialize;
   virtual base::Status serialize(rapidjson::Value &json,
                                  rapidjson::Document::AllocatorType &allocator);
+  using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value &json);
 };
 
@@ -85,6 +87,9 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     key_ = "nndeploy::detect::YoloGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
+    // pre_ = this->createNode<preprocess::CvtColorResize>();
+    // pre_ = this->createNode<preprocess::CvtColorResize>();
+    // post_ = this->createNode<YoloPostProcess>();
   }
 
   virtual ~YoloGraph() {}

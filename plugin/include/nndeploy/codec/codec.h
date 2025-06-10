@@ -100,6 +100,7 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
 
   virtual base::Status run() = 0;
 
+  using dag::Node::serialize;
   virtual base::Status serialize(
       rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     base::Status status = dag::Node::serialize(json, allocator);
@@ -117,7 +118,7 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
     // json.AddMember("height_", height_, allocator);
     return status;
   }
-
+  using dag::Node::deserialize;
   virtual base::Status deserialize(rapidjson::Value &json) {
     base::Status status = dag::Node::deserialize(json);
     if (status != base::kStatusCodeOk) {
@@ -244,7 +245,7 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
   int getIndex() { return index_; };
 
   virtual base::Status run() = 0;
-
+  using dag::Node::serialize;
   virtual base::Status serialize(
       rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     base::Status status = dag::Node::serialize(json, allocator);
@@ -266,7 +267,7 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
     json.AddMember("size_", size_, allocator);
     return status;
   }
-
+  using dag::Node::deserialize;
   virtual base::Status deserialize(rapidjson::Value &json) {
     base::Status status = dag::Node::deserialize(json);
     if (status != base::kStatusCodeOk) {

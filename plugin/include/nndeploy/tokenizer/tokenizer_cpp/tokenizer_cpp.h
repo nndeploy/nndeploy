@@ -44,8 +44,8 @@ class NNDEPLOY_CC_API TokenizerEncodeCpp
       : TokenizerEncode(name, inputs, outputs) {
     key_ = "nndeploy::tokenizer::TokenizerEncodeCpp";
     param_ = std::make_shared<TokenizerPraram>();
-    this->setInputTypeInfo<cv::Mat>();
-    this->setOutputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<TokenizerText>();
+    this->setOutputTypeInfo<TokenizerIds>();
   }
   virtual ~TokenizerEncodeCpp();
 
