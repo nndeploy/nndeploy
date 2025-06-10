@@ -24,8 +24,8 @@ namespace nndeploy {
 namespace dag {
 
 Loop::Loop(const std::string &name) : Graph(name) {}
-Loop::Loop(const std::string &name, std::vector<dag::Edge *> &inputs,
-           std::vector<dag::Edge *> &outputs)
+Loop::Loop(const std::string &name, std::vector<dag::Edge *> inputs,
+           std::vector<dag::Edge *> outputs)
     : Graph(name, inputs, outputs) {}
 Loop::~Loop() {}
 

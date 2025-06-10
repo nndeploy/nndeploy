@@ -56,9 +56,10 @@ class CompositeNode : public Node {
   using Node::deserialize;
   virtual base::Status deserialize(rapidjson::Value &json);
 
+  std::vector<NodeWrapper *> sortDFS();
+
  protected:
   virtual base::Status construct();
-  std::vector<NodeWrapper *> sortDFS();
 
  protected:
   std::vector<EdgeWrapper *> edge_repository_;

@@ -1,0 +1,95 @@
+import nndeploy._nndeploy_internal as _C
+
+import nndeploy.base
+import nndeploy.device
+import nndeploy.op
+import nndeploy.dag
+
+
+ConvertToParam = _C.preprocess.ConvertToParam
+
+class ConvertTo(_C.preprocess.ConvertTo):
+    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
+        if inputs is [] and outputs is []:
+            super().__init__(name)
+        else:
+            super().__init__(name, inputs, outputs)
+
+    def run(self):
+        return super().run()
+      
+
+class CvtColorBn(_C.preprocess.CvtColorBn):
+    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
+        if inputs is [] and outputs is []:
+            super().__init__(name)
+        else:
+            super().__init__(name, inputs, outputs)
+
+    def run(self):
+        return super().run()
+      
+
+class CvtColorResizeCrop(_C.preprocess.CvtColorResizeCrop):
+    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
+        if inputs is [] and outputs is []:
+            super().__init__(name)
+        else:
+            super().__init__(name, inputs, outputs)
+
+    def run(self):
+        return super().run()
+    
+
+class CvtColorResizePad(_C.preprocess.CvtColorResizePad):
+    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
+        if inputs is [] and outputs is []:
+            super().__init__(name)
+        else:
+            super().__init__(name, inputs, outputs)
+
+    def run(self):
+        return super().run()
+      
+      
+class CvtColorResize(_C.preprocess.CvtColorResize):
+    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
+        if inputs is [] and outputs is []:
+            super().__init__(name)
+        else:
+            super().__init__(name, inputs, outputs)
+
+    def run(self):
+        return super().run()
+      
+      
+class BatchPreprocess(_C.preprocess.BatchPreprocess):
+    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
+        if inputs is [] and outputs is []:
+            super().__init__(name)
+        else:
+            super().__init__(name, inputs, outputs)
+
+    def set_node_key(self, key: str):
+        return super().set_node_key(key)
+
+    def set_data_format(self, data_format):
+        return super().set_data_format(data_format)
+
+    def get_data_format(self):
+        return super().get_data_format()
+
+    def set_param(self, param):
+        return super().set_param(param)
+
+    def get_param(self):
+        return super().get_param()
+
+    def run(self):
+        return super().run()
+
+    def serialize(self):
+        return super().serialize()
+
+    def deserialize(self, json_str):
+        return super().deserialize(json_str)

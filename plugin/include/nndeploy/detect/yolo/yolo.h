@@ -41,8 +41,10 @@ class NNDEPLOY_CC_API YoloPostParam : public base::Param {
 
   int version_ = -1;  // YOLO模型的版本号，默认为-1表示未指定
 
+  using base::Param::serialize;
   virtual base::Status serialize(rapidjson::Value &json,
                                  rapidjson::Document::AllocatorType &allocator);
+  using base::Param::deserialize;
   virtual base::Status deserialize(rapidjson::Value &json);
 };
 
@@ -85,6 +87,9 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     key_ = "nndeploy::detect::YoloGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
+    // pre_ = this->createNode<preprocess::CvtColorResize>();
+    // pre_ = this->createNode<preprocess::CvtColorResize>();
+    // post_ = this->createNode<YoloPostProcess>();
   }
 
   virtual ~YoloGraph() {}
@@ -202,13 +207,13 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
-    preprocess::CvtclorResizeParam *pre_param =
-        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
-    pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-    pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-    pre_param->interp_type_ = base::kInterpTypeLinear;
-    pre_param->h_ = 640;
-    pre_param->w_ = 640;
+    // preprocess::CvtclorResizeParam *pre_param =
+    //     dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    // pre_param->src_pixel_type_ = base::kPixelTypeBGR;
+    // pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
+    // pre_param->interp_type_ = base::kInterpTypeLinear;
+    // pre_param->h_ = 640;
+    // pre_param->w_ = 640;
 
     // Create inference node for ResNet model execution
     infer_ = dynamic_cast<infer::Infer *>(
@@ -225,14 +230,14 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
       NNDEPLOY_LOGE("Failed to create postprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
-    YoloPostParam *post_param =
-        dynamic_cast<YoloPostParam *>(post_->getParam());
-    post_param->score_threshold_ = 0.5;
-    post_param->nms_threshold_ = 0.45;
-    post_param->num_classes_ = 80;
-    post_param->model_h_ = 640;
-    post_param->model_w_ = 640;
-    post_param->version_ = 5;
+    // YoloPostParam *post_param =
+    //     dynamic_cast<YoloPostParam *>(post_->getParam());
+    // post_param->score_threshold_ = 0.5;
+    // post_param->nms_threshold_ = 0.45;
+    // post_param->num_classes_ = 80;
+    // post_param->model_h_ = 640;
+    // post_param->model_w_ = 640;
+    // post_param->version_ = 5;
 
     return base::kStatusCodeOk;
   }

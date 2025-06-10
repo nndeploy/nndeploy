@@ -22,7 +22,7 @@
 namespace nndeploy {
 namespace preprocess {
 
-class OpenCvUtil {
+class NNDEPLOY_CC_API OpenCvUtil {
  public:
   static void cvtColor(cv::InputArray src, cv::OutputArray dst,
                        base::PixelType src_pixel_type,

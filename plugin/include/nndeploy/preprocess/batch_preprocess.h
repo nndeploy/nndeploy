@@ -40,6 +40,8 @@ class NNDEPLOY_CC_API BatchPreprocess : public dag::CompositeNode {
   virtual ~BatchPreprocess() {}
 
   base::Status setNodeKey(const std::string &key);
+  base::Status setDataFormat(base::DataFormat data_format);
+  base::DataFormat getDataFormat();
 
   virtual base::Status setParam(base::Param *param);
   virtual base::Status setParamSharedPtr(std::shared_ptr<base::Param> param);
@@ -47,6 +49,12 @@ class NNDEPLOY_CC_API BatchPreprocess : public dag::CompositeNode {
   virtual std::shared_ptr<base::Param> getParamSharedPtr();
 
   virtual base::Status run();
+
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  virtual std::string serialize();
+  virtual base::Status deserialize(rapidjson::Value &json);
+  virtual base::Status deserialize(const std::string &json_str);
 
  private:
   base::DataFormat data_format_ = base::kDataFormatNCHW;

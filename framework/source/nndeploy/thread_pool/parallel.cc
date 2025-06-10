@@ -12,6 +12,8 @@ std::string parallelForApiTypeToString(ParallelForApiType type) {
   switch (type) {
     case kParallelForApiTypeDefault:
       return "Default";
+    default:
+      return "Default";
   }
 }
 

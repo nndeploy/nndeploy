@@ -212,12 +212,14 @@ int main(int argc, char *argv[]) {
   status = graph->dump();
 
   NNDEPLOY_TIME_POINT_START("graph->run");
-  decode_node->setPath(input_path);
-  encode_node->setRefPath(input_path);
-  encode_node->setPath(ouput_path);
+  // NNDEPLOY_LOGI("input_path = %s.\n", input_path.c_str());
+  // NNDEPLOY_LOGI("ouput_path = %s.\n", ouput_path.c_str());
   int size = decode_node->getSize();
   size = 100;
   decode_node->setSize(size);
+  decode_node->setPath(input_path);
+  encode_node->setRefPath(input_path);
+  encode_node->setPath(ouput_path);
   for (int i = 0; i < size; ++i) {
     status = graph->run();
     if (status != base::kStatusCodeOk) {

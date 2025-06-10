@@ -13,7 +13,8 @@ class PyDecodeNode : public DecodeNode {
   using DecodeNode::DecodeNode;  // 继承构造函数
 
   base::Status setPath(const std::string &path) {
-    PYBIND11_OVERRIDE_PURE_NAME(base::Status, DecodeNode, "set_path", setPath, path);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, DecodeNode, "set_path", setPath,
+                                path);
   }
 
   base::Status run() override {
@@ -27,11 +28,13 @@ class PyEncodeNode : public EncodeNode {
   using EncodeNode::EncodeNode;  // 继承构造函数
 
   base::Status setRefPath(const std::string &ref_path) {
-    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "set_ref_path", setRefPath, ref_path);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "set_ref_path",
+                                setRefPath, ref_path);
   }
 
   base::Status setPath(const std::string &path) {
-    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "set_path", setPath, path);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "set_path", setPath,
+                                path);
   }
 
   base::Status run() override {
@@ -75,14 +78,14 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   // 导出创建节点的函数
   m.def("create_decode_node", &createDecodeNode, py::arg("type"),
         py::arg("flag"), py::arg("name"), py::arg("output"),
-        py::return_value_policy::reference);
+        py::return_value_policy::take_ownership);
   // m.def("create_decode_node_shared_ptr", &createDecodeNodeSharedPtr,
   // py::arg("type"),
   //       py::arg("flag"), py::arg("name"), py::arg("output"),
   //       py::return_value_policy::reference);
   m.def("create_encode_node", &createEncodeNode, py::arg("type"),
         py::arg("flag"), py::arg("name"), py::arg("input"),
-        py::return_value_policy::reference);
+        py::return_value_policy::take_ownership);
   // m.def("create_encode_node_shared_ptr", &createEncodeNodeSharedPtr,
   // py::arg("type"),
   //       py::arg("flag"), py::arg("name"), py::arg("input"),
