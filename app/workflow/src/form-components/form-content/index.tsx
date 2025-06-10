@@ -17,7 +17,7 @@ export function FormContent(props: { children?: React.ReactNode }) {
     <FormWrapper>
       {expanded ? (
         <>
-          {isSidebar && <FormTitleDescription>{registry.info?.description}</FormTitleDescription>}
+          {/* {isSidebar && <FormTitleDescription>{registry.info?.description}</FormTitleDescription>} */}
           {props.children}
         </>
       ) : undefined}
