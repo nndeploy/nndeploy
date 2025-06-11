@@ -125,7 +125,6 @@ int main(int argc, char *argv[]) {
     v_graph->make(pre_desc, infer_desc, inference_type, post_desc);
     v_graph->setInferParam(device_type, model_type, is_path, model_value);
     v_graph->setVersion(version);
-    // v_graph->setTimeProfileFlag(true);
     graph->addNode(v_graph);
   } else if (yolo_type == "x") {
     detect_graph = new detect::YoloXGraph(name, {input}, {output});
@@ -168,7 +167,6 @@ int main(int argc, char *argv[]) {
     NNDEPLOY_LOGE("graph is nullptr");
     return -1;
   }
-  graph->defaultParam();
   graph->dump();
   detect::YoloGraph *detect_graph =
       (detect::YoloGraph *)graph->getNode("nndeploy::detect::YoloGraph");

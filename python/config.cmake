@@ -88,10 +88,127 @@ if(ENABLE_NNDEPLOY_NET)
 endif()
 
 if(ENABLE_NNDEPLOY_INFERENCE)
-  file(GLOB_RECURSE PYTHON_INFERENCE_SOURCE
+  file(GLOB PYTHON_INFERENCE_SOURCE
     "${ROOT_PATH}/python/src/inference/*.h"
     "${ROOT_PATH}/python/src/inference/*.cc"
   )
+  message(STATUS "PYTHON_INFERENCE_SOURCE: ${PYTHON_INFERENCE_SOURCE}")
+  
+  if(ENABLE_NNDEPLOY_INFERENCE_DEFAULT)
+    file(GLOB_RECURSE INFERENCE_DEFAULT_SOURCE
+      "${ROOT_PATH}/python/src/inference/default/*.h"
+      "${ROOT_PATH}/python/src/inference/default/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_DEFAULT_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_TENSORRT)
+    file(GLOB_RECURSE INFERENCE_TENSORRT_SOURCE
+      "${ROOT_PATH}/python/src/inference/tensorrt/*.h"
+      "${ROOT_PATH}/python/src/inference/tensorrt/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_TENSORRT_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_TNN)
+    file(GLOB_RECURSE INFERENCE_TNN_SOURCE
+      "${ROOT_PATH}/python/src/inference/tnn/*.h"
+      "${ROOT_PATH}/python/src/inference/tnn/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_TNN_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_MNN)
+    file(GLOB_RECURSE INFERENCE_MNN_SOURCE
+      "${ROOT_PATH}/python/src/inference/mnn/*.h"
+      "${ROOT_PATH}/python/src/inference/mnn/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_MNN_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_OPENVINO)
+    file(GLOB_RECURSE INFERENCE_OPENVINO_SOURCE
+      "${ROOT_PATH}/python/src/inference/openvino/*.h"
+      "${ROOT_PATH}/python/src/inference/openvino/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_OPENVINO_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_COREML)
+    file(GLOB_RECURSE INFERENCE_COREML_SOURCE
+      "${ROOT_PATH}/python/src/inference/coreml/*.h"
+      "${ROOT_PATH}/python/src/inference/coreml/*.cc"
+      "${ROOT_PATH}/python/src/inference/coreml/*.mm"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_COREML_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME)
+    # message(STATUS "INFERENCE_ONNXRUNTIME_SOURCE: ${INFERENCE_ONNXRUNTIME_SOURCE}")
+    file(GLOB_RECURSE INFERENCE_ONNXRUNTIME_SOURCE
+      "${ROOT_PATH}/python/src/inference/onnxruntime/*.h"
+      "${ROOT_PATH}/python/src/inference/onnxruntime/*.cc"
+    )
+    message(STATUS "INFERENCE_ONNXRUNTIME_SOURCE: ${INFERENCE_ONNXRUNTIME_SOURCE}")
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_ONNXRUNTIME_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_TFLITE)
+    file(GLOB_RECURSE INFERENCE_TFLITE_SOURCE
+      "${ROOT_PATH}/python/src/inference/tflite/*.h"
+      "${ROOT_PATH}/python/src/inference/tflite/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_TFLITE_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_NCNN)
+    file(GLOB_RECURSE INFERENCE_NCNN_SOURCE
+      "${ROOT_PATH}/python/src/inference/ncnn/*.h"
+      "${ROOT_PATH}/python/src/inference/ncnn/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_NCNN_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_PADDLELITE)
+    file(GLOB_RECURSE INFERENCE_PADDLELITE_SOURCE
+      "${ROOT_PATH}/python/src/inference/paddlelite/*.h"
+      "${ROOT_PATH}/python/src/inference/paddlelite/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_PADDLELITE_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_RKNN)
+    file(GLOB_RECURSE INFERENCE_RKNN_SOURCE
+      "${ROOT_PATH}/python/src/inference/rknn/*.h"
+      "${ROOT_PATH}/python/src/inference/rknn/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_RKNN_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_ASCEND_CL)
+    file(GLOB_RECURSE INFERENCE_ASCEND_CL_SOURCE
+      "${ROOT_PATH}/python/src/inference/ascend_cl/*.h"
+      "${ROOT_PATH}/python/src/inference/ascend_cl/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_ASCEND_CL_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_SNPE)
+    file(GLOB_RECURSE INFERENCE_SNPE_SOURCE
+      "${ROOT_PATH}/python/src/inference/snpe/*.h"
+      "${ROOT_PATH}/python/src/inference/snpe/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_SNPE_SOURCE})
+  endif()
+
+  if(ENABLE_NNDEPLOY_INFERENCE_TVM)
+    file(GLOB_RECURSE INFERENCE_TVM_SOURCE
+      "${ROOT_PATH}/python/src/inference/tvm/*.h"
+      "${ROOT_PATH}/python/src/inference/tvm/*.cc"
+    )
+    set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_TVM_SOURCE})
+  endif()
+
   set(SOURCE ${SOURCE} ${PYTHON_INFERENCE_SOURCE})
 endif()
 

@@ -181,7 +181,7 @@ Node::Node(const std::string &name, std::vector<Edge *> inputs,
 }
 
 Node::~Node() {
-  // NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
+  NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
   if (initialized_ == true) {
     NNDEPLOY_LOGE("Node[%s] deinit\n", name_.c_str());
     this->deinit();
@@ -205,6 +205,7 @@ Node::~Node() {
 
 void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
+void Node::setName(const std::string &name) { name_ = name; }
 std::string Node::getName() { return name_; }
 
 std::vector<std::string> Node::getInputNames() {

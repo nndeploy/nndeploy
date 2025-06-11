@@ -56,6 +56,9 @@ class Node(_C.dag.Node):
     def get_key(self) -> str:
         return super().get_key()
             
+    def set_name(self, name: str):
+        return super().set_name(name)
+        
     def get_name(self) -> str:
         return super().get_name()
         
@@ -215,10 +218,8 @@ class Node(_C.dag.Node):
     def run(self):
         return super().run()
         
-    def __call__(self, inputs, outputs_name=None, param=None):
-        if outputs_name is None:
-            outputs_name = []
-        return super().__call__(inputs, outputs_name, param)
+    def __call__(self, inputs):
+        return super().__call__(inputs)
     
     def check_inputs(self, inputs) -> bool:
         return super().check_inputs(inputs)

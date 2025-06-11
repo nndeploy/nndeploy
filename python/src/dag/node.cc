@@ -51,6 +51,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                     std::vector<Edge *>>())
       .def("set_key", &Node::setKey, py::arg("key"))
       .def("get_key", &Node::getKey)
+      .def("set_name", &Node::setName)
       .def("get_name", &Node::getName)
       .def("get_input_names", &Node::getInputNames)
       .def("get_output_names", &Node::getOutputNames)

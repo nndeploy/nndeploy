@@ -102,7 +102,7 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
 
   base::InferenceType inference_type_ = base::kInferenceTypeNone;
   base::ModelType model_type_;                 // 模型的类型
-  bool is_path_ = true;                        // model_value_是否为路径
+  bool is_path_ = false;                        // model_value_是否为路径
   std::vector<std::string> model_value_;       // 模型的路径或者内容
   int input_num_ = 0;                          // 输入的数量
   std::vector<std::string> input_name_;        // 输入的名称

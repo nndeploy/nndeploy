@@ -190,7 +190,8 @@ base::Status Infer::setParamSharedPtr(std::shared_ptr<base::Param> param) {
   return status;
 }
 std::shared_ptr<base::Param> Infer::getParamSharedPtr() {
-  return inference_->getParamSharedPtr();
+  std::shared_ptr<base::Param> param = inference_->getParamSharedPtr();
+  return param;
 }
 
 base::Status Infer::init() {
