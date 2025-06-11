@@ -250,11 +250,7 @@ class NodeCreator(_C.dag.NodeCreator):
     def create_node(self, name: str, inputs: list[Edge], outputs: list[Edge]):
         print("Must be implemented!!!")
         return None
-        
-    def create_node_shared_ptr(self, name: str, inputs: list[Edge], outputs: list[Edge]):
-        print("No need to implement!!!")
-        return None
-        
+            
         
 def get_node_keys():
     return _C.dag.get_node_keys()

@@ -105,6 +105,7 @@ class YoloPyGraphCreator(nndeploy.dag.NodeCreator):
     def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
         self.node = YoloPyGraph(name, inputs, outputs)
         return self.node
+    
 
 yolo_py_graph_creator = YoloPyGraphCreator()
 nndeploy.dag.register_node("nndeploy::detect::YoloPyGraph", yolo_py_graph_creator)
