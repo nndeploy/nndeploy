@@ -1,76 +1,66 @@
-# job_queue.py
-import asyncio, heapq, time
-from collections import deque
-from typing import Callable, Awaitable, Dict, List
+# queue.py
 
-from job import Job, JobStatus
+import copy
+import heapq
+import time
+import threading
+from typing import Any, Dict, List, Optional
 
-class JobQueue:
-    def __init__(self,
-                 run_graph_func: Callable[[Dict[str, Any], Callable[[str, float], None]], Any],
-                 broadcaster: Callable[[str, dict], None] | None = None,
-                 history_depth: int = 200):
-        self._heap: List[tuple[int, float, str]] = []
-        self._cv = asyncio.Condition()
+_MAX_HISTORY = 1000
 
-        self.run_graph = run_graph_func
-        self.broadcast = broadcaster or (lambda *_: None)
+class ExecutionStatus:
+    """keep same with comfyui"""
+    def __init__(self, ok: bool, msg: str = ""):
+        self.status_str = "success" if ok else "error"
+        self.completed = ok
+        self.messages = [msg] if msg else []
+    
+class TaskQueue:
+    """thread safe queue"""
+    def __init__(self, server: "NnDeployServer"):
+        self.server = server
+        self._mtx = threading.RLock()
+        self._not_empty = threading.Condition(self._mtx)
+        self._counter = 0
+        self._pq: List[Any] = []
+        self._running: Dict[int, Any] = {}
+        self._hist: Dict[str, Any] = {}
+    
+    def put(self, payload, prio: int = 0):
+        with self._mtx:
+            heapq.heappush(self._pq, (prio, time.time(), payload))
+            self.server.queue_updated()
+            self._not_empty.notify()
+    
+    def get(self, timeout: Optional[float] = None):
+        with self._not_empty:
+            with not self._pq:
+                if not self._not_empty.wait(timeout):
+                    return None
+            prio, ts, payload = heapq.heappop(self._pq)
+            idx = self._counter
+            self._running[idx] = copy.deepcopy(payload)
+            self._counter += 1
+            self.server.queue_updated()
+            return idx, payload
 
-        self.jobs: Dict[str, Job] = {}
-        self.history: deque[Job] = deque(maxlen=history_depth)
+    def task_done(self, idx: int, outputs: Dict, status: ExecutionStatus):
+        with self._mtx:
+            task = self._running.pop(idx)
+            if len(self._hist) >= _MAX_HISTORY:
+                self._hist.pop(next(iter(self._hist)))
+            self._hist[task["id"]] = {
+                "task": task,
+                "outputs": outputs,
+                "status": status.__dict__,
+            }
+            self.server.queue_updated()
 
-        self._worker_task: asyncio.Task | None = None
-
-    async def submit(self, graph_json: dict, priority: int = 0) -> Job:
-        job = Job(graph=graph_json, priority=priority)
-        self.jobs[job.id] = job
-        async with self._cv:
-            heapq.heappush(self._heap, (priority, time.time(), job.id))
-            self._cv.notify()
-        self.broadcast("status", job.__dict__)
-        return job
-
-    def get_job(self, job_id: str) -> Job | None:
-        return self.jobs.get(job_id)
-
-    def list_history(self, max_items: int | None = None):
-        if max_items:
-            return list(self.history)[:max_items]
-        return list(self.history)
-
-    async def start(self):
-        if not self._worker_task:
-            self._worker_task = asyncio.create_task(self._worker())
-
-    async def stop(self):
-        if self._worker_task:
-            self._worker_task.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await self._worker_task
-            self._worker_task = None
-
-    # ---------- inner implementation ----------
-
-    async def _pop(self) -> Job:
-        async with self._cv:
-            while not self._heap:
-                await self._cv.wait()
-            _, _, job_id = heapq.heappop(self._heap)
-        return self.jobs[job_id]
-
-    async def _worker(self):
-        while True:
-            job = await self._pop()
-            await self._run_job(job)
-
-    async def _run_job(self, job: Job):
-        job.status = JobStatus.running
-        try:
-            graph = nndeploy.Graph.from_dict(job.graph)
-            await asyncio.to_thread(graph.run)
-            job.status = JobStatus.done
-            job.progress = 1.0
-        except Exception as e:
-            job.status = JobStatus.error
-            job.error = str(e)
-        self.history.appendleft(job)
+    def get_current_queue(self):
+        with self._mtx:
+            return copy.deepcopy(self._running), copy.deepcopy(self._pq)
+    
+    def get_history(self, max_items: int | None = None):
+        with self._mtx:
+            items = list(self._hist.items())[-max_items:] if max_items else self._hist.items()
+            return dict(items)    
