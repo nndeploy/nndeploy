@@ -361,10 +361,10 @@ base::Status Node::setOutput(Edge *output, int index) {
 }
 
 base::Status Node::setInputs(std::vector<Edge *> inputs) {
-  if (inputs.empty()) {
-    NNDEPLOY_LOGE("inputs is empty.\n");
-    return base::kStatusCodeErrorNullParam;
-  }
+  // if (inputs.empty()) {
+  //   NNDEPLOY_LOGE("inputs is empty.\n");
+  //   return base::kStatusCodeErrorNullParam;
+  // }
   // if (!inputs_.empty()) {
   //   NNDEPLOY_LOGE("inputs_ must be empty.\n");
   //   return base::kStatusCodeErrorInvalidParam;
@@ -373,10 +373,10 @@ base::Status Node::setInputs(std::vector<Edge *> inputs) {
   return base::kStatusCodeOk;
 }
 base::Status Node::setOutputs(std::vector<Edge *> outputs) {
-  if (outputs.empty()) {
-    NNDEPLOY_LOGE("outputs is empty.\n");
-    return base::kStatusCodeErrorNullParam;
-  }
+  // if (outputs.empty()) {
+  //   NNDEPLOY_LOGE("outputs is empty.\n");
+  //   return base::kStatusCodeErrorNullParam;
+  // }
   // if (!outputs_.empty()) {
   //   NNDEPLOY_LOGE("outputs_ must be empty.\n");
   //   return base::kStatusCodeErrorInvalidParam;
