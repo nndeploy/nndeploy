@@ -4,7 +4,6 @@ import gc
 import logging
 import time
 import traceback
-from queue import Empty
 from executor import GraphExecutor
 from queue import TaskQueue, ExecutionStatus
 

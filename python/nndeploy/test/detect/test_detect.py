@@ -76,19 +76,19 @@ def test_yolo():
             print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("yolo_demo_python")
     
-    yolo_demo.save_file("/home/always/github/public/nndeploy/build/yolo_demo.json")
+    yolo_demo.save_file("/home/lds/nndeploy/build/yolo_demo.json")
         
     nndeploy.base.time_profiler_print("yolo_demo")
     
     
 def test_load_yolo():
     yolo_demo = YoloDemo("yolo_demo")
-    yolo_demo.load_file("/home/always/github/public/nndeploy/build/yolo_demo.json")
+    yolo_demo.load_file("/home/lds/nndeploy/build/yolo_demo.json")
     yolo_demo.set_time_profile_flag(True)
-    yolo_demo.set_input_path("/home/always/github/public/nndeploy/docs/image/demo/detect/sample.jpg")
+    yolo_demo.set_input_path("/home/lds/nndeploy/docs/image/demo/detect/sample.jpg")
     count = 1
     yolo_demo.set_size(count)
-    yolo_demo.set_output_path("/home/always/github/public/nndeploy/build/yolo_jos_python_demo.jpg")
+    yolo_demo.set_output_path("/home/lds/nndeploy/build/yolo_jos_python_demo.jpg")
     nndeploy.base.time_point_start("test_load_yolo")
     inputs: [nndeploy.dag.Edge] = []
     for i in range(count):
@@ -99,14 +99,8 @@ def test_load_yolo():
             print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("test_load_yolo")
     nndeploy.base.time_profiler_print("test_load_yolo")
-    
 
     
 if __name__ == "__main__":
     test_yolo()
     test_load_yolo()
-    
-        
-        
-        
-        

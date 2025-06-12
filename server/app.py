@@ -5,7 +5,7 @@ import asyncio
 import threading
 import logging
 import uvicorn
-from server import NndeployServer
+from server import NnDeployServer
 from worker import run as worker_run
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -22,7 +22,7 @@ def launch():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    server = NndeployServer(loop, args)
+    server = NnDeployServer(loop, args)
 
     # backend threading queue
     t = threading.Thread(target=worker_run, daemon=True, args=(server, server.queue))

@@ -34,7 +34,7 @@ class TaskQueue:
     
     def get(self, timeout: Optional[float] = None):
         with self._not_empty:
-            with not self._pq:
+            while not self._pq:
                 if not self._not_empty.wait(timeout):
                     return None
             prio, ts, payload = heapq.heappop(self._pq)
