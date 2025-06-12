@@ -6,19 +6,21 @@ import {
 
 import "@flowgram.ai/free-layout-editor/index.css";
 import "./styles/index.css";
-import { nodeRegistries } from "../../../nodes";
+//import { nodeRegistries } from "../../../nodes";
 import { initialData } from "./initial-data";
 import { useEditorProps } from "../../../hooks";
 import { DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
 import { useEffect, useRef, useState } from "react";
 import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
-import { apiGetNodeType, apiGetWorkFlow } from "./api";
+import { apiGetNodeById, apiGetWorkFlow, getNodeRegistry } from "./api";
 
-import { FlowDocumentJSON } from "../../../typings";
+import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
 import { SideSheet } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
-import { IWorkFlowEntity } from "../../Layout/Backend/WorkFlow/entity";
+import { IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
+import { useGetRegistry } from "./effect";
+
 interface FlowProps {
   id: string;
   onFlowSave: (flow: IWorkFlowEntity) => void;
@@ -46,9 +48,18 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(false);
   }
 
+  const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
+
   const fetchData = async (id: string) => {
     //setLoading(true);
 
+    const nodeRegistries = await getNodeRegistry();
+    setNodeRegistries(nodeRegistries);
+
+    if (!id) {
+      setLoading(false);
+      return;
+    }
     const response = await apiGetWorkFlow(id);
     if (response.flag == "error") {
       return;
@@ -107,9 +118,9 @@ const Flow: React.FC<FlowProps> = (props) => {
       //     //dropzone.classList.remove('over'); // 离开时恢复样式
       // });
 
-      if(handleDrop){
-         dropzone.current.removeEventListener("drop", handleDrop);
-         handleDrop = null 
+      if (handleDrop) {
+        dropzone.current.removeEventListener("drop", handleDrop);
+        handleDrop = null;
       }
 
       handleDrop = dropzone.current.addEventListener("drop", async (e) => {
@@ -118,34 +129,40 @@ const Flow: React.FC<FlowProps> = (props) => {
         const position =
           ref?.current?.playground.config.getPosFromMouseEvent(e)!;
 
-        const nodeType = e?.dataTransfer?.getData("text");
+        const nodeId = e?.dataTransfer?.getData("text");
 
-        const response = await apiGetNodeType(nodeType!);
+        const response = await apiGetNodeById(nodeId!);
 
         ref?.current?.document.createWorkflowNode({
-          ...response.result,
+          // ...response.result,
           id: Math.random().toString(36).substr(2, 9),
-          type: nodeType!,
+          type: response.result.key_,
           meta: {
             position: {
               x: position?.x,
               y: position?.y,
             },
           },
+          data: {
+            title: response.result.key_,
+            ...response.result,
+          },
         });
       });
     }
     //清理函数
     return () => {
-      if ( handleDrop) {
+      if (handleDrop) {
         dropzone?.current?.removeEventListener("dragover", (e) =>
           e.preventDefault()
         );
         dropzone?.current?.removeEventListener("drop", handleDrop);
-        handleDrop = null ; 
+        handleDrop = null;
       }
     };
   }, [dropzone]);
+
+  //const nodeRegistries = useGetRegistry()
 
   const editorProps = useEditorProps(entity.content, nodeRegistries);
   return (

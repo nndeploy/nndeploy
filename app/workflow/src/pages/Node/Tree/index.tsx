@@ -150,9 +150,9 @@ const NodeTree: React.FC<NodeTreeProps> = (props) => {
             <Dropdown.Item
               onClick={() =>
                 onNodeEdit({
-                  id: "",
-                  name: "",
-                  parentId: resource.id,
+                  key_: "",
+                  name_: "",
+                  inputs_: resource.id,
                   schema: {
                     type: "object",
                     properties: {},
@@ -251,7 +251,7 @@ const NodeTree: React.FC<NodeTreeProps> = (props) => {
         width={"calc(100% - 200px - 17px )"}
         visible={nodeEditVisible}
         onCancel={handleResoureDrawerClose}
-        title={nodeEdit?.name ?? "add"}
+        title={nodeEdit?.name_ ?? "add"}
       >
         <NodeEditDrawer
           entity={nodeEdit!}

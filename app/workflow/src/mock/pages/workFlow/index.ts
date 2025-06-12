@@ -214,7 +214,7 @@ export const workFlowHandler: MockItem[] = [
         message: "",
         result: {
           id: entity.id ? entity.id : Random.guid(),
-          content: initialData,
+          content: entity.content,
         },
       };
     },
