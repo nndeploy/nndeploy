@@ -4,14 +4,17 @@ from fastapi.responses import JSONResponse, HTMLResponse
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
+import json
 import asyncio
 import uuid
 import logging
+import nndeploy.dag
 from queue import TaskQueue
 from schemas import (
     EnqueueRequest,
     EnqueueResponse,
     QueueStateResponse,
+    NodeListResponse,
     HistoryItem,
     ProgressPayload,
     UploadResponse
@@ -77,6 +80,16 @@ class NnDeployServer:
         async def queue_state():
             running, pending = self.queue.get_current_queue()
             return QueueStateResponse(running=running, pending=pending)
+        
+        @api.get(
+            "/nodes",
+            response_model=NodeListResponse,
+            summary="return register nodes",
+        )
+        async def register_nodes():
+            json_str = nndeploy.dag.get_all_node_json()
+            data = json.loads(json_str) 
+            return NodeListResponse(nodes=data)
         
         # history
         @api.get(

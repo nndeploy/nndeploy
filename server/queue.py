@@ -51,7 +51,6 @@ class TaskQueue:
                 self._hist.pop(next(iter(self._hist)))
             self._hist[task["id"]] = {
                 "task": task,
-                "outputs": outputs,
                 "status": status.__dict__,
             }
             self.server.queue_updated()

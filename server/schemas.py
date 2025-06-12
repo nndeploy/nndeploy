@@ -24,9 +24,11 @@ class QueueStateResponse(BaseModel):
     running: Dict[int, QueueItem]
     pending: List[Tuple[int, QueueItem]]
 
+class NodeListResponse(BaseModel):
+    nodes: Dict[str, Any]
+
 class HistoryItem(BaseModel):
     task: Dict[str, Any]
-    outputs: Dict[str, Any]
     status: Dict[str, Any]
 
 class ProgressPayload(BaseModel):
