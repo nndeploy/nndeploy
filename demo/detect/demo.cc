@@ -45,7 +45,7 @@
 // #include "nndeploy/op/ascend_cl/op_add.cc"
 // #include "nndeploy/op/ascend_cl/ascend_c/op_add_kernel.cc"
 
-#define LOAD_JSON 0
+#define LOAD_JSON 1
 
 using namespace nndeploy;
 
@@ -167,7 +167,6 @@ int main(int argc, char *argv[]) {
     NNDEPLOY_LOGE("graph is nullptr");
     return -1;
   }
-  graph->dump();
   detect::YoloGraph *detect_graph =
       (detect::YoloGraph *)graph->getNode("nndeploy::detect::YoloGraph");
   if (detect_graph == nullptr) {
@@ -213,7 +212,7 @@ int main(int argc, char *argv[]) {
   // NNDEPLOY_LOGI("input_path = %s.\n", input_path.c_str());
   // NNDEPLOY_LOGI("ouput_path = %s.\n", ouput_path.c_str());
   int size = decode_node->getSize();
-  size = 100;
+  size = 1;
   decode_node->setSize(size);
   decode_node->setPath(input_path);
   encode_node->setRefPath(input_path);

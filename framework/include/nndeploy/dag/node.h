@@ -123,17 +123,17 @@ class NNDEPLOY_CC_API Node {
       const std::string &key, std::shared_ptr<base::Param> external_param);
   virtual std::shared_ptr<base::Param> getExternalParam(const std::string &key);
 
-  base::Status setInput(Edge *input, int index = -1);
-  base::Status setOutput(Edge *output, int index = -1);
+  virtual base::Status setInput(Edge *input, int index = -1);
+  virtual base::Status setOutput(Edge *output, int index = -1);
 
-  base::Status setInputs(std::vector<Edge *> inputs);
-  base::Status setOutputs(std::vector<Edge *> outputs);
+  virtual base::Status setInputs(std::vector<Edge *> inputs);
+  virtual base::Status setOutputs(std::vector<Edge *> outputs);
 
-  base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1);
-  base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index = -1);
+  virtual base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1);
+  virtual base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index = -1);
 
-  base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs);
-  base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs);
+  virtual base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs);
+  virtual base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs);
 
   Edge *getInput(int index = 0);
   Edge *getOutput(int index = 0);

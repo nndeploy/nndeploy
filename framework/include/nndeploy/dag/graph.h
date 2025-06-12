@@ -38,6 +38,18 @@ class NNDEPLOY_CC_API Graph : public Node {
   base::Status setEdgeQueueMaxSize(int queue_max_size);
   int getEdgeQueueMaxSize();
 
+  virtual base::Status setInput(Edge *input, int index = -1);
+  virtual base::Status setOutput(Edge *output, int index = -1);
+
+  virtual base::Status setInputs(std::vector<Edge *> inputs);
+  virtual base::Status setOutputs(std::vector<Edge *> outputs);
+
+  virtual base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1);
+  virtual base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index = -1);
+
+  virtual base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs);
+  virtual base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs);
+
   // create edge
   Edge *createEdge(const std::string &name);
   std::shared_ptr<Edge> createEdgeSharedPtr(const std::string &name);
@@ -256,6 +268,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   bool is_graph_node_share_stream_ = true;
   std::vector<EdgeWrapper *> edge_repository_;
   std::vector<NodeWrapper *> node_repository_;
+  std::vector<NodeWrapper *> run_node_repository_;
   std::vector<std::shared_ptr<Edge>> shared_edge_repository_;
   std::vector<std::shared_ptr<Node>> shared_node_repository_;
   std::set<std::string> used_node_names_;

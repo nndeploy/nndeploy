@@ -55,6 +55,7 @@ Graph::~Graph() {
   }
   for (auto edge_wrapper : edge_repository_) {
     if (!edge_wrapper->is_external_) {
+      // NNDEPLOY_LOGE("delete edge[%s]\n", edge_wrapper->edge_->getName().c_str());
       delete edge_wrapper->edge_;
     }
     delete edge_wrapper;
@@ -72,6 +73,125 @@ base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {
   return base::kStatusCodeOk;
 }
 int Graph::getEdgeQueueMaxSize() { return queue_max_size_; }
+
+base::Status Graph::setInput(Edge *input, int index) {
+  base::Status status = Node::setInput(input, index);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  auto edge_wrapper = this->addEdge(input, true);
+  if (edge_wrapper == nullptr) {
+    NNDEPLOY_LOGE("addEdge for input[%s] failed!\n", input->getName().c_str());
+    return base::kStatusCodeErrorDag;
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Graph::setOutput(Edge *output, int index) {
+  base::Status status = Node::setOutput(output, index);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  auto edge_wrapper = this->addEdge(output, true);
+  if (edge_wrapper == nullptr) {
+    NNDEPLOY_LOGE("addEdge for output[%s] failed!\n",
+                  output->getName().c_str());
+    return base::kStatusCodeErrorDag;
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::setInputs(std::vector<Edge *> inputs) {
+  base::Status status = Node::setInputs(inputs);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  for (auto input : inputs) {
+    auto edge_wrapper = this->addEdge(input, true);
+    if (edge_wrapper == nullptr) {
+      NNDEPLOY_LOGE("addEdge for input[%s] failed!\n",
+                    input->getName().c_str());
+      return base::kStatusCodeErrorDag;
+    }
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Graph::setOutputs(std::vector<Edge *> outputs) {
+  base::Status status = Node::setOutputs(outputs);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  for (auto output : outputs) {
+    auto edge_wrapper = this->addEdge(output, true);
+    if (edge_wrapper == nullptr) {
+      NNDEPLOY_LOGE("addEdge for output[%s] failed!\n",
+                    output->getName().c_str());
+      return base::kStatusCodeErrorDag;
+    }
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::setInputSharedPtr(std::shared_ptr<Edge> input, int index) {
+  base::Status status = Node::setInputSharedPtr(input, index);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  auto edge_wrapper = this->addEdgeSharedPtr(input);
+  if (edge_wrapper == nullptr) {
+    NNDEPLOY_LOGE("addEdgeSharedPtr for input[%s] failed!\n",
+                  input->getName().c_str());
+    return base::kStatusCodeErrorDag;
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::setOutputSharedPtr(std::shared_ptr<Edge> output,
+                                       int index) {
+  base::Status status = Node::setOutputSharedPtr(output, index);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  auto edge_wrapper = this->addEdgeSharedPtr(output);
+  if (edge_wrapper == nullptr) {
+    NNDEPLOY_LOGE("addEdgeSharedPtr for output[%s] failed!\n",
+                  output->getName().c_str());
+    return base::kStatusCodeErrorDag;
+  }
+  return base::kStatusCodeOk;
+}
+
+base::Status Graph::setInputsSharedPtr(
+    std::vector<std::shared_ptr<Edge>> inputs) {
+  base::Status status = Node::setInputsSharedPtr(inputs);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  for (auto input : inputs) {
+    auto edge_wrapper = this->addEdgeSharedPtr(input);
+    if (edge_wrapper == nullptr) {
+      NNDEPLOY_LOGE("addEdgeSharedPtr for input[%s] failed!\n",
+                    input->getName().c_str());
+      return base::kStatusCodeErrorDag;
+    }
+  }
+  return base::kStatusCodeOk;
+}
+base::Status Graph::setOutputsSharedPtr(
+    std::vector<std::shared_ptr<Edge>> outputs) {
+  base::Status status = Node::setOutputsSharedPtr(outputs);
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
+  for (auto output : outputs) {
+    auto edge_wrapper = this->addEdgeSharedPtr(output);
+    if (edge_wrapper == nullptr) {
+      NNDEPLOY_LOGE("addEdgeSharedPtr for output[%s] failed!\n",
+                    output->getName().c_str());
+      return base::kStatusCodeErrorDag;
+    }
+  }
+  return base::kStatusCodeOk;
+}
 
 Edge *Graph::createEdge(const std::string &name) {
   std::string unique_name = name;
@@ -327,6 +447,7 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
   //               node);
   std::vector<std::string> input_names = desc.getInputs();
   for (auto input_name : input_names) {
+    // NNDEPLOY_LOGE("input_name: %s.\n", input_name.c_str());
     Edge *input = getEdge(input_name);
     if (input == nullptr) {
       input = createEdge(input_name);
@@ -334,6 +455,7 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
     inputs.emplace_back(input);
   }
   for (auto input : inputs) {
+    // NNDEPLOY_LOGE("input: %s.\n", input->getName().c_str());
     EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
       input_wrapper = this->addEdge(input);
@@ -358,6 +480,8 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
   }
   status = node->setOutputs(outputs);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node setOutput failed!");
+  // NNDEPLOY_LOGE("NODE: %s has %d inputs and %d outputs.\n",
+  //               node->getName().c_str(), inputs.size(), outputs.size());
   return base::kStatusCodeOk;
 }
 
@@ -520,7 +644,8 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
       }
     } else {
       if (edge_wrapper->edge_ != input) {
-        NNDEPLOY_LOGI("updateEdge: %s\n", input->getName().c_str());
+        NNDEPLOY_LOGI("node[%s] updateEdge: %s\n", node->getName().c_str(),
+                      input->getName().c_str());
         updteEdge(edge_wrapper, input, true);
       }
     }
@@ -541,7 +666,8 @@ base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
       }
     } else {
       if (edge_wrapper->edge_ != output) {
-        NNDEPLOY_LOGI("updateEdge: %s\n", output->getName().c_str());
+        NNDEPLOY_LOGI("node[%s] updateEdge: %s\n", node->getName().c_str(),
+                      output->getName().c_str());
         updteEdge(edge_wrapper, output, true);
       }
     }
@@ -698,18 +824,23 @@ base::Status Graph::dump(std::ostream &oss) {
   // start
   if (is_inner_) {
     if (name_.empty()) {
-      oss << "subgraph cluster " << base::getUniqueString() << "{\n";
+      std::string cluster = "\"cluster " + base::getUniqueString() + "\"";
+      std::string label = "\"" + base::getUniqueString() + "\"";
+      oss << "subgraph " << cluster << "{\n";
+      oss << "label = " << label << ";\n";
     } else {
-      std::string label = "\"cluster " + name_ + "\"";
-      oss << "subgraph " << label << " {\n";
-      oss << "label = \"" + name_ + "\";\n";
+      std::string cluster = "\"cluster " + name_ + "\"";
+      std::string label = "\"" + name_ + "\"";
+      oss << "subgraph " << cluster << " {\n";
+      oss << "label = " << label << ";\n";
     }
     oss << "color = blue;\n";
   } else {
     if (name_.empty()) {
       oss << "digraph graph {\n";
     } else {
-      oss << "digraph " << name_ << " {\n";
+      std::string label = "\"" + name_ + "\"";
+      oss << "digraph " << label << " {\n";
     }
     for (auto input : inputs_) {
       if (input->getName().empty()) {
@@ -909,14 +1040,32 @@ base::Status Graph::construct() {
   for (auto node_wrapper : node_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper->node_,
                                          "edge_repository_ node is null!");
+    // NNDEPLOY_LOGE("Node: %s\n", node_wrapper->node_->getName().c_str());
+    // NNDEPLOY_LOGE("Predecessors:\n");
+    // for (auto pred : node_wrapper->predecessors_) {
+    //   NNDEPLOY_LOGE("  %s\n", pred->node_->getName().c_str());
+    // }
+    // NNDEPLOY_LOGE("Successors:\n");
+    // for (auto succ : node_wrapper->successors_) {
+    //   NNDEPLOY_LOGE("  %s\n", succ->node_->getName().c_str());
+    // }
   }
   for (auto edge_wrapper : edge_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
                                          "edge_repository_ edge is null!");
-    if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
-      NNDEPLOY_LOGI("graph[%s] this edge[%s] is useless!\n", name_.c_str(),
-                    edge_wrapper->edge_->getName().c_str());
-    }
+    // if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
+    //   NNDEPLOY_LOGI("graph[%s] this edge[%s] is useless!\n", name_.c_str(),
+    //                 edge_wrapper->edge_->getName().c_str());
+    // }
+    // NNDEPLOY_LOGE("Edge: %s\n", edge_wrapper->edge_->getName().c_str());
+    // NNDEPLOY_LOGE("Producers:\n");
+    // for (auto producer : edge_wrapper->producers_) {
+    //   NNDEPLOY_LOGE("  %s\n", producer->node_->getName().c_str());
+    // }
+    // NNDEPLOY_LOGE("Consumers:\n");
+    // for (auto consumer : edge_wrapper->consumers_) {
+    //   NNDEPLOY_LOGE("  %s\n", consumer->node_->getName().c_str());
+    // }
   }
 
   // NNDEPLOY_LOGI("####################\n");
@@ -929,13 +1078,14 @@ base::Status Graph::construct() {
     node->setParallelType(parallel_type_);
     node->setInnerFlag(true);
     std::vector<Edge *> inputs = node->getAllInput();
-    // NNDEPLOY_LOGE("NODE: %s.\n", node->getName().c_str());
+    // NNDEPLOY_LOGE("NODE: %s has %d inputs.\n", node->getName().c_str(),
+    //               inputs.size());
     for (auto input : inputs) {
+      // NNDEPLOY_LOGE("input: %s.\n", input->getName().c_str());
       EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
       NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(input_wrapper,
                                            "input_wrapper is null!");
-      // NNDEPLOY_LOGE("input_wrapper: %s.\n",
-      //               input_wrapper->edge_->getName().c_str());
+      // NNDEPLOY_LOGE("input: %s.\n", input->getName().c_str());
       for (auto producer : input_wrapper->producers_) {
         insertUnique(node_wrapper->predecessors_, producer);
         // NNDEPLOY_LOGE("producer: %s.\n", producer->node_->getName().c_str());
@@ -1034,7 +1184,36 @@ base::Status Graph::construct() {
     }
   }
 
-  // NNDEPLOY_LOGE("NAME: %s end\n", name_.c_str());
+  // for (auto node_wrapper : node_repository_) {
+  //   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper->node_,
+  //                                        "edge_repository_ node is null!");
+  //   NNDEPLOY_LOGE("Node: %s\n", node_wrapper->node_->getName().c_str());
+  //   NNDEPLOY_LOGE("Predecessors:\n");
+  //   for (auto pred : node_wrapper->predecessors_) {
+  //     NNDEPLOY_LOGE("  %s\n", pred->node_->getName().c_str());
+  //   }
+  //   NNDEPLOY_LOGE("Successors:\n");
+  //   for (auto succ : node_wrapper->successors_) {
+  //     NNDEPLOY_LOGE("  %s\n", succ->node_->getName().c_str());
+  //   }
+  // }
+  // for (auto edge_wrapper : edge_repository_) {
+  //   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
+  //                                        "edge_repository_ edge is null!");
+  //   if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
+  //     NNDEPLOY_LOGI("graph[%s] this edge[%s] is useless!\n", name_.c_str(),
+  //                   edge_wrapper->edge_->getName().c_str());
+  //   }
+  //   NNDEPLOY_LOGE("Edge: %s\n", edge_wrapper->edge_->getName().c_str());
+  //   NNDEPLOY_LOGE("Producers:\n");
+  //   for (auto producer : edge_wrapper->producers_) {
+  //     NNDEPLOY_LOGE("  %s\n", producer->node_->getName().c_str());
+  //   }
+  //   NNDEPLOY_LOGE("Consumers:\n");
+  //   for (auto consumer : edge_wrapper->consumers_) {
+  //     NNDEPLOY_LOGE("  %s\n", consumer->node_->getName().c_str());
+  //   }
+  // }
 
   return status;
 }
@@ -1075,7 +1254,27 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("4. Memory Allocation Phase!\n");
   // NNDEPLOY_LOGI("5. Cost Calculations!\n");
   // NNDEPLOY_LOGI("##############\n");
-  status = executor_->init(edge_repository_, node_repository_);
+  // TODO
+  std::vector<NodeWrapper *> run_node_repository;
+  for (auto node_wrapper : node_repository_) {
+    bool has_input_or_output = false;
+    for (auto edge_wrapper : edge_repository_) {
+      if (std::find(edge_wrapper->producers_.begin(),
+                    edge_wrapper->producers_.end(),
+                    node_wrapper) != edge_wrapper->producers_.end() ||
+          std::find(edge_wrapper->consumers_.begin(),
+                    edge_wrapper->consumers_.end(),
+                    node_wrapper) != edge_wrapper->consumers_.end()) {
+        has_input_or_output = true;
+        break;
+      }
+    }
+    if (has_input_or_output) {
+      run_node_repository.emplace_back(node_wrapper);
+    }
+  }
+  run_node_repository_ = run_node_repository;
+  status = executor_->init(edge_repository_, run_node_repository_);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "executor init failed!");
 
   // NNDEPLOY_LOGI("name: %s executor start.\n", name_.c_str());
@@ -1193,33 +1392,11 @@ base::Status Graph::serialize(rapidjson::Value &json,
     NNDEPLOY_LOGE("serialize node failed\n");
     return status;
   }
-  json.AddMember("is_graph_", is_graph_, allocator);
   if (!is_inner_) {
-    // 写入设备类型
-    // std::string device_type_str = base::deviceTypeToString(device_type_);
-    // json.AddMember("device_type_",
-    //                rapidjson::Value(device_type_str.c_str(), allocator),
-    //                allocator);
-    // 写入是否为外部流
-    json.AddMember("is_external_stream_", is_external_stream_, allocator);
-    // 序列化并行类型
-    // std::string parallel_type_str =
-    // base::parallelTypeToString(parallel_type_);
-    // json.AddMember("parallel_type_",
-    //                rapidjson::Value(parallel_type_str.c_str(), allocator),
-    //                allocator);
-
     // 序列化其他布尔标志
-    json.AddMember("is_inner_", is_inner_, allocator);
     json.AddMember("is_time_profile_", is_time_profile_, allocator);
     json.AddMember("is_debug_", is_debug_, allocator);
-    // json.AddMember("is_graph_", is_graph_, allocator);
-
-    // 写入节点类型
-    // std::string node_type_str = nodeTypeToString(node_type_);
-    // json.AddMember("node_type_",
-    //                rapidjson::Value(node_type_str.c_str(), allocator),
-    //                allocator);
+    json.AddMember("is_external_stream_", is_external_stream_, allocator);
     json.AddMember("is_graph_node_share_stream_", is_graph_node_share_stream_,
                    allocator);
     json.AddMember("queue_max_size_", queue_max_size_, allocator);
@@ -1272,6 +1449,11 @@ base::Status Graph::deserialize(rapidjson::Value &json) {
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("deserialize node failed\n");
     return status;
+  }
+
+  if (json.HasMember("is_external_stream_") &&
+      json["is_external_stream_"].IsBool()) {
+    is_external_stream_ = json["is_external_stream_"].GetBool();
   }
 
   if (json.HasMember("is_graph_node_share_stream_") &&
