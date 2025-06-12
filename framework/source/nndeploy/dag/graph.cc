@@ -878,17 +878,17 @@ std::vector<Edge *> Graph::trace(std::vector<Edge *> inputs) {
   base::Status status = base::kStatusCodeOk;
   this->setTraceFlag(true);
   std::vector<Edge *> outputs = this->operator()(inputs);
-  NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
+  // NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
   status = this->init();
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("init failed!");
     return std::vector<Edge *>();
   }
-  status = this->dump();
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("dump failed!");
-    return std::vector<Edge *>();
-  }
+  // status = this->dump();
+  // if (status != base::kStatusCodeOk) {
+  //   NNDEPLOY_LOGE("dump failed!");
+  //   return std::vector<Edge *>();
+  // }
   traced_ = true;
   return outputs;
 }
@@ -1083,9 +1083,86 @@ base::Status Graph::executor() {
 }
 
 Node *Graph::createNode4Py(const std::string &key, const std::string &name) {
-  return createNode(key, name);
+  if (used_node_names_.find(name) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
+  std::string unique_name = name;
+  if (unique_name.empty()) {
+    unique_name = "node_" + base::getUniqueString();
+  }
+  Node *node = nndeploy::dag::createNode(key, unique_name);
+  if (node == nullptr) {
+    NNDEPLOY_LOGE("create node[%s] failed!\n", name.c_str());
+    return nullptr;
+  }
+  // NNDEPLOY_LOGE("create node[%s, %p] success!\n", unique_name.c_str(), node);
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = true;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = unique_name;
+  node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(unique_name);
+
+  node->setGraph(this);
+  return node;
 }
-Node *Graph::createNode4Py(const NodeDesc &desc) { return createNode(desc); }
+Node *Graph::createNode4Py(const NodeDesc &desc) {
+  const std::string &name = desc.getName();
+  const std::string &node_key = desc.getKey();
+  std::vector<std::string> input_names = desc.getInputs();
+  std::vector<std::string> output_names = desc.getOutputs();
+  if (used_node_names_.find(name) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
+  std::vector<Edge *> inputs;
+  for (auto input_name : input_names) {
+    Edge *input = getEdge(input_name);
+    if (input == nullptr) {
+      input = createEdge(input_name);
+    }
+    inputs.emplace_back(input);
+  }
+  std::vector<Edge *> outputs;
+  for (auto output_name : output_names) {
+    Edge *output = getEdge(output_name);
+    if (output == nullptr) {
+      output = createEdge(output_name);
+    }
+    outputs.emplace_back(output);
+  }
+  Node *node = nndeploy::dag::createNode(node_key, name, inputs, outputs);
+  if (node == nullptr) {
+    NNDEPLOY_LOGE("create node[%s] failed!\n", desc.getName().c_str());
+    return nullptr;
+  }
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = true;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  for (auto input : inputs) {
+    EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
+    if (input_wrapper == nullptr) {
+      input_wrapper = this->addEdge(input);
+    }
+    input_wrapper->consumers_.emplace_back(node_wrapper);
+  }
+  for (auto output : outputs) {
+    EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
+    if (output_wrapper == nullptr) {
+      output_wrapper = this->addEdge(output);
+    }
+    output_wrapper->producers_.emplace_back(node_wrapper);
+  }
+
+  node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
+
+  node->setGraph(this);
+
+  return node;
+}
 
 EdgeWrapper *Graph::getEdgeWrapper(Edge *edge) {
   return findEdgeWrapper(edge_repository_, edge);
