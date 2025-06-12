@@ -89,7 +89,7 @@ def test_yolo_from_json():
     yolo_demo.set_input_path("/home/lds/nndeploy/docs/image/demo/detect/sample.jpg")
     count = 1
     yolo_demo.set_size(count)
-    yolo_demo.set_output_path("/home/always/github/public/nndeploy/build/yolo_jos_python_demo.jpg")
+    yolo_demo.set_output_path("/home/lds/nndeploy/build/yolo_jos_python_demo.jpg")
     nndeploy.base.time_point_start("test_yolo_from_json")
     inputs: [nndeploy.dag.Edge] = []
     for i in range(count):
@@ -100,13 +100,11 @@ def test_yolo_from_json():
             print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("test_yolo_from_json")
     nndeploy.base.time_profiler_print("test_yolo_from_json")
-    
 
     
 if __name__ == "__main__":
     test_yolo()
     test_yolo_from_json()
-    
         
         
         
