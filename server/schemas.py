@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from pydantic import BaseModel, Field
+from datetime import datetime
 from typing import Dict, Any, Optional, List, Tuple
 
 JsonDict = Dict[str, Any]
@@ -31,3 +32,11 @@ class HistoryItem(BaseModel):
 class ProgressPayload(BaseModel):
     type: str
     data: Dict[str, Any]
+
+class UploadResponse(BaseModel):
+    filename: str
+    saved_path: str
+    size: int
+    uploaded_at: datetime
+
+UploadResponse.model_rebuild()
