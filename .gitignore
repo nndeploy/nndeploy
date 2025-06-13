@@ -255,3 +255,10 @@ ref_repo
 # translation
 *.mo
 /app/workflow/package-lock.json
+
+# server/resources rule
+server/resources/**
+
+# keep readme file
+!server/resources/README*
+!server/resources/[Rr][Ee][Aa][Dd][Mm][Ee]*
