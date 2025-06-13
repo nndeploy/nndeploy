@@ -11,7 +11,7 @@ JsonDict = Dict[str, Any]
 class EnqueueRequest(BaseModel):
     graph_json: JsonDict = Field(..., description="nndeploy graph in JSON")
     id: Optional[str] = Field(None, description="task id")
-    priority: int = Field(0, description="priority")
+    priority: Optional[int] = Field(0, description="priority")
 
 class EnqueueResponse(BaseModel):
     task_id: str
@@ -23,9 +23,6 @@ class QueueItem(BaseModel):
 class QueueStateResponse(BaseModel):
     running: Dict[int, QueueItem]
     pending: List[Tuple[int, QueueItem]]
-
-class NodeListResponse(BaseModel):
-    nodes: Dict[str, Any]
 
 class HistoryItem(BaseModel):
     task: Dict[str, Any]

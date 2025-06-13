@@ -1,7 +1,8 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi import APIRouter, Request, status, UploadFile, File
 from fastapi import Depends
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi import HTTPException
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
@@ -16,7 +17,6 @@ from schemas import (
     EnqueueRequest,
     EnqueueResponse,
     QueueStateResponse,
-    NodeListResponse,
     HistoryItem,
     ProgressPayload,
     UploadResponse
@@ -74,13 +74,12 @@ class NnDeployServer:
         
         @api.get(
             "/nodes",
-            response_model=NodeListResponse,
+            response_model=Dict[str, Any],
             summary="return register nodes",
         )
         async def register_nodes():
             json_str = nndeploy.dag.get_all_node_json()
-            data = json.loads(json_str) 
-            return NodeListResponse(nodes=data)
+            return json.loads(json_str)
         
         # history
         @api.get(
@@ -106,6 +105,22 @@ class NnDeployServer:
         @self.app.get("/", tags=["Web"])
         async def root():
             return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
+
+        # preview
+        @api.get("/preview/{file_path:path}", tags=["Files"],
+                summary="preview images/videos")
+        async def preview_file(file_path: str):
+            f = Path(self.args.resources) / file_path
+            if not f.exists():
+                raise HTTPException(status_code=404, detail="Not found")
+
+            suffix = f.suffix.lower()
+            if suffix in {".jpg", ".jpeg", ".png", ".webp"}:
+                return FileResponse(f, media_type=f"image/{suffix.lstrip('.')}")
+            elif suffix in {".mp4", ".mov", ".avi", ".mkv"}:
+                return FileResponse(f, media_type="video/mp4")
+            else:
+                raise HTTPException(status_code=400, detail="Unsupported preview type")
 
         self.app.include_router(
             files_router,
