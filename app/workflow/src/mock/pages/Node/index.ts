@@ -52,10 +52,10 @@ const nodes: INodeEntity[] = [
                     "desc_": "detect_in",
                     "type_": "Mat"
                 }, 
-                 {
-                    "desc_": "detect_in2",
-                    "type_": "Mat"
-                }
+                //  {
+                //     "desc_": "detect_in2",
+                //     "type_": "Mat"
+                // }
             ],
             "outputs_": [
                 {
