@@ -245,7 +245,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < size; ++i) {
       segment::SegmentResult *result =
           (segment::SegmentResult *)output.getGraphOutputParam();
-      // NNDEPLOY_LOGE("%p.\n", result);
+      NNDEPLOY_LOGE("%p.\n", result);
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;

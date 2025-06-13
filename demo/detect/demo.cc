@@ -45,7 +45,7 @@
 // #include "nndeploy/op/ascend_cl/op_add.cc"
 // #include "nndeploy/op/ascend_cl/ascend_c/op_add_kernel.cc"
 
-#define LOAD_JSON 1
+#define LOAD_JSON 0
 
 using namespace nndeploy;
 
@@ -212,7 +212,7 @@ int main(int argc, char *argv[]) {
   // NNDEPLOY_LOGI("input_path = %s.\n", input_path.c_str());
   // NNDEPLOY_LOGI("ouput_path = %s.\n", ouput_path.c_str());
   int size = decode_node->getSize();
-  size = 1;
+  size = 100;
   decode_node->setSize(size);
   decode_node->setPath(input_path);
   encode_node->setRefPath(input_path);
@@ -248,13 +248,11 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->run");
 
-#if LOAD_JSON
-  status = dag::saveFile(graph, "detect_graph_v6.json");
+  status = dag::saveFile(graph, "detect_graph.json");
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("graph saveFile failed");
     return -1;
   }
-#endif
 
   // 有向无环图graph反初始化
   status = graph->deinit();

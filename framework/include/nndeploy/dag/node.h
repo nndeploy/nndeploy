@@ -145,8 +145,8 @@ class NNDEPLOY_CC_API Node {
 
   bool getConstructed();
 
-  base::Status setParallelType(const base::ParallelType &paralle_type);
-  base::ParallelType getParallelType();
+  virtual base::Status setParallelType(const base::ParallelType &paralle_type);
+  virtual base::ParallelType getParallelType();
 
   void setInnerFlag(bool flag);
 
@@ -279,6 +279,7 @@ class NNDEPLOY_CC_API Node {
   bool constructed_ = false;
   // 是否是图中内部节点
   bool is_inner_ = false;
+  bool parallel_type_set_ = false;
   base::ParallelType parallel_type_ = base::kParallelTypeNone;
   bool initialized_ = false;
   bool is_running_ = false;

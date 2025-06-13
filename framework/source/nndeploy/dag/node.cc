@@ -475,8 +475,11 @@ Edge *Node::createInternalOutputEdge(const std::string &name) {
 bool Node::getConstructed() { return constructed_; }
 
 base::Status Node::setParallelType(const base::ParallelType &paralle_type) {
-  if (parallel_type_ == base::kParallelTypeNone) {
+  if (parallel_type_set_ == false) {
     parallel_type_ = paralle_type;
+    parallel_type_set_ = true;
+  } else {
+    NNDEPLOY_LOGE("parallel_type_ is already set.\n");
   }
   return base::kStatusCodeOk;
 }

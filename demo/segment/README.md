@@ -127,6 +127,12 @@ DrawMaskNode run()       100         495.682            4.957              0.000
 encode_node run()        100         1127.377           11.274             0.000 
 graph->deinit()          1           0.086              0.086              0.000 
 -----------------------------------------------------------------------------------
+
+
+./nndeploy_demo_segment --name NNDEPLOY_RMBGV1.4 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value RMBGV1.4.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypeSequential --model_inputs input --model_outputs output --input_path ../docs/image/demo/segment/sample.jpg --output_path rbmg_ort_acl_sample_output.jpg
+
+./nndeploy_demo_segment --name NNDEPLOY_RMBGV1.4 --inference_type kInferenceTypeOnnxRuntime --device_type kDeviceTypeCodeX86:0 --model_type kModelTypeOnnx --is_path --model_value RMBGV1.4.sim.onnx --codec_flag kCodecFlagImage --parallel_type kParallelTypePipeline --model_inputs input --model_outputs output --input_path ../docs/image/demo/segment/sample.jpg --output_path rbmg_ort_acl_sample_output.jpg
+
 ```
 
 

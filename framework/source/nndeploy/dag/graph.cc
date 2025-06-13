@@ -74,6 +74,16 @@ base::Status Graph::setEdgeQueueMaxSize(int queue_max_size) {
 }
 int Graph::getEdgeQueueMaxSize() { return queue_max_size_; }
 
+// base::Status Graph::setParallelType(const base::ParallelType &paralle_type) {
+//   if (parallel_type_ == base::kParallelTypeNone) {
+//     parallel_type_ = paralle_type;
+//     for (auto node_wrapper : node_repository_) {
+//       node_wrapper->node_->setParallelType(paralle_type);
+//     }
+//   }
+//   return base::kStatusCodeOk;
+// }
+
 base::Status Graph::setInput(Edge *input, int index) {
   base::Status status = Node::setInput(input, index);
   if (status != base::kStatusCodeOk) {
@@ -1231,12 +1241,16 @@ base::Status Graph::executor() {
   // NNDEPLOY_LOGI("create executor\n");
   // NNDEPLOY_LOGI("##############\n");
   if (parallel_type_ == base::kParallelTypeNone) {
+    // NNDEPLOY_LOGE("parallel_type_ is None!\n");
     executor_ = std::make_shared<SequentialExecutor>();
   } else if (parallel_type_ == base::kParallelTypeSequential) {
+    // NNDEPLOY_LOGE("parallel_type_ is Sequential!\n");
     executor_ = std::make_shared<SequentialExecutor>();
   } else if (parallel_type_ == base::kParallelTypeTask) {
+    // NNDEPLOY_LOGE("parallel_type_ is Task!\n");
     executor_ = std::make_shared<ParallelTaskExecutor>();
   } else if (parallel_type_ == base::kParallelTypePipeline) {
+    // NNDEPLOY_LOGE("parallel_type_ is Pipeline!\n");
     executor_ = std::make_shared<ParallelPipelineExecutor>();
   } else {
     NNDEPLOY_LOGE("parallel_type_ is invalid!\n");
