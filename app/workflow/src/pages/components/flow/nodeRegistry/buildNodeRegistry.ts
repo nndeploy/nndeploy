@@ -6,6 +6,11 @@ import iconCondition from '../../../../assets/icon-condition.svg';
 
 
 export function buildNodeRegistry(nodeEntity: INodeEntity) {
+
+
+   //let formMetaTemp =  ['nndeploy::detect::YoloGraph', ''].includes( nodeEntity.key_) ? groupFormMeta: formMeta
+
+   //let type = ['nndeploy::detect::YoloGraph'].includes( nodeEntity.key_) ? 'group': nodeEntity.key_
   const nodeRegistry: FlowNodeRegistry = {
     type: nodeEntity.key_,
     info: {
@@ -20,7 +25,7 @@ export function buildNodeRegistry(nodeEntity: INodeEntity) {
       dynamicPort: true, 
       expandable: true, // disable expanded
     },
-    formMeta,
+    formMeta:formMeta ,
     onAdd() {
       return {
         id: `${nodeEntity.key_}_${nanoid(5)}`,

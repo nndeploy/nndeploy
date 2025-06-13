@@ -2,6 +2,7 @@ import Mock, { templateOrFn } from "mockjs";
 
 import { initialData } from "../../../pages/components/flow/initial-data";
 import { IWorkFlowBranchEntity, IWorkFlowEntity, IWorkFlowTreeNodeEntity } from "../../../pages/Layout/Design/WorkFlow/entity";
+import { workFlows } from "./initalWorkFlow";
 // mock方法,详细的可以看官方文档
 const Random = Mock.Random;
 
@@ -55,20 +56,7 @@ const branches: IWorkFlowBranchEntity[] = [
   },
 ];
 
-const flows: IWorkFlowEntity[] = [
-  {
-    id: "Golden  Retriever image 1",
-    name: "image 1",
-    parentId: "Golden Retriever image",
-    content: initialData,
-  },
-  {
-    id: "Golden  Retriever image 2",
-    name: "image 2",
-    parentId: "Golden Retriever image",
-    content: initialData,
-  },
-];
+const flows: IWorkFlowEntity[] = workFlows
 
 export const workFlowHandler: MockItem[] = [
   {
@@ -183,14 +171,15 @@ export const workFlowHandler: MockItem[] = [
     response: (options) => {
       const entity: IWorkFlowEntity = JSON.parse(options.body);
 
-      entity.content = entity.content? entity.content : { nodes: [], edges: [] }
+      entity.designContent = entity.designContent? entity.designContent : { nodes: [], edges: [] }
       const findIndex = flows.findIndex(item=>item.id == entity.id)
 
       if(findIndex == -1){
+         entity.id = Random.guid()
         flows.push(entity)
         
       }else{
-        entity.id = Random.guid()
+       
         flows[findIndex] = entity
       }
      
@@ -209,13 +198,12 @@ export const workFlowHandler: MockItem[] = [
     response: (options) => {
       const entity: IWorkFlowEntity = JSON.parse(options.body);
 
+      var find = flows.find(item=>item.id == entity.id)
+
       return {
         flag: "success",
         message: "",
-        result: {
-          id: entity.id ? entity.id : Random.guid(),
-          content: entity.content,
-        },
+        result: find
       };
     },
   },

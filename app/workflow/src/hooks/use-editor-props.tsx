@@ -139,7 +139,7 @@ export function useEditorProps(
        * Content change
        */
       onContentChange: debounce((ctx, event) => {
-        console.log("Auto Save: ", event, ctx.document.toJSON());
+             //console.log("Auto Save: ", event, ctx.document.toJSON());
       }, 1000),
       /**
        * Running line

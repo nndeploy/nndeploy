@@ -1,0 +1,14 @@
+.dynamic-collecion-row{
+  display: flex;
+  gap: 5px; 
+  align-items: center;
+  .collection-type{
+    flex: 1; 
+    min-width: 0;
+  }
+  .collection-desc{
+    flex: 1; 
+    min-width: 0;
+  }
+  
+}

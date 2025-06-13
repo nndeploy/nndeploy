@@ -21,6 +21,8 @@ import FlowSaveDrawer from "./FlowSaveDrawer";
 import { IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
 import { useGetRegistry } from "./effect";
 
+let nameId = 0; 
+
 interface FlowProps {
   id: string;
   onFlowSave: (flow: IWorkFlowEntity) => void;
@@ -34,9 +36,28 @@ const Flow: React.FC<FlowProps> = (props) => {
     id: props.id,
     name: "",
     parentId: "",
-    content: {
+    designContent: {
       nodes: [],
       edges: [],
+    },
+    businessContent: {
+      key_: "nndeploy::dag::Graph",
+      name_: "demo",
+      device_type_: "kDeviceTypeCodeX86:0",
+      inputs_: [],
+      outputs_: [
+        {
+          name_: "detect_out",
+          type_: "kNotSet",
+        },
+      ],
+      is_external_stream_: false,
+      is_inner_: false,
+      is_time_profile_: true,
+      is_debug_: false,
+      is_graph_node_share_stream_: true,
+      queue_max_size_: 16,
+      node_repository_: [],
     },
   });
 
@@ -67,7 +88,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     setEntity(response.result);
 
-    ref?.current?.document.reload(initialData);
+    ref?.current?.document.reload(response.result.designContent);
 
     //ref?.current?.document.reload(response.result.content);
 
@@ -92,7 +113,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   function onSave(flowJson: FlowDocumentJSON) {
     setEntity({
       ...entity,
-      content: flowJson,
+      designContent: flowJson,
     });
 
     setSaveDrawerVisible(true);
@@ -100,6 +121,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
     setSaveDrawerVisible(false);
+    setEntity(entity);
     props.onFlowSave(entity);
   }
   function onFlowSaveDrawerClose() {
@@ -132,11 +154,12 @@ const Flow: React.FC<FlowProps> = (props) => {
         const nodeId = e?.dataTransfer?.getData("text");
 
         const response = await apiGetNodeById(nodeId!);
-
-        ref?.current?.document.createWorkflowNode({
+        let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
+        
+        let node = {
           // ...response.result,
           id: Math.random().toString(36).substr(2, 9),
-          type: response.result.key_,
+          type,
           meta: {
             position: {
               x: position?.x,
@@ -144,10 +167,32 @@ const Flow: React.FC<FlowProps> = (props) => {
             },
           },
           data: {
-            title: response.result.key_,
+            //title: response.result.key_,
             ...response.result,
+            name_: `${response.result.name_}_${nameId++}`,
           },
-        });
+        }
+        //if(response.result.is_dynamic_input_){
+
+          node.data.inputs_ = node.data.inputs_.map(item=>{
+            return {
+              ...item, 
+              id: Math.random().toString(36).substr(2, 9),
+            }
+          })
+        //}
+
+        //if(response.result.is_dynamic_output_){
+          
+           node.data.outputs_ = node.data.outputs_.map(item=>{
+            return {
+              ...item, 
+              id: Math.random().toString(36).substr(2, 9),
+            }
+          })
+        //}
+
+        ref?.current?.document.createWorkflowNode(node);
       });
     }
     //清理函数
@@ -164,7 +209,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   //const nodeRegistries = useGetRegistry()
 
-  const editorProps = useEditorProps(entity.content, nodeRegistries);
+  const editorProps = useEditorProps(entity.designContent, nodeRegistries);
   return (
     <div className="doc-free-feature-overview" ref={dropzone}>
       {loading ? (
