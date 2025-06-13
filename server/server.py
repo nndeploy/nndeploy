@@ -1,15 +1,17 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi import APIRouter, Request, status, UploadFile, File
+from fastapi import Depends
 from fastapi.responses import JSONResponse, HTMLResponse
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
+import os
 import json
 import asyncio
 import uuid
 import logging
 import nndeploy.dag
-from queue import TaskQueue
+from task_queue import TaskQueue
 from schemas import (
     EnqueueRequest,
     EnqueueResponse,
@@ -19,6 +21,8 @@ from schemas import (
     ProgressPayload,
     UploadResponse
 )
+import files
+from files import router as files_router
 
 class NnDeployServer:
     instance: "NnDeployServer" = None
@@ -35,23 +39,10 @@ class NnDeployServer:
         self.sockets: set[WebSocket] = set()
         self._register_routes()
 
+    def _get_workdir(self) -> Path:
+        return Path(self.args.resources)
+
     def _register_routes(self):
-        """upload help function"""
-        def _save(file: UploadFile, subdir: str) -> UploadResponse:
-            today = datetime.now().strftime("%Y-%m-%d")
-            folder = Path(self.args.workdir, "uploads", today, subdir)
-            folder.mkdir(parents=True, exist_ok=True)
-
-            dst = folder / file.filename
-            with dst.open("wb") as w:
-                w.write(file.file.read())
-            return UploadResponse(
-                filename=file.filename,
-                saved_path=str(dst.relative_to(self.args.workdir)),
-                size=dst.stat().st_size,
-                uploaded_at=datetime.utcnow(),
-            )
-
         api = APIRouter(prefix="/api")
 
         # commit task
@@ -110,41 +101,17 @@ class NnDeployServer:
                     await asyncio.sleep(60)
             except WebSocketDisconnect:
                 self.sockets.discard(ws)
-        
-        # upload image
-        @api.post(
-            "/upload/image",
-            response_model=UploadResponse,
-            summary="上传图片文件",
-            tags=["Upload"],
-        )
-        async def upload_image(file: UploadFile = File(..., max_length=10 * 1024 * 1024)):
-            return _save(file, "images")
-
-        # upload video
-        @api.post(
-            "/upload/video",
-            response_model=UploadResponse,
-            summary="上传视频文件",
-            tags=["Upload"],
-        )
-        async def upload_video(file: UploadFile = File(..., max_length=10 * 1024 * 1024)):
-            return _save(file, "videos")
-
-        # upload model
-        @api.post(
-            "/upload/model",
-            response_model=UploadResponse,
-            summary="上传模型/权重文件",
-            tags=["Upload"],
-        )
-        async def upload_model(file: UploadFile = File(...)):
-            return _save(file, "models")
 
         # heartbeat
         @self.app.get("/", tags=["Web"])
         async def root():
             return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
+
+        self.app.include_router(
+            files_router,
+            dependencies=[Depends(self._get_workdir)]
+        )
+        self.app.dependency_overrides[files.get_workdir] = self._get_workdir
 
         self.app.include_router(api)
     

@@ -14,7 +14,7 @@ def cli():
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--port", type=int, default=8888)
-    ap.add_argument("--workdir", default="./runs")
+    ap.add_argument("--resources", default="./resources")
     return ap.parse_args()
 
 def launch():

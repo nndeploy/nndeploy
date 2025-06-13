@@ -5,7 +5,7 @@ import logging
 import time
 import traceback
 from executor import GraphExecutor
-from queue import TaskQueue, ExecutionStatus
+from task_queue import TaskQueue, ExecutionStatus
 
 def run(server, q: TaskQueue):
     ex = GraphExecutor(server)
