@@ -32,7 +32,7 @@ export function FormItem({
         {required && <span style={{ color: '#f93920', paddingLeft: '2px' }}>*</span>}
       </div>
     ),
-    []
+    [name]
   );
   return (
     <div

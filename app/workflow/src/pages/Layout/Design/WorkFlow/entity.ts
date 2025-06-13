@@ -17,11 +17,23 @@ export interface IWorkFlowBranchEntity{
   
 }
 
+export interface IBusinessNode{
+  key_: string; 
+  name_: string; 
+  device_type_: string; 
+  inputs_:any[], 
+  outputs_:any[], 
+  node_repository_?: IBusinessNode[], 
+  [key: string]: any;
+}
+
 export interface IWorkFlowEntity{
   id: string; 
   name: string; 
   parentId: string; 
-  content: FlowDocumentJSON
+  designContent: FlowDocumentJSON, 
+  businessContent: IBusinessNode, 
+  
   
 }
 

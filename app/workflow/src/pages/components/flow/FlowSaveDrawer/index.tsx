@@ -6,6 +6,7 @@ import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import { useGetWorkflowBranch, useGetWorkflowTree } from "../../../Layout/Design/WorkFlow/effect";
 import { IWorkFlowEntity } from "../../../Layout/Design/WorkFlow/entity";
 import { apiWorkFlowSave } from "../../../Layout/Design/WorkFlow/api";
+import { buildBusinessDataFromDesignData } from "./functions";
 
 export interface BranchEditDrawerProps {
   onSure: (node: IWorkFlowEntity) => void;
@@ -22,10 +23,15 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
     try {
       await formRef!.current!.validate();
       const formData = formRef!.current!.getValues();
-      console.log("Form Data:", formData);
+      //console.log("Form Data:", formData);
+
+        const businessContent = buildBusinessDataFromDesignData(
+              props.entity.designContent
+            );
 
       const data: IWorkFlowEntity = {
         ...props.entity, 
+        businessContent, 
         ...formData,
 
       };

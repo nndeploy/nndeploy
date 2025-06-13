@@ -34,7 +34,7 @@ export interface NodeTreeNodeData extends TreeNodeData {
 // }
 
 export interface IConnectionPoint{
-  name_: string;
+  desc_: string;
   type_: string; 
 }
 

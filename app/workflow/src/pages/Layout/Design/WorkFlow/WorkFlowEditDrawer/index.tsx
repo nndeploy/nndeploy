@@ -5,6 +5,7 @@ import { apiGetWorkFlow, apiWorkFlowSave } from "../api";
 import { IWorkFlowEntity, IWorkFlowTreeNodeEntity } from "../entity";
 import { useEffect, useRef, useState } from "react";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
+import { buildBusinessDataFromDesignData } from "../../../../components/flow/FlowSaveDrawer/functions";
 
 export interface WorkFlowEditDrawerProps {
   onSure: (node: IWorkFlowTreeNodeEntity) => void;
@@ -17,42 +18,67 @@ const WorkFlowEditDrawer: React.FC<WorkFlowEditDrawerProps> = (props) => {
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     ...props.entity,
-    content: {
+    designContent: {
       nodes: [],
       edges: [],
+    },
+    businessContent: {
+      key_: "nndeploy::dag::Graph",
+      name_: "demo",
+      device_type_: "kDeviceTypeCodeX86:0",
+      inputs_: [],
+      outputs_: [
+        {
+          name_: "detect_out",
+          type_: "kNotSet",
+        },
+      ],
+      is_external_stream_: false,
+      is_inner_: false,
+      is_time_profile_: true,
+      is_debug_: false,
+      is_graph_node_share_stream_: true,
+      queue_max_size_: 16,
+      node_repository_: [],
     },
   });
 
   useEffect(() => {
-      if(props.entity.id){
-        apiGetWorkFlow(props.entity.id).then((res) => {
-          if(res.flag == "success"){
-            //setEntity(res.result);
-          }
-        })
-      }
-    
-  }, [props.entity])
+    if (props.entity.id) {
+      apiGetWorkFlow(props.entity.id).then((res) => {
+        if (res.flag == "success") {
+          setEntity(res.result);
+        }
+      });
+    }
+  }, [props.entity]);
 
   async function onSure() {
+    debugger;
     try {
       await formRef!.current!.validate();
       const formData = formRef!.current!.getValues();
-      console.log("Form Data:", formData);
+      //console.log("Form Data:", formData);
 
-      const data = {
+      const businessContent = buildBusinessDataFromDesignData(
+        entity.designContent
+      );
+
+      const data: IWorkFlowEntity = {
         ...entity,
-        ...formData
+        businessContent,
+        ...formData,
       };
 
       const response = await apiWorkFlowSave(data);
       if (response.flag == "success") {
-        props.onSure( {...response.result, type: 'leaf'} );
+        props.onSure({ ...response.result, type: "leaf" });
       }
 
       Toast.success("add sucess!");
     } catch (error) {
       Toast.error("add fail " + error);
+     // console.log("add fail ", error)
     }
   }
 

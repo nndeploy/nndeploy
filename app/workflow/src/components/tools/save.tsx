@@ -34,7 +34,7 @@ export function Save(props: { disabled: boolean }) {
      }catch(e){
        console.error('onSave', e)
      }
-    console.log('>>>>> save data: ', clientContext.document.toJSON());
+    //console.log('>>>>> save data: ', clientContext.document.toJSON());
   }, [clientContext]);
 
   /**

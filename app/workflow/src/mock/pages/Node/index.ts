@@ -49,17 +49,17 @@ const nodes: INodeEntity[] = [
             "device_type_": "kDeviceTypeCodeX86:0",
             "inputs_": [
                 {
-                    "name_": "detect_in",
+                    "desc_": "detect_in",
                     "type_": "Mat"
                 }, 
                  {
-                    "name_": "detect_in2",
+                    "desc_": "detect_in2",
                     "type_": "Mat"
                 }
             ],
             "outputs_": [
                 {
-                    "name_": "images",
+                    "desc_": "images",
                     "type_": "Tensor"
                 }
             ],
@@ -98,16 +98,18 @@ const nodes: INodeEntity[] = [
             "device_type_": "kDeviceTypeCodeX86:0",
             "inputs_": [
                 {
-                    "name_": "input0",
+                    "desc_": "input0",
                     "type_": "Tensor"
                 }
             ],
             "outputs_": [
                 {
-                    "name_": "output0",
+                    "desc_": "output0",
                     "type_": "Tensor"
                 }
             ],
+            is_dynamic_input_: true, 
+            is_dynamic_output_: true, 
             "type_": "kInferenceTypeOnnxRuntime",
             "param_": {
                 "inference_type_": "kInferenceTypeOnnxRuntime",
@@ -143,13 +145,13 @@ const nodes: INodeEntity[] = [
             "device_type_": "kDeviceTypeCodeX86:0",
             "inputs_": [
                 {
-                    "name_": "output0",
+                    "desc_": "output0",
                     "type_": "Tensor"
                 }
             ],
             "outputs_": [
                 {
-                    "name_": "detect_out",
+                    "desc_": "detect_out",
                     "type_": "Param"
                 }
             ],
@@ -161,6 +163,81 @@ const nodes: INodeEntity[] = [
                 "model_h_": 640,
                 "model_w_": 640
             }
+        },
+        {
+            "key_": "nndeploy::detect::YoloGraph",
+            "name_": "nndeploy::detect::YoloGraph",
+            "device_type_": "kDeviceTypeCodeX86:0:0",
+            "inputs_": [
+                {
+                    "desc_": "detect_in",
+                    "type_": "CvMat"
+                }
+            ],
+            "outputs_": [
+                {
+                    "desc_": "detect_out",
+                    "type_": "Param"
+                }
+            ], 
+            "param_": {
+              
+            }
+           
+        }, 
+        {
+            "key_": "nndeploy::codec::OpenCvImageDecodeNode",
+            "name_": "decode_node",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "inputs_": [],
+            "outputs_": [
+                {
+                    "desc_": "detect_in",
+                    "type_": "CvMat"
+                }
+            ],
+            "flag_": "kCodecFlagImage", 
+            "param_": {
+              
+            }
+        },
+        {
+            "key_": "nndeploy::detect::DrawBoxNode",
+            "name_": "DrawBoxNode",
+            "device_type_": "kDeviceTypeCodeX86:0",
+            "inputs_": [
+                {
+                    "desc_": "detect_in",
+                    "type_": "CvMat"
+                },
+                {
+                    "desc_": "detect_out",
+                    "type_": "Param"
+                }
+            ],
+            "outputs_": [
+                {
+                    "desc_": "draw_output",
+                    "type_": "CvMat"
+                }
+            ], 
+             "param_": {
+              
+            }
+        },
+        {
+            "key_": "nndeploy::codec::OpenCvImageEncodeNode",
+            "name_": "encode_node",
+            "device_type_": "kDeviceTypeCodeCpu:0",
+            "inputs_": [
+                {
+                    "desc_": "draw_output",
+                    "type_": "CvMat"
+                }
+            ],
+            "outputs_": [],
+            "flag_": "kCodecFlagImage", 
+            param_: {}
         }
     ]
 
