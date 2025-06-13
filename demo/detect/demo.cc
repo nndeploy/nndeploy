@@ -167,7 +167,6 @@ int main(int argc, char *argv[]) {
     NNDEPLOY_LOGE("graph is nullptr");
     return -1;
   }
-  graph->dump();
   detect::YoloGraph *detect_graph =
       (detect::YoloGraph *)graph->getNode("nndeploy::detect::YoloGraph");
   if (detect_graph == nullptr) {
@@ -249,13 +248,11 @@ int main(int argc, char *argv[]) {
   }
   NNDEPLOY_TIME_POINT_END("graph->run");
 
-#if LOAD_JSON
-  status = dag::saveFile(graph, "detect_graph_v6.json");
+  status = dag::saveFile(graph, "detect_graph.json");
   if (status != base::kStatusCodeOk) {
     NNDEPLOY_LOGE("graph saveFile failed");
     return -1;
   }
-#endif
 
   // 有向无环图graph反初始化
   status = graph->deinit();

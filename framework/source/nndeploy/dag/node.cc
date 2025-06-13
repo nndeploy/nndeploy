@@ -181,9 +181,9 @@ Node::Node(const std::string &name, std::vector<Edge *> inputs,
 }
 
 Node::~Node() {
-  NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
+  // NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
   if (initialized_ == true) {
-    NNDEPLOY_LOGE("Node[%s] deinit\n", name_.c_str());
+    // NNDEPLOY_LOGE("Node[%s] deinit\n", name_.c_str());
     this->deinit();
   }
   external_param_.clear();
@@ -475,8 +475,11 @@ Edge *Node::createInternalOutputEdge(const std::string &name) {
 bool Node::getConstructed() { return constructed_; }
 
 base::Status Node::setParallelType(const base::ParallelType &paralle_type) {
-  if (parallel_type_ == base::kParallelTypeNone) {
+  if (parallel_type_set_ == false) {
     parallel_type_ = paralle_type;
+    parallel_type_set_ = true;
+  } else {
+    NNDEPLOY_LOGE("parallel_type_ is already set.\n");
   }
   return base::kStatusCodeOk;
 }
@@ -883,16 +886,12 @@ base::Status Node::serialize(rapidjson::Value &json,
   // 序列化并行类型
   if (is_graph_) {
     std::string parallel_type_str = base::parallelTypeToString(parallel_type_);
+    json.AddMember("is_graph_", is_graph_, allocator);
     json.AddMember("parallel_type_",
                    rapidjson::Value(parallel_type_str.c_str(), allocator),
                    allocator);
+    json.AddMember("is_inner_", is_inner_, allocator);
   }
-
-  // 序列化其他布尔标志
-  // json.AddMember("is_inner_", is_inner_, allocator);
-  // json.AddMember("is_time_profile_", is_time_profile_, allocator);
-  // json.AddMember("is_debug_", is_debug_, allocator);
-  // json.AddMember("is_graph_", is_graph_, allocator);
 
   // 写入节点类型
   // std::string node_type_str = nodeTypeToString(node_type_);
@@ -977,6 +976,10 @@ base::Status Node::deserialize(rapidjson::Value &json) {
     is_external_stream_ = json["is_external_stream_"].GetBool();
   }
 
+  if (json.HasMember("is_graph_") && json["is_graph_"].IsBool()) {
+    is_graph_ = json["is_graph_"].GetBool();
+  }
+
   // 读取并行类型
   if (json.HasMember("parallel_type_") && json["parallel_type_"].IsString()) {
     parallel_type_ =
@@ -996,14 +999,10 @@ base::Status Node::deserialize(rapidjson::Value &json) {
     is_debug_ = json["is_debug_"].GetBool();
   }
 
-  if (json.HasMember("is_graph_") && json["is_graph_"].IsBool()) {
-    is_graph_ = json["is_graph_"].GetBool();
-  }
-
   // 读取节点类型
-  if (json.HasMember("node_type_") && json["node_type_"].IsString()) {
-    node_type_ = stringToNodeType(json["node_type_"].GetString());
-  }
+  // if (json.HasMember("node_type_") && json["node_type_"].IsString()) {
+  //   node_type_ = stringToNodeType(json["node_type_"].GetString());
+  // }
 
   // 读取参数
   if (json.HasMember("param_") && json["param_"].IsObject() &&

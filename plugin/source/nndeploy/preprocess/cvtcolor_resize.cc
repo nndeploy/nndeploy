@@ -12,6 +12,10 @@ base::Status CvtColorResize::run() {
   CvtclorResizeParam *tmp_param =
       dynamic_cast<CvtclorResizeParam *>(param_.get());
   cv::Mat *src = inputs_[0]->getCvMat(this);
+  if (src == nullptr) {
+    NNDEPLOY_LOGE("src is nullptr.\n");
+    return base::kStatusCodeErrorDag;
+  }
   device::Device *device = device::getDefaultHostDevice();
   device::TensorDesc desc;
   desc.data_type_ = tmp_param->data_type_;
