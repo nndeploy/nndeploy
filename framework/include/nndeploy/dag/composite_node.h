@@ -15,7 +15,7 @@ namespace dag {
  * capabilities of one or more existing nodes by wrapping them. This composite
  * node executes in sequential mode by default internally.
  */
-class CompositeNode : public Node {
+class NNDEPLOY_CC_API CompositeNode : public Node {
  public:
   CompositeNode(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::dag::CompositeNode";

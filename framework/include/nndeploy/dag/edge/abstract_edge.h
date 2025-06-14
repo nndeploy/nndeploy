@@ -20,7 +20,7 @@ namespace dag {
 
 class Node;
 
-class AbstractEdge : public base::NonCopyable {
+class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
  public:
   AbstractEdge(base::ParallelType paralle_type);
   virtual ~AbstractEdge();

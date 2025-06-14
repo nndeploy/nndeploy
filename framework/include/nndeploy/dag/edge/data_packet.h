@@ -29,7 +29,7 @@ namespace dag {
  * # 被消费过
  * # 被所有节点消费
  */
-class DataPacket : public base::NonCopyable {
+class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
  public:
   DataPacket();
   virtual ~DataPacket();
@@ -158,7 +158,7 @@ class DataPacket : public base::NonCopyable {
   std::type_info *type_info_;
 };
 
-class PipelineDataPacket : public DataPacket {
+class NNDEPLOY_CC_API PipelineDataPacket : public DataPacket {
  public:
   PipelineDataPacket(int consumers_size);
   virtual ~PipelineDataPacket();
