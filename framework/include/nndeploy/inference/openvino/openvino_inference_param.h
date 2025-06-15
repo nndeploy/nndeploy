@@ -8,7 +8,7 @@
 namespace nndeploy {
 namespace inference {
 
-class OpenVinoInferenceParam : public InferenceParam {
+class NNDEPLOY_CC_API OpenVinoInferenceParam : public InferenceParam {
  public:
   OpenVinoInferenceParam();
   OpenVinoInferenceParam(base::InferenceType type);

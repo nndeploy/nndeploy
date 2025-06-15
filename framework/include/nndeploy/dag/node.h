@@ -301,7 +301,7 @@ class NNDEPLOY_CC_API Node {
 /**
  * @brief 节点注册机制相关类和函数
  */
-class NodeCreator {
+class NNDEPLOY_CC_API NodeCreator {
  public:
   virtual Node *createNode(const std::string &node_name,
                            std::vector<Edge *> inputs,
@@ -368,7 +368,7 @@ class NNDEPLOY_CC_API NodeFactory {
   std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
 };
 
-std::set<std::string> getNodeKeys();
+extern NNDEPLOY_CC_API std::set<std::string> getNodeKeys();
 
 #define REGISTER_NODE(node_key, node_class)                              \
   static auto register_node_creator_##node_class = []() {                \

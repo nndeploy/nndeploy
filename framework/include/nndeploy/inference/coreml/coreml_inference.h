@@ -23,7 +23,7 @@ namespace inference {
 #define CHECK_ERR(err) \
   if (err) NSLog(@"error: %@", err);
 
-class CoremlInference : public Inference {
+class NNDEPLOY_CC_API CoremlInference : public Inference {
  public:
   CoremlInference(base::InferenceType type);
   virtual ~CoremlInference();

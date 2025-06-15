@@ -18,7 +18,7 @@
 namespace nndeploy {
 namespace inference {
 
-class OpenVinoInference : public Inference {
+class NNDEPLOY_CC_API OpenVinoInference : public Inference {
  public:
   OpenVinoInference(base::InferenceType type);
   virtual ~OpenVinoInference();
