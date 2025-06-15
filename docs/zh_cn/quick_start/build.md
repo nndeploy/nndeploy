@@ -9,7 +9,7 @@ cd nndeploy
 # 拉取子模块
 git submodule update --init --recursive
 # 如果拉取子模块失败，调用克隆子模块脚本
-./clone_submodule.sh
+python3 clone_submodule.py
 ```
 
 
@@ -29,7 +29,11 @@ git submodule update --init --recursive
     + 其中传统CV类算法依赖`OpenCV`，例如检测、分割、分类等，需要打开`ENABLE_NNDEPLOY_OPENCV`
 
     + **注意**：其中`语言类和文生图类模型`依赖C++分词器[tokenizer-cpp](https://github.com/mlc-ai/tokenizers-cpp)，所以需要打开`ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP`，打开前参考[precompile_tokenizer_cpp.md](./precompile_tokenizer_cpp.md)
-  
+
+> 注：所有后端均可选。三方库可使用自己的，也可使用nndeploy预编译版本：
+> + huggingface：https://huggingface.co/alwaysssss/nndeploy/blob/main/third_party
+> + modelscope：https://www.modelscope.cn/models/nndeploy/third_party
+
 ## 3. 编译方法
 
 [config.cmake](../../../cmake/config.cmake)是nndeploy的编译配置文件，用于控制项目的编译选项。
@@ -56,8 +60,7 @@ make -j                     # 使用8个线程并行编译
 + 算法插件编译产物为：libnndeploy_plugin_xxx.so
 + 可执行程序编译产物为：nndeploy_demo_xxx
 
-> 注：xxx代表特定算法插件和特定的可执行程序，例如：nndeploy_plugin_detect.so、nndeploy_demo_detect、nndeploy_demo_dag
-  
+> 注：xxx代表特定算法插件和特定的可执行程序，例如：nndeploy_plugin_detect.so、nndeploy_demo_detect、nndeploy_demo_dag  
 
 ## 5. Windows
 
