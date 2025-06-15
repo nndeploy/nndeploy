@@ -47,6 +47,7 @@ def _file_info(path: Path) -> Dict[str, str]:
     stat = path.stat()
     return {
         "filename": path.name,
+        "file_path": str(path.resolve()),
         "last_modified": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
         "extension": (path.suffix or "unknown").lstrip("."),
     }

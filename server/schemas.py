@@ -38,4 +38,8 @@ class UploadResponse(BaseModel):
     size: int
     uploaded_at: datetime
 
+class PreviewPayload(BaseModel):
+    type: Literal["preview"]
+    data: Dict[str, Any]
+
 UploadResponse.model_rebuild()
