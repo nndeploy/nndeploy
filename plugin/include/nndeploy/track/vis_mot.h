@@ -22,7 +22,7 @@
 namespace nndeploy {
 namespace track {
 
-class VisMOTNode : public dag::Node {
+class NNDEPLOY_CC_API VisMOTNode : public dag::Node {
  public:
   VisMOTNode(const std::string &name) : Node(name) {
     key_ = "nndeploy::track::VisMOTNode";

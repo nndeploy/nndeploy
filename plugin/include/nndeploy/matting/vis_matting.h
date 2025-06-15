@@ -22,7 +22,7 @@
 namespace nndeploy {
 namespace matting {
 
-class VisMattingNode : public dag::Node {
+class NNDEPLOY_CC_API VisMattingNode : public dag::Node {
  public:
   VisMattingNode(const std::string &name) : Node(name) {
     key_ = "nndeploy::matting::VisMattingNode";
