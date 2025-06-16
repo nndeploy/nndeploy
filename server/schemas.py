@@ -1,17 +1,15 @@
 # schemas.py
 
 from __future__ import annotations
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, RootModel
 from datetime import datetime
 from typing import Dict, Any, Optional, List, Tuple
 
 JsonDict = Dict[str, Any]
 
 # -------------- api / queue ------------------
-class EnqueueRequest(BaseModel):
-    graph_json: JsonDict = Field(..., description="nndeploy graph in JSON")
-    id: Optional[str] = Field(None, description="task id")
-    priority: Optional[int] = Field(0, description="priority")
+class EnqueueRequest(RootModel):
+    root: Dict[str, Any]
 
 class EnqueueResponse(BaseModel):
     task_id: str
