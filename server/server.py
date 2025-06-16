@@ -63,13 +63,13 @@ class NnDeployServer:
             return EnqueueResponse(task_id=task_id)
 
         @api.post(
-            "/save",
+            "/workflow/save",
             response_model=Dict[str, str],
             summary="save workflow to file",
         )
-        async def save_json(req: EnqueueRequest):
+        async def save_json(req: EnqueueRequest, filename: Optional[str] = None):
             # Use the 'name_' field from the incoming JSON or generate a UUID as fallback
-            file_name = req.root.get("name_", str(uuid.uuid4()))  # Default to UUID if 'name_' is not present
+            file_name = filename or req.root.get("name_", str(uuid.uuid4()))  # Default to UUID if 'name_' is not present
             save_dir = Path(self.args.resources) / "workflow"
             if not save_dir.exists():
                 save_dir.mkdir(parents=True, exist_ok=True)
