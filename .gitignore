@@ -262,15 +262,3 @@ server/resources/**
 # keep readme file
 !server/resources/README*
 !server/resources/[Rr][Ee][Aa][Dd][Mm][Ee]*
-
-# ignore files
-server/resources/images/**
-server/resources/videos/**
-server/resources/models/**
-server/resources/outputs/**
-
-# keep put_* files
-!server/resources/images/put_*
-!server/resources/videos/put_*
-!server/resources/models/put_*
-!server/resources/outputs/put_*
