@@ -261,4 +261,3 @@ server/resources/**
 
 # keep readme file
 !server/resources/README*
-!server/resources/[Rr][Ee][Aa][Dd][Mm][Ee]*
