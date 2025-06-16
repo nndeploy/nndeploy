@@ -37,15 +37,15 @@ class PyBatchOpenCvDecode : public Base {
     PYBIND11_OVERRIDE_NAME(base::Status, BatchOpenCvDecode, "run", run);
   }
 
-  std::string serialize() {
-    PYBIND11_OVERRIDE_NAME(std::string, BatchOpenCvDecode, "serialize",
-                           serialize);
-  }
+  // std::string serialize() {
+  //   PYBIND11_OVERRIDE_NAME(std::string, BatchOpenCvDecode, "serialize",
+  //                          serialize);
+  // }
 
-  base::Status deserialize(const std::string &json_str) {
-    PYBIND11_OVERRIDE_NAME(base::Status, BatchOpenCvDecode, "deserialize",
-                           deserialize, json_str);
-  }
+  // base::Status deserialize(const std::string &json_str) {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, BatchOpenCvDecode, "deserialize",
+  //                          deserialize, json_str);
+  // }
 };
 
 template <typename Base = BatchOpenCvEncode>
@@ -72,15 +72,15 @@ class PyBatchOpenCvEncode : public Base {
     PYBIND11_OVERRIDE_NAME(base::Status, BatchOpenCvEncode, "run", run);
   }
 
-  std::string serialize() {
-    PYBIND11_OVERRIDE_NAME(std::string, BatchOpenCvEncode, "serialize",
-                           serialize);
-  }
+  // std::string serialize() {
+  //   PYBIND11_OVERRIDE_NAME(std::string, BatchOpenCvEncode, "serialize",
+  //                          serialize);
+  // }
 
-  base::Status deserialize(const std::string &json_str) {
-    PYBIND11_OVERRIDE_NAME(base::Status, BatchOpenCvEncode, "deserialize",
-                           deserialize, json_str);
-  }
+  // base::Status deserialize(const std::string &json_str) {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, BatchOpenCvEncode, "deserialize",
+  //                          deserialize, json_str);
+  // }
 };
 
 NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
@@ -98,21 +98,21 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
       .def("getWidth", &BatchOpenCvDecode::getWidth)
       .def("getHeight", &BatchOpenCvDecode::getHeight)
       .def("updateInput", &BatchOpenCvDecode::updateInput)
-      .def("run", &BatchOpenCvDecode::run)
-      .def("serialize",
-           py::overload_cast<rapidjson::Value &,
-                             rapidjson::Document::AllocatorType &>(
-               &BatchOpenCvDecode::serialize),
-           py::arg("json"), py::arg("allocator"))
-      .def("serialize", py::overload_cast<>(&BatchOpenCvDecode::serialize))
-      .def("deserialize",
-           py::overload_cast<rapidjson::Value &>(
-               &BatchOpenCvDecode::deserialize),
-           py::arg("json"))
-      .def("deserialize",
-           py::overload_cast<const std::string &>(
-               &BatchOpenCvDecode::deserialize),
-           py::arg("json_str"));
+      .def("run", &BatchOpenCvDecode::run);
+      // .def("serialize",
+      //      py::overload_cast<rapidjson::Value &,
+      //                        rapidjson::Document::AllocatorType &>(
+      //          &BatchOpenCvDecode::serialize),
+      //      py::arg("json"), py::arg("allocator"))
+      // .def("serialize", py::overload_cast<>(&BatchOpenCvDecode::serialize))
+      // .def("deserialize",
+      //      py::overload_cast<rapidjson::Value &>(
+      //          &BatchOpenCvDecode::deserialize),
+      //      py::arg("json"))
+      // .def("deserialize",
+      //      py::overload_cast<const std::string &>(
+      //          &BatchOpenCvDecode::deserialize),
+      //      py::arg("json_str"));
 
   py::class_<BatchOpenCvEncode, PyBatchOpenCvEncode<BatchOpenCvEncode>,
              dag::Node>(m, "BatchOpenCvEncode")
@@ -129,21 +129,21 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
       .def("setSize", &BatchOpenCvEncode::setSize)
       .def("getSize", &BatchOpenCvEncode::getSize)
       .def("getIndex", &BatchOpenCvEncode::getIndex)
-      .def("run", &BatchOpenCvEncode::run)
-      .def("serialize",
-           py::overload_cast<rapidjson::Value &,
-                             rapidjson::Document::AllocatorType &>(
-               &BatchOpenCvEncode::serialize),
-           py::arg("json"), py::arg("allocator"))
-      .def("serialize", py::overload_cast<>(&BatchOpenCvEncode::serialize))
-      .def("deserialize",
-           py::overload_cast<rapidjson::Value &>(
-               &BatchOpenCvEncode::deserialize),
-           py::arg("json"))
-      .def("deserialize",
-           py::overload_cast<const std::string &>(
-               &BatchOpenCvEncode::deserialize),
-           py::arg("json_str"));
+      .def("run", &BatchOpenCvEncode::run);
+      // .def("serialize",
+      //      py::overload_cast<rapidjson::Value &,
+      //                        rapidjson::Document::AllocatorType &>(
+      //          &BatchOpenCvEncode::serialize),
+      //      py::arg("json"), py::arg("allocator"))
+      // .def("serialize", py::overload_cast<>(&BatchOpenCvEncode::serialize))
+      // .def("deserialize",
+      //      py::overload_cast<rapidjson::Value &>(
+      //          &BatchOpenCvEncode::deserialize),
+      //      py::arg("json"))
+      // .def("deserialize",
+      //      py::overload_cast<const std::string &>(
+      //          &BatchOpenCvEncode::deserialize),
+      //      py::arg("json_str"));
 }
 
 }  // namespace codec

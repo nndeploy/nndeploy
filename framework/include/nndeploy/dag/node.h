@@ -99,6 +99,8 @@ class NNDEPLOY_CC_API Node {
   std::string getKey();
   void setName(const std::string &name);
   std::string getName();
+  void setDesc(const std::string &desc);
+  std::string getDesc();
 
   void setDynamicInput(bool is_dynamic_input);
   void setDynamicOutput(bool is_dynamic_output);
@@ -258,6 +260,7 @@ class NNDEPLOY_CC_API Node {
    */
   std::string key_;
   std::string name_;
+  std::string desc_;
   base::DeviceType device_type_;
   /**
    * @brief Whether it is an external stream

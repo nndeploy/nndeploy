@@ -3,6 +3,7 @@ import nndeploy.base
 import nndeploy.device
 from typing import List, Union, Optional
 
+from .util import *
 from .base import EdgeTypeInfo
 from .edge import Edge
 from .node import Node, NodeDesc
@@ -42,6 +43,56 @@ class Graph(_C.dag.Graph):
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(output_type)
         return self.set_output_type_info(edge_type_info)
+    
+    def set_edge_queue_max_size(self, queue_max_size: int):
+        """设置边队列最大大小
+        
+        参数:
+            queue_max_size: 队列最大大小
+        """
+        return super().set_edge_queue_max_size(queue_max_size)
+        
+    def get_edge_queue_max_size(self) -> int:
+        """获取边队列最大大小
+        
+        返回:
+            队列最大大小
+        """
+        return super().get_edge_queue_max_size()
+        
+    def set_input(self, input: Edge, index: int = -1):
+        """设置输入边
+        
+        参数:
+            input: 输入边
+            index: 输入边索引,默认为-1
+        """
+        return super().set_input(input, index)
+        
+    def set_output(self, output: Edge, index: int = -1):
+        """设置输出边
+        
+        参数:
+            output: 输出边
+            index: 输出边索引,默认为-1
+        """
+        return super().set_output(output, index)
+        
+    def set_inputs(self, inputs: List[Edge]):
+        """设置输入边列表
+        
+        参数:
+            inputs: 输入边列表
+        """
+        return super().set_inputs(inputs)
+        
+    def set_outputs(self, outputs: List[Edge]):
+        """设置输出边列表
+        
+        参数:
+            outputs: 输出边列表
+        """
+        return super().set_outputs(outputs)
 
     def create_edge(self, name: str) -> Edge:
         """
@@ -121,6 +172,39 @@ class Graph(_C.dag.Graph):
             node: Node 对象
         """
         return super().add_node(node)
+    
+    def get_node(self, name: str) -> Node:
+        """
+        通过名称获取节点
+        
+        参数:
+            name: 节点名称
+        返回:
+            Node 对象
+        """
+        return super().get_node(name)
+        
+    def get_node_by_key(self, key: str) -> Node:
+        """
+        通过key获取节点
+        
+        参数:
+            key: 节点key
+        返回:
+            Node 对象
+        """
+        return super().get_node_by_key(key)
+        
+    def get_nodes_by_key(self, key: str) -> List[Node]:
+        """
+        通过key获取所有匹配的节点
+        
+        参数:
+            key: 节点key
+        返回:
+            Node对象列表
+        """
+        return super().get_nodes_by_key(key)
 
     def set_node_param(self, node_name: str, param: nndeploy.base.Param):
         """
@@ -171,6 +255,15 @@ class Graph(_C.dag.Graph):
             outputs: 输出边名称列表
         """
         return super().update_node_io(node, inputs, outputs)
+    
+    def mark_input_edge(self, inputs: List[Edge]):
+        return super().mark_input_edge(inputs)
+    
+    def mark_output_edge(self, outputs: List[Edge]):
+        return super().mark_output_edge(outputs)
+    
+    def default_param(self):
+        return super().default_param()
 
     def init(self):
         """初始化图"""
@@ -217,9 +310,46 @@ class Graph(_C.dag.Graph):
             追踪后的边列表
         """
         return super().trace(inputs)
+    
+    def get_edge_wrapper(self, edge: Union[Edge, str]) -> EdgeWrapper:
+        return super().get_edge_wrapper(edge)
+    
+    def get_node_wrapper(self, node: Union[Node, str]) -> NodeWrapper:
+        return super().get_node_wrapper(node)
         
     def serialize(self) -> str:
         return super().serialize()
+    
+    def save_file(self, path: str):
+        return super().save_file(path)
         
     def deserialize(self, json_str: str):
         return super().deserialize(json_str)
+    
+    def load_file(self, path: str):
+        return super().load_file(path)
+
+def serialize(graph: Graph) -> str:
+    return _C.dag.serialize(graph)
+
+def save_file(graph: Graph, path: str):
+    """
+    保存图到文件
+    
+    参数:
+        path: 文件路径
+    """
+    return _C.dag.save_file(graph, path)
+
+def deserialize(json_str: str) -> Graph:
+    return _C.dag.deserialize(json_str)
+   
+def load_file(path: str) -> Graph:
+    """
+    从文件加载图
+    
+    参数:
+        path: 文件路径
+    """
+    return _C.dag.load_file(path)
+

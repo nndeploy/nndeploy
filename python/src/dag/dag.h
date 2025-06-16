@@ -185,6 +185,38 @@ class PyGraph : public Base {
  public:
   using Base::Base;  // 继承构造函数
 
+  virtual base::Status setInput(Edge *input, int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_input", setInput, input, index);
+  }
+
+  virtual base::Status setOutput(Edge *output, int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_output", setOutput, output, index);
+  }
+
+  virtual base::Status setInputs(std::vector<Edge *> inputs) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_inputs", setInputs, inputs);
+  }
+
+  virtual base::Status setOutputs(std::vector<Edge *> outputs) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_outputs", setOutputs, outputs);
+  }
+
+  virtual base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_input_shared_ptr", setInputSharedPtr, input, index);
+  }
+
+  virtual base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_output_shared_ptr", setOutputSharedPtr, output, index);
+  }
+
+  virtual base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_inputs_shared_ptr", setInputsSharedPtr, inputs);
+  }
+
+  virtual base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_outputs_shared_ptr", setOutputsSharedPtr, outputs);
+  }
+
   virtual base::Status defaultParam() override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "default_param", defaultParam);
   }
@@ -265,6 +297,42 @@ class PyCompositeNode : public Base {
  public:
   using Base::Base;
 
+  base::Status setInput(Edge *input, int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_input", setInput, input, index);
+  }
+
+  base::Status setOutput(Edge *output, int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_output", setOutput, output, index);
+  }
+
+  base::Status setInputs(std::vector<Edge *> inputs) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_inputs", setInputs, inputs);
+  }
+
+  base::Status setOutputs(std::vector<Edge *> outputs) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_outputs", setOutputs, outputs);
+  }
+
+  // base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1) override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_input_shared_ptr", setInputSharedPtr, input, index);
+  // }
+
+  // base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index = -1) override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_output_shared_ptr", setOutputSharedPtr, output, index);
+  // }
+
+  // base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs) override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_inputs_shared_ptr", setInputsSharedPtr, inputs);
+  // }
+
+  // base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs) override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_outputs_shared_ptr", setOutputsSharedPtr, outputs);
+  // }
+
+  base::Status defaultParam() override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "default_param", defaultParam);
+  }
+
   base::Status init() override {
     PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "init", init);
   }
@@ -275,6 +343,22 @@ class PyCompositeNode : public Base {
 
   base::Status run() override {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, CompositeNode, "run", run);
+  }
+
+  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "serialize", serialize, json, allocator);
+  }
+
+  std::string serialize() override {
+    PYBIND11_OVERRIDE_NAME(std::string, CompositeNode, "serialize", serialize);
+  }
+
+  base::Status deserialize(rapidjson::Value &json) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "deserialize", deserialize, json);
+  }
+
+  base::Status deserialize(const std::string &json_str) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "deserialize", deserialize, json_str);
   }
 };
 
@@ -320,6 +404,14 @@ class PyLoop : public Base {
   base::Status run() override {
     PYBIND11_OVERRIDE_NAME(base::Status, Loop, "run", run);
   }
+
+  // base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, Loop, "serialize", serialize, json, allocator);
+  // }
+
+  // std::string serialize() override {
+  //   PYBIND11_OVERRIDE_NAME(std::string, Loop, "serialize", serialize);
+  // }
 };
 
 template <typename Base = RunningCondition>

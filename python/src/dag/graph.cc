@@ -19,6 +19,21 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_edge_queue_max_size", &Graph::setEdgeQueueMaxSize,
            py::arg("queue_max_size"))
       .def("get_edge_queue_max_size", &Graph::getEdgeQueueMaxSize)
+      .def("set_input", &Graph::setInput, py::arg("input"),
+           py::arg("index") = -1)
+      .def("set_output", &Graph::setOutput, py::arg("output"),
+           py::arg("index") = -1)
+      .def("set_inputs", &Graph::setInputs, py::arg("inputs"))
+      .def("set_outputs", &Graph::setOutputs, py::arg("outputs"))
+      //  .def("set_input_shared_ptr", &Graph::setInputSharedPtr,
+      //  py::arg("input"),
+      //       py::arg("index") = -1)
+      //  .def("set_output_shared_ptr", &Graph::setOutputSharedPtr,
+      //       py::arg("output"), py::arg("index") = -1)
+      //  .def("set_inputs_shared_ptr", &Graph::setInputsSharedPtr,
+      //       py::arg("inputs"))
+      //  .def("set_outputs_shared_ptr", &Graph::setOutputsSharedPtr,
+      //       py::arg("outputs"))
       .def("create_edge", &Graph::createEdge, py::arg("name"),
            py::return_value_policy::reference)
       .def(
@@ -35,15 +50,16 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("create_node",
            py::overload_cast<const std::string &, const std::string &>(
                &Graph::createNode4Py),
-           py::arg("key"), py::arg("name"), py::return_value_policy::take_ownership)
+           py::arg("key"), py::arg("name"),
+           py::return_value_policy::take_ownership)
       .def("create_node",
            py::overload_cast<const NodeDesc &>(&Graph::createNode4Py),
            py::arg("desc"), py::return_value_policy::take_ownership)
       .def(
           "set_node_desc",
           [](Graph &g, Node *node, const NodeDesc &desc) {
-            NNDEPLOY_LOGE("set_node_desc[%s, %p] success!\n",
-                          node->getName().c_str(), node);
+            //   NNDEPLOY_LOGE("set_node_desc[%s, %p] success!\n",
+            //                 node->getName().c_str(), node);
             return g.setNodeDesc(node, desc);
           },
           py::arg("node"), py::arg("desc"))
@@ -54,6 +70,13 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             g.addNode(node, is_external);
           },
           py::keep_alive<1, 2>(), py::arg("node"))
+      .def("get_node", &Graph::getNode, py::arg("name"),
+           py::return_value_policy::reference)
+      //  .def("get_node_shared_ptr", &Graph::getNodeSharedPtr, py::arg("name"))
+      .def("get_node_by_key", &Graph::getNodeByKey, py::arg("key"),
+           py::return_value_policy::reference)
+      .def("get_nodes_by_key", &Graph::getNodesByKey, py::arg("key"),
+           py::return_value_policy::reference)
       .def("set_node_param", &Graph::setNodeParamSharedPtr,
            py::arg("node_name"), py::arg("param"))
       .def("get_node_param", &Graph::getNodeParamSharedPtr,
@@ -86,6 +109,18 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       //   3. 该方法用于追踪图的执行流程,帮助调试和性能分析
       .def("trace", &Graph::trace, py::arg("inputs"), py::keep_alive<1, 2>(),
            py::return_value_policy::reference)
+      .def("get_edge_wrapper",
+           py::overload_cast<Edge *>(&Graph::getEdgeWrapper), py::arg("edge"),
+           py::return_value_policy::reference)
+      .def("get_edge_wrapper",
+           py::overload_cast<const std::string &>(&Graph::getEdgeWrapper),
+           py::arg("name"), py::return_value_policy::reference)
+      .def("get_node_wrapper",
+           py::overload_cast<Node *>(&Graph::getNodeWrapper), py::arg("node"),
+           py::return_value_policy::reference)
+      .def("get_node_wrapper",
+           py::overload_cast<const std::string &>(&Graph::getNodeWrapper),
+           py::arg("name"), py::return_value_policy::reference)
       .def("serialize",
            py::overload_cast<rapidjson::Value &,
                              rapidjson::Document::AllocatorType &>(
@@ -98,6 +133,13 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("deserialize",
            py::overload_cast<const std::string &>(&Graph::deserialize),
            py::arg("json_str"));
+
+  m.def("serialize", py::overload_cast<Graph *>(&serialize), py::arg("graph"));
+  m.def("save_file", &saveFile, py::arg("graph"), py::arg("path"));
+  m.def("deserialize", py::overload_cast<const std::string &>(&deserialize),
+        py::arg("json_str"), py::return_value_policy::take_ownership);
+  m.def("load_file", &loadFile, py::arg("path"),
+        py::return_value_policy::take_ownership);
 }
 
 }  // namespace dag

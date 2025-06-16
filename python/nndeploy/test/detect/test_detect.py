@@ -24,6 +24,7 @@ class YoloDemo(nndeploy.dag.Graph):
         self.yolo = self.create_node("nndeploy::detect::YoloPyGraph", "yolo")
         self.drawbox = self.create_node("nndeploy::detect::DrawBoxNode", "drawbox")
         self.encodec = self.create_node("nndeploy::codec::OpenCvImageEncodeNode", "encodec")
+        self.yolo_v2 = self.create_node("nndeploy::detect::YoloPyGraph", "yolo_v2")
         
     def forward(self, inputs: [nndeploy.dag.Edge] = []):
         decodec_outputs = self.decodec(inputs)
@@ -174,8 +175,8 @@ def test_static_graph_from_json():
     
 if __name__ == "__main__":
     test_yolo()
-    # test_yolo_from_json()
-    # test_static_yolo_from_json()
+    test_yolo_from_json()
+    test_static_yolo_from_json()
     
         
         

@@ -61,7 +61,13 @@ class Node(_C.dag.Node):
         
     def get_name(self) -> str:
         return super().get_name()
-        
+    
+    def set_desc(self, desc: str):
+        return super().set_desc(desc)
+    
+    def get_desc(self) -> str:
+        return super().get_desc()
+            
     def set_graph(self, graph):
         return super().set_graph(graph)
         

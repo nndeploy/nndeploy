@@ -181,7 +181,7 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
 
   virtual base::Status serialize(
       rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
-    base::Status status = dag::Node::serialize(json, allocator);
+    base::Status status = dag::CompositeNode::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       return status;
     }
@@ -192,25 +192,25 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
         allocator);
     return base::kStatusCodeOk;
   }
-  virtual std::string serialize() {
-    rapidjson::Document doc;
-    doc.SetObject();
-    this->serialize(doc, doc.GetAllocator());
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
-    std::string json_str = buffer.GetString();
-    if (node_ == nullptr) {
-      return json_str;
-    }
-    json_str[json_str.length() - 1] = ',';
-    json_str += "\"node_\": ";
-    json_str += node_->serialize();
-    json_str += "}";
-    return json_str;
-  }
+  // virtual std::string serialize() {
+  //   rapidjson::Document doc;
+  //   doc.SetObject();
+  //   this->serialize(doc, doc.GetAllocator());
+  //   rapidjson::StringBuffer buffer;
+  //   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  //   doc.Accept(writer);
+  //   std::string json_str = buffer.GetString();
+  //   if (node_ == nullptr) {
+  //     return json_str;
+  //   }
+  //   json_str[json_str.length() - 1] = ',';
+  //   json_str += "\"node_\": ";
+  //   json_str += node_->serialize();
+  //   json_str += "}";
+  //   return json_str;
+  // }
   virtual base::Status deserialize(rapidjson::Value &json) {
-    base::Status status = dag::Node::deserialize(json);
+    base::Status status = dag::CompositeNode::deserialize(json);
     if (status != base::kStatusCodeOk) {
       return status;
     }
@@ -224,33 +224,33 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
     return base::kStatusCodeOk;
   }
 
-  virtual base::Status deserialize(const std::string &json_str) {
-    rapidjson::Document document;
-    if (document.Parse(json_str.c_str()).HasParseError()) {
-      NNDEPLOY_LOGE("parse json string failed\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    rapidjson::Value &json = document;
-    base::Status status = this->deserialize(json);
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("deserialize failed\n");
-      return status;
-    }
-    if (json.HasMember("node_") && json["node_"].IsObject()) {
-      rapidjson::Value &node_json = json["node_"];
-      rapidjson::StringBuffer buffer;
-      rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-      node_json.Accept(writer);
-      std::string node_json_str = buffer.GetString();
-      base::Status status = node_->deserialize(node_json_str);
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("deserialize node failed\n");
-        return status;
-      }
-      // node_ = node;
-    }
-    return base::kStatusCodeOk;
-  }
+  // virtual base::Status deserialize(const std::string &json_str) {
+  //   rapidjson::Document document;
+  //   if (document.Parse(json_str.c_str()).HasParseError()) {
+  //     NNDEPLOY_LOGE("parse json string failed\n");
+  //     return base::kStatusCodeErrorInvalidParam;
+  //   }
+  //   rapidjson::Value &json = document;
+  //   base::Status status = this->deserialize(json);
+  //   if (status != base::kStatusCodeOk) {
+  //     NNDEPLOY_LOGE("deserialize failed\n");
+  //     return status;
+  //   }
+  //   if (json.HasMember("node_") && json["node_"].IsObject()) {
+  //     rapidjson::Value &node_json = json["node_"];
+  //     rapidjson::StringBuffer buffer;
+  //     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  //     node_json.Accept(writer);
+  //     std::string node_json_str = buffer.GetString();
+  //     base::Status status = node_->deserialize(node_json_str);
+  //     if (status != base::kStatusCodeOk) {
+  //       NNDEPLOY_LOGE("deserialize node failed\n");
+  //       return status;
+  //     }
+  //     // node_ = node;
+  //   }
+  //   return base::kStatusCodeOk;
+  // }
 
  private:
   int batch_size_ = 1;
@@ -400,7 +400,7 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
 
   virtual base::Status serialize(
       rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
-    base::Status status = dag::Node::serialize(json, allocator);
+    base::Status status = dag::CompositeNode::serialize(json, allocator);
     if (status != base::kStatusCodeOk) {
       return status;
     }
@@ -410,25 +410,25 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
         allocator);
     return base::kStatusCodeOk;
   }
-  virtual std::string serialize() {
-    rapidjson::Document doc;
-    doc.SetObject();
-    this->serialize(doc, doc.GetAllocator());
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    doc.Accept(writer);
-    std::string json_str = buffer.GetString();
-    if (node_ == nullptr) {
-      return json_str;
-    }
-    json_str[json_str.length() - 1] = ',';
-    json_str += "\"node_\": ";
-    json_str += node_->serialize();
-    json_str += "}";
-    return json_str;
-  }
+  // virtual std::string serialize() {
+  //   rapidjson::Document doc;
+  //   doc.SetObject();
+  //   this->serialize(doc, doc.GetAllocator());
+  //   rapidjson::StringBuffer buffer;
+  //   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  //   doc.Accept(writer);
+  //   std::string json_str = buffer.GetString();
+  //   if (node_ == nullptr) {
+  //     return json_str;
+  //   }
+  //   json_str[json_str.length() - 1] = ',';
+  //   json_str += "\"node_\": ";
+  //   json_str += node_->serialize();
+  //   json_str += "}";
+  //   return json_str;
+  // }
   virtual base::Status deserialize(rapidjson::Value &json) {
-    base::Status status = dag::Node::deserialize(json);
+    base::Status status = dag::CompositeNode::deserialize(json);
     if (status != base::kStatusCodeOk) {
       return status;
     }
@@ -439,33 +439,33 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
     return base::kStatusCodeOk;
   }
 
-  virtual base::Status deserialize(const std::string &json_str) {
-    rapidjson::Document document;
-    if (document.Parse(json_str.c_str()).HasParseError()) {
-      NNDEPLOY_LOGE("parse json string failed\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    rapidjson::Value &json = document;
-    base::Status status = this->deserialize(json);
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("deserialize failed\n");
-      return status;
-    }
-    if (json.HasMember("node_") && json["node_"].IsObject()) {
-      rapidjson::Value &node_json = json["node_"];
-      rapidjson::StringBuffer buffer;
-      rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-      node_json.Accept(writer);
-      std::string node_json_str = buffer.GetString();
-      base::Status status = node_->deserialize(node_json_str);
-      if (status != base::kStatusCodeOk) {
-        NNDEPLOY_LOGE("deserialize node failed\n");
-        return status;
-      }
-      // node_ = node;
-    }
-    return base::kStatusCodeOk;
-  }
+  // virtual base::Status deserialize(const std::string &json_str) {
+  //   rapidjson::Document document;
+  //   if (document.Parse(json_str.c_str()).HasParseError()) {
+  //     NNDEPLOY_LOGE("parse json string failed\n");
+  //     return base::kStatusCodeErrorInvalidParam;
+  //   }
+  //   rapidjson::Value &json = document;
+  //   base::Status status = this->deserialize(json);
+  //   if (status != base::kStatusCodeOk) {
+  //     NNDEPLOY_LOGE("deserialize failed\n");
+  //     return status;
+  //   }
+  //   if (json.HasMember("node_") && json["node_"].IsObject()) {
+  //     rapidjson::Value &node_json = json["node_"];
+  //     rapidjson::StringBuffer buffer;
+  //     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  //     node_json.Accept(writer);
+  //     std::string node_json_str = buffer.GetString();
+  //     base::Status status = node_->deserialize(node_json_str);
+  //     if (status != base::kStatusCodeOk) {
+  //       NNDEPLOY_LOGE("deserialize node failed\n");
+  //       return status;
+  //     }
+  //     // node_ = node;
+  //   }
+  //   return base::kStatusCodeOk;
+  // }
 
  private:
   std::string node_key_ = "";

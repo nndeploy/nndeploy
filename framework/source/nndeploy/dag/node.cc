@@ -216,6 +216,8 @@ void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
 void Node::setName(const std::string &name) { name_ = name; }
 std::string Node::getName() { return name_; }
+void Node::setDesc(const std::string &desc) { desc_ = desc; }
+std::string Node::getDesc() { return desc_; }
 
 std::vector<std::string> Node::getInputNames() {
   std::vector<std::string> input_names;
@@ -799,6 +801,7 @@ base::Status Node::serialize(rapidjson::Value &json,
   json.AddMember("key_", rapidjson::Value(key_.c_str(), allocator), allocator);
   json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator),
                  allocator);
+  json.AddMember("desc_", rapidjson::Value(desc_.c_str(), allocator), allocator);
   // 写入设备类型
   std::string device_type_str = base::deviceTypeToString(device_type_);
   json.AddMember("device_type_",
@@ -1003,6 +1006,10 @@ base::Status Node::deserialize(rapidjson::Value &json) {
 
   if (json.HasMember("name_") && json["name_"].IsString()) {
     name_ = json["name_"].GetString();
+  }
+
+  if (json.HasMember("desc_") && json["desc_"].IsString()) {
+    desc_ = json["desc_"].GetString();
   }
 
   // 读取设备类型
