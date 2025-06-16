@@ -18,7 +18,7 @@
 namespace nndeploy {
 namespace inference {
 
-class AscendCLInference : public Inference {
+class NNDEPLOY_CC_API AscendCLInference : public Inference {
  public:
   AscendCLInference(base::InferenceType type);
   virtual ~AscendCLInference();

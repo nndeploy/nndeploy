@@ -243,7 +243,7 @@ class TypeOpParamCreator : public OpParamCreator {
  *
  * @return std::map<OpType, std::shared_ptr<OpParamCreator>>&
  */
-std::map<OpType, std::shared_ptr<OpParamCreator>> &getGlobalOpParamCreatorMap();
+extern NNDEPLOY_CC_API std::map<OpType, std::shared_ptr<OpParamCreator>> &getGlobalOpParamCreatorMap();
 
 /**
  * @brief 算子参数的创建类的注册类模板

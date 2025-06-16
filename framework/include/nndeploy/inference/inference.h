@@ -408,7 +408,7 @@ class TypeInferenceCreator : public InferenceCreator {
  *
  * @return std::map<base::InferenceType, std::shared_ptr<InferenceCreator>>&
  */
-std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
+extern NNDEPLOY_CC_API std::map<base::InferenceType, std::shared_ptr<InferenceCreator>> &
 getGlobalInferenceCreatorMap();
 
 /**

@@ -8,7 +8,7 @@
 namespace nndeploy {
 namespace inference {
 
-class PaddleLiteInferenceParam : public InferenceParam {
+class NNDEPLOY_CC_API PaddleLiteInferenceParam : public InferenceParam {
  public:
   PaddleLiteInferenceParam();
   PaddleLiteInferenceParam(base::InferenceType type);

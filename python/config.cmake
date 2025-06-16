@@ -1,4 +1,4 @@
-message(STATUS "python")
+message(STATUS "Building nndeploy python")
 
 # set
 set(SOURCE)
@@ -351,10 +351,23 @@ target_link_libraries(${BINARY} PUBLIC ${THIRD_PARTY_LIBRARY})
 
 # unkown
 if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
-    add_custom_command(TARGET ${BINARY} POST_BUILD 
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION} 
-        ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION})
-        message(STATUS "Copying ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION} to ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}")
+    if (SYSTEM.Windows)
+        # Windows下需要复制Debug/Release目录下的文件
+        add_custom_command(TARGET ${BINARY} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<$<CONFIG:Debug>:${CMAKE_CURRENT_BINARY_DIR}/nndeploy/Debug/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}>
+                $<$<CONFIG:Release>:${CMAKE_CURRENT_BINARY_DIR}/nndeploy/Release/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}>
+                ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
+            COMMENT "Copying Python module to output directory")
+        message(STATUS "Windows: Copying Python module to ${PROJECT_SOURCE_DIR}/python/nndeploy/")
+    else()
+        add_custom_command(TARGET ${BINARY} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
+                ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
+            COMMENT "Copying Python module to output directory")
+        message(STATUS "Unix: Copying ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION} to ${PROJECT_SOURCE_DIR}/python/nndeploy/")
+    endif()
 endif("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
 
 # 生成python pip package安装脚本

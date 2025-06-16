@@ -122,7 +122,7 @@ class NNDEPLOY_CC_API Status {
   int code_ = kStatusCodeOk;
 };
 
-std::string statusCodeToString(StatusCode code);
+extern NNDEPLOY_CC_API std::string statusCodeToString(StatusCode code);
 
 template <typename T>
 class NNDEPLOY_CC_API Maybe {

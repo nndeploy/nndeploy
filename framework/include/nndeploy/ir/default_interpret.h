@@ -8,7 +8,7 @@
 namespace nndeploy {
 namespace ir {
 
-class DefaultInterpret : public Interpret {
+class NNDEPLOY_CC_API DefaultInterpret : public Interpret {
  public:
   /**
    * @brief DefaultInterpret类的默认构造函数

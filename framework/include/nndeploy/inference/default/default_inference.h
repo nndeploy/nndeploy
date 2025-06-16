@@ -19,7 +19,7 @@
 namespace nndeploy {
 namespace inference {
 
-class DefaultInference : public Inference {
+class NNDEPLOY_CC_API DefaultInference : public Inference {
  public:
   DefaultInference(base::InferenceType type);
   virtual ~DefaultInference();
