@@ -69,16 +69,15 @@ class NnDeployServer:
         )
         async def save_json(req: EnqueueRequest, filename: Optional[str] = None):
             # Use the 'name_' field from the incoming JSON or generate a UUID as fallback
-            file_name = filename or req.root.get("name_", str(uuid.uuid4()))  # Default to UUID if 'name_' is not present
+            file_name = filename or req.root.get("name_", str(uuid.uuid4()))
             save_dir = Path(self.args.resources) / "workflow"
             if not save_dir.exists():
                 save_dir.mkdir(parents=True, exist_ok=True)
-            file_path = save_dir / f"{file_name}.json"  # Construct file path
+            file_path = save_dir / f"{file_name}.json"
 
-            # Write the provided JSON data to a file
             try:
                 with open(file_path, 'w') as f:
-                    json.dump(req.root, f, indent=4)  # Save the JSON content with indentation
+                    json.dump(req.root, f, indent=4)
 
                 return {"message": f"JSON saved to {file_path}", "file_path": str(file_path)}
             except Exception as e:

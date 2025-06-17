@@ -173,9 +173,9 @@ def test_static_graph_from_json():
 
     
 if __name__ == "__main__":
-    test_yolo()
+    # test_yolo()
     # test_yolo_from_json()
-    # test_static_yolo_from_json()
+    test_static_yolo_from_json()
     
         
         
