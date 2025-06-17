@@ -97,8 +97,8 @@ base::Status ClassificationPostProcess::run() {
 
 REGISTER_NODE("nndeploy::classification::ClassificationPostProcess",
               ClassificationPostProcess);
-REGISTER_NODE("nndeploy::classification::ClassificationResnetGraph",
-              ClassificationResnetGraph);
+REGISTER_NODE("nndeploy::classification::ClassificationGraph",
+              ClassificationGraph);
 
 }  // namespace classification
 }  // namespace nndeploy

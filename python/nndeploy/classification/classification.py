@@ -7,6 +7,6 @@ import nndeploy.dag
 try:
     ClassificationPostParam = _C.classification.ClassificationPostParam
     ClassificationPostProcess = _C.classification.ClassificationPostProcess
-    ClassificationResnetGraph = _C.classification.ClassificationResnetGraph
+    ClassificationGraph = _C.classification.ClassificationGraph
 except:
     pass

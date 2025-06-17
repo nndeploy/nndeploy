@@ -9,6 +9,7 @@
 #include "nndeploy/device/device.h"
 #include "nndeploy/framework.h"
 #include "nndeploy/thread_pool/thread_pool.h"
+#include "nndeploy/classification/drawlabel.h"
 
 using namespace nndeploy;
 
@@ -16,44 +17,6 @@ DEFINE_bool(is_softmax, false, "is_softmax");
 
 bool isSoftmax() { return FLAGS_is_softmax; }
 
-class DrawLableNode : public dag::Node {
- public:
-  // DrawLableNode(const std::string &name,
-  //               std::initializer_list<dag::Edge *> inputs,
-  //               std::initializer_list<dag::Edge *> outputs)
-  //     : Node(name, inputs, outputs) {}
-  DrawLableNode(const std::string &name, std::vector<dag::Edge *> inputs,
-                std::vector<dag::Edge *> outputs)
-      : Node(name, inputs, outputs) {
-    this->setInputTypeInfo<cv::Mat>();
-    this->setInputTypeInfo<classification::ClassificationResult>();
-    this->setOutputTypeInfo<cv::Mat>();
-  }
-  virtual ~DrawLableNode() {}
-
-  virtual base::Status run() {
-    cv::Mat *input_mat = inputs_[0]->getCvMat(this);
-    classification::ClassificationResult *result =
-        (classification::ClassificationResult *)inputs_[1]->getParam(this);
-    // 遍历每个分类结果
-    cv::Mat *output_mat = new cv::Mat();
-    input_mat->copyTo(*output_mat);
-    for (int i = 0; i < result->labels_.size(); i++) {
-      auto label = result->labels_[i];
-
-      // 将分类结果和置信度转为字符串
-      std::string text = "class: " + std::to_string(label.label_ids_) +
-                         " score: " + std::to_string(label.scores_);
-
-      // 在图像左上角绘制文本
-      cv::putText(*output_mat, text, cv::Point(30, 30 + i * 30),
-                  cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 255, 0), 2);
-    }
-    // cv::imwrite("draw_label_node.jpg", *input_mat);
-    outputs_[0]->set(output_mat, false);
-    return base::kStatusCodeOk;
-  }
-};
 
 class classificationDemo : public dag::Graph {
  public:
@@ -68,10 +31,10 @@ class classificationDemo : public dag::Graph {
                        ->createNode<codec::OpenCvImageDecode>(
                            "decode_node_", codec_flag);
     graph_ =
-        (classification::ClassificationResnetGraph *)this
-            ->createNode<classification::ClassificationResnetGraph>("resnet");
+        (classification::ClassificationGraph *)this
+            ->createNode<classification::ClassificationGraph>("resnet");
     graph_->setInferenceType(inference_type);
-    draw_node_ = (DrawLableNode *)this->createNode<DrawLableNode>(
+    draw_node_ = (classification::DrawLable *)this->createNode<classification::DrawLable>(
         "draw_node", std::vector<dag::Edge *>(), std::vector<dag::Edge *>());
     encode_node_ = (codec::OpenCvImageEncode *)this
                        ->createNode<codec::OpenCvImageEncode>(
@@ -123,8 +86,8 @@ class classificationDemo : public dag::Graph {
  public:
   codec::OpenCvImageDecode *decode_node_;
   codec::OpenCvImageEncode *encode_node_;
-  DrawLableNode *draw_node_;
-  classification::ClassificationResnetGraph *graph_;
+  classification::DrawLable *draw_node_;
+  classification::ClassificationGraph *graph_;
 };
 
 int main(int argc, char *argv[]) {
@@ -134,7 +97,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  // 检测模型的有向无环图graph名称，例如:nndeploy::classification::ClassificationResnetGraph
+  // 检测模型的有向无环图graph名称，例如:nndeploy::classification::ClassificationGraph
   std::string name = demo::getName();
   // 推理后端类型，例如:
   // kInferenceTypeOpenVino / kInferenceTypeTensorRt /
