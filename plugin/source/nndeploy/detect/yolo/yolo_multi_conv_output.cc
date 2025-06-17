@@ -19,9 +19,9 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
-#include "nndeploy/preprocess/cvtcolor_resize_pad.h"
-#include "nndeploy/preprocess/warpaffine_preprocess.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
+#include "nndeploy/preprocess/cvt_resize_pad_norm_trans.h"
+#include "nndeploy/preprocess/warp_affine_cvt_norm_trans.h"
 
 namespace nndeploy {
 namespace detect {
@@ -204,7 +204,7 @@ base::Status YoloMultiConvOutputPostProcess::run() {
 //   40, 255] dag::Edge *edge_stride_32 = graph->createEdge("output2");  // [1,
 //   20, 20, 255]
 
-//   dag::Node *pre = graph->createNode<preprocess::WarpaffinePreprocess>(
+//   dag::Node *pre = graph->createNode<preprocess::WarpAffineCvtNormTrans>(
 //       "preprocess", {input}, {infer_input});
 
 //   infer::Infer *infer =
@@ -217,8 +217,8 @@ base::Status YoloMultiConvOutputPostProcess::run() {
 //       "postprocess", {input, edge_stride_8, edge_stride_16, edge_stride_32},
 //       {output});
 
-//   preprocess::WarpAffineParam *pre_param =
-//       dynamic_cast<preprocess::WarpAffineParam *>(pre->getParam());
+//   preprocess::WarpAffineCvtNormTransParam *pre_param =
+//       dynamic_cast<preprocess::WarpAffineCvtNormTransParam *>(pre->getParam());
 //   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
 //   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
 //   pre_param->interp_type_ = base::kInterpTypeLinear;

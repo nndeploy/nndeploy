@@ -21,7 +21,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 
 namespace nndeploy {
 namespace detect {
@@ -79,8 +79,8 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     key_ = "nndeploy::detect::YoloGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
-    pre_ = dynamic_cast<preprocess::CvtColorResize *>(
-        this->createNode<preprocess::CvtColorResize>("preprocess"));
+    pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(
+        this->createNode<preprocess::CvtResizeNormTrans>("preprocess"));
     infer_ =
         dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
     post_ = dynamic_cast<YoloPostProcess *>(
@@ -93,8 +93,8 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     key_ = "nndeploy::detect::YoloGraph";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
-    pre_ = dynamic_cast<preprocess::CvtColorResize *>(
-        this->createNode<preprocess::CvtColorResize>("preprocess"));
+    pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(
+        this->createNode<preprocess::CvtResizeNormTrans>("preprocess"));
     infer_ =
         dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
     post_ = dynamic_cast<YoloPostProcess *>(
@@ -104,8 +104,8 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
   virtual ~YoloGraph() {}
 
   virtual base::Status defaultParam() {
-    preprocess::CvtclorResizeParam *pre_param =
-        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam *pre_param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -160,8 +160,8 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
   }
 
   base::Status setSrcPixelType(base::PixelType pixel_type) {
-    preprocess::CvtclorResizeParam *param =
-        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam *param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }

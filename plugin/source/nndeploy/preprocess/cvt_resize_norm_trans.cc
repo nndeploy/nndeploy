@@ -1,16 +1,15 @@
-
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 
 #include "nndeploy/preprocess/util.h"
 
 namespace nndeploy {
 namespace preprocess {
 
-base::Status CvtColorResize::run() {
+base::Status CvtResizeNormTrans::run() {
   // NNDEPLOY_LOGE("preprocess start!Thread ID: %d.\n",
   //               std::this_thread::get_id());
-  CvtclorResizeParam *tmp_param =
-      dynamic_cast<CvtclorResizeParam *>(param_.get());
+  CvtResizeNormTransParam *tmp_param =
+      dynamic_cast<CvtResizeNormTransParam *>(param_.get());
   cv::Mat *src = inputs_[0]->getCvMat(this);
   if (src == nullptr) {
     NNDEPLOY_LOGE("src is nullptr.\n");
@@ -67,7 +66,7 @@ base::Status CvtColorResize::run() {
   return base::kStatusCodeOk;
 }
 
-REGISTER_NODE("nndeploy::preprocess::CvtColorResize", CvtColorResize);
+REGISTER_NODE("nndeploy::preprocess::CvtResizeNormTrans", CvtResizeNormTrans);
 
 }  // namespace preprocess
 }  // namespace nndeploy

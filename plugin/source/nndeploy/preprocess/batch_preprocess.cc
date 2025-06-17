@@ -7,6 +7,10 @@ namespace nndeploy {
 namespace preprocess {
 
 base::Status BatchPreprocess::setNodeKey(const std::string &key) {
+  base::Status status = this->deinit();
+  if (status != base::kStatusCodeOk) {
+    return status;
+  }
   node_key_ = key;
   dag::NodeDesc desc(node_key_, "inner_preprocess_node",
                      {"inner_preprocess_node.input"},
@@ -96,7 +100,7 @@ base::Status BatchPreprocess::run() {
 
 base::Status BatchPreprocess::serialize(
     rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
-  base::Status status = dag::Node::serialize(json, allocator);
+  base::Status status = dag::CompositeNode::serialize(json, allocator);
   if (status != base::kStatusCodeOk) {
     return status;
   }
@@ -118,26 +122,26 @@ base::Status BatchPreprocess::serialize(
   return base::kStatusCodeOk;
 }
 
-std::string BatchPreprocess::serialize() {
-  rapidjson::Document doc;
-  doc.SetObject();
-  this->serialize(doc, doc.GetAllocator());
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  doc.Accept(writer);
-  std::string json_str = buffer.GetString();
-  if (node_ == nullptr) {
-    return json_str;
-  }
-  json_str[json_str.length() - 1] = ',';
-  json_str += "\"node_\": ";
-  json_str += node_->serialize();
-  json_str += "}";
-  return json_str;
-}
+// std::string BatchPreprocess::serialize() {
+//   rapidjson::Document doc;
+//   doc.SetObject();
+//   this->serialize(doc, doc.GetAllocator());
+//   rapidjson::StringBuffer buffer;
+//   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+//   doc.Accept(writer);
+//   std::string json_str = buffer.GetString();
+//   if (node_ == nullptr) {
+//     return json_str;
+//   }
+//   json_str[json_str.length() - 1] = ',';
+//   json_str += "\"node_\": ";
+//   json_str += node_->serialize();
+//   json_str += "}";
+//   return json_str;
+// }
 
 base::Status BatchPreprocess::deserialize(rapidjson::Value &json) {
-  base::Status status = dag::Node::deserialize(json);
+  base::Status status = dag::CompositeNode::deserialize(json);
   if (status != base::kStatusCodeOk) {
     return status;
   }
@@ -163,43 +167,43 @@ base::Status BatchPreprocess::deserialize(rapidjson::Value &json) {
   return base::kStatusCodeOk;
 }
 
-base::Status BatchPreprocess::deserialize(const std::string &json_str) {
-  rapidjson::Document document;
-  if (document.Parse(json_str.c_str()).HasParseError()) {
-    NNDEPLOY_LOGE("parse json string failed\n");
-    return base::kStatusCodeErrorInvalidParam;
-  }
-  rapidjson::Value &json = document;
-  base::Status status = this->deserialize(json);
-  if (status != base::kStatusCodeOk) {
-    NNDEPLOY_LOGE("deserialize failed\n");
-    return status;
-  }
-  if (json.HasMember("node_") && json["node_"].IsObject()) {
-    rapidjson::Value &node_json = json["node_"];
-    rapidjson::StringBuffer buffer;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-    node_json.Accept(writer);
-    std::string node_json_str = buffer.GetString();
-    // dag::NodeDesc node_desc;
-    // status = node_desc.deserialize(node_json_str);
-    // if (status != base::kStatusCodeOk) {
-    //   return status;
-    // }
-    // Node *node = this->createNode(node_desc);
-    // if (node == nullptr) {
-    //   NNDEPLOY_LOGE("create node failed\n");
-    //   return base::kStatusCodeErrorInvalidValue;
-    // }
-    base::Status status = node_->deserialize(node_json_str);
-    if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("deserialize node failed\n");
-      return status;
-    }
-    // node_ = node;
-  }
-  return base::kStatusCodeOk;
-}
+// base::Status BatchPreprocess::deserialize(const std::string &json_str) {
+//   rapidjson::Document document;
+//   if (document.Parse(json_str.c_str()).HasParseError()) {
+//     NNDEPLOY_LOGE("parse json string failed\n");
+//     return base::kStatusCodeErrorInvalidParam;
+//   }
+//   rapidjson::Value &json = document;
+//   base::Status status = this->deserialize(json);
+//   if (status != base::kStatusCodeOk) {
+//     NNDEPLOY_LOGE("deserialize failed\n");
+//     return status;
+//   }
+//   if (json.HasMember("node_") && json["node_"].IsObject()) {
+//     rapidjson::Value &node_json = json["node_"];
+//     rapidjson::StringBuffer buffer;
+//     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+//     node_json.Accept(writer);
+//     std::string node_json_str = buffer.GetString();
+//     // dag::NodeDesc node_desc;
+//     // status = node_desc.deserialize(node_json_str);
+//     // if (status != base::kStatusCodeOk) {
+//     //   return status;
+//     // }
+//     // Node *node = this->createNode(node_desc);
+//     // if (node == nullptr) {
+//     //   NNDEPLOY_LOGE("create node failed\n");
+//     //   return base::kStatusCodeErrorInvalidValue;
+//     // }
+//     base::Status status = node_->deserialize(node_json_str);
+//     if (status != base::kStatusCodeOk) {
+//       NNDEPLOY_LOGE("deserialize node failed\n");
+//       return status;
+//     }
+//     // node_ = node;
+//   }
+//   return base::kStatusCodeOk;
+// }
 
 REGISTER_NODE("nndeploy::preprocess::BatchPreprocess", BatchPreprocess);
 

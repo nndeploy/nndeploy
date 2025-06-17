@@ -34,7 +34,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize_pad.h"
+#include "nndeploy/preprocess/cvt_resize_pad_norm_trans.h"
 
 namespace nndeploy {
 namespace matting {

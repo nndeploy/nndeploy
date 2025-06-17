@@ -1,4 +1,4 @@
-#include "nndeploy/preprocess/warpaffine_preprocess.h"
+#include "nndeploy/preprocess/warp_affine_cvt_norm_trans.h"
 
 #include "nndeploy/preprocess/opencv_util.h"
 #include "nndeploy/preprocess/util.h"
@@ -6,8 +6,8 @@
 namespace nndeploy {
 namespace preprocess {
 
-base::Status WarpaffinePreprocess::run() {
-  WarpAffineParam* tmp_param = dynamic_cast<WarpAffineParam*>(param_.get());
+base::Status WarpAffineCvtNormTrans::run() {
+  WarpAffineCvtNormTransParam* tmp_param = dynamic_cast<WarpAffineCvtNormTransParam*>(param_.get());
   cv::Mat* src = inputs_[0]->getCvMat(this);
 
   unsigned char* input_mat = (*src).data;
@@ -81,8 +81,8 @@ base::Status WarpaffinePreprocess::run() {
   return base::kStatusCodeOk;
 }
 
-REGISTER_NODE("nndeploy::preprocess::WarpaffinePreprocess",
-              WarpaffinePreprocess);
+REGISTER_NODE("nndeploy::preprocess::WarpAffineCvtNormTrans",
+              WarpAffineCvtNormTrans);
 
 }  // namespace preprocess
 }  // namespace nndeploy

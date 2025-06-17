@@ -20,8 +20,8 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
-#include "nndeploy/preprocess/cvtcolor_resize_pad.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
+#include "nndeploy/preprocess/cvt_resize_pad_norm_trans.h"
 
 namespace nndeploy {
 namespace detect {
@@ -86,13 +86,13 @@ class NNDEPLOY_CC_API YoloXGraph : public dag::Graph {
                     const dag::NodeDesc &infer_desc,
                     base::InferenceType inference_type,
                     const dag::NodeDesc &post_desc) {
-    pre_ = this->createNode<preprocess::CvtColorResize>(pre_desc);
+    pre_ = this->createNode<preprocess::CvtResizeNormTrans>(pre_desc);
     if (pre_ == nullptr) {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
-    preprocess::CvtclorResizeParam *pre_param =
-        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam *pre_param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;

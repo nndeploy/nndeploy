@@ -19,7 +19,7 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/op/op_softmax.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 
 namespace nndeploy {
 namespace classification {

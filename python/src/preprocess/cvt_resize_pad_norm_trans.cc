@@ -1,4 +1,4 @@
-#include "nndeploy/preprocess/cvtcolor_resize_pad.h"
+#include "nndeploy/preprocess/cvt_resize_pad_norm_trans.h"
 
 #include "nndeploy_api_registry.h"
 
@@ -7,11 +7,11 @@ namespace nndeploy {
 namespace preprocess {
 
 NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
-  py::class_<CvtColorResizePad, dag::Node>(m, "CvtColorResizePad")
+  py::class_<CvtResizePadNormTrans, dag::Node>(m, "CvtResizePadNormTrans")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
                     std::vector<dag::Edge *>>())
-      .def("run", &CvtColorResizePad::run);
+      .def("run", &CvtResizePadNormTrans::run);
 }
 
 }  // namespace preprocess

@@ -48,19 +48,20 @@ class PyBatchPreprocess : public Base {
     PYBIND11_OVERRIDE_NAME(base::Status, BatchPreprocess, "run", run);
   }
 
-  std::string serialize() {
-    PYBIND11_OVERRIDE_NAME(std::string, BatchPreprocess, "serialize",
-                           serialize);
-  }
+  // std::string serialize() {
+  //   PYBIND11_OVERRIDE_NAME(std::string, BatchPreprocess, "serialize",
+  //                          serialize);
+  // }
 
-  base::Status deserialize(const std::string &json_str) {
-    PYBIND11_OVERRIDE_NAME(base::Status, BatchPreprocess, "deserialize",
-                           deserialize, json_str);
-  }
+  // base::Status deserialize(const std::string &json_str) {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, BatchPreprocess, "deserialize",
+  //                          deserialize, json_str);
+  // }
 };
 
 NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
-  py::class_<BatchPreprocess, dag::Node, PyBatchPreprocess<BatchPreprocess>>(
+  py::class_<BatchPreprocess, PyBatchPreprocess<BatchPreprocess>,
+             dag::CompositeNode>(
       m, "BatchPreprocess", py::dynamic_attr())
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
@@ -72,18 +73,18 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
       .def("set_param", &BatchPreprocess::setParamSharedPtr)
       // .def("get_param", &BatchPreprocess::getParam)
       .def("get_param", &BatchPreprocess::getParamSharedPtr)
-      .def("run", &BatchPreprocess::run)
-      .def("serialize", py::overload_cast<rapidjson::Value &,
-                             rapidjson::Document::AllocatorType &>(
-               &BatchPreprocess::serialize),
-           py::arg("json"), py::arg("allocator"))
-      .def("serialize", py::overload_cast<>(&BatchPreprocess::serialize))
-      .def("deserialize",
-           py::overload_cast<rapidjson::Value &>(&BatchPreprocess::deserialize),
-           py::arg("json"))
-      .def("deserialize",
-           py::overload_cast<const std::string &>(&BatchPreprocess::deserialize),
-           py::arg("json_str"));
+      .def("run", &BatchPreprocess::run);
+      // .def("serialize", py::overload_cast<rapidjson::Value &,
+      //                        rapidjson::Document::AllocatorType &>(
+      //          &BatchPreprocess::serialize),
+      //      py::arg("json"), py::arg("allocator"));
+      // .def("serialize", py::overload_cast<>(&BatchPreprocess::serialize))
+      // .def("deserialize",
+      //      py::overload_cast<rapidjson::Value &>(&BatchPreprocess::deserialize),
+      //      py::arg("json"))
+      // .def("deserialize",
+      //      py::overload_cast<const std::string &>(&BatchPreprocess::deserialize),
+      //      py::arg("json_str"));
 }
 
 }  // namespace preprocess

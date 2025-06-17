@@ -27,7 +27,7 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/op/op_softmax.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 
 namespace nndeploy {
 namespace classification {
@@ -84,7 +84,7 @@ dag::Graph *createClassificationResnetGraph(
   dag::Edge *infer_input = graph->createEdge("data");
   dag::Edge *infer_output = graph->createEdge("resnetv17_dense0_fwd");
 
-  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+  dag::Node *pre = graph->createNode<preprocess::CvtResizeNormTrans>(
       "preprocess", input, infer_input);
 
   dag::Node *infer = graph->createInfer<infer::Infer>(
@@ -93,8 +93,8 @@ dag::Graph *createClassificationResnetGraph(
   dag::Node *post = graph->createNode<ClassificationPostProcess>(
       "postprocess", infer_output, output);
 
-  preprocess::CvtclorResizeParam *pre_param =
-      dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+  preprocess::CvtResizeNormTransParam *pre_param =
+      dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre->getParam());
   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
   pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -128,7 +128,7 @@ dag::Graph *createClassificationResnetGraphV0(
     *post_param) {
   dag::Graph *graph = new dag::Graph(name, input, output);
   dag::Node *pre =
-      graph->createNode<preprocess::CvtColorResize>("preprocess", input);
+      graph->createNode<preprocess::CvtResizeNormTrans>("preprocess", input);
   dag::Node *infer = graph->createInfer<infer::Infer>("infer", pre);
   dag::Node *post =
   graph->createNode<ClassificationPostProcess>("postprocess",
@@ -143,11 +143,11 @@ dag::Graph *createClassificationResnetGraphV0(
 // Not recommended to use createGraph method anymore
 dag::Graph *createClassificationResnetGraphOptInterface(
     const std::string &name, dag::Edge *input, dag::Edge *output,
-    NodeDesc<preprocess::CvtColorResizeParam> *pre_desc,
+    NodeDesc<preprocess::CvtResizeNormTransParam> *pre_desc,
     NodeDesc<infer::InferParam> *infer_desc,
     NodeDesc<ClassificationPostParam> *post_desc) {
   dag::Graph *graph = new dag::Graph(name, input, output);
-  dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(pre_desc);
+  dag::Node *pre = graph->createNode<preprocess::CvtResizeNormTrans>(pre_desc);
   dag::Node *infer =
   graph->createInfer<ClassificationResnetGraph>(infer_desc); dag::Node *post
   = graph->createNode<ClassificationPostProcess>(post_desc);
@@ -205,14 +205,14 @@ class ClassificationResnetGraph : public dag::Graph {
    */
   ClassificationResnetGraph(const std::string &name, dag::Edge *input,
                             dag::Edge *output,
-                            preprocess::CvtColorResizeParam *pre_param,
+                            preprocess::CvtResizeNormTransParam *pre_param,
                             infer::InferParam *infer_param,
                             ClassificationPostParam *post_param)
       : dag::Graph(name, input, output) {
     dag::Edge *infer_input = graph->createEdge("data");
     dag::Edge *infer_output = graph->createEdge("resnetv17_dense0_fwd");
 
-    pre_ = graph->createNode<preprocess::CvtColorResize>(
+    pre_ = graph->createNode<preprocess::CvtResizeNormTrans>(
         "preprocess", input, infer_input, pre_param);
 
     infer_ = graph->createInfer<infer::Infer>(
@@ -234,8 +234,8 @@ class ClassificationResnetGraph : public dag::Graph {
    * graph structure
    */
   base::Status setPreParam(base::PixelType pixel_type) {
-    preprocess::CvtColorResizeParam *param =
-        dynamic_cast<preprocess::CvtColorResizeParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam *param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }
@@ -312,12 +312,12 @@ class ClassificationResnetGraph : public dag::Graph {
    */
   ClassificationResnetGraph(const std::string &name, dag::Edge *input,
                             dag::Edge *output,
-                            NodeDesc<preprocess::CvtColorResizeParam>
+                            NodeDesc<preprocess::CvtResizeNormTransParam>
                             *pre_desc, NodeDesc<infer::InferParam>
                             *infer_desc, NodeDesc<ClassificationPostParam>
                             *post_desc)
       : dag::Graph(name, input, output) {
-    pre_ = graph->createNode<preprocess::CvtColorResize>(pre_desc);
+    pre_ = graph->createNode<preprocess::CvtResizeNormTrans>(pre_desc);
     infer_ = graph->createInfer<infer::Infer>(infer_desc);
     post_ = graph->createNode<ClassificationPostProcess>(post_desc);
   }
@@ -331,8 +331,8 @@ class ClassificationResnetGraph : public dag::Graph {
    * graph structure
    */
   base::Status setPreParam(base::PixelType pixel_type) {
-    preprocess::CvtColorResizeParam *param =
-        dynamic_cast<preprocess::CvtColorResizeParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam *param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }
@@ -379,13 +379,13 @@ class ClassificationResnetGraph : public dag::Graph {
    * @param post_desc Postprocessing node descriptor containing output names
    */
   ClassificationResnetGraph(const std::string &name,
-                            NodeDesc<preprocess::CvtColorResizeParam>
+                            NodeDesc<preprocess::CvtResizeNormTransParam>
                             *pre_desc, NodeDesc<infer::InferParam>
                             *infer_desc, NodeDesc<ClassificationPostParam>
                             *post_desc)
       : dag::Graph(name) {
     // Create preprocessing node for image preprocessing
-    pre_ = graph->createNode<preprocess::CvtColorResize>(pre_desc);
+    pre_ = graph->createNode<preprocess::CvtResizeNormTrans>(pre_desc);
     // Create inference node for ResNet model execution
     infer_ = graph->createInfer<ClassificationResnetGraph>(infer_desc);
     // Create postprocessing node for classification results
@@ -398,8 +398,8 @@ class ClassificationResnetGraph : public dag::Graph {
    * @return kStatusCodeOk on success
    */
   base::Status setPreParam(base::PixelType pixel_type) {
-    preprocess::CvtColorResizeParam *param =
-        dynamic_cast<preprocess::CvtColorResizeParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam *param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }
@@ -470,11 +470,11 @@ class ClassificationResnetGraph : public dag::Graph {
    * thresholds etc.
    */
   ClassificationResnetGraph(const std::string &name,
-                            preprocess::CvtColorResizeParam *pre_param,
+                            preprocess::CvtResizeNormTransParam *pre_param,
                             infer::InferParam *infer_param,
                             ClassificationPostParam *post_param)
       : dag::Graph(name) {
-    pre_ = graph->createNode<preprocess::CvtColorResize>(pre_param);
+    pre_ = graph->createNode<preprocess::CvtResizeNormTrans>(pre_param);
     infer_ = graph->createInfer<infer::Infer>(infer_param);
     post_ = graph->createNode<ClassificationPostProcess>(post_param);
   }
@@ -485,8 +485,8 @@ class ClassificationResnetGraph : public dag::Graph {
    * @return kStatusCodeOk on success
    */
   base::Status setPreParam(base::PixelType pixel_type) {
-    preprocess::CvtColorResizeParam *param =
-        dynamic_cast<preprocess::CvtColorResizeParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam *param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }

@@ -1,13 +1,13 @@
-#include "nndeploy/preprocess/cvtcolor_resize_crop.h"
+#include "nndeploy/preprocess/cvt_resize_crop_norm_trans.h"
 
 #include "nndeploy/preprocess/util.h"
 
 namespace nndeploy {
 namespace preprocess {
 
-base::Status CvtColorResizeCrop::run() {
-  CvtColorResizeCropParam *tmp_param =
-      dynamic_cast<CvtColorResizeCropParam *>(param_.get());
+base::Status CvtResizeNormTransCropNormTrans::run() {
+  CvtResizeNormTransCropNormTransParam *tmp_param =
+      dynamic_cast<CvtResizeNormTransCropNormTransParam *>(param_.get());
 
   cv::Mat *src = inputs_[0]->getCvMat(this);
 
@@ -78,12 +78,12 @@ base::Status CvtColorResizeCrop::run() {
                                  tmp_param->std_);
   outputs_[0]->notifyWritten(dst);
 
-  // NNDEPLOY_LOGE("CvtColorResizeCrop run success\n");
+  // NNDEPLOY_LOGE("CvtResizeNormTransCropNormTrans run success\n");
 
   return base::kStatusCodeOk;
 }
 
-REGISTER_NODE("nndeploy::preprocess::CvtColorResizeCrop", CvtColorResizeCrop);
+REGISTER_NODE("nndeploy::preprocess::CvtResizeNormTransCropNormTrans", CvtResizeNormTransCropNormTrans);
 
 }  // namespace preprocess
 }  // namespace nndeploy

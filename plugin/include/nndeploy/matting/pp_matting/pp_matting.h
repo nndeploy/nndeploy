@@ -21,7 +21,7 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/matting/result.h"
-#include "nndeploy/preprocess/cvtcolor_resize_pad.h"
+#include "nndeploy/preprocess/cvt_resize_pad_norm_trans.h"
 
 namespace nndeploy {
 namespace matting {
@@ -77,13 +77,13 @@ class NNDEPLOY_CC_API PPMattingGraph : public dag::Graph {
                     base::InferenceType inference_type,
                     const dag::NodeDesc &post_desc) {
     // Create preprocessing node for matting
-    pre_ = this->createNode<preprocess::CvtColorResizePad>(pre_desc);
+    pre_ = this->createNode<preprocess::CvtResizePadNormTrans>(pre_desc);
     if (pre_ == nullptr) {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
-    preprocess::CvtclorResizePadParam *pre_param =
-        dynamic_cast<preprocess::CvtclorResizePadParam *>(pre_->getParam());
+    preprocess::CvtResizePadNormTransParam *pre_param =
+        dynamic_cast<preprocess::CvtResizePadNormTransParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -135,8 +135,8 @@ class NNDEPLOY_CC_API PPMattingGraph : public dag::Graph {
   }
 
   base::Status setModelHW(int model_h, int model_w) {
-    preprocess::CvtclorResizePadParam *pre_param =
-        dynamic_cast<preprocess::CvtclorResizePadParam *>(pre_->getParam());
+    preprocess::CvtResizePadNormTransParam *pre_param =
+        dynamic_cast<preprocess::CvtResizePadNormTransParam *>(pre_->getParam());
     pre_param->h_ = model_h;
     pre_param->w_ = model_w;
 

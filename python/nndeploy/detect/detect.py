@@ -21,7 +21,7 @@ class YoloPyGraph(nndeploy.dag.Graph):
         self.set_key(type(self).__name__)
         self.set_input_type(np.ndarray)
         self.set_output_type(nndeploy.detect.DetectResult)
-        self.pre = self.create_node("nndeploy::preprocess::CvtColorResize", "pre")
+        self.pre = self.create_node("nndeploy::preprocess::CvtResizeNormTrans", "pre")
         self.infer = self.create_node("nndeploy::infer::Infer", "infer")
         self.post = self.create_node("nndeploy::detect::YoloPostProcess", "post")
         

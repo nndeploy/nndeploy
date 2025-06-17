@@ -85,7 +85,7 @@ class PyBatchOpenCvEncode : public Base {
 
 NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   py::class_<BatchOpenCvDecode, PyBatchOpenCvDecode<BatchOpenCvDecode>,
-             dag::Node>(m, "BatchOpenCvDecode")
+             dag::CompositeNode>(m, "BatchOpenCvDecode")
       .def(py::init<const std::string &>())
       .def("setBatchSize", &BatchOpenCvDecode::setBatchSize)
       .def("setNodeKey", &BatchOpenCvDecode::setNodeKey)
@@ -115,7 +115,7 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
       //      py::arg("json_str"));
 
   py::class_<BatchOpenCvEncode, PyBatchOpenCvEncode<BatchOpenCvEncode>,
-             dag::Node>(m, "BatchOpenCvEncode")
+             dag::CompositeNode>(m, "BatchOpenCvEncode")
       .def(py::init<const std::string &>())
       .def("setNodeKey", &BatchOpenCvEncode::setNodeKey)
       .def("setCodecFlag", &BatchOpenCvEncode::setCodecFlag)

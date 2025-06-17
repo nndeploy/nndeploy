@@ -17,7 +17,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 
 namespace nndeploy {
 namespace detect {
@@ -156,7 +156,7 @@ base::Status YoloMultiOutputPostProcess::run() {
 //   40, 85] dag::Edge *edge_stride_32 = graph->createEdge("401");    // [1, 3,
 //   20, 20, 85]
 
-//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//   dag::Node *pre = graph->createNode<preprocess::CvtResizeNormTrans>(
 //       "preprocess", {input}, {infer_input});
 
 //   infer::Infer *infer =
@@ -169,8 +169,8 @@ base::Status YoloMultiOutputPostProcess::run() {
 //       "postprocess", {edge_stride_8, edge_stride_16, edge_stride_32},
 //       {output});
 
-//   preprocess::CvtclorResizeParam *pre_param =
-//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   preprocess::CvtResizeNormTransParam *pre_param =
+//       dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre->getParam());
 //   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
 //   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
 //   pre_param->interp_type_ = base::kInterpTypeLinear;

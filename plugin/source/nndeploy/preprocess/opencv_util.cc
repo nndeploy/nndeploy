@@ -72,7 +72,7 @@ void OpenCvUtil::warpAffine(cv::InputArray src, cv::OutputArray dst,
 }
 
 void OpenCvUtil::warpAffine(cv::InputArray src, cv::OutputArray dst,
-                            const WarpAffineParam &param) {
+                            const WarpAffineCvtNormTransParam &param) {
   OpenCvUtil::warpAffine(src, dst, (float *)(&param.transform_[0][0]),
                          param.dst_w_, param.dst_h_, param.interp_type_,
                          param.border_type_, param.border_val_);
