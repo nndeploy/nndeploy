@@ -267,10 +267,17 @@ if(ENABLE_NNDEPLOY_PLUGIN_INFER)
 endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
-  file(GLOB_RECURSE PYTHON_TOKENIZER_SOURCE
+  file(GLOB PYTHON_TOKENIZER_SOURCE
     "${ROOT_PATH}/python/src/tokenizer/*.h"
     "${ROOT_PATH}/python/src/tokenizer/*.cc"
   )
+  if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
+    file(GLOB_RECURSE PYTHON_TOKENIZER_CPP_SOURCE
+      "${ROOT_PATH}/python/src/tokenizer/tokenizer_cpp/*.h"
+      "${ROOT_PATH}/python/src/tokenizer/tokenizer_cpp/*.cc"
+    )
+    set(PYTHON_TOKENIZER_SOURCE ${PYTHON_TOKENIZER_SOURCE} ${PYTHON_TOKENIZER_CPP_SOURCE})
+  endif()
   set(SOURCE ${SOURCE} ${PYTHON_TOKENIZER_SOURCE})
 endif()
 

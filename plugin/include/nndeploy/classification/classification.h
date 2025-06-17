@@ -21,8 +21,8 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 #include "nndeploy/preprocess/cvt_resize_crop_norm_trans.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 #include "nndeploy/preprocess/params.h"
 
 namespace nndeploy {
@@ -31,16 +31,21 @@ namespace classification {
 class NNDEPLOY_CC_API ClassificationPostParam : public base::Param {
  public:
   int topk_ = 1;
-
   bool is_softmax_ = true;
-
   int version_ = -1;
+
+  using base::Param::serialize;
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
  public:
   ClassificationPostProcess(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::classification::ClassificationPostProcess";
+    desc_ = "Classification postprocess[device::Tensor->ClassificationResult]";
     param_ = std::make_shared<ClassificationPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<ClassificationResult>();
@@ -50,6 +55,7 @@ class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
                             std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::classification::ClassificationPostProcess";
+    desc_ = "Classification postprocess[device::Tensor->ClassificationResult]";
     param_ = std::make_shared<ClassificationPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<ClassificationResult>();
@@ -71,32 +77,44 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
  public:
   ClassificationResnetGraph(const std::string &name) : dag::Graph(name) {
     key_ = "nndeploy::classification::ClassificationResnetGraph";
+    desc_ =
+        "Classification resnet "
+        "graph[cv::Mat->preprocess->infer->postprocess->ClassificationResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<ClassificationResult>();
+    pre_ = dynamic_cast<preprocess::CvtResizeNormTransCropNormTrans *>(
+        this->createNode<preprocess::CvtResizeNormTransCropNormTrans>(
+            "preprocess"));
+    infer_ =
+        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+    post_ = dynamic_cast<ClassificationPostProcess *>(
+        this->createNode<ClassificationPostProcess>("postprocess"));
   }
   ClassificationResnetGraph(const std::string &name,
                             std::vector<dag::Edge *> inputs,
                             std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::classification::ClassificationResnetGraph";
+    desc_ =
+        "Classification resnet "
+        "graph[cv::Mat->preprocess->infer->postprocess->ClassificationResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<ClassificationResult>();
+    pre_ = dynamic_cast<preprocess::CvtResizeNormTransCropNormTrans *>(
+        this->createNode<preprocess::CvtResizeNormTransCropNormTrans>(
+            "preprocess"));
+    infer_ =
+        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+    post_ = dynamic_cast<ClassificationPostProcess *>(
+        this->createNode<ClassificationPostProcess>("postprocess"));
   }
 
   virtual ~ClassificationResnetGraph() {}
 
-  base::Status make(const dag::NodeDesc &pre_desc,
-                    const dag::NodeDesc &infer_desc,
-                    base::InferenceType inference_type,
-                    const dag::NodeDesc &post_desc) {
-    // Create preprocessing node for image preprocessing
-    // pre_ = this->createNode<preprocess::CvtResizeNormTrans>(pre_desc);
-    // if (pre_ == nullptr) {
-    //   NNDEPLOY_LOGE("Failed to create preprocessing node");
-    //   return base::kStatusCodeErrorInvalidParam;
-    // }
+  virtual base::Status defaultParam() {
     // preprocess::CvtResizeNormTransParam *pre_param =
-    //     dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
+    //     dynamic_cast<preprocess::CvtResizeNormTransParam
+    //     *>(pre_->getParam());
     // pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     // pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     // pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -108,16 +126,9 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     // pre_param->std_[0] = 0.229;
     // pre_param->std_[1] = 0.224;
     // pre_param->std_[2] = 0.225;
-
-    pre_ = this->createNode<preprocess::CvtResizeNormTransCropNormTrans>(
-        "preprocess::CvtResizeNormTransCropNormTrans");
-    if (pre_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create preprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    pre_->setGraph(this);
     preprocess::CvtResizeNormTransCropNormTransParam *pre_param =
-        dynamic_cast<preprocess::CvtResizeNormTransCropNormTransParam *>(pre_->getParam());
+        dynamic_cast<preprocess::CvtResizeNormTransCropNormTransParam *>(
+            pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -132,21 +143,6 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     pre_param->width_ = 224;
     pre_param->height_ = 224;
 
-    // Create inference node for ResNet model execution
-    infer_ = dynamic_cast<infer::Infer *>(
-        this->createNode<infer::Infer>(infer_desc));
-    if (infer_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create inference node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    infer_->setInferenceType(inference_type);
-
-    // Create postprocessing node for classification results
-    post_ = this->createNode<ClassificationPostProcess>(post_desc);
-    if (post_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create postprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
     ClassificationPostParam *post_param =
         dynamic_cast<ClassificationPostParam *>(post_->getParam());
     post_param->topk_ = 1;
@@ -154,74 +150,28 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
-  base::Status make(base::InferenceType inference_type) {
-    // Create preprocessing node for image preprocessing
-    // pre_ = this->createNode<preprocess::CvtResizeNormTrans>(
-    //     "preprocess::CvtResizeNormTrans");
-    // if (pre_ == nullptr) {
-    //   NNDEPLOY_LOGE("Failed to create preprocessing node");
-    //   return base::kStatusCodeErrorInvalidParam;
-    // }
-    // pre_->setGraph(this);
-    // preprocess::CvtResizeNormTransParam *pre_param =
-    //     dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
-    // pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-    // pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-    // pre_param->interp_type_ = base::kInterpTypeLinear;
-    // pre_param->h_ = 224;
-    // pre_param->w_ = 224;
-    // pre_param->mean_[0] = 0.485;
-    // pre_param->mean_[1] = 0.456;
-    // pre_param->mean_[2] = 0.406;
-    // pre_param->std_[0] = 0.229;
-    // pre_param->std_[1] = 0.224;
-    // pre_param->std_[2] = 0.225;
-
-    pre_ = this->createNode<preprocess::CvtResizeNormTransCropNormTrans>(
-        "preprocess::CvtResizeNormTransCropNormTrans");
-    if (pre_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create preprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
+  base::Status make(const dag::NodeDesc &pre_desc,
+                    const dag::NodeDesc &infer_desc,
+                    base::InferenceType inference_type,
+                    const dag::NodeDesc &post_desc) {
+    this->setNodeDesc(pre_, pre_desc);
+    this->setNodeDesc(infer_, infer_desc);
+    this->setNodeDesc(post_, post_desc);
+    this->defaultParam();
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
     }
-    pre_->setGraph(this);
-    preprocess::CvtResizeNormTransCropNormTransParam *pre_param =
-        dynamic_cast<preprocess::CvtResizeNormTransCropNormTransParam *>(pre_->getParam());
-    pre_param->src_pixel_type_ = base::kPixelTypeBGR;
-    pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
-    pre_param->interp_type_ = base::kInterpTypeLinear;
-    pre_param->resize_h_ = 256;
-    pre_param->resize_w_ = 256;
-    pre_param->mean_[0] = 0.485;
-    pre_param->mean_[1] = 0.456;
-    pre_param->mean_[2] = 0.406;
-    pre_param->std_[0] = 0.229;
-    pre_param->std_[1] = 0.224;
-    pre_param->std_[2] = 0.225;
-    pre_param->width_ = 224;
-    pre_param->height_ = 224;
+    return base::kStatusCodeOk;
+  }
 
-    // Create inference node for ResNet model execution
-    infer_ = dynamic_cast<infer::Infer *>(
-        this->createNode<infer::Infer>("infer::Infer"));
-    if (infer_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create inference node");
-      return base::kStatusCodeErrorInvalidParam;
+  base::Status setInferenceType(base::InferenceType inference_type) {
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
     }
-    infer_->setGraph(this);
-    infer_->setInferenceType(inference_type);
-
-    // Create postprocessing node for classification results
-    post_ = this->createNode<ClassificationPostProcess>(
-        "ClassificationPostProcess");
-    if (post_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create postprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    post_->setGraph(this);
-    ClassificationPostParam *post_param =
-        dynamic_cast<ClassificationPostParam *>(post_->getParam());
-    post_param->topk_ = 1;
-
     return base::kStatusCodeOk;
   }
 

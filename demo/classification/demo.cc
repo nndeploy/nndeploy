@@ -70,7 +70,7 @@ class classificationDemo : public dag::Graph {
     graph_ =
         (classification::ClassificationResnetGraph *)this
             ->createNode<classification::ClassificationResnetGraph>("resnet");
-    graph_->make(inference_type);
+    graph_->setInferenceType(inference_type);
     draw_node_ = (DrawLableNode *)this->createNode<DrawLableNode>(
         "draw_node", std::vector<dag::Edge *>(), std::vector<dag::Edge *>());
     encode_node_ = (codec::OpenCvImageEncode *)this

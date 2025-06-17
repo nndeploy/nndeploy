@@ -24,6 +24,28 @@
 namespace nndeploy {
 namespace classification {
 
+base::Status ClassificationPostParam::serialize(
+    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+  json.SetObject();
+  json.AddMember("topk", topk_, allocator);
+  json.AddMember("is_softmax", is_softmax_, allocator);
+  json.AddMember("version", version_, allocator);
+  return base::kStatusCodeOk;
+}
+
+base::Status ClassificationPostParam::deserialize(rapidjson::Value &json) {
+  if (json.HasMember("topk")) {
+    topk_ = json["topk"].GetInt();
+  }
+  if (json.HasMember("is_softmax")) {
+    is_softmax_ = json["is_softmax"].GetBool();
+  }
+  if (json.HasMember("version")) {
+    version_ = json["version"].GetInt();
+  }
+  return base::kStatusCodeOk;
+}
+
 base::Status ClassificationPostProcess::run() {
   ClassificationPostParam *param = (ClassificationPostParam *)param_.get();
 

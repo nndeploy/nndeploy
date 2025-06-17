@@ -226,6 +226,8 @@ class NNDEPLOY_CC_API TokenizerEncode : public dag::Node {
   }
 
   virtual ~TokenizerEncode();
+
+  virtual base::Status run() = 0;
 };
 
 /**
@@ -246,6 +248,8 @@ class NNDEPLOY_CC_API TokenizerDecode : public dag::Node {
   }
 
   virtual ~TokenizerDecode();
+
+  virtual base::Status run() = 0;
 };
 
 }  // namespace tokenizer

@@ -44,7 +44,9 @@ NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
       .def("set_nms_threshold", &YoloGraph::setNmsThreshold)
       .def("set_num_classes", &YoloGraph::setNumClasses)
       .def("set_model_hw", &YoloGraph::setModelHW)
-      .def("set_version", &YoloGraph::setVersion);
+      .def("set_version", &YoloGraph::setVersion)
+      .def("forward", &YoloGraph::forward,
+           py::return_value_policy::reference);
 
   py::class_<YoloXPostParam, base::Param, std::shared_ptr<YoloXPostParam>>(
       m, "YoloXPostParam")
@@ -71,7 +73,8 @@ NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
       .def("make", &YoloXGraph::make)
       .def("set_inference_type", &YoloXGraph::setInferenceType)
       .def("set_infer_param", &YoloXGraph::setInferParam)
-      .def("forward", &YoloXGraph::forward);
+      .def("forward", &YoloXGraph::forward,
+           py::return_value_policy::reference);
 
   py::class_<YoloMultiOutputPostParam, base::Param, std::shared_ptr<YoloMultiOutputPostParam>>(
       m, "YoloMultiOutputPostParam")
@@ -124,7 +127,8 @@ NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
       .def("set_num_classes", &YoloMultiOutputGraph::setNumClasses)
       .def("set_model_hw", &YoloMultiOutputGraph::setModelHW)
       .def("set_version", &YoloMultiOutputGraph::setVersion)
-      .def("forward", &YoloMultiOutputGraph::forward);
+      .def("forward", &YoloMultiOutputGraph::forward,
+           py::return_value_policy::reference);
 
   py::class_<YoloMultiConvOutputPostParam, base::Param, std::shared_ptr<YoloMultiConvOutputPostParam>>(
       m, "YoloMultiConvOutputPostParam")
@@ -179,7 +183,8 @@ NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
       .def("set_num_classes", &YoloMultiConvOutputGraph::setNumClasses)
       .def("set_model_hw", &YoloMultiConvOutputGraph::setModelHW)
       .def("set_version", &YoloMultiConvOutputGraph::setVersion)
-      .def("forward", &YoloMultiConvOutputGraph::forward);
+      .def("forward", &YoloMultiConvOutputGraph::forward,
+           py::return_value_policy::reference);
 }
 
 }  // namespace detect
