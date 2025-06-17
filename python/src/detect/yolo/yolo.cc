@@ -23,9 +23,9 @@ NNDEPLOY_API_PYBIND11_MODULE("detect", m) {
       .def(py::init<const std::string&>())
       .def(py::init<const std::string&, std::vector<dag::Edge*>,
                     std::vector<dag::Edge*>>())
-      .def("run", &YoloPostProcess::run)
-      .def("run_v5v6", &YoloPostProcess::runV5V6)
-      .def("run_v8v11", &YoloPostProcess::runV8V11);
+      .def("run", &YoloPostProcess::run);
+  //   .def("run_v5v6", &YoloPostProcess::runV5V6)
+  //   .def("run_v8v11", &YoloPostProcess::runV8V11);
 
   // 导出YoloGraph类
   py::class_<YoloGraph, dag::Graph>(m, "YoloGraph")

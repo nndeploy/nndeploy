@@ -149,11 +149,11 @@ int main(int argc, char *argv[]) {
   dag::Edge *draw_output = graph->createEdge("draw_output");
   dag::Node *draw_box_node;
   if (name == "nndeploy::detect::YoloMultiConvOutputGraph") {
-    draw_box_node = graph->createNode<detect::YoloMultiConvDrawBoxNode>(
-        "DrawBoxNode", {input, output}, {draw_output});
+    draw_box_node = graph->createNode<detect::YoloMultiConvDrawBox>(
+        "DrawBox", {input, output}, {draw_output});
   } else {
-    draw_box_node = graph->createNode<detect::DrawBoxNode>(
-        "DrawBoxNode", {input, output}, {draw_output});
+    draw_box_node = graph->createNode<detect::DrawBox>(
+        "DrawBox", {input, output}, {draw_output});
   }
 
   // 编码节点

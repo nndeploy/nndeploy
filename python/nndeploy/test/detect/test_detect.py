@@ -23,7 +23,7 @@ class YoloDemo(nndeploy.dag.Graph):
         self.set_output_type(nndeploy.detect.DetectResult)
         self.decodec = nndeploy.codec.OpenCvImageDecode("decodec")
         self.yolo = nndeploy.detect.YoloPyGraph("yolo")
-        self.drawbox = nndeploy.detect.DrawBoxNode("drawbox")
+        self.drawbox = nndeploy.detect.DrawBox("drawbox")
         self.encodec = nndeploy.codec.OpenCvImageEncode("encodec")
         
     def forward(self, inputs: [nndeploy.dag.Edge] = []):

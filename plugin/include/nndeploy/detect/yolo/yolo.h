@@ -52,6 +52,7 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
  public:
   YoloPostProcess(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::detect::YoloPostProcess";
+    desc_ = "YOLO v5/v6/v7/v8/v11 postprocess[device::Tensor->DetectResult]";
     param_ = std::make_shared<YoloPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<DetectResult>();
@@ -60,6 +61,7 @@ class NNDEPLOY_CC_API YoloPostProcess : public dag::Node {
                   std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloPostProcess";
+    desc_ = "YOLO v5/v6/v7/v8/v11 postprocess[device::Tensor->DetectResult]";
     param_ = std::make_shared<YoloPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<DetectResult>();
@@ -77,7 +79,7 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
  public:
   YoloGraph(const std::string &name) : dag::Graph(name) {
     key_ = "nndeploy::detect::YoloGraph";
-    desc_ = "cv::Mat to DetectResult[preprocess->infer->postprocess]";
+    desc_ = "cv::Mat to DetectResult[cv::Mat->preprocess->infer->postprocess->DetectResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
     pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(
@@ -92,6 +94,7 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
             std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloGraph";
+    desc_ = "cv::Mat to DetectResult[cv::Mat->preprocess->infer->postprocess->DetectResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
     pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(

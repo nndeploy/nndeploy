@@ -1,7 +1,7 @@
 
 from .result import DetectResult, DetectBBoxResult
 
-from .drawbox import DrawBoxNode, YoloMultiConvDrawBoxNode
+from .drawbox import DrawBox, YoloMultiConvDrawBox
 
 from .detect import YoloPostParam, YoloPostProcess, YoloGraph
 
