@@ -11,6 +11,7 @@ class NNDEPLOY_CC_API OpenCvImageDecodeNode : public DecodeNode {
  public:
   OpenCvImageDecodeNode(const std::string &name) : DecodeNode(name) {
     key_ = "nndeploy::codec::OpenCvImageDecodeNode";
+    desc_ = "Decode image using OpenCV, from image path to cv::Mat, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvImageDecodeNode(const std::string &name,
@@ -18,11 +19,13 @@ class NNDEPLOY_CC_API OpenCvImageDecodeNode : public DecodeNode {
                         std::vector<dag::Edge *> outputs)
       : DecodeNode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvImageDecodeNode";
+    desc_ = "Decode image using OpenCV, from image path to cv::Mat, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvImageDecodeNode(const std::string &name, base::CodecFlag flag)
       : DecodeNode(name, flag) {
     key_ = "nndeploy::codec::OpenCvImageDecodeNode";
+    desc_ = "Decode image using OpenCV, from image path to cv::Mat, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvImageDecodeNode(const std::string &name,
@@ -30,6 +33,7 @@ class NNDEPLOY_CC_API OpenCvImageDecodeNode : public DecodeNode {
                         std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : DecodeNode(name, inputs, outputs, flag) {
     key_ = "nndeploy::codec::OpenCvImageDecodeNode";
+    desc_ = "Decode image using OpenCV, from image path to cv::Mat, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
 

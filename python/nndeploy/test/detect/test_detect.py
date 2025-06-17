@@ -7,6 +7,7 @@ import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
 import nndeploy.detect
+import nndeploy.codec
 import torch
 
 import sys
@@ -16,15 +17,14 @@ import sys
 
 # 创建的所有节点都最好都是成员变量self.xxx，不要在forward中创建节点
 class YoloDemo(nndeploy.dag.Graph):
-    def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
+    def __init__(self, name = "", inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
         self.set_key("YoloDemo")
         self.set_output_type(nndeploy.detect.DetectResult)
-        self.decodec = self.create_node("nndeploy::codec::OpenCvImageDecodeNode", "decodec")
-        self.yolo = self.create_node("nndeploy::detect::YoloPyGraph", "yolo")
-        self.drawbox = self.create_node("nndeploy::detect::DrawBoxNode", "drawbox")
-        self.encodec = self.create_node("nndeploy::codec::OpenCvImageEncodeNode", "encodec")
-        self.yolo_v2 = self.create_node("nndeploy::detect::YoloPyGraph", "yolo_v2")
+        self.decodec = nndeploy.codec.OpenCvImageDecodeNode("decodec")
+        self.yolo = nndeploy.detect.YoloPyGraph("yolo")
+        self.drawbox = nndeploy.detect.DrawBoxNode("drawbox")
+        self.encodec = nndeploy.codec.OpenCvImageEncodeNode("encodec")
         
     def forward(self, inputs: [nndeploy.dag.Edge] = []):
         decodec_outputs = self.decodec(inputs)
@@ -33,15 +33,15 @@ class YoloDemo(nndeploy.dag.Graph):
         self.encodec(drawbox_outputs)
         return yolo_outputs
     
-    def make(self, decodec_desc, yolo_desc, drawbox_desc, encodec_desc):
-        self.set_node_desc(self.decodec, decodec_desc)
-        self.set_node_desc(self.yolo, yolo_desc)
-        self.set_node_desc(self.drawbox, drawbox_desc)
-        self.set_node_desc(self.encodec, encodec_desc)
-        return nndeploy.base.StatusCode.Ok
+    # def make(self, decodec_desc, yolo_desc, drawbox_desc, encodec_desc):
+    #     self.set_node_desc(self.decodec, decodec_desc)
+    #     self.set_node_desc(self.yolo, yolo_desc)
+    #     self.set_node_desc(self.drawbox, drawbox_desc)
+    #     self.set_node_desc(self.encodec, encodec_desc)
+    #     return nndeploy.base.StatusCode.Ok
     
-    def get_yolo(self):
-        return self.yolo
+    # def get_yolo(self):
+    #     return self.yolo
     
     def set_size(self, size):
         self.decodec.set_size(size)
@@ -175,8 +175,8 @@ def test_static_graph_from_json():
     
 if __name__ == "__main__":
     test_yolo()
-    test_yolo_from_json()
-    test_static_yolo_from_json()
+    # test_yolo_from_json()
+    # test_static_yolo_from_json()
     
         
         

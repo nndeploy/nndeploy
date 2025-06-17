@@ -79,17 +79,9 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
   m.def("create_decode_node", &createDecodeNode, py::arg("type"),
         py::arg("flag"), py::arg("name"), py::arg("output"),
         py::return_value_policy::take_ownership);
-  // m.def("create_decode_node_shared_ptr", &createDecodeNodeSharedPtr,
-  // py::arg("type"),
-  //       py::arg("flag"), py::arg("name"), py::arg("output"),
-  //       py::return_value_policy::reference);
   m.def("create_encode_node", &createEncodeNode, py::arg("type"),
         py::arg("flag"), py::arg("name"), py::arg("input"),
         py::return_value_policy::take_ownership);
-  // m.def("create_encode_node_shared_ptr", &createEncodeNodeSharedPtr,
-  // py::arg("type"),
-  //       py::arg("flag"), py::arg("name"), py::arg("input"),
-  //       py::return_value_policy::reference);
 }
 
 }  // namespace codec

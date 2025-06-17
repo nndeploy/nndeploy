@@ -18,7 +18,7 @@ YoloGraph = _C.detect.YoloGraph
 class YoloPyGraph(nndeploy.dag.Graph):
     def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
-        self.set_key("nndeploy::detect::YoloPyGraph")
+        self.set_key(type(self).__name__)
         self.set_input_type(np.ndarray)
         self.set_output_type(nndeploy.detect.DetectResult)
         self.pre = self.create_node("nndeploy::preprocess::CvtColorResize", "pre")
