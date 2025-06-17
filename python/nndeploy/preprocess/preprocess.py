@@ -19,7 +19,7 @@ class ConvertTo(_C.preprocess.ConvertTo):
         return super().run()
       
 
-class CvtColorBn(_C.preprocess.CvtColorBn):
+class CvtNormTrans(_C.preprocess.CvtNormTrans):
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         if inputs is [] and outputs is []:
             super().__init__(name)
@@ -30,7 +30,7 @@ class CvtColorBn(_C.preprocess.CvtColorBn):
         return super().run()
       
 
-class CvtColorResizeCrop(_C.preprocess.CvtColorResizeCrop):
+class CvtResizeNormTransCropNormTrans(_C.preprocess.CvtResizeNormTransCropNormTrans):
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         if inputs is [] and outputs is []:
             super().__init__(name)
@@ -41,7 +41,7 @@ class CvtColorResizeCrop(_C.preprocess.CvtColorResizeCrop):
         return super().run()
     
 
-class CvtColorResizePad(_C.preprocess.CvtColorResizePad):
+class CvtResizePadNormTrans(_C.preprocess.CvtResizePadNormTrans):
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         if inputs is [] and outputs is []:
             super().__init__(name)
@@ -52,7 +52,7 @@ class CvtColorResizePad(_C.preprocess.CvtColorResizePad):
         return super().run()
       
       
-class CvtColorResize(_C.preprocess.CvtColorResize):
+class CvtResizeNormTrans(_C.preprocess.CvtResizeNormTrans):
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         if inputs is [] and outputs is []:
             super().__init__(name)

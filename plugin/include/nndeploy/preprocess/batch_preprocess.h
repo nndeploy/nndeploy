@@ -27,6 +27,7 @@ class NNDEPLOY_CC_API BatchPreprocess : public dag::CompositeNode {
  public:
   BatchPreprocess(const std::string &name) : dag::CompositeNode(name) {
     key_ = "nndeploy::preprocess::BatchPreprocess";
+    desc_ = "std::vector<cv::Mat> to device::Tensor, support all preprocess nodes[cv::Mat->device::Tensor]";
     this->setInputTypeInfo<std::vector<cv::Mat>>();
     this->setOutputTypeInfo<device::Tensor>();
   }
@@ -34,6 +35,7 @@ class NNDEPLOY_CC_API BatchPreprocess : public dag::CompositeNode {
                  std::vector<dag::Edge *> outputs)
       : dag::CompositeNode(name, inputs, outputs) {
     key_ = "nndeploy::preprocess::BatchPreprocess";
+    desc_ = "std::vector<cv::Mat> to device::Tensor, support all preprocess nodes[cv::Mat->device::Tensor]";
     this->setInputTypeInfo<std::vector<cv::Mat>>();
     this->setOutputTypeInfo<device::Tensor>();
   }
@@ -52,9 +54,9 @@ class NNDEPLOY_CC_API BatchPreprocess : public dag::CompositeNode {
 
   virtual base::Status serialize(rapidjson::Value &json,
                                  rapidjson::Document::AllocatorType &allocator);
-  virtual std::string serialize();
+  // virtual std::string serialize();
   virtual base::Status deserialize(rapidjson::Value &json);
-  virtual base::Status deserialize(const std::string &json_str);
+  // virtual base::Status deserialize(const std::string &json_str);
 
  private:
   base::DataFormat data_format_ = base::kDataFormatNCHW;

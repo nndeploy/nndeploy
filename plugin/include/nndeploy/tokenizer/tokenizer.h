@@ -127,11 +127,80 @@ class NNDEPLOY_CC_API TokenizerPraram : public base::Param {
   std::string added_tokens_;
 
   int max_length_ = 77;
+
+  using base::Param::serialize;
+  virtual base::Status serialize(
+      rapidjson::Value& json,
+      rapidjson::Document::AllocatorType& allocator) override {
+    json.AddMember("is_path_", is_path_, allocator);
+    std::string tokenizer_type_str = tokenizerTypeToString(tokenizer_type_);
+    json.AddMember("tokenizer_type_", rapidjson::Value(tokenizer_type_str.c_str(), allocator), allocator);
+    json.AddMember("json_blob_", rapidjson::Value(json_blob_.c_str(), allocator), allocator);
+    json.AddMember("model_blob_", rapidjson::Value(model_blob_.c_str(), allocator), allocator);
+    json.AddMember("vocab_blob_", rapidjson::Value(vocab_blob_.c_str(), allocator), allocator);
+    json.AddMember("merges_blob_", rapidjson::Value(merges_blob_.c_str(), allocator), allocator);
+    json.AddMember("added_tokens_", rapidjson::Value(added_tokens_.c_str(), allocator), allocator);
+    json.AddMember("max_length_", max_length_, allocator);
+    return base::kStatusCodeOk;
+
+  }
+
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value& json) override {
+    if (json.HasMember("is_path_") && json["is_path_"].IsBool()) {
+      is_path_ = json["is_path_"].GetBool();
+    }
+    if (json.HasMember("tokenizer_type_") && json["tokenizer_type_"].IsString()) {
+      tokenizer_type_ = stringToTokenizerType(json["tokenizer_type_"].GetString());
+    }
+    if (json.HasMember("json_blob_") && json["json_blob_"].IsString()) {
+      json_blob_ = json["json_blob_"].GetString();
+    }
+    if (json.HasMember("model_blob_") && json["model_blob_"].IsString()) {
+      model_blob_ = json["model_blob_"].GetString();
+    }
+    if (json.HasMember("vocab_blob_") && json["vocab_blob_"].IsString()) {
+      vocab_blob_ = json["vocab_blob_"].GetString();
+    }
+    if (json.HasMember("merges_blob_") && json["merges_blob_"].IsString()) {
+      merges_blob_ = json["merges_blob_"].GetString();
+    }
+    if (json.HasMember("added_tokens_") && json["added_tokens_"].IsString()) {
+      added_tokens_ = json["added_tokens_"].GetString();
+    }
+    if (json.HasMember("max_length_") && json["max_length_"].IsInt()) {
+      max_length_ = json["max_length_"].GetInt();
+    }
+    return base::kStatusCodeOk;
+  }
 };
 
 class NNDEPLOY_CC_API TokenizerText : public base::Param {
  public:
   std::vector<std::string> texts_;
+
+  using base::Param::serialize; 
+  virtual base::Status serialize(
+      rapidjson::Value& json,
+      rapidjson::Document::AllocatorType& allocator) override {
+    rapidjson::Value texts_json(rapidjson::kArrayType);
+    for (const auto& text : texts_) {
+      texts_json.PushBack(rapidjson::Value(text.c_str(), allocator), allocator);
+    }
+    json.AddMember("texts_", texts_json, allocator);
+    return base::kStatusCodeOk;
+  }
+
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value& json) override {
+    if (json.HasMember("texts_") && json["texts_"].IsArray()) {
+      texts_.clear();
+      for (const auto& text : json["texts_"].GetArray()) {
+        texts_.push_back(text.GetString());
+      }
+    }
+    return base::kStatusCodeOk;
+  }
 };
 
 class NNDEPLOY_CC_API TokenizerIds : public base::Param {
@@ -157,6 +226,8 @@ class NNDEPLOY_CC_API TokenizerEncode : public dag::Node {
   }
 
   virtual ~TokenizerEncode();
+
+  virtual base::Status run() = 0;
 };
 
 /**
@@ -177,6 +248,8 @@ class NNDEPLOY_CC_API TokenizerDecode : public dag::Node {
   }
 
   virtual ~TokenizerDecode();
+
+  virtual base::Status run() = 0;
 };
 
 }  // namespace tokenizer

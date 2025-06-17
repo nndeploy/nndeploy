@@ -20,53 +20,53 @@
 namespace nndeploy {
 namespace codec {
 
-class NNDEPLOY_CC_API DecodeNode : public dag::Node {
+class NNDEPLOY_CC_API Decode : public dag::Node {
  public:
-  DecodeNode(const std::string &name) : dag::Node(name) {
+  Decode(const std::string &name) : dag::Node(name) {
     node_type_ = dag::NodeType::kNodeTypeInput;
   }
-  DecodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs)
+  Decode(const std::string &name, std::vector<dag::Edge *> inputs,
+         std::vector<dag::Edge *> outputs)
       : dag::Node(name) {
     node_type_ = dag::NodeType::kNodeTypeInput;
     // if (inputs.size() > 0) {
-    //   NNDEPLOY_LOGE("DecodeNode not support inputs");
+    //   NNDEPLOY_LOGE("Decode not support inputs");
     //   constructed_ = false;
     //   return;
     // }
     // if (outputs.size() > 1) {
-    //   NNDEPLOY_LOGE("DecodeNode only support one output");
+    //   NNDEPLOY_LOGE("Decode only support one output");
     //   constructed_ = false;
     //   return;
     // }
     inputs_ = inputs;
     outputs_ = outputs;
   }
-  DecodeNode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
+  Decode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
     flag_ = flag;
     node_type_ = dag::NodeType::kNodeTypeInput;
     // this->setOutputTypeInfo<cv::Mat>();
   }
-  DecodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs, base::CodecFlag flag)
+  Decode(const std::string &name, std::vector<dag::Edge *> inputs,
+         std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : dag::Node(name) {
     flag_ = flag;
     node_type_ = dag::NodeType::kNodeTypeInput;
     // this->setOutputTypeInfo<cv::Mat>();
     // if (inputs.size() > 0) {
-    //   NNDEPLOY_LOGE("DecodeNode not support inputs");
+    //   NNDEPLOY_LOGE("Decode not support inputs");
     //   constructed_ = false;
     //   return;
     // }
     // if (outputs.size() > 1) {
-    //   NNDEPLOY_LOGE("DecodeNode only support one output");
+    //   NNDEPLOY_LOGE("Decode only support one output");
     //   constructed_ = false;
     //   return;
     // }
     inputs_ = inputs;
     outputs_ = outputs;
   }
-  virtual ~DecodeNode() {}
+  virtual ~Decode() {}
 
   base::Status setCodecFlag(base::CodecFlag flag) {
     flag_ = flag;
@@ -133,7 +133,10 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
       this->setPath(path);
     }
     if (json.HasMember("size_") && json["size_"].IsInt()) {
-      this->setSize(json["size_"].GetInt());
+      int size = json["size_"].GetInt();
+      if (size > 0) {
+        this->setSize(size);
+      }
     }
     // if (json.HasMember("fps_") && json["fps_"].IsDouble()) {
     //   // this->setFps(json["fps_"].GetDouble());
@@ -159,61 +162,61 @@ class NNDEPLOY_CC_API DecodeNode : public dag::Node {
   int width_ = 0;
   int height_ = 0;
   int index_ = 0;
-  // 
+  //
   std::mutex path_mutex_;
   std::condition_variable path_cv_;
-  bool path_ready_ = false; 
+  bool path_ready_ = false;
 };
 
-class NNDEPLOY_CC_API EncodeNode : public dag::Node {
+class NNDEPLOY_CC_API Encode : public dag::Node {
  public:
-  EncodeNode(const std::string &name) : dag::Node(name) {
+  Encode(const std::string &name) : dag::Node(name) {
     node_type_ = dag::NodeType::kNodeTypeOutput;
     // this->setInputTypeInfo<cv::Mat>();
   }
-  EncodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs)
+  Encode(const std::string &name, std::vector<dag::Edge *> inputs,
+         std::vector<dag::Edge *> outputs)
       : dag::Node(name) {
     // this->setInputTypeInfo<cv::Mat>();
     node_type_ = dag::NodeType::kNodeTypeOutput;
     // if (inputs.size() > 1) {
-    //   NNDEPLOY_LOGE("EncodeNode only support one input");
+    //   NNDEPLOY_LOGE("Encode only support one input");
     //   constructed_ = false;
     //   return;
     // }
     // if (outputs.size() > 0) {
-    //   NNDEPLOY_LOGE("EncodeNode not support outputs");
+    //   NNDEPLOY_LOGE("Encode not support outputs");
     //   constructed_ = false;
     //   return;
     // }
     inputs_ = inputs;
     outputs_ = outputs;
   }
-  EncodeNode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
+  Encode(const std::string &name, base::CodecFlag flag) : dag::Node(name) {
     flag_ = flag;
     node_type_ = dag::NodeType::kNodeTypeOutput;
     // this->setInputTypeInfo<cv::Mat>();
   }
-  EncodeNode(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs, base::CodecFlag flag)
+  Encode(const std::string &name, std::vector<dag::Edge *> inputs,
+         std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : dag::Node(name) {
     flag_ = flag;
     // this->setInputTypeInfo<cv::Mat>();
     node_type_ = dag::NodeType::kNodeTypeOutput;
     // if (inputs.size() > 1) {
-    //   NNDEPLOY_LOGE("EncodeNode only support one input");
+    //   NNDEPLOY_LOGE("Encode only support one input");
     //   constructed_ = false;
     //   return;
     // }
     // if (outputs.size() > 0) {
-    //   NNDEPLOY_LOGE("EncodeNode not support outputs");
+    //   NNDEPLOY_LOGE("Encode not support outputs");
     //   constructed_ = false;
     //   return;
     // }
     inputs_ = inputs;
     outputs_ = outputs;
   }
-  virtual ~EncodeNode() {};
+  virtual ~Encode() {};
 
   base::Status setCodecFlag(base::CodecFlag flag) {
     flag_ = flag;
@@ -297,7 +300,10 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
       setHeight(json["height_"].GetInt());
     }
     if (json.HasMember("size_") && json["size_"].IsInt()) {
-      setSize(json["size_"].GetInt());
+      int size = json["size_"].GetInt();
+      if (size > 0) {
+        this->setSize(size);
+      }
     }
     return status;
   }
@@ -316,74 +322,72 @@ class NNDEPLOY_CC_API EncodeNode : public dag::Node {
   int index_ = 0;
 };
 
-using createDecodeNodeFunc = std::function<DecodeNode *(
+using createDecodeFunc = std::function<Decode *(
     base::CodecFlag flag, const std::string &name, dag::Edge *output)>;
-using createDecodeNodeSharedPtrFunc = std::function<std::shared_ptr<DecodeNode>(
+using createDecodeSharedPtrFunc = std::function<std::shared_ptr<Decode>(
     base::CodecFlag flag, const std::string &name, dag::Edge *output)>;
 
-std::map<base::CodecType, createDecodeNodeFunc> &
-getGlobalCreateDecodeNodeFuncMap();
+std::map<base::CodecType, createDecodeFunc> &getGlobalCreateDecodeFuncMap();
 
-std::map<base::CodecType, createDecodeNodeSharedPtrFunc> &
-getGlobalCreateDecodeNodeSharedPtrFuncMap();
+std::map<base::CodecType, createDecodeSharedPtrFunc> &
+getGlobalCreateDecodeSharedPtrFuncMap();
 
-class TypeCreatelDecodeNodeRegister {
+class TypeCreatelDecodeRegister {
  public:
-  explicit TypeCreatelDecodeNodeRegister(base::CodecType type,
-                                         createDecodeNodeFunc func) {
-    getGlobalCreateDecodeNodeFuncMap()[type] = func;
+  explicit TypeCreatelDecodeRegister(base::CodecType type,
+                                     createDecodeFunc func) {
+    getGlobalCreateDecodeFuncMap()[type] = func;
   }
 };
 
-class TypeCreatelDecodeNodeSharedPtrRegister {
+class TypeCreatelDecodeSharedPtrRegister {
  public:
-  explicit TypeCreatelDecodeNodeSharedPtrRegister(
-      base::CodecType type, createDecodeNodeSharedPtrFunc func) {
-    getGlobalCreateDecodeNodeSharedPtrFuncMap()[type] = func;
+  explicit TypeCreatelDecodeSharedPtrRegister(base::CodecType type,
+                                              createDecodeSharedPtrFunc func) {
+    getGlobalCreateDecodeSharedPtrFuncMap()[type] = func;
   }
 };
-extern NNDEPLOY_CC_API DecodeNode *createDecodeNode(base::CodecType type,
-                                                    base::CodecFlag flag,
-                                                    const std::string &name,
-                                                    dag::Edge *output);
+extern NNDEPLOY_CC_API Decode *createDecode(base::CodecType type,
+                                            base::CodecFlag flag,
+                                            const std::string &name,
+                                            dag::Edge *output);
 
-extern NNDEPLOY_CC_API std::shared_ptr<DecodeNode> createDecodeNodeSharedPtr(
+extern NNDEPLOY_CC_API std::shared_ptr<Decode> createDecodeSharedPtr(
     base::CodecType type, base::CodecFlag flag, const std::string &name,
     dag::Edge *output);
 
-using createEncodeNodeFunc = std::function<EncodeNode *(
+using createEncodeFunc = std::function<Encode *(
     base::CodecFlag flag, const std::string &name, dag::Edge *input)>;
-using createEncodeNodeSharedPtrFunc = std::function<std::shared_ptr<EncodeNode>(
+using createEncodeSharedPtrFunc = std::function<std::shared_ptr<Encode>(
     base::CodecFlag flag, const std::string &name, dag::Edge *input)>;
 
-std::map<base::CodecType, createEncodeNodeFunc> &
-getGlobalCreateEncodeNodeFuncMap();
+std::map<base::CodecType, createEncodeFunc> &getGlobalCreateEncodeFuncMap();
 
-std::map<base::CodecType, createEncodeNodeSharedPtrFunc> &
-getGlobalCreateEncodeNodeSharedPtrFuncMap();
+std::map<base::CodecType, createEncodeSharedPtrFunc> &
+getGlobalCreateEncodeSharedPtrFuncMap();
 
-class TypeCreatelEncodeNodeRegister {
+class TypeCreatelEncodeRegister {
  public:
-  explicit TypeCreatelEncodeNodeRegister(base::CodecType type,
-                                         createEncodeNodeFunc func) {
-    getGlobalCreateEncodeNodeFuncMap()[type] = func;
+  explicit TypeCreatelEncodeRegister(base::CodecType type,
+                                     createEncodeFunc func) {
+    getGlobalCreateEncodeFuncMap()[type] = func;
   }
 };
 
-class TypeCreatelEncodeNodeSharedPtrRegister {
+class TypeCreatelEncodeSharedPtrRegister {
  public:
-  explicit TypeCreatelEncodeNodeSharedPtrRegister(
-      base::CodecType type, createEncodeNodeSharedPtrFunc func) {
-    getGlobalCreateEncodeNodeSharedPtrFuncMap()[type] = func;
+  explicit TypeCreatelEncodeSharedPtrRegister(base::CodecType type,
+                                              createEncodeSharedPtrFunc func) {
+    getGlobalCreateEncodeSharedPtrFuncMap()[type] = func;
   }
 };
 
-extern NNDEPLOY_CC_API EncodeNode *createEncodeNode(base::CodecType type,
-                                                    base::CodecFlag flag,
-                                                    const std::string &name,
-                                                    dag::Edge *input);
+extern NNDEPLOY_CC_API Encode *createEncode(base::CodecType type,
+                                            base::CodecFlag flag,
+                                            const std::string &name,
+                                            dag::Edge *input);
 
-extern NNDEPLOY_CC_API std::shared_ptr<EncodeNode> createEncodeNodeSharedPtr(
+extern NNDEPLOY_CC_API std::shared_ptr<Encode> createEncodeSharedPtr(
     base::CodecType type, base::CodecFlag flag, const std::string &name,
     dag::Edge *input);
 

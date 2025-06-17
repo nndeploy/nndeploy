@@ -53,6 +53,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_key", &Node::getKey)
       .def("set_name", &Node::setName)
       .def("get_name", &Node::getName)
+      .def("set_desc", &Node::setDesc, py::arg("desc"))
+      .def("get_desc", &Node::getDesc)
       .def("set_dynamic_input", &Node::setDynamicInput, py::arg("is_dynamic_input"))
       .def("set_dynamic_output", &Node::setDynamicOutput, py::arg("is_dynamic_output"))
       .def("is_dynamic_input", &Node::isDynamicInput)

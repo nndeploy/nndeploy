@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
   }
 
   // 解码节点
-  codec::DecodeNode *decode_node = codec::createDecodeNode(
+  codec::Decode *decode_node = codec::createDecode(
       base::kCodecTypeOpenCV, codec_flag, "decode_node", input);
   graph->addNode(decode_node);
 
@@ -149,15 +149,15 @@ int main(int argc, char *argv[]) {
   dag::Edge *draw_output = graph->createEdge("draw_output");
   dag::Node *draw_box_node;
   if (name == "nndeploy::detect::YoloMultiConvOutputGraph") {
-    draw_box_node = graph->createNode<detect::YoloMultiConvDrawBoxNode>(
-        "DrawBoxNode", {input, output}, {draw_output});
+    draw_box_node = graph->createNode<detect::YoloMultiConvDrawBox>(
+        "DrawBox", {input, output}, {draw_output});
   } else {
-    draw_box_node = graph->createNode<detect::DrawBoxNode>(
-        "DrawBoxNode", {input, output}, {draw_output});
+    draw_box_node = graph->createNode<detect::DrawBox>(
+        "DrawBox", {input, output}, {draw_output});
   }
 
   // 编码节点
-  codec::EncodeNode *encode_node = codec::createEncodeNode(
+  codec::Encode *encode_node = codec::createEncode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
   graph->addNode(encode_node);
 #else
@@ -175,10 +175,10 @@ int main(int argc, char *argv[]) {
   }
   detect_graph->setInferParam(device_type, model_type, is_path, model_value);
   detect_graph->setVersion(version);
-  codec::DecodeNode *decode_node =
-      (codec::DecodeNode *)graph->getNode("decode_node");
-  codec::EncodeNode *encode_node =
-      (codec::EncodeNode *)graph->getNode("encode_node");
+  codec::Decode *decode_node =
+      (codec::Decode *)graph->getNode("decode_node");
+  codec::Encode *encode_node =
+      (codec::Encode *)graph->getNode("encode_node");
   dag::Edge *output = graph->getOutput(0);
 #endif
 

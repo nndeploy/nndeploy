@@ -26,18 +26,18 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
       .def_readwrite("width_", &CropParam::width_)
       .def_readwrite("height_", &CropParam::height_);
 
-  py::class_<NomalizeParam, base::Param, std::shared_ptr<NomalizeParam>>(m, "NomalizeParam")
+  py::class_<NormlizeParam, base::Param, std::shared_ptr<NormlizeParam>>(m, "NormlizeParam")
       .def(py::init<>())
       .def_property(
           "scale_",
-          [](const NomalizeParam& self) {
+          [](const NormlizeParam& self) {
             return py::array_t<float>({4},              // shape
                                       {sizeof(float)},  // strides
                                       self.scale_,      // data pointer
                                       py::cast(self)    // parent object
             );
           },
-          [](NomalizeParam& self, py::array_t<float> arr) {
+          [](NormlizeParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error(
@@ -50,14 +50,14 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "mean_",
-          [](const NomalizeParam& self) {
+          [](const NormlizeParam& self) {
             return py::array_t<float>({4},              // shape
                                       {sizeof(float)},  // strides
                                       self.mean_,       // data pointer
                                       py::cast(self)    // parent object
             );
           },
-          [](NomalizeParam& self, py::array_t<float> arr) {
+          [](NormlizeParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error(
@@ -70,14 +70,14 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "std_",
-          [](const NomalizeParam& self) {
+          [](const NormlizeParam& self) {
             return py::array_t<float>({4},              // shape
                                       {sizeof(float)},  // strides
                                       self.std_,        // data pointer
                                       py::cast(self)    // parent object
             );
           },
-          [](NomalizeParam& self, py::array_t<float> arr) {
+          [](NormlizeParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error(
@@ -175,12 +175,12 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
             }
           });
 
-  py::class_<WarpAffineParam, base::Param, std::shared_ptr<WarpAffineParam>>(
-      m, "WarpAffineParam")
+  py::class_<WarpAffineCvtNormTransParam, base::Param, std::shared_ptr<WarpAffineCvtNormTransParam>>(
+      m, "WarpAffineCvtNormTransParam")
       .def(py::init<>())
       .def_property(
           "transform_",
-          [](const WarpAffineParam& self) {
+          [](const WarpAffineCvtNormTransParam& self) {
             return py::array_t<float>(
                 std::vector<ssize_t>{2, 3},  // shape
                 std::vector<ssize_t>{sizeof(float) * 3,
@@ -189,7 +189,7 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
                 py::cast(self)                        // parent object
             );
           },
-          [](WarpAffineParam& self, py::array_t<float> arr) {
+          [](WarpAffineCvtNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 2 || buf.shape[0] != 2 || buf.shape[1] != 3) {
               throw std::runtime_error(
@@ -202,25 +202,25 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
               }
             }
           })
-      .def_readwrite("dst_w_", &WarpAffineParam::dst_w_)
-      .def_readwrite("dst_h_", &WarpAffineParam::dst_h_)
-      .def_readwrite("src_pixel_type_", &WarpAffineParam::src_pixel_type_)
-      .def_readwrite("dst_pixel_type_", &WarpAffineParam::dst_pixel_type_)
-      .def_readwrite("data_type_", &WarpAffineParam::data_type_)
-      .def_readwrite("data_format_", &WarpAffineParam::data_format_)
-      .def_readwrite("h_", &WarpAffineParam::h_)
-      .def_readwrite("w_", &WarpAffineParam::w_)
-      .def_readwrite("normalize_", &WarpAffineParam::normalize_)
+      .def_readwrite("dst_w_", &WarpAffineCvtNormTransParam::dst_w_)
+      .def_readwrite("dst_h_", &WarpAffineCvtNormTransParam::dst_h_)
+      .def_readwrite("src_pixel_type_", &WarpAffineCvtNormTransParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &WarpAffineCvtNormTransParam::dst_pixel_type_)
+      .def_readwrite("data_type_", &WarpAffineCvtNormTransParam::data_type_)
+      .def_readwrite("data_format_", &WarpAffineCvtNormTransParam::data_format_)
+      .def_readwrite("h_", &WarpAffineCvtNormTransParam::h_)
+      .def_readwrite("w_", &WarpAffineCvtNormTransParam::w_)
+      .def_readwrite("normalize_", &WarpAffineCvtNormTransParam::normalize_)
       .def_property(
           "scale_",
-          [](const WarpAffineParam& self) {
+          [](const WarpAffineCvtNormTransParam& self) {
             return py::array_t<float>({4},              // shape
                                       {sizeof(float)},  // strides
                                       self.scale_,      // data pointer
                                       py::cast(self)    // parent object
             );
           },
-          [](WarpAffineParam& self, py::array_t<float> arr) {
+          [](WarpAffineCvtNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error(
@@ -233,14 +233,14 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "mean_",
-          [](const WarpAffineParam& self) {
+          [](const WarpAffineCvtNormTransParam& self) {
             return py::array_t<float>({4},              // shape
                                       {sizeof(float)},  // strides
                                       self.mean_,       // data pointer
                                       py::cast(self)    // parent object
             );
           },
-          [](WarpAffineParam& self, py::array_t<float> arr) {
+          [](WarpAffineCvtNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error(
@@ -253,14 +253,14 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "std_",
-          [](const WarpAffineParam& self) {
+          [](const WarpAffineCvtNormTransParam& self) {
             return py::array_t<float>({4},              // shape
                                       {sizeof(float)},  // strides
                                       self.std_,        // data pointer
                                       py::cast(self)    // parent object
             );
           },
-          [](WarpAffineParam& self, py::array_t<float> arr) {
+          [](WarpAffineCvtNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error(
@@ -271,19 +271,19 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
               self.std_[i] = ptr[i];
             }
           })
-      .def_readwrite("const_value_", &WarpAffineParam::const_value_)
-      .def_readwrite("interp_type_", &WarpAffineParam::interp_type_)
-      .def_readwrite("border_type_", &WarpAffineParam::border_type_)
+      .def_readwrite("const_value_", &WarpAffineCvtNormTransParam::const_value_)
+      .def_readwrite("interp_type_", &WarpAffineCvtNormTransParam::interp_type_)
+      .def_readwrite("border_type_", &WarpAffineCvtNormTransParam::border_type_)
       .def_property(
           "border_val_",
-          [](const WarpAffineParam& self) {
+          [](const WarpAffineCvtNormTransParam& self) {
             return py::array_t<double>({4},                    // shape
                                        {sizeof(double)},       // strides
                                        self.border_val_.val_,  // data pointer
                                        py::cast(self)          // parent object
             );
           },
-          [](WarpAffineParam& self, py::array_t<double> arr) {
+          [](WarpAffineCvtNormTransParam& self, py::array_t<double> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error(
@@ -298,19 +298,19 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
             }
           });
 
-  py::class_<CvtcolorBnParam, base::Param, std::shared_ptr<CvtcolorBnParam>>(m, "CvtcolorBnParam")
+  py::class_<CvtNormTransParam, base::Param, std::shared_ptr<CvtNormTransParam>>(m, "CvtNormTransParam")
       .def(py::init<>())
-      .def_readwrite("src_pixel_type_", &CvtcolorBnParam::src_pixel_type_)
-      .def_readwrite("dst_pixel_type_", &CvtcolorBnParam::dst_pixel_type_)
-      .def_readwrite("data_type_", &CvtcolorBnParam::data_type_)
-      .def_readwrite("data_format_", &CvtcolorBnParam::data_format_)
-      .def_readwrite("normalize_", &CvtcolorBnParam::normalize_)
+      .def_readwrite("src_pixel_type_", &CvtNormTransParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &CvtNormTransParam::dst_pixel_type_)
+      .def_readwrite("data_type_", &CvtNormTransParam::data_type_)
+      .def_readwrite("data_format_", &CvtNormTransParam::data_format_)
+      .def_readwrite("normalize_", &CvtNormTransParam::normalize_)
       .def_property(
           "scale_",
-          [](const CvtcolorBnParam& self) {
+          [](const CvtNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.scale_, py::cast(self));
           },
-          [](CvtcolorBnParam& self, py::array_t<float> arr) {
+          [](CvtNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -322,10 +322,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "mean_",
-          [](const CvtcolorBnParam& self) {
+          [](const CvtNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.mean_, py::cast(self));
           },
-          [](CvtcolorBnParam& self, py::array_t<float> arr) {
+          [](CvtNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -337,10 +337,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "std_",
-          [](const CvtcolorBnParam& self) {
+          [](const CvtNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.std_, py::cast(self));
           },
-          [](CvtcolorBnParam& self, py::array_t<float> arr) {
+          [](CvtNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -351,22 +351,22 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
             }
           });
 
-  py::class_<CvtclorResizeParam, base::Param, std::shared_ptr<CvtclorResizeParam>>(m, "CvtclorResizeParam")
+  py::class_<CvtResizeNormTransParam, base::Param, std::shared_ptr<CvtResizeNormTransParam>>(m, "CvtResizeNormTransParam")
       .def(py::init<>())
-      .def_readwrite("src_pixel_type_", &CvtclorResizeParam::src_pixel_type_)
-      .def_readwrite("dst_pixel_type_", &CvtclorResizeParam::dst_pixel_type_)
-      .def_readwrite("interp_type_", &CvtclorResizeParam::interp_type_)
-      .def_readwrite("h_", &CvtclorResizeParam::h_)
-      .def_readwrite("w_", &CvtclorResizeParam::w_)
-      .def_readwrite("data_type_", &CvtclorResizeParam::data_type_)
-      .def_readwrite("data_format_", &CvtclorResizeParam::data_format_)
-      .def_readwrite("normalize_", &CvtclorResizeParam::normalize_)
+      .def_readwrite("src_pixel_type_", &CvtResizeNormTransParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &CvtResizeNormTransParam::dst_pixel_type_)
+      .def_readwrite("interp_type_", &CvtResizeNormTransParam::interp_type_)
+      .def_readwrite("h_", &CvtResizeNormTransParam::h_)
+      .def_readwrite("w_", &CvtResizeNormTransParam::w_)
+      .def_readwrite("data_type_", &CvtResizeNormTransParam::data_type_)
+      .def_readwrite("data_format_", &CvtResizeNormTransParam::data_format_)
+      .def_readwrite("normalize_", &CvtResizeNormTransParam::normalize_)
       .def_property(
           "scale_",
-          [](const CvtclorResizeParam& self) {
+          [](const CvtResizeNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.scale_, py::cast(self));
           },
-          [](CvtclorResizeParam& self, py::array_t<float> arr) {
+          [](CvtResizeNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -378,10 +378,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "mean_",
-          [](const CvtclorResizeParam& self) {
+          [](const CvtResizeNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.mean_, py::cast(self));
           },
-          [](CvtclorResizeParam& self, py::array_t<float> arr) {
+          [](CvtResizeNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -393,10 +393,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "std_",
-          [](const CvtclorResizeParam& self) {
+          [](const CvtResizeNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.std_, py::cast(self));
           },
-          [](CvtclorResizeParam& self, py::array_t<float> arr) {
+          [](CvtResizeNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -407,27 +407,27 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
             }
           });
 
-  py::class_<CvtclorResizePadParam, base::Param, std::shared_ptr<CvtclorResizePadParam>>(m, "CvtclorResizePadParam")
+  py::class_<CvtResizePadNormTransParam, base::Param, std::shared_ptr<CvtResizePadNormTransParam>>(m, "CvtResizePadNormTransParam")
       .def(py::init<>())
-      .def_readwrite("src_pixel_type_", &CvtclorResizePadParam::src_pixel_type_)
-      .def_readwrite("dst_pixel_type_", &CvtclorResizePadParam::dst_pixel_type_)
-      .def_readwrite("interp_type_", &CvtclorResizePadParam::interp_type_)
-      .def_readwrite("data_type_", &CvtclorResizePadParam::data_type_)
-      .def_readwrite("data_format_", &CvtclorResizePadParam::data_format_)
-      .def_readwrite("h_", &CvtclorResizePadParam::h_)
-      .def_readwrite("w_", &CvtclorResizePadParam::w_)
-      .def_readwrite("normalize_", &CvtclorResizePadParam::normalize_)
-      .def_readwrite("border_type_", &CvtclorResizePadParam::border_type_)
-      .def_readwrite("top_", &CvtclorResizePadParam::top_)
-      .def_readwrite("bottom_", &CvtclorResizePadParam::bottom_)
-      .def_readwrite("left_", &CvtclorResizePadParam::left_)
-      .def_readwrite("right_", &CvtclorResizePadParam::right_)
+      .def_readwrite("src_pixel_type_", &CvtResizePadNormTransParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &CvtResizePadNormTransParam::dst_pixel_type_)
+      .def_readwrite("interp_type_", &CvtResizePadNormTransParam::interp_type_)
+      .def_readwrite("data_type_", &CvtResizePadNormTransParam::data_type_)
+      .def_readwrite("data_format_", &CvtResizePadNormTransParam::data_format_)
+      .def_readwrite("h_", &CvtResizePadNormTransParam::h_)
+      .def_readwrite("w_", &CvtResizePadNormTransParam::w_)
+      .def_readwrite("normalize_", &CvtResizePadNormTransParam::normalize_)
+      .def_readwrite("border_type_", &CvtResizePadNormTransParam::border_type_)
+      .def_readwrite("top_", &CvtResizePadNormTransParam::top_)
+      .def_readwrite("bottom_", &CvtResizePadNormTransParam::bottom_)
+      .def_readwrite("left_", &CvtResizePadNormTransParam::left_)
+      .def_readwrite("right_", &CvtResizePadNormTransParam::right_)
       .def_property(
           "scale_",
-          [](const CvtclorResizePadParam& self) {
+          [](const CvtResizePadNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.scale_, py::cast(self));
           },
-          [](CvtclorResizePadParam& self, py::array_t<float> arr) {
+          [](CvtResizePadNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -439,10 +439,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "mean_",
-          [](const CvtclorResizePadParam& self) {
+          [](const CvtResizePadNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.mean_, py::cast(self));
           },
-          [](CvtclorResizePadParam& self, py::array_t<float> arr) {
+          [](CvtResizePadNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -454,10 +454,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "std_",
-          [](const CvtclorResizePadParam& self) {
+          [](const CvtResizePadNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.std_, py::cast(self));
           },
-          [](CvtclorResizePadParam& self, py::array_t<float> arr) {
+          [](CvtResizePadNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -469,10 +469,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "border_val_",
-          [](const CvtclorResizePadParam& self) {
+          [](const CvtResizePadNormTransParam& self) {
             return py::array_t<double>({4}, {sizeof(double)}, self.border_val_.val_, py::cast(self));
           },
-          [](CvtclorResizePadParam& self, py::array_t<double> arr) {
+          [](CvtResizePadNormTransParam& self, py::array_t<double> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -483,26 +483,26 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
             }
           });
 
-  py::class_<CvtColorResizeCropParam, base::Param, std::shared_ptr<CvtColorResizeCropParam>>(m, "CvtColorResizeCropParam")
+  py::class_<CvtResizeNormTransCropNormTransParam, base::Param, std::shared_ptr<CvtResizeNormTransCropNormTransParam>>(m, "CvtResizeNormTransCropNormTransParam")
       .def(py::init<>())
-      .def_readwrite("src_pixel_type_", &CvtColorResizeCropParam::src_pixel_type_)
-      .def_readwrite("dst_pixel_type_", &CvtColorResizeCropParam::dst_pixel_type_)
-      .def_readwrite("interp_type_", &CvtColorResizeCropParam::interp_type_)
-      .def_readwrite("data_type_", &CvtColorResizeCropParam::data_type_)
-      .def_readwrite("data_format_", &CvtColorResizeCropParam::data_format_)
-      .def_readwrite("resize_h_", &CvtColorResizeCropParam::resize_h_)
-      .def_readwrite("resize_w_", &CvtColorResizeCropParam::resize_w_)
-      .def_readwrite("normalize_", &CvtColorResizeCropParam::normalize_)
-      .def_readwrite("top_left_x_", &CvtColorResizeCropParam::top_left_x_)
-      .def_readwrite("top_left_y_", &CvtColorResizeCropParam::top_left_y_)
-      .def_readwrite("width_", &CvtColorResizeCropParam::width_)
-      .def_readwrite("height_", &CvtColorResizeCropParam::height_)
+      .def_readwrite("src_pixel_type_", &CvtResizeNormTransCropNormTransParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &CvtResizeNormTransCropNormTransParam::dst_pixel_type_)
+      .def_readwrite("interp_type_", &CvtResizeNormTransCropNormTransParam::interp_type_)
+      .def_readwrite("data_type_", &CvtResizeNormTransCropNormTransParam::data_type_)
+      .def_readwrite("data_format_", &CvtResizeNormTransCropNormTransParam::data_format_)
+      .def_readwrite("resize_h_", &CvtResizeNormTransCropNormTransParam::resize_h_)
+      .def_readwrite("resize_w_", &CvtResizeNormTransCropNormTransParam::resize_w_)
+      .def_readwrite("normalize_", &CvtResizeNormTransCropNormTransParam::normalize_)
+      .def_readwrite("top_left_x_", &CvtResizeNormTransCropNormTransParam::top_left_x_)
+      .def_readwrite("top_left_y_", &CvtResizeNormTransCropNormTransParam::top_left_y_)
+      .def_readwrite("width_", &CvtResizeNormTransCropNormTransParam::width_)
+      .def_readwrite("height_", &CvtResizeNormTransCropNormTransParam::height_)
       .def_property(
           "scale_",
-          [](const CvtColorResizeCropParam& self) {
+          [](const CvtResizeNormTransCropNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.scale_, py::cast(self));
           },
-          [](CvtColorResizeCropParam& self, py::array_t<float> arr) {
+          [](CvtResizeNormTransCropNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -514,10 +514,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "mean_",
-          [](const CvtColorResizeCropParam& self) {
+          [](const CvtResizeNormTransCropNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.mean_, py::cast(self));
           },
-          [](CvtColorResizeCropParam& self, py::array_t<float> arr) {
+          [](CvtResizeNormTransCropNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -529,10 +529,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "std_",
-          [](const CvtColorResizeCropParam& self) {
+          [](const CvtResizeNormTransCropNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.std_, py::cast(self));
           },
-          [](CvtColorResizeCropParam& self, py::array_t<float> arr) {
+          [](CvtResizeNormTransCropNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");

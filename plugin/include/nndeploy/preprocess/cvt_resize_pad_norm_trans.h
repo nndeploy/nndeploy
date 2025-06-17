@@ -1,5 +1,5 @@
-#ifndef _NNDEPLOY_PREPROCESS_CVTCOLOR_RESIZE_PAD_H_
-#define _NNDEPLOY_PREPROCESS_CVTCOLOR_RESIZE_PAD_H_
+#ifndef _NNDEPLOY_PREPROCESS_CVT_RESIZE_PAD_NORM_TRANS_H_
+#define _NNDEPLOY_PREPROCESS_CVT_RESIZE_PAD_NORM_TRANS_H_
 
 #include "nndeploy/base/any.h"
 #include "nndeploy/base/common.h"
@@ -22,23 +22,25 @@
 namespace nndeploy {
 namespace preprocess {
 
-class NNDEPLOY_CC_API CvtColorResizePad : public dag::Node {
+class NNDEPLOY_CC_API CvtResizePadNormTrans : public dag::Node {
  public:
-  CvtColorResizePad(const std::string &name) : dag::Node(name) {
-    key_ = "nndeploy::preprocess::CvtColorResizePad";
-    param_ = std::make_shared<CvtclorResizePadParam>();
+  CvtResizePadNormTrans(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::preprocess::CvtResizePadNormTrans";
+    desc_ = "cv::Mat to device::Tensor[resize->pad->normalize->transpose]";
+    param_ = std::make_shared<CvtResizePadNormTransParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  CvtColorResizePad(const std::string &name, std::vector<dag::Edge *> inputs,
+  CvtResizePadNormTrans(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::preprocess::CvtColorResizePad";
-    param_ = std::make_shared<CvtclorResizePadParam>();
+    key_ = "nndeploy::preprocess::CvtResizePadNormTrans";
+    desc_ = "cv::Mat to device::Tensor[resize->pad->normalize->transpose]";
+    param_ = std::make_shared<CvtResizePadNormTransParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  virtual ~CvtColorResizePad() {}
+  virtual ~CvtResizePadNormTrans() {}
 
   virtual base::Status run();
 };

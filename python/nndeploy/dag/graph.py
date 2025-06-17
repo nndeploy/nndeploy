@@ -3,6 +3,7 @@ import nndeploy.base
 import nndeploy.device
 from typing import List, Union, Optional
 
+from .util import *
 from .base import EdgeTypeInfo
 from .edge import Edge
 from .node import Node, NodeDesc
@@ -42,6 +43,56 @@ class Graph(_C.dag.Graph):
         edge_type_info = EdgeTypeInfo()
         edge_type_info.set_type(output_type)
         return self.set_output_type_info(edge_type_info)
+    
+    def set_edge_queue_max_size(self, queue_max_size: int):
+        """设置边队列最大大小
+        
+        参数:
+            queue_max_size: 队列最大大小
+        """
+        return super().set_edge_queue_max_size(queue_max_size)
+        
+    def get_edge_queue_max_size(self) -> int:
+        """获取边队列最大大小
+        
+        返回:
+            队列最大大小
+        """
+        return super().get_edge_queue_max_size()
+        
+    def set_input(self, input: Edge, index: int = -1):
+        """设置输入边
+        
+        参数:
+            input: 输入边
+            index: 输入边索引,默认为-1
+        """
+        return super().set_input(input, index)
+        
+    def set_output(self, output: Edge, index: int = -1):
+        """设置输出边
+        
+        参数:
+            output: 输出边
+            index: 输出边索引,默认为-1
+        """
+        return super().set_output(output, index)
+        
+    def set_inputs(self, inputs: List[Edge]):
+        """设置输入边列表
+        
+        参数:
+            inputs: 输入边列表
+        """
+        return super().set_inputs(inputs)
+        
+    def set_outputs(self, outputs: List[Edge]):
+        """设置输出边列表
+        
+        参数:
+            outputs: 输出边列表
+        """
+        return super().set_outputs(outputs)
 
     def create_edge(self, name: str) -> Edge:
         """
@@ -111,9 +162,9 @@ class Graph(_C.dag.Graph):
             desc: 节点描述对象
             
         """
-        return super().set_node_desc(node, desc)
-
-    def add_node(self, node: Node):
+        return super().set_node_desc(node, desc)      
+        
+    def add_node(self, node: _C.dag.Node):
         """
         添加节点
         
@@ -121,6 +172,39 @@ class Graph(_C.dag.Graph):
             node: Node 对象
         """
         return super().add_node(node)
+    
+    def get_node(self, name: str) -> Node:
+        """
+        通过名称获取节点
+        
+        参数:
+            name: 节点名称
+        返回:
+            Node 对象
+        """
+        return super().get_node(name)
+        
+    def get_node_by_key(self, key: str) -> Node:
+        """
+        通过key获取节点
+        
+        参数:
+            key: 节点key
+        返回:
+            Node 对象
+        """
+        return super().get_node_by_key(key)
+        
+    def get_nodes_by_key(self, key: str) -> List[Node]:
+        """
+        通过key获取所有匹配的节点
+        
+        参数:
+            key: 节点key
+        返回:
+            Node对象列表
+        """
+        return super().get_nodes_by_key(key)
 
     def set_node_param(self, node_name: str, param: nndeploy.base.Param):
         """
@@ -171,6 +255,15 @@ class Graph(_C.dag.Graph):
             outputs: 输出边名称列表
         """
         return super().update_node_io(node, inputs, outputs)
+    
+    def mark_input_edge(self, inputs: List[Edge]):
+        return super().mark_input_edge(inputs)
+    
+    def mark_output_edge(self, outputs: List[Edge]):
+        return super().mark_output_edge(outputs)
+    
+    def default_param(self):
+        return super().default_param()
 
     def init(self):
         """初始化图"""
@@ -217,9 +310,203 @@ class Graph(_C.dag.Graph):
             追踪后的边列表
         """
         return super().trace(inputs)
+    
+    def get_edge_wrapper(self, edge: Union[Edge, str]) -> EdgeWrapper:
+        return super().get_edge_wrapper(edge)
+    
+    def get_node_wrapper(self, node: Union[Node, str]) -> NodeWrapper:
+        return super().get_node_wrapper(node)
         
     def serialize(self) -> str:
         return super().serialize()
+    
+    def save_file(self, path: str):
+        return super().save_file(path)
         
     def deserialize(self, json_str: str):
         return super().deserialize(json_str)
+    
+    def load_file(self, path: str):
+        return super().load_file(path)
+    
+    def __setattr__(self, name, value):
+        """Override __setattr__ method to implement automatic node addition
+        
+        When assigning a Node type value to a Graph object attribute,
+        automatically add that node to the graph
+        
+        Args:
+            name: Attribute name
+            value: Attribute value
+        """
+        # First call parent class's __setattr__ to set the attribute
+        super().__setattr__(name, value)
+        
+        # Check if automatic node/edge addition should be enabled
+        if self._should_auto_add_node(name, value):
+            self._auto_add_node(value)
+        elif self._should_auto_add_edge(name, value):
+            self._auto_add_edge(value)
+        else:
+            pass
+
+    def _should_auto_add_node(self, name: str, value) -> bool:
+        """Determine if a node should be automatically added
+        
+        Args:
+            name: Attribute name
+            value: Attribute value
+            
+        Returns:
+            bool: Whether the node should be automatically added
+        """
+        # Skip private and special attributes
+        if name.startswith('_'):
+            return False
+            
+        # Check if it's a Node type
+        if not self._is_node_type(value):
+            return False
+        
+        # Check if it has a node name
+        if not hasattr(value, 'get_name') or not callable(getattr(value, 'get_name')):
+            return False
+            
+        return True
+    
+    def _is_node_type(self, value) -> bool:
+        """Check if an object is of Node type
+        
+        Args:
+            value: Object to check
+            
+        Returns:
+            bool: Whether it's a Node type
+        """
+        try:
+            # Check if it's an instance of Node or its subclasses
+            return isinstance(value, (_C.dag.Node, Node))
+        except:
+            # Return False if any exception occurs during check
+            return False
+    
+    def _auto_add_node(self, node: Union[_C.dag.Node, Node]):
+        """Automatically add a node to the graph
+        
+        Args:
+            node: Node to add
+        """
+        try:
+            node_name = node.get_name()
+            
+            # Check if node already exists in graph to avoid duplicates
+            existing_node = None
+            try:
+                existing_node = self.get_node_wrapper(node)
+            except:
+                pass
+            
+            if existing_node is None:
+                # Add node to graph
+                self.add_node(node)
+                # print(f"Automatically added node '{node_name}' to graph '{self.get_name()}'")
+            else:
+                # print(f"Node '{node_name}' already exists in graph, skipping addition")
+                pass
+                
+        except Exception as e:
+            # Print warning if error occurs during addition but continue execution
+            print(f"Exception during automatic node addition: {str(e)}")
+            
+    def _should_auto_add_edge(self, name: str, value) -> bool:
+        """Determine if an edge should be automatically added
+        
+        Args:
+            name: Attribute name
+            value: Attribute value
+            
+        Returns:
+            bool: Whether the edge should be automatically added
+        """
+        # Skip private and special attributes
+        if name.startswith('_'):
+            return False
+            
+        # Check if it's an Edge type
+        if not self._is_edge_type(value):
+            return False
+        
+        # Check if it has an edge name
+        if not hasattr(value, 'get_name') or not callable(getattr(value, 'get_name')):
+            return False
+            
+        return True
+    
+    def _is_edge_type(self, value) -> bool:
+        """Check if an object is of Edge type
+        
+        Args:
+            value: Object to check
+            
+        Returns:
+            bool: Whether it's an Edge type
+        """
+        try:
+            # Check if it's an instance of Edge or its subclasses
+            return isinstance(value, (_C.dag.Edge, Edge))
+        except:
+            # Return False if any exception occurs during check
+            return False
+    
+    def _auto_add_edge(self, edge: Union[_C.dag.Edge, Edge]):
+        """Automatically add an edge to the graph
+        
+        Args:
+            edge: Edge to add
+        """
+        try:
+            edge_name = edge.get_name()
+            
+            # Check if edge already exists in graph to avoid duplicates
+            existing_edge = None
+            try:
+                existing_edge = self.get_edge_wrapper(edge)
+            except:
+                pass
+            
+            if existing_edge is None:
+                # Add edge to graph
+                self.add_edge(edge)
+                # print(f"Automatically added edge '{edge_name}' to graph '{self.get_name()}'")
+            else:
+                # print(f"Edge '{edge_name}' already exists in graph, skipping addition")
+                pass
+                
+        except Exception as e:
+            # Print warning if error occurs during addition but continue execution
+            print(f"Exception during automatic edge addition: {str(e)}")
+
+def serialize(graph: Graph) -> str:
+    return _C.dag.serialize(graph)
+
+def save_file(graph: Graph, path: str):
+    """
+    保存图到文件
+    
+    参数:
+        path: 文件路径
+    """
+    return _C.dag.save_file(graph, path)
+
+def deserialize(json_str: str) -> Graph:
+    return _C.dag.deserialize(json_str)
+   
+def load_file(path: str) -> Graph:
+    """
+    从文件加载图
+    
+    参数:
+        path: 文件路径
+    """
+    return _C.dag.load_file(path)
+

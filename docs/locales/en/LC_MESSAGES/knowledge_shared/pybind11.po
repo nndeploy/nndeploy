@@ -332,9 +332,9 @@ msgstr ""
 "First, let's look at the definition of the create_decode_node function:"
 
 #: ../../knowledge_shared/pybind11.md:150 72c3530ffbc3423ebd79e8ba657e0211
-msgid "这个函数的返回类型是 DecodeNode *，这是一个裸指针（raw pointer），而不是智能指针。"
+msgid "这个函数的返回类型是 Decode *，这是一个裸指针（raw pointer），而不是智能指针。"
 msgstr ""
-"The return type of this function is DecodeNode *, which is a raw pointer, "
+"The return type of this function is Decode *, which is a raw pointer, "
 "not a smart pointer."
 
 #: ../../knowledge_shared/pybind11.md:152 34fd4a9493c84ea7aab12368e26437b5
@@ -378,9 +378,9 @@ msgid "总结："
 msgstr "Summary:"
 
 #: ../../knowledge_shared/pybind11.md:173 bfece2110da041a8a661596b9904af8c
-msgid "createDecodeNode 函数本身返回的是裸指针 DecodeNode*"
+msgid "createDecode 函数本身返回的是裸指针 Decode*"
 msgstr ""
-"The createDecodeNode function itself returns a raw pointer DecodeNode*"
+"The createDecode function itself returns a raw pointer Decode*"
 
 #: ../../knowledge_shared/pybind11.md:174 db59146adc5b467b9e6dc519edb6d78c
 msgid "由于使用了 py::return_value_policy::take_ownership，Python 会接管这个指针的生命周期"
@@ -423,8 +423,8 @@ msgstr ""
 "raw pointer, not a smart pointer, for the following reasons:"
 
 #: ../../knowledge_shared/pybind11.md:205 7e787edfe8d94bb09ed7ddf2ba1fec06
-msgid "C++函数返回类型：DecodeNode * 是裸指针类型"
-msgstr "C++ function return type: DecodeNode * is a raw pointer type"
+msgid "C++函数返回类型：Decode * 是裸指针类型"
+msgstr "C++ function return type: Decode * is a raw pointer type"
 
 #: ../../knowledge_shared/pybind11.md:206 71cbc76a41d6452fbbf8f6abf2fbfb49
 msgid "返回值策略：使用了 py::return_value_policy::take_ownership，这表示Python会接管裸指针的所有权"
@@ -481,8 +481,8 @@ msgstr ""
 "The following potential issues need attention:"
 
 #: ../../knowledge_shared/pybind11.md:226 485208f4d5224b63836165497c6fd061
-msgid "如果 DecodeNode 对象在C++端有共享所有权的需求"
-msgstr "If the DecodeNode object needs shared ownership on the C++ side"
+msgid "如果 Decode 对象在C++端有共享所有权的需求"
+msgstr "If the Decode object needs shared ownership on the C++ side"
 
 #: ../../knowledge_shared/pybind11.md:227 a19b6f0681d348a99fef8793a3288d87
 msgid "对象的生命周期管理不一致导致的内存问题"
@@ -490,11 +490,11 @@ msgstr "Inconsistent object lifecycle management leading to memory issues"
 
 #: ../../knowledge_shared/pybind11.md:229 1c2b3b5490b4479e9cdf4053b2649e70
 msgid ""
-"建议考虑修改 createDecodeNode 返回 std::shared_ptr<DecodeNode> "
+"建议考虑修改 createDecode 返回 std::shared_ptr<Decode> "
 "以保持一致性，或确保当前设计在您的使用场景中是安全的。"
 msgstr ""
-"It is recommended to consider modifying createDecodeNode to return "
-"std::shared_ptr<DecodeNode> to maintain consistency, or ensure that the "
+"It is recommended to consider modifying createDecode to return "
+"std::shared_ptr<Decode> to maintain consistency, or ensure that the "
 "current design is safe in your usage scenario."
 
 #: ../../knowledge_shared/pybind11.md:232 0e83c0d0cd1940ddbe0bb5992869e170

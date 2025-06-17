@@ -17,7 +17,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 
 namespace nndeploy {
 namespace detect {
@@ -235,7 +235,7 @@ base::Status YoloPostProcess::runV8V11() {
 //   dag::Edge *infer_input = graph->createEdge("images");
 //   dag::Edge *infer_output = graph->createEdge("output0");
 
-//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//   dag::Node *pre = graph->createNode<preprocess::CvtResizeNormTrans>(
 //       "preprocess", {input}, {infer_input});
 
 //   dag::Node *infer = graph->createNode<infer::Infer>(
@@ -245,8 +245,8 @@ base::Status YoloPostProcess::runV8V11() {
 //       graph->createNode<YoloPostProcess>("postprocess", {infer_output},
 //       {output});
 
-//   preprocess::CvtclorResizeParam *pre_param =
-//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   preprocess::CvtResizeNormTransParam *pre_param =
+//       dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre->getParam());
 //   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
 //   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
 //   pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -282,7 +282,7 @@ base::Status YoloPostProcess::runV8V11() {
 //   dag::Edge *infer_input = graph->createEdge("images");
 //   dag::Edge *infer_output = graph->createEdge("outputs");
 
-//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//   dag::Node *pre = graph->createNode<preprocess::CvtResizeNormTrans>(
 //       "preprocess", {input}, {infer_input});
 
 //   dag::Node *infer = graph->createNode<infer::Infer>(
@@ -292,8 +292,8 @@ base::Status YoloPostProcess::runV8V11() {
 //       graph->createNode<YoloPostProcess>("postprocess", {infer_output},
 //       {output});
 
-//   preprocess::CvtclorResizeParam *pre_param =
-//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   preprocess::CvtResizeNormTransParam *pre_param =
+//       dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre->getParam());
 //   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
 //   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
 //   pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -329,7 +329,7 @@ base::Status YoloPostProcess::runV8V11() {
 //   dag::Edge *infer_input = graph->createEdge("images");
 //   dag::Edge *infer_output = graph->createEdge("output0");
 
-//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//   dag::Node *pre = graph->createNode<preprocess::CvtResizeNormTrans>(
 //       "preprocess", {input}, {infer_input});
 
 //   dag::Node *infer = graph->createNode<infer::Infer>(
@@ -339,8 +339,8 @@ base::Status YoloPostProcess::runV8V11() {
 //       graph->createNode<YoloPostProcess>("postprocess", {infer_output},
 //       {output});
 
-//   preprocess::CvtclorResizeParam *pre_param =
-//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   preprocess::CvtResizeNormTransParam *pre_param =
+//       dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre->getParam());
 //   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
 //   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
 //   pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -376,7 +376,7 @@ base::Status YoloPostProcess::runV8V11() {
 //   dag::Edge *infer_input = graph->createEdge("images");
 //   dag::Edge *infer_output = graph->createEdge("output0");
 
-//   dag::Node *pre = graph->createNode<preprocess::CvtColorResize>(
+//   dag::Node *pre = graph->createNode<preprocess::CvtResizeNormTrans>(
 //       "preprocess", {input}, {infer_input});
 
 //   dag::Node *infer = graph->createNode<infer::Infer>(
@@ -386,8 +386,8 @@ base::Status YoloPostProcess::runV8V11() {
 //       graph->createNode<YoloPostProcess>("postprocess", {infer_output},
 //       {output});
 
-//   preprocess::CvtclorResizeParam *pre_param =
-//       dynamic_cast<preprocess::CvtclorResizeParam *>(pre->getParam());
+//   preprocess::CvtResizeNormTransParam *pre_param =
+//       dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre->getParam());
 //   pre_param->src_pixel_type_ = base::kPixelTypeBGR;
 //   pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
 //   pre_param->interp_type_ = base::kInterpTypeLinear;

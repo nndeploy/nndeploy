@@ -4,5 +4,5 @@ import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
 
-DrawBoxNode = _C.detect.DrawBoxNode
-YoloMultiConvDrawBoxNode = _C.detect.YoloMultiConvDrawBoxNode
+DrawBox = _C.detect.DrawBox
+YoloMultiConvDrawBox = _C.detect.YoloMultiConvDrawBox

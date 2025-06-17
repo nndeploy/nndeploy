@@ -49,7 +49,7 @@ class NNDEPLOY_CC_API OpenCvUtil {
                          base::BorderType border_type,
                          const base::Scalar2d &border_val);
   static void warpAffine(cv::InputArray src, cv::OutputArray dst,
-                         const WarpAffineParam &param);
+                         const WarpAffineCvtNormTransParam &param);
 
   static cv::Mat crop(cv::InputArray src, int x, int y, int w, int h);
   static cv::Mat crop(cv::InputArray src, const CropParam &param);

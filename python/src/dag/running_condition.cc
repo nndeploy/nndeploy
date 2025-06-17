@@ -11,6 +11,7 @@ namespace dag {
 NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
   py::class_<RunningCondition, Condition, PyRunningCondition<RunningCondition>>(
       m, "RunningCondition", py::dynamic_attr())
+      .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<Edge *>,
                     std::vector<Edge *>>())
       .def("choose", &RunningCondition::choose);

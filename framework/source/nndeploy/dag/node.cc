@@ -158,6 +158,7 @@ Node::Node(const std::string &name) {
   } else {
     name_ = name;
   }
+  constructed_ = true;
 }
 Node::Node(const std::string &name, std::vector<Edge *> inputs,
            std::vector<Edge *> outputs) {
@@ -216,6 +217,8 @@ void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
 void Node::setName(const std::string &name) { name_ = name; }
 std::string Node::getName() { return name_; }
+void Node::setDesc(const std::string &desc) { desc_ = desc; }
+std::string Node::getDesc() { return desc_; }
 
 std::vector<std::string> Node::getInputNames() {
   std::vector<std::string> input_names;
@@ -797,8 +800,24 @@ base::Status Node::serialize(rapidjson::Value &json,
                              rapidjson::Document::AllocatorType &allocator) {
   // 写入节点名称
   json.AddMember("key_", rapidjson::Value(key_.c_str(), allocator), allocator);
-  json.AddMember("name_", rapidjson::Value(name_.c_str(), allocator),
-                 allocator);
+  std::string name = name_;
+  // if (name.empty()) {
+  //   NNDEPLOY_LOGI("name is empty, use key_ to generate name.\n");
+  //   std::string tmp_key = key_;
+  //   size_t pos = tmp_key.rfind("::");
+  //   while (pos != std::string::npos) {
+  //     tmp_key = tmp_key.substr(pos + 2);
+  //     pos = tmp_key.rfind("::");
+  //   }
+  //   pos = tmp_key.rfind(".");
+  //   while (pos != std::string::npos) {
+  //     tmp_key = tmp_key.substr(pos + 1);
+  //     pos = tmp_key.rfind(".");
+  //   }
+  //   name = tmp_key;
+  // }
+  json.AddMember("name_", rapidjson::Value(name.c_str(), allocator), allocator);
+  json.AddMember("desc_", rapidjson::Value(desc_.c_str(), allocator), allocator);
   // 写入设备类型
   std::string device_type_str = base::deviceTypeToString(device_type_);
   json.AddMember("device_type_",
@@ -1003,6 +1022,10 @@ base::Status Node::deserialize(rapidjson::Value &json) {
 
   if (json.HasMember("name_") && json["name_"].IsString()) {
     name_ = json["name_"].GetString();
+  }
+
+  if (json.HasMember("desc_") && json["desc_"].IsString()) {
+    desc_ = json["desc_"].GetString();
   }
 
   // 读取设备类型

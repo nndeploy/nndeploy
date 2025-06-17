@@ -64,17 +64,17 @@ class classificationDemo : public dag::Graph {
                     base::CodecFlag codec_flag) {
     base::Status status = base::kStatusCodeOk;
     // 创建分类图
-    decode_node_ = (codec::OpenCvImageDecodeNode *)this
-                       ->createNode<codec::OpenCvImageDecodeNode>(
+    decode_node_ = (codec::OpenCvImageDecode *)this
+                       ->createNode<codec::OpenCvImageDecode>(
                            "decode_node_", codec_flag);
     graph_ =
         (classification::ClassificationResnetGraph *)this
             ->createNode<classification::ClassificationResnetGraph>("resnet");
-    graph_->make(inference_type);
+    graph_->setInferenceType(inference_type);
     draw_node_ = (DrawLableNode *)this->createNode<DrawLableNode>(
         "draw_node", std::vector<dag::Edge *>(), std::vector<dag::Edge *>());
-    encode_node_ = (codec::OpenCvImageEncodeNode *)this
-                       ->createNode<codec::OpenCvImageEncodeNode>(
+    encode_node_ = (codec::OpenCvImageEncode *)this
+                       ->createNode<codec::OpenCvImageEncode>(
                            "encode_node_", codec_flag);
     return status;
   }
@@ -121,8 +121,8 @@ class classificationDemo : public dag::Graph {
   }
 
  public:
-  codec::OpenCvImageDecodeNode *decode_node_;
-  codec::OpenCvImageEncodeNode *encode_node_;
+  codec::OpenCvImageDecode *decode_node_;
+  codec::OpenCvImageEncode *encode_node_;
   DrawLableNode *draw_node_;
   classification::ClassificationResnetGraph *graph_;
 };
