@@ -370,38 +370,38 @@ base::Status OpenCvCameraDecode::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvImageEncodeNode::init() { return base::kStatusCodeOk; }
-base::Status OpenCvImageEncodeNode::deinit() { return base::kStatusCodeOk; }
+base::Status OpenCvImageEncode::init() { return base::kStatusCodeOk; }
+base::Status OpenCvImageEncode::deinit() { return base::kStatusCodeOk; }
 
-base::Status OpenCvImageEncodeNode::setRefPath(const std::string &path) {
+base::Status OpenCvImageEncode::setRefPath(const std::string &path) {
   ref_path_ = path;
   path_changed_ = true;
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvImageEncodeNode::setPath(const std::string &path) {
+base::Status OpenCvImageEncode::setPath(const std::string &path) {
   path_ = path;
   path_changed_ = true;
   size_ = 1;
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvImageEncodeNode::run() {
+base::Status OpenCvImageEncode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
   cv::imwrite(path_, *mat);
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvImagesEncodeNode::init() { return base::kStatusCodeOk; }
-base::Status OpenCvImagesEncodeNode::deinit() { return base::kStatusCodeOk; }
+base::Status OpenCvImagesEncode::init() { return base::kStatusCodeOk; }
+base::Status OpenCvImagesEncode::deinit() { return base::kStatusCodeOk; }
 
-base::Status OpenCvImagesEncodeNode::setRefPath(const std::string &path) {
+base::Status OpenCvImagesEncode::setRefPath(const std::string &path) {
   ref_path_ = path;
   path_changed_ = true;
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvImagesEncodeNode::setPath(const std::string &path) {
+base::Status OpenCvImagesEncode::setPath(const std::string &path) {
   path_ = path;
   index_ = 0;
   if (base::isDirectory(path_)) {
@@ -414,7 +414,7 @@ base::Status OpenCvImagesEncodeNode::setPath(const std::string &path) {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvImagesEncodeNode::run() {
+base::Status OpenCvImagesEncode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
   std::string name = std::to_string(index_) + ".jpg";
   std::string full_path = base::joinPath(path_, name);
@@ -423,15 +423,15 @@ base::Status OpenCvImagesEncodeNode::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvVedioEncodeNode::init() {
+base::Status OpenCvVedioEncode::init() {
   base::Status status = base::kStatusCodeOk;
   return status;
 }
-base::Status OpenCvVedioEncodeNode::deinit() {
+base::Status OpenCvVedioEncode::deinit() {
   base::Status status = base::kStatusCodeOk;
   if (writer_) {
     if (writer_->isOpened()) {
-      NNDEPLOY_LOGI("OpenCvVedioEncodeNode::deinit() writer_->release()\n");
+      NNDEPLOY_LOGI("OpenCvVedioEncode::deinit() writer_->release()\n");
       writer_->release();
     }
     delete writer_;
@@ -440,7 +440,7 @@ base::Status OpenCvVedioEncodeNode::deinit() {
   return status;
 }
 
-base::Status OpenCvVedioEncodeNode::setRefPath(const std::string &path) {
+base::Status OpenCvVedioEncode::setRefPath(const std::string &path) {
   ref_path_ = path;
   path_changed_ = true;
   if (cap_ != nullptr) {
@@ -472,10 +472,10 @@ base::Status OpenCvVedioEncodeNode::setRefPath(const std::string &path) {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvVedioEncodeNode::setPath(const std::string &path) {
+base::Status OpenCvVedioEncode::setPath(const std::string &path) {
   if (writer_ != nullptr) {
     if (writer_->isOpened()) {
-      NNDEPLOY_LOGI("OpenCvVedioEncodeNode::deinit() writer_->release()\n");
+      NNDEPLOY_LOGI("OpenCvVedioEncode::deinit() writer_->release()\n");
       writer_->release();
     }
     delete writer_;
@@ -500,7 +500,7 @@ base::Status OpenCvVedioEncodeNode::setPath(const std::string &path) {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvVedioEncodeNode::run() {
+base::Status OpenCvVedioEncode::run() {
   if (index_ < size_) {
     cv::Mat *mat = inputs_[0]->getCvMat(this);
     writer_->write(*mat);
@@ -516,16 +516,16 @@ base::Status OpenCvVedioEncodeNode::run() {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvCameraEncodeNode::init() {
+base::Status OpenCvCameraEncode::init() {
   base::Status status = base::kStatusCodeOk;
   return status;
 }
-base::Status OpenCvCameraEncodeNode::deinit() {
+base::Status OpenCvCameraEncode::deinit() {
   base::Status status = base::kStatusCodeOk;
   return status;
 }
 
-base::Status OpenCvCameraEncodeNode::setRefPath(const std::string &path) {
+base::Status OpenCvCameraEncode::setRefPath(const std::string &path) {
   if (ref_path_ == path) {
     return base::kStatusCodeOk;
   }
@@ -534,7 +534,7 @@ base::Status OpenCvCameraEncodeNode::setRefPath(const std::string &path) {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvCameraEncodeNode::setPath(const std::string &path) {
+base::Status OpenCvCameraEncode::setPath(const std::string &path) {
   if (path_ == path) {
     return base::kStatusCodeOk;
   }
@@ -543,7 +543,7 @@ base::Status OpenCvCameraEncodeNode::setPath(const std::string &path) {
   return base::kStatusCodeOk;
 }
 
-base::Status OpenCvCameraEncodeNode::run() {
+base::Status OpenCvCameraEncode::run() {
   cv::Mat *mat = inputs_[0]->getCvMat(this);
   if (mat != nullptr) {
     // #if NNDEPLOY_OS_WINDOWS
@@ -598,43 +598,43 @@ std::shared_ptr<Decode> createOpenCvDecodeSharedPtr(
   return temp;
 }
 
-TypeCreatelEncodeNodeRegister g_type_create_encode_node_register(
-    base::kCodecTypeOpenCV, createOpenCvEncodeNode);
-TypeCreatelEncodeNodeSharedPtrRegister
+TypeCreatelEncodeRegister g_type_create_encode_node_register(
+    base::kCodecTypeOpenCV, createOpenCvEncode);
+TypeCreatelEncodeSharedPtrRegister
     g_type_create_encode_node_shared_ptr_register(
-        base::kCodecTypeOpenCV, createOpenCvEncodeNodeSharedPtr);
+        base::kCodecTypeOpenCV, createOpenCvEncodeSharedPtr);
 
-EncodeNode *createOpenCvEncodeNode(base::CodecFlag flag,
+Encode *createOpenCvEncode(base::CodecFlag flag,
                                    const std::string &name, dag::Edge *input) {
-  EncodeNode *temp = nullptr;
+  Encode *temp = nullptr;
   if (flag == base::kCodecFlagImage) {
-    temp = new OpenCvImageEncodeNode(name, {input}, {}, flag);
+    temp = new OpenCvImageEncode(name, {input}, {}, flag);
   } else if (flag == base::kCodecFlagImages) {
-    temp = new OpenCvImagesEncodeNode(name, {input}, {}, flag);
+    temp = new OpenCvImagesEncode(name, {input}, {}, flag);
   } else if (flag == base::kCodecFlagVideo) {
-    temp = new OpenCvVedioEncodeNode(name, {input}, {}, flag);
+    temp = new OpenCvVedioEncode(name, {input}, {}, flag);
   } else if (flag == base::kCodecFlagCamera) {
-    temp = new OpenCvCameraEncodeNode(name, {input}, {}, flag);
+    temp = new OpenCvCameraEncode(name, {input}, {}, flag);
   }
 
   return temp;
 }
 
-std::shared_ptr<EncodeNode> createOpenCvEncodeNodeSharedPtr(
+std::shared_ptr<Encode> createOpenCvEncodeSharedPtr(
     base::CodecFlag flag, const std::string &name, dag::Edge *input) {
-  std::shared_ptr<EncodeNode> temp = nullptr;
+  std::shared_ptr<Encode> temp = nullptr;
   if (flag == base::kCodecFlagImage) {
-    temp = std::shared_ptr<OpenCvImageEncodeNode>(
-        new OpenCvImageEncodeNode(name, {input}, {}, flag));
+    temp = std::shared_ptr<OpenCvImageEncode>(
+        new OpenCvImageEncode(name, {input}, {}, flag));
   } else if (flag == base::kCodecFlagImages) {
-    temp = std::shared_ptr<OpenCvImagesEncodeNode>(
-        new OpenCvImagesEncodeNode(name, {input}, {}, flag));
+    temp = std::shared_ptr<OpenCvImagesEncode>(
+        new OpenCvImagesEncode(name, {input}, {}, flag));
   } else if (flag == base::kCodecFlagVideo) {
-    temp = std::shared_ptr<OpenCvVedioEncodeNode>(
-        new OpenCvVedioEncodeNode(name, {input}, {}, flag));
+    temp = std::shared_ptr<OpenCvVedioEncode>(
+        new OpenCvVedioEncode(name, {input}, {}, flag));
   } else if (flag == base::kCodecFlagCamera) {
-    temp = std::shared_ptr<OpenCvCameraEncodeNode>(
-        new OpenCvCameraEncodeNode(name, {input}, {}, flag));
+    temp = std::shared_ptr<OpenCvCameraEncode>(
+        new OpenCvCameraEncode(name, {input}, {}, flag));
   }
 
   return temp;
@@ -646,12 +646,12 @@ REGISTER_NODE("nndeploy::codec::OpenCvImagesDecode",
 REGISTER_NODE("nndeploy::codec::OpenCvVedioDecode", OpenCvVedioDecode);
 REGISTER_NODE("nndeploy::codec::OpenCvCameraDecode",
               OpenCvCameraDecode);
-REGISTER_NODE("nndeploy::codec::OpenCvImageEncodeNode", OpenCvImageEncodeNode);
-REGISTER_NODE("nndeploy::codec::OpenCvImagesEncodeNode",
-              OpenCvImagesEncodeNode);
-REGISTER_NODE("nndeploy::codec::OpenCvVedioEncodeNode", OpenCvVedioEncodeNode);
-REGISTER_NODE("nndeploy::codec::OpenCvCameraEncodeNode",
-              OpenCvCameraEncodeNode);
+REGISTER_NODE("nndeploy::codec::OpenCvImageEncode", OpenCvImageEncode);
+REGISTER_NODE("nndeploy::codec::OpenCvImagesEncode",
+              OpenCvImagesEncode);
+REGISTER_NODE("nndeploy::codec::OpenCvVedioEncode", OpenCvVedioEncode);
+REGISTER_NODE("nndeploy::codec::OpenCvCameraEncode",
+              OpenCvCameraEncode);
 
 }  // namespace codec
 }  // namespace nndeploy

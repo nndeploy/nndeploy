@@ -22,23 +22,23 @@ class PyDecode : public Decode {
   }
 };
 
-// 包装纯虚类EncodeNode
-class PyEncodeNode : public EncodeNode {
+// 包装纯虚类Encode
+class PyEncode : public Encode {
  public:
-  using EncodeNode::EncodeNode;  // 继承构造函数
+  using Encode::Encode;  // 继承构造函数
 
   base::Status setRefPath(const std::string &ref_path) {
-    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "set_ref_path",
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Encode, "set_ref_path",
                                 setRefPath, ref_path);
   }
 
   base::Status setPath(const std::string &path) {
-    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "set_path", setPath,
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Encode, "set_path", setPath,
                                 path);
   }
 
   base::Status run() override {
-    PYBIND11_OVERRIDE_PURE_NAME(base::Status, EncodeNode, "run", run);
+    PYBIND11_OVERRIDE_PURE_NAME(base::Status, Encode, "run", run);
   }
 };
 
@@ -58,28 +58,28 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
       .def("update_input", &Decode::updateInput)
       .def("run", &Decode::run);
 
-  py::class_<EncodeNode, PyEncodeNode, dag::Node>(m, "EncodeNode")
+  py::class_<Encode, PyEncode, dag::Node>(m, "Encode")
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
                     std::vector<dag::Edge *>, base::CodecFlag>())
-      .def("set_codec_flag", &EncodeNode::setCodecFlag, py::arg("flag"))
-      .def("get_codec_flag", &EncodeNode::getCodecFlag)
-      .def("set_path", &EncodeNode::setPath, py::arg("path"))
-      .def("set_ref_path", &EncodeNode::setRefPath, py::arg("ref_path"))
-      .def("set_size", &EncodeNode::setSize, py::arg("size"))
-      .def("get_size", &EncodeNode::getSize)
-      .def("set_fourcc", &EncodeNode::setFourcc, py::arg("fourcc"))
-      .def("set_fps", &EncodeNode::setFps, py::arg("fps"))
-      .def("set_width", &EncodeNode::setWidth, py::arg("width"))
-      .def("set_height", &EncodeNode::setHeight, py::arg("height"))
-      .def("get_index", &EncodeNode::getIndex)
-      .def("run", &EncodeNode::run);
+      .def("set_codec_flag", &Encode::setCodecFlag, py::arg("flag"))
+      .def("get_codec_flag", &Encode::getCodecFlag)
+      .def("set_path", &Encode::setPath, py::arg("path"))
+      .def("set_ref_path", &Encode::setRefPath, py::arg("ref_path"))
+      .def("set_size", &Encode::setSize, py::arg("size"))
+      .def("get_size", &Encode::getSize)
+      .def("set_fourcc", &Encode::setFourcc, py::arg("fourcc"))
+      .def("set_fps", &Encode::setFps, py::arg("fps"))
+      .def("set_width", &Encode::setWidth, py::arg("width"))
+      .def("set_height", &Encode::setHeight, py::arg("height"))
+      .def("get_index", &Encode::getIndex)
+      .def("run", &Encode::run);
 
   // 导出创建节点的函数
   m.def("create_decode_node", &createDecode, py::arg("type"),
         py::arg("flag"), py::arg("name"), py::arg("output"),
         py::return_value_policy::take_ownership);
-  m.def("create_encode_node", &createEncodeNode, py::arg("type"),
+  m.def("create_encode_node", &createEncode, py::arg("type"),
         py::arg("flag"), py::arg("name"), py::arg("input"),
         py::return_value_policy::take_ownership);
 }

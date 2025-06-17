@@ -73,8 +73,8 @@ class classificationDemo : public dag::Graph {
     graph_->make(inference_type);
     draw_node_ = (DrawLableNode *)this->createNode<DrawLableNode>(
         "draw_node", std::vector<dag::Edge *>(), std::vector<dag::Edge *>());
-    encode_node_ = (codec::OpenCvImageEncodeNode *)this
-                       ->createNode<codec::OpenCvImageEncodeNode>(
+    encode_node_ = (codec::OpenCvImageEncode *)this
+                       ->createNode<codec::OpenCvImageEncode>(
                            "encode_node_", codec_flag);
     return status;
   }
@@ -122,7 +122,7 @@ class classificationDemo : public dag::Graph {
 
  public:
   codec::OpenCvImageDecode *decode_node_;
-  codec::OpenCvImageEncodeNode *encode_node_;
+  codec::OpenCvImageEncode *encode_node_;
   DrawLableNode *draw_node_;
   classification::ClassificationResnetGraph *graph_;
 };

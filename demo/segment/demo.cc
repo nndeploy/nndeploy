@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
       "DrawMaskNode", {&input, &output}, {draw_mask});
 
   // 编码节点
-  codec::EncodeNode *encode_node = codec::createEncodeNode(
+  codec::Encode *encode_node = codec::createEncode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_mask);
   graph->addNode(encode_node);
 

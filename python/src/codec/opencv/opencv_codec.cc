@@ -19,16 +19,16 @@ NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
       .def("set_path", &OpenCvImageDecode::setPath, py::arg("path"))
       .def("run", &OpenCvImageDecode::run);
 
-  py::class_<OpenCvImageEncodeNode, EncodeNode>(m, "OpenCvImageEncodeNode")
+  py::class_<OpenCvImageEncode, Encode>(m, "OpenCvImageEncode")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &, std::vector<dag::Edge *> &>())
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &, std::vector<dag::Edge *> &, base::CodecFlag>())
-      .def("init", &OpenCvImageEncodeNode::init)
-      .def("deinit", &OpenCvImageEncodeNode::deinit)
-      .def("set_ref_path", &OpenCvImageEncodeNode::setRefPath, py::arg("ref_path"))
-      .def("set_path", &OpenCvImageEncodeNode::setPath, py::arg("path"))
-      .def("run", &OpenCvImageEncodeNode::run);
+      .def("init", &OpenCvImageEncode::init)
+      .def("deinit", &OpenCvImageEncode::deinit)
+      .def("set_ref_path", &OpenCvImageEncode::setRefPath, py::arg("ref_path"))
+      .def("set_path", &OpenCvImageEncode::setPath, py::arg("path"))
+      .def("run", &OpenCvImageEncode::run);
 
 }
 

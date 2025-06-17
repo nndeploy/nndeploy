@@ -285,7 +285,7 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
     node_key_ = key;
     dag::NodeDesc desc(node_key_, "inner_codec_node",
                        {"inner_codec_node.input"}, {});
-    node_ = (EncodeNode *)this->createNode(desc);
+    node_ = (Encode *)this->createNode(desc);
     if (!node_) {
       NNDEPLOY_LOGE("Node creation failed for node_key: %s\n",
                     node_key_.c_str());
@@ -469,7 +469,7 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
 
  private:
   std::string node_key_ = "";
-  EncodeNode *node_ = nullptr;
+  Encode *node_ = nullptr;
 };
 
 }  // namespace codec

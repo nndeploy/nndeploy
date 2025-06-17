@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
   }
 
   // 编码节点
-  codec::EncodeNode *encode_node = codec::createEncodeNode(
+  codec::Encode *encode_node = codec::createEncode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
   graph->addNode(encode_node);
 #else
@@ -177,8 +177,8 @@ int main(int argc, char *argv[]) {
   detect_graph->setVersion(version);
   codec::Decode *decode_node =
       (codec::Decode *)graph->getNode("decode_node");
-  codec::EncodeNode *encode_node =
-      (codec::EncodeNode *)graph->getNode("encode_node");
+  codec::Encode *encode_node =
+      (codec::Encode *)graph->getNode("encode_node");
   dag::Edge *output = graph->getOutput(0);
 #endif
 

@@ -49,45 +49,45 @@ std::shared_ptr<Decode> createDecodeSharedPtr(base::CodecType type,
   return nullptr;
 }
 
-std::map<base::CodecType, createEncodeNodeFunc> &
-getGlobalCreateEncodeNodeFuncMap() {
+std::map<base::CodecType, createEncodeFunc> &
+getGlobalCreateEncodeFuncMap() {
   static std::once_flag once;
-  static std::shared_ptr<std::map<base::CodecType, createEncodeNodeFunc>>
+  static std::shared_ptr<std::map<base::CodecType, createEncodeFunc>>
       creators;
   std::call_once(once, []() {
-    creators.reset(new std::map<base::CodecType, createEncodeNodeFunc>);
+    creators.reset(new std::map<base::CodecType, createEncodeFunc>);
   });
   return *creators;
 }
 
-std::map<base::CodecType, createEncodeNodeSharedPtrFunc> &
-getGlobalCreateEncodeNodeSharedPtrFuncMap() {
+std::map<base::CodecType, createEncodeSharedPtrFunc> &
+getGlobalCreateEncodeSharedPtrFuncMap() {
   static std::once_flag once;
   static std::shared_ptr<
-      std::map<base::CodecType, createEncodeNodeSharedPtrFunc>>
+      std::map<base::CodecType, createEncodeSharedPtrFunc>>
       creators;
   std::call_once(once, []() {
     creators.reset(
-        new std::map<base::CodecType, createEncodeNodeSharedPtrFunc>);
+        new std::map<base::CodecType, createEncodeSharedPtrFunc>);
   });
   return *creators;
 }
 
-EncodeNode *createEncodeNode(base::CodecType type, base::CodecFlag flag,
+Encode *createEncode(base::CodecType type, base::CodecFlag flag,
                              const std::string &name, dag::Edge *input) {
-  EncodeNode *temp = nullptr;
-  auto &map = getGlobalCreateEncodeNodeFuncMap();
+  Encode *temp = nullptr;
+  auto &map = getGlobalCreateEncodeFuncMap();
   if (map.count(type) > 0) {
     temp = map[type](flag, name, input);
   }
   return temp;
 }
 
-std::shared_ptr<EncodeNode> createEncodeNodeSharedPtr(base::CodecType type,
+std::shared_ptr<Encode> createEncodeSharedPtr(base::CodecType type,
                                                       base::CodecFlag flag,
                                                       const std::string &name,
                                                       dag::Edge *input) {
-  auto &map = getGlobalCreateEncodeNodeSharedPtrFuncMap();
+  auto &map = getGlobalCreateEncodeSharedPtrFuncMap();
   if (map.count(type) > 0) {
     return map[type](flag, name, input);
   }

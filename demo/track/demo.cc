@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
       "vismot_node", {input, output}, {vismot_img});
 
   // Video encoder
-  codec::EncodeNode *encode_node = codec::createEncodeNode(
+  codec::Encode *encode_node = codec::createEncode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", vismot_img);
   graph->addNode(encode_node);
 
