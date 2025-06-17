@@ -26,7 +26,7 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
     node_type_ = dag::NodeType::kNodeTypeInput;
   }
   Decode(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs)
+         std::vector<dag::Edge *> outputs)
       : dag::Node(name) {
     node_type_ = dag::NodeType::kNodeTypeInput;
     // if (inputs.size() > 0) {
@@ -48,7 +48,7 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
     // this->setOutputTypeInfo<cv::Mat>();
   }
   Decode(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs, base::CodecFlag flag)
+         std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : dag::Node(name) {
     flag_ = flag;
     node_type_ = dag::NodeType::kNodeTypeInput;
@@ -133,7 +133,10 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
       this->setPath(path);
     }
     if (json.HasMember("size_") && json["size_"].IsInt()) {
-      this->setSize(json["size_"].GetInt());
+      int size = json["size_"].GetInt();
+      if (size > 0) {
+        this->setSize(size);
+      }
     }
     // if (json.HasMember("fps_") && json["fps_"].IsDouble()) {
     //   // this->setFps(json["fps_"].GetDouble());
@@ -159,10 +162,10 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
   int width_ = 0;
   int height_ = 0;
   int index_ = 0;
-  // 
+  //
   std::mutex path_mutex_;
   std::condition_variable path_cv_;
-  bool path_ready_ = false; 
+  bool path_ready_ = false;
 };
 
 class NNDEPLOY_CC_API Encode : public dag::Node {
@@ -172,7 +175,7 @@ class NNDEPLOY_CC_API Encode : public dag::Node {
     // this->setInputTypeInfo<cv::Mat>();
   }
   Encode(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs)
+         std::vector<dag::Edge *> outputs)
       : dag::Node(name) {
     // this->setInputTypeInfo<cv::Mat>();
     node_type_ = dag::NodeType::kNodeTypeOutput;
@@ -195,7 +198,7 @@ class NNDEPLOY_CC_API Encode : public dag::Node {
     // this->setInputTypeInfo<cv::Mat>();
   }
   Encode(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs, base::CodecFlag flag)
+         std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : dag::Node(name) {
     flag_ = flag;
     // this->setInputTypeInfo<cv::Mat>();
@@ -297,7 +300,10 @@ class NNDEPLOY_CC_API Encode : public dag::Node {
       setHeight(json["height_"].GetInt());
     }
     if (json.HasMember("size_") && json["size_"].IsInt()) {
-      setSize(json["size_"].GetInt());
+      int size = json["size_"].GetInt();
+      if (size > 0) {
+        this->setSize(size);
+      }
     }
     return status;
   }
@@ -321,8 +327,7 @@ using createDecodeFunc = std::function<Decode *(
 using createDecodeSharedPtrFunc = std::function<std::shared_ptr<Decode>(
     base::CodecFlag flag, const std::string &name, dag::Edge *output)>;
 
-std::map<base::CodecType, createDecodeFunc> &
-getGlobalCreateDecodeFuncMap();
+std::map<base::CodecType, createDecodeFunc> &getGlobalCreateDecodeFuncMap();
 
 std::map<base::CodecType, createDecodeSharedPtrFunc> &
 getGlobalCreateDecodeSharedPtrFuncMap();
@@ -330,22 +335,22 @@ getGlobalCreateDecodeSharedPtrFuncMap();
 class TypeCreatelDecodeRegister {
  public:
   explicit TypeCreatelDecodeRegister(base::CodecType type,
-                                         createDecodeFunc func) {
+                                     createDecodeFunc func) {
     getGlobalCreateDecodeFuncMap()[type] = func;
   }
 };
 
 class TypeCreatelDecodeSharedPtrRegister {
  public:
-  explicit TypeCreatelDecodeSharedPtrRegister(
-      base::CodecType type, createDecodeSharedPtrFunc func) {
+  explicit TypeCreatelDecodeSharedPtrRegister(base::CodecType type,
+                                              createDecodeSharedPtrFunc func) {
     getGlobalCreateDecodeSharedPtrFuncMap()[type] = func;
   }
 };
 extern NNDEPLOY_CC_API Decode *createDecode(base::CodecType type,
-                                                    base::CodecFlag flag,
-                                                    const std::string &name,
-                                                    dag::Edge *output);
+                                            base::CodecFlag flag,
+                                            const std::string &name,
+                                            dag::Edge *output);
 
 extern NNDEPLOY_CC_API std::shared_ptr<Decode> createDecodeSharedPtr(
     base::CodecType type, base::CodecFlag flag, const std::string &name,
@@ -356,8 +361,7 @@ using createEncodeFunc = std::function<Encode *(
 using createEncodeSharedPtrFunc = std::function<std::shared_ptr<Encode>(
     base::CodecFlag flag, const std::string &name, dag::Edge *input)>;
 
-std::map<base::CodecType, createEncodeFunc> &
-getGlobalCreateEncodeFuncMap();
+std::map<base::CodecType, createEncodeFunc> &getGlobalCreateEncodeFuncMap();
 
 std::map<base::CodecType, createEncodeSharedPtrFunc> &
 getGlobalCreateEncodeSharedPtrFuncMap();
@@ -365,23 +369,23 @@ getGlobalCreateEncodeSharedPtrFuncMap();
 class TypeCreatelEncodeRegister {
  public:
   explicit TypeCreatelEncodeRegister(base::CodecType type,
-                                         createEncodeFunc func) {
+                                     createEncodeFunc func) {
     getGlobalCreateEncodeFuncMap()[type] = func;
   }
 };
 
 class TypeCreatelEncodeSharedPtrRegister {
  public:
-  explicit TypeCreatelEncodeSharedPtrRegister(
-      base::CodecType type, createEncodeSharedPtrFunc func) {
+  explicit TypeCreatelEncodeSharedPtrRegister(base::CodecType type,
+                                              createEncodeSharedPtrFunc func) {
     getGlobalCreateEncodeSharedPtrFuncMap()[type] = func;
   }
 };
 
 extern NNDEPLOY_CC_API Encode *createEncode(base::CodecType type,
-                                                    base::CodecFlag flag,
-                                                    const std::string &name,
-                                                    dag::Edge *input);
+                                            base::CodecFlag flag,
+                                            const std::string &name,
+                                            dag::Edge *input);
 
 extern NNDEPLOY_CC_API std::shared_ptr<Encode> createEncodeSharedPtr(
     base::CodecType type, base::CodecFlag flag, const std::string &name,

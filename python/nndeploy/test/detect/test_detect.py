@@ -32,16 +32,9 @@ class YoloDemo(nndeploy.dag.Graph):
         drawbox_outputs = self.drawbox([decodec_outputs[0], yolo_outputs[0]])
         self.encodec(drawbox_outputs)
         return yolo_outputs
-    
-    # def make(self, decodec_desc, yolo_desc, drawbox_desc, encodec_desc):
-    #     self.set_node_desc(self.decodec, decodec_desc)
-    #     self.set_node_desc(self.yolo, yolo_desc)
-    #     self.set_node_desc(self.drawbox, drawbox_desc)
-    #     self.set_node_desc(self.encodec, encodec_desc)
-    #     return nndeploy.base.StatusCode.Ok
-    
-    # def get_yolo(self):
-    #     return self.yolo
+       
+    def get_yolo(self):
+        return self.yolo
     
     def set_size(self, size):
         self.decodec.set_size(size)

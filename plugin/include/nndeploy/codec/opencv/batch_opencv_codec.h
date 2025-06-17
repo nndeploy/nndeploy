@@ -28,6 +28,9 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
     key_ = "nndeploy::codec::BatchOpenCvDecode";
     node_type_ = dag::NodeType::kNodeTypeInput;
     this->setOutputTypeInfo<std::vector<cv::Mat>>();
+    desc_ =
+        "BatchOpenCvDecode node for decoding batches of images/videos using "
+        "OpenCV";
   }
   BatchOpenCvDecode(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs)
@@ -35,6 +38,9 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
     key_ = "nndeploy::codec::BatchOpenCvDecode";
     node_type_ = dag::NodeType::kNodeTypeInput;
     this->setOutputTypeInfo<std::vector<cv::Mat>>();
+    desc_ =
+        "BatchOpenCvDecode node for decoding batches of images/videos using "
+        "OpenCV";
   }
   virtual ~BatchOpenCvDecode() {
     if (this->getInitialized()) {
@@ -45,6 +51,12 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
 
   void setBatchSize(int batch_size) { batch_size_ = batch_size; }
   base::Status setNodeKey(const std::string &key) {
+    base::Status status = base::kStatusCodeOk;
+    status = this->deinit();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("deinit failed");
+      return status;
+    }
     node_key_ = key;
     std::vector<std::string> input_names = this->getInputNames();
     std::vector<std::string> output_names = this->getRealOutputsName();
@@ -266,6 +278,9 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
     key_ = "nndeploy::codec::BatchOpenCvEncode";
     node_type_ = dag::NodeType::kNodeTypeOutput;
     this->setInputTypeInfo<std::vector<cv::Mat>>();
+    desc_ =
+        "BatchOpenCvEncode node for encoding batches of images/videos using "
+        "OpenCV";
   }
   BatchOpenCvEncode(const std::string &name, std::vector<dag::Edge *> inputs,
                     std::vector<dag::Edge *> outputs)
@@ -273,6 +288,9 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
     key_ = "nndeploy::codec::BatchOpenCvEncode";
     node_type_ = dag::NodeType::kNodeTypeOutput;
     this->setInputTypeInfo<std::vector<cv::Mat>>();
+    desc_ =
+        "BatchOpenCvEncode node for encoding batches of images/videos using "
+        "OpenCV";
   }
   virtual ~BatchOpenCvEncode() {
     if (this->getInitialized()) {
@@ -282,6 +300,12 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
   }
 
   base::Status setNodeKey(const std::string &key) {
+    base::Status status = base::kStatusCodeOk;
+    status = this->deinit();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("deinit failed");
+      return status;
+    }
     node_key_ = key;
     dag::NodeDesc desc(node_key_, "inner_codec_node",
                        {"inner_codec_node.input"}, {});

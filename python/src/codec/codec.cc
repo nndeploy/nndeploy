@@ -17,6 +17,11 @@ class PyDecode : public Decode {
                                 path);
   }
 
+  base::EdgeUpdateFlag updateInput() override {
+    PYBIND11_OVERRIDE_PURE_NAME(base::EdgeUpdateFlag, Decode, "update_input",
+                                updateInput);
+  }
+
   base::Status run() override {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, Decode, "run", run);
   }

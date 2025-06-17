@@ -50,6 +50,7 @@ class NNDEPLOY_CC_API OpenCvImagesDecode : public Decode {
  public:
   OpenCvImagesDecode(const std::string &name) : Decode(name) {
     key_ = "nndeploy::codec::OpenCvImagesDecode";
+    desc_ = "Decode multiple images using OpenCV, from image paths to cv::Mat, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvImagesDecode(const std::string &name,
@@ -57,11 +58,13 @@ class NNDEPLOY_CC_API OpenCvImagesDecode : public Decode {
                          std::vector<dag::Edge *> outputs)
       : Decode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvImagesDecode";
+    desc_ = "Decode multiple images using OpenCV, from image paths to cv::Mat, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvImagesDecode(const std::string &name, base::CodecFlag flag)
       : Decode(name, flag) {
     key_ = "nndeploy::codec::OpenCvImagesDecode";
+    desc_ = "Decode multiple images using OpenCV, from image paths to cv::Mat, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvImagesDecode(const std::string &name,
@@ -69,6 +72,7 @@ class NNDEPLOY_CC_API OpenCvImagesDecode : public Decode {
                          std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : Decode(name, inputs, outputs, flag) {
     key_ = "nndeploy::codec::OpenCvImagesDecode";
+    desc_ = "Decode multiple images using OpenCV, from image paths to cv::Mat, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   virtual ~OpenCvImagesDecode() {}
@@ -90,6 +94,7 @@ class NNDEPLOY_CC_API OpenCvVedioDecode : public Decode {
  public:
   OpenCvVedioDecode(const std::string &name) : Decode(name) {
     key_ = "nndeploy::codec::OpenCvVedioDecode";
+    desc_ = "Decode video using OpenCV, from video file to cv::Mat frames, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvVedioDecode(const std::string &name,
@@ -97,12 +102,14 @@ class NNDEPLOY_CC_API OpenCvVedioDecode : public Decode {
                         std::vector<dag::Edge *> outputs)
       : Decode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvVedioDecode";
+    desc_ = "Decode video using OpenCV, from video file to cv::Mat frames, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
 
   OpenCvVedioDecode(const std::string &name, base::CodecFlag flag)
       : Decode(name, flag) {
     key_ = "nndeploy::codec::OpenCvVedioDecode";
+    desc_ = "Decode video using OpenCV, from video file to cv::Mat frames, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvVedioDecode(const std::string &name,
@@ -110,6 +117,7 @@ class NNDEPLOY_CC_API OpenCvVedioDecode : public Decode {
                         std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : Decode(name, inputs, outputs, flag) {
     key_ = "nndeploy::codec::OpenCvVedioDecode";
+    desc_ = "Decode video using OpenCV, from video file to cv::Mat frames, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   virtual ~OpenCvVedioDecode() {}
@@ -128,6 +136,7 @@ class NNDEPLOY_CC_API OpenCvCameraDecode : public Decode {
  public:
   OpenCvCameraDecode(const std::string &name) : Decode(name) {
     key_ = "nndeploy::codec::OpenCvCameraDecode";
+    desc_ = "Decode camera stream using OpenCV, from camera device to cv::Mat frames, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvCameraDecode(const std::string &name,
@@ -135,11 +144,13 @@ class NNDEPLOY_CC_API OpenCvCameraDecode : public Decode {
                          std::vector<dag::Edge *> outputs)
       : Decode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvCameraDecode";
+    desc_ = "Decode camera stream using OpenCV, from camera device to cv::Mat frames, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvCameraDecode(const std::string &name, base::CodecFlag flag)
       : Decode(name, flag) {
     key_ = "nndeploy::codec::OpenCvCameraDecode";
+    desc_ = "Decode camera stream using OpenCV, from camera device to cv::Mat frames, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   OpenCvCameraDecode(const std::string &name,
@@ -147,6 +158,7 @@ class NNDEPLOY_CC_API OpenCvCameraDecode : public Decode {
                          std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : Decode(name, inputs, outputs, flag) {
     key_ = "nndeploy::codec::OpenCvCameraDecode";
+    desc_ = "Decode camera stream using OpenCV, from camera device to cv::Mat frames, default color space is BGR";
     this->setOutputTypeInfo<cv::Mat>();
   }
   virtual ~OpenCvCameraDecode() {}
@@ -165,6 +177,7 @@ class NNDEPLOY_CC_API OpenCvImageEncode : public Encode {
  public:
   OpenCvImageEncode(const std::string &name) : Encode(name) {
     key_ = "nndeploy::codec::OpenCvImageEncode";
+    desc_ = "Encode image using OpenCV, from cv::Mat to image file, supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvImageEncode(const std::string &name,
@@ -172,11 +185,13 @@ class NNDEPLOY_CC_API OpenCvImageEncode : public Encode {
                         std::vector<dag::Edge *> outputs)
       : Encode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvImageEncode";
+    desc_ = "Encode image using OpenCV, from cv::Mat to image file, supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvImageEncode(const std::string &name, base::CodecFlag flag)
       : Encode(name, flag) {
     key_ = "nndeploy::codec::OpenCvImageEncode";
+    desc_ = "Encode image using OpenCV, from cv::Mat to image file, supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvImageEncode(const std::string &name,
@@ -184,6 +199,7 @@ class NNDEPLOY_CC_API OpenCvImageEncode : public Encode {
                         std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : Encode(name, inputs, outputs, flag) {
     key_ = "nndeploy::codec::OpenCvImageEncode";
+    desc_ = "Encode image using OpenCV, from cv::Mat to image file, supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   virtual ~OpenCvImageEncode() {}
@@ -201,6 +217,7 @@ class NNDEPLOY_CC_API OpenCvImagesEncode : public Encode {
  public:
   OpenCvImagesEncode(const std::string &name) : Encode(name) {
     key_ = "nndeploy::codec::OpenCvImagesEncode";
+    desc_ = "Encode multiple images using OpenCV, from cv::Mat to image files, supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvImagesEncode(const std::string &name,
@@ -208,12 +225,14 @@ class NNDEPLOY_CC_API OpenCvImagesEncode : public Encode {
                          std::vector<dag::Edge *> outputs)
       : Encode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvImagesEncode";
+    desc_ = "Encode multiple images using OpenCV, from cv::Mat to image files, supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
   }
 
   OpenCvImagesEncode(const std::string &name, base::CodecFlag flag)
       : Encode(name, flag) {
     key_ = "nndeploy::codec::OpenCvImagesEncode";
+    desc_ = "Encode multiple images using OpenCV, from cv::Mat to image files, supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvImagesEncode(const std::string &name,
@@ -221,6 +240,7 @@ class NNDEPLOY_CC_API OpenCvImagesEncode : public Encode {
                          std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : Encode(name, inputs, outputs, flag) {
     key_ = "nndeploy::codec::OpenCvImagesEncode";
+    desc_ = "Encode multiple images using OpenCV, from cv::Mat to image files, supports common image formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   virtual ~OpenCvImagesEncode() {}
@@ -238,6 +258,7 @@ class NNDEPLOY_CC_API OpenCvVedioEncode : public Encode {
  public:
   OpenCvVedioEncode(const std::string &name) : Encode(name) {
     key_ = "nndeploy::codec::OpenCvVedioEncode";
+    desc_ = "Encode video using OpenCV, from cv::Mat frames to video file, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvVedioEncode(const std::string &name,
@@ -245,11 +266,13 @@ class NNDEPLOY_CC_API OpenCvVedioEncode : public Encode {
                         std::vector<dag::Edge *> outputs)
       : Encode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvVedioEncode";
+    desc_ = "Encode video using OpenCV, from cv::Mat frames to video file, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvVedioEncode(const std::string &name, base::CodecFlag flag)
       : Encode(name, flag) {
     key_ = "nndeploy::codec::OpenCvVedioEncode";
+    desc_ = "Encode video using OpenCV, from cv::Mat frames to video file, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvVedioEncode(const std::string &name,
@@ -257,6 +280,7 @@ class NNDEPLOY_CC_API OpenCvVedioEncode : public Encode {
                         std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : Encode(name, inputs, outputs, flag) {
     key_ = "nndeploy::codec::OpenCvVedioEncode";
+    desc_ = "Encode video using OpenCV, from cv::Mat frames to video file, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   virtual ~OpenCvVedioEncode() {}
@@ -278,6 +302,7 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
  public:
   OpenCvCameraEncode(const std::string &name) : Encode(name) {
     key_ = "nndeploy::codec::OpenCvCameraEncode";
+    desc_ = "Encode camera stream using OpenCV, from cv::Mat frames to video output, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvCameraEncode(const std::string &name,
@@ -285,11 +310,13 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
                          std::vector<dag::Edge *> outputs)
       : Encode(name, inputs, outputs) {
     key_ = "nndeploy::codec::OpenCvCameraEncode";
+    desc_ = "Encode camera stream using OpenCV, from cv::Mat frames to video output, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvCameraEncode(const std::string &name, base::CodecFlag flag)
       : Encode(name, flag) {
     key_ = "nndeploy::codec::OpenCvCameraEncode";
+    desc_ = "Encode camera stream using OpenCV, from cv::Mat frames to video output, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   OpenCvCameraEncode(const std::string &name,
@@ -297,6 +324,7 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
                          std::vector<dag::Edge *> outputs, base::CodecFlag flag)
       : Encode(name, inputs, outputs, flag) {
     key_ = "nndeploy::codec::OpenCvCameraEncode";
+    desc_ = "Encode camera stream using OpenCV, from cv::Mat frames to video output, supports common video formats";
     this->setInputTypeInfo<cv::Mat>();
   }
   virtual ~OpenCvCameraEncode() {}
