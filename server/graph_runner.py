@@ -31,8 +31,6 @@ class GraphRunner:
         graph.run()
         t1 = time.perf_counter()
 
-        outputs = graph.get_all_output()
+        # outputs = graph.get_all_output()
 
-        graph.deinit()
-
-        return outputs, t1 - t0
+        return t1 - t0
