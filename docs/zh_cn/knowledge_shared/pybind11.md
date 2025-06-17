@@ -136,10 +136,10 @@ std::string toString() override {
 
 ```cpp
 // plugin/source/nndeploy/codec/codec.cc
-DecodeNode *createDecodeNode(base::CodecType type, base::CodecFlag flag,
+Decode *createDecode(base::CodecType type, base::CodecFlag flag,
                              const std::string &name, dag::Edge *output) {
-  DecodeNode *temp = nullptr;
-  auto &map = getGlobalCreateDecodeNodeFuncMap();
+  Decode *temp = nullptr;
+  auto &map = getGlobalCreateDecodeFuncMap();
   if (map.count(type) > 0) {
     temp = map[type](flag, name, output);
   }
@@ -147,13 +147,13 @@ DecodeNode *createDecodeNode(base::CodecType type, base::CodecFlag flag,
 }
 ```
 
-这个函数的返回类型是 `DecodeNode *`，这是一个裸指针（raw pointer），而不是智能指针。
+这个函数的返回类型是 `Decode *`，这是一个裸指针（raw pointer），而不是智能指针。
 
 我们再看一下 Python 绑定中此函数的注册方式：
 
 ```cpp
 // python/src/codec/codec.cc
-m.def("create_decode_node", &createDecodeNode, py::arg("type"),
+m.def("create_decode_node", &createDecode, py::arg("type"),
         py::arg("flag"), py::arg("name"), py::arg("output"), py::return_value_policy::take_ownership);
 ```
 
@@ -170,7 +170,7 @@ py::class_<Node, PyNode, std::shared_ptr<Node>>(m, "Node", py::dynamic_attr())
 但是，这不意味着 `create_decode_node` 函数返回智能指针。它仍然返回裸指针，只是在 Python 绑定中，pybind11 会将这个裸指针包装成一个带有 `std::shared_ptr` 持有者类型的 Python 对象。
 
 总结：
-1. `createDecodeNode` 函数本身返回的是裸指针 `DecodeNode*`
+1. `createDecode` 函数本身返回的是裸指针 `Decode*`
 2. 由于使用了 `py::return_value_policy::take_ownership`，Python 会接管这个指针的生命周期
 3. 绑定 `Node` 类时使用了 `std::shared_ptr<Node>` 作为持有者类型，所以在 Python 端，这个裸指针会被包装成一个使用 `std::shared_ptr` 管理的对象
 
@@ -182,10 +182,10 @@ py::class_<Node, PyNode, std::shared_ptr<Node>>(m, "Node", py::dynamic_attr())
 
 ```cpp
 // C++实现
-DecodeNode *createDecodeNode(base::CodecType type, base::CodecFlag flag,
+Decode *createDecode(base::CodecType type, base::CodecFlag flag,
                              const std::string &name, dag::Edge *output) {
-  DecodeNode *temp = nullptr;
-  auto &map = getGlobalCreateDecodeNodeFuncMap();
+  Decode *temp = nullptr;
+  auto &map = getGlobalCreateDecodeFuncMap();
   if (map.count(type) > 0) {
     temp = map[type](flag, name, output);
   }
@@ -193,7 +193,7 @@ DecodeNode *createDecodeNode(base::CodecType type, base::CodecFlag flag,
 }
 
 // Python绑定
-m.def("create_decode_node", &createDecodeNode, py::arg("type"),
+m.def("create_decode_node", &createDecode, py::arg("type"),
       py::arg("flag"), py::arg("name"), py::arg("output"), 
       py::return_value_policy::take_ownership);
 ```
@@ -202,7 +202,7 @@ m.def("create_decode_node", &createDecodeNode, py::arg("type"),
 
 函数 `self.decode_node = _C.codec.create_decode_node(...)` 返回的是**裸指针（raw pointer）**，而非智能指针，原因如下：
 
-1. **C++函数返回类型**：`DecodeNode *` 是裸指针类型
+1. **C++函数返回类型**：`Decode *` 是裸指针类型
 2. **返回值策略**：使用了 `py::return_value_policy::take_ownership`，这表示Python会接管裸指针的所有权
 3. **内存管理方式**：当Python对象被析构时，会自动删除这个指针指向的对象
 
@@ -223,10 +223,10 @@ py::class_<Node, PyNode, std::shared_ptr<Node>>(m, "Node", py::dynamic_attr())
 
 在当前实现中，`create_decode_node` 返回裸指针并使用 `take_ownership` 可能与 `Node` 类使用 `std::shared_ptr` 持有者的设计不完全一致，需要注意以下潜在问题：
 
-1. 如果 `DecodeNode` 对象在C++端有共享所有权的需求
+1. 如果 `Decode` 对象在C++端有共享所有权的需求
 2. 对象的生命周期管理不一致导致的内存问题
 
-建议考虑修改 `createDecodeNode` 返回 `std::shared_ptr<DecodeNode>` 以保持一致性，或确保当前设计在您的使用场景中是安全的。
+建议考虑修改 `createDecode` 返回 `std::shared_ptr<Decode>` 以保持一致性，或确保当前设计在您的使用场景中是安全的。
 
 
 ## 好用的功能

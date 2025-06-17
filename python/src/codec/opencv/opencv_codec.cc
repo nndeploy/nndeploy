@@ -9,15 +9,15 @@ namespace nndeploy {
 namespace codec {
 
 NNDEPLOY_API_PYBIND11_MODULE("codec", m) {
-  py::class_<OpenCvImageDecodeNode, DecodeNode>(m, "OpenCvImageDecodeNode")
+  py::class_<OpenCvImageDecode, Decode>(m, "OpenCvImageDecode")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &, std::vector<dag::Edge *> &>())
       .def(py::init<const std::string &, base::CodecFlag>())
       .def(py::init<const std::string &, std::vector<dag::Edge *> &, std::vector<dag::Edge *> &, base::CodecFlag>())
-      .def("init", &OpenCvImageDecodeNode::init)
-      .def("deinit", &OpenCvImageDecodeNode::deinit)
-      .def("set_path", &OpenCvImageDecodeNode::setPath, py::arg("path"))
-      .def("run", &OpenCvImageDecodeNode::run);
+      .def("init", &OpenCvImageDecode::init)
+      .def("deinit", &OpenCvImageDecode::deinit)
+      .def("set_path", &OpenCvImageDecode::setPath, py::arg("path"))
+      .def("run", &OpenCvImageDecode::run);
 
   py::class_<OpenCvImageEncodeNode, EncodeNode>(m, "OpenCvImageEncodeNode")
       .def(py::init<const std::string &>())

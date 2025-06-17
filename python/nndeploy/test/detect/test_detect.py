@@ -21,7 +21,7 @@ class YoloDemo(nndeploy.dag.Graph):
         super().__init__(name, inputs, outputs)
         self.set_key("YoloDemo")
         self.set_output_type(nndeploy.detect.DetectResult)
-        self.decodec = nndeploy.codec.OpenCvImageDecodeNode("decodec")
+        self.decodec = nndeploy.codec.OpenCvImageDecode("decodec")
         self.yolo = nndeploy.detect.YoloPyGraph("yolo")
         self.drawbox = nndeploy.detect.DrawBoxNode("drawbox")
         self.encodec = nndeploy.codec.OpenCvImageEncodeNode("encodec")

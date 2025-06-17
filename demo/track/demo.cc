@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
   graph->addNode(track_graph);
 
   // Video decoder
-  codec::DecodeNode *decode_node = codec::createDecodeNode(
+  codec::Decode *decode_node = codec::createDecode(
       base::kCodecTypeOpenCV, codec_flag, "decode_node", input);
   graph->addNode(decode_node);
 

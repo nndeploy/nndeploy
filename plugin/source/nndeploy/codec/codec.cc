@@ -4,45 +4,45 @@
 namespace nndeploy {
 namespace codec {
 
-std::map<base::CodecType, createDecodeNodeFunc> &
-getGlobalCreateDecodeNodeFuncMap() {
+std::map<base::CodecType, createDecodeFunc> &
+getGlobalCreateDecodeFuncMap() {
   static std::once_flag once;
-  static std::shared_ptr<std::map<base::CodecType, createDecodeNodeFunc>>
+  static std::shared_ptr<std::map<base::CodecType, createDecodeFunc>>
       creators;
   std::call_once(once, []() {
-    creators.reset(new std::map<base::CodecType, createDecodeNodeFunc>);
+    creators.reset(new std::map<base::CodecType, createDecodeFunc>);
   });
   return *creators;
 }
 
-std::map<base::CodecType, createDecodeNodeSharedPtrFunc> &
-getGlobalCreateDecodeNodeSharedPtrFuncMap() {
+std::map<base::CodecType, createDecodeSharedPtrFunc> &
+getGlobalCreateDecodeSharedPtrFuncMap() {
   static std::once_flag once;
   static std::shared_ptr<
-      std::map<base::CodecType, createDecodeNodeSharedPtrFunc>>
+      std::map<base::CodecType, createDecodeSharedPtrFunc>>
       creators;
   std::call_once(once, []() {
     creators.reset(
-        new std::map<base::CodecType, createDecodeNodeSharedPtrFunc>);
+        new std::map<base::CodecType, createDecodeSharedPtrFunc>);
   });
   return *creators;
 }
 
-DecodeNode *createDecodeNode(base::CodecType type, base::CodecFlag flag,
+Decode *createDecode(base::CodecType type, base::CodecFlag flag,
                              const std::string &name, dag::Edge *output) {
-  DecodeNode *temp = nullptr;
-  auto &map = getGlobalCreateDecodeNodeFuncMap();
+  Decode *temp = nullptr;
+  auto &map = getGlobalCreateDecodeFuncMap();
   if (map.count(type) > 0) {
     temp = map[type](flag, name, output);
   }
   return temp;
 }
 
-std::shared_ptr<DecodeNode> createDecodeNodeSharedPtr(base::CodecType type,
+std::shared_ptr<Decode> createDecodeSharedPtr(base::CodecType type,
                                                       base::CodecFlag flag,
                                                       const std::string &name,
                                                       dag::Edge *output) {
-  auto &map = getGlobalCreateDecodeNodeSharedPtrFuncMap();
+  auto &map = getGlobalCreateDecodeSharedPtrFuncMap();
   if (map.count(type) > 0) {
     return map[type](flag, name, output);
   }

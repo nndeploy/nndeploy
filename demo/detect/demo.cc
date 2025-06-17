@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
   }
 
   // 解码节点
-  codec::DecodeNode *decode_node = codec::createDecodeNode(
+  codec::Decode *decode_node = codec::createDecode(
       base::kCodecTypeOpenCV, codec_flag, "decode_node", input);
   graph->addNode(decode_node);
 
@@ -175,8 +175,8 @@ int main(int argc, char *argv[]) {
   }
   detect_graph->setInferParam(device_type, model_type, is_path, model_value);
   detect_graph->setVersion(version);
-  codec::DecodeNode *decode_node =
-      (codec::DecodeNode *)graph->getNode("decode_node");
+  codec::Decode *decode_node =
+      (codec::Decode *)graph->getNode("decode_node");
   codec::EncodeNode *encode_node =
       (codec::EncodeNode *)graph->getNode("encode_node");
   dag::Edge *output = graph->getOutput(0);

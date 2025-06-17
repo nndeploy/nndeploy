@@ -83,7 +83,7 @@ class SuperResolutionDemo : public dag::Graph {
     decode_node_ = (codec::BatchOpenCvDecode *)this
                        ->createNode<codec::BatchOpenCvDecode>(
                            "decode_node_");
-    decode_node_->setNodeKey("nndeploy::codec::OpenCvVedioDecodeNode");
+    decode_node_->setNodeKey("nndeploy::codec::OpenCvVedioDecode");
     decode_node_->setBatchSize(batch_size);
     graph_ =
         (super_resolution::SuperResolutionGraph *)this

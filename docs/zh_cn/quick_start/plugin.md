@@ -464,7 +464,7 @@ REGISTER_NODE("nndeploy::stable_diffusion::DDIMScheduleNode", DDIMScheduleNode);
   graph->addNode(detect_graph);
 
   // 解码节点
-  codec::DecodeNode *decode_node = codec::createDecodeNode(
+  codec::Decode *decode_node = codec::createDecode(
       base::kCodecTypeOpenCV, codec_flag, "decode_node", &input);
   graph->addNode(decode_node);
 
