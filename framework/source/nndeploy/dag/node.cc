@@ -158,6 +158,7 @@ Node::Node(const std::string &name) {
   } else {
     name_ = name;
   }
+  constructed_ = true;
 }
 Node::Node(const std::string &name, std::vector<Edge *> inputs,
            std::vector<Edge *> outputs) {
