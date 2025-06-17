@@ -77,6 +77,7 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
  public:
   YoloGraph(const std::string &name) : dag::Graph(name) {
     key_ = "nndeploy::detect::YoloGraph";
+    desc_ = "cv::Mat to DetectResult[preprocess->infer->postprocess]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
     pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(
