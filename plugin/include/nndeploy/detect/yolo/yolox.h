@@ -38,12 +38,19 @@ class NNDEPLOY_CC_API YoloXPostParam : public base::Param {
   int num_classes_;  // 模型可以识别的类别数量
   int model_h_;      // 模型输入图像的高度
   int model_w_;      // 模型输入图像的宽度
+
+  using base::Param::serialize;
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API YoloXPostProcess : public dag::Node {
  public:
   YoloXPostProcess(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::detect::YoloXPostProcess";
+    desc_ = "YOLOX postprocess[device::Tensor->DetectResult]";
     param_ = std::make_shared<YoloXPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<DetectResult>();
@@ -54,6 +61,7 @@ class NNDEPLOY_CC_API YoloXPostProcess : public dag::Node {
                    const std::vector<dag::Edge *> &outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloXPostProcess";
+    desc_ = "YOLOX postprocess[device::Tensor->DetectResult]";
     param_ = std::make_shared<YoloXPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<DetectResult>();
@@ -68,29 +76,52 @@ class NNDEPLOY_CC_API YoloXGraph : public dag::Graph {
  public:
   YoloXGraph(const std::string &name) : dag::Graph(name) {
     key_ = "nndeploy::detect::YoloXGraph";
+    desc_ = "cv::Mat to DetectResult[cv::Mat->preprocess->infer->postprocess->DetectResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
+    pre_ = this->createNode<preprocess::CvtResizeNormTrans>("preprocess");
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create preprocessing node");
+      constructed_ = false;
+    }
+    infer_ = dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node");
+      constructed_ = false;
+    }
+    post_ = this->createNode<YoloXPostProcess>("postprocess");
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node");
+      constructed_ = false;
+    }
   }
-
   YoloXGraph(const std::string &name, const std::vector<dag::Edge *> &inputs,
              const std::vector<dag::Edge *> &outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloXGraph";
+    desc_ = "cv::Mat to DetectResult[cv::Mat->preprocess->infer->postprocess->DetectResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
+    pre_ = this->createNode<preprocess::CvtResizeNormTrans>("preprocess");
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create preprocessing node");
+      constructed_ = false;
+    }
+    infer_ = dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node");
+      constructed_ = false;
+    }
+    post_ = this->createNode<YoloXPostProcess>("postprocess");
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node");
+      constructed_ = false;
+    }
   }
 
   virtual ~YoloXGraph(){};
 
-  base::Status make(const dag::NodeDesc &pre_desc,
-                    const dag::NodeDesc &infer_desc,
-                    base::InferenceType inference_type,
-                    const dag::NodeDesc &post_desc) {
-    pre_ = this->createNode<preprocess::CvtResizeNormTrans>(pre_desc);
-    if (pre_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create preprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+  base::Status defaultParam() {
     preprocess::CvtResizeNormTransParam *pre_param =
         dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
@@ -100,19 +131,6 @@ class NNDEPLOY_CC_API YoloXGraph : public dag::Graph {
     pre_param->w_ = 640;
     pre_param->normalize_ = false;
 
-    infer_ = dynamic_cast<infer::Infer *>(
-        this->createNode<infer::Infer>(infer_desc));
-    if (infer_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create inference node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    infer_->setInferenceType(inference_type);
-
-    post_ = this->createNode<YoloXPostProcess>(post_desc);
-    if (post_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create postprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
     YoloXPostParam *post_param =
         dynamic_cast<YoloXPostParam *>(post_->getParam());
     post_param->score_threshold_ = 0.5;
@@ -123,7 +141,31 @@ class NNDEPLOY_CC_API YoloXGraph : public dag::Graph {
 
     return base::kStatusCodeOk;
   }
+  base::Status make(const dag::NodeDesc &pre_desc,
+                    const dag::NodeDesc &infer_desc,
+                    base::InferenceType inference_type,
+                    const dag::NodeDesc &post_desc) {
+    this->setNodeDesc(pre_, pre_desc);
+    this->setNodeDesc(infer_, infer_desc);
+    this->setNodeDesc(post_, post_desc);
+    this->defaultParam();
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
+    return base::kStatusCodeOk;
+  }
 
+  base::Status setInferenceType(base::InferenceType inference_type) {
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
+    return base::kStatusCodeOk;
+  }
+  
   base::Status setInferParam(base::DeviceType device_type,
                              base::ModelType model_type, bool is_path,
                              std::vector<std::string> &model_value) {

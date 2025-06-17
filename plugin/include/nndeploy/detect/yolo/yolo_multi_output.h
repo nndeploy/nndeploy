@@ -25,7 +25,7 @@
 
 namespace nndeploy {
 namespace detect {
-
+// 
 class NNDEPLOY_CC_API YoloMultiOutputPostParam : public base::Param {
  public:
   float score_threshold_;
@@ -41,12 +41,19 @@ class NNDEPLOY_CC_API YoloMultiOutputPostParam : public base::Param {
                               198, 373, 326};  // [1, 3, 20, 20, 85]
 
   int version_ = -1;
+
+  using base::Param::serialize;
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API YoloMultiOutputPostProcess : public dag::Node {
  public:
   YoloMultiOutputPostProcess(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::detect::YoloMultiOutputPostProcess";
+    desc_ = "YOLO multi-output postprocess[device::Tensor->DetectResult]";
     param_ = std::make_shared<YoloMultiOutputPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<DetectResult>();
@@ -56,6 +63,7 @@ class NNDEPLOY_CC_API YoloMultiOutputPostProcess : public dag::Node {
                              std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloMultiOutputPostProcess";
+    desc_ = "YOLO multi-output postprocess[device::Tensor->DetectResult]";
     param_ = std::make_shared<YoloMultiOutputPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<DetectResult>();
@@ -69,30 +77,55 @@ class NNDEPLOY_CC_API YoloMultiOutputGraph : public dag::Graph {
  public:
   YoloMultiOutputGraph(const std::string &name) : dag::Graph(name) {
     key_ = "nndeploy::detect::YoloMultiOutputGraph";
+    desc_ = "yolo v5/v6/v7/v8/v11 graph[cv::Mat->preprocess->infer->postprocess->DetectResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
+    pre_ = this->createNode<preprocess::CvtResizeNormTrans>("preprocess");
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create preprocessing node");
+      constructed_ = false;
+    }
+    infer_ = dynamic_cast<infer::Infer *>(
+        this->createNode<infer::Infer>("infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node");
+      constructed_ = false;
+    }
+    post_ = this->createNode<YoloMultiOutputPostProcess>("postprocess");
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node");
+      constructed_ = false;
+    }
   }
   YoloMultiOutputGraph(const std::string &name,
                        std::vector<dag::Edge *> inputs,
                        std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloMultiOutputGraph";
+    desc_ = "yolo v5/v6/v7/v8/v11 graph[cv::Mat->preprocess->infer->postprocess->DetectResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
+    pre_ = this->createNode<preprocess::CvtResizeNormTrans>("preprocess");
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create preprocessing node");
+      constructed_ = false;
+    }
+    infer_ = dynamic_cast<infer::Infer *>(
+        this->createNode<infer::Infer>("infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node");
+      constructed_ = false;
+    }
+    post_ = this->createNode<YoloMultiOutputPostProcess>("postprocess");
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node");
+      constructed_ = false;
+    }
   }
 
   virtual ~YoloMultiOutputGraph() {}
 
-  base::Status make(const dag::NodeDesc &pre_desc,
-                    const dag::NodeDesc &infer_desc,
-                    base::InferenceType inference_type,
-                    const dag::NodeDesc &post_desc) {
-    // Create preprocessing node for image preprocessing
-    pre_ = this->createNode<preprocess::CvtResizeNormTrans>(pre_desc);
-    if (pre_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create preprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+  base::Status defaultParam() {    
     preprocess::CvtResizeNormTransParam *pre_param =
         dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
@@ -100,22 +133,7 @@ class NNDEPLOY_CC_API YoloMultiOutputGraph : public dag::Graph {
     pre_param->interp_type_ = base::kInterpTypeLinear;
     pre_param->h_ = 640;
     pre_param->w_ = 640;
-
-    // Create inference node for ResNet model execution
-    infer_ = dynamic_cast<infer::Infer *>(
-        this->createNode<infer::Infer>(infer_desc));
-    if (infer_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create inference node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    infer_->setInferenceType(inference_type);
-
-    // Create postprocessing node for classification results
-    post_ = this->createNode<YoloMultiOutputPostProcess>(post_desc);
-    if (post_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create postprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+    
     YoloMultiOutputPostParam *post_param =
         dynamic_cast<YoloMultiOutputPostParam *>(post_->getParam());
     post_param->score_threshold_ = 0.7;
@@ -127,7 +145,30 @@ class NNDEPLOY_CC_API YoloMultiOutputGraph : public dag::Graph {
 
     return base::kStatusCodeOk;
   }
+  base::Status make(const dag::NodeDesc &pre_desc,
+                    const dag::NodeDesc &infer_desc,
+                    base::InferenceType inference_type,
+                    const dag::NodeDesc &post_desc) {
+    this->setNodeDesc(pre_, pre_desc);
+    this->setNodeDesc(infer_, infer_desc);
+    this->setNodeDesc(post_, post_desc);
+    this->defaultParam();
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
+    return base::kStatusCodeOk;
+  }
 
+  base::Status setInferenceType(base::InferenceType inference_type) {
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
+    return base::kStatusCodeOk;
+  }
   base::Status setInferParam(base::DeviceType device_type,
                              base::ModelType model_type, bool is_path,
                              std::vector<std::string> &model_value) {
@@ -185,6 +226,13 @@ class NNDEPLOY_CC_API YoloMultiOutputGraph : public dag::Graph {
         dynamic_cast<YoloMultiOutputPostParam *>(post_->getParam());
     param->version_ = version;
     return base::kStatusCodeOk;
+  }
+
+  std::vector<dag::Edge *> forward(std::vector<dag::Edge *> inputs) {
+    std::vector<dag::Edge *> pre_outputs = (*pre_)(inputs);
+    std::vector<dag::Edge *> infer_outputs = (*infer_)(pre_outputs);
+    std::vector<dag::Edge *> post_outputs = (*post_)(infer_outputs);
+    return post_outputs;
   }
 
  private:

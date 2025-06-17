@@ -108,6 +108,90 @@ static void generateProposals(const int *anchors, int stride, const int model_w,
   }
 }
 
+base::Status YoloMultiOutputPostParam::serialize(
+    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+  json.AddMember("version_", version_, allocator);
+  json.AddMember("score_threshold_", score_threshold_, allocator);
+  json.AddMember("nms_threshold_", nms_threshold_, allocator);
+  json.AddMember("num_classes_", num_classes_, allocator);
+  json.AddMember("model_h_", model_h_, allocator);
+  json.AddMember("model_w_", model_w_, allocator);
+  rapidjson::Value anchors_stride_8_array(rapidjson::kArrayType);
+  for (int i = 0; i < 6; i++) {
+    anchors_stride_8_array.PushBack(anchors_stride_8[i], allocator);
+  }
+  json.AddMember("anchors_stride_8", anchors_stride_8_array, allocator);
+
+  rapidjson::Value anchors_stride_16_array(rapidjson::kArrayType);
+  for (int i = 0; i < 6; i++) {
+    anchors_stride_16_array.PushBack(anchors_stride_16[i], allocator);
+  }
+  json.AddMember("anchors_stride_16", anchors_stride_16_array, allocator);
+
+  rapidjson::Value anchors_stride_32_array(rapidjson::kArrayType);
+  for (int i = 0; i < 6; i++) {
+    anchors_stride_32_array.PushBack(anchors_stride_32[i], allocator);
+  }
+  json.AddMember("anchors_stride_32", anchors_stride_32_array, allocator);
+  return base::kStatusCodeOk;
+}
+
+base::Status YoloMultiOutputPostParam::deserialize(rapidjson::Value &json) {
+  if (!json.HasMember("version_") || !json["version_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  version_ = json["version_"].GetInt();
+
+  if (!json.HasMember("score_threshold_") ||
+      !json["score_threshold_"].IsFloat()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  score_threshold_ = json["score_threshold_"].GetFloat();
+
+  if (!json.HasMember("nms_threshold_") || !json["nms_threshold_"].IsFloat()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  nms_threshold_ = json["nms_threshold_"].GetFloat();
+
+  if (!json.HasMember("num_classes_") || !json["num_classes_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  num_classes_ = json["num_classes_"].GetInt();
+
+  if (!json.HasMember("model_h_") || !json["model_h_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  model_h_ = json["model_h_"].GetInt();
+
+  if (!json.HasMember("model_w_") || !json["model_w_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  model_w_ = json["model_w_"].GetInt();
+
+  if (!json.HasMember("anchors_stride_8") &&
+      !json["anchors_stride_8"].IsArray()) {
+    for (int i = 0; i < 6; i++) {
+      anchors_stride_8[i] = json["anchors_stride_8"][i].GetInt();
+    }
+  }
+
+  if (!json.HasMember("anchors_stride_16") &&
+      !json["anchors_stride_16"].IsArray()) {
+    for (int i = 0; i < 6; i++) {
+      anchors_stride_16[i] = json["anchors_stride_16"][i].GetInt();
+    }
+  }
+
+  if (!json.HasMember("anchors_stride_32") &&
+      !json["anchors_stride_32"].IsArray()) {
+    for (int i = 0; i < 6; i++) {
+      anchors_stride_32[i] = json["anchors_stride_32"][i].GetInt();
+    }
+  }
+
+  return base::kStatusCodeOk;
+}
+
 base::Status YoloMultiOutputPostProcess::run() {
   YoloMultiOutputPostParam *param = (YoloMultiOutputPostParam *)param_.get();
   DetectResult *results = new DetectResult();
@@ -198,8 +282,7 @@ base::Status YoloMultiOutputPostProcess::run() {
 
 REGISTER_NODE("nndeploy::detect::YoloMultiOutputPostProcess",
               YoloMultiOutputPostProcess);
-REGISTER_NODE("nndeploy::detect::YoloMultiOutputGraph",
-              YoloMultiOutputGraph);
+REGISTER_NODE("nndeploy::detect::YoloMultiOutputGraph", YoloMultiOutputGraph);
 
 }  // namespace detect
 }  // namespace nndeploy

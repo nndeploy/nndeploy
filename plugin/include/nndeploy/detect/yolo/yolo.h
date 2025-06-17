@@ -79,7 +79,7 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
  public:
   YoloGraph(const std::string &name) : dag::Graph(name) {
     key_ = "nndeploy::detect::YoloGraph";
-    desc_ = "cv::Mat to DetectResult[cv::Mat->preprocess->infer->postprocess->DetectResult]";
+    desc_ = "yolo v5/v6/v7/v8/v11 graph[cv::Mat->preprocess->infer->postprocess->DetectResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
     pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(
@@ -94,7 +94,7 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
             std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::detect::YoloGraph";
-    desc_ = "cv::Mat to DetectResult[cv::Mat->preprocess->infer->postprocess->DetectResult]";
+    desc_ = "yolo v5/v6/v7/v8/v11 graph[cv::Mat->preprocess->infer->postprocess->DetectResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<DetectResult>();
     pre_ = dynamic_cast<preprocess::CvtResizeNormTrans *>(
@@ -151,7 +151,6 @@ class NNDEPLOY_CC_API YoloGraph : public dag::Graph {
     }
     return base::kStatusCodeOk;
   }
-
   base::Status setInferParam(base::DeviceType device_type,
                              base::ModelType model_type, bool is_path,
                              std::vector<std::string> &model_value) {

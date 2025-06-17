@@ -13,7 +13,18 @@ from .result import DetectResult, DetectBBoxResult
 YoloPostParam = _C.detect.YoloPostParam
 YoloPostProcess = _C.detect.YoloPostProcess
 YoloGraph = _C.detect.YoloGraph
-    
+
+YoloXPostParam = _C.detect.YoloXPostParam
+YoloXPostProcess = _C.detect.YoloXPostProcess
+YoloXGraph = _C.detect.YoloXGraph
+
+YoloMultiOutputPostParam = _C.detect.YoloMultiOutputPostParam
+YoloMultiOutputPostProcess = _C.detect.YoloMultiOutputPostProcess
+YoloMultiOutputGraph = _C.detect.YoloMultiOutputGraph
+
+YoloMultiConvOutputPostParam = _C.detect.YoloMultiConvOutputPostParam
+YoloMultiConvOutputPostProcess = _C.detect.YoloMultiConvOutputPostProcess
+YoloMultiConvOutputGraph = _C.detect.YoloMultiConvOutputGraph
 
 class YoloPyGraph(nndeploy.dag.Graph):
     def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
