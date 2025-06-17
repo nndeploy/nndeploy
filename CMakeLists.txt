@@ -341,6 +341,31 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "^Windows")
   set(NNDEPLOY_LIB_SUFFIX ".lib")
 endif()
 
+# ignore warning
+if(MSVC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4003 /wd4819 /wd4244 /wd4018 /utf-8")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4003 /wd4819 /wd4244 /wd4018 /utf-8")
+endif()
+
+# ignore loop-vectorize warning
+if(SYSTEM.Windows)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-pass-failed")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-pass-failed")
+endif()
+
+# ignore deprecated warning
+if(SYSTEM.Windows)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations -Wno-ignored-attributes")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations -Wno-ignored-attributes")
+endif()
+
+# BUILD_SHARED
 if(SYSTEM.Windows AND ENABLE_NNDEPLOY_BUILD_SHARED)
   add_definitions(-DENABLE_NNDEPLOY_BUILDING_DLL)
 endif()
@@ -858,6 +883,9 @@ endif()
 
 # test
 if(ENABLE_NNDEPLOY_TEST)
+  if(MSVC)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  endif()
   add_subdirectory(third_party/googletest) # this does make the build slow. I wonder if there is a way to avoid this. 
   include(${ROOT_PATH}/test/config.cmake)
 endif()

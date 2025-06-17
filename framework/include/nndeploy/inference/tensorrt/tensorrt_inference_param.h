@@ -8,7 +8,7 @@
 namespace nndeploy {
 namespace inference {
 
-class TensorRtInferenceParam : public InferenceParam {
+class NNDEPLOY_CC_API TensorRtInferenceParam : public InferenceParam {
  public:
   TensorRtInferenceParam();
   TensorRtInferenceParam(base::InferenceType type);

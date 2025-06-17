@@ -8,7 +8,7 @@
 namespace nndeploy {
 namespace inference {
 
-class OnnxRuntimeInferenceParam : public InferenceParam {
+class NNDEPLOY_CC_API OnnxRuntimeInferenceParam : public InferenceParam {
  public:
   OnnxRuntimeInferenceParam();
   OnnxRuntimeInferenceParam(base::InferenceType type);

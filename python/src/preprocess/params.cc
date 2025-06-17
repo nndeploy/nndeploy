@@ -1,4 +1,9 @@
 
+#ifdef _WIN32
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #include "nndeploy/preprocess/params.h"
 
 #include "nndeploy_api_registry.h"

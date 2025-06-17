@@ -203,6 +203,15 @@ Node::~Node() {
   // NNDEPLOY_LOGE("Node[%s]::~Node()\n", name_.c_str());
 }
 
+void Node::setDynamicInput(bool is_dynamic_input) {
+  is_dynamic_input_ = is_dynamic_input;
+}
+void Node::setDynamicOutput(bool is_dynamic_output) {
+  is_dynamic_output_ = is_dynamic_output;
+}
+bool Node::isDynamicInput() { return is_dynamic_input_; }
+bool Node::isDynamicOutput() { return is_dynamic_output_; }
+
 void Node::setKey(const std::string &key) { key_ = key; }
 std::string Node::getKey() { return key_; }
 void Node::setName(const std::string &name) { name_ = name; }
@@ -799,6 +808,7 @@ base::Status Node::serialize(rapidjson::Value &json,
   // json.AddMember("is_external_stream_", is_external_stream_, allocator);
 
   // 写入输入
+  json.AddMember("is_dynamic_input_", is_dynamic_input_, allocator);
   rapidjson::Value inputs(rapidjson::kArrayType);
   if (inputs_.empty()) {
     for (size_t i = 0; i < input_type_info_.size(); i++) {
@@ -811,6 +821,12 @@ base::Status Node::serialize(rapidjson::Value &json,
           rapidjson::Value(input_type_info_[i]->getTypeName().c_str(),
                            allocator),
           allocator);
+      std::string desc = input_type_info_[i]->getEdgeName();
+      if (desc.empty()) {
+        desc = std::string("input_") + std::to_string(i);
+      }
+      input_obj.AddMember("desc_", rapidjson::Value(desc.c_str(), allocator),
+                          allocator);
       inputs.PushBack(input_obj, allocator);
     }
   } else {
@@ -819,12 +835,14 @@ base::Status Node::serialize(rapidjson::Value &json,
       input_obj.AddMember(
           "name_", rapidjson::Value(inputs_[i]->getName().c_str(), allocator),
           allocator);
+      std::string desc = "";
       if (input_type_info_.size() > i) {
         input_obj.AddMember(
             "type_",
             rapidjson::Value(input_type_info_[i]->getTypeName().c_str(),
                              allocator),
             allocator);
+        desc = input_type_info_[i]->getEdgeName();
       } else if (inputs_[i]->getTypeInfo() != nullptr) {
         // NNDEPLOY_LOGI("inputs_[i]->getTypeInfo()->getTypeName(): %s\n",
         //              inputs_[i]->getTypeInfo()->getTypeName().c_str());
@@ -833,16 +851,23 @@ base::Status Node::serialize(rapidjson::Value &json,
             rapidjson::Value(inputs_[i]->getTypeInfo()->getTypeName().c_str(),
                              allocator),
             allocator);
+        desc = inputs_[i]->getTypeInfo()->getEdgeName();
       } else {
         input_obj.AddMember("type_", rapidjson::Value("NotSet", allocator),
                             allocator);
       }
+      if (desc.empty()) {
+        desc = std::string("input_") + std::to_string(i);
+      }
+      input_obj.AddMember("desc_", rapidjson::Value(desc.c_str(), allocator),
+                          allocator);
       inputs.PushBack(input_obj, allocator);
     }
   }
   json.AddMember("inputs_", inputs, allocator);
 
   // 写入输出
+  json.AddMember("is_dynamic_output_", is_dynamic_output_, allocator);
   rapidjson::Value outputs(rapidjson::kArrayType);
   if (outputs_.empty()) {
     for (size_t i = 0; i < output_type_info_.size(); i++) {
@@ -852,6 +877,12 @@ base::Status Node::serialize(rapidjson::Value &json,
           rapidjson::Value(output_type_info_[i]->getTypeName().c_str(),
                            allocator),
           allocator);
+      std::string desc = output_type_info_[i]->getEdgeName();
+      if (desc.empty()) {
+        desc = std::string("output_") + std::to_string(i);
+      }
+      output_obj.AddMember("desc_", rapidjson::Value(desc.c_str(), allocator),
+                           allocator);
       outputs.PushBack(output_obj, allocator);
     }
   } else {
@@ -860,12 +891,14 @@ base::Status Node::serialize(rapidjson::Value &json,
       output_obj.AddMember(
           "name_", rapidjson::Value(outputs_[i]->getName().c_str(), allocator),
           allocator);
+      std::string desc = "";
       if (output_type_info_.size() > i) {
         output_obj.AddMember(
             "type_",
             rapidjson::Value(output_type_info_[i]->getTypeName().c_str(),
                              allocator),
             allocator);
+        desc = output_type_info_[i]->getEdgeName();
       } else if (outputs_[i]->getTypeInfo() != nullptr) {
         // NNDEPLOY_LOGI("outputs_[i]->getTypeInfo()->getTypeName(): %s\n",
         //              outputs_[i]->getTypeInfo()->getTypeName().c_str());
@@ -874,10 +907,16 @@ base::Status Node::serialize(rapidjson::Value &json,
             rapidjson::Value(outputs_[i]->getTypeInfo()->getTypeName().c_str(),
                              allocator),
             allocator);
+        desc = outputs_[i]->getTypeInfo()->getEdgeName();
       } else {
         output_obj.AddMember("type_", rapidjson::Value("NotSet", allocator),
                              allocator);
       }
+      if (desc.empty()) {
+        desc = std::string("output_") + std::to_string(i);
+      }
+      output_obj.AddMember("desc_", rapidjson::Value(desc.c_str(), allocator),
+                           allocator);
       outputs.PushBack(output_obj, allocator);
     }
   }
@@ -1003,6 +1042,65 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   // if (json.HasMember("node_type_") && json["node_type_"].IsString()) {
   //   node_type_ = stringToNodeType(json["node_type_"].GetString());
   // }
+  // 读取动态输入和输出
+  if (json.HasMember("is_dynamic_input_") &&
+      json["is_dynamic_input_"].IsBool()) {
+    is_dynamic_input_ = json["is_dynamic_input_"].GetBool();
+  }
+  // 反序列化std::vector<std::shared_ptr<EdgeTypeInfo>> input_type_info_
+  if (json.HasMember("inputs_") && json["inputs_"].IsArray()) {
+    auto &inputs = json["inputs_"];
+    for (int i = 0; i < inputs.Size(); i++) {
+      auto &input = inputs[i];
+      if (input.HasMember("desc_") && input["desc_"].IsString()) {
+        std::string desc = input["desc_"].GetString();
+        if (i < input_type_info_.size()) {
+          input_type_info_[i]->setEdgeName(desc);
+        } else if (is_dynamic_input_) {
+          auto edge_type_info = std::make_shared<EdgeTypeInfo>();
+          std::string type_name = "NotSet";
+          if (input.HasMember("type_") && input["type_"].IsString()) {
+            type_name = input["type_"].GetString();
+          }
+          edge_type_info->setTypeName(type_name);
+          edge_type_info->setEdgeName(desc);
+          input_type_info_.emplace_back(edge_type_info);
+        } else {
+          NNDEPLOY_LOGE("input_type_info_ size: %d, is_dynamic_input_: %d\n",
+                        input_type_info_.size(), is_dynamic_input_);
+        }
+      }
+    }
+  }
+  if (json.HasMember("is_dynamic_output_") &&
+      json["is_dynamic_output_"].IsBool()) {
+    is_dynamic_output_ = json["is_dynamic_output_"].GetBool();
+  }
+  // 反序列化std::vector<std::shared_ptr<EdgeTypeInfo>> output_type_info_
+  if (json.HasMember("outputs_") && json["outputs_"].IsArray()) {
+    auto &outputs = json["outputs_"];
+    for (int i = 0; i < outputs.Size(); i++) {
+      auto &output = outputs[i];
+      if (output.HasMember("desc_") && output["desc_"].IsString()) {
+        std::string desc = output["desc_"].GetString();
+        if (i < output_type_info_.size()) {
+          output_type_info_[i]->setEdgeName(desc);
+        } else if (is_dynamic_input_) {
+          auto edge_type_info = std::make_shared<EdgeTypeInfo>();
+          std::string type_name = "NotSet";
+          if (output.HasMember("type_") && output["type_"].IsString()) {
+            type_name = output["type_"].GetString();
+          }
+          edge_type_info->setTypeName(type_name);
+          edge_type_info->setEdgeName(desc);
+          output_type_info_.emplace_back(edge_type_info);
+        } else {
+          NNDEPLOY_LOGE("output_type_info_ size: %d, is_dynamic_output_: %d\n",
+                        output_type_info_.size(), is_dynamic_output_);
+        }
+      }
+    }
+  }
 
   // 读取参数
   if (json.HasMember("param_") && json["param_"].IsObject() &&

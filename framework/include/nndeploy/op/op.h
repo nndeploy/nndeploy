@@ -285,7 +285,7 @@ class NNDEPLOY_CC_API Op {
  * @brief Op的创建类
  *
  */
-class OpCreator {
+class NNDEPLOY_CC_API OpCreator {
  public:
   virtual ~OpCreator(){};
 
@@ -336,7 +336,7 @@ class TypeOpCreator : public OpCreator {
  * @return std::map<ExecutorType, std::map<const std::string &,
  * std::shared_ptr<OpCreator>>>&
  */
-std::map<base::DeviceTypeCode, std::map<ir::OpType, std::shared_ptr<OpCreator>>>
+extern NNDEPLOY_CC_API std::map<base::DeviceTypeCode, std::map<ir::OpType, std::shared_ptr<OpCreator>>>
     &getGlobalOpCreatorMap();
 
 /**
@@ -354,47 +354,47 @@ class TypeOpRegister {
   }
 };
 
-Op *createOp(base::DeviceType device_type, const std::string &name,
+extern NNDEPLOY_CC_API Op *createOp(base::DeviceType device_type, const std::string &name,
              ir::OpType op_type);
 
-Op *createOp(base::DeviceType device_type, const std::string &name,
+extern NNDEPLOY_CC_API Op *createOp(base::DeviceType device_type, const std::string &name,
              ir::OpType op_type, std::initializer_list<std::string> inputs,
              std::initializer_list<std::string> outputs);
 
-Op *createOp(base::DeviceType device_type, const std::string &name,
+extern NNDEPLOY_CC_API Op *createOp(base::DeviceType device_type, const std::string &name,
              ir::OpType op_type, std::vector<std::string> &inputs,
              std::vector<std::string> &outputs);
 
-Op *createOp(base::DeviceType device_type, const std::string &name,
+extern NNDEPLOY_CC_API Op *createOp(base::DeviceType device_type, const std::string &name,
              ir::OpType op_type, std::vector<std::string> &inputs,
              std::vector<std::string> &outputs,
              std::shared_ptr<base::Param> param);
 
-Op *createOp(base::DeviceType device_type, std::shared_ptr<ir::OpDesc> op_desc);
+extern NNDEPLOY_CC_API Op *createOp(base::DeviceType device_type, std::shared_ptr<ir::OpDesc> op_desc);
 
-std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
+extern NNDEPLOY_CC_API std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                                       const std::string &name,
                                       ir::OpType op_type);
 
-std::shared_ptr<Op> createOpSharedPtr(
+extern NNDEPLOY_CC_API std::shared_ptr<Op> createOpSharedPtr(
     base::DeviceType device_type, const std::string &name, ir::OpType op_type,
     std::initializer_list<std::string> inputs,
     std::initializer_list<std::string> outputs);
 
-std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
+extern NNDEPLOY_CC_API std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                                       const std::string &name,
                                       ir::OpType op_type,
                                       std::vector<std::string> &inputs,
                                       std::vector<std::string> &outputs);
 
-std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
+extern NNDEPLOY_CC_API std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                                       const std::string &name,
                                       ir::OpType op_type,
                                       std::vector<std::string> &inputs,
                                       std::vector<std::string> &outputs,
                                       std::shared_ptr<base::Param> param);
 
-std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
+extern NNDEPLOY_CC_API std::shared_ptr<Op> createOpSharedPtr(base::DeviceType device_type,
                                       std::shared_ptr<ir::OpDesc> op_desc);
 
 using SISOOpFunc =

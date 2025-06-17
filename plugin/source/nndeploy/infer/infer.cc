@@ -11,6 +11,8 @@ Infer::Infer(const std::string &name) : dag::Node(name) {
   // NNDEPLOY_LOGI("Infer constructor: %s", name.c_str());
   // NNDEPLOY_LOGI("Infer inputs: %d", input_type_info_.size());
   // NNDEPLOY_LOGI("Infer outputs: %d", output_type_info_.size());
+  this->setDynamicInput(true);
+  this->setDynamicOutput(true);
 }
 Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
@@ -28,6 +30,8 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
   for (auto output : outputs) {
     this->setOutputTypeInfo<device::Tensor>();
   }
+  this->setDynamicInput(true);
+  this->setDynamicOutput(true);
 }
 
 Infer::Infer(const std::string &name, base::InferenceType type)
@@ -43,6 +47,8 @@ Infer::Infer(const std::string &name, base::InferenceType type)
   }
   this->setInputTypeInfo<device::Tensor>();
   this->setOutputTypeInfo<device::Tensor>();
+  this->setDynamicInput(true);
+  this->setDynamicOutput(true);
 }
 Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs, base::InferenceType type)
@@ -68,6 +74,8 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
   for (auto output : outputs) {
     this->setOutputTypeInfo<device::Tensor>();
   }
+  this->setDynamicInput(true);
+  this->setDynamicOutput(true);
 }
 
 Infer::~Infer() {}
@@ -230,6 +238,7 @@ base::Status Infer::init() {
       //               input_names[i].c_str());
       input_type_info_[i]->setEdgeName(input_names[i]);
     }
+    // input_type_info_[i]->setDesc(input_names[i]);
   }
   std::vector<std::string> output_names = inference_->getAllOutputTensorName();
   for (int i = output_type_info_.size(); i < output_names.size(); i++) {
@@ -243,6 +252,7 @@ base::Status Infer::init() {
       //               output_names[i].c_str());
       output_type_info_[i]->setEdgeName(output_names[i]);
     }
+    // output_type_info_[i]->setDesc(output_names[i]);
   }
   return status;
 }
@@ -382,6 +392,13 @@ base::Status Infer::serialize(rapidjson::Value &json,
       param->serialize(param_json, allocator);
       json.AddMember("param_", param_json, allocator);
     }
+  } else {
+    inference::InferenceParam *inference_param = new inference::InferenceParam();
+    inference_param->parallel_type_ = parallel_type_;
+    rapidjson::Value param_json(rapidjson::kObjectType);
+    inference_param->serialize(param_json, allocator);
+    json.AddMember("param_", param_json, allocator);
+    delete inference_param;
   }
   return status;
 }
@@ -417,6 +434,11 @@ base::Status Infer::deserialize(rapidjson::Value &json) {
       status = param->deserialize(json["param_"]);
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "param deserialize failed");
+    }
+    inference::InferenceParam *inference_param =
+        static_cast<inference::InferenceParam *>(param);
+    if (inference_param != nullptr) {
+      inference_param->parallel_type_ = parallel_type_;
     }
   }
   return status;

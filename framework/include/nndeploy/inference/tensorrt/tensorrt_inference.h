@@ -18,7 +18,7 @@
 namespace nndeploy {
 namespace inference {
 
-class TensorRtInference : public Inference {
+class NNDEPLOY_CC_API TensorRtInference : public Inference {
  public:
   TensorRtInference(base::InferenceType type);
   virtual ~TensorRtInference();

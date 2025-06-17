@@ -79,7 +79,7 @@ def test_yolo():
             print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("yolo_demo_python")
        
-    yolo_demo.save_file("/home/always/github/public/nndeploy/build/yolo_demo.json")
+    yolo_demo.save_file("/home/always/github/public/nndeploy/build/yolo_demo_v3.json")
         
     nndeploy.base.time_profiler_print("yolo_demo")
     
@@ -173,9 +173,9 @@ def test_static_graph_from_json():
 
     
 if __name__ == "__main__":
-    # test_yolo()
+    test_yolo()
     # test_yolo_from_json()
-    test_static_yolo_from_json()
+    # test_static_yolo_from_json()
     
         
         

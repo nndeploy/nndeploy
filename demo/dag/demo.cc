@@ -578,7 +578,7 @@ int main(int argc, char *argv[]) {
     return ret;
   }
 
-  int count = 1000;
+  int count = 1;
   for (int i = 0; i < count; i++) {
     ret = photosRepairGraph(base::kParallelTypeSequential,
                             base::kParallelTypeSequential,

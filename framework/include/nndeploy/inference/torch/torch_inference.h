@@ -24,7 +24,7 @@ struct OrtValueInfo {
   ONNXTensorElementDataType dtype;
 };
 
-class OnnxRuntimeInference : public Inference {
+class NNDEPLOY_CC_API OnnxRuntimeInference : public Inference {
  public:
   OnnxRuntimeInference(base::InferenceType type);
   virtual ~OnnxRuntimeInference();

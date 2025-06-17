@@ -100,6 +100,11 @@ class NNDEPLOY_CC_API Node {
   void setName(const std::string &name);
   std::string getName();
 
+  void setDynamicInput(bool is_dynamic_input);
+  void setDynamicOutput(bool is_dynamic_output);
+  bool isDynamicInput();
+  bool isDynamicOutput();
+
   std::vector<std::string> getInputNames();
   std::vector<std::string> getOutputNames();
   std::string getInputName(int index = 0);
@@ -267,6 +272,8 @@ class NNDEPLOY_CC_API Node {
    * 1. 类型不确定
    * 2. 个数不确定
    */
+  bool is_dynamic_input_ = false;
+  bool is_dynamic_output_ = false;
   std::vector<std::shared_ptr<EdgeTypeInfo>> input_type_info_;
   std::vector<std::shared_ptr<EdgeTypeInfo>> output_type_info_;
   std::vector<Edge *> inputs_;
@@ -294,7 +301,7 @@ class NNDEPLOY_CC_API Node {
 /**
  * @brief 节点注册机制相关类和函数
  */
-class NodeCreator {
+class NNDEPLOY_CC_API NodeCreator {
  public:
   virtual Node *createNode(const std::string &node_name,
                            std::vector<Edge *> inputs,
@@ -361,7 +368,7 @@ class NNDEPLOY_CC_API NodeFactory {
   std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
 };
 
-std::set<std::string> getNodeKeys();
+extern NNDEPLOY_CC_API std::set<std::string> getNodeKeys();
 
 #define REGISTER_NODE(node_key, node_class)                              \
   static auto register_node_creator_##node_class = []() {                \

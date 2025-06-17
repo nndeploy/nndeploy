@@ -1,3 +1,9 @@
+
+#ifdef _WIN32
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #include "nndeploy/dag/edge.h"
 
 #include "nndeploy/dag/graph.h"
