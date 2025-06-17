@@ -23,6 +23,22 @@
 namespace nndeploy {
 namespace segment {
 
+base::Status RMBGPostParam::serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator){
+  rapidjson::Value key_value(rapidjson::kObjectType);
+  key_value.AddMember("version", version_, allocator);
+  return base::kStatusCodeOk;
+}
+
+base::Status RMBGPostParam::deserialize(rapidjson::Value &json) {
+  if (!json.HasMember("version_") || !json["version_"].IsInt()) {
+    return base::kStatusCodeErrorInvalidValue;
+  }
+  version_ = json["version_"].GetInt();
+  return base::kStatusCodeOk;
+}
+
+
 base::Status RMBGPostProcess::run() {
   // 从输入边缘获取输入图像矩阵
   cv::Mat *input_mat = inputs_[0]->getCvMat(this);
