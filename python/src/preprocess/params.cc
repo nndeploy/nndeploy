@@ -298,19 +298,19 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
             }
           });
 
-  py::class_<CvtcolorBnParam, base::Param, std::shared_ptr<CvtcolorBnParam>>(m, "CvtcolorBnParam")
+  py::class_<CvtNormTransParam, base::Param, std::shared_ptr<CvtNormTransParam>>(m, "CvtNormTransParam")
       .def(py::init<>())
-      .def_readwrite("src_pixel_type_", &CvtcolorBnParam::src_pixel_type_)
-      .def_readwrite("dst_pixel_type_", &CvtcolorBnParam::dst_pixel_type_)
-      .def_readwrite("data_type_", &CvtcolorBnParam::data_type_)
-      .def_readwrite("data_format_", &CvtcolorBnParam::data_format_)
-      .def_readwrite("normalize_", &CvtcolorBnParam::normalize_)
+      .def_readwrite("src_pixel_type_", &CvtNormTransParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &CvtNormTransParam::dst_pixel_type_)
+      .def_readwrite("data_type_", &CvtNormTransParam::data_type_)
+      .def_readwrite("data_format_", &CvtNormTransParam::data_format_)
+      .def_readwrite("normalize_", &CvtNormTransParam::normalize_)
       .def_property(
           "scale_",
-          [](const CvtcolorBnParam& self) {
+          [](const CvtNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.scale_, py::cast(self));
           },
-          [](CvtcolorBnParam& self, py::array_t<float> arr) {
+          [](CvtNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -322,10 +322,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "mean_",
-          [](const CvtcolorBnParam& self) {
+          [](const CvtNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.mean_, py::cast(self));
           },
-          [](CvtcolorBnParam& self, py::array_t<float> arr) {
+          [](CvtNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -337,10 +337,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "std_",
-          [](const CvtcolorBnParam& self) {
+          [](const CvtNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.std_, py::cast(self));
           },
-          [](CvtcolorBnParam& self, py::array_t<float> arr) {
+          [](CvtNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");

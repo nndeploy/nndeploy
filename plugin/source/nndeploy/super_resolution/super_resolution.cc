@@ -18,7 +18,7 @@
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
 #include "nndeploy/op/op_softmax.h"
-#include "nndeploy/preprocess/cvtcolor_bn.h"
+#include "nndeploy/preprocess/cvt_norm_trans.h"
 
 namespace nndeploy {
 namespace super_resolution {

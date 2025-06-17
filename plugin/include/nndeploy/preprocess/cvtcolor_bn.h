@@ -22,23 +22,25 @@
 namespace nndeploy {
 namespace preprocess {
 
-class NNDEPLOY_CC_API CvtColorBn : public dag::Node {
+class NNDEPLOY_CC_API CvtNormTrans : public dag::Node {
  public:
-  CvtColorBn(const std::string &name) : dag::Node(name) {
-    key_ = "nndeploy::preprocess::CvtColorBn";
-    param_ = std::make_shared<CvtcolorBnParam>();
+  CvtNormTrans(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::preprocess::CvtNormTrans";
+    desc_ = "cv::Mat to device::Tensor[cvtcolor->normalize->transpose]";
+    param_ = std::make_shared<CvtNormTransParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  CvtColorBn(const std::string &name, std::vector<dag::Edge *> inputs,
+  CvtNormTrans(const std::string &name, std::vector<dag::Edge *> inputs,
                  std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::preprocess::CvtColorBn";
-    param_ = std::make_shared<CvtcolorBnParam>();
+    key_ = "nndeploy::preprocess::CvtNormTrans";
+    desc_ = "cv::Mat to device::Tensor[cvtcolor->normalize->transpose]";
+    param_ = std::make_shared<CvtNormTransParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  virtual ~CvtColorBn() {}
+  virtual ~CvtNormTrans() {}
 
   virtual base::Status run();
 };

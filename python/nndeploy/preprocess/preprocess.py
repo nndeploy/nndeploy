@@ -19,7 +19,7 @@ class ConvertTo(_C.preprocess.ConvertTo):
         return super().run()
       
 
-class CvtColorBn(_C.preprocess.CvtColorBn):
+class CvtNormTrans(_C.preprocess.CvtNormTrans):
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         if inputs is [] and outputs is []:
             super().__init__(name)

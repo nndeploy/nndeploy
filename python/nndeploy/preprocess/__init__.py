@@ -1,7 +1,7 @@
 
 from .preprocess import ConvertToParam
 from .preprocess import ConvertTo
-from .preprocess import CvtColorBn
+from .preprocess import CvtNormTrans
 from .preprocess import CvtColorResizeCrop
 from .preprocess import CvtColorResizePad
 from .preprocess import CvtColorResize
@@ -19,7 +19,7 @@ from .params import WarpAffineParam
 __all__ = [
     'ConvertToParam',
     'ConvertTo',
-    'CvtColorBn', 
+    'CvtNormTrans', 
     'CvtColorResizeCrop',
     'CvtColorResizePad',
     'CvtColorResize',
@@ -33,7 +33,7 @@ __all__ = [
     'ResizeParam',
     'PaddingParam',
     'WarpAffineParam',
-    'CvtcolorBnParam',
+    'CvtNormTransParam',
     'CvtclorResizeParam', 
     'CvtclorResizePadParam',
     'CvtColorResizeCropParam'

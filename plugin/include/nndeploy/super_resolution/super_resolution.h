@@ -20,7 +20,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_bn.h"
+#include "nndeploy/preprocess/cvt_norm_trans.h"
 #include "nndeploy/preprocess/params.h"
 #include "nndeploy/preprocess/batch_preprocess.h"
 
@@ -83,9 +83,9 @@ class NNDEPLOY_CC_API SuperResolutionGraph : public dag::Graph {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
-    pre_->setNodeKey("nndeploy::preprocess::CvtColorBn");
-    preprocess::CvtcolorBnParam *pre_param =
-        dynamic_cast<preprocess::CvtcolorBnParam *>(pre_->getParam());
+    pre_->setNodeKey("nndeploy::preprocess::CvtNormTrans");
+    preprocess::CvtNormTransParam *pre_param =
+        dynamic_cast<preprocess::CvtNormTransParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->mean_[0] = 0.0;
@@ -123,9 +123,9 @@ class NNDEPLOY_CC_API SuperResolutionGraph : public dag::Graph {
       return base::kStatusCodeErrorInvalidParam;
     }
     pre_->setGraph(this);
-    pre_->setNodeKey("nndeploy::preprocess::CvtColorBn");
-    preprocess::CvtcolorBnParam *pre_param =
-        dynamic_cast<preprocess::CvtcolorBnParam *>(pre_->getParam());
+    pre_->setNodeKey("nndeploy::preprocess::CvtNormTrans");
+    preprocess::CvtNormTransParam *pre_param =
+        dynamic_cast<preprocess::CvtNormTransParam *>(pre_->getParam());
     if (pre_param == nullptr) {
       NNDEPLOY_LOGE("Failed to get preprocessing node parameter.\n");
       return base::kStatusCodeErrorInvalidParam;
@@ -179,8 +179,8 @@ class NNDEPLOY_CC_API SuperResolutionGraph : public dag::Graph {
    * @return kStatusCodeOk on success
    */
   base::Status setSrcPixelType(base::PixelType pixel_type) {
-    preprocess::CvtcolorBnParam *param =
-        dynamic_cast<preprocess::CvtcolorBnParam *>(pre_->getParam());
+    preprocess::CvtNormTransParam *param =
+        dynamic_cast<preprocess::CvtNormTransParam *>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }

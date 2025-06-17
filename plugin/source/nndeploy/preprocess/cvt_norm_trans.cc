@@ -1,16 +1,16 @@
 
-#include "nndeploy/preprocess/cvtcolor_bn.h"
+#include "nndeploy/preprocess/cvt_norm_trans.h"
 
 #include "nndeploy/preprocess/util.h"
 
 namespace nndeploy {
 namespace preprocess {
 
-base::Status CvtColorBn::run() {
+base::Status CvtNormTrans::run() {
   // NNDEPLOY_LOGE("preprocess start!Thread ID: %d.\n",
   //               std::this_thread::get_id());
-  CvtcolorBnParam *tmp_param =
-      dynamic_cast<CvtcolorBnParam *>(param_.get());
+  CvtNormTransParam *tmp_param =
+      dynamic_cast<CvtNormTransParam *>(param_.get());
   cv::Mat *src = inputs_[0]->getCvMat(this);
   device::Device *device = device::getDefaultHostDevice();
   device::TensorDesc desc;
@@ -54,7 +54,7 @@ base::Status CvtColorBn::run() {
   return base::kStatusCodeOk;
 }
 
-REGISTER_NODE("nndeploy::preprocess::CvtColorBn", CvtColorBn);
+REGISTER_NODE("nndeploy::preprocess::CvtNormTrans", CvtNormTrans);
 
 }  // namespace preprocess
 }  // namespace nndeploy
