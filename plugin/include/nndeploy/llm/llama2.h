@@ -91,7 +91,39 @@ class NNDEPLOY_CC_API EmbeddingNode : public dag::Node {
                 std::vector<dag::Edge*>& outputs)
       : Node(name, inputs, outputs), is_first_(true) {
     key_ = "nndeploy::llm::EmbeddingNode";
+    // EmbeddingNode 用于生成模型输入所需的 embedding 张量
+    // 主要功能包括:
+    // 1. 生成输入 token 的 embedding 向量
+    // 2. 生成 attention mask 矩阵
+    // 3. 生成 position ids 向量
+    // 4. 管理 past key values 缓存
+    // 
+    // 输入:
+    // - inputs[0]: TokenizerIds 类型,包含输入的 token id 序列
+    // 输出:
+    // - outputs[0]: 输入 token 的 embedding 张量
+    // - outputs[1]: attention mask 张量
+    // - outputs[2]: position ids 张量 
+    // - outputs[3]: past key values 缓存张量
+    desc_ = "EmbeddingNode generates model input embeddings including:\n"
+            "1. Token embedding vectors\n"
+            "2. Attention mask matrix\n"
+            "3. Position ids vector\n"
+            "4. Past key values cache\n"
+            "\n"
+            "Inputs:\n"
+            "- inputs[0]: TokenizerIds containing input token sequence\n"
+            "Outputs:\n"
+            "- outputs[0]: Input token embedding tensor\n"
+            "- outputs[1]: Attention mask tensor\n"
+            "- outputs[2]: Position ids tensor\n"
+            "- outputs[3]: Past key values cache tensor";
     param_ = std::make_shared<EmbeddingParam>();
+    this->setInputTypeInfo<tokenizer::TokenizerIds>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
   }
   virtual ~EmbeddingNode() {}
   virtual base::Status run();
@@ -155,6 +187,12 @@ class NNDEPLOY_CC_API PromptNode : public dag::Node {
 
 class NNDEPLOY_CC_API LlmPrefillGraph : public dag::Graph {
  public:
+  LlmPrefillGraph(const std::string& name, std::vector<dag::Edge*> inputs,
+                  std::vector<dag::Edge*> outputs)
+      : dag::Graph(name, inputs, outputs) {
+    key_ = "nndeploy::llm::LlmPrefillGraph";
+  }
+
   LlmPrefillGraph(const std::string& name, std::vector<dag::Edge*> inputs,
                   std::vector<dag::Edge*> outputs,
                   base::InferenceType inference_type)
@@ -229,6 +267,11 @@ class NNDEPLOY_CC_API LlmPrefillGraph : public dag::Graph {
 
 class NNDEPLOY_CC_API LlmDecodeGraph : public dag::Loop {
  public:
+  LlmDecodeGraph(const std::string& name, std::vector<dag::Edge*>& inputs,
+                 std::vector<dag::Edge*>& outputs)
+      : dag::Loop(name, inputs, outputs) {
+    key_ = "nndeploy::llm::LlmDecodeGraph";
+  }
   LlmDecodeGraph(const std::string& name, std::vector<dag::Edge*>& inputs,
                  std::vector<dag::Edge*>& outputs, device::Tensor* past_kv,
                  tokenizer::TokenizerIds* history_ids,

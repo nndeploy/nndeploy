@@ -271,7 +271,8 @@ NNDEPLOY_API_PYBIND11_MODULE("inference", m) {
         getGlobalInferenceCreatorMap()[type] = creator;
       });
 
-  m.def("create_inference", &createInference, py::arg("type"));
+  m.def("create_inference", &createInference, py::arg("type"),
+        py::return_value_policy::take_ownership);
 }
 
 }  // namespace inference
