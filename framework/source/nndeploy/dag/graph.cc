@@ -614,6 +614,24 @@ std::shared_ptr<base::Param> Graph::getNodeParamSharedPtr(
   return node_wrapper->node_->getParamSharedPtr();
 }
 
+base::Status Graph::setExternalParam(const std::string &node_name,
+                                     std::shared_ptr<base::Param> param) {
+  external_param_repository_[node_name] = param;
+  return base::kStatusCodeOk;
+}
+std::shared_ptr<base::Param> Graph::getExternalParam(
+    const std::string &node_name) {
+  if (external_param_repository_.find(node_name) !=
+      external_param_repository_.end()) {
+    return external_param_repository_[node_name];
+  } else if (graph_ != nullptr) {
+    return graph_->getExternalParam(node_name);
+  } else {
+    NNDEPLOY_LOGE("can't find external param[%s]!", node_name.c_str());
+    return nullptr;
+  }
+}
+
 base::Status Graph::setNodeParallelType(const std::string &node_name,
                                         base::ParallelType parallel_type) {
   NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);

@@ -100,6 +100,11 @@ class NNDEPLOY_CC_API Graph : public Node {
                                      std::shared_ptr<base::Param> param);
   std::shared_ptr<base::Param> getNodeParamSharedPtr(
       const std::string &node_name);
+
+  base::Status setExternalParam(const std::string &key,
+                                std::shared_ptr<base::Param> param);
+  std::shared_ptr<base::Param> getExternalParam(const std::string &key);
+
   base::Status setNodeParallelType(const std::string &node_name,
                                    base::ParallelType parallel_type);
 
@@ -282,6 +287,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::set<std::string> used_edge_names_;
   std::shared_ptr<Executor> executor_;
   int queue_max_size_ = 16;
+  std::map<std::string, std::shared_ptr<base::Param>>
+      external_param_repository_;
 };
 
 template <typename T, typename... Args,
