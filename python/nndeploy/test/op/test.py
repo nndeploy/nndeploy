@@ -1,5 +1,5 @@
 import numpy as np
-from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
+from nndeploy.device.tensor import create_tensor_from_numpy, create_numpy_from_tensor
 
 x = np.int32(123)
 y = np.int32(4)
