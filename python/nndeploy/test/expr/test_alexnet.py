@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F
 import nndeploy
 
-from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
+from nndeploy.device.tensor import create_tensor_from_numpy, create_numpy_from_tensor
 from nndeploy.net import build_model
 
 import nndeploy._nndeploy_internal as _C

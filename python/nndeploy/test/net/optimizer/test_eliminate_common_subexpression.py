@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import nndeploy
 
-from nndeploy.test.test_util import create_tensor_from_numpy, create_numpy_from_tensor
+from nndeploy.device.tensor import create_tensor_from_numpy, create_numpy_from_tensor
 from nndeploy.net import build_model
 
 from nndeploy.net import EliminateCommonSubexpression, FuseConvBatchNorm
