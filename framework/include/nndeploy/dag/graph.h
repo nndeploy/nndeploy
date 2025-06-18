@@ -1297,7 +1297,7 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
 }
 
 template <typename T, typename... Args,
-          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
 Node *Graph::createInfer(const NodeDesc &desc, base::InferenceType type) {
   return this->createInfer<T>(desc.getName(), type, desc.getInputs(),
                               desc.getOutputs());
