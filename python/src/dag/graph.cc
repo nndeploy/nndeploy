@@ -81,6 +81,11 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::arg("node_name"), py::arg("param"))
       .def("get_node_param", &Graph::getNodeParamSharedPtr,
            py::arg("node_name"))
+      .def("set_external_param", &Graph::setExternalParam, py::arg("key"),
+           py::arg("param"))
+      .def("get_external_param", &Graph::getExternalParam, py::arg("key"))
+      .def("set_node_parallel_type", &Graph::setNodeParallelType,
+           py::arg("node_name"), py::arg("parallel_type"))
       .def("set_graph_node_share_stream", &Graph::setGraphNodeShareStream,
            py::arg("flag"))
       .def("get_graph_node_share_stream", &Graph::getGraphNodeShareStream)

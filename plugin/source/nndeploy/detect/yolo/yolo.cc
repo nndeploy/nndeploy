@@ -34,35 +34,29 @@ base::Status YoloPostParam::serialize(rapidjson::Value &json,
 }
 
 base::Status YoloPostParam::deserialize(rapidjson::Value &json) {
-  if (!json.HasMember("version_") || !json["version_"].IsInt()) {
-    return base::kStatusCodeErrorInvalidValue;
+  if (json.HasMember("version_") && json["version_"].IsInt()) {
+    version_ = json["version_"].GetInt();
   }
-  version_ = json["version_"].GetInt();
 
-  if (!json.HasMember("score_threshold_") || !json["score_threshold_"].IsFloat()) {
-    return base::kStatusCodeErrorInvalidValue;
+  if (json.HasMember("score_threshold_") && json["score_threshold_"].IsFloat()) {
+    score_threshold_ = json["score_threshold_"].GetFloat();
   }
-  score_threshold_ = json["score_threshold_"].GetFloat();
 
-  if (!json.HasMember("nms_threshold_") || !json["nms_threshold_"].IsFloat()) {
-    return base::kStatusCodeErrorInvalidValue;
+  if (json.HasMember("nms_threshold_") && json["nms_threshold_"].IsFloat()) {
+    nms_threshold_ = json["nms_threshold_"].GetFloat();
   }
-  nms_threshold_ = json["nms_threshold_"].GetFloat();
 
-  if (!json.HasMember("num_classes_") || !json["num_classes_"].IsInt()) {
-    return base::kStatusCodeErrorInvalidValue;
+  if (json.HasMember("num_classes_") && json["num_classes_"].IsInt()) {
+    num_classes_ = json["num_classes_"].GetInt();
   }
-  num_classes_ = json["num_classes_"].GetInt();
 
-  if (!json.HasMember("model_h_") || !json["model_h_"].IsInt()) {
-    return base::kStatusCodeErrorInvalidValue;
+  if (json.HasMember("model_h_") && json["model_h_"].IsInt()) {
+    model_h_ = json["model_h_"].GetInt();
   }
-  model_h_ = json["model_h_"].GetInt();
 
-  if (!json.HasMember("model_w_") || !json["model_w_"].IsInt()) {
-    return base::kStatusCodeErrorInvalidValue;
+  if (json.HasMember("model_w_") && json["model_w_"].IsInt()) {
+    model_w_ = json["model_w_"].GetInt();
   }
-  model_w_ = json["model_w_"].GetInt();
 
   return base::kStatusCodeOk;
 }
