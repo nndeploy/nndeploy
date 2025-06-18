@@ -25,16 +25,14 @@ namespace segment {
 
 base::Status RMBGPostParam::serialize(rapidjson::Value &json,
                                  rapidjson::Document::AllocatorType &allocator){
-  rapidjson::Value key_value(rapidjson::kObjectType);
-  key_value.AddMember("version", version_, allocator);
+  json.AddMember("version", version_, allocator);
   return base::kStatusCodeOk;
 }
 
 base::Status RMBGPostParam::deserialize(rapidjson::Value &json) {
-  if (!json.HasMember("version_") || !json["version_"].IsInt()) {
-    return base::kStatusCodeErrorInvalidValue;
+  if (json.HasMember("version") && json["version"].IsInt()) {
+    version_ = json["version"].GetInt();
   }
-  version_ = json["version_"].GetInt();
   return base::kStatusCodeOk;
 }
 

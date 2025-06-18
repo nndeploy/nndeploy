@@ -3,14 +3,14 @@
 namespace nndeploy {
 namespace track {
 
-cv::Scalar VisMOTNode::GetMOTBoxColor(int idx) {
+cv::Scalar VisMOT::GetMOTBoxColor(int idx) {
   idx = idx * 3;
   cv::Scalar color =
       cv::Scalar((37 * idx) % 255, (17 * idx) % 255, (29 * idx) % 255);
   return color;
 }
 
-base::Status VisMOTNode::run() {
+base::Status VisMOT::run() {
   cv::Mat *img = inputs_[0]->getCvMat(this);
   MOTResult *results = (MOTResult *)inputs_[1]->getParam(this);
 
@@ -60,6 +60,8 @@ base::Status VisMOTNode::run() {
   outputs_[0]->set(vis_img, false);
   return base::kStatusCodeOk;
 }
+
+REGISTER_NODE("nndeploy::track::VisMOT", VisMOT);
 
 }  // namespace track
 }  // namespace nndeploy

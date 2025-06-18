@@ -22,24 +22,30 @@
 namespace nndeploy {
 namespace matting {
 
-class NNDEPLOY_CC_API VisMattingNode : public dag::Node {
+class NNDEPLOY_CC_API VisMatting : public dag::Node {
  public:
-  VisMattingNode(const std::string &name) : Node(name) {
-    key_ = "nndeploy::matting::VisMattingNode";
+  VisMatting(const std::string &name) : Node(name) {
+    key_ = "nndeploy::matting::VisMatting";
+    desc_ =
+        "Draw matting result on input cv::Mat image based on matting "
+        "results[cv::Mat->cv::Mat]";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<MattingResult>();
     this->setOutputTypeInfo<cv::Mat>();
   }
-  VisMattingNode(const std::string &name, std::vector<dag::Edge *> inputs,
-                 std::vector<dag::Edge *> outputs)
+  VisMatting(const std::string &name, std::vector<dag::Edge *> inputs,
+             std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {
-    key_ = "nndeploy::matting::VisMattingNode";
+    key_ = "nndeploy::matting::VisMatting";
+    desc_ =
+        "Draw matting result on input cv::Mat image based on matting "
+        "results[cv::Mat->cv::Mat]";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<MattingResult>();
     this->setOutputTypeInfo<cv::Mat>();
   }
 
-  virtual ~VisMattingNode() {}
+  virtual ~VisMatting() {}
 
   virtual base::Status run();
 };

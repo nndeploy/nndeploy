@@ -305,6 +305,22 @@ if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
   set(SOURCE ${SOURCE} ${PYTHON_CLASSIFICATION_SOURCE})
 endif()
 
+if(ENABLE_NNDEPLOY_PLUGIN_TRACK)
+  file(GLOB_RECURSE PYTHON_TRACK_SOURCE
+    "${ROOT_PATH}/python/src/track/*.h"
+    "${ROOT_PATH}/python/src/track/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_TRACK_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_MATTING)
+  file(GLOB_RECURSE PYTHON_MATTING_SOURCE
+    "${ROOT_PATH}/python/src/matting/*.h"
+    "${ROOT_PATH}/python/src/matting/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_MATTING_SOURCE})
+endif()
+
 if(ENABLE_NNDEPLOY_PLUGIN_LLM)
   file(GLOB_RECURSE PYTHON_LLM_SOURCE
     "${ROOT_PATH}/python/src/llm/*.h"

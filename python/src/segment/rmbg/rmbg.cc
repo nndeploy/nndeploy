@@ -24,11 +24,11 @@ NNDEPLOY_API_PYBIND11_MODULE("segment", m) {
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
                     std::vector<dag::Edge *>>())
-      .def("defaultParam", &SegmentRMBGGraph::defaultParam)
+      .def("default_param", &SegmentRMBGGraph::defaultParam)
       .def("make", &SegmentRMBGGraph::make)
-      .def("setInferParam", &SegmentRMBGGraph::setInferParam)
-      .def("setSrcPixelType", &SegmentRMBGGraph::setSrcPixelType)
-      .def("setVersion", &SegmentRMBGGraph::setVersion)
+      .def("set_infer_param", &SegmentRMBGGraph::setInferParam)
+      .def("set_src_pixel_type", &SegmentRMBGGraph::setSrcPixelType)
+      .def("set_version", &SegmentRMBGGraph::setVersion)
       .def("forward", &SegmentRMBGGraph::forward,
            py::return_value_policy::reference);
 }

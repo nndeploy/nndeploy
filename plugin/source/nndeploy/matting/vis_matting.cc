@@ -3,7 +3,7 @@
 namespace nndeploy {
 namespace matting {
 
-base::Status VisMattingNode::run() {
+base::Status VisMatting::run() {
   cv::Mat *img = inputs_[0]->getCvMat(this);
   MattingResult *result = (MattingResult *)inputs_[1]->getParam(this);
 
@@ -57,6 +57,8 @@ base::Status VisMattingNode::run() {
 
   return base::kStatusCodeOk;
 }
+
+REGISTER_NODE("nndeploy::matting::VisMatting", VisMatting);
 
 }  // namespace matting
 }  // namespace nndeploy

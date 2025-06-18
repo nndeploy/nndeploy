@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 
   dag::Edge *vis_matting_img = graph->createEdge("vis_matting_img");
   dag::Node *vis_matting_node;
-  vis_matting_node = graph->createNode<matting::VisMattingNode>(
+  vis_matting_node = graph->createNode<matting::VisMatting>(
       "vis_matting_node", {input, output}, {vis_matting_img});
 
   codec::Encode *encode_node = codec::createEncode(
