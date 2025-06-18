@@ -7,7 +7,6 @@ from nndeploy.base import name_to_device_type_code
 from nndeploy.device.tensor import (
     create_tensor_from_numpy,
     create_numpy_from_tensor,
-    name_to_device_type_code,
 )
 
 class TestAddOp(unittest.TestCase):
