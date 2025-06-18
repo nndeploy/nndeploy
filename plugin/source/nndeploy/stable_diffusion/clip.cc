@@ -9,16 +9,18 @@
 namespace nndeploy {
 namespace stable_diffusion {
 
-class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
+class NNDEPLOY_CC_API CvtTokenIds2Tensor : public dag::Node {
  public:
-  CvtTokenIds2TensorNode(const std::string &name,
-                         std::vector<dag::Edge *> inputs,
-                         std::vector<dag::Edge *> outputs)
+  CvtTokenIds2Tensor(const std::string &name, std::vector<dag::Edge *> inputs,
+                     std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::stable_diffusion::CvtTokenIds2TensorNode";
+    key_ = "nndeploy::stable_diffusion::CvtTokenIds2Tensor";
+    desc_ = "TokenizerIds to device::Tensor";
+    this->setInputTypeInfo<tokenizer::TokenizerIds>();
+    this->setOutputTypeInfo<device::Tensor>();
   }
 
-  virtual ~CvtTokenIds2TensorNode() {}
+  virtual ~CvtTokenIds2Tensor() {}
 
   virtual base::Status run() {
     tokenizer::TokenizerIds *input =
@@ -49,13 +51,19 @@ class NNDEPLOY_CC_API CvtTokenIds2TensorNode : public dag::Node {
   int32_t max_length_ = 77;
 };
 
-class NNDEPLOY_CC_API ConCatNode : public dag::Node {
+class NNDEPLOY_CC_API ConcatEmbedding : public dag::Node {
  public:
-  ConCatNode(const std::string &name, std::vector<dag::Edge *> inputs,
-             std::vector<dag::Edge *> outputs)
-      : dag::Node(name, inputs, outputs) {}
+  ConcatEmbedding(const std::string &name, std::vector<dag::Edge *> inputs,
+                  std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::stable_diffusion::Concat";
+    desc_ = "concat embedding";
+    this->setInputTypeInfo<device::Tensor>();
+    this->setInputTypeInfo<device::Tensor>();
+    this->setOutputTypeInfo<device::Tensor>();
+  }
 
-  virtual ~ConCatNode(){};
+  virtual ~ConcatEmbedding() {};
 
   base::Status setGuidance(float guidance) {
     guidance_ = guidance;
@@ -105,54 +113,146 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
  public:
   EmbeddingGraph(const std::string &name, std::vector<dag::Edge *> inputs,
                  std::vector<dag::Edge *> outputs)
-      : dag::Graph(name, inputs, outputs) {}
-  ~EmbeddingGraph(){};
+      : dag::Graph(name, inputs, outputs) {
+    key_ = "nndeploy::stable_diffusion::EmbeddingGraph";
+    desc_ =
+        "stable diffusion embedding "
+        "graph[tokenIds->TokenizerEncodeCpp->CvtTokenIds2Tensor->infer->"
+        "Tensor]";
+    this->setInputTypeInfo<tokenizer::TokenizerText>();
+    this->setOutputTypeInfo<device::Tensor>();
+    tokenize_ = dynamic_cast<tokenizer::TokenizerEncodeCpp *>(
+        this->createNode<tokenizer::TokenizerEncodeCpp>("tokenize"));
+    cvt_ = dynamic_cast<CvtTokenIds2Tensor *>(
+        this->createNode<CvtTokenIds2Tensor>("cvt_token"));
+    clip_infer_ =
+        dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
+  };
+
+  virtual ~EmbeddingGraph() {}
+
+  base::Status make(const dag::NodeDesc &tokenize_desc,
+                    const dag::NodeDesc &cvt_desc,
+                    const dag::NodeDesc &infer_desc,
+                    base::InferenceType inference_type) {
+    base::Status status = base::kStatusCodeOk;
+    this->setNodeDesc(tokenize_, tokenize_desc);
+    this->setNodeDesc(cvt_, cvt_desc);
+    this->setNodeDesc(clip_infer_, infer_desc);
+    status = clip_infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
+    return status;
+  }
 
   base::Status setTokenizerParam(tokenizer::TokenizerPraram *param) {
-    tokenizer_node_->setParam(param);
+    tokenize_->setParam(param);
     return base::kStatusCodeOk;
   }
 
   base::Status setInferParam(inference::InferenceParam *param) {
-    clip_infer_node_->setParam(param);
-    return base::kStatusCodeOk;
-  }
-
-  base::Status make(base::InferenceType inference_type, std::string name) {
-    prompt_ = this->getInput(0);
-    if (prompt_ == nullptr) {
-      NNDEPLOY_LOGE("prompt is nullptr\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    token_ids_ = this->createEdge("token_ids_");
-    tokenizer_node_ = (tokenizer::TokenizerEncodeCpp *)this
-                          ->createNode<tokenizer::TokenizerEncodeCpp>(
-                              name, {prompt_}, {token_ids_});
-
-    infer_ids_ = this->createEdge("infer_ids");
-    cvt_node_ =
-        (CvtTokenIds2TensorNode *)this->createNode<CvtTokenIds2TensorNode>(
-            "cvt_token_ids_2_tensor", {token_ids_}, {infer_ids_});
-
-    embedding_ = this->getOutput(0);
-    if (embedding_ == nullptr) {
-      NNDEPLOY_LOGE("embedding is nullptr\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    clip_infer_node_ = (infer::Infer *)this->createInfer<infer::Infer>(
-        "clip_infer", inference_type, {infer_ids_}, {embedding_});
+    clip_infer_->setParam(param);
     return base::kStatusCodeOk;
   }
 
  private:
-  dag::Edge *prompt_;
-  dag::Node *tokenizer_node_;
-  dag::Edge *token_ids_;
-  dag::Node *cvt_node_;
-  dag::Edge *infer_ids_;
-  dag::Node *clip_infer_node_;
-  dag::Edge *embedding_;
+  dag::Node *tokenize_;
+  dag::Node *cvt_;
+  infer::Infer *clip_infer_;
 };
+
+class NNDEPLOY_CC_API ClipGraph : public dag::Graph {
+ public:
+  ClipGraph(const std::string &name) : dag::Graph(name) {
+    key_ = "nndeploy::stable_diffusion::ClipGraph";
+    desc_ = "clip graph[[prompt, negative_prompt]->text_embedding]";
+    this->setInputTypeInfo<tokenizer::TokenizerText>();
+    this->setOutputTypeInfo<device::Tensor>();
+    embedding_ = dynamic_cast<EmbeddingGraph *>(
+        this->createNode<EmbeddingGraph>("embeddings"));
+    negative_embedding_ = dynamic_cast<EmbeddingGraph *>(
+        this->createNode<EmbeddingGraph>("negative_embeddings"));
+    concat_ = dynamic_cast<ConcatEmbedding *>(
+        this->createNode<ConcatEmbedding>("concat"));
+  }
+
+  ClipGraph(const std::string &name, std::vector<dag::Edge *> inputs,
+            std::vector<dag::Edge *> outputs)
+      : dag::Graph(name, inputs, outputs) {
+    key_ = "nndeploy::stable_diffusion::ClipGraph";
+    desc_ = "clip graph[[prompt, negative_prompt]->text_embedding]";
+    this->setInputTypeInfo<tokenizer::TokenizerText>();
+    this->setOutputTypeInfo<device::Tensor>();
+    embedding_ = dynamic_cast<EmbeddingGraph *>(
+        this->createNode<EmbeddingGraph>("embeddings"));
+    negative_embedding_ = dynamic_cast<EmbeddingGraph *>(
+        this->createNode<EmbeddingGraph>("negative_embeddings"));
+    concat_ = dynamic_cast<ConcatEmbedding *>(
+        this->createNode<ConcatEmbedding>("concat"));
+  }
+
+  virtual ~ClipGraph() {}
+
+  base::Status make(const dag::NodeDesc tokenize_desc,
+                    const dag::NodeDesc negative_tokenize_desc,
+                    const dag::NodeDesc &concat_desc,
+                    base::InferenceType inference_type) {
+    dag::NodeDesc cvt_desc("cvt_token", {"token_ids"}, {"infer_ids"});
+    dag::NodeDesc infer_desc("clip_infer", {"infer_ids"}, {"prompt_ids"});
+    embedding_->make(tokenize_desc, cvt_desc, infer_desc, inference_type);
+
+    dag::NodeDesc negative_cvt_desc("negative_cvt_token", {"token_ids"},
+                                    {"infer_ids"});
+    dag::NodeDesc negative_infer_desc("negative_clip_infer", {"infer_ids"},
+                                      {"negative_prompt_ids"});
+    negative_embedding_->make(negative_tokenize_desc, negative_cvt_desc,
+                              negative_infer_desc, inference_type);
+    this->setNodeDesc(concat_, concat_desc);
+    return base::kStatusCodeOk;
+  }
+
+ private:
+  EmbeddingGraph *embedding_ = nullptr;
+  EmbeddingGraph *negative_embedding_ = nullptr;
+  dag::Node *concat_ = nullptr;
+};
+
+dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
+                            dag::Edge *negative_prompt, dag::Edge *output,
+                            base::InferenceType inference_type,
+                            std::vector<base::Param *> &param) {
+  // get param
+  Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
+  tokenizer::TokenizerPraram *tokenizer_param =
+      new tokenizer::TokenizerPraram();
+  tokenizer_param->tokenizer_type_ = tokenizer::TokenizerType::kTokenizerTypeHF;
+  tokenizer_param->is_path_ = true;
+  // tokenizer_param->json_blob_ =
+  //     "/home/lds/stable-diffusion.onnx/models/tokenizer/tokenizer.json";
+  tokenizer_param->json_blob_ = text2image_param->model_value_[0];
+
+  inference::InferenceParam *infer_param = new inference::InferenceParam();
+  infer_param->device_type_ = text2image_param->device_type_;
+  infer_param->model_type_ = text2image_param->model_type_;
+  infer_param->is_path_ = text2image_param->is_path_;
+  // std::vector<std::string> onnx_path = {
+  //     "/home/lds/stable-diffusion.onnx/models/text_encoder/model.onnx"};
+  std::vector<std::string> onnx_path = {text2image_param->model_value_[1]};
+  infer_param->model_value_ = onnx_path;
+
+  ClipGraph *clip_graph =
+      new ClipGraph(name, {prompt, negative_prompt}, {output});
+  dag::NodeDesc tokenize_desc("tokenize", {prompt->getName()}, {"token_ids"});
+  dag::NodeDesc negative_tokenize_desc(
+      "negative_tokenize", {negative_prompt->getName()}, {"token_ids"});
+  dag::NodeDesc concat_desc("concat_desc",
+                            {"prompt_ids", "negative_prompt_ids"},
+                            {output->getName()});
+  clip_graph->make(tokenize_desc, negative_tokenize_desc, concat_desc,
+                   inference_type);
+}
 
 dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
                             dag::Edge *negative_prompt, dag::Edge *output,
