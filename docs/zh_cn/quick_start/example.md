@@ -19,6 +19,13 @@ export LD_LIBRARY_PATH=$(pwd):$LD_LIBRARY_PATH
 ./nndeploy_demo_dag
 ```
 
+### mac 下运行 nndeploy_demo_dag
+```shell
+cd /yourpath/nndeploy/build/install/lib
+export DYLD_LIBRARY_PATH=$(pwd):$DYLD_LIBRARY_PATH
+./nndeploy_demo_dag
+```
+
 ### Andorid 下运行 nndeploy_demo_dag
 ```shell
 cd /yourpath/nndeploy/build/install/lib
