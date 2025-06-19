@@ -23,3 +23,4 @@ fi
 # 当脚本不生效时，直接在终端执行
 # export LD_LIBRARY_PATH=/opt/intel/oneapi/compiler/latest/lib:$LD_LIBRARY_PATH
 # source /opt/intel/oneapi/setvars.sh
+# export LD_LIBRARY_PATH=/home/always/github/public/nndeploy/build/nndeploy3.0.0.0/lib:$LD_LIBRARY_PATH
