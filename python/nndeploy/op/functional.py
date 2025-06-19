@@ -20,7 +20,8 @@ def conv(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
 def concat(input1, input2, axis=0):
     param = _C.ir.ConcatParam()
     param.axis_ = axis
-    print(_C.op.concat)
+    print(param)
+    print(type(_C.op.concat))
     
     return _C.op.concat([input1, input2], param)
 

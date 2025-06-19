@@ -4,18 +4,17 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 from nndeploy.base import name_to_device_type_code
-from nndeploy.test.test_util import (
+from nndeploy.device.tensor import (
     create_tensor_from_numpy,
     create_numpy_from_tensor,
-    name_to_device_type_code,
 )
 
 
 class TestConvOp(unittest.TestCase):
 
     def test_concat_without_axis(self):
-        matA_shape = [6, 3, 3]
-        matB_shape = [6, 3, 3]
+        matA_shape = [1, 6, 3, 3]
+        matB_shape = [1, 6, 3, 3]
 
         np_matA = np.random.uniform(2, 5, matA_shape).astype(np.float32)
         np_matB = np.random.uniform(2, 5, matB_shape).astype(np.float32)

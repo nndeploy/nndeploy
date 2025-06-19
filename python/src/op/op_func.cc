@@ -39,12 +39,15 @@ device::Tensor* concatFunc(std::vector<device::Tensor *> inputs,
   std::stringstream ss;
 
   device::Tensor* output = new device::Tensor("concat.output");
+  NNDEPLOY_LOGE("concatFunc\n");
   base::Status status = op::concat(inputs, param, output);
+  NNDEPLOY_LOGE("concatFunc\n");
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::concat failed: error code "
        << base::statusCodeToString(status.getStatusCode());
     pybind11::pybind11_fail(ss.str());
   }
+  NNDEPLOY_LOGE("concatFunc\n");
 
   return output;
 }

@@ -207,7 +207,15 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
   m.def("batch_norm", &batchNormFunc, py::return_value_policy::take_ownership);
   m.def("relu", &reluFunc, py::return_value_policy::take_ownership);
   m.def("conv", &convFunc, py::return_value_policy::take_ownership);
-  m.def("concat", &concatFunc, py::return_value_policy::take_ownership);
+  m.def("concat", [](py::list inputs, std::shared_ptr<ir::ConcatParam> param) {
+    NNDEPLOY_LOGE("concat\n");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::vector<device::Tensor*> input_tensors;
+    for (auto input : inputs) {
+      input_tensors.push_back(input.cast<device::Tensor*>());
+    }
+    return concatFunc(input_tensors, param);
+  }, py::return_value_policy::take_ownership);
   m.def("add", &addFunc, py::return_value_policy::take_ownership);
   m.def("flatten", &flattenFunc, py::return_value_policy::take_ownership);
   m.def("gemm", &gemmFunc, py::return_value_policy::take_ownership);

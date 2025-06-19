@@ -126,6 +126,9 @@ base::Status OpConcat::run() {
 base::Status concat(std::vector<device::Tensor *> input,
                     std::shared_ptr<ir::ConcatParam> param,
                     device::Tensor *output) {
+  NNDEPLOY_LOGE("concat\n");
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
   base::Status status = base::kStatusCodeOk;
 
   Op *op = createOp(input[0]->getDeviceType(), "", ir::kOpTypeConcat);
@@ -133,28 +136,38 @@ base::Status concat(std::vector<device::Tensor *> input,
     NNDEPLOY_LOGE("createOp failed");
     return base::kStatusCodeErrorNotImplement;
   }
+  NNDEPLOY_LOGE("concat\n");
   status = op->setParam(param);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
   for (int i = 0; i < (int)input.size(); i++) {
+    NNDEPLOY_LOGE("concat\n");
     status = op->setInput(input[i], i);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   }
+  NNDEPLOY_LOGE("concat\n");
   status = op->setOutput(output, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
+  NNDEPLOY_LOGE("concat\n");
   status = op->init();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "init failed");
+  NNDEPLOY_LOGE("concat\n");
   status = op->checkOrAllocOutput();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                          "checkOrAllocOutput failed");
+                         NNDEPLOY_LOGE("concat\n");
   status = op->preRun();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "preRun failed");
+  NNDEPLOY_LOGE("concat\n");
   status = op->run();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "run failed");
+  NNDEPLOY_LOGE("concat\n");
   status = op->postRun();
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "postRun failed");
   status = op->deinit();
+  NNDEPLOY_LOGE("concat\n");
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "deinit failed");
   delete op;
+  NNDEPLOY_LOGE("concat\n");
 
   return status;
 }
