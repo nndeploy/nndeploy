@@ -129,7 +129,7 @@ const std::vector<std::string>& InferenceParam::getInputName() const {
 void InferenceParam::setInputName(const std::vector<std::string>& input_name) {
   input_name_ = input_name;
   if (input_name_.size() > input_num_) {
-    input_num_ = input_name_.size();
+    input_num_ = static_cast<int>(input_name_.size());
   }
 }
 void InferenceParam::setInputName(const std::string& input_name, int i) {
@@ -141,7 +141,7 @@ void InferenceParam::setInputName(const std::string& input_name, int i) {
     NNDEPLOY_LOGE("Invalid input name index");
   }
   if (input_name_.size() > input_num_) {
-    input_num_ = input_name_.size();
+    input_num_ = static_cast<int>(input_name_.size());
   }
 }
 
@@ -163,7 +163,7 @@ void InferenceParam::setInputShape(
     const std::vector<std::vector<int>>& input_shape) {
   input_shape_ = input_shape;
   if (input_shape_.size() > input_num_) {
-    input_num_ = input_shape_.size();
+    input_num_ = static_cast<int>(input_shape_.size());
   }
 }
 void InferenceParam::setInputShape(const std::vector<int>& input_shape, int i) {
@@ -175,7 +175,7 @@ void InferenceParam::setInputShape(const std::vector<int>& input_shape, int i) {
     NNDEPLOY_LOGE("Invalid input shape index");
   }
   if (input_shape_.size() > input_num_) {
-    input_num_ = input_shape_.size();
+    input_num_ = static_cast<int>(input_shape_.size());
   }
 }
 
@@ -211,7 +211,7 @@ void InferenceParam::setOutputName(
     const std::vector<std::string>& output_name) {
   output_name_ = output_name;
   if (output_name_.size() > output_num_) {
-    output_num_ = output_name_.size();
+    output_num_ = static_cast<int>(output_name_.size());
   }
 }
 void InferenceParam::setOutputName(const std::string& output_name, int i) {
@@ -223,7 +223,7 @@ void InferenceParam::setOutputName(const std::string& output_name, int i) {
     NNDEPLOY_LOGE("Invalid output name index");
   }
   if (output_name_.size() > output_num_) {
-    output_num_ = output_name_.size();
+    output_num_ = static_cast<int>(output_name_.size());
   }
 }
 

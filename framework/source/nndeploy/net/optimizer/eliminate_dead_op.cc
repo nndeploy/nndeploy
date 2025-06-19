@@ -10,7 +10,7 @@ base::Status EliminateDeadOp::optimize(
     std::vector<TensorWrapper*>& tensor_repository,
     std::vector<OpWrapper*>& op_repository, int begin_op_index) {
   // 从后向前寻找无用的死节点
-  int index = op_repository.size() - begin_op_index - 1;
+  int index = static_cast<int>(op_repository.size() - begin_op_index - 1);
 
   if (index < 0 || index >= op_repository.size()) {
     return base::kStatusCodeOk;

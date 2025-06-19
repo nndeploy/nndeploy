@@ -101,7 +101,7 @@ int64_t TensorPool1DOffsetCalculateGreedyByBreadth::getMemorySize() {
       }
       tensor_num_++;
       std::shared_ptr<Offset> best_offset = nullptr;
-      int smallest_gap = INT_MAX;  // 最小间隙
+      size_t smallest_gap = UINT64_MAX;  // 最小间隙
 
       // 遍历已分配的张量，寻找最佳偏移量
       for (int i = 0; i < offsets_.size(); i++) {

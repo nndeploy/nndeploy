@@ -343,8 +343,18 @@ endif()
 
 # ignore warning
 if(MSVC)
+    # 禁用以下MSVC编译警告:
+    # /wd4003: 运算符缺少操作数 - 宏展开中的警告
+    # /wd4819: 文件包含不能在当前代码页中表示的字符 
+    # /wd4244: 从'type1'转换到'type2',可能丢失数据
+    # /wd4018: 有符号/无符号不匹配
+    # /utf-8: 将源代码和执行字符集都设为UTF-8
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4003 /wd4819 /wd4244 /wd4018 /utf-8")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4003 /wd4819 /wd4244 /wd4018 /utf-8")
+    # 禁用以下MSVC编译警告:
+    # /wd4251: 需要有dll接口供客户端使用的警告
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
 endif()
 
 # ignore loop-vectorize warning

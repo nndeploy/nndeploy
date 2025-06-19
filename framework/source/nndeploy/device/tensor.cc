@@ -534,7 +534,7 @@ base::Status Tensor::safetensorsShape2Shape(
   //   shape.emplace_back(it);
   // }
   for (int i = 0; i < safetensors_data_shape.size(); ++i) {
-    shape.push_back(safetensors_data_shape[i]);
+    shape.push_back(static_cast<int>(safetensors_data_shape[i]));
   }
   return base::kStatusCodeOk;
 }
@@ -831,13 +831,14 @@ void Tensor::print(std::ostream &stream) const {
     } else if (data_type.code_ == base::kDataTypeCodeBFp &&
                data_type.bits_ == 16 && data_type.lanes_ == 1) {
       float *fp32 = (float *)malloc(ele_count * sizeof(float));
-      base::convertFromBfp16ToFloat((void *)data, fp32, ele_count);
+      base::convertFromBfp16ToFloat((void *)data, fp32, static_cast<int>(ele_count));
       base::printData((float *)fp32, shape, stream);
       free(fp32);
     } else if (data_type.code_ == base::kDataTypeCodeFp &&
                data_type.bits_ == 16 && data_type.lanes_ == 1) {
       float *fp32 = (float *)malloc(ele_count * sizeof(float));
-      base::convertFromFp16ToFloat((void *)data, fp32, ele_count);
+      base::convertFromFp16ToFloat((void *)data, fp32,
+                                   static_cast<int>(ele_count));
       base::printData((float *)fp32, shape, stream);
       free(fp32);
     } else {
@@ -880,7 +881,7 @@ bool Tensor::isContinue() const {
   if (desc_.stride_.size() == 0) {
     return true;
   } else {
-    int size = desc_.stride_.size();
+    int size = static_cast<int>(desc_.stride_.size());
     size_t acc = 1;
     for (int i = size - 1; i >= 0; --i) {
       acc *= desc_.shape_[i];

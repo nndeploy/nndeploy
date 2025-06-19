@@ -1090,7 +1090,7 @@ base::Status Node::deserialize(rapidjson::Value &json) {
           input_type_info_.emplace_back(edge_type_info);
         } else {
           NNDEPLOY_LOGE("input_type_info_ size: %d, is_dynamic_input_: %d\n",
-                        input_type_info_.size(), is_dynamic_input_);
+                        static_cast<int>(input_type_info_.size()), is_dynamic_input_);
         }
       }
     }
@@ -1119,7 +1119,7 @@ base::Status Node::deserialize(rapidjson::Value &json) {
           output_type_info_.emplace_back(edge_type_info);
         } else {
           NNDEPLOY_LOGE("output_type_info_ size: %d, is_dynamic_output_: %d\n",
-                        output_type_info_.size(), is_dynamic_output_);
+                        static_cast<int>(output_type_info_.size()), is_dynamic_output_);
         }
       }
     }

@@ -50,14 +50,14 @@ base::Status OpReshape::inferShape() {
       // inferred, set the corresponding  unresolvedZeros flag to true.
       // If allowzero is set however, do not propagate values, since output
       // dimension is explicitly zero.
-      NNDEPLOY_LOGE("Invalid dimension value: %ld.\n", dim_value);
+      NNDEPLOY_LOGE("Invalid dimension value: %lld.\n", dim_value);
     } else if (dim_value > 0) {
       // Set the dimension value to dim_value
       output_shape[i] = dim_value;
       outputProduct *= dim_value;
     } else {
       // Check if value is less than -1; fail if so
-      NNDEPLOY_LOGE("Invalid dimension value: %ld.\n", dim_value);
+      NNDEPLOY_LOGE("Invalid dimension value: %lld.\n", dim_value);
     }
   }
 

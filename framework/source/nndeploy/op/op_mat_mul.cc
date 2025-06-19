@@ -31,7 +31,7 @@ base::Status OpMatMul::inferShape() {
 
   auto first_input_shape = inputs_[0]->getShape();
   auto second_input_shape = inputs_[1]->getShape();
-  int shape_size = second_input_shape.size();
+  int shape_size = static_cast<int>(second_input_shape.size());
 
   base::IntVector output_shape = first_input_shape;
   output_shape[shape_size - 1] = second_input_shape[shape_size - 1];

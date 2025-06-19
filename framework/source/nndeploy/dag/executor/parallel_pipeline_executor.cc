@@ -24,7 +24,7 @@ base::Status ParallelPipelineExecutor::init(
     iter->node_->setInitializedFlag(true);
   }
 
-  all_task_count_ = topo_sort_node_.size();
+  all_task_count_ = static_cast<int>(topo_sort_node_.size());
   edge_repository_ = edge_repository;
 
   thread_pool_ = new thread_pool::ThreadPool(all_task_count_);
