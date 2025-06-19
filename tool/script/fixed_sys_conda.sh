@@ -3,12 +3,6 @@
 # System library priority and preload settings script
 # Used to resolve system library conflicts in conda environments
 
-# # 设置LD_LIBRARY_PATH优先使用系统库
-# export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
-
-# # 或者设置LD_PRELOAD
-# export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
-
 # 默认系统库路径
 DEFAULT_SYSTEM_LIB_PATH="/usr/lib/x86_64-linux-gnu"
 # 默认预加载库路径
@@ -46,3 +40,10 @@ export LD_PRELOAD="${PRELOAD_LIB_PATH}"
 if [ ${#REMAINING_ARGS[@]} -gt 0 ]; then
     exec "${REMAINING_ARGS[@]}"
 fi
+
+# 当脚本不生效时，直接在终端执行
+# # 设置LD_LIBRARY_PATH优先使用系统库
+# export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+
+# # 或者设置LD_PRELOAD
+# export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
