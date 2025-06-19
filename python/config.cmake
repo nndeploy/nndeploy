@@ -345,18 +345,6 @@ set_target_properties(${BINARY} PROPERTIES OUTPUT_NAME "_nndeploy_internal")
 set_target_properties(${BINARY} PROPERTIES PREFIX "" LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/nndeploy")
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
-if (APPLE)
-  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,-all_load")
-elseif (UNIX)
-  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
-elseif(WIN32)
-  if(MSVC)
-    # target_link_options(${BINARY} PRIVATE /WHOLEARCHIVE)
-  elseif(MINGW)
-    set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
-  endif()
-endif()
-
 # link
 # target_link_libraries(${BINARY} PUBLIC nndeploy_framework)
 # DEPEND_LIBRARY
