@@ -1,8 +1,8 @@
 import Mock, { templateOrFn } from "mockjs";
 
 import { initialData } from "../../../pages/components/flow/initial-data";
-import { IWorkFlowBranchEntity, IWorkFlowEntity, IWorkFlowTreeNodeEntity } from "../../../pages/Layout/Design/WorkFlow/entity";
-import { workFlows } from "./initalWorkFlow";
+import { IBusinessNode, IWorkFlowBranchEntity, IWorkFlowEntity, IWorkFlowTreeNodeEntity } from "../../../pages/Layout/Design/WorkFlow/entity";
+import { businessContents, workFlows } from "./initalWorkFlow";
 // mock方法,详细的可以看官方文档
 const Random = Mock.Random;
 
@@ -56,7 +56,7 @@ const branches: IWorkFlowBranchEntity[] = [
   },
 ];
 
-const flows: IWorkFlowEntity[] = workFlows
+//const flows: IWorkFlowEntity[] = workFlows
 
 export const workFlowHandler: MockItem[] = [
   {
@@ -94,7 +94,7 @@ export const workFlowHandler: MockItem[] = [
     response: (options) => {
       const data: IWorkFlowTreeNodeEntity[] = [
         ...branches.map((item) => ({ ...item, type: "branch" as const })),
-        ...flows.map((item) => ({ ...item, type: "leaf" as const })),
+        ...businessContents.map((item) => ({ id: item.name_, name: item.name_, type: "leaf" as const , parentId: ""})),
       ];
 
       return {
@@ -169,25 +169,33 @@ export const workFlowHandler: MockItem[] = [
     url: "/workflow/save",
     type: "post",
     response: (options) => {
-      const entity: IWorkFlowEntity = JSON.parse(options.body);
+      // const entity: IWorkFlowEntity = JSON.parse(options.body);
 
-      entity.designContent = entity.designContent? entity.designContent : { nodes: [], edges: [] }
-      const findIndex = flows.findIndex(item=>item.id == entity.id)
+      // entity.designContent = entity.designContent? entity.designContent : { nodes: [], edges: [] }
+      // const findIndex = flows.findIndex(item=>item.id == entity.id)
 
-      if(findIndex == -1){
-         entity.id = Random.guid()
-        flows.push(entity)
+      // if(findIndex == -1){
+      //    entity.id = Random.guid()
+      //   flows.push(entity)
         
-      }else{
+      // }else{
        
-        flows[findIndex] = entity
+      //   flows[findIndex] = entity
+      // }
+
+      const businessContent: IBusinessNode = JSON.parse(options.body);
+      const findIndex = businessContents.findIndex(item=>item.name = businessContent.name_)
+      if(findIndex > -1){
+        businessContents[findIndex] = businessContent
+      }else{
+        businessContents.push(businessContent)
       }
      
 
       return {
         flag: "success",
         message: "",
-        result: entity
+        result: businessContent
       };
     },
   },
@@ -196,9 +204,9 @@ export const workFlowHandler: MockItem[] = [
     url: "/workflow/get",
     type: "post",
     response: (options) => {
-      const entity: IWorkFlowEntity = JSON.parse(options.body);
-
-      var find = flows.find(item=>item.id == entity.id)
+      const entity = JSON.parse(options.body);
+  
+      var find = businessContents.find(item=>item.name_ == entity.flowName)
 
       return {
         flag: "success",
@@ -214,7 +222,7 @@ export const workFlowHandler: MockItem[] = [
     response: (options) => {
       const entity: IWorkFlowEntity = JSON.parse(options.body);
 
-       const findIndex = flows.findIndex((item) => item.id == entity.id);
+       const findIndex = businessContents.findIndex((item) => item.name_ == entity.name);
 
       if (findIndex == -1) {
         return {
@@ -223,7 +231,7 @@ export const workFlowHandler: MockItem[] = [
           result: {},
         };
       } else {
-        flows.splice(findIndex, 1);
+        businessContents.splice(findIndex, 1);
       }
       return {
         flag: "success",

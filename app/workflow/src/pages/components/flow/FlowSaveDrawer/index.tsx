@@ -4,9 +4,9 @@ const { Input, TreeSelect } = Form;
 import { useRef } from "react";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import { useGetWorkflowBranch, useGetWorkflowTree } from "../../../Layout/Design/WorkFlow/effect";
-import { IWorkFlowEntity } from "../../../Layout/Design/WorkFlow/entity";
+import { IBusinessNode, IWorkFlowEntity } from "../../../Layout/Design/WorkFlow/entity";
 import { apiWorkFlowSave } from "../../../Layout/Design/WorkFlow/api";
-import { buildBusinessDataFromDesignData } from "./functions";
+import { designDataToBusinessData } from "./functions";
 
 export interface BranchEditDrawerProps {
   onSure: (node: IWorkFlowEntity) => void;
@@ -25,7 +25,7 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
       const formData = formRef!.current!.getValues();
       //console.log("Form Data:", formData);
 
-        const businessContent = buildBusinessDataFromDesignData(
+        const businessContent = designDataToBusinessData(
               props.entity.designContent
             );
 
@@ -36,9 +36,11 @@ const FlowSaveDrawer: React.FC<BranchEditDrawerProps> = (props) => {
 
       };
 
-      const response = await apiWorkFlowSave(data);
+      businessContent.name_ = formData['name']
+
+      const response = await apiWorkFlowSave(businessContent);
       if (response.flag == "success") {
-        props.onSure(response.result);
+        props.onSure(data);
       }
 
       Toast.success("save sucess!");

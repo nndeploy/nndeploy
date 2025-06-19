@@ -5,7 +5,7 @@ import { apiGetWorkFlow, apiWorkFlowSave } from "../api";
 import { IWorkFlowEntity, IWorkFlowTreeNodeEntity } from "../entity";
 import { useEffect, useRef, useState } from "react";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
-import { buildBusinessDataFromDesignData } from "../../../../components/flow/FlowSaveDrawer/functions";
+import { designDataToBusinessData } from "../../../../components/flow/FlowSaveDrawer/functions";
 
 export interface WorkFlowEditDrawerProps {
   onSure: (node: IWorkFlowTreeNodeEntity) => void;
@@ -60,7 +60,7 @@ const WorkFlowEditDrawer: React.FC<WorkFlowEditDrawerProps> = (props) => {
       const formData = formRef!.current!.getValues();
       //console.log("Form Data:", formData);
 
-      const businessContent = buildBusinessDataFromDesignData(
+      const businessContent = designDataToBusinessData(
         entity.designContent
       );
 

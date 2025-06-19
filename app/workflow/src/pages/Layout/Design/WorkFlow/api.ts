@@ -1,6 +1,6 @@
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import request from "../../../../request";
-import { IWorkFlowEntity, IWorkFlowTreeNodeEntity } from "./entity";
+import { IBusinessNode, IWorkFlowEntity, IWorkFlowTreeNodeEntity } from "./entity";
 
 export async function apiGetWorkFlowTree(){
  var response = await request.get<IWorkFlowTreeNodeEntity[]>('/workflow/tree', {});
@@ -23,8 +23,8 @@ export async function apiWorkFlowBranchSave(entity: IWorkFlowTreeNodeEntity){
 }
 
 
-export async function apiWorkFlowSave(entity: IWorkFlowEntity){
- var response = await request.post<IWorkFlowEntity>('/workflow/save', entity);
+export async function apiWorkFlowSave(entity: IBusinessNode){
+ var response = await request.post<IBusinessNode>('/workflow/save', entity);
 
   return response;
 }

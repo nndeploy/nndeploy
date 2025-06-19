@@ -1,7 +1,7 @@
 import request from "../../../request";
 import { FlowNodeRegistry } from "../../../typings";
 import { apiGetNodeList } from "../../Layout/Design/Node/api";
-import { IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
+import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
 import { INodeEntity } from "../../Node/entity";
 import { buildNodeRegistry } from "./nodeRegistry/buildNodeRegistry";
 
@@ -11,8 +11,8 @@ export async function apiGetNodeById  (key_: string) {
   return response;
 }
 
-export async function apiGetWorkFlow(id: string){
- var response = await request.post<IWorkFlowEntity>('/workflow/get', {id});
+export async function apiGetWorkFlow(flowName: string){
+ var response = await request.post<IBusinessNode>(`/workflow/get`, {flowName});
 
   return response;
 }

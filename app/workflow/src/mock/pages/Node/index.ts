@@ -168,6 +168,7 @@ const nodes: INodeEntity[] = [
             "key_": "nndeploy::detect::YoloGraph",
             "name_": "nndeploy::detect::YoloGraph",
             "device_type_": "kDeviceTypeCodeX86:0:0",
+            is_graph_: true, 
             "inputs_": [
                 {
                     "desc_": "detect_in",

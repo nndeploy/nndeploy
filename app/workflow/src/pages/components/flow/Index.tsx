@@ -2,6 +2,7 @@ import {
   EditorRenderer,
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
+  usePlaygroundTools,
 } from "@flowgram.ai/free-layout-editor";
 
 import "@flowgram.ai/free-layout-editor/index.css";
@@ -9,7 +10,7 @@ import "./styles/index.css";
 //import { nodeRegistries } from "../../../nodes";
 import { initialData } from "./initial-data";
 import { useEditorProps } from "../../../hooks";
-import { DemoTools } from "../../../components/tools";
+import { AutoLayoutHandle, DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
 import { useEffect, useRef, useState } from "react";
 import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
@@ -18,8 +19,9 @@ import { apiGetNodeById, apiGetWorkFlow, getNodeRegistry } from "./api";
 import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
 import { SideSheet } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
-import { IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
+import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
 import { useGetRegistry } from "./effect";
+import { transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
 
 let nameId = 0; 
 
@@ -31,6 +33,8 @@ const Flow: React.FC<FlowProps> = (props) => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
+
+  //const tools = usePlaygroundTools();
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
@@ -63,6 +67,9 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [loading, setLoading] = useState(true);
 
+  
+  const autoLayOutRef = useRef<AutoLayoutHandle>(); 
+
   const [saveDrawerVisible, setSaveDrawerVisible] = useState(false);
 
   function handleSaveDrawerClose() {
@@ -71,24 +78,29 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
 
-  const fetchData = async (id: string) => {
+  const fetchData = async (flowName: string) => {
     //setLoading(true);
 
     const nodeRegistries = await getNodeRegistry();
     setNodeRegistries(nodeRegistries);
 
-    if (!id) {
+    if (!flowName) {
       setLoading(false);
       return;
     }
-    const response = await apiGetWorkFlow(id);
+    const response = await apiGetWorkFlow(flowName);
     if (response.flag == "error") {
       return;
     }
 
-    setEntity(response.result);
+    const designContent = transferBusinessContentToDesignContent(response.result, nodeRegistries)
 
-    ref?.current?.document.reload(response.result.designContent);
+    
+
+    setEntity({...entity, designContent, businessContent: response.result});
+
+
+    ref?.current?.document.reload(designContent);
 
     //ref?.current?.document.reload(response.result.content);
 
@@ -97,6 +109,10 @@ const Flow: React.FC<FlowProps> = (props) => {
     setTimeout(() => {
       // 加载后触发画布的 fitview 让节点自动居中
       ref?.current?.document.fitView();
+      
+      autoLayOutRef.current?.autoLayout()
+      //tools.autoLayout()
+      
     }, 100);
 
     //setFlowData(response);
@@ -121,7 +137,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
     setSaveDrawerVisible(false);
-    setEntity(entity);
+    setEntity({...entity});
     props.onFlowSave(entity);
   }
   function onFlowSaveDrawerClose() {
@@ -154,7 +170,10 @@ const Flow: React.FC<FlowProps> = (props) => {
         const nodeId = e?.dataTransfer?.getData("text");
 
         const response = await apiGetNodeById(nodeId!);
-        let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
+
+       
+        //let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
+         var type = response.result.is_graph_ ? 'group':  response.result.key_
         
         let node = {
           // ...response.result,
@@ -177,7 +196,7 @@ const Flow: React.FC<FlowProps> = (props) => {
           node.data.inputs_ = node.data.inputs_.map(item=>{
             return {
               ...item, 
-              id: Math.random().toString(36).substr(2, 9),
+              id: 'port' + Math.random().toString(36).substr(2, 9),
             }
           })
         //}
@@ -187,7 +206,7 @@ const Flow: React.FC<FlowProps> = (props) => {
            node.data.outputs_ = node.data.outputs_.map(item=>{
             return {
               ...item, 
-              id: Math.random().toString(36).substr(2, 9),
+              id: 'port' + Math.random().toString(36).substr(2, 9),
             }
           })
         //}
@@ -206,6 +225,7 @@ const Flow: React.FC<FlowProps> = (props) => {
       }
     };
   }, [dropzone]);
+
 
   //const nodeRegistries = useGetRegistry()
 
@@ -227,7 +247,7 @@ const Flow: React.FC<FlowProps> = (props) => {
             <FlowEnviromentContext.Provider
               value={{ element: flowRef, onSave }}
             >
-              <DemoTools />
+              <DemoTools ref={autoLayOutRef}/>
 
               <SidebarRenderer />
             </FlowEnviromentContext.Provider>
