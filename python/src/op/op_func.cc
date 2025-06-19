@@ -34,6 +34,21 @@ device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
   return output;
 }
 
+device::Tensor* concatFunc(std::vector<device::Tensor *> inputs,
+                         std::shared_ptr<ir::ConcatParam> param) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("concat.output");
+  base::Status status = op::concat(inputs, param, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::concat failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
 device::Tensor* batchNormFunc(
     device::Tensor* input, device::Tensor* scale, device::Tensor* bias,
     device::Tensor* mean, device::Tensor* var,
