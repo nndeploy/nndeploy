@@ -11,9 +11,9 @@ import torch
 
 
 def test_warp_affine_param():
-    # 创建WarpAffineParam实例
-    param = _C.preprocess.WarpAffineParam()
-    # param = _C.WarpAffineParam()
+    # 创建WarpAffineCvtNormTransParam实例
+    param = _C.preprocess.WarpAffineCvtNormTransParam()
+    # param = _C.WarpAffineCvtNormTransParam()
     
     # 测试transform_属性
     transform = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]], dtype=torch.float32)
@@ -61,7 +61,7 @@ def test_warp_affine_param():
     print(type(param))
     # # 打印param的父类型
     print(type(param).__base__)
-    print(_C.preprocess.WarpAffineParam.__base__)
+    print(_C.preprocess.WarpAffineCvtNormTransParam.__base__)
     print(_C.dag.Graph)
     print(_C.dag.Graph.__base__)
     print(_C.inference.InferenceParam)
@@ -69,7 +69,7 @@ def test_warp_affine_param():
     inference_param = _C.inference.InferenceParam(nndeploy.base.InferenceType.OnnxRuntime)
     print(inference_param.serialize())
 
-    print("WarpAffineParam test passed!")
+    print("WarpAffineCvtNormTransParam test passed!")
     
 def test_cvtcolor_param():
     param = nndeploy.preprocess.CvtcolorParam()

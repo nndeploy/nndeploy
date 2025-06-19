@@ -105,4 +105,17 @@ if __name__ == "__main__":
     # 将all_node_json写入文件
     with open("all_node_json.json", "w") as f:
         f.write(all_node_json)
+        
+    const_node = nndeploy.dag.ConstNode("const_node")
+    const_node.set_output_type(torch.Tensor)
+    print(const_node.serialize())
+    const_node.run()
+    
+    composite_node = nndeploy.dag.CompositeNode("composite_node")
+    composite_node.set_input_type(torch.Tensor)
+    composite_node.set_output_type(torch.Tensor)
+    print(composite_node.serialize())
+    composite_node.run()
+    
+    loop_node = nndeploy.dag.Loop("loop_node")
     

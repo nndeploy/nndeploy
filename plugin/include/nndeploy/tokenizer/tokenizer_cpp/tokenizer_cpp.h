@@ -35,6 +35,11 @@ class NNDEPLOY_CC_API TokenizerEncodeCpp
  public:
   TokenizerEncodeCpp(const std::string& name) : TokenizerEncode(name) {
     key_ = "nndeploy::tokenizer::TokenizerEncodeCpp";
+    desc_ =
+        "A tokenizer encode node that uses the C++ tokenizers library to "
+        "encode text into token IDs. Supports HuggingFace and BPE tokenizers. "
+        "Can encode single strings or batches of text. Provides vocabulary "
+        "lookup and token-to-ID conversion.";
     param_ = std::make_shared<TokenizerPraram>();
     this->setInputTypeInfo<TokenizerText>();
     this->setOutputTypeInfo<TokenizerIds>();
@@ -43,6 +48,11 @@ class NNDEPLOY_CC_API TokenizerEncodeCpp
                      std::vector<dag::Edge*> outputs)
       : TokenizerEncode(name, inputs, outputs) {
     key_ = "nndeploy::tokenizer::TokenizerEncodeCpp";
+    desc_ =
+        "A tokenizer encode node that uses the C++ tokenizers library to "
+        "encode text into token IDs. Supports HuggingFace and BPE tokenizers. "
+        "Can encode single strings or batches of text. Provides vocabulary "
+        "lookup and token-to-ID conversion.";
     param_ = std::make_shared<TokenizerPraram>();
     this->setInputTypeInfo<TokenizerText>();
     this->setOutputTypeInfo<TokenizerIds>();
@@ -93,6 +103,11 @@ class NNDEPLOY_CC_API TokenizerDecodeCpp
  public:
   TokenizerDecodeCpp(const std::string& name) : TokenizerDecode(name) {
     key_ = "nndeploy::tokenizer::TokenizerDecodeCpp";
+    desc_ =
+        "A tokenizer decode node that uses the C++ tokenizers library to "
+        "decode token IDs into text. Supports HuggingFace and BPE tokenizers. "
+        "Can decode single token IDs or batches of token IDs. Provides token-to-"
+        "text conversion.";
     param_ = std::make_shared<TokenizerPraram>();
     this->setInputTypeInfo<TokenizerIds>();
     this->setOutputTypeInfo<TokenizerText>();
@@ -101,6 +116,11 @@ class NNDEPLOY_CC_API TokenizerDecodeCpp
                      std::vector<dag::Edge*> outputs)
       : TokenizerDecode(name, inputs, outputs) {
     key_ = "nndeploy::tokenizer::TokenizerDecodeCpp";
+    desc_ =
+        "A tokenizer decode node that uses the C++ tokenizers library to "
+        "decode token IDs into text. Supports HuggingFace and BPE tokenizers. "
+        "Can decode single token IDs or batches of token IDs. Provides token-to-"
+        "text conversion.";
     param_ = std::make_shared<TokenizerPraram>();
     this->setInputTypeInfo<TokenizerIds>();
     this->setOutputTypeInfo<TokenizerText>();

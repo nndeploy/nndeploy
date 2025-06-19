@@ -436,7 +436,7 @@ REGISTER_NODE("nndeploy::stable_diffusion::DDIMScheduleNode", DDIMScheduleNode);
 - 创建 YOLO 子图 detect::YoloGraph，并通过 make() 构建内部结构
 - 设置推理参数 setInferParam() 与模型版本 setVersion()
 - 添加解码节点 decode_node，输出图像原始数据
-- 添加画框节点 DrawBoxNode，可根据 YOLO 类型区分输出结构
+- 添加画框节点 DrawBox，可根据 YOLO 类型区分输出结构
 - 添加编码节点 encode_node，输出保存图像或编码结果
 
 ```C++
@@ -464,7 +464,7 @@ REGISTER_NODE("nndeploy::stable_diffusion::DDIMScheduleNode", DDIMScheduleNode);
   graph->addNode(detect_graph);
 
   // 解码节点
-  codec::DecodeNode *decode_node = codec::createDecodeNode(
+  codec::Decode *decode_node = codec::createDecode(
       base::kCodecTypeOpenCV, codec_flag, "decode_node", &input);
   graph->addNode(decode_node);
 
@@ -472,15 +472,15 @@ REGISTER_NODE("nndeploy::stable_diffusion::DDIMScheduleNode", DDIMScheduleNode);
   dag::Edge *draw_output = graph->createEdge("draw_output");
   dag::Node *draw_box_node;
   if (name == "nndeploy::detect::YoloMultiConvOutputGraph") {
-    draw_box_node = graph->createNode<detect::YoloMultiConvDrawBoxNode>(
-        "DrawBoxNode", {&input, &output}, {draw_output});
+    draw_box_node = graph->createNode<detect::YoloMultiConvDrawBox>(
+        "DrawBox", {&input, &output}, {draw_output});
   } else {
-    draw_box_node = graph->createNode<detect::DrawBoxNode>(
-        "DrawBoxNode", {&input, &output}, {draw_output});
+    draw_box_node = graph->createNode<detect::DrawBox>(
+        "DrawBox", {&input, &output}, {draw_output});
   }
 
   // 编码节点
-  codec::EncodeNode *encode_node = codec::createEncodeNode(
+  codec::Encode *encode_node = codec::createEncode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", draw_output);
   graph->addNode(encode_node);
 ```

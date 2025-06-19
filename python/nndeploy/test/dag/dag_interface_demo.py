@@ -5,7 +5,7 @@
 class ClassificationResnetGraphV0(dag.Graph):
   def __init__(self, name, pre_param, infer_param, post_param):
     super().__init__(name)
-    self.pre = self.createNode(preprocess.CvtColorResize, pre_param)
+    self.pre = self.createNode(preprocess.CvtResizeNormTrans, pre_param)
     self.infer = self.createInfer(infer.Infer, infer_param)
     self.post = self.createNode(classification.ClassificationPost, post_param)
 
@@ -27,7 +27,7 @@ class ClassificationResnetGraphV0(dag.Graph):
 class ClassificationResnetGraphV1(dag.Graph):
   def __init__(self, name, pre_desc, infer_desc, post_desc):
     super().__init__(name)
-    self.pre = self.createNode(preprocess.CvtColorResize, pre_desc)
+    self.pre = self.createNode(preprocess.CvtResizeNormTrans, pre_desc)
     self.infer = self.createInfer(infer.Infer, infer_desc)
     self.post = self.createNode(classification.ClassificationPost, post_desc)
 
@@ -38,7 +38,7 @@ class ClassificationResnetGraphV1(dag.Graph):
     return output
 
 def test_classification_resnet_graph():
-  pre_param = preprocess.CvtColorResizeParam("pre.json")
+  pre_param = preprocess.CvtResizeNormTransParam("pre.json")
   infer_param = infer.InferParam("infer.json")
   post_param = classification.ClassificationPostParam("post.json")
   graph = ClassificationResnetGraphV0("classification", pre_param, infer_param, post_param)
@@ -70,7 +70,7 @@ class ClassificationResnetDemoGraph(dag.Graph, decodec_param, pre_desc, infer_de
 
 def test_classification_resnet_demo_graph():
   decodec_param = codec.DecodeParam("decode.json")
-  pre_param = preprocess.CvtColorResizeParam("pre.json")
+  pre_param = preprocess.CvtResizeNormTransParam("pre.json")
   infer_param = infer.InferParam("infer.json")
   post_param = classification.ClassificationPostParam("post.json")
   encode_param = codec.EncodeParam("encode.json")

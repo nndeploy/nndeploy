@@ -7,6 +7,7 @@ import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
 import nndeploy.detect
+import nndeploy.codec
 import torch
 
 import sys
@@ -16,14 +17,14 @@ import sys
 
 # 创建的所有节点都最好都是成员变量self.xxx，不要在forward中创建节点
 class YoloDemo(nndeploy.dag.Graph):
-    def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
+    def __init__(self, name = "", inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
         self.set_key("YoloDemo")
         self.set_output_type(nndeploy.detect.DetectResult)
-        self.decodec = self.create_node("nndeploy::codec::OpenCvImageDecodeNode", "decodec")
-        self.yolo = self.create_node("nndeploy::detect::YoloPyGraph", "yolo")
-        self.drawbox = self.create_node("nndeploy::detect::DrawBoxNode", "drawbox")
-        self.encodec = self.create_node("nndeploy::codec::OpenCvImageEncodeNode", "encodec")
+        self.decodec = nndeploy.codec.OpenCvImageDecode("decodec")
+        self.yolo = nndeploy.detect.YoloPyGraph("yolo")
+        self.drawbox = nndeploy.detect.DrawBox("drawbox")
+        self.encodec = nndeploy.codec.OpenCvImageEncode("encodec")
         
     def forward(self, inputs: [nndeploy.dag.Edge] = []):
         decodec_outputs = self.decodec(inputs)
@@ -31,14 +32,7 @@ class YoloDemo(nndeploy.dag.Graph):
         drawbox_outputs = self.drawbox([decodec_outputs[0], yolo_outputs[0]])
         self.encodec(drawbox_outputs)
         return yolo_outputs
-    
-    def make(self, decodec_desc, yolo_desc, drawbox_desc, encodec_desc):
-        self.set_node_desc(self.decodec, decodec_desc)
-        self.set_node_desc(self.yolo, yolo_desc)
-        self.set_node_desc(self.drawbox, drawbox_desc)
-        self.set_node_desc(self.encodec, encodec_desc)
-        return nndeploy.base.StatusCode.Ok
-    
+       
     def get_yolo(self):
         return self.yolo
     
@@ -79,7 +73,7 @@ def test_yolo():
             print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("yolo_demo_python")
        
-    yolo_demo.save_file("/home/always/github/public/nndeploy/build/yolo_demo.json")
+    yolo_demo.save_file("/home/always/github/public/nndeploy/build/yolo_demo_v3.json")
         
     nndeploy.base.time_profiler_print("yolo_demo")
     

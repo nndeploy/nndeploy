@@ -30,7 +30,7 @@ typedef struct _TVMMetaInfo {
       output_info;
 } TVMMetaInfo;
 
-class TvmInference : public Inference {
+class NNDEPLOY_CC_API TvmInference : public Inference {
  public:
   TvmInference(base::InferenceType type);
   virtual ~TvmInference();

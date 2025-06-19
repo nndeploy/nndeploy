@@ -8,20 +8,32 @@ import numpy as np
 
 from .result import DetectResult, DetectBBoxResult
 
-# python3 nndeploy/detect/detect.py
+try:
+    YoloPostParam = _C.detect.YoloPostParam
+    YoloPostProcess = _C.detect.YoloPostProcess
+    YoloGraph = _C.detect.YoloGraph
 
-YoloPostParam = _C.detect.YoloPostParam
-YoloPostProcess = _C.detect.YoloPostProcess
-YoloGraph = _C.detect.YoloGraph
-    
+    YoloXPostParam = _C.detect.YoloXPostParam
+    YoloXPostProcess = _C.detect.YoloXPostProcess
+    YoloXGraph = _C.detect.YoloXGraph
+
+    YoloMultiOutputPostParam = _C.detect.YoloMultiOutputPostParam
+    YoloMultiOutputPostProcess = _C.detect.YoloMultiOutputPostProcess
+    YoloMultiOutputGraph = _C.detect.YoloMultiOutputGraph
+
+    YoloMultiConvOutputPostParam = _C.detect.YoloMultiConvOutputPostParam
+    YoloMultiConvOutputPostProcess = _C.detect.YoloMultiConvOutputPostProcess
+    YoloMultiConvOutputGraph = _C.detect.YoloMultiConvOutputGraph
+except:
+    pass
 
 class YoloPyGraph(nndeploy.dag.Graph):
     def __init__(self, name, inputs: [nndeploy.dag.Edge] = [], outputs: [nndeploy.dag.Edge] = []):
         super().__init__(name, inputs, outputs)
-        self.set_key("nndeploy::detect::YoloPyGraph")
+        self.set_key(type(self).__name__)
         self.set_input_type(np.ndarray)
         self.set_output_type(nndeploy.detect.DetectResult)
-        self.pre = self.create_node("nndeploy::preprocess::CvtColorResize", "pre")
+        self.pre = self.create_node("nndeploy::preprocess::CvtResizeNormTrans", "pre")
         self.infer = self.create_node("nndeploy::infer::Infer", "infer")
         self.post = self.create_node("nndeploy::detect::YoloPostProcess", "post")
         
@@ -102,9 +114,6 @@ class YoloPyGraphCreator(nndeploy.dag.NodeCreator):
     def __init__(self):
         super().__init__()
         
-    # def __del__(self):
-    #     print("YoloPyGraphCreator::~YoloPyGraphCreator()")
-
     def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
         self.node = YoloPyGraph(name, inputs, outputs)
         return self.node

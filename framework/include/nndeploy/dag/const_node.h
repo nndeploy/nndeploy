@@ -6,7 +6,7 @@
 namespace nndeploy {
 namespace dag {
 
-class ConstNode : public Node {
+class NNDEPLOY_CC_API ConstNode : public Node {
  public:
   ConstNode(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::dag::ConstNode";

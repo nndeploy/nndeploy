@@ -44,11 +44,15 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status setInputs(std::vector<Edge *> inputs);
   virtual base::Status setOutputs(std::vector<Edge *> outputs);
 
-  virtual base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1);
-  virtual base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index = -1);
+  virtual base::Status setInputSharedPtr(std::shared_ptr<Edge> input,
+                                         int index = -1);
+  virtual base::Status setOutputSharedPtr(std::shared_ptr<Edge> output,
+                                          int index = -1);
 
-  virtual base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs);
-  virtual base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs);
+  virtual base::Status setInputsSharedPtr(
+      std::vector<std::shared_ptr<Edge>> inputs);
+  virtual base::Status setOutputsSharedPtr(
+      std::vector<std::shared_ptr<Edge>> outputs);
 
   // create edge
   Edge *createEdge(const std::string &name);
@@ -241,6 +245,9 @@ class NNDEPLOY_CC_API Graph : public Node {
   Node *createInfer(const std::string &name, base::InferenceType type,
                     std::initializer_list<std::string> input_names,
                     std::initializer_list<Edge *> outputs);
+  template <typename T, typename... Args,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+  Node *createInfer(const NodeDesc &desc, base::InferenceType type);
   Node *createNode4Py(const std::string &key, const std::string &name = "");
   Node *createNode4Py(const NodeDesc &desc);
 
@@ -1282,6 +1289,13 @@ Node *Graph::createInfer(const std::string &name, base::InferenceType type,
   return node;
 }
 
+template <typename T, typename... Args,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
+Node *Graph::createInfer(const NodeDesc &desc, base::InferenceType type) {
+  return this->createInfer<T>(desc.getName(), type, desc.getInputs(),
+                              desc.getOutputs());
+}
+
 // template <typename... Args>
 // Node *Graph::createNode(const NodeDesc &desc, Args &...args) {
 //   const std::string &name = desc.getName();
@@ -1392,8 +1406,7 @@ extern NNDEPLOY_CC_API Graph *createGraph(const std::string &name,
 extern NNDEPLOY_CC_API base::Status serialize(
     Graph *graph, rapidjson::Value &json,
     rapidjson::Document::AllocatorType &allocator);
-extern NNDEPLOY_CC_API base::Status serialize(Graph *graph,
-                                              std::string &json_str);
+extern NNDEPLOY_CC_API std::string serialize(Graph *graph);
 extern NNDEPLOY_CC_API base::Status saveFile(Graph *graph,
                                              const std::string &path);
 // from json

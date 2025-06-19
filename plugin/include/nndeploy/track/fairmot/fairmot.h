@@ -20,7 +20,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 #include "nndeploy/preprocess/params.h"
 #include "nndeploy/track/result.h"
 #include "nndeploy/track/tracker.h"

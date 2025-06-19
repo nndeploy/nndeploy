@@ -11,43 +11,45 @@
 namespace nndeploy {
 namespace detect {
 
-// class DrawBoxNode : public dag::Node {
+// class DrawBox : public dag::Node {
 //  public:
-//   DrawBoxNode(const std::string &name,
+//   DrawBox(const std::string &name,
 //               std::initializer_list<dag::Edge *> inputs,
 //               std::initializer_list<dag::Edge *> outputs);
-//   virtual ~DrawBoxNode();
+//   virtual ~DrawBox();
 
 //   virtual base::Status run();
 // };
 
-// class YoloMultiConvDrawBoxNode : public dag::Node {
+// class YoloMultiConvDrawBox : public dag::Node {
 //  public:
-//   YoloMultiConvDrawBoxNode(const std::string &name,
+//   YoloMultiConvDrawBox(const std::string &name,
 //                            std::initializer_list<dag::Edge *> inputs,
 //                            std::initializer_list<dag::Edge *> outputs);
-//   virtual ~YoloMultiConvDrawBoxNode();
+//   virtual ~YoloMultiConvDrawBox();
 
 //   virtual base::Status run();
 // };
 
-class NNDEPLOY_CC_API DrawBoxNode : public dag::Node {
+class NNDEPLOY_CC_API DrawBox : public dag::Node {
  public:
-  DrawBoxNode(const std::string &name) : Node(name) {
-    key_ = "nndeploy::detect::DrawBoxNode";
+  DrawBox(const std::string &name) : Node(name) {
+    key_ = "nndeploy::detect::DrawBox";
+    desc_ = "Draw detection boxes on input cv::Mat image based on detection results[cv::Mat->cv::Mat]";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<DetectResult>();
     this->setOutputTypeInfo<cv::Mat>();
   }
-  DrawBoxNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  DrawBox(const std::string &name, std::vector<dag::Edge *> inputs,
               std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {
-    key_ = "nndeploy::detect::DrawBoxNode";
+    key_ = "nndeploy::detect::DrawBox";
+    desc_ = "Draw detection boxes on input cv::Mat image based on detection results[cv::Mat->cv::Mat]";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<DetectResult>();
     this->setOutputTypeInfo<cv::Mat>();
   }
-  virtual ~DrawBoxNode() {}
+  virtual ~DrawBox() {}
 
   virtual base::Status run() {
     cv::Mat *input_mat = inputs_[0]->getCvMat(this);
@@ -90,24 +92,26 @@ class NNDEPLOY_CC_API DrawBoxNode : public dag::Node {
   }
 };
 
-class NNDEPLOY_CC_API YoloMultiConvDrawBoxNode : public dag::Node {
+class NNDEPLOY_CC_API YoloMultiConvDrawBox : public dag::Node {
  public:
-  YoloMultiConvDrawBoxNode(const std::string &name) : Node(name) {
-    key_ = "nndeploy::detect::YoloMultiConvDrawBoxNode";
+  YoloMultiConvDrawBox(const std::string &name) : Node(name) {
+    key_ = "nndeploy::detect::YoloMultiConvDrawBox";
+    desc_ = "Draw detection boxes on input cv::Mat image based on detection results[cv::Mat->cv::Mat]";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<DetectResult>();
     this->setOutputTypeInfo<cv::Mat>();
   }
-  YoloMultiConvDrawBoxNode(const std::string &name,
+  YoloMultiConvDrawBox(const std::string &name,
                            std::vector<dag::Edge *> inputs,
                            std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {
-    key_ = "nndeploy::detect::YoloMultiConvDrawBoxNode";
+    key_ = "nndeploy::detect::YoloMultiConvDrawBox";
+    desc_ = "Draw detection boxes on input cv::Mat image based on detection results[cv::Mat->cv::Mat]";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<DetectResult>();
     this->setOutputTypeInfo<cv::Mat>();
   }
-  virtual ~YoloMultiConvDrawBoxNode() {}
+  virtual ~YoloMultiConvDrawBox() {}
 
   virtual base::Status run() {
     cv::Mat *input_mat = inputs_[0]->getCvMat(this);

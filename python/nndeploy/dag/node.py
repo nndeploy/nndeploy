@@ -61,7 +61,13 @@ class Node(_C.dag.Node):
         
     def get_name(self) -> str:
         return super().get_name()
-        
+    
+    def set_desc(self, desc: str):
+        return super().set_desc(desc)
+    
+    def get_desc(self) -> str:
+        return super().get_desc()
+            
     def set_graph(self, graph):
         return super().set_graph(graph)
         
@@ -268,7 +274,9 @@ def create_node(node_key: str, node_name: str, inputs: list[Edge] = None, output
 
 
 def get_node_json(node_key: str):
-    node = create_node(node_key, node_key)
+    node_name = node_key.split("::")[-1]
+    node_name = node_name.split(".")[-1]
+    node = create_node(node_key, node_name)
     # print(node)
     if node is not None:
         json_str = node.serialize()

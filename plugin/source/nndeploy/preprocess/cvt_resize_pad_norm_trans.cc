@@ -1,5 +1,4 @@
-
-#include "nndeploy/preprocess/cvtcolor_resize_pad.h"
+#include "nndeploy/preprocess/cvt_resize_pad_norm_trans.h"
 
 #include "nndeploy/preprocess/opencv_util.h"
 #include "nndeploy/preprocess/util.h"
@@ -7,9 +6,9 @@
 namespace nndeploy {
 namespace preprocess {
 
-base::Status CvtColorResizePad::run() {
-  CvtclorResizePadParam *tmp_param =
-      dynamic_cast<CvtclorResizePadParam *>(param_.get());
+base::Status CvtResizePadNormTrans::run() {
+  CvtResizePadNormTransParam *tmp_param =
+      dynamic_cast<CvtResizePadNormTransParam *>(param_.get());
   cv::Mat *src = inputs_[0]->getCvMat(this);
   device::Device *device = device::getDefaultHostDevice();
   device::TensorDesc desc;
@@ -84,7 +83,7 @@ base::Status CvtColorResizePad::run() {
   return base::kStatusCodeOk;
 }
 
-REGISTER_NODE("nndeploy::preprocess::CvtColorResizePad", CvtColorResizePad);
+REGISTER_NODE("nndeploy::preprocess::CvtResizePadNormTrans", CvtResizePadNormTrans);
 
 }  // namespace preprocess
 }  // namespace nndeploy

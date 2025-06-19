@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
   graph->addNode(matting_graph);
 
   // 解码节点
-  codec::DecodeNode *decode_node = codec::createDecodeNode(
+  codec::Decode *decode_node = codec::createDecode(
       base::kCodecTypeOpenCV, codec_flag, "decode_node", input);
   graph->addNode(decode_node);
 
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
   vis_matting_node = graph->createNode<matting::VisMattingNode>(
       "vis_matting_node", {input, output}, {vis_matting_img});
 
-  codec::EncodeNode *encode_node = codec::createEncodeNode(
+  codec::Encode *encode_node = codec::createEncode(
       base::kCodecTypeOpenCV, codec_flag, "encode_node", vis_matting_img);
   graph->addNode(encode_node);
 

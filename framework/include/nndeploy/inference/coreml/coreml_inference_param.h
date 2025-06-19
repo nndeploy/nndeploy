@@ -9,7 +9,7 @@
 namespace nndeploy {
 namespace inference {
 
-class CoremlInferenceParam : public InferenceParam {
+class NNDEPLOY_CC_API CoremlInferenceParam : public InferenceParam {
  public:
   CoremlInferenceParam();
   CoremlInferenceParam(base::InferenceType type);

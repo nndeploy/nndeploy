@@ -1,30 +1,26 @@
 
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_norm_trans.h"
 
 #include "nndeploy/preprocess/util.h"
 
 namespace nndeploy {
 namespace preprocess {
 
-base::Status CvtColorResize::run() {
+base::Status CvtNormTrans::run() {
   // NNDEPLOY_LOGE("preprocess start!Thread ID: %d.\n",
   //               std::this_thread::get_id());
-  CvtclorResizeParam *tmp_param =
-      dynamic_cast<CvtclorResizeParam *>(param_.get());
+  CvtNormTransParam *tmp_param =
+      dynamic_cast<CvtNormTransParam *>(param_.get());
   cv::Mat *src = inputs_[0]->getCvMat(this);
-  if (src == nullptr) {
-    NNDEPLOY_LOGE("src is nullptr.\n");
-    return base::kStatusCodeErrorDag;
-  }
   device::Device *device = device::getDefaultHostDevice();
   device::TensorDesc desc;
   desc.data_type_ = tmp_param->data_type_;
   desc.data_format_ = tmp_param->data_format_;
   if (desc.data_format_ == base::kDataFormatNCHW) {
     desc.shape_ = {1, getChannelByPixelType(tmp_param->dst_pixel_type_),
-                   tmp_param->h_, tmp_param->w_};
+                   src->rows, src->cols};
   } else {
-    desc.shape_ = {1, tmp_param->h_, tmp_param->w_,
+    desc.shape_ = {1, src->rows, src->cols,
                    getChannelByPixelType(tmp_param->dst_pixel_type_)};
   }
   device::Tensor *dst = outputs_[0]->create(device, desc);
@@ -47,16 +43,7 @@ base::Status CvtColorResize::run() {
     tmp_cvt = *src;
   }
 
-  cv::Mat tmp_resize;
-  if (tmp_param->interp_type_ != base::kInterpTypeNotSupport) {
-    int interp_type =
-        OpenCvConvert::convertFromInterpType(tmp_param->interp_type_);
-    cv::resize(tmp_cvt, tmp_resize, cv::Size(w, h), 0.0, 0.0, interp_type);
-  } else {
-    tmp_resize = tmp_cvt;
-  }
-
-  OpenCvConvert::convertToTensor(tmp_resize, dst, tmp_param->normalize_,
+  OpenCvConvert::convertToTensor(tmp_cvt, dst, tmp_param->normalize_,
                                  tmp_param->scale_, tmp_param->mean_,
                                  tmp_param->std_);
 
@@ -67,7 +54,7 @@ base::Status CvtColorResize::run() {
   return base::kStatusCodeOk;
 }
 
-REGISTER_NODE("nndeploy::preprocess::CvtColorResize", CvtColorResize);
+REGISTER_NODE("nndeploy::preprocess::CvtNormTrans", CvtNormTrans);
 
 }  // namespace preprocess
 }  // namespace nndeploy

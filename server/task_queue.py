@@ -44,7 +44,7 @@ class TaskQueue:
             self.server.queue_updated()
             return idx, payload
 
-    def task_done(self, idx: int, outputs: Dict, status: ExecutionStatus):
+    def task_done(self, idx: int, status: ExecutionStatus):
         with self._mtx:
             task = self._running.pop(idx)
             if len(self._hist) >= _MAX_HISTORY:

@@ -1,6 +1,9 @@
 #ifndef _NNDEPLOY_DAG_BASE_H_
 #define _NNDEPLOY_DAG_BASE_H_
 
+#include <typeinfo>
+#include <typeindex>
+
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
 #include "nndeploy/base/log.h"
@@ -84,7 +87,8 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
       type_name_ = "Param";
     } else {
       type_ = EdgeTypeFlag::kAny;
-      type_name_ = getTypeNameRemovePrefix<DT>();
+      // type_name_ = getTypeNameRemovePrefix<DT>();
+      type_name_ = getTypePerfectName<DT>();
     }
     // type_name_ = getTypeNameRemovePrefix<DT>();
     type_ptr_ = &typeid(DT);
@@ -153,6 +157,12 @@ class NNDEPLOY_CC_API EdgeTypeInfo {
     // 移除空格
     name.erase(std::remove_if(name.begin(), name.end(), ::isspace), name.end());
     return name;
+  }
+
+  // 获取类型名称的辅助函数
+  template <typename T>
+  static std::string getTypePerfectName() {
+    return std::type_index(typeid(T)).name();
   }
 
   template <typename T>

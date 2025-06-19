@@ -53,14 +53,98 @@ class NnDeployServer:
             summary="enqueue nndeploy graph task",
         )
         async def enqueue(req: EnqueueRequest):
-            task_id = req.id or str(uuid.uuid4())
+            task_id = str(uuid.uuid4())
             payload = {
                 "id": task_id,
-                "graph_json": req.graph_json,
-                "priority": req.priority,
+                "graph_json": req.root,
+                "priority": 100,
             }
-            self.queue.put(payload, prio=req.priority)
+            self.queue.put(payload, prio=100)
             return EnqueueResponse(task_id=task_id)
+
+        @api.post(
+            "/workflow/save",
+            response_model=Dict[str, str],
+            summary="save workflow to file",
+        )
+        async def save_json(req: EnqueueRequest, filename: Optional[str] = None):
+            # Use the 'name_' field from the incoming JSON or generate a UUID as fallback
+            file_name = filename or req.root.get("name_", str(uuid.uuid4()))
+            save_dir = Path(self.args.resources) / "workflow"
+            if not save_dir.exists():
+                save_dir.mkdir(parents=True, exist_ok=True)
+            file_path = save_dir / f"{file_name}.json"
+
+            try:
+                with open(file_path, 'w') as f:
+                    json.dump(req.root, f, indent=4)
+
+                return {"message": f"JSON saved to {file_path}", "file_path": str(file_path)}
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
+
+        @api.get(
+            "/workflow",
+            response_model=Dict[str, Any],
+            summary="load workflow lists",
+        )
+        async def get_workflow_json():
+            workflow_dir = Path(self.args.resources) / "workflow"
+
+            if not workflow_dir.exists():
+                raise HTTPException(status_code=404, detail="workflow dir is not exist")
+
+            workflow_data = {}
+            try:
+                for json_file in workflow_dir.glob("*.json"):
+                    with open(json_file, 'r') as f:
+                        data = json.load(f)
+                        workflow_data[json_file.stem] = data
+                return workflow_data
+
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"reading error: {e}")
+
+        @api.delete(
+            "/workflow/{file_name}",
+            response_model=Dict[str, str],
+            summary="delete workflow json",
+        )
+        async def delete_workflow_json(file_name: str):
+            workflow_dir = Path(self.args.resources) / "workflow"
+
+            file_path = workflow_dir / f"{file_name}.json"
+
+            if not file_path.exists():
+                raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
+
+            try:
+                file_path.unlink()
+                return {"message": f"file {file_name}.json has been deleted"}
+
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"delete error: {e}")
+
+        @api.get(
+            "/workflow/{file_name}",
+            response_model=Dict[str, Any],
+            summary="get workflow json",
+        )
+        async def get_workflow_json(file_name: str):
+            workflow_dir = Path(self.args.resources) / "workflow"
+
+            file_path = workflow_dir / f"{file_name}.json"
+
+            if not file_path.exists():
+                raise HTTPException(status_code=404, detail=f"file {file_name}.json is not existed")
+
+            try:
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+                return data
+
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"reading file error: {e}")
 
         # loop
         @api.get(

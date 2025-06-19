@@ -20,7 +20,7 @@
 #include "nndeploy/device/memory_pool.h"
 #include "nndeploy/device/tensor.h"
 #include "nndeploy/infer/infer.h"
-#include "nndeploy/preprocess/cvtcolor_resize.h"
+#include "nndeploy/preprocess/cvt_resize_norm_trans.h"
 #include "nndeploy/segment/result.h"
 
 namespace nndeploy {
@@ -78,13 +78,13 @@ class NNDEPLOY_CC_API SegmentRMBGGraph : public dag::Graph {
                     base::InferenceType inference_type,
                     const dag::NodeDesc &post_desc) {
     // Create preprocessing node for image preprocessing
-    pre_ = this->createNode<preprocess::CvtColorResize>(pre_desc);
+    pre_ = this->createNode<preprocess::CvtResizeNormTrans>(pre_desc);
     if (pre_ == nullptr) {
       NNDEPLOY_LOGE("Failed to create preprocessing node");
       return base::kStatusCodeErrorInvalidParam;
     }
-    preprocess::CvtclorResizeParam *pre_param =
-        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam *pre_param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
@@ -135,8 +135,8 @@ class NNDEPLOY_CC_API SegmentRMBGGraph : public dag::Graph {
    * @return kStatusCodeOk on success
    */
   base::Status setSrcPixelType(base::PixelType pixel_type) {
-    preprocess::CvtclorResizeParam *param =
-        dynamic_cast<preprocess::CvtclorResizeParam *>(pre_->getParam());
+    preprocess::CvtResizeNormTransParam *param =
+        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }

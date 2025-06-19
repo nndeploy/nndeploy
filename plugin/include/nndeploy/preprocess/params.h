@@ -27,7 +27,7 @@ namespace preprocess {
  * padding
  * warp_affine
  * crop
- * nomalize
+ * Normlize
  * transpose
  * dynamic_shape
  */
@@ -103,7 +103,7 @@ class NNDEPLOY_CC_API CropParam : public base::Param {
   }
 };
 
-class NNDEPLOY_CC_API NomalizeParam : public base::Param {
+class NNDEPLOY_CC_API NormlizeParam : public base::Param {
  public:
   float scale_[4] = {1.0f / 255.0f, 1.0f / 255.0f, 1.0f / 255.0f,
                      1.0f / 255.0f};
@@ -380,7 +380,11 @@ class NNDEPLOY_CC_API PaddingParam : public base::Param {
   }
 };
 
-class NNDEPLOY_CC_API WarpAffineParam : public base::Param {
+/**
+ * @brief 组合的预处理
+ *
+ */
+class NNDEPLOY_CC_API WarpAffineCvtNormTransParam : public base::Param {
  public:
   float transform_[2][3];
   int dst_w_;
@@ -569,11 +573,7 @@ class NNDEPLOY_CC_API WarpAffineParam : public base::Param {
   }
 };
 
-/**
- * @brief 组合的预处理
- *
- */
-class NNDEPLOY_CC_API CvtcolorBnParam : public base::Param {
+class NNDEPLOY_CC_API CvtNormTransParam : public base::Param {
  public:
   base::PixelType src_pixel_type_;
   base::PixelType dst_pixel_type_;
@@ -672,7 +672,7 @@ class NNDEPLOY_CC_API CvtcolorBnParam : public base::Param {
   }
 };
 
-class NNDEPLOY_CC_API CvtclorResizeParam : public base::Param {
+class NNDEPLOY_CC_API CvtResizeNormTransParam : public base::Param {
  public:
   // 源图像的像素类型
   base::PixelType src_pixel_type_;
@@ -814,7 +814,7 @@ class NNDEPLOY_CC_API CvtclorResizeParam : public base::Param {
  * @brief 组合的预处理
  *
  */
-class NNDEPLOY_CC_API CvtclorResizePadParam : public base::Param {
+class NNDEPLOY_CC_API CvtResizePadNormTransParam : public base::Param {
  public:
   base::PixelType src_pixel_type_;
   base::PixelType dst_pixel_type_;
@@ -979,7 +979,7 @@ class NNDEPLOY_CC_API CvtclorResizePadParam : public base::Param {
  * @brief 组合的预处理
  *
  */
-class NNDEPLOY_CC_API CvtColorResizeCropParam : public base::Param {
+class NNDEPLOY_CC_API CvtResizeNormTransCropNormTransParam : public base::Param {
  public:
   base::PixelType src_pixel_type_;
   base::PixelType dst_pixel_type_;

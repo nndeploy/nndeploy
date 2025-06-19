@@ -1,4 +1,4 @@
-message(STATUS "python")
+message(STATUS "Building nndeploy python")
 
 # set
 set(SOURCE)
@@ -267,10 +267,17 @@ if(ENABLE_NNDEPLOY_PLUGIN_INFER)
 endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER)
-  file(GLOB_RECURSE PYTHON_TOKENIZER_SOURCE
+  file(GLOB PYTHON_TOKENIZER_SOURCE
     "${ROOT_PATH}/python/src/tokenizer/*.h"
     "${ROOT_PATH}/python/src/tokenizer/*.cc"
   )
+  if(ENABLE_NNDEPLOY_PLUGIN_TOKENIZER_CPP)
+    file(GLOB_RECURSE PYTHON_TOKENIZER_CPP_SOURCE
+      "${ROOT_PATH}/python/src/tokenizer/tokenizer_cpp/*.h"
+      "${ROOT_PATH}/python/src/tokenizer/tokenizer_cpp/*.cc"
+    )
+    set(PYTHON_TOKENIZER_SOURCE ${PYTHON_TOKENIZER_SOURCE} ${PYTHON_TOKENIZER_CPP_SOURCE})
+  endif()
   set(SOURCE ${SOURCE} ${PYTHON_TOKENIZER_SOURCE})
 endif()
 
@@ -351,10 +358,23 @@ target_link_libraries(${BINARY} PUBLIC ${THIRD_PARTY_LIBRARY})
 
 # unkown
 if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
-    add_custom_command(TARGET ${BINARY} POST_BUILD 
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION} 
-        ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION})
-        message(STATUS "Copying ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION} to ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}")
+    if (SYSTEM.Windows)
+        # Windows下需要复制Debug/Release目录下的文件
+        add_custom_command(TARGET ${BINARY} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<$<CONFIG:Debug>:${CMAKE_CURRENT_BINARY_DIR}/nndeploy/Debug/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}>
+                $<$<CONFIG:Release>:${CMAKE_CURRENT_BINARY_DIR}/nndeploy/Release/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}>
+                ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
+            COMMENT "Copying Python module to output directory")
+        message(STATUS "Windows: Copying Python module to ${PROJECT_SOURCE_DIR}/python/nndeploy/")
+    else()
+        add_custom_command(TARGET ${BINARY} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
+                ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
+            COMMENT "Copying Python module to output directory")
+        message(STATUS "Unix: Copying ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION} to ${PROJECT_SOURCE_DIR}/python/nndeploy/")
+    endif()
 endif("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
 
 # 生成python pip package安装脚本

@@ -17,13 +17,12 @@ def run(server, q: TaskQueue):
         task_id = payload["id"]
 
         try:
-            outputs, elapsed = ex.execute(payload["graph_json"], task_id)
-            q.task_done(idx, {"elapsed": elapsed, "ui": outputs},
-                        ExecutionStatus(True, f"{elapsed:.2f}s"))
+            elapsed = ex.execute(payload["graph_json"], task_id)
+            q.task_done(idx, ExecutionStatus(True, f"{elapsed:.2f}s"))
             logging.info("Task %s done in %.2fs", task_id, elapsed)
         except Exception as e:
             logging.error("Run failed: %s\n%s", e, traceback.format_exc())
-            q.task_done(idx, {}, ExecutionStatus(False, str(e)))
+            q.task_done(idx, ExecutionStatus(False, str(e)))
         finally:
             gc.collect()
 

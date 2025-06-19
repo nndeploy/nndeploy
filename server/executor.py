@@ -15,7 +15,8 @@ class GraphExecutor:
         self.runner = GraphRunner(server)
 
     def execute(self, graph_json: Dict, task_id: str) -> Tuple[Dict, float]:
+        name = graph_json.get("name_")
         if isinstance(graph_json, (dict, list)):
             graph_json = json.dumps(graph_json, ensure_ascii=False)
 
-        return self.runner.run(graph_json, task_id)
+        return self.runner.run(graph_json, name, task_id)

@@ -22,37 +22,40 @@
 namespace nndeploy {
 namespace preprocess {
 
-class NNDEPLOY_CC_API WarpaffinePreprocess : public dag::Node {
+class NNDEPLOY_CC_API WarpAffineCvtNormTrans : public dag::Node {
  public:
-  // WarpaffinePreprocess(const std::string &name, dag::Edge *input,
+  // WarpAffineCvtNormTrans(const std::string &name, dag::Edge *input,
   //                      dag::Edge *output)
   //     : dag::Node(name, {input}, {output}) {
-  //   param_ = std::make_shared<WarpAffineParam>();
+  //   param_ = std::make_shared<WarpAffineCvtNormTransParam>();
   // }
-  WarpaffinePreprocess(const std::string &name) : dag::Node(name) {
-    key_ = "nndeploy::preprocess::WarpaffinePreprocess";
-    param_ = std::make_shared<WarpAffineParam>();
+  WarpAffineCvtNormTrans(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::preprocess::WarpAffineCvtNormTrans";
+    desc_ = "cv::Mat to device::Tensor[warpaffine->cvtcolor->normalize->transpose]";
+    param_ = std::make_shared<WarpAffineCvtNormTransParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  WarpaffinePreprocess(const std::string &name,
+  WarpAffineCvtNormTrans(const std::string &name,
                        std::initializer_list<dag::Edge *> inputs,
                        std::initializer_list<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::preprocess::WarpaffinePreprocess";
-    param_ = std::make_shared<WarpAffineParam>();
+    key_ = "nndeploy::preprocess::WarpAffineCvtNormTrans";
+    desc_ = "cv::Mat to device::Tensor[warpaffine->cvtcolor->normalize->transpose]";
+    param_ = std::make_shared<WarpAffineCvtNormTransParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  WarpaffinePreprocess(const std::string &name, std::vector<dag::Edge *> inputs,
+  WarpAffineCvtNormTrans(const std::string &name, std::vector<dag::Edge *> inputs,
                        std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::preprocess::WarpaffinePreprocess";
-    param_ = std::make_shared<WarpAffineParam>();
+    key_ = "nndeploy::preprocess::WarpAffineCvtNormTrans";
+    desc_ = "cv::Mat to device::Tensor[warpaffine->cvtcolor->normalize->transpose]";
+    param_ = std::make_shared<WarpAffineCvtNormTransParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  virtual ~WarpaffinePreprocess() {}
+  virtual ~WarpAffineCvtNormTrans() {}
 
   virtual base::Status run();
 };
