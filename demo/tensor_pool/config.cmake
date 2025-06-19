@@ -25,10 +25,16 @@ set(SOURCE ${SOURCE} ${DEMO_SOURCE})
 # BINARY
 add_executable(${BINARY} ${SOURCE} ${OBJECT})
 if (APPLE)
-  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "")
-else ()
+  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,-force_load")
+elseif (UNIX)
   set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
-endif ()
+elseif(WIN32)
+  if(MSVC)
+    # target_link_options(${BINARY} PRIVATE /WHOLEARCHIVE)
+  elseif(MINGW)
+    set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+  endif()
+endif()
 
 # DIRECTORY
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
@@ -53,9 +59,9 @@ target_link_libraries(${BINARY} ${THIRD_PARTY_LIBRARY})
 
 # install
 if(SYSTEM.Windows)
-  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_BIN_PATH})
+  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_DEMO_PATH})
 else()
-  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_BIN_PATH})
+  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_DEMO_PATH})
 endif()
 
 # unset
