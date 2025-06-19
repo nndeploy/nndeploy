@@ -17,6 +17,14 @@ def conv(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
     return _C.op.conv(input, weight, bias, param)
 
 
+def concat(input1, input2, axis=0):
+    param = _C.ir.ConcatParam()
+    param.axis_ = axis
+    print(_C.op.concat)
+    
+    return _C.op.concat([input1, input2], param)
+
+
 def batch_norm(input, scale, bias, mean, var, epsilon=1e-5):
     param = _C.ir.BatchNormalizationParam()
     param.epsilon_ = epsilon
