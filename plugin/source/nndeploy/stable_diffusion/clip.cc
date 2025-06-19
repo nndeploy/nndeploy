@@ -131,6 +131,22 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
 
   virtual ~EmbeddingGraph() {}
 
+  virtual base::Status defaultParam() {
+    tokenizer::TokenizerPraram *tokenize_param =
+        dynamic_cast<tokenizer::TokenizerPraram *>(tokenize_->getParam());
+    tokenizer::TokenizerPraram *tokenize_param_ =
+        dynamic_cast<tokenizer::TokenizerPraram *>(
+            getExternalParam(tokenize_->getName()).get());
+    *tokenize_param = *tokenize_param_;
+
+    inference::InferenceParam *infer_param =
+        dynamic_cast<inference::InferenceParam *>(clip_infer_->getParam());
+    inference::InferenceParam *infer_param_ =
+        dynamic_cast<inference::InferenceParam *>(
+            getExternalParam(clip_infer_->getName()).get());
+    *infer_param = *infer_param_;
+  }
+
   base::Status make(const dag::NodeDesc &tokenize_desc,
                     const dag::NodeDesc &cvt_desc,
                     const dag::NodeDesc &infer_desc,
@@ -139,22 +155,13 @@ class NNDEPLOY_CC_API EmbeddingGraph : public dag::Graph {
     this->setNodeDesc(tokenize_, tokenize_desc);
     this->setNodeDesc(cvt_, cvt_desc);
     this->setNodeDesc(clip_infer_, infer_desc);
+    this->defaultParam();
     status = clip_infer_->setInferenceType(inference_type);
     if (status != base::kStatusCodeOk) {
       NNDEPLOY_LOGE("Failed to set inference type");
       return status;
     }
     return status;
-  }
-
-  base::Status setTokenizerParam(tokenizer::TokenizerPraram *param) {
-    tokenize_->setParam(param);
-    return base::kStatusCodeOk;
-  }
-
-  base::Status setInferParam(inference::InferenceParam *param) {
-    clip_infer_->setParam(param);
-    return base::kStatusCodeOk;
   }
 
  private:
@@ -221,27 +228,7 @@ class NNDEPLOY_CC_API ClipGraph : public dag::Graph {
 
 dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
                             dag::Edge *negative_prompt, dag::Edge *output,
-                            base::InferenceType inference_type,
-                            std::vector<base::Param *> &param) {
-  // get param
-  Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
-  tokenizer::TokenizerPraram *tokenizer_param =
-      new tokenizer::TokenizerPraram();
-  tokenizer_param->tokenizer_type_ = tokenizer::TokenizerType::kTokenizerTypeHF;
-  tokenizer_param->is_path_ = true;
-  // tokenizer_param->json_blob_ =
-  //     "/home/lds/stable-diffusion.onnx/models/tokenizer/tokenizer.json";
-  tokenizer_param->json_blob_ = text2image_param->model_value_[0];
-
-  inference::InferenceParam *infer_param = new inference::InferenceParam();
-  infer_param->device_type_ = text2image_param->device_type_;
-  infer_param->model_type_ = text2image_param->model_type_;
-  infer_param->is_path_ = text2image_param->is_path_;
-  // std::vector<std::string> onnx_path = {
-  //     "/home/lds/stable-diffusion.onnx/models/text_encoder/model.onnx"};
-  std::vector<std::string> onnx_path = {text2image_param->model_value_[1]};
-  infer_param->model_value_ = onnx_path;
-
+                            base::InferenceType inference_type) {
   ClipGraph *clip_graph =
       new ClipGraph(name, {prompt, negative_prompt}, {output});
   dag::NodeDesc tokenize_desc("tokenize", {prompt->getName()}, {"token_ids"});
@@ -252,57 +239,55 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
                             {output->getName()});
   clip_graph->make(tokenize_desc, negative_tokenize_desc, concat_desc,
                    inference_type);
+  return clip_graph;
 }
 
-dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
-                            dag::Edge *negative_prompt, dag::Edge *output,
-                            base::InferenceType inference_type,
-                            std::vector<base::Param *> &param) {
-  dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt}, {output});
+// dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
+//                             dag::Edge *negative_prompt, dag::Edge *output,
+//                             base::InferenceType inference_type,
+//                             std::vector<base::Param *> &param) {
+//   dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt},
+//   {output});
 
-  Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
+//   Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
 
-  dag::Edge *prompt_ids = graph->createEdge("prompt_ids");
-  EmbeddingGraph *embedding_graph =
-      (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
-          "embedding_subgraph", {prompt}, {prompt_ids}));
-  embedding_graph->make(inference_type, "tokenizer");
+//   dag::Edge *prompt_ids = graph->createEdge("prompt_ids");
+//   EmbeddingGraph *embedding_graph =
+//       (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
+//           "embedding_subgraph", {prompt}, {prompt_ids}));
+//   embedding_graph->make(inference_type, "tokenizer");
 
-  tokenizer::TokenizerPraram *tokenizer_param =
-      new tokenizer::TokenizerPraram();
-  tokenizer_param->tokenizer_type_ = tokenizer::TokenizerType::kTokenizerTypeHF;
-  tokenizer_param->is_path_ = true;
-  // tokenizer_param->json_blob_ =
-  //     "/home/lds/stable-diffusion.onnx/models/tokenizer/tokenizer.json";
-  tokenizer_param->json_blob_ = text2image_param->model_value_[0];
-  embedding_graph->setTokenizerParam(tokenizer_param);
+//   tokenizer::TokenizerPraram *tokenizer_param =
+//       new tokenizer::TokenizerPraram();
+//   tokenizer_param->tokenizer_type_ =
+//   tokenizer::TokenizerType::kTokenizerTypeHF; tokenizer_param->is_path_ =
+//   true; tokenizer_param->json_blob_ = text2image_param->model_value_[0];
+//   embedding_graph->setTokenizerParam(tokenizer_param);
 
-  inference::InferenceParam *infer_param = new inference::InferenceParam();
-  infer_param->device_type_ = text2image_param->device_type_;
-  infer_param->model_type_ = text2image_param->model_type_;
-  infer_param->is_path_ = text2image_param->is_path_;
-  // std::vector<std::string> onnx_path = {
-  //     "/home/lds/stable-diffusion.onnx/models/text_encoder/model.onnx"};
-  std::vector<std::string> onnx_path = {text2image_param->model_value_[1]};
-  infer_param->model_value_ = onnx_path;
-  embedding_graph->setInferParam(infer_param);
+//   inference::InferenceParam *infer_param = new inference::InferenceParam();
+//   infer_param->device_type_ = text2image_param->device_type_;
+//   infer_param->model_type_ = text2image_param->model_type_;
+//   infer_param->is_path_ = text2image_param->is_path_;
+//   std::vector<std::string> onnx_path = {text2image_param->model_value_[1]};
+//   infer_param->model_value_ = onnx_path;
+//   embedding_graph->setInferParam(infer_param);
 
-  dag::Edge *negative_prompt_ids = graph->createEdge("negative_prompt_ids");
-  EmbeddingGraph *negative_embedding_graph =
-      (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
-          "negative_embedding_subgraph", {negative_prompt},
-          {negative_prompt_ids}));
-  negative_embedding_graph->make(inference_type, "negative_tokenizer");
-  negative_embedding_graph->setTokenizerParam(tokenizer_param);
-  negative_embedding_graph->setInferParam(infer_param);
+//   dag::Edge *negative_prompt_ids = graph->createEdge("negative_prompt_ids");
+//   EmbeddingGraph *negative_embedding_graph =
+//       (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
+//           "negative_embedding_subgraph", {negative_prompt},
+//           {negative_prompt_ids}));
+//   negative_embedding_graph->make(inference_type, "negative_tokenizer");
+//   negative_embedding_graph->setTokenizerParam(tokenizer_param);
+//   negative_embedding_graph->setInferParam(infer_param);
 
-  ConCatNode *concat_node = (ConCatNode *)graph->createNode<ConCatNode>(
-      "concat_node", {prompt_ids, negative_prompt_ids}, {output});
-  DDIMSchedulerParam *scheduler_param = (DDIMSchedulerParam *)param[1];
-  concat_node->setGuidance(scheduler_param->guidance_scale_);
+//   ConCatNode *concat_node = (ConCatNode *)graph->createNode<ConCatNode>(
+//       "concat_node", {prompt_ids, negative_prompt_ids}, {output});
+//   DDIMSchedulerParam *scheduler_param = (DDIMSchedulerParam *)param[1];
+//   concat_node->setGuidance(scheduler_param->guidance_scale_);
 
-  return graph;
-}
+//   return graph;
+// }
 
 }  // namespace stable_diffusion
 }  // namespace nndeploy

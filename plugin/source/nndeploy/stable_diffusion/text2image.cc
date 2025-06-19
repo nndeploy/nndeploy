@@ -88,9 +88,8 @@ dag::Graph *createStableDiffusionText2ImageGraph(
                                      std::vector<dag::Edge *>{});
 
   dag::Edge *text_embeddings = graph->createEdge("text_embeddings");
-  dag::Graph *clip_graph =
-      createCLIPGraph("clip", prompt, negative_prompt, text_embeddings,
-                      clip_inference_type, param);
+  dag::Graph *clip_graph = createCLIPGraph(
+      "clip", prompt, negative_prompt, text_embeddings, clip_inference_type);
   graph->addNode(clip_graph, false);
 
   dag::Edge *latents = graph->createEdge("denoise_latents");
