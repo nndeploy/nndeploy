@@ -102,7 +102,7 @@ nndeploy_option(ENABLE_NNDEPLOY_DEVICE_SOPHON_NPU "Enable Sophon NPU support" OF
 
 # 4. **Operator Backend Options (Enable as Needed, All Disabled by Default, No Operator Backend Dependencies)**: Such as cudnn
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_CUDNN "Enable NVIDIA cuDNN acceleration library" OFF)
-nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN "Enable Intel oneDNN acceleration library" OFF)
+nndeploy_option(ENABLE_NNDEPLOY_DEVICE_X86_ONEDNN "Enable Intel oneDNN acceleration library" ON)
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM_XNNPACK "Enable XNNPACK acceleration library" OFF)
 nndeploy_option(ENABLE_NNDEPLOY_DEVICE_ARM_QNNPACK "Enable QNNPACK acceleration library" OFF)
 
