@@ -63,6 +63,10 @@ class NNDEPLOY_CC_API CompositeNode : public Node {
   Node *createNode(const NodeDesc &desc);
 
   template <typename T, typename... Args,
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
+  Node *createNode(const std::string &name, Args &...args);
+
+  template <typename T, typename... Args,
             typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const NodeDesc &desc, Args &...args);
 
@@ -132,6 +136,25 @@ class NNDEPLOY_CC_API CompositeNode : public Node {
   std::set<std::string> used_node_names_;
   std::set<std::string> used_edge_names_;
 };
+
+template <typename T, typename... Args,
+          typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
+Node *CompositeNode::createNode(const std::string &name, Args &...args) {
+  if (used_node_names_.find(name) != used_node_names_.end()) {
+    NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
+    return nullptr;
+  }
+  std::vector<Edge *> inputs;
+  std::vector<Edge *> outputs;
+  Node *node = dynamic_cast<Node *>(new T(name, inputs, outputs, args...));
+  NodeWrapper *node_wrapper = new NodeWrapper();
+  node_wrapper->is_external_ = false;
+  node_wrapper->node_ = node;
+  node_wrapper->name_ = name;
+  node_repository_.emplace_back(node_wrapper);
+  used_node_names_.insert(name);
+  return node;
+}
 
 template <typename T, typename... Args,
           typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
@@ -253,7 +276,6 @@ Node *CompositeNode::createInfer(const NodeDesc &desc,
 
   return node;
 }
-
 
 }  // namespace dag
 }  // namespace nndeploy

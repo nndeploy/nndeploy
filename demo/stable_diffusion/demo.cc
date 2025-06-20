@@ -91,8 +91,8 @@ int main(int argc, char* argv[]) {
 
   int iter = 10;
   dag::Graph* graph = stable_diffusion::createStableDiffusionText2ImageGraph(
-      name, prompt, negative_prompt, inference_type, inference_type,
-      inference_type, scheduler_type, param, iter);
+      name, prompt, negative_prompt, inference_type, scheduler_type, param,
+      iter);
 
   base::Status status = graph->setParallelType(pt);
 
