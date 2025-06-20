@@ -55,7 +55,8 @@ Graph::~Graph() {
   }
   for (auto edge_wrapper : edge_repository_) {
     if (!edge_wrapper->is_external_) {
-      // NNDEPLOY_LOGE("delete edge[%s]\n", edge_wrapper->edge_->getName().c_str());
+      // NNDEPLOY_LOGE("delete edge[%s]\n",
+      // edge_wrapper->edge_->getName().c_str());
       delete edge_wrapper->edge_;
     }
     delete edge_wrapper;
@@ -1081,7 +1082,8 @@ base::Status Graph::construct() {
   for (auto edge_wrapper : edge_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
                                          "edge_repository_ edge is null!");
-    // if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
+    // if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty())
+    // {
     //   NNDEPLOY_LOGI("graph[%s] this edge[%s] is useless!\n", name_.c_str(),
     //                 edge_wrapper->edge_->getName().c_str());
     // }
@@ -1228,7 +1230,8 @@ base::Status Graph::construct() {
   // for (auto edge_wrapper : edge_repository_) {
   //   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
   //                                        "edge_repository_ edge is null!");
-  //   if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
+  //   if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty())
+  //   {
   //     NNDEPLOY_LOGI("graph[%s] this edge[%s] is useless!\n", name_.c_str(),
   //                   edge_wrapper->edge_->getName().c_str());
   //   }

@@ -27,7 +27,7 @@ class NNDEPLOY_CC_API CvtTokenIds2Tensor : public dag::Node {
         (tokenizer::TokenizerIds *)(this->getInput(0)->getParam(this));
     std::vector<std::vector<int32_t>> ids = input->ids_;
 
-    device::Device *device = device::getDevice(device_type_);
+    device::Device *device = device::getDefaultHostDevice();
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr\n");
       return base::kStatusCodeErrorInvalidParam;
@@ -76,7 +76,8 @@ class NNDEPLOY_CC_API ConcatEmbedding : public dag::Node {
     device::Tensor *prompt = this->getInput(0)->getTensor(this);
     device::Tensor *negative_prompt = this->getInput(1)->getTensor(this);
 
-    device::Device *device = device::getDevice(device_type_);
+    // device::Device *device = device::getDevice(device_type_);
+    device::Device *device = device::getDefaultHostDevice();
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr\n");
       return base::kStatusCodeErrorInvalidParam;
@@ -219,14 +220,14 @@ class NNDEPLOY_CC_API ClipGraph : public dag::Graph {
     dag::NodeDesc infer_desc("clip_infer", {"infer_ids"}, {"prompt_ids"});
     embedding_->make(tokenize_desc, cvt_desc, infer_desc, inference_type);
 
-    dag::NodeDesc ne_tokenize_desc("negative__tokenize",
+    dag::NodeDesc ne_tokenize_desc("negative_tokenize",
                                    negative_embedding_desc.getInputs(),
                                    {"token_ids"});
-    dag::NodeDesc ne_cvt_desc("negative__cvt", {"token_ids"}, {"infer_ids"});
+    dag::NodeDesc ne_cvt_desc("negative_cvt", {"token_ids"}, {"infer_ids"});
     dag::NodeDesc ne_infer_desc("negative_clip_infer", {"infer_ids"},
-                                {"prompt_ids"});
-    embedding_->make(ne_tokenize_desc, ne_cvt_desc, ne_infer_desc,
-                     inference_type);
+                                {"negative_prompt_ids"});
+    negative_embedding_->make(ne_tokenize_desc, ne_cvt_desc, ne_infer_desc,
+                              inference_type);
     return base::kStatusCodeOk;
   }
 
@@ -275,9 +276,10 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
       new ClipGraph(name, {prompt, negative_prompt}, {output});
   clip_graph->setExternalParam("tokenize_param", tokenizer_param);
   clip_graph->setExternalParam("clip_infer_param", infer_param);
-  dag::NodeDesc embedding_desc("embedding", {prompt->getName()}, {"token_ids"});
-  dag::NodeDesc ne_embedding_desc("ne_embedding", {prompt->getName()},
-                                  {"token_ids"});
+  dag::NodeDesc embedding_desc("embedding", {prompt->getName()},
+                               {"prompt_ids"});
+  dag::NodeDesc ne_embedding_desc("ne_embedding", {negative_prompt->getName()},
+                                  {"negative_prompt_ids"});
   dag::NodeDesc concat_desc("concat", {"prompt_ids", "negative_prompt_ids"},
                             {output->getName()});
   clip_graph->make(embedding_desc, ne_embedding_desc, concat_desc,
