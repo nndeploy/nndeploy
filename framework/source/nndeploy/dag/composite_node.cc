@@ -656,11 +656,14 @@ base::Status CompositeNode::init() {
     NNDEPLOY_LOGI("construct failed!");
   }
   for (auto node_wrapper : node_repository_) {
+    // NNDEPLOY_LOGE("node[%s] init\n", node_wrapper->node_->getName().c_str());
     if (node_wrapper->node_->getInitialized()) {
       continue;
     }
     status = node_wrapper->node_->init();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "node init failed!");
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("node[%s] init failed!\n", node_wrapper->node_->getName().c_str());
+    }
     node_wrapper->node_->setInitializedFlag(true);
   }
   return status;

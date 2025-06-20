@@ -24,6 +24,19 @@ class NNDEPLOY_CC_API CompositeNode : public Node {
                 const std::vector<Edge *> &outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::dag::CompositeNode";
+    for (auto input : inputs) {
+      if (nullptr == addEdge(input)) {
+        constructed_ = false;
+        return;
+      }
+    }
+    for (auto output : outputs) {
+      if (nullptr == addEdge(output)) {
+        constructed_ = false;
+        return;
+      }
+    }
+    constructed_ = true;
   }
   virtual ~CompositeNode();
 
