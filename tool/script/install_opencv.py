@@ -14,7 +14,7 @@ OPENCV_VER = "4.8.0"
 
 # 获取当前执行目录
 WORKSPACE = Path(os.getcwd())
-OPENCV_BUILD_DIR = WORKSPACE / "temp"
+OPENCV_BUILD_DIR = WORKSPACE / "download"
 OPENCV_DIR = "opencv" + OPENCV_VER
 OPENCV_INSTALL_DIR = WORKSPACE / "third_party" / OPENCV_DIR
 print(OPENCV_INSTALL_DIR)

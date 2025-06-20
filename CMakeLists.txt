@@ -298,7 +298,7 @@ else()
   set(NNDEPLOY_INSTALL_TYPE ARCHIVE)
 endif()
 
-set(CMAKE_INSTALL_PREFIX ${NNDEPLOY_INSTALL_PATH})
+# set(CMAKE_INSTALL_PREFIX ${NNDEPLOY_INSTALL_PATH})
 if (SYSTEM.Windows)
   set(NNDEPLOY_INSTALL_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/bin)
   set(NNDEPLOY_INSTALL_WIN_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/lib)
@@ -909,6 +909,9 @@ if(ENABLE_NNDEPLOY_TEST)
   if(MSVC)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   endif()
+  # 禁止googletest安装其组件到install目录
+  # set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+  # set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
   add_subdirectory(third_party/googletest) # this does make the build slow. I wonder if there is a way to avoid this. 
   include(${ROOT_PATH}/test/config.cmake)
 endif()

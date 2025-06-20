@@ -45,7 +45,5 @@ fi
 # # 设置LD_LIBRARY_PATH优先使用系统库
 # export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 
-# # 或者设置LD_PRELOAD
+# # 设置LD_PRELOAD
 # export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libstdc++.so.6
-
-export LD_PRELOAD="/opt/intel/oneapi/dnnl/latest/lib/libdnnl.so.3.7:$LD_PRELOAD"
