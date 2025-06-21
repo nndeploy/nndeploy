@@ -62,6 +62,11 @@ class NNDEPLOY_CC_API SchedulerParam : public base::Param {
   float guidance_scale_ = 7.5;      // 指导比例
   float vae_scale_factor_ = 0.18215;
   float init_noise_sigma_ = 1.0f;
+
+ public:
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API Scheduler {
@@ -119,7 +124,7 @@ class NNDEPLOY_CC_API Scheduler {
  */
 class SchedulerCreator {
  public:
-  virtual ~SchedulerCreator(){};
+  virtual ~SchedulerCreator() {};
   virtual Scheduler *createScheduler(SchedulerType type) = 0;
 };
 
@@ -138,8 +143,8 @@ class TypeSchedulerCreator : public SchedulerCreator {
  *
  * @return std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>&
  */
-std::map<SchedulerType, std::shared_ptr<SchedulerCreator>>
-    &getGlobalSchedulerCreatorMap();
+std::map<SchedulerType, std::shared_ptr<SchedulerCreator>> &
+getGlobalSchedulerCreatorMap();
 
 /**
  * @brief 推理框架的创建类的注册类模板

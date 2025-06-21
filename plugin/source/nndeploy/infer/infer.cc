@@ -393,7 +393,8 @@ base::Status Infer::serialize(rapidjson::Value &json,
       json.AddMember("param_", param_json, allocator);
     }
   } else {
-    inference::InferenceParam *inference_param = new inference::InferenceParam();
+    inference::InferenceParam *inference_param =
+        new inference::InferenceParam();
     inference_param->parallel_type_ = parallel_type_;
     rapidjson::Value param_json(rapidjson::kObjectType);
     inference_param->serialize(param_json, allocator);
