@@ -12,7 +12,14 @@ dnnl::engine &getDnnlEngine() {
   static std::once_flag once;
   static std::shared_ptr<dnnl::engine> engine;
   std::call_once(once, []() {
-    engine = std::make_shared<dnnl::engine>(dnnl::engine::kind::cpu, 0);
+    try {
+      // 强制使用 CPU 引擎，避免 SYCL
+      engine = std::make_shared<dnnl::engine>(dnnl::engine::kind::cpu, 0);
+    } catch (const std::exception& e) {
+      // 如果失败，尝试其他方式
+      NNDEPLOY_LOGE("Failed to create DNNL CPU engine: %s", e.what());
+      // 可以尝试其他引擎类型或回退方案
+    }
   });
   return *engine;
 }

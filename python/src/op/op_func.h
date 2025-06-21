@@ -8,6 +8,7 @@
 #include "nndeploy/op/op_add.h"
 #include "nndeploy/op/op_batchnorm.h"
 #include "nndeploy/op/op_conv.h"
+#include "nndeploy/op/op_concat.h"
 #include "nndeploy/op/op_flatten.h"
 #include "nndeploy/op/op_gemm.h"
 #include "nndeploy/op/op_global_averagepool.h"
@@ -34,6 +35,9 @@ device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
 device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
                          device::Tensor* bias,
                          std::shared_ptr<ir::ConvParam> param);
+
+device::Tensor* concatFunc(std::vector<device::Tensor *> inputs,
+                         std::shared_ptr<ir::ConcatParam> param);
 
 device::Tensor* batchNormFunc(
     device::Tensor* input, device::Tensor* scale, device::Tensor* bias,

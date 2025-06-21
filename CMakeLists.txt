@@ -261,6 +261,25 @@ set(ENABLE_NNDEPLOY_BASE ON)
 # print option
 print_summary()
 
+# general
+set(NNDEPLOY_LIB_PREFIX "lib")
+set(NNDEPLOY_LIB_SUFFIX ".so")
+
+if(CMAKE_SYSTEM_NAME MATCHES "^Android")
+  set(SYSTEM.Android 1)
+elseif(CMAKE_SYSTEM_NAME MATCHES "^Linux")
+  set(SYSTEM.Linux 1)
+elseif(CMAKE_SYSTEM_NAME MATCHES "^Darwin")
+  set(SYSTEM.Darwin 1)
+  set(NNDEPLOY_LIB_SUFFIX ".dylib")
+elseif(CMAKE_SYSTEM_NAME MATCHES "^iOS")
+  set(SYSTEM.iOS 1)
+elseif(CMAKE_SYSTEM_NAME MATCHES "^Windows")
+  set(SYSTEM.Windows 1)
+  set(NNDEPLOY_LIB_PREFIX "")
+  set(NNDEPLOY_LIB_SUFFIX ".lib")
+endif()
+
 # compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -271,7 +290,7 @@ set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # install path
-set(NNDEPLOY_INSTALL_PATH ${ROOT_PATH}/build/install)
+set(NNDEPLOY_INSTALL_PATH ${ROOT_PATH}/build/nndeploy_${NNDEPLOY_VERSION}_${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR}_${CMAKE_BUILD_TYPE}_${CMAKE_CXX_COMPILER_ID})
 
 if(ENABLE_NNDEPLOY_BUILD_SHARED)
   set(NNDEPLOY_INSTALL_TYPE LIBRARY)
@@ -279,9 +298,18 @@ else()
   set(NNDEPLOY_INSTALL_TYPE ARCHIVE)
 endif()
 
-set(CMAKE_INSTALL_PREFIX ${NNDEPLOY_INSTALL_PATH})
-set(NNDEPLOY_INSTALL_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/lib)
-set(NNDEPLOY_INSTALL_BIN_PATH ${NNDEPLOY_INSTALL_PATH}/bin)
+# set(CMAKE_INSTALL_PREFIX ${NNDEPLOY_INSTALL_PATH})
+if (SYSTEM.Windows)
+  set(NNDEPLOY_INSTALL_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/bin)
+  set(NNDEPLOY_INSTALL_WIN_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/lib)
+else()
+  set(NNDEPLOY_INSTALL_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/lib)
+endif()
+set(NNDEPLOY_INSTALL_INCLUDE_PATH ${NNDEPLOY_INSTALL_PATH}/include)
+set(NNDEPLOY_INSTALL_DEMO_PATH ${NNDEPLOY_INSTALL_PATH}/demo)
+set(NNDEPLOY_INSTALL_TEST_PATH ${NNDEPLOY_INSTALL_PATH}/test)
+set(NNDEPLOY_INSTALL_PYTHON_PATH ${NNDEPLOY_INSTALL_PATH}/python)
+set(NNDEPLOY_INSTALL_THIRD_PARTY_PATH ${NNDEPLOY_INSTALL_PATH}/third_party)
 
 set(EXECUTABLE_OUTPUT_PATH ${ROOT_PATH}/build)
 
@@ -322,29 +350,22 @@ else()
   add_definitions(-DENABLE_NNDEPLOY_OPENCV)
 endif()
 
-# general
-set(NNDEPLOY_LIB_PREFIX "lib")
-set(NNDEPLOY_LIB_SUFFIX ".so")
 
-if(CMAKE_SYSTEM_NAME MATCHES "^Android")
-  set(SYSTEM.Android 1)
-elseif(CMAKE_SYSTEM_NAME MATCHES "^Linux")
-  set(SYSTEM.Linux 1)
-elseif(CMAKE_SYSTEM_NAME MATCHES "^Darwin")
-  set(SYSTEM.Darwin 1)
-  set(NNDEPLOY_LIB_SUFFIX ".dylib")
-elseif(CMAKE_SYSTEM_NAME MATCHES "^iOS")
-  set(SYSTEM.iOS 1)
-elseif(CMAKE_SYSTEM_NAME MATCHES "^Windows")
-  set(SYSTEM.Windows 1)
-  set(NNDEPLOY_LIB_PREFIX "")
-  set(NNDEPLOY_LIB_SUFFIX ".lib")
-endif()
 
 # ignore warning
 if(MSVC)
+    # 禁用以下MSVC编译警告:
+    # /wd4003: 运算符缺少操作数 - 宏展开中的警告
+    # /wd4819: 文件包含不能在当前代码页中表示的字符 
+    # /wd4244: 从'type1'转换到'type2',可能丢失数据
+    # /wd4018: 有符号/无符号不匹配
+    # /utf-8: 将源代码和执行字符集都设为UTF-8
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4003 /wd4819 /wd4244 /wd4018 /utf-8")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4003 /wd4819 /wd4244 /wd4018 /utf-8")
+    # 禁用以下MSVC编译警告:
+    # /wd4251: 需要有dll接口供客户端使用的警告
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
 endif()
 
 # ignore loop-vectorize warning
@@ -479,6 +500,8 @@ if(ENABLE_NNDEPLOY_IR)
   set(ENABLE_NNDEPLOY_SAFETENSORS_CPP ON)
   add_definitions(-DENABLE_NNDEPLOY_SAFETENSORS_CPP)
   if(ENABLE_NNDEPLOY_IR_ONNX)
+    # add_definitions(-DNOMINMAX)
+    # add_definitions(-DWIN32_LEAN_AND_MEAN)
     set(ENABLE_NNDEPLOY_PROTOBUF ON)
     set(ENABLE_NNDEPLOY_ONNX ON)
   endif()
@@ -840,8 +863,10 @@ message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY: ${NNDEPLOY_THIRD_PARTY_LIBRARY}")
 # # install
 if(SYSTEM.Windows)
   install(TARGETS ${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+  install(DIRECTORY ${FRAMEWORK_ROOT_PATH}/include/nndeploy DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH})
 else()
   install(TARGETS ${NNDEPLOY_FRAMEWORK_BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
+  install(DIRECTORY ${FRAMEWORK_ROOT_PATH}/include/nndeploy DESTINATION ${NNDEPLOY_INSTALL_INCLUDE_PATH})
 endif()
 
 # plugin
@@ -886,6 +911,9 @@ if(ENABLE_NNDEPLOY_TEST)
   if(MSVC)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
   endif()
+  # 禁止googletest安装其组件到install目录
+  # set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+  # set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
   add_subdirectory(third_party/googletest) # this does make the build slow. I wonder if there is a way to avoid this. 
   include(${ROOT_PATH}/test/config.cmake)
 endif()
@@ -893,11 +921,15 @@ endif()
 # demo
 if(ENABLE_NNDEPLOY_DEMO)
   include(${ROOT_PATH}/demo/config.cmake)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tool/script/ DESTINATION ${NNDEPLOY_INSTALL_PATH} FILES_MATCHING PATTERN "*")
 endif()
 
 # python
 if(ENABLE_NNDEPLOY_PYTHON)
   include(${ROOT_PATH}/python/config.cmake)
 endif()
+
+# cpack
+include(${ROOT_PATH}/cmake/cpack.cmake)
 
 message(STATUS "CMAKE END. NNDEPLOY_VERSION: ${NNDEPLOY_VERSION}")

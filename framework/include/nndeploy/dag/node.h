@@ -387,7 +387,6 @@ extern NNDEPLOY_CC_API std::set<std::string> getNodeKeys();
   namespace {                                                              \
   struct NodeRegister_##node_class {                                       \
     NodeRegister_##node_class() {                                          \
-      NNDEPLOY_LOGI("Registering node: %s\n", node_key);                   \
       nndeploy::dag::NodeFactory::getInstance()->registerNode(             \
           node_key,                                                        \
           std::make_shared<nndeploy::dag::TypeNodeCreator<node_class>>()); \

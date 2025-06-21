@@ -248,8 +248,8 @@ base::Status Buffer::serializeToSafetensors(
   size_t tensor_size = tensor.data_offsets[1] - tensor.data_offsets[0];
   if (buffer_size != tensor_size) {
     NNDEPLOY_LOGE(
-        "unsupported buffers' size is different!! buffersize == %llu, "
-        "tensor_size == %lu",
+        "unsupported buffers' size is different!! buffersize == %zu, "
+        "tensor_size == %zu",
         buffer_size, tensor_size);
     return base::kStatusCodeErrorInvalidParam;
   }

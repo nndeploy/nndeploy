@@ -27,7 +27,7 @@ base::Status OpSplit::inferShape() {
   auto param = dynamic_cast<ir::SplitParam *>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int axis = param->axis_;
-  int rank = inputs_[0]->getShape().size();
+  int rank = static_cast<int>(inputs_[0]->getShape().size());
   if (axis < -rank || axis >= rank) {
     NNDEPLOY_LOGE("axis is invalid.\n");
     return base::kStatusCodeErrorInvalidParam;
@@ -84,7 +84,7 @@ base::Status OpSplit::run() {
 
   // 获取输入的维度信息
   auto input_shape = input_tensor->getShape();
-  int rank = input_shape.size();
+  int rank = static_cast<int>(input_shape.size());
   if (input_shape[axis] % num_outputs != 0) {
     NNDEPLOY_LOGE("Axis dimension is not evenly divisible by num_outputs.\n");
     return base::kStatusCodeErrorInvalidParam;
@@ -130,7 +130,7 @@ base::Status split(device::Tensor *input, std::shared_ptr<ir::SplitParam> param,
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setParam failed");
   status = op->setInput(input, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
-  for (size_t i = 0; i < outputs.size(); i++) {
+  for (int i = 0; i < static_cast<int>(outputs.size()); i++) {
     status = op->setOutput(outputs[i], i);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
   }

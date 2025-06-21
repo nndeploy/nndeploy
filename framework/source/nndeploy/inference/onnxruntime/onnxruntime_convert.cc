@@ -155,7 +155,7 @@ base::IntVector OnnxRuntimeConvert::convertToShape(std::vector<int64_t> &src,
   if (!max_shape.empty()) {
     dst = max_shape;
   } else {
-    int src_size = src.size();
+    int src_size = static_cast<int>(src.size());
     for (int i = 0; i < src_size; ++i) {
       dst.emplace_back(static_cast<int>(src[i]));
     }
@@ -165,7 +165,7 @@ base::IntVector OnnxRuntimeConvert::convertToShape(std::vector<int64_t> &src,
 
 std::vector<int64_t> OnnxRuntimeConvert::convertFromShape(
     const base::IntVector &src) {
-  int src_size = src.size();
+  int src_size = static_cast<int>(src.size());
   std::vector<int64_t> dst;
   for (int i = 0; i < src_size; ++i) {
     dst.emplace_back(static_cast<int64_t>(src[i]));

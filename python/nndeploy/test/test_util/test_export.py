@@ -10,7 +10,7 @@ import nndeploy.ir
 import nndeploy.op
 import nndeploy.inference
 
-# import nndeploy.test.test_util
+# import nndeploy.device.tensor
 
 
 # python3 nndeploy/test/test_util/test_export.py
