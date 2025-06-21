@@ -58,6 +58,11 @@ class NNDEPLOY_CC_API DDIMSchedulerParam : public SchedulerParam {
   std::string beta_schedule_ = "scaled_linear";  // beta调度方式
   float eta_ = 0.0;
   bool set_alpha_to_one_ = false;  // 是否将alpha的累积乘积的最后一个元素设置为1
+
+ public:
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API DDIMScheduler : public Scheduler {

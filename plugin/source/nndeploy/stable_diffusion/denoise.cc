@@ -93,6 +93,30 @@ class NNDEPLOY_CC_API InitLatents : public dag::Node {
   }
   int getSize() { return size_; }
 
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+    base::Status status = dag::Node::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    json.AddMember("size_", size_, allocator);
+    return status;
+  }
+
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    base::Status status = dag::Node::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    if (json.HasMember("size_") && json["size_"].IsInt()) {
+      int size = json["size_"].GetInt();
+      if (size > 0) {
+        this->setSize(size);
+      }
+    }
+    return status;
+  }
+
  private:
   int index_ = 0;
   int size_ = 1;
@@ -246,7 +270,7 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
   virtual base::Status make() {
     base::Status status = base::kStatusCodeOk;
     dag::NodeDesc infer_desc("unet_infer",
-                             {"text_embeddings", "cfg_latents", "timestep"},
+                             {"embeddings", "cfg_latents", "timestep"},
                              {"unet_output"});
     infer_ = (infer::Infer *)this->createInfer<infer::Infer>(infer_desc,
                                                              inference_type_);
@@ -258,41 +282,6 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
         (DDIMSchedule *)this->createNode<DDIMSchedule>(schedule_desc);
     return status;
   }
-
-  // virtual base::Status make() {
-  //   base::Status status = base::kStatusCodeOk;
-
-  //   denoise_param_ = (DenoiseParam *)param_.get();
-  //   if (denoise_param_ == nullptr) {
-  //     NNDEPLOY_LOGE("denoise param is null!");
-  //     return base::kStatusCodeErrorNullParam;
-  //   }
-
-  //   schedule_param_ = &denoise_param_->schedule_param_;
-  //   if (schedule_param_ == nullptr) {
-  //     NNDEPLOY_LOGE("scheduler param is null!");
-  //     return base::kStatusCodeErrorNullParam;
-  //   }
-
-  //   text2image_param_ = &denoise_param_->text2image_param_;
-  //   if (text2image_param_ == nullptr) {
-  //     NNDEPLOY_LOGE("text2image param is null!");
-  //     return base::kStatusCodeErrorNullParam;
-  //   }
-
-  //   dag::NodeDesc infer_desc("nndeploy::infer::Infer", "infer",
-  //                            {"text_embeddings", "cfg_latents", "timestep"},
-  //                            {"unet_output"});
-  //   infer_node_ = (infer::Infer *)this->createInfer<infer::Infer>(
-  //       infer_desc, text2image_param_->inference_type_);
-
-  //   dag::NodeDesc schedule_desc(
-  //       "nndeploy::stable_diffusion::DDIMSchedule", "schedule",
-  //       {"unet_output", "prev_latents", "timestep"}, {"latents"});
-  //   schedule_node_ = (DDIMSchedule *)this->createNode(schedule_desc);
-
-  //   return status;
-  // }
 
   virtual base::Status init() {
     base::Status status = base::kStatusCodeOk;
@@ -375,6 +364,9 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     device::Tensor *latents = latents_edge->create(device_, latents_desc);
 
     init_latents->copyTo(prev_latents);
+
+    device::Tensor *text_embeddings = this->getInput(1)->getTensor(this);
+    infer_->getInput(0)->set(text_embeddings, true);
 
     scheduler_->setTimesteps();
     std::vector<int> timesteps = scheduler_->getTimesteps();
@@ -495,8 +487,9 @@ dag::Graph *createDenoiseGraph(const std::string &name,
 
   DenoiseGraph *denoise_graph =
       new DenoiseGraph(name, {text_embeddings}, {latents});
-  dag::NodeDesc init_latents_desc("init_latents", {}, {"latents"});
-  dag::NodeDesc denoise_desc("denoise", {"latents", text_embeddings->getName()},
+  dag::NodeDesc init_latents_desc("init_latents", {}, {"init_latents"});
+  dag::NodeDesc denoise_desc("denoise",
+                             {"init_latents", text_embeddings->getName()},
                              {latents->getName()});
   denoise_graph->setExternalParam("schedule_param_", schedule_param_);
   denoise_graph->setExternalParam("text_image_param", text2image_param);
@@ -504,41 +497,7 @@ dag::Graph *createDenoiseGraph(const std::string &name,
   return denoise_graph;
 }
 
-// dag::Graph *createDenoiseGraph(const std::string &name,
-//                                dag::Edge *text_embeddings, dag::Edge
-//                                *latents, SchedulerType scheduler_type,
-//                                base::InferenceType inference_type,
-//                                std::vector<base::Param *> &param, int iter) {
-//   Text2ImageParam *text2image_param = (Text2ImageParam *)(param[0]);
-//   DDIMSchedulerParam *scheduler_param = (DDIMSchedulerParam *)(param[1]);
-
-//   dag::Graph *denoise_graph =
-//       new dag::Graph(name, {text_embeddings}, {latents});
-
-//   dag::Edge *init_latents = denoise_graph->createEdge("init_latents");
-//   dag::NodeDesc init_latents_desc("nndeploy::stable_diffusion::InitLatents",
-//                                   "init_latents", {},
-//                                   {init_latents->getName()});
-//   InitLatents *init_latents_node =
-//       (InitLatents *)denoise_graph->createNode(init_latents_desc);
-//   init_latents_node->setParam(scheduler_param);
-//   init_latents_node->setSize(iter);
-
-//   dag::NodeDesc denoise_desc(
-//       "nndeploy::stable_diffusion::DenoiseNode", "denoise",
-//       {init_latents->getName(), text_embeddings->getName()},
-//       {latents->getName()});
-//   Denoise *denoise_node = (Denoise *)denoise_graph->createNode(denoise_desc);
-//   auto denoise_param =
-//       std::make_shared<DenoiseParam>(scheduler_param, text2image_param);
-//   denoise_node->setParam(denoise_param.get());
-//   denoise_node->make();
-
-//   return denoise_graph;
-// }
-
 REGISTER_NODE("nndeploy::stable_diffusion::InitLatents", InitLatents);
-// REGISTER_NODE("nndeploy::stable_diffusion::DDIMSchedule", DDIMSchedule);
 REGISTER_NODE("nndeploy::stable_diffusion::Denoise", Denoise);
 REGISTER_NODE("nndeploy::stable_diffusion::DenoiseGraph", DenoiseGraph);
 

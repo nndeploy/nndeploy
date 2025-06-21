@@ -11,6 +11,18 @@ namespace stable_diffusion {
 class NNDEPLOY_CC_API ScaleLatentsParam : public base::Param {
  public:
   float vae_scale_factor_ = 0.18215;
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("vae_scale_factor_", vae_scale_factor_, allocator);
+    return base::kStatusCodeOk;
+  }
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("vae_scale_factor_") &&
+        json["vae_scale_factor_"].IsFloat()) {
+      vae_scale_factor_ = json["vae_scale_factor_"].GetFloat();
+    }
+    return base::kStatusCodeOk;
+  }
 };
 
 class NNDEPLOY_CC_API ScaleLatents : public dag::Node {
@@ -131,31 +143,6 @@ dag::Graph *createVAEGraph(const std::string &name, dag::Edge *latents,
   vae_graph->make(scale_desc, infer_desc, inference_type);
   return vae_graph;
 }
-
-// dag::Graph *createVAEGraph(const std::string &name, dag::Edge *latents,
-//                            dag::Edge *output,
-//                            base::InferenceType inference_type,
-//                            std::vector<base::Param *> &param) {
-//   dag::Graph *graph = new dag::Graph(name, {latents}, {output});
-//   dag::Edge *model_input = graph->createEdge("vae_input");
-//   ScaleLatents *scale_node = (ScaleLatents *)graph->createNode<ScaleLatents>(
-//       "scale_latents", {latents}, {model_input});
-//   DDIMSchedulerParam *scheduler_param = (DDIMSchedulerParam *)param[1];
-//   scale_node->setVaeScaleFactor(scheduler_param->vae_scale_factor_);
-
-//   dag::Node *vae_node = graph->createInfer<infer::Infer>(
-//       "vae_infer", inference_type, {model_input}, {output});
-//   Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
-//   inference::InferenceParam *infer_param = new inference::InferenceParam();
-//   infer_param->device_type_ = text2image_param->device_type_;
-//   infer_param->model_type_ = text2image_param->model_type_;
-//   infer_param->is_path_ = text2image_param->is_path_;
-//   std::vector<std::string> onnx_path = {text2image_param->model_value_[3]};
-//   infer_param->model_value_ = onnx_path;
-//   vae_node->setParam(infer_param);
-
-//   return graph;
-// }
 
 REGISTER_NODE("nndeploy::stable_diffusion::ScaleLatents", ScaleLatents);
 REGISTER_NODE("nndeploy::stable_diffusion::VaeGraph", VaeGraph);

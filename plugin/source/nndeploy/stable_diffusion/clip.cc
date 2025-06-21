@@ -76,8 +76,7 @@ class NNDEPLOY_CC_API ConcatEmbedding : public dag::Node {
     device::Tensor *prompt = this->getInput(0)->getTensor(this);
     device::Tensor *negative_prompt = this->getInput(1)->getTensor(this);
 
-    // device::Device *device = device::getDevice(device_type_);
-    device::Device *device = device::getDefaultHostDevice();
+    device::Device *device = device::getDevice(device_type_);
     if (device == nullptr) {
       NNDEPLOY_LOGE("device is nullptr\n");
       return base::kStatusCodeErrorInvalidParam;
@@ -104,6 +103,28 @@ class NNDEPLOY_CC_API ConcatEmbedding : public dag::Node {
     this->getOutput(0)->notifyWritten(output);
 
     return base::kStatusCodeOk;
+  }
+
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+    base::Status status = dag::Node::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    json.AddMember("guidance_", guidance_, allocator);
+    return status;
+  }
+
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    base::Status status = dag::Node::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    if (json.HasMember("guidance_") && json["guidance_"].IsFloat()) {
+      int guidance = json["guidance_"].GetFloat();
+      this->setGuidance(guidance);
+    }
+    return status;
   }
 
  private:
@@ -231,24 +252,6 @@ class NNDEPLOY_CC_API ClipGraph : public dag::Graph {
     return base::kStatusCodeOk;
   }
 
-  // base::Status make(const dag::NodeDesc tokenize_desc,
-  //                   const dag::NodeDesc negative_tokenize_desc,
-  //                   const dag::NodeDesc &concat_desc,
-  //                   base::InferenceType inference_type) {
-  //   dag::NodeDesc cvt_desc("cvt_token", {"token_ids"}, {"infer_ids"});
-  //   dag::NodeDesc infer_desc("clip_infer", {"infer_ids"}, {"prompt_ids"});
-  //   embedding_->make(tokenize_desc, cvt_desc, infer_desc, inference_type);
-
-  //   dag::NodeDesc negative_cvt_desc("negative_cvt_token", {"token_ids"},
-  //                                   {"infer_ids"});
-  //   dag::NodeDesc negative_infer_desc("negative_clip_infer", {"infer_ids"},
-  //                                     {"negative_prompt_ids"});
-  //   negative_embedding_->make(negative_tokenize_desc, negative_cvt_desc,
-  //                             negative_infer_desc, inference_type);
-  //   this->setNodeDesc(concat_, concat_desc);
-  //   return base::kStatusCodeOk;
-  // }
-
  private:
   EmbeddingGraph *embedding_ = nullptr;
   EmbeddingGraph *negative_embedding_ = nullptr;
@@ -286,54 +289,6 @@ dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
                    inference_type);
   return clip_graph;
 }
-
-// dag::Graph *createCLIPGraph(const std::string &name, dag::Edge *prompt,
-//                             dag::Edge *negative_prompt, dag::Edge *output,
-//                             base::InferenceType inference_type,
-//                             std::vector<base::Param *> &param) {
-//   dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt},
-//   {output});
-
-//   Text2ImageParam *text2image_param = (Text2ImageParam *)param[0];
-
-//   dag::Edge *prompt_ids = graph->createEdge("prompt_ids");
-//   EmbeddingGraph *embedding_graph =
-//       (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
-//           "embedding_subgraph", {prompt}, {prompt_ids}));
-//   embedding_graph->make(inference_type, "tokenizer");
-
-//   tokenizer::TokenizerPraram *tokenizer_param =
-//       new tokenizer::TokenizerPraram();
-//   tokenizer_param->tokenizer_type_ =
-//   tokenizer::TokenizerType::kTokenizerTypeHF; tokenizer_param->is_path_ =
-//   true; tokenizer_param->json_blob_ = text2image_param->model_value_[0];
-//   embedding_graph->setTokenizerParam(tokenizer_param);
-
-//   inference::InferenceParam *infer_param = new inference::InferenceParam();
-//   infer_param->device_type_ = text2image_param->device_type_;
-//   infer_param->model_type_ = text2image_param->model_type_;
-//   infer_param->is_path_ = text2image_param->is_path_;
-//   std::vector<std::string> onnx_path = {text2image_param->model_value_[1]};
-//   infer_param->model_value_ = onnx_path;
-//   embedding_graph->setInferParam(infer_param);
-
-//   dag::Edge *negative_prompt_ids =
-//   graph->createEdge("negative_prompt_ids"); EmbeddingGraph
-//   *negative_embedding_graph =
-//       (EmbeddingGraph *)(graph->createNode<EmbeddingGraph>(
-//           "negative_embedding_subgraph", {negative_prompt},
-//           {negative_prompt_ids}));
-//   negative_embedding_graph->make(inference_type, "negative_tokenizer");
-//   negative_embedding_graph->setTokenizerParam(tokenizer_param);
-//   negative_embedding_graph->setInferParam(infer_param);
-
-//   ConCatNode *concat_node = (ConCatNode *)graph->createNode<ConCatNode>(
-//       "concat_node", {prompt_ids, negative_prompt_ids}, {output});
-//   DDIMSchedulerParam *scheduler_param = (DDIMSchedulerParam *)param[1];
-//   concat_node->setGuidance(scheduler_param->guidance_scale_);
-
-//   return graph;
-// }
 
 REGISTER_NODE("nndeploy::stable_diffusion::CvtTokenIds2Tensor",
               CvtTokenIds2Tensor);
