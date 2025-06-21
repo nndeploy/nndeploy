@@ -302,12 +302,9 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     status = this->make();
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "make failed!");
 
-    std::cout << "make init finished" << std::endl;
-
     status = scheduler_->init(schedule_param_.get());
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "scheduler init failed!");
-    std::cout << "scheduler init finished" << std::endl;
 
     do_classifier_free_guidance_ =
         (schedule_param_->guidance_scale_ > 1.0) ? true : false;
@@ -330,8 +327,6 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     dag::Edge *timestep_edge = this->getEdge("timestep");
     timestep_ = timestep_edge->create(device_, timesteps_desc);
 
-    std::cout << "infer init started" << std::endl;
-
     inference::InferenceParam *infer_param = new inference::InferenceParam();
     infer_param->device_type_ = text2image_param_->device_type_;
     infer_param->model_type_ = text2image_param_->model_type_;
@@ -339,21 +334,13 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     std::vector<std::string> onnx_path = {text2image_param_->model_value_[2]};
     infer_param->model_value_ = onnx_path;
 
-    for (const auto &p : onnx_path) {
-      std::cout << p << '\n';
-    }
-
     infer_->setParam(infer_param);
-    std::cout << "infer set param finished" << std::endl;
     infer_->init();
-
-    std::cout << "infer init finished" << std::endl;
 
     ddim_schedule_->setSchedulerParam(schedule_param_.get());
     ddim_schedule_->setScheduler(scheduler_);
     ddim_schedule_->init();
 
-    std::cout << "Denoise init finished" << std::endl;
     return status;
   }
 
@@ -508,9 +495,9 @@ dag::Graph *createDenoiseGraph(const std::string &name,
 
   DenoiseGraph *denoise_graph =
       new DenoiseGraph(name, {text_embeddings}, {latents});
-  dag::NodeDesc init_latents_desc("init_latents", {text_embeddings->getName()},
-                                  {"latents"});
-  dag::NodeDesc denoise_desc("denoise", {"latents"}, {latents->getName()});
+  dag::NodeDesc init_latents_desc("init_latents", {}, {"latents"});
+  dag::NodeDesc denoise_desc("denoise", {"latents", text_embeddings->getName()},
+                             {latents->getName()});
   denoise_graph->setExternalParam("schedule_param_", schedule_param_);
   denoise_graph->setExternalParam("text_image_param", text2image_param);
   denoise_graph->make(init_latents_desc, denoise_desc, inference_type);
