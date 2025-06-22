@@ -20,8 +20,6 @@ def conv(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
 def concat(input1, input2, axis=0):
     param = _C.ir.ConcatParam()
     param.axis_ = axis
-    print(param)
-    print(type(_C.op.concat))
     
     return _C.op.concat([input1, input2], param)
 
@@ -71,11 +69,20 @@ def maxpool(input, kernel_size, stride=1, padding=0, dilation=1, ceil_mode=False
     return _C.op.maxpool(input, param)
 
 
+def mat_mul(input1, input2, bias=None, transposeA=False, transposeB=False):
+    param = _C.ir.MatMulParam()
+    param.transposeA_ = transposeA
+    param.transposeB_ = transposeB
+    if bias == None:
+        return _C.op.mat_mul(input1, input2, param, None)
+    return _C.op.mat_mul(input1, input2, param, bias)
+
+
 def mul(input1, input2):
     return _C.op.mul(input1, input2)
 
 
-def softmax(input, axis=-1):
+def softmax(input, axis=1):
     param = _C.ir.SoftmaxParam()
     param.axis_ = axis
     return _C.op.softmax(input, param)

@@ -374,6 +374,42 @@ class ConcatParam : public OpParam {
   int axis_ = 1;  // 拼接的维度
 };
 
+class MatMulParam : public OpParam {
+ public:
+  MatMulParam() : OpParam() {};
+  virtual ~MatMulParam() {};
+
+  PARAM_COPY(MatMulParam)
+  PARAM_COPY_TO(MatMulParam)
+
+  using base::Param::serialize;
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("transposeA_", transposeA_, allocator);
+    json.AddMember("transposeB_", transposeB_, allocator);
+    return base::kStatusCodeOk;
+  }
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("transposeA_")) {
+      transposeA_ = json["transposeA_"].GetBool();
+    } else {
+      transposeA_ = false;
+    }
+    if (json.HasMember("transposeB_")) {
+      transposeB_ = json["transposeB_"].GetBool();
+    } else {
+      transposeB_ = false;
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  bool transposeA_ = false;  // 是否转置A矩阵
+  bool transposeB_ = false;  // 是否转置A矩阵
+};
+
 class NNDEPLOY_CC_API ConvParam : public OpParam {
  public:
   // 构造函数
@@ -852,9 +888,6 @@ class NNDEPLOY_CC_API TransposeParam : public OpParam {
   std::vector<int> perm_;
 };
 
-// TODO: @Leonisux:
-// 补充llama的算子的参数
-// RMSNorm 参数类
 class NNDEPLOY_CC_API RMSNormParam : public OpParam {
  public:
   RMSNormParam() : OpParam() {}  // 默认轴为0，分割数为1

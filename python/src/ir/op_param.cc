@@ -222,6 +222,13 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       .def(py::init<>())
       .def_readwrite("axis_", &ConcatParam::axis_);
 
+  // 导出 MatMulParam 类
+  py::class_<MatMulParam, OpParam, std::shared_ptr<MatMulParam>>(m,
+                                                                 "MatMulParam")
+      .def(py::init<>())
+      .def_readwrite("transposeA_", &MatMulParam::transposeA_)
+      .def_readwrite("transposeB_", &MatMulParam::transposeB_);
+
   // 导出 ConvParam 类
   py::class_<ConvParam, OpParam, std::shared_ptr<ConvParam>>(m, "ConvParam")
       .def(py::init<>())
