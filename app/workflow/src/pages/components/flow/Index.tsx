@@ -247,7 +247,9 @@ const Flow: React.FC<FlowProps> = (props) => {
             <FlowEnviromentContext.Provider
               value={{ element: flowRef, onSave }}
             >
-              <DemoTools ref={autoLayOutRef}/>
+              <DemoTools 
+              ///@ts-ignore
+              ref={autoLayOutRef}/>
 
               <SidebarRenderer />
             </FlowEnviromentContext.Provider>

@@ -22,10 +22,18 @@ export function FormHeader() {
     <Header>
       {/* {getIcon(node)} */}
       <Title>
-        <Field name="key_">
+        {/* <Field name="key_">
           {({ field: { value, onChange }, fieldState }: FieldRenderProps<string>) => (
             <div style={{ height: 24 }}>
               <Text ellipsis={{ showTooltip: true }} >{value}</Text>
+              <Feedback errors={fieldState?.errors} />
+            </div>
+          )}
+        </Field> */}
+         <Field name="name_">
+          {({ field: { value, onChange }, fieldState }: FieldRenderProps<string>) => (
+            <div style={{ height: 24 }}>
+              <Text ellipsis={{ showTooltip: true }}>{value}</Text>
               <Feedback errors={fieldState?.errors} />
             </div>
           )}
@@ -46,16 +54,9 @@ export function FormHeader() {
         </Operators>
       )}
     </Header>
-    <SecondTitle> 
-      <Field name="name_">
-          {({ field: { value, onChange }, fieldState }: FieldRenderProps<string>) => (
-            <div style={{ height: 24 }}>
-              <Text ellipsis={{ showTooltip: true }}>{value}</Text>
-              <Feedback errors={fieldState?.errors} />
-            </div>
-          )}
-        </Field>
-    </SecondTitle>
+    {/* <SecondTitle> 
+     
+    </SecondTitle> */}
     </>
   );
 }

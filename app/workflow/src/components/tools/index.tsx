@@ -82,8 +82,8 @@ export const DemoTools = forwardRef<AutoLayoutHandle>((props, ref) => {
           />
         </Tooltip>
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-        <AddNode disabled={playground.config.readonly} />
-        <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
+        {/* <AddNode disabled={playground.config.readonly} />
+        <Divider layout="vertical" style={{ height: '16px' }} margin={3} /> */}
         <Save disabled={playground.config.readonly} />
         <Run />
       </ToolSection>

@@ -44,7 +44,7 @@ export interface INodeEntity{
   device_type_: string; 
   inputs_: IConnectionPoint[];
   outputs_: IConnectionPoint[]
-  param_: {
+  param_?: {
     [key:string]: any
   }, 
    [key:string]: any

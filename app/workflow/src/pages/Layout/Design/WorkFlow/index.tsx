@@ -141,7 +141,7 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
         position="right"
         render={
           <Dropdown.Menu>
-            {workFlow.type == "branch" && (
+            {/* {workFlow.type == "branch" && (
               <>
                 <Dropdown.Item onClick={() => onBranchEdit(workFlow)}>
                   edit
@@ -152,8 +152,8 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
               <Dropdown.Item onClick={() => onWorkFlowEdit(workFlow)}>
                 edit
               </Dropdown.Item>
-            )}
-            {workFlow.type == "branch" && (
+            )} */}
+            {/* {workFlow.type == "branch" && (
               <Dropdown.Item
                 onClick={() =>
                   onAddBranch({
@@ -166,8 +166,8 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
               >
                 add children branch
               </Dropdown.Item>
-            )}
-            {workFlow.type == "branch" && (
+            )} */}
+            {/* {workFlow.type == "branch" && (
               <Dropdown.Item
                 onClick={() =>
                   onWorkFlowEdit({
@@ -180,7 +180,7 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
               >
                 add workFlow
               </Dropdown.Item>
-            )}
+            )} */}
             <Dropdown.Item>
               <Popconfirm
                 title="Are you sure?"
@@ -250,13 +250,13 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
       <div className="tree-workflow-header">
         <Text>workFlows</Text>
         <Tooltip content="add branch" position="top">
-          <Text
+          {/* <Text
             link
             icon={<IconPlus />}
             onClick={() =>
               onBranchEdit({ id: "", name: "", parentId: "", type: "branch" })
             }
-          ></Text>
+          ></Text> */}
         </Tooltip>
       </div>
       <Tree

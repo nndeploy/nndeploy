@@ -48,6 +48,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     "inputs_",
     "outputs_",
     "node_repository_",
+    'is_dynamic_input_', 
+    'is_dynamic_output_'
   ];
   const basicFields = lodash.difference(
     Object.keys(form.values),
@@ -75,7 +77,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                           {({ field: childField, fieldState: childState }) => {
                             return (
                               <FormItem
-                                name={`${childField.value.type_}/${childField.value.desc_}`}
+                                name={`${childField.value.type_}`}///${childField.value.desc_}
                                 type="boolean"
                                 required={false}
                                 //labelWidth={40}
@@ -127,7 +129,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                       <Field<any> key={child.name} name={child.name}>
                         {({ field: childField, fieldState: childState }) => (
                           <FormItem
-                            name={`${childField.value.type_}/${childField.value.desc_}`}
+                            name={`${childField.value.type_}`}///${childField.value.desc_}
                             type="boolean"
                             required={false}
                             //labelWidth={40}
@@ -150,7 +152,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
         )}
         {!readonly ? (
           <>
-            <Section text={"basic"}>
+            {/* <Section text={"basic"}> */}
               {basicFields.map((fieldName) => {
                 return (
                   <Field key={fieldName} name={fieldName}>
@@ -175,7 +177,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                   </Field>
                 );
               })}
-            </Section>
+            {/* </Section> */}
 
             {is_dynamic_input_ && (
               <Section text={"inputs_"}>
