@@ -166,3 +166,6 @@ nndeploy是一个简单易用、高性能、支持多端的AI推理部署框架�
   <img src="https://contrib.rocks/image?repo=nndeploy/nndeploy" />
 </a>
 
+[![Star History Chart](https://api.star-history.com/svg?repos=nndeploy/nndeploy&type=Date)](https://star-history.com/#nndeploy/nndeploy)
+
+
