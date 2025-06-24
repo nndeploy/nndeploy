@@ -166,7 +166,7 @@ export const workFlowHandler: MockItem[] = [
   },
 
   {
-    url: "/workflow/save",
+    url: "/api/workflow/save",
     type: "post",
     response: (options) => {
       const entity: IBusinessNode = JSON.parse(options.body);
@@ -193,12 +193,12 @@ export const workFlowHandler: MockItem[] = [
   },
 
   {
-    url: /\/workflow\/get\/.*/,
+    url: /\/api\/workflow\/.*/,
     type: "get",
     response: (options) => {
 
      // debugger
-      const { flowName } = options.url.match(/\/workflow\/get\/(?<flowName>\w+)/)!.groups!;
+      const { flowName } = options.url.match(/\/aip\/workflow\/(?<flowName>\w+)/)!.groups!;
 
       //const entity = JSON.parse(options.body);
   

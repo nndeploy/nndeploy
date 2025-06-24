@@ -5,6 +5,7 @@ export const FlowEnviromentContext = React.createContext<
   {
     element?: React.MutableRefObject<HTMLDivElement | null>;
     onSave?: (flowJson: FlowDocumentJSON) => void;
+    onRun?: (flowJson: FlowDocumentJSON) => void;
   }
 
 >({});

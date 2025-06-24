@@ -61,7 +61,7 @@ const NodeTree: React.FC = () => {
     dragEvent.dataTransfer.setDragImage(dragImage, 50, 50);
 
     // @ts-ignore
-    dragEvent.dataTransfer.setData("text/plain", node.key_);
+    dragEvent.dataTransfer.setData("text/plain", JSON.stringify(node));
   }
 
   return (

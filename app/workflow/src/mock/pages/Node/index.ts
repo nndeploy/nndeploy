@@ -2527,7 +2527,7 @@ export const nodeHandler: MockItem[] = [
   //   },
   // },
   {
-    url: "/node/list",
+    url: "/api/nodes",
     type: "post",
     response: (options) => {
       return {

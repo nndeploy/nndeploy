@@ -17,11 +17,12 @@ import { FlowEnviromentContext } from "../../../context/flow-enviroment-context"
 import { apiGetNodeById, apiGetWorkFlow, getNodeRegistry } from "./api";
 
 import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
-import { SideSheet } from "@douyinfe/semi-ui";
+import { SideSheet, Toast } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
 import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
-import { useGetRegistry } from "./effect";
-import { transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
+import { useGetNodeList, useGetRegistry } from "./effect";
+import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
+import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
 
 let nameId = 0; 
 
@@ -75,6 +76,8 @@ const Flow: React.FC<FlowProps> = (props) => {
   function handleSaveDrawerClose() {
     setSaveDrawerVisible(false);
   }
+
+  //const nodeList = useGetNodeList()
 
   const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
 
@@ -135,6 +138,22 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(true);
   }
 
+  async function onRun(flowJson: FlowDocumentJSON) {
+      try {
+    
+        const businessContent = designDataToBusinessData(
+              flowJson
+            );
+
+      const response = await apiWorkFlowRun(businessContent);
+     
+      Toast.success("run sucess!");
+    } catch (error) {
+      Toast.error("run fail " + error);
+    }
+
+  }
+
   function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
     setSaveDrawerVisible(false);
     setEntity({...entity});
@@ -167,13 +186,17 @@ const Flow: React.FC<FlowProps> = (props) => {
         const position =
           ref?.current?.playground.config.getPosFromMouseEvent(e)!;
 
-        const nodeId = e?.dataTransfer?.getData("text");
+        const nodeString = e?.dataTransfer?.getData("text")!;
 
-        const response = await apiGetNodeById(nodeId!);
+        const entity = JSON.parse(nodeString)
 
+        //const response = await apiGetNodeById(nodeId!);
+
+        //const entity = nodeList.find(item=>item.key_ == nodeId)!
+        //nodeRegistries.find(item=>item.)
        
         //let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
-         var type = response.result.is_graph_ ? 'group':  response.result.key_
+         var type = entity.is_graph_ ? 'group':  entity.key_
         
         let node = {
           // ...response.result,
@@ -187,8 +210,8 @@ const Flow: React.FC<FlowProps> = (props) => {
           },
           data: {
             //title: response.result.key_,
-            ...response.result,
-            name_: `${response.result.name_}_${nameId++}`,
+            ...entity,
+            name_: `${entity.name_}_${nameId++}`,
           },
         }
         //if(response.result.is_dynamic_input_){
@@ -245,7 +268,7 @@ const Flow: React.FC<FlowProps> = (props) => {
               <EditorRenderer className="demo-editor" />
             </div>
             <FlowEnviromentContext.Provider
-              value={{ element: flowRef, onSave }}
+              value={{ element: flowRef, onSave, onRun }}
             >
               <DemoTools 
               ///@ts-ignore
