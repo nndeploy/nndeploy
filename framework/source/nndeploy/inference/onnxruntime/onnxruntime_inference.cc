@@ -266,7 +266,7 @@ device::Tensor *OnnxRuntimeInference::getOutputTensorAfterRun(
 }
 
 bool OnnxRuntimeInference::isDynamic(std::vector<int64_t> &shape) {
-  int size = shape.size();
+  int size = static_cast<int>(shape.size());
   for (int i = 1; i < size; ++i) {
     if (shape[i] < 0) {
       return true;

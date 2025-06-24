@@ -2,7 +2,7 @@
 # from pydantic import Tag
 
 
-class ClassificationResnetGraphV0(dag.Graph):
+class ClassificationGraphV0(dag.Graph):
   def __init__(self, name, pre_param, infer_param, post_param):
     super().__init__(name)
     self.pre = self.createNode(preprocess.CvtResizeNormTrans, pre_param)
@@ -24,7 +24,7 @@ class ClassificationResnetGraphV0(dag.Graph):
     output = self.post(input)
     return output
 
-class ClassificationResnetGraphV1(dag.Graph):
+class ClassificationGraphV1(dag.Graph):
   def __init__(self, name, pre_desc, infer_desc, post_desc):
     super().__init__(name)
     self.pre = self.createNode(preprocess.CvtResizeNormTrans, pre_desc)
@@ -41,7 +41,7 @@ def test_classification_resnet_graph():
   pre_param = preprocess.CvtResizeNormTransParam("pre.json")
   infer_param = infer.InferParam("infer.json")
   post_param = classification.ClassificationPostParam("post.json")
-  graph = ClassificationResnetGraphV0("classification", pre_param, infer_param, post_param)
+  graph = ClassificationGraphV0("classification", pre_param, infer_param, post_param)
   input = dag.Edge("input");
   input.set(cv2.imread("test.jpg"))
   output = graph.forward(input)
@@ -59,7 +59,7 @@ class ClassificationResnetDemoGraph(dag.Graph, decodec_param, pre_desc, infer_de
   def __init__(self, name, input, output):
     super().__init__(name, input, output)
     self.decode = self.createNode(codec.Decode, decodec_param)
-    self.deploy = self.createNode(ClassificationResnetGraphV0("classification_deploy", pre_desc, infer_desc, post_desc))
+    self.deploy = self.createNode(ClassificationGraphV0("classification_deploy", pre_desc, infer_desc, post_desc))
     self.encode = self.createNode(codec.Encode, decode_params)
 
   def forward(self, input):

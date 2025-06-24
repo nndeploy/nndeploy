@@ -62,9 +62,8 @@ class NNDEPLOY_CC_API NodeDesc {
   std::vector<std::string> getOutputs() const { return outputs_; }
 
   // to json
-  base::Status serialize(
-      rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator);
+  base::Status serialize(rapidjson::Value &json,
+                         rapidjson::Document::AllocatorType &allocator);
   std::string serialize();
   base::Status saveFile(const std::string &path);
   // from json
@@ -136,11 +135,15 @@ class NNDEPLOY_CC_API Node {
   virtual base::Status setInputs(std::vector<Edge *> inputs);
   virtual base::Status setOutputs(std::vector<Edge *> outputs);
 
-  virtual base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1);
-  virtual base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index = -1);
+  virtual base::Status setInputSharedPtr(std::shared_ptr<Edge> input,
+                                         int index = -1);
+  virtual base::Status setOutputSharedPtr(std::shared_ptr<Edge> output,
+                                          int index = -1);
 
-  virtual base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs);
-  virtual base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs);
+  virtual base::Status setInputsSharedPtr(
+      std::vector<std::shared_ptr<Edge>> inputs);
+  virtual base::Status setOutputsSharedPtr(
+      std::vector<std::shared_ptr<Edge>> outputs);
 
   Edge *getInput(int index = 0);
   Edge *getOutput(int index = 0);
@@ -242,9 +245,8 @@ class NNDEPLOY_CC_API Node {
   virtual std::vector<std::string> getRealOutputsName();
 
   // to json
-  virtual base::Status serialize(
-      rapidjson::Value &json,
-      rapidjson::Document::AllocatorType &allocator);
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
   virtual std::string serialize();
   virtual base::Status saveFile(const std::string &path);
   // from json
@@ -373,13 +375,25 @@ class NNDEPLOY_CC_API NodeFactory {
 
 extern NNDEPLOY_CC_API std::set<std::string> getNodeKeys();
 
-#define REGISTER_NODE(node_key, node_class)                              \
-  static auto register_node_creator_##node_class = []() {                \
-    nndeploy::dag::NodeFactory::getInstance()->registerNode(             \
-        node_key,                                                        \
-        std::make_shared<nndeploy::dag::TypeNodeCreator<node_class>>()); \
-    return 0;                                                            \
-  }();
+// #define REGISTER_NODE(node_key, node_class)                              \
+//   static auto register_node_creator_##node_class = []() {                \
+//     nndeploy::dag::NodeFactory::getInstance()->registerNode(             \
+//         node_key,                                                        \
+//         std::make_shared<nndeploy::dag::TypeNodeCreator<node_class>>()); \
+//     return 0;                                                            \
+//   }();
+
+#define REGISTER_NODE(node_key, node_class)                                \
+  namespace {                                                              \
+  struct NodeRegister_##node_class {                                       \
+    NodeRegister_##node_class() {                                          \
+      nndeploy::dag::NodeFactory::getInstance()->registerNode(             \
+          node_key,                                                        \
+          std::make_shared<nndeploy::dag::TypeNodeCreator<node_class>>()); \
+    }                                                                      \
+  };                                                                       \
+  static NodeRegister_##node_class g_node_register_##node_class;           \
+  }
 
 NNDEPLOY_CC_API Node *createNode(const std::string &node_key,
                                  const std::string &node_name);

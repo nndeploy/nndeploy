@@ -39,6 +39,35 @@
 namespace nndeploy {
 namespace matting {
 
+base::Status PPMattingPostParam::serialize(
+    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+  json.AddMember("alpha_h", alpha_h_, allocator);
+  json.AddMember("alpha_w", alpha_w_, allocator);
+  json.AddMember("output_h", output_h_, allocator);
+  json.AddMember("output_w", output_w_, allocator);
+  return base::kStatusCodeOk;
+}
+
+base::Status PPMattingPostParam::deserialize(rapidjson::Value &json) {
+  if (json.HasMember("alpha_h") && json["alpha_h"].IsInt()) {
+    alpha_h_ = json["alpha_h"].GetInt();
+  }
+
+  if (json.HasMember("alpha_w") && json["alpha_w"].IsInt()) {
+    alpha_w_ = json["alpha_w"].GetInt();
+  }
+
+  if (json.HasMember("output_h") && json["output_h"].IsInt()) {
+    output_h_ = json["output_h"].GetInt();
+  }
+
+  if (json.HasMember("output_w") && json["output_w"].IsInt()) {
+    output_w_ = json["output_w"].GetInt();
+  }
+
+  return base::kStatusCodeOk;
+}
+
 base::Status PPMattingPostProcess::run() {
   // 从输入边缘获取输入图像矩阵
   cv::Mat *input_mat = inputs_[0]->getCvMat(this);
@@ -82,6 +111,9 @@ base::Status PPMattingPostProcess::run() {
   outputs_[0]->set(result, false);
   return base::kStatusCodeOk;
 }
+
+REGISTER_NODE("nndeploy::matting::PPMattingPostProcess", PPMattingPostProcess);
+REGISTER_NODE("nndeploy::matting::PPMattingGraph", PPMattingGraph);
 
 }  // namespace matting
 }  // namespace nndeploy

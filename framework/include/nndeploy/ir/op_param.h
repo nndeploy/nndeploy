@@ -17,6 +17,11 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
+#ifdef _MSC_VER
+  #pragma warning(push)            // 保存当前警告状态
+  #pragma warning(disable : 4267)  // 禁用 C4267 警告
+#endif
+
 namespace nndeploy {
 namespace ir {
 /**
@@ -243,7 +248,8 @@ class TypeOpParamCreator : public OpParamCreator {
  *
  * @return std::map<OpType, std::shared_ptr<OpParamCreator>>&
  */
-extern NNDEPLOY_CC_API std::map<OpType, std::shared_ptr<OpParamCreator>> &getGlobalOpParamCreatorMap();
+extern NNDEPLOY_CC_API std::map<OpType, std::shared_ptr<OpParamCreator>> &
+getGlobalOpParamCreatorMap();
 
 /**
  * @brief 算子参数的创建类的注册类模板
@@ -280,7 +286,7 @@ extern NNDEPLOY_CC_API std::shared_ptr<base::Param> createOpParam(
  */
 class NNDEPLOY_CC_API OpParam : public base::Param {
  public:
-  OpParam() : base::Param() {};
+  OpParam() : base::Param(), reserved_(0) {};
   virtual ~OpParam() {};
 
   PARAM_COPY(OpParam)
@@ -300,8 +306,8 @@ class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
   PARAM_COPY_TO(BatchNormalizationParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("epsilon_", epsilon_, allocator);
     json.AddMember("momentum_", momentum_, allocator);
     json.AddMember("training_mode_", training_mode_, allocator);
@@ -312,13 +318,13 @@ class NNDEPLOY_CC_API BatchNormalizationParam : public OpParam {
     if (json.HasMember("epsilon_")) {
       epsilon_ = json["epsilon_"].GetFloat();
     } else {
-      epsilon_ = 1e-05;  // 默认值
+      epsilon_ = 1e-05f;  // 默认值
     }
 
     if (json.HasMember("momentum_")) {
       momentum_ = json["momentum_"].GetFloat();
     } else {
-      momentum_ = 0.9;  // 默认值
+      momentum_ = 0.9f;  // 默认值
     }
 
     if (json.HasMember("training_mode_")) {
@@ -348,8 +354,8 @@ class ConcatParam : public OpParam {
   PARAM_COPY_TO(ConcatParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axis_", axis_, allocator);
     return base::kStatusCodeOk;
   }
@@ -368,6 +374,42 @@ class ConcatParam : public OpParam {
   int axis_ = 1;  // 拼接的维度
 };
 
+class MatMulParam : public OpParam {
+ public:
+  MatMulParam() : OpParam() {};
+  virtual ~MatMulParam() {};
+
+  PARAM_COPY(MatMulParam)
+  PARAM_COPY_TO(MatMulParam)
+
+  using base::Param::serialize;
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+    json.AddMember("transposeA_", transposeA_, allocator);
+    json.AddMember("transposeB_", transposeB_, allocator);
+    return base::kStatusCodeOk;
+  }
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    if (json.HasMember("transposeA_")) {
+      transposeA_ = json["transposeA_"].GetBool();
+    } else {
+      transposeA_ = false;
+    }
+    if (json.HasMember("transposeB_")) {
+      transposeB_ = json["transposeB_"].GetBool();
+    } else {
+      transposeB_ = false;
+    }
+
+    return base::kStatusCodeOk;
+  }
+
+ public:
+  bool transposeA_ = false;  // 是否转置A矩阵
+  bool transposeB_ = false;  // 是否转置A矩阵
+};
+
 class NNDEPLOY_CC_API ConvParam : public OpParam {
  public:
   // 构造函数
@@ -378,8 +420,8 @@ class NNDEPLOY_CC_API ConvParam : public OpParam {
   PARAM_COPY_TO(ConvParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator),
                    allocator);
     json.AddMember("dilations_", rapidjson::Value(rapidjson::kArrayType),
@@ -505,8 +547,8 @@ class NNDEPLOY_CC_API MaxPoolParam : public OpParam {
   PARAM_COPY_TO(MaxPoolParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator),
                    allocator);
     json.AddMember("ceil_mode_", ceil_mode_, allocator);
@@ -617,8 +659,8 @@ class NNDEPLOY_CC_API ReshapeParam : public OpParam {
   PARAM_COPY_TO(ReshapeParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("allowzero_", allowzero_, allocator);
     return base::kStatusCodeOk;
   }
@@ -647,8 +689,8 @@ class NNDEPLOY_CC_API ResizeParam : public OpParam {
   PARAM_COPY_TO(ResizeParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("antialias_", antialias_, allocator);
     json.AddMember("axes_", axes_, allocator);
     json.AddMember(
@@ -751,8 +793,8 @@ class NNDEPLOY_CC_API SoftmaxParam : public OpParam {
   PARAM_COPY_TO(SoftmaxParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axis_", axis_, allocator);
     return base::kStatusCodeOk;
   }
@@ -781,8 +823,8 @@ class NNDEPLOY_CC_API SplitParam : public OpParam {
   PARAM_COPY_TO(SplitParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axis_", axis_, allocator);
     json.AddMember("num_outputs_", num_outputs_, allocator);
     return base::kStatusCodeOk;
@@ -819,8 +861,8 @@ class NNDEPLOY_CC_API TransposeParam : public OpParam {
   PARAM_COPY_TO(TransposeParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     rapidjson::Value permArray(rapidjson::kArrayType);
     for (size_t i = 0; i < perm_.size(); ++i) {
       permArray.PushBack(perm_[i], allocator);
@@ -846,9 +888,6 @@ class NNDEPLOY_CC_API TransposeParam : public OpParam {
   std::vector<int> perm_;
 };
 
-// TODO: @Leonisux:
-// 补充llama的算子的参数
-// RMSNorm 参数类
 class NNDEPLOY_CC_API RMSNormParam : public OpParam {
  public:
   RMSNormParam() : OpParam() {}  // 默认轴为0，分割数为1
@@ -858,8 +897,8 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
   PARAM_COPY_TO(RMSNormParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("eps_", eps_, allocator);
     json.AddMember("is_last_", is_last_, allocator);
     return base::kStatusCodeOk;
@@ -869,7 +908,7 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
     if (json.HasMember("eps_")) {
       eps_ = json["eps_"].GetFloat();
     } else {
-      eps_ = 1e-6;  // 默认值
+      eps_ = 1e-6f;  // 默认值
     }
 
     if (json.HasMember("is_last_")) {
@@ -882,7 +921,7 @@ class NNDEPLOY_CC_API RMSNormParam : public OpParam {
   }
 
  public:
-  float eps_ = 1e-6;
+  float eps_ = 1e-6f;
   bool is_last_ = false;
 };
 
@@ -895,8 +934,8 @@ class NNDEPLOY_CC_API FlattenParam : public OpParam {
   PARAM_COPY_TO(FlattenParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axis_", axis_, allocator);
     return base::kStatusCodeOk;
   }
@@ -924,8 +963,8 @@ class NNDEPLOY_CC_API EmbeddingParam : public OpParam {
   PARAM_COPY_TO(EmbeddingParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     return base::kStatusCodeOk;
   }
   using base::Param::deserialize;
@@ -943,8 +982,8 @@ class NNDEPLOY_CC_API GemmParam : public OpParam {
   PARAM_COPY_TO(GemmParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("alpha_", alpha_, allocator);
     json.AddMember("beta_", beta_, allocator);
     json.AddMember("trans_a_", trans_a_, allocator);
@@ -996,8 +1035,8 @@ class NNDEPLOY_CC_API QuantizeLinearParam : public OpParam {
   PARAM_COPY_TO(QuantizeLinearParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axis_", axis_, allocator);
     json.AddMember("saturate_", saturate_, allocator);
     return base::kStatusCodeOk;
@@ -1033,8 +1072,8 @@ class NNDEPLOY_CC_API DequantizeLinearParam : public OpParam {
   PARAM_COPY_TO(DequantizeLinearParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axis_", axis_, allocator);
     return base::kStatusCodeOk;
   }
@@ -1063,8 +1102,8 @@ class NNDEPLOY_CC_API QLinearConvParam : public OpParam {
   PARAM_COPY_TO(QLinearConvParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator),
                    allocator);
     json.AddMember("dilations_", rapidjson::Value(rapidjson::kArrayType),
@@ -1168,8 +1207,8 @@ class NNDEPLOY_CC_API AveragePoolParam : public OpParam {
   PARAM_COPY_TO(AveragePoolParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("auto_pad_", rapidjson::Value(auto_pad_.c_str(), allocator),
                    allocator);
     json.AddMember("ceil_mode_", ceil_mode_, allocator);
@@ -1283,8 +1322,8 @@ class NNDEPLOY_CC_API CastParam : public OpParam {
   PARAM_COPY_TO(CastParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("saturate_", saturate_, allocator);
     json.AddMember("to_", rapidjson::Value(rapidjson::kArrayType), allocator);
     json["to_"].PushBack(static_cast<int32_t>(to_.code_), allocator);
@@ -1326,8 +1365,8 @@ class NNDEPLOY_CC_API UnsqueezeParam : public OpParam {
   PARAM_COPY_TO(UnsqueezeParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axes_", axes_, allocator);
     return base::kStatusCodeOk;
   }
@@ -1354,8 +1393,8 @@ class NNDEPLOY_CC_API GatherParam : public OpParam {
   PARAM_COPY_TO(GatherParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("axis_", axis_, allocator);
     return base::kStatusCodeOk;
   }
@@ -1382,8 +1421,8 @@ class NNDEPLOY_CC_API ReduceMeanParam : public OpParam {
   PARAM_COPY_TO(ReduceMeanParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("keepdims_", keepdims_, allocator);
     json.AddMember("noop_with_empty_axes_", noop_with_empty_axes_, allocator);
     return base::kStatusCodeOk;
@@ -1419,8 +1458,8 @@ class NNDEPLOY_CC_API ReduceMaxParam : public OpParam {
   PARAM_COPY_TO(ReduceMaxParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("keepdims_", keepdims_, allocator);
     json.AddMember("noop_with_empty_axes_", noop_with_empty_axes_, allocator);
     return base::kStatusCodeOk;
@@ -1456,8 +1495,8 @@ class NNDEPLOY_CC_API ReduceMinParam : public OpParam {
   PARAM_COPY_TO(ReduceMinParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("keepdims_", keepdims_, allocator);
     json.AddMember("noop_with_empty_axes_", noop_with_empty_axes_, allocator);
     return base::kStatusCodeOk;
@@ -1493,8 +1532,8 @@ class NNDEPLOY_CC_API ReduceSumParam : public OpParam {
   PARAM_COPY_TO(ReduceSumParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("keepdims_", keepdims_, allocator);
     json.AddMember("noop_with_empty_axes_", noop_with_empty_axes_, allocator);
     return base::kStatusCodeOk;
@@ -1530,8 +1569,8 @@ class NNDEPLOY_CC_API ShapeParam : public OpParam {
   PARAM_COPY_TO(ShapeParam)
 
   using base::Param::serialize;
-  virtual base::Status serialize(rapidjson::Value &json,
-                         rapidjson::Document::AllocatorType &allocator) {
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
     json.AddMember("start_", start_, allocator);
     json.AddMember("end_", end_, allocator);
     return base::kStatusCodeOk;
@@ -1561,5 +1600,9 @@ class NNDEPLOY_CC_API ShapeParam : public OpParam {
 
 }  // namespace ir
 }  // namespace nndeploy
+
+#ifdef _MSC_VER
+#pragma warning(pop)  // 恢复之前的警告状态
+#endif
 
 #endif /* _NNDEPLOY_IR_OP_PARAM_H_ */

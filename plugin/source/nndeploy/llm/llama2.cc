@@ -215,8 +215,9 @@ base::Status EmbeddingNode::run() {
   std::vector<std::vector<int32_t>> token_ids;
   if (is_prefill) {
     token_ids = ((tokenizer::TokenizerIds*)(inputs_[0]->getParam(this)))->ids_;
-  } else
+  } else {
     token_ids = embedding_param->token_ids_;
+  }
 
   embedding_param->history_ids_.ids_ = token_ids;
   std::string embedding_file = embedding_param->embedding_file_;
@@ -622,11 +623,11 @@ dag::Graph* createLlmLlama2Graph(const std::string& name,
   return llama2_graph;
 }
 
-// REGISTER_NODE("nndeploy::llm::EmbeddingNode", EmbeddingNode);
-// REGISTER_NODE("nndeploy::llm::SampleNode", SampleNode);
-// REGISTER_NODE("nndeploy::llm::PromptNode", PromptNode);
-// REGISTER_NODE("nndeploy::llm::LlmPrefillGraph", LlmPrefillGraph);
-// REGISTER_NODE("nndeploy::llm::LlmDecodeGraph", LlmDecodeGraph);
+REGISTER_NODE("nndeploy::llm::EmbeddingNode", EmbeddingNode);
+REGISTER_NODE("nndeploy::llm::SampleNode", SampleNode);
+REGISTER_NODE("nndeploy::llm::PromptNode", PromptNode);
+REGISTER_NODE("nndeploy::llm::LlmPrefillGraph", LlmPrefillGraph);
+REGISTER_NODE("nndeploy::llm::LlmDecodeGraph", LlmDecodeGraph);
 
 }  // namespace llm
 }  // namespace nndeploy

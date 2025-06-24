@@ -53,6 +53,12 @@ class NNDEPLOY_CC_API FairMotPreParam : public base::Param {
   float mean_[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   // 归一化处理中的标准差，用于数据标准化
   float std_[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+  using base::Param::serialize;
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API FairMotPostParam : public base::Param {
@@ -60,12 +66,19 @@ class NNDEPLOY_CC_API FairMotPostParam : public base::Param {
   float conf_thresh_ = 0.4f;
   float tracked_thresh_ = 0.4f;
   float min_box_area_ = 200.0f;
+
+  using base::Param::serialize;
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API FairMotPreProcess : public dag::Node {
  public:
   FairMotPreProcess(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::track::FairMotPreProcess";
+    desc_ = "FairMot preprocess[cv::Mat->device::Tensor]";
     param_ = std::make_shared<FairMotPreParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -76,6 +89,7 @@ class NNDEPLOY_CC_API FairMotPreProcess : public dag::Node {
                     std::vector<dag::Edge*> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::track::FairMotPreProcess";
+    desc_ = "FairMot preprocess[cv::Mat->device::Tensor]";
     param_ = std::make_shared<FairMotPreParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
@@ -92,6 +106,7 @@ class NNDEPLOY_CC_API FairMotPostProcess : public dag::Node {
  public:
   FairMotPostProcess(const std::string& name) : dag::Node(name) {
     key_ = "nndeploy::track::FairMotPostProcess";
+    desc_ = "FairMot postprocess[device::Tensor->MOTResult]";
     param_ = std::make_shared<FairMotPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<MOTResult>();
@@ -100,6 +115,7 @@ class NNDEPLOY_CC_API FairMotPostProcess : public dag::Node {
                      std::vector<dag::Edge*> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::track::FairMotPostProcess";
+    desc_ = "FairMot postprocess[device::Tensor->MOTResult]";
     param_ = std::make_shared<FairMotPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<MOTResult>();
@@ -124,29 +140,65 @@ class NNDEPLOY_CC_API FairMotGraph : public dag::Graph {
  public:
   FairMotGraph(const std::string& name) : dag::Graph(name) {
     key_ = "nndeploy::track::FairMotGraph";
+    desc_ =
+        "FairMot "
+        "graph[cv::Mat->preprocess->infer->postprocess->MOTResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<MOTResult>();
+    pre_ = this->createNode<FairMotPreProcess>("preprocess");
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create fairmot preprocess node\n");
+      constructed_ = false;
+      return;
+    }
+    infer_ =
+        dynamic_cast<infer::Infer*>(this->createNode<infer::Infer>("infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node\n");
+      constructed_ = false;
+      return;
+    }
+    post_ = this->createNode<FairMotPostProcess>("post");
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node\n");
+      constructed_ = false;
+      return;
+    }
   }
 
   FairMotGraph(const std::string& name, std::vector<dag::Edge*> inputs,
                std::vector<dag::Edge*> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::track::FairMotGraph";
+    desc_ =
+        "FairMot "
+        "graph[cv::Mat->preprocess->infer->postprocess->MOTResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<MOTResult>();
+    pre_ = this->createNode<FairMotPreProcess>("preprocess");
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create fairmot preprocess node\n");
+      constructed_ = false;
+      return;
+    }
+    infer_ =
+        dynamic_cast<infer::Infer*>(this->createNode<infer::Infer>("infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node\n");
+      constructed_ = false;
+      return;
+    }
+    post_ = this->createNode<FairMotPostProcess>("post");
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node\n");
+      constructed_ = false;
+      return;
+    }
   }
 
   virtual ~FairMotGraph() {}
 
-  base::Status make(const dag::NodeDesc& pre_desc,
-                    const dag::NodeDesc& infer_desc,
-                    base::InferenceType inference_type,
-                    const dag::NodeDesc& post_desc) {
-    pre_ = this->createNode<FairMotPreProcess>(pre_desc);
-    if (pre_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create fairmot preprocess node\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+  base::Status defaultParam() {
     FairMotPreParam* pre_param =
         dynamic_cast<FairMotPreParam*>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
@@ -154,25 +206,25 @@ class NNDEPLOY_CC_API FairMotGraph : public dag::Graph {
     pre_param->interp_type_ = base::kInterpTypeLinear;
     pre_param->h_ = 320;
     pre_param->w_ = 576;
-
-    // Create inference node for fairmot model execution
-    infer_ =
-        dynamic_cast<infer::Infer*>(this->createNode<infer::Infer>(infer_desc));
-    if (infer_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create inference node\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    infer_->setInferenceType(inference_type);
-
-    // Create postprocessing node for tracking result
-    post_ = this->createNode<FairMotPostProcess>(post_desc);
-    if (post_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create postprocessing node\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
     FairMotPostParam* post_param =
         dynamic_cast<FairMotPostParam*>(post_->getParam());
 
+    return base::kStatusCodeOk;
+  }
+
+  base::Status make(const dag::NodeDesc &pre_desc,
+                    const dag::NodeDesc &infer_desc,
+                    base::InferenceType inference_type,
+                    const dag::NodeDesc &post_desc) {
+    this->setNodeDesc(pre_, pre_desc);
+    this->setNodeDesc(infer_, infer_desc);
+    this->setNodeDesc(post_, post_desc);
+    this->defaultParam();
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
     return base::kStatusCodeOk;
   }
 

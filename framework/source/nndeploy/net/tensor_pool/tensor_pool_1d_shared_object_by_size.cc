@@ -56,7 +56,7 @@ base::Status TensorPool1DSharedObjectGreedyBySize::allocate() {
     std::shared_ptr<Chunk> chunk = nullptr;
 
     // 遍历chunks_
-    for (int j = chunks_.size() - 1; j >= 0; j--) {
+    for (int j = static_cast<int>(chunks_.size() - 1); j >= 0; j--) {
       size_t chunk_size = chunks_[j]->buffer_->getSize();
       size_t tensor_size = tensor_usage_records_[i]->size_;
       if (chunk_size >= tensor_size) {

@@ -181,7 +181,7 @@ void TimeProfiler::printIndex(const std::string &title, uint64_t index) {
       [](const std::shared_ptr<Record> a, const std::shared_ptr<Record> b) {
         return a->order_ < b->order_;
       });
-  printf("TimeProfiler: %s [index: %ld]\n", title.c_str(), index);
+  printf("TimeProfiler: %s [index: %zu]\n", title.c_str(), index);
   std::string name = "name";
   int name_size = static_cast<int>(name.size());
   std::string call_times = "call_times";
@@ -261,7 +261,7 @@ void TimeProfiler::printRemoveWarmup(const std::string &title,
       [](const std::shared_ptr<Record> a, const std::shared_ptr<Record> b) {
         return a->order_ < b->order_;
       });
-  printf("TimeProfiler: %s, remove warmup %ld\n", title.c_str(), warmup_times);
+  printf("TimeProfiler: %s, remove warmup %zu\n", title.c_str(), warmup_times);
   std::string name = "name";
   int name_size = static_cast<int>(name.size());
   std::string call_times = "call_times";

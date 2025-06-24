@@ -45,11 +45,11 @@ std::vector<std::string> splitString(const std::string &str,
 
   res.reserve(5);
   std::string::size_type prev = 0;
-  int lent = spstr.length();
+  size_t lent = spstr.length();
   const char *ptr = str.c_str();
 
   while (p != std::string::npos) {
-    int len = p - prev;
+    int64_t len = static_cast<int64_t>(p) - static_cast<int64_t>(prev);
     if (len > 0) {
       res.emplace_back(str.substr(prev, len));
     }
@@ -57,7 +57,7 @@ std::vector<std::string> splitString(const std::string &str,
     p = str.find(spstr, prev);
   }
 
-  int len = str.length() - prev;
+  int64_t len = static_cast<int64_t>(str.length()) - static_cast<int64_t>(prev);
   if (len > 0) {
     res.emplace_back(str.substr(prev, len));
   }

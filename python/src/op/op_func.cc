@@ -34,6 +34,21 @@ device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
   return output;
 }
 
+device::Tensor* concatFunc(std::vector<device::Tensor *> inputs,
+                         std::shared_ptr<ir::ConcatParam> param) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("concat.output");
+  base::Status status = op::concat(inputs, param, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::concat failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
 device::Tensor* batchNormFunc(
     device::Tensor* input, device::Tensor* scale, device::Tensor* bias,
     device::Tensor* mean, device::Tensor* var,
@@ -124,6 +139,25 @@ device::Tensor* maxPoolFunc(device::Tensor* input,
   base::Status status = op::maxPool(input, param, result);
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::maxPool failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
+}
+
+device::Tensor* matMulFunc(device::Tensor* input1, device::Tensor* input2, 
+                           std::shared_ptr<ir::MatMulParam> param,
+                           device::Tensor* bias = nullptr) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("mat_mul.output");
+  base::Status status;
+  if (bias != nullptr) {
+      status = op::matmul(input1, input2, param, result, bias); 
+  } else {
+      status = op::matmul(input1, input2, param, result); 
+  }
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::matmul failed: error code "
        << base::statusCodeToString(status.getStatusCode());
     pybind11::pybind11_fail(ss.str());
   }
