@@ -349,20 +349,80 @@ set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 # target_link_libraries(${BINARY} PUBLIC nndeploy_framework)
 # DEPEND_LIBRARY
 list(APPEND DEPEND_LIBRARY ${NNDEPLOY_FRAMEWORK_BINARY})
+message(STATUS "NNDEPLOY_FRAMEWORK_BINARY: ${NNDEPLOY_FRAMEWORK_BINARY}")
+foreach(framework ${NNDEPLOY_FRAMEWORK_BINARY})
+  if(WIN32)
+    add_custom_command(TARGET ${BINARY} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${CMAKE_CURRENT_BINARY_DIR}/${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${PROJECT_SOURCE_DIR}/python/nndeploy/${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMENT "Copying framework ${framework}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+    )
+  elseif(APPLE)
+    add_custom_command(TARGET ${BINARY} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${CMAKE_CURRENT_BINARY_DIR}/lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${PROJECT_SOURCE_DIR}/python/nndeploy/lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMENT "Copying framework lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+    )
+  else()
+    add_custom_command(TARGET ${BINARY} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${CMAKE_CURRENT_BINARY_DIR}/lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${PROJECT_SOURCE_DIR}/python/nndeploy/lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMENT "Copying framework lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+    )
+  endif()
+endforeach()
 list(APPEND DEPEND_LIBRARY ${NNDEPLOY_DEPEND_LIBRARY})
+message(STATUS "NNDEPLOY_DEPEND_LIBRARY: ${NNDEPLOY_DEPEND_LIBRARY}")
 list(APPEND DEPEND_LIBRARY ${NNDEPLOY_PYTHON_DEPEND_LIBRARY})
+message(STATUS "NNDEPLOY_PYTHON_DEPEND_LIBRARY: ${NNDEPLOY_PYTHON_DEPEND_LIBRARY}")
 target_link_libraries(${BINARY} PUBLIC  ${DEPEND_LIBRARY})
 
 # SYSTEM_LIBRARY
 list(APPEND SYSTEM_LIBRARY ${NNDEPLOY_SYSTEM_LIBRARY})
+message(STATUS "NNDEPLOY_SYSTEM_LIBRARY: ${NNDEPLOY_SYSTEM_LIBRARY}")
 list(APPEND SYSTEM_LIBRARY ${NNDEPLOY_PYTHON_SYSTEM_LIBRARY})
+message(STATUS "NNDEPLOY_PYTHON_SYSTEM_LIBRARY: ${NNDEPLOY_PYTHON_SYSTEM_LIBRARY}")
 target_link_libraries(${BINARY} PUBLIC  ${SYSTEM_LIBRARY})
 
 # THIRD_PARTY_LIBRARY
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY})
+message(STATUS "NNDEPLOY_THIRD_PARTY_LIBRARY: ${NNDEPLOY_THIRD_PARTY_LIBRARY}")
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PYTHON_THIRD_PARTY_LIBRARY})
+message(STATUS "NNDEPLOY_PYTHON_THIRD_PARTY_LIBRARY: ${NNDEPLOY_PYTHON_THIRD_PARTY_LIBRARY}")
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
+message(STATUS "NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY: ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY}")
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_LIST})
+message(STATUS "NNDEPLOY_PLUGIN_LIST: ${NNDEPLOY_PLUGIN_LIST}")
+# 添加构建后命令，将NNDEPLOY_PLUGIN_LIST中的so文件复制到python/nndeploy/目录下
+foreach(plugin ${NNDEPLOY_PLUGIN_LIST})
+  if(WIN32)
+    add_custom_command(TARGET ${BINARY} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${CMAKE_CURRENT_BINARY_DIR}/${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${PROJECT_SOURCE_DIR}/python/nndeploy/${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMENT "Copying plugin ${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+    )
+  elseif(APPLE)
+    add_custom_command(TARGET ${BINARY} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${CMAKE_CURRENT_BINARY_DIR}/lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${PROJECT_SOURCE_DIR}/python/nndeploy/lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMENT "Copying plugin lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+    )
+  else()
+    add_custom_command(TARGET ${BINARY} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${CMAKE_CURRENT_BINARY_DIR}/lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      ${PROJECT_SOURCE_DIR}/python/nndeploy/lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMENT "Copying plugin lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+    )
+  endif()
+endforeach()
+
+
 target_link_libraries(${BINARY} PUBLIC ${THIRD_PARTY_LIBRARY})
 # if (APPLE)
 #   set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,-force_load")
@@ -377,22 +437,28 @@ target_link_libraries(${BINARY} PUBLIC ${THIRD_PARTY_LIBRARY})
 # endif()
 
 # install
-# if(SYSTEM.Windows)
-#   install(TARGETS ${BINARY} 
-#     RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
-#     LIBRARY DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
-#   )
-# else()
-#   install(TARGETS ${BINARY}
-#     RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH} 
-#     LIBRARY DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
-#   )
-# endif()
+if(SYSTEM.Windows)
+  install(TARGETS ${BINARY} 
+    RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
+    LIBRARY DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
+  )
+else()
+  install(TARGETS ${BINARY}
+    RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH} 
+    LIBRARY DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
+  )
+endif()
 
 # unkown
+# 检查CMAKE_LIBRARY_OUTPUT_DIRECTORY是否为空
+# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "")
 if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
     if (SYSTEM.Windows)
-        # Windows下需要复制Debug/Release目录下的文件
+        # Windows系统下的处理:
+        # 1. 添加一个构建后命令,在目标${BINARY}构建完成后执行
+        # 2. 使用CMAKE的copy_if_different命令复制文件
+        # 3. 根据构建类型(Debug/Release)选择对应目录下的Python模块文件
+        # 4. 将文件复制到python/nndeploy/目录下
         add_custom_command(TARGET ${BINARY} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<$<CONFIG:Debug>:${CMAKE_CURRENT_BINARY_DIR}/nndeploy/Debug/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}>
@@ -401,6 +467,9 @@ if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
             COMMENT "Copying Python module to output directory")
         message(STATUS "Windows: Copying Python module to ${PROJECT_SOURCE_DIR}/python/nndeploy/")
     else()
+        # Unix系统下的处理:
+        # 1. 添加一个构建后命令
+        # 2. 直接复制nndeploy目录下的Python模块文件到目标位置
         add_custom_command(TARGET ${BINARY} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}

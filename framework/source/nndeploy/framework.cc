@@ -13,6 +13,8 @@
 
 using namespace nndeploy;
 
+std::string nndeployGetVersion() { return "nndeploy " + std::string(NNDEPLOY_VERSION); }
+
 int nndeployFrameworkInit() { return 0; }
 
 int nndeployFrameworkDeinit() {
