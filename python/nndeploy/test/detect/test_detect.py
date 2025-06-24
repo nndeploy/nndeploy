@@ -159,17 +159,18 @@ def test_static_graph_from_json():
         print(f"test_static_yolo_from_json {i}")
         yolo_demo.run()
         print("run success!")
-        result = output[0].get_graph_output_param()
-        for bbox in result.bboxs_:
-            print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
+        # result = output[0].get_graph_output_param()
+        # for bbox in result.bboxs_:
+        #     print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("test_yolo_from_json")
     nndeploy.base.time_profiler_print("test_yolo_from_json")
 
     
 if __name__ == "__main__":
-    # test_yolo()
+    test_yolo()
     # test_yolo_from_json()
-    test_static_yolo_from_json()
+    # test_static_yolo_from_json()
+    test_static_graph_from_json()
     
         
         

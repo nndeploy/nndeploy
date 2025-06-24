@@ -256,6 +256,51 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
     return "";
   }
 
+  function getEdgeNameByIterate(nodeId: string, portId: string, node: WorkflowNodeJSON): string {
+    if (node.id === nodeId) {
+      let node_name = node.data.name_ as string;
+      for (let edge of node.data.outputs_ ?? []) {
+        if (edge.id === portId) {
+          let edge_name = node_name + "@" + edge.desc_;
+          return edge_name;
+        }
+      }
+      return "";
+    }
+    if (node.blocks && node.blocks.length > 0) {
+      for (let childNode of node.blocks) {
+        let result = getEdgeNameByIterate(nodeId, portId, childNode);
+        if (result) {
+          return result;
+        }
+      }
+    }
+
+    return "";
+  }
+
+  function getEdgeNameById(nodeId: string, portId: string) {
+    try {
+      for (let i = 0; i < designData.nodes.length; i++) {
+        let node = designData.nodes[i];
+        let result = getEdgeNameByIterate(nodeId, portId, node);
+        if (result) {
+          return result;
+        }
+      }
+    } catch (e) {
+      console.log("getEdgeNameById", e);
+    }
+
+    return "";
+  }
+
+  let edge_map: { [key: string]: string } = {};
+  allEdges.map((edge) => {
+    edge_map[edge.sourceNodeID + "@" + edge.sourcePortID] = getEdgeNameById(edge.sourceNodeID as string, edge.sourcePortID as string);
+    edge_map[edge.targetNodeID + "@" + edge.targetPortID] = getEdgeNameById(edge.sourceNodeID as string, edge.sourcePortID as string);
+  });
+
   function transferDesignNodeToBusinessNode(
     node: WorkflowNodeJSON
   ): IBusinessNode {
@@ -289,46 +334,68 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
       return name;
     }
 
-    const inputArray_ = (node.data.inputs_ ?? []).map((input) => {
-      let results = allEdges
-        .filter((edge) => {
-          return edge.targetNodeID === node.id && edge.targetPortID == input.id;
-        })
-        .map((edge) => {
-          const name_ = buildCollectionName(edge);
-          return {
-            ...input,
-            name_,
-          };
-        });
-      if (results.length < 1) {
-        return [input];
-      } else {
-        return results;
-      }
-    });
+    // const inputArray_ = (node.data.inputs_ ?? []).map((input) => {
+    //   let results = allEdges
+    //     .filter((edge) => {
+    //       return edge.targetNodeID === node.id && edge.targetPortID == input.id;
+    //     })
+    //     .map((edge) => {
+    //       const name_ = buildCollectionName(edge);
+    //       return {
+    //         ...input,
+    //         name_,
+    //       };
+    //     });
+    //   if (results.length < 1) {
+    //     return [input];
+    //   } else {
+    //     return results;
+    //   }
+    // });
 
+    // const inputs_ = inputArray_.flat();
+
+    const inputArray_ = (node.data.inputs_ ?? []).map((input) => {
+      const name_ = edge_map[node.id + "@" + input.id]
+        return {
+          ...input,
+          name_,
+        };
+    });
+    
     const inputs_ = inputArray_.flat();
 
+    // const inputs_ = inputArray_.flat();
+
+    // const outputArray_ = (node.data.outputs_ ?? []).map((output) => {
+    //   let results = allEdges
+    //     .filter((edge) => {
+    //       return (
+    //         edge.sourceNodeID === node.id && edge.sourcePortID == output.id
+    //       );
+    //     })
+    //     .map((edge) => {
+    //       const name_ = buildCollectionName(edge);
+    //       return {
+    //         ...output,
+    //         name_,
+    //       };
+    //     });
+    //   if (results.length < 1) {
+    //     return [output];
+    //   } else {
+    //     return results;
+    //   }
+    // });
+
+    // const outputs_ = outputArray_.flat();
+
     const outputArray_ = (node.data.outputs_ ?? []).map((output) => {
-      let results = allEdges
-        .filter((edge) => {
-          return (
-            edge.sourceNodeID === node.id && edge.sourcePortID == output.id
-          );
-        })
-        .map((edge) => {
-          const name_ = buildCollectionName(edge);
-          return {
-            ...output,
-            name_,
-          };
-        });
-      if (results.length < 1) {
-        return [output];
-      } else {
-        return results;
-      }
+      const name_ = edge_map[node.id + "@" + output.id]
+        return {
+          ...output,
+          name_,
+        };
     });
 
     const outputs_ = outputArray_.flat();
@@ -350,6 +417,8 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
     };
     return businessNode;
   }
+
+  
 
   let node_repository_: IBusinessNode[] = designData.nodes.map((node) => {
     return transferDesignNodeToBusinessNode(node);
