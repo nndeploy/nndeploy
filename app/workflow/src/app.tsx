@@ -8,7 +8,7 @@ import BackendLayout from "./pages/Layout/Backend";
 import NodePage from "./pages/Node";
 import Design from "./pages/Layout/Design/Design";
 import './assets/css/index.scss'
-import './mock'
+//import './mock'
 import Home from "./pages/Home";
 
 const app = createRoot(document.getElementById("root")!);

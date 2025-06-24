@@ -56,7 +56,7 @@ const branches: IWorkFlowBranchEntity[] = [
   },
 ];
 
-//const flows: IWorkFlowEntity[] = workFlows
+const flows: IWorkFlowEntity[] = workFlows
 
 export const workFlowHandler: MockItem[] = [
   {
@@ -93,8 +93,8 @@ export const workFlowHandler: MockItem[] = [
     type: "get",
     response: (options) => {
       const data: IWorkFlowTreeNodeEntity[] = [
-        ...branches.map((item) => ({ ...item, type: "branch" as const })),
-        ...businessContents.map((item) => ({ id: item.name_, name: item.name_, type: "leaf" as const , parentId: ""})),
+        //...branches.map((item) => ({ ...item, type: "branch" as const })),
+        ...businessContents.map((item) => ({ ...item, id: item.name_,  name: item.name_, parentId: '', type: "leaf" as const })),
       ];
 
       return {
@@ -166,48 +166,43 @@ export const workFlowHandler: MockItem[] = [
   },
 
   {
-    url: "/workflow/save",
+    url: "/api/workflow/save",
     type: "post",
     response: (options) => {
-      // const entity: IWorkFlowEntity = JSON.parse(options.body);
+      const entity: IBusinessNode = JSON.parse(options.body);
 
-      // entity.designContent = entity.designContent? entity.designContent : { nodes: [], edges: [] }
-      // const findIndex = flows.findIndex(item=>item.id == entity.id)
+      //entity.designContent = entity.designContent? entity.designContent : { nodes: [], edges: [] }
+      const findIndex = businessContents.findIndex(item=>item.name_ == entity.name_)
 
-      // if(findIndex == -1){
-      //    entity.id = Random.guid()
-      //   flows.push(entity)
+      if(findIndex == -1){
+        // entity.id = Random.guid()
+        businessContents.push(entity)
         
-      // }else{
-       
-      //   flows[findIndex] = entity
-      // }
-
-      const businessContent: IBusinessNode = JSON.parse(options.body);
-      const findIndex = businessContents.findIndex(item=>item.name = businessContent.name_)
-      if(findIndex > -1){
-        businessContents[findIndex] = businessContent
       }else{
-        businessContents.push(businessContent)
+       
+        businessContents[findIndex] = entity
       }
      
 
       return {
         flag: "success",
         message: "",
-        result: businessContent
+        result: entity
       };
     },
   },
 
   {
-    url: "/workflow/get",
-    type: "post",
+    url: /\/api\/workflow\/.*/,
+    type: "get",
     response: (options) => {
-      const entity = JSON.parse(options.body);
-  
-      var find = businessContents.find(item=>item.name_ == entity.flowName)
 
+     // debugger
+      const { flowName } = options.url.match(/\/aip\/workflow\/(?<flowName>\w+)/)!.groups!;
+
+      //const entity = JSON.parse(options.body);
+  
+      var find = businessContents.find(item=>item.name_ == flowName)
       return {
         flag: "success",
         message: "",
@@ -222,7 +217,7 @@ export const workFlowHandler: MockItem[] = [
     response: (options) => {
       const entity: IWorkFlowEntity = JSON.parse(options.body);
 
-       const findIndex = businessContents.findIndex((item) => item.name_ == entity.name);
+       const findIndex = flows.findIndex((item) => item.id == entity.id);
 
       if (findIndex == -1) {
         return {
@@ -231,7 +226,7 @@ export const workFlowHandler: MockItem[] = [
           result: {},
         };
       } else {
-        businessContents.splice(findIndex, 1);
+        flows.splice(findIndex, 1);
       }
       return {
         flag: "success",

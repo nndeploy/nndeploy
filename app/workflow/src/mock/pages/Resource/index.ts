@@ -79,83 +79,83 @@ const branchData: IResourceBranchEntity[] = [
     parentId: "",
     name: "image",
   },
-  {
-    id: "image-animal",
-    parentId: "image",
-    name: "animal",
-  },
-  {
-    id: "image-cat",
-    parentId: "image-animal",
-    name: "image",
-  },
+  // {
+  //   id: "image-animal",
+  //   parentId: "image",
+  //   name: "animal",
+  // },
+  // {
+  //   id: "image-cat",
+  //   parentId: "image-animal",
+  //   name: "image",
+  // },
 
-  {
-    id: "image-dog",
-    parentId: "image-animal",
-    name: "dog",
-  },
+  // {
+  //   id: "image-dog",
+  //   parentId: "image-animal",
+  //   name: "dog",
+  // },
 
-  {
-    id: "image-person",
-    parentId: "image",
-    name: "person",
-  },
-  {
-    id: "image-man",
-    parentId: "image-person",
-    name: "man",
-  },
+  // {
+  //   id: "image-person",
+  //   parentId: "image",
+  //   name: "person",
+  // },
+  // {
+  //   id: "image-man",
+  //   parentId: "image-person",
+  //   name: "man",
+  // },
 
-  {
-    id: "image-woman",
-    name: "image-woman",
-    parentId: "image-person",
-  },
+  // {
+  //   id: "image-woman",
+  //   name: "image-woman",
+  //   parentId: "image-person",
+  // },
 
   {
     id: "video",
     parentId: "",
     name: "video",
   },
-  {
-    id: "video-animal",
-    parentId: "video",
-    name: "animal",
-  },
-  {
-    id: "video-cat",
-    parentId: "video-animal",
-    name: "cat",
-  },
+  // {
+  //   id: "video-animal",
+  //   parentId: "video",
+  //   name: "animal",
+  // },
+  // {
+  //   id: "video-cat",
+  //   parentId: "video-animal",
+  //   name: "cat",
+  // },
 
-  {
-    id: "video-dog",
-    parentId: "video-animal",
-    name: "dog",
-  },
+  // {
+  //   id: "video-dog",
+  //   parentId: "video-animal",
+  //   name: "dog",
+  // },
 
-  {
-    id: "video-person",
-    parentId: "video",
-    name: "person",
-  },
-  {
-    id: "video-man",
-    parentId: "video-person",
-    name: "man",
-  },
+  // {
+  //   id: "video-person",
+  //   parentId: "video",
+  //   name: "person",
+  // },
+  // {
+  //   id: "video-man",
+  //   parentId: "video-person",
+  //   name: "man",
+  // },
 
-  {
-    id: "video-woman",
-    parentId: "video-person",
-    name: "woman",
-  },
+  // {
+  //   id: "video-woman",
+  //   parentId: "video-person",
+  //   name: "woman",
+  // },
 ];
 const resourceData = [
   {
     id: "image-cat1",
-    parentId: "image-cat",
+    parentId: "image",
     name: "cat1",
 
     mime: "image",
@@ -163,7 +163,7 @@ const resourceData = [
   },
   {
     id: "image-cat2",
-    parentId: "image-cat",
+    parentId: "image",
     name: "cat2",
 
     mime: "image",
@@ -171,7 +171,7 @@ const resourceData = [
   },
   {
     id: "image-dog1",
-    parentId: "image-dog",
+    parentId: "image",
     name: "dog1",
 
     mime: "image",
@@ -179,7 +179,7 @@ const resourceData = [
   },
   {
     id: "image-dog2",
-    parentId: "image-dog",
+    parentId: "image",
     name: "dog2",
 
     mime: "image",
@@ -188,7 +188,7 @@ const resourceData = [
 
   {
     id: "image-man1",
-    parentId: "image-man",
+    parentId: "image",
     name: "man1",
 
     mime: "image",
@@ -196,7 +196,7 @@ const resourceData = [
   },
   {
     id: "image-man2",
-    parentId: "image-man",
+    parentId: "image",
     name: "man2",
 
     mime: "image",
@@ -204,7 +204,7 @@ const resourceData = [
   },
   {
     id: "image-woman1",
-    parentId: "image-woman",
+    parentId: "image",
     name: "woman1",
 
     mime: "image",
@@ -212,7 +212,7 @@ const resourceData = [
   },
   {
     id: "image-woman2",
-    parentId: "image-woman",
+    parentId: "image",
     name: "woman2",
 
     mime: "image",
@@ -221,7 +221,7 @@ const resourceData = [
 
   {
     id: "video-cat1",
-    parentId: "video-cat",
+    parentId: "video",
     name: "cat1",
 
     mime: "video",
@@ -229,7 +229,7 @@ const resourceData = [
   },
   {
     id: "video-cat2",
-    parentId: "video-cat",
+    parentId: "video",
     name: "cat2",
 
     mime: "video",
@@ -237,7 +237,7 @@ const resourceData = [
   },
   {
     id: "video-dog1",
-    parentId: "video-dog",
+    parentId: "video",
     name: "dog1",
 
     mime: "video",
@@ -245,7 +245,7 @@ const resourceData = [
   },
   {
     id: "video-dog2",
-    parentId: "video-dog",
+    parentId: "video",
     name: "dog2",
 
     mime: "video",
@@ -253,7 +253,7 @@ const resourceData = [
   },
   {
     id: "video-man1",
-    parentId: "video-man",
+    parentId: "video",
     name: "man1",
 
     mime: "video",
@@ -261,7 +261,7 @@ const resourceData = [
   },
   {
     id: "video-man2",
-    parentId: "video-man",
+    parentId: "video",
     name: "man2",
 
     mime: "video",
@@ -269,7 +269,7 @@ const resourceData = [
   },
   {
     id: "video-woman1",
-    parentId: "video-woman",
+    parentId: "video",
     name: "woman1",
 
     mime: "video",
@@ -277,7 +277,7 @@ const resourceData = [
   },
   {
     id: "video-woman2",
-    parentId: "video-woman",
+    parentId: "video",
     name: "woman2",
 
     mime: "video",

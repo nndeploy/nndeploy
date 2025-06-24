@@ -24,13 +24,19 @@ export async function apiWorkFlowBranchSave(entity: IWorkFlowTreeNodeEntity){
 
 
 export async function apiWorkFlowSave(entity: IBusinessNode){
- var response = await request.post<IBusinessNode>('/workflow/save', entity);
+ var response = await request.post<IBusinessNode>('/api/workflow/save', entity);
 
   return response;
 }
 
-export async function apiGetWorkFlow(id: string){
- var response = await request.post<IWorkFlowEntity>('/workflow/get', {id});
+export async function apiWorkFlowRun(entity: IBusinessNode){
+ var response = await request.post<IBusinessNode>('/api/queue', entity);
+
+  return response;
+}
+
+export async function apiGetWorkFlow(name: string){
+ var response = await request.post<IWorkFlowEntity>(`aip/workflow/${name}`, {});
 
   return response;
 }

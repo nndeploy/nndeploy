@@ -15,6 +15,7 @@ import ResourceEditDrawer from "./ResourceEditDrawer";
 import { IResourceEntity, IResourceTreeNodeEntity, ResourceTreeNodeData } from "./entity";
 import BranchEditDrawer from "./BranchEditDrawer";
 import { apiResourceDelete } from "./api";
+import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 
 const { Text, Paragraph } = Typography;
 const Resource: React.FC = () => {
@@ -127,17 +128,17 @@ const Resource: React.FC = () => {
         position="right"
         render={
           <Dropdown.Menu>
-            {resource.type == "branch" && (
+            {/* {resource.type == "branch" && (
               <Dropdown.Item onClick={() => onBranchEdit(resource)}>
                 edit
               </Dropdown.Item>
-            )}
-            {resource.type == "leaf" && (
+            )} */}
+            {/* {resource.type == "leaf" && (
               <Dropdown.Item onClick={() => onResourceEdit(resource)}>
                 edit
               </Dropdown.Item>
-            )}
-            {resource.type == "branch" && (
+            )} */}
+            {/* {resource.type == "branch" && (
               <Dropdown.Item
                 onClick={() =>
                   onAddBranch({ id: "", name: "", parentId: resource.id,type: "branch" })
@@ -145,7 +146,7 @@ const Resource: React.FC = () => {
               >
                 add children branch
               </Dropdown.Item>
-            )}
+            )} */}
             {resource.type == "branch" && (
               <Dropdown.Item
                 onClick={() =>
@@ -155,6 +156,7 @@ const Resource: React.FC = () => {
                 add resource
               </Dropdown.Item>
             )}
+             {resource.type == "leaf" && (
             <Dropdown.Item>
               <Popconfirm
                 title="Are you sure?"
@@ -165,7 +167,7 @@ const Resource: React.FC = () => {
                 delete
               </Popconfirm>
             </Dropdown.Item>
-            <Dropdown.Item></Dropdown.Item>
+             )}
           </Dropdown.Menu>
         }
       >
@@ -223,6 +225,15 @@ const Resource: React.FC = () => {
         ///@ts-ignore
         renderLabel={renderLabel}
         className="tree-node"
+        onSelect={(
+                  selectedKey: string,
+                  selected: boolean,
+                  selectedNode: TreeNodeData
+                ) => {
+                  //props.onSelect(selectedKey);
+                  const entity = (selectedNode as ResourceTreeNodeData).entity
+                  onResourceEdit(entity)
+                }}
         //draggable
       />
       <SideSheet
