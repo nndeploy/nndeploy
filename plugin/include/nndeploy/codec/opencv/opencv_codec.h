@@ -338,16 +338,16 @@ class NNDEPLOY_CC_API OpenCvCameraEncode : public Encode {
   virtual base::Status run();
 };
 
-Decode *createOpenCvDecode(base::CodecFlag flag,
+extern NNDEPLOY_CC_API Decode *createOpenCvDecode(base::CodecFlag flag,
                                    const std::string &name, dag::Edge *output);
 
-std::shared_ptr<Decode> createOpenCvDecodeSharedPtr(
+extern NNDEPLOY_CC_API std::shared_ptr<Decode> createOpenCvDecodeSharedPtr(
     base::CodecFlag flag, const std::string &name, dag::Edge *output);
 
-Encode *createOpenCvEncode(base::CodecFlag flag,
+extern NNDEPLOY_CC_API Encode *createOpenCvEncode(base::CodecFlag flag,
                                    const std::string &name, dag::Edge *input);
 
-std::shared_ptr<Encode> createOpenCvEncodeSharedPtr(
+extern NNDEPLOY_CC_API std::shared_ptr<Encode> createOpenCvEncodeSharedPtr(
     base::CodecFlag flag, const std::string &name, dag::Edge *input);
 
 }  // namespace codec

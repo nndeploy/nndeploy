@@ -69,7 +69,7 @@ base::Status OpTranspose::run() {
   auto* output_tensor = outputs_[0];
   std::vector<int> input_shape = input_tensor->getShape();
   std::vector<int> output_shape = output_tensor->getShape();
-  int ndim = input_shape.size();
+  int ndim = static_cast<int>(input_shape.size());
 
   // 默认 perm 为反转
   if (perm.empty()) {

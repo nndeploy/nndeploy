@@ -34,7 +34,7 @@ base::Status OpFlatten::inferShape() {
   auto param = dynamic_cast<ir::FlattenParam*>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   int axis = param->axis_;
-  int rank = inputs_[0]->getShape().size();
+  int rank = static_cast<int>(inputs_[0]->getShape().size());
   if (axis < -rank || axis >= rank) {
     NNDEPLOY_LOGE("axis[%d] is invalid.\n", axis);
     return base::kStatusCodeErrorInvalidParam;
@@ -70,7 +70,7 @@ base::Status OpFlatten::run() {
 
   // 计算展平的轴
   int axis = param->axis_;
-  int rank = input_shape.size();
+  int rank = static_cast<int>(input_shape.size());
   if (axis < 0) {
     axis += rank;
   }

@@ -22,23 +22,27 @@
 namespace nndeploy {
 namespace track {
 
-class NNDEPLOY_CC_API VisMOTNode : public dag::Node {
+class NNDEPLOY_CC_API VisMOT : public dag::Node {
  public:
-  VisMOTNode(const std::string &name) : Node(name) {
-    key_ = "nndeploy::track::VisMOTNode";
+  VisMOT(const std::string &name) : Node(name) {
+    key_ = "nndeploy::track::VisMOT";
+    desc_ =
+        "Draw MOT result on input cv::Mat image based on MOT results[cv::Mat->cv::Mat]";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<MOTResult>();
     this->setOutputTypeInfo<cv::Mat>();
   }
-  VisMOTNode(const std::string &name, std::vector<dag::Edge *> inputs,
+  VisMOT(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
       : Node(name, inputs, outputs) {
-    key_ = "nndeploy::track::VisMOTNode";
+    key_ = "nndeploy::track::VisMOT";
+    desc_ =
+        "Draw MOT result on input cv::Mat image based on MOT results[cv::Mat->cv::Mat]";
     this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<MOTResult>();
     this->setOutputTypeInfo<cv::Mat>();
   }
-  virtual ~VisMOTNode() {}
+  virtual ~VisMOT() {}
 
   virtual base::Status run();
 

@@ -32,12 +32,19 @@ class NNDEPLOY_CC_API PPMattingPostParam : public base::Param {
   int alpha_w_;
   int output_h_;
   int output_w_;
+
+  using base::Param::serialize;
+  virtual base::Status serialize(rapidjson::Value &json,
+                                 rapidjson::Document::AllocatorType &allocator);
+  using base::Param::deserialize;
+  virtual base::Status deserialize(rapidjson::Value &json);
 };
 
 class NNDEPLOY_CC_API PPMattingPostProcess : public dag::Node {
  public:
   PPMattingPostProcess(const std::string &name) : dag::Node(name) {
     key_ = "nndeploy::matting::PPMattingPostProcess";
+    desc_ = "Matting postprocess[device::Tensor->MattingResult]";
     param_ = std::make_shared<PPMattingPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<MattingResult>();
@@ -46,6 +53,7 @@ class NNDEPLOY_CC_API PPMattingPostProcess : public dag::Node {
                        std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
     key_ = "nndeploy::matting::PPMattingPostProcess";
+    desc_ = "Matting postprocess[device::Tensor->MattingResult]";
     param_ = std::make_shared<PPMattingPostParam>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<MattingResult>();
@@ -59,29 +67,70 @@ class NNDEPLOY_CC_API PPMattingGraph : public dag::Graph {
  public:
   PPMattingGraph(const std::string &name) : dag::Graph(name) {
     key_ = "nndeploy::matting::PPMattingGraph";
+    desc_ =
+        "PPMatting "
+        "graph[cv::Mat->preprocess->infer->postprocess->MattingResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<MattingResult>();
+    // Create preprocessing node for matting
+    pre_ = this->createNode<preprocess::CvtResizePadNormTrans>("preprocess");
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create preprocessing node");
+      constructed_ = false;
+      return;
+    }
+    // Create inference node for ppmatting model execution
+    infer_ = dynamic_cast<infer::Infer *>(
+        this->createNode<infer::Infer>("infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node");
+      constructed_ = false;
+      return;
+    }
+    // Create postprocessing node for matting
+    post_ = this->createNode<PPMattingPostProcess>("postprocess");
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node");
+      constructed_ = false;
+      return;
+    }
   }
   PPMattingGraph(const std::string &name, std::vector<dag::Edge *> inputs,
                  std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
     key_ = "nndeploy::matting::PPMattingGraph";
+    desc_ =
+        "PPMatting "
+        "graph[cv::Mat->preprocess->infer->postprocess->MattingResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<MattingResult>();
+    // Create preprocessing node for matting
+    pre_ = this->createNode<preprocess::CvtResizePadNormTrans>("preprocess");
+    if (pre_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create preprocessing node");
+      constructed_ = false;
+      return;
+    }
+    // Create inference node for ppmatting model execution
+    infer_ = dynamic_cast<infer::Infer *>(
+        this->createNode<infer::Infer>("infer"));
+    if (infer_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create inference node");
+      constructed_ = false;
+      return;
+    }
+    // Create postprocessing node for matting
+    post_ = this->createNode<PPMattingPostProcess>("postprocess");
+    if (post_ == nullptr) {
+      NNDEPLOY_LOGE("Failed to create postprocessing node");
+      constructed_ = false;
+      return;
+    }
   }
 
   virtual ~PPMattingGraph() {}
 
-  base::Status make(const dag::NodeDesc &pre_desc,
-                    const dag::NodeDesc &infer_desc,
-                    base::InferenceType inference_type,
-                    const dag::NodeDesc &post_desc) {
-    // Create preprocessing node for matting
-    pre_ = this->createNode<preprocess::CvtResizePadNormTrans>(pre_desc);
-    if (pre_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create preprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+  base::Status defaultParam() {
     preprocess::CvtResizePadNormTransParam *pre_param =
         dynamic_cast<preprocess::CvtResizePadNormTransParam *>(pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
@@ -98,21 +147,6 @@ class NNDEPLOY_CC_API PPMattingGraph : public dag::Graph {
     pre_param->std_[2] = 0.5f;
     pre_param->std_[3] = 0.5f;
 
-    // Create inference node for ppmatting model execution
-    infer_ = dynamic_cast<infer::Infer *>(
-        this->createNode<infer::Infer>(infer_desc));
-    if (infer_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create inference node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
-    infer_->setInferenceType(inference_type);
-
-    // Create postprocessing node for matting
-    post_ = this->createNode<PPMattingPostProcess>(post_desc);
-    if (post_ == nullptr) {
-      NNDEPLOY_LOGE("Failed to create postprocessing node");
-      return base::kStatusCodeErrorInvalidParam;
-    }
     PPMattingPostParam *post_param =
         dynamic_cast<PPMattingPostParam *>(post_->getParam());
     post_param->alpha_h_ = 1024;
@@ -120,6 +154,22 @@ class NNDEPLOY_CC_API PPMattingGraph : public dag::Graph {
     post_param->output_h_ = 1024;
     post_param->output_w_ = 1024;
 
+    return base::kStatusCodeOk;
+  }
+
+  base::Status make(const dag::NodeDesc &pre_desc,
+                    const dag::NodeDesc &infer_desc,
+                    base::InferenceType inference_type,
+                    const dag::NodeDesc &post_desc) {
+    this->setNodeDesc(pre_, pre_desc);
+    this->setNodeDesc(infer_, infer_desc);
+    this->setNodeDesc(post_, post_desc);
+    this->defaultParam();
+    base::Status status = infer_->setInferenceType(inference_type);
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("Failed to set inference type");
+      return status;
+    }
     return base::kStatusCodeOk;
   }
 

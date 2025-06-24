@@ -55,7 +55,8 @@ Graph::~Graph() {
   }
   for (auto edge_wrapper : edge_repository_) {
     if (!edge_wrapper->is_external_) {
-      // NNDEPLOY_LOGE("delete edge[%s]\n", edge_wrapper->edge_->getName().c_str());
+      // NNDEPLOY_LOGE("delete edge[%s]\n",
+      // edge_wrapper->edge_->getName().c_str());
       delete edge_wrapper->edge_;
     }
     delete edge_wrapper;
@@ -614,6 +615,24 @@ std::shared_ptr<base::Param> Graph::getNodeParamSharedPtr(
   return node_wrapper->node_->getParamSharedPtr();
 }
 
+base::Status Graph::setExternalParam(const std::string &node_name,
+                                     std::shared_ptr<base::Param> param) {
+  external_param_repository_[node_name] = param;
+  return base::kStatusCodeOk;
+}
+std::shared_ptr<base::Param> Graph::getExternalParam(
+    const std::string &node_name) {
+  if (external_param_repository_.find(node_name) !=
+      external_param_repository_.end()) {
+    return external_param_repository_[node_name];
+  } else if (graph_ != nullptr) {
+    return graph_->getExternalParam(node_name);
+  } else {
+    NNDEPLOY_LOGE("can't find external param[%s]!", node_name.c_str());
+    return nullptr;
+  }
+}
+
 base::Status Graph::setNodeParallelType(const std::string &node_name,
                                         base::ParallelType parallel_type) {
   NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
@@ -1063,7 +1082,8 @@ base::Status Graph::construct() {
   for (auto edge_wrapper : edge_repository_) {
     NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
                                          "edge_repository_ edge is null!");
-    // if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
+    // if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty())
+    // {
     //   NNDEPLOY_LOGI("graph[%s] this edge[%s] is useless!\n", name_.c_str(),
     //                 edge_wrapper->edge_->getName().c_str());
     // }
@@ -1210,7 +1230,8 @@ base::Status Graph::construct() {
   // for (auto edge_wrapper : edge_repository_) {
   //   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(edge_wrapper->edge_,
   //                                        "edge_repository_ edge is null!");
-  //   if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty()) {
+  //   if (edge_wrapper->producers_.empty() && edge_wrapper->consumers_.empty())
+  //   {
   //     NNDEPLOY_LOGI("graph[%s] this edge[%s] is useless!\n", name_.c_str(),
   //                   edge_wrapper->edge_->getName().c_str());
   //   }

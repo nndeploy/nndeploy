@@ -30,7 +30,7 @@ RunningCondition::~RunningCondition() {}
 // 需要wait等待
 int RunningCondition::choose() {
   int ret = -1;
-  int all_task_count = node_repository_.size();
+  int all_task_count = static_cast<int>(node_repository_.size());
   while (ret == -1) {
     for (int j = 0; j < all_task_count; j++) {
       int i = (next_i_ + j) % all_task_count;  // 使用模运算保持索引在数组范围内

@@ -29,7 +29,7 @@ base::Status PipelineEdge::setQueueMaxSize(int queue_max_size) {
 }
 
 base::Status PipelineEdge::construct() {
-  consumers_size_ = consumers_.size();
+  consumers_size_ = static_cast<int>(consumers_.size());
   for (auto iter : consumers_) {
     if (to_consume_index_.find(iter) == to_consume_index_.end()) {
       to_consume_index_.insert({iter, 0});

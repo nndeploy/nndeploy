@@ -89,10 +89,10 @@ int main(int argc, char* argv[]) {
   dag::Edge* prompt = new dag::Edge("prompt");
   dag::Edge* negative_prompt = new dag::Edge("negative_prompt");
 
-  int iter = 10;
+  int iter = 1;
   dag::Graph* graph = stable_diffusion::createStableDiffusionText2ImageGraph(
-      name, prompt, negative_prompt, inference_type, inference_type,
-      inference_type, scheduler_type, param, iter);
+      name, prompt, negative_prompt, inference_type, scheduler_type, param,
+      iter);
 
   base::Status status = graph->setParallelType(pt);
 

@@ -62,8 +62,8 @@ base::Status OpQuantizeLinear::quantizeImpl(device::Tensor* input, device::Tenso
       zero_point ? reinterpret_cast<T*>(zero_point->getData()) : nullptr;
 
   // 设置动态范围
-  float min_val = static_cast<float>(std::numeric_limits<T>::min());
-  float max_val = static_cast<float>(std::numeric_limits<T>::max());
+  constexpr float min_val = static_cast<float>(std::numeric_limits<T>::min());
+  constexpr float max_val = static_cast<float>(std::numeric_limits<T>::max());
 
   // 判断量化模式
   const bool per_channel =
@@ -109,7 +109,7 @@ base::Status OpQuantizeLinear::quantizeImpl(device::Tensor* input, device::Tenso
     // Per-tensor实现
     const float scale_val = reinterpret_cast<float*>(scale->getData())[0];
     const T zp_val = zp_ptr ? zp_ptr[0] : static_cast<T>(0);
-    const int total_elements = input->getSize();
+    const int total_elements = static_cast<int>(input->getSize());
 
     for (int i = 0; i < total_elements; ++i) {
       float value = input_data[i] / scale_val + zp_val;

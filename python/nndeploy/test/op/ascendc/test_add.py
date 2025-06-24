@@ -4,10 +4,9 @@ import torch
 import nndeploy
 from nndeploy.op import functional as F
 from nndeploy.base import name_to_device_type_code
-from nndeploy.test.test_util import (
+from nndeploy.device.tensor import (
     create_tensor_from_numpy,
     create_numpy_from_tensor,
-    name_to_device_type_code,
 )
 
 class TestAddOp(unittest.TestCase):

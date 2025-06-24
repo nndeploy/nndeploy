@@ -8,11 +8,13 @@
 #include "nndeploy/op/op_add.h"
 #include "nndeploy/op/op_batchnorm.h"
 #include "nndeploy/op/op_conv.h"
+#include "nndeploy/op/op_concat.h"
 #include "nndeploy/op/op_flatten.h"
 #include "nndeploy/op/op_gemm.h"
 #include "nndeploy/op/op_global_averagepool.h"
 #include "nndeploy/op/op_maxpool.h"
 #include "nndeploy/op/op_mul.h"
+#include "nndeploy/op/op_mat_mul.h"
 #include "nndeploy/op/op_relu.h"
 #include "nndeploy/op/op_rmsnorm.h"
 #include "nndeploy/op/op_softmax.h"
@@ -34,6 +36,9 @@ device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
 device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
                          device::Tensor* bias,
                          std::shared_ptr<ir::ConvParam> param);
+
+device::Tensor* concatFunc(std::vector<device::Tensor *> inputs,
+                         std::shared_ptr<ir::ConcatParam> param);
 
 device::Tensor* batchNormFunc(
     device::Tensor* input, device::Tensor* scale, device::Tensor* bias,
@@ -57,6 +62,9 @@ device::Tensor* maxPoolFunc(device::Tensor* input,
                             std::shared_ptr<ir::MaxPoolParam> param);
 
 device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2);
+
+device::Tensor* matMulFunc(device::Tensor* input1, device::Tensor* input2, 
+                           std::shared_ptr<ir::MatMulParam> param, device::Tensor* bias);
 
 device::Tensor* softmaxFunc(device::Tensor* input1,
                             std::shared_ptr<ir::SoftmaxParam> param);

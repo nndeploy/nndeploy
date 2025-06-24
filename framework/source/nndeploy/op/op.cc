@@ -348,8 +348,9 @@ base::Status Op::allocateWorkspace() {
   device::Device *device = device::getDevice(device_type_);
   if (workspace_ != nullptr) {
     device->deallocate(workspace_);
-    workspace_ == nullptr;
-    NNDEPLOY_LOGI("Workspace has beed allocated, now reallocate.\n");
+    workspace_ = nullptr;
+    // workspace_ == nullptr;
+    // NNDEPLOY_LOGI("Workspace has beed allocated, now reallocate.\n");
   }
   if (workspace_ == nullptr && workspace_size_ > 0) {
     workspace_ = device->allocate(workspace_size_);

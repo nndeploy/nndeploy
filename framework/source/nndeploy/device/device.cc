@@ -159,14 +159,16 @@ std::shared_ptr<Architecture> getArchitectureSharedPtr(
 
 base::DeviceType getDefaultHostDeviceType() {
   base::DeviceType dst(base::kDeviceTypeCodeCpu);
-#if NNDEPLOY_ARCHITECTURE_X86
-  dst.code_ = base::kDeviceTypeCodeX86;
-#elif NNDEPLOY_ARCHITECTURE_ARM
-  dst.code_ = base::kDeviceTypeCodeArm;
-#else
-  dst.code_ = base::kDeviceTypeCodeCpu;
-#endif
 
+  // #if NNDEPLOY_ARCHITECTURE_X86
+  //   dst.code_ = base::kDeviceTypeCodeX86;
+  // #elif NNDEPLOY_ARCHITECTURE_ARM
+  //   dst.code_ = base::kDeviceTypeCodeArm;
+  // #else
+  //   dst.code_ = base::kDeviceTypeCodeCpu;
+  // #endif
+
+  dst.code_ = base::kDeviceTypeCodeCpu;
   dst.device_id_ = 0;
 
   return dst;

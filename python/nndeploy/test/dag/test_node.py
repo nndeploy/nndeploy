@@ -100,11 +100,13 @@ def test_node():
 
 if __name__ == "__main__":
     test_node()
-    # print(nndeploy.dag.get_node_keys())s
+    print(nndeploy.dag.get_node_keys())
     all_node_json = nndeploy.dag.get_all_node_json()
+    # print(all_node_json)
     # 将all_node_json写入文件
     with open("all_node_json.json", "w") as f:
         f.write(all_node_json)
+    print(nndeploy.dag.get_all_node_json())
         
     const_node = nndeploy.dag.ConstNode("const_node")
     const_node.set_output_type(torch.Tensor)
@@ -118,4 +120,6 @@ if __name__ == "__main__":
     composite_node.run()
     
     loop_node = nndeploy.dag.Loop("loop_node")
+    
+    # print(nndeploy.dag.get_all_node_json())
     

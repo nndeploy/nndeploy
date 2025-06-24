@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
   // draw box
   dag::Edge *vismot_img = graph->createEdge("vismot_img");
   dag::Node *vismot_node;
-  vismot_node = graph->createNode<track::VisMOTNode>(
+  vismot_node = graph->createNode<track::VisMOT>(
       "vismot_node", {input, output}, {vismot_img});
 
   // Video encoder

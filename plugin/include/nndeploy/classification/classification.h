@@ -73,12 +73,12 @@ class NNDEPLOY_CC_API ClassificationPostProcess : public dag::Node {
  * 2. Inference node (infer_): Executes ResNet model inference
  * 3. Postprocessing node (post_): Processes classification results
  */
-class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
+class NNDEPLOY_CC_API ClassificationGraph : public dag::Graph {
  public:
-  ClassificationResnetGraph(const std::string &name) : dag::Graph(name) {
-    key_ = "nndeploy::classification::ClassificationResnetGraph";
+  ClassificationGraph(const std::string &name) : dag::Graph(name) {
+    key_ = "nndeploy::classification::ClassificationGraph";
     desc_ =
-        "Classification resnet "
+        "Classification "
         "graph[cv::Mat->preprocess->infer->postprocess->ClassificationResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<ClassificationResult>();
@@ -90,13 +90,12 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
     post_ = dynamic_cast<ClassificationPostProcess *>(
         this->createNode<ClassificationPostProcess>("postprocess"));
   }
-  ClassificationResnetGraph(const std::string &name,
-                            std::vector<dag::Edge *> inputs,
-                            std::vector<dag::Edge *> outputs)
+  ClassificationGraph(const std::string &name, std::vector<dag::Edge *> inputs,
+                      std::vector<dag::Edge *> outputs)
       : dag::Graph(name, inputs, outputs) {
-    key_ = "nndeploy::classification::ClassificationResnetGraph";
+    key_ = "nndeploy::classification::ClassificationGraph";
     desc_ =
-        "Classification resnet "
+        "Classification "
         "graph[cv::Mat->preprocess->infer->postprocess->ClassificationResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<ClassificationResult>();
@@ -109,7 +108,7 @@ class NNDEPLOY_CC_API ClassificationResnetGraph : public dag::Graph {
         this->createNode<ClassificationPostProcess>("postprocess"));
   }
 
-  virtual ~ClassificationResnetGraph() {}
+  virtual ~ClassificationGraph() {}
 
   virtual base::Status defaultParam() {
     // preprocess::CvtResizeNormTransParam *pre_param =

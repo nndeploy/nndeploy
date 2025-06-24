@@ -226,6 +226,15 @@ class Graph(_C.dag.Graph):
             参数对象
         """
         return super().get_node_param(node_name)
+    
+    def set_external_param(self, key: str, param: nndeploy.base.Param):
+        return super().set_external_param(key, param)
+    
+    def get_external_param(self, key: str) -> nndeploy.base.Param:
+        return super().get_external_param(key)
+    
+    def set_node_parallel_type(self, node_name: str, parallel_type: nndeploy.base.ParallelType):
+        return super().set_node_parallel_type(node_name, parallel_type)
 
     def set_graph_node_share_stream(self, flag: bool):
         """

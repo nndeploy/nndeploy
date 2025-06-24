@@ -1,7 +1,7 @@
 
 #include "nndeploy/stable_diffusion/ddim_scheduler.h"
 
-#include <algorithm>  // std::reverse
+#include <algorithm>
 
 #include "nndeploy/infer/infer.h"
 
@@ -18,6 +18,49 @@ DDIMScheduler::~DDIMScheduler() {}
 
 DDIMSchedulerParam *DDIMSchedulerParam::clone() const {
   return new DDIMSchedulerParam(*this);
+}
+
+base::Status DDIMSchedulerParam::serialize(
+    rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+  base::Status status = SchedulerParam::serialize(json, allocator);
+  if (status != base::kStatusCodeOk) return status;
+
+  json.AddMember("beta_start_", beta_start_, allocator);
+  json.AddMember("beta_end_", beta_end_, allocator);
+
+  rapidjson::Value beta_schedule_val;
+  beta_schedule_val.SetString(
+      beta_schedule_.c_str(),
+      static_cast<rapidjson::SizeType>(beta_schedule_.length()), allocator);
+  json.AddMember("beta_schedule_", beta_schedule_val, allocator);
+
+  json.AddMember("eta_", eta_, allocator);
+  json.AddMember("set_alpha_to_one_", set_alpha_to_one_, allocator);
+
+  return base::kStatusCodeOk;
+}
+
+base::Status DDIMSchedulerParam::deserialize(rapidjson::Value &json) {
+  base::Status status = SchedulerParam::deserialize(json);
+  if (status != base::kStatusCodeOk) return status;
+
+  if (json.HasMember("beta_start_") && json["beta_start_"].IsFloat()) {
+    beta_start_ = json["beta_start_"].GetFloat();
+  }
+  if (json.HasMember("beta_end_") && json["beta_end_"].IsFloat()) {
+    beta_end_ = json["beta_end_"].GetFloat();
+  }
+  if (json.HasMember("beta_schedule_") && json["beta_schedule_"].IsString()) {
+    beta_schedule_ = json["beta_schedule_"].GetString();
+  }
+  if (json.HasMember("eta_") && json["eta_"].IsFloat()) {
+    eta_ = json["eta_"].GetFloat();
+  }
+  if (json.HasMember("set_alpha_to_one_") &&
+      json["set_alpha_to_one_"].IsBool()) {
+    set_alpha_to_one_ = json["set_alpha_to_one_"].GetBool();
+  }
+  return base::kStatusCodeOk;
 }
 
 base::Status DDIMScheduler::init(SchedulerParam *param) {
@@ -52,7 +95,7 @@ base::Status DDIMScheduler::init(SchedulerParam *param) {
     }
   } else {
     NNDEPLOY_LOGI("Unsupported beta scheduler:%s\n",
-                  ddim_scheduler_param_->beta_schedule_);
+                  (ddim_scheduler_param_->beta_schedule_).c_str());
     return base::kStatusCodeErrorInvalidValue;
   }
 

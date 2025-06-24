@@ -47,7 +47,7 @@ void KeepAspectRatioHelper(KeepAspectRatioPolicy policy,
   }
 
   bool has_unknown_dim = false;
-  for (size_t i = 0; i < sizes_data.size(); i++) {
+  for (int i = 0; i < static_cast<int>(sizes_data.size()); i++) {
     int d = axes.empty() ? i : axes[i];
     if (input_shape.size() <= d) {
       has_unknown_dim = true;
@@ -58,7 +58,7 @@ void KeepAspectRatioHelper(KeepAspectRatioPolicy policy,
   }
   // If there's at least one unknown dim we can't infer the output shape, since
   // it will depend on the original aspect ratio of the input.
-  for (size_t i = 0; i < sizes_data.size(); i++) {
+  for (int i = 0; i < static_cast<int>(sizes_data.size()); i++) {
     int d = axes.empty() ? i : axes[i];
     sizes_data[i] = has_unknown_dim ? -1 : std::roundf(scale * input_shape[d]);
   }
@@ -184,7 +184,7 @@ base::Status OpResize::inferShape() {
   }
 
   auto axes_attr = param->axes_;
-  size_t rank_x = input_shape.size();
+  int rank_x = static_cast<int>(input_shape.size());
   std::vector<int> axes;
   if (axes_attr != INT_MAX) {
     axes.push_back(axes_attr);

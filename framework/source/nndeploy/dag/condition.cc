@@ -158,6 +158,7 @@ base::Status Condition::deserialize(rapidjson::Value &json) {
     NNDEPLOY_LOGE("deserialize node failed\n");
     return status;
   }
+  return status;
 }
 
 }  // namespace dag

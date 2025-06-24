@@ -305,6 +305,22 @@ if(ENABLE_NNDEPLOY_PLUGIN_CLASSIFICATION)
   set(SOURCE ${SOURCE} ${PYTHON_CLASSIFICATION_SOURCE})
 endif()
 
+if(ENABLE_NNDEPLOY_PLUGIN_TRACK)
+  file(GLOB_RECURSE PYTHON_TRACK_SOURCE
+    "${ROOT_PATH}/python/src/track/*.h"
+    "${ROOT_PATH}/python/src/track/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_TRACK_SOURCE})
+endif()
+
+if(ENABLE_NNDEPLOY_PLUGIN_MATTING)
+  file(GLOB_RECURSE PYTHON_MATTING_SOURCE
+    "${ROOT_PATH}/python/src/matting/*.h"
+    "${ROOT_PATH}/python/src/matting/*.cc"
+  )
+  set(SOURCE ${SOURCE} ${PYTHON_MATTING_SOURCE})
+endif()
+
 if(ENABLE_NNDEPLOY_PLUGIN_LLM)
   file(GLOB_RECURSE PYTHON_LLM_SOURCE
     "${ROOT_PATH}/python/src/llm/*.h"
@@ -348,13 +364,30 @@ list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PYTHON_THIRD_PARTY_LIBRARY})
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_LIST})
 target_link_libraries(${BINARY} PUBLIC ${THIRD_PARTY_LIBRARY})
+# if (APPLE)
+#   set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,-force_load")
+# elseif (UNIX)
+#   set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+# elseif(WIN32)
+#   if(MSVC)
+#     # target_link_options(${BINARY} PRIVATE /WHOLEARCHIVE)
+#   elseif(MINGW)
+#     set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+#   endif()
+# endif()
 
 # install
-#if(SYSTEM.Windows)
-#  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_BIN_PATH})
-#else()
-#  install(TARGETS ${BINARY} RUNTIME DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
-#endif()
+# if(SYSTEM.Windows)
+#   install(TARGETS ${BINARY} 
+#     RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
+#     LIBRARY DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
+#   )
+# else()
+#   install(TARGETS ${BINARY}
+#     RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH} 
+#     LIBRARY DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
+#   )
+# endif()
 
 # unkown
 if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
