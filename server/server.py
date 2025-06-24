@@ -63,7 +63,7 @@ class NnDeployServer:
             return EnqueueResponse(task_id=task_id)
 
         @api.post(
-            "/workflow/save",
+            "/api/workflow/save",
             response_model=Dict[str, str],
             summary="save workflow to file",
         )

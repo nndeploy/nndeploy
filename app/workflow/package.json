@@ -14,6 +14,7 @@
     "rsbuild.config.ts",
     "tsconfig.json"
   ],
+
   "scripts": {
     "build": "exit 0",
     "build:fast": "exit 0",
