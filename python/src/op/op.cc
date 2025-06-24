@@ -208,7 +208,6 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
   m.def("relu", &reluFunc, py::return_value_policy::take_ownership);
   m.def("conv", &convFunc, py::return_value_policy::take_ownership);
   m.def("concat", [](py::list inputs, std::shared_ptr<ir::ConcatParam> param) {
-    NNDEPLOY_LOGE("concat\n");
     std::this_thread::sleep_for(std::chrono::seconds(1));
     std::vector<device::Tensor*> input_tensors;
     for (auto input : inputs) {
@@ -223,6 +222,13 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
         py::return_value_policy::take_ownership);
   m.def("maxpool", &maxPoolFunc, py::return_value_policy::take_ownership);
   m.def("mul", &mulFunc, py::return_value_policy::take_ownership);
+  m.def("mat_mul",   
+      [](device::Tensor* input1, device::Tensor* input2,   
+         std::shared_ptr<ir::MatMulParam> param, py::object bias = py::none()) {  
+        device::Tensor* bias_ptr = bias.is_none() ? nullptr : bias.cast<device::Tensor*>();  
+        return matMulFunc(input1, input2, param, bias_ptr);  
+      },   
+      py::return_value_policy::take_ownership);
   m.def("softmax", &softmaxFunc, py::return_value_policy::take_ownership);
   m.def("quantize_linear", &quantizeLinearFunc,
         py::return_value_policy::take_ownership);
