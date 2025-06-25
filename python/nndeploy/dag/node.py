@@ -304,6 +304,10 @@ def get_all_node_json():
         if node_key in remove_node_keys:
             continue
         real_node_keys.append(node_key)
+        
+    # 排序
+    real_node_keys.sort()
+    
     node_json = "{\"nodes\":["
     for node_key in real_node_keys:
         json = get_node_json(node_key)
@@ -311,6 +315,7 @@ def get_all_node_json():
         if node_key != real_node_keys[-1]:
             node_json += ","
     node_json += "]}"
+    
     # 美化json
     node_json = nndeploy.base.pretty_json_str(node_json)
     return node_json

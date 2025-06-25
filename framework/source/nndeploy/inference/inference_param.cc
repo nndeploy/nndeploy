@@ -619,6 +619,8 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
       }
     }
   }
+  // NNDEPLOY_LOGE("is_path_ %d\n", is_path_);
+  // NNDEPLOY_LOGE("model_value_ %s\n", model_value_[0].c_str());
 
   if (json.HasMember("input_num_")) {
     input_num_ = json["input_num_"].GetInt();

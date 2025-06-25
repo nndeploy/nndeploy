@@ -6,6 +6,7 @@ namespace infer {
 
 Infer::Infer(const std::string &name) : dag::Node(name) {
   key_ = "nndeploy::infer::Infer";
+  desc_ = "Universal Inference Node - Enables cross-platform model deployment with multiple inference backends while maintaining native performance";
   this->setInputTypeInfo<device::Tensor>();
   this->setOutputTypeInfo<device::Tensor>();
   // NNDEPLOY_LOGI("Infer constructor: %s", name.c_str());
@@ -18,6 +19,7 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
     : dag::Node(name, inputs, outputs) {
   key_ = "nndeploy::infer::Infer";
+  desc_ = "Universal Inference Node - Enables cross-platform model deployment with multiple inference backends while maintaining native performance";
   if (inputs.size() == 0) {
     this->setInputTypeInfo<device::Tensor>();
   }
@@ -233,7 +235,9 @@ base::Status Infer::init() {
   for (int i = 0; i < input_names.size(); i++) {
     inference_input_names_.insert(input_names[i]);
     // 检查input_type_info_中是否设置改名字
-    if (input_type_info_[i]->getEdgeName().empty()) {
+    std::string default_name = "input_" + std::to_string(i);
+    if (input_type_info_[i]->getEdgeName().empty() ||
+        input_type_info_[i]->getEdgeName() == default_name) {
       // NNDEPLOY_LOGE("input_type_info_[%d] is empty, set to %s", i,
       //               input_names[i].c_str());
       input_type_info_[i]->setEdgeName(input_names[i]);
@@ -247,7 +251,9 @@ base::Status Infer::init() {
   for (int i = 0; i < output_names.size(); i++) {
     inference_output_names_.insert(output_names[i]);
     // 检查output_type_info_中是否设置改名字
-    if (output_type_info_[i]->getEdgeName().empty()) {
+    std::string default_name = "output_" + std::to_string(i);
+    if (output_type_info_[i]->getEdgeName().empty() ||
+        output_type_info_[i]->getEdgeName() == default_name) {
       // NNDEPLOY_LOGE("output_type_info_[%d] is empty, set to %s", i,
       //               output_names[i].c_str());
       output_type_info_[i]->setEdgeName(output_names[i]);
@@ -430,16 +436,16 @@ base::Status Infer::deserialize(rapidjson::Value &json) {
   // }
   if (json.HasMember("param_") && json["param_"].IsObject() &&
       inference_ != nullptr) {
-    base::Param *param = inference_->getParam();
+    inference::InferenceParam *param =
+        static_cast<inference::InferenceParam *>(inference_->getParam());
     if (param != nullptr) {
+      NNDEPLOY_LOGE("param deserialize start %p\n", param);
       status = param->deserialize(json["param_"]);
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "param deserialize failed");
     }
-    inference::InferenceParam *inference_param =
-        static_cast<inference::InferenceParam *>(param);
-    if (inference_param != nullptr) {
-      inference_param->parallel_type_ = parallel_type_;
+    if (param != nullptr) {
+      param->parallel_type_ = parallel_type_;
     }
   }
   return status;

@@ -31,6 +31,7 @@ base::Status OnnxRuntimeInference::init() {
   std::string model_buffer;
   OnnxRuntimeInferenceParam *onnxruntime_inference_param =
       dynamic_cast<OnnxRuntimeInferenceParam *>(inference_param_.get());
+  // NNDEPLOY_LOGE("onnxruntime_inference_param %p\n", onnxruntime_inference_param);
   if (onnxruntime_inference_param->is_path_) {
     if (onnxruntime_inference_param->model_value_.size() > 0) {
       // NNDEPLOY_LOGE("open file[%s]!\n", onnxruntime_inference_param->model_value_[0].c_str());
