@@ -465,19 +465,13 @@ endif()
 install(CODE "
   # 定义不同平台的动态库扩展名
   if(WIN32)
-    set(LIB_EXTENSIONS \"*.dll\")
-    set(SEARCH_PATHS 
-      \"${NNDEPLOY_INSTALL_PATH}/bin\" 
-      \"${NNDEPLOY_INSTALL_PATH}/lib\"
-    )
+    set(LIB_EXTENSIONS \"*.dll\" \"*.dll.*\" \"*.lib\" \"*.lib.*\" \"*.pyd\" \"*.pyd.*\")
   elseif(APPLE)
-    set(LIB_EXTENSIONS \"*.dylib\")
-    set(SEARCH_PATHS \"${NNDEPLOY_INSTALL_PATH}/lib\")
+    set(LIB_EXTENSIONS \"*.dylib\" \"*.dylib.*\")
   else()
     set(LIB_EXTENSIONS \"*.so\" \"*.so.*\")
-    # set(SEARCH_PATHS \"${NNDEPLOY_INSTALL_PATH}/lib\")
-    set(SEARCH_PATHS \"${NNDEPLOY_INSTALL_PATH}\")
   endif()
+  set(SEARCH_PATHS \"${NNDEPLOY_INSTALL_PATH}\")
   
   # 确保目标目录存在
   file(MAKE_DIRECTORY \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
