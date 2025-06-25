@@ -102,12 +102,12 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
 
   base::InferenceType inference_type_ = base::kInferenceTypeNone;
   base::ModelType model_type_;                 // 模型的类型
-  bool is_path_ = false;                        // model_value_是否为路径
+  bool is_path_ = true;                        // model_value_是否为路径
   std::vector<std::string> model_value_;       // 模型的路径或者内容
-  int input_num_ = 0;                          // 输入的数量
+  int input_num_ = 1;                          // 输入的数量
   std::vector<std::string> input_name_;        // 输入的名称
   std::vector<std::vector<int>> input_shape_;  // 输入的形状
-  int output_num_ = 0;                         // 输出的数量
+  int output_num_ = 1;                         // 输出的数量
   std::vector<std::string> output_name_;       // 输出的名称
   base::EncryptType encrypt_type_ =
       base::kEncryptTypeNone;     // 模型文件的加解密类型
@@ -127,7 +127,7 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
   std::vector<std::string> cache_path_;          // 缓存路径
   std::vector<std::string> library_path_;        // 第三方推理框架的动态库路径
   base::ParallelType parallel_type_ = base::kParallelTypeSequential;
-  int worker_num_ = 4;
+  int worker_num_ = 1;
 
   virtual base::Status serialize(rapidjson::Value &json,
                                  rapidjson::Document::AllocatorType &allocator);

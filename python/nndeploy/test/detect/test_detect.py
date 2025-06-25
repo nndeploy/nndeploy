@@ -141,10 +141,12 @@ def test_static_yolo_from_json():
 
 def test_static_graph_from_json():
     yolo_demo = nndeploy.dag.Graph("yolo_demo")
-    yolo_demo.load_file("/home/always/github/public/nndeploy/build/yolo_demo_v2.json")
+    print("load file")
+    yolo_demo.load_file("/home/always/github/public/nndeploy/build/yolo_front_2.json")
+    print("load file success!")
     yolo_demo.set_time_profile_flag(True)
     yolo_demo.init()
-    # print("init success!")
+    print("init success!")
     # yolo_demo.dump()
     # yolo_demo.set_input_path("/home/always/github/public/nndeploy/docs/image/demo/detect/sample.jpg")
     count = 1
@@ -159,9 +161,9 @@ def test_static_graph_from_json():
         print(f"test_static_yolo_from_json {i}")
         yolo_demo.run()
         print("run success!")
-        result = output[0].get_graph_output_param()
-        for bbox in result.bboxs_:
-            print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
+        # result = output[0].get_graph_output_param()
+        # for bbox in result.bboxs_:
+        #     print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("test_yolo_from_json")
     nndeploy.base.time_profiler_print("test_yolo_from_json")
 
@@ -169,7 +171,8 @@ def test_static_graph_from_json():
 if __name__ == "__main__":
     # test_yolo()
     # test_yolo_from_json()
-    test_static_yolo_from_json()
+    # test_static_yolo_from_json()
+    test_static_graph_from_json()
     
         
         
