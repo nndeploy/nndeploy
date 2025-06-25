@@ -19,7 +19,8 @@ from schemas import (
     QueueStateResponse,
     HistoryItem,
     ProgressPayload,
-    UploadResponse
+    UploadResponse,
+    NodeListResponse
 )
 import files
 from files import router as files_router
@@ -63,7 +64,7 @@ class NnDeployServer:
             return EnqueueResponse(task_id=task_id)
 
         @api.post(
-            "/api/workflow/save",
+            "/workflow/save",
             response_model=Dict[str, str],
             summary="save workflow to file",
         )
@@ -158,12 +159,15 @@ class NnDeployServer:
         
         @api.get(
             "/nodes",
-            response_model=Dict[str, Any],
+            response_model=NodeListResponse,
             summary="return register nodes",
         )
         async def register_nodes():
             json_str = nndeploy.dag.get_all_node_json()
-            return json.loads(json_str)
+            nodes = json.loads(json_str)
+            flag = "success"
+            message = ""
+            return NodeListResponse(flag=flag, message=message, result=nodes["nodes"])
         
         # history
         @api.get(
