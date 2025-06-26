@@ -164,6 +164,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                       >
                         <FxExpression
                           value={field.value as string}
+                          fieldType={{isArray: false, primateType: 'string'}}
                           onChange={field.onChange}
                           readonly={readonly}
                           hasError={

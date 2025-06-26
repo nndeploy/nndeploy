@@ -20,7 +20,8 @@ from schemas import (
     HistoryItem,
     ProgressPayload,
     UploadResponse,
-    NodeListResponse
+    NodeListResponse,
+    WorkFlowSaveResponse
 )
 import files
 from files import router as files_router
@@ -65,7 +66,7 @@ class NnDeployServer:
 
         @api.post(
             "/workflow/save",
-            response_model=Dict[str, str],
+            response_model=WorkFlowSaveResponse,
             summary="save workflow to file",
         )
         async def save_json(req: EnqueueRequest, filename: Optional[str] = None):
@@ -80,7 +81,10 @@ class NnDeployServer:
                 with open(file_path, 'w') as f:
                     json.dump(req.root, f, indent=4)
 
-                return {"message": f"JSON saved to {file_path}", "file_path": str(file_path)}
+                flag = "success"
+                message = "success"
+                result = {"message": f"JSON saved to {file_path}", "file_path": str(file_path)}
+                return WorkFlowSaveResponse(flag=flag, message=message, result=result)
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Error saving file: {e}")
 

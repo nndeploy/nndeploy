@@ -34,6 +34,7 @@ export const FormDynamicPorts: React.FC<FormDynamicPortsProps> = (props) => {
                     >
                       <FxExpression
                         value={childField.value.type_}
+                        fieldType={{isArray: false, primateType: 'string'}}
                         onChange={(v) => {
                           childField.onChange({
                             ...childField.value,
@@ -61,6 +62,7 @@ export const FormDynamicPorts: React.FC<FormDynamicPortsProps> = (props) => {
                     >
                       <FxExpression
                         value={childField.value.desc_}
+                        fieldType={{isArray: false, primateType: 'string'}}
                         onChange={(v) => {
                           childField.onChange({
                             ...childField.value,
