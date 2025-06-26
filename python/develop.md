@@ -10,17 +10,19 @@
 
 + 参照`nndeploy`的构建文档构建完成，执行`make install`
 
+注：修改了cpp代码，都需要重新`make install`
+
 2. 安装Python包
 
 ```bash
 cd nndeploy/python
 pip install -e .  # 开发者模式安装
-# 修改为自己的路径
+# 不再需要修改为自己的路径
 ## 连接libnndeploy_xxx.so
-export LD_LIBRARY_PATH=/home/always/github/public/nndeploy/build:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=/home/always/github/public/nndeploy/build:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=/home/ascenduserdg01/github/nndeploy/build:$LD_LIBRARY_PATH
 ## 连接onnxruntime
-export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
+# export LD_LIBRARY_PATH=/home/resource/third_party/onnxruntime-linux-aarch64-1.20.1/lib:$LD_LIBRARY_PATH
 ```
 
 ## 接口
