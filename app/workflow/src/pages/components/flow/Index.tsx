@@ -77,7 +77,7 @@ const Flow: React.FC<FlowProps> = (props) => {
     setSaveDrawerVisible(false);
   }
 
-  //const nodeList = useGetNodeList()
+  const nodeList = useGetNodeList()
 
   const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
 
@@ -268,7 +268,7 @@ const Flow: React.FC<FlowProps> = (props) => {
               <EditorRenderer className="demo-editor" />
             </div>
             <FlowEnviromentContext.Provider
-              value={{ element: flowRef, onSave, onRun }}
+              value={{ element: flowRef, onSave, onRun, nodeList }}
             >
               <DemoTools 
               ///@ts-ignore
