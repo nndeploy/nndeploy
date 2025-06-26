@@ -35,6 +35,11 @@ class NodeListResponse(BaseModel):
     message: str
     result: List[Any]
 
+class WorkFlowSaveResponse(BaseModel):
+    flag: str
+    message: str
+    result: Dict[str, str]
+
 class UploadResponse(BaseModel):
     filename: str
     saved_path: str
