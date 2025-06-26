@@ -79,7 +79,7 @@ nndeploy_option(ENABLE_NNDEPLOY_DAG "Enable Directed Acyclic Graph for model pip
 # # Plugin system for Algorithm
 nndeploy_option(ENABLE_NNDEPLOY_PLUGIN "Enable plugin for model deployment" ON)
 # # Test cases
-nndeploy_option(ENABLE_NNDEPLOY_TEST "Build test cases" ON)
+nndeploy_option(ENABLE_NNDEPLOY_TEST "Build test cases" OFF)
 # # Demo applications
 nndeploy_option(ENABLE_NNDEPLOY_DEMO "Build demo applications" ON)
 # # Python bindings
@@ -299,11 +299,12 @@ else()
   set(NNDEPLOY_INSTALL_TYPE ARCHIVE)
 endif()
 
-set(CMAKE_INSTALL_PREFIX ${ROOT_PATH}/build/nndeploy_${NNDEPLOY_VERSION}_${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR}${CMAKE_BUILD_TYPE}_${CMAKE_CXX_COMPILER_ID}_complete)
 if (SYSTEM.Windows)
+  set(CMAKE_INSTALL_PREFIX ${NNDEPLOY_INSTALL_PATH})
   set(NNDEPLOY_INSTALL_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/bin)
   set(NNDEPLOY_INSTALL_WIN_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/lib)
 else()
+  set(CMAKE_INSTALL_PREFIX ${ROOT_PATH}/build/nndeploy_${NNDEPLOY_VERSION}_${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR}${CMAKE_BUILD_TYPE}_${CMAKE_CXX_COMPILER_ID}_complete)
   set(NNDEPLOY_INSTALL_LIB_PATH ${NNDEPLOY_INSTALL_PATH}/lib)
 endif()
 set(NNDEPLOY_INSTALL_INCLUDE_PATH ${NNDEPLOY_INSTALL_PATH}/include)

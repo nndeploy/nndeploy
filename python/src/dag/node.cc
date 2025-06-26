@@ -184,10 +184,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
 
   m.def("register_node",
         [](const std::string &node_key, std::shared_ptr<NodeCreator> creator) {
-          NodeFactory *instance = NodeFactory::getInstance();
+          NodeFactory *instance = getGlobalNodeFactory();
           if (instance != nullptr) {
             instance->registerNode(node_key, creator);
-            //   NNDEPLOY_LOGI("register node success: %s\n", node_key.c_str());
+            NNDEPLOY_LOGI("register node success: %s\n", node_key.c_str());
           } else {
             NNDEPLOY_LOGE("register node failed: %s\n", node_key.c_str());
           }
