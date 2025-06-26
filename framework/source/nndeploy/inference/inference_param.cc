@@ -483,7 +483,13 @@ base::Status InferenceParam::serialize(
 
   if (is_path_) {
     rapidjson::Value model_value_array(rapidjson::kArrayType);
-    for (const auto& value : model_value_) {
+    std::vector<std::string> model_value_temp;
+    if (model_value_.size() == 0) {
+      model_value_temp.push_back("");
+    } else {
+      model_value_temp = model_value_;
+    }
+    for (const auto& value : model_value_temp) {
       rapidjson::Value str;
       str.SetString(value.c_str(), value.length(), allocator);
       model_value_array.PushBack(str, allocator);
@@ -493,7 +499,13 @@ base::Status InferenceParam::serialize(
 
   json.AddMember("input_num_", input_num_, allocator);
   rapidjson::Value input_name_array(rapidjson::kArrayType);
-  for (const auto& name : input_name_) {
+  std::vector<std::string> input_name_temp;
+  if (input_name_.size() == 0) {
+    input_name_temp.push_back("");
+  } else {
+    input_name_temp = input_name_;
+  }
+  for (const auto& name : input_name_temp) {
     rapidjson::Value str;
     str.SetString(name.c_str(), name.length(), allocator);
     input_name_array.PushBack(str, allocator);
@@ -501,7 +513,13 @@ base::Status InferenceParam::serialize(
   json.AddMember("input_name_", input_name_array, allocator);
 
   rapidjson::Value input_shape_array(rapidjson::kArrayType);
-  for (const auto& shape : input_shape_) {
+  std::vector<std::vector<int>> input_shape_temp;
+  if (input_shape_.size() == 0) {
+    input_shape_temp.push_back({-1, -1, -1, -1});
+  } else {
+    input_shape_temp = input_shape_;
+  }
+  for (const auto& shape : input_shape_temp) {
     rapidjson::Value shape_array(rapidjson::kArrayType);
     for (int dim : shape) {
       shape_array.PushBack(dim, allocator);
@@ -512,7 +530,13 @@ base::Status InferenceParam::serialize(
 
   json.AddMember("output_num_", output_num_, allocator);
   rapidjson::Value output_name_array(rapidjson::kArrayType);
-  for (const auto& name : output_name_) {
+  std::vector<std::string> output_name_temp;
+  if (output_name_.size() == 0) {
+    output_name_temp.push_back("");
+  } else {
+    output_name_temp = output_name_;
+  }
+  for (const auto& name : output_name_temp) {
     rapidjson::Value str;
     str.SetString(name.c_str(), name.length(), allocator);
     output_name_array.PushBack(str, allocator);
@@ -553,7 +577,13 @@ base::Status InferenceParam::serialize(
                  allocator);
   json.AddMember("is_dynamic_shape_", is_dynamic_shape_, allocator);
   rapidjson::Value min_shape_obj(rapidjson::kObjectType);
-  for (const auto& pair : min_shape_) {
+  base::ShapeMap min_shape_temp;
+  if (min_shape_.size() == 0) {
+    min_shape_temp = base::ShapeMap({{"input_0", {-1, -1, -1, -1}}});
+  } else {
+    min_shape_temp = min_shape_;
+  }
+  for (const auto& pair : min_shape_temp) {
     rapidjson::Value shape_array(rapidjson::kArrayType);
     for (int dim : pair.second) {
       shape_array.PushBack(dim, allocator);
@@ -565,7 +595,13 @@ base::Status InferenceParam::serialize(
   json.AddMember("min_shape_", min_shape_obj, allocator);
 
   rapidjson::Value opt_shape_obj(rapidjson::kObjectType);
-  for (const auto& pair : opt_shape_) {
+  base::ShapeMap opt_shape_temp;
+  if (opt_shape_.size() == 0) {
+    opt_shape_temp = base::ShapeMap({{"input_0", {-1, -1, -1, -1}}});
+  } else {
+    opt_shape_temp = opt_shape_;
+  }
+  for (const auto& pair : opt_shape_temp) {
     rapidjson::Value shape_array(rapidjson::kArrayType);
     for (int dim : pair.second) {
       shape_array.PushBack(dim, allocator);
@@ -577,7 +613,13 @@ base::Status InferenceParam::serialize(
   json.AddMember("opt_shape_", opt_shape_obj, allocator);
 
   rapidjson::Value max_shape_obj(rapidjson::kObjectType);
-  for (const auto& pair : max_shape_) {
+  base::ShapeMap max_shape_temp;
+  if (max_shape_.size() == 0) {
+    max_shape_temp = base::ShapeMap({{"input_0", {-1, -1, -1, -1}}});
+  } else {
+    max_shape_temp = max_shape_;
+  }
+  for (const auto& pair : max_shape_temp) {
     rapidjson::Value shape_array(rapidjson::kArrayType);
     for (int dim : pair.second) {
       shape_array.PushBack(dim, allocator);
@@ -614,8 +656,13 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
     if (json.HasMember("model_value_")) {
       const rapidjson::Value& model_value_array = json["model_value_"];
       model_value_.clear();
-      for (rapidjson::SizeType i = 0; i < model_value_array.Size(); i++) {
-        model_value_.push_back(model_value_array[i].GetString());
+      if (model_value_array.Size() == 1 &&
+          model_value_array[0].GetString() == "") {
+        ;
+      } else {
+        for (rapidjson::SizeType i = 0; i < model_value_array.Size(); i++) {
+          model_value_.push_back(model_value_array[i].GetString());
+        }
       }
     }
   }
@@ -629,21 +676,33 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
   if (json.HasMember("input_name_")) {
     const rapidjson::Value& input_name_array = json["input_name_"];
     input_name_.clear();
-    for (rapidjson::SizeType i = 0; i < input_name_array.Size(); i++) {
-      input_name_.push_back(input_name_array[i].GetString());
+    if (input_name_array.Size() == 1 && input_name_array[0].GetString() == "") {
+      ;
+    } else {
+      for (rapidjson::SizeType i = 0; i < input_name_array.Size(); i++) {
+        input_name_.push_back(input_name_array[i].GetString());
+      }
     }
   }
 
   if (json.HasMember("input_shape_")) {
     const rapidjson::Value& input_shape_array = json["input_shape_"];
     input_shape_.clear();
-    for (rapidjson::SizeType i = 0; i < input_shape_array.Size(); i++) {
-      const rapidjson::Value& shape_array = input_shape_array[i];
-      std::vector<int> shape;
-      for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
-        shape.push_back(shape_array[j].GetInt());
+    if (input_shape_array.Size() == 1 && input_shape_array[0].Size() == 4 &&
+        input_shape_array[0][0].GetInt() == -1 &&
+        input_shape_array[0][1].GetInt() == -1 &&
+        input_shape_array[0][2].GetInt() == -1 &&
+        input_shape_array[0][3].GetInt() == -1) {
+      ;
+    } else {
+      for (rapidjson::SizeType i = 0; i < input_shape_array.Size(); i++) {
+        const rapidjson::Value& shape_array = input_shape_array[i];
+        std::vector<int> shape;
+        for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
+          shape.push_back(shape_array[j].GetInt());
+        }
+        input_shape_.push_back(shape);
       }
-      input_shape_.push_back(shape);
     }
   }
 
@@ -654,8 +713,13 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
   if (json.HasMember("output_name_")) {
     const rapidjson::Value& output_name_array = json["output_name_"];
     output_name_.clear();
-    for (rapidjson::SizeType i = 0; i < output_name_array.Size(); i++) {
-      output_name_.push_back(output_name_array[i].GetString());
+    if (output_name_array.Size() == 1 &&
+        output_name_array[0].GetString() == "") {
+      ;
+    } else {
+      for (rapidjson::SizeType i = 0; i < output_name_array.Size(); i++) {
+        output_name_.push_back(output_name_array[i].GetString());
+      }
     }
   }
 
@@ -694,42 +758,66 @@ base::Status InferenceParam::deserialize(rapidjson::Value& json) {
   if (json.HasMember("min_shape_")) {
     const rapidjson::Value& min_shape_obj = json["min_shape_"];
     min_shape_.clear();
-    for (const auto& pair : min_shape_obj.GetObject()) {
-      std::string key = pair.name.GetString();
-      const rapidjson::Value& shape_array = pair.value;
-      std::vector<int> shape;
-      for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
-        shape.push_back(shape_array[j].GetInt());
+    if (min_shape_obj.Size() == 1 && min_shape_obj[0].Size() == 4 &&
+        min_shape_obj[0][0].GetInt() == -1 &&
+        min_shape_obj[0][1].GetInt() == -1 &&
+        min_shape_obj[0][2].GetInt() == -1 &&
+        min_shape_obj[0][3].GetInt() == -1) {
+      ;
+    } else {
+      for (const auto& pair : min_shape_obj.GetObject()) {
+        std::string key = pair.name.GetString();
+        const rapidjson::Value& shape_array = pair.value;
+        std::vector<int> shape;
+        for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
+          shape.push_back(shape_array[j].GetInt());
+        }
+        min_shape_[key] = shape;
       }
-      min_shape_[key] = shape;
     }
   }
 
   if (json.HasMember("opt_shape_")) {
     const rapidjson::Value& opt_shape_obj = json["opt_shape_"];
     opt_shape_.clear();
-    for (const auto& pair : opt_shape_obj.GetObject()) {
-      std::string key = pair.name.GetString();
-      const rapidjson::Value& shape_array = pair.value;
-      std::vector<int> shape;
-      for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
-        shape.push_back(shape_array[j].GetInt());
+    if (opt_shape_obj.Size() == 1 && opt_shape_obj[0].Size() == 4 &&
+        opt_shape_obj[0][0].GetInt() == -1 &&
+        opt_shape_obj[0][1].GetInt() == -1 &&
+        opt_shape_obj[0][2].GetInt() == -1 &&
+        opt_shape_obj[0][3].GetInt() == -1) {
+      ;
+    } else {
+      for (const auto& pair : opt_shape_obj.GetObject()) {
+        std::string key = pair.name.GetString();
+        const rapidjson::Value& shape_array = pair.value;
+        std::vector<int> shape;
+        for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
+          shape.push_back(shape_array[j].GetInt());
+        }
+        opt_shape_[key] = shape;
       }
-      opt_shape_[key] = shape;
     }
   }
 
   if (json.HasMember("max_shape_")) {
     const rapidjson::Value& max_shape_obj = json["max_shape_"];
     max_shape_.clear();
-    for (const auto& pair : max_shape_obj.GetObject()) {
-      std::string key = pair.name.GetString();  
-      const rapidjson::Value& shape_array = pair.value;
-      std::vector<int> shape;
-      for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
-        shape.push_back(shape_array[j].GetInt());
+    if (max_shape_obj.Size() == 1 && max_shape_obj[0].Size() == 4 &&
+        max_shape_obj[0][0].GetInt() == -1 &&
+        max_shape_obj[0][1].GetInt() == -1 &&
+        max_shape_obj[0][2].GetInt() == -1 &&
+        max_shape_obj[0][3].GetInt() == -1) {
+      ;
+    } else {
+      for (const auto& pair : max_shape_obj.GetObject()) {
+        std::string key = pair.name.GetString();
+        const rapidjson::Value& shape_array = pair.value;
+        std::vector<int> shape;
+        for (rapidjson::SizeType j = 0; j < shape_array.Size(); j++) {
+          shape.push_back(shape_array[j].GetInt());
+        }
+        max_shape_[key] = shape;
       }
-      max_shape_[key] = shape;
     }
   }
 
