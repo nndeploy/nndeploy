@@ -110,7 +110,7 @@ if __name__ == "__main__":
     # 将all_node_json写入文件
     with open("all_node_json.json", "w") as f:
         f.write(all_node_json)
-    print(nndeploy.dag.get_all_node_json())
+    # print(nndeploy.dag.get_all_node_json())
         
     const_node = nndeploy.dag.ConstNode("const_node")
     const_node.set_output_type(torch.Tensor)
