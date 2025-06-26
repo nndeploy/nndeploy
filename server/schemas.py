@@ -30,6 +30,11 @@ class ProgressPayload(BaseModel):
     type: str
     data: Dict[str, Any]
 
+class NodeListResponse(BaseModel):
+    flag: str
+    message: str
+    result: List[Any]
+
 class UploadResponse(BaseModel):
     filename: str
     saved_path: str
