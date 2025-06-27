@@ -13,9 +13,6 @@ import nndeploy.dag
 import nndeploy.detect
 
 class GraphRunner:
-    def __init__(self, server: "NnDeployServer"):
-        self.server = server
-    
     def _build_graph(self, graph_json_str: str, name: str):
         graph = nndeploy.dag.Graph(name)
         status = graph.deserialize(graph_json_str)
@@ -30,7 +27,5 @@ class GraphRunner:
         graph.init()
         graph.run()
         t1 = time.perf_counter()
-
-        # outputs = graph.get_all_output()
 
         return t1 - t0

@@ -17,7 +17,7 @@ class ExecutionStatus:
     
 class TaskQueue:
     """thread safe queue"""
-    def __init__(self, server: "NnDeployServer"):
+    def __init__(self, server: "NnDeployServer", job_mp_q: "mp.Queue"):
         self.server = server
         self._mtx = threading.RLock()
         self._not_empty = threading.Condition(self._mtx)
@@ -25,6 +25,7 @@ class TaskQueue:
         self._pq: List[Any] = []
         self._running: Dict[int, Any] = {}
         self._hist: Dict[str, Any] = {}
+        self._job_q  = job_mp_q
     
     def put(self, payload, prio: int = 0):
         with self._mtx:
@@ -41,7 +42,8 @@ class TaskQueue:
             idx = self._counter
             self._running[idx] = copy.deepcopy(payload)
             self._counter += 1
-            self.server.queue_updated()
+
+            # self.server.queue_updated()
             return idx, payload
 
     def task_done(self, idx: int, status: ExecutionStatus):
@@ -53,7 +55,7 @@ class TaskQueue:
                 "task": task,
                 "status": status.__dict__,
             }
-            self.server.queue_updated()
+            # self.server.queue_updated()
 
     def get_current_queue(self):
         with self._mtx:
