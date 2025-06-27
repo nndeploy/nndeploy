@@ -333,3 +333,101 @@ Host github.com
       make -j
       make install
       ```
+
+# 你的分析很准确！这确实是一个**动态库加载和符号管理**的问题。让我详细分析一下原因：
+
+## 问题分析
+
+### 1. **多DLL的NodeFactory单例问题**
+
+从日志可以看出：
+- **注册阶段**：大量节点成功注册（来自不同的DLL）
+- **查找阶段**：只能找到少数几个节点类型
+
+```cpp
+// 注册时：大量节点被注册
+I/nndeploy_default_str: nndeploy::dag::NodeFactory::registerNode [File xxx] register node success: nndeploy::preprocess::BatchPreprocess
+// ... 很多其他节点
+
+// 查找时：只找到很少的节点
+I/nndeploy_default_str: nndeploy::dag::NodeFactory::getCreator [File xxx] node key: nndeploy::dag::Graph
+I/nndeploy_default_str: nndeploy::dag::NodeFactory::getCreator [File xxx] node key: nndeploy::dag::RunningCondition
+```
+Search files...
+### 2. **Windows DLL的符号隔离问题**
+
+Windows DLL有严格的符号边界，不同DLL中的静态变量（包括单例）是**相互独立**的。这是问题的核心原因：
+
+```cpp
+class NodeFactory {
+ public:
+  static NodeFactory *getInstance() {
+    static NodeFactory instance;  // 每个DLL都有自己的instance！
+    return &instance;
+  }
+  // ...
+ private:
+  std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
+};
+```
+
+### 3. **问题详细说明**
+
+1. **多个NodeFactory实例**：
+   - `nndeploy_framework.dll` 有一个 NodeFactory 实例
+   - `nndeploy_plugin.dll` 有另一个 NodeFactory 实例
+   - Python扩展模块有第三个 NodeFactory 实例
+
+2. **注册和查找分离**：
+   - 各种节点在**模块加载时**注册到了各自DLL的NodeFactory实例
+   - Python调用时使用的是**Python扩展模块**的NodeFactory实例
+   - 导致查找时找不到其他DLL注册的节点
+
+3. **日志证据**：
+   ```bash
+   # 注册时：显示所有节点都注册成功
+   register node success: nndeploy::preprocess::BatchPreprocess
+   register node success: nndeploy::codec::OpenCvImageDecode
+   # ... 等等
+   
+   # 查找时：只能看到很少的节点
+   node key: nndeploy::dag::Graph
+   node key: nndeploy::dag::RunningCondition
+   ```
+
+## 解决方案
+
+### 方案1：**显式导出NodeFactory符号**
+在主DLL中导出NodeFactory，确保所有模块使用同一个实例：
+
+```cpp
+// 在主DLL的头文件中
+NNDEPLOY_CC_API NodeFactory* GetGlobalNodeFactory();
+
+// 在主DLL的实现中  
+NNDEPLOY_CC_API NodeFactory* GetGlobalNodeFactory() {
+    return NodeFactory::getInstance();
+}
+```
+
+### 方案2：**使用共享内存映射**
+将NodeFactory的creators_存储在共享内存中。
+
+### 方案3：**在Python模块初始化时重新注册**
+在Python模块加载时，从各个DLL中获取节点信息并重新注册：
+
+```python
+def ensure_all_nodes_registered():
+    # 强制加载所有包含节点的DLL
+    import ctypes
+    ctypes.CDLL("./nndeploy_plugin.dll")  # 强制加载
+    # 或者调用各模块的初始化函数
+```
+
+### 方案4：**修改编译配置**
+使用 `/WHOLEARCHIVE` 链接选项，确保所有静态初始化代码都被执行。
+
+### 方案5：**集中式节点注册**
+创建一个专门的节点注册中心，所有节点在运行时显式注册。
+
+**推荐使用方案1和方案3的组合**，这样可以确保所有节点都注册到同一个NodeFactory实例中。

@@ -69,11 +69,15 @@ class CustomNodeCreator(nndeploy.dag.NodeCreator):
         self.node = CustomNode(name, inputs, outputs)
         return self.node
 
+
 custom_node_creator = CustomNodeCreator()
+print(custom_node_creator)
 nndeploy.dag.register_node("CustomNode", custom_node_creator)
+
 
 def test_node():  
     # 使用边指针创建节点
+
     input_edge_1 = nndeploy.dag.Edge("input_1")
     input_edge_2 = nndeploy.dag.Edge("input_2")
     output_edge = nndeploy.dag.Edge("output")
@@ -100,13 +104,13 @@ def test_node():
 
 if __name__ == "__main__":
     test_node()
-    print(nndeploy.dag.get_node_keys())
+    # print(nndeploy.dag.get_node_keys())
     all_node_json = nndeploy.dag.get_all_node_json()
     # print(all_node_json)
     # 将all_node_json写入文件
     with open("all_node_json.json", "w") as f:
         f.write(all_node_json)
-    print(nndeploy.dag.get_all_node_json())
+    # print(nndeploy.dag.get_all_node_json())
         
     const_node = nndeploy.dag.ConstNode("const_node")
     const_node.set_output_type(torch.Tensor)

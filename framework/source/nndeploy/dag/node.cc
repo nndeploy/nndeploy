@@ -1163,6 +1163,10 @@ base::Status Node::loadFile(const std::string &path) {
   return status;
 }
 
+NodeFactory* getGlobalNodeFactory() {
+  return NodeFactory::getInstance();
+}
+
 std::set<std::string> getNodeKeys() {
   return NodeFactory::getInstance()->getNodeKeys();
 }
