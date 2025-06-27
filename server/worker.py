@@ -18,7 +18,6 @@ def configure_worker_logger(log_q) -> None:
 def run(task_q, log_q) -> None:
     configure_worker_logger(log_q)
 
-    logging.info("Worker PID=%s started", os.getpid())
     executor = GraphExecutor()
 
     wrapped_q = TaskQueue(task_q)
@@ -28,6 +27,7 @@ def run(task_q, log_q) -> None:
             item = wrapped_q.get(timeout=1.0)
             if item is None:
                 continue
+            logging.info("Worker PID=%s started", os.getpid())
 
             idx, payload = item
             task_id = payload["id"]
