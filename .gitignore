@@ -12,10 +12,12 @@
 *.pch
 
 # Compiled Dynamic libraries
-*.so*
-*.dylib*
-*.dll*
-*.pyd*
+*.so
+*.so.*
+*.dylib
+*.dylib.*
+*.dll
+*.dll.*
 
 # Fortran module files
 *.mod
