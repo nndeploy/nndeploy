@@ -87,7 +87,8 @@ struct DataSlot {
 class PipelineEdge final : public AbstractEdge {
  public:
   explicit PipelineEdge(base::ParallelType pt)
-      : AbstractEdge(pt), ring_(round_up_pow2(queue_max_size_)) {}
+      : AbstractEdge(pt),
+        ring_(std::make_unique<RingBufferSpmc<DataSlot>>(1024)) {}
 
   ~PipelineEdge() override {
     terminate_flag_.store(true, std::memory_order_relaxed);
@@ -95,14 +96,14 @@ class PipelineEdge final : public AbstractEdge {
 
   base::Status setQueueMaxSize(int q) override {
     queue_max_size_ = q;
-    ring_ = RingBufferSpmc<DataSlot>(round_up_pow2(q));
+    ring_ = std::make_unique<RingBufferSpmc<DataSlot>>(round_up_pow2(q));
     return base::kStatusCodeOk;
   }
 
   base::Status construct() override {
     consumers_size_ = static_cast<int>(consumers_.size());
     for (auto* n : consumers_) {
-      consumer_id_[n] = ring_.register_consumer();
+      consumer_id_[n] = ring_->register_consumer();
     }
     return base::kStatusCodeOk;
   }
@@ -166,7 +167,7 @@ class PipelineEdge final : public AbstractEdge {
       if (terminate_flag_.load(std::memory_order_acquire))
         return base::kEdgeUpdateFlagTerminate;
 
-      DataSlot* s = ring_.peek(cid);
+      DataSlot* s = ring_->peek(cid);
       if (!s) {
         std::this_thread::yield();
         continue;
@@ -177,7 +178,7 @@ class PipelineEdge final : public AbstractEdge {
         continue;
       }
       current_pkt_[n] = s->pkt.get();  // 保存裸指针供 get*
-      ring_.pop(cid);                  // tail++
+      ring_->pop(cid);                 // tail++
       /* 回收：最后一个消费者离开时复位槽 */
       if (s->pkt.use_count() == 1) {  // 仅 pipeline 还持有
         s->pkt.reset();
@@ -197,11 +198,11 @@ class PipelineEdge final : public AbstractEdge {
     DataSlot* s = wait_reserve();
     s->pkt = std::move(pkt);
     s->state.store(SlotState::kReady, std::memory_order_release);
-    ring_.commit();
+    ring_->commit();
     return base::kStatusCodeOk;
   }
 
-  PipelineDataPacket* reserve_writing() {
+  std::shared_ptr<PipelineDataPacket> reserve_writing() {
     DataSlot* s = wait_reserve();
     s->state.store(SlotState::kWriting, std::memory_order_relaxed);
     s->pkt.reset(new PipelineDataPacket(consumers_size_));
@@ -223,13 +224,13 @@ class PipelineEdge final : public AbstractEdge {
 
   DataSlot* wait_reserve() {
     while (true) {
-      if (auto* s = ring_.reserve()) return s;
+      if (auto* s = ring_->reserve()) return s;
       std::this_thread::yield();  // 满–>背压
     }
   }
   DataSlot* pkt2slot(PipelineDataPacket* p) {
     // O(cap) 线性扫描；可换成更快 map
-    for (auto& s : ring_.buf_)
+    for (auto& s : ring_->buf_)
       if (s.pkt.get() == p) return &s;
     return nullptr;
   }
@@ -241,7 +242,7 @@ class PipelineEdge final : public AbstractEdge {
     return ++v;
   }
 
-  RingBufferSpmc<DataSlot> ring_;
+  std::unique_ptr<RingBufferSpmc<DataSlot>> ring_;
   std::unordered_map<const Node*, std::size_t> consumer_id_;
   std::unordered_map<const Node*, PipelineDataPacket*> current_pkt_;
   std::unordered_map<void*, std::weak_ptr<PipelineDataPacket>> buffer2pkt_;
