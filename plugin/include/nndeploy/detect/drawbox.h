@@ -60,6 +60,8 @@ class NNDEPLOY_CC_API DrawBox : public dag::Node {
     const int CNUM = 80;
     cv::RNG rng(0xFFFFFFFF);
     cv::Scalar_<int> randColor[CNUM];
+    cv::Mat *output_mat = new cv::Mat();
+    input_mat->copyTo(*output_mat);
     for (int i = 0; i < CNUM; i++)
       rng.fill(randColor[i], cv::RNG::UNIFORM, 0, 256);
     int i = -1;
@@ -80,13 +82,11 @@ class NNDEPLOY_CC_API DrawBox : public dag::Node {
       //               box[1], width, height);
       cv::Point p = cv::Point(box[0], box[1]);
       cv::Rect rect = cv::Rect(box[0], box[1], width, height);
-      cv::rectangle(*input_mat, rect, randColor[id], 2);
-      std::string text = " ID:" + std::to_string(id);
-      cv::putText(*input_mat, text, p, cv::FONT_HERSHEY_PLAIN, 1,
+      cv::rectangle(*output_mat, rect, randColor[id], 2);
+      std::string text = " ID:" + std::to_string(id) + " score:" + std::to_string(bbox.score_);
+      cv::putText(*output_mat, text, p, cv::FONT_HERSHEY_PLAIN, 1,
                   randColor[id]);
     }
-    cv::Mat *output_mat = new cv::Mat();
-    input_mat->copyTo(*output_mat);
     outputs_[0]->set(output_mat, false);
     return base::kStatusCodeOk;
   }

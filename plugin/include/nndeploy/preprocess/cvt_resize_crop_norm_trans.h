@@ -22,30 +22,30 @@
 namespace nndeploy {
 namespace preprocess {
 
-class NNDEPLOY_CC_API CvtResizeNormTransCropNormTrans : public dag::Node {
+class NNDEPLOY_CC_API CvtResizeCropNormTrans : public dag::Node {
  public:
-  CvtResizeNormTransCropNormTrans(const std::string &name) : dag::Node(name) {
-    key_ = "nndeploy::preprocess::CvtResizeNormTransCropNormTrans";
+  CvtResizeCropNormTrans(const std::string &name) : dag::Node(name) {
+    key_ = "nndeploy::preprocess::CvtResizeCropNormTrans";
     desc_ =
         "cv::Mat to "
         "device::Tensor[cvtcolor->resize->crop->normalize->transpose]";
-    param_ = std::make_shared<CvtResizeNormTransCropNormTransParam>();
+    param_ = std::make_shared<CvtResizeCropNormTransParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  CvtResizeNormTransCropNormTrans(const std::string &name,
+  CvtResizeCropNormTrans(const std::string &name,
                               std::vector<dag::Edge *> inputs,
                               std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::preprocess::CvtResizeNormTransCropNormTrans";
+    key_ = "nndeploy::preprocess::CvtResizeCropNormTrans";
     desc_ =
         "cv::Mat to "
         "device::Tensor[cvtcolor->resize->crop->normalize->transpose]";
-    param_ = std::make_shared<CvtResizeNormTransCropNormTransParam>();
+    param_ = std::make_shared<CvtResizeCropNormTransParam>();
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<device::Tensor>();
   }
-  virtual ~CvtResizeNormTransCropNormTrans() {}
+  virtual ~CvtResizeCropNormTrans() {}
 
   virtual base::Status run();
 };

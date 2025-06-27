@@ -11,6 +11,6 @@ WarpAffineCvtNormTransParam = _C.preprocess.WarpAffineCvtNormTransParam
 CvtNormTransParam = _C.preprocess.CvtNormTransParam
 CvtResizeNormTransParam = _C.preprocess.CvtResizeNormTransParam
 CvtResizePadNormTransParam = _C.preprocess.CvtResizePadNormTransParam
-CvtResizeNormTransCropNormTransParam = _C.preprocess.CvtResizeNormTransCropNormTransParam
+CvtResizeCropNormTransParam = _C.preprocess.CvtResizeCropNormTransParam
 
 

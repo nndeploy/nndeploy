@@ -100,8 +100,8 @@ class NNDEPLOY_CC_API InferenceParam : public base::Param {
   void setLibraryPath(const std::vector<std::string>& library_path);
   void setLibraryPath(const std::string& library_path, int i = -1);
 
-  base::InferenceType inference_type_ = base::kInferenceTypeNone;
-  base::ModelType model_type_;                 // 模型的类型
+  base::InferenceType inference_type_ = base::kInferenceTypeOnnxRuntime;
+  base::ModelType model_type_ = base::kModelTypeOnnx;                 // 模型的类型
   bool is_path_ = true;                        // model_value_是否为路径
   std::vector<std::string> model_value_;       // 模型的路径或者内容
   int input_num_ = 1;                          // 输入的数量
