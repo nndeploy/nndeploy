@@ -22,5 +22,6 @@ else:
 
 from .nndeploy import get_version, framework_init, framework_deinit
 from .nndeploy import __version__
+from .nndeploy import get_type_enum_json
 
-__all__ = ['get_version', 'framework_init', 'framework_deinit', '__version__']
+__all__ = ['get_version', 'framework_init', 'framework_deinit', '__version__', 'get_type_enum_json']

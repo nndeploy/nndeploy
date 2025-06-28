@@ -7,6 +7,9 @@ import numpy as np
 import json
 
 
+all_type_enum = []
+
+
 name_to_data_type_code = {
     "Uint": _C.base.DataTypeCode.Uint,
     "Int": _C.base.DataTypeCode.Int,
@@ -227,6 +230,49 @@ class DataType(_C.base.DataType):
             raise ValueError(f"Unsupported DataType: {self}")
 
 
+# {
+#     "DataTypeCode": [
+#         "kDataTypeCodeUint8",
+#         "kDataTypeCodeUint16",
+#         "kDataTypeCodeUint32",
+#         "kDataTypeCodeUint64",
+#         "kDataTypeCodeInt8",
+#         "kDataTypeCodeInt16",
+#         "kDataTypeCodeInt32",
+#         "kDataTypeCodeInt64",
+#         "kDataTypeCodeFp16",
+#         "kDataTypeCodeFp32",
+#         "kDataTypeCodeFp64",
+#         "kDataTypeCodeBFp16",
+#         "kDataTypeCodeOpaqueHandle",
+#         "kDataTypeCodeNotSupport"
+#     ]
+# }
+def get_data_type_enum_json():
+    data_type_enum = {
+        "DataTypeCode": [
+            "kDataTypeCodeUint8",
+            "kDataTypeCodeUint16", 
+            "kDataTypeCodeUint32",
+            "kDataTypeCodeUint64",
+            "kDataTypeCodeInt8",
+            "kDataTypeCodeInt16", 
+            "kDataTypeCodeInt32",
+            "kDataTypeCodeInt64",
+            "kDataTypeCodeFp16",
+            "kDataTypeCodeFp32",
+            "kDataTypeCodeFp64",
+            "kDataTypeCodeBFp16",
+            "kDataTypeCodeOpaqueHandle",
+            "kDataTypeCodeNotSupport"
+        ]
+    }
+    return data_type_enum
+
+
+all_type_enum.append(get_data_type_enum_json())
+
+
 name_to_device_type_code = {
     "cpu": _C.base.DeviceTypeCode.cpu,
     "cuda": _C.base.DeviceTypeCode.cuda,
@@ -386,6 +432,19 @@ class DataFormat(_C.base.DataFormat):
         if data_format_name not in name_to_data_format:
             raise ValueError(f"Unsupported data format name: {data_format_name}")
         return cls(name_to_data_format[data_format_name])
+
+
+def get_data_format_enum_json():
+    data_format_enum = {
+        "DataFormat": []
+    }
+    for data_format_name, data_format_code in name_to_data_format.items():
+        data_format_str = _C.base.data_format_to_string(data_format_code)
+        data_format_enum["DataFormat"].append(data_format_str)
+    return data_format_enum
+
+
+all_type_enum.append(get_data_format_enum_json())
 
 
 name_to_precision_type = {
