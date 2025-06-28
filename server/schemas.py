@@ -64,6 +64,11 @@ class DeleteResponse(BaseModel):
     flag: str
     message: str
 
+class FileListResponse(BaseModel):
+    flag: str
+    message: str
+    result: Dict[str, Any]
+
 class PreviewPayload(BaseModel):
     type: Literal["preview"]
     data: Dict[str, Any]

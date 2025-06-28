@@ -9,7 +9,7 @@ from typing import Dict, List
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import JSONResponse
 
-from schemas import (UploadResponse, DeleteResponse)
+from schemas import (UploadResponse, DeleteResponse, FileListResponse)
 
 # ──────────────────────────────────────────────
 # Router
@@ -80,15 +80,19 @@ def _file_info(path: Path) -> Dict[str, str]:
 # ──────────────────────────────────────────────
 # node: file list
 # ──────────────────────────────────────────────
-@router.get("/", summary="list upload dir files")
+@router.get("", response_model=FileListResponse, summary="list upload dir files")
 async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dict[str, str]]]:
     base = workdir
     tree: Dict[str, List[Dict[str, str]]] = {}
     if base.exists():
         for folder in base.iterdir():
             if folder.is_dir():
+                if (folder.name not in ["images", "videos", "models"]):
+                    continue
                 tree[folder.name] = [_file_info(p) for p in folder.iterdir() if p.is_file()]
-    return tree
+    flag = "success"
+    message = "List all resources"
+    return FileListResponse(flag=flag, message=message, result=tree)
 
 # ──────────────────────────────────────────────
 # node: delete image
