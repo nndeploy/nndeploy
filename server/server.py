@@ -21,7 +21,10 @@ from schemas import (
     ProgressPayload,
     UploadResponse,
     NodeListResponse,
-    WorkFlowSaveResponse
+    WorkFlowSaveResponse,
+    WorkFlowListResponse,
+    WorkFlowLoadResponse,
+    WorkFlowDeleteResponse
 )
 import files
 from files import router as files_router
@@ -46,6 +49,16 @@ class NnDeployServer:
 
     def _register_routes(self):
         api = APIRouter(prefix="/api")
+
+        # loop
+        @api.get(
+            "/queue",
+            response_model=QueueStateResponse,
+            summary="check running / wait task",
+        )
+        async def queue_state():
+            running, pending = self.queue.get_current_queue()
+            return QueueStateResponse(running=running, pending=pending)
 
         # commit task
         @api.post(
@@ -90,7 +103,7 @@ class NnDeployServer:
 
         @api.get(
             "/workflow",
-            response_model=Dict[str, Any],
+            response_model=WorkFlowListResponse,
             summary="load workflow lists",
         )
         async def get_workflow_json():
@@ -99,20 +112,22 @@ class NnDeployServer:
             if not workflow_dir.exists():
                 raise HTTPException(status_code=404, detail="workflow dir is not exist")
 
-            workflow_data = {}
+            result = []
             try:
                 for json_file in workflow_dir.glob("*.json"):
                     with open(json_file, 'r') as f:
                         data = json.load(f)
-                        workflow_data[json_file.stem] = data
-                return workflow_data
+                        result.append(data)
+                flag = "success"
+                message = "success"
+                return WorkFlowListResponse(flag=flag, message=message, result=result)
 
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"reading error: {e}")
 
-        @api.delete(
-            "/workflow/{file_name}",
-            response_model=Dict[str, str],
+        @api.post(
+            "/workflow/delete/{file_name}",
+            response_model=WorkFlowDeleteResponse,
             summary="delete workflow json",
         )
         async def delete_workflow_json(file_name: str):
@@ -125,14 +140,16 @@ class NnDeployServer:
 
             try:
                 file_path.unlink()
-                return {"message": f"file {file_name}.json has been deleted"}
+                flag = "success"
+                message = f"file {file_name}.json has been deleted"
+                return WorkFlowDeleteResponse(flag=flag, message=message)
 
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"delete error: {e}")
 
         @api.get(
             "/workflow/{file_name}",
-            response_model=Dict[str, Any],
+            response_model=WorkFlowLoadResponse,
             summary="get workflow json",
         )
         async def get_workflow_json(file_name: str):
@@ -145,21 +162,13 @@ class NnDeployServer:
 
             try:
                 with open(file_path, 'r') as f:
-                    data = json.load(f)
-                return data
+                    result = json.load(f)
+                flag = "success"
+                message = "success"
+                return WorkFlowLoadResponse(flag=flag, message=message, result=result)
 
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"reading file error: {e}")
-
-        # loop
-        @api.get(
-            "/queue",
-            response_model=QueueStateResponse,
-            summary="check running / wait task",
-        )
-        async def queue_state():
-            running, pending = self.queue.get_current_queue()
-            return QueueStateResponse(running=running, pending=pending)
         
         @api.get(
             "/nodes",

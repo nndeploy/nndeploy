@@ -9,7 +9,7 @@ from typing import Dict, List
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.responses import JSONResponse
 
-from schemas import UploadResponse
+from schemas import (UploadResponse, DeleteResponse)
 
 # ──────────────────────────────────────────────
 # Router
@@ -43,6 +43,31 @@ def _save(file: UploadFile, workdir: Path, subdir: str) -> UploadResponse:
         uploaded_at=datetime.utcnow(),
     )
 
+def _delete(filename: str, workdir: Path, subdir: str) -> DeleteResponse:
+    folder = workdir / subdir
+
+    if not folder.exists():
+        return DeleteResponse(
+            flag="failed",
+            message=f"path {folder} does not exist",
+        )
+
+    dst = folder / filename
+
+    if not dst.exists():
+        return DeleteResponse(
+            flag="failed",
+            message=f"file {dst.name} does not exist in {folder}",
+        )
+
+    if not dst.exists():
+        raise FileNotFoundError(f"{dst} does not exist.")
+    original_size = dst.stat().st_size
+    dst.unlink()
+    flag = "success"
+    message = f"file {filename}.json has been deleted"
+    return DeleteResponse(flag=flag, message=message)
+
 def _file_info(path: Path) -> Dict[str, str]:
     stat = path.stat()
     return {
@@ -66,6 +91,21 @@ async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dic
     return tree
 
 # ──────────────────────────────────────────────
+# node: delete image
+# ──────────────────────────────────────────────
+@router.post(
+    "/delete/image/{file_name}",
+    response_model=DeleteResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="delete images",
+)
+async def delete_image(
+    file_name: str,
+    workdir: Path = Depends(get_workdir)
+):
+    return _delete(file_name, workdir, "images")
+
+# ──────────────────────────────────────────────
 # node: upload images
 # ──────────────────────────────────────────────
 @router.post(
@@ -81,6 +121,20 @@ async def upload_image(
     return _save(file, workdir, "images")
 
 # ──────────────────────────────────────────────
+# node: delete video
+# ──────────────────────────────────────────────
+@router.post(
+    "/delete/video/{file_name}",
+    response_model=DeleteResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="delete video",
+)
+async def delete_video(file_name: str,
+                       workdir: Path = Depends(get_workdir)
+):
+    return _delete(file_name, workdir, "videos")
+
+# ──────────────────────────────────────────────
 # node: upload videos
 # ──────────────────────────────────────────────
 @router.post(
@@ -94,6 +148,20 @@ async def upload_video(
     workdir: Path = Depends(get_workdir),
 ):
     return _save(file, workdir, "videos")
+
+# ──────────────────────────────────────────────
+# node: delete model
+# ──────────────────────────────────────────────
+@router.post(
+    "/delete/model/{file_name}",
+    response_model=DeleteResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="delete model",
+)
+async def delete_model(file_name: str,
+                       workdir: Path = Depends(get_workdir)
+):
+    return _delete(file_name, workdir, "models")
 
 # ──────────────────────────────────────────────
 # node: upload models

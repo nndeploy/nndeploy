@@ -35,16 +35,34 @@ class NodeListResponse(BaseModel):
     message: str
     result: List[Any]
 
+class WorkFlowListResponse(BaseModel):
+    flag: str
+    message: str
+    result: List[Any]
+
 class WorkFlowSaveResponse(BaseModel):
     flag: str
     message: str
     result: Dict[str, str]
+
+class WorkFlowLoadResponse(BaseModel):
+    flag: str
+    message: str
+    result: Dict[str, Any]
+
+class WorkFlowDeleteResponse(BaseModel):
+    flag: str
+    message: str
 
 class UploadResponse(BaseModel):
     filename: str
     saved_path: str
     size: int
     uploaded_at: datetime
+
+class DeleteResponse(BaseModel):
+    flag: str
+    message: str
 
 class PreviewPayload(BaseModel):
     type: Literal["preview"]
