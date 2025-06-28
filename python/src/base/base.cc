@@ -611,149 +611,228 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
       .export_values();
 
   // export as base.data_type_code_to_string
-  m.def("data_type_code_to_string", &dataTypeCodeToString, "data_type_code_to_string", py::arg("src"));
+  m.def("data_type_code_to_string", &dataTypeCodeToString,
+        "data_type_code_to_string", py::arg("src"));
 
   // export as base.string_to_data_type_code
-  m.def("string_to_data_type_code", &stringToDataTypeCode, "string_to_data_type_code", py::arg("src"));
+  m.def("string_to_data_type_code", &stringToDataTypeCode,
+        "string_to_data_type_code", py::arg("src"));
 
   // export as base.data_type_to_string
-  m.def("data_type_to_string", &dataTypeToString, "data_type_to_string", py::arg("data_type"));
+  m.def("data_type_to_string", &dataTypeToString, "data_type_to_string",
+        py::arg("data_type"));
 
   // export as base.string_to_data_type
-  m.def("string_to_data_type", &stringToDataType, "string_to_data_type", py::arg("str"));
+  m.def("string_to_data_type", &stringToDataType, "string_to_data_type",
+        py::arg("str"));
 
   // export as base.data_format_to_string
-  m.def("data_format_to_string", &dataFormatToString, "data_format_to_string", py::arg("data_format"));
+  m.def("data_format_to_string", &dataFormatToString, "data_format_to_string",
+        py::arg("data_format"));
 
   // export as base.string_to_data_format
-  m.def("string_to_data_format", &stringToDataFormat, "string_to_data_format", py::arg("str"));
+  m.def("string_to_data_format", &stringToDataFormat, "string_to_data_format",
+        py::arg("str"));
 
   // export as base.string_to_device_type_code
-  m.def("string_to_device_type_code", &stringToDeviceTypeCode, "string_to_device_type_code", py::arg("src"));
+  m.def("string_to_device_type_code", &stringToDeviceTypeCode,
+        "string_to_device_type_code", py::arg("src"));
 
   // export as base.device_type_code_to_string
-  m.def("device_type_code_to_string", &deviceTypeCodeToString, "device_type_code_to_string", py::arg("src"));
+  m.def("device_type_code_to_string", &deviceTypeCodeToString,
+        "device_type_code_to_string", py::arg("src"));
 
   // export as base.string_to_device_type
-  m.def("string_to_device_type", &stringToDeviceType, "string_to_device_type", py::arg("src"));
+  m.def("string_to_device_type", &stringToDeviceType, "string_to_device_type",
+        py::arg("src"));
 
   // export as base.device_type_to_string
-  m.def("device_type_to_string", &deviceTypeToString, "device_type_to_string", py::arg("src"));
+  m.def("device_type_to_string", &deviceTypeToString, "device_type_to_string",
+        py::arg("src"));
 
   // export as base.string_to_model_type
-  m.def("string_to_model_type", &stringToModelType, "string_to_model_type", py::arg("src"));
-  
-  // export as base.model_type_to_string  
-  m.def("model_type_to_string", &modelTypeToString, "model_type_to_string", py::arg("src"));
+  m.def("string_to_model_type", &stringToModelType, "string_to_model_type",
+        py::arg("src"));
+
+  // export as base.model_type_to_string
+  m.def("model_type_to_string", &modelTypeToString, "model_type_to_string",
+        py::arg("src"));
 
   // export as base.string_to_inference_type
-  m.def("string_to_inference_type", &stringToInferenceType, "string_to_inference_type", py::arg("src"));
+  m.def("string_to_inference_type", &stringToInferenceType,
+        "string_to_inference_type", py::arg("src"));
 
   // export as base.inference_type_to_string
-  m.def("inference_type_to_string", &inferenceTypeToString, "inference_type_to_string", py::arg("src"));
+  m.def("inference_type_to_string", &inferenceTypeToString,
+        "inference_type_to_string", py::arg("src"));
 
   // export as base.string_to_encrypt_type
-  m.def("string_to_encrypt_type", &stringToEncryptType, "string_to_encrypt_type", py::arg("src"));
+  m.def("string_to_encrypt_type", &stringToEncryptType,
+        "string_to_encrypt_type", py::arg("src"));
 
   // export as base.encrypt_type_to_string
-  m.def("encrypt_type_to_string", &encryptTypeToString, "encrypt_type_to_string", py::arg("src"));
+  m.def("encrypt_type_to_string", &encryptTypeToString,
+        "encrypt_type_to_string", py::arg("src"));
 
   // export as base.string_to_share_memory_type
-  m.def("string_to_share_memory_type", &stringToShareMemoryType, "string_to_share_memory_type", py::arg("src"));
+  m.def("string_to_share_memory_type", &stringToShareMemoryType,
+        "string_to_share_memory_type", py::arg("src"));
 
   // export as base.share_memory_type_to_string
-  m.def("share_memory_type_to_string", &shareMemoryTypeToString, "share_memory_type_to_string", py::arg("src"));
+  m.def("share_memory_type_to_string", &shareMemoryTypeToString,
+        "share_memory_type_to_string", py::arg("src"));
 
   // export as base.string_to_memory_type
-  m.def("string_to_memory_type", &stringToMemoryType, "string_to_memory_type", py::arg("src"));
+  m.def("string_to_memory_type", &stringToMemoryType, "string_to_memory_type",
+        py::arg("src"));
 
   // export as base.memory_type_to_string
-  m.def("memory_type_to_string", &memoryTypeToString, "memory_type_to_string", py::arg("src"));
+  m.def("memory_type_to_string", &memoryTypeToString, "memory_type_to_string",
+        py::arg("src"));
 
   // export as base.string_to_memory_pool_type
-  m.def("string_to_memory_pool_type", &stringToMemoryPoolType, "string_to_memory_pool_type", py::arg("src"));
+  m.def("string_to_memory_pool_type", &stringToMemoryPoolType,
+        "string_to_memory_pool_type", py::arg("src"));
 
   // export as base.memory_pool_type_to_string
-  m.def("memory_pool_type_to_string", &memoryPoolTypeToString, "memory_pool_type_to_string", py::arg("src"));
+  m.def("memory_pool_type_to_string", &memoryPoolTypeToString,
+        "memory_pool_type_to_string", py::arg("src"));
 
   // export as base.string_to_tensor_type
-  m.def("string_to_tensor_type", &stringToTensorType, "string_to_tensor_type", py::arg("src"));
+  m.def("string_to_tensor_type", &stringToTensorType, "string_to_tensor_type",
+        py::arg("src"));
 
   // export as base.tensor_type_to_string
-  m.def("tensor_type_to_string", &tensorTypeToString, "tensor_type_to_string", py::arg("src"));
+  m.def("tensor_type_to_string", &tensorTypeToString, "tensor_type_to_string",
+        py::arg("src"));
 
   // export as base.string_to_forward_op_type
-  m.def("string_to_forward_op_type", &stringToForwardOpType, "string_to_forward_op_type", py::arg("src"));
+  m.def("string_to_forward_op_type", &stringToForwardOpType,
+        "string_to_forward_op_type", py::arg("src"));
 
   // export as base.forward_op_type_to_string
-  m.def("forward_op_type_to_string", &forwardOpTypeToString, "forward_op_type_to_string", py::arg("src"));
+  m.def("forward_op_type_to_string", &forwardOpTypeToString,
+        "forward_op_type_to_string", py::arg("src"));
 
   // export as base.string_to_inference_opt_level
-  m.def("string_to_inference_opt_level", &stringToInferenceOptLevel, "string_to_inference_opt_level", py::arg("src"));
+  m.def("string_to_inference_opt_level", &stringToInferenceOptLevel,
+        "string_to_inference_opt_level", py::arg("src"));
 
   // export as base.inference_opt_level_to_string
-  m.def("inference_opt_level_to_string", &inferenceOptLevelToString, "inference_opt_level_to_string", py::arg("src"));
+  m.def("inference_opt_level_to_string", &inferenceOptLevelToString,
+        "inference_opt_level_to_string", py::arg("src"));
 
   // export as base.string_to_precision_type
-  m.def("string_to_precision_type", &stringToPrecisionType, "string_to_precision_type", py::arg("src"));
+  m.def("string_to_precision_type", &stringToPrecisionType,
+        "string_to_precision_type", py::arg("src"));
 
   // export as base.precision_type_to_string
-  m.def("precision_type_to_string", &precisionTypeToString, "precision_type_to_string", py::arg("src"));
+  m.def("precision_type_to_string", &precisionTypeToString,
+        "precision_type_to_string", py::arg("src"));
 
   // export as base.string_to_power_type
-  m.def("string_to_power_type", &stringToPowerType, "string_to_power_type", py::arg("src"));
+  m.def("string_to_power_type", &stringToPowerType, "string_to_power_type",
+        py::arg("src"));
 
   // export as base.power_type_to_string
-  m.def("power_type_to_string", &powerTypeToString, "power_type_to_string", py::arg("src"));
+  m.def("power_type_to_string", &powerTypeToString, "power_type_to_string",
+        py::arg("src"));
 
   // export as base.string_to_codec_type
-  m.def("string_to_codec_type", &stringToCodecType, "string_to_codec_type", py::arg("src"));
+  m.def("string_to_codec_type", &stringToCodecType, "string_to_codec_type",
+        py::arg("src"));
 
   // export as base.codec_type_to_string
-  m.def("codec_type_to_string", &codecTypeToString, "codec_type_to_string", py::arg("src"));
+  m.def("codec_type_to_string", &codecTypeToString, "codec_type_to_string",
+        py::arg("src"));
 
   // export as base.string_to_codec_flag
-  m.def("string_to_codec_flag", &stringToCodecFlag, "string_to_codec_flag", py::arg("src"));
+  m.def("string_to_codec_flag", &stringToCodecFlag, "string_to_codec_flag",
+        py::arg("src"));
 
   // export as base.codec_flag_to_string
-  m.def("codec_flag_to_string", &codecFlagToString, "codec_flag_to_string", py::arg("src"));
+  m.def("codec_flag_to_string", &codecFlagToString, "codec_flag_to_string",
+        py::arg("src"));
 
   // export as base.string_to_parallel_type
-  m.def("string_to_parallel_type", &stringToParallelType, "string_to_parallel_type", py::arg("src"));
+  m.def("string_to_parallel_type", &stringToParallelType,
+        "string_to_parallel_type", py::arg("src"));
 
   // export as base.parallel_type_to_string
-  m.def("parallel_type_to_string", &parallelTypeToString, "parallel_type_to_string", py::arg("src"));
+  m.def("parallel_type_to_string", &parallelTypeToString,
+        "parallel_type_to_string", py::arg("src"));
 
   // export as base.string_to_edge_type
-  m.def("string_to_edge_type", &stringToEdgeType, "string_to_edge_type", py::arg("src"));
+  m.def("string_to_edge_type", &stringToEdgeType, "string_to_edge_type",
+        py::arg("src"));
 
   // export as base.edge_type_to_string
-  m.def("edge_type_to_string", &edgeTypeToString, "edge_type_to_string", py::arg("src"));
+  m.def("edge_type_to_string", &edgeTypeToString, "edge_type_to_string",
+        py::arg("src"));
 
   // export as base.string_to_edge_update_flag
-  m.def("string_to_edge_update_flag", &stringToEdgeUpdateFlag, "string_to_edge_update_flag", py::arg("src"));
+  m.def("string_to_edge_update_flag", &stringToEdgeUpdateFlag,
+        "string_to_edge_update_flag", py::arg("src"));
 
   // export as base.edge_update_flag_to_string
-  m.def("edge_update_flag_to_string", &edgeUpdateFlagToString, "edge_update_flag_to_string", py::arg("src"));
+  m.def("edge_update_flag_to_string", &edgeUpdateFlagToString,
+        "edge_update_flag_to_string", py::arg("src"));
 
   // export as base.string_to_node_color_type
-  m.def("string_to_node_color_type", &stringToNodeColorType, "string_to_node_color_type", py::arg("src"));
+  m.def("string_to_node_color_type", &stringToNodeColorType,
+        "string_to_node_color_type", py::arg("src"));
 
   // export as base.node_color_type_to_string
-  m.def("node_color_type_to_string", &nodeColorTypeToString, "node_color_type_to_string", py::arg("src"));
+  m.def("node_color_type_to_string", &nodeColorTypeToString,
+        "node_color_type_to_string", py::arg("src"));
 
   // export as base.string_to_topo_sort_type
-  m.def("string_to_topo_sort_type", &stringToTopoSortType, "string_to_topo_sort_type", py::arg("src"));
+  m.def("string_to_topo_sort_type", &stringToTopoSortType,
+        "string_to_topo_sort_type", py::arg("src"));
 
   // export as base.topo_sort_type_to_string
-  m.def("topo_sort_type_to_string", &topoSortTypeToString, "topo_sort_type_to_string", py::arg("src"));
+  m.def("topo_sort_type_to_string", &topoSortTypeToString,
+        "topo_sort_type_to_string", py::arg("src"));
 
   // export as base.get_precision_type
-  m.def("get_precision_type", &getPrecisionType, "get_precision_type", py::arg("data_type"));
+  m.def("get_precision_type", &getPrecisionType, "get_precision_type",
+        py::arg("data_type"));
 
   // export as base.cal_cvt_color_type
   m.def("cal_cvt_color_type", &calCvtColorType, "cal_cvt_color_type",
         py::arg("src"), py::arg("dst"));
+
+  // export as base.pixel_type_to_string
+  m.def("pixel_type_to_string", &pixelTypeToString, "pixel_type_to_string",
+        py::arg("pixel_type"));
+
+  // export as base.string_to_pixel_type
+  m.def("string_to_pixel_type", &stringToPixelType, "string_to_pixel_type",
+        py::arg("pixel_type_str"));
+
+  // export as base.cvt_color_type_to_string
+  m.def("cvt_color_type_to_string", &cvtColorTypeToString,
+        "cvt_color_type_to_string", py::arg("cvt_color_type"));
+
+  // export as base.string_to_cvt_color_type
+  m.def("string_to_cvt_color_type", &stringToCvtColorType,
+        "string_to_cvt_color_type", py::arg("cvt_color_type_str"));
+
+  // export as base.interp_type_to_string
+  m.def("interp_type_to_string", &interpTypeToString, "interp_type_to_string",
+        py::arg("interp_type"));
+
+  // export as base.string_to_interp_type
+  m.def("string_to_interp_type", &stringToInterpType, "string_to_interp_type",
+        py::arg("interp_type_str"));
+
+  // export as base.border_type_to_string
+  m.def("border_type_to_string", &borderTypeToString, "border_type_to_string",
+        py::arg("border_type"));
+
+  // export as base.string_to_border_type
+  m.def("string_to_border_type", &stringToBorderType, "string_to_border_type",
+        py::arg("border_type_str"));
 
   // export as base.InterpType
   py::enum_<InterpType>(m, "InterpType")
@@ -844,10 +923,9 @@ NNDEPLOY_API_PYBIND11_MODULE("base", m) {
   m.def("remove_json_brackets", &removeJsonBrackets, py::arg("json_str"),
         "Remove brackets from a JSON string");
 
-  // export as base.pretty_json_str  
+  // export as base.pretty_json_str
   m.def("pretty_json_str", &prettyJsonStr, py::arg("json_str"),
         "Format JSON string to be more readable");
-
 }
 
 }  // namespace base

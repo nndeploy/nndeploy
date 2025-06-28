@@ -19,5 +19,5 @@ __version__ = get_version()
 def get_type_enum_json():
     all_type_enum_json = {}
     for type_enum in all_type_enum:
-        all_type_enum_json.update({type_enum})
+        all_type_enum_json.update(type_enum())
     return all_type_enum_json
