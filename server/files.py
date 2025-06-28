@@ -36,12 +36,16 @@ def _save(file: UploadFile, workdir: Path, subdir: str) -> UploadResponse:
     with dst.open("wb") as w:
         w.write(file.file.read())
 
-    return UploadResponse(
-        filename=file.filename,
-        saved_path=str(dst.relative_to(workdir)),
-        size=dst.stat().st_size,
-        uploaded_at=datetime.utcnow(),
-    )
+    flag = "success"
+    message = f"file {dst.name} has been uploaded successfully"
+    result = {
+        "filename":file.filename,
+        "saved_path":str(dst.relative_to(workdir)),
+        "size":dst.stat().st_size,
+        "uploaded_at":datetime.utcnow(),
+        "extension": (dst.relative_to(workdir).suffix or "unknown").lstrip(".")
+    }
+    return UploadResponse(flag=flag, message=message, result=result)
 
 def _delete(filename: str, workdir: Path, subdir: str) -> DeleteResponse:
     folder = workdir / subdir
@@ -71,10 +75,11 @@ def _delete(filename: str, workdir: Path, subdir: str) -> DeleteResponse:
 def _file_info(path: Path) -> Dict[str, str]:
     stat = path.stat()
     return {
-        "filename": path.name,
-        "file_path": str(path.resolve()),
-        "last_modified": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
-        "extension": (path.suffix or "unknown").lstrip("."),
+        "filename":path.name,
+        "saved_path":str(path.resolve()),
+        "size": stat.st_size,
+        "uploaded_at":datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+        "extension": (path.suffix or "unknown").lstrip(".")
     }
 
 # ──────────────────────────────────────────────
@@ -98,7 +103,7 @@ async def list_files(workdir: Path = Depends(get_workdir)) -> Dict[str, List[Dic
 # node: delete image
 # ──────────────────────────────────────────────
 @router.post(
-    "/delete/image/{file_name}",
+    "/delete/images/{file_name}",
     response_model=DeleteResponse,
     status_code=status.HTTP_201_CREATED,
     summary="delete images",
@@ -113,7 +118,7 @@ async def delete_image(
 # node: upload images
 # ──────────────────────────────────────────────
 @router.post(
-    "/image",
+    "/images",
     response_model=UploadResponse,
     status_code=status.HTTP_201_CREATED,
     summary="upload images",
@@ -128,7 +133,7 @@ async def upload_image(
 # node: delete video
 # ──────────────────────────────────────────────
 @router.post(
-    "/delete/video/{file_name}",
+    "/delete/videos/{file_name}",
     response_model=DeleteResponse,
     status_code=status.HTTP_201_CREATED,
     summary="delete video",
@@ -142,7 +147,7 @@ async def delete_video(file_name: str,
 # node: upload videos
 # ──────────────────────────────────────────────
 @router.post(
-    "/video",
+    "/videos",
     response_model=UploadResponse,
     status_code=status.HTTP_201_CREATED,
     summary="upload video files",
@@ -157,7 +162,7 @@ async def upload_video(
 # node: delete model
 # ──────────────────────────────────────────────
 @router.post(
-    "/delete/model/{file_name}",
+    "/delete/models/{file_name}",
     response_model=DeleteResponse,
     status_code=status.HTTP_201_CREATED,
     summary="delete model",
@@ -171,7 +176,7 @@ async def delete_model(file_name: str,
 # node: upload models
 # ──────────────────────────────────────────────
 @router.post(
-    "/model",
+    "/models",
     response_model=UploadResponse,
     status_code=status.HTTP_201_CREATED,
     summary="upload models",

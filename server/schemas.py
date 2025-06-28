@@ -55,10 +55,9 @@ class WorkFlowDeleteResponse(BaseModel):
     message: str
 
 class UploadResponse(BaseModel):
-    filename: str
-    saved_path: str
-    size: int
-    uploaded_at: datetime
+    flag: str
+    message: str
+    result: Dict[str, Any]
 
 class DeleteResponse(BaseModel):
     flag: str
