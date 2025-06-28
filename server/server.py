@@ -29,7 +29,7 @@ from files import router as files_router
 class NnDeployServer:
     instance: "NnDeployServer" = None
 
-    def __init__(self, loop, args):
+    def __init__(self, loop, args, job_mp_queue):
         NnDeployServer.instance = self
         self.loop = loop
         self.args = args
@@ -37,7 +37,7 @@ class NnDeployServer:
             title="nndeploy backend",
             version="0.1.0"
         )
-        self.queue = TaskQueue(self)
+        self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
         self._register_routes()
 
