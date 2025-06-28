@@ -10,6 +10,7 @@ import { IconCrossCircleStroked, IconPlus } from "@douyinfe/semi-icons";
 import lodash from 'lodash'
 import './index.scss'
 import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
+import { getFieldType } from "../functions";
 
 export function FormParams() {
   const readonly = !useIsSidebar();
@@ -19,63 +20,6 @@ export function FormParams() {
    const form =  useForm()
 
    console.log('form.values', form.values);
-
-   function getNodeRegistry(){
-     const registryKey =  form.values['key_']
-     const nodeRegistry = nodeList.find(item=>item.key_ == registryKey)
-     return nodeRegistry!
-
-   }
-
-   
-  function isNumberArrayFields(fieldName: string): boolean {
-    const numberArrayFields = ["scale_", "mean_", "std_"];
-    return numberArrayFields.includes(fieldName);
-  }
-   function getFieldType(fieldName:string){
-
-      var result = {
-        isArray: false, 
-        primateType: 'string'
-      }
-
-      if(isNumberArrayFields(fieldName)){
-        return result = {
-        isArray: true, 
-        primateType: 'number'
-      }
-      }
-       const nodeRegistry =  getNodeRegistry()
-
-       const fieldValue = nodeRegistry['param_']![fieldName]
-
-       if(lodash.isArray(fieldValue)){
-          result.isArray = true; 
-        if(lodash.isNumber(fieldValue[0])){
-          result.primateType = 'number'
-        }
-        if(lodash.isBoolean(fieldValue[0])){
-           result.primateType = 'boolean'
-        }
-        if(lodash.isString(fieldValue[0])){
-           result.primateType = 'string'
-        }
-        
-       }else{
-        if(lodash.isNumber(fieldValue)){
-          result.primateType = 'number'
-        }
-        if(lodash.isBoolean(fieldValue)){
-           result.primateType = 'boolean'
-        }
-         if(lodash.isString(fieldValue)){
-           result.primateType = 'string'
-        }
-       }
-
-      return result
-
-   }
 
 
   if (readonly) {
@@ -92,7 +36,7 @@ export function FormParams() {
         const content = Object.keys(properties).map((key) => {
           const property = properties[key];
 
-          const fieldType = getFieldType(key)
+          const fieldType = getFieldType(['param_', key], form, nodeList)
 
           if (fieldType.isArray) {
             return (
