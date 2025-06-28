@@ -7,6 +7,9 @@ import numpy as np
 import json
 
 
+all_type_enum = []
+
+
 name_to_data_type_code = {
     "Uint": _C.base.DataTypeCode.Uint,
     "Int": _C.base.DataTypeCode.Int,
@@ -227,6 +230,49 @@ class DataType(_C.base.DataType):
             raise ValueError(f"Unsupported DataType: {self}")
 
 
+# {
+#     "DataTypeCode": [
+#         "kDataTypeCodeUint8",
+#         "kDataTypeCodeUint16",
+#         "kDataTypeCodeUint32",
+#         "kDataTypeCodeUint64",
+#         "kDataTypeCodeInt8",
+#         "kDataTypeCodeInt16",
+#         "kDataTypeCodeInt32",
+#         "kDataTypeCodeInt64",
+#         "kDataTypeCodeFp16",
+#         "kDataTypeCodeFp32",
+#         "kDataTypeCodeFp64",
+#         "kDataTypeCodeBFp16",
+#         "kDataTypeCodeOpaqueHandle",
+#         "kDataTypeCodeNotSupport"
+#     ]
+# }
+def get_data_type_enum_json():
+    data_type_enum = {
+        "DataTypeCode": [
+            "kDataTypeCodeUint8",
+            "kDataTypeCodeUint16", 
+            "kDataTypeCodeUint32",
+            "kDataTypeCodeUint64",
+            "kDataTypeCodeInt8",
+            "kDataTypeCodeInt16", 
+            "kDataTypeCodeInt32",
+            "kDataTypeCodeInt64",
+            "kDataTypeCodeFp16",
+            "kDataTypeCodeFp32",
+            "kDataTypeCodeFp64",
+            "kDataTypeCodeBFp16",
+            "kDataTypeCodeOpaqueHandle",
+            "kDataTypeCodeNotSupport"
+        ]
+    }
+    return data_type_enum
+
+
+all_type_enum.append(get_data_type_enum_json)
+
+
 name_to_device_type_code = {
     "cpu": _C.base.DeviceTypeCode.cpu,
     "cuda": _C.base.DeviceTypeCode.cuda,
@@ -388,6 +434,19 @@ class DataFormat(_C.base.DataFormat):
         return cls(name_to_data_format[data_format_name])
 
 
+def get_data_format_enum_json():
+    data_format_enum = {
+        "DataFormat": []
+    }
+    for data_format_name, data_format_code in name_to_data_format.items():
+        data_format_str = _C.base.data_format_to_string(data_format_code)
+        data_format_enum["DataFormat"].append(data_format_str)
+    return data_format_enum
+
+
+all_type_enum.append(get_data_format_enum_json)
+
+
 name_to_precision_type = {
     "BFp16": _C.base.PrecisionType.BFp16,
     "Fp16": _C.base.PrecisionType.Fp16,
@@ -398,6 +457,19 @@ name_to_precision_type = {
 
 
 precision_type_to_name = {v: k for k, v in name_to_precision_type.items()}
+
+
+def get_precision_type_enum_json():
+    precision_type_enum = {
+        "PrecisionType": []
+    }
+    for precision_type_name, precision_type_code in name_to_precision_type.items():
+        precision_type_str = _C.base.precision_type_to_string(precision_type_code)
+        precision_type_enum["PrecisionType"].append(precision_type_str)
+    return precision_type_enum
+
+
+all_type_enum.append(get_precision_type_enum_json)
 
 
 class PrecisionType(_C.base.PrecisionType):
@@ -425,6 +497,19 @@ name_to_power_type = {
 power_type_to_name = {v: k for k, v in name_to_power_type.items()}
 
 
+def get_power_type_enum_json():
+    power_type_enum = {
+        "PowerType": []
+    }
+    for power_type_name, power_type_code in name_to_power_type.items():
+        power_type_str = _C.base.power_type_to_string(power_type_code)
+        power_type_enum["PowerType"].append(power_type_str)
+    return power_type_enum
+
+
+all_type_enum.append(get_power_type_enum_json)
+
+
 class PowerType(_C.base.PowerType):
     High = _C.base.PowerType.High
     Normal = _C.base.PowerType.Normal
@@ -446,6 +531,19 @@ name_to_share_memory_type = {
 
 
 share_memory_type_to_name = {v: k for k, v in name_to_share_memory_type.items()}
+
+
+def get_share_memory_type_enum_json():
+    share_memory_type_enum = {
+        "ShareMemoryType": []
+    }
+    for share_memory_type_name, share_memory_type_code in name_to_share_memory_type.items():
+        share_memory_type_str = _C.base.share_memory_type_to_string(share_memory_type_code)
+        share_memory_type_enum["ShareMemoryType"].append(share_memory_type_str)
+    return share_memory_type_enum
+
+
+all_type_enum.append(get_share_memory_type_enum_json)
 
 
 class ShareMemoryType(_C.base.ShareMemoryType):
@@ -471,6 +569,19 @@ name_to_memory_type = {
 memory_type_to_name = {v: k for k, v in name_to_memory_type.items()}
 
 
+def get_memory_type_enum_json():
+    memory_type_enum = {
+        "MemoryType": []
+    }
+    for memory_type_name, memory_type_code in name_to_memory_type.items():
+        memory_type_str = _C.base.memory_type_to_string(memory_type_code)
+        memory_type_enum["MemoryType"].append(memory_type_str)
+    return memory_type_enum
+
+
+all_type_enum.append(get_memory_type_enum_json)
+
+
 class MemoryType(_C.base.MemoryType):
     kMemoryTypeNone = _C.base.MemoryType.kMemoryTypeNone
     Allocate = _C.base.MemoryType.Allocate
@@ -494,6 +605,19 @@ name_to_memory_pool_type = {
 memory_pool_type_to_name = {v: k for k, v in name_to_memory_pool_type.items()}
 
 
+def get_memory_pool_type_enum_json():
+    memory_pool_type_enum = {
+        "MemoryPoolType": []
+    }
+    for memory_pool_type_name, memory_pool_type_code in name_to_memory_pool_type.items():
+        memory_pool_type_str = _C.base.memory_pool_type_to_string(memory_pool_type_code)
+        memory_pool_type_enum["MemoryPoolType"].append(memory_pool_type_str)
+    return memory_pool_type_enum
+
+
+all_type_enum.append(get_memory_pool_type_enum_json)
+
+
 class MemoryPoolType(_C.base.MemoryPoolType):
     Embed = _C.base.MemoryPoolType.Embed
     Unity = _C.base.MemoryPoolType.Unity
@@ -513,6 +637,19 @@ name_to_tensor_type = {
 
 
 tensor_type_to_name = {v: k for k, v in name_to_tensor_type.items()}
+
+
+def get_tensor_type_enum_json():
+    tensor_type_enum = {
+        "TensorType": []
+    }
+    for tensor_type_name, tensor_type_code in name_to_tensor_type.items():
+        tensor_type_str = _C.base.tensor_type_to_string(tensor_type_code)
+        tensor_type_enum["TensorType"].append(tensor_type_str)
+    return tensor_type_enum
+
+
+all_type_enum.append(get_tensor_type_enum_json)
 
 
 class TensorType(_C.base.TensorType):
@@ -540,6 +677,19 @@ name_to_forward_op_type = {
 forward_op_type_to_name = {v: k for k, v in name_to_forward_op_type.items()}
 
 
+def get_forward_op_type_enum_json():
+    forward_op_type_enum = {
+        "ForwardOpType": []
+    }
+    for forward_op_type_name, forward_op_type_code in name_to_forward_op_type.items():
+        forward_op_type_str = _C.base.forward_op_type_to_string(forward_op_type_code)
+        forward_op_type_enum["ForwardOpType"].append(forward_op_type_str)
+    return forward_op_type_enum
+
+
+all_type_enum.append(get_forward_op_type_enum_json)
+
+
 class ForwardOpType(_C.base.ForwardOpType):
     Default = _C.base.ForwardOpType.Default
     OneDnn = _C.base.ForwardOpType.OneDnn
@@ -564,6 +714,19 @@ name_to_inference_opt_level = {
 
 
 inference_opt_level_to_name = {v: k for k, v in name_to_inference_opt_level.items()}
+
+
+def get_inference_opt_level_enum_json():
+    inference_opt_level_enum = {
+        "InferenceOptLevel": []
+    }
+    for inference_opt_level_name, inference_opt_level_code in name_to_inference_opt_level.items():
+        inference_opt_level_str = _C.base.inference_opt_level_to_string(inference_opt_level_code)
+        inference_opt_level_enum["InferenceOptLevel"].append(inference_opt_level_str)
+    return inference_opt_level_enum
+
+
+all_type_enum.append(get_inference_opt_level_enum_json)
 
 
 class InferenceOptLevel(_C.base.InferenceOpt):
@@ -607,6 +770,19 @@ name_to_model_type = {
 
 
 model_type_to_name = {v: k for k, v in name_to_model_type.items()}
+
+
+def get_model_type_enum_json():
+    model_type_enum = {
+        "ModelType": []
+    }
+    for model_type_name, model_type_code in name_to_model_type.items():
+        model_type_str = _C.base.model_type_to_string(model_type_code)
+        model_type_enum["ModelType"].append(model_type_str)
+    return model_type_enum
+
+
+all_type_enum.append(get_model_type_enum_json)
 
 
 class ModelType(_C.base.ModelType):
@@ -679,6 +855,19 @@ name_to_inference_type = {
 inference_type_to_name = {v: k for k, v in name_to_inference_type.items()}
 
 
+def get_inference_type_enum_json():
+    inference_type_enum = {
+        "InferenceType": []
+    }
+    for inference_type_name, inference_type_code in name_to_inference_type.items():
+        inference_type_str = _C.base.inference_type_to_string(inference_type_code)
+        inference_type_enum["InferenceType"].append(inference_type_str)
+    return inference_type_enum
+
+
+all_type_enum.append(get_inference_type_enum_json)
+
+
 class InferenceType(_C.base.InferenceType):
     Default = _C.base.InferenceType.Default
     OpenVino = _C.base.InferenceType.OpenVino
@@ -727,6 +916,19 @@ name_to_encrypt_type = {
 encrypt_type_to_name = {v: k for k, v in name_to_encrypt_type.items()}
 
 
+def get_encrypt_type_enum_json():
+    encrypt_type_enum = {
+        "EncryptType": []
+    }
+    for encrypt_type_name, encrypt_type_code in name_to_encrypt_type.items():
+        encrypt_type_str = _C.base.encrypt_type_to_string(encrypt_type_code)
+        encrypt_type_enum["EncryptType"].append(encrypt_type_str)
+    return encrypt_type_enum
+
+
+all_type_enum.append(get_encrypt_type_enum_json)
+
+
 class EncryptType(_C.base.EncryptType):
     kEncryptTypeNone = _C.base.EncryptType.kEncryptTypeNone
     Base64 = _C.base.EncryptType.Base64
@@ -747,6 +949,19 @@ name_to_codec_type = {
 
 
 codec_type_to_name = {v: k for k, v in name_to_codec_type.items()}
+
+
+def get_codec_type_enum_json():
+    codec_type_enum = {
+        "CodecType": []
+    }
+    for codec_type_name, codec_type_code in name_to_codec_type.items():
+        codec_type_str = _C.base.codec_type_to_string(codec_type_code)
+        codec_type_enum["CodecType"].append(codec_type_str)
+    return codec_type_enum
+
+
+all_type_enum.append(get_codec_type_enum_json)
 
 
 class CodecType(_C.base.CodecType):
@@ -774,6 +989,19 @@ name_to_codec_flag = {
 codec_flag_to_name = {v: k for k, v in name_to_codec_flag.items()}
 
 
+def get_codec_flag_enum_json():
+    codec_flag_enum = {
+        "CodecFlag": []
+    }
+    for codec_flag_name, codec_flag_code in name_to_codec_flag.items():
+        codec_flag_str = _C.base.codec_flag_to_string(codec_flag_code)
+        codec_flag_enum["CodecFlag"].append(codec_flag_str)
+    return codec_flag_enum
+
+
+all_type_enum.append(get_codec_flag_enum_json)
+
+
 class CodecFlag(_C.base.CodecFlag):
     Image = _C.base.CodecFlag.Image
     Images = _C.base.CodecFlag.Images
@@ -798,6 +1026,19 @@ name_to_parallel_type = {
 parallel_type_to_name = {v: k for k, v in name_to_parallel_type.items()}
 
 
+def get_parallel_type_enum_json():
+    parallel_type_enum = {
+        "ParallelType": []
+    }
+    for parallel_type_name, parallel_type_code in name_to_parallel_type.items():
+        parallel_type_str = _C.base.parallel_type_to_string(parallel_type_code)
+        parallel_type_enum["ParallelType"].append(parallel_type_str)
+    return parallel_type_enum
+
+
+all_type_enum.append(get_parallel_type_enum_json)
+
+
 class ParallelType(_C.base.ParallelType):
     kParallelTypeNone = _C.base.ParallelType.kParallelTypeNone
     Sequential = _C.base.ParallelType.Sequential
@@ -820,6 +1061,19 @@ name_to_edge_type = {
 edge_type_to_name = {v: k for k, v in name_to_edge_type.items()}
 
 
+def get_edge_type_enum_json():
+    edge_type_enum = {
+        "EdgeType": []
+    }
+    for edge_type_name, edge_type_code in name_to_edge_type.items():
+        edge_type_str = _C.base.edge_type_to_string(edge_type_code)
+        edge_type_enum["EdgeType"].append(edge_type_str)
+    return edge_type_enum
+
+
+all_type_enum.append(get_edge_type_enum_json)
+
+
 class EdgeType(_C.base.EdgeType):
     Fixed = _C.base.EdgeType.Fixed
     Pipeline = _C.base.EdgeType.Pipeline
@@ -839,6 +1093,19 @@ name_to_edge_update_flag = {
 
 
 edge_update_flag_to_name = {v: k for k, v in name_to_edge_update_flag.items()}
+
+
+def get_edge_update_flag_enum_json():
+    edge_update_flag_enum = {
+        "EdgeUpdateFlag": []
+    }
+    for edge_update_flag_name, edge_update_flag_code in name_to_edge_update_flag.items():
+        edge_update_flag_str = _C.base.edge_update_flag_to_string(edge_update_flag_code)
+        edge_update_flag_enum["EdgeUpdateFlag"].append(edge_update_flag_str)
+    return edge_update_flag_enum
+
+
+all_type_enum.append(get_edge_update_flag_enum_json)
 
 
 class EdgeUpdateFlag(_C.base.EdgeUpdateFlag):
@@ -863,6 +1130,19 @@ name_to_node_color_type = {
 node_color_type_to_name = {v: k for k, v in name_to_node_color_type.items()}
 
 
+def get_node_color_type_enum_json():
+    node_color_type_enum = {
+        "NodeColorType": []
+    }
+    for node_color_type_name, node_color_type_code in name_to_node_color_type.items():
+        node_color_type_str = _C.base.node_color_type_to_string(node_color_type_code)
+        node_color_type_enum["NodeColorType"].append(node_color_type_str)
+    return node_color_type_enum
+
+
+all_type_enum.append(get_node_color_type_enum_json)
+
+
 class NodeColorType(_C.base.NodeColorType):
     White = _C.base.NodeColorType.White
     Gray = _C.base.NodeColorType.Gray
@@ -882,6 +1162,19 @@ name_to_topo_sort_type = {
 
 
 topo_sort_type_to_name = {v: k for k, v in name_to_topo_sort_type.items()}
+
+
+def get_topo_sort_type_enum_json():
+    topo_sort_type_enum = {
+        "TopoSortType": []
+    }
+    for topo_sort_type_name, topo_sort_type_code in name_to_topo_sort_type.items():
+        topo_sort_type_str = _C.base.topo_sort_type_to_string(topo_sort_type_code)
+        topo_sort_type_enum["TopoSortType"].append(topo_sort_type_str)
+    return topo_sort_type_enum
+
+
+all_type_enum.append(get_topo_sort_type_enum_json)
 
 
 class TopoSortType(_C.base.TopoSortType):
@@ -960,6 +1253,19 @@ name_to_status_code =  {
 
 
 status_code_to_name = {v: k for k, v in name_to_status_code.items()}
+
+
+# def get_status_code_enum_json():
+#     status_code_enum = {
+#         "StatusCode": []
+#     }
+#     for status_code_name, status_code_code in name_to_status_code.items():
+#         status_code_str = _C.base.status_code_to_string(status_code_code)
+#         status_code_enum["StatusCode"].append(status_code_str)
+#     return status_code_enum
+
+
+# all_type_enum.append(get_status_code_enum_json)
 
 
 class StatusCode(_C.base.StatusCode):
@@ -1067,6 +1373,19 @@ name_to_pixel_type = {
 
 pixel_type_to_name = {v: k for k, v in name_to_pixel_type.items()}
 
+def get_pixel_type_enum_json():
+    pixel_type_enum = {
+        "PixelType": []
+    }
+    for pixel_type_name, pixel_type_code in name_to_pixel_type.items():
+        pixel_type_str = _C.base.pixel_type_to_string(pixel_type_code)
+        pixel_type_enum["PixelType"].append(pixel_type_str)
+    return pixel_type_enum
+
+
+all_type_enum.append(get_pixel_type_enum_json)
+
+
 class PixelType(_C.base.PixelType):
     GRAY = _C.base.PixelType.GRAY
     RGB = _C.base.PixelType.RGB
@@ -1108,6 +1427,19 @@ name_to_cvt_color_type = {
 
 cvt_color_type_to_name = {v: k for k, v in name_to_cvt_color_type.items()}
 
+def get_cvt_color_type_enum_json():
+    cvt_color_type_enum = {
+        "CvtColorType": []
+    }
+    for cvt_color_type_name, cvt_color_type_code in name_to_cvt_color_type.items():
+        cvt_color_type_str = _C.base.cvt_color_type_to_string(cvt_color_type_code)
+        cvt_color_type_enum["CvtColorType"].append(cvt_color_type_str)
+    return cvt_color_type_enum
+
+
+all_type_enum.append(get_cvt_color_type_enum_json)
+
+
 class CvtColorType(_C.base.CvtColorType):
     RGB2GRAY = _C.base.CvtColorType.RGB2GRAY
     BGR2GRAY = _C.base.CvtColorType.BGR2GRAY
@@ -1147,6 +1479,17 @@ name_to_interp_type = {
 
 interp_type_to_name = {v: k for k, v in name_to_interp_type.items()}
 
+def get_interp_type_enum_json():
+    interp_type_enum = {
+        "InterpType": []
+    }
+    for interp_type_name, interp_type_code in name_to_interp_type.items():
+        interp_type_str = _C.base.interp_type_to_string(interp_type_code)
+        interp_type_enum["InterpType"].append(interp_type_str)
+    return interp_type_enum
+
+all_type_enum.append(get_interp_type_enum_json)
+
 class InterpType(_C.base.InterpType):
     Nearst = _C.base.InterpType.Nearst
     Linear = _C.base.InterpType.Linear
@@ -1169,6 +1512,19 @@ name_to_border_type = {
 }
 
 border_type_to_name = {v: k for k, v in name_to_border_type.items()}
+
+
+def get_border_type_enum_json():    
+    border_type_enum = {
+        "BorderType": []
+    }
+    for border_type_name, border_type_code in name_to_border_type.items():
+        border_type_str = _C.base.border_type_to_string(border_type_code)
+        border_type_enum["BorderType"].append(border_type_str)
+    return border_type_enum
+
+all_type_enum.append(get_border_type_enum_json)
+
 
 class BorderType(_C.base.BorderType):
     Constant = _C.base.BorderType.Constant

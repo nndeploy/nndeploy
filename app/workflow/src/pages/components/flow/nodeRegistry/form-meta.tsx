@@ -25,6 +25,8 @@ import Section from "@douyinfe/semi-ui/lib/es/form/section";
 import { GroupNodeRender } from "../../../../components";
 import lodash, { random } from "lodash";
 import { FormDynamicPorts } from "../form-dynamic-ports";
+import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
+import { getFieldType } from "../functions";
 
 const { Text } = Typography;
 
@@ -32,6 +34,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const readonly = !useIsSidebar();
 
   const { node } = useNodeRender();
+
+  const { nodeList = [] } = useFlowEnviromentContext()
 
   //console.log("form.values", form.values);
 
@@ -48,14 +52,14 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     "inputs_",
     "outputs_",
     "node_repository_",
-    'is_dynamic_input_', 
+    'is_dynamic_input_',
     'is_dynamic_output_'
   ];
   const basicFields = lodash.difference(
     Object.keys(form.values),
     excludeFields
   );
-
+  ///ffuckkkkkkkk
   //var inputValues = useWatch("inputs_")
   // const whole = useWatchFormValues(node )
   // const  inputValues = whole["inputs_"]
@@ -80,14 +84,14 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                 name={`${childField.value.type_}`}///${childField.value.desc_}
                                 type="boolean"
                                 required={false}
-                                //labelWidth={40}
+                              //labelWidth={40}
                               >
                                 <div
                                   className="connection-point connection-point-left"
                                   data-port-id={childField.value.id}
                                   data-port-type="input"
                                   data-port-desc={childField.value.desc_}
-                                  //data-port-wangba={childField.value.desc_}
+                                //data-port-wangba={childField.value.desc_}
                                 ></div>
                               </FormItem>
                             );
@@ -132,7 +136,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                             name={`${childField.value.type_}`}///${childField.value.desc_}
                             type="boolean"
                             required={false}
-                            //labelWidth={40}
+                          //labelWidth={40}
                           >
                             <div
                               className="connection-point connection-point-right"
@@ -153,31 +157,35 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
         {!readonly ? (
           <>
             {/* <Section text={"basic"}> */}
-              {basicFields.map((fieldName) => {
-                return (
-                  <Field key={fieldName} name={fieldName}>
-                    {({ field, fieldState }) => (
-                      <FormItem
-                        name={fieldName}
-                        type={"string" as string}
-                        required={true}
-                      >
-                        <FxExpression
-                          value={field.value as string}
-                          fieldType={{isArray: false, primateType: 'string'}}
-                          onChange={field.onChange}
-                          readonly={readonly}
-                          hasError={
-                            Object.keys(fieldState?.errors || {}).length > 0
-                          }
-                          icon={<></>}
-                        />
-                        <Feedback errors={fieldState?.errors} />
-                      </FormItem>
-                    )}
-                  </Field>
-                );
-              })}
+            {basicFields.map((fieldName) => {
+              return (
+                <Field key={fieldName} name={fieldName}>
+                  {({ field, fieldState }) => {
+                    if (fieldName == 'size_') {
+                      //debugger
+                    }
+                    const fieldType = getFieldType([fieldName], form, nodeList)
+                    return <FormItem
+                      name={fieldName}
+                      type={"string" as string}
+                      required={true}
+                    >
+                      <FxExpression
+                        value={field.value as string}
+                        fieldType={fieldType}
+                        onChange={field.onChange}
+                        readonly={readonly}
+                        hasError={
+                          Object.keys(fieldState?.errors || {}).length > 0
+                        }
+                        icon={<></>}
+                      />
+                      <Feedback errors={fieldState?.errors} />
+                    </FormItem>
+                  }}
+                </Field>
+              );
+            })}
             {/* </Section> */}
 
             {is_dynamic_input_ && (
@@ -191,10 +199,12 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                 <FormDynamicPorts portType="outputs_" />
               </Section>
             )}
+            {
+              form.values.hasOwnProperty('param_') && <Section text={"param_"}>
+                <FormParams />
+              </Section>
+            }
 
-            <Section text={"param_"}>
-              <FormParams />
-            </Section>
           </>
         ) : (
           <></>

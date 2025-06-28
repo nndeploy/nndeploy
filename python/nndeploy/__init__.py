@@ -19,8 +19,24 @@ else:
     if package_dir not in os.environ.get('LD_LIBRARY_PATH', '').split(':'):
         os.environ['LD_LIBRARY_PATH'] = f"{package_dir}:{os.environ.get('LD_LIBRARY_PATH', '')}"
 
+import nndeploy.base
+import nndeploy.device
+import nndeploy.ir
+import nndeploy.op
+import nndeploy.net
+import nndeploy.inference
+import nndeploy.dag
+import nndeploy.preprocess
+import nndeploy.tokenizer
+import nndeploy.codec
+import nndeploy.classification
+import nndeploy.detect
+import nndeploy.track
+import nndeploy.segment
+import nndeploy.matting
 
 from .nndeploy import get_version, framework_init, framework_deinit
 from .nndeploy import __version__
+from .nndeploy import get_type_enum_json
 
-__all__ = ['get_version', 'framework_init', 'framework_deinit', '__version__']
+__all__ = ['get_version', 'framework_init', 'framework_deinit', '__version__', 'get_type_enum_json']
