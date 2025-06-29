@@ -17,12 +17,13 @@ try:
     tokenizer_type_to_name = {v: k for k, v in name_to_tokenizer_type.items()}
 
     def get_tokenizer_type_enum_json():
-        tokenizer_type_enum = {
-            "TokenizerType": []
-        }
+        enum_list = []
         for tokenizer_type_name, tokenizer_type_code in name_to_tokenizer_type.items():
             tokenizer_type_str = _C.tokenizer.tokenizer_type_to_string(tokenizer_type_code)
-            tokenizer_type_enum["TokenizerType"].append(tokenizer_type_str)
+            enum_list.append(tokenizer_type_str)
+        tokenizer_type_enum = {}
+        for single_enum in enum_list:
+            tokenizer_type_enum[f"{single_enum}"] = enum_list
         return tokenizer_type_enum
     
     nndeploy.base.all_type_enum.append(get_tokenizer_type_enum_json)    

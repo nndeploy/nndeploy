@@ -9,10 +9,9 @@ from nndeploy import get_type_enum_json
   
   
 def test_enum_json():
-    print("hello")
-    print(json.dumps(get_type_enum_json(), indent=4))
-    import nndeploy
-    print(nndeploy)
+    json_str = json.dumps(get_type_enum_json(), indent=4)
+    with open("all_type_enum.json", "w") as f:
+        f.write(json_str)
     
     
 if __name__ == "__main__":
