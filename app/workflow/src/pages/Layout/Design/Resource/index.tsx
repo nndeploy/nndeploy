@@ -50,7 +50,7 @@ const Resource: React.FC = () => {
     setFlatData(resultData);
   };
 
-  async function deleteNode(id: string) {
+  async function deleteNode(node: IResourceTreeNodeEntity) {
     function findDescendantsIncludingSelf(
       flatData: IResourceTreeNodeEntity[],
       id: string
@@ -74,11 +74,11 @@ const Resource: React.FC = () => {
 
       return descendants;
     }
-
-    const response = await apiResourceDelete(id);
+    const url = `/api/files/delete/${node.parentId}/${node.id}`
+    const response = await apiResourceDelete( url);
 
     if (response.flag == "success") {
-      var toDeleteIds = findDescendantsIncludingSelf(flatData, id).map(
+      var toDeleteIds = findDescendantsIncludingSelf(flatData, node.id).map(
         (item) => item.id
       );
       var newFlatData = flatData.filter(
@@ -149,8 +149,10 @@ const Resource: React.FC = () => {
             )} */}
             {resource.type == "branch" && (
               <Dropdown.Item
-                onClick={() =>
-                  onResourceEdit({ id: "", name: "", parentId: resource.id, type: "leaf"  })
+                onClick={() =>{
+                    onResourceEdit({ id: "", name: "", parentId: resource.id, type: "leaf"  })
+                }
+                  
                 }
               >
                 add resource
@@ -161,7 +163,7 @@ const Resource: React.FC = () => {
               <Popconfirm
                 title="Are you sure?"
                 content="Are you sure to delete this item?"
-                onConfirm={() => deleteNode(resource.id)}
+                onConfirm={() => deleteNode(resource)}
                 onCancel={() => {}}
               >
                 delete
@@ -212,13 +214,13 @@ const Resource: React.FC = () => {
     <div className="tree-resource">
       <div className="tree-resource-header">
         <Text>resources</Text>
-        <Tooltip content="add branch" position="top">
+        {/* <Tooltip content="add branch" position="top">
           <Text
             link
             icon={<IconPlus />}
             onClick={() => onBranchEdit({ id: "", name: "", parentId: "", type: "branch"  })}
           ></Text>
-        </Tooltip>
+        </Tooltip> */}
       </div>
       <Tree
         treeData={treeData}
@@ -232,6 +234,10 @@ const Resource: React.FC = () => {
                 ) => {
                   //props.onSelect(selectedKey);
                   const entity = (selectedNode as ResourceTreeNodeData).entity
+
+                  if(entity.type == 'branch'){
+                    return
+                  }
                   onResourceEdit(entity)
                 }}
         //draggable
@@ -243,7 +249,7 @@ const Resource: React.FC = () => {
         title={resourceEdit?.name ?? "add"}
       >
         <ResourceEditDrawer
-          entity={resourceEdit!}
+          node={resourceEdit!}
           onSure={onResourceEditDrawerSure}
           onClose={onResourceEditDrawerClose}
         />

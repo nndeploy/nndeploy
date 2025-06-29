@@ -27,7 +27,7 @@ export function Save(props: { disabled: boolean }) {
    
       await Promise.all(allForms.map(async (form) => {
         let result = await form?.validate()
-          debugger;
+          //debugger;
         var i = 0; 
     }));
 
