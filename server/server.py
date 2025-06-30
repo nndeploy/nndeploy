@@ -12,6 +12,7 @@ import asyncio
 import uuid
 import logging
 import nndeploy.dag
+from nndeploy import get_type_enum_json
 from task_queue import TaskQueue
 from schemas import (
     EnqueueRequest,
@@ -24,7 +25,8 @@ from schemas import (
     WorkFlowSaveResponse,
     WorkFlowListResponse,
     WorkFlowLoadResponse,
-    WorkFlowDeleteResponse
+    WorkFlowDeleteResponse,
+    ParamTypeResponse
 )
 import files
 from files import router as files_router
@@ -182,6 +184,17 @@ class NnDeployServer:
             message = ""
             return NodeListResponse(flag=flag, message=message, result=nodes["nodes"])
         
+        @api.get(
+            "/param/types",
+            response_model=ParamTypeResponse,
+            summary="return param enum types"
+        )
+        async def get_param_enum_type():
+            type_json = get_type_enum_json()
+            flag = "success"
+            message = "success"
+            return ParamTypeResponse(flag=flag, message=message, result=type_json)
+
         # history
         @api.get(
             "/history",
