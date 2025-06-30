@@ -233,8 +233,8 @@ class Node(_C.dag.Node):
     def check_outputs(self, outputs_name) -> bool:
         return super().check_outputs(outputs_name)
         
-    def get_real_outputs_name(self, outputs_name):
-        return super().get_real_outputs_name(outputs_name)
+    def get_real_outputs_name(self):
+        return super().get_real_outputs_name()
     
     def serialize(self) -> str:
         return super().serialize()
