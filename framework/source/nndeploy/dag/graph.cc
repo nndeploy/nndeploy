@@ -26,6 +26,8 @@ namespace dag {
 
 Graph::Graph(const std::string &name) : Node(name) {
   key_ = "nndeploy::dag::Graph";
+  constructed_ = true;
+  is_graph_ = true;
 }
 Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
              std::vector<Edge *> outputs)
