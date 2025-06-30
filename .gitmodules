@@ -26,3 +26,6 @@
 [submodule "third_party/OpenCL-Headers"]
 	path = third_party/OpenCL-Headers
 	url = https://github.com/KhronosGroup/OpenCL-Headers.git
+[submodule "third_party/ffmpeg"]
+	path = third_party/ffmpeg
+	url = https://github.com/FFmpeg/FFmpeg.git
