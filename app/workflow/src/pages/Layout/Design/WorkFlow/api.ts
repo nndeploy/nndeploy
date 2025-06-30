@@ -3,7 +3,7 @@ import request from "../../../../request";
 import { IBusinessNode, IWorkFlowEntity, IWorkFlowTreeNodeEntity } from "./entity";
 
 export async function apiGetWorkFlowTree(){
- var response = await request.get<IWorkFlowTreeNodeEntity[]>('/workflow/tree', {});
+ var response = await request.get<IBusinessNode[]>('/api/workflow', {});
 
   return response;
 }
@@ -49,7 +49,7 @@ export async function apiGetWorkFlow(name: string){
 // }
 
 export async function apiWorkFlowDelete(id: string){
- var response = await request.post<any>('/workflow/delete', {id});
+ var response = await request.post<any>(`/api/workflow/delete/${id}`, {});
 
   return response;
 }

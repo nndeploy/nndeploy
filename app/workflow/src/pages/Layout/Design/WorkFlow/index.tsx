@@ -24,16 +24,19 @@ export interface WorkFlowComponentHandle {
 }
 
 interface WorkFlowProps {
-  onShowFlow: (node: IResourceTreeNodeEntity) => void;
+  onShowFlow: (node: TreeNodeData) => void;
+  onFlowDeleteCallBack: (flowName:string) =>void
 }
 const { Text, Paragraph } = Typography;
 const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref) => {
-  const { flatData, setFlatData, treeData, getWorkFlowTree } = useGetWorkflowTree();
+
+  const {onFlowDeleteCallBack} = props
+  const { treeData, setTreeData, getWorkFlowTree } = useGetWorkflowTree();
 
   const [workFlowEditVisible, setWorkFlowEditVisible] = useState(false);
   const [workFlowEdit, setWorkFlowEdit] = useState<IWorkFlowTreeNodeEntity>();
 
-   useImperativeHandle(ref, () => ({
+  useImperativeHandle(ref, () => ({
     refresh: getWorkFlowTree,
   }));
 
@@ -48,67 +51,43 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
     setBranchVisible(false);
   }
 
-  const addNode = (newNode: IWorkFlowTreeNodeEntity) => {
-    var resultData: IWorkFlowTreeNodeEntity[] = [];
-    const findIndex = flatData.findIndex((item) => item.id == newNode.id);
+  const addNode = (newNode: TreeNodeData) => {
+    var resultData: TreeNodeData[] = [];
+    const findIndex = treeData.findIndex((item) => item.label == newNode.label);
     if (findIndex > -1) {
       resultData = [
-        ...flatData.slice(0, findIndex),
+        ...resultData.slice(0, findIndex),
         newNode,
-        ...flatData.slice(findIndex + 1),
+        ...resultData.slice(findIndex + 1),
       ];
     } else {
-      resultData = [...flatData, newNode];
+      resultData = [...resultData, newNode];
     }
-    setFlatData(resultData);
+    setTreeData(resultData);
   };
 
   async function deleteNode(id: string) {
-    function findDescendantsIncludingSelf(
-      flatData: IWorkFlowTreeNodeEntity[],
-      id: string
-    ): IWorkFlowTreeNodeEntity[] {
-      const descendants: IWorkFlowTreeNodeEntity[] = [];
-
-      function findChildren(parentId: string) {
-        flatData.forEach((node) => {
-          if (node.parentId === parentId) {
-            descendants.push(node);
-            findChildren(node.id);
-          }
-        });
-      }
-
-      const self = flatData.find((node) => node.id === id);
-      if (self) {
-        descendants.push(self);
-        findChildren(id);
-      }
-
-      return descendants;
-    }
 
     const response = await apiWorkFlowDelete(id);
 
     if (response.flag == "success") {
-      var toDeleteIds = findDescendantsIncludingSelf(flatData, id).map(
-        (item) => item.id
-      );
-      var newFlatData = flatData.filter(
-        (item) => !toDeleteIds.includes(item.id)
-      );
-      setFlatData(newFlatData);
+      onFlowDeleteCallBack(id)
+      const newData = treeData.filter(item => {
+        return item.label != id
+      })
+
+      setTreeData(newData);
     }
   }
 
-  function onBranchEdit(node: IWorkFlowTreeNodeEntity) {
-    setBranchEdit(node);
-    setBranchVisible(true);
-  }
-  function onAddBranch(node: IWorkFlowTreeNodeEntity) {
-    setBranchEdit(node);
-    setBranchVisible(true);
-  }
+  // function onBranchEdit(node: IWorkFlowTreeNodeEntity) {
+  //   setBranchEdit(node);
+  //   setBranchVisible(true);
+  // }
+  // function onAddBranch(node: IWorkFlowTreeNodeEntity) {
+  //   setBranchEdit(node);
+  //   setBranchVisible(true);
+  // }
 
   function onBranchEditClose() {
     setBranchVisible(false);
@@ -119,10 +98,10 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
     setBranchVisible(false);
   }
 
-  function onWorkFlowEdit(item: IWorkFlowTreeNodeEntity) {
-    setWorkFlowEdit(item);
-    setWorkFlowEditVisible(true);
-  }
+  // function onWorkFlowEdit(item: IWorkFlowTreeNodeEntity) {
+  //   setWorkFlowEdit(item);
+  //   setWorkFlowEditVisible(true);
+  // }
 
   function onWorkFlowEditDrawerSure(workFlow: IWorkFlowTreeNodeEntity) {
     addNode(workFlow);
@@ -133,7 +112,7 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
     setWorkFlowEditVisible(false);
   }
 
-  const renderBtn = (workFlow: IWorkFlowTreeNodeEntity) => {
+  const renderBtn = (workFlow: TreeNodeData) => {
     return (
       <Dropdown
         closeOnEsc={true}
@@ -185,8 +164,8 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
               <Popconfirm
                 title="Are you sure?"
                 content="Are you sure to delete this item?"
-                onConfirm={() => deleteNode(workFlow.id)}
-                onCancel={() => {}}
+                onConfirm={() => deleteNode(workFlow.label as string)}
+                onCancel={() => { }}
               >
                 delete
               </Popconfirm>
@@ -209,12 +188,14 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
     );
   };
 
-  const renderLabel = (label: ReactNode, item: WorkFlowTreeNodeData) => (
-    <div
+  const renderLabel = (label: ReactNode, item: TreeNodeData) => {
+
+
+    return <div
       style={{ display: "flex", height: "24px" }}
       draggable
-      ///@ts-ignore
-      //onDragStart={(dragEvent) => onDragStart(item!, dragEvent)}
+    ///@ts-ignore
+    //onDragStart={(dragEvent) => onDragStart(item!, dragEvent)}
     >
       <Typography.Text
         ellipsis={{ showTooltip: true }}
@@ -228,22 +209,23 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
           item.type == 'leaf' && <IconEyeOpened  onClick={()=>onShowPreview(item)}/>
         } */}
 
-        {renderBtn(item.entity)}
+        {renderBtn(item)}
       </div>
     </div>
-  );
+  }
+    ;
 
   function onSelect(
     selectedKey: string,
     selected: boolean,
     selectedNode: TreeNodeData
   ) {
-    const node = selectedNode as WorkFlowTreeNodeData;
-    const entity = node.entity;
-    if (entity.type == "branch") {
-      return;
-    }
-    props.onShowFlow(entity);
+    //const node = selectedNode as WorkFlowTreeNodeData;
+    // const entity = node.entity;
+    // if (entity.type == "branch") {
+    //   return;
+    // }
+    props.onShowFlow(selectedNode);
   }
   return (
     <div className="tree-workflow">
@@ -265,7 +247,7 @@ const WorkFlow = forwardRef<WorkFlowComponentHandle, WorkFlowProps>((props, ref)
         ///@ts-ignore
         renderLabel={renderLabel}
         className="tree-node"
-        //draggable
+      //draggable
       />
       <SideSheet
         width={"30%"}

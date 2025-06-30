@@ -1,96 +1,107 @@
 import { useEffect, useState } from "react";
 import { apiGetWorkFlowBranch, apiGetWorkFlowTree } from "./api";
-import { IWorkFlowTreeNodeEntity, WorkFlowTreeNodeData } from "./entity";
+import { IBusinessNode, IWorkFlowTreeNodeEntity, WorkFlowTreeNodeData } from "./entity";
+import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 
 export function useGetWorkflowTree(): {
-  flatData: IWorkFlowTreeNodeEntity[];
-  setFlatData: React.Dispatch<React.SetStateAction<IWorkFlowTreeNodeEntity[]>>;
+ // flatData: IBusinessNode[];
+  //setFlatData: React.Dispatch<React.SetStateAction<IBusinessNode[]>>;
 
-  treeData: WorkFlowTreeNodeData[];
-  setTreeData: React.Dispatch<React.SetStateAction<WorkFlowTreeNodeData[]>>;
+  treeData: TreeNodeData[];
+  setTreeData: React.Dispatch<React.SetStateAction<TreeNodeData[]>>;
   getWorkFlowTree: () => Promise<void>;
 } {
-  const [flatData, setFlatData] = useState<IWorkFlowTreeNodeEntity[]>([]);
-  const [treeData, setTreeData] = useState<WorkFlowTreeNodeData[]>([]);
+ // const [flatData, setFlatData] = useState<IBusinessNode[]>([]);
+  const [treeData, setTreeData] = useState<TreeNodeData[]>([]);
 
-  function buildTreeFromArray(
-    data: IWorkFlowTreeNodeEntity[],
-    parentId: string = ""
-  ): WorkFlowTreeNodeData[] {
-    return data
-      .filter((item) => {
-        if (item.parentId == parentId) {
-          return true;
-        }
-        return false;
-      })
-      .map((item) => {
-        const children = buildTreeFromArray(data, item.id);
+  // function buildTreeFromArray(
+  //   data: IWorkFlowTreeNodeEntity[],
+  //   parentId: string = ""
+  // ): WorkFlowTreeNodeData[] {
+  //   return data
+  //     .filter((item) => {
+  //       if (item.parentId == parentId) {
+  //         return true;
+  //       }
+  //       return false;
+  //     })
+  //     .map((item) => {
+  //       const children = buildTreeFromArray(data, item.id);
 
-        return {
-          key: item.id,
-          label: item.name,
+  //       return {
+  //         key: item.id,
+  //         label: item.name,
 
-          entity: item,
-          children: children.length > 0 ? children : undefined,
-        };
-      });
-  }
+  //         entity: item,
+  //         children: children.length > 0 ? children : undefined,
+  //       };
+  //     });
+  // }
 
   async function getWorkFlowTree() {
     const res = await apiGetWorkFlowTree();
-    setFlatData(res.result);
+    const treeData = res.result.map(item=>{
+      return {
+        key: item.name_, 
+        label: item.name_, 
+        children: undefined
+      }
+    })
+
+    //setFlatData(res.result);
+
+    setTreeData(treeData)
+
+
   }
 
   useEffect(() => {
-    apiGetWorkFlowTree().then((res) => {
-      setFlatData(res.result);
-    });
+    getWorkFlowTree()
   }, []);
 
-  useEffect(() => {
-    const tree = buildTreeFromArray(flatData);
-    setTreeData(tree);
-  }, [flatData]);
+  // useEffect(() => {
+  //   const tree = buildTreeFromArray(flatData);
+  //   setTreeData(tree);
+  // }, [flatData]);
 
-  return { flatData, setFlatData, treeData, setTreeData, getWorkFlowTree };
+  return { treeData, setTreeData,  getWorkFlowTree };
 }
 
-export function useGetWorkflowBranch(): {
-  treeData: WorkFlowTreeNodeData[];
-} {
-  const [treeData, setTreeData] = useState<WorkFlowTreeNodeData[]>([]);
+// export function useGetWorkflowBranch(): {
+//   treeData: WorkFlowTreeNodeData[];
+// } {
+//   const [treeData, setTreeData] = useState<WorkFlowTreeNodeData[]>([]);
 
-  function buildTreeFromArray(
-    data: IWorkFlowTreeNodeEntity[],
-    parentId: string = ""
-  ): WorkFlowTreeNodeData[] {
-    return data
-      .filter((item) => {
-        if (item.parentId == parentId) {
-          return true;
-        }
-        return false;
-      })
-      .map((item) => {
-        const children = buildTreeFromArray(data, item.id);
+//   function buildTreeFromArray(
+//     data: IBusinessNode[],
+//     parentId: string = ""
+//   ): WorkFlowTreeNodeData[] {
+//     return data
+//       .filter((item) => {
+//         if (item.parentId == parentId) {
+//           return true;
+//         }
+//         return false;
+//       })
+//       .map((item) => {
+//         const children = buildTreeFromArray(data, item.id);
 
-        return {
-          key: item.id,
-          label: item.name,
+//         return {
+//           key: item.id,
+//           label: item.name,
 
-          entity: item,
-          children: children.length > 0 ? children : undefined,
-        };
-      });
-  }
+//           entity: item,
+//           children: children.length > 0 ? children : undefined,
+//         };
+//       });
+//   }
 
-  useEffect(() => {
-    apiGetWorkFlowBranch().then((res) => {
-      const tree = buildTreeFromArray(res.result);
-      setTreeData(tree);
-    });
-  }, []);
+//   useEffect(() => {
+//     apiGetWorkFlowBranch().then((res) => {
+//       const tree = buildTreeFromArray(res.result);
+//       setTreeData(tree);
+//     });
+//   }, []);
 
-  return { treeData };
-}
+//   return { treeData };
+// }
