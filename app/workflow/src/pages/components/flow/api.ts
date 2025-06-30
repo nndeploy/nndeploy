@@ -12,7 +12,7 @@ export async function apiGetNodeById  (key_: string) {
 }
 
 export async function apiGetWorkFlow(flowName: string){
- var response = await request.get<IBusinessNode>(`/api/workflow/get/${flowName}`, {});
+ var response = await request.get<IBusinessNode>(`/api/workflow/${flowName}`, {});
 
   return response;
 }

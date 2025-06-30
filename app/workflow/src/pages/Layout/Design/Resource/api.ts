@@ -1,9 +1,9 @@
 import { TreeNodeData } from "@douyinfe/semi-ui/lib/es/tree";
 import request from "../../../../request";
-import { IResourceBranchEntity, IResourceEntity, IResourceTreeNodeEntity } from "./entity";
+import { IResourceBranchEntity, IResourceEntity, IResourceTreeNodeEntity, IServerResourceFileEntity, IServerResourceResonseData } from "./entity";
 
 export async function apiGetResourceTree(){
- var response = await request.get<IResourceTreeNodeEntity[]>('/resource/tree', {});
+ var response = await request.get<IServerResourceResonseData>('/api/files', {});
 
   return response;
 }
@@ -22,8 +22,8 @@ export async function apiResourceBranchSave(entity: IResourceBranchEntity){
 }
 
 
-export async function apiResourceSave(entity: IResourceEntity){
- var response = await request.post<IResourceEntity>('/resource/save', entity);
+export async function apiResourceSave(url:string, formData: FormData){
+ var response = await request.upload<IServerResourceFileEntity>(url, formData);
 
   return response;
 }
@@ -34,8 +34,8 @@ export async function apiResourceUpload(formData: FormData|any){
   return response;
 }
 
-export async function apiResourceDelete(id: string){
- var response = await request.post<any>('/resource/delete', {id});
+export async function apiResourceDelete(url: string){
+ var response = await request.post<any>(url, {});
 
   return response;
 }

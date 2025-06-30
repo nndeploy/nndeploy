@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiGetResourceTree } from "./api";
-import { IResourceTreeNodeEntity, ResourceTreeNodeData } from "./entity";
+import { IResourceTreeNodeEntity, IServerResourceFileEntity, IServerResourceResonseData, ResourceTreeNodeData } from "./entity";
 
 export function useGetTree(): {
   flatData: IResourceTreeNodeEntity[];
@@ -37,9 +37,34 @@ export function useGetTree(): {
       });
   }
 
+  function transforServerDataToFlatData(serverResourceResonseData: IServerResourceResonseData) {
+
+    let flatItems: IResourceTreeNodeEntity[] = [
+      { id: 'images', "name": 'images', parentId: "", type: 'branch' },
+      { id: 'videos', "name": 'videos', parentId: "", type: 'branch' },
+      { id: 'models', "name": 'models', parentId: "", type: 'branch' }
+    ]
+    for (let fileType in serverResourceResonseData) {
+
+      const files: IServerResourceFileEntity[] = serverResourceResonseData[fileType]
+      for (let i = 0; i < files.length; i++) {
+        let file = files[i]
+        const flatItem: IResourceTreeNodeEntity = { 
+          id: file.filename, name: file.filename, parentId: fileType, type: 'leaf', 
+          entity: file
+        
+        }
+        flatItems = [...flatItems, flatItem]
+      }
+    }
+    return flatItems
+  }
+
   useEffect(() => {
     apiGetResourceTree().then((res) => {
-      setFlatData(res.result);
+
+      let flatData = transforServerDataToFlatData(res.result)
+      setFlatData(flatData);
     });
   }, []);
 

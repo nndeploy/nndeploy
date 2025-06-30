@@ -23,6 +23,7 @@ import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/ent
 import { useGetNodeList, useGetRegistry } from "./effect";
 import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
 import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
+import { IconLoading } from "@douyinfe/semi-icons";
 
 let nameId = 0; 
 
@@ -256,7 +257,7 @@ const Flow: React.FC<FlowProps> = (props) => {
   return (
     <div className="doc-free-feature-overview" ref={dropzone}>
       {loading ? (
-        <></>
+        <IconLoading />
       ) : (
         <FreeLayoutEditorProvider
           {...editorProps}
