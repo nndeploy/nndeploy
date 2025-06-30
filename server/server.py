@@ -11,6 +11,7 @@ import json
 import asyncio
 import uuid
 import logging
+from utils import extract_encode_output_path
 import nndeploy.dag
 from nndeploy import get_type_enum_json
 from task_queue import TaskQueue
@@ -26,7 +27,8 @@ from schemas import (
     WorkFlowListResponse,
     WorkFlowLoadResponse,
     WorkFlowDeleteResponse,
-    ParamTypeResponse
+    ParamTypeResponse,
+    WsPreviewPayload
 )
 import files
 from files import router as files_router
@@ -203,7 +205,60 @@ class NnDeployServer:
         )
         async def history(max_items: Optional[int] = None):
             return self.queue.get_history(max_items)
-        
+
+        # index
+        @self.app.get("/", tags=["Web"])
+        async def root():
+            return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
+
+        # test
+        # @api.get("/test", tags=["Web"])
+        # async def test():
+        #     # 直接在当前 Loop 创建广播任务即可
+        #     asyncio.create_task(self.broadcast_preview("videos/person.mp4"))
+        #     return HTMLResponse("<h2>nndeploy backend: API OK!!</h2>")
+ 
+        # @api.get("/debug")
+        # async def debug():
+        #     return {
+        #         "sockets": len(self.sockets),
+        #         "tasks_in_loop": len(asyncio.all_tasks())
+        #     }
+
+        # preview
+        @api.get("/preview/{file_path:path}", tags=["Files"],
+                summary="preview images/videos")
+        async def preview_file(file_path: str):
+            f = Path(self.args.resources) / file_path
+            if not f.exists():
+                raise HTTPException(status_code=404, detail="Not found")
+
+            MIME_MAP: dict[str, str] = {
+                # ---- image ----
+                ".jpg":  "image/jpeg",
+                ".jpeg": "image/jpeg",
+                ".png":  "image/png",
+                ".webp": "image/webp",
+                ".gif":  "image/gif",
+                ".svg":  "image/svg+xml",
+
+                # ---- video ----
+                ".mp4": "video/mp4",
+                ".mov": "video/quicktime",
+                ".avi": "video/x-msvideo",
+                ".mkv": "video/x-matroska",
+                ".webm": "video/webm",
+            }
+
+            mime = MIME_MAP.get(f.suffix.lower())
+            if mime is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Unsupported preview type"
+                )
+
+            return FileResponse(f, media_type=mime)
+
         # websocket
         @api.websocket("/ws/progress")
         async def ws_progress(ws: WebSocket):
@@ -215,27 +270,6 @@ class NnDeployServer:
             except WebSocketDisconnect:
                 self.sockets.discard(ws)
 
-        # heartbeat
-        @self.app.get("/", tags=["Web"])
-        async def root():
-            return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
-
-        # preview
-        @api.get("/preview/{file_path:path}", tags=["Files"],
-                summary="preview images/videos")
-        async def preview_file(file_path: str):
-            f = Path(self.args.resources) / file_path
-            if not f.exists():
-                raise HTTPException(status_code=404, detail="Not found")
-
-            suffix = f.suffix.lower()
-            if suffix in {".jpg", ".jpeg", ".png", ".webp"}:
-                return FileResponse(f, media_type=f"image/{suffix.lstrip('.')}")
-            elif suffix in {".mp4", ".mov", ".avi", ".mkv"}:
-                return FileResponse(f, media_type="video/mp4")
-            else:
-                raise HTTPException(status_code=400, detail="Unsupported preview type")
-
         self.app.include_router(
             files_router,
             dependencies=[Depends(self._get_workdir)]
@@ -243,20 +277,50 @@ class NnDeployServer:
         self.app.dependency_overrides[files.get_workdir] = self._get_workdir
 
         self.app.include_router(api)
-    
-    # queue progress notification
-    def queue_updated(self):
-        payload = {"pending": len(self.queue.get_current_queue()[1])}
-        self.send_sync("queue_update", payload)
 
-    def send_sync(self, event:str, data:dict, ws: WebSocket | None = None):
-        self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(event, data, ws))
-    
-    async def _broadcast(self, event, data, ws):
-        msg = ProgressPayload(type=event, data=data).model_dump()
+    # task done notify
+    def notify_task_done(self, task_id:str):
+        task_info = self.queue.get_task_by_id(task_id)
+        if task_info is None:
+            raise HTTPException(status_code=404, detail="task not found")
+        path = extract_encode_output_path(task_info)
+        payload = {"type": "result", "task_id": task_id, "path": path}
+        self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(payload))
+
+    async def _broadcast(self, payload: dict, ws: WebSocket | None = None):
         targets = [ws] if ws else list(self.sockets)
         for w in targets:
             try:
-                await w.send_json(msg)
+                await w.send_json(payload)
             except Exception:
                 self.sockets.discard(w)
+
+    # queue progress notification
+    # def queue_updated(self):
+    #     payload = {"pending": len(self.queue.get_current_queue()[1])}
+    #     self.send_sync("queue_update", payload)
+
+    # def send_sync(self, event:str, data:dict, ws: WebSocket | None = None):
+    #     self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(event, data, ws))
+
+    # async def _broadcast(self, event, data, ws):
+    #     msg = ProgressPayload(type=event, data=data).model_dump()
+    #     targets = [ws] if ws else list(self.sockets)
+    #     for w in targets:
+    #         try:
+    #             await w.send_json(msg)
+    #         except Exception:
+    #             self.sockets.discard(w)
+
+    # async def broadcast_preview(self, path: str):
+    #     payload = {"type": "preview", "result": path}
+    #     print(f"broadcasting: {payload!r}")
+    #     dead = []
+    #     for ws in self.sockets.copy():
+    #         try:
+    #             await ws.send_json(payload)
+    #         except Exception as e:
+    #             print("send failed:", e)
+    #             dead.append(ws)
+    #     for ws in dead:
+    #         self.sockets.discard(ws)

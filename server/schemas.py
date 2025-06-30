@@ -77,4 +77,8 @@ class ParamTypeResponse(BaseModel):
     message: str
     result: Dict[str, Any]
 
+class WsPreviewPayload(BaseModel):
+    type: str
+    result: str
+
 UploadResponse.model_rebuild()
