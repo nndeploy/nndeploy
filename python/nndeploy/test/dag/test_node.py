@@ -28,12 +28,12 @@ class CustomNode(nndeploy.dag.Node):
     def init(self):
         print("CustomNode init")
         # return super().init()
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
 
     def deinit(self):
         print("CustomNode deinit") 
         # return super().deinit()
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
     
     def serialize(self) -> str:
         json_str = super().serialize()
@@ -58,7 +58,7 @@ class CustomNode(nndeploy.dag.Node):
             print("output_edge is not nndeploy.dag.Edge")
         output_edge.set(add_result)
         print("CustomNode run end")
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
 
 
 class CustomNodeCreator(nndeploy.dag.NodeCreator):

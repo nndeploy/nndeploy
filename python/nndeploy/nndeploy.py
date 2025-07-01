@@ -3,11 +3,14 @@ import nndeploy._nndeploy_internal as _C
 from nndeploy.base import all_type_enum
 import json
 
+
 def get_version():
     return _C.get_version()
 
+
 def framework_init():
     return _C.nndeployFrameworkInit()
+
 
 def framework_deinit():
     return _C.nndeployFrameworkDeinit()

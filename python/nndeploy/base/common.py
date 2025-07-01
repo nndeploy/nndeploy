@@ -231,7 +231,7 @@ class DataType(_C.base.DataType):
 
 
 # {
-#     "DataTypeCode": [
+#     "kDataTypeCodeUint8": [
 #         "kDataTypeCodeUint8",
 #         "kDataTypeCodeUint16",
 #         "kDataTypeCodeUint32",
@@ -247,26 +247,44 @@ class DataType(_C.base.DataType):
 #         "kDataTypeCodeOpaqueHandle",
 #         "kDataTypeCodeNotSupport"
 #     ]
+#     "kDataTypeCodeUint16": [
+#         "kDataTypeCodeUint8",
+#         "kDataTypeCodeUint16",
+#         "kDataTypeCodeUint32",
+#         "kDataTypeCodeUint64",
+#         "kDataTypeCodeInt8",
+#         "kDataTypeCodeInt16",
+#         "kDataTypeCodeInt32",
+#         "kDataTypeCodeInt64",
+#         "kDataTypeCodeFp16",
+#         "kDataTypeCodeFp32",
+#         "kDataTypeCodeFp64",
+#         "kDataTypeCodeBFp16",
+#         "kDataTypeCodeOpaqueHandle",
+#         "kDataTypeCodeNotSupport"
+#     ]
+#     ...
 # }
 def get_data_type_enum_json():
-    data_type_enum = {
-        "DataTypeCode": [
-            "kDataTypeCodeUint8",
-            "kDataTypeCodeUint16", 
-            "kDataTypeCodeUint32",
-            "kDataTypeCodeUint64",
-            "kDataTypeCodeInt8",
-            "kDataTypeCodeInt16", 
-            "kDataTypeCodeInt32",
-            "kDataTypeCodeInt64",
-            "kDataTypeCodeFp16",
-            "kDataTypeCodeFp32",
-            "kDataTypeCodeFp64",
-            "kDataTypeCodeBFp16",
-            "kDataTypeCodeOpaqueHandle",
-            "kDataTypeCodeNotSupport"
-        ]
-    }
+    enum_list = [
+        "kDataTypeCodeUint8",
+        "kDataTypeCodeUint16", 
+        "kDataTypeCodeUint32",
+        "kDataTypeCodeUint64",
+        "kDataTypeCodeInt8",
+        "kDataTypeCodeInt16", 
+        "kDataTypeCodeInt32",
+        "kDataTypeCodeInt64",
+        "kDataTypeCodeFp16",
+        "kDataTypeCodeFp32",
+        "kDataTypeCodeFp64",
+        "kDataTypeCodeBFp16",
+        "kDataTypeCodeOpaqueHandle",
+        "kDataTypeCodeNotSupport"
+    ]
+    data_type_enum = {}
+    for single_enum in enum_list:
+        data_type_enum[f"{single_enum}"] = enum_list
     return data_type_enum
 
 
@@ -435,12 +453,13 @@ class DataFormat(_C.base.DataFormat):
 
 
 def get_data_format_enum_json():
-    data_format_enum = {
-        "DataFormat": []
-    }
+    enum_list = []
     for data_format_name, data_format_code in name_to_data_format.items():
         data_format_str = _C.base.data_format_to_string(data_format_code)
-        data_format_enum["DataFormat"].append(data_format_str)
+        enum_list.append(data_format_str)
+    data_format_enum = {}
+    for single_enum in enum_list:
+        data_format_enum[f"{single_enum}"] = enum_list
     return data_format_enum
 
 
@@ -460,12 +479,13 @@ precision_type_to_name = {v: k for k, v in name_to_precision_type.items()}
 
 
 def get_precision_type_enum_json():
-    precision_type_enum = {
-        "PrecisionType": []
-    }
+    enum_list = []
     for precision_type_name, precision_type_code in name_to_precision_type.items():
         precision_type_str = _C.base.precision_type_to_string(precision_type_code)
-        precision_type_enum["PrecisionType"].append(precision_type_str)
+        enum_list.append(precision_type_str)
+    precision_type_enum = {}
+    for single_enum in enum_list:
+        precision_type_enum[f"{single_enum}"] = enum_list
     return precision_type_enum
 
 
@@ -498,12 +518,13 @@ power_type_to_name = {v: k for k, v in name_to_power_type.items()}
 
 
 def get_power_type_enum_json():
-    power_type_enum = {
-        "PowerType": []
-    }
+    enum_list = []
     for power_type_name, power_type_code in name_to_power_type.items():
         power_type_str = _C.base.power_type_to_string(power_type_code)
-        power_type_enum["PowerType"].append(power_type_str)
+        enum_list.append(power_type_str)
+    power_type_enum = {}
+    for single_enum in enum_list:
+        power_type_enum[f"{single_enum}"] = enum_list
     return power_type_enum
 
 
@@ -534,12 +555,13 @@ share_memory_type_to_name = {v: k for k, v in name_to_share_memory_type.items()}
 
 
 def get_share_memory_type_enum_json():
-    share_memory_type_enum = {
-        "ShareMemoryType": []
-    }
+    enum_list = []
     for share_memory_type_name, share_memory_type_code in name_to_share_memory_type.items():
         share_memory_type_str = _C.base.share_memory_type_to_string(share_memory_type_code)
-        share_memory_type_enum["ShareMemoryType"].append(share_memory_type_str)
+        enum_list.append(share_memory_type_str)
+    share_memory_type_enum = {}
+    for single_enum in enum_list:
+        share_memory_type_enum[f"{single_enum}"] = enum_list
     return share_memory_type_enum
 
 
@@ -570,12 +592,13 @@ memory_type_to_name = {v: k for k, v in name_to_memory_type.items()}
 
 
 def get_memory_type_enum_json():
-    memory_type_enum = {
-        "MemoryType": []
-    }
+    enum_list = []
     for memory_type_name, memory_type_code in name_to_memory_type.items():
         memory_type_str = _C.base.memory_type_to_string(memory_type_code)
-        memory_type_enum["MemoryType"].append(memory_type_str)
+        enum_list.append(memory_type_str)
+    memory_type_enum = {}
+    for single_enum in enum_list:
+        memory_type_enum[f"{single_enum}"] = enum_list
     return memory_type_enum
 
 
@@ -606,12 +629,13 @@ memory_pool_type_to_name = {v: k for k, v in name_to_memory_pool_type.items()}
 
 
 def get_memory_pool_type_enum_json():
-    memory_pool_type_enum = {
-        "MemoryPoolType": []
-    }
+    enum_list = []
     for memory_pool_type_name, memory_pool_type_code in name_to_memory_pool_type.items():
         memory_pool_type_str = _C.base.memory_pool_type_to_string(memory_pool_type_code)
-        memory_pool_type_enum["MemoryPoolType"].append(memory_pool_type_str)
+        enum_list.append(memory_pool_type_str)
+    memory_pool_type_enum = {}
+    for single_enum in enum_list:
+        memory_pool_type_enum[f"{single_enum}"] = enum_list
     return memory_pool_type_enum
 
 
@@ -640,12 +664,13 @@ tensor_type_to_name = {v: k for k, v in name_to_tensor_type.items()}
 
 
 def get_tensor_type_enum_json():
-    tensor_type_enum = {
-        "TensorType": []
-    }
+    enum_list = []
     for tensor_type_name, tensor_type_code in name_to_tensor_type.items():
         tensor_type_str = _C.base.tensor_type_to_string(tensor_type_code)
-        tensor_type_enum["TensorType"].append(tensor_type_str)
+        enum_list.append(tensor_type_str)
+    tensor_type_enum = {}
+    for single_enum in enum_list:
+        tensor_type_enum[f"{single_enum}"] = enum_list
     return tensor_type_enum
 
 
@@ -678,12 +703,13 @@ forward_op_type_to_name = {v: k for k, v in name_to_forward_op_type.items()}
 
 
 def get_forward_op_type_enum_json():
-    forward_op_type_enum = {
-        "ForwardOpType": []
-    }
+    enum_list = []
     for forward_op_type_name, forward_op_type_code in name_to_forward_op_type.items():
         forward_op_type_str = _C.base.forward_op_type_to_string(forward_op_type_code)
-        forward_op_type_enum["ForwardOpType"].append(forward_op_type_str)
+        enum_list.append(forward_op_type_str)
+    forward_op_type_enum = {}
+    for single_enum in enum_list:
+        forward_op_type_enum[f"{single_enum}"] = enum_list
     return forward_op_type_enum
 
 
@@ -717,12 +743,13 @@ inference_opt_level_to_name = {v: k for k, v in name_to_inference_opt_level.item
 
 
 def get_inference_opt_level_enum_json():
-    inference_opt_level_enum = {
-        "InferenceOptLevel": []
-    }
+    enum_list = []
     for inference_opt_level_name, inference_opt_level_code in name_to_inference_opt_level.items():
         inference_opt_level_str = _C.base.inference_opt_level_to_string(inference_opt_level_code)
-        inference_opt_level_enum["InferenceOptLevel"].append(inference_opt_level_str)
+        enum_list.append(inference_opt_level_str)
+    inference_opt_level_enum = {}
+    for single_enum in enum_list:
+        inference_opt_level_enum[f"{single_enum}"] = enum_list
     return inference_opt_level_enum
 
 
@@ -773,12 +800,13 @@ model_type_to_name = {v: k for k, v in name_to_model_type.items()}
 
 
 def get_model_type_enum_json():
-    model_type_enum = {
-        "ModelType": []
-    }
+    enum_list = []
     for model_type_name, model_type_code in name_to_model_type.items():
         model_type_str = _C.base.model_type_to_string(model_type_code)
-        model_type_enum["ModelType"].append(model_type_str)
+        enum_list.append(model_type_str)
+    model_type_enum = {}
+    for single_enum in enum_list:
+        model_type_enum[f"{single_enum}"] = enum_list
     return model_type_enum
 
 
@@ -856,12 +884,13 @@ inference_type_to_name = {v: k for k, v in name_to_inference_type.items()}
 
 
 def get_inference_type_enum_json():
-    inference_type_enum = {
-        "InferenceType": []
-    }
+    enum_list = []
     for inference_type_name, inference_type_code in name_to_inference_type.items():
         inference_type_str = _C.base.inference_type_to_string(inference_type_code)
-        inference_type_enum["InferenceType"].append(inference_type_str)
+        enum_list.append(inference_type_str)
+    inference_type_enum = {}
+    for single_enum in enum_list:
+        inference_type_enum[f"{single_enum}"] = enum_list
     return inference_type_enum
 
 
@@ -917,12 +946,13 @@ encrypt_type_to_name = {v: k for k, v in name_to_encrypt_type.items()}
 
 
 def get_encrypt_type_enum_json():
-    encrypt_type_enum = {
-        "EncryptType": []
-    }
+    enum_list = []
     for encrypt_type_name, encrypt_type_code in name_to_encrypt_type.items():
         encrypt_type_str = _C.base.encrypt_type_to_string(encrypt_type_code)
-        encrypt_type_enum["EncryptType"].append(encrypt_type_str)
+        enum_list.append(encrypt_type_str)
+    encrypt_type_enum = {}
+    for single_enum in enum_list:
+        encrypt_type_enum[f"{single_enum}"] = enum_list
     return encrypt_type_enum
 
 
@@ -952,12 +982,13 @@ codec_type_to_name = {v: k for k, v in name_to_codec_type.items()}
 
 
 def get_codec_type_enum_json():
-    codec_type_enum = {
-        "CodecType": []
-    }
+    enum_list = []
     for codec_type_name, codec_type_code in name_to_codec_type.items():
         codec_type_str = _C.base.codec_type_to_string(codec_type_code)
-        codec_type_enum["CodecType"].append(codec_type_str)
+        enum_list.append(codec_type_str)
+    codec_type_enum = {}
+    for single_enum in enum_list:
+        codec_type_enum[f"{single_enum}"] = enum_list
     return codec_type_enum
 
 
@@ -990,12 +1021,13 @@ codec_flag_to_name = {v: k for k, v in name_to_codec_flag.items()}
 
 
 def get_codec_flag_enum_json():
-    codec_flag_enum = {
-        "CodecFlag": []
-    }
+    enum_list = []
     for codec_flag_name, codec_flag_code in name_to_codec_flag.items():
         codec_flag_str = _C.base.codec_flag_to_string(codec_flag_code)
-        codec_flag_enum["CodecFlag"].append(codec_flag_str)
+        enum_list.append(codec_flag_str)
+    codec_flag_enum = {}
+    for single_enum in enum_list:
+        codec_flag_enum[f"{single_enum}"] = enum_list
     return codec_flag_enum
 
 
@@ -1027,12 +1059,13 @@ parallel_type_to_name = {v: k for k, v in name_to_parallel_type.items()}
 
 
 def get_parallel_type_enum_json():
-    parallel_type_enum = {
-        "ParallelType": []
-    }
+    enum_list = []
     for parallel_type_name, parallel_type_code in name_to_parallel_type.items():
         parallel_type_str = _C.base.parallel_type_to_string(parallel_type_code)
-        parallel_type_enum["ParallelType"].append(parallel_type_str)
+        enum_list.append(parallel_type_str)
+    parallel_type_enum = {}
+    for single_enum in enum_list:
+        parallel_type_enum[f"{single_enum}"] = enum_list
     return parallel_type_enum
 
 
@@ -1062,12 +1095,13 @@ edge_type_to_name = {v: k for k, v in name_to_edge_type.items()}
 
 
 def get_edge_type_enum_json():
-    edge_type_enum = {
-        "EdgeType": []
-    }
+    enum_list = []
     for edge_type_name, edge_type_code in name_to_edge_type.items():
         edge_type_str = _C.base.edge_type_to_string(edge_type_code)
-        edge_type_enum["EdgeType"].append(edge_type_str)
+        enum_list.append(edge_type_str)
+    edge_type_enum = {}
+    for single_enum in enum_list:
+        edge_type_enum[f"{single_enum}"] = enum_list
     return edge_type_enum
 
 
@@ -1096,12 +1130,13 @@ edge_update_flag_to_name = {v: k for k, v in name_to_edge_update_flag.items()}
 
 
 def get_edge_update_flag_enum_json():
-    edge_update_flag_enum = {
-        "EdgeUpdateFlag": []
-    }
+    enum_list = []
     for edge_update_flag_name, edge_update_flag_code in name_to_edge_update_flag.items():
         edge_update_flag_str = _C.base.edge_update_flag_to_string(edge_update_flag_code)
-        edge_update_flag_enum["EdgeUpdateFlag"].append(edge_update_flag_str)
+        enum_list.append(edge_update_flag_str)
+    edge_update_flag_enum = {}
+    for single_enum in enum_list:
+        edge_update_flag_enum[f"{single_enum}"] = enum_list
     return edge_update_flag_enum
 
 
@@ -1131,12 +1166,13 @@ node_color_type_to_name = {v: k for k, v in name_to_node_color_type.items()}
 
 
 def get_node_color_type_enum_json():
-    node_color_type_enum = {
-        "NodeColorType": []
-    }
+    enum_list = []
     for node_color_type_name, node_color_type_code in name_to_node_color_type.items():
         node_color_type_str = _C.base.node_color_type_to_string(node_color_type_code)
-        node_color_type_enum["NodeColorType"].append(node_color_type_str)
+        enum_list.append(node_color_type_str)
+    node_color_type_enum = {}
+    for single_enum in enum_list:
+        node_color_type_enum[f"{single_enum}"] = enum_list
     return node_color_type_enum
 
 
@@ -1165,12 +1201,13 @@ topo_sort_type_to_name = {v: k for k, v in name_to_topo_sort_type.items()}
 
 
 def get_topo_sort_type_enum_json():
-    topo_sort_type_enum = {
-        "TopoSortType": []
-    }
+    enum_list = []
     for topo_sort_type_name, topo_sort_type_code in name_to_topo_sort_type.items():
         topo_sort_type_str = _C.base.topo_sort_type_to_string(topo_sort_type_code)
-        topo_sort_type_enum["TopoSortType"].append(topo_sort_type_str)
+        enum_list.append(topo_sort_type_str)
+    topo_sort_type_enum = {}
+    for single_enum in enum_list:
+        topo_sort_type_enum[f"{single_enum}"] = enum_list
     return topo_sort_type_enum
 
 
@@ -1360,6 +1397,242 @@ class Status(_C.base.Status):
     @staticmethod
     def error():
         return Status(StatusCode.ErrorUnknown)
+        
+    @staticmethod
+    def error_out_of_memory():
+        return Status(StatusCode.ErrorOutOfMemory)
+        
+    @staticmethod
+    def error_not_support():
+        return Status(StatusCode.ErrorNotSupport)
+        
+    @staticmethod
+    def error_not_implement():
+        return Status(StatusCode.ErrorNotImplement)
+        
+    @staticmethod
+    def error_invalid_value():
+        return Status(StatusCode.ErrorInvalidValue)
+        
+    @staticmethod
+    def error_invalid_param():
+        return Status(StatusCode.ErrorInvalidParam)
+        
+    @staticmethod
+    def error_null_param():
+        return Status(StatusCode.ErrorNullParam)
+        
+    @staticmethod
+    def error_thread_pool():
+        return Status(StatusCode.ErrorThreadPool)
+        
+    @staticmethod
+    def error_io():
+        return Status(StatusCode.ErrorIO)
+        
+    @staticmethod
+    def error_device_cpu():
+        return Status(StatusCode.ErrorDeviceCpu)
+        
+    @staticmethod
+    def error_device_arm():
+        return Status(StatusCode.ErrorDeviceArm)
+        
+    @staticmethod
+    def error_device_x86():
+        return Status(StatusCode.ErrorDeviceX86)
+        
+    @staticmethod
+    def error_device_riscv():
+        return Status(StatusCode.ErrorDeviceRiscV)
+        
+    @staticmethod
+    def error_device_cuda():
+        return Status(StatusCode.ErrorDeviceCuda)
+        
+    @staticmethod
+    def error_device_rocm():
+        return Status(StatusCode.ErrorDeviceRocm)
+        
+    @staticmethod
+    def error_device_sycl():
+        return Status(StatusCode.ErrorDeviceSyCL)
+        
+    @staticmethod
+    def error_device_opencl():
+        return Status(StatusCode.ErrorDeviceOpenCL)
+        
+    @staticmethod
+    def error_device_opengl():
+        return Status(StatusCode.ErrorDeviceOpenGL)
+        
+    @staticmethod
+    def error_device_metal():
+        return Status(StatusCode.ErrorDeviceMetal)
+        
+    @staticmethod
+    def error_device_vulkan():
+        return Status(StatusCode.ErrorDeviceVulkan)
+        
+    @staticmethod
+    def error_device_hexagon():
+        return Status(StatusCode.ErrorDeviceHexagon)
+        
+    @staticmethod
+    def error_device_mtk_vpu():
+        return Status(StatusCode.ErrorDeviceMtkVpu)
+        
+    @staticmethod
+    def error_device_ascend_cl():
+        return Status(StatusCode.ErrorDeviceAscendCL)
+        
+    @staticmethod
+    def error_device_apple_npu():
+        return Status(StatusCode.ErrorDeviceAppleNpu)
+        
+    @staticmethod
+    def error_device_rk_npu():
+        return Status(StatusCode.ErrorDeviceRkNpu)
+        
+    @staticmethod
+    def error_device_qualcomm_npu():
+        return Status(StatusCode.ErrorDeviceQualcommNpu)
+        
+    @staticmethod
+    def error_device_mtk_npu():
+        return Status(StatusCode.ErrorDeviceMtkNpu)
+        
+    @staticmethod
+    def error_device_sophon_npu():
+        return Status(StatusCode.ErrorDeviceSophonNpu)
+        
+    @staticmethod
+    def error_op_ascend_cl():
+        return Status(StatusCode.ErrorOpAscendCL)
+        
+    @staticmethod
+    def error_inference_default():
+        return Status(StatusCode.ErrorInferenceDefault)
+        
+    @staticmethod
+    def error_inference_openvino():
+        return Status(StatusCode.ErrorInferenceOpenVino)
+        
+    @staticmethod
+    def error_inference_tensorrt():
+        return Status(StatusCode.ErrorInferenceTensorRt)
+        
+    @staticmethod
+    def error_inference_coreml():
+        return Status(StatusCode.ErrorInferenceCoreML)
+        
+    @staticmethod
+    def error_inference_tflite():
+        return Status(StatusCode.ErrorInferenceTfLite)
+        
+    @staticmethod
+    def error_inference_onnxruntime():
+        return Status(StatusCode.ErrorInferenceOnnxRuntime)
+        
+    @staticmethod
+    def error_inference_ascend_cl():
+        return Status(StatusCode.ErrorInferenceAscendCL)
+        
+    @staticmethod
+    def error_inference_ncnn():
+        return Status(StatusCode.ErrorInferenceNcnn)
+        
+    @staticmethod
+    def error_inference_tnn():
+        return Status(StatusCode.ErrorInferenceTnn)
+        
+    @staticmethod
+    def error_inference_mnn():
+        return Status(StatusCode.ErrorInferenceMnn)
+        
+    @staticmethod
+    def error_inference_paddlelite():
+        return Status(StatusCode.ErrorInferencePaddleLite)
+        
+    @staticmethod
+    def error_inference_rknn():
+        return Status(StatusCode.ErrorInferenceRknn)
+        
+    @staticmethod
+    def error_inference_tvm():
+        return Status(StatusCode.ErrorInferenceTvm)
+        
+    @staticmethod
+    def error_inference_aitemplate():
+        return Status(StatusCode.ErrorInferenceAITemplate)
+        
+    @staticmethod
+    def error_inference_snpe():
+        return Status(StatusCode.ErrorInferenceSnpe)
+        
+    @staticmethod
+    def error_inference_qnn():
+        return Status(StatusCode.ErrorInferenceQnn)
+        
+    @staticmethod
+    def error_inference_sophon():
+        return Status(StatusCode.ErrorInferenceSophon)
+        
+    @staticmethod
+    def error_inference_torch():
+        return Status(StatusCode.ErrorInferenceTorch)
+        
+    @staticmethod
+    def error_inference_tensorflow():
+        return Status(StatusCode.ErrorInferenceTensorFlow)
+        
+    @staticmethod
+    def error_inference_neuropilot():
+        return Status(StatusCode.ErrorInferenceNeuroPilot)
+        
+    @staticmethod
+    def error_inference_vllm():
+        return Status(StatusCode.ErrorInferenceVllm)
+        
+    @staticmethod
+    def error_inference_sglang():
+        return Status(StatusCode.ErrorInferenceSGLang)
+        
+    @staticmethod
+    def error_inference_lmdeploy():
+        return Status(StatusCode.ErrorInferenceLmdeploy)
+        
+    @staticmethod
+    def error_inference_llamacpp():
+        return Status(StatusCode.ErrorInferenceLlamaCpp)
+        
+    @staticmethod
+    def error_inference_llm():
+        return Status(StatusCode.ErrorInferenceLLM)
+        
+    @staticmethod
+    def error_inference_xdit():
+        return Status(StatusCode.ErrorInferenceXDit)
+        
+    @staticmethod
+    def error_inference_onediff():
+        return Status(StatusCode.ErrorInferenceOneDiff)
+        
+    @staticmethod
+    def error_inference_diffusers():
+        return Status(StatusCode.ErrorInferenceDiffusers)
+        
+    @staticmethod
+    def error_inference_diff():
+        return Status(StatusCode.ErrorInferenceDiff)
+        
+    @staticmethod
+    def error_inference_other():
+        return Status(StatusCode.ErrorInferenceOther)
+        
+    @staticmethod
+    def error_dag():
+        return Status(StatusCode.ErrorDag)
     
 
 name_to_pixel_type = {
@@ -1374,12 +1647,13 @@ name_to_pixel_type = {
 pixel_type_to_name = {v: k for k, v in name_to_pixel_type.items()}
 
 def get_pixel_type_enum_json():
-    pixel_type_enum = {
-        "PixelType": []
-    }
+    enum_list = []
     for pixel_type_name, pixel_type_code in name_to_pixel_type.items():
         pixel_type_str = _C.base.pixel_type_to_string(pixel_type_code)
-        pixel_type_enum["PixelType"].append(pixel_type_str)
+        enum_list.append(pixel_type_str)
+    pixel_type_enum = {}
+    for single_enum in enum_list:
+        pixel_type_enum[f"{single_enum}"] = enum_list
     return pixel_type_enum
 
 
@@ -1428,12 +1702,13 @@ name_to_cvt_color_type = {
 cvt_color_type_to_name = {v: k for k, v in name_to_cvt_color_type.items()}
 
 def get_cvt_color_type_enum_json():
-    cvt_color_type_enum = {
-        "CvtColorType": []
-    }
+    enum_list = []
     for cvt_color_type_name, cvt_color_type_code in name_to_cvt_color_type.items():
         cvt_color_type_str = _C.base.cvt_color_type_to_string(cvt_color_type_code)
-        cvt_color_type_enum["CvtColorType"].append(cvt_color_type_str)
+        enum_list.append(cvt_color_type_str)
+    cvt_color_type_enum = {}
+    for single_enum in enum_list:
+        cvt_color_type_enum[f"{single_enum}"] = enum_list
     return cvt_color_type_enum
 
 
@@ -1480,12 +1755,13 @@ name_to_interp_type = {
 interp_type_to_name = {v: k for k, v in name_to_interp_type.items()}
 
 def get_interp_type_enum_json():
-    interp_type_enum = {
-        "InterpType": []
-    }
+    enum_list = []
     for interp_type_name, interp_type_code in name_to_interp_type.items():
         interp_type_str = _C.base.interp_type_to_string(interp_type_code)
-        interp_type_enum["InterpType"].append(interp_type_str)
+        enum_list.append(interp_type_str)
+    interp_type_enum = {}
+    for single_enum in enum_list:
+        interp_type_enum[f"{single_enum}"] = enum_list
     return interp_type_enum
 
 all_type_enum.append(get_interp_type_enum_json)
@@ -1515,12 +1791,13 @@ border_type_to_name = {v: k for k, v in name_to_border_type.items()}
 
 
 def get_border_type_enum_json():    
-    border_type_enum = {
-        "BorderType": []
-    }
+    enum_list = []
     for border_type_name, border_type_code in name_to_border_type.items():
         border_type_str = _C.base.border_type_to_string(border_type_code)
-        border_type_enum["BorderType"].append(border_type_str)
+        enum_list.append(border_type_str)
+    border_type_enum = {}
+    for single_enum in enum_list:
+        border_type_enum[f"{single_enum}"] = enum_list
     return border_type_enum
 
 all_type_enum.append(get_border_type_enum_json)
