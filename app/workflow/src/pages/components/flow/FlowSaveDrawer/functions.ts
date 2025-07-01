@@ -355,7 +355,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
 
     // const inputs_ = inputArray_.flat();
 
-    const inputArray_ = (node.data.inputs_ ?? []).map((input) => {
+    const inputArray_ = (node.data.inputs_ ?? []).map((input:any) => {
       const name_ = edge_map[node.id + "@" + input.id]
         return {
           ...input,
@@ -390,7 +390,7 @@ export function designDataToBusinessData(designData: FlowDocumentJSON) {
 
     // const outputs_ = outputArray_.flat();
 
-    const outputArray_ = (node.data.outputs_ ?? []).map((output) => {
+    const outputArray_ = (node.data.outputs_ ?? []).map((output:any) => {
       const name_ = edge_map[node.id + "@" + output.id]
         return {
           ...output,
@@ -473,17 +473,26 @@ export function transferBusinessContentToDesignContent(
   }
 
   function getAllInputNameMap() {
-    const inputMap: { [key: string]: { nodeId: string; portId: string } } = {};
+    const inputMap: { [key: string]: { nodeId: string; portId: string }[] } = {};
 
     businessContent.node_repository_?.map((businessNode) => {
       businessNodeIterate(businessNode, function (businessNode) {
         if (businessNode.inputs_) {
           businessNode.inputs_?.map((input) => {
             if (input.name_) {
-              inputMap[input.name_] = {
-                nodeId: businessNode.id,
-                portId: input.id,
-              };
+
+              if(inputMap[input.name_]){
+                inputMap[input.name_] = [ ...inputMap[input.name_], {
+                  nodeId: businessNode.id,
+                  portId: input.id,
+                }];
+              }else{
+                inputMap[input.name_] = [ {
+                  nodeId: businessNode.id,
+                  portId: input.id,
+                }];
+              }
+             
             }
           });
         }
@@ -594,7 +603,7 @@ export function transferBusinessContentToDesignContent(
     function uniqCollectionPoint(businessNode: IBusinessNode, type: string) {
       let collectionPoints: any[] = [];
 
-      businessNode[type].map((collectionPoint) => {
+      businessNode[type].map((collectionPoint :any) => {
         const find = collectionPoints.find((item) => {
           return item.desc_ == collectionPoint.desc_;
         });
@@ -641,9 +650,10 @@ export function transferBusinessContentToDesignContent(
 
   for (let connectionName in outputMap) {
     var outputInfo = outputMap[connectionName];
-    var sourceInfo = inputMap[connectionName];
+    var sourceInfos = inputMap[connectionName];
 
-    var connection: WorkflowEdgeJSON = {
+    sourceInfos.map(sourceInfo=>{
+       var connection: WorkflowEdgeJSON = {
       sourceNodeID: outputInfo.nodeId,
       targetNodeID: sourceInfo.nodeId,
       sourcePortID: outputInfo.portId,
@@ -651,6 +661,9 @@ export function transferBusinessContentToDesignContent(
     };
 
     edges.push(connection);
+    })
+
+   
 
     designData.edges = edges;
   }
