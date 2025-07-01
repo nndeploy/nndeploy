@@ -56,8 +56,6 @@ class FaceSwapperDemo(nndeploy.dag.Graph):
         self.gfpgan.model_path_ = model_path
         
         
-        
-        
 def test_face_swapper():    
     face_swapper_demo = FaceSwapperDemo("face_swapper_demo")
     face_swapper_demo.set_face_swapper_model_path("/home/always/github/Deep-Live-Cam/models/inswapper_128_fp16.onnx")

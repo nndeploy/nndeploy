@@ -47,7 +47,7 @@ class Edge(_C.dag.Edge):
             status = self.set_any(data)
         if status != nndeploy.base.StatusCode.Ok:
             raise ValueError("Failed to set data")
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
         
     def create_buffer(self, device: nndeploy.device.Device, desc: nndeploy.device.BufferDesc):
         return super().create(device, desc)

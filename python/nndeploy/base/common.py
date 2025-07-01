@@ -1397,6 +1397,242 @@ class Status(_C.base.Status):
     @staticmethod
     def error():
         return Status(StatusCode.ErrorUnknown)
+        
+    @staticmethod
+    def error_out_of_memory():
+        return Status(StatusCode.ErrorOutOfMemory)
+        
+    @staticmethod
+    def error_not_support():
+        return Status(StatusCode.ErrorNotSupport)
+        
+    @staticmethod
+    def error_not_implement():
+        return Status(StatusCode.ErrorNotImplement)
+        
+    @staticmethod
+    def error_invalid_value():
+        return Status(StatusCode.ErrorInvalidValue)
+        
+    @staticmethod
+    def error_invalid_param():
+        return Status(StatusCode.ErrorInvalidParam)
+        
+    @staticmethod
+    def error_null_param():
+        return Status(StatusCode.ErrorNullParam)
+        
+    @staticmethod
+    def error_thread_pool():
+        return Status(StatusCode.ErrorThreadPool)
+        
+    @staticmethod
+    def error_io():
+        return Status(StatusCode.ErrorIO)
+        
+    @staticmethod
+    def error_device_cpu():
+        return Status(StatusCode.ErrorDeviceCpu)
+        
+    @staticmethod
+    def error_device_arm():
+        return Status(StatusCode.ErrorDeviceArm)
+        
+    @staticmethod
+    def error_device_x86():
+        return Status(StatusCode.ErrorDeviceX86)
+        
+    @staticmethod
+    def error_device_riscv():
+        return Status(StatusCode.ErrorDeviceRiscV)
+        
+    @staticmethod
+    def error_device_cuda():
+        return Status(StatusCode.ErrorDeviceCuda)
+        
+    @staticmethod
+    def error_device_rocm():
+        return Status(StatusCode.ErrorDeviceRocm)
+        
+    @staticmethod
+    def error_device_sycl():
+        return Status(StatusCode.ErrorDeviceSyCL)
+        
+    @staticmethod
+    def error_device_opencl():
+        return Status(StatusCode.ErrorDeviceOpenCL)
+        
+    @staticmethod
+    def error_device_opengl():
+        return Status(StatusCode.ErrorDeviceOpenGL)
+        
+    @staticmethod
+    def error_device_metal():
+        return Status(StatusCode.ErrorDeviceMetal)
+        
+    @staticmethod
+    def error_device_vulkan():
+        return Status(StatusCode.ErrorDeviceVulkan)
+        
+    @staticmethod
+    def error_device_hexagon():
+        return Status(StatusCode.ErrorDeviceHexagon)
+        
+    @staticmethod
+    def error_device_mtk_vpu():
+        return Status(StatusCode.ErrorDeviceMtkVpu)
+        
+    @staticmethod
+    def error_device_ascend_cl():
+        return Status(StatusCode.ErrorDeviceAscendCL)
+        
+    @staticmethod
+    def error_device_apple_npu():
+        return Status(StatusCode.ErrorDeviceAppleNpu)
+        
+    @staticmethod
+    def error_device_rk_npu():
+        return Status(StatusCode.ErrorDeviceRkNpu)
+        
+    @staticmethod
+    def error_device_qualcomm_npu():
+        return Status(StatusCode.ErrorDeviceQualcommNpu)
+        
+    @staticmethod
+    def error_device_mtk_npu():
+        return Status(StatusCode.ErrorDeviceMtkNpu)
+        
+    @staticmethod
+    def error_device_sophon_npu():
+        return Status(StatusCode.ErrorDeviceSophonNpu)
+        
+    @staticmethod
+    def error_op_ascend_cl():
+        return Status(StatusCode.ErrorOpAscendCL)
+        
+    @staticmethod
+    def error_inference_default():
+        return Status(StatusCode.ErrorInferenceDefault)
+        
+    @staticmethod
+    def error_inference_openvino():
+        return Status(StatusCode.ErrorInferenceOpenVino)
+        
+    @staticmethod
+    def error_inference_tensorrt():
+        return Status(StatusCode.ErrorInferenceTensorRt)
+        
+    @staticmethod
+    def error_inference_coreml():
+        return Status(StatusCode.ErrorInferenceCoreML)
+        
+    @staticmethod
+    def error_inference_tflite():
+        return Status(StatusCode.ErrorInferenceTfLite)
+        
+    @staticmethod
+    def error_inference_onnxruntime():
+        return Status(StatusCode.ErrorInferenceOnnxRuntime)
+        
+    @staticmethod
+    def error_inference_ascend_cl():
+        return Status(StatusCode.ErrorInferenceAscendCL)
+        
+    @staticmethod
+    def error_inference_ncnn():
+        return Status(StatusCode.ErrorInferenceNcnn)
+        
+    @staticmethod
+    def error_inference_tnn():
+        return Status(StatusCode.ErrorInferenceTnn)
+        
+    @staticmethod
+    def error_inference_mnn():
+        return Status(StatusCode.ErrorInferenceMnn)
+        
+    @staticmethod
+    def error_inference_paddlelite():
+        return Status(StatusCode.ErrorInferencePaddleLite)
+        
+    @staticmethod
+    def error_inference_rknn():
+        return Status(StatusCode.ErrorInferenceRknn)
+        
+    @staticmethod
+    def error_inference_tvm():
+        return Status(StatusCode.ErrorInferenceTvm)
+        
+    @staticmethod
+    def error_inference_aitemplate():
+        return Status(StatusCode.ErrorInferenceAITemplate)
+        
+    @staticmethod
+    def error_inference_snpe():
+        return Status(StatusCode.ErrorInferenceSnpe)
+        
+    @staticmethod
+    def error_inference_qnn():
+        return Status(StatusCode.ErrorInferenceQnn)
+        
+    @staticmethod
+    def error_inference_sophon():
+        return Status(StatusCode.ErrorInferenceSophon)
+        
+    @staticmethod
+    def error_inference_torch():
+        return Status(StatusCode.ErrorInferenceTorch)
+        
+    @staticmethod
+    def error_inference_tensorflow():
+        return Status(StatusCode.ErrorInferenceTensorFlow)
+        
+    @staticmethod
+    def error_inference_neuropilot():
+        return Status(StatusCode.ErrorInferenceNeuroPilot)
+        
+    @staticmethod
+    def error_inference_vllm():
+        return Status(StatusCode.ErrorInferenceVllm)
+        
+    @staticmethod
+    def error_inference_sglang():
+        return Status(StatusCode.ErrorInferenceSGLang)
+        
+    @staticmethod
+    def error_inference_lmdeploy():
+        return Status(StatusCode.ErrorInferenceLmdeploy)
+        
+    @staticmethod
+    def error_inference_llamacpp():
+        return Status(StatusCode.ErrorInferenceLlamaCpp)
+        
+    @staticmethod
+    def error_inference_llm():
+        return Status(StatusCode.ErrorInferenceLLM)
+        
+    @staticmethod
+    def error_inference_xdit():
+        return Status(StatusCode.ErrorInferenceXDit)
+        
+    @staticmethod
+    def error_inference_onediff():
+        return Status(StatusCode.ErrorInferenceOneDiff)
+        
+    @staticmethod
+    def error_inference_diffusers():
+        return Status(StatusCode.ErrorInferenceDiffusers)
+        
+    @staticmethod
+    def error_inference_diff():
+        return Status(StatusCode.ErrorInferenceDiff)
+        
+    @staticmethod
+    def error_inference_other():
+        return Status(StatusCode.ErrorInferenceOther)
+        
+    @staticmethod
+    def error_dag():
+        return Status(StatusCode.ErrorDag)
     
 
 name_to_pixel_type = {
