@@ -318,7 +318,7 @@ const Design: React.FC = () => {
           </Tabs>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
