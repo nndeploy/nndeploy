@@ -296,21 +296,21 @@ class NnDeployServer:
                 self.sockets.discard(w)
 
     # queue progress notification
-    # def queue_updated(self):
-    #     payload = {"pending": len(self.queue.get_current_queue()[1])}
-    #     self.send_sync("queue_update", payload)
+    def queue_updated(self):
+        payload = {"pending": len(self.queue.get_current_queue()[1])}
+        self.send_sync("queue_update", payload)
 
-    # def send_sync(self, event:str, data:dict, ws: WebSocket | None = None):
-    #     self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(event, data, ws))
+    def send_sync(self, event:str, data:dict, ws: WebSocket | None = None):
+        self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(event, data, ws))
 
-    # async def _broadcast(self, event, data, ws):
-    #     msg = ProgressPayload(type=event, data=data).model_dump()
-    #     targets = [ws] if ws else list(self.sockets)
-    #     for w in targets:
-    #         try:
-    #             await w.send_json(msg)
-    #         except Exception:
-    #             self.sockets.discard(w)
+    async def _broadcast(self, event, data, ws):
+        msg = ProgressPayload(type=event, data=data).model_dump()
+        targets = [ws] if ws else list(self.sockets)
+        for w in targets:
+            try:
+                await w.send_json(msg)
+            except Exception:
+                self.sockets.discard(w)
 
     # async def broadcast_preview(self, path: str):
     #     payload = {"type": "preview", "result": path}

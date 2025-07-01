@@ -76,8 +76,11 @@
 
         &>.semi-navigation {
           flex: 1;
-          padding: 0px 0 0 5px; 
+          padding: 0px 0 0 5px;
           border-right: 0px;
+          width: 100%;
+          min-height: 0;
+          overflow-y: auto;
         }
 
         .second-level-dragger {
@@ -87,7 +90,8 @@
           background: transparent;
 
           border-radius: 10px;
-           &:hover {
+
+          &:hover {
             background: #999;
           }
         }
@@ -110,6 +114,7 @@
           flex: 1;
           min-height: 0;
           overflow: auto;
+          width: 100%;
 
           .label {
             flex: 1;
