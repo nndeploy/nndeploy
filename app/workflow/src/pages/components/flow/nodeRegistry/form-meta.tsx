@@ -10,7 +10,7 @@ import {
   useNodeRender,
   useWatchFormValues,
 } from "@flowgram.ai/free-layout-editor";
-import { Typography } from "@douyinfe/semi-ui";
+import { Select, Switch, Typography } from "@douyinfe/semi-ui";
 
 import { FlowNodeJSON } from "../../../../typings";
 import { Feedback, FormContent } from "../../../../form-components";
@@ -35,7 +35,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   const { node } = useNodeRender();
 
-  const { nodeList = [] } = useFlowEnviromentContext()
+  const { nodeList = [], paramTypes } = useFlowEnviromentContext()
 
   //console.log("form.values", form.values);
 
@@ -161,16 +161,17 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               return (
                 <Field key={fieldName} name={fieldName}>
                   {({ field, fieldState }) => {
-                    if (fieldName == 'size_') {
+                    if (fieldName == 'flag_') {
                       //debugger
+                      let i = 0
                     }
-                    const fieldType = getFieldType([fieldName], form, nodeList)
+                    const fieldType = getFieldType([fieldName], form, nodeList, paramTypes)
                     return <FormItem
                       name={fieldName}
                       type={"string" as string}
                       required={true}
                     >
-                      <FxExpression
+                      {/* <FxExpression
                         value={field.value as string}
                         fieldType={fieldType}
                         onChange={field.onChange}
@@ -180,7 +181,57 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                         }
                         icon={<></>}
                       />
-                      <Feedback errors={fieldState?.errors} />
+                      <Feedback errors={fieldState?.errors} /> */}
+
+                      <div className="expression-field"
+                      >
+                        <>
+                          {
+
+                            fieldType.componentType == 'boolean' ?
+                              <Switch checked={!!field.value}
+                                //label='开关(Switch)' 
+                                onChange={(value: boolean) => {
+                                  field.onChange(value)
+                                }} />
+                              : fieldType.componentType == 'select' ?
+                                <Select
+                                  value={field.value as string}
+                                  style={{ width: '100%' }}
+                                  onChange={(value) => {
+                                    field.onChange(value)
+                                  }
+                                  }
+
+
+                                  optionList={paramTypes[fieldType.selectKey].map(item => {
+                                    return {
+                                      label: item,
+                                      value: item
+                                    }
+                                  })}>
+
+                                </Select> :
+
+                                <FxExpression
+                                  value={field.value as string}
+                                  fieldType={fieldType}
+                                  onChange={field.onChange}
+                                  readonly={readonly}
+                                  hasError={
+                                    Object.keys(fieldState?.errors || {}).length > 0
+                                  }
+                                  icon={<></>}
+                                />
+
+
+                          }
+                          <Feedback
+                            errors={fieldState?.errors}
+                            invalid={fieldState?.invalid}
+                          />
+                        </>
+                      </div>
                     </FormItem>
                   }}
                 </Field>
