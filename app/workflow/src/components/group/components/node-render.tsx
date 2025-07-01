@@ -21,7 +21,7 @@ export const GroupNodeRender = () => {
   const formModel = node.getData(FlowNodeFormData).getFormModel<FormModelV2>();
   const formControl = formModel?.formControl;
 
-  const { height, width } = nodeSize ?? {};
+  const { height, width } = nodeSize ?? {width: 300, height: 300};
   const nodeHeight = height ?? 0;
 
   useEffect(() => {

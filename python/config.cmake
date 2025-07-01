@@ -92,7 +92,6 @@ if(ENABLE_NNDEPLOY_INFERENCE)
     "${ROOT_PATH}/python/src/inference/*.h"
     "${ROOT_PATH}/python/src/inference/*.cc"
   )
-  message(STATUS "PYTHON_INFERENCE_SOURCE: ${PYTHON_INFERENCE_SOURCE}")
   
   if(ENABLE_NNDEPLOY_INFERENCE_DEFAULT)
     file(GLOB_RECURSE INFERENCE_DEFAULT_SOURCE
@@ -144,12 +143,10 @@ if(ENABLE_NNDEPLOY_INFERENCE)
   endif()
 
   if(ENABLE_NNDEPLOY_INFERENCE_ONNXRUNTIME)
-    # message(STATUS "INFERENCE_ONNXRUNTIME_SOURCE: ${INFERENCE_ONNXRUNTIME_SOURCE}")
     file(GLOB_RECURSE INFERENCE_ONNXRUNTIME_SOURCE
       "${ROOT_PATH}/python/src/inference/onnxruntime/*.h"
       "${ROOT_PATH}/python/src/inference/onnxruntime/*.cc"
     )
-    message(STATUS "INFERENCE_ONNXRUNTIME_SOURCE: ${INFERENCE_ONNXRUNTIME_SOURCE}")
     set(PYTHON_INFERENCE_SOURCE ${PYTHON_INFERENCE_SOURCE} ${INFERENCE_ONNXRUNTIME_SOURCE})
   endif()
 
@@ -237,7 +234,6 @@ if(ENABLE_NNDEPLOY_DAG)
     "${ROOT_PATH}/python/src/dag/running_condition.cc"
   )
   set(SOURCE ${SOURCE} ${PYTHON_DAG_SOURCE})
-  message(STATUS "PYTHON_DAG_SOURCE: ${PYTHON_DAG_SOURCE}")
 endif()
 
 # plugin
@@ -255,7 +251,6 @@ if(ENABLE_NNDEPLOY_PLUGIN_CODEC)
     "${ROOT_PATH}/python/src/codec/*.cc"
   )
   set(SOURCE ${SOURCE} ${PYTHON_CODEC_SOURCE})
-  message(STATUS "PYTHON_CODEC_SOURCE: ${PYTHON_CODEC_SOURCE}")
 endif()
 
 if(ENABLE_NNDEPLOY_PLUGIN_INFER)
@@ -342,13 +337,37 @@ pybind11_add_module(${BINARY} ${SOURCE})
 
 # 属性
 set_target_properties(${BINARY} PROPERTIES OUTPUT_NAME "_nndeploy_internal")
-set_target_properties(${BINARY} PROPERTIES PREFIX "" LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/nndeploy")
+set_target_properties(${BINARY} PROPERTIES PREFIX "" LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/python")
 set_property(TARGET ${BINARY} PROPERTY FOLDER ${DIRECTORY})
 
 # link
 # target_link_libraries(${BINARY} PUBLIC nndeploy_framework)
 # DEPEND_LIBRARY
 list(APPEND DEPEND_LIBRARY ${NNDEPLOY_FRAMEWORK_BINARY})
+# foreach(framework ${NNDEPLOY_FRAMEWORK_BINARY})
+#   if(WIN32)
+#     add_custom_command(TARGET ${BINARY} POST_BUILD
+#       COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#       ${CMAKE_CURRENT_BINARY_DIR}/${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       ${PROJECT_SOURCE_DIR}/python/nndeploy/${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       COMMENT "Copying framework ${framework}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+#     )
+#   elseif(APPLE)
+#     add_custom_command(TARGET ${BINARY} POST_BUILD
+#       COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#       ${CMAKE_CURRENT_BINARY_DIR}/lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       ${PROJECT_SOURCE_DIR}/python/nndeploy/lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       COMMENT "Copying framework lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+#     )
+#   else()
+#     add_custom_command(TARGET ${BINARY} POST_BUILD
+#       COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#       ${CMAKE_CURRENT_BINARY_DIR}/lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       ${PROJECT_SOURCE_DIR}/python/nndeploy/lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       COMMENT "Copying framework lib${framework}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+#     )
+#   endif()
+# endforeach()
 list(APPEND DEPEND_LIBRARY ${NNDEPLOY_DEPEND_LIBRARY})
 list(APPEND DEPEND_LIBRARY ${NNDEPLOY_PYTHON_DEPEND_LIBRARY})
 target_link_libraries(${BINARY} PUBLIC  ${DEPEND_LIBRARY})
@@ -363,55 +382,120 @@ list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_THIRD_PARTY_LIBRARY})
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PYTHON_THIRD_PARTY_LIBRARY})
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_THIRD_PARTY_LIBRARY})
 list(APPEND THIRD_PARTY_LIBRARY ${NNDEPLOY_PLUGIN_LIST})
-target_link_libraries(${BINARY} PUBLIC ${THIRD_PARTY_LIBRARY})
-# if (APPLE)
-#   set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,-force_load")
-# elseif (UNIX)
-#   set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
-# elseif(WIN32)
-#   if(MSVC)
-#     # target_link_options(${BINARY} PRIVATE /WHOLEARCHIVE)
-#   elseif(MINGW)
-#     set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+message(STATUS "NNDEPLOY_PLUGIN_LIST: ${NNDEPLOY_PLUGIN_LIST}")
+# # 添加构建后命令，将NNDEPLOY_PLUGIN_LIST中的so文件复制到python/nndeploy/目录下
+# foreach(plugin ${NNDEPLOY_PLUGIN_LIST})
+#   if(WIN32)
+#     add_custom_command(TARGET ${BINARY} POST_BUILD
+#       COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#       ${CMAKE_CURRENT_BINARY_DIR}/${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       ${PROJECT_SOURCE_DIR}/python/nndeploy/${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       COMMENT "Copying plugin ${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+#     )
+#   elseif(APPLE)
+#     add_custom_command(TARGET ${BINARY} POST_BUILD
+#       COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#       ${CMAKE_CURRENT_BINARY_DIR}/lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       ${PROJECT_SOURCE_DIR}/python/nndeploy/lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       COMMENT "Copying plugin lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+#     )
+#   else()
+#     add_custom_command(TARGET ${BINARY} POST_BUILD
+#       COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#       ${CMAKE_CURRENT_BINARY_DIR}/lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       ${PROJECT_SOURCE_DIR}/python/nndeploy/lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX}
+#       COMMENT "Copying plugin lib${plugin}${CMAKE_SHARED_LIBRARY_SUFFIX} to python/nndeploy/nndeploy/ directory"
+#     )
 #   endif()
-# endif()
+# endforeach()
+target_link_libraries(${BINARY} PUBLIC ${THIRD_PARTY_LIBRARY})
 
-# install
-# if(SYSTEM.Windows)
-#   install(TARGETS ${BINARY} 
-#     RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
-#     LIBRARY DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
-#   )
-# else()
-#   install(TARGETS ${BINARY}
-#     RUNTIME DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH} 
-#     LIBRARY DESTINATION ${NNDEPLOY_INSTALL_PYTHON_PATH}
-#   )
-# endif()
+if (APPLE)
+  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,-force_load")
+elseif (UNIX)
+  set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+elseif(WIN32)
+  if(MSVC)
+    # target_link_options(${BINARY} PRIVATE /WHOLEARCHIVE)
+  elseif(MINGW)
+    set_target_properties(${BINARY} PROPERTIES LINK_FLAGS "-Wl,--no-as-needed")
+  endif()
+endif()
 
-# unkown
-if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
-    if (SYSTEM.Windows)
-        # Windows下需要复制Debug/Release目录下的文件
-        add_custom_command(TARGET ${BINARY} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<$<CONFIG:Debug>:${CMAKE_CURRENT_BINARY_DIR}/nndeploy/Debug/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}>
-                $<$<CONFIG:Release>:${CMAKE_CURRENT_BINARY_DIR}/nndeploy/Release/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}>
-                ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
-            COMMENT "Copying Python module to output directory")
-        message(STATUS "Windows: Copying Python module to ${PROJECT_SOURCE_DIR}/python/nndeploy/")
-    else()
-        add_custom_command(TARGET ${BINARY} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
-                ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
-            COMMENT "Copying Python module to output directory")
-        message(STATUS "Unix: Copying ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION} to ${PROJECT_SOURCE_DIR}/python/nndeploy/")
-    endif()
-endif("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
+# copy python module to python/nndeploy/
+# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "")
+# if("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
+#     if (SYSTEM.Windows)
+#         # Windows系统下的处理:
+#         # 1. 添加一个构建后命令,在目标${BINARY}构建完成后执行
+#         # 2. 使用CMAKE的copy_if_different命令复制文件
+#         # 3. 根据构建类型(Debug/Release)选择对应目录下的Python模块文件
+#         # 4. 将文件复制到python/nndeploy/目录下
+#         add_custom_command(TARGET ${BINARY} POST_BUILD
+#             COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#                 $<$<CONFIG:Debug>:${CMAKE_CURRENT_BINARY_DIR}/nndeploy/Debug/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}>
+#                 $<$<CONFIG:Release>:${CMAKE_CURRENT_BINARY_DIR}/nndeploy/Release/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}>
+#                 ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
+#             COMMENT "Copying Python module to output directory")
+#         message(STATUS "Windows: Copying Python module to ${PROJECT_SOURCE_DIR}/python/nndeploy/")
+#     else()
+#         # Unix系统下的处理:
+#         # 1. 添加一个构建后命令
+#         # 2. 直接复制nndeploy目录下的Python模块文件到目标位置
+#         add_custom_command(TARGET ${BINARY} POST_BUILD
+#             COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#                 ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
+#                 ${PROJECT_SOURCE_DIR}/python/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION}
+#             COMMENT "Copying Python module to output directory")
+#         message(STATUS "Unix: Copying ${CMAKE_CURRENT_BINARY_DIR}/nndeploy/_nndeploy_internal${PYTHON_MODULE_PREFIX}${PYTHON_MODULE_EXTENSION} to ${PROJECT_SOURCE_DIR}/python/nndeploy/")
+#     endif()
+# endif("${CMAKE_LIBRARY_OUTPUT_DIRECTORY}" STREQUAL "")
 
 # 生成python pip package安装脚本
 configure_file(${ROOT_PATH}/python/setup.py.cfg ${PROJECT_SOURCE_DIR}/python/setup.py)
+
+# install
+if(SYSTEM.Windows)
+  install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_PATH})
+else()
+  install(TARGETS ${BINARY} ${NNDEPLOY_INSTALL_TYPE} DESTINATION ${NNDEPLOY_INSTALL_LIB_PATH})
+endif()
+
+# post install
+# post install - 在安装后递归拷贝所有动态库
+install(CODE "
+  # 定义不同平台的动态库扩展名
+  if(WIN32)
+    set(LIB_EXTENSIONS \"*.dll\" \"*.dll.*\" \"*.lib\" \"*.lib.*\" \"*.pyd\" \"*.pyd.*\")
+  elseif(APPLE)
+    set(LIB_EXTENSIONS \"*.dylib\" \"*.dylib.*\")
+  else()
+    set(LIB_EXTENSIONS \"*.so\" \"*.so.*\")
+  endif()
+  set(SEARCH_PATHS \"${NNDEPLOY_INSTALL_PATH}\")
+  
+  # 确保目标目录存在
+  file(MAKE_DIRECTORY \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
+  
+  # 递归搜索并拷贝动态库
+  foreach(search_path IN LISTS SEARCH_PATHS)
+    if(EXISTS \"\${search_path}\")
+      foreach(ext IN LISTS LIB_EXTENSIONS)
+        file(GLOB_RECURSE DYNAMIC_LIBS \"\${search_path}/\${ext}\")
+        foreach(lib_file IN LISTS DYNAMIC_LIBS)
+          get_filename_component(lib_name \"\${lib_file}\" NAME)
+          message(STATUS \"Copying dynamic library: \${lib_name}\")
+          file(COPY \"\${lib_file}\" 
+               DESTINATION \"${PROJECT_SOURCE_DIR}/python/nndeploy\")
+        endforeach()
+      endforeach()
+    else()
+      message(WARNING \"Search path does not exist: \${search_path}\")
+    endif()
+  endforeach()
+  
+  message(STATUS \"Finished copying dynamic libraries to python/nndeploy directory\")
+")
 
 # unset
 unset(SOURCE)

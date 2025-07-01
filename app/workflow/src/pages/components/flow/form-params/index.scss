@@ -1,0 +1,19 @@
+.number-array-field {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+
+  .field-label {
+    width: 118px
+  }
+
+  .filed-array-items {
+    flex: 1;
+
+    .expression-field {
+      flex: 1;
+      margin-bottom: 6px;
+    }
+  }
+
+}

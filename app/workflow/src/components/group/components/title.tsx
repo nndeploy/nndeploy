@@ -8,7 +8,7 @@ import { GroupField } from '../constant';
 export const GroupTitle: FC = () => {
   const [inputting, setInputting] = useState(false);
   return (
-    <Field<string> name={GroupField.Title}>
+    <Field<string> name={  GroupField.Title}>
       {({ field }) =>
         inputting ? (
           <Input

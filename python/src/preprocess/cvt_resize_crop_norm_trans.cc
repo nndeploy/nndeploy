@@ -7,11 +7,11 @@ namespace nndeploy {
 namespace preprocess {
 
 NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
-  py::class_<CvtResizeNormTransCropNormTrans, dag::Node>(m, "CvtResizeNormTransCropNormTrans")
+  py::class_<CvtResizeCropNormTrans, dag::Node>(m, "CvtResizeCropNormTrans")
       .def(py::init<const std::string &>())
       .def(py::init<const std::string &, std::vector<dag::Edge *>,
                     std::vector<dag::Edge *>>())
-      .def("run", &CvtResizeNormTransCropNormTrans::run);
+      .def("run", &CvtResizeCropNormTrans::run);
 }
 
 }  // namespace preprocess

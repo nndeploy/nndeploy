@@ -1,0 +1,33 @@
+.semi-sidesheet-header {
+  padding: 6px 12px;
+}
+
+.semi-sidesheet-body {
+  display: flex;
+  flex-direction: column;
+  padding: 0 12px;
+
+  .drawer-content {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .drawer-footer {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    padding: 5px 0px;
+  }
+
+  .semi-sidesheet-footer {
+
+
+    border-top: 1px solid var(--semi-color-border);
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px;
+    gap: 6px;
+  }
+}
+

@@ -30,7 +30,7 @@ class CvtNormTrans(_C.preprocess.CvtNormTrans):
         return super().run()
       
 
-class CvtResizeNormTransCropNormTrans(_C.preprocess.CvtResizeNormTransCropNormTrans):
+class CvtResizeCropNormTrans(_C.preprocess.CvtResizeCropNormTrans):
     def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = [], outputs: list[nndeploy.dag.Edge] = []):
         if inputs is [] and outputs is []:
             super().__init__(name)

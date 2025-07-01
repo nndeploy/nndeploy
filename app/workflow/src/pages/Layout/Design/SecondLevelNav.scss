@@ -1,0 +1,10 @@
+.secondLevelNav {
+  .semi-nav-item {
+    padding: 10px 20px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #e5e5e5;
+    }
+  }
+}

@@ -2,7 +2,7 @@
 from .preprocess import ConvertToParam
 from .preprocess import ConvertTo
 from .preprocess import CvtNormTrans
-from .preprocess import CvtResizeNormTransCropNormTrans
+from .preprocess import CvtResizeCropNormTrans
 from .preprocess import CvtResizePadNormTrans
 from .preprocess import CvtResizeNormTrans
 from .preprocess import BatchPreprocess
@@ -20,7 +20,7 @@ __all__ = [
     'ConvertToParam',
     'ConvertTo',
     'CvtNormTrans', 
-    'CvtResizeNormTransCropNormTrans',
+    'CvtResizeCropNormTrans',
     'CvtResizePadNormTrans',
     'CvtResizeNormTrans',
     'BatchPreprocess',
@@ -36,6 +36,6 @@ __all__ = [
     'CvtNormTransParam',
     'CvtResizeNormTransParam', 
     'CvtResizePadNormTransParam',
-    'CvtResizeNormTransCropNormTransParam'
+    'CvtResizeCropNormTransParam'
 ]
 

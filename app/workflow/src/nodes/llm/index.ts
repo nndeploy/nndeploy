@@ -7,6 +7,7 @@ import iconLLM from '../../assets/icon-llm.jpg';
 let index = 0;
 export const LLMNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.LLM,
+  //defaultPorts: [{ type: 'input' }],
   info: {
     icon: iconLLM,
     description:

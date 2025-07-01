@@ -1,0 +1,15 @@
+.image-preview {
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+
+  &>img {
+    width: 100%;
+
+  }
+
+}
+
+.video-preview {
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  width: 100%;
+
+}

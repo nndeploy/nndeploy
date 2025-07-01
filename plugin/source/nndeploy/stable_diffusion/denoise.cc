@@ -257,6 +257,10 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<device::Tensor>();
 
+    infer_ = (infer::Infer *)this->createNode<infer::Infer>("unet_infer");
+    ddim_schedule_ =
+        (DDIMSchedule *)this->createNode<DDIMSchedule>("ddim_schedule");
+
     scheduler_ = createScheduler(scheduler_type_);
   }
 
@@ -272,14 +276,16 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     dag::NodeDesc infer_desc("unet_infer",
                              {"embeddings", "cfg_latents", "timestep"},
                              {"unet_output"});
-    infer_ = (infer::Infer *)this->createInfer<infer::Infer>(infer_desc,
-                                                             inference_type_);
+    // infer_ = (infer::Infer *)this->createInfer<infer::Infer>(infer_desc,
+    //                                                          inference_type_);
+    this->setNodeDesc(infer_, infer_desc);
 
     dag::NodeDesc schedule_desc("ddim_schedule",
                                 {"unet_output", "prev_latents", "timestep"},
                                 {"latents"});
-    ddim_schedule_ =
-        (DDIMSchedule *)this->createNode<DDIMSchedule>(schedule_desc);
+    // ddim_schedule_ =
+    //     (DDIMSchedule *)this->createNode<DDIMSchedule>(schedule_desc);
+    this->setNodeDesc(ddim_schedule_, schedule_desc);
     return status;
   }
 
