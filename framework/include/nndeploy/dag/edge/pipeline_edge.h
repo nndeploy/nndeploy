@@ -4,6 +4,7 @@
 #include <atomic>
 #include <cassert>
 #include <cstdint>
+#include <deque>
 #include <memory>
 #include <thread>
 #include <unordered_map>
@@ -74,7 +75,7 @@ class RingBufferSpmc {
   const std::size_t cap_, mask_;
   std::vector<Slot> buf_;
   std::atomic<std::size_t> head_{0};
-  std::vector<std::atomic<std::size_t>> tails_;
+  std::deque<std::atomic<std::size_t>> tails_;
 };
 
 enum class SlotState : uint8_t { kEmpty = 0, kWriting = 1, kReady = 2 };
@@ -88,7 +89,7 @@ class PipelineEdge final : public AbstractEdge {
  public:
   explicit PipelineEdge(base::ParallelType pt)
       : AbstractEdge(pt),
-        ring_(std::make_unique<RingBufferSpmc<DataSlot>>(1024)) {}
+        ring_(std::make_unique<RingBufferSpmc<DataSlot>>(64)) {}
 
   ~PipelineEdge() override {
     terminate_flag_.store(true, std::memory_order_relaxed);
