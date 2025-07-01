@@ -236,6 +236,10 @@ class NNDEPLOY_CC_API Node {
    */
   virtual std::vector<Edge *> forward(std::vector<Edge *> inputs);
   virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs);
+  virtual std::vector<Edge *> forward();
+  virtual std::vector<Edge *> operator()();
+  virtual std::vector<Edge *> forward(Edge * input);
+  virtual std::vector<Edge *> operator()(Edge * input);
 
   bool checkInputs(std::vector<Edge *> &inputs);
   bool checkOutputs(std::vector<std::string> &outputs_name);

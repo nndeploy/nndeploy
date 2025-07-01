@@ -69,6 +69,18 @@ class Edge(_C.dag.Edge):
         
     def get_graph_output_tensor(self) -> nndeploy.device.Tensor:
         return super().get_graph_output_tensor()
+    
+    def get_numpy(self, node: _C.dag.Node) -> np.ndarray:
+        return super().get_numpy(node)
+        
+    def get_graph_output_numpy(self) -> np.ndarray:
+        return super().get_graph_output_numpy()
+    
+    def get_param(self, node: _C.dag.Node) -> nndeploy.base.Param:
+        return super().get_param(node)
+        
+    def get_graph_output_param(self) -> nndeploy.base.Param:
+        return super().get_graph_output_param()
         
     def get(self, node: _C.dag.Node = None):
         return self.get_any(node)
