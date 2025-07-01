@@ -279,21 +279,21 @@ class NnDeployServer:
         self.app.include_router(api)
 
     # task done notify
-    def notify_task_done(self, task_id:str):
-        task_info = self.queue.get_task_by_id(task_id)
-        if task_info is None:
-            raise HTTPException(status_code=404, detail="task not found")
-        path = extract_encode_output_path(task_info)
-        payload = {"type": "result", "task_id": task_id, "path": path}
-        self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(payload))
+    # def notify_task_done(self, task_id:str):
+    #     task_info = self.queue.get_task_by_id(task_id)
+    #     if task_info is None:
+    #         raise HTTPException(status_code=404, detail="task not found")
+    #     path = extract_encode_output_path(task_info)
+    #     payload = {"type": "result", "task_id": task_id, "path": path}
+    #     self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(payload))
 
-    async def _broadcast(self, payload: dict, ws: WebSocket | None = None):
-        targets = [ws] if ws else list(self.sockets)
-        for w in targets:
-            try:
-                await w.send_json(payload)
-            except Exception:
-                self.sockets.discard(w)
+    # async def _broadcast(self, payload: dict, ws: WebSocket | None = None):
+    #     targets = [ws] if ws else list(self.sockets)
+    #     for w in targets:
+    #         try:
+    #             await w.send_json(payload)
+    #         except Exception:
+    #             self.sockets.discard(w)
 
     # queue progress notification
     def queue_updated(self):
