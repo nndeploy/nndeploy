@@ -26,13 +26,13 @@ class GFPGAN(nndeploy.dag.Node):
         
     def init(self):
         self.gfpgan = gfpgan.GFPGANer(self.model_path_, upscale=self.upscale_, device=self.device_)
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
         
     def run(self):
         input_numpy = self.get_input(0).get_numpy(self)
         _, _, self.temp_frame = self.gfpgan.enhance(input_numpy, paste_back=True)
         self.get_output(0).set(self.temp_frame)
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
     
     def serialize(self):
         json_str = super().serialize()

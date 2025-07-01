@@ -1,15 +1,13 @@
-import os
-import shutil
-from typing import Any
-
-import cv2
-import json
-import numpy as np
-
 import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
 
+import os
+import shutil
+from typing import Any
+import cv2
+import json
+import numpy as np
 import insightface
 
 class InsightFaceAnalysis(nndeploy.dag.Node):
@@ -27,12 +25,9 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
         self.det_size_ = (640, 640)
         
     def init(self):
-        self.analysis = insightface.app.FaceAnalysis(
-            name=self.insightface_name_,
-            providers=self.providers_,
-        )
+        self.analysis = insightface.app.FaceAnalysis(name=self.insightface_name_, providers=self.providers_)
         self.analysis.prepare(ctx_id=self.ctx_id, det_size=self.det_size_)
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
         
     def run(self):
         input_numpy = self.get_input(0).get_numpy(self)
@@ -42,7 +37,7 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
         if self.is_one_face_:
             face = min(faces, key=lambda x: x.bbox[0])
         self.get_output(0).set_any(face)
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
     
     def serialize(self):
         json_str = super().serialize()
@@ -91,7 +86,7 @@ class InsightFaceSwapper(nndeploy.dag.Node):
         
     def init(self):
         self.swapper = insightface.model_zoo.get_model(self.model_path_, providers=self.providers_)
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
     
     def run(self):
         source_face = self.get_input(0).get_any(self)
@@ -104,7 +99,7 @@ class InsightFaceSwapper(nndeploy.dag.Node):
         self.swapped_frame = self.swapper.get(temp_frame, target_face, source_face, paste_back=True)
         # print(type(self.swapped_frame))
         self.get_output(0).set(self.swapped_frame)
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
     
     def serialize(self):
         json_str = super().serialize()
