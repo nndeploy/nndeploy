@@ -3,12 +3,11 @@
 namespace nndeploy {
 
 device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
-                            device::Tensor* residual,
                             std::shared_ptr<ir::RMSNormParam> param) {
   std::stringstream ss;
 
   device::Tensor* output = new device::Tensor("rms_norm.output");
-  base::Status status = op::rmsNorm(input, weight, residual, param, output);
+  base::Status status = op::rmsNorm(input, weight, param, output);
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::rms_norm failed: error code "
        << base::statusCodeToString(status.getStatusCode());
@@ -50,14 +49,14 @@ device::Tensor* concatFunc(std::vector<device::Tensor *> inputs,
 }
 
 device::Tensor* batchNormFunc(
-    device::Tensor* input, device::Tensor* scale, device::Tensor* bias,
+    device::Tensor* input, device::Tensor* scale, device::Tensor* shift,
     device::Tensor* mean, device::Tensor* var,
     std::shared_ptr<ir::BatchNormalizationParam> param) {
   std::stringstream ss;
 
   device::Tensor* output = new device::Tensor("batch_norm.output");
   base::Status status =
-      op::batchNorm(input, scale, bias, mean, var, param, output);
+      op::batchNorm(input, scale, shift, mean, var, param, output);
   if (status != base::kStatusCodeOk) {
     ss << "nndeploy::op::batch_norm failed: error code "
        << base::statusCodeToString(status.getStatusCode());

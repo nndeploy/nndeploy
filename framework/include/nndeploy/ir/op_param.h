@@ -209,8 +209,6 @@ enum OpType : int {
   kOpTypeWhere,
   kOpTypeXor,
 
-  // TODO: @Leonisux:
-  // 1. 增加llama的算子类型
   kOpTypeRMSNorm,
   kOpTypeEmbedding,
 
