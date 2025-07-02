@@ -32,7 +32,6 @@ base::Status OpRMSNorm::run() {
 }
 
 base::Status rmsNorm(device::Tensor *input, device::Tensor *weight,
-                     device::Tensor *residual,
                      std::shared_ptr<base::Param> param,
                      device::Tensor *output) {
   base::Status status = base::kStatusCodeOk;
@@ -47,8 +46,6 @@ base::Status rmsNorm(device::Tensor *input, device::Tensor *weight,
   status = op->setInput(input, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setInput(weight, 1);
-  NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
-  status = op->setInput(residual, 2);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setInput failed");
   status = op->setOutput(output, 0);
   NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setOutput failed");
