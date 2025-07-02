@@ -223,6 +223,8 @@ base::Status DataPacket::takeDataPacket(DataPacket *packet) {
   anything_ = packet->anything_;
   type_info_ = packet->type_info_;
   deleter_ = packet->deleter_;
+  wrapper_ = packet->wrapper_;
+  wrapper_deleter_ = packet->wrapper_deleter_;
 
   packet->is_external_ = true;
   packet->index_ = -1;
@@ -231,6 +233,8 @@ base::Status DataPacket::takeDataPacket(DataPacket *packet) {
   packet->anything_ = nullptr;
   packet->type_info_ = nullptr;
   packet->deleter_ = nullptr;
+  packet->wrapper_ = nullptr;
+  packet->wrapper_deleter_ = nullptr;
   delete packet;
   packet = nullptr;
 
@@ -274,6 +278,12 @@ void DataPacket::destory() {
   anything_ = nullptr;
   type_info_ = nullptr;
   deleter_ = nullptr;
+
+  if (wrapper_ != nullptr) {
+    wrapper_deleter_(wrapper_);
+    wrapper_ = nullptr;
+  }
+  wrapper_deleter_ = nullptr;
 }
 
 PipelineDataPacket::PipelineDataPacket(int consumers_size)

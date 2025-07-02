@@ -52,7 +52,7 @@ def test_yolo():
     yolo.default_param()
     yolo.set_inference_type(nndeploy.base.InferenceType.OnnxRuntime)
     yolo.set_version(11)
-    yolo.set_infer_param(nndeploy.base.DeviceType("x86"), nndeploy.base.ModelType.Onnx, True, ["/home/always/github/public/nndeploy/build/yolo11s.sim.onnx"])
+    yolo.set_infer_param(nndeploy.base.DeviceType("x86"), nndeploy.base.ModelType.Onnx, True, ["/home/lds/modelscope/nndeploy/detect/yolo11s.sim.onnx"])
     yolo_demo.set_time_profile_flag(True)
     
     inputs: [nndeploy.dag.Edge] = []
@@ -68,7 +68,8 @@ def test_yolo():
     for i in range(count):
         print(f"test_yolo {i}")
         output = yolo_demo(inputs)
-        result = output[0].get_graph_output_param()
+        result = output[0].get_graph_output()
+        print(result)
         for bbox in result.bboxs_:
             print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("yolo_demo_python")
@@ -94,7 +95,7 @@ def test_yolo_from_json():
     for i in range(count):
         print(f"test_yolo_from_json {i}")
         output = yolo_demo(inputs)
-        result = output[0].get_graph_output_param()
+        result = output[0].get_graph_output()
         for bbox in result.bboxs_:
             print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("test_yolo_from_json")
@@ -105,7 +106,7 @@ def test_static_yolo_from_json():
     yolo_demo = YoloDemo("yolo_demo")
     yolo_demo.load_file("/home/always/github/public/nndeploy/build/yolo_demo.json")
     yolo_demo.set_time_profile_flag(True)
-    pt = nndeploy.base.ParallelType.Pipeline
+    pt = nndeploy.base.ParallelType.Sequential
     yolo_demo.set_parallel_type(pt)
     yolo_demo.init()
     print("init success!")
@@ -124,12 +125,12 @@ def test_static_yolo_from_json():
         yolo_demo.run()
         print("run success!")
         if (pt != nndeploy.base.ParallelType.Pipeline):
-            result = output[0].get_graph_output_param()
+            result = output[0].get_graph_output()
             for bbox in result.bboxs_:
                 print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     if (pt == nndeploy.base.ParallelType.Pipeline):
         for i in range(count):
-            result = output[0].get_graph_output_param()
+            result = output[0].get_graph_output()
             for bbox in result.bboxs_:
                 print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     
@@ -161,7 +162,7 @@ def test_static_graph_from_json():
         print(f"test_static_yolo_from_json {i}")
         yolo_demo.run()
         print("run success!")
-        # result = output[0].get_graph_output_param()
+        # result = output[0].get_graph_output()
         # for bbox in result.bboxs_:
         #     print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("test_yolo_from_json")
@@ -169,10 +170,10 @@ def test_static_graph_from_json():
 
     
 if __name__ == "__main__":
-    # test_yolo()
+    test_yolo()
     # test_yolo_from_json()
-    # test_static_yolo_from_json()
-    test_static_graph_from_json()
+    test_static_yolo_from_json()
+    # test_static_graph_from_json()
     
         
         
