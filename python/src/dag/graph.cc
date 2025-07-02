@@ -97,9 +97,17 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("init", &Graph::init)
       .def("deinit", &Graph::deinit)
       .def("run", &Graph::run)
-      .def("forward", &Graph::forward, py::arg("inputs"),
+      .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward), py::arg("inputs"),
            py::keep_alive<1, 2>(), py::return_value_policy::reference)
-      .def("__call__", &Graph::operator(), py::arg("inputs"),
+      .def("forward", py::overload_cast<>(&Graph::forward),
+           py::return_value_policy::reference)
+      .def("forward", py::overload_cast<Edge *>(&Graph::forward), py::arg("input"),
+           py::keep_alive<1, 2>(), py::return_value_policy::reference)
+      .def("__call__", py::overload_cast<std::vector<Edge *>>(&Graph::operator()), py::arg("inputs"),
+           py::keep_alive<1, 2>(), py::return_value_policy::reference)
+      .def("__call__", py::overload_cast<>(&Graph::operator()),
+           py::return_value_policy::reference)
+      .def("__call__", py::overload_cast<Edge *>(&Graph::operator()), py::arg("input"),
            py::keep_alive<1, 2>(), py::return_value_policy::reference)
       .def("dump", [](Graph &g) { g.dump(std::cout); })
       .def("set_trace_flag", &Graph::setTraceFlag, py::arg("flag"))
@@ -112,8 +120,13 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       //   1. py::keep_alive<1,2>() 确保Graph对象在inputs存在期间不会被销毁
       //   2. py::return_value_policy::reference 返回引用,由Python管理内存
       //   3. 该方法用于追踪图的执行流程,帮助调试和性能分析
-      .def("trace", &Graph::trace, py::arg("inputs"), py::keep_alive<1, 2>(),
+      .def("trace", py::overload_cast<std::vector<Edge *>>(&Graph::trace),
+           py::arg("inputs"), py::keep_alive<1, 2>(),
            py::return_value_policy::reference)
+      .def("trace", py::overload_cast<>(&Graph::trace),
+           py::return_value_policy::reference)
+      .def("trace", py::overload_cast<Edge *>(&Graph::trace), py::arg("input"),
+           py::keep_alive<1, 2>(), py::return_value_policy::reference)
       .def("get_edge_wrapper",
            py::overload_cast<Edge *>(&Graph::getEdgeWrapper), py::arg("edge"),
            py::return_value_policy::reference)

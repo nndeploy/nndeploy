@@ -13,7 +13,7 @@ import insightface
 class InsightFaceAnalysis(nndeploy.dag.Node):
     def __init__(self, name, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
-        super().set_key("InsightFaceAnalysis")
+        super().set_key("nndeploy.face.InsightFaceAnalysis")
         super().set_desc("InsightFace Analysis: get face analysis from image") 
         self.set_input_type(np.ndarray)
         self.set_output_type(list[Any])
@@ -74,7 +74,7 @@ nndeploy.dag.register_node("nndeploy.face.InsightFaceAnalysis", insightface_node
 class InsightFaceSwapper(nndeploy.dag.Node):
     def __init__(self, name, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
-        super().set_key("InsightFaceSwapper")
+        super().set_key("nndeploy.face.InsightFaceSwapper")
         super().set_desc("InsightFace Swapper: swap face from image")
         self.set_input_type(list[Any])
         self.set_input_type(list[Any])
@@ -129,7 +129,7 @@ nndeploy.dag.register_node("nndeploy.face.InsightFaceSwapper", insightface_swapp
 class FaceSwapper(nndeploy.dag.Graph):
     def __init__(self, name: str):
         super().__init__(name)
-        self.set_key("FaceSwapper")
+        self.set_key("nndeploy.face.FaceSwapper")
         self.set_desc("FaceSwapper: swap face from image")
         self.set_input_type(np.ndarray)
         self.set_input_type(np.ndarray)
@@ -148,6 +148,16 @@ class FaceSwapper(nndeploy.dag.Graph):
         swapped_frame = self.face_swapper([source_face[0], target_face[0], inputs[1]])
         return swapped_frame
         
+class FaceSwapperCreator(nndeploy.dag.NodeCreator):
+    def __init__(self):
+        super().__init__()
+        
+    def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
+        self.node = FaceSwapper(name, inputs, outputs)
+        return self.node
+      
+face_swapper_node_creator = FaceSwapperCreator()
+nndeploy.dag.register_node("nndeploy.face.InsightFaceSwapper", insightface_swapper_node_creator)   
       
       
       

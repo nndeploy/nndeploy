@@ -130,11 +130,17 @@ class NNDEPLOY_CC_API Graph : public Node {
   // implementation
   virtual std::vector<Edge *> forward(std::vector<Edge *> inputs);
   virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs);
+  virtual std::vector<Edge *> forward();
+  virtual std::vector<Edge *> operator()();
+  virtual std::vector<Edge *> forward(Edge * input);
+  virtual std::vector<Edge *> operator()(Edge * input);
 
   base::Status dump(std::ostream &oss = std::cout);
 
   virtual void setTraceFlag(bool flag);
   std::vector<Edge *> trace(std::vector<Edge *> inputs);
+  std::vector<Edge *> trace();
+  std::vector<Edge *> trace(Edge * input);
 
   // create node
   // Not recommended api

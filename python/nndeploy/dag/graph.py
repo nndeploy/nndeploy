@@ -286,14 +286,14 @@ class Graph(_C.dag.Graph):
         """运行图"""
         return super().run()
 
-    def __call__(self, inputs):
-        """
-        调用图
+    # def __call__(self, inputs):
+    #     """
+    #     调用图
         
-        参数:
-            inputs: 输入
-        """
-        return super().__call__(inputs)
+    #     参数:
+    #         inputs: 输入
+    #     """
+    #     return super().__call__(inputs)
 
     def dump(self):
         """输出图信息到标准输出"""
@@ -308,17 +308,24 @@ class Graph(_C.dag.Graph):
         """
         return super().set_trace_flag(flag)
         
-    def trace(self, inputs: List[Edge]) -> List[Edge]:
+    def trace(self, inputs: Union[List[Edge], Edge, None] = None) -> List[Edge]:
         """
         追踪图的执行流程
         
         参数:
-            inputs: 输入边列表
+            inputs: 输入边列表、单个边或None。如果为None则使用默认输入
             
         返回:
             追踪后的边列表
         """
-        return super().trace(inputs)
+        if inputs is None:
+            return super().trace()
+        elif isinstance(inputs, Edge):
+            return super().trace(inputs)
+        elif isinstance(inputs, list):
+            return super().trace(inputs)
+        else:
+            raise ValueError("inputs must be List[Edge], Edge or None")
     
     def get_edge_wrapper(self, edge: Union[Edge, str]) -> EdgeWrapper:
         return super().get_edge_wrapper(edge)

@@ -849,6 +849,75 @@ std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
     return outputs;
   }
 }
+std::vector<Edge *> Graph::forward() {
+  std::vector<Edge *> outputs;
+  return outputs;
+}
+std::vector<Edge *> Graph::operator()() {
+  if (traced_) {
+    // NNDEPLOY_LOGI("graph traced!\n");
+    base::Status status = this->run();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("graph run failed!");
+      return std::vector<Edge *>();
+    }
+    return outputs_;
+  } else {
+    // NNDEPLOY_LOGI("graph not traced!\n");
+    this->markInputEdge(std::vector<Edge *>());
+    std::vector<Edge *> outputs = this->forward();
+    if (graph_ != nullptr) {
+      base::Status status = graph_->updateNodeIO(this, std::vector<Edge *>(), outputs);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+        return std::vector<Edge *>();
+      }
+      // for (auto input : inputs) {
+      //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
+      // }
+      // for (auto output : outputs) {
+      //   NNDEPLOY_LOGE("output->getName(): %s.\n", output->getName().c_str());
+      // }
+    }
+    this->markOutputEdge(outputs);
+    return outputs;
+  }
+}
+
+std::vector<Edge *> Graph::forward(Edge *input) {
+  std::vector<Edge *> outputs;
+  return outputs;
+}
+std::vector<Edge *> Graph::operator()(Edge *input) {
+    if (traced_) {
+    // NNDEPLOY_LOGI("graph traced!\n");
+    base::Status status = this->run();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("graph run failed!");
+      return std::vector<Edge *>();
+    }
+    return outputs_;
+  } else {
+    // NNDEPLOY_LOGI("graph not traced!\n");
+    this->markInputEdge(std::vector<Edge *>({input}));
+    std::vector<Edge *> outputs = this->forward(input);
+    if (graph_ != nullptr) {
+      base::Status status = graph_->updateNodeIO(this, std::vector<Edge *>({input}), outputs);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+        return std::vector<Edge *>();
+      }
+      // for (auto input : inputs) {
+      //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
+      // }
+      // for (auto output : outputs) {
+      //   NNDEPLOY_LOGE("output->getName(): %s.\n", output->getName().c_str());
+      // }
+    }
+    this->markOutputEdge(outputs);
+    return outputs;
+  }
+}
 
 base::Status Graph::dump(std::ostream &oss) {
   base::Status status = base::kStatusCodeOk;
@@ -1040,6 +1109,43 @@ std::vector<Edge *> Graph::trace(std::vector<Edge *> inputs) {
   base::Status status = base::kStatusCodeOk;
   this->setTraceFlag(true);
   std::vector<Edge *> outputs = this->operator()(inputs);
+  // NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
+  status = this->init();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("init failed!");
+    return std::vector<Edge *>();
+  }
+  // status = this->dump();
+  // if (status != base::kStatusCodeOk) {
+  //   NNDEPLOY_LOGE("dump failed!");
+  //   return std::vector<Edge *>();
+  // }
+  traced_ = true;
+  return outputs;
+}
+
+std::vector<Edge *> Graph::trace() {
+  base::Status status = base::kStatusCodeOk;
+  this->setTraceFlag(true);
+  std::vector<Edge *> outputs = this->operator()();
+  // NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
+  status = this->init();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("init failed!");
+    return std::vector<Edge *>();
+  }
+  // status = this->dump();
+  // if (status != base::kStatusCodeOk) {
+  //   NNDEPLOY_LOGE("dump failed!");
+  //   return std::vector<Edge *>();
+  // }
+  traced_ = true;
+  return outputs;
+}
+std::vector<Edge *> Graph::trace(Edge *input) {
+  base::Status status = base::kStatusCodeOk;
+  this->setTraceFlag(true);
+  std::vector<Edge *> outputs = this->operator()(input);
   // NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
   status = this->init();
   if (status != base::kStatusCodeOk) {

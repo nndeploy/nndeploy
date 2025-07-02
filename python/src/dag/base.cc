@@ -42,10 +42,19 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             py::object module = py_type.attr("__module__");
             std::string module_name = module.cast<std::string>();
             std::string type_name = py_type.attr("__name__").cast<std::string>();
+            // std::cout << module_name << " " << type_name << std::endl;
             self.type_name_ = module_name + "." + type_name;
             self.type_ptr_ = &typeid(py::type);
             self.type_holder_ = std::make_shared<EdgeTypeInfo::TypeHolder<py::type>>();
           }
+        } else {
+          self.type_ = EdgeTypeFlag::kAny;
+          // 获取泛型类型的完整名称
+          py::object type_name = type_val.attr("__name__");
+          // std::cout << "type_name: " << type_name.cast<std::string>() << std::endl;
+          self.type_name_ = type_name.cast<std::string>();
+          self.type_ptr_ = &typeid(py::type);
+          self.type_holder_ = std::make_shared<EdgeTypeInfo::TypeHolder<py::type>>();
         }
       }, py::arg("type_val"))
       .def("get_type", &EdgeTypeInfo::getType)

@@ -146,9 +146,17 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_memory", &Node::setMemory, py::arg("buffer"))
       .def("update_input", &Node::updateInput)
       .def("run", &Node::run)
-      .def("forward", &Node::forward, py::arg("inputs"),
+      .def("forward", py::overload_cast<std::vector<Edge *>>(&Node::forward), py::arg("inputs"),
            py::return_value_policy::reference)
-      .def("__call__", &Node::operator(), py::arg("inputs"),
+      .def("forward", py::overload_cast<>(&Node::forward),
+           py::return_value_policy::reference)
+      .def("forward", py::overload_cast<Edge *>(&Node::forward), py::arg("input"),
+           py::return_value_policy::reference)
+      .def("__call__", py::overload_cast<std::vector<Edge *>>(&Node::operator()), py::arg("inputs"),
+           py::return_value_policy::reference)
+      .def("__call__", py::overload_cast<>(&Node::operator()),
+           py::return_value_policy::reference)
+      .def("__call__", py::overload_cast<Edge *>(&Node::operator()), py::arg("input"),
            py::return_value_policy::reference)
       .def("check_inputs", &Node::checkInputs, py::arg("inputs"))
       .def("check_outputs",
