@@ -7,6 +7,7 @@ import {
 
 import "@flowgram.ai/free-layout-editor/index.css";
 import "./styles/index.css";
+import "./styles/my.css";
 //import { nodeRegistries } from "../../../nodes";
 import { initialData } from "./initial-data";
 import { useEditorProps } from "../../../hooks";
@@ -199,7 +200,8 @@ const Flow: React.FC<FlowProps> = (props) => {
         //nodeRegistries.find(item=>item.)
        
         //let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
-         var type = entity.is_graph_ ? 'group':  entity.key_
+         //var type = entity.is_graph_ ? 'group':  entity.key_
+        var  type = entity.key_
         
         let node = {
           // ...response.result,
