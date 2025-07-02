@@ -51,7 +51,7 @@ class FixedEdge : public AbstractEdge {
   virtual device::Tensor *getGraphOutputTensor();
 
   virtual base::Status takeDataPacket(DataPacket *data_packet);
-  virtual bool notifyAnyWritten(void *anything);
+  virtual bool notifyWritten(void *anything);
   virtual DataPacket *getDataPacket(const Node *node);
   virtual DataPacket *getGraphOutputDataPacket();
 

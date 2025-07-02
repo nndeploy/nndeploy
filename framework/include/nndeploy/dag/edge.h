@@ -107,31 +107,38 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   base::Param *getGraphOutputParam();
 
   template <typename T>
-  base::Status setAny(T *t, bool is_external = true) {
+  base::Status set(T *t, bool is_external = true) {
     this->setTypeInfo<T>();
-    return abstact_edge_->setAny<T>(t, is_external);
+    return abstact_edge_->set<T>(t, is_external);
   }
   template <typename T>
-  base::Status setAny(T &t) {
+  base::Status set(T &t) {
     this->setTypeInfo<T>();
-    return this->setAny(&t, true);
+    return this->set(&t, true);
   }
   template <typename T, typename... Args>
-  T *createAny(Args &&...args) {
+  T *create(Args &&...args) {
     this->setTypeInfo<T>();
-    return abstact_edge_->createAny<T>(std::forward<Args>(args)...);
+    return abstact_edge_->create<T>(std::forward<Args>(args)...);
   }
   template <typename T>
-  bool notifyAnyWritten(T *t) {
-    return abstact_edge_->notifyAnyWritten<T>(t);
+  bool notifyWritten(T *t) {
+    return abstact_edge_->notifyWritten<T>(t);
   }
   template <typename T>
-  T *getAny(const Node *node) {
-    return abstact_edge_->getAny<T>(node);
+  T *get(const Node *node) {
+    return abstact_edge_->get<T>(node);
   }
   template <typename T>
-  T *getGraphOutputAny() {
-    return abstact_edge_->getGraphOutputAny<T>();
+  T *getGraphOutput() {
+    return abstact_edge_->getGraphOutput<T>();
+  }
+
+
+  template <typename PY_WRAPPER, typename T>
+  base::Status set4py(PY_WRAPPER *wrapper, T* t, bool is_external = true) {
+    this->setTypeInfo<T>();
+    return abstact_edge_->set4py<PY_WRAPPER, T>(wrapper, t, is_external);
   }
 
   int64_t getIndex(const Node *node);
@@ -162,10 +169,12 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
     if (type_info_ == nullptr) {
       type_info_ = std::make_shared<EdgeTypeInfo>();
       type_info_->setType<T>();
-      // NNDEPLOY_LOGI("setTypeInfo<%s>\n", type_info_->getTypeName().c_str());
+      // NNDEPLOY_LOGI("setTypeInfo<%s>\n",
+      // type_info_->getTypeName().c_str());
     } else {
       type_info_->setType<T>();
-      // NNDEPLOY_LOGI("setTypeInfo<%s>\n", type_info_->getTypeName().c_str());
+      // NNDEPLOY_LOGI("setTypeInfo<%s>\n",
+      // type_info_->getTypeName().c_str());
     }
     return base::kStatusCodeOk;
   }
