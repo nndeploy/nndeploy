@@ -47,6 +47,9 @@ export interface INodeEntity{
   param_?: {
     [key:string]: any
   }, 
+
+  node_repository_?: INodeEntity[]; 
+  
    [key:string]: any
   //schema: JsonSchema
 }
