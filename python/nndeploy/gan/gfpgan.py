@@ -28,7 +28,8 @@ class GFPGAN(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
         
     def run(self):
-        input_numpy = self.get_input(0).get(self)
+        input_edge = self.get_input(0)
+        input_numpy = input_edge.get(self)
         _, _, self.temp_frame = self.gfpgan.enhance(input_numpy, paste_back=True)
         self.get_output(0).set(self.temp_frame)
         return nndeploy.base.Status.ok()

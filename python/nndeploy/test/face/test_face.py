@@ -86,6 +86,7 @@ def test_face_swapper_from_json():
     face_swapper_demo.init()
     print("init success!")
     face_swapper_demo.dump()
+    nndeploy.base.time_point_start("test_face_swapper_from_json")
     count = 10
     face_swapper_demo.set_size(count)
     for i in range(count):
@@ -93,14 +94,20 @@ def test_face_swapper_from_json():
         if parallel_type == nndeploy.base.ParallelType.Sequential:
             output = face_swapper_demo.get_output(0)
             mat = output.get_graph_output()
-            import cv2
-            cv2.imwrite(f"/home/always/github/public/nndeploy/build/nndeploy_Always_Chunel_v3_{i}_sequential.jpg", mat)
+            # import cv2
+            # cv2.imwrite(f"/home/always/github/public/nndeploy/build/nndeploy_Always_Chunel_v3_{i}_sequential.jpg", mat)
     if parallel_type == nndeploy.base.ParallelType.Pipeline:
-        for i in range(count):
+        for i in range(10):
+            # print(f"test_face_swapper_from_json {i}")
             output = face_swapper_demo.get_output(0)
             mat = output.get_graph_output()
-            import cv2
-            cv2.imwrite(f"/home/always/github/public/nndeploy/build/nndeploy_Always_Chunel_v3_{i}_pipeline.jpg", mat)
+            # print(f"test_face_swapper_from_json {i}")
+            # print(output)
+            # mat = output.get_graph_output()
+            # import cv2
+            # cv2.imwrite(f"/home/always/github/public/nndeploy/build/nndeploy_Always_Chunel_v3_{i}_pipeline.jpg", mat)
+    nndeploy.base.time_point_end("test_face_swapper_from_json")
+    face_swapper_demo.deinit()
     nndeploy.base.time_profiler_print("test_face_swapper_from_json")
     
     
