@@ -39,10 +39,12 @@ base::Status ParallelPipelineExecutor::init(
 
 base::Status ParallelPipelineExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
+  NNDEPLOY_LOGE("deinit start!\n");
   std::unique_lock<std::mutex> lock(pipeline_mutex_);
+  NNDEPLOY_LOGE("deinit start!\n");
   pipeline_cv_.wait(lock, [this]() {
-    // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
-    //               std::this_thread::get_id(), completed_size_, run_size_);
+    NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
+                  std::this_thread::get_id(), completed_size_, run_size_);
     bool flag = completed_size_ == run_size_;
     return flag;
   });
@@ -79,8 +81,8 @@ base::Status ParallelPipelineExecutor::run() {
 void ParallelPipelineExecutor::commitThreadPool() {
   // NNDEPLOY_LOGE("ppe run Thread ID: %d.\n", std::this_thread::get_id());
   for (auto iter : topo_sort_node_) {
-    // NNDEPLOY_LOGI("commitThreadPool iter: %s.\n",
-    //               iter->node_->getName().c_str());
+    NNDEPLOY_LOGI("commitThreadPool iter: %s.\n",
+                  iter->node_->getName().c_str());
     auto func = [iter, this]() -> base::Status {
       base::Status status = base::kStatusCodeOk;
       while (true) {
@@ -95,13 +97,12 @@ void ParallelPipelineExecutor::commitThreadPool() {
             std::lock_guard<std::mutex> lock(pipeline_mutex_);
             completed_size_++;
             if (completed_size_ == run_size_) {
+              NNDEPLOY_LOGI("completed_size_ == run_size_ notify_all!\n");
               pipeline_cv_.notify_all();
             }
           }
-          // static int count = 0;
-          // count++;
-          // NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", count,
-          //               iter->node_->getName().c_str());
+          NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
+                        iter->node_->getName().c_str());
         } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
           break;
         } else {

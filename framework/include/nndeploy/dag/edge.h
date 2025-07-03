@@ -127,10 +127,26 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
   }
   template <typename T>
   T *get(const Node *node) {
+    if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+      std::unique_lock<std::mutex> lock(type_info_mutex_);
+      type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+    }
+    if (!type_info_->isType<T>()) {
+      // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+      return nullptr;
+    }
     return abstact_edge_->get<T>(node);
   }
   template <typename T>
   T *getGraphOutput() {
+    if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+      std::unique_lock<std::mutex> lock(type_info_mutex_);
+      type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+    }
+    if (!type_info_->isType<T>()) {
+      // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+      return nullptr;
+    }
     return abstact_edge_->getGraphOutput<T>();
   }
 
@@ -176,6 +192,9 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
       // NNDEPLOY_LOGI("setTypeInfo<%s>\n",
       // type_info_->getTypeName().c_str());
     }
+    if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+      type_info_cv_.notify_all();
+    }
     return base::kStatusCodeOk;
   }
   base::Status setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info);
@@ -194,6 +213,8 @@ class NNDEPLOY_CC_API Edge : public base::NonCopyable {
  private:
   std::string name_;
   AbstractEdge *abstact_edge_ = nullptr;
+  std::mutex type_info_mutex_;
+  std::condition_variable type_info_cv_;
   std::shared_ptr<EdgeTypeInfo> type_info_;
   int queue_max_size_ = 16;
 };

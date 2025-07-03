@@ -104,7 +104,7 @@ def test_yolo_from_json():
     
 def test_static_yolo_from_json():
     yolo_demo = YoloDemo("yolo_demo")
-    yolo_demo.load_file("/home/always/github/public/nndeploy/build/yolo_demo.json")
+    yolo_demo.load_file("/home/always/github/public/nndeploy/build/yolo_demo_v3.json")
     yolo_demo.set_time_profile_flag(True)
     pt = nndeploy.base.ParallelType.Sequential
     yolo_demo.set_parallel_type(pt)
@@ -128,12 +128,15 @@ def test_static_yolo_from_json():
             result = output[0].get_graph_output()
             for bbox in result.bboxs_:
                 print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
+    # import time
+    # time.sleep(10)
     if (pt == nndeploy.base.ParallelType.Pipeline):
         for i in range(count):
             result = output[0].get_graph_output()
             for bbox in result.bboxs_:
                 print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     
+    print("deinit start!")
     yolo_demo.deinit()
     nndeploy.base.time_point_end("test_yolo_from_json")
     nndeploy.base.time_profiler_print("test_yolo_from_json")
@@ -170,7 +173,7 @@ def test_static_graph_from_json():
 
     
 if __name__ == "__main__":
-    test_yolo()
+    # test_yolo()
     # test_yolo_from_json()
     test_static_yolo_from_json()
     # test_static_graph_from_json()

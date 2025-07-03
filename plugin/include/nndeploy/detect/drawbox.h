@@ -57,12 +57,14 @@ class NNDEPLOY_CC_API DrawBox : public dag::Node {
       NNDEPLOY_LOGE("input_mat is nullptr\n");
       return base::kStatusCodeErrorInvalidParam;
     }
+    NNDEPLOY_LOGE("input_mat: %p\n", input_mat);
     detect::DetectResult *result =
-        (detect::DetectResult *)inputs_[1]->getParam(this);
+        (detect::DetectResult *)inputs_[1]->get<DetectResult>(this);
     if (result == nullptr) {
       NNDEPLOY_LOGE("result is nullptr\n");
       return base::kStatusCodeErrorInvalidParam;
     }
+    NNDEPLOY_LOGE("result: %p\n", result);
     float w_ratio = float(input_mat->cols);
     float h_ratio = float(input_mat->rows);
     const int CNUM = 80;
