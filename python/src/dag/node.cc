@@ -115,7 +115,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_time_profile_flag", &Node::getTimeProfileFlag)
       .def("set_debug_flag", &Node::setDebugFlag, py::arg("flag"))
       .def("get_debug_flag", &Node::getDebugFlag)
-      .def("set_running_flag", &Node::setRunningFlag, py::arg("flag"))
+      .def("set_running_flag", &Node::setRunningFlag, py::arg("flag"), py::call_guard<py::gil_scoped_release>())
       .def("is_running", &Node::isRunning)
       .def("set_trace_flag", &Node::setTraceFlag, py::arg("flag"))
       .def("get_trace_flag", &Node::getTraceFlag)
@@ -144,7 +144,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("deinit", &Node::deinit, py::call_guard<py::gil_scoped_release>())
       .def("get_memory_size", &Node::getMemorySize)
       .def("set_memory", &Node::setMemory, py::arg("buffer"))
-      .def("update_input", &Node::updateInput)
+      .def("update_input", &Node::updateInput, py::call_guard<py::gil_scoped_release>())
       .def("run", &Node::run, py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<std::vector<Edge *>>(&Node::forward), py::arg("inputs"),
            py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())

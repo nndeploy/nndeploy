@@ -106,7 +106,7 @@ def test_static_yolo_from_json():
     yolo_demo = YoloDemo("yolo_demo")
     yolo_demo.load_file("/home/always/github/public/nndeploy/build/yolo_demo_v3.json")
     yolo_demo.set_time_profile_flag(True)
-    pt = nndeploy.base.ParallelType.Sequential
+    pt = nndeploy.base.ParallelType.Pipeline
     yolo_demo.set_parallel_type(pt)
     yolo_demo.init()
     print("init success!")
