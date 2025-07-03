@@ -27,6 +27,8 @@ class ParallelPipelineExecutor : public Executor {
    */
   virtual base::Status run();
 
+  base::Status executeNode(NodeWrapper* iter);
+
  protected:
   void commitThreadPool();
 

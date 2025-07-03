@@ -118,5 +118,37 @@ void ParallelPipelineExecutor::commitThreadPool() {
   }
 }
 
+base::Status ParallelPipelineExecutor::executeNode(NodeWrapper* iter) {
+  base::Status status = base::kStatusCodeOk;
+  while (true) {
+    base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
+    if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
+      iter->node_->setRunningFlag(true);
+      status = iter->node_->run();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "node execute failed!\n");
+      iter->node_->setRunningFlag(false);
+      if (iter == topo_sort_node_.back()) {
+        std::lock_guard<std::mutex> lock(pipeline_mutex_);
+        completed_size_++;
+        if (completed_size_ == run_size_) {
+          NNDEPLOY_LOGI("completed_size_ == run_size_ notify_all!\n");
+          pipeline_cv_.notify_all();
+        }
+      }
+      NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
+                    iter->node_->getName().c_str());
+    } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
+      break;
+    } else {
+      NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
+                    iter->node_->getName().c_str());
+      status = base::kStatusCodeErrorDag;
+      break;
+    }
+  }
+  return status;
+}
+
 }  // namespace dag
 }  // namespace nndeploy

@@ -596,7 +596,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_graph_output_position", &Edge::getGraphOutputPosition)
 
       // 更新和标记相关操作
-      .def("update", &Edge::update, py::arg("node"))
+      .def("update", &Edge::update, py::arg("node"), py::call_guard<py::gil_scoped_release>())
       .def("mark_graph_output", &Edge::markGraphOutput)
 
       // 生产者消费者相关操作
