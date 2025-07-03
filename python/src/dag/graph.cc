@@ -94,21 +94,31 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("mark_input_edge", &Graph::markInputEdge, py::arg("inputs"))
       .def("mark_output_edge", &Graph::markOutputEdge, py::arg("outputs"))
       .def("default_param", &Graph::defaultParam)
-      .def("init", &Graph::init)
-      .def("deinit", &Graph::deinit)
-      .def("run", &Graph::run)
-      .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward), py::arg("inputs"),
-           py::keep_alive<1, 2>(), py::return_value_policy::reference)
+      .def("init", &Graph::init, py::call_guard<py::gil_scoped_release>())
+      .def(
+          "deinit",
+          [](Graph &g) {
+            NNDEPLOY_LOGE("deinit start!\n");
+            return g.deinit();
+          },  py::call_guard<py::gil_scoped_release>())
+      .def("run", &Graph::run, py::call_guard<py::gil_scoped_release>())
+      .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward),
+           py::arg("inputs"), py::keep_alive<1, 2>(),
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<>(&Graph::forward),
-           py::return_value_policy::reference)
-      .def("forward", py::overload_cast<Edge *>(&Graph::forward), py::arg("input"),
-           py::keep_alive<1, 2>(), py::return_value_policy::reference)
-      .def("__call__", py::overload_cast<std::vector<Edge *>>(&Graph::operator()), py::arg("inputs"),
-           py::keep_alive<1, 2>(), py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+      .def("forward", py::overload_cast<Edge *>(&Graph::forward),
+           py::arg("input"), py::keep_alive<1, 2>(),
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+      .def("__call__",
+           py::overload_cast<std::vector<Edge *>>(&Graph::operator()),
+           py::arg("inputs"), py::keep_alive<1, 2>(),
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("__call__", py::overload_cast<>(&Graph::operator()),
-           py::return_value_policy::reference)
-      .def("__call__", py::overload_cast<Edge *>(&Graph::operator()), py::arg("input"),
-           py::keep_alive<1, 2>(), py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+      .def("__call__", py::overload_cast<Edge *>(&Graph::operator()),
+           py::arg("input"), py::keep_alive<1, 2>(),
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("dump", [](Graph &g) { g.dump(std::cout); })
       .def("set_trace_flag", &Graph::setTraceFlag, py::arg("flag"))
       // 绑定Graph类的trace方法到Python

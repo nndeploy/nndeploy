@@ -66,9 +66,25 @@ bool Edge::notifyWritten(device::Buffer *buffer) {
   return abstact_edge_->notifyWritten(buffer);
 }
 device::Buffer *Edge::getBuffer(const Node *node) {
+  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    std::unique_lock<std::mutex> lock(type_info_mutex_);
+    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+  }
+  if (!type_info_->isType<device::Buffer>()) {
+    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+    return nullptr;
+  }
   return abstact_edge_->getBuffer(node);
 }
 device::Buffer *Edge::getGraphOutputBuffer() {
+  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    std::unique_lock<std::mutex> lock(type_info_mutex_);
+    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+  }
+  if (!type_info_->isType<device::Buffer>()) {
+    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+    return nullptr;
+  }
   return abstact_edge_->getGraphOutputBuffer();
 }
 
@@ -89,9 +105,25 @@ bool Edge::notifyWritten(cv::Mat *cv_mat) {
   return abstact_edge_->notifyWritten(cv_mat);
 }
 cv::Mat *Edge::getCvMat(const Node *node) {
+  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    std::unique_lock<std::mutex> lock(type_info_mutex_);
+    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+  }
+  if (!type_info_->isType<cv::Mat>()) {
+    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+    return nullptr;
+  }
   return abstact_edge_->getCvMat(node);
 }
 cv::Mat *Edge::getGraphOutputCvMat() {
+  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    std::unique_lock<std::mutex> lock(type_info_mutex_);
+    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+  }
+  if (!type_info_->isType<cv::Mat>()) {
+    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+    return nullptr;
+  }
   return abstact_edge_->getGraphOutputCvMat();
 }
 #endif
@@ -120,9 +152,25 @@ bool Edge::notifyWritten(device::Tensor *tensor) {
   return abstact_edge_->notifyWritten(tensor);
 }
 device::Tensor *Edge::getTensor(const Node *node) {
+  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    std::unique_lock<std::mutex> lock(type_info_mutex_);
+    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+  }
+  if (!type_info_->isType<device::Tensor>()) {
+    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+    return nullptr;
+  }
   return abstact_edge_->getTensor(node);
 }
 device::Tensor *Edge::getGraphOutputTensor() {
+  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    std::unique_lock<std::mutex> lock(type_info_mutex_);
+    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+  }
+  if (!type_info_->isType<device::Tensor>()) {
+    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+    return nullptr;
+  }
   return abstact_edge_->getGraphOutputTensor();
 }
 
@@ -138,9 +186,25 @@ bool Edge::notifyWritten(base::Param *param) {
   return abstact_edge_->notifyWritten(param);
 }
 base::Param *Edge::getParam(const Node *node) {
+  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    std::unique_lock<std::mutex> lock(type_info_mutex_);
+    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+  }
+  if (type_info_->getType() != EdgeTypeFlag::kParam) {
+    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+    return nullptr;
+  }
   return abstact_edge_->getParam(node);
 }
 base::Param *Edge::getGraphOutputParam() {
+  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    std::unique_lock<std::mutex> lock(type_info_mutex_);
+    type_info_cv_.wait(lock, [this]() { return type_info_ != nullptr; });
+  }
+  if (type_info_->getType() != EdgeTypeFlag::kParam) {
+    // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+    return nullptr;
+  }
   return abstact_edge_->getGraphOutputParam();
 }
 
@@ -196,6 +260,9 @@ bool Edge::requestTerminate() { return abstact_edge_->requestTerminate(); }
 
 base::Status Edge::setTypeInfo(std::shared_ptr<EdgeTypeInfo> type_info) {
   type_info_ = type_info;
+  if (getParallelType() == base::ParallelType::kParallelTypePipeline) {
+    type_info_cv_.notify_all();
+  }
   return base::kStatusCodeOk;
 }
 std::shared_ptr<EdgeTypeInfo> Edge::getTypeInfo() { return type_info_; }
