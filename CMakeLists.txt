@@ -21,6 +21,9 @@ if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/config.cmake)
   include(${CMAKE_CURRENT_BINARY_DIR}/config.cmake)
 endif()
 
+# set
+set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+
 # 1. **Basic Build Options (Default Configuration Recommended)**: Such as whether to build as a shared library, C++ standard used, etc.
 nndeploy_option(ENABLE_NNDEPLOY_BUILD_SHARED "Build as shared library instead of static library" ON)
 nndeploy_option(ENABLE_NNDEPLOY_SYMBOL_HIDE "Hide symbols in the library to reduce binary size" OFF)
@@ -213,6 +216,11 @@ endif()
 if(ENABLE_NNDEPLOY_PYTHON)
   set(ENABLE_NNDEPLOY_CXX17_ABI ON)
   set(ENABLE_NNDEPLOY_DAG ON)
+  # 添加 pybind11 子目录
+  add_subdirectory(${ROOT_PATH}/third_party/pybind11)
+  # include
+  include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
+  add_definitions(-DENABLE_NNDEPLOY_PYTHON)
 endif()
 
 if(ENABLE_NNDEPLOY_DEMO)
@@ -288,9 +296,6 @@ endif()
 
 # compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# set
-set(ROOT_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 
 # folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
