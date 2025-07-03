@@ -175,10 +175,8 @@ int main(int argc, char *argv[]) {
   }
   detect_graph->setInferParam(device_type, model_type, is_path, model_value);
   detect_graph->setVersion(version);
-  codec::Decode *decode_node =
-      (codec::Decode *)graph->getNode("decode_node");
-  codec::Encode *encode_node =
-      (codec::Encode *)graph->getNode("encode_node");
+  codec::Decode *decode_node = (codec::Decode *)graph->getNode("decode_node");
+  codec::Encode *encode_node = (codec::Encode *)graph->getNode("encode_node");
   dag::Edge *output = graph->getOutput(0);
 #endif
 

@@ -1,5 +1,6 @@
-#include "nndeploy/dag/edge/data_packet.h"
 #include "nndeploy/dag/edge/pipeline_edge.h"
+
+#include "nndeploy/dag/edge/data_packet.h"
 
 namespace nndeploy {
 namespace dag {

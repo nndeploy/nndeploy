@@ -4,9 +4,9 @@
 namespace nndeploy {
 namespace dag {
 
-ParallelPipelineExecutor::ParallelPipelineExecutor() : Executor(){};
+ParallelPipelineExecutor::ParallelPipelineExecutor() : Executor() {};
 
-ParallelPipelineExecutor::~ParallelPipelineExecutor(){};
+ParallelPipelineExecutor::~ParallelPipelineExecutor() {};
 
 base::Status ParallelPipelineExecutor::init(
     std::vector<EdgeWrapper*>& edge_repository,
@@ -41,8 +41,8 @@ base::Status ParallelPipelineExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
   std::unique_lock<std::mutex> lock(pipeline_mutex_);
   pipeline_cv_.wait(lock, [this]() {
-    // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
-    //               std::this_thread::get_id(), completed_size_, run_size_);
+    NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
+                  std::this_thread::get_id(), completed_size_, run_size_);
     bool flag = completed_size_ == run_size_;
     return flag;
   });
