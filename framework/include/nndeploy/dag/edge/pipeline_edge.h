@@ -1,14 +1,5 @@
-#ifndef _NNDEPLOY_DAG_EDGE_PIPELINE_EDGE_RB_H_
-#define _NNDEPLOY_DAG_EDGE_PIPELINE_EDGE_RB_H_
-
-#include <atomic>
-#include <cassert>
-#include <cstdint>
-#include <deque>
-#include <memory>
-#include <thread>
-#include <unordered_map>
-#include <vector>
+#ifndef _NNDEPLOY_DAG_EDGE_PIPELINE_EDGE_H_
+#define _NNDEPLOY_DAG_EDGE_PIPELINE_EDGE_H_
 
 #include "nndeploy/base/common.h"
 #include "nndeploy/base/glic_stl_include.h"
@@ -28,228 +19,86 @@
 namespace nndeploy {
 namespace dag {
 
-template <typename Slot>
-class RingBufferSpmc {
+/**
+ * @brief
+ * 1. 只能一个线程得到整个图的结果
+ * @note
+ * # 问题一：对于多输入的节点，会不会产生输入不匹配的情况呢？
+ * ## 答：不会，因为节点内部会一直等待多输入的数据都到来，才会开始执行。
+ * # 问题二：当处理完一批数据后，线程池中线程是不是要释放呢？
+ * ## 答：线程池中的线程会处于wait状态，基本不消耗cpu资源
+ */
+class PipelineEdge : public AbstractEdge {
  public:
-  explicit RingBufferSpmc(std::size_t cap)
-      : cap_(cap), mask_(cap - 1), buf_(cap) {
-    assert(cap >= 2 && (cap & mask_) == 0);
-  }
+  PipelineEdge(base::ParallelType paralle_type);
+  virtual ~PipelineEdge();
 
-  Slot* reserve() {
-    std::size_t h = head_.load(std::memory_order_relaxed);
-    std::size_t min_tail = min_tail_cached();
+  virtual base::Status setQueueMaxSize(int queue_max_size);
 
-    if (h - min_tail >= cap_) return nullptr;
-    return &buf_[h & mask_];
-  }
-  void commit() { head_.fetch_add(1, std::memory_order_release); }
+  virtual base::Status construct();
 
-  Slot* peek(std::size_t cid) {
-    std::size_t t = tails_[cid].load(std::memory_order_relaxed);
-    if (t == head_.load(std::memory_order_acquire)) return nullptr;
-    return &buf_[t & mask_];
-  }
-  void pop(std::size_t cid) {
-    tails_[cid].fetch_add(1, std::memory_order_release);
-  }
-
-  std::size_t register_consumer() {
-    tails_.push_back(std::atomic<std::size_t>(0));
-    return tails.size() - 1;
-  }
-  std::size_t size() const {
-    return head_.load(std::memory_order_acquire) - min_tail_cached();
-  }
-
- private:
-  std::size_t min_tail_cached() const {
-    std::size_t min_t = tails_[0].load(std::memory_order_relaxed);
-    for (std::size_t i = 1; i < tails_.size(); ++i) {
-      std::size_t t = tails_[i].load(std::memory_order_relaxed);
-      if (t < min_t) min_t = t;
-    }
-    return min_t;
-  }
-
-  const std::size_t cap_, mask_;
-  std::vector<Slot> buf_;
-  std::atomic<std::size_t> head_{0};
-  std::deque<std::atomic<std::size_t>> tails_;
-};
-
-enum class SlotState : uint8_t { kEmpty = 0, kWriting = 1, kReady = 2 };
-
-struct DataSlot {
-  std::atomic<SlotState> state{SlotState::kEmpty};
-  std::shared_ptr<PipelineDataPacket> pkt;
-};
-
-class PipelineEdge final : public AbstractEdge {
- public:
-  explicit PipelineEdge(base::ParallelType pt)
-      : AbstractEdge(pt),
-        ring_(std::make_unique<RingBufferSpmc<DataSlot>>(64)) {}
-
-  ~PipelineEdge() override {
-    terminate_flag_.store(true, std::memory_order_relaxed);
-  }
-
-  base::Status setQueueMaxSize(int q) override {
-    queue_max_size_ = q;
-    ring_ = std::make_unique<RingBufferSpmc<DataSlot>>(round_up_pow2(q));
-    return base::kStatusCodeOk;
-  }
-
-  base::Status construct() override {
-    consumers_size_ = static_cast<int>(consumers_.size());
-    for (auto* n : consumers_) {
-      consumer_id_[n] = ring_->register_consumer();
-    }
-    return base::kStatusCodeOk;
-  }
-
-  base::Status set(device::Buffer* buf, bool ext) override {
-    auto pkt = std::make_shared<PipelineDataPacket>(consumers_size_);
-    NNDEPLOY_RETURN_ON_NEQ(pkt->set(buf, ext), base::kStatusCodeOk, "pkt::set");
-    return push_ready(std::move(pkt));
-  }
-
-  device::Buffer* create(device::Device* dev,
-                         const device::BufferDesc& desc) override {
-    auto pkt = reserve_writing();
-    if (!pkt) return nullptr;
-    auto* out = pkt->create(dev, desc);
-    if (out) buffer2pkt_[out] = pkt;
-    return out;
-  }
-
-  bool notifyWritten(device::Buffer* buf) override {
-    return commit_written(buf);
-  }
-
-  device::Buffer* getBuffer(const Node* n) override {
-    return current_pkt_[n] ? current_pkt_[n]->getBuffer() : nullptr;
-  }
-  device::Buffer* getGraphOutputBuffer() override { return getBuffer(nullptr); }
+  virtual base::Status set(device::Buffer *buffer, bool is_external);
+  virtual device::Buffer *create(device::Device *device,
+                                 const device::BufferDesc &desc);
+  virtual bool notifyWritten(device::Buffer *buffer);
+  virtual device::Buffer *getBuffer(const Node *node);
+  virtual device::Buffer *getGraphOutputBuffer();
 
 #ifdef ENABLE_NNDEPLOY_OPENCV
-  base::Status set(cv::Mat* cv_mat, bool ext) override {
-    auto pkt = std::make_shared<PipelineDataPacket>(consumers_size_);
-    NNDEPLOY_RETURN_ON_NEQ(pkt->set(cv_mat, ext), base::kStatusCodeOk,
-                           "pkt::set");
-    return push_ready(std::move(pkt));
-  }
-
-  cv::Mat* create(int rows, int cols, int type, const cv::Vec3b& value) {
-    auto pkt = reserve_writing();
-    if (!pkt) return nullptr;
-    auto* out = pkt->create(rows, cols, type, value);
-    if (out) buffer2pkt_[out] = pkt;
-    return out;
-  }
-
-  bool notifyWritten(cv::Mat* cv_mat) override {
-    return commit_written(cv_mat);
-  }
-
-  device::Buffer* getCvMat(const Node* n) override {
-    return current_pkt_[n] ? current_pkt_[n]->getCvMat() : nullptr;
-  }
-  device::Buffer* getGraphOutputBuffer() override { return getCvMat(nullptr); }
+  virtual base::Status set(cv::Mat *cv_mat, bool is_external);
+  virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value);
+  virtual bool notifyWritten(cv::Mat *cv_mat);
+  virtual cv::Mat *getCvMat(const Node *node);
+  virtual cv::Mat *getGraphOutputCvMat();
 #endif
 
-  base::EdgeUpdateFlag update(const Node* node) override {
-    Node* n = const_cast<Node*>(node);
-    if (!checkNode(n)) return base::kEdgeUpdateFlagError;
+  virtual base::Status set(device::Tensor *tensor, bool is_external);
+  virtual device::Tensor *create(device::Device *device,
+                                 const device::TensorDesc &desc,
+                                 const std::string &name);
+  virtual bool notifyWritten(device::Tensor *tensor);
+  virtual device::Tensor *getTensor(const Node *node);
+  virtual device::Tensor *getGraphOutputTensor();
 
-    const std::size_t cid = consumer_id_[n];
-    while (true) {
-      if (terminate_flag_.load(std::memory_order_acquire))
-        return base::kEdgeUpdateFlagTerminate;
+  virtual base::Status takeDataPacket(DataPacket *data_packet);
+  virtual bool notifyAnyWritten(void *anything);
+  virtual DataPacket *getDataPacket(const Node *node);
+  virtual DataPacket *getGraphOutputDataPacket();
 
-      DataSlot* s = ring_->peek(cid);
-      if (!s) {
-        std::this_thread::yield();
-        continue;
-      }
+  virtual base::Status set(base::Param *param, bool is_external);
+  virtual bool notifyWritten(base::Param *param);
+  virtual base::Param *getParam(const Node *node);
+  virtual base::Param *getGraphOutputParam();
 
-      if (s->state.load(std::memory_order_acquire) != SlotState::kReady) {
-        std::this_thread::yield();
-        continue;
-      }
-      current_pkt_[n] = s->pkt.get();  // 保存裸指针供 get*
-      ring_->pop(cid);                 // tail++
-      /* 回收：最后一个消费者离开时复位槽 */
-      if (s->pkt.use_count() == 1) {  // 仅 pipeline 还持有
-        s->pkt.reset();
-        s->state.store(SlotState::kEmpty, std::memory_order_relaxed);
-      }
-      return base::kEdgeUpdateFlagComplete;
-    }
-  }
+  virtual int64_t getIndex(const Node *node);
+  virtual int64_t getGraphOutputIndex();
 
-  bool requestTerminate() override {
-    terminate_flag_.store(true, std::memory_order_release);
-    return true;
-  }
+  virtual int getPosition(const Node *node);
+  virtual int getGraphOutputPosition();
+
+  virtual base::EdgeUpdateFlag update(const Node *node);
+
+  virtual bool requestTerminate();
 
  private:
-  base::Status push_ready(std::shared_ptr<PipelineDataPacket>&& pkt) {
-    DataSlot* s = wait_reserve();
-    s->pkt = std::move(pkt);
-    s->state.store(SlotState::kReady, std::memory_order_release);
-    ring_->commit();
-    return base::kStatusCodeOk;
-  }
+  PipelineDataPacket *getPipelineDataPacket(const Node *node);
 
-  std::shared_ptr<PipelineDataPacket> reserve_writing() {
-    DataSlot* s = wait_reserve();
-    s->state.store(SlotState::kWriting, std::memory_order_relaxed);
-    s->pkt.reset(new PipelineDataPacket(consumers_size_));
-    return s->pkt.get();
-  }
-
-  bool commit_written(device::Buffer* buf) {
-    auto it = buffer2pkt_.find(buf);
-    if (it == buffer2pkt_.end()) return false;
-    auto pkt = it->second.lock();
-    if (!pkt) return false;
-    pkt->notifyWritten(buf);  // 调原逻辑
-    DataSlot* s = pkt2slot(pkt.get());
-    if (!s) return false;
-    s->state.store(SlotState::kReady, std::memory_order_release);
-    buffer2pkt_.erase(it);
-    return true;
-  }
-
-  DataSlot* wait_reserve() {
-    while (true) {
-      if (auto* s = ring_->reserve()) return s;
-      std::this_thread::yield();  // 满–>背压
-    }
-  }
-  DataSlot* pkt2slot(PipelineDataPacket* p) {
-    // O(cap) 线性扫描；可换成更快 map
-    for (auto& s : ring_->buf_)
-      if (s.pkt.get() == p) return &s;
-    return nullptr;
-  }
-
-  static std::size_t round_up_pow2(std::size_t v) {
-    if (v < 2) return 2;
-    --v;
-    for (int i = 1; i < sizeof(std::size_t) * 8; i <<= 1) v |= v >> i;
-    return ++v;
-  }
-
-  std::unique_ptr<RingBufferSpmc<DataSlot>> ring_;
-  std::unordered_map<const Node*, std::size_t> consumer_id_;
-  std::unordered_map<const Node*, PipelineDataPacket*> current_pkt_;
-  std::unordered_map<void*, std::weak_ptr<PipelineDataPacket>> buffer2pkt_;
-  std::atomic<bool> terminate_flag_{false};
-  int consumers_size_{0};
-  int queue_max_size_{1024};
+ private:
+  std::once_flag once_;
+  std::mutex mutex_;
+  std::condition_variable cv_;
+  // 有多少个消费者
+  int consumers_size_;
+  // 队列最大值
+  // std::mutex queue_mutex_;
+  std::condition_variable queue_cv_;
+  int queue_max_size_;
+  // 数据包
+  std::list<PipelineDataPacket *> data_packets_;
+  // 每个消费者 消费 的数据包最新索引  与下面当前数据包的关系为该索引为其+1
+  std::map<Node *, int> to_consume_index_;
+  // 每个消费者 消费 的当前数据包
+  std::map<Node *, PipelineDataPacket *> consuming_dp_;
 };
 
 }  // namespace dag
