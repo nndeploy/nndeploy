@@ -29,13 +29,15 @@ import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-co
 import { getFieldType } from "../functions";
 import { INodeEntity } from "../../../Node/entity";
 import { useState } from "react";
+import RepositoryItemDrawer from "../NodeRepositoryEditor";
+import NodeRepositoryEditor from "../NodeRepositoryEditor";
 
 const { Text } = Typography;
 
 export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const isSidebar = useIsSidebar();
 
-  const { node } = useNodeRender();
+ // const { node } = useNodeRender();
 
   const { nodeList = [], paramTypes } = useFlowEnviromentContext()
 
@@ -57,15 +59,25 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'is_dynamic_input_',
     'is_dynamic_output_'
   ];
-  const basicFields = lodash.difference(  d
+  const basicFields = lodash.difference( 
     Object.keys(form.values),
     excludeFields
   );
 
+  const [respository, setRespository] = useState<INodeEntity>({} as INodeEntity)
   const [repositoryDrawerVisible, setRepositoryDrawerVisible]  = useState(false)
+
+  function onShowRepositoryItemDrawer(respository: INodeEntity){
+    setRespository(respository)
+    setRepositoryDrawerVisible(true)
+  }
 
   function onRepositoryDrawerClose(){
     setRepositoryDrawerVisible(false)
+  }
+
+  function onRepositoryDrawerSave(respository:INodeEntity){
+
   }
 
   return (
@@ -249,29 +261,36 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               </Section>
             }
 
-            {
+            {/* {
               form.values.hasOwnProperty('node_repository_') && <Section text={"node_repository_"}>
                 {
-                  (form.values['node_repository_'] as INodeEntity[]).map(respository => {
-                    return <div className="repository-title">
-                      <Text link onClick={}>
-                        {respository.name_}
-                      </Text>
-                    </div>
-                  })
+                  // (form.values['node_repository_'] as INodeEntity[]).map(respository => {
+                  //   return <div className="repository-title">
+                  //     <Text link onClick={()=>onShowRepositoryItemDrawer(respository)}>
+                  //       {respository.name_}
+                  //     </Text>
+                  //   </div>
+                  // })
+                  <NodeRepositoryEditor node_repository_ = {form.values['node_repository_'] as INodeEntity[]}
+                    nodeList = {nodeList} paramTypes = {paramTypes}
+
+                  
+                  onUpdate={(values)=>{
+                    console.log(values)
+                  }}  />
                 }
               </Section>
-            }
+            } */}
 
           </>
         ) : (
           <></>
         )}
       </FormContent>
-       <SideSheet title="滑动侧边栏" visible={repositoryDrawerVisible} onCancel={onRepositoryDrawerClose}>
-                <p>This is the content of a basic sidesheet.</p>
-                <p>Here is more content...</p>
-            </SideSheet>
+       {/* <SideSheet title="滑动侧边栏" visible={repositoryDrawerVisible} onCancel={onRepositoryDrawerClose}>
+                <RepositoryItemDrawer respository = {respository} onRepositoryDrawerSave = {onRepositoryDrawerSave}/>
+
+            </SideSheet> */}
     </div>
   );
 };
