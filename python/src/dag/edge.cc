@@ -405,12 +405,16 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           [](Edge& edge, const Node* node) {
             // 尝试获取不同类型的数据
             if (auto* tensor = edge.getTensor(node)) {
+              py::gil_scoped_acquire acquire;
               return py::cast(tensor);
             } else if (auto* buffer = edge.getBuffer(node)) {
+              py::gil_scoped_acquire acquire;
               return py::cast(buffer);
             } else if (auto* param = edge.getParam(node)) {
+              py::gil_scoped_acquire acquire;
               return py::cast(param);
-            } else if (auto* mat = edge.getCvMat(node)) {
+            } else if (auto* mat = edge.getCvMat(node)) { 
+              py::gil_scoped_acquire acquire;
               if (mat == nullptr) {
                 return py::object(py::array());  // 返回空数组
               }
@@ -492,19 +496,23 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             }
             return py::object(py::none());
           },
-          py::arg("node"), py::return_value_policy::reference)
+          py::arg("node"), py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def(
           "get_graph_output",
           [](Edge& edge) {
             // 尝试获取不同类型的数据
             if (auto* tensor = edge.getGraphOutputTensor()) {
+              py::gil_scoped_acquire acquire;
               return py::cast(tensor);
             } else if (auto* buffer = edge.getGraphOutputBuffer()) {
+              py::gil_scoped_acquire acquire;
               return py::cast(buffer);
             } else if (auto* param = edge.getGraphOutputParam()) {
               // NNDEPLOY_LOGE("get_graph_output param: %p", param);
+              py::gil_scoped_acquire acquire;
               return py::cast(param);
             } else if (auto* mat = edge.getGraphOutputCvMat()) {
+              py::gil_scoped_acquire acquire;
               if (mat == nullptr) {
                 return py::object(py::array());  // 返回空数组
               }
@@ -565,6 +573,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
                                             strides            // 步长
                                             )));
             } else if (auto* obj = edge.getGraphOutput<PyObject>()) {
+              py::gil_scoped_acquire acquire;
               // 报错原因:
               // 1. 直接使用 obj->ob_type 访问 Python
               // 对象的类型不安全,可能导致段错误
@@ -581,12 +590,11 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
               //   NNDEPLOY_LOGE("get obj type: %s",
               //   PyUnicode_AsUTF8(type_str));
               // }
-
               return py::reinterpret_borrow<py::object>(obj);
             }
             return py::object(py::none());
           },
-          py::return_value_policy::reference)
+          py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
 
       // 索引和位置相关操作
       .def("get_index", &Edge::getIndex, py::arg("node"))
@@ -604,7 +612,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("increase_consumers", &Edge::increaseConsumers, py::arg("consumers"))
 
       // 终止请求
-      .def("request_terminate", &Edge::requestTerminate)
+      .def("request_terminate", &Edge::requestTerminate, py::call_guard<py::gil_scoped_release>())
 
       // 类型信息相关操作
       .def(

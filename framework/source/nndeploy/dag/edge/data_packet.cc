@@ -280,7 +280,7 @@ void DataPacket::destory() {
   deleter_ = nullptr;
 
   if (wrapper_ != nullptr) {
-    wrapper_deleter_(wrapper_);
+    // wrapper_deleter_(wrapper_);
     wrapper_ = nullptr;
   }
   wrapper_deleter_ = nullptr;
