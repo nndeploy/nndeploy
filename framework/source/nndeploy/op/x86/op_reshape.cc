@@ -1,4 +1,4 @@
-#include "nndeploy/op/op_batchnorm.h"
+#include "nndeploy/op/op_reshape.h"
 #include "nndeploy/op/x86/op_include.h"
 #include "nndeploy/op/x86/op_util.h"
 #include "nndeploy/op/x86/op_convert.h"
@@ -9,14 +9,14 @@
 namespace nndeploy {
 namespace op {
 
-// BatchNorm 算子的 X86 (oneDNN) 实现
-class X86OpBatchNorm : public OpBatchNorm {
+// Reshape 算子的 X86 (oneDNN) 实现
+class X86OpReshape : public OpReshape {
  public:
-  X86OpBatchNorm() : OpBatchNorm() {}
-  virtual ~X86OpBatchNorm() {}
+  X86OpReshape() : OpReshape() {}
+  virtual ~X86OpReshape() {}
 
   virtual base::Status init() {
-    base::Status status = OpBatchNorm::init();
+    base::Status status = OpReshape::init();
     if (status != base::kStatusCodeOk) {
       return status;
     }
@@ -33,8 +33,7 @@ class X86OpBatchNorm : public OpBatchNorm {
 
 	  NNDEPLOY_ASSERT(inputs_[0]->getShape().size() == 4);
 
-    auto param = dynamic_cast<ir::BatchNormalizationParam*>(op_desc_.op_param_.get());
-    auto epsilon = param->epsilon_;
+    auto param = dynamic_cast<ir::ReshapeParam*>(op_desc_.op_param_.get());
 
     int N = inputs_[0]->getShapeIndex(0);
     int C = inputs_[0]->getShapeIndex(1);
@@ -108,8 +107,8 @@ class X86OpBatchNorm : public OpBatchNorm {
   dnnl::memory batchnorm_dst_mem_;
 };
 
-// 注册 OpBatchNorm 算子
-REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeX86, ir::kOpTypeBatchNormalization, X86OpBatchNorm)
+// 注册 OpReshape 算子
+REGISTER_OP_IMPLEMENTION(kDeviceTypeCodeX86, ir::kOpTypeReshapealization, X86OpReshape)
 
 }  // namespace op
 }  // namespace nndeploy
