@@ -113,7 +113,7 @@ def main() -> None:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    server = NnDeployServer(loop, args, job_mp_queue)
+    server = NnDeployServer(args, job_mp_queue)
 
     start_scheduler(server.queue, job_mp_queue)
     start_finisher(server.queue, result_q)
