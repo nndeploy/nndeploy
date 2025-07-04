@@ -36,19 +36,31 @@ class RingBufferSpmc {
     assert(cap >= 2 && (cap & mask_) == 0);
   }
 
-  Slot* reserve() {
+  RingBufferSpmc(const RingBufferSpmc &) = delete;
+  RingBufferSpmc &operator=(const RingBufferSpmc &) = delete;
+
+  RingBufferSpmc(RingBufferSpmc &&) = default;
+  RingBufferSpmc &operator=(RingBufferSpmc &&) = default;
+
+  void construct(const std::function<std::unique_ptr<Slot>()> &slot_factory) {
+    for (std::size_t i = 0; i < cap_; ++i) {
+      buf_[i] = slot_factory();
+    }
+  }
+
+  Slot *reserve() {
     std::size_t h = head_.load(std::memory_order_relaxed);
     std::size_t min_tail = min_tail_cached();
 
     if (h - min_tail >= cap_) return nullptr;
-    return &buf_[h & mask_];
+    return buf_[h & mask_].get();
   }
-  void commit() { head_.fetch_add(1, std::memory_order_release); }
+  void push() { head_.fetch_add(1, std::memory_order_release); }
 
-  Slot* peek(std::size_t cid) {
+  Slot *peek(std::size_t cid) {
     std::size_t t = tails_[cid].load(std::memory_order_relaxed);
     if (t == head_.load(std::memory_order_acquire)) return nullptr;
-    return &buf_[t & mask_];
+    return buf_[t & mask_].get();
   }
   void pop(std::size_t cid) {
     tails_[cid].fetch_add(1, std::memory_order_release);
@@ -56,7 +68,7 @@ class RingBufferSpmc {
 
   std::size_t register_consumer() {
     tails_.push_back(std::atomic<std::size_t>(0));
-    return tails.size() - 1;
+    return tails_.size() - 1;
   }
   std::size_t size() const {
     return head_.load(std::memory_order_acquire) - min_tail_cached();
@@ -73,9 +85,58 @@ class RingBufferSpmc {
   }
 
   const std::size_t cap_, mask_;
-  std::vector<Slot> buf_;
+  std::vector<std::unique_ptr<Slot>> buf_;
   std::atomic<std::size_t> head_{0};
   std::deque<std::atomic<std::size_t>> tails_;
+};
+
+class RbPipelineEdge : public AbstractEdge {
+ public:
+  RbPipelineEdge(base::ParallelType parallel_type);
+  virtual ~RbPipelineEdge();
+
+  virtual base::Status construct() override;
+  virtual base::Status setQueueMaxSize(int q) override;
+
+  virtual base::Status set(device::Buffer *buffer, bool is_external);
+  virtual device::Buffer *create(device::Device *device,
+                                 const device::BufferDesc &desc);
+  virtual bool notifyWritten(device::Buffer *buffer);
+  virtual device::Buffer *getBuffer(const Node *node);
+  virtual device::Buffer *getGraphOutputBuffer();
+
+#ifdef ENABLE_NNDEPLOY_OPENCV
+  virtual base::Status set(cv::Mat *cv_mat, bool is_external);
+  virtual cv::Mat *create(int rows, int cols, int type, const cv::Vec3b &value);
+  virtual bool notifyWritten(cv::Mat *cv_mat);
+  virtual cv::Mat *getCvMat(const Node *node);
+  virtual cv::Mat *getGraphOutputCvMat();
+#endif
+
+  virtual base::Status set(device::Tensor *tensor, bool is_external);
+  virtual device::Tensor *create(device::Device *device,
+                                 const device::TensorDesc &desc,
+                                 const std::string &name);
+  virtual bool notifyWritten(device::Tensor *tensor);
+  virtual device::Tensor *getTensor(const Node *node);
+  virtual device::Tensor *getGraphOutputTensor();
+
+  virtual base::Status takeDataPacket(DataPacket *data_packet);
+  virtual bool notifyAnyWritten(void *anything);
+  virtual DataPacket *getDataPacket(const Node *node);
+  virtual DataPacket *getGraphOutputDataPacket();
+
+  virtual base::Status set(base::Param *param, bool is_external);
+  virtual bool notifyWritten(base::Param *param);
+  virtual base::Param *getParam(const Node *node);
+  virtual base::Param *getGraphOutputParam();
+
+ private:
+  RingBufferSpmc<PipelineDataPacket> rb_;
+  std::unordered_map<const Node *, std::size_t> consumer_id_;
+  std::unordered_map<const Node *, PipelineDataPacket *> consuming_dp_;
+  int consumers_size_ = 0;
+  int queue_max_size_ = 128;
 };
 
 // class PipelineEdge : public AbstractEdge {
