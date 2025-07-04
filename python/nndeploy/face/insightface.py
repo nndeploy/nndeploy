@@ -46,10 +46,7 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
         json_obj["providers_"] = self.providers_
         json_obj["is_one_face_"] = self.is_one_face_
         json_obj["ctx_id"] = self.ctx_id
-        # print(self.det_size_)
-        # det_size_list = list(self.det_size_)
-        # print(det_size_list)
-        # json_obj["det_size_"] = det_size_list
+        json_obj["det_size_"] = list(self.det_size_)
         return json.dumps(json_obj)
     
     def deserialize(self, target: str):
@@ -58,7 +55,8 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
         self.providers_ = json_obj["providers_"]
         self.is_one_face_ = json_obj["is_one_face_"]
         self.ctx_id = json_obj["ctx_id"]
-        # self.det_size_ = tuple(json_obj["det_size_"])
+        self.det_size_ = tuple(json_obj["det_size_"])
+        self.det_thresh_ = json_obj.get("det_thresh_", 0.5)
         return super().deserialize(target)
       
 class InsightFaceAnalysisCreator(nndeploy.dag.NodeCreator):
@@ -66,10 +64,8 @@ class InsightFaceAnalysisCreator(nndeploy.dag.NodeCreator):
         super().__init__()
         
     def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
-        # self.node = InsightFaceAnalysis(name, inputs, outputs)
-        # return self.node
-        node = InsightFaceAnalysis(name, inputs, outputs)
-        return node
+        self.node = InsightFaceAnalysis(name, inputs, outputs)
+        return self.node
       
 insightface_node_creator = InsightFaceAnalysisCreator()
 nndeploy.dag.register_node("nndeploy.face.InsightFaceAnalysis", insightface_node_creator)   
@@ -127,8 +123,8 @@ nndeploy.dag.register_node("nndeploy.face.InsightFaceSwapper", insightface_swapp
 
 
 class FaceSwapper(nndeploy.dag.Graph):
-    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
-        super().__init__(name, inputs, outputs)
+    def __init__(self, name: str):
+        super().__init__(name)
         self.set_key("nndeploy.face.FaceSwapper")
         self.set_desc("FaceSwapper: swap face from image")
         self.set_input_type(np.ndarray)

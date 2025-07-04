@@ -29,15 +29,8 @@ class GraphRunner:
 
         t0 = time.perf_counter()
         graph.init()
-        nndeploy.base.time_point_start(name)
         graph.run()
         t1 = time.perf_counter()
-        nndeploy.base.time_point_end(name)
-        nndeploy.base.time_profiler_print(name)
-        
-        graph.deinit()
-        t2 = time.perf_counter()
-        
 
         # outputs = graph.get_all_output()
 
