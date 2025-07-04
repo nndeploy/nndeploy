@@ -10,6 +10,7 @@
 #include "nndeploy/dag/running_condition.h"
 #include "nndeploy/dag/util.h"
 #include "nndeploy_api_registry.h"
+#include "nndeploy/dag/node_create.h"
 
 namespace py = pybind11;
 namespace nndeploy {
@@ -176,25 +177,25 @@ class PyNode : public Base {
   }
 };
 
-template <typename Base = NodeCreator>
-class PyNodeCreator : public Base {
- public:
-  using Base::Base;
+// template <typename Base = NodeCreator>
+// class PyNodeCreator : public Base {
+//  public:
+//   using Base::Base;
 
-  Node *createNode(const std::string &node_name, std::vector<Edge *> inputs,
-                   std::vector<Edge *> outputs) override {
-    PYBIND11_OVERRIDE_PURE_NAME(Node *, NodeCreator, "create_node", createNode,
-                                node_name, inputs, outputs);
-  }
+//   Node *createNode(const std::string &node_name, std::vector<Edge *> inputs,
+//                    std::vector<Edge *> outputs) override {
+//     PYBIND11_OVERRIDE_PURE_NAME(Node *, NodeCreator, "create_node", createNode,
+//                                 node_name, inputs, outputs);
+//   }
 
-  std::shared_ptr<Node> createNodeSharedPtr(
-      const std::string &node_name, std::vector<Edge *> inputs,
-      std::vector<Edge *> outputs) override {
-    PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Node>, NodeCreator,
-                                "create_node_shared_ptr", createNodeSharedPtr,
-                                node_name, inputs, outputs);
-  }
-};
+//   std::shared_ptr<Node> createNodeSharedPtr(
+//       const std::string &node_name, std::vector<Edge *> inputs,
+//       std::vector<Edge *> outputs) override {
+//     PYBIND11_OVERRIDE_PURE_NAME(std::shared_ptr<Node>, NodeCreator,
+//                                 "create_node_shared_ptr", createNodeSharedPtr,
+//                                 node_name, inputs, outputs);
+//   }
+// };
 
 template <typename Base = Graph>
 class PyGraph : public Base {

@@ -384,9 +384,14 @@ base::Status Infer::serialize(rapidjson::Value &json,
   if (status != base::kStatusCodeOk) {
     return status;
   }
-  std::string type_str = base::inferenceTypeToString(type_);
+  base::InferenceType type = type_;
+  if (type == base::kInferenceTypeNotSupport) {
+    type = base::kInferenceTypeOnnxRuntime;
+  }
+  std::string type_str = base::inferenceTypeToString(type);
   json.AddMember("type_", rapidjson::Value(type_str.c_str(), allocator),
-                 allocator);
+                   allocator);
+  
   // json.AddMember("is_input_dynamic_", is_input_dynamic_, allocator);
   // json.AddMember("is_output_dynamic_", is_output_dynamic_, allocator);
   // json.AddMember("can_op_input_", can_op_input_, allocator);
