@@ -1,7 +1,6 @@
 #include "nndeploy/dag/node.h"
 
 #include "nndeploy/dag/graph.h"
-#include "nndeploy/dag/node_create.h"
 
 namespace nndeploy {
 namespace dag {
@@ -672,11 +671,13 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs) {
 std::vector<Edge *> Node::forward() {
   return this->forward(std::vector<Edge *>());
 }
-std::vector<Edge *> Node::operator()() { return this->forward(); }
-std::vector<Edge *> Node::forward(Edge *input) {
+std::vector<Edge *> Node::operator()() {
+  return this->forward();
+}
+std::vector<Edge *> Node::forward(Edge * input) {
   return this->forward(std::vector<Edge *>({input}));
 }
-std::vector<Edge *> Node::operator()(Edge *input) {
+std::vector<Edge *> Node::operator()(Edge * input) {
   return this->forward(input);
 }
 
@@ -829,8 +830,7 @@ base::Status Node::serialize(rapidjson::Value &json,
   //   name = tmp_key;
   // }
   json.AddMember("name_", rapidjson::Value(name.c_str(), allocator), allocator);
-  json.AddMember("desc_", rapidjson::Value(desc_.c_str(), allocator),
-                 allocator);
+  json.AddMember("desc_", rapidjson::Value(desc_.c_str(), allocator), allocator);
   // 写入设备类型
   std::string device_type_str = base::deviceTypeToString(device_type_);
   json.AddMember("device_type_",
@@ -1103,8 +1103,7 @@ base::Status Node::deserialize(rapidjson::Value &json) {
           input_type_info_.emplace_back(edge_type_info);
         } else {
           NNDEPLOY_LOGE("input_type_info_ size: %d, is_dynamic_input_: %d\n",
-                        static_cast<int>(input_type_info_.size()),
-                        is_dynamic_input_);
+                        static_cast<int>(input_type_info_.size()), is_dynamic_input_);
         }
       }
     }
@@ -1133,8 +1132,7 @@ base::Status Node::deserialize(rapidjson::Value &json) {
           output_type_info_.emplace_back(edge_type_info);
         } else {
           NNDEPLOY_LOGE("output_type_info_ size: %d, is_dynamic_output_: %d\n",
-                        static_cast<int>(output_type_info_.size()),
-                        is_dynamic_output_);
+                        static_cast<int>(output_type_info_.size()), is_dynamic_output_);
         }
       }
     }
@@ -1178,13 +1176,13 @@ base::Status Node::loadFile(const std::string &path) {
   return status;
 }
 
-NodeFactory *getGlobalNodeFactory() { return NodeFactory::getInstance(); }
+NodeFactory* getGlobalNodeFactory() {
+  return NodeFactory::getInstance();
+}
 
 std::set<std::string> getNodeKeys() {
   return NodeFactory::getInstance()->getNodeKeys();
 }
-
-std::vector<PyRefNode> py_nodes;
 
 Node *createNode(const std::string &node_key, const std::string &node_name) {
   std::shared_ptr<NodeCreator> creator =
@@ -1192,17 +1190,7 @@ Node *createNode(const std::string &node_key, const std::string &node_name) {
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
-    auto *node = creator->createNode(node_name, inputs, outputs);
-    // #ifdef ENABLE_NNDEPLOY_PYTHON
-    if (std::dynamic_pointer_cast<PyNodeCreator<NodeCreator>>(creator) !=
-        nullptr) {
-      NNDEPLOY_LOGI("createNode %s is python node\n", node_name.c_str());
-      PyRefNode py_ref_node(node);
-      py_nodes.emplace_back(py_ref_node);
-      NNDEPLOY_LOGI("createNode %s is python node\n", node_name.c_str());
-    }
-    // #endif
-    return node;
+    return creator->createNode(node_name, inputs, outputs);
   }
   NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
   return nullptr;
@@ -1221,38 +1209,17 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
     outputs_vector.emplace_back(output);
   }
   if (creator != nullptr) {
-    auto *node = creator->createNode(node_name, inputs_vector, outputs_vector);
-    // #ifdef ENABLE_NNDEPLOY_PYTHON
-    if (std::dynamic_pointer_cast<PyNodeCreator<NodeCreator>>(creator) !=
-        nullptr) {
-      NNDEPLOY_LOGI("createNode %s is python node\n", node_name.c_str());
-      PyRefNode py_ref_node(node);
-      py_nodes.emplace_back(py_ref_node);
-      NNDEPLOY_LOGI("createNode %s is python node\n", node_name.c_str());
-    }
-    // #endif
-    return node;
+    return creator->createNode(node_name, inputs_vector, outputs_vector);
   }
   NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
   return nullptr;
 }
-
 Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::vector<Edge *> inputs, std::vector<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
   if (creator != nullptr) {
-    auto *node = creator->createNode(node_name, inputs, outputs);
-    // #ifdef ENABLE_NNDEPLOY_PYTHON
-    if (std::dynamic_pointer_cast<PyNodeCreator<NodeCreator>>(creator) !=
-        nullptr) {
-      NNDEPLOY_LOGI("createNode %s is python node\n", node_name.c_str());
-      PyRefNode py_ref_node(node);
-      py_nodes.emplace_back(py_ref_node);
-      NNDEPLOY_LOGI("createNode %s is python node\n", node_name.c_str());
-    }
-    // #endif
-    return node;
+    return creator->createNode(node_name, inputs, outputs);
   }
   NNDEPLOY_LOGE("Failed to createNode %s\n", node_name.c_str());
   return nullptr;
