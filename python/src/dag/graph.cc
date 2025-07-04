@@ -70,10 +70,10 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             g.addNode(node, is_external);
           },
           py::keep_alive<1, 2>(), py::arg("node"))
-      .def("get_node", py::overload_cast<const std::string &>(&Graph::getNode), py::arg("name"),
-           py::return_value_policy::reference)
-      .def("get_node", py::overload_cast<int>(&Graph::getNode), py::arg("index"),
-           py::return_value_policy::reference) 
+      .def("get_node", py::overload_cast<const std::string &>(&Graph::getNode),
+           py::arg("name"), py::return_value_policy::reference)
+      .def("get_node", py::overload_cast<int>(&Graph::getNode),
+           py::arg("index"), py::return_value_policy::reference)
       //  .def("get_node_shared_ptr", &Graph::getNodeSharedPtr, py::arg("name"))
       .def("get_node_by_key", &Graph::getNodeByKey, py::arg("key"),
            py::return_value_policy::reference)
@@ -102,27 +102,34 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def(
           "deinit",
           [](Graph &g) {
-            NNDEPLOY_LOGE("deinit start!\n");
+            //   NNDEPLOY_LOGE("deinit start!\n");
             return g.deinit();
-          },  py::call_guard<py::gil_scoped_release>())
+          },
+          py::call_guard<py::gil_scoped_release>())
       .def("run", &Graph::run, py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward),
            py::arg("inputs"), py::keep_alive<1, 2>(),
-           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<>(&Graph::forward),
-           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<Edge *>(&Graph::forward),
            py::arg("input"), py::keep_alive<1, 2>(),
-           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
       .def("__call__",
            py::overload_cast<std::vector<Edge *>>(&Graph::operator()),
            py::arg("inputs"), py::keep_alive<1, 2>(),
-           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
       .def("__call__", py::overload_cast<>(&Graph::operator()),
-           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
       .def("__call__", py::overload_cast<Edge *>(&Graph::operator()),
            py::arg("input"), py::keep_alive<1, 2>(),
-           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
       .def("dump", [](Graph &g) { g.dump(std::cout); })
       .def("set_trace_flag", &Graph::setTraceFlag, py::arg("flag"))
       // 绑定Graph类的trace方法到Python
@@ -166,12 +173,13 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::overload_cast<const std::string &>(&Graph::deserialize),
            py::arg("json_str"));
 
-//   m.def("serialize", py::overload_cast<Graph *>(&serialize), py::arg("graph"));
-//   m.def("save_file", &saveFile, py::arg("graph"), py::arg("path"));
-//   m.def("deserialize", py::overload_cast<const std::string &>(&deserialize),
-//         py::arg("json_str"), py::return_value_policy::take_ownership);
-//   m.def("load_file", &loadFile, py::arg("path"),
-//         py::return_value_policy::take_ownership);
+  //   m.def("serialize", py::overload_cast<Graph *>(&serialize),
+  //   py::arg("graph")); m.def("save_file", &saveFile, py::arg("graph"),
+  //   py::arg("path")); m.def("deserialize", py::overload_cast<const
+  //   std::string &>(&deserialize),
+  //         py::arg("json_str"), py::return_value_policy::take_ownership);
+  //   m.def("load_file", &loadFile, py::arg("path"),
+  //         py::return_value_policy::take_ownership);
 }
 
 }  // namespace dag
