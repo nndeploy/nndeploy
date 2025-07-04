@@ -3,6 +3,7 @@ from fastapi import APIRouter, Request, status, UploadFile, File
 from fastapi import Depends
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi import HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from typing import Set, Dict, Any, Optional
 from datetime import datetime
 from pathlib import Path
@@ -36,16 +37,26 @@ from files import router as files_router
 class NnDeployServer:
     instance: "NnDeployServer" = None
 
-    def __init__(self, loop, args, job_mp_queue):
+    def __init__(self, args, job_mp_queue):
         NnDeployServer.instance = self
-        self.loop = loop
+        self.loop: Optional[asyncio.AbstractEventLoop] = None # lazy loading
         self.args = args
         self.app = FastAPI(
             title="nndeploy backend",
             version="0.1.0"
         )
+
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
         self.queue = TaskQueue(self, job_mp_queue)
         self.sockets: set[WebSocket] = set()
+        self.ws_task_map: dict[WebSocket, set[str]] = {}
+        self.task_ws_map: dict[str, set[WebSocket]] = {}
         self._register_routes()
 
     def _get_workdir(self) -> Path:
@@ -211,20 +222,6 @@ class NnDeployServer:
         async def root():
             return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
 
-        # test
-        # @api.get("/test", tags=["Web"])
-        # async def test():
-        #     # 直接在当前 Loop 创建广播任务即可
-        #     asyncio.create_task(self.broadcast_preview("videos/person.mp4"))
-        #     return HTMLResponse("<h2>nndeploy backend: API OK!!</h2>")
- 
-        # @api.get("/debug")
-        # async def debug():
-        #     return {
-        #         "sockets": len(self.sockets),
-        #         "tasks_in_loop": len(asyncio.all_tasks())
-        #     }
-
         # preview
         @api.get("/preview/{file_path:path}", tags=["Files"],
                 summary="preview images/videos")
@@ -259,16 +256,30 @@ class NnDeployServer:
 
             return FileResponse(f, media_type=mime)
 
-        # websocket
+        @self.app.on_event("startup")
+        async def _on_startup():
+            self.loop = asyncio.get_running_loop()
+
         @api.websocket("/ws/progress")
         async def ws_progress(ws: WebSocket):
             await ws.accept()
             self.sockets.add(ws)
+            self.ws_task_map[ws] = set()
+
             try:
                 while True:
-                    await asyncio.sleep(60)
+                    msg = await ws.receive_json()
+                    if msg.get("type") == "bind" and "task_id" in msg:
+                        task_id = msg["task_id"]
+                        self.ws_task_map[ws].add(task_id)
+                        self.task_ws_map.setdefault(task_id, set()).add(ws)
             except WebSocketDisconnect:
+                logging.info("[WebSocket] client disconnected")
+            finally:
                 self.sockets.discard(ws)
+                task_ids = self.ws_task_map.pop(ws, set())
+                for tid in task_ids:
+                    self.task_ws_map.get(tid, set()).discard(ws)
 
         self.app.include_router(
             files_router,
@@ -279,48 +290,50 @@ class NnDeployServer:
         self.app.include_router(api)
 
     # task done notify
-    # def notify_task_done(self, task_id:str):
-    #     task_info = self.queue.get_task_by_id(task_id)
-    #     if task_info is None:
-    #         raise HTTPException(status_code=404, detail="task not found")
-    #     path = extract_encode_output_path(task_info)
-    #     payload = {"type": "result", "task_id": task_id, "path": path}
-    #     self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(payload))
+    def notify_task_done(self, task_id: str):
+        task_info = self.queue.get_task_by_id(task_id)
+        if task_info is None:
+            raise HTTPException(status_code=404, detail="task not found")
+        graph_json = task_info.get("task").get("graph_json")
+        path = extract_encode_output_path(graph_json)
 
-    # async def _broadcast(self, payload: dict, ws: WebSocket | None = None):
-    #     targets = [ws] if ws else list(self.sockets)
-    #     for w in targets:
-    #         try:
-    #             await w.send_json(payload)
-    #         except Exception:
-    #             self.sockets.discard(w)
+        flag = "success"
+        message = "notify task done"
+        result = {"task_id": task_id, "path": path}
+        payload = {"flag": flag, "message": message, "result": result}
+        ws_set = self.task_ws_map.get(task_id, set())
+        for ws in ws_set.copy():
+            if self.loop and self.loop.is_running():
+                asyncio.run_coroutine_threadsafe(
+                    self._broadcast(payload, ws),
+                    self.loop
+                )
+            else:
+                logging.warning("[notify_task_done] Event loop not ready or not running")
 
-    # queue progress notification
-    def queue_updated(self):
-        payload = {"pending": len(self.queue.get_current_queue()[1])}
-        self.send_sync("queue_update", payload)
-
-    def send_sync(self, event:str, data:dict, ws: WebSocket | None = None):
-        self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(event, data, ws))
-
-    async def _broadcast(self, event, data, ws):
-        msg = ProgressPayload(type=event, data=data).model_dump()
+    async def _broadcast(self, payload: dict, ws: WebSocket | None = None):
         targets = [ws] if ws else list(self.sockets)
         for w in targets:
             try:
-                await w.send_json(msg)
-            except Exception:
+                logging.info(f"[_broadcast] sending to {w.client}")
+                await w.send_json(payload)
+            except Exception as e:
+                logging.error(f"[_broadcast] failed to send: {e}")
                 self.sockets.discard(w)
 
-    # async def broadcast_preview(self, path: str):
-    #     payload = {"type": "preview", "result": path}
-    #     print(f"broadcasting: {payload!r}")
-    #     dead = []
-    #     for ws in self.sockets.copy():
+    # queue progress notification
+    # def queue_updated(self):
+    #     payload = {"pending": len(self.queue.get_current_queue()[1])}
+    #     self.send_sync("queue_update", payload)
+
+    # def send_sync(self, event:str, data:dict, ws: WebSocket | None = None):
+    #     self.loop.call_soon_threadsafe(asyncio.create_task, self._broadcast(event, data, ws))
+
+    # async def _broadcast(self, event, data, ws):
+    #     msg = ProgressPayload(type=event, data=data).model_dump()
+    #     targets = [ws] if ws else list(self.sockets)
+    #     for w in targets:
     #         try:
-    #             await ws.send_json(payload)
-    #         except Exception as e:
-    #             print("send failed:", e)
-    #             dead.append(ws)
-    #     for ws in dead:
-    #         self.sockets.discard(ws)
+    #             await w.send_json(msg)
+    #         except Exception:
+    #             self.sockets.discard(w)
