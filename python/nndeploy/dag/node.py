@@ -12,7 +12,7 @@ from .base import EdgeTypeInfo
 from .edge import Edge
 
 class NodeDesc(_C.dag.NodeDesc):
-    def __init__(self, name: str, inputs: list[str] = None, outputs: list[str] = None, key: str = None):
+    def __init__(self, name: str = "", inputs: list[str] = None, outputs: list[str] = None, key: str = None):
         if inputs is None:
             inputs = []
         if outputs is None:

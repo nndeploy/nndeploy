@@ -62,11 +62,11 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
 class InsightFaceAnalysisCreator(nndeploy.dag.NodeCreator):
     def __init__(self):
         super().__init__()
-        self.nodes = []
+        # self.nodes = []
         
     def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
         self.node = InsightFaceAnalysis(name, inputs, outputs)
-        self.nodes.append(self.node)
+        # self.nodes.append(self.node)
         return self.node
       
 insightface_node_creator = InsightFaceAnalysisCreator()

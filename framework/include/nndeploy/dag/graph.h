@@ -89,9 +89,12 @@ class NNDEPLOY_CC_API Graph : public Node {
 
   // get node
   Node *getNode(const std::string &name);
+  Node *getNode(int index);
   std::shared_ptr<Node> getNodeSharedPtr(const std::string &name);
   Node *getNodeByKey(const std::string &key);
   std::vector<Node *> getNodesByKey(const std::string &key);
+  int getNodeCount();
+  std::vector<Node *> getNodes();
 
   // set node param
   base::Status setNodeParam(const std::string &node_name, base::Param *param);
