@@ -6,5 +6,6 @@
 #include "oneapi/dnnl/dnnl.hpp"
 #include "oneapi/dnnl/dnnl_common.h"
 #include "oneapi/dnnl/dnnl_debug.h"
+#include "oneapi/dnnl/dnnl_graph.hpp"
 
 #endif

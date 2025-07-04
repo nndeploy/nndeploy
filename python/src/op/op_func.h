@@ -30,7 +30,6 @@
 namespace nndeploy {
 
 device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
-                            device::Tensor* residual,
                             std::shared_ptr<ir::RMSNormParam> param);
 
 device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
@@ -41,7 +40,7 @@ device::Tensor* concatFunc(std::vector<device::Tensor *> inputs,
                          std::shared_ptr<ir::ConcatParam> param);
 
 device::Tensor* batchNormFunc(
-    device::Tensor* input, device::Tensor* scale, device::Tensor* bias,
+    device::Tensor* input, device::Tensor* scale, device::Tensor* shift,
     device::Tensor* mean, device::Tensor* var,
     std::shared_ptr<ir::BatchNormalizationParam> param);
 
@@ -65,7 +64,6 @@ device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2);
 
 device::Tensor* matMulFunc(device::Tensor* input1, device::Tensor* input2, 
                            std::shared_ptr<ir::MatMulParam> param, device::Tensor* bias);
-
 device::Tensor* softmaxFunc(device::Tensor* input1,
                             std::shared_ptr<ir::SoftmaxParam> param);
 
