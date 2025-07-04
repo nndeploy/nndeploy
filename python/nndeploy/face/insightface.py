@@ -125,8 +125,8 @@ nndeploy.dag.register_node("nndeploy.face.InsightFaceSwapper", insightface_swapp
 
 
 class FaceSwapper(nndeploy.dag.Graph):
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
+        super().__init__(name, inputs, outputs)
         self.set_key("nndeploy.face.FaceSwapper")
         self.set_desc("FaceSwapper: swap face from image")
         self.set_input_type(np.ndarray)

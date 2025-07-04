@@ -313,11 +313,11 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def(
           "set",
           [](Edge& edge, py::object obj) {
-            NNDEPLOY_LOGE(
-                "set obj type: %s",
-                obj.get_type().attr("__name__").cast<std::string>().c_str());
+            // NNDEPLOY_LOGE(
+            //     "set obj type: %s.\n",
+            //     obj.get_type().attr("__name__").cast<std::string>().c_str());
             auto* wrapper = new PyObjectWrapper(obj.ptr());
-            NNDEPLOY_LOGE("wrapper: %p", wrapper);
+            // NNDEPLOY_LOGE("wrapper: %p", wrapper);
             // base::Status status = edge.set4py<PyObjectWrapper>(wrapper,
             // false); if (status != base::StatusCode::kStatusCodeOk) {
             //   throw std::runtime_error("Failed to set PyObjectWrapper");
