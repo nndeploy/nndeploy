@@ -46,7 +46,7 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
         json_obj["providers_"] = self.providers_
         json_obj["is_one_face_"] = self.is_one_face_
         json_obj["ctx_id"] = self.ctx_id
-        json_obj["det_size_"] = list(self.det_size_)
+        # json_obj["det_size_"] = list(self.det_size_)
         return json.dumps(json_obj)
     
     def deserialize(self, target: str):
@@ -55,16 +55,18 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
         self.providers_ = json_obj["providers_"]
         self.is_one_face_ = json_obj["is_one_face_"]
         self.ctx_id = json_obj["ctx_id"]
-        self.det_size_ = tuple(json_obj["det_size_"])
-        self.det_thresh_ = json_obj.get("det_thresh_", 0.5)
+        # self.det_size_ = tuple(json_obj["det_size_"])
+        # self.det_thresh_ = json_obj.get("det_thresh_", 0.5)
         return super().deserialize(target)
       
 class InsightFaceAnalysisCreator(nndeploy.dag.NodeCreator):
     def __init__(self):
         super().__init__()
+        self.nodes = []
         
     def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
         self.node = InsightFaceAnalysis(name, inputs, outputs)
+        self.nodes.append(self.node)
         return self.node
       
 insightface_node_creator = InsightFaceAnalysisCreator()
