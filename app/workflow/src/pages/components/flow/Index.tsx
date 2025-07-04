@@ -7,6 +7,7 @@ import {
 
 import "@flowgram.ai/free-layout-editor/index.css";
 import "./styles/index.css";
+import "./styles/my.css";
 //import { nodeRegistries } from "../../../nodes";
 import { initialData } from "./initial-data";
 import { useEditorProps } from "../../../hooks";
@@ -20,7 +21,7 @@ import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
 import FlowSaveDrawer from "./FlowSaveDrawer";
 import { IBusinessNode, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
-import { useGetNodeList, useGetRegistry } from "./effect";
+import { useGetNodeList, useGetParamTypes, useGetRegistry } from "./effect";
 import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
 import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
@@ -40,7 +41,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [entity, setEntity] = useState<IWorkFlowEntity>({
     id: props.id,
-    name: "",
+    name: props.id,
     parentId: "",
     designContent: {
       nodes: [],
@@ -79,6 +80,8 @@ const Flow: React.FC<FlowProps> = (props) => {
   }
 
   const nodeList = useGetNodeList()
+
+  const paramTypes = useGetParamTypes()
 
   const [nodeRegistries, setNodeRegistries] = useState<FlowNodeRegistry[]>([]);
 
@@ -197,7 +200,8 @@ const Flow: React.FC<FlowProps> = (props) => {
         //nodeRegistries.find(item=>item.)
        
         //let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
-         var type = entity.is_graph_ ? 'group':  entity.key_
+         //var type = entity.is_graph_ ? 'group':  entity.key_
+        var  type = entity.key_
         
         let node = {
           // ...response.result,
@@ -217,7 +221,7 @@ const Flow: React.FC<FlowProps> = (props) => {
         }
         //if(response.result.is_dynamic_input_){
 
-          node.data.inputs_ = node.data.inputs_.map(item=>{
+          node.data.inputs_ = node.data.inputs_.map((item : any)=>{
             return {
               ...item, 
               id: 'port' + Math.random().toString(36).substr(2, 9),
@@ -227,7 +231,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
         //if(response.result.is_dynamic_output_){
           
-           node.data.outputs_ = node.data.outputs_.map(item=>{
+           node.data.outputs_ = node.data.outputs_.map((item:any)=>{
             return {
               ...item, 
               id: 'port' + Math.random().toString(36).substr(2, 9),
@@ -269,7 +273,7 @@ const Flow: React.FC<FlowProps> = (props) => {
               <EditorRenderer className="demo-editor" />
             </div>
             <FlowEnviromentContext.Provider
-              value={{ element: flowRef, onSave, onRun, nodeList }}
+              value={{ element: flowRef, onSave, onRun, nodeList, paramTypes }}
             >
               <DemoTools 
               ///@ts-ignore

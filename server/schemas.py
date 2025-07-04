@@ -72,4 +72,13 @@ class PreviewPayload(BaseModel):
     type: Literal["preview"]
     data: Dict[str, Any]
 
+class ParamTypeResponse(BaseModel):
+    flag: str
+    message: str
+    result: Dict[str, Any]
+
+class WsPreviewPayload(BaseModel):
+    type: str
+    result: str
+
 UploadResponse.model_rebuild()

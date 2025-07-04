@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
-import { getNodeRegistry } from "./api"
+import { apiGetParamTypes, getNodeRegistry } from "./api"
 import { FlowNodeRegistry } from "../../../typings"
 import { apiGetNodeList } from "../../Layout/Design/Node/api"
 import { INodeEntity } from "../../Node/entity"
+import { IParamTypes } from "../../Layout/Design/WorkFlow/entity"
 
 export function useGetRegistry() {
 
@@ -17,7 +18,7 @@ export function useGetRegistry() {
   return nodeRegistries
 }
 
-export  function useGetNodeList() {
+export function useGetNodeList() {
 
   const [nodeList, setNodeList] = useState<INodeEntity[]>([])
 
@@ -34,4 +35,18 @@ export  function useGetNodeList() {
 
 
   return nodeList
+}
+
+export function useGetParamTypes() {
+  const [paramTypes, setParamTypes] = useState<IParamTypes>({});
+
+  useEffect(() => {
+    apiGetParamTypes().then(response => {
+      if (response.flag == 'success') {
+        setParamTypes(response.result)
+      }
+    })
+  }, [])
+
+  return paramTypes
 }

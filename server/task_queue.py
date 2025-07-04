@@ -11,10 +11,10 @@ _MAX_HISTORY = 1000
 class ExecutionStatus:
     """keep same with comfyui"""
     def __init__(self, ok: bool, msg: str = ""):
-        self.status_str = "success" if ok else "error"
+        self.status_str = "success" if ok else "failed"
         self.completed = ok
         self.messages = [msg] if msg else []
-    
+
 class TaskQueue:
     """thread safe queue"""
     def __init__(self, server: "NnDeployServer", job_mp_q: "mp.Queue"):
@@ -30,7 +30,7 @@ class TaskQueue:
     def put(self, payload, prio: int = 0):
         with self._mtx:
             heapq.heappush(self._pq, (prio, time.time(), payload))
-            self.server.queue_updated()
+            # self.server.queue_updated()
             self._not_empty.notify()
     
     def get(self, timeout: Optional[float] = None):
@@ -43,7 +43,6 @@ class TaskQueue:
             self._running[idx] = copy.deepcopy(payload)
             self._counter += 1
 
-            # self.server.queue_updated()
             return idx, payload
 
     def task_done(self, idx: int, status: ExecutionStatus):
@@ -55,7 +54,7 @@ class TaskQueue:
                 "task": task,
                 "status": status.__dict__,
             }
-            # self.server.queue_updated()
+            # self.server.notify_task_done(task["id"])
 
     def get_current_queue(self):
         with self._mtx:
@@ -64,4 +63,12 @@ class TaskQueue:
     def get_history(self, max_items: int | None = None):
         with self._mtx:
             items = list(self._hist.items())[-max_items:] if max_items else self._hist.items()
-            return dict(items)    
+            return dict(items)
+
+    def get_task_by_id(self, task_id: str) -> Optional[dict]:
+        with self._mtx:
+            for task in self._running.values():
+                if task.get("id") == task_id:
+                    return copy.deepcopy(task)
+            record = self._hist.get(task_id)
+            return copy.deepcopy(record) if record else None

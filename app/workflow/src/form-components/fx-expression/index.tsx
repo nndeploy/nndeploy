@@ -1,10 +1,11 @@
 import React, { type SVGProps } from 'react';
 
 import { VariableSelector } from '@flowgram.ai/form-materials';
-import { Input, Button, InputNumber, Switch } from '@douyinfe/semi-ui';
+import { Input, Button, InputNumber, Switch, Select } from '@douyinfe/semi-ui';
 
 import { ValueDisplay } from '../value-display';
 import { FlowRefValueSchema, FlowLiteralValueSchema } from '../../typings';
+import { IFieldType } from '../../pages/Layout/Design/WorkFlow/entity';
 
 export function FxIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -67,7 +68,7 @@ export interface FxExpressionProps {
   hasError?: boolean;
   readonly?: boolean;
   icon?: React.ReactNode;
-  fieldType: { isArray: boolean, primateType: string }
+  fieldType: IFieldType
 }
 
 export function FxExpression(props: FxExpressionProps) {
@@ -93,12 +94,18 @@ export function FxExpression(props: FxExpressionProps) {
         />
       ) : (
 
-        fieldType.primateType == 'boolean' ?
-          <Switch checked={!!value}
-            //label='开关(Switch)' 
-            onChange={(value: boolean) => {
-              onChange(value)
-            }} /> :
+        // fieldType.componentType == 'boolean' ?
+        //   <Switch checked={!!value}
+        //     //label='开关(Switch)' 
+        //     onChange={(value: boolean) => {
+        //       onChange(value)
+        //     }} /> :
+
+        //     fieldType.componentType == 'select' ? 
+        //     <Select   optionList={label: }>
+
+        //     </Select>
+        //     : 
           <InputWrap
             value={value as string}
             onChange={onChange}

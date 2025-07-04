@@ -23,7 +23,7 @@ def cli():
     ap.add_argument("--host", default="0.0.0.0")
     ap.add_argument("--port", type=int, default=8888)
     ap.add_argument("--resources", default="./resources")
-    ap.add_argument("--log", default="./logs/nndelpoy.log")
+    ap.add_argument("--log", default="./logs/nndeploy_server.log")
     return ap.parse_args()
 
 def configure_root_logger(log_q: mp.Queue, log_file: str) -> QueueListener:
