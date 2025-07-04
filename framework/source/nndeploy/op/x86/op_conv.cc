@@ -132,6 +132,7 @@ class X86OpConv : public OpConv {
 
     return base::kStatusCodeOk;
   }
+  
   virtual base::Status run() {
     auto dnnl_conv = dnnl::convolution_forward(dnnl_conv_pd_);
     dnnl_conv.execute(dnnl_stream_, {{DNNL_ARG_SRC, conv_src_mem_},

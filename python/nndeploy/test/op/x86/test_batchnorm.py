@@ -37,18 +37,18 @@ class TestBatchNormOp(unittest.TestCase):
         mean_tensor = create_tensor_from_numpy(np_mean)  
         var_tensor = create_tensor_from_numpy(np_var)  
           
-        cpu_input = input_tensor.to(nndeploy.base.DeviceType("cpu"))  
-        cpu_scale = scale_tensor.to(nndeploy.base.DeviceType("cpu"))  
-        cpu_shift = shift_tensor.to(nndeploy.base.DeviceType("cpu"))  
-        cpu_mean = mean_tensor.to(nndeploy.base.DeviceType("cpu"))  
-        cpu_var = var_tensor.to(nndeploy.base.DeviceType("cpu"))  
+        cpu_input = input_tensor.to(nndeploy.base.DeviceType("x86"))  
+        cpu_scale = scale_tensor.to(nndeploy.base.DeviceType("x86"))  
+        cpu_shift = shift_tensor.to(nndeploy.base.DeviceType("x86"))  
+        cpu_mean = mean_tensor.to(nndeploy.base.DeviceType("x86"))  
+        cpu_var = var_tensor.to(nndeploy.base.DeviceType("x86"))  
           
-        cpu_result = F.batch_norm(cpu_input, cpu_scale, cpu_shift, cpu_mean, cpu_var)  
-          
+        x86_result = F.batch_norm(cpu_input, cpu_scale, cpu_shift, cpu_mean, cpu_var)  
+        nndeploy_result = x86_result.to(nndeploy.base.DeviceType("cpu"))
         self.assertTrue(  
             np.allclose(  
                 torch_result.detach().numpy(),  
-                create_numpy_from_tensor(cpu_result),  
+                create_numpy_from_tensor(nndeploy_result),  
                 rtol=1e-04,  
                 atol=1e-05,  
             )  
