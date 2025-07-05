@@ -164,7 +164,7 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
   virtual base::Status run() {
     auto results = new std::vector<cv::Mat>();
     if (index_ >= size_) {
-      outputs_[0]->setAny(results, false);
+      outputs_[0]->set(results, false);
       return base::kStatusCodeOk;
     }
     for (int i = 0; i < batch_size_; i++) {
@@ -186,7 +186,7 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
         results->push_back(res);
       }
     }
-    outputs_[0]->setAny(results, false);
+    outputs_[0]->set(results, false);
     index_++;
     return base::kStatusCodeOk;
   }
@@ -409,7 +409,7 @@ class NNDEPLOY_CC_API BatchOpenCvEncode : public dag::CompositeNode {
 
   virtual base::Status run() {
     std::vector<cv::Mat> *cv_mats =
-        inputs_[0]->getAny<std::vector<cv::Mat>>(this);
+        inputs_[0]->get<std::vector<cv::Mat>>(this);
     if (cv_mats == nullptr) {
       NNDEPLOY_LOGE("cv_mats is nullptr");
       return base::kStatusCodeErrorInvalidParam;

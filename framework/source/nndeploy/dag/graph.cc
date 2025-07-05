@@ -426,7 +426,7 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
   std::vector<Edge *> outputs = node->getAllOutput();
   if (!outputs.empty()) {
     // 该节点已经设置，不允许二次设置
-    NNDEPLOY_LOGE("node[%s] already set, can't set again!",
+    NNDEPLOY_LOGE("node[%s] already set, can't set again!\n",
                   node->getName().c_str());
     return base::kStatusCodeErrorInvalidValue;
   }
@@ -559,6 +559,13 @@ Node *Graph::getNode(const std::string &name) {
   return nullptr;
 }
 
+Node *Graph::getNode(int index) {
+  if (index < 0 || index >= node_repository_.size()) {
+    return nullptr;
+  }
+  return node_repository_[index]->node_;
+}
+
 std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string &name) {
   for (auto node_ptr : shared_node_repository_) {
     if (node_ptr->getName() == name) {
@@ -583,6 +590,16 @@ std::vector<Node *> Graph::getNodesByKey(const std::string &key) {
     if (node_wrapper->node_->getKey() == key) {
       nodes.emplace_back(node_wrapper->node_);
     }
+  }
+  return nodes;
+}
+
+int Graph::getNodeCount() { return node_repository_.size(); }
+
+std::vector<Node *> Graph::getNodes() {
+  std::vector<Node *> nodes;
+  for (auto node_wrapper : node_repository_) {
+    nodes.emplace_back(node_wrapper->node_);
   }
   return nodes;
 }

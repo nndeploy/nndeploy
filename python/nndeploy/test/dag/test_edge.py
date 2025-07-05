@@ -29,7 +29,7 @@ def test_edge():
     import torch
     edge.set(torch.randn(1024))
     print(edge.get_type_name())
-    print(edge.get_graph_output_any())
+    print(edge.get_graph_output())
     
     import cv2 as cv
     mat = cv.imread("/home/always/github/public/nndeploy/build/draw_label_node.jpg")

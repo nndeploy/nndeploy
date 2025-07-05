@@ -10,7 +10,7 @@ import {
   useNodeRender,
   useWatchFormValues,
 } from "@flowgram.ai/free-layout-editor";
-import { Select, Switch, Typography } from "@douyinfe/semi-ui";
+import { Select, SideSheet, Switch, Typography } from "@douyinfe/semi-ui";
 
 import { FlowNodeJSON } from "../../../../typings";
 import { Feedback, FormContent } from "../../../../form-components";
@@ -27,13 +27,17 @@ import lodash, { random } from "lodash";
 import { FormDynamicPorts } from "../form-dynamic-ports";
 import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
 import { getFieldType } from "../functions";
+import { INodeEntity } from "../../../Node/entity";
+import { useState } from "react";
+import RepositoryItemDrawer from "../NodeRepositoryEditor";
+import NodeRepositoryEditor from "../NodeRepositoryEditor";
 
 const { Text } = Typography;
 
 export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
-  const readonly = !useIsSidebar();
+  const isSidebar = useIsSidebar();
 
-  const { node } = useNodeRender();
+  // const { node } = useNodeRender();
 
   const { nodeList = [], paramTypes } = useFlowEnviromentContext()
 
@@ -59,17 +63,29 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     Object.keys(form.values),
     excludeFields
   );
-  ///ffuckkkkkkkk
-  //var inputValues = useWatch("inputs_")
-  // const whole = useWatchFormValues(node )
-  // const  inputValues = whole["inputs_"]
+
+  const [respository, setRespository] = useState<INodeEntity>({} as INodeEntity)
+  const [repositoryDrawerVisible, setRepositoryDrawerVisible] = useState(false)
+
+  function onShowRepositoryItemDrawer(respository: INodeEntity) {
+    setRespository(respository)
+    setRepositoryDrawerVisible(true)
+  }
+
+  function onRepositoryDrawerClose() {
+    setRepositoryDrawerVisible(false)
+  }
+
+  function onRepositoryDrawerSave(respository: INodeEntity) {
+
+  }
 
   return (
     <div className="drawer-render-form">
       <FormHeader />
 
       <FormContent>
-        {readonly && (
+        {!isSidebar && (
           <div className="connection-area">
             <div className="input-area">
               <FieldArray name="inputs_">
@@ -154,7 +170,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
             </div>
           </div>
         )}
-        {!readonly ? (
+        {isSidebar ? (
           <>
             {/* <Section text={"basic"}> */}
             {basicFields.map((fieldName) => {
@@ -171,17 +187,6 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                       type={"string" as string}
                       required={true}
                     >
-                      {/* <FxExpression
-                        value={field.value as string}
-                        fieldType={fieldType}
-                        onChange={field.onChange}
-                        readonly={readonly}
-                        hasError={
-                          Object.keys(fieldState?.errors || {}).length > 0
-                        }
-                        icon={<></>}
-                      />
-                      <Feedback errors={fieldState?.errors} /> */}
 
                       <div className="expression-field"
                       >
@@ -217,7 +222,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                                   value={field.value as string}
                                   fieldType={fieldType}
                                   onChange={field.onChange}
-                                  readonly={readonly}
+                                  readonly={!isSidebar}
                                   hasError={
                                     Object.keys(fieldState?.errors || {}).length > 0
                                   }
@@ -256,11 +261,58 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               </Section>
             }
 
+            {
+              // form.values.hasOwnProperty('node_repository_') && <Section text={"node_repository_"}>
+              //   {
+
+              //     <NodeRepositoryEditor node_repository_ = {form.getValueIn('node_repository_') as INodeEntity[]}
+              //       nodeList = {nodeList} paramTypes = {paramTypes}
+
+
+              //     onUpdate={(values)=>{
+              //        //console.log(values)
+              //        form.setValueIn('node_repository_', values)
+
+              //        var temp = form.values
+              //        var i = 0
+              //     }}  />
+              //   }
+              // </Section>
+
+              <Field<any> name="node_repository_">
+                {({ field: node_repository_ }) => {
+
+                  if (node_repository_.value && node_repository_.value.length > 0) {
+                    return <Section text={"node_repository_"}>
+                      {
+
+                        <NodeRepositoryEditor node_repository_={form.getValueIn('node_repository_') as INodeEntity[]}
+                          nodeList={nodeList} paramTypes={paramTypes}
+
+
+                          onUpdate={(values) => {
+                            //console.log(values)
+                           node_repository_.onChange(values)
+                          }} />
+                      }
+                    </Section>
+                  } else {
+                    return <></>
+                  }
+
+                }}
+              </Field>
+            }
+
           </>
         ) : (
           <></>
         )}
       </FormContent>
+      {/* <SideSheet title="滑动侧边栏" visible={repositoryDrawerVisible} onCancel={onRepositoryDrawerClose}>
+                <RepositoryItemDrawer respository = {respository} onRepositoryDrawerSave = {onRepositoryDrawerSave}/>
+
+            </SideSheet> */}
     </div>
   );
 };

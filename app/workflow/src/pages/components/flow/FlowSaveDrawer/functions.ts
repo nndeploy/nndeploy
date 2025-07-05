@@ -570,7 +570,10 @@ export function transferBusinessContentToDesignContent(
       debugger
     }
 
-    var type = businessNode.is_graph_ ? 'group':  businessNode.key_
+   // var type = businessNode.is_graph_ ? 'group':  businessNode.key_
+
+   var type = businessNode.key_
+   
     const designNode: FlowNodeJSON = {
       id: `${businessNode.id}`,
       //type: businessNode.key_.split("::").pop() + "",

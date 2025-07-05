@@ -7,12 +7,13 @@ import {
 
 import "@flowgram.ai/free-layout-editor/index.css";
 import "./styles/index.css";
+import "./styles/my.css";
 //import { nodeRegistries } from "../../../nodes";
 import { initialData } from "./initial-data";
 import { useEditorProps } from "../../../hooks";
 import { AutoLayoutHandle, DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
 import { apiGetNodeById, apiGetWorkFlow, getNodeRegistry } from "./api";
 
@@ -24,6 +25,7 @@ import { useGetNodeList, useGetParamTypes, useGetRegistry } from "./effect";
 import { designDataToBusinessData, transferBusinessContentToDesignContent } from "./FlowSaveDrawer/functions";
 import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/api";
 import { IconLoading } from "@douyinfe/semi-icons";
+import { initialState, reducer } from "./store/store";
 
 let nameId = 0; 
 
@@ -33,6 +35,9 @@ interface FlowProps {
 }
 const Flow: React.FC<FlowProps> = (props) => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
+
+   const [state, dispatch] = useReducer(reducer, (initialState))
+
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
 
@@ -199,7 +204,8 @@ const Flow: React.FC<FlowProps> = (props) => {
         //nodeRegistries.find(item=>item.)
        
         //let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
-         var type = entity.is_graph_ ? 'group':  entity.key_
+         //var type = entity.is_graph_ ? 'group':  entity.key_
+        var  type = entity.key_
         
         let node = {
           // ...response.result,

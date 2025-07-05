@@ -95,13 +95,13 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_outputs_shared_ptr", &Node::setOutputsSharedPtr,
            py::arg("outputs"))
       .def("get_input", &Node::getInput, py::arg("index") = 0,
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("get_output", &Node::getOutput, py::arg("index") = 0,
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("get_all_input", &Node::getAllInput,
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("get_all_output", &Node::getAllOutput,
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("create_internal_output_edge", &Node::createInternalOutputEdge,
            py::arg("name"), py::return_value_policy::reference)
       .def("get_constructed", &Node::getConstructed)
@@ -115,7 +115,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_time_profile_flag", &Node::getTimeProfileFlag)
       .def("set_debug_flag", &Node::setDebugFlag, py::arg("flag"))
       .def("get_debug_flag", &Node::getDebugFlag)
-      .def("set_running_flag", &Node::setRunningFlag, py::arg("flag"))
+      .def("set_running_flag", &Node::setRunningFlag, py::arg("flag"), py::call_guard<py::gil_scoped_release>())
       .def("is_running", &Node::isRunning)
       .def("set_trace_flag", &Node::setTraceFlag, py::arg("flag"))
       .def("get_trace_flag", &Node::getTraceFlag)
@@ -140,24 +140,24 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           py::arg("output_type_info"))
       .def("get_output_type_info", &Node::getOutputTypeInfo)
       .def("default_param", &Node::defaultParam)
-      .def("init", &Node::init)
-      .def("deinit", &Node::deinit)
+      .def("init", &Node::init, py::call_guard<py::gil_scoped_release>())
+      .def("deinit", &Node::deinit, py::call_guard<py::gil_scoped_release>())
       .def("get_memory_size", &Node::getMemorySize)
       .def("set_memory", &Node::setMemory, py::arg("buffer"))
-      .def("update_input", &Node::updateInput)
-      .def("run", &Node::run)
+      .def("update_input", &Node::updateInput, py::call_guard<py::gil_scoped_release>())
+      .def("run", &Node::run, py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<std::vector<Edge *>>(&Node::forward), py::arg("inputs"),
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<>(&Node::forward),
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<Edge *>(&Node::forward), py::arg("input"),
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("__call__", py::overload_cast<std::vector<Edge *>>(&Node::operator()), py::arg("inputs"),
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("__call__", py::overload_cast<>(&Node::operator()),
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("__call__", py::overload_cast<Edge *>(&Node::operator()), py::arg("input"),
-           py::return_value_policy::reference)
+           py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("check_inputs", &Node::checkInputs, py::arg("inputs"))
       .def("check_outputs",
            py::overload_cast<std::vector<std::string> &>(&Node::checkOutputs),

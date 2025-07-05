@@ -44,7 +44,7 @@ class Edge(_C.dag.Edge):
         elif issubclass(type(data), nndeploy.base.Param):
             status = super().set(data, True)
         else: # 处理其他类型的数据
-            status = self.set_any(data)
+            status = self.set(data)
         if status != nndeploy.base.StatusCode.Ok:
             raise ValueError("Failed to set data")
         return nndeploy.base.Status.ok()
@@ -83,10 +83,10 @@ class Edge(_C.dag.Edge):
         return super().get_graph_output_param()
         
     def get(self, node: _C.dag.Node = None):
-        return self.get_any(node)
+        return self.get(node)
         
     def get_graph_output(self):
-        return self.get_graph_output_any()
+        return self.get_graph_output()
         
     def get_index(self, node: _C.dag.Node) -> int:
         return super().get_index(node)

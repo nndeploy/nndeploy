@@ -30,13 +30,13 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
         
     def run(self):
-        input_numpy = self.get_input(0).get_numpy(self)
+        input_numpy = self.get_input(0).get(self)
         faces = self.analysis.get(input_numpy)
         if len(faces) == 0:
             return nndeploy.base.Status(nndeploy.base.StatusCode.Error, "No face detected")
         if self.is_one_face_:
             face = min(faces, key=lambda x: x.bbox[0])
-        self.get_output(0).set_any(face)
+        self.get_output(0).set(face)
         return nndeploy.base.Status.ok()
     
     def serialize(self):
@@ -46,7 +46,7 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
         json_obj["providers_"] = self.providers_
         json_obj["is_one_face_"] = self.is_one_face_
         json_obj["ctx_id"] = self.ctx_id
-        json_obj["det_size_"] = list(self.det_size_)
+        # json_obj["det_size_"] = list(self.det_size_)
         return json.dumps(json_obj)
     
     def deserialize(self, target: str):
@@ -55,16 +55,18 @@ class InsightFaceAnalysis(nndeploy.dag.Node):
         self.providers_ = json_obj["providers_"]
         self.is_one_face_ = json_obj["is_one_face_"]
         self.ctx_id = json_obj["ctx_id"]
-        self.det_size_ = tuple(json_obj["det_size_"])
-        self.det_thresh_ = json_obj.get("det_thresh_", 0.5)
+        # self.det_size_ = tuple(json_obj["det_size_"])
+        # self.det_thresh_ = json_obj.get("det_thresh_", 0.5)
         return super().deserialize(target)
       
 class InsightFaceAnalysisCreator(nndeploy.dag.NodeCreator):
     def __init__(self):
         super().__init__()
+        # self.nodes = []
         
     def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
         self.node = InsightFaceAnalysis(name, inputs, outputs)
+        # self.nodes.append(self.node)
         return self.node
       
 insightface_node_creator = InsightFaceAnalysisCreator()
@@ -89,16 +91,12 @@ class InsightFaceSwapper(nndeploy.dag.Node):
         return nndeploy.base.Status.ok()
     
     def run(self):
-        source_face = self.get_input(0).get_any(self)
-        # print((source_face))
-        target_face = self.get_input(1).get_any(self)
-        # print((target_face))
-        temp_frame = self.get_input(2).get_numpy(self)
-        # print(type(temp_frame))
-        # cv2.imwrite("temp_frame.jpg", temp_frame)
-        self.swapped_frame = self.swapper.get(temp_frame, target_face, source_face, paste_back=True)
-        # print(type(self.swapped_frame))
-        self.get_output(0).set(self.swapped_frame)
+        source_face = self.get_input(0).get(self)
+        target_face = self.get_input(1).get(self)
+        temp_frame = self.get_input(2).get(self)
+        swapped_frame = self.swapper.get(temp_frame, target_face, source_face, paste_back=True)
+        self.get_output(0).set(swapped_frame)
+        print(type(swapped_frame))
         return nndeploy.base.Status.ok()
     
     def serialize(self):
@@ -127,8 +125,8 @@ nndeploy.dag.register_node("nndeploy.face.InsightFaceSwapper", insightface_swapp
 
 
 class FaceSwapper(nndeploy.dag.Graph):
-    def __init__(self, name: str):
-        super().__init__(name)
+    def __init__(self, name: str, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
+        super().__init__(name, inputs, outputs)
         self.set_key("nndeploy.face.FaceSwapper")
         self.set_desc("FaceSwapper: swap face from image")
         self.set_input_type(np.ndarray)
@@ -157,7 +155,7 @@ class FaceSwapperCreator(nndeploy.dag.NodeCreator):
         return self.node
       
 face_swapper_node_creator = FaceSwapperCreator()
-nndeploy.dag.register_node("nndeploy.face.InsightFaceSwapper", insightface_swapper_node_creator)   
+nndeploy.dag.register_node("nndeploy.face.FaceSwapper", face_swapper_node_creator)   
       
       
       

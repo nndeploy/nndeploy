@@ -16,11 +16,11 @@ add_definitions(-DVERSION_INFO="${PACKAGE_VERSION}")
 add_definitions(-DPYBIND11_DETAILED_ERROR_MESSAGES)
 
 # 添加 pybind11 子目录
-add_subdirectory(${ROOT_PATH}/third_party/pybind11)
+# add_subdirectory(${ROOT_PATH}/third_party/pybind11)
 
 # include
 include_directories(${ROOT_PATH}/python/src)
-include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
+# include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
 
 # TODO:SOURCE 
 # nndeploy source

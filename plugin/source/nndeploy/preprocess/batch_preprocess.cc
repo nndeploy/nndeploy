@@ -61,7 +61,7 @@ std::shared_ptr<base::Param> BatchPreprocess::getParamSharedPtr() {
 
 base::Status BatchPreprocess::run() {
   std::vector<cv::Mat> *input_data =
-      inputs_[0]->getGraphOutputAny<std::vector<cv::Mat>>();
+      inputs_[0]->getGraphOutput<std::vector<cv::Mat>>();
   int batch_size = input_data->size();
   device::Tensor *dst_tensor = nullptr;
   for (int i = 0; i < batch_size; i++) {
