@@ -65,18 +65,28 @@ class DrawMask : public dag::Node {
       // 调整掩码矩阵的尺寸以匹配输入图像的尺寸
       cv::resize(mask_mat, mask_result, input_mat->size(), 0.0, 0.0,
                  cv::INTER_LINEAR);
-      // 创建输出图像矩阵，初始化为全透明
-      cv::Mat *output_mat =
-          new cv::Mat(input_mat->size(), CV_8UC4, cv::Scalar(0, 0, 0, 0));
+      // 创建输出图像矩阵，与输入图像具有相同的通道数
+      cv::Mat *output_mat = nullptr;
+      int channels = input_mat->channels();
+      if (channels == 1) {
+        output_mat = new cv::Mat(input_mat->size(), CV_8UC1, cv::Scalar(0));
+      } else if (channels == 3) {
+        output_mat = new cv::Mat(input_mat->size(), CV_8UC3, cv::Scalar(0, 0, 0));
+      } else if (channels == 4) {
+        output_mat = new cv::Mat(input_mat->size(), CV_8UC4, cv::Scalar(0, 0, 0, 0));
+      }
 
       // 遍历每个像素，将掩码大于50的像素复制到输出图像上
       for (int y = 0; y < input_mat->rows; ++y) {
         for (int x = 0; x < input_mat->cols; ++x) {
-          if (mask_result.at<uchar>(y, x) >
-              50) {  // 假设result_image是单通道掩码
-            cv::Vec3b color = input_mat->at<cv::Vec3b>(y, x);
-            output_mat->at<cv::Vec4b>(y, x) =
-                cv::Vec4b(color[0], color[1], color[2], 255);
+          if (mask_result.at<uchar>(y, x) > 50) {
+            if (channels == 1) {
+              output_mat->at<uchar>(y, x) = input_mat->at<uchar>(y, x);
+            } else if (channels == 3) {
+              output_mat->at<cv::Vec3b>(y, x) = input_mat->at<cv::Vec3b>(y, x);
+            } else if (channels == 4) {
+              output_mat->at<cv::Vec4b>(y, x) = input_mat->at<cv::Vec4b>(y, x);
+            }
           }
         }
       }

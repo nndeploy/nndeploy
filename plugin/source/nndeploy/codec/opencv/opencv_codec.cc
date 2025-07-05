@@ -504,11 +504,16 @@ base::Status OpenCvVedioEncode::setPath(const std::string &path) {
 }
 
 base::Status OpenCvVedioEncode::run() {
+  // NNDEPLOY_LOGI("OpenCvVedioEncode::run() index_[%d] size_[%d]\n", index_, size_);
+  // NNDEPLOY_LOGI("OpenCvVedioEncode::run() size_[%d] fps_[%f] width_[%d] height_[%d]\n", size_, fps_, width_, height_);
   if (index_ < size_) {
     cv::Mat *mat = inputs_[0]->getCvMat(this);
-    writer_->write(*mat);
+    if (mat != nullptr) {
+      writer_->write(*mat);
+    }
     index_++;
     if (index_ == size_) {
+      NNDEPLOY_LOGI("OpenCvVedioEncode::run() writer_->release()\n");
       writer_->release();
     }
   } else {
