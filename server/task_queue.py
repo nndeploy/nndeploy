@@ -54,7 +54,7 @@ class TaskQueue:
                 "task": task,
                 "status": status.__dict__,
             }
-            # self.server.notify_task_done(task["id"])
+            self.server.notify_task_done(task["id"])
 
     def get_current_queue(self):
         with self._mtx:
