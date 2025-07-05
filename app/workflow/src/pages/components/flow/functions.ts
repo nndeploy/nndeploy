@@ -41,7 +41,11 @@ export function getFieldType(fieldNames: string[], form: any, nodeList: INodeEnt
 
   for (let i = 0; i < fieldNames.length; i++) {
     let fieldName = fieldNames[i]
+    if(fieldValue == null){
+      let i = 0
+    }
     fieldValue = fieldValue[fieldName]
+    
   }
 
   //const fieldValue = nodeRegistry['param_']![fieldName]
