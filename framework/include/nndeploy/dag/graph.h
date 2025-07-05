@@ -115,6 +115,11 @@ class NNDEPLOY_CC_API Graph : public Node {
   void setGraphNodeShareStream(bool flag);
   bool getGraphNodeShareStream();
 
+  // set graph loop count
+  virtual void setLoopCount(int loop_count);
+  virtual int getLoopCount();
+  virtual std::map<std::string, int> getLoopCountMap();
+
   // update node io
   base::Status updateNodeIO(Node *node, std::vector<Edge *> inputs,
                             std::vector<Edge *> outputs);
