@@ -29,8 +29,15 @@ class GraphRunner:
 
         t0 = time.perf_counter()
         graph.init()
-        graph.run()
+        
+        count = graph.get_loop_count()
+
+        for i in range(count):
+            graph.run()
+            
         t1 = time.perf_counter()
+        
+        print(f"time: {t1 - t0}")
 
         # outputs = graph.get_all_output()
 

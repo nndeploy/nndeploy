@@ -93,6 +93,9 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_graph_node_share_stream", &Graph::setGraphNodeShareStream,
            py::arg("flag"))
       .def("get_graph_node_share_stream", &Graph::getGraphNodeShareStream)
+      .def("set_loop_count", &Graph::setLoopCount, py::arg("loop_count"))
+      .def("get_loop_count", &Graph::getLoopCount)
+      .def("get_loop_count_map", &Graph::getLoopCountMap)
       .def("update_node_io", &Graph::updateNodeIO, py::arg("node"),
            py::arg("inputs"), py::arg("outputs"))
       .def("mark_input_edge", &Graph::markInputEdge, py::arg("inputs"))

@@ -526,6 +526,9 @@ bool Node::getGraphFlag() { return is_graph_; }
 void Node::setNodeType(NodeType node_type) { node_type_ = node_type; }
 NodeType Node::getNodeType() { return node_type_; }
 
+void Node::setLoopCount(int loop_count) { loop_count_ = loop_count; }
+int Node::getLoopCount() { return loop_count_; }
+
 void Node::setRunningFlag(bool flag) {
   is_running_ = flag;
   if (is_time_profile_) {
@@ -671,13 +674,11 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs) {
 std::vector<Edge *> Node::forward() {
   return this->forward(std::vector<Edge *>());
 }
-std::vector<Edge *> Node::operator()() {
-  return this->forward();
-}
-std::vector<Edge *> Node::forward(Edge * input) {
+std::vector<Edge *> Node::operator()() { return this->forward(); }
+std::vector<Edge *> Node::forward(Edge *input) {
   return this->forward(std::vector<Edge *>({input}));
 }
-std::vector<Edge *> Node::operator()(Edge * input) {
+std::vector<Edge *> Node::operator()(Edge *input) {
   return this->forward(input);
 }
 
@@ -830,7 +831,8 @@ base::Status Node::serialize(rapidjson::Value &json,
   //   name = tmp_key;
   // }
   json.AddMember("name_", rapidjson::Value(name.c_str(), allocator), allocator);
-  json.AddMember("desc_", rapidjson::Value(desc_.c_str(), allocator), allocator);
+  json.AddMember("desc_", rapidjson::Value(desc_.c_str(), allocator),
+                 allocator);
   // 写入设备类型
   std::string device_type_str = base::deviceTypeToString(device_type_);
   json.AddMember("device_type_",
@@ -965,10 +967,9 @@ base::Status Node::serialize(rapidjson::Value &json,
   }
 
   // 写入节点类型
-  // std::string node_type_str = nodeTypeToString(node_type_);
-  // json.AddMember("node_type_",
-  //                rapidjson::Value(node_type_str.c_str(), allocator),
-  //                allocator);
+  std::string node_type_str = nodeTypeToString(node_type_);
+  json.AddMember("node_type_",
+                 rapidjson::Value(node_type_str.c_str(), allocator), allocator);
 
   // 写入参数
   if (param_ != nullptr) {
@@ -1075,9 +1076,9 @@ base::Status Node::deserialize(rapidjson::Value &json) {
   }
 
   // 读取节点类型
-  // if (json.HasMember("node_type_") && json["node_type_"].IsString()) {
-  //   node_type_ = stringToNodeType(json["node_type_"].GetString());
-  // }
+  if (json.HasMember("node_type_") && json["node_type_"].IsString()) {
+    node_type_ = stringToNodeType(json["node_type_"].GetString());
+  }
   // 读取动态输入和输出
   if (json.HasMember("is_dynamic_input_") &&
       json["is_dynamic_input_"].IsBool()) {
@@ -1103,7 +1104,8 @@ base::Status Node::deserialize(rapidjson::Value &json) {
           input_type_info_.emplace_back(edge_type_info);
         } else {
           NNDEPLOY_LOGE("input_type_info_ size: %d, is_dynamic_input_: %d\n",
-                        static_cast<int>(input_type_info_.size()), is_dynamic_input_);
+                        static_cast<int>(input_type_info_.size()),
+                        is_dynamic_input_);
         }
       }
     }
@@ -1132,7 +1134,8 @@ base::Status Node::deserialize(rapidjson::Value &json) {
           output_type_info_.emplace_back(edge_type_info);
         } else {
           NNDEPLOY_LOGE("output_type_info_ size: %d, is_dynamic_output_: %d\n",
-                        static_cast<int>(output_type_info_.size()), is_dynamic_output_);
+                        static_cast<int>(output_type_info_.size()),
+                        is_dynamic_output_);
         }
       }
     }
@@ -1176,9 +1179,7 @@ base::Status Node::loadFile(const std::string &path) {
   return status;
 }
 
-NodeFactory* getGlobalNodeFactory() {
-  return NodeFactory::getInstance();
-}
+NodeFactory *getGlobalNodeFactory() { return NodeFactory::getInstance(); }
 
 std::set<std::string> getNodeKeys() {
   return NodeFactory::getInstance()->getNodeKeys();
@@ -1187,6 +1188,9 @@ std::set<std::string> getNodeKeys() {
 Node *createNode(const std::string &node_key, const std::string &node_name) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
@@ -1200,6 +1204,9 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::initializer_list<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   std::vector<Edge *> inputs_vector;
   std::vector<Edge *> outputs_vector;
   for (auto input : inputs) {
@@ -1218,6 +1225,9 @@ Node *createNode(const std::string &node_key, const std::string &node_name,
                  std::vector<Edge *> inputs, std::vector<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   if (creator != nullptr) {
     return creator->createNode(node_name, inputs, outputs);
   }
@@ -1229,6 +1239,9 @@ std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           const std::string &node_name) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   std::vector<Edge *> inputs;
   std::vector<Edge *> outputs;
   if (creator != nullptr) {
@@ -1243,6 +1256,9 @@ std::shared_ptr<Node> createNodeSharedPtr(
     std::initializer_list<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   std::vector<Edge *> inputs_vector;
   std::vector<Edge *> outputs_vector;
   for (auto input : inputs) {
@@ -1264,6 +1280,9 @@ std::shared_ptr<Node> createNodeSharedPtr(const std::string &node_key,
                                           std::vector<Edge *> outputs) {
   std::shared_ptr<NodeCreator> creator =
       NodeFactory::getInstance()->getCreator(node_key);
+  if (creator == nullptr && node_key != "nndeploy.dag.Graph") {
+    creator = NodeFactory::getInstance()->getCreator("nndeploy::dag::Graph");
+  }
   if (creator != nullptr) {
     return creator->createNodeSharedPtr(node_name, inputs, outputs);
   }

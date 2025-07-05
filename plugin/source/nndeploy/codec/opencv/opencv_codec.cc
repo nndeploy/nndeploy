@@ -29,6 +29,7 @@ base::Status OpenCvImageDecode::setPath(const std::string &path) {
   if (size_ < 1) {
     size_ = 1;
   }
+  loop_count_ = size_;
   return base::kStatusCodeOk;
 }
 
@@ -95,7 +96,6 @@ base::Status OpenCvImagesDecode::setPath(const std::string &path) {
         NNDEPLOY_LOGE("path[%s] not exist pic!\n", path_.c_str());
         status = base::kStatusCodeErrorInvalidParam;
       }
-      return status;
     } else {
       NNDEPLOY_LOGE("path[%s] is not Directory!\n", path_.c_str());
       return base::kStatusCodeErrorInvalidParam;
@@ -137,6 +137,7 @@ base::Status OpenCvImagesDecode::setPath(const std::string &path) {
       return base::kStatusCodeErrorInvalidParam;
     }
   }
+  loop_count_ = size_;
   return base::kStatusCodeOk;
 }
 
@@ -230,6 +231,7 @@ base::Status OpenCvVedioDecode::setPath(const std::string &path) {
   // NNDEPLOY_LOGE("Video FPS: %f.\n", fps_);
   // NNDEPLOY_LOGE("Video width_: %d.\n", width_);
   // NNDEPLOY_LOGE("Video height_: %d.\n", height_);
+  loop_count_ = size_;
   return base::kStatusCodeOk;
 }
 
@@ -341,6 +343,7 @@ base::Status OpenCvCameraDecode::setPath(const std::string &path) {
   // NNDEPLOY_LOGI("Video FPS: %f.\n", fps_);
   // NNDEPLOY_LOGI("Video width_: %d.\n", width_);
   // NNDEPLOY_LOGI("Video height_: %d.\n", height_);
+  loop_count_ = size_;
   return base::kStatusCodeOk;
 }
 

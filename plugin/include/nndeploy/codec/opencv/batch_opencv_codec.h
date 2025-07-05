@@ -120,6 +120,13 @@ class NNDEPLOY_CC_API BatchOpenCvDecode : public dag::CompositeNode {
     return 0;  // 默认值
   }
 
+  int getLoopCount() {
+    if (node_) {
+      loop_count_ = NNDEPLOY_UP_DIV((int)(node_->getLoopCount()), batch_size_);
+    }
+    return loop_count_;  // 默认值
+  }
+
   virtual base::EdgeUpdateFlag updateInput() {
     if (index_ < size_) {
       return base::kEdgeUpdateFlagComplete;
