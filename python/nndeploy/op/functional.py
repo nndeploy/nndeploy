@@ -82,6 +82,13 @@ def mul(input1, input2):
     return _C.op.mul(input1, input2)
 
 
+def rms_norm(input, weight, epsilon=1e-5):
+    param = _C.ir.RMSNormParam()
+    param.epsilon_ = epsilon
+
+    return _C.op.rms_norm(input, weight, param)
+
+
 def softmax(input, axis=1):
     param = _C.ir.SoftmaxParam()
     param.axis_ = axis

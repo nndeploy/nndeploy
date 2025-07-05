@@ -125,6 +125,22 @@ class PyNode : public Base {
                            inputs);
   }
 
+  std::vector<Edge *> forward() override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward);
+  }
+
+  std::vector<Edge *> operator()() override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator());
+  }
+
+  std::vector<Edge *> forward(Edge * input) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward, input);
+  }
+
+  std::vector<Edge *> operator()(Edge * input) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(), input);
+  }
+
   std::vector<std::string> getRealOutputsName() override {
     PYBIND11_OVERRIDE_NAME(std::vector<std::string>, Base,
                            "get_real_outputs_name", getRealOutputsName);
@@ -241,6 +257,22 @@ class PyGraph : public Base {
   std::vector<Edge *> operator()(std::vector<Edge *> inputs) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(),
                            inputs);
+  }
+
+  std::vector<Edge *> forward() override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward);
+  }
+
+  std::vector<Edge *> operator()() override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator());
+  }
+
+  std::vector<Edge *> forward(Edge * input) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward, input);
+  }
+
+  std::vector<Edge *> operator()(Edge * input) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(), input);
   }
 
   virtual void setTraceFlag(bool flag) override {

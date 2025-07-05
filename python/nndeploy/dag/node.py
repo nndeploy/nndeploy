@@ -120,7 +120,7 @@ class Node(_C.dag.Node):
         return super().get_input(index)
         
     def get_output(self, index: int = 0):
-        return super().get_output(index)
+        return (super().get_output(index))
         
     def get_all_input(self):
         return super().get_all_input()

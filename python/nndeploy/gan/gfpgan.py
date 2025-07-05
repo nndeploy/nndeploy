@@ -10,12 +10,11 @@ import nndeploy.base
 import nndeploy.device
 import nndeploy.dag
 
-
 class GFPGAN(nndeploy.dag.Node):
     def __init__(self, name, inputs: list[nndeploy.dag.Edge] = None, outputs: list[nndeploy.dag.Edge] = None):
         super().__init__(name, inputs, outputs)
-        super().set_key("GFPGAN")
-        super().set_desc("GFPGAN: 让人脸更清晰") 
+        super().set_key("nndeploy.gan.GFPGAN")
+        super().set_desc("GFPGAN: Make faces clearer")
         self.set_input_type(np.ndarray)
         self.set_output_type(np.ndarray)
         
@@ -46,3 +45,15 @@ class GFPGAN(nndeploy.dag.Node):
         self.model_path_ = json_obj["model_path_"]
         self.upscale_ = json_obj["upscale_"]
         return super().deserialize(target)
+    
+    
+class GFPGANCreator(nndeploy.dag.NodeCreator):
+    def __init__(self):
+        super().__init__()
+        
+    def create_node(self, name: str, inputs: list[nndeploy.dag.Edge], outputs: list[nndeploy.dag.Edge]):
+        self.node = GFPGAN(name, inputs, outputs)
+        return self.node
+    
+gfpgan_node_creator = GFPGANCreator()
+nndeploy.dag.register_node("nndeploy.gan.GFPGAN", gfpgan_node_creator)
