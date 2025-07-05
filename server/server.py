@@ -12,7 +12,7 @@ import json
 import asyncio
 import uuid
 import logging
-from utils import extract_encode_output_path
+from utils import extract_encode_output_paths
 import nndeploy.dag
 from nndeploy import get_type_enum_json
 from task_queue import TaskQueue
@@ -224,7 +224,7 @@ class NnDeployServer:
 
         # preview
         @api.get("/preview/{file_path:path}", tags=["Files"],
-                summary="preview images/videos")
+                summary="preview images/videos/models")
         async def preview_file(file_path: str):
             f = Path(self.args.resources) / file_path
             if not f.exists():
@@ -245,6 +245,9 @@ class NnDeployServer:
                 ".avi": "video/x-msvideo",
                 ".mkv": "video/x-matroska",
                 ".webm": "video/webm",
+
+                # ---- model ----
+                ".onnx": "application/octet-stream"
             }
 
             mime = MIME_MAP.get(f.suffix.lower())
@@ -254,7 +257,7 @@ class NnDeployServer:
                     detail="Unsupported preview type"
                 )
 
-            return FileResponse(f, media_type=mime)
+            return FileResponse(f, media_type=mime, filename=f.name)
 
         @self.app.on_event("startup")
         async def _on_startup():
@@ -295,7 +298,7 @@ class NnDeployServer:
         if task_info is None:
             raise HTTPException(status_code=404, detail="task not found")
         graph_json = task_info.get("task").get("graph_json")
-        path = extract_encode_output_path(graph_json)
+        path = extract_encode_output_paths(graph_json)
 
         flag = "success"
         message = "notify task done"
