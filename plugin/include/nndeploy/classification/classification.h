@@ -82,8 +82,8 @@ class NNDEPLOY_CC_API ClassificationGraph : public dag::Graph {
         "graph[cv::Mat->preprocess->infer->postprocess->ClassificationResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<ClassificationResult>();
-    pre_ = dynamic_cast<preprocess::CvtResizeNormTransCropNormTrans *>(
-        this->createNode<preprocess::CvtResizeNormTransCropNormTrans>(
+    pre_ = dynamic_cast<preprocess::CvtResizeCropNormTrans *>(
+        this->createNode<preprocess::CvtResizeCropNormTrans>(
             "preprocess"));
     infer_ =
         dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
@@ -99,8 +99,8 @@ class NNDEPLOY_CC_API ClassificationGraph : public dag::Graph {
         "graph[cv::Mat->preprocess->infer->postprocess->ClassificationResult]";
     this->setInputTypeInfo<cv::Mat>();
     this->setOutputTypeInfo<ClassificationResult>();
-    pre_ = dynamic_cast<preprocess::CvtResizeNormTransCropNormTrans *>(
-        this->createNode<preprocess::CvtResizeNormTransCropNormTrans>(
+    pre_ = dynamic_cast<preprocess::CvtResizeCropNormTrans *>(
+        this->createNode<preprocess::CvtResizeCropNormTrans>(
             "preprocess"));
     infer_ =
         dynamic_cast<infer::Infer *>(this->createNode<infer::Infer>("infer"));
@@ -125,8 +125,8 @@ class NNDEPLOY_CC_API ClassificationGraph : public dag::Graph {
     // pre_param->std_[0] = 0.229;
     // pre_param->std_[1] = 0.224;
     // pre_param->std_[2] = 0.225;
-    preprocess::CvtResizeNormTransCropNormTransParam *pre_param =
-        dynamic_cast<preprocess::CvtResizeNormTransCropNormTransParam *>(
+    preprocess::CvtResizeCropNormTransParam *pre_param =
+        dynamic_cast<preprocess::CvtResizeCropNormTransParam *>(
             pre_->getParam());
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;

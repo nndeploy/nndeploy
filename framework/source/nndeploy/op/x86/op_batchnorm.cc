@@ -68,6 +68,7 @@ class X86OpBatchNorm : public OpBatchNorm {
 
     dnnl_batchnorm_pd_ = dnnl::batch_normalization_forward::primitive_desc(dnnl_engine_, 
         dnnl::prop_kind::forward_inference, data_md, dst_md, epsilon, 
+        dnnl::normalization_flags::use_global_stats |
         dnnl::normalization_flags::use_scale | dnnl::normalization_flags::use_shift);
 
 	  return base::kStatusCodeOk;
@@ -81,7 +82,7 @@ class X86OpBatchNorm : public OpBatchNorm {
     bnorm_args.insert({DNNL_ARG_VARIANCE, batchnorm_var_mem_});
     bnorm_args.insert({DNNL_ARG_SCALE, batchnorm_scale_mem_});
     bnorm_args.insert({DNNL_ARG_SHIFT, batchnorm_bias_mem_});
-    bnorm_args.insert({DNNL_ARG_DST, batchnorm_src_mem_});
+    bnorm_args.insert({DNNL_ARG_DST, batchnorm_dst_mem_});
     batchnorm_e.execute(dnnl_stream_,
                         bnorm_args);
 

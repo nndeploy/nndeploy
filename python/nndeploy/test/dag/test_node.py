@@ -28,12 +28,12 @@ class CustomNode(nndeploy.dag.Node):
     def init(self):
         print("CustomNode init")
         # return super().init()
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
 
     def deinit(self):
         print("CustomNode deinit") 
         # return super().deinit()
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
     
     def serialize(self) -> str:
         json_str = super().serialize()
@@ -58,7 +58,7 @@ class CustomNode(nndeploy.dag.Node):
             print("output_edge is not nndeploy.dag.Edge")
         output_edge.set(add_result)
         print("CustomNode run end")
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
 
 
 class CustomNodeCreator(nndeploy.dag.NodeCreator):
@@ -69,11 +69,15 @@ class CustomNodeCreator(nndeploy.dag.NodeCreator):
         self.node = CustomNode(name, inputs, outputs)
         return self.node
 
+
 custom_node_creator = CustomNodeCreator()
+print(custom_node_creator)
 nndeploy.dag.register_node("CustomNode", custom_node_creator)
+
 
 def test_node():  
     # 使用边指针创建节点
+
     input_edge_1 = nndeploy.dag.Edge("input_1")
     input_edge_2 = nndeploy.dag.Edge("input_2")
     output_edge = nndeploy.dag.Edge("output")
@@ -106,7 +110,7 @@ if __name__ == "__main__":
     # 将all_node_json写入文件
     with open("all_node_json.json", "w") as f:
         f.write(all_node_json)
-    print(nndeploy.dag.get_all_node_json())
+    # print(nndeploy.dag.get_all_node_json())
         
     const_node = nndeploy.dag.ConstNode("const_node")
     const_node.set_output_type(torch.Tensor)

@@ -52,14 +52,26 @@ class NNDEPLOY_CC_API DrawBox : public dag::Node {
   virtual ~DrawBox() {}
 
   virtual base::Status run() {
-    cv::Mat *input_mat = inputs_[0]->getCvMat(this);
+    cv::Mat *input_mat = inputs_[0]->get<cv::Mat>(this);
+    if (input_mat == nullptr) {
+      NNDEPLOY_LOGE("input_mat is nullptr\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    // NNDEPLOY_LOGE("input_mat: %p\n", input_mat);
     detect::DetectResult *result =
-        (detect::DetectResult *)inputs_[1]->getParam(this);
+        (detect::DetectResult *)inputs_[1]->get<DetectResult>(this);
+    if (result == nullptr) {
+      NNDEPLOY_LOGE("result is nullptr\n");
+      return base::kStatusCodeErrorInvalidParam;
+    }
+    // NNDEPLOY_LOGE("result: %p\n", result);
     float w_ratio = float(input_mat->cols);
     float h_ratio = float(input_mat->rows);
     const int CNUM = 80;
     cv::RNG rng(0xFFFFFFFF);
     cv::Scalar_<int> randColor[CNUM];
+    cv::Mat *output_mat = new cv::Mat();
+    input_mat->copyTo(*output_mat);
     for (int i = 0; i < CNUM; i++)
       rng.fill(randColor[i], cv::RNG::UNIFORM, 0, 256);
     int i = -1;
@@ -80,13 +92,11 @@ class NNDEPLOY_CC_API DrawBox : public dag::Node {
       //               box[1], width, height);
       cv::Point p = cv::Point(box[0], box[1]);
       cv::Rect rect = cv::Rect(box[0], box[1], width, height);
-      cv::rectangle(*input_mat, rect, randColor[id], 2);
-      std::string text = " ID:" + std::to_string(id);
-      cv::putText(*input_mat, text, p, cv::FONT_HERSHEY_PLAIN, 1,
+      cv::rectangle(*output_mat, rect, randColor[id], 2);
+      std::string text = " ID:" + std::to_string(id) + " score:" + std::to_string(bbox.score_);
+      cv::putText(*output_mat, text, p, cv::FONT_HERSHEY_PLAIN, 1,
                   randColor[id]);
     }
-    cv::Mat *output_mat = new cv::Mat();
-    input_mat->copyTo(*output_mat);
     outputs_[0]->set(output_mat, false);
     return base::kStatusCodeOk;
   }

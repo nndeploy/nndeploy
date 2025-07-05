@@ -52,7 +52,7 @@ def test_yolo():
     yolo.default_param()
     yolo.set_inference_type(nndeploy.base.InferenceType.OnnxRuntime)
     yolo.set_version(11)
-    yolo.set_infer_param(nndeploy.base.DeviceType("x86"), nndeploy.base.ModelType.Onnx, True, ["/home/always/github/public/nndeploy/build/yolo11s.sim.onnx"])
+    yolo.set_infer_param(nndeploy.base.DeviceType("x86"), nndeploy.base.ModelType.Onnx, True, ["/home/lds/modelscope/nndeploy/detect/yolo11s.sim.onnx"])
     yolo_demo.set_time_profile_flag(True)
     
     inputs: [nndeploy.dag.Edge] = []
@@ -68,7 +68,8 @@ def test_yolo():
     for i in range(count):
         print(f"test_yolo {i}")
         output = yolo_demo(inputs)
-        result = output[0].get_graph_output_param()
+        result = output[0].get_graph_output()
+        print(result)
         for bbox in result.bboxs_:
             print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("yolo_demo_python")
@@ -92,9 +93,9 @@ def test_yolo_from_json():
     # output = yolo_demo.trace(inputs)
     
     for i in range(count):
-        print(f"test_yolo_from_json {i}")
+        # print(f"test_yolo_from_json {i}")
         output = yolo_demo(inputs)
-        result = output[0].get_graph_output_param()
+        result = output[0].get_graph_output()
         for bbox in result.bboxs_:
             print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("test_yolo_from_json")
@@ -103,36 +104,37 @@ def test_yolo_from_json():
     
 def test_static_yolo_from_json():
     yolo_demo = YoloDemo("yolo_demo")
-    yolo_demo.load_file("/home/always/github/public/nndeploy/build/yolo_demo.json")
+    yolo_demo.load_file("/home/always/github/public/nndeploy/build/yolo_demo_v3.json")
     yolo_demo.set_time_profile_flag(True)
     pt = nndeploy.base.ParallelType.Pipeline
     yolo_demo.set_parallel_type(pt)
     yolo_demo.init()
-    print("init success!")
+    # print("init success!")
     yolo_demo.dump()
     yolo_demo.set_input_path("/home/always/github/public/nndeploy/docs/image/demo/detect/sample.jpg")
     count = 100
     yolo_demo.set_size(count)
     yolo_demo.set_output_path("/home/always/github/public/nndeploy/build/yolo_jos_python_demo.jpg")
     nndeploy.base.time_point_start("test_yolo_from_json")
-    print("set input success!")
     inputs: [nndeploy.dag.Edge] = []
     output = yolo_demo.get_all_output()
-    print("get output success!")
     for i in range(count):
-        print(f"test_static_yolo_from_json {i}")
+        # print(f"test_static_yolo_from_json {i}")
         yolo_demo.run()
-        print("run success!")
+        # print("run success!")
         if (pt != nndeploy.base.ParallelType.Pipeline):
-            result = output[0].get_graph_output_param()
+            result = output[0].get_graph_output()
             for bbox in result.bboxs_:
                 print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
+    # import time
+    # time.sleep(10)
     if (pt == nndeploy.base.ParallelType.Pipeline):
         for i in range(count):
-            result = output[0].get_graph_output_param()
+            result = output[0].get_graph_output()
             for bbox in result.bboxs_:
                 print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     
+    # print("deinit start!")
     yolo_demo.deinit()
     nndeploy.base.time_point_end("test_yolo_from_json")
     nndeploy.base.time_profiler_print("test_yolo_from_json")
@@ -161,7 +163,7 @@ def test_static_graph_from_json():
         print(f"test_static_yolo_from_json {i}")
         yolo_demo.run()
         print("run success!")
-        # result = output[0].get_graph_output_param()
+        # result = output[0].get_graph_output()
         # for bbox in result.bboxs_:
         #     print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     nndeploy.base.time_point_end("test_yolo_from_json")
@@ -171,8 +173,8 @@ def test_static_graph_from_json():
 if __name__ == "__main__":
     # test_yolo()
     # test_yolo_from_json()
-    # test_static_yolo_from_json()
-    test_static_graph_from_json()
+    test_static_yolo_from_json()
+    # test_static_graph_from_json()
     
         
         

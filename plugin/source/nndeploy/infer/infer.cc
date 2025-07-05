@@ -439,7 +439,7 @@ base::Status Infer::deserialize(rapidjson::Value &json) {
     inference::InferenceParam *param =
         static_cast<inference::InferenceParam *>(inference_->getParam());
     if (param != nullptr) {
-      NNDEPLOY_LOGE("param deserialize start %p\n", param);
+      // NNDEPLOY_LOGE("param deserialize start %p\n", param);
       status = param->deserialize(json["param_"]);
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                              "param deserialize failed");

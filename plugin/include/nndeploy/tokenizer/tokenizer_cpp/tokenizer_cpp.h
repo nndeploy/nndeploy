@@ -41,8 +41,8 @@ class NNDEPLOY_CC_API TokenizerEncodeCpp
         "Can encode single strings or batches of text. Provides vocabulary "
         "lookup and token-to-ID conversion.";
     param_ = std::make_shared<TokenizerPraram>();
-    this->setInputTypeInfo<TokenizerText>();
-    this->setOutputTypeInfo<TokenizerIds>();
+    // this->setInputTypeInfo<TokenizerText>();
+    // this->setOutputTypeInfo<TokenizerIds>();
   }
   TokenizerEncodeCpp(const std::string& name, std::vector<dag::Edge*> inputs,
                      std::vector<dag::Edge*> outputs)
@@ -54,8 +54,8 @@ class NNDEPLOY_CC_API TokenizerEncodeCpp
         "Can encode single strings or batches of text. Provides vocabulary "
         "lookup and token-to-ID conversion.";
     param_ = std::make_shared<TokenizerPraram>();
-    this->setInputTypeInfo<TokenizerText>();
-    this->setOutputTypeInfo<TokenizerIds>();
+    // this->setInputTypeInfo<TokenizerText>();
+    // this->setOutputTypeInfo<TokenizerIds>();
   }
   virtual ~TokenizerEncodeCpp();
 
@@ -109,8 +109,8 @@ class NNDEPLOY_CC_API TokenizerDecodeCpp
         "Can decode single token IDs or batches of token IDs. Provides token-to-"
         "text conversion.";
     param_ = std::make_shared<TokenizerPraram>();
-    this->setInputTypeInfo<TokenizerIds>();
-    this->setOutputTypeInfo<TokenizerText>();
+    // this->setInputTypeInfo<TokenizerIds>();
+    // this->setOutputTypeInfo<TokenizerText>();
   }
   TokenizerDecodeCpp(const std::string& name, std::vector<dag::Edge*> inputs,
                      std::vector<dag::Edge*> outputs)
@@ -122,8 +122,8 @@ class NNDEPLOY_CC_API TokenizerDecodeCpp
         "Can decode single token IDs or batches of token IDs. Provides token-to-"
         "text conversion.";
     param_ = std::make_shared<TokenizerPraram>();
-    this->setInputTypeInfo<TokenizerIds>();
-    this->setOutputTypeInfo<TokenizerText>();
+    // this->setInputTypeInfo<TokenizerIds>();
+    // this->setOutputTypeInfo<TokenizerText>();
   }
   virtual ~TokenizerDecodeCpp();
 

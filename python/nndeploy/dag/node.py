@@ -12,7 +12,7 @@ from .base import EdgeTypeInfo
 from .edge import Edge
 
 class NodeDesc(_C.dag.NodeDesc):
-    def __init__(self, name: str, inputs: list[str] = None, outputs: list[str] = None, key: str = None):
+    def __init__(self, name: str = "", inputs: list[str] = None, outputs: list[str] = None, key: str = None):
         if inputs is None:
             inputs = []
         if outputs is None:
@@ -120,7 +120,7 @@ class Node(_C.dag.Node):
         return super().get_input(index)
         
     def get_output(self, index: int = 0):
-        return super().get_output(index)
+        return (super().get_output(index))
         
     def get_all_input(self):
         return super().get_all_input()
@@ -233,8 +233,8 @@ class Node(_C.dag.Node):
     def check_outputs(self, outputs_name) -> bool:
         return super().check_outputs(outputs_name)
         
-    def get_real_outputs_name(self, outputs_name):
-        return super().get_real_outputs_name(outputs_name)
+    def get_real_outputs_name(self):
+        return super().get_real_outputs_name()
     
     def serialize(self) -> str:
         return super().serialize()

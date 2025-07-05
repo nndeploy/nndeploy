@@ -6,7 +6,7 @@ from typing import List, Union, Optional
 from .util import *
 from .base import EdgeTypeInfo
 from .edge import Edge
-from .node import Node, NodeDesc
+from .node import Node, NodeDesc, NodeCreator, register_node
 
 
 class Graph(_C.dag.Graph):
@@ -25,6 +25,9 @@ class Graph(_C.dag.Graph):
             super().__init__(name, inputs, outputs)
         else:
             raise ValueError("无效的输入或输出类型")
+        self.set_key("nndeploy.dag.Graph")
+        self.set_desc("Graph: Graph for nndeploy in python")
+        self.nodes = []
         
     def set_input_type(self, input_type: type):
         """设置输入类型
@@ -173,7 +176,7 @@ class Graph(_C.dag.Graph):
         """
         return super().add_node(node)
     
-    def get_node(self, name: str) -> Node:
+    def get_node(self, name_or_index: Union[str, int]) -> Node:
         """
         通过名称获取节点
         
@@ -182,7 +185,7 @@ class Graph(_C.dag.Graph):
         返回:
             Node 对象
         """
-        return super().get_node(name)
+        return super().get_node(name_or_index)
         
     def get_node_by_key(self, key: str) -> Node:
         """
@@ -205,6 +208,12 @@ class Graph(_C.dag.Graph):
             Node对象列表
         """
         return super().get_nodes_by_key(key)
+    
+    def get_node_count(self) -> int:
+        return super().get_node_count()
+    
+    def get_nodes(self) -> List[Node]:
+        return super().get_nodes()
 
     def set_node_param(self, node_name: str, param: nndeploy.base.Param):
         """
@@ -286,14 +295,14 @@ class Graph(_C.dag.Graph):
         """运行图"""
         return super().run()
 
-    def __call__(self, inputs):
-        """
-        调用图
+    # def __call__(self, inputs):
+    #     """
+    #     调用图
         
-        参数:
-            inputs: 输入
-        """
-        return super().__call__(inputs)
+    #     参数:
+    #         inputs: 输入
+    #     """
+    #     return super().__call__(inputs)
 
     def dump(self):
         """输出图信息到标准输出"""
@@ -308,17 +317,24 @@ class Graph(_C.dag.Graph):
         """
         return super().set_trace_flag(flag)
         
-    def trace(self, inputs: List[Edge]) -> List[Edge]:
+    def trace(self, inputs: Union[List[Edge], Edge, None] = None) -> List[Edge]:
         """
         追踪图的执行流程
         
         参数:
-            inputs: 输入边列表
+            inputs: 输入边列表、单个边或None。如果为None则使用默认输入
             
         返回:
             追踪后的边列表
         """
-        return super().trace(inputs)
+        if inputs is None:
+            return super().trace()
+        elif isinstance(inputs, Edge):
+            return super().trace(inputs)
+        elif isinstance(inputs, list):
+            return super().trace(inputs)
+        else:
+            raise ValueError("inputs must be List[Edge], Edge or None")
     
     def get_edge_wrapper(self, edge: Union[Edge, str]) -> EdgeWrapper:
         return super().get_edge_wrapper(edge)
@@ -333,10 +349,38 @@ class Graph(_C.dag.Graph):
         return super().save_file(path)
         
     def deserialize(self, json_str: str):
+        json_obj = json.loads(json_str)
+        node_count = self.get_node_count()
+        # 解析node_repository数组
+        if "node_repository_" in json_obj:
+            for i, node_json in enumerate(json_obj["node_repository_"]):
+                # 创建节点描述对象
+                # node_desc = NodeDesc()
+                # node_desc.deserialize(json.dumps(node_json))
+                # print(f"node_desc: {node_desc.get_name()}, {node_desc.get_key()}")
+                node_key = node_json["key_"]
+                
+                node = None
+                # 如果节点已存在则更新描述
+                if node_count > i:
+                    node = self.get_node(i)
+                    # self.set_node_desc(node, node_desc)
+                elif len(self.nodes) > i:
+                    node = self.nodes[i]
+                    # self.set_node_desc(node, node_desc)
+                else:
+                    # 否则创建新节点
+                    node = self.create_node(node_key)
+                    if node is None:
+                        raise RuntimeError("创建节点失败")
+                    if node not in self.nodes:
+                        self.nodes.append(node)
         return super().deserialize(json_str)
     
     def load_file(self, path: str):
-        return super().load_file(path)
+        with open(path, "r") as f:
+            json_str = f.read()
+            self.deserialize(json_str)
     
     def __setattr__(self, name, value):
         """Override __setattr__ method to implement automatic node addition
@@ -496,7 +540,7 @@ class Graph(_C.dag.Graph):
             print(f"Exception during automatic edge addition: {str(e)}")
 
 def serialize(graph: Graph) -> str:
-    return _C.dag.serialize(graph)
+    return graph.serialize()
 
 def save_file(graph: Graph, path: str):
     """
@@ -505,10 +549,12 @@ def save_file(graph: Graph, path: str):
     参数:
         path: 文件路径
     """
-    return _C.dag.save_file(graph, path)
+    return graph.save_file(path)
 
 def deserialize(json_str: str) -> Graph:
-    return _C.dag.deserialize(json_str)
+    graph = Graph("")
+    graph.deserialize(json_str)
+    return graph
    
 def load_file(path: str) -> Graph:
     """
@@ -517,5 +563,18 @@ def load_file(path: str) -> Graph:
     参数:
         path: 文件路径
     """
-    return _C.dag.load_file(path)
+    graph = Graph("")
+    graph.load_file(path)
+    return graph
+
+class GraphCreator(NodeCreator):
+    def __init__(self):
+        super().__init__()
+        
+    def create_node(self, name: str, inputs: list[Edge], outputs: list[Edge]):
+        self.node = Graph(name, inputs, outputs)
+        return self.node
+      
+graph_node_creator = GraphCreator()
+register_node("nndeploy.dag.Graph", graph_node_creator)   
 

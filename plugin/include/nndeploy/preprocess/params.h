@@ -390,8 +390,8 @@ class NNDEPLOY_CC_API WarpAffineCvtNormTransParam : public base::Param {
   int dst_w_;
   int dst_h_;
 
-  base::PixelType src_pixel_type_;
-  base::PixelType dst_pixel_type_;
+  base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
+  base::PixelType dst_pixel_type_ = base::kPixelTypeRGB;
   base::DataType data_type_ = base::dataTypeOf<float>();
   base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
   int h_ = -1;
@@ -575,8 +575,8 @@ class NNDEPLOY_CC_API WarpAffineCvtNormTransParam : public base::Param {
 
 class NNDEPLOY_CC_API CvtNormTransParam : public base::Param {
  public:
-  base::PixelType src_pixel_type_;
-  base::PixelType dst_pixel_type_;
+  base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
+  base::PixelType dst_pixel_type_ = base::kPixelTypeRGB;
   // 数据类型，默认为浮点型
   base::DataType data_type_ = base::dataTypeOf<float>();
   // 数据格式，默认为NCHW（通道数，图像高度，图像宽度）
@@ -675,11 +675,11 @@ class NNDEPLOY_CC_API CvtNormTransParam : public base::Param {
 class NNDEPLOY_CC_API CvtResizeNormTransParam : public base::Param {
  public:
   // 源图像的像素类型
-  base::PixelType src_pixel_type_;
+  base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
   // 目标图像的像素类型
-  base::PixelType dst_pixel_type_;
+  base::PixelType dst_pixel_type_ = base::kPixelTypeRGB;
   // 图像缩放时使用的插值类型
-  base::InterpType interp_type_;
+  base::InterpType interp_type_ = base::kInterpTypeLinear;
   // 目标输出的高度
   int h_ = -1;
   // 目标输出的宽度
@@ -816,9 +816,9 @@ class NNDEPLOY_CC_API CvtResizeNormTransParam : public base::Param {
  */
 class NNDEPLOY_CC_API CvtResizePadNormTransParam : public base::Param {
  public:
-  base::PixelType src_pixel_type_;
-  base::PixelType dst_pixel_type_;
-  base::InterpType interp_type_;
+  base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
+  base::PixelType dst_pixel_type_ = base::kPixelTypeRGB;
+  base::InterpType interp_type_ = base::kInterpTypeLinear;
   base::DataType data_type_ = base::dataTypeOf<float>();
   base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
   int h_ = -1;
@@ -979,11 +979,11 @@ class NNDEPLOY_CC_API CvtResizePadNormTransParam : public base::Param {
  * @brief 组合的预处理
  *
  */
-class NNDEPLOY_CC_API CvtResizeNormTransCropNormTransParam : public base::Param {
+class NNDEPLOY_CC_API CvtResizeCropNormTransParam : public base::Param {
  public:
-  base::PixelType src_pixel_type_;
-  base::PixelType dst_pixel_type_;
-  base::InterpType interp_type_;
+  base::PixelType src_pixel_type_ = base::kPixelTypeBGR;
+  base::PixelType dst_pixel_type_ = base::kPixelTypeRGB;
+  base::InterpType interp_type_ = base::kInterpTypeLinear;
   base::DataType data_type_ = base::dataTypeOf<float>();
   base::DataFormat data_format_ = base::DataFormat::kDataFormatNCHW;
 

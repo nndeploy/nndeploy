@@ -345,12 +345,12 @@ base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
 
   return status;
 }
-bool PipelineEdge::notifyAnyWritten(void *anything) {
+bool PipelineEdge::notifyWritten(void *anything) {
   std::lock_guard<std::mutex> lock(mutex_);
   bool is_notify = false;
   for (auto iter = data_packets_.rbegin(); iter != data_packets_.rend();
        ++iter) {
-    if ((*iter)->notifyAnyWritten(anything)) {
+    if ((*iter)->notifyWritten(anything)) {
       is_notify = true;
       break;
     }

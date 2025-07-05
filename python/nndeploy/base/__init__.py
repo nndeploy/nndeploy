@@ -1,4 +1,6 @@
 
+from .common import all_type_enum
+
 # get by name
 from .common import name_to_data_type_code
 from .common import data_type_code_to_name

@@ -26,6 +26,9 @@ int main(int argc, char* argv[]) {
   // int e = nndeploy::base::unsafeGet<int>(c);
   // std::cout << e << std::endl;
 
+  std::string version = nndeployGetVersion();
+  std::cout << "version: " << version << std::endl;
+
   ret = nndeployFrameworkDeinit();
   if (ret != 0) {
     NNDEPLOY_LOGE("nndeployFrameworkInit failed. ERROR: %d\n", ret);

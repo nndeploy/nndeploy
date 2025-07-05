@@ -11,12 +11,15 @@ export const NodeWrapperStyle = styled.div`
   flex-direction: column;
   justify-content: center;
   position: relative;
-  min-width: 360px;
+  min-width: 200px;
   width: 100%;
   height: auto;
 
   &.selected {
     border: 1px solid #4e40e5;
+  }
+  .output-area{
+    text-align:right;
   }
 `;
 

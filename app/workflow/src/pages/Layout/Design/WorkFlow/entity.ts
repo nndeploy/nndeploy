@@ -42,3 +42,15 @@ export interface WorkFlowTreeNodeData extends TreeNodeData {
   entity:IWorkFlowTreeNodeEntity, 
   children?: WorkFlowTreeNodeData[];
 }
+
+export interface IParamTypes{
+  [key:string]: string[]
+}
+
+export interface IFieldType{
+   isArray: boolean, 
+   componentType: string; 
+   primateType: string; 
+   selectOptions: string[]; 
+   selectKey: string; 
+}

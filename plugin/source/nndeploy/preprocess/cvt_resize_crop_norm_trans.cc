@@ -5,9 +5,9 @@
 namespace nndeploy {
 namespace preprocess {
 
-base::Status CvtResizeNormTransCropNormTrans::run() {
-  CvtResizeNormTransCropNormTransParam *tmp_param =
-      dynamic_cast<CvtResizeNormTransCropNormTransParam *>(param_.get());
+base::Status CvtResizeCropNormTrans::run() {
+  CvtResizeCropNormTransParam *tmp_param =
+      dynamic_cast<CvtResizeCropNormTransParam *>(param_.get());
 
   cv::Mat *src = inputs_[0]->getCvMat(this);
 
@@ -78,12 +78,12 @@ base::Status CvtResizeNormTransCropNormTrans::run() {
                                  tmp_param->std_);
   outputs_[0]->notifyWritten(dst);
 
-  // NNDEPLOY_LOGE("CvtResizeNormTransCropNormTrans run success\n");
+  // NNDEPLOY_LOGE("CvtResizeCropNormTrans run success\n");
 
   return base::kStatusCodeOk;
 }
 
-REGISTER_NODE("nndeploy::preprocess::CvtResizeNormTransCropNormTrans", CvtResizeNormTransCropNormTrans);
+REGISTER_NODE("nndeploy::preprocess::CvtResizeCropNormTrans", CvtResizeCropNormTrans);
 
 }  // namespace preprocess
 }  // namespace nndeploy

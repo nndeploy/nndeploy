@@ -10,9 +10,8 @@ from graph_runner import GraphRunner
 
 class GraphExecutor:
     """Encapsulate nndeploy load and run logic"""
-    def __init__(self, server: "NnDeployServer", cache_type=False, cache_size=None):
-        self.server = server
-        self.runner = GraphRunner(server)
+    def __init__(self, cache_type=False, cache_size=None):
+        self.runner = GraphRunner()
 
     def execute(self, graph_json: Dict, task_id: str) -> Tuple[Dict, float]:
         name = graph_json.get("name_")

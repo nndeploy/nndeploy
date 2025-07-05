@@ -55,7 +55,7 @@ base::Status SuperResolutionPostProcess::run() {
     results->push_back(res);
   }
 
-  outputs_[0]->setAny(results, false);
+  outputs_[0]->set(results, false);
   return base::kStatusCodeOk;
 }
 

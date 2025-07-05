@@ -53,13 +53,19 @@
       }
 
       .secondLevelNav {
+        position: relative;
         width: 240px;
+        //padding-right: 15px;
         overflow: auto;
 
-        .tree-resource{
-         
-          height: 100%;;
-          .tree-resource-header{
+        display: flex;
+
+        .tree-resource {
+
+          height: 100%;
+          ;
+
+          .tree-resource-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -68,10 +74,34 @@
           }
         }
 
-        .tree-workflow{
-         
-          height: 100%;;
-          .tree-workflow-header{
+        &>.semi-navigation {
+          flex: 1;
+          padding: 0px 0 0 5px;
+          border-right: 0px;
+          width: 100%;
+          min-height: 0;
+          overflow-y: auto;
+        }
+
+        .second-level-dragger {
+          //display: none;
+          width: 5px;
+          cursor: col-resize;
+          background: transparent;
+
+          border-radius: 10px;
+
+          &:hover {
+            background: #999;
+          }
+        }
+
+        .tree-workflow {
+
+          height: 100%;
+          ;
+
+          .tree-workflow-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -81,9 +111,11 @@
         }
 
         .tree-node {
-          flex: 1; 
+          flex: 1;
           min-height: 0;
           overflow: auto;
+          width: 100%;
+
           .label {
             flex: 1;
           }
@@ -104,8 +136,9 @@
             }
           }
         }
-        .node-list{
-          .semi-list-header{
+
+        .node-list {
+          .semi-list-header {
             font-weight: bold;
           }
         }
@@ -126,9 +159,10 @@
           padding: 4px 4px 2px;
 
         }
+
         .semi-tabs-bar-line-extra-small {
-            height: 24px;
-            line-height: 24px;
+          height: 24px;
+          line-height: 24px;
         }
 
         .semi-tabs-tab {

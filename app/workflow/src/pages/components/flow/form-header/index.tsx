@@ -39,7 +39,7 @@ export function FormHeader() {
           )}
         </Field>
       </Title>
-      {node.renderData.expandable && !isSidebar && (
+      {/* {node.renderData.expandable && !isSidebar && (
         <Button
           type="primary"
           icon={expanded ? <IconSmallTriangleDown /> : <IconSmallTriangleLeft />}
@@ -47,7 +47,7 @@ export function FormHeader() {
           theme="borderless"
           onClick={handleExpand}
         />
-      )}
+      )} */}
       {readonly ? undefined : (
         <Operators>
           <NodeMenu node={node} deleteNode={deleteNode} />

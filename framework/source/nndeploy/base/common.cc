@@ -163,33 +163,76 @@ DataTypeCode stringToDataTypeCode(const std::string &src) {
 std::string dataTypeToString(DataType data_type) {
   std::string dst;
   if (data_type.code_ == kDataTypeCodeUint) {
-    dst = "kDataTypeCodeUint";
+    dst = "kDataTypeCodeUint" + std::to_string(data_type.bits_);
   } else if (data_type.code_ == kDataTypeCodeInt) {
-    dst = "kDataTypeCodeInt";
+    dst = "kDataTypeCodeInt" + std::to_string(data_type.bits_); 
   } else if (data_type.code_ == kDataTypeCodeFp) {
-    dst = "kDataTypeCodeFp";
+    dst = "kDataTypeCodeFp" + std::to_string(data_type.bits_);
   } else if (data_type.code_ == kDataTypeCodeBFp) {
-    dst = "kDataTypeCodeBFp";
+    dst = "kDataTypeCodeBFp" + std::to_string(data_type.bits_);
   } else if (data_type.code_ == kDataTypeCodeOpaqueHandle) {
-    dst = "kDataTypeCodeOpaqueHandle";
+    dst = "kDataTypeCodeOpaqueHandle" + std::to_string(data_type.bits_);
   } else {
     dst = "kDataTypeCodeNotSupport";
     NNDEPLOY_LOGI("Unsupported data type: %s.\n", dst.c_str());
   }
-  dst += " ";
-  dst += std::to_string(data_type.bits_);
-  dst += " ";
-  dst += std::to_string(data_type.lanes_);
+  if (data_type.lanes_ != 1) {
+    dst += ":" + std::to_string(data_type.lanes_);
+  }
   return dst;
 }
 
 DataType stringToDataType(const std::string &str) {
   DataType dst;
-  std::istringstream iss(str);
-  std::string code_str, bits_str, lanes_str;
+  std::string code_str;
+  std::string bits_str;
+  std::string lanes_str = "1"; // Default lanes to 1
 
-  iss >> code_str >> bits_str >> lanes_str;
+  // Try to parse format like "kDataTypeCodeUint32:4"
+  size_t colon_pos = str.find(':');
+  if (colon_pos != std::string::npos) {
+    // Handle "kDataTypeCodeUint32:4" format
+    lanes_str = str.substr(colon_pos + 1);
+    std::string main_part = str.substr(0, colon_pos);
+    
+    // Extract bits and code
+    for (int i = main_part.length() - 1; i >= 0; i--) {
+      if (!isdigit(main_part[i])) {
+        code_str = main_part.substr(0, i + 1);
+        bits_str = main_part.substr(i + 1);
+        break;
+      }
+    }
+  } else {
+    // Try to parse space-separated format first "kDataTypeCodeUint 32 1"
+    std::istringstream iss(str);
+    std::string temp;
+    std::vector<std::string> parts;
+    while (iss >> temp) {
+      parts.push_back(temp);
+    }
 
+    if (parts.size() >= 2) {
+      // Handle space-separated format
+      code_str = parts[0];
+      bits_str = parts[1];
+      if (parts.size() >= 3) {
+        lanes_str = parts[2];
+      }
+    } else {
+      // Handle "kDataTypeCodeUint32" format
+      std::string temp = str;
+      for (int i = str.length() - 1; i >= 0; i--) {
+        if (!isdigit(str[i])) {
+          code_str = str.substr(0, i + 1);
+          bits_str = str.substr(i + 1);
+          break;
+        }
+      }
+    }
+  }
+
+  // Validate and set code
   if (code_str == "kDataTypeCodeUint") {
     dst.code_ = kDataTypeCodeUint;
   } else if (code_str == "kDataTypeCodeInt") {
@@ -203,11 +246,21 @@ DataType stringToDataType(const std::string &str) {
   } else {
     NNDEPLOY_LOGI("Unsupported data type: %s.\n", str.c_str());
     dst.code_ = kDataTypeCodeNotSupport;
+    return dst;
   }
 
-  dst.bits_ = static_cast<uint8_t>(std::stoi(bits_str));
-
-  dst.lanes_ = static_cast<uint16_t>(std::stoi(lanes_str));
+  // Validate and set bits/lanes
+  try {
+    if (!bits_str.empty()) {
+      dst.bits_ = static_cast<uint8_t>(std::stoi(bits_str));
+    } else {
+      dst.bits_ = 32; // Default to 32 bits if not specified
+    }
+    dst.lanes_ = static_cast<uint16_t>(std::stoi(lanes_str));
+  } catch (const std::exception& e) {
+    NNDEPLOY_LOGI("Error parsing bits/lanes from string: %s\n", str.c_str());
+    dst.code_ = kDataTypeCodeNotSupport;
+  }
 
   return dst;
 }

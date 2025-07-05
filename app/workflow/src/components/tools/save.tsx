@@ -25,7 +25,11 @@ export function Save(props: { disabled: boolean }) {
     try{
 
    
-      await Promise.all(allForms.map(async (form) => form?.validate()));
+      await Promise.all(allForms.map(async (form) => {
+        let result = await form?.validate()
+          //debugger;
+        var i = 0; 
+    }));
 
       const json = clientContext.document.toJSON()
 

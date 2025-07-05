@@ -668,6 +668,19 @@ std::vector<Edge *> Node::operator()(std::vector<Edge *> inputs) {
   return this->forward(inputs);
 }
 
+std::vector<Edge *> Node::forward() {
+  return this->forward(std::vector<Edge *>());
+}
+std::vector<Edge *> Node::operator()() {
+  return this->forward();
+}
+std::vector<Edge *> Node::forward(Edge * input) {
+  return this->forward(std::vector<Edge *>({input}));
+}
+std::vector<Edge *> Node::operator()(Edge * input) {
+  return this->forward(input);
+}
+
 bool Node::checkInputs(std::vector<Edge *> &inputs) {
 #if 0
   if (input_type_info_.empty()) {
@@ -1161,6 +1174,10 @@ base::Status Node::loadFile(const std::string &path) {
   }
   ifs.close();
   return status;
+}
+
+NodeFactory* getGlobalNodeFactory() {
+  return NodeFactory::getInstance();
 }
 
 std::set<std::string> getNodeKeys() {

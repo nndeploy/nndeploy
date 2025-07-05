@@ -44,10 +44,10 @@ class Edge(_C.dag.Edge):
         elif issubclass(type(data), nndeploy.base.Param):
             status = super().set(data, True)
         else: # 处理其他类型的数据
-            status = self.set_any(data)
+            status = self.set(data)
         if status != nndeploy.base.StatusCode.Ok:
             raise ValueError("Failed to set data")
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
         
     def create_buffer(self, device: nndeploy.device.Device, desc: nndeploy.device.BufferDesc):
         return super().create(device, desc)
@@ -69,12 +69,24 @@ class Edge(_C.dag.Edge):
         
     def get_graph_output_tensor(self) -> nndeploy.device.Tensor:
         return super().get_graph_output_tensor()
+    
+    def get_numpy(self, node: _C.dag.Node) -> np.ndarray:
+        return super().get_numpy(node)
+        
+    def get_graph_output_numpy(self) -> np.ndarray:
+        return super().get_graph_output_numpy()
+    
+    def get_param(self, node: _C.dag.Node) -> nndeploy.base.Param:
+        return super().get_param(node)
+        
+    def get_graph_output_param(self) -> nndeploy.base.Param:
+        return super().get_graph_output_param()
         
     def get(self, node: _C.dag.Node = None):
-        return self.get_any(node)
+        return self.get(node)
         
     def get_graph_output(self):
-        return self.get_graph_output_any()
+        return self.get_graph_output()
         
     def get_index(self, node: _C.dag.Node) -> int:
         return super().get_index(node)

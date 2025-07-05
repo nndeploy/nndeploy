@@ -1,10 +1,11 @@
 import React, { type SVGProps } from 'react';
 
 import { VariableSelector } from '@flowgram.ai/form-materials';
-import { Input, Button } from '@douyinfe/semi-ui';
+import { Input, Button, InputNumber, Switch, Select } from '@douyinfe/semi-ui';
 
 import { ValueDisplay } from '../value-display';
 import { FlowRefValueSchema, FlowLiteralValueSchema } from '../../typings';
+import { IFieldType } from '../../pages/Layout/Design/WorkFlow/entity';
 
 export function FxIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -21,13 +22,15 @@ export function FxIcon(props: SVGProps<SVGSVGElement>) {
 
 function InputWrap({
   value,
+  fieldType,
   onChange,
   readonly,
   hasError,
   style,
 }: {
   value: string;
-  onChange: (v: string) => void;
+  fieldType: { isArray: boolean, primateType: string };
+  onChange: (v: any) => void;
   readonly?: boolean;
   hasError?: boolean;
   style?: React.CSSProperties;
@@ -35,13 +38,26 @@ function InputWrap({
   if (readonly) {
     return <ValueDisplay value={value} hasError={hasError} />;
   }
+
+  if (!fieldType) {
+    //debugger
+    let i = 0;
+  }
   return (
-    <Input
-      value={value as string}
-      onChange={onChange}
-      validateStatus={hasError ? 'error' : undefined}
-      style={style}
-    />
+
+    fieldType && (fieldType.primateType == 'number') ?
+      <InputNumber
+        value={value as string}
+        onChange={onChange}
+        validateStatus={hasError ? 'error' : undefined}
+        style={style}
+      /> :
+      <Input
+        value={value as string}
+        onChange={onChange}
+        validateStatus={hasError ? 'error' : undefined}
+        style={style}
+      />
   );
 }
 
@@ -52,11 +68,12 @@ export interface FxExpressionProps {
   hasError?: boolean;
   readonly?: boolean;
   icon?: React.ReactNode;
+  fieldType: IFieldType
 }
 
 export function FxExpression(props: FxExpressionProps) {
-  const { value, onChange, readonly, literal, icon } = props;
-  if (literal) return <InputWrap value={value as string} onChange={onChange} readonly={readonly} />;
+  const { value, onChange, readonly, literal, icon, fieldType } = props;
+  if (literal) return <InputWrap value={value as any} onChange={onChange} readonly={readonly} fieldType={fieldType} />;
   const isExpression = typeof value === 'object' && value.type === 'expression';
   const toggleExpression = () => {
     if (isExpression) {
@@ -66,7 +83,9 @@ export function FxExpression(props: FxExpressionProps) {
     }
   };
   return (
-    <div style={{ display: 'flex', maxWidth: 300 }}>
+    <div style={{ display: 'flex', 
+    //maxWidth: 300 
+    }}>
       {isExpression ? (
         <VariableSelector
           value={value.content}
@@ -76,13 +95,27 @@ export function FxExpression(props: FxExpressionProps) {
           readonly={readonly}
         />
       ) : (
-        <InputWrap
-          value={value as string}
-          onChange={onChange}
-          hasError={props.hasError}
-          readonly={readonly}
-          style={{ flexGrow: 1, outline: props.hasError ? '1px solid red' : undefined }}
-        />
+
+        // fieldType.componentType == 'boolean' ?
+        //   <Switch checked={!!value}
+        //     //label='开关(Switch)' 
+        //     onChange={(value: boolean) => {
+        //       onChange(value)
+        //     }} /> :
+
+        //     fieldType.componentType == 'select' ? 
+        //     <Select   optionList={label: }>
+
+        //     </Select>
+        //     : 
+          <InputWrap
+            value={value as string}
+            onChange={onChange}
+            hasError={props.hasError}
+            readonly={readonly}
+            fieldType={fieldType}
+            style={{ flexGrow: 1, outline: props.hasError ? '1px solid red' : undefined }}
+          />
       )}
       {!readonly &&
         (icon || <Button theme="borderless" icon={<FxIcon />} onClick={toggleExpression} />)}
