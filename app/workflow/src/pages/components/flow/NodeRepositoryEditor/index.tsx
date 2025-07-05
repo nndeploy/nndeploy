@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Select, SideSheet, Switch } from '@douyinfe/semi-ui';
+import { Select, SideSheet, Switch, Typography } from '@douyinfe/semi-ui';
 
 import { Form, Field, FieldArray, useForm } from "@flowgram.ai/free-layout-editor";
 import { INodeEntity } from '../../../Node/entity';
@@ -14,10 +14,12 @@ import { Feedback } from '../../../../form-components';
 import Section from '@douyinfe/semi-ui/lib/es/form/section';
 import { FormParams } from '../form-params';
 
+const { Text } = Typography;
+
 interface NodeEntityFormProps {
   nodeEntity: INodeEntity;
 
-  nodeList: INodeEntity[], 
+  nodeList: INodeEntity[],
   paramTypes: IParamTypes,
 
   visible: boolean;
@@ -33,7 +35,7 @@ const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
   const { nodeEntity, visible, onClose, onSave, paramTypes, nodeList } = props
 
-  const  formRef = useRef<any>()
+  const formRef = useRef<any>()
 
 
   //const form = useForm();
@@ -60,11 +62,11 @@ const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
    * 子节点保存后，更新当前Form中对应的node_repository_字段
    */
   const handleChildSave = (updatedChild: INodeEntity) => {
-    const currentValues = formRef.current.form.values
+    const currentValues = formRef.current.values
     const updatedChildren = (currentValues.node_repository_ || []).map((child: INodeEntity) =>
       child.key_ === updatedChild.key_ ? updatedChild : child
     );
-    formRef.current.setValueIn( 'node_repository_', updatedChildren );
+    formRef.current.setValueIn('node_repository_', updatedChildren);
     closeChildEditor();
   };
 
@@ -72,33 +74,43 @@ const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
     formRef.current.validateFields().then((values: INodeEntity) => {
       onSave(values);
-       onClose();
+      onClose();
     });
-   
+
   };
 
-    const excludeFields = [
-      "key_",
-      "param_",
-      "inputs_",
-      "outputs_",
-      "node_repository_",
-      'is_dynamic_input_',
-      'is_dynamic_output_'
-    ];
-    const basicFields = lodash.difference( 
-      Object.keys(nodeEntity),
-      excludeFields
-    );
+  const excludeFields = [
+    "key_",
+    "param_",
+    "inputs_",
+    "outputs_",
+    "node_repository_",
+    'is_dynamic_input_',
+    'is_dynamic_output_'
+  ];
+  const basicFields = lodash.difference(
+    Object.keys(nodeEntity),
+    excludeFields
+  );
+
+  function onDrawerClose() {
+
+    let formValues = formRef.current.values
+
+
+
+    onSave(formValues);
+    //onClose(formValues)
+  }
 
   return (
     <>
-      <SideSheet visible={visible} onCancel={onClose} title={`编辑节点 ${nodeEntity.name_}`} width={700}>
+      <SideSheet visible={visible} onCancel={onDrawerClose} title={`[edit] ${nodeEntity.name_}`} width={500}>
 
         <Form initialValues={nodeEntity}>
           {({ form }) => {
 
-            formRef.current = form; 
+            formRef.current = form;
 
             return <form
               onSubmit={e => {
@@ -108,98 +120,113 @@ const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
               }}
             >
-               {basicFields.map((fieldName) => {
-              return (
-                <Field key={fieldName} name={fieldName}>
-                  {({ field, fieldState }) => {
-                    if (fieldName == 'flag_') {
-                      //debugger
-                      let i = 0
-                    }
-                    const fieldType = getFieldType([fieldName], form, nodeList, paramTypes)
-                    return <FormItem
-                      name={fieldName}
-                      type={"string" as string}
-                      required={true}
-                    >
-
-                      <div className="expression-field"
+              {basicFields.map((fieldName) => {
+                return (
+                  <Field key={fieldName} name={fieldName}>
+                    {({ field, fieldState }) => {
+                      if (fieldName == 'flag_') {
+                        //debugger
+                        let i = 0
+                      }
+                      const fieldType = getFieldType([fieldName], form, nodeList, paramTypes)
+                      return <FormItem
+                        name={fieldName}
+                        type={"string" as string}
+                        required={true}
                       >
-                        <>
-                          {
 
-                            fieldType.componentType == 'boolean' ?
-                              <Switch checked={!!field.value}
-                                //label='开关(Switch)' 
-                                onChange={(value: boolean) => {
-                                  field.onChange(value)
-                                }} />
-                              : fieldType.componentType == 'select' ?
-                                <Select
-                                  value={field.value as string}
-                                  style={{ width: '100%' }}
-                                  onChange={(value) => {
+                        <div className="expression-field"
+                        >
+                          <>
+                            {
+
+                              fieldType.componentType == 'boolean' ?
+                                <Switch checked={!!field.value}
+                                  //label='开关(Switch)' 
+                                  onChange={(value: boolean) => {
                                     field.onChange(value)
-                                  }
-                                  }
-
-
-                                  optionList={paramTypes[fieldType.selectKey].map(item => {
-                                    return {
-                                      label: item,
-                                      value: item
+                                  }} />
+                                : fieldType.componentType == 'select' ?
+                                  <Select
+                                    value={field.value as string}
+                                    style={{ width: '100%' }}
+                                    onChange={(value) => {
+                                      field.onChange(value)
                                     }
-                                  })}>
-
-                                </Select> :
-
-                                <FxExpression
-                                  value={field.value as string}
-                                  fieldType={fieldType}
-                                  onChange={field.onChange}
-                                  readonly={false}
-                                  hasError={
-                                    Object.keys(fieldState?.errors || {}).length > 0
-                                  }
-                                  icon={<></>}
-                                />
+                                    }
 
 
-                          }
-                          <Feedback
-                            errors={fieldState?.errors}
-                            invalid={fieldState?.invalid}
-                          />
-                        </>
-                      </div>
-                    </FormItem>
-                  }}
-                </Field>
-              );
-            })}
+                                    optionList={paramTypes[fieldType.selectKey].map(item => {
+                                      return {
+                                        label: item,
+                                        value: item
+                                      }
+                                    })}>
 
-             {
+                                  </Select> :
+
+                                  <FxExpression
+                                    value={field.value as string}
+                                    fieldType={fieldType}
+                                    onChange={field.onChange}
+                                    readonly={false}
+                                    hasError={
+                                      Object.keys(fieldState?.errors || {}).length > 0
+                                    }
+                                    icon={<></>}
+                                  />
+
+
+                            }
+                            <Feedback
+                              errors={fieldState?.errors}
+                              invalid={fieldState?.invalid}
+                            />
+                          </>
+                        </div>
+                      </FormItem>
+                    }}
+                  </Field>
+                );
+              })}
+
+              {
                 nodeEntity.hasOwnProperty('param_') && <Section text={"param_"}>
                   <FormParams />
                 </Section>
               }
+              {
+                // nodeEntity['node_repository_'] &&
+                // <Section text={"node_repository_"}>
+                //   {(nodeEntity['node_repository_'] || []).map((child: INodeEntity) => (
+                //     <div key={child.key_} style={{ marginLeft: 20, marginBottom: 8 }}>
+                //       <Text link onClick={() => openChildEditor(child)}>{child.name_}</Text>
 
-              <div style={{ marginTop: 16 }}>
-                <strong>子节点 node_repository_</strong>
-                {(nodeEntity['node_repository_'] || []).map((child: INodeEntity) => (
-                  <div key={child.key_} style={{ marginLeft: 20, marginBottom: 8 }}>
-                    <span>{child.name_}</span>
-                    <button style={{ marginLeft: 8 }} type="button" onClick={() => openChildEditor(child)}>
-                      编辑子节点
-                    </button>
-                  </div>
-                ))}
-              
-              </div>
+                //     </div>
+                //   ))}
+                // </Section>
 
-              
-                <button type="submit" onClick={()=>handleFinish()}>保存</button>
-              
+                <Field<any> name="node_repository_">
+                  {({ field: node_repository_ }) => {
+
+                    if (node_repository_.value && node_repository_.value.length > 0) {
+                      return node_repository_.value.map((child: INodeEntity) => {
+                        return <div key={child.key_} style={{ marginLeft: 20, marginBottom: 8 }}>
+                          <Text link onClick={() => openChildEditor(child)}>{child.name_}</Text>
+
+                        </div>
+                      })
+
+                    } else {
+                      return <></>
+                    }
+
+                  }}
+                </Field>
+              }
+
+
+
             </form>
           }
           }
@@ -235,8 +262,8 @@ const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
       {childEditingNode && (
         <NodeEntityForm
           nodeEntity={childEditingNode}
-           nodeList = {nodeList} 
-          paramTypes = {paramTypes}
+          nodeList={nodeList}
+          paramTypes={paramTypes}
 
           visible={childDrawerVisible}
           onClose={closeChildEditor}
@@ -249,7 +276,7 @@ const NodeEntityForm: React.FC<NodeEntityFormProps> = (props) => {
 
 interface NodeRepositoryEditorProps {
   node_repository_?: INodeEntity[];
-  nodeList: INodeEntity[], 
+  nodeList: INodeEntity[],
   paramTypes: IParamTypes,
   onUpdate: (updatedList: INodeEntity[]) => void;
 }
@@ -277,7 +304,7 @@ const updateNodeInList = (list: INodeEntity[], updatedNode: INodeEntity): INodeE
  */
 const NodeRepositoryEditor: React.FC<NodeRepositoryEditorProps> = (props) => {
 
-  const {nodeList, paramTypes, node_repository_, onUpdate} = props
+  const { nodeList, paramTypes, node_repository_, onUpdate } = props
 
   const [selectedNode, setSelectedNode] = useState<INodeEntity | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -294,6 +321,8 @@ const NodeRepositoryEditor: React.FC<NodeRepositoryEditorProps> = (props) => {
 
   const handleSave = (updatedNode: INodeEntity) => {
     if (!node_repository_) return;
+
+    closeEditor()
     const updatedList = updateNodeInList(node_repository_, updatedNode);
     onUpdate(updatedList);
   };
@@ -303,15 +332,13 @@ const NodeRepositoryEditor: React.FC<NodeRepositoryEditorProps> = (props) => {
       {node_repository_ && node_repository_.length > 0 ? (
         node_repository_.map(node => (
           <div key={node.key_} style={{ marginBottom: 8 }}>
-            <span>{node.name_}</span>
-            <button style={{ marginLeft: 8 }} onClick={() => openEditor(node)}>
+            <Text link onClick={() => openEditor(node)}>{node.name_}</Text>
+            {/* <button style={{ marginLeft: 8 }} onClick={() => openEditor(node)}>
               编辑
-            </button>
+            </button> */}
           </div>
         ))
-      ) : (
-        <div>无节点数据</div>
-      )}
+      ) : <></>}
 
       {selectedNode && (
         <NodeEntityForm
@@ -319,8 +346,8 @@ const NodeRepositoryEditor: React.FC<NodeRepositoryEditorProps> = (props) => {
           visible={drawerVisible}
           onClose={closeEditor}
           onSave={handleSave}
-          nodeList = {nodeList} 
-          paramTypes = {paramTypes}
+          nodeList={nodeList}
+          paramTypes={paramTypes}
         />
       )}
     </div>

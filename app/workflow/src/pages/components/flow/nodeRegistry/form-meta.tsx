@@ -37,7 +37,7 @@ const { Text } = Typography;
 export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
   const isSidebar = useIsSidebar();
 
- // const { node } = useNodeRender();
+  // const { node } = useNodeRender();
 
   const { nodeList = [], paramTypes } = useFlowEnviromentContext()
 
@@ -59,24 +59,24 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     'is_dynamic_input_',
     'is_dynamic_output_'
   ];
-  const basicFields = lodash.difference( 
+  const basicFields = lodash.difference(
     Object.keys(form.values),
     excludeFields
   );
 
   const [respository, setRespository] = useState<INodeEntity>({} as INodeEntity)
-  const [repositoryDrawerVisible, setRepositoryDrawerVisible]  = useState(false)
+  const [repositoryDrawerVisible, setRepositoryDrawerVisible] = useState(false)
 
-  function onShowRepositoryItemDrawer(respository: INodeEntity){
+  function onShowRepositoryItemDrawer(respository: INodeEntity) {
     setRespository(respository)
     setRepositoryDrawerVisible(true)
   }
 
-  function onRepositoryDrawerClose(){
+  function onRepositoryDrawerClose() {
     setRepositoryDrawerVisible(false)
   }
 
-  function onRepositoryDrawerSave(respository:INodeEntity){
+  function onRepositoryDrawerSave(respository: INodeEntity) {
 
   }
 
@@ -261,33 +261,55 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               </Section>
             }
 
-            {/* {
-              form.values.hasOwnProperty('node_repository_') && <Section text={"node_repository_"}>
-                {
-                  // (form.values['node_repository_'] as INodeEntity[]).map(respository => {
-                  //   return <div className="repository-title">
-                  //     <Text link onClick={()=>onShowRepositoryItemDrawer(respository)}>
-                  //       {respository.name_}
-                  //     </Text>
-                  //   </div>
-                  // })
-                  <NodeRepositoryEditor node_repository_ = {form.values['node_repository_'] as INodeEntity[]}
-                    nodeList = {nodeList} paramTypes = {paramTypes}
+            {
+              // form.values.hasOwnProperty('node_repository_') && <Section text={"node_repository_"}>
+              //   {
 
-                  
-                  onUpdate={(values)=>{
-                    console.log(values)
-                  }}  />
-                }
-              </Section>
-            } */}
+              //     <NodeRepositoryEditor node_repository_ = {form.getValueIn('node_repository_') as INodeEntity[]}
+              //       nodeList = {nodeList} paramTypes = {paramTypes}
+
+
+              //     onUpdate={(values)=>{
+              //        //console.log(values)
+              //        form.setValueIn('node_repository_', values)
+
+              //        var temp = form.values
+              //        var i = 0
+              //     }}  />
+              //   }
+              // </Section>
+
+              <Field<any> name="node_repository_">
+                {({ field: node_repository_ }) => {
+
+                  if (node_repository_.value && node_repository_.value.length > 0) {
+                    return <Section text={"node_repository_"}>
+                      {
+
+                        <NodeRepositoryEditor node_repository_={form.getValueIn('node_repository_') as INodeEntity[]}
+                          nodeList={nodeList} paramTypes={paramTypes}
+
+
+                          onUpdate={(values) => {
+                            //console.log(values)
+                           node_repository_.onChange(values)
+                          }} />
+                      }
+                    </Section>
+                  } else {
+                    return <></>
+                  }
+
+                }}
+              </Field>
+            }
 
           </>
         ) : (
           <></>
         )}
       </FormContent>
-       {/* <SideSheet title="滑动侧边栏" visible={repositoryDrawerVisible} onCancel={onRepositoryDrawerClose}>
+      {/* <SideSheet title="滑动侧边栏" visible={repositoryDrawerVisible} onCancel={onRepositoryDrawerClose}>
                 <RepositoryItemDrawer respository = {respository} onRepositoryDrawerSave = {onRepositoryDrawerSave}/>
 
             </SideSheet> */}
