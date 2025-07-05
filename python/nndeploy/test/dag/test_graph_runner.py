@@ -30,10 +30,19 @@ class GraphRunner:
         t0 = time.perf_counter()
         graph.init()
         
-        count = graph.get_loop_count()
+        count_map = graph.get_loop_count_map()
+        print(f"count_map: {count_map}")
+        
+        count = 0
+        for k, v in count_map.items():
+            count = max(count, v)
+        print(f"count: {count}")
 
         for i in range(count):
+            t0_0 = time.perf_counter()
             graph.run()
+            t1_0 = time.perf_counter()
+            print(f"run {i} times, time: {t1_0 - t0_0}")
             
         t1 = time.perf_counter()
         

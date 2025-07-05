@@ -24,8 +24,16 @@ class GraphRunner:
         graph = self._build_graph(graph_json_str, name)
 
         t0 = time.perf_counter()
+        
         graph.init()
-        graph.run()
+        
+        count = graph.get_loop_count()
+        for i in range(count):
+            t0_0 = time.perf_counter()
+            graph.run()
+            t1_0 = time.perf_counter()
+            print(f"run {i} times, time: {t1_0 - t0_0}")
+            
         t1 = time.perf_counter()
 
         return t1 - t0

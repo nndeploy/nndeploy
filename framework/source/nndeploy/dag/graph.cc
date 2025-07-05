@@ -677,20 +677,29 @@ int Graph::getLoopCount() {
   if (inputs_.size() > 0) {
     return 1;
   }
-  int loop_count = INT_MAX;
+  int loop_count_min = INT_MAX;
+  int loop_count_max = 1;
   bool is_find_input = false;
   for (auto node_wrapper : node_repository_) {
     if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput) {
       is_find_input = true;
-      if (node_wrapper->node_->getLoopCount() < loop_count) {
-        loop_count = node_wrapper->node_->getLoopCount();
+      if (node_wrapper->node_->getLoopCount() < loop_count_min) {
+        loop_count_min = node_wrapper->node_->getLoopCount();
+      }
+      if (node_wrapper->node_->getLoopCount() > loop_count_max) {
+        loop_count_max = node_wrapper->node_->getLoopCount();
       }
     }
   }
+  
   if (!is_find_input) {
     return 1;
   }
-  return loop_count;
+  if(is_loop_max_flag_) {
+    return loop_count_max;
+  } else {
+    return loop_count_min;
+  }
 }
 
 std::map<std::string, int> Graph::getLoopCountMap() {
@@ -1600,6 +1609,7 @@ base::Status Graph::serialize(rapidjson::Value &json,
     json.AddMember("is_graph_node_share_stream_", is_graph_node_share_stream_,
                    allocator);
     json.AddMember("queue_max_size_", queue_max_size_, allocator);
+    json.AddMember("is_loop_max_flag_", is_loop_max_flag_, allocator);
   }
 
   // if (!node_repository_.empty()) {
