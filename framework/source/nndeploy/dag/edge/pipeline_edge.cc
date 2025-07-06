@@ -334,6 +334,10 @@ base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+  // take
+  // base::Status status = dp->takeDataPacket(data_packet);
+  // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+  //                        "PipelineDataPacket take error.\n");
 
   data_packets_.push_back(dp);
   cv_.notify_all();

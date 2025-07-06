@@ -16,10 +16,18 @@ struct PyObjectWrapper {
   PyObject* obj;  // 指向Python对象的指针
 
   // 构造函数:接收一个Python对象指针,增加引用计数防止对象被销毁
-  PyObjectWrapper(PyObject* o) : obj(o) { Py_INCREF(obj); }
+  PyObjectWrapper(PyObject* o) : obj(o) {
+    // py::gil_scoped_acquire acquire;
+    Py_INCREF(obj);
+    // py::gil_scoped_release release;
+  }
 
   // 析构函数:减少引用计数,允许Python回收对象
-  ~PyObjectWrapper() { Py_DECREF(obj); }
+  ~PyObjectWrapper() {
+    py::gil_scoped_acquire acquire;
+    Py_DECREF(obj);
+    // py::gil_scoped_release release;
+  }
 };
 
 NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
@@ -413,7 +421,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             } else if (auto* param = edge.getParam(node)) {
               py::gil_scoped_acquire acquire;
               return py::cast(param);
-            } else if (auto* mat = edge.getCvMat(node)) { 
+            } else if (auto* mat = edge.getCvMat(node)) {
               py::gil_scoped_acquire acquire;
               if (mat == nullptr) {
                 return py::object(py::array());  // 返回空数组
@@ -496,7 +504,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             }
             return py::object(py::none());
           },
-          py::arg("node"), py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+          py::arg("node"), py::return_value_policy::reference,
+          py::call_guard<py::gil_scoped_release>())
       .def(
           "get_graph_output",
           [](Edge& edge) {
@@ -594,7 +603,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             }
             return py::object(py::none());
           },
-          py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
+          py::return_value_policy::reference,
+          py::call_guard<py::gil_scoped_release>())
 
       // 索引和位置相关操作
       .def("get_index", &Edge::getIndex, py::arg("node"))
@@ -604,7 +614,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("get_graph_output_position", &Edge::getGraphOutputPosition)
 
       // 更新和标记相关操作
-      .def("update", &Edge::update, py::arg("node"), py::call_guard<py::gil_scoped_release>())
+      .def("update", &Edge::update, py::arg("node"),
+           py::call_guard<py::gil_scoped_release>())
       .def("mark_graph_output", &Edge::markGraphOutput)
 
       // 生产者消费者相关操作
@@ -612,7 +623,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("increase_consumers", &Edge::increaseConsumers, py::arg("consumers"))
 
       // 终止请求
-      .def("request_terminate", &Edge::requestTerminate, py::call_guard<py::gil_scoped_release>())
+      .def("request_terminate", &Edge::requestTerminate,
+           py::call_guard<py::gil_scoped_release>())
 
       // 类型信息相关操作
       .def(

@@ -106,7 +106,7 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
     else {
       flag_ = EdgeTypeFlag::kAny;
     }
-    written_ = false;
+    written_ = true;
     deleter_ = [](void *d) { delete static_cast<T *>(d); };
     type_info_ = const_cast<std::type_info *>(&typeid(T));
     return status;
@@ -193,7 +193,7 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
     else {
       flag_ = EdgeTypeFlag::kAny;
     }
-    written_ = false;
+    written_ = true;
     deleter_ = [](void *d) { delete static_cast<T *>(d); };
     type_info_ = const_cast<std::type_info *>(&typeid(T));
 

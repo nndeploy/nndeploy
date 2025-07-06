@@ -87,7 +87,7 @@ def test_face_swapper_from_json():
     print("init success!")
     face_swapper_demo.dump()
     nndeploy.base.time_point_start("test_face_swapper_from_json")
-    count = 10
+    count = 17
     face_swapper_demo.set_size(count)
     for i in range(count):
         face_swapper_demo.run()
@@ -97,7 +97,7 @@ def test_face_swapper_from_json():
             # import cv2
             # cv2.imwrite(f"/home/always/github/public/nndeploy/build/nndeploy_Always_Chunel_v3_{i}_sequential.jpg", mat)
     if parallel_type == nndeploy.base.ParallelType.Pipeline:
-        for i in range(10):
+        for i in range(count):
             # print(f"test_face_swapper_from_json {i}")
             output = face_swapper_demo.get_output(0)
             mat = output.get_graph_output()
@@ -113,7 +113,9 @@ def test_face_swapper_from_json():
     
 if __name__ == "__main__":
     # test_face_swapper()
-    test_face_swapper_from_json()
+    for i in range(10):
+        test_face_swapper_from_json()
+        print(f"test_face_swapper_from_json {i}")
     
         
         
