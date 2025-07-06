@@ -12,7 +12,9 @@ class EnqueueRequest(RootModel):
     root: Dict[str, Any]
 
 class EnqueueResponse(BaseModel):
-    task_id: str
+    flag: str
+    message: str
+    result: Dict[str, Any]
 
 class QueueItem(BaseModel):
     id: str

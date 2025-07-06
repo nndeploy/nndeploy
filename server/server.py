@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi import APIRouter, Request, status, UploadFile, File
+from fastapi import APIRouter, Request, status, UploadFile, File, Query
 from fastapi import Depends
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi import HTTPException
@@ -90,7 +90,10 @@ class NnDeployServer:
                 "priority": 100,
             }
             self.queue.put(payload, prio=100)
-            return EnqueueResponse(task_id=task_id)
+            flag = "success"
+            message = "success"
+            result = {"task_id":task_id}
+            return EnqueueResponse(flag=flag, message=message, result=result)
 
         @api.post(
             "/workflow/save",
@@ -223,9 +226,42 @@ class NnDeployServer:
             return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
 
         # preview
-        @api.get("/preview/{file_path:path}", tags=["Files"],
+        @api.get("/preview", tags=["Files"],
                 summary="preview images/videos/models")
-        async def preview_file(file_path: str):
+        async def preview_file(file_path: str = Query(..., description="absolute_path or relative path")):
+            f = Path(self.args.resources) / file_path
+            if not f.exists():
+                raise HTTPException(status_code=404, detail="Not found")
+
+            MIME_MAP: dict[str, str] = {
+                # ---- image ----
+                ".jpg":  "image/jpeg",
+                ".jpeg": "image/jpeg",
+                ".png":  "image/png",
+                ".webp": "image/webp",
+                ".gif":  "image/gif",
+                ".svg":  "image/svg+xml",
+
+                # ---- video ----
+                ".mp4": "video/mp4",
+                ".mov": "video/quicktime",
+                ".avi": "video/x-msvideo",
+                ".mkv": "video/x-matroska",
+                ".webm": "video/webm",
+            }
+
+            mime = MIME_MAP.get(f.suffix.lower())
+            if mime is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Unsupported preview type"
+                )
+            return FileResponse(f, media_type=mime, filename=None)
+
+        # download
+        @api.get("/download", tags=["Files"],
+                summary="download images/videos/models")
+        async def download_file(file_path: str = Query(..., description="absolute_path or relative path")):
             f = Path(self.args.resources) / file_path
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
@@ -254,9 +290,8 @@ class NnDeployServer:
             if mime is None:
                 raise HTTPException(
                     status_code=400,
-                    detail="Unsupported preview type"
+                    detail="Unsupported download type"
                 )
-
             return FileResponse(f, media_type=mime, filename=f.name)
 
         @self.app.on_event("startup")

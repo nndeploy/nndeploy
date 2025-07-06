@@ -26,7 +26,7 @@ export default defineConfig({
         target: 'http://183.215.186.194:7777', // 目标服务器的地址
         secure: false, // 如果目标服务器使用自签名证书，请设置为false
         changeOrigin: true, // 是否改变请求头中的origin
-       // pathRewrite: { '^/api': '' }, // 重写路径，例如将'/api/user'重写为'/user'
+        // pathRewrite: { '^/api': '' }, // 重写路径，例如将'/api/user'重写为'/user'
         headers: { // 可选的，向目标服务器发送额外的请求头
           Host: 'localhost'
         }
