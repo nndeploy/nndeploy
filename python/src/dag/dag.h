@@ -271,6 +271,10 @@ class PyGraph : public Base {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "run", run);
   }
 
+  virtual bool synchronize() override {
+    PYBIND11_OVERRIDE_NAME(bool, Base, "synchronize", synchronize);
+  }
+
   std::vector<Edge *> forward(std::vector<Edge *> inputs) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward,
                            inputs);
