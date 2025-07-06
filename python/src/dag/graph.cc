@@ -110,6 +110,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           },
           py::call_guard<py::gil_scoped_release>())
       .def("run", &Graph::run, py::call_guard<py::gil_scoped_release>())
+      .def("synchronize", &Graph::synchronize, py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward),
            py::arg("inputs"), py::keep_alive<1, 2>(),
            py::return_value_policy::reference,

@@ -295,6 +295,10 @@ class Graph(_C.dag.Graph):
         """运行图"""
         return super().run()
 
+    def synchronize(self):
+        """同步图"""
+        return super().synchronize()
+
     # def __call__(self, inputs):
     #     """
     #     调用图

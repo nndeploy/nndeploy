@@ -879,6 +879,14 @@ base::Status Graph::run() {
   return status;
 }
 
+bool Graph::synchronize() {
+  bool is_synchronize = executor_->synchronize();
+  if (!is_synchronize) {
+    NNDEPLOY_LOGE("executor synchronize failed!");
+  }
+  return is_synchronize;
+}
+
 std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
   std::vector<Edge *> outputs;
   return outputs;
