@@ -333,6 +333,10 @@ if(ENABLE_NNDEPLOY_PLUGIN_STABLE_DIFFUSION)
 endif()
 
 # 创建 Python 模块
+# 使用pybind11创建Python模块
+# ${BINARY}是前面定义的pynndeploy
+# ${SOURCE}是前面收集的所有源文件
+# 该命令会生成一个Python扩展模块,将C++代码暴露给Python
 pybind11_add_module(${BINARY} ${SOURCE})
 
 # 属性
