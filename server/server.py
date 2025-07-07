@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi import APIRouter, Request, status, UploadFile, File
+from fastapi import APIRouter, Request, status, UploadFile, File, Query
 from fastapi import Depends
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi import HTTPException
@@ -12,7 +12,7 @@ import json
 import asyncio
 import uuid
 import logging
-from utils import extract_encode_output_path
+from utils import extract_encode_output_paths
 import nndeploy.dag
 from nndeploy import get_type_enum_json
 from task_queue import TaskQueue
@@ -90,7 +90,10 @@ class NnDeployServer:
                 "priority": 100,
             }
             self.queue.put(payload, prio=100)
-            return EnqueueResponse(task_id=task_id)
+            flag = "success"
+            message = "success"
+            result = {"task_id":task_id}
+            return EnqueueResponse(flag=flag, message=message, result=result)
 
         @api.post(
             "/workflow/save",
@@ -223,9 +226,9 @@ class NnDeployServer:
             return HTMLResponse("<h2>nndeploy backend: API OK</h2>")
 
         # preview
-        @api.get("/preview/{file_path:path}", tags=["Files"],
+        @api.get("/preview", tags=["Files"],
                 summary="preview images/videos")
-        async def preview_file(file_path: str):
+        async def preview_file(file_path: str = Query(..., description="absolute_path or relative path")):
             f = Path(self.args.resources) / file_path
             if not f.exists():
                 raise HTTPException(status_code=404, detail="Not found")
@@ -253,8 +256,43 @@ class NnDeployServer:
                     status_code=400,
                     detail="Unsupported preview type"
                 )
+            return FileResponse(f, media_type=mime, filename=None)
 
-            return FileResponse(f, media_type=mime)
+        # download
+        @api.get("/download", tags=["Files"],
+                summary="download images/videos/models")
+        async def download_file(file_path: str = Query(..., description="absolute_path or relative path")):
+            f = Path(self.args.resources) / file_path
+            if not f.exists():
+                raise HTTPException(status_code=404, detail="Not found")
+
+            MIME_MAP: dict[str, str] = {
+                # ---- image ----
+                ".jpg":  "image/jpeg",
+                ".jpeg": "image/jpeg",
+                ".png":  "image/png",
+                ".webp": "image/webp",
+                ".gif":  "image/gif",
+                ".svg":  "image/svg+xml",
+
+                # ---- video ----
+                ".mp4": "video/mp4",
+                ".mov": "video/quicktime",
+                ".avi": "video/x-msvideo",
+                ".mkv": "video/x-matroska",
+                ".webm": "video/webm",
+
+                # ---- model ----
+                ".onnx": "application/octet-stream"
+            }
+
+            mime = MIME_MAP.get(f.suffix.lower())
+            if mime is None:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Unsupported download type"
+                )
+            return FileResponse(f, media_type=mime, filename=f.name)
 
         @self.app.on_event("startup")
         async def _on_startup():
@@ -295,7 +333,7 @@ class NnDeployServer:
         if task_info is None:
             raise HTTPException(status_code=404, detail="task not found")
         graph_json = task_info.get("task").get("graph_json")
-        path = extract_encode_output_path(graph_json)
+        path = extract_encode_output_paths(graph_json)
 
         flag = "success"
         message = "notify task done"
