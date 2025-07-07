@@ -103,7 +103,7 @@ def test_node():
 
 
 if __name__ == "__main__":
-    test_node()
+    # test_node()
     print(nndeploy.dag.get_node_keys())
     all_node_json = nndeploy.dag.get_all_node_json()
     # print(all_node_json)
@@ -112,18 +112,18 @@ if __name__ == "__main__":
         f.write(all_node_json)
     # print(nndeploy.dag.get_all_node_json())
         
-    const_node = nndeploy.dag.ConstNode("const_node")
-    const_node.set_output_type(torch.Tensor)
-    print(const_node.serialize())
-    const_node.run()
+    # const_node = nndeploy.dag.ConstNode("const_node")
+    # const_node.set_output_type(torch.Tensor)
+    # print(const_node.serialize())
+    # const_node.run()
     
-    composite_node = nndeploy.dag.CompositeNode("composite_node")
-    composite_node.set_input_type(torch.Tensor)
-    composite_node.set_output_type(torch.Tensor)
-    print(composite_node.serialize())
-    composite_node.run()
+    # composite_node = nndeploy.dag.CompositeNode("composite_node")
+    # composite_node.set_input_type(torch.Tensor)
+    # composite_node.set_output_type(torch.Tensor)
+    # print(composite_node.serialize())
+    # composite_node.run()
     
-    loop_node = nndeploy.dag.Loop("loop_node")
+    # loop_node = nndeploy.dag.Loop("loop_node")
     
     # print(nndeploy.dag.get_all_node_json())
     

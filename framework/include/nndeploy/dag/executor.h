@@ -41,9 +41,7 @@ class NNDEPLOY_CC_API Executor : public base::NonCopyable {
   virtual base::Status deinit() = 0;
 
   virtual base::Status run() = 0;
-  virtual bool synchronize() {
-    return true;
-  }
+  virtual bool synchronize() = 0;
 
  protected:
   // must be set by user

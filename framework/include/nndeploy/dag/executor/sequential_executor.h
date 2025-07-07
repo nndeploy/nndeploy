@@ -17,6 +17,7 @@ class SequentialExecutor : public Executor {
   virtual base::Status deinit();
 
   virtual base::Status run();
+  virtual bool synchronize();
 
  protected:
   std::vector<NodeWrapper *> topo_sort_node_;

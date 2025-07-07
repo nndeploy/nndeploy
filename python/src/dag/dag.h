@@ -115,6 +115,10 @@ class PyNode : public Base {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, Base, "run", run);
   }
 
+  bool synchronize() override {
+    PYBIND11_OVERRIDE_NAME(bool, Base, "synchronize", synchronize);
+  }
+
   std::vector<Edge *> forward(std::vector<Edge *> inputs) override {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward,
                            inputs);

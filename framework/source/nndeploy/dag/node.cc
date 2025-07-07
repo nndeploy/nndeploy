@@ -609,6 +609,10 @@ base::EdgeUpdateFlag Node::updateInput() {
   return flag;
 }
 
+bool Node::synchronize() {
+  return true;
+}
+
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {
   // init
   if (initialized_ == false && is_trace_ == false) {

@@ -513,7 +513,7 @@ base::Status OpenCvVedioEncode::run() {
     }
     index_++;
     if (index_ == size_) {
-      NNDEPLOY_LOGI("OpenCvVedioEncode::run() writer_->release()\n");
+      // NNDEPLOY_LOGI("OpenCvVedioEncode::run() writer_->release()\n");
       writer_->release();
     }
   } else {
