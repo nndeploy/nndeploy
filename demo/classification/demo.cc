@@ -161,6 +161,7 @@ int main(int argc, char *argv[]) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
       }
+      NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
     }
   }
   if (pt == base::kParallelTypePipeline) {
@@ -168,11 +169,11 @@ int main(int argc, char *argv[]) {
       classification::ClassificationResult *result =
           (classification::ClassificationResult *)outputs[0]
               ->getGraphOutputParam();
-      NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
       }
+      NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
     }
   }
   NNDEPLOY_TIME_POINT_END("graph_demo(inputs)");
