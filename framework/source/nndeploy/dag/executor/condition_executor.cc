@@ -89,5 +89,14 @@ base::Status ConditionExecutor::process() {
   return status;
 }
 
+bool ConditionExecutor::synchronize() {
+  for (auto iter : node_repository_) {
+    if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  return true;
+}
+
 }  // namespace dag
 }  // namespace nndeploy

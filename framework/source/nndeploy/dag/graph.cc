@@ -1235,6 +1235,34 @@ std::vector<Edge *> Graph::trace(Edge *input) {
   return outputs;
 }
 
+base::Status Graph::toStaticGraph() {
+  this->setTraceFlag(true);
+  base::Status status = base::kStatusCodeOk;
+  if (input_type_info_.size() == 0) {
+    std::vector<Edge *> outputs = this->operator()();
+  } else if (input_type_info_.size() == 1) {
+    std::string name = this->getName() + "@" + "input_" +  std::to_string(0);
+    Edge *edge = new Edge(name);
+    this->addEdge(edge, false);
+    std::vector<Edge *> outputs = this->operator()(edge);
+    // delete edge;
+  } else {
+    std::vector<Edge *> edges;
+    for (int i = 0; i < input_type_info_.size(); i++) {
+      std::string name = this->getName() + "@" + "input_" + std::to_string(i);
+      Edge *edge = new Edge(name);
+      this->addEdge(edge, false);
+      edges.emplace_back(edge);
+    }
+    std::vector<Edge *> outputs = this->operator()(edges);
+    // for (auto edge : edges) {
+    //   delete edge;
+    // }
+  }
+  this->setTraceFlag(false);
+  return status;
+}
+
 base::Status Graph::construct() {
   base::Status status = base::kStatusCodeOk;
 

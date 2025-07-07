@@ -339,6 +339,9 @@ class Graph(_C.dag.Graph):
             return super().trace(inputs)
         else:
             raise ValueError("inputs must be List[Edge], Edge or None")
+        
+    def to_static_graph(self):
+        return super().to_static_graph()
     
     def get_edge_wrapper(self, edge: Union[Edge, str]) -> EdgeWrapper:
         return super().get_edge_wrapper(edge)

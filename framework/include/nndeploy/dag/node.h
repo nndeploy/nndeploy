@@ -225,6 +225,7 @@ class NNDEPLOY_CC_API Node {
   virtual base::EdgeUpdateFlag updateInput();
 
   virtual base::Status run() = 0;
+  virtual bool synchronize();
 
   /**
    * @brief 节点调用接口

@@ -148,6 +148,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_memory", &Node::setMemory, py::arg("buffer"))
       .def("update_input", &Node::updateInput, py::call_guard<py::gil_scoped_release>())
       .def("run", &Node::run, py::call_guard<py::gil_scoped_release>())
+      .def("synchronize", &Node::synchronize, py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<std::vector<Edge *>>(&Node::forward), py::arg("inputs"),
            py::return_value_policy::reference, py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<>(&Node::forward),

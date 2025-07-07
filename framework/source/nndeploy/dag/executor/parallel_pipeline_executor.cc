@@ -91,6 +91,11 @@ bool ParallelPipelineExecutor::synchronize() {
     bool flag = completed_size_ == run_size_;
     return flag;
   });
+  for (auto iter : topo_sort_node_) {
+    if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
   is_synchronize_ = completed_size_ == run_size_;
   return is_synchronize_;
 }

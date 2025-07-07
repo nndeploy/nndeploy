@@ -151,6 +151,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::vector<Edge *> trace();
   std::vector<Edge *> trace(Edge *input);
 
+  base::Status toStaticGraph();
+
   // create node
   // Not recommended api
   template <typename T, typename... Args,

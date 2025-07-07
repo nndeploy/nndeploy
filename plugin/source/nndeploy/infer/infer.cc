@@ -191,7 +191,12 @@ base::Status Infer::setParam(base::Param *param) {
   status = inference_->setParam(param);
   return status;
 }
-base::Param *Infer::getParam() { return inference_->getParam(); }
+base::Param *Infer::getParam() { 
+  if (inference_ == nullptr) {
+    return nullptr;
+  }
+  return inference_->getParam(); 
+}
 
 base::Status Infer::setParamSharedPtr(std::shared_ptr<base::Param> param) {
   base::Status status = base::kStatusCodeOk;

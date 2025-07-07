@@ -73,5 +73,14 @@ base::Status SequentialExecutor::run() {
   return status;
 }
 
+bool SequentialExecutor::synchronize() {
+  for (auto iter : topo_sort_node_) {
+    if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  return true;
+}
+
 }  // namespace dag
 }  // namespace nndeploy
