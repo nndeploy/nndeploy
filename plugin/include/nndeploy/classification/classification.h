@@ -131,8 +131,10 @@ class NNDEPLOY_CC_API ClassificationGraph : public dag::Graph {
     pre_param->src_pixel_type_ = base::kPixelTypeBGR;
     pre_param->dst_pixel_type_ = base::kPixelTypeRGB;
     pre_param->interp_type_ = base::kInterpTypeLinear;
-    pre_param->resize_h_ = 256;
-    pre_param->resize_w_ = 256;
+    // pre_param->resize_h_ = 256;
+    // pre_param->resize_w_ = 256;
+    pre_param->resize_h_ = 224;
+    pre_param->resize_w_ = 224;
     pre_param->mean_[0] = 0.485;
     pre_param->mean_[1] = 0.456;
     pre_param->mean_[2] = 0.406;
@@ -192,8 +194,8 @@ class NNDEPLOY_CC_API ClassificationGraph : public dag::Graph {
    * @return kStatusCodeOk on success
    */
   base::Status setSrcPixelType(base::PixelType pixel_type) {
-    preprocess::CvtResizeNormTransParam *param =
-        dynamic_cast<preprocess::CvtResizeNormTransParam *>(pre_->getParam());
+    preprocess::CvtResizeCropNormTransParam *param =
+        dynamic_cast<preprocess::CvtResizeCropNormTransParam *>(pre_->getParam());
     param->src_pixel_type_ = pixel_type;
     return base::kStatusCodeOk;
   }
