@@ -218,6 +218,7 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
   m.def("add", &addFunc, py::return_value_policy::take_ownership);
   m.def("flatten", &flattenFunc, py::return_value_policy::take_ownership);
   m.def("gemm", &gemmFunc, py::return_value_policy::take_ownership);
+  m.def("gelu", &geluFunc, py::return_value_policy::take_ownership);
   m.def("global_averagepool", &globalAveragepoolFunc,
         py::return_value_policy::take_ownership);
   m.def("maxpool", &maxPoolFunc, py::return_value_policy::take_ownership);
@@ -230,12 +231,15 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
       },   
       py::return_value_policy::take_ownership);
   m.def("softmax", &softmaxFunc, py::return_value_policy::take_ownership);
+  m.def("sigmoid", &sigmoidFunc, py::return_value_policy::take_ownership);
   m.def("quantize_linear", &quantizeLinearFunc,
         py::return_value_policy::take_ownership);
   m.def("dequantize_linear", &dequantizeLinearFunc,
         py::return_value_policy::take_ownership);
   m.def("qlinear_conv", &qlinearConvFunc,
         py::return_value_policy::take_ownership);
+  m.def("transpose", &transposeFunc, py::return_value_policy::take_ownership);
+  m.def("where", &whereFunc, py::return_value_policy::take_ownership);
 }
 
 }  // namespace op

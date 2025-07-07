@@ -119,6 +119,20 @@ device::Tensor* gemmFunc(device::Tensor* inputs_a, device::Tensor* inputs_b,
   return result;
 }
 
+device::Tensor* geluFunc(device::Tensor* input) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("gelu.output");
+  base::Status status = op::gelu(input, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::gelu failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+
+  return output;
+}
+
 device::Tensor* globalAveragepoolFunc(device::Tensor* input) {
   std::stringstream ss;
   device::Tensor* result = new device::Tensor("global_averagepool.output");
@@ -188,6 +202,19 @@ device::Tensor* softmaxFunc(device::Tensor* input1,
   return result;
 }
 
+device::Tensor* sigmoidFunc(device::Tensor* input1) {
+  std::stringstream ss;
+  device::Tensor* result = new device::Tensor("sigmoid.output");
+  base::Status status = op::sigmoid(input1, result);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::sigmoid failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return result;
+}
+
+
 device::Tensor* quantizeLinearFunc(
     device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
     std::shared_ptr<ir::QuantizeLinearParam> param) {
@@ -241,6 +268,32 @@ device::Tensor* qlinearConvFunc(device::Tensor* x, device::Tensor* x_scale,
     pybind11::pybind11_fail(ss.str());
   }
 
+  return output;
+}
+
+device::Tensor* whereFunc(device::Tensor* input1, device::Tensor* input2, device::Tensor* condition) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("where.output");
+  base::Status status = op::where(input1, input2, condition, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::where failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return output;
+}
+
+device::Tensor* transposeFunc(device::Tensor* input, std::shared_ptr<ir::TransposeParam> param) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("transpose.output");
+  base::Status status = op::transpose(input, param, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::transpose failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
   return output;
 }
 
