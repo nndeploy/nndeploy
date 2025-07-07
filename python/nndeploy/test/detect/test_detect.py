@@ -112,7 +112,7 @@ def test_static_yolo_from_json():
     # print("init success!")
     yolo_demo.dump()
     yolo_demo.set_input_path("/home/always/github/public/nndeploy/docs/image/demo/detect/sample.jpg")
-    count = 100
+    count = 17
     yolo_demo.set_size(count)
     yolo_demo.set_output_path("/home/always/github/public/nndeploy/build/yolo_jos_python_demo.jpg")
     nndeploy.base.time_point_start("test_yolo_from_json")
@@ -131,8 +131,8 @@ def test_static_yolo_from_json():
     if (pt == nndeploy.base.ParallelType.Pipeline):
         for i in range(count):
             result = output[0].get_graph_output()
-            for bbox in result.bboxs_:
-                print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
+            # for bbox in result.bboxs_:
+            #     print(f"Class ID: {bbox.label_id_}, Confidence: {bbox.score_:.2f}, Bounding Box: {bbox.bbox_}")
     
     # print("deinit start!")
     yolo_demo.deinit()
@@ -173,7 +173,9 @@ def test_static_graph_from_json():
 if __name__ == "__main__":
     # test_yolo()
     # test_yolo_from_json()
-    test_static_yolo_from_json()
+    for i in range(10):
+        test_static_yolo_from_json()
+        print(f"test_static_yolo_from_json {i}")
     # test_static_graph_from_json()
     
         

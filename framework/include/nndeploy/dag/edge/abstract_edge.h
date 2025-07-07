@@ -108,11 +108,11 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
       delete data_packet;
       return status;
     }
-    bool is_notify = this->notifyWritten(t);
-    if (!is_notify) {
-      NNDEPLOY_LOGE("Failed to notify written.\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+    // bool is_notify = this->notifyWritten(t);
+    // if (!is_notify) {
+    //   NNDEPLOY_LOGE("Failed to notify written.\n");
+    //   return base::kStatusCodeErrorInvalidParam;
+    // }
     return base::kStatusCodeOk;
   }
   template <typename T, typename... Args>
@@ -220,11 +220,11 @@ class NNDEPLOY_CC_API AbstractEdge : public base::NonCopyable {
       delete data_packet;
       return status;
     }
-    bool is_notify = this->notifyWritten(t);
-    if (!is_notify) {
-      NNDEPLOY_LOGE("Failed to notify written.\n");
-      return base::kStatusCodeErrorInvalidParam;
-    }
+    // bool is_notify = this->notifyWritten(t);
+    // if (!is_notify) {
+    //   NNDEPLOY_LOGE("Failed to notify written.\n");
+    //   return base::kStatusCodeErrorInvalidParam;
+    // }
     return base::kStatusCodeOk;
   }
 

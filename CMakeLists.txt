@@ -211,11 +211,11 @@ endif()
 if(ENABLE_NNDEPLOY_PYTHON)
   set(ENABLE_NNDEPLOY_CXX17_ABI ON)
   set(ENABLE_NNDEPLOY_DAG ON)
-  # 添加 pybind11 子目录
-  add_subdirectory(${ROOT_PATH}/third_party/pybind11)
-  # include
-  include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
-  add_definitions(-DENABLE_NNDEPLOY_PYTHON)
+  # # 添加 pybind11 子目录
+  # add_subdirectory(${ROOT_PATH}/third_party/pybind11)
+  # # include
+  # include_directories(${pybind11_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS})
+  # add_definitions(-DENABLE_NNDEPLOY_PYTHON)
 endif()
 
 if(ENABLE_NNDEPLOY_DEMO)

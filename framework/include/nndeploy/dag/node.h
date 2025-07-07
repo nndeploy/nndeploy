@@ -181,6 +181,9 @@ class NNDEPLOY_CC_API Node {
   void setNodeType(NodeType node_type);
   NodeType getNodeType();
 
+  virtual void setLoopCount(int loop_count);
+  virtual int getLoopCount();
+
   void setStream(device::Stream *stream);
   device::Stream *getStream();
 
@@ -305,6 +308,7 @@ class NNDEPLOY_CC_API Node {
   bool traced_ = false;
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
+  int loop_count_ = 1;
 };
 
 /**

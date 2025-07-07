@@ -115,6 +115,11 @@ class NNDEPLOY_CC_API Graph : public Node {
   void setGraphNodeShareStream(bool flag);
   bool getGraphNodeShareStream();
 
+  // set graph loop count
+  virtual void setLoopCount(int loop_count);
+  virtual int getLoopCount();
+  virtual std::map<std::string, int> getLoopCountMap();
+
   // update node io
   base::Status updateNodeIO(Node *node, std::vector<Edge *> inputs,
                             std::vector<Edge *> outputs);
@@ -127,6 +132,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status deinit();
 
   virtual base::Status run();
+  virtual bool synchronize();
 
   // This method must be implemented by subclasses
   // Subclasses should override this method to define their own operator()
@@ -135,15 +141,15 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs);
   virtual std::vector<Edge *> forward();
   virtual std::vector<Edge *> operator()();
-  virtual std::vector<Edge *> forward(Edge * input);
-  virtual std::vector<Edge *> operator()(Edge * input);
+  virtual std::vector<Edge *> forward(Edge *input);
+  virtual std::vector<Edge *> operator()(Edge *input);
 
   base::Status dump(std::ostream &oss = std::cout);
 
   virtual void setTraceFlag(bool flag);
   std::vector<Edge *> trace(std::vector<Edge *> inputs);
   std::vector<Edge *> trace();
-  std::vector<Edge *> trace(Edge * input);
+  std::vector<Edge *> trace(Edge *input);
 
   // create node
   // Not recommended api
@@ -298,6 +304,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   int queue_max_size_ = 16;
   std::map<std::string, std::shared_ptr<base::Param>>
       external_param_repository_;
+  bool is_loop_max_flag_ = true;
 };
 
 template <typename T, typename... Args,

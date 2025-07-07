@@ -133,12 +133,14 @@ class PyNode : public Base {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator());
   }
 
-  std::vector<Edge *> forward(Edge * input) override {
-    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward, input);
+  std::vector<Edge *> forward(Edge *input) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward,
+                           input);
   }
 
-  std::vector<Edge *> operator()(Edge * input) override {
-    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(), input);
+  std::vector<Edge *> operator()(Edge *input) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(),
+                           input);
   }
 
   std::vector<std::string> getRealOutputsName() override {
@@ -174,6 +176,15 @@ class PyNode : public Base {
   base::Status loadFile(const std::string &path) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "load_file", loadFile, path);
   }
+
+  virtual void setLoopCount(int loop_count) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_loop_count", setLoopCount,
+                           loop_count);
+  }
+
+  virtual int getLoopCount() override {
+    PYBIND11_OVERRIDE_NAME(int, Base, "get_loop_count", getLoopCount);
+  }
 };
 
 template <typename Base = NodeCreator>
@@ -202,11 +213,13 @@ class PyGraph : public Base {
   using Base::Base;  // 继承构造函数
 
   virtual base::Status setInput(Edge *input, int index = -1) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_input", setInput, input, index);
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_input", setInput, input,
+                           index);
   }
 
   virtual base::Status setOutput(Edge *output, int index = -1) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_output", setOutput, output, index);
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_output", setOutput, output,
+                           index);
   }
 
   virtual base::Status setInputs(std::vector<Edge *> inputs) override {
@@ -214,23 +227,32 @@ class PyGraph : public Base {
   }
 
   virtual base::Status setOutputs(std::vector<Edge *> outputs) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_outputs", setOutputs, outputs);
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_outputs", setOutputs,
+                           outputs);
   }
 
-  virtual base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_input_shared_ptr", setInputSharedPtr, input, index);
+  virtual base::Status setInputSharedPtr(std::shared_ptr<Edge> input,
+                                         int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_input_shared_ptr",
+                           setInputSharedPtr, input, index);
   }
 
-  virtual base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index = -1) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_output_shared_ptr", setOutputSharedPtr, output, index);
+  virtual base::Status setOutputSharedPtr(std::shared_ptr<Edge> output,
+                                          int index = -1) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_output_shared_ptr",
+                           setOutputSharedPtr, output, index);
   }
 
-  virtual base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_inputs_shared_ptr", setInputsSharedPtr, inputs);
+  virtual base::Status setInputsSharedPtr(
+      std::vector<std::shared_ptr<Edge>> inputs) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_inputs_shared_ptr",
+                           setInputsSharedPtr, inputs);
   }
 
-  virtual base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_outputs_shared_ptr", setOutputsSharedPtr, outputs);
+  virtual base::Status setOutputsSharedPtr(
+      std::vector<std::shared_ptr<Edge>> outputs) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, Base, "set_outputs_shared_ptr",
+                           setOutputsSharedPtr, outputs);
   }
 
   virtual base::Status defaultParam() override {
@@ -247,6 +269,10 @@ class PyGraph : public Base {
 
   virtual base::Status run() override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "run", run);
+  }
+
+  virtual bool synchronize() override {
+    PYBIND11_OVERRIDE_NAME(bool, Base, "synchronize", synchronize);
   }
 
   std::vector<Edge *> forward(std::vector<Edge *> inputs) override {
@@ -267,12 +293,14 @@ class PyGraph : public Base {
     PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator());
   }
 
-  std::vector<Edge *> forward(Edge * input) override {
-    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward, input);
+  std::vector<Edge *> forward(Edge *input) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "forward", forward,
+                           input);
   }
 
-  std::vector<Edge *> operator()(Edge * input) override {
-    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(), input);
+  std::vector<Edge *> operator()(Edge *input) override {
+    PYBIND11_OVERRIDE_NAME(std::vector<Edge *>, Base, "operator()", operator(),
+                           input);
   }
 
   virtual void setTraceFlag(bool flag) override {
@@ -298,6 +326,20 @@ class PyGraph : public Base {
   virtual base::Status deserialize(const std::string &json_str) override {
     PYBIND11_OVERRIDE_NAME(base::Status, Base, "deserialize", deserialize,
                            json_str);
+  }
+
+  virtual void setLoopCount(int loop_count) override {
+    PYBIND11_OVERRIDE_NAME(void, Base, "set_loop_count", setLoopCount,
+                           loop_count);
+  }
+
+  virtual int getLoopCount() override {
+    PYBIND11_OVERRIDE_NAME(int, Base, "get_loop_count", getLoopCount);
+  }
+
+  virtual std::map<std::string, int> getLoopCountMap() override {
+    using ReturnType = std::map<std::string, int>;
+    PYBIND11_OVERRIDE_NAME(ReturnType, Base, "get_loop_count_map", getLoopCountMap);
   }
 };
 
@@ -330,39 +372,52 @@ class PyCompositeNode : public Base {
   using Base::Base;
 
   base::Status setInput(Edge *input, int index = -1) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_input", setInput, input, index);
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_input", setInput,
+                           input, index);
   }
 
   base::Status setOutput(Edge *output, int index = -1) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_output", setOutput, output, index);
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_output", setOutput,
+                           output, index);
   }
 
   base::Status setInputs(std::vector<Edge *> inputs) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_inputs", setInputs, inputs);
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_inputs", setInputs,
+                           inputs);
   }
 
   base::Status setOutputs(std::vector<Edge *> outputs) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_outputs", setOutputs, outputs);
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_outputs",
+                           setOutputs, outputs);
   }
 
-  // base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1) override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_input_shared_ptr", setInputSharedPtr, input, index);
+  // base::Status setInputSharedPtr(std::shared_ptr<Edge> input, int index = -1)
+  // override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode,
+  //   "set_input_shared_ptr", setInputSharedPtr, input, index);
   // }
 
-  // base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index = -1) override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_output_shared_ptr", setOutputSharedPtr, output, index);
+  // base::Status setOutputSharedPtr(std::shared_ptr<Edge> output, int index =
+  // -1) override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode,
+  //   "set_output_shared_ptr", setOutputSharedPtr, output, index);
   // }
 
-  // base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs) override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_inputs_shared_ptr", setInputsSharedPtr, inputs);
+  // base::Status setInputsSharedPtr(std::vector<std::shared_ptr<Edge>> inputs)
+  // override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode,
+  //   "set_inputs_shared_ptr", setInputsSharedPtr, inputs);
   // }
 
-  // base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>> outputs) override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "set_outputs_shared_ptr", setOutputsSharedPtr, outputs);
+  // base::Status setOutputsSharedPtr(std::vector<std::shared_ptr<Edge>>
+  // outputs) override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode,
+  //   "set_outputs_shared_ptr", setOutputsSharedPtr, outputs);
   // }
 
   base::Status defaultParam() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "default_param", defaultParam);
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "default_param",
+                           defaultParam);
   }
 
   base::Status init() override {
@@ -377,8 +432,11 @@ class PyCompositeNode : public Base {
     PYBIND11_OVERRIDE_PURE_NAME(base::Status, CompositeNode, "run", run);
   }
 
-  base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "serialize", serialize, json, allocator);
+  base::Status serialize(
+      rapidjson::Value &json,
+      rapidjson::Document::AllocatorType &allocator) override {
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "serialize", serialize,
+                           json, allocator);
   }
 
   std::string serialize() override {
@@ -386,11 +444,13 @@ class PyCompositeNode : public Base {
   }
 
   base::Status deserialize(rapidjson::Value &json) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "deserialize", deserialize, json);
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "deserialize",
+                           deserialize, json);
   }
 
   base::Status deserialize(const std::string &json_str) override {
-    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "deserialize", deserialize, json_str);
+    PYBIND11_OVERRIDE_NAME(base::Status, CompositeNode, "deserialize",
+                           deserialize, json_str);
   }
 };
 
@@ -404,7 +464,7 @@ class PyCondition : public Base {
   }
 
   base::Status deinit() override {
-    PYBIND11_OVERRIDE_NAME(base::Status, Condition, "deinit", deinit); 
+    PYBIND11_OVERRIDE_NAME(base::Status, Condition, "deinit", deinit);
   }
 
   int choose() override {
@@ -437,8 +497,10 @@ class PyLoop : public Base {
     PYBIND11_OVERRIDE_NAME(base::Status, Loop, "run", run);
   }
 
-  // base::Status serialize(rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) override {
-  //   PYBIND11_OVERRIDE_NAME(base::Status, Loop, "serialize", serialize, json, allocator);
+  // base::Status serialize(rapidjson::Value &json,
+  // rapidjson::Document::AllocatorType &allocator) override {
+  //   PYBIND11_OVERRIDE_NAME(base::Status, Loop, "serialize", serialize, json,
+  //   allocator);
   // }
 
   // std::string serialize() override {

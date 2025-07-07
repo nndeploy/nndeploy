@@ -26,6 +26,7 @@ namespace dag {
 
 Graph::Graph(const std::string &name) : Node(name) {
   key_ = "nndeploy::dag::Graph";
+  desc_ = "Graph: Graph for nndeploy in cpp";
   constructed_ = true;
   is_graph_ = true;
 }
@@ -33,6 +34,7 @@ Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
              std::vector<Edge *> outputs)
     : Node(name, inputs, outputs) {
   key_ = "nndeploy::dag::Graph";
+  desc_ = "Graph: Graph for nndeploy in cpp";
   for (auto input : inputs) {
     if (nullptr == addEdge(input)) {
       constructed_ = false;
@@ -666,6 +668,51 @@ void Graph::setGraphNodeShareStream(bool flag) {
 
 bool Graph::getGraphNodeShareStream() { return is_graph_node_share_stream_; }
 
+void Graph::setLoopCount(int loop_count) {
+  for (auto node_wrapper : node_repository_) {
+    node_wrapper->node_->setLoopCount(loop_count);
+  }
+}
+int Graph::getLoopCount() {
+  if (inputs_.size() > 0) {
+    return 1;
+  }
+  int loop_count_min = INT_MAX;
+  int loop_count_max = 1;
+  bool is_find_input = false;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput) {
+      is_find_input = true;
+      if (node_wrapper->node_->getLoopCount() < loop_count_min) {
+        loop_count_min = node_wrapper->node_->getLoopCount();
+      }
+      if (node_wrapper->node_->getLoopCount() > loop_count_max) {
+        loop_count_max = node_wrapper->node_->getLoopCount();
+      }
+    }
+  }
+  
+  if (!is_find_input) {
+    return 1;
+  }
+  if(is_loop_max_flag_) {
+    return loop_count_max;
+  } else {
+    return loop_count_min;
+  }
+}
+
+std::map<std::string, int> Graph::getLoopCountMap() {
+  std::map<std::string, int> loop_count_map;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput) {
+      loop_count_map[node_wrapper->node_->getName()] =
+          node_wrapper->node_->getLoopCount();
+    }
+  }
+  return loop_count_map;
+}
+
 base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
                                  std::vector<Edge *> outputs) {
   base::Status status = base::kStatusCodeOk;
@@ -832,6 +879,14 @@ base::Status Graph::run() {
   return status;
 }
 
+bool Graph::synchronize() {
+  bool is_synchronize = executor_->synchronize();
+  if (!is_synchronize) {
+    NNDEPLOY_LOGE("executor synchronize failed!");
+  }
+  return is_synchronize;
+}
+
 std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
   std::vector<Edge *> outputs;
   return outputs;
@@ -884,7 +939,8 @@ std::vector<Edge *> Graph::operator()() {
     this->markInputEdge(std::vector<Edge *>());
     std::vector<Edge *> outputs = this->forward();
     if (graph_ != nullptr) {
-      base::Status status = graph_->updateNodeIO(this, std::vector<Edge *>(), outputs);
+      base::Status status =
+          graph_->updateNodeIO(this, std::vector<Edge *>(), outputs);
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
         return std::vector<Edge *>();
@@ -906,7 +962,7 @@ std::vector<Edge *> Graph::forward(Edge *input) {
   return outputs;
 }
 std::vector<Edge *> Graph::operator()(Edge *input) {
-    if (traced_) {
+  if (traced_) {
     // NNDEPLOY_LOGI("graph traced!\n");
     base::Status status = this->run();
     if (status != base::kStatusCodeOk) {
@@ -919,7 +975,8 @@ std::vector<Edge *> Graph::operator()(Edge *input) {
     this->markInputEdge(std::vector<Edge *>({input}));
     std::vector<Edge *> outputs = this->forward(input);
     if (graph_ != nullptr) {
-      base::Status status = graph_->updateNodeIO(this, std::vector<Edge *>({input}), outputs);
+      base::Status status =
+          graph_->updateNodeIO(this, std::vector<Edge *>({input}), outputs);
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
         return std::vector<Edge *>();
@@ -1560,6 +1617,7 @@ base::Status Graph::serialize(rapidjson::Value &json,
     json.AddMember("is_graph_node_share_stream_", is_graph_node_share_stream_,
                    allocator);
     json.AddMember("queue_max_size_", queue_max_size_, allocator);
+    json.AddMember("is_loop_max_flag_", is_loop_max_flag_, allocator);
   }
 
   // if (!node_repository_.empty()) {
