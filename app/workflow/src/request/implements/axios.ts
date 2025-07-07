@@ -219,7 +219,8 @@ export class AxiosRequest implements IRequest {
     return response.data
   }
 
-  async download(url: string, params: any, config?: AxiosRequestConfig) {
+  async download(url: string, params: any, config?: AxiosRequestConfig, fileName?: string) {
+
     var method: AxiosRequestConfig['method'] = 'GET'
 
 
@@ -259,10 +260,10 @@ export class AxiosRequest implements IRequest {
     //   var fileName:string = headers['content-disposition'].replace(/\w+;filename=(.*)/, '$1')
     //   var filename2 = decodeURI(fileName);
 
-    var fileName = response.headers['content-disposition'].split(';')[1].split('=')[1]
+     fileName = fileName ?? response.headers['content-disposition'].split(';')[1].split('=')[1]
 
     //fileName = fileName.substring("utf-8''".length);
-    fileName = decodeURI(fileName)
+    fileName = decodeURI(fileName!)
 
     // 此处当返回json文件时需要先对data进行JSON.stringify处理，其他类型文件不用做处理
     //const blob = new Blob([JSON.stringify(data)], ...)
