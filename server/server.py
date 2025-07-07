@@ -227,7 +227,7 @@ class NnDeployServer:
 
         # preview
         @api.get("/preview", tags=["Files"],
-                summary="preview images/videos/models")
+                summary="preview images/videos")
         async def preview_file(file_path: str = Query(..., description="absolute_path or relative path")):
             f = Path(self.args.resources) / file_path
             if not f.exists():
