@@ -32,11 +32,31 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
     prompt_text->texts_ = {prompt_};
     this->getOutput(0)->set(prompt_text);
     this->getOutput(0)->notifyWritten(prompt_text);
+    index_++;
     setRunningFlag(false);
     return base::kStatusCodeOk;
   }
 
   void setPrompt(std::string prompt) { prompt_ = prompt; }
+
+  virtual base::EdgeUpdateFlag updateInput() {
+    if (index_ < size_) {
+      return base::kEdgeUpdateFlagComplete;
+    } else {
+      if (size_ == 0) {
+        return base::kEdgeUpdateFlagComplete;
+      } else {
+        return base::kEdgeUpdateFlagTerminate;
+      }
+    }
+  }
+
+  void setSize(int size) {
+    if (size > 0) {
+      size_ = size;
+    }
+  }
+  int getSize() { return size_; }
 
   virtual base::Status serialize(
       rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
@@ -46,6 +66,7 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
     }
     json.AddMember("prompt_", rapidjson::Value(prompt_.c_str(), allocator),
                    allocator);
+    json.AddMember("size_", size_, allocator);
     return status;
   }
 
@@ -58,11 +79,19 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
       std::string prompt = json["prompt_"].GetString();
       this->setPrompt(prompt);
     }
+    if (json.HasMember("size_") && json["size_"].IsInt()) {
+      int size = json["size_"].GetInt();
+      if (size > 0) {
+        this->setSize(size);
+      }
+    }
     return status;
   }
 
  private:
   std::string prompt_;
+  int index_ = 0;
+  int size_ = 1;
 };
 
 class NNDEPLOY_CC_API SaveImage : public dag::Node {
@@ -172,13 +201,11 @@ dag::Graph *createStableDiffusionText2ImageGraph(
       "init_prompt", std::vector<dag::Edge *>{},
       std::vector<dag::Edge *>{prompt});
   init_node->setPrompt(prompt_str);
-  graph->addNode(init_node);
   InitTokenText *init_negative_node =
       (InitTokenText *)graph->createNode<InitTokenText>(
           "init_negative_prompt", std::vector<dag::Edge *>{},
           std::vector<dag::Edge *>{negative_prompt});
   init_negative_node->setPrompt(negative_prompt_str);
-  graph->addNode(init_negative_node);
 
   dag::Edge *text_embeddings = graph->createEdge("text_embeddings");
   dag::Graph *clip_graph = createCLIPGraph(
