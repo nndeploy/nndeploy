@@ -15,29 +15,6 @@
 namespace nndeploy {
 namespace stable_diffusion {
 
-// class NNDEPLOY_CC_API DenoiseParam : public base::Param {
-//  public:
-//   DenoiseParam() = default;
-//   virtual ~DenoiseParam() {}
-
-//   DenoiseParam(const DDIMSchedulerParam *scheduler,
-//                const Text2ImageParam *text2img) {
-//     if (scheduler) {
-//       schedule_param_ = *scheduler;
-//     }
-//     if (text2img) {
-//       text2image_param_ = *text2img;
-//     }
-//   }
-
-//   PARAM_COPY(DenoiseParam);
-//   PARAM_COPY_TO(DenoiseParam);
-
-//  public:
-//   DDIMSchedulerParam schedule_param_;
-//   Text2ImageParam text2image_param_;
-// };
-
 class NNDEPLOY_CC_API InitLatents : public dag::Node {
  public:
   InitLatents(const std::string &name, std::vector<dag::Edge *> inputs,
