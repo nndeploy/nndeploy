@@ -38,3 +38,21 @@ export async function apiGetParamTypes() {
 
 
 }
+
+export function setupWebSocket() {
+
+  const { protocol, hostname, port } = window.location;
+
+  const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
+
+  const wsPort = port ? `:${port}` : '';
+ // const wsUrl = `${wsProtocol}//${hostname}${wsPort}/api/ws/progress`;
+ const wsUrl = `${wsProtocol}//${hostname}${wsPort}/api/ws/progress`;
+
+
+  const socket: WebSocket = new WebSocket(wsUrl);
+
+  return socket
+
+
+}

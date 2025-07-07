@@ -1,19 +1,24 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, MouseEvent } from "react";
 import { IResourceEntity, IResourceTreeNodeEntity, ResourceTreeNodeData } from "../entity";
-import { Button, Form, Input, Toast, VideoPlayer, Descriptions, Tag } from "@douyinfe/semi-ui";
+import { Button, Form, Input, Toast, VideoPlayer, Descriptions, Tag, Tooltip, Typography } from "@douyinfe/semi-ui";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
 import { apiGetResource, apiResourceSave, apiResourceUpload } from "../api";
 import "./index.scss";
+import request from "../../../../../request";
+
+const { Text } = Typography
 
 export interface ResourceEditDrawerProps {
   onSure: (node: IResourceTreeNodeEntity) => void;
   onClose: () => void;
   node: IResourceTreeNodeEntity;
+  showFileInfo: boolean
+
 }
 
 const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
 
-  const { node } = props
+  const { node, showFileInfo = true } = props
 
   const [entity, setEntity] = useState<IResourceTreeNodeEntity>({ ...props.node });
 
@@ -111,29 +116,32 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
   }
 
   const data = [
-    { key: 'fileName', value: node.entity?.filename },
+    { key: 'fileName', value: node?.entity?.filename },
     {
       key: 'saved_path', value:
-        <a style={{
-          whiteSpace: 'break-spaces',
-          wordBreak: 'break-all', 
-          cursor: 'pointer', 
-          
-        }}
-        
-        onClick = { (event)=>{
-          event.preventDefault()
-            handleCopy(node.entity?.saved_path!)
-        }}
-        
-        >{node.entity?.saved_path}</a>
+        <Tooltip content="click me to copy">
+          <Text link style={{
+            whiteSpace: 'break-spaces',
+            wordBreak: 'break-all',
+            cursor: 'pointer',
+
+          }}
+
+            onClick={(event) => {
+              event.preventDefault()
+              handleCopy(node?.entity?.saved_path!)
+            }}
+
+          >{node?.entity?.saved_path}</Text>
+        </Tooltip>
+
     },
-    { key: 'file size', value: node.entity?.size },
-    { key: 'uploaded_at', value: node.entity?.uploaded_at },
+    { key: 'file size', value: node?.entity?.size },
+    { key: 'uploaded_at', value: node?.entity?.uploaded_at },
 
   ];
 
-  async function handleCopy(text:string) {
+  async function handleCopy(text: string) {
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       try {
@@ -179,6 +187,16 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
     }
   }
 
+  function onClickDownload(
+    entity: IResourceTreeNodeEntity
+
+  ): void {
+
+    //window.open(`/api/preview/${entity.parentId}/${entity.name}`)
+    const url = `/api/preview??file_path=${entity.parentId}/${entity.name}`
+    request.download(url, {}, {}, entity.name)
+  }
+
   return (
     <>
       <div className="drawer-content">
@@ -187,13 +205,13 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
           entity.id ? <>
             {entity.parentId?.includes("images") && entity.name ? (
               <div className="image-preview">
-                <img src={`/api/preview/${entity.parentId}/${entity.name}`} />
+                <img src={`/api/preview?file_path=${entity.parentId}/${entity.name}`} />
               </div>
             ) : entity.parentId?.includes("videos") && entity.name ? (
               <div className="video-preview">
                 <VideoPlayer
                   height={430}
-                  src={`/api/preview/${entity.parentId}/${entity.name}`}
+                  src={`/api/preview?file_path=${entity.parentId}/${entity.name}`}
                 //poster={'https://lf3-static.bytednsdoc.com/obj/eden-cn/ptlz_zlp/ljhwZthlaukjlkulzlp/poster2.jpeg'}
                 />
               </div>
@@ -222,8 +240,14 @@ const ResourceEditDrawer: React.FC<ResourceEditDrawerProps> = (props) => {
               </div>
             </div> */}
 
+            {
+              showFileInfo && <>
+                <Descriptions data={data} column={4} style={{ marginTop: '.5em' }} />
+                <Button onClick={(event) => onClickDownload(entity)} >download</Button>
+              </>
+            }
 
-            <Descriptions data={data} column={4} style={{ marginTop: '.5em' }} />
+
           </> : <>
 
             <Form
