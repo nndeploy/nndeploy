@@ -10,7 +10,7 @@ import {
   useNodeRender,
   useWatchFormValues,
 } from "@flowgram.ai/free-layout-editor";
-import { Select, SideSheet, Switch, Typography } from "@douyinfe/semi-ui";
+import { Modal, Select, SideSheet, Switch, Typography, VideoPlayer } from "@douyinfe/semi-ui";
 
 import { FlowNodeJSON } from "../../../../typings";
 import { Feedback, FormContent } from "../../../../form-components";
@@ -23,14 +23,16 @@ import { FormParams } from "../form-params";
 import { FxExpression } from "../../../../form-components/fx-expression";
 import Section from "@douyinfe/semi-ui/lib/es/form/section";
 import { GroupNodeRender } from "../../../../components";
-import lodash, { random } from "lodash";
+import lodash, { random, uniqueId } from "lodash";
 import { FormDynamicPorts } from "../form-dynamic-ports";
-import { useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
+import { FlowEnviromentContext, useFlowEnviromentContext } from "../../../../context/flow-enviroment-context";
 import { getFieldType } from "../functions";
 import { INodeEntity } from "../../../Node/entity";
-import { useState } from "react";
+import { useContext, useRef, useState } from "react";
 import RepositoryItemDrawer from "../NodeRepositoryEditor";
 import NodeRepositoryEditor from "../NodeRepositoryEditor";
+import { IResourceTreeNodeEntity } from "../../../Layout/Design/Resource/entity";
+import ResourceEditDrawer from "../../../Layout/Design/Resource/ResourceEditDrawer";
 
 const { Text } = Typography;
 
@@ -39,7 +41,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   // const { node } = useNodeRender();
 
-  const { nodeList = [], paramTypes } = useFlowEnviromentContext()
+  const { nodeList = [], paramTypes, element: flowElementRef } = useFlowEnviromentContext()
+
 
   //console.log("form.values", form.values);
 
@@ -49,6 +52,11 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   const is_dynamic_input_ = form.getValueIn("is_dynamic_input_");
   const is_dynamic_output_ = form.getValueIn("is_dynamic_output_");
+
+  const path_ = form.getValueIn("path_") as string;
+
+  const key_ = form.getValueIn("key_");
+
 
   const excludeFields = [
     "key_",
@@ -80,45 +88,106 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   }
 
+  function isImageNode() {
+
+    const imageNodes: string[] = ['nndeploy::codec::OpenCvImageDecode', 'nndeploy::codec::OpenCvImageEncode']
+    if (imageNodes.includes(key_)) {
+      return true
+    }
+    return false
+  }
+  function isImageFile(filename: string) {
+    // 支持的图片后缀（不区分大小写）
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff'];
+    const lowerFilename = filename.toLowerCase();
+    return imageExtensions.some(ext => lowerFilename.endsWith(ext));
+  }
+
+  const [resourceEdit, setResourceEdit] = useState<IResourceTreeNodeEntity>();
+  const [resoureEditVisible, setResoureEditVisible] = useState(false)
+
+
+  function onShowMediaFile(event: React.MouseEvent<HTMLImageElement, MouseEvent>, file: string) {
+    event.preventDefault();
+    event.stopPropagation();
+    //setFile(file)
+    const parentId = file.includes('images') ? 'images': file.includes('videos') ? 'videos': ''
+    const fileName = file.substring(file.lastIndexOf('/') + 1)
+    setResourceEdit( {id: uniqueId(), parentId, type: 'leaf', name:fileName } )
+    setResoureEditVisible(true)
+
+  }
+
+
+  function handleResoureDrawerClose() {
+    setResoureEditVisible(false)
+  }
+  function onResourceEditDrawerClose() {
+    setResoureEditVisible(false)
+  }
+  function onResourceEditDrawerSure() {
+    setResoureEditVisible(false)
+  }
+
+  const renderFormRef = useRef<any>();
+
+  // const getContainer = () => {
+  //       return document.querySelector('#root')! as HTMLDivElement;
+  //   };
+
+  function getPopupContainer() {
+
+    let container = renderFormRef?.current;
+    while (container && !(container instanceof HTMLElement && container.classList.contains('demo-container'))) {
+      container = container.parentElement;
+    }
+    return container
+
+    // const container = document.querySelector('div.demo-container')! as HTMLDivElement
+    // //const container = document.querySelector('#root')! as HTMLDivElement  //div.demo-container
+    // return container
+  }
+
   return (
-    <div className="drawer-render-form">
+    <div className="drawer-render-form" ref={renderFormRef}>
       <FormHeader />
 
       <FormContent>
         {!isSidebar && (
-          <div className="connection-area">
-            <div className="input-area">
-              <FieldArray name="inputs_">
-                {({ field }) => (
-                  <>
-                    {field.map((child, index) => {
-                      return (
-                        <Field<any> key={child.name} name={child.name}>
-                          {({ field: childField, fieldState: childState }) => {
-                            return (
-                              <FormItem
-                                name={`${childField.value.type_}`}///${childField.value.desc_}
-                                type="boolean"
-                                required={false}
-                              //labelWidth={40}
-                              >
-                                <div
-                                  className="connection-point connection-point-left"
-                                  data-port-id={childField.value.id}
-                                  data-port-type="input"
-                                  data-port-desc={childField.value.desc_}
-                                //data-port-wangba={childField.value.desc_}
-                                ></div>
-                              </FormItem>
-                            );
-                          }}
-                        </Field>
-                      );
-                    })}
-                  </>
-                )}
-              </FieldArray>
-              {/* {
+          <>
+            <div className="connection-area">
+              <div className="input-area">
+                <FieldArray name="inputs_">
+                  {({ field }) => (
+                    <>
+                      {field.map((child, index) => {
+                        return (
+                          <Field<any> key={child.name} name={child.name}>
+                            {({ field: childField, fieldState: childState }) => {
+                              return (
+                                <FormItem
+                                  name={`${childField.value.type_}`}///${childField.value.desc_}
+                                  type="boolean"
+                                  required={false}
+                                //labelWidth={40}
+                                >
+                                  <div
+                                    className="connection-point connection-point-left"
+                                    data-port-id={childField.value.id}
+                                    data-port-type="input"
+                                    data-port-desc={childField.value.desc_}
+                                  //data-port-wangba={childField.value.desc_}
+                                  ></div>
+                                </FormItem>
+                              );
+                            }}
+                          </Field>
+                        );
+                      })}
+                    </>
+                  )}
+                </FieldArray>
+                {/* {
               inputValues.map((item) => {
                 
                 return (
@@ -140,35 +209,52 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               }
               )
             } */}
+              </div>
+              <div className="output-area">
+                <FieldArray name="outputs_">
+                  {({ field }) => (
+                    <>
+                      {field.map((child, index) => (
+                        <Field<any> key={child.name} name={child.name}>
+                          {({ field: childField, fieldState: childState }) => (
+                            <FormItem
+                              name={`${childField.value.type_}`}///${childField.value.desc_}
+                              type="boolean"
+                              required={false}
+                            //labelWidth={40}
+                            >
+                              <div
+                                className="connection-point connection-point-right"
+                                data-port-id={childField.value.id}
+                                data-port-type="output"
+                                data-port-desc={childField.value.desc_}
+                              ></div>
+                            </FormItem>
+                          )}
+                        </Field>
+                      ))}
+                    </>
+                  )}
+                </FieldArray>
+              </div>
             </div>
-            <div className="output-area">
-              <FieldArray name="outputs_">
-                {({ field }) => (
-                  <>
-                    {field.map((child, index) => (
-                      <Field<any> key={child.name} name={child.name}>
-                        {({ field: childField, fieldState: childState }) => (
-                          <FormItem
-                            name={`${childField.value.type_}`}///${childField.value.desc_}
-                            type="boolean"
-                            required={false}
-                          //labelWidth={40}
-                          >
-                            <div
-                              className="connection-point connection-point-right"
-                              data-port-id={childField.value.id}
-                              data-port-type="output"
-                              data-port-desc={childField.value.desc_}
-                            ></div>
-                          </FormItem>
-                        )}
-                      </Field>
-                    ))}
-                  </>
-                )}
-              </FieldArray>
-            </div>
-          </div>
+            {
+              isImageNode() && path_ && isImageFile(path_) &&
+              <div className="image-preview">
+                {
+                  (() => {
+                    const url = `/api/preview?file_path=${path_}`
+                    //debugger;
+                    return <img src={url} onClick={((event) => onShowMediaFile(event, path_))} />
+                  })()
+
+                }
+
+
+              </div>
+            }
+
+          </>
         )}
         {isSidebar ? (
           <>
@@ -292,7 +378,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
                           onUpdate={(values) => {
                             //console.log(values)
-                           node_repository_.onChange(values)
+                            node_repository_.onChange(values)
                           }} />
                       }
                     </Section>
@@ -313,6 +399,53 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                 <RepositoryItemDrawer respository = {respository} onRepositoryDrawerSave = {onRepositoryDrawerSave}/>
 
             </SideSheet> */}
+{/* 
+      <Modal
+        title="file preview"
+        visible={fileModelVisible}
+        //onOk={handleOk}
+        //afterClose={fileModelClose} //>=1.16.0
+       // onCancel={fileModelClose}
+        closeOnEsc={false}
+        //zIndex={100000000000000}
+      >
+        <>
+        <h2>model content..........</h2>
+          {file?.includes("images") ?
+            <div className="image-preview">
+              <img src={`/api/preview/images/${file.split('images')[1]}`} />
+            </div>
+            : file.includes("videos") ?
+              <div className="video-preview">
+                <VideoPlayer
+                  height={430}
+                  src={`/api/preview/videos/${file.split('images')[1]}}`}
+               
+                />
+              </div>
+              : <></>
+
+          }
+        </>
+      </Modal> */}
+      <SideSheet
+        width={"60%"}
+        mask={true}
+        visible={resoureEditVisible}
+        onCancel={handleResoureDrawerClose}
+        closeOnEsc={true}
+        title={'resource preview'}
+        //zIndex={10000}
+        getPopupContainer={getPopupContainer}
+      >
+        <ResourceEditDrawer
+                node={resourceEdit!}
+                onSure={onResourceEditDrawerSure}
+                onClose={onResourceEditDrawerClose}
+                showFileInfo = {false}
+              />
+        
+      </SideSheet>
     </div>
   );
 };

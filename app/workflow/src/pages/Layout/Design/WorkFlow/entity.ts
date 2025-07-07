@@ -37,6 +37,10 @@ export interface IWorkFlowEntity{
   
 }
 
+export interface IWorkFlowRunResult{
+  task_id: string;
+}
+
 export interface WorkFlowTreeNodeData extends TreeNodeData {
   //type: "leaf" | "branch";
   entity:IWorkFlowTreeNodeEntity, 

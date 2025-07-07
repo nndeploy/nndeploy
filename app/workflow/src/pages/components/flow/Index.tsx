@@ -3,6 +3,7 @@ import {
   FreeLayoutEditorProvider,
   FreeLayoutPluginContext,
   usePlaygroundTools,
+  WorkflowNodeJSON,
 } from "@flowgram.ai/free-layout-editor";
 
 import "@flowgram.ai/free-layout-editor/index.css";
@@ -15,7 +16,7 @@ import { AutoLayoutHandle, DemoTools } from "../../../components/tools";
 import { SidebarProvider, SidebarRenderer } from "../../../components/sidebar";
 import { useEffect, useReducer, useRef, useState } from "react";
 import { FlowEnviromentContext } from "../../../context/flow-enviroment-context";
-import { apiGetNodeById, apiGetWorkFlow, getNodeRegistry } from "./api";
+import { apiGetNodeById, apiGetWorkFlow, getNodeRegistry, setupWebSocket } from "./api";
 
 import { FlowDocumentJSON, FlowNodeRegistry } from "../../../typings";
 import { SideSheet, Toast } from "@douyinfe/semi-ui";
@@ -27,16 +28,17 @@ import { apiWorkFlowRun, apiWorkFlowSave } from "../../Layout/Design/WorkFlow/ap
 import { IconLoading } from "@douyinfe/semi-icons";
 import { initialState, reducer } from "./store/store";
 
-let nameId = 0; 
+let nameId = 0;
 
 interface FlowProps {
   id: string;
+  activeKey:string; 
   onFlowSave: (flow: IWorkFlowEntity) => void;
 }
 const Flow: React.FC<FlowProps> = (props) => {
   //const [flowData, setFlowData] = useState<FlowDocumentJSON>();
 
-   const [state, dispatch] = useReducer(reducer, (initialState))
+  const [state, dispatch] = useReducer(reducer, (initialState))
 
 
   const ref = useRef<FreeLayoutPluginContext | undefined>();
@@ -74,8 +76,8 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   const [loading, setLoading] = useState(true);
 
-  
-  const autoLayOutRef = useRef<AutoLayoutHandle>(); 
+
+  const autoLayOutRef = useRef<AutoLayoutHandle>();
 
   const [saveDrawerVisible, setSaveDrawerVisible] = useState(false);
 
@@ -106,9 +108,9 @@ const Flow: React.FC<FlowProps> = (props) => {
 
     const designContent = transferBusinessContentToDesignContent(response.result, nodeRegistries)
 
-    
 
-    setEntity({...entity, designContent, businessContent: response.result});
+
+    setEntity({ ...entity, designContent, businessContent: response.result });
 
 
     ref?.current?.document.reload(designContent);
@@ -120,10 +122,10 @@ const Flow: React.FC<FlowProps> = (props) => {
     setTimeout(() => {
       // 加载后触发画布的 fitview 让节点自动居中
       ref?.current?.document.fitView();
-      
+
       autoLayOutRef.current?.autoLayout()
       //tools.autoLayout()
-      
+
     }, 100);
 
     //setFlowData(response);
@@ -132,6 +134,16 @@ const Flow: React.FC<FlowProps> = (props) => {
   useEffect(() => {
     fetchData(props.id);
   }, [props.id]);
+
+  // useEffect(() => {
+  //   if (ref.current) {
+  //     setTimeout(() => {
+  //       ref?.current?.document.fitView();
+
+  //       autoLayOutRef.current?.autoLayout()
+  //     }, 100)
+  //   }
+  // }, [props.activeKey, ref.current])
 
   const flowRef = useRef<HTMLDivElement | null>(null);
 
@@ -147,14 +159,107 @@ const Flow: React.FC<FlowProps> = (props) => {
   }
 
   async function onRun(flowJson: FlowDocumentJSON) {
-      try {
-    
-        const businessContent = designDataToBusinessData(
-              flowJson
-            );
+    try {
 
-      const response = await apiWorkFlowRun(businessContent);
-     
+      const businessContent = designDataToBusinessData(
+        flowJson
+      );
+
+
+
+
+
+      const socket = setupWebSocket()
+
+      socket.onopen = async () => {
+
+
+        const response = await apiWorkFlowRun(businessContent);
+
+        if (response.flag == "error") {
+          Toast.error("run fail " + response.message);
+          return;
+        }
+        const taskId = response.result.task_id
+
+        socket.send(JSON.stringify({ type: "bind", task_id: taskId }));
+
+      };
+
+      socket.onclose = () => {
+
+      };
+
+      socket.onmessage = (event) => {
+
+        function modifyNodeByName(nodeName: string, newContent: any, designContent: FlowDocumentJSON) {
+          function nodeIterate(
+            node: WorkflowNodeJSON,
+            process: (node: WorkflowNodeJSON) => void
+          ) {
+            process(node);
+            if (node.blocks && node.blocks.length > 0) {
+              node.blocks.forEach((block) => {
+                nodeIterate(block, process);
+              });
+            }
+          }
+
+          designContent.nodes.map((node) => {
+            nodeIterate(node, (node) => {
+              if (node.data.name_ == nodeName) {
+                node.data = {
+                  ...node.data,
+                  ...newContent
+                }
+              }
+            });
+          });
+        }
+
+
+
+        const response = JSON.parse(event.data);
+        if (response.flag === "success" && response.result?.task_id && response.result?.path) {
+          const taskId = response.result.task_id;
+
+          for (let i = 0; i < response.result.path.length; i++) {
+            const item = response.result.path[i]
+
+            const { name: nodeName, path: path_ } = item as { name: string, path: string }
+
+            const designContent = entity.designContent
+
+            modifyNodeByName(nodeName, { path_ }, designContent)
+
+            const newDesinContent = JSON.parse(JSON.stringify(designContent))
+            setEntity({ ...entity, designContent: newDesinContent });
+
+            ref?.current?.document.reload(newDesinContent);
+            setTimeout(() => {
+              // 加载后触发画布的 fitview 让节点自动居中
+              ref?.current?.document.fitView();
+
+              autoLayOutRef.current?.autoLayout()
+              //tools.autoLayout()
+
+            }, 100);
+
+
+
+          }
+
+
+
+        } else if (response.flag === "error") {
+          //showError(response.result?.task_id, response.message || "任务失败");
+        }
+      };
+
+      socket.onerror = (err) => {
+        console.error("WebSocket error:", err);
+      };
+
       Toast.success("run sucess!");
     } catch (error) {
       Toast.error("run fail " + error);
@@ -164,7 +269,7 @@ const Flow: React.FC<FlowProps> = (props) => {
 
   function onflowSaveDrawrSure(entity: IWorkFlowEntity) {
     setSaveDrawerVisible(false);
-    setEntity({...entity});
+    setEntity({ ...entity });
     props.onFlowSave(entity);
   }
   function onFlowSaveDrawerClose() {
@@ -202,11 +307,11 @@ const Flow: React.FC<FlowProps> = (props) => {
 
         //const entity = nodeList.find(item=>item.key_ == nodeId)!
         //nodeRegistries.find(item=>item.)
-       
+
         //let type = ['nndeploy::detect::YoloGraph'].includes(  response.result.key_) ? 'group':  response.result.key_
-         //var type = entity.is_graph_ ? 'group':  entity.key_
-        var  type = entity.key_
-        
+        //var type = entity.is_graph_ ? 'group':  entity.key_
+        var type = entity.key_
+
         let node = {
           // ...response.result,
           id: Math.random().toString(36).substr(2, 9),
@@ -225,22 +330,22 @@ const Flow: React.FC<FlowProps> = (props) => {
         }
         //if(response.result.is_dynamic_input_){
 
-          node.data.inputs_ = node.data.inputs_.map((item : any)=>{
-            return {
-              ...item, 
-              id: 'port' + Math.random().toString(36).substr(2, 9),
-            }
-          })
+        node.data.inputs_ = node.data.inputs_.map((item: any) => {
+          return {
+            ...item,
+            id: 'port' + Math.random().toString(36).substr(2, 9),
+          }
+        })
         //}
 
         //if(response.result.is_dynamic_output_){
-          
-           node.data.outputs_ = node.data.outputs_.map((item:any)=>{
-            return {
-              ...item, 
-              id: 'port' + Math.random().toString(36).substr(2, 9),
-            }
-          })
+
+        node.data.outputs_ = node.data.outputs_.map((item: any) => {
+          return {
+            ...item,
+            id: 'port' + Math.random().toString(36).substr(2, 9),
+          }
+        })
         //}
 
         ref?.current?.document.createWorkflowNode(node);
@@ -279,9 +384,9 @@ const Flow: React.FC<FlowProps> = (props) => {
             <FlowEnviromentContext.Provider
               value={{ element: flowRef, onSave, onRun, nodeList, paramTypes }}
             >
-              <DemoTools 
-              ///@ts-ignore
-              ref={autoLayOutRef}/>
+              <DemoTools
+                ///@ts-ignore
+                ref={autoLayOutRef} />
 
               <SidebarRenderer />
             </FlowEnviromentContext.Provider>
