@@ -38,19 +38,32 @@ class X86OpConcat : public OpConcat {
     auto param = dynamic_cast<ir::ConcatParam*>(op_desc_.op_param_.get());
     int axis = param->axis_;
 
-	  NNDEPLOY_ASSERT(inputs_[0]->getShape().size() == inputs_[1]->getShape().size());
-	  NNDEPLOY_ASSERT(inputs_[1]->getShape().size() == outputs_[0]->getShape().size());
+    for (int i = 0; i < (int)inputs_.size() - 1; i++) {
+      NNDEPLOY_ASSERT(inputs_[i]->getShape().size() == inputs_[i + 1]->getShape().size());
+    }
+	  // NNDEPLOY_ASSERT(inputs_[0]->getShape().size() == inputs_[1]->getShape().size());
+	  // NNDEPLOY_ASSERT(inputs_[1]->getShape().size() == outputs_[0]->getShape().size());
 
 	  int now_ndim = inputs_[0]->getShape().size();
-
-    for (int i = 0; i < now_ndim; i++) {
+    
+    for (int i = 0; i < (int)inputs_.size() - 1; i++) {
+      for (int i = 0; i < now_ndim; i++) {
         if (i != axis) {
             assert(inputs_[0]->getShapeIndex(i) == inputs_[1]->getShapeIndex(i));
             assert(inputs_[1]->getShapeIndex(i) == outputs_[0]->getShapeIndex(i));
         } else {
             assert(inputs_[0]->getShapeIndex(i) + inputs_[1]->getShapeIndex(i) == outputs_[0]->getShapeIndex(i));
         }
+      }
     }
+    // for (int i = 0; i < now_ndim; i++) {
+    //     if (i != axis) {
+    //         assert(inputs_[0]->getShapeIndex(i) == inputs_[1]->getShapeIndex(i));
+    //         assert(inputs_[1]->getShapeIndex(i) == outputs_[0]->getShapeIndex(i));
+    //     } else {
+    //         assert(inputs_[0]->getShapeIndex(i) + inputs_[1]->getShapeIndex(i) == outputs_[0]->getShapeIndex(i));
+    //     }
+    // }
 
     std::vector<long int> shape1, format1, shape2, format2, shape3, format3;
     for (int i = 0; i < now_ndim; i++) {
