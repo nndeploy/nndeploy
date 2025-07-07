@@ -13,7 +13,7 @@
 
 using namespace nndeploy;
 
-DEFINE_bool(is_softmax, false, "is_softmax");
+DEFINE_bool(is_softmax, true, "is_softmax");
 
 bool isSoftmax() { return FLAGS_is_softmax; }
 
