@@ -373,7 +373,12 @@ base::Status Op::inferDataType() {
   }
   return base::kStatusCodeOk;
 };
-base::Status Op::inferShape() { return base::kStatusCodeOk; };
+
+base::Status Op::inferShape() { 
+  NNDEPLOY_LOGE("InferShape is not set.\n");
+  return base::kStatusCodeOk; 
+  };
+
 base::Status Op::inferDataFormat() {
   auto input_data_format = inputs_[0]->getDataFormat();
   for (int i = 0; i < outputs_.size(); ++i) {

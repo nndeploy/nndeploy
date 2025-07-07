@@ -99,6 +99,7 @@ enum OpType : int {
   kOpTypeFlatten,
   kOpTypeFloor,
   kOpTypeGather,
+  kOpTypeGelu,
   kOpTypeGemm,
   kOpTypeGlobalAveragePool,
   kOpTypeGlobalLpPool,
