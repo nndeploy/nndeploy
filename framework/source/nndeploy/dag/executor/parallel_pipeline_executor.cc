@@ -4,9 +4,9 @@
 namespace nndeploy {
 namespace dag {
 
-ParallelPipelineExecutor::ParallelPipelineExecutor() : Executor(){};
+ParallelPipelineExecutor::ParallelPipelineExecutor() : Executor() {};
 
-ParallelPipelineExecutor::~ParallelPipelineExecutor(){};
+ParallelPipelineExecutor::~ParallelPipelineExecutor() {};
 
 base::Status ParallelPipelineExecutor::init(
     std::vector<EdgeWrapper*>& edge_repository,
@@ -40,14 +40,17 @@ base::Status ParallelPipelineExecutor::init(
 base::Status ParallelPipelineExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
   // NNDEPLOY_LOGE("deinit start!\n");
-  std::unique_lock<std::mutex> lock(pipeline_mutex_);
-  // NNDEPLOY_LOGE("deinit start!\n");
-  pipeline_cv_.wait(lock, [this]() {
-    // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
-    //               std::this_thread::get_id(), completed_size_, run_size_);
-    bool flag = completed_size_ == run_size_;
-    return flag;
-  });
+  if (!is_synchronize_) {
+    // std::unique_lock<std::mutex> lock(pipeline_mutex_);
+    // // NNDEPLOY_LOGE("deinit start!\n");
+    // pipeline_cv_.wait(lock, [this]() {
+    //   // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
+    //   //               std::this_thread::get_id(), completed_size_, run_size_);
+    //   bool flag = completed_size_ == run_size_;
+    //   return flag;
+    // });
+    this->synchronize();
+  }
   for (auto iter : edge_repository_) {
     bool flag = iter->edge_->requestTerminate();
     if (!flag) {
@@ -76,6 +79,25 @@ base::Status ParallelPipelineExecutor::deinit() {
 base::Status ParallelPipelineExecutor::run() {
   run_size_++;
   return base::kStatusCodeOk;
+}
+
+bool ParallelPipelineExecutor::synchronize() {
+  // NNDEPLOY_LOGE("deinit start!\n");
+  std::unique_lock<std::mutex> lock(pipeline_mutex_);
+  // NNDEPLOY_LOGE("deinit start!\n");
+  pipeline_cv_.wait(lock, [this]() {
+    // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
+    //               std::this_thread::get_id(), completed_size_, run_size_);
+    bool flag = completed_size_ == run_size_;
+    return flag;
+  });
+  for (auto iter : topo_sort_node_) {
+    if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  is_synchronize_ = completed_size_ == run_size_;
+  return is_synchronize_;
 }
 
 void ParallelPipelineExecutor::commitThreadPool() {

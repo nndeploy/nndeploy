@@ -19,6 +19,7 @@ class ConditionExecutor : public Executor {
   void setCondition(Node *condition);
   void select(int index);
   virtual base::Status run();
+  virtual bool synchronize();
 
   virtual base::Status process();
 

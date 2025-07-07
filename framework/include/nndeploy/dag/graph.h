@@ -132,6 +132,7 @@ class NNDEPLOY_CC_API Graph : public Node {
   virtual base::Status deinit();
 
   virtual base::Status run();
+  virtual bool synchronize();
 
   // This method must be implemented by subclasses
   // Subclasses should override this method to define their own operator()
@@ -149,6 +150,8 @@ class NNDEPLOY_CC_API Graph : public Node {
   std::vector<Edge *> trace(std::vector<Edge *> inputs);
   std::vector<Edge *> trace();
   std::vector<Edge *> trace(Edge *input);
+
+  base::Status toStaticGraph();
 
   // create node
   // Not recommended api

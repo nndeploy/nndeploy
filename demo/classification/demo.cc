@@ -123,8 +123,10 @@ int main(int argc, char *argv[]) {
   bool is_softmax = isSoftmax();
 
   classificationDemo graph_demo("classification_demo");
+  
   graph_demo.setTimeProfileFlag(true);
   graph_demo.make(inference_type, codec_flag);
+  graph_demo.defaultParam();
 
   graph_demo.setInferParam(device_type, model_type, is_path, model_value);
 

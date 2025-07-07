@@ -52,5 +52,14 @@ base::Status ParallelPipelineConditionExecutor::run() {
   return status;
 }
 
+bool ParallelPipelineConditionExecutor::synchronize() {
+  for (auto iter : node_repository_) {
+    if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  return true;
+}
+
 }  // namespace dag
 }  // namespace nndeploy

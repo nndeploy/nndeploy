@@ -110,6 +110,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           },
           py::call_guard<py::gil_scoped_release>())
       .def("run", &Graph::run, py::call_guard<py::gil_scoped_release>())
+      .def("synchronize", &Graph::synchronize, py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward),
            py::arg("inputs"), py::keep_alive<1, 2>(),
            py::return_value_policy::reference,
@@ -151,6 +152,7 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::return_value_policy::reference)
       .def("trace", py::overload_cast<Edge *>(&Graph::trace), py::arg("input"),
            py::keep_alive<1, 2>(), py::return_value_policy::reference)
+      .def("to_static_graph", &Graph::toStaticGraph, py::return_value_policy::reference)
       .def("get_edge_wrapper",
            py::overload_cast<Edge *>(&Graph::getEdgeWrapper), py::arg("edge"),
            py::return_value_policy::reference)
