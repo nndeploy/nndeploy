@@ -15,29 +15,6 @@
 namespace nndeploy {
 namespace stable_diffusion {
 
-// class NNDEPLOY_CC_API DenoiseParam : public base::Param {
-//  public:
-//   DenoiseParam() = default;
-//   virtual ~DenoiseParam() {}
-
-//   DenoiseParam(const DDIMSchedulerParam *scheduler,
-//                const Text2ImageParam *text2img) {
-//     if (scheduler) {
-//       schedule_param_ = *scheduler;
-//     }
-//     if (text2img) {
-//       text2image_param_ = *text2img;
-//     }
-//   }
-
-//   PARAM_COPY(DenoiseParam);
-//   PARAM_COPY_TO(DenoiseParam);
-
-//  public:
-//   DDIMSchedulerParam schedule_param_;
-//   Text2ImageParam text2image_param_;
-// };
-
 class NNDEPLOY_CC_API InitLatents : public dag::Node {
  public:
   InitLatents(const std::string &name, std::vector<dag::Edge *> inputs,
@@ -276,15 +253,12 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     dag::NodeDesc infer_desc("unet_infer",
                              {"embeddings", "cfg_latents", "timestep"},
                              {"unet_output"});
-    // infer_ = (infer::Infer *)this->createInfer<infer::Infer>(infer_desc,
-    //                                                          inference_type_);
     this->setNodeDesc(infer_, infer_desc);
+    status = infer_->setInferenceType(inference_type_);
 
     dag::NodeDesc schedule_desc("ddim_schedule",
                                 {"unet_output", "prev_latents", "timestep"},
                                 {"latents"});
-    // ddim_schedule_ =
-    //     (DDIMSchedule *)this->createNode<DDIMSchedule>(schedule_desc);
     this->setNodeDesc(ddim_schedule_, schedule_desc);
     return status;
   }
@@ -504,6 +478,7 @@ dag::Graph *createDenoiseGraph(const std::string &name,
 }
 
 REGISTER_NODE("nndeploy::stable_diffusion::InitLatents", InitLatents);
+REGISTER_NODE("nndeploy::stable_diffusion::DDIMSchedule", DDIMSchedule);
 REGISTER_NODE("nndeploy::stable_diffusion::Denoise", Denoise);
 REGISTER_NODE("nndeploy::stable_diffusion::DenoiseGraph", DenoiseGraph);
 
