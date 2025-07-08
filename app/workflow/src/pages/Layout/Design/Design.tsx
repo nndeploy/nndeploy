@@ -311,7 +311,7 @@ const Design: React.FC = () => {
 
               >
                 <div className="tab-content">
-                  <Flow id={tab.name} onFlowSave={onFlowSave} />
+                  <Flow id={tab.name} onFlowSave={onFlowSave} activeKey = {activeKey}/>
                 </div>
               </TabPane>
             ))}

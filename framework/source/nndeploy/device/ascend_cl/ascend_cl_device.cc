@@ -357,6 +357,7 @@ base::Status AscendCLDevice::createEvents(Event **events, size_t count) {
     if (event == nullptr) {
       return base::kStatusCodeErrorDeviceAscendCL;
     }
+    events[i] = event;
   }
   return base::kStatusCodeOk;
 }
