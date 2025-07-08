@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
   // NNDEPLOY_LOGI("input_path = %s.\n", input_path.c_str());
   // NNDEPLOY_LOGI("ouput_path = %s.\n", ouput_path.c_str());
   int size = decode_node->getSize();
-  size = 1;
+  size = 100;
   decode_node->setSize(size);
   decode_node->setPath(input_path);
   encode_node->setRefPath(input_path);
