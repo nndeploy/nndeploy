@@ -212,7 +212,7 @@ int main(int argc, char *argv[]) {
   // NNDEPLOY_LOGI("input_path = %s.\n", input_path.c_str());
   // NNDEPLOY_LOGI("ouput_path = %s.\n", ouput_path.c_str());
   int size = decode_node->getSize();
-  size = 100;
+  size = 1;
   decode_node->setSize(size);
   decode_node->setPath(input_path);
   encode_node->setRefPath(input_path);
@@ -275,6 +275,8 @@ int main(int argc, char *argv[]) {
   delete encode_node;
   delete decode_node;
   delete detect_graph;
+  delete input;
+  delete output;
 #endif
   delete graph;
 

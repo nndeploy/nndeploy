@@ -59,8 +59,8 @@ class OnnxRuntimeInference : public Inference {
   std::map<std::string, device::Tensor *> max_input_tensors_;
   std::map<std::string, device::Tensor *> max_output_tensors_;
 
-  std::vector<Ort::Value> internal_inputs_;
-  std::vector<Ort::Value> internal_outputs_;
+  // std::vector<Ort::Value> internal_inputs_;
+  // std::vector<Ort::Value> internal_outputs_;
 };
 
 }  // namespace inference

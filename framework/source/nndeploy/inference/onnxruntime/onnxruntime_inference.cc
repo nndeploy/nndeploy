@@ -16,8 +16,7 @@ TypeInferenceRegister<TypeInferenceCreator<OnnxRuntimeInference>>
 OnnxRuntimeInference::OnnxRuntimeInference(base::InferenceType type)
     : Inference(type) {}
 
-OnnxRuntimeInference::~OnnxRuntimeInference() {
-}
+OnnxRuntimeInference::~OnnxRuntimeInference() {}
 
 base::Status OnnxRuntimeInference::init() {
   base::Status status = base::kStatusCodeOk;
@@ -30,11 +29,14 @@ base::Status OnnxRuntimeInference::init() {
   std::string model_buffer;
   OnnxRuntimeInferenceParam *onnxruntime_inference_param =
       dynamic_cast<OnnxRuntimeInferenceParam *>(inference_param_.get());
-  // NNDEPLOY_LOGE("onnxruntime_inference_param %p\n", onnxruntime_inference_param);
+  // NNDEPLOY_LOGE("onnxruntime_inference_param %p\n",
+  // onnxruntime_inference_param);
   if (onnxruntime_inference_param->is_path_) {
     if (onnxruntime_inference_param->model_value_.size() > 0) {
-      // NNDEPLOY_LOGE("open file[%s]!\n", onnxruntime_inference_param->model_value_[0].c_str());
-      model_buffer = base::openFile(onnxruntime_inference_param->model_value_[0]);
+      // NNDEPLOY_LOGE("open file[%s]!\n",
+      // onnxruntime_inference_param->model_value_[0].c_str());
+      model_buffer =
+          base::openFile(onnxruntime_inference_param->model_value_[0]);
     } else {
       NNDEPLOY_LOGE("model_value_ is empty!\n");
       return base::kStatusCodeErrorInvalidValue;
@@ -135,14 +137,14 @@ base::Status OnnxRuntimeInference::init() {
 
 base::Status OnnxRuntimeInference::deinit() {
   base::Status status = base::kStatusCodeOk;
-  for (int i = 0; i < internal_outputs_.size(); ++i) {
-    internal_outputs_[i].release();
-  }
-  internal_outputs_.clear();
-  for (int i = 0; i < internal_inputs_.size(); ++i) {
-    internal_inputs_[i].release();
-  }
-  internal_inputs_.clear();
+  // for (int i = 0; i < internal_outputs_.size(); ++i) {
+  //   internal_outputs_[i].release();
+  // }
+  // internal_outputs_.clear();
+  // for (int i = 0; i < internal_inputs_.size(); ++i) {
+  //   internal_inputs_[i].release();
+  // }
+  // internal_inputs_.clear();
   for (auto iter : input_tensors_) {
     delete iter.second;
   }
@@ -165,7 +167,7 @@ base::Status OnnxRuntimeInference::deinit() {
   binding_.reset();
   allocator_.release();
   memory_info_.release();
-  
+
   // 5. 清理描述符向量
   inputs_desc_.clear();
   outputs_desc_.clear();
@@ -218,20 +220,14 @@ base::Status OnnxRuntimeInference::run() {
   base::Status status = base::kStatusCodeOk;
   // auto memory_info =
   //     Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-  Ort::MemoryInfo memory_info("Cpu", OrtDeviceAllocator, 0,
-    OrtMemTypeDefault);
+  Ort::MemoryInfo memory_info("Cpu", OrtDeviceAllocator, 0, OrtMemTypeDefault);
   Ort::Allocator allocator(session_, memory_info);
   device::Device *device = device::getDefaultHostDevice();
   try {
     auto n_inputs = session_.GetInputCount();
 
-    // for (int i = 0; i < internal_inputs_.size(); ++i) {
-    //   internal_inputs_[i].release();
-    // }
-    // internal_inputs_.clear();
-    
     for (int i = 0; i < n_inputs; ++i) {
-      auto input_name = session_.GetInputNameAllocated(i, allocator).get();
+      auto input_name = inputs_desc_[i].name.c_str();
       device::Tensor *input_tensor = nullptr;
       if (external_input_tensors_.find(input_name) !=
           external_input_tensors_.end()) {
@@ -241,23 +237,21 @@ base::Status OnnxRuntimeInference::run() {
       }
       auto ort_value = OnnxRuntimeConvert::convertFromTensor(input_tensor);
       binding_->BindInput(input_name, ort_value);
-      // internal_inputs_.push_back(std::move(ort_value));
     }
 
     for (size_t i = 0; i < outputs_desc_.size(); ++i) {
-      // Ort::MemoryInfo memory_info("Cpu", OrtDeviceAllocator, 0,
-      //                             OrtMemTypeDefault);
       binding_->BindOutput(outputs_desc_[i].name.c_str(), memory_info);
     }
 
     session_.Run({}, *binding_);
 
-    for (int i = 0; i < internal_outputs_.size(); ++i) {
-      internal_outputs_[i].release();
+    std::vector<Ort::Value> output_values = binding_->GetOutputValues();
+    for (size_t i = 0; i < output_values.size(); ++i) {
+      auto output_name = outputs_desc_[i].name;
+      device::Tensor *output_tensor = output_tensors_[output_name];
+      OnnxRuntimeConvert::convertToTensor(output_values[i], output_name,
+                                          device, output_tensor);
     }
-    internal_outputs_.clear();
-    // internal_outputs_ = std::move(binding_->GetOutputValues());
-    internal_outputs_ = binding_->GetOutputValues();
   } catch (const std::exception &e) {
     NNDEPLOY_LOGE("%s.\n", e.what());
     status = base::kStatusCodeErrorInferenceOnnxRuntime;
@@ -271,27 +265,55 @@ device::Tensor *OnnxRuntimeInference::getOutputTensorAfterRun(
   device::Tensor *external_output_tensor = nullptr;
   bool flag = is_copy || (!device::isHostDeviceType(device_type));
   device::Device *device = device::getDevice(device_type);
-  for (size_t i = 0; i < internal_outputs_.size(); ++i) {
-    auto output_name = outputs_desc_[i].name;
-    if (output_name != name) {
-      continue;
-    }
-    device::Tensor *output_tensor = output_tensors_[output_name];
-    OnnxRuntimeConvert::convertToTensor(internal_outputs_[i], output_name,
-                                        device, output_tensor);
-    device::TensorDesc desc = output_tensor->getDesc();
-    if (flag) {
-      external_output_tensor = new device::Tensor(device, desc, name);
-      device->copy(output_tensor->getBuffer(),
-                   external_output_tensor->getBuffer());
-      return external_output_tensor;
-    } else {
-      external_output_tensor =
-          new device::Tensor(desc, output_tensor->getBuffer(), name);
-      return external_output_tensor;
-    }
+  if (output_tensors_.find(name) == output_tensors_.end()) {
+    NNDEPLOY_LOGE("output_tensors_ not found name: %s\n", name.c_str());
+    return nullptr;
   }
-  return external_output_tensor;
+  device::Tensor *output_tensor = output_tensors_[name];
+  device::TensorDesc desc = output_tensor->getDesc();
+  if (flag) {
+    external_output_tensor = new device::Tensor(device, desc, name);
+    device->copy(output_tensor->getBuffer(),
+                 external_output_tensor->getBuffer());
+    // external_output_tensor->print();
+    return external_output_tensor;
+  } else {
+    external_output_tensor =
+        new device::Tensor(desc, output_tensor->getBuffer(), name);
+    // external_output_tensor->print();
+    return external_output_tensor;
+  }
+
+  // for (size_t i = 0; i < internal_outputs_.size(); ++i) {
+  //   auto output_name = outputs_desc_[i].name;
+  //   if (output_name != name) {
+  //     continue;
+  //   }
+  //   device::Tensor *output_tensor = output_tensors_[output_name];
+  //   OnnxRuntimeConvert::convertToTensor(internal_outputs_[i], output_name,
+  //                                       device, output_tensor);
+  //   device::TensorDesc desc = output_tensor->getDesc();
+  //   if (flag) {
+  //     external_output_tensor = new device::Tensor(device, desc, name);
+  //     device->copy(output_tensor->getBuffer(),
+  //                  external_output_tensor->getBuffer());
+  //     external_output_tensor->print();
+  //     return external_output_tensor;
+  //   } else {
+  //     external_output_tensor =
+  //         new device::Tensor(desc, output_tensor->getBuffer(), name);
+  //     external_output_tensor->print();
+  //     return external_output_tensor;
+  //   }
+  // }
+  // device::Device *device = device::getDevice(device_type);
+  // device::TensorDesc desc;
+  // desc.shape_ = {1, 1000};
+  // desc.data_type_ = base::dataTypeOf<float>();
+  // desc.data_format_ = base::kDataFormatNC;
+  // external_output_tensor = new device::Tensor(device, desc, name);
+  // external_output_tensor->print();
+  // return external_output_tensor;
 }
 
 bool OnnxRuntimeInference::isDynamic(std::vector<int64_t> &shape) {
