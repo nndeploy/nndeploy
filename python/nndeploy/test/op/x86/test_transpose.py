@@ -14,7 +14,6 @@ class TestTransposeOp(unittest.TestCase):
     def test_transpose(self):
         shape = [1, 3, 4, 5]
         perm = [0, 1, 3, 2]
-        perm_axis = [2, 3]
 
         np.random.seed(123)
         np_input = np.random.randn(*shape).astype(np.float32)

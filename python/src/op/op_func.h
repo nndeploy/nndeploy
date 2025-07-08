@@ -11,6 +11,7 @@
 #include "nndeploy/op/op_concat.h"
 #include "nndeploy/op/op_flatten.h"
 #include "nndeploy/op/op_gemm.h"
+#include "nndeploy/op/op_gather.h"
 #include "nndeploy/op/op_global_averagepool.h"
 #include "nndeploy/op/op_maxpool.h"
 #include "nndeploy/op/op_mul.h"
@@ -54,6 +55,9 @@ device::Tensor* addFunc(device::Tensor* input1, device::Tensor* input2);
 
 device::Tensor* flattenFunc(device::Tensor* input,
                             std::shared_ptr<ir::FlattenParam> param);
+
+device::Tensor* gatherFunc(device::Tensor* input, device::Tensor* index, 
+                           std::shared_ptr<ir::GatherParam> param);
 
 device::Tensor* gemmFunc(device::Tensor* inputs_a, device::Tensor* inputs_b,
                          device::Tensor* inputs_c,

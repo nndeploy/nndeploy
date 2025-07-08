@@ -105,6 +105,20 @@ device::Tensor* flattenFunc(device::Tensor* input,
   return result;
 }
 
+device::Tensor* gatherFunc(device::Tensor* input, device::Tensor* index, 
+                           std::shared_ptr<ir::GatherParam> param) {
+  std::stringstream ss;
+
+  device::Tensor* output = new device::Tensor("gather.output");
+  base::Status status = op::gather(input, index, param, output);
+  if (status != base::kStatusCodeOk) {
+    ss << "nndeploy::op::gather failed: error code "
+       << base::statusCodeToString(status.getStatusCode());
+    pybind11::pybind11_fail(ss.str());
+  }
+  return output;
+}
+
 device::Tensor* gemmFunc(device::Tensor* inputs_a, device::Tensor* inputs_b,
                          device::Tensor* inputs_c,
                          std::shared_ptr<ir::GemmParam> param) {
