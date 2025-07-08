@@ -181,7 +181,7 @@ int main(int argc, char *argv[]) {
   graph_demo.deinit();
 
   NNDEPLOY_TIME_PROFILER_PRINT("demo");
-  NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
+  // NNDEPLOY_TIME_PROFILER_PRINT_REMOVE_WARMUP("demo", 10);
 
   return 0;
 }
