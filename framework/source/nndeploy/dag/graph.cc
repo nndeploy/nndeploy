@@ -54,14 +54,16 @@ Graph::~Graph() {
   for (auto node_wrapper : node_repository_) {
     if (!node_wrapper->is_external_) {
       delete node_wrapper->node_;
+      node_wrapper->node_ = nullptr;
     }
     delete node_wrapper;
   }
   for (auto edge_wrapper : edge_repository_) {
     if (!edge_wrapper->is_external_) {
-      // NNDEPLOY_LOGE("delete edge[%s]\n",
-      // edge_wrapper->edge_->getName().c_str());
+      // NNDEPLOY_LOGE("graph [%s] delete edge[%s]\n", getName().c_str(),
+      //               edge_wrapper->edge_->getName().c_str());
       delete edge_wrapper->edge_;
+      edge_wrapper->edge_ = nullptr;
     }
     delete edge_wrapper;
   }
@@ -519,7 +521,8 @@ base::Status Graph::addNode(Node *node, bool is_external) {
   for (auto input : node->getAllInput()) {
     EdgeWrapper *input_wrapper = findEdgeWrapper(edge_repository_, input);
     if (input_wrapper == nullptr) {
-      input_wrapper = this->addEdge(input, is_external);
+      // input_wrapper = this->addEdge(input, is_external);
+      input_wrapper = this->addEdge(input, true);
     }
     // input_wrapper->consumers_.emplace_back(node_wrapper);
     insertUnique(input_wrapper->consumers_, node_wrapper);
@@ -527,7 +530,8 @@ base::Status Graph::addNode(Node *node, bool is_external) {
   for (auto output : node->getAllOutput()) {
     EdgeWrapper *output_wrapper = findEdgeWrapper(edge_repository_, output);
     if (output_wrapper == nullptr) {
-      output_wrapper = this->addEdge(output, is_external);
+      // output_wrapper = this->addEdge(output, is_external);
+      output_wrapper = this->addEdge(output, true);
     }
     // output_wrapper->producers_.emplace_back(node_wrapper);
     insertUnique(output_wrapper->producers_, node_wrapper);
@@ -831,6 +835,8 @@ base::Status Graph::init() {
 base::Status Graph::deinit() {
   base::Status status = base::kStatusCodeOk;
 
+  // NNDEPLOY_LOGE("graph [%s] deinit\n", getName().c_str());
+
   // NNDEPLOY_LOGI("#######################\n");
   // NNDEPLOY_LOGI("Node DeInitialize Phase!\n");
   // NNDEPLOY_LOGI("#######################\n");
@@ -841,6 +847,8 @@ base::Status Graph::deinit() {
   } else {
     for (auto node_wrapper : node_repository_) {
       if (node_wrapper->node_->getInitialized()) {
+        // NNDEPLOY_LOGE("graph [%s] deinit node[%s]\n", getName().c_str(),
+        //               node_wrapper->node_->getName().c_str());
         status = node_wrapper->node_->deinit();
         NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                                "node deinit failed!");
