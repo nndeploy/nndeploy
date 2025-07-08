@@ -8,9 +8,91 @@
 #include "nndeploy/stable_diffusion/clip.h"
 #include "nndeploy/stable_diffusion/denoise.h"
 #include "nndeploy/stable_diffusion/vae.h"
+#include "nndeploy/tokenizer/tokenizer.h"
 
 namespace nndeploy {
 namespace stable_diffusion {
+
+class NNDEPLOY_CC_API InitTokenText : public dag::Node {
+ public:
+  InitTokenText(const std::string &name, std::vector<dag::Edge *> inputs,
+                std::vector<dag::Edge *> outputs)
+      : dag::Node(name, inputs, outputs) {
+    key_ = "nndeploy::stable_diffusion::TokenParam";
+    desc_ = "construct tokenize text [String => TokenizerText]";
+    this->setOutputTypeInfo<tokenizer::TokenizerText>();
+    node_type_ = dag::NodeType::kNodeTypeInput;
+  }
+
+  virtual ~InitTokenText() {}
+
+  virtual base::Status run() {
+    setRunningFlag(true);
+    tokenizer::TokenizerText *prompt_text = new tokenizer::TokenizerText();
+    prompt_text->texts_ = {prompt_};
+    this->getOutput(0)->set(prompt_text);
+    this->getOutput(0)->notifyWritten(prompt_text);
+    index_++;
+    setRunningFlag(false);
+    return base::kStatusCodeOk;
+  }
+
+  void setPrompt(std::string prompt) { prompt_ = prompt; }
+
+  virtual base::EdgeUpdateFlag updateInput() {
+    if (index_ < size_) {
+      return base::kEdgeUpdateFlagComplete;
+    } else {
+      if (size_ == 0) {
+        return base::kEdgeUpdateFlagComplete;
+      } else {
+        return base::kEdgeUpdateFlagTerminate;
+      }
+    }
+  }
+
+  void setSize(int size) {
+    if (size > 0) {
+      size_ = size;
+    }
+  }
+  int getSize() { return size_; }
+
+  virtual base::Status serialize(
+      rapidjson::Value &json, rapidjson::Document::AllocatorType &allocator) {
+    base::Status status = dag::Node::serialize(json, allocator);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    json.AddMember("prompt_", rapidjson::Value(prompt_.c_str(), allocator),
+                   allocator);
+    json.AddMember("size_", size_, allocator);
+    return status;
+  }
+
+  virtual base::Status deserialize(rapidjson::Value &json) {
+    base::Status status = dag::Node::deserialize(json);
+    if (status != base::kStatusCodeOk) {
+      return status;
+    }
+    if (json.HasMember("prompt_") && json["prompt_"].IsString()) {
+      std::string prompt = json["prompt_"].GetString();
+      this->setPrompt(prompt);
+    }
+    if (json.HasMember("size_") && json["size_"].IsInt()) {
+      int size = json["size_"].GetInt();
+      if (size > 0) {
+        this->setSize(size);
+      }
+    }
+    return status;
+  }
+
+ private:
+  std::string prompt_;
+  int index_ = 0;
+  int size_ = 1;
+};
 
 class NNDEPLOY_CC_API SaveImage : public dag::Node {
  public:
@@ -108,11 +190,23 @@ class NNDEPLOY_CC_API SaveImage : public dag::Node {
 };
 
 dag::Graph *createStableDiffusionText2ImageGraph(
-    const std::string name, dag::Edge *prompt, dag::Edge *negative_prompt,
-    base::InferenceType inference_type, SchedulerType scheduler_type,
-    std::vector<base::Param *> &param, int iter) {
-  dag::Graph *graph = new dag::Graph(name, {prompt, negative_prompt},
-                                     std::vector<dag::Edge *>{});
+    const std::string name, std::string prompt_str,
+    std::string negative_prompt_str, base::InferenceType inference_type,
+    SchedulerType scheduler_type, std::vector<base::Param *> &param, int iter) {
+  dag::Graph *graph = new dag::Graph(name, {}, {});
+
+  dag::Edge *prompt = graph->createEdge("prompt");
+  dag::Edge *negative_prompt = graph->createEdge("negative_prompt");
+  InitTokenText *init_node = (InitTokenText *)graph->createNode<InitTokenText>(
+      "init_prompt", std::vector<dag::Edge *>{},
+      std::vector<dag::Edge *>{prompt});
+  init_node->setPrompt(prompt_str);
+  InitTokenText *init_negative_node =
+      (InitTokenText *)graph->createNode<InitTokenText>(
+          "init_negative_prompt", std::vector<dag::Edge *>{},
+          std::vector<dag::Edge *>{negative_prompt});
+  init_negative_node->setPrompt(negative_prompt_str);
+
   dag::Edge *text_embeddings = graph->createEdge("text_embeddings");
   dag::Graph *clip_graph = createCLIPGraph(
       "clip", prompt, negative_prompt, text_embeddings, inference_type, param);
@@ -139,6 +233,7 @@ dag::Graph *createStableDiffusionText2ImageGraph(
   return graph;
 }
 
+REGISTER_NODE("nndeploy::stable_diffusion::InitTokenText", InitTokenText);
 REGISTER_NODE("nndeploy::stable_diffusion::SaveImage", SaveImage);
 
 }  // namespace stable_diffusion
