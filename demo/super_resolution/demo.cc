@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
   for (int i = 0; i < size; i++) {
     outputs = graph_demo(inputs);
     if (pt != base::kParallelTypePipeline) {
-      std::vector<cv::Mat> *result = outputs[0]->getGraphOutputAny<std::vector<cv::Mat>>();
+      std::vector<cv::Mat> *result = outputs[0]->getGraphOutput<std::vector<cv::Mat>>();
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");
         return -1;
@@ -206,7 +206,7 @@ int main(int argc, char *argv[]) {
   }
   if (pt == base::kParallelTypePipeline) {
     for (int i = 0; i < size; ++i) {
-      std::vector<cv::Mat> *result = outputs[0]->getGraphOutputAny<std::vector<cv::Mat>>();
+      std::vector<cv::Mat> *result = outputs[0]->getGraphOutput<std::vector<cv::Mat>>();
       NNDEPLOY_LOGE("%d %p, %p.\n", i, result, outputs[0]);
       if (result == nullptr) {
         NNDEPLOY_LOGE("result is nullptr");

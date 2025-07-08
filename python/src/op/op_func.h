@@ -11,15 +11,21 @@
 #include "nndeploy/op/op_concat.h"
 #include "nndeploy/op/op_flatten.h"
 #include "nndeploy/op/op_gemm.h"
+#include "nndeploy/op/op_gather.h"
 #include "nndeploy/op/op_global_averagepool.h"
 #include "nndeploy/op/op_maxpool.h"
 #include "nndeploy/op/op_mul.h"
+#include "nndeploy/op/op_mat_mul.h"
 #include "nndeploy/op/op_relu.h"
+#include "nndeploy/op/op_gelu.h"
 #include "nndeploy/op/op_rmsnorm.h"
 #include "nndeploy/op/op_softmax.h"
+#include "nndeploy/op/op_sigmoid.h"
 #include "nndeploy/op/op_quantize_linear.h"
 #include "nndeploy/op/op_dequantize_linear.h"
 #include "nndeploy/op/op_qlinear_conv.h"
+#include "nndeploy/op/op_where.h"
+#include "nndeploy/op/op_transpose.h"
 
 /**
  * @brief Op的func层，在该层进行Op的输入检查、输出Tensor构造、调用Op计算;
@@ -29,7 +35,6 @@
 namespace nndeploy {
 
 device::Tensor* rmsNormFunc(device::Tensor* input, device::Tensor* weight,
-                            device::Tensor* residual,
                             std::shared_ptr<ir::RMSNormParam> param);
 
 device::Tensor* convFunc(device::Tensor* input, device::Tensor* weight,
@@ -40,7 +45,7 @@ device::Tensor* concatFunc(std::vector<device::Tensor *> inputs,
                          std::shared_ptr<ir::ConcatParam> param);
 
 device::Tensor* batchNormFunc(
-    device::Tensor* input, device::Tensor* scale, device::Tensor* bias,
+    device::Tensor* input, device::Tensor* scale, device::Tensor* shift,
     device::Tensor* mean, device::Tensor* var,
     std::shared_ptr<ir::BatchNormalizationParam> param);
 
@@ -51,10 +56,14 @@ device::Tensor* addFunc(device::Tensor* input1, device::Tensor* input2);
 device::Tensor* flattenFunc(device::Tensor* input,
                             std::shared_ptr<ir::FlattenParam> param);
 
+device::Tensor* gatherFunc(device::Tensor* input, device::Tensor* index, 
+                           std::shared_ptr<ir::GatherParam> param);
+
 device::Tensor* gemmFunc(device::Tensor* inputs_a, device::Tensor* inputs_b,
                          device::Tensor* inputs_c,
                          std::shared_ptr<ir::GemmParam> param);
 
+device::Tensor* geluFunc(device::Tensor* input);
 device::Tensor* globalAveragepoolFunc(device::Tensor* input);
 
 device::Tensor* maxPoolFunc(device::Tensor* input,
@@ -62,9 +71,11 @@ device::Tensor* maxPoolFunc(device::Tensor* input,
 
 device::Tensor* mulFunc(device::Tensor* input1, device::Tensor* input2);
 
+device::Tensor* matMulFunc(device::Tensor* input1, device::Tensor* input2, 
+                           std::shared_ptr<ir::MatMulParam> param, device::Tensor* bias);
 device::Tensor* softmaxFunc(device::Tensor* input1,
                             std::shared_ptr<ir::SoftmaxParam> param);
-
+device::Tensor* sigmoidFunc(device::Tensor* input1);
 device::Tensor* quantizeLinearFunc(
     device::Tensor* input, device::Tensor* scale, device::Tensor* zero_point,
     std::shared_ptr<ir::QuantizeLinearParam> param);
@@ -78,6 +89,9 @@ device::Tensor* qlinearConvFunc(
     device::Tensor* w, device::Tensor* w_scale, device::Tensor* w_zero_point,
     device::Tensor* y_scale, device::Tensor* y_zero_point, device::Tensor* B,
     std::shared_ptr<ir::QLinearConvParam> param);
+
+device::Tensor* whereFunc(device::Tensor* input1, device::Tensor* input2, device::Tensor* condition);
+device::Tensor* transposeFunc(device::Tensor* input, std::shared_ptr<ir::TransposeParam> param);
 }  // namespace nndeploy
 
 #endif

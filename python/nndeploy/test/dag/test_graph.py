@@ -21,12 +21,12 @@ class CustomNode(nndeploy.dag.Node):
     def init(self):
         print("CustomNode init")
         # return super().init()
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
 
     def deinit(self):
         print("CustomNode deinit") 
         # return super().deinit()
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
         
     def run(self):
         # 实现自定义的run方法
@@ -44,7 +44,7 @@ class CustomNode(nndeploy.dag.Node):
             print("output_edge is not nndeploy.dag.Edge")
         output_edge.set(add_result)
         print("CustomNode run end")
-        return nndeploy.base.Status(nndeploy.base.StatusCode.Ok)
+        return nndeploy.base.Status.ok()
       
       
 class CustomGraph(nndeploy.dag.Graph):

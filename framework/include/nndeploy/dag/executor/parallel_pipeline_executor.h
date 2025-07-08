@@ -27,6 +27,10 @@ class ParallelPipelineExecutor : public Executor {
    */
   virtual base::Status run();
 
+  virtual bool synchronize();
+
+  base::Status executeNode(NodeWrapper* iter);
+
  protected:
   void commitThreadPool();
 
@@ -51,6 +55,7 @@ class ParallelPipelineExecutor : public Executor {
    * 记录已经完成处理的任务数，用于跟踪流水线进度和同步
    */
   int completed_size_ = 0;
+  bool is_synchronize_ = false;
 };
 
 }  // namespace dag

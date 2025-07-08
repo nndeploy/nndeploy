@@ -14,6 +14,8 @@ dnnl::stream& getDnnlStream();
 // Read from dnnl memory, write to handle
 void read_from_dnnl_memory(void* handle, dnnl::memory& mem);
 
+void print_memory_desc(const dnnl::memory::desc &md);
+
 }  // namespace op
 }  // namespace nndeploy
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useRef, useImperativeHandle } from 'react';
 
 import { useRefresh } from '@flowgram.ai/free-layout-editor';
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
@@ -19,7 +19,11 @@ import { FitView } from './fit-view';
 import { Comment } from './comment';
 import { AutoLayout } from './auto-layout';
 
-export const DemoTools = () => {
+export interface AutoLayoutHandle {
+  autoLayout: () => void;
+}
+
+export const DemoTools = forwardRef<AutoLayoutHandle>((props, ref) => {
   const { history, playground } = useClientContext();
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
@@ -38,11 +42,20 @@ export const DemoTools = () => {
     return () => disposable.dispose();
   }, [playground]);
 
+
+  const autoLayoutRef = useRef<any>(null);
+
+  useImperativeHandle(ref, () => ({
+    autoLayout: () => {
+      autoLayoutRef.current?.props?.onClick();
+    }
+  }));
+
   return (
     <ToolContainer className="demo-free-layout-tools">
       <ToolSection>
         <Interactive />
-        <AutoLayout />
+        <AutoLayout ref={autoLayoutRef}/>
         <SwitchLine />
         <ZoomSelect />
         <FitView />
@@ -69,11 +82,11 @@ export const DemoTools = () => {
           />
         </Tooltip>
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-        <AddNode disabled={playground.config.readonly} />
-        <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
+        {/* <AddNode disabled={playground.config.readonly} />
+        <Divider layout="vertical" style={{ height: '16px' }} margin={3} /> */}
         <Save disabled={playground.config.readonly} />
         <Run />
       </ToolSection>
     </ToolContainer>
   );
-};
+});

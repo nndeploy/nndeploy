@@ -181,6 +181,9 @@ class NNDEPLOY_CC_API Node {
   void setNodeType(NodeType node_type);
   NodeType getNodeType();
 
+  virtual void setLoopCount(int loop_count);
+  virtual int getLoopCount();
+
   void setStream(device::Stream *stream);
   device::Stream *getStream();
 
@@ -222,6 +225,7 @@ class NNDEPLOY_CC_API Node {
   virtual base::EdgeUpdateFlag updateInput();
 
   virtual base::Status run() = 0;
+  virtual bool synchronize();
 
   /**
    * @brief 节点调用接口
@@ -236,6 +240,10 @@ class NNDEPLOY_CC_API Node {
    */
   virtual std::vector<Edge *> forward(std::vector<Edge *> inputs);
   virtual std::vector<Edge *> operator()(std::vector<Edge *> inputs);
+  virtual std::vector<Edge *> forward();
+  virtual std::vector<Edge *> operator()();
+  virtual std::vector<Edge *> forward(Edge * input);
+  virtual std::vector<Edge *> operator()(Edge * input);
 
   bool checkInputs(std::vector<Edge *> &inputs);
   bool checkOutputs(std::vector<std::string> &outputs_name);
@@ -301,6 +309,7 @@ class NNDEPLOY_CC_API Node {
   bool traced_ = false;
   bool is_graph_ = false;
   NodeType node_type_ = NodeType::kNodeTypeIntermediate;
+  int loop_count_ = 1;
 };
 
 /**
@@ -352,6 +361,9 @@ class NNDEPLOY_CC_API NodeFactory {
   }
 
   std::shared_ptr<NodeCreator> getCreator(const std::string &node_key) {
+    // for (auto &it : creators_) {
+    //   NNDEPLOY_LOGI("node key: %s\n", it.first.c_str());
+    // }
     auto it = creators_.find(node_key);
     if (it != creators_.end()) {
       return it->second;
@@ -373,11 +385,11 @@ class NNDEPLOY_CC_API NodeFactory {
   std::map<std::string, std::shared_ptr<NodeCreator>> creators_;
 };
 
-extern NNDEPLOY_CC_API std::set<std::string> getNodeKeys();
+extern NNDEPLOY_CC_API NodeFactory* getGlobalNodeFactory();
 
 // #define REGISTER_NODE(node_key, node_class)                              \
 //   static auto register_node_creator_##node_class = []() {                \
-//     nndeploy::dag::NodeFactory::getInstance()->registerNode(             \
+//     nndeploy::dag::getGlobalNodeFactory()->registerNode(                 \
 //         node_key,                                                        \
 //         std::make_shared<nndeploy::dag::TypeNodeCreator<node_class>>()); \
 //     return 0;                                                            \
@@ -387,13 +399,15 @@ extern NNDEPLOY_CC_API std::set<std::string> getNodeKeys();
   namespace {                                                              \
   struct NodeRegister_##node_class {                                       \
     NodeRegister_##node_class() {                                          \
-      nndeploy::dag::NodeFactory::getInstance()->registerNode(             \
+      nndeploy::dag::getGlobalNodeFactory()->registerNode(                 \
           node_key,                                                        \
           std::make_shared<nndeploy::dag::TypeNodeCreator<node_class>>()); \
     }                                                                      \
   };                                                                       \
   static NodeRegister_##node_class g_node_register_##node_class;           \
   }
+
+extern NNDEPLOY_CC_API std::set<std::string> getNodeKeys();
 
 NNDEPLOY_CC_API Node *createNode(const std::string &node_key,
                                  const std::string &node_name);

@@ -32,12 +32,25 @@ base::Status OpTranspose::inferShape() {
   auto input_shape = inputs_[0]->getShape();
   auto output_shape = input_shape;
   if (perm.size() != 0) {
-    if (perm.size() != input_shape.size()) {
-      NNDEPLOY_LOGE("perm.size() != input_shape.size().\n");
-      return base::kStatusCodeErrorInvalidParam;
+    if (perm.size() == 2) {
+      int axis1 = perm[0];
+      int axis2 = perm[1];
+
+      if (axis1 >= input_shape.size() || axis2 >= input_shape.size() || axis1 < 0 || axis2 < 0) {
+        NNDEPLOY_LOGE("Invalid axis provided in perm. Axis values must be less than input dimensions.\n");
+        return base::kStatusCodeErrorInvalidParam;
+      }
+      
+      std::swap(output_shape[axis1], output_shape[axis2]);
     }
-    for (size_t i = 0; i < perm.size(); i++) {
-      output_shape[i] = input_shape[perm[i]];
+    else if (perm.size() == input_shape.size()) {
+      for (size_t i = 0; i < perm.size(); i++) {
+        output_shape[i] = input_shape[perm[i]];
+      }
+    }
+    else {
+      NNDEPLOY_LOGE("perm.size() must be 0, 2, or equal to input_shape.size().\n");
+      return base::kStatusCodeErrorInvalidParam;
     }
   } else {
     for (size_t i = 0; i < input_shape.size(); i++) {

@@ -18,10 +18,8 @@ class OpRMSNorm : public Op {
   virtual base::Status run();
 };
 
-// TODO: add param，完善inputs的名称
 NNDEPLOY_CC_API base::Status rmsNorm(device::Tensor *input,
                                      device::Tensor *weight,
-                                     device::Tensor *residual,
                                      std::shared_ptr<base::Param> param,
                                      device::Tensor *output);
 

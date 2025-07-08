@@ -12,7 +12,7 @@ from .base import EdgeTypeInfo
 from .edge import Edge
 
 class NodeDesc(_C.dag.NodeDesc):
-    def __init__(self, name: str, inputs: list[str] = None, outputs: list[str] = None, key: str = None):
+    def __init__(self, name: str = "", inputs: list[str] = None, outputs: list[str] = None, key: str = None):
         if inputs is None:
             inputs = []
         if outputs is None:
@@ -120,7 +120,7 @@ class Node(_C.dag.Node):
         return super().get_input(index)
         
     def get_output(self, index: int = 0):
-        return super().get_output(index)
+        return (super().get_output(index))
         
     def get_all_input(self):
         return super().get_all_input()
@@ -223,6 +223,9 @@ class Node(_C.dag.Node):
         
     def run(self):
         return super().run()
+    
+    def synchronize(self) -> bool:
+        return super().synchronize()
         
     def __call__(self, inputs):
         return super().__call__(inputs)
@@ -233,8 +236,8 @@ class Node(_C.dag.Node):
     def check_outputs(self, outputs_name) -> bool:
         return super().check_outputs(outputs_name)
         
-    def get_real_outputs_name(self, outputs_name):
-        return super().get_real_outputs_name(outputs_name)
+    def get_real_outputs_name(self):
+        return super().get_real_outputs_name()
     
     def serialize(self) -> str:
         return super().serialize()
@@ -276,14 +279,46 @@ def create_node(node_key: str, node_name: str, inputs: list[Edge] = None, output
 def get_node_json(node_key: str):
     node_name = node_key.split("::")[-1]
     node_name = node_name.split(".")[-1]
+    print(node_key)
     node = create_node(node_key, node_name)
-    # print(node)
+    if node is None:
+        raise RuntimeError(f"create_node failed: {node_key}")
+    
+    # status = node.default_param()
+    # if status != nndeploy.base.StatusCode.Ok:
+    #     raise RuntimeError(f"default_param failed: {status}")
+    
+    print(node)   
+    is_graph = node.get_graph_flag()
+    is_graph_type = isinstance(node, _C.dag.Graph)
+    if is_graph and is_graph_type:
+        print(node)        
+        node.set_inner_flag(True)
+        node.to_static_graph()
+        print(node)
+        # input_type_info = node.get_input_type_info()
+        # if input_type_info is not None:
+        #     outputs = node.trace()
+        # elif len(input_type_info) == 1:
+        #     name = node.get_name() + "@" + "input_" + str(0)
+        #     edge = nndeploy.dag.Edge(name)
+        #     outputs = node.trace([edge])
+        # else:
+        #     edges = []
+        #     for i in range(len(input_type_info)):
+        #         name = node.get_name() + "@" + "input_" + str(i)
+        #         edge = nndeploy.dag.Edge(name)
+        #         edges.append(edge)
+        #     outputs = node.trace(edges)  
+        # if node.get_key() == "nndeploy::detect::ClassificationGraph":
+        #     node.to_static_graph()
+    print(node)          
     if node is not None:
         json_str = node.serialize()
         return json_str
 
 
-remove_node_keys = ["nndeploy::dag::Graph", "nndeploy::dag::RunningCondition"]
+remove_node_keys = ["nndeploy::dag::Graph", "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition"]
 
 
 def add_remove_node_keys(node_keys: list[str]):
@@ -304,6 +339,10 @@ def get_all_node_json():
         if node_key in remove_node_keys:
             continue
         real_node_keys.append(node_key)
+        
+    # 排序
+    real_node_keys.sort()
+    
     node_json = "{\"nodes\":["
     for node_key in real_node_keys:
         json = get_node_json(node_key)
@@ -311,7 +350,9 @@ def get_all_node_json():
         if node_key != real_node_keys[-1]:
             node_json += ","
     node_json += "]}"
+    
     # 美化json
     node_json = nndeploy.base.pretty_json_str(node_json)
     return node_json
+
 

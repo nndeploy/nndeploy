@@ -334,6 +334,10 @@ base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
 
   PipelineDataPacket *dp = new PipelineDataPacket(consumers_size_);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(dp, "PipelineDataPacket is null.\n");
+  // take
+  // base::Status status = dp->takeDataPacket(data_packet);
+  // NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+  //                        "PipelineDataPacket take error.\n");
 
   data_packets_.push_back(dp);
   cv_.notify_all();
@@ -345,12 +349,12 @@ base::Status PipelineEdge::takeDataPacket(DataPacket *data_packet) {
 
   return status;
 }
-bool PipelineEdge::notifyAnyWritten(void *anything) {
+bool PipelineEdge::notifyWritten(void *anything) {
   std::lock_guard<std::mutex> lock(mutex_);
   bool is_notify = false;
   for (auto iter = data_packets_.rbegin(); iter != data_packets_.rend();
        ++iter) {
-    if ((*iter)->notifyAnyWritten(anything)) {
+    if ((*iter)->notifyWritten(anything)) {
       is_notify = true;
       break;
     }

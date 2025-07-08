@@ -2,10 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 
 import { useClientContext, getNodeForm, FlowNodeEntity } from '@flowgram.ai/free-layout-editor';
 import { Button, Badge } from '@douyinfe/semi-ui';
+import { useFlowEnviromentContext } from '../../context/flow-enviroment-context';
 
 export function Save(props: { disabled: boolean }) {
   const [errorCount, setErrorCount] = useState(0);
   const clientContext = useClientContext();
+
+  const flowEnviroment = useFlowEnviromentContext()
+  
 
   const updateValidateData = useCallback(() => {
     const allForms = clientContext.document.getAllNodes().map((node) => getNodeForm(node));
@@ -18,8 +22,23 @@ export function Save(props: { disabled: boolean }) {
    */
   const onSave = useCallback(async () => {
     const allForms = clientContext.document.getAllNodes().map((node) => getNodeForm(node));
-    await Promise.all(allForms.map(async (form) => form?.validate()));
-    console.log('>>>>> save data: ', clientContext.document.toJSON());
+    try{
+
+   
+      await Promise.all(allForms.map(async (form) => {
+        let result = await form?.validate()
+          //debugger;
+        var i = 0; 
+    }));
+
+      const json = clientContext.document.toJSON()
+
+      flowEnviroment.onSave?.(json as any)
+
+     }catch(e){
+       console.error('onSave', e)
+     }
+    //console.log('>>>>> save data: ', clientContext.document.toJSON());
   }, [clientContext]);
 
   /**

@@ -483,26 +483,26 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
             }
           });
 
-  py::class_<CvtResizeNormTransCropNormTransParam, base::Param, std::shared_ptr<CvtResizeNormTransCropNormTransParam>>(m, "CvtResizeNormTransCropNormTransParam")
+  py::class_<CvtResizeCropNormTransParam, base::Param, std::shared_ptr<CvtResizeCropNormTransParam>>(m, "CvtResizeCropNormTransParam")
       .def(py::init<>())
-      .def_readwrite("src_pixel_type_", &CvtResizeNormTransCropNormTransParam::src_pixel_type_)
-      .def_readwrite("dst_pixel_type_", &CvtResizeNormTransCropNormTransParam::dst_pixel_type_)
-      .def_readwrite("interp_type_", &CvtResizeNormTransCropNormTransParam::interp_type_)
-      .def_readwrite("data_type_", &CvtResizeNormTransCropNormTransParam::data_type_)
-      .def_readwrite("data_format_", &CvtResizeNormTransCropNormTransParam::data_format_)
-      .def_readwrite("resize_h_", &CvtResizeNormTransCropNormTransParam::resize_h_)
-      .def_readwrite("resize_w_", &CvtResizeNormTransCropNormTransParam::resize_w_)
-      .def_readwrite("normalize_", &CvtResizeNormTransCropNormTransParam::normalize_)
-      .def_readwrite("top_left_x_", &CvtResizeNormTransCropNormTransParam::top_left_x_)
-      .def_readwrite("top_left_y_", &CvtResizeNormTransCropNormTransParam::top_left_y_)
-      .def_readwrite("width_", &CvtResizeNormTransCropNormTransParam::width_)
-      .def_readwrite("height_", &CvtResizeNormTransCropNormTransParam::height_)
+      .def_readwrite("src_pixel_type_", &CvtResizeCropNormTransParam::src_pixel_type_)
+      .def_readwrite("dst_pixel_type_", &CvtResizeCropNormTransParam::dst_pixel_type_)
+      .def_readwrite("interp_type_", &CvtResizeCropNormTransParam::interp_type_)
+      .def_readwrite("data_type_", &CvtResizeCropNormTransParam::data_type_)
+      .def_readwrite("data_format_", &CvtResizeCropNormTransParam::data_format_)
+      .def_readwrite("resize_h_", &CvtResizeCropNormTransParam::resize_h_)
+      .def_readwrite("resize_w_", &CvtResizeCropNormTransParam::resize_w_)
+      .def_readwrite("normalize_", &CvtResizeCropNormTransParam::normalize_)
+      .def_readwrite("top_left_x_", &CvtResizeCropNormTransParam::top_left_x_)
+      .def_readwrite("top_left_y_", &CvtResizeCropNormTransParam::top_left_y_)
+      .def_readwrite("width_", &CvtResizeCropNormTransParam::width_)
+      .def_readwrite("height_", &CvtResizeCropNormTransParam::height_)
       .def_property(
           "scale_",
-          [](const CvtResizeNormTransCropNormTransParam& self) {
+          [](const CvtResizeCropNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.scale_, py::cast(self));
           },
-          [](CvtResizeNormTransCropNormTransParam& self, py::array_t<float> arr) {
+          [](CvtResizeCropNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -514,10 +514,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "mean_",
-          [](const CvtResizeNormTransCropNormTransParam& self) {
+          [](const CvtResizeCropNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.mean_, py::cast(self));
           },
-          [](CvtResizeNormTransCropNormTransParam& self, py::array_t<float> arr) {
+          [](CvtResizeCropNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");
@@ -529,10 +529,10 @@ NNDEPLOY_API_PYBIND11_MODULE("preprocess", m) {
           })
       .def_property(
           "std_",
-          [](const CvtResizeNormTransCropNormTransParam& self) {
+          [](const CvtResizeCropNormTransParam& self) {
             return py::array_t<float>({4}, {sizeof(float)}, self.std_, py::cast(self));
           },
-          [](CvtResizeNormTransCropNormTransParam& self, py::array_t<float> arr) {
+          [](CvtResizeCropNormTransParam& self, py::array_t<float> arr) {
             auto buf = arr.request();
             if (buf.ndim != 1 || buf.shape[0] > 4) {
               throw std::runtime_error("Input array must be 1D with 4 elements");

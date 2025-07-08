@@ -45,6 +45,7 @@ class NNDEPLOY_CC_API RMBGPostProcess : public dag::Node {
     key_ = "nndeploy::segment::RMBGPostProcess";
     desc_ = "Segment RMBG postprocess[device::Tensor->SegmentResult]";
     param_ = std::make_shared<RMBGPostParam>();
+    this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<SegmentResult>();
   }
@@ -55,6 +56,7 @@ class NNDEPLOY_CC_API RMBGPostProcess : public dag::Node {
     key_ = "nndeploy::segment::RMBGPostProcess";
     desc_ = "Segment RMBG postprocess[device::Tensor->SegmentResult]";
     param_ = std::make_shared<RMBGPostParam>();
+    this->setInputTypeInfo<cv::Mat>();
     this->setInputTypeInfo<device::Tensor>();
     this->setOutputTypeInfo<SegmentResult>();
   }

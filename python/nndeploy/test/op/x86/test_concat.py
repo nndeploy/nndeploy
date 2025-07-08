@@ -10,7 +10,7 @@ from nndeploy.device.tensor import (
 )
 
 
-class TestConvOp(unittest.TestCase):
+class TestConcatOp(unittest.TestCase):
 
     def test_concat_without_axis(self):
         matA_shape = [1, 6, 3, 3]

@@ -4,9 +4,9 @@
 namespace nndeploy {
 namespace dag {
 
-ParallelPipelineExecutor::ParallelPipelineExecutor() : Executor(){};
+ParallelPipelineExecutor::ParallelPipelineExecutor() : Executor() {};
 
-ParallelPipelineExecutor::~ParallelPipelineExecutor(){};
+ParallelPipelineExecutor::~ParallelPipelineExecutor() {};
 
 base::Status ParallelPipelineExecutor::init(
     std::vector<EdgeWrapper*>& edge_repository,
@@ -39,13 +39,18 @@ base::Status ParallelPipelineExecutor::init(
 
 base::Status ParallelPipelineExecutor::deinit() {
   base::Status status = base::kStatusCodeOk;
-  std::unique_lock<std::mutex> lock(pipeline_mutex_);
-  pipeline_cv_.wait(lock, [this]() {
-    // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
-    //               std::this_thread::get_id(), completed_size_, run_size_);
-    bool flag = completed_size_ == run_size_;
-    return flag;
-  });
+  // NNDEPLOY_LOGE("deinit start!\n");
+  if (!is_synchronize_) {
+    // std::unique_lock<std::mutex> lock(pipeline_mutex_);
+    // // NNDEPLOY_LOGE("deinit start!\n");
+    // pipeline_cv_.wait(lock, [this]() {
+    //   // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
+    //   //               std::this_thread::get_id(), completed_size_, run_size_);
+    //   bool flag = completed_size_ == run_size_;
+    //   return flag;
+    // });
+    this->synchronize();
+  }
   for (auto iter : edge_repository_) {
     bool flag = iter->edge_->requestTerminate();
     if (!flag) {
@@ -76,6 +81,25 @@ base::Status ParallelPipelineExecutor::run() {
   return base::kStatusCodeOk;
 }
 
+bool ParallelPipelineExecutor::synchronize() {
+  // NNDEPLOY_LOGE("deinit start!\n");
+  std::unique_lock<std::mutex> lock(pipeline_mutex_);
+  // NNDEPLOY_LOGE("deinit start!\n");
+  pipeline_cv_.wait(lock, [this]() {
+    // NNDEPLOY_LOGI("THREAD ID: %lld, completed_size_: %d, run_size_: %d\n",
+    //               std::this_thread::get_id(), completed_size_, run_size_);
+    bool flag = completed_size_ == run_size_;
+    return flag;
+  });
+  for (auto iter : topo_sort_node_) {
+    if (iter->node_->synchronize() == false) {
+      return false;
+    }
+  }
+  is_synchronize_ = completed_size_ == run_size_;
+  return is_synchronize_;
+}
+
 void ParallelPipelineExecutor::commitThreadPool() {
   // NNDEPLOY_LOGE("ppe run Thread ID: %d.\n", std::this_thread::get_id());
   for (auto iter : topo_sort_node_) {
@@ -95,12 +119,11 @@ void ParallelPipelineExecutor::commitThreadPool() {
             std::lock_guard<std::mutex> lock(pipeline_mutex_);
             completed_size_++;
             if (completed_size_ == run_size_) {
+              // NNDEPLOY_LOGI("completed_size_ == run_size_ notify_all!\n");
               pipeline_cv_.notify_all();
             }
           }
-          // static int count = 0;
-          // count++;
-          // NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", count,
+          // NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
           //               iter->node_->getName().c_str());
         } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
           break;
@@ -115,6 +138,38 @@ void ParallelPipelineExecutor::commitThreadPool() {
     };
     thread_pool_->commit(std::bind(func));
   }
+}
+
+base::Status ParallelPipelineExecutor::executeNode(NodeWrapper* iter) {
+  base::Status status = base::kStatusCodeOk;
+  while (true) {
+    base::EdgeUpdateFlag edge_update_flag = iter->node_->updateInput();
+    if (edge_update_flag == base::kEdgeUpdateFlagComplete) {
+      iter->node_->setRunningFlag(true);
+      status = iter->node_->run();
+      NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                             "node execute failed!\n");
+      iter->node_->setRunningFlag(false);
+      if (iter == topo_sort_node_.back()) {
+        std::lock_guard<std::mutex> lock(pipeline_mutex_);
+        completed_size_++;
+        if (completed_size_ == run_size_) {
+          NNDEPLOY_LOGI("completed_size_ == run_size_ notify_all!\n");
+          pipeline_cv_.notify_all();
+        }
+      }
+      NNDEPLOY_LOGI("node_ run i[%d]: %s.\n", completed_size_,
+                    iter->node_->getName().c_str());
+    } else if (edge_update_flag == base::kEdgeUpdateFlagTerminate) {
+      break;
+    } else {
+      NNDEPLOY_LOGE("Failed to node[%s] updateInput();\n",
+                    iter->node_->getName().c_str());
+      status = base::kStatusCodeErrorDag;
+      break;
+    }
+  }
+  return status;
 }
 
 }  // namespace dag

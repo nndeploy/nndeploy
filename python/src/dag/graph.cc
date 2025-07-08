@@ -70,13 +70,17 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
             g.addNode(node, is_external);
           },
           py::keep_alive<1, 2>(), py::arg("node"))
-      .def("get_node", &Graph::getNode, py::arg("name"),
-           py::return_value_policy::reference)
+      .def("get_node", py::overload_cast<const std::string &>(&Graph::getNode),
+           py::arg("name"), py::return_value_policy::reference)
+      .def("get_node", py::overload_cast<int>(&Graph::getNode),
+           py::arg("index"), py::return_value_policy::reference)
       //  .def("get_node_shared_ptr", &Graph::getNodeSharedPtr, py::arg("name"))
       .def("get_node_by_key", &Graph::getNodeByKey, py::arg("key"),
            py::return_value_policy::reference)
       .def("get_nodes_by_key", &Graph::getNodesByKey, py::arg("key"),
            py::return_value_policy::reference)
+      .def("get_node_count", &Graph::getNodeCount)
+      .def("get_nodes", &Graph::getNodes, py::return_value_policy::reference)
       .def("set_node_param", &Graph::setNodeParamSharedPtr,
            py::arg("node_name"), py::arg("param"))
       .def("get_node_param", &Graph::getNodeParamSharedPtr,
@@ -89,18 +93,47 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       .def("set_graph_node_share_stream", &Graph::setGraphNodeShareStream,
            py::arg("flag"))
       .def("get_graph_node_share_stream", &Graph::getGraphNodeShareStream)
+      .def("set_loop_count", &Graph::setLoopCount, py::arg("loop_count"))
+      .def("get_loop_count", &Graph::getLoopCount)
+      .def("get_loop_count_map", &Graph::getLoopCountMap)
       .def("update_node_io", &Graph::updateNodeIO, py::arg("node"),
            py::arg("inputs"), py::arg("outputs"))
       .def("mark_input_edge", &Graph::markInputEdge, py::arg("inputs"))
       .def("mark_output_edge", &Graph::markOutputEdge, py::arg("outputs"))
       .def("default_param", &Graph::defaultParam)
-      .def("init", &Graph::init)
-      .def("deinit", &Graph::deinit)
-      .def("run", &Graph::run)
-      .def("forward", &Graph::forward, py::arg("inputs"),
-           py::keep_alive<1, 2>(), py::return_value_policy::reference)
-      .def("__call__", &Graph::operator(), py::arg("inputs"),
-           py::keep_alive<1, 2>(), py::return_value_policy::reference)
+      .def("init", &Graph::init, py::call_guard<py::gil_scoped_release>())
+      .def(
+          "deinit",
+          [](Graph &g) {
+            //   NNDEPLOY_LOGE("deinit start!\n");
+            return g.deinit();
+          },
+          py::call_guard<py::gil_scoped_release>())
+      .def("run", &Graph::run, py::call_guard<py::gil_scoped_release>())
+      .def("synchronize", &Graph::synchronize, py::call_guard<py::gil_scoped_release>())
+      .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward),
+           py::arg("inputs"), py::keep_alive<1, 2>(),
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
+      .def("forward", py::overload_cast<>(&Graph::forward),
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
+      .def("forward", py::overload_cast<Edge *>(&Graph::forward),
+           py::arg("input"), py::keep_alive<1, 2>(),
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
+      .def("__call__",
+           py::overload_cast<std::vector<Edge *>>(&Graph::operator()),
+           py::arg("inputs"), py::keep_alive<1, 2>(),
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
+      .def("__call__", py::overload_cast<>(&Graph::operator()),
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
+      .def("__call__", py::overload_cast<Edge *>(&Graph::operator()),
+           py::arg("input"), py::keep_alive<1, 2>(),
+           py::return_value_policy::reference,
+           py::call_guard<py::gil_scoped_release>())
       .def("dump", [](Graph &g) { g.dump(std::cout); })
       .def("set_trace_flag", &Graph::setTraceFlag, py::arg("flag"))
       // 绑定Graph类的trace方法到Python
@@ -112,8 +145,14 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
       //   1. py::keep_alive<1,2>() 确保Graph对象在inputs存在期间不会被销毁
       //   2. py::return_value_policy::reference 返回引用,由Python管理内存
       //   3. 该方法用于追踪图的执行流程,帮助调试和性能分析
-      .def("trace", &Graph::trace, py::arg("inputs"), py::keep_alive<1, 2>(),
+      .def("trace", py::overload_cast<std::vector<Edge *>>(&Graph::trace),
+           py::arg("inputs"), py::keep_alive<1, 2>(),
            py::return_value_policy::reference)
+      .def("trace", py::overload_cast<>(&Graph::trace),
+           py::return_value_policy::reference)
+      .def("trace", py::overload_cast<Edge *>(&Graph::trace), py::arg("input"),
+           py::keep_alive<1, 2>(), py::return_value_policy::reference)
+      .def("to_static_graph", &Graph::toStaticGraph, py::return_value_policy::reference)
       .def("get_edge_wrapper",
            py::overload_cast<Edge *>(&Graph::getEdgeWrapper), py::arg("edge"),
            py::return_value_policy::reference)
@@ -139,12 +178,13 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::overload_cast<const std::string &>(&Graph::deserialize),
            py::arg("json_str"));
 
-  m.def("serialize", py::overload_cast<Graph *>(&serialize), py::arg("graph"));
-  m.def("save_file", &saveFile, py::arg("graph"), py::arg("path"));
-  m.def("deserialize", py::overload_cast<const std::string &>(&deserialize),
-        py::arg("json_str"), py::return_value_policy::take_ownership);
-  m.def("load_file", &loadFile, py::arg("path"),
-        py::return_value_policy::take_ownership);
+  //   m.def("serialize", py::overload_cast<Graph *>(&serialize),
+  //   py::arg("graph")); m.def("save_file", &saveFile, py::arg("graph"),
+  //   py::arg("path")); m.def("deserialize", py::overload_cast<const
+  //   std::string &>(&deserialize),
+  //         py::arg("json_str"), py::return_value_policy::take_ownership);
+  //   m.def("load_file", &loadFile, py::arg("path"),
+  //         py::return_value_policy::take_ownership);
 }
 
 }  // namespace dag

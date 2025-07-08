@@ -1,0 +1,58 @@
+import request from "../../../request";
+import { FlowNodeRegistry } from "../../../typings";
+import { apiGetNodeList } from "../../Layout/Design/Node/api";
+import { IBusinessNode, IParamTypes, IWorkFlowEntity } from "../../Layout/Design/WorkFlow/entity";
+import { INodeEntity } from "../../Node/entity";
+import { buildNodeRegistry } from "./nodeRegistry/buildNodeRegistry";
+
+export async function apiGetNodeById(key_: string) {
+  var response = await request.post<INodeEntity>('/node/get', { key_ });
+
+  return response;
+}
+
+export async function apiGetWorkFlow(flowName: string) {
+  var response = await request.get<IBusinessNode>(`/api/workflow/${flowName}`, {});
+
+  return response;
+}
+
+export async function getNodeRegistry() {
+
+  const response = await apiGetNodeList()
+
+  const nodeRegistry: FlowNodeRegistry[] = response.result.map((item) => {
+    return buildNodeRegistry(item)
+  })
+
+  return nodeRegistry
+
+
+}
+
+export async function apiGetParamTypes() {
+
+  var response = await request.get<IParamTypes>(`/api/param/types`, {});
+
+  return response;
+
+
+}
+
+export function setupWebSocket() {
+
+  const { protocol, hostname, port } = window.location;
+
+  const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
+
+  const wsPort = port ? `:${port}` : '';
+ // const wsUrl = `${wsProtocol}//${hostname}${wsPort}/api/ws/progress`;
+ const wsUrl = `${wsProtocol}//${hostname}${wsPort}/api/ws/progress`;
+
+
+  const socket: WebSocket = new WebSocket(wsUrl);
+
+  return socket
+
+
+}

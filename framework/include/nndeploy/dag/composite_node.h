@@ -76,7 +76,7 @@ class NNDEPLOY_CC_API CompositeNode : public Node {
   Node *createNode(const NodeDesc &desc);
 
   template <typename T, typename... Args,
-            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type>
+            typename std::enable_if<std::is_base_of<Node, T>{}, int>::type = 0>
   Node *createNode(const std::string &name, Args &...args);
 
   template <typename T, typename... Args,

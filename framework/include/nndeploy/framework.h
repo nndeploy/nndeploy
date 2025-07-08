@@ -4,6 +4,8 @@
 
 #include "nndeploy/base/macro.h"
 
+NNDEPLOY_C_API std::string nndeployGetVersion();
+
 /**
  * @brief init framework
  *

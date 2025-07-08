@@ -26,11 +26,15 @@ namespace dag {
 
 Graph::Graph(const std::string &name) : Node(name) {
   key_ = "nndeploy::dag::Graph";
+  desc_ = "Graph: Graph for nndeploy in cpp";
+  constructed_ = true;
+  is_graph_ = true;
 }
 Graph::Graph(const std::string &name, std::vector<Edge *> inputs,
              std::vector<Edge *> outputs)
     : Node(name, inputs, outputs) {
   key_ = "nndeploy::dag::Graph";
+  desc_ = "Graph: Graph for nndeploy in cpp";
   for (auto input : inputs) {
     if (nullptr == addEdge(input)) {
       constructed_ = false;
@@ -424,7 +428,7 @@ base::Status Graph::setNodeDesc(Node *node, const NodeDesc &desc) {
   std::vector<Edge *> outputs = node->getAllOutput();
   if (!outputs.empty()) {
     // 该节点已经设置，不允许二次设置
-    NNDEPLOY_LOGE("node[%s] already set, can't set again!",
+    NNDEPLOY_LOGE("node[%s] already set, can't set again!\n",
                   node->getName().c_str());
     return base::kStatusCodeErrorInvalidValue;
   }
@@ -557,6 +561,13 @@ Node *Graph::getNode(const std::string &name) {
   return nullptr;
 }
 
+Node *Graph::getNode(int index) {
+  if (index < 0 || index >= node_repository_.size()) {
+    return nullptr;
+  }
+  return node_repository_[index]->node_;
+}
+
 std::shared_ptr<Node> Graph::getNodeSharedPtr(const std::string &name) {
   for (auto node_ptr : shared_node_repository_) {
     if (node_ptr->getName() == name) {
@@ -581,6 +592,16 @@ std::vector<Node *> Graph::getNodesByKey(const std::string &key) {
     if (node_wrapper->node_->getKey() == key) {
       nodes.emplace_back(node_wrapper->node_);
     }
+  }
+  return nodes;
+}
+
+int Graph::getNodeCount() { return node_repository_.size(); }
+
+std::vector<Node *> Graph::getNodes() {
+  std::vector<Node *> nodes;
+  for (auto node_wrapper : node_repository_) {
+    nodes.emplace_back(node_wrapper->node_);
   }
   return nodes;
 }
@@ -646,6 +667,51 @@ void Graph::setGraphNodeShareStream(bool flag) {
 }
 
 bool Graph::getGraphNodeShareStream() { return is_graph_node_share_stream_; }
+
+void Graph::setLoopCount(int loop_count) {
+  for (auto node_wrapper : node_repository_) {
+    node_wrapper->node_->setLoopCount(loop_count);
+  }
+}
+int Graph::getLoopCount() {
+  if (inputs_.size() > 0) {
+    return 1;
+  }
+  int loop_count_min = INT_MAX;
+  int loop_count_max = 1;
+  bool is_find_input = false;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput) {
+      is_find_input = true;
+      if (node_wrapper->node_->getLoopCount() < loop_count_min) {
+        loop_count_min = node_wrapper->node_->getLoopCount();
+      }
+      if (node_wrapper->node_->getLoopCount() > loop_count_max) {
+        loop_count_max = node_wrapper->node_->getLoopCount();
+      }
+    }
+  }
+  
+  if (!is_find_input) {
+    return 1;
+  }
+  if(is_loop_max_flag_) {
+    return loop_count_max;
+  } else {
+    return loop_count_min;
+  }
+}
+
+std::map<std::string, int> Graph::getLoopCountMap() {
+  std::map<std::string, int> loop_count_map;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getNodeType() == NodeType::kNodeTypeInput) {
+      loop_count_map[node_wrapper->node_->getName()] =
+          node_wrapper->node_->getLoopCount();
+    }
+  }
+  return loop_count_map;
+}
 
 base::Status Graph::updateNodeIO(Node *node, std::vector<Edge *> inputs,
                                  std::vector<Edge *> outputs) {
@@ -813,6 +879,14 @@ base::Status Graph::run() {
   return status;
 }
 
+bool Graph::synchronize() {
+  bool is_synchronize = executor_->synchronize();
+  if (!is_synchronize) {
+    NNDEPLOY_LOGE("executor synchronize failed!");
+  }
+  return is_synchronize;
+}
+
 std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
   std::vector<Edge *> outputs;
   return outputs;
@@ -832,6 +906,77 @@ std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
     std::vector<Edge *> outputs = this->forward(inputs);
     if (graph_ != nullptr) {
       base::Status status = graph_->updateNodeIO(this, inputs, outputs);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+        return std::vector<Edge *>();
+      }
+      // for (auto input : inputs) {
+      //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
+      // }
+      // for (auto output : outputs) {
+      //   NNDEPLOY_LOGE("output->getName(): %s.\n", output->getName().c_str());
+      // }
+    }
+    this->markOutputEdge(outputs);
+    return outputs;
+  }
+}
+std::vector<Edge *> Graph::forward() {
+  std::vector<Edge *> outputs;
+  return outputs;
+}
+std::vector<Edge *> Graph::operator()() {
+  if (traced_) {
+    // NNDEPLOY_LOGI("graph traced!\n");
+    base::Status status = this->run();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("graph run failed!");
+      return std::vector<Edge *>();
+    }
+    return outputs_;
+  } else {
+    // NNDEPLOY_LOGI("graph not traced!\n");
+    this->markInputEdge(std::vector<Edge *>());
+    std::vector<Edge *> outputs = this->forward();
+    if (graph_ != nullptr) {
+      base::Status status =
+          graph_->updateNodeIO(this, std::vector<Edge *>(), outputs);
+      if (status != base::kStatusCodeOk) {
+        NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
+        return std::vector<Edge *>();
+      }
+      // for (auto input : inputs) {
+      //   NNDEPLOY_LOGE("input->getName(): %s.\n", input->getName().c_str());
+      // }
+      // for (auto output : outputs) {
+      //   NNDEPLOY_LOGE("output->getName(): %s.\n", output->getName().c_str());
+      // }
+    }
+    this->markOutputEdge(outputs);
+    return outputs;
+  }
+}
+
+std::vector<Edge *> Graph::forward(Edge *input) {
+  std::vector<Edge *> outputs;
+  return outputs;
+}
+std::vector<Edge *> Graph::operator()(Edge *input) {
+  if (traced_) {
+    // NNDEPLOY_LOGI("graph traced!\n");
+    base::Status status = this->run();
+    if (status != base::kStatusCodeOk) {
+      NNDEPLOY_LOGE("graph run failed!");
+      return std::vector<Edge *>();
+    }
+    return outputs_;
+  } else {
+    // NNDEPLOY_LOGI("graph not traced!\n");
+    this->markInputEdge(std::vector<Edge *>({input}));
+    std::vector<Edge *> outputs = this->forward(input);
+    if (graph_ != nullptr) {
+      base::Status status =
+          graph_->updateNodeIO(this, std::vector<Edge *>({input}), outputs);
       if (status != base::kStatusCodeOk) {
         NNDEPLOY_LOGE("graph_->updateNodeIO failed.\n");
         return std::vector<Edge *>();
@@ -1051,6 +1196,71 @@ std::vector<Edge *> Graph::trace(std::vector<Edge *> inputs) {
   // }
   traced_ = true;
   return outputs;
+}
+
+std::vector<Edge *> Graph::trace() {
+  base::Status status = base::kStatusCodeOk;
+  this->setTraceFlag(true);
+  std::vector<Edge *> outputs = this->operator()();
+  // NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
+  status = this->init();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("init failed!");
+    return std::vector<Edge *>();
+  }
+  // status = this->dump();
+  // if (status != base::kStatusCodeOk) {
+  //   NNDEPLOY_LOGE("dump failed!");
+  //   return std::vector<Edge *>();
+  // }
+  traced_ = true;
+  return outputs;
+}
+std::vector<Edge *> Graph::trace(Edge *input) {
+  base::Status status = base::kStatusCodeOk;
+  this->setTraceFlag(true);
+  std::vector<Edge *> outputs = this->operator()(input);
+  // NNDEPLOY_LOGI("trace outputs size: %d.\n", outputs.size());
+  status = this->init();
+  if (status != base::kStatusCodeOk) {
+    NNDEPLOY_LOGE("init failed!");
+    return std::vector<Edge *>();
+  }
+  // status = this->dump();
+  // if (status != base::kStatusCodeOk) {
+  //   NNDEPLOY_LOGE("dump failed!");
+  //   return std::vector<Edge *>();
+  // }
+  traced_ = true;
+  return outputs;
+}
+
+base::Status Graph::toStaticGraph() {
+  this->setTraceFlag(true);
+  base::Status status = base::kStatusCodeOk;
+  if (input_type_info_.size() == 0) {
+    std::vector<Edge *> outputs = this->operator()();
+  } else if (input_type_info_.size() == 1) {
+    std::string name = this->getName() + "@" + "input_" +  std::to_string(0);
+    Edge *edge = new Edge(name);
+    this->addEdge(edge, false);
+    std::vector<Edge *> outputs = this->operator()(edge);
+    // delete edge;
+  } else {
+    std::vector<Edge *> edges;
+    for (int i = 0; i < input_type_info_.size(); i++) {
+      std::string name = this->getName() + "@" + "input_" + std::to_string(i);
+      Edge *edge = new Edge(name);
+      this->addEdge(edge, false);
+      edges.emplace_back(edge);
+    }
+    std::vector<Edge *> outputs = this->operator()(edges);
+    // for (auto edge : edges) {
+    //   delete edge;
+    // }
+  }
+  this->setTraceFlag(false);
+  return status;
 }
 
 base::Status Graph::construct() {
@@ -1435,6 +1645,7 @@ base::Status Graph::serialize(rapidjson::Value &json,
     json.AddMember("is_graph_node_share_stream_", is_graph_node_share_stream_,
                    allocator);
     json.AddMember("queue_max_size_", queue_max_size_, allocator);
+    json.AddMember("is_loop_max_flag_", is_loop_max_flag_, allocator);
   }
 
   // if (!node_repository_.empty()) {

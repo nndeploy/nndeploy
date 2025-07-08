@@ -20,8 +20,6 @@ def conv(input, weight, bias=None, stride=1, padding=0, dilation=1, groups=1):
 def concat(input1, input2, axis=0):
     param = _C.ir.ConcatParam()
     param.axis_ = axis
-    print(param)
-    print(type(_C.op.concat))
     
     return _C.op.concat([input1, input2], param)
 
@@ -34,8 +32,11 @@ def batch_norm(input, scale, bias, mean, var, epsilon=1e-5):
 
 
 def relu(input):
-
     return _C.op.relu(input)
+
+
+def gelu(input):
+    return _C.op.gelu(input)
 
 
 def add(input1, input2):
@@ -46,6 +47,13 @@ def flatten(input, axis=1):
     param = _C.ir.FlattenParam()
     param.axis_ = axis
     return _C.op.flatten(input, param)
+
+
+def gather(input, index, axis=0):
+    param = _C.ir.GatherParam()
+    param.axis_ = axis
+
+    return _C.op.gather(input, index, param)
 
 
 def gemm(input_a, input_b, input_c=None, alpha=1.0, beta=1.0, trans_a=0, trans_b=0):
@@ -71,14 +79,34 @@ def maxpool(input, kernel_size, stride=1, padding=0, dilation=1, ceil_mode=False
     return _C.op.maxpool(input, param)
 
 
+def mat_mul(input1, input2, bias=None, transposeA=False, transposeB=False):
+    param = _C.ir.MatMulParam()
+    param.transposeA_ = transposeA
+    param.transposeB_ = transposeB
+    if bias == None:
+        return _C.op.mat_mul(input1, input2, param, None)
+    return _C.op.mat_mul(input1, input2, param, bias)
+
+
 def mul(input1, input2):
     return _C.op.mul(input1, input2)
 
 
-def softmax(input, axis=-1):
+def rms_norm(input, weight, epsilon=1e-5):
+    param = _C.ir.RMSNormParam()
+    param.epsilon_ = epsilon
+
+    return _C.op.rms_norm(input, weight, param)
+
+
+def softmax(input, axis=1):
     param = _C.ir.SoftmaxParam()
     param.axis_ = axis
     return _C.op.softmax(input, param)
+
+
+def sigmoid(input):
+    return _C.op.sigmoid(input)
 
 
 def quantize_linear(input, scale, zero_point, axis=1, saturate=True):
@@ -127,3 +155,13 @@ def qlinear_conv(
         bias,
         param,
     )
+
+
+def where(input1, input2, condition):
+    return _C.op.where(input1, input2, condition)
+
+
+def transpose(input, perm_axis):
+    param = _C.ir.TransposeParam()
+    param.perm_ = perm_axis
+    return _C.op.transpose(input, param)

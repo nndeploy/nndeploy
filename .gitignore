@@ -13,8 +13,11 @@
 
 # Compiled Dynamic libraries
 *.so
+*.so.*
 *.dylib
+*.dylib.*
 *.dll
+*.dll.*
 
 # Fortran module files
 *.mod
@@ -220,7 +223,7 @@ docs/build
 .vs/
 
 # third_party
-# third_party
+third_party
 
 cmake-build-debug/
 
@@ -254,3 +257,10 @@ ref_repo
 # app/
 # translation
 *.mo
+/app/workflow/package-lock.json
+
+# server/resources rule
+server/resources/**
+
+# keep readme file
+!server/resources/README*

@@ -224,8 +224,10 @@ base::Status CudaDevice::createEvents(Event **events, size_t count) {
   for (size_t i = 0; i < count; ++i) {
     Event *event = this->createEvent();
     if (event == nullptr) {
+      NNDEPLOY_LOGE("create event failed\n");
       return base::kStatusCodeErrorDeviceCuda;
     }
+    events[i] = event;
   }
   return base::kStatusCodeOk;
 }

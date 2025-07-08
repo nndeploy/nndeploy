@@ -82,7 +82,7 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
   virtual base::Param *getParam();
 
   template <typename T>
-  base::Status setAny(T *t, bool is_external = true) {
+  base::Status set(T *t, bool is_external = true) {
     base::Status status = base::kStatusCodeOk;
     if (anything_ == nullptr) {
       anything_ = (void *)(t);
@@ -91,14 +91,28 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
       anything_ = (void *)(t);
     }
     is_external_ = is_external;
-    flag_ = EdgeTypeFlag::kAny;
-    written_ = false;
+    if (std::is_same<T, device::Buffer>::value) {
+      flag_ = EdgeTypeFlag::kBuffer;
+    } else if (std::is_same<T, device::Tensor>::value) {
+      flag_ = EdgeTypeFlag::kTensor;
+    } else if (std::is_base_of<base::Param, T>::value) {
+      flag_ = EdgeTypeFlag::kParam;
+    }
+#ifdef ENABLE_NNDEPLOY_OPENCV
+    else if (std::is_same<T, cv::Mat>::value) {
+      flag_ = EdgeTypeFlag::kCvMat;
+    }
+#endif
+    else {
+      flag_ = EdgeTypeFlag::kAny;
+    }
+    written_ = true;
     deleter_ = [](void *d) { delete static_cast<T *>(d); };
     type_info_ = const_cast<std::type_info *>(&typeid(T));
     return status;
   }
   template <typename T, typename... Args>
-  T *createAny(Args &&...args) {
+  T *create(Args &&...args) {
     base::Status status = base::kStatusCodeOk;
     T *t = nullptr;
     if (anything_ == nullptr) {
@@ -112,14 +126,28 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
       return nullptr;
     }
     is_external_ = false;
-    flag_ = EdgeTypeFlag::kAny;
+    if (std::is_same<T, device::Buffer>::value) {
+      flag_ = EdgeTypeFlag::kBuffer;
+    } else if (std::is_same<T, device::Tensor>::value) {
+      flag_ = EdgeTypeFlag::kTensor;
+    } else if (std::is_base_of<base::Param, T>::value) {
+      flag_ = EdgeTypeFlag::kParam;
+    }
+#ifdef ENABLE_NNDEPLOY_OPENCV
+    else if (std::is_same<T, cv::Mat>::value) {
+      flag_ = EdgeTypeFlag::kCvMat;
+    }
+#endif
+    else {
+      flag_ = EdgeTypeFlag::kAny;
+    }
     written_ = false;
     anything_ = (void *)(t);
     type_info_ = const_cast<std::type_info *>(&typeid(T));
     deleter_ = [](void *d) { delete static_cast<T *>(d); };
     return t;
   }
-  bool notifyAnyWritten(void *anything) {
+  bool notifyWritten(void *anything) {
     if (anything == anything_) {
       written_ = true;
       return true;
@@ -128,16 +156,51 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
     }
   }
   template <typename T>
-  T *getAny() {
-    if (flag_ != EdgeTypeFlag::kAny) {
-      NNDEPLOY_LOGE("flag_ is not kAny");
-      return nullptr;
-    }
+  T *get() {
+    // if (flag_ != EdgeTypeFlag::kAny) {
+    //   NNDEPLOY_LOGE("flag_ is not kAny");
+    //   return nullptr;
+    // }
     if (typeid(T) != *type_info_) {
-      NNDEPLOY_LOGE("typeid(T) is not *type_info_");
+      // NNDEPLOY_LOGE("typeid(T) is not *type_info_");
       return nullptr;
     }
     return static_cast<T *>(anything_);
+  }
+
+  template <typename PY_WRAPPER, typename T>
+  base::Status set4py(PY_WRAPPER *wrapper, T* t, bool is_external = true) {
+    base::Status status = base::kStatusCodeOk;
+    if (anything_ == nullptr) {
+      anything_ = (void *)(t);
+    } else {
+      destory();
+      anything_ = (void *)(t);
+    }
+    is_external_ = is_external;
+    if (std::is_same<T, device::Buffer>::value) {
+      flag_ = EdgeTypeFlag::kBuffer;
+    } else if (std::is_same<T, device::Tensor>::value) {
+      flag_ = EdgeTypeFlag::kTensor;
+    } else if (std::is_base_of<base::Param, T>::value) {
+      flag_ = EdgeTypeFlag::kParam;
+    }
+#ifdef ENABLE_NNDEPLOY_OPENCV
+    else if (std::is_same<T, cv::Mat>::value) {
+      flag_ = EdgeTypeFlag::kCvMat;
+    }
+#endif
+    else {
+      flag_ = EdgeTypeFlag::kAny;
+    }
+    written_ = true;
+    deleter_ = [](void *d) { delete static_cast<T *>(d); };
+    type_info_ = const_cast<std::type_info *>(&typeid(T));
+
+    wrapper_ = (void *)(wrapper);
+    wrapper_deleter_ = [](void *d) { delete static_cast<PY_WRAPPER *>(d); };
+
+    return status;
   }
 
   virtual base::Status takeDataPacket(DataPacket *packet);
@@ -156,6 +219,9 @@ class NNDEPLOY_CC_API DataPacket : public base::NonCopyable {
   void *anything_ = nullptr;
   std::function<void(void *)> deleter_;
   std::type_info *type_info_;
+
+  void *wrapper_ = nullptr;
+  std::function<void(void *)> wrapper_deleter_;
 };
 
 class NNDEPLOY_CC_API PipelineDataPacket : public DataPacket {
@@ -186,31 +252,41 @@ class NNDEPLOY_CC_API PipelineDataPacket : public DataPacket {
   base::Param *getParamDirect();
 
   template <typename T>
-  base::Status setAny(T *t, bool is_external = true) {
+  base::Status set(T *t, bool is_external = true) {
     std::unique_lock<std::mutex> lock(mutex_);
-    base::Status status = DataPacket::setAny(t, is_external);
+    base::Status status = DataPacket::set(t, is_external);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
-                           "DataPacket::setAny failed!\n");
+                           "DataPacket::set failed!\n");
     cv_.notify_all();
     return status;
   }
-  bool notifyAnyWritten(void *anything) {
+  bool notifyWritten(void *anything) {
     std::unique_lock<std::mutex> lock(mutex_);
-    bool status = DataPacket::notifyAnyWritten(anything);
+    bool status = DataPacket::notifyWritten(anything);
     if (status) {
       cv_.notify_all();
     }
     return status;
   }
   template <typename T>
-  T *getAny() {
+  T *get() {
     std::unique_lock<std::mutex> lock(mutex_);
     cv_.wait(lock, [this] { return written_; });
-    return DataPacket::getAny<T>();
+    return DataPacket::get<T>();
   }
   template <typename T>
-  T *getAnyDirect() {
-    return DataPacket::getAny<T>();
+  T *getDirect() {
+    return DataPacket::get<T>();
+  }
+
+  template <typename PY_WRAPPER, typename T>
+  base::Status set4py(PY_WRAPPER *wrapper, T* t, bool is_external = true) {
+    std::unique_lock<std::mutex> lock(mutex_);
+    base::Status status = DataPacket::set4py(wrapper, t, is_external);
+    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
+                           "DataPacket::set failed!\n");
+    cv_.notify_all();
+    return status;
   }
 
   virtual base::Status takeDataPacket(DataPacket *packet);

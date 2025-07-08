@@ -26,7 +26,6 @@ class X86OpConcat : public OpConcat {
   }
 
   virtual base::Status preRun() {
-    NNDEPLOY_LOGE("concat\n");
     if (!is_changed_) {
       return kStatusCodeOk;  //若算子状态未改变，则直接沿用上一次创建memory、算子等
     }
@@ -39,19 +38,32 @@ class X86OpConcat : public OpConcat {
     auto param = dynamic_cast<ir::ConcatParam*>(op_desc_.op_param_.get());
     int axis = param->axis_;
 
-	  NNDEPLOY_ASSERT(inputs_[0]->getShape().size() == inputs_[1]->getShape().size());
-	  NNDEPLOY_ASSERT(inputs_[1]->getShape().size() == outputs_[0]->getShape().size());
+    for (int i = 0; i < (int)inputs_.size() - 1; i++) {
+      NNDEPLOY_ASSERT(inputs_[i]->getShape().size() == inputs_[i + 1]->getShape().size());
+    }
+	  // NNDEPLOY_ASSERT(inputs_[0]->getShape().size() == inputs_[1]->getShape().size());
+	  // NNDEPLOY_ASSERT(inputs_[1]->getShape().size() == outputs_[0]->getShape().size());
 
 	  int now_ndim = inputs_[0]->getShape().size();
-
-    for (int i = 0; i < now_ndim; i++) {
+    
+    for (int i = 0; i < (int)inputs_.size() - 1; i++) {
+      for (int i = 0; i < now_ndim; i++) {
         if (i != axis) {
             assert(inputs_[0]->getShapeIndex(i) == inputs_[1]->getShapeIndex(i));
             assert(inputs_[1]->getShapeIndex(i) == outputs_[0]->getShapeIndex(i));
         } else {
             assert(inputs_[0]->getShapeIndex(i) + inputs_[1]->getShapeIndex(i) == outputs_[0]->getShapeIndex(i));
         }
+      }
     }
+    // for (int i = 0; i < now_ndim; i++) {
+    //     if (i != axis) {
+    //         assert(inputs_[0]->getShapeIndex(i) == inputs_[1]->getShapeIndex(i));
+    //         assert(inputs_[1]->getShapeIndex(i) == outputs_[0]->getShapeIndex(i));
+    //     } else {
+    //         assert(inputs_[0]->getShapeIndex(i) + inputs_[1]->getShapeIndex(i) == outputs_[0]->getShapeIndex(i));
+    //     }
+    // }
 
     std::vector<long int> shape1, format1, shape2, format2, shape3, format3;
     for (int i = 0; i < now_ndim; i++) {
@@ -83,10 +95,8 @@ class X86OpConcat : public OpConcat {
     auto concat_src_memA = dnnl::memory(matA_md, dnnl_engine_, inputs_[0]->getData());
     auto concat_src_memB = dnnl::memory(matB_md, dnnl_engine_, inputs_[1]->getData());
     auto concat_dst_md = dnnl::memory::desc(shape3, dst_data_type, format3);
-    // TODO
-    // auto concat_dst_mem_ = dnnl::memory(concat_dst_md, dnnl_engine_, outputs_[0]->getData());
+    
     concat_dst_mem_ = dnnl::memory(concat_dst_md, dnnl_engine_, outputs_[0]->getData());
-    outputs_[0]->getDesc().print();
 
     std::vector<dnnl::memory::desc> concat_srcs_md;
     
@@ -94,25 +104,20 @@ class X86OpConcat : public OpConcat {
     concat_srcs_md.push_back(matB_md);
     concat_srcs_mem_.push_back(concat_src_memA);
     concat_srcs_mem_.push_back(concat_src_memB);
-    NNDEPLOY_LOGE("concat axis = %d\n", axis);
     try {
-      // TODO
+      
       dnnl_concat_pd_ = dnnl::concat::primitive_desc(dnnl_engine_, concat_dst_md, axis, concat_srcs_md);
-      // auto dnnl_concat_pd_ = dnnl::concat::primitive_desc(dnnl_engine_, concat_dst_md, axis, concat_srcs_md);
     } catch (const dnnl::error& e) {
       std::string error_msg = std::string(e.what());
       NNDEPLOY_LOGE("DNNL concat primitive_desc创建失败: %s\n", error_msg.c_str());
       return base::kStatusCodeErrorInvalidParam;
     }
-    NNDEPLOY_LOGE("concat\n");
 
 	  return base::kStatusCodeOk;
   }
 
   virtual base::Status run() {
-    NNDEPLOY_LOGE("concat\n");
     auto concat_e = dnnl::concat(dnnl_concat_pd_);
-    NNDEPLOY_LOGE("concat\n");
     try {
       concat_e.execute(dnnl_stream_, {{DNNL_ARG_DST, concat_dst_mem_},
                                      {DNNL_ARG_MULTIPLE_SRC + 0, concat_srcs_mem_[0]},
@@ -122,17 +127,13 @@ class X86OpConcat : public OpConcat {
       NNDEPLOY_LOGE("DNNL concat execute失败: %s\n", error_msg.c_str());
       return base::kStatusCodeErrorInvalidParam;
     }
-    NNDEPLOY_LOGE("concat\n");
     dnnl_stream_.wait();
-    NNDEPLOY_LOGE("concat\n");
 
     return base::kStatusCodeOk;
   }
 
   virtual base::Status postRun() {
-    NNDEPLOY_LOGE("concat\n");
     is_changed_ = false;
-    NNDEPLOY_LOGE("concat\n");
     return base::kStatusCodeOk;
   }
 
