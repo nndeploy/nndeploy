@@ -504,6 +504,7 @@ dag::Graph *createDenoiseGraph(const std::string &name,
 }
 
 REGISTER_NODE("nndeploy::stable_diffusion::InitLatents", InitLatents);
+REGISTER_NODE("nndeploy::stable_diffusion::DDIMSchedule", DDIMSchedule);
 REGISTER_NODE("nndeploy::stable_diffusion::Denoise", Denoise);
 REGISTER_NODE("nndeploy::stable_diffusion::DenoiseGraph", DenoiseGraph);
 
