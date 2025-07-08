@@ -8,99 +8,12 @@
 namespace nndeploy {
 namespace op {
 
-std::string get_format_tag_str(const dnnl::memory::desc &md) {
-    // 检查未定义格式
-    if (md.is_zero()) return "undef";
-
-    // 遍历常见的 format tag 并进行比较
-    // Iterate through common format tags and compare
-#define CHECK_TAG(tag) \
-    do { \
-        auto temp_md = dnnl::memory::desc(md.get_dims(), md.get_data_type(), dnnl::memory::format_tag::tag, true); \
-        if (temp_md && temp_md == md) return #tag; \
-    } while (0)
-
-    // 添加您常用的或期望检查的格式标签
-    // Add the format tags you commonly use or expect to check
-    CHECK_TAG(a);
-    CHECK_TAG(ab);
-    CHECK_TAG(abc);
-    CHECK_TAG(abcd);
-    CHECK_TAG(abdc);
-    CHECK_TAG(acbd);
-    CHECK_TAG(acdb);
-    CHECK_TAG(adbc);
-    CHECK_TAG(bacd);
-    CHECK_TAG(bcda);
-    CHECK_TAG(cdba);
-    CHECK_TAG(dcab);
-    CHECK_TAG(abcde);
-    CHECK_TAG(abcdef);
-
-    CHECK_TAG(nchw);
-    CHECK_TAG(nhwc);
-    CHECK_TAG(chwn);
-    
-    CHECK_TAG(ncdhw);
-    CHECK_TAG(ndhwc);
-
-    CHECK_TAG(oihw);
-    CHECK_TAG(hwio);
-    CHECK_TAG(goihw);
-
-    CHECK_TAG(x);
-    CHECK_TAG(nc);
-    CHECK_TAG(cn);
-    CHECK_TAG(nwc);
-    
-    // 如果没有匹配的已知格式，则返回 "unknown"
-    // If no known format matches, return "unknown"
-    return "unknown";
-}
-
-void print_memory_desc(const dnnl::memory::desc &md) {    
-    // 现有代码...  
-    auto dims = md.get_dims();    
-    auto data_type = md.get_data_type();    
-    auto strides = md.get_strides();  
-    auto format_tag = md.get_format_kind();  // 添加这行  
-    std::cout << "ndims: " << dims.size() << std::endl;    
-    std::cout << "dims: ";    
-    for (size_t i = 0; i < dims.size(); i++) {    
-        std::cout << dims[i] << " ";    
-    }    
-    std::cout << std::endl;    
-        
-    std::cout << "data_type: " << static_cast<int>(data_type) << std::endl;  
-      
-    // 添加 format tag 打印  
-    std::cout << "format_kind: " << static_cast<int>(format_tag) << std::endl;  
-      
-    std::cout << "strides: ";    
-    for (size_t i = 0; i < strides.size(); i++) {    
-        std::cout << strides[i] << " ";    
-    }    
-    std::cout << std::endl;    
-    std::cout << "format_tag: " << get_format_tag_str(md) << std::endl;
-    std::cout << std::endl;    
-
-}
-
-
 // Transpose 算子的 X86 (oneDNN) 实现
 class X86OpTranspose : public OpTranspose {
  public:
   X86OpTranspose() : OpTranspose() {}
   virtual ~X86OpTranspose() {}
   
-  // virtual base::Status X86OpTranspose::inferDataFormat() {
-  //   auto param = dynamic_cast<ir::TransposeParam*>(op_desc_.op_param_.get());
-  //   auto axis = param->perm_;
-  //   auto src_dataformat = inputs_[0]->getDataFormat();
-  //   if (axis == std::vector<int>{1, 2}) outputs_[0]->setDataFormat(base::kDataFormatAuto);
-    
-  // }
-
   virtual base::Status init() {
     base::Status status = OpTranspose::init();
     if (status != base::kStatusCodeOk) {
@@ -127,20 +40,21 @@ class X86OpTranspose : public OpTranspose {
     dnnl::memory::format_tag src_dataformat =
         X86OpConvert::convertFromDataFormat(inputs_[0]->getDataFormat());
 
-    auto src_md = dnnl::memory::desc(src_dims, src_data_type, src_dataformat);
-    NNDEPLOY_LOGE("3.5");
-    auto dst_md = src_md.permute_axes(axis);
-    NNDEPLOY_LOGE("3.8");
+    auto src_md = dnnl::memory::desc(src_dims, src_data_type, dnnl::memory::format_tag::abcd);
+    dnnl::memory::desc dst_md;
+    if (axis == std::vector<int>{0, 2, 1, 3}) dst_md = dnnl::memory::desc(src_dims, src_data_type, dnnl::memory::format_tag::acbd);
+    else if (axis == std::vector<int>{0, 1, 3, 2}) dst_md = dnnl::memory::desc(src_dims, src_data_type, dnnl::memory::format_tag::abdc);
+    else NNDEPLOY_LOGE("x86 transpose do not support this transformation of dataformats!\n");
+    
 
     print_memory_desc(src_md);
     print_memory_desc(dst_md);
 
-    transpose_dst_mem_ = dnnl::memory(src_md, dnnl_engine_, inputs_[0]->getData());
+    transpose_src_mem_ = dnnl::memory(src_md, dnnl_engine_, inputs_[0]->getData());
     transpose_dst_mem_ = dnnl::memory(dst_md_, dnnl_engine_, outputs_[0]->getData());
 
     dnnl_order_pd_ = dnnl::reorder::primitive_desc(
             dnnl_engine_, src_md, dnnl_engine_, dst_md);
-    NNDEPLOY_LOGE("4");
 
 	  return base::kStatusCodeOk;
   }

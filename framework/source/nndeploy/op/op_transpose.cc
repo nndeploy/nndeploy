@@ -27,7 +27,6 @@ base::Status OpTranspose::inferShape() {
   auto param = dynamic_cast<ir::TransposeParam*>(op_desc_.op_param_.get());
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "op_desc_.op_param_ is nullptr");
   std::vector<int> perm = param->perm_;
-  NNDEPLOY_LOGE("1");
 
   // infer shape
   auto input_shape = inputs_[0]->getShape();
@@ -59,7 +58,6 @@ base::Status OpTranspose::inferShape() {
     }
   }
   outputs_[0]->reshape(output_shape);
-  NNDEPLOY_LOGE("2");
 
   return status;
 }
