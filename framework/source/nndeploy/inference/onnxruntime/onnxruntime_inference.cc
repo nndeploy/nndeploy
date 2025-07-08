@@ -17,7 +17,6 @@ OnnxRuntimeInference::OnnxRuntimeInference(base::InferenceType type)
     : Inference(type) {}
 
 OnnxRuntimeInference::~OnnxRuntimeInference() {
-  session_ = Ort::Session{nullptr};
 }
 
 base::Status OnnxRuntimeInference::init() {
@@ -140,6 +139,10 @@ base::Status OnnxRuntimeInference::deinit() {
     internal_outputs_[i].release();
   }
   internal_outputs_.clear();
+  for (int i = 0; i < internal_inputs_.size(); ++i) {
+    internal_inputs_[i].release();
+  }
+  internal_inputs_.clear();
   for (auto iter : input_tensors_) {
     delete iter.second;
   }
@@ -156,6 +159,22 @@ base::Status OnnxRuntimeInference::deinit() {
     delete iter.second;
   }
   max_output_tensors_.clear();
+
+  // 4. 清理 IoBinding (新增)
+  // binding_.release();
+  binding_.reset();
+  allocator_.release();
+  memory_info_.release();
+  
+  // 5. 清理描述符向量
+  inputs_desc_.clear();
+  outputs_desc_.clear();
+
+  // session_options_.release();
+  session_.release();
+  // env_.release();
+  // session_ = Ort::Session{nullptr};
+
   return status;
 }
 
@@ -197,12 +216,20 @@ base::Status OnnxRuntimeInference::reshape(base::ShapeMap &shape_map) {
 
 base::Status OnnxRuntimeInference::run() {
   base::Status status = base::kStatusCodeOk;
-  auto memory_info =
-      Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+  // auto memory_info =
+  //     Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
+  Ort::MemoryInfo memory_info("Cpu", OrtDeviceAllocator, 0,
+    OrtMemTypeDefault);
   Ort::Allocator allocator(session_, memory_info);
   device::Device *device = device::getDefaultHostDevice();
   try {
     auto n_inputs = session_.GetInputCount();
+
+    // for (int i = 0; i < internal_inputs_.size(); ++i) {
+    //   internal_inputs_[i].release();
+    // }
+    // internal_inputs_.clear();
+    
     for (int i = 0; i < n_inputs; ++i) {
       auto input_name = session_.GetInputNameAllocated(i, allocator).get();
       device::Tensor *input_tensor = nullptr;
@@ -214,11 +241,12 @@ base::Status OnnxRuntimeInference::run() {
       }
       auto ort_value = OnnxRuntimeConvert::convertFromTensor(input_tensor);
       binding_->BindInput(input_name, ort_value);
+      // internal_inputs_.push_back(std::move(ort_value));
     }
 
     for (size_t i = 0; i < outputs_desc_.size(); ++i) {
-      Ort::MemoryInfo memory_info("Cpu", OrtDeviceAllocator, 0,
-                                  OrtMemTypeDefault);
+      // Ort::MemoryInfo memory_info("Cpu", OrtDeviceAllocator, 0,
+      //                             OrtMemTypeDefault);
       binding_->BindOutput(outputs_desc_[i].name.c_str(), memory_info);
     }
 

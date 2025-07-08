@@ -49,6 +49,8 @@ class OnnxRuntimeInference : public Inference {
   Ort::Env env_;
   Ort::Session session_{nullptr};
   Ort::SessionOptions session_options_;
+  Ort::Allocator allocator_{nullptr};
+  Ort::MemoryInfo memory_info_{nullptr};
   std::shared_ptr<Ort::IoBinding> binding_;
 
   std::vector<OrtValueInfo> inputs_desc_;
@@ -57,6 +59,7 @@ class OnnxRuntimeInference : public Inference {
   std::map<std::string, device::Tensor *> max_input_tensors_;
   std::map<std::string, device::Tensor *> max_output_tensors_;
 
+  std::vector<Ort::Value> internal_inputs_;
   std::vector<Ort::Value> internal_outputs_;
 };
 

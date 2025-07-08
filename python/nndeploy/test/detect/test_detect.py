@@ -112,7 +112,7 @@ def test_static_yolo_from_json():
     # print("init success!")
     yolo_demo.dump()
     yolo_demo.set_input_path("/home/always/github/public/nndeploy/docs/image/demo/detect/sample.jpg")
-    count = 17
+    count = 100
     yolo_demo.set_size(count)
     yolo_demo.set_output_path("/home/always/github/public/nndeploy/build/yolo_jos_python_demo.jpg")
     nndeploy.base.time_point_start("test_yolo_from_json")

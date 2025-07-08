@@ -373,7 +373,12 @@ base::Status Infer::run() {
     output_count++;
 #endif
 
-    outputs_[i]->set(tensor, false);
+    auto* internal_output = inference_->getOutputTensor(name);
+    if (internal_output != tensor) {
+      outputs_[i]->set(tensor, false);
+    } else {
+      outputs_[i]->set(tensor, true);
+    }
   }
   // NNDEPLOY_LOGE("infer end!Thread ID: %d.\n", std::this_thread::get_id());
   return status;
