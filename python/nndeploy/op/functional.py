@@ -49,6 +49,13 @@ def flatten(input, axis=1):
     return _C.op.flatten(input, param)
 
 
+def gather(input, index, axis=0):
+    param = _C.ir.GatherParam()
+    param.axis_ = axis
+
+    return _C.op.gather(input, index, param)
+
+
 def gemm(input_a, input_b, input_c=None, alpha=1.0, beta=1.0, trans_a=0, trans_b=0):
     param = _C.ir.GemmParam()
     param.alpha_ = alpha

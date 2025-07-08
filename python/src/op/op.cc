@@ -217,6 +217,7 @@ NNDEPLOY_API_PYBIND11_MODULE("op", m) {
   }, py::return_value_policy::take_ownership);
   m.def("add", &addFunc, py::return_value_policy::take_ownership);
   m.def("flatten", &flattenFunc, py::return_value_policy::take_ownership);
+  m.def("gather", &gatherFunc, py::return_value_policy::take_ownership);
   m.def("gemm", &gemmFunc, py::return_value_policy::take_ownership);
   m.def("gelu", &geluFunc, py::return_value_policy::take_ownership);
   m.def("global_averagepool", &globalAveragepoolFunc,

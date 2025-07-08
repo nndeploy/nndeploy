@@ -303,6 +303,11 @@ NNDEPLOY_API_PYBIND11_MODULE("ir", m) {
       .def(py::init<>())
       .def_readwrite("axis_", &FlattenParam::axis_);
 
+  py::class_<GatherParam, OpParam, std::shared_ptr<GatherParam>>(
+      m, "GatherParam")
+      .def(py::init<>())
+      .def_readwrite("axis_", &GatherParam::axis_);
+
   py::class_<GemmParam, OpParam, std::shared_ptr<GemmParam>>(m, "GemmParam")
       .def(py::init<>())
       .def_readwrite("alpha_", &GemmParam::alpha_)

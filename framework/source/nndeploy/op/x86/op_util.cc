@@ -48,5 +48,78 @@ void read_from_dnnl_memory(void *handle, dnnl::memory &mem) {
   assert(!"not expected");
 }
 
+std::string get_format_tag_str(const dnnl::memory::desc &md) {
+    // 检查未定义格式
+    if (md.is_zero()) return "undef";
+
+    // 遍历常见的 format tag 并进行比较
+#define CHECK_TAG(tag) \
+    do { \
+        auto temp_md = dnnl::memory::desc(md.get_dims(), md.get_data_type(), dnnl::memory::format_tag::tag, true); \
+        if (temp_md && temp_md == md) return #tag; \
+    } while (0)
+
+    // 添加常用的或期望检查的格式标签
+    CHECK_TAG(a);
+    CHECK_TAG(ab);
+    CHECK_TAG(abc);
+    CHECK_TAG(abcd);
+    CHECK_TAG(abdc);
+    CHECK_TAG(acbd);
+    CHECK_TAG(acdb);
+    CHECK_TAG(adbc);
+    CHECK_TAG(bacd);
+    CHECK_TAG(bcda);
+    CHECK_TAG(cdba);
+    CHECK_TAG(dcab);
+    CHECK_TAG(abcde);
+    CHECK_TAG(abcdef);
+
+    CHECK_TAG(nchw);
+    CHECK_TAG(nhwc);
+    CHECK_TAG(chwn);
+    
+    CHECK_TAG(ncdhw);
+    CHECK_TAG(ndhwc);
+
+    CHECK_TAG(oihw);
+    CHECK_TAG(hwio);
+    CHECK_TAG(goihw);
+
+    CHECK_TAG(x);
+    CHECK_TAG(nc);
+    CHECK_TAG(cn);
+    CHECK_TAG(nwc);
+    
+    // 如果没有匹配的已知格式，则返回 "unknown"
+    return "unknown";
+}
+
+void print_memory_desc(const dnnl::memory::desc &md) {    
+    auto dims = md.get_dims();    
+    auto data_type = md.get_data_type();    
+    auto strides = md.get_strides();  
+    auto format_tag = md.get_format_kind();  
+    std::cout << "ndims: " << dims.size() << std::endl;    
+    std::cout << "dims: ";    
+    for (size_t i = 0; i < dims.size(); i++) {    
+        std::cout << dims[i] << " ";    
+    }    
+    std::cout << std::endl;    
+        
+    std::cout << "data_type: " << static_cast<int>(data_type) << std::endl;  
+      
+    std::cout << "format_kind: " << static_cast<int>(format_tag) << std::endl;  
+      
+    std::cout << "strides: ";    
+    for (size_t i = 0; i < strides.size(); i++) {    
+        std::cout << strides[i] << " ";    
+    }    
+    std::cout << std::endl;    
+    std::cout << "format_tag: " << get_format_tag_str(md) << std::endl;
+    std::cout << std::endl;    
+
+}
+
 }  // namespace op
 }  // namespace nndeploy
