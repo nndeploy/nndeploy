@@ -174,8 +174,9 @@ base::Status OnnxRuntimeInference::deinit() {
 
   // session_options_.release();
   session_.release();
-  // env_.release();
-  // session_ = Ort::Session{nullptr};
+  session_ = Ort::Session{nullptr};
+  env_.release();
+  session_ = Ort::Session{nullptr};
 
   return status;
 }
