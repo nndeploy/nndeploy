@@ -5,16 +5,19 @@ import { IParamTypes } from '../pages/Layout/Design/WorkFlow/entity';
 
 export const FlowEnviromentContext = React.createContext<
   {
-    nodeList?: INodeEntity[], 
+    nodeList?: INodeEntity[],
     element?: React.MutableRefObject<HTMLDivElement | null>;
     onSave?: (flowJson: FlowDocumentJSON) => void;
     onRun?: (flowJson: FlowDocumentJSON) => void;
-    paramTypes: IParamTypes
+    paramTypes: IParamTypes;
+    outputResources: string[];
   }
 
->({});
+>({
+  outputResources: []
+} as any);
 
-export function useFlowEnviromentContext(){
+export function useFlowEnviromentContext() {
   const context = React.useContext(FlowEnviromentContext);
   return context;
 }
