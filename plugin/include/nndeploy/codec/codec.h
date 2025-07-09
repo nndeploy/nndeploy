@@ -125,7 +125,8 @@ class NNDEPLOY_CC_API Decode : public dag::Node {
       return status;
     }
     // if (json.HasMember("flag_") && json["flag_"].IsString()) {
-    //   base::CodecFlag flag = base::stringToCodecFlag(json["flag_"].GetString());
+    //   base::CodecFlag flag =
+    //   base::stringToCodecFlag(json["flag_"].GetString());
     //   this->setCodecFlag(flag);
     // }
     if (json.HasMember("size_") && json["size_"].IsInt()) {
@@ -264,10 +265,12 @@ class NNDEPLOY_CC_API Encode : public dag::Node {
     // json.AddMember("size_", size_, allocator);
     json.AddMember("path_", rapidjson::Value(path_.c_str(), allocator),
                    allocator);
-    json.AddMember("ref_path_", rapidjson::Value(ref_path_.c_str(), allocator),
-                   allocator);
-    json.AddMember("fourcc_", rapidjson::Value(fourcc_.c_str(), allocator),
-                   allocator);
+    if (flag_ == base::kCodecFlagVideo) {
+      json.AddMember("ref_path_",
+                     rapidjson::Value(ref_path_.c_str(), allocator), allocator);
+      json.AddMember("fourcc_", rapidjson::Value(fourcc_.c_str(), allocator),
+                     allocator);
+    }
     return status;
   }
   using dag::Node::deserialize;
@@ -301,12 +304,12 @@ class NNDEPLOY_CC_API Encode : public dag::Node {
       status = setRefPath(json["ref_path_"].GetString());
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setRefPath failed");
     }
-    
+
     if (json.HasMember("path_") && json["path_"].IsString()) {
       status = setPath(json["path_"].GetString());
       NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "setPath failed");
     }
-    
+
     return status;
   }
 
