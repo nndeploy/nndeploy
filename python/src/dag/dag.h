@@ -82,6 +82,10 @@ class PyNode : public Base {
                            "get_external_param", getExternalParam, key);
   }
 
+  std::shared_ptr<RunStatus> getRunStatus() override {
+    PYBIND11_OVERRIDE_NAME(std::shared_ptr<RunStatus>, Base, "get_run_status", getRunStatus);
+  }
+
   virtual void setTraceFlag(bool flag) override {
     PYBIND11_OVERRIDE_NAME(void, Base, "set_trace_flag", setTraceFlag, flag);
   }

@@ -47,14 +47,14 @@ class ParallelPipelineExecutor : public Executor {
    *
    * 记录已提交但尚未完全处理完的任务总数
    */
-  int run_size_ = 0;
+  size_t run_size_ = 0;
 
   /**
    * @brief 已完成处理的任务数量
    *
    * 记录已经完成处理的任务数，用于跟踪流水线进度和同步
    */
-  int completed_size_ = 0;
+  size_t completed_size_ = 0;
   bool is_synchronize_ = false;
 };
 
