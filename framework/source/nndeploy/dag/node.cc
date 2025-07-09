@@ -530,6 +530,11 @@ void Node::setLoopCount(int loop_count) { loop_count_ = loop_count; }
 int Node::getLoopCount() { return loop_count_; }
 
 void Node::setRunningFlag(bool flag) {
+  if (flag) {
+    run_size_++;
+  } else if (flag == false && is_running_) {
+    completed_size_++;
+  }
   is_running_ = flag;
   if (is_time_profile_) {
     if (is_running_) {
@@ -547,6 +552,15 @@ void Node::setRunningFlag(bool flag) {
   }
 }
 bool Node::isRunning() { return is_running_; }
+size_t Node::getRunSize() { return run_size_; }
+size_t Node::getCompletedSize() { return completed_size_; }
+std::shared_ptr<RunStatus> Node::getRunStatus() {
+  if (graph_ != nullptr) {
+    return std::make_shared<RunStatus>(name_, is_running_, graph_->getRunSize(), run_size_, completed_size_);
+  } else {
+    return std::make_shared<RunStatus>(name_, is_running_, run_size_, run_size_, completed_size_);
+  }
+}
 
 void Node::setStream(device::Stream *stream) {
   if (stream_ != nullptr) {

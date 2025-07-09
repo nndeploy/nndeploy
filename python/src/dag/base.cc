@@ -102,6 +102,33 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
         "Convert EdgeTypeFlag to string representation");
   m.def("string_to_edge_type", &stringToEdgeType, py::arg("edge_type_str"),
         "Convert string to EdgeTypeFlag");
+
+  py::class_<RunStatus, std::shared_ptr<RunStatus>>(m, "RunStatus")
+      .def(py::init<>())
+      .def(py::init<const std::string&, bool, size_t, size_t, size_t>(),
+           py::arg("node_name"), py::arg("is_running"), py::arg("graph_run_size"),
+           py::arg("run_size"), py::arg("completed_size"))
+      .def(py::init<const RunStatus&>())
+      .def("get_status", &RunStatus::getStatus)
+      .def_readwrite("node_name", &RunStatus::node_name)
+      .def_readwrite("is_running", &RunStatus::is_running)
+      .def_readwrite("graph_run_size", &RunStatus::graph_run_size)
+      .def_readwrite("run_size", &RunStatus::run_size)
+      .def_readwrite("completed_size", &RunStatus::completed_size)
+      .def("__str__", [](const RunStatus& self) {
+        std::string str = "RunStatus(node_name=";
+        str += self.node_name;
+        str += ", is_running=";
+        str += std::to_string(self.is_running);
+        str += ", graph_run_size=";
+        str += std::to_string(self.graph_run_size);
+        str += ", run_size=";
+        str += std::to_string(self.run_size);
+        str += ", completed_size=";
+        str += std::to_string(self.completed_size);
+        str += ")";
+        return str;
+      });
 }
 
 }  // namespace dag

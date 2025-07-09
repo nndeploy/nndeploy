@@ -610,6 +610,71 @@ std::vector<Node *> Graph::getNodes() {
   return nodes;
 }
 
+std::vector<Node *> Graph::getNodesRecursive() {
+  std::vector<Node *> nodes;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getGraphFlag()) {
+      dag::Graph *graph = dynamic_cast<dag::Graph *>(node_wrapper->node_);
+      if (graph != nullptr) {
+        std::vector<Node *> graph_nodes = graph->getNodesRecursive();
+        nodes.insert(nodes.end(), graph_nodes.begin(), graph_nodes.end());
+      }
+    } else {
+      nodes.emplace_back(node_wrapper->node_);
+    }
+  }
+  return nodes;
+}
+
+std::vector<std::string> Graph::getNodesName() {
+  std::vector<std::string> names;
+  for (auto node_wrapper : node_repository_) {
+    names.emplace_back(node_wrapper->node_->getName());
+  }
+  return names;
+}
+
+std::vector<std::string> Graph::getNodesNameRecursive() {
+  std::vector<std::string> names;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getGraphFlag()) {
+      names.emplace_back(node_wrapper->node_->getName());
+      dag::Graph *graph = dynamic_cast<dag::Graph *>(node_wrapper->node_);
+      if (graph != nullptr) {
+        std::vector<std::string> graph_names = graph->getNodesNameRecursive();
+        names.insert(names.end(), graph_names.begin(), graph_names.end());
+      }
+    } else {
+      names.emplace_back(node_wrapper->node_->getName());
+    }
+  }
+  return names;
+}
+
+std::map<std::string, std::shared_ptr<RunStatus>> Graph::getNodesRunStatus() {
+  std::map<std::string, std::shared_ptr<RunStatus>> run_status_map;
+  for (auto node_wrapper : node_repository_) {
+    run_status_map[node_wrapper->node_->getName()] = node_wrapper->node_->getRunStatus();
+  }
+  return run_status_map;
+}
+
+std::map<std::string, std::shared_ptr<RunStatus>> Graph::getNodesRunStatusRecursive() {
+  std::map<std::string, std::shared_ptr<RunStatus>> run_status_map;
+  for (auto node_wrapper : node_repository_) {
+    if (node_wrapper->node_->getGraphFlag()) {
+      dag::Graph *graph = dynamic_cast<dag::Graph *>(node_wrapper->node_);
+      if (graph != nullptr) {
+        std::map<std::string, std::shared_ptr<RunStatus>> graph_run_status_map = graph->getNodesRunStatusRecursive();
+        run_status_map.insert(graph_run_status_map.begin(), graph_run_status_map.end());
+      }
+    } else {
+      run_status_map[node_wrapper->node_->getName()] = node_wrapper->node_->getRunStatus();
+    }
+  }
+  return run_status_map;
+}
+
 base::Status Graph::setNodeParam(const std::string &node_name,
                                  base::Param *param) {
   base::Status status = base::kStatusCodeOk;

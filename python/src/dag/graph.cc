@@ -81,6 +81,16 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::return_value_policy::reference)
       .def("get_node_count", &Graph::getNodeCount)
       .def("get_nodes", &Graph::getNodes, py::return_value_policy::reference)
+      .def("get_nodes_recursive", &Graph::getNodesRecursive,
+           py::return_value_policy::reference)
+      .def("get_nodes_name", &Graph::getNodesName,
+           py::return_value_policy::reference)
+      .def("get_nodes_name_recursive", &Graph::getNodesNameRecursive,
+           py::return_value_policy::reference)
+      .def("get_nodes_run_status", &Graph::getNodesRunStatus,
+           py::call_guard<py::gil_scoped_release>())
+      .def("get_nodes_run_status_recursive", &Graph::getNodesRunStatusRecursive,
+           py::call_guard<py::gil_scoped_release>())
       .def("set_node_param", &Graph::setNodeParamSharedPtr,
            py::arg("node_name"), py::arg("param"))
       .def("get_node_param", &Graph::getNodeParamSharedPtr,
@@ -110,7 +120,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
           },
           py::call_guard<py::gil_scoped_release>())
       .def("run", &Graph::run, py::call_guard<py::gil_scoped_release>())
-      .def("synchronize", &Graph::synchronize, py::call_guard<py::gil_scoped_release>())
+      .def("synchronize", &Graph::synchronize,
+           py::call_guard<py::gil_scoped_release>())
       .def("forward", py::overload_cast<std::vector<Edge *>>(&Graph::forward),
            py::arg("inputs"), py::keep_alive<1, 2>(),
            py::return_value_policy::reference,
@@ -152,7 +163,8 @@ NNDEPLOY_API_PYBIND11_MODULE("dag", m) {
            py::return_value_policy::reference)
       .def("trace", py::overload_cast<Edge *>(&Graph::trace), py::arg("input"),
            py::keep_alive<1, 2>(), py::return_value_policy::reference)
-      .def("to_static_graph", &Graph::toStaticGraph, py::return_value_policy::reference)
+      .def("to_static_graph", &Graph::toStaticGraph,
+           py::return_value_policy::reference)
       .def("get_edge_wrapper",
            py::overload_cast<Edge *>(&Graph::getEdgeWrapper), py::arg("edge"),
            py::return_value_policy::reference)
