@@ -652,17 +652,17 @@ int main(int argc, char *argv[]) {
       NNDEPLOY_LOGE("parallelGraph failed. ERROR: %d\n", ret);
       return ret;
     }
-     // parallel pipepline graph / sugraph task
-    ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                      base::kParallelTypePipeline);
-    if (ret != 0) {
-      return ret;
-    }
-    ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
-                        base::kParallelTypePipeline);
-    if (ret != 0) {
-      return ret;
-    }
+    // parallel pipepline graph / sugraph task
+    // ret = serialGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                   base::kParallelTypePipeline);
+    // if (ret != 0) {
+    //   return ret;
+    // }
+    // ret = parallelGraph(base::kParallelTypeTask, base::kParallelTypeTask,
+    //                     base::kParallelTypePipeline);
+    // if (ret != 0) {
+    //   return ret;
+    // }
 
     // TODO
     // loop graph - 暂不支持流水线并行模式
