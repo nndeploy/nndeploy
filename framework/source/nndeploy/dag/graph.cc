@@ -654,22 +654,27 @@ std::vector<std::string> Graph::getNodesNameRecursive() {
 std::map<std::string, std::shared_ptr<RunStatus>> Graph::getNodesRunStatus() {
   std::map<std::string, std::shared_ptr<RunStatus>> run_status_map;
   for (auto node_wrapper : node_repository_) {
-    run_status_map[node_wrapper->node_->getName()] = node_wrapper->node_->getRunStatus();
+    run_status_map[node_wrapper->node_->getName()] =
+        node_wrapper->node_->getRunStatus();
   }
   return run_status_map;
 }
 
-std::map<std::string, std::shared_ptr<RunStatus>> Graph::getNodesRunStatusRecursive() {
+std::map<std::string, std::shared_ptr<RunStatus>>
+Graph::getNodesRunStatusRecursive() {
   std::map<std::string, std::shared_ptr<RunStatus>> run_status_map;
   for (auto node_wrapper : node_repository_) {
     if (node_wrapper->node_->getGraphFlag()) {
       dag::Graph *graph = dynamic_cast<dag::Graph *>(node_wrapper->node_);
       if (graph != nullptr) {
-        std::map<std::string, std::shared_ptr<RunStatus>> graph_run_status_map = graph->getNodesRunStatusRecursive();
-        run_status_map.insert(graph_run_status_map.begin(), graph_run_status_map.end());
+        std::map<std::string, std::shared_ptr<RunStatus>> graph_run_status_map =
+            graph->getNodesRunStatusRecursive();
+        run_status_map.insert(graph_run_status_map.begin(),
+                              graph_run_status_map.end());
       }
     } else {
-      run_status_map[node_wrapper->node_->getName()] = node_wrapper->node_->getRunStatus();
+      run_status_map[node_wrapper->node_->getName()] =
+          node_wrapper->node_->getRunStatus();
     }
   }
   return run_status_map;
@@ -760,11 +765,11 @@ int Graph::getLoopCount() {
       }
     }
   }
-  
+
   if (!is_find_input) {
     return 1;
   }
-  if(is_loop_max_flag_) {
+  if (is_loop_max_flag_) {
     return loop_count_max;
   } else {
     return loop_count_min;
@@ -961,6 +966,7 @@ bool Graph::synchronize() {
 }
 
 std::vector<Edge *> Graph::forward(std::vector<Edge *> inputs) {
+  is_forward_api_ok_ = false;
   std::vector<Edge *> outputs;
   return outputs;
 };
@@ -995,6 +1001,7 @@ std::vector<Edge *> Graph::operator()(std::vector<Edge *> inputs) {
   }
 }
 std::vector<Edge *> Graph::forward() {
+  is_forward_api_ok_ = false;
   std::vector<Edge *> outputs;
   return outputs;
 }
@@ -1031,6 +1038,7 @@ std::vector<Edge *> Graph::operator()() {
 }
 
 std::vector<Edge *> Graph::forward(Edge *input) {
+  is_forward_api_ok_ = false;
   std::vector<Edge *> outputs;
   return outputs;
 }
@@ -1308,16 +1316,55 @@ std::vector<Edge *> Graph::trace(Edge *input) {
   return outputs;
 }
 
+bool Graph::isForwardApiOk() {
+  bool ret = is_forward_api_ok_;
+  is_forward_api_ok_ = true;
+  return ret;
+}
+
 base::Status Graph::toStaticGraph() {
   this->setTraceFlag(true);
   base::Status status = base::kStatusCodeOk;
   if (input_type_info_.size() == 0) {
     std::vector<Edge *> outputs = this->operator()();
+    if (isForwardApiOk()) {
+      return base::kStatusCodeOk;
+    } else {
+      Edge *input = nullptr;
+      std::vector<Edge *> outputs = this->operator()(input);
+      if (isForwardApiOk()) {
+        return base::kStatusCodeOk;
+      } else {
+        std::vector<Edge *> inputs;
+        std::vector<Edge *> outputs = this->operator()(inputs);
+        if (isForwardApiOk()) {
+          return base::kStatusCodeOk;
+        } else {
+          NNDEPLOY_LOGE("graph[%s] is not implemented forward api! %d\n",
+            name_.c_str(), isForwardApiOk());
+          return base::kStatusCodeErrorNotSupport;
+        }
+      }
+    }
   } else if (input_type_info_.size() == 1) {
-    std::string name = this->getName() + "@" + "input_" +  std::to_string(0);
+    std::string name = this->getName() + "@" + "input_" + std::to_string(0);
     Edge *edge = new Edge(name);
     this->addEdge(edge, false);
     std::vector<Edge *> outputs = this->operator()(edge);
+    if (isForwardApiOk()) {
+      return base::kStatusCodeOk;
+    } else {
+      std::vector<Edge *> inputs;
+      inputs.emplace_back(edge);
+      std::vector<Edge *> outputs = this->operator()(inputs);
+      if (isForwardApiOk()) {
+        return base::kStatusCodeOk;
+      } else {
+        NNDEPLOY_LOGE("graph[%s] is not implemented forward api! %d\n",
+          name_.c_str(), isForwardApiOk());
+        return base::kStatusCodeErrorNotSupport;
+      }
+    }
     // delete edge;
   } else {
     std::vector<Edge *> edges;

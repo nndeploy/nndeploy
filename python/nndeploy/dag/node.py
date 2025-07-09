@@ -279,43 +279,30 @@ def create_node(node_key: str, node_name: str, inputs: list[Edge] = None, output
 def get_node_json(node_key: str):
     node_name = node_key.split("::")[-1]
     node_name = node_name.split(".")[-1]
-    print(node_key)
+    # print(node_key)
     node = create_node(node_key, node_name)
     if node is None:
         raise RuntimeError(f"create_node failed: {node_key}")
     
+    status = nndeploy.base.StatusCode.Ok
     # status = node.default_param()
     # if status != nndeploy.base.StatusCode.Ok:
     #     raise RuntimeError(f"default_param failed: {status}")
     
-    print(node)   
+    # print(node)   
     is_graph = node.get_graph_flag()
     is_graph_type = isinstance(node, _C.dag.Graph)
     if is_graph and is_graph_type:
-        print(node)        
+        # print(node)        
         node.set_inner_flag(True)
-        node.to_static_graph()
-        print(node)
-        # input_type_info = node.get_input_type_info()
-        # if input_type_info is not None:
-        #     outputs = node.trace()
-        # elif len(input_type_info) == 1:
-        #     name = node.get_name() + "@" + "input_" + str(0)
-        #     edge = nndeploy.dag.Edge(name)
-        #     outputs = node.trace([edge])
-        # else:
-        #     edges = []
-        #     for i in range(len(input_type_info)):
-        #         name = node.get_name() + "@" + "input_" + str(i)
-        #         edge = nndeploy.dag.Edge(name)
-        #         edges.append(edge)
-        #     outputs = node.trace(edges)  
-        # if node.get_key() == "nndeploy::detect::ClassificationGraph":
-        #     node.to_static_graph()
-    print(node)          
-    if node is not None:
+        status = node.to_static_graph()
+        if status != nndeploy.base.StatusCode.Ok:
+            print(f"to_static_graph failed: {status}")     
+    if status == nndeploy.base.StatusCode.Ok:
         json_str = node.serialize()
         return json_str
+    else:
+        return ""
 
 
 remove_node_keys = ["nndeploy::dag::Graph", "nndeploy.dag.Graph", "nndeploy::dag::RunningCondition"]
@@ -346,11 +333,14 @@ def get_all_node_json():
     node_json = "{\"nodes\":["
     for node_key in real_node_keys:
         json = get_node_json(node_key)
+        if json == "":
+            continue
         node_json += json
         if node_key != real_node_keys[-1]:
             node_json += ","
     node_json += "]}"
     
+    # print(node_json)
     # 美化json
     node_json = nndeploy.base.pretty_json_str(node_json)
     return node_json
