@@ -41,7 +41,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   // const { node } = useNodeRender();
 
-  const { nodeList = [], paramTypes, element: flowElementRef } = useFlowEnviromentContext()
+  const { nodeList = [], paramTypes, element: flowElementRef, outputResources } = useFlowEnviromentContext()
+
 
 
   //console.log("form.values", form.values);
@@ -65,7 +66,11 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     "outputs_",
     "node_repository_",
     'is_dynamic_input_',
-    'is_dynamic_output_'
+    'is_dynamic_output_', 
+    "is_graph_", 
+    "is_inner_", 
+    "node_type_"
+
   ];
   const basicFields = lodash.difference(
     Object.keys(form.values),
@@ -88,7 +93,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
 
   }
 
-  function isImageNode() {
+  function isMediaNode() {
 
     const imageNodes: string[] = ['nndeploy::codec::OpenCvImageDecode', 'nndeploy::codec::OpenCvImageEncode']
     if (imageNodes.includes(key_)) {
@@ -96,6 +101,24 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     }
     return false
   }
+
+  function isInputMediaNode(){
+     const imageNodes: string[] = ['nndeploy::codec::OpenCvImageDecode']
+    if (imageNodes.includes(key_)) {
+      return true
+    }
+    return false
+  }
+
+   function isOutputMediaNode(){
+     const imageNodes: string[] = ['nndeploy::codec::OpenCvImageEncode']
+    if (imageNodes.includes(key_)) {
+      return true
+    }
+    return false
+  }
+
+  
   function isImageFile(filename: string) {
     // 支持的图片后缀（不区分大小写）
     const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.tiff'];
@@ -146,6 +169,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     // const container = document.querySelector('div.demo-container')! as HTMLDivElement
     // //const container = document.querySelector('#root')! as HTMLDivElement  //div.demo-container
     // return container
+  }
+  function needShowMedia(){
+      return isInputMediaNode() || (isOutputMediaNode() && outputResources.includes(form.getValueIn('name_')))  //path_.includes('&time=')
   }
 
   return (
@@ -239,8 +265,8 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
               </div>
             </div>
             {
-              isImageNode() && path_ && isImageFile(path_) &&
-              <div className="image-preview">
+              needShowMedia() &&
+              <div className="resource-preview">
                 {
                   (() => {
                     const url = `/api/preview?file_path=${path_}`
