@@ -563,10 +563,10 @@ std::shared_ptr<RunStatus> Node::getRunStatus() {
   }
   if (graph_ != nullptr) {
     return std::make_shared<RunStatus>(name_, is_running_, graph_->getRunSize(),
-                                       run_size_, completed_size_, cost_time, average_time);
+                                       run_size_, completed_size_);
   } else {
     return std::make_shared<RunStatus>(name_, is_running_, run_size_, run_size_,
-                                       completed_size_, cost_time, average_time);
+                                       completed_size_);
   }
 }
 
@@ -633,6 +633,7 @@ base::EdgeUpdateFlag Node::updateInput() {
   return flag;
 }
 
+bool Node::synchronize() { return true; }
 bool Node::synchronize() { return true; }
 
 std::vector<Edge *> Node::forward(std::vector<Edge *> inputs) {

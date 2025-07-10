@@ -115,12 +115,11 @@ class NNDEPLOY_CC_API DDIMSchedule : public dag::Node {
 
   virtual ~DDIMSchedule() {}
 
-  void setSchedulerParam(DDIMSchedulerParam *param) { schedule_param_ = param; }
   void setScheduler(Scheduler *scheduler) { scheduler_ = scheduler; }
 
   virtual base::Status init() {
     base::Status status = base::kStatusCodeOk;
-    DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)schedule_param_;
+    DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)param_.get();
 
     device::Device *device = device::getDefaultHostDevice();
     device::TensorDesc noise_desc;
@@ -172,7 +171,7 @@ class NNDEPLOY_CC_API DDIMSchedule : public dag::Node {
   }
 
   virtual base::Status run() {
-    DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)schedule_param_;
+    DDIMSchedulerParam *ddim_param = (DDIMSchedulerParam *)param_.get();
     device::Device *device = device::getDefaultHostDevice();
     device::TensorDesc latent_desc;
     latent_desc.data_type_ = base::dataTypeOf<float>();
@@ -208,7 +207,6 @@ class NNDEPLOY_CC_API DDIMSchedule : public dag::Node {
 
  private:
   Scheduler *scheduler_ = nullptr;
-  SchedulerParam *schedule_param_ = nullptr;
 
   bool do_classifier_free_guidance_ = false;
 
@@ -238,6 +236,16 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     ddim_schedule_ =
         (DDIMSchedule *)this->createNode<DDIMSchedule>("ddim_schedule");
 
+    dag::NodeDesc infer_desc("unet_infer",
+                             {"embeddings", "cfg_latents", "timestep"},
+                             {"unet_output"});
+    this->setNodeDesc(infer_, infer_desc);
+
+    dag::NodeDesc schedule_desc("ddim_schedule",
+                                {"unet_output", "prev_latents", "timestep"},
+                                {"latents"});
+    this->setNodeDesc(ddim_schedule_, schedule_desc);
+
     scheduler_ = createScheduler(scheduler_type_);
   }
 
@@ -248,30 +256,15 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     }
   }
 
-  virtual base::Status make() {
-    base::Status status = base::kStatusCodeOk;
-    dag::NodeDesc infer_desc("unet_infer",
-                             {"embeddings", "cfg_latents", "timestep"},
-                             {"unet_output"});
-    this->setNodeDesc(infer_, infer_desc);
-    status = infer_->setInferenceType(inference_type_);
-
-    dag::NodeDesc schedule_desc("ddim_schedule",
-                                {"unet_output", "prev_latents", "timestep"},
-                                {"latents"});
-    this->setNodeDesc(ddim_schedule_, schedule_desc);
-    return status;
-  }
-
   virtual base::Status init() {
     base::Status status = base::kStatusCodeOk;
 
     device_ = device::getDefaultHostDevice();
 
-    status = this->make();
-    NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk, "make failed!");
+    auto schedule_param_ =
+        dynamic_cast<DDIMSchedulerParam *>(ddim_schedule_->getParam());
 
-    status = scheduler_->init(schedule_param_.get());
+    status = scheduler_->init(schedule_param_);
     NNDEPLOY_RETURN_ON_NEQ(status, base::kStatusCodeOk,
                            "scheduler init failed!");
 
@@ -296,17 +289,8 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     dag::Edge *timestep_edge = this->getEdge("timestep");
     timestep_ = timestep_edge->create(device_, timesteps_desc);
 
-    inference::InferenceParam *infer_param = new inference::InferenceParam();
-    infer_param->device_type_ = text2image_param_->device_type_;
-    infer_param->model_type_ = text2image_param_->model_type_;
-    infer_param->is_path_ = text2image_param_->is_path_;
-    std::vector<std::string> onnx_path = {text2image_param_->model_value_[2]};
-    infer_param->model_value_ = onnx_path;
-
-    infer_->setParam(infer_param);
     infer_->init();
 
-    ddim_schedule_->setSchedulerParam(schedule_param_.get());
     ddim_schedule_->setScheduler(scheduler_);
     ddim_schedule_->init();
 
@@ -329,6 +313,9 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
 
   virtual base::Status run() {
     base::Status status = base::kStatusCodeOk;
+
+    auto schedule_param_ =
+        dynamic_cast<DDIMSchedulerParam *>(ddim_schedule_->getParam());
 
     device::Tensor *init_latents = this->getInput(0)->getTensor(this);
     device::TensorDesc latents_desc;
@@ -379,16 +366,33 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
     return status;
   }
 
-  void setScheduleParam(DDIMSchedulerParam *param) {
-    schedule_param_ = std::make_shared<DDIMSchedulerParam>(*param);
+  void setScheduleParam(DDIMSchedulerParam *ddim_param) {
+    if (ddim_param == nullptr || ddim_schedule_ == nullptr) {
+      return;
+    }
+    auto param = dynamic_cast<DDIMSchedulerParam *>(ddim_schedule_->getParam());
+    if (param) {
+      *param = *ddim_param;
+    } else {
+      ddim_schedule_->setParam(new DDIMSchedulerParam(*ddim_param));
+    }
   }
 
-  void setText2ImageParam(Text2ImageParam *param) {
-    text2image_param_ = std::make_shared<Text2ImageParam>(*param);
+  void setInferenceParam(inference::InferenceParam *infer_param) {
+    if (infer_param == nullptr || infer_ == nullptr) {
+      return;
+    }
+    auto param = dynamic_cast<inference::InferenceParam *>(infer_->getParam());
+    if (param) {
+      *param = *infer_param;
+    } else {
+      infer_->setParam(new inference::InferenceParam(*infer_param));
+    }
   }
 
   void setInferenceType(base::InferenceType inference_type) {
     inference_type_ = inference_type;
+    infer_->setInferenceType(inference_type_);
   }
 
  private:
@@ -396,9 +400,6 @@ class NNDEPLOY_CC_API Denoise : public dag::CompositeNode {
 
   SchedulerType scheduler_type_;
   Scheduler *scheduler_ = nullptr;  // DDIMScheduler
-
-  std::shared_ptr<DDIMSchedulerParam> schedule_param_;
-  std::shared_ptr<Text2ImageParam> text2image_param_;
 
   device::Tensor *cfg_latents_ = nullptr;
   device::Tensor *timestep_ = nullptr;
@@ -433,9 +434,16 @@ class NNDEPLOY_CC_API DenoiseGraph : public dag::Graph {
     Text2ImageParam *text_image_param_ = dynamic_cast<Text2ImageParam *>(
         getExternalParam("text_image_param").get());
 
+    inference::InferenceParam *infer_param = new inference::InferenceParam();
+    infer_param->device_type_ = text_image_param_->device_type_;
+    infer_param->model_type_ = text_image_param_->model_type_;
+    infer_param->is_path_ = text_image_param_->is_path_;
+    std::vector<std::string> onnx_path = {text_image_param_->model_value_[2]};
+    infer_param->model_value_ = onnx_path;
+
     init_latents_->setParam(ddim_param_);
     denoise_->setScheduleParam(ddim_param_);
-    denoise_->setText2ImageParam(text_image_param_);
+    denoise_->setInferenceParam(infer_param);
 
     return base::kStatusCodeOk;
   }

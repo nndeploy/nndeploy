@@ -169,14 +169,28 @@ def test_static_graph_from_json():
     nndeploy.base.time_point_end("test_yolo_from_json")
     nndeploy.base.time_profiler_print("test_yolo_from_json")
 
+def test_static_sd_graph_from_json():
+    yolo_demo = nndeploy.dag.Graph("nndeploy::dag::Graph")
+    print("load file")
+    yolo_demo.load_file("/home/lds/nndeploy/server/resources/workflow/sd_v1.json")
+    print("load file success!")
+    yolo_demo.set_time_profile_flag(True)
+    yolo_demo.set_debug_flag(True);
+    yolo_demo.init()
+    print("init success!")
+    nndeploy.base.time_point_start("test_yolo_from_json")
+    yolo_demo.run()
+    nndeploy.base.time_point_end("test_yolo_from_json")
+    nndeploy.base.time_profiler_print("test_yolo_from_json")
     
 if __name__ == "__main__":
     # test_yolo()
     # test_yolo_from_json()
-    for i in range(10):
-        test_static_yolo_from_json()
-        print(f"test_static_yolo_from_json {i}")
+    # for i in range(10):
+    #     test_static_yolo_from_json()
+    #     print(f"test_static_yolo_from_json {i}")
     # test_static_graph_from_json()
+    test_static_sd_graph_from_json()
     
         
         

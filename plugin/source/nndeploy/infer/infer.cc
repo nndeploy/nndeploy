@@ -6,7 +6,9 @@ namespace infer {
 
 Infer::Infer(const std::string &name) : dag::Node(name) {
   key_ = "nndeploy::infer::Infer";
-  desc_ = "Universal Inference Node - Enables cross-platform model deployment with multiple inference backends while maintaining native performance";
+  desc_ =
+      "Universal Inference Node - Enables cross-platform model deployment with "
+      "multiple inference backends while maintaining native performance";
   this->setInputTypeInfo<device::Tensor>();
   this->setOutputTypeInfo<device::Tensor>();
   // NNDEPLOY_LOGI("Infer constructor: %s", name.c_str());
@@ -19,7 +21,9 @@ Infer::Infer(const std::string &name, std::vector<dag::Edge *> inputs,
              std::vector<dag::Edge *> outputs)
     : dag::Node(name, inputs, outputs) {
   key_ = "nndeploy::infer::Infer";
-  desc_ = "Universal Inference Node - Enables cross-platform model deployment with multiple inference backends while maintaining native performance";
+  desc_ =
+      "Universal Inference Node - Enables cross-platform model deployment with "
+      "multiple inference backends while maintaining native performance";
   if (inputs.size() == 0) {
     this->setInputTypeInfo<device::Tensor>();
   }
@@ -191,11 +195,11 @@ base::Status Infer::setParam(base::Param *param) {
   status = inference_->setParam(param);
   return status;
 }
-base::Param *Infer::getParam() { 
+base::Param *Infer::getParam() {
   if (inference_ == nullptr) {
     return nullptr;
   }
-  return inference_->getParam(); 
+  return inference_->getParam();
 }
 
 base::Status Infer::setParamSharedPtr(std::shared_ptr<base::Param> param) {
@@ -374,7 +378,7 @@ base::Status Infer::run() {
     output_count++;
 #endif
 
-    auto* internal_output = inference_->getOutputTensor(name);
+    auto *internal_output = inference_->getOutputTensor(name);
     if (internal_output != tensor) {
       outputs_[i]->set(tensor, false);
     } else {

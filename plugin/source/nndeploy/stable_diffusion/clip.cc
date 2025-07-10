@@ -56,7 +56,7 @@ class NNDEPLOY_CC_API ConcatEmbedding : public dag::Node {
   ConcatEmbedding(const std::string &name, std::vector<dag::Edge *> inputs,
                   std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::stable_diffusion::Concat";
+    key_ = "nndeploy::stable_diffusion::ConcatEmbedding";
     desc_ = "concat embedding";
     this->setInputTypeInfo<device::Tensor>();
     this->setInputTypeInfo<device::Tensor>();
