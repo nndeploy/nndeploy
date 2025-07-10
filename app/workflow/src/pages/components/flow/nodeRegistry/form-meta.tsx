@@ -171,7 +171,7 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
     // return container
   }
   function needShowMedia(){
-      return isInputMediaNode() || (isOutputMediaNode() && outputResources.includes(form.getValueIn('name_')))  //path_.includes('&time=')
+      return isInputMediaNode() || (isOutputMediaNode() && path_.includes('&time=') )  //outputResources.includes(form.getValueIn('name_'))
   }
 
   return (
