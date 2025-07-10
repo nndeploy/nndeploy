@@ -243,7 +243,7 @@ base::Status Infer::init() {
     std::string default_name = "input_" + std::to_string(i);
     if (input_type_info_[i]->getEdgeName().empty() ||
         input_type_info_[i]->getEdgeName() == default_name) {
-      // NNDEPLOY_LOGE("input_type_info_[%d] is empty, set to %s", i,
+      // NNDEPLOY_LOGE("input_type_info_[%d] is empty, set to %s\n", i,
       //               input_names[i].c_str());
       input_type_info_[i]->setEdgeName(input_names[i]);
     }
@@ -259,7 +259,7 @@ base::Status Infer::init() {
     std::string default_name = "output_" + std::to_string(i);
     if (output_type_info_[i]->getEdgeName().empty() ||
         output_type_info_[i]->getEdgeName() == default_name) {
-      // NNDEPLOY_LOGE("output_type_info_[%d] is empty, set to %s", i,
+      // NNDEPLOY_LOGE("output_type_info_[%d] is empty, set to %s\n", i,
       //               output_names[i].c_str());
       output_type_info_[i]->setEdgeName(output_names[i]);
     }
@@ -344,6 +344,7 @@ base::Status Infer::run() {
     if (inference_output_names_.find(name) == inference_output_names_.end()) {
       name = output_type_info_[i]->getEdgeName();
     }
+    // NNDEPLOY_LOGI("getOutputTensorAfterRun[%s].\n", name.c_str());
     base::ParallelType parallel_type = outputs_[i]->getParallelType();
     bool flag = parallel_type == base::kParallelTypePipeline;
     device::Tensor *tensor =
@@ -394,7 +395,11 @@ base::Status Infer::serialize(rapidjson::Value &json,
   if (status != base::kStatusCodeOk) {
     return status;
   }
-  std::string type_str = base::inferenceTypeToString(type_);
+  auto type = type_;
+  if (type == base::kInferenceTypeNotSupport) {
+    type = base::kInferenceTypeOnnxRuntime;
+  }
+  std::string type_str = base::inferenceTypeToString(type);
   json.AddMember("type_", rapidjson::Value(type_str.c_str(), allocator),
                  allocator);
   // json.AddMember("is_input_dynamic_", is_input_dynamic_, allocator);
