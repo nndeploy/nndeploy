@@ -291,6 +291,8 @@ const Design: React.FC = () => {
             size="small"
             className="tabs top-tabs"
             onTabClose={handleTabClose}
+            tabPaneMotion={false}
+
             keepDOM={true}
             tabBarExtraContent={
               <Tooltip content="add" position="top">
