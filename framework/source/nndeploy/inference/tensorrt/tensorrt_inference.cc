@@ -110,21 +110,23 @@ base::Status TensorRtInference::init() {
       current_shape.insert({name, shape});
     }
   }
-  for (auto iter : tensorrt_inference_param->max_shape_) {
-    auto tmp = current_shape.find(iter.first);
-    if (tmp != current_shape.end()) {
-      auto &shape = current_shape[iter.first];
-      if (base::shapeEqual(iter.second, shape)) {
-        continue;
+  if (tensorrt_inference_param->is_dynamic_shape_) {
+    for (auto iter : tensorrt_inference_param->max_shape_) {
+      auto tmp = current_shape.find(iter.first);
+      if (tmp != current_shape.end()) {
+        auto &shape = current_shape[iter.first];
+        if (base::shapeEqual(iter.second, shape)) {
+          continue;
+        } else {
+          int idx = io_name_index_[iter.first];
+          nvinfer1::Dims dims = TensorRtConvert::convertFromShape(iter.second);
+          setBindingDimensions(idx, dims);
+        }
       } else {
-        int idx = io_name_index_[iter.first];
-        nvinfer1::Dims dims = TensorRtConvert::convertFromShape(iter.second);
-        setBindingDimensions(idx, dims);
+        NNDEPLOY_LOGE("reshape failed, not found input tensor(%s)!\n",
+                      iter.first.c_str());
+        return base::kStatusCodeErrorInferenceTensorRt;
       }
-    } else {
-      NNDEPLOY_LOGE("reshape failed, not found input tensor(%s)!\n",
-                    iter.first.c_str());
-      return base::kStatusCodeErrorInferenceTensorRt;
     }
   }
 
