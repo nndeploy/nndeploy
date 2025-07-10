@@ -261,7 +261,8 @@ base::Status CompositeNode::updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
   return base::kStatusCodeOk;
 }
 
-// Node *CompositeNode::createNode(const std::string &key, const std::string &name) {
+// Node *CompositeNode::createNode(const std::string &key, const std::string
+// &name) {
 //   if (used_node_names_.find(name) != used_node_names_.end()) {
 //     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
 //     return nullptr;
@@ -275,8 +276,8 @@ base::Status CompositeNode::updteEdge(EdgeWrapper *edge_wrapper, Edge *edge,
 //     NNDEPLOY_LOGE("create node[%s] failed!\n", name.c_str());
 //     return nullptr;
 //   }
-//   // NNDEPLOY_LOGE("create node[%s, %p] success!\n", unique_name.c_str(), node);
-//   NodeWrapper *node_wrapper = new NodeWrapper();
+//   // NNDEPLOY_LOGE("create node[%s, %p] success!\n", unique_name.c_str(),
+//   node); NodeWrapper *node_wrapper = new NodeWrapper();
 //   node_wrapper->is_external_ = false;
 //   node_wrapper->node_ = node;
 //   node_wrapper->name_ = unique_name;
@@ -533,7 +534,7 @@ std::vector<Node *> CompositeNode::getNodesByKey(const std::string &key) {
 }
 
 base::Status CompositeNode::setNodeParam(const std::string &node_name,
-                                 base::Param *param) {
+                                         base::Param *param) {
   base::Status status = base::kStatusCodeOk;
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(param, "param is null!");
   NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
@@ -548,8 +549,8 @@ base::Param *CompositeNode::getNodeParam(const std::string &node_name) {
   return node_wrapper->node_->getParam();
 }
 
-base::Status CompositeNode::setNodeParamSharedPtr(const std::string &node_name,
-                                          std::shared_ptr<base::Param> param) {
+base::Status CompositeNode::setNodeParamSharedPtr(
+    const std::string &node_name, std::shared_ptr<base::Param> param) {
   NodeWrapper *node_wrapper = findNodeWrapper(node_repository_, node_name);
   NNDEPLOY_CHECK_PARAM_NULL_RET_STATUS(node_wrapper, "node_wrapper is null!");
   base::Status status = node_wrapper->node_->setParamSharedPtr(param);
@@ -562,9 +563,8 @@ std::shared_ptr<base::Param> CompositeNode::getNodeParamSharedPtr(
   return node_wrapper->node_->getParamSharedPtr();
 }
 
-
 base::Status CompositeNode::updateNodeIO(Node *node, std::vector<Edge *> inputs,
-                                 std::vector<Edge *> outputs) {
+                                         std::vector<Edge *> outputs) {
   base::Status status = base::kStatusCodeOk;
   // 找到node对应的node_wrapper
   NodeWrapper *node_wrapper = nullptr;
@@ -662,7 +662,8 @@ base::Status CompositeNode::init() {
     }
     status = node_wrapper->node_->init();
     if (status != base::kStatusCodeOk) {
-      NNDEPLOY_LOGE("node[%s] init failed!\n", node_wrapper->node_->getName().c_str());
+      NNDEPLOY_LOGE("node[%s] init failed!\n",
+                    node_wrapper->node_->getName().c_str());
     }
     node_wrapper->node_->setInitializedFlag(true);
   }
@@ -682,7 +683,8 @@ base::Status CompositeNode::deinit() {
   return status;
 }
 
-// Node *CompositeNode::createNode4Py(const std::string &key, const std::string &name) {
+// Node *CompositeNode::createNode4Py(const std::string &key, const std::string
+// &name) {
 //   if (used_node_names_.find(name) != used_node_names_.end()) {
 //     NNDEPLOY_LOGE("node name[%s] is already used!\n", name.c_str());
 //     return nullptr;
@@ -696,8 +698,8 @@ base::Status CompositeNode::deinit() {
 //     NNDEPLOY_LOGE("create node[%s] failed!\n", name.c_str());
 //     return nullptr;
 //   }
-//   // NNDEPLOY_LOGE("create node[%s, %p] success!\n", unique_name.c_str(), node);
-//   NodeWrapper *node_wrapper = new NodeWrapper();
+//   // NNDEPLOY_LOGE("create node[%s, %p] success!\n", unique_name.c_str(),
+//   node); NodeWrapper *node_wrapper = new NodeWrapper();
 //   node_wrapper->is_external_ = true;
 //   node_wrapper->node_ = node;
 //   node_wrapper->name_ = unique_name;
@@ -891,8 +893,8 @@ base::Status CompositeNode::construct() {
   // 没有生产者的为输入边
   for (auto edge_wrapper : edge_repository_) {
     if (edge_wrapper->producers_.empty()) {
-      auto it = std::find(inputs_.begin(), inputs_.end(),
-      edge_wrapper->edge_); if (it == inputs_.end()) {
+      auto it = std::find(inputs_.begin(), inputs_.end(), edge_wrapper->edge_);
+      if (it == inputs_.end()) {
         inputs_.emplace_back(edge_wrapper->edge_);
       }
     }

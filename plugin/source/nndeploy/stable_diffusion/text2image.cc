@@ -18,7 +18,7 @@ class NNDEPLOY_CC_API InitTokenText : public dag::Node {
   InitTokenText(const std::string &name, std::vector<dag::Edge *> inputs,
                 std::vector<dag::Edge *> outputs)
       : dag::Node(name, inputs, outputs) {
-    key_ = "nndeploy::stable_diffusion::TokenParam";
+    key_ = "nndeploy::stable_diffusion::InitTokenText";
     desc_ = "construct tokenize text [String => TokenizerText]";
     this->setOutputTypeInfo<tokenizer::TokenizerText>();
     node_type_ = dag::NodeType::kNodeTypeInput;
