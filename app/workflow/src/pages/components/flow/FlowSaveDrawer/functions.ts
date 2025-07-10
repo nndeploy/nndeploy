@@ -659,6 +659,10 @@ export function transferBusinessContentToDesignContent(
     var outputInfo = outputMap[connectionName];
     var sourceInfos = inputMap[connectionName];
 
+    if(!sourceInfos){
+      continue
+    }
+
     sourceInfos.map(sourceInfo=>{
        var connection: WorkflowEdgeJSON = {
       sourceNodeID: outputInfo.nodeId,

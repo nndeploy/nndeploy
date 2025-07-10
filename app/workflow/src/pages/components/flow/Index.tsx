@@ -226,50 +226,50 @@ const Flow: React.FC<FlowProps> = (props) => {
         const response = JSON.parse(event.data);
         if (response.flag === "success" && response.result?.task_id && response.result?.path) {
 
-          const nodeNames:string[] = response.result?.path.map( (item:any)=>item.path)
+          const nodeNames: string[] = response.result?.path.map((item: any) => item.path)
 
           setOutputResources(nodeNames)
-          // const taskId = response.result.task_id;
+          const taskId = response.result.task_id;
 
-          // for (let i = 0; i < response.result.path.length; i++) {
-          //   const item = response.result.path[i]
+          for (let i = 0; i < response.result.path.length; i++) {
+            const item = response.result.path[i]
 
-          //   const { name: nodeName, path: path_ } = item as { name: string, path: string }
+            const { name: nodeName, path: path_ } = item as { name: string, path: string }
 
-          //   const designContent = entity.designContent
+            const designContent = entity.designContent
 
-          //   modifyNodeByName(nodeName, { path_: `${path_}&time=${Date.now()}` }, designContent)
-
-
-          //   const newDesinContent = JSON.parse(JSON.stringify(designContent))
-          //   setEntity({ ...entity, designContent: newDesinContent });
-
-          //   ref?.current?.document.reload(newDesinContent);
-          //   setTimeout(() => {
-          //     // 加载后触发画布的 fitview 让节点自动居中
-          //     ref?.current?.document.fitView();
-
-          //     autoLayOutRef.current?.autoLayout()
-          //     //tools.autoLayout()
-
-          //   }, 100);
-
-          //   // ref?.current?.document.getAllNodes().forEach((node: FlowNodeEntity) => {
+            modifyNodeByName(nodeName, { path_: `${path_}&time=${Date.now()}` }, designContent)
 
 
-          //   //   const form = getNodeForm(node);
-          //   //   if (form?.getValueIn('name_') == nodeName) {
-          //   //     form?.setValueIn('path_', `${path_}&time=${Date.now()}`)
-          //   //   }
+            const newDesinContent = JSON.parse(JSON.stringify(designContent))
+            setEntity({ ...entity, designContent: newDesinContent });
+
+            ref?.current?.document.reload(newDesinContent);
+            setTimeout(() => {
+              // 加载后触发画布的 fitview 让节点自动居中
+              ref?.current?.document.fitView();
+
+              autoLayOutRef.current?.autoLayout()
+              //tools.autoLayout()
+
+            }, 100);
+
+            //   // ref?.current?.document.getAllNodes().forEach((node: FlowNodeEntity) => {
 
 
-          //   //   //node.path_ =  `${path_}&time=${Date.now()}`
+            //   //   const form = getNodeForm(node);
+            //   //   if (form?.getValueIn('name_') == nodeName) {
+            //   //     form?.setValueIn('path_', `${path_}&time=${Date.now()}`)
+            //   //   }
 
-          //   // })
-          //   // ref?.current?.document.fitView();
-          //   // autoLayOutRef.current?.autoLayout()
 
-          // }
+            //   //   //node.path_ =  `${path_}&time=${Date.now()}`
+
+            //   // })
+            //   // ref?.current?.document.fitView();
+            //   // autoLayOutRef.current?.autoLayout()
+
+          }
 
 
 
